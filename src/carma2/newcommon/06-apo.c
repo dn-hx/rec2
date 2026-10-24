@@ -6,11 +6,23 @@
 #include "41-utility.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "27-powerup.h"
+#include "08-loading1.h"
 
 #include "c2_stdio.h"
 #include "c2_string.h"
 
-// MaxOutAPO
+// GLOBAL: CARMA2_HW 0x00762130
+int gInitial_powerup_slots[3];
+
+// GLOBAL: CARMA2_HW 0x0068b8e4
+int gINT_0068b8e4;
+
+// GLOBAL: CARMA2_HW 0x0068b8e8
+int gINT_0068b8e8;
+
+// GLOBAL: CARMA2_HW 0x0074a734
+int gIt_or_fox;
 
 // FUNCTION: CARMA2_HW 0x00502e00
 void C2_HOOK_FASTCALL MaxOutAPO(void) {
