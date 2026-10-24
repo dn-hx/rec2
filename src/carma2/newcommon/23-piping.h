@@ -432,7 +432,7 @@ extern void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr);
 
 // ApplyPipedSession
 
-// MoveSessionPointerBackOne
+extern int C2_HOOK_FASTCALL MoveSessionPointerBackOne(tU8** pSession);
 
 // MoveSessionPointerForwardOne
 
