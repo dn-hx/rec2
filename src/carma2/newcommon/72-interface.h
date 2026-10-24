@@ -185,6 +185,7 @@ extern int C2_HOOK_FASTCALL FRONTEND_StartGameMenuHandler(tFrontend_spec* pFront
 
 extern int C2_HOOK_FASTCALL CreditsScreenInfunc(tFrontend_spec* pFrontend);
 
+extern int C2_HOOK_FASTCALL CreditsScreenOutfunc(tFrontend_spec* pFrontend);
 // FRONTEND_GenericMenuHandler
 
 extern void C2_HOOK_FASTCALL FRONTEND_CreateMenuButton(tFrontend_brender_item* pFrontend_brender_item, tS16 pX, tS16 pY, tS16 pWidth, tS16 pHeight, br_colour pColour, br_pixelmap* pMap, const char* pText);
