@@ -158,8 +158,7 @@ extern void C2_HOOK_FASTCALL CrushShapeFinishVertex(br_vector3* pVertexPos, tU16
 
 extern void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_crush* pSrc);
 
-// ExpandCrush
-
+extern void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc);
 // RemoveDuplicatePoints
 
 // SimpleCrushModel
