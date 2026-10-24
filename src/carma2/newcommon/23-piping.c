@@ -746,9 +746,14 @@ void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, int pFlags) {
     NOT_IMPLEMENTED();
 }
 
-// PipeSingleVanishedDismembered
+// FUNCTION: CARMA2_HW 0x004c8e10
+void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pPed, undefined4 pArg2, undefined4 pArg3) {
 
-// PipeSingleDSModel
+    ARDoSingleVariedSession(ePipe_chunk_single_vanished_dismembered, (uintptr_t)pPed, 2,
+        4, 0, pArg2,
+        4, 4, pArg3);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c8e80
 void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pValue) {
