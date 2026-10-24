@@ -563,6 +563,24 @@ int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector) {
 
 // SendCrush
 
+// FUNCTION: CARMA2_HW 0x004368d0
+void C2_HOOK_FASTCALL CrushShapeFinishVertex(br_vector3* pVertexPos, tU16 pFlags, tCar_crush_limits* pLimits) {
+    int i;
+
+    for (i = 0; i < 3; i++) {
+        if (pVertexPos->v[i] < pLimits->limits[i][0].values[pFlags & 3]) {
+            pVertexPos->v[i] = pLimits->limits[i][0].values[pFlags & 3];
+            pFlags >>= 4;
+        } else {
+            pFlags >>= 2;
+            if (pVertexPos->v[i] > pLimits->limits[i][1].values[pFlags & 3]) {
+                pVertexPos->v[i] = pLimits->limits[i][1].values[pFlags & 3];
+            }
+            pFlags >>= 2;
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00436940
 void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_crush* pSrc) {
     int i;
