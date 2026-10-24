@@ -168,3 +168,9 @@ void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 fiel
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca7d0
+void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
+
+    NOT_IMPLEMENTED();
+}
+
