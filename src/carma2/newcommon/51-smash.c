@@ -477,6 +477,20 @@ void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, 
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004ee990
+void C2_HOOK_FASTCALL LoadCarCrushSmashDataEntries(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
+    int i;
+    tCar_crush_smashable_part* part;
+
+    pCar_crush_buffer_entry->count_smashables = GetAnInt(pF);
+    part = pCar_crush_buffer_entry->smashables = BrMemAllocate(pCar_crush_buffer_entry->count_smashables * sizeof(tCar_crush_smashable_part), kMem_smashable_info);
+    for (i = 0; i < pCar_crush_buffer_entry->count_smashables; i++, part++) {
+        GetAString(pF, part->material_name);
+        part->funk = -1;
+        LoadSmashableLevels(pF, &part->levels, &part->count_smashable_levels, 0, pBrender_storage);
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
