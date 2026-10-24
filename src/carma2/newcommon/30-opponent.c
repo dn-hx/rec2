@@ -361,6 +361,27 @@ const char* C2_HOOK_FASTCALL GetDriverName(tVehicle_type pCategory, int pIndex) 
     }
     return NULL;
 }
+// FUNCTION: CARMA2_HW 0x004ae8e0
+tOpponent_spec* C2_HOOK_FASTCALL GetOpponentSpecFromCarSpec(tCar_spec* pCar_spec) {
+    int i;
+    int type;
+
+    type = (tU16)pCar_spec->car_ID & ~0xff;
+    if (type == 0x200) {
+        for (i = 0; i < GetCarCount(eVehicle_opponent); i++) {
+            if (gProgram_state.AI_vehicles.opponents[i].car_spec == pCar_spec) {
+                return &gProgram_state.AI_vehicles.opponents[i];
+            }
+        }
+    } else if (type == 0x300) {
+        for (i = 0; i < GetCarCount(eVehicle_rozzer); i++) {
+            if (gProgram_state.AI_vehicles.cops[i].car_spec == pCar_spec) {
+                return &gProgram_state.AI_vehicles.cops[i];
+            }
+        }
+    }
+    return NULL;
+}
 // FUNCTION: CARMA2_HW 0x004ae970
 tCar_spec* C2_HOOK_FASTCALL GetCarSpecFromGlobalOppoIndex(int pIndex) {
     int i;
