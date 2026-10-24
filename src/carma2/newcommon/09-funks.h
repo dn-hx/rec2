@@ -23,8 +23,7 @@ extern void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon);
 
 extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
 
-// ControlBoundFunkGroovePlus
-
+extern float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 // ShiftBoundGrooveFunks
 
 // AddNewFunkotronic
