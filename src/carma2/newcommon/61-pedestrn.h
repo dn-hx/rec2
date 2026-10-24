@@ -408,7 +408,7 @@ extern void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, flo
 
 // DisposeAllLoadedForms
 
-// DisposeCharacterInstance
+extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter);
 
 // FindOrOpenForm
 

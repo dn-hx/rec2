@@ -1175,6 +1175,14 @@ void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale)
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x00406a30
+void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter) {
+
+    if (pCharacter != NULL) {
+        BrMemFree(pCharacter);
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
