@@ -27,6 +27,12 @@ tCar_icon gCar_icons[128];
 // GLOBAL: CARMA2_HW 0x0074ab84
 br_actor* gCar_icons_model_actor;
 
+// GLOBAL: CARMA2_HW 0x0068d6f0
+tCar_spec* gTarget_lock_car_2;
+
+// GLOBAL: CARMA2_HW 0x0068d8c4
+tCar_spec* gTarget_lock_car_1;
+
 // GLOBAL: CARMA2_HW 0x0068d8c8
 int gTarget_lock_enabled;
 
@@ -130,7 +136,7 @@ int gCheckpoint_digit_height;
 int gCheckpoint_digit_center_x;
 
 // GLOBAL: CARMA2_HW 0x0068c85c
-tU32 gCheckpoint_digit_center_y;
+int gCheckpoint_digit_center_y;
 
 // GLOBAL: CARMA2_HW 0x0068d6f8
 tOppo_status_messages gOppo_status_messages[9];
@@ -141,9 +147,28 @@ int gCount_smashable_race_targets;
 // GLOBAL: CARMA2_HW 0x0068c898
 tSmashable_race_target gSmashable_race_targets[300];
 
+// GLOBAL: CARMA2_HW 0x0074abc0
+int gMap_render_x_i;
+
+// GLOBAL: CARMA2_HW 0x0074abbc
+int gMap_render_y_i;
+
+// GLOBAL: CARMA2_HW 0x0074abe8
+int gMap_render_width_i;
+
+// GLOBAL: CARMA2_HW 0x0074abc8
+int gMap_render_height_i;
+
+// GLOBAL: CARMA2_HW 0x007634b4
+int gTrack_version;
+
 // CarArrowColour
 
-// ToggleTargetLock
+/* local declarations */
+#include "01-network.h"
+#include "30-opponent.h"
+#include <stdio.h>
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // CycleTargetLock
 
@@ -156,6 +181,12 @@ void C2_HOOK_FASTCALL ToggleMapTransparency(void) {
     gMap_trans = !gMap_trans;
     SaveOptions();
 }
+
+// GLOBAL: CARMA2_HW 0x00659b28
+int gCheckpoint_finder_enabled = 1;
+
+/* local declaration (15-displays.h is not included in this file) */
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // FUNCTION: CARMA2_HW 0x004948a0
 void C2_HOOK_FASTCALL InitTargetLock(void) {
