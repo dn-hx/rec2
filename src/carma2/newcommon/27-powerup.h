@@ -324,7 +324,7 @@ extern void C2_HOOK_FASTCALL ResetInstantHandbrake(tPowerup* powerup, tCar_spec*
 
 extern int C2_HOOK_FASTCALL SetDancingPeds(tPowerup* powerup, tCar_spec* car);
 
-// SetPanickingPeds
+extern int C2_HOOK_FASTCALL SetPanickingPeds(tPowerup* powerup, tCar_spec* car);
 
 // SetLowGravityPeds
 
