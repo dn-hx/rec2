@@ -1525,8 +1525,8 @@ int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void) {
     tButtonJoystickInfo* joystick_info;
 
     joystick_info = PDGetCurrentJoystickData();
-    if (joystick_info == NULL) {
-        return 0;
+    if (joystick_info != NULL) {
+        return joystick_info->field_0xe0;
     }
-    return joystick_info->field_0xe0;
+    return 0;
 }
