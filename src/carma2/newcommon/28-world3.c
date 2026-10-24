@@ -759,3 +759,4 @@ void C2_HOOK_FASTCALL AllowDuplicates(void) {
 
     gDisallow_duplicates = 0;
 }
+
