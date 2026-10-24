@@ -175,7 +175,8 @@ extern void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality
 
 extern int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius);
 
-// DoPedAnnihilator
+extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
+
 
 // RepulseIt
 

@@ -560,6 +560,53 @@ int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius) {
     return DoToPeds(pCar, 1, pRadius, 1, NULL, (tForEachPedestrian_cbfn*)DoPedAnnihilator);
 }
 
+// FUNCTION: CARMA2_HW 0x004ce140
+int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback) {
+    tPedestrian* ped;
+    tU32 now;
+    br_vector3* pos;
+    br_scalar dist_sq;
+    float t;
+    int result = 0;
+
+    if (gEthereal_pedestrians) {
+        return 0;
+    }
+    pos = &pCar_spec->pos;
+    now = GetTotalTime();
+
+    for (ped = gPedestrians_in_sight; ped != NULL; ped = ped->next) {
+        dist_sq = (pos->v[0] - ped->pos.v[0]) * (pos->v[0] - ped->pos.v[0])
+                + (pos->v[1] - ped->pos.v[1]) * (pos->v[1] - ped->pos.v[1])
+                + (pos->v[2] - ped->pos.v[2]) * (pos->v[2] - ped->pos.v[2]);
+
+        if (pOnly_alive != 0 && ped->hit_points <= 0) {
+            continue;
+        }
+        if (pMax_distance != 0.f && dist_sq >= pMax_distance) {
+            continue;
+        }
+        if (pParam_4 != 0) {
+            br_material* material;
+            br_vector3 nor;
+            br_vector3 dir;
+
+            dir.v[0] = ped->pos.v[0] - pos->v[0];
+            dir.v[1] = ped->pos.v[1] - pos->v[1];
+            dir.v[2] = ped->pos.v[2] - pos->v[2];
+            FindFace(pos, &dir, &nor, &t, &material);
+        } else {
+            t = 100.f;
+        }
+        if (t < 1.0) {
+            continue;
+        }
+        pCallback(ped, pCar_spec, dist_sq, now, pData);
+        result = 1;
+    }
+    return result;
+}
+
 
 // RepulseIt
 
