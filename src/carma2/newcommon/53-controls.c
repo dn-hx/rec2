@@ -179,7 +179,22 @@ void C2_HOOK_FASTCALL LookLeft(void) {
     }
 }
 
-// LookRight
+// FUNCTION: CARMA2_HW 0x00441ec0
+void C2_HOOK_FASTCALL LookForward(void) {
+
+    if (gProgram_state.which_view == eView_right) {
+        PratcamEvent(27);
+    } else if (gProgram_state.which_view == eView_left) {
+        PratcamEvent(28);
+    }
+    if (gProgram_state.which_view != eView_forward) {
+        gProgram_state.old_view = gProgram_state.which_view;
+        ClearWobbles();
+        gProgram_state.new_view = eView_forward;
+        gProgram_state.view_change_start = PDGetTotalTime();
+        gProgram_state.pending_view = eView_undefined;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00441fd0
 // FUNCTION: CARMA2_SW 0x004420b0
