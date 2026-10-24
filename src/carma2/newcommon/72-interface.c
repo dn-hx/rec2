@@ -1124,6 +1124,16 @@ int C2_HOOK_FASTCALL CreditsScreenInfunc(tFrontend_spec* pFrontend) {
     return 1;
 }
 
+// FUNCTION: CARMA2_HW 0x0046c090
+int C2_HOOK_FASTCALL CreditsScreenOutfunc(tFrontend_spec* pFrontend) {
+    int i;
+
+    for (i = 0; i < gCredits_line_count; i++) {
+        free(gCredits_texts[i]);
+    }
+    free(gCredits_texts);
+    return 1;
+}
 // FRONTEND_GenericMenuHandler
 
 // FUNCTION: CARMA2_HW 0x0046c5c0
