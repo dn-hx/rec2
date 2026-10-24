@@ -640,3 +640,4 @@ void C2_HOOK_FASTCALL EnableLights(void) {
         BrLightEnable(gLight_array[i]);
     }
 }
+
