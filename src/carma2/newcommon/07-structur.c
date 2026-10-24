@@ -1,11 +1,15 @@
 #include "07-structur.h"
 
+#include "13-crush1.h"
 #include "15-displays.h"
 #include "30-opponent.h"
 #include "41-utility.h"
 #include "43-pratcam.h"
 #include "69-sound.h"
 #include "globvars.h"
+#include "globvrpb.h"
+
+/* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x00655e48
 int gHud_tinted1 = -1;
@@ -18,6 +22,12 @@ int gHud_tinted3 = -1;
 
 // GLOBAL: CARMA2_HW 0x00762140
 int gCredits_checkpoint[3];
+
+// GLOBAL: CARMA2_HW 0x00660cdc
+int gLast_wrong_checkpoint = -1;
+
+// GLOBAL: CARMA2_HW 0x006aaa34
+tU32 gLast_checkpoint_time;
 
 // FUNCTION: CARMA2_HW 0x00503050
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
@@ -51,17 +61,73 @@ void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
     }
 }
 
-// IncrementCheckpoint
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// IncrementLap
+// STUB: CARMA2_HW 0x005032a0
+// STUB: CARMA2_SW 0x004febf0
+void C2_HOOK_FASTCALL IncrementCheckpoint(void) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x005033b0
+// FUNCTION: CARMA2_SW 0x004fed00
+void C2_HOOK_FASTCALL IncrementLap(void) {
+    int i;
+
+    for (i = gCheckpoint; i <= gCheckpoint_count; i++) {
+        IncrementCheckpoint();
+    }
+}
 
 // RayHitFace
 
-// WrongCheckpoint
+// FUNCTION: CARMA2_HW 0x005033e0
+void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
 
+    if (gRace_finished) {
+        return;
+    }
+    if (!(gCurrent_race.race_spec->race_type == kRaceType_Carma1 ||
+        gCurrent_race.race_spec->race_type == kRaceType_Checkpoints)) {
+        return;
+    }
+    if ((gLast_wrong_checkpoint == pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 20000)
+            || (gLast_wrong_checkpoint != pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 2000)) {
+
+        if (gNet_mode == eNet_mode_none) {
+            int next_checkpoint = pCheckpoint_index + 2;
+            if (next_checkpoint > gCurrent_race.check_point_count) {
+                if (gLap == 1) {
+                    next_checkpoint = -1;
+                } else {
+                    next_checkpoint = 1;
+                }
+            }
+            if (next_checkpoint == gCheckpoint) {
+                return;
+            }
+        }
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_wrong_checkpoint));
+        DRS3StartSound(gPedestrians_outlet, eSoundId_WrongCheckpoint);
+        gLast_checkpoint_time = GetTotalTime();
+        gLast_wrong_checkpoint = pCheckpoint_index;
+    }
+}
 // CheckCheckpoints
 
-// TotalRepair
+// FUNCTION: CARMA2_HW 0x005039b0
+// FUNCTION: CARMA2_SW 0x004ff300
+void C2_HOOK_FASTCALL TotalRepair(void) {
+
+    TotallyRepairCar();
+    NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_instant_repair));
+}
 
 // DoLogos
 
@@ -69,8 +135,37 @@ void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
 
 // DoProgramDemo
 
-// ChooseOpponent
+// FUNCTION: CARMA2_HW 0x00503b00
+int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness) {
+    int i;
+    int count;
+    int temp_array[40];
 
+    while (1) {
+        count = 0;
+        for (i = 0; i < gNumber_of_racers; i++) {
+            if ((pNastiness == 0 || gOpponents[i].strength_rating == pNastiness)
+                && gProgram_state.current_car_index != i
+                && !gOpponents[i].picked
+                && gOpponents[i].strength_rating <= 5
+                && gOpponents[i].strength_rating >= 1) {
+                temp_array[count] = i;
+                count++;
+            }
+        }
+        if (count != 0) {
+            break;
+        }
+        if (pNastiness < 5) {
+            pNastiness++;
+        } else {
+            pNastiness = 0;
+        }
+    }
+    i = temp_array[IRandomBetween(0, count - 1)];
+    gOpponents[i].picked = 1;
+    return i;
+}
 // SelectOpponents
 
 // FUNCTION: CARMA2_HW 0x00503ba0

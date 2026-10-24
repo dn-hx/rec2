@@ -4,10 +4,13 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern tRace_over_reason gRace_over_reason;
 extern int gHud_tinted1;
 extern int gHud_tinted2;
 extern int gHud_tinted3;
 extern int gCredits_checkpoint[3];
+extern int gLast_wrong_checkpoint;
+extern tU32 gLast_checkpoint_time;
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
@@ -15,17 +18,16 @@ extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
 extern void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound);
 
-// IncrementCheckpoint
+extern void C2_HOOK_FASTCALL IncrementCheckpoint(void);
 
-// IncrementLap
+extern void C2_HOOK_FASTCALL IncrementLap(void);
 
 // RayHitFace
 
-// WrongCheckpoint
-
+extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
 // CheckCheckpoints
 
-// TotalRepair
+extern void C2_HOOK_FASTCALL TotalRepair(void);
 
 // DoLogos
 
@@ -33,8 +35,7 @@ extern void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound);
 
 // DoProgramDemo
 
-// ChooseOpponent
-
+extern int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness);
 // SelectOpponents
 
 extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
