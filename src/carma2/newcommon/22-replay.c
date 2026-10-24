@@ -323,3 +323,9 @@ void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004fef40
+void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
+
+    NOT_IMPLEMENTED();
+}
+
