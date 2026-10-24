@@ -51,7 +51,16 @@ static tU16 C2_HOOK_FASTCALL ScalarToFraction(float pScalar) {
 
 // FractionToScalar
 
-// GetOrientationFromMatrix
+// FUNCTION: CARMA2_HW 0x0049be90
+void C2_HOOK_FASTCALL GetOrientationFromMatrix(tU16* pOrientation, br_matrix34* pMatrix) {
+    br_quat quaternion;
+
+    BrMatrix34ToQuat(&quaternion, pMatrix);
+    pOrientation[0] = ScalarToFraction(quaternion.x);
+    pOrientation[1] = ScalarToFraction(quaternion.y);
+    pOrientation[2] = ScalarToFraction(quaternion.z);
+    pOrientation[3] = ScalarToFraction(quaternion.w);
+}
 
 // GetMatrixFromOrientation
 
