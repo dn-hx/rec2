@@ -709,7 +709,7 @@ extern void C2_HOOK_FASTCALL ApplySmashModelChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmashRemoveFaces(tPipe_chunk** pChunk);
 
-// ApplySmashDecal
+extern void C2_HOOK_FASTCALL ApplySmashDecal(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
