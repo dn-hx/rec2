@@ -4,6 +4,15 @@
 #include "rec2_types.h"
 
 extern br_actor* gY_picking_camera;
+extern br_scalar gHighest_y_below;
+extern br_material* gMaterial_below;
+extern br_scalar gCurrent_y;
+extern int gBelow_face_index;
+extern br_model* gBelow_model;
+extern br_scalar gLowest_y_above;
+extern int gAbove_face_index;
+extern br_model* gAbove_model;
+extern br_matrix34 gPick_model_to_view__raycast;
 
 // DRActorToRoot
 
@@ -15,7 +24,7 @@ extern void C2_HOOK_FASTCALL InitRayCasting(void);
 
 // PickBoundsTestRay
 
-// ActorPick2D
+extern int C2_HOOK_FASTCALL ActorPick2D(br_actor* ap, br_model* model, br_material* material, dr_pick2d_cbfn* callback, void* arg);
 
 // DRScenePick2DXY
 
@@ -29,8 +38,11 @@ extern void C2_HOOK_FASTCALL InitRayCasting(void);
 
 // FindBestY
 
-// FindYVerticallyBelowPolyCallBack
+extern int C2_HOOK_FASTCALL PickBoundsTestRay__raycast(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far);
 
+extern int C2_HOOK_CDECL FindHighestPolyCallBack__raycast(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pArg);
+
+extern int C2_HOOK_CDECL FindYVerticallyBelowPolyCallBack(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pContext);
 // FindYVerticallyBelowCallBack
 
 // FindYVerticallyBelow
