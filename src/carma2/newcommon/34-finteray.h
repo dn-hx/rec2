@@ -33,6 +33,8 @@ extern int C2_HOOK_CDECL FindHighestCallBack(br_actor* pActor, br_model* pModel,
 
 extern void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor);
 
+extern int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far);
+
 extern void C2_HOOK_FASTCALL EnablePlingMaterials(void);
 
 extern void C2_HOOK_FASTCALL DisablePlingMaterials(void);
