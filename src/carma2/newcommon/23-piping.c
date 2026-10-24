@@ -557,6 +557,13 @@ void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor)
 void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pForce) {
 }
 
+// FUNCTION: CARMA2_HW 0x004c8600
+void C2_HOOK_FASTCALL PipeSingleSkidAdjustment(int pSkid_num, br_matrix34* pMatrix, br_material* pMaterial) {
+
+    ARDoSingleVariedSession(0x16, pSkid_num, 2,
+        0x30, 0, pMatrix,
+        4, 0x30, pMaterial);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8620
 void C2_HOOK_FASTCALL PipeSingleFlap(br_actor* pActor, br_angle pAngle) {
