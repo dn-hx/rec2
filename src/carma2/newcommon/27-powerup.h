@@ -81,7 +81,7 @@ extern void C2_HOOK_FASTCALL LoadPowerups(void);
 
 // InitRepulseEffects
 
-// MungeBoxObject
+extern tPhysics_object* C2_HOOK_FAKE_THISCALL MungeBoxObject(br_model* pModel, undefined4 pArg2, float pMass);
 
 // MungeShereObject
 
