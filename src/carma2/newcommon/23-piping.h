@@ -500,7 +500,7 @@ extern void C2_HOOK_FASTCALL UndoEndShitMine(tPipe_chunk** pChunk, tPipe_chunk* 
 
 extern void C2_HOOK_FASTCALL UndoTransformType(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// CalcCrushLength
+extern int C2_HOOK_FASTCALL CalcCrushLength(tPipe_chunk* pChunk);
 
 extern int C2_HOOK_FASTCALL CalcShrapnelLength(tPipe_chunk* pChunk);
 
