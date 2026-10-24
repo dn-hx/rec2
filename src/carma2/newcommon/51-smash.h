@@ -192,8 +192,6 @@ extern void C2_HOOK_FASTCALL InitSmashing(void);
 
 // DoFragMovement
 
-// MungeGlassFragments2
-
 // MungeAnimationRepairs
 
 // MungeGlassFragments
