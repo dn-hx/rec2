@@ -904,6 +904,8 @@ void C2_HOOK_FASTCALL BlendifyCar(tCar_spec* pCar) {
     ForEveryCarMaterial(pCar, BlendifyMaterialCB, 1);
 }
 
+// STUB: CARMA2_HW 0x004fed50
+int C2_HOOK_FASTCALL UnBlendifyMaterialCB(br_material* pMaterial) {
     NOT_IMPLEMENTED();
 }
 
