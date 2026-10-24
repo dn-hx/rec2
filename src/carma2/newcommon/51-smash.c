@@ -673,8 +673,11 @@ void C2_HOOK_FASTCALL InitRepairAnimations(void) {
 
 // ReadSmashableEnvironment
 
-// DisposeSmashEnvNonCars
+// FUNCTION: CARMA2_HW 0x004f0940
+void C2_HOOK_FASTCALL DisposeSmashEnvNonCars(void) {
 
+    BrMemFree(gSmashable_noncars);
+}
 // CloneMemory
 
 // CloneEnvSmash

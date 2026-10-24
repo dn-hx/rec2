@@ -216,8 +216,7 @@ extern void C2_HOOK_FASTCALL InitRepairAnimations(void);
 
 // ReadSmashableEnvironment
 
-// DisposeSmashEnvNonCars
-
+extern void C2_HOOK_FASTCALL DisposeSmashEnvNonCars(void);
 // CloneMemory
 
 // CloneEnvSmash
