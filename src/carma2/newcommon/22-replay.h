@@ -47,5 +47,7 @@ extern void C2_HOOK_FASTCALL ApplyTime(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL ARSetPause(int pPause);
 
+extern void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
+
 
 #endif // GUARD_22_REPLAY_H

@@ -78,3 +78,9 @@ void C2_HOOK_FASTCALL ARSetPause(int pPause) {
 // Replay pipe workers (no PDB symbols; names from carpocalypse2). Kept in this TU so that
 // the Apply/Undo wrappers in 23-piping.c tail-call them instead of inlining.
 
+// FUNCTION: CARMA2_HW 0x0043bd70
+void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
+
+    NOT_IMPLEMENTED();
+}
+
