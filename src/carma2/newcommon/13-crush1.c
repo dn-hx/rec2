@@ -288,6 +288,11 @@ intptr_t C2_HOOK_CDECL LinkCrushDataToActor(br_actor* pActor, void* pData) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0042a940
+void C2_HOOK_FASTCALL LinkCrushDataToActors(br_actor* pActor, tCar_crush_buffer* pBuffer) {
+
+    DRActorEnumRecurse(pActor, LinkCrushDataToActor, pBuffer);
+}
 
 // FUNCTION: CARMA2_HW 0x0042ac70
 intptr_t C2_HOOK_CDECL AccumulateSquashVertices(br_actor* pActor, void* pData) {
