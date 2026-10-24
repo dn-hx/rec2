@@ -25,6 +25,7 @@ extern void C2_HOOK_FASTCALL AbortRace(void);
 
 extern void C2_HOOK_FASTCALL SetFlag(int i);
 
+extern void C2_HOOK_FASTCALL FinishRace(int i);
 extern void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void);
 
 extern void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void);

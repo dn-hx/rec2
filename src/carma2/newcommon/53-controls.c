@@ -108,6 +108,11 @@ void C2_HOOK_FASTCALL SetFlag(int i) {
     F4Key();
 }
 
+// FUNCTION: CARMA2_HW 0x004415c0
+void C2_HOOK_FASTCALL FinishRace(int i) {
+    gRace_over_reason = eRace_over_0;
+    gAbandon_game = 2;
+}
 // FUNCTION: CARMA2_HW 0x004415e0
 void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void) {
 
