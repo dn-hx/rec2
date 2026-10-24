@@ -15,7 +15,7 @@ extern int gReceived_game_scores;
 
 // DoNetRaceSummary
 
-// DoEndRaceSummary
+extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
 
 // AnyBuyableCars
 
