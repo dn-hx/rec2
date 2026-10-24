@@ -9,17 +9,18 @@
 
 #include <string.h>
 
+/* explicit initializers keep gTwatVfsMountPoints, gDisableTiffConversionStack and gTwatVfsFiles adjacent as in the original */
 // GLOBAL: CARMA2_HW 0x00691b40
-tTwatVfsMountPoint gTwatVfsMountPoints[5];
+tTwatVfsMountPoint gTwatVfsMountPoints[5] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00692068
+int gDisableTiffConversionStack[2] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00692070
-tTwatVfsFile gTwatVfsFiles[51];
+tTwatVfsFile gTwatVfsFiles[51] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006923a0
 int gDisableTiffConversionStackPos;
-
-// GLOBAL: CARMA2_HW 0x00692068
-int gDisableTiffConversionStack[2];
 
 // GLOBAL: CARMA2_HW 0x0068c724
 int gDisableTiffConversion;
@@ -231,7 +232,7 @@ br_size_t C2_HOOK_FASTCALL PFfread(void* buf, br_size_t size, unsigned int n, vo
     return n;
 }
 
-// STUB: CARMA2_HW 0x004b4a80
+// FUNCTION: CARMA2_HW 0x004b4a80
 int C2_HOOK_FASTCALL PFfwrite(const void* buf, br_size_t size, unsigned int n, void* f) {
 
     if ((uintptr_t)f >= REC2_ASIZE(gTwatVfsFiles)) {
@@ -307,6 +308,30 @@ int C2_HOOK_FASTCALL PFfeof(FILE* pFile) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004b4c40
+int C2_HOOK_FASTCALL PFferror(FILE* pFile) {
+    tTwatVfsFile* twtFile;
+
+    if ((int)pFile >= REC2_ASIZE(gTwatVfsFiles)) {
+        return ferror(pFile);
+    } else {
+        twtFile = &gTwatVfsFiles[(uintptr_t)pFile];
+        return twtFile->error;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004b4c60
+void C2_HOOK_FASTCALL PFclearerr(FILE* pFile) {
+    tTwatVfsFile* twtFile;
+
+    if ((int)pFile >= REC2_ASIZE(gTwatVfsFiles)) {
+        clearerr(pFile);
+    } else {
+        twtFile = &gTwatVfsFiles[(uintptr_t)pFile];
+        twtFile->error = 0;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004b4c80
 void C2_HOOK_FASTCALL PFForEveryFile(const char* pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine) {
     int twt;
@@ -360,7 +385,7 @@ tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path) {
     return res;
 }
 
-// STUB: CARMA2_HW 0x004b4e20
+// FUNCTION: CARMA2_HW 0x004b4e20
 void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt) {
 
     if (twt >= 0) {
