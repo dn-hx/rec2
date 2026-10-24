@@ -125,5 +125,7 @@ extern void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field
 
 extern void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14);
 
+extern void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int vertex, int pFlags_hi);
+
 
 #endif // GUARD_22_REPLAY_H

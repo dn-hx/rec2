@@ -311,3 +311,9 @@ void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004fb580
+void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int vertex, int pFlags_hi) {
+
+    NOT_IMPLEMENTED();
+}
+
