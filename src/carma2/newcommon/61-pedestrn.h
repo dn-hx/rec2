@@ -221,8 +221,7 @@ extern void C2_HOOK_FASTCALL DoPedAnnihilator(tPedestrian* pPed, tCar_spec* pCar
 
 // CBMovedByPhysics
 
-// GetPedCount
-
+extern int C2_HOOK_FASTCALL GetPedCount(void);
 // GetPedPosition
 
 // TurnLimbsOnAndOff

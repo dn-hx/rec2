@@ -654,8 +654,10 @@ void C2_HOOK_FASTCALL DoPedAnnihilator(tPedestrian* pPed, tCar_spec* pCar, float
 
 // CBMovedByPhysics
 
-// GetPedCount
-
+// FUNCTION: CARMA2_HW 0x004d2c40
+int C2_HOOK_FASTCALL GetPedCount(void) {
+    return gPed_count;
+}
 // GetPedPosition
 
 // TurnLimbsOnAndOff
