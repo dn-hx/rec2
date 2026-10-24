@@ -1334,9 +1334,12 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk) {
 }
 
-// ApplyShitMine
+// FUNCTION: CARMA2_HW 0x004c9d20
+void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk) {
+    tPipe_chunk_napalm_bolt* chunk = (tPipe_chunk_napalm_bolt*)*pChunk;
 
-// ApplyEndShitMine
+    return AdjustNapalmBolt(chunk->field_0x0, (tPedestrian*)(intptr_t)chunk->field_0x4, &chunk->field_0x8);
+}
 
 // ApplyTransformType
 
