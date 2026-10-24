@@ -386,6 +386,7 @@ extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
 
 extern void C2_HOOK_CDECL RenderSpinningPowerup(br_actor* actor, br_model* model, br_material* material, void* order_table, br_uint_8 style, int on_screen);
 extern void C2_HOOK_CDECL RenderChangingPowerup(br_actor* actor, br_model* model, br_material* material, void* order_table, br_uint_8 style, int on_screen);
+extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
 // DuplicateModel
 
 // SetChangingPowerup
