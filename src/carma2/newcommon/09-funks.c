@@ -23,6 +23,10 @@ tU32 gPrevious_groove_times[2];
 // GLOBAL: CARMA2_HW 0x00688b30
 tGroove_funk_binding gGroove_funk_bindings[1440];
 
+// GLOBAL: CARMA2_HW 0x0068b844
+// GLOBAL: CARMA2_SW 0x00685da4
+int gFunkotronics_array_size;
+
 // CalculateTextureBitsValue
 
 // MapSawToTriangle
@@ -54,8 +58,21 @@ void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue) {
     }
 }
 
-// ControlBoundFunkGroovePlus
+// FUNCTION: CARMA2_HW 0x004748e0
+float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
 
+    if (pSlot_number < 0) {
+        return 0.f;
+    }
+    if (pSlot_number >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+        FatalError(kFatalError_UsedRefNumOfControlledGroovidelicFunkotronicIsOutOfRange);
+    }
+    if (!gGroove_funk_bindings[pSlot_number].field_0x4) {
+        *gGroove_funk_bindings[pSlot_number].v = fmodf(*gGroove_funk_bindings[pSlot_number].v + pValue, 1.f);
+        return *gGroove_funk_bindings[pSlot_number].v;
+    }
+    return *gGroove_funk_bindings[pSlot_number].v;
+}
 // ShiftBoundGrooveFunks
 
 // AddNewFunkotronic
@@ -132,7 +149,27 @@ void C2_HOOK_FASTCALL KillGroovadelic(int pOwner) {
     }
 }
 
-// KillFunkotronic
+// FUNCTION: CARMA2_HW 0x004771c0
+// FUNCTION: CARMA2_SW 0x00476720
+void C2_HOOK_FASTCALL KillFunkotronic(int pOwner) {
+    int i;
+    tFunkotronic_spec* the_funk;
+
+    if (gFunkotronics_array != NULL) {
+        for (i = 0, the_funk = gFunkotronics_array; i < gFunkotronics_array_size; i++) {
+            if (the_funk[i].owner == pOwner
+                && the_funk[i].matrix_mode != eMove_controlled
+                && the_funk[i].matrix_mode != eMove_absolute
+                && the_funk[i].lighting_animation_type != eMove_controlled
+                && the_funk[i].lighting_animation_type != eMove_absolute
+                && ((the_funk[i].texture_animation_data.frames_info.mode != eMove_controlled
+                        && the_funk[i].texture_animation_data.frames_info.mode != eMove_texturebits)
+                    || the_funk[i].texture_animation_type != eTexture_animation_frames)) {
+                the_funk[i].owner = -999;
+            }
+        }
+    }
+}
 
 // NormaliseDegreeAngle
 
