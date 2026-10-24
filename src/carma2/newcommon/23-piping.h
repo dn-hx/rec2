@@ -747,7 +747,7 @@ extern void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk);
 
 // ApplyFunkEnable
 
-// ApplyVanishDismembered
+extern void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk);
 
 // ApplyDSModel
 
