@@ -76,8 +76,7 @@ extern void C2_HOOK_FASTCALL SetSkyTextureOn(int skyTextureOn);
 
 extern void C2_HOOK_FASTCALL ToggleSkyQuietly(void);
 
-// ToggleSky
-
+extern void C2_HOOK_FASTCALL ToggleSky(void);
 extern int C2_HOOK_FASTCALL GetDepthCueingOn(void);
 
 extern void C2_HOOK_FASTCALL SetDepthCueingOn(int pOn);

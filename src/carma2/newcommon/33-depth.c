@@ -428,8 +428,18 @@ void C2_HOOK_FASTCALL ToggleSkyQuietly(void) {
     }
 }
 
-// ToggleSky
+// FUNCTION: CARMA2_HW 0x00446ee0
+void C2_HOOK_FASTCALL ToggleSky(void) {
 
+    SetSkyTextureOn(!GetSkyTextureOn());
+    if (gProgram_state.current_depth_effect.sky_texture != NULL) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_sky_texture_on));
+    } else if (gSwap_sky_texture != NULL) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_sky_texture_off));
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_no_sky_texture_for_this_race));
+    }
+}
 // FUNCTION: CARMA2_HW 0x00446f90
 int C2_HOOK_FASTCALL GetDepthCueingOn(void) {
 
