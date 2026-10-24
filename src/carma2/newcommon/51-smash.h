@@ -272,9 +272,7 @@ extern void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, b
 extern intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data);
 extern void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal);
 
-// MungeMaterial
-
-// ReinitSmashing
+extern void C2_HOOK_FASTCALL ReinitSmashing(void);
 
 // LinkSmashies
 
