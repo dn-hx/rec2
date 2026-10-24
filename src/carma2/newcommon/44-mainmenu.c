@@ -1,4 +1,11 @@
 #include "44-mainmenu.h"
+#include "rec2_types.h"
+#include "globvars.h"
+#include "69-sound.h"
+
+#include "69-sound.h"
+#include "72-interface.h"
+#include "globvars.h"
 
 #include "01-network.h"
 #include "69-sound.h"
