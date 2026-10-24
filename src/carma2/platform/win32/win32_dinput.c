@@ -788,6 +788,23 @@ void C2_HOOK_FASTCALL RegisterJoystickFFBForces(void) {
     gCollision_force_joystick_effect_index = CreateDinputEffect(gJoystick_index, &description, "Collision Force");
 }
 
+// FUNCTION: CARMA2_HW 0x00458610
+int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain) {
+    IDirectInputEffect* effect;
+
+    if (!gForceFeedbackAvailable) {
+        return 0;
+    }
+    if (gJoystick_effects[pIndex].di_effect.dwGain != pGain) {
+        gJoystick_effects[pIndex].di_effect.dwGain = pGain;
+    }
+    effect = gDirectInputEffects[pIndex];
+    if (effect != NULL) {
+        IDirectInputEffect_SetParameters(effect, &gJoystick_effects[pIndex].di_effect, DIEP_GAIN);
+    }
+    return 1;
+}
+
 // FUNCTION: CARMA2_HW 0x00458860
 int C2_HOOK_FASTCALL JoystickDInputBegin(void) {
     int i;
