@@ -313,6 +313,7 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 
 extern void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash);
 
+extern void C2_HOOK_FASTCALL UpdateCrushTimers(void);
 
 // ReceivedSmashEnvironment
 
