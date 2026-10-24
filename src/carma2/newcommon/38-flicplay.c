@@ -715,6 +715,10 @@ void C2_HOOK_FASTCALL InitFlics(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x00462930
+int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
