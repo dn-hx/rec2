@@ -135,7 +135,15 @@ int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
 
 // DoWheelDamage
 
-// CrashEarnings
+// FUNCTION: CARMA2_HW 0x00440640
+// FUNCTION: CARMA2_SW 0x00440720
+void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
+
+    if (DoCrashEarnings(pCar1, pCar2)) {
+        SortOutSmoke(pCar1);
+        SortOutSmoke(pCar2);
+    }
+}
 
 // PercentageCarHealth
 
