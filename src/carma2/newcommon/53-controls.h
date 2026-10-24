@@ -2,6 +2,7 @@
 #define GUARD_53_CONTROLS_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
 
 extern float gMap_render_x;
 extern float gMap_render_y;
@@ -12,6 +13,10 @@ extern int gHeadup_map_x;
 extern int gHeadup_map_y;
 extern int gHeadup_map_w;
 extern int gHeadup_map_h;
+extern int gRecovery_voucher_count;
+extern int gAllow_car_flying;
+extern int gEntering_message;
+extern tCamera_key_flags gCamera_key_flags;
 
 // CompleteRace
 
