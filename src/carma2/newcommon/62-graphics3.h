@@ -45,15 +45,7 @@ extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 
 // DrawCarArrow
 
-// DoSomeThingsToCheckpoints
-
-// CalcMapCheckpoint
-
-// CalcMapCheckpoint2
-
-// DrawCheckpoint
-
-// DrawOffsetCheckpoint
+extern void C2_HOOK_FASTCALL DoSomeThingsToCheckpoints(br_pixelmap* pMap, tU32 pTime, tDoSomethingsToCheckpoints_cbfn* pCallback, int pDraw_prev);
 
 // DoMapOverlays
 
