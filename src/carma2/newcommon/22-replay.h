@@ -65,5 +65,7 @@ extern void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4,
 
 extern void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4);
 
+extern void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir);
+
 
 #endif // GUARD_22_REPLAY_H

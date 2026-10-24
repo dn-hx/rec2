@@ -132,3 +132,9 @@ void C2_HOOK_FASTCALL WorkerSmudge(tPipe_chunk** pChunk, int pScale) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca4d0
+void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
+
+    NOT_IMPLEMENTED();
+}
+
