@@ -262,6 +262,32 @@ static int Log2(int pNumber) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    tPath_name the_path;
+    int i;
+    int j;
+    tU8 temp;
+
+#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
+
+    PathCat(the_path, gApplication_path, "SHADETAB");
+    PathCat(the_path, the_path, pName);
+    *pTable = DRPixelmapLoad(the_path);
+    if (*pTable == NULL) {
+        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
+    }
+    *pPower = Log2((*pTable)->height);
+    for (i = 0; i < (*pTable)->width; i++) {
+        for (j = 0; j < (*pTable)->height / 2; j++) {
+            temp = PTABLE_PIXEL_AT(i, j);
+            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
+            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
+        }
+    }
+
+#undef PTABLE_PIXEL_AT
+}
 
 // STUB: CARMA2_HW 0x00445620
 void C2_HOOK_FASTCALL InitDepthEffects(void) {

@@ -32,7 +32,7 @@ extern void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel);
 
 // CreateHorizonModel
 
-// LoadDepthTable
+extern void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower);
 
 extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
