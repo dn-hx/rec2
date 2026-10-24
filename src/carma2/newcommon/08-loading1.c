@@ -216,6 +216,15 @@ tU8 C2_HOOK_FASTCALL MemReadU8(char** pPtr) {
     return raw_byte;
 }
 
+// FUNCTION: CARMA2_HW 0x0048fa30
+tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr) {
+    tS32 raw_long;
+
+    memcpy(&raw_long, *pPtr, sizeof(raw_long));
+    *pPtr += sizeof(raw_long);
+    return raw_long;
+}
+
 // FUNCTION: CARMA2_HW 0x0048fa40
 tS16 C2_HOOK_FASTCALL MemReadS16(char** pPtr) {
     tS16 raw_short;
