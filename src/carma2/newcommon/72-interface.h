@@ -370,9 +370,7 @@ extern int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend);
 // NetOptions_Infunc
 
 extern int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend);
-
-// NetOptions_CreditsRoller
-
+extern int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend);
 // NetOptions_TargetRoller
 
 extern int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend);
