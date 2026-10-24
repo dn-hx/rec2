@@ -28,6 +28,7 @@
 
 #include "c2_string.h"
 #include <ctype.h>
+#include "joystick.h"
 
 // GLOBAL: CARMA2_HW 0x00764eec
 tFrontendMenuType gFrontend_next_menu;
@@ -106,8 +107,8 @@ int gCredits_total_height;
 // GLOBAL: CARMA2_HW 0x006886d0
 double gFrontend_throb_factor;
 
-// GLOBAL: CARMA2_HW 0x00763940
-br_actor* gFrontend_billboard_actors[8];
+/* gFrontend_billboard_actors (0x00763940) is defined in 71-newgame.c, directly before gNet_settings as in the original layout */
+extern br_actor* gFrontend_billboard_actors[8];
 
 // GLOBAL: CARMA2_HW 0x00688b10
 br_actor* gFrontend_menu_camera;
@@ -193,9 +194,6 @@ br_model* gFrontend_B_model_to;
 // GLOBAL: CARMA2_HW 0x00686504
 br_model* gFrontend_C_model_from;
 
-// GLOBAL: CARMA2_HW 0x006886bc
-br_model* gFrontend_C_model_to;
-
 // GLOBAL: CARMA2_HW 0x006864e0
 int gFrontend_backdrop0_opacity_mode;
 
@@ -218,7 +216,10 @@ int gValid_stashed_save_game; // FIXME: rename variable?
 tConnected_items gControls_scroller;
 
 // GLOBAL: CARMA2_HW 0x00688458
-char* gKey_names[153];
+char* gKey_names[153] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006886bc
+br_model* gFrontend_C_model_to = NULL;
 
 // GLOBAL: CARMA2_HW 0x00604888
 const int gControls_frontend_to_key_mapping_lut[29] = {
@@ -226,6 +227,98 @@ const int gControls_frontend_to_key_mapping_lut[29] = {
     57, 67, 68, 69, 71, 61, 62, 63, 64, 74,
     59, 70, 72, 73, 75, 76, 35, 65, 66,
 };
+
+// GLOBAL: CARMA2_HW 0x00764ee8
+int gFrontend_change_car_selected_car;
+
+// GLOBAL: CARMA2_HW 0x0074c6b4
+int gFrontend_net_initialized;
+
+// GLOBAL: CARMA2_HW 0x006a0d38
+tU32 gLast_host_query;
+
+// GLOBAL: CARMA2_HW 0x0068843c
+tU32 gFrontend_last_scroll;
+
+// GLOBAL: CARMA2_HW 0x00688af8
+float gFrontend_wreck_bought_car_dz;
+
+// GLOBAL: CARMA2_HW 0x00688afc
+int gFrontend_wrecks_hscroll;
+
+// GLOBAL: CARMA2_HW 0x00688b00
+int gFrontend_wrecks_pending_hscroll;
+
+// GLOBAL: CARMA2_HW 0x0059b0dc
+int gFrontend_wrecks_rotate_prev_x = -1;
+
+// GLOBAL: CARMA2_HW 0x0059b0e0
+int gFrontend_wrecks_rotate_prev_y = -1;
+
+// GLOBAL: CARMA2_HW 0x00686828
+int gFrontend_opponent_profile_pic_needs_update;
+
+// GLOBAL: CARMA2_HW 0x00705190
+int gFrontend_wrecks_car_count;
+
+// GLOBAL: CARMA2_HW 0x00763b5c
+tWreck_gallery_car_info gWreck_gallery_car_infos[30];
+
+// GLOBAL: CARMA2_HW 0x00763928
+int gPicked_wreck;
+
+// GLOBAL: CARMA2_HW 0x00688aa8
+tU32 gFrontend_net_current_roll;
+
+// GLOBAL: CARMA2_HW 0x00686efc
+tU32 gFrontend_net_last_roll;
+
+// GLOBAL: CARMA2_HW 0x00763b20
+tNet_game_options gFrontend_net_options;
+
+// GLOBAL: CARMA2_HW 0x00688af0
+br_actor* gFrontend_wrecks_camera;
+
+// GLOBAL: CARMA2_HW 0x00688aec
+br_actor* gFrontend_wrecks_actor;
+
+// GLOBAL: CARMA2_HW 0x00687040
+int gFrontend_car_image_outdated;
+
+// GLOBAL: CARMA2_HW 0x00686f94
+br_actor* gFrontend_camera;
+
+// GLOBAL: CARMA2_HW 0x00686f50
+br_token_value gFrontend_backdrop0_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f20
+br_token_value gFrontend_backdrop1_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f38
+br_token_value gFrontend_backdrop2_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f10
+br_material* gFrontend_backdrop_materials[3];
+
+// GLOBAL: CARMA2_HW 0x00687030
+br_actor* gFrontend_backdrop_actors[3];
+
+// GLOBAL: CARMA2_HW 0x00604900
+int gFrontend_controls_indices[15] = {
+    12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+};
+
+// GLOBAL: CARMA2_HW 0x00686f68
+tFrontend_slider gControls_slider_1;
+
+// GLOBAL: CARMA2_HW 0x006883c8
+tFrontend_slider gControls_slider_2;
+
+// GLOBAL: CARMA2_HW 0x00688ac0
+tFrontend_slider gControls_slider_3;
+
+// GLOBAL: CARMA2_HW 0x00688780
+tSave_game gStashed_save_game;
 
 // FUNCTION: CARMA2_HW 0x00466450
 int C2_HOOK_FASTCALL temp(tFrontend_spec* pFrontend) {
@@ -582,7 +675,13 @@ void C2_HOOK_FASTCALL RefreshRacesScroller(tFrontend_spec* pFrontend) {
 
 // RestoreSinglePlayerState
 
-// MaybeRestoreSavedGame
+static void C2_HOOK_FASTCALL RestoreSinglePlayerState(void) {
+
+    LoadRaces(gRace_list, &gNumber_of_races, -1);
+    DoLoadGame2(&gStashed_save_game);
+    gValid_stashed_save_game = 0;
+}
+
 
 // NetworkJoinUpdateScroller
 
@@ -667,7 +766,7 @@ int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
 
 // UpdateNetGameTypeScroller
 
-// NetGameTypeUp
+// NetGameTypeUp: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
 
 // NetGameTypeDn
 
@@ -1117,6 +1216,9 @@ int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size) {
 // BuyCurrentCar
 
 // WrecksInFunc
+// BuyCurrentCar: defined in 72-interface-wrecks.c (see the note there)
+
+// WrecksInFunc: defined in 72-interface-wrecks.c
 
 // KeepInRange
 
@@ -1790,7 +1892,7 @@ int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pConnected
     return pConnected->field_0x8 + offset;
 }
 
-// Generic_FindNextActiveItem
+// Generic_FindNextActiveItem: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
 
 // Generic_FindPrevActiveItem
 
@@ -1884,15 +1986,16 @@ void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider) {
 
 // SaveAllJoystickData
 
-// Controls_SwitchKeymapSet
+// Controls_SwitchKeymapSet: defined after SortScores
 
 // Controls_KeyUp
 
 // Controls_KeyDown
 
 // Controls_Infunc
+// Controls_Infunc: defined after SortScores
 
-// Controls_Outfunc
+// Controls_Outfunc: defined after SortScores
 
 // Controls_SlotActivated
 
@@ -1916,8 +2019,6 @@ int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend) {
 
 // NetOptions_TargetRoller
 
-// NetOptions_Ok
-
 // NetOptions_Cancel
 
 // CheckPlayersAreResponding
@@ -1938,7 +2039,101 @@ int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend) {
 
 // NetSummary_Draw
 
-// SortScores
+/* not static: nothing references it until SortGameScores is implemented, and an unreferenced static would be dropped */
+extern int gKey_map_index;
+
+static void C2_HOOK_FASTCALL SaveKeyMapping_(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "wb");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fprintf(f, "%d", gKey_mapping[i]);
+        fputc('\r', f);
+        fputc('\n', f);
+    }
+    PFfclose(f);
+}
+
+static void C2_HOOK_FASTCALL LoadKeyMapping_(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fscanf(f, "%d", &gKey_mapping[i]);
+    }
+    PFfclose(f);
+}
+
+static void C2_HOOK_FASTCALL ChangeKeyMapIndex_(int pKey_map_index) {
+
+    SaveKeyMapping_();
+    gKey_map_index = pKey_map_index;
+    LoadKeyMapping_();
+}
+
+static void C2_HOOK_FASTCALL SaveKeyMapping(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "wb");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fprintf(f, "%d", gKey_mapping[i]);
+        fputc('\r', f);
+        fputc('\n', f);
+    }
+    PFfclose(f);
+}
+
+// GLOBAL: CARMA2_HW 0x006864f8
+int gFrontend_controls_count_keys;
+
+// GLOBAL: CARMA2_HW 0x006869e0
+int gBackup_key_mappings[4][77] = { 0 };
+
+// UNCERTAIN: placeholder for the unknown data after gBackup_key_mappings
+// GLOBAL: CARMA2_HW 0x00686eb0
+int gUNK_00686eb0[2] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00688440
+int gOrig_key_map_index;
+
+// GLOBAL: CARMA2_HW 0x00688700
+int gOrig_joystick_index;
+
+// GLOBAL: CARMA2_HW 0x00688704
+float gOriginal_joystick_x;
+
+// GLOBAL: CARMA2_HW 0x00688708
+float gOriginal_joystick_y;
+
+// GLOBAL: CARMA2_HW 0x0068870c
+int gOriginal_joystick_fbb;
+
+// GLOBAL: CARMA2_HW 0x00688710
+int gOriginal_joystick_dpad;
+
 
 // SortGameScores
 
@@ -2086,3 +2281,15 @@ void C2_HOOK_FASTCALL FrontEndHideMouse(void) {
 
     gFrontend_suppress_mouse = 1;
 }
+static tStruct_00686508* GetUpdown(int pItem) {
+    tStruct_00686508* up_down;
+
+    for (up_down = gPTR_00686508; up_down != NULL; up_down = up_down->next) {
+        if (pItem == up_down->field_0x0 || pItem == up_down->field_0x4 || pItem == up_down->field_0x8) {
+            return up_down;
+        }
+    }
+    return NULL;
+}
+
+/* based on carpocalypse2 src/carma2/common/interface.c:2832 */
