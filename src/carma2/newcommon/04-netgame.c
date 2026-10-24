@@ -148,6 +148,85 @@ void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00499360
+void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits) {
+    char s[256];
+    char s2[256];
+    // GLOBAL: CARMA2_HW 0x0068d944
+    static tU32 last_flash;
+    // GLOBAL: CARMA2_HW 0x0068d948
+    static int flash_state;
+
+    if (gNot_shown_race_type_headup) {
+        gNot_shown_race_type_headup = 0;
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(gCurrent_net_game->type + 59));
+    }
+    if (gTime_for_punishment != 0 && PDGetTotalTime() >= gTime_for_punishment) {
+        gTime_for_punishment = 0;
+        switch (gCurrent_net_game->type) {
+        case 2:
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(219));
+            break;
+        case 3:
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(220));
+            break;
+        case 4:
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(221));
+            break;
+        case 7:
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(222));
+            break;
+        default:
+            break;
+        }
+    }
+    if (gNet_mode == eNet_mode_none
+        || (float)gProgram_state.credits >= gRecovery_cost.initial_network[gCurrent_net_game->type]
+        || Flash(200, &last_flash, &flash_state)) {
+        sprintf(s, "\xf8%d\xfa %s", pCredits, GetMiscString(94));
+        ChangeHeadupText(gNet_cash_headup, s);
+    } else {
+        ChangeHeadupText(gNet_cash_headup, "");
+    }
+    switch (gCurrent_net_game->type) {
+    case 5:
+        sprintf(s, "\xf8%d\xfa %s", gCurrent_net_game->options.starting_target, GetMiscString(241));
+        break;
+    case 2:
+        sprintf(s, "%s \xf8%d\xfa", GetMiscString(180), gINT_0068d920);
+        break;
+    case 1:
+        sprintf(s, "%s \xf8%d\xfa", GetMiscString(181), gCurrent_net_game->options.starting_target);
+        break;
+    case 7:
+        TimerString(gCurrent_net_game->options.starting_target, s2, 1, 1, 0);
+        sprintf(s, "%s \xf8%s\xfa", GetMiscString(182), s2);
+        break;
+    default:
+        s[0] = '\0';
+        break;
+    }
+    ChangeHeadupText(gNet_ped_headup, s);
+    switch (gHeadup_detail_level) {
+    case 0:
+    case 3:
+        MoveHeadupKeepOffset(gNet_cash_headup, 0x50, 0x19);
+        MoveHeadupKeepOffset(gNet_ped_headup, 0x50, 0);
+        break;
+    case 1:
+    case 4:
+        MoveHeadupKeepOffset(gNet_cash_headup, 0x1e0, 0x19);
+        MoveHeadupKeepOffset(gNet_ped_headup, 0x1e0, 0);
+        break;
+    case 2:
+    case 5:
+        MoveHeadupKeepOffset(gNet_cash_headup, 0x1ae, 0x3c);
+        MoveHeadupKeepOffset(gNet_ped_headup, 0x1ae, 0x14);
+        break;
+    default:
+        break;
+    }
+}
 
 // SortNetHeadAscending
 
