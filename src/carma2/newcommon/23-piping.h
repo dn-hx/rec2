@@ -324,7 +324,7 @@ extern void C2_HOOK_FASTCALL ApplyDamage(tPipe_chunk** pChunk);
 
 // ApplySpecial
 
-// ApplyProxRay
+extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
 // ApplySkidAdjustment
 

@@ -1024,7 +1024,13 @@ void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk) {
     BrMatrix34Identity(&chunk->data.identity.actor->t.t.mat);
 }
 
-// ApplySplitWeld
+// FUNCTION: CARMA2_HW 0x004c97f0
+void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk) {
+    tPipe_chunk_prox_ray_replay* chunk = (tPipe_chunk_prox_ray_replay*)*pChunk;
+
+    return WorkerProxRay(chunk->field_0x0, chunk->field_0x6, chunk->field_0x4, chunk->field_0x8);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c9930
 void C2_HOOK_FASTCALL ApplyBend(tPipe_chunk** pChunk) {
