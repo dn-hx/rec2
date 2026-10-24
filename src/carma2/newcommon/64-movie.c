@@ -36,6 +36,9 @@ char gDefault_quick_time_quality[] = "normal";
 // GLOBAL: CARMA2_HW 0x0065ed30
 char gDefault_quick_time_compressor[] = "animation";
 
+// GLOBAL: CARMA2_HW 0x006a23b8
+int gShow_status_message;
+
 // Create555BELookupTable
 
 // Convert565BrPixelmapTo555BigEndianPixmap
