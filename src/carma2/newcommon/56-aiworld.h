@@ -25,8 +25,7 @@ extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 
 // MungeAIWorld
 
-// PointActorAlongThisBloodyVector
-
+extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
 // MakeAIEditCubeHere
 
 // CalcNegativeXVector
