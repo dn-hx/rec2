@@ -1034,6 +1034,13 @@ void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk) {
     return WorkerSpark(chunk->field_0x0, &chunk->field_0x4[0], &chunk->field_0x4[0xc]);
 }
 
+// FUNCTION: CARMA2_HW 0x004c9160
+void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk) {
+    tPipe_chunk_shrapnel_replay* chunk = (tPipe_chunk_shrapnel_replay*)*pChunk;
+
+    return WorkerShrapnel(chunk->field_0x0, &chunk->field_0x4[0], chunk->field_0x10, chunk->field_0x14);
+}
+
 // FUNCTION: CARMA2_HW 0x004c91b0
 // FUNCTION: CARMA2_SW 0x004c58e0
 void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk) {
