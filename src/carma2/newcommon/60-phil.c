@@ -244,6 +244,10 @@ int C2_HOOK_FASTCALL PHILMakeObjectPassive(tPhysics_object* pObject) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004b6090
+int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pArg2, const br_vector3* pArg3, int pArg4) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
