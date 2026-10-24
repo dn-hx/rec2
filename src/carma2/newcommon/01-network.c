@@ -233,9 +233,17 @@ void C2_HOOK_FASTCALL DoNextJoinPoll(void) {
     }
 }
 
-// NetStartProducingJoinList
+// FUNCTION: CARMA2_HW 0x0049dbd0
+void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc) {
 
-// NetEndJoinList
+    gAdd_proc = pAdd_proc;
+    gJoin_list_mode = 1;
+    gBastard_has_answered = 0;
+    gTime_for_next_one = 1;
+    gJoin_poll_index = 0;
+    gCurrent_join_poll_game = NULL;
+    PDNetStartProducingJoinList();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
