@@ -712,6 +712,16 @@ int C2_HOOK_FASTCALL InitForceFeedback(void) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x00457eb0
+void C2_HOOK_FASTCALL StartDinputEffect(int pIndex) {
+    IDirectInputEffect* effect;
+
+    effect = gDirectInputEffects[pIndex];
+    if (effect != NULL) {
+        IDirectInputEffect_Start(effect, 1, 0);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00457ff0
 void C2_HOOK_FASTCALL ResetDInputJoystickFFB(int pIndex) {
     IDirectInputDevice2A *device;
