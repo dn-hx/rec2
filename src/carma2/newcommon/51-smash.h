@@ -8,6 +8,18 @@ extern tExplosion gExplosions[50];
 extern br_vector3 gZero_vector__smash;
 extern tDecal gDecals[50];
 extern int gCount_queued_smashes;
+extern tSmashable_environment_name* gSmashable_noncars;
+extern const char* gExplosion_rotate_names[2];
+extern int gShrapnel_ghost_actor_count;
+extern const char* gInitial_smashable_position_type_names[3];
+extern const char* gInitial_position_sphere_where[2];
+extern tSmash_vertex gSmash_glass_fragments[200];
+extern tRepair_animation gRepair_animations[25];
+extern int gCount_host_smashes;
+extern tNet_stored_smash* gNet_host_smashes;
+extern tQueued_net_smash gQueued_net_smashes[50];
+extern int gSize_powerup_queue;
+extern tSmash_explosion gSmash_explosions[20];
 
 extern void C2_HOOK_FASTCALL InitExplosions(void);
 
