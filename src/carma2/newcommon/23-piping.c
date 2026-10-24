@@ -1408,9 +1408,18 @@ void C2_HOOK_FASTCALL UndoDamage(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoSpecial
 
-// UndoScreenWobble
+// FUNCTION: CARMA2_HW 0x004c9e50
+void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 
-// UndoSplash
+    SetPipeUndoFlag();
+    if (pPrev_chunk != NULL) {
+        tPipe_chunk_screen_wobble* wobble = (tPipe_chunk_screen_wobble*)((tU8*)pPrev_chunk + 4);
+        SetScreenWobble(wobble->wobble_x, wobble->wobble_y);
+    } else {
+        SetScreenWobble(0, 0);
+    }
+    ClearPipeUndoFlag();
+}
 
 // UndoExtendedSplash
 

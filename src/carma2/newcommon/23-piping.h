@@ -428,7 +428,7 @@ extern void C2_HOOK_FASTCALL UndoDamage(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoSpecial
 
-// UndoScreenWobble
+extern void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoSplash
 
