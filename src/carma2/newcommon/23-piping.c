@@ -1171,9 +1171,11 @@ void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk) {
         chunk->data.smash_texture_change.texture2);
 }
 
-// ApplyRepulseRay
+// FUNCTION: CARMA2_HW 0x004c9a50
+void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk) {
 
-// ApplyActorTrans
+    return WorkerRepulseRay(*(int*)*pChunk, *(int*)((tU8*)*pChunk + 4), *(int*)((tU8*)*pChunk + 8), *(int*)((tU8*)*pChunk + 0xc));
+}
 
 // ApplyPedStatus
 
