@@ -356,11 +356,7 @@ extern void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider);
 extern int C2_HOOK_FASTCALL Controls_KeyUp(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend);
 
-// Controls_KeyDown
-
-// Controls_Infunc
-
-// Controls_Outfunc
+extern int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend);
 
 // Controls_SlotActivated
 
