@@ -1133,6 +1133,11 @@ void C2_HOOK_FASTCALL DisposeGameIfNecessary(void) {
     dr_dprintf("DisposeGameIfNecessary() - END");
 }
 
+// FUNCTION: CARMA2_HW 0x0044c220
+void C2_HOOK_FASTCALL DisposeTrack(void) {
+
+    FreeTrack(&gProgram_state.track_spec);
+}
 
 // FUNCTION: CARMA2_HW 0x004910d0
 int GetRegisterSourceLocation(char* pSource_location) {
