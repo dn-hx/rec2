@@ -26,6 +26,9 @@ br_model* gNearest_model;
 // GLOBAL: CARMA2_HW 0x00686198
 br_matrix34 gPick_model_to_view__finteray;
 
+// GLOBAL: CARMA2_HW 0x006861c8
+int gTemp_group;
+
 // BadDiv
 
 // DRVector2AccumulateScale
@@ -47,7 +50,12 @@ int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* ap, br_vector3* pPosition, br_vect
 
 // DRSceneRayPick2D
 
-// DRModelPick2D
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045d570
 int C2_HOOK_CDECL FindHighestPolyCallBack(br_model* pModel, br_actor* pActor, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pData) {
