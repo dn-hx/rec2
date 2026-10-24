@@ -103,5 +103,7 @@ extern void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int 
 
 extern void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos);
 
+extern void C2_HOOK_FASTCALL WorkerEndShitMine(int field_0x0, br_vector3* pPos);
+
 
 #endif // GUARD_22_REPLAY_H
