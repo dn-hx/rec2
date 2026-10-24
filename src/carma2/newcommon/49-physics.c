@@ -449,6 +449,31 @@ void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004b9e40
+void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable) {
+    tPhysics_object* cur;
+    tPhysics_object* sibling;
+
+    pCollision_info->disable_move_rotate = pDisable;
+    cur = pCollision_info;
+    do {
+        cur->disable_move_rotate = pDisable;
+        cur->field_0x1df = 0;
+        if (cur->child != NULL) {
+            sibling = cur->child;
+            while (sibling != NULL) {
+                sibling->disable_move_rotate = pDisable;
+                sibling->field_0x1df = 0;
+                if (sibling->child != NULL) {
+                    SetCollisionInfoDoNothing(sibling->child, pDisable);
+                }
+                sibling = sibling->next;
+            }
+        }
+        cur = (tPhysics_object*)cur->field183_0x1d8;
+    } while (cur != NULL && cur != pCollision_info);
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
