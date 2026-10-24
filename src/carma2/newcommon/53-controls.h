@@ -23,9 +23,7 @@ extern tCamera_key_flags gCamera_key_flags;
 extern void C2_HOOK_FASTCALL AbortRace(void);
 // F4Key
 
-// SetFlag
-
-// FinishRace
+extern void C2_HOOK_FASTCALL SetFlag(int i);
 
 extern void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void);
 

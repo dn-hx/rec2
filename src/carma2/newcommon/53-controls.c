@@ -96,6 +96,18 @@ void C2_HOOK_FASTCALL F4Key(void) {
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x00441580
+void C2_HOOK_FASTCALL SetFlag(int i) {
+
+    if (gI_am_cheating == i) {
+        gI_am_cheating = 0;
+        NewTextHeadupSlot(4, 0, 3000, -4, "Cheating Off");
+    } else {
+        gI_am_cheating = i;
+    }
+    F4Key();
+}
+
 // FUNCTION: CARMA2_HW 0x004415e0
 void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void) {
 
