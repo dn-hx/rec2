@@ -992,6 +992,13 @@ int C2_HOOK_FASTCALL SetDancingPeds(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
+// FUNCTION: CARMA2_HW 0x004de8a0
+int C2_HOOK_FASTCALL SetPanickingPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gPanicking_peds = 1;
+    return powerup - gPowerup_array;
+}
+
 
 // SetGhostPeds
 
