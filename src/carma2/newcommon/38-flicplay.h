@@ -50,7 +50,7 @@ extern void C2_HOOK_FASTCALL FlicPaletteAllocate(void);
 
 // AssertFlicPixelmap
 
-// StartFlic
+extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
 
 extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
 
