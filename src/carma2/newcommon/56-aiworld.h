@@ -41,6 +41,8 @@ extern void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
 
+extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
+
 extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
 
 #endif // GUARD_56_AIWORLD_H
