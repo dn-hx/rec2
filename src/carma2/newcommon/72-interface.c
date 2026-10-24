@@ -1606,8 +1606,20 @@ int C2_HOOK_FASTCALL WrecksOutFunc(tFrontend_spec* pFrontend) {
 
 // GetCarSelectedByMouse
 
-// WreckPick
+// FUNCTION: CARMA2_HW 0x0046f4f0
+int C2_HOOK_CDECL WreckPick(br_actor* world, br_model* model, br_material* material, br_vector3* pos, br_vector3* dir, br_scalar pNear, br_scalar pFar, void* arg) {
+    int i;
 
+    for (i = 0; i < gFrontend_wrecks_car_count; i++) {
+        gHierarchy_has_actor = 0;
+        BrActorEnum(gWreck_gallery_car_infos[i].actor, HeirarchyPick, world);
+        if (gHierarchy_has_actor) {
+            gPicked_wreck = i;
+            return 1;
+        }
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0046f560
 intptr_t C2_HOOK_CDECL HeirarchyPick(br_actor* a, void* ref) {
 
