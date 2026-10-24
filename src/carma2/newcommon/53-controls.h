@@ -155,9 +155,7 @@ extern void C2_HOOK_FASTCALL CycleYonFactor(void);
 // CycleCarSimplificationLevel
 
 extern void C2_HOOK_FASTCALL ToggleAccessoryRendering(void);
-
-// UserSendMessage
-
+extern void C2_HOOK_FASTCALL UserSendMessage(void);
 // EnterUserMessage
 
 // DisplayUserMessage
