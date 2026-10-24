@@ -2452,6 +2452,12 @@ int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend) {
 // NetSummary_Draw
 
 /* not static: nothing references it until SortGameScores is implemented, and an unreferenced static would be dropped */
+// FUNCTION: CARMA2_HW 0x004743c0
+int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2) {
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
+}
+
 extern int gKey_map_index;
 
 static void C2_HOOK_FASTCALL SaveKeyMapping_(void) {
