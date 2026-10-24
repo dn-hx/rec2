@@ -133,7 +133,7 @@ extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_
 
 // ReadSpillData
 
-// ReadExplosion
+extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 
 // FreeExplosion
 
