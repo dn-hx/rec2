@@ -752,7 +752,55 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
 
 // SemiDetachBit
 
-// GetSDBJointPosAndBounds
+// FUNCTION: CARMA2_HW 0x0042dbd0
+int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, br_vector3* pP33, br_bounds3* pBounds, br_actor* pActor) {
+    tUser_crush_data* user;
+    br_model* model;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_detach_data* detach_data;
+    tCar_crush_flap_data* flap_data;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return 1;
+    }
+    model = user->models[0];
+    if (model == NULL) {
+        return 1;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return 1;
+    }
+    detach_data = crush_data->detach_data;
+    if (detach_data == NULL) {
+        return 1;
+    }
+    DRBoundsCopy(pBounds, &model->bounds);
+    flap_data = crush_data->flap_data;
+    if (flap_data != NULL) {
+        pP1->v[0] = model->vertices[flap_data->hinge0].p.v[0];
+        pP1->v[1] = model->vertices[flap_data->hinge0].p.v[1];
+        pP1->v[2] = model->vertices[flap_data->hinge0].p.v[2];
+        pP2->v[0] = model->vertices[flap_data->hinge1].p.v[0];
+        pP2->v[1] = model->vertices[flap_data->hinge1].p.v[1];
+        pP2->v[2] = model->vertices[flap_data->hinge1].p.v[2];
+        pP33->v[0] = model->vertices[flap_data->hinge2].p.v[0];
+        pP33->v[1] = model->vertices[flap_data->hinge2].p.v[1];
+        pP33->v[2] = model->vertices[flap_data->hinge2].p.v[2];
+    } else {
+        pP1->v[0] = model->vertices[detach_data->field_0x30].p.v[0];
+        pP1->v[1] = model->vertices[detach_data->field_0x30].p.v[1];
+        pP1->v[2] = model->vertices[detach_data->field_0x30].p.v[2];
+        pP2->v[0] = 0.f;
+        pP2->v[1] = 0.f;
+        pP2->v[2] = 0.f;
+        pP33->v[0] = 0.f;
+        pP33->v[1] = 0.f;
+        pP33->v[2] = 0.f;
+    }
+    return 0;
+}
 
 // SendSemiDetachBit
 
