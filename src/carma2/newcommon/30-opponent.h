@@ -105,6 +105,7 @@ extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOppon
 extern void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender);
 
 extern void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCount);
+extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
 
 extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
 

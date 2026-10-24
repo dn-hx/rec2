@@ -227,6 +227,11 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004a7a80
+void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
+    NOT_IMPLEMENTED();
+}
+
 void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void) {
     NOT_IMPLEMENTED();
 }
