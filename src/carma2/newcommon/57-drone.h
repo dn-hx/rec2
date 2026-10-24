@@ -14,8 +14,7 @@ extern br_vector3 gRender_bounds_centre;
 
 // DroneStraightestArcForCorner2D
 
-// OpenDroneFile
-
+extern FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name);
 // LoadDroneTypeInfo
 
 // ReallyRemoveDroneFromPHIL

@@ -58,8 +58,22 @@ static void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 
 // DroneStraightestArcForCorner2D
 
-// OpenDroneFile
+// FUNCTION: CARMA2_HW 0x0044f640
+FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
+    tPath_name the_path;
+    FILE* f;
 
+    strcpy(the_path, gApplication_path);
+    PathCat(the_path, the_path, "DRONES");
+    PathCat(the_path, the_path, pDrone_name);
+    PathCat(the_path, the_path, pDrone_name);
+    strcat(the_path, ".TXT");
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, the_path);
+    }
+    return f;
+}
 // LoadDroneTypeInfo
 
 // ReallyRemoveDroneFromPHIL
