@@ -86,7 +86,7 @@ extern void C2_HOOK_FASTCALL DamageTest(void);
 
 // CheckHornLocal
 
-// CheckHorn3D
+extern void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar);
 
 // CheckHorns
 
