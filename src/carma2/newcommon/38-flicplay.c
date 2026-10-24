@@ -921,6 +921,12 @@ void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex) {
     gPanel_buffer[pIndex] = NULL;
 }
 
+// FUNCTION: CARMA2_HW 0x00463330
+br_pixelmap* C2_HOOK_FASTCALL GetPanelPixelmap(int pIndex) {
+
+    return gPanel_buffer[pIndex];
+}
+
 // FUNCTION: CARMA2_HW 0x00463340
 void C2_HOOK_FASTCALL LoadInterfaceStrings(void) {
     FILE* f;

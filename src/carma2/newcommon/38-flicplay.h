@@ -109,6 +109,8 @@ extern void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop
 
 extern void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex);
 
+extern br_pixelmap* C2_HOOK_FASTCALL GetPanelPixelmap(int pIndex);
+
 extern void C2_HOOK_FASTCALL LoadInterfaceStrings(void);
 
 extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
