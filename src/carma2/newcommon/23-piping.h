@@ -271,7 +271,7 @@ extern void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pV
 
 extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
 
-// PipeSingleDroneCornerPos
+// PipeSingleDroneCornerPos (defined in 23-piping.c; no extern here: the extra declaration changed codegen of BitObjectIsSufficientlyOutsideCarObjectToDetach 0x00434910 in 13-crush1.c)
 
 // PipeSingleDroneStraightPos
 
