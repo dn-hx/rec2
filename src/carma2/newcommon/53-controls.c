@@ -1,4 +1,5 @@
 #include "53-controls.h"
+#include "62-graphics3.h"
 
 #include "15-displays.h"
 #include "17-world2.h"
@@ -12,6 +13,15 @@
 #include "c2_string.h"
 
 #include <stdio.h>
+#include "69-sound.h"
+#include "42-input.h"
+#include "globvrpb.h"
+#include "17-world2.h"
+#include "globvrkm.h"
+#include "16-graphics1.h"
+#include "43-pratcam.h"
+#include "37-brucetrk.h"
+#include "07-structur.h"
 
 // GLOBAL: CARMA2_HW 0x00659b2c
 float gMap_render_x = 80.f;
@@ -44,7 +54,23 @@ int gHeadup_map_h;
 char gString[84];
 
 // GLOBAL: CARMA2_HW 0x0067c3c8
-char* gAbuse_text[10];
+char* gAbuse_text[10] = { 0 };
+
+/* UNCERTAIN: unknown, unreferenced 4 bytes after gAbuse_text (only seen as its loop end); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x0067c3f0
+int gUNK_0067c3f0 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c3f8
+int gRecovery_voucher_count;
+
+// GLOBAL: CARMA2_HW 0x0067c46c
+int gAllow_car_flying;
+
+// GLOBAL: CARMA2_HW 0x0067c474
+int gEntering_message;
+
+// GLOBAL: CARMA2_HW 0x0079efa4
+tCamera_key_flags gCamera_key_flags;
 
 // CompleteRace
 
@@ -52,9 +78,15 @@ char* gAbuse_text[10];
 
 // F4Key
 
-// SetFlag
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FinishRace
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004415e0
 void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void) {
@@ -209,9 +241,11 @@ void C2_HOOK_FASTCALL ToggleHeadupMap(int pArg) {
 
 // HackyMapFixForMac3dfx
 
-// ToggleMap
+extern int gIt_or_fox;
+extern void C2_HOOK_FASTCALL AdjustRenderScreenSize(void);
 
-// GetRecoverVoucherCount
+// GLOBAL: CARMA2_HW 0x0067c458
+static int old_indent;
 
 // AddVouchers
 
@@ -294,7 +328,10 @@ void C2_HOOK_FASTCALL DisposeAbuseomatic(void) {
     }
 }
 
-// ChangeCameraTypeInGame
+/* local declarations (no new includes in this file) */
+extern void C2_HOOK_FASTCALL ChangeCameraType(void);
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+
 
 // SteelBollock
 
