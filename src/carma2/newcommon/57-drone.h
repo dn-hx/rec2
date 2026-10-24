@@ -91,7 +91,7 @@ extern void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec);
 
 // StartProcessingThisDrone
 
-// DroneCarWithinProcessingDistance
+extern int C2_HOOK_FASTCALL DroneCarWithinProcessingDistance(const br_vector3* pPos);
 
 // DronePlaneWithinProcessingDistance
 
