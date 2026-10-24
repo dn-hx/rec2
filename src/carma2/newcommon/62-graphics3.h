@@ -23,7 +23,7 @@ extern int gTrack_version;
 
 // ToggleTargetLock
 
-// CycleTargetLock
+extern void C2_HOOK_FASTCALL CycleTargetLock(void);
 
 // CycleMapOptions
 
