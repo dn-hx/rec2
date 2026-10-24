@@ -63,6 +63,10 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x0043e770
+void C2_HOOK_FASTCALL PlaySmackerFile(const char* pSmack_name) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
