@@ -352,9 +352,16 @@ void C2_HOOK_FASTCALL DisposePedStuff(void) {
     }
 }
 
-// BonerOpenCharacterForm
+// FUNCTION: CARMA2_HW 0x004cb980
+FILE* C2_HOOK_FASTCALL BonerOpenCharacterForm(const char* pName) {
+    tPath_name path;
 
-// BonerOpenDefaultMoves
+    PathCat(path, gApplication_path, gPedsFolder);
+    PathCat(path, path, "FORMS");
+    PathCat(path, path, pName);
+    strcat(path, ".TXT");
+    return DRfopen(path, "rt");
+}
 
 // BonerOpenPersonality
 
