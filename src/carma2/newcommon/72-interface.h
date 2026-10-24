@@ -196,13 +196,7 @@ extern int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_s
 // DisposeWrecksGallery
 extern int C2_HOOK_FASTCALL BuyCurrentCar(tFrontend_spec* pFrontend);
 
-// ScrollToNextCar
-
-// ScrollToPrevCar
-
-// BuyCurrentCar
-
-// WrecksInFunc
+extern int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend);
 
 // KeepInRange
 
