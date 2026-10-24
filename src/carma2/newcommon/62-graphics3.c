@@ -2,6 +2,7 @@
 
 #include "08-loading1.h"
 #include "10-loading2.h"
+#include "18-graphics2.h"
 #include "19-font.h"
 #include "25-grafdata.h"
 #include "41-utility.h"
@@ -11,6 +12,7 @@
 #include "63-loading3.h"
 #include "70-packfile.h"
 #include "globvars.h"
+#include "globvrpb.h"
 #include "rec2_macros.h"
 
 #include <limits.h>
@@ -24,6 +26,12 @@ tCar_icon gCar_icons[128];
 
 // GLOBAL: CARMA2_HW 0x0074ab84
 br_actor* gCar_icons_model_actor;
+
+// GLOBAL: CARMA2_HW 0x0068d6f0
+tCar_spec* gTarget_lock_car_2;
+
+// GLOBAL: CARMA2_HW 0x0068d8c4
+tCar_spec* gTarget_lock_car_1;
 
 // GLOBAL: CARMA2_HW 0x0068d8c8
 int gTarget_lock_enabled;
@@ -109,6 +117,18 @@ br_pixelmap* gSmashy_dot;
 // GLOBAL: CARMA2_HW 0x0068c87c
 br_pixelmap* gAlt_meter;
 
+// GLOBAL: CARMA2_HW 0x0068c880
+// GLOBAL: CARMA2_SW 0x006868d8
+br_matrix23 gMatrix23_0068c880;
+
+// GLOBAL: CARMA2_HW 0x0068c868
+// GLOBAL: CARMA2_SW 0x006868c0
+br_vector3 gOrigin_map;
+
+// GLOBAL: CARMA2_HW 0x0068d898
+// GLOBAL: CARMA2_SW 0x006878f0
+br_vector2 gOrigin_headup_map;
+
 // GLOBAL: CARMA2_HW 0x0068c860
 int gCheckpoint_digit_height;
 
@@ -116,7 +136,7 @@ int gCheckpoint_digit_height;
 int gCheckpoint_digit_center_x;
 
 // GLOBAL: CARMA2_HW 0x0068c85c
-tU32 gCheckpoint_digit_center_y;
+int gCheckpoint_digit_center_y;
 
 // GLOBAL: CARMA2_HW 0x0068d6f8
 tOppo_status_messages gOppo_status_messages[9];
@@ -127,15 +147,40 @@ int gCount_smashable_race_targets;
 // GLOBAL: CARMA2_HW 0x0068c898
 tSmashable_race_target gSmashable_race_targets[300];
 
+// GLOBAL: CARMA2_HW 0x0074abc0
+int gMap_render_x_i;
+
+// GLOBAL: CARMA2_HW 0x0074abbc
+int gMap_render_y_i;
+
+// GLOBAL: CARMA2_HW 0x0074abe8
+int gMap_render_width_i;
+
+// GLOBAL: CARMA2_HW 0x0074abc8
+int gMap_render_height_i;
+
+// GLOBAL: CARMA2_HW 0x007634b4
+int gTrack_version;
+
 // CarArrowColour
 
-// ToggleTargetLock
+/* local declarations */
+#include "01-network.h"
+#include "30-opponent.h"
+#include <stdio.h>
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // CycleTargetLock
 
 // CycleMapOptions
 
 // ToggleMapTransparency
+
+// GLOBAL: CARMA2_HW 0x00659b28
+int gCheckpoint_finder_enabled = 1;
+
+/* local declaration (15-displays.h is not included in this file) */
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // FUNCTION: CARMA2_HW 0x004948a0
 void C2_HOOK_FASTCALL InitTargetLock(void) {
