@@ -5,9 +5,32 @@
 #include "63-loading3.h"
 #include "globvars.h"
 #include "rec2_macros.h"
+#include "globvrpb.h"
+#include "15-displays.h"
+#include "41-utility.h"
+#include "platform.h"
+#include "30-opponent.h"
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 br_pixelmap* gDigits_pix;
+
+// GLOBAL: CARMA2_HW 0x0074a5ec
+tU32 gPHIL_last_physics_tick;
+
+// GLOBAL: CARMA2_HW 0x0068d934
+int gNot_shown_race_type_headup;
+
+// GLOBAL: CARMA2_HW 0x0068d92c
+tU32 gTime_for_punishment;
+
+// GLOBAL: CARMA2_HW 0x0079eae8
+int gNet_cash_headup;
+
+// GLOBAL: CARMA2_HW 0x0068d920
+int gINT_0068d920;
+
+// GLOBAL: CARMA2_HW 0x0079eaa4
+int gNet_ped_headup;
 
 // SendShapeNumbers
 
