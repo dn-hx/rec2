@@ -373,8 +373,7 @@ extern undefined4* gCrush_space;
 
 extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 
-// ARReplayPauseState
-
+extern int C2_HOOK_FASTCALL ARReplayPauseState(void);
 extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
 
 extern void C2_HOOK_FASTCALL ARSetReplayRate(float pRate);

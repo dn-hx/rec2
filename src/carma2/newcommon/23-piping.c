@@ -85,7 +85,11 @@ int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void) {
     return gReplay_rate == 0.f;
 }
 
-// ARReplayPauseState
+// FUNCTION: CARMA2_HW 0x00402380
+int C2_HOOK_FASTCALL ARReplayPauseState(void) {
+    return gReplay_pause_state;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
