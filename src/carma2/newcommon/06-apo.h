@@ -19,6 +19,6 @@ extern void C2_HOOK_FASTCALL BuyArmour(void);
 
 extern void C2_HOOK_FASTCALL BuyPower(void);
 
-// BuyOffense
+extern void C2_HOOK_FASTCALL BuyOffense(void);
 
 #endif // GUARD_06_APO_H
