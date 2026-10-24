@@ -18,6 +18,10 @@ extern int gColumn_flags;
 extern br_pixelmap* gFlame_map[20];
 extern br_model* gLollipop_model;
 extern tSmoke_column gSmoke_column[10];
+extern tSpark gSparks[32];
+extern int gReplay_splash_flags;
+extern tReplay_splash gReplay_splashes[10];
+extern br_token_value* gDAT_00660148;
 
 // DrawDot
 
