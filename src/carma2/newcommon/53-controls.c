@@ -356,9 +356,30 @@ extern void C2_HOOK_FASTCALL AdjustRenderScreenSize(void);
 // GLOBAL: CARMA2_HW 0x0067c458
 static int old_indent;
 
-// AddVouchers
+// FUNCTION: CARMA2_HW 0x00444610
+void C2_HOOK_FASTCALL ToggleMap(void) {
 
-// ResetRecoveryVouchers
+    if (gMap_view == 2) {
+        gMap_view = 1;
+        gRender_indent = old_indent;
+        if (gCurrent_race.map_image != NULL) {
+            PixelmapSwapByteOrder(gCurrent_race.map_image);
+        }
+    } else if (gAction_replay_mode == 0) {
+        if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox) {
+            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_fox_cant_do_that));
+        } else {
+            old_indent = gRender_indent;
+            gRender_indent = 0;
+            gMap_view = 2;
+            gMap_time = PDGetTotalTime();
+            if (gCurrent_race.map_image != NULL) {
+                PixelmapSwapByteOrder(gCurrent_race.map_image);
+            }
+        }
+    }
+    AdjustRenderScreenSize();
+}
 
 // CycleYonFactor
 
