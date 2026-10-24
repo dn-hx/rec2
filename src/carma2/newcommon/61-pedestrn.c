@@ -1257,7 +1257,27 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacte
 #pragma auto_inline(on)
 #endif
 
-// MakeCharacterRenderable
+// FUNCTION: CARMA2_HW 0x004083b0
+int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter) {
+    int i;
+    tPed_form* form;
+    tPed_form_actor_set* actor_sets;
+
+    if (pCharacter->field_0x4 >= 0) {
+        return 2;
+    }
+    form = pCharacter->personality->form;
+    actor_sets = form->actor_sets;
+    for (i = 0; i < form->max_rendering_at_once; i++) {
+        if (!actor_sets[i].field_0x0) {
+            break;
+        }
+    }
+    if (i == form->max_rendering_at_once) {
+        return 1;
+    }
+    return MakeCharacterRenderable2(pCharacter, i);
+}
 
 // CharacterNoLongerRenderable
 

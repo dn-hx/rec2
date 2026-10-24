@@ -437,7 +437,7 @@ extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* 
 
 extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
 
-// MakeCharacterRenderable
+extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter);
 
 // CharacterNoLongerRenderable
 
