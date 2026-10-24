@@ -27,6 +27,7 @@
 
 #include "c2_string.h"
 #include <ctype.h>
+#include "joystick.h"
 
 // GLOBAL: CARMA2_HW 0x00764eec
 tFrontendMenuType gFrontend_next_menu;
@@ -105,8 +106,8 @@ int gCredits_total_height;
 // GLOBAL: CARMA2_HW 0x006886d0
 double gFrontend_throb_factor;
 
-// GLOBAL: CARMA2_HW 0x00763940
-br_actor* gFrontend_billboard_actors[8];
+/* gFrontend_billboard_actors (0x00763940) is defined in 71-newgame.c, directly before gNet_settings as in the original layout */
+extern br_actor* gFrontend_billboard_actors[8];
 
 // GLOBAL: CARMA2_HW 0x00688b10
 br_actor* gFrontend_menu_camera;
@@ -192,9 +193,6 @@ br_model* gFrontend_B_model_to;
 // GLOBAL: CARMA2_HW 0x00686504
 br_model* gFrontend_C_model_from;
 
-// GLOBAL: CARMA2_HW 0x006886bc
-br_model* gFrontend_C_model_to;
-
 // GLOBAL: CARMA2_HW 0x006864e0
 int gFrontend_backdrop0_opacity_mode;
 
@@ -217,7 +215,10 @@ int gValid_stashed_save_game; // FIXME: rename variable?
 tConnected_items gControls_scroller;
 
 // GLOBAL: CARMA2_HW 0x00688458
-char* gKey_names[153];
+char* gKey_names[153] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006886bc
+br_model* gFrontend_C_model_to = NULL;
 
 // GLOBAL: CARMA2_HW 0x00604888
 const int gControls_frontend_to_key_mapping_lut[29] = {
@@ -225,6 +226,98 @@ const int gControls_frontend_to_key_mapping_lut[29] = {
     57, 67, 68, 69, 71, 61, 62, 63, 64, 74,
     59, 70, 72, 73, 75, 76, 35, 65, 66,
 };
+
+// GLOBAL: CARMA2_HW 0x00764ee8
+int gFrontend_change_car_selected_car;
+
+// GLOBAL: CARMA2_HW 0x0074c6b4
+int gFrontend_net_initialized;
+
+// GLOBAL: CARMA2_HW 0x006a0d38
+tU32 gLast_host_query;
+
+// GLOBAL: CARMA2_HW 0x0068843c
+tU32 gFrontend_last_scroll;
+
+// GLOBAL: CARMA2_HW 0x00688af8
+float gFrontend_wreck_bought_car_dz;
+
+// GLOBAL: CARMA2_HW 0x00688afc
+int gFrontend_wrecks_hscroll;
+
+// GLOBAL: CARMA2_HW 0x00688b00
+int gFrontend_wrecks_pending_hscroll;
+
+// GLOBAL: CARMA2_HW 0x0059b0dc
+int gFrontend_wrecks_rotate_prev_x = -1;
+
+// GLOBAL: CARMA2_HW 0x0059b0e0
+int gFrontend_wrecks_rotate_prev_y = -1;
+
+// GLOBAL: CARMA2_HW 0x00686828
+int gFrontend_opponent_profile_pic_needs_update;
+
+// GLOBAL: CARMA2_HW 0x00705190
+int gFrontend_wrecks_car_count;
+
+// GLOBAL: CARMA2_HW 0x00763b5c
+tWreck_gallery_car_info gWreck_gallery_car_infos[30];
+
+// GLOBAL: CARMA2_HW 0x00763928
+int gPicked_wreck;
+
+// GLOBAL: CARMA2_HW 0x00688aa8
+tU32 gFrontend_net_current_roll;
+
+// GLOBAL: CARMA2_HW 0x00686efc
+tU32 gFrontend_net_last_roll;
+
+// GLOBAL: CARMA2_HW 0x00763b20
+tNet_game_options gFrontend_net_options;
+
+// GLOBAL: CARMA2_HW 0x00688af0
+br_actor* gFrontend_wrecks_camera;
+
+// GLOBAL: CARMA2_HW 0x00688aec
+br_actor* gFrontend_wrecks_actor;
+
+// GLOBAL: CARMA2_HW 0x00687040
+int gFrontend_car_image_outdated;
+
+// GLOBAL: CARMA2_HW 0x00686f94
+br_actor* gFrontend_camera;
+
+// GLOBAL: CARMA2_HW 0x00686f50
+br_token_value gFrontend_backdrop0_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f20
+br_token_value gFrontend_backdrop1_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f38
+br_token_value gFrontend_backdrop2_material_prims[3];
+
+// GLOBAL: CARMA2_HW 0x00686f10
+br_material* gFrontend_backdrop_materials[3];
+
+// GLOBAL: CARMA2_HW 0x00687030
+br_actor* gFrontend_backdrop_actors[3];
+
+// GLOBAL: CARMA2_HW 0x00604900
+int gFrontend_controls_indices[15] = {
+    12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+};
+
+// GLOBAL: CARMA2_HW 0x00686f68
+tFrontend_slider gControls_slider_1;
+
+// GLOBAL: CARMA2_HW 0x006883c8
+tFrontend_slider gControls_slider_2;
+
+// GLOBAL: CARMA2_HW 0x00688ac0
+tFrontend_slider gControls_slider_3;
+
+// GLOBAL: CARMA2_HW 0x00688780
+tSave_game gStashed_save_game;
 
 // FUNCTION: CARMA2_HW 0x00466450
 int C2_HOOK_FASTCALL temp(tFrontend_spec* pFrontend) {
@@ -581,7 +674,20 @@ void C2_HOOK_FASTCALL RefreshRacesScroller(tFrontend_spec* pFrontend) {
 
 // RestoreSinglePlayerState
 
-// MaybeRestoreSavedGame
+static void C2_HOOK_FASTCALL RestoreSinglePlayerState(void) {
+
+    LoadRaces(gRace_list, &gNumber_of_races, -1);
+    DoLoadGame2(&gStashed_save_game);
+    gValid_stashed_save_game = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00466e90
+void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void) {
+
+    if (gValid_stashed_save_game) {
+        RestoreSinglePlayerState();
+    }
+}
 
 // NetworkJoinUpdateScroller
 
@@ -626,7 +732,17 @@ int C2_HOOK_FASTCALL NewGameToggleTyping(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// NetGameToggleTyping
+// FUNCTION: CARMA2_HW 0x004670c0
+int C2_HOOK_FASTCALL NetGameToggleTyping(tFrontend_spec* pFrontend) {
+
+    ToggleTyping(pFrontend);
+    if (!gTyping && strlen(pFrontend->items[gFrontend_selected_item_index].text) != 0) {
+
+        strcpy(gProgram_state.player_name, pFrontend->items[gFrontend_selected_item_index].text);
+        SaveOptions();
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00467130
 int C2_HOOK_FASTCALL ChooseSkill(tFrontend_spec* pFrontend) {
@@ -649,10 +765,55 @@ int C2_HOOK_FASTCALL ChooseSkill(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// NewGameOutfunc
+// FUNCTION: CARMA2_HW 0x00467180
+int C2_HOOK_FASTCALL NewGameOutfunc(tFrontend_spec* pFrontend) {
 
-// NewGameInfunc
+    SaveOptions();
+    InitGameAccordingToSkillLevel();
+    DRS3StartSound(gEffects_outlet, eSoundId_Swingout);
+    return 0;
+}
 
+// FUNCTION: CARMA2_HW 0x004671a0
+int C2_HOOK_FASTCALL NewGameInfunc(tFrontend_spec* pFrontend) {
+
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    DRS3StartSound(gEffects_outlet, eSoundId_Swingin);
+    switch (gProgram_state.skill_level) {
+    case 0:
+        pFrontend->items[2].enabled = 1;
+        pFrontend->items[2].radioButton_selected = 1;
+        break;
+    case 1:
+    default:
+        pFrontend->items[3].enabled = 1;
+        pFrontend->items[3].radioButton_selected = 1;
+        gProgram_state.skill_level = 1;
+        break;
+    case 2:
+        pFrontend->items[4].enabled = 1;
+        pFrontend->items[4].radioButton_selected = 1;
+        break;
+    }
+    pFrontend->items[5].enabled = 1;
+    pFrontend->default_item = 5;
+    gFrontend_selected_item_index = 5;
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous !=NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gMouse_in_use = 0;
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x00467270
 int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
     if (gProgram_state.field_0x2c) {
@@ -666,12 +827,24 @@ int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
 
 // UpdateNetGameTypeScroller
 
-// NetGameTypeUp
+// NetGameTypeUp: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
 
 // NetGameTypeDn
 
-// MultiplayerSetup
+// FUNCTION: CARMA2_HW 0x00467eb0
+int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend) {
 
+    gFrontend_net_initialized = !NetInitialise();
+    if (gFrontend_net_initialized) {
+
+        gPending_race = -1;
+        gStart_race_sent = 0;
+        gCurrent_race.number_of_racers = 0;
+        gLast_host_query = 0;
+        AboutToLoadFirstCar();
+    }
+    return 0;
+}
 // NetworkJoinSetup
 
 // NetworkJoinMenuInfunc
@@ -718,28 +891,122 @@ int C2_HOOK_FASTCALL OnePlayerSetup(tFrontend_spec* pFrontend) {
 
 // MainMenuInfunc
 
-// MainMenuOutfunc
+// FUNCTION: CARMA2_HW 0x00469df0
+int C2_HOOK_FASTCALL MainMenuOutfunc(tFrontend_spec* pFrontend) {
+    br_actor* actor;
+
+    actor = gFrontend_billboard_actors[0];
+    if (actor != NULL) {
+        if (actor->material->colour_map != NULL) {
+            BrMapRemove(actor->material->colour_map);
+            BrPixelmapFree(actor->material->colour_map);
+        }
+        if (actor->material != NULL) {
+            BrMaterialRemove(actor->material);
+            BrMaterialFree(actor->material);
+        }
+        if (actor->model != NULL) {
+            BrModelRemove(actor->model);
+            BrModelFree(actor->model);
+        }
+        if (actor->parent != NULL) {
+            BrActorRemove(actor);
+        }
+        BrActorFree(actor);
+    }
+    BrActorFree(gFrontend_menu_camera);
+    gFrontend_menu_camera = NULL;
+    SaveOptions();
+    return 1;
+}
 
 // MainMenuSelectRace
 
-// testUp
+// FUNCTION: CARMA2_HW 0x0046a010
+int C2_HOOK_FASTCALL testUp(tFrontend_spec *pFrontend) {
 
-// testDn
+    if (PDGetTotalTime() - gFrontend_last_scroll > 400) {
+        gFrontend_last_scroll = PDGetTotalTime();
+        if ((gCurrent_race_group - gRace_groups) % 10 > 0) {
+            gCurrent_race_group -= 1;
+        }
+        RefreshRacesScroller(pFrontend);
+        FuckWithWidths(pFrontend);
+    }
+    return 0;
+}
+// FUNCTION: CARMA2_HW 0x0046a080
+int C2_HOOK_FASTCALL testDn(tFrontend_spec *pFrontend) {
 
+    if (PDGetTotalTime() - gFrontend_last_scroll > 400) {
+        gFrontend_last_scroll = PDGetTotalTime();
+        if ((gCurrent_race_group - gRace_groups) % 10 < 9) {
+            gCurrent_race_group += 1;
+        }
+        RefreshRacesScroller(pFrontend);
+    }
+    return 0;
+}
 // FRONTEND_MainMenuHandler
 
 // UpdateCarInfo
 
-// ChangeCarMenuInfunc
+// FUNCTION: CARMA2_HW 0x0046b4e0
+int C2_HOOK_FASTCALL ChangeCarMenuInfunc(tFrontend_spec* pFrontend) {
+    int i;
+    int count;
 
+    gFrontend_change_car_selected_car = 0;
+    if (gProgram_state.number_of_cars >= 2 || gProgram_state.game_completed) {
+        pFrontend->items[0].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[1].enabled = kFrontendItemEnabled_enabled;
+    } else {
+        pFrontend->items[0].enabled = kFrontendItemEnabled_default;
+        pFrontend->items[1].enabled = kFrontendItemEnabled_default;
+    }
+    DefaultInfunc(pFrontend);
+    ResetInterfaceTimeout();
+    gFrontend_car_image_outdated = 1;
+    gFrontend_opponent_profile_pic_needs_update = 1;
+    FuckWithWidths(pFrontend);
+
+    for (i = 0; i < gProgram_state.number_of_cars; i++) {
+        if (gProgram_state.cars_available[i] == gProgram_state.current_car_index) {
+            gFrontend_change_car_selected_car = i;
+            break;
+        }
+    }
+
+    if (gProgram_state.game_completed) {
+        count = 0;
+        for (i = 0; i < gNumber_of_racers; i++) {
+
+            if (gOpponents[i].network_availability != eNet_avail_never) {
+                gProgram_state.cars_available[count] = i;
+                count++;
+            }
+        }
+        gProgram_state.number_of_cars = count;
+    }
+    gFrontend_scroll_time_increment = 50;
+    gFrontend_scroll_last_update = PDGetTotalTime();
+    gFrontend_scroll_time_left = 0;
+    gPrev_frontend_mouse_down = 0;
+    gFrontend_mouse_down = 0;
+    return 1;
+}
 // FUNCTION: CARMA2_HW 0x0046b610
 int C2_HOOK_FASTCALL ChangeCarCancel(tFrontend_spec* pFrontend) {
 
     return 0;
 }
 
-// ChangeCarOK
+// FUNCTION: CARMA2_HW 0x0046b620
+int C2_HOOK_FASTCALL ChangeCarOK(tFrontend_spec* pFrontend) {
 
+    gProgram_state.current_car_index = gProgram_state.cars_available[gFrontend_change_car_selected_car];
+    return 0;
+}
 // CarClickPrev
 
 // CarClickNext
@@ -752,18 +1019,120 @@ int C2_HOOK_FASTCALL ChangeCarMenuOutfunc(tFrontend_spec* pFrontend) {
 
 // FRONTEND_ChangeCarMenuHandler
 
-// StartGameInfunc
+// FUNCTION: CARMA2_HW 0x0046bcb0
+int C2_HOOK_FASTCALL StartGameInfunc(tFrontend_spec* pFrontend) {
+    char backdrop_name[256];
 
+    if (!pFrontend->loaded) {
+        strcpy(backdrop_name, pFrontend->backdrop_name);
+        LoadMenuSettings(pFrontend);
+        strcpy(pFrontend->backdrop_name, backdrop_name);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    pFrontend->unknownLastInt = 0;
+    return 1;
+}
 // FUNCTION: CARMA2_HW 0x0046bd50
 int C2_HOOK_FASTCALL FRONTEND_StartGameMenuHandler(tFrontend_spec* pFrontend) {
 
     return 1;
 }
 
-// CreditsScreenInfunc
+// FUNCTION: CARMA2_HW 0x0046bd60
+int C2_HOOK_FASTCALL CreditsScreenInfunc(tFrontend_spec* pFrontend) {
+    tPath_name interface_path;
+    tPath_name credits_path;
+    FILE* f;
+    char s[100];
+    char small_buf[11];
+    int i;
 
-// CreditsScreenOutfunc
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+    }
+    FuckWithWidths(pFrontend);
+    PathCat(interface_path, gApplication_path, "INTRFACE");
+    PathCat(credits_path, interface_path, "creditslist.txt");
+    f = DRfopen(credits_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_Mysterious_SS);
+    }
 
+    /* Number of lines */
+    gCredits_line_count = GetAnInt(f);
+
+    gCredits_texts = malloc(sizeof(char*) * gCredits_line_count);
+    gCredits_fonts = malloc(sizeof(int) * gCredits_line_count);
+    gCredits_heights = malloc(sizeof(int) * gCredits_line_count);
+    gCredits_throbs = malloc(sizeof(int) * gCredits_line_count);
+
+    gCredits_throbs[0] = 0;
+    gCredits_fonts[0] = kPolyfont_hand_red_15pt_lit;
+    gCredits_heights[0] = 0;
+    gCredits_total_height = 0;
+    i = 0;
+    GetALineAndDontArgue(f, s);
+    while (i < gCredits_line_count) {
+        if (strncmp(s, "FONT", 4) == 0) {
+            strncpy(small_buf, &s[5], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            gCredits_fonts[i] = atoi(small_buf);
+        } else if (strncmp(s, "SPACE", 5) == 0) {
+            strncpy(small_buf, &s[6], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            gCredits_heights[i] += (int)((double)PolyFontHeight(gCredits_fonts[i]) * atof(small_buf));
+        } else if (strncmp(s, "THROB", 5) == 0) {
+            strncpy(small_buf, &s[6], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            if (strncmp(small_buf, "ON", 2) == 0) {
+                gCredits_throbs[i] = 1;
+            } else {
+                gCredits_throbs[i] = 0;
+            }
+        } else {
+            gCredits_texts[i] = malloc(strlen(s) + 1);
+            strcpy(gCredits_texts[i], s);
+            gCredits_heights[i] += PolyFontHeight(gCredits_fonts[i]);
+            gCredits_total_height += gCredits_heights[i];
+            i++;
+            if (i < gCredits_line_count) {
+                gCredits_fonts[i] = gCredits_fonts[i - 1];
+                gCredits_throbs[i] = gCredits_throbs[i - 1];
+                gCredits_heights[i] = 0;
+            }
+        }
+        GetALineAndDontArgue(f, s);
+    }
+#ifdef CARPOCALYPSE2_FIX_BUGS
+    PFfclose(f);
+#endif
+    gCredits_total_height += 480;
+    gCredits_scroll_start = PDGetTotalTime();
+    StartMusicTrack(9998);
+    gFrontend_selected_item_index = 0;
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x0046c090
+int C2_HOOK_FASTCALL CreditsScreenOutfunc(tFrontend_spec* pFrontend) {
+    int i;
+
+    for (i = 0; i < gCredits_line_count; i++) {
+        free(gCredits_texts[i]);
+    }
+    free(gCredits_texts);
+    return 1;
+}
 // FRONTEND_GenericMenuHandler
 
 // FUNCTION: CARMA2_HW 0x0046c5c0
@@ -1014,8 +1383,69 @@ void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void) {
 
 // FRONTEND_DrawMenu
 
-// FRONTEND_Setup2D
+// FUNCTION: CARMA2_HW 0x0046cf10
+void C2_HOOK_FASTCALL FRONTEND_Setup2D(void) {
+    br_camera* camera;
 
+    gFrontend_actor = BrActorAllocate(BR_ACTOR_NONE, NULL);
+    gFrontend_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    camera = gFrontend_camera->type_data;
+    camera->type = BR_CAMERA_PARALLEL;
+    camera->field_of_view = BR_ANGLE_DEG(45); /* 0x1ffe */
+    camera->hither_z = 1.f;
+    camera->yon_z = 3.f;
+    camera->width = 640.f;
+    camera->height = 480.f;
+    BrActorAdd(gFrontend_actor, gFrontend_camera);
+    gFrontend_backdrop0_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop0_material_prims[0].v.b = 1;
+    gFrontend_backdrop0_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop0_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop0_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop0_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop1_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop1_material_prims[0].v.b = 1;
+    gFrontend_backdrop1_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop1_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop1_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop1_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop2_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop2_material_prims[0].v.b = 1;
+    gFrontend_backdrop2_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop2_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop2_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop2_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop_materials[0] = BrMaterialAllocate("Backdrop_material1");
+    gFrontend_backdrop_materials[1] = BrMaterialAllocate("Backdrop_material2");
+    gFrontend_backdrop_materials[2] = BrMaterialAllocate("Backdrop_material3");
+    gFrontend_backdrop_actors[0] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_actors[1] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_actors[2] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_materials[0]->colour = 0;
+    gFrontend_backdrop_materials[1]->colour = 0;
+    gFrontend_backdrop_materials[2]->colour = 0;
+    gFrontend_backdrop_materials[0]->index_base = 0;
+    gFrontend_backdrop_materials[1]->index_base = 0;
+    gFrontend_backdrop_materials[2]->index_base = 0;
+    gFrontend_backdrop_materials[0]->index_range = 1;
+    gFrontend_backdrop_materials[1]->index_range = 1;
+    gFrontend_backdrop_materials[2]->index_range = 1;
+    gFrontend_backdrop_materials[0]->extra_prim = gFrontend_backdrop0_material_prims;
+    gFrontend_backdrop_materials[1]->extra_prim = gFrontend_backdrop1_material_prims;
+    gFrontend_backdrop_materials[2]->extra_prim = gFrontend_backdrop2_material_prims;
+    BrMaterialAdd(gFrontend_backdrop_materials[0]);
+    BrMaterialAdd(gFrontend_backdrop_materials[1]);
+    BrMaterialAdd(gFrontend_backdrop_materials[2]);
+    gFrontend_backdrop_actors[0]->material = gFrontend_backdrop_materials[0];
+    gFrontend_backdrop_actors[0]->identifier = BrResStrDup(gFrontend_backdrop_actors[0], "Backdrop");;
+    gFrontend_backdrop_actors[1]->material = gFrontend_backdrop_materials[1];
+    gFrontend_backdrop_actors[1]->identifier = BrResStrDup(gFrontend_backdrop_actors[1], "Backdrop");
+    gFrontend_backdrop_actors[2]->material = gFrontend_backdrop_materials[2];
+    gFrontend_backdrop_actors[2]->identifier = BrResStrDup(gFrontend_backdrop_actors[2], "Backdrop");
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[0]);
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[1]);
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[2]);
+}
 // FRONTEND_Setup
 
 // FRONTEND_Redraw
@@ -1035,7 +1465,10 @@ void C2_HOOK_FASTCALL ResetInterfaceTimeout(void) {
     gFrontend_time_last_input = PDGetTotalTime();
 }
 
-// FRONTEND_Main
+// STUB: CARMA2_HW 0x0046d8e0
+int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0046e470
 int C2_HOOK_FASTCALL ProcessInputString(void) {
@@ -1104,19 +1537,67 @@ int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size) {
     return 1;
 }
 
-// DisposeWrecksGallery
+// FUNCTION: CARMA2_HW 0x0046e620
+void C2_HOOK_FASTCALL DisposeWrecksGallery(void) {
+    int i;
 
-// ScrollToNextCar
+    for (i = 0; i < gFrontend_wrecks_car_count; i++) {
+        BrActorRemove(gWreck_gallery_car_infos[i].actor);
+    }
+    if (gFrontend_wrecks_camera != NULL) {
+        if (gFrontend_wrecks_camera->parent != NULL) {
+            BrActorRemove(gFrontend_wrecks_camera);
+        }
+        BrActorFree(gFrontend_wrecks_camera);
+    }
+    if (gFrontend_wrecks_actor != NULL) {
+        if (gFrontend_wrecks_actor->parent != NULL) {
+            BrActorRemove(gFrontend_wrecks_actor);
+        }
+        BrActorFree(gFrontend_wrecks_actor);
+    }
+    gFrontend_wrecks_actor = NULL;
+    gFrontend_wrecks_camera = NULL;
+}
+// FUNCTION: CARMA2_HW 0x0046e6c0
+int C2_HOOK_FASTCALL ScrollToNextCar(tFrontend_spec* pFrontend) {
 
-// ScrollToPrevCar
+    if (gFrontend_wreck_bought_car_dz == 0.f
+            && gFrontend_wrecks_pending_hscroll == 0
+            && (gFrontend_wrecks_rotate_prev_x == -1 || gFrontend_wrecks_rotate_prev_y == -1)) {
 
-// BuyCurrentCar
+        gFrontend_wrecks_pending_hscroll = -30;
+        DRS3StartSound(gEffects_outlet, eSoundId_LeftButton);
+        gFrontend_opponent_profile_pic_needs_update = 1;
+    }
+    return 0;
+}
+// FUNCTION: CARMA2_HW 0x0046e720
+int C2_HOOK_FASTCALL ScrollToPrevCar(tFrontend_spec* pFrontend) {
 
-// WrecksInFunc
+    if (gFrontend_wreck_bought_car_dz == 0.f
+            && gFrontend_wrecks_pending_hscroll == 0
+            && (gFrontend_wrecks_rotate_prev_x == -1 || gFrontend_wrecks_rotate_prev_y == -1)) {
+
+        gFrontend_wrecks_pending_hscroll = 30;
+        DRS3StartSound(gEffects_outlet, eSoundId_LeftButton);
+        gFrontend_opponent_profile_pic_needs_update = 1;
+    }
+    return 0;
+}
+// BuyCurrentCar: defined in 72-interface-wrecks.c (see the note there)
+
+// WrecksInFunc: defined in 72-interface-wrecks.c
 
 // KeepInRange
 
-// WrecksOutFunc
+// FUNCTION: CARMA2_HW 0x0046ead0
+int C2_HOOK_FASTCALL WrecksOutFunc(tFrontend_spec* pFrontend) {
+
+    DisposeWrecksGallery();
+    DRS3StartSound(gEffects_outlet, eSoundId_Swingout);
+    return 1;
+}
 
 // WrecksUpdateFunc
 
@@ -1124,8 +1605,20 @@ int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size) {
 
 // GetCarSelectedByMouse
 
-// WreckPick
+// FUNCTION: CARMA2_HW 0x0046f4f0
+int C2_HOOK_CDECL WreckPick(br_actor* world, br_model* model, br_material* material, br_vector3* pos, br_vector3* dir, br_scalar pNear, br_scalar pFar, void* arg) {
+    int i;
 
+    for (i = 0; i < gFrontend_wrecks_car_count; i++) {
+        gHierarchy_has_actor = 0;
+        BrActorEnum(gWreck_gallery_car_infos[i].actor, HeirarchyPick, world);
+        if (gHierarchy_has_actor) {
+            gPicked_wreck = i;
+            return 1;
+        }
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0046f560
 intptr_t C2_HOOK_CDECL HeirarchyPick(br_actor* a, void* ref) {
 
@@ -1786,7 +2279,7 @@ int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pConnected
     return pConnected->field_0x8 + offset;
 }
 
-// Generic_FindNextActiveItem
+// Generic_FindNextActiveItem: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
 
 // Generic_FindPrevActiveItem
 
@@ -1855,25 +2348,121 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // Controls_JoystickDpadToggle
 
-// Slider_XProc
+// FUNCTION: CARMA2_HW 0x004729d0
+void C2_HOOK_FASTCALL Slider_XProc(tFrontend_slider* pSlider) {
 
-// Slider_YProc
+    SetJoystickX((pSlider->field_0x18 - pSlider->field_0x14) * pSlider->value);
+}
+// FUNCTION: CARMA2_HW 0x004729f0
+void C2_HOOK_FASTCALL Slider_YProc(tFrontend_slider* pSlider) {
 
-// Slider_ForceProc
+    SetJoystickY((pSlider->field_0x18 - pSlider->field_0x14) * pSlider->value);
+}
+// FUNCTION: CARMA2_HW 0x00472a10
+void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider) {
 
-// DisplayJoystickSettings
+    SetJoystickFFBGain((int)(100. * pSlider->value));
+}
+// FUNCTION: CARMA2_HW 0x00472210
+void C2_HOOK_FASTCALL DisplayJoystickSettings(tFrontend_spec *pFrontend) {
+    float joy;
 
+    C2_HOOK_BUG_ON(REC2_ASIZE(gFrontend_controls_indices) != 15);
+
+    if (gJoystick_index == -1) {
+        int i;
+
+        pFrontend->items[10].unlitFont = 0;
+        pFrontend->items[10].highFont = 0;
+        pFrontend->items[11].unlitFont = 1;
+        pFrontend->items[11].highFont = 1;
+        gControls_slider_1.flags = 1;
+        gControls_slider_2.flags = 1;
+        gControls_slider_3.flags = 1;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_disabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_disabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_disabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_disabled;
+    } else {
+        int i;
+
+        pFrontend->items[10].unlitFont = 1;
+        pFrontend->items[10].highFont = 1;
+        pFrontend->items[11].unlitFont = 0;
+        pFrontend->items[11].highFont = 0;
+        gControls_slider_1.flags = 0;
+        gControls_slider_2.flags = 0;
+        gControls_slider_3.flags = 0;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_enabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_enabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_enabled;
+    }
+
+    joy = GetJoystickX();
+    gControls_slider_1.value = gControls_slider_1.field_0x14 + joy / (gControls_slider_1.field_0x18 - gControls_slider_1.field_0x14);
+    joy = GetJoystickY();
+    gControls_slider_2.value = gControls_slider_2.field_0x14 + joy / (gControls_slider_2.field_0x18 - gControls_slider_2.field_0x14);
+    gControls_slider_3.value = 0.01 * GetJoystickFBBGain();
+    if (PDIsJoystickDPadEnabled()) {
+        pFrontend->items[36].unlitFont = 1;
+        pFrontend->items[36].highFont = 1;
+        pFrontend->items[37].unlitFont = 0;
+        pFrontend->items[37].highFont = 0;
+    } else {
+        pFrontend->items[36].unlitFont = 0;
+        pFrontend->items[36].highFont = 0;
+        pFrontend->items[37].unlitFont = 1;
+        pFrontend->items[37].highFont = 1;
+    }
+}
 // SaveAllJoystickData
 
-// Controls_SwitchKeymapSet
+// Controls_SwitchKeymapSet: defined after SortScores
 
-// Controls_KeyUp
+// FUNCTION: CARMA2_HW 0x004725a0
+int C2_HOOK_FASTCALL Controls_KeyUp(tFrontend_spec* pFrontend) {
 
-// Controls_KeyDown
+    if (gControls_scroller.field_0x8 != 0) {
+        gControls_scroller.field_0x8 -= 1;
+        RefreshScrollSet(pFrontend);
+    }
+    return 0;
+}
+// FUNCTION: CARMA2_HW 0x004725c0
+int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend) {
 
-// Controls_Infunc
+    if (gControls_scroller.field_0x8 < gControls_scroller.field_0x0 - gControls_scroller.range_length) {
+        gControls_scroller.field_0x8 += 1;
+        RefreshScrollSet(pFrontend);
+    }
+    return 0;
+}
+// Controls_Infunc: defined after SortScores
 
-// Controls_Outfunc
+// Controls_Outfunc: defined after SortScores
 
 // Controls_SlotActivated
 
@@ -1887,13 +2476,33 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // NetOptions_Infunc
 
-// NetOptions_Outfunc
+// FUNCTION: CARMA2_HW 0x00473210
+// FUNCTION: CARMA2_SW 0x00472780
+int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend) {
+    return 0;
+}
+// FUNCTION: CARMA2_HW 0x00473220
+int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
-// NetOptions_CreditsRoller
-
+    gFrontend_net_current_roll = PDGetTotalTime();
+    if ((int)(gFrontend_net_current_roll - gFrontend_net_last_roll) >= 300) {
+        gFrontend_net_last_roll = gFrontend_net_current_roll;
+        if (gFrontend_selected_item_index == 28) {
+            gFrontend_net_options.starting_credits += 1000;
+        } else if (gFrontend_selected_item_index == 27) {
+            gFrontend_net_options.starting_credits -= 1000;
+        }
+        if (gFrontend_net_options.starting_credits < 0) {
+            gFrontend_net_options.starting_credits = 0;
+        } else if (gFrontend_net_options.starting_credits > 500000) {
+            gFrontend_net_options.starting_credits = 500000;
+        }
+        sprintf(pFrontend->items[24].text, "%i", gFrontend_net_options.starting_credits);
+        FuckWithWidths(pFrontend);
+    }
+    return 0;
+}
 // NetOptions_TargetRoller
-
-// NetOptions_Ok
 
 // NetOptions_Cancel
 
@@ -1907,15 +2516,284 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // NetSync_Start
 
-// NetSync_Abort
+// FUNCTION: CARMA2_HW 0x004735d0
+int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend) {
 
+    if (gProgram_state.racing || gNet_mode != eNet_mode_none) {
+
+        if (gProgram_state.racing) {
+            gAbandon_game = 1;
+        }
+        gProgram_state.prog_status = eProg_idling;
+        gNo_current_game = 1;
+    }
+    return 1;
+}
 // NetSync_Infunc
 
 // NetSync_MenuHandler
 
 // NetSummary_Draw
 
-// SortScores
+/* not static: nothing references it until SortGameScores is implemented, and an unreferenced static would be dropped */
+// FUNCTION: CARMA2_HW 0x004743c0
+int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2) {
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
+}
+
+// FUNCTION: CARMA2_HW 0x00467ce0
+int C2_HOOK_FASTCALL NetGameTypeUp(tFrontend_spec* pFrontend) {
+    tFrontend_scroller_spec* scroller;
+    int i;
+    int text_idx;
+
+    if (PDGetTotalTime() - gFrontend_last_scroll > 400) {
+        gFrontend_last_scroll = PDGetTotalTime();
+        scroller = &pFrontend->scrollers[0];
+        if (scroller->indexTopItem > scroller->indexFirstScrollableItem) {
+            scroller->indexTopItem -= 1;
+        }
+    }
+    scroller = &pFrontend->scrollers[0];
+    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
+        int text_num;
+
+        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
+        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
+    }
+    FuckWithWidths(pFrontend);
+    return 0;
+}
+
+extern int gKey_map_index;
+
+static void C2_HOOK_FASTCALL SaveKeyMapping_(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "wb");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fprintf(f, "%d", gKey_mapping[i]);
+        fputc('\r', f);
+        fputc('\n', f);
+    }
+    PFfclose(f);
+}
+
+static void C2_HOOK_FASTCALL LoadKeyMapping_(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fscanf(f, "%d", &gKey_mapping[i]);
+    }
+    PFfclose(f);
+}
+
+static void C2_HOOK_FASTCALL ChangeKeyMapIndex_(int pKey_map_index) {
+
+    SaveKeyMapping_();
+    gKey_map_index = pKey_map_index;
+    LoadKeyMapping_();
+}
+
+// FUNCTION: CARMA2_HW 0x00472440
+int C2_HOOK_FASTCALL Controls_SwitchKeymapSet(tFrontend_spec* pFrontend) {
+
+    ChangeKeyMapIndex_(gFrontend_selected_item_index - 39);
+    SelectThisItemIn(pFrontend, 2, gKey_map_index + 39);
+    RefreshScrollSet(pFrontend);
+    FuckWithWidths(pFrontend);
+    return 0;
+}
+
+static void C2_HOOK_FASTCALL SaveKeyMapping(void) {
+    FILE* f;
+    tPath_name the_path;
+    int i;
+
+    PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+    the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "wb");
+    if (f == NULL) {
+        FatalError(kFatalError_CouldNotOpenKeyMapFile);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gKey_mapping); i++) {
+        fprintf(f, "%d", gKey_mapping[i]);
+        fputc('\r', f);
+        fputc('\n', f);
+    }
+    PFfclose(f);
+}
+
+// FUNCTION: CARMA2_HW 0x00472a30
+int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend) {
+    int i;
+
+    Generic_Outfunc(pFrontend);
+    for (i = 0; i < (int)REC2_ASIZE(gKey_names); i++) {
+        BrMemFree(gKey_names[i]);
+    }
+    SaveKeyMapping();
+    return 1;
+}
+
+// GLOBAL: CARMA2_HW 0x006864f8
+int gFrontend_controls_count_keys;
+
+// GLOBAL: CARMA2_HW 0x006869e0
+int gBackup_key_mappings[4][77] = { 0 };
+
+// UNCERTAIN: placeholder for the unknown data after gBackup_key_mappings
+// GLOBAL: CARMA2_HW 0x00686eb0
+int gUNK_00686eb0[2] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00688440
+int gOrig_key_map_index;
+
+// GLOBAL: CARMA2_HW 0x00688700
+int gOrig_joystick_index;
+
+// GLOBAL: CARMA2_HW 0x00688704
+float gOriginal_joystick_x;
+
+// GLOBAL: CARMA2_HW 0x00688708
+float gOriginal_joystick_y;
+
+// GLOBAL: CARMA2_HW 0x0068870c
+int gOriginal_joystick_fbb;
+
+// GLOBAL: CARMA2_HW 0x00688710
+int gOriginal_joystick_dpad;
+
+// FUNCTION: CARMA2_HW 0x004725f0
+int C2_HOOK_FASTCALL Controls_Infunc(tFrontend_spec* pFrontend) {
+    int i;
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gCurrent_frontend_scrollbars = NULL;
+    gConnected_items = NULL;
+    gPTR_00686508 = NULL;
+    {
+        FILE* f;
+        char s[256];
+        tPath_name the_path;
+        int len;
+        int j;
+
+        PathCat(the_path, gApplication_path, "KEYNAMES.TXT");
+        f = DRfopen(the_path, "rt");
+        if (f == NULL) {
+            FatalError(0x6a);
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gKey_names); i++) {
+            PFfgets(s, 256, f);
+            len = strlen(s);
+            for (j = 0; j < len; j++) {
+                if ((tU8)s[j] < 0x20) {
+                    memcpy(&s[j], &s[j + 1], (len - j) * sizeof(char));
+                    len--;
+                }
+            }
+            gKey_names[i] = BrMemAllocate(strlen(s) + 1, kMem_misc);
+            strcpy(gKey_names[i], s);
+        }
+        PFfclose(f);
+    }
+    gFrontend_controls_count_keys = 29;
+    gOrig_key_map_index = gKey_map_index;
+    for (i = 0; i < 4; i++) {
+        FILE* f;
+        tPath_name the_path;
+        int k;
+
+        gKey_map_index = i;
+        PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+        the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+        f = DRfopen(the_path, "rt");
+        if (f == NULL) {
+            FatalError(kFatalError_CouldNotOpenKeyMapFile);
+        }
+        for (k = 0; k < (int)REC2_ASIZE(gKey_mapping); k++) {
+            fscanf(f, "%d", &gKey_mapping[k]);
+        }
+        PFfclose(f);
+        memcpy(gBackup_key_mappings[i], gKey_mapping, sizeof(gKey_mapping));
+    }
+    gKey_map_index = gOrig_key_map_index;
+    memcpy(gKey_mapping, gBackup_key_mappings[gKey_map_index], sizeof(gKey_mapping));
+    gOrig_joystick_index = gJoystick_index;
+    gJoystick_index = 0;
+    gOriginal_joystick_x = GetJoystickX();
+    gOriginal_joystick_y = GetJoystickY();
+    gOriginal_joystick_fbb = GetJoystickFBBGain();
+    gOriginal_joystick_dpad = PDIsJoystickDPadEnabled();
+    gJoystick_index = gOrig_joystick_index;
+    SelectThisItemIn(pFrontend, 1, gKey_map_index + 39);
+    gControls_scroller.field_0x0 = gFrontend_controls_count_keys;
+    gControls_scroller.range_length = 10;
+    gControls_scroller.field_0x8 = 0;
+    gControls_scroller.count_ranges = 2;
+    gControls_scroller.range_starts[0] = 43;
+    gControls_scroller.range_starts[1] = 53;
+    gControls_scroller.next = NULL;
+    gConnected_items = &gControls_scroller;
+    gControls_slider_1.flags = 0;
+    gControls_slider_1.itemid_left_reference = 14;
+    gControls_slider_1.itemid_start = 1;
+    gControls_slider_1.width = 236;
+    gControls_slider_1.callback = Slider_XProc;
+    gControls_slider_1.field_0x14 = 0.0f;
+    gControls_slider_1.field_0x18 = 2.0f;
+    gControls_slider_2.flags = 0;
+    gControls_slider_2.itemid_left_reference = 19;
+    gControls_slider_2.itemid_start = 4;
+    gControls_slider_2.width = 236;
+    gControls_slider_2.callback = Slider_YProc;
+    gControls_slider_2.field_0x14 = 0.0f;
+    gControls_slider_2.field_0x18 = 2.0f;
+    gControls_slider_3.flags = 0;
+    gControls_slider_3.itemid_left_reference = 23;
+    gControls_slider_3.itemid_start = 7;
+    gControls_slider_3.width = 236;
+    gControls_slider_3.callback = Slider_ForceProc;
+    gControls_slider_3.field_0x14 = 0.0f;
+    gControls_slider_3.field_0x18 = 1.0f;
+    gControls_slider_1.next = &gControls_slider_2;
+    gControls_slider_2.next = &gControls_slider_3;
+    gControls_slider_3.next = NULL;
+    gCurrent_frontend_scrollbars = &gControls_slider_1;
+    DisplayJoystickSettings(pFrontend);
+    RefreshScrollSet(pFrontend);
+    return 1;
+}
 
 // SortGameScores
 
@@ -2062,4 +2940,94 @@ void C2_HOOK_FASTCALL FrontEndShowMouse(void) {
 void C2_HOOK_FASTCALL FrontEndHideMouse(void) {
 
     gFrontend_suppress_mouse = 1;
+}
+
+static tStruct_00686508* GetUpdown(int pItem) {
+    tStruct_00686508* up_down;
+
+    for (up_down = gPTR_00686508; up_down != NULL; up_down = up_down->next) {
+        if (pItem == up_down->field_0x0 || pItem == up_down->field_0x4 || pItem == up_down->field_0x8) {
+            return up_down;
+        }
+    }
+    return NULL;
+}
+
+/* based on carpocalypse2 src/carma2/common/interface.c:2832 */
+// FUNCTION: CARMA2_HW 0x00471dd0
+int C2_HOOK_FASTCALL Generic_FindNextActiveItem(tFrontend_spec* pFrontend, int pItem) {
+    int start_item_group;
+    tConnected_items* connected;
+    tFrontend_slider* start_active_slider;
+    tStruct_00686508* start_up_down;
+    tStruct_00686508* up_down;
+    int i;
+    int j;
+    int item;
+    int original_selected_item_index;
+
+    original_selected_item_index = gFrontend_selected_item_index;
+    gFrontend_selected_item_index = pItem;
+    start_active_slider = GetAnyActiveSlider();
+    start_item_group = pFrontend->items[pItem].group;
+    start_up_down = GetUpdown(pItem);
+
+    for (connected = gConnected_items; connected != NULL; connected = connected->next) {
+        for (j = 0; j < connected->count_ranges; j++) {
+            if (pItem == connected->range_starts[j] + connected->range_length - 1) {
+                break;
+            }
+        }
+        if (j < connected->count_ranges) {
+            break;
+        }
+    }
+    if (connected != NULL) {
+        item = ScrollSet_TranslateItemToIndex(connected, pItem);
+        if (item == connected->field_0x8 + connected->range_length - 1 && connected->field_0x8 + connected->range_length < connected->field_0x0) {
+            connected->field_0x8 += 1;
+            RefreshScrollSet(pFrontend);
+            return pItem;
+        }
+    }
+
+    for (i = 1; i < pFrontend->count_items; i++) {
+        tFrontend_slider* next_active_slider;
+        int next_item;
+
+        next_item = (pItem + i) % pFrontend->count_items;
+        if (pFrontend->items[next_item].enabled < 1) {
+            continue;
+        }
+        if (!pFrontend->items[next_item].visible) {
+            continue;
+        }
+        gFrontend_selected_item_index = next_item;
+        next_active_slider = GetAnyActiveSlider();
+        if (start_active_slider != NULL && next_active_slider == start_active_slider) {
+            continue;
+        }
+        if (next_active_slider != NULL && (next_active_slider->flags & 0x1)) {
+            continue;
+        }
+        if (pFrontend->count_groups != 0 && start_item_group != 0 && start_item_group == pFrontend->items[next_item].group) {
+            continue;
+        }
+        if (connected != NULL && GetScrollSet(next_item) == connected) {
+            continue;
+        }
+        if (start_up_down != NULL) {
+            up_down = GetUpdown(next_item);
+            if (start_up_down == up_down) {
+                continue;
+            }
+            if (up_down != NULL && up_down->field_0x0 != next_item) {
+                continue;
+            }
+        }
+        gFrontend_selected_item_index = original_selected_item_index;
+        return next_item;
+    }
+    gFrontend_selected_item_index = original_selected_item_index;
+    return 0;
 }
