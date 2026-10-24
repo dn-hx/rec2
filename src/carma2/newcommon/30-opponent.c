@@ -255,7 +255,7 @@ void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOp
 // ResetPredominantJobbies
 
 // FUNCTION: CARMA2_HW 0x004a9600
-void C2_HOOK_FASTCALL LoadCopCars(void) {
+void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info) {
 
     gProgram_state.AI_vehicles.number_of_cops = 0;
 }

@@ -137,7 +137,7 @@ extern void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeF
 
 // ResetPredominantJobbies
 
-extern void C2_HOOK_FASTCALL LoadCopCars(void);
+extern void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info);
 
 // LoadInOppoPaths
 
