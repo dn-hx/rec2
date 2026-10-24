@@ -664,7 +664,12 @@ void C2_HOOK_FASTCALL ResetFreeRepairs(tPowerup* pPowerup, tCar_spec* pCar) {
     }
 }
 
-// SetStupidPedestrians
+// FUNCTION: CARMA2_HW 0x004dc8f0
+int C2_HOOK_FASTCALL SetStupidPedestrians(tPowerup* powerup, tCar_spec* car) {
+
+    gBlind_pedestrians = 1;
+    return powerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc920
 void C2_HOOK_FASTCALL ResetStupidPedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
