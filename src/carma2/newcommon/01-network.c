@@ -616,7 +616,17 @@ void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress,
 
 // NetGuaranteedSendMessageToPlayer
 
-// NetGuaranteedSendMessageToAddress
+// FUNCTION: CARMA2_HW 0x004a6020
+int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress, void* pNotifyFail) {
+
+    if (gNet_mode == eNet_mode_none && !gJoin_list_mode) {
+        return -3;
+    }
+    pMessage->header.field_0x8 = gLocal_net_ID;
+    pMessage->header.field_0x10 = PDGetTotalTime();
+    AddToGuaranteeList(pMessage, pAddress, 0, pNotifyFail);
+    return PDNetSendMessageToAddress(pDetails, pMessage, pAddress);
+}
 
 // STUB: CARMA2_HW 0x004a6080
 void C2_HOOK_FASTCALL ResendGuaranteedMessages(void) {
