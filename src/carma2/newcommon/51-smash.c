@@ -368,6 +368,17 @@ void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initi
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004ee5a0
+void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes) {
+    float f1;
+    float f2;
+
+    /* Min time, Max time */
+    GetPairOfFloats(pFile, &f1, &f2);
+    pTimes[0] = (int)(1000.0 * f1);
+    pTimes[1] = (int)(1000.0 * f2);
+}
+
 // FreeExplosion
 
 // ReadSpecialEffectsSpec

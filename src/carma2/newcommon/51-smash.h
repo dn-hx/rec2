@@ -137,6 +137,8 @@ extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_i
 
 extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec*  pInitial_pos);
 
+extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
+
 // FreeExplosion
 
 // ReadSpecialEffectsSpec
