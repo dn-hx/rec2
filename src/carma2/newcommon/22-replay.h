@@ -69,5 +69,7 @@ extern void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir);
 
 extern void C2_HOOK_FASTCALL WorkerPedMove(int field_0x0, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38);
 
+extern void C2_HOOK_FASTCALL WorkerPedMoveUndo(int field_0x0, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38);
+
 
 #endif // GUARD_22_REPLAY_H

@@ -144,3 +144,9 @@ void C2_HOOK_FASTCALL WorkerPedMove(int field_0x0, int field_0x4, int field_0xc,
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca5a0
+void C2_HOOK_FASTCALL WorkerPedMoveUndo(int field_0x0, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38) {
+
+    NOT_IMPLEMENTED();
+}
+
