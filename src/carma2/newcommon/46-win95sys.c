@@ -2,6 +2,7 @@
 
 #include "08-loading1.h"
 #include "platform.h"
+#include "08-loading1.h"
 
 // FUN_100bf5a4
 
