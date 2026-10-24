@@ -70,7 +70,10 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
     gLast_replay_frame_time = pTime;
 }
 
-// ARSetPause
+// FUNCTION: CARMA2_HW 0x004022f0
+void C2_HOOK_FASTCALL ARSetPause(int pPause) {
+    gReplay_pause_state = pPause;
+}
 
 // Replay pipe workers (no PDB symbols; names from carpocalypse2). Kept in this TU so that
 // the Apply/Undo wrappers in 23-piping.c tail-call them instead of inlining.

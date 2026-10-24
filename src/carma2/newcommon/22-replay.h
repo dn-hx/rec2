@@ -45,6 +45,7 @@ extern void C2_HOOK_FASTCALL AfterActionReplay(void);
 
 extern void C2_HOOK_FASTCALL ApplyTime(tU32 pTime);
 
-// ARSetPause
+extern void C2_HOOK_FASTCALL ARSetPause(int pPause);
+
 
 #endif // GUARD_22_REPLAY_H
