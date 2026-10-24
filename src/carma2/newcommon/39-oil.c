@@ -128,6 +128,11 @@ static void C2_HOOK_FASTCALL MungeOilsHeightAboveGround(tOil_spill_info* pOil) {
     pOil->actor->t.t.translate.t = pOil->position;
 }
 
+// FUNCTION: CARMA2_HW 0x004a6e20
+void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
+
+    MungeOilsHeightAboveGround(&gOily_spills[pIndex]);
+}
 
 // FUNCTION: CARMA2_HW 0x004a7460
 void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel) {
