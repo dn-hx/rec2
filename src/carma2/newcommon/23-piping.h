@@ -412,7 +412,7 @@ extern void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk);
 
-// ApplyShitMine
+extern void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk);
 
 // ApplyEndShitMine
 

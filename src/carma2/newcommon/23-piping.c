@@ -1348,9 +1348,12 @@ void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk) {
     return WorkerPowerupRespawn(chunk->field_0x0, chunk->field_0x4);
 }
 
-// UndoCrush
+// FUNCTION: CARMA2_HW 0x004c9d50
+void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk) {
+    tPipe_chunk_shit_mine* chunk = (tPipe_chunk_shit_mine*)*pChunk;
 
-// UndoSmudge
+    return WorkerShitMine(chunk->field_0x0, &chunk->field_0x4);
+}
 
 // UndoDamage
 
