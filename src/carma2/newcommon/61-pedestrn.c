@@ -1391,8 +1391,11 @@ void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharac
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x0040b570
+br_model* C2_HOOK_FASTCALL GetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index) {
 
-// GetCharacterModelSet
+    return pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBone_index]->model;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
