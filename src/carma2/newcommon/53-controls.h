@@ -148,6 +148,7 @@ extern int C2_HOOK_FASTCALL GetRecoverVoucherCount(void);
 
 extern void C2_HOOK_FASTCALL AddVouchers(int amount);
 
+extern void C2_HOOK_FASTCALL ResetRecoveryVouchers(void);
 // CycleSoundDetailLevel
 
 // CycleCarSimplificationLevel
