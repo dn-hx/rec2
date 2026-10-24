@@ -580,7 +580,7 @@ void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00497620
-void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0) {
+void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0, int pKey1) {
 
     if (KeyIsDown(31) && pKey0) {
         gHeadup_map_y_float = (float)((double)gHeadup_map_y_float - (double)gFrame_period / 20.0);
