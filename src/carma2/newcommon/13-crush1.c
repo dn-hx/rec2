@@ -267,9 +267,27 @@ void C2_HOOK_FASTCALL CreateDefaultCrushData(br_actor* pActor, tCar_spec* pCar_s
 
 // LoadCrushDataFile
 
-// LinkCrushDataToActor
+// FUNCTION: CARMA2_HW 0x0042a950
+intptr_t C2_HOOK_CDECL LinkCrushDataToActor(br_actor* pActor, void* pData) {
+    int i;
+    tUser_crush_data* user_crush;
+    tCar_crush_buffer* crush_buffer;
 
-// LinkCrushDataToActors
+    crush_buffer = pData;
+    user_crush = pActor->user;
+    if (user_crush == NULL) {
+        return 0;
+    }
+    user_crush->crush_data = NULL;
+    for (i = 0; i < crush_buffer->count_entries; i++) {
+        if (crush_buffer->entries[i] != NULL && DRStricmp(crush_buffer->entries[i]->actor_name, pActor->identifier) == 0) {
+            user_crush->crush_data = crush_buffer->entries[i];
+            return 0;
+        }
+    }
+    return 0;
+}
+
 
 // FUNCTION: CARMA2_HW 0x0042ac70
 intptr_t C2_HOOK_CDECL AccumulateSquashVertices(br_actor* pActor, void* pData) {

@@ -41,7 +41,7 @@ extern void C2_HOOK_FASTCALL CreateDefaultCrushData(br_actor* pActor, tCar_spec*
 
 // LoadCrushDataFile
 
-// LinkCrushDataToActor
+extern intptr_t C2_HOOK_CDECL LinkCrushDataToActor(br_actor* pActor, void* pData);
 
 // LinkCrushDataToActors
 
