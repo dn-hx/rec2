@@ -66,7 +66,7 @@ extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
 // MungeCarsMass
 
-// AddDrag
+extern void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scalar pDt);
 
 // DragChildren
 
