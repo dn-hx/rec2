@@ -41,6 +41,10 @@ void C2_HOOK_FASTCALL DoOpeningAnimation(void) {
 void C2_HOOK_FASTCALL DoNewGameAnimation(void) {
 }
 
+// FUNCTION: CARMA2_HW 0x0043f360
+void C2_HOOK_FASTCALL DoGoToRaceAnimation(void) {
+}
+
 // FUNCTION: CARMA2_HW 0x0043f370
 void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {
     FadePaletteDown();
