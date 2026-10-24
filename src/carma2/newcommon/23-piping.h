@@ -193,7 +193,7 @@ extern void C2_HOOK_FASTCALL PipeSingleNonCar(uintptr_t pId, br_actor* pActor);
 
 // PipeSingleOilSpill
 
-// PipeSingleFrameFinish
+extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
 
 // PipeSingleGraphicalWheelStuff
 
