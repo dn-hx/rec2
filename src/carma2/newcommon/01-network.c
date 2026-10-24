@@ -637,9 +637,13 @@ void C2_HOOK_FASTCALL ResendGuaranteedMessages(void) {
 
 // NetPlayerFromID
 
-// NetCarFromPlayerID
+// STUB: CARMA2_HW 0x004a6960
+// STUB: CARMA2_SW 0x004a2ae0
+tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer) {
 
-// NetPlayerFromCar
+    NOT_IMPLEMENTED();
+}
+
 
 // GetCheckSum
 
