@@ -937,6 +937,12 @@ void C2_HOOK_FASTCALL FreeShape(void* pData) {
     BrMemFree(pData);
 }
 
+// FUNCTION: CARMA2_HW 0x004c5e70
+void C2_HOOK_FASTCALL FreeThingForm(void* pData) {
+
+    BrMemFree(pData);
+}
+
 // FUNCTION: CARMA2_HW 0x004c5e80
 void C2_HOOK_FASTCALL FreeShapeList(tPhysics_shape *pShape) {
 
