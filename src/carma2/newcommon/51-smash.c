@@ -347,6 +347,27 @@ void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_
     pInitial_speed->random_spin_rate_max = GetAScalar(pFile) * 0.1f;
 }
 
+// FUNCTION: CARMA2_HW 0x004ee550
+void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec*  pInitial_pos) {
+
+    /* Initial position type */
+    pInitial_pos->type = GetALineAndInterpretCommand(pFile, gInitial_smashable_position_type_names, REC2_ASIZE(gInitial_smashable_position_type_names));
+
+    switch (pInitial_pos->type) {
+        case kInitialSmashablePosition_SphereClumped:
+            /* Sphere radius */
+            pInitial_pos->position.sphere.radius = GetAScalar(pFile);
+            /* Sphere centre */
+            pInitial_pos->position.sphere.where = GetALineAndInterpretCommand(pFile, gInitial_position_sphere_where, REC2_ASIZE(gInitial_position_sphere_where));
+            break;
+        case kInitialSmashablePosition_BoxClumped:
+            GetThreeFloats(pFile, &pInitial_pos->position.box.v[0], &pInitial_pos->position.box.v[1], &pInitial_pos->position.box.v[2]);
+            break;
+        default:
+            break;
+    }
+}
+
 // FreeExplosion
 
 // ReadSpecialEffectsSpec
