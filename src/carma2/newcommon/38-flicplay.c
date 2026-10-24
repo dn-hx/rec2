@@ -894,6 +894,24 @@ void C2_HOOK_FASTCALL FlushFlicQueue(void) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x00463020
+void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
+    void* the_pixels;
+
+    gPanel_flic[pIndex].data = NULL;
+    gPanel_flic_left[pIndex] = pLeft;
+    gPanel_flic_top[pIndex] = pTop;
+    the_pixels = BrMemAllocate(pHeight * ((pWidth + 3) & ~3), kMem_misc);
+    if (gScreen->row_bytes < 0) {
+        BrFatal(
+                "C:\\Carma2\\Source\\Common\\Flicplay.c",
+                2082,
+                "Bruce bug at line %d, file C:\\Carma2\\Source\\Common\\Flicplay.c",
+                2082);
+    }
+    gPanel_buffer[pIndex] = DRPixelmapAllocate(BR_PMT_INDEX_8, pWidth, pHeight, the_pixels, 0);
+}
+
 // FUNCTION: CARMA2_HW 0x00463340
 void C2_HOOK_FASTCALL LoadInterfaceStrings(void) {
     FILE* f;
