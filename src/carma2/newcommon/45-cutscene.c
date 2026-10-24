@@ -40,7 +40,12 @@ void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {
 void C2_HOOK_FASTCALL DoGameOverAnimation(void) {
 }
 
-// StartLoadingScreen
+// FUNCTION: CARMA2_HW 0x0043f390
+void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
+
+    PlaySmackerFile("TOPRANK.SMK");
+    WaitForNoKeys();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
