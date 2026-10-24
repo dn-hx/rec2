@@ -239,8 +239,7 @@ extern int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3*
 
 // StartFlapping
 
-// MungeDetachLists
-
+extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
 // SendReAttachBit
 
 // StopFlapping
