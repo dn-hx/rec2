@@ -1035,6 +1035,25 @@ void C2_HOOK_FASTCALL AddCollisionInfoChild(tPhysics_object* pParent, tPhysics_o
     pParent->child = pChild;
 }
 
+// FUNCTION: CARMA2_HW 0x004c6410
+void C2_HOOK_FASTCALL PHILRemoveFromParentChain(tPhysics_object* pObject) {
+    tPhysics_object* parent;
+    tPhysics_object* walk;
+
+    parent = pObject->parent;
+    walk = parent->child;
+    if (walk == pObject) {
+        parent->child = pObject->next;
+    } else {
+        while (walk->next != pObject) {
+            walk = walk->next;
+        }
+        walk->next = pObject->next;
+    }
+    pObject->parent = NULL;
+    pObject->next = NULL;
+}
+
 // FUNCTION: CARMA2_HW 0x004c6470
 int C2_HOOK_FASTCALL PhysicsObjectRecurse(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext) {
     int result;
