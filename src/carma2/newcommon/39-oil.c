@@ -198,4 +198,15 @@ void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents) {
         oily_material, NULL);
 }
 
+// FUNCTION: CARMA2_HW 0x004a7940
+void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+        if (gOily_spills[i].car_actor != NULL && gOily_spills[i].car == pCar) {
+            gOily_spills[i].car = NULL;
+            gOily_spills[i].car_actor = NULL;
+        }
+    }
+}
 

@@ -40,6 +40,6 @@ extern void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_sc
 
 extern void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents);
 
-// RemoveCarsOilSlicks
+extern void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar);
 
 #endif // GUARD_39_OIL_H
