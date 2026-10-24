@@ -232,8 +232,13 @@ void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004a7a60
 void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void) {
-    NOT_IMPLEMENTED();
+
+    gActive_car_list_rebuild_required = 1;
+    if (gProgram_state.racing) {
+        RebuildActiveCarList();
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
