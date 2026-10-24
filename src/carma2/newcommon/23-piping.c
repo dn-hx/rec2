@@ -419,6 +419,13 @@ void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar,
         SIZE_OFFSET_PIPING(tPipe_chunk_prox_ray, time), pTime);
 }
 
+// FUNCTION: CARMA2_HW 0x004c7520
+void C2_HOOK_FASTCALL AddFlapToPipingSession(uintptr_t pOwner, tU16 pDelta) {
+
+    ARAddVariedDataToSession(ePipe_chunk_flap, pOwner, 2,
+        4, 0, pOwner,
+        2, 4, pDelta);
+}
 
 // AddModelMashToPipingSession
 
