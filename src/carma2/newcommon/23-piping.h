@@ -870,4 +870,6 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
 
+extern void C2_HOOK_FASTCALL DisposePiping(void);
+
 #endif // GUARD_23_PIPING_H
