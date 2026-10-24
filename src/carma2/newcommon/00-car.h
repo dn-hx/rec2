@@ -211,4 +211,6 @@ extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 
+extern void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag);
+
 #endif // GUARD_00_CAR_H
