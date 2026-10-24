@@ -33,7 +33,7 @@ extern void C2_HOOK_FASTCALL InitCrushSystems(void);
 
 // ReadCrushData
 
-// CreateDefaultCrushDataCB
+extern intptr_t C2_HOOK_CDECL CreateDefaultCrushDataCB(br_actor* pActor, void* pData);
 
 // CreateDefaultCrushData
 
