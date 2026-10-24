@@ -600,7 +600,7 @@ extern void C2_HOOK_FASTCALL PipeSinglePedPhysics(int pId, br_matrix34* pMat);
 
 // PipeSinglePedDismember
 
-// PipeSinglePedFPChange
+extern void C2_HOOK_FASTCALL PipeSinglePedFPChange(tPedestrian* pPed, float pValue, float pUnused);
 
 // PipeSinglePedPos
 
