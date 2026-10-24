@@ -347,3 +347,8 @@ void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVecto
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0043c3d0
+void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine) {
+
+    NOT_IMPLEMENTED();
+}
