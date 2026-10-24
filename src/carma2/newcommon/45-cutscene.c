@@ -86,6 +86,10 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x0047b990
+void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
