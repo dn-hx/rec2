@@ -5,6 +5,15 @@
 #include "63-loading3.h"
 #include "69-sound.h"
 #include "rec2_macros.h"
+#include "globvars.h"
+#include "41-utility.h"
+#include "08-loading1.h"
+#include "c2_string.h"
+#include "70-packfile.h"
+#include "52-errors.h"
+#include "28-world3.h"
+#include "00-car.h"
+#include "23-piping.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 const char* gPedsFolder;
@@ -31,8 +40,124 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_HW 0x007447b0
 int gExploding_pedestrians;
 
+/* explicit initializers keep gPed_cache_006944c0, gNapalm_bolts and gPed_slick_material adjacent (loop-end compares in InitPedsForRace) */
+// GLOBAL: CARMA2_HW 0x006944c0
+tPed_cache_006944c0 gPed_cache_006944c0[100] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x0069b9f0
-tNapalm_bolt gNapalm_bolts[5];
+tNapalm_bolt gNapalm_bolts[5] = { 0 };
+
+// UNCERTAIN: unreferenced 4-byte gap
+// GLOBAL: CARMA2_HW 0x0069bc0c
+int gUNK_0069bc0c = 0;
+
+// GLOBAL: CARMA2_HW 0x0069bc10
+br_material* gPed_slick_material = 0;
+
+// GLOBAL: CARMA2_HW 0x007447d4
+int gPed_count;
+
+/* explicit initializers keep gPed_forms and gPed_overall_movement_disabled adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00676928
+tPed_form* gPed_forms[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00676978
+int gPed_overall_movement_disabled = 0;
+
+// GLOBAL: CARMA2_HW 0x00676d68
+br_material* gPedestrian_character_cloned_materials[50];
+
+/* explicit initializers keep gPed_personalities and gPed_sin_table adjacent (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x00677260
+tPed_personality* gPed_personalities[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677328
+float gPed_sin_table[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0067772c
+int gCount_pedestrian_personality_cloned_materials;
+
+// GLOBAL: CARMA2_HW 0x00677234
+int gPed_retain_root_mode;
+
+// GLOBAL: CARMA2_HW 0x00744808
+tPedestrian* gPedestrian_array;
+
+// GLOBAL: CARMA2_HW 0x006a041c
+int gPed_valium_left;
+
+/* tPed_anim_seq has a flexible poses[] member: use a fixed-size twin for the initializer */
+typedef struct {
+    tU8 count;
+    tU8 poses[2];
+} tPed_anim_seq_2;
+
+// GLOBAL: CARMA2_HW 0x0065e4e4
+tPed_anim_seq_2 gCalm_ped_anim_sequence = {
+    2, { 0, 99 },
+};
+
+// GLOBAL: CARMA2_HW 0x007447f0
+int gSelected_ped;
+
+// GLOBAL: CARMA2_HW 0x00694498
+tTWTVFS gTwtPeds;
+
+// GLOBAL: CARMA2_HW 0x006a0424
+br_actor* gLimbs_actor;
+
+// GLOBAL: CARMA2_HW 0x006a0420
+int gPed_count_limbed_actors;
+
+// GLOBAL: CARMA2_HW 0x00694280
+br_actor* gPed_limbed_actors[30];
+
+// GLOBAL: CARMA2_HW 0x0058f2d8
+const int gPow2_array[32] = {
+           0x1,           0x2,           0x4,           0x8,
+          0x10,          0x20,          0x40,          0x80,
+         0x100,         0x200,         0x400,         0x800,
+        0x1000,        0x2000,        0x4000,        0x8000,
+       0x10000,       0x20000,       0x40000,       0x80000,
+      0x100000,      0x200000,      0x400000,      0x800000,
+     0x1000000,     0x2000000,     0x4000000,     0x8000000,
+    0x10000000,    0x20000000,    0x40000000,    0x80000000
+};
+
+// GLOBAL: CARMA2_HW 0x00694490
+int gPed_nearness;
+
+/* gEthereal_pedestrians (0x007447a0) is defined in 66-tintedpoly.c, directly after gTintedPolys as in the original layout */
+
+// GLOBAL: CARMA2_HW 0x007447b4
+tPedestrian* gPedestrians_in_sight;
+
+// GLOBAL: CARMA2_HW 0x0065e560
+const char* gForm_non_humanoid_names[1] = {
+    "NONHUMANOID",
+};
+
+// GLOBAL: CARMA2_HW 0x0069bce8
+int gCount_race_pedestrian_specs;
+
+// GLOBAL: CARMA2_HW 0x00694138
+tRace_ped_spec* gRace_pedestrian_specs;
+
+// GLOBAL: CARMA2_HW 0x00694134
+int gPed_groups_count;
+
+// GLOBAL: CARMA2_HW 0x0069bc14
+tPed_group_spec* gPed_groups;
+
+// GLOBAL: CARMA2_HW 0x0069bcec
+int gPed_movements_count;
+
+// GLOBAL: CARMA2_HW 0x0069bcf0
+tPed_movement_spec* gPed_movements;
+
+/* NOT annotated: the original 0x0058a988 is the compiler's shared 0.0f constant; a GLOBAL annotation makes
+   reccmp name it and breaks every function that compares against a literal 0.0f. */
+float gConst_replay_rate_zero;
 
 // GLOBAL: CARMA2_HW 0x007447a8
 int gDancing_peds;
@@ -77,7 +202,10 @@ int gDancing_peds;
 
 // SetCharacterPositionAR
 
-// SetCharacterBoneModelAR
+/* local declarations: the callees are defined further down in this file */
+extern void C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, int pArg4);
+extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
+
 
 // PedApplyPedModelChangeP
 
@@ -149,7 +277,12 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
 
 // MakePedNoise
 
-// SetPedMove
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // StartPedRunning
 
@@ -157,7 +290,16 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
 
 // MungePedHeadAnim
 
-// SetPedHeadAnim
+/* SetPedHeadAnim: inlined into its callers in the original */
+static void C2_HOOK_FASTCALL SetPedHeadAnim(tPedestrian* pPed, const tPed_anim_seq* pSeq, tU32 pTime) {
+
+    if (pPed->hit_points > 0 && pPed->field_0x0c != NULL) {
+        pPed->field_0x0c->field_0x1c = pSeq;
+        pPed->field_0x0c->field_0x78 = pTime;
+        pPed->field_0x0c->field_0x1a = 0;
+        SetCharacterBoneModelAR(pPed->character, pPed->character->personality->form->index_head_bone, pPed->field_0x0c->field_0x1c->poses[0], 0);
+    }
+}
 
 // ClearPedHeadAnim
 
@@ -349,7 +491,47 @@ void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_vector3
     }
 }
 
-// InitPedsForRace
+// GLOBAL: CARMA2_HW 0x0065d7b8
+int gPed_cache_sizes_1[4] = {
+    40, 25, 15, 5,
+};
+
+// GLOBAL: CARMA2_HW 0x0069bc58
+tPed_face_cache_0x34* gPed_face_cache_heads[4];
+
+// GLOBAL: CARMA2_HW 0x006a03f8
+tPed_face_cache_0x34* gPed_face_caches[4];
+
+// GLOBAL: CARMA2_HW 0x0069412c
+int gCount_changed_points;
+
+// GLOBAL: CARMA2_HW 0x0074480c
+int gTotal_count_smash_peds;
+
+// GLOBAL: CARMA2_HW 0x0069bce4
+int gPed_score_multiplier;
+
+// GLOBAL: CARMA2_HW 0x0069bc30
+int gPed_recent_points;
+
+// GLOBAL: CARMA2_HW 0x006a0410
+int gPipe_halted_ped_status;
+
+// GLOBAL: CARMA2_HW 0x007447c0
+br_vector3 gPed_scale;
+
+// GLOBAL: CARMA2_HW 0x0069bc24
+float gAverage_ped_scale;
+
+// GLOBAL: CARMA2_HW 0x00744800
+float gPed_head_scale;
+
+// GLOBAL: CARMA2_HW 0x00744804
+int gBOOL_00744804;
+
+// GLOBAL: CARMA2_HW 0x007447cc
+int gCount_killed_peds;
+
 
 // RenderElectroBastardRays
 
@@ -532,7 +714,13 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // DisposeAllLoadedForms
 
-// DisposeCharacterInstance
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FindOrOpenForm
 
@@ -554,15 +742,25 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // BuildCharacterInstance
 
-// GetCharacterMatrixPtr
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // GetBoneMatrixPtr
 
 // GetCharacterActorPtr
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // SetCharacterBonePositions
 
-// MakeCharacterRenderable2
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // MakeCharacterRenderable
 
@@ -628,16 +826,37 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // DisposeAllBonerData
 
-// SetCharacterBoneModel
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SetCharacterBoneModelP
 
-// SetCharacterAllBonesModel
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// GetCharacterBoneModel
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // GetCharacterModelSet
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // BonerPassiveCollision
 
 // BonerActiveHalted
@@ -658,17 +877,38 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // ScaleBone
 
-// MungeAllCharacterMaterials
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // MungeAllCharacterObjects
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// MungeAllCharacterModels
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // DisableOverallMovement
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// EnableOverallMovement
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // EnableRetainRootMode
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DisableRetainRootMode
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
