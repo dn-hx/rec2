@@ -36,7 +36,7 @@ extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
 
 // InitialiseCar
 
-// InitialiseCarsEtc
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
 
 // SetInitialPosition
 
