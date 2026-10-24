@@ -118,8 +118,7 @@ extern void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChi
 
 // TumbleObject
 
-// MakeLiftGoUp
-
+extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 // NonCarCalcForce
 
 // DoBumpiness
