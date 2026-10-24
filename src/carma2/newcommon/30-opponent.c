@@ -224,9 +224,17 @@ void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender)
     pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
 }
 
-// RebuildActiveCarList
+// FUNCTION: CARMA2_HW 0x004a7ef0
+void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCount) {
+    int i;
 
-// STUB: CARMA2_HW 0x004a7a60
+    for (i = 0; i < pCount; i++) {
+        if (pList[i] != NULL) {
+            PHILRemoveObject(pList[i]);
+            pList[i]->field183_0x1d8 = 0;
+        }
+    }
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
