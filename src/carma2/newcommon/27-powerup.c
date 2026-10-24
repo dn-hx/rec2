@@ -815,9 +815,12 @@ int C2_HOOK_FASTCALL GotVouchers(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
-// SetInstantHandbrake
+// FUNCTION: CARMA2_HW 0x004de810
+void C2_HOOK_FASTCALL MungeVouchers(tPowerup* powerup, tU32 time) {
 
-// ResetInstantHandbrake
+    (void)time;
+    powerup->current_value = GetRecoverVoucherCount();
+}
 
 // SetDancingPeds
 
