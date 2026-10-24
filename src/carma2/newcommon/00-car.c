@@ -472,6 +472,11 @@ void C2_HOOK_FASTCALL AdjustDownForce(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x0041ff20
+tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor) {
+    NOT_IMPLEMENTED();
+    return NULL;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
