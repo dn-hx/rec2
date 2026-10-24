@@ -39,11 +39,37 @@ void C2_HOOK_FASTCALL ImprovePSPowerup(tCar_spec* pCar, int pIndex) {
     NewTextHeadupSlot(4, 0, 3000, -4, GetMiscString(eMiscString_increase_apo_start + pIndex));
 }
 
-// BuyPSPowerup
+// FUNCTION: CARMA2_HW 0x00502e70
+// FUNCTION: CARMA2_SW 0x004fe7c0
+void C2_HOOK_FASTCALL BuyPSPowerup(int pIndex) {
+    char text[256];
+    char price_text[256];
 
-// BuyArmour
+    if (gRace_finished || gProgram_state.current_car.knackered || gWait_for_it) {
+        return;
+    }
 
-// BuyPower
+    if (gProgram_state.current_car.power_up_levels[pIndex] < gProgram_state.current_car.power_up_slots[pIndex]) {
+        if (gProgram_state.credits < (gNet_mode != eNet_mode_none
+                ? gCost_APO.initial_network[gCurrent_net_game->type]
+                : gCost_APO.initial[gProgram_state.skill_level])) {
+            strcpy(text, GetMiscString(0xb3));
+            sprintf(price_text, "%d", (gNet_mode != eNet_mode_none
+                ? gCost_APO.initial_network[gCurrent_net_game->type]
+                : gCost_APO.initial[gProgram_state.skill_level]));
+            SubsStringJob(text, price_text);
+            NewTextHeadupSlot(4, 0, 3000, -4, text);
+        } else {
+            SpendCredits(gNet_mode != eNet_mode_none
+                ? gCost_APO.initial_network[gCurrent_net_game->type]
+                : gCost_APO.initial[gProgram_state.skill_level]);
+            gProgram_state.current_car.power_up_levels[pIndex]++;
+            NewTextHeadupSlot(4, 0, 3000, -4, GetMiscString(pIndex + 0xaf));
+        }
+    } else {
+        NewTextHeadupSlot(4, 0, 3000, -4, GetMiscString(0xae));
+    }
+}
 
 // BuyOffense
 
