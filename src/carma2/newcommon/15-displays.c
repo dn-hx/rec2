@@ -16,6 +16,7 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0067c500
 tHeadup gHeadups[37];
@@ -118,6 +119,9 @@ int gOld_times[10];
 
 // GLOBAL: CARMA2_HW 0x0067f888
 int gQueued_headup_count;
+
+// GLOBAL: CARMA2_HW 0x0067f880
+int gLast_time_credit_amount;
 
 
 static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
@@ -561,7 +565,10 @@ void C2_HOOK_FASTCALL EarnCredits(int pAmount) {
     EarnCredits2(pAmount, "");
 }
 
-// EarnCredits100
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 
 // FUNCTION: CARMA2_HW 0x0044b470
 int C2_HOOK_FASTCALL SpendCredits(int pAmount) {
@@ -581,7 +588,8 @@ int C2_HOOK_FASTCALL SpendCredits(int pAmount) {
 
 // AwardTime5
 
-// DoTestHeadup
+// GLOBAL: CARMA2_HW 0x0079eb00
+char gHeadup_oppo_ped_text[64];
 
 // FUNCTION: CARMA2_HW 0x0044ba60
 int C2_HOOK_FASTCALL HighResHeadupWidth(int pWidth) {
