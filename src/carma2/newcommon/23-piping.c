@@ -802,9 +802,13 @@ void C2_HOOK_FASTCALL PipeSinglePedFPChange(tPedestrian* pPed, float pValue, flo
         4, 4, *(tU32*)&pValue);
 }
 
-// PipeSinglePedModelChange
+// FUNCTION: CARMA2_HW 0x004c8c60
+void C2_HOOK_FASTCALL PipeSinglePedPos(const tPedestrian* pPed, const br_vector3* pPos, const br_vector3 *pVelocity) {
 
-// PipeSinglePHILObject
+    ARDoSingleVariedSession(ePipe_chunk_single_ped_pos, (uintptr_t)pPed, 2,
+        SIZE_OFFSET_PIPING(tPipe_single_ped_pos, p), pPos,
+        SIZE_OFFSET_PIPING(tPipe_single_ped_pos, v), pVelocity);
+}
 
 // PipeSingleGibShower
 
