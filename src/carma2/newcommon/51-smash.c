@@ -519,6 +519,22 @@ intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004ef460
+void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
+    float x1, x2;
+    float y1, y2;
+    float z1, z2;
+
+    GetThreeFloats(pF, &x1, &y1, &z1);
+    GetThreeFloats(pF, &x2, &y2, &z2);
+    pBounds->min.v[0] = MIN(x1, x2);
+    pBounds->min.v[1] = MIN(y1, y2);
+    pBounds->min.v[2] = MIN(z1, z2);
+    pBounds->max.v[0] = MAX(x1, x2);
+    pBounds->max.v[1] = MAX(y1, y2);
+    pBounds->max.v[2] = MAX(z1, z2);
+}
+
 // FUNCTION: CARMA2_HW 0x004ef9c0
 void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data) {
     tCar_crush_smashable_part* smashable = pSmash_data->smashables;
