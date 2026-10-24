@@ -43,7 +43,7 @@ extern void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_c
 
 extern int C2_HOOK_FASTCALL ARReplayPlaying(void);
 
-// ARSomeReplayLeft
+extern int C2_HOOK_FASTCALL ARIsActionReplayAvailable(void);
 
 // DisablePipedSounds
 
