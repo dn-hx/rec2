@@ -25,6 +25,8 @@ extern void C2_HOOK_FASTCALL ShowCurrentJoystickName(void);
 
 extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
+extern void C2_HOOK_FASTCALL StopDinputEffect(int pIndex);
+
 extern int C2_HOOK_FASTCALL JoystickDInputBegin(void);
 
 extern int C2_HOOK_FASTCALL InitForceFeedback(void);
