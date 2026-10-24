@@ -211,4 +211,6 @@ extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, int pGrid_index);
 
+extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
+
 #endif // GUARD_00_CAR_H

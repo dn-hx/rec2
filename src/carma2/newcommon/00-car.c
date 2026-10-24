@@ -548,6 +548,11 @@ void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x00414400
+void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar) {
+
+    InitialiseCar2(pCar, 1);
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
