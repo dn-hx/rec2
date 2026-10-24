@@ -109,7 +109,12 @@ void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 
-// DoCrashEarnings
+// STUB: CARMA2_HW 0x00440230
+// STUB: CARMA2_SW 0x00440310
+void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

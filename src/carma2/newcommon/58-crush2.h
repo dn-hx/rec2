@@ -36,7 +36,7 @@ extern void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity);
 
 extern void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar);
 
-// SortOutSmoke
+extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
 
 // DoCrashEarnings
 
