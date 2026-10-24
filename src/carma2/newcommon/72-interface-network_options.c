@@ -2,6 +2,22 @@
 
 #include "72-interface.h"
 
+/* NetOptions_Cancel and its data live here, not in 72-interface.c: additions to 72-interface.c shift MSVC's codegen of SortScores 0x004743c0 */
+
+// GLOBAL: CARMA2_HW 0x006864a0
+tNet_game_options gFrontend_backup_net_options;
+
+/* inlined into NetOptions_Cancel in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL RestoreNetworkOptions(void) {
+
+    gFrontend_net_options = gFrontend_backup_net_options;
+}
+
+extern int C2_HOOK_FASTCALL WhichItemIsSelectedIn(tFrontend_spec* pFrontend, int pGroup);
+extern int C2_HOOK_FASTCALL SaveOptions(void);
+extern int gNet_last_game_type;
+extern tNet_game_options gNet_settings[9];
+
 
 // GLOBAL: CARMA2_HW 0x00610208
 tFrontend_spec gFrontend_NETWORK_OPTIONS = {
