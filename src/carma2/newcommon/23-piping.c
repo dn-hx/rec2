@@ -317,9 +317,14 @@ int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
 
 // InitialiseActionReplay
 
-// STUB: CARMA2_HW 0x004c6c60
+// FUNCTION: CARMA2_HW 0x004c6c60
 void C2_HOOK_FASTCALL DisposeActionReplay(void) {
-    NOT_IMPLEMENTED();
+    DisposePiping();
+    if (gCrush_space != NULL) {
+        BrMemFree(gCrush_space);
+        gCrush_space = NULL;
+    }
+
 }
 
 // CheckIncident
