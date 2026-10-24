@@ -917,9 +917,22 @@ int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar) {
     return 0;
 }
 
-// IsCarSmoking
+// FUNCTION: CARMA2_HW 0x004fedd0
+void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject) {
+    int flags;
+    int i;
 
-// ClearSplashReplay
+    flags = gReplay_splash_flags;
+    for (i = 0; i < (int)REC2_ASIZE(gReplay_splashes); i++) {
+        uintptr_t object;
+
+        memcpy(&object, &gReplay_splashes[i].object, sizeof(object));
+        if (pObject == object) {
+            flags &= ~(1 << i);
+        }
+    }
+    gReplay_splash_flags = flags;
+}
 
 // GetSplashIndex
 
