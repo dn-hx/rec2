@@ -1166,6 +1166,10 @@ int GetRegisterSourceLocation(char* pSource_location) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x00506c20
+void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
