@@ -111,7 +111,7 @@ extern int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend);
 
 // UpdateNetGameTypeScroller
 
-// NetGameTypeUp
+extern int C2_HOOK_FASTCALL NetGameTypeUp(tFrontend_spec* pFrontend);
 
 // NetGameTypeDn
 
