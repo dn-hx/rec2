@@ -546,6 +546,11 @@ void C2_HOOK_FASTCALL CBLoadPersonality(tPed_personality* pPersonality, FILE* pF
     }
     ClosePackFileAndSetTiffLoading(gTwtPeds);
 }
+// FUNCTION: CARMA2_HW 0x004ccaa0
+void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality) {
+    BrMemFree(pPersonality->sounds);
+}
+
 
 // DoGibShower
 
