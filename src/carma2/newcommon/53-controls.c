@@ -161,9 +161,23 @@ void C2_HOOK_FASTCALL F12Key(void) {
 
 // NumberKey9
 
-// LookLeft
+// FUNCTION: CARMA2_HW 0x00441e10
+void C2_HOOK_FASTCALL LookLeft(void) {
 
-// LookForward
+    PratcamEvent(27);
+    gProgram_state.old_view = gProgram_state.which_view;
+    if (gProgram_state.which_view == eView_left) {
+        LookForward();
+    } else if (gProgram_state.which_view == eView_right) {
+        LookForward();
+        gProgram_state.pending_view = eView_left;
+    } else {
+        ClearWobbles();
+        gProgram_state.new_view = eView_left;
+        gProgram_state.view_change_start = PDGetTotalTime();
+        gProgram_state.pending_view = eView_undefined;
+    }
+}
 
 // LookRight
 
