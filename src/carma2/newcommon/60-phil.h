@@ -53,7 +53,7 @@ extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, t
 
 // GetSingleMatrixFromNetworkData
 
-// PHILInit
+extern int C2_HOOK_FASTCALL PHILInit(void);
 
 extern void C2_HOOK_FASTCALL PHILDisable(void);
 
