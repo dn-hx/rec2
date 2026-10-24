@@ -8,7 +8,10 @@ extern float gOpponent_nastyness_frigger;
 extern int gMinTimeOpponentRepair;
 extern int gMaxTimeOpponentRepair;
 extern int gNumber_of_cops_before_faffage;
+extern int gActive_car_list_rebuild_required;
+extern br_scalar gIn_view_distance;
 extern tU8* gBit_per_node;
+extern float gOppo_render_zero;
 
 extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 
