@@ -438,7 +438,7 @@ extern void C2_HOOK_FASTCALL UndoSkidAdjustment(tPipe_chunk** pChunk, tPipe_chun
 
 // UndoFlap
 
-// UndoModelMash
+extern void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoRelink
 

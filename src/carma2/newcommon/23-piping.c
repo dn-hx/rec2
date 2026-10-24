@@ -1464,9 +1464,12 @@ void C2_HOOK_FASTCALL UndoSkidAdjustment(tPipe_chunk** pChunk, tPipe_chunk* pPre
 
 // UndoFlap
 
-// UndoModelMash
+// FUNCTION: CARMA2_HW 0x004c9f80
+void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_model_mash* chunk = (tPipe_chunk_model_mash*)*pChunk;
 
-// UndoRelink
+    return WorkerModelMashUndo(chunk->field_0x4, chunk->field_0x8);
+}
 
 // UndoSplitWeld
 
