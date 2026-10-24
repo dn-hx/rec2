@@ -120,3 +120,9 @@ void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 f
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004b7220
+void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
+
+    NOT_IMPLEMENTED();
+}
+
