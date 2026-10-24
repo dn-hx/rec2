@@ -129,6 +129,7 @@ extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
 
 extern void C2_HOOK_FASTCALL PollCameraControls(tU32 pCamera_period);
 extern void C2_HOOK_FASTCALL SetFlag2(int i);
+extern void C2_HOOK_FASTCALL ToggleFlying(void);
 // CycleInvulnerability
 
 extern void C2_HOOK_FASTCALL ToggleTimerFreeze(void);
