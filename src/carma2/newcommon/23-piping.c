@@ -1118,6 +1118,13 @@ void C2_HOOK_FASTCALL ApplyShrapnelShower(tPipe_chunk** pChunk) {
     return WorkerShrapnelShower(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x4, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x84, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x44, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x8, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x20, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x2c, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x50, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x0, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x54, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x88, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x14, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0xa0, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x38, 0);
 }
 
+// FUNCTION: CARMA2_HW 0x004c99d0
+void C2_HOOK_FASTCALL ApplyExplosion(tPipe_chunk** pChunk) {
+    tPipe_chunk_explosion* chunk = (tPipe_chunk_explosion*)*pChunk;
+
+    return CopyExplosionData(chunk->field_0x0, (tExplosion*)&chunk->field_0x4);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c99f0
 void C2_HOOK_FASTCALL ApplySmashModelChange(tPipe_chunk** pChunk) {

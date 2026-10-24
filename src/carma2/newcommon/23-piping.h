@@ -346,7 +346,7 @@ extern void C2_HOOK_FASTCALL ApplyEndMyBend(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyShrapnelShower(tPipe_chunk** pChunk);
 
-// ApplyExplosion
+extern void C2_HOOK_FASTCALL ApplyExplosion(tPipe_chunk** pChunk);
 
 // ApplyNonCarCreation
 
