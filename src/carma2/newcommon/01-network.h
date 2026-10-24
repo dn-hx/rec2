@@ -37,7 +37,7 @@ extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_
 
 // NetDisposePIDGameInfo
 
-// NetDisposeGameDetails
+extern void C2_HOOK_FASTCALL NetDisposeGameDetails(tNet_game_details* pDetails);
 
 extern tNet_game_details* C2_HOOK_FASTCALL NetAllocatePIDGameDetails(void);
 
