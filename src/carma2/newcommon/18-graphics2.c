@@ -623,6 +623,15 @@ static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDes
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0047d5b0
+void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc) {
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        DRPixelmapCopyMapBlack8Bit(pDest, pSrc);
+    } else {
+        BrPixelmapCopy(pDest, pSrc);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0047d6a0
 void C2_HOOK_FASTCALL DisableLights(void) {
