@@ -1521,6 +1521,19 @@ void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 void C2_HOOK_FASTCALL UndoUnBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 }
 
+// FUNCTION: CARMA2_HW 0x004ca070
+void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_shrapnel_shower* prev = (tPipe_chunk_shrapnel_shower*)pPrev_chunk;
+
+    if (((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x84 != 0 || prev == NULL || prev->field_0x4 == 0 || prev->field_0x84 == 0) {
+        return;
+    }
+
+    memcpy((void*)0x6b78a0, &prev->field_0xa4, sizeof(prev->field_0xa4));
+
+    return WorkerShrapnelShowerUndo(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, prev->field_0x4, prev->field_0x84, prev->field_0x44, &prev->field_0x8, &prev->field_0x20, &prev->field_0x2c, prev->field_0x50, prev->field_0x48, prev->field_0x0, &prev->field_0x54, &prev->field_0x88, &prev->field_0x14, prev->field_0xa0, &prev->field_0x38);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004ca110
 void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
