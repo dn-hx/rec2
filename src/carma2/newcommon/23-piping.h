@@ -369,7 +369,7 @@ extern tU32 gYoungest_time;
 extern tU8* gPipe_buffer_end_marker;
 extern undefined4* gCrush_space;
 
-// ARReplayForwards
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
 
 extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 
