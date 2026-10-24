@@ -138,3 +138,9 @@ void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca500
+void C2_HOOK_FASTCALL WorkerPedMove(int field_0x0, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38) {
+
+    NOT_IMPLEMENTED();
+}
+
