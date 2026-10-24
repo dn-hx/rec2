@@ -77,7 +77,7 @@ extern tRace_ped_spec* gRace_pedestrian_specs;
 
 // PedUndoDismember
 
-// ReadPedSpecs
+extern void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF);
 
 // GetPedPos
 
