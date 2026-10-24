@@ -171,7 +171,7 @@ extern void C2_HOOK_FASTCALL AddFlameToPipingSession(int pIndex, int pFrame, br_
 
 // AddDamageToPipingSession
 
-// AddProxRayToPipingSession
+extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
 
 // AddFlapToPipingSession
 
