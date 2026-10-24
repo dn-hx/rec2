@@ -384,7 +384,7 @@ extern void C2_HOOK_FASTCALL ApplyGibShower(tPipe_chunk** pChunk);
 
 // ApplyBloodSpurt
 
-// ApplyGrooveOnOff
+extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
 // ApplyPowerupGot
 

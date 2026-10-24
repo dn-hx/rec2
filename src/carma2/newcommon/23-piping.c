@@ -1256,9 +1256,15 @@ void C2_HOOK_FASTCALL ApplyGibShower(tPipe_chunk** pChunk) {
 
 // ApplyBloodSpurt
 
-// ApplyGrooveOnOff
+// FUNCTION: CARMA2_HW 0x004c9be0
+void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
+    tPipe_chunk_groove_on_off* chunk = (tPipe_chunk_groove_on_off*)*pChunk;
 
-// ApplyPowerupGot
+    if (chunk->field_0x4 != 0) {
+        return EnableGroovidelic((br_actor*)(intptr_t)chunk->field_0x0, chunk->field_0x8);
+    }
+    return DisableGroovidelic((br_actor*)(intptr_t)chunk->field_0x0, chunk->field_0x8);
+}
 
 // ApplyPowerupLose
 
