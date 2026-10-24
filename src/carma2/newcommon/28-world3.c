@@ -12,12 +12,12 @@
 #include "rec2_macros.h"
 
 #include <string.h>
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 br_actor* gAdditional_actors;
 
-// GLOBAL: CARMA2_HW 0x006b7820
-tBrender_storage* gStorage_for_callbacks;
+/* gStorage_for_callbacks (0x006b7820) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x006aaa2c
 int gDisallow_duplicates;
@@ -81,8 +81,15 @@ void C2_HOOK_FASTCALL InitTreeSurgery(void) {
 
 // LoadTrack
 
-// RemoveBounds
+// FUNCTION: CARMA2_HW 0x00506e20
+intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
+    if (pActor->type == BR_ACTOR_BOUNDS || pActor->type == BR_ACTOR_BOUNDS_CORRECT) {
+        BrResFree(pActor->type_data);
+        pActor->type_data = NULL;
+    }
+    return 0;
+}
 // RemoveBoundsStructures
 
 // FreeTrack
@@ -258,7 +265,7 @@ tAdd_to_storage_result C2_HOOK_FASTCALL AddModelToStorage(tBrender_storage* pSto
     int i;
 
     gDuplicate_model = NULL;
-    if (pStorage_space->materials_count < pStorage_space->max_models) {
+    if (pStorage_space->models_count < pStorage_space->max_models) {
         if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
             for (i = 0; i < pStorage_space->models_count; i++) {
                 if (pStorage_space->models[i] != NULL
@@ -751,4 +758,21 @@ void C2_HOOK_FASTCALL DisallowDuplicates(void) {
 void C2_HOOK_FASTCALL AllowDuplicates(void) {
 
     gDisallow_duplicates = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00502d80
+br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
+    int i;
+
+    for (i = 0; i < pStorage->pixelmaps_count; i++) {
+        if (pOriginal == pStorage->pixelmaps[i]) {
+            BrMapRemove(pOriginal);
+            BrPixelmapFree(pOriginal);
+            pStorage->pixelmaps[i] = pNew;
+            BrMapAdd(pNew);
+            return pNew;
+        }
+    }
+    PDFatalError("Can't swap in pixelmap");
+    return NULL;
 }
