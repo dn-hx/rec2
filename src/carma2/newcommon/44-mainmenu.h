@@ -2,6 +2,7 @@
 #define GUARD_44_MAINMENU_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
 
 // QuitVerifyStart
 
