@@ -1312,9 +1312,13 @@ void C2_HOOK_FASTCALL ARCompressModelMash(tCompressed_vector3* pDest, br_model* 
 
 // Vector4Equal
 
-// CompressPlane
+// FUNCTION: CARMA2_HW 0x0043deb0
+void C2_HOOK_FASTCALL CompressPlane(tU16* pDest, const br_vector4* pSrc) {
 
-// ExpandPlane
+    CompressVector3((tCompressed_vector3*)pDest, (const br_vector3*)pSrc, -1.f, 1.f);
+    pDest[3] = DRScalarToU16(pSrc->v[3], -2.5f, 2.5f);
+}
+
 
 // CopySplitInMessage
 
