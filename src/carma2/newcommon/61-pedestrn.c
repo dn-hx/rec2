@@ -1514,8 +1514,11 @@ void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)
 #pragma auto_inline(on)
 #endif
 
-// DisableRetainRootMode
+// FUNCTION: CARMA2_HW 0x0040c600
+void C2_HOOK_FASTCALL DisableOverallMovement(void) {
 
+    gPed_overall_movement_disabled = 1;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif

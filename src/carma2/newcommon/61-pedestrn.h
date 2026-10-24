@@ -534,7 +534,7 @@ extern void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pC
 
 extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*));
 
-// DisableOverallMovement
+extern void C2_HOOK_FASTCALL DisableOverallMovement(void);
 
 // EnableOverallMovement
 
