@@ -177,7 +177,7 @@ extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec
 
 // AddModelMashToPipingSession
 
-// AddRepulseRayToPipingSession
+extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime);
 
 // AddNapalmBoltToPipingSession
 
