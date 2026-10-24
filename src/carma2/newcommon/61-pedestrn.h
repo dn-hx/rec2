@@ -91,7 +91,7 @@ extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
 // BonerReadPersonalityModels
 
-// MakeActorRenderable
+extern void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pIndex, tPed_character_instance* pCharacter);
 
 // StopActorBeingRenderable
 

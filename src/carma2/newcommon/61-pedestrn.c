@@ -404,9 +404,16 @@ FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name) {
 }
 // BonerReadPersonalityModels
 
-// MakeActorRenderable
+// FUNCTION: CARMA2_HW 0x004cbc70
+void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pIndex, tPed_character_instance* pCharacter) {
 
-// StopActorBeingRenderable
+    if (pActor->parent == NULL) {
+        if (pIndex == 0 || (pCharacter->field_0xc & gPow2_array[pIndex]) != 0) {
+            BrActorAdd(gNon_track_actor, pActor);
+        }
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x004cbcc0
 int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
