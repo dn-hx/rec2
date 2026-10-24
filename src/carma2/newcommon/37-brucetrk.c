@@ -1,6 +1,10 @@
 #include "37-brucetrk.h"
 
 #include "globvars.h"
+#include "rec2_macros.h"
+
+#include <math.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x00655e60
 br_scalar gYon_factor = 0.25f;
@@ -10,6 +14,10 @@ br_material* gDefault_track_material;
 
 // GLOBAL: CARMA2_HW 0x00679260
 int gCount_track_non_cars;
+
+// GLOBAL: CARMA2_HW 0x00679268
+// GLOBAL: CARMA2_SW 0x006739d8
+br_vector3 gAverage_grid_position;
 
 // AssertNoncars
 
