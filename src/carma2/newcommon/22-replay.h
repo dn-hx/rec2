@@ -55,5 +55,7 @@ extern void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8);
 
 extern void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8);
 
+extern void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8);
+
 
 #endif // GUARD_22_REPLAY_H
