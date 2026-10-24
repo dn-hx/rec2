@@ -62,6 +62,7 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 // SetUpPanningCamera
 
 extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
+extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
