@@ -294,8 +294,7 @@ extern void C2_HOOK_FASTCALL PrevPedCam(void);
 
 // FindNearestPed
 
-// ResetPedNearness
-
+extern void C2_HOOK_FASTCALL ResetPedNearness(void);
 // PedPreCollisionStuff
 
 // UpdateIfBackwardsAR

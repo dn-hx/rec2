@@ -902,8 +902,11 @@ void C2_HOOK_FASTCALL PrevPedCam(void) {
 
 // FindNearestPed
 
-// ResetPedNearness
+// FUNCTION: CARMA2_HW 0x004d6390
+void C2_HOOK_FASTCALL ResetPedNearness(void) {
 
+    gPed_nearness = 1;
+}
 // PedPreCollisionStuff
 
 // UpdateIfBackwardsAR
