@@ -305,3 +305,9 @@ void C2_HOOK_FASTCALL WorkerSpark(int field_0x0, void* pField_0x4, void* pField_
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004f86f0
+void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14) {
+
+    NOT_IMPLEMENTED();
+}
+
