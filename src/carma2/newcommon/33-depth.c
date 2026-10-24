@@ -8,6 +8,9 @@
 #include "globvars.h"
 #include "globvrkm.h"
 #include "rec2_macros.h"
+#include "41-utility.h"
+#include "15-displays.h"
+#include "52-errors.h"
 
 #include "c2_stdio.h"
 
@@ -23,8 +26,8 @@ br_material* gHorizon_material;
 // GLOBAL: CARMA2_HW 0x0067c4a0
 br_model* gForward_sky_model;
 
-// GLOBAL: CARMA2_HW 0x0074cee8
-br_material* gMaterial[2];
+/* defined in globvrbm.c (0x0074cee8), directly before gHUDsquare_actor as in the original layout */
+extern br_material* gMaterial[2];
 
 // GLOBAL: CARMA2_HW 0x0059118c
 int gDepth_cueing_on = 1;
@@ -186,6 +189,9 @@ void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00445340
 void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8) {
 
@@ -218,6 +224,9 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
         FrobFog();
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // Tan
 
@@ -225,7 +234,34 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
 
 // CreateHorizonModel
 
-// LoadDepthTable
+static int Log2(int pNumber) {
+    int i;
+    int bits[16];
+
+    bits[0] = 1;
+    bits[1] = 2;
+    bits[2] = 4;
+    bits[3] = 8;
+    bits[4] = 16;
+    bits[5] = 32;
+    bits[6] = 64;
+    bits[7] = 128;
+    bits[8] = 256;
+    bits[9] = 512;
+    bits[10] = 1024;
+    bits[11] = 2048;
+    bits[12] = 4096;
+    bits[13] = 0x2000;
+    bits[14] = 0x4000;
+    bits[15] = 0x8000;
+    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
+        if (bits[i] & pNumber) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 
 // STUB: CARMA2_HW 0x00445620
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
@@ -394,7 +430,6 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
 
     temp_start = gProgram_state.current_depth_effect.start;
     temp_end = gProgram_state.current_depth_effect.end;
-    temp_type = gProgram_state.current_depth_effect.type;
     temp_red = gProgram_state.current_depth_effect.colour.red;
     temp_green = gProgram_state.current_depth_effect.colour.green;
     temp_blue = gProgram_state.current_depth_effect.colour.blue;
@@ -409,7 +444,6 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
         gProgram_state.racing);
     gSwap_depth_effect_start = temp_start;
     gSwap_depth_effect_end = temp_end;
-    gSwap_depth_effect_type = temp_type;
     gSwap_depth_effect_colour_red = temp_red;
     gSwap_depth_effect_colour_green = temp_green;
     gSwap_depth_effect_colour_blue = temp_blue;
