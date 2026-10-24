@@ -39,6 +39,7 @@ extern int gLast_time_credit_headup;
 extern tU32 gLast_time_earn_time;
 extern int gOld_times[10];
 extern int gQueued_headup_count;
+extern int gLast_time_credit_amount;
 
 
 // static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void);
