@@ -20,8 +20,7 @@ extern tCamera_key_flags gCamera_key_flags;
 
 // CompleteRace
 
-// AbortRace
-
+extern void C2_HOOK_FASTCALL AbortRace(void);
 // F4Key
 
 // SetFlag

@@ -74,8 +74,13 @@ tCamera_key_flags gCamera_key_flags;
 
 // CompleteRace
 
-// AbortRace
+// FUNCTION: CARMA2_HW 0x00441490
+void C2_HOOK_FASTCALL AbortRace(void) {
 
+    if (!gRace_finished) {
+        gAbandon_game = 1;
+    }
+}
 // F4Key
 
 #ifdef REC2_MATCHING
