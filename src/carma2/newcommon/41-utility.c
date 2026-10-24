@@ -321,8 +321,15 @@ int C2_HOOK_FASTCALL DRPixelmapLoadMany(const char* texturePathNoExt, br_pixelma
     return 1;
 }
 
-// WaitFor
+// FUNCTION: CARMA2_HW 0x005146c0
+void C2_HOOK_FASTCALL WaitFor(tU32 pDelay) {
+    tU32 start_time;
 
+    start_time = PDGetTotalTime();
+    while (PDGetTotalTime() < start_time + pDelay && !AnyKeyDown()) {
+        SoundService();
+    }
+}
 // FUNCTION: CARMA2_HW 0x005146f0
 intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg) {
     intptr_t result;
