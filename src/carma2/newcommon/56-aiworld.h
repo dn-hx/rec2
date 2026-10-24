@@ -2,6 +2,12 @@
 #define GUARD_56_AIWORLD_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
+
+extern int gFirst_drone_processing;
+extern tU32 gFrame_period_for_this_munging;
+extern float gDrone_delta_time;
+extern float gTrack_drone_min_y;
 
 #include "brender/brender.h"
 
