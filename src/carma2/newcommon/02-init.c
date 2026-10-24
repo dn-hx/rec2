@@ -121,9 +121,57 @@ void C2_HOOK_FASTCALL AllocateRearviewPixelmap(void) {
     }
 }
 
-// ReinitialiseRearviewCamera
+// FUNCTION: CARMA2_HW 0x0047db30
+void C2_HOOK_FASTCALL ReinitialiseRearviewCamera(void) {
+    br_camera* camera_ptr;
+    float width;
+    float height;
 
-// ReinitialiseRenderStuff
+    camera_ptr = gRearview_camera->type_data;
+    camera_ptr->field_of_view = BrDegreeToAngle(gProgram_state.current_car.rearview_camera_angle);
+    width = (float)(gProgram_state.current_car.mirror_right - gProgram_state.current_car.mirror_left);
+    height = (float)(gProgram_state.current_car.mirror_bottom - gProgram_state.current_car.mirror_top);
+    camera_ptr->aspect = width / height;
+    BrVector3Set(&gRearview_camera->t.t.translate.t,
+        gProgram_state.current_car.mirror_x_offset,
+        gProgram_state.current_car.mirror_y_offset,
+        gProgram_state.current_car.mirror_z_offset);
+    AllocateRearviewPixelmap();
+    MungeRearviewSky();
+}
+
+// FUNCTION: CARMA2_HW 0x0047dc30
+void C2_HOOK_FASTCALL ReinitialiseRenderStuff(void) {
+    int index;
+    int x_diff;
+    int y_diff;
+    int width;
+    int height;
+
+    if (gProgram_state.cockpit_on) {
+        index = gProgram_state.cockpit_image_index;
+        gProgram_state.current_render_left = gProgram_state.current_car.render_left[index];
+        gProgram_state.current_render_top = gProgram_state.current_car.render_top[index];
+        gProgram_state.current_render_right = gProgram_state.current_car.render_right[index];
+        gProgram_state.current_render_bottom = gProgram_state.current_car.render_bottom[index];
+    } else {
+        width = gGraf_specs[gGraf_spec_index].total_width;
+        x_diff = width / 18 & ~0x3;
+        height = gGraf_specs[gGraf_spec_index].total_height;
+        y_diff = height / 18 & ~0x1;
+        if (gNo_render_indent) {
+            gProgram_state.current_render_left = 0;
+            gProgram_state.current_render_top = 0;
+            gProgram_state.current_render_right = width;
+            gProgram_state.current_render_bottom = height;
+        } else {
+            gProgram_state.current_render_left = gRender_indent * x_diff;
+            gProgram_state.current_render_right = width - gRender_indent * x_diff;
+            gProgram_state.current_render_top = gRender_indent * y_diff;
+            gProgram_state.current_render_bottom = height - gRender_indent * y_diff;
+        }
+    }
+}
 
 void C2_HOOK_FASTCALL InstallFindFailedHooks(void) {
 
