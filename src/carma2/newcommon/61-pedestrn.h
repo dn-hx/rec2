@@ -150,7 +150,7 @@ extern void C2_HOOK_FASTCALL CBLoadPersonality(tPed_personality* pPersonality, F
 
 extern void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality);
 
-// CBFillInObject
+extern void C2_HOOK_FASTCALL CBFillInObject(undefined4* pArg1, undefined4 pArg2);
 
 // DoGibShower
 

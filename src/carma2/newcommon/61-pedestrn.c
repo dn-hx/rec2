@@ -563,6 +563,18 @@ void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality) {
     BrMemFree(pPersonality->sounds);
 }
 
+// FUNCTION: CARMA2_HW 0x004ccab0
+void C2_HOOK_FASTCALL CBFillInObject(undefined4* pArg1, undefined4 pArg2) {
+    char* base = (char*)pArg1;
+    if (pArg2 == 5) {
+        *(int*)(base + 0x1a0) = 0x40000;
+        *(int*)(base + 0x1a4) = 0x50000;
+    } else {
+        *(int*)(base + 0x1a0) = 0x10000;
+        *(int*)(base + 0x1a4) = 0x50000;
+    }
+}
+
 // DoGibShower
 
 // PedApplyGibShower
