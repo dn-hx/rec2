@@ -235,8 +235,7 @@ br_model* gBlend_model2;
 // GLOBAL: CARMA2_HW 0x0074caac
 br_actor* gBlend_actor;
 
-// GLOBAL: CARMA2_HW 0x006a87f0
-tBRender_smoke gBR_smoke_structs[35];
+/* gBR_smoke_structs (0x006a87f0) is defined in 32-spark.c, adjacent to gSmoke as in the original layout */
 
 
 // GLOBAL: CARMA2_HW 0x00655dc0
