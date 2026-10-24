@@ -93,5 +93,7 @@ extern void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4
 
 extern void C2_HOOK_FASTCALL WorkerGibShower(int field_0x0, int field_0xc, int field_0x8, int field_0x10, int field_0x4, br_vector3* pField_0x14, br_vector3* pField_0x20, br_vector3* pField_0x2c);
 
+extern void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c);
+
 
 #endif // GUARD_22_REPLAY_H
