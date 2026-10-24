@@ -5,11 +5,16 @@
 #include "08-loading1.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "60-phil.h"
+#include "23-piping.h"
 #include "rec2_macros.h"
+#include "41-utility.h"
 
 // GLOBAL: CARMA2_HW 0x0065a3c4
 // GLOBAL: CARMA2_SW 0x00654cdc
 int gBIG_APC_index = -1;
+
+extern void C2_HOOK_FASTCALL PDEnterDebugger(const char* pStr);
 
 // GLOBAL: CARMA2_HW 0x0065a3cc
 float gOpponent_nastyness_frigger = 1.0f;
@@ -23,9 +28,18 @@ int gMaxTimeOpponentRepair;
 // GLOBAL: CARMA2_HW 0x00691744
 int gNumber_of_cops_before_faffage;
 
+// GLOBAL: CARMA2_HW 0x0069173c
+int gActive_car_list_rebuild_required;
+
+// GLOBAL: CARMA2_HW 0x00691764
+br_scalar gIn_view_distance;
+
 // GLOBAL: CARMA2_HW 0x0069175c
 // GLOBAL: CARMA2_SW 0x0068b7b4
 tU8* gBit_per_node;
+
+// GLOBAL: CARMA2_HW 0x0058a478
+float gOppo_render_zero = 0.0f;
 
 // FUNCTION: CARMA2_HW 0x004a8160
 void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
@@ -213,9 +227,15 @@ void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender)
 // RebuildActiveCarList
 
 // STUB: CARMA2_HW 0x004a7a60
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void) {
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // OpponentRepairNecessary
 
@@ -300,7 +320,12 @@ void C2_HOOK_FASTCALL DisposeOpponents(void) {
     }
 }
 
-// WakeUpOpponentsToTheFactThatTheStartHasBeenJumped
+// GLOBAL: CARMA2_HW 0x00691720
+int gStart_jumped;
+
+// GLOBAL: CARMA2_HW 0x00691750
+int gAcknowledged_start;
+
 
 // FUNCTION: CARMA2_HW 0x004ae790
 int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory) {
@@ -330,9 +355,11 @@ tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex) {
     NOT_IMPLEMENTED();
 }
 
-// GetDriverName
+// GLOBAL: CARMA2_HW 0x0065a3bc
+char* gFaceless_cop_name = "Faceless Cop";
 
-// GetOpponentSpecFromCarSpec
+// GLOBAL: CARMA2_HW 0x0065a3c0
+char* gInnocent_civilian_name = "Innocent Civilian";
 
 // FUNCTION: CARMA2_HW 0x004ae880
 const char* C2_HOOK_FASTCALL GetDriverName(tVehicle_type pCategory, int pIndex) {
