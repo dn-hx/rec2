@@ -292,9 +292,11 @@ void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCou
 
 // ARResetPipePlayToEnd
 
-// ARGetPipePlayPtr
+// FUNCTION: CARMA2_HW 0x00402df0
+tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void) {
 
-// ARSetPipePlayPtr
+    return gPipe_play_ptr;
+}
 
 // ApplyPipedSession
 
