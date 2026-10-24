@@ -682,6 +682,13 @@ static void C2_HOOK_FASTCALL RestoreSinglePlayerState(void) {
     gValid_stashed_save_game = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00466e90
+void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void) {
+
+    if (gValid_stashed_save_game) {
+        RestoreSinglePlayerState();
+    }
+}
 
 // NetworkJoinUpdateScroller
 
