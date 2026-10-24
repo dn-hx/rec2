@@ -1002,8 +1002,12 @@ int C2_HOOK_FASTCALL ChangeCarCancel(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// ChangeCarOK
+// FUNCTION: CARMA2_HW 0x0046b620
+int C2_HOOK_FASTCALL ChangeCarOK(tFrontend_spec* pFrontend) {
 
+    gProgram_state.current_car_index = gProgram_state.cars_available[gFrontend_change_car_selected_car];
+    return 0;
+}
 // CarClickPrev
 
 // CarClickNext
