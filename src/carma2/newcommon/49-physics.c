@@ -42,6 +42,12 @@ void* gPhysics_other_buffer;
 // GLOBAL: CARMA2_HW 0x006940bc
 void* gPhysics_scratch_ptr;
 
+// GLOBAL: CARMA2_HW 0x0079d858
+tFace_ref* gPling_face;
+
+// GLOBAL: CARMA2_HW 0x005964c4
+int gActorBoxPick_StopGroovidelics = 1;
+
 // count
 
 // FUNCTION: CARMA2_HW 0x004225b0
@@ -279,6 +285,14 @@ void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject) {
 
 // GetPreCalculatedJointForces
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004b9f40
 void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
     while (pObject != NULL) {
@@ -417,7 +431,12 @@ void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, unde
 
 // GetFacesNearObject
 
-// ResetObjectAndChildren
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ResetObjectList
 
