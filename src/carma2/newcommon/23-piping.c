@@ -474,6 +474,22 @@ void C2_HOOK_FASTCALL DisposeActionReplay(void) {
 // GLOBAL: CARMA2_HW 0x006940d4
 tPipe_smudge_data* gSmudge_space;
 
+// FUNCTION: CARMA2_HW 0x004c6ea0
+void C2_HOOK_FASTCALL AddSmudgeToPipingSession(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates) {
+    tU32 data_size;
+
+    if (gSmudge_space != NULL) {
+        if (pVertex_count > 600) {
+            pVertex_count = 600;
+        }
+        data_size = pVertex_count * sizeof(tSmudged_vertex);
+        gSmudge_space->vertex_count = pVertex_count;
+        gSmudge_space->model_index = pModel_index;
+        memcpy(gSmudge_space->vertex_changes, pCoordinates, data_size);
+        data_size += offsetof(tPipe_smudge_data, vertex_changes);
+        ARAddDataToSession(ePipe_chunk_smudge, pCar_ID, gSmudge_space, data_size);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c6f20
 void C2_HOOK_FASTCALL AddSparkToPipingSession(int pSpark_index, const br_vector3* pPos, const br_vector3* pV) {
