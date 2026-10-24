@@ -85,4 +85,11 @@ void C2_HOOK_FASTCALL BuyPower(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00503030
+void C2_HOOK_FASTCALL BuyOffense(void) {
+
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        BuyPSPowerup(2);
+    }
+}
 
