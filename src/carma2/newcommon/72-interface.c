@@ -766,9 +766,14 @@ int C2_HOOK_FASTCALL ChooseSkill(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// NewGameOutfunc
+// FUNCTION: CARMA2_HW 0x00467180
+int C2_HOOK_FASTCALL NewGameOutfunc(tFrontend_spec* pFrontend) {
 
-// NewGameInfunc
+    SaveOptions();
+    InitGameAccordingToSkillLevel();
+    DRS3StartSound(gEffects_outlet, eSoundId_Swingout);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00467270
 int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
