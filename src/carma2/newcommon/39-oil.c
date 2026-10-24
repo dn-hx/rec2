@@ -184,7 +184,18 @@ void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_scalar pF
     gOily_spills[pIndex].actor->render_style = BR_RSTYLE_NONE;
 }
 
-// ReceivedOilSpill
+// FUNCTION: CARMA2_HW 0x004a78e0
+// FUNCTION: CARMA2_SW 0x004a3a50
+void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents) {
+    tCar_spec* car;
 
-// RemoveCarsOilSlicks
+    car = NetCarFromPlayerID(pContents->oil_spill.player);
+    if (car == NULL) {
+        return;
+    }
+    QueueOilSpill2(car, car->car_master_actor, car->car_actor->model, 500,
+        0.35f, 0.6f, 0.00003f, 0.0001f, 0.1f, 1.5f, 2.5f, 0.01f, 0.15f,
+        oily_material, NULL);
+}
+
 
