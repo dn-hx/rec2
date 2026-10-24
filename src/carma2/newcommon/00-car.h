@@ -25,7 +25,7 @@ extern tFace_ref gFace_list__car[300];
 extern br_scalar gMin_world_y;
 extern tPhysics_object* gUnknown_car_collision_info;
 
-// DamageUnit
+extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
 
 extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
 
