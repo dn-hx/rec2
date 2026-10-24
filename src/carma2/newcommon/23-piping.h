@@ -673,7 +673,7 @@ extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
 // ApplyCar
 
-// ApplyGWS
+extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
 // ApplyDamage
 
