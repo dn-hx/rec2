@@ -108,9 +108,7 @@ extern void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime);
 
 // AdjustRepulseRay
 
-// ResetRepulseRay
-
-// DrawSinglePowerupIcon
+extern void C2_HOOK_FASTCALL ResetRepulseRay(void);
 
 // DrawPowerupIcons2
 

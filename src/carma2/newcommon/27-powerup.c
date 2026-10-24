@@ -323,9 +323,19 @@ void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime) {
 
 // AdjustRepulseRay
 
-// ResetRepulseRay
+// FUNCTION: CARMA2_HW 0x004da990
+void C2_HOOK_FASTCALL ResetRepulseRay(void) {
+    int i = 0;
 
-// DrawSinglePowerupIcon
+    do {
+        tRepulse_link* link = &gRepulse_links[i];
+        if (link->actor->parent == gNon_track_actor) {
+            BrActorRemove(link->actor);
+        }
+        link->time = 0;
+        i++;
+    } while ((int)&gRepulse_links[i].actor < (int)&gINT_006a0a5c);
+}
 
 // DrawPowerupIcons2
 
