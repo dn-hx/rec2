@@ -135,7 +135,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // CheckCar
 
-// CarTimeout
+extern int C2_HOOK_FASTCALL CarTimeout(tU32 pTime);
 
 // ScanCarsPositions
 

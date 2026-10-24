@@ -298,7 +298,20 @@ int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext
 
 // CheckCar
 
-// CarTimeout
+// FUNCTION: CARMA2_HW 0x004c6bc0
+int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
+
+    if (ARReplayForwards()) {
+        if (pTime > gYoungest_time) {
+            return 0;
+        }
+    } else {
+        if (pTime < gYoungest_time) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 // ScanCarsPositions
 
