@@ -198,8 +198,7 @@ extern void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void);
 
 // FRONTEND_DrawMenu
 
-// FRONTEND_Setup2D
-
+extern void C2_HOOK_FASTCALL FRONTEND_Setup2D(void);
 // FRONTEND_Setup
 
 // FRONTEND_Redraw
