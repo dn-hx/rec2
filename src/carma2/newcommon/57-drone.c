@@ -131,8 +131,15 @@ int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* data) {
 
 // GetSpeedControlFromString
 
-// MrFindy
+// FUNCTION: CARMA2_HW 0x00450b30
+intptr_t C2_HOOK_CDECL MrFindy(br_actor* pActor, void* data) {
+    const char* name = data;
 
+    if (DRStricmp(pActor->identifier, name) == 0) {
+        return (intptr_t)pActor;
+    }
+    return 0;
+}
 // FindDroneChildActor
 
 // GetReversenessFromString

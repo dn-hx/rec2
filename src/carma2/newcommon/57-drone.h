@@ -48,8 +48,7 @@ extern int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* data);
 
 // GetSpeedControlFromString
 
-// MrFindy
-
+extern intptr_t C2_HOOK_CDECL MrFindy(br_actor* pActor, void* data);
 // FindDroneChildActor
 
 // GetReversenessFromString
