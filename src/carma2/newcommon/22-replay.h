@@ -38,8 +38,7 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // TurnOffActionReplay
 
-// AfterActionReplay
-
+extern void C2_HOOK_FASTCALL AfterActionReplay(void);
 // ToggleReplay
 
 // DisplayMovieStatusPanel
