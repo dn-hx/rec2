@@ -7,6 +7,8 @@
 extern const char* gPedTextTxtPath;
 extern int gGroove_funk_offset;
 extern const char* gNet_avail_names[4];
+extern tHeadup_info gHeadup_image_info[45];
+extern br_pixelmap* gHeadup_images[45];
 
 extern void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes);
 
@@ -123,5 +125,10 @@ extern void C2_HOOK_FASTCALL ConfigureBloodPedTextTxtPath(void);
 extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
+
+extern int gCamera_type;
+extern tExplosion_animation gExplosion_pix_animation_groups;
+extern int gExplosion_sound_id;
+extern int gWasted_explosion_chance;
 
 #endif // GUARD_10_LOADING2_H
