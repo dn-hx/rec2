@@ -18,6 +18,8 @@ extern float gFloat_sine_table[91];
 
 // FastScalarCosAngle
 
+extern float C2_HOOK_STDCALL FastFloatArcSin(float pValue);
+
 extern float C2_HOOK_STDCALL FastFloatArcTan2(float pY, float pX);
 
 extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
