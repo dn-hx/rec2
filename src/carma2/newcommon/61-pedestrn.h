@@ -7,6 +7,23 @@
 extern float gPedestrian_speed_factor;
 extern int gExploding_pedestrians;
 extern tNapalm_bolt gNapalm_bolts[5];
+extern int gPed_count;
+extern int gPed_overall_movement_disabled;
+extern int gPed_retain_root_mode;
+extern tPedestrian* gPedestrian_array;
+extern int gSelected_ped;
+extern tTWTVFS gTwtPeds;
+extern br_actor* gLimbs_actor;
+extern int gPed_count_limbed_actors;
+extern br_actor* gPed_limbed_actors[30];
+extern const int gPow2_array[32];
+extern int gPed_nearness;
+extern int gEthereal_pedestrians;
+extern tPedestrian* gPedestrians_in_sight;
+extern float gConst_replay_rate_zero;
+extern const char* gForm_non_humanoid_names[1];
+extern int gCount_race_pedestrian_specs;
+extern tRace_ped_spec* gRace_pedestrian_specs;
 
 // OrientationChanged
 
