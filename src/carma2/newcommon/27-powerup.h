@@ -69,7 +69,7 @@ extern tShit_mine gShit_mines[20];
 
 // GotPowerupXX
 
-// GotPowerupEarwig
+extern void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage, int pSelect_inventory);
 
 // AutoGoody
 
