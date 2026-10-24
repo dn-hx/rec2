@@ -167,6 +167,6 @@ extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
 // RichardsSphere
 
-// ToggleHeadupLevel
+extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 
 #endif // GUARD_53_CONTROLS_H
