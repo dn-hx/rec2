@@ -28,6 +28,9 @@ char gDefault_quick_time_quality[] = "normal";
 // GLOBAL: CARMA2_HW 0x0065ed30
 char gDefault_quick_time_compressor[] = "animation";
 
+// GLOBAL: CARMA2_HW 0x006a23b8
+int gShow_status_message;
+
 // Create555BELookupTable
 
 // Convert565BrPixelmapTo555BigEndianPixmap
@@ -97,8 +100,11 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
 
 // MovieRecording
 
-// KillStatusMessage
+// FUNCTION: CARMA2_HW 0x004e2110
+void C2_HOOK_FASTCALL KillStatusMessage(void) {
 
+    gShow_status_message = 0;
+}
 // ShowStatusMessage
 
 // FUNCTION: CARMA2_HW 0x004e2140
