@@ -21,7 +21,7 @@ extern void C2_HOOK_FASTCALL InitPanGameAIWorld(void);
 
 extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
 
-// InitialiseAIWorldForRace
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 

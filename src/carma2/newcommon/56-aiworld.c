@@ -58,7 +58,30 @@ void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info) {
     PrintMemoryDump(0,"AFTER LoadPerRaceDroneStuff()");
 }
 
-// STUB: CARMA2_HW 0x00401160
+// FUNCTION: CARMA2_HW 0x004010b0
+void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info) {
+    br_bounds3 track_bounds;
+
+    gFirst_drone_processing = 1;
+    gTime_stamp_for_this_munging = GetTotalTime();
+    if (gTime_stamp_for_this_munging == 0) {
+        gTime_stamp_for_this_munging = PDGetTotalTime();
+    }
+    gFrame_period_for_this_munging = 100;
+    gDrone_delta_time = 0.1f;
+    BrActorToBounds(&track_bounds, gTrack_actor);
+    if (track_bounds.min.v[1] < track_bounds.max.v[1]) {
+        gTrack_drone_min_y = track_bounds.min.v[1];
+    } else {
+        gTrack_drone_min_y = track_bounds.max.v[1];
+    }
+    PrintMemoryDump(0, "BEFORE InitOpponents()");
+    InitOpponents(pRace_info);
+    PrintMemoryDump(0, "AFTER InitOpponents(), BEFORE InitDrones()");
+    InitDrones(pRace_info);
+    PrintMemoryDump(0, "AFTER InitDrones()");
+}
+
 void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
 
     NOT_IMPLEMENTED();
