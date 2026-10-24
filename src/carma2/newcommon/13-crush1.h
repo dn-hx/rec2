@@ -16,6 +16,10 @@ extern tCrush_info_buffer gSplit_car_crush_info_buffer;
 extern tPhysics_object* gSplit_car_collision_infos;
 extern tDriver gSplit_car_driver;
 extern tPhysics_shape* gGonad_sphere_collision_shape;
+extern br_scalar gCrushZero;
+extern int gCount_crush_detach_list;
+extern tCrush_detach_list_item gCrush_detach_list[16];
+extern tU32 gINT_0067be84;
 
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 
