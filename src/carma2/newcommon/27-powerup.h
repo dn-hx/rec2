@@ -230,7 +230,7 @@ extern int C2_HOOK_FASTCALL SetBouncey(tPowerup* powerup, tCar_spec* car);
 
 extern int C2_HOOK_FASTCALL SetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
 
-// SetImmortalPeds
+extern int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* powerup, tCar_spec* car);
 
 // ResetImmortalPeds
 

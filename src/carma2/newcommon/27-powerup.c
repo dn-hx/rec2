@@ -799,9 +799,13 @@ int C2_HOOK_FASTCALL SetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// SetImmortalPeds
+// FUNCTION: CARMA2_HW 0x004dcf00
+int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* powerup, tCar_spec* car) {
 
-// ResetImmortalPeds
+    gImmortal_peds = 1;
+    return powerup - gPowerup_array;
+}
+
 
 // SetSuicidalPeds
 
