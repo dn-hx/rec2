@@ -50,6 +50,8 @@ extern void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry
 
 // DRMatrix34PostRotateZ
 
+extern void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis);
+
 // DRMatrix23Rotate
 
 // DRMatrix23PostRotate
