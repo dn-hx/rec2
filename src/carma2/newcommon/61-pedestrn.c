@@ -660,7 +660,15 @@ int C2_HOOK_FASTCALL GetPedCount(void) {
 }
 // GetPedPosition
 
-// TurnLimbsOnAndOff
+// FUNCTION: CARMA2_HW 0x004d34e0
+void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
+
+    if (gPed_count_limbed_actors < 30) {
+        gPed_limbed_actors[gPed_count_limbed_actors] = actor;
+        gPed_count_limbed_actors += 1;
+    }
+    BrZsModelRender(actor, model, material, (br_order_table*)render_data, style, on_screen, 0);
+}
 
 // SetModelCallBacks
 

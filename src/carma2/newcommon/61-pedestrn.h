@@ -224,7 +224,7 @@ extern void C2_HOOK_FASTCALL DoPedAnnihilator(tPedestrian* pPed, tCar_spec* pCar
 extern int C2_HOOK_FASTCALL GetPedCount(void);
 // GetPedPosition
 
-// TurnLimbsOnAndOff
+extern void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen);
 
 // SetModelCallBacks
 
