@@ -58,7 +58,7 @@ extern void C2_HOOK_FASTCALL LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_s
 
 extern intptr_t C2_HOOK_CDECL AllocateCarActorData(br_actor* pActor, void* pData);
 
-// AllocateCarModelData
+extern intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData);
 
 // AddCarModelToList
 
