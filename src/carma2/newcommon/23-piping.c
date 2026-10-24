@@ -1323,9 +1323,12 @@ void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
     return WorkerDroneCornerPos(chunk->field_0x0, chunk->field_0x4, chunk->field_0x6, chunk->field_0x8, &chunk->field_0xa);
 }
 
-// ApplyDroneUnused
+// FUNCTION: CARMA2_HW 0x004c9cf0
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_straight_pos* chunk = (tPipe_chunk_drone_straight_pos*)*pChunk;
 
-// ApplyNapalmBolt
+    return WorkerDroneStraightPos(chunk->field_0x0, chunk->field_0x4, chunk->field_0x8, chunk->field_0xa);
+}
 
 // ApplyPowerupRespawn
 
