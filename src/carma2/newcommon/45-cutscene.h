@@ -9,7 +9,8 @@ extern void C2_HOOK_STDCALL DoStainlessLogo(void);
 
 // PlaySmackerFile
 
-// DoOpeningAnimation
+extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
+
 
 extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
 

@@ -16,7 +16,13 @@ void C2_HOOK_STDCALL DoStainlessLogo(void) {
 
 // PlaySmackerFile
 
-// DoOpeningAnimation
+// FUNCTION: CARMA2_HW 0x0043f330
+void C2_HOOK_FASTCALL DoOpeningAnimation(void) {
+    PlaySmackerFile("INTERPLAYGO.SMK");
+    PlaySmackerFile("MIX_INTR.SMK");
+    WaitForNoKeys();
+}
+
 
 // FUNCTION: CARMA2_HW 0x0043f370
 void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {
