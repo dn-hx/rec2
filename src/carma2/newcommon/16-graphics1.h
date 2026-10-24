@@ -52,8 +52,7 @@ extern void C2_HOOK_FASTCALL ShadowMode(void);
 
 extern void C2_HOOK_FASTCALL ResetLollipopQueue(void);
 
-// RenderLollipops
-
+extern void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 extern void C2_HOOK_FASTCALL SetupDepthBuffer(void);
 
 extern void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, int pWidth, int pHeight);
