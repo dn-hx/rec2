@@ -47,8 +47,7 @@ extern void C2_HOOK_FASTCALL SaveShadeTables(void);
 
 extern void C2_HOOK_FASTCALL DisposeSavedShadeTables(void);
 
-// ShadowMode
-
+extern void C2_HOOK_FASTCALL ShadowMode(void);
 // LollipopizeActor
 
 extern void C2_HOOK_FASTCALL ResetLollipopQueue(void);

@@ -198,8 +198,16 @@ void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
     }
 }
 
-// ShadowMode
+// FUNCTION: CARMA2_HW 0x004e9b90
+void C2_HOOK_FASTCALL ShadowMode(void) {
 
+    gFancy_shadow = !gFancy_shadow;
+    if (gFancy_shadow) {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Translucent shadow");
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Solid shadow");
+    }
+}
 // LollipopizeActor
 
 // FUNCTION: CARMA2_HW 0x004e4900
