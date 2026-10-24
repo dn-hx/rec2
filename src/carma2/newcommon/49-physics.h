@@ -253,6 +253,8 @@ extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFl
 
 // MakeMatrix
 
+extern void C2_HOOK_FASTCALL SetFieldF0Tree(tPhysics_object* pObject, int pValue);
+
 extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // RestoreGroupOmegas

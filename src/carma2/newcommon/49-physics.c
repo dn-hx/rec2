@@ -590,6 +590,16 @@ void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag) {
 
 // MakeMatrix
 
+// FUNCTION: CARMA2_HW 0x004bd9b0
+void C2_HOOK_FASTCALL SetFieldF0Tree(tPhysics_object* pObject, int pValue) {
+    tPhysics_object* child;
+
+    pObject->field_0xf0 = pValue;
+    for (child = pObject->child; child != NULL; child = child->next) {
+        SetFieldF0Tree(child, pValue);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004c03f0
 void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject) {
 
