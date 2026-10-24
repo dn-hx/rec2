@@ -120,6 +120,11 @@ void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec) {
     // empty
 }
 
+// FUNCTION: CARMA2_HW 0x00484640
+void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void) {
+    gStart_time = PDGetTotalTime();
+}
+
 // FUNCTION: CARMA2_HW 0x004846e0
 int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice) {
     tProg_status entry_status;
