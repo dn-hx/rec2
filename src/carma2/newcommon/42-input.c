@@ -1,6 +1,7 @@
 #include "42-input.h"
 
 #include "41-utility.h"
+#include "globvars.h"
 #include "25-grafdata.h"
 #include "platform.h"
 #include "rec2_macros.h"
@@ -11,7 +12,11 @@
 #define ROLLING_LETTER_LOOP_RANDOM 96
 
 // GLOBAL: CARMA2_HW 0x0074b5e0
-int gKey_mapping[77];
+int gKey_mapping[77] = { 0 };
+
+/* UNCERTAIN: unknown dword after gKey_mapping, only seen as its loop end (11 compares); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x0074b714
+int gUNK_0074b714 = 0;
 
 // GLOBAL: CARMA2_HW 0x0068c1c4
 int gEdge_trigger_mode;
@@ -390,7 +395,64 @@ int C2_HOOK_FASTCALL AnyKeyDown(void) {
     return (the_key != -1 && the_key != 4) || EitherMouseButtonDown();
 }
 
-// KevKeyService
+// FUNCTION: CARMA2_HW 0x00482f10
+tU32* C2_HOOK_FASTCALL KevKeyService(void) {
+    // GLOBAL: CARMA2_HW 0x0068c1d4
+    static tU32 sum = 0;
+    // GLOBAL: CARMA2_HW 0x0068c1d8
+    static tU32 code = 0;
+    // GLOBAL: CARMA2_HW 0x0068c1dc
+    static tU32 code2 = 0;
+    // GLOBAL: CARMA2_HW 0x00657210
+    static tU32 last_key = (tU32)-1;
+    // GLOBAL: CARMA2_HW 0x00657214
+    static tU32 last_single_key = (tU32)-1;
+    // GLOBAL: CARMA2_HW 0x0068be8c
+    static tU32 last_time = 0;
+    // GLOBAL: CARMA2_HW 0x0068c1e0
+    static tU32 return_val[2];
+    tU32 keys;
+
+    keys = gKeys_pressed;
+    return_val[0] = 0;
+    return_val[1] = 0;
+
+    if (keys >= 0x6b) {
+        if (keys <= 0x6b00 && (last_single_key == (keys & 0xff) || last_single_key == keys >> 8)) {
+            if (last_single_key == (keys & 0xff)) {
+                keys >>= 8;
+            } else if (last_single_key == keys >> 8) {
+                keys &= 0xff;
+            } else {
+                sum = 0;
+                code = 0;
+                return return_val;
+            }
+        } else {
+            sum = 0;
+            code = 0;
+            return return_val;
+        }
+    } else {
+        last_single_key = keys;
+    }
+
+    if (keys != last_key && keys > 0) {
+        sum += keys;
+        code += keys << 11;
+        code = (code << 4) + (code >> 17);
+        code2 = (code2 >> 29) + keys * keys + (code2 << 3);
+        last_time = PDGetTotalTime();
+    } else if (PDGetTotalTime() > last_time + 1000) {
+        return_val[0] = (code >> 11) + (sum << 21);
+        return_val[1] = code2;
+        code = 0;
+        code2 = 0;
+        sum = 0;
+    }
+    last_key = keys;
+    return return_val;
+}
 
 // FUNCTION: CARMA2_HW 0x00483040
 int C2_HOOK_FASTCALL KeyIsDown(int pKey_index) {
