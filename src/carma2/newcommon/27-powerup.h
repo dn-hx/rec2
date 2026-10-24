@@ -434,4 +434,8 @@ extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar
 
 // PeriodicCloaking
 
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+
+extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+
 #endif // GUARD_27_POWERUP_H
