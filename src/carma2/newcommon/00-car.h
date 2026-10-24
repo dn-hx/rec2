@@ -174,8 +174,7 @@ extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
 
 // MungeCarGraphics
 
-// TurnOffNonGroovers
-
+extern intptr_t C2_HOOK_CDECL TurnOffNonGroovers(br_actor* pActor, void* pData);
 // DoLODCarModels
 
 // DoComplexCarModels
