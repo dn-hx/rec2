@@ -728,7 +728,21 @@ void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSpec) {
 #pragma auto_inline(on)
 #endif
 
-// DisposeSmashableEnvironment
+// FUNCTION: CARMA2_HW 0x004f0960
+void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
+    int i;
+    tSmashable_item_spec* spec;
+
+    for (i = 0, spec = gTrack_smashable_environment_specs; i < gCount_track_smashable_environment_specs; i++, spec++) {
+        FreeEnvSmash(spec);
+    }
+    if (gCount_track_smashable_environment_specs != 0) {
+        BrMemFree(gTrack_smashable_environment_specs);
+    }
+    if (gNet_mode == eNet_mode_host) {
+        BrMemFree(gNet_host_smashes);
+    }
+}
 
 // MungeSmashMaterialNames
 
