@@ -110,7 +110,7 @@ extern void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pMap, int pX1, i
 
 // DRPixelmapCopyMapBlack8Bit
 
-// DRPixelmapCopyMapBlack
+extern void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc);
 
 extern void C2_HOOK_FASTCALL DisableLights(void);
 
