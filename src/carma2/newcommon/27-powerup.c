@@ -806,9 +806,14 @@ void C2_HOOK_FASTCALL ResetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // PickAtRandom
 
-// GotVouchers
+// FUNCTION: CARMA2_HW 0x004de7d0
+int C2_HOOK_FASTCALL GotVouchers(tPowerup* powerup, tCar_spec* car) {
 
-// MungeVouchers
+    if (car && car->driver == eDriver_local_human) {
+        AddVouchers(*powerup->integer_params);
+    }
+    return powerup - gPowerup_array;
+}
 
 // SetInstantHandbrake
 
