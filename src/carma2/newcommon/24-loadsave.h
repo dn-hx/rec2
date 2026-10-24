@@ -13,7 +13,7 @@ extern void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount)
 
 extern void C2_HOOK_FASTCALL DoSaveGame(void);
 
-// StartSavedGamesList
+extern int C2_HOOK_FASTCALL StartSavedGamesList(void);
 
 extern void C2_HOOK_FASTCALL EndSavedGamesList(void);
 
