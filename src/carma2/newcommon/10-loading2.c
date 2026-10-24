@@ -838,9 +838,21 @@ void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec*
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x0048c150
+// FUNCTION: CARMA2_HW 0x0048c150
 void C2_HOOK_FASTCALL LoadHeadupImages(void) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gHeadup_image_info); i++) {
+        PossibleService();
+        if ((gHeadup_image_info[i].avail == eNet_or_otherwise) ||
+            ((gHeadup_image_info[i].avail == eNot_net) && (gNet_mode == 0)) ||
+            ((gHeadup_image_info[i].avail == eNet_only) && (gNet_mode != 0))) {
+            gHeadup_images[i] = LoadPixelmap(gHeadup_image_info[i].name);
+            BRPM_convert(gHeadup_images[i], gBack_screen->type);
+        } else {
+            gHeadup_images[i] = NULL;
+        }
+    }
 }
 
 // OpenRaceFile
