@@ -384,12 +384,7 @@ extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
 
 // PissedEffect
 
-// RenderSpinningPowerup
-
-// RenderChangingPowerup
-
-// SetSpinningPowerup
-
+extern void C2_HOOK_CDECL RenderSpinningPowerup(br_actor* actor, br_model* model, br_material* material, void* order_table, br_uint_8 style, int on_screen);
 // DuplicateModel
 
 // SetChangingPowerup

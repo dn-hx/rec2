@@ -1004,11 +1004,22 @@ void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car) {
 
 // PissedEffect
 
-// RenderSpinningPowerup
+// FUNCTION: CARMA2_HW 0x004df650
+void C2_HOOK_CDECL RenderSpinningPowerup(br_actor* actor, br_model* model, br_material* material, void* order_table, br_uint_8 style, int on_screen) {
 
-// RenderChangingPowerup
+    if (actor->user == NULL) {
+        actor->user = (void*)(uintptr_t)GetTotalTime();
+    } else {
+        tU32 now;
+        tU32 delta;
 
-// SetSpinningPowerup
+        now = GetTotalTime();
+        delta = now - (tU32)(uintptr_t)actor->user;
+        actor->user = (void*)(uintptr_t)now;
+        BrMatrix34PreRotateY(&actor->t.t.mat, BR_ANGLE_DEG(delta / 16));
+    }
+    BrZsModelRender(actor, model, material, order_table, style, on_screen, 0);
+}
 
 // DuplicateModel
 
