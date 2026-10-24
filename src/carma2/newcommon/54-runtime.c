@@ -6,9 +6,16 @@
 // GLOBAL: CARMA2_HW 0x006ba640
 tS8 gRace_memory[1000];
 
-// GetRuntimeVariable
+// FUNCTION: CARMA2_HW 0x004e7440
+int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress) {
 
-// AccumulateRuntimeVariable
+    if (pAddress >= 0 && pAddress < (int)REC2_ASIZE(gRace_memory)) {
+        return gRace_memory[pAddress];
+    }
+#ifdef REC2_FIX_BUGS
+    return 0;
+#endif
+}
 
 // ToggleRuntimeVariable
 
