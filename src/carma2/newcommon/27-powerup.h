@@ -110,9 +110,7 @@ extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
 
 // AdjustRepulseRay
 
-// ResetRepulseRay
-
-// DrawSinglePowerupIcon
+extern void C2_HOOK_FASTCALL ResetRepulseRay(void);
 
 // DrawPowerupIcons2
 
