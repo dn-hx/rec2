@@ -33,6 +33,8 @@ extern tPHIL_queued_objects gPhil_queued_objects;
 
 extern int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, tU32 pSize);
 
+extern int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax);
+
 // GetVelocityAndPosition
 
 // SizeOfObjectNetworkStuff
