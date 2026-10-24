@@ -826,6 +826,15 @@ void C2_HOOK_FASTCALL InitFlicQueue(void) {
 }
 
 
+// FUNCTION: CARMA2_HW 0x00462c90
+void C2_HOOK_FASTCALL FlushAllFlics(int pBunch_index) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gMain_flic_list); i++) {
+        FreeFlic(i);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00462cd0
 int C2_HOOK_FASTCALL FlicQueueFinished(void) {
     tFlic_descriptor* the_flic;
