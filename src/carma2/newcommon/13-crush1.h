@@ -35,7 +35,7 @@ extern void C2_HOOK_FASTCALL InitCrushSystems(void);
 
 extern intptr_t C2_HOOK_CDECL CreateDefaultCrushDataCB(br_actor* pActor, void* pData);
 
-// CreateDefaultCrushData
+extern void C2_HOOK_FASTCALL CreateDefaultCrushData(br_actor* pActor, tCar_spec* pCar_spec);
 
 // ReadMasterCrushData
 

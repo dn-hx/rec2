@@ -257,6 +257,11 @@ intptr_t C2_HOOK_CDECL CreateDefaultCrushDataCB(br_actor* pActor, void* pData) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0042a210
+void C2_HOOK_FASTCALL CreateDefaultCrushData(br_actor* pActor, tCar_spec* pCar_spec) {
+
+    DRActorEnumRecurse(pActor, CreateDefaultCrushDataCB, pCar_spec);
+}
 
 // ReadMasterCrushData
 
