@@ -6,6 +6,14 @@
 
 extern int gPHIL_disabled;
 extern tPhysics_object* gPHIL_list_collision_infos;
+extern int gCrush_deferred;
+extern int gPHIL_count_list_collision_infos;
+extern int gPHIL_count_queued_objects;
+extern int gPHIL_count_queued_objects_for_removal;
+extern int gPHIL_mechanics_time_sync;
+extern int gPHIL_munging_objects;
+extern int gPHIL_object_added;
+extern tPHIL_queued_objects gPhil_queued_objects;
 
 // ScalarToFraction
 
