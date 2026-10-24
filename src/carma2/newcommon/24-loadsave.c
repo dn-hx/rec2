@@ -122,5 +122,12 @@ int C2_HOOK_FASTCALL DoLoadGame(int pIndex) {
     return 0;
 }
 
-// DoLoadMostRecentGame
+// FUNCTION: CARMA2_HW 0x00491e50
+void C2_HOOK_FASTCALL DoLoadMostRecentGame(void) {
+
+    if (StartSavedGamesList()) {
+        DoLoadGame(0);
+        EndSavedGamesList();
+    }
+}
 
