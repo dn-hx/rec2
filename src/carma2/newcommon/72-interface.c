@@ -775,6 +775,46 @@ int C2_HOOK_FASTCALL NewGameOutfunc(tFrontend_spec* pFrontend) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004671a0
+int C2_HOOK_FASTCALL NewGameInfunc(tFrontend_spec* pFrontend) {
+
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    DRS3StartSound(gEffects_outlet, eSoundId_Swingin);
+    switch (gProgram_state.skill_level) {
+    case 0:
+        pFrontend->items[2].enabled = 1;
+        pFrontend->items[2].radioButton_selected = 1;
+        break;
+    case 1:
+    default:
+        pFrontend->items[3].enabled = 1;
+        pFrontend->items[3].radioButton_selected = 1;
+        gProgram_state.skill_level = 1;
+        break;
+    case 2:
+        pFrontend->items[4].enabled = 1;
+        pFrontend->items[4].radioButton_selected = 1;
+        break;
+    }
+    pFrontend->items[5].enabled = 1;
+    pFrontend->default_item = 5;
+    gFrontend_selected_item_index = 5;
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous !=NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gMouse_in_use = 0;
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x00467270
 int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
     if (gProgram_state.field_0x2c) {
