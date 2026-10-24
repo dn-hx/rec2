@@ -1300,6 +1300,13 @@ void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004c9c70
+void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk) {
+    tU8* chunk = (tU8*)*pChunk;
+
+    return WorkerPedDiagnostics(*(void**)chunk, chunk + 4, chunk + 0x58, chunk + 0x144);
+}
+
 
 // ApplyDroneRender
 
