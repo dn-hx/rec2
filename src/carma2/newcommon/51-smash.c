@@ -769,7 +769,11 @@ void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
 #pragma auto_inline(off)
 #endif
 
-// NonCarSnapSmashCallback
+// STUB: CARMA2_HW 0x004f52f0
+// STUB: CARMA2_SW 0x004f0f50
+float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
