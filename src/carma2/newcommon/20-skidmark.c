@@ -148,6 +148,68 @@ int C2_HOOK_FASTCALL SkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vec
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004ea490
+// FUNCTION: CARMA2_SW 0x004e6230
+void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num) {
+    br_material* material;
+    int skid_mask;
+    br_vector3 disp;
+    br_scalar dist;
+    int on_ground;
+
+    on_ground = pCar_spec->oldd[pWheel_num] < pCar_spec->susp_height[pWheel_num >> 1];
+    material = gCurrent_race.material_modifiers[pCar_spec->material_index[pWheel_num]].skid_mark_material;
+    if (pCar_spec->oil_remaining[pWheel_num] != 0.0f && on_ground) {
+        pCar_spec->new_skidding |= 1 << pWheel_num;
+        if (pCar_spec->field_0x16fc[pWheel_num] != NULL) {
+            material = pCar_spec->field_0x16fc[pWheel_num];
+        } else {
+            material = gMaterial[0];
+        }
+    }
+    if (material == NULL) {
+        pCar_spec->old_skidding &= ~(1 << pWheel_num);
+        return;
+    }
+    skid_mask = 1 << pWheel_num;
+    if (!(pCar_spec->new_skidding & skid_mask) && !(pCar_spec->old_skidding & skid_mask)) {
+        return;
+    }
+    if (pCar_spec->new_skidding & skid_mask) {
+        if (skid_mask & pCar_spec->old_skidding) {
+            BrVector3Sub(&disp, &pCar_spec->special_start[pWheel_num], &pCar_spec->prev_skid_pos[pWheel_num]);
+            dist = BrVector3Length(&disp);
+            if (dist < 0.05f) {
+                return;
+            }
+            if (SkidSection(&pCar_spec->old_skid[pWheel_num],
+                    &pCar_spec->field_0x160c[pWheel_num],
+                    &pCar_spec->field_0x163c[pWheel_num],
+                    material,
+                    &pCar_spec->special_start[pWheel_num],
+                    &pCar_spec->nor[pWheel_num],
+                    &pCar_spec->prev_skid_pos[pWheel_num],
+                    &pCar_spec->prev_nor[pWheel_num],
+                    pCar_spec->total_length[pWheel_num],
+                    0.05f)) {
+                pCar_spec->old_skidding &= ~skid_mask;
+            }
+            pCar_spec->total_length[pWheel_num] += dist;
+            pCar_spec->oil_remaining[pWheel_num] -= dist;
+            if (pCar_spec->oil_remaining[pWheel_num] < 0.0f) {
+                pCar_spec->oil_remaining[pWheel_num] = 0.0f;
+            }
+        } else {
+            pCar_spec->old_skidding |= skid_mask;
+            pCar_spec->total_length[pWheel_num] = 0.0f;
+            pCar_spec->old_skid[pWheel_num] = -1;
+        }
+    } else {
+        pCar_spec->old_skidding &= ~skid_mask;
+    }
+    pCar_spec->prev_skid_pos[pWheel_num] = pCar_spec->special_start[pWheel_num];
+    pCar_spec->prev_nor[pWheel_num] = pCar_spec->nor[pWheel_num];
+}
 
 // FUNCTION: CARMA2_HW 0x004ea700
 void C2_HOOK_FASTCALL InitCarSkidStuff(tCar_spec* pCar) {
