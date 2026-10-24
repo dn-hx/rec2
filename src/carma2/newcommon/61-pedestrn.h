@@ -321,6 +321,8 @@ extern void C2_HOOK_FASTCALL ResetPedNearness(void);
 
 extern void C2_HOOK_FASTCALL FlushAllPedCaches(void);
 
+extern void C2_HOOK_FASTCALL EtherealiseMaterial1(void* pMaterial);
+
 
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
 
