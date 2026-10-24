@@ -341,14 +341,7 @@ extern void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend);
 
 // Controls_JoystickDpadToggle
 
-// Slider_XProc
-
-// Slider_YProc
-
-// Slider_ForceProc
-
-// DisplayJoystickSettings
-
+extern void C2_HOOK_FASTCALL Slider_XProc(tFrontend_slider* pSlider);
 // SaveAllJoystickData
 
 // Controls_SwitchKeymapSet

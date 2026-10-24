@@ -2348,9 +2348,11 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // Controls_JoystickDpadToggle
 
-// Slider_XProc
+// FUNCTION: CARMA2_HW 0x004729d0
+void C2_HOOK_FASTCALL Slider_XProc(tFrontend_slider* pSlider) {
 
-// Slider_YProc
+    SetJoystickX((pSlider->field_0x18 - pSlider->field_0x14) * pSlider->value);
+}
 
 // Slider_ForceProc
 
