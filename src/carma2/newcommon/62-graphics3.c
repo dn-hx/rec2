@@ -573,6 +573,12 @@ static void C2_HOOK_FASTCALL MapChanged(void) {
     SaveOptions();
 }
 
+// FUNCTION: CARMA2_HW 0x00497610
+void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void) {
+    InitMap();
+    SaveOptions();
+}
+
 // FUNCTION: CARMA2_HW 0x00497620
 void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0) {
 
