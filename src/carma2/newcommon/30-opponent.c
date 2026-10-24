@@ -334,6 +334,33 @@ tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex) {
 
 // GetOpponentSpecFromCarSpec
 
+// FUNCTION: CARMA2_HW 0x004ae880
+const char* C2_HOOK_FASTCALL GetDriverName(tVehicle_type pCategory, int pIndex) {
+    tCar_spec* c;
+    char* name;
+
+    switch (pCategory) {
+    case eVehicle_self:
+        return gProgram_state.player_name;
+    case eVehicle_opponent:
+        c = gProgram_state.AI_vehicles.opponents[pIndex].car_spec;
+        if (c == NULL || (name = c->driver_name) == NULL) {
+            return "???";
+        }
+        return name;
+    case eVehicle_rozzer:
+        return gFaceless_cop_name;
+    case eVehicle_drone:
+        return gInnocent_civilian_name;
+    case eVehicle_not_really:
+        return NULL;
+#ifdef REC2_FIX_BUGS
+    case eVehicle_net_player:
+        break;
+#endif
+    }
+    return NULL;
+}
 // FUNCTION: CARMA2_HW 0x004ae970
 tCar_spec* C2_HOOK_FASTCALL GetCarSpecFromGlobalOppoIndex(int pIndex) {
     int i;
