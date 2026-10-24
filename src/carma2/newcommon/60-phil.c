@@ -308,6 +308,41 @@ int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject, const
 
 // PHILGetObjectProperty
 
+// FUNCTION: CARMA2_HW 0x004b6530
+float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam) {
+    tCollision_info_owner* owner;
+
+    if (!gPHIL_disabled) {
+        owner = (tCollision_info_owner*)(pCollision_info->field_0x239 == 2 ? pCollision_info->field_0x240 : pCollision_info->field_0x240);
+        if (owner != NULL) {
+            if (pParam >= 0 && pParam < 9) {
+                switch (pParam) {
+                case 0:
+                    return owner->field_0x10;
+                case 1:
+                    return (float)!!(owner->field_0x04 & 0x1);
+                case 2:
+                    return owner->field_0x0c;
+                case 3:
+                    return (float)!!(pCollision_info->flags & 0x40);
+                case 4:
+                    return (float)!!(pCollision_info->flags & 0x8);
+                case 5:
+                    return (float)!!(pCollision_info->flags & 0x10);
+                case 6:
+                    return (float)!!(owner->field_0x04 & 0x4);
+                case 7:
+                    return (float)!!(owner->field_0x04 & 0x8);
+                case 8:
+                    return owner->field_0x14;
+                }
+            } else {
+                return 5.f;
+            }
+        }
+    }
+    return 0.f;
+}
 // FlushQueuedAddsAndRemoves
 
 // ChangedObjectsCallbacks

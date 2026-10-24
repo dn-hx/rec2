@@ -81,8 +81,7 @@ extern int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject
 
 // PHILSetObjectProperty
 
-// PHILGetObjectProperty
-
+extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam);
 // FlushQueuedAddsAndRemoves
 
 // ChangedObjectsCallbacks
