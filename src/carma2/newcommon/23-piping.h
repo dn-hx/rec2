@@ -606,7 +606,7 @@ extern void C2_HOOK_FASTCALL PipeSinglePedPos(const tPedestrian* pPed, const br_
 
 extern void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, undefined4 pArg2, br_model* pModel, undefined4 pArg4, undefined4 pArg5, undefined4 pArg6);
 
-// PipeSinglePHILObject
+extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
 // PipeSingleGibShower
 
