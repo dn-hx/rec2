@@ -405,7 +405,7 @@ extern void C2_HOOK_FASTCALL RemoveTail(void);
 
 // UndoInitialTail
 
-// MayQueuePowerupRespawn
+extern void C2_HOOK_FASTCALL MayQueuePowerupRespawn(int pPowerup_index, br_actor* actor);
 
 // ARDoPowerupRespawn
 
