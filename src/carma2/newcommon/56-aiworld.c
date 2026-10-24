@@ -4,6 +4,23 @@
 #include "10-loading2.h"
 #include "18-graphics2.h"
 #include "57-drone.h"
+#include "08-loading1.h"
+#include "globvars.h"
+#include "41-utility.h"
+#include "platform.h"
+#include "30-opponent.h"
+
+// GLOBAL: CARMA2_HW 0x0058f038
+int gFirst_drone_processing = 1;
+
+// GLOBAL: CARMA2_HW 0x0079efc4
+tU32 gFrame_period_for_this_munging;
+
+// GLOBAL: CARMA2_HW 0x0079efc0
+float gDrone_delta_time;
+
+// GLOBAL: CARMA2_HW 0x0079efbc
+float gTrack_drone_min_y;
 
 // MakeVertexAndOffsetIt
 
@@ -77,3 +94,37 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
