@@ -1184,9 +1184,12 @@ void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk) {
     ((tReplay_actor_trans_effect*)((tPipe_chunk_actor_trans*)*pChunk)->field_0x4)->z += ((tPipe_chunk_actor_trans*)*pChunk)->delta.v[2];
 }
 
-// ApplyPedDir
+// FUNCTION: CARMA2_HW 0x004c9aa0
+void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_status* chunk = (tPipe_chunk_ped_status*)*pChunk;
 
-// ApplyPedMove
+    return WorkerPedStatus(chunk->field_0x0, chunk->field_0x4[0], chunk->field_0x4[1], chunk->field_0x4[2], chunk->field_0x4[3], chunk->field_0x4[5], chunk->field_0x4[7], &chunk->field_0xc, &chunk->field_0x18, &chunk->field_0x24);
+}
 
 // ApplyPedPhysics
 
