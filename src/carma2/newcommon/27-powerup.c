@@ -1020,7 +1020,34 @@ void C2_HOOK_CDECL RenderSpinningPowerup(br_actor* actor, br_model* model, br_ma
     }
     BrZsModelRender(actor, model, material, order_table, style, on_screen, 0);
 }
+// FUNCTION: CARMA2_HW 0x004dfe10
+void C2_HOOK_CDECL RenderChangingPowerup(br_actor* actor, br_model* model, br_material* material, void* order_table, br_uint_8 style, int on_screen) {
 
+    if (actor->user == NULL) {
+        actor->user = (void*)(uintptr_t)GetTotalTime();
+        actor->model = gModel_powerup_armor;
+    } else {
+        tU32 prev;
+        tU32 now;
+        tU32 diff;
+
+        now = GetTotalTime();
+        prev = (tU32)(uintptr_t)actor->user;
+        diff = (now - prev) / 16;
+        if (diff > 15) {
+            if (actor->model == gModel_powerup_armor) {
+                actor->model = gModel_powerup_power;
+            } else if (actor->model == gModel_powerup_power) {
+                actor->model = gModel_powerup_offence;
+            } else {
+                actor->model = gModel_powerup_armor;
+            }
+            actor->user = (void*)(uintptr_t)now;
+        }
+        BrMatrix34PreRotateY(&actor->t.t.mat, BR_ANGLE_DEG(diff + 12));
+    }
+    BrZsModelRender(actor, model, material, order_table, style, on_screen, 0);
+}
 // DuplicateModel
 
 // SetChangingPowerup
