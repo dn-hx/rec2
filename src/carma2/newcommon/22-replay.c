@@ -227,3 +227,9 @@ void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004d6db0
+void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_0x4, void* pField_0x58, void* pField_0x144) {
+
+    NOT_IMPLEMENTED();
+}
+
