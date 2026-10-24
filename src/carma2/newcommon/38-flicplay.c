@@ -725,6 +725,22 @@ void C2_HOOK_FASTCALL DoRunLengthTrans(tFlic_descriptor* pFlic_info, tU32 chunk_
         pixel_ptr += the_row_bytes;
     }
 }
+// FUNCTION: CARMA2_HW 0x00462780
+void C2_HOOK_FASTCALL DoUncompressed(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
+    int i = 0;
+    int the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    int width_dwords = pFlic_info->width >> 2;
+    tU8* pixel_ptr = pFlic_info->first_pixel;
+    int j;
+
+    for (i = 0; i < pFlic_info->height; i++) {
+        tU32* dest = (tU32*)pixel_ptr;
+        for (j = 0; j < width_dwords; j++) {
+            *dest++ = MemReadU32(&pFlic_info->data);
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
 
 // DoUncompressedTrans
 
