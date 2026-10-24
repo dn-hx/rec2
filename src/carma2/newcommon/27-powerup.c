@@ -1571,6 +1571,7 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
         }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
