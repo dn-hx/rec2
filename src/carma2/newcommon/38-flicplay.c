@@ -797,6 +797,12 @@ void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY) {
     UnlockFlic(pIndex);
 }
 
+// FUNCTION: CARMA2_HW 0x00462c10
+void C2_HOOK_FASTCALL SwapScreen(void) {
+
+    PDScreenBufferSwap(0);
+}
+
 
 // FUNCTION: CARMA2_HW 0x00462cc0
 void C2_HOOK_FASTCALL InitFlicQueue(void) {
