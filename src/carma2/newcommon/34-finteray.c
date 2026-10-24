@@ -74,9 +74,11 @@ int C2_HOOK_CDECL FindHighestPolyCallBack(br_model* pModel, br_actor* pActor, br
     return 0;
 }
 
-// STUB: CARMA2_HW 0x0045cf20
+// FUNCTION: CARMA2_HW 0x0045cf20
 int C2_HOOK_CDECL FindHighestCallBack(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg) {
-    NOT_IMPLEMENTED();
+
+    DRModelPick2D(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack__finteray, pArg);
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0045ca60
