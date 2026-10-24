@@ -57,7 +57,7 @@ extern int C2_HOOK_FASTCALL PHILInit(void);
 
 extern void C2_HOOK_FASTCALL PHILDisable(void);
 
-// PHILAddObject
+extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
 
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 
