@@ -1162,6 +1162,7 @@ int GetRegisterSourceLocation(char* pSource_location) {
     return 1;
 #endif
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
