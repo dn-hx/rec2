@@ -213,6 +213,20 @@ int C2_HOOK_CDECL FindHighestPolyCallBack__raycast(br_model* pModel, br_material
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004e45b0
+int C2_HOOK_CDECL FindYVerticallyBelowPolyCallBack(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pContext) {
+    float y;
+
+    if (pMaterial == NULL || pMaterial->identifier == NULL
+            || (pMaterial->identifier[0] != '!' && pMaterial->identifier[0] != '>')) {
+        y = pPoint->v[1];
+        if (y > gHighest_y_below) {
+            gHighest_y_below = y;
+            gMaterial_below = pMaterial;
+        }
+    }
+    return 0;
+}
 // FindYVerticallyBelowCallBack
 
 // FindYVerticallyBelow
