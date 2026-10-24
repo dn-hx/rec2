@@ -89,7 +89,7 @@ extern tPhysics_object* C2_HOOK_FAKE_THISCALL MungeBoxObject(br_model* pModel, u
 
 // ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings
 
-// InitMineShit
+extern void C2_HOOK_FASTCALL InitMineShit(void);
 
 extern void C2_HOOK_FASTCALL InitPowerups(void);
 
