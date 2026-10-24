@@ -1192,7 +1192,7 @@ tU16 C2_HOOK_FASTCALL DRScalarToU16(float pValue, float pMin, float pMax) {
     } else if (pValue > pMax) {
         pValue = pMax;
     }
-    return (tU16)((pValue - pMin) * 65535.0f / (pMax - pMin) + 0.5f);
+    return (tU16)((pValue - pMin) * 65535.0f / (pMax - pMin) - -0.5f);
 }
 
 // FUNCTION: CARMA2_HW 0x00516460
