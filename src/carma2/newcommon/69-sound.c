@@ -400,6 +400,15 @@ int C2_HOOK_FASTCALL DRS3SetOutletVolume(tS3_outlet* pOutlet, int pVolume) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00455950
+int C2_HOOK_FASTCALL DRS3SetVolume(int pVolume) {
+
+    if (gSound_enabled) {
+        return S3SetVolume(pVolume);
+    }
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x00455970
 int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet) {
 
