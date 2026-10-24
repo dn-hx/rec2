@@ -326,10 +326,30 @@ void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
 
 // DisposeCharacterInstances
 
-// STUB: CARMA2_HW 0x004cb8d0
+// FUNCTION: CARMA2_HW 0x004cb8d0
 void C2_HOOK_FASTCALL DisposePedStuff(void) {
+    int i;
 
-    NOT_IMPLEMENTED();
+    DisposeCharacterInstances();
+
+    for (i = 0; i < gPed_count; i++) {
+        DisposeCharacterInstance(gPedestrian_array[i].character);
+    }
+    ClearOutStorageSpace(&gPedStorage);
+    if (gPedestrian_array != NULL) {
+        BrMemFree(gPedestrian_array);
+    }
+    for (i = 0; i < gCount_race_pedestrian_specs; i++) {
+        if (gRace_pedestrian_specs[i].exclusion.exclusion_materials != NULL) {
+            BrMemFree(gRace_pedestrian_specs[i].exclusion.exclusion_materials);
+        }
+        if (gRace_pedestrian_specs[i].exclusion.exception_materials != NULL) {
+            BrMemFree(gRace_pedestrian_specs[i].exclusion.exception_materials);
+        }
+    }
+    if (gRace_pedestrian_specs != NULL) {
+        BrMemFree(gRace_pedestrian_specs);
+    }
 }
 
 // BonerOpenCharacterForm
