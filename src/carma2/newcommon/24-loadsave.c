@@ -5,6 +5,11 @@
 #include "rec2_types.h"
 
 #include "c2_string.h"
+#include "08-loading1.h"
+#include "platform.h"
+#include "70-packfile.h"
+#include "41-utility.h"
+#include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x0068b8ec
 int gSave_game_out_of_sync;
@@ -15,7 +20,14 @@ tSave_game* gSaved_games;
 // GLOBAL: CARMA2_HW 0x0068c728
 int gCount_saved_games;
 
-// Encryptificate
+/* No FUNCTION annotation: the original 0x00500090 is an unrelated function; Encryptificate is inlined into its callers. */
+void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount) {
+    size_t size;
+
+    C2_HOOK_BUG_ON(sizeof(tSave_game) != 0x328);
+    size = pCount * sizeof(tSave_game);
+    SplungeSomeData(pSave_games, size);
+}
 
 // MakeSavedGame
 
