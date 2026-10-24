@@ -472,6 +472,10 @@ int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_m
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004b63b0
+int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
