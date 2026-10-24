@@ -89,5 +89,7 @@ extern void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, 
 
 extern void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field_0x7);
 
+extern void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4, int field_0x6);
+
 
 #endif // GUARD_22_REPLAY_H
