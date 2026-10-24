@@ -404,6 +404,28 @@ tFlic_spec gMain_flic_list[372] = {
     { "MAI2OPGL.FLI", 0, 0, 0, 0, 0, 0, },
 };
 
+/* defined directly after gMain_flic_list as in the original (loop-end compare); values read from the binary (first entry is 10) */
+// GLOBAL: CARMA2_HW 0x00599920
+int gFlic_bunch0[29] = {
+    10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 35, 26,
+    27, 36, 28, 29, 130, 131, 132, 42, 43, 135, 45
+};
+
+// GLOBAL: CARMA2_HW 0x00686320
+br_pixelmap* gPanel_buffer[2];
+
+// GLOBAL: CARMA2_HW 0x00686218
+tFlic_descriptor gPanel_flic[2];
+
+// GLOBAL: CARMA2_HW 0x006861f0
+int gPanel_flic_left[2];
+
+// GLOBAL: CARMA2_HW 0x00686200
+int gPanel_flic_top[2];
+
+// GLOBAL: CARMA2_HW 0x00686330
+char gLast_flic_name[14];
+
 // FUNCTION: CARMA2_HW 0x00461990
 int C2_HOOK_FASTCALL TranslationMode(void) {
 
@@ -592,11 +614,24 @@ void C2_HOOK_FASTCALL InitFlics(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00462a60
 int C2_HOOK_FASTCALL LoadFlic(int pIndex) {
 
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00462a70
 void C2_HOOK_FASTCALL UnlockFlic(int pIndex) {
@@ -654,6 +689,7 @@ void C2_HOOK_FASTCALL InitFlicQueue(void) {
 
     gFirst_flic = NULL;
 }
+
 
 // FUNCTION: CARMA2_HW 0x00462cd0
 int C2_HOOK_FASTCALL FlicQueueFinished(void) {
