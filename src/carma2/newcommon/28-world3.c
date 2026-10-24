@@ -81,8 +81,15 @@ void C2_HOOK_FASTCALL InitTreeSurgery(void) {
 
 // LoadTrack
 
-// RemoveBounds
+// FUNCTION: CARMA2_HW 0x00506e20
+intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
+    if (pActor->type == BR_ACTOR_BOUNDS || pActor->type == BR_ACTOR_BOUNDS_CORRECT) {
+        BrResFree(pActor->type_data);
+        pActor->type_data = NULL;
+    }
+    return 0;
+}
 // RemoveBoundsStructures
 
 // FreeTrack
