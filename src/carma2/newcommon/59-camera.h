@@ -33,8 +33,7 @@ extern br_scalar gCamera_zoom;
 
 // IsCameraTypeAllowed
 
-// MungeCarMaterials
-
+extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
 // SetCameraType
 
 // ChangeCameraType
