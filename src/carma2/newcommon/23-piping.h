@@ -314,7 +314,7 @@ extern void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk);
 
 // ApplyFrameBoundary
 
-// ApplySound
+extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
 // ApplyCar
 
