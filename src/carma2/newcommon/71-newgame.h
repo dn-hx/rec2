@@ -5,6 +5,7 @@
 #include "rec2_types.h"
 
 extern tNet_game_options gNet_settings[9];
+extern int gNet_grid_starts[10];
 
 // SetGameTarget
 
