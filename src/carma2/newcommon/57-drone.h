@@ -162,7 +162,7 @@ extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
 // GetCurrentViewDroneDirection
 
-// ApplyDroneRender2
+extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 
 // ApplyDroneStraightPos2
 
