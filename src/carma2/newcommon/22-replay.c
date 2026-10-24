@@ -299,3 +299,9 @@ void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, v
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004f8630
+void C2_HOOK_FASTCALL WorkerSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
+
+    NOT_IMPLEMENTED();
+}
+
