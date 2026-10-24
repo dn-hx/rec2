@@ -1154,7 +1154,14 @@ void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec) {
 #pragma auto_inline(on)
 #endif
 
-// TotallyRepairCar
+// FUNCTION: CARMA2_HW 0x00439bf0
+// STUB: CARMA2_SW 0x00439c30
+void C2_HOOK_FASTCALL TotallyRepairCar(void) {
+
+    if (!gArrow_mode) {
+        TotallyRepairACar(&gProgram_state.current_car);
+    }
+}
 
 // AddTotalDeflectionOfModel
 
