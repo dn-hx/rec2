@@ -36,7 +36,9 @@ void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {
     FadePaletteDown();
 }
 
-// DoGameCompletedAnimation
+// FUNCTION: CARMA2_HW 0x0043f380
+void C2_HOOK_FASTCALL DoGameOverAnimation(void) {
+}
 
 // StartLoadingScreen
 

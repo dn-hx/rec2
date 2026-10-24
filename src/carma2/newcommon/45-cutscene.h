@@ -17,7 +17,7 @@ extern void C2_HOOK_FASTCALL DoGoToRaceAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
 
-// DoGameCompletedAnimation
+extern void C2_HOOK_FASTCALL DoGameOverAnimation(void);
 
 // StartLoadingScreen
 
