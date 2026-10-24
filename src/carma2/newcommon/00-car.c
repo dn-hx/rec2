@@ -496,6 +496,10 @@ void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x00413580
+void C2_HOOK_FASTCALL InitialiseExternalCamera(void) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

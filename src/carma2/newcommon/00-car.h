@@ -209,4 +209,6 @@ extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_
 
 extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
 
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+
 #endif // GUARD_00_CAR_H
