@@ -447,8 +447,16 @@ void C2_HOOK_FASTCALL AdjustNonCar(br_actor* pActor, const br_matrix34* pMatrix)
     }
 }
 
-// GetPrecalculatedFacesUnderCar
+// FUNCTION: CARMA2_HW 0x00420880
+int C2_HOOK_FASTCALL GetPrecalculatedFacesUnderCar(tCar_spec* pCar, tFace_ref** pFace_refs) {
 
+    if (pCar->collision_info->box_face_ref == gFace_num__car
+        || (pCar->collision_info->box_face_ref == gFace_num__car - 1 && pCar->collision_info->box_face_start > gFace_count)) {
+        *pFace_refs = &gFace_list__car[pCar->collision_info->box_face_start];
+        return pCar->collision_info->box_face_end - pCar->collision_info->box_face_start;
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004208f0
 void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_FACES;
