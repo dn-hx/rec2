@@ -84,7 +84,7 @@ extern void C2_HOOK_FASTCALL InitDroneSpec(tDrone_spec* pDrone_spec, int pNode);
 
 // DroneyObjectInSensiblePlace
 
-// StopRenderingThisDrone
+extern void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec);
 
 // StopProcessingThisDrone
 
