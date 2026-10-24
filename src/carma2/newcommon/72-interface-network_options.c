@@ -18,6 +18,23 @@ extern int C2_HOOK_FASTCALL SaveOptions(void);
 extern int gNet_last_game_type;
 extern tNet_game_options gNet_settings[9];
 
+// FUNCTION: CARMA2_HW 0x00473470
+int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend) {
+
+    gFrontend_net_options.show_players_on_map = !(WhichItemIsSelectedIn(pFrontend, 1) - 2);
+    gFrontend_net_options.powerup_respawn = !(WhichItemIsSelectedIn(pFrontend, 2) - 5);
+    gFrontend_net_options.open_game = !(WhichItemIsSelectedIn(pFrontend, 3) - 8);
+    gFrontend_net_options.grid_start = !(WhichItemIsSelectedIn(pFrontend, 4) - 11);
+    gFrontend_net_options.random_car_choice = !(WhichItemIsSelectedIn(pFrontend, 6) - 17);
+    gFrontend_net_options.race_sequence_type = WhichItemIsSelectedIn(pFrontend, 5) - 14;
+    gFrontend_net_options.car_choice = WhichItemIsSelectedIn(pFrontend, 7) - 20;
+
+    gNet_settings[0] = gFrontend_net_options;
+    gNet_settings[gNet_last_game_type + 1] = gFrontend_net_options;
+    SaveOptions();
+    return 0;
+}
+
 
 // GLOBAL: CARMA2_HW 0x00610208
 tFrontend_spec gFrontend_NETWORK_OPTIONS = {
