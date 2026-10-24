@@ -6,6 +6,37 @@
 
 extern tFrontend_brender_item gFrontend_brender_items[100];
 extern tFrontend_spec* gCurrent_frontend_spec;
+extern int gFrontend_change_car_selected_car;
+extern int gFrontend_net_initialized;
+extern tU32 gLast_host_query;
+extern tU32 gFrontend_last_scroll;
+extern float gFrontend_wreck_bought_car_dz;
+extern int gFrontend_selected_item_index;
+extern int gFrontend_wrecks_hscroll;
+extern int gFrontend_wrecks_pending_hscroll;
+extern int gFrontend_wrecks_rotate_prev_x;
+extern int gFrontend_wrecks_rotate_prev_y;
+extern int gFrontend_opponent_profile_pic_needs_update;
+extern int gFrontend_wrecks_car_count;
+extern tWreck_gallery_car_info gWreck_gallery_car_infos[30];
+extern int gPicked_wreck;
+extern tU32 gFrontend_net_current_roll;
+extern tU32 gFrontend_net_last_roll;
+extern tNet_game_options gFrontend_net_options;
+extern br_actor* gFrontend_wrecks_camera;
+extern br_actor* gFrontend_wrecks_actor;
+extern int gFrontend_car_image_outdated;
+extern br_actor* gFrontend_camera;
+extern br_token_value gFrontend_backdrop0_material_prims[3];
+extern br_token_value gFrontend_backdrop1_material_prims[3];
+extern br_token_value gFrontend_backdrop2_material_prims[3];
+extern br_material* gFrontend_backdrop_materials[3];
+extern br_actor* gFrontend_backdrop_actors[3];
+extern int gFrontend_controls_indices[15];
+extern tFrontend_slider gControls_slider_1;
+extern tFrontend_slider gControls_slider_2;
+extern tFrontend_slider gControls_slider_3;
+extern tSave_game gStashed_save_game;
 
 extern int C2_HOOK_FASTCALL temp(tFrontend_spec* pFrontend);
 
