@@ -758,9 +758,16 @@ int C2_HOOK_FASTCALL GetSmokeOn(void) {
     return gSmoke_on;
 }
 
-// StopCarSmoking
+// FUNCTION: CARMA2_HW 0x004fca40
+void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar) {
+    int i;
 
-// StopCarSmokingInstantly
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if (gSmoke_column[i].core.car == pCar && gSmoke_column[i].lifetime > 2000) {
+            gSmoke_column[i].lifetime = 2000;
+        }
+    }
+}
 
 // StopObjectSmokingInstantly
 
