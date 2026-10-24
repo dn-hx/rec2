@@ -886,9 +886,12 @@ void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk) {
 
 // ApplySmoke
 
-// ApplySmokeColumn
+// FUNCTION: CARMA2_HW 0x004c9280
+void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
+    tPipe_chunk_smoke_column_replay* chunk = (tPipe_chunk_smoke_column_replay*)*pChunk;
 
-// ApplyFlame
+    return WorkerSmokeColumn(chunk->field_0x0 & 0x3fff, (br_vector3*)chunk->pad, chunk->field_0x14, chunk->field_0x0 >> 14);
+}
 
 // ApplySplash
 
