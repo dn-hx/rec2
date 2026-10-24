@@ -173,7 +173,7 @@ extern void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality
 
 // MungeProxRay
 
-// DoToPeds
+extern int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius);
 
 // DoPedAnnihilator
 
