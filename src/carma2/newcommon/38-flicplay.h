@@ -66,9 +66,7 @@ extern void C2_HOOK_FASTCALL DoDifferenceTrans(tFlic_descriptor* pFlic_info, tU3
 
 extern void C2_HOOK_FASTCALL DoBlack(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
 
-// DoRunLengthTrans
-
-// DoUncompressed
+extern void C2_HOOK_FASTCALL DoRunLengthTrans(tFlic_descriptor* pFlic_info, tU32 chunk_length);
 
 // DoUncompressedTrans
 
