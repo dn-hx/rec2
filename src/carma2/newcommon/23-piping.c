@@ -645,6 +645,15 @@ void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS
         48, 32, pArg12);
 }
 
+// FUNCTION: CARMA2_HW 0x004c8b10
+void C2_HOOK_FASTCALL PipeSinglePedDir(int pId, const br_vector3* pDir) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_ped_dir_data, direction, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_ped_dir_data, direction, 0xc);
+
+    ARDoSingleVariedSession(ePipe_chunk_ped_dir, (uintptr_t)pId, 1,
+        SIZE_OFFSET_PIPING(tPipe_ped_dir_data, direction),       pDir);
+}
 
 // PipeSinglePedMove
 
