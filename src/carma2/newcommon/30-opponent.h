@@ -132,8 +132,7 @@ extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
 
 // CalcPlayerConspicuousness
 
-// CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck
-
+extern void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOpponent_spec* pOpponent_spec);
 // NumberOfOpponentsStillRunning
 
 // ResetPredominantJobbies

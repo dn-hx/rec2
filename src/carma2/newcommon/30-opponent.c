@@ -241,8 +241,15 @@ void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void) {
 
 // CalcPlayerConspicuousness
 
-// CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck
+// FUNCTION: CARMA2_HW 0x004a9550
+void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOpponent_spec* pOpponent_spec) {
 
+    BrVector3Sub(&pOpponent_spec->player_to_oppo_v, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &gProgram_state.current_car.car_master_actor->t.t.translate.t);
+    pOpponent_spec->player_to_oppo_d = BrVector3Length(&pOpponent_spec->player_to_oppo_v);
+    if (pOpponent_spec->player_to_oppo_d < gIn_view_distance) {
+        pOpponent_spec->last_in_view = gTime_stamp_for_this_munging;
+    }
+}
 // NumberOfOpponentsStillRunning
 
 // ResetPredominantJobbies
