@@ -491,6 +491,27 @@ void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object *pCollision_info
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004b9ef0
+void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object *pCollision_info, tU32 pDisable) {
+    tPhysics_object *sibling;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPhysics_object, field_0x1df, 0x1df);
+
+    pCollision_info->disable_move_rotate = pDisable;
+    pCollision_info->field_0x1df = 0;
+    if (pCollision_info->child != NULL) {
+        sibling = pCollision_info->child;
+        while (sibling != NULL) {
+            sibling->disable_move_rotate = pDisable;
+            sibling->field_0x1df = 0;
+            if (sibling->child != NULL) {
+                SetCollisionInfoDoNothing(sibling->child, pDisable);
+            }
+            sibling = sibling->next;
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004b9f40
 void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
     while (pObject != NULL) {
