@@ -381,6 +381,7 @@ extern void C2_HOOK_FASTCALL ARSetReplayRate(float pRate);
 extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
+extern void C2_HOOK_FASTCALL ARResetPiping(void);
 // ARInitialise
 
 // ARDispose
