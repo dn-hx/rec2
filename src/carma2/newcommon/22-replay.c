@@ -317,3 +317,9 @@ void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int 
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004fba00
+void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float f3, float f4) {
+
+    NOT_IMPLEMENTED();
+}
+
