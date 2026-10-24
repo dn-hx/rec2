@@ -947,6 +947,11 @@ int C2_HOOK_FASTCALL SetMutantCorpses(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
+// FUNCTION: CARMA2_HW 0x004decd0
+void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* powerup, tCar_spec* car) {
+
+    gMutant_speed = 0.0f;
+}
 
 // ReceivedPowerup
 
