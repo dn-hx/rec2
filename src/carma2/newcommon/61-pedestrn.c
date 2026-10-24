@@ -1001,7 +1001,23 @@ void C2_HOOK_FASTCALL SavePedStuff(void) {
 
 // AdjustPedDiagnostics
 
-// CalmDownAllPeds
+// FUNCTION: CARMA2_HW 0x004d6dc0
+int C2_HOOK_FASTCALL CalmDownAllPeds(void) {
+    tU32 now;
+    int i;
+    tPedestrian* ped;
+
+    now = GetTotalTime();
+    ped = gPedestrian_array;
+    for (i = 0; i < gPed_count; i++, ped++) {
+        if (ped->field_0x0c != NULL && ped->hit_points > 0 && ped->action == ePed_action_running) {
+            SetPedMove(ped, 30, IRandomBetween(ped->movement_spec->min_walk_speed_factor, ped->movement_spec->max_walk_speed_factor), 0, 1, now, ePed_action_walking);
+            SetPedHeadAnim(ped, (const tPed_anim_seq*)&gCalm_ped_anim_sequence, now);
+        }
+    }
+    gPed_valium_left = 5000;
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x004d6f10
 void C2_HOOK_FASTCALL SetDefaultPedFolderNames(void) {

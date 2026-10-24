@@ -339,7 +339,7 @@ extern void C2_HOOK_FASTCALL SavePedStuff(void);
 
 // AdjustPedDiagnostics
 
-// CalmDownAllPeds
+extern int C2_HOOK_FASTCALL CalmDownAllPeds(void);
 
 extern void C2_HOOK_FASTCALL SetDefaultPedFolderNames(void);
 
