@@ -10,8 +10,21 @@
 
 #include "rec2_macros.h"
 
+/* explicit initializers keep gFrontend_billboard_actors and gNet_settings adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00763940
+br_actor* gFrontend_billboard_actors[8] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00763960
-tNet_game_options gNet_settings[9];
+tNet_game_options gNet_settings[9] = { 0 };
+
+/* UNCERTAIN: unknown dword after gNet_settings, only seen as its loop end; keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x00763b10
+int gUNK_00763b10 = 0;
+
+// GLOBAL: CARMA2_HW 0x0059c7e8
+int gNet_grid_starts[10] = {
+    1, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+};
 
 // SetGameTarget
 
