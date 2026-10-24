@@ -5,11 +5,11 @@
 #include "rec2_types.h"
 
 extern tNet_game_options gNet_settings[9];
+extern int gNet_grid_starts[10];
 
 // SetGameTarget
 
-// SetOptions
-
+extern void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* pGame_options);
 // ReadNetGameChoices
 
 extern int C2_HOOK_FASTCALL PickARandomCar(void);
