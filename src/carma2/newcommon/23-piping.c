@@ -846,9 +846,12 @@ void C2_HOOK_FASTCALL PipeSingleTransformType(br_actor* pActor, tS16 pTransform_
         SIZE_OFFSET_PIPING(tPipe_single_transform_type, type_to), (tU16)pTransform_type);
 }
 
-// PipeSingleOppoRenderage
+// FUNCTION: CARMA2_HW 0x004c9020
+void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, int pEnable) {
 
-// ApplyCrush
+    ARDoSingleVariedSession(ePipe_chunk_single_oppo_renderage, (uintptr_t)pOpponent_spec, 1,
+        SIZE_OFFSET_PIPING(tPipe_single_oppo_renderage, enable), pEnable);
+}
 
 // ApplySmudge
 
