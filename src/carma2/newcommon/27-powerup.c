@@ -178,8 +178,19 @@ void C2_HOOK_FASTCALL InitPowerups(void) {
 
 // ResetRepulseEffects
 
-// EmptyInventory
+// FUNCTION: CARMA2_HW 0x004da600
+void C2_HOOK_FASTCALL EmptyInventory(void) {
+    int i;
 
+    C2_HOOK_BUG_ON(REC2_ASIZE(gInventory) != 20);
+
+    for (i = 0; i < REC2_ASIZE(gInventory); i++) {
+        gInventory[i] = -1;
+    }
+    gInventory_selected = -1;
+    gINT_006a0a6c = 0;
+    gINT_006a0a5c = 0;
+}
 // ResetPowerups
 
 // STUB: CARMA2_HW 0x004da730

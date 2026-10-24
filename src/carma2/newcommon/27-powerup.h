@@ -97,8 +97,7 @@ extern void C2_HOOK_FASTCALL InitPowerups(void);
 
 // ResetRepulseEffects
 
-// EmptyInventory
-
+extern void C2_HOOK_FASTCALL EmptyInventory(void);
 // ResetPowerups
 
 extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
