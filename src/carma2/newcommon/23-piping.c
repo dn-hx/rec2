@@ -1073,6 +1073,24 @@ void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk) {
     BrMatrix34Identity((br_matrix34*)((tU8*)((tPipe_chunk_actor_trans*)*pChunk)->field_0x4 + 0x2c));
 }
 
+// FUNCTION: CARMA2_HW 0x004c98b0
+void C2_HOOK_FASTCALL ApplySplitWeld(tPipe_chunk** pChunk) {
+    tU32 fn = *(tU32*)*pChunk;
+
+    if (*(int*)((tU8*)*pChunk + 0x14)) {
+        if ((fn & 0xffffff00u) == 0) {
+            return WorkerSplitWeldApply(&gProgram_state.current_car, (br_vector3*)((tU8*)*pChunk + 4));
+        }
+
+        return WorkerSplitWeldApply(GetCarSpec(fn >> 8, fn & 0xffu), (br_vector3*)((tU8*)*pChunk + 4));
+    }
+
+    if ((fn & 0xffffff00u) == 0) {
+        return WorkerSplitWeldUndo(&gProgram_state.current_car);
+    }
+
+    return WorkerSplitWeldUndo(GetCarSpec(fn >> 8, fn & 0xffu));
+}
 
 // FUNCTION: CARMA2_HW 0x004c9930
 void C2_HOOK_FASTCALL ApplyBend(tPipe_chunk** pChunk) {
