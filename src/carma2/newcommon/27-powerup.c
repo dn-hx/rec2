@@ -1117,9 +1117,10 @@ int C2_HOOK_FASTCALL GetPowerupCount(void) {
     return 0;
 }
 
-// GetPowerupPosition
+// FUNCTION: CARMA2_HW 0x004df1f0
+void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition) {
 
-// ARPowerupGot
+}
 
 // ARPowerupLose
 

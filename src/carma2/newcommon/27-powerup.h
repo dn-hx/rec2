@@ -372,7 +372,7 @@ extern void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* powerup, tCar_spec* ca
 
 extern int C2_HOOK_FASTCALL GetPowerupCount(void);
 
-// GetPowerupPosition
+extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition);
 
 // ARPowerupGot
 
