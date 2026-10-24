@@ -31,7 +31,7 @@ extern void C2_HOOK_FASTCALL HideSkids(void);
 
 // GenericSkidSection
 
-// WheelSkidSection
+extern int C2_HOOK_FASTCALL SkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step);
 
 // SkidMark
 
