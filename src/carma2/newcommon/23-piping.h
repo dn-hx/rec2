@@ -652,7 +652,7 @@ extern void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk);
 
-// ApplyGrooveStop
+extern void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk);
 

@@ -1049,6 +1049,19 @@ void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk) {
     AdjustNonCar((*pChunk)->data.non_car.actor, &(*pChunk)->data.non_car.matrix);
 }
 
+// FUNCTION: CARMA2_HW 0x004c9190
+void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk) {
+    tPipe_chunk_groove_stop* chunk = (tPipe_chunk_groove_stop*)*pChunk;
+
+#ifdef REC2_MATCHING
+    /* the original passes the raw ints as arguments */
+    ((void (C2_HOOK_FASTCALL*)(int, br_vector3*, int, int, int, int))(void*)SetGrooveInterrupt)(chunk->field_0x0, &chunk->field_0x14, chunk->field_0x4, chunk->field_0x8, chunk->field_0xc, chunk->field_0x10);
+#else
+    SetGrooveInterrupt(chunk->field_0x0, (const br_matrix34*)&chunk->field_0x14, (tInterrupt_status)chunk->field_0x4, (tInterrupt_status)chunk->field_0x8, *(float*)&chunk->field_0xc, *(float*)&chunk->field_0x10);
+#endif
+}
+
+
 // ApplySmoke
 
 // FUNCTION: CARMA2_HW 0x004c9280
