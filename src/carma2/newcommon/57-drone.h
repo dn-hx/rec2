@@ -148,7 +148,7 @@ extern void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void);
 
 // LoadInDronePaths
 
-// DronePreCollisionStuff
+extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
 // DoDronePerGameFrameStuff
 
