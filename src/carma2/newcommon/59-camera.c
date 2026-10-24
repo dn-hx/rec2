@@ -68,8 +68,35 @@ void C2_HOOK_FASTCALL ReallyViewOpponent(void) {
 
 // IsCameraTypeAllowed
 
-// MungeCarMaterials
+// FUNCTION: CARMA2_HW 0x0040e700
+void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
+    int i;
+    int j;
+    int one_sided;
+    tCarCockpitMaterial* cockpit_material;
 
+    i = 0;
+    if (i < pCar->count_window_materials) {
+        cockpit_material = pCar->window_materials;
+        for (; i < pCar->count_window_materials; i++, cockpit_material++) {
+            one_sided = pInternal_cam;
+            if (pInternal_cam) {
+                for (j = 0; j < cockpit_material->count_maps; j++) {
+                    if (cockpit_material->material->colour_map == cockpit_material->maps[j]) {
+                        one_sided = 0;
+                    }
+                }
+                if (one_sided) {
+                    cockpit_material->material->flags &= ~BR_MATF_TWO_SIDED;
+                }
+            }
+            if (!one_sided) {
+                cockpit_material->material->flags |= BR_MATF_TWO_SIDED;
+            }
+            BrMaterialUpdate(cockpit_material->material, BR_MATU_RENDERING);
+        }
+    }
+}
 // SetCameraType
 
 #ifdef REC2_MATCHING
