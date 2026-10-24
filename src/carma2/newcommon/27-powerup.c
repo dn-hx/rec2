@@ -806,6 +806,11 @@ int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
+// FUNCTION: CARMA2_HW 0x004dcf30
+void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gImmortal_peds = 0;
+}
 
 // SetSuicidalPeds
 

@@ -232,7 +232,7 @@ extern int C2_HOOK_FASTCALL SetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* powerup, tCar_spec* car);
 
-// ResetImmortalPeds
+extern void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* powerup, tCar_spec* car);
 
 // SetSuicidalPeds
 
