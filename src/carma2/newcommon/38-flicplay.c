@@ -784,6 +784,14 @@ void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00462bb0
+void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY) {
+
+    LoadFlic(pIndex);
+    PlayFlic(pIndex, gMain_flic_list[pIndex].the_size, gMain_flic_list[pIndex].data_ptr, gBack_screen, pX, pY, SwapScreen, 0, 0);
+    UnlockFlic(pIndex);
+}
+
 
 // FUNCTION: CARMA2_HW 0x00462b80
 // FUNCTION: CARMA2_SW 0x00462610
