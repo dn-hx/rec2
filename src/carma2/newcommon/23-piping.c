@@ -1212,7 +1212,13 @@ void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk) {
     return WorkerPedPhysics(chunk->field_0x0, &chunk->field_0x4);
 }
 
-// ApplyGibShower
+// FUNCTION: CARMA2_HW 0x004c9b20
+void C2_HOOK_FASTCALL ApplyPedDismember(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_dismember* chunk = (tPipe_chunk_ped_dismember*)*pChunk;
+
+    return WorkerPedDismember(chunk->field_0x0, (int)chunk->field_0x4, (int)chunk->field_0x7);
+}
+
 
 // ApplyBloodSpurt
 
