@@ -215,6 +215,17 @@ int gCheckpoint_finder_enabled = 1;
 /* local declaration (15-displays.h is not included in this file) */
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
+// FUNCTION: CARMA2_HW 0x00494840
+void C2_HOOK_FASTCALL CycleMapOptions(void) {
+
+    gCheckpoint_finder_enabled = !gCheckpoint_finder_enabled;
+    if (gCheckpoint_finder_enabled) {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_checkpoint_finder_turned_on), 0);
+    } else {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_checkpoint_finder_turned_off), 0);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004948a0
 void C2_HOOK_FASTCALL InitTargetLock(void) {
 
