@@ -884,6 +884,29 @@ void C2_HOOK_FASTCALL LoadWastedExplosion(FILE* pF, int* pChance_explosion, int*
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004f5ec0
+void C2_HOOK_FASTCALL ReadExplosionInfo(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
+    tPath_name the_path;
+    char* name;
+    char s[256];
+
+    /* Wasted explosion settings */
+
+    /* Percentage chance of car exploding */
+    *pChance_explosion = GetAnInt(pF);
+    /* Sound ID */
+    *pExplosion_sound_id = GetAnInt(pF);
+
+    PathCat(the_path, gApplication_path, "COMMON");
+    /* Name of pixelmap file */
+    GetALineAndDontArgue(pF, s);
+    name = strtok(s, "\t ,/");
+    name[strlen(name) - 4] = '\0';
+    PathCat(the_path, the_path, name);
+    LoadAllImagesInDirectory(&gMisc_storage_space, the_path);
+    ReadExplosion(pF, pExplosion_groups);
+}
+
 // FUNCTION: CARMA2_HW 0x004f5f60
 void C2_HOOK_FASTCALL ChangeSmashModel(br_actor* pActor, br_model* pOld_model, br_model* pNew_model) {
     (void)pOld_model;
