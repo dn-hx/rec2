@@ -8,6 +8,8 @@ extern int gCamera_frozen;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern tSave_camera gSave_camera[2];
+extern br_scalar gCamera_zoom;
 
 // DoCameraControls
 
