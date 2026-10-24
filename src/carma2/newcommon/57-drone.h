@@ -71,7 +71,7 @@ extern intptr_t C2_HOOK_CDECL MrFindy(br_actor* pActor, void* data);
 
 extern int C2_HOOK_FASTCALL DroneCarWithinRenderingDistance(const br_vector3* pPos);
 
-// DronePlaneWithinRenderingDistance
+extern int C2_HOOK_FASTCALL DronePlaneWithinRenderingDistance(const br_vector3* pPos);
 
 // DroneTrainWithinRenderingDistance
 
