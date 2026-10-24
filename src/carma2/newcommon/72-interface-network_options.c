@@ -35,6 +35,13 @@ int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00473550
+int C2_HOOK_FASTCALL NetOptions_Cancel(tFrontend_spec* pFrontend) {
+
+    RestoreNetworkOptions();
+    return 0;
+}
+
 
 // GLOBAL: CARMA2_HW 0x00610208
 tFrontend_spec gFrontend_NETWORK_OPTIONS = {

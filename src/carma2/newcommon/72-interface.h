@@ -363,7 +363,7 @@ extern int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend);
 
-// NetOptions_Cancel
+extern int C2_HOOK_FASTCALL NetOptions_Cancel(tFrontend_spec* pFrontend);
 
 // CheckPlayersAreResponding
 
