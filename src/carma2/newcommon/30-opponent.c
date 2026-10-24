@@ -112,8 +112,20 @@ void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
 
 // AllowForDecel
 
-// ShiftOpponentsProjectedRoute
+// FUNCTION: CARMA2_HW 0x004ab100
+int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces) {
+    int i;
 
+    if (pOpponent_spec->nnext_sections > pPlaces) {
+        for (i = 0; i < (int)REC2_ASIZE(pOpponent_spec->next_sections) - pPlaces; i++) {
+            pOpponent_spec->next_sections[i].section_no = pOpponent_spec->next_sections[pPlaces + i].section_no;
+            pOpponent_spec->next_sections[i].direction = pOpponent_spec->next_sections[pPlaces + i].direction;
+        }
+        pOpponent_spec->nnext_sections -= pPlaces;
+        return 1;
+    }
+    return 0;
+}
 // NewCalcGetNearPlayerRoute
 
 // CalcReturnToStartPointRoute

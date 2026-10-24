@@ -45,8 +45,7 @@ extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_sp
 
 // AllowForDecel
 
-// ShiftOpponentsProjectedRoute
-
+extern int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces);
 // NewCalcGetNearPlayerRoute
 
 // CalcReturnToStartPointRoute
