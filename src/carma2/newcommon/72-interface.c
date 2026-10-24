@@ -892,7 +892,34 @@ int C2_HOOK_FASTCALL OnePlayerSetup(tFrontend_spec* pFrontend) {
 
 // MainMenuInfunc
 
-// MainMenuOutfunc
+// FUNCTION: CARMA2_HW 0x00469df0
+int C2_HOOK_FASTCALL MainMenuOutfunc(tFrontend_spec* pFrontend) {
+    br_actor* actor;
+
+    actor = gFrontend_billboard_actors[0];
+    if (actor != NULL) {
+        if (actor->material->colour_map != NULL) {
+            BrMapRemove(actor->material->colour_map);
+            BrPixelmapFree(actor->material->colour_map);
+        }
+        if (actor->material != NULL) {
+            BrMaterialRemove(actor->material);
+            BrMaterialFree(actor->material);
+        }
+        if (actor->model != NULL) {
+            BrModelRemove(actor->model);
+            BrModelFree(actor->model);
+        }
+        if (actor->parent != NULL) {
+            BrActorRemove(actor);
+        }
+        BrActorFree(actor);
+    }
+    BrActorFree(gFrontend_menu_camera);
+    gFrontend_menu_camera = NULL;
+    SaveOptions();
+    return 1;
+}
 
 // MainMenuSelectRace
 
