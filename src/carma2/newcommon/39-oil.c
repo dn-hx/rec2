@@ -14,14 +14,19 @@ const char* gOil_pixie_names[1] = {
 // GLOBAL: CARMA2_HW 0x00690c88
 br_pixelmap* gOil_pixies[1];
 
-// GLOBAL: CARMA2_HW 0x00690c90
-tOil_spill_info gOily_spills[32];
-
 // GLOBAL: CARMA2_HW 0x0074a68c
 br_material* oily_material;
 
+/* explicit initializers keep gOily_spills and gNext_oil_pixie adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00690c90
+tOil_spill_info gOily_spills[32] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00691710
-int gNext_oil_pixie;
+int gNext_oil_pixie = 0;
+
+/* defined here (carpocalypse2 has it in opponent.c) so it directly follows gNext_oil_pixie (RemoveCarsOilSlicks loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00691714
+int gBig_bang = 0;
 
 // FUNCTION: CARMA2_HW 0x004a6a10
 void C2_HOOK_FASTCALL InitOilSpills(void) {
@@ -117,9 +122,12 @@ void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar) {
 
 // OKToSpillOil
 
-// MungeOilsHeightAboveGround
+/* MungeOilsHeightAboveGround: inlined into its callers in the original */
+static void C2_HOOK_FASTCALL MungeOilsHeightAboveGround(tOil_spill_info* pOil) {
 
-// MungeIndexedOilsHeightAboveGround
+    pOil->actor->t.t.translate.t = pOil->position;
+}
+
 
 // FUNCTION: CARMA2_HW 0x004a7460
 void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel) {
