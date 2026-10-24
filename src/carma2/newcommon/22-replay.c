@@ -269,3 +269,9 @@ void C2_HOOK_FASTCALL WorkerSpecial(void) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004e07d0
+void C2_HOOK_FASTCALL WorkerPowerupRespawn(int field_0x0, int field_0x4) {
+
+    NOT_IMPLEMENTED();
+}
+

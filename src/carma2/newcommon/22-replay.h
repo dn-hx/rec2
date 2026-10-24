@@ -111,5 +111,7 @@ extern void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4);
 
 extern void C2_HOOK_FASTCALL WorkerSpecial(void);
 
+extern void C2_HOOK_FASTCALL WorkerPowerupRespawn(int field_0x0, int field_0x4);
+
 
 #endif // GUARD_22_REPLAY_H
