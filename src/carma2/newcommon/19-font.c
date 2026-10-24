@@ -15,11 +15,13 @@
 
 #include <string.h>
 
-// GLOBAL: CARMA2_HW 0x0076c960
-br_pixelmap* gTexture_maps[1024];
 
+/* explicit initializers keep gFonts and gTexture_maps adjacent (Modify2DCopyPixelmaps loop-end compare) */
 // GLOBAL: CARMA2_HW 0x007663e0
-tDR_font gFonts[24];
+tDR_font gFonts[28] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0076c960
+br_pixelmap* gTexture_maps[1024] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0059ad30
 const char* gFont_names[24] = {
