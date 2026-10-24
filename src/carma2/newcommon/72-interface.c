@@ -2369,9 +2369,81 @@ void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider) {
 
     SetJoystickFFBGain((int)(pSlider->value * 100.0));
 }
+// FUNCTION: CARMA2_HW 0x00472210
+void C2_HOOK_FASTCALL DisplayJoystickSettings(tFrontend_spec *pFrontend) {
+    float joy;
 
-// DisplayJoystickSettings
+    C2_HOOK_BUG_ON(REC2_ASIZE(gFrontend_controls_indices) != 15);
 
+    if (gJoystick_index == -1) {
+        int i;
+
+        pFrontend->items[10].unlitFont = 0;
+        pFrontend->items[10].highFont = 0;
+        pFrontend->items[11].unlitFont = 1;
+        pFrontend->items[11].highFont = 1;
+        gControls_slider_1.flags = 1;
+        gControls_slider_2.flags = 1;
+        gControls_slider_3.flags = 1;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_disabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_disabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_disabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_disabled;
+    } else {
+        int i;
+
+        pFrontend->items[10].unlitFont = 1;
+        pFrontend->items[10].highFont = 1;
+        pFrontend->items[11].unlitFont = 0;
+        pFrontend->items[11].highFont = 0;
+        gControls_slider_1.flags = 0;
+        gControls_slider_2.flags = 0;
+        gControls_slider_3.flags = 0;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_enabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_enabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_enabled;
+    }
+
+    joy = GetJoystickX();
+    gControls_slider_1.value = gControls_slider_1.field_0x14 + joy / (gControls_slider_1.field_0x18 - gControls_slider_1.field_0x14);
+    joy = GetJoystickY();
+    gControls_slider_2.value = gControls_slider_2.field_0x14 + joy / (gControls_slider_2.field_0x18 - gControls_slider_2.field_0x14);
+    gControls_slider_3.value = 0.01 * GetJoystickFBBGain();
+    if (PDIsJoystickDPadEnabled()) {
+        pFrontend->items[36].unlitFont = 1;
+        pFrontend->items[36].highFont = 1;
+        pFrontend->items[37].unlitFont = 0;
+        pFrontend->items[37].highFont = 0;
+    } else {
+        pFrontend->items[36].unlitFont = 0;
+        pFrontend->items[36].highFont = 0;
+        pFrontend->items[37].unlitFont = 1;
+        pFrontend->items[37].highFont = 1;
+    }
+}
 // SaveAllJoystickData
 
 // Controls_SwitchKeymapSet: defined after SortScores
