@@ -832,8 +832,20 @@ int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
 
 // NetGameTypeDn
 
-// MultiplayerSetup
+// FUNCTION: CARMA2_HW 0x00467eb0
+int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend) {
 
+    gFrontend_net_initialized = !NetInitialise();
+    if (gFrontend_net_initialized) {
+
+        gPending_race = -1;
+        gStart_race_sent = 0;
+        gCurrent_race.number_of_racers = 0;
+        gLast_host_query = 0;
+        AboutToLoadFirstCar();
+    }
+    return 0;
+}
 // NetworkJoinSetup
 
 // NetworkJoinMenuInfunc
