@@ -87,7 +87,7 @@ extern int C2_HOOK_FASTCALL MoveSessionPointerBackOne(tU8** pSession);
 
 // CheckSound
 
-// SoundTimeout
+extern int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime);
 
 // ScanAndPlaySoundsToBe
 

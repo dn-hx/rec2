@@ -227,7 +227,11 @@ int C2_HOOK_FASTCALL MoveSessionPointerBackOne(tU8** pSession) {
 
 // CheckSound
 
-// SoundTimeout
+// FUNCTION: CARMA2_HW 0x00403c50
+int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime) {
+    return gPipe_sound_start_time < pTime
+        || gPipe_sound_start_time - pTime < gPipe_sound_time_window;
+}
 
 // ScanAndPlaySoundsToBe
 
