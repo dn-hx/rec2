@@ -252,9 +252,31 @@ void C2_HOOK_FASTCALL InitTransientBitmaps(void) {
 
 // DeallocateAllTransientBitmaps
 
-// STUB: CARMA2_HW 0x0043e010
+// FUNCTION: CARMA2_HW 0x0043e010
 void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
-    NOT_IMPLEMENTED();
+    int i;
+    int order_number;
+
+    if (!gNoTransients && pGraphically_remove_them) {
+        for (order_number = gNext_transient - 1; order_number >= 0; order_number--) {
+            for (i = 0; i < (int)REC2_ASIZE(gTransient_bitmaps); i++) {
+                if (gTransient_bitmaps[i].pixmap != NULL && order_number == gTransient_bitmaps[i].order_number) {
+                    if (gTransient_bitmaps[i].in_use) {
+                        BrPixelmapRectangleCopy(gBack_screen,
+                            gTransient_bitmaps[i].x_coord,
+                            gTransient_bitmaps[i].y_coord,
+                            gTransient_bitmaps[i].pixmap,
+                            0,
+                            0,
+                            gTransient_bitmaps[i].pixmap->width,
+                            gTransient_bitmaps[i].pixmap->height);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    gNext_transient = 0;
 }
 
 // SaveTransient
