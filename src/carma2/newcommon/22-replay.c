@@ -19,8 +19,11 @@ void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
 #pragma auto_inline(on)
 #endif
 
-// DoActionReplayPostSwap
+// FUNCTION: CARMA2_HW 0x004e6260
+void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 
+    RemoveTransientBitmaps(1);
+}
 // DoZappyActionReplayHeadups
 
 // DoActionReplayHeadups
