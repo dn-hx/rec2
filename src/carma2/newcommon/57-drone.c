@@ -49,6 +49,11 @@ int gCount_rendered_drones;
 // GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
 
+// FUNCTION: CARMA2_HW 0x0044cfc0
+static void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
+
+}
+
 // CrappyLittleDrivingStateInfoDprintf
 
 // DroneStraightestArcForCorner2D
