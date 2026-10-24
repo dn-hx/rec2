@@ -814,7 +814,13 @@ void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* powerup, tCar_spec* car) {
 
 // SetSuicidalPeds
 
-// ResetSuicidalPeds
+// FUNCTION: CARMA2_HW 0x004dcf40
+int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* powerup, tCar_spec* car) {
+
+    gPeds_suicidal = 1;
+    return powerup - gPowerup_array;
+}
+
 
 // FUNCTION: CARMA2_HW 0x004dcf80
 int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
