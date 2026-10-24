@@ -314,7 +314,7 @@ extern void C2_HOOK_FASTCALL ResetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
 
 // PickAtRandom
 
-// GotVouchers
+extern int C2_HOOK_FASTCALL GotVouchers(tPowerup* powerup, tCar_spec* car);
 
 // MungeVouchers
 
