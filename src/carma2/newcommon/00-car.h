@@ -179,8 +179,7 @@ extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
 extern intptr_t C2_HOOK_CDECL TurnOffNonGroovers(br_actor* pActor, void* pData);
 // DoLODCarModels
 
-// DoComplexCarModels
-
+extern void C2_HOOK_FASTCALL DoComplexCarModels(void);
 // ResetCarScreens
 
 extern void C2_HOOK_FASTCALL AdjustDownForce(void);
