@@ -599,9 +599,12 @@ void C2_HOOK_FASTCALL CBFillInObject(undefined4* pArg1, undefined4 pArg2) {
 
 // MungeProxRay
 
-// DoToPeds
+// FUNCTION: CARMA2_HW 0x004ce030
+int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius) {
 
-// DoPedAnnihilator
+    return DoToPeds(pCar, 1, pRadius, 1, NULL, (tForEachPedestrian_cbfn*)DoPedAnnihilator);
+}
+
 
 // RepulseIt
 
