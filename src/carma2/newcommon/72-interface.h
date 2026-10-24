@@ -162,10 +162,7 @@ extern int C2_HOOK_FASTCALL MainMenuOutfunc(tFrontend_spec* pFrontend);
 
 // MainMenuSelectRace
 
-// testUp
-
-// testDn
-
+extern int C2_HOOK_FASTCALL testUp(tFrontend_spec *pFrontend);
 // FRONTEND_MainMenuHandler
 
 // UpdateCarInfo
