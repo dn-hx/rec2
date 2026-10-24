@@ -21,6 +21,8 @@ extern int C2_HOOK_FASTCALL InitForceFeedback(void);
 
 extern void C2_HOOK_FASTCALL KeyBegin(void);
 
+extern void C2_HOOK_FASTCALL ShowCurrentJoystickName(void);
+
 extern int C2_HOOK_FASTCALL JoystickDInputBegin(void);
 
 extern int C2_HOOK_FASTCALL InitForceFeedback(void);
