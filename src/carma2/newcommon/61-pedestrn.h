@@ -323,6 +323,8 @@ extern void C2_HOOK_FASTCALL FlushAllPedCaches(void);
 
 extern void C2_HOOK_FASTCALL EtherealiseMaterial1(void* pMaterial);
 
+extern void C2_HOOK_FASTCALL EtherealiseCharacter1(void* pCharacter);
+
 
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
 
