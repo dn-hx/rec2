@@ -330,7 +330,7 @@ extern void C2_HOOK_FASTCALL ApplySkidAdjustment(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
-// ApplyModelMash
+extern void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk);
 
 // ApplyRelink
 

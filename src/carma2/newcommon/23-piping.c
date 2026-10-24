@@ -1043,6 +1043,13 @@ void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk) {
     return WorkerFlap(*(int*)((tU8*)*pChunk + 4), *(tU16*)((tU8*)*pChunk + 8));
 }
 
+// FUNCTION: CARMA2_HW 0x004c9840
+void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk) {
+    tPipe_chunk_model_mash* chunk = (tPipe_chunk_model_mash*)*pChunk;
+
+    return WorkerModelMash(chunk->field_0x4, chunk->field_0x8);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c9930
 void C2_HOOK_FASTCALL ApplyBend(tPipe_chunk** pChunk) {
