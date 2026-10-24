@@ -2476,9 +2476,11 @@ int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend) {
 
 // NetOptions_Infunc
 
-// NetOptions_Outfunc
-
-// NetOptions_CreditsRoller
+// FUNCTION: CARMA2_HW 0x00473210
+// FUNCTION: CARMA2_SW 0x00472780
+int C2_HOOK_FASTCALL NetOptions_Outfunc(tFrontend_spec* pFrontend) {
+    return 0;
+}
 
 // NetOptions_TargetRoller
 
