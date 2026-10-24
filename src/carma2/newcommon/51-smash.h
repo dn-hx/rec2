@@ -325,4 +325,6 @@ extern void C2_HOOK_FASTCALL UpdateCrushTimers(void);
 
 // MungeSmashEdgeTriggers
 
+extern void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race);
+
 #endif // GUARD_51_SMASH_H

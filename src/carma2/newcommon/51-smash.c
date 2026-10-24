@@ -992,6 +992,10 @@ void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004f0150
+void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
