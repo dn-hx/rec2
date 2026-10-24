@@ -335,3 +335,9 @@ void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0040ca40
+void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor) {
+
+    NOT_IMPLEMENTED();
+}
+

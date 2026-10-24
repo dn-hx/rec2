@@ -133,5 +133,7 @@ extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, 
 
 extern void C2_HOOK_FASTCALL WorkerSpecialUndo(void);
 
+extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
+
 
 #endif // GUARD_22_REPLAY_H
