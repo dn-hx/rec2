@@ -379,7 +379,7 @@ extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
 // SetPissed
 
-// ResetPissed
+extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
 
 // PissedEffect
 
