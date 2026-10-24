@@ -630,7 +630,12 @@ int C2_HOOK_FASTCALL SetPedExplode(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// SetPedBrittle
+// FUNCTION: CARMA2_HW 0x004dc800
+int C2_HOOK_FASTCALL SetPedBrittle(tPowerup* powerup, tCar_spec* car) {
+
+    gPed_dismemberfest = 1;
+    return powerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc830
 int C2_HOOK_FASTCALL SetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) {

@@ -172,7 +172,7 @@ extern int C2_HOOK_FASTCALL SetPedSpeed(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL SetPedExplode(tPowerup* pPowerup, tCar_spec* pCar);
 
-// SetPedBrittle
+extern int C2_HOOK_FASTCALL SetPedBrittle(tPowerup* powerup, tCar_spec* car);
 
 extern int C2_HOOK_FASTCALL SetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar);
 
