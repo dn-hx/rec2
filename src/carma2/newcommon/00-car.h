@@ -12,6 +12,18 @@ extern tFloat_bunch_info gCar_car_damage_multiplier;
 extern br_vector3 gZero_v__car;
 extern int gNum_active_non_cars;
 extern int gFace_num__car;
+extern int gInTheSea;
+extern tU32 gQuite_wild_end;
+extern tU32 gQuite_wild_start;
+extern tU32 gOn_me_wheels_start;
+extern tU32 gWoz_upside_down_at_all;
+extern tU32 gWild_start;
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139]; /* FIXME: uncertain about array length */  // GLOBAL: CARMA2_HW 0x0079ef2c int gNum_cars_and_non_cars;
+extern int gFace_count;
+extern tFace_ref gFace_list__car[300];
+extern br_scalar gMin_world_y;
+extern tPhysics_object* gUnknown_car_collision_info;
 
 // DamageUnit
 
