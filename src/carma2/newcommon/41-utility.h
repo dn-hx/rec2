@@ -50,8 +50,6 @@ extern int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, 
 
 extern int C2_HOOK_FASTCALL DRPixelmapLoadMany(const char* texturePathNoExt, br_pixelmap** pixelmaps, size_t capacity);
 
-// WaitFor
-
 extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
 
 extern intptr_t C2_HOOK_CDECL CompareActorID(br_actor* pActor, void* pArg);
