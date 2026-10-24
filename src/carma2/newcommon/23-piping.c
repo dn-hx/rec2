@@ -1728,6 +1728,11 @@ void C2_HOOK_FASTCALL UndoEndShitMine(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
     return WorkerShitMine(chunk->field_0x0, &chunk->field_0x4);
 }
 
+// FUNCTION: CARMA2_HW 0x004ca3e0
+void C2_HOOK_FASTCALL UndoTransformType(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    ((br_actor*)((tPipe_chunk_transform_type*)*pChunk)->pOwner)->t.type = ((tPipe_chunk_transform_type*)*pChunk)->type_from;
+}
+
 
 // FUNCTION: CARMA2_HW 0x004ca400
 int C2_HOOK_FASTCALL CalcShrapnelLength(tPipe_chunk* pChunk) {
