@@ -335,7 +335,12 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
 
 // LoadInDronePaths
 
-// DronePreCollisionStuff
+// FUNCTION: CARMA2_HW 0x004512d0
+void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
+
+    gFrame += 1;
+    gINT_00681fb0 = 0;
+}
 
 // DoDronePerGameFrameStuff
 
