@@ -131,4 +131,6 @@ extern tExplosion_animation gExplosion_pix_animation_groups;
 extern int gExplosion_sound_id;
 extern int gWasted_explosion_chance;
 
+extern void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF);
+
 #endif // GUARD_10_LOADING2_H

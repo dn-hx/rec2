@@ -1288,6 +1288,10 @@ void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004efa00
+void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
