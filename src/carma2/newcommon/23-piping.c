@@ -49,6 +49,10 @@ void C2_HOOK_FASTCALL ARSetReplayRate(float pRate) {
 int C2_HOOK_FASTCALL ARGetReplayDirection(void) {
     return gPlay_direction;
 }
+// FUNCTION: CARMA2_HW 0x004023c0
+void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
+    gPlay_direction = (int)pDirection;
+}
 
 // FUNCTION: CARMA2_HW 0x004023c0
 // FUNCTION: CARMA2_SW 0x004023c0
