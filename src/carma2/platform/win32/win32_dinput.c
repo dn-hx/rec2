@@ -385,6 +385,19 @@ const char* C2_HOOK_FASTCALL GetCurrentJoystickName(void) {
     return gDirectInputJoystickInfos[gJoystick_index].productName;
 }
 
+// FUNCTION: CARMA2_HW 0x004599f0
+void C2_HOOK_FASTCALL ShowCurrentJoystickName(void) {
+    char buffer[256];
+
+    if (gJoystick_index == -1 || gDirectInputJoystickDevices[gJoystick_index] == NULL) {
+        return;
+    }
+    sprintf(buffer, "Joystick %d: %s %d", gJoystick_index,
+            gDirectInputJoystickInfos[gJoystick_index].productName,
+            (gJoystickFFB & (1 << gJoystick_index)) != 0);
+    NewTextHeadupSlot(4, 0, 3000, -1, buffer);
+}
+
 // FUNCTION: CARMA2_HW 0x00459fb0
 size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void) {
     return gDirectInputJoystickInfos[gJoystick_index].count_buttons;
