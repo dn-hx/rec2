@@ -149,7 +149,7 @@ extern void C2_HOOK_FASTCALL AdjustFlame(int pIndex, int pFrame_count, br_scalar
 
 // MungeSmokeColumn
 
-// DisposeFlame
+extern void C2_HOOK_FASTCALL DisposeFlame(void);
 
 extern void C2_HOOK_FASTCALL InitFlame(void);
 
