@@ -363,8 +363,11 @@ int C2_HOOK_FASTCALL OKToViewDrones(void) {
     return 0;
 }
 
-// GetCurrentViewDroneMat
+// FUNCTION: CARMA2_HW 0x00452690
+br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void) {
 
+    return &gDrone_specs[gCurrent_selected_drone].actor->t.t.mat;
+}
 // GetCurrentViewDroneDirection
 
 // ApplyDroneRender2

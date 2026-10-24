@@ -159,8 +159,7 @@ extern void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined
 
 extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 
-// GetCurrentViewDroneMat
-
+extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
 // GetCurrentViewDroneDirection
 
 // ApplyDroneRender2
