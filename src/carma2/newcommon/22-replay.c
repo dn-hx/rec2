@@ -26,7 +26,11 @@ void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 }
 // DoZappyActionReplayHeadups
 
-// DoActionReplayHeadups
+// FUNCTION: CARMA2_HW 0x004e6270
+void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
+
+    ActualActionReplayHeadups(0);
+}
 
 // PreProcess
 
