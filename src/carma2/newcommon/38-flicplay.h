@@ -88,6 +88,8 @@ extern void C2_HOOK_FASTCALL FreeFlic(int pIndex);
 
 extern void C2_HOOK_FASTCALL SwapScreen(void);
 
+extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
+
 
 extern void C2_HOOK_FASTCALL InitFlicQueue(void);
 

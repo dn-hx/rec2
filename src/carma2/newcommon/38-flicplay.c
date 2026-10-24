@@ -803,6 +803,11 @@ void C2_HOOK_FASTCALL SwapScreen(void) {
     PDScreenBufferSwap(0);
 }
 
+// FUNCTION: CARMA2_HW 0x00462c20
+void C2_HOOK_FASTCALL RunFlic(int pIndex) {
+
+}
+
 
 // FUNCTION: CARMA2_HW 0x00462cc0
 void C2_HOOK_FASTCALL InitFlicQueue(void) {
