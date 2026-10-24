@@ -876,6 +876,12 @@ void C2_HOOK_FASTCALL FreeSmokeShadeTables(void) {
 #pragma auto_inline(off)
 #endif
 
+// STUB: CARMA2_HW 0x004fe640
+// STUB: CARMA2_SW 0x004f9f20
+void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
