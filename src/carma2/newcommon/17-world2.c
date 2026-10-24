@@ -234,6 +234,7 @@ void C2_HOOK_FASTCALL RevealStoredTransparentTextures(tBrender_storage* pStorage
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00447be0
 void C2_HOOK_FASTCALL HideStoredTextures(tBrender_storage* pStorage) {
     int i;
 
