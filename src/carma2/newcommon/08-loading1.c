@@ -1102,9 +1102,35 @@ void C2_HOOK_FASTCALL DisposeRace(void) {
     PossibleService();
 }
 
-// DisposeGameIfNecessary
+// FUNCTION: CARMA2_HW 0x0044c130
+void C2_HOOK_FASTCALL DisposeGameIfNecessary(void) {
+    int i;
 
-// DisposeTrack
+    dr_dprintf("DisposeGameIfNecessary() - START");
+    if (gNet_mode != eNet_mode_none) {
+        NetLeaveGame(gCurrent_net_game);
+    }
+    dr_dprintf("DisposeGameIfNecessary() - Point 1");
+    if (gGame_initialized) {
+        gGame_initialized = 0;
+        dr_dprintf("DisposeGameIfNecessary() - Point 2");
+        if (gNet_mode_of_last_game != eNet_mode_none) {
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                DisposeCar(gNet_players[i].car, gNet_players[i].car_index);
+            }
+            dr_dprintf("DisposeGameIfNecessary() - Point 3");
+            PossibleService();
+            LoadRaces(gRace_list, &gNumber_of_races, -1);
+            DisposeStorageSpace(&gNet_cars_storage_space);
+            gNo_current_game = 1;
+            dr_dprintf("DisposeGameIfNecessary() - Point 4");
+        }
+        dr_dprintf("DisposeGameIfNecessary() - Point 5");
+    }
+    ShutdownNetIfRequired();
+    dr_dprintf("DisposeGameIfNecessary() - END");
+}
+
 
 // FUNCTION: CARMA2_HW 0x004910d0
 int GetRegisterSourceLocation(char* pSource_location) {
