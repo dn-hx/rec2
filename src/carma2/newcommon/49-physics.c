@@ -361,6 +361,22 @@ void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callback
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004c2910
+void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject) {
+    tPhysics_object* pChild;
+
+    if (!pObject->disable_move_rotate) {
+        pObject->v.v[0] += pObject->field_0x54.v[0];
+        pObject->v.v[1] += pObject->field_0x54.v[1];
+        pObject->v.v[2] += pObject->field_0x54.v[2];
+    }
+    if (pObject->child != NULL) {
+        for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
+            PhysicsObjectMoveVelocity(pChild);
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004c2a10
 void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject) {
     tPhysics_object* child;

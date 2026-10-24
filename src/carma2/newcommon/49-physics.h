@@ -169,6 +169,8 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 extern void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks);
 
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
+
 extern void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 
 // SetListDoingNothingFlag
