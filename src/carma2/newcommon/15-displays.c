@@ -571,7 +571,11 @@ void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time) {
 #pragma auto_inline(off)
 #endif
 
-// EarnCredits
+// STUB: CARMA2_HW 0x0044b300
+// STUB: CARMA2_SW 0x0044b490
+void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
