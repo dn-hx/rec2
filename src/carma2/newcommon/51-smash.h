@@ -131,7 +131,7 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
 // ReadSpillData
 
-// ReadExplosion
+extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 
 // FreeExplosion
 
