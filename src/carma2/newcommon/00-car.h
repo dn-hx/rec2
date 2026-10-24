@@ -69,7 +69,7 @@ extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
 // AddDrag
 
-// DragChildren
+extern void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild);
 
 // DoCarStuff
 
