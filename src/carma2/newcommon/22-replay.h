@@ -12,7 +12,7 @@ extern void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastar
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
 // DoZappyActionReplayHeadups
 
-// DoActionReplayHeadups
+extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // PreProcess
 
