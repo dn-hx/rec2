@@ -130,6 +130,11 @@ int C2_HOOK_FASTCALL ARIsActionReplayAvailable(void) {
 
     return gPipe_buffer_start != NULL;
 }
+// FUNCTION: CARMA2_HW 0x004025b0
+int C2_HOOK_FASTCALL ARSomeReplayLeft(void) {
+    return (gPlay_direction > 0 && gPipe_play_ptr != gPipe_record_ptr)
+        || (gPlay_direction < 0 && gPipe_play_ptr != gPipe_buffer_oldest);
+}
 
 // DisablePipedSounds
 
