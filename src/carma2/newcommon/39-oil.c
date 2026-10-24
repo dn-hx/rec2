@@ -198,5 +198,4 @@ void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents) {
         oily_material, NULL);
 }
 
-// RemoveCarsOilSlicks
 
