@@ -23,6 +23,10 @@ void C2_HOOK_FASTCALL DoOpeningAnimation(void) {
     WaitForNoKeys();
 }
 
+// FUNCTION: CARMA2_HW 0x0043f350
+void C2_HOOK_FASTCALL DoNewGameAnimation(void) {
+}
+
 
 // FUNCTION: CARMA2_HW 0x0043f370
 void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {

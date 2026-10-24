@@ -11,6 +11,8 @@ extern void C2_HOOK_STDCALL DoStainlessLogo(void);
 
 extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
 
+extern void C2_HOOK_FASTCALL DoNewGameAnimation(void);
+
 
 extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
 
