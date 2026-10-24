@@ -198,7 +198,13 @@ tPhysics_object* C2_HOOK_FASTCALL PHILGetFirstObject(void) {
     }
 }
 
-// PHILGetNextObject
+// FUNCTION: CARMA2_HW 0x004b5ff0
+tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pCollision_info) {
+    if (gPHIL_disabled) {
+        return NULL;
+    }
+    return pCollision_info->next;
+}
 
 // PHILReturnObjectStatus
 

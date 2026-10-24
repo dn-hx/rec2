@@ -63,9 +63,7 @@ extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 
 extern tPhysics_object* C2_HOOK_FASTCALL PHILGetFirstObject(void);
 
-// PHILGetNextObject
-
-// PHILReturnObjectStatus
+extern tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pCollision_info);
 
 // PHILMakeObjectPassive
 
