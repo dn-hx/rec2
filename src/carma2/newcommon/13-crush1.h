@@ -130,6 +130,8 @@ extern int C2_HOOK_FASTCALL TooFarToCrush(const br_model* pModel, int pCount, co
 
 extern void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, tCar_crush_limits* pLimits, int pFound);
 
+extern float C2_HOOK_FASTCALL CrushShapeBendFactor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq);
+
 extern int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector);
 
 // CrushModel

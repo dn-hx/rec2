@@ -519,6 +519,17 @@ void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVerte
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00436850
+float C2_HOOK_FASTCALL CrushShapeBendFactor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
+    float dist_sq;
+
+    dist_sq = DistSq(pVertexPos, pCount, pVectors);
+    if (dist_sq > gMax_crush_dist_sq) {
+        return gCrushZero;
+    }
+    return 1.0f - (float)sqrt(dist_sq / pMaxDistSq);
+}
+
 // FUNCTION: CARMA2_HW 0x00436890
 int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector) {
 
