@@ -907,6 +907,17 @@ void C2_HOOK_FASTCALL DRstrlwr(char* s) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00515910
+void C2_HOOK_FASTCALL StringTransformToLower(char* pStr) {
+    int i;
+    int len;
+
+    len = strlen(pStr);
+    for (i = 0; i < len; i++) {
+        pStr[i] = tolower(pStr[i]);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00515950
 int C2_HOOK_FASTCALL PDCheckDriveExists(const char* pThe_path) {
 
