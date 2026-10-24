@@ -158,6 +158,11 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004030d0
+void C2_HOOK_FASTCALL SetPipeUndoFlag(void) {
+    gPipe_undo_enabled = 1;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
