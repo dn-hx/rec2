@@ -26,8 +26,7 @@ extern void C2_HOOK_FASTCALL ToggleMapTransparency(void);
 
 extern void C2_HOOK_FASTCALL InitTargetLock(void);
 
-// SetIntegerMapRenders
-
+extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 // OppositeColour
 
 // DrawArrow

@@ -232,8 +232,16 @@ void C2_HOOK_FASTCALL InitTargetLock(void) {
     gTarget_lock_enabled = 0;
 }
 
-// SetIntegerMapRenders
+// FUNCTION: CARMA2_HW 0x004948b0
+void C2_HOOK_FASTCALL SetIntegerMapRenders(void) {
 
+    gMap_render_width = 128.f;
+    gMap_render_height = 80.f;
+    gMap_render_x_i = ((int)gMap_render_x) & ~3;
+    gMap_render_y_i = ((int)gMap_render_y) & ~1;
+    gMap_render_width_i = (int)gMap_render_width;
+    gMap_render_height_i = (int)gMap_render_height;
+}
 // OppositeColour
 
 // DrawArrow
