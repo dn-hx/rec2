@@ -172,6 +172,8 @@ extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crus
 
 // RepairSmash
 
+extern intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data);
+
 extern void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data);
 
 // InitGlassFragments

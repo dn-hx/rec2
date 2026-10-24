@@ -510,6 +510,15 @@ void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smash
 
 // RepairSmash
 
+// FUNCTION: CARMA2_HW 0x004ef440
+intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
+    br_actor** pActorBuffer = data;
+
+    pActorBuffer[gShrapnel_ghost_actor_count] = pActor;
+    gShrapnel_ghost_actor_count += 1;
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x004ef9c0
 void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data) {
     tCar_crush_smashable_part* smashable = pSmash_data->smashables;
