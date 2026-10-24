@@ -97,7 +97,7 @@ extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 
 extern int C2_HOOK_FASTCALL SpendCredits(int pAmount);
 
-// AwardTime
+extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 
 // AwardTime5
 
