@@ -701,6 +701,15 @@ void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, undefined4 pAr
         SIZE_OFFSET_PIPING(tPipe_single_ped_model_change, field_0x4), pArg6);
 }
 
+// FUNCTION: CARMA2_HW 0x004c8cc0
+void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_phil_object, matrix, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_phil_object, matrix, 0x30);
+
+    ARDoSingleVariedSession(ePipe_chunk_phil_object, (uintptr_t)pObject, 1,
+        SIZE_OFFSET_PIPING(tPipe_phil_object, matrix), &pObject->actor->t.t.mat);
+}
+
 
 // PipeSingleBloodSpurt
 
