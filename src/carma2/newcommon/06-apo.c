@@ -65,9 +65,12 @@ void C2_HOOK_FASTCALL BuyPSPowerup(int pIndex) {
     }
 }
 
-// BuyArmour
+// FUNCTION: CARMA2_HW 0x00502e50
+void C2_HOOK_FASTCALL BuyArmour(void) {
 
-// BuyPower
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        BuyPSPowerup(0);
+    }
+}
 
-// BuyOffense
 
