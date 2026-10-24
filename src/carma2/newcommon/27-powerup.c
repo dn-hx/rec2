@@ -853,6 +853,13 @@ int C2_HOOK_FASTCALL SetPanickingPeds(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
+// FUNCTION: CARMA2_HW 0x004de8d0
+int C2_HOOK_FASTCALL SetLowGravityPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gPed_gravity_multiplier = powerup->float_params[0];
+    return powerup - gPowerup_array;
+}
+
 
 // SetGhostPeds
 
