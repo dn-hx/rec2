@@ -45,8 +45,7 @@ extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
 
 // NewFaceListCallBack
 
-// IsCarInTheSea
-
+extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 // RememberSafePosition
 
 // ControlNetCars

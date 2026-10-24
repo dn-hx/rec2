@@ -194,8 +194,11 @@ void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race) {
 
 // NewFaceListCallBack
 
-// IsCarInTheSea
+// FUNCTION: CARMA2_HW 0x00414ca0
+int C2_HOOK_FASTCALL IsCarInTheSea(void) {
 
+    return gInTheSea;
+}
 // RememberSafePosition
 
 // ControlNetCars
