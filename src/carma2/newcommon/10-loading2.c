@@ -853,7 +853,11 @@ intptr_t C2_HOOK_CDECL LinkCarActorsToGroovidelicsCB(br_actor* pActor, void* pDa
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0048c150
+// STUB: CARMA2_HW 0x00488f70
+void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

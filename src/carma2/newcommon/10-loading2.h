@@ -88,7 +88,7 @@ extern intptr_t C2_HOOK_CDECL LinkCarActorsToGroovidelicsCB(br_actor* pActor, vo
 
 // SetUpGraphicalWheelStuff
 
-// LoadCar
+extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
 
 extern void C2_HOOK_FASTCALL LoadHeadupImages(void);
 
