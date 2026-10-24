@@ -236,6 +236,12 @@ void C2_HOOK_FASTCALL DoNextJoinPoll(void) {
 // NetStartProducingJoinList
 
 // NetEndJoinList
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NetDisposePIDGameInfo
 
@@ -363,11 +369,17 @@ void C2_HOOK_FASTCALL NetSendMessageStacks(void) {
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x0049fdb0
 tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize) {
     NOT_IMPLEMENTED();
     return NULL;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 void C2_HOOK_FASTCALL NetFreeExcessMemory(void) {
 
@@ -550,7 +562,12 @@ void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails
     NOT_IMPLEMENTED();
 }
 
-// AddToGuaranteeList
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NetGuaranteedSendMessageToPlayer
 
