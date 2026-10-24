@@ -91,6 +91,7 @@ extern void C2_HOOK_FASTCALL SwapScreen(void);
 
 extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
 
+extern void C2_HOOK_FASTCALL PreloadBunchOfFlics(int pBunch_index);
 
 extern void C2_HOOK_FASTCALL FreeFlic(int pIndex);
 
