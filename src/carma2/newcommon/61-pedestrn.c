@@ -1524,6 +1524,12 @@ void C2_HOOK_FASTCALL EnableOverallMovement(void) {
 
     gPed_overall_movement_disabled = 0;
 }
+// FUNCTION: CARMA2_HW 0x0040c620
+void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
+
+    gPed_retain_root_mode = 1;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif

@@ -536,6 +536,7 @@ extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCa
 
 extern void C2_HOOK_FASTCALL DisableOverallMovement(void);
 extern void C2_HOOK_FASTCALL EnableOverallMovement(void);
+extern void C2_HOOK_FASTCALL EnableRetainRootMode(void);
 
 // EnableOverallMovement
 
