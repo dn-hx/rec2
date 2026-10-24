@@ -931,7 +931,29 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
 
 // MutatePed
 
-// FlushAllPedCaches
+// FUNCTION: CARMA2_HW 0x004d6c70
+void C2_HOOK_FASTCALL FlushAllPedCaches(void) {
+    int i;
+    int count;
+    tPedestrian* base;
+    tPed_cache_006944c0** pp;
+
+    count = gPed_count;
+    base = gPedestrian_array;
+    i = 0;
+    if (0 < count) {
+        pp = &base->field_0x0c;
+        do {
+            if (*pp != NULL && (*pp)->field_0xb0 != NULL) {
+                (*pp)->field_0xb0->field_0x14 = NULL;
+                (*pp)->field_0xb0 = NULL;
+            }
+            i++;
+            pp = (tPed_cache_006944c0**)((tU8*)pp + sizeof(tPedestrian));
+        } while (i < gPed_count);
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x004d6d90
 void C2_HOOK_FASTCALL SavePedStuff(void) {

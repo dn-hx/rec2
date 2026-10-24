@@ -319,7 +319,8 @@ extern void C2_HOOK_FASTCALL ResetPedNearness(void);
 
 // MutatePed
 
-// FlushAllPedCaches
+extern void C2_HOOK_FASTCALL FlushAllPedCaches(void);
+
 
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
 
