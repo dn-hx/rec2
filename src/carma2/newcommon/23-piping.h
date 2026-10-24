@@ -284,6 +284,7 @@ extern void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor);
 extern void C2_HOOK_FASTCALL PipeSingleTransformType(br_actor* pActor, tS16 pTransform_type);
 
 extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, int pEnable);
+extern void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk);
 
 // ApplyCrush
 

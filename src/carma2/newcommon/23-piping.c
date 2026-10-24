@@ -852,8 +852,12 @@ void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, in
     ARDoSingleVariedSession(ePipe_chunk_single_oppo_renderage, (uintptr_t)pOpponent_spec, 1,
         SIZE_OFFSET_PIPING(tPipe_single_oppo_renderage, enable), pEnable);
 }
+// FUNCTION: CARMA2_HW 0x004c9040
+void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk) {
+    tPipe_chunk_crush* chunk = (tPipe_chunk_crush*)*pChunk;
 
-// ApplySmudge
+    return WorkerCrush(chunk->field_0x4, &chunk->field_0x8[0], &chunk->field_0x8[6]);
+}
 
 // ApplySpark
 
