@@ -56,8 +56,11 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 
 // TurnOffActionReplay
 
-// AfterActionReplay
+// FUNCTION: CARMA2_HW 0x004e72d0
+void C2_HOOK_FASTCALL AfterActionReplay(void) {
 
+    ForceRebuildActiveCarList();
+}
 // ToggleReplay
 
 // DisplayMovieStatusPanel
