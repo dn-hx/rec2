@@ -170,9 +170,36 @@ int gTrack_version;
 #include <stdio.h>
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
-// CycleTargetLock
+// FUNCTION: CARMA2_HW 0x004945f0
+void C2_HOOK_FASTCALL ToggleTargetLock(void) {
+    char name[256];
+    char s[256];
 
-// CycleMapOptions
+    if (gNet_mode != eNet_mode_none) {
+        if (gCurrent_net_game->type == eNet_game_type_foxy) {
+            return;
+        }
+        if (!gCurrent_net_game->options.show_players_on_map) {
+            return;
+        }
+    }
+    if (gTarget_lock_car_1 == NULL) {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_no_target_to_lock_onto), 0);
+    } else {
+        gTarget_lock_enabled = !gTarget_lock_enabled;
+        if (gTarget_lock_enabled) {
+            if (gNet_mode != eNet_mode_none) {
+                strcpy(name, NetPlayerFromCar(gTarget_lock_car_2)->player_name);
+            } else {
+                strcpy(name, GetDriverName((tU16)gTarget_lock_car_2->car_ID >> 8, (tU16)gTarget_lock_car_2->car_ID & 0xff));
+            }
+            sprintf(s, "%s %s", GetMiscString(eMiscString_locked_onto), name);
+            NewTextHeadupSlot2(4, 0, 1500, -4, s, 0);
+        } else {
+            NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_target_lock_off), 0);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00494880
 // FUNCTION: CARMA2_SW 0x00491b80
