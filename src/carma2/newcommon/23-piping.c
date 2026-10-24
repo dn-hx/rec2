@@ -553,7 +553,10 @@ void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor)
 
 // PipeSingleWallIncident
 
-// PipeSingleSkidAdjustment
+// FUNCTION: CARMA2_HW 0x004c85b0
+void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pForce) {
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c8620
 void C2_HOOK_FASTCALL PipeSingleFlap(br_actor* pActor, br_angle pAngle) {
