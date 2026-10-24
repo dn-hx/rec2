@@ -414,7 +414,14 @@ void C2_HOOK_FASTCALL AdjustDownForce(void) {
 
 // PullActorFromWorld
 
-// DoPullActorFromWorld
+// FUNCTION: CARMA2_HW 0x0041ff00
+tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* actor) {
+
+    if (!gCrush_deferred && !gTesting_car_for_sensible_place) {
+        return NULL;
+    }
+    return DoPullActorFromWorld(actor);
+}
 
 // PipeNonCarObject
 
