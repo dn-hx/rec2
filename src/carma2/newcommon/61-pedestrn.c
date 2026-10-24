@@ -1402,7 +1402,11 @@ br_model* C2_HOOK_FASTCALL GetCharacterBoneModel(tPed_character_instance* pChara
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x0040b590
+int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
 
+    return pCharacter->field_0xa;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

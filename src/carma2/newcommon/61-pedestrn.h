@@ -507,6 +507,7 @@ extern void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV
 // SetCharacterAllBonesModel
 
 extern br_model* C2_HOOK_FASTCALL GetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index);
+extern int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter);
 // BonerPassiveCollision
 
 // BonerActiveHalted
