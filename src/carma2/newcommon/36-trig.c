@@ -253,6 +253,12 @@ br_scalar C2_HOOK_STDCALL FastScalarArcSin(br_scalar pValue) {
     return FastFloatArcSin(pValue);
 }
 
+// FUNCTION: CARMA2_HW 0x00511c10
+br_scalar C2_HOOK_STDCALL FastScalarArcCos(br_scalar pValue) {
+
+    return 90.f - FastScalarArcSin(pValue);
+}
+
 // FUNCTION: CARMA2_HW 0x00511ce0
 float C2_HOOK_STDCALL FastFloatArcTan2(float pY, float pX) {
     float abs_x;
