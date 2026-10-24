@@ -940,9 +940,13 @@ void C2_HOOK_FASTCALL ResetElectroBastard(tPowerup* pPowerup, tCar_spec* pCar) {
     pCar->proxy_ray_distance = 0.f;
 }
 
-// SetMutantCorpses
+// FUNCTION: CARMA2_HW 0x004deca0
+int C2_HOOK_FASTCALL SetMutantCorpses(tPowerup* powerup, tCar_spec* car) {
 
-// ResetMutantCorpses
+    gMutant_speed = powerup->float_params[0];
+    return powerup - gPowerup_array;
+}
+
 
 // ReceivedPowerup
 
