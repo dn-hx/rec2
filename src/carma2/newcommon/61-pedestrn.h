@@ -276,8 +276,7 @@ extern void C2_HOOK_FASTCALL MakeFlagWavingBastardWaveHisFlagWhichIsTheProbablyT
 
 // SetRandomOmega
 
-// RenderLimbs
-
+extern void C2_HOOK_FASTCALL RenderLimbs(void);
 // MungePedestrians
 
 // FUN_1011cb0c
