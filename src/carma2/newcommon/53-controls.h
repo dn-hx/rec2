@@ -146,11 +146,7 @@ extern void C2_HOOK_FASTCALL ToggleMap(void);
 
 extern int C2_HOOK_FASTCALL GetRecoverVoucherCount(void);
 
-// AddVouchers
-
-// ResetRecoveryVouchers
-
-// CycleYonFactor
+extern void C2_HOOK_FASTCALL AddVouchers(int amount);
 
 // CycleSoundDetailLevel
 

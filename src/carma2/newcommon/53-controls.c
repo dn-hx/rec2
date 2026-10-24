@@ -387,6 +387,12 @@ int C2_HOOK_FASTCALL GetRecoverVoucherCount(void) {
     return gRecovery_voucher_count;
 }
 
+// FUNCTION: CARMA2_HW 0x00444700
+void C2_HOOK_FASTCALL AddVouchers(int amount) {
+
+    gRecovery_voucher_count += amount;
+}
+
 // CycleSoundDetailLevel
 
 // CycleCarSimplificationLevel
