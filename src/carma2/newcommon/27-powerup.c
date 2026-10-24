@@ -305,8 +305,14 @@ int C2_HOOK_FASTCALL DrawSinglePowerupIcon(int pDraw, int pTime, tPowerup* pPowe
 
 // DrawKeyPowerups
 
-// ToggleInventory
+// FUNCTION: CARMA2_HW 0x004da9d0
+void C2_HOOK_FASTCALL ToggleInventory(void) {
 
+    gInventory_cycling = !gInventory_cycling;
+    if (gInventory_cycling) {
+        gInventory_timeout = GetTotalTime() + 3000;
+    }
+}
 // RightInventory
 
 // LeftInventory
