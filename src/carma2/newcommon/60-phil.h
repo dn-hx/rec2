@@ -75,7 +75,7 @@ extern int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject
 
 // PHILAddActiveObject
 
-// PHILAddObjectImmediately
+extern int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject);
 
 // PHILAddActiveObjectImmediately
 
