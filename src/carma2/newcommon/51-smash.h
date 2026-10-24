@@ -269,7 +269,7 @@ extern void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, b
 
 // SmashFaceMustBeUpdateable
 
-// MungeMaterialCB
+extern intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data);
 
 // MungeMaterial
 
