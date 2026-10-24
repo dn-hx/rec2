@@ -41,6 +41,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "51-smash.h"
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;
@@ -104,6 +105,67 @@ const char* gNet_avail_names[4] = {
     "hawk",
     "all",
 };
+
+// GLOBAL: CARMA2_HW 0x00657320
+tHeadup_info gHeadup_image_info[45] = {
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "GO.PIX", eNet_or_otherwise },
+    { "NUMBER1.PIX", eNet_or_otherwise },
+    { "NUMBER2.PIX", eNet_or_otherwise },
+    { "NUMBER3.PIX", eNet_or_otherwise },
+    { "NUMBER4.PIX", eNet_or_otherwise },
+    { "NUMBER5.PIX", eNet_or_otherwise },
+    { "SPLATTER.PIX", eNet_or_otherwise },
+    { "PILEDRIV.PIX", eNet_or_otherwise },
+    { "EXTRASTY.PIX", eNet_or_otherwise },
+    { "ARTISTIC.PIX", eNet_or_otherwise },
+    { "PLAYWITH.PIX", eNet_or_otherwise },
+    { "PUNT.PIX", eNet_or_otherwise },
+    { "DROP.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "2XCOMBO.PIX", eNet_or_otherwise },
+    { "3XCOMBO.PIX", eNet_or_otherwise },
+    { "4XCOMBO.PIX", eNet_or_otherwise },
+    { "5XCOMBO.PIX", eNet_or_otherwise },
+    { "6XCOMBO.PIX", eNet_or_otherwise },
+    { "7XCOMBO.PIX", eNet_or_otherwise },
+    { "8XCOMBO.PIX", eNet_or_otherwise },
+    { "9XCOMBO.PIX", eNet_or_otherwise },
+    { "10XCOMBO.PIX", eNet_or_otherwise },
+    { "BILLIARD.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "HEADON.PIX", eNet_or_otherwise },
+    { "DESTROY.PIX", eNet_or_otherwise },
+    { "CHECKPNT.PIX", eNet_or_otherwise },
+    { "TIMEUP.PIX", eNot_net },
+    { "RACEOVER.PIX", eNet_or_otherwise },
+    { "UWASTED.PIX", eNet_or_otherwise },
+    { "MAD.PIX", eNet_or_otherwise },
+    { "GAMEOVER.PIX", eNet_or_otherwise },
+    { "UBROKE.PIX", eNet_or_otherwise },
+    { "ULOST.PIX", eNet_or_otherwise },
+    { "UWON.PIX", eNet_or_otherwise },
+    { "BBQBON.PIX", eNet_or_otherwise },
+    { "TAILBON.PIX", eNet_or_otherwise },
+    { "DETTAILBON.PIX", eNet_or_otherwise },
+    { "MISSIONFAIL.PIX", eNet_or_otherwise },
+    { "MISSIONDONE.PIX", eNet_or_otherwise },
+};
+
+// GLOBAL: CARMA2_HW 0x0079eb60
+br_pixelmap* gHeadup_images[45];
+
+// GLOBAL: CARMA2_HW 0x007620f8
+tExplosion_animation gExplosion_pix_animation_groups;
+
+// GLOBAL: CARMA2_HW 0x00761f5c
+int gExplosion_sound_id;
+
+// GLOBAL: CARMA2_HW 0x00762120
+int gWasted_explosion_chance;
 
 void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes) {
     tPath_name the_path;
@@ -694,7 +756,14 @@ intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData) {
 
 // LinkCarModelsToActor
 
-// GetSimpleMaterial
+extern void C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+
+// GLOBAL: CARMA2_HW 0x006572f0
+tU32 gSimple_material_colours[12] = { 0x005d0303, 0x02a56e04, 0x03a9a905, 0x08006868, 0x0d3c3626, 0x0e212121, 0x15284c21, 0x1900326a, 0x1a93491d, 0x1ec0bfc0, 0x23141414, 0x00000000, };
+
+// GLOBAL: CARMA2_HW 0x0074b500
+br_material* gSimple_materials[32];
+
 
 // ReadShrapnelMaterials
 
@@ -1173,3 +1242,9 @@ void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void) {
     gPedTextTxtPath = "ALTEXT.TXT";
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
