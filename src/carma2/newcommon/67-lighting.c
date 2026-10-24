@@ -72,7 +72,17 @@ void C2_HOOK_FASTCALL LoadTrackMaterials(tBrender_storage* pStorage, const char*
     SmoothlySetWorldMaterialFlags(pStorage);
 }
 
-// LoadCarMaterials
+// FUNCTION: CARMA2_HW 0x004f6740
+void C2_HOOK_FASTCALL LoadCarMaterials(tBrender_storage* pStorage, const char* pPath, tCar_spec* pCar_spec) {
+
+    gMaterial_shading_for_callback = kRendererShadingType_Specular;
+    gStorage_for_callbacks = pStorage;
+    pCar_spec->old_material_count = pStorage->materials_count;
+    PFForEveryFile(pPath, LoadIfItsAMaterial);
+    pCar_spec->new_material_count = pStorage->materials_count;
+    gMaterial_shading_for_callback = kRendererShadingType_Undefined;
+    SmoothlySetCarMaterialFlags(pStorage, pCar_spec);
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
