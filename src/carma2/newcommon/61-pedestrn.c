@@ -986,6 +986,11 @@ void C2_HOOK_FASTCALL DeetherealiseMaterial1(void* pMaterial) {
     BrMaterialUpdate((br_material*)pMaterial, 0x7fff);
 }
 
+// FUNCTION: CARMA2_HW 0x004d6c00
+void C2_HOOK_FASTCALL DeetherealiseCharacter1(void* pCharacter) {
+
+    *(tU32*)((char*)pCharacter + 0x19c) &= ~4;
+}
 
 // FUNCTION: CARMA2_HW 0x004d6d90
 void C2_HOOK_FASTCALL SavePedStuff(void) {
