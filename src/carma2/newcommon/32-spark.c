@@ -898,8 +898,12 @@ int C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004fecf0
+// FUNCTION: CARMA2_HW 0x004fecf0
+// FUNCTION: CARMA2_SW 0x004fa5d0
 void C2_HOOK_FASTCALL BlendifyCar(tCar_spec* pCar) {
+    ForEveryCarMaterial(pCar, BlendifyMaterialCB, 1);
+}
+
     NOT_IMPLEMENTED();
 }
 
