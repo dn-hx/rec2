@@ -348,7 +348,13 @@ void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
 
 // MyDroneHathHalteth
 
-// MoveMyDroneBaby
+// FUNCTION: CARMA2_HW 0x00452410
+void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2) {
+    tDrone_spec* pDrone;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf("MoveMyDroneBaby(): Drone %d, State %d", pDrone->id, pDrone->current_state);
+}
 
 // DroneLookWhereYoureGoingYouBlindCunt
 
