@@ -669,9 +669,15 @@ void C2_HOOK_FASTCALL PipeSinglePedPhysics(int pId, br_matrix34* pMat) {
 
 // PipeSinglePedDismember
 
-// PipeSinglePedFPChange
+// FUNCTION: CARMA2_HW 0x004c8c30
+void C2_HOOK_FASTCALL PipeSinglePedFPChange(tPedestrian* pPed, float pValue, float pUnused) {
 
-// PipeSinglePedPos
+    gUNK_0069410c = *(tU32*)&pValue;
+    /* chunk type 45 (0x2d): no tPipe_chunk_type constant yet (adding enum constants to rec2_types.h shifts codegen elsewhere) */
+    ARDoSingleVariedSession(45, (uintptr_t)pPed, 2,
+        4, 0, *(tU32*)&pValue,
+        4, 4, *(tU32*)&pValue);
+}
 
 // PipeSinglePedModelChange
 
