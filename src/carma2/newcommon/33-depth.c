@@ -310,9 +310,19 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
 
 // DoSpecialCameraEffect
 
-// AssertYons
+// FUNCTION: CARMA2_HW 0x00446a10
+// FUNCTION: CARMA2_SW 0x00446a90
+void C2_HOOK_FASTCALL AssertYons(void) {
+    br_camera* camera_ptr;
+    int i;
+    br_scalar yon_multiplier;
 
-// IncreaseYon
+    for (i = 0; i < (int)REC2_ASIZE(gCamera_list); ++i) {
+        camera_ptr = gCamera_list[i]->type_data;
+        yon_multiplier = gYon_multiplier;
+        camera_ptr->yon_z = yon_multiplier * gCamera_yon;
+    }
+}
 
 // DecreaseYon
 
