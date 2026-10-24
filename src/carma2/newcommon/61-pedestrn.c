@@ -393,7 +393,15 @@ FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName) {
     PathCat(path, path, pName);
     return DRfopen(path, "rb");
 }
+// FUNCTION: CARMA2_HW 0x004cbbb0
+FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name) {
+    tPath_name path;
 
+    PathCat(path, gApplication_path, gPedsFolder);
+    PathCat(path, path, "REMAPS");
+    PathCat(path, path, pFile_name);
+    return DRfopen(path, "rb");
+}
 // BonerReadPersonalityModels
 
 // MakeActorRenderable
