@@ -5,6 +5,12 @@
 #include "41-utility.h"
 #include "brender/brender.h"
 #include "globvars.h"
+#include "globvrpb.h"
+#include "59-camera.h"
+#include "10-loading2.h"
+#include "globvrkm.h"
+#include "49-physics.h"
+#include "30-opponent.h"
 
 // GLOBAL: CARMA2_HW 0x00763500
 int gCunning_stunt_bonus[3];
@@ -33,7 +39,50 @@ int gNum_active_non_cars;
 // GLOBAL: CARMA2_HW 0x0065d010
 int gFace_num__car = 1;
 
-// DamageUnit
+// GLOBAL: CARMA2_HW 0x00679364
+int gInTheSea;
+
+// GLOBAL: CARMA2_HW 0x006793ac
+tU32 gQuite_wild_end;
+
+// GLOBAL: CARMA2_HW 0x006793b0
+tU32 gQuite_wild_start;
+
+// GLOBAL: CARMA2_HW 0x006793b4
+tU32 gOn_me_wheels_start;
+
+// GLOBAL: CARMA2_HW 0x006793b8
+tU32 gWoz_upside_down_at_all;
+
+// GLOBAL: CARMA2_HW 0x006793a8
+tU32 gWild_start;
+
+// GLOBAL: CARMA2_HW 0x0074c9ec
+int gNum_active_cars;
+
+// GLOBAL: CARMA2_HW 0x0074c7c0
+tCar_spec* gActive_car_list[139]; /* FIXME: uncertain about array length */
+
+// GLOBAL: CARMA2_HW 0x0079ef2c
+int gNum_cars_and_non_cars;
+
+// GLOBAL: CARMA2_HW 0x006940b0
+int gFace_count;
+
+// GLOBAL: CARMA2_HW 0x00744820
+tFace_ref gFace_list__car[300];
+
+// GLOBAL: CARMA2_HW 0x00679360
+br_scalar gMin_world_y;
+
+// GLOBAL: CARMA2_HW 0x006793e4
+tPhysics_object* gUnknown_car_collision_info;
+
+// GLOBAL: CARMA2_HW 0x0067939c
+int gTesting_car_for_sensible_place;
+
+extern int gCrush_deferred;
+
 
 // FUNCTION: CARMA2_HW 0x00413f10
 intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData) {
@@ -96,7 +145,12 @@ void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex) {
 
 // MungeCarsMass
 
-// AddDrag
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DragChildren
 
@@ -224,7 +278,12 @@ void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vecto
 
 // TestForCarInSensiblePlace
 
-// PullActorFromWorld
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DoPullActorFromWorld
 
@@ -264,3 +323,30 @@ void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
