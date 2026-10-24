@@ -19,7 +19,7 @@ extern void C2_HOOK_FASTCALL InitPanGameAIWorld(void);
 
 // LoadAIWorldTrackInfo
 
-// LoadAIWorldForRace
+extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
 
 // InitialiseAIWorldForRace
 

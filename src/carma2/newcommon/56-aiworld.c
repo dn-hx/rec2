@@ -47,9 +47,16 @@ void C2_HOOK_FASTCALL InitPanGameAIWorld(void) {
 
 // LoadAIWorldTrackInfo
 
-// LoadAIWorldForRace
+// FUNCTION: CARMA2_HW 0x00401070
+void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info) {
 
-// InitialiseAIWorldForRace
+    PrintMemoryDump(0,"BEFORE LoadOpponentsCars()");
+    LoadOpponentsCars(pRace_info);
+    LoadCopCars(pRace_info);
+    PrintMemoryDump(0,"AFTER LoadOpponentsCars(), BEFORE LoadPerRaceDroneStuff()");
+    LoadPerRaceDroneStuff();
+    PrintMemoryDump(0,"AFTER LoadPerRaceDroneStuff()");
+}
 
 // STUB: CARMA2_HW 0x00401160
 void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
