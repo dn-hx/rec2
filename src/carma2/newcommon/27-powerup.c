@@ -1576,6 +1576,10 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004c5f20
+void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
