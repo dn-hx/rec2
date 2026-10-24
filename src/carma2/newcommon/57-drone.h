@@ -13,6 +13,7 @@ extern int gINT_00681fb0;
 extern int gCount_rendered_drones;
 extern br_vector3 gRender_bounds_centre;
 
+extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition);
 // CrappyLittleDrivingStateInfoDprintf
 
 // DroneStraightestArcForCorner2D
