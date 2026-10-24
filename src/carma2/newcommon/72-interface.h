@@ -88,7 +88,7 @@ extern void C2_HOOK_FASTCALL RefreshNetRacesScroller(tFrontend_spec* pFrontend);
 
 // RestoreSinglePlayerState
 
-// MaybeRestoreSavedGame
+extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
 
 // NetworkJoinUpdateScroller
 
