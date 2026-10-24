@@ -85,5 +85,7 @@ extern void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value);
 
 extern void C2_HOOK_FASTCALL WorkerPedModelChangeUndo(int field_0x0, int field_0x4, int field_0xc, int field_0xa);
 
+extern void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8);
+
 
 #endif // GUARD_22_REPLAY_H
