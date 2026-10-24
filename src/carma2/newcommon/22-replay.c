@@ -233,3 +233,9 @@ void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_0x4, vo
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004da960
+void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
+
+    NOT_IMPLEMENTED();
+}
+
