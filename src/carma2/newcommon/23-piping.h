@@ -414,7 +414,7 @@ extern void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk);
 
-// ApplyEndShitMine
+extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
 // ApplyTransformType
 
