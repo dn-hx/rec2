@@ -1,11 +1,19 @@
 #include "22-replay.h"
 
 #include "globvars.h"
+#include "30-opponent.h"
+#include "18-graphics2.h"
+#include "23-piping.h"
 
 // GLOBAL: CARMA2_HW 0x0058f620
 int gAR_camera_type = 2;
 
-// ActualActionReplayHeadups
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DoActionReplayPostSwap
 
@@ -49,4 +57,7 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
 }
 
 // ARSetPause
+
+// Replay pipe workers (no PDB symbols; names from carpocalypse2). Kept in this TU so that
+// the Apply/Undo wrappers in 23-piping.c tail-call them instead of inlining.
 
