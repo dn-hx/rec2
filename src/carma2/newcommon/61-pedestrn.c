@@ -868,8 +868,14 @@ void C2_HOOK_FASTCALL InitPedsForRace(void) {
 
 // ResetProxRay
 
-// GetTestPed
+// FUNCTION: CARMA2_HW 0x004d6210
+tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
 
+    if (gPed_count != 0) {
+        return gPedestrian_array[gSelected_ped].character;
+    }
+    return NULL;
+}
 // NextPedCam
 
 // PrevPedCam
