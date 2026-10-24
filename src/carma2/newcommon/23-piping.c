@@ -1673,9 +1673,12 @@ void C2_HOOK_FASTCALL UndoPowerupLose(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
     return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
 }
 
-// UndoNapalmBolt
+// FUNCTION: CARMA2_HW 0x004ca310
+void C2_HOOK_FASTCALL UndoFunkEnable(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_funk_enable* chunk = (tPipe_chunk_funk_enable*)*pChunk;
 
-// UndoPowerupRespawn
+    return AdjustFunkEnable(chunk->field_0x0, chunk->field_0x4 == 0);
+}
 
 // UndoShitMine
 
