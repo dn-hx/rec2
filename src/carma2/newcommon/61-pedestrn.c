@@ -414,6 +414,13 @@ void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pIndex, tPed_cha
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004cbca0
+void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor) {
+
+    if (pActor->parent != NULL) {
+        BrActorRemove(pActor);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004cbcc0
 int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {

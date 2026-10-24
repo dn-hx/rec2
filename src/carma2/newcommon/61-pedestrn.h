@@ -93,7 +93,7 @@ extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
 
 extern void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pIndex, tPed_character_instance* pCharacter);
 
-// StopActorBeingRenderable
+extern void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor);
 
 extern int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor);
 
