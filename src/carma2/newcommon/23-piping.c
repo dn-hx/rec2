@@ -1608,9 +1608,12 @@ void C2_HOOK_FASTCALL UndoPedMove(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk
     return;
 }
 
-// UndoPedPos
+// FUNCTION: CARMA2_HW 0x004ca210
+void C2_HOOK_FASTCALL UndoPedDismember(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_ped_dismember* chunk = (tPipe_chunk_ped_dismember*)*pChunk;
 
-// UndoPedModelChange
+    return WorkerPedDismemberUndo(chunk->field_0x0, (int)chunk->field_0x4, (int)(*(tS8*)((tU8*)chunk + 6)));
+}
 
 // UndoGibShower
 
