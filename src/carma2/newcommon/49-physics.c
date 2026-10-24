@@ -564,7 +564,17 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+// FUNCTION: CARMA2_HW 0x004bae80
+void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag) {
+    tPhysics_object* sibling;
+
+    pObject->field_0x1dc = (tU8)pFlag;
+    for (sibling = pObject->child; sibling != NULL; sibling = sibling->next) {
+        if (sibling->physics_joint1 != NULL && sibling->physics_joint1->type != 0) {
+            DRMatrix33Inverse(sibling, pFlag);
+        }
+    }
+}
 
 // SetUpQuickHingeData
 

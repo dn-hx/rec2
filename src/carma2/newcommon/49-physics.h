@@ -237,7 +237,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag);
 
 // SetUpQuickHingeData
 
