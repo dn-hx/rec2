@@ -156,7 +156,7 @@ extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
 // MyDroneHathHalteth
 
-// MoveMyDroneBaby
+extern void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2);
 
 // DroneLookWhereYoureGoingYouBlindCunt
 
