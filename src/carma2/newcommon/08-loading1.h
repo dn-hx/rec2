@@ -110,4 +110,6 @@ extern void C2_HOOK_FASTCALL DisposeTrack(void);
 
 extern int GetRegisterSourceLocation(char* pSource_location);
 
+extern void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec);
+
 #endif // GUARD_08_LOADING1_H
