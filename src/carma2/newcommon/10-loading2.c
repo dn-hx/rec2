@@ -513,9 +513,12 @@ void C2_HOOK_FASTCALL LoadGeneralParameters(void) {
     gMass_mine = GetAFloat(gTempFile);
 }
 
-// STUB: CARMA2_HW 0x00487dc0
+// FUNCTION: CARMA2_HW 0x00487dc0
 void C2_HOOK_FASTCALL FinishLoadingGeneral(void) {
-    NOT_IMPLEMENTED();
+    gDefault_default_water_spec_vol.screen_pixelmap = BrMapFind(gUnderwater_screen_name);
+    ReadExplosionInfo(gTempFile, &gWasted_explosion_chance, &gExplosion_sound_id, &gExplosion_pix_animation_groups);
+    ReadPowerupSmashables(gTempFile);
+    PFfclose(gTempFile);
 }
 
 // FUNCTION: CARMA2_HW 0x00487e10
