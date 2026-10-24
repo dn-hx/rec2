@@ -4,6 +4,7 @@
 #include "41-utility.h"
 #include "globvars.h"
 #include "platform.h"
+#include "15-displays.h"
 
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
@@ -35,10 +36,16 @@ typedef struct tJoystick_preference_node {
     struct tJoystick_preference_node* next;
 } tJoystick_preference_node;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045a0f0
 int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045b920
 int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo) {
@@ -366,6 +373,9 @@ void C2_HOOK_FASTCALL RestoreJoystickPreferences(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c460
 int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     tButtonJoystickInfo* info;
@@ -378,7 +388,13 @@ int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     }
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c570
 void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     tButtonJoystickInfo* info;
@@ -388,7 +404,13 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
         info->field_0xe0 = pEnabled;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c780
 int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
 
@@ -399,6 +421,9 @@ int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
     PDSetJoystickFFBGain(gINT_00596310);
     return gINT_00596310;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045c7b0
 void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue) {
