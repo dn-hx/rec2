@@ -63,7 +63,18 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
     WaitForNoKeys();
 }
 
-// StartLoadingScreen
+// FUNCTION: CARMA2_HW 0x0043f5c0
+void C2_HOOK_FASTCALL StartLoadingScreen(void) {
+
+    SwitchToLoresMode();
+    StartMusicTrack(9998);
+    PossibleService();
+    if (gProgram_state.sausage_eater_mode) {
+        SplashScreenWith("LOADSCRN.PIX");
+    } else {
+        SplashScreenWith("LOADSCRN.PIX");
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
