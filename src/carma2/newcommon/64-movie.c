@@ -100,8 +100,11 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
 
 // MovieRecording
 
-// KillStatusMessage
+// FUNCTION: CARMA2_HW 0x004e2110
+void C2_HOOK_FASTCALL KillStatusMessage(void) {
 
+    gShow_status_message = 0;
+}
 // ShowStatusMessage
 
 // FUNCTION: CARMA2_HW 0x004e2140

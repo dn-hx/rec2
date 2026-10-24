@@ -46,8 +46,7 @@ extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
 
 // MovieRecording
 
-// KillStatusMessage
-
+extern void C2_HOOK_FASTCALL KillStatusMessage(void);
 // ShowStatusMessage
 
 extern int C2_HOOK_FASTCALL GetMovieWidth(void);
