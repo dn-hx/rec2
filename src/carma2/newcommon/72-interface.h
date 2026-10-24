@@ -102,9 +102,7 @@ extern int C2_HOOK_FASTCALL NetGameToggleTyping(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL ChooseSkill(tFrontend_spec* pFrontend);
 
-// NewGameOutfunc
-
-// NewGameInfunc
+extern int C2_HOOK_FASTCALL NewGameOutfunc(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend);
 
