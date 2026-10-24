@@ -364,7 +364,7 @@ extern void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk);
 
-// ApplyPedDir
+extern void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk);
 
 // ApplyPedMove
 
