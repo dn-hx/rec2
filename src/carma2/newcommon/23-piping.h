@@ -380,7 +380,7 @@ extern void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
-// ApplyGibShower
+extern void C2_HOOK_FASTCALL ApplyGibShower(tPipe_chunk** pChunk);
 
 // ApplyBloodSpurt
 
