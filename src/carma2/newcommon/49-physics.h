@@ -12,6 +12,8 @@ extern void* gPhysics_buffer3_ptr;
 extern int gPhysics_other_buffer_capacity;
 extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
+extern tFace_ref* gPling_face;
+extern int gActorBoxPick_StopGroovidelics;
 
 // count
 
