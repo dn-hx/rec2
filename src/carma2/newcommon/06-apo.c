@@ -12,6 +12,15 @@
 
 // MaxOutAPO
 
+// FUNCTION: CARMA2_HW 0x00502e00
+void C2_HOOK_FASTCALL MaxOutAPO(void) {
+    int i;
+
+    for (i = 0; i < 3; i++) {
+        gProgram_state.current_car.power_up_levels[i] = gInitial_powerup_slots[i];
+        gProgram_state.current_car.power_up_slots[i] = gInitial_powerup_slots[i];
+    }
+}
 // FUNCTION: CARMA2_HW 0x00502e20
 void C2_HOOK_FASTCALL ImprovePSPowerup(tCar_spec* pCar, int pIndex) {
 
