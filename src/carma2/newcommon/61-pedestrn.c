@@ -479,7 +479,27 @@ static void C2_HOOK_FASTCALL SetPedHeadAnim(tPedestrian* pPed, const tPed_anim_s
 
 // CBMoveCompleted
 
-// CBLoadForm
+// FUNCTION: CARMA2_HW 0x004cc900
+void C2_HOOK_FASTCALL CBLoadForm(tPed_form* pPed_form, FILE* pF) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_form, non_humanoid, 0x4c);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_form, index_head_bone, 0x4d);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_form, axis_when_lying_down_A, 0x4e);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_form, axis_when_lying_down_B, 0x4f);
+
+    /* Other stuff */
+
+    pPed_form->non_humanoid = GetALineAndInterpretCommand(pF, gForm_non_humanoid_names, REC2_ASIZE(gForm_non_humanoid_names)) == 0;
+
+    /* Index of head bone */
+    pPed_form->index_head_bone = GetAnInt(pF);
+
+    /* Direction axis when lying down (A) */
+    pPed_form->axis_when_lying_down_A = GetAnInt(pF);
+
+    /* Direction axis when lying down (B) */
+    pPed_form->axis_when_lying_down_B = GetAnInt(pF);
+}
 
 // FUNCTION: CARMA2_HW 0x004cc940
 void C2_HOOK_FASTCALL CBDisposeForm(tPed_form* pForm) {
