@@ -823,7 +823,15 @@ void C2_HOOK_FASTCALL PipeSinglePowerupRespawn(br_actor* pActor, int pPowerup_id
 
 // PipeSingleShitMine
 
-// PipeSingleEndShitMine
+// FUNCTION: CARMA2_HW 0x004c8fd0
+void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_end_shit_mine, m, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_end_shit_mine, m, 0x30);
+
+    ARDoSingleVariedSession(ePipe_chunk_end_shit_mine, (uintptr_t)pActor, 1,
+        SIZE_OFFSET_PIPING(tPipe_chunk_end_shit_mine, m), &pActor->t.t.mat);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8ff0
 void C2_HOOK_FASTCALL PipeSingleTransformType(br_actor* pActor, tS16 pTransform_type) {
