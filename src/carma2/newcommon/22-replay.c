@@ -293,3 +293,9 @@ void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, t
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004f5fa0
+void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+
+    NOT_IMPLEMENTED();
+}
+
