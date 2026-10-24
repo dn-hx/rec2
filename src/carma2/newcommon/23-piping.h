@@ -320,7 +320,7 @@ extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
-// ApplyDamage
+extern void C2_HOOK_FASTCALL ApplyDamage(tPipe_chunk** pChunk);
 
 // ApplySpecial
 
