@@ -1539,6 +1539,10 @@ void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x0040b2e0
+void C2_HOOK_FASTCALL DisposeCharacterInstances(void) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

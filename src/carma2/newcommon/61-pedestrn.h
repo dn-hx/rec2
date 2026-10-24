@@ -540,8 +540,6 @@ extern void C2_HOOK_FASTCALL EnableRetainRootMode(void);
 
 extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
 
-// EnableRetainRootMode
-
-// DisableRetainRootMode
+extern void C2_HOOK_FASTCALL DisposeCharacterInstances(void);
 
 #endif // GUARD_61_PEDESTRN_H
