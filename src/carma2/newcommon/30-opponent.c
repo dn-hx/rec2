@@ -344,6 +344,50 @@ int gStart_jumped;
 // GLOBAL: CARMA2_HW 0x00691750
 int gAcknowledged_start;
 
+// FUNCTION: CARMA2_HW 0x004ae620
+void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was) {
+    int i;
+    int ms;
+    tU32 stun_end;
+    tOpponent_spec* oppo;
+
+    for (i = 0; i < gProgram_state.AI_vehicles.number_of_opponents; i++) {
+        oppo = &gProgram_state.AI_vehicles.opponents[i];
+        oppo->stun_time_ends = 0;
+        if (IRandomBetween(1000, 2500) < 1000 * pWhat_the_countdown_was) {
+            ms = IRandomBetween(1000, 2500);
+        } else {
+            ms = 1000 * pWhat_the_countdown_was;
+        }
+        oppo->car_spec->acc_force = 0.f;
+        oppo->car_spec->brake_force = 0.f;
+        oppo->car_spec->curvature = 0.f;
+        stun_end = gTime_stamp_for_this_munging + ms;
+        if (oppo->stun_time_ends > stun_end) {
+            stun_end = oppo->stun_time_ends;
+        }
+        oppo->stun_time_ends = stun_end;
+    }
+    for (i = 0; i < gProgram_state.AI_vehicles.number_of_cops; i++) {
+        oppo = &gProgram_state.AI_vehicles.cops[i];
+        oppo->stun_time_ends = 0;
+        if (IRandomBetween(1000, 2500) < 1000 * pWhat_the_countdown_was) {
+            ms = IRandomBetween(1000, 2500);
+        } else {
+            ms = 1000 * pWhat_the_countdown_was;
+        }
+        oppo->car_spec->acc_force = 0.f;
+        oppo->car_spec->brake_force = 0.f;
+        oppo->car_spec->curvature = 0.f;
+        stun_end = gTime_stamp_for_this_munging + ms;
+        if (oppo->stun_time_ends > stun_end) {
+            stun_end = oppo->stun_time_ends;
+        }
+        oppo->stun_time_ends = stun_end;
+    }
+    gAcknowledged_start = 1;
+    gStart_jumped = 1;
+}
 
 // FUNCTION: CARMA2_HW 0x004ae790
 int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory) {

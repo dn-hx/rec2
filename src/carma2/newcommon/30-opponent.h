@@ -152,7 +152,7 @@ extern void C2_HOOK_FASTCALL DisposeOpponentPaths(void);
 
 extern void C2_HOOK_FASTCALL DisposeOpponents(void);
 
-// WakeUpOpponentsToTheFactThatTheStartHasBeenJumped
+extern void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was);
 
 extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
 
