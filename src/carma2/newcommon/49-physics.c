@@ -377,6 +377,22 @@ void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004c2970
+void C2_HOOK_FASTCALL PhysicsObjectMoveVelocityList(tPhysics_object* pObject) {
+
+    while (pObject != NULL) {
+        if (!pObject->disable_move_rotate) {
+            pObject->v.v[0] += pObject->field_0x54.v[0];
+            pObject->v.v[1] += pObject->field_0x54.v[1];
+            pObject->v.v[2] += pObject->field_0x54.v[2];
+        }
+        if (pObject->child != NULL) {
+            PhysicsObjectMoveVelocityList(pObject->child);
+        }
+        pObject = pObject->next;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004c2a10
 void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject) {
     tPhysics_object* child;

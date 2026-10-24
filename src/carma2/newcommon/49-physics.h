@@ -171,6 +171,8 @@ extern void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_c
 
 extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
 
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocityList(tPhysics_object* pObject);
+
 extern void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 
 // SetListDoingNothingFlag
