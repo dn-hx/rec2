@@ -3,6 +3,7 @@
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
+#include "23-piping.h"
 
 extern int gAR_camera_type;
 
