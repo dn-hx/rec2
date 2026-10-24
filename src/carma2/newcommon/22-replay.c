@@ -180,3 +180,8 @@ void C2_HOOK_FASTCALL WorkerPedPos(int field_0x0, br_vector3* pVec) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca890
+void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value) {
+    *((tS32*)(*(undefined4**)pOwner) + 4) = value;
+}
+
