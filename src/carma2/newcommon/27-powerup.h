@@ -438,4 +438,6 @@ extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
 
 extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
 
+extern tPhysics_object* C2_HOOK_FASTCALL MungeSphereObject(br_model* pModel, float pWeight);
+
 #endif // GUARD_27_POWERUP_H
