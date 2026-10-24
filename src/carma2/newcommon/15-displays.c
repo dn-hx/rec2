@@ -581,6 +581,12 @@ void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x0044b440
+// FUNCTION: CARMA2_SW 0x0044b5d0
+void C2_HOOK_FASTCALL EarnCredits(int pAmount) {
+    EarnCredits2(pAmount, "");
+}
+
 
 // FUNCTION: CARMA2_HW 0x0044b470
 int C2_HOOK_FASTCALL SpendCredits(int pAmount) {
