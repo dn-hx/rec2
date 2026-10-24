@@ -8,6 +8,17 @@
 #include "platform.h"
 
 #include <stddef.h>
+#include "13-crush1.h"
+#include "41-utility.h"
+#include "30-opponent.h"
+#include "22-replay.h"
+#include "c2_string.h"
+#include "09-funks.h"
+#include "39-oil.h"
+#include "18-graphics2.h"
+#include "20-skidmark.h"
+#include "32-spark.h"
+#include "61-pedestrn.h"
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -25,6 +36,48 @@ const tReplay_callback* gPipe_callbacks;
 // GLOBAL: CARMA2_SW 0x00671028
 tU8* gPipe_play_ptr;
 
+// GLOBAL: CARMA2_HW 0x00676908
+tU8* gPipe_buffer_start = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768e4
+int gReentrancy_count = 0;
+
+// GLOBAL: CARMA2_HW 0x006768bc
+tU8* gPipe_record_ptr = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768c4
+tU8* gPipe_buffer_working_end = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768f0
+tU8* gPipe_buffer_phys_end = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768ac
+tU8* gPipe_buffer_oldest = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768fc
+int gReplay_pause_state = 0;
+
+// GLOBAL: CARMA2_HW 0x0067690c
+int gPipe_undo_enabled = 0;
+
+// GLOBAL: CARMA2_HW 0x0069410c
+volatile undefined4 gUNK_0069410c;
+
+// GLOBAL: CARMA2_HW 0x00676904
+tU32 gPipe_sound_start_time = 0;
+
+// GLOBAL: CARMA2_HW 0x006768a8
+tU32 gPipe_sound_time_window = 0;
+
+// GLOBAL: CARMA2_HW 0x00694108
+tU32 gYoungest_time;
+
+// GLOBAL: CARMA2_HW 0x006768c8
+tU8* gPipe_buffer_end_marker = NULL;
+
+// GLOBAL: CARMA2_HW 0x00694104
+undefined4* gCrush_space;
+
 // ARReplayForwards
 
 // FUNCTION: CARMA2_HW 0x00402360
@@ -33,11 +86,18 @@ int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void) {
 }
 
 // ARReplayPauseState
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00402390
 float C2_HOOK_FASTCALL ARGetReplayRate(void) {
     return gReplay_rate;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004023a0
 void C2_HOOK_FASTCALL ARSetReplayRate(float pRate) {
@@ -65,6 +125,14 @@ void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
 // ARInitialise
 
 // ARDispose
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00403720
 int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType) {
@@ -413,7 +481,9 @@ void C2_HOOK_FASTCALL DisposeActionReplay(void) {
 
 // AddCrushToPipingSession
 
-// AddSmudgeToPipingSession
+// GLOBAL: CARMA2_HW 0x006940d4
+tPipe_smudge_data* gSmudge_space;
+
 
 // FUNCTION: CARMA2_HW 0x004c6f20
 void C2_HOOK_FASTCALL AddSparkToPipingSession(int pSpark_index, const br_vector3* pPos, const br_vector3* pV) {
