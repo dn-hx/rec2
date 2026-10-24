@@ -168,7 +168,20 @@ void C2_HOOK_FASTCALL ResetSparks(void) {
     gSpark_flags = 0;
 }
 
-// ResetShrapnel
+// FUNCTION: CARMA2_HW 0x004f87b0
+void C2_HOOK_FASTCALL ResetShrapnel(void) {
+    int i;
+
+    if (gShrapnel_flags == 0) {
+        return;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gShrapnel); i++) {
+        if (((1 << i) & gShrapnel_flags) != 0 && gShrapnel[i].actor->parent != NULL) {
+            BrActorRemove(gShrapnel[i].actor);
+        }
+    }
+    gShrapnel_flags = 0;
+}
 
 // CreateShrapnelShower2
 

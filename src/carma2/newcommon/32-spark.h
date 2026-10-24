@@ -49,7 +49,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 extern void C2_HOOK_FASTCALL ResetSparks(void);
 
-// ResetShrapnel
+extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
 // CreateShrapnelShower2
 
