@@ -13,8 +13,7 @@ extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGa
 
 extern int C2_HOOK_FASTCALL AnyBuyableCars(void);
 
-// RecordAPOAndCredits
-
+extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
 // PickRaceWhenGameCompleted
 
 // MungeRaceProgression
