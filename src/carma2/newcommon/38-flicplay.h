@@ -21,6 +21,10 @@ extern int gPlay_from_disk;
 extern int gPanel_flic_disable;
 extern int gPending_flic;
 extern int gPending_pending_flic;
+extern br_pixelmap* gPanel_buffer[2];
+extern tFlic_descriptor gPanel_flic[2];
+extern int gPanel_flic_left[2];
+extern int gPanel_flic_top[2];
 
 extern int C2_HOOK_FASTCALL TranslationMode(void);
 
