@@ -1530,6 +1530,12 @@ void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
     gPed_retain_root_mode = 1;
 }
 
+// FUNCTION: CARMA2_HW 0x0040c630
+void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
+
+    gPed_retain_root_mode = 0;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
