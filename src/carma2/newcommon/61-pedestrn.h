@@ -430,12 +430,7 @@ extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* p
 
 // BuildCharacterInstance
 
-// GetCharacterMatrixPtr
-
-// GetBoneMatrixPtr
-
-// GetCharacterActorPtr
-
+extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance *pCharacter);
 // SetCharacterBonePositions
 
 // MakeCharacterRenderable2

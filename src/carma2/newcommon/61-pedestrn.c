@@ -1211,9 +1211,17 @@ void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharact
 #pragma auto_inline(off)
 #endif
 
-// GetBoneMatrixPtr
+// FUNCTION: CARMA2_HW 0x00407aa0
+br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance *pCharacter) {
 
-// GetCharacterActorPtr
+    if (pCharacter->field_0x4 < 0) {
+        return &pCharacter->field_0x2c;
+    }
+    if (pCharacter->field_0xe8 != NULL) {
+        return pCharacter->field_0xe8;
+    }
+    return &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
