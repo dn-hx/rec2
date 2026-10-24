@@ -85,6 +85,18 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x0049c5e0
+int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax) {
+
+    if (pVal > pMax) {
+        pVal = pMax;
+    }
+    if (pVal < pMin) {
+        pVal = pMin;
+    }
+    return (int)((pVal - pMin) / (pMax - pMin) * 65534.f - 0.5f);
+}
+
 // GetVelocityAndPosition
 
 // SizeOfObjectNetworkStuff

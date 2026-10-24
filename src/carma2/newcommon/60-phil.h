@@ -33,6 +33,8 @@ extern void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation,
 
 extern int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, tU32 pSize);
 
+extern int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax);
+
 // GetVelocityAndPosition
 
 // SizeOfObjectNetworkStuff
