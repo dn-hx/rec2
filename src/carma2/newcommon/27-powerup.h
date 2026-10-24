@@ -134,7 +134,7 @@ extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
 extern void C2_HOOK_FASTCALL GotPowerup0(void);
 
-// GotPowerup1
+extern void C2_HOOK_FASTCALL GotPowerup1(void);
 
 // GotPowerup2
 
