@@ -8,10 +8,22 @@ extern tExplosion gExplosions[50];
 extern br_vector3 gZero_vector__smash;
 extern tDecal gDecals[50];
 extern int gCount_queued_smashes;
+extern tSmashable_environment_name* gSmashable_noncars;
+extern const char* gExplosion_rotate_names[2];
+extern int gShrapnel_ghost_actor_count;
+extern const char* gInitial_smashable_position_type_names[3];
+extern const char* gInitial_position_sphere_where[2];
+extern tSmash_vertex gSmash_glass_fragments[200];
+extern tRepair_animation gRepair_animations[25];
+extern int gCount_host_smashes;
+extern tNet_stored_smash* gNet_host_smashes;
+extern tQueued_net_smash gQueued_net_smashes[50];
+extern int gSize_powerup_queue;
+extern tSmash_explosion gSmash_explosions[20];
 
 extern void C2_HOOK_FASTCALL InitExplosions(void);
 
-// ResetExplosions
+extern void C2_HOOK_FASTCALL ResetExplosions(void);
 
 // RemoveAllExplosionettes
 
@@ -27,7 +39,9 @@ extern void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosio
 
 // CalcRandomPointBetween
 
-// ApplyInitialMovement
+extern void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9);
+
+extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 
 // ApplyTimeSpec
 
@@ -81,7 +95,7 @@ extern void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosio
 
 // DoConnotations
 
-// DoPowerupRespawnSmash
+extern void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor);
 
 // DoConnotationsMultiLevel
 
@@ -117,8 +131,13 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
 // ReadSpillData
 
-// ReadExplosion
+extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 
+extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec*  pInitial_pos);
+
+extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
+
+extern void C2_HOOK_FASTCALL ReadExplosion(FILE *pF, tExplosion_animation* pAnimation);
 // FreeExplosion
 
 // ReadSpecialEffectsSpec
@@ -151,6 +170,10 @@ extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crus
 
 // RepairSmash
 
+extern intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data);
+
+extern void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds);
+
 extern void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data);
 
 // InitGlassFragments
@@ -181,7 +204,7 @@ extern void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_da
 
 // DoBackwardShrapnel
 
-// InitRepairAnimations
+extern void C2_HOOK_FASTCALL InitRepairAnimations(void);
 
 // SplondificatalizeIdentifier
 
@@ -191,8 +214,7 @@ extern void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_da
 
 // ReadSmashableEnvironment
 
-// DisposeSmashEnvNonCars
-
+extern void C2_HOOK_FASTCALL DisposeSmashEnvNonCars(void);
 // CloneMemory
 
 // CloneEnvSmash
@@ -241,17 +263,16 @@ extern void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int 
 
 // SmashEnvironment
 
-// BashObject
+extern float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
 
-// NonCarSnapSmashCallback
+extern void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce);
 
 // SmashFaceMustBeUpdateable
 
-// MungeMaterialCB
+extern intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data);
+extern void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal);
 
-// MungeMaterial
-
-// ReinitSmashing
+extern void C2_HOOK_FASTCALL ReinitSmashing(void);
 
 // LinkSmashies
 
@@ -269,13 +290,15 @@ extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
 // LoadWastedExplosion
 
+extern void C2_HOOK_FASTCALL ReadExplosionInfo(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups);
+
 extern void C2_HOOK_FASTCALL ChangeSmashModel(br_actor* pActor, br_model* pOld_model, br_model* pNew_model);
 
 extern void C2_HOOK_FASTCALL TurnOnSmashModel(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor);
 
-extern void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, tS16 pCount);
+extern void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount);
 
 // SmashRestoreSomeFaces
 
@@ -285,7 +308,9 @@ extern void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex);
 
 extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar_spec, br_pixelmap* pOld_texture, br_pixelmap* pNew_texture);
 
-// DoNetSmash
+extern void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash);
+
+extern void C2_HOOK_FASTCALL UpdateCrushTimers(void);
 
 // ReceivedSmashEnvironment
 
@@ -296,5 +321,7 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 // ReceivedSmashShraps
 
 // MungeSmashEdgeTriggers
+
+extern void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race);
 
 #endif // GUARD_51_SMASH_H
