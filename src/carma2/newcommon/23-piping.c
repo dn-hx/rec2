@@ -132,9 +132,11 @@ void C2_HOOK_FASTCALL ARSetReplayRate(float pRate) {
     gReplay_rate = pRate;
 }
 
-// ARGetReplayDirection
+// FUNCTION: CARMA2_HW 0x004023b0
+int C2_HOOK_FASTCALL ARGetReplayDirection(void) {
 
-// ARSetReplayDirection
+    return gPlay_direction;
+}
 
 // ARResetPiping
 
