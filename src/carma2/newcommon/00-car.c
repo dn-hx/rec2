@@ -230,7 +230,17 @@ void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scal
 #pragma auto_inline(on)
 #endif
 
-// DragChildren
+// FUNCTION: CARMA2_HW 0x00416030
+void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild) {
+
+    while (pChild != NULL) {
+        AddDrag(pCar, pChild, 0.04f);
+        if (pChild->child != NULL) {
+            DragChildren(pCar, pChild->child);
+        }
+        pChild = pChild->next;
+    }
+}
 
 // DoCarStuff
 
