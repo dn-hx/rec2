@@ -1021,9 +1021,12 @@ void C2_HOOK_FASTCALL ResetDancingPeds(tPowerup* powerup, tCar_spec* car) {
     gDancing_peds = 0;
 }
 
-// ResetLowGravityPeds
+// FUNCTION: CARMA2_HW 0x004de970
+void C2_HOOK_FASTCALL ResetPanickingPeds(tPowerup* powerup, tCar_spec* car) {
 
-// ResetPissedPeds
+    gPanicking_peds = 0;
+}
+
 
 // ResetGhostPeds
 

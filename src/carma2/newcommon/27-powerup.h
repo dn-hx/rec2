@@ -334,7 +334,7 @@ extern int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* powerup, tCar_spec* car);
 
 extern void C2_HOOK_FASTCALL ResetDancingPeds(tPowerup* powerup, tCar_spec* car);
 
-// ResetPanickingPeds
+extern void C2_HOOK_FASTCALL ResetPanickingPeds(tPowerup* powerup, tCar_spec* car);
 
 // ResetLowGravityPeds
 
