@@ -154,6 +154,8 @@ extern int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector);
 
 // SendCrush
 
+extern void C2_HOOK_FASTCALL CrushShapeFinishVertex(br_vector3* pVertexPos, tU16 pFlags, tCar_crush_limits* pLimits);
+
 extern void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_crush* pSrc);
 
 // ExpandCrush
