@@ -355,8 +355,15 @@ void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vecto
 
 // FindFloorInBoxBU
 
-// CancelPendingCunningStunt
+// FUNCTION: CARMA2_HW 0x0041e580
+void C2_HOOK_FASTCALL CancelPendingCunningStunt(void) {
 
+    gQuite_wild_start = 0;
+    gQuite_wild_end = 0;
+    gOn_me_wheels_start = 0;
+    gWoz_upside_down_at_all = 0;
+    gWild_start = 0;
+}
 // SetAmbientPratCam
 
 // SetTextureBits
