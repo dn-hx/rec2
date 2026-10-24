@@ -755,6 +755,46 @@ tU32 gSimple_material_colours[12] = { 0x005d0303, 0x02a56e04, 0x03a9a905, 0x0800
 // GLOBAL: CARMA2_HW 0x0074b500
 br_material* gSimple_materials[32];
 
+// FUNCTION: CARMA2_HW 0x00488dd0
+br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingType pShading_type) {
+    int i;
+    int j;
+    int r, g, b;
+    br_colour colour;
+
+    if (pName[0] == 'M') {
+        int code;
+        strtok(pName, "\t ,/");
+        code = 10 * (pName[1] - '0') + pName[2] - '0';
+        for (j = 0; gSimple_material_colours[j] != 0; j++) {
+            if ((int)(gSimple_material_colours[j] >> 24) == code) {
+                break;
+            }
+        }
+        if (gSimple_material_colours[j] == 0) {
+            PDFatalError("Obsolete simple material");
+        }
+        colour = gSimple_material_colours[j] & 0xffffff;
+    } else {
+        sscanf(pName, "%d,%d,%d", &r, &g, &b);
+        colour = (((r << 8) | g) << 8) | b;
+    }
+
+    for (i = 0; gSimple_materials[i] != NULL; i++) {
+        if (gSimple_materials[i]->colour == colour) {
+            return gSimple_materials[i];
+        }
+    }
+    if (i < 32) {
+        gSimple_materials[i] = BrMaterialAllocate("Simple");
+        gSimple_materials[i]->colour = colour;
+        gSimple_materials[i]->index_base = FindBestColourMatch(gSimple_materials[i]->colour);
+        gSimple_materials[i]->index_range = 0;
+        GlorifyMaterial(&gSimple_materials[i], 1, pShading_type);
+        BrMaterialAdd(gSimple_materials[i]);
+    }
+    return gSimple_materials[i];
+}
 
 // ReadShrapnelMaterials
 
