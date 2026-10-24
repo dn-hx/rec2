@@ -1,4 +1,17 @@
 #include "57-drone.h"
+#include "globvars.h"
+#include "52-errors.h"
+#include "08-loading1.h"
+#include "41-utility.h"
+#include "c2_string.h"
+#include "platform.h"
+#include "23-piping.h"
+
+#include <math.h>
+
+// GLOBAL: CARMA2_HW 0x006820c0
+// GLOBAL: CARMA2_SW 0x0067c800
+br_vector3 gRender_bounds_centre;
 
 #include "41-utility.h"
 
@@ -11,9 +24,30 @@ br_vector3 gRender_bounds_centre;
 // GLOBAL: CARMA2_HW 0x00684518
 int gTraffic_disabled;
 
-// DoNotDprintf
+// GLOBAL: CARMA2_HW 0x00684514
+int gFrame;
 
-// CrappyLittleVector3DPrintf
+// GLOBAL: CARMA2_HW 0x00684504
+tDrone_spec* gDrone_specs;
+
+// GLOBAL: CARMA2_HW 0x006844f8
+int gCurrent_selected_drone;
+
+// GLOBAL: CARMA2_HW 0x00684508
+tDrone_path_node* gDrone_path_nodes;
+
+// GLOBAL: CARMA2_HW 0x00682178
+tDrone_form gDrone_forms[64];
+
+// GLOBAL: CARMA2_HW 0x00681fb0
+int gINT_00681fb0;
+
+// GLOBAL: CARMA2_HW 0x00684500
+int gCount_rendered_drones;
+
+/* separate 0.0f in .rdata used only here (not the shared 0x0058a988 literal) */
+// GLOBAL: CARMA2_HW 0x00589dc4
+float gDrone_render_zero = 0.0f;
 
 // CrappyLittleDrivingStateInfoDprintf
 
@@ -29,7 +63,10 @@ int gTraffic_disabled;
 
 // InitDroneCollisionObject
 
-// ReallyAddDroneToPHIL
+/* local declarations (no new includes/externs; 60-phil.h is not included here) */
+extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+
 
 // AddDroneToPHIL
 
