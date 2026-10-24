@@ -197,3 +197,9 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004ca900
+void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field_0x7) {
+
+    NOT_IMPLEMENTED();
+}
+
