@@ -207,6 +207,8 @@ extern int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void);
 
 extern void C2_HOOK_FASTCALL PDReallyAllocateActionReplayBuffer(void);
 
+extern int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2);
+
 extern int C2_HOOK_FASTCALL PDmemicmp(const char* str1, const char* str2, size_t count);
 
 #endif // C2_PLATFORM_H
