@@ -283,6 +283,12 @@ void C2_HOOK_FASTCALL CycleMapOptions(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00494880
+void C2_HOOK_FASTCALL ToggleMapTransparency(void) {
+
+    gMap_trans = !gMap_trans;
+    SaveOptions();
+}
 // FUNCTION: CARMA2_HW 0x004948a0
 void C2_HOOK_FASTCALL InitTargetLock(void) {
 
