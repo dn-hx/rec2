@@ -107,5 +107,7 @@ extern void C2_HOOK_FASTCALL WorkerEndShitMine(int field_0x0, br_vector3* pPos);
 
 extern void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4);
 
+extern void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4);
+
 
 #endif // GUARD_22_REPLAY_H
