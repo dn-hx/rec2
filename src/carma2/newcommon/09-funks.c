@@ -149,7 +149,27 @@ void C2_HOOK_FASTCALL KillGroovadelic(int pOwner) {
     }
 }
 
-// KillFunkotronic
+// FUNCTION: CARMA2_HW 0x004771c0
+// FUNCTION: CARMA2_SW 0x00476720
+void C2_HOOK_FASTCALL KillFunkotronic(int pOwner) {
+    int i;
+    tFunkotronic_spec* the_funk;
+
+    if (gFunkotronics_array != NULL) {
+        for (i = 0, the_funk = gFunkotronics_array; i < gFunkotronics_array_size; i++) {
+            if (the_funk[i].owner == pOwner
+                && the_funk[i].matrix_mode != eMove_controlled
+                && the_funk[i].matrix_mode != eMove_absolute
+                && the_funk[i].lighting_animation_type != eMove_controlled
+                && the_funk[i].lighting_animation_type != eMove_absolute
+                && ((the_funk[i].texture_animation_data.frames_info.mode != eMove_controlled
+                        && the_funk[i].texture_animation_data.frames_info.mode != eMove_texturebits)
+                    || the_funk[i].texture_animation_type != eTexture_animation_frames)) {
+                the_funk[i].owner = -999;
+            }
+        }
+    }
+}
 
 // NormaliseDegreeAngle
 
