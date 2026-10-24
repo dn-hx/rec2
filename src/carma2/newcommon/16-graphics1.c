@@ -289,6 +289,10 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004e4b40
+void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
