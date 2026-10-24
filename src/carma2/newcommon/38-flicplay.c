@@ -912,6 +912,15 @@ void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int p
     gPanel_buffer[pIndex] = DRPixelmapAllocate(BR_PMT_INDEX_8, pWidth, pHeight, the_pixels, 0);
 }
 
+// FUNCTION: CARMA2_HW 0x004630b0
+void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex) {
+
+    EndFlic(&gPanel_flic[pIndex]);
+    BrMemFree(gPanel_buffer[pIndex]->pixels);
+    BrPixelmapFree(gPanel_buffer[pIndex]);
+    gPanel_buffer[pIndex] = NULL;
+}
+
 // FUNCTION: CARMA2_HW 0x00463340
 void C2_HOOK_FASTCALL LoadInterfaceStrings(void) {
     FILE* f;

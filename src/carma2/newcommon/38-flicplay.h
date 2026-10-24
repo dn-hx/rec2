@@ -107,6 +107,8 @@ extern void C2_HOOK_FASTCALL FlushFlicQueue(void);
 
 extern void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int pWidth, int pHeight);
 
+extern void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex);
+
 extern void C2_HOOK_FASTCALL LoadInterfaceStrings(void);
 
 extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
