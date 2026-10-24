@@ -257,3 +257,9 @@ void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004df210
+void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4) {
+
+    NOT_IMPLEMENTED();
+}
+
