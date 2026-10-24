@@ -318,7 +318,7 @@ extern int C2_HOOK_FASTCALL GotVouchers(tPowerup* powerup, tCar_spec* car);
 
 extern void C2_HOOK_FASTCALL MungeVouchers(tPowerup* powerup, tU32 time);
 
-// SetInstantHandbrake
+extern int C2_HOOK_FASTCALL SetInstantHandbrake(tPowerup* powerup, tCar_spec* car);
 
 // ResetInstantHandbrake
 
