@@ -420,7 +420,7 @@ extern void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyOppoRenderage(tPipe_chunk** pChunk);
 
-// UndoCrush
+extern void C2_HOOK_FASTCALL UndoCrush(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoSmudge
 
