@@ -1121,8 +1121,12 @@ int C2_HOOK_FASTCALL GetPowerupCount(void) {
 void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition) {
 
 }
+// FUNCTION: CARMA2_HW 0x004c8da0
+void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
 
-// ARPowerupLose
+    ARDoSingleVariedSession(0x34, (uintptr_t)pPowerup, 1, 4, 0, (uintptr_t)pCar);
+}
+
 
 // SetPissed
 
