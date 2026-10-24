@@ -1226,6 +1226,13 @@ void C2_HOOK_FASTCALL ApplyPedFPChange(tPipe_chunk** pChunk) {
     return WorkerPedFPChange(chunk->field_0x0, *(tPipe_stack_word*)&chunk->field_0x8);
 }
 
+// FUNCTION: CARMA2_HW 0x004c9b50
+void C2_HOOK_FASTCALL ApplyPedPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_pos* chunk = (tPipe_chunk_ped_pos*)*pChunk;
+
+    return WorkerPedPos(chunk->field_0x0, &chunk->field_0x10);
+}
+
 
 // ApplyBloodSpurt
 
