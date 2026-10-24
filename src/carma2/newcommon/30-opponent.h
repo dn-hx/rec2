@@ -71,8 +71,7 @@ extern int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOppone
 
 // ProcessRunAway
 
-// ProcessWaitForSomeHaplessSod
-
+extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 // ProcessReturnToStart
 
 // ProcessLevitate
