@@ -10,9 +10,14 @@ extern tSmashable_race_target gSmashable_race_targets[300];
 extern tCar_icon gCar_icons[128];
 extern br_actor* gCar_icons_model_actor;
 extern int gTarget_lock_enabled;
-extern br_matrix23 gMatrix23_0068c880;
+extern int gMap_render_x_i;
+extern int gMap_render_y_i;
+extern int gMap_render_width_i;
+extern int gMap_render_height_i;
 extern br_vector3 gOrigin_map;
 extern br_vector2 gOrigin_headup_map;
+extern br_matrix23 gMatrix23_0068c880;
+extern int gTrack_version;
 
 // CarArrowColour
 
