@@ -1707,6 +1707,13 @@ void C2_HOOK_FASTCALL UndoNapalmBolt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_ch
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004ca3b0
+void C2_HOOK_FASTCALL UndoPowerupRespawn(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
+
+    return WorkerPowerupRespawnUndo(chunk->field_0x0, chunk->field_0x4);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004ca400
 int C2_HOOK_FASTCALL CalcShrapnelLength(tPipe_chunk* pChunk) {
