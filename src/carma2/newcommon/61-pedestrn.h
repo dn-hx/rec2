@@ -87,6 +87,7 @@ extern void C2_HOOK_FASTCALL DisposePedStuff(void);
 extern FILE* C2_HOOK_FASTCALL BonerOpenCharacterForm(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenDefaultMoves(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenPersonality(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
 // BonerReadPersonalityModels
 
 // MakeActorRenderable
