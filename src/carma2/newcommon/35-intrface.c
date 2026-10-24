@@ -106,6 +106,11 @@ void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec) {
     // empty
 }
 
+// FUNCTION: CARMA2_HW 0x00484640
+void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void) {
+    gStart_time = PDGetTotalTime();
+}
+
 // FUNCTION: CARMA2_HW 0x004846e0
 int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice) {
     tProg_status entry_status;
@@ -321,6 +326,16 @@ int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOption
     UnlockInterfaceStuff();
     EdgeTriggerModeOff();
     return result;
+}
+
+// FUNCTION: CARMA2_HW 0x00484f10
+void C2_HOOK_FASTCALL ChangeSelectionTo(int pNew_choice, int pNew_mode) {
+    int last_choice;
+
+    last_choice = gCurrent_choice;
+    gCurrent_choice = pNew_choice;
+    gCurrent_mode = pNew_mode;
+    ChangeSelection(gSpec, &last_choice, &gCurrent_choice, pNew_mode, 1);
 }
 
 // FUNCTION: CARMA2_HW 0x00484f40
