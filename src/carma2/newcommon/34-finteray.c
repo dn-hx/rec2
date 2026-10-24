@@ -144,6 +144,19 @@ int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, b
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0045d570
+int C2_HOOK_CDECL FindHighestPolyCallBack__finteray(br_model* pModel, br_actor* pActor, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pData) {
+
+    if (pT < gNearest_T) {
+        gNearest_T = pT;
+        gNearest_model = pModel;
+        gNearest_actor = pActor;
+        gNearest_face = pF;
+        gNearest_face_group = gTemp_group;
+    }
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0045d5c0
 void C2_HOOK_FASTCALL EnablePlingMaterials(void) {
 
