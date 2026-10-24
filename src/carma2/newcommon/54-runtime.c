@@ -1,6 +1,7 @@
 #include "54-runtime.h"
 
 #include "c2_string.h"
+#include "rec2_macros.h"
 
 // GLOBAL: CARMA2_HW 0x006ba640
 tS8 gRace_memory[1000];
