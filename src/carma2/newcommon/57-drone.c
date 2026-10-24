@@ -86,6 +86,18 @@ FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
 extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
+// FUNCTION: CARMA2_HW 0x00451650
+int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone) {
+
+    if (PHILAddObject(&pDrone->collision_info)) {
+        return 0;
+    }
+    PHILSetObjectProperty(&pDrone->collision_info, 0, 1.0);
+    PHILSetObjectProperty(&pDrone->collision_info, 3, 1);
+    PHILSetObjectProperty(&pDrone->collision_info, 7, 1);
+    PHILSetObjectProperty(&pDrone->collision_info, 6, 1);
+    return 1;
+}
 
 // AddDroneToPHIL
 
