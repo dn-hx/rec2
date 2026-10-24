@@ -1,6 +1,7 @@
 #include "42-input.h"
 
 #include "41-utility.h"
+#include "globvars.h"
 #include "25-grafdata.h"
 #include "platform.h"
 #include "rec2_macros.h"
@@ -11,7 +12,11 @@
 #define ROLLING_LETTER_LOOP_RANDOM 96
 
 // GLOBAL: CARMA2_HW 0x0074b5e0
-int gKey_mapping[77];
+int gKey_mapping[77] = { 0 };
+
+/* UNCERTAIN: unknown dword after gKey_mapping, only seen as its loop end (11 compares); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x0074b714
+int gUNK_0074b714 = 0;
 
 // GLOBAL: CARMA2_HW 0x0068c1c4
 int gEdge_trigger_mode;
