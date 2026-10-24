@@ -9,9 +9,11 @@
 #include "42-input.h"
 #include "joystick.h"
 #include "41-utility.h"
+#include "15-displays.h"
 
 #include "rec2_macros.h"
 
+#include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
 
@@ -388,6 +390,9 @@ size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void) {
     return gDirectInputJoystickInfos[gJoystick_index].count_buttons;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00459f80
 tButtonJoystickInfo* C2_HOOK_FASTCALL PDGetCurrentJoystickData(void) {
     if (gJoystick_index == -1) {
@@ -395,6 +400,9 @@ tButtonJoystickInfo* C2_HOOK_FASTCALL PDGetCurrentJoystickData(void) {
     }
     return gDirectInputJoystickInfos[gJoystick_index].data;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00459fd0
 int C2_HOOK_FASTCALL PDIsJoystickAvailable(int pIndex) {
