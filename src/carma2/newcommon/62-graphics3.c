@@ -351,6 +351,32 @@ void C2_HOOK_FASTCALL DrawCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pT
         }
     }
 }
+// FUNCTION: CARMA2_HW 0x00495d00
+void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
+    // GLOBAL: CARMA2_HW 0x0068d8f0
+    static tU32 last_flash;
+    // GLOBAL: CARMA2_HW 0x0068d8f4
+    static int flash_state;
+    tRace_checkpoint_spec* checkpoint;
+
+    if ((pCheckpoint >= 0 && pCheckpoint < gCurrent_race.check_point_count && gTrack_version > 0 && !pTarget)
+            || Flash(300, &last_flash, &flash_state)) {
+        checkpoint = &gCurrent_race.checkpoints[pCheckpoint];
+
+        if (checkpoint->map_position.v[0] >= 0.f
+                && checkpoint->map_position.v[0] < (float)pMap->width
+                && checkpoint->map_position.v[1] >= 0.f
+                && checkpoint->map_position.v[1] < (float)pMap->height) {
+
+            DRPixelmapRectangleMaskedCopy(pMap,
+                (int)(checkpoint->map_position.v[0] + 8.f - (float)gCheckpoint_digit_center_x),
+                (int)(checkpoint->map_position.v[1] - (float)gCheckpoint_digit_center_y),
+                gCheckpoint_numbers,
+                0, pCheckpoint * gCheckpoint_digit_height,
+                gCheckpoint_numbers->width, gCheckpoint_digit_height);
+        }
+    }
+}
 // DoMapOverlays
 
 // StartMap
