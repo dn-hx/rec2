@@ -137,6 +137,10 @@ int C2_HOOK_FASTCALL ARGetReplayDirection(void) {
 
     return gPlay_direction;
 }
+// FUNCTION: CARMA2_HW 0x004023c0
+void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
+    gPlay_direction = (int)pDirection;
+}
 
 // ARResetPiping
 
