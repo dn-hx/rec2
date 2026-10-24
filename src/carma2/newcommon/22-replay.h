@@ -7,9 +7,7 @@
 
 extern int gAR_camera_type;
 
-// ActualActionReplayHeadups
-
-// DoActionReplayPostSwap
+extern void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard);
 
 // DoZappyActionReplayHeadups
 
