@@ -185,3 +185,9 @@ void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value) {
     *((tS32*)(*(undefined4**)pOwner) + 4) = value;
 }
 
+// FUNCTION: CARMA2_HW 0x004ca8a0
+void C2_HOOK_FASTCALL WorkerPedModelChangeUndo(int field_0x0, int field_0x4, int field_0xc, int field_0xa) {
+
+    NOT_IMPLEMENTED();
+}
+
