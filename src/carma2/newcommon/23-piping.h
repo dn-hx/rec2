@@ -35,7 +35,7 @@ extern int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType);
 
 // LengthOfSession
 
-// ARAdvanceChunkPtr
+extern void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_chunk_type pType);
 
 // PipingFrameReset
 
