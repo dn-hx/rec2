@@ -924,7 +924,7 @@ void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor) {
 }
 
 // FUNCTION: CARMA2_HW 0x004f5f90
-void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, tS16 pCount) {
+void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
     pModel->nfaces -= pCount;
     DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
 }

@@ -301,7 +301,7 @@ extern void C2_HOOK_FASTCALL TurnOnSmashModel(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor);
 
-extern void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, tS16 pCount);
+extern void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount);
 
 // SmashRestoreSomeFaces
 
