@@ -65,7 +65,12 @@ void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
 #pragma auto_inline(off)
 #endif
 
-// IncrementLap
+// STUB: CARMA2_HW 0x005032a0
+// STUB: CARMA2_SW 0x004febf0
+void C2_HOOK_FASTCALL IncrementCheckpoint(void) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
