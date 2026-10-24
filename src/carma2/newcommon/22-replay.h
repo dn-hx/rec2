@@ -79,5 +79,7 @@ extern void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, t
 
 extern void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix);
 
+extern void C2_HOOK_FASTCALL WorkerPedPos(int field_0x0, br_vector3* pVec);
+
 
 #endif // GUARD_22_REPLAY_H
