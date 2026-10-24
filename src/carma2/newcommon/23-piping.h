@@ -328,7 +328,7 @@ extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySkidAdjustment(tPipe_chunk** pChunk);
 
-// ApplyFlap
+extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
 // ApplyModelMash
 
