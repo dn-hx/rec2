@@ -20,6 +20,30 @@ extern int gCount_mutant_tail_parts;
 extern float gMass_mutant_tail_link;
 extern float gMass_mutant_tail_ball;
 extern float gMass_mine;
+extern int gInventory_cycling;
+extern tU32 gInventory_timeout;
+extern int gInventory[20];
+extern int gInventory_selected;
+extern int gINT_006a0a6c;
+extern int gINT_006a0a5c;
+extern br_model* gModel_powerup_armor;
+extern br_model* gModel_powerup_power;
+extern br_model* gModel_powerup_offence;
+extern br_pixelmap* gFizzle_in[3];
+extern int gDancing_peds;
+extern int gImmortal_peds;
+extern int gPanicking_peds;
+extern int gDrunk_pedestrians;
+extern int gPeds_suicidal;
+extern float gPed_gravity_multiplier;
+extern int gInstant_handbrake;
+extern float gMutant_speed;
+extern tRepulse_link gRepulse_links[6];
+extern const float gBounce_rate_const;
+extern int gCredit_multiplier;
+extern void* gDrug_trip_data;
+extern int gCollision_info_uid_counter;
+extern tShit_mine gShit_mines[20];
 
 // GetNextGoodyTime
 
