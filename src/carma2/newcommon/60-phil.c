@@ -221,9 +221,26 @@ tU32 C2_HOOK_FASTCALL PHILReturnObjectStatus(tPhysics_object* pObject) {
     return 0;
 }
 
-// PHILMakeObjectPassive
+// FUNCTION: CARMA2_HW 0x004b6040
+int C2_HOOK_FASTCALL PHILMakeObjectPassive(tPhysics_object* pObject) {
+    tPHIL_queued_header* info;
 
-// PHILMakeObjectActive
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (pObject->field_0x239 == 2) {
+        ((tPHIL_queued_header*)pObject->field_0x240)->field_0x8 = 1;
+        return 0;
+    }
+    info = pObject->field_0x240;
+    if (info != NULL) {
+        info->field_0x8 = 1;
+        pObject->flags |= 0x20;
+        return 0;
+    }
+    return 3;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
