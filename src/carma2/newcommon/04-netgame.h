@@ -4,6 +4,13 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern tU32 gPHIL_last_physics_tick;
+extern int gNot_shown_race_type_headup;
+extern tU32 gTime_for_punishment;
+extern int gNet_cash_headup;
+extern int gINT_0068d920;
+extern int gNet_ped_headup;
+
 // SendShapeNumbers
 
 // ClearShapeStatusFlag
