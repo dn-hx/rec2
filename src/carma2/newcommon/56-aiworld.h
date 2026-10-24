@@ -47,4 +47,6 @@ extern void C2_HOOK_FASTCALL DisposeOpponents(void);
 
 extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
 
+extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
+
 #endif // GUARD_56_AIWORLD_H
