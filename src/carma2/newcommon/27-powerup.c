@@ -9,6 +9,22 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "41-utility.h"
+#include "25-grafdata.h"
+#include "19-font.h"
+#include "06-apo.h"
+#include "23-piping.h"
+#include "51-smash.h"
+#include "53-controls.h"
+#include "18-graphics2.h"
+#include "00-car.h"
+#include "49-physics.h"
+#include "70-packfile.h"
+#include "28-world3.h"
+#include "42-input.h"
+#include "08-loading1.h"
+#include "63-loading3.h"
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006a0ad4
 const char* gPowerup_txt_path;
@@ -64,11 +80,95 @@ float gMass_mine = 1.0f;
 // GLOBAL: CARMA2_HW 0x006a0454
 int gCount_cloaked_cars;
 
+/* explicit initializers keep gRespawn_powerups and gMutant_tail_first_collision_info adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006a0458
+tRespawn_powerup gRespawn_powerups[100] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a0908
+tPhysics_object* gMutant_tail_first_collision_info = NULL;
+
+// GLOBAL: CARMA2_HW 0x006a0a50
+tU8* gRace_powerup_respawn_bools;
+
 // GLOBAL: CARMA2_HW 0x006a0910
 tCar_spec* gCloaked_cars[12];
 
 // GLOBAL: CARMA2_HW 0x006a0a54
 tPowerup* gPowerup_array;
+
+// GLOBAL: CARMA2_HW 0x006a0940
+int gInventory_cycling;
+
+// GLOBAL: CARMA2_HW 0x006a0954
+tU32 gInventory_timeout;
+
+// GLOBAL: CARMA2_HW 0x006a0a70
+int gInventory[20];
+
+// GLOBAL: CARMA2_HW 0x006a0a58
+int gInventory_selected;
+
+// GLOBAL: CARMA2_HW 0x006a0a6c
+int gINT_006a0a6c;
+
+// GLOBAL: CARMA2_HW 0x006a0a5c
+int gINT_006a0a5c;
+
+// GLOBAL: CARMA2_HW 0x006a0ae0
+br_model* gModel_powerup_armor;
+
+// GLOBAL: CARMA2_HW 0x006a0ae4
+br_model* gModel_powerup_power;
+
+// GLOBAL: CARMA2_HW 0x006a0ae8
+br_model* gModel_powerup_offence;
+
+// GLOBAL: CARMA2_HW 0x006a0ac0
+br_pixelmap* gFizzle_in[3];
+
+// GLOBAL: CARMA2_HW 0x007447a8
+int gDancing_peds;
+
+// GLOBAL: CARMA2_HW 0x00744810
+int gImmortal_peds;
+
+// GLOBAL: CARMA2_HW 0x007447b8
+int gDrunk_pedestrians;
+
+// GLOBAL: CARMA2_HW 0x007447ac
+int gPeds_suicidal;
+
+// GLOBAL: CARMA2_HW 0x0079ec50
+int gInstant_handbrake;
+
+// GLOBAL: CARMA2_HW 0x007447a4
+float gMutant_speed;
+
+// GLOBAL: CARMA2_HW 0x006a0960
+tRepulse_link gRepulse_links[6];
+
+// GLOBAL: CARMA2_HW 0x0058ac50
+const float gBounce_rate_const = 1000.0f;
+
+// GLOBAL: CARMA2_HW 0x00705be0
+int gCredit_multiplier;
+
+// GLOBAL: CARMA2_HW 0x006a0ad8
+void* gDrug_trip_data;
+
+// GLOBAL: CARMA2_HW 0x006a0adc
+int gCollision_info_uid_counter;
+
+/* explicit initializers keep gShit_mines and the following block adjacent (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x00705560
+tShit_mine gShit_mines[20] = { 0 };
+
+/* UNCERTAIN: unreferenced dwords after gCount_mutant_tail_parts (only seen as gShit_mines loop ends); scalars, an initialized array would be 8-aligned */
+// GLOBAL: CARMA2_HW 0x007059c4
+int gUNK_007059c4 = 0;
+
+// GLOBAL: CARMA2_HW 0x007059c8
+int gUNK_007059c8 = 0;
 
 // GetNextGoodyTime
 
@@ -94,7 +194,12 @@ tPowerup* gPowerup_array;
 
 // GotPowerupXX
 
-// GotPowerupEarwig
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // AutoGoody
 
@@ -202,7 +307,12 @@ void C2_HOOK_FASTCALL CloseDownPowerUps(void) {
 
 // RemoveRepulsiveReferences
 
-// MungeRepulseRays
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // AdjustRepulseRay
 
@@ -323,9 +433,24 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // DoPowerupPeriodics
 
-// CheckRespawnQueue
+/* inlined into MungePowerupStuff in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {
+    int i;
 
-// MungePowerupStuff
+    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
+        tRespawn_powerup* respawn_powerup = &gRespawn_powerups[i];
+        if (respawn_powerup->actor == NULL || (int)pTime < (int)respawn_powerup->respawn_time) {
+            continue;
+        }
+        if (respawn_powerup->actor->render_style != BR_RSTYLE_FACES) {
+            respawn_powerup->actor->render_style = BR_RSTYLE_FACES;
+        }
+        PipeSinglePowerupRespawn(respawn_powerup->actor, respawn_powerup->index);
+        DoPowerupRespawnSmash(respawn_powerup->actor);
+        respawn_powerup->actor = NULL;
+    }
+}
+
 
 // GotPowerupN
 
@@ -1089,7 +1214,24 @@ void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity) {
 }
 // DuplicateModel
 
-// SetChangingPowerup
+static br_model* SetChangingPowerup_DupModel(br_model* pModel, const char* pName) {
+    br_model* copy;
+
+    copy = BrModelAllocate((char*)pName, pModel->nvertices, pModel->nfaces);
+    if (copy == NULL) {
+        return copy;
+    }
+    copy->pivot = pModel->pivot;
+    copy->flags = pModel->flags;
+    copy->user = pModel->user;
+    copy->crease_angle = pModel->crease_angle;
+    copy->radius = pModel->radius;
+    copy->bounds = pModel->bounds;
+    memcpy(copy->vertices, pModel->vertices, pModel->nvertices * sizeof(br_vertex));
+    memcpy(copy->faces, pModel->faces, pModel->nfaces * sizeof(br_face));
+    return copy;
+}
+
 
 // PedValium
 
@@ -1308,3 +1450,23 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
