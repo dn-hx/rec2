@@ -1517,7 +1517,10 @@ void C2_HOOK_FASTCALL UndoSplitWeld(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chu
 void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 }
 
-// UndoNonCarCreation
+// FUNCTION: CARMA2_HW 0x004ca060
+void C2_HOOK_FASTCALL UndoUnBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+}
+
 
 // FUNCTION: CARMA2_HW 0x004ca110
 void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
