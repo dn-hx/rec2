@@ -909,11 +909,12 @@ int C2_HOOK_FASTCALL UnBlendifyMaterialCB(br_material* pMaterial) {
     NOT_IMPLEMENTED();
 }
 
-// UnBlendifyMaterialCB
-
-// STUB: CARMA2_HW 0x004fed40
+// FUNCTION: CARMA2_HW 0x004fed40
 void C2_HOOK_FASTCALL UnBlendifyCar(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+
+    ForEveryCarMaterial(pCar_spec, UnBlendifyMaterialCB, 1);
+}
+
 }
 
 // IsCarSmoking
