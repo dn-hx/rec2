@@ -96,3 +96,9 @@ void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0043c030
+void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8) {
+
+    NOT_IMPLEMENTED();
+}
+
