@@ -72,8 +72,17 @@ int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shapes* pSh
 
 // AddShapeStuffToMechanicsMessage
 
-// TimeToSendData
+// FUNCTION: CARMA2_HW 0x004978d0
+int C2_HOOK_FASTCALL TimeToSendData(void) {
+    // GLOBAL: CARMA2_HW 0x00659c30
+    static tU32 last_physics_send_time = -1;
 
+    if (gPHIL_last_physics_tick > last_physics_send_time && gPHIL_last_physics_tick < last_physics_send_time + 80) {
+        return 0;
+    }
+    last_physics_send_time = gPHIL_last_physics_tick;
+    return 1;
+}
 // SendCarData
 
 // ReceivedRecover
