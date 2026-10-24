@@ -253,6 +253,13 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex(const char* pDirectory, const c
     return texture;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004869e0
 int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
     FILE* f;
