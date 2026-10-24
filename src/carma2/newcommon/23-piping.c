@@ -999,6 +999,13 @@ void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk) {
     return WorkerShrapnel(chunk->field_0x0, &chunk->field_0x4[0], chunk->field_0x10, chunk->field_0x14);
 }
 
+// FUNCTION: CARMA2_HW 0x004c9180
+void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk) {
+
+    SetScreenWobble(((tPipe_chunk_screen_wobble*)((tU8*)*pChunk + 4))->wobble_x,
+                    ((tPipe_chunk_screen_wobble*)((tU8*)*pChunk + 4))->wobble_y);
+}
+
 
 // ApplySmoke
 

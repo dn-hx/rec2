@@ -649,7 +649,7 @@ extern void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk);
 
-// ApplyShrapnel
+extern void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk);
 
 // ApplyScreenWobble
 
