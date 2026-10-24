@@ -145,7 +145,23 @@ void C2_HOOK_FASTCALL InitExplosions(void) {
     }
 }
 
-// ResetExplosions
+// FUNCTION: CARMA2_HW 0x004eaac0
+void C2_HOOK_FASTCALL ResetExplosions(void) {
+    int i;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(gExplosions) != 50);
+    C2_HOOK_BUG_ON(sizeof(gExplosions[0]) != 0x78);
+    C2_HOOK_BUG_ON(REC2_ASIZE(gSmash_explosions) != 20);
+    C2_HOOK_BUG_ON(sizeof(gSmash_explosions[0]) != 0xc8);
+
+    for (i = 0; i < (int)REC2_ASIZE(gExplosions); i++) {
+        gExplosions[i].start = 0;
+        gExplosions[i].finished = 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gSmash_explosions); i++) {
+        gSmash_explosions[i].active = 0;
+    }
+}
 
 // RemoveAllExplosionettes
 
