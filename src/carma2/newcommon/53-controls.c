@@ -398,6 +398,25 @@ void C2_HOOK_FASTCALL ResetRecoveryVouchers(void) {
 
     gRecovery_voucher_count = 0;
 }
+// FUNCTION: CARMA2_HW 0x00444720
+void C2_HOOK_FASTCALL CycleYonFactor(void) {
+    float factor;
+
+    factor = 0.5f * GetYonFactor();
+    if (factor < 0.1f) {
+        factor = 1.0f;
+    }
+    SetYonFactor(factor);
+    if (factor > 0.75f) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_track_appears_very_quickly));
+    } else if (factor > 0.375f) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_track_appears_quite_quickly));
+    } else if (factor > 0.187f) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_track_appears_quite_late));
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_track_appears_very_late));
+    }
+}
 // CycleSoundDetailLevel
 
 // CycleCarSimplificationLevel
