@@ -58,4 +58,6 @@ extern void C2_HOOK_FASTCALL ToggleJoystickYAxis(void);
 
 extern void C2_HOOK_FASTCALL ToggleJoystickEnable(void);
 
+extern void C2_HOOK_FASTCALL ToggleJoystickDPad(void);
+
 #endif /* REC2_JOYSTICK_H */
