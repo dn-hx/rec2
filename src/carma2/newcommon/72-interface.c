@@ -1043,9 +1043,86 @@ int C2_HOOK_FASTCALL FRONTEND_StartGameMenuHandler(tFrontend_spec* pFrontend) {
     return 1;
 }
 
-// CreditsScreenInfunc
+// FUNCTION: CARMA2_HW 0x0046bd60
+int C2_HOOK_FASTCALL CreditsScreenInfunc(tFrontend_spec* pFrontend) {
+    tPath_name interface_path;
+    tPath_name credits_path;
+    FILE* f;
+    char s[100];
+    char small_buf[11];
+    int i;
 
-// CreditsScreenOutfunc
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+    }
+    FuckWithWidths(pFrontend);
+    PathCat(interface_path, gApplication_path, "INTRFACE");
+    PathCat(credits_path, interface_path, "creditslist.txt");
+    f = DRfopen(credits_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_Mysterious_SS);
+    }
+
+    /* Number of lines */
+    gCredits_line_count = GetAnInt(f);
+
+    gCredits_texts = malloc(sizeof(char*) * gCredits_line_count);
+    gCredits_fonts = malloc(sizeof(int) * gCredits_line_count);
+    gCredits_heights = malloc(sizeof(int) * gCredits_line_count);
+    gCredits_throbs = malloc(sizeof(int) * gCredits_line_count);
+
+    gCredits_throbs[0] = 0;
+    gCredits_fonts[0] = kPolyfont_hand_red_15pt_lit;
+    gCredits_heights[0] = 0;
+    gCredits_total_height = 0;
+    i = 0;
+    GetALineAndDontArgue(f, s);
+    while (i < gCredits_line_count) {
+        if (strncmp(s, "FONT", 4) == 0) {
+            strncpy(small_buf, &s[5], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            gCredits_fonts[i] = atoi(small_buf);
+        } else if (strncmp(s, "SPACE", 5) == 0) {
+            strncpy(small_buf, &s[6], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            gCredits_heights[i] += (int)((double)PolyFontHeight(gCredits_fonts[i]) * atof(small_buf));
+        } else if (strncmp(s, "THROB", 5) == 0) {
+            strncpy(small_buf, &s[6], sizeof(small_buf) - 1);
+#ifdef CARPOCALYPSE2_FIX_BUGS
+            small_buf[sizeof(small_buf) - 1] = '\0';
+#endif
+            if (strncmp(small_buf, "ON", 2) == 0) {
+                gCredits_throbs[i] = 1;
+            } else {
+                gCredits_throbs[i] = 0;
+            }
+        } else {
+            gCredits_texts[i] = malloc(strlen(s) + 1);
+            strcpy(gCredits_texts[i], s);
+            gCredits_heights[i] += PolyFontHeight(gCredits_fonts[i]);
+            gCredits_total_height += gCredits_heights[i];
+            i++;
+            if (i < gCredits_line_count) {
+                gCredits_fonts[i] = gCredits_fonts[i - 1];
+                gCredits_throbs[i] = gCredits_throbs[i - 1];
+                gCredits_heights[i] = 0;
+            }
+        }
+        GetALineAndDontArgue(f, s);
+    }
+#ifdef CARPOCALYPSE2_FIX_BUGS
+    PFfclose(f);
+#endif
+    gCredits_total_height += 480;
+    gCredits_scroll_start = PDGetTotalTime();
+    StartMusicTrack(9998);
+    gFrontend_selected_item_index = 0;
+    return 1;
+}
 
 // FRONTEND_GenericMenuHandler
 
