@@ -245,3 +245,9 @@ void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004de020
+void C2_HOOK_FASTCALL WorkerEndShitMine(int field_0x0, br_vector3* pPos) {
+
+    NOT_IMPLEMENTED();
+}
+
