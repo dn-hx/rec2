@@ -831,9 +831,14 @@ int C2_HOOK_FASTCALL SetInstantHandbrake(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
-// SetLowGravityPeds
+// FUNCTION: CARMA2_HW 0x004de850
+void C2_HOOK_FASTCALL ResetInstantHandbrake(tPowerup* powerup, tCar_spec* car) {
 
-// SetPissedPeds
+    if (car && car->driver == eDriver_local_human) {
+        gInstant_handbrake = 0;
+    }
+}
+
 
 // SetGhostPeds
 
