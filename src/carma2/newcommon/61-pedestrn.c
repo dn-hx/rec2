@@ -1310,7 +1310,17 @@ tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed) {
 }
 // CharacterNoLongerCollideworthy
 
-// SetObjectV
+// FUNCTION: CARMA2_HW 0x00409300
+void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV) {
+    tPhysics_object* child;
+
+    pObject->v.v[0] = pV->v[0];
+    pObject->v.v[1] = pV->v[1];
+    pObject->v.v[2] = pV->v[2];
+    for (child = pObject->child; child != NULL; child = child->next) {
+        SetObjectV(child, pV);
+    }
+}
 
 // SetObjectOmega
 

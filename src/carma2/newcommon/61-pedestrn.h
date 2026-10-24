@@ -456,7 +456,7 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCh
 extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed);
 // CharacterNoLongerCollideworthy
 
-// SetObjectV
+extern void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV);
 
 // SetObjectOmega
 
