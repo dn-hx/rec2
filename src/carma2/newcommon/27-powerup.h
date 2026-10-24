@@ -130,7 +130,7 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
 // CheckRespawnQueue
 
-// MungePowerupStuff
+extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
 // GotPowerupN
 

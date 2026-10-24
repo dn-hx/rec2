@@ -442,6 +442,14 @@ static void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004db880
+void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1) {
+    tU32 time;
+
+    time = GetTotalTime();
+    MungeRepulseRays(time);
+    CheckRespawnQueue(time);
+}
 
 // GotPowerupN
 
