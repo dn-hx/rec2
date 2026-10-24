@@ -641,7 +641,14 @@ int C2_HOOK_FASTCALL SetWallclimb(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// SetBouncey
+// FUNCTION: CARMA2_HW 0x004dce30
+int C2_HOOK_FASTCALL SetBouncey(tPowerup* powerup, tCar_spec* car) {
+
+    car->bounce_rate = gBounce_rate_const / powerup->float_params[0];
+    car->bounce_amount = powerup->float_params[1];
+    car->last_bounce = 0;
+    return powerup - gPowerup_array;
+}
 
 // SetSuspension
 

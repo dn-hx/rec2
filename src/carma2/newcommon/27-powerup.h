@@ -226,7 +226,7 @@ extern int C2_HOOK_FASTCALL SetPinball(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL SetWallclimb(tPowerup* pPowerup, tCar_spec* pCar);
 
-// SetBouncey
+extern int C2_HOOK_FASTCALL SetBouncey(tPowerup* powerup, tCar_spec* car);
 
 // SetSuspension
 
