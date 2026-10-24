@@ -260,7 +260,14 @@ int C2_HOOK_FASTCALL DroneCarWithinProcessingDistance(const br_vector3* pPos) {
            && (float)fabs(gRender_bounds_centre.v[2] - pPos->v[2]) < 18.f;
 }
 
-// DroneTrainWithinProcessingDistance
+// FUNCTION: CARMA2_HW 0x0044cbd0
+int C2_HOOK_FASTCALL DronePlaneWithinProcessingDistance(const br_vector3* pPos) {
+
+    return (float)fabs(gRender_bounds_centre.v[0] - pPos->v[0]) < 43.f
+           && (float)fabs(gRender_bounds_centre.v[1] - pPos->v[1]) < 31.f
+           && (float)fabs(gRender_bounds_centre.v[2] - pPos->v[2]) < 43.f;
+}
+
 
 // CalcRenderBoundsCentre
 
