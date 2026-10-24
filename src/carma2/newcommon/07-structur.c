@@ -87,8 +87,38 @@ void C2_HOOK_FASTCALL IncrementLap(void) {
 
 // RayHitFace
 
-// WrongCheckpoint
+// FUNCTION: CARMA2_HW 0x005033e0
+void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
 
+    if (gRace_finished) {
+        return;
+    }
+    if (!(gCurrent_race.race_spec->race_type == kRaceType_Carma1 ||
+        gCurrent_race.race_spec->race_type == kRaceType_Checkpoints)) {
+        return;
+    }
+    if ((gLast_wrong_checkpoint == pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 20000)
+            || (gLast_wrong_checkpoint != pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 2000)) {
+
+        if (gNet_mode == eNet_mode_none) {
+            int next_checkpoint = pCheckpoint_index + 2;
+            if (next_checkpoint > gCurrent_race.check_point_count) {
+                if (gLap == 1) {
+                    next_checkpoint = -1;
+                } else {
+                    next_checkpoint = 1;
+                }
+            }
+            if (next_checkpoint == gCheckpoint) {
+                return;
+            }
+        }
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_wrong_checkpoint));
+        DRS3StartSound(gPedestrians_outlet, eSoundId_WrongCheckpoint);
+        gLast_checkpoint_time = GetTotalTime();
+        gLast_wrong_checkpoint = pCheckpoint_index;
+    }
+}
 // CheckCheckpoints
 
 // TotalRepair
