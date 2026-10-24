@@ -7,14 +7,28 @@
 
 #include "c2_string.h"
 
-// GLOBAL: CARMA2_HW 0x006b7818
-int gTimers_stack_size;
-
+/* explicit initializers keep this block adjacent and in address order as in the original (Timers_Init loop-end compare) */
 // GLOBAL: CARMA2_HW 0x006b7600
-tTimer gTimers[19];
+tTimer gTimers[19] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006b7814
-int gTimers_max_index;
+int gTimers_max_index = 0;
+
+// GLOBAL: CARMA2_HW 0x006b7818
+int gTimers_stack_size = 0;
+
+// GLOBAL: CARMA2_HW 0x006b781c
+tRace_over_reason gRace_over_reason = 0;
+
+// GLOBAL: CARMA2_HW 0x006b7820
+tBrender_storage* gStorage_for_callbacks = NULL;
+
+/* UNCERTAIN: unknown, unreferenced 4 bytes (only seen as gTimers loop end) */
+// GLOBAL: CARMA2_HW 0x006b7824
+int gUNK_006b7824 = 0;
+
+
+
 
 // GLOBAL: CARMA2_HW 0x006aaa40
 int gTimers_draw_x;
