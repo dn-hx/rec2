@@ -105,9 +105,26 @@ void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_chunk_ty
 
 // ARPipeSearchForwards
 
-// ARIsActionReplayAvailable
+// FUNCTION: CARMA2_HW 0x00402540
+int C2_HOOK_FASTCALL ARReplayPlaying(void) {
 
-// ARSomeReplayLeft
+    if (gPipe_play_ptr == gPipe_record_ptr) {
+        return 0;
+    }
+    if (gPipe_play_ptr == gPipe_buffer_oldest) {
+        return 1;
+    }
+    if (gReplay_rate != 0.f) {
+        if (gReplay_rate > 0.f) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else {
+        return gPlay_direction > 0;
+    }
+}
+
 
 // DisablePipedSounds
 
