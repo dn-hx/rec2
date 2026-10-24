@@ -186,6 +186,10 @@ void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCou
 tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void) {
     return gPipe_play_ptr;
 }
+// FUNCTION: CARMA2_HW 0x00402e00
+void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr) {
+    gPipe_play_ptr = pPtr;
+}
 
 // FUNCTION: CARMA2_HW 0x00402e00
 // FUNCTION: CARMA2_SW 0x00402e00

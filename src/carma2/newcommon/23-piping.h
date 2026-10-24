@@ -69,6 +69,7 @@ extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, i
 // ARResetPipePlayToEnd
 
 extern tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void);
+extern void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr);
 
 extern void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr);
 
