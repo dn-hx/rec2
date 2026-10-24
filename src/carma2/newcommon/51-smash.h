@@ -39,7 +39,8 @@ extern void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec);
 
 // CalcRandomPointBetween
 
-// ApplyInitialMovement
+extern void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9);
+
 
 // ApplyTimeSpec
 
