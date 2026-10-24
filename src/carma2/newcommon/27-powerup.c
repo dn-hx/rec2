@@ -1026,7 +1026,11 @@ void C2_HOOK_FASTCALL ResetLowGravityPeds(tPowerup* pPowerup, tCar_spec* pCar) {
     gPed_gravity_multiplier = 1.f;
 }
 
-// ResetPissedPeds
+// FUNCTION: CARMA2_HW 0x004de990
+void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gDrunk_pedestrians = 0;
+}
 
 // ResetGhostPeds
 
