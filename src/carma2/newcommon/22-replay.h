@@ -131,5 +131,7 @@ extern void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2
 
 extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 
+extern void C2_HOOK_FASTCALL WorkerSpecialUndo(void);
+
 
 #endif // GUARD_22_REPLAY_H

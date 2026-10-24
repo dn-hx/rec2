@@ -329,3 +329,9 @@ void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int fie
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004e0730
+void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
+
+    NOT_IMPLEMENTED();
+}
+
