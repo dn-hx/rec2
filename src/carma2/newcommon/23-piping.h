@@ -406,7 +406,7 @@ extern void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk);
 
-// ApplyDroneUnused
+extern void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk);
 
 // ApplyNapalmBolt
 

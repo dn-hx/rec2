@@ -1330,7 +1330,9 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
     return WorkerDroneStraightPos(chunk->field_0x0, chunk->field_0x4, chunk->field_0x8, chunk->field_0xa);
 }
 
-// ApplyPowerupRespawn
+// FUNCTION: CARMA2_HW 0x004c9d10
+void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk) {
+}
 
 // ApplyShitMine
 
