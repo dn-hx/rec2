@@ -60,7 +60,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // RepositionPlayer
 
-// DisableCar
+extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
 // EnableCar
 
