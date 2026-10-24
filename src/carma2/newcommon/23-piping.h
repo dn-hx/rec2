@@ -183,6 +183,8 @@ extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3
 
 // PipeSingleCrush
 
+extern void C2_HOOK_FASTCALL AddBurningPedToSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
+
 extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
 
 // PipeSingleGrooveStop
