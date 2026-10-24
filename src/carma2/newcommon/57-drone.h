@@ -29,8 +29,7 @@ extern FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name);
 
 // PreprocessDronePaths
 
-// LinkyCallback
-
+extern int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* data);
 // LinkDroneActorsToModelsAndSetRenderStyle
 
 // LoadDroneActorsModels

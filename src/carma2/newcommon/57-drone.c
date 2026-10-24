@@ -103,8 +103,24 @@ int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone) {
 
 // PreprocessDronePaths
 
-// LinkyCallback
+// FUNCTION: CARMA2_HW 0x00450600
+int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* data) {
+    tLinkyCallback_context* context = data;
+    int i;
 
+    if (pActor->type == BR_ACTOR_MODEL) {
+        pActor->render_style = BR_RSTYLE_DEFAULT;
+        for (i = context->model_start; i < context->model_start + context->model_end; i++) {
+
+            if (DRStricmp(gDroneStorage.models[i]->identifier, pActor->model->identifier) == 0) {
+                pActor->model = gDroneStorage.models[i];
+                return 0;
+            }
+        }
+        PDFatalError("No drone model");
+    }
+    return 0;
+}
 // LinkDroneActorsToModelsAndSetRenderStyle
 
 // LoadDroneActorsModels
