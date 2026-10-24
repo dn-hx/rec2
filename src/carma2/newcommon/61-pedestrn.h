@@ -435,7 +435,7 @@ extern br_matrix34* C2_HOOK_FASTCALL GetBoneMatrixPtr(tPed_character_instance* p
 extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
 // SetCharacterBonePositions
 
-// MakeCharacterRenderable2
+extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
 
 // MakeCharacterRenderable
 
