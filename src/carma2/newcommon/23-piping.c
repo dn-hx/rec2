@@ -1152,9 +1152,20 @@ void C2_HOOK_FASTCALL ApplyDamage(tPipe_chunk** pChunk) {
     }
 }
 
-// ApplyRelink
+// FUNCTION: CARMA2_HW 0x004c97c0
+void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk) {
+    tU32 type = *(tU32*)*pChunk;
 
-// ApplyIdentity
+    switch (type) {
+        case 0:
+            if (fabs(ARGetReplayRate()) <= 1.0) {
+                return FadePaletteDown();
+            }
+            return;
+        case 1:
+            return WorkerSpecial();
+    }
+}
 
 // ApplySplitWeld
 
