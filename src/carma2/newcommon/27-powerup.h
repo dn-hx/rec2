@@ -238,6 +238,7 @@ extern void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* powerup, tCar_spec* car
 
 extern int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* powerup, tCar_spec* car);
 
+extern void C2_HOOK_FASTCALL ResetSuicidalPeds(tPowerup* powerup, tCar_spec* car);
 
 extern int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
 
