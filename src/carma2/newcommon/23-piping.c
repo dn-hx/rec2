@@ -770,11 +770,15 @@ void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pValue) {
         SIZE_OFFSET_PIPING(tPipe_single_vector, vector), pValue);
 }
 
-// PipeSingleDroneRender
+// FUNCTION: CARMA2_HW 0x004c8ea0
+void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender) {
 
-// PipeSingleDroneCornerPos
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_drone_render, render, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_drone_render, render, 0x2);
 
-// PipeSingleDroneStraightPos
+    ARDoSingleVariedSession(ePipe_chunk_drone_render, pDrone_spec->id, 1,
+        SIZE_OFFSET_PIPING(tPipe_drone_render, render),         pRender);
+}
 
 // PipeSinglePowerupRespawn
 
