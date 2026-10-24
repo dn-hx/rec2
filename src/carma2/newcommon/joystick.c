@@ -545,3 +545,4 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
     }
     return gJoystick_y_throttle;
 }
+
