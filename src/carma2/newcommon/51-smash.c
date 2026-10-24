@@ -779,9 +779,12 @@ float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, fl
 #pragma auto_inline(on)
 #endif
 
-// MungeMaterialCB
+// FUNCTION: CARMA2_HW 0x004f53e0
+// FUNCTION: CARMA2_SW 0x004f1040
+void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce) {
 
-// MungeMaterial
+    BashObject(pObject, pObject->actor, BrVector3Length(pForce), pPosition, pNormal, pForce, 1, 0);
+}
 
 // ReinitSmashing
 
