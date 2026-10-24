@@ -11,6 +11,7 @@ extern tGroovidelic_spec* gGroovidelics_array;
 extern int gGroovidelics_array_size;
 extern tU32 gPrevious_groove_times[2];
 extern tGroove_funk_binding gGroove_funk_bindings[1440];
+extern int gFunkotronics_array_size;
 
 // CalculateTextureBitsValue
 
