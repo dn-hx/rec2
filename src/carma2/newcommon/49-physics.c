@@ -681,7 +681,22 @@ void C2_HOOK_FASTCALL ResetObjectAndChildren(tPhysics_object* pObject) {
 #pragma auto_inline(on)
 #endif
 
-// ResetObjectList
+// FUNCTION: CARMA2_HW 0x004c2600
+void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects) {
+    tPhysics_object* object;
+    tPhysics_object* child;
+
+    for (object = pObjects; object != NULL; object = object->next) {
+        if (object->field_0xf0 == 1) {
+            BrMatrix34Copy(&object->actor->t.t.mat, (const br_matrix34*)&object->field_0xbc);
+        } else {
+            BrMatrix34LPNormalise(&object->actor->t.t.mat, &object->transform_matrix);
+        }
+        for (child = object->child; child != NULL; child = child->next) {
+            ResetObjectAndChildren(child);
+        }
+    }
+}
 
 // RepositionObjectGroup
 
