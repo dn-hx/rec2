@@ -18,8 +18,7 @@ extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br
 
 // DroneStraightestArcForCorner2D
 
-// OpenDroneFile
-
+extern FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name);
 // LoadDroneTypeInfo
 
 // ReallyRemoveDroneFromPHIL
