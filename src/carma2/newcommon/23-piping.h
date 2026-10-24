@@ -251,7 +251,7 @@ extern void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, undefin
 
 extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
-// PipeSingleGibShower
+extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 
 // PipeSingleBloodSpurt
 

@@ -710,6 +710,19 @@ void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject) {
         SIZE_OFFSET_PIPING(tPipe_phil_object, matrix), &pObject->actor->t.t.mat);
 }
 
+// FUNCTION: CARMA2_HW 0x004c8ce0
+void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
+
+    gUNK_0069410c = pArg4;
+    ARDoSingleVariedSession(0x31, pId, 7,
+        4, 8, pArg2,
+        4, 4, pArg3,
+        4, 0xc, gUNK_0069410c,
+        4, 0, pArg5,
+        0xc, 0x10, pArg6,
+        0xc, 0x1c, pArg7,
+        0xc, 0x28, pArg8);
+}
 
 // PipeSingleBloodSpurt
 
