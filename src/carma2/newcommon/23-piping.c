@@ -297,6 +297,10 @@ tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void) {
 
     return gPipe_play_ptr;
 }
+// FUNCTION: CARMA2_HW 0x00402e00
+void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr) {
+    gPipe_play_ptr = pPtr;
+}
 
 // ApplyPipedSession
 
