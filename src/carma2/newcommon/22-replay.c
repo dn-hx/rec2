@@ -84,3 +84,9 @@ void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0043be50
+void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, void* pField_0xe) {
+
+    NOT_IMPLEMENTED();
+}
+
