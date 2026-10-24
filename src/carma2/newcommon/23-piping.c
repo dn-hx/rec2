@@ -261,9 +261,12 @@ void C2_HOOK_FASTCALL EndPipingSession2(int pMunge_reentrancy) {
 #pragma auto_inline(on)
 #endif
 
-// AREndPipingSession
+// FUNCTION: CARMA2_HW 0x00402890
+void C2_HOOK_FASTCALL AREndPipingSession(void) {
 
-// ARAddDataToSession
+    EndPipingSession2(1);
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
