@@ -316,7 +316,7 @@ extern void C2_HOOK_FASTCALL ResetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL GotVouchers(tPowerup* powerup, tCar_spec* car);
 
-// MungeVouchers
+extern void C2_HOOK_FASTCALL MungeVouchers(tPowerup* powerup, tU32 time);
 
 // SetInstantHandbrake
 
