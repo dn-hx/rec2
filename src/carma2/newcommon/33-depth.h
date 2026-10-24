@@ -55,6 +55,7 @@ extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 // DoSpecialCameraEffect
 
 extern void C2_HOOK_FASTCALL AssertYons(void);
+extern void C2_HOOK_FASTCALL IncreaseYon(void);
 extern void C2_HOOK_STDCALL SetYon(br_scalar pYon);
 
 extern br_scalar C2_HOOK_STDCALL GetYon(void);
