@@ -754,6 +754,13 @@ void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pPed, und
         4, 4, pArg3);
 }
 
+// FUNCTION: CARMA2_HW 0x004c8e30
+void C2_HOOK_FASTCALL PipeSingleDSModel(int pKind, void* pThing) {
+
+    /* pKind 0: pThing is a tCar_spec*, 1: a br_model* (carpocalypse2 comment) */
+    ARDoSingleVariedSession(ePipe_single_ds_model, (uintptr_t)pThing, 1,
+        2, 0, pKind);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8e80
 void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pValue) {
