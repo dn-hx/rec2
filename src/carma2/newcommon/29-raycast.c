@@ -5,6 +5,30 @@
 // GLOBAL: CARMA2_HW 0x006a20d0
 br_actor* gY_picking_camera;
 
+// GLOBAL: CARMA2_HW 0x006a2120
+br_scalar gHighest_y_below;
+
+// GLOBAL: CARMA2_HW 0x0070518c
+br_material* gMaterial_below;
+
+// GLOBAL: CARMA2_HW 0x006a20e0
+br_scalar gCurrent_y;
+
+// GLOBAL: CARMA2_HW 0x006a20d8
+int gBelow_face_index;
+
+// GLOBAL: CARMA2_HW 0x006a20d4
+br_model* gBelow_model;
+
+// GLOBAL: CARMA2_HW 0x006a20dc
+br_scalar gLowest_y_above;
+
+// GLOBAL: CARMA2_HW 0x006a20e8
+int gAbove_face_index;
+
+// GLOBAL: CARMA2_HW 0x006a20e4
+br_model* gAbove_model;
+
 // GLOBAL: CARMA2_HW 0x006a20f0
 // GLOBAL: CARMA2_SW 0x0069c148
 br_matrix34 gPick_model_to_view__raycast;
