@@ -308,6 +308,18 @@ int C2_HOOK_FASTCALL PFfeof(FILE* pFile) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004b4c40
+int C2_HOOK_FASTCALL PFferror(FILE* pFile) {
+    tTwatVfsFile* twtFile;
+
+    if ((int)pFile >= REC2_ASIZE(gTwatVfsFiles)) {
+        return ferror(pFile);
+    } else {
+        twtFile = &gTwatVfsFiles[(uintptr_t)pFile];
+        return twtFile->error;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004b4c80
 void C2_HOOK_FASTCALL PFForEveryFile(const char* pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine) {
     int twt;
