@@ -86,10 +86,7 @@ extern void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, b
 
 // DRMaskedStamp
 
-// SwitchToHiresMode
-
-// SwitchToLoresMode
-
+extern int C2_HOOK_FASTCALL SwitchToHiresMode(void);
 // PoshDrawLine
 
 extern void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
