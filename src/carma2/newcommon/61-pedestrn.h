@@ -290,7 +290,7 @@ extern void C2_HOOK_FASTCALL InitPedsForRace(void);
 extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
 // NextPedCam
 
-// PrevPedCam
+extern void C2_HOOK_FASTCALL PrevPedCam(void);
 
 // FindNearestPed
 

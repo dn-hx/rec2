@@ -878,7 +878,27 @@ tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
 }
 // NextPedCam
 
-// PrevPedCam
+// FUNCTION: CARMA2_HW 0x004d6290
+void C2_HOOK_FASTCALL PrevPedCam(void) {
+    int count;
+    int i;
+    int start;
+
+    count = gPed_count;
+    if (count == 0) {
+        return;
+    }
+    i = gSelected_ped;
+    start = i;
+    do {
+        i -= 1;
+        gSelected_ped = i;
+        if (i < 0) {
+            i = count - 1;
+            gSelected_ped = i;
+        }
+    } while (!(gPedestrian_array[i].flags & 1) && start != i);
+}
 
 // FindNearestPed
 
