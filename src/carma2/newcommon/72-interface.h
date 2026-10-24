@@ -232,8 +232,7 @@ extern int C2_HOOK_FASTCALL WrecksOutFunc(tFrontend_spec* pFrontend);
 
 // GetCarSelectedByMouse
 
-// WreckPick
-
+extern int C2_HOOK_CDECL WreckPick(br_actor* world, br_model* model, br_material* material, br_vector3* pos, br_vector3* dir, br_scalar pNear, br_scalar pFar, void* arg);
 extern intptr_t C2_HOOK_CDECL HeirarchyPick(br_actor* a, void* ref);
 
 extern void C2_HOOK_FASTCALL DodgyPause(tU32 pTime);
