@@ -210,7 +210,7 @@ extern int C2_HOOK_FASTCALL SetUnderwater(tPowerup* pPowerup, tCar_spec* pCar);
 
 // TrashBodywork
 
-// TakeDrugs
+extern int C2_HOOK_FASTCALL TakeDrugs(tPowerup* powerup, tCar_spec* car);
 
 // PaletteFuckedUpByDrugs
 

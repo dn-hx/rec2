@@ -593,7 +593,17 @@ int C2_HOOK_FASTCALL SetUnderwater(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // TrashBodywork
 
-// TakeDrugs
+// FUNCTION: CARMA2_HW 0x004dcb90
+int C2_HOOK_FASTCALL TakeDrugs(tPowerup* powerup, tCar_spec* car) {
+    if (car != NULL && car->driver == eDriver_local_human) {
+        if (gDrug_trip_data == NULL) {
+            gDrug_trip_data = BrMemAllocate(0x400, 0xfd);
+            memcpy(gDrug_trip_data, gRender_palette->pixels, 0x400);
+        }
+        gOn_drugs = 1;
+    }
+    return powerup - gPowerup_array;
+}
 
 // PaletteFuckedUpByDrugs
 
