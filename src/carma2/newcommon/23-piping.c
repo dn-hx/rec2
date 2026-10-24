@@ -1068,6 +1068,11 @@ void C2_HOOK_FASTCALL ApplyRelink(tPipe_chunk** pChunk) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004c9890
+void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk) {
+    BrMatrix34Identity((br_matrix34*)((tU8*)((tPipe_chunk_actor_trans*)*pChunk)->field_0x4 + 0x2c));
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c9930
 void C2_HOOK_FASTCALL ApplyBend(tPipe_chunk** pChunk) {
