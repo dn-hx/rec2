@@ -293,7 +293,7 @@ extern void C2_HOOK_FASTCALL RenderLimbs(void);
 
 extern void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
-// InitPedsForRace
+extern void C2_HOOK_FASTCALL InitPedsForRace(void);
 
 // RenderElectroBastardRays
 
