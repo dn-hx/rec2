@@ -1016,6 +1016,15 @@ void C2_HOOK_FASTCALL EtherealiseMaterial2(void* pMaterial) {
     BrModelUpdate((br_model*)pMaterial, 0x10);
 }
 
+// FUNCTION: CARMA2_HW 0x004d6bb0
+void C2_HOOK_FASTCALL MakePedsNotEthereal(void) {
+
+    MungeAllCharacterMaterials(DeetherealiseMaterial1);
+    MungeAllCharacterObjects(DeetherealiseCharacter1);
+    MungeAllCharacterModels(EtherealiseMaterial2);
+    gEthereal_pedestrians = 0;
+}
+
 
 // FUNCTION: CARMA2_HW 0x004d6d90
 void C2_HOOK_FASTCALL SavePedStuff(void) {
