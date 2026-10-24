@@ -1,11 +1,15 @@
 #include "07-structur.h"
 
+#include "13-crush1.h"
 #include "15-displays.h"
 #include "30-opponent.h"
 #include "41-utility.h"
 #include "43-pratcam.h"
 #include "69-sound.h"
 #include "globvars.h"
+#include "globvrpb.h"
+
+/* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x00655e48
 int gHud_tinted1 = -1;
@@ -18,6 +22,12 @@ int gHud_tinted3 = -1;
 
 // GLOBAL: CARMA2_HW 0x00762140
 int gCredits_checkpoint[3];
+
+// GLOBAL: CARMA2_HW 0x00660cdc
+int gLast_wrong_checkpoint = -1;
+
+// GLOBAL: CARMA2_HW 0x006aaa34
+tU32 gLast_checkpoint_time;
 
 // FUNCTION: CARMA2_HW 0x00503050
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
@@ -51,9 +61,15 @@ void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
     }
 }
 
-// IncrementCheckpoint
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // IncrementLap
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 
 // RayHitFace
 
