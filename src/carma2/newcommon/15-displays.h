@@ -48,8 +48,7 @@ extern void C2_HOOK_FASTCALL InitHeadups(void);
 
 extern void C2_HOOK_FASTCALL ClearHeadup(int pIndex);
 
-// ClearHeadupSlot
-
+extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
 extern void C2_HOOK_FASTCALL ClearHeadups(void);
 
 // DimAFewBits
