@@ -180,7 +180,7 @@ extern void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_ca
 
 // QueueCarCrush
 
-// SetBitForDetachment
+extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pCar, float pArg3, int pArg4);
 
 // SetFlappage
 
