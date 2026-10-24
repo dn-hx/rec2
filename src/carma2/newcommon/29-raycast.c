@@ -60,7 +60,80 @@ void C2_HOOK_FASTCALL InitRayCasting(void) {
 
 // PickBoundsTestRay
 
-// ActorPick2D
+// FUNCTION: CARMA2_HW 0x004e3840
+int C2_HOOK_FASTCALL ActorPick2D(br_actor* ap, br_model* model, br_material* material, dr_pick2d_cbfn* callback, void* arg) {
+    br_actor* a;
+    br_model* this_model;
+    br_material* this_material;
+    br_matrix34 m_to_v;
+    br_matrix34 v_to_m;
+    br_scalar t_near;
+    br_scalar t_far;
+    int r;
+    br_vector3 dir;
+
+    r = 0;
+    if (ap->model != NULL) {
+        this_model = ap->model;
+    } else {
+        this_model = model;
+    }
+    if (ap->material != NULL) {
+        this_material = ap->material;
+    } else {
+        this_material = material;
+    }
+    if (ap->render_style == BR_RSTYLE_NONE) {
+        return 0;
+    }
+    m_to_v = gPick_model_to_view__raycast;
+
+    BrMatrix34PreTransform(&gPick_model_to_view__raycast, &ap->t);
+    switch (ap->type) {
+    case BR_ACTOR_MODEL:
+        if (this_model != NULL) {
+            BrMatrix34Inverse(&v_to_m, &gPick_model_to_view__raycast);
+            if (PickBoundsTestRay__raycast(&this_model->bounds,
+                    (br_vector3 *) v_to_m.m[3], (br_vector3 *) v_to_m.m[2],
+                    0.f, BR_SCALAR_MAX, &t_near, &t_far) != 0) {
+                BrVector3Negate(&dir, (br_vector3 *) v_to_m.m[2]);
+                r = callback(
+                        ap, this_model, this_material, (br_vector3 *) v_to_m.m[3],
+                        &dir, t_near, t_far, arg);
+                if (r != 0) {
+                    goto done;
+                }
+            }
+            if (r != 0) {
+                goto done;
+            }
+        }
+        break;
+    case BR_ACTOR_BOUNDS:
+    case BR_ACTOR_BOUNDS_CORRECT:
+        BrMatrix34Inverse(&v_to_m, &gPick_model_to_view__raycast);
+        if (PickBoundsTestRay__raycast((br_bounds*)ap->type_data,
+                (br_vector3*)v_to_m.m[3], (br_vector3*)v_to_m.m[2],
+                0.0f, BR_SCALAR_MAX, &t_near, &t_far) != 0) {
+            for (a = ap->children; a != NULL; a = a->next) {
+                r = ActorPick2D(a, this_model, this_material, callback, arg);
+                if (r != 0) {
+                    break;
+                }
+            }
+        }
+        goto done;
+    }
+    for (a = ap->children; a != NULL; a = a->next) {
+        r = ActorPick2D(a, this_model, this_material, callback, arg);
+        if (r != 0) {
+            break;
+        }
+    }
+done:
+    gPick_model_to_view__raycast = m_to_v;
+    return r;
+}
 
 // DRScenePick2DXY
 

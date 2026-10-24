@@ -24,7 +24,7 @@ extern void C2_HOOK_FASTCALL InitRayCasting(void);
 
 // PickBoundsTestRay
 
-// ActorPick2D
+extern int C2_HOOK_FASTCALL ActorPick2D(br_actor* ap, br_model* model, br_material* material, dr_pick2d_cbfn* callback, void* arg);
 
 // DRScenePick2DXY
 
