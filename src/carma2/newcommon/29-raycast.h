@@ -38,7 +38,7 @@ extern int C2_HOOK_FASTCALL ActorPick2D(br_actor* ap, br_model* model, br_materi
 
 // FindBestY
 
-// FindYVerticallyBelowPolyCallBack
+extern int C2_HOOK_FASTCALL PickBoundsTestRay__raycast(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far);
 
 // FindYVerticallyBelowCallBack
 
