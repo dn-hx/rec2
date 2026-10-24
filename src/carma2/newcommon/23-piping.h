@@ -422,7 +422,7 @@ extern void C2_HOOK_FASTCALL ApplyOppoRenderage(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL UndoCrush(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoSmudge
+extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoDamage
 
