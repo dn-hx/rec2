@@ -11,6 +11,9 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "globvrpb.h"
+#include "04-netgame.h"
+#include "globvars.h"
 
 // GLOBAL: CARMA2_HW 0x00679698
 br_scalar gDistortion_factor;
@@ -51,8 +54,12 @@ br_scalar gMin_force_to_split_Y_per_tonne;
 // GLOBAL: CARMA2_HW 0x0067bd64
 int gMin_split_damage;
 
+/* explicit initializers keep gTrack_crush_joints and gMin_bend_force adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x0067bd68
+tPhysics_joint* gTrack_crush_joints[32] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x0067bde8
-br_scalar gMin_bend_force;
+br_scalar gMin_bend_force = 0.f;
 
 // GLOBAL: CARMA2_HW 0x0067bdec
 br_scalar gMax_crush_force;
@@ -87,8 +94,6 @@ tPhysics_object* gDetached_bit_collision_infos;
 // GLOBAL: CARMA2_HW 0x006796ac
 tDriver gDetached_bit_driver;
 
-// GLOBAL: CARMA2_HW 0x0067bd68
-tPhysics_joint* gTrack_crush_joints[32];
 
 // GLOBAL: CARMA2_HW 0x0067b7b8
 tCrush_info_buffer gSplit_car_crush_info_buffer;
@@ -101,6 +106,18 @@ tDriver gSplit_car_driver;
 
 // GLOBAL: CARMA2_HW 0x006796b4
 tPhysics_shape* gGonad_sphere_collision_shape;
+
+// GLOBAL: CARMA2_HW 0x00589a40
+br_scalar gCrushZero = 0.0f;
+
+// GLOBAL: CARMA2_HW 0x0067bad0
+int gCount_crush_detach_list;
+
+// GLOBAL: CARMA2_HW 0x00679558
+tCrush_detach_list_item gCrush_detach_list[16];
+
+// GLOBAL: CARMA2_HW 0x0067be84
+tU32 gINT_0067be84;
 
 // FUNCTION: CARMA2_HW 0x00429bb0
 void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF) {
@@ -871,10 +888,16 @@ int C2_HOOK_FASTCALL TotallyRepairObject(tPhysics_object* pCollision_info, void*
 
 // SendReAttachAllBits
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x00439510
 void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec) {
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // STUB: CARMA2_HW 0x00439bf0
 // STUB: CARMA2_SW 0x00439c30
