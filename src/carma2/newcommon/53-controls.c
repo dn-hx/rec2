@@ -381,7 +381,11 @@ void C2_HOOK_FASTCALL ToggleMap(void) {
     AdjustRenderScreenSize();
 }
 
-// CycleYonFactor
+// FUNCTION: CARMA2_HW 0x004446f0
+int C2_HOOK_FASTCALL GetRecoverVoucherCount(void) {
+
+    return gRecovery_voucher_count;
+}
 
 // CycleSoundDetailLevel
 

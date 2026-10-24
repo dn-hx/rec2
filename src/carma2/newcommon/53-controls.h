@@ -144,7 +144,7 @@ extern void C2_HOOK_FASTCALL ToggleHeadupMap(int pArg);
 
 extern void C2_HOOK_FASTCALL ToggleMap(void);
 
-// GetRecoverVoucherCount
+extern int C2_HOOK_FASTCALL GetRecoverVoucherCount(void);
 
 // AddVouchers
 
