@@ -5,18 +5,101 @@
 #include "globvars.h"
 #include "rec2_types.h"
 #include "rec2_macros.h"
+#include "52-errors.h"
+#include "08-loading1.h"
+#include "c2_string.h"
+#include "28-world3.h"
+#include "globvrpb.h"
 
+/* explicit initializers keep gExplosions, gSmash_explosions and gPowerup_respawn_smashable adjacent as in the original (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x006a55c8
-tExplosion gExplosions[50];
+tExplosion gExplosions[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a6d38
+int gMaterials_to_adapt_count = 0;
+
+// GLOBAL: CARMA2_HW 0x006a6d3c
+int gCount_host_smashes = 0;
+
+// GLOBAL: CARMA2_HW 0x006a6d40
+tSmash_explosion gSmash_explosions[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a7ce0
+tSmashable_item_spec gPowerup_respawn_smashable = { 0 };
+
+/* explicit initializers keep gRepair_animations, the gap dword and gDecals adjacent (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x006a7fc8
+tRepair_animation gRepair_animations[25] = { 0 };
+
+/* UNCERTAIN: unknown dword after gRepair_animations, only seen as its loop end */
+// GLOBAL: CARMA2_HW 0x006a80f4
+int gUNK_006a80f4 = 0;
 
 // GLOBAL: CARMA2_HW 0x006a80f8
-tDecal gDecals[50];
+tDecal gDecals[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a8288
+int gCount_track_smashable_environment_specs_2 = 0;
 
 // GLOBAL: CARMA2_HW 0x006a828c
-int gCount_queued_smashes;
+int gCount_queued_smashes = 0;
+
 
 // GLOBAL: CARMA2_HW 0x006abee8
 br_vector3 gZero_vector__smash;
+
+// GLOBAL: CARMA2_HW 0x006b7888
+tSmashable_environment_name* gSmashable_noncars;
+
+// GLOBAL: CARMA2_HW 0x0065fee8
+const char* gExplosion_rotate_names[2] = {
+    "norotate",
+    "randomrotate",
+};
+
+// GLOBAL: CARMA2_HW 0x006a3338
+int gShrapnel_ghost_actor_count;
+
+// GLOBAL: CARMA2_HW 0x0065fed0
+const char* gInitial_smashable_position_type_names[3] = {
+    "sphereclumped",
+    "boxclumped",
+    "actorbased",
+};
+
+// GLOBAL: CARMA2_HW 0x0065fee0
+const char* gInitial_position_sphere_where[2] = {
+    "impact",
+    "model",
+};
+
+/* explicit initializers keep gSmash_glass_fragments and gSmashable_track_indexable_triggers adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006b78e0
+tSmash_vertex gSmash_glass_fragments[200] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006ba4a0
+tSmashable_item_spec* gSmashable_track_indexable_triggers[100] = { 0 };
+
+
+// GLOBAL: CARMA2_HW 0x006a55c0
+tNet_stored_smash* gNet_host_smashes;
+
+// GLOBAL: CARMA2_HW 0x006a5138
+tSmashable_item_spec* gTrack_smashable_environment_specs;
+
+// GLOBAL: CARMA2_HW 0x006a55b4
+int gCount_track_smashable_environment_specs;
+
+/* explicit initializers keep gQueued_net_smashes and gPowerup_queue adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006a3940
+tQueued_net_smash gQueued_net_smashes[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a4430
+tPowerup_queue_item gPowerup_queue[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a55bc
+int gSize_powerup_queue;
+
 
 // FUNCTION: CARMA2_HW 0x004ea880
 void C2_HOOK_FASTCALL InitExplosions(void) {
@@ -98,6 +181,12 @@ void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec) {
 // CalcRandomPointBetween
 
 // ApplyInitialMovement
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ApplyTimeSpec
 
@@ -151,7 +240,12 @@ void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec) {
 
 // DoConnotations
 
-// DoPowerupRespawnSmash
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DoConnotationsMultiLevel
 
@@ -226,6 +320,13 @@ void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_time* p
 // ReadSmashLevels
 
 // ReadSmashableData
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -365,7 +466,12 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
     }
 }
 
-// FreeEnvSmash
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DisposeSmashableEnvironment
 
@@ -428,7 +534,9 @@ void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vecto
     BashObject(pObject, pObject->actor, BrVector3Length(pForce), pPosition, pNormal, pForce, 1, 0);
 }
 
-// SmashFaceMustBeUpdateable
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -546,7 +654,16 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
     NOT_IMPLEMENTED();
 }
 
-// DoNetSmash
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+/* local declaration instead of including 04-netgame.h here */
+extern tU32 gPHIL_last_physics_tick;
+
 
 // ReceivedSmashEnvironment
 
@@ -558,3 +675,9 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
 
 // MungeSmashEdgeTriggers
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
