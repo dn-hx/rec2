@@ -36,6 +36,8 @@ extern int C2_HOOK_FASTCALL CountJoystickPreferences(FILE* pF);
 
 extern int C2_HOOK_FASTCALL ToggleJoystickThrottle(void);
 
+extern void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue);
+
 extern void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled);
 
 extern int C2_HOOK_FASTCALL CycleJoystickFFBGain(void);
