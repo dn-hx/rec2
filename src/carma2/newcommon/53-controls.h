@@ -117,8 +117,7 @@ extern void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar);
 
 // CheckSystemKeys
 
-// CheckForCheatingGits
-
+extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
 // CheckKevKeys
 
 // BrakeInstantly
