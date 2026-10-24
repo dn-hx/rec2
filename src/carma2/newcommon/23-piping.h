@@ -687,7 +687,7 @@ extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk);
 
-// ApplyRelink
+extern void C2_HOOK_FASTCALL ApplyRelink(tPipe_chunk** pChunk);
 
 // ApplyIdentity
 
