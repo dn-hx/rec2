@@ -328,6 +328,12 @@ void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car) {
 
 // MultiFindFloorInBoxBU
 
+// FUNCTION: CARMA2_HW 0x0041e310
+int C2_HOOK_FASTCALL ProcessJointForcesCallback(undefined4 param_1, undefined4 param_2, undefined4 param_3) {
+
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0041e340
 void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material) {
 
