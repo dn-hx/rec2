@@ -81,5 +81,7 @@ extern void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatri
 
 extern void C2_HOOK_FASTCALL WorkerPedPos(int field_0x0, br_vector3* pVec);
 
+extern void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value);
+
 
 #endif // GUARD_22_REPLAY_H
