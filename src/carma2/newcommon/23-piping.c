@@ -1282,9 +1282,12 @@ void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk) {
 
 // ApplyFunkEnable
 
-// ApplyVanishDismembered
+// FUNCTION: CARMA2_HW 0x004c9c30
+void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk) {
+    tPipe_chunk_vanish* chunk = (tPipe_chunk_vanish*)*pChunk;
 
-// ApplyDSModel
+    DoVanishDismembered(chunk->field_0x0, chunk->field_0x8);
+}
 
 // ApplyPedDiagnostics
 
