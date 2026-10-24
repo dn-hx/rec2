@@ -1018,6 +1018,12 @@ void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk) {
 #endif
 }
 
+// FUNCTION: CARMA2_HW 0x004c91b0
+void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk) {
+    tPipe_chunk_non_car_replay* chunk = (tPipe_chunk_non_car_replay*)*pChunk;
+
+    return AdjustNonCar((br_actor*)(intptr_t)chunk->field_0x4, (const br_matrix34*)&chunk->field_0x8);
+}
 
 // ApplySmoke
 
