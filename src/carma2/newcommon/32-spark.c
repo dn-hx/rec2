@@ -30,8 +30,16 @@ br_pixelmap* gIt_shade_table;
 // GLOBAL: CARMA2_HW 0x006aa590
 int gSmoke_flags;
 
+/* explicit initializers keep gBR_smoke_structs, the 4-byte gap and gSmoke adjacent (InitSmokeStuff loop-end compares) */
+// GLOBAL: CARMA2_HW 0x006a87f0
+tBRender_smoke gBR_smoke_structs[35] = { 0 };
+
+/* UNCERTAIN: unknown, unreferenced 4 bytes between gBR_smoke_structs and gSmoke */
+// GLOBAL: CARMA2_HW 0x006a8cdc
+int gUNK_006a8cdc = 0;
+
 // GLOBAL: CARMA2_HW 0x006a8ce0
-tSmoke gSmoke[25];
+tSmoke gSmoke[25] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a8760
 tBRender_smoke* gBR_smoke_pointers[35];
@@ -39,11 +47,28 @@ tBRender_smoke* gBR_smoke_pointers[35];
 // GLOBAL: CARMA2_HW 0x006aa56c
 int gN_BR_smoke_structs;
 
+// GLOBAL: CARMA2_HW 0x006a82b8
+tSplash gSplash[32] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006a8638
-br_pixelmap* gFlame_map[20];
+br_pixelmap* gFlame_map[20] = { 0 };
+
+/* UNCERTAIN: unknown, unreferenced 0x90 bytes after gFlame_map (only seen as its loop end); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x006a8688
+tU8 gUNK_006a8688[0x90] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006aa584
+int gShrapnel_flags;
+
+// GLOBAL: CARMA2_HW 0x006a9180
+tShrapnel gShrapnel[30] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a96a8
-tSmoke_column gSmoke_column[10];
+tSmoke_column gSmoke_column[10] = { 0 };
+
+/* explicit initializers keep gSmoke_column and gSparks adjacent as in the original (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x006a9b80
+tSpark gSparks[32] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006aa380
 br_model* gLollipop_model;
@@ -59,6 +84,14 @@ br_matrix4 gCameraToScreen;
 
 // GLOBAL: CARMA2_HW 0x006a82b0
 br_camera* gSpark_cam;
+// GLOBAL: CARMA2_HW 0x006aa574
+int gReplay_splash_flags;
+
+// GLOBAL: CARMA2_HW 0x006aa388
+tReplay_splash gReplay_splashes[10];
+
+// GLOBAL: CARMA2_HW 0x00660148
+br_token_value* gDAT_00660148;
 
 // DrawDot
 
@@ -732,7 +765,19 @@ void C2_HOOK_FASTCALL InitFlame(void) {
     BrModelAdd(gLollipop_model);
 }
 
-// InitSplash
+/* based on carpocalypse2 src/carma2/common/spark.c:408 */
+// GLOBAL: CARMA2_HW 0x006aa570
+int gSplash_flags;
+
+// GLOBAL: CARMA2_HW 0x006a8758
+br_model* gSplash_model;
+
+// GLOBAL: CARMA2_HW 0x006a9130
+br_material* gSplash_material[20];
+
+// GLOBAL: CARMA2_HW 0x006aa5a4
+int gNum_splash_types;
+
 
 // DisposeSplash
 
