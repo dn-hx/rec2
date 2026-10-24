@@ -62,7 +62,7 @@ extern int gDancing_peds;
 
 // PedUndoDismember
 
-// ReadPedSpecs
+extern void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF);
 
 // GetPedPos
 
