@@ -389,7 +389,7 @@ extern void C2_HOOK_FASTCALL GetBoundsFromPointList(const br_vector3* pVertices,
 
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
-// PhysicsWarning
+extern void C2_HOOK_FASTCALL PhysicsWarning(const char* pMessage);
 
 extern void C2_HOOK_FASTCALL PhysicsSetErrorHandler(tPhysicsError_cbfn* pError_cbfn);
 
