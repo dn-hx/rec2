@@ -35,8 +35,7 @@ extern void C2_HOOK_FASTCALL InitializePalettes(void);
 
 extern void C2_HOOK_FASTCALL InitPaletteAnimate(void);
 
-// RevertPalette
-
+extern void C2_HOOK_FASTCALL RevertPalette(void);
 extern void C2_HOOK_FASTCALL MungePalette(void);
 
 extern void C2_HOOK_FASTCALL ResetPalette(void);

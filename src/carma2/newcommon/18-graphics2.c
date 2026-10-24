@@ -202,8 +202,12 @@ void C2_HOOK_FASTCALL InitPaletteAnimate(void) {
     gPalette_index = 0;
 }
 
-// RevertPalette
+// FUNCTION: CARMA2_HW 0x004b52b0
+void C2_HOOK_FASTCALL RevertPalette(void) {
 
+    memcpy(gRender_palette->pixels, gOrig_render_palette->pixels, 256 * sizeof(br_colour));
+    DRSetPalette3(gRender_palette, 1);
+}
 // FUNCTION: CARMA2_HW 0x004b5320
 void C2_HOOK_FASTCALL MungePalette(void) {
 }
