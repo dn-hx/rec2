@@ -1341,9 +1341,12 @@ void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk) {
     return AdjustNapalmBolt(chunk->field_0x0, (tPedestrian*)(intptr_t)chunk->field_0x4, &chunk->field_0x8);
 }
 
-// ApplyTransformType
+// FUNCTION: CARMA2_HW 0x004c9d40
+void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-// ApplyOppoRenderage
+    return WorkerPowerupRespawn(chunk->field_0x0, chunk->field_0x4);
+}
 
 // UndoCrush
 
