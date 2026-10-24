@@ -66,6 +66,8 @@ extern void C2_HOOK_FASTCALL SetAccessoryRendering(int pOn);
 
 extern int C2_HOOK_FASTCALL GetAccessoryRendering(void);
 
+extern void C2_HOOK_FASTCALL SetAccessoryRendering(int pOn);
+
 extern void C2_HOOK_FASTCALL SetCarSimplificationLevel(int pLevel);
 
 extern int C2_HOOK_FASTCALL GetCarSimplificationLevel(void);
