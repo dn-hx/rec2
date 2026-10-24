@@ -102,7 +102,7 @@ extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOppon
 
 // AddIfNotInList
 
-// RemoveAnythingStillInList
+extern void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender);
 
 // RebuildActiveCarList
 
