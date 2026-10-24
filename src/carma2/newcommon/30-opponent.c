@@ -448,7 +448,24 @@ const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOppo
 
 // GetOpponentsSectionFinishNodePoint
 
-// GetOpponentsSectionWidth
+// FUNCTION: CARMA2_HW 0x004aece0
+float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    if (pSection >= 20000) {
+        int sections = pOpponent_spec->nnext_sections;
+        int s = pSection - 20000;
+        if (sections > s) {
+            tS16 idx = pOpponent_spec->next_sections[pSection - 20000].section_no;
+            return gProgram_state.AI_vehicles.path_sections[idx].width;
+        }
+    }
+    if (pSection >= 15000) {
+        return 0.5f;
+    }
+    if (pSection == 10000) {
+        return pOpponent_spec->pursue_car_data.direct_line_section.width;
+    }
+    return gProgram_state.AI_vehicles.path_sections[(tS32)pSection].width;
+}
 
 // GetOpponentsSectionMinSpeed
 

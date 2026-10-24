@@ -169,7 +169,7 @@ extern int C2_HOOK_FASTCALL GetOpponentsFirstSection(const tOpponent_spec* pOppo
 
 // GetOpponentsSectionFinishNodePoint
 
-// GetOpponentsSectionWidth
+extern float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
 // GetOpponentsSectionMinSpeed
 
