@@ -232,7 +232,7 @@ br_size_t C2_HOOK_FASTCALL PFfread(void* buf, br_size_t size, unsigned int n, vo
     return n;
 }
 
-// STUB: CARMA2_HW 0x004b4a80
+// FUNCTION: CARMA2_HW 0x004b4a80
 int C2_HOOK_FASTCALL PFfwrite(const void* buf, br_size_t size, unsigned int n, void* f) {
 
     if ((uintptr_t)f >= REC2_ASIZE(gTwatVfsFiles)) {
