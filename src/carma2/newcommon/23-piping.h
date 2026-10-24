@@ -31,6 +31,8 @@ extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 // ARDispose
 
+extern void C2_HOOK_FASTCALL SetPipeUndoFlag(void);
+
 extern int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType);
 
 // LengthOfSession
