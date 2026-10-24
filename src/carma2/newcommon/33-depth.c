@@ -353,9 +353,20 @@ void C2_HOOK_FASTCALL IncreaseYon(void) {
     sprintf(s, GetMiscString(eMiscString_yon_increased_to_D), (int)((br_camera*)gCamera_list[1]->type_data)->yon_z);
     NewTextHeadupSlot(4, 0, 2000, -4, s);
 }
+// FUNCTION: CARMA2_HW 0x00446ad0
+void C2_HOOK_FASTCALL DecreaseYon(void) {
+    char text[256];
+    br_camera* camera;
 
-// DecreaseYon
-
+    gCamera_yon -= 5.f;
+    if (gCamera_yon < 5.0f) {
+        gCamera_yon = 5.0f;
+    }
+    AssertYons();
+    camera = gCamera_list[1]->type_data;
+    sprintf(text, GetMiscString(eMiscString_yon_decreased_to_D), (int)camera->yon_z);
+    NewTextHeadupSlot(4, 0, 2000, -4, text);
+}
 // FUNCTION: CARMA2_HW 0x00446b70
 void C2_HOOK_STDCALL SetYon(br_scalar pYon) {
     int i;
