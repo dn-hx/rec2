@@ -851,6 +851,43 @@ intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data) {
     }
     return 0;
 }
+// FUNCTION: CARMA2_HW 0x004f54d0
+void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal) {
+    tMungeMaterialCB_Context munge_material_cb_ctx;
+
+    munge_material_cb_ctx.material_0x0 = pMaterial_1;
+    munge_material_cb_ctx.material_0x4 = pMaterial_2;
+    munge_material_cb_ctx.capacity_indices = pCapacity_indices;
+    munge_material_cb_ctx.indices = pIndices;
+    munge_material_cb_ctx.count_indices = 0;
+    munge_material_cb_ctx.capacity_vertices = pCapacity_vertices;
+    munge_material_cb_ctx.vertices = pVertices;
+    munge_material_cb_ctx.count_vertices = 0;
+
+    if (pRecursive) {
+        DRActorEnumRecurse(pActor, MungeMaterialCB, &munge_material_cb_ctx);
+    } else {
+        MungeMaterialCB(pActor, &munge_material_cb_ctx);
+    }
+    if (munge_material_cb_ctx.count_indices != 0) {
+        br_scalar scale;
+
+        scale = BR_LENGTH3(munge_material_cb_ctx.field_0x20.v[0], munge_material_cb_ctx.field_0x20.v[1], munge_material_cb_ctx.field_0x20.v[2]);
+        if (scale > BR_SCALAR_EPSILON * 2) {
+            scale = 1. / scale;
+            pNormal->v[0] = munge_material_cb_ctx.field_0x20.v[0] * scale;
+            pNormal->v[1] = munge_material_cb_ctx.field_0x20.v[1] * scale;
+            pNormal->v[2] = munge_material_cb_ctx.field_0x20.v[2] * scale;
+        } else {
+            pNormal->v[0] = 1.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
+        }
+    }
+    *pCount_indices = munge_material_cb_ctx.count_indices;
+    *pCount_vertices = munge_material_cb_ctx.count_vertices;
+}
+
 
 // LinkSmashies
 
