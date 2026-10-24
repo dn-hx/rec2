@@ -449,9 +449,22 @@ void C2_HOOK_FASTCALL CycleYonFactor(void) {
 
 // CycleCarSimplificationLevel
 
-// ToggleAccessoryRendering
+// FUNCTION: CARMA2_HW 0x004448a0
+void C2_HOOK_FASTCALL ToggleAccessoryRendering(void) {
+    int new_enabled;
 
-// UserSendMessage
+    if (gNet_mode != eNet_mode_none) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_net_games_always_accessorized));
+    } else {
+        new_enabled = !GetAccessoryRendering();
+        SetAccessoryRendering(new_enabled);
+        if (new_enabled) {
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_accessories_on));
+        } else {
+            NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_accessories_off));
+        }
+    }
+}
 
 // EnterUserMessage
 
