@@ -4,11 +4,14 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern int gFrame;
+extern tDrone_spec* gDrone_specs;
+extern int gCurrent_selected_drone;
+extern tDrone_path_node* gDrone_path_nodes;
+extern tDrone_form gDrone_forms[64];
+extern int gINT_00681fb0;
+extern int gCount_rendered_drones;
 extern br_vector3 gRender_bounds_centre;
-
-// DoNotDprintf
-
-// CrappyLittleVector3DPrintf
 
 // CrappyLittleDrivingStateInfoDprintf
 
