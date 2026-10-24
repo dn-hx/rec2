@@ -1101,7 +1101,9 @@ void C2_HOOK_FASTCALL ApplyBend(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyUnBend(tPipe_chunk** pChunk) {
 }
 
-// ApplyEndMyBend
+// FUNCTION: CARMA2_HW 0x004c9950
+void C2_HOOK_FASTCALL ApplyEndMyBend(tPipe_chunk** pChunk) {
+}
 
 // ApplyShrapnelShower
 
