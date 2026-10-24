@@ -453,8 +453,27 @@ extern br_model* gDim_model;
 extern br_actor* gDim_actor;
 extern br_actor* g2d_camera;
 
+// FUNCTION: CARMA2_HW 0x0047cad0
 void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
-    NOT_IMPLEMENTED();
+
+    gDim_model->vertices[1].p.v[0] = (float)pLeft;
+    gDim_model->vertices[0].p.v[0] = gDim_model->vertices[1].p.v[0];
+    gDim_model->vertices[3].p.v[0] = (float)pRight;
+    gDim_model->vertices[2].p.v[0] = gDim_model->vertices[3].p.v[0];
+    gDim_model->vertices[3].p.v[1] = -(float)pTop;
+    gDim_model->vertices[0].p.v[1] = gDim_model->vertices[3].p.v[1];
+    gDim_model->vertices[2].p.v[1] = -(float)pBottom;
+    gDim_model->vertices[1].p.v[1] = gDim_model->vertices[2].p.v[1];
+    BrModelUpdate(gDim_model, BR_MODU_VERTEX_POSITIONS);
+    gDim_actor->render_style = BR_RSTYLE_FACES;
+    if (gDim_actor->prev == NULL) {
+        BrActorAdd(g2d_camera, gDim_actor);
+    }
+    BrZbsSceneRender(g2d_camera, g2d_camera, gBack_screen, gDepth_buffer);
+    if (gDim_actor->parent != NULL) {
+        BrActorRemove(gDim_actor);
+    }
+    gDim_actor->render_style = BR_RSTYLE_NONE;
 }
 
 #ifdef REC2_MATCHING
