@@ -101,5 +101,7 @@ extern void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_
 
 extern void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc);
 
+extern void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos);
+
 
 #endif // GUARD_22_REPLAY_H
