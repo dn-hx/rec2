@@ -32,13 +32,12 @@ extern void C2_HOOK_FASTCALL DisposeCurrentJoinPollGame(void);
 
 extern void C2_HOOK_FASTCALL DoNextJoinPoll(void);
 
-// NetStartProducingJoinList
-
+extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc);
 // NetEndJoinList
 
 // NetDisposePIDGameInfo
 
-// NetDisposeGameDetails
+extern void C2_HOOK_FASTCALL NetDisposeGameDetails(tNet_game_details* pDetails);
 
 extern tNet_game_details* C2_HOOK_FASTCALL NetAllocatePIDGameDetails(void);
 
@@ -74,8 +73,7 @@ extern void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_lengt
 
 extern int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
 
-// NetReallySendMessageToPlayer
-
+extern int C2_HOOK_FASTCALL NetReallySendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
 // NetSendMessageToPlayer
 
 extern int C2_HOOK_FASTCALL NetSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage);
@@ -90,7 +88,7 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined
 
 // NetBuildGuaranteedMessage
 
-// NetGetToPlayerContentsSize
+// NetGetToPlayerContentsSize (defined in 01-network.c; no extern here: an extra declaration in this header shifts MSVC codegen of DistanceFromFaceND 0x005162a0)
 
 // NetGetToPlayerContents
 
@@ -214,9 +212,9 @@ extern void C2_HOOK_FASTCALL ResendGuaranteedMessages(void);
 
 // NetPlayerFromID
 
-// NetCarFromPlayerID
+extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 
-// NetPlayerFromCar
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 
 // GetCheckSum
 
