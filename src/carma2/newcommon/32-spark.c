@@ -778,6 +778,71 @@ br_material* gSplash_material[20];
 // GLOBAL: CARMA2_HW 0x006aa5a4
 int gNum_splash_types;
 
+// FUNCTION: CARMA2_HW 0x004fdde0
+void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
+    int num;
+    int num_files;
+    int i;
+    br_actor* actor;
+    char the_path[256];
+    char s[256];
+    br_pixelmap* splash_maps[20];
+
+    gSplash_flags = 0;
+    gSplash_model = BrModelAllocate("Splash", 4, 2);
+    strcpy(gCurrent_load_directory, "COMMON");
+    if (pF != NULL) {
+        num = GetAnInt(pF);
+        gNum_splash_types = 0;
+        for (i = 0; i < num; i++) {
+            GetAString(pF, s);
+            PathCat(the_path, the_path, s);
+            strcpy(the_path, s);
+            num_files = DRLoadMultiplePix(the_path, &splash_maps[gNum_splash_types], 20 - gNum_splash_types);
+            if (!num_files) {
+                FatalError(kFatalError_CantLoadPixelmapFile_S, the_path);
+            }
+            gNum_splash_types += num_files;
+        }
+    } else {
+        strcpy(the_path, "SPLSHBLU.PIX");
+        gNum_splash_types = DRLoadMultiplePix(the_path, splash_maps, 20);
+    }
+    BrMapAddMany(splash_maps, gNum_splash_types);
+    for (i = 0; i < gNum_splash_types; i++) {
+        gSplash_material[i] = BrMaterialAllocate(NULL);
+        gSplash_material[i]->flags &= ~BR_MATF_LIGHT;
+        gSplash_material[i]->flags |= BR_MATF_ALWAYS_VISIBLE;
+        gSplash_material[i]->colour_map = splash_maps[i];
+        BrMaterialAdd(gSplash_material[i]);
+    }
+    gSplash_model->nvertices = 4;
+    BrVector3SetFloat(&gSplash_model->vertices[0].p, -0.5f, 0.0f, 0.0f);
+    BrVector3SetFloat(&gSplash_model->vertices[1].p,  0.5f, 0.0f, 0.0f);
+    BrVector3SetFloat(&gSplash_model->vertices[2].p,  0.5f, 1.0f, 0.0f);
+    BrVector3SetFloat(&gSplash_model->vertices[3].p, -0.5f, 1.0f, 0.0f);
+    BrVector2Set(&gSplash_model->vertices[0].map, 0.0f, 1.0f);
+    BrVector2Set(&gSplash_model->vertices[1].map, 1.0f, 1.0f);
+    BrVector2Set(&gSplash_model->vertices[2].map, 1.0f, 0.0f);
+    BrVector2Set(&gSplash_model->vertices[3].map, 0.0f, 0.0f);
+    gSplash_model->nfaces = 2;
+    gSplash_model->faces[0].vertices[0] = 0;
+    gSplash_model->faces[0].vertices[1] = 1;
+    gSplash_model->faces[0].vertices[2] = 2;
+    gSplash_model->faces[1].vertices[0] = 0;
+    gSplash_model->faces[1].vertices[1] = 2;
+    gSplash_model->faces[1].vertices[2] = 3;
+    gSplash_model->faces[0].smoothing = 1;
+    gSplash_model->faces[1].smoothing = 1;
+    BrModelAdd(gSplash_model);
+    for (i = 0; i < (int)REC2_ASIZE(gSplash); i++) {
+        gSplash[i].actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        actor = gSplash[i].actor;
+        actor->model = gSplash_model;
+        actor->material = gNum_splash_types != 0 ? gSplash_material[IRandomBetween(0, gNum_splash_types - 1)] : NULL;
+        gSplash[i].scale_x = SRandomBetween(0.9f, 1.1f) * (2 * IRandomBetween(0, 1) - 1);
+    }
+}
 
 // DisposeSplash
 
