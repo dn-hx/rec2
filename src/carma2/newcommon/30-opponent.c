@@ -289,8 +289,26 @@ void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info) {
 
 // LoadInOppoPaths
 
-// DisposeOpponentPaths
+// FUNCTION: CARMA2_HW 0x004a9c50
+// FUNCTION: CARMA2_SW 0x004a5dc0
+void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
 
+    if (gProgram_state.AI_vehicles.path_nodes != NULL) {
+        BrMemFree(gProgram_state.AI_vehicles.path_nodes);
+    }
+    if (gProgram_state.AI_vehicles.path_sections != NULL) {
+        BrMemFree(gProgram_state.AI_vehicles.path_sections);
+    }
+    if (gBit_per_node != NULL) {
+        BrMemFree(gBit_per_node);
+    }
+
+    gProgram_state.AI_vehicles.number_of_path_nodes = 0;
+    gProgram_state.AI_vehicles.number_of_path_sections = 0;
+    gProgram_state.AI_vehicles.path_nodes = NULL;
+    gProgram_state.AI_vehicles.path_sections = NULL;
+    gBit_per_node = NULL;
+}
 // MungeOpponents
 
 // InitOpponents
