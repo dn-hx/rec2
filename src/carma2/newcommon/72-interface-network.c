@@ -24,6 +24,22 @@ int gINT_00688748 = 0;
 // GLOBAL: CARMA2_HW 0x00688760
 int gLast_graph_sel;
 
+// FUNCTION: CARMA2_HW 0x00468260
+int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
+    int i;
+    int selected;
+
+    NetEndJoinList();
+    selected = gLast_graph_sel;
+    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+        if (i != selected && gGames_to_join[i].game != NULL) {
+            NetDisposeGameDetails(gGames_to_join[i].game);
+            gGames_to_join[i].game = NULL;
+        }
+    }
+    return 0;
+}
+
 
 // GLOBAL: CARMA2_HW 0x005b39b8
 tFrontend_spec gFrontend_NETWORK = {
