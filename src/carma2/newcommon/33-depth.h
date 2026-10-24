@@ -96,4 +96,8 @@ extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
 
 extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
 
+extern tDepth_effect_type gSwap_depth_effect_type;
+
+extern br_pixelmap* gSwap_sky_texture;
+
 #endif // GUARD_33_DEPTH_H
