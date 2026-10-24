@@ -51,8 +51,7 @@ extern void C2_HOOK_FASTCALL ClearHeadup(int pIndex);
 extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
 extern void C2_HOOK_FASTCALL ClearHeadups(void);
 
-// DimAFewBits
-
+extern void C2_HOOK_FASTCALL DimAFewBits(void);
 // KillOldestQueuedHeadup
 
 extern void C2_HOOK_FASTCALL DoTestPowerHeadup(int pLevel, const char* pAPO_str);
