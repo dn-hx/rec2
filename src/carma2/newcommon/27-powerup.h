@@ -380,7 +380,7 @@ extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPositio
 
 // SetPissed
 
-// ResetPissed
+extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
 
 // PissedEffect
 
