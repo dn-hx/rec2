@@ -192,6 +192,27 @@ int C2_HOOK_FASTCALL PickBoundsTestRay__raycast(br_bounds* b, br_vector3* rp, br
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004e4300
+int C2_HOOK_CDECL FindHighestPolyCallBack__raycast(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pArg) {
+    br_scalar the_y;
+
+    the_y = pPoint->v[1];
+    if (the_y <= gCurrent_y) {
+        if (the_y > gHighest_y_below) {
+            gHighest_y_below = the_y;
+            gBelow_face_index = pF;
+            gBelow_model = pModel;
+        }
+    } else {
+        if (the_y < gLowest_y_above) {
+            gLowest_y_above = the_y;
+            gAbove_face_index = pF;
+            gAbove_model = pModel;
+        }
+    }
+    return 0;
+}
+
 // FindYVerticallyBelowCallBack
 
 // FindYVerticallyBelow
