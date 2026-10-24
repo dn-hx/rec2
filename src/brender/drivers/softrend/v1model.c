@@ -393,9 +393,7 @@ void C2_HOOK_CDECL V1Face_OSV_Render(br_geometry* self, br_soft_renderer* render
     v11face* fp;
     brp_block* unclipped = renderer->state.cache.face_blocks_onscreen[renderer->state.cache.nface_blocks_onscreen].chain;
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
+    for (f = 0, tfp = rend.temp_faces, fp = rend.faces; f < rend.nfaces; f++, tfp++, fp++) {
         unclipped->render(unclipped,
             &rend.temp_vertices[fp->vertices[0]],
             &rend.temp_vertices[fp->vertices[1]],
