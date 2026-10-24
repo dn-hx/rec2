@@ -121,7 +121,13 @@ void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
 }
 // CheckCheckpoints
 
-// TotalRepair
+// FUNCTION: CARMA2_HW 0x005039b0
+// FUNCTION: CARMA2_SW 0x004ff300
+void C2_HOOK_FASTCALL TotalRepair(void) {
+
+    TotallyRepairCar();
+    NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_instant_repair));
+}
 
 // DoLogos
 
