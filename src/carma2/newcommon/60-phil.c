@@ -343,6 +343,54 @@ float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, i
     }
     return 0.f;
 }
+
+// FUNCTION: CARMA2_HW 0x004b6210
+int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    return PHILAddActiveObjectInner(pInfo, pMatrix, pArg3, pArg4);
+}
+
+// FUNCTION: CARMA2_HW 0x004b62b0
+int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddObject(pObject);
+    gPHIL_object_added = 0;
+    return result;
+}
+
+
+// FUNCTION: CARMA2_HW 0x004b62e0
+int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddActiveObject(pInfo, pMatrix, pArg3, pArg4);
+    gPHIL_object_added = 0;
+    return result;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FlushQueuedAddsAndRemoves
 
 // ChangedObjectsCallbacks
