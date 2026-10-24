@@ -127,8 +127,17 @@ int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec
 
 // ClearOpponentsProjectedRoute
 
-// AddToOpponentsProjectedRoute
+// FUNCTION: CARMA2_HW 0x004ab150
+int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, tS16 pSection_no, int pDirection) {
 
+    if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
+        pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].section_no = pSection_no;
+        pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].direction = pDirection;
+        pOpponent_spec->nnext_sections += 1;
+        return 1;
+    }
+    return 0;
+}
 // StunTheBugger
 
 // UnStunTheBugger
