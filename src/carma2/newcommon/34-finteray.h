@@ -11,6 +11,7 @@ extern int gNearest_face;
 extern int gNearest_face_group;
 extern br_model* gNearest_model;
 extern br_matrix34 gPick_model_to_view__finteray;
+extern int gTemp_group;
 
 // BadDiv
 
