@@ -651,3 +651,43 @@ void C2_HOOK_FASTCALL EnableLights(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004b5470
+void C2_HOOK_FASTCALL FadePaletteUp(void) {
+    int j;
+    int start_time;
+    int the_time;
+    unsigned int scale;
+    br_pixelmap* pal;
+
+    if (gFaded_palette) {
+        gFaded_palette = 0;
+        start_time = PDGetTotalTime();
+        the_time = PDGetTotalTime() - start_time;
+        while (the_time < 500) {
+            scale = (the_time * 256) / 500;
+            memcpy(gScratch_pixels, gCurrent_palette->pixels, 4 * 256);
+            for (j = 0; j < 256; j++) {
+                gScratch_pixels[j * 4] = (gScratch_pixels[j * 4] * scale) >> 8;
+                gScratch_pixels[j * 4 + 1] = (gScratch_pixels[j * 4 + 1] * scale) >> 8;
+                gScratch_pixels[j * 4 + 2] = (gScratch_pixels[j * 4 + 2] * scale) >> 8;
+                gScratch_pixels[j * 4 + 3] = (gScratch_pixels[j * 4 + 3] * scale) >> 8;
+            }
+            pal = gScratch_palette;
+            *((br_int_32*)pal->pixels) = 0;
+            gPalette_changed = 0;
+            if (!gFaded_palette) {
+                PDSetPalette(pal);
+            }
+            gPalette_munged |= (pal != gRender_palette);
+            the_time = PDGetTotalTime() - start_time;
+        }
+        pal = gCurrent_palette;
+        *((br_int_32*)pal->pixels) = 0;
+        memcpy(gCurrent_palette_pixels, pal->pixels, 4 * 256);
+        gPalette_changed = 0;
+        if (!gFaded_palette) {
+            PDSetPalette(pal);
+        }
+        gPalette_munged |= (pal != gRender_palette);
+    }
+}
