@@ -39,7 +39,7 @@ extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
 
 // SetInitialPosition
 
-// SetInitialPositions
+extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
 
 // InitialiseNonCar
 
