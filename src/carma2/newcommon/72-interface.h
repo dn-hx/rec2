@@ -216,6 +216,7 @@ extern int C2_HOOK_FASTCALL StopGettingInputString(void);
 extern int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size);
 
 extern void C2_HOOK_FASTCALL DisposeWrecksGallery(void);
+extern int C2_HOOK_FASTCALL ScrollToNextCar(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL BuyCurrentCar(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend);
