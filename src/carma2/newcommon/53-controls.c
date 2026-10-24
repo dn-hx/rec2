@@ -87,7 +87,10 @@ void C2_HOOK_FASTCALL AbortRace(void) {
 #pragma auto_inline(off)
 #endif
 
-// FinishRace
+// STUB: CARMA2_HW 0x004414b0
+void C2_HOOK_FASTCALL F4Key(void) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
