@@ -65,7 +65,7 @@ extern tPhysics_object* C2_HOOK_FASTCALL PHILGetFirstObject(void);
 
 extern tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pObject);
 
-// PHILReturnObjectStatus
+extern tU32 C2_HOOK_FASTCALL PHILReturnObjectStatus(tPhysics_object* pObject);
 
 extern int C2_HOOK_FASTCALL PHILMakeObjectPassive(tPhysics_object* pObject);
 
