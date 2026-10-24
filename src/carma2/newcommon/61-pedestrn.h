@@ -329,6 +329,8 @@ extern void C2_HOOK_FASTCALL EtherealiseMaterial2(void* pMaterial);
 
 extern void C2_HOOK_FASTCALL MakePedsNotEthereal(void);
 
+extern void C2_HOOK_FASTCALL DeetherealiseMaterial1(void* pMaterial);
+
 
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
 

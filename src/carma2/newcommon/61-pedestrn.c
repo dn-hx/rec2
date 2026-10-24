@@ -980,6 +980,12 @@ void C2_HOOK_FASTCALL MakePedsNotEthereal(void) {
     gEthereal_pedestrians = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004d6be0
+void C2_HOOK_FASTCALL DeetherealiseMaterial1(void* pMaterial) {
+    BlendifyMaterial((br_material*)pMaterial, 0x64);
+    BrMaterialUpdate((br_material*)pMaterial, 0x7fff);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004d6d90
 void C2_HOOK_FASTCALL SavePedStuff(void) {
