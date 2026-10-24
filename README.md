@@ -8,9 +8,7 @@ When enough functions have been replaced, it should become possible to not need 
 
 ## Status
 
-<img width="50%" src="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_HW.svg">
-
-The badge above is the upstream project's. Status of this fork's `work` branch (2026-10-25, `reccmp`, `CARMA2_HW.EXE`):
+Status of this fork's `work` branch (2026-10-25, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
