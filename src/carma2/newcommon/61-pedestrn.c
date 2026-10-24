@@ -1440,8 +1440,19 @@ float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_instance
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x0040c490
+void C2_HOOK_FASTCALL MungeAllCharacterMaterials(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
+    int i;
 
-// MungeAllCharacterObjects
+    for (i = 0; i < (int)REC2_ASIZE(gPed_personalities); i++) {
+        if (gPed_personalities[i] != NULL) {
+            pCallback(gPed_personalities[i]->bones[0].models[0].models[0]->faces->material);
+        }
+    }
+    for (i = 0; i < gCount_pedestrian_personality_cloned_materials; i++) {
+        pCallback(gPedestrian_character_cloned_materials[i]);
+    }
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
