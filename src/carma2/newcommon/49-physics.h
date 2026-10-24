@@ -374,6 +374,8 @@ extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* 
 
 // FreeShape
 
+extern void C2_HOOK_FASTCALL FreeThingForm(void* pData);
+
 extern void C2_HOOK_FASTCALL FreeShapeList(tPhysics_shape *pShape);
 
 extern void C2_HOOK_FASTCALL FreePhysicsJoint(tPhysics_joint* pJoint);
