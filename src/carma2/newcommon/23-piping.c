@@ -1027,7 +1027,12 @@ void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk) {
         ((tPipe_chunk_screen_wobble*)(*pChunk)->data.raw_data)->wobble_y);
 }
 
-// ApplyGrooveStop
+// FUNCTION: CARMA2_HW 0x004c9140
+void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk) {
+    tPipe_chunk_spark_replay* chunk = (tPipe_chunk_spark_replay*)*pChunk;
+
+    return WorkerSpark(chunk->field_0x0, &chunk->field_0x4[0], &chunk->field_0x4[0xc]);
+}
 
 // FUNCTION: CARMA2_HW 0x004c91b0
 // FUNCTION: CARMA2_SW 0x004c58e0

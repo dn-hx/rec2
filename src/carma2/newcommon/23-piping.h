@@ -646,9 +646,8 @@ extern void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk);
 
-// ApplySmudge
+extern void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk);
 
-// ApplySpark
 
 // ApplyShrapnel
 
