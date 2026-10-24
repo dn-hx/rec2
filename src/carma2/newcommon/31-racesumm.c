@@ -76,8 +76,16 @@ void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_comp
 
 // AnyBuyableCars
 
-// RecordAPOAndCredits
+// FUNCTION: CARMA2_HW 0x004e3410
+void C2_HOOK_FASTCALL RecordAPOAndCredits(void) {
 
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_spec, power_up_levels, 0x18a8);
+
+    gMoney_pre_race = gProgram_state.credits;
+    gAPO_pre_race[0] = gProgram_state.current_car.power_up_levels[0];
+    gAPO_pre_race[1] = gProgram_state.current_car.power_up_levels[1];
+    gAPO_pre_race[2] = gProgram_state.current_car.power_up_levels[2];
+}
 // PickRaceWhenGameCompleted
 
 // MungeRaceProgression
