@@ -221,3 +221,9 @@ void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004d6180
+void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8) {
+
+    NOT_IMPLEMENTED();
+}
+

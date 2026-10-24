@@ -95,5 +95,7 @@ extern void C2_HOOK_FASTCALL WorkerGibShower(int field_0x0, int field_0xc, int f
 
 extern void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c);
 
+extern void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8);
+
 
 #endif // GUARD_22_REPLAY_H
