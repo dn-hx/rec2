@@ -69,6 +69,7 @@ extern void C2_HOOK_FASTCALL F12Key(void);
 extern void C2_HOOK_FASTCALL LookLeft(void);
 
 extern void C2_HOOK_FASTCALL LookForward(void);
+extern void C2_HOOK_FASTCALL LookRight(void);
 
 extern void C2_HOOK_FASTCALL DamageTest(void);
 
