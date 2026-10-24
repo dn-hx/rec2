@@ -156,7 +156,7 @@ extern void C2_HOOK_FASTCALL GotPowerup9(void);
 
 // GotCredits
 
-// GainAPO2
+extern int C2_HOOK_FASTCALL GainAPO2(tCar_spec* pCar, int pIndex, int pAmount);
 
 // GainAPOPot2
 
