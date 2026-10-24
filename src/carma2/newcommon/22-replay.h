@@ -135,5 +135,7 @@ extern void C2_HOOK_FASTCALL WorkerSpecialUndo(void);
 
 extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
 
+extern void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector);
+
 
 #endif // GUARD_22_REPLAY_H

@@ -341,3 +341,9 @@ void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pA
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0043c240
+void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector) {
+
+    NOT_IMPLEMENTED();
+}
+
