@@ -780,6 +780,17 @@ void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004fca90
+void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+
+        if (gSmoke_column[i].core.collision_info == pObject) {
+            gSmoke_column[i].lifetime = 0;
+        }
+    }
+}
 
 // ConditionalSmokeColumn
 
