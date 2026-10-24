@@ -21,5 +21,7 @@ extern void C2_HOOK_FASTCALL DoGameOverAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+
 
 #endif // GUARD_45_CUTSCENE_H
