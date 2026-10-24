@@ -2,6 +2,28 @@
 
 #include "72-interface.h"
 
+#include "01-network.h"
+#include "02-init.h"
+#include "10-loading2.h"
+#include "24-loadsave.h"
+#include "globvars.h"
+#include "globvrpb.h"
+#include "rec2_macros.h"
+
+/* local declaration (no extern added to 01-network.h, see PROGRESS: header-count sensitivity) */
+extern void C2_HOOK_FASTCALL NetEndJoinList(void);
+extern int gValid_stashed_save_game;
+
+/* explicit initializers keep gGames_to_join and the next global adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00688718
+tJoinable_game gGames_to_join[6] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00688748
+int gINT_00688748 = 0;
+
+// GLOBAL: CARMA2_HW 0x00688760
+int gLast_graph_sel;
+
 
 // GLOBAL: CARMA2_HW 0x005b39b8
 tFrontend_spec gFrontend_NETWORK = {
@@ -56,3 +78,4 @@ tFrontend_spec gFrontend_NETWORK = {
     0
 #endif
 };
+
