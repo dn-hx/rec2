@@ -139,6 +139,10 @@ void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004add50
+void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
