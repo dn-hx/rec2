@@ -64,7 +64,7 @@ extern int gDancing_peds;
 
 extern void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF);
 
-// GetPedPos
+extern br_vector3* C2_HOOK_FASTCALL GetPedPos(tPedestrian* pPed);
 
 // SetUpGibSlicks
 

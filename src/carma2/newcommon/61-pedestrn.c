@@ -301,6 +301,11 @@ void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF) {
     gPedestrian_array = BrMemAllocate(PEDESTRIAN_MAX_COUNT * sizeof(tPedestrian), kMem_ped_array);
 }
 
+// FUNCTION: CARMA2_HW 0x004cadb0
+br_vector3* C2_HOOK_FASTCALL GetPedPos(tPedestrian* pPed) {
+
+    return (br_vector3*)GetCharacterMatrixPtr(pPed->character)->m[3];
+}
 
 // SetUpGibSlicks
 
