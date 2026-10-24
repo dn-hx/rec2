@@ -88,7 +88,7 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined
 
 // NetBuildGuaranteedMessage
 
-// NetGetToPlayerContentsSize
+// NetGetToPlayerContentsSize (defined in 01-network.c; no extern here: an extra declaration in this header shifts MSVC codegen of DistanceFromFaceND 0x005162a0)
 
 // NetGetToPlayerContents
 
