@@ -214,7 +214,7 @@ extern void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterial
 
 // MightBlendifyMaterial
 
-// BlendifyMaterialCB
+extern int C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial);
 
 extern void C2_HOOK_FASTCALL BlendifyCar(tCar_spec* pCar);
 
