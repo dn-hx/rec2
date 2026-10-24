@@ -273,7 +273,7 @@ extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int
 
 // PipeSingleDroneCornerPos (defined in 23-piping.c; no extern here: the extra declaration changed codegen of BitObjectIsSufficientlyOutsideCarObjectToDetach 0x00434910 in 13-crush1.c)
 
-// PipeSingleDroneStraightPos
+extern void C2_HOOK_FASTCALL PipeSingleDroneStraightPos(tDrone_spec* pDrone, undefined4 pParam1, tU16 pParam2, tU16 pParam3);
 
 // PipeSinglePowerupRespawn
 
