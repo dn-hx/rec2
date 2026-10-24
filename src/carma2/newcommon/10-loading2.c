@@ -995,7 +995,61 @@ void C2_HOOK_FASTCALL AboutToLoadFirstCar(void) {
     gGroove_funk_offset = 0;
 }
 
-// LoadOpponentsCars
+// FUNCTION: CARMA2_HW 0x0048cda0
+// FUNCTION: CARMA2_SW 0x00489fe0
+void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info) {
+    int i;
+    int j;
+    tOpp_spec* opponent;
+    int sod_counter;
+    char buffer[256];
+
+    C2_HOOK_BUG_ON(sizeof(tCar_spec) != 6500);
+
+    sod_counter = 0;
+    if (gNet_mode == eNet_mode_none) {
+        AboutToLoadFirstCar();
+        PrintMemoryDump(0, "JUST BEFORE LOADING YOUR CAR");
+        LoadCar(gOpponents[gProgram_state.current_car_index].car_file_name, eDriver_local_human, &gProgram_state.current_car, 0, gProgram_state.player_name, &gOur_car_storage_space);
+        SetCarStorageTexturingLevel(&gOur_car_storage_space, GetCarTexturingLevel(), eCTL_full);
+        PrintMemoryDump(0, "IMMEDIATELY AFTER LOADING YOUR CAR");
+    }
+
+    gGroove_funk_offset = GROOVE_FUNK_MAX_PER_CAR;
+    gCount_opponents = 0;
+    if (gNet_mode == eNet_mode_none) {
+        for (i = 0; i < pRace_info->number_of_racers; i++) {
+            opponent = &pRace_info->opponent_list[i];
+            PossibleService();
+            if (opponent->index >= 0) {
+                opponent->car_spec = BrMemAllocate(sizeof(tCar_spec), kMem_oppo_car_spec);
+                if (DRStricmp("MAX DAMAGE", gOpponents[opponent->index].name) == 0) {
+                    sod_counter++;
+                    sprintf(buffer, "POOR SOD %d", sod_counter);
+                    LoadCar(gOpponents[opponent->index].car_file_name, eDriver_oppo, opponent->car_spec, opponent->index, buffer, &gTheir_cars_storage_space);
+                } else {
+                    LoadCar(gOpponents[opponent->index].car_file_name, eDriver_oppo, opponent->car_spec, opponent->index, gOpponents[opponent->index].name, &gTheir_cars_storage_space);
+                }
+                PrintMemoryDump(0, "IMMEDIATELY AFTER LOADING AN OPPONENT");
+            }
+            if (gCurrent_race.race_spec->race_type == kRaceType_Cars) {
+                if (gCurrent_race.race_spec->options.cars.count_opponents < 0) {
+                    gCount_opponents++;
+                    opponent->car_spec->is_race_goal = 1;
+                } else {
+                    for (j = 0; j < gCurrent_race.race_spec->options.cars.count_opponents; j++) {
+                        if (opponent->index == gCurrent_race.race_spec->options.cars.opponents[j]) {
+                            gCount_opponents++;
+                            opponent->car_spec->is_race_goal = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        SetCarStorageTexturingLevel(&gTheir_cars_storage_space, GetCarTexturingLevel(), eCTL_full);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0048cfc0
 void C2_HOOK_FASTCALL LoadMiscStrings(void) {

@@ -27,4 +27,6 @@ extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 
 // MakeAISimpleEditSectionHere
 
+extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
+
 #endif // GUARD_56_AIWORLD_H

@@ -102,7 +102,7 @@ extern void C2_HOOK_FASTCALL LoadOpponents(void);
 
 extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
 
-// LoadOpponentsCars
+extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL LoadMiscStrings(void);
 
