@@ -2,6 +2,7 @@
 
 #include "08-loading1.h"
 #include "10-loading2.h"
+#include "18-graphics2.h"
 #include "19-font.h"
 #include "25-grafdata.h"
 #include "41-utility.h"
@@ -11,6 +12,7 @@
 #include "63-loading3.h"
 #include "70-packfile.h"
 #include "globvars.h"
+#include "globvrpb.h"
 #include "rec2_macros.h"
 
 #include <limits.h>
@@ -24,6 +26,12 @@ tCar_icon gCar_icons[128];
 
 // GLOBAL: CARMA2_HW 0x0074ab84
 br_actor* gCar_icons_model_actor;
+
+// GLOBAL: CARMA2_HW 0x0068d6f0
+tCar_spec* gTarget_lock_car_2;
+
+// GLOBAL: CARMA2_HW 0x0068d8c4
+tCar_spec* gTarget_lock_car_1;
 
 // GLOBAL: CARMA2_HW 0x0068d8c8
 int gTarget_lock_enabled;
@@ -109,6 +117,18 @@ br_pixelmap* gSmashy_dot;
 // GLOBAL: CARMA2_HW 0x0068c87c
 br_pixelmap* gAlt_meter;
 
+// GLOBAL: CARMA2_HW 0x0068c880
+// GLOBAL: CARMA2_SW 0x006868d8
+br_matrix23 gMatrix23_0068c880;
+
+// GLOBAL: CARMA2_HW 0x0068c868
+// GLOBAL: CARMA2_SW 0x006868c0
+br_vector3 gOrigin_map;
+
+// GLOBAL: CARMA2_HW 0x0068d898
+// GLOBAL: CARMA2_SW 0x006878f0
+br_vector2 gOrigin_headup_map;
+
 // GLOBAL: CARMA2_HW 0x0068c860
 int gCheckpoint_digit_height;
 
@@ -116,7 +136,7 @@ int gCheckpoint_digit_height;
 int gCheckpoint_digit_center_x;
 
 // GLOBAL: CARMA2_HW 0x0068c85c
-tU32 gCheckpoint_digit_center_y;
+int gCheckpoint_digit_center_y;
 
 // GLOBAL: CARMA2_HW 0x0068d6f8
 tOppo_status_messages gOppo_status_messages[9];
@@ -127,24 +147,164 @@ int gCount_smashable_race_targets;
 // GLOBAL: CARMA2_HW 0x0068c898
 tSmashable_race_target gSmashable_race_targets[300];
 
+// GLOBAL: CARMA2_HW 0x0074abc0
+int gMap_render_x_i;
+
+// GLOBAL: CARMA2_HW 0x0074abbc
+int gMap_render_y_i;
+
+// GLOBAL: CARMA2_HW 0x0074abe8
+int gMap_render_width_i;
+
+// GLOBAL: CARMA2_HW 0x0074abc8
+int gMap_render_height_i;
+
+// GLOBAL: CARMA2_HW 0x007634b4
+int gTrack_version;
+
 // CarArrowColour
 
-// ToggleTargetLock
+/* local declarations */
+#include "01-network.h"
+#include "30-opponent.h"
+#include <stdio.h>
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
-// CycleTargetLock
+// FUNCTION: CARMA2_HW 0x004945f0
+void C2_HOOK_FASTCALL ToggleTargetLock(void) {
+    char name[256];
+    char s[256];
 
-// CycleMapOptions
+    if (gNet_mode != eNet_mode_none) {
+        if (gCurrent_net_game->type == eNet_game_type_foxy) {
+            return;
+        }
+        if (!gCurrent_net_game->options.show_players_on_map) {
+            return;
+        }
+    }
+    if (gTarget_lock_car_1 == NULL) {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_no_target_to_lock_onto), 0);
+    } else {
+        gTarget_lock_enabled = !gTarget_lock_enabled;
+        if (gTarget_lock_enabled) {
+            if (gNet_mode != eNet_mode_none) {
+                strcpy(name, NetPlayerFromCar(gTarget_lock_car_2)->player_name);
+            } else {
+                strcpy(name, GetDriverName((tU16)gTarget_lock_car_2->car_ID >> 8, (tU16)gTarget_lock_car_2->car_ID & 0xff));
+            }
+            sprintf(s, "%s %s", GetMiscString(eMiscString_locked_onto), name);
+            NewTextHeadupSlot2(4, 0, 1500, -4, s, 0);
+        } else {
+            NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_target_lock_off), 0);
+        }
+    }
+}
 
-// ToggleMapTransparency
+// FUNCTION: CARMA2_HW 0x00494700
+void C2_HOOK_FASTCALL CycleTargetLock(void) {
+    /* based on carpocalypse2 src/carma2/common/controls.c:1367 */
+    int car_count;
+    int car_index;
+    int category;
+    tCar_spec* car;
+    int next_index;
+    tCar_spec* c;
 
+    if (gNet_mode == eNet_mode_none || (gCurrent_net_game->type != eNet_game_type_foxy && gCurrent_net_game->options.show_players_on_map)) {
+        category = gNet_mode != eNet_mode_none ? eVehicle_net_player : eVehicle_opponent;
+        if (gTarget_lock_car_1 == NULL) {
+            if (category == eVehicle_self) {
+                gTarget_lock_car_1 = &gProgram_state.current_car;
+            } else {
+                gTarget_lock_car_1 = GetCarSpec(category, 0);
+            }
+        }
+        if (category == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(category);
+        }
+        for (car_index = 0;; car_index++) {
+            if (car_index >= car_count) {
+                return;
+            }
+            if (category == eVehicle_self) {
+                c = &gProgram_state.current_car;
+            } else {
+                c = GetCarSpec(category, car_index);
+            }
+            if (c == gTarget_lock_car_1) {
+                break;
+            }
+        }
+        if (car_index == car_count - 1) {
+            next_index = 0;
+        } else {
+            next_index = car_index + 1;
+        }
+
+        do {
+            do {
+                if (category == eVehicle_self) {
+                    car = &gProgram_state.current_car;
+                } else {
+                    car = GetCarSpec(category, next_index);
+                }
+                if (next_index == car_count - 1) {
+                    next_index = 0;
+                } else {
+                    next_index += 1;
+                }
+            } while (car != gTarget_lock_car_1 && car->knackered);
+        } while ((gNet_mode == eNet_mode_none && gCurrent_race.race_spec->race_type == kRaceType_Cars && !car->is_race_goal)
+                 || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_6 && NetPlayerFromCar(car)->field_0x80));
+        gTarget_lock_car_1 = car;
+        gTarget_lock_car_2 = car;
+        gTarget_lock_enabled = 0;
+        ToggleTargetLock();
+    }
+}
+
+// GLOBAL: CARMA2_HW 0x00659b28
+int gCheckpoint_finder_enabled = 1;
+
+/* local declaration (15-displays.h is not included in this file) */
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
+
+// FUNCTION: CARMA2_HW 0x00494840
+void C2_HOOK_FASTCALL CycleMapOptions(void) {
+
+    gCheckpoint_finder_enabled = !gCheckpoint_finder_enabled;
+    if (gCheckpoint_finder_enabled) {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_checkpoint_finder_turned_on), 0);
+    } else {
+        NewTextHeadupSlot2(4, 0, 1500, -4, GetMiscString(eMiscString_checkpoint_finder_turned_off), 0);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00494880
+void C2_HOOK_FASTCALL ToggleMapTransparency(void) {
+
+    gMap_trans = !gMap_trans;
+    SaveOptions();
+}
 // FUNCTION: CARMA2_HW 0x004948a0
 void C2_HOOK_FASTCALL InitTargetLock(void) {
 
     gTarget_lock_enabled = 0;
 }
 
-// SetIntegerMapRenders
+// FUNCTION: CARMA2_HW 0x004948b0
+void C2_HOOK_FASTCALL SetIntegerMapRenders(void) {
 
+    gMap_render_width = 128.f;
+    gMap_render_height = 80.f;
+    gMap_render_x_i = ((int)gMap_render_x) & ~3;
+    gMap_render_y_i = ((int)gMap_render_y) & ~1;
+    gMap_render_width_i = (int)gMap_render_width;
+    gMap_render_height_i = (int)gMap_render_height;
+}
 // OppositeColour
 
 // DrawArrow
@@ -159,16 +319,134 @@ void C2_HOOK_FASTCALL InitTargetLock(void) {
 
 // DrawCarArrow
 
-// DoSomeThingsToCheckpoints
+// FUNCTION: CARMA2_HW 0x00495ba0
+void C2_HOOK_FASTCALL DoSomeThingsToCheckpoints(br_pixelmap* pMap, tU32 pTime, tDoSomethingsToCheckpoints_cbfn* pCallback, int pDraw_prev) {
+    int i;
+    int checkpoint;
+    int checkpoints[10];
+    int checkpoint_flags;
 
-// CalcMapCheckpoint
+    C2_HOOK_ASSERT(gCurrent_race.check_point_count <= REC2_ASIZE(checkpoints));
+    for (i = 0; i < gCurrent_race.check_point_count; i++) {
+        checkpoints[i] = 0;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        if (gCurrent_net_game->type == eNet_game_type_checkpoint) {
+            checkpoint_flags = gNet_players[gThis_net_player_index].score2;
+            for (i = 0; i < gCurrent_race.check_point_count; i++) {
+                if (checkpoint_flags & 0x1) {
+                    pCallback(pMap, i, pTime, 1);
+                    checkpoints[i] = 1;
+                }
+                checkpoint_flags >>= 1;
+            }
+        } else if (gCurrent_net_game->type == eNet_game_type_5 || gCurrent_net_game->type == eNet_game_type_4) {
+            if (gNet_players[gThis_net_player_index].score2 >= 0) {
+                checkpoint = gNet_players[gThis_net_player_index].score2 % gCurrent_race.check_point_count;
+                pCallback(pMap, checkpoint, pTime, 1);
+                checkpoints[checkpoint] = 1;
+            }
+        }
+    } else {
+        pCallback(pMap, gCheckpoint - 1, pTime, 1);
+        checkpoints[gCheckpoint - 1] = 1;
+    }
+    if (pDraw_prev) {
+        if (gNet_mode == eNet_mode_none
+                || gCurrent_net_game->type == eNet_game_type_checkpoint
+                || gCurrent_net_game->type == eNet_game_type_4
+                || gCurrent_net_game->type == eNet_game_type_5) {
+            for (i = 0; i < gCurrent_race.check_point_count; i++) {
+                if (!checkpoints[i]) {
+                    pCallback(pMap, i, pTime, 0);
+                }
+            }
+        }
+    }
+}
 
-// CalcMapCheckpoint2
+// FUNCTION: CARMA2_HW 0x004968f0
+void C2_HOOK_FASTCALL CalcMapCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
+    br_vector3 p;
+    tRace_checkpoint_spec* checkpoint;
 
-// DrawCheckpoint
+    checkpoint = &gCurrent_race.checkpoints[pCheckpoint];
+    BrMatrix34ApplyP(&p, &checkpoint->pos, &gCurrent_race.map_transformation);
+    BrVector2Copy(&checkpoint->map_position, &p);
+}
+// FUNCTION: CARMA2_HW 0x00496940
+void C2_HOOK_FASTCALL CalcMapCheckpoint2(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
+    br_vector3 pos_mapspace;
+    br_vector2 p;
+    tRace_checkpoint_spec* checkpoint;
 
-// DrawOffsetCheckpoint
+    checkpoint = &gCurrent_race.checkpoints[pCheckpoint];
+    BrMatrix34ApplyP(&pos_mapspace, &checkpoint->pos, &gCurrent_race.map_transformation);
+    BrVector2Set(&p, pos_mapspace.v[0] - gOrigin_map.v[0] + gOrigin_headup_map.v[0], pos_mapspace.v[1] - gOrigin_map.v[1] + gOrigin_headup_map.v[1]);
+    BrMatrix23TApplyV(&checkpoint->map_position, &p, &gMatrix23_0068c880);
+    checkpoint->map_position.v[0] += (float)gINT_0074abd4;
+    checkpoint->map_position.v[1] += (float)gINT_0074abd0;
+}
+// FUNCTION: CARMA2_HW 0x004969e0
+void C2_HOOK_FASTCALL DrawCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
+    // GLOBAL: CARMA2_HW 0x0068d8e8
+    static tU32 last_flash;
+    // GLOBAL: CARMA2_HW 0x0068d8ec
+    static int flash_rate;
+    tRace_checkpoint_spec* checkpoint;
 
+    if ((pCheckpoint >= 0 && pCheckpoint < gCurrent_race.check_point_count
+            && gTrack_version > 0 && pTarget == 0) || Flash(300, &last_flash, &flash_rate)) {
+        checkpoint = &gCurrent_race.checkpoints[pCheckpoint];
+
+        if (checkpoint->map_position.v[0] >= 0.f
+                && checkpoint->map_position.v[0] < (float)pMap->width
+                && checkpoint->map_position.v[1] >= 0.f
+                && checkpoint->map_position.v[1] < (float)pMap->height) {
+
+            if (gMap_view == 2) {
+                PossibleLock(1);
+            }
+            DRPixelmapRectangleMaskedCopy(pMap,
+                (int)(checkpoint->map_position.v[0] - (float)gCheckpoint_digit_center_x),
+                (int)(checkpoint->map_position.v[1] - (float)gCheckpoint_digit_center_y),
+                gCheckpoint_numbers,
+                0,
+                pCheckpoint * gCheckpoint_digit_height,
+                gCheckpoint_numbers->width,
+                gCheckpoint_digit_height);
+            if (gMap_view == 2) {
+                PossibleUnlock(1);
+            }
+        }
+    }
+}
+// FUNCTION: CARMA2_HW 0x00495d00
+void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
+    // GLOBAL: CARMA2_HW 0x0068d8f0
+    static tU32 last_flash;
+    // GLOBAL: CARMA2_HW 0x0068d8f4
+    static int flash_state;
+    tRace_checkpoint_spec* checkpoint;
+
+    if ((pCheckpoint >= 0 && pCheckpoint < gCurrent_race.check_point_count && gTrack_version > 0 && !pTarget)
+            || Flash(300, &last_flash, &flash_state)) {
+        checkpoint = &gCurrent_race.checkpoints[pCheckpoint];
+
+        if (checkpoint->map_position.v[0] >= 0.f
+                && checkpoint->map_position.v[0] < (float)pMap->width
+                && checkpoint->map_position.v[1] >= 0.f
+                && checkpoint->map_position.v[1] < (float)pMap->height) {
+
+            DRPixelmapRectangleMaskedCopy(pMap,
+                (int)(checkpoint->map_position.v[0] + 8.f - (float)gCheckpoint_digit_center_x),
+                (int)(checkpoint->map_position.v[1] - (float)gCheckpoint_digit_center_y),
+                gCheckpoint_numbers,
+                0, pCheckpoint * gCheckpoint_digit_height,
+                gCheckpoint_numbers->width, gCheckpoint_digit_height);
+        }
+    }
+}
 // DoMapOverlays
 
 // StartMap
@@ -401,8 +679,14 @@ static void C2_HOOK_FASTCALL MapChanged(void) {
     SaveOptions();
 }
 
+// FUNCTION: CARMA2_HW 0x00497610
+void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void) {
+    InitMap();
+    SaveOptions();
+}
+
 // FUNCTION: CARMA2_HW 0x00497620
-void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0) {
+void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0, int pKey1) {
 
     if (KeyIsDown(31) && pKey0) {
         gHeadup_map_y_float = (float)((double)gHeadup_map_y_float - (double)gFrame_period / 20.0);
