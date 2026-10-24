@@ -388,6 +388,8 @@ extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 extern void C2_HOOK_FASTCALL SetPipeUndoFlag(void);
 
+extern void C2_HOOK_FASTCALL ClearPipeUndoFlag(void);
+
 extern int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType);
 
 // LengthOfSession
