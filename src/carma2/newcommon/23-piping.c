@@ -253,6 +253,10 @@ int C2_HOOK_FASTCALL ARSomeReplayLeft(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x00402660
+void C2_HOOK_FASTCALL EndPipingSession2(int pMunge_reentrancy) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
