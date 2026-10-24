@@ -1,4 +1,9 @@
 #include "59-camera.h"
+#include "globvrkm.h"
+#include "globvars.h"
+
+#include "37-brucetrk.h"
+#include "globvars.h"
 
 // GLOBAL: CARMA2_HW 0x006792b8
 int gCamera_frozen;
@@ -8,6 +13,12 @@ float gCamera_cockpit_hither;
 
 // GLOBAL: CARMA2_HW 0x0079efa8
 tActionReplayCameraMode gAction_replay_camera_mode;
+
+// GLOBAL: CARMA2_HW 0x006792c8
+tSave_camera gSave_camera[2];
+
+// GLOBAL: CARMA2_HW 0x00655f40
+br_scalar gCamera_zoom = 0.2f;
 
 // DoCameraControls
 
@@ -35,7 +46,12 @@ tActionReplayCameraMode gAction_replay_camera_mode;
 
 // SetCameraType
 
-// ChangeCameraType
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ToggleCockpit
 
