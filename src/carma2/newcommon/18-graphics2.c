@@ -30,8 +30,26 @@ int gCursor_tinted_center = -1;
 // GLOBAL: CARMA2_HW 0x0058fde0
 int gCursor_line_width = 5;
 
+/* explicit initializers keep gTransient_bitmaps, gNext_transient and the gap dword adjacent (loop-end compare) */
 // GLOBAL: CARMA2_HW 0x0067be98
-tTransient_bm gTransient_bitmaps[50];
+tTransient_bm gTransient_bitmaps[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0067c348
+int gNext_transient = 0;
+
+/* UNCERTAIN: unreferenced dword, only seen as gTransient_bitmaps loop end */
+// GLOBAL: CARMA2_HW 0x0067c34c
+int gUNK_0067c34c = 0;
+
+/* UNCERTAIN: unreferenced dwords, only seen as gTransient_bitmaps loop ends (field walks) */
+// GLOBAL: CARMA2_HW 0x0067c350
+int gUNK_0067c350 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c354
+int gUNK_0067c354 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c358
+int gUNK_0067c358 = 0;
 
 // GLOBAL: CARMA2_HW 0x006923a4
 tU32 gLast_palette_change;
@@ -70,7 +88,7 @@ int gFaded_palette;
 int gPalette_munged;
 
 // GLOBAL: CARMA2_HW 0x006923b8
-br_colour* gScratch_pixels;
+br_uint_8* gScratch_pixels;
 
 // GLOBAL: CARMA2_HW 0x006923a8
 br_pixelmap* gScratch_palette;
@@ -119,9 +137,7 @@ void C2_HOOK_FASTCALL DRSetPalette3(br_pixelmap* pThe_palette, int pSet_current_
     if (!gFaded_palette) {
         PDSetPalette(pThe_palette);
     }
-    if (pThe_palette != gRender_palette) {
-        gPalette_munged |= 0x1;
-    }
+    gPalette_munged |= pThe_palette != gRender_palette;
 }
 
 void C2_HOOK_FASTCALL DRSetPalette2(br_pixelmap* pThe_palette, int pSet_current_palette) {
@@ -206,8 +222,6 @@ void C2_HOOK_FASTCALL ResetPalette(void) {
 // FUNCTION: CARMA2_HW 0x004b5460
 void C2_HOOK_FASTCALL FadePaletteDown(void) {
 }
-
-// FadePaletteUp
 
 // EnsurePaletteUp
 
@@ -402,7 +416,11 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_1
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0047cad0
+/* local declarations (globvrbm.h is not included in this file) */
+extern br_model* gDim_model;
+extern br_actor* gDim_actor;
+extern br_actor* g2d_camera;
+
 void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
     NOT_IMPLEMENTED();
 }
@@ -489,9 +507,61 @@ void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pMap, int pX1, int pY1,
 
 // FancyDrawLine
 
-// DRPixelmapCopyMapBlack8Bit
+// DRPixelmapCopyMapBlack8Bit (no own entry in the original: inlined into DRPixelmapCopyMapBlack)
+static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDest, br_pixelmap* pSrc) {
+    int y;
+    int dwords_remaining;
+    int src_width_dwords;
+    tU8* dest_pixels;
+    tU8* src_pixels;
+    int src_skip;
+    int dest_skip;
+    tU8 p0;
+    tU8 p1;
+    tU8 p2;
+    tU8 p3;
 
-// DRPixelmapCopyMapBlack
+    dest_pixels = pDest->pixels;
+    src_pixels = pSrc->pixels;
+    src_skip = pSrc->row_bytes - pSrc->width;
+    dest_skip = pDest->row_bytes - pDest->width;
+    src_width_dwords = pSrc->width / sizeof(tU32);
+    for (y = 0; y < pSrc->height; y++) {
+        for (dwords_remaining = src_width_dwords; dwords_remaining > 0; dwords_remaining--) {
+            p0 = *src_pixels++;
+            p1 = *src_pixels++;
+            p2 = *src_pixels++;
+            p3 = *src_pixels++;
+            if (p0 != 0) {
+                *dest_pixels = p0;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p1 != 0) {
+                *dest_pixels = p1;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p2 != 0) {
+                *dest_pixels = p2;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p3 != 0) {
+                *dest_pixels = p3;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+        }
+        src_pixels += src_skip;
+        dest_pixels += dest_skip;
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x0047d6a0
 void C2_HOOK_FASTCALL DisableLights(void) {
