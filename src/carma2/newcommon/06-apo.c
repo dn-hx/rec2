@@ -73,4 +73,16 @@ void C2_HOOK_FASTCALL BuyArmour(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00502fd0
+void C2_HOOK_FASTCALL BuyPower(void) {
+
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox) {
+            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_fox_cant_do_that));
+        } else {
+            BuyPSPowerup(1);
+        }
+    }
+}
+
 
