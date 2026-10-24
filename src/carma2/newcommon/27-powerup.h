@@ -360,7 +360,7 @@ extern void C2_HOOK_FASTCALL ResetElectroBastard(tPowerup* pPowerup, tCar_spec* 
 
 extern int C2_HOOK_FASTCALL SetMutantCorpses(tPowerup* powerup, tCar_spec* car);
 
-// ResetMutantCorpses
+extern void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* powerup, tCar_spec* car);
 
 // ReceivedPowerup
 
