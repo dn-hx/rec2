@@ -2,6 +2,7 @@
 
 #include "00-car.h"
 #include "02-init.h"
+#include "05-drmem.h"
 #include "07-structur.h"
 #include "08-loading1.h"
 #include "09-funks.h"
@@ -39,6 +40,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "51-smash.h"
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;
@@ -102,6 +104,67 @@ const char* gNet_avail_names[4] = {
     "hawk",
     "all",
 };
+
+// GLOBAL: CARMA2_HW 0x00657320
+tHeadup_info gHeadup_image_info[45] = {
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "GO.PIX", eNet_or_otherwise },
+    { "NUMBER1.PIX", eNet_or_otherwise },
+    { "NUMBER2.PIX", eNet_or_otherwise },
+    { "NUMBER3.PIX", eNet_or_otherwise },
+    { "NUMBER4.PIX", eNet_or_otherwise },
+    { "NUMBER5.PIX", eNet_or_otherwise },
+    { "SPLATTER.PIX", eNet_or_otherwise },
+    { "PILEDRIV.PIX", eNet_or_otherwise },
+    { "EXTRASTY.PIX", eNet_or_otherwise },
+    { "ARTISTIC.PIX", eNet_or_otherwise },
+    { "PLAYWITH.PIX", eNet_or_otherwise },
+    { "PUNT.PIX", eNet_or_otherwise },
+    { "DROP.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "2XCOMBO.PIX", eNet_or_otherwise },
+    { "3XCOMBO.PIX", eNet_or_otherwise },
+    { "4XCOMBO.PIX", eNet_or_otherwise },
+    { "5XCOMBO.PIX", eNet_or_otherwise },
+    { "6XCOMBO.PIX", eNet_or_otherwise },
+    { "7XCOMBO.PIX", eNet_or_otherwise },
+    { "8XCOMBO.PIX", eNet_or_otherwise },
+    { "9XCOMBO.PIX", eNet_or_otherwise },
+    { "10XCOMBO.PIX", eNet_or_otherwise },
+    { "BILLIARD.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "HEADON.PIX", eNet_or_otherwise },
+    { "DESTROY.PIX", eNet_or_otherwise },
+    { "CHECKPNT.PIX", eNet_or_otherwise },
+    { "TIMEUP.PIX", eNot_net },
+    { "RACEOVER.PIX", eNet_or_otherwise },
+    { "UWASTED.PIX", eNet_or_otherwise },
+    { "MAD.PIX", eNet_or_otherwise },
+    { "GAMEOVER.PIX", eNet_or_otherwise },
+    { "UBROKE.PIX", eNet_or_otherwise },
+    { "ULOST.PIX", eNet_or_otherwise },
+    { "UWON.PIX", eNet_or_otherwise },
+    { "BBQBON.PIX", eNet_or_otherwise },
+    { "TAILBON.PIX", eNet_or_otherwise },
+    { "DETTAILBON.PIX", eNet_or_otherwise },
+    { "MISSIONFAIL.PIX", eNet_or_otherwise },
+    { "MISSIONDONE.PIX", eNet_or_otherwise },
+};
+
+// GLOBAL: CARMA2_HW 0x0079eb60
+br_pixelmap* gHeadup_images[45];
+
+// GLOBAL: CARMA2_HW 0x007620f8
+tExplosion_animation gExplosion_pix_animation_groups;
+
+// GLOBAL: CARMA2_HW 0x00761f5c
+int gExplosion_sound_id;
+
+// GLOBAL: CARMA2_HW 0x00762120
+int gWasted_explosion_chance;
 
 void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes) {
     tPath_name the_path;
@@ -450,9 +513,12 @@ void C2_HOOK_FASTCALL LoadGeneralParameters(void) {
     gMass_mine = GetAFloat(gTempFile);
 }
 
-// STUB: CARMA2_HW 0x00487dc0
+// FUNCTION: CARMA2_HW 0x00487dc0
 void C2_HOOK_FASTCALL FinishLoadingGeneral(void) {
-    NOT_IMPLEMENTED();
+    gDefault_default_water_spec_vol.screen_pixelmap = BrMapFind(gUnderwater_screen_name);
+    ReadExplosionInfo(gTempFile, &gWasted_explosion_chance, &gExplosion_sound_id, &gExplosion_pix_animation_groups);
+    ReadPowerupSmashables(gTempFile);
+    PFfclose(gTempFile);
 }
 
 // FUNCTION: CARMA2_HW 0x00487e10
@@ -579,7 +645,73 @@ void C2_HOOK_FASTCALL LoadTacho(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
     }
 }
 
-// LoadHeadups
+// FUNCTION: CARMA2_HW 0x0048ba60
+void C2_HOOK_FASTCALL LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
+    char s[256];
+    char* str;
+    int j;
+    int number_of_slots;
+
+    /* pIndex=0 -> Number of headups (external) */
+    /* pIndex=1 -> Number of headups (internal) */
+    number_of_slots = GetAnInt(pF);
+    for (j = 0; j < number_of_slots; j++) {
+        /* [ 0]: Development info display
+         * [ 1]: Credits earned
+         * [ 2]: Pedestrian kill count
+         * [ 3]: Pedestrian warning
+         * [ 4]: Miscellaneous messages
+         * [ 5]: Start of race countdown
+         * [ 6]: Fancy bonuses, timeup, race over etc
+         * [ 7]: Timer
+         * [ 8]: Lap count
+         * [ 9]: End of race bonus
+         * [10]: Time bonus
+         * [11]: Time awarded
+         * [12]: Cars out count
+         * [13]: Cash in network mode
+         * [14]: Cash in network mode
+         * */
+        GetALineAndDontArgue(pF, s);
+        str = strtok(s, "\t ,/");
+        sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].field_0x28);
+        str = strtok(NULL, "\t ,/");
+        sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].x);
+        str = strtok(NULL, "\t ,/");
+        sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].y);
+        str = strtok(NULL, "\t ,/");
+        sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].colour);
+        str = strtok(NULL, "\t ,/");
+        strcpy(s, str);
+        switch (s[0]) {
+        case 'c':
+            pCar_spec->headup_slots[pIndex][j].justification = eJust_centre;
+            break;
+        case 'l':
+            pCar_spec->headup_slots[pIndex][j].justification = eJust_left;
+            break;
+        case 'r':
+            pCar_spec->headup_slots[pIndex][j].justification = eJust_right;
+            break;
+        }
+        if (s[1] == 'c') {
+            pCar_spec->headup_slots[pIndex][j].cockpit_anchored = 1;
+        }
+        str = strtok(NULL, "\t ,/");
+        sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].dim_left);
+        if (pCar_spec->headup_slots[pIndex][j].dim_left >= 0) {
+            pCar_spec->headup_slots[pIndex][j].dimmed_background = 1;
+            str = strtok(NULL, "\t ,/");
+            sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].dim_top);
+            str = strtok(NULL, "\t ,/");
+            sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].dim_right);
+            str = strtok(NULL, "\t ,/");
+            sscanf(str, "%d", &pCar_spec->headup_slots[pIndex][j].dim_bottom);
+        } else {
+            pCar_spec->headup_slots[pIndex][j].dimmed_background = 0;
+        }
+    }
+}
 
 // OldReadNonCarMechanicsData
 
@@ -610,7 +742,28 @@ intptr_t C2_HOOK_CDECL AllocateCarActorData(br_actor* pActor, void* pData) {
     return 0;
 }
 
-// AllocateCarModelData
+// FUNCTION: CARMA2_HW 0x0048bf50
+// FUNCTION: CARMA2_SW 0x00489190
+intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData) {
+    tUser_crush_data* user_crush;
+    tCar_spec* car_spec;
+    tUser_detail_level_model* model_data;
+    int i;
+
+    C2_HOOK_BUG_ON(sizeof(tUser_detail_level_model) != 0xc);
+
+    car_spec = pData;
+    user_crush = pActor->user;
+    if (user_crush != NULL) {
+        for (i = 0; i < car_spec->count_detail_levels; i++) {
+            if (user_crush->models[i] != NULL) {
+                model_data = BrMemAllocate(sizeof(tUser_detail_level_model), kMem_crush_data);
+                user_crush->models[i]->user = model_data;
+            }
+        }
+    }
+    return 0;
+}
 
 // AddCarModelToList
 
@@ -618,7 +771,54 @@ intptr_t C2_HOOK_CDECL AllocateCarActorData(br_actor* pActor, void* pData) {
 
 // LinkCarModelsToActor
 
-// GetSimpleMaterial
+extern void C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+
+// GLOBAL: CARMA2_HW 0x006572f0
+tU32 gSimple_material_colours[12] = { 0x005d0303, 0x02a56e04, 0x03a9a905, 0x08006868, 0x0d3c3626, 0x0e212121, 0x15284c21, 0x1900326a, 0x1a93491d, 0x1ec0bfc0, 0x23141414, 0x00000000, };
+
+// GLOBAL: CARMA2_HW 0x0074b500
+br_material* gSimple_materials[32];
+
+// FUNCTION: CARMA2_HW 0x00488dd0
+br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingType pShading_type) {
+    int i;
+    int j;
+    int r, g, b;
+    br_colour colour;
+
+    if (pName[0] == 'M') {
+        int code;
+        strtok(pName, "\t ,/");
+        code = 10 * (pName[1] - '0') + pName[2] - '0';
+        for (j = 0; gSimple_material_colours[j] != 0; j++) {
+            if ((int)(gSimple_material_colours[j] >> 24) == code) {
+                break;
+            }
+        }
+        if (gSimple_material_colours[j] == 0) {
+            PDFatalError("Obsolete simple material");
+        }
+        colour = gSimple_material_colours[j] & 0xffffff;
+    } else {
+        sscanf(pName, "%d,%d,%d", &r, &g, &b);
+        colour = (((r << 8) | g) << 8) | b;
+    }
+
+    for (i = 0; gSimple_materials[i] != NULL; i++) {
+        if (gSimple_materials[i]->colour == colour) {
+            return gSimple_materials[i];
+        }
+    }
+    if (i < 32) {
+        gSimple_materials[i] = BrMaterialAllocate("Simple");
+        gSimple_materials[i]->colour = colour;
+        gSimple_materials[i]->index_base = FindBestColourMatch(gSimple_materials[i]->colour);
+        gSimple_materials[i]->index_range = 0;
+        GlorifyMaterial(&gSimple_materials[i], 1, pShading_type);
+        BrMaterialAdd(gSimple_materials[i]);
+    }
+    return gSimple_materials[i];
+}
 
 // ReadShrapnelMaterials
 
@@ -649,11 +849,34 @@ intptr_t C2_HOOK_CDECL LinkCarActorsToGroovidelicsCB(br_actor* pActor, void* pDa
 
 // SetUpGraphicalWheelStuff
 
-// LoadCar
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// STUB: CARMA2_HW 0x0048c150
-void C2_HOOK_FASTCALL LoadHeadupImages(void) {
+// STUB: CARMA2_HW 0x00488f70
+void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space) {
     NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0048c150
+void C2_HOOK_FASTCALL LoadHeadupImages(void) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gHeadup_image_info); i++) {
+        PossibleService();
+        if ((gHeadup_image_info[i].avail == eNet_or_otherwise) ||
+            ((gHeadup_image_info[i].avail == eNot_net) && (gNet_mode == 0)) ||
+            ((gHeadup_image_info[i].avail == eNet_only) && (gNet_mode != 0))) {
+            gHeadup_images[i] = LoadPixelmap(gHeadup_image_info[i].name);
+            BRPM_convert(gHeadup_images[i], gBack_screen->type);
+        } else {
+            gHeadup_images[i] = NULL;
+        }
+    }
 }
 
 // OpenRaceFile
@@ -772,7 +995,61 @@ void C2_HOOK_FASTCALL AboutToLoadFirstCar(void) {
     gGroove_funk_offset = 0;
 }
 
-// LoadOpponentsCars
+// FUNCTION: CARMA2_HW 0x0048cda0
+// FUNCTION: CARMA2_SW 0x00489fe0
+void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info) {
+    int i;
+    int j;
+    tOpp_spec* opponent;
+    int sod_counter;
+    char buffer[256];
+
+    C2_HOOK_BUG_ON(sizeof(tCar_spec) != 6500);
+
+    sod_counter = 0;
+    if (gNet_mode == eNet_mode_none) {
+        AboutToLoadFirstCar();
+        PrintMemoryDump(0, "JUST BEFORE LOADING YOUR CAR");
+        LoadCar(gOpponents[gProgram_state.current_car_index].car_file_name, eDriver_local_human, &gProgram_state.current_car, 0, gProgram_state.player_name, &gOur_car_storage_space);
+        SetCarStorageTexturingLevel(&gOur_car_storage_space, GetCarTexturingLevel(), eCTL_full);
+        PrintMemoryDump(0, "IMMEDIATELY AFTER LOADING YOUR CAR");
+    }
+
+    gGroove_funk_offset = GROOVE_FUNK_MAX_PER_CAR;
+    gCount_opponents = 0;
+    if (gNet_mode == eNet_mode_none) {
+        for (i = 0; i < pRace_info->number_of_racers; i++) {
+            opponent = &pRace_info->opponent_list[i];
+            PossibleService();
+            if (opponent->index >= 0) {
+                opponent->car_spec = BrMemAllocate(sizeof(tCar_spec), kMem_oppo_car_spec);
+                if (DRStricmp("MAX DAMAGE", gOpponents[opponent->index].name) == 0) {
+                    sod_counter++;
+                    sprintf(buffer, "POOR SOD %d", sod_counter);
+                    LoadCar(gOpponents[opponent->index].car_file_name, eDriver_oppo, opponent->car_spec, opponent->index, buffer, &gTheir_cars_storage_space);
+                } else {
+                    LoadCar(gOpponents[opponent->index].car_file_name, eDriver_oppo, opponent->car_spec, opponent->index, gOpponents[opponent->index].name, &gTheir_cars_storage_space);
+                }
+                PrintMemoryDump(0, "IMMEDIATELY AFTER LOADING AN OPPONENT");
+            }
+            if (gCurrent_race.race_spec->race_type == kRaceType_Cars) {
+                if (gCurrent_race.race_spec->options.cars.count_opponents < 0) {
+                    gCount_opponents++;
+                    opponent->car_spec->is_race_goal = 1;
+                } else {
+                    for (j = 0; j < gCurrent_race.race_spec->options.cars.count_opponents; j++) {
+                        if (opponent->index == gCurrent_race.race_spec->options.cars.opponents[j]) {
+                            gCount_opponents++;
+                            opponent->car_spec->is_race_goal = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        SetCarStorageTexturingLevel(&gTheir_cars_storage_space, GetCarTexturingLevel(), eCTL_full);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0048cfc0
 void C2_HOOK_FASTCALL LoadMiscStrings(void) {
@@ -1032,3 +1309,13 @@ void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void) {
     gPedTextTxtPath = "ALTEXT.TXT";
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004efa00
+void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
