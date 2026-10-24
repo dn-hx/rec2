@@ -860,6 +860,12 @@ int C2_HOOK_FASTCALL SetLowGravityPeds(tPowerup* powerup, tCar_spec* car) {
     return powerup - gPowerup_array;
 }
 
+// FUNCTION: CARMA2_HW 0x004de900
+int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gDrunk_pedestrians = 1;
+    return powerup - gPowerup_array;
+}
 
 // SetGhostPeds
 
