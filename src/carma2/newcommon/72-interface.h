@@ -343,6 +343,7 @@ extern void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL Slider_XProc(tFrontend_slider* pSlider);
 extern void C2_HOOK_FASTCALL Slider_YProc(tFrontend_slider* pSlider);
+extern void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider);
 // SaveAllJoystickData
 
 // Controls_SwitchKeymapSet
