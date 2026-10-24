@@ -38,8 +38,21 @@ void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 
 // ReallocExtraPathSections
 
-// PointVisibleFromHere
+// FUNCTION: CARMA2_HW 0x004aa400
+int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* pTo) {
+    br_vector3 norm;
+    br_vector3 dir;
+    br_vector3 from;
+    br_material* material;
+    br_scalar t;
 
+    BrVector3Sub(&dir, pTo, pFrom);
+    BrVector3Copy(&from, pFrom);
+    from.v[1] += 0.15f;
+    dir.v[1] += 0.15f;
+    FindFace(&from, &dir, &norm, &t, &material);
+    return t > 1.f;
+}
 // WeightedFindNearestNodeAndSection
 
 // FindNearestGeneralSection
