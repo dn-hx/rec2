@@ -966,6 +966,11 @@ void C2_HOOK_FASTCALL EtherealiseCharacter1(void* pCharacter) {
     *(tU32*)((char*)pCharacter + 0x19c) |= 4;
 }
 
+// FUNCTION: CARMA2_HW 0x004d6ba0
+void C2_HOOK_FASTCALL EtherealiseMaterial2(void* pMaterial) {
+    BrModelUpdate((br_model*)pMaterial, 0x10);
+}
+
 
 // FUNCTION: CARMA2_HW 0x004d6d90
 void C2_HOOK_FASTCALL SavePedStuff(void) {
