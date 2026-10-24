@@ -464,6 +464,7 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
     int temp_start;
     tDepth_effect_type temp_type;
 
+    temp_type = gProgram_state.current_depth_effect.type;
     temp_start = gProgram_state.current_depth_effect.start;
     temp_end = gProgram_state.current_depth_effect.end;
     temp_red = gProgram_state.current_depth_effect.colour.red;
@@ -478,6 +479,7 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
         gSwap_depth_effect_colour_green,
         gSwap_depth_effect_colour_blue,
         gProgram_state.racing);
+    gSwap_depth_effect_type = temp_type;
     gSwap_depth_effect_start = temp_start;
     gSwap_depth_effect_end = temp_end;
     gSwap_depth_effect_colour_red = temp_red;
