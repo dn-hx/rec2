@@ -95,7 +95,7 @@ extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3*
 
 // DoConnotations
 
-// DoPowerupRespawnSmash
+extern void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor);
 
 // DoConnotationsMultiLevel
 
