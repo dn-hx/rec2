@@ -53,5 +53,7 @@ extern void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, vo
 
 extern void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8);
 
+extern void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8);
+
 
 #endif // GUARD_22_REPLAY_H
