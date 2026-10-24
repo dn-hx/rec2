@@ -4,6 +4,8 @@
 #include "brender/brender.h"
 #include "c2_hooks.h"
 
+extern float gFloat_sine_table[91];
+
 // FastFloatSin
 
 // FastFloatCos
