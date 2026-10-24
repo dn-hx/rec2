@@ -717,7 +717,7 @@ extern void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk);
 
-// ApplyPedStatus
+extern void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk);
 
 // ApplyPedDir
 
