@@ -167,9 +167,15 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
 
 // SetUpPanningCamera
 
-// SaveCameraPosition
+// FUNCTION: CARMA2_HW 0x00410be0
+void C2_HOOK_FASTCALL SaveCameraPosition(int i) {
 
-// RestoreCameraPosition
+    if (gSave_camera[i].saved != 1) {
+        gSave_camera[i].zoom = gCamera_zoom;
+        gSave_camera[i].yaw = gCamera_yaw;
+        gSave_camera[i].saved = 1;
+    }
+}
 
 // DrVector3RotateY
 
