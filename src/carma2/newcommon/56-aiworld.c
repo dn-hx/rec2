@@ -82,9 +82,10 @@ void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info) {
     PrintMemoryDump(0, "AFTER InitDrones()");
 }
 
+// FUNCTION: CARMA2_HW 0x00401160
 void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
-
-    NOT_IMPLEMENTED();
+    DisposeOpponents();
+    DisposeDronesRaceStuff();
 }
 
 // MungeAIWorld
