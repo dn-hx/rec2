@@ -28,9 +28,21 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "c2_string.h"
+#include "10-loading2.h"
+#include "01-network.h"
 
 #ifdef REC2_MATCHING
 #include <windows.h>
+
+extern tU16 C2_HOOK_FASTCALL ReadU16(FILE* pF);
+extern tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF);
+extern tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF);
+extern tS8 C2_HOOK_FASTCALL ReadS8(FILE* pF);
+extern void C2_HOOK_FASTCALL WriteS32L(FILE* pF, tS32 pNumber);
+extern void C2_HOOK_FASTCALL WriteS16L(FILE* pF, tS16 pNumber);
+extern void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber);
+extern void C2_HOOK_FASTCALL SkipBytes(FILE* pF, int pBytes_to_skip);
+extern tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr);
 #endif
 
 // GLOBAL: CARMA2_HW 0x00655e30
@@ -1048,3 +1060,9 @@ int GetRegisterSourceLocation(char* pSource_location) {
     return 1;
 #endif
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
