@@ -472,6 +472,12 @@ void C2_HOOK_FASTCALL TurnOnPanelFlics(void) {
     gPanel_flic_disable = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00461a40
+int C2_HOOK_FASTCALL GetPanelFlicFrameIndex(int pIndex) {
+
+    return gPanel_flic[pIndex].current_frame;
+}
+
 // FUNCTION: CARMA2_HW 0x00461a60
 void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
 
