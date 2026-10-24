@@ -108,3 +108,9 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x00452880
+void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
+
+    NOT_IMPLEMENTED();
+}
+
