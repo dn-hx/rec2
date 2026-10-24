@@ -2941,6 +2941,7 @@ void C2_HOOK_FASTCALL FrontEndHideMouse(void) {
 
     gFrontend_suppress_mouse = 1;
 }
+
 static tStruct_00686508* GetUpdown(int pItem) {
     tStruct_00686508* up_down;
 
