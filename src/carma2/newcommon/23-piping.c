@@ -1307,6 +1307,12 @@ void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk) {
     return WorkerPedDiagnostics(*(void**)chunk, chunk + 4, chunk + 0x58, chunk + 0x144);
 }
 
+// FUNCTION: CARMA2_HW 0x004c9c90
+void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
+    ((tPipe_chunk_vector3*)*pChunk)->p_vector->v[0] += ((tPipe_chunk_vector3*)*pChunk)->delta.v[0];
+    ((tPipe_chunk_vector3*)*pChunk)->p_vector->v[1] += ((tPipe_chunk_vector3*)*pChunk)->delta.v[1];
+    ((tPipe_chunk_vector3*)*pChunk)->p_vector->v[2] += ((tPipe_chunk_vector3*)*pChunk)->delta.v[2];
+}
 
 // ApplyDroneRender
 
