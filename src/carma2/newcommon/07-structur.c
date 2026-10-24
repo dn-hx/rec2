@@ -75,6 +75,15 @@ void C2_HOOK_FASTCALL IncrementCheckpoint(void) {
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x005033b0
+// FUNCTION: CARMA2_SW 0x004fed00
+void C2_HOOK_FASTCALL IncrementLap(void) {
+    int i;
+
+    for (i = gCheckpoint; i <= gCheckpoint_count; i++) {
+        IncrementCheckpoint();
+    }
+}
 
 // RayHitFace
 

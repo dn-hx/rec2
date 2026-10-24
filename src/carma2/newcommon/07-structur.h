@@ -20,7 +20,7 @@ extern void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound);
 
 extern void C2_HOOK_FASTCALL IncrementCheckpoint(void);
 
-// IncrementLap
+extern void C2_HOOK_FASTCALL IncrementLap(void);
 
 // RayHitFace
 
