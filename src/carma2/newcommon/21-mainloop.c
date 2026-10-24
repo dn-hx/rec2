@@ -45,10 +45,24 @@ int gCompletion_bonus_post_race = 0;
 
 // LoseOldestWastedMassage
 
-// STUB: CARMA2_HW 0x00492620
-// STUB: CARMA2_SW 0x0048f840
+// FUNCTION: CARMA2_HW 0x00492620
+// FUNCTION: CARMA2_SW 0x0048f840
 void C2_HOOK_FASTCALL QueueWastedMassage(int pIndex) {
-    NOT_IMPLEMENTED();
+
+    if (gQueued_wasted_messages_count == REC2_ASIZE(gQueued_wasted_messages)) {
+        int i;
+
+        for (i = 1; i < gQueued_wasted_messages_count; i++) {
+            gQueued_wasted_messages[i - 1] = gQueued_wasted_messages[i];
+        }
+        gQueued_wasted_messages_count = REC2_ASIZE(gQueued_wasted_messages) - 1;
+        gLast_wasted_message_start = GetTotalTime();
+    }
+    if (gQueued_wasted_messages_count == 0) {
+        gLast_wasted_message_start = GetTotalTime();
+    }
+    gQueued_wasted_messages[gQueued_wasted_messages_count] = pIndex;
+    gQueued_wasted_messages_count++;
 }
 
 // MungeHeadups
