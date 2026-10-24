@@ -478,7 +478,7 @@ extern void C2_HOOK_FASTCALL UndoGibShower(tPipe_chunk** pChunk, tPipe_chunk* pP
 
 // UndoBloodSpurt
 
-// UndoGrooveOnOff
+extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoPowerupGot
 

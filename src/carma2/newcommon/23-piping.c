@@ -1649,9 +1649,15 @@ void C2_HOOK_FASTCALL UndoGibShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chu
 
 // UndoBloodSpurt
 
-// UndoGrooveOnOff
+// FUNCTION: CARMA2_HW 0x004ca2d0
+void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_groove_on_off* chunk = (tPipe_chunk_groove_on_off*)*pChunk;
 
-// UndoPowerupGot
+    if (chunk->field_0x4 != 0) {
+        return DisableGroovidelic((br_actor*)(intptr_t)chunk->field_0x0, chunk->field_0x8);
+    }
+    return EnableGroovidelic((br_actor*)(intptr_t)chunk->field_0x0, chunk->field_0x8);
+}
 
 // UndoPowerupLose
 
