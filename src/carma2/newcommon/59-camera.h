@@ -8,6 +8,8 @@ extern int gCamera_frozen;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern tSave_camera gSave_camera[2];
+extern br_scalar gCamera_zoom;
 
 // DoCameraControls
 
@@ -31,8 +33,7 @@ extern tActionReplayCameraMode gAction_replay_camera_mode;
 
 // IsCameraTypeAllowed
 
-// MungeCarMaterials
-
+extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
 // SetCameraType
 
 // ChangeCameraType
@@ -59,10 +60,8 @@ extern tActionReplayCameraMode gAction_replay_camera_mode;
 
 // SetUpPanningCamera
 
-// SaveCameraPosition
-
-// RestoreCameraPosition
-
+extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
+extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
@@ -83,14 +82,12 @@ extern tActionReplayCameraMode gAction_replay_camera_mode;
 
 // CollideCamera2
 
-// CollideCameraWithOtherCars
-
+extern int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pCamera_pos);
 // InitialiseExternalCamera
 
 extern void C2_HOOK_FASTCALL FreezeCamera(void);
 
-// GetAverageGridPosition
-
+extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
 // FindACar
 
 // FindAPed
