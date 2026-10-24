@@ -386,7 +386,7 @@ extern void C2_HOOK_FASTCALL ApplyGibShower(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
-// ApplyPowerupGot
+extern void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk);
 
 // ApplyPowerupLose
 

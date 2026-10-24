@@ -1266,7 +1266,13 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
     return DisableGroovidelic((br_actor*)(intptr_t)chunk->field_0x0, chunk->field_0x8);
 }
 
-// ApplyPowerupLose
+// FUNCTION: CARMA2_HW 0x004c9c00
+void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
+
+    return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
+}
+
 
 // ApplyFunkEnable
 
