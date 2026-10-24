@@ -420,7 +420,31 @@ int C2_HOOK_FASTCALL GetOpponentsFirstSection(const tOpponent_spec* pOpponent_sp
 
 // GetOpponentsNextSection
 
-// GetOpponentsSectionStartNodePoint
+// FUNCTION: CARMA2_HW 0x004aeb90
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    tS16 section_no;
+    tS16 node_no;
+    tU8 node_index_index;
+    const tRoute_section* route;
+
+    if (pSection >= 20000 && pOpponent_spec->nnext_sections > pSection - 20000) {
+        route = &pOpponent_spec->next_sections[pSection - 20000];
+        node_index_index = route->direction;
+        section_no = route->section_no;
+        node_no = gProgram_state.AI_vehicles.path_sections[section_no].node_indices[node_index_index == 0];
+        return &gProgram_state.AI_vehicles.path_nodes[node_no].pos;
+    }
+
+    if (pSection >= 15000) {
+        return &pOpponent_spec->pursue_car_data.pursuee->my_trail.trail_nodes[pSection - 15000];
+    }
+    if (pSection == 10000) {
+        return &pOpponent_spec->pursue_car_data.direct_line_nodes[0].pos;
+    }
+    DoNotDprintf("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+    PDEnterDebugger("BIG ERROR - GetOpponentsSectionStartNodePoint()");
+    return NULL;
+}
 
 // GetOpponentsSectionFinishNodePoint
 
