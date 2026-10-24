@@ -22,7 +22,7 @@ extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
 
 // MungeOilsHeightAboveGround
 
-// MungeIndexedOilsHeightAboveGround
+extern void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex);
 
 extern void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel);
 
