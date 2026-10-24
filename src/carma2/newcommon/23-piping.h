@@ -312,7 +312,7 @@ extern void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk);
 
-// ApplyFrameBoundary
+extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
