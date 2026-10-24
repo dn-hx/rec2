@@ -1027,6 +1027,12 @@ void C2_HOOK_FASTCALL ResetPanickingPeds(tPowerup* powerup, tCar_spec* car) {
     gPanicking_peds = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004de980
+void C2_HOOK_FASTCALL ResetLowGravityPeds(tPowerup* powerup, tCar_spec* car) {
+
+    gPed_gravity_multiplier = 1.0f;
+}
+
 
 // ResetGhostPeds
 
