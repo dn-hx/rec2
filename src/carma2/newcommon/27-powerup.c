@@ -469,9 +469,16 @@ void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1) {
 
 // GotPowerupN
 
-// GotPowerup0
+// FUNCTION: CARMA2_HW 0x004dbdb0
+void C2_HOOK_FASTCALL GotPowerup0(void) {
+    int modifiers;
 
-// GotPowerup1
+    modifiers = PDKeyDown(0) ? 10 : 0;
+    modifiers += PDKeyDown(1) ? 20 : 0;
+    modifiers += PDKeyDown(2) ? 40 : 0;
+    modifiers += PDKeyDown(4) ? 80 : 0;
+    GotPowerupEarwig(&gProgram_state.current_car, modifiers + 0, 1, 1);
+}
 
 // GotPowerup2
 
