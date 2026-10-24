@@ -10,8 +10,12 @@
 #include "rec2_macros.h"
 #include "c2_string.h"
 
+/* explicit initializers keep gTintedPolys and gEthereal_pedestrians adjacent (loop-end compare); costs ~250 KB of .data */
 // GLOBAL: CARMA2_HW 0x00705c80
-tTintedPoly gTintedPolys[10];
+tTintedPoly gTintedPolys[10] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x007447a0
+int gEthereal_pedestrians = 0;
 
 // GLOBAL: CARMA2_HW 0x006a0430
 br_actor* gTintedPolyCamera;
