@@ -361,8 +361,24 @@ void C2_HOOK_FASTCALL DoPSPowerupHeadups(void) {
 
 // DoHeadups
 
-// FindAHeadupHoleWoofBarkSoundsABitRude
+// FUNCTION: CARMA2_HW 0x00449fa0
+int C2_HOOK_FASTCALL FindAHeadupHoleWoofBarkSoundsABitRude(int pSlot_index) {
+    int i;
+    int empty_one;
+    tHeadup* the_headup;
 
+    empty_one = -1;
+    the_headup = gHeadups;
+    for (i = 0; i < (int)REC2_ASIZE(gHeadups); i++, the_headup++) {
+        if (pSlot_index >= 0 && the_headup->slot_index == pSlot_index) {
+            return i;
+        }
+        if (the_headup->type == eHeadup_unused) {
+            empty_one = i;
+        }
+    }
+    return empty_one;
+}
 // IsHeadupTextClever
 
 #ifdef REC2_MATCHING
