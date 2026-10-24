@@ -61,6 +61,7 @@ extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_ca
 // SetUpPanningCamera
 
 extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
+extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
