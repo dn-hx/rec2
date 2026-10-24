@@ -9,17 +9,18 @@
 
 #include <string.h>
 
+/* explicit initializers keep gTwatVfsMountPoints, gDisableTiffConversionStack and gTwatVfsFiles adjacent as in the original */
 // GLOBAL: CARMA2_HW 0x00691b40
-tTwatVfsMountPoint gTwatVfsMountPoints[5];
+tTwatVfsMountPoint gTwatVfsMountPoints[5] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00692068
+int gDisableTiffConversionStack[2] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00692070
-tTwatVfsFile gTwatVfsFiles[51];
+tTwatVfsFile gTwatVfsFiles[51] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006923a0
 int gDisableTiffConversionStackPos;
-
-// GLOBAL: CARMA2_HW 0x00692068
-int gDisableTiffConversionStack[2];
 
 // GLOBAL: CARMA2_HW 0x0068c724
 int gDisableTiffConversion;
