@@ -12,12 +12,12 @@
 #include "rec2_macros.h"
 
 #include <string.h>
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 br_actor* gAdditional_actors;
 
-// GLOBAL: CARMA2_HW 0x006b7820
-tBrender_storage* gStorage_for_callbacks;
+/* gStorage_for_callbacks (0x006b7820) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x006aaa2c
 int gDisallow_duplicates;
