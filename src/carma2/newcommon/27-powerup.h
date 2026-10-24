@@ -106,7 +106,7 @@ extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
 
 // RemoveRepulsiveReferences
 
-// MungeRepulseRays
+extern void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime);
 
 // AdjustRepulseRay
 

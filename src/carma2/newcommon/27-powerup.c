@@ -305,6 +305,10 @@ void C2_HOOK_FASTCALL CloseDownPowerUps(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// STUB: CARMA2_HW 0x004db8e0
+void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
