@@ -648,6 +648,69 @@ void C2_HOOK_FASTCALL AwardTime(tU32 pTime) {
 // GLOBAL: CARMA2_HW 0x0079eb00
 char gHeadup_oppo_ped_text[64];
 
+// FUNCTION: CARMA2_HW 0x0044b6a0
+void C2_HOOK_FASTCALL DoTestHeadup(void) {
+    // GLOBAL: CARMA2_HW 0x006815c0
+    static int do_headup_material;
+
+    do_headup_material = !do_headup_material;
+    if (do_headup_material) {
+        BrMapUpdate(gCurrent_rev, BR_MAPU_ALL);
+        gStatbarHUD1_material->colour_map = gCurrent_rev;
+        BrMaterialUpdate(gStatbarHUD1_material, BR_MATU_COLOURMAP);
+    }
+    if (!do_headup_material) {
+        BrMapUpdate(gDamage_hud, BR_MAPU_ALL);
+        gStatbarHUD5_material->colour_map = gDamage_hud;
+        BrMaterialUpdate(gStatbarHUD5_material, BR_MATU_COLOURMAP);
+    }
+
+    if (gNet_mode != eNet_mode_none) {
+        if (gHeadup_detail_level % 3 > 0) {
+            BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, -448.f, 0.f, 0.f);
+            RenderThisHeadup(gStatbarHUD5_actor);
+            RenderThisHeadup(gStatbarHUD1_actor);
+            if (gHeadup_detail_level % 3 > 1) {
+                BrMatrix34Translate(&gArmour_actor->t.t.mat, 48.f, 35.f, 0.f);
+                BrMatrix34Translate(&gPower_actor->t.t.mat, -102.f, 5.f, 0.f);
+                BrMatrix34Translate(&gOffense_actor->t.t.mat, -252.f, -25.f, 0.f);
+                RenderThisHeadup(gArmour_actor);
+                RenderThisHeadup(gPower_actor);
+                RenderThisHeadup(gOffense_actor);
+            }
+        }
+        if (gHeadup_detail_level > 2) {
+            RenderThisHeadup(gHeadup_actor);
+        }
+    } else {
+        BrMatrix34Translate(&gArmour_actor->t.t.mat, 0.f, 0.f, 0.f);
+        BrMatrix34Translate(&gPower_actor->t.t.mat, 0.f, 0.f, 0.f);
+        BrMatrix34Translate(&gOffense_actor->t.t.mat, 0.f, 0.f, 0.f);
+        if (gHeadup_detail_level % 3 > 0) {
+            BrMatrix34Translate(&gStatbarHUD1_actor->t.t.mat, 142.f, 0.f, 0.f);
+            BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, -178.f, 0.f, 0.f);
+            RenderThisHeadup(gStatbarHUD1_actor);
+            RenderThisHeadup(gStatbarHUD5_actor);
+            RenderThisHeadup(gTimerLeftHUD_actor);
+            RenderThisHeadup(gTimerRightHUD_actor);
+            if (gHeadup_detail_level % 3 > 1) {
+                RenderThisHeadup(gArmour_actor);
+                RenderThisHeadup(gPower_actor);
+                RenderThisHeadup(gOffense_actor);
+                RenderThisHeadup(gStatbarRightHUD_actor);
+                RenderThisHeadup(gStatbarHUD3_actor);
+                BrMatrix34Translate(&gStatbarHUD1_actor->t.t.mat, 0.f, 0.f, 0.f);
+                BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, 0.f, 0.f, 0.f);
+            } else {
+                PolyFontText(gHeadup_oppo_ped_text, 335, 50, kPolyfont_ingame_medium_blue, eJust_centre, 0);
+            }
+        }
+        if (gHeadup_detail_level > 2) {
+            RenderThisHeadup(gHeadup_actor);
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0044ba60
 int C2_HOOK_FASTCALL HighResHeadupWidth(int pWidth) {
     int width;
