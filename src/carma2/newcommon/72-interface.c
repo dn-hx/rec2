@@ -936,7 +936,18 @@ int C2_HOOK_FASTCALL testUp(tFrontend_spec *pFrontend) {
     }
     return 0;
 }
+// FUNCTION: CARMA2_HW 0x0046a080
+int C2_HOOK_FASTCALL testDn(tFrontend_spec *pFrontend) {
 
+    if (PDGetTotalTime() - gFrontend_last_scroll > 400) {
+        gFrontend_last_scroll = PDGetTotalTime();
+        if ((gCurrent_race_group - gRace_groups) % 10 < 9) {
+            gCurrent_race_group += 1;
+        }
+        RefreshRacesScroller(pFrontend);
+    }
+    return 0;
+}
 // FRONTEND_MainMenuHandler
 
 // UpdateCarInfo
