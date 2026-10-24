@@ -87,8 +87,7 @@ extern int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vect
 
 extern void C2_HOOK_FASTCALL FreezeCamera(void);
 
-// GetAverageGridPosition
-
+extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
 // FindACar
 
 // FindAPed
