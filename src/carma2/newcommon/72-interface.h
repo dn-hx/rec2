@@ -424,7 +424,7 @@ extern int C2_HOOK_FASTCALL Options_AbortGame(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL Options_Quit(tFrontend_spec* pFrontend);
 
-// Graphics_Infunc
+extern int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend);
 
 // Graphics_Outfunc
 

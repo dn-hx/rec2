@@ -2932,7 +2932,28 @@ int C2_HOOK_FASTCALL Options_Quit(tFrontend_spec* pFrontend) {
     return 2;
 }
 
-// Graphics_Infunc
+extern void C2_HOOK_FASTCALL GetGraphicsSettingsData(tFrontend_spec* pFrontend);
+
+// FUNCTION: CARMA2_HW 0x004747e0
+int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend) {
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gCurrent_frontend_scrollbars = NULL;
+    gConnected_items = NULL;
+    gPTR_00686508 = NULL;
+    GetGraphicsSettingsData(pFrontend);
+    return 1;
+}
 
 // Graphics_Outfunc
 
