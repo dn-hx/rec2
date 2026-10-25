@@ -420,6 +420,8 @@ extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 
 // ARAddDataToSession
 
+extern void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, int pSize);
+
 extern void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCount, ...);
 
 // ARDoSingleSession

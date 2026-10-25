@@ -250,6 +250,12 @@ tU8* gLocal_buffer = NULL;
 // GLOBAL: CARMA2_HW 0x006768ec
 tU32 gPipe_buffer_size = 0;
 
+// GLOBAL: CARMA2_HW 0x006768f4
+tU32 gLocal_buffer_size = 0;
+
+// GLOBAL: CARMA2_HW 0x006768a0
+tU8* gMr_chunky = NULL;
+
 // GLOBAL: CARMA2_HW 0x00676910
 int gPipe_count_callbacks = 0;
 
@@ -335,9 +341,25 @@ void C2_HOOK_FASTCALL AREndPipingSession(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004028a0
-void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x004028a0
+void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, int pSize) {
+    tU32 new_size;
+
+    if (gPipe_buffer_start == NULL || gAction_replay_mode || !gProgram_state.racing) {
+        return;
+    }
+    new_size = gLocal_buffer_size + pSize + sizeof(void*);
+    if (new_size >= 15000) {
+        return;
+    }
+    ((int*)gLocal_buffer)[1] += 1;
+    *((uintptr_t*)gMr_chunky) = pOwner;
+    gMr_chunky += sizeof(uintptr_t);
+    if (pSize != 0) {
+        memcpy(gMr_chunky, pData, pSize);
+    }
+    gMr_chunky += pSize;
+    gLocal_buffer_size = new_size;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
