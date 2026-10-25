@@ -423,6 +423,66 @@ tPed_face_cache_0x50* gPed_face_cache;
 // GLOBAL: CARMA2_HW 0x00694458
 br_pixelmap* gProx_ray_shade_table;
 
+// GLOBAL: CARMA2_HW 0x0069411c
+float gGiblet_scrape_start;
+
+// GLOBAL: CARMA2_HW 0x00694238
+tSlick_spec gPed_slick;
+
+// GLOBAL: CARMA2_HW 0x00694274
+tPed_giblet_size_spec* gGiblet_sizes;
+
+// GLOBAL: CARMA2_HW 0x00694278
+br_model* gPed_spurt_model;
+
+// GLOBAL: CARMA2_HW 0x0069427c
+int gPed_spurty_lumps_count;
+
+// GLOBAL: CARMA2_HW 0x006942f8
+int gPed_spurt_min_max_time[2];
+
+// GLOBAL: CARMA2_HW 0x00694454
+int gPed_dismember_spurting_member_count;
+
+// GLOBAL: CARMA2_HW 0x0069445c
+int gPed_spurting_period;
+
+// GLOBAL: CARMA2_HW 0x00694460
+br_material* gPed_smear_material;
+
+// GLOBAL: CARMA2_HW 0x00694468
+tSmashable_initial_position_spec gGiblet_initial_position;
+
+// GLOBAL: CARMA2_HW 0x00694478
+tExplosion_animation gPed_explosion_small_blood_cloud;
+
+// GLOBAL: CARMA2_HW 0x00694480
+tExplosion_animation gPed_medium_blood_cloud;
+
+// GLOBAL: CARMA2_HW 0x00694488
+tExplosion_animation gPed_large_blood_cloud;
+
+// GLOBAL: CARMA2_HW 0x006944a0
+tSmashable_initial_speed_spec gPed_spurt_initial_speed;
+
+// GLOBAL: CARMA2_HW 0x0069bc18
+int gGiblet_size_count;
+
+// GLOBAL: CARMA2_HW 0x0069bc38
+tSmashable_initial_speed_spec gGiblet_initial_speed;
+
+// GLOBAL: CARMA2_HW 0x0069fda8
+tSmashable_initial_position_spec gPed_spurt_initial_position;
+
+// GLOBAL: CARMA2_HW 0x006a0408
+int gGiblet_min_max_time[2];
+
+extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec* pInitial_pos);
+extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
+extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
+extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
+extern void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -453,9 +513,101 @@ void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
     gPed_retain_root_mode = 0;
 }
 
-// STUB: CARMA2_HW 0x004cb1e0
+// FUNCTION: CARMA2_HW 0x004cb1e0
 void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pF) {
-    NOT_IMPLEMENTED();
+    tPath_name the_path;
+    float scale;
+    int index;
+    int r, g, b;
+    char s[256];
+    tPed_giblet_size_spec* spec;
+    int j;
+    int i;
+
+    PathCat(the_path, gApplication_path, gPedsFolder);
+    PathCat(the_path, the_path, "GIBLETS");
+    LoadAllStuffInDirectory(&gMisc_storage_space, the_path, kRendererShadingType_Diffuse1);
+
+    gGiblet_scrape_start = (float)GetAnInt(pF);
+    ReadSmashableInitialPosition(pF, &gGiblet_initial_position);
+    ReadSmashableInitialSpeed(pF, &gGiblet_initial_speed);
+    ReadMinMaxTimeInMilliseconds(pF, gGiblet_min_max_time);
+
+    gGiblet_size_count = GetAnInt(pF);
+    gGiblet_sizes = BrMemAllocate(gGiblet_size_count * sizeof(tPed_giblet_size_spec), kMem_misc_poly_ped);
+
+    for (i = 0, spec = gGiblet_sizes; i < gGiblet_size_count; i++, spec++) {
+        spec->flags = GetAnInt(pF);
+        spec->min_force = GetAScalar(pF);
+        spec->instance_force = GetAScalar(pF);
+        spec->max_count = GetAnInt(pF);
+        spec->model_count = GetAnInt(pF);
+
+        for (j = 0; j < spec->model_count; j++) {
+            scale = GetAScalar(pF);
+            index = GetAnInt(pF);
+            GetThreeInts(pF, &r, &g, &b);
+            GetAString(pF, s);
+            spec->models[j] = BrModelFind(s);
+            if (spec->models[j] == NULL) {
+                FatalError(kFatalError_CannotFindGibletModel_S, s);
+            }
+            if (i == gGiblet_size_count - 1) {
+                scale = scale * 3.f * .25f;
+            }
+            ScaleModel(spec->models[j], 0, scale);
+            spec->models[j]->faces[0].material->index_base = index;
+            spec->models[j]->faces[0].material->index_range = 1;
+            spec->models[j]->faces[0].material->colour = BR_COLOUR_RGB(r, g, b);
+            BrMaterialUpdate(spec->models[j]->faces[0].material, BR_MATU_ALL);
+        }
+    }
+
+    ReadExplosion(pF, &gPed_explosion_small_blood_cloud);
+    ReadExplosion(pF, &gPed_medium_blood_cloud);
+    ReadExplosion(pF, &gPed_large_blood_cloud);
+
+    gPed_slick_material = BrMaterialAllocate("GIBSLICK");
+    BrMaterialAdd(gPed_slick_material);
+    gPed_slick_material->flags |= BR_MATF_LIGHT;
+    gPed_slick_material->flags |= BR_MATF_PERSPECTIVE;
+    gPed_slick_material->flags |= BR_MATF_SMOOTH;
+    gPed_slick_material->ka = .99f;
+    gPed_slick_material->kd = .0f;
+    gPed_slick_material->ks = .0f;
+    gPed_slick_material->power = .0f;
+    gPed_slick_material->index_base = 0;
+    gPed_slick_material->index_range = 0;
+    BrMatrix23Identity(&gPed_slick_material->map_transform);
+    gPed_slick_material->index_shade = BrTableFind("IDENTITY.TAB");
+    gPed_slick_material->colour_map = BrMapFind("GIBSLICK");
+    GlorifyMaterial(&gPed_slick_material, 1, kRendererShadingType_Diffuse2);
+    BrMaterialUpdate(gPed_slick_material, BR_MATU_ALL);
+
+    gPed_smear_material = BrMaterialFind("PEDSMEAR");
+
+    ReadSpillData(pF, &gPed_slick);
+
+    gPed_spurty_lumps_count = GetAnInt(pF);
+    gPed_spurting_period = GetAnInt(pF);
+    gPed_dismember_spurting_member_count = GetAnInt(pF);
+    ReadSmashableInitialPosition(pF, &gPed_spurt_initial_position);
+    ReadSmashableInitialSpeed(pF, &gPed_spurt_initial_speed);
+    ReadMinMaxTimeInMilliseconds(pF, gPed_spurt_min_max_time);
+
+    scale = GetAScalar(pF);
+    index = GetAnInt(pF);
+    GetThreeInts(pF, &r, &g, &b);
+    GetAString(pF, s);
+    gPed_spurt_model = BrModelFind(s);
+    if (gPed_spurt_model == NULL) {
+        FatalError(kFatalError_CannotFindGibletModel_S, s);
+    }
+    ScaleModel(gPed_spurt_model, 0, scale);
+    gPed_spurt_model->faces[0].material->index_base = index;
+    gPed_spurt_model->faces[0].material->index_range = 1;
+    gPed_spurt_model->faces[0].material->colour = BR_COLOUR_RGB(r, g, b);
+    BrMaterialUpdate(gPed_spurt_model->faces[0].material, BR_MATU_ALL);
 }
 
 // STUB: CARMA2_HW 0x004cb630
