@@ -2350,9 +2350,76 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c5f20
-void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape) {
+// STUB: CARMA2_HW 0x00420910
+tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shape_polyhedron_data* pPolyhedron) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00420fb0
+tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron) {
+    NOT_IMPLEMENTED();
+}
+
+#define FILLINSHAPE_ERROR(PERR) \
+    do { \
+        if (gPhysics_error_cb != NULL) { \
+            gPhysics_error_cb(PERR, NULL); \
+        } \
+        exit(PERR); \
+    } while (0)
+
+// based on carpocalypse2 physics.c:1444
+// FUNCTION: CARMA2_HW 0x004c5f20
+void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape) {
+    int i;
+    tPhysicsError error;
+
+    switch (pShape->common.type) {
+    case kCollisionShapeType_Wireframe:
+        if (pShape->wireframe.wireframe.count_points == 0) {
+            FILLINSHAPE_ERROR(ePhysicsError_WireFrameHasNoPoints);
+            return;
+        }
+        GetBoundsFromPointList(pShape->wireframe.wireframe.points, pShape->wireframe.wireframe.count_points, &pShape->common.bb);
+        return;
+    case kCollisionShapeType_Polyhedron:
+        if (pShape->polyhedron.polyhedron.count_points < 4) {
+            FILLINSHAPE_ERROR(ePhysicsError_PolyhedronHasNoPoints);
+            return;
+        }
+        error = ConvexHull3D(&pShape->polyhedron.polyhedron);
+        if (error != ePhysicsError_Ok) {
+            if (error == ePhysicsError_WireFrameHasNoPoints) {
+                pShape->common.type = kCollisionShapeType_Wireframe_Polyhedron;
+            } else {
+                PDFatalError("This polyhedron is too wierd for me");
+            }
+        }
+        GetBoundsFromPointList(pShape->polyhedron.polyhedron.points, pShape->polyhedron.polyhedron.count_points, &pShape->common.bb);
+        return;
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        if (pShape->polyhedron.polyhedron.count_points < 3) {
+            FILLINSHAPE_ERROR(4);
+            return;
+        }
+        AddPolyhedronCollisionShapePlanes(&pShape->polyhedron.polyhedron);
+        GetBoundsFromPointList(pShape->polyhedron.polyhedron.points, pShape->polyhedron.polyhedron.count_points, &pShape->common.bb);
+        return;
+    case kCollisionShapeType_Sphere:
+        BrVector3Copy(&pShape->common.bb.min, &pShape->sphere.sphere.center);
+        BrVector3Copy(&pShape->common.bb.max, &pShape->sphere.sphere.center);
+        for (i = 0; i < 3; i++) {
+            pShape->common.bb.min.v[i] -= pShape->sphere.sphere.radius;
+            pShape->common.bb.max.v[i] += pShape->sphere.sphere.radius;
+        }
+        pShape->sphere.sphere.radius_squared = pShape->sphere.sphere.radius * pShape->sphere.sphere.radius;
+        return;
+    case kCollisionShapeType_Box:
+        return;
+    default:
+        FILLINSHAPE_ERROR(ePhysicsError_UnknownShapeType);
+        return;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
