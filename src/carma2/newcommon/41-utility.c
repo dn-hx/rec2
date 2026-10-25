@@ -406,7 +406,29 @@ br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_mat
     return 0;
 }
 
-// DRActorEnumRecurseWithSnart
+// FUNCTION: CARMA2_HW 0x005148c0
+intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext) {
+    br_actor* child;
+    br_matrix34 mat;
+    intptr_t result;
+
+    if (pMat != NULL) {
+        BrMatrix34Mul(&mat, &pActor->t.t.mat, pMat);
+    } else {
+        BrMatrix34Identity(&mat);
+    }
+    result = pCallback(pActor, &mat, pContext);
+    if (result != 0) {
+        return result;
+    }
+    for (child = pActor->children; child != NULL; child = child->next) {
+        result = DRActorEnumRecurseWithSnart(child, &mat, pCallback, pContext);
+        if (result != 0) {
+            return result;
+        }
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00514930
 int C2_HOOK_FASTCALL sign(int pNumber) {
