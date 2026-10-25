@@ -667,7 +667,16 @@ void C2_HOOK_FASTCALL PipeSingleFrameFinish(void) {
         SIZE_OFFSET_PIPING(tPipe_chunk_frame_finish, time), GetTotalTime());
 }
 
-// PipeSingleGraphicalWheelStuff
+// FUNCTION: CARMA2_HW 0x004c83f0
+void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar) {
+
+    ARDoSingleVariedSession(ePipe_chunk_single_graphpical_wheel_stuff, (tU16)pCar->car_ID, 5,
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, steering_angle), (int)(pCar->steering_angle * (32767.0 / 60.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lf_sus_position), (int)(pCar->lf_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rf_sus_position), (int)(pCar->rf_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lr_sus_position), (int)(pCar->lr_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rr_sus_position), (int)(pCar->rr_sus_position * 127.f * (20.0 / 3.0)));
+}
 
 // FUNCTION: CARMA2_HW 0x004c84a0
 void C2_HOOK_FASTCALL PipeSingleSound(tS3_outlet* pOutlet, int pSound, tS3_volume pL_volume, tS3_volume pR_volume, int pPitch, const br_vector3* pPosition) {
