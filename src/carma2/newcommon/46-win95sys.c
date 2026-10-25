@@ -158,7 +158,10 @@ void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize) {
     }
 }
 
-// PDDisposeActionReplayBuffer
+// FUNCTION: CARMA2_HW 0x0051b9d0
+void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer) {
+
+}
 
 // PDInitJoysticks
 
