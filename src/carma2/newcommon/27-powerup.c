@@ -129,6 +129,30 @@ br_model* gModel_powerup_offence;
 // GLOBAL: CARMA2_HW 0x006a0ac0
 br_pixelmap* gFizzle_in[3];
 
+// GLOBAL: CARMA2_HW 0x006a0950
+int gFizzle_height;
+
+// GLOBAL: CARMA2_HW 0x006a0ad0
+int gNumber_of_powerups;
+
+// GLOBAL: CARMA2_HW 0x006a0948
+int gNumber_of_powerup_respawn_specs;
+
+// GLOBAL: CARMA2_HW 0x006a0a64
+tPowerup_respawn_spec* gPowerup_respawn_specs;
+
+// GLOBAL: CARMA2_HW 0x006a0a60
+int gNet_powerup_time_between_goodies_min;
+
+// GLOBAL: CARMA2_HW 0x006a090c
+int gNet_powerup_time_between_goodies_max;
+
+// GLOBAL: CARMA2_HW 0x006a0450
+int gNet_count_powerup_goodies;
+
+// GLOBAL: CARMA2_HW 0x006a094c
+int* gNet_powerup_goodies;
+
 // GLOBAL: CARMA2_HW 0x007447b8
 int gDrunk_pedestrians;
 
@@ -211,12 +235,618 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
 
 // GotPowerup
 
-// DRMapFindMeAPixie
-
-
-// STUB: CARMA2_HW 0x004d96c0
-void C2_HOOK_FASTCALL LoadPowerups(void) {
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004dc170
+int C2_HOOK_FASTCALL GotCredits(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc240
+int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc470
+int C2_HOOK_FASTCALL GotTimeOrPower(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc4d0
+int C2_HOOK_FASTCALL GainAPOPotential(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc750
+int C2_HOOK_FASTCALL SetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc7a0
+int C2_HOOK_FASTCALL SetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc860
+void C2_HOOK_FASTCALL ResetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc990
+int C2_HOOK_FASTCALL DoInstantRepair(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dc9d0
+void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dca00
+void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dca30
+int C2_HOOK_FASTCALL SetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dcae0
+int C2_HOOK_FASTCALL TrashBodywork(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dcc00
+void C2_HOOK_FASTCALL TheEffectsOfDrugs(tPowerup* pPowerup, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dcca0
+int C2_HOOK_FASTCALL SetOpponentsSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dce80
+int C2_HOOK_FASTCALL SetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dd700
+int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de040
+int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de0c0
+int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de140
+int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de190
+int C2_HOOK_FASTCALL NapalmPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de1e0
+int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de540
+int C2_HOOK_FASTCALL RepulsePedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de5d0
+void C2_HOOK_FASTCALL ResetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de610
+void C2_HOOK_FASTCALL PukeDrugsBackUp(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de6b0
+void C2_HOOK_FASTCALL ResetOpponentsSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de760
+void C2_HOOK_FASTCALL ResetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de7a0
+int C2_HOOK_FASTCALL PickAtRandom(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de930
+int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de9a0
+void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004de9b0
+void C2_HOOK_FASTCALL DoBouncey(tPowerup* pPowerup, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dea40
+int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004debb0
+int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004df220
+int C2_HOOK_FASTCALL SetPissed(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004df3b0
+void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dff30
+int C2_HOOK_FASTCALL PowerupCancel(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e02b0
+int C2_HOOK_FASTCALL GrowATail(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e04c0
+int C2_HOOK_FASTCALL CutOffTail(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern int C2_HOOK_FASTCALL SetPedSpeed(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetPedExplode(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetFreeRepairs(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL FreezeTimer(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetUnderwater(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL TakeDrugs(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetCopsSpeed(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetGravity(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetPinball(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetWallclimb(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetBouncey(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetStupidPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL GotVouchers(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetInstantHandbrake(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL ShowPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetElectroBastard(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetMutantCorpses(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetPedBrittle(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetDancingPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetPanickingPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetLowGravityPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL PedValium(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL TurnOnCloaking(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPedSpeed(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPedExplode(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetFreeRepairs(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL UnfreezeTimer(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetUnderwater(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetCopsSpeed(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetGravity(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPinball(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetWallclimb(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetBouncey(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetStupidPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetSuicidalPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetInstantHandbrake(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL HidePedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetElectroBastard(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPedBrittle(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetDancingPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPanickingPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetLowGravityPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MungeVouchers(tPowerup* pPowerup, tU32 pTime);
+
+// GLOBAL: CARMA2_HW 0x0065e910
+tGot_proc* gGot_procs[56] = {
+    GotCredits,
+    SetPedSpeed,
+    SetPedSize,
+    SetPedExplode,
+    PickAtRandom,
+    SetInvulnerability,
+    SetFreeRepairs,
+    DoInstantRepair,
+    FreezeTimer,
+    SetEngineFactor,
+    SetUnderwater,
+    GotTimeOrPower,
+    TrashBodywork,
+    TakeDrugs,
+    SetOpponentsSpeed,
+    SetCopsSpeed,
+    SetGravity,
+    SetPinball,
+    SetWallclimb,
+    SetBouncey,
+    SetSuspension,
+    SetTyreGrip,
+    SetDamageMultiplier,
+    SetImmortalPeds,
+    SetStupidPedestrians,
+    SetSuicidalPedestrians,
+    GotVouchers,
+    SetMassMultiplier,
+    SetInstantHandbrake,
+    ShowPedestrians,
+    HitMine,
+    SetElectroBastard,
+    SetPedHeadSize,
+    SetMutantCorpses,
+    ShitMine,
+    PissOutOil,
+    KangerooJump,
+    AnnihilatePeds,
+    RepulseOpponents,
+    SetPedBrittle,
+    SetGhostPeds,
+    SetDancingPeds,
+    SetPanickingPeds,
+    SetLowGravityPeds,
+    SetPissedPeds,
+    RepulsePedestrians,
+    GainAPO,
+    GainAPOPotential,
+    SetPissed,
+    NapalmPeds,
+    PedValium,
+    PowerupCancel,
+    GrowATail,
+    CutOffTail,
+    TurnOnCloaking,
+    NULL,
+};
+
+// GLOBAL: CARMA2_HW 0x0065e9f0
+tLose_proc* gLose_procs[56] = {
+    NULL,
+    ResetPedSpeed,
+    ResetPedSize,
+    ResetPedExplode,
+    NULL,
+    ResetInvulnerability,
+    ResetFreeRepairs,
+    NULL,
+    UnfreezeTimer,
+    ResetEngineFactor,
+    ResetUnderwater,
+    NULL,
+    NULL,
+    PukeDrugsBackUp,
+    ResetOpponentsSpeed,
+    ResetCopsSpeed,
+    ResetGravity,
+    ResetPinball,
+    ResetWallclimb,
+    ResetBouncey,
+    ResetSuspension,
+    ResetTyreGrip,
+    ResetDamageMultiplier,
+    ResetImmortalPeds,
+    ResetStupidPedestrians,
+    ResetSuicidalPeds,
+    NULL,
+    ResetMassMultiplier,
+    ResetInstantHandbrake,
+    HidePedestrians,
+    NULL,
+    ResetElectroBastard,
+    ResetPedHeadSize,
+    ResetMutantCorpses,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    ResetPedBrittle,
+    ResetGhostPeds,
+    ResetDancingPeds,
+    ResetPanickingPeds,
+    ResetLowGravityPeds,
+    ResetPissedPeds,
+    NULL,
+    NULL,
+    NULL,
+    ResetPissed,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    TurnOffCloaking,
+    NULL,
+};
+
+// GLOBAL: CARMA2_HW 0x0065ead0
+tPeriodic_proc* gPeriodic_procs[56] = {
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    TheEffectsOfDrugs,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    DoBouncey,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    MungeVouchers,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    PissedEffect,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
+// GLOBAL: CARMA2_HW 0x0065ebb0
+const char* gFizzle_names[3] = {
+    "CIRCLES",
+    "SQUARES",
+    "DIAMONDS",
+};
+
+static br_pixelmap* DRMapFindMeAPixie(const char* name) {
+    char s[256];
+    br_pixelmap* map;
+
+    map = BrMapFind(name);
+    if (map != NULL) {
+        return map;
+    }
+    strcpy(s, name);
+    strcat(s, ".PIX");
+    map = BrMapFind(s);
+    if (map != NULL) {
+        return map;
+    }
+    strcpy(s, name);
+    strcat(s, ".pix");
+    map = BrMapFind(s);
+    if (map != NULL) {
+        return map;
+    }
+    return NULL;
+}
+
+extern void C2_NORETURN C2_HOOK_CDECL FatalError(int, ...);
+
+/* based on carpocalypse2 powerups.c:614 */
+// FUNCTION: CARMA2_HW 0x004d96c0
+void C2_HOOK_FASTCALL LoadPowerups(void) {
+    FILE* f;
+    tPath_name the_path;
+    tTWTVFS twtvfs;
+    int i, j, k;
+    int first;
+    int count_index_groups;
+    int index_range;
+    char s[256];
+    tPowerup* the_powerup;
+    char* pp;
+
+    C2_HOOK_BUG_ON(sizeof(tPowerup) != 172);
+
+    if (gPowerup_txt_path == NULL) {
+        gPowerup_txt_path = "POWERUP.TXT";
+    }
+    PathCat(the_path, gApplication_path, gGraf_specs[gGraf_spec_index].data_dir_name);
+    PathCat(the_path, the_path, "POWERUPS");
+    twtvfs = OpenPackFileAndSetTiffLoading(the_path);
+    LoadAllImagesInDirectory(&gMisc_storage_space, the_path);
+    ClosePackFileAndSetTiffLoading(twtvfs);
+
+    for (i = 0; i < (int)REC2_ASIZE(gFizzle_in); i++) {
+        gFizzle_in[i] = DRMapFindMeAPixie(gFizzle_names[i]);
+    }
+    gFizzle_height = gFizzle_in[0]->height / 4;
+
+    PathCat(the_path, gApplication_path, gPowerup_txt_path);
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_CannotLoadCarResolutionIndependentFile);
+    }
+    /* Number of powerups */
+    gNumber_of_powerups = GetAnInt(f);
+    gPowerup_array = BrMemAllocate(sizeof(tPowerup) * gNumber_of_powerups, kMem_powerup_array);
+    pp = (char*)gPowerup_array + 0x14;
+    for (i = 0; i < gNumber_of_powerups; i++, pp += sizeof(tPowerup)) {
+        the_powerup = (tPowerup*)(pp - 0x14);
+
+        GetALineAndDontArgue(f, the_powerup->message);
+        if (strcmp(the_powerup->message, "dummy") == 0) {
+            the_powerup->type = ePowerup_dummy;
+        } else {
+            if (strcmp(the_powerup->message, "n/a") == 0) {
+                the_powerup->message[0] = '\0';
+            }
+            GetAString(f, s);
+            the_powerup->icon = DRMapFindMeAPixie(s);
+            if (the_powerup->icon != NULL) {
+                BrMapAdd(the_powerup->icon);
+                BRPM_convert(the_powerup->icon, gBack_screen->type);
+            }
+            if (the_powerup->icon != NULL) {
+                the_powerup->icon_actor = CreateBillBoard(the_powerup->icon);
+                the_powerup->icon_actor->material->extra_prim = the_powerup->material_prims;
+            }
+
+            /* Fizzle type */
+            the_powerup->fizzle_type = GetAnInt(f);
+            /* Time limit (-1 instantaneous, 0 whole race, x seconds) */
+            j = 1000 * GetAnInt(f);
+            the_powerup->duration = j;
+            if (j < 0) {
+                the_powerup->type = ePowerup_instantaneous;
+            } else if (j == 0) {
+                the_powerup->type = ePowerup_whole_race;
+            } else {
+                the_powerup->type = ePowerup_timed;
+            }
+            /* Initial value for keyboard operable powerups
+             * (zero if not key operable,
+             *  positive if time in seconds,
+             *  negative if number of uses)
+             */
+            the_powerup->initial_value = GetAnInt(f);
+            if (the_powerup->initial_value > 0) {
+                the_powerup->initial_value *= 1000;
+            }
+            /* Action index */
+            j = GetAnInt(f);
+            if (j >= 0) {
+                the_powerup->got_proc = gGot_procs[j];
+                the_powerup->lose_proc = gLose_procs[j];
+                the_powerup->periodic_proc = gPeriodic_procs[j];
+            } else {
+                the_powerup->lose_proc = NULL;
+                the_powerup->periodic_proc = NULL;
+                the_powerup->got_proc = NULL;
+            }
+            /*  Number of floating point params */
+            the_powerup->number_of_float_params = GetAnInt(f);
+            the_powerup->float_params = BrMemAllocate(sizeof(float) * the_powerup->number_of_float_params, kMem_powerup_parms);
+            for (j = 0; j < the_powerup->number_of_float_params; j++) {
+                the_powerup->float_params[j] = GetAScalar(f);
+            }
+            /* Number of integer params */
+            the_powerup->number_of_integer_params = GetAnInt(f);
+            the_powerup->integer_params = BrMemAllocate(sizeof(int) * the_powerup->number_of_integer_params, kMem_powerup_parms);
+            for (j = 0; j < the_powerup->number_of_integer_params; j++) {
+                the_powerup->integer_params[j] = GetAnInt(f);
+            }
+            /* Group inclusion */
+            the_powerup->group_inclusion = GetAnInt(f);
+            /* Pratcam sequence */
+            the_powerup->prat_cam_event = GetAnInt(f);
+            /* Flags (1 = net_global, 2 = net_inappropriate, 4 = off_before_snapweld) */
+            the_powerup->net_type = GetAnInt(f);
+        }
+    }
+
+    /* RESPAWN SPECS */
+
+    /* Number of respawn specs */
+    gNumber_of_powerup_respawn_specs = GetAnInt(f);
+    gPowerup_respawn_specs = BrMemAllocate(gNumber_of_powerup_respawn_specs * sizeof(tPowerup_respawn_spec), kMem_powerup_array);
+    for (i = 0; i < gNumber_of_powerup_respawn_specs; i++) {
+        gPowerup_respawn_specs[i].bools = BrMemAllocate(gNumber_of_powerups * sizeof(tU8), kMem_powerup_array);
+        /* Number of index groups */
+        count_index_groups = GetAnInt(f);
+        for (j = 0; j < count_index_groups; j++) {
+            index_range = GetAnInt(f);
+            if (index_range >= 0) {
+                /* index_range is index */
+                gPowerup_respawn_specs[i].bools[index_range] = 1;
+            } else {
+                /* index_range is range */
+                first = GetAnInt(f);
+                for (k = first; k < first - index_range; k++) {
+                    gPowerup_respawn_specs[i].bools[k] = 1;
+                }
+            }
+        }
+    }
+    gRace_powerup_respawn_bools = gPowerup_respawn_specs[0].bools;
+
+    /* NETWORK AUTO-GOODIES */
+
+    /* Min,max times between Auto-goodies */
+    GetPairOfInts(f, &gNet_powerup_time_between_goodies_min, &gNet_powerup_time_between_goodies_max);
+    gNet_powerup_time_between_goodies_min *= 1000;
+    gNet_powerup_time_between_goodies_max *= 1000;
+    /* Number of goodies to choose from */
+    gNet_count_powerup_goodies = GetAnInt(f);
+    gNet_powerup_goodies = BrMemAllocate(gNet_count_powerup_goodies * sizeof(int), kMem_powerup_array);
+    for (i = 0; i < gNet_count_powerup_goodies; i++) {
+        gNet_powerup_goodies[i] = GetAnInt(f);
+    }
+    PFfclose(f);
 }
 
 // InitRepulseEffects
