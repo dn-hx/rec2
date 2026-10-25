@@ -447,7 +447,13 @@ int C2_HOOK_FASTCALL CheckRecoverCost(void) {
 
 // FlipUpCar
 
-// GetPowerup
+extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
+
+// FUNCTION: CARMA2_HW 0x00442e80
+void C2_HOOK_FASTCALL GetPowerup(int pNum) {
+
+    GotPowerup(&gProgram_state.current_car, pNum);
+}
 
 // CheckSystemKeys
 

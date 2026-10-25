@@ -115,7 +115,7 @@ extern int C2_HOOK_FASTCALL CheckRecoverCost(void);
 
 // FlipUpCar
 
-// GetPowerup
+extern void C2_HOOK_FASTCALL GetPowerup(int pNum);
 
 // CheckSystemKeys
 

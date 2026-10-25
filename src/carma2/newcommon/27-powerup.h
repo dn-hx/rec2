@@ -73,7 +73,7 @@ extern void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int p
 
 // AutoGoody
 
-// GotPowerup
+extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
 
 // DRMapFindMeAPixie
 
