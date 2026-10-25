@@ -64,7 +64,7 @@ extern void C2_HOOK_FASTCALL NumberKey7(void);
 
 extern void C2_HOOK_FASTCALL NumberKey8(void);
 
-// NumberKey9
+extern void C2_HOOK_FASTCALL NumberKey9(void);
 
 extern void C2_HOOK_FASTCALL LookLeft(void);
 
