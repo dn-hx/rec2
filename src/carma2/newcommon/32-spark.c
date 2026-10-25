@@ -607,9 +607,41 @@ void C2_HOOK_FASTCALL AdjustSmokeColumn(int pIndex, const tSmoke_column_core* pC
     }
 }
 
-// CreateSmokeColumn2
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// CreateSmokeColumn
+// STUB: CARMA2_HW 0x004fb630
+void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// based on carpocalypse2 src/carma2/common/spark.c:3182 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fb890
+void C2_HOOK_FASTCALL CreateSmokeColumn(tCar_spec* pCar, int pType, int pRandom, int pLifetime) {
+
+    if (pCar->collision_info->last_special_volume != NULL
+        && pCar->collision_info->last_special_volume->gravity_multiplier < 1.0f) {
+        return;
+    }
+    SmudgeCar(pCar, pRandom);
+    if (pCar->knackered) {
+        SmudgeCar(pCar, pCar->fire_vertex[IRandomBetween(0, 0xb)]);
+    }
+    CreateSmokeColumn2(1, pCar->car_master_actor, pCar, NULL, pType, pRandom, pLifetime);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004fb910
 void C2_HOOK_FASTCALL GenerateSmokeShades(void) {
@@ -850,11 +882,19 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 
 // PipeInstantUnSmudge
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004fc9c0
 void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point) {
     (void)pCar;
     (void)pFire_point;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004fc9d0
 void C2_HOOK_FASTCALL SetSmokeOn(int pSmoke_on) {
