@@ -26,6 +26,12 @@ int gCredits_checkpoint[3];
 // GLOBAL: CARMA2_HW 0x00660cdc
 int gLast_wrong_checkpoint = -1;
 
+// GLOBAL: CARMA2_HW 0x00660ce0
+int gMirror_on__structur = 1;
+
+// GLOBAL: CARMA2_HW 0x00660ce8
+int gLoad_last_save_game = 1;
+
 // GLOBAL: CARMA2_HW 0x006aaa34
 tU32 gLast_checkpoint_time;
 
@@ -217,13 +223,267 @@ int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race
 
 // SwapNetCarsDispose
 
-// DoGame
+extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+extern void C2_HOOK_FASTCALL DoSCILogo(void);
+extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
+extern void C2_HOOK_STDCALL DoStainlessLogo(void);
+extern void C2_HOOK_FASTCALL SetSoundVolumes(int pCD_audio);
+extern void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
+extern void C2_HOOK_FASTCALL InitGame(int pStart_race);
+extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
+extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
+extern void C2_HOOK_FASTCALL DoMainScreen(void);
+extern int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet);
+extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, const char* pTitle);
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+extern void C2_HOOK_FASTCALL LoadRaceInfo(int pRace_index, tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisableNetService(void);
+extern void C2_HOOK_FASTCALL ReenableNetService(void);
+extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
+extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
+extern int C2_HOOK_FASTCALL SortOpponents(void);
+extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL DisposeRace(void);
+extern void C2_HOOK_FASTCALL DisposeTrack(void);
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL InitSoundSources(void);
+extern void C2_HOOK_FASTCALL FogificateMaterials(tRendererShadingType pShading_type);
+extern void C2_HOOK_FASTCALL EnableAutoFogification(void);
+extern void C2_HOOK_FASTCALL DisableAutoFogification(void);
+extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
+extern tRace_result C2_HOOK_FASTCALL DoRace(void);
+extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
+extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
+extern void C2_HOOK_FASTCALL DoSaveGame(void);
+extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
+extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
+extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
+extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
+extern tCar_spec* gCar_to_view;
+extern int gSave_game_out_of_sync;
 
-// InitialiseProgramState
-
-// STUB: CARMA2_HW 0x00503c50
-void C2_HOOK_FASTCALL DoProgram(void) {
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x005039e0
+void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00481830
+void C2_HOOK_FASTCALL InitRace(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c6580
+void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e3440
+int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+/* DoGame (inlined into DoProgram by the original compiler) */
+static void DoGame(void) {
+    int i;
+    tRace_result race_result;
+    int game_completed;
+
+    PrintMemoryDump(0, "START OF DoGame()");
+    gAbandon_game = 0;
+    gDisallow_abandon_race = 0;
+    gCar_to_view = &gProgram_state.current_car;
+    StartLoadingScreen();
+    gProgram_state.prog_status = eProg_game_ongoing;
+    if (gNet_mode_of_last_game != gNet_mode) {
+        gProgram_state.prog_status = eProg_idling;
+        return;
+    }
+    PrintMemoryDump(0, "BEFORE START RACE SCREEN");
+    LoadRaceInfo(gProgram_state.current_race_index, &gCurrent_race);
+    SelectOpponents(&gCurrent_race);
+    if (gNet_mode != eNet_mode_none) {
+        FillInRaceInfo(&gCurrent_race);
+        DisposeRaceInfo(&gCurrent_race);
+    } else {
+        SelectOpponents(&gCurrent_race);
+        LoadRaceInfo(gProgram_state.current_race_index, &gCurrent_race);
+        FillInRaceInfo(&gCurrent_race);
+    }
+    PrintMemoryDump(0, "AFTER START RACE SCREEN");
+    if (gNet_mode != eNet_mode_none && (gCurrent_net_game->options.car_choice == 2 || gCurrent_net_game->options.car_choice == 1) && !gNo_races_yet) {
+        DisableNetService();
+        AboutToLoadFirstCar();
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].next_car_index >= 0) {
+                gNet_players[i].car_index = gNet_players[i].next_car_index;
+            }
+            gNet_players[i].next_car_index = -1;
+            LoadCar(gOpponents[gNet_players[i].car_index].car_file_name, (i == gThis_net_player_index) + 7, gNet_players[i].car, gNet_players[i].car_index, gNet_players[i].player_name, &gNet_cars_storage_space);
+        }
+        ReenableNetService();
+    }
+    PrintMemoryDump(0, "AFTER LOADING OPPONENTS IN");
+    InitRace();
+    if (gNet_mode_of_last_game != gNet_mode) {
+        gProgram_state.prog_status = eProg_idling;
+        return;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        FRONTEND_Main(3);
+        dr_dprintf("Returned from NetSync screen");
+        SwitchToLoresMode();
+    } else {
+        SortOpponents();
+        SetInitialPositions(&gCurrent_race);
+    }
+    if (gProgram_state.prog_status == eProg_idling) {
+        dr_dprintf("Calling DisposeRace()");
+        DisposeRace();
+        dr_dprintf("Calling DisposeTrack()");
+        DisposeTrack();
+        dr_dprintf("Returning from DoGame()");
+        return;
+    }
+    InitialiseAIWorldForRace(&gCurrent_race);
+    InitialiseCarsEtc(&gCurrent_race);
+    InitSoundSources();
+    InitLastDamageArrayEtc();
+    FogificateMaterials(1);
+    EnableAutoFogification();
+    RecordAPOAndCredits();
+    race_result = DoRace();
+    DisableAutoFogification();
+    DisposeRace();
+    PrintMemoryDump(0, "AFTER DISPOSING RACE");
+    if (gNet_mode != eNet_mode_none) {
+        gProgram_state.current_race_index = gPending_race;
+        gCurrent_net_game->start_race = gPending_race;
+        gPending_race = -1;
+        if (race_result != 0 && race_result != 1) {
+            DoEndRaceSummary(race_result, 0);
+        }
+    } else {
+        game_completed = DoPostRace(race_result);
+        if (race_result == 3) {
+            gSave_game_out_of_sync = 1;
+            DoEndRaceAnimation();
+            DoEndRaceSummary(race_result, game_completed);
+            DoSaveGame();
+        }
+    }
+    if (gNet_mode != eNet_mode_none) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            TotallyRepairACar(gNet_players[i].car);
+        }
+    } else {
+        TotallyRepairCar();
+    }
+    if (gNet_mode == eNet_mode_none) {
+        DisposeOpponentsCars(&gCurrent_race);
+    } else if ((gCurrent_net_game->options.car_choice == 2 || gCurrent_net_game->options.car_choice == 1) && !gNo_races_yet) {
+        DisableNetService();
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            DisposeCar(gNet_players[i].car, gNet_players[i].car_index);
+            if (gNet_players[i].car_index >= 0) {
+                gCar_details[gNet_players[i].car_index].ownership = 0;
+            }
+        }
+        ClearOutStorageSpace(&gOur_car_storage_space);
+        ClearOutStorageSpace(&gNet_cars_storage_space);
+        ReenableNetService();
+    }
+    PrintMemoryDump(0, "AFTER DISPOSING CARS");
+    DisposeTrack();
+    PrintMemoryDump(0, "AFTER DISPOSING TRACK");
+    if (gProgram_state.prog_status == eProg_game_ongoing) {
+        gProgram_state.prog_status = (gNet_mode != eNet_mode_none) ? eProg_game_starting : eProg_idling;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00503c50
+void C2_HOOK_FASTCALL DoProgram(void) {
+
+    /* InitialiseProgramState (inlined) */
+    gProgram_state.mirror_on = gMirror_on__structur;
+    gProgram_state.prog_status = eProg_intro;
+    gProgram_state.last_slot = 0;
+    gProgram_state.view_type = 0;
+    gProgram_state.frank_or_anniness = eFrankie;
+    gProgram_state.racing = 0;
+    gProgram_state.cut_scene = 0;
+    gProgram_state.saving = 0;
+    gProgram_state.loading = 0;
+    gProgram_state.dont_save_or_load = 0;
+    gProgram_state.dont_load = 0;
+    gProgram_state.field_0x2c = 0;
+    if (gAusterity_mode) {
+        gPratcam_on = 0;
+        gProgram_state.prat_cam_on = 0;
+    } else {
+        gProgram_state.prat_cam_on = gPratcam_on;
+    }
+    gProgram_state.cockpit_on = gCockpit_on;
+    gProgram_state.car_name[0] = '\0';
+    SetSoundVolumes(0);
+
+    do {
+        switch (gProgram_state.prog_status) {
+        case eProg_intro:
+            DisposeGameIfNecessary();
+            ClearEntireScreen();
+            DoSCILogo();
+            DoOpeningAnimation();
+            DoStainlessLogo();
+            gProgram_state.prog_status = eProg_opening;
+            break;
+        case eProg_opening:
+            DisposeGameIfNecessary();
+            gProgram_state.prog_status = eProg_idling;
+            DRS3StopOutletSound(gEffects_outlet);
+            break;
+        case eProg_idling:
+            DisposeGameIfNecessary();
+            if (gNo_current_game) {
+                LoadRaces(gRace_list, &gNumber_of_races, -1);
+                InitGame(gDev_initial_race);
+                MaybeRestoreSavedGame();
+            }
+            if (gAuto_load && gLoad_last_save_game) {
+                DoLoadMostRecentGame();
+                gLoad_last_save_game = 0;
+            }
+            DoMainScreen();
+            break;
+        case eProg_demo:
+            ClearEntireScreen();
+            DoSCILogo();
+            DoOpeningAnimation();
+            DoStainlessLogo();
+            gProgram_state.prog_status = eProg_idling;
+            DRS3StopOutletSound(gEffects_outlet);
+            break;
+        case eProg_game_starting:
+            DoGame();
+            break;
+        default:
+            break;
+        }
+    } while (gProgram_state.prog_status != eProg_quit);
 }
 
 extern void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was);
