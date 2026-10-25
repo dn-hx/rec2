@@ -942,7 +942,47 @@ void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject) {
     }
 }
 
-// ConditionalSmokeColumn
+// based on carpocalypse2 src/carma2/common/spark.c:1236 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fcab0
+void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pLevel) {
+    int i;
+    int j;
+    int flags;
+    int fire_value;
+
+    if (pLevel == 0 && (pCar == NULL || pCar->driver < 7)) {
+        pLevel = 1;
+    }
+    flags = gColumn_flags;
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if ((flags & (1 << i)) && gSmoke_column[i].core.car == pCar) {
+            for (j = 0; j < (int)REC2_ASIZE(gSmoke_column); j++) {
+                if (gSmoke_column[j].core.car != pCar) {
+                    continue;
+                }
+                if (!(flags & (1 << j)) || gSmoke_column[j].colour > pLevel) {
+                    gSmoke_column[j].lifetime = 0x7d0;
+                } else if (gSmoke_column[j].lifetime != 0) {
+                    return;
+                } else {
+                    gSmoke_column[j].lifetime = 0x7d0;
+                }
+            }
+            break;
+        }
+    }
+    fire_value = pCar->fire_vertex[pFire_point];
+    if (pCar->collision_info->last_special_volume != NULL) {
+        if (pCar->collision_info->last_special_volume->gravity_multiplier < 1.0f) {
+            return;
+        }
+    }
+    SmudgeCar(pCar, fire_value);
+    if (pCar->knackered) {
+        SmudgeCar(pCar, pCar->fire_vertex[IRandomBetween(0, 0xb)]);
+    }
+    CreateSmokeColumn2(1, pCar->car_master_actor, pCar, NULL, pLevel, fire_value, 0x989680);
+}
 
 // SingleSplash
 
