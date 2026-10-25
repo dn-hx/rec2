@@ -339,6 +339,11 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
 
 // LoadInDronePaths
 
+// STUB: CARMA2_HW 0x00450bf0
+void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004512d0
 void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
 

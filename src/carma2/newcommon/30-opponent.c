@@ -300,6 +300,11 @@ void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info) {
 
 // LoadInOppoPaths
 
+// STUB: CARMA2_HW 0x004a9610
+void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004a9c50
 // FUNCTION: CARMA2_SW 0x004a5dc0
 void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {

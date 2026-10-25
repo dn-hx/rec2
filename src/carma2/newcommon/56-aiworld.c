@@ -45,7 +45,18 @@ void C2_HOOK_FASTCALL InitPanGameAIWorld(void) {
     PrintMemoryDump(0, "AFTER LoadPanGameDroneInfo()");
 }
 
-// LoadAIWorldTrackInfo
+extern void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF);
+extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
+
+// FUNCTION: CARMA2_HW 0x00401030
+void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF) {
+
+    PrintMemoryDump(0, "BEFORE LoadInOppoPaths()");
+    LoadInOppoPaths(pF);
+    PrintMemoryDump(0, "AFTER LoadInOppoPaths(), BEFORE LoadInDronePaths()");
+    LoadInDronePaths(pF);
+    PrintMemoryDump(0, "AFTER LoadInDronePaths()");
+}
 
 // FUNCTION: CARMA2_HW 0x00401070
 void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info) {
