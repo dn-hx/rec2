@@ -29,6 +29,12 @@ int gLast_wrong_checkpoint = -1;
 // GLOBAL: CARMA2_HW 0x006aaa34
 tU32 gLast_checkpoint_time;
 
+// GLOBAL: CARMA2_HW 0x006aaa38
+int gHud_tinted1_visible;
+
+// GLOBAL: CARMA2_HW 0x006aaa3c
+int gHud_tinted2_visible;
+
 // FUNCTION: CARMA2_HW 0x00503050
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
     int result;
@@ -222,7 +228,24 @@ void C2_HOOK_FASTCALL DoProgram(void) {
 
 // JumpTheStart
 
-// GoingToInterfaceFromRace
+extern int C2_HOOK_FASTCALL TintedPolyIsOn(int pIndex);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
+extern void C2_HOOK_FASTCALL PlayFlicsFromDisk(void);
+extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+
+// FUNCTION: CARMA2_HW 0x00504230
+void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void) {
+
+    gInterface_within_race_mode = 1;
+    gHud_tinted1_visible = !!TintedPolyIsOn(gHud_tinted1);
+    gHud_tinted2_visible = !!TintedPolyIsOn(gHud_tinted2);
+    TurnTintedPolyOff(gHud_tinted1);
+    TurnTintedPolyOff(gHud_tinted2);
+    PlayFlicsFromDisk();
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_paused, 0, 0, 0, 0);
+    }
+}
 
 // GoingBackToRaceFromInterface
 

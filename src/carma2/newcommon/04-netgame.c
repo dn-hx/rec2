@@ -341,7 +341,10 @@ void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
 
 // SendGameplay
 
-// SendGameplayToAllPlayers
+// STUB: CARMA2_HW 0x0049bc70
+void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
+    NOT_IMPLEMENTED();
+}
 
 // SendGameplayToHost
 
