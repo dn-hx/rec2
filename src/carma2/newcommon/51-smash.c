@@ -954,14 +954,9 @@ intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser) {
 
 // SetSmashableModel
 
-// STUB: CARMA2_HW 0x004f5ec0
-// STUB: CARMA2_SW 0x004f1b20
-void C2_HOOK_FASTCALL LoadWastedExplosion(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
-    NOT_IMPLEMENTED();
-}
-
 // FUNCTION: CARMA2_HW 0x004f5ec0
-void C2_HOOK_FASTCALL ReadExplosionInfo(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
+// FUNCTION: CARMA2_SW 0x004f1b20
+void C2_HOOK_FASTCALL LoadWastedExplosion(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
     tPath_name the_path;
     char* name;
     char s[256];

@@ -65,10 +65,50 @@ void C2_HOOK_FASTCALL InitRayCasting(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004e3a30
-// STUB: CARMA2_SW 0x004dfdc0
+// FUNCTION: CARMA2_HW 0x004e3a30
+// FUNCTION: CARMA2_SW 0x004dfdc0
 int C2_HOOK_FASTCALL PickBoundsTestRay__raycast(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far) {
-    NOT_IMPLEMENTED();
+    int i;
+    float s;
+    float t;
+
+    for (i = 0; i < 3; i++) {
+        if (rd->v[i] > 2.384186e-07f) {
+            s = (rp->v[i] - b->max.v[i]) * (1.0f / (rd->v[i] * 1.0f));
+            if (s > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (s > t_near) {
+                t_near = s;
+            }
+            t = (rp->v[i] - b->min.v[i]) * (1.0f / (rd->v[i] * 1.0f));
+            if (t < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (t < t_far) {
+                t_far = t;
+            }
+        } else if (rd->v[i] < -2.384186e-07f) {
+            s = (rp->v[i] - b->max.v[i]) * (1.0f / (rd->v[i] * 1.0f));
+            if (s < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (s < t_far) {
+                t_far = s;
+            }
+            t = (rp->v[i] - b->min.v[i]) * (1.0f / (rd->v[i] * 1.0f));
+            if (t > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (t > t_near) {
+                t_near = t;
+            }
+        } else if (rp->v[i] > b->max.v[i] || rp->v[i] < b->min.v[i]) {
+            return 0;
+        }
+    }
+    if (t_near <= t_far) {
+        *new_t_near = t_near;
+        *new_t_far = t_far;
+        return 1;
+    }
+    return 0;
 }
 
 #ifdef REC2_MATCHING
@@ -163,10 +203,26 @@ int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* pModel, br_material* pMater
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004e4300
-// STUB: CARMA2_SW 0x004e0690
+// FUNCTION: CARMA2_HW 0x004e4300
+// FUNCTION: CARMA2_SW 0x004e0690
 int C2_HOOK_CDECL FindHighestPolyCallBack__raycast(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pArg) {
-    NOT_IMPLEMENTED();
+    br_scalar the_y;
+
+    the_y = pPoint->v[1];
+    if (the_y <= gCurrent_y) {
+        if (the_y > gHighest_y_below) {
+            gHighest_y_below = the_y;
+            gBelow_face_index = pF;
+            gBelow_model = pModel;
+        }
+    } else {
+        if (the_y < gLowest_y_above) {
+            gLowest_y_above = the_y;
+            gAbove_face_index = pF;
+            gAbove_model = pModel;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004e3d50
@@ -181,11 +237,20 @@ int C2_HOOK_CDECL FindHighestCallBack__raycast(br_actor* pActor, br_model* pMode
 
 // FindBestY
 
-// STUB: CARMA2_HW 0x004e45b0
-// STUB: CARMA2_SW 0x004e0940
+// FUNCTION: CARMA2_HW 0x004e45b0
+// FUNCTION: CARMA2_SW 0x004e0940
 int C2_HOOK_CDECL FindYVerticallyBelowPolyCallBack(br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pContext) {
+    float y;
 
-    NOT_IMPLEMENTED();
+    if (pMaterial == NULL || pMaterial->identifier == NULL
+            || (pMaterial->identifier[0] != '!' && pMaterial->identifier[0] != '>')) {
+        y = pPoint->v[1];
+        if (y > gHighest_y_below) {
+            gHighest_y_below = y;
+            gMaterial_below = pMaterial;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004e4570
