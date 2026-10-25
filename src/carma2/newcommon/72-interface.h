@@ -321,7 +321,7 @@ extern int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pCo
 
 // Generic_UnMungeActiveItems
 
-// Generic_MenuHandler
+extern int C2_HOOK_FASTCALL Generic_MenuHandler(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL StripControls(char* pStr);
 
@@ -402,7 +402,7 @@ extern int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend);
 
 // NetSummary_Infunc
 
-// NetSummary_MenuHandler
+extern int C2_HOOK_FASTCALL NetSummary_MenuHandler(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL DisplayVolumeSettings(tFrontend_spec* pFrontend);
 

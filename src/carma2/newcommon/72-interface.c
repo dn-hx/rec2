@@ -2329,7 +2329,16 @@ int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pConnected
 
 // Generic_UnMungeActiveItems
 
-// Generic_MenuHandler
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00470c20
+int C2_HOOK_FASTCALL Generic_MenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004b4020
 void C2_HOOK_FASTCALL StripControls(char* pStr) {
@@ -2880,7 +2889,46 @@ int C2_HOOK_FASTCALL Controls_Infunc(tFrontend_spec* pFrontend) {
 
 // NetSummary_Infunc
 
-// NetSummary_MenuHandler
+// GLOBAL: CARMA2_HW 0x006864fc
+int gFrontend_netsummary_first_iteration;
+
+// GLOBAL: CARMA2_HW 0x00686ec0
+int gPlayer_lookup_netsummary[14];
+
+// FUNCTION: CARMA2_HW 0x00474400
+int C2_HOOK_FASTCALL NetSummary_MenuHandler(tFrontend_spec* pFrontend) {
+    int i;
+    int idx;
+    int result;
+
+    if (gFrontend_netsummary_first_iteration) {
+        gFrontend_selected_item_index = 79;
+        gFrontend_netsummary_first_iteration = 0;
+    }
+    if (gProgram_state.prog_status == eProg_idling) {
+        return 1;
+    }
+    result = Generic_MenuHandler(pFrontend);
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        idx = gPlayer_lookup_netsummary[i];
+        pFrontend->items[idx].visible = 1;
+        pFrontend->items[idx + 12].visible = 1;
+        pFrontend->items[idx + 24].visible = 1;
+        pFrontend->items[idx + 36].visible = 1;
+        pFrontend->items[idx + 48].visible = 1;
+        pFrontend->items[idx + 65].visible = 1;
+        DrawThisCarIconNow(gNet_players[idx].car_index, 88, 112 + i * 24);
+    }
+    for (i = gNumber_of_net_players; i < 12; i++) {
+        pFrontend->items[i].visible = 0;
+        pFrontend->items[i + 12].visible = 0;
+        pFrontend->items[i + 24].visible = 0;
+        pFrontend->items[i + 36].visible = 0;
+        pFrontend->items[i + 48].visible = 0;
+        pFrontend->items[i + 65].visible = 0;
+    }
+    return result;
+}
 
 void C2_HOOK_FASTCALL DisplayVolumeSettings(tFrontend_spec* pFrontend) {
 
