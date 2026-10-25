@@ -75,6 +75,12 @@ tU32 gYoungest_time;
 // GLOBAL: CARMA2_HW 0x006768c8
 tU8* gPipe_buffer_end_marker = NULL;
 
+// GLOBAL: CARMA2_HW 0x006768cc
+int gUNK_006768cc = 0;
+
+// GLOBAL: CARMA2_HW 0x006768d0
+tPipe_chunk_type gReentrancy_array[5] = { 0, 0, 0, 0, 0 };
+
 // GLOBAL: CARMA2_HW 0x00694104
 undefined4* gCrush_space;
 
@@ -313,9 +319,32 @@ void C2_HOOK_FASTCALL ClearPipeUndoFlag(void) {
 
 // EnablePipedSounds
 
-// StartPipingSession2
+// StartPipingSession2 has no standalone address in CARMA2_HW: the original inlines it into
+// ARStartPipingSession (0x004025e0) and into EndPipingSession2 (0x00402660, pMunge=0 path).
+static void StartPipingSession2(tPipe_chunk_type pType, int pMunge_reentrancy) {
 
-// ARStartPipingSession
+    if (gPipe_buffer_start == NULL || gAction_replay_mode || !gProgram_state.racing) {
+        return;
+    }
+    /* Header of gLocal_buffer is { int chunk_type, int chunk_data_size } */
+    if (pMunge_reentrancy) {
+        if (gReentrancy_count != 0) {
+            gReentrancy_array[gReentrancy_count - 1] = ((int*)gLocal_buffer)[0];
+            EndPipingSession2(0);
+        }
+        gReentrancy_count += 1;
+    }
+    ((int*)gLocal_buffer)[0] = pType;
+    ((int*)gLocal_buffer)[1] = 0;
+    gLocal_buffer_size = 2 * sizeof(int);
+    gMr_chunky = gLocal_buffer + 2 * sizeof(int);
+}
+
+// FUNCTION: CARMA2_HW 0x004025e0
+void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType) {
+
+    StartPipingSession2(pType, 1);
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
