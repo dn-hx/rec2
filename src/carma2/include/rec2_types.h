@@ -3185,8 +3185,8 @@ typedef struct {
     float random_up_velocity_max;
     float random_normal_velocity_max;
     float random_spin_rate_max;
-    float min_time_ms;
-    float max_time_ms;
+    int min_time_ms;
+    int max_time_ms;
     tSmashable_initial_position_spec initial_pos;
     union {
         struct {
