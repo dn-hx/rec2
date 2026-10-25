@@ -829,6 +829,13 @@ void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
     }
 }
 
+// GLOBAL: CARMA2_HW 0x0065fef0
+const char* gSmash_side_effect_direction_names[3] = {
+    "parallel",
+    "towards",
+    "away",
+};
+
 // GLOBAL: CARMA2_HW 0x0065ff00
 const char* gPosition_type_names[2] = {
     "relative",
@@ -864,9 +871,45 @@ void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activ
     }
 }
 
-// STUB: CARMA2_HW 0x004ef550
+// FUNCTION: CARMA2_HW 0x004ef550
 void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects) {
-    NOT_IMPLEMENTED();
+    int i;
+    int i1, i2;
+    char s[256];
+
+    /* based on carpocalypse2 shrapnel.c:246 */
+    pShrapnel_side_effects->count_side_effects = GetAnInt(pF);
+    if (pShrapnel_side_effects->count_side_effects != 0) {
+        pShrapnel_side_effects->side_effects = BrMemAllocate(pShrapnel_side_effects->count_side_effects * sizeof(tSmash_side_effect), kMem_smash_side_effects);
+        for (i = 0; i < pShrapnel_side_effects->count_side_effects; i++) {
+            GetPairOfInts(pF, &i1, &i2);
+            pShrapnel_side_effects->side_effects[i].field_0x0 = 1000 * i1;
+            pShrapnel_side_effects->side_effects[i].field_0x2 = 1000 * i2;
+            GetAString(pF, s);
+            strcpy(pShrapnel_side_effects->side_effects[i].field_0x8, s);
+            if (strcmp(s, "*") == 0) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 0;
+            } else if (s[0] == '*' && DRStricmp(s + strlen(s) - 4, ".MAT") == 0) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 1;
+            } else if (s[0] == '*' && (DRStricmp(s + strlen(s) - 4, ".DAT") == 0 || DRStricmp(s + strlen(s) - 4, ".ACT") == 0)) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 2;
+            } else if (DRStricmp(s, "&*") == 0) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 3;
+            } else if (s[0] == '&' && s[1] >= '0' && s[1] <= '9') {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 6;
+            } else if (DRStricmp(s + strlen(s) - 4, ".MAT") == 0) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 4;
+            } else if (DRStricmp(s + strlen(s) - 4, ".DAT") == 0 || DRStricmp(s + strlen(s) - 4, ".ACT") == 0) {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 5;
+            } else {
+                pShrapnel_side_effects->side_effects[i].field_0x28 = 0;
+            }
+            pShrapnel_side_effects->side_effects[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
+            LoadMinMax(pF, &pShrapnel_side_effects->side_effects[i].bounds);
+            pShrapnel_side_effects->side_effects[i].field_0x44 = GetALineAndInterpretCommand(pF, gSmash_side_effect_direction_names, REC2_ASIZE(gSmash_side_effect_direction_names));
+            pShrapnel_side_effects->side_effects[i].field_0x48 = GetAScalar(pF);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
