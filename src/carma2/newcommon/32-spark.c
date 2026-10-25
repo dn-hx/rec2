@@ -8,6 +8,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "10-loading2.h"
 
 // GLOBAL: CARMA2_HW 0x00660110
 int gSmoke_on = 1;
@@ -59,6 +60,9 @@ tU8 gUNK_006a8688[0x90] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006aa584
 int gShrapnel_flags;
+
+// GLOBAL: CARMA2_HW 0x006aa588
+br_model* gShrapnel_model[2];
 
 // GLOBAL: CARMA2_HW 0x006a9180
 tShrapnel gShrapnel[30] = { 0 };
@@ -1035,7 +1039,60 @@ void C2_HOOK_FASTCALL GetSmokeShadeTables(FILE* pF) {
 void C2_HOOK_FASTCALL FreeSmokeShadeTables(void) {
 }
 
-// LoadInKevStuff
+/* based on carpocalypse2 src/carma2/common/spark.c:383 (LoadInShrapnel and InitShrapnel inlined) */
+extern br_model* C2_HOOK_FASTCALL LoadModel(const char* pName);
+extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
+extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
+
+// FUNCTION: CARMA2_HW 0x004fdc10
+void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF) {
+    int i;
+    br_scalar scale;
+    double dscale;
+
+    PackFileRevertTiffLoading();
+    PossibleService();
+    gShrapnel_model[0] = LoadModel("FRAG4.DAT");
+    DRScaleModel(gShrapnel_model[0], 0.5f);
+    gShrapnel_model[1] = LoadModel("FRAG5.DAT");
+    DRScaleModel(gShrapnel_model[1], 0.5f);
+    BrModelAdd(gShrapnel_model[0]);
+    BrModelAdd(gShrapnel_model[1]);
+    gBlack_material = GetSimpleMaterial("M14.MAT", 4);
+    gNon_track_actor->material = gBlack_material;
+    PossibleService();
+    for (i = 0; i < (int)REC2_ASIZE(gShrapnel); i++) {
+        gShrapnel[i].actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        gShrapnel[i].actor->parent = NULL;
+        gShrapnel[i].actor->model = gShrapnel_model[i & 1];
+        gShrapnel[i].actor->render_style = BR_RSTYLE_DEFAULT;
+        gShrapnel[i].actor->t.type = BR_TRANSFORM_MATRIX34;
+        gShrapnel[i].actor->material = BrMaterialFind("DEBRIS.MAT");
+        gShrapnel[i].age = 0;
+        gShrapnel[i].shear1 = FRandomBetween(-2.f, 2.f);
+        gShrapnel[i].shear2 = FRandomBetween(-2.f, 2.f);
+        BrVector3SetFloat(&gShrapnel[i].axis,
+            FRandomBetween(-1.f, 1.f),
+            FRandomBetween(-1.f, 1.f),
+            FRandomBetween(-1.f, 1.f));
+        scale = BR_LENGTH3(gShrapnel[i].axis.v[0], gShrapnel[i].axis.v[1], gShrapnel[i].axis.v[2]);
+        if (scale > BR_SCALAR_EPSILON * 2) {
+            dscale = 1.0 / scale;
+            gShrapnel[i].axis.v[0] = gShrapnel[i].axis.v[0] * dscale;
+            gShrapnel[i].axis.v[1] = gShrapnel[i].axis.v[1] * dscale;
+            gShrapnel[i].axis.v[2] = gShrapnel[i].axis.v[2] * dscale;
+        } else {
+            gShrapnel[i].axis.v[0] = 1.0f;
+            gShrapnel[i].axis.v[1] = 0.0f;
+            gShrapnel[i].axis.v[2] = 0.0f;
+        }
+    }
+    PossibleService();
+    InitFlame();
+    PossibleService();
+    InitSplash(pF);
+    PackFileRerevertTiffLoading();
+}
 
 // DisposeKevStuff
 
