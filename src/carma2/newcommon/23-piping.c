@@ -147,8 +147,6 @@ void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
 
 // ARResetPiping
 
-// ARInitialise
-
 // ARDispose
 
 #ifdef REC2_MATCHING
@@ -245,7 +243,33 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
     gPipe_buffer_oldest = NULL;
     gReentrancy_count = 0;
 }
-// ARInitialise
+
+// GLOBAL: CARMA2_HW 0x006768b4
+tU8* gLocal_buffer = NULL;
+
+// GLOBAL: CARMA2_HW 0x006768ec
+tU32 gPipe_buffer_size = 0;
+
+// GLOBAL: CARMA2_HW 0x00676910
+int gPipe_count_callbacks = 0;
+
+extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize);
+
+// FUNCTION: CARMA2_HW 0x00402410
+void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks) {
+
+    if (!pEnable) {
+        gPipe_buffer_start = NULL;
+        gLocal_buffer = NULL;
+    } else {
+        gPipe_callbacks = pCallbacks;
+        gPipe_count_callbacks = pCount_callbacks;
+        PDAllocateActionReplayBuffer(&gPipe_buffer_start, &gPipe_buffer_size);
+        gPipe_buffer_phys_end = gPipe_buffer_start + gPipe_buffer_size;
+        gLocal_buffer = BrMemAllocate(15000, kMem_pipe_model_geometry);
+    }
+    ARResetPiping();
+}
 
 // ARDispose
 
