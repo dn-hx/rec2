@@ -79,7 +79,7 @@ extern void C2_HOOK_FASTCALL DamageTest(void);
 
 // CarWorldOffFallenCheckThingy
 
-// HasCarFallenOffWorld
+extern int C2_HOOK_FASTCALL HasCarFallenOffWorld(tCar_spec* pCar);
 
 // CheckForBeingOutOfThisWorld
 
