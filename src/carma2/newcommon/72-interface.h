@@ -359,7 +359,7 @@ extern int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend);
 
 // Controls_SlotActivated
 
-// Controls_Ok
+// Controls_Ok: defined after SortScores
 
 // DisplayNetworkOptions
 
