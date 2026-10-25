@@ -364,8 +364,6 @@ void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_time* p
     pTimes->max_time = (int)(max * 1000.0);
 }
 
-// ReadSpillData
-
 // FUNCTION: CARMA2_HW 0x004ee500
 void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed) {
 
@@ -784,9 +782,51 @@ void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs
     }
 }
 
-// STUB: CARMA2_HW 0x004ee5e0
+// FUNCTION: CARMA2_HW 0x004ee5e0
 void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
-    NOT_IMPLEMENTED();
+    char s[256];
+    float a;
+    float b;
+    float c;
+
+    GetAString(pF, s);
+    if (strcmp(s, "none") != 0) {
+        pSlick->material = BrMaterialFind(s);
+        if (pSlick->material == NULL) {
+            FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+        }
+        if (gMaterials_to_adapt_count < 200) {
+            gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material;
+            gMaterials_to_adapt_count++;
+        }
+        GetThreeFloats(pF, &b, &a, &c);
+        pSlick->field_0x0 = (int)b;
+        pSlick->field_0xc = a;
+        pSlick->field_0x10 = c;
+        GetThreeFloats(pF, &c, &a, &b);
+        pSlick->field_0x14 = c;
+        pSlick->field_0x4 = a;
+        pSlick->field_0x8 = b;
+        GetPairOfFloats(pF, &c, &b);
+        pSlick->field_0x20 = c;
+        pSlick->field_0x24 = b;
+        if (b != 0.0f) {
+            GetPairOfFloats(pF, &c, &a);
+            pSlick->field_0x18 = c;
+            pSlick->field_0x1c = a;
+            GetAString(pF, s);
+            pSlick->material2 = BrMaterialFind(s);
+            if (pSlick->material2 == NULL) {
+                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+            }
+            if (gMaterials_to_adapt_count < 200) {
+                gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material2;
+                gMaterials_to_adapt_count++;
+            }
+        }
+    } else {
+        pSlick->material = NULL;
+    }
 }
 
 // STUB: CARMA2_HW 0x004efce0
