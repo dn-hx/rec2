@@ -37,7 +37,7 @@ extern intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg);
 
 // FreeTrack
 
-extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
+// ProcessTrack
 
 // AnimateSky
 

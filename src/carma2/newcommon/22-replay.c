@@ -60,6 +60,8 @@ void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
 // PollActionReplayControls
 
 extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
+extern void C2_HOOK_FASTCALL TurnOnActionReplay(void);
+extern void C2_HOOK_FASTCALL TurnOffActionReplay(void);
 extern int gEntering_message;
 extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);

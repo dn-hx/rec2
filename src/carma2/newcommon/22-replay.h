@@ -10,13 +10,13 @@ extern int gAR_camera_type;
 extern void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard);
 
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
-extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(void);
+// DoZappyActionReplayHeadups
 
 extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
-extern void C2_HOOK_FASTCALL PreProcess(int pFrame_period);
+// PreProcess
 
-extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
+// PostProcess
 
 // DoActionReplay
 
@@ -26,7 +26,7 @@ extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
 
 // PollActionReplayControls
 
-extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
+// CheckReplayTurnOn
 
 // InitializeActionReplayPix
 
@@ -34,9 +34,9 @@ extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
 
 // SynchronizeActionReplay
 
-extern void C2_HOOK_FASTCALL TurnOnActionReplay(void);
+// TurnOnActionReplay
 
-extern void C2_HOOK_FASTCALL TurnOffActionReplay(void);
+// TurnOffActionReplay
 
 extern void C2_HOOK_FASTCALL AfterActionReplay(void);
 // ToggleReplay
