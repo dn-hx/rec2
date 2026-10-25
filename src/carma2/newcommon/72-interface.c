@@ -1006,7 +1006,24 @@ int C2_HOOK_FASTCALL ChangeCarOK(tFrontend_spec* pFrontend) {
     gProgram_state.current_car_index = gProgram_state.cars_available[gFrontend_change_car_selected_car];
     return 0;
 }
-// CarClickPrev
+void C2_HOOK_FASTCALL UpdateCarInfo(tFrontend_spec* pFrontend);
+
+// FUNCTION: CARMA2_HW 0x0046b640
+int C2_HOOK_FASTCALL CarClickPrev(tFrontend_spec* pFrontend) {
+
+    if (gFrontend_scroll_time_left == 0) {
+        gFrontend_change_car_selected_car -= 1;
+        if (gFrontend_change_car_selected_car < 0) {
+            gFrontend_change_car_selected_car = gProgram_state.number_of_cars - 1;
+        }
+        gFrontend_opponent_profile_pic_needs_update = 1;
+        gFrontend_car_image_outdated = 1;
+        DRS3StartSound(gEffects_outlet, eSoundId_LeftButton);
+        UpdateCarInfo(pFrontend);
+        gFrontend_scroll_time_left += gFrontend_scroll_time_increment;
+    }
+    return 0;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
