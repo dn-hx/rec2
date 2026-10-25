@@ -73,11 +73,24 @@ tFrontend_spec gFrontend_MAIN = {
 #include "72-interface-startgame.h"
 #include "72-interface-wrecks.h"
 #include "19-font.h"
+#include "05-drmem.h"
+#include "08-loading1.h"
+#include "10-loading2.h"
+#include "52-errors.h"
+#include "63-loading3.h"
+#include "73-istring.h"
+#include "72-interface-newgame.h"
+#include "72-interface-options.h"
 #include "globvars.h"
 #include "globvrpb.h"
 #include "platform.h"
 #include "c2_string.h"
 
+extern br_pixelmap* gFrontend_images[100];
+extern tFrontend_model gFrontend_A_models[13];
+extern tFrontend_model gFrontend_B_models[11];
+extern tFrontend_model gFrontend_C_models[6];
+extern br_actor* gFrontend_backdrop_actors[3];
 extern br_actor* gFrontend_billboard_actors[8];
 extern int gFrontend_remove_current_backdrop;
 extern int gFrontend_leave_current_menu;
@@ -114,6 +127,9 @@ tFrontend_spec gFrontend_CREDITS = {
     0
 };
 
+// GLOBAL: CARMA2_HW 0x0059b0d0
+int gFrontend_stuff_not_loaded = 1;
+
 // GLOBAL: CARMA2_HW 0x0076370c
 static int back_screen_base_x;
 // GLOBAL: CARMA2_HW 0x00763710
@@ -126,9 +142,156 @@ static int back_screen_origin_y;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0046d1c0
+// FUNCTION: CARMA2_HW 0x0046d1c0
 void C2_HOOK_FASTCALL FRONTEND_Setup(tFrontendMenuType pFrontend_type) {
-    NOT_IMPLEMENTED();
+    /* based on carpocalypse2 src/carma2/common/interface.c:2298 (LoadMenuImages/LoadMenuModels inlined) */
+    char s[256];
+    char s2[256];
+    char s3[256];
+    FILE* f;
+    FILE* f2;
+    int count;
+    int i;
+    br_model* model;
+    br_pixelmap** p;
+    tFrontendMenuType type;
+
+    type = pFrontend_type;
+    PrintMemoryDump(0, "START OF FRONTEND_Setup");
+    LoadInterfaceStuff(gProgram_state.racing);
+    if (gFrontend_stuff_not_loaded) {
+        IString_Load();
+        InitPolyFonts();
+        for (i = 1; i < 8; i++) {
+            gFrontend_images[i] = LoadPixelmap("64by64.tif");
+        }
+        PathCat(s, gApplication_path, "INTRFACE");
+        PathCat(s, s, "MENUIMAGES.TXT");
+        f = DRfopen(s, "rt");
+        if (f == NULL) {
+            FatalError(kFatalError_Mysterious_SS);
+        }
+        count = GetAnInt(f);
+        if (count > 0) {
+            p = &gFrontend_images[8];
+            do {
+                GetAString(f, s2);
+                strcpy(s, s2);
+                strcat(s, ".TIF");
+                *p = LoadPixelmap(s);
+                p++;
+            } while (--count != 0);
+        }
+        PrintMemoryDump(0, "AFTER LoadMenuImages");
+        FRONTEND_Setup2D();
+        PathCat(s2, gApplication_path, "INTRFACE");
+        PathCat(s, s2, "MENUMODELS.TXT");
+        f2 = DRfopen(s, "rt");
+        if (f2 == NULL) {
+            FatalError(kFatalError_Mysterious_SS);
+        }
+        PathCat(s2, gApplication_path, "INTRFACE");
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_A_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[0]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[0]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[0]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[0]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[0]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[0]->render_style = BR_RSTYLE_FACES;
+        }
+    }
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_B_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[1]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[1]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[1]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[1]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[1]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[1]->render_style = BR_RSTYLE_FACES;
+        }
+    }
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_C_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[2]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[2]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[2]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[2]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[2]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[2]->render_style = BR_RSTYLE_FACES;
+        }
+    }
+        PrintMemoryDump(0, "AFTER LoadMenuModels");
+        pFrontend_type = type;
+        gFrontend_stuff_not_loaded = 0;
+    }
+    switch (pFrontend_type) {
+    case kFrontend_menu_main:
+        FRONTEND_CreateMenu(&gFrontend_MAIN);
+        gCurrent_frontend_spec = &gFrontend_MAIN;
+        break;
+    case kFrontend_menu_options:
+        FRONTEND_CreateMenu(&gFrontend_OPTIONS);
+        gCurrent_frontend_spec = &gFrontend_OPTIONS;
+        break;
+    case kFrontend_menu_wrecks:
+        FRONTEND_CreateMenu(&gFrontend_WRECKS);
+        gCurrent_frontend_spec = &gFrontend_WRECKS;
+        break;
+    case kFrontend_menu_netsync:
+        FRONTEND_CreateMenu(&gFrontend_NETSYNC);
+        gCurrent_frontend_spec = &gFrontend_NETSYNC;
+        break;
+    case kFrontend_menu_networksummary:
+        FRONTEND_CreateMenu(&gFrontend_NETWORK_SUMMARY);
+        gCurrent_frontend_spec = &gFrontend_NETWORK_SUMMARY;
+        break;
+    case kFrontend_menu_credits:
+        FRONTEND_CreateMenu(&gFrontend_CREDITS);
+        gCurrent_frontend_spec = &gFrontend_CREDITS;
+        break;
+    case kFrontend_menu_newgame:
+        FRONTEND_CreateMenu(&gFrontend_NEWGAME);
+        gCurrent_frontend_spec = &gFrontend_NEWGAME;
+        break;
+    }
+    PrintMemoryDump(0, "AFTER FRONTEND_CreateMenu");
+    gCurrent_frontend_spec->previous = NULL;
+    gFrontend_A_model_from = gFrontend_A_models[0].model;
+    gFrontend_A_model_to = gFrontend_A_models[gCurrent_frontend_spec->model_A_index].model;
+    gFrontend_B_model_from = gFrontend_B_models[0].model;
+    gFrontend_B_model_to = gFrontend_B_models[gCurrent_frontend_spec->model_B_index].model;
+    gFrontend_C_model_from = gFrontend_C_models[0].model;
+    gFrontend_C_model_to = gFrontend_C_models[gCurrent_frontend_spec->model_C_index].model;
+    gFrontend_backdrop0_opacity_mode = gCurrent_frontend_spec->model_A_index != 0 ? 1 : -2;
+    gFrontend_backdrop1_opacity_mode = gCurrent_frontend_spec->model_B_index != 0 ? 1 : -2;
+    gFrontend_backdrop2_opacity_mode = gCurrent_frontend_spec->model_C_index != 0 ? 1 : -1;
+    gFrontend_interpolate_steps_left = 16;
+    PrintMemoryDump(0, "END OF FRONTEND_Setup");
 }
 
 // STUB: CARMA2_HW 0x0046c0d0
