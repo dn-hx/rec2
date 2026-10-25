@@ -98,6 +98,8 @@ void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector
 
 // DroneStraightestArcForCorner2D
 
+#pragma auto_inline(off)
+
 // FUNCTION: CARMA2_HW 0x0044f640
 FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
     tPath_name the_path;
@@ -114,6 +116,8 @@ FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
     }
     return f;
 }
+#pragma auto_inline(on)
+
 // LoadDroneTypeInfo
 
 // ReallyRemoveDroneFromPHIL
@@ -396,9 +400,190 @@ int C2_HOOK_FASTCALL OtherPerambulatoryInstasificationIsEnablificated(void) {
     return !gTraffic_disabled;
 }
 
-// STUB: CARMA2_HW 0x0044ed10
+// GLOBAL: CARMA2_HW 0x0068450c
+int gCount_drone_forms;
+
+// GLOBAL: CARMA2_HW 0x00594770
+const char* gDrone_type_names[4] = {
+    "CAR",
+    "PLANE",
+    "TRAIN",
+    "CHOPPER",
+};
+
+// GLOBAL: CARMA2_HW 0x00594780
+const char* gGroove_funk_type_names[3] = {
+    "spinnyGroove",
+    "steeringGroove",
+    "spinnyFunk",
+};
+
+// FUNCTION: CARMA2_HW 0x0044ed10
 void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
-    NOT_IMPLEMENTED();
+    /* LoadDroneTypeInfo is inlined here; based on carpocalypse2 src/carma2/common/loading.c:900 and :757 */
+    int version;
+    int drone_version;
+    FILE* f;
+    FILE* df;
+    tPath_name the_path;
+    tPath_name drone_path;
+    char s[256];
+    char s2[256];
+    char* str;
+    tTWTVFS twt = -1;
+    tDrone_form* drone;
+    int i;
+    const char** p;
+    int type_none = -1;
+
+    strcpy(the_path, gApplication_path);
+    PathCat(the_path, the_path, "DRONES");
+    PathCat(the_path, the_path, "DRONE.TXT");
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, the_path);
+    }
+    GetALineAndDontArgue(f, s);
+    strtok(s, "\t ,/");
+    if (strcmp(s, "VERSION") == 0) {
+        str = strtok(NULL, "\t ,/");
+        if (sscanf(str, "%d", &version) != 1) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, the_path);
+        }
+    } else {
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, the_path);
+    }
+    memset(gDrone_forms, 0, sizeof(gDrone_forms));
+    gCount_drone_forms = 0;
+    GetALineAndDontArgue(f, s);
+    for (; gCount_drone_forms < 64; gCount_drone_forms++) {
+        if (strcmp(s, "END OF DRONES") == 0 || PFfeof(f)) {
+            break;
+        }
+        strcpy(drone_path, gApplication_path);
+        PathCat(drone_path, drone_path, "DRONES");
+        PathCat(drone_path, drone_path, s);
+        twt = OpenPackFileAndSetTiffLoading(drone_path);
+        df = OpenDroneFile(s);
+        drone = &gDrone_forms[gCount_drone_forms];
+
+        GetALineAndDontArgue(df, s2);
+        strtok(s2, "\t ,/");
+        if (strcmp(s2, "VERSION") == 0) {
+            str = strtok(NULL, "\t ,/");
+            if (sscanf(str, "%d", &drone_version) != 1) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+            }
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+        if (drone_version < 2) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(s, str) != 0) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+        strncpy(drone->name, s, 12);
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        i = 0;
+        for (p = gDrone_type_names; p < &gDrone_type_names[4]; p++) {
+            if (strcmp(*p, str) == 0) {
+                break;
+            }
+            i++;
+        }
+        if (p >= &gDrone_type_names[4]) {
+            i = type_none;
+        }
+        if (i < 0) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        } else {
+            drone->type = i;
+        }
+        drone->M = GetAScalar(df);
+        GetThreeFloats(df, &drone->center.v[0], &drone->center.v[1], &drone->center.v[2]);
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(str, "smooth") == 0) {
+            drone->flags |= 0x1;
+        } else if (strcmp(str, "sharp") == 0) {
+            drone->flags &= ~0x1;
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(str, "constant") == 0) {
+            drone->speed = GetAScalar(df);
+        } else if (strcmp(str, "variable") == 0) {
+            drone->speed = -1.f;
+            drone->max_acceleration = GetAScalar(df);
+            drone->max_speed = GetAScalar(df);
+            drone->min_speed = GetAScalar(df);
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+        drone->crushability = GetAScalar(df);
+        if (drone->crushability != 0.f) {
+            GetPairOfFloats(df, &drone->crush_limits_front, &drone->crush_limits_back);
+            GetPairOfFloats(df, &drone->crush_limits_left, &drone->crush_limits_right);
+            GetPairOfFloats(df, &drone->crush_limits_bottom, &drone->crush_limits_top);
+        }
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(str, "respawn") == 0) {
+            drone->flags |= 0x2;
+        } else if (strcmp(str, "norespawn") == 0) {
+            drone->flags &= ~0x2;
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(str, "vertical") == 0) {
+            drone->flags |= 0x10;
+        } else if (strcmp(str, "inline") == 0) {
+            drone->flags &= ~0x10;
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+
+        GetALineAndDontArgue(df, s2);
+        str = strtok(s2, "\t ,/");
+        if (strcmp(str, "always") == 0) {
+            drone->flags |= 0x4;
+        } else if (strcmp(str, "distance") == 0) {
+            drone->flags &= ~0x4;
+        } else {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+        }
+
+        drone->flags &= ~0x8;
+        if (drone_version >= 3) {
+            GetALineAndDontArgue(df, s2);
+            str = strtok(s2, "\t ,/");
+            if (strcmp(str, "drivable_on") == 0) {
+                drone->flags |= 0x8;
+            } else if (strcmp(str, "not_drivable_on") == 0) {
+                drone->flags &= ~0x8;
+            } else {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, s);
+            }
+        }
+        PFfclose(df);
+        ClosePackFileAndSetTiffLoading(twt);
+        GetALineAndDontArgue(f, s);
+    }
+    PFfclose(f);
 }
 
 // InitDrones
