@@ -58,7 +58,7 @@ extern void C2_HOOK_FASTCALL NumberKey4(void);
 
 extern void C2_HOOK_FASTCALL NumberKey5(void);
 
-// NumberKey6
+extern void C2_HOOK_FASTCALL NumberKey6(void);
 
 // NumberKey7
 
