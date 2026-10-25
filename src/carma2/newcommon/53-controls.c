@@ -625,7 +625,27 @@ void C2_HOOK_FASTCALL CycleYonFactor(void) {
         NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_track_appears_very_late));
     }
 }
-// CycleSoundDetailLevel
+extern int gSound_detail_level;
+
+// FUNCTION: CARMA2_HW 0x004447c0
+void C2_HOOK_FASTCALL CycleSoundDetailLevel(void) {
+    int new_level;
+
+    new_level = (gSound_detail_level + 1) % 3;
+    ReallySetSoundDetailLevel(new_level);
+    SetSoundDetailLevel(new_level);
+    switch (gSound_detail_level) {
+    case 0:
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_fewest_sounds));
+        break;
+    case 1:
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_partial_sound));
+        break;
+    case 2:
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_all_sounds));
+        break;
+    }
+}
 
 // CycleCarSimplificationLevel
 
