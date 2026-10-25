@@ -129,6 +129,11 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
 // ReadShrapnelSpec
 
+typedef struct tMin_max_time {
+  tU32 min_time;
+  tU32 max_time;
+} tMin_max_time;
+
 extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_time* pTimes);
 
 // ReadSpillData
@@ -136,8 +141,6 @@ extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_
 extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 
 extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec*  pInitial_pos);
-
-extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
 
 extern void C2_HOOK_FASTCALL ReadExplosion(FILE *pF, tExplosion_animation* pAnimation);
 // FreeExplosion

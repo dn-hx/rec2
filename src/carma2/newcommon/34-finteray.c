@@ -26,9 +26,6 @@ br_model* gNearest_model;
 // GLOBAL: CARMA2_HW 0x00686198
 br_matrix34 gPick_model_to_view__finteray;
 
-// GLOBAL: CARMA2_HW 0x006861c8
-int gTemp_group;
-
 // BadDiv
 
 // DRVector2AccumulateScale
@@ -77,7 +74,7 @@ int C2_HOOK_CDECL FindHighestPolyCallBack(br_model* pModel, br_actor* pActor, br
 // FUNCTION: CARMA2_HW 0x0045cf20
 int C2_HOOK_CDECL FindHighestCallBack(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg) {
 
-    DRModelPick2D(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack__finteray, pArg);
+    DRModelPick2D(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack, pArg);
     return 0;
 }
 
@@ -140,19 +137,6 @@ int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, b
         *new_t_near = t_near;
         *new_t_far = t_far;
         return 1;
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0045d570
-int C2_HOOK_CDECL FindHighestPolyCallBack__finteray(br_model* pModel, br_actor* pActor, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pData) {
-
-    if (pT < gNearest_T) {
-        gNearest_T = pT;
-        gNearest_model = pModel;
-        gNearest_actor = pActor;
-        gNearest_face = pF;
-        gNearest_face_group = gTemp_group;
     }
     return 0;
 }

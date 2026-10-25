@@ -90,7 +90,7 @@ void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, void* pFi
     NOT_IMPLEMENTED();
 }
 
-// FUNCTION: CARMA2_HW 0x0043bf80
+/* 0x0043bf80 is ARApplyModelMash (13-crush1.c) */
 void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8) {
 
     NOT_IMPLEMENTED();

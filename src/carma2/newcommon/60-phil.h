@@ -19,6 +19,10 @@ extern tPHIL_queued_objects gPhil_queued_objects;
 
 // FractionToScalar
 
+typedef struct {
+    tU16 v[4];
+} tFixed_quat;
+
 extern void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const br_matrix34* pMatrix);
 
 // GetMatrixFromOrientation

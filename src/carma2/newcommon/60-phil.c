@@ -38,18 +38,6 @@ int gPHIL_count_queued_objects_for_removal = 0;
 // GLOBAL: CARMA2_HW 0x00692dc0
 int gPHIL_count_queued_objects = 0;
 
-/* ScalarToFraction: inlined into its callers in the original */
-static tU16 C2_HOOK_FASTCALL ScalarToFraction(float pScalar) {
-
-    if (pScalar > 1.0f) {
-        pScalar = 1.0f;
-    }
-    if (pScalar < -1.0f) {
-        pScalar = -1.0f;
-    }
-    pScalar = (pScalar - -1.0f) * 0.5f;
-    return (tU16)(pScalar * 65534.0f - -0.5f);
-}
 
 // FractionToScalar
 

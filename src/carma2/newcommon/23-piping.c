@@ -1247,7 +1247,7 @@ void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk) {
     tPipe_chunk_model_mash* chunk = (tPipe_chunk_model_mash*)*pChunk;
 
-    return WorkerModelMash(chunk->field_0x4, chunk->field_0x8);
+    return ARApplyModelMash((br_model*)chunk->field_0x4, (tCompressed_vector3*)chunk->field_0x8);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9850

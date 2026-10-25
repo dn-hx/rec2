@@ -22,7 +22,6 @@
 #include "38-flicplay.h"
 #include "41-utility.h"
 #include "42-input.h"
-#include "51-smash.h"
 #include "52-errors.h"
 #include "53-controls.h"
 #include "55-volume.h"
@@ -1285,13 +1284,3 @@ void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void) {
     gPedTextTxtPath = "ALTEXT.TXT";
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x004efa00
-void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF) {
-    NOT_IMPLEMENTED();
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

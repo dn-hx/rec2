@@ -65,9 +65,6 @@ int gPed_dismemberfest;
 // GLOBAL: CARMA2_HW 0x007447f8
 int gPanicking_peds;
 
-// GLOBAL: CARMA2_HW 0x007059c0
-int gCount_mutant_tail_parts;
-
 // GLOBAL: CARMA2_HW 0x00705b78
 float gMass_mutant_tail_link;
 
@@ -153,6 +150,9 @@ int gCollision_info_uid_counter;
 /* explicit initializers keep gShit_mines and the following block adjacent (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x00705560
 tShit_mine gShit_mines[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x007059c0
+int gCount_mutant_tail_parts = 0;
 
 /* UNCERTAIN: unreferenced dwords after gCount_mutant_tail_parts (only seen as gShit_mines loop ends); scalars, an initialized array would be 8-aligned */
 // GLOBAL: CARMA2_HW 0x007059c4
