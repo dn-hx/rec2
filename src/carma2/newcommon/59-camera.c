@@ -108,6 +108,17 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
 #endif
 
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+extern int gAR_camera_type;
+extern int gCamera_type;
+extern int gPed_count;
+extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
+extern int C2_HOOK_FASTCALL OKToViewDrones(void);
+
+// GLOBAL: CARMA2_HW 0x0058f600
+tU8 gCamera_type_allowed_replay[9] = { 1, 1, 1, 1, 1, 0, 0, 1, 1 };
+
+// GLOBAL: CARMA2_HW 0x0058f610
+tU8 gCamera_type_allowed_gameplay[9] = { 1, 0, 0, 0, 1, 0, 0, 1, 1 };
 
 // FUNCTION: CARMA2_HW 0x0040e790
 void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
@@ -134,9 +145,48 @@ void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0040e7f0
+// FUNCTION: CARMA2_HW 0x0040e7f0
 void C2_HOOK_FASTCALL ChangeCameraType(void) {
-    NOT_IMPLEMENTED();
+    int mode;
+
+    // based on carpocalypse2 camera.c:48
+    if (KeyIsDown(8)) {
+        gAction_replay_camera_mode--;
+        if (gAction_replay_camera_mode >= 9 || gAction_replay_camera_mode < 0) {
+            gAction_replay_camera_mode = 8;
+        }
+    } else {
+        gAction_replay_camera_mode++;
+        if (gAction_replay_camera_mode >= 9) {
+            gAction_replay_camera_mode = 0;
+        }
+    }
+    mode = gAction_replay_camera_mode;
+    if ((gAction_replay_mode && !gCamera_type_allowed_replay[mode])
+            || (!gAction_replay_mode && !gCamera_type_allowed_gameplay[mode])
+            || mode >= 9
+            || (mode == 6 && !OKToViewDrones())
+            || (mode == 5 && gPed_count == 0)) {
+        ChangeCameraType();
+    }
+    if (gAction_replay_mode) {
+        gAR_camera_type = gAction_replay_camera_mode;
+    } else {
+        gCamera_type = gAction_replay_camera_mode;
+    }
+    switch (gAction_replay_camera_mode) {
+    case kActionReplayCameraMode_Standard:
+    case kActionReplayCameraMode_Rigid:
+    case kActionReplayCameraMode_Reversing:
+        InitialiseExternalCamera();
+        break;
+    case kActionReplayCameraMode_Manual:
+        gAction_replay_manual_camera_target_type = 0;
+        break;
+    default:
+        break;
+    }
+    MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
