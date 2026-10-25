@@ -2345,7 +2345,17 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // Joystick_BackupSettings
 
-// Controls_JoystickToggle
+// FUNCTION: CARMA2_HW 0x004721e0
+int C2_HOOK_FASTCALL Controls_JoystickToggle(tFrontend_spec* pFrontend) {
+
+    if (gFrontend_selected_item_index == 10) {
+        EnableJoysticks();
+    } else {
+        DisableJoysticks();
+    }
+    DisplayJoystickSettings(pFrontend);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00472400
 int C2_HOOK_FASTCALL Controls_JoystickDpadToggle(tFrontend_spec* pFrontend) {
