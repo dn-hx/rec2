@@ -81,8 +81,20 @@ tPed_form* gPed_forms[20] = { 0 };
 // GLOBAL: CARMA2_HW 0x00676978
 int gPed_overall_movement_disabled = 0;
 
+// GLOBAL: CARMA2_HW 0x0067697c
+tPedForms_vtable* gPed_vtable = 0;
+
+// GLOBAL: CARMA2_HW 0x00676980
+tPed_move* gPed_moves[250] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00676d68
 br_material* gPedestrian_character_cloned_materials[50];
+
+// GLOBAL: CARMA2_HW 0x00676e30
+float gPed_cos_table[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677230
+float gFLOAT_00677230 = 0.f;
 
 /* explicit initializers keep gPed_personalities and gPed_sin_table adjacent (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x00677260
@@ -96,6 +108,24 @@ int gCount_pedestrian_personality_cloned_materials;
 
 // GLOBAL: CARMA2_HW 0x00677234
 int gPed_retain_root_mode;
+
+// GLOBAL: CARMA2_HW 0x00677238
+tPed_remap* gPed_remaps[10] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677728
+int gDAT_00677728 = 0;
+
+/* 20 morph slots of 0x15c bytes; only the first int is cleared by InitBoner */
+typedef struct {
+    int field_0x0;
+    char pad[0x158];
+} tPed_morph_slot;
+
+// GLOBAL: CARMA2_HW 0x00677734
+tPed_morph_slot gPed_morph_slots[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00679264
+br_actor* gMr_blendy = 0;
 
 // GLOBAL: CARMA2_HW 0x00744808
 tPedestrian* gPedestrian_array;
@@ -396,9 +426,31 @@ br_pixelmap* gProx_ray_shade_table;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00403ed0
+// FUNCTION: CARMA2_HW 0x00403ed0
 void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    gPed_vtable = pTable;
+    memset(gPed_forms, 0, sizeof(gPed_forms));
+    memset(gPed_personalities, 0, sizeof(gPed_personalities));
+    memset(gPed_moves, 0, sizeof(gPed_moves));
+    memset(gPed_remaps, 0, sizeof(gPed_remaps));
+
+    for (i = 0; i < 20; i++) {
+        gPed_morph_slots[i].field_0x0 = 0;
+    }
+
+    for (i = 0; i < 256; i++) {
+        float a = (i * 256) * 2 * 3.14159265358979323846 / 256. / 256.;
+        gPed_sin_table[i] = (float)sin(a);
+        gPed_cos_table[i] = (float)cos(a);
+    }
+
+    gDAT_00677728 = 0;
+    gFLOAT_00677230 = 1.f;
+    gCount_pedestrian_personality_cloned_materials = 0;
+    gPed_overall_movement_disabled = 0;
+    gPed_retain_root_mode = 0;
 }
 
 // STUB: CARMA2_HW 0x004cb1e0
