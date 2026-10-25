@@ -8,7 +8,7 @@ When enough functions have been replaced, it should become possible to not need 
 
 ## Status
 
-Status of this fork's `work` branch (2026-10-25, branch `workv3`, `reccmp`, `CARMA2_HW.EXE`):
+Status of this fork's `workv3` branch (2026-10-25, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
