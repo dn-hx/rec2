@@ -1267,10 +1267,13 @@ void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
 #endif
 }
 
+// GLOBAL: CARMA2_HW 0x00676918
+int gDisable_piped_sounds = 0;
+
 // FUNCTION: CARMA2_HW 0x004c9370
 void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk) {
 
-    if (*(tU32*)0x676918 != 0) return;
+    if (gDisable_piped_sounds != 0) return;
 
     if (((tPipe_chunk_sound*)*pChunk)->field_0x16 == 0) {
         DRS3StartSound2(

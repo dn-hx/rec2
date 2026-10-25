@@ -11,7 +11,6 @@
 #include "rec2_types.h"
 
 #include <string.h>
-#include "42-input.h"
 
 // GLOBAL: CARMA2_HW 0x0058fdc8
 int gCursor_tinted_top = -1;
@@ -320,33 +319,6 @@ void C2_HOOK_FASTCALL AllocateCursorTransient(void) {
 }
 
 // InitMouseTargetLines
-
-extern int gMouse_in_use;
-
-// GLOBAL: CARMA2_HW 0x0067c390
-int gMouse_started;
-
-// GLOBAL: CARMA2_HW 0x0067be94
-int gTransient_bitmap_index;
-
-// GLOBAL: CARMA2_HW 0x0067be90
-int gCurrent_cursor_index;
-
-// GLOBAL: CARMA2_HW 0x0079ecb0
-tMouse_coord gMouse_last_pos;
-
-// FUNCTION: CARMA2_HW 0x0043e6c0
-void C2_HOOK_FASTCALL StartMouseCursor(void) {
-    if (gCursor_tinted_top == -1) {
-        AllocateCursorTransient();
-    }
-    gNext_transient = 0;
-    gTransient_bitmap_index = 0;
-    GetMousePosition(&gMouse_last_pos.x, &gMouse_last_pos.y);
-    gMouse_in_use = 0;
-    gCurrent_cursor_index = 2;
-    gMouse_started = 1;
-}
 
 // STUB: CARMA2_HW 0x0043e710
 void C2_HOOK_FASTCALL EndMouseCursor(void) {
@@ -733,4 +705,32 @@ void C2_HOOK_FASTCALL FadePaletteUp(void) {
         }
         gPalette_munged |= (pal != gRender_palette);
     }
+}
+
+extern int gMouse_in_use;
+extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
+
+// GLOBAL: CARMA2_HW 0x0067c390
+int gMouse_started;
+
+// GLOBAL: CARMA2_HW 0x0067be94
+int gTransient_bitmap_index;
+
+// GLOBAL: CARMA2_HW 0x0067be90
+int gCurrent_cursor_index;
+
+// GLOBAL: CARMA2_HW 0x0079ecb0
+tMouse_coord gMouse_last_pos;
+
+// FUNCTION: CARMA2_HW 0x0043e6c0
+void C2_HOOK_FASTCALL StartMouseCursor(void) {
+    if (gCursor_tinted_top == -1) {
+        AllocateCursorTransient();
+    }
+    gNext_transient = 0;
+    gTransient_bitmap_index = 0;
+    GetMousePosition(&gMouse_last_pos.x, &gMouse_last_pos.y);
+    gMouse_in_use = 0;
+    gCurrent_cursor_index = 2;
+    gMouse_started = 1;
 }
