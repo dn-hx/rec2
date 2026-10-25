@@ -226,7 +226,28 @@ void C2_HOOK_FASTCALL DoProgram(void) {
     NOT_IMPLEMENTED();
 }
 
-// JumpTheStart
+extern void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was);
+extern int C2_HOOK_FASTCALL SpendCredits(int pAmount);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet);
+
+// FUNCTION: CARMA2_HW 0x00504170
+void C2_HOOK_FASTCALL JumpTheStart(void) {
+    char s[256];
+
+    if (gNet_mode == eNet_mode_none || gProgram_state.credits >= gJump_start_fine[gProgram_state.skill_level]) {
+        WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(gCountdown);
+        gCountdown = 0;
+        DRS3StopOutletSound(gPedestrians_outlet);
+        DRS3StartSound(gPedestrians_outlet, eSoundId_HeyYou);
+        SpendCredits(gJump_start_fine[gProgram_state.skill_level]);
+        sprintf(s, "%s %d %s",
+            GetMiscString(eMiscString_bad_boy),
+            gJump_start_fine[gProgram_state.skill_level],
+            GetMiscString(eMiscString_credit_fine));
+        NewTextHeadupSlot(4, 0, 1000, -4, s);
+    }
+}
 
 extern int C2_HOOK_FASTCALL TintedPolyIsOn(int pIndex);
 extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
