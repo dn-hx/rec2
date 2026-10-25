@@ -107,7 +107,10 @@ void C2_HOOK_FASTCALL ReceivedCopInfo(void) {
 
 // ReceivedNonCar
 
-// SignalToStartRace
+// STUB: CARMA2_HW 0x00498e70
+void C2_HOOK_FASTCALL SignalToStartRace(void) {
+    NOT_IMPLEMENTED();
+}
 
 // SignalToRepositionCar
 

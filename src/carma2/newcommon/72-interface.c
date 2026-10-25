@@ -2540,8 +2540,6 @@ int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
 // NetSync_Draw
 
-// NetSync_Start
-
 // FUNCTION: CARMA2_HW 0x004735d0
 int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend) {
 
@@ -2566,6 +2564,20 @@ int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend) {
 int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2) {
 
     return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
+}
+
+void C2_HOOK_FASTCALL SignalToStartRace(void);
+
+// FUNCTION: CARMA2_HW 0x004735a0
+int C2_HOOK_FASTCALL NetSync_Start(tFrontend_spec* pFrontend) {
+
+    if (gNumber_of_net_players <= 1) {
+        return 0;
+    }
+    SignalToStartRace();
+    gStart_race_sent = 1;
+    gNo_races_yet = 0;
+    return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x00467ce0
