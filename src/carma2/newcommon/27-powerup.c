@@ -71,6 +71,12 @@ float gMass_mutant_tail_link;
 // GLOBAL: CARMA2_HW 0x00705b74
 float gMass_mutant_tail_ball;
 
+// GLOBAL: CARMA2_HW 0x006a0acc
+tPhysics_joint* gMutant_tail_first_joint;
+
+// GLOBAL: CARMA2_HW 0x00705540
+int gMutant_tail_state;
+
 // GLOBAL: CARMA2_HW 0x0065ebbc
 float gMass_mine = 1.0f;
 
@@ -274,9 +280,129 @@ void C2_HOOK_FASTCALL InitMineShit(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004d9ea0
+extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
+
+typedef struct {
+    br_actor* actor;
+    undefined4 field_0x10;
+    br_material* material;
+    float field_0x18;
+    float field_0x1c;
+    tCar_spec* car;
+    undefined4 field_0x24;
+    undefined4 pad[3];
+} tRepulse_link_tail;
+
+// FUNCTION: CARMA2_HW 0x004d9ea0
 void C2_HOOK_FASTCALL InitPowerups(void) {
-    NOT_IMPLEMENTED();
+    br_pixelmap* repulse;
+    int i;
+    int j;
+    tPhysics_object* parent_collision_info;
+    tPath_name the_path;
+    tTWTVFS twt;
+    tRepulse_link_tail* link;
+
+    repulse = LoadPixelmap("REPULSE.PIX");
+    if (!repulse) {
+        FatalError(kFatalError_CantFindFile_S, "REPULSE.PIX");
+    }
+    BrMapAdd(repulse);
+
+    link = (tRepulse_link_tail*)&gRepulse_links[0].actor;
+    do {
+        br_model* model;
+        br_material* material;
+        br_face* face;
+        br_vertex* vertex;
+
+        link->actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        model = BrModelAllocate(NULL, 102, 100);
+        model->flags |= BR_MODF_UPDATEABLE;
+        material = BrMaterialAllocate("");
+        material->colour_map = repulse;
+        material->flags &= ~BR_MATF_LIGHT;
+        material->flags |= BR_MATF_TWO_SIDED;
+        BrMaterialAdd(material);
+        BlendifyMaterial(material, 100);
+        BrMaterialUpdate(material, BR_MATU_ALL);
+        face = model->faces;
+        for (j = 0; j < model->nfaces / 2; j++) {
+            face->material = material;
+            face->vertices[0] = j + 0;
+            face->vertices[1] = j + 1;
+            face->vertices[2] = j + 1 + model->nvertices / 2;
+            face++;
+        }
+        for (j = model->nfaces / 2; j < model->nfaces; j++) {
+            face->material = material;
+            face->vertices[0] = j + 1;
+            face->vertices[1] = j + 2;
+            face->vertices[2] = j + 1 - model->nvertices / 2;
+            face++;
+        }
+        vertex = model->vertices;
+        for (j = 0; j < model->nvertices / 2; j++) {
+            vertex->map.v[0] = (float)(j & 1);
+            vertex->map.v[1] = 0.f;
+            vertex++;
+        }
+        for (j = model->nvertices / 2; j < model->nvertices; j++) {
+            vertex->map.v[0] = (float)(j & 1);
+            vertex->map.v[1] = 1.f;
+            vertex++;
+        }
+        link->actor->model = model;
+        link->actor->render_style = BR_RSTYLE_FACES;
+        link->material = material;
+        BrModelAdd(model);
+        link++;
+    } while ((int)link < (int)&gINT_006a0a5c);
+
+    parent_collision_info = NULL;
+    PathCat(the_path, gApplication_path, "TAIL");
+    twt = OpenPackFileAndSetTiffLoading(the_path);
+    LoadAllStuffInDirectory(&gMisc_storage_space, the_path, kRendererShadingType_Specular);
+    ClosePackFileAndSetTiffLoading(twt);
+    for (i = 0; i < gCount_mutant_tail_parts; i++) {
+        int is_last;
+        tPhysics_object* collision_info;
+        br_model* model;
+
+        is_last = i == gCount_mutant_tail_parts - 1;
+        if (is_last) {
+            model = BrModelFind("TAILBALL");
+            collision_info = MungeSphereObject(model, gMass_mutant_tail_ball);
+        } else {
+            model = BrModelFind("TAILLINK");
+            collision_info = MungeBoxObject(model, 0, gMass_mutant_tail_link);
+        }
+        collision_info->flags_0x238 = 0x20;
+        collision_info->physics_joint1 = AllocatePhysicsJoint(1, kMem_physics_joint);
+        collision_info->physics_joint1->type = eJoint_ball_n_socket;
+        BrVector3SetFloat(&collision_info->physics_joint1->field_0x08,
+                          0.f, 0.f, model->bounds.min.v[2] * (is_last ? 0.45 : 0.99));
+        if (i != 0) {
+            BrVector3SetFloat(&collision_info->physics_joint1->field_0x14,
+                              0.f, 0.f, model->bounds.max.v[2] * (is_last ? 0.45 : 0.99));
+            PhysicsAddObject(parent_collision_info, collision_info);
+        } else {
+            gMutant_tail_first_collision_info = collision_info;
+            gMutant_tail_first_joint = collision_info->physics_joint1;
+            collision_info->physics_joint1->count_limits = 1;
+            BrVector3SetFloat(&collision_info->physics_joint1->limits[0].child, 0.f, 0.f, 1.f);
+            BrVector3SetFloat(&collision_info->physics_joint1->limits[0].parent, 0.f, 0.f, 1.f);
+        }
+        BrVector3SetFloat(&collision_info->physics_joint1->hinge_axis2, 0.f, 0.f, 1.f);
+        BrVector3SetFloat(&collision_info->physics_joint1->hinge_axis3, 0.f, 1.f, 0.f);
+        BrVector3SetFloat(&collision_info->physics_joint1->hinge_axis, 1.f, 0.f, 0.f);
+        BrMatrix34Translate(&collision_info->transform_matrix, 0.f, 0.f, 0.f);
+        BrMatrix34Translate(&collision_info->actor->t.t.mat, 0.f, 0.f, 0.f);
+        parent_collision_info = collision_info;
+    }
+    gMutant_tail_state = 0;
+
+    InitMineShit();
 }
 
 // RemoveRepulseEffect
