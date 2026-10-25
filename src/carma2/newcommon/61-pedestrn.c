@@ -21,6 +21,23 @@ const char* gPedsFolder;
 // GLOBAL: CARMA2_HW 0x0065d7d4
 int gGoreLevel = 1;
 
+/* explicit order keeps gPed_cache_sizes_1 directly in front of gAnimalsOn (loop-end compare in InitPolyPedSystem) */
+// GLOBAL: CARMA2_HW 0x0065d778
+tPedForms_vtable gPed_forms_vtable = { 0 };
+
+// UNCERTAIN: unreferenced gap
+int gUNK_0065d7a0[2] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065d7a8
+int gPed_cache_sizes_2[4] = {
+    5, 10, 40, 75,
+};
+
+// GLOBAL: CARMA2_HW 0x0065d7b8
+int gPed_cache_sizes_1[4] = {
+    40, 25, 15, 5,
+};
+
 // GLOBAL: CARMA2_HW 0x0065d7c8
 int gAnimalsOn = 1;
 
@@ -315,11 +332,186 @@ br_vector3* C2_HOOK_FASTCALL GetPedPos(tPedestrian* pPed) {
 
 // InitOtherPedStuff
 
-// InitNapalmNolts
+/* based on carpocalypse2 pedestrn.c:7366 (GPL-3.0); the helpers below are inlined into InitPolyPedSystem in the original */
+/* local declarations: defined further down in this file / in other files */
+extern tPed_face_cache_0x34* gPed_face_cache_heads[4];
+extern br_pixelmap* gRender_palette;
+extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
 
-// STUB: CARMA2_HW 0x004cadc0
-void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
+// GLOBAL: CARMA2_HW 0x00694118
+float gPed_process_distance;
+
+// GLOBAL: CARMA2_HW 0x0069bc1c
+float gPed_process_distance_inner;
+
+// GLOBAL: CARMA2_HW 0x006944bc
+float gPed_popup_distance;
+
+// GLOBAL: CARMA2_HW 0x00694128
+float gPed_popup_distance_inner;
+
+// GLOBAL: CARMA2_HW 0x00694464
+float gPed_cos_max_slope;
+
+// GLOBAL: CARMA2_HW 0x0069413c
+float gPed_reach_squared;
+
+// GLOBAL: CARMA2_HW 0x00694300
+float gPed_min_dist_avoid_collisions_squared;
+
+// GLOBAL: CARMA2_HW 0x007447fc
+float gPed_buoyancy_factor;
+
+// GLOBAL: CARMA2_HW 0x0069bcf8
+int gPed_points[3];
+
+// GLOBAL: CARMA2_HW 0x00694268
+int gPed_times[3];
+
+// GLOBAL: CARMA2_HW 0x00694234
+int gPed_severing_damage;
+
+// GLOBAL: CARMA2_HW 0x00694494
+float gPed_max_survivable_impact;
+
+// GLOBAL: CARMA2_HW 0x0069bc20
+float gPed_damage_per_force;
+
+// GLOBAL: CARMA2_HW 0x00694230
+int gPed_animal_count;
+
+/* UNCERTAIN: stride 0x20 in the original (tPed_animal_name in rec2_types.h is char[50]) */
+// GLOBAL: CARMA2_HW 0x0069fdb8
+char gPed_animal_names[50][32];
+
+// GLOBAL: CARMA2_HW 0x0069bc28
+tExplosion_animation gNapalmed_ped_animation;
+
+// GLOBAL: CARMA2_HW 0x0069bc54
+tPed_face_cache_0x50* gPed_face_cache;
+
+// GLOBAL: CARMA2_HW 0x00694458
+br_pixelmap* gProx_ray_shade_table;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00403ed0
+void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cb1e0
+void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cb630
+void C2_HOOK_FASTCALL InitNapalmNolts(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+static void C2_HOOK_FASTCALL ReadSettingsFile(void) {
+    tPath_name the_path;
+    FILE* file;
+    int i;
+    int j;
+    float v;
+
+    PathCat(the_path, gApplication_path, gPedsFolder);
+    PathCat(the_path, the_path, "SETTINGS.TXT");
+    file = DRfopen(the_path, "rt");
+    if (file == NULL) {
+        FatalError(kFatalError_CannotOpenPedFile_S, "SETTINGS.TXT");
+    }
+    gPed_process_distance = GetAScalar(file);
+    gPed_process_distance_inner = 0.6 * gPed_process_distance;
+    gPed_popup_distance = GetAScalar(file);
+    gPed_popup_distance_inner = 0.6 * gPed_popup_distance;
+    gPed_cos_max_slope = BR_COS(BR_ANGLE_DEG(GetAScalar(file)));
+
+    v = GetAScalar(file);
+    gPed_reach_squared = v * v;
+
+    v = GetAScalar(file);
+    gPed_min_dist_avoid_collisions_squared = v * v;
+    gPed_buoyancy_factor = GetAScalar(file);
+    GetThreeInts(file, gPed_points, &gPed_points[1], &gPed_points[2]);
+    GetThreeInts(file, &gPed_times[0], &gPed_times[1], &gPed_times[2]);
+    gPed_severing_damage = GetAnInt(file);
+    gUNK_0069bc0c = GetAnInt(file);
+    gPed_max_survivable_impact = GetAScalar(file);
+    gPed_damage_per_force = GetAScalar(file);
+    ReadPedGiblets(file);
+
+    ReadExplosion(file, &gNapalmed_ped_animation);
+
+    gPed_movements_count = GetAnInt(file);
+    gPed_movements = BrMemAllocate(gPed_movements_count * sizeof(tPed_movement_spec), kMem_misc_poly_ped);
+
+    for (i = 0; i < gPed_movements_count; i++) {
+        gPed_movements[i].min_time_between = (int)(1000.f * GetAScalar(file));
+        gPed_movements[i].max_time_between = (int)(1000.f * GetAScalar(file));
+        gPed_movements[i].max_random_angle = BR_ANGLE_DEG(GetAScalar(file));
+        gPed_movements[i].min_walk_speed_factor = 1000. / (GetAScalar(file) * 30.);
+        gPed_movements[i].max_walk_speed_factor = 1000. / (GetAScalar(file) * 30.);
+    }
+
+    gPed_groups_count = GetAnInt(file);
+    gPed_groups = BrMemAllocate(gPed_groups_count * sizeof(tPed_group_spec), kMem_misc_poly_ped);
+
+    for (i = 0; i < gPed_groups_count; i++) {
+        gPed_groups[i].count = GetAnInt(file);
+        gPed_groups[i].members = BrMemAllocate(gPed_groups[i].count * sizeof(tPed_group_member_spec), kMem_misc_poly_ped);
+
+        for (j = 0; j < gPed_groups[i].count; j++) {
+            GetAString(file, gPed_groups[i].members[j].name);
+        }
+    }
+
+    gPed_animal_count = GetAnInt(file);
+    for (i = 0; i < gPed_animal_count; i++) {
+        GetAString(file, gPed_animal_names[i]);
+    }
+
+    PFfclose(file);
+}
+
+static void C2_HOOK_FASTCALL InitFaceCaches(void) {
+    int i;
+    int j;
+
+    for (i = 0; i < (int)REC2_ASIZE(gPed_cache_sizes_1); i++) {
+        gPed_face_cache_heads[i] = BrMemAllocate(gPed_cache_sizes_1[i] * sizeof(tPed_face_cache_0x34), kMem_ped_face_cache);
+        for (j = 0; j < gPed_cache_sizes_1[i]; j++) {
+            gPed_face_cache_heads[i][j].field_0x0 = BrMemAllocate(gPed_cache_sizes_2[i] * sizeof(tPed_face_cache_0x50), kMem_ped_face_cache);
+            gPed_face_cache_heads[i][j].count = gPed_cache_sizes_2[i];
+        }
+    }
+    gPed_face_cache = BrMemAllocate((gPed_cache_sizes_2[3] + 1) * sizeof(tPed_face_cache_0x50), kMem_ped_face_cache);
+}
+
+static void C2_HOOK_FASTCALL InitOtherPedStuff(void) {
+
+    gSelected_ped = 0;
+    gProx_ray_shade_table = GenerateShadeTable(8, gRender_palette, 0xd7, 0xff, 0xe9, .5f, .75f, .9f);
+}
+
+// FUNCTION: CARMA2_HW 0x004cadc0
+void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
+
+    if (gPedsFolder == NULL) {
+        SetDefaultPedFolderNames();
+    }
+
+    InitBoner(&gPed_forms_vtable);
+    ReadSettingsFile();
+    InitFaceCaches();
+    InitNapalmNolts();
+    InitOtherPedStuff();
 }
 
 // DisposePedSpawnSpec
@@ -831,11 +1023,6 @@ void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_vector3
     }
 }
 
-// GLOBAL: CARMA2_HW 0x0065d7b8
-int gPed_cache_sizes_1[4] = {
-    40, 25, 15, 5,
-};
-
 // GLOBAL: CARMA2_HW 0x0069bc58
 tPed_face_cache_0x34* gPed_face_cache_heads[4];
 
@@ -1173,8 +1360,6 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 }
 
 // ClearOutMorphs
-
-// InitBoner
 
 // DRVector3SafeCross
 
