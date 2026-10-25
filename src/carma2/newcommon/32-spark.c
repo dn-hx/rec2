@@ -991,10 +991,18 @@ void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUp
 
 // MightBlendifyMaterial
 
-// STUB: CARMA2_HW 0x004fed00
+extern int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial);
+
+// FUNCTION: CARMA2_HW 0x004fed00
 // STUB: CARMA2_SW 0x004fa5e0
 int C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial) {
-    NOT_IMPLEMENTED();
+
+    if (GetBlendificatiousnessOfMaterial(pMaterial) != 25) {
+        BlendifyMaterial(pMaterial, 25);
+        BrMaterialUpdate(pMaterial, BR_MATU_ALL);
+        return 1;
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004fecf0

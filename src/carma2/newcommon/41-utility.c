@@ -1589,7 +1589,10 @@ void C2_HOOK_FASTCALL PrintScreen(void) {
 
 // GetBlenficatiousnessOfMaterialPrimitively
 
-// GetBlenficatiousnessOfMaterial
+// STUB: CARMA2_HW 0x00518e70
+int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00518f20
 char* C2_HOOK_FASTCALL MungeCommas(int pValue) {
