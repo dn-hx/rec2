@@ -426,7 +426,7 @@ extern int C2_HOOK_FASTCALL Options_Quit(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend);
 
-// Graphics_Outfunc
+extern int C2_HOOK_FASTCALL Graphics_Outfunc(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL FrontEndShowMouse(void);
 

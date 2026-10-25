@@ -2955,7 +2955,14 @@ int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend) {
     return 1;
 }
 
-// Graphics_Outfunc
+extern void C2_HOOK_FASTCALL SetGraphicsSettingsData(tFrontend_spec* pFrontend);
+
+// FUNCTION: CARMA2_HW 0x00474850
+int C2_HOOK_FASTCALL Graphics_Outfunc(tFrontend_spec* pFrontend) {
+
+    SetGraphicsSettingsData(pFrontend);
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x00474860
 void C2_HOOK_FASTCALL FrontEndShowMouse(void) {
