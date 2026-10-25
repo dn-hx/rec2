@@ -1346,9 +1346,22 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
 
 // SetSeveredLimbObject
 
-// MakeCharacterCollideworthy2
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00408c30
+int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pCharacter, int pArg2, undefined4 pArg3, int pArg4) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// MakeCharacterCollideworthy
+// FUNCTION: CARMA2_HW 0x00409030
+int C2_HOOK_FASTCALL MakeCharacterCollideworthy(tPed_character_instance *pCharacter, int pArg2, undefined4 pArg3) {
+
+    return MakeCharacterCollideworthy2(pCharacter, pArg2, pArg3, -1);
+}
 
 // FUNCTION: CARMA2_HW 0x00409040
 tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed) {

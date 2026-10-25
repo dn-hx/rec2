@@ -464,9 +464,8 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCh
 
 // SetSeveredLimbObject
 
-// MakeCharacterCollideworthy2
-
-// MakeCharacterCollideworthy
+extern int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pCharacter, int pArg2, undefined4 pArg3, int pArg4);
+extern int C2_HOOK_FASTCALL MakeCharacterCollideworthy(tPed_character_instance *pCharacter, int pArg2, undefined4 pArg3);
 
 extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed);
 // CharacterNoLongerCollideworthy
