@@ -8,14 +8,14 @@ When enough functions have been replaced, it should become possible to not need 
 
 ## Status
 
-Status of this fork's `work` branch (2026-10-25, `reccmp`, `CARMA2_HW.EXE`):
+Status of this fork's `work` branch (2026-10-25, branch `workv3`, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
-| Functions implemented | 3239 / 5162 (62.75%) |
-| Functions at exactly 100% similar | 2487 |
-| Accuracy | 90.33% |
-| Progress | 56.68% |
+| Functions implemented | 3288 / 5162 (63.70%) |
+| Functions at exactly 100% similar | 2529 |
+| Accuracy | 90.46% |
+| Progress | 57.62% |
 
 Functions below 100% are not counted as exact; the best attempts are kept out of the tree until they match.
 
