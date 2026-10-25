@@ -10,6 +10,9 @@
 #include "globvrkm.h"
 #include "globvrpb.h"
 
+// GLOBAL: CARMA2_HW 0x00679278
+int gAction_replay_manual_camera_target_type;
+
 // GLOBAL: CARMA2_HW 0x006792b4
 // GLOBAL: CARMA2_SW 0x00673a24
 br_actor* gPed_actor;
@@ -68,6 +71,9 @@ void C2_HOOK_FASTCALL ReallyViewOpponent(void) {
 
 // IsCameraTypeAllowed
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0040e700
 void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
     int i;
@@ -97,7 +103,33 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
         }
     }
 }
-// SetCameraType
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+
+// FUNCTION: CARMA2_HW 0x0040e790
+void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
+
+    gAction_replay_camera_mode = pCamPos;
+    switch (pCamPos) {
+    case kActionReplayCameraMode_Standard:
+    case kActionReplayCameraMode_Rigid:
+    case kActionReplayCameraMode_Reversing:
+        InitialiseExternalCamera();
+        break;
+    case kActionReplayCameraMode_Manual:
+        gAction_replay_manual_camera_target_type = 0;
+        break;
+    default:
+        break;
+    }
+    MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

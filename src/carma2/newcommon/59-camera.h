@@ -35,7 +35,7 @@ extern void C2_HOOK_FASTCALL ReallyViewOpponent(void);
 // IsCameraTypeAllowed
 
 extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
-// SetCameraType
+extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
 
 // ChangeCameraType
 
