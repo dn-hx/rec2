@@ -64,16 +64,7 @@ extern void C2_HOOK_FASTCALL CyclePollKeys(void);
 extern void C2_HOOK_FASTCALL PollKeys(void);
 extern int gSound_available;
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x00442e90
-void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
-    NOT_IMPLEMENTED();
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
+extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
 
 // FUNCTION: CARMA2_HW 0x00492180
 void C2_HOOK_FASTCALL ServiceGame(void) {

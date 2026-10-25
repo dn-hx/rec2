@@ -455,7 +455,156 @@ void C2_HOOK_FASTCALL GetPowerup(int pNum) {
     GotPowerup(&gProgram_state.current_car, pNum);
 }
 
-// CheckSystemKeys
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00442f90
+void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL ToggleFlaps(void) {
+    NOT_IMPLEMENTED();
+}
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL SetRecovery(void) {
+    NOT_IMPLEMENTED();
+}
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL ViewNetPlayer(void) {
+    NOT_IMPLEMENTED();
+}
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL ToggleCockpit(void) {
+    NOT_IMPLEMENTED();
+}
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL LeftInventory(void) {
+    NOT_IMPLEMENTED();
+}
+// Action proc of gToggle_array, not implemented yet (stub)
+void C2_HOOK_FASTCALL RightInventory(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern void C2_HOOK_FASTCALL ToggleMiniMap(void);
+extern void C2_HOOK_FASTCALL CycleMapOptions(void);
+extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
+extern void C2_HOOK_FASTCALL SetRecovery(void);
+extern void C2_HOOK_FASTCALL F4Key(void);
+extern void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void);
+extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
+extern void C2_HOOK_FASTCALL ToggleCockpit(void);
+extern void C2_HOOK_FASTCALL BuyArmour(void);
+extern void C2_HOOK_FASTCALL BuyPower(void);
+extern void C2_HOOK_FASTCALL BuyOffense(void);
+extern void C2_HOOK_FASTCALL ToggleInventory(void);
+extern void C2_HOOK_FASTCALL LeftInventory(void);
+extern void C2_HOOK_FASTCALL RightInventory(void);
+
+// GLOBAL: CARMA2_HW 0x005900a0
+tToggle_element gToggle_array[44] = {
+    { 0x23, -2, 1, 1, 0, ToggleMiniMap },
+    { 0x4a, -2, 1, 1, 0, ToggleFlaps },
+    { 0x39, -2, 1, 1, 0, ToggleMap },
+    { 0x39, 8, 1, 1, 0, (void (C2_HOOK_FASTCALL *)(void))ToggleHeadupMap },
+    { 0x39, 7, 1, 1, 0, CycleMapOptions },
+    { 0x39, 9, 1, 1, 0, ToggleMapTransparency },
+    { 0x3c, -2, 1, 1, 0, SetRecovery },
+    { 0x04, 7, 1, 0, 0, AbortRace },
+    { 0x25, -2, 0, 1, 0, ToggleSoundEnable },
+    { 0x05, 8, 0, 1, 0, PrintScreen },
+    { 0x4c, -2, 1, 0, 0, ToggleHeadupLevel },
+    { 0x12, -2, 0, 0, 0, F4Key },
+    { 0x13, -2, 1, 0, 0, F5Key },
+    { 0x14, -2, 1, 0, 0, F6Key },
+    { 0x15, -2, 1, 0, 0, F7Key },
+    { 0x16, -2, 1, 0, 0, F8Key },
+    { 0x17, -2, 1, 0, 0, F10Key },
+    { 0x18, -2, 1, 0, 0, F11Key },
+    { 0x19, -2, 1, 0, 0, F12Key },
+    { 0x0f, -2, 1, 0, 0, NumberKey0 },
+    { 0x26, -2, 1, 0, 0, NumberKey1 },
+    { 0x27, -2, 1, 0, 0, NumberKey2 },
+    { 0x28, -2, 1, 0, 0, NumberKey3 },
+    { 0x29, -2, 1, 0, 0, NumberKey4 },
+    { 0x2a, -2, 1, 0, 0, NumberKey5 },
+    { 0x2b, -2, 1, 0, 0, NumberKey6 },
+    { 0x2c, -2, 1, 0, 0, NumberKey7 },
+    { 0x10, -2, 1, 0, 0, NumberKey8 },
+    { 0x11, -2, 1, 0, 0, NumberKey9 },
+    { 0x0b, 7, 1, 1, 0, ToggleFlying },
+    { 0x41, -2, 1, 0, 0, ScreenSmaller },
+    { 0x42, -2, 1, 0, 0, ScreenLarger },
+    { 0x43, -2, 1, 0, 0, BuyArmour },
+    { 0x44, -2, 1, 0, 0, BuyPower },
+    { 0x45, -2, 1, 0, 0, BuyOffense },
+    { 0x46, -2, 1, 0, 0, ViewNetPlayer },
+    { 0x47, -2, 1, 0, 0, UserSendMessage },
+    { 0x48, -2, 1, 0, 0, ToggleTargetLock },
+    { 0x49, -2, 1, 0, 0, CycleTargetLock },
+    { 0x3e, -2, 1, 0, 0, ToggleInventory },
+    { 0x3f, -2, 1, 0, 0, LeftInventory },
+    { 0x40, -2, 1, 0, 0, RightInventory },
+    { 0x48, -2, 1, 0, 0, ChangeCameraTypeInGame },
+    { 0x2e, -2, 1, 0, 0, ToggleCockpit },
+};
+
+// GLOBAL: CARMA2_HW 0x005904c0
+const char* gUNK_005904c0[12] = { 0 };
+
+// FUNCTION: CARMA2_HW 0x00442e90
+void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
+    tU32 start_menu_time;
+    tToggle_element* toggle;
+    int new_state;
+
+    start_menu_time = PDGetTotalTime();
+    CheckQuit();
+    AddLostTime(PDGetTotalTime() - start_menu_time);
+    CheckKeysForMouldiness();
+    for (toggle = gToggle_array; toggle < &gToggle_array[44]; toggle++) {
+        if (toggle->in_game_only && !pRacing) {
+            continue;
+        }
+        if (gTyping || gEntering_message) {
+            if (toggle->key2 == -2) {
+                continue;
+            }
+        }
+        new_state = 0;
+        if (toggle->key1 == -2 || KeyIsDownNoMouldiness(toggle->key1)) {
+            if (toggle->key2 == -2 && toggle->exact_modifiers) {
+                if (!PDKeyDown(0) && !PDKeyDown(1) && !PDKeyDown(2) && !PDKeyDown(3)) {
+                    new_state = 1;
+                }
+            } else {
+                if (KeyIsDown(toggle->key2)) {
+                    new_state = 1;
+                }
+            }
+        }
+        if (toggle->on_last_time != new_state) {
+            toggle->on_last_time = new_state;
+            if (new_state) {
+                toggle->action_proc();
+            }
+        }
+    }
+    if (pRacing && !gAction_replay_mode) {
+        CheckOtherRacingKeys();
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00443c50
 void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
