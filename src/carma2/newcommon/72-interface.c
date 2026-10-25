@@ -950,8 +950,6 @@ int C2_HOOK_FASTCALL testDn(tFrontend_spec *pFrontend) {
 }
 // FRONTEND_MainMenuHandler
 
-// UpdateCarInfo
-
 // FUNCTION: CARMA2_HW 0x0046b4e0
 int C2_HOOK_FASTCALL ChangeCarMenuInfunc(tFrontend_spec* pFrontend) {
     int i;
@@ -1010,7 +1008,33 @@ int C2_HOOK_FASTCALL ChangeCarOK(tFrontend_spec* pFrontend) {
 }
 // CarClickPrev
 
-// CarClickNext
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0046b6a0
+void C2_HOOK_FASTCALL UpdateCarInfo(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0046ba00
+int C2_HOOK_FASTCALL CarClickNext(tFrontend_spec* pFrontend) {
+
+    if (gFrontend_scroll_time_left == 0) {
+        gFrontend_change_car_selected_car += 1;
+        if (gFrontend_change_car_selected_car >= gProgram_state.number_of_cars) {
+            gFrontend_change_car_selected_car = 0;
+        }
+        gFrontend_opponent_profile_pic_needs_update = 1;
+        gFrontend_car_image_outdated = 1;
+        DRS3StartSound(gEffects_outlet, eSoundId_LeftButton);
+        UpdateCarInfo(pFrontend);
+        gFrontend_scroll_time_left += gFrontend_scroll_time_increment;
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x0046ba70
 int C2_HOOK_FASTCALL ChangeCarMenuOutfunc(tFrontend_spec* pFrontend) {
