@@ -1450,9 +1450,13 @@ void C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter,
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0040b530
+// FUNCTION: CARMA2_HW 0x0040b530
 void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+        SetCharacterBoneModel(pCharacter, i, pArg2, pArg3);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
