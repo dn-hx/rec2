@@ -2347,7 +2347,17 @@ void C2_HOOK_FASTCALL RefreshScrollSet(tFrontend_spec* pFrontend) {
 
 // Controls_JoystickToggle
 
-// Controls_JoystickDpadToggle
+// FUNCTION: CARMA2_HW 0x00472400
+int C2_HOOK_FASTCALL Controls_JoystickDpadToggle(tFrontend_spec* pFrontend) {
+
+    if (gFrontend_selected_item_index == 36) {
+        SetJoystickDPadEnabled(1);
+    } else {
+        SetJoystickDPadEnabled(0);
+    }
+    DisplayJoystickSettings(pFrontend);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x004729d0
 // FUNCTION: CARMA2_SW 0x00471f60
