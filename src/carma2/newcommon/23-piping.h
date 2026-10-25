@@ -383,7 +383,7 @@ extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 // ARResetPiping
 
-extern void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks);
+// ARInitialise
 
 // ARDispose
 
@@ -419,8 +419,6 @@ extern void C2_HOOK_FASTCALL EndPipingSession2(int pMunge_reentrancy);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 
 // ARAddDataToSession
-
-extern void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, int pSize);
 
 extern void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCount, ...);
 
@@ -555,7 +553,7 @@ extern void C2_HOOK_FASTCALL PipeSingleNonCar(uintptr_t pId, br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
 
-extern void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar);
+// PipeSingleGraphicalWheelStuff
 
 extern void C2_HOOK_FASTCALL PipeSingleSound(tS3_outlet* pOutlet, int pSound, tS3_volume pL_volume, tS3_volume pR_volume, int pPitch, const br_vector3* pPosition);
 
