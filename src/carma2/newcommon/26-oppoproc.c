@@ -2,11 +2,6 @@
 
 #include "08-loading1.h"
 
-// FUNCTION: CARMA2_HW 0x004b13c0
-void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...) {
-
-}
-
 // StraightestArcForCorner2D
 
 // CornerFudge

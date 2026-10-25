@@ -161,10 +161,6 @@ void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004ae5d0
-void C2_HOOK_FASTCALL DisposeOpponents(void) {
-    NOT_IMPLEMENTED();
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

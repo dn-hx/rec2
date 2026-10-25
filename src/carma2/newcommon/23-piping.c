@@ -114,11 +114,6 @@ int C2_HOOK_FASTCALL ARGetReplayDirection(void) {
     return gPlay_direction;
 }
 // FUNCTION: CARMA2_HW 0x004023c0
-void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
-    gPlay_direction = (int)pDirection;
-}
-
-// FUNCTION: CARMA2_HW 0x004023c0
 // FUNCTION: CARMA2_SW 0x004023c0
 void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
     gPlay_direction = (int)pDirection;
@@ -212,29 +207,9 @@ int C2_HOOK_FASTCALL ARSomeReplayLeft(void) {
 #pragma auto_inline(off)
 #endif
 
-// FUNCTION: CARMA2_HW 0x00402390
-float C2_HOOK_FASTCALL ARGetReplayRate(void) {
-    return gReplay_rate;
-}
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// FUNCTION: CARMA2_HW 0x004023a0
-void C2_HOOK_FASTCALL ARSetReplayRate(float pRate) {
-    gReplay_rate = pRate;
-}
-
-// FUNCTION: CARMA2_HW 0x004023b0
-int C2_HOOK_FASTCALL ARGetReplayDirection(void) {
-
-    return gPlay_direction;
-}
-// FUNCTION: CARMA2_HW 0x004023c0
-void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection) {
-    gPlay_direction = (int)pDirection;
-}
 
 // FUNCTION: CARMA2_HW 0x004023e0
 void C2_HOOK_FASTCALL ARResetPiping(void) {
@@ -265,16 +240,6 @@ void C2_HOOK_FASTCALL ClearPipeUndoFlag(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// FUNCTION: CARMA2_HW 0x00403720
-int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType) {
-
-    if (gPipe_callbacks[pType].calc_length != NULL) {
-        return gPipe_callbacks[pType].calc_length(pChunk) + gPipe_callbacks[pType].length + offsetof(tPipe_chunk, data);
-    } else {
-        return gPipe_callbacks[pType].length + offsetof(tPipe_chunk, data);
-    }
-}
 
 // LengthOfSession
 
@@ -338,11 +303,6 @@ void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCou
 tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void) {
     return gPipe_play_ptr;
 }
-// FUNCTION: CARMA2_HW 0x00402e00
-void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr) {
-    gPipe_play_ptr = pPtr;
-}
-
 // FUNCTION: CARMA2_HW 0x00402e00
 // FUNCTION: CARMA2_SW 0x00402e00
 void C2_HOOK_FASTCALL ARSetPipePlayPtr(tU8* pPtr) {
@@ -855,15 +815,6 @@ void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, undefined4 pAr
         SIZE_OFFSET_PIPING(tPipe_single_ped_model_change, field_0x4), pArg6);
 }
 
-// FUNCTION: CARMA2_HW 0x004c8cc0
-void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject) {
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_phil_object, matrix, 0x0);
-    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_phil_object, matrix, 0x30);
-
-    ARDoSingleVariedSession(ePipe_chunk_phil_object, (uintptr_t)pObject, 1,
-        SIZE_OFFSET_PIPING(tPipe_phil_object, matrix), &pObject->actor->t.t.mat);
-}
-
 // FUNCTION: CARMA2_HW 0x004c8ce0
 void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
 
@@ -1220,11 +1171,6 @@ void C2_HOOK_FASTCALL ApplyRelink(tPipe_chunk** pChunk) {
             BrActorAdd(parent, actor);
         }
     }
-}
-
-// FUNCTION: CARMA2_HW 0x004c9890
-void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk) {
-    BrMatrix34Identity((br_matrix34*)((tU8*)((tPipe_chunk_actor_trans*)*pChunk)->field_0x4 + 0x2c));
 }
 
 // FUNCTION: CARMA2_HW 0x004c98b0

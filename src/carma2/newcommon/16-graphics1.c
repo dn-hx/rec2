@@ -232,10 +232,6 @@ void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
 }
 
-// FUNCTION: CARMA2_HW 0x00445ca0
-void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    // Empty
-}
 // FUNCTION: CARMA2_HW 0x004e4940
 void C2_HOOK_FASTCALL SetupDepthBuffer(void) {
 
