@@ -2428,9 +2428,34 @@ void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c60a0
+// based on carpocalypse2 src/carma2/common/physics.c:893
+// FUNCTION: CARMA2_HW 0x004c60a0
 void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info) {
-    NOT_IMPLEMENTED();
+    tPhysics_shape* shape;
+    tPhysics_shape* current;
+
+    shape = pCollision_info->shape;
+    if (shape == NULL) {
+        return;
+    }
+    pCollision_info->bb1 = shape->common.bb;
+
+    for (current = shape->common.next; current != NULL; current = current->common.next) {
+        int i;
+
+        for (i = 0; i < 3; i++) {
+            pCollision_info->bb1.min.v[i] = pCollision_info->bb1.min.v[i] < current->common.bb.min.v[i]
+                ? pCollision_info->bb1.min.v[i] : current->common.bb.min.v[i];
+            pCollision_info->bb1.max.v[i] = pCollision_info->bb1.max.v[i] > current->common.bb.max.v[i]
+                ? pCollision_info->bb1.max.v[i] : current->common.bb.max.v[i];
+        }
+    }
+    pCollision_info->bb2 = pCollision_info->bb1;
+
+    pCollision_info->radius_squared = MAX(pCollision_info->bb2.min.v[0] * pCollision_info->bb2.min.v[0], pCollision_info->bb2.max.v[0] * pCollision_info->bb2.max.v[0])
+            + MAX(pCollision_info->bb2.min.v[1] * pCollision_info->bb2.min.v[1], pCollision_info->bb2.max.v[1] * pCollision_info->bb2.max.v[1])
+            + MAX(pCollision_info->bb2.min.v[2] * pCollision_info->bb2.min.v[2], pCollision_info->bb2.max.v[2] * pCollision_info->bb2.max.v[2]);
+    pCollision_info->radius = (float)sqrt(pCollision_info->radius_squared);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
