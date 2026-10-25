@@ -249,7 +249,7 @@ extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
 
 // ToggleFlapsCB2
 
-// ToggleFlapsCB
+extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data);
 
 // SendToggleFlaps
 

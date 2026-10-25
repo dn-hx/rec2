@@ -871,7 +871,20 @@ void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
 
 // ToggleFlapsCB2
 
-// ToggleFlapsCB
+extern int C2_HOOK_CDECL ToggleDoorsActorCallback(br_actor* pActor, void* data);
+
+// FUNCTION: CARMA2_HW 0x0042ddb0
+int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data) {
+    tCar_spec* pCar_spec = data;
+
+    DRActorEnumRecurse(pCollision_info->actor, ToggleDoorsActorCallback, pCar_spec);
+    return 0;
+}
+
+// STUB: CARMA2_HW 0x0042ddc0
+int C2_HOOK_CDECL ToggleDoorsActorCallback(br_actor* pActor, void* data) {
+    NOT_IMPLEMENTED();
+}
 
 // SendToggleFlaps
 
