@@ -94,7 +94,16 @@ intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
 // FreeTrack
 
-// ProcessTrack
+extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
+
+// FUNCTION: CARMA2_HW 0x00506e50
+void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
+
+    RenderTrack(pWorld, pTrack_spec, pCamera, pCamera_to_world_transform);
+    if (gAdditional_actors) {
+        BrZbsSceneRenderAdd(gAdditional_actors);
+    }
+}
 
 // AnimateSky
 
