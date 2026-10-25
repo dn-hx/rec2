@@ -90,7 +90,7 @@ extern int C2_HOOK_FASTCALL SwitchToHiresMode(void);
 
 extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
 
-// PoshDrawLine
+extern void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour);
 
 extern void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
 
