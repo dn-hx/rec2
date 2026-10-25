@@ -9,6 +9,11 @@
 
 #include <math.h>
 
+extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
+extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
+extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
+
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
 br_vector3 gRender_bounds_centre;
@@ -98,7 +103,9 @@ void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector
 
 // DroneStraightestArcForCorner2D
 
+#ifdef REC2_MATCHING
 #pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0044f640
 FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
@@ -116,7 +123,9 @@ FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
     }
     return f;
 }
+#ifdef REC2_MATCHING
 #pragma auto_inline(on)
+#endif
 
 // LoadDroneTypeInfo
 
