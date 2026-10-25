@@ -91,7 +91,38 @@ void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
 
 // FreeActionReplayPix
 
-// SynchronizeActionReplay
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004922a0
+void C2_HOOK_FASTCALL ServiceGameInRace(void) {
+
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006a23c4
+int gSingle_frame_mode;
+
+// GLOBAL: CARMA2_HW 0x006a23d4
+tU32 gLast_synch_time;
+
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+
+// FUNCTION: CARMA2_HW 0x004e7110
+void C2_HOOK_FASTCALL SynchronizeActionReplay(void) {
+
+    while (ARGetReplayRate() != 0.f && (double)(tU32)(PDGetTotalTime() - gLast_synch_time) < (double)gFrame_period / fabs(ARGetReplayRate())) {
+        ServiceGameInRace();
+    }
+    gLast_synch_time = PDGetTotalTime();
+    if (gSingle_frame_mode) {
+        ARSetReplayRate(0.f);
+        gSingle_frame_mode = 0;
+    }
+}
 
 // STUB: CARMA2_HW 0x004e71c0
 void C2_HOOK_FASTCALL TurnOnActionReplay(void) {
