@@ -414,7 +414,25 @@ void C2_HOOK_FASTCALL CancelPendingCunningStunt(void) {
 
 // SetTextureBits
 
-// MungeSomeOtherCarGraphics
+// FUNCTION: CARMA2_HW 0x0041e5a0
+void C2_HOOK_FASTCALL MungeSomeOtherCarGraphics(void) {
+    int i;
+
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car;
+
+        car = gActive_car_list[i];
+        if (car->car_master_actor->render_style != BR_RSTYLE_NONE && !gAction_replay_mode) {
+            car->field_0x18cc = 0;
+            if (car->keys.brake || (car->brake_force != 0.f && fabs(car->collision_info->velocity_car_space.v[2]) > 7.2463765e-05)) {
+                car->field_0x18cc |= 0x4;
+            }
+            if (*(int*)&car->gear < 0 || (!(car != NULL && car->driver == eDriver_local_human) && car->collision_info->velocity_car_space.v[2] > 0.f)) {
+                car->field_0x18cc |= 0x8;
+            }
+        }
+    }
+}
 
 // MungeCarGraphics
 
