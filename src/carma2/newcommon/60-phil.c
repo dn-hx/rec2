@@ -166,7 +166,36 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 
 // WriteHierarchyNetworkStuff
 
-// GetHierarchyNetworkSize
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
+
+// The original inlines the joint size switch (no separate call), so keep it static.
+static int SizeOfObjectNetworkStuff(tPhysics_joint_type pType) {
+    switch (pType & 0xf) {
+    case eJoint_none:
+        return 0x28;
+    case eJoint_hinge:
+    case eJoint_quick_hinge:
+        return 0xc;
+    case eJoint_universal:
+    case eJoint_ball_n_socket:
+        return 0x10;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0049ce60
+int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject) {
+    int size;
+    tPhysics_object* child;
+
+    size = SizeOfObjectNetworkStuff(pObject->physics_joint1 != NULL ? pObject->physics_joint1->type : eJoint_none);
+    for (child = pObject->child; child != NULL; child = child->next) {
+        size += GetHierarchyNetworkSize(child);
+    }
+    return size;
+}
 
 // GetNetworkDataSize
 

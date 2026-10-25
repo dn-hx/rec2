@@ -51,7 +51,7 @@ extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, t
 
 // WriteHierarchyNetworkStuff
 
-// GetHierarchyNetworkSize
+extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
 
 // GetNetworkDataSize
 
