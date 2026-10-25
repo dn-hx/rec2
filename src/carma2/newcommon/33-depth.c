@@ -56,7 +56,33 @@ int gHas_sky_texture;
 // GLOBAL: CARMA2_HW 0x0079ec20
 br_pixelmap* gDepth_shade_table;
 
+// GLOBAL: CARMA2_HW 0x0067c4bc
+int gDepth_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec38
+br_pixelmap* gFog_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4a4
+int gFog_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec24
+br_pixelmap* gAcid_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4dc
+int gAcid_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec28
+br_pixelmap* gWater_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4cc
+int gWater_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0067c4d8
+br_actor* gForward_sky_actor;
+
 static void C2_HOOK_FASTCALL FrobFog(void);
+
+extern void C2_HOOK_FASTCALL GenerateSmokeShades(void);
 
 // Log2
 
@@ -289,9 +315,76 @@ void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPo
 #undef PTABLE_PIXEL_AT
 }
 
-// STUB: CARMA2_HW 0x00445620
+// based on carpocalypse2 src/carma2/common/depth.c:753
+// FUNCTION: CARMA2_HW 0x00445620
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
-    NOT_IMPLEMENTED();
+    br_model* sky_model;
+    int row;
+    int col;
+    int u_base;
+    int v_base;
+    tU8 band;
+    int vtxidx;
+    tU8 stripe;
+
+    LoadDepthTable("DEPTHCUE.TAB", &gDepth_shade_table, &gDepth_shade_table_power);
+    LoadDepthTable("FOG.TAB", &gFog_shade_table, &gFog_shade_table_power);
+    LoadDepthTable("ACIDFOG.TAB", &gAcid_shade_table, &gAcid_shade_table_power);
+    LoadDepthTable("BLUEGIT.TAB", &gWater_shade_table, &gWater_shade_table_power);
+    GenerateSmokeShades();
+
+    gHorizon_material = BrMaterialFind("HORIZON.MAT");
+    if (gHorizon_material == NULL) {
+        FatalError(kFatalError_CannotFindSkyMaterial_S);
+    }
+
+    if (gScreen->type == BR_PMT_INDEX_8 && gNo_fog == 0) {
+        gHorizon_material->index_blend = BrPixelmapAllocate(BR_PMT_INDEX_8, 0x100, 0x100, NULL, 0);
+        BrTableAdd(gHorizon_material->index_blend);
+        for (row = 0; row < 0x10000; row += 0x100) {
+            for (col = 0; col < 0x100; col++) {
+                ((tU8*)gHorizon_material->index_blend->pixels)[row + col] = (tU8)col;
+            }
+        }
+        gHorizon_material->flags |= BR_MATF_PERSPECTIVE;
+    }
+
+    gHorizon_material->flags |= BR_MATF_MAP_INTERPOLATION;
+
+    sky_model = BrModelAllocate(NULL, 0x58, 0x7e);
+    sky_model->flags |= BR_MODF_KEEP_ORIGINAL;
+
+    band = 0;
+    vtxidx = 0;
+    do {
+        u_base = 4 * band;
+        v_base = u_base + 4;
+        stripe = 0;
+        do {
+            *((tU16*)((tU8*)sky_model->faces + vtxidx)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 2)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 4)) = (tU16)(u_base + stripe + 5);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x28)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2a)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2c)) = (tU16)(v_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 6)) = 1;
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2e)) = 1;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 8)) = 0;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 0x30)) = 0;
+            vtxidx += 0x50;
+            stripe++;
+        } while (stripe < 3);
+        band++;
+    } while (band < 0x15);
+
+    gForward_sky_model = sky_model;
+    BrModelAdd(gForward_sky_model);
+
+    gForward_sky_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gForward_sky_actor->model = gForward_sky_model;
+    gForward_sky_actor->material = gHorizon_material;
+    gForward_sky_actor->render_style = BR_RSTYLE_NONE;
+    BrActorAdd(gUniverse_actor, gForward_sky_actor);
 }
 
 // DoHorizon
