@@ -193,7 +193,13 @@ void C2_HOOK_FASTCALL F11Key(void) {
 void C2_HOOK_FASTCALL F12Key(void) {
 }
 
-// NumberKey0
+// FUNCTION: CARMA2_HW 0x00441910
+void C2_HOOK_FASTCALL NumberKey0(void) {
+
+    DoEditModeKey(7);
+}
+
+// NumberKey1
 
 // NumberKey1
 
