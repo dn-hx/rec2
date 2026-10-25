@@ -132,9 +132,32 @@ void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void) {
 
 }
 
-// DoEditModeKey
+// GLOBAL: CARMA2_HW 0x0067c468
+int gWhich_edit_mode;
 
-// F5Key
+// GLOBAL: CARMA2_HW 0x005904f0
+tEdit_func* gEdit_funcs[2][18][8];
+
+static void C2_HOOK_FASTCALL DoEditModeKey(int pIndex) {
+    int modifiers;
+
+    if (gI_am_cheating == 0xa11ee75d || (gI_am_cheating == 0x564e78b9 && gNet_mode == eNet_mode_none)) {
+        modifiers = PDKeyDown(0) ? 4 : 0;
+        modifiers |= PDKeyDown(1) ? 2 : 0;
+        modifiers |= PDKeyDown(2) ? 1 : 0;
+        if (gEdit_funcs[gWhich_edit_mode][pIndex][modifiers] != NULL) {
+            gEdit_funcs[gWhich_edit_mode][pIndex][modifiers]();
+        }
+    } else {
+        gWhich_edit_mode = 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00441600
+void C2_HOOK_FASTCALL F5Key(void) {
+
+    DoEditModeKey(0);
+}
 
 // F6Key
 

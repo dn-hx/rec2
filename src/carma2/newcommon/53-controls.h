@@ -32,7 +32,7 @@ extern void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void);
 
 // DoEditModeKey
 
-// F5Key
+extern void C2_HOOK_FASTCALL F5Key(void);
 
 // F6Key
 
