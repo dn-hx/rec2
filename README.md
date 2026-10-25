@@ -12,12 +12,12 @@ Status of this fork's `workv3` branch (2026-10-25, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
-| Functions implemented | 3357 / 5162 (65.03%) |
-| Functions at exactly 100% similar | 2599 |
-| Accuracy | 90.67% |
-| Progress | 58.97% |
+| Functions implemented | 3366 / 5162 (65.21%) |
+| Functions at exactly 100% similar | 2605 |
+| Accuracy | 90.68% |
+| Progress | 59.13% |
 
-Functions below 100% are not counted as exact; the best attempts are kept out of the tree until they match.
+Functions below 100% are not counted as exact. Most best attempts are kept out of the tree until they match; a few runtime-faithful partials (InitPowerups, LoadPowerups, UpdateCollisionObject, LoadPanGameDroneInfo) are kept in for the main-menu milestone.
 
 ## Requirements
 
