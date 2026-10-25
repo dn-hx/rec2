@@ -29,6 +29,8 @@ extern FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name);
 
 // ReallyAddDroneToPHIL
 
+extern void C2_HOOK_FASTCALL DoDefaultDroneStateAction(tDrone_spec* pDrone_spec);
+
 // AddDroneToPHIL
 
 // PreprocessDronePaths

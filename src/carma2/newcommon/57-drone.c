@@ -49,6 +49,36 @@ int gCount_rendered_drones;
 // GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
 
+// STUB: CARMA2_HW 0x0044cc70
+void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0044d1d0
+void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0044eb70
+void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0044ec50
+void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+// GLOBAL: CARMA2_HW 0x00594738
+tDrone_state_function* gDrone_state_functions[6] = {
+    NULL,
+    DroneStateFuncReset,
+    DroneStateFuncControlledMovement,
+    DroneStateFuncPhysicsActive,
+    DroneStateFuncStationaryPassive,
+    NULL,
+};
+
 // FUNCTION: CARMA2_HW 0x0044cfc0
 static void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 
@@ -237,6 +267,14 @@ void C2_HOOK_FASTCALL InitDroneSpec(tDrone_spec* pDrone_spec, int pNode) {
 // DroneOrientationChanged
 
 // DroneyObjectInSensiblePlace
+
+// FUNCTION: CARMA2_HW 0x004516b0
+void C2_HOOK_FASTCALL DoDefaultDroneStateAction(tDrone_spec* pDrone_spec) {
+
+    if (gDrone_state_functions[pDrone_spec->current_state] != NULL) {
+        gDrone_state_functions[pDrone_spec->current_state](pDrone_spec, eDrone_state_DEFAULT);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004516d0
 void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec) {
