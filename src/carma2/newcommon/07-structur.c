@@ -247,5 +247,22 @@ void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void) {
     }
 }
 
-// GoingBackToRaceFromInterface
+extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
+extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
+
+// FUNCTION: CARMA2_HW 0x005042a0
+void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
+
+    gInterface_within_race_mode = 0;
+    if (gHud_tinted1_visible) {
+        TurnTintedPolyOn(gHud_tinted1);
+    }
+    if (gHud_tinted2_visible) {
+        TurnTintedPolyOn(gHud_tinted2);
+    }
+    SwitchToLoresMode();
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_unpaused, 0, 0, 0, 0);
+    }
+}
 
