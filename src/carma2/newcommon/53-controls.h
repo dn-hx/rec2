@@ -42,7 +42,7 @@ extern void C2_HOOK_FASTCALL F8Key(void);
 
 extern void C2_HOOK_FASTCALL F10Key(void);
 
-// F11Key
+extern void C2_HOOK_FASTCALL F11Key(void);
 
 extern void C2_HOOK_FASTCALL F12Key(void);
 
