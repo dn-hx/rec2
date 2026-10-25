@@ -8,6 +8,9 @@
 // GLOBAL: CARMA2_HW 0x0058f620
 int gAR_camera_type = 2;
 
+// GLOBAL: CARMA2_HW 0x006a2374
+int gKey_down;
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -24,7 +27,11 @@ void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 
     RemoveTransientBitmaps(1);
 }
-// DoZappyActionReplayHeadups
+// STUB: CARMA2_HW 0x004e6900
+void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(void) {
+
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e6270
 void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
@@ -32,9 +39,17 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
     ActualActionReplayHeadups(0);
 }
 
-// PreProcess
+// STUB: CARMA2_HW 0x004e6950
+void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
 
-// PostProcess
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e6980
+void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
+
+    NOT_IMPLEMENTED();
+}
 
 // DoActionReplay
 
@@ -44,7 +59,31 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 
 // PollActionReplayControls
 
-// CheckReplayTurnOn
+extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
+extern int gEntering_message;
+extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
+extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
+extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+
+// FUNCTION: CARMA2_HW 0x004e6ff0
+void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
+
+    if (!gAction_replay_mode) {
+        if (!KeyIsDown(58) || gEntering_message) {
+            gKey_down = -1;
+        } else if (gKey_down == -1) {
+            if (gAction_replay_mode) {
+                RenderAFrame(1);
+                RenderAFrame(1);
+            }
+            if (!ARToggleReplay(TurnOnActionReplay, TurnOffActionReplay, AfterActionReplay,
+                    DoZappyActionReplayHeadups, PreProcess, PostProcess, NULL, NULL)) {
+                NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_action_replay_unavailable));
+            }
+        }
+    }
+}
 
 // InitializeActionReplayPix
 
@@ -52,9 +91,17 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 
 // SynchronizeActionReplay
 
-// TurnOnActionReplay
+// STUB: CARMA2_HW 0x004e71c0
+void C2_HOOK_FASTCALL TurnOnActionReplay(void) {
 
-// TurnOffActionReplay
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e7270
+void C2_HOOK_FASTCALL TurnOffActionReplay(void) {
+
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e72d0
 void C2_HOOK_FASTCALL AfterActionReplay(void) {
