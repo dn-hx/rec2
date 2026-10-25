@@ -392,8 +392,7 @@ extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
 
 // SetChangingPowerup
 
-// PedValium
-
+extern int C2_HOOK_FASTCALL PedValium(tPowerup* powerup, tCar_spec* car);
 // PowerupCancel
 
 // GrowATail
