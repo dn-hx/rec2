@@ -126,17 +126,8 @@ br_model* gModel_powerup_offence;
 // GLOBAL: CARMA2_HW 0x006a0ac0
 br_pixelmap* gFizzle_in[3];
 
-// GLOBAL: CARMA2_HW 0x007447a8
-int gDancing_peds;
-
-// GLOBAL: CARMA2_HW 0x00744810
-int gImmortal_peds;
-
 // GLOBAL: CARMA2_HW 0x007447b8
 int gDrunk_pedestrians;
-
-// GLOBAL: CARMA2_HW 0x007447ac
-int gPeds_suicidal;
 
 // GLOBAL: CARMA2_HW 0x0079ec50
 int gInstant_handbrake;

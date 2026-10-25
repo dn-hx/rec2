@@ -158,15 +158,6 @@ tHeadup_info gHeadup_image_info[45] = {
 // GLOBAL: CARMA2_HW 0x0079eb60
 br_pixelmap* gHeadup_images[45];
 
-// GLOBAL: CARMA2_HW 0x007620f8
-tExplosion_animation gExplosion_pix_animation_groups;
-
-// GLOBAL: CARMA2_HW 0x00761f5c
-int gExplosion_sound_id;
-
-// GLOBAL: CARMA2_HW 0x00762120
-int gWasted_explosion_chance;
-
 void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes) {
     tPath_name the_path;
     tPath_name the_path2;
