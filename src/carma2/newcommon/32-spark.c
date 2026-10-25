@@ -10,6 +10,8 @@
 #include "c2_string.h"
 #include "10-loading2.h"
 
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
+
 // GLOBAL: CARMA2_HW 0x00660110
 int gSmoke_on = 1;
 
