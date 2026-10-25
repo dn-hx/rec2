@@ -105,7 +105,7 @@ extern void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar);
 
 // CheckOtherRacingKeys
 
-// CheckRecoverCost
+extern int C2_HOOK_FASTCALL CheckRecoverCost(void);
 
 // SortOutRecover
 

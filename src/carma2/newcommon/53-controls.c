@@ -66,8 +66,17 @@ int gRecovery_voucher_count;
 // GLOBAL: CARMA2_HW 0x0067c46c
 int gAllow_car_flying;
 
+// GLOBAL: CARMA2_HW 0x0067c470
+int gINT_0067c470;
+
 // GLOBAL: CARMA2_HW 0x0067c474
 int gEntering_message;
+
+// GLOBAL: CARMA2_HW 0x0067c478
+tU32 gPalette_fade_time;
+
+// GLOBAL: CARMA2_HW 0x0067c47c
+tU32 gToo_poor_for_recovery_timeout;
 
 // GLOBAL: CARMA2_HW 0x0079efa4
 tCamera_key_flags gCamera_key_flags;
@@ -281,7 +290,56 @@ void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar) {
 
 // CheckOtherRacingKeys
 
-// CheckRecoverCost
+/* based on carpocalypse2 src/carma2/common/controls.c:948 */
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+extern tSlot_info gTrade_in_value_APO;
+
+// FUNCTION: CARMA2_HW 0x00442750
+int C2_HOOK_FASTCALL CheckRecoverCost(void) {
+    int recovery_cost;
+    int remaining_cost;
+    int which;
+    int part_value;
+
+    if (gNet_mode != eNet_mode_none) {
+    if (gProgram_state.current_car.knackered
+        || gRecovery_voucher_count != 0
+        || (NetPlayerFromCar(&gProgram_state.current_car) != NULL && NetPlayerFromCar(&gProgram_state.current_car)->field_0x80 != 0)) {
+        gINT_0067c470 = 1;
+    } else {
+    gINT_0067c470 = 0;
+    if (gProgram_state.credits < (gNet_mode ? gRecovery_cost.initial_network[gCurrent_net_game->type] : gRecovery_cost.initial[gProgram_state.skill_level])) {
+        recovery_cost = (int)(gNet_mode ? gRecovery_cost.initial_network[gCurrent_net_game->type] : gRecovery_cost.initial[gProgram_state.skill_level]);
+        remaining_cost = recovery_cost;
+        while (remaining_cost > 0
+            && (gProgram_state.current_car.power_up_levels[0] != 0
+                || gProgram_state.current_car.power_up_levels[1] != 0
+                || gProgram_state.current_car.power_up_levels[2] != 0)) {
+            which = IRandomBetween(0, 2);
+            if (gProgram_state.current_car.power_up_levels[which] != 0) {
+                gProgram_state.current_car.power_up_levels[which] -= 1;
+                if (gNet_mode) {
+                    part_value = gTrade_in_value_APO.initial_network[gCurrent_net_game->type];
+                } else {
+                    part_value = gTrade_in_value_APO.initial[gProgram_state.skill_level];
+                }
+                remaining_cost -= part_value;
+                gProgram_state.credits += gNet_mode ? gTrade_in_value_APO.initial_network[gCurrent_net_game->type] : gTrade_in_value_APO.initial[gProgram_state.skill_level];
+            }
+        }
+    }
+    if (gProgram_state.credits < (gNet_mode ? gRecovery_cost.initial_network[gCurrent_net_game->type] : gRecovery_cost.initial[gProgram_state.skill_level])) {
+        gToo_poor_for_recovery_timeout = PDGetTotalTime() + 2000;
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_press_return_to_commit_suicide));
+        return 0;
+    }
+    SpendCredits((int)(gNet_mode ? gRecovery_cost.initial_network[gCurrent_net_game->type] : gRecovery_cost.initial[gProgram_state.skill_level]));
+    return 1;
+    }
+    }
+    return 1;
+}
 
 // SortOutRecover
 
