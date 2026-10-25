@@ -448,7 +448,17 @@ void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_
 #pragma auto_inline(on)
 #endif
 
-// StartPedRunning
+// FUNCTION: CARMA2_HW 0x004cc660
+void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) {
+
+    if (!(pPed->character->field_0xc & gPow2_array[3]) && !(pPed->character->field_0xc & gPow2_array[5]) && pPed->field_0x0c != NULL) {
+        pPed->field_0x0c->field_0x80 = 100;
+        pPed->field_0x0c->field_0xb8 = .09f;
+        SetPedMove(pPed, pArg3 ? 40 : 41, pPed->field_0x0c->field_0x80, 0, 0, pTime, ePed_action_running);
+    } else {
+        SetPedMove(pPed, pArg3 ? 40 : 41, -1, 0, 0, pTime, ePed_action_running);
+    }
+}
 
 // AcceleratePed
 
