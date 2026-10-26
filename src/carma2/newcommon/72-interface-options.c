@@ -1,10 +1,15 @@
 #include "72-interface-options.h"
 
 #include "72-interface.h"
+#include "72-interface-quit.h"
+
+extern tFrontend_spec gFrontend_MAIN;
+extern tFrontend_spec gFrontend_CONTROLS;
+extern tFrontend_spec gFrontend_GRAPHICS;
+extern tFrontend_spec gFrontend_LOAD_GAME;
 
 // GLOBAL: CARMA2_HW 0x00632c60
 tFrontend_spec gFrontend_OPTIONS = {
-#if 0 // FIXME: enable this
     "Options",
     0,
     18,
@@ -19,26 +24,95 @@ tFrontend_spec gFrontend_OPTIONS = {
     0,
     0,
     {
-        { 0x14,  Options_AbortRace,  NULL,                       0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x15,  Options_AbortGame,  NULL,                       0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x16,  temp,               &gFrontend_CONTROLS,   0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xed,  temp,               &gFrontend_GRAPHICS,   0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x18,  temp,               &gFrontend_LOAD_GAME,  0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x19,  temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 0, 1, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 0, 1, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 0, 1, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 0, 1, },
-        { 0x1a,  temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 0, 1, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, 0, 1, 1, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, 1, 0, 0, },
-        { 0x402, temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, 1, 0, 0, },
-        { 0x1b,  temp,               NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, },
-        { 0x38,  Options_MusicOn,    NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, },
-        { 0x39,  Options_MusicOff,   NULL,                       0, 0,  0,  0, 0, 0, 0, 1, 1, },
-        { 0x7,   Options_Ok,         (void*)1,                   0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x1c,  temp,               &gFrontend_QUIT,       0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x14, Options_AbortRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x15, Options_AbortGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x16, temp, &gFrontend_CONTROLS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xed, temp, &gFrontend_GRAPHICS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x18, temp, &gFrontend_LOAD_GAME, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x19, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x1a, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, },
+        { 0x1b, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, Options_MusicOn, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, Options_MusicOff, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 7, Options_Ok, (void*)1, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x1c, temp, &gFrontend_QUIT, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
     }
-#else
-    0
-#endif
+};
+
+// GLOBAL: CARMA2_HW 0x0063e528
+tFrontend_spec gFrontend_GRAPHICS = {
+    "Graphics",
+    0,
+    53,
+    Graphics_Infunc,
+    Graphics_Outfunc,
+    Generic_MenuHandler,
+    &gFrontend_OPTIONS,
+    1,
+    0,
+    0,
+    8,
+    0,
+    0,
+    {
+        { 0xf9, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 7, temp, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x22, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x34, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x35, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x36, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x37, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x24, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x40, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x41, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x42, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x43, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x25, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x40, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x41, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x42, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x43, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x23, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x3b, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x3c, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x3d, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x28, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x44, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x45, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x46, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x2a, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x2b, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x2c, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x2d, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x26, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x27, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x29, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x2e, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x2f, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0xf8, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0xe2, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0xe3, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x38, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x39, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+    }
 };
