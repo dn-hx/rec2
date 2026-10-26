@@ -289,10 +289,45 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004e4b40
-// STUB: CARMA2_SW 0x004e0ed0
+extern int gHud_tinted1;
+extern int gHud_tinted2;
+extern int gHud_tinted4;
+extern int gMap_render_x_i;
+extern int gMap_render_y_i;
+extern int gMap_render_width_i;
+extern int gMap_render_height_i;
+extern void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int width, int height);
+
+// based on carpocalypse2 src/carma2/common/graphics.c:270
+// FUNCTION: CARMA2_HW 0x004e4b40
+// FUNCTION: CARMA2_SW 0x004e0ed0
 void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
-    NOT_IMPLEMENTED();
+
+    ReinitialiseRenderStuff();
+    if (gMap_view == 2) {
+        gRender_screen->base_x = gMap_render_x_i;
+        gRender_screen->base_y = gMap_render_y_i;
+        gRender_screen->width = gMap_render_width_i;
+        gRender_screen->height = gMap_render_height_i;
+    } else {
+        gRender_screen->base_x = gProgram_state.current_render_left;
+        gRender_screen->base_y = gProgram_state.current_render_top;
+        gRender_screen->height = gProgram_state.current_render_bottom - gProgram_state.current_render_top;
+        gRender_screen->width = gProgram_state.current_render_right - gProgram_state.current_render_left;
+    }
+    if (gRender_screen->width != gRender_screen->row_bytes) {
+        gRender_screen->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
+    } else {
+        gRender_screen->flags |= BR_PMF_ROW_WHOLEPIXELS;
+    }
+    gRender_screen->origin_x = gRender_screen->width / 2;
+    gRender_screen->origin_y = gRender_screen->height / 2;
+    gWidth = gRender_screen->width;
+    gHeight = gRender_screen->height;
+    ReinitialiseForwardCamera();
+    SetTintedPolySize(gHud_tinted1, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted2, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted4, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
 }
 
 #ifdef REC2_MATCHING
@@ -449,3 +484,6 @@ void C2_HOOK_FASTCALL CleanPolyFontDanglers(void) {
     }
     gCount_polyfont_glyph_actors = 0;
 }
+
+// GLOBAL: CARMA2_HW 0x0065fb54
+int gHud_tinted4 = -1;
