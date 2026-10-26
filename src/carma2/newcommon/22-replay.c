@@ -4,6 +4,9 @@
 #include "30-opponent.h"
 #include "18-graphics2.h"
 #include "23-piping.h"
+#include "41-utility.h"
+#include "59-camera.h"
+#include "08-loading1.h"
 
 // GLOBAL: CARMA2_HW 0x0058f620
 int gAR_camera_type = 2;
@@ -67,6 +70,11 @@ extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+extern void C2_HOOK_FASTCALL FUN_004d6da0(void);
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern tNet_mode gNet_mode;
+extern int gCamera_type;
 
 // FUNCTION: CARMA2_HW 0x004e6ff0
 void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
@@ -130,10 +138,27 @@ void C2_HOOK_FASTCALL TurnOnActionReplay(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004e7270
+// FUNCTION: CARMA2_HW 0x004e7270
 void C2_HOOK_FASTCALL TurnOffActionReplay(void) {
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
-    NOT_IMPLEMENTED();
+    UnlockInterfaceStuff();
+    AssertThisTimeAsCurrentTime();
+    if (gRace_finished == 0) {
+        RestoreCameraPosition(0);
+    }
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_unpaused, 0, 0, 0, 0);
+    }
+    gAR_camera_type = gAction_replay_camera_mode;
+    SetCameraType(gCamera_type);
+    FUN_004d6da0();
+    EndMouseCursor();
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 }
 
 // FUNCTION: CARMA2_HW 0x004e72d0
@@ -443,3 +468,14 @@ void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine) {
 
     NOT_IMPLEMENTED();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// Original is a bare ret (no body to implement).
+// STUB: CARMA2_HW 0x004d6da0
+void C2_HOOK_FASTCALL FUN_004d6da0(void) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
