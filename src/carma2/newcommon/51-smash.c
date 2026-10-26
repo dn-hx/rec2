@@ -494,9 +494,87 @@ void C2_HOOK_FASTCALL ReadExplosion(FILE *pF, tExplosion_animation* pAnimation) 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004eea20
+// FUNCTION: CARMA2_HW 0x004eea20
 void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage) {
-    NOT_IMPLEMENTED();
+    /* based on carpocalypse2 crush.c:321 */
+    extern const char* gSmashable_collision_type_names[3];
+    extern const char* gPosition_type_names[2];
+    extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
+    extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
+    extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
+    char s[256];
+    tSmashable_level* level;
+    int j;
+    int i1;
+    int v1;
+    int i2;
+    int v2;
+    int i;
+
+    GetAString(pF, s);
+    *pCount = GetAnInt(pF) + 1;
+    *pLevels = BrMemAllocate(*pCount * sizeof(tSmashable_level), kMem_smash_levels);
+    (*pLevels)[0].pixelmaps[0] = BrMapFind(s);
+    if ((*pLevels)[0].pixelmaps[0] == NULL) {
+        FatalError(kFatalError_CantLoadSmashPix_S, s);
+    }
+    (*pLevels)[0].count_shrapnels = 0;
+    (*pLevels)[0].trigger_threshold = 0;
+    level = *pLevels + 1;
+    for (i = 0; i < *pCount - 1; i++, level++) {
+        level->trigger_threshold = GetAScalar(pF);
+        level->flags = GetAnInt(pF);
+        if (pIs_texture_change) {
+            level->collision_type = GetALineAndInterpretCommand(pF, gSmashable_collision_type_names, REC2_ASIZE(gSmashable_collision_type_names));
+        }
+        level->count_sounds = GetAnInt(pF);
+        for (j = 0; j < level->count_sounds; j++) {
+            level->sounds[j] = LoadSingleSound(pStorage, GetAnInt(pF));
+        }
+        ReadShrapnelSpec(pF, level->shrapnels, &level->count_shrapnels);
+        ReadExplosion(pF, &level->animation);
+        ReadSpillData(pF, &level->slick);
+        level->count_noncar_activations = GetAnInt(pF);
+        if (level->count_noncar_activations != 0) {
+            level->noncar_activations = BrMemAllocate(level->count_noncar_activations * sizeof(tNoncar_activation), kMem_smash_side_effects);
+            for (j = 0; j < level->count_noncar_activations; j++) {
+                GetPairOfInts(pF, &i1, &i2);
+                level->noncar_activations[j].time_0x0 = (tS16)(i1 * 1000);
+                level->noncar_activations[j].time_0x2 = (tS16)(i2 * 1000);
+                level->noncar_activations[j].location_type = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
+                level->noncar_activations[j].field_0x8 = (tS8)GetAnInt(pF);
+                LoadMinMax(pF, &level->noncar_activations[j].bounds);
+                ReadSmashableInitialSpeed(pF, &level->noncar_activations[j].speed_info);
+            }
+        }
+        ReadShrapnelSideEffects(pF, &level->side_effects);
+        level->extension_flags = GetAnInt(pF);
+        if (level->extension_flags & 1) {
+            level->field_0x280 = GetAnInt(pF);
+        }
+        level->room_turn_on_code = GetAnInt(pF);
+        level->award.frequency = GetALineAndInterpretCommand(pF, gRepeatability_names, REC2_ASIZE(gRepeatability_names));
+        if (level->award.frequency != 0) {
+            level->award.field_0x4 = GetAScalar(pF);
+            level->award.field_0x8 = GetAScalar(pF);
+            level->award.field_0xc = GetAnInt(pF);
+            level->award.field_0x10 = GetAnInt(pF);
+        }
+        level->count_runtime_variable_changes = GetAnInt(pF);
+        for (j = 0; j < level->count_runtime_variable_changes; j++) {
+            GetPairOfInts(pF, &v1, &v2);
+            level->runtime_variable_changes[j].field_0x2 = v1;
+            level->runtime_variable_changes[j].field_0x0 = v2;
+        }
+        level->count_pixelmaps = GetAnInt(pF);
+        for (j = 0; j < level->count_pixelmaps; j++) {
+            GetAString(pF, s);
+            level->pixelmaps[j] = BrMapFind(s);
+            if (level->pixelmaps[j] == NULL) {
+                FatalError(kFatalError_CantLoadSmashPix_S, s);
+            }
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1504,3 +1582,10 @@ void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x0065fea0
+const char* gSmashable_collision_type_names[3] = {
+    "solid",
+    "passthrough",
+    "edges",
+};
