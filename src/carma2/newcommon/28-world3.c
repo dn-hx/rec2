@@ -1279,5 +1279,3 @@ int gCapacity_track_smashables;
 // GLOBAL: CARMA2_HW 0x0079efac
 int gMax_count_non_cars;
 
-// GLOBAL: CARMA2_HW 0x00679264
-br_actor* gMr_blendy;
