@@ -737,3 +737,24 @@ int C2_HOOK_FASTCALL FindPaletteColour(br_colour pColour, br_pixelmap *pPalette)
         return FindPaletteColourXRGB8888(pColour, pPalette);
     }
 }
+
+/* rec2 runtime fix, no original counterpart: CARMA2_HW's statically linked libtiff never had default
+ * handlers. TIFFWarning (0x554081) and TIFFError (0x5532b5) call the handler globals at 0x6b1260 /
+ * 0x6b1264, which sit in .bss (NULL) and are never written (TIFFSetWarningHandler 0x554060 and
+ * TIFFSetErrorHandler 0x553290 have no callers). The libtiff-3.4 Win32 port we link (tif_win32.c)
+ * installs MessageBox handlers instead, which block the game on harmless warnings such as
+ * "unknown field with tag 34377" in LOADSCRN.TIF. Reset both handlers to NULL before main runs,
+ * through a CRT initializer, so no matched function changes. */
+#if defined(__GNUC__)
+__attribute__((constructor))
+#endif
+static void C2_HOOK_CDECL Rec2SilenceTiffHandlers(void) {
+    TIFFSetWarningHandler(NULL);
+    TIFFSetErrorHandler(NULL);
+}
+
+#if defined(_MSC_VER)
+#pragma data_seg(".CRT$XCU")
+void (C2_HOOK_CDECL *gRec2_silence_tiff_handlers)(void) = Rec2SilenceTiffHandlers;
+#pragma data_seg()
+#endif
