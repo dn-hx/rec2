@@ -47,6 +47,128 @@ int gFlameThrowerOn = 1;
 // GLOBAL: CARMA2_HW 0x0065d7d0
 int gExplosives_on = 1;
 
+// GLOBAL: CARMA2_HW 0x0065d7f0
+int gPed_move_fsm[118][7] = {
+    {   0,  -2,   5,   6, 111,  31, 112 },
+    {   0,   0,   5,   6, 111,  31, 112 },
+    {   0,   1,   5,   6, 111,  31, 112 },
+    {   0,   2,   5,   6, 111,  31, 112 },
+    {   0,   2,   5,   6, 111,  31, 112 },
+    {   0,   2,   2,   6, 111,  31, 112 },
+    {   0,   2,   2,   6, 111,  31, 112 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,   2,   5,   6, 111,  31, 112 },
+    {   0,  10,   5,   6, 111,  31, 112 },
+    {   0,   2,   5,   6, 111,  31, 112 },
+    {   0,  10,   5,   6, 111,  31, 112 },
+    {   0,   1,   5,   6, 111,  31, 112 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  -2,  50,  51, 111,  31, 112 },
+    {   1,  30,  31,  31, 111,  31, 112 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  -2,  50,  51, 111,  31, 112 },
+    {   1,  40,  50,  51, 111,  31, 112 },
+    {   1,  40,  50,  51, 111,  31, 112 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  52,  50,  51, 111,  31, 112 },
+    {   1,  52,  50,  51, 111,  31, 112 },
+    {   1,  40,  50,  51, 111,  31, 112 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  72,  71,  71,  71,  71,  71 },
+    {   1,  -2,  72,  72,  72,  72,  72 },
+    {   1,  -1,  -1,  -1,  -1,  -1,  -1 },
+    {   1,  -2,  74,  74,  74,  74,  74 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -2,  82,  83,  80,  80,  80 },
+    {   0,  -2,  84,  85,  81,  81,  81 },
+    {   0,  80,  82,  83,  80,  80,  80 },
+    {   0,  80,  82,  83,  80,  80,  80 },
+    {   0,  81,  84,  85,  81,  81,  81 },
+    {   0,  81,  84,  85,  81,  81,  81 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  91,  90,  90,  90,  90,  90 },
+    {   0,  -2,  91,  91,  91,  91,  91 },
+    {   0,  91,  92,  92,  92,  92,  92 },
+    {   0,  94,  93,  93,  93,  93,  93 },
+    {   0,  -2,  94,  94,  94,  94,  94 },
+    {   0,  -2,  95,  95,  95,  95,  95 },
+    {   0,  91,  96,  96,  96,  96,  96 },
+    {   0,  72,  97,  97,  97,  97,  97 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   0,  -3,  -3,  -3,  -3,  -3,  -3 },
+    {   1,  72, 110, 110, 110, 110, 110 },
+    {   1,  -2, 111, 111, 111,  31, 112 },
+    {   1,  -2, 112, 112, 111,  31, 112 },
+    {   0,  91, 113, 113, 113, 113, 113 },
+    {   2,   2,   2,   2,   2,   2,   3 },
+    {   4,   2,   2,   2,  10,  11,  13 },
+    { -41, -41, -41,   0,   2,   2,   2 },
+    {   2,   2,   3,   4,   4,  10,  11 },
+};
+
 // GLOBAL: CARMA2_HW 0x007447e0
 float gPedestrian_speed_factor;
 
@@ -913,16 +1035,85 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
 
 // MakePedNoise
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x004cbcd0
+extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
+extern void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, int pArg2, int pOriginal_move_id, int pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13);
+
+// SetPedMove: based on carpocalypse2 src/carma2/common/pedestrn.c:1625 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004cbcd0
 void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction) {
-    NOT_IMPLEMENTED();
+    int original_action;
+    int original_move_id;
+    int original_field_0x1e;
+    int original_field_0x1c;
+    br_vector3 original_pos;
+    br_vector3* new_pos;
+    int new_move_lut_id;
+    int i;
+    int move_result;
+    float speed;
+    char buffer[256];
+
+    original_action = pPed->action;
+    i = 0;
+    original_move_id = pPed->character->personality->form->moves[pPed->character->field_0x7].id;
+    original_field_0x1e = (tS16)pPed->character->field_0x1e;
+    original_field_0x1c = (tS16)pPed->character->field_0x1c;
+    new_pos = (br_vector3*)GetCharacterMatrixPtr(pPed->character)->m[3];
+    original_pos.v[0] = new_pos->v[0];
+    original_pos.v[1] = new_pos->v[1];
+    original_pos.v[2] = new_pos->v[2];
+    if (pAction >= 0 && pMove_action >= 0 && pPed->action != ePed_action_dead) {
+        pPed->action = pAction;
+    }
+    if (gDrunk_pedestrians) {
+        new_move_lut_id = 4;
+    } else if (gDancing_peds) {
+        new_move_lut_id = 3;
+    } else if (gPanicking_peds) {
+        new_move_lut_id = 5;
+    } else if (pPed->character->field_0xc & gPow2_array[3]) {
+        new_move_lut_id = 1;
+    } else if (pPed->character->field_0xc & gPow2_array[5]) {
+        new_move_lut_id = 2;
+    } else {
+        new_move_lut_id = 0;
+    }
+    if (new_move_lut_id != 0) {
+        pMove_action = gPed_move_fsm[pMove_action][new_move_lut_id + 1];
+    }
+    if (pMove_action == 112 || pMove_action == 31 || pMove_action == 111) {
+        pPed->action = ePed_action_running;
+    }
+    if (pPed->field_0x0c != NULL && pMove_action != 112 && pMove_action != 31
+            && pMove_action != 40 && pMove_action != 41 && pMove_action != 42) {
+        pPed->field_0x0c->field_0x80 = 0;
+    }
+    for (; i < 10; i++) {
+        if (gPedestrian_speed_factor != 0.f) {
+            speed = (float)pWalk_speed_factor / gPedestrian_speed_factor;
+        } else {
+            speed = (float)pWalk_speed_factor;
+        }
+        move_result = SetCharacterMove(pPed->character, pMove_action, speed, pArg4, pArg5, pArg6);
+        if (move_result == 2) {
+            pMove_action = gPed_move_fsm[pMove_action][0 + 1];
+            if (pMove_action <= -2) {
+                sprintf(buffer, "%d", pMove_action);
+                FatalError(pMove_action != -2 ? kFatalError_BadMoveAttemptedFor_SS : kFatalError_CoreMoveMissingFor_SS, buffer, pPed->character->personality->name);
+            }
+        }
+        if (pMove_action == -1 || move_result != 2) {
+            break;
+        }
+    }
+    if (i >= 10) {
+        sprintf(buffer, "%d", pMove_action);
+        FatalError(kFatalError_CyclicMoveDefinitionFor_SS, buffer, pPed->character->personality->name);
+    }
+    PipeSinglePedMove(pPed, original_field_0x1c, original_move_id,
+        pMove_action, (float)original_field_0x1e, (float)pWalk_speed_factor, pArg5, pArg4,
+        &original_pos, new_pos, original_action, pPed->action, &pPed->character->field_0x8c);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x004cc660
 void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) {
@@ -2094,6 +2285,22 @@ void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
 #endif
 // STUB: CARMA2_HW 0x0040b2e0
 void C2_HOOK_FASTCALL DisposeCharacterInstances(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0040a050
+int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c8b30
+void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, int pArg2, int pOriginal_move_id, int pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
