@@ -13,7 +13,10 @@
 #include "c2_string.h"
 
 // GLOBAL: CARMA2_HW 0x00762130
-int gInitial_powerup_slots[3];
+int gInitial_powerup_slots[3] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0076213c
+int gUNK_0076213c = 0;
 
 // GLOBAL: CARMA2_HW 0x0068b8e4
 int gINT_0068b8e4;

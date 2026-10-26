@@ -321,7 +321,10 @@ int gArrow_mode;
 
 
 // GLOBAL: CARMA2_HW 0x0074d040
-int gRace_head_ups[22];
+int gRace_head_ups[22] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0074d098
+int gUNK_0074d098 = 0;
 
 //int gInfo_on;
 

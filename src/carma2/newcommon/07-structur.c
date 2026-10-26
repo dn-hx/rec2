@@ -8,6 +8,9 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "rec2_macros.h"
+
+#include <string.h>
 
 /* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
@@ -19,6 +22,42 @@ int gHud_tinted2 = -1;
 
 // GLOBAL: CARMA2_HW 0x00655e50
 int gHud_tinted3 = -1;
+
+// GLOBAL: CARMA2_HW 0x00655e58
+float gForce_feedback_upper_limit = 2.7f;
+
+// GLOBAL: CARMA2_HW 0x00655e5c
+float gForce_feedback_lower_limit = 1.5f;
+
+// GLOBAL: CARMA2_HW 0x0074a738
+int gInitialised_grid;
+
+// GLOBAL: CARMA2_HW 0x0074c6d0
+int gInitialised_grid_unk_0074c6d0;
+
+// GLOBAL: CARMA2_HW 0x0079ec44
+tSpecial_volume* gLast_camera_special_volume;
+
+// GLOBAL: CARMA2_HW 0x0079ec54
+int gAuto_repair;
+
+// GLOBAL: CARMA2_HW 0x0079eaa8
+int gCredits_won_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf4
+int gPed_kill_count_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf8
+int gCar_kill_count_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaec
+int gTimer_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eb40
+int gTime_awarded_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf0
+int gLaps_headup;
 
 // GLOBAL: CARMA2_HW 0x00762140
 int gCredits_checkpoint[3];
@@ -299,10 +338,307 @@ void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race) {
     }
 }
 
-// STUB: CARMA2_HW 0x00481830
-void C2_HOOK_FASTCALL InitRace(void) {
+extern FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
+extern char* C2_HOOK_FASTCALL GetALineAndDontArgue(FILE* pF, char* pS);
+extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern void C2_HOOK_FASTCALL InitFogificateMaterials(void);
+extern void C2_HOOK_FASTCALL InitSmashTargets(void);
+extern void C2_HOOK_FASTCALL ClearAllRuntimeVariables(void);
+extern int C2_HOOK_FASTCALL PHILInit(void);
+extern void C2_HOOK_FASTCALL SetUpTestObjects(void);
+extern void C2_HOOK_FASTCALL InitTargetLock(void);
+extern void C2_HOOK_FASTCALL ReinitSmashing(void);
+extern void C2_HOOK_FASTCALL InitRepairAnimations(void);
+extern void C2_HOOK_FASTCALL ResetExplosions(void);
+extern void C2_HOOK_FASTCALL ClearWobbles(void);
+extern void C2_HOOK_FASTCALL ClearHeadups(void);
+extern void C2_HOOK_FASTCALL ResetOilSpills(void);
+extern void C2_HOOK_FASTCALL HideSkids(void);
+extern void C2_HOOK_FASTCALL ResetPedNearness(void);
+extern void C2_HOOK_FASTCALL InitPratcam(void);
+extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
+extern int C2_HOOK_FASTCALL GetSkyTextureOn(void);
+extern void C2_HOOK_FASTCALL ToggleSkyQuietly(void);
+extern int C2_HOOK_FASTCALL GetDepthCueingOn(void);
+extern void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void);
+extern void C2_HOOK_FASTCALL SaveShadeTables(void);
+extern void C2_HOOK_FASTCALL ResetSparks(void);
+extern void C2_HOOK_FASTCALL InitPedsForRace(void);
+extern void C2_HOOK_FASTCALL BuildColourTable(br_pixelmap* pPalette);
+extern void C2_HOOK_FASTCALL LoadFont(int pFont_ID);
+extern int C2_HOOK_FASTCALL TranslationMode(void);
+extern void C2_HOOK_FASTCALL ResetRecoveryVouchers(void);
+extern void C2_HOOK_FASTCALL AdjustRenderScreenSize(void);
+extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+extern void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8);
+extern void C2_HOOK_FASTCALL InitNetGameplayStuff(void);
+extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
+extern int C2_HOOK_FASTCALL PossibleUnlock(int pValue);
+extern tDR_font gFonts[28];
+extern br_pixelmap* gIcons_pix;
+extern br_pixelmap* gLit_up_stat;
+extern tPath_name gApplication_path;
+extern tSlot_info gMax_APO[3];
+extern tSlot_info gInitial_APO_potential[3];
+extern int gInitial_powerup_slots[3];
+extern int gRace_head_ups[22];
+extern int gNumber_of_races;
+extern int gSwap_depth_effect_type;
+extern br_pixelmap* gSwap_sky_texture;
+extern int gInstant_handbrake;
+extern br_pixelmap* gRender_palette;
+extern int gCredits_won_headup;
+extern int gPed_kill_count_headup;
+extern int gCar_kill_count_headup;
+extern int gTimer_headup;
+extern int gTime_awarded_headup;
+extern int gLaps_headup;
+extern int gNet_cash_headup;
+extern int gNet_ped_headup;
+extern int gCountdown;
+extern int gLap;
+extern int gTotal_laps;
+extern int gCheckpoint;
+extern int gCheckpoint_count;
+extern int gFreeze_timer;
+extern int gFree_repairs;
+extern int gShow_opponents;
+extern int gOn_drugs;
+extern tU32 gRace_finished;
+extern float gOpponent_speed_factor;
+extern float gCop_speed_factor;
+extern float gGravity_multiplier;
+extern float gDefault_gravity;
+extern float gPinball_factor;
+extern int gShow_peds_on_map;
+extern tU32 gMap_time;
+extern tU32 gTimer;
+extern br_scalar gYon_multiplier;
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern br_pixelmap* gBack_screen;
+
+// STUB: CARMA2_HW 0x00504bf0
+void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info) {
     NOT_IMPLEMENTED();
 }
+
+// STUB: CARMA2_HW 0x0042a190
+void C2_HOOK_FASTCALL ResetCrushSystems(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0041fc60
+void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004da630
+void C2_HOOK_FASTCALL ResetPowerups(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049b720
+void C2_HOOK_FASTCALL InitPlayers(void) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+/* Modify2DCopyPixelmaps and SetupFFBValues are inlined into InitRace by the original compiler */
+static void InitRace_Modify2DCopyPixelmaps(void) {
+    int i;
+    int pixel_type;
+
+    pixel_type = gBack_screen->type;
+    for (i = 0; i < (int)REC2_ASIZE(gFonts); i++) {
+        BRPM_convert(gFonts[i].images, pixel_type);
+    }
+    BRPM_convert(gIcons_pix, pixel_type);
+    BRPM_convert(gLit_up_stat, pixel_type);
+}
+
+static void InitRace_SetupFFBValues(void) {
+    tPath_name path;
+    FILE* f;
+    char s[256];
+
+    PathCat(path, gApplication_path, "FFB.TXT");
+    f = DRfopen(path, "rt");
+    GetALineAndDontArgue(f, s);
+    sscanf(strtok(s, "\t ,/"), "%f", &gForce_feedback_upper_limit);
+    GetALineAndDontArgue(f, s);
+    sscanf(strtok(s, "\t ,/"), "%f", &gForce_feedback_lower_limit);
+    PFfclose(f);
+}
+
+/* based on carpocalypse2 src/carma2/common/init.c:518 (GPL-3.0) */
+// FUNCTION: CARMA2_HW 0x00481830
+void C2_HOOK_FASTCALL InitRace(void) {
+    int i;
+
+    gMap_view = 1;
+    InitFogificateMaterials();
+    InitSmashTargets();
+    ClearAllRuntimeVariables();
+    PHILInit();
+    SetUpTestObjects();
+    InitTargetLock();
+    ReinitSmashing();
+    InitRepairAnimations();
+    ResetExplosions();
+    ClearWobbles();
+    ClearHeadups();
+    ResetOilSpills();
+    HideSkids();
+    ResetPedNearness();
+    PossibleService();
+    InitPedsForRace();
+    BuildColourTable(gRender_palette);
+    PossibleService();
+
+    gInitialised_grid_unk_0074c6d0 = 0;
+    gINT_0074b780 = 0;
+    gLast_camera_special_volume = NULL;
+    if (!TranslationMode()) {
+        LoadFont(1);
+        LoadFont(2);
+    }
+    LoadFont(3);
+    LoadFont(4);
+    LoadFont(5);
+    PossibleService();
+    LoadFont(6);
+    LoadFont(7);
+    LoadFont(8);
+    LoadFont(23);
+    PossibleService();
+    ResetRecoveryVouchers();
+    gMap_time = 0;
+    gProgram_state.cockpit_image_index = 0;
+    PossibleService();
+    gProgram_state.which_view = eView_forward;
+    gProgram_state.new_view = eView_undefined;
+    gProgram_state.pratcam_move_start = 0;
+    gAction_replay_mode = 0;
+    InitPratcam();
+    gProgram_state.peds_killed = 0;
+    gProgram_state.revs = 2000;
+    gProgram_state.current_car.speed = 0.0f;
+    gProgram_state.current_car.steering_angle = 0.0f;
+    gProgram_state.current_car.lf_sus_position = 0.0f;
+    gProgram_state.current_car.rf_sus_position = 0.0f;
+    gProgram_state.current_car.lr_sus_position = 0.0f;
+    gProgram_state.current_car.rr_sus_position = 0.0f;
+    PossibleService();
+    gAuto_repair = 0;
+    SetIntegerMapRenders();
+    AdjustRenderScreenSize();
+    PrintMemoryDump(0, "DIRECTLY BEFORE LOADING IN TRACK");
+    LoadTrack(gProgram_state.track_file_name, &gProgram_state.track_spec, &gCurrent_race);
+    if (gYon_multiplier != 1.0f) {
+        AdjustRenderScreenSize();
+    }
+    PrintMemoryDump(0, "DIRECTLY AFTER LOADING IN TRACK");
+    ResetCrushSystems();
+    LoadAIWorldForRace(&gCurrent_race);
+
+    for (i = 0; i < (int)REC2_ASIZE(gRace_head_ups); i++) {
+        gRace_head_ups[i] = NewTextHeadupSlot(16 + i, 0, 0, -1, "");
+    }
+    if (gNet_mode != eNet_mode_none) {
+        gNet_cash_headup = NewTextHeadupSlot(13, 0, 0, -6, "");
+        gNet_ped_headup = NewTextHeadupSlot(14, 0, 0, -6, "");
+
+        for (i = 0; i < (int)REC2_ASIZE(gInitial_powerup_slots); i++) {
+            gInitial_powerup_slots[i] = gNet_mode != eNet_mode_none ? gMax_APO[i].initial_network[gCurrent_net_game->type] : gMax_APO[i].initial[gProgram_state.skill_level];
+        }
+    } else {
+        gCredits_won_headup = NewTextHeadupSlot(1, 0, 0, -6, "");
+        gPed_kill_count_headup = NewTextHeadupSlot(2, 0, 0, -6, "");
+        gCar_kill_count_headup = NewTextHeadupSlot(12, 0, 0, -6, "");
+        gTimer_headup = NewTextHeadupSlot(7, 0, 0, -5, "");
+        gTime_awarded_headup = NewTextHeadupSlot(11, 0, 0, -2, "");
+        gLaps_headup = NewTextHeadupSlot(8, 0, 0, -6, "");
+
+        for (i = 0; i < (int)REC2_ASIZE(gInitial_powerup_slots); i++) {
+#define INITRACE_MAX(i) (gNet_mode != eNet_mode_none ? gMax_APO[i].initial_network[gCurrent_net_game->type] : gMax_APO[i].initial[gProgram_state.skill_level])
+#define INITRACE_CUR(i) (gNet_mode != eNet_mode_none ? gInitial_APO_potential[i].initial_network[gCurrent_net_game->type] : gInitial_APO_potential[i].initial[gProgram_state.skill_level])
+            gInitial_powerup_slots[i] = INITRACE_CUR(i) + 1 + (INITRACE_MAX(i) - INITRACE_CUR(i) - 1) * gCurrent_race.index / (gNumber_of_races - 1);
+        }
+    }
+
+    InstantDepthChange(
+        gProgram_state.default_depth_effect.type,
+        gProgram_state.default_depth_effect.sky_texture,
+        gProgram_state.default_depth_effect.start,
+        gProgram_state.default_depth_effect.end,
+        gProgram_state.default_depth_effect.colour.red,
+        gProgram_state.default_depth_effect.colour.green,
+        gProgram_state.default_depth_effect.colour.blue,
+        1);
+    gSwap_sky_texture = NULL;
+    if (!GetSkyTextureOn()) {
+        ToggleSkyQuietly();
+    }
+    gSwap_depth_effect_type = eDepth_effect_none;
+    if (!GetDepthCueingOn()) {
+        ToggleDepthCueingQuietly();
+    }
+    PrintMemoryDump(0, "AFTER LOADING IN AI STUFF");
+    SaveShadeTables();
+    gCountdown = 7;
+    gLap = 1;
+    gTimer = 1000 * gCurrent_race.initial_timer[gProgram_state.skill_level];
+    gTotal_laps = gCurrent_race.total_laps;
+
+    if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_5) {
+        gTotal_laps = gCurrent_net_game->options.starting_target;
+    }
+    gCheckpoint = 1;
+    gCheckpoint_count = gCurrent_race.check_point_count;
+    gFreeze_timer = 0;
+    gFree_repairs = 0;
+    if (gNet_mode == eNet_mode_none) {
+        gShow_opponents = 1;
+    } else {
+        gShow_opponents = gCurrent_net_game->options.show_players_on_map;
+    }
+    gOn_drugs = 0;
+    gRace_finished = 0;
+    gOpponent_speed_factor = 1.f;
+    gCop_speed_factor = 1.f;
+    gGravity_multiplier = gDefault_gravity;
+    gPinball_factor = 0.f;
+    gInstant_handbrake = 0;
+    gShow_peds_on_map = 0;
+
+    PossibleService();
+    SetCarSuspGiveAndHeight(&gProgram_state.current_car, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+    ResetPowerups();
+    PossibleService();
+    ResetSparks();
+    PossibleService();
+    PossibleService();
+    InitPlayers();
+    if (gNet_mode != eNet_mode_none) {
+        gProgram_state.credits = gCurrent_net_game->options.starting_credits;
+        InitNetGameplayStuff();
+    }
+    gInitialised_grid = 0;
+    SetCameraType(gAction_replay_camera_mode);
+    InitRace_Modify2DCopyPixelmaps();
+
+    InitRace_SetupFFBValues();
+    PossibleLock(1);
+    PossibleUnlock(1);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // STUB: CARMA2_HW 0x004c6580
 void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
