@@ -120,14 +120,67 @@ extern br_uint_32 gFrontend_APO_Colour_2;
 extern br_uint_32 gFrontend_APO_Colour_3;
 extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
+extern int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL LoadGameScrollDownLoadGameScrollDown(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL CarClickPrev(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL CarClickNext(tFrontend_spec* pFrontend);
+
 // GLOBAL: CARMA2_HW 0x005ed5a0
 tFrontend_spec gFrontend_LOAD_GAME = {
-    0
+    "LoadGame",
+    0,
+    19,
+    LoadGameInFunc,
+    LoadGameOutFunc,
+    LoadGameUpdateFunc,
+    &gFrontend_MAIN,
+    0,
+    0,
+    0,
+    0,
+    9,
+    0,
+    {
+        { 0x18, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot1, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot2, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot3, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot4, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot5, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot6, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot7, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadSlot8, (void*)1, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x4b, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0xff, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x4e, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x4f, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x100, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0xfe, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 8, temp, &gFrontend_OPTIONS, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadGameScrollUp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadGameScrollDownLoadGameScrollDown, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+    }
 };
 
 // GLOBAL: CARMA2_HW 0x005cab48
 tFrontend_spec gFrontend_CREDITS = {
-    0
+    "Credits",
+    0,
+    1,
+    CreditsScreenInfunc,
+    CreditsScreenOutfunc,
+    NULL,
+    &gFrontend_MAIN,
+    0,
+    0,
+    0,
+    11,
+    0,
+    0,
+    {
+        { 0x401, temp, &gFrontend_MAIN, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+    }
 };
 
 // GLOBAL: CARMA2_HW 0x0059b0d0
@@ -786,7 +839,36 @@ extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 
 // GLOBAL: CARMA2_HW 0x005d6410
 tFrontend_spec gFrontend_CHANGE_CAR = {
-    0
+    "ChangeCar",
+    0,
+    15,
+    ChangeCarMenuInfunc,
+    ChangeCarMenuOutfunc,
+    FRONTEND_ChangeCarMenuHandler,
+    &gFrontend_MAIN,
+    0,
+    0,
+    0,
+    5,
+    0,
+    4,
+    {
+        { 0x402, CarClickPrev, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x402, CarClickNext, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x404, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x404, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x404, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x404, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 0x402, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 1, },
+        { 7, ChangeCarOK, &gFrontend_MAIN, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 8, ChangeCarCancel, &gFrontend_MAIN, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+    }
 };
 
 // FUNCTION: CARMA2_HW 0x00518d60
@@ -1305,4 +1387,94 @@ int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend) {
     }
     ServiceGame();
     return 0;
+}
+
+extern int gFrontend_count_saved_games;
+extern int gFrontend_load_game_index_top;
+extern int gFrontend_scroll_time_left;
+extern int gFrontend_scroll_time_increment;
+extern tU32 gFrontend_scroll_last_update;
+extern int C2_HOOK_FASTCALL StartSavedGamesList(void);
+extern br_actor* C2_HOOK_FASTCALL CreateAPOactor(void);
+extern void C2_HOOK_FASTCALL LoadMenuSettings(tFrontend_spec* pFrontend);
+extern void C2_HOOK_FASTCALL FuckWithWidths(tFrontend_spec* pFrontend);
+extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
+extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
+
+// FUNCTION: CARMA2_HW 0x0046f750
+int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend) {
+    br_camera* camera;
+    int i;
+
+    /* DefaultInfunc inlined */
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+
+    gFrontend_time_last_input = PDGetTotalTime();
+    gFrontend_count_saved_games = StartSavedGamesList();
+    gFrontend_load_game_index_top = 0;
+    gFrontend_scroll_time_left = 0;
+    gFrontend_scroll_time_increment = 25;
+    gFrontend_scroll_last_update = PDGetTotalTime();
+    gFrontend_menu_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    camera = gFrontend_menu_camera->type_data;
+    camera->type = BR_CAMERA_PARALLEL;
+    camera->field_of_view = BR_ANGLE_DEG(90);
+    camera->hither_z = 1.f;
+    camera->yon_z = 3.f;
+    camera->width = 640.f;
+    camera->height = 480.f;
+    for (i = 0; i < 8; i++) {
+        gFrontend_billboard_actors[i] = CreateAPOactor();
+    }
+    gFrontend_APO_Colour_1 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0xff, 0x80, 0x00, 0xff);
+    gFrontend_APO_Colour_2 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0x80, 0xff);
+    gFrontend_APO_Colour_3 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0xff, 0xff);
+    DRS3StartSound(gEffects_outlet, 0xbbe);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0046b820
+void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_index) {
+    char* pos_dot;
+    char* abbrev_name;
+    tPath_name pack_path;
+    char pack_filename[40];
+    char pm_name[20];
+    tTWTVFS twt;
+
+    abbrev_name = gOpponents[pOpponent_index].abbrev_name;
+    pos_dot = strrchr(abbrev_name, '.');
+    PathCat(pack_path, gApplication_path, "INTRFACE");
+    PathCat(pack_path, pack_path, "CARIMAGE");
+    strcpy(pack_filename, gOpponents[pOpponent_index].car_file_name);
+    pack_filename[strlen(pack_filename) - 4] = '\0';
+    strcat(pack_filename, "CI");
+    PathCat(pack_path, pack_path, pack_filename);
+    twt = OpenPackFileAndSetTiffLoading(pack_path);
+    sprintf(pm_name, "%.*s%c%c.TIF", (int)(pos_dot - abbrev_name), abbrev_name, '6', '4');
+    BrMapRemove(gFrontend_images[7]);
+    BrPixelmapFree(gFrontend_images[7]);
+    gFrontend_images[7] = GetThisFuckingPixelmapPleaseMrTwatter(pack_path, pm_name);
+    if (gFrontend_images[7] == NULL) {
+        gFrontend_images[7] = LoadPixelmap("64by64.tif");
+    }
+    BrPixelmapCopy(gFrontend_brender_items[pFrontend_index].field_0xc, gFrontend_images[7]);
+    BrPixelmapCopy(gFrontend_brender_items[pFrontend_index].field_0x10, gFrontend_brender_items[pFrontend_index].field_0xc);
+    BrMapUpdate(gFrontend_brender_items[pFrontend_index].field_0xc, BR_MAPU_ALL);
+    ClosePackFileAndSetTiffLoading(twt);
+    gFrontend_brender_items[pFrontend_index].model->vertices[0].p.v[2] = -1.f;
+    gFrontend_brender_items[pFrontend_index].model->vertices[1].p.v[2] = -1.f;
+    gFrontend_brender_items[pFrontend_index].model->vertices[2].p.v[2] = -1.f;
+    gFrontend_brender_items[pFrontend_index].model->vertices[3].p.v[2] = -1.f;
+    BrModelUpdate(gFrontend_brender_items[pFrontend_index].model, BR_MODU_VERTEX_POSITIONS);
 }
