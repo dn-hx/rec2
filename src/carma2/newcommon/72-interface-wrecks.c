@@ -1,6 +1,7 @@
 #include "72-interface-wrecks.h"
 
 #include "72-interface.h"
+#include "72-interface-main.h"
 
 #include "30-opponent.h"
 #include "69-sound.h"
@@ -114,9 +115,19 @@ int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend) {
 }
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0046eb80
+int C2_HOOK_FASTCALL WrecksUpdateFunc(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // GLOBAL: CARMA2_HW 0x005f8e68
 tFrontend_spec gFrontend_WRECKS = {
-#if 0 // FIXME: enable this
     "Wrecks",
     0,
     12,
@@ -144,7 +155,4 @@ tFrontend_spec gFrontend_WRECKS = {
         { 0x7,   temp,              NULL, 1, 0, 0, 0, 0, 0, 0, 1, 1, },
         { 0x402, temp,              NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
     }
-#else
-    0
-#endif
 };

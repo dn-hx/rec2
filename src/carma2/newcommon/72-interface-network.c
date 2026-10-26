@@ -2,6 +2,12 @@
 
 #include "72-interface.h"
 
+extern tFrontend_spec gFrontend_MAIN;
+extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
+extern tFrontend_spec gFrontend_OPTIONS;
+extern int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
+
 #include "01-network.h"
 #include "02-init.h"
 #include "10-loading2.h"
@@ -41,9 +47,60 @@ int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
 }
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00467ef0
+int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00469320
+int C2_HOOK_FASTCALL FRONTEND_NetworkJoinMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00468790
+int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00466c00
+int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004691a0
+int C2_HOOK_FASTCALL NetHostChooseThisRace(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00466da0
+int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00468e80
+int C2_HOOK_FASTCALL NetworkStartHost(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004682c0
+int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00468a50
+int C2_HOOK_FASTCALL NetworkStartJoin(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // GLOBAL: CARMA2_HW 0x005b39b8
 tFrontend_spec gFrontend_NETWORK = {
-#if 0 // FIXME: enable this
     "Network",
     0,
     31,
@@ -58,41 +115,38 @@ tFrontend_spec gFrontend_NETWORK = {
     3,
     2,
     {
-        { 0x98,     temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0xa3,     temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403,    NetGameTypeUp,          NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetSetRaceType,         NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetSetRaceType,         NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetSetRaceType,         NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetSetRaceType,         NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403,    NetGameTypeDn,          NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xe4,     temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403,    NetRaceUp,              NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetHostChooseThisRace,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetHostChooseThisRace,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetHostChooseThisRace,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetHostChooseThisRace,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403,    NetRaceDn,              NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xe5,     temp,                   &gFrontend_NETWORK_OPTIONS,    0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x8,      NetCancel,              &gFrontend_MAIN,               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x9a,     NetworkStartHost,       NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x97,     temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403,    temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetJoinChooseThisGame,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetJoinChooseThisGame,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetJoinChooseThisGame,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    NetJoinChooseThisGame,  NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403,    temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xc,      temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x404,    NetGameToggleTyping,    NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x402,    temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0xf,      temp,                   &gFrontend_OPTIONS,            0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x99,     NetworkStartJoin,       NULL,                               0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404,    temp,                   NULL,                               0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x98, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0xa3, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, NetGameTypeUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, NetGameTypeDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xe4, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, NetRaceUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, NetRaceDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xe5, temp, &gFrontend_NETWORK_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 8, NetCancel, &gFrontend_MAIN, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x9a, NetworkStartHost, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x97, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xc, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x404, NetGameToggleTyping, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x402, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0xf, temp, &gFrontend_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x99, NetworkStartJoin, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
     }
-#else
-    0
-#endif
 };
 
 // FUNCTION: CARMA2_HW 0x00469280
