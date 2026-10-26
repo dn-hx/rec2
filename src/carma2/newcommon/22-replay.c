@@ -578,10 +578,18 @@ void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
     NOT_IMPLEMENTED();
 }
 
+extern void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34* mat);
+extern br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b);
+
 // FUNCTION: CARMA2_HW 0x0040ca40
 void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor) {
+    br_matrix34 mat;
 
-    NOT_IMPLEMENTED();
+    if (pActor->parent != pParent) {
+        ActorToActorMatrix34Local(&mat, pActor, pParent);
+        BrMatrix34ToTransform(&pActor->t, &mat);
+        BrActorAdd(pParent, BrActorRemove(pActor));
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0043c240
@@ -648,6 +656,18 @@ void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
 // STUB: CARMA2_HW 0x004d3740
 void C2_HOOK_FASTCALL MungePedestrians(int pFrame_period) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// Game-local copy of BrActorToActorMatrix34; delegates to the BRender version (same behaviour).
+// STUB: CARMA2_HW 0x0040c660
+br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b) {
+    return (br_uint_8)BrActorToActorMatrix34(m, a, b);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
