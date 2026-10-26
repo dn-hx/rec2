@@ -273,9 +273,30 @@ extern int gSave_game_out_of_sync;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x005039e0
+// based on carpocalypse2 structur.c:362
+// FUNCTION: CARMA2_HW 0x005039e0
 void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    if (gNet_mode == eNet_mode_none) {
+        pThe_race->number_of_racers = pThe_race->race_spec->count_explicit_opponents;
+        for (i = 0; i < gNumber_of_racers; i++) {
+            gOpponents[i].picked = 0;
+        }
+        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
+            if (pThe_race->race_spec->explicit_opponents[i] >= 0) {
+                gOpponents[pThe_race->race_spec->explicit_opponents[i]].picked = 1;
+                pThe_race->opponent_list[i].index = pThe_race->race_spec->explicit_opponents[i];
+                pThe_race->opponent_list[i].ranking = -(i + 1);
+            }
+        }
+        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
+            if (pThe_race->race_spec->explicit_opponents[i] < 0) {
+                pThe_race->opponent_list[i].index = ChooseOpponent(-pThe_race->race_spec->explicit_opponents[i]);
+                pThe_race->opponent_list[i].ranking = IRandomBetween(0, 99);
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x00481830
