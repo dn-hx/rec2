@@ -51,10 +51,18 @@ void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004e6980
-void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
+extern void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period);
+extern void C2_HOOK_FASTCALL MungePedestrians(int pFrame_period);
+extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
-    NOT_IMPLEMENTED();
+// based on carpocalypse2 src/carma2/common/replay.c:273
+// FUNCTION: CARMA2_HW 0x004e6980
+void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
+    ProcessOilSpills((tU32)pFrame_period);
+    if (ARGetReplayRate() >= 0.0f) {
+        MungePedestrians(pFrame_period);
+    }
+    MungePowerupStuff(pFrame_period);
 }
 
 // DoActionReplay
@@ -629,3 +637,18 @@ tU32 gUnk_006a237c;
 
 // GLOBAL: CARMA2_HW 0x006a23c8
 tU32 gUnk_006a23c8;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a6e50
+void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004d3740
+void C2_HOOK_FASTCALL MungePedestrians(int pFrame_period) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
