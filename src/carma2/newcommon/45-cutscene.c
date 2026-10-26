@@ -14,6 +14,7 @@
 #define __stdcall __declspec(dllimport) __stdcall
 #endif
 #include "smack.h"
+#include "63-loading3.h"
 #ifdef _MSC_VER
 #undef __stdcall
 #endif
@@ -433,9 +434,42 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0047b990
+extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+
+// based on carpocalypse2 graphics2.c:428
+// FUNCTION: CARMA2_HW 0x0047b990
 void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
-    NOT_IMPLEMENTED();
+    br_pixelmap* the_map;
+    tPixelFlags pixelFlags;
+
+    the_map = BrMapFind(pPixmap_name);
+    if (gCurrent_splash != NULL) {
+        if (the_map == gCurrent_splash) {
+            return;
+        }
+    }
+    if (gCurrent_splash != NULL) {
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+    }
+    pixelFlags = gPixelFlags;
+    gCurrent_splash = the_map;
+    if (the_map == NULL) {
+        gCurrent_splash = LoadPixelmap(pPixmap_name);
+        BRPM_convert(gCurrent_splash, gBack_screen->type);
+        if (gCurrent_splash != NULL) {
+            BrMapAdd(gCurrent_splash);
+        }
+    }
+    gPixelFlags = pixelFlags;
+    if (gCurrent_splash != NULL) {
+        PixelmapSwapByteOrder(gCurrent_splash);
+        FRONTEND_Redraw(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
+        PDScreenBufferSwap(0);
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+        gCurrent_splash = NULL;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
