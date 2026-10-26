@@ -11,6 +11,7 @@
 #include "globvrpb.h"
 #include "rec2_macros.h"
 
+#include <math.h>
 #include <string.h>
 #include "platform.h"
 
@@ -1042,6 +1043,8 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
 }
 
 extern br_actor* gMr_blendy;
+extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);
+extern int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial);
 extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
 extern br_material* gDefault_track_material;
 extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
@@ -1237,25 +1240,249 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0040d530
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:41 */
+// FUNCTION: CARMA2_HW 0x0040d530
 void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    br_face* face;
+    br_face* blendy_face;
+    br_vertex* bv;
+    int changed_one;
+
+    changed_one = 0;
+
+    for (i = 0, face = pModel->faces; i < pModel->nfaces; i++, face++) {
+        SpawnPedsOnFace(face, pModel);
+        if (SmashFaceMustBeUpdateable(face->material)) {
+            if (gMr_blendy == NULL) {
+                gMr_blendy = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+                gMr_blendy->render_style = BR_RSTYLE_FACES;
+                gMr_blendy->model = BrModelAllocate(NULL, 2000, 2000);
+                gMr_blendy->model->nfaces = 0;
+                gMr_blendy->model->nvertices = 0;
+                gMr_blendy->model->flags |= BR_MODF_UPDATEABLE;
+            }
+            blendy_face = &gMr_blendy->model->faces[gMr_blendy->model->nfaces];
+            gMr_blendy->model->nfaces += 1;
+            memcpy(blendy_face, face, sizeof(br_face));
+            for (j = 0; j < 3; j++) {
+                br_vertex* vertex_j = &pModel->vertices[face->vertices[j]];
+                for (k = 0, bv = gMr_blendy->model->vertices; k < gMr_blendy->model->nvertices; k++, bv++) {
+                    if (Vector3Equals(&bv->p, &vertex_j->p)
+                            && Vector2Equals(&bv->map, &vertex_j->map)) {
+                        blendy_face->vertices[j] = k;
+                        vertex_j = NULL;
+                        break;
+                    }
+                }
+                if (vertex_j != NULL) {
+                    blendy_face->vertices[j] = gMr_blendy->model->nvertices;
+                    memcpy(&gMr_blendy->model->vertices[gMr_blendy->model->nvertices], vertex_j, sizeof(br_vertex));
+                    gMr_blendy->model->nvertices += 1;
+                }
+            }
+            if (i < pModel->nfaces - 1) {
+                memmove(&pModel->faces[i], &pModel->faces[i + 1], (pModel->nfaces - (i + 1)) * sizeof(br_vertex));
+            }
+            pModel->nfaces -= 1;
+            i -= 1;
+            face = &pModel->faces[i];
+            changed_one = 1;
+        }
+    }
+    if (changed_one) {
+        if (pModel->nfaces != 0) {
+            BrModelUpdate(pModel, BR_MODU_ALL);
+        } else {
+            pActor->model = NULL;
+            pActor->render_style = BR_RSTYLE_NONE;
+        }
+    }
 }
 
-// STUB: CARMA2_HW 0x004f5ae0
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:159 */
+// FUNCTION: CARMA2_HW 0x004f5ae0
 void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    int nfaces;
+    int dx;
+    int dy;
+    float min_x;
+    float max_x;
+    float min_y;
+    float max_y;
+    v11group* v11g;
+    v11face* v11f;
+    fmt_vertex* vertices;
+
+    *pArea1 = 0;
+    *pArea2 = 0;
+
+    for (i = 0; i < V11MODEL(pModel)->ngroups; i++) {
+        v11g = &V11MODEL(pModel)->groups[i];
+        v11f = v11g->faces;
+        vertices = v11g->vertices;
+        nfaces = v11g->nfaces;
+
+        for (j = 0; j < nfaces; j++, v11f++) {
+            min_x = 10000.f;
+            max_x = -10000.f;
+            min_y = 10000.f;
+            max_y = -10000.f;
+
+            for (k = 0; k < 3; k++) {
+                int vertex_i = v11f->vertices[k];
+
+                if (vertices[vertex_i].map.v[0] < min_x) {
+                    min_x = vertices[vertex_i].map.v[0];
+                }
+                if (vertices[vertex_i].map.v[0] > max_x) {
+                    max_x = vertices[vertex_i].map.v[0];
+                }
+                if (vertices[vertex_i].map.v[1] < min_y) {
+                    min_y = vertices[vertex_i].map.v[1];
+                }
+                if (vertices[vertex_i].map.v[1] > max_y) {
+                    max_y = vertices[vertex_i].map.v[1];
+                }
+            }
+            dy = (int)(max_y - min_y + 0.9);
+            dx = (int)(max_x - min_x + 0.9);
+            *pArea1 += dx * dy;
+            *pArea2 += dx * dy;
+        }
+    }
+    *pArea1 += 50;
+    *pArea2 += 50;
+    if (*pArea1 > 250) {
+        *pArea1 = 250;
+    }
+    if (*pArea2 > 250) {
+        *pArea2 = 250;
+    }
 }
 
-// STUB: CARMA2_HW 0x004f5cb0
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:211 */
+// FUNCTION: CARMA2_HW 0x004f5cb0
 void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
-    NOT_IMPLEMENTED();
+    extern int gCount_track_smashable_environment_specs;
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
+    int i;
+    tSmashable_item_spec* spec;
+
+    if (pActor->model == NULL || pActor->model->identifier == NULL) {
+        return;
+    }
+    for (i = 0, spec = gTrack_smashable_environment_specs; i < gCount_track_smashable_environment_specs; i++, spec++) {
+        if (spec->trigger_type == kSmashableTrigger_Model && pActor->model == spec->trigger_object.model) {
+            char s[64];
+            char s2[64];
+            int len;
+
+            strcpy(s, pActor->identifier);
+            len = strlen(s);
+            if (len < 4) {
+                sprintf(s, "Smash material %s has a name that is less than 4 characters long", pActor->identifier);
+                PDFatalError(s);
+            }
+            strcpy(s2, &s[len - 4]);
+            sprintf(&s[len - 4], "        ");
+            sprintf(&s[5], "%cx", '|');
+            s[6] = i + 1;
+            strcat(s, s2);
+            s[11] = '\0';
+            if (strlen(pActor->identifier) < 12) {
+                BrResFree(pActor->identifier);
+                pActor->identifier = BrResStrDup(pActor, s);
+            } else {
+                strcpy(pActor->identifier, s);
+            }
+
+            if ((gCurrent_race.race_spec->race_type >= 4 && *(tU16*)((char*)spec + 0x2ac) == gCurrent_race.race_spec->options.cars.count_opponents)
+                    || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_2 && *(tU16*)((char*)spec + 0x2ac) == 1)) {
+                AddSmashTarget(pActor->model, pActor, -1);
+            }
+        }
+    }
 }
 
-// STUB: CARMA2_HW 0x0040d1f0
-intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data) {
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:101 (GPL-3.0) */
+// FUNCTION: CARMA2_HW 0x0040d1f0
+intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
+    extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+    extern void C2_HOOK_FASTCALL SmoothificatePowerups(br_actor* pActor);
+    extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
+    extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
+    char s[256];
+    tTrack_spec* pTrack_spec;
+    br_scalar n0;
+    br_scalar n1;
+    br_scalar n2;
+    br_scalar m0;
+    br_scalar m1;
+    br_scalar m2;
+
+    pTrack_spec = pData;
+    SetSmashableModel(pActor);
+    if (pActor->identifier[0] == '&' && pActor->model == NULL) {
+        sprintf(s, "Accessory %s has no model. Well how does it pose? Awful!", pActor->identifier);
+        PDFatalError(s);
+    }
+    if (pActor->identifier[0] == '&' && '0' <= pActor->identifier[1] && pActor->identifier[1] <= '9') {
+        int id;
+
+        id = pActor->identifier[7] + 10 * (pActor->identifier[6] + 10 * (pActor->identifier[5] + 10 * pActor->identifier[4])) - 53328;
+        if (id < 0 || id >= pTrack_spec->count_non_cars) {
+            return 1;
+        }
+        n0 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[0]);
+        n1 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[1]);
+        n2 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[2]);
+        if (n0 < 0.999 || n1 < 0.999 || n2 < 0.999) {
+            dr_dprintf("non car was scaled down %s", pActor->identifier);
+            pActor->t.t.translate.t.v[0] -= -2000.f;
+        }
+        if (n0 > 1.001 || n1 > 1.001 || n2 > 1.001) {
+            m0 = 1.0 / sqrt(n0);
+            m1 = 1.0 / sqrt(n1);
+            m2 = 1.0 / sqrt(n2);
+            pActor->t.t.mat.m[0][0] *= m0;
+            pActor->t.t.mat.m[0][1] *= m0;
+            pActor->t.t.mat.m[0][2] *= m0;
+            pActor->t.t.mat.m[1][0] *= m1;
+            pActor->t.t.mat.m[1][1] *= m1;
+            pActor->t.t.mat.m[1][2] *= m1;
+            pActor->t.t.mat.m[2][0] *= m2;
+            pActor->t.t.mat.m[2][1] *= m2;
+            pActor->t.t.mat.m[2][2] *= m2;
+            dr_dprintf("non car was scaled up %s", pActor->identifier);
+        }
+        pTrack_spec->non_car_list[id] = pActor;
+        pActor->type_data = NULL;
+        return 0;
+    }
+    if (pActor != NULL && pActor->identifier != NULL && pActor->identifier[1] == '\xa3') {
+        int id;
+
+        SmoothificatePowerups(pActor);
+        id = TEXT_TO_NUMBER_2(&pActor->identifier[2]);
+        if (66 <= id && id < 86) {
+            SetSpinningPowerup(pActor, 0);
+        } else if (86 <= id && id < 88) {
+            SetChangingPowerup(pActor);
+        }
+    }
+    return BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
+}
+
+// STUB: CARMA2_HW 0x004d2cc0
+void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel) {
     NOT_IMPLEMENTED();
-    return 0;
 }
 
 #ifdef REC2_MATCHING
