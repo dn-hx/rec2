@@ -96,6 +96,9 @@ float gPed_cos_table[256] = { 0 };
 // GLOBAL: CARMA2_HW 0x00677230
 float gFLOAT_00677230 = 0.f;
 
+// GLOBAL: CARMA2_HW 0x00677238
+tPed_remap* gPed_remaps[10] = { 0 };
+
 /* explicit initializers keep gPed_personalities and gPed_sin_table adjacent (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x00677260
 tPed_personality* gPed_personalities[50] = { 0 };
@@ -108,9 +111,6 @@ int gCount_pedestrian_personality_cloned_materials;
 
 // GLOBAL: CARMA2_HW 0x00677234
 int gPed_retain_root_mode;
-
-// GLOBAL: CARMA2_HW 0x00677238
-tPed_remap* gPed_remaps[10] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00677728
 int gDAT_00677728 = 0;
@@ -867,7 +867,18 @@ FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name) {
     PathCat(path, path, pFile_name);
     return DRfopen(path, "rb");
 }
-// BonerReadPersonalityModels
+
+// FUNCTION: CARMA2_HW 0x004cbc10
+void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName) {
+    tPath_name path;
+
+    PathCat(path, gApplication_path, gPedsFolder);
+    PathCat(path, path, "PEEPS");
+    PathCat(path, path, pName);
+    DisallowDuplicates();
+    LoadAllStuffInDirectory(&gPedStorage, path, kRendererShadingType_Diffuse1);
+    AllowDuplicates();
+}
 
 // FUNCTION: CARMA2_HW 0x004cbc70
 void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pIndex, tPed_character_instance* pCharacter) {

@@ -2551,12 +2551,18 @@ tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
 
 extern FILE* C2_HOOK_FASTCALL BonerOpenCharacterForm(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
 extern tPed_remap* gPed_remaps[10];
+extern const char* gPed_remap_axis_choices[6];
 extern tPed_move* gPed_moves[250];
 extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
 extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
 extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 extern float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees);
+extern float gFloat_sine_table[91];
+extern const br_vector3 g_Ped_x_unit_vector;
+extern const br_vector3 g_Ped_y_unit_vector;
+extern const br_vector3 g_Ped_z_unit_vector;
 extern const char* gPed_form_collision_type_names[9];
 extern const char* gPed_form_bone_joint_type_names[10];
 extern const char* gPed_form_joint_limit_type_names[2];
@@ -2988,24 +2994,95 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
     FatalError(kFatalError_BonerError_TooManyFormsLoaded, 0);
 }
 
-// STUB: CARMA2_HW 0x004cbc10
-void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x00404410
+// FUNCTION: CARMA2_HW 0x00404410
 tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name) {
-    NOT_IMPLEMENTED();
+    FILE* f;
+    tPed_remap* remap;
+    char s[256];
+    int i;
+    int j;
+
+    if (strcmp(pFile_name, "NONE") == 0) {
+        return NULL;
+    }
+    f = BonerOpenRemaps(pFile_name);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pFile_name);
+    }
+    remap = BrMemAllocate(sizeof(tPed_remap), kBoner_mem_type_remap);
+    if (remap == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    remap->count_bones = 0;
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF BONES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
+    }
+    while (!PFfeof(f)) {
+        GetALineAndDontArgue(f, s);
+        if ((remap->count_bones == 0 && strcmp("END OF BONES", s) != 0) || strcmp("NEXT BONE", s) == 0) {
+            remap->count_bones++;
+        }
+    }
+    remap->bones = BrMemAllocate(sizeof(tPed_remap_bone) * remap->count_bones, kBoner_mem_type_remap);
+    PFrewind(f);
+    GetALineAndDontArgue(f, s);
+    for (i = 0; i < remap->count_bones; i++) {
+        GetALineAndDontArgue(f, remap->bones[i].name);
+        for (j = 0; j < 3; j++) {
+            remap->bones[i].general_remap[j] = GetALineAndInterpretCommand(f, gPed_remap_axis_choices, REC2_ASIZE(gPed_remap_axis_choices));
+        }
+        for (j = 0; j < 3; j++) {
+            remap->bones[i].powerup_axis[j] = GetALineAndInterpretCommand(f, gPed_remap_axis_choices, REC2_ASIZE(gPed_remap_axis_choices));
+        }
+        GetALineAndDontArgue(f, s);
+    }
+    strcpy(remap->name, pFile_name);
+    for (i = 0; i < (int)REC2_ASIZE(gPed_remaps); i++) {
+        if (gPed_remaps[i] == NULL) {
+            gPed_remaps[i] = remap;
+            return remap;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyRemapsLoaded, 0);
 }
 
-// STUB: CARMA2_HW 0x00403f90
+// FUNCTION: CARMA2_HW 0x00403f90
 void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
+    float z;
+
+    pDest->v[0] = pA->v[1] * pB->v[2] - pA->v[2] * pB->v[1];
+    pDest->v[1] = pA->v[2] * pB->v[0] - pA->v[0] * pB->v[2];
+    pDest->v[2] = z = pA->v[0] * pB->v[1] - pA->v[1] * pB->v[0];
+    if ((float)fabs(pDest->v[0]) < 2.384186e-6f && (float)fabs(pDest->v[1]) < 2.384186e-6f && (float)fabs(z) < 2.384186e-6f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[1]) && (float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
+        } else if ((float)fabs(pA->v[1]) <= (float)fabs(pA->v[0]) && (float)fabs(pA->v[1]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_y_unit_vector);
+        } else {
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
+        }
+    }
 }
 
-// STUB: CARMA2_HW 0x00511440
+// FUNCTION: CARMA2_HW 0x00511440
 float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
-    NOT_IMPLEMENTED();
+
+    if (pAngle_in_degrees < 0) {
+        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
+    } else {
+        pAngle_in_degrees = pAngle_in_degrees % 360;
+    }
+    if (pAngle_in_degrees > 270) {
+        return gFloat_sine_table[pAngle_in_degrees - 270];
+    }
+    if (pAngle_in_degrees > 180) {
+        return -*(gFloat_sine_table + 270 - pAngle_in_degrees);
+    }
+    if (pAngle_in_degrees > 90) {
+        return -gFloat_sine_table[pAngle_in_degrees - 90];
+    }
+    return *(gFloat_sine_table + 90 - pAngle_in_degrees);
 }
 
 // STUB: CARMA2_HW 0x0040a730
@@ -3055,6 +3132,16 @@ const char* gPed_form_joint_limit_type_names[2] = {
 // GLOBAL: CARMA2_HW 0x0058f288
 const char* gPed_personality_grounding_type_names[1] = {
     "GROUND",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f290
+const char* gPed_remap_axis_choices[6] = {
+    "+X",
+    "+Y",
+    "+Z",
+    "-X",
+    "-Y",
+    "-Z",
 };
 
 /* based on carpocalypse2 pedestrn.c:151 */
