@@ -1041,9 +1041,106 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
     }
 }
 
-// STUB: CARMA2_HW 0x0040cc50
-void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
+// STUB: CARMA2_HW 0x0040cf10
+intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
     NOT_IMPLEMENTED();
+    return 0;
+}
+
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:352 */
+// FUNCTION: CARMA2_HW 0x0040cc50
+void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
+    extern int gMax_count_non_cars;
+    extern int gCount_track_non_cars;
+    const char* identifier;
+    char s[256];
+    br_bounds bounds;
+    int ad;
+    unsigned int z;
+    unsigned int x;
+    br_scalar extra_room;
+    br_scalar extra;
+    int is_old;
+    tU16 row;
+
+    identifier = pTrack_spec->the_actor->identifier;
+    is_old = 0;
+    if (identifier[0] == 'P' && identifier[1] == 'P') {
+        if (identifier[3] != '1') {
+            sprintf(s, "The World has officially ended: Wrong format of track!!! '");
+            strncat(s, pTrack_spec->the_actor->identifier, 4);
+            strcat(s, "'");
+            PDFatalError(s);
+        }
+        identifier = &identifier[5];
+    }
+
+    switch (sscanf(identifier, "%u%u%f%d", &x, &z, &extra_room, &ad)) {
+    case 3:
+        BrFailure(
+            "Attempt to extract columns from invalid track\n"
+            "(It might have been produced by an ancient preproc.\n"
+            "This is no longer supported.\n");
+        break;
+    case 4:
+        pTrack_spec->count_non_cars = ad;
+        break;
+    default:
+        x = 1;
+        z = 1;
+        extra_room = 0.f;
+        is_old = 1;
+        pTrack_spec->count_non_cars = 0;
+        break;
+    }
+
+    pTrack_spec->ncolumns_x = x;
+    pTrack_spec->ncolumns_z = z;
+
+    extra = extra_room;
+    BrActorToBounds(&bounds, pTrack_spec->the_actor);
+    pTrack_spec->column_size_x = (bounds.max.v[0] - bounds.min.v[0] + 2.f * extra) / pTrack_spec->ncolumns_x;
+    pTrack_spec->column_size_z = (bounds.max.v[2] - bounds.min.v[2] + 2.f * extra) / pTrack_spec->ncolumns_z;
+    pTrack_spec->origin_x = bounds.min.v[0] - extra;
+    pTrack_spec->origin_z = bounds.min.v[2] - extra;
+
+    pTrack_spec->columns = BrMemAllocate(pTrack_spec->ncolumns_z * sizeof(tTrack_square*), kMem_columns_z);
+    for (row = 0; row != pTrack_spec->ncolumns_z; row++) {
+        pTrack_spec->columns[row] = BrMemAllocate(pTrack_spec->ncolumns_x * sizeof(tTrack_square), kMem_columns_x);
+        memset(pTrack_spec->columns[row], 0, pTrack_spec->ncolumns_x * sizeof(tTrack_square));
+    }
+
+    gMax_count_non_cars = pTrack_spec->count_non_cars + 250;
+    gCount_track_non_cars = pTrack_spec->count_non_cars;
+    pTrack_spec->non_car_list = BrMemAllocate(gMax_count_non_cars * sizeof(br_actor*), kMem_non_car_list);
+    if (is_old) {
+        pTrack_spec->columns[0][0].actor_0x0 = pTrack_spec->the_actor;
+    } else {
+        BrActorEnum(pTrack_spec->the_actor, ProcessModelsCB, pTrack_spec);
+    }
+
+    {
+        int i;
+        int count_nulls;
+        int count_non_nulls;
+        br_actor** non_cars;
+
+        non_cars = pTrack_spec->non_car_list;
+        count_nulls = 0;
+        count_non_nulls = 0;
+        for (i = 0; i < pTrack_spec->count_non_cars; i++) {
+            if (pTrack_spec->non_car_list[i] == NULL) {
+                count_nulls += 1;
+            } else {
+                non_cars[count_non_nulls] = pTrack_spec->non_car_list[i];
+                sprintf(&non_cars[count_non_nulls]->identifier[4], "%04d", count_non_nulls);
+                count_non_nulls += 1;
+            }
+        }
+        gMax_count_non_cars -= count_nulls;
+        gCount_track_non_cars -= count_nulls;
+        pTrack_spec->count_non_cars -= count_nulls;
+    }
 }
 
 // STUB: CARMA2_HW 0x004d3520
@@ -1088,3 +1185,6 @@ const char* gSmashable_item_mode_names[6] = {
 
 // GLOBAL: CARMA2_HW 0x006a3330
 int gCapacity_track_smashables;
+
+// GLOBAL: CARMA2_HW 0x0079efac
+int gMax_count_non_cars;
