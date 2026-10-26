@@ -1215,9 +1215,22 @@ void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
     }
 }
 
-// STUB: CARMA2_HW 0x004d3520
+/* based on carpocalypse2 src/carma2/common/pedestrn.c:2113 */
+// FUNCTION: CARMA2_HW 0x004d3520
 void C2_HOOK_FASTCALL FinishUpLoadingPeds(void) {
-    NOT_IMPLEMENTED();
+    extern int gPed_count;
+    extern tPedestrian* gPedestrian_array;
+    tPedestrian* new_pedestrians;
+    int i;
+
+    dr_dprintf("%d pedestrians, %d bytes each, total = %d bytes\n", gPed_count, sizeof(tRace_pedestrian), gPed_count * sizeof(tRace_pedestrian));
+    new_pedestrians = BrMemAllocate(gPed_count * sizeof(tPedestrian), kMem_ped_array);
+    memcpy(new_pedestrians, gPedestrian_array, gPed_count * sizeof(tPedestrian));
+    BrMemFree(gPedestrian_array);
+    gPedestrian_array = new_pedestrians;
+    for (i = 0; i < gPed_count; i++) {
+        gPedestrian_array[i].character->ped = &gPedestrian_array[i];
+    }
 }
 
 // STUB: CARMA2_HW 0x00474ac0
@@ -1230,14 +1243,329 @@ void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_ac
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f0bc0
-void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
-    NOT_IMPLEMENTED();
+/* based on carpocalypse2 src/carma2/common/smashing.c:190 (inlined into MungeSmashMaterialNames in the original) */
+static __inline void SplondificatalizeIdentifier(br_material* pMaterial, char** ppIdentifier, int pIndex) {
+    int len;
+    char original_suffix[64];
+    char new_identifier[64];
+    char* suffix_ptr;
+
+    strcpy(new_identifier, *ppIdentifier);
+    len = strlen(new_identifier);
+    if (len < 4) {
+        sprintf(new_identifier, "Smash material %s has a name that is less than 4 characters long", *ppIdentifier);
+        PDFatalError(new_identifier);
+    }
+    suffix_ptr = new_identifier + len - 4;
+    strcpy(original_suffix, suffix_ptr);
+    sprintf(suffix_ptr, "        ");
+    sprintf(&new_identifier[5], "%cx", '|');
+    new_identifier[6] = (char)(pIndex + 1);
+    strcat(new_identifier, original_suffix);
+    new_identifier[11] = '\0';
+    if (strlen(*ppIdentifier) < 12) {
+        BrResFree(*ppIdentifier);
+        *ppIdentifier = BrResStrDup(pMaterial, new_identifier);
+    } else {
+        strcpy(*ppIdentifier, new_identifier);
+    }
 }
 
-// STUB: CARMA2_HW 0x00487ec0
+/* based on carpocalypse2 src/carma2/common/smashing.c:215 */
+// FUNCTION: CARMA2_HW 0x004f0bc0
+void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern int gCount_track_smashable_environment_specs;
+    int i;
+    tSmashable_item_spec* item_spec;
+
+    i = 0;
+    if (i < gCount_track_smashable_environment_specs) {
+        item_spec = gTrack_smashable_environment_specs;
+        do {
+            if (item_spec->trigger_type == kSmashableTrigger_Material) {
+                SplondificatalizeIdentifier(
+                    item_spec->trigger_object.material,
+                    &item_spec->trigger_object.material->identifier,
+                    i);
+            }
+            i++;
+            item_spec++;
+        } while (i < gCount_track_smashable_environment_specs);
+    }
+}
+
+/* based on carpocalypse2 src/carma2/common/car.c (ReadNonCarMechanicsData) */
+// FUNCTION: CARMA2_HW 0x00487ec0
 void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec) {
-    NOT_IMPLEMENTED();
+    extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
+    extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
+    extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+    extern br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingType pShading_type);
+    int index_version;
+    int extra_point_num;
+    int i;
+    br_scalar len, wid, het;
+    br_scalar snap_angle;
+    br_scalar ts;
+    br_vector3 attached_cmpos;
+
+    pNon_car_spec->driver = eDriver_non_car_unused_slot;
+
+    /* Carmageddon 1: number of non car */
+    /* Carmageddon 2: version number */
+    index_version = GetAnInt(pF);
+    if (index_version < 100) {
+        br_vector3 attached_cmpos;
+        br_bounds3 bounds;
+
+        pNon_car_spec->index = index_version;
+
+        /* centre of mass position */
+        GetThreeFloats(pF,
+            &pNon_car_spec->collision_info->cmpos.v[0],
+            &pNon_car_spec->collision_info->cmpos.v[1],
+            &pNon_car_spec->collision_info->cmpos.v[2]);
+
+        /* centre of mass position when attached */
+        GetThreeFloats(pF,
+            &attached_cmpos.v[0],
+            &attached_cmpos.v[1],
+            &attached_cmpos.v[2]);
+
+        /* min x, min y, min z */
+        GetThreeFloats(pF, &bounds.min.v[0], &bounds.min.v[1], &bounds.min.v[2]);
+        /* max x, max y, max z */
+        GetThreeFloats(pF, &bounds.max.v[0], &bounds.max.v[1], &bounds.max.v[2]);
+
+        /* number of extra points */
+        extra_point_num = GetAnInt(pF);
+        if (extra_point_num > 6) {
+            FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, index_version);
+        }
+        for (i = 0; i < extra_point_num; i++) {
+            br_vector3 tmp;
+
+            GetThreeFloats(pF, &tmp.v[0], &tmp.v[1], &tmp.v[2]);
+        }
+
+        /* mass in tonnes */
+        GetPairOfFloats(pF, &pNon_car_spec->free_mass, &pNon_car_spec->attached_mass);
+
+        /* am length, width, height */
+        GetThreeFloats(pF, &len, &wid, &het);
+
+        /* bend angle before snapping */
+        snap_angle = GetAFloat(pF);
+        pNon_car_spec->snap_off_cosine = cosf(BrAngleToRadian(BrDegreeToAngle(snap_angle)));
+        pNon_car_spec->break_off_radians_squared = snap_angle * 3.14f / 180.f * (snap_angle * 3.14f / 180.f);
+
+        /* torque (KN m) needed to move object */
+        ts = GetAFloat(pF);
+        pNon_car_spec->min_torque_squared = REC2_SQR(ts / WORLD_SCALE);
+
+        BrVector3Set(&pNon_car_spec->I_over_M,
+            (het * het + wid * wid) / 12.f,
+            (het * het + len * len) / 12.f,
+            (wid * wid + len * len) / 12.f);
+
+        pNon_car_spec->collision_info->shape = BrMemAllocate(sizeof(tCollision_shape_polyhedron), kMem_collision_shape);
+        memcpy(&pNon_car_spec->collision_info->shape->polyhedron.common.bb, &bounds, sizeof(br_bounds3));
+        if (snap_angle != 0.f) {
+            pNon_car_spec->field_0xf0 = pNon_car_spec->collision_info->physics_joint2 = AllocatePhysicsJoint(1, kMem_physics_joint);
+            pNon_car_spec->collision_info->physics_joint2->type = eJoint_ball_n_socket;
+            BrVector3Copy(&pNon_car_spec->collision_info->physics_joint2->field_0x08, &attached_cmpos);
+            pNon_car_spec->collision_info->physics_joint2->count_limits = 1;
+            pNon_car_spec->collision_info->physics_joint2->limits[0].type = eJoint_limit_10;
+            pNon_car_spec->collision_info->physics_joint2->limits[0].value = pNon_car_spec->min_torque_squared;
+        }
+        UpdateCollisionObject(pNon_car_spec->collision_info);
+        pNon_car_spec->collision_info->actor = pNon_car_spec->actor;
+        pNon_car_spec->collision_info->bb2 = pNon_car_spec->collision_info->bb1;
+    } else {
+        /* non car number */
+        pNon_car_spec->index = (int)GetAScalar(pF);
+
+        /* centre of mass position */
+        GetThreeFloats(pF,
+            &pNon_car_spec->collision_info->cmpos.v[0],
+            &pNon_car_spec->collision_info->cmpos.v[1],
+            &pNon_car_spec->collision_info->cmpos.v[2]);
+
+        /* centre of mass position when attached */
+        GetThreeFloats(pF,
+            &attached_cmpos.v[0],
+            &attached_cmpos.v[1],
+            &attached_cmpos.v[2]);
+
+        ReadMechanicsShapes(&pNon_car_spec->collision_info->shape, pF);
+
+        /* mass unattached, mass attached */
+        GetPairOfFloats(pF, &pNon_car_spec->free_mass, &pNon_car_spec->attached_mass);
+
+        /* am width height and length */
+        GetThreeFloats(pF, &len, &wid, &het);
+
+        /* bend angle before snapping */
+        snap_angle = GetAFloat(pF);
+        pNon_car_spec->snap_off_cosine = cosf(BrAngleToRadian(BrDegreeToAngle(snap_angle)));
+        pNon_car_spec->break_off_radians_squared = snap_angle * 3.14f / 180.f * (snap_angle * 3.14f / 180.f);
+
+        /* torque (KN m) needed to move object */
+        ts = GetAFloat(pF);
+        pNon_car_spec->min_torque_squared = REC2_SQR(ts / WORLD_SCALE);
+
+        BrVector3Set(&pNon_car_spec->I_over_M,
+            (het * het + wid * wid) / 12.f,
+            (het * het + len * len) / 12.f,
+            (wid * wid + len * len) / 12.f);
+
+        if (snap_angle != 0.f) {
+            pNon_car_spec->field_0xf0 = pNon_car_spec->collision_info->physics_joint2 = AllocatePhysicsJoint(1, kMem_physics_joint);
+            pNon_car_spec->collision_info->physics_joint2->type = eJoint_ball_n_socket;
+            BrVector3Copy(&pNon_car_spec->collision_info->physics_joint2->field_0x08, &attached_cmpos);
+            pNon_car_spec->collision_info->physics_joint2->count_limits = 1;
+            pNon_car_spec->collision_info->physics_joint2->limits[0].type = eJoint_limit_10;
+            pNon_car_spec->collision_info->physics_joint2->limits[0].value = pNon_car_spec->min_torque_squared;
+        }
+        UpdateCollisionObject(pNon_car_spec->collision_info);
+        pNon_car_spec->collision_info->actor = pNon_car_spec->actor;
+        pNon_car_spec->collision_info->bb2 = pNon_car_spec->collision_info->bb1;
+
+        /* Materials for shrapnel */
+        pNon_car_spec->count_shrapnel_materials = GetAnInt(pF);
+
+        for (i = 0; i < pNon_car_spec->count_shrapnel_materials; i++) {
+            char s[256];
+
+            GetALineAndDontArgue(pF, s);
+            pNon_car_spec->shrapnel_materials[i] = GetSimpleMaterial(s, (pNon_car_spec != NULL && pNon_car_spec->driver >= 6) ? kRendererShadingType_Specular : kRendererShadingType_Diffuse1);
+        }
+        pNon_car_spec->collision_info->object_friction = 0.4f;
+        if (index_version > 100) {
+            for (;;) {
+                char s[256];
+
+                GetAString(pF, s);
+                if (DRStricmp(s, "END") == 0) {
+                    break;
+                } else if (DRStricmp(s, "WORLD_FRICTION") == 0) {
+                    pNon_car_spec->collision_info->world_friction = GetAScalar(pF) - 1.f;
+                } else if (DRStricmp(s, "OBJECT_FRICTION") == 0) {
+                    pNon_car_spec->collision_info->object_friction = GetAScalar(pF) - 1.f;
+                } else if (DRStricmp(s, "TUMBLE") == 0) {
+                    pNon_car_spec->tumble_factor = GetAScalar(pF);
+                    pNon_car_spec->tumble_threshold = GetAScalar(pF);
+                } else if (DRStricmp(s, "WORLD_BALL_JOINT") == 0) {
+                    br_vector3 tv;
+                    br_scalar friction;
+                    int count_limits;
+
+                    GetThreeFloats(pF, &tv.v[0], &tv.v[1], &tv.v[2]);
+
+                    /* friction */
+                    friction = GetAScalar(pF);
+
+                    /* num limits */
+                    count_limits = GetAnInt(pF);
+
+                    pNon_car_spec->field_0xf0 = pNon_car_spec->collision_info->physics_joint2 = AllocatePhysicsJoint(count_limits, kMem_physics_joint);
+                    pNon_car_spec->field_0xf0->friction = friction;
+                    BrVector3Copy(&pNon_car_spec->field_0xf0->field_0x08, &tv);
+                    pNon_car_spec->field_0xf0->type = eJoint_ball_n_socket;
+                } else if (DRStricmp(s, "WORLD_HINGE_JOINT") == 0) {
+                    br_vector3 tv1;
+                    br_vector3 tv2;
+                    br_scalar friction;
+                    int count_limits;
+
+                    GetThreeFloats(pF, &tv1.v[0], &tv1.v[1], &tv1.v[2]);
+                    GetThreeFloats(pF, &tv2.v[0], &tv2.v[1], &tv2.v[2]);
+
+                    /* friction */
+                    friction = GetAScalar(pF);
+
+                    /* num limits */
+                    count_limits = GetAnInt(pF);
+
+                    pNon_car_spec->field_0xf0 = pNon_car_spec->collision_info->physics_joint2 = AllocatePhysicsJoint(count_limits, kMem_physics_joint);
+                    pNon_car_spec->field_0xf0->friction = friction;
+                    BrVector3Copy(&pNon_car_spec->field_0xf0->field_0x08, &tv1);
+                    pNon_car_spec->field_0xf0->type = eJoint_ball_n_socket;
+                } else if (DRStricmp(s, "WORLD_TRANSLATION_JOINT") == 0) {
+                    br_vector3 pos;
+                    br_vector3 dir;
+                    br_scalar limit;
+
+                    /* joint position */
+                    GetThreeFloats(pF, &pos.v[0], &pos.v[1], &pos.v[2]);
+
+                    /* axis (direction of movement) */
+                    GetThreeFloats(pF, &dir.v[0], &dir.v[1], &dir.v[2]);
+
+                    /* lift height */
+                    limit = GetAScalar(pF);
+
+                    pNon_car_spec->field_0xf0 = pNon_car_spec->collision_info->physics_joint2 = AllocatePhysicsJoint(1, kMem_physics_joint);
+                    BrVector3Copy(&pNon_car_spec->field_0xf0->field_0x08, &pos);
+                    BrVector3Copy(&pNon_car_spec->field_0xf0->hinge_axis, &dir);
+
+                    if (fabs(dir.v[0]) <= fabs(dir.v[1]) && fabs(dir.v[0]) <= fabs(dir.v[2])) {
+                        BrVector3Set(&pNon_car_spec->field_0xf0->hinge_axis2, 0.f, dir.v[2], -dir.v[1]);
+                    } else if (fabs(dir.v[1]) <= fabs(dir.v[2])) {
+                        BrVector3Set(&pNon_car_spec->field_0xf0->hinge_axis2, -dir.v[2], 0.f, -dir.v[0]);
+                    } else {
+                        BrVector3Set(&pNon_car_spec->field_0xf0->hinge_axis2, dir.v[1], -dir.v[0], 0.f);
+                    }
+                    BrVector3Normalise(&pNon_car_spec->field_0xf0->hinge_axis2, &pNon_car_spec->field_0xf0->hinge_axis2);
+                    BrVector3Cross(&pNon_car_spec->field_0xf0->hinge_axis3, &pNon_car_spec->field_0xf0->hinge_axis, &pNon_car_spec->field_0xf0->hinge_axis2);
+                    pNon_car_spec->field_0xf0->type = eJoint_translation;
+                    pNon_car_spec->flags |= 0x10000;
+                    pNon_car_spec->field_0xf0->count_limits = 1;
+                    pNon_car_spec->field_0xf0->limits[0].type = eJoint_limit_11;
+                    pNon_car_spec->field_0xf0->limits[0].value = limit;
+
+                    pNon_car_spec->translation_parameters = BrMemAllocate(sizeof(tJoint_translation_params), kMem_non_car_spec);
+
+                    /* forward accel in g */
+                    pNon_car_spec->translation_parameters->forward_acceleration = GetAScalar(pF);
+
+                    /* reverse accel in g (nb grvity will pull it down) */
+                    pNon_car_spec->translation_parameters->reverse_acceleration = GetAScalar(pF);
+
+                    /* resistance going up */
+                    pNon_car_spec->translation_parameters->forward_resistance = GetAScalar(pF);
+
+                    /* resistance going down */
+                    pNon_car_spec->translation_parameters->reverse_resistance = GetAScalar(pF);
+
+                    /* pause at the top */
+                    pNon_car_spec->translation_parameters->pause_at_top = GetAnInt(pF);
+
+                    pNon_car_spec->translation_parameters->forward_resistance = (float)exp(0.43 * (double)pNon_car_spec->translation_parameters->forward_resistance);
+                    pNon_car_spec->translation_parameters->reverse_resistance = (float)exp(0.43 * (double)pNon_car_spec->translation_parameters->reverse_resistance);
+                } else if (DRStricmp(s, "RISE_WHEN_HIT") == 0) {
+                    pNon_car_spec->flags |= 0x20000;
+                } else if (DRStricmp(s, "RISE_WHEN_DRIVEN_ON") == 0) {
+                    pNon_car_spec->flags |= 0x40000;
+                } else if (DRStricmp(s, "NUMBER_OF_PUSHES") == 0) {
+                    pNon_car_spec->number_of_pushes = GetAnInt(pF);
+                } else if (DRStricmp(s, "DRIVABLE_ON") == 0) {
+                    pNon_car_spec->collision_info->drivable_on = 1;
+                } else if (DRStricmp(s, "INFINITE_I") == 0) {
+                    pNon_car_spec->collision_info->flags |= 0x800;
+                } else if (DRStricmp(s, "IGNORE_WORLD_COLLISIONS") == 0) {
+                    pNon_car_spec->collision_info->flags |= 0x80;
+                } else if (DRStricmp(s, "BLOCK_CAMERA") == 0) {
+                    pNon_car_spec->flags |= 0x80000;
+                } else if (DRStricmp(s, "SPARKY") == 0) {
+                    pNon_car_spec->flags |= 0x200000;
+                } else {
+                    FatalError(kFatalError_UnknownNonCarCommand);
+                }
+            }
+        }
+    }
 }
 
 /* based on carpocalypse2 src/carma2/common/brucetrk.c:41 */
@@ -1480,9 +1808,189 @@ intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
     return BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
 }
 
-// STUB: CARMA2_HW 0x004d2cc0
+/* based on carpocalypse2 src/carma2/common/pedestrn.c:1874 (inlined into SpawnPedsOnFace in the original) */
+static __inline void MakeRandomPointInTriangle(br_vector3* pDest, br_vector3* pV0, br_vector3* pV1, br_vector3* pV2) {
+    float alpha;
+    float beta;
+
+    alpha = SRandomBetween(0.1f, 0.9f);
+    beta = SRandomBetween(0.1f, 0.9f);
+    if (alpha + beta > 1.f) {
+        alpha = 1.f - alpha;
+        beta = 1.f - beta;
+    }
+    pDest->v[0] = pV0->v[0] * (1.f - alpha - beta) + pV1->v[0] * alpha + pV2->v[0] * beta;
+    pDest->v[1] = pV0->v[1] * (1.f - alpha - beta) + pV1->v[1] * alpha + pV2->v[1] * beta;
+    pDest->v[2] = pV0->v[2] * (1.f - alpha - beta) + pV1->v[2] * alpha + pV2->v[2] * beta;
+}
+
+/* based on carpocalypse2 src/carma2/common/pedestrn.c:1927 (SetModelCallbacks and BuildPedestrian, inlined in the original) */
+static __inline void BuildPedestrian(tPedestrian* pPed, const char* pGroup_name, br_vector3* pPos, br_vector3* pDir, tPed_movement_spec* pMovement_spec, tRace_ped_exclusion_spec* pExclusion_spec) {
+    extern void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen);
+    extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
+    extern tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat);
+    extern void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp);
+    extern br_vector3 gY_unit_vector;
+    br_matrix34 mat;
+    char texture_name[32];
+    char material_name[32];
+    br_pixelmap* texture;
+    br_material* material;
+    int i;
+    int j;
+
+    BrMatrix34Identity(&mat);
+    BrVector3Copy((br_vector3*)mat.m[3], pPos);
+    pPed->character = BuildCharacterInstance(pGroup_name, &mat);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 2; j++) {
+            br_model* model;
+
+            model = pPed->character->personality->bones->models[i].models[j];
+            if (model != NULL) {
+                model->flags |= BR_MODF_CUSTOM;
+                model->custom = TurnLimbsOnAndOff;
+            }
+        }
+    }
+    sprintf(texture_name, "%sB", pGroup_name);
+    texture = BrMapFind(texture_name);
+    if (texture == NULL) {
+        FatalError(kFatalError_CantFindPedTexture_S, texture_name);
+    }
+    strcpy(material_name, pGroup_name);
+    sprintf(material_name + strlen(material_name), "%d.MAT", 1);
+    material = BrMaterialFind(material_name);
+    if (material != NULL) {
+        material->colour_map = texture;
+        BrMaterialUpdate(material, BR_MATU_COLOURMAP);
+    }
+    pPed->hit_points = 100;
+    pPed->movement_spec = pMovement_spec;
+    pPed->speed_factor = 1.f;
+    pPed->exclusion_spec = pExclusion_spec;
+    if (pMovement_spec->max_walk_speed_factor != 0) {
+        SetPedMove(pPed, 30, IRandomBetween(pMovement_spec->min_walk_speed_factor, pMovement_spec->max_walk_speed_factor), 0, 0, 0, 0);
+    } else {
+        SetPedMove(pPed, 0, -1, 0, 0, 0, 0);
+    }
+    BrVector3Normalise(pDir, pDir);
+    SetCharacterDirectionAR(pPed->character, pDir, &gY_unit_vector);
+    BrVector3Copy(&pPed->pos, pPos);
+}
+
+/* based on carpocalypse2 src/carma2/common/pedestrn.c:1965 (AreaOfTriangle is inlined) */
+// FUNCTION: CARMA2_HW 0x004d2cc0
 void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel) {
-    NOT_IMPLEMENTED();
+    extern int gPed_count;
+    extern tPedestrian* gPedestrian_array;
+    extern int gCount_race_pedestrian_specs;
+    extern tRace_ped_spec* gRace_pedestrian_specs;
+    extern tPed_group_spec* gPed_groups;
+    extern float gPed_cos_max_slope;
+    extern int gPed_animal_count;
+    extern char gPed_animal_names[50][32];
+    extern int gAnimalsOn;
+    extern int gTotal_count_smash_peds;
+    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
+    br_material* material;
+    tRace_ped_spec* ped_spec;
+    int i;
+    int j;
+    int n;
+    br_vector3 v0;
+    br_vector3 v1;
+    br_vector3 v2;
+    float fNew_ped_count;
+    int new_ped_count;
+    br_vector3 ped_dir;
+    br_vector3 ped_pos;
+    char group_name[32];
+    int illegal_ped;
+
+    if (gNet_mode != eNet_mode_none) {
+        return;
+    }
+    if (pFace->n.v[1] <= gPed_cos_max_slope) {
+        return;
+    }
+    material = pFace->material;
+    if (material == NULL) {
+        return;
+    }
+    if (material->identifier == NULL || strlen(material->identifier) - 4 <= 7) {
+        return;
+    }
+    if (material->identifier[7] != '?') {
+        return;
+    }
+    if (gPed_count >= 2000) {
+        return;
+    }
+
+    ped_spec = gRace_pedestrian_specs;
+    for (n = 0; n < gCount_race_pedestrian_specs; n++, ped_spec++) {
+        if (ped_spec->spawn_material == material) {
+            goto found;
+        }
+    }
+    return;
+found:
+    v0 = pModel->vertices[pFace->vertices[0]].p;
+    v1 = pModel->vertices[pFace->vertices[1]].p;
+    v2 = pModel->vertices[pFace->vertices[2]].p;
+    if (ped_spec->density >= 0.f) {
+        fNew_ped_count = ped_spec->field_0x10 - (float)fabs(v1.v[2] * v0.v[0] - v1.v[0] * v0.v[2] + v2.v[2] * v1.v[0] - v2.v[0] * v1.v[2] + v2.v[0] * v0.v[2] - v2.v[2] * v0.v[0]) * 0.5f * (6.9 * 6.9) * ped_spec->density * -0.001f;
+    } else {
+        fNew_ped_count = -ped_spec->density;
+    }
+    new_ped_count = (int)floor(fNew_ped_count);
+
+    for (i = 0; i < new_ped_count; i++) {
+        illegal_ped = 0;
+        if (gPed_count >= 2000) {
+            return;
+        }
+        strcpy(group_name, ped_spec->group->members[IRandomBetween(0, ped_spec->group->count - 1)].name);
+        if (!gAnimalsOn) {
+            for (j = 0; j < gPed_animal_count; j++) {
+                if (DRStricmp(group_name, gPed_animal_names[j]) == 0) {
+                    illegal_ped = 1;
+                    break;
+                }
+            }
+        }
+        if (illegal_ped) {
+            continue;
+        }
+        ped_dir.v[0] = SRandomPosNeg(1.f);
+        ped_dir.v[1] = 0.f;
+        ped_dir.v[2] = SRandomPosNeg(1.f);
+        MakeRandomPointInTriangle(&ped_pos, &v0, &v1, &v2);
+        BuildPedestrian(&gPedestrian_array[gPed_count], group_name, &ped_pos, &ped_dir, ped_spec->movement, &ped_spec->exclusion);
+
+        if (gCurrent_race.race_spec->race_type == kRaceType_SmashNPed) {
+            if (gCurrent_race.race_spec->options.smash_and_peds.ped_group_index == ped_spec->group - gPed_groups) {
+                gPedestrian_array[gPed_count].flags |= 0x200;
+                AddSmashTarget(NULL, NULL, gPed_count);
+            }
+        } else if (gCurrent_race.race_spec->race_type == kRaceType_Peds) {
+            if (gCurrent_race.race_spec->options.peds.count_ped_groups < 0) {
+                gTotal_count_smash_peds += 1;
+                gPedestrian_array[gPed_count].flags |= 0x200;
+            } else {
+                for (j = 0; j < gCurrent_race.race_spec->options.peds.count_ped_groups; j++) {
+                    if (ped_spec->group - gPed_groups == gCurrent_race.race_spec->options.peds.ped_groups[j]) {
+                        gTotal_count_smash_peds += 1;
+                        gPedestrian_array[gPed_count].flags |= 0x200;
+                        break;
+                    }
+                }
+            }
+        }
+        gPed_count += 1;
+    }
+    ped_spec->field_0x10 = fNew_ped_count - new_ped_count;
 }
 
 #ifdef REC2_MATCHING
@@ -1506,3 +2014,29 @@ int gCapacity_track_smashables;
 // GLOBAL: CARMA2_HW 0x0079efac
 int gMax_count_non_cars;
 
+
+// GLOBAL: CARMA2_HW 0x00655df0
+br_vector3 gY_unit_vector = { { 0.f, 1.f, 0.f } };
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00488b00
+void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004079a0
+tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d3360
+void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
