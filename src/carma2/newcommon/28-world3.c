@@ -79,6 +79,95 @@ void C2_HOOK_FASTCALL InitTreeSurgery(void) {
 
 // MungeTrackModel
 
+// GLOBAL: CARMA2_HW 0x00660e90
+const char* gDepth_effect_names[3] = {
+    "dark",
+    "fog",
+    "colour",
+};
+
+// GLOBAL: CARMA2_HW 0x00761a80
+char gCurrent_load_name[256];
+
+// GLOBAL: CARMA2_HW 0x006b6400
+char gAdditional_model_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6500
+char gAdditional_actor_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6620
+br_model* gAdditional_models[1000];
+
+// GLOBAL: CARMA2_HW 0x006ab948
+int gNumber_of_additional_models;
+
+// GLOBAL: CARMA2_HW 0x006b6600
+br_actor* gLast_actor;
+
+// GLOBAL: CARMA2_HW 0x0079ec2e
+br_angle gSky_image_width;
+
+// GLOBAL: CARMA2_HW 0x0079ec2c
+br_angle gSky_image_height;
+
+// GLOBAL: CARMA2_HW 0x0079ec30
+br_angle gSky_image_underground;
+
+// GLOBAL: CARMA2_HW 0x0074caa8
+int gTrack_depth_colour_red;
+
+// GLOBAL: CARMA2_HW 0x0074cf2c
+int gTrack_depth_colour_green;
+
+// GLOBAL: CARMA2_HW 0x0074cad0
+int gTrack_depth_colour_blue;
+
+// GLOBAL: CARMA2_HW 0x0079ef40
+tS8 gNon_car_spec_indices[100];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f0450
+void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040cc50
+void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d3520
+void C2_HOOK_FASTCALL FinishUpLoadingPeds(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00474ac0
+void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00476470
+void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f0bc0
+void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00487ec0
+void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // LoadTrack
 
 // FUNCTION: CARMA2_HW 0x00506e20
