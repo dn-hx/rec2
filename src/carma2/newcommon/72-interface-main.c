@@ -2,10 +2,16 @@
 
 #include "72-interface.h"
 
+extern tFrontend_spec gFrontend_OPTIONS;
+extern tFrontend_spec gFrontend_NETWORK;
+extern tFrontend_spec gFrontend_NEWGAME;
+extern tFrontend_spec gFrontend_CHANGE_CAR;
+int C2_HOOK_FASTCALL MainMenuInfunc(tFrontend_spec* pFrontend);
+int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend);
+int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005a80f0
 tFrontend_spec gFrontend_MAIN = {
-#if 0 // FIXME: enable this
     "Main",
     0,
     26,
@@ -49,11 +55,8 @@ tFrontend_spec gFrontend_MAIN = {
     },
     1,
     {
-        { 1, 8, 6, 12, 12, 12, 19 },
+        { 1, 8, 6, 12, 12, 19 },
     }
-#else
-    0
-#endif
 };
 
 
@@ -115,7 +118,7 @@ extern tU32 gFrontend_time_last_input;
 extern br_uint_32 gFrontend_APO_Colour_1;
 extern br_uint_32 gFrontend_APO_Colour_2;
 extern br_uint_32 gFrontend_APO_Colour_3;
-extern int C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
 // GLOBAL: CARMA2_HW 0x005ed5a0
 tFrontend_spec gFrontend_LOAD_GAME = {
@@ -763,3 +766,543 @@ int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type) {
 int gCount_connected_items_indices;
 // GLOBAL: CARMA2_HW 0x00687018
 int gConnected_items_indices[6];
+
+/* Main menu spec callbacks (runtime milestone: gFrontend_MAIN needs its create/tick procs to load the menu and backdrop).
+   Based on carpocalypse2 src/carma2/common/interface-main.c and interface.c, corrected against the original disassembly. */
+
+extern int gFrontend_scrollbars_updated;
+extern int gFrontend_car_image_outdated;
+extern int gTyping;
+extern tFrontend_brender_item gFrontend_brender_items[100];
+extern tFrontend_spec gFrontend_CHANGE_CAR;
+extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
+extern tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(br_pixelmap* pm, tU32 red, tU32 grn, tU32 blu, tU32 alp);
+extern int C2_HOOK_FASTCALL GetItemAtMousePos(tFrontend_spec* pFrontend, int pX, int pY);
+extern void C2_HOOK_FASTCALL UpdateScrollPositions(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL SaveOptions(void);
+extern tRace_group_spec* gRace_groups;
+extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
+extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
+
+// GLOBAL: CARMA2_HW 0x005d6410
+tFrontend_spec gFrontend_CHANGE_CAR = {
+    0
+};
+
+// FUNCTION: CARMA2_HW 0x00518d60
+tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(br_pixelmap* pm, tU32 red, tU32 grn, tU32 blu, tU32 alp) {
+
+    switch (pm->type) {
+    case BR_PMT_RGB_555:
+        return (((((red & 0xf8) << 5) | (grn & 0xf8)) << 2)) | ((blu >> 3) & 0x1f);
+    case BR_PMT_RGB_565:
+        return ((((red & 0xf8) << 5) | (grn & 0xfc)) << 3) | ((blu >> 3) & 0x1f);
+    case BR_PMT_RGBA_8888:
+        return (((((alp << 8) | red) << 8) | grn) << 8) | blu;
+    case BR_PMT_RGBA_4444:
+        return ((((alp & 0xfffffff0u) << 4) | (red & 0xfffffff0u)) << 4) | (blu >> 4) | (grn & 0xfffffff0u);
+    case BR_PMT_ARGB_1555:
+        return (((((((alp & 0xffffff80u) << 1) | (red & 0xf8)) << 5) | (grn & 0xf8)) << 2)) | ((blu >> 3) & 0x1f);
+    default:
+        return (((red << 8) | grn) << 8) | blu;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0046aa20
+void C2_HOOK_FASTCALL MenuSetCarImage(int pCar_index, int pBrender_index) {
+    tPath_name pack_path;
+    char pack_filename[64];
+    char pm_name[20];
+    char* pos_dot;
+    tTWTVFS twt;
+    int i;
+
+    pos_dot = strrchr(gOpponents[pCar_index].car_file_name, '.');
+    PathCat(pack_path, gApplication_path, "INTRFACE");
+    PathCat(pack_path, pack_path, "CARIMAGE");
+    strcpy(pack_filename, gOpponents[pCar_index].car_file_name);
+    pack_filename[strlen(pack_filename) - 4] = '\0';
+    strcat(pack_filename, "CI");
+    PathCat(pack_path, pack_path, pack_filename);
+    twt = OpenPackFileAndSetTiffLoading(pack_path);
+    for (i = 0; i < 6; i++) {
+        sprintf(pm_name, "%.*s%c.TIF", (int)(pos_dot - gOpponents[pCar_index].car_file_name), gOpponents[pCar_index].car_file_name, 'A' + i);
+        BrMapRemove(gFrontend_images[i + 1]);
+        BrPixelmapFree(gFrontend_images[i + 1]);
+        gFrontend_images[i + 1] = GetThisFuckingPixelmapPleaseMrTwatter(pack_path, pm_name);
+        if (gFrontend_images[i + 1] == NULL) {
+            gFrontend_images[i + 1] = LoadPixelmap("64by64.tif");
+        }
+        BrPixelmapCopy(gFrontend_brender_items[pBrender_index + i].field_0xc, gFrontend_images[i + 1]);
+        BrPixelmapCopy(gFrontend_brender_items[pBrender_index + i].field_0x10, gFrontend_brender_items[pBrender_index + i].field_0xc);
+        BrMapUpdate(gFrontend_brender_items[pBrender_index + i].field_0xc, BR_MAPU_ALL);
+        BrMaterialUpdate(gFrontend_brender_items[pBrender_index + i].material, BR_MATU_COLOURMAP);
+    }
+    ClosePackFileAndSetTiffLoading(twt);
+}
+
+// FUNCTION: CARMA2_HW 0x00469a40
+int C2_HOOK_FASTCALL MainMenuInfunc(tFrontend_spec* pFrontend) {
+    int group;
+    int race_index;
+    int i;
+    char group_name[12];
+    br_camera* camera;
+    tFrontend_item_spec* item;
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gFrontend_time_last_input = PDGetTotalTime();
+    group = (gCurrent_race_group - gRace_groups) % 10;
+    sprintf(group_name, "%s %d", IString_Get(78), group + 1);
+    strcpy(pFrontend->items[2].text, group_name);
+    race_index = 4 * group;
+    for (i = pFrontend->scrollers[0].indexFirstScrollableItem; i <= pFrontend->scrollers[0].indexLastScrollableItem; i++) {
+        item = &pFrontend->items[i];
+        strcpy(item->text, gRace_list[race_index].name);
+        item->radioButton_selected = race_index == gProgram_state.current_race_index;
+        if (gRace_list[race_index].is_boundary) {
+            item->unlitFont = 2;
+            item->highFont = 3;
+        } else {
+            item->unlitFont = 0;
+            item->highFont = 1;
+        }
+        race_index++;
+    }
+    if (gIs_boundary_race || gProgram_state.game_completed) {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_enabled;
+    } else {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_disabled;
+    }
+    div(gProgram_state.current_race_index, 4);
+    strcpy(pFrontend->items[22].text, gRace_list[gProgram_state.current_race_index].description);
+    MungeMetaCharactersChar(pFrontend->items[22].text, 'R', '\r');
+    MungeMetaCharactersNum(pFrontend->items[22].text, 'O', gRace_list[gProgram_state.current_race_index].count_explicit_opponents);
+    MungeMetaCharactersNum(pFrontend->items[22].text, 'L', gRace_list[gProgram_state.current_race_index].count_laps);
+    strcpy(pFrontend->items[18].text, gProgram_state.player_name);
+    strcpy(pFrontend->items[20].text, gOpponents[gProgram_state.current_car_index].car_name);
+    strcpy(pFrontend->items[23].text, MungeCommas(gProgram_state.credits));
+    gFrontend_car_image_outdated = 1;
+    pFrontend->isPreviousSomeOtherMenu = 1;
+    gMouse_in_use = 0;
+    gFrontend_menu_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    camera = gFrontend_menu_camera->type_data;
+    camera->type = BR_CAMERA_PARALLEL;
+    camera->field_of_view = BR_ANGLE_DEG(90);
+    camera->hither_z = 1.f;
+    camera->yon_z = 3.f;
+    camera->width = 640.f;
+    camera->height = 480.f;
+    gFrontend_billboard_actors[0] = CreateAPOactor();
+    gFrontend_APO_Colour_1 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0xff, 0x80, 0x00, 0xff);
+    gFrontend_APO_Colour_2 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0x80, 0xff);
+    gFrontend_APO_Colour_3 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0xff, 0xff);
+    FuckWithWidths(pFrontend);
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x00469ea0
+int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend) {
+    char group_name[12];
+    int race_index;
+    int i;
+    char* str;
+
+    race_index = 0;
+    for (i = 0; i < gNumber_of_races; i++) {
+        if (DRStricmp(pFrontend->items[gFrontend_selected_item_index].text, gRace_list[i].name) == 0) {
+            race_index = i;
+            break;
+        }
+    }
+    gProgram_state.current_race_index = race_index;
+    pFrontend->items[22].highFont = 11;
+    pFrontend->items[22].unlitFont = 11;
+    if (!gMouse_in_use) {
+        str = pFrontend->items[22].text;
+        strcpy(str, gRace_list[race_index].description);
+        MungeMetaCharactersChar(str, 'R', '\r');
+        MungeMetaCharactersNum(str, 'O', gRace_list[race_index].count_explicit_opponents);
+        MungeMetaCharactersNum(str, 'L', gRace_list[race_index].count_laps);
+    }
+    gCurrent_race_group = gRace_list[gProgram_state.current_race_index].group;
+    sprintf(group_name, "%s %d", IString_Get(78), (gCurrent_race_group - gRace_groups) % 10 + 1);
+    strcpy(pFrontend->items[2].text, group_name);
+    FuckWithWidths(pFrontend);
+    return 0;
+}
+
+static int C2_HOOK_FASTCALL MainMenuRaceIndex(const char* pName, int pDefault) {
+    int i;
+
+    for (i = 0; i < gNumber_of_races; i++) {
+        if (DRStricmp(pName, gRace_list[i].name) == 0) {
+            return i;
+        }
+    }
+    return pDefault;
+}
+
+static int C2_HOOK_FASTCALL MainMenuFindNextActiveItem(tFrontend_spec* pFrontend, int pStart_index) {
+    int i;
+
+    for (i = pStart_index + 1; i <= pFrontend->count_items - 1; i++) {
+        if (pFrontend->items[i].enabled > 0 && pFrontend->items[i].visible) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+static void C2_HOOK_FASTCALL MainMenuSwitchTo(tFrontend_spec* pFrontend, tFrontend_spec* pNext) {
+    int i;
+
+    for (i = 0; i < gCurrent_frontend_spec->count_scrollers; i++) {
+        gCurrent_frontend_spec->scrollers[i].indexOfItemAtTop = gCurrent_frontend_spec->scrollers[i].indexTopItem;
+    }
+    FRONTEND_DestroyMenu(pFrontend);
+    gCurrent_frontend_spec = pNext;
+    FRONTEND_CreateMenu(gCurrent_frontend_spec);
+    if (gCurrent_frontend_spec != pFrontend->previous) {
+        gCurrent_frontend_spec->previous = pFrontend;
+    }
+    Morph_Initialise(pFrontend, gCurrent_frontend_spec);
+}
+
+static void C2_HOOK_FASTCALL MainMenuRestoreScrollers(void) {
+    int i;
+
+    for (i = 0; i < gCurrent_frontend_spec->count_scrollers; i++) {
+        gCurrent_frontend_spec->scrollers[i].indexTopItem = gCurrent_frontend_spec->scrollers[i].indexOfItemAtTop;
+    }
+    UpdateScrollPositions(gCurrent_frontend_spec);
+}
+
+// FUNCTION: CARMA2_HW 0x0046a0e0
+int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend) {
+    int i;
+    int race_index;
+    int input;
+    int key;
+    int mouse_button;
+    int mouse_x;
+    int mouse_y;
+    int item_at_mouse_pos;
+    int result;
+    char buf[2];
+
+    if (gProgram_state.game_completed) {
+        pFrontend->items[3].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[3].visible = 1;
+        pFrontend->items[8].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[8].visible = 1;
+    } else {
+        pFrontend->items[3].enabled = 0;
+        pFrontend->items[3].visible = 0;
+        pFrontend->items[8].enabled = 0;
+        pFrontend->items[8].visible = 0;
+    }
+    if (gIs_boundary_race || gProgram_state.game_completed) {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_enabled;
+    } else {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_disabled;
+    }
+    TransparentPolyFontTextInABox(kPolyfont_hand_green_10pt_lit, "v1.02a",
+        gBack_screen->width - PolyFontTextWidth(kPolyfont_hand_green_10pt_lit, "v1.02a") - 4,
+        gBack_screen->height - PolyFontHeight(kPolyfont_hand_green_10pt_lit) - 4,
+        gBack_screen->width,
+        gBack_screen->height,
+        eJust_left, 1, 150.);
+    if (gFrontend_selected_item_index == 0) {
+        pFrontend->default_item = 21;
+        gFrontend_selected_item_index = 21;
+    }
+    if (gFrontend_car_image_outdated) {
+        MenuSetCarImage(gProgram_state.current_car_index, 10);
+        gFrontend_car_image_outdated = 0;
+    }
+    race_index = 0;
+    for (i = gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem; i <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem; i++) {
+        race_index = MainMenuRaceIndex(pFrontend->items[i].text, race_index);
+        if (gRace_list[race_index].count_opponents != 0) {
+            sprintf(buf, "%c", '\x1f');
+            SolidPolyFontText(buf, pFrontend->items[i].x - 10, pFrontend->items[i].y, kPolyfont_hand_green_15pt_lit, eJust_centre, 1);
+        }
+    }
+    gTyping_slot = -1;
+    EdgeTriggerModeOn();
+    KillSplashScreen();
+    if (gTyping) {
+        input = ProcessInputString();
+        FuckWithWidths(pFrontend);
+        if (input < 0) {
+            ToggleTyping(pFrontend);
+            if (!gTyping && strlen(pFrontend->items[gFrontend_selected_item_index].text) != 0) {
+                strcpy(gProgram_state.player_name, pFrontend->items[gFrontend_selected_item_index].text);
+                SaveOptions();
+            }
+        }
+        FuckWithWidths(pFrontend);
+    } else {
+        PollKeys();
+        EdgeTriggerModeOff();
+        key = PDAnyKeyDown();
+        if (key != -1 && key != 4) {
+            gMouse_in_use = 0;
+            gFrontend_time_last_input = PDGetTotalTime();
+        }
+        EdgeTriggerModeOn();
+        mouse_button = 0;
+        item_at_mouse_pos = -1;
+        if (gMouse_in_use) {
+            gFrontend_selected_item_index = 0;
+            gFrontend_time_last_input = PDGetTotalTime();
+            GetMousePosition(&mouse_x, &mouse_y);
+            mouse_button = EitherMouseButtonDown();
+            item_at_mouse_pos = GetItemAtMousePos(gCurrent_frontend_spec, mouse_x, mouse_y);
+            gFrontend_selected_item_index = item_at_mouse_pos;
+            if (gFrontend_selected_item_index == -1) {
+                gFrontend_selected_item_index = 99;
+            }
+            if (gFrontend_selected_item_index > 3 && gFrontend_selected_item_index < 8
+                    && pFrontend->items[gFrontend_selected_item_index].enabled > 0) {
+                race_index = MainMenuRaceIndex(pFrontend->items[gFrontend_selected_item_index].text, 0);
+                strcpy(pFrontend->items[22].text, gRace_list[race_index].description);
+                MungeMetaCharactersChar(pFrontend->items[22].text, 'R', '\r');
+                MungeMetaCharactersNum(pFrontend->items[22].text, 'O', gRace_list[race_index].count_explicit_opponents);
+                MungeMetaCharactersNum(pFrontend->items[22].text, 'L', gRace_list[race_index].count_laps);
+            }
+        }
+        if (PDKeyDown(72) || PDKeyDown(89)) {
+            if (gFrontend_selected_item_index == 15) {
+                gFrontend_selected_item_index = 10;
+            }
+            gFrontend_selected_item_index = FindPrevActiveItem(gCurrent_frontend_spec, gFrontend_selected_item_index);
+            if (!gMouse_in_use
+                    && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
+                    && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
+                ToggleSelection(pFrontend);
+                if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                    pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+                }
+            }
+        }
+        if (PDKeyDown(73) || PDKeyDown(83)) {
+            if (gFrontend_selected_item_index < 21) {
+                if (gFrontend_selected_item_index == 10) {
+                    gFrontend_selected_item_index = 15;
+                }
+                gFrontend_selected_item_index = MainMenuFindNextActiveItem(gCurrent_frontend_spec, gFrontend_selected_item_index);
+            } else {
+                gFrontend_selected_item_index = -1;
+                gFrontend_selected_item_index = MainMenuFindNextActiveItem(gCurrent_frontend_spec, -1);
+            }
+            if (!gMouse_in_use
+                    && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
+                    && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
+                ToggleSelection(pFrontend);
+                if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                    pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+                }
+            }
+        }
+        if (PDKeyDown(63)) {
+            gCurrent_frontend_spec->default_item = gFrontend_selected_item_index;
+            MainMenuSwitchTo(pFrontend, &gFrontend_OPTIONS);
+            MainMenuRestoreScrollers();
+            gFrontend_selected_item_index = gCurrent_frontend_spec->default_item;
+            if (gProgram_state.racing) {
+                if (gNet_mode != eNet_mode_none && gCurrent_frontend_spec->default_item == 5) {
+                    gFrontend_selected_item_index = 3;
+                }
+            } else if (gCurrent_frontend_spec->default_item < 3 || gCurrent_frontend_spec->default_item > 30) {
+                gFrontend_selected_item_index = 3;
+            }
+        }
+        if (PDKeyDown(51) || PDKeyDown(52) || (mouse_button != 0 && item_at_mouse_pos != -1)) {
+            ToggleSelection(pFrontend);
+            if (!gMouse_in_use
+                    && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
+                    && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
+                gFrontend_selected_item_index = 21;
+            }
+            if (pFrontend->items[gFrontend_selected_item_index].field_0xc == 2) {
+                return 2;
+            }
+            if (pFrontend->items[gFrontend_selected_item_index].field_0xc == 1) {
+                gFrontend_leave_current_menu = 1;
+            }
+            if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                result = pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+                if (mouse_button == 2 && gFrontend_selected_item_index >= 4 && gFrontend_selected_item_index < 8) {
+                    if (gProgram_state.field_0x2c) {
+                        return 1;
+                    }
+                    gFrontend_next_menu = kFrontend_menu_newgame;
+                    return 3;
+                }
+            } else {
+                result = pFrontend->items[gFrontend_selected_item_index].field_0xc;
+            }
+            if (result == 5) {
+                return 1;
+            }
+            if (pFrontend->items[gFrontend_selected_item_index].menuInfo == NULL) {
+                return result;
+            }
+            gCurrent_frontend_spec->default_item = gFrontend_selected_item_index;
+            MainMenuSwitchTo(pFrontend, pFrontend->items[gFrontend_selected_item_index].menuInfo);
+            if (gCurrent_frontend_spec == &gFrontend_QUIT) {
+                gFrontend_selected_item_index = 0;
+            } else {
+                gFrontend_selected_item_index = gCurrent_frontend_spec->default_item;
+            }
+            if (gCurrent_frontend_spec == &gFrontend_OPTIONS) {
+                if (gProgram_state.racing) {
+                    if (gNet_mode != eNet_mode_none && gCurrent_frontend_spec->default_item == 5) {
+                        gFrontend_selected_item_index = 3;
+                    }
+                } else if (gCurrent_frontend_spec->default_item < 3) {
+                    gFrontend_selected_item_index = 3;
+                }
+            }
+            MainMenuRestoreScrollers();
+            return result;
+        }
+    }
+    ServiceGame();
+    CheckForCheatingGits();
+    return gFrontend_leave_current_menu != 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00467280
+int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend) {
+    int orig_selected_item;
+    int input;
+    int key;
+    int mouse_button;
+    int mouse_x;
+    int mouse_y;
+    int item_at_mouse_pos;
+    int i;
+
+    orig_selected_item = gFrontend_selected_item_index;
+    gTyping_slot = -1;
+    EdgeTriggerModeOn();
+    KillSplashScreen();
+    if (gTyping) {
+        input = ProcessInputString();
+        FuckWithWidths(pFrontend);
+        if (input < 0) {
+            ToggleTyping(pFrontend);
+            if (!gTyping && strlen(pFrontend->items[gFrontend_selected_item_index].text) != 0) {
+                strcpy(gProgram_state.player_name, pFrontend->items[gFrontend_selected_item_index].text);
+                SaveOptions();
+            }
+            SaveOptions();
+        }
+        ServiceGame();
+        return 0;
+    }
+    PollKeys();
+    EdgeTriggerModeOff();
+    key = PDAnyKeyDown();
+    if (key != -1 && key != 4) {
+        gMouse_in_use = 0;
+        gFrontend_time_last_input = PDGetTotalTime();
+    }
+    EdgeTriggerModeOn();
+    mouse_button = 0;
+    item_at_mouse_pos = -1;
+    if (gMouse_in_use) {
+        gFrontend_time_last_input = PDGetTotalTime();
+        GetMousePosition(&mouse_x, &mouse_y);
+        mouse_button = EitherMouseButtonDown();
+        item_at_mouse_pos = GetItemAtMousePos(gCurrent_frontend_spec, mouse_x, mouse_y);
+        if (item_at_mouse_pos != -1) {
+            gFrontend_selected_item_index = item_at_mouse_pos;
+        } else {
+            gFrontend_selected_item_index = 99;
+        }
+    }
+    if (PDKeyDown(72) || PDKeyDown(89)) {
+        gFrontend_selected_item_index = FindPrevActiveItem(gCurrent_frontend_spec, gFrontend_selected_item_index);
+        if (!gMouse_in_use
+                && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
+                && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
+            ToggleSelection(pFrontend);
+            if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+            }
+        }
+    }
+    if (PDKeyDown(73) || PDKeyDown(83)) {
+        if (gFrontend_selected_item_index < pFrontend->count_items - 1) {
+            gFrontend_selected_item_index = MainMenuFindNextActiveItem(gCurrent_frontend_spec, gFrontend_selected_item_index);
+        } else {
+            gFrontend_selected_item_index = -1;
+            gFrontend_selected_item_index = MainMenuFindNextActiveItem(gCurrent_frontend_spec, -1);
+        }
+        if (!gMouse_in_use
+                && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
+                && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
+            ToggleSelection(pFrontend);
+            if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+            }
+        }
+    }
+    if (PDKeyDown(63)) {
+        gCurrent_frontend_spec->default_item = gFrontend_selected_item_index;
+        FRONTEND_DestroyMenu(pFrontend);
+        gCurrent_frontend_spec = &gFrontend_MAIN;
+        FRONTEND_CreateMenu(&gFrontend_MAIN);
+        Morph_Initialise(pFrontend, gCurrent_frontend_spec);
+        gFrontend_selected_item_index = gCurrent_frontend_spec->default_item;
+        MainMenuRestoreScrollers();
+        DRS3StartSound(gEffects_outlet, 0xbbd);
+        return 0;
+    }
+    if (PDKeyDown(51) || PDKeyDown(52) || (mouse_button != 0 && item_at_mouse_pos != -1)) {
+        ToggleSelection(pFrontend);
+        if (pFrontend->items[gFrontend_selected_item_index].field_0xc == 2) {
+            return 2;
+        }
+        if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+            pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
+            if (mouse_button == 2) {
+                return 1;
+            }
+        }
+        if (pFrontend->items[gFrontend_selected_item_index].menuInfo != NULL) {
+            gCurrent_frontend_spec->default_item = gFrontend_selected_item_index;
+            for (i = 0; i < gCurrent_frontend_spec->count_scrollers; i++) {
+                gCurrent_frontend_spec->scrollers[i].indexOfItemAtTop = gCurrent_frontend_spec->scrollers[i].indexTopItem;
+            }
+            FRONTEND_DestroyMenu(pFrontend);
+            gCurrent_frontend_spec = pFrontend->items[gFrontend_selected_item_index].menuInfo;
+            Morph_Initialise(pFrontend, gCurrent_frontend_spec);
+            FRONTEND_CreateMenu(gCurrent_frontend_spec);
+            if (gCurrent_frontend_spec == &gFrontend_QUIT) {
+                gFrontend_selected_item_index = 0;
+            } else {
+                gFrontend_selected_item_index = gCurrent_frontend_spec->default_item;
+            }
+            MainMenuRestoreScrollers();
+        }
+        DRS3StartSound(gEffects_outlet, 0xbbc);
+        return pFrontend->items[orig_selected_item].field_0xc;
+    }
+    ServiceGame();
+    return 0;
+}

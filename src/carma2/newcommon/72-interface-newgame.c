@@ -2,10 +2,11 @@
 
 #include "72-interface.h"
 
+extern tFrontend_spec gFrontend_MAIN;
+int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005bf280
 tFrontend_spec gFrontend_NEWGAME = {
-#if 0 // FIXME: enable this
     "newgame",
     0,
     6,
@@ -27,7 +28,4 @@ tFrontend_spec gFrontend_NEWGAME = {
         { 2, ChooseSkill,   NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
         { 7, temp,          NULL, 1, 17, 18, 0, 0, 0, 0, 1, 1, },
     }
-#else
-    0
-#endif
 };

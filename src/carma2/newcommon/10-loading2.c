@@ -1284,11 +1284,106 @@ void C2_HOOK_FASTCALL ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions)
     pOptions->starting_target = GetAnInt(pF);
 }
 
-// PrintNetOptions
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0048d7d0
+int C2_HOOK_FASTCALL PrintNetOptions(FILE* pF, int pIndex) {
 
-// STUB: CARMA2_HW 0x0048d190
+    fprintf(pF, "NETSETTINGS %d\n\n", pIndex);
+    fprintf(pF, "%d // Allow the sending of Abuse-o-Matic(tm) text messages\n", gNet_settings[pIndex].enable_text_messages);
+    fprintf(pF, "%d // Show cars on map\n", gNet_settings[pIndex].show_players_on_map);
+    fprintf(pF, "%d // Show pickups on map\n", gNet_settings[pIndex].show_powerups_on_map);
+    fprintf(pF, "%d // Pickup respawn\n", gNet_settings[pIndex].powerup_respawn);
+    fprintf(pF, "%d // Waste to transfer\n", gNet_settings[pIndex].waste_to_transfer);
+    fprintf(pF, "%d // Open game\n", gNet_settings[pIndex].open_game);
+    fprintf(pF, "%d // Grid start\n", gNet_settings[pIndex].grid_start);
+    fprintf(pF, "%d // Race order\n", gNet_settings[pIndex].race_sequence_type);
+    fprintf(pF, "%d // Auto-goody\n", gNet_settings[pIndex].random_car_choice);
+    fprintf(pF, "%d // Car choice mode\n", gNet_settings[pIndex].car_choice);
+    fprintf(pF, "%d // Starting credits\n\n", gNet_settings[pIndex].starting_credits);
+    fprintf(pF, "%d // Target\n\n", gNet_settings[pIndex].starting_target);
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern int C2_HOOK_FASTCALL PDFileUnlock(const char* pThe_path);
+
+#define SAVE_OPTIONS_CHECK(X) if ((X) < 0) { goto fail; }
+
+// FUNCTION: CARMA2_HW 0x0048d190
 int C2_HOOK_FASTCALL SaveOptions(void) {
-    NOT_IMPLEMENTED();
+    tPath_name the_path;
+    FILE* f;
+
+    PathCat(the_path, gApplication_path, "OPTIONS.TXT");
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "wt");
+    if (f == NULL) {
+        goto fail;
+    }
+    SAVE_OPTIONS_CHECK(fprintf(f, "YonFactor %f\n", GetYonFactor()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "SkyTextureOn %d\n", GetSkyTextureOn()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "CarTexturingLevel %d\n", GetCarTexturingLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "RoadTexturingLevel %d\n", GetRoadTexturingLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "WallTexturingLevel %d\n", GetWallTexturingLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "ShadowLevel %d\n", GetShadowLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "DepthCueingOn %d\n", GetDepthCueingOn()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "Yon %f\n", GetYon()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "CarSimplificationLevel %d\n", GetCarSimplificationLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "AccessoryRendering %d\n", GetAccessoryRendering()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "SmokeOn %d\n", GetSmokeOn()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "SoundDetailLevel %d\n", GetSoundDetailLevel()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "ScreenSize %d\n", GetScreenSize()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapRenderX %f\n", gMap_render_x));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapRenderY %f\n", gMap_render_y));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapRenderWidth %f\n", gMap_render_width));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapRenderHeight %f\n", gMap_render_height));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapMode %d\n", 1));
+    SAVE_OPTIONS_CHECK(fprintf(f, "PlayerName 0\n%s\n", gProgram_state.player_name[0] != '\0' ? gProgram_state.player_name : "MAX DAMAGE"));
+    SAVE_OPTIONS_CHECK(fprintf(f, "EVolume %d\n", gProgram_state.effects_volume));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MVolume %d\n", gProgram_state.music_volume));
+    SAVE_OPTIONS_CHECK(fprintf(f, "KeyMapIndex %d\n", gKey_map_index));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MapTrans %d\n", gMap_trans));
+    SAVE_OPTIONS_CHECK(fprintf(f, "HeadupMapX %d\n", gHeadup_map_x));
+    SAVE_OPTIONS_CHECK(fprintf(f, "HeadupMapY %d\n", gHeadup_map_y));
+    SAVE_OPTIONS_CHECK(fprintf(f, "HeadupMapW %d\n", gHeadup_map_w));
+    SAVE_OPTIONS_CHECK(fprintf(f, "HeadupMapH %d\n", gHeadup_map_h));
+    SAVE_OPTIONS_CHECK(fprintf(f, "CameraType %d\n", gCamera_type));
+    SAVE_OPTIONS_CHECK(fprintf(f, "ARCameraType %d\n", gAR_camera_type));
+    SAVE_OPTIONS_CHECK(fprintf(f, "GoreLevel %d\n", GetHowMuchBloodAndSnotToSmearAbout()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "AnimalsOn %d\n", AreWeGoingToOutrageAnimalLoversAroundTheGlobe()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "FlameThrowerOn %d\n", IsItOkayToFireHorribleBallsOfNastyNapalmDeathAtPerfectlyInnocentPassersByAndByInnocentIDoMeanInTheBiblicalSense()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MinesOn %d\n", IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "DronesOn %d\n", OtherPerambulatoryInstasificationIsEnablificated()));
+    SAVE_OPTIONS_CHECK(fprintf(f, "MiniMapVisible %i\n", gMini_map_visible));
+    SAVE_OPTIONS_CHECK(fprintf(f, "SkillLevel %d\n", gProgram_state.skill_level));
+    SAVE_OPTIONS_CHECK(fprintf(f, "AmbientSound %i\n", gAmbient_sound));
+    SAVE_OPTIONS_CHECK(fprintf(f, "AutoLoad %d\n", gAuto_load));
+    SAVE_OPTIONS_CHECK(fprintf(f, "RussellsFannies %d\n", gRussels_fannies));
+    SAVE_OPTIONS_CHECK(fprintf(f, "QuickTimeQuality 0\n%s\n", gQuick_time_quality));
+    SAVE_OPTIONS_CHECK(fprintf(f, "QuickTimeCompressor 0\n%s\n", gQuick_time_compressor));
+    SAVE_OPTIONS_CHECK(fprintf(f, "QuickTimeBanner %d\n%s\n", gQuick_time_banner_number, gQuick_time_banner_texture_name));
+    SAVE_OPTIONS_CHECK(fprintf(f, "QuickTimeTempPath 0\n%s\n", gQuick_time_temp_path));
+    SAVE_OPTIONS_CHECK(fprintf(f, "QuickTimeMoviePathStub 0\n%s\n", gQuick_time_movie_path_stub));
+    SAVE_OPTIONS_CHECK(fprintf(f, "NETGAMETYPE %d\n", gNet_last_game_type));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 0));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 1));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 2));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 3));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 4));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 5));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 6));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 7));
+    SAVE_OPTIONS_CHECK(PrintNetOptions(f, 8));
+    SAVE_OPTIONS_CHECK(fprintf(f, "HeadupDetailLevel %d\n", gHeadup_detail_level));
+    /* the original returns 0 when the close fails; rec2's PFfclose returns void */
+    PFfclose(f);
+    return 1;
+fail:
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0048d8f0

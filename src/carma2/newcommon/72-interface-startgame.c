@@ -5,7 +5,6 @@
 
 // GLOBAL: CARMA2_HW 0x0059c828
 tFrontend_spec gFrontend_START_GAME = {
-#if 0 // FIXME: enable this
     "StartGame",
     0,
     0,
@@ -20,7 +19,4 @@ tFrontend_spec gFrontend_START_GAME = {
     0,
     0,
 { { 0 } }
-#else
-    0
-#endif
 };

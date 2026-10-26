@@ -518,9 +518,10 @@ int gBack_original_base_x;
 #if defined(REC2_MATCHING)
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x005191b0
-int C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x005191b0
+void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
+
+    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
 }
 #if defined(REC2_MATCHING)
 #pragma auto_inline(on)
