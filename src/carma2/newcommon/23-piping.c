@@ -1456,6 +1456,9 @@ void C2_HOOK_FASTCALL ApplyUnBend(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyEndMyBend(tPipe_chunk** pChunk) {
 }
 
+// GLOBAL: CARMA2_HW 0x006b78a0
+br_matrix34 gShrapnel_shower_matrix;
+
 // FUNCTION: CARMA2_HW 0x004c9960
 void C2_HOOK_FASTCALL ApplyShrapnelShower(tPipe_chunk** pChunk) {
     tPipe_chunk_shrapnel_shower* chunk = (tPipe_chunk_shrapnel_shower*)*pChunk;
@@ -1464,7 +1467,7 @@ void C2_HOOK_FASTCALL ApplyShrapnelShower(tPipe_chunk** pChunk) {
         return;
     }
 
-    memcpy((void*)0x6b78a0, &chunk->field_0xa4, sizeof(chunk->field_0xa4));
+    memcpy(&gShrapnel_shower_matrix, &chunk->field_0xa4, sizeof(chunk->field_0xa4));
 
     return WorkerShrapnelShower(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x4, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x84, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x44, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x8, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x20, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x2c, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x50, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x0, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x54, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x88, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x14, ((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0xa0, &((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x38, 0);
 }
@@ -1885,7 +1888,7 @@ void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPre
         return;
     }
 
-    memcpy((void*)0x6b78a0, &prev->field_0xa4, sizeof(prev->field_0xa4));
+    memcpy(&gShrapnel_shower_matrix, &prev->field_0xa4, sizeof(prev->field_0xa4));
 
     return WorkerShrapnelShowerUndo(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, prev->field_0x4, prev->field_0x84, prev->field_0x44, &prev->field_0x8, &prev->field_0x20, &prev->field_0x2c, prev->field_0x50, prev->field_0x48, prev->field_0x0, &prev->field_0x54, &prev->field_0x88, &prev->field_0x14, prev->field_0xa0, &prev->field_0x38);
 }
