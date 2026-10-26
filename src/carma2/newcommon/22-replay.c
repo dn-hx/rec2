@@ -7,6 +7,7 @@
 #include "41-utility.h"
 #include "59-camera.h"
 #include "08-loading1.h"
+#include "10-loading2.h"
 
 // GLOBAL: CARMA2_HW 0x0058f620
 int gAR_camera_type = 2;
@@ -72,6 +73,15 @@ extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 extern void C2_HOOK_FASTCALL FUN_004d6da0(void);
+extern void C2_HOOK_FASTCALL FUN_004ff030(void);
+extern void C2_HOOK_FASTCALL SavePedStuff(void);
+extern void C2_HOOK_FASTCALL ToggleMap(void);
+extern tU32 C2_HOOK_FASTCALL ARGetStartTime(void);
+extern tU32 gUnk_006a2360;
+extern tU32 gUnk_006a2364;
+extern int gUnk_006a2378;
+extern tU32 gUnk_006a237c;
+extern tU32 gUnk_006a23c8;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
 extern tNet_mode gNet_mode;
 extern int gCamera_type;
@@ -132,10 +142,31 @@ void C2_HOOK_FASTCALL SynchronizeActionReplay(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004e71c0
+// based on carpocalypse2 src/carma2/common/replay.c:198 (GPL-3.0), follows the disassembly
+// FUNCTION: CARMA2_HW 0x004e71c0
 void C2_HOOK_FASTCALL TurnOnActionReplay(void) {
 
-    NOT_IMPLEMENTED();
+    SavePedStuff();
+    if (gMap_view == 2) {
+        ToggleMap();
+    }
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_paused, 0, 0, 0, 0);
+    }
+    gUnk_006a237c = PDGetTotalTime();
+    gUnk_006a2360 = ARGetStartTime();
+    LoadInterfaceStuff(1);
+    StartMouseCursor();
+    gKey_down = 0x34;
+    gUnk_006a2378 = 0;
+    gUnk_006a23c8 = PDGetTotalTime();
+    gUnk_006a2364 = GetTotalTime();
+    if (gRace_finished == 0) {
+        SaveCameraPosition(0);
+    }
+    gCamera_type = gAction_replay_camera_mode;
+    SetCameraType(gAR_camera_type);
+    FUN_004ff030();
 }
 
 // FUNCTION: CARMA2_HW 0x004e7270
@@ -479,3 +510,34 @@ void C2_HOOK_FASTCALL FUN_004d6da0(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00403020
+tU32 C2_HOOK_FASTCALL ARGetStartTime(void) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x004ff030
+void C2_HOOK_FASTCALL FUN_004ff030(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006a2360
+tU32 gUnk_006a2360;
+
+// GLOBAL: CARMA2_HW 0x006a2364
+tU32 gUnk_006a2364;
+
+// GLOBAL: CARMA2_HW 0x006a2378
+int gUnk_006a2378;
+
+// GLOBAL: CARMA2_HW 0x006a237c
+tU32 gUnk_006a237c;
+
+// GLOBAL: CARMA2_HW 0x006a23c8
+tU32 gUnk_006a23c8;
