@@ -884,9 +884,161 @@ tS8 gNon_car_spec_indices[100];
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f0450
+// FUNCTION: CARMA2_HW 0x004f0450
 void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
-    NOT_IMPLEMENTED();
+    extern int gCount_smashable_noncars;
+    extern int gCount_smashable_noncar_shrapnel_actors;
+    extern tSmashable_environment_name* gSmashable_noncars;
+    extern int gCount_track_smashable_environment_specs;
+    extern int gCount_track_smashable_environment_specs_2;
+    extern int gCapacity_track_smashables;
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern const char* gSmashable_track_environment_path;
+    extern tSmashable_item_spec* gSmashable_track_indexable_triggers[100];
+    extern const char* gSmashable_item_mode_names[6];
+    extern const char* gRepeatability_names[4];
+    extern int C2_HOOK_FASTCALL GetALineAndInterpretCommand(FILE* pF, const char** pString_list, int pCount);
+    extern void C2_HOOK_FASTCALL GetPairOfInts(FILE* pF, int* pF1, int* pF2);
+    extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
+    extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
+    extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
+    extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
+    extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
+    extern void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
+    int i;
+    tSmashable_item_spec* spec;
+    int d1, d2;
+    int j;
+    int* snd;
+    tSmash_run_time_variable_change* chg;
+    char s[256];
+    char s2[256];
+
+    gCount_smashable_noncars = 0;
+    gCount_smashable_noncar_shrapnel_actors = 0;
+    gSmashable_noncars = BrMemAllocate(100 * sizeof(tSmashable_environment_name), kMem_smashable_env_info);
+
+    gCount_track_smashable_environment_specs = GetAnInt(pF);
+    gCount_track_smashable_environment_specs_2 = gCount_track_smashable_environment_specs;
+    gCapacity_track_smashables = 5 * (gCount_track_smashable_environment_specs + 30);
+    gTrack_smashable_environment_specs = BrMemAllocate(gCapacity_track_smashables * sizeof(tSmashable_item_spec), kMem_smashable_env_info);
+    gSmashable_track_environment_path = pPath;
+    memset(gSmashable_track_indexable_triggers, 0, sizeof(gSmashable_track_indexable_triggers));
+
+    spec = gTrack_smashable_environment_specs;
+    for (i = 0; i < gCount_track_smashable_environment_specs; i++, spec++) {
+
+        spec->flags = GetAnInt(pF);
+        spec->field_0x10 = 0;
+
+        GetAString(pF, s);
+        if (s[0] == '&') {
+            if (s[1] >= '0' && s[1] <= '9' && s[3] == '\0') {
+                spec->trigger_type = kSmashableTrigger_Number;
+            } else {
+                spec->trigger_type = kSmashableTrigger_Model;
+            }
+        } else {
+            if (strstr(s, ".DAT") != NULL || strstr(s, ".dat") != NULL || strstr(s, ".ACT") != NULL || strstr(s, ".act") != NULL) {
+                spec->trigger_type = kSmashableTrigger_Model;
+            } else {
+                spec->trigger_type = kSmashableTrigger_Material;
+            }
+        }
+
+        switch (spec->trigger_type) {
+        case kSmashableTrigger_Material:
+            spec->trigger_object.material = BrMaterialFind(s);
+            if (spec->trigger_object.material == NULL) {
+                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+            }
+            break;
+        case kSmashableTrigger_Model:
+            spec->trigger_object.model = BrModelFind(s);
+            if (spec->trigger_object.model == NULL) {
+                FatalError(kFatalError_CannotFindSmashModel_S, s);
+            }
+            break;
+        case kSmashableTrigger_Number:
+            spec->trigger_object.number.field_0x0 = (s[1] + 24) * 10 + s[2];
+            spec->trigger_object.number.field_0x1 = GetAnInt(pF);
+            gSmashable_track_indexable_triggers[spec->trigger_object.number.field_0x0] = spec;
+            break;
+        }
+
+        spec->mode = GetALineAndInterpretCommand(pF, gSmashable_item_mode_names, REC2_ASIZE(gSmashable_item_mode_names));
+        if (spec->mode == kSmashableMode_Decal || spec->mode == kSmashableMode_TextureChange) {
+            spec->mode_data.texture_change.levels = NULL;
+            strcpy(spec->mode_data.texture_change.undefined_0x0, s2);
+            spec->mode_data.texture_change.field_0x40 = -1;
+            spec->mode_data.texture_change.trigger = spec->trigger_object;
+            spec->mode_data.texture_change.field_0x4c = 0;
+            spec->mode_data.texture_change.field_0x40 = -1;
+            spec->mode_data.texture_change.field_0x6c = 0;
+            spec->mode_data.texture_change.field_0x70 = 0;
+            spec->mode_data.texture_change.field_0x74 = 0;
+            spec->mode_data.texture_change.field_0x78 = 0;
+            spec->mode_data.texture_change.field_0x54 = 0.f;
+            spec->mode_data.texture_change.field_0x58 = 0.f;
+            spec->mode_data.texture_change.field_0x5c = 0.f;
+            spec->mode_data.texture_change.field_0x60 = 1.f;
+            spec->mode_data.texture_change.field_0x64 = 0.f;
+            spec->mode_data.texture_change.field_0x68 = 0.f;
+            LoadSmashableLevels(pF, &spec->mode_data.texture_change.levels, &spec->mode_data.texture_change.count_levels, spec->mode == kSmashableMode_TextureChange, &gTrack_storage_space);
+        } else {
+            spec->mode_data.shrapnel.removal_threshold = GetAScalar(pF);
+            spec->mode_data.shrapnel.connotations.count_sounds = GetAnInt(pF);
+            for (j = 0, snd = spec->mode_data.shrapnel.connotations.sounds; j < spec->mode_data.shrapnel.connotations.count_sounds; j++, snd++) {
+                *snd = LoadSingleSound(&gTrack_storage_space, GetAnInt(pF));
+            }
+            ReadShrapnelSpec(pF, spec->mode_data.shrapnel.connotations.shrapnel, &spec->mode_data.shrapnel.connotations.count_shrapnel);
+            ReadExplosion(pF, &spec->mode_data.shrapnel.connotations.special_effects.explosion_animation);
+            ReadSpillData(pF, &spec->mode_data.shrapnel.connotations.special_effects.slick);
+            ReadNonCarCuboidActivation(pF, &spec->mode_data.shrapnel.connotations.side_effects.activations);
+            ReadShrapnelSideEffects(pF, &spec->mode_data.shrapnel.connotations.side_effects.side_effects);
+            spec->mode_data.shrapnel.connotations.side_effects.extension_flags = GetAnInt(pF);
+            if (spec->mode_data.shrapnel.connotations.side_effects.extension_flags & 0x1) {
+                spec->mode_data.shrapnel.connotations.side_effects.extension_arg = GetAnInt(pF);
+            }
+            spec->mode_data.shrapnel.connotations.side_effects.room_turn_on_code = GetAnInt(pF);
+            spec->mode_data.shrapnel.connotations.award.frequency = GetALineAndInterpretCommand(pF, gRepeatability_names, REC2_ASIZE(gRepeatability_names));
+            if (spec->mode_data.shrapnel.connotations.award.frequency != kRepeatability_None) {
+                spec->mode_data.shrapnel.connotations.award.field_0x4 = GetAScalar(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0x8 = GetAScalar(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0xc = GetAnInt(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0x10 = GetAnInt(pF);
+            }
+            spec->mode_data.shrapnel.connotations.variable_changes.count = GetAnInt(pF);
+            for (j = 0, chg = spec->mode_data.shrapnel.connotations.variable_changes.runtime_changes; j < spec->mode_data.shrapnel.connotations.variable_changes.count; j++, chg++) {
+                GetPairOfInts(pF, &d1, &d2);
+                chg->field_0x2 = d1;
+                chg->field_0x0 = d2;
+            }
+        }
+        if (spec->mode == kSmashableMode_ReplaceModel) {
+            GetAString(pF, s2);
+            spec->replace.model = BrModelFind(s2);
+            if (spec->replace.model == NULL) {
+                FatalError(kFatalError_CannotFindSmashActorModel_S, s2);
+            }
+            spec->replace.smoke_fire_chance.chance_fire = GetAnInt(pF);
+            if (spec->replace.smoke_fire_chance.chance_fire != 0) {
+                spec->replace.smoke_fire_chance.model_1_int = GetAnInt(pF);
+                GetPairOfInts(pF, &spec->replace.smoke_fire_chance.model_2_int, &spec->replace.smoke_fire_chance.model_3_int);
+            }
+        }
+        GetAnInt(pF);
+        GetAnInt(pF);
+        GetAnInt(pF);
+        GetAnInt(pF);
+
+        spec->field_0x2d4 = 0;
+        spec->field_0x2d8 = 0;
+        spec->field_0x2dc = 0;
+    }
+    for (i = gCount_track_smashable_environment_specs; i < gCapacity_track_smashables; i++) {
+        gTrack_smashable_environment_specs[i].trigger_type = -1;
+    }
 }
 
 // STUB: CARMA2_HW 0x0040cc50
@@ -922,3 +1074,17 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+/* based on carpocalypse2 src/carma2/common/world.c:169 */
+// GLOBAL: CARMA2_HW 0x0065fe88
+const char* gSmashable_item_mode_names[6] = {
+    "nochange",
+    "decal",
+    "texturechange",
+    "remove",
+    "replacemodel",
+    "crush",
+};
+
+// GLOBAL: CARMA2_HW 0x006a3330
+int gCapacity_track_smashables;
