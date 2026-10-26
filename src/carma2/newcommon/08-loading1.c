@@ -28,9 +28,21 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "c2_string.h"
+#include "10-loading2.h"
+#include "01-network.h"
 
 #ifdef REC2_MATCHING
 #include <windows.h>
+
+extern tU16 C2_HOOK_FASTCALL ReadU16(FILE* pF);
+extern tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF);
+extern tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF);
+extern tS8 C2_HOOK_FASTCALL ReadS8(FILE* pF);
+extern void C2_HOOK_FASTCALL WriteS32L(FILE* pF, tS32 pNumber);
+extern void C2_HOOK_FASTCALL WriteS16L(FILE* pF, tS16 pNumber);
+extern void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber);
+extern void C2_HOOK_FASTCALL SkipBytes(FILE* pF, int pBytes_to_skip);
+extern tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr);
 #endif
 
 // GLOBAL: CARMA2_HW 0x00655e30
@@ -79,6 +91,14 @@ tU16 C2_HOOK_FASTCALL ReadU16(FILE* pF) {
     return raw_short;
 }
 
+// FUNCTION: CARMA2_HW 0x0048f870
+tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF) {
+    tU8 raw_byte;
+
+    PFfread(&raw_byte, sizeof(raw_byte), 1, pF);
+    return raw_byte;
+}
+
 // FUNCTION: CARMA2_HW 0x0048f890
 float C2_HOOK_FASTCALL ReadF32(FILE* pF) {
     float f;
@@ -95,6 +115,22 @@ tS32 C2_HOOK_FASTCALL ReadS32(FILE* pF) {
     PFfread(&raw_long, sizeof(raw_long), 1, pF);
     // FIXME: byteswap for BE
     return raw_long;
+}
+
+// FUNCTION: CARMA2_HW 0x0048f8d0
+tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF) {
+    tS16 raw_short;
+
+    PFfread(&raw_short, sizeof(raw_short), 1, pF);
+    return raw_short;
+}
+
+// FUNCTION: CARMA2_HW 0x0048f8f0
+tS8 C2_HOOK_FASTCALL ReadS8(FILE* pF) {
+    tS8 raw_byte;
+
+    PFfread(&raw_byte, sizeof(raw_byte), 1, pF);
+    return raw_byte;
 }
 
 // FUNCTION: CARMA2_HW 0x0048f910
@@ -121,6 +157,36 @@ void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber) {
 
     raw_byte = pNumber;
     PFfwrite(&raw_byte, sizeof(raw_byte), 1, pF);
+}
+
+// FUNCTION: CARMA2_HW 0x0048f980
+void C2_HOOK_FASTCALL WriteS32L(FILE* pF, tS32 pNumber) {
+    tS32 raw_long;
+
+    raw_long = pNumber;
+    PFfwrite(&raw_long, sizeof(raw_long), 1, pF);
+}
+
+// FUNCTION: CARMA2_HW 0x0048f9a0
+void C2_HOOK_FASTCALL WriteS16L(FILE* pF, tS16 pNumber) {
+    tS16 raw_short;
+
+    raw_short = pNumber;
+    PFfwrite(&raw_short, sizeof(raw_short), 1, pF);
+}
+
+// FUNCTION: CARMA2_HW 0x0048f9d0
+void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber) {
+    tS8 raw_byte;
+
+    raw_byte = pNumber;
+    PFfwrite(&raw_byte, sizeof(raw_byte), 1, pF);
+}
+
+// FUNCTION: CARMA2_HW 0x0048f9f0
+void C2_HOOK_FASTCALL SkipBytes(FILE* pF, int pBytes_to_skip) {
+
+    PFfseek(pF, pBytes_to_skip, SEEK_CUR);
 }
 
 // FUNCTION: CARMA2_HW 0x0048fa00
@@ -150,6 +216,15 @@ tU8 C2_HOOK_FASTCALL MemReadU8(char** pPtr) {
     memcpy(&raw_byte, *pPtr, sizeof(raw_byte));
     *pPtr += sizeof(raw_byte);
     return raw_byte;
+}
+
+// FUNCTION: CARMA2_HW 0x0048fa30
+tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr) {
+    tS32 raw_long;
+
+    memcpy(&raw_long, *pPtr, sizeof(raw_long));
+    *pPtr += sizeof(raw_long);
+    return raw_long;
 }
 
 // FUNCTION: CARMA2_HW 0x0048fa40
@@ -1029,9 +1104,40 @@ void C2_HOOK_FASTCALL DisposeRace(void) {
     PossibleService();
 }
 
-// DisposeGameIfNecessary
+// FUNCTION: CARMA2_HW 0x0044c130
+void C2_HOOK_FASTCALL DisposeGameIfNecessary(void) {
+    int i;
 
-// DisposeTrack
+    dr_dprintf("DisposeGameIfNecessary() - START");
+    if (gNet_mode != eNet_mode_none) {
+        NetLeaveGame(gCurrent_net_game);
+    }
+    dr_dprintf("DisposeGameIfNecessary() - Point 1");
+    if (gGame_initialized) {
+        gGame_initialized = 0;
+        dr_dprintf("DisposeGameIfNecessary() - Point 2");
+        if (gNet_mode_of_last_game != eNet_mode_none) {
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                DisposeCar(gNet_players[i].car, gNet_players[i].car_index);
+            }
+            dr_dprintf("DisposeGameIfNecessary() - Point 3");
+            PossibleService();
+            LoadRaces(gRace_list, &gNumber_of_races, -1);
+            DisposeStorageSpace(&gNet_cars_storage_space);
+            gNo_current_game = 1;
+            dr_dprintf("DisposeGameIfNecessary() - Point 4");
+        }
+        dr_dprintf("DisposeGameIfNecessary() - Point 5");
+    }
+    ShutdownNetIfRequired();
+    dr_dprintf("DisposeGameIfNecessary() - END");
+}
+
+// FUNCTION: CARMA2_HW 0x0044c220
+void C2_HOOK_FASTCALL DisposeTrack(void) {
+
+    FreeTrack(&gProgram_state.track_spec);
+}
 
 // FUNCTION: CARMA2_HW 0x004910d0
 int GetRegisterSourceLocation(char* pSource_location) {
@@ -1058,3 +1164,14 @@ int GetRegisterSourceLocation(char* pSource_location) {
     return 1;
 #endif
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00506c20
+void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

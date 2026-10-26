@@ -14,14 +14,26 @@ const char* gOil_pixie_names[1] = {
 // GLOBAL: CARMA2_HW 0x00690c88
 br_pixelmap* gOil_pixies[1];
 
-// GLOBAL: CARMA2_HW 0x00690c90
-tOil_spill_info gOily_spills[32];
-
 // GLOBAL: CARMA2_HW 0x0074a68c
 br_material* oily_material;
 
+/* explicit initializers keep gOily_spills and gNext_oil_pixie adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00690c90
+tOil_spill_info gOily_spills[32] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00691710
-int gNext_oil_pixie;
+int gNext_oil_pixie = 0;
+
+/* defined here (carpocalypse2 has it in opponent.c) so it directly follows gNext_oil_pixie (RemoveCarsOilSlicks loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00691714
+int gBig_bang = 0;
+
+/* unannotated filler for the opponent globals at 0x00691718..0x0069175f (defined in 30-opponent.c) so that
+   gMinimum_yness_before_knackerisation sits 0x50 bytes after the end of gOily_spills (GetOilFrictionFactors loop-end compare) */
+int gUNK_oil_opponent_gap[18] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00691760
+br_scalar gMinimum_yness_before_knackerisation = 0.f;
 
 // FUNCTION: CARMA2_HW 0x004a6a10
 void C2_HOOK_FASTCALL InitOilSpills(void) {
@@ -117,9 +129,17 @@ void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar) {
 
 // OKToSpillOil
 
-// MungeOilsHeightAboveGround
+/* MungeOilsHeightAboveGround: inlined into its callers in the original */
+static void C2_HOOK_FASTCALL MungeOilsHeightAboveGround(tOil_spill_info* pOil) {
 
-// MungeIndexedOilsHeightAboveGround
+    pOil->actor->t.t.translate.t = pOil->position;
+}
+
+// FUNCTION: CARMA2_HW 0x004a6e20
+void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
+
+    MungeOilsHeightAboveGround(&gOily_spills[pIndex]);
+}
 
 // FUNCTION: CARMA2_HW 0x004a7460
 void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel) {
@@ -155,8 +175,76 @@ void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scala
 }
 
 // PointInSpill
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a77d0
+int C2_HOOK_FASTCALL PointInSpill(br_vector3* pPoint, int pIndex) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// GetOilFrictionFactors
+// FUNCTION: CARMA2_HW 0x004a7530
+void C2_HOOK_FASTCALL GetOilFrictionFactors(tCar_spec* pCar, br_scalar* pFl, br_scalar* pFr, br_scalar* pRl, br_scalar* pRr) {
+    int i;
+    br_vector3 v;
+    br_scalar a, b, c, d;
+
+    *pFl = 1.f;
+    *pFr = 1.f;
+    *pRl = 1.f;
+    *pRr = 1.f;
+    if (pCar != NULL && (int)pCar->driver > 5) {
+        if (pCar->shadow_intersection_flags != 0) {
+            for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+                c = gOily_spills[i].field_0x48;
+                d = gOily_spills[i].field_0x4c;
+                if (d != 0.f && (pCar->shadow_intersection_flags & (1 << i))) {
+                    a = gOily_spills[i].field_0x40;
+                    b = gOily_spills[i].field_0x44;
+                    BrMatrix34ApplyP(&v, &pCar->wpos[2], &pCar->car_master_actor->t.t.mat);
+                    if (PointInSpill(&v, i)) {
+                        pCar->oil_remaining[2] = SRandomBetween(c, d);
+                        pCar->maybe_blood_remaining[2] = SRandomBetween(a, b);
+                        pCar->field_0x16fc[2] = (br_material*)gOily_spills[i].field_0x50;
+                    }
+                    BrMatrix34ApplyP(&v, &pCar->wpos[3], &pCar->car_master_actor->t.t.mat);
+                    if (PointInSpill(&v, i)) {
+                        pCar->oil_remaining[3] = SRandomBetween(c, d);
+                        pCar->maybe_blood_remaining[3] = SRandomBetween(a, b);
+                        pCar->field_0x16fc[3] = (br_material*)gOily_spills[i].field_0x50;
+                    }
+                    BrMatrix34ApplyP(&v, &pCar->wpos[0], &pCar->car_master_actor->t.t.mat);
+                    if (PointInSpill(&v, i)) {
+                        pCar->oil_remaining[0] = SRandomBetween(c, d);
+                        pCar->maybe_blood_remaining[0] = SRandomBetween(a, b);
+                        pCar->field_0x16fc[0] = (br_material*)gOily_spills[i].field_0x50;
+                    }
+                    BrMatrix34ApplyP(&v, &pCar->wpos[1], &pCar->car_master_actor->t.t.mat);
+                    if (PointInSpill(&v, i)) {
+                        pCar->oil_remaining[1] = SRandomBetween(c, d);
+                        pCar->maybe_blood_remaining[1] = SRandomBetween(a, b);
+                        pCar->field_0x16fc[1] = (br_material*)gOily_spills[i].field_0x50;
+                    }
+                }
+            }
+        }
+        if (pCar->oil_remaining[2] != 0.f) {
+            *pFl = pCar->maybe_blood_remaining[2];
+        }
+        if (pCar->oil_remaining[3] != 0.f) {
+            *pFr = pCar->maybe_blood_remaining[3];
+        }
+        if (pCar->oil_remaining[0] != 0.f) {
+            *pRl = pCar->maybe_blood_remaining[0];
+        }
+        if (pCar->oil_remaining[1] != 0.f) {
+            *pRr = pCar->maybe_blood_remaining[1];
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004a7860
 void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap) {
@@ -185,5 +273,15 @@ void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents) {
         oily_material, NULL);
 }
 
-// RemoveCarsOilSlicks
+// FUNCTION: CARMA2_HW 0x004a7940
+void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+        if (gOily_spills[i].car_actor != NULL && gOily_spills[i].car == pCar) {
+            gOily_spills[i].car = NULL;
+            gOily_spills[i].car_actor = NULL;
+        }
+    }
+}
 

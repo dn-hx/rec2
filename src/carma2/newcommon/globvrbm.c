@@ -16,8 +16,12 @@ br_actor* gStatbarHUD1_actor;
 // GLOBAL: CARMA2_HW 0x0074cab0
 br_actor* gHeadup2_actor;
 
+/* explicit initializers keep gMaterial and gHUDsquare_actor adjacent (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x0074cee8
+br_material* gMaterial[2] = { NULL, NULL };
+
 // GLOBAL: CARMA2_HW 0x0074cef0
-br_actor* gHUDsquare_actor;
+br_actor* gHUDsquare_actor = NULL;
 
 // GLOBAL: CARMA2_HW 0x0074cf0c
 br_actor* gMapHUD_actor;

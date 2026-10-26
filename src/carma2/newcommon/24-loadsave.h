@@ -7,13 +7,13 @@
 extern int gSave_game_out_of_sync;
 extern int gCount_saved_games;
 
-// Encryptificate
+extern void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount);
 
 // MakeSavedGame
 
 extern void C2_HOOK_FASTCALL DoSaveGame(void);
 
-// StartSavedGamesList
+extern int C2_HOOK_FASTCALL StartSavedGamesList(void);
 
 extern void C2_HOOK_FASTCALL EndSavedGamesList(void);
 
@@ -23,6 +23,6 @@ extern int C2_HOOK_FASTCALL DoLoadGame2(tSave_game* pSave_game);
 
 extern int C2_HOOK_FASTCALL DoLoadGame(int pIndex);
 
-// DoLoadMostRecentGame
+extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
 
 #endif // GUARD_24_LOADSAVE_H

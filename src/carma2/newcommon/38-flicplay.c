@@ -404,6 +404,79 @@ tFlic_spec gMain_flic_list[372] = {
     { "MAI2OPGL.FLI", 0, 0, 0, 0, 0, 0, },
 };
 
+/* defined directly after gMain_flic_list as in the original (loop-end compare); values read from the binary (first entry is 10).
+   Each bunch array is padded with zeros to a multiple of 8 bytes, as in the binary; the counts are the real entry counts. */
+// GLOBAL: CARMA2_HW 0x00599920
+int gFlic_bunch0[30] = {
+    10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 35, 26,
+    27, 36, 28, 29, 130, 131, 132, 42, 43, 135, 45, 0
+};
+// GLOBAL: CARMA2_HW 0x00599998
+int gFlic_bunch1[32] = {
+    140, 141, 42, 43, 144, 145, 146, 147, 45, 150, 151, 42, 43, 154, 155,
+    156, 160, 161, 42, 43, 154, 170, 171, 176, 177, 172, 180, 181, 42, 43, 154, 0
+};
+// GLOBAL: CARMA2_HW 0x00599a18
+int gFlic_bunch2[8] = {
+    70, 71, 72, 73, 74, 56, 57, 59
+};
+// GLOBAL: CARMA2_HW 0x00599a38
+int gFlic_bunch3[14] = {
+    40, 41, 42, 43, 44, 45, 50, 51, 73, 74, 56, 57, 59, 0
+};
+// GLOBAL: CARMA2_HW 0x00599a70
+int gFlic_bunch4[22] = {
+    80, 81, 82, 83, 84, 85, 42, 43, 88, 45, 110, 111, 42, 43, 45, 115,
+    116, 117, 118, 119, 120, 121
+};
+// GLOBAL: CARMA2_HW 0x00599ac8
+int gFlic_bunch5[6] = {
+    100, 101, 42, 43, 45, 0
+};
+// GLOBAL: CARMA2_HW 0x00599ae0
+int gFlic_bunch6[52] = {
+    190, 191, 192, 42, 43, 195, 200, 201, 210, 212, 213, 220, 221, 222,
+    220, 221, 225, 230, 231, 42, 43, 154, 45, 220, 221, 222, 220, 221,
+    225, 250, 251, 42, 43, 254, 255, 256, 154, 42, 43, 260, 220, 221,
+    222, 220, 221, 225, 280, 281, 42, 43, 284, 0
+};
+// GLOBAL: CARMA2_HW 0x00599bb0
+int gFlic_bunch7[8] = {
+    130, 131, 132, 42, 43, 135, 45, 0
+};
+// GLOBAL: CARMA2_HW 0x00599bd0
+int gFlic_bunch8[16] = {
+    290, 291, 292, 293, 294, 295, 296, 297, 42, 43, 154, 301, 42, 43, 304, 305
+};
+
+// GLOBAL: CARMA2_HW 0x00599c10
+tFlic_bunch gFlic_bunch[9] = {
+    { 29, gFlic_bunch0 },
+    { 31, gFlic_bunch1 },
+    { 8, gFlic_bunch2 },
+    { 13, gFlic_bunch3 },
+    { 22, gFlic_bunch4 },
+    { 5, gFlic_bunch5 },
+    { 51, gFlic_bunch6 },
+    { 7, gFlic_bunch7 },
+    { 16, gFlic_bunch8 },
+};
+
+// GLOBAL: CARMA2_HW 0x00686320
+br_pixelmap* gPanel_buffer[2];
+
+// GLOBAL: CARMA2_HW 0x00686218
+tFlic_descriptor gPanel_flic[2];
+
+// GLOBAL: CARMA2_HW 0x006861f0
+int gPanel_flic_left[2];
+
+// GLOBAL: CARMA2_HW 0x00686200
+int gPanel_flic_top[2];
+
+// GLOBAL: CARMA2_HW 0x00686330
+char gLast_flic_name[14];
+
 // FUNCTION: CARMA2_HW 0x00461990
 int C2_HOOK_FASTCALL TranslationMode(void) {
 
@@ -450,6 +523,12 @@ void C2_HOOK_FASTCALL TurnOnPanelFlics(void) {
     gPanel_flic_disable = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00461a40
+int C2_HOOK_FASTCALL GetPanelFlicFrameIndex(int pIndex) {
+
+    return gPanel_flic[pIndex].current_frame;
+}
+
 // FUNCTION: CARMA2_HW 0x00461a60
 void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
 
@@ -457,9 +536,112 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
     gPalette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gPalette_pixels, 0);
 }
 
-// AssertFlicPixelmap
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// StartFlic
+// STUB: CARMA2_HW 0x00461aa0
+void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00461ad0
+int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate) {
+    tU16 claimed_speed;
+    tU16 magic_number;
+    tPath_name the_path;
+    int total_size;
+
+    if (gPlay_from_disk) {
+        PathCat(the_path, gApplication_path, "ANIM");
+        PathCat(the_path, the_path, pFile_name);
+        pFlic_info->f = DRfopen(the_path, "rb");
+
+        if (pFlic_info->f == NULL) {
+            FatalError(kFatalError_CouldNotOpenFlicFile_S, pFile_name);
+        }
+        total_size = GetFileLength(pFlic_info->f);
+        if (total_size < 75000) {
+            pFlic_info->bytes_in_buffer = total_size;
+        } else {
+            pFlic_info->bytes_in_buffer = 75000;
+        }
+        if (pFlic_info->data_start == NULL) {
+            pFlic_info->data_start = BrMemAllocate(pFlic_info->bytes_in_buffer, kMem_misc);
+        }
+
+        pFlic_info->data = pFlic_info->data_start;
+        PFfread(pFlic_info->data_start, 1, pFlic_info->bytes_in_buffer, pFlic_info->f);
+        strcpy(gLast_flic_name, pFile_name);
+        pFlic_info->bytes_still_to_be_read = total_size - pFlic_info->bytes_in_buffer;
+    } else {
+        pFlic_info->data = (char*)pData_ptr;
+        pFlic_info->f = NULL;
+    }
+    pFlic_info->bytes_remaining = MemReadU32(&pFlic_info->data);
+    magic_number = MemReadU16(&pFlic_info->data);
+    if (magic_number == 0xaf11) {
+        pFlic_info->new_format = 0;
+    } else if (magic_number == 0xaf12) {
+        pFlic_info->new_format = 1;
+    } else {
+        return -1;
+    }
+
+    pFlic_info->frames_left = MemReadU16(&pFlic_info->data);
+    pFlic_info->current_frame = 0;
+    pFlic_info->width = MemReadU16(&pFlic_info->data);
+    pFlic_info->height = MemReadU16(&pFlic_info->data);
+    if (MemReadU16(&pFlic_info->data) != 8) {
+        FatalError(kFatalError_FlicFileWasNot8BitsDeep_S, gLast_flic_name);
+    }
+    MemSkipBytes(&pFlic_info->data, 2);
+    claimed_speed = MemReadU16(&pFlic_info->data);
+    MemSkipBytes(&pFlic_info->data, 0x6e);
+    pFlic_info->the_pixelmap = pDest_pixelmap;
+
+    if (pX_offset == -1) {
+        if (pDest_pixelmap != NULL) {
+            pFlic_info->x_offset = (pDest_pixelmap->width - pFlic_info->width) / 2;
+        } else {
+            pFlic_info->x_offset = 0;
+        }
+    } else {
+        pFlic_info->x_offset = pX_offset;
+    }
+    if (pY_offset == -1) {
+        if (pDest_pixelmap != NULL) {
+            pFlic_info->y_offset = (pDest_pixelmap->height - pFlic_info->height) / 2;
+        } else {
+            pFlic_info->y_offset = 0;
+        }
+    } else {
+        pFlic_info->y_offset = pY_offset;
+    }
+
+    if (pFrame_rate != 0) {
+        pFlic_info->frame_period = 1000 / pFrame_rate;
+    } else {
+        if (claimed_speed == 0) {
+            FatalError(kFatalError_CouldNotAscertainFrameRateForFlicFile, gLast_flic_name);
+        } else if (pFlic_info->new_format != 0) {
+            pFlic_info->frame_period = claimed_speed;
+        } else {
+            pFlic_info->frame_period = 14 * claimed_speed;
+        }
+    }
+    pFlic_info->the_index = pIndex;
+    if (pDest_pixelmap != NULL) {
+        pFlic_info->first_pixel = (tU8*)pDest_pixelmap->pixels + pFlic_info->x_offset + pFlic_info->y_offset * pDest_pixelmap->row_bytes;
+    }
+    pFlic_info->the_pixelmap = pDest_pixelmap;
+    return 0;
+}
+
 
 // FUNCTION: CARMA2_HW 0x00461d60
 int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info) {
@@ -560,9 +742,67 @@ void C2_HOOK_FASTCALL DoBlack(tFlic_descriptor* pFlic_info, tU32 pChunk_length) 
     }
 }
 
-// DoRunLengthTrans
+// FUNCTION: CARMA2_HW 0x004626a0
+void C2_HOOK_FASTCALL DoRunLengthTrans(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
+    int i;
+    int j;
+    int k;
+    int number_of_packets;
+    int size_count;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU32 the_row_bytes;
 
-// DoUncompressed
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel;
+
+    for (i = 0; i < pFlic_info->height; i++) {
+        line_pixel_ptr = pixel_ptr;
+        number_of_packets = MemReadU8(&pFlic_info->data);
+        for (j = 0; j < number_of_packets; j++) {
+            size_count = MemReadS8(&pFlic_info->data);
+            if (size_count < 0) {
+                for (k = 0; k < -size_count; k++) {
+                    the_byte = MemReadU8(&pFlic_info->data);
+                    if (the_byte) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    } else {
+                        line_pixel_ptr++;
+                    }
+                }
+            } else {
+                the_byte = MemReadU8(&pFlic_info->data);
+                if (the_byte) {
+                    for (k = 0; k < size_count; k++) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    }
+                } else {
+                    line_pixel_ptr += size_count;
+                }
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+// FUNCTION: CARMA2_HW 0x00462780
+void C2_HOOK_FASTCALL DoUncompressed(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
+    int i = 0;
+    int the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    int width_dwords = pFlic_info->width >> 2;
+    tU8* pixel_ptr = pFlic_info->first_pixel;
+    int j;
+
+    for (i = 0; i < pFlic_info->height; i++) {
+        tU32* dest = (tU32*)pixel_ptr;
+        for (j = 0; j < width_dwords; j++) {
+            *dest++ = MemReadU32(&pFlic_info->data);
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
 
 // DoUncompressedTrans
 
@@ -592,11 +832,28 @@ void C2_HOOK_FASTCALL InitFlics(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00462930
+int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00462a60
 int C2_HOOK_FASTCALL LoadFlic(int pIndex) {
 
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00462a70
 void C2_HOOK_FASTCALL UnlockFlic(int pIndex) {
@@ -637,6 +894,38 @@ int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length) 
     }
     return 1;
 }
+// FUNCTION: CARMA2_HW 0x00462bb0
+void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY) {
+
+    LoadFlic(pIndex);
+    PlayFlic(pIndex, gMain_flic_list[pIndex].the_size, gMain_flic_list[pIndex].data_ptr, gBack_screen, pX, pY, SwapScreen, 0, 0);
+    UnlockFlic(pIndex);
+}
+
+// FUNCTION: CARMA2_HW 0x00462c10
+void C2_HOOK_FASTCALL SwapScreen(void) {
+
+    PDScreenBufferSwap(0);
+}
+
+// FUNCTION: CARMA2_HW 0x00462c20
+void C2_HOOK_FASTCALL RunFlic(int pIndex) {
+
+}
+
+// FUNCTION: CARMA2_HW 0x00462c30
+void C2_HOOK_FASTCALL PreloadBunchOfFlics(int pBunch_index) {
+
+}
+
+// FUNCTION: CARMA2_HW 0x00462c40
+void C2_HOOK_FASTCALL UnlockBunchOfFlics(int pBunch_index) {
+    int i;
+
+    for (i = 0; i < gFlic_bunch[pBunch_index].count; i++) {
+        UnlockFlic(gFlic_bunch[pBunch_index].indexes[i]);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00462b80
 // FUNCTION: CARMA2_SW 0x00462610
@@ -653,6 +942,16 @@ void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
 void C2_HOOK_FASTCALL InitFlicQueue(void) {
 
     gFirst_flic = NULL;
+}
+
+
+// FUNCTION: CARMA2_HW 0x00462c90
+void C2_HOOK_FASTCALL FlushAllFlics(int pBunch_index) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gMain_flic_list); i++) {
+        FreeFlic(i);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00462cd0
@@ -712,6 +1011,39 @@ void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval) {
 // STUB: CARMA2_HW 0x00462dc0
 void C2_HOOK_FASTCALL FlushFlicQueue(void) {
     NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x00463020
+void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
+    void* the_pixels;
+
+    gPanel_flic[pIndex].data = NULL;
+    gPanel_flic_left[pIndex] = pLeft;
+    gPanel_flic_top[pIndex] = pTop;
+    the_pixels = BrMemAllocate(pHeight * ((pWidth + 3) & ~3), kMem_misc);
+    if (gScreen->row_bytes < 0) {
+        BrFatal(
+                "C:\\Carma2\\Source\\Common\\Flicplay.c",
+                2082,
+                "Bruce bug at line %d, file C:\\Carma2\\Source\\Common\\Flicplay.c",
+                2082);
+    }
+    gPanel_buffer[pIndex] = DRPixelmapAllocate(BR_PMT_INDEX_8, pWidth, pHeight, the_pixels, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x004630b0
+void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex) {
+
+    EndFlic(&gPanel_flic[pIndex]);
+    BrMemFree(gPanel_buffer[pIndex]->pixels);
+    BrPixelmapFree(gPanel_buffer[pIndex]);
+    gPanel_buffer[pIndex] = NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x00463330
+br_pixelmap* C2_HOOK_FASTCALL GetPanelPixelmap(int pIndex) {
+
+    return gPanel_buffer[pIndex];
 }
 
 // FUNCTION: CARMA2_HW 0x00463340

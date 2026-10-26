@@ -104,8 +104,12 @@ tS3_outlet* gMusic_outlet;
 // GLOBAL: CARMA2_HW 0x00684614
 tS3_outlet* gXXX_outlet;
 
+/* 7 entries: GetIndexFromOutlet scans up to 0x0079e17c (= gEnvironmental_sound_sources_buffer_index); initialized to keep them adjacent */
 // GLOBAL: CARMA2_HW 0x0079e160
-tS3_outlet* gIndexed_outlets[6];
+tS3_outlet* gIndexed_outlets[7] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0079e17c
+int gEnvironmental_sound_sources_buffer_index = 0;
 
 // GLOBAL: CARMA2_HW 0x00595c38
 const char* gSound_generator_type_names[3] = {
@@ -138,8 +142,6 @@ tU32 gNext_sound_generator_munging;
 // GLOBAL: CARMA2_HW 0x0079e18c
 int gCount_environmental_sound_sources;
 
-// GLOBAL: CARMA2_HW 0x0079e17c
-int gEnvironmental_sound_sources_buffer_index;
 
 // FUNCTION: CARMA2_HW 0x00500060
 void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
@@ -394,6 +396,15 @@ int C2_HOOK_FASTCALL DRS3SetOutletVolume(tS3_outlet* pOutlet, int pVolume) {
 
     if (gSound_enabled) {
         return S3SetOutletVolume(pOutlet, pVolume);
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00455950
+int C2_HOOK_FASTCALL DRS3SetVolume(int pVolume) {
+
+    if (gSound_enabled) {
+        return S3SetVolume(pVolume);
     }
     return 0;
 }

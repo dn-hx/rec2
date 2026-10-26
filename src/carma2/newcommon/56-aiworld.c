@@ -4,6 +4,23 @@
 #include "10-loading2.h"
 #include "18-graphics2.h"
 #include "57-drone.h"
+#include "08-loading1.h"
+#include "globvars.h"
+#include "41-utility.h"
+#include "platform.h"
+#include "30-opponent.h"
+
+// GLOBAL: CARMA2_HW 0x0058f038
+int gFirst_drone_processing = 1;
+
+// GLOBAL: CARMA2_HW 0x0079efc4
+tU32 gFrame_period_for_this_munging;
+
+// GLOBAL: CARMA2_HW 0x0079efc0
+float gDrone_delta_time;
+
+// GLOBAL: CARMA2_HW 0x0079efbc
+float gTrack_drone_min_y;
 
 // MakeVertexAndOffsetIt
 
@@ -28,16 +45,58 @@ void C2_HOOK_FASTCALL InitPanGameAIWorld(void) {
     PrintMemoryDump(0, "AFTER LoadPanGameDroneInfo()");
 }
 
-// LoadAIWorldTrackInfo
+extern void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF);
+extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
 
-// LoadAIWorldForRace
+// FUNCTION: CARMA2_HW 0x00401030
+void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF) {
 
-// InitialiseAIWorldForRace
+    PrintMemoryDump(0, "BEFORE LoadInOppoPaths()");
+    LoadInOppoPaths(pF);
+    PrintMemoryDump(0, "AFTER LoadInOppoPaths(), BEFORE LoadInDronePaths()");
+    LoadInDronePaths(pF);
+    PrintMemoryDump(0, "AFTER LoadInDronePaths()");
+}
 
-// STUB: CARMA2_HW 0x00401160
+// FUNCTION: CARMA2_HW 0x00401070
+void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info) {
+
+    PrintMemoryDump(0,"BEFORE LoadOpponentsCars()");
+    LoadOpponentsCars(pRace_info);
+    LoadCopCars(pRace_info);
+    PrintMemoryDump(0,"AFTER LoadOpponentsCars(), BEFORE LoadPerRaceDroneStuff()");
+    LoadPerRaceDroneStuff();
+    PrintMemoryDump(0,"AFTER LoadPerRaceDroneStuff()");
+}
+
+// FUNCTION: CARMA2_HW 0x004010b0
+void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info) {
+    br_bounds3 track_bounds;
+
+    gFirst_drone_processing = 1;
+    gTime_stamp_for_this_munging = GetTotalTime();
+    if (gTime_stamp_for_this_munging == 0) {
+        gTime_stamp_for_this_munging = PDGetTotalTime();
+    }
+    gFrame_period_for_this_munging = 100;
+    gDrone_delta_time = 0.1f;
+    BrActorToBounds(&track_bounds, gTrack_actor);
+    if (track_bounds.min.v[1] < track_bounds.max.v[1]) {
+        gTrack_drone_min_y = track_bounds.min.v[1];
+    } else {
+        gTrack_drone_min_y = track_bounds.max.v[1];
+    }
+    PrintMemoryDump(0, "BEFORE InitOpponents()");
+    InitOpponents(pRace_info);
+    PrintMemoryDump(0, "AFTER InitOpponents(), BEFORE InitDrones()");
+    InitDrones(pRace_info);
+    PrintMemoryDump(0, "AFTER InitDrones()");
+}
+
+// FUNCTION: CARMA2_HW 0x00401160
 void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
-
-    NOT_IMPLEMENTED();
+    DisposeOpponents();
+    DisposeDronesRaceStuff();
 }
 
 // MungeAIWorld
@@ -77,3 +136,53 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0044f700
+void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004add50
+void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0044fc10
+void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0044fda0
+void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

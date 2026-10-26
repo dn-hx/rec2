@@ -2,8 +2,6 @@
 
 #include "08-loading1.h"
 
-// DoNotDprintf
-
 // StraightestArcForCorner2D
 
 // CornerFudge

@@ -4,6 +4,7 @@
 #include "41-utility.h"
 #include "globvars.h"
 #include "platform.h"
+#include "15-displays.h"
 
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
@@ -35,10 +36,16 @@ typedef struct tJoystick_preference_node {
     struct tJoystick_preference_node* next;
 } tJoystick_preference_node;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045a0f0
 int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045a300
 // FUNCTION: CARMA2_SW 0x0045a090
@@ -384,6 +391,9 @@ void C2_HOOK_FASTCALL RestoreJoystickPreferences(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c460
 int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     tButtonJoystickInfo* info;
@@ -396,7 +406,49 @@ int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     }
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+// FUNCTION: CARMA2_HW 0x0045c490
+void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue) {
+
+    tButtonJoystickInfo* joystick;
+
+    joystick = PDGetCurrentJoystickData();
+    if (joystick != NULL) {
+        joystick->field_0xd8 = pValue;
+        if (joystick->field_0xd8 > 2.0) {
+            joystick->field_0xd8 = 2.0f;
+        }
+        if (joystick->field_0xd8 < 0.0) {
+            joystick->field_0xd8 = 0.0f;
+        }
+        gJoystick_x_steering = joystick->field_0xd8;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0045c4f0
+void C2_HOOK_FASTCALL SetJoystickYAxis(float pValue) {
+
+    tButtonJoystickInfo* joystick;
+
+    joystick = PDGetCurrentJoystickData();
+    if (joystick != NULL) {
+        joystick->field_0xdc = pValue;
+        if (joystick->field_0xdc > 2.0) {
+            joystick->field_0xdc = 2.0f;
+        }
+        if (joystick->field_0xdc < 0.0) {
+            joystick->field_0xdc = 0.0f;
+        }
+        gJoystick_y_throttle = joystick->field_0xdc;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c570
 void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     tButtonJoystickInfo* info;
@@ -406,7 +458,13 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
         info->field_0xe0 = pEnabled;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c780
 int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
 
@@ -417,6 +475,9 @@ int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
     PDSetJoystickFFBGain(gINT_00596310);
     return gINT_00596310;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045c7b0
 void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue) {
@@ -501,4 +562,52 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
         return info->field_0xdc;
     }
     return gJoystick_y_throttle;
+}
+
+// FUNCTION: CARMA2_HW 0x00511280
+void C2_HOOK_FASTCALL ToggleJoystickYAxis(void) {
+    char buffer[256];
+
+    if (ToggleJoystickThrottle()) {
+        sprintf(buffer, "Y Axis Enabled");
+    } else {
+        sprintf(buffer, "Y Axis Disabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x005112d0
+void C2_HOOK_FASTCALL ToggleJoystickEnable(void) {
+    char buffer[256];
+
+    if (HasCurrentJoystick()) {
+        PDDisableJoysticks();
+        sprintf(buffer, "Joystick Disabled");
+    } else {
+        PDEnableJoysticks();
+        sprintf(buffer, "Joystick Enabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x00511330
+void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
+    char buffer[256];
+
+    if (PDIsJoystickDPadEnabled()) {
+        SetJoystickDPadEnabled(0);
+        sprintf(buffer, "D-Pad Mode Disabled");
+    } else {
+        SetJoystickDPadEnabled(1);
+        sprintf(buffer, "D-Pad Mode Enabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x00511390
+void C2_HOOK_FASTCALL IncreaseJoystickFFB(void) {
+    char buffer[256];
+
+    sprintf(buffer, "FFB Gain Set to %d%%", CycleJoystickFFBGain());
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
 }

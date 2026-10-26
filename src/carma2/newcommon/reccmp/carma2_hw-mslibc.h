@@ -213,6 +213,9 @@
 // GLOBAL: CARMA2_HW 0x0058f010
 // ___xi_z
 
+// LIBRARY: CARMA2_HW 0x00576bca
+// __CIfmod
+
 // LIBRARY: CARMA2_HW 0x00576860
 // _tolower
 
@@ -256,7 +259,7 @@
 // _fclose
 
 // LIBRARY: CARMA2_HW 0x00578690
-// clearerr
+// _clearerr
 
 // LIBRARY: CARMA2_HW 0x00577700
 // _fflush
@@ -373,10 +376,10 @@
 // _strtoul
 
 // LIBRARY: CARMA2_HW 0x00577aa0
-// atoi
+// _atoi
 
 // LIBRARY: CARMA2_HW 0x005779a0
-// atof
+// _atof
 
 // LIBRARY: CARMA2_HW 0x00587d00
 // __fstat

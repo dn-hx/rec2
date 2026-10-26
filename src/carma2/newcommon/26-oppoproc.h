@@ -3,7 +3,7 @@
 
 #include "rec2_types.h"
 
-// DoNotDprintf
+extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
 // StraightestArcForCorner2D
 

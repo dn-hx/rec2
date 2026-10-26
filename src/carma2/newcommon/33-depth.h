@@ -32,7 +32,7 @@ extern void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel);
 
 // CreateHorizonModel
 
-// LoadDepthTable
+extern void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower);
 
 extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
@@ -61,9 +61,7 @@ extern void C2_HOOK_FASTCALL ReduceDepthStart(void);
 extern void C2_HOOK_FASTCALL AssertYons(void);
 
 extern void C2_HOOK_FASTCALL IncreaseYon(void);
-
-// DecreaseYon
-
+extern void C2_HOOK_FASTCALL DecreaseYon(void);
 extern void C2_HOOK_STDCALL SetYon(br_scalar pYon);
 
 extern br_scalar C2_HOOK_STDCALL GetYon(void);
@@ -76,16 +74,14 @@ extern void C2_HOOK_FASTCALL SetSkyTextureOn(int skyTextureOn);
 
 extern void C2_HOOK_FASTCALL ToggleSkyQuietly(void);
 
-// ToggleSky
-
+extern void C2_HOOK_FASTCALL ToggleSky(void);
 extern int C2_HOOK_FASTCALL GetDepthCueingOn(void);
 
 extern void C2_HOOK_FASTCALL SetDepthCueingOn(int pOn);
 
 extern void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void);
 
-// ToggleDepthCueing
-
+extern void C2_HOOK_FASTCALL ToggleDepthCueing(void);
 extern void C2_HOOK_FASTCALL ChangeDepthEffect(void);
 
 extern void C2_HOOK_FASTCALL MungeForwardSky(void);
@@ -95,5 +91,9 @@ extern void C2_HOOK_FASTCALL MungeRearviewSky(void);
 extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
 
 extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
+
+extern tDepth_effect_type gSwap_depth_effect_type;
+
+extern br_pixelmap* gSwap_sky_texture;
 
 #endif // GUARD_33_DEPTH_H

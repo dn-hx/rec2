@@ -4,10 +4,13 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern tRace_over_reason gRace_over_reason;
 extern int gHud_tinted1;
 extern int gHud_tinted2;
 extern int gHud_tinted3;
 extern int gCredits_checkpoint[3];
+extern int gLast_wrong_checkpoint;
+extern tU32 gLast_checkpoint_time;
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
@@ -21,8 +24,7 @@ extern void C2_HOOK_FASTCALL IncrementLap(void);
 
 // RayHitFace
 
-// WrongCheckpoint
-
+extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
 // CheckCheckpoints
 
 extern void C2_HOOK_FASTCALL TotalRepair(void);

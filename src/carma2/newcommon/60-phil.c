@@ -1,4 +1,6 @@
 #include "60-phil.h"
+#include "04-netgame.h"
+#include "rec2_macros.h"
 
 #include "55-volume.h"
 
@@ -8,7 +10,34 @@ int gPHIL_disabled = 1;
 // GLOBAL: CARMA2_HW 0x0074a5f0
 tPhysics_object* gPHIL_list_collision_infos;
 
-// ScalarToFraction
+// GLOBAL: CARMA2_HW 0x0074a5f8
+int gCrush_deferred;
+
+// GLOBAL: CARMA2_HW 0x006923e0
+int gPHIL_count_list_collision_infos;
+
+// GLOBAL: CARMA2_HW 0x0074a5e4
+int gPHIL_mechanics_time_sync;
+
+// GLOBAL: CARMA2_HW 0x0074a5e8
+int gPHIL_munging_objects;
+
+// GLOBAL: CARMA2_HW 0x006923e4
+int gPHIL_object_added;
+
+/* explicit initializers keep gPhil_queued_objects and the following globals adjacent, in address order (PHILInit loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006923f0
+tPHIL_queued_objects gPhil_queued_objects = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00692db8
+tWorld_callback_active_passive_cbfn* gPHIL_original_activate_passive = NULL;
+
+// GLOBAL: CARMA2_HW 0x00692dbc
+int gPHIL_count_queued_objects_for_removal = 0;
+
+// GLOBAL: CARMA2_HW 0x00692dc0
+int gPHIL_count_queued_objects = 0;
+
 
 // FractionToScalar
 
@@ -85,6 +114,18 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x0049c5e0
+int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax) {
+
+    if (pVal > pMax) {
+        pVal = pMax;
+    }
+    if (pVal < pMin) {
+        pVal = pMin;
+    }
+    return (int)((pVal - pMin) / (pMax - pMin) * 65534.f - 0.5f);
+}
+
 // GetVelocityAndPosition
 
 // SizeOfObjectNetworkStuff
@@ -125,20 +166,78 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 
 // WriteHierarchyNetworkStuff
 
-// GetHierarchyNetworkSize
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
+
+// The original inlines the joint size switch (no separate call), so keep it static.
+static int SizeOfObjectNetworkStuff(tPhysics_joint_type pType) {
+    switch (pType & 0xf) {
+    case eJoint_none:
+        return 0x28;
+    case eJoint_hinge:
+    case eJoint_quick_hinge:
+        return 0xc;
+    case eJoint_universal:
+    case eJoint_ball_n_socket:
+        return 0x10;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0049ce60
+int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject) {
+    int size;
+    tPhysics_object* child;
+
+    size = SizeOfObjectNetworkStuff(pObject->physics_joint1 != NULL ? pObject->physics_joint1->type : eJoint_none);
+    for (child = pObject->child; child != NULL; child = child->next) {
+        size += GetHierarchyNetworkSize(child);
+    }
+    return size;
+}
 
 // GetNetworkDataSize
 
 // GetSingleMatrixFromNetworkData
 
-// PHILInit
+// FUNCTION: CARMA2_HW 0x004b5cc0
+int C2_HOOK_FASTCALL PHILInit(void) {
+    int i;
+
+    C2_HOOK_BUG_ON(sizeof(gPhil_queued_objects.headers[0]) != 0x18);
+
+    for (i = 0; i < (int)REC2_ASIZE(gPhil_queued_objects.headers); i++) {
+        gPhil_queued_objects.headers[i].collision_info = NULL;
+    }
+    gPHIL_count_list_collision_infos = 0;
+    gPHIL_count_queued_objects = 0;
+    gPHIL_count_queued_objects_for_removal = 0;
+    gPHIL_list_collision_infos = NULL;
+    gPHIL_munging_objects = 0;
+    gCrush_deferred = 0;
+    gPHIL_object_added = 0;
+    gPHIL_last_physics_tick = 0;
+    gPHIL_mechanics_time_sync = 1;
+    gPHIL_disabled = 0;
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x004b5d20
 void C2_HOOK_FASTCALL PHILDisable(void) {
     gPHIL_disabled = 1;
 }
 
-// PHILAddObject
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b5d40
+int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // STUB: CARMA2_HW 0x004b5ea0
 int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject) {
@@ -165,8 +264,21 @@ tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pObject) {
         return pObject->next;
     }
 }
+// FUNCTION: CARMA2_HW 0x004b6010
+tU32 C2_HOOK_FASTCALL PHILReturnObjectStatus(tPhysics_object* pObject) {
+    tCollision_info_owner* owner;
 
-// PHILReturnObjectStatus
+    if (!gPHIL_disabled) {
+        if (pObject->field_0x239 == 2) {
+            return ((tCollision_info_owner*)pObject->field_0x240)->field_0x08;
+        }
+        owner = pObject->field_0x240;
+        if (owner != NULL) {
+            return owner->field_0x08;
+        }
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x004b6040
 // FUNCTION: CARMA2_SW 0x004b2760
@@ -266,15 +378,124 @@ int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject, const
     }
 }
 
-// PHILAddActiveObject
+/* the body after the gPHIL_disabled test; inlined (its edi save appears after that test in the original); name invented */
+static int C2_HOOK_FASTCALL PHILAddActiveObjectInner(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    int result;
 
-// PHILAddObjectImmediately
+    result = PHILAddObject(pInfo);
+    if (result != 0) {
+        return result;
+    }
+    if (pMatrix != NULL && !gPHIL_disabled) {
+        if (pInfo->field_0x239 == 2) {
+            tQueued_object_info* object_info = pInfo->field_0x240;
+            object_info->field_0x30 = *pMatrix;
+            object_info->flags |= 0x4;
+        } else {
+            tQueued_object_info* object_info = pInfo->field_0x240;
+            if (object_info != NULL) {
+                if (object_info->field_0x8 != 1) {
+                    return 4;
+                }
+                object_info->object->actor->t.t.mat = *pMatrix;
+            } else {
+                return 3;
+            }
+        }
+    }
+    return PHILMakeObjectActive(pInfo, pArg3, pArg4, 0);
+}
 
-// PHILAddActiveObjectImmediately
 
 // PHILSetObjectProperty
 
-// PHILGetObjectProperty
+
+// FUNCTION: CARMA2_HW 0x004b6530
+float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam) {
+    tCollision_info_owner* owner;
+
+    if (!gPHIL_disabled) {
+        owner = (tCollision_info_owner*)(pCollision_info->field_0x239 == 2 ? pCollision_info->field_0x240 : pCollision_info->field_0x240);
+        if (owner != NULL) {
+            if (pParam >= 0 && pParam < 9) {
+                switch (pParam) {
+                case 0:
+                    return owner->field_0x10;
+                case 1:
+                    return (float)!!(owner->field_0x04 & 0x1);
+                case 2:
+                    return owner->field_0x0c;
+                case 3:
+                    return (float)!!(pCollision_info->flags & 0x40);
+                case 4:
+                    return (float)!!(pCollision_info->flags & 0x8);
+                case 5:
+                    return (float)!!(pCollision_info->flags & 0x10);
+                case 6:
+                    return (float)!!(owner->field_0x04 & 0x4);
+                case 7:
+                    return (float)!!(owner->field_0x04 & 0x8);
+                case 8:
+                    return owner->field_0x14;
+                }
+            } else {
+                return 5.f;
+            }
+        }
+    }
+    return 0.f;
+}
+
+// FUNCTION: CARMA2_HW 0x004b6210
+int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    return PHILAddActiveObjectInner(pInfo, pMatrix, pArg3, pArg4);
+}
+
+// FUNCTION: CARMA2_HW 0x004b62b0
+int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddObject(pObject);
+    gPHIL_object_added = 0;
+    return result;
+}
+
+
+// FUNCTION: CARMA2_HW 0x004b62e0
+int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddActiveObject(pInfo, pMatrix, pArg3, pArg4);
+    gPHIL_object_added = 0;
+    return result;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b63b0
+int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FlushQueuedAddsAndRemoves
 

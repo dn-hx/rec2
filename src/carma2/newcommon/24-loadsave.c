@@ -5,6 +5,11 @@
 #include "rec2_types.h"
 
 #include "c2_string.h"
+#include "08-loading1.h"
+#include "platform.h"
+#include "70-packfile.h"
+#include "41-utility.h"
+#include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x0068b8ec
 int gSave_game_out_of_sync;
@@ -15,7 +20,14 @@ tSave_game* gSaved_games;
 // GLOBAL: CARMA2_HW 0x0068c728
 int gCount_saved_games;
 
-// Encryptificate
+/* No FUNCTION annotation: the original 0x00500090 is an unrelated function; Encryptificate is inlined into its callers. */
+void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount) {
+    size_t size;
+
+    C2_HOOK_BUG_ON(sizeof(tSave_game) != 0x328);
+    size = pCount * sizeof(tSave_game);
+    SplungeSomeData(pSave_games, size);
+}
 
 // MakeSavedGame
 
@@ -24,7 +36,32 @@ void C2_HOOK_FASTCALL DoSaveGame(void) {
     NOT_IMPLEMENTED();
 }
 
-// StartSavedGamesList
+// FUNCTION: CARMA2_HW 0x00491bb0
+int C2_HOOK_FASTCALL StartSavedGamesList(void) {
+    tPath_name path;
+    FILE* f;
+    int filesize;
+
+    C2_HOOK_BUG_ON(sizeof(tSave_game) != 0x328);
+
+    if (gSaved_games != NULL) {
+        PDFatalError("Saved games list already started");
+    }
+    PathCat(path, gApplication_path, "SAVEDGAMES.ARS");
+    f = DRfopen(path, "rb");
+    if (f != NULL) {
+        PFfseek(f, 0, SEEK_END);
+        filesize = PFftell(f);
+        PFrewind(f);
+        gCount_saved_games = filesize / sizeof(tSave_game);
+        gSaved_games = BrMemAllocate(filesize, kMem_misc);
+        PFfread(gSaved_games, 1, filesize, f);
+        Encryptificate(gSaved_games, gCount_saved_games);
+        PFfclose(f);
+        return gCount_saved_games;
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00491c90
 void C2_HOOK_FASTCALL EndSavedGamesList(void) {
@@ -85,5 +122,12 @@ int C2_HOOK_FASTCALL DoLoadGame(int pIndex) {
     return 0;
 }
 
-// DoLoadMostRecentGame
+// FUNCTION: CARMA2_HW 0x00491e50
+void C2_HOOK_FASTCALL DoLoadMostRecentGame(void) {
+
+    if (StartSavedGamesList()) {
+        DoLoadGame(0);
+        EndSavedGamesList();
+    }
+}
 

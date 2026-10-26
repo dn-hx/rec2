@@ -98,7 +98,10 @@ void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX,
 
 // ExtractColumns
 
-// RenderTrack
+// STUB: CARMA2_HW 0x0040d7c0
+void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0040dfe0
 br_scalar C2_HOOK_STDCALL GetYonFactor(void) {

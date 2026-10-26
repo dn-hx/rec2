@@ -47,7 +47,16 @@ int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* ap, br_vector3* pPosition, br_vect
 
 // DRSceneRayPick2D
 
-// DRModelPick2D
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045cf60
+int C2_HOOK_FASTCALL DRModelPick2D(br_model* model, br_material* material, br_actor* actor, br_vector3* ray_pos, br_vector3* ray_dir, br_scalar t_near, br_scalar t_far, dr_modelpick2d_cbfn* callback, void* arg) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045d570
 int C2_HOOK_CDECL FindHighestPolyCallBack(br_model* pModel, br_actor* pActor, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, float pT, int pF, int pE, int pV, br_vector3* pPoint, br_vector2* pMap, void* pData) {
@@ -62,9 +71,11 @@ int C2_HOOK_CDECL FindHighestPolyCallBack(br_model* pModel, br_actor* pActor, br
     return 0;
 }
 
-// STUB: CARMA2_HW 0x0045cf20
+// FUNCTION: CARMA2_HW 0x0045cf20
 int C2_HOOK_CDECL FindHighestCallBack(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg) {
-    NOT_IMPLEMENTED();
+
+    DRModelPick2D(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack, pArg);
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0045ca60
@@ -83,6 +94,51 @@ void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_
             *pActor = gNearest_actor;
         }
     }
+}
+
+// FUNCTION: CARMA2_HW 0x0045cd90
+int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far) {
+    int i;
+    float s;
+    float t;
+
+    for (i = 0; i < 3; i++) {
+        if (rd->v[i] < -2.3841858e-7f) {
+            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
+            if (s > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (s > t_near) {
+                t_near = s;
+            }
+            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
+            if (t < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (t < t_far) {
+                t_far = t;
+            }
+        } else if (rd->v[i] > 2.3841858e-7f) {
+            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
+            if (s < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (s < t_far) {
+                t_far = s;
+            }
+            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
+            if (t > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (t > t_near) {
+                t_near = t;
+            }
+        } else if (rp->v[i] > b->max.v[i] || rp->v[i] < b->min.v[i]) {
+            return 0;
+        }
+    }
+    if (t_near <= t_far) {
+        *new_t_near = t_near;
+        *new_t_far = t_far;
+        return 1;
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0045d5c0

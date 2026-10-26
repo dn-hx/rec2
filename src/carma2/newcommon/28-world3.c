@@ -12,12 +12,12 @@
 #include "rec2_macros.h"
 
 #include <string.h>
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 br_actor* gAdditional_actors;
 
-// GLOBAL: CARMA2_HW 0x006b7820
-tBrender_storage* gStorage_for_callbacks;
+/* gStorage_for_callbacks (0x006b7820) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x006aaa2c
 int gDisallow_duplicates;
@@ -81,15 +81,78 @@ void C2_HOOK_FASTCALL InitTreeSurgery(void) {
 
 // LoadTrack
 
-// RemoveBounds
+// FUNCTION: CARMA2_HW 0x00506e20
+intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
+    if (pActor->type == BR_ACTOR_BOUNDS || pActor->type == BR_ACTOR_BOUNDS_CORRECT) {
+        BrResFree(pActor->type_data);
+        pActor->type_data = NULL;
+    }
+    return 0;
+}
 // RemoveBoundsStructures
 
 // FreeTrack
 
-// ProcessTrack
+extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
-// AnimateSky
+// FUNCTION: CARMA2_HW 0x00506e50
+void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
+
+    RenderTrack(pWorld, pTrack_spec, pCamera, pCamera_to_world_transform);
+    if (gAdditional_actors) {
+        BrZbsSceneRenderAdd(gAdditional_actors);
+    }
+}
+
+// GLOBAL: CARMA2_HW 0x006aaf40
+tU8* gTrack_flic_buffer;
+
+// GLOBAL: CARMA2_HW 0x006aaf48
+tU32 gTrack_flic_buffer_size;
+
+// GLOBAL: CARMA2_HW 0x006aaf50
+tFlic_descriptor gTrack_flic_descriptor;
+
+// GLOBAL: CARMA2_HW 0x006aafc0
+static tU32 prev_sky_animation;
+
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info);
+extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
+extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
+extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
+extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
+
+// FUNCTION: CARMA2_HW 0x00506e80
+void C2_HOOK_FASTCALL AnimateSky(void) {
+    int now;
+    int now2;
+    int frame_increment;
+
+    now2 = GetTotalTime();
+    if (gTrack_flic_buffer == NULL) {
+        return;
+    }
+    now = now2;
+    if (now < (int)prev_sky_animation) {
+        now2 = 2 * prev_sky_animation - now;
+    }
+    if (prev_sky_animation != 0) {
+        frame_increment = ((now2 - prev_sky_animation) / gTrack_flic_descriptor.frame_period) % (gTrack_flic_descriptor.frames_left + gTrack_flic_descriptor.current_frame);
+    } else {
+        frame_increment = 1;
+    }
+    for (; frame_increment > 0; frame_increment--) {
+        if (PlayNextFlicFrame(&gTrack_flic_descriptor)) {
+            EndFlic(&gTrack_flic_descriptor);
+            StartFlic(gTrack_flic_descriptor.file_name, -1, &gTrack_flic_descriptor, gTrack_flic_buffer_size, (tS8*)gTrack_flic_buffer, NULL, 0, 0, 0);
+            AssertFlicPixelmap(&gTrack_flic_descriptor, gProgram_state.default_depth_effect.sky_texture);
+        }
+        prev_sky_animation = now;
+        SkyTextureChanged();
+    }
+}
 
 // CombineBounds
 
@@ -258,7 +321,7 @@ tAdd_to_storage_result C2_HOOK_FASTCALL AddModelToStorage(tBrender_storage* pSto
     int i;
 
     gDuplicate_model = NULL;
-    if (pStorage_space->materials_count < pStorage_space->max_models) {
+    if (pStorage_space->models_count < pStorage_space->max_models) {
         if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
             for (i = 0; i < pStorage_space->models_count; i++) {
                 if (pStorage_space->models[i] != NULL
@@ -751,4 +814,21 @@ void C2_HOOK_FASTCALL DisallowDuplicates(void) {
 void C2_HOOK_FASTCALL AllowDuplicates(void) {
 
     gDisallow_duplicates = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00502d80
+br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
+    int i;
+
+    for (i = 0; i < pStorage->pixelmaps_count; i++) {
+        if (pOriginal == pStorage->pixelmaps[i]) {
+            BrMapRemove(pOriginal);
+            BrPixelmapFree(pOriginal);
+            pStorage->pixelmaps[i] = pNew;
+            BrMapAdd(pNew);
+            return pNew;
+        }
+    }
+    PDFatalError("Can't swap in pixelmap");
+    return NULL;
 }

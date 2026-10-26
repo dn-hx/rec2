@@ -233,9 +233,27 @@ void C2_HOOK_FASTCALL DoNextJoinPoll(void) {
     }
 }
 
-// NetStartProducingJoinList
+// FUNCTION: CARMA2_HW 0x0049dbd0
+void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc) {
 
-// NetEndJoinList
+    gAdd_proc = pAdd_proc;
+    gJoin_list_mode = 1;
+    gBastard_has_answered = 0;
+    gTime_for_next_one = 1;
+    gJoin_poll_index = 0;
+    gCurrent_join_poll_game = NULL;
+    PDNetStartProducingJoinList();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049dc00
+void C2_HOOK_FASTCALL NetEndJoinList(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NetDisposePIDGameInfo
 
@@ -314,8 +332,22 @@ int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_m
     return PDNetSendMessageToAddress(pDetails, pMessage, pAddress);
 }
 
-// NetReallySendMessageToPlayer
+// FUNCTION: CARMA2_HW 0x0049eea0
+int C2_HOOK_FASTCALL NetReallySendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id) {
+    int i;
 
+    if (gNet_mode != eNet_mode_none) {
+        pMessage->header.field_0x8 = gLocal_net_ID;
+        pMessage->header.field_0x10 = PDGetTotalTime();
+
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].ID == pPlayer_id) {
+                return PDNetSendMessageToAddress(pNet_game, pMessage, &gNet_players[i].pd_net_info);
+            }
+        }
+    }
+    return -3;
+}
 // NetSendMessageToPlayer
 
 // FUNCTION: CARMA2_HW 0x0049f0d0
@@ -348,7 +380,31 @@ tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, 
     NOT_IMPLEMENTED();
 }
 
-// NetGetToPlayerContentsSize
+// FUNCTION: CARMA2_HW 0x004a5140
+void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pNet_player, int pSize) {
+    tNet_message* message;
+    tU8* contents;
+
+    C2_HOOK_BUG_ON(sizeof(tNet_message_header) != 0x18);
+
+    if (pNet_player == &gNet_players[gThis_net_player_index]) {
+        PDFatalError("Trying to send network message to self");
+    }
+    message = pNet_player->field_0xcc;
+    if (pNet_player->field_0xcc != NULL && pNet_player->field_0xcc->header.field_0x16 + pSize > 512) {
+        NetReallySendMessageToPlayer(gCurrent_net_game, pNet_player->field_0xcc, pNet_player->ID);
+        pNet_player->field_0xcc = message = NULL;
+    }
+    if (message == NULL) {
+        message = pNet_player->field_0xcc = NetAllocateMessage(512);
+        message->header.field_0x16 = (tU16)sizeof(tNet_message_header);
+        message->header.field_0x14 = 0;
+    }
+    contents = (tU8*)message + message->header.field_0x16;
+    message->header.field_0x16 += (tU16)pSize;
+    message->header.field_0x14++;
+    return contents;
+}
 
 // NetGetToPlayerContents
 
@@ -363,11 +419,17 @@ void C2_HOOK_FASTCALL NetSendMessageStacks(void) {
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x0049fdb0
 tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize) {
     NOT_IMPLEMENTED();
     return NULL;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 void C2_HOOK_FASTCALL NetFreeExcessMemory(void) {
 
@@ -550,11 +612,30 @@ void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails
     NOT_IMPLEMENTED();
 }
 
-// AddToGuaranteeList
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a5ca0
+void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress, int pArg3, void* pNotifyFail) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NetGuaranteedSendMessageToPlayer
 
-// NetGuaranteedSendMessageToAddress
+// FUNCTION: CARMA2_HW 0x004a6020
+int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress, void* pNotifyFail) {
+
+    if (gNet_mode == eNet_mode_none && !gJoin_list_mode) {
+        return -3;
+    }
+    pMessage->header.field_0x8 = gLocal_net_ID;
+    pMessage->header.field_0x10 = PDGetTotalTime();
+    AddToGuaranteeList(pMessage, pAddress, 0, pNotifyFail);
+    return PDNetSendMessageToAddress(pDetails, pMessage, pAddress);
+}
 
 // STUB: CARMA2_HW 0x004a6080
 void C2_HOOK_FASTCALL ResendGuaranteedMessages(void) {

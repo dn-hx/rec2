@@ -15,7 +15,11 @@ char* gBoring_material_names[2] = { "OILSMEAR.MAT", "ROBSMEAR.MAT" };
 char* gMaterial_names[2] = { "OILSMEAR.MAT", "GIBSMEAR.MAT" };
 
 // GLOBAL: CARMA2_HW 0x006a27f0
-tSkid gSkids[100];
+tSkid gSkids[100] = { 0 };
+
+/* UNCERTAIN: unknown, unreferenced 0x50 bytes after gSkids (only seen as its loop end); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x006a32e0
+tU8 gUNK_006a32e0[0x50] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a27e8
 int gCurrent_skid;
@@ -218,5 +222,16 @@ void C2_HOOK_FASTCALL InitCarSkidStuff(tCar_spec* pCar) {
     }
 }
 
-// SkidsPerFrame
+// FUNCTION: CARMA2_HW 0x004ea720
+void C2_HOOK_FASTCALL SkidsPerFrame(void) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gSkids); i++) {
+        tSkid *skid = &gSkids[i];
+
+        if (skid->actor->render_style != BR_RSTYLE_NONE) {
+            skid->actor->t.t.translate.t = skid->pos;
+        }
+    }
+}
 

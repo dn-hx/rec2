@@ -2,6 +2,9 @@
 
 #include "18-graphics2.h"
 #include "42-input.h"
+#include "globvars.h"
+#include "41-utility.h"
+#include "69-sound.h"
 
 // FUNCTION: CARMA2_HW 0x0043e750
 void C2_HOOK_FASTCALL DoSCILogo(void) {
@@ -38,6 +41,10 @@ void C2_HOOK_FASTCALL DoOpeningAnimation(void) {
 void C2_HOOK_FASTCALL DoNewGameAnimation(void) {
 }
 
+// FUNCTION: CARMA2_HW 0x0043f360
+void C2_HOOK_FASTCALL DoGoToRaceAnimation(void) {
+}
+
 // FUNCTION: CARMA2_HW 0x0043f370
 void C2_HOOK_FASTCALL DoEndRaceAnimation(void) {
     FadePaletteDown();
@@ -56,5 +63,33 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
     WaitForNoKeys();
 }
 
-// StartLoadingScreen
+// FUNCTION: CARMA2_HW 0x0043f5c0
+void C2_HOOK_FASTCALL StartLoadingScreen(void) {
 
+    SwitchToLoresMode();
+    StartMusicTrack(9998);
+    PossibleService();
+    if (gProgram_state.sausage_eater_mode) {
+        SplashScreenWith("LOADSCRN.PIX");
+    } else {
+        SplashScreenWith("LOADSCRN.PIX");
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0047b990
+void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

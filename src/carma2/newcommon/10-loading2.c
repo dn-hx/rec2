@@ -22,7 +22,6 @@
 #include "38-flicplay.h"
 #include "41-utility.h"
 #include "42-input.h"
-#include "51-smash.h"
 #include "52-errors.h"
 #include "53-controls.h"
 #include "55-volume.h"
@@ -41,6 +40,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "51-smash.h"
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;
@@ -104,6 +104,58 @@ const char* gNet_avail_names[4] = {
     "hawk",
     "all",
 };
+
+// GLOBAL: CARMA2_HW 0x00657320
+tHeadup_info gHeadup_image_info[45] = {
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "", eNot_ever_ever_ever },
+    { "GO.PIX", eNet_or_otherwise },
+    { "NUMBER1.PIX", eNet_or_otherwise },
+    { "NUMBER2.PIX", eNet_or_otherwise },
+    { "NUMBER3.PIX", eNet_or_otherwise },
+    { "NUMBER4.PIX", eNet_or_otherwise },
+    { "NUMBER5.PIX", eNet_or_otherwise },
+    { "SPLATTER.PIX", eNet_or_otherwise },
+    { "PILEDRIV.PIX", eNet_or_otherwise },
+    { "EXTRASTY.PIX", eNet_or_otherwise },
+    { "ARTISTIC.PIX", eNet_or_otherwise },
+    { "PLAYWITH.PIX", eNet_or_otherwise },
+    { "PUNT.PIX", eNet_or_otherwise },
+    { "DROP.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "2XCOMBO.PIX", eNet_or_otherwise },
+    { "3XCOMBO.PIX", eNet_or_otherwise },
+    { "4XCOMBO.PIX", eNet_or_otherwise },
+    { "5XCOMBO.PIX", eNet_or_otherwise },
+    { "6XCOMBO.PIX", eNet_or_otherwise },
+    { "7XCOMBO.PIX", eNet_or_otherwise },
+    { "8XCOMBO.PIX", eNet_or_otherwise },
+    { "9XCOMBO.PIX", eNet_or_otherwise },
+    { "10XCOMBO.PIX", eNet_or_otherwise },
+    { "BILLIARD.PIX", eNet_or_otherwise },
+    { "POLITE.PIX", eNet_or_otherwise },
+    { "HEADON.PIX", eNet_or_otherwise },
+    { "DESTROY.PIX", eNet_or_otherwise },
+    { "CHECKPNT.PIX", eNet_or_otherwise },
+    { "TIMEUP.PIX", eNot_net },
+    { "RACEOVER.PIX", eNet_or_otherwise },
+    { "UWASTED.PIX", eNet_or_otherwise },
+    { "MAD.PIX", eNet_or_otherwise },
+    { "GAMEOVER.PIX", eNet_or_otherwise },
+    { "UBROKE.PIX", eNet_or_otherwise },
+    { "ULOST.PIX", eNet_or_otherwise },
+    { "UWON.PIX", eNet_or_otherwise },
+    { "BBQBON.PIX", eNet_or_otherwise },
+    { "TAILBON.PIX", eNet_or_otherwise },
+    { "DETTAILBON.PIX", eNet_or_otherwise },
+    { "MISSIONFAIL.PIX", eNet_or_otherwise },
+    { "MISSIONDONE.PIX", eNet_or_otherwise },
+};
+
+// GLOBAL: CARMA2_HW 0x0079eb60
+br_pixelmap* gHeadup_images[45];
 
 void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes) {
     tPath_name the_path;
@@ -694,7 +746,54 @@ intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData) {
 
 // LinkCarModelsToActor
 
-// GetSimpleMaterial
+extern void C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+
+// GLOBAL: CARMA2_HW 0x006572f0
+tU32 gSimple_material_colours[12] = { 0x005d0303, 0x02a56e04, 0x03a9a905, 0x08006868, 0x0d3c3626, 0x0e212121, 0x15284c21, 0x1900326a, 0x1a93491d, 0x1ec0bfc0, 0x23141414, 0x00000000, };
+
+// GLOBAL: CARMA2_HW 0x0074b500
+br_material* gSimple_materials[32];
+
+// FUNCTION: CARMA2_HW 0x00488dd0
+br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingType pShading_type) {
+    int i;
+    int j;
+    int r, g, b;
+    br_colour colour;
+
+    if (pName[0] == 'M') {
+        int code;
+        strtok(pName, "\t ,/");
+        code = 10 * (pName[1] - '0') + pName[2] - '0';
+        for (j = 0; gSimple_material_colours[j] != 0; j++) {
+            if ((int)(gSimple_material_colours[j] >> 24) == code) {
+                break;
+            }
+        }
+        if (gSimple_material_colours[j] == 0) {
+            PDFatalError("Obsolete simple material");
+        }
+        colour = gSimple_material_colours[j] & 0xffffff;
+    } else {
+        sscanf(pName, "%d,%d,%d", &r, &g, &b);
+        colour = (((r << 8) | g) << 8) | b;
+    }
+
+    for (i = 0; gSimple_materials[i] != NULL; i++) {
+        if (gSimple_materials[i]->colour == colour) {
+            return gSimple_materials[i];
+        }
+    }
+    if (i < 32) {
+        gSimple_materials[i] = BrMaterialAllocate("Simple");
+        gSimple_materials[i]->colour = colour;
+        gSimple_materials[i]->index_base = FindBestColourMatch(gSimple_materials[i]->colour);
+        gSimple_materials[i]->index_range = 0;
+        GlorifyMaterial(&gSimple_materials[i], 1, pShading_type);
+        BrMaterialAdd(gSimple_materials[i]);
+    }
+    return gSimple_materials[i];
+}
 
 // ReadShrapnelMaterials
 
@@ -738,16 +837,224 @@ void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec*
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x0048c150
+// FUNCTION: CARMA2_HW 0x0048c150
 void C2_HOOK_FASTCALL LoadHeadupImages(void) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gHeadup_image_info); i++) {
+        PossibleService();
+        if ((gHeadup_image_info[i].avail == eNet_or_otherwise) ||
+            ((gHeadup_image_info[i].avail == eNot_net) && (gNet_mode == 0)) ||
+            ((gHeadup_image_info[i].avail == eNet_only) && (gNet_mode != 0))) {
+            gHeadup_images[i] = LoadPixelmap(gHeadup_image_info[i].name);
+            BRPM_convert(gHeadup_images[i], gBack_screen->type);
+        } else {
+            gHeadup_images[i] = NULL;
+        }
+    }
 }
 
 // OpenRaceFile
 
-// STUB: CARMA2_HW 0x0048c1c0
+// GLOBAL: CARMA2_HW 0x00657530
+char* gRaces_file_names[9] = {
+    "RACES.TXT",
+    "NETRACES.TXT",
+    "NETRACES.TXT",
+    "PEDRACES.TXT",
+    "RACES.TXT",
+    "RACES.TXT",
+    "NETRACES.TXT",
+    "NETRACES.TXT",
+    "NETRACES.TXT"
+};
+
+// GLOBAL: CARMA2_HW 0x0068c6f4
+int gCurrent_race_file_index;
+
+// GLOBAL: CARMA2_HW 0x007634ec
+int gCountRaceGroups;
+
+extern tRace_group_spec* gRace_groups;
+
+// FUNCTION: CARMA2_HW 0x0048c1c0
 void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index) {
-    NOT_IMPLEMENTED();
+    FILE* f;
+    float low_count;
+    float high_count;
+    float x_offset;
+    float y_offset;
+    float x_span;
+    float y_span;
+    float low_nastiness;
+    float high_nastiness;
+    tTWTVFS twt;
+    int powerup_exclusions[50];
+    tPath_name the_path;
+    char s[256];
+    char* str;
+    tRace_group_spec* group;
+    float v;
+    float r;
+    int i;
+    int j;
+    int count;
+    int val;
+    int last_race;
+
+    if (!gApplicationDataTwtMounted) {
+        twt = OpenPackFileAndSetTiffLoading(gApplication_path);
+    }
+    gCurrent_race_file_index = pRace_type_index + 1;
+    PathCat(the_path, gApplication_path, gRaces_file_names[gCurrent_race_file_index]);
+    f = DRfopen(the_path, "rt");
+    if (f == NULL) {
+        FatalError(kFatalError_CannotOpenRacesFile);
+    }
+
+    GetAnInt(f);
+    gDev_initial_race = 0;
+    low_count = GetAScalar(f);
+    high_count = GetAScalar(f);
+    GetPairOfFloats(f, &x_offset, &y_offset);
+    GetPairOfFloats(f, &x_span, &y_span);
+    low_nastiness = GetAScalar(f);
+    high_nastiness = GetAScalar(f);
+    gCountRaceGroups = 0;
+
+    i = 0;
+    do {
+        GetALineAndDontArgue(f, pRace_list[i].name);
+        if (strcmp(pRace_list[i].name, "END") == 0) {
+            last_race = 1;
+        } else {
+            GetAString(f, pRace_list[i].file_name);
+            GetAString(f, pRace_list[i].interface_name);
+            pRace_list[i].count_opponents = GetAnInt(f);
+            pRace_list[i].count_explicit_opponents = GetAnInt(f);
+            for (j = 0; j < pRace_list[i].count_explicit_opponents; j++) {
+                pRace_list[i].explicit_opponents[j] = GetAnInt(f);
+            }
+            pRace_list[i].opponent_nastiness_level = GetAScalar(f);
+            GetALineAndDontArgue(f, s);
+            str = strtok(s, "\t ,/");
+            count = 0;
+            while (str != NULL) {
+                sscanf(str, "%d", &powerup_exclusions[count]);
+                if (powerup_exclusions[count] < 0) {
+                    break;
+                }
+                count++;
+                str = strtok(NULL, "\t ,/");
+            }
+            pRace_list[i].count_powerup_exclusions = count;
+            if (count != 0) {
+                pRace_list[i].powerup_exclusions = BrMemAllocate(count * sizeof(int), kMem_misc);
+                memcpy(pRace_list[i].powerup_exclusions, powerup_exclusions, count * sizeof(int));
+            }
+            pRace_list[i].no_time_awards = GetAnInt(f);
+            pRace_list[i].is_boundary = GetAnInt(f);
+            if (pRace_list[i].is_boundary) {
+                gCountRaceGroups++;
+            }
+            pRace_list[i].race_type = GetAnInt(f);
+            GetThreeInts(f, &pRace_list[i].initial_timer[0], &pRace_list[i].initial_timer[1], &pRace_list[i].initial_timer[2]);
+            switch (pRace_list[i].race_type) {
+            case kRaceType_Cars:
+                pRace_list[i].options.cars.count_opponents = GetAnInt(f);
+                for (j = 0; j < pRace_list[i].options.cars.count_opponents; j++) {
+                    pRace_list[i].options.cars.opponents[j] = GetAnInt(f);
+                }
+                break;
+            case kRaceType_Peds:
+                pRace_list[i].options.peds.count_ped_groups = GetAnInt(f);
+                for (j = 0; j < pRace_list[i].options.peds.count_ped_groups; j++) {
+                    pRace_list[i].options.peds.ped_groups[j] = GetAnInt(f);
+                }
+                break;
+            case kRaceType_Carma1:
+            case kRaceType_Checkpoints:
+                pRace_list[i].count_laps = GetAnInt(f);
+                break;
+            case kRaceType_Smash:
+                pRace_list[i].options.smash.var_smash_number = GetAnInt(f);
+                pRace_list[i].options.smash.var_smash_target = GetAnInt(f);
+                break;
+            case kRaceType_SmashNPed:
+                pRace_list[i].options.smash_and_peds.var_smash_number = GetAnInt(f);
+                pRace_list[i].options.smash_and_peds.var_smash_target = GetAnInt(f);
+                pRace_list[i].options.smash_and_peds.ped_group_index = GetAnInt(f);
+                break;
+            }
+            GetThreeInts(f, &pRace_list[i].completion_bonus[0], &pRace_list[i].completion_bonus[1], &pRace_list[i].completion_bonus[2]);
+            if (pRace_list[i].race_type == kRaceType_Carma1) {
+                GetThreeInts(f, &pRace_list[i].completion_bonus_peds[0], &pRace_list[i].completion_bonus_peds[1], &pRace_list[i].completion_bonus_peds[2]);
+                GetThreeInts(f, &pRace_list[i].completion_bonus_opponents[0], &pRace_list[i].completion_bonus_opponents[1], &pRace_list[i].completion_bonus_opponents[2]);
+            }
+            GetALineAndDontArgue(f, pRace_list[i].description);
+            if (DRStricmp(pRace_list[i].description, "none") == 0) {
+                pRace_list[i].description[0] = '\0';
+            }
+            pRace_list[i].expansion = GetAnInt(f) & 1;
+            if (pRace_type_index < 0 || pRace_list[i].race_type == kRaceType_Carma1) {
+                i++;
+            }
+            last_race = 0;
+        }
+    } while (!last_race);
+
+    *pCount = i;
+    PFfclose(f);
+    if (gRace_groups != NULL) {
+        BrMemFree(gRace_groups);
+    }
+    group = gRace_groups = BrMemAllocate((gCountRaceGroups == 0 ? 1 : gCountRaceGroups) * sizeof(tRace_group_spec), kMem_misc);
+    group->count_races = 0;
+    group->races = pRace_list;
+
+    for (i = 0; i < *pCount; i++) {
+        if (pRace_list[i].opponent_nastiness_level <= 0.0f) {
+            pRace_list[i].opponent_nastiness_level = low_nastiness + (high_nastiness - low_nastiness) * ((float)i / (*pCount - 1.0));
+        }
+        if (pRace_list[i].count_opponents < 0) {
+            count = (int)(low_count + (high_count - low_count) * ((float)i / (*pCount - 1.0)));
+        } else {
+            count = pRace_list[i].count_opponents;
+        }
+        pRace_list[i].count_opponents = 0;
+        if (count <= pRace_list[i].count_explicit_opponents) {
+            pRace_list[i].count_explicit_opponents = count;
+        } else {
+            v = x_offset + (x_span - x_offset) * ((float)i / (*pCount - 1.0));
+            r = y_offset + (y_span - y_offset) * ((float)i / (*pCount - 1.0));
+            for (j = pRace_list[i].count_explicit_opponents; j < count; j++) {
+                val = (int)(v + (r - v) * ((float)(j - pRace_list[i].count_explicit_opponents) / ((float)count - pRace_list[i].count_explicit_opponents - 1.0)));
+                if (val < 1) {
+                    pRace_list[i].explicit_opponents[j] = -1;
+                } else if (val > 5) {
+                    pRace_list[i].explicit_opponents[j] = -5;
+                } else {
+                    pRace_list[i].explicit_opponents[j] = -val;
+                }
+            }
+        }
+        pRace_list[i].count_explicit_opponents = count;
+        pRace_list[i].group = group;
+        if (pRace_list[i].is_boundary) {
+            group->mission = &pRace_list[i];
+            group++;
+            if (group - gRace_groups < gCountRaceGroups) {
+                group->count_races = 0;
+                group->races = &pRace_list[i + 1];
+            }
+        } else {
+            group->count_races++;
+        }
+    }
+    gCurrent_race_group = gRace_groups;
+    if (!gApplicationDataTwtMounted) {
+        ClosePackFileAndSetTiffLoading(twt);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0048c860

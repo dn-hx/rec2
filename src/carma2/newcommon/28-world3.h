@@ -32,8 +32,7 @@ extern void C2_HOOK_FASTCALL InitTreeSurgery(void);
 
 // LoadTrack
 
-// RemoveBounds
-
+extern intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg);
 // RemoveBoundsStructures
 
 // FreeTrack
@@ -109,5 +108,7 @@ extern void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage,
 extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
+
+extern br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage);
 
 #endif // GUARD_28_WORLD3_H

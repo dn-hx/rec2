@@ -16,6 +16,7 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0067c500
 tHeadup gHeadups[37];
@@ -118,6 +119,9 @@ int gOld_times[10];
 
 // GLOBAL: CARMA2_HW 0x0067f888
 int gQueued_headup_count;
+
+// GLOBAL: CARMA2_HW 0x0067f880
+int gLast_time_credit_amount;
 
 
 static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
@@ -279,8 +283,19 @@ void C2_HOOK_FASTCALL ClearHeadup(int pIndex) {
     gHeadups[pIndex].type = eHeadup_unused;
 }
 
-// ClearHeadupSlot
+// FUNCTION: CARMA2_HW 0x00449650
+void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index) {
+    int i;
+    tHeadup* the_headup;
 
+    the_headup = gHeadups;
+    for (i = 0; i < (int)REC2_ASIZE(gHeadups); i++, the_headup++) {
+        if (the_headup->type != eHeadup_unused && the_headup->slot_index == pSlot_index) {
+            ClearHeadup(i);
+            return;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x00449690
 void C2_HOOK_FASTCALL ClearHeadups(void) {
     int i;
@@ -459,6 +474,20 @@ void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0044a860
+void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY) {
+    tHeadup* the_headup;
+    int delta_x;
+
+    if (pHeadup_index >= 0) {
+        the_headup = &gHeadups[pHeadup_index];
+        delta_x = the_headup->x - the_headup->original_x;
+        the_headup->original_x = pX;
+        the_headup->x = delta_x + pX;
+        the_headup->y = pY;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0044a8a0
 void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y) {
     tHeadup* the_headup;
@@ -561,7 +590,15 @@ void C2_HOOK_FASTCALL EarnCredits(int pAmount) {
     EarnCredits2(pAmount, "");
 }
 
-// EarnCredits100
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0044b450
+void C2_HOOK_FASTCALL EarnCredits100(int pAmount) {
+
+    EarnCredits(pAmount - (pAmount + 50) % 100 + 50);
+}
 
 // FUNCTION: CARMA2_HW 0x0044b470
 int C2_HOOK_FASTCALL SpendCredits(int pAmount) {
@@ -577,11 +614,102 @@ int C2_HOOK_FASTCALL SpendCredits(int pAmount) {
     }
 }
 
-// AwardTime
+// FUNCTION: CARMA2_HW 0x0044b490
+void C2_HOOK_FASTCALL AwardTime(tU32 pTime) {
+    char s[256];
+    tU32 original_amount;
+    tU32 the_time;
+    int i;
+
+    if (gRace_finished || gFreeze_timer || gNet_mode != eNet_mode_none || (*(tGraf_data**)((char*)&gCurrent_race + 0x98))->field_0x18c) {
+        return;
+    }
+    the_time = GetTotalTime();
+    if (pTime != 0) {
+        for (i = 9; i > 0; i--) {
+            gOld_times[i] = gOld_times[i - 1];
+        }
+        gOld_times[0] = pTime;
+        original_amount = pTime;
+        if (gLast_time_credit_headup >= 0 && (the_time - gLast_time_earn_time) < 2000) {
+            pTime += gLast_time_credit_amount;
+        }
+        gLast_time_credit_amount = pTime;
+        gTimer += original_amount * 1000;
+        s[0] = '+';
+        TimerString(1000 * pTime, &s[1], 0, 0, 0);
+        gLast_time_credit_headup = NewTextHeadupSlot2(0xb, 0, 2000, -2, s, 1);
+        gLast_time_earn_time = the_time;
+    }
+}
 
 // AwardTime5
 
-// DoTestHeadup
+// GLOBAL: CARMA2_HW 0x0079eb00
+char gHeadup_oppo_ped_text[64];
+
+// FUNCTION: CARMA2_HW 0x0044b6a0
+void C2_HOOK_FASTCALL DoTestHeadup(void) {
+    // GLOBAL: CARMA2_HW 0x006815c0
+    static int do_headup_material;
+
+    do_headup_material = !do_headup_material;
+    if (do_headup_material) {
+        BrMapUpdate(gCurrent_rev, BR_MAPU_ALL);
+        gStatbarHUD1_material->colour_map = gCurrent_rev;
+        BrMaterialUpdate(gStatbarHUD1_material, BR_MATU_COLOURMAP);
+    }
+    if (!do_headup_material) {
+        BrMapUpdate(gDamage_hud, BR_MAPU_ALL);
+        gStatbarHUD5_material->colour_map = gDamage_hud;
+        BrMaterialUpdate(gStatbarHUD5_material, BR_MATU_COLOURMAP);
+    }
+
+    if (gNet_mode != eNet_mode_none) {
+        if (gHeadup_detail_level % 3 > 0) {
+            BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, -448.f, 0.f, 0.f);
+            RenderThisHeadup(gStatbarHUD5_actor);
+            RenderThisHeadup(gStatbarHUD1_actor);
+            if (gHeadup_detail_level % 3 > 1) {
+                BrMatrix34Translate(&gArmour_actor->t.t.mat, 48.f, 35.f, 0.f);
+                BrMatrix34Translate(&gPower_actor->t.t.mat, -102.f, 5.f, 0.f);
+                BrMatrix34Translate(&gOffense_actor->t.t.mat, -252.f, -25.f, 0.f);
+                RenderThisHeadup(gArmour_actor);
+                RenderThisHeadup(gPower_actor);
+                RenderThisHeadup(gOffense_actor);
+            }
+        }
+        if (gHeadup_detail_level > 2) {
+            RenderThisHeadup(gHeadup_actor);
+        }
+    } else {
+        BrMatrix34Translate(&gArmour_actor->t.t.mat, 0.f, 0.f, 0.f);
+        BrMatrix34Translate(&gPower_actor->t.t.mat, 0.f, 0.f, 0.f);
+        BrMatrix34Translate(&gOffense_actor->t.t.mat, 0.f, 0.f, 0.f);
+        if (gHeadup_detail_level % 3 > 0) {
+            BrMatrix34Translate(&gStatbarHUD1_actor->t.t.mat, 142.f, 0.f, 0.f);
+            BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, -178.f, 0.f, 0.f);
+            RenderThisHeadup(gStatbarHUD1_actor);
+            RenderThisHeadup(gStatbarHUD5_actor);
+            RenderThisHeadup(gTimerLeftHUD_actor);
+            RenderThisHeadup(gTimerRightHUD_actor);
+            if (gHeadup_detail_level % 3 > 1) {
+                RenderThisHeadup(gArmour_actor);
+                RenderThisHeadup(gPower_actor);
+                RenderThisHeadup(gOffense_actor);
+                RenderThisHeadup(gStatbarRightHUD_actor);
+                RenderThisHeadup(gStatbarHUD3_actor);
+                BrMatrix34Translate(&gStatbarHUD1_actor->t.t.mat, 0.f, 0.f, 0.f);
+                BrMatrix34Translate(&gStatbarHUD5_actor->t.t.mat, 0.f, 0.f, 0.f);
+            } else {
+                PolyFontText(gHeadup_oppo_ped_text, 335, 50, kPolyfont_ingame_medium_blue, eJust_centre, 0);
+            }
+        }
+        if (gHeadup_detail_level > 2) {
+            RenderThisHeadup(gHeadup_actor);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0044ba60
 int C2_HOOK_FASTCALL HighResHeadupWidth(int pWidth) {

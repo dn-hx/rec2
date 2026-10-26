@@ -13,6 +13,18 @@ extern tFloat_bunch_info gCar_car_damage_multiplier;
 extern br_vector3 gZero_v__car;
 extern int gNum_active_non_cars;
 extern int gFace_num__car;
+extern int gInTheSea;
+extern tU32 gQuite_wild_end;
+extern tU32 gQuite_wild_start;
+extern tU32 gOn_me_wheels_start;
+extern tU32 gWoz_upside_down_at_all;
+extern tU32 gWild_start;
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139]; /* FIXME: uncertain about array length */  // GLOBAL: CARMA2_HW 0x0079ef2c int gNum_cars_and_non_cars;
+extern int gFace_count;
+extern tFace_ref gFace_list__car[300];
+extern br_scalar gMin_world_y;
+extern tPhysics_object* gUnknown_car_collision_info;
 
 extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
 
@@ -24,18 +36,17 @@ extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
 
 // InitialiseCar
 
-// InitialiseCarsEtc
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
 
 // SetInitialPosition
 
-// SetInitialPositions
+extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
 
 // InitialiseNonCar
 
 // NewFaceListCallBack
 
-// IsCarInTheSea
-
+extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 // RememberSafePosition
 
 // ControlNetCars
@@ -56,9 +67,9 @@ extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
 
 // MungeCarsMass
 
-// AddDrag
+extern void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scalar pDt);
 
-// DragChildren
+extern void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild);
 
 // DoCarStuff
 
@@ -148,14 +159,15 @@ extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 
 // MultiFindFloorInBoxBU
 
+extern int C2_HOOK_FASTCALL ProcessJointForcesCallback(undefined4 param_1, undefined4 param_2, undefined4 param_3);
+
 extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
 
 // findfloor
 
 // FindFloorInBoxBU
 
-// CancelPendingCunningStunt
-
+extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
 // SetAmbientPratCam
 
 // SetTextureBits
@@ -164,12 +176,10 @@ extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, b
 
 // MungeCarGraphics
 
-// TurnOffNonGroovers
-
+extern intptr_t C2_HOOK_CDECL TurnOffNonGroovers(br_actor* pActor, void* pData);
 // DoLODCarModels
 
-// DoComplexCarModels
-
+extern void C2_HOOK_FASTCALL DoComplexCarModels(void);
 // ResetCarScreens
 
 extern void C2_HOOK_FASTCALL AdjustDownForce(void);
@@ -194,10 +204,17 @@ extern void C2_HOOK_FASTCALL AdjustDownForce(void);
 
 extern void C2_HOOK_FASTCALL AdjustNonCar(br_actor* pActor, const br_matrix34* pMatrix);
 
-// GetPrecalculatedFacesUnderCar
-
+extern int C2_HOOK_FASTCALL GetPrecalculatedFacesUnderCar(tCar_spec* pCar, tFace_ref** pFace_refs);
 extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
+
+extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, int pGrid_index);
+
+extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
+
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+
+extern void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag);
 
 #endif // GUARD_00_CAR_H

@@ -165,11 +165,6 @@ typedef enum {
     eDrone_state_STOP = 4,
 } tDroneStateFuncState;
 
-typedef struct tMin_max_time {
-  tU32 min_time;
-  tU32 max_time;
-} tMin_max_time;
-
 typedef struct tSave_camera {
     int saved;
     br_scalar zoom;
@@ -507,7 +502,7 @@ typedef enum {
     ePipe_chunk_single_drone_straight_pos = 62,
     ePipe_chunk_burning_ped = 64,
     ePipe_chunk_powerup_respawn = 65,
-    ePipe_chunk_end_shit_mine = 65,
+    ePipe_chunk_end_shit_mine = 67, /* 0x43 pushed by PipeSingleEndShitMine (0x004c8fd0) */
     ePipe_single_transform_type = 68,
     ePipe_chunk_single_oppo_renderage = 69,
 } tPipe_chunk_type;
@@ -3100,7 +3095,7 @@ typedef enum {
 typedef struct {
     tU16 min_count;
     tU16 max_count;
-    tU16 count_frames;
+    tS16 count_frames;
     tU16 min_start_delay_ms;
     tU16 max_start_delay_ms;
     tU16 min_frametime_ms;
@@ -4179,10 +4174,6 @@ typedef struct {
     float field_0x14;
 } tCollision_info_owner;
 
-typedef struct {
-    tU16 v[4];
-} tFixed_quat;
-
 typedef enum {
     eJoint_limit_plane = 0,
     eJoint_limit_universal = 1,
@@ -4423,8 +4414,8 @@ typedef struct {
 typedef struct {
     tU32 min_time_between;
     tU32 max_time_between;
-    float min_walk_speed_factor;
-    float max_walk_speed_factor;
+    int min_walk_speed_factor; /* UNCERTAIN: int, CalmDownAllPeds passes them to IRandomBetween as raw dwords */
+    int max_walk_speed_factor;
     br_angle max_random_angle;
     tU8 padding_0x12[2];
 } tPed_movement_spec;
@@ -4603,12 +4594,12 @@ typedef struct tPed_personality {
 typedef struct {
     tPed_personality* personality;
     tS8 field_0x4;
-    undefined field_0x5;
+    tS8 field_0x5;
     undefined field_0x6;
     tS8 field_0x7;
     tS8 field_0x8;
     tU8 field_0x9;
-    undefined field_0xa;
+    tS8 field_0xa;
     undefined field_0xb;
     undefined4 field_0xc;
     undefined4 field_0x10;

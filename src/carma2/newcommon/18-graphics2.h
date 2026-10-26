@@ -35,8 +35,7 @@ extern void C2_HOOK_FASTCALL InitializePalettes(void);
 
 extern void C2_HOOK_FASTCALL InitPaletteAnimate(void);
 
-// RevertPalette
-
+extern void C2_HOOK_FASTCALL RevertPalette(void);
 extern void C2_HOOK_FASTCALL MungePalette(void);
 
 extern void C2_HOOK_FASTCALL ResetPalette(void);
@@ -91,7 +90,7 @@ extern int C2_HOOK_FASTCALL SwitchToHiresMode(void);
 
 extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
 
-// PoshDrawLine
+extern void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour);
 
 extern void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
 
@@ -113,7 +112,7 @@ extern void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMap, int pX1, int pY1, 
 
 // DRPixelmapCopyMapBlack8Bit
 
-// DRPixelmapCopyMapBlack
+extern void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc);
 
 extern void C2_HOOK_FASTCALL DisableLights(void);
 

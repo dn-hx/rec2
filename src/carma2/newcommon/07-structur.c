@@ -7,6 +7,9 @@
 #include "43-pratcam.h"
 #include "69-sound.h"
 #include "globvars.h"
+#include "globvrpb.h"
+
+/* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
 // GLOBAL: CARMA2_HW 0x00655e48
 int gHud_tinted1 = -1;
@@ -19,6 +22,18 @@ int gHud_tinted3 = -1;
 
 // GLOBAL: CARMA2_HW 0x00762140
 int gCredits_checkpoint[3];
+
+// GLOBAL: CARMA2_HW 0x00660cdc
+int gLast_wrong_checkpoint = -1;
+
+// GLOBAL: CARMA2_HW 0x006aaa34
+tU32 gLast_checkpoint_time;
+
+// GLOBAL: CARMA2_HW 0x006aaa38
+int gHud_tinted1_visible;
+
+// GLOBAL: CARMA2_HW 0x006aaa3c
+int gHud_tinted2_visible;
 
 // FUNCTION: CARMA2_HW 0x00503050
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
@@ -82,8 +97,38 @@ void C2_HOOK_FASTCALL IncrementLap(void) {
 
 // RayHitFace
 
-// WrongCheckpoint
+// FUNCTION: CARMA2_HW 0x005033e0
+void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
 
+    if (gRace_finished) {
+        return;
+    }
+    if (!(gCurrent_race.race_spec->race_type == kRaceType_Carma1 ||
+        gCurrent_race.race_spec->race_type == kRaceType_Checkpoints)) {
+        return;
+    }
+    if ((gLast_wrong_checkpoint == pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 20000)
+            || (gLast_wrong_checkpoint != pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 2000)) {
+
+        if (gNet_mode == eNet_mode_none) {
+            int next_checkpoint = pCheckpoint_index + 2;
+            if (next_checkpoint > gCurrent_race.check_point_count) {
+                if (gLap == 1) {
+                    next_checkpoint = -1;
+                } else {
+                    next_checkpoint = 1;
+                }
+            }
+            if (next_checkpoint == gCheckpoint) {
+                return;
+            }
+        }
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_wrong_checkpoint));
+        DRS3StartSound(gPedestrians_outlet, eSoundId_WrongCheckpoint);
+        gLast_checkpoint_time = GetTotalTime();
+        gLast_wrong_checkpoint = pCheckpoint_index;
+    }
+}
 // CheckCheckpoints
 
 // FUNCTION: CARMA2_HW 0x005039b0
@@ -181,9 +226,64 @@ void C2_HOOK_FASTCALL DoProgram(void) {
     NOT_IMPLEMENTED();
 }
 
-// JumpTheStart
+extern void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was);
+extern int C2_HOOK_FASTCALL SpendCredits(int pAmount);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet);
 
-// GoingToInterfaceFromRace
+// FUNCTION: CARMA2_HW 0x00504170
+void C2_HOOK_FASTCALL JumpTheStart(void) {
+    char s[256];
 
-// GoingBackToRaceFromInterface
+    if (gNet_mode == eNet_mode_none || gProgram_state.credits >= gJump_start_fine[gProgram_state.skill_level]) {
+        WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(gCountdown);
+        gCountdown = 0;
+        DRS3StopOutletSound(gPedestrians_outlet);
+        DRS3StartSound(gPedestrians_outlet, eSoundId_HeyYou);
+        SpendCredits(gJump_start_fine[gProgram_state.skill_level]);
+        sprintf(s, "%s %d %s",
+            GetMiscString(eMiscString_bad_boy),
+            gJump_start_fine[gProgram_state.skill_level],
+            GetMiscString(eMiscString_credit_fine));
+        NewTextHeadupSlot(4, 0, 1000, -4, s);
+    }
+}
+
+extern int C2_HOOK_FASTCALL TintedPolyIsOn(int pIndex);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
+extern void C2_HOOK_FASTCALL PlayFlicsFromDisk(void);
+extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+
+// FUNCTION: CARMA2_HW 0x00504230
+void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void) {
+
+    gInterface_within_race_mode = 1;
+    gHud_tinted1_visible = !!TintedPolyIsOn(gHud_tinted1);
+    gHud_tinted2_visible = !!TintedPolyIsOn(gHud_tinted2);
+    TurnTintedPolyOff(gHud_tinted1);
+    TurnTintedPolyOff(gHud_tinted2);
+    PlayFlicsFromDisk();
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_paused, 0, 0, 0, 0);
+    }
+}
+
+extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
+extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
+
+// FUNCTION: CARMA2_HW 0x005042a0
+void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
+
+    gInterface_within_race_mode = 0;
+    if (gHud_tinted1_visible) {
+        TurnTintedPolyOn(gHud_tinted1);
+    }
+    if (gHud_tinted2_visible) {
+        TurnTintedPolyOn(gHud_tinted2);
+    }
+    SwitchToLoresMode();
+    if (gNet_mode == eNet_mode_host) {
+        SendGameplayToAllPlayers(eNet_gameplay_host_unpaused, 0, 0, 0, 0);
+    }
+}
 

@@ -1,9 +1,17 @@
 #include "59-camera.h"
+#include "globvrkm.h"
+#include "globvars.h"
+
+#include "37-brucetrk.h"
+#include "globvars.h"
 
 #include "37-brucetrk.h"
 #include "globvars.h"
 #include "globvrkm.h"
 #include "globvrpb.h"
+
+// GLOBAL: CARMA2_HW 0x00679278
+int gAction_replay_manual_camera_target_type;
 
 // GLOBAL: CARMA2_HW 0x006792b4
 // GLOBAL: CARMA2_SW 0x00673a24
@@ -17,6 +25,12 @@ float gCamera_cockpit_hither;
 
 // GLOBAL: CARMA2_HW 0x0079efa8
 tActionReplayCameraMode gAction_replay_camera_mode;
+
+// GLOBAL: CARMA2_HW 0x006792c8
+tSave_camera gSave_camera[2];
+
+// GLOBAL: CARMA2_HW 0x00655f40
+br_scalar gCamera_zoom = 0.2f;
 
 // DoCameraControls
 
@@ -57,11 +71,126 @@ void C2_HOOK_FASTCALL ReallyViewOpponent(void) {
 
 // IsCameraTypeAllowed
 
-// MungeCarMaterials
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0040e700
+void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
+    int i;
+    int j;
+    int one_sided;
+    tCarCockpitMaterial* cockpit_material;
 
-// SetCameraType
+    i = 0;
+    if (i < pCar->count_window_materials) {
+        cockpit_material = pCar->window_materials;
+        for (; i < pCar->count_window_materials; i++, cockpit_material++) {
+            one_sided = pInternal_cam;
+            if (pInternal_cam) {
+                for (j = 0; j < cockpit_material->count_maps; j++) {
+                    if (cockpit_material->material->colour_map == cockpit_material->maps[j]) {
+                        one_sided = 0;
+                    }
+                }
+                if (one_sided) {
+                    cockpit_material->material->flags &= ~BR_MATF_TWO_SIDED;
+                }
+            }
+            if (!one_sided) {
+                cockpit_material->material->flags |= BR_MATF_TWO_SIDED;
+            }
+            BrMaterialUpdate(cockpit_material->material, BR_MATU_RENDERING);
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// ChangeCameraType
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+extern int gAR_camera_type;
+extern int gCamera_type;
+extern int gPed_count;
+extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
+extern int C2_HOOK_FASTCALL OKToViewDrones(void);
+
+// GLOBAL: CARMA2_HW 0x0058f600
+tU8 gCamera_type_allowed_replay[9] = { 1, 1, 1, 1, 1, 0, 0, 1, 1 };
+
+// GLOBAL: CARMA2_HW 0x0058f610
+tU8 gCamera_type_allowed_gameplay[9] = { 1, 0, 0, 0, 1, 0, 0, 1, 1 };
+
+// FUNCTION: CARMA2_HW 0x0040e790
+void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
+
+    gAction_replay_camera_mode = pCamPos;
+    switch (pCamPos) {
+    case kActionReplayCameraMode_Standard:
+    case kActionReplayCameraMode_Rigid:
+    case kActionReplayCameraMode_Reversing:
+        InitialiseExternalCamera();
+        break;
+    case kActionReplayCameraMode_Manual:
+        gAction_replay_manual_camera_target_type = 0;
+        break;
+    default:
+        break;
+    }
+    MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0040e7f0
+void C2_HOOK_FASTCALL ChangeCameraType(void) {
+    int mode;
+
+    // based on carpocalypse2 camera.c:48
+    if (KeyIsDown(8)) {
+        gAction_replay_camera_mode--;
+        if (gAction_replay_camera_mode >= 9 || gAction_replay_camera_mode < 0) {
+            gAction_replay_camera_mode = 8;
+        }
+    } else {
+        gAction_replay_camera_mode++;
+        if (gAction_replay_camera_mode >= 9) {
+            gAction_replay_camera_mode = 0;
+        }
+    }
+    mode = gAction_replay_camera_mode;
+    if ((gAction_replay_mode && !gCamera_type_allowed_replay[mode])
+            || (!gAction_replay_mode && !gCamera_type_allowed_gameplay[mode])
+            || mode >= 9
+            || (mode == 6 && !OKToViewDrones())
+            || (mode == 5 && gPed_count == 0)) {
+        ChangeCameraType();
+    }
+    if (gAction_replay_mode) {
+        gAR_camera_type = gAction_replay_camera_mode;
+    } else {
+        gCamera_type = gAction_replay_camera_mode;
+    }
+    switch (gAction_replay_camera_mode) {
+    case kActionReplayCameraMode_Standard:
+    case kActionReplayCameraMode_Rigid:
+    case kActionReplayCameraMode_Reversing:
+        InitialiseExternalCamera();
+        break;
+    case kActionReplayCameraMode_Manual:
+        gAction_replay_manual_camera_target_type = 0;
+        break;
+    default:
+        break;
+    }
+    MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ToggleCockpit
 
@@ -120,10 +249,24 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
 
 // SetUpPanningCamera
 
-// SaveCameraPosition
+// FUNCTION: CARMA2_HW 0x00410be0
+void C2_HOOK_FASTCALL SaveCameraPosition(int i) {
 
-// RestoreCameraPosition
+    if (gSave_camera[i].saved != 1) {
+        gSave_camera[i].zoom = gCamera_zoom;
+        gSave_camera[i].yaw = gCamera_yaw;
+        gSave_camera[i].saved = 1;
+    }
+}
+// FUNCTION: CARMA2_HW 0x00410c20
+void C2_HOOK_FASTCALL RestoreCameraPosition(int i) {
 
+    if (gSave_camera[i].saved != 0) {
+        gCamera_zoom = gSave_camera[i].zoom;
+        gCamera_yaw = gSave_camera[i].yaw;
+        gSave_camera[i].saved = 0;
+    }
+}
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
@@ -144,7 +287,11 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
 
 // CollideCamera2
 
-// CollideCameraWithOtherCars
+// FUNCTION: CARMA2_HW 0x00413570
+int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pCamera_pos) {
+
+    return 0;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

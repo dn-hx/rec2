@@ -4,6 +4,13 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern tU32 gPHIL_last_physics_tick;
+extern int gNot_shown_race_type_headup;
+extern tU32 gTime_for_punishment;
+extern int gNet_cash_headup;
+extern int gINT_0068d920;
+extern int gNet_ped_headup;
+
 // SendShapeNumbers
 
 extern void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, int pPlayer_id);
@@ -20,8 +27,7 @@ extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shap
 
 // AddShapeStuffToMechanicsMessage
 
-// TimeToSendData
-
+extern int C2_HOOK_FASTCALL TimeToSendData(void);
 // SendCarData
 
 // ReceivedRecover
@@ -56,9 +62,9 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
-// EnableCar
+extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 
-// DoNetworkHeadups
+extern void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits);
 
 // SortNetHeadAscending
 

@@ -8,6 +8,9 @@
 #include "globvars.h"
 #include "globvrkm.h"
 #include "rec2_macros.h"
+#include "41-utility.h"
+#include "15-displays.h"
+#include "52-errors.h"
 
 #include "c2_stdio.h"
 
@@ -23,8 +26,8 @@ br_material* gHorizon_material;
 // GLOBAL: CARMA2_HW 0x0067c4a0
 br_model* gForward_sky_model;
 
-// GLOBAL: CARMA2_HW 0x0074cee8
-br_material* gMaterial[2];
+/* defined in globvrbm.c (0x0074cee8), directly before gHUDsquare_actor as in the original layout */
+extern br_material* gMaterial[2];
 
 // GLOBAL: CARMA2_HW 0x0059118c
 int gDepth_cueing_on = 1;
@@ -53,7 +56,33 @@ int gHas_sky_texture;
 // GLOBAL: CARMA2_HW 0x0079ec20
 br_pixelmap* gDepth_shade_table;
 
+// GLOBAL: CARMA2_HW 0x0067c4bc
+int gDepth_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec38
+br_pixelmap* gFog_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4a4
+int gFog_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec24
+br_pixelmap* gAcid_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4dc
+int gAcid_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0079ec28
+br_pixelmap* gWater_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0067c4cc
+int gWater_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0067c4d8
+br_actor* gForward_sky_actor;
+
 static void C2_HOOK_FASTCALL FrobFog(void);
+
+extern void C2_HOOK_FASTCALL GenerateSmokeShades(void);
 
 // Log2
 
@@ -186,6 +215,9 @@ void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00445340
 void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8) {
 
@@ -218,6 +250,9 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
         FrobFog();
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // Tan
 
@@ -225,11 +260,131 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
 
 // CreateHorizonModel
 
-// LoadDepthTable
+static int Log2(int pNumber) {
+    int i;
+    int bits[16];
 
-// STUB: CARMA2_HW 0x00445620
+    bits[0] = 1;
+    bits[1] = 2;
+    bits[2] = 4;
+    bits[3] = 8;
+    bits[4] = 16;
+    bits[5] = 32;
+    bits[6] = 64;
+    bits[7] = 128;
+    bits[8] = 256;
+    bits[9] = 512;
+    bits[10] = 1024;
+    bits[11] = 2048;
+    bits[12] = 4096;
+    bits[13] = 0x2000;
+    bits[14] = 0x4000;
+    bits[15] = 0x8000;
+    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
+        if (bits[i] & pNumber) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    tPath_name the_path;
+    int i;
+    int j;
+    tU8 temp;
+
+#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
+
+    PathCat(the_path, gApplication_path, "SHADETAB");
+    PathCat(the_path, the_path, pName);
+    *pTable = DRPixelmapLoad(the_path);
+    if (*pTable == NULL) {
+        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
+    }
+    *pPower = Log2((*pTable)->height);
+    for (i = 0; i < (*pTable)->width; i++) {
+        for (j = 0; j < (*pTable)->height / 2; j++) {
+            temp = PTABLE_PIXEL_AT(i, j);
+            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
+            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
+        }
+    }
+
+#undef PTABLE_PIXEL_AT
+}
+
+// based on carpocalypse2 src/carma2/common/depth.c:753
+// FUNCTION: CARMA2_HW 0x00445620
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
-    NOT_IMPLEMENTED();
+    br_model* sky_model;
+    int row;
+    int col;
+    int u_base;
+    int v_base;
+    tU8 band;
+    int vtxidx;
+    tU8 stripe;
+
+    LoadDepthTable("DEPTHCUE.TAB", &gDepth_shade_table, &gDepth_shade_table_power);
+    LoadDepthTable("FOG.TAB", &gFog_shade_table, &gFog_shade_table_power);
+    LoadDepthTable("ACIDFOG.TAB", &gAcid_shade_table, &gAcid_shade_table_power);
+    LoadDepthTable("BLUEGIT.TAB", &gWater_shade_table, &gWater_shade_table_power);
+    GenerateSmokeShades();
+
+    gHorizon_material = BrMaterialFind("HORIZON.MAT");
+    if (gHorizon_material == NULL) {
+        FatalError(kFatalError_CannotFindSkyMaterial_S);
+    }
+
+    if (gScreen->type == BR_PMT_INDEX_8 && gNo_fog == 0) {
+        gHorizon_material->index_blend = BrPixelmapAllocate(BR_PMT_INDEX_8, 0x100, 0x100, NULL, 0);
+        BrTableAdd(gHorizon_material->index_blend);
+        for (row = 0; row < 0x10000; row += 0x100) {
+            for (col = 0; col < 0x100; col++) {
+                ((tU8*)gHorizon_material->index_blend->pixels)[row + col] = (tU8)col;
+            }
+        }
+        gHorizon_material->flags |= BR_MATF_PERSPECTIVE;
+    }
+
+    gHorizon_material->flags |= BR_MATF_MAP_INTERPOLATION;
+
+    sky_model = BrModelAllocate(NULL, 0x58, 0x7e);
+    sky_model->flags |= BR_MODF_KEEP_ORIGINAL;
+
+    band = 0;
+    vtxidx = 0;
+    do {
+        u_base = 4 * band;
+        v_base = u_base + 4;
+        stripe = 0;
+        do {
+            *((tU16*)((tU8*)sky_model->faces + vtxidx)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 2)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 4)) = (tU16)(u_base + stripe + 5);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x28)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2a)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2c)) = (tU16)(v_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 6)) = 1;
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2e)) = 1;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 8)) = 0;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 0x30)) = 0;
+            vtxidx += 0x50;
+            stripe++;
+        } while (stripe < 3);
+        band++;
+    } while (band < 0x15);
+
+    gForward_sky_model = sky_model;
+    BrModelAdd(gForward_sky_model);
+
+    gForward_sky_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gForward_sky_actor->model = gForward_sky_model;
+    gForward_sky_actor->material = gHorizon_material;
+    gForward_sky_actor->render_style = BR_RSTYLE_NONE;
+    BrActorAdd(gUniverse_actor, gForward_sky_actor);
 }
 
 // DoHorizon
@@ -291,9 +446,20 @@ void C2_HOOK_FASTCALL IncreaseYon(void) {
     sprintf(s, GetMiscString(eMiscString_yon_increased_to_D), (int)((br_camera*)gCamera_list[1]->type_data)->yon_z);
     NewTextHeadupSlot(4, 0, 2000, -4, s);
 }
+// FUNCTION: CARMA2_HW 0x00446ad0
+void C2_HOOK_FASTCALL DecreaseYon(void) {
+    char text[256];
+    br_camera* camera;
 
-// DecreaseYon
-
+    gCamera_yon -= 5.f;
+    if (gCamera_yon < 5.0f) {
+        gCamera_yon = 5.0f;
+    }
+    AssertYons();
+    camera = gCamera_list[1]->type_data;
+    sprintf(text, GetMiscString(eMiscString_yon_decreased_to_D), (int)camera->yon_z);
+    NewTextHeadupSlot(4, 0, 2000, -4, text);
+}
 // FUNCTION: CARMA2_HW 0x00446b70
 void C2_HOOK_STDCALL SetYon(br_scalar pYon) {
     int i;
@@ -356,18 +522,28 @@ void C2_HOOK_FASTCALL ToggleSkyQuietly(void) {
     br_pixelmap* temp;
 
     temp = gProgram_state.current_depth_effect.sky_texture;
-    gProgram_state.default_depth_effect.sky_texture = gSwap_sky_texture;
+    gProgram_state.current_depth_effect.sky_texture = gSwap_sky_texture;
     gSwap_sky_texture = temp;
-    gProgram_state.current_depth_effect.sky_texture = gProgram_state.default_depth_effect.sky_texture;
-    if (gHorizon_material != NULL && gProgram_state.default_depth_effect.sky_texture != NULL) {
+    gProgram_state.default_depth_effect.sky_texture = gProgram_state.current_depth_effect.sky_texture;
+    if (gHorizon_material != NULL && gProgram_state.current_depth_effect.sky_texture != NULL) {
         gHorizon_material->colour_map = gProgram_state.current_depth_effect.sky_texture;
         BrMaterialUpdate(gHorizon_material, BR_MATU_ALL);
         MungeSkyVs(gForward_sky_model, gHorizon_material);
     }
 }
 
-// ToggleSky
+// FUNCTION: CARMA2_HW 0x00446ee0
+void C2_HOOK_FASTCALL ToggleSky(void) {
 
+    SetSkyTextureOn(!GetSkyTextureOn());
+    if (gProgram_state.current_depth_effect.sky_texture != NULL) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_sky_texture_on));
+    } else if (gSwap_sky_texture != NULL) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_sky_texture_off));
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_no_sky_texture_for_this_race));
+    }
+}
 // FUNCTION: CARMA2_HW 0x00446f90
 int C2_HOOK_FASTCALL GetDepthCueingOn(void) {
 
@@ -392,9 +568,9 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
     int temp_start;
     tDepth_effect_type temp_type;
 
+    temp_type = gProgram_state.current_depth_effect.type;
     temp_start = gProgram_state.current_depth_effect.start;
     temp_end = gProgram_state.current_depth_effect.end;
-    temp_type = gProgram_state.current_depth_effect.type;
     temp_red = gProgram_state.current_depth_effect.colour.red;
     temp_green = gProgram_state.current_depth_effect.colour.green;
     temp_blue = gProgram_state.current_depth_effect.colour.blue;
@@ -407,16 +583,28 @@ void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void) {
         gSwap_depth_effect_colour_green,
         gSwap_depth_effect_colour_blue,
         gProgram_state.racing);
+    gSwap_depth_effect_type = temp_type;
     gSwap_depth_effect_start = temp_start;
     gSwap_depth_effect_end = temp_end;
-    gSwap_depth_effect_type = temp_type;
     gSwap_depth_effect_colour_red = temp_red;
     gSwap_depth_effect_colour_green = temp_green;
     gSwap_depth_effect_colour_blue = temp_blue;
 }
 
-// ToggleDepthCueing
+// FUNCTION: CARMA2_HW 0x00447110
+void C2_HOOK_FASTCALL ToggleDepthCueing(void) {
+    int enabled;
 
+    enabled = GetDepthCueingOn();
+    SetDepthCueingOn(!enabled);
+    if (gProgram_state.current_depth_effect.type != eDepth_effect_none) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_depth_cueing_on));
+    } else if (gSwap_depth_effect_type != eDepth_effect_none) {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_depth_cueing_off));
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, GetMiscString(eMiscString_there_is_no_depth_cueing_for_this_race));
+    }
+}
 // FUNCTION: CARMA2_HW 0x00447220
 void C2_HOOK_FASTCALL ChangeDepthEffect(void) {
     gProgram_state.current_depth_effect.type = gProgram_state.default_depth_effect.type;

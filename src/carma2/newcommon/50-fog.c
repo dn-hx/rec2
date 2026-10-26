@@ -4,8 +4,8 @@
 #include "41-utility.h"
 #include "rec2_macros.h"
 
-// GLOBAL: CARMA2_HW 0x006a6d38
-int gMaterials_to_adapt_count;
+/* defined in 51-smash.c (0x006a6d38), next to gExplosions as in the original layout */
+extern int gMaterials_to_adapt_count;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 int gAllow_material_adapt;

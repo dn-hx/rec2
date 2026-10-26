@@ -2,6 +2,12 @@
 #define GUARD_56_AIWORLD_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
+
+extern int gFirst_drone_processing;
+extern tU32 gFrame_period_for_this_munging;
+extern float gDrone_delta_time;
+extern float gTrack_drone_min_y;
 
 #include "brender/brender.h"
 
@@ -13,9 +19,11 @@ extern void C2_HOOK_FASTCALL InitPanGameAIWorld(void);
 
 // LoadAIWorldTrackInfo
 
-// LoadAIWorldForRace
+extern void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF);
 
-// InitialiseAIWorldForRace
+extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
+
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 
@@ -30,5 +38,17 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 // CalcNegativeXVector
 
 // MakeAISimpleEditSectionHere
+
+extern void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info);
+
+extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
+
+extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
+
+extern void C2_HOOK_FASTCALL DisposeOpponents(void);
+
+extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
+
+extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 
 #endif // GUARD_56_AIWORLD_H

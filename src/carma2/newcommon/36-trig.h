@@ -20,6 +20,12 @@ extern float gFloat_sine_table[91];
 
 extern float C2_HOOK_STDCALL FastFloatArcSin(float pValue);
 
+extern float C2_HOOK_STDCALL FastFloatArcCos(float pValue);
+
+extern br_scalar C2_HOOK_STDCALL FastScalarArcSin(br_scalar pValue);
+
+extern br_scalar C2_HOOK_STDCALL FastScalarArcCos(br_scalar pValue);
+
 extern float C2_HOOK_STDCALL FastFloatArcTan2(float pY, float pX);
 
 extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
@@ -34,6 +40,8 @@ extern br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar p
 
 // DRMatrix34RotateZ
 
+extern void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a);
+
 // DRMatrix34PostRotateX
 
 extern void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry);
@@ -41,6 +49,10 @@ extern void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry
 // DRMatrix34PreRotateZ
 
 // DRMatrix34PostRotateZ
+
+extern void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis);
+
+extern void C2_HOOK_FASTCALL DRMatrix34PostRotate(br_matrix34* mat, br_angle r, br_vector3* axis);
 
 // DRMatrix23Rotate
 

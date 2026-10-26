@@ -99,6 +99,29 @@ float gFloat_sine_table[91] = {
     1.0f,
 };
 
+// GLOBAL: CARMA2_HW 0x00661508
+br_fixed_ls gFixed_sine_table[91] = {
+    0x0, 0x477, 0x8ef, 0xd65, 0x11db, 0x164f, 0x1ac2, 0x1f32,
+    0x23a0, 0x280c, 0x2c74, 0x30d8, 0x3539, 0x3996, 0x3dee, 0x4241,
+    0x4690, 0x4ad8, 0x4f1b, 0x5358, 0x578e, 0x5bbe, 0x5fe6, 0x6406,
+    0x681f, 0x6c30, 0x7039, 0x7438, 0x782f, 0x7c1c, 0x7fff, 0x83d9,
+    0x87a8, 0x8b6d, 0x8f27, 0x92d5, 0x9679, 0x9a10, 0x9d9b, 0xa11b,
+    0xa48d, 0xa7f3, 0xab4c, 0xae97, 0xb1d5, 0xb504, 0xb826, 0xbb39,
+    0xbe3e, 0xc134, 0xc41b, 0xc6f3, 0xc9bb, 0xcc73, 0xcf1b, 0xd1b3,
+    0xd43b, 0xd6b3, 0xd919, 0xdb6f, 0xddb3, 0xdfe7, 0xe208, 0xe419,
+    0xe617, 0xe803, 0xe9de, 0xeba6, 0xed5b, 0xeeff, 0xf08f, 0xf20d,
+    0xf378, 0xf4d0, 0xf615, 0xf746, 0xf865, 0xf970, 0xfa67, 0xfb4b,
+    0xfc1c, 0xfcd9, 0xfd82, 0xfe17, 0xfe98, 0xff06, 0xff60, 0xffa6,
+    0xffd8, 0xfff6, 0x10000,
+};
+
+
+// GLOBAL: CARMA2_HW 0x006ab980
+br_matrix34 mattmp1__trig;
+
+// GLOBAL: CARMA2_HW 0x006ab9b0
+br_matrix34 mattmp2__trig;
+
 // FastFloatSin
 
 // FastFloatCos
@@ -138,6 +161,24 @@ float C2_HOOK_STDCALL FastFloatArcSin(float pValue) {
         }
     }
     return low_limit;
+}
+
+// FUNCTION: CARMA2_HW 0x00511a80
+float C2_HOOK_STDCALL FastFloatArcCos(float pValue) {
+
+    return 90.f - FastFloatArcSin(pValue);
+}
+
+// FUNCTION: CARMA2_HW 0x00511b50
+br_scalar C2_HOOK_STDCALL FastScalarArcSin(br_scalar pValue) {
+
+    return FastFloatArcSin(pValue);
+}
+
+// FUNCTION: CARMA2_HW 0x00511c10
+br_scalar C2_HOOK_STDCALL FastScalarArcCos(br_scalar pValue) {
+
+    return 90.f - FastScalarArcSin(pValue);
 }
 
 // FUNCTION: CARMA2_HW 0x00511ce0
@@ -236,6 +277,17 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
 
 // DRMatrix34RotateZ
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x005123f0
+void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // DRMatrix34PostRotateX
 
 // STUB: CARMA2_HW 0x00512ad0
@@ -247,6 +299,22 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
 // DRMatrix34PreRotateZ
 
 // DRMatrix34PostRotateZ
+
+// FUNCTION: CARMA2_HW 0x00512f80
+void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+
+    DRMatrix34Rotate(&mattmp2__trig, r, axis);
+    BrMatrix34Mul(&mattmp1__trig, &mattmp2__trig, mat);
+    BrMatrix34Copy(mat, &mattmp1__trig);
+}
+
+// FUNCTION: CARMA2_HW 0x00512fd0
+void C2_HOOK_FASTCALL DRMatrix34PostRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+
+    DRMatrix34Rotate(&mattmp2__trig, r, axis);
+    BrMatrix34Mul(&mattmp1__trig, mat, &mattmp2__trig);
+    BrMatrix34Copy(mat, &mattmp1__trig);
+}
 
 // DRMatrix23Rotate
 

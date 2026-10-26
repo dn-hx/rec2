@@ -6,12 +6,33 @@
 #include "41-utility.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "27-powerup.h"
+#include "08-loading1.h"
 
 #include "c2_stdio.h"
 #include "c2_string.h"
 
-// MaxOutAPO
+// GLOBAL: CARMA2_HW 0x00762130
+int gInitial_powerup_slots[3];
 
+// GLOBAL: CARMA2_HW 0x0068b8e4
+int gINT_0068b8e4;
+
+// GLOBAL: CARMA2_HW 0x0068b8e8
+int gINT_0068b8e8;
+
+// GLOBAL: CARMA2_HW 0x0074a734
+int gIt_or_fox;
+
+// FUNCTION: CARMA2_HW 0x00502e00
+void C2_HOOK_FASTCALL MaxOutAPO(void) {
+    int i;
+
+    for (i = 0; i < 3; i++) {
+        gProgram_state.current_car.power_up_levels[i] = gInitial_powerup_slots[i];
+        gProgram_state.current_car.power_up_slots[i] = gInitial_powerup_slots[i];
+    }
+}
 // FUNCTION: CARMA2_HW 0x00502e20
 void C2_HOOK_FASTCALL ImprovePSPowerup(tCar_spec* pCar, int pIndex) {
 
@@ -44,9 +65,31 @@ void C2_HOOK_FASTCALL BuyPSPowerup(int pIndex) {
     }
 }
 
-// BuyArmour
+// FUNCTION: CARMA2_HW 0x00502e50
+void C2_HOOK_FASTCALL BuyArmour(void) {
 
-// BuyPower
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        BuyPSPowerup(0);
+    }
+}
 
-// BuyOffense
+// FUNCTION: CARMA2_HW 0x00502fd0
+void C2_HOOK_FASTCALL BuyPower(void) {
+
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox) {
+            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_fox_cant_do_that));
+        } else {
+            BuyPSPowerup(1);
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00503030
+void C2_HOOK_FASTCALL BuyOffense(void) {
+
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        BuyPSPowerup(2);
+    }
+}
 

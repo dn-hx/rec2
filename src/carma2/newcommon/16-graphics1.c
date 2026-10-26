@@ -35,11 +35,33 @@ br_pixelmap* gRear_pixelmap;
 // GLOBAL: CARMA2_HW 0x006a22b8
 br_pixelmap* gEvalu;
 
+/* explicit initializers keep both blocks adjacent and in address order (InitWobbleStuff loop-end compares) */
 // GLOBAL: CARMA2_HW 0x006a22f8
-tWobble_spec gWobble_array[5];
+tWobble_spec gWobble_array[5] = { 0 };
 
+/* UNCERTAIN: unreferenced dword */
+// GLOBAL: CARMA2_HW 0x006a2348
+int gUNK_006a2348 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a234c
+float gPrevious_rear_yon = 0.f;
+
+/* UNCERTAIN: unreferenced dwords (0x006a2354 is only seen as gWobble_array loop end) */
+// GLOBAL: CARMA2_HW 0x006a2350
+int gUNK_006a2350 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a2354
+int gUNK_006a2354 = 0;
+
+/* 65 entries: InitWobbleStuff fills 0..64 inclusive (loop ends at 0x00705184 = gScreen_wobble_y) */
 // GLOBAL: CARMA2_HW 0x00705080
-float gCosine_array[64];
+float gCosine_array[65] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00705184
+int gScreen_wobble_y = 0;
+
+// GLOBAL: CARMA2_HW 0x00705188
+int gScreen_wobble_x = 0;
 
 // GLOBAL: CARMA2_HW 0x0065fdc8
 tShadow_level gShadow_level = eShadow_us_only;
@@ -74,11 +96,6 @@ br_model* gShadow_model;
 // GLOBAL: CARMA2_HW 0x006a2444
 br_actor* gShadow_actor;
 
-// GLOBAL: CARMA2_HW 0x00705188
-int gScreen_wobble_x;
-
-// GLOBAL: CARMA2_HW 0x00705184
-int gScreen_wobble_y;
 
 // GLOBAL: CARMA2_HW 0x006a2488
 tSaved_table gSaved_shade_tables[100];
@@ -198,16 +215,22 @@ void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
     }
 }
 
-// ShadowMode
+// FUNCTION: CARMA2_HW 0x004e9b90
+void C2_HOOK_FASTCALL ShadowMode(void) {
 
+    gFancy_shadow = !gFancy_shadow;
+    if (gFancy_shadow) {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Translucent shadow");
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Solid shadow");
+    }
+}
 // LollipopizeActor
 
 // FUNCTION: CARMA2_HW 0x004e4900
 void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
 }
-
-// RenderLollipops
 
 // FUNCTION: CARMA2_HW 0x004e4940
 void C2_HOOK_FASTCALL SetupDepthBuffer(void) {
@@ -261,6 +284,9 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
 #endif
 
 // STUB: CARMA2_HW 0x004e4b40
@@ -344,7 +370,11 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // DoACompleteRenderPass
 
-// RenderAFrame
+// STUB: CARMA2_HW 0x004e4e40
+void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {
+
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e5a70
 void C2_HOOK_FASTCALL StartRenderingHeadups(void) {

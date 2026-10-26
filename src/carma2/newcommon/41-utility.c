@@ -22,12 +22,19 @@
 #include <ctype.h>
 #include <float.h>
 
+extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
+extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
+
 
 // GLOBAL: CARMA2_HW 0x006abef8
 tU32 last_service;
 
+/* explicit initializers keep gMisc_strings and gPalette_source adjacent (loop-end compare) */
 // GLOBAL: CARMA2_HW 0x006b5f40
-char* gMisc_strings[300];
+char* gMisc_strings[300] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006b63f0
+br_pixelmap* gPalette_source = NULL;
 
 // GLOBAL: CARMA2_HW 0x0074ca04
 tMaterial_exception* gMaterial_exceptions;
@@ -35,8 +42,6 @@ tMaterial_exception* gMaterial_exceptions;
 // GLOBAL: CARMA2_HW 0x006b63f4
 br_pixelmap* g16bit_palette;
 
-// GLOBAL: CARMA2_HW 0x006b63f0
-br_pixelmap* gPalette_source;
 
 // GLOBAL: CARMA2_HW 0x006abef4
 tU32 gLost_time;
@@ -316,8 +321,15 @@ int C2_HOOK_FASTCALL DRPixelmapLoadMany(const char* texturePathNoExt, br_pixelma
     return 1;
 }
 
-// WaitFor
+// FUNCTION: CARMA2_HW 0x005146c0
+void C2_HOOK_FASTCALL WaitFor(tU32 pDelay) {
+    tU32 start_time;
 
+    start_time = PDGetTotalTime();
+    while (PDGetTotalTime() < start_time + pDelay && !AnyKeyDown()) {
+        SoundService();
+    }
+}
 // FUNCTION: CARMA2_HW 0x005146f0
 intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg) {
     intptr_t result;
@@ -895,6 +907,17 @@ void C2_HOOK_FASTCALL DRstrlwr(char* s) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00515910
+void C2_HOOK_FASTCALL StringTransformToLower(char* pStr) {
+    int i;
+    int len;
+
+    len = strlen(pStr);
+    for (i = 0; i < len; i++) {
+        pStr[i] = tolower(pStr[i]);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00515950
 int C2_HOOK_FASTCALL PDCheckDriveExists(const char* pThe_path) {
 
@@ -1169,7 +1192,7 @@ tU16 C2_HOOK_FASTCALL DRScalarToU16(float pValue, float pMin, float pMax) {
     } else if (pValue > pMax) {
         pValue = pMax;
     }
-    return (tU16)((pValue - pMin) * 65535.0f / (pMax - pMin) + 0.5f);
+    return (tU16)((pValue - pMin) * 65535.0f / (pMax - pMin) - -0.5f);
 }
 
 // FUNCTION: CARMA2_HW 0x00516460
@@ -1566,7 +1589,10 @@ void C2_HOOK_FASTCALL PrintScreen(void) {
 
 // GetBlenficatiousnessOfMaterialPrimitively
 
-// GetBlenficatiousnessOfMaterial
+// STUB: CARMA2_HW 0x00518e70
+int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00518f20
 char* C2_HOOK_FASTCALL MungeCommas(int pValue) {
@@ -1666,3 +1692,26 @@ void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2)
 
 }
 
+// FUNCTION: CARMA2_HW 0x005148c0
+intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext) {
+    br_actor* child;
+    br_matrix34 mat;
+    intptr_t result;
+
+    if (pMat != NULL) {
+        BrMatrix34Mul(&mat, &pActor->t.t.mat, pMat);
+    } else {
+        BrMatrix34Identity(&mat);
+    }
+    result = pCallback(pActor, &mat, pContext);
+    if (result != 0) {
+        return result;
+    }
+    for (child = pActor->children; child != NULL; child = child->next) {
+        result = DRActorEnumRecurseWithSnart(child, &mat, pCallback, pContext);
+        if (result != 0) {
+            return result;
+        }
+    }
+    return 0;
+}

@@ -30,8 +30,26 @@ int gCursor_tinted_center = -1;
 // GLOBAL: CARMA2_HW 0x0058fde0
 int gCursor_line_width = 5;
 
+/* explicit initializers keep gTransient_bitmaps, gNext_transient and the gap dword adjacent (loop-end compare) */
 // GLOBAL: CARMA2_HW 0x0067be98
-tTransient_bm gTransient_bitmaps[50];
+tTransient_bm gTransient_bitmaps[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0067c348
+int gNext_transient = 0;
+
+/* UNCERTAIN: unreferenced dword, only seen as gTransient_bitmaps loop end */
+// GLOBAL: CARMA2_HW 0x0067c34c
+int gUNK_0067c34c = 0;
+
+/* UNCERTAIN: unreferenced dwords, only seen as gTransient_bitmaps loop ends (field walks) */
+// GLOBAL: CARMA2_HW 0x0067c350
+int gUNK_0067c350 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c354
+int gUNK_0067c354 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c358
+int gUNK_0067c358 = 0;
 
 // GLOBAL: CARMA2_HW 0x006923a4
 tU32 gLast_palette_change;
@@ -70,7 +88,7 @@ int gFaded_palette;
 int gPalette_munged;
 
 // GLOBAL: CARMA2_HW 0x006923b8
-br_colour* gScratch_pixels;
+br_uint_8* gScratch_pixels;
 
 // GLOBAL: CARMA2_HW 0x006923a8
 br_pixelmap* gScratch_palette;
@@ -119,9 +137,7 @@ void C2_HOOK_FASTCALL DRSetPalette3(br_pixelmap* pThe_palette, int pSet_current_
     if (!gFaded_palette) {
         PDSetPalette(pThe_palette);
     }
-    if (pThe_palette != gRender_palette) {
-        gPalette_munged |= 0x1;
-    }
+    gPalette_munged |= pThe_palette != gRender_palette;
 }
 
 void C2_HOOK_FASTCALL DRSetPalette2(br_pixelmap* pThe_palette, int pSet_current_palette) {
@@ -186,8 +202,12 @@ void C2_HOOK_FASTCALL InitPaletteAnimate(void) {
     gPalette_index = 0;
 }
 
-// RevertPalette
+// FUNCTION: CARMA2_HW 0x004b52b0
+void C2_HOOK_FASTCALL RevertPalette(void) {
 
+    memcpy(gRender_palette->pixels, gOrig_render_palette->pixels, 256 * sizeof(br_colour));
+    DRSetPalette3(gRender_palette, 1);
+}
 // FUNCTION: CARMA2_HW 0x004b5320
 void C2_HOOK_FASTCALL MungePalette(void) {
 }
@@ -206,8 +226,6 @@ void C2_HOOK_FASTCALL ResetPalette(void) {
 // FUNCTION: CARMA2_HW 0x004b5460
 void C2_HOOK_FASTCALL FadePaletteDown(void) {
 }
-
-// FadePaletteUp
 
 // EnsurePaletteUp
 
@@ -234,9 +252,31 @@ void C2_HOOK_FASTCALL InitTransientBitmaps(void) {
 
 // DeallocateAllTransientBitmaps
 
-// STUB: CARMA2_HW 0x0043e010
+// FUNCTION: CARMA2_HW 0x0043e010
 void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
-    NOT_IMPLEMENTED();
+    int i;
+    int order_number;
+
+    if (!gNoTransients && pGraphically_remove_them) {
+        for (order_number = gNext_transient - 1; order_number >= 0; order_number--) {
+            for (i = 0; i < (int)REC2_ASIZE(gTransient_bitmaps); i++) {
+                if (gTransient_bitmaps[i].pixmap != NULL && order_number == gTransient_bitmaps[i].order_number) {
+                    if (gTransient_bitmaps[i].in_use) {
+                        BrPixelmapRectangleCopy(gBack_screen,
+                            gTransient_bitmaps[i].x_coord,
+                            gTransient_bitmaps[i].y_coord,
+                            gTransient_bitmaps[i].pixmap,
+                            0,
+                            0,
+                            gTransient_bitmaps[i].pixmap->width,
+                            gTransient_bitmaps[i].pixmap->height);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    gNext_transient = 0;
 }
 
 // SaveTransient
@@ -409,15 +449,36 @@ int C2_HOOK_FASTCALL SwitchToLoresMode(void) {
     return 0;
 }
 
-// PoshDrawLine
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0047cad0
+/* local declarations (globvrbm.h is not included in this file) */
+extern br_model* gDim_model;
+extern br_actor* gDim_actor;
+extern br_actor* g2d_camera;
+
+// FUNCTION: CARMA2_HW 0x0047cad0
 void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
-    NOT_IMPLEMENTED();
+
+    gDim_model->vertices[1].p.v[0] = (float)pLeft;
+    gDim_model->vertices[0].p.v[0] = gDim_model->vertices[1].p.v[0];
+    gDim_model->vertices[3].p.v[0] = (float)pRight;
+    gDim_model->vertices[2].p.v[0] = gDim_model->vertices[3].p.v[0];
+    gDim_model->vertices[3].p.v[1] = -(float)pTop;
+    gDim_model->vertices[0].p.v[1] = gDim_model->vertices[3].p.v[1];
+    gDim_model->vertices[2].p.v[1] = -(float)pBottom;
+    gDim_model->vertices[1].p.v[1] = gDim_model->vertices[2].p.v[1];
+    BrModelUpdate(gDim_model, BR_MODU_VERTEX_POSITIONS);
+    gDim_actor->render_style = BR_RSTYLE_FACES;
+    if (gDim_actor->prev == NULL) {
+        BrActorAdd(g2d_camera, gDim_actor);
+    }
+    BrZbsSceneRender(g2d_camera, g2d_camera, gBack_screen, gDepth_buffer);
+    if (gDim_actor->parent != NULL) {
+        BrActorRemove(gDim_actor);
+    }
+    gDim_actor->render_style = BR_RSTYLE_NONE;
 }
 
 #ifdef REC2_MATCHING
@@ -466,6 +527,28 @@ void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0047c740
+void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour) {
+
+    if (pColour >= 0) {
+        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, pColour);
+    } else {
+        if (pAngle >= 0.785 && pAngle <= 5.498 && (pAngle <= 2.356 || pAngle >= 3.926)) {
+            if ((pAngle <= 0.785 || pAngle >= 1.57) && (pAngle <= 3.926 || pAngle >= 4.712)) {
+                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, -pColour - 1);
+                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, 1 - pColour);
+            } else {
+                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, 1 - pColour);
+                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, -pColour - 1);
+            }
+        } else {
+            DRDrawLine(pDestn, pX1, pY1 + 1, pX2, pY2 + 1, -pColour - 1);
+            DRDrawLine(pDestn, pX1, pY1 - 1, pX2, pY2 - 1, 1 - pColour);
+        }
+        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, -pColour);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0047cce0
 void C2_HOOK_FASTCALL DimRectangleClipped(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
 
@@ -505,9 +588,70 @@ void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMap, int pX1, int pY1, int pX2
     NOT_IMPLEMENTED();
 }
 
-// DRPixelmapCopyMapBlack8Bit
+// DRPixelmapCopyMapBlack8Bit (no own entry in the original: inlined into DRPixelmapCopyMapBlack)
+static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDest, br_pixelmap* pSrc) {
+    int y;
+    int dwords_remaining;
+    int src_width_dwords;
+    tU8* dest_pixels;
+    tU8* src_pixels;
+    int src_skip;
+    int dest_skip;
+    tU8 p0;
+    tU8 p1;
+    tU8 p2;
+    tU8 p3;
 
-// DRPixelmapCopyMapBlack
+    dest_pixels = pDest->pixels;
+    src_pixels = pSrc->pixels;
+    src_skip = pSrc->row_bytes - pSrc->width;
+    dest_skip = pDest->row_bytes - pDest->width;
+    src_width_dwords = pSrc->width / sizeof(tU32);
+    for (y = 0; y < pSrc->height; y++) {
+        for (dwords_remaining = src_width_dwords; dwords_remaining > 0; dwords_remaining--) {
+            p0 = *src_pixels++;
+            p1 = *src_pixels++;
+            p2 = *src_pixels++;
+            p3 = *src_pixels++;
+            if (p0 != 0) {
+                *dest_pixels = p0;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p1 != 0) {
+                *dest_pixels = p1;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p2 != 0) {
+                *dest_pixels = p2;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p3 != 0) {
+                *dest_pixels = p3;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+        }
+        src_pixels += src_skip;
+        dest_pixels += dest_skip;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d5b0
+void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc) {
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        DRPixelmapCopyMapBlack8Bit(pDest, pSrc);
+    } else {
+        BrPixelmapCopy(pDest, pSrc);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0047d6a0
 void C2_HOOK_FASTCALL DisableLights(void) {
@@ -524,5 +668,46 @@ void C2_HOOK_FASTCALL EnableLights(void) {
 
     for (i = 0; i < gNumber_of_lights; i++) {
         BrLightEnable(gLight_array[i]);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004b5470
+void C2_HOOK_FASTCALL FadePaletteUp(void) {
+    int j;
+    int start_time;
+    int the_time;
+    unsigned int scale;
+    br_pixelmap* pal;
+
+    if (gFaded_palette) {
+        gFaded_palette = 0;
+        start_time = PDGetTotalTime();
+        the_time = PDGetTotalTime() - start_time;
+        while (the_time < 500) {
+            scale = (the_time * 256) / 500;
+            memcpy(gScratch_pixels, gCurrent_palette->pixels, 4 * 256);
+            for (j = 0; j < 256; j++) {
+                gScratch_pixels[j * 4] = (gScratch_pixels[j * 4] * scale) >> 8;
+                gScratch_pixels[j * 4 + 1] = (gScratch_pixels[j * 4 + 1] * scale) >> 8;
+                gScratch_pixels[j * 4 + 2] = (gScratch_pixels[j * 4 + 2] * scale) >> 8;
+                gScratch_pixels[j * 4 + 3] = (gScratch_pixels[j * 4 + 3] * scale) >> 8;
+            }
+            pal = gScratch_palette;
+            *((br_int_32*)pal->pixels) = 0;
+            gPalette_changed = 0;
+            if (!gFaded_palette) {
+                PDSetPalette(pal);
+            }
+            gPalette_munged |= (pal != gRender_palette);
+            the_time = PDGetTotalTime() - start_time;
+        }
+        pal = gCurrent_palette;
+        *((br_int_32*)pal->pixels) = 0;
+        memcpy(gCurrent_palette_pixels, pal->pixels, 4 * 256);
+        gPalette_changed = 0;
+        if (!gFaded_palette) {
+            PDSetPalette(pal);
+        }
+        gPalette_munged |= (pal != gRender_palette);
     }
 }

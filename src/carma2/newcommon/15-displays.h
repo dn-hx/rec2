@@ -39,6 +39,7 @@ extern int gLast_time_credit_headup;
 extern tU32 gLast_time_earn_time;
 extern int gOld_times[10];
 extern int gQueued_headup_count;
+extern int gLast_time_credit_amount;
 
 
 // static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void);
@@ -47,8 +48,7 @@ extern void C2_HOOK_FASTCALL InitHeadups(void);
 
 extern void C2_HOOK_FASTCALL ClearHeadup(int pIndex);
 
-// ClearHeadupSlot
-
+extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
 extern void C2_HOOK_FASTCALL ClearHeadups(void);
 
 extern void C2_HOOK_FASTCALL DimAFewBits(void);
@@ -75,6 +75,8 @@ extern int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate,
 
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
 
+extern void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY);
+
 extern void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y);
 
 extern void C2_HOOK_FASTCALL ChangeHeadupText(int pHeadup_index, char* pNew_text);
@@ -95,7 +97,7 @@ extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 
 extern int C2_HOOK_FASTCALL SpendCredits(int pAmount);
 
-// AwardTime
+extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 
 // AwardTime5
 

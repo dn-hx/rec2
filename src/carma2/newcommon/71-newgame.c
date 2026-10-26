@@ -10,13 +10,41 @@
 
 #include "rec2_macros.h"
 
+/* explicit initializers keep gFrontend_billboard_actors and gNet_settings adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00763940
+br_actor* gFrontend_billboard_actors[8] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00763960
-tNet_game_options gNet_settings[9];
+tNet_game_options gNet_settings[9] = { 0 };
+
+/* UNCERTAIN: unknown dword after gNet_settings, only seen as its loop end; keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x00763b10
+int gUNK_00763b10 = 0;
+
+// GLOBAL: CARMA2_HW 0x0059c7e8
+int gNet_grid_starts[10] = {
+    1, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+};
 
 // SetGameTarget
 
-// SetOptions
+// FUNCTION: CARMA2_HW 0x00468140
+void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* pGame_options) {
 
+    pGame_options->show_players_on_map = gNet_settings[0].show_players_on_map;
+    pGame_options->enable_text_messages = gNet_settings[0].enable_text_messages;
+    pGame_options->show_powerups_on_map = gNet_settings[0].show_powerups_on_map;
+    pGame_options->powerup_respawn = gNet_settings[0].powerup_respawn;
+    pGame_options->open_game = gNet_settings[pGame_type + 1].open_game;
+    pGame_options->starting_credits = gNet_settings[0].starting_credits;
+    pGame_options->grid_start = gNet_settings[pGame_type + 1].grid_start || gNet_grid_starts[pGame_type + 1];
+    pGame_options->waste_to_transfer = gNet_settings[pGame_type + 1].waste_to_transfer;
+    pGame_options->random_car_choice = gNet_settings[pGame_type + 1].random_car_choice;
+    pGame_options->race_sequence_type = gNet_settings[0].race_sequence_type;
+    pGame_options->car_choice = gNet_settings[0].car_choice;
+    pGame_options->starting_target = gNet_settings[pGame_type + 1].starting_target;
+
+}
 // ReadNetGameChoices
 
 // FUNCTION: CARMA2_HW 0x004662c0

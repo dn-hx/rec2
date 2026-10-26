@@ -9,6 +9,7 @@ extern int gShow_status_message;
 extern char gQuick_time_temp_path[256];
 extern char gQuick_time_movie_path_stub[256];
 extern char gQuick_time_banner_texture_name[256];
+extern int gShow_status_message;
 
 // Create555BELookupTable
 

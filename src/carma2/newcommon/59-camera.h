@@ -9,6 +9,8 @@ extern br_actor* gPed_actor;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern tSave_camera gSave_camera[2];
+extern br_scalar gCamera_zoom;
 
 // DoCameraControls
 
@@ -32,11 +34,10 @@ extern void C2_HOOK_FASTCALL ReallyViewOpponent(void);
 
 // IsCameraTypeAllowed
 
-// MungeCarMaterials
+extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
+extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
 
-// SetCameraType
-
-// ChangeCameraType
+extern void C2_HOOK_FASTCALL ChangeCameraType(void);
 
 // ToggleCockpit
 
@@ -60,10 +61,8 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 
 // SetUpPanningCamera
 
-// SaveCameraPosition
-
-// RestoreCameraPosition
-
+extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
+extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
@@ -84,7 +83,7 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 
 // CollideCamera2
 
-// CollideCameraWithOtherCars
+extern int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pCamera_pos);
 
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 

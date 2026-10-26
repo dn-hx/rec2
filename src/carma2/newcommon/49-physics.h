@@ -12,6 +12,8 @@ extern void* gPhysics_buffer3_ptr;
 extern int gPhysics_other_buffer_capacity;
 extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
+extern tFace_ref* gPling_face;
+extern int gActorBoxPick_StopGroovidelics;
 
 // count
 
@@ -165,6 +167,14 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // CheckPointVelocities
 
+extern void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocityList(tPhysics_object* pObject);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse);
+
 extern void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 
 // SetListDoingNothingFlag
@@ -180,6 +190,12 @@ extern void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 // GroupTogether
 
 // GetPreCalculatedJointForces
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable);
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object *pCollision_info, tU32 pDisable);
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object *pCollision_info, tU32 pDisable);
 
 extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject);
 
@@ -221,7 +237,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag);
 
 // SetUpQuickHingeData
 
@@ -236,6 +252,8 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 // SetUpHingePartners
 
 // MakeMatrix
+
+extern void C2_HOOK_FASTCALL SetFieldF0Tree(tPhysics_object* pObject, int pValue);
 
 extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
@@ -357,6 +375,8 @@ extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* 
 
 extern void C2_HOOK_FASTCALL FreeShape(void* pData);
 
+extern void C2_HOOK_FASTCALL FreeThingForm(void* pData);
+
 extern void C2_HOOK_FASTCALL FreeShapeList(tPhysics_shape *pShape);
 
 extern void C2_HOOK_FASTCALL FreePhysicsJoint(tPhysics_joint* pJoint);
@@ -369,7 +389,7 @@ extern void C2_HOOK_FASTCALL GetBoundsFromPointList(const br_vector3* pVertices,
 
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
-// PhysicsWarning
+extern void C2_HOOK_FASTCALL PhysicsWarning(const char* pMessage);
 
 extern void C2_HOOK_FASTCALL PhysicsSetErrorHandler(tPhysicsError_cbfn* pError_cbfn);
 
@@ -380,6 +400,10 @@ extern void C2_HOOK_FASTCALL PhysicsAddObject(tPhysics_object* pParent, tPhysics
 // PhysicsAddObjectList
 
 // PhysicsRemoveObject
+
+extern void C2_HOOK_FASTCALL AddCollisionInfoChild(tPhysics_object* pParent, tPhysics_object* pChild);
+
+extern void C2_HOOK_FASTCALL PHILRemoveFromParentChain(tPhysics_object* pObject);
 
 extern int C2_HOOK_FASTCALL PhysicsObjectRecurse(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
 

@@ -698,10 +698,13 @@ int C2_HOOK_FASTCALL PDGetMicroseconds(void) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0051a7b0
 void C2_HOOK_FASTCALL PDEnterDebugger(const char *pStr) {
     dr_dprintf("PDEnterDebugger(): %s", pStr);
     ShowCursor(1);
+#if !defined(REC2_MATCHING)
     __debugbreak();
+#endif
     ShowCursor(0);
 }
 
@@ -1115,6 +1118,12 @@ void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only) {
         }
     }
     DeleteFileA(pPath);
+}
+
+// FUNCTION: CARMA2_HW 0x0047d850
+int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2) {
+
+    return strcasecmp(str1, str2);
 }
 
 // FUNCTION: CARMA2_HW 0x0047d860
