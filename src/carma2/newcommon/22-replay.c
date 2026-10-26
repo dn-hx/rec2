@@ -1,5 +1,7 @@
 #include "22-replay.h"
 
+#include <stdlib.h>
+
 #include "globvars.h"
 #include "30-opponent.h"
 #include "18-graphics2.h"
@@ -109,13 +111,99 @@ void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
 
 // FreeActionReplayPix
 
+extern int gTimers_stack[8];
+extern int gTimers_max_index;
+extern int gTimers_stack_size;
+extern tTimer gTimers[19];
+extern int gSave_game_out_of_sync;
+extern int gBr_initialized;
+extern br_actor* gAdditional_actors;
+extern int C2_HOOK_FASTCALL PDGetMicroseconds(void);
+extern int C2_HOOK_FASTCALL PDServiceSystem(tU32 pTime_since_last_call);
+extern void C2_HOOK_FASTCALL CheckMemory(void);
+extern void C2_HOOK_FASTCALL PollKeys(void);
+extern int C2_HOOK_FASTCALL SaveOptions(void);
+extern void C2_HOOK_FASTCALL DoSaveGame(void);
+extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
+extern void C2_HOOK_FASTCALL PHILDisable(void);
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
+extern void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game);
+extern void C2_HOOK_FASTCALL ShutdownNetIfRequired(void);
+extern void C2_HOOK_FASTCALL DRS3ShutDown(void);
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+extern void C2_HOOK_FASTCALL PDRevertPalette(void);
+extern void C2_HOOK_FASTCALL StopMusic(void);
+extern br_error C2_HOOK_FASTCALL DRBrEnd(void);
+extern void C2_HOOK_FASTCALL PDShutdownSystem(void);
+extern void C2_HOOK_FASTCALL CloseDiagnostics(void);
+extern void C2_HOOK_FASTCALL NetService(int pIn_race);
+extern void C2_HOOK_FASTCALL CheckKevKeys(void);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004922a0
+// based on carpocalypse2 src/carma2/common/main.c:77 (GPL-3.0), follows the disassembly (ServiceTheGame(1) and Timers_Push/Pop inlined)
+// FUNCTION: CARMA2_HW 0x004922a0
 void C2_HOOK_FASTCALL ServiceGameInRace(void) {
+    int prev_type;
+    tU32* d;
 
-    NOT_IMPLEMENTED();
+    gTimers_stack[gTimers_stack_size] = 17;
+    prev_type = gTimers_stack_size != 0 ? gTimers_stack[gTimers_stack_size - 1] : gTimers_max_index;
+    d = &gTimers[prev_type].durations[gTimers[prev_type].index];
+    *d += PDGetMicroseconds() - gTimers[prev_type].start_time;
+    gTimers[17].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+
+    CheckMemory();
+    PollKeys();
+    rand();
+    if (PDServiceSystem(gFrame_period)) {
+        SaveOptions();
+        if (gSave_game_out_of_sync) {
+            DoSaveGame();
+        }
+        MovieStopRecordingIfNecessary();
+        PHILDisable();
+        dr_dprintf("QuitGame() - Point 1");
+        if (*(int*)((char*)&gProgram_state + 0x28) && gAdditional_actors && gAdditional_actors->children) {
+            dr_dprintf("QuitGame() - Point 2");
+            AutoSaveAdditionalStuff();
+            dr_dprintf("QuitGame() - Point 3");
+        }
+        *(int*)((char*)&gProgram_state + 0x28) = 0;
+        SaveOptions();
+        if (gNet_mode) {
+            NetLeaveGame(gCurrent_net_game);
+        }
+        ShutdownNetIfRequired();
+        if (gSound_available) {
+            DRS3ShutDown();
+        }
+        if (gBr_initialized) {
+            ClearEntireScreen();
+        }
+        PDRevertPalette();
+        StopMusic();
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        CloseDiagnostics();
+        exit(0);
+    }
+    NetService(1);
+    CheckKevKeys();
+
+    gTimers[17].durations[gTimers[17].index] += PDGetMicroseconds() - gTimers[17].start_time;
+    if (gTimers_stack_size > 1) {
+        prev_type = gTimers_stack[gTimers_stack_size - 1];
+    } else {
+        prev_type = gTimers_max_index;
+    }
+    gTimers[prev_type].start_time = PDGetMicroseconds();
+    gTimers_stack_size -= 1;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

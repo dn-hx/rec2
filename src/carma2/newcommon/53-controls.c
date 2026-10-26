@@ -907,3 +907,14 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
     NewTextHeadupSlot2(4, 0, 250, -4, GetMiscString(eMiscString_no_HUD + (gHeadup_detail_level % 3)), 0);
 }
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00443c90
+void C2_HOOK_FASTCALL CheckKevKeys(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

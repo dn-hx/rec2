@@ -7,6 +7,15 @@
 
 #include "c2_string.h"
 
+/* UNCERTAIN: unknown 8 bytes before gTimers_stack, the second dword is only reached as gTimers_stack[-1] */
+int gUNK_006b75d8 = 0;
+
+// GLOBAL: CARMA2_HW 0x006b75dc
+int gUNK_006b75dc = 0;
+
+// GLOBAL: CARMA2_HW 0x006b75e0
+int gTimers_stack[8] = { 0 };
+
 /* explicit initializers keep this block adjacent and in address order as in the original (Timers_Init loop-end compare) */
 // GLOBAL: CARMA2_HW 0x006b7600
 tTimer gTimers[19] = { 0 };
