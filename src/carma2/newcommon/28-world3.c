@@ -1041,9 +1041,78 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
     }
 }
 
-// STUB: CARMA2_HW 0x0040cf10
+extern br_actor* gMr_blendy;
+extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
+extern br_material* gDefault_track_material;
+extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
+extern void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2);
+extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
+extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data);
+
+/* based on carpocalypse2 src/carma2/common/brucetrk.c:255 */
+// FUNCTION: CARMA2_HW 0x0040cf10
 intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
-    NOT_IMPLEMENTED();
+    unsigned int x;
+    unsigned int z;
+    br_model* model;
+    tTrack_spec* pTrack_spec = data;
+
+    if (sscanf(pActor->identifier, "%u%u", &x, &z) == 2 && x < pTrack_spec->ncolumns_x && z < pTrack_spec->ncolumns_z) {
+        pActor->material = gDefault_track_material;
+        pTrack_spec->columns[z][x].actor_0x0 = BrActorAllocate(BR_ACTOR_NONE, NULL);
+        BrActorAdd(pActor->parent, pTrack_spec->columns[z][x].actor_0x0);
+        pTrack_spec->columns[z][x].actor_0x4 = pActor;
+        pTrack_spec->columns[z][x].actor_0x8 = NULL;
+        RelinkActorKeepWorldTransform(pTrack_spec->columns[z][x].actor_0x0, pActor);
+        gMr_blendy = NULL;
+        if (pActor->model != NULL && !gAusterity_mode) {
+            MungeFaces(pActor, pActor->model);
+        } else {
+            br_actor* child;
+
+            for (child = pActor->children; child != NULL; child = child->next) {
+                if (child->identifier[0] != '&') {
+                    break;
+                }
+            }
+            if (child != NULL) {
+                MungeFaces(child, child->model);
+            }
+        }
+        BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
+        if (gMr_blendy != NULL) {
+            int area2;
+            int area1;
+            int nverts;
+            int nfaces;
+            br_vertex* new_vertices;
+            br_face* new_faces;
+
+            model = gMr_blendy->model;
+            BrActorAdd(pTrack_spec->columns[z][x].actor_0x0, gMr_blendy);
+            gMr_blendy->model->flags |= BR_MODU_FACES;
+            BrModelAdd(gMr_blendy->model);
+            GetModelTextureArea(gMr_blendy->model, &area1, &area2);
+
+            nverts = model->nvertices + area2;
+            nfaces = model->nfaces + area1;
+            new_vertices = BrResAllocate(gMr_blendy->model, nverts * sizeof(br_vertex), BR_MEMORY_VERTICES);
+            memcpy(new_vertices, gMr_blendy->model->vertices, gMr_blendy->model->nvertices * sizeof(br_vertex));
+            BrResFree(gMr_blendy->model->vertices);
+            gMr_blendy->model->vertices = new_vertices;
+
+            new_faces = BrResAllocate(gMr_blendy->model, nfaces * sizeof(br_face), BR_MEMORY_FACES);
+            memcpy(new_faces, gMr_blendy->model->faces, gMr_blendy->model->nfaces * sizeof(br_face));
+            BrResFree(gMr_blendy->model->faces);
+            gMr_blendy->model->faces = new_faces;
+
+            DRModelUpdateAndKevificateMaterials(gMr_blendy->model, BR_MODU_ALL);
+            pTrack_spec->columns[z][x].actor_0x8 = gMr_blendy;
+        }
+    } else {
+        BrActorEnum(pActor, ProcessModelsCB, pTrack_spec);
+    }
+    SetSmashableModel(pActor);
     return 0;
 }
 
@@ -1168,6 +1237,27 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0040d530
+void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f5ae0
+void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f5cb0
+void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040d1f0
+intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -1188,3 +1278,6 @@ int gCapacity_track_smashables;
 
 // GLOBAL: CARMA2_HW 0x0079efac
 int gMax_count_non_cars;
+
+// GLOBAL: CARMA2_HW 0x00679264
+br_actor* gMr_blendy;
