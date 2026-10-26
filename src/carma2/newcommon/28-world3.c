@@ -2018,22 +2018,216 @@ int gMax_count_non_cars;
 // GLOBAL: CARMA2_HW 0x00655df0
 br_vector3 gY_unit_vector = { { 0.f, 1.f, 0.f } };
 
+extern tPed_personality* gPed_personalities[50];
+extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
+
+static tPed_personality* FindOrOpenPersonality(const char* pName) {
+    int i;
+
+    for (i = 0; i < 50; i++) {
+        if (gPed_personalities[i] == NULL) {
+            continue;
+        }
+        if (strcmp(gPed_personalities[i]->name, pName) == 0) {
+            return gPed_personalities[i];
+        }
+    }
+    return ReadPersonality(pName);
+}
+
+extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
+extern void C2_HOOK_FASTCALL PipeSinglePedDir(int pId, const br_vector3* pDir);
+extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
+extern tPedestrian* gPedestrian_array;
+extern int gBOOL_00744804;
+
+/* based on carpocalypse2 pedestrn.c:1820 (inlined in the original) */
+static int OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
+
+    return BrVector3Dot((br_vector3*)pOrientation_1->m[0], (br_vector3*)pOrientation_2->m[0]) < pCos_angle
+        || BrVector3Dot((br_vector3*)pOrientation_1->m[1], (br_vector3*)pOrientation_2->m[1]) < pCos_angle
+        || BrVector3Dot((br_vector3*)pOrientation_2->m[2], (br_vector3*)pOrientation_1->m[2]) < pCos_angle;
+}
+
+/* based on carpocalypse2 pedestrn.c:1827 (inlined in the original) */
+static void AssertRootObjectsMatrix(tPed_character_instance* pPed) {
+    tPhysics_object* collision_info;
+    int i;
+
+    if (pPed->field_0x14 & 0x1) {
+        collision_info = pPed->personality->form->simple_physicing[pPed->field_0x5].collision_info;
+    } else {
+        collision_info = GetRootObject(pPed);
+    }
+    for (i = 0; i < 3; i++) {
+        int j;
+
+        for (j = 0; j < 3; j++) {
+            collision_info->transform_matrix.m[i][j] = collision_info->actor->t.t.mat.m[i][j];
+        }
+    }
+    collision_info->flags |= 0x100;
+}
+
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+extern tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType);
+extern tCollision_shape_polyhedron* C2_HOOK_FASTCALL AllocateShapePolyhedron(int pCount_points, int pType);
+extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateShapeWireFrame(int pCount_points, int pCount_lines, int pType);
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateShapeBox(int pType);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00488b00
+// based on carpocalypse2 physics.c:805
+// FUNCTION: CARMA2_HW 0x00488b00
 void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
-    NOT_IMPLEMENTED();
+    int count;
+
+    count = GetAnInt(pF);
+
+    for (; count > 0; count--) {
+        char s[256];
+        tPhysics_shape* shape;
+
+        GetAString(pF, s);
+        if (DRStricmp(s, "box") == 0) {
+            float a1, a2, a3;
+            float b1, b2, b3;
+
+            shape = (tPhysics_shape*)AllocateShapeBox(kMem_collision_shape);
+            GetThreeFloats(pF, &a1, &a2, &a3);
+            shape->box.common.bb.min.v[0] = a1;
+            shape->box.common.bb.min.v[1] = a2;
+            shape->box.common.bb.min.v[2] = a3;
+            GetThreeFloats(pF, &b1, &b2, &b3);
+            shape->box.common.bb.max.v[0] = b1;
+            shape->box.common.bb.max.v[1] = b2;
+            shape->box.common.bb.max.v[2] = b3;
+        } else if (DRStricmp(s, "polyhedron") == 0) {
+            int count_points;
+            int j;
+            float p1, p2, p3;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 32) {
+                sprintf(s, "Ow! Physics shape is mad (having %d points is silly)", count_points);
+                PDFatalError(s);
+            }
+            shape = (tPhysics_shape*)AllocateShapePolyhedron(count_points, kMem_collision_shape);
+
+            shape->polyhedron.polyhedron.count_points = count_points;
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &p1, &p2, &p3);
+                shape->polyhedron.polyhedron.points[j].v[0] = p1;
+                shape->polyhedron.polyhedron.points[j].v[1] = p2;
+                shape->polyhedron.polyhedron.points[j].v[2] = p3;
+            }
+        } else if (DRStricmp(s, "sphere") == 0) {
+            float c1, c2, c3;
+
+            shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
+
+            shape->sphere.sphere.radius = GetAScalar(pF);
+            GetThreeFloats(pF, &c1, &c2, &c3);
+            shape->sphere.sphere.center.v[0] = c1;
+            shape->sphere.sphere.center.v[1] = c2;
+            shape->sphere.sphere.center.v[2] = c3;
+        } else if (DRStricmp(s, "wire") == 0) {
+            br_vector3 points[64];
+            int count_points;
+            int count_lines;
+            int j;
+            float w1, w2, w3;
+            int index1, index2;
+            br_vector3* dst_points;
+            tPolyhedron_edge_indexes* dst_lines;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 64) {
+                FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, " Too many points in wire frame shape ");
+            }
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &w1, &w2, &w3);
+                points[j].v[0] = w1;
+                points[j].v[1] = w2;
+                points[j].v[2] = w3;
+            }
+            count_lines = GetAnInt(pF);
+            shape = (tPhysics_shape*)AllocateShapeWireFrame(count_points, count_lines, kMem_collision_shape);
+
+            dst_points = shape->wireframe.wireframe.points;
+            for (j = 0; j < count_points; j++) {
+                dst_points[j] = points[j];
+            }
+            dst_lines = shape->wireframe.wireframe.lines;
+            for (j = 0; j < count_lines; j++) {
+                GetPairOfInts(pF, &index1, &index2);
+                dst_lines[j].index1 = index1;
+                dst_lines[j].index2 = index2;
+            }
+        } else {
+            FatalError(kFatalError_ShapeDataIsWrong);
+        }
+        FillInShape(shape);
+        *pShape = shape;
+        pShape = &shape->common.next;
+    }
 }
 
-// STUB: CARMA2_HW 0x004079a0
+// based on carpocalypse2 pedestrn.c:1288
+// FUNCTION: CARMA2_HW 0x004079a0
 tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
+    tPed_character_instance* instance;
+
+    instance = BrMemAllocate(sizeof(tPed_character_instance), kBoner_mem_type_char_instance);
+    if (instance == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    instance->personality = FindOrOpenPersonality(pName);
+    instance->field_0x4 = 0xff;
+    instance->field_0x7 = 0xff;
+    instance->field_0x6 = 0xff;
+    instance->field_0x28 = 0;
+    instance->field_0x2c = *pMat;
+    instance->field_0x8 = 0xff;
+    instance->field_0x9 = 0;
+    instance->field_0xa = 0;
+    instance->field_0x14 = 0;
+    instance->field_0xc = 0;
+    BrMatrix34Identity(&instance->field_0x5c);
+    BrMatrix34Identity(&instance->field_0x8c);
+    return instance;
+}
+
+// based on carpocalypse2 pedestrn.c:1847
+// FUNCTION: CARMA2_HW 0x004d3360
+void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+    tPhysics_object* collision_info;
+
+    if (pCharacter->field_0x14 & 0x1) {
+        collision_info = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+    } else {
+        collision_info = GetRootObject(pCharacter);
+    }
+    if (!gAction_replay_mode || gBOOL_00744804) {
+        if (!(pCharacter->field_0x14 & 0x4) && gProgram_state.racing) {
+            PipeSinglePedDir((((short)pCharacter->ped->field_0x06) << 16) | (pCharacter->ped - gPedestrian_array), pDir);
+        }
+        SetCharacterDirection(pCharacter, pDir, pUp);
+        if (gProgram_state.racing && OrientationChanged(&collision_info->transform_matrix, &collision_info->actor->t.t.mat, .7f)) {
+            AssertRootObjectsMatrix(pCharacter);
+        }
+    }
+}
+
+// STUB: CARMA2_HW 0x00406ab0
+tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004d3360
-void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+// STUB: CARMA2_HW 0x0040a730
+void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp) {
     NOT_IMPLEMENTED();
 }
 
