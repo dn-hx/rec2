@@ -267,7 +267,14 @@ void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void) {
 
 // TeleportCopToStart
 
-// CalcDistanceFromHome
+// based on ApexWorm/rec2 77227643f (reference only)
+// FUNCTION: CARMA2_HW 0x004ada90
+void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
+    br_vector3 wank;
+
+    BrVector3Sub(&wank, (br_vector3*)pOpponent_spec->car_spec->car_master_actor->t.t.mat.m[3], &pOpponent_spec->start_pos);
+    pOpponent_spec->distance_from_home = BrVector3Length(&wank);
+}
 
 // MassageOpponentPosition
 
