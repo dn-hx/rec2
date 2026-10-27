@@ -1036,7 +1036,7 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
 // MakePedNoise
 
 extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
-extern void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, int pArg2, int pOriginal_move_id, int pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13);
+extern void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, tS16 pArg2, tS16 pOriginal_move_id, tS16 pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13);
 
 // SetPedMove: based on carpocalypse2 src/carma2/common/pedestrn.c:1625 (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004cbcd0
@@ -2570,9 +2570,31 @@ void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, u
     }
 }
 
-// STUB: CARMA2_HW 0x004c8b30
-void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, int pArg2, int pOriginal_move_id, int pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x004c8b30
+void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, tS16 pArg2, tS16 pOriginal_move_id, tS16 pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13) {
+    tU32 bits;
+    int flag;
+
+    (void)pArg6;
+    flag = 0;
+    if (pArg7) {
+        flag = 1;
+    }
+    memcpy(&bits, &pArg5, sizeof(bits));
+    gUNK_0069410c = bits;
+    ARDoSingleVariedSession(ePipe_chunk_ped_move, (uintptr_t)pPed, 12,
+        2, 2, pOriginal_move_id,
+        2, 0, pMove_id,
+        2, 6, pArg2,
+        4, 12, gUNK_0069410c,
+        4, 8, gUNK_0069410c,
+        2, 4, flag,
+        4, 16, pArg8,
+        12, 20, pOriginal_pos,
+        12, 32, pPos,
+        4, 44, pOriginal_action,
+        4, 48, pAction,
+        48, 52, pArg13);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
