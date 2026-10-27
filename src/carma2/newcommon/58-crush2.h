@@ -44,7 +44,7 @@ extern int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
 extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
-// PercentageCarHealth
+extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 
 // ChristmasLights
 

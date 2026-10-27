@@ -183,7 +183,46 @@ void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
     }
 }
 
-// PercentageCarHealth
+// based on ApexWorm/rec2 1e0d5a8ab (reference only)
+// FUNCTION: CARMA2_HW 0x00441350
+int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
+    int engine;
+    int transmission;
+    int driver;
+    int wheels;
+    int health;
+
+    if (pCar->knackered) {
+        return 0;
+    }
+
+    wheels = pCar->damage_units[eDamage_lr_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_rr_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_lf_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_rf_wheel].damage_level;
+    engine = pCar->damage_units[eDamage_engine].damage_level;
+    transmission = pCar->damage_units[eDamage_transmission].damage_level;
+    driver = pCar->damage_units[eDamage_driver].damage_level;
+    wheels /= 4;
+
+    if (engine <= 75 && transmission <= 75 && driver <= 75 && wheels <= 75) {
+        health = 100 - (wheels + driver + transmission + engine) / 4;
+        if (health < 25) {
+            health = 25;
+        }
+        return health;
+    }
+    if (engine > transmission && engine > driver && engine > wheels) {
+        return 100 - engine;
+    }
+    if (transmission > driver && transmission > wheels) {
+        return 100 - transmission;
+    }
+    if (driver > wheels) {
+        return 100 - driver;
+    }
+    return 100 - wheels;
+}
 
 // ChristmasLights
 
