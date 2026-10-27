@@ -154,6 +154,8 @@ extern void C2_HOOK_FASTCALL DisposeOpponents(void);
 
 extern void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was);
 
+extern void C2_HOOK_FASTCALL ReportMurderToPoliceDepartment(tCar_spec* pCar_spec);
+
 extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
 
 extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
