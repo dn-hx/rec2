@@ -82,7 +82,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
-extern void C2_HOOK_FASTCALL FUN_004d6da0(void);
+extern void C2_HOOK_FASTCALL ComparePedStuff(void);
 extern void C2_HOOK_FASTCALL FUN_004ff030(void);
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
 extern void C2_HOOK_FASTCALL ToggleMap(void);
@@ -281,7 +281,7 @@ void C2_HOOK_FASTCALL TurnOffActionReplay(void) {
     }
     gAR_camera_type = gAction_replay_camera_mode;
     SetCameraType(gCamera_type);
-    FUN_004d6da0();
+    ComparePedStuff();
     EndMouseCursor();
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
@@ -608,8 +608,9 @@ void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine) {
 #pragma auto_inline(off)
 #endif
 // Original is a bare ret (no body to implement).
-// STUB: CARMA2_HW 0x004d6da0
-void C2_HOOK_FASTCALL FUN_004d6da0(void) {
+// based on ApexWorm/rec2 b674ae1d3 (reference only)
+// FUNCTION: CARMA2_HW 0x004d6da0
+void C2_HOOK_FASTCALL ComparePedStuff(void) {
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
