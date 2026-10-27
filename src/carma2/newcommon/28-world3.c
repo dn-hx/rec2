@@ -3271,11 +3271,6 @@ void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* 
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0040b030
-void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
-    NOT_IMPLEMENTED();
-}
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
