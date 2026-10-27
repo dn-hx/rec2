@@ -2472,9 +2472,102 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int p
     return 0;
 }
 
-// STUB: CARMA2_HW 0x00407b30
-void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3) {
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004097b0
+int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00407e70
+void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00407b30
+void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3) {
+    int i = 0;
+    tPed_form_actor_set* actor_set = NULL;
+    tPed_move_frame* ped_move_frame;
+    tPed_form* form;
+    tPed_personality *personality;
+
+    if (pPed->field_0x7 < 0) {
+        return;
+    }
+    if ((pPed->field_0x14 & 0x4) && (pPed->field_0x14 & 0x2) && pPed->field_0xe8 == NULL) {
+        return;
+    }
+    pPed->field_0x9 &= ~0x1;
+    if (pPed->field_0xbc != NULL) {
+        MorphCharacterBonePositions(pPed, 0);
+        return;
+    }
+    personality = pPed->personality;
+    form = personality->form;
+    if (pPed->field_0x4 >= 0) {
+        actor_set = &form->actor_sets[pPed->field_0x4];
+    }
+    ped_move_frame = &form->moves[pPed->field_0x7].move->frames[(tS16)pPed->field_0x1c];
+    for (; i < form->count_bones; i++) {
+        int parent_index = form->bones[i].indices[0];
+
+        if (parent_index >= 0) {
+            if (!(gPow2_array[i] & pPed->field_0xc) && !(gPow2_array[parent_index] & pPed->field_0xc)
+                    && pArg2 != 1 && pArg2 != 2 && actor_set != NULL) {
+                br_matrix34* mat;
+                br_matrix34* parent_mat;
+                tPed_move_frame_axis* axis;
+
+                if (pPed->field_0xe8 != NULL) {
+                    mat = &pPed->field_0xe8[i];
+                    parent_mat = &pPed->field_0xe8[parent_index];
+                } else {
+                    mat = &actor_set->actors[i]->t.t.mat;
+                    parent_mat = &actor_set->actors[parent_index]->t.t.mat;
+                }
+                axis = &ped_move_frame->axis[i];
+
+                SetBoner(pPed, mat, parent_mat, &pPed->field_0x8c, axis->euler1, axis->euler2, axis->euler3,
+                    &personality->bones[i].field_0x20, &personality->bones[i].field_0x2c);
+            }
+        } else {
+            if (pArg2 != 3 && !(pPed->field_0x14 & 0x4)) {
+                br_matrix34* mat;
+                br_vector3 original_pos;
+
+                if (pPed->field_0x4 < 0) {
+                    mat = &pPed->field_0x2c;
+                } else if (pPed->field_0xe8 == NULL) {
+                    mat = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+                } else {
+                    mat = pPed->field_0xe8;
+                }
+                BrVector3Copy(&original_pos, (br_vector3*)mat->m[3]);
+                if (pArg2 != 2) {
+                    BrMatrix34Mul(mat, &ped_move_frame->mat, &pPed->field_0x8c);
+                }
+                if (pArg3 == 0 || gPed_overall_movement_disabled) {
+                    BrVector3Copy((br_vector3*)mat->m[3], &original_pos);
+                } else {
+                    br_vector3 move;
+                    br_vector3 delta;
+
+                    BrVector3Scale(&move, (br_vector3*)ped_move_frame->mat.m[3], personality->moves[pPed->field_0x7].scale_factor);
+                    BrMatrix34ApplyV(&delta, &move, &pPed->field_0x5c);
+                    if (gAction_replay_mode && ARGetReplayRate() < 0) {
+                        BrVector3Sub((br_vector3*)mat->m[3], &original_pos, &delta);
+                    } else {
+                        BrVector3Add((br_vector3*)mat->m[3], &original_pos, &delta);
+                    }
+                }
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004c8b30
