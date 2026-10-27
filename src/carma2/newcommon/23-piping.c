@@ -351,10 +351,69 @@ void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00402660
-// STUB: CARMA2_SW 0x00402660
+extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
+
+
+// FUNCTION: CARMA2_HW 0x00402660
+// FUNCTION: CARMA2_SW 0x00402660
 void C2_HOOK_FASTCALL EndPipingSession2(int pMunge_reentrancy) {
-    NOT_IMPLEMENTED();
+    tU32 i;
+    tU32 total;
+    tU32 size;
+    tU32 length;
+    tU32* session;
+    void* the_chunk;
+
+    if (gPipe_buffer_start == NULL || gAction_replay_mode || !gProgram_state.racing) {
+        return;
+    }
+    *(tU16*)(gLocal_buffer + gLocal_buffer_size) = (tU16)gLocal_buffer_size;
+    gLocal_buffer_size += 2;
+    if (((tU32*)gLocal_buffer)[1] != 0 && gLocal_buffer_size <= 15000) {
+        if ((uintptr_t)gPipe_record_ptr + gLocal_buffer_size > (uintptr_t)gPipe_buffer_phys_end) {
+            gPipe_buffer_working_end = gPipe_record_ptr;
+            gPipe_buffer_oldest = gPipe_buffer_start;
+            gPipe_record_ptr = gPipe_buffer_start;
+        }
+        while ((uintptr_t)gPipe_record_ptr <= (uintptr_t)gPipe_buffer_oldest
+            && (uintptr_t)gPipe_record_ptr + gLocal_buffer_size > (uintptr_t)gPipe_buffer_oldest) {
+            session = (tU32*)gPipe_buffer_oldest;
+            total = 0;
+            for (i = 0; i < session[1]; i++) {
+                the_chunk = (tU8*)(session + 2) + total;
+                if (gPipe_callbacks[session[0]].calc_length != NULL) {
+                    length = gPipe_callbacks[session[0]].calc_length(the_chunk);
+                    size = length + gPipe_callbacks[session[0]].length + 4;
+                } else {
+                    size = gPipe_callbacks[session[0]].length + 4;
+                }
+                total += size;
+            }
+            total += 10;
+            if ((total & 1) != 0) {
+                FatalError(0x62);
+            }
+            gPipe_buffer_oldest += total;
+            if ((uintptr_t)gPipe_buffer_working_end <= (uintptr_t)gPipe_buffer_oldest) {
+                gPipe_buffer_working_end = gPipe_buffer_phys_end;
+                gPipe_buffer_oldest = gPipe_buffer_start;
+            }
+        }
+        if (gPipe_buffer_oldest == NULL) {
+            gPipe_buffer_oldest = gPipe_record_ptr;
+        }
+        memcpy(gPipe_record_ptr, gLocal_buffer, gLocal_buffer_size);
+        gPipe_record_ptr += gLocal_buffer_size;
+        if ((uintptr_t)gPipe_buffer_working_end < (uintptr_t)gPipe_record_ptr) {
+            gPipe_buffer_working_end = gPipe_record_ptr;
+        }
+    }
+    if (pMunge_reentrancy && gReentrancy_count != 0) {
+        gReentrancy_count--;
+        if (gReentrancy_count != 0) {
+            StartPipingSession2(gReentrancy_array[gReentrancy_count - 1], 0);
+        }
+    }
 }
 
 #ifdef REC2_MATCHING
