@@ -461,6 +461,10 @@ void C2_HOOK_FASTCALL DoComplexCarModels(void) {
 }
 // ResetCarScreens
 
+// FUNCTION: CARMA2_HW 0x0041f3b0
+void C2_HOOK_FASTCALL SwapCar(void) {
+}
+
 // FUNCTION: CARMA2_HW 0x0041f3c0
 // FUNCTION: CARMA2_SW 0x0041f440
 void C2_HOOK_FASTCALL AdjustDownForce(void) {
