@@ -35,7 +35,7 @@ extern void C2_HOOK_FASTCALL DoNextJoinPoll(void);
 extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc);
 // NetEndJoinList
 
-// NetDisposePIDGameInfo
+extern void C2_HOOK_FASTCALL NetDisposePIDGameInfo(tNet_game_details* pDetails);
 
 extern void C2_HOOK_FASTCALL NetDisposeGameDetails(tNet_game_details* pDetails);
 

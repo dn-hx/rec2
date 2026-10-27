@@ -256,7 +256,15 @@ void C2_HOOK_FASTCALL NetEndJoinList(void) {
 #pragma auto_inline(on)
 #endif
 
-// NetDisposePIDGameInfo
+// based on ApexWorm/rec2 b74fa8df4 (reference only)
+// FUNCTION: CARMA2_HW 0x0049dc70
+// FUNCTION: CARMA2_SW 0x00499df0
+void C2_HOOK_FASTCALL NetDisposePIDGameInfo(tNet_game_details* pDetails) {
+
+    if (pDetails != NULL) {
+        BrMemFree(pDetails);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0049dc80
 // FUNCTION: CARMA2_SW 0x00499e00
