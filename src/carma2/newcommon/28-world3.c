@@ -3085,9 +3085,112 @@ float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
     return *(gFloat_sine_table + 90 - pAngle_in_degrees);
 }
 
-// STUB: CARMA2_HW 0x0040a730
+extern void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest);
+extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
+extern void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA);
+extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+
+#define SCD_NORMALISE_D(v1, v2)                                  \
+    do {                                                         \
+        len = BR_LENGTH3((v2)->v[0], (v2)->v[1], (v2)->v[2]);    \
+        if (len > BR_SCALAR_EPSILON * 2) {                       \
+            scale = 1.0 / len;                                   \
+            (v1)->v[0] = (v2)->v[0] * scale;                     \
+            (v1)->v[1] = (v2)->v[1] * scale;                     \
+            (v1)->v[2] = (v2)->v[2] * scale;                     \
+        } else {                                                 \
+            (v1)->v[0] = 1.0f;                                   \
+            (v1)->v[1] = 0.0f;                                   \
+            (v1)->v[2] = 0.0f;                                   \
+        }                                                        \
+    } while (0)
+
+/* based on upstream madebr/rec2 a373d899a src/carma2/common/pedestrn.c */
+// FUNCTION: CARMA2_HW 0x0040a730
 void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp) {
-    NOT_IMPLEMENTED();
+    double scale;
+    br_scalar len;
+    int keep_direction;
+    tPed_move* move;
+    br_matrix34* character_matrix;
+    float cos_a;
+    br_vector3 norm_dir;
+    br_vector3 norm_up;
+    br_vector3 local_138;
+    br_vector3 local_12c;
+    br_vector3 local_120;
+    br_vector3 local_114;
+    br_vector3 local_fc;
+    br_vector3 local_e4;
+    br_matrix34 inv_field_0x8c;
+    br_matrix34 local_c0;
+    br_matrix34 local_60;
+    br_matrix34 local_30;
+    br_vector3 original_pos;
+
+    if (pPed->field_0x7 < 0) {
+        return;
+    }
+    if ((pPed->field_0x14 & 0x4) && !gAction_replay_mode) {
+        return;
+    }
+    if (pDir == NULL) {
+        pDir = &pPed->field_0xc0;
+        pUp = &pPed->field_0xcc;
+        keep_direction = 1;
+    } else {
+        SCD_NORMALISE_D(&pPed->field_0xc0, pDir);
+        pPed->field_0xcc = *pUp;
+        keep_direction = 0;
+    }
+    move = pPed->personality->form->moves[pPed->field_0x7].move;
+    if (pPed->field_0x4 < 0) {
+        character_matrix = &pPed->field_0x2c;
+    } else if (pPed->field_0xe8 != NULL) {
+        character_matrix = pPed->field_0xe8;
+    } else {
+        character_matrix = &pPed->personality->form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+    }
+    BrMatrix34Inverse(&inv_field_0x8c, &pPed->field_0x8c);
+    original_pos = *(br_vector3*)character_matrix->m[3];
+    BrVector3Set((br_vector3*)character_matrix->m[3], 0.f, 0.f, 0.f);
+    BrMatrix34Mul(&local_c0, character_matrix, &inv_field_0x8c);
+    if (pUp != NULL) {
+        SCD_NORMALISE_D(&norm_up, pUp);
+    } else {
+        BrVector3Set(&norm_up, 0.f, 1.f, 0.f);
+    }
+    SCD_NORMALISE_D(&norm_dir, pDir);
+    BrVector3Copy(&local_12c, &move->field_0x40);
+    if (pPed->field_0xbc != NULL) {
+        local_12c.v[0] = (1.f - pPed->field_0xbc->field_0x0) * pPed->field_0xbc->field_0x20.v[0] + local_12c.v[0] * pPed->field_0xbc->field_0x0;
+        local_12c.v[1] = (1.f - pPed->field_0xbc->field_0x0) * pPed->field_0xbc->field_0x20.v[1] + local_12c.v[1] * pPed->field_0xbc->field_0x0;
+        local_12c.v[2] = (1.f - pPed->field_0xbc->field_0x0) * pPed->field_0xbc->field_0x20.v[2] + local_12c.v[2] * pPed->field_0xbc->field_0x0;
+        BrVector3Normalise(&local_12c, &local_12c);
+    }
+    DropPointOntoPlane(&norm_dir, &norm_up, &local_e4);
+    DropPointOntoPlane(&local_12c, &norm_up, &local_114);
+    BrVector3Normalise(&local_fc, &local_e4);
+    BrVector3Normalise(&local_114, &local_114);
+    cos_a = BrVector3Dot(&local_fc, &local_114);
+    OrthogonalVector(&local_138, &local_114, &local_fc);
+    BrVector3Normalise(&local_120, &local_138);
+    DRMatrix34RotateCos(&pPed->field_0x8c, &local_120, cos_a);
+    BrVector3Set(&local_138, norm_up.v[2], 0.f, -norm_up.v[0]);
+    BrVector3Normalise(&local_120, &local_138);
+    DRMatrix34RotateCos(&local_60, &local_120, norm_up.v[1]);
+    BrMatrix34Pre(&pPed->field_0x8c, &local_60);
+    cos_a = BrVector3Dot(&local_fc, &norm_dir);
+    DRVector3SafeCross(&local_138, &local_fc, &norm_dir);
+    BrVector3Normalise(&local_120, &local_138);
+    DRMatrix34RotateCos(&local_30, &local_120, cos_a);
+    BrMatrix34Mul(&pPed->field_0x5c, &pPed->field_0x8c, &local_30);
+    BrMatrix34Post(&local_c0, &pPed->field_0x8c);
+    BrVector3Add((br_vector3*)local_c0.m[3], (br_vector3*)local_c0.m[3], &original_pos);
+    BrMatrix34LPNormalise(character_matrix, &local_c0);
+    if (!keep_direction) {
+        SetCharacterBonePositions(pPed, 3, 0);
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -3153,3 +3256,26 @@ const br_vector3 g_Ped_y_unit_vector = { { 0.f, 1.f, 0.f } };
 
 // GLOBAL: CARMA2_HW 0x0058f2c8
 const br_vector3 g_Ped_z_unit_vector = { { 0.f, 0.f, 1.f } };
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00404150
+void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040aed0
+void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040b030
+void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
