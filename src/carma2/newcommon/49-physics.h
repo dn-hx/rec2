@@ -37,7 +37,7 @@ extern int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, 
 
 // EliminateFaces
 
-// GetShapePoint
+extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex);
 
 // GetObjectObjectEdgeIntersections
 
