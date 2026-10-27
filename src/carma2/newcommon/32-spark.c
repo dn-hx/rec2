@@ -277,11 +277,43 @@ void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// SetPixelmap
+extern tCar_spec* gRecalc_mass_car;
+extern tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
+extern tFace_ref gFace_list__car[300];
 
-// STUB: CARMA2_HW 0x004f8f30
+// FUNCTION: CARMA2_HW 0x004f8ff0
+int C2_HOOK_FASTCALL SetPixelmap(br_material* pMaterial) {
+
+    if (pMaterial->colour_map != gRecalc_mass_car->field_0x1960) {
+        pMaterial->colour_map = gRecalc_mass_car->field_0x1960;
+        BrMaterialUpdate(pMaterial, BR_MATU_ALL);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+// based on carpocalypse2 src/carma2/common/spark.c:2862 (reconstructed from the disassembly)
+// FUNCTION: CARMA2_HW 0x004f8f30
 void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    br_scalar dist;
+    br_vector3 dir;
+    br_vector3 pos;
+    br_vector3 out2;
+    br_vector3 out1;
+    tFace_ref* face;
+
+    dir.v[0] = 0.0f;
+    dir.v[1] = -0.5f;
+    dir.v[2] = 0.0f;
+    dist = 10.0f;
+    BrMatrix34ApplyP(&pos, &pCar->collision_info->cmpos, &pCar->collision_info->transform_matrix);
+    face = FindFloorInBoxM(&pos, &dir, &out1, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
+    if (face != NULL && face->material != NULL && face->material->colour_map != NULL && face->material->colour_map != pCar->field_0x1960) {
+        pCar->field_0x1960 = face->material->colour_map;
+        gRecalc_mass_car = pCar;
+        ForEveryCarMaterial(pCar, SetPixelmap, 1);
+    }
 }
 
 // DoSolidGraniteThing
@@ -1205,3 +1237,18 @@ void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject) {
 
 // InitReplaySplashes
 
+// GLOBAL: CARMA2_HW 0x006a82a8
+tCar_spec* gRecalc_mass_car = NULL;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004226d0
+tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
