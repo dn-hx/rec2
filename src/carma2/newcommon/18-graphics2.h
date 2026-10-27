@@ -89,6 +89,7 @@ extern void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y,
 extern int C2_HOOK_FASTCALL SwitchToHiresMode(void);
 
 extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
+extern void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour);
 
 extern void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour);
 
