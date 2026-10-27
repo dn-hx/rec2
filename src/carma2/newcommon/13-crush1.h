@@ -170,7 +170,7 @@ extern void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_ca
 
 // DoDroneCrushing
 
-// AddDroneCrush
+extern void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_vector3* pVector, float pScale, int pCount, const br_vector3* pPoints);
 
 // QueueDroneCrush
 

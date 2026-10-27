@@ -661,7 +661,22 @@ void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush
 
 // DoDroneCrushing
 
-// AddDroneCrush
+// based on ApexWorm/rec2 773b90994 (reference only)
+// FUNCTION: CARMA2_HW 0x0042d390
+// FUNCTION: CARMA2_SW 0x0042d400
+void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_vector3* pVector, float pScale, int pCount, const br_vector3* pPoints) {
+    int i;
+
+    if (pCount > 4) {
+        pCount = 4;
+    }
+    BrVector3Copy(&pCrush->field_0x38, pVector);
+    pCrush->field_0x34 = pScale;
+    pCrush->count = pCount;
+    for (i = 0; i < pCrush->count; i++) {
+        BrVector3Copy(&((br_vector3*)pCrush->field_0x4)[i], &pPoints[i]);
+    }
+}
 
 // QueueDroneCrush
 
