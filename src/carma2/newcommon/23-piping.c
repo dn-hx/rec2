@@ -8,6 +8,7 @@
 #include "platform.h"
 
 #include <stddef.h>
+#include <stdarg.h>
 #include "13-crush1.h"
 #include "41-utility.h"
 #include "30-opponent.h"
@@ -401,9 +402,74 @@ void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCo
 
 // ARDoSingleSession
 
-// STUB: CARMA2_HW 0x00402bd0
+// based on ApexWorm/rec2 017a1a11d
+// FUNCTION: CARMA2_HW 0x00402bd0
 void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...) {
-    NOT_IMPLEMENTED();
+    tU8 buffer[5000];
+    va_list args;
+    int i;
+    int size;
+    int offset;
+    int length;
+    int data_size;
+    tU32 new_size;
+    uintptr_t value;
+
+    ARStartPipingSession((tPipe_chunk_type)pType);
+    if (gPipe_buffer_start != NULL && !gAction_replay_mode && gProgram_state.racing) {
+        va_start(args, pCount);
+        for (i = 0; i < pCount; i++) {
+            size = va_arg(args, int);
+            offset = va_arg(args, int);
+            if (size < 0) {
+#ifdef REC2_MATCHING
+                *(float*)(buffer + offset) = va_arg(args, float);
+#else
+                *(float*)(buffer + offset) = (float)va_arg(args, double);
+#endif
+            } else {
+                value = va_arg(args, uintptr_t);
+                switch (size) {
+                case 1:
+                    buffer[4 + offset] = (tU8)value;
+                    break;
+                case 2:
+                    *(tU16*)(buffer + 4 + offset) = (tU16)value;
+                    break;
+                case 4:
+                    *(tU32*)(buffer + 4 + offset) = value;
+                    break;
+                default:
+                    if (value != 0) {
+                        memcpy(buffer + 4 + offset, (void*)value, size);
+                    }
+                    break;
+                }
+            }
+        }
+        va_end(args);
+        *(uintptr_t*)buffer = pOwner;
+        if (gPipe_callbacks[pType].calc_length != NULL) {
+            length = gPipe_callbacks[pType].calc_length((tPipe_chunk*)buffer) + gPipe_callbacks[pType].length + 4;
+        } else {
+            length = gPipe_callbacks[pType].length + 4;
+        }
+        data_size = length - 4;
+        if (gPipe_buffer_start != NULL && !gAction_replay_mode && gProgram_state.racing) {
+            new_size = gLocal_buffer_size + data_size + 4;
+            if (new_size < 15000) {
+                ((int*)gLocal_buffer)[1] += 1;
+                *((uintptr_t*)gMr_chunky) = pOwner;
+                gMr_chunky += sizeof(uintptr_t);
+                if (data_size != 0) {
+                    memcpy(gMr_chunky, buffer + 4, data_size);
+                }
+                gLocal_buffer_size = new_size;
+                gMr_chunky += data_size;
+            }
+        }
+    }
+    EndPipingSession2(1);
 }
 
 // ARResetPipePlayToEnd
