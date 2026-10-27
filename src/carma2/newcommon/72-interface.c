@@ -1644,7 +1644,18 @@ int C2_HOOK_FASTCALL ScrollToPrevCar(tFrontend_spec* pFrontend) {
 
 // WrecksInFunc: defined in 72-interface-wrecks.c
 
-// KeepInRange
+// based on ApexWorm/rec2 3015527f8 (reference only)
+// FUNCTION: CARMA2_HW 0x0046eab0
+int C2_HOOK_FASTCALL KeepInRange(int pIndex, int pRange) {
+
+    while (pIndex < 0) {
+        pIndex += pRange;
+    }
+    while (pIndex >= pRange) {
+        pIndex -= pRange;
+    }
+    return pIndex;
+}
 
 // FUNCTION: CARMA2_HW 0x0046ead0
 int C2_HOOK_FASTCALL WrecksOutFunc(tFrontend_spec* pFrontend) {
