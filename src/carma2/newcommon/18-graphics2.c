@@ -687,6 +687,21 @@ void C2_HOOK_FASTCALL EnableLights(void) {
     }
 }
 
+// based on ApexWorm/rec2 44cc42008 (reference only)
+// FUNCTION: CARMA2_HW 0x0047d7b0
+void C2_HOOK_FASTCALL DRPixelmapBlend75Copy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
+    int x;
+    int y;
+    tU8* dest_ptr;
+
+    for (y = 0; y < pSource->height; y++) {
+        dest_ptr = (tU8*)pDest->pixels + (pDest_y + y) * pDest->row_bytes + pDest_x;
+        for (x = 0; x < pSource->width; x++, dest_ptr++) {
+            *dest_ptr = ((tU8*)gPalette_0074a5fc->pixels)[*dest_ptr + 256 * ((tU8*)pSource->pixels)[y * pSource->row_bytes + x]];
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004b5470
 void C2_HOOK_FASTCALL FadePaletteUp(void) {
     int j;
