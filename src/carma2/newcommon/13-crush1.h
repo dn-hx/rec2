@@ -117,7 +117,7 @@ extern void C2_HOOK_FASTCALL DisposeVertexData(tModel_detail_vertex_data* pVerte
 
 // PointTriangleDistSq
 
-// PointRectDistSq
+extern float C2_HOOK_FASTCALL PointRectDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB, const br_vector3* pC);
 
 // PointSimplexDistSq
 
