@@ -45,6 +45,9 @@ tDR_font* gTrans_fonts[2];
 // GLOBAL: CARMA2_HW 0x00686308
 int gPalette_fuck_prevention;
 
+// GLOBAL: CARMA2_HW 0x0068630c
+int gDark_mode;
+
 // GLOBAL: CARMA2_HW 0x00686310
 int gTransparency_on;
 
@@ -491,6 +494,12 @@ void C2_HOOK_FASTCALL DontLetFlicFuckWithPalettes(void) {
 // FUNCTION: CARMA2_HW 0x004619b0
 void C2_HOOK_FASTCALL LetFlicFuckWithPalettes(void) {
     gPalette_fuck_prevention = 0;
+}
+
+// based on ApexWorm/rec2 e6089773a (reference only)
+// FUNCTION: CARMA2_HW 0x004619c0
+void C2_HOOK_STDCALL PlayFlicsInDarkness(void) {
+    gDark_mode = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x004619e0
