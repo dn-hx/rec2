@@ -673,9 +673,19 @@ void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, unde
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c25a0
+// based on ApexWorm/rec2 a2bbacecc (reference only)
+// FUNCTION: CARMA2_HW 0x004c25a0
 void C2_HOOK_FASTCALL ResetObjectAndChildren(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* child;
+
+    if (pObject->field_0xf0 == 1) {
+        BrMatrix34Copy(&pObject->actor->t.t.mat, (const br_matrix34*)&pObject->field_0xbc);
+    } else {
+        BrMatrix34LPNormalise(&pObject->actor->t.t.mat, &pObject->transform_matrix);
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        ResetObjectAndChildren(child);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
