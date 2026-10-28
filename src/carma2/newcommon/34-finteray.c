@@ -173,9 +173,34 @@ void C2_HOOK_FASTCALL DisablePlingMaterials(void) {
 
 // MultiRayCheckSingleFace
 
-// STUB: CARMA2_HW 0x0045f5b0
+// FUNCTION: CARMA2_HW 0x0045f5b0
 void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m) {
-    NOT_IMPLEMENTED();
+    br_vector3 a;
+    br_vector3 c[3];
+    int i;
+    int j;
+
+    BrMatrix34ApplyP(&b2->min, &b1->min, m);
+    b2->max.v[0] = b2->min.v[0];
+    b2->max.v[1] = b2->min.v[1];
+    b2->max.v[2] = b2->min.v[2];
+    a.v[0] = b1->max.v[0] - b1->min.v[0];
+    a.v[1] = b1->max.v[1] - b1->min.v[1];
+    a.v[2] = b1->max.v[2] - b1->min.v[2];
+    for (j = 0; j < 3; j++) {
+        c[j].v[0] = a.v[j] * m->m[j][0];
+        c[j].v[1] = a.v[j] * m->m[j][1];
+        c[j].v[2] = a.v[j] * m->m[j][2];
+    }
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 3; i++) {
+            if (c[i].v[j] < 0.f) {
+                b2->min.v[j] += c[i].v[j];
+            } else {
+                b2->max.v[j] += c[i].v[j];
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0045f690
