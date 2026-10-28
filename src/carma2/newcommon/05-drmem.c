@@ -370,12 +370,6 @@ void C2_HOOK_CDECL DRStdlibFree(void* mem) {
     if (mem == NULL) {
         FatalError(kFatalError_OOM_S, "NULL POINTER BEING FREED");
     }
-    // Deliberate deviation from the original: BrStdlibAllocate uses CRT malloc, so blocks
-    // that are not on the process heap must be released with free() (quit crash fix).
-    if (!HeapValidate(GetProcessHeap(), 0, mem)) {
-        free(mem);
-        return;
-    }
     HeapFree(GetProcessHeap(), 0, mem);
 #else
     free(mem);
