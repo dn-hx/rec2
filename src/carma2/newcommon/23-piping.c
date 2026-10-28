@@ -22,6 +22,7 @@
 #include "61-pedestrn.h"
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
+#define CRUSH_SPACE_SIZE 0x4000
 
 // GLOBAL: CARMA2_HW 0x006768c0
 // GLOBAL: CARMA2_SW 0x00671030
@@ -459,7 +460,18 @@ void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCo
     NOT_IMPLEMENTED();
 }
 
-// ARDoSingleSession
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00402ab0
+void C2_HOOK_FASTCALL ARDoSingleSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // based on ApexWorm/rec2 017a1a11d
 // FUNCTION: CARMA2_HW 0x00402bd0
@@ -1053,7 +1065,25 @@ void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_model* pOl
         SIZE_OFFSET_PIPING(tPipe_chunk_smash_model_change, new_model), pNew_model);
 }
 
-// PipeSingleSmashRemoveFaces
+// FUNCTION: CARMA2_HW 0x004c8980
+void C2_HOOK_FASTCALL PipeSingleSmashRemoveFaces(br_model* pModel, int pCount, const void* pFaces, br_material* pMaterial) {
+    tU32 size;
+    undefined4* crush_space;
+
+    crush_space = gCrush_space;
+    if (crush_space == NULL) {
+        return;
+    }
+    size = (tU32)pCount * 8u;
+    crush_space[1] = pCount;
+    *(br_material**)&crush_space[0] = pMaterial;
+    memcpy(crush_space + 2, pFaces, size);
+    size += 8;
+    if (size > CRUSH_SPACE_SIZE) {
+        FatalError(kFatalError_ChunkIsTooLargeToPipe);
+    }
+    ARDoSingleSession(34, (uintptr_t)pModel, crush_space, size);
+}
 
 // PipeSingleSmashDecal
 
@@ -1181,9 +1211,11 @@ void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, int pBloc
 
 // PipeSinglePowerupLose
 
-// STUB: CARMA2_HW 0x004c8de0
-void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, int pFlags) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x004c8de0
+void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, tU16 pFlags) {
+
+    ARDoSingleVariedSession(ePipe_funk_enable, (uintptr_t)pIndex, 1,
+        SIZE_OFFSET_PIPING(tPipe_funk_enable, flags), pFlags);
 }
 
 // FUNCTION: CARMA2_HW 0x004c8e10

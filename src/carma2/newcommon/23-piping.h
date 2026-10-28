@@ -619,7 +619,7 @@ extern void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, in
 
 // PipeSinglePowerupLose
 
-extern void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, int pFlags);
+extern void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, tU16 pFlags);
 
 // PipeSingleVanishedDismembered (defined in 23-piping.c; no extern here: an extra declaration shifts codegen of BitObjectIsSufficientlyOutsideCarObjectToDetach 0x00434910 in 13-crush1.c)
 
