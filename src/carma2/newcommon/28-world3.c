@@ -3261,14 +3261,59 @@ const br_vector3 g_Ped_z_unit_vector = { { 0.f, 0.f, 1.f } };
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00404150
+/* based on carpocalypse2 pedestrn.c:1732 */
+// FUNCTION: CARMA2_HW 0x00404150
 void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
+
+    BrVector3Cross(pDest, pA, pB);
+    if ((float)fabs(pDest->v[0]) < 2.384186e-06f && (float)fabs(pDest->v[1]) < 2.384186e-06f && (float)fabs(pDest->v[2]) < 2.384186e-06f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
+        } else {
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
+        }
+    }
 }
 
-// STUB: CARMA2_HW 0x0040aed0
+/* based on carpocalypse2 trig.c:567 */
+// FUNCTION: CARMA2_HW 0x0040aed0
 void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
-    NOT_IMPLEMENTED();
+    float sinA;
+    float mc;
+    float mcx;
+    float mcxz;
+    float mcxy;
+    float sz;
+    float sy;
+    float sx;
+    float mcyz;
+
+    if (pCosA < -1.f) {
+        pCosA = -1.f;
+    } else if (pCosA > 1.f) {
+        pCosA = 1.f;
+    }
+    sinA = (float)sqrt(1.f - pCosA * pCosA);
+    mc = 1.f - pCosA;
+    mcx = pAxis->v[0] * mc;
+    mcxy = pAxis->v[1] * mcx;
+    mcxz = pAxis->v[2] * mcx;
+    mcyz = pAxis->v[2] * pAxis->v[1] * mc;
+    sx = pAxis->v[0] * sinA;
+    sy = pAxis->v[1] * sinA;
+    sz = pAxis->v[2] * sinA;
+    pDest->m[0][0] = pAxis->v[0] * pAxis->v[0] * mc + pCosA;
+    pDest->m[0][1] = sz + mcxy;
+    pDest->m[0][2] = mcxz - sy;
+    pDest->m[1][0] = mcxy - sz;
+    pDest->m[1][1] = pAxis->v[1] * pAxis->v[1] * mc + pCosA;
+    pDest->m[1][2] = sx + mcyz;
+    pDest->m[2][0] = sy + mcxz;
+    pDest->m[2][1] = mcyz - sx;
+    pDest->m[2][2] = pAxis->v[2] * pAxis->v[2] * mc + pCosA;
+    pDest->m[3][0] = 0.f;
+    pDest->m[3][1] = 0.f;
+    pDest->m[3][2] = 0.f;
 }
 
 #ifdef REC2_MATCHING
