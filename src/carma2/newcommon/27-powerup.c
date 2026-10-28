@@ -215,9 +215,10 @@ int gUNK_007059c8 = 0;
 
 // GotPowerupXX
 
-// STUB: CARMA2_HW 0x004d8d30
+// FUNCTION: CARMA2_HW 0x004d8d30
 void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex) {
-    NOT_IMPLEMENTED();
+
+    GotPowerupEarwig(pCar, pIndex, 1, 1);
 }
 
 #ifdef REC2_MATCHING
