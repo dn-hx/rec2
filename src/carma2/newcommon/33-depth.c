@@ -13,6 +13,7 @@
 #include "52-errors.h"
 
 #include "c2_stdio.h"
+#include "c2_math.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 int gSky_on = 1;
@@ -25,6 +26,18 @@ br_material* gHorizon_material;
 
 // GLOBAL: CARMA2_HW 0x0067c4a0
 br_model* gForward_sky_model;
+
+// GLOBAL: CARMA2_HW 0x0067c4b4
+br_scalar gSky_height;
+
+// GLOBAL: CARMA2_HW 0x0067c4c8
+br_scalar gSky_width;
+
+// GLOBAL: CARMA2_HW 0x0067c4d0
+br_scalar gSky_x_multiplier;
+
+// GLOBAL: CARMA2_HW 0x0067c4d4
+br_scalar gSky_y_multiplier;
 
 /* defined in globvrbm.c (0x0074cee8), directly before gHUDsquare_actor as in the original layout */
 extern br_material* gMaterial[2];
@@ -613,13 +626,139 @@ void C2_HOOK_FASTCALL ChangeDepthEffect(void) {
     gProgram_state.current_depth_effect.end = gProgram_state.default_depth_effect.end;
 }
 
+extern br_angle gSky_image_width;
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_underground;
+
+static br_scalar MungeSkyModel_Tan(br_scalar pAngle) {
+    br_scalar radians;
+
+    radians = BrAngleToRadian(pAngle);
+    return sinf(radians) / cosf(radians);
+}
+
+static br_scalar MungeSkyModel_EdgeU(br_angle pSky, br_angle pView, br_angle pPerfect) {
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+
+    a = (br_scalar)cos(BrAngleToRadian(pPerfect));
+    b = (br_scalar)sin(BrAngleToRadian(pView));
+    c = (br_scalar)cos(BrAngleToRadian(pView));
+    return b * a * a / (BrAngleToRadian(pSky) * (1.f + c));
+}
+
+static br_scalar MungeSkyModel_CalculateWrappingMultiplier(br_scalar pValue, br_scalar pYon) {
+    br_scalar k;
+    br_scalar trunc_k;
+    int int_k;
+
+    k = pYon * 1.3f * (br_scalar)REC2_TAU / pValue;
+    int_k = (int)k;
+    trunc_k = (br_scalar)int_k;
+    if (k - trunc_k > .5f) {
+        trunc_k += 1.f;
+    }
+    return trunc_k * (br_scalar)(1.0 / REC2_TAU) * pValue;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00445e20
+// FUNCTION: CARMA2_HW 0x00445e20
 void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel) {
-    NOT_IMPLEMENTED();
+    br_camera* camera_data;
+    br_scalar horizon_half_height;
+    br_scalar horizon_half_width;
+    br_scalar horizon_half_diag;
+    br_scalar tan_half_fov;
+    br_scalar sky_distance;
+    br_angle half_diag_fov;
+    tU8 nbands;
+    tU8 band;
+    tU8 vertex;
+    tU8 stripe;
+    br_scalar edge_u;
+    br_scalar narrow_u;
+    br_angle min_angle;
+    br_angle angle_range;
+    br_angle angle;
+
+    camera_data = pCamera->type_data;
+    tan_half_fov = MungeSkyModel_Tan((br_scalar)(camera_data->field_of_view / 2));
+    sky_distance = camera_data->yon_z - 1.f;
+    horizon_half_width = sky_distance * tan_half_fov;
+    horizon_half_height = horizon_half_width * camera_data->aspect;
+    horizon_half_diag = (br_scalar)sqrt(horizon_half_height * horizon_half_height + horizon_half_width * horizon_half_width);
+    half_diag_fov = BrRadianToAngle(atan2(horizon_half_diag, sky_distance));
+    edge_u = MungeSkyModel_EdgeU(gSky_image_width, (br_angle)(2 * half_diag_fov), BR_ANGLE_DEG(10));
+    narrow_u = edge_u / 2.f;
+    gSky_width = horizon_half_width * 2.f;
+    gSky_height = horizon_half_height * 2.f;
+    gSky_x_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_width, camera_data->yon_z);
+    gSky_y_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_height, camera_data->yon_z);
+
+    for (vertex = 0; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = -edge_u;
+    }
+    for (vertex = 1; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = -narrow_u;
+    }
+    for (vertex = 2; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = narrow_u;
+    }
+    for (vertex = 3; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = edge_u;
+    }
+    for (vertex = 0; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = -horizon_half_diag;
+    }
+    for (vertex = 1; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = -horizon_half_diag / 2.f;
+    }
+    for (vertex = 2; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = horizon_half_diag / 2.f;
+    }
+    for (vertex = 3; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = horizon_half_diag;
+    }
+    PossibleService();
+
+    min_angle = (br_angle)(-BR_ANGLE_DEG(90) - half_diag_fov);
+    angle_range = (br_angle)(-gSky_image_underground - min_angle);
+    for (band = 0; band < 2; ++band) {
+        vertex = 4 * band;
+        angle = (br_angle)(min_angle + angle_range * band / 2);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    min_angle = (br_angle)-gSky_image_underground;
+    angle_range = gSky_image_height;
+    nbands = 18;
+    for (band = 0; band < nbands; ++band) {
+        vertex = 4 * band + 8;
+        angle = (br_angle)(min_angle + angle_range * band / nbands);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    min_angle = (br_angle)(gSky_image_height - gSky_image_underground);
+    angle_range = (br_angle)(half_diag_fov + BR_ANGLE_DEG(90) - min_angle);
+    for (band = 0; band < 2; ++band) {
+        vertex = 4 * band + 80;
+        angle = (br_angle)(min_angle + angle_range * band);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    PossibleService();
+    for (band = 0; band < 22; ++band) {
+        vertex = 4 * band;
+        for (stripe = 1; stripe < 4; ++stripe) {
+            pModel->vertices[vertex + stripe].p.v[1] = pModel->vertices[vertex].p.v[1];
+            pModel->vertices[vertex + stripe].p.v[2] = pModel->vertices[vertex].p.v[2];
+        }
+    }
+    BrModelUpdate(pModel, BR_MODU_ALL & ~BR_MODU_FACES);
 }
 
 #ifdef REC2_MATCHING
