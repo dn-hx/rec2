@@ -611,7 +611,43 @@ void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smash
 
 // AddRepairAnimationToQueue
 
-// RepairSmash
+// FUNCTION: CARMA2_HW 0x004ef910
+void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
+    tCar_crush_smashable_part* smashable;
+    tRepair_animation* animation;
+    int index;
+    int i;
+    int j;
+
+    smashable = pSmash_data->smashables;
+    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
+        if (smashable->field_0x4c != 0) {
+            ActuallyRepairSmash(pCar_spec, smashable, smashable->field_0x4c - 1);
+            index = -1;
+            animation = gRepair_animations;
+            for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++, animation++) {
+                if (animation->field_0x0 == (void*)smashable) {
+                    index = j;
+                    break;
+                }
+            }
+            if (index < 0) {
+                animation = gRepair_animations;
+                for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++, animation++) {
+                    if (animation->field_0x0 == NULL) {
+                        index = j;
+                        break;
+                    }
+                }
+            }
+            if (index >= 0) {
+                gRepair_animations[index].field_0x0 = (void*)smashable;
+                gRepair_animations[index].field_0x4 = GetTotalTime();
+                gRepair_animations[index].field_0x8 = (undefined4)(uintptr_t)pCar_spec;
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ef440
 intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
