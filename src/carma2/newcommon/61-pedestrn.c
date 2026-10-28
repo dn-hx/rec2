@@ -23,7 +23,17 @@ int gGoreLevel = 1;
 
 /* explicit order keeps gPed_cache_sizes_1 directly in front of gAnimalsOn (loop-end compare in InitPolyPedSystem) */
 // GLOBAL: CARMA2_HW 0x0065d778
-tPedForms_vtable gPed_forms_vtable = { 0 };
+tPedForms_vtable gPed_forms_vtable = {
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    CBFillInObject,
+    CBLoadForm,
+    CBDisposeForm,
+    CBLoadPersonality,
+    (void (C2_HOOK_FASTCALL *)(undefined4*))CBDisposePersonality,
+};
 
 // UNCERTAIN: unreferenced gap
 int gUNK_0065d7a0[2] = { 0 };
