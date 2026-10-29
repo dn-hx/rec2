@@ -260,7 +260,47 @@ void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2,
 
 // ApplyTimeSpec
 
-// FindShrapnelFragment
+extern br_actor* gNon_track_actor;
+
+// FUNCTION: CARMA2_HW 0x004eb070
+tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority) {
+    int i;
+    int lowest_priority;
+    tSmash_vertex* fragment;
+    tSmash_vertex* lowest_priority_fragment;
+
+    lowest_priority = 10000;
+    for (i = 0, fragment = gSmash_glass_fragments; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++, fragment++) {
+        if (fragment->end_time == 0) {
+            i = -1;
+            break;
+        }
+        if (fragment->field_0x35[0] < lowest_priority) {
+            lowest_priority = fragment->field_0x35[0];
+            lowest_priority_fragment = fragment;
+        }
+    }
+    if (i >= 0) {
+        if (lowest_priority < pPriority) {
+            fragment = lowest_priority_fragment;
+        } else {
+            return NULL;
+        }
+    }
+    if (pModel != NULL) {
+        fragment->actor->model = pModel;
+    } else {
+        fragment->actor->model = fragment->model;
+    }
+    if (fragment->actor->parent == NULL) {
+        BrActorAdd(gNon_track_actor, fragment->actor);
+    }
+    fragment->field_0x35[0] = (tU8)pPriority;
+    fragment->field_0x18 = pId;
+    fragment->field_0xc = GetTotalTime();
+    fragment->field_0x34 = 1;
+    return fragment;
+}
 
 // SetShrapnelFragment
 

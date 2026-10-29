@@ -980,7 +980,36 @@ void C2_HOOK_FASTCALL AwardTime(tU32 pTime) {
     }
 }
 
-// AwardTime5
+// FUNCTION: CARMA2_HW 0x0044b590
+void C2_HOOK_FASTCALL AwardTime5(tU32 pTime) {
+    char s[256];
+    tU32 original_amount;
+    tU32 the_time;
+    int i;
+    tU32 rounded_time;
+
+    rounded_time = pTime - (pTime + 2) % 5 + 2;
+    if (gRace_finished || gFreeze_timer || gNet_mode != eNet_mode_none || (*(tGraf_data**)((char*)&gCurrent_race + 0x98))->field_0x18c) {
+        return;
+    }
+    the_time = GetTotalTime();
+    if (rounded_time != 0) {
+        for (i = 9; i > 0; i--) {
+            gOld_times[i] = gOld_times[i - 1];
+        }
+        gOld_times[0] = rounded_time;
+        original_amount = rounded_time;
+        if (gLast_time_credit_headup >= 0 && (the_time - gLast_time_earn_time) < 2000) {
+            rounded_time += gLast_time_credit_amount;
+        }
+        gLast_time_credit_amount = rounded_time;
+        gTimer += original_amount * 1000;
+        s[0] = '+';
+        TimerString(1000 * rounded_time, &s[1], 0, 0, 0);
+        gLast_time_credit_headup = NewTextHeadupSlot2(0xb, 0, 2000, -2, s, 1);
+        gLast_time_earn_time = the_time;
+    }
+}
 
 // GLOBAL: CARMA2_HW 0x0079eb00
 char gHeadup_oppo_ped_text[64];

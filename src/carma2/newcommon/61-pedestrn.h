@@ -442,7 +442,7 @@ extern tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName);
 
 // DisposeAllLoadedPersonalities
 
-// FindOrOpenPersonality
+extern tPed_personality* C2_HOOK_FASTCALL FindOrOpenPersonality(const char* pName);
 
 // BuildCharacterInstance
 
@@ -481,7 +481,7 @@ extern void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV
 
 // MakeCharacterPhysicworthy
 
-// RecalculateOrientationOfRoot
+extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
 
 // BonerActiveHalted2
 

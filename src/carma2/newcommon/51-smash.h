@@ -45,7 +45,7 @@ extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3*
 
 // ApplyTimeSpec
 
-// FindShrapnelFragment
+extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
 
 // SetShrapnelFragment
 
