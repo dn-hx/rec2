@@ -9,6 +9,9 @@
 #include "41-utility.h"
 #include "platform.h"
 #include "30-opponent.h"
+#include "52-errors.h"
+
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0058f038
 int gFirst_drone_processing = 1;
@@ -176,11 +179,125 @@ void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
 #pragma auto_inline(on)
 #endif
 
+extern float gDrone_render_zero;
+extern int gCount_drone_forms;
+extern int gCount_drones;
+extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
+extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
+extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
+extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
+extern void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone);
+extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
+
+// FUNCTION: CARMA2_HW 0x0044fda0
+void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
+    int i;
+    tDrone_spec* drone;
+    int j;
+    int count_models;
+    tTWTVFS twt;
+    tPath_name the_path;
+    tPath_name path;
+    char s[256];
+    tDrone_form* form;
+    br_model* orig_model;
+    FILE* f;
+
+    for (i = 0; i < gCount_drone_forms; i++) {
+        form = &gDrone_forms[i];
+        form->field_0x6c = 0;
+        form->model_start = -1;
+        form->model_end = 0;
+        form->model_index = -1;
+        form->count_models = 0;
+        form->field_0x80 = NULL;
+        form->models = NULL;
+    }
+
+    for (i = 0; i < gCount_drones; i++) {
+        gDrone_specs[i].form->field_0x6c += 1;
+        drone = &gDrone_specs[i];
+
+        strcpy(path, gApplication_path);
+        PathCat(path, path, "DRONES");
+        PathCat(path, path, drone->form->name);
+        twt = OpenPackFileAndSetTiffLoading(path);
+        LoadDroneActorsModels(drone);
+
+        strcpy(the_path, gApplication_path);
+        PathCat(the_path, the_path, "DRONES");
+        PathCat(the_path, the_path, drone->form->name);
+        PathCat(the_path, the_path, drone->form->name);
+        strcat(the_path, ".TXT");
+        f = DRfopen(the_path, "rt");
+        if (f == NULL) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, the_path);
+        }
+
+        while (PFfeof(f) == 0) {
+            GetALineAndDontArgue(f, s);
+            if (strcmp(s, "START OF BOUNDING SHAPES") == 0) {
+                DoNotDprintf("ReadPastBoundsShapesHeader() returning TRUE");
+                DoNotDprintf("DRONE.C: Reading mechanics data for drone of type %s", drone->form->name);
+                ReadMechanicsShapes(&drone->collision_info.shape, f);
+                if (drone->collision_info.shape != NULL) {
+                    drone->field_0x46 = 1;
+                }
+                goto shapes_found;
+            }
+        }
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, drone->form->name);
+    shapes_found:
+
+        LoadFunksAndGrooves(drone, f);
+        PFfclose(f);
+        ClosePackFileAndSetTiffLoading(twt);
+    }
+
+    for (i = 0; i < gCount_drone_forms; i++) {
+        form = &gDrone_forms[i];
+        if (form->field_0x6c == 0) {
+            continue;
+        }
+        if (form->crushability == gDrone_render_zero) {
+            count_models = 0;
+        } else {
+            count_models = 10 < form->field_0x6c ? 10 : form->field_0x6c;
+        }
+        form->count_models = count_models;
+        if (count_models != 0) {
+            form->models = BrMemCalloc(form->count_models, sizeof(br_model*), kMem_drone_model_dup);
+            form->field_0x80 = BrMemCalloc(form->count_models, sizeof(tU8), kMem_drone_model_dup);
+            for (j = 0; j < form->count_models; j++) {
+                orig_model = gDroneStorage.models[form->model_index];
+                form->models[j] = BrModelAllocate(orig_model->identifier, orig_model->nvertices, 0);
+                form->models[j]->flags |= BR_MODF_UPDATEABLE;
+                form->models[j]->faces = orig_model->faces;
+                form->models[j]->nfaces = orig_model->nfaces;
+                memcpy(form->models[j]->vertices, orig_model->vertices, form->models[j]->nvertices * sizeof(br_vertex));
+                BrModelAdd(form->models[j]);
+            }
+        }
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0044fda0
-void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
+// STUB: CARMA2_HW 0x00450150
+void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00450680
+void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
