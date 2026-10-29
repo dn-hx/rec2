@@ -299,9 +299,71 @@ void C2_HOOK_FASTCALL SepDirAndFilename(const char* path, char* dirPath, char* s
     stemPath[i] = '\0';
 }
 
-// STUB: CARMA2_HW 0x00513a30
+// FUNCTION: CARMA2_HW 0x00513a30
 int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, int pCapacity) {
-    NOT_IMPLEMENTED();
+    extern tGraf_spec gGraf_specs[2];
+    extern char gCurrent_load_name[256];
+    tPath_name path1;
+    tPath_name path2;
+    tPath_name path3;
+    tPath_name path4;
+    tName_list list;
+    int i;
+    int error;
+    int is_common;
+    int is_intface;
+
+    (void)pCapacity;
+    list.size = 0;
+    pName[strlen(pName) - 4] = '\0';
+
+    PathCat(path1, gApplication_path, gCurrent_load_directory);
+    is_common = strcmp(gCurrent_load_directory, "COMMON");
+    is_intface = strcmp(gCurrent_load_directory, "INTRFACE");
+    if (is_common != 0 && is_intface != 0) {
+        PathCat(path1, path1, gCurrent_load_name);
+    }
+    PathCat(path1, path1, gGraf_specs[gGraf_spec_index].data_dir_name);
+    PathCat(path1, path1, pName);
+
+    PathCat(path3, gApplication_path, gCurrent_load_directory);
+    if (is_common != 0 && is_intface != 0) {
+        PathCat(path3, path3, gCurrent_load_name);
+    }
+    PathCat(path3, path3, pName);
+
+    PathCat(path2, path1, "TIFFX");
+    PFForEveryFile2(path2, (tEnumPathCallback)GetFileName, &list);
+    PathCat(path4, path1, "PIX8");
+    PFForEveryFile2(path4, (tEnumPathCallback)GetAdditionalFileName, &list);
+    PathCat(path2, path1, "TIFFRGB");
+    PFForEveryFile2(path2, (tEnumPathCallback)GetAdditionalFileName, &list);
+    PathCat(path4, path1, "PIX16");
+    PFForEveryFile2(path4, (tEnumPathCallback)GetAdditionalFileName, &list);
+
+    if (list.size != 0) {
+        for (i = 0; i < list.size; i++) {
+            pMaps[i] = DRLdImg(path1, list.items[i], gRender_palette, gPixelFlags, &error);
+        }
+        return i;
+    }
+
+    PathCat(path2, path3, "TIFFX");
+    PFForEveryFile2(path2, (tEnumPathCallback)GetFileName, &list);
+    PathCat(path4, path3, "PIX8");
+    PFForEveryFile2(path4, (tEnumPathCallback)GetAdditionalFileName, &list);
+    PathCat(path2, path3, "TIFFRGB");
+    PFForEveryFile2(path2, (tEnumPathCallback)GetAdditionalFileName, &list);
+    PathCat(path4, path3, "PIX16");
+    PFForEveryFile2(path4, (tEnumPathCallback)GetAdditionalFileName, &list);
+
+    if (list.size != 0) {
+        for (i = 0; i < list.size; i++) {
+            pMaps[i] = DRLdImg(path3, list.items[i], gRender_palette, gPixelFlags, &error);
+        }
+        return i;
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00514570
