@@ -64,6 +64,7 @@ extern intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData);
 extern const char* gWheel_actor_names[6];
 extern const char* gPivot_actor_names[6];
 extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
+extern const char* gDamage_names[12];
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;
@@ -2416,6 +2417,22 @@ void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void) {
 }
 
 
+// GLOBAL: CARMA2_HW 0x006574d0
+const char* gDamage_names[12] = {
+    "engine",
+    "transmission",
+    "driver",
+    "steering",
+    "lf_brake",
+    "rf_brake",
+    "lr_brake",
+    "rr_brake",
+    "lf_wheel",
+    "rf_wheel",
+    "lr_wheel",
+    "rr_wheel",
+};
+
 // GLOBAL: CARMA2_HW 0x00657500
 const char* gWheel_actor_names[6] = {
     "FLWHEEL.ACT",
@@ -2440,9 +2457,68 @@ const char* gPivot_actor_names[6] = {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0048bca0
+// FUNCTION: CARMA2_HW 0x0048bca0
 void C2_HOOK_FASTCALL GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    int count;
+    char s[256];
+    char delim[64];
+    char* str;
+    tDamage_clause* the_clause;
+
+    PossibleService();
+    count = GetAnInt(pF);
+    pCar_spec->damage_programs[pImpact_location].clause_count = count;
+    pCar_spec->damage_programs[pImpact_location].clauses = BrMemAllocate(count * sizeof(tDamage_clause), kMem_damage_clauses);
+    strcpy(delim, "\t ,/");
+    strcat(delim, "&");
+    the_clause = pCar_spec->damage_programs[pImpact_location].clauses;
+    for (i = 0; i < count; i++, the_clause++) {
+        the_clause->condition_count = 0;
+        GetALineAndDontArgue(pF, s);
+        str = strtok(s, delim);
+        do {
+            if (str[0] == 'x') {
+                the_clause->conditions[the_clause->condition_count].axis_comp = eAxis_x;
+            } else if (str[0] == 'y') {
+                the_clause->conditions[the_clause->condition_count].axis_comp = eAxis_y;
+            } else if (str[0] == 'z') {
+                the_clause->conditions[the_clause->condition_count].axis_comp = eAxis_z;
+            } else {
+                break;
+            }
+            if (str[1] == '>') {
+                the_clause->conditions[the_clause->condition_count].condition_operator = eCondition_greater_than;
+            } else if (str[1] == '<') {
+                the_clause->conditions[the_clause->condition_count].condition_operator = eCondition_less_than;
+            } else {
+                FatalError(kFatalError_ConfusedByFormatOfConditionalDamageInCarFile);
+            }
+            sscanf(&str[2], "%f", &the_clause->conditions[the_clause->condition_count].comparitor);
+            the_clause->condition_count++;
+            str = strtok(NULL, delim);
+        } while (the_clause->condition_count < 2);
+
+        the_clause->effect_count = GetAnInt(pF);
+        for (j = 0; j < the_clause->effect_count; j++) {
+            the_clause->effects[j].type = (tDamage_type)-1;
+            GetALineAndDontArgue(pF, s);
+            str = strtok(s, "\t ,/");
+            for (k = 0; k < (int)REC2_ASIZE(gDamage_names); k++) {
+                if (strcmp(str, gDamage_names[k]) == 0) {
+                    the_clause->effects[j].type = (tDamage_type)k;
+                    break;
+                }
+            }
+            if ((int)the_clause->effects[j].type < 0) {
+                FatalError(kFatalError_UnknownDamageType_S, str);
+            }
+            str = strtok(NULL, "\t ,/");
+            sscanf(str, "%f", &the_clause->effects[j].weakness_factor);
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0042a280
