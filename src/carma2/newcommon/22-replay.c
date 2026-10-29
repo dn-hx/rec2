@@ -126,6 +126,8 @@ extern tTimer gTimers[19];
 extern int gSave_game_out_of_sync;
 extern int gBr_initialized;
 extern br_actor* gAdditional_actors;
+extern tPhysics_object* gMutant_tail_first_collision_info;
+extern tSmoke_column gSmoke_column[10];
 extern int C2_HOOK_FASTCALL PDGetMicroseconds(void);
 extern int C2_HOOK_FASTCALL PDServiceSystem(tU32 pTime_since_last_call);
 extern void C2_HOOK_FASTCALL CheckMemory(void);
@@ -482,10 +484,16 @@ void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 5b75cde93
 // FUNCTION: CARMA2_HW 0x004de000
 void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos) {
+    br_actor* actor;
 
-    NOT_IMPLEMENTED();
+    actor = (br_actor*)field_0x0;
+    if (actor->parent == NULL) {
+        BrActorAdd(gNon_track_actor, actor);
+    }
+    actor->render_style = BR_RSTYLE_FACES;
 }
 
 // FUNCTION: CARMA2_HW 0x004de020
