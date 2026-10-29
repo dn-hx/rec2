@@ -658,9 +658,104 @@ void C2_HOOK_FASTCALL InitPhysMasterCrushData(tCar_spec* pCar_spec) {
 
 // SetUpSemiDetachJointStuff
 
-// STUB: CARMA2_HW 0x0042b7f0
+extern tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_model* pModel);
+extern void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds);
+
+static __inline void C2_HOOK_FASTCALL CheckHingePointOrder(tCar_crush_flap_data* pHinge, br_model* pModel, br_vector3* pPos) {
+    const br_vertex* vertices;
+    br_vector3 hinge01;
+    br_vector3 hinge02;
+    br_vector3 normal;
+    br_vector3 center_offset;
+
+    vertices = pModel->vertices;
+    BrVector3Sub(&hinge01, &vertices[pHinge->hinge1].p, &vertices[pHinge->hinge0].p);
+    BrVector3Sub(&hinge02, &vertices[pHinge->hinge2].p, &vertices[pHinge->hinge0].p);
+    BrVector3Cross(&normal, &hinge02, &hinge01);
+    Vector3Average(&center_offset, &pModel->bounds.min, &pModel->bounds.max);
+    BrVector3Sub(&center_offset, &center_offset, pPos);
+    if (BrVector3Dot(&center_offset, &normal) > 0.0f) {
+        tU16 hinge1;
+
+        hinge1 = pHinge->hinge1;
+        pHinge->hinge1 = pHinge->hinge0;
+        pHinge->hinge0 = hinge1;
+    }
+}
+
+static __inline tU16 C2_HOOK_FASTCALL FindNearestParentVertex(br_actor* pActor, br_vector3* pPos) {
+    br_actor* parent;
+    tUser_crush_data* parent_user;
+    br_model* parent_model;
+    br_vector3 point;
+
+    parent_model = NULL;
+    parent = pActor->parent;
+    if (parent != NULL) {
+        parent_user = parent->user;
+        if (parent_user != NULL) {
+            parent_model = parent_user->models[0];
+        }
+    }
+    if (parent_model == NULL) {
+        PDFatalError("I can't cope flapping bit doesn't have a valid parent");
+    }
+    BrMatrix34ApplyP(&point, pPos, &pActor->t.t.mat);
+    return FindNearestVertex(&point, parent_model);
+}
+
+// FUNCTION: CARMA2_HW 0x0042b7f0
 intptr_t C2_HOOK_CDECL InitPhysCrushDataCB(br_actor* actor, void* data) {
-    NOT_IMPLEMENTED();
+    tInitPhysCrushDataCB_Data* context = data;
+    tUser_crush_data* user_crush_data;
+    tCar_crush_buffer_entry* crush_data;
+    br_model* model;
+    tCar_crush_flap_data* flap_data;
+    tCar_crush_detach_data* detach_data;
+    br_scalar volume;
+
+    user_crush_data = actor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user_crush_data->crush_data;
+    if (crush_data == NULL) {
+        return 0;
+    }
+    model = user_crush_data->models[0];
+    if (model == NULL) {
+        return 0;
+    }
+    volume = (model->bounds.max.v[0] - model->bounds.min.v[0])
+           * (model->bounds.max.v[1] - model->bounds.min.v[1])
+           * (model->bounds.max.v[2] - model->bounds.min.v[2])
+           * context->value;
+    crush_data->field_0x24 = volume;
+    if (!(volume >= 0.01f)) {
+        crush_data->field_0x24 = 0.01f;
+    }
+    flap_data = crush_data->flap_data;
+    if (flap_data != NULL) {
+        br_vector3 tv;
+        const br_vertex* vertices;
+        tU16 parent_vertex;
+
+        if ((flap_data->kev_o_flap & 0x2) == 0) {
+            CheckHingePointOrder(flap_data, model, &context->car->collision_info->cmpos);
+        }
+        parent_vertex = FindNearestParentVertex(actor, &model->vertices[crush_data->flap_data->hinge0].p);
+        crush_data->flap_data->field_0xc = parent_vertex;
+        parent_vertex = FindNearestParentVertex(actor, &model->vertices[crush_data->flap_data->hinge2].p);
+        crush_data->flap_data->field_0x12 = parent_vertex;
+        vertices = model->vertices;
+        BrVector3Sub(&tv, &vertices[flap_data->hinge2].p, &vertices[flap_data->hinge1].p);
+        crush_data->flap_data->field_0x1c = BrVector3Length(&tv) * 0.5f;
+    }
+    detach_data = crush_data->detach_data;
+    if (detach_data != NULL) {
+        detach_data->field_0x2c = context->car;
+        SetUpSemiDetachJointStuff(detach_data, model, &context->car->collision_info->bb1);
+    }
     return 0;
 }
 
@@ -1835,3 +1930,37 @@ void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes)
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0042bb00
+tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_model* pModel) {
+    tU16 closest_vertex;
+    br_scalar closest_dist;
+    tU16 i;
+
+    closest_vertex = 0;
+    closest_dist = BR_SCALAR_MAX;
+    for (i = 0; i < pModel->nvertices; i++) {
+        br_scalar d;
+
+        d = Vector3DistanceSquared(pPoint, &pModel->vertices[i].p);
+        if (d >= closest_dist) {
+            goto next_vertex;
+        }
+        closest_dist = d;
+        closest_vertex = i;
+next_vertex:;
+    }
+    return closest_vertex;
+}
+
+// STUB: CARMA2_HW 0x0042bb90
+void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
