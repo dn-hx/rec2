@@ -1725,10 +1725,29 @@ void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel) {
 
 // SphericizeCar
 
-// STUB: CARMA2_HW 0x004398d0
-// STUB: CARMA2_SW 0x00439910
+extern void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec);
+
+// FUNCTION: CARMA2_HW 0x004398d0
+// FUNCTION: CARMA2_SW 0x00439910
 intptr_t C2_HOOK_CDECL BattenDownTheHatches(br_actor* pActor, void* pUser) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush_data = pActor->user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_spec* car_spec = pUser;
+
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user_crush_data->crush_data;
+    if (crush_data == NULL) {
+        return 0;
+    }
+    if (crush_data->flap_data == NULL) {
+        return 0;
+    }
+    if (crush_data->flap_data->field_0x0 && !crush_data->flap_data->kev_o_flap) {
+        StopFlapping(pActor, car_spec);
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004398c0
@@ -2366,6 +2385,10 @@ int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec) {
 }
 // STUB: CARMA2_HW 0x00429d90
 void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004387d0
+void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
