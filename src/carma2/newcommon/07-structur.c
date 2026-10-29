@@ -570,9 +570,56 @@ void C2_HOOK_FASTCALL ResetPowerups(void) {
     gNext_goody_time = 0;
 }
 
-// STUB: CARMA2_HW 0x0049b720
+extern int gIt_or_fox;
+extern tU32 gTime_for_punishment;
+extern int gNot_shown_race_type_headup;
+extern tU32 gLast_it_change;
+extern tNet_game_player_info* gLast_lepper;
+extern int gWinner_declared;
+
+// FUNCTION: CARMA2_HW 0x0049b720
 void C2_HOOK_FASTCALL InitPlayers(void) {
-    NOT_IMPLEMENTED();
+    tNet_game_player_info* player;
+    int i;
+
+    i = 0;
+    if (0 < gNumber_of_net_players) {
+        player = &gNet_players[0];
+        do {
+            PossibleService();
+            switch (gCurrent_net_game->type) {
+            case eNet_game_type_fight_to_death:
+                player->score2 = 100;
+                break;
+            case eNet_game_type_checkpoint:
+                player->score2 = 0xffff;
+                break;
+            case eNet_game_type_1:
+            case eNet_game_type_2:
+            case eNet_game_type_4:
+            case eNet_game_type_5:
+            case eNet_game_type_6:
+            case eNet_game_type_foxy:
+                player->score2 = 0;
+                break;
+            }
+            player->credits = gCurrent_net_game->options.starting_credits;
+            player->wasted = 0;
+            player->reposition_time = 0;
+            *(int*)player->field_0xd0 = 0;
+            player->field_0x80 = 0;
+            i++;
+            player++;
+        } while (i < gNumber_of_net_players);
+    }
+    gIt_or_fox = -1;
+    if (gNet_mode == eNet_mode_host) {
+        gLast_it_change = 0;
+        gLast_lepper = NULL;
+    }
+    gTime_for_punishment = 0;
+    gWinner_declared = 0;
+    gNot_shown_race_type_headup = 1;
 }
 
 #ifdef REC2_MATCHING
@@ -1854,3 +1901,13 @@ undefined4 gDAT_006a0958;
 
 // GLOBAL: CARMA2_HW 0x006a0aec
 tU32 gNext_goody_time;
+
+/* netgame globals written by InitPlayers */
+// GLOBAL: CARMA2_HW 0x0068d924
+tNet_game_player_info* gLast_lepper = NULL;
+
+// GLOBAL: CARMA2_HW 0x0068d928
+tU32 gLast_it_change = 0;
+
+// GLOBAL: CARMA2_HW 0x0068d938
+int gWinner_declared = 0;
