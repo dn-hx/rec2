@@ -36,9 +36,84 @@ br_matrix34 gPick_model_to_view__finteray;
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0045cb70
+// FUNCTION: CARMA2_HW 0x0045cb70
 int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* ap, br_vector3* pPosition, br_vector3* pDir, br_model* model, br_material* material, dr_pick2d_cbfn* callback) {
-    NOT_IMPLEMENTED();
+    br_actor* a;
+    br_model* this_model;
+    br_material* this_material;
+    br_scalar t_far;
+    br_scalar t_near;
+    int r;
+    br_vector3 dir;
+    br_vector3 pos;
+    br_matrix34 invmat;
+    br_matrix34 mat;
+
+    t_near = 0.f;
+    t_far = 1.f;
+    r = 0;
+    if (ap->model != NULL) {
+        this_model = ap->model;
+    } else {
+        this_model = model;
+    }
+    if (ap->material != NULL) {
+        this_material = ap->material;
+    } else {
+        this_material = material;
+    }
+    if (ap->render_style == BR_RSTYLE_NONE) {
+        return 0;
+    }
+    if (ap->identifier != NULL && ap->identifier[0] == '&') {
+        BrTransformToMatrix34(&mat, &ap->t);
+        BrMatrix34Inverse(&invmat, &mat);
+        BrMatrix34ApplyP(&pos, pPosition, &invmat);
+        BrMatrix34ApplyV(&dir, pDir, &invmat);
+        pPosition = &pos;
+        pDir = &dir;
+    }
+    switch (ap->type) {
+    case BR_ACTOR_MODEL:
+        if (this_model != NULL) {
+            if (PickBoundsTestRay__finteray(&this_model->bounds, pPosition, pDir, t_near, t_far, &t_near, &t_far)) {
+                t_near = 0.f;
+                if (gNearest_T > 1.f) {
+                    t_far = 1.f;
+                } else {
+                    t_far = gNearest_T;
+                }
+                r = callback(ap, this_model, this_material, pPosition, pDir, t_near, t_far, NULL);
+                if (r) {
+                    break;
+                }
+            }
+            if (r) {
+                break;
+            }
+        }
+        /* fall through */
+    default:
+        for (a = ap->children; a != NULL; a = a->next) {
+            r = ActorRayPick2D(a, pPosition, pDir, this_model, this_material, callback);
+            if (r) {
+                break;
+            }
+        }
+        break;
+    case BR_ACTOR_BOUNDS:
+    case BR_ACTOR_BOUNDS_CORRECT:
+        if (PickBoundsTestRay__finteray(ap->type_data, pPosition, pDir, t_near, t_far, &t_near, &t_far)) {
+            for (a = ap->children; a != NULL; a = a->next) {
+                r = ActorRayPick2D(a, pPosition, pDir, this_model, this_material, callback);
+                if (r) {
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    return r;
 }
 
 #ifdef REC2_MATCHING
