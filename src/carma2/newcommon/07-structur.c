@@ -11,6 +11,7 @@
 #include "rec2_macros.h"
 
 #include <ctype.h>
+#include <math.h>
 #include <string.h>
 
 /* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
@@ -459,9 +460,44 @@ void C2_HOOK_FASTCALL ResetCrushSystems(void) {
     gCount_car_damage_crush_list = 0;
 }
 
-// STUB: CARMA2_HW 0x0041fc60
+// FUNCTION: CARMA2_HW 0x0041fc60
 void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* collision_info = pCar->collision_info;
+    float ratio;
+    float rear_divisor;
+    float front_give;
+    float rear_give;
+    float damping;
+    float root_stiffness;
+    float front_divisor;
+    float rear_height;
+    float front_height;
+    float rear_min;
+    float front_min;
+    float min_value;
+
+    ratio = (float)fabs((pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) / (pCar->wpos[2].v[2] - pCar->centre_of_mass_world_scale.v[2]));
+    rear_divisor = ratio - -1.0f;
+    rear_give = pCar->steerable_suspension_give * pRear_give_factor * WORLD_SCALE;
+    pCar->sk[0] = (collision_info->M / rear_divisor) * 5.0f / rear_give;
+    root_stiffness = (float)sqrt(5.0);
+    pCar->sb[0] = (float)((collision_info->M / rear_divisor) * root_stiffness / sqrt(rear_give));
+    front_give = pCar->susp_give * pFront_give_factor * WORLD_SCALE;
+    damping = pCar->damping * pDamping_factor;
+    front_divisor = 1.0 / ratio;
+    pCar->sk[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * 5.0f / front_give);
+    pCar->sb[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * root_stiffness / sqrt(front_give));
+    pCar->sb[0] *= damping;
+    pCar->sb[1] *= damping;
+    rear_height = rear_give + pExtra_rear_height + pCar->ride_height;
+    front_height = front_give + pExtra_front_height + pCar->ride_height;
+    pCar->susp_height[0] = rear_height;
+    pCar->susp_height[1] = front_height;
+    rear_min = (pCar->wpos[0].v[1] - rear_height) * (1.0f / WORLD_SCALE);
+    front_min = (pCar->wpos[2].v[1] - front_height) * (1.0f / WORLD_SCALE);
+    min_value = MIN(rear_min, front_min);
+    min_value = MIN(min_value, collision_info->bb1.min.v[1]);
+    collision_info->bb2.min.v[1] = min_value;
 }
 
 // STUB: CARMA2_HW 0x004da630
