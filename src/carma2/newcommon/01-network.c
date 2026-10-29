@@ -443,9 +443,18 @@ void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pNet_pl
 
 // NetBroadcastContents
 
-// STUB: CARMA2_HW 0x0049fcf0
+// based on ApexWorm/rec2 b994fa681
+// FUNCTION: CARMA2_HW 0x0049fcf0
 void C2_HOOK_FASTCALL NetSendMessageStacks(void) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    gLast_flush_message = PDGetTotalTime();
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].field_0xcc != NULL) {
+            NetReallySendMessageToPlayer(gCurrent_net_game, gNet_players[i].field_0xcc, gNet_players[i].ID);
+            gNet_players[i].field_0xcc = NULL;
+        }
+    }
 }
 
 #ifdef REC2_MATCHING
