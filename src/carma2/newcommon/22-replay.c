@@ -611,10 +611,31 @@ void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, t
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 832cae840
 // FUNCTION: CARMA2_HW 0x004f5fa0
 void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+    br_model* pModel;
+    br_material* pMaterial;
+    const br_uint_16* source;
+    br_face* face;
+    int i;
 
-    NOT_IMPLEMENTED();
+    pModel = (br_model*)field_0x0;
+    source = pField_0xc;
+    pMaterial = (br_material*)field_0x4;
+    face = pModel->faces + pModel->nfaces;
+    for (i = 0; i < field_0x8; i++) {
+        face->material = pMaterial;
+        face->vertices[0] = source[0];
+        face->vertices[1] = source[1];
+        face->vertices[2] = source[2];
+        face->smoothing = source[3];
+        face->flags = 0;
+        face++;
+        source += 4;
+    }
+    pModel->nfaces += field_0x8;
+    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
 }
 
 // FUNCTION: CARMA2_HW 0x004f8630
