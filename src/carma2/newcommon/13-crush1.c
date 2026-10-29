@@ -1792,11 +1792,70 @@ void C2_HOOK_FASTCALL TotallyRepairCarCollisionShapes(tCar_spec *pCar_spec) {
     }
     pCar_spec->car_crush_spec->expand_bounding_box = 3;
 }
-// TotallyRepairModel
 
-// STUB: CARMA2_HW 0x00439a20
+extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
+
+// TotallyRepairModel is inlined into TotallyRepairModels by the original compiler
+// (there is no out-of-line copy of it in the binary), so its body is written out here.
+
+// FUNCTION: CARMA2_HW 0x00439a20
 intptr_t C2_HOOK_CDECL TotallyRepairModels(br_actor* pActor, void* pUser) {
-    NOT_IMPLEMENTED();
+    br_model* model;
+    tCar_spec* car_spec;
+    tUser_crush_data* user_crush;
+    tCar_crush_buffer_entry* crush_data;
+    tUser_detail_level_model* user_detail_model;
+    tModel_detail_vertex_data* vertex_detail_data;
+    br_vector3 vector_mash[1024];
+    int i;
+    tU16 j;
+
+    car_spec = pUser;
+    user_crush = pActor->user;
+    if (user_crush == NULL) {
+        return 0;
+    }
+    for (i = 0; i < car_spec->count_detail_levels; i++) {
+        model = user_crush->models[i];
+        if (model == NULL) {
+            continue;
+        }
+        user_detail_model = model->user;
+        if (user_detail_model == NULL) {
+            continue;
+        }
+        vertex_detail_data = user_detail_model->field_0x4;
+        if (vertex_detail_data == NULL) {
+            continue;
+        }
+        if (model->nvertices > REC2_ASIZE(vector_mash)) {
+            PDFatalError("Holy polygons Batman! There's a lot of vertices on that model.");
+        }
+        for (j = 0; j < model->nvertices; j++) {
+            br_vector3 pos;
+
+            ExpandVector3(&pos, &vertex_detail_data[j].p, -10.0f, 10.0f);
+            BrVector3Sub(&vector_mash[j], &pos, &model->vertices[j].p);
+            BrVector3Copy(&model->vertices[j].p, &pos);
+            vertex_detail_data[j].flags &= ~0x4;
+        }
+        AddModelMashToPipingSession(model, vector_mash);
+        SetModelForUpdate(model);
+    }
+    crush_data = user_crush->crush_data;
+    if (crush_data != NULL) {
+        TotallyRepairSmash(car_spec, crush_data);
+        crush_data->field_0x2c = 0;
+        if (crush_data->flap_data != NULL && !crush_data->flap_data->kev_o_flap) {
+            crush_data->flap_data->field_0x15 = 0;
+            crush_data->flap_data->field_0x14 = 1;
+            crush_data->flap_data->field_0x18 = 0.f;
+        }
+        if (crush_data->detach_data != NULL) {
+            crush_data->detach_data->field_0x0 = 0.f;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00439a10
