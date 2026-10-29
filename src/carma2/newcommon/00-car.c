@@ -15,6 +15,9 @@
 #include "49-physics.h"
 #include "30-opponent.h"
 
+extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index);
+
 // GLOBAL: CARMA2_HW 0x00763500
 int gCunning_stunt_bonus[3];
 
@@ -559,9 +562,93 @@ void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00414510
+// FUNCTION: CARMA2_HW 0x00414510
 void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, int pGrid_index) {
-    NOT_IMPLEMENTED();
+    int start_i;
+    int place_on_grid;
+    br_scalar nearest_y_below;
+    tCar_spec* car;
+    br_actor* car_actor;
+    br_scalar nearest_y_above;
+    int inactive;
+    br_vector3 dist;
+    br_vector3 grid_offset;
+    br_model* above_model;
+    br_model* below_model;
+    int below_face_index;
+    int above_face_index;
+    tCompressed_matrix3 compressed;
+    br_matrix34 initial_yaw_matrix;
+    int i;
+    int j;
+    br_angle initial_yaw;
+    br_vector3 real_pos;
+
+    car_actor = pThe_race->opponent_list[pCar_index].car_spec->car_master_actor;
+    car = pThe_race->opponent_list[pCar_index].car_spec;
+    BrMatrix34Identity(&car_actor->t.t.mat);
+    place_on_grid = 1;
+    if (gNet_mode != eNet_mode_none && !gCurrent_net_game->options.grid_start && pThe_race->count_network_start_points != 0) {
+        start_i = i = IRandomBetween(0, pThe_race->count_network_start_points - 1);
+        do {
+            PossibleService();
+            for (j = 0; j < gNumber_of_net_players; j++) {
+                if (j != pCar_index) {
+                    BrVector3Copy(&real_pos, &pThe_race->opponent_list[j].car_spec->car_master_actor->t.t.translate.t);
+                    if (real_pos.v[0] > 500.f) {
+                        BrVector3Sub(&real_pos, &real_pos, &gInitial_position);
+                    }
+                    BrVector3Sub(&dist, &real_pos, &pThe_race->net_starts[i].pos);
+                    if (BrVector3LengthSquared(&dist) < 16.f) {
+                        break;
+                    }
+                }
+            }
+            if (j == gNumber_of_net_players) {
+                BrVector3Copy(&car_actor->t.t.translate.t, &pThe_race->net_starts[i].pos);
+                initial_yaw = BrDegreeToAngle(pThe_race->net_starts[i].yaw);
+                place_on_grid = 0;
+                break;
+            }
+            i++;
+            if (i == pThe_race->count_network_start_points) {
+                i = 0;
+            }
+        } while (i != start_i);
+    }
+    if (gNet_mode == eNet_mode_none && pGrid_index < 0) {
+        BrVector3Copy(&car_actor->t.t.translate.t, &pThe_race->net_starts[-pGrid_index - 1].pos);
+        initial_yaw = BrDegreeToAngle(pThe_race->net_starts[-pGrid_index - 1].yaw);
+        place_on_grid = 0;
+    }
+    if (place_on_grid) {
+        initial_yaw = BrDegreeToAngle(pThe_race->initial_yaw);
+        BrMatrix34RotateY(&initial_yaw_matrix, initial_yaw);
+        grid_offset.v[0] = -(br_scalar)(pGrid_index % 2);
+        grid_offset.v[1] = 0.0f;
+        grid_offset.v[2] = 0.4f * (br_scalar)(pGrid_index % 2) - (br_scalar)(pGrid_index / 2) * -2.0f;
+        BrMatrix34ApplyV(&car_actor->t.t.translate.t, &grid_offset, &initial_yaw_matrix);
+        BrVector3Accumulate(&car_actor->t.t.translate.t, &pThe_race->initial_position);
+    }
+    if (gTrack_actor != NULL) {
+        FindBestY(&car_actor->t.t.translate.t, gTrack_actor, 10.0f, &nearest_y_above, &nearest_y_below, &above_model, &below_model, &above_face_index, &below_face_index);
+        if (nearest_y_above != 30000.f) {
+            car_actor->t.t.translate.t.v[1] = nearest_y_above;
+        } else if (nearest_y_below != -30000.f) {
+            car_actor->t.t.translate.t.v[1] = nearest_y_below;
+        } else {
+            car_actor->t.t.translate.t.v[1] = 0.0f;
+        }
+    }
+    BrMatrix34PreRotateY(&car_actor->t.t.mat, initial_yaw);
+    if (gNet_mode != eNet_mode_none) {
+        CompressMatrix34(&compressed, &inactive, &car_actor->t.t.mat);
+        ExpandMatrix34(&car_actor->t.t.mat, &compressed, inactive);
+        BrMatrix34Copy(&gNet_players[pThe_race->opponent_list[pCar_index].net_player_index].initial_position, &car->car_master_actor->t.t.mat);
+    }
+    if (gNet_mode != eNet_mode_none && car->disabled && car_actor->t.t.translate.t.v[0] < 500.f) {
+        DisableCar(car);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -591,6 +678,17 @@ void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar) {
 #endif
 // STUB: CARMA2_HW 0x00413f70
 void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004e3bc0
+void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
