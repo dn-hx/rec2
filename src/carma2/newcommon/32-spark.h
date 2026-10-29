@@ -159,7 +159,7 @@ extern void C2_HOOK_FASTCALL InitFlame(void);
 
 // InitSplash
 
-// DisposeSplash
+extern void C2_HOOK_FASTCALL DisposeSplash(void);
 
 // DrawTheGlow
 
@@ -229,7 +229,7 @@ extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject);
 
-// GetSplashIndex
+extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
 // ClearSplashes
 
