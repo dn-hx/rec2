@@ -6,6 +6,7 @@
 #include "c2_string.h"
 #include "platform.h"
 #include "23-piping.h"
+#include "globvrpb.h"
 
 #include <math.h>
 
@@ -13,6 +14,7 @@ extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
+extern void C2_HOOK_FASTCALL PreprocessDronePaths(void);
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -26,8 +28,14 @@ br_vector3 gRender_bounds_centre;
 // GLOBAL: CARMA2_SW 0x0067c800
 br_vector3 gRender_bounds_centre;
 
+// GLOBAL: CARMA2_HW 0x006820d0
+int gCount_drones;
+
 // GLOBAL: CARMA2_HW 0x00684518
 int gTraffic_disabled;
+
+// GLOBAL: CARMA2_HW 0x00684510
+int gCount_drone_path_nodes;
 
 // GLOBAL: CARMA2_HW 0x00684514
 int gFrame;
@@ -605,11 +613,118 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
 
 // AllocateAndInitDrones
 
-// LoadInDronePaths
-
-// STUB: CARMA2_HW 0x00450bf0
+// FUNCTION: CARMA2_HW 0x00450bf0
 void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int version;
+    int drone_i;
+    char* line;
+    tDrone_path_node* node;
+    br_scalar float_buffer[4];
+    char s[256];
+    char s2[256];
+
+    DoNotDprintf("Start of LoadInDronePaths()...");
+    while (1) {
+        line = GetALineAndDontArgue(pF, s);
+        if (line == NULL) {
+            break;
+        }
+        if (strcmp("START OF DRONE PATHS", s) == 0) {
+            break;
+        }
+    }
+    if (line == NULL) {
+        PDFatalError("Corrupt race text file - No drone path info");
+    }
+    gCount_drones = 0;
+    gCount_drone_path_nodes = 0;
+    if (gNet_mode == eNet_mode_none && !gTraffic_disabled) {
+        version = GetAnInt(pF);
+        if (version > 0) {
+            if (version != 2) {
+                PDFatalError("Drones paths are not version 2");
+            }
+            gCount_drone_path_nodes = GetAnInt(pF);
+            if (gCount_drone_path_nodes != 0) {
+                gDrone_path_nodes = BrMemAllocate(gCount_drone_path_nodes * sizeof(tDrone_path_node), kMem_drone_paths);
+            }
+            for (i = 0; i < gCount_drone_path_nodes; i++) {
+                node = &gDrone_path_nodes[i];
+                GetNScalars(pF, 3, float_buffer);
+                node->position.v[0] = float_buffer[0];
+                node->position.v[1] = float_buffer[1];
+                node->position.v[2] = float_buffer[2];
+                s[0] = '\0';
+                GetAString(pF, s);
+                Uppercaseificate(s, s);
+                node->type = -1;
+                if (strlen(s) == 0) {
+                    sprintf(s, "Corrupt race text file - drone type corrupt in drone node %d", i);
+                    PDFatalError(s);
+                } else {
+                    if (strcmp(s, "NONE") != 0) {
+                        for (j = 0; j < gCount_drone_forms; j++) {
+                            if (strcmp(s, gDrone_forms[j].name) == 0) {
+                                node->type = j;
+                            }
+                        }
+                        if (node->type < 0) {
+                            sprintf(s2, "ERROR - '%s' no such drone type in drone node %d", s, i);
+                            PDFatalError(s2);
+                        }
+                    }
+                }
+                GetNScalars(pF, 1, float_buffer);
+                node->field_0x12e = (int)float_buffer[0];
+                node->count_sections = GetAnInt(pF);
+                if (node->count_sections > 8) {
+                    sprintf(s, "ERROR - drone node %d has too many sections", i);
+                    PDFatalError(s);
+                }
+                for (j = 0; j < node->count_sections; j++) {
+                    GetNScalars(pF, 4, float_buffer);
+                    node->sections[j].node1 = (int)float_buffer[0];
+                    node->sections[j].node2 = (int)float_buffer[1];
+                    node->sections[j].field_0x21 = (int)float_buffer[2];
+                    node->sections[j].type = (int)float_buffer[3];
+                    if (node->sections[j].type > 7) {
+                        PDEnterDebugger("Weird type for drone section");
+                    }
+                }
+                if (node->type >= 0) {
+                    if (gCount_drones < 200) {
+                        gCount_drones = gCount_drones + 1;
+                    } else {
+                        sprintf(s, "Too many drones in race (limit %d)", 200);
+                        PDFatalError(s);
+                    }
+                }
+            }
+        }
+    }
+    while (1) {
+        if (GetALineAndDontArgue(pF, s) == NULL) {
+            break;
+        }
+        if (strcmp("END OF DRONE PATHS", s) == 0) {
+            break;
+        }
+    }
+    PreprocessDronePaths();
+    drone_i = 0;
+    gDrone_specs = BrMemAllocate(gCount_drones * sizeof(tDrone_spec), kMem_drone_specs);
+    for (i = 0; i < gCount_drone_path_nodes; i++) {
+        node = &gDrone_path_nodes[i];
+        if (node->type >= 0) {
+            InitDroneSpec(&gDrone_specs[drone_i], i);
+            gDrone_specs[drone_i].id = drone_i;
+            drone_i += 1;
+        }
+    }
+    DoNotDprintf("End of LoadInDronePaths(), totals:");
+    DoNotDprintf("Nodes: %d", gCount_drone_path_nodes);
 }
 
 // FUNCTION: CARMA2_HW 0x004512d0
@@ -707,3 +822,15 @@ void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender) {
 
 // WriteOutDronePaths
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00451070
+void C2_HOOK_FASTCALL PreprocessDronePaths(void) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
