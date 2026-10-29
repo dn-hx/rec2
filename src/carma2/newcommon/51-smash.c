@@ -1284,9 +1284,37 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004f09c0
-void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSpec) {
-    NOT_IMPLEMENTED();
+// based on ApexWorm/rec2 df6832dbd
+// FUNCTION: CARMA2_HW 0x004f09c0
+void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSmash) {
+    int i;
+
+    C2_HOOK_BUG_ON(sizeof(tSmashable_level) != 0x2c4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tSmashable_item_spec_texture_change, count_levels, 0x48);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tSmashable_item_spec_texture_change, levels, 0x50);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tSmashable_item_spec_texture_change, field_0x70, 0x70);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tSmashable_item_spec_texture_change, field_0x78, 0x78);
+
+    if (pSmash->trigger_type != -1) {
+        if ((pSmash->mode == kSmashableMode_Decal || pSmash->mode == kSmashableMode_TextureChange) && pSmash->mode_data.texture_change.levels != NULL) {
+            if ((void*)pSmash->mode_data.texture_change.field_0x70 != NULL) {
+                BrMemFree((void*)pSmash->mode_data.texture_change.field_0x70);
+            }
+            if ((void*)pSmash->mode_data.texture_change.field_0x78 != NULL) {
+                BrMemFree((void*)pSmash->mode_data.texture_change.field_0x78);
+            }
+            for (i = 1; i < pSmash->mode_data.texture_change.count_levels; i++) {
+                FreeConnotations((tConnotations*)&pSmash->mode_data.texture_change.levels[i].count_sounds, pSmash->field_0x2dc);
+            }
+            BrMemFree(pSmash->mode_data.texture_change.levels);
+        } else {
+            FreeConnotations(&pSmash->mode_data.shrapnel.connotations, pSmash->field_0x2dc);
+        }
+        if (pSmash->flags & 0x80000000) {
+            BrMaterialRemove(pSmash->trigger_object.material);
+            BrMaterialFree(pSmash->trigger_object.material);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
