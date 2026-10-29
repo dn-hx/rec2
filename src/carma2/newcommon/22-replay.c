@@ -514,10 +514,14 @@ void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4) {
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 b70251db0
 // FUNCTION: CARMA2_HW 0x004e0710
 void C2_HOOK_FASTCALL WorkerSpecial(void) {
+    tPhysics_object* collision_info;
 
-    NOT_IMPLEMENTED();
+    for (collision_info = gMutant_tail_first_collision_info; collision_info != NULL; collision_info = collision_info->child) {
+        collision_info->actor->render_style = BR_RSTYLE_FACES;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004e07d0
