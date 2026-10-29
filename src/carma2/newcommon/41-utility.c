@@ -1169,6 +1169,13 @@ int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel,
 
 // DistanceFromFace
 
+// defined out of address order: MSVC's x87 codegen for this dot product depends on the TU position
+// FUNCTION: CARMA2_HW 0x005162a0
+float C2_HOOK_FASTCALL DistanceFromFaceND(const br_vector3* pP, const br_vector3* pN, br_scalar pF) {
+
+    return BrVector3Dot(pP, pN) - pF;
+}
+
 // FUNCTION: CARMA2_HW 0x005160c0
 void C2_HOOK_FASTCALL DRBoundsCopy(br_bounds3* pDest, const br_bounds3* pSrc) {
 
@@ -1213,12 +1220,6 @@ void C2_HOOK_FASTCALL DRScaleModel(br_model* pModel, float pScale) {
         }
         BrModelUpdate(pModel, BR_MODU_ALL);
     }
-}
-
-// FUNCTION: CARMA2_HW 0x005162a0
-float C2_HOOK_FASTCALL DistanceFromFaceND(const br_vector3* pP, const br_vector3* pN, br_scalar pF) {
-
-    return BrVector3Dot(pP, pN) - pF;
 }
 
 // FUNCTION: CARMA2_HW 0x00516350
