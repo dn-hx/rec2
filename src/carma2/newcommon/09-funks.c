@@ -20,12 +20,69 @@ int gGroovidelics_array_size;
 // GLOBAL: CARMA2_HW 0x0068b838
 tU32 gPrevious_groove_times[2];
 
+// GLOBAL: CARMA2_HW 0x00688b28
+float gFunk_scalar;
+
 // GLOBAL: CARMA2_HW 0x00688b30
 tGroove_funk_binding gGroove_funk_bindings[1440];
+
+// GLOBAL: CARMA2_HW 0x0068b830
+tFunk_temp_buffer* gFunk_temp_vertices;
 
 // GLOBAL: CARMA2_HW 0x0068b844
 // GLOBAL: CARMA2_SW 0x00685da4
 int gFunkotronics_array_size;
+
+// GLOBAL: CARMA2_HW 0x0074b584
+tCar_spec* gCurrent_car_spec;
+
+// GLOBAL: CARMA2_HW 0x00655ba0
+const char* gFunk_nature_names[4] = {
+    "constant",
+    "distance",
+    "lastlap",
+    "otherlaps",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b50
+const char* gFunk_type_names[5] = {
+    "spin",
+    "rock",
+    "throb",
+    "slither",
+    "roll",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b80
+const char* gFunk_move_names[7] = {
+    "linear",
+    "harmonic",
+    "flash",
+    "controlled",
+    "absolute",
+    "continuous",
+    "texturebits",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b68
+const char* gFunk_anim_names[4] = {
+    "frames",
+    "flic",
+    "camera",
+    "mirror",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b78
+const char* gTime_mode_names[2] = {
+    "approximate",
+    "accurate",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bf0
+const char* gCamera_animation_names[2] = {
+    "static",
+    "tracking",
+};
 
 // CalculateTextureBitsValue
 
@@ -343,3 +400,30 @@ tGroovidelic_spec* C2_HOOK_FASTCALL ActorsGroove(br_actor* pActor) {
     return NULL;
 }
 
+/* based on carpocalypse2 src/carma2/common/world.c:1014; called through DRActorEnumRecurseWithMat */
+// FUNCTION: CARMA2_HW 0x00476230
+br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData) {
+    tFunkotronic_spec* the_funk;
+    br_face* the_face;
+    int i;
+    int j;
+
+    (void)pMat;
+    the_funk = pData;
+
+    if (pActor->model != NULL) {
+        for (i = 0; i < pActor->model->nfaces; i++) {
+            the_face = &pActor->model->faces[i];
+            if (the_face->material == the_funk->material) {
+                for (j = 0; j < 3; j++) {
+                    BrVector3Copy(&the_funk->proximity_array[the_funk->proximity_count].v[j], &pActor->model->vertices[the_face->vertices[j]].p);
+                    gFunk_temp_vertices[the_funk->proximity_count].vertices[j] = &pActor->model->vertices[the_face->vertices[j]];
+                }
+                BrVector3Normalise(&the_funk->proximity_array[the_funk->proximity_count].n, &the_face->n);
+                the_funk->proximity_array[the_funk->proximity_count].d = -the_face->d;
+                the_funk->proximity_count += 1;
+            }
+        }
+    }
+    return 0;
+}
