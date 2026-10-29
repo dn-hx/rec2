@@ -687,9 +687,62 @@ void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag) 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004e3bc0
+// based on carpocalypse2 src/carma2/common/raycast.c:400 and :492
+// FUNCTION: CARMA2_HW 0x004e3bc0
 void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index) {
-    NOT_IMPLEMENTED();
+    br_matrix34 camera_tfm;
+    br_camera* camera_data;
+    br_actor* parent;
+    br_angle view_over_2;
+    br_scalar aspect;
+    br_scalar angle;
+    br_scalar cos_angle;
+    br_scalar sin_angle;
+    br_scalar scale;
+    extern br_actor* gY_picking_camera;
+    extern br_scalar gLowest_y_above;
+    extern br_scalar gHighest_y_below;
+    extern br_scalar gCurrent_y;
+    extern br_matrix34 gPick_model_to_view__raycast;
+    extern br_model* gAbove_model;
+    extern br_model* gBelow_model;
+    extern int gAbove_face_index;
+    extern int gBelow_face_index;
+    extern br_material* gBlack_material;
+    extern int C2_HOOK_FASTCALL ActorPick2D(br_actor* pActor, br_model* pModel, br_material* pMaterial, dr_pick2d_cbfn* pCallback, void* pArg);
+    extern int C2_HOOK_CDECL FindHighestCallBack__raycast(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg);
+
+    gLowest_y_above = 30000.0f;
+    gHighest_y_below = -30000.0f;
+    gCurrent_y = pPosition->v[1] - -1.192093e-5f;
+    gY_picking_camera->t.t.translate.t = *pPosition;
+    gY_picking_camera->t.t.mat.m[3][1] += pStarting_height;
+    camera_data = (br_camera*)gY_picking_camera->type_data;
+    if (gY_picking_camera == pWorld) {
+        BrMatrix34Identity(&camera_tfm);
+    } else {
+        BrTransformToMatrix34(&camera_tfm, &gY_picking_camera->t);
+        for (parent = gY_picking_camera->parent; parent != NULL && parent != pWorld; parent = parent->parent) {
+            if (parent->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&camera_tfm, &parent->t);
+            }
+        }
+    }
+    BrMatrix34Inverse(&gPick_model_to_view__raycast, &camera_tfm);
+    view_over_2 = camera_data->field_of_view / 2;
+    aspect = camera_data->aspect;
+    angle = BrAngleToRadian(view_over_2);
+    cos_angle = cosf(angle);
+    sin_angle = sinf(angle);
+    scale = cos_angle / sin_angle;
+    BrMatrix34PostScale(&gPick_model_to_view__raycast, scale / aspect, scale, 1.0f);
+    ActorPick2D(pWorld, NULL, gBlack_material, FindHighestCallBack__raycast, NULL);
+    *pNearest_y_above = gLowest_y_above;
+    *pNearest_y_below = gHighest_y_below;
+    *pNearest_above_model = gAbove_model;
+    *pNearest_below_model = gBelow_model;
+    *pNearest_above_face_index = gAbove_face_index;
+    *pNearest_below_face_index = gBelow_face_index;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
