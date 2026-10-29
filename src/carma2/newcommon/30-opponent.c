@@ -24,6 +24,8 @@ extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 extern tCar_spec* gCar_to_view;
 
+extern tNon_car_spec* gActive_non_car_list[99];
+
 static int C2_HOOK_FASTCALL NetCarIsActive(const tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount);
@@ -540,9 +542,29 @@ int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004ae7e0
+// FUNCTION: CARMA2_HW 0x004ae7e0
 tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex) {
-    NOT_IMPLEMENTED();
+    switch (pCategory) {
+    case eVehicle_self:
+        return &gProgram_state.current_car;
+    case eVehicle_net_player:
+        if (pIndex < gThis_net_player_index) {
+            return gNet_players[pIndex].car;
+        } else {
+            return (gNet_players + pIndex + 1)->car;
+        }
+    case eVehicle_opponent:
+        return gProgram_state.AI_vehicles.opponents[pIndex].car_spec;
+    case eVehicle_rozzer:
+        return gProgram_state.AI_vehicles.cops[pIndex].car_spec;
+    case eVehicle_drone:
+        PDEnterDebugger("OPPONENT.C: GetCarSpec() can't return drone car_specs");
+        return NULL;
+    case eVehicle_not_really:
+        return (tCar_spec*)gActive_non_car_list[pIndex];
+    default:
+        return NULL;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -968,3 +990,6 @@ static int C2_HOOK_FASTCALL NetCarIsActive(const tCar_spec* pCar) {
     }
     return 0;
 }
+
+// GLOBAL: CARMA2_HW 0x0079eda0
+tNon_car_spec* gActive_non_car_list[99];
