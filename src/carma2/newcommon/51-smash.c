@@ -41,6 +41,9 @@ tSmash_explosion gSmash_explosions[20] = { 0 };
 // GLOBAL: CARMA2_HW 0x006a7ce0
 tSmashable_item_spec gPowerup_respawn_smashable = { 0 };
 
+// GLOBAL: CARMA2_HW 0x006a7fc0
+int gPrev_glass_munge = 0;
+
 /* explicit initializers keep gRepair_animations, the gap dword and gDecals adjacent (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x006a7fc8
 tRepair_animation gRepair_animations[25] = { 0 };
@@ -1680,9 +1683,65 @@ void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004f0150
+extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
+extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
+extern void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15);
+extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
+extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
+
+// based on ApexWorm/rec2 4375aec8e
+// FUNCTION: CARMA2_HW 0x004f0150
 void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
-    NOT_IMPLEMENTED();
+    tU32 the_time;
+    float delta_time;
+    tSmash_vertex* fragment;
+    tSmash_vertex* other;
+    tU32 field_0x18;
+    int i;
+    int j;
+
+    the_time = GetTotalTime();
+    if (gPrev_glass_munge != 0) {
+        delta_time = (float)the_time - gPrev_glass_munge;
+        fragment = gSmash_glass_fragments;
+
+        for (i = (int)REC2_ASIZE(gSmash_glass_fragments); i != 0; i--, fragment++) {
+            if (fragment->end_time != 0) {
+                if (!pEnd_race
+                    && (the_time < fragment->end_time
+                        || (gAction_replay_mode && !(ARGetReplayRate() > 0.f)))
+                    && the_time >= fragment->field_0xc) {
+                    DoFragMovement(fragment, the_time, delta_time);
+                    if (fragment->field_0x34) {
+                        fragment->field_0x34 = 0;
+                    }
+                    fragment->time_last_move = the_time;
+                } else {
+                    field_0x18 = fragment->field_0x18;
+                    if (the_time >= fragment->end_time) {
+                        if ((tS32)field_0x18 >= 0) {
+                            PipeSingleShrapnelShower(field_0x18, fragment->time_last_move, 0, 0,
+                                NULL, NULL, 0.f, NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);
+                        } else if (field_0x18 & 0x40000000u) {
+                            PipeSingleGibShower(field_0x18, fragment->time_last_move, 0, 0, 0,
+                                NULL, NULL, NULL);
+                        } else {
+                            PipeSingleBloodSpurt(field_0x18, fragment->time_last_move, 0,
+                                NULL, NULL, NULL);
+                        }
+                    }
+                    for (j = (int)REC2_ASIZE(gSmash_glass_fragments), other = gSmash_glass_fragments; j != 0; j--, other++) {
+                        if (other->end_time != 0
+                            && other->field_0x18 == field_0x18) {
+                            BrActorRemove(other->actor);
+                            other->end_time = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    gPrev_glass_munge = the_time;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1694,3 +1753,22 @@ const char* gSmashable_collision_type_names[3] = {
     "passthrough",
     "edges",
 };
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004eff30
+void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004c8870
+void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004c8d40
+void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
