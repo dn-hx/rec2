@@ -5171,6 +5171,13 @@ typedef struct {
 } tNet_message_car_crush;
 
 typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player;
+    tU32 time;
+} tNet_message_chunk_recover;
+
+typedef struct {
     int ID;
     tU8 field_0x4;
     undefined field_0x5[0x8 - 0x5];

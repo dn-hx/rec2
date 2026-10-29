@@ -49,7 +49,7 @@ extern tShit_mine gShit_mines[20];
 
 // DoPowerupTextHeadup
 
-// QueueIconGoing
+extern void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons);
 
 // QueueIconComing
 

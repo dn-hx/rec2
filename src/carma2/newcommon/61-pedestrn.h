@@ -18,6 +18,7 @@ extern tTWTVFS gTwtPeds;
 extern br_actor* gLimbs_actor;
 extern int gPed_count_limbed_actors;
 extern br_actor* gPed_limbed_actors[30];
+extern br_vector3 gChanged_points[10];
 extern const int gPow2_array[32];
 extern int gPed_nearness;
 extern int gEthereal_pedestrians;
@@ -364,7 +365,7 @@ extern void C2_HOOK_FASTCALL SetBloodPedFolderNames(void);
 
 extern void C2_HOOK_FASTCALL SetAlienPedFolderNames(void);
 
-// AddChangedPoint
+extern void C2_HOOK_FASTCALL AddChangedPoint(const br_vector3* pPoint);
 
 extern int C2_HOOK_FASTCALL GetHowMuchBloodAndSnotToSmearAbout(void);
 
@@ -425,7 +426,7 @@ extern void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap);
 
 extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter);
 
-// FindOrOpenForm
+extern tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName);
 
 // MakeRotationMatrix
 

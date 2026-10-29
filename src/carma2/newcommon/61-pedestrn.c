@@ -1514,6 +1514,9 @@ tPed_face_cache_0x34* gPed_face_cache_heads[4];
 // GLOBAL: CARMA2_HW 0x006a03f8
 tPed_face_cache_0x34* gPed_face_caches[4];
 
+// GLOBAL: CARMA2_HW 0x0069bc68
+br_vector3 gChanged_points[10];
+
 // GLOBAL: CARMA2_HW 0x0069412c
 int gCount_changed_points;
 
@@ -1794,7 +1797,13 @@ void C2_HOOK_FASTCALL SetAlienPedFolderNames(void) {
     ConfigureAlienPedTexturePath();
 }
 
-// AddChangedPoint
+// based on carpocalypse2 src/carma2/common/pedestrn.c:8175
+// FUNCTION: CARMA2_HW 0x004d6f90
+void C2_HOOK_FASTCALL AddChangedPoint(const br_vector3* pPoint) {
+
+    BrVector3Copy(&gChanged_points[gCount_changed_points], pPoint);
+    gCount_changed_points++;
+}
 
 // FUNCTION: CARMA2_HW 0x004d6fc0
 int C2_HOOK_FASTCALL GetHowMuchBloodAndSnotToSmearAbout(void) {
@@ -1951,7 +1960,22 @@ void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharact
 #pragma auto_inline(on)
 #endif
 
-// FindOrOpenForm
+extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
+
+// based on carpocalypse2 src/carma2/common/pedestrn.c:5525
+// FUNCTION: CARMA2_HW 0x00406a40
+tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gPed_forms); i++) {
+        if (gPed_forms[i] != NULL) {
+            if (strcmp(pName, gPed_forms[i]->name) == 0) {
+                return gPed_forms[i];
+            }
+        }
+    }
+    return SetUpCharacterForm(pName);
+}
 
 // MakeRotationMatrix
 
