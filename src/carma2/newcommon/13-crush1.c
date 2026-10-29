@@ -2620,9 +2620,20 @@ void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0041fbe0
+// based on ApexWorm/rec2 d56e70047
+// FUNCTION: CARMA2_HW 0x0041fbe0
 float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    float rear_min = (pCar_spec->wpos[0].v[1] - pCar_spec->susp_height[0]) * (1.0f / WORLD_SCALE);
+    float front_min = (pCar_spec->wpos[2].v[1] - pCar_spec->susp_height[1]) * (1.0f / WORLD_SCALE);
+    float min_value = pCar_spec->collision_info->bb1.min.v[1];
+
+    if (!(rear_min >= front_min) && !(rear_min >= min_value)) {
+        return rear_min;
+    }
+    if (!(front_min >= min_value)) {
+        return front_min;
+    }
+    return min_value;
 }
 // STUB: CARMA2_HW 0x0041fe50
 int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3) {
