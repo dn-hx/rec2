@@ -629,10 +629,26 @@ void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 715455cdd
 // FUNCTION: CARMA2_HW 0x004fb580
-void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int vertex, int pFlags_hi) {
+void C2_HOOK_FASTCALL WorkerSmokeColumn(int pIndex, br_vector3* pCore, int pVertex, int pColour) {
+    tU32 bit;
 
-    NOT_IMPLEMENTED();
+    bit = 1 << pIndex;
+    gColumn_flags ^= bit;
+    gSmoke_column[pIndex].core = *(const tSmoke_column_core*)pCore;
+    gSmoke_column[pIndex].vertex_index = pVertex;
+    gSmoke_column[pIndex].colour = pColour;
+    gSmoke_column[pIndex].frame_count[0] = 100;
+    gSmoke_column[pIndex].frame_count[1] = 100;
+    gSmoke_column[pIndex].frame_count[2] = 100;
+    if (pColour == 0) {
+        if ((gColumn_flags & bit) != 0) {
+            BrActorAdd(gNon_track_actor, gSmoke_column[pIndex].flame_actor);
+        } else if (gSmoke_column[pIndex].flame_actor->depth != 0) {
+            BrActorRemove(gSmoke_column[pIndex].flame_actor);
+        }
+    }
 }
 
 // based on ApexWorm/rec2 64e1bed48
