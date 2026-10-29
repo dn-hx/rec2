@@ -259,9 +259,17 @@ int C2_HOOK_FASTCALL GainAPOPotential(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004dc750
+extern void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale);
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+
+// based on ApexWorm/rec2 271189c68
+// FUNCTION: CARMA2_HW 0x004dc750
 int C2_HOOK_FASTCALL SetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    br_vector3 scale;
+
+    BrVector3Set(&scale, pPowerup->float_params[0], pPowerup->float_params[1], pPowerup->float_params[2]);
+    ChangePedScaling(&scale);
+    return pPowerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004dc7a0
@@ -2864,6 +2872,17 @@ tPhysics_object* C2_HOOK_FASTCALL MungeSphereObject(br_model* pModel, float pWei
     collision_info->actor->model = pModel;
     collision_info->box_face_ref = gFace_num__car - 2;
     return collision_info;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004d69b0
+void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
