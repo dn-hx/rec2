@@ -33,6 +33,9 @@ tFunk_temp_buffer* gFunk_temp_vertices;
 // GLOBAL: CARMA2_SW 0x00685da4
 int gFunkotronics_array_size;
 
+// GLOBAL: CARMA2_HW 0x00762100
+float gYon_squared = 0.f;
+
 // GLOBAL: CARMA2_HW 0x0074b584
 tCar_spec* gCurrent_car_spec;
 
@@ -240,9 +243,72 @@ void C2_HOOK_FASTCALL KillFunkotronic(int pOwner) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00478c80
+extern int gAction_replay_mode;
+extern br_matrix34 gCamera_to_world;
+extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, undefined4 pArg2, br_scalar pMax_distance);
+extern void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
+extern void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
+extern void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis);
+
+// based on ApexWorm/rec2 8d0df7422
+// FUNCTION: CARMA2_HW 0x00478c80
 void C2_HOOK_FASTCALL GrooveThisDelic(tGroovidelic_spec* pGroove, tU32 pTime, int pInterrupt_it) {
-    NOT_IMPLEMENTED();
+    br_actor* the_actor;
+    br_vector3 actor_pos;
+    br_matrix34* the_mat;
+    tInterrupt_status old_path_interrupt;
+    tInterrupt_status old_object_interrupt;
+
+    old_path_interrupt = pGroove->path_interrupt_status;
+    old_object_interrupt = pGroove->object_interrupt_status;
+    the_actor = pGroove->actor;
+    pGroove->done_this_frame = 1;
+    CalcActorGlobalPos(&actor_pos, the_actor);
+    if (PointOutOfSight(&actor_pos, 0, pGroove->mode == eGroove_mode_distance ? gYon_squared : 36.f)) {
+        return;
+    }
+
+    the_mat = &the_actor->t.t.mat;
+    if ((!gAction_replay_mode
+        || !ARReplayIsReallyPaused()
+        || pGroove->path_mode == eMove_controlled
+        || pGroove->path_mode == eMove_absolute) && !(pGroove->block_flags & 0x1)) {
+        PathGrooveBastard(pGroove, pTime, the_mat, pInterrupt_it);
+    }
+    if (((pGroove->object_type != eGroove_object_none || pGroove->lollipop_mode != eLollipop_none)
+            && (!gAction_replay_mode
+                    || !ARReplayIsReallyPaused()
+                    || pGroove->object_mode == eMove_controlled
+                    || pGroove->object_mode == eMove_absolute)) && !(pGroove->block_flags & 0x2)) {
+        the_mat->m[0][0] = 1.0f;
+        the_mat->m[0][1] = 0.0f;
+        the_mat->m[0][2] = 0.0f;
+        the_mat->m[1][0] = 0.0f;
+        the_mat->m[1][1] = 1.0f;
+        the_mat->m[1][2] = 0.0f;
+        the_mat->m[2][0] = 0.0f;
+        the_mat->m[2][1] = 0.0f;
+        the_mat->m[2][2] = 1.0f;
+        the_mat->m[3][0] = -pGroove->object_centre.v[0];
+        the_mat->m[3][1] = -pGroove->object_centre.v[1];
+        the_mat->m[3][2] = -pGroove->object_centre.v[2];
+        ObjectGrooveBastard(pGroove, pTime, the_mat, pInterrupt_it);
+        the_mat->m[3][0] = pGroove->object_position.v[0] + the_mat->m[3][0] + pGroove->object_centre.v[0];
+        the_mat->m[3][1] = pGroove->object_position.v[1] + the_mat->m[3][1] + pGroove->object_centre.v[1];
+        the_mat->m[3][2] = pGroove->object_position.v[2] + the_mat->m[3][2] + pGroove->object_centre.v[2];
+        if (pGroove->lollipop_mode != eLollipop_none) {
+            LollipopizeActor(pGroove->actor, &gCamera_to_world, pGroove->lollipop_mode);
+        }
+    }
+    if (old_path_interrupt != pGroove->path_interrupt_status || old_object_interrupt != pGroove->object_interrupt_status) {
+        PipeSingleGrooveStop(
+            pGroove - gGroovidelics_array,
+            the_mat,
+            pGroove->path_interrupt_status,
+            pGroove->object_interrupt_status,
+            pGroove->path_resumption_value,
+            pGroove->object_resumption_value);
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -427,3 +493,22 @@ br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, 
     }
     return 0;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00478e30
+void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x00479890
+void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004e4650
+void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
