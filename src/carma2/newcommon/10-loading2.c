@@ -65,6 +65,8 @@ extern const char* gWheel_actor_names[6];
 extern const char* gPivot_actor_names[6];
 extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
 extern const char* gDamage_names[12];
+extern tU8 gCrush_data_entry_counter;
+extern void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage);
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;
@@ -2521,9 +2523,107 @@ void C2_HOOK_FASTCALL GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_l
     }
 }
 
-// STUB: CARMA2_HW 0x0042a280
+// FUNCTION: CARMA2_HW 0x0042a280
 int C2_HOOK_FASTCALL LoadCarCrush(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    FILE* f;
+    char s[256];
+    int version;
+    tCar_crush_spec* car_crush;
+    int version_le_100;
+    tCar_crush_limit* pLimit;
+    int* pCount;
+    float f1;
+    float f2;
+    float f3;
+
+    C2_HOOK_BUG_ON(sizeof(tCar_crush_buffer) != 260);
+
+    *pCar_crush_spec = NULL;
+    pCar_crush_buffer->count_entries = 0;
+    f = DRfopen(pPath, "rt");
+    if (f == NULL) {
+        return 1;
+    }
+    /* VERSION %d */
+    GetALineAndDontArgue(f, s);
+    if (sscanf(s, "VERSION %d", &version) != 1) {
+        FatalError(kFatalError_WrongCrushDataFileVersion_SDD, pPath, 0, 4);
+    }
+    if (version > 100) {
+        version -= 100;
+        version_le_100 = 0;
+    } else {
+        version_le_100 = 1;
+    }
+    if (version != 4) {
+        FatalError(kFatalError_WrongCrushDataFileVersion_SDD, pPath, version, 4);
+    }
+
+    C2_HOOK_BUG_ON(sizeof(tCar_crush_spec) != 0x57c);
+    car_crush = BrMemAllocate(sizeof(tCar_crush_spec), kMem_crush_data);
+    *pCar_crush_spec = car_crush;
+
+    /* Sub member: Master-crush data */
+    pLimit = &car_crush->limits.limits[0][0];
+    pCount = &car_crush->count_limits.counts[0][0];
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 2; j++) {
+            /* [0] Number of 'X/Y/Z mins' entries.
+             * [1] Number of 'X/Y/Z maxs' entries. */
+            *pCount = GetAnInt(f);
+            if (*pCount != 0) {
+                if (*pCount > 2) {
+                    FatalError(kFatalError_TooManyCrushLimits);
+                }
+                for (k = 0; k < *pCount; k++) {
+                    pLimit->values[k] = GetAScalar(f);
+                }
+            }
+            pLimit++;
+            pCount++;
+        }
+    }
+    car_crush->field_0x134 = 0;
+    car_crush->field_0x144 = 0;
+    /* Bendability factor */
+    car_crush->bendability_factor = GetAScalar(f);
+    /* Bend point Z min */
+    car_crush->bend_z_min = GetAScalar(f);
+    /* Bend point Z max */
+    car_crush->bend_z_max = GetAScalar(f);
+    car_crush->field_0x270 = 0;
+    car_crush->field_0x2b0 = 0;
+    car_crush->field_0x4b8 = 0;
+    /* Snappability factor */
+    car_crush->snappability_factor = GetAScalar(f);
+    /* Y split position */
+    car_crush->split_y_pos = GetAScalar(f);
+    /* Driver position */
+    GetThreeFloats(f, &f1, &f2, &f3);
+    car_crush->driver_position.v[0] = f1;
+    car_crush->driver_position.v[1] = f2;
+    car_crush->driver_position.v[2] = f3;
+    car_crush->model_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    car_crush->actor = BrActorAllocate(BR_ACTOR_NONE, NULL);
+    BrActorAdd(car_crush->actor, car_crush->model_actor);
+    car_crush->actor->identifier = BrResStrDup(car_crush->actor, "Sx?!");
+    (*pCar_crush_spec)->version_le_100 = version_le_100;
+    /* Number of 'Crush data' entries. */
+    pCar_crush_buffer->count_entries = (*pCar_crush_spec)->nb_entries = GetAnInt(f);
+    if (pCar_crush_buffer->count_entries != 0) {
+        if (pCar_crush_buffer->count_entries > kMax_crush_datas) {
+            FatalError(kFatalError_TooManyCrushDatas);
+        }
+        gCrush_data_entry_counter = 1;
+        for (i = 0; i < pCar_crush_buffer->count_entries; i++) {
+            pCar_crush_buffer->entries[i] = BrMemAllocate(sizeof(tCar_crush_buffer_entry), kMem_crush_data);
+            LoadCarCrushDataEntry(f, pCar_crush_buffer->entries[i], pBrender_storage);
+        }
+    }
+    PFfclose(f);
     return 0;
 }
 
@@ -2538,6 +2638,17 @@ intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData) {
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0042a550
+void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
