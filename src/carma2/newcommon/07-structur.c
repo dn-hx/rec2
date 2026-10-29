@@ -500,9 +500,74 @@ void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give
     collision_info->bb2.min.v[1] = min_value;
 }
 
-// STUB: CARMA2_HW 0x004da630
+/* powerup/inventory globals defined in 27-powerup.c */
+extern tU8* gRace_powerup_respawn_bools;
+extern tPowerup_respawn_spec* gPowerup_respawn_specs;
+extern tPowerup* gPowerup_array;
+extern int gNumber_of_powerups;
+extern tRespawn_powerup gRespawn_powerups[100];
+extern tHeadup_icon gPickedup_powerups[20];
+extern int gInventory[20];
+extern int gInventory_selected;
+extern int gINT_006a0a6c;
+extern int gINT_006a0a5c;
+extern int gInventory_cycling;
+extern tU32 gInventory_timeout;
+extern int gCount_cloaked_cars;
+extern tRepulse_link gRepulse_links[6];
+extern br_actor* gNon_track_actor;
+extern int gNumber_of_icons;
+extern undefined4 gDAT_006a0958;
+extern tU32 gNext_goody_time;
+
+// FUNCTION: CARMA2_HW 0x004da630
 void C2_HOOK_FASTCALL ResetPowerups(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    char* pp;
+    tPowerup* the_powerup;
+    tRepulse_link* link;
+
+    gRace_powerup_respawn_bools = gPowerup_respawn_specs[gNet_mode == eNet_mode_none ? 0 : 1].bools;
+    i = 0;
+    if (0 < gNumber_of_powerups) {
+        pp = (char*)gPowerup_array + 0x28;
+        do {
+            the_powerup = (tPowerup*)(pp - 0x28);
+            the_powerup->got_time = 0;
+            the_powerup->current_value = -1;
+            i++;
+            pp += sizeof(tPowerup);
+        } while (i < gNumber_of_powerups);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
+        gRespawn_powerups[i].actor = NULL;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gPickedup_powerups); i++) {
+        if (gPickedup_powerups[i].icon_actor != NULL) {
+            gPickedup_powerups[i].icon_actor->render_style = BR_RSTYLE_NONE;
+        }
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gInventory); i++) {
+        gInventory[i] = -1;
+    }
+    gInventory_selected = -1;
+    gINT_006a0a6c = 0;
+    gINT_006a0a5c = 0;
+    gNumber_of_icons = 0;
+    gDAT_006a0958 = 0;
+    gInventory_cycling = 0;
+    gInventory_timeout = 0;
+    gCount_cloaked_cars = 0;
+    i = 0;
+    do {
+        link = &gRepulse_links[i];
+        link->time = 0;
+        if (link->actor->parent == gNon_track_actor) {
+            BrActorRemove(link->actor);
+        }
+        i++;
+    } while ((int)&gRepulse_links[i].actor < (int)&gINT_006a0a5c);
+    gNext_goody_time = 0;
 }
 
 // STUB: CARMA2_HW 0x0049b720
@@ -1779,3 +1844,13 @@ int gINT_0067bdfc;
 
 // GLOBAL: CARMA2_HW 0x0067be08
 tU8 gCrush_data_entry_counter;
+
+/* powerup globals owned by ResetPowerups */
+// GLOBAL: CARMA2_HW 0x006a0944
+int gNumber_of_icons;
+
+// GLOBAL: CARMA2_HW 0x006a0958
+undefined4 gDAT_006a0958;
+
+// GLOBAL: CARMA2_HW 0x006a0aec
+tU32 gNext_goody_time;
