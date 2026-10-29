@@ -807,16 +807,27 @@ intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* actor, void* data) {
 
 // InitModelCrushData
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x0042c300
+// based on ApexWorm/rec2 5ae3d3cb2
+// FUNCTION: CARMA2_HW 0x0042c300
 float C2_HOOK_FASTCALL PointEdgeDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
+    br_vector3 pAB;
+    br_vector3 pAP;
+    br_vector3 pProj;
+    float proj;
+
+    BrVector3Sub(&pAP, pP, pA);
+    BrVector3Sub(&pAB, pB, pA);
+    proj = BrVector3Dot(&pAP, &pAB) / BrVector3Dot(&pAB, &pAB);
+    if (!(proj >= gCrushZero)) {
+        proj = gCrushZero;
+    } else if (proj > 1.0f) {
+        proj = 1.0f;
+    }
+    BrVector3Scale(&pProj, &pAB, proj);
+    BrVector3Add(&pProj, &pProj, pA);
+    BrVector3Sub(&pProj, pP, &pProj);
+    return BrVector3LengthSquared(&pProj);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // based on carpocalypse2 src/carma2/common/crush.c:1455
 // FUNCTION: CARMA2_HW 0x0042c0e0
