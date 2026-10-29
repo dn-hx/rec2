@@ -593,10 +593,14 @@ void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int fie
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 8a2f3d992
 // FUNCTION: CARMA2_HW 0x004e0730
 void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
+    tPhysics_object* collision_info;
 
-    NOT_IMPLEMENTED();
+    for (collision_info = gMutant_tail_first_collision_info; collision_info != NULL; collision_info = collision_info->child) {
+        collision_info->actor->render_style = BR_RSTYLE_NONE;
+    }
 }
 
 extern void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34* mat);
