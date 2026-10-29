@@ -2378,16 +2378,17 @@ extern br_vector3 gPhysics_reference_normal_comparison;
 // FUNCTION: CARMA2_HW 0x00420910
 tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shape_polyhedron_data* pPolyhedron) {
     int new_count_points;
-    int first_vertex;
+    br_vector4 tv1;
+    volatile int read_idx;
     br_vector3 tv2;
-    int read_idx;
-    br_vector3 tv1;
-    br_vector3 tv3;
-    int i;
     int indices_buffer[301];
     br_vector3 point_buffer[300];
+    int first_vertex;
+    int i;
     int index_min;
-    int write_idx;
+    br_vector3 tv3;
+    int* write_ptr;
+    int* read_ptr;
 
     first_vertex = 0;
     while (Collinear(&pPolyhedron->points[first_vertex + 0], &pPolyhedron->points[first_vertex + 1], &pPolyhedron->points[first_vertex + 2])) {
@@ -2396,9 +2397,9 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
             return ePhysicsError_UnknownShapeType;
         }
     }
-    BrVector3Sub(&tv1, &pPolyhedron->points[first_vertex + 1], &pPolyhedron->points[first_vertex + 0]);
+    BrVector3Sub((br_vector3*)&tv1, &pPolyhedron->points[first_vertex + 1], &pPolyhedron->points[first_vertex + 0]);
     BrVector3Sub(&tv2, &pPolyhedron->points[first_vertex + 2], &pPolyhedron->points[first_vertex + 0]);
-    BrVector3Cross(&tv3, &tv1, &tv2);
+    BrVector3Cross(&tv3, (br_vector3*)&tv1, &tv2);
     BrVector3Normalise(&gPhysics_reference_normal_comparison, &tv3);
 
     index_min = 0;
@@ -2413,9 +2414,9 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
         }
     }
 
-    BrVector3Copy(&tv1, &pPolyhedron->points[0]);
+    BrVector3Copy((br_vector3*)&tv1, &pPolyhedron->points[0]);
     BrVector3Copy(&pPolyhedron->points[0], &pPolyhedron->points[index_min]);
-    BrVector3Copy(&pPolyhedron->points[index_min], &tv1);
+    BrVector3Copy(&pPolyhedron->points[index_min], (br_vector3*)&tv1);
     for (i = 0; i < pPolyhedron->count_points; i++) {
         indices_buffer[i + 1] = i;
     }
@@ -2426,19 +2427,21 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
 
     new_count_points = 1;
     read_idx = 2;
-    write_idx = 1;
+    write_ptr = &indices_buffer[1];
+    read_ptr = &indices_buffer[2];
     while (read_idx <= pPolyhedron->count_points) {
-        BrVector3Sub(&tv1, &pPolyhedron->points[indices_buffer[write_idx]], &pPolyhedron->points[indices_buffer[write_idx - 1]]);
-        BrVector3Sub(&tv2, &pPolyhedron->points[indices_buffer[read_idx]], &pPolyhedron->points[indices_buffer[write_idx]]);
+        BrVector3Sub((br_vector3*)&tv1, &pPolyhedron->points[*write_ptr], &pPolyhedron->points[write_ptr[-1]]);
+        BrVector3Sub(&tv2, &pPolyhedron->points[*read_ptr], &pPolyhedron->points[*write_ptr]);
 
-        if (SignedTwiceAreaOf3DTriangle(&tv1, &tv2) > 1e-6f) {
-            write_idx += 1;
-            new_count_points += 1;
-            indices_buffer[write_idx] = indices_buffer[read_idx];
-            read_idx += 1;
+        if (SignedTwiceAreaOf3DTriangle((br_vector3*)&tv1, &tv2) > 1e-6f) {
+            write_ptr++;
+            new_count_points++;
+            *write_ptr = *read_ptr;
+            read_idx++;
+            read_ptr++;
         } else {
-            new_count_points -= 1;
-            write_idx -= 1;
+            new_count_points--;
+            write_ptr--;
         }
     }
     pPolyhedron->count_points = new_count_points;
