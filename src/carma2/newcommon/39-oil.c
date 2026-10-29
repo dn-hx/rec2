@@ -111,9 +111,53 @@ void C2_HOOK_FASTCALL ResetOilSpills(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a6c80
+// based on ApexWorm/rec2 afa4cf121
+// FUNCTION: CARMA2_HW 0x004a6c80
 void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50) {
-    NOT_IMPLEMENTED();
+    int i;
+    int free_index;
+    int oldest_index;
+    tU32 the_time;
+    tU32 oldest_time;
+
+    oldest_index = 0;
+    free_index = -1;
+    the_time = GetTotalTime();
+    oldest_time = GetTotalTime();
+    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+        if (pCar != NULL && gOily_spills[i].car_actor == pCar_actor
+            && the_time < gOily_spills[i].spill_time + 5000) {
+            return;
+        }
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+        if (gOily_spills[i].car_actor == NULL) {
+            free_index = i;
+            break;
+        }
+        if (gOily_spills[i].spill_time < oldest_time) {
+            oldest_time = gOily_spills[i].spill_time;
+            oldest_index = i;
+        }
+    }
+    if (free_index < 0) {
+        free_index = oldest_index;
+    }
+    gOily_spills[free_index].actor->material = pMaterial;
+    gOily_spills[free_index].car = pCar;
+    gOily_spills[free_index].car_actor = pCar_actor;
+    gOily_spills[free_index].car_model = pCar_model;
+    gOily_spills[free_index].spill_time = the_time + pTime_delay;
+    gOily_spills[free_index].field_0x20 = pInitial_size;
+    gOily_spills[free_index].full_size = (float)SRandomBetween(pMin_size, pMax_size);
+    gOily_spills[free_index].grow_rate = (float)SRandomBetween(pMin_grow_rate, pMax_grow_rate);
+    gOily_spills[free_index].current_size = pInitial_size;
+    gOily_spills[free_index].actor->render_style = BR_RSTYLE_NONE;
+    gOily_spills[free_index].field_0x40 = pField_0x40;
+    gOily_spills[free_index].field_0x44 = pField_0x44;
+    gOily_spills[free_index].field_0x48 = pField_0x48;
+    gOily_spills[free_index].field_0x4c = pField_0x4c;
+    gOily_spills[free_index].field_0x50 = (undefined4)pField_0x50;
 }
 
 #ifdef REC2_MATCHING
