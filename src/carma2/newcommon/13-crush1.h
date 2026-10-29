@@ -79,7 +79,7 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pAc
 
 // FindNearestParentVertex
 
-// SetUpSemiDetachJointStuff
+extern void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds);
 
 // InitPhysCrushDataCB
 
