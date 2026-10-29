@@ -2356,9 +2356,79 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00420fb0
-tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron) {
+// STUB: CARMA2_HW 0x004211f0
+tPhysicsError C2_HOOK_FASTCALL ProcessTetrahedronPolyhedronCollisionShape(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges) {
     NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00421790
+int C2_HOOK_FASTCALL PolyhedronCollisionShape_AddPoint(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x00420fb0
+tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron) {
+    tU8 new_count_points;
+    tU8 i;
+    int original_count_points;
+    tPolyhedron_edge_indexes indices[894];
+    br_vector3 original_points[300];
+    int j;
+    tPhysicsError error;
+
+    if (pPolyhedron->count_points > 300) {
+        pPolyhedron->count_points = 300;
+    }
+
+    original_count_points = pPolyhedron->count_points;
+    memcpy(original_points, pPolyhedron->points, original_count_points * sizeof(br_vector3));
+    error = ProcessTetrahedronPolyhedronCollisionShape(pPolyhedron, indices);
+    if (error != ePhysicsError_Ok) {
+        if (error == ePhysicsError_UnknownShapeType) {
+            return error;
+        }
+        pPolyhedron->count_points = original_count_points;
+        memcpy(pPolyhedron->points, original_points, original_count_points * sizeof(br_vector3));
+        error = AddPolyhedronCollisionShapePlanes(pPolyhedron);
+        if (error == ePhysicsError_Ok) {
+            return ePhysicsError_WireFrameHasNoPoints;
+        }
+        return error;
+    }
+    {
+        new_count_points = 4;
+        for (i = 0; i < original_count_points; i++) {
+            if (PolyhedronCollisionShape_AddPoint(pPolyhedron, &original_points[i], new_count_points, indices)) {
+                if (new_count_points != i) {
+                    BrVector3Copy(&pPolyhedron->points[new_count_points], &original_points[i]);
+                }
+                new_count_points++;
+            }
+        }
+        pPolyhedron->count_points = new_count_points;
+
+        new_count_points = 0;
+        for (i = 0; i < pPolyhedron->count_points; i++) {
+            for (j = 0; j < pPolyhedron->count_edges; j++) {
+                if (pPolyhedron->edges[j].index1 == i || pPolyhedron->edges[j].index2 == i) {
+                    if (new_count_points != i) {
+                        BrVector3Copy(&pPolyhedron->points[new_count_points], &pPolyhedron->points[i]);
+                        for (j = 0; j < pPolyhedron->count_edges; j++) {
+                            if (pPolyhedron->edges[j].index1 == i) {
+                                pPolyhedron->edges[j].index1 = new_count_points;
+                            } else if (pPolyhedron->edges[j].index2 == i) {
+                                pPolyhedron->edges[j].index2 = new_count_points;
+                            }
+                        }
+                    }
+                    new_count_points++;
+                    break;
+                }
+            }
+        }
+        pPolyhedron->count_points = new_count_points;
+        return ePhysicsError_Ok;
+    }
 }
 
 #define FILLINSHAPE_ERROR(PERR) \
