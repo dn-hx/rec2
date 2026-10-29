@@ -873,7 +873,23 @@ void C2_HOOK_FASTCALL AddFlapToPipingSession(uintptr_t pOwner, tU16 pDelta) {
         2, 4, pDelta);
 }
 
-// AddModelMashToPipingSession
+// FUNCTION: CARMA2_HW 0x004c7550
+void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash) {
+    size_t size;
+    tPipe_model_mash* pipe_model_mash;
+
+    pipe_model_mash = (tPipe_model_mash*)gCrush_space;
+    if (pipe_model_mash == NULL) {
+        return;
+    }
+    size = pModel->nvertices * sizeof(tCompressed_vector3) + sizeof(br_model*);
+    if (size > CRUSH_SPACE_SIZE) {
+        FatalError(kFatalError_ChunkIsTooLargeToPipe);
+    }
+    pipe_model_mash->model = pModel;
+    ARCompressModelMash(pipe_model_mash->vectors, pModel, pMash);
+    ARAddDataToSession(ePipe_model_mash, (uintptr_t)-1, pipe_model_mash, (tU32)size);
+}
 
 // FUNCTION: CARMA2_HW 0x004c7940
 void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime) {
