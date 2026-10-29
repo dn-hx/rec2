@@ -341,9 +341,20 @@ void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
 
 // SendGameplay
 
-// STUB: CARMA2_HW 0x0049bc70
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+
+// based on ApexWorm/rec2 704cfc73b
+// FUNCTION: CARMA2_HW 0x0049bc70
 void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
-    NOT_IMPLEMENTED();
+    tNet_message* the_message;
+
+    the_message = NetBuildGuaranteedMessage(0x1b, 0);
+    *(int*)((tU8*)the_message + 0x24) = pParam_2;
+    *(int*)((tU8*)the_message + 0x1c) = pMess;
+    *(int*)((tU8*)the_message + 0x20) = pParam_1;
+    *(int*)((tU8*)the_message + 0x28) = pParam_3;
+    *(int*)((tU8*)the_message + 0x2c) = pParam_4;
+    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, the_message, NULL);
 }
 
 // SendGameplayToHost
@@ -381,3 +392,14 @@ void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tN
 
 // RemovePlayerFromShapeStatusLists
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a5b50
+int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
