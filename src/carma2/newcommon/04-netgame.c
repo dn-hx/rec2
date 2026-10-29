@@ -103,7 +103,19 @@ void C2_HOOK_FASTCALL ReceivedCopInfo(void) {
 
 // SendAllNonCarPositions
 
-// ReceivedNonCarPosition
+// based on carpocalypse2 src/carma2/common/netgame.c:910
+// FUNCTION: CARMA2_HW 0x00498bc0
+void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents) {
+    br_actor* actor;
+
+    actor = gProgram_state.track_spec.non_car_list[pContents->ID];
+    if (actor != NULL && gNet_mode != eNet_mode_host) {
+        BrMatrix34Copy(&actor->t.t.mat, &pContents->mat);
+        if (pContents->flags != 0) {
+            actor->identifier[3] = '!';
+        }
+    }
+}
 
 // ReceivedNonCar
 
@@ -390,7 +402,24 @@ void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tN
     }
 }
 
-// RemovePlayerFromShapeStatusLists
+// based on carpocalypse2 src/carma2/common/netgame.c:1386
+// FUNCTION: CARMA2_HW 0x0049be40
+void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers) {
+    tCar_crush_network_shapes* shapes;
+    int j;
+
+    for (; pPlayer_count > 0; pPlayer_count--, pPlayers++) {
+        if (pPlayers->car != NULL && pPlayers->car->car_crush_spec != NULL) {
+            shapes = pPlayers->car->car_crush_spec->network_stuff;
+            for (j = 0; j < (int)REC2_ASIZE(shapes->items); j++) {
+                if (shapes->items[j].network_id == pPlayer_id) {
+                    shapes->items[j].network_id = 0;
+                    break;
+                }
+            }
+        }
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

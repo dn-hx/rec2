@@ -46,7 +46,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // SendAllNonCarPositions
 
-// ReceivedNonCarPosition
+extern void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents);
 
 // ReceivedNonCar
 
@@ -130,6 +130,6 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
-// RemovePlayerFromShapeStatusLists
+extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
 
 #endif // GUARD_04_NETGAME_H

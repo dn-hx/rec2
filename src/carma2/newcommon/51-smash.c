@@ -286,7 +286,16 @@ void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2,
 
 // DoAward
 
-// DoSpillage
+extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
+
+// based on carpocalypse2 src/carma2/common/smash.c:121
+// FUNCTION: CARMA2_HW 0x004ecc40
+void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
+    QueueOilSpill2(NULL, pActor, pActor->model, pSlick->field_0x0,
+        pSlick->field_0x4, pSlick->field_0x8, pSlick->field_0xc, pSlick->field_0x10,
+        pSlick->field_0x14, pSlick->field_0x20, pSlick->field_0x24, pSlick->field_0x18,
+        pSlick->field_0x1c, pSlick->material, pSlick->material2);
+}
 
 // DoSpecial
 

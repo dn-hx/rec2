@@ -1878,13 +1878,40 @@ void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale)
     }
     BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
 }
-// DisposeMove
+
+// based on carpocalypse2 src/carma2/common/pedestrn.c:799
+// FUNCTION: CARMA2_HW 0x00404350
+void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove) {
+    int i;
+
+    for (i = 0; i < pMove->count_frames; i++) {
+        if (pMove->frames[i].axis != NULL) {
+            BrMemFree(pMove->frames[i].axis);
+        }
+    }
+    if (pMove->frames != NULL) {
+        BrMemFree(pMove->frames);
+    }
+    if (pMove != NULL) {
+        BrMemFree(pMove);
+    }
+}
 
 // DisposeAllLoadedMoves
 
 // ReadRemap
 
-// DisposeRemap
+// based on carpocalypse2 src/carma2/common/pedestrn.c:4896
+// FUNCTION: CARMA2_HW 0x004046d0
+void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
+
+    if (pRemap != NULL) {
+        if (pRemap->bones != NULL) {
+            BrMemFree(pRemap->bones);
+        }
+        BrMemFree(pRemap);
+    }
+}
 
 // DisposeAllLoadedRemaps
 

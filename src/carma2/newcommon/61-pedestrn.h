@@ -393,13 +393,13 @@ extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 extern void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ);
 // DRScaleModel
 
-// DisposeMove
+extern void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove);
 
 // DisposeAllLoadedMoves
 
 // ReadRemap
 
-// DisposeRemap
+extern void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap);
 
 // DisposeAllLoadedRemaps
 

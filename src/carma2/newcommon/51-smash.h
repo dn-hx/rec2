@@ -71,7 +71,7 @@ extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3*
 
 // DoAward
 
-// DoSpillage
+extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // DoSpecial
 
