@@ -10,6 +10,10 @@
 #include "59-camera.h"
 #include "08-loading1.h"
 #include "10-loading2.h"
+#include "13-crush1.h"
+#include "32-spark.h"
+#include "56-aiworld.h"
+#include "57-drone.h"
 
 // GLOBAL: CARMA2_HW 0x0058f620
 int gAR_camera_type = 2;
@@ -341,22 +345,81 @@ void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8) {
     NOT_IMPLEMENTED();
 }
 
+extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
+
+// based on ApexWorm/rec2 85077822b
 // FUNCTION: CARMA2_HW 0x0043c030
 void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8) {
+    br_model* model;
+    tCompressed_vector3* src;
+    tU16 i;
+    br_vector3 delta;
 
-    NOT_IMPLEMENTED();
+    model = (br_model*)field_0x4;
+    src = (tCompressed_vector3*)pField_0x8;
+    for (i = 0; i < model->nvertices; i++) {
+        ExpandVector3(&delta, &src[i], -10.0f, 10.0f);
+        BrVector3Sub(&model->vertices[i].p, &model->vertices[i].p, &delta);
+    }
+    if ((model->flags & BR_MODF_CUSTOM) != 0 && model->user != NULL) {
+        ((tUser_detail_level_model*)model->user)->field_0x0 = 1;
+    } else {
+        model->custom = JitModelUpdate;
+        model->flags |= BR_MODF_CUSTOM;
+    }
 }
 
+// based on ApexWorm/rec2 15c72a550
 // FUNCTION: CARMA2_HW 0x0043c0e0
 void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
+    br_actor* actor;
+    tUser_crush_data* user;
+    tUser_crush_data* parent_user;
+    br_model* parent_model;
+    tCar_crush_flap_data* flap;
+    const br_vector3* hinge;
+    br_vector3 axis;
 
-    NOT_IMPLEMENTED();
+    actor = (br_actor*)field_0x4;
+    user = actor->user;
+    if (user == NULL || user->crush_data == NULL) {
+        return;
+    }
+    flap = user->crush_data->flap_data;
+    if (flap == NULL) {
+        return;
+    }
+    flap->field_0x4 = (tU16)(flap->field_0x4 + field_0x8);
+    hinge = &user->models[0]->vertices[flap->hinge0].p;
+    BrVector3Sub(&axis, &user->models[0]->vertices[flap->hinge1].p, hinge);
+    BrVector3Normalise(&axis, &axis);
+    BrMatrix34Translate(&actor->t.t.mat, -hinge->v[0], -hinge->v[1], -hinge->v[2]);
+    BrMatrix34PostRotate(&actor->t.t.mat, flap->field_0x4, &axis);
+    parent_user = (tUser_crush_data*)actor->parent->user;
+    parent_model = parent_user->models[0];
+    BrMatrix34PostTranslate(&actor->t.t.mat, parent_model->vertices[flap->field_0xc].p.v[0], parent_model->vertices[flap->field_0xc].p.v[1], parent_model->vertices[flap->field_0xc].p.v[2]);
 }
 
+// based on ApexWorm/rec2 97b666b11
 // FUNCTION: CARMA2_HW 0x00452880
 void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
+    tDrone_spec* drone;
+    tDrone_path_node_section* section;
+    br_vector3 direction;
 
-    NOT_IMPLEMENTED();
+    drone = &gDrone_specs[field_0x0];
+    section = (tDrone_path_node_section*)field_0x4;
+    drone->field_0xe4 = DRU16ToScalar(field_0x8, -500.0f, 500.0f);
+    drone->field_0xe0 = 0.0f;
+    BrVector3Scale(&direction, &section->field_0x10, section->field_0x1c - DRU16ToScalar(field_0xa, 0.0f, 255.0f));
+    BrVector3Negate(&direction, &direction);
+    BrVector3Add(&drone->actor->t.t.translate.t, &gDrone_path_nodes[section->node1].position, &direction);
+    BrVector3Copy(&direction, &section->field_0x10);
+    if (drone->form->flags & 0x10) {
+        direction.v[1] = 0.0f;
+    }
+    PointActorAlongThisBloodyVector(drone->actor, &direction);
+    DoDroneFunkyGroovyThings(drone);
 }
 
 // FUNCTION: CARMA2_HW 0x004529d0
@@ -694,6 +757,17 @@ void C2_HOOK_FASTCALL MungePedestrians(int pFrame_period) {
 // STUB: CARMA2_HW 0x0040c660
 br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b) {
     return (br_uint_8)BrActorToActorMatrix34(m, a, b);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00451e70
+void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
