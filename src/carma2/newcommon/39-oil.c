@@ -222,9 +222,29 @@ void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scala
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004a77d0
+// based on ApexWorm/rec2 78828de5b
+// FUNCTION: CARMA2_HW 0x004a77d0
 int C2_HOOK_FASTCALL PointInSpill(br_vector3* pPoint, int pIndex) {
-    NOT_IMPLEMENTED();
+    const br_scalar inverse_world_scale = 1.f / WORLD_SCALE;
+    br_actor* actor;
+    br_scalar range_squared;
+    br_scalar delta;
+
+    actor = gOily_spills[pIndex].actor;
+    delta = pPoint->v[0] * inverse_world_scale - actor->t.t.mat.m[3][0];
+    range_squared = gOily_spills[pIndex].current_size * gOily_spills[pIndex].current_size * 0.8f;
+    if (delta * delta >= range_squared) {
+        return 0;
+    }
+    delta = pPoint->v[2] * inverse_world_scale - actor->t.t.mat.m[3][2];
+    if (delta * delta >= range_squared) {
+        return 0;
+    }
+    delta = pPoint->v[1] * inverse_world_scale - actor->t.t.mat.m[3][1];
+    if (fabs(delta) >= 0.1f) {
+        return 0;
+    }
+    return 1;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
