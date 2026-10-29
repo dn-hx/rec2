@@ -5,6 +5,8 @@
 #include "52-errors.h"
 #include "rec2_macros.h"
 
+extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
+
 // GLOBAL: CARMA2_HW 0x0068b840
 br_scalar gSight_distance_squared;
 
@@ -137,9 +139,47 @@ float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefin
 
 // AddNewFunkotronic
 
-// STUB: CARMA2_HW 0x00474950
+// based on ApexWorm/rec2 4a25846ee
+// FUNCTION: CARMA2_HW 0x00474950
 void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner) {
-    NOT_IMPLEMENTED();
+    tFunkotronic_spec* the_funk;
+    int i;
+
+    if (gFunkotronics_array != NULL && gFunkotronics_array_size > 0) {
+        the_funk = gFunkotronics_array;
+        for (i = 0; i < gFunkotronics_array_size; i++, the_funk++) {
+            PossibleService();
+            if (the_funk->owner == pOwner) {
+                the_funk->owner = -999;
+                if (the_funk->proximity_array != NULL) {
+                    BrMemFree(the_funk->proximity_array);
+                }
+                if (the_funk->texture_animation_type == eTexture_animation_frames
+                    && the_funk->texture_animation_data.frames_info.mode == eMove_texturebits) {
+                    BrMemFree(the_funk->texture_animation_data.frames_info.texture_info.data);
+                }
+                if (the_funk->texture_animation_type == eTexture_animation_flic) {
+                    BrMemFree(the_funk->texture_animation_data.flic_info.flic_data);
+                    EndFlic(&the_funk->texture_animation_data.flic_info.flic_descriptor);
+                    BrMemFree(the_funk->material->colour_map->pixels);
+                    the_funk->material->colour_map->pixels = NULL;
+                    BrPixelmapFree(the_funk->material->colour_map);
+                    the_funk->material->colour_map = NULL;
+                } else if (the_funk->texture_animation_type == eTexture_animation_camera) {
+                    /* Camera disposal shares this counter with the outer traversal. */
+                    for (i = 0; i < the_funk->texture_animation_data.camera_info.count; i++) {
+                        BrActorRemove(the_funk->texture_animation_data.camera_info.actors[i]);
+                        BrActorFree(the_funk->texture_animation_data.camera_info.actors[i]);
+                    }
+                } else if (the_funk->texture_animation_type == eTexture_animation_mirror) {
+                    if (the_funk->texture_animation_data.mirror_info.actor != NULL) {
+                        BrActorRemove(the_funk->texture_animation_data.mirror_info.actor);
+                        BrActorFree(the_funk->texture_animation_data.mirror_info.actor);
+                    }
+                }
+            }
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004761e0
