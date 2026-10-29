@@ -2657,11 +2657,6 @@ int C2_HOOK_FASTCALL LoadCarCrush(tCar_crush_buffer* pCar_crush_buffer, const ch
     return 0;
 }
 
-// STUB: CARMA2_HW 0x0042aa20
-void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
-}
-
 // FUNCTION: CARMA2_HW 0x0048bfa0
 intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData) {
     tCrush_model_pool* pool;
