@@ -383,13 +383,75 @@ int C2_HOOK_FASTCALL FindAHeadupHoleWoofBarkSoundsABitRude(int pSlot_index) {
 
 // IsHeadupTextClever
 
+static int HeadupTextIsClever(const char* pText) {
+    char c;
+
+    c = *pText;
+    while (c != '\0') {
+        pText++;
+        if (c < 0) {
+            return 1;
+        }
+        c = *pText;
+    }
+    return 0;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0044a220
+// FUNCTION: CARMA2_HW 0x0044a220
 int C2_HOOK_FASTCALL MungeHeadupWidth(tHeadup* pHeadup) {
-    NOT_IMPLEMENTED();
+    int width;
+
+    width = 0;
+    if (pHeadup->type == eHeadup_box_text) {
+        return 0;
+    } else if (pHeadup->type == eHeadup_coloured_text) {
+        pHeadup->clever = HeadupTextIsClever(pHeadup->data.text_info.text);
+        switch (pHeadup->justification) {
+        case eJust_left:
+            pHeadup->x = pHeadup->original_x;
+            break;
+        case eJust_right:
+            if (pHeadup->clever) {
+                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width;
+            } else {
+                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width;
+            }
+            break;
+        case eJust_centre:
+            if (pHeadup->clever) {
+                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width / 2;
+            } else {
+                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width / 2;
+            }
+            break;
+        }
+    } else if (pHeadup->type == eHeadup_fancy) {
+        return 0;
+    } else {
+        pHeadup->clever = 0;
+        switch (pHeadup->justification) {
+        case eJust_left:
+            pHeadup->x = pHeadup->original_x;
+            break;
+        case eJust_right:
+            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
+            pHeadup->x = pHeadup->original_x - width;
+            break;
+        case eJust_centre:
+            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
+            pHeadup->x = pHeadup->original_x - width / 2;
+            break;
+        }
+    }
+    return width;
 }
 
 #ifdef REC2_MATCHING
