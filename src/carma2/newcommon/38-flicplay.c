@@ -12,6 +12,9 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+extern int C2_HOOK_FASTCALL DoMouseCursor(void);
+
 // GLOBAL: CARMA2_HW 0x0068b8b4
 float gFlic_sound_delay_pre_smack;
 
@@ -1022,9 +1025,87 @@ void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval) {
     LetFlicFuckWithPalettes();
 }
 
-// STUB: CARMA2_HW 0x00462dc0
+// based on ApexWorm/rec2 d1507f047
+// FUNCTION: CARMA2_HW 0x00462dc0
 void C2_HOOK_FASTCALL FlushFlicQueue(void) {
-    NOT_IMPLEMENTED();
+    tFlic_descriptor* the_flic;
+    tFlic_descriptor* last_flic;
+    tFlic_descriptor* doomed_flic;
+    tU32 new_time;
+    int finished_playing;
+
+    while (1) {
+        the_flic = gFirst_flic;
+        if (the_flic == NULL) {
+            gFirst_flic = NULL;
+            return;
+        }
+        doomed_flic = the_flic;
+        while (doomed_flic->must_finish == 0) {
+            doomed_flic = doomed_flic->next;
+            if (doomed_flic == NULL) {
+                while (the_flic != NULL) {
+                    if (the_flic->f != NULL) {
+                        BrMemFree(the_flic->data_start);
+                        the_flic->data_start = NULL;
+                        PFfclose(the_flic->f);
+                        the_flic->f = NULL;
+                    }
+                    if (the_flic->data != NULL) {
+                        the_flic->data = NULL;
+                    }
+                    doomed_flic = the_flic;
+                    the_flic = the_flic->next;
+                    BrMemFree(doomed_flic);
+                }
+                gFirst_flic = NULL;
+                return;
+            }
+        }
+        RemoveTransientBitmaps(1);
+        the_flic = gFirst_flic;
+        DontLetFlicFuckWithPalettes();
+        TurnFlicTransparencyOn();
+        new_time = PDGetTotalTime();
+        last_flic = NULL;
+        while (the_flic != NULL) {
+            if (new_time - the_flic->last_frame >= the_flic->frame_period) {
+                the_flic->last_frame = new_time;
+                finished_playing = PlayNextFlicFrame(the_flic);
+            } else {
+                finished_playing = 0;
+            }
+            if (finished_playing) {
+                if (the_flic->f != NULL) {
+                    BrMemFree(the_flic->data_start);
+                    the_flic->data_start = NULL;
+                    PFfclose(the_flic->f);
+                    the_flic->f = NULL;
+                }
+                if (the_flic->data != NULL) {
+                    the_flic->data = NULL;
+                }
+                if (last_flic != NULL) {
+                    last_flic->next = the_flic->next;
+                    doomed_flic = the_flic;
+                    the_flic = the_flic->next;
+                    BrMemFree(doomed_flic);
+                } else {
+                    gFirst_flic = the_flic->next;
+                    doomed_flic = the_flic;
+                    the_flic = the_flic->next;
+                    BrMemFree(doomed_flic);
+                }
+            } else {
+                last_flic = the_flic;
+                the_flic = the_flic->next;
+            }
+        }
+        TurnFlicTransparencyOff();
+        LetFlicFuckWithPalettes();
+        DoMouseCursor();
+        PDScreenBufferSwap(0);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00463020
