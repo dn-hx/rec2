@@ -375,7 +375,16 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pActor, br
 
 // InitShapeStuff
 
-// InitPhysMasterCrushData
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0042ad10
+void C2_HOOK_FASTCALL InitPhysMasterCrushData(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CheckHingePointOrder
 
@@ -387,13 +396,21 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pActor, br
 
 // SetUpSemiDetachJointStuff
 
-// InitPhysCrushDataCB
+// STUB: CARMA2_HW 0x0042b7f0
+intptr_t C2_HOOK_CDECL InitPhysCrushDataCB(br_actor* actor, void* data) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
 
 // InitPhysCrushData
 
 // CalculateReferencePoints
 
-// InitModelCrushDataCB
+// STUB: CARMA2_HW 0x0042be20
+intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* actor, void* data) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
 
 // InitModelCrushData
 
@@ -403,13 +420,100 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pActor, br
 
 // InitModelVertexData
 
-// InitVertexDataCB
+// STUB: CARMA2_HW 0x0042bf80
+intptr_t C2_HOOK_CDECL InitVertexDataCB(br_actor* pActor, void* data) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
 
 // InitVertexData
 
 // CheckWheelPositions
 
-// InitPhysModCrushData
+// based on carpocalypse2 src/carma2/common/crush.c:1576 (GPL-3.0); the original inlines CheckWheelPositions,
+// InitModelMasterCrushData, InitModelCrushData, InitPhysCrushData and InitVertexData.
+extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
+
+// FUNCTION: CARMA2_HW 0x0042aa20
+void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec) {
+    int wheel_i;
+    float* wpos_y;
+    tPhysics_shape* shape;
+    tCar_crush_spec* car_crush;
+    int i;
+
+    wpos_y = &pCar_spec->wpos[0].v[1];
+    for (wheel_i = 4; wheel_i != 0; wheel_i--) {
+        int wheel_not_found = 1;
+
+        for (shape = pCar_spec->collision_info->shape; shape != NULL; shape = shape->common.next) {
+            if (shape->common.type == kCollisionShapeType_Polyhedron) {
+                int plane_i;
+                int inside = 1;
+                float local[3];
+
+                local[0] = wpos_y[-1] * (1.0 / 6.9);
+                local[1] = wpos_y[0] * (1.0 / 6.9);
+                local[2] = wpos_y[1] * (1.0 / 6.9);
+                for (plane_i = 0; plane_i < shape->polyhedron.polyhedron.count_planes; plane_i++) {
+                    const br_vector4* plane = &shape->polyhedron.polyhedron.planes[plane_i];
+
+                    if (plane->v[2] * local[2] + plane->v[1] * local[1] + plane->v[0] * local[0] + plane->v[3] < 0.f) {
+                        inside = 0;
+                        break;
+                    }
+                }
+                if (inside) {
+                    wheel_not_found = 0;
+                    break;
+                }
+            }
+        }
+        if (wheel_not_found) {
+            PDFatalError("Wheels outside all shapes");
+        }
+        wpos_y += 3;
+    }
+
+    if (pCar_spec->car_crush_spec != NULL) {
+        SwitchCarModels(pCar_spec, 0);
+
+        car_crush = pCar_spec->car_crush_spec;
+        if (car_crush != NULL) {
+            tAccumulateSquashVertices_UserData data;
+
+            data.count_vertices = 0;
+            data.bens_z_min = car_crush->bend_z_min;
+            data.bens_z_max = car_crush->bend_z_max;
+            DRActorEnumRecurse(pCar_spec->car_model_actor, AccumulateSquashVertices, &data);
+            car_crush->field_0x1cc = BrMemAllocate(data.count_vertices * sizeof(tCar_crush_vertex_data), kMem_crush_data);
+            BrMatrix34Copy(&car_crush->model_actor->t.t.mat, &pCar_spec->car_model_actor->t.t.mat);
+        }
+
+        DRActorEnumRecurse(pCar_spec->car_model_actor, InitModelCrushDataCB, pCar_spec);
+        InitPhysMasterCrushData(pCar_spec);
+
+        {
+            tInitPhysCrushDataCB_Data data;
+
+            data.car = pCar_spec;
+            data.value = pCar_spec->collision_info->M /
+                ((pCar_spec->collision_info->bb2.max.v[0] - pCar_spec->collision_info->bb2.min.v[0]) *
+                 (pCar_spec->collision_info->bb2.max.v[1] - pCar_spec->collision_info->bb2.min.v[1]) *
+                 (pCar_spec->collision_info->bb2.max.v[2] - pCar_spec->collision_info->bb2.min.v[2]));
+            DRActorEnumRecurse(pCar_spec->car_model_actor, InitPhysCrushDataCB, &data);
+        }
+
+        if (pCar_spec->car_crush_spec != NULL) {
+            car_crush = pCar_spec->car_crush_spec;
+            for (i = 0; i < 3; i++) {
+                qsort(car_crush->limits.limits[i][0].values, car_crush->count_limits.counts[i][0], sizeof(float), DecreasingCompare);
+                qsort(car_crush->limits.limits[i][1].values, car_crush->count_limits.counts[i][1], sizeof(float), IncreasingCompare);
+            }
+            DRActorEnumRecurse(pCar_spec->car_model_actor, InitVertexDataCB, pCar_spec);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0042c420
 void C2_HOOK_FASTCALL DisposeMasterCrushData(tCar_crush_spec* pCar_crush, tCar_spec* pCar) {
