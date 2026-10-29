@@ -277,9 +277,15 @@ int C2_HOOK_FASTCALL SetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004dc860
+// based on ApexWorm/rec2 835aafbad
+// FUNCTION: CARMA2_HW 0x004dc860
 void C2_HOOK_FASTCALL ResetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    if (gNet_mode != eNet_mode_none && NetPlayerFromCar(pCar)->field_0x80 != 0) {
+        return;
+    }
+    pCar->invulnerable_no_crushage = 0;
+    pCar->invulnerable_no_damage = 0;
 }
 
 // STUB: CARMA2_HW 0x004dc990
