@@ -1100,9 +1100,43 @@ float C2_HOOK_FASTCALL PointRectDistSq(const br_vector3* pP, const br_vector3* p
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0042c8b0
-float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3* pVertices) {
+// STUB: CARMA2_HW 0x0042ca30
+float C2_HOOK_FASTCALL PointTriangleDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB, const br_vector3* pC) {
     NOT_IMPLEMENTED();
+}
+
+// based on ApexWorm/rec2 dfac42acd
+// FUNCTION: CARMA2_HW 0x0042c8b0
+float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3* pVertices) {
+    float closest_distance;
+    int i;
+    int j;
+    int k;
+
+    switch (pCount) {
+    case 0:
+        return gCrushZero;
+    case 1:
+        return Vector3DistanceSquared(pP, &pVertices[0]);
+    case 2:
+        return PointEdgeDistSq(pP, &pVertices[0], &pVertices[1]);
+    case 3:
+        return PointTriangleDistSq(pP, &pVertices[0], &pVertices[1], &pVertices[2]);
+    case 4:
+        return PointRectDistSq(pP, &pVertices[0], &pVertices[1], &pVertices[2]);
+    }
+    closest_distance = BR_SCALAR_MAX;
+    for (i = 0; i < pCount; i++) {
+        for (j = i + 1; j < pCount; j++) {
+            for (k = j + 1; k < pCount; k++) {
+                float distance;
+
+                distance = PointTriangleDistSq(pP, &pVertices[i], &pVertices[j], &pVertices[k]);
+                closest_distance = MIN(distance, closest_distance);
+            }
+        }
+    }
+    return closest_distance;
 }
 
 #ifdef REC2_MATCHING
