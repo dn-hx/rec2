@@ -422,10 +422,28 @@ void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 
     DoDroneFunkyGroovyThings(drone);
 }
 
+// based on ApexWorm/rec2 1e59f1e54
 // FUNCTION: CARMA2_HW 0x004529d0
 void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 field_0x6, tU16 field_0x8, tU16* pField_0xa) {
+    tDrone_spec* drone;
 
-    NOT_IMPLEMENTED();
+    drone = &gDrone_specs[field_0x0];
+    drone->field_0xe4 = DRU16ToScalar(field_0x4, -500.0f, 500.0f);
+    drone->field_0xe0 = DRU16ToScalar(field_0x6, 0.0f, 1.0f);
+    drone->field_0xe8 = DRU16ToScalar(field_0x8, 0.0f, 100.0f);
+    drone->actor->t.t.mat.m[0][0] = DRU16ToScalar(pField_0xa[0], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[0][1] = DRU16ToScalar(pField_0xa[1], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[0][2] = DRU16ToScalar(pField_0xa[2], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[1][0] = DRU16ToScalar(pField_0xa[3], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[1][1] = DRU16ToScalar(pField_0xa[4], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[1][2] = DRU16ToScalar(pField_0xa[5], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[2][0] = DRU16ToScalar(pField_0xa[6], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[2][1] = DRU16ToScalar(pField_0xa[7], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[2][2] = DRU16ToScalar(pField_0xa[8], -1.0f, 1.0f);
+    drone->actor->t.t.mat.m[3][0] = DRU16ToScalar(pField_0xa[9], -1000.0f, 1000.0f);
+    drone->actor->t.t.mat.m[3][1] = DRU16ToScalar(pField_0xa[10], -1000.0f, 1000.0f);
+    drone->actor->t.t.mat.m[3][2] = DRU16ToScalar(pField_0xa[11], -1000.0f, 1000.0f);
+    DoDroneFunkyGroovyThings(drone);
 }
 
 // FUNCTION: CARMA2_HW 0x004b7220
