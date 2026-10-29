@@ -6,6 +6,7 @@
 #include "41-utility.h"
 #include "49-physics.h"
 #include "51-smash.h"
+#include "52-errors.h"
 #include "platform.h"
 #include "rec2_macros.h"
 
@@ -2084,9 +2085,55 @@ void C2_HOOK_FASTCALL SetFlapCheckVertices(tCar_crush_flap_data* pFlap_data, con
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f57c0
+// FUNCTION: CARMA2_HW 0x004f57c0
 void C2_HOOK_FASTCALL LinkSmashies(br_actor* pActor, tCar_crush_buffer_entry* pCrush_data, tModel_detail_vertex_data* pVertex_data) {
-    NOT_IMPLEMENTED();
+    int count_indices;
+    int count_vertices;
+    int i;
+    int j;
+    tCar_crush_smashable_part* smashable;
+    tU16 indices[50];
+    tCar_crush_vertex_data vertices[50];
+
+    smashable = pCrush_data->smashables;
+    for (i = 0; i < pCrush_data->count_smashables; i++, smashable++) {
+        smashable->funk_material = FindMaterial(smashable->material_name, pActor, 0);
+        if (smashable->funk_material == NULL) {
+            FatalError(kFatalError_CannotFindSmashMaterial_S, smashable->material_name);
+        }
+        MungeMaterial(pActor, 0, smashable->funk_material, smashable->funk_material, 50, indices, &count_indices, 50, vertices, &count_vertices, &smashable->field_0x60);
+        for (j = 0; j < count_indices; j++) {
+            if (j != 0) {
+                BrVector3Accumulate(&smashable->field_0x54, &pActor->model->vertices[indices[j]].p);
+            } else {
+                BrVector3Copy(&smashable->field_0x54, &pActor->model->vertices[indices[0]].p);
+            }
+        }
+        if (count_indices != 0) {
+            smashable->field_0x54.v[0] = smashable->field_0x54.v[0] / (double)count_indices;
+            smashable->field_0x54.v[1] = smashable->field_0x54.v[1] / (double)count_indices;
+            smashable->field_0x54.v[2] = smashable->field_0x54.v[2] / (double)count_indices;
+        }
+        smashable->field_0x6c = count_indices;
+        if (count_indices != 0) {
+            smashable->field_0x70 = BrMemAllocate(count_indices * sizeof(tU16), kMem_smash_poly_array);
+            memcpy(smashable->field_0x70, indices, count_indices * sizeof(tU16));
+        } else {
+            smashable->field_0x70 = NULL;
+        }
+        smashable->field_0x74 = count_vertices;
+        if (count_vertices != 0) {
+            smashable->field_0x78 = BrMemAllocate(count_vertices * sizeof(tCar_crush_vertex_data), kMem_smash_vertex_array);
+            memcpy(smashable->field_0x78, vertices, count_vertices * sizeof(tCar_crush_vertex_data));
+        } else {
+            smashable->field_0x78 = NULL;
+        }
+        BrResFree(smashable->funk_material->identifier);
+        smashable->funk_material->identifier = NULL;
+        smashable->field_0x4c = 0;
+        smashable->funk_material->colour_map = smashable->levels->pixelmaps[0];
+        BrMaterialUpdate(smashable->funk_material, BR_MATU_COLOURMAP);
+    }
 }
 
 #ifdef REC2_MATCHING
