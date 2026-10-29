@@ -387,10 +387,20 @@ tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider) {
 
 // NetGetMessageSize
 
-// STUB: CARMA2_HW 0x0049f650
+// based on ApexWorm/rec2 7e7ab41cc
+// FUNCTION: CARMA2_HW 0x0049f650
 tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2) {
-    NOT_IMPLEMENTED();
-    return NULL;
+    tNet_message* the_message;
+    tU32 the_size;
+
+    the_size = NetGetContentsSize(pArg1, pArg2) + sizeof(tNet_message_header);
+    the_message = NetAllocateMessage(the_size);
+    if (the_message != NULL) {
+        the_message->header.field_0x14 = 1;
+        the_message->header.field_0x16 = (tU16)the_size;
+        the_message->contents.raw.header.type = pArg1;
+    }
+    return the_message;
 }
 
 // STUB: CARMA2_HW 0x0049f680
