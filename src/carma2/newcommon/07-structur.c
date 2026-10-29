@@ -418,13 +418,45 @@ extern tU32 gTimer;
 extern br_scalar gYon_multiplier;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
 extern br_pixelmap* gBack_screen;
+extern tCrush_list_item gCrush_lists[8];
+extern int gCount_queued_drone_crushes;
+extern int gINT_0067bdfc;
+extern int gCount_toggled_doors;
+extern tU8 gCrush_data_entry_counter;
+extern int gCount_net_crush_detach_list;
+extern int gCount_net_crush_semi_detach_bit_list;
+extern int gCount_net_crush_full_detach_bit_list;
+extern int gCount_net_crush_reattach_bit_list;
+extern int gCount_car_damage_crush_list;
 
 /* LoadTrack (0x00504bf0) is defined at the end of this file (kept out of 28-world3.c so the storage helpers there are called, not inlined, as in the original) */
 extern void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);
 
-// STUB: CARMA2_HW 0x0042a190
+// FUNCTION: CARMA2_HW 0x0042a190
 void C2_HOOK_FASTCALL ResetCrushSystems(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    tCrush_list_item* crush_list;
+
+    for (i = 0; i < (int)REC2_ASIZE(gTrack_crush_joints); i++) {
+        gTrack_crush_joints[i]->type = eJoint_none;
+    }
+    gDetached_bit_crush_info_buffer.field_0x8 = 0;
+    gSplit_car_crush_info_buffer.field_0x8 = 0;
+    crush_list = gCrush_lists;
+    while (crush_list->car_spec != NULL) {
+        crush_list->car_spec = NULL;
+        crush_list++;
+    }
+    gCount_queued_drone_crushes = 0;
+    gCount_crush_detach_list = 0;
+    gINT_0067bdfc = 0;
+    gCount_toggled_doors = 0;
+    gCrush_data_entry_counter = 0;
+    gCount_net_crush_detach_list = 0;
+    gCount_net_crush_semi_detach_bit_list = 0;
+    gCount_net_crush_full_detach_bit_list = 0;
+    gCount_net_crush_reattach_bit_list = 0;
+    gCount_car_damage_crush_list = 0;
 }
 
 // STUB: CARMA2_HW 0x0041fc60
@@ -1680,3 +1712,34 @@ void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+/* Crush-list counters and lists cleared by ResetCrushSystems (crush.c globals) */
+// GLOBAL: CARMA2_HW 0x006796bc
+int gCount_queued_drone_crushes;
+
+// GLOBAL: CARMA2_HW 0x006796c8
+tCrush_list_item gCrush_lists[8];
+
+// GLOBAL: CARMA2_HW 0x0067b7c8
+int gCount_net_crush_reattach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067b7cc
+int gCount_car_damage_crush_list;
+
+// GLOBAL: CARMA2_HW 0x0067b838
+int gCount_net_crush_semi_detach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067bd58
+int gCount_toggled_doors;
+
+// GLOBAL: CARMA2_HW 0x0067bd60
+int gCount_net_crush_full_detach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067bdf0
+int gCount_net_crush_detach_list;
+
+// GLOBAL: CARMA2_HW 0x0067bdfc
+int gINT_0067bdfc;
+
+// GLOBAL: CARMA2_HW 0x0067be08
+tU8 gCrush_data_entry_counter;
