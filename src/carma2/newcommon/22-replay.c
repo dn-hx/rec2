@@ -572,10 +572,19 @@ void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int 
     NOT_IMPLEMENTED();
 }
 
+// based on ApexWorm/rec2 64e1bed48
 // FUNCTION: CARMA2_HW 0x004fba00
 void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float f3, float f4) {
+    int i;
+    tSmoke_column* col;
 
-    NOT_IMPLEMENTED();
+    i = index & 0xf;
+    col = &gSmoke_column[(index & ~0xf) >> 4];
+    col->frame_count[i] = flag;
+    col->scale_x[i] = f1;
+    col->scale_y[i] = f2;
+    col->offset_x[i] = f3;
+    col->offset_z[i] = f4;
 }
 
 // FUNCTION: CARMA2_HW 0x004fef40
