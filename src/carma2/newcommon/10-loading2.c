@@ -42,6 +42,8 @@
 #include "c2_string.h"
 #include "51-smash.h"
 
+#include <ctype.h>
+
 extern tCar_spec* gCurrent_car_spec;
 extern char gCurrent_load_name[256];
 extern char gCurrent_load_directory[256];
@@ -2463,6 +2465,26 @@ const char* gPivot_actor_names[6] = {
     "IRRPIVOT.ACT",
 };
 
+static void AddCarModelToList(br_model** models, br_model* model, int count_detail_levels, int crush_idx) {
+    int i;
+
+    if (crush_idx < 0) {
+        for (crush_idx = 0; crush_idx < count_detail_levels; crush_idx++) {
+            if (models[crush_idx] == NULL || models[crush_idx]->nvertices < model->nvertices) {
+                break;
+            }
+        }
+    }
+    if (crush_idx < count_detail_levels) {
+        if (models[crush_idx] != NULL && crush_idx < count_detail_levels - 1) {
+            for (i = crush_idx; i < count_detail_levels - 1; i++) {
+                models[i + 1] = models[i];
+            }
+        }
+        models[crush_idx] = model;
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -2640,9 +2662,53 @@ void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0048bfa0
+// FUNCTION: CARMA2_HW 0x0048bfa0
 intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData) {
-    NOT_IMPLEMENTED();
+    tCrush_model_pool* pool;
+    int len_actor_identifier;
+    int len_model_identifier;
+    tUser_crush_data* user_crush_data;
+    br_model* model;
+    int i;
+    int crush_idx;
+    const char* dot;
+
+    if (pActor == NULL || pActor->identifier == NULL) {
+        return 0;
+    }
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    pool = pData;
+    dot = strrchr(pActor->identifier, '.');
+    if (dot == NULL) {
+        len_actor_identifier = strlen(pActor->identifier);
+    } else {
+        len_actor_identifier = dot - pActor->identifier;
+    }
+    for (i = 0; i < pool->model_count; i++) {
+        model = pool->models[i];
+        if (model == NULL || model->identifier == NULL) {
+            continue;
+        }
+        dot = strrchr(model->identifier, '.');
+        if (dot == NULL) {
+            len_model_identifier = strlen(model->identifier);
+        } else {
+            len_model_identifier = dot - model->identifier;
+        }
+        if (len_actor_identifier != len_model_identifier
+            || strncmp(model->identifier, pActor->identifier, len_actor_identifier) != 0) {
+            continue;
+        }
+        if (dot != NULL && isdigit(dot[1])) {
+            crush_idx = dot[1] - '0';
+        } else {
+            crush_idx = -1;
+        }
+        AddCarModelToList(user_crush_data->models, model, pool->count_detail_levels, crush_idx);
+    }
     return 0;
 }
 
