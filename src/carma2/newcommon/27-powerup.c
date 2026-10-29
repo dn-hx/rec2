@@ -2356,9 +2356,141 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004211f0
+extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3);
+
+// FUNCTION: CARMA2_HW 0x004211f0
 tPhysicsError C2_HOOK_FASTCALL ProcessTetrahedronPolyhedronCollisionShape(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges) {
-    NOT_IMPLEMENTED();
+    int first_non_colinear;
+    int i;
+    br_vector3 tv2;
+    br_vector3 tv1;
+    br_scalar len;
+    double scale;
+
+    first_non_colinear = 0;
+    while (Collinear(&pPolyhedron->points[first_non_colinear + 0], &pPolyhedron->points[first_non_colinear + 1], &pPolyhedron->points[first_non_colinear + 2])) {
+        first_non_colinear++;
+        if (first_non_colinear == pPolyhedron->count_points - 3) {
+            return ePhysicsError_UnknownShapeType;
+        }
+    }
+
+    if (first_non_colinear != 0) {
+        pPolyhedron->points[0].v[0] = pPolyhedron->points[first_non_colinear + 0].v[0];
+        pPolyhedron->points[0].v[1] = pPolyhedron->points[first_non_colinear + 0].v[1];
+        pPolyhedron->points[0].v[2] = pPolyhedron->points[first_non_colinear + 0].v[2];
+        pPolyhedron->points[1].v[0] = pPolyhedron->points[first_non_colinear + 1].v[0];
+        pPolyhedron->points[1].v[1] = pPolyhedron->points[first_non_colinear + 1].v[1];
+        pPolyhedron->points[1].v[2] = pPolyhedron->points[first_non_colinear + 1].v[2];
+        pPolyhedron->points[2].v[0] = pPolyhedron->points[first_non_colinear + 2].v[0];
+        pPolyhedron->points[2].v[1] = pPolyhedron->points[first_non_colinear + 2].v[1];
+        pPolyhedron->points[2].v[2] = pPolyhedron->points[first_non_colinear + 2].v[2];
+    }
+    pPolyhedron->edges[0].index1 = 0;
+    pPolyhedron->edges[0].index2 = 1;
+    pPolyhedron->edges[1].index1 = 1;
+    pPolyhedron->edges[1].index2 = 2;
+    pPolyhedron->edges[2].index1 = 0;
+    pPolyhedron->edges[2].index2 = 2;
+
+    /* PlaneEquation */
+    tv1.v[0] = pPolyhedron->points[2].v[0] - pPolyhedron->points[1].v[0];
+    tv1.v[1] = pPolyhedron->points[2].v[1] - pPolyhedron->points[1].v[1];
+    tv1.v[2] = pPolyhedron->points[2].v[2] - pPolyhedron->points[1].v[2];
+    tv2.v[0] = pPolyhedron->points[1].v[0] - pPolyhedron->points[0].v[0];
+    tv2.v[1] = pPolyhedron->points[1].v[1] - pPolyhedron->points[0].v[1];
+    tv2.v[2] = pPolyhedron->points[1].v[2] - pPolyhedron->points[0].v[2];
+    pPolyhedron->planes[0].v[0] = tv2.v[1] * tv1.v[2] - tv2.v[2] * tv1.v[1];
+    pPolyhedron->planes[0].v[1] = tv2.v[2] * tv1.v[0] - tv2.v[0] * tv1.v[2];
+    pPolyhedron->planes[0].v[2] = tv2.v[0] * tv1.v[1] - tv2.v[1] * tv1.v[0];
+    len = BR_LENGTH3(pPolyhedron->planes[0].v[0], pPolyhedron->planes[0].v[1], pPolyhedron->planes[0].v[2]);
+    if (len > BR_SCALAR_EPSILON * 2) {
+        scale = 1.0 / len;
+        pPolyhedron->planes[0].v[0] = pPolyhedron->planes[0].v[0] * scale;
+        pPolyhedron->planes[0].v[1] = pPolyhedron->planes[0].v[1] * scale;
+        pPolyhedron->planes[0].v[2] = pPolyhedron->planes[0].v[2] * scale;
+    } else {
+        pPolyhedron->planes[0].v[0] = 1.0f;
+        pPolyhedron->planes[0].v[1] = 0.0f;
+        pPolyhedron->planes[0].v[2] = 0.0f;
+    }
+    pPolyhedron->planes[0].v[3] = -(pPolyhedron->planes[0].v[1] * pPolyhedron->points[0].v[1] + pPolyhedron->planes[0].v[2] * pPolyhedron->points[0].v[2] + pPolyhedron->planes[0].v[0] * pPolyhedron->points[0].v[0]);
+
+    pEdges[2].index1 = 0;
+    pEdges[1].index1 = 0;
+    pEdges[0].index1 = 0;
+
+    for (i = 0; i < pPolyhedron->count_points; i++) {
+
+        if ((float)fabs(pPolyhedron->planes[0].v[0] * pPolyhedron->points[i].v[0] + pPolyhedron->planes[0].v[1] * pPolyhedron->points[i].v[1] + pPolyhedron->planes[0].v[2] * pPolyhedron->points[i].v[2] + pPolyhedron->planes[0].v[3]) > 1e-6f) {
+            break;
+        }
+    }
+    if (i == pPolyhedron->count_points) {
+        return 7;
+    }
+    pPolyhedron->points[3].v[0] = pPolyhedron->points[i].v[0];
+    pPolyhedron->points[3].v[1] = pPolyhedron->points[i].v[1];
+    pPolyhedron->points[3].v[2] = pPolyhedron->points[i].v[2];
+    /* Points inside the polyhedron must have positive plane value */
+    if (pPolyhedron->planes[0].v[0] * pPolyhedron->points[i].v[0] + pPolyhedron->planes[0].v[1] * pPolyhedron->points[i].v[1] + pPolyhedron->planes[0].v[2] * pPolyhedron->points[i].v[2] + pPolyhedron->planes[0].v[3] < 1e-6f) {
+        pPolyhedron->planes[0].v[0] = -pPolyhedron->planes[0].v[0];
+        pPolyhedron->planes[0].v[1] = -pPolyhedron->planes[0].v[1];
+        pPolyhedron->planes[0].v[2] = -pPolyhedron->planes[0].v[2];
+        pPolyhedron->planes[0].v[3] = -pPolyhedron->planes[0].v[3];
+    }
+    for (i = 0; i < 3; i++) {
+        int o;
+        int o_i;
+
+        o = i + 1;
+        o_i = o % 3;
+
+        pPolyhedron->edges[3 + i].index1 = i;
+        pPolyhedron->edges[3 + i].index2 = 3;
+
+        /* PlaneEquation */
+        tv1.v[0] = pPolyhedron->points[3].v[0] - pPolyhedron->points[i].v[0];
+        tv1.v[1] = pPolyhedron->points[3].v[1] - pPolyhedron->points[i].v[1];
+        tv1.v[2] = pPolyhedron->points[3].v[2] - pPolyhedron->points[i].v[2];
+        tv2.v[0] = pPolyhedron->points[o_i].v[0] - pPolyhedron->points[i].v[0];
+        tv2.v[1] = pPolyhedron->points[o_i].v[1] - pPolyhedron->points[i].v[1];
+        tv2.v[2] = pPolyhedron->points[o_i].v[2] - pPolyhedron->points[i].v[2];
+        pPolyhedron->planes[o].v[0] = tv1.v[1] * tv2.v[2] - tv1.v[2] * tv2.v[1];
+        pPolyhedron->planes[o].v[1] = tv1.v[2] * tv2.v[0] - tv1.v[0] * tv2.v[2];
+        pPolyhedron->planes[o].v[2] = tv1.v[0] * tv2.v[1] - tv1.v[1] * tv2.v[0];
+        len = BR_LENGTH3(pPolyhedron->planes[o].v[0], pPolyhedron->planes[o].v[1], pPolyhedron->planes[o].v[2]);
+        if (len > BR_SCALAR_EPSILON * 2) {
+            scale = 1.0 / len;
+            pPolyhedron->planes[o].v[0] = pPolyhedron->planes[o].v[0] * scale;
+            pPolyhedron->planes[o].v[1] = pPolyhedron->planes[o].v[1] * scale;
+            pPolyhedron->planes[o].v[2] = pPolyhedron->planes[o].v[2] * scale;
+        } else {
+            pPolyhedron->planes[o].v[0] = 1.0f;
+            pPolyhedron->planes[o].v[1] = 0.0f;
+            pPolyhedron->planes[o].v[2] = 0.0f;
+        }
+        pPolyhedron->planes[o].v[3] = -(pPolyhedron->planes[o].v[1] * pPolyhedron->points[3].v[1] + pPolyhedron->planes[o].v[2] * pPolyhedron->points[3].v[2] + pPolyhedron->planes[o].v[0] * pPolyhedron->points[3].v[0]);
+
+        pEdges[i].index2 = o;
+        pEdges[3 + i].index1 = o;
+        pEdges[3 + i].index2 = 1 + (o + 1) % 3;
+    }
+
+    for (i = 0; i < 3; i++) {
+
+        if (pPolyhedron->planes[1 + i].v[0] * pPolyhedron->points[(2 + i) % 3].v[0] + pPolyhedron->planes[1 + i].v[1] * pPolyhedron->points[(2 + i) % 3].v[1] + pPolyhedron->planes[1 + i].v[2] * pPolyhedron->points[(2 + i) % 3].v[2] + pPolyhedron->planes[1 + i].v[3] < 1e-6f) {
+            pPolyhedron->planes[1 + i].v[0] = -pPolyhedron->planes[1 + i].v[0];
+            pPolyhedron->planes[1 + i].v[1] = -pPolyhedron->planes[1 + i].v[1];
+            pPolyhedron->planes[1 + i].v[2] = -pPolyhedron->planes[1 + i].v[2];
+            pPolyhedron->planes[1 + i].v[3] = -pPolyhedron->planes[1 + i].v[3];
+        }
+    }
+
+    pPolyhedron->count_points = 4;
+    pPolyhedron->count_planes = 4;
+    pPolyhedron->count_edges = 6;
+    return ePhysicsError_Ok;
 }
 
 // STUB: CARMA2_HW 0x00421790
