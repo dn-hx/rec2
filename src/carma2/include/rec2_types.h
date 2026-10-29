@@ -2856,7 +2856,7 @@ typedef struct tPath_node {
 } tPath_node;
 
 typedef struct tPath_section {
-    tU16 node_indices[2];
+    tS16 node_indices[2];
     tU8 min_speed[2];
     tU8 max_speed[2];
     br_scalar width;
