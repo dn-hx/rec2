@@ -31,9 +31,41 @@ void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount) {
 
 // MakeSavedGame
 
-// STUB: CARMA2_HW 0x00491ac0
+/* local declaration instead of including globvrpb.h here */
+extern tNet_mode gNet_mode;
+extern void C2_HOOK_FASTCALL MakeSavedGame(tSave_game* pSave_game);
+
+// based on ApexWorm/rec2 ea07b3121
+// FUNCTION: CARMA2_HW 0x00491ac0
 void C2_HOOK_FASTCALL DoSaveGame(void) {
-    NOT_IMPLEMENTED();
+    tPath_name the_path;
+    tSave_game save_game;
+    FILE* f;
+    int i;
+
+    C2_HOOK_BUG_ON(sizeof(tSave_game) != 0x328);
+
+    if (gNet_mode != eNet_mode_none) {
+        return;
+    }
+    PathCat(the_path, gApplication_path, "SAVEDGAMES.ARS");
+    PDFileUnlock(the_path);
+    f = DRfopen(the_path, "ab+");
+    if (f == NULL) {
+        return;
+    }
+    PFfseek(f, 0, SEEK_END);
+    for (i = 0; i < 3; i++) {
+        gCurrent_APO_potential_levels[i] = gProgram_state.current_car.power_up_slots[i];
+    }
+    for (i = 0; i < 3; i++) {
+        gCurrent_APO_levels[i] = gProgram_state.current_car.power_up_levels[i];
+    }
+    MakeSavedGame(&save_game);
+    Encryptificate(&save_game, 1);
+    PFfwrite(&save_game, 1, sizeof(save_game), f);
+    PFfclose(f);
+    gSave_game_out_of_sync = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00491bb0
@@ -131,3 +163,14 @@ void C2_HOOK_FASTCALL DoLoadMostRecentGame(void) {
     }
 }
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004919a0
+void C2_HOOK_FASTCALL MakeSavedGame(tSave_game* pSave_game) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
