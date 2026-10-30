@@ -8,16 +8,16 @@ When enough functions have been replaced, it should become possible to not need 
 
 ## Status
 
-Status of this fork's `workv3` branch (2026-10-29, `reccmp`, `CARMA2_HW.EXE`):
+Status of this fork's `workv3` branch (2026-10-30, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
-| Functions implemented | 3538 / 5162 (68.54%) |
-| Functions at exactly 100% similar | 2680 |
-| Accuracy | 90.58% |
-| Progress | 62.08% |
+| Functions implemented | 3574 / 5162 (69.24%) |
+| Functions at exactly 100% similar | 2711 |
+| Accuracy | 90.67% |
+| Progress | 62.78% |
 
-Functions below 100% are not counted as exact. Most best attempts are kept out of the tree until they match; a few runtime-faithful partials (InitPowerups, LoadPowerups, UpdateCollisionObject, LoadPanGameDroneInfo, InitDepthEffects, ReadPowerupSmash, ReadShrapnelSpec, ReadSpillData, InitPolyPedSystem, InitBoner, ReadPedGiblets, InitNapalmNolts, NetPlayerStatusChanged, PlaySmackerFile, FRONTEND_Setup, FRONTEND_GenericMenuHandler, CheckSystemKeys, FRONTEND_DrawMenu, DoMouseCursor, Generic_MenuHandler, Controls_SlotActivated, WrecksUpdateFunc, OrthogonalVector, DRMatrix34RotateCos, PipeSingleSmashRemoveFaces, RepairSmash and the front-end menu procedures) are kept in for runtime milestones.
+Functions below 100% are not counted as exact. Most best attempts are kept out of the tree until they match; a few runtime-faithful partials (InitPowerups, LoadPowerups, UpdateCollisionObject, LoadPanGameDroneInfo, InitDepthEffects, ReadPowerupSmash, ReadShrapnelSpec, ReadSpillData, InitPolyPedSystem, InitBoner, ReadPedGiblets, InitNapalmNolts, NetPlayerStatusChanged, PlaySmackerFile, FRONTEND_Setup, FRONTEND_GenericMenuHandler, CheckSystemKeys, FRONTEND_DrawMenu, DoMouseCursor, Generic_MenuHandler, Controls_SlotActivated, WrecksUpdateFunc, OrthogonalVector, DRMatrix34RotateCos, PipeSingleSmashRemoveFaces, RepairSmash, AddPolyhedronCollisionShapePlanes, NetSendMessageToAllPlayers and the front-end menu procedures) are kept in for runtime milestones.
 
 ## Requirements
 
