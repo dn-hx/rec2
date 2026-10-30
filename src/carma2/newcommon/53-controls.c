@@ -443,9 +443,115 @@ int C2_HOOK_FASTCALL CheckRecoverCost(void) {
 
 // SetFlipUpCar
 
-// AlignChildren
+// based on carpocalypse2 src/carma2/common/controls.c:2143 and upstream controls.c (reference only)
+extern void C2_HOOK_FASTCALL FadePaletteDown(void);
+extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
+extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
+extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
+extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 
-// FlipUpCar
+static void AlignChildren(tPhysics_object* pCollision_info) {
+    tPhysics_object* child;
+    int i;
+    int j;
+
+    for (child = pCollision_info->child; child != NULL; child = child->next) {
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                child->transform_matrix.m[i][j] = pCollision_info->transform_matrix.m[i][j];
+            }
+        }
+        BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
+        FlipUpCollisionInfo(child);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004429b0
+void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
+    int new_pos;
+    int i;
+    int j;
+    int k;
+    br_scalar t;
+    br_material* mat;
+    br_vector3 nor;
+    br_vector3 p;
+    br_vector3 dir;
+
+    if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human && gNet_mode == eNet_mode_none) {
+        FadePaletteDown();
+        while (KeyIsDown(0x3c)) {
+        }
+    }
+
+    if (pCar_spec->car_crush_spec != NULL && pCar_spec->car_crush_spec->field_0x4b8) {
+        WeldCar(pCar_spec);
+    }
+    SetCollisionInfoChildsDoNothing(pCar_spec->collision_info, 0);
+    EnableCar(pCar_spec);
+
+    new_pos = 1;
+    for (k = 0; k < 4; k++) {
+        if (pCar_spec->oldd[k] >= pCar_spec->susp_height[k >> 1]) {
+            new_pos = 0;
+        }
+    }
+    i = 0;
+    do {
+        BrVector3Sub(&nor, &pCar_spec->car_master_actor->t.t.translate.t, (br_vector3*)pCar_spec->last_safe_positions[0].m[3]);
+        if (BrVector3LengthSquared(&nor) > 8.3015966f) {
+            new_pos = 0;
+        }
+        BrMatrix34Copy(&pCar_spec->car_master_actor->t.t.mat, &pCar_spec->last_safe_positions[new_pos]);
+        BrMatrix34Copy(&pCar_spec->collision_info->transform_matrix, &pCar_spec->last_safe_positions[new_pos]);
+        BrMatrix34Copy(&pCar_spec->old_frame_mat, &pCar_spec->last_safe_positions[new_pos]);
+        BrVector3Set(&dir, 0.f, 0.28985506f, 0.f);
+        FindFace(&pCar_spec->car_master_actor->t.t.translate.t, &dir, &nor, &t, &mat);
+        if (t > 1.f) {
+            BrVector3Accumulate(&pCar_spec->car_master_actor->t.t.translate.t, &dir);
+            BrVector3Copy((br_vector3*)pCar_spec->collision_info->transform_matrix.m[3], &pCar_spec->car_master_actor->t.t.translate.t);
+            BrVector3Copy((br_vector3*)pCar_spec->old_frame_mat.m[3], &pCar_spec->car_master_actor->t.t.translate.t);
+        }
+        BrVector3Set(&nor, 0.f, 0.f, -0.0002f);
+        BrMatrix34ApplyV(&pCar_spec->collision_info->v, &nor, &pCar_spec->car_master_actor->t.t.mat);
+        BrVector3Set(&pCar_spec->collision_info->omega, 0.f, 0.f, 0.f);
+        BrVector3Negate(&pCar_spec->direction, (br_vector3*)pCar_spec->collision_info->transform_matrix.m[2]);
+
+        for (j = 0; j <= new_pos; j++) {
+            for (k = 0; k < REC2_ASIZE(pCar_spec->last_safe_positions) - 1; k++) {
+                BrMatrix34Copy(&pCar_spec->last_safe_positions[k], &pCar_spec->last_safe_positions[k + 1]);
+            }
+        }
+        AlignChildren(pCar_spec->collision_info);
+        PositionChildren(pCar_spec->collision_info);
+        for (j = 0; !TestForCarInSensiblePlace(pCar_spec, &p) && j < 10; j++) {
+            BrVector3InvScale(&p, &p, 2.f * WORLD_SCALE);
+            BrVector3Accumulate(&pCar_spec->car_master_actor->t.t.translate.t, &p);
+            BrVector3Copy((br_vector3*)pCar_spec->collision_info->transform_matrix.m[3], &pCar_spec->car_master_actor->t.t.translate.t);
+            BrVector3Copy((br_vector3*)pCar_spec->old_frame_mat.m[3], &pCar_spec->car_master_actor->t.t.translate.t);
+        }
+        i++;
+    } while (j == 10 && i < 3);
+    BrVector3Copy((br_vector3*)pCar_spec->collision_info->transform_matrix.m[3],
+        &pCar_spec->car_master_actor->t.t.translate.t);
+    pCar_spec->curvature = 0.f;
+    for (i = 0; i < REC2_ASIZE(pCar_spec->oldd); i++) {
+        pCar_spec->oldd[i] = pCar_spec->ride_height;
+    }
+    pCar_spec->revs = 0.f;
+    pCar_spec->gear = 0.f;
+    pCar_spec->collision_info->auto_special_volume = NULL;
+    if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human) {
+        InitialiseExternalCamera();
+        PositionExternalCamera(pCar_spec, 100);
+    }
+}
 
 extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
 
@@ -1089,6 +1195,17 @@ void C2_HOOK_FASTCALL CheckKevKeys(void) {
 #endif
 // STUB: CARMA2_HW 0x004391d0
 void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00442e10
+void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

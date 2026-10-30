@@ -1363,7 +1363,26 @@ tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry) {
     }
 }
 
-// Colour24BitTo16Bit
+// based on carpocalypse2 src/carma2/common/utility.c:281 (reference only)
+// FUNCTION: CARMA2_HW 0x00517050
+tU16 C2_HOOK_FASTCALL Colour24BitTo16Bit(br_colour pColour) {
+    tU32 colour;
+
+    switch (gBack_screen->type) {
+    case BR_PMT_RGB_555:
+        colour = (pColour >> 3) & 0x1f0000;
+        colour |= pColour & 0xf800;
+        colour = (colour >> 3) | (pColour & 0xf8);
+        return (tU16)(colour >> 3);
+    case BR_PMT_RGB_565:
+        colour = (pColour >> 3) & 0x1f0000;
+        colour |= pColour & 0xfc00;
+        colour = (colour >> 2) | (pColour & 0xf8);
+        return (tU16)(colour >> 3);
+    default:
+        BrFailure("Unsupported back buffer type.");
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x005170c0
 br_pixelmap* C2_HOOK_FASTCALL PaletteOf16Bits(br_pixelmap* pSrc) {

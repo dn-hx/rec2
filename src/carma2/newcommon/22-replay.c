@@ -119,7 +119,37 @@ void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
     }
 }
 
-// InitializeActionReplayPix
+// GLOBAL: CARMA2_HW 0x0065fbb0
+const char* gReplay_pixie_names[11] = {
+    "REPLAY.PIX",
+    "RBUTTONS.PIX",
+    "REWSTART.PIX",
+    "REW.PIX",
+    "REVPLAY.PIX",
+    "PAUSE.PIX",
+    "PLAY.PIX",
+    "FFWD.PIX",
+    "FWDEND.PIX",
+    "CAMERA.PIX",
+    "RECORD.PIX",
+};
+
+// GLOBAL: CARMA2_HW 0x006a2388
+br_pixelmap* gReplay_pixelmaps[11];
+
+// based on carpocalypse2 src/carma2/common/replay.c:477 (reference only)
+extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
+
+// FUNCTION: CARMA2_HW 0x004e7090
+void C2_HOOK_FASTCALL InitializeActionReplayPix(void) {
+    int i;
+
+    for (i = 0; i < 11; i++) {
+        gReplay_pixelmaps[i] = LoadPixelmap(gReplay_pixie_names[i]);
+        BRPM_convert(gReplay_pixelmaps[i], gBack_screen->type);
+        BrMapAdd(gReplay_pixelmaps[i]);
+    }
+}
 
 // FreeActionReplayPix
 

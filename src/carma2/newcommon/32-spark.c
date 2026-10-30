@@ -60,6 +60,9 @@ br_pixelmap* gFlame_map[20] = { 0 };
 // GLOBAL: CARMA2_HW 0x006a8688
 tU8 gUNK_006a8688[0x90] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x006aa580
+int gShrapnel_index;
+
 // GLOBAL: CARMA2_HW 0x006aa584
 int gShrapnel_flags;
 
@@ -226,7 +229,87 @@ void C2_HOOK_FASTCALL ResetShrapnel(void) {
 
 // CreateShrapnelShowerWorld
 
-// CreateShrapnelShower
+// based on carpocalypse2 src/carma2/common/spark.c:3675 (reference only)
+extern int gPHIL_mechanics_time_sync;
+
+// FUNCTION: CARMA2_HW 0x004f8800
+void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar7;
+    float fVar8;
+    float fVar9;
+    float fVar10;
+    int shrapnel_count;
+    int material_index;
+    tCar_spec* selected_car;
+    br_vector3 random_vector;
+    br_vector3 scaled_direction;
+    br_vector3 velocity;
+
+    if (pStrength < 10.0f) {
+        return;
+    }
+    if (pMaterials != NULL) {
+        fVar8 = 0.7f;
+    } else {
+        fVar8 = 0.3f;
+    }
+    if (pVelocity->v[1] < 0.0f) {
+        fVar8 -= pVelocity->v[1];
+    }
+    fVar9 = pDirection->v[1] * fVar8;
+    fVar1 = pDirection->v[2];
+    fVar2 = pDirection->v[0];
+    fVar3 = pVelocity->v[0];
+    fVar4 = pVelocity->v[2];
+    fVar8 = (fVar8 + pVelocity->v[1]) - pDirection->v[1] * fVar9;
+    BrVector3Set(&velocity, fVar3 - fVar2 * fVar9, fVar8, fVar4 - fVar1 * fVar9);
+    shrapnel_count = (int)(pStrength * 0.1f);
+    shrapnel_count *= 12;
+    if (shrapnel_count > 20) {
+        shrapnel_count = 20;
+    }
+    fVar10 = pStrength - -20.0f;
+    fVar10 *= 3.0f;
+    fVar10 *= 0.005f;
+    if (shrapnel_count > 0) {
+        do {
+            if (((1 << gShrapnel_index) & gShrapnel_flags) == 0) {
+                BrActorAdd(gNon_track_actor, gShrapnel[gShrapnel_index].actor);
+            }
+            gShrapnel_flags |= 1 << gShrapnel_index;
+            BrVector3Copy(&gShrapnel[gShrapnel_index].actor->t.t.translate.t, pPosition);
+            BrVector3SetFloat(&random_vector, FRandomBetween(-fVar10, fVar10), FRandomBetween((float)(0.3 - fVar8), fVar10), FRandomBetween(-fVar10, fVar10));
+            fVar7 = BrVector3Dot(pDirection, &random_vector);
+            BrVector3Scale(&scaled_direction, pDirection, fVar7);
+            BrVector3Sub(&gShrapnel[gShrapnel_index].v, &random_vector, &scaled_direction);
+            BrVector3Accumulate(&gShrapnel[gShrapnel_index].v, &velocity);
+            gShrapnel[gShrapnel_index].time_sync = gPHIL_mechanics_time_sync;
+            gShrapnel[gShrapnel_index].age = 0;
+            if (pMaterials != NULL) {
+                material_index = IRandomBetween(0, pMaterialCount - 1);
+                gShrapnel[gShrapnel_index].actor->material = pMaterials[material_index];
+            } else if (IRandomBetween(0, 2) != 0) {
+                selected_car = pCar1;
+                if (IRandomBetween(0, 1) == 0) {
+                    selected_car = pCar2;
+                }
+                material_index = IRandomBetween(0, selected_car->count_shrapnel_materials - 1);
+                gShrapnel[gShrapnel_index].actor->material = selected_car->shrapnel_materials[material_index];
+            } else {
+                gShrapnel[gShrapnel_index].actor->material = gBlack_material;
+            }
+            gShrapnel_index += 1;
+            if (gShrapnel_index >= 30) {
+                gShrapnel_index = 0;
+            }
+            shrapnel_count--;
+        } while (shrapnel_count != 0);
+    }
+}
 
 // random
 

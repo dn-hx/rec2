@@ -309,7 +309,91 @@ void C2_HOOK_FASTCALL SetIntegerMapRenders(void) {
 }
 // OppositeColour
 
-// DrawArrow
+// GLOBAL: CARMA2_HW 0x006593a0
+const int gArrows[2][4][60] = {
+    {
+        // inner arrow (=fill)
+        { 10,  0,  0, -1,  0,  1,  0,  0, -1,  0, -2,  0,  1, -1,  1,  1,  1, -2,  2,  2,  2, },
+        { 11,  0,  0, -1,  0,  1,  0,  0, -1,  1, -1,  1, -2, -2,  1, -1,  1,  0,  1,  1,  1,  1,  2, },
+        {  9,  0,  0, -2,  0, -1,  0,  1,  0,  0, -1,  1, -1,  2, -2,  0,  1,  0,  2, },
+        { 11,  0,  0, -1,  0,  1,  0, -2, -1, -1, -1,  0, -1,  1, -1,  2, -1, -1,  1,  0,  1, -1,  2, },
+    },
+    {
+        // outer arrow (=border)
+        { 26,  1, -3,  1, -2,  1, -1,  2, -1,  2,  0,  2,  1,  3,  1,  3,  2,  3,  3,  2,  3,  1,  3,  1,  2,  0,  2, -1,  2,
+          -1,  3, -2,  3, -3,  3, -3,  2, -3,  1, -2,  1, -2,  0, -2, -1, -1, -1, -1, -2, -1, -3,  0, -3, },
+        { 22,  0, -3,  1, -3,  2, -3,  2, -2,  2, -1,  2,  0,  2,  1,  2,  2,  2,  3,  1,  3,  0,  3,  0,  2, -1,  2, -2,  2,
+          -3,  2, -3,  1, -3,  0, -2,  0, -2, -1, -1, -1, -1, -2,  0, -2, },
+        { 24,  1, -3,  2, -3,  3, -3,  3, -2,  3, -1,  2, -1,  2,  0,  2,  1,  1,  1,  1,  2,  1,  3,  0,  3, -1,  3, -1,  2,
+          -1,  1, -2,  1, -3,  1, -3,  0, -3, -1, -2, -1, -1, -1, -1, -2,  0, -2,  1, -2, },
+        { 22, -3, -2, -2, -2, -1, -2,  0, -2,  1, -2,  2, -2,  3, -2,  3, -1,  3,  0,  2,  0,  2,  1,  1,  1,  1,  2,  0,  2,
+           0,  3, -1,  3, -2,  3, -2,  2, -2,  1, -2,  0, -3,  0, -3, -1, },
+    },
+};
+
+// based on carpocalypse2 src/carma2/common/graphics.c:1327 (reference only)
+extern tU16 C2_HOOK_FASTCALL Colour24BitTo16Bit(br_colour pColour);
+
+// FUNCTION: CARMA2_HW 0x00495a00
+// STUB: CARMA2_SW 0x00492400
+void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, const br_vector3* pPos, br_uint_32 pColour) {
+    int colours[2];
+    int colour;
+    int x;
+    int y;
+    int temp;
+    int point_count;
+    const int* arrow_ptr;
+    int i;
+    int j;
+
+    if (pColour == 0xffffffff) {
+        colours[0] = 0;
+        colours[1] = 0x84;
+    } else {
+        colours[0] = pColour;
+        if ((int)pColour < 0xe0) {
+            if ((int)(pColour & 0x7) < 4) {
+                colours[1] = 0xff;
+            } else {
+                colours[1] = 0;
+            }
+        } else {
+            if ((int)(pColour & 0xf) < 8) {
+                colours[1] = 0xff;
+            } else {
+                colours[1] = 0;
+            }
+        }
+    }
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        colours[0] = PaletteEntry16Bit(gRender_palette, colours[0]);
+        colours[1] = PaletteEntry16Bit(gRender_palette, colours[1]);
+        if (pColour == 0xffffffff) {
+            colours[1] = Colour24BitTo16Bit(0xff00ff);
+        }
+    }
+    for (i = 0; i < 2; i++) {
+        arrow_ptr = &gArrows[i][pArrow_index & 0x3][0];
+        point_count = *arrow_ptr++;
+        for (j = 0; j < point_count; j++) {
+            colour = colours[i];
+            if (pArrow_index & 0x8) {
+                x = -*arrow_ptr++;
+                y = -*arrow_ptr++;
+            } else {
+                x = *arrow_ptr++;
+                y = *arrow_ptr++;
+            }
+            if (pArrow_index & 0x4) {
+                temp = x;
+                x = -y;
+                y = temp;
+            }
+            BrPixelmapPixelSet(pScreen, (int)(pPos->v[0] + x), (int)(pPos->v[1] + y), colour);
+        }
+    }
+}
 
 // DrawMapBlip
 
