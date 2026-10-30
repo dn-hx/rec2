@@ -14,6 +14,7 @@
 #include <string.h>
 
 extern tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tOpponent_spec* pOpponent_spec, br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance);
+extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle);
 
 // GLOBAL: CARMA2_HW 0x0065a3c4
 // GLOBAL: CARMA2_SW 0x00654cdc
