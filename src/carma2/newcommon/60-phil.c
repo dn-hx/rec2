@@ -680,7 +680,105 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
 
 // PHILInterpolateObjects
 
-// PHILDoPhysics
+// GLOBAL: CARMA2_HW 0x006923e8
+tPhysics_callbacks* gPHIL_callbacks;
+
+// GLOBAL: CARMA2_HW 0x006923ec
+tPhysics_object* gPHIL_queued_objects_for_removal[1];
+
+// GLOBAL: CARMA2_HW 0x0074a5f4
+int gOver_shoot;
+
+extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: PHILMungeObjects
+void C2_HOOK_FASTCALL PHILMungeObjects(tPhysics_object* pObjects) { NOT_IMPLEMENTED(); }
+// STUB: PHILInterpolateObjects
+void C2_HOOK_FASTCALL PHILInterpolateObjects(tPhysics_object* pObjects, tU32 pTime) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x004b71b0
+void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject) { NOT_IMPLEMENTED(); }
+// STUB: FlushQueuedAddsAndRemoves
+void C2_HOOK_FASTCALL FlushQueuedAddsAndRemoves(void) { NOT_IMPLEMENTED(); }
+// STUB: ChangedObjectsCallbacks
+void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysics_callbacks* pCallbacks, tU32 pPeriod) { NOT_IMPLEMENTED(); }
+// STUB: RepositionObjectGroup
+void C2_HOOK_FAKE_THISCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt) { NOT_IMPLEMENTED(); }
+// STUB: DoCollisions
+void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callbacks* pWorld_callbacks) { NOT_IMPLEMENTED(); }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/physics.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004b6630
+void C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period) {
+    tU32 now;
+    int iteration;
+
+    iteration = 0;
+    if (gPHIL_disabled) {
+        return;
+    }
+    now = pLast_tick_time + pFrame_period;
+    gPHIL_original_activate_passive = pCallbacks->world_callbacks->activate_passive;
+    pCallbacks->world_callbacks->activate_passive = PHILActivatePassive;
+    gPHIL_callbacks = pCallbacks;
+    if (gPHIL_last_physics_tick < pLast_tick_time) {
+        gPHIL_last_physics_tick = 40 * (pLast_tick_time / 40);
+    }
+    if (now <= gPHIL_last_physics_tick) {
+        ResetObjectList(gPHIL_list_collision_infos);
+        PHILInterpolateObjects(gPHIL_list_collision_infos, now);
+    } else {
+        gCrush_deferred = 1;
+        gPHIL_mechanics_time_sync = now - gPHIL_last_physics_tick;
+        while (gPHIL_last_physics_tick < now && iteration < 5) {
+
+            iteration += 1;
+            if (pCallbacks->pre_collision != NULL) {
+                pCallbacks->pre_collision();
+            }
+            PHILMungeObjects(gPHIL_list_collision_infos);
+            gPHIL_munging_objects = 1;
+            if (gPHIL_list_collision_infos != NULL) {
+                DoCollisions(&gPHIL_list_collision_infos, pCallbacks->world_callbacks);
+            }
+            gPHIL_munging_objects = 0;
+            if (pCallbacks->post_collision != NULL) {
+                pCallbacks->post_collision();
+            }
+            FlushQueuedAddsAndRemoves();
+            gPHIL_last_physics_tick += 40;
+            gPHIL_mechanics_time_sync -= 40;
+            pLast_tick_time = gPHIL_mechanics_time_sync;
+        }
+        {
+            tPhysics_object* object;
+            float dt;
+
+            dt = (gPHIL_last_physics_tick - now) * 0.001;
+            if (!(dt <= .04 && dt >= .0f)) {
+                dt = .0f;
+            }
+            gOver_shoot = dt > .0f;
+            for (object = gPHIL_list_collision_infos; object != NULL; object = object->next) {
+                tPHIL_queued_object_info* object_info;
+
+                object_info = object->field_0x240;
+                if (object_info != NULL && object_info->field_0x8 == 2) {
+                    RepositionObjectGroup(object, -dt);
+                }
+            }
+        }
+        ChangedObjectsCallbacks(gPHIL_list_collision_infos, pCallbacks, pFrame_period);
+        gPHIL_mechanics_time_sync = 1;
+        gCrush_deferred = 0;
+    }
+    pCallbacks->world_callbacks->activate_passive = gPHIL_original_activate_passive;
+}
 
 // PHILApplyPHILObject
 

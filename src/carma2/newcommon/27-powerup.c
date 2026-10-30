@@ -214,7 +214,10 @@ void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_i
 
 // LosePowerupX
 
-// LosePowerup
+/* inlined into DoPowerupPeriodics in the original */
+static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
+    (void)pPowerup;
+}
 
 // LoseKeyboardPowerupN
 
@@ -245,7 +248,10 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
 #pragma auto_inline(on)
 #endif
 
-// AutoGoody
+/* inlined into DoPowerupPeriodics in the original */
+static void C2_HOOK_FASTCALL AutoGoody(tU32 pTime) {
+    (void)pTime;
+}
 
 // GotPowerup
 
@@ -1320,9 +1326,37 @@ void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
     DrawKeyPowerups(pTime);
 }
 
-// MungeKeyboardPowerup
+/* inlined into DoPowerupPeriodics in the original */
+static void C2_HOOK_FASTCALL MungeKeyboardPowerup(void) {
+}
 
-// DoPowerupPeriodics
+extern void C2_HOOK_FASTCALL PeriodicCloaking(void);
+
+// based on carpocalypse2 src/carma2/common/powerups.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004db1c0
+void C2_HOOK_FASTCALL DoPowerupPeriodics(tU32 pFrame_period) {
+    tU32 the_time;
+    int i;
+
+    the_time = GetTotalTime();
+    AutoGoody(the_time);
+    PeriodicCloaking();
+    for (i = 0; i < gNumber_of_powerups; i++) {
+        tPowerup* powerup;
+
+        powerup = &gPowerup_array[i];
+        if (powerup->got_time != 0) {
+            if (powerup->type == ePowerup_timed && the_time >= powerup->lose_time && powerup->initial_value == 0) {
+                LosePowerup(powerup);
+            } else if (powerup->current_value == 0 && powerup->initial_value == 0) {
+                LosePowerup(powerup);
+            } else if (powerup->periodic_proc != NULL) {
+                powerup->periodic_proc(powerup, pFrame_period);
+            }
+        }
+    }
+    MungeKeyboardPowerup();
+}
 
 /* inlined into MungePowerupStuff in the original (no standalone copy) */
 static void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {

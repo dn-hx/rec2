@@ -278,7 +278,182 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int i) {
 }
 // DrVector3RotateY
 
-// GeneralisedPositionExternalCamera
+// GLOBAL: CARMA2_HW 0x006792e0
+br_angle gOld_yaw__car;
+
+// GLOBAL: CARMA2_HW 0x006792e4
+br_angle gOld_zoom;
+
+// GLOBAL: CARMA2_HW 0x006792e8
+br_vector3 gCamera_pos_before_collide;
+
+// GLOBAL: CARMA2_HW 0x006792f4
+undefined2 gUNK_006792f4;
+
+// GLOBAL: CARMA2_HW 0x006792f8
+int gUNK_006792f8;
+
+extern tCamera_key_flags gCamera_key_flags;
+extern int gCamera_mode;
+extern int gCamera_has_collided;
+extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
+extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
+static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: DoCameraControls
+void C2_HOOK_FASTCALL DoCameraControls(tCamera_key_flags* pCamera_controls, tU32 pTime_difference) { NOT_IMPLEMENTED(); }
+// STUB: MoveWithWheels
+void C2_HOOK_FASTCALL MoveWithWheels(tCar_spec* pCar, br_vector3* pDir, int pManual_swing) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x00411980
+void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x00411fc0
+void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) { NOT_IMPLEMENTED(); }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/car.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x00410c60
+void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matrix34* pMat, br_vector3* pPos, float pSpeed, float pSpeedo_speed, br_vector3* pDirection, br_vector3* pOmega, tU32 pTime_difference) {
+    br_vector3 old_camera_pos;
+    br_matrix34* m1;
+    int swoop;
+
+    m1 = &gCamera->t.t.mat;
+    swoop = gCountdown && gCamera_height > pPos->v[1] + 0.001f;
+    BrVector3Copy(&old_camera_pos, &gCamera->t.t.translate.t);
+    if (!gProgram_state.cockpit_on) {
+        int manual_swing;
+        float d;
+        float l;
+        float height_inc;
+        float time;
+
+        DoCameraControls(&gCamera_key_flags, pTime_difference);
+        manual_swing = gCamera_key_flags.field_0x0_bit4 || gCamera_key_flags.field_0x0_bit3 || swoop;
+        if (swoop) {
+            gCamera_yaw = 0;
+        }
+        if (fabs(pSpeedo_speed) > 0.0006f && gCamera_mode > 0) {
+            gCamera_mode = -1;
+            if (gAction_replay_camera_mode == kActionReplayCameraMode_Standard) {
+                gCamera_sign = 0;
+            } else if (BrVector3Dot((br_vector3*)pMat->m[2], pDirection) <= 0.f) {
+                gCamera_sign = 0;
+            } else {
+                gCamera_sign = 1;
+            }
+        }
+        if (pCar != NULL && pCar->frame_collision_flag && gCamera_mode != -2
+                && (!gAction_replay_mode || ARReplayForwards())) {
+            gCamera_mode = 1;
+        }
+        if (gCar_flying || gCamera_reset
+                || gCamera_mode == -2 || gAction_replay_camera_mode == kActionReplayCameraMode_Rigid) {
+            gCamera_mode = 0;
+        }
+        d = sqrt(gCamera_zoom) + 4.f / WORLD_SCALE;
+        if (!gCamera_mode || gCamera_mode == -1) {
+            br_vector3 vn;
+            br_vector3 a;
+
+            if (gAction_replay_camera_mode == kActionReplayCameraMode_Rigid) {
+                BrVector3Negate(&vn, (br_vector3 *) pMat->m[2]);
+            } else {
+                BrVector3Copy(&vn, pDirection);
+            }
+            MoveWithWheels(pCar, &vn, manual_swing);
+            vn.v[1] = 0.0f;
+            BrVector3Normalise(&vn, &vn);
+            vn.v[1] = 0.0f;
+            if (gCar_flying || gAction_replay_camera_mode == kActionReplayCameraMode_Rigid) {
+                gCamera_sign = 0;
+            }
+            if (!gAction_replay_mode || !ARReplayIsReallyPaused()) {
+                SwingCamera(pMat, m1, &vn, pOmega, pSpeed, pSpeedo_speed, pTime_difference, pCar);
+            } else {
+                SwingCamera(pMat, m1, &vn, pOmega, pSpeed, pSpeedo_speed, 0, pCar);
+            }
+            BrVector3Scale(&a, &vn, d);
+            BrVector3Sub(&gCamera->t.t.translate.t, pPos, &a);
+            BrVector3Copy(&gView_direction, &vn);
+        } else {
+            gUNK_006792f4 = 0;
+            gUNK_006792f8 = 0;
+        }
+        if (gCamera_mode == 1) {
+            br_vector3 vn;
+            br_vector3 a;
+            br_scalar dist;
+            br_scalar l;
+
+            BrVector3Sub(&a, pPos, &old_camera_pos);
+            BrVector3Copy(&old_camera_pos, &gCamera_pos_before_collide);
+            a.v[1] = 0.0f;
+            if (manual_swing) {
+                DrVector3RotateY(&a, (gCamera_sign == 0 ? 1 : -1) * (gCamera_yaw - gOld_yaw__car));
+                gCamera_yaw = gOld_yaw__car;
+            }
+            BrVector3Normalise(&vn, &a);
+            if (gAction_replay_camera_mode != kActionReplayCameraMode_Standard || manual_swing
+                    || BrVector3Dot((br_vector3*)pMat->m[2], &vn) < BrVector3Dot((br_vector3*)pMat->m[2], &gView_direction)) {
+                BrVector3Copy(&gView_direction, &vn);
+            }
+            BrVector3Scale(&vn, &vn, -d);
+            BrVector3Accumulate(&a, &vn);
+            dist = BrVector3Length(&a);
+            l = (float)pTime_difference / 1000.0f * (dist + 1.0f) / dist;
+            if (gAction_replay_camera_mode != kActionReplayCameraMode_Standard
+                    && l < 1.0f && BrVector3Dot(&a, &vn) > 0.0f) {
+                BrVector3Scale(&a, &a, l - 1.f);
+                BrVector3Accumulate(&vn, &a);
+            }
+            BrVector3Add(&gCamera->t.t.translate.t, pPos, &vn);
+        }
+
+        height_inc = gCamera_zoom * gCamera_zoom + 0.3f;
+        time = pTime_difference / 1000.f;
+        if (!gCamera_frozen && (!gAction_replay_mode || !ARReplayIsReallyPaused())) {
+            if (pTime_difference >= 5000) {
+                gCamera_height = pPos->v[1];
+            } else if (swoop) {
+                if (time > 0.2f) {
+                    time = 0.2f;
+                }
+                gCamera_height -= 5.0f * time;
+                if (gCamera_height < pPos->v[1]) {
+                    gCamera_height = pPos->v[1];
+                }
+            } else {
+                gCamera_height += 5.0f * time * pPos->v[1];
+                gCamera_height /= 5.0f * time + 1.0f;
+            }
+        }
+        l = pDirection->v[1] * d;
+        if (l > 0) {
+            br_scalar new_height = pPos->v[1] - l - height_inc / 2.0f;
+            if (new_height > gCamera_height) {
+                gCamera_height = new_height;
+            }
+        }
+
+        gCamera->t.t.translate.t.v[1] = height_inc + gCamera_height;
+        BrVector3Copy(&gCamera_pos_before_collide, &gCamera->t.t.translate.t);
+        CollideCameraWithOtherCars(pPos, &gCamera->t.t.translate.t);
+        CollideCamera2(pPos, &gCamera->t.t.translate.t, &old_camera_pos,
+            manual_swing || gCamera_key_flags.field_0x0_bit1 || gCamera_key_flags.field_0x0_bit2, pCar != NULL ? pCar->collision_info : NULL);
+        if (gCamera_has_collided && swoop) {
+            gCamera_height = pPos->v[1];
+        }
+        PointCameraAtCar(pPos, m1, 1.f);
+    }
+    gOld_yaw__car = gCamera_yaw;
+    gOld_zoom = (int)gCamera_zoom;
+}
 
 // NormalPositionExternalCamera
 

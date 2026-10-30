@@ -428,10 +428,6 @@ tS16 C2_HOOK_FASTCALL FindNearestPathSection(br_vector3* pActor_coords, br_vecto
 void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec) {
 }
 
-// STUB: not implemented yet
-tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle) {
-    return eFPR_OK;
-}
 
 // STUB: not implemented yet
 int C2_HOOK_FASTCALL TeleportCopToStart(tOpponent_spec* pOpponent_spec) {
