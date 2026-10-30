@@ -679,11 +679,6 @@ void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, 
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f7450
-void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004fa910
 void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
     NOT_IMPLEMENTED();

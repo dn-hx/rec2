@@ -511,7 +511,133 @@ void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_
     }
 }
 
-// MultiRayCheckSingleFace
+// based on carpocalypse2 src/carma2/common/finteray.c:184 (reference only)
+// FUNCTION: CARMA2_HW 0x0045f0d0
+void C2_HOOK_FASTCALL MultiRayCheckSingleFace(int pNum_rays, tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt) {
+    int i;
+    br_scalar t[4];
+    br_scalar numerator;
+    br_scalar d;
+    br_vector3 p[4];
+    int axis_m;
+    int axis_0;
+    int axis_1;
+    br_scalar u0[4];
+    br_scalar u1;
+    br_scalar u2;
+    br_scalar v0[4];
+    br_scalar v1;
+    br_scalar v2;
+    br_scalar v0i1;
+    br_scalar v0i2;
+    br_material* this_material;
+
+    this_material = pFace->material;
+    d = BrVector3Dot(ray_dir, &pFace->normal);
+    for (i = 0; i < pNum_rays; i++) {
+        rt[i] = 100.f;
+    }
+    if (this_material != NULL && (this_material->flags & (BR_MATF_ALWAYS_VISIBLE | BR_MATF_TWO_SIDED)) == 0 && d > 0.f) {
+        return;
+    }
+    if (this_material != NULL && this_material->identifier != NULL
+            && (this_material->identifier[0] == '!' || this_material->identifier[0] == '>' || this_material->identifier[0] == '?')
+            && gPling_materials) {
+        return;
+    }
+    if ((float)fabs(d) < 2.3841858e-7f) {
+        return;
+    }
+    for (i = 0; i < pNum_rays; i++) {
+        numerator = (ray_pos[i].v[0] - pFace->v[0].v[0]) * pFace->normal.v[0]
+            + (ray_pos[i].v[1] - pFace->v[0].v[1]) * pFace->normal.v[1]
+            + (ray_pos[i].v[2] - pFace->v[0].v[2]) * pFace->normal.v[2];
+        if ((float)fabs(d) < 1.f && (float)fabs(d) * BR_SCALAR_MAX < (float)fabs(numerator)) {
+            return;
+        }
+        if (d > 0.f) {
+            if (numerator < -0.001 || numerator > 0.003 - d) {
+                t[i] = 100.f;
+                continue;
+            }
+        } else if (-numerator < -0.001 || d - -0.003 < -numerator) {
+            t[i] = 100.f;
+            continue;
+        }
+        t[i] = -(numerator / d);
+        if (t[i] > 1.f) {
+            t[i] = 1.f;
+        }
+        p[i].v[0] = t[i] * ray_dir->v[0];
+        p[i].v[1] = ray_dir->v[1] * t[i];
+        p[i].v[2] = ray_dir->v[2] * t[i];
+        p[i].v[0] = p[i].v[0] + ray_pos[i].v[0];
+        p[i].v[1] = p[i].v[1] + ray_pos[i].v[1];
+        p[i].v[2] = ray_pos[i].v[2] + p[i].v[2];
+    }
+    axis_m = 0;
+    if ((float)fabs(pFace->normal.v[0]) < (float)fabs(pFace->normal.v[1])) {
+        axis_m = 1;
+    }
+    if ((float)fabs(pFace->normal.v[2]) > (float)fabs(pFace->normal.v[axis_m])) {
+        axis_m = 2;
+    }
+    switch (axis_m) {
+    case 0:
+        axis_0 = 1;
+        axis_1 = 2;
+        break;
+    case 1:
+        axis_0 = 0;
+        axis_1 = 2;
+        break;
+    case 2:
+        axis_0 = 0;
+        axis_1 = 1;
+        break;
+    }
+    v0i1 = pFace->v[0].v[axis_0];
+    v0i2 = pFace->v[0].v[axis_1];
+    u1 = pFace->v[1].v[axis_0] - v0i1;
+    u2 = pFace->v[2].v[axis_0] - v0i1;
+    v1 = pFace->v[1].v[axis_1] - v0i2;
+    v2 = pFace->v[2].v[axis_1] - v0i2;
+    for (i = 0; i < pNum_rays; i++) {
+        br_scalar s1;
+        br_scalar s2;
+        br_scalar s3;
+        br_scalar s4;
+
+        if (t[i] == 100.f) {
+            continue;
+        }
+        u0[i] = p[i].v[axis_0] - v0i1;
+        v0[i] = p[i].v[axis_1] - v0i2;
+        s1 = u1 * v0[i] - v1 * u0[i];
+        s2 = v2 * u1 - v1 * u2;
+        if ((float)fabs(s1) <= 1.0001 * (float)fabs(s2) && s2 != 0.f) {
+            s1 = s1 / s2;
+            if (s1 >= -0.0001) {
+                s3 = u2 * v0[i] - v2 * u0[i];
+                s4 = -s2;
+                if ((float)fabs(s3) <= 1.0001 * (float)fabs(s4) && s4 != 0.f) {
+                    s3 = s3 / s4;
+                    if (s3 >= -0.0001 && s1 + s3 <= 1.0001) {
+                        rt[i] = t[i];
+                        normal->v[0] = pFace->normal.v[0];
+                        normal->v[1] = pFace->normal.v[1];
+                        normal->v[2] = pFace->normal.v[2];
+                        if (d > 0.f) {
+                            normal->v[0] = -pFace->normal.v[0];
+                            normal->v[1] = -pFace->normal.v[1];
+                            normal->v[2] = -pFace->normal.v[2];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0045f5b0
 void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m) {
