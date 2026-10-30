@@ -905,3 +905,26 @@ void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049f9c0
+tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider) {
+    NOT_IMPLEMENTED();
+    return NULL;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049fb70
+void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

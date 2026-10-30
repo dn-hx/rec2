@@ -591,6 +591,9 @@ void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object *pCollisio
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004b9f40
 void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
     while (pObject != NULL) {
@@ -604,6 +607,9 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
         pObject = pObject->next;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CheckForObjectTouchingAnotherObject
 
@@ -611,7 +617,96 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-// CheckForObjectHierachyTouchingObjectList
+extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+
+// FUNCTION: CARMA2_HW 0x004ba190
+void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original) {
+    tPhysics_object* list_cur;
+    tPhysics_object* obj;
+    tPhysics_object* child;
+
+    for (list_cur = pList; list_cur != NULL; list_cur = list_cur->next) {
+        if (list_cur->disable_move_rotate != 0) {
+            if (pObject->field_0xf4.min.v[0] - list_cur->field_0xf4.max.v[0] <= 0.01
+                    && pObject->field_0xf4.min.v[1] - list_cur->field_0xf4.max.v[1] <= 0.01
+                    && pObject->field_0xf4.min.v[2] - list_cur->field_0xf4.max.v[2] <= 0.01
+                    && list_cur->field_0xf4.min.v[0] - pObject->field_0xf4.max.v[0] <= 0.01
+                    && list_cur->field_0xf4.min.v[1] - pObject->field_0xf4.max.v[1] <= 0.01
+                    && list_cur->field_0xf4.min.v[2] - pObject->field_0xf4.max.v[2] <= 0.01) {
+                obj = list_cur;
+                while (obj->parent != NULL) {
+                    if (obj->physics_joint1 == NULL || obj->physics_joint1->type == eJoint_none) {
+                        break;
+                    }
+                    obj = obj->parent;
+                }
+                obj->box_face_ref = gFace_num__car - 2;
+                obj->disable_move_rotate = 0;
+                if (obj->child != NULL || obj->physics_joint1 != NULL || obj->physics_joint2 != NULL) {
+                    if (obj->field_0x218 == 0) {
+                        MoveJointedObject(obj, 0.f);
+                    }
+                    child = obj->child;
+                    while (child != NULL) {
+                        if (child->disable_move_rotate) {
+                            child->box_face_ref = gFace_num__car - 2;
+                            child->disable_move_rotate = 0;
+                        }
+                        if (child->child != NULL) {
+                            MakeObjectListDoSomething(child->child);
+                        }
+                        child = child->next;
+                    }
+                }
+                CheckForObjectHierachyTouchingObjectList(obj, pList_original, pList_original);
+            }
+            child = pObject->child;
+            if (child != NULL && list_cur->disable_move_rotate != 0) {
+                while (child != NULL) {
+                    if (child->field_0xf4.min.v[0] - list_cur->field_0xf4.max.v[0] <= 0.01
+                            && child->field_0xf4.min.v[1] - list_cur->field_0xf4.max.v[1] <= 0.01
+                            && child->field_0xf4.min.v[2] - list_cur->field_0xf4.max.v[2] <= 0.01
+                            && list_cur->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] <= 0.01
+                            && list_cur->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] <= 0.01
+                            && list_cur->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] <= 0.01) {
+                        obj = list_cur;
+                        while (obj->parent != NULL) {
+                            if (obj->physics_joint1 == NULL || obj->physics_joint1->type == eJoint_none) {
+                                break;
+                            }
+                            obj = obj->parent;
+                        }
+                        obj->box_face_ref = gFace_num__car - 2;
+                        child = obj->child;
+                        obj->disable_move_rotate = 0;
+                        if (child != NULL || obj->physics_joint1 != NULL || obj->physics_joint2 != NULL) {
+                            if (obj->field_0x218 == 0) {
+                                MoveJointedObject(obj, 0.f);
+                            }
+                            child = obj->child;
+                            while (child != NULL) {
+                                if (child->disable_move_rotate) {
+                                    child->box_face_ref = gFace_num__car - 2;
+                                    child->disable_move_rotate = 0;
+                                }
+                                if (child->child != NULL) {
+                                    MakeObjectListDoSomething(child->child);
+                                }
+                                child = child->next;
+                            }
+                        }
+                        CheckForObjectHierachyTouchingObjectList(obj, pList_original, pList_original);
+                        break;
+                    }
+                    child = child->next;
+                }
+            }
+            if (list_cur->child != NULL) {
+                CheckForObjectHierachyTouchingObjectList(pObject, list_cur->child, pList_original);
+            }
+        }
+    }
+}
 
 // MakeObjectDoSomething
 
@@ -1425,3 +1520,13 @@ void C2_HOOK_FASTCALL InitPhysics(void) {
 
 // GetCollObjFromID
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b7510
+void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

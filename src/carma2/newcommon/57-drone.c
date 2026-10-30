@@ -64,6 +64,12 @@ int gCount_rendered_drones;
 // GLOBAL: CARMA2_HW 0x0068452c
 int gShow_drone_paths;
 
+// GLOBAL: CARMA2_HW 0x00681fb8
+tPath_name gDrone_path_output_name;
+
+// GLOBAL: CARMA2_HW 0x00684534
+int gDrone_path_output_ready;
+
 // GLOBAL: CARMA2_HW 0x005947c0
 br_vector3 gDefault_drone_direction = {{ 0.f, 0.f, -1.f }};
 
@@ -892,7 +898,75 @@ void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender) {
 
 // UpdateEditModels
 
-// WriteOutDronePaths
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat="
+#endif
+
+extern int C2_HOOK_CDECL fprintf(FILE* pFile, const char* pFormat, ...);
+
+// FUNCTION: CARMA2_HW 0x00453050
+void C2_HOOK_FASTCALL WriteOutDronePaths(void) {
+    int node_index;
+    int section_index;
+    int path_index;
+    char filename[16];
+    char path[256];
+    FILE* file;
+
+    if (!gDrone_path_output_ready) {
+        path_index = 0;
+        sprintf(filename, "DPATH%0.3d.TXT", path_index);
+        PathCat(path, gApplication_path, filename);
+        file = DRfopen(path, "r+");
+        while (file != NULL) {
+            PFfclose(file);
+            path_index++;
+            sprintf(filename, "DPATH%0.3d.TXT", path_index);
+            PathCat(path, gApplication_path, filename);
+            file = DRfopen(path, "r+");
+        }
+        gDrone_path_output_ready = 1;
+        strcpy(gDrone_path_output_name, path);
+    }
+    file = DRfopen(gDrone_path_output_name, "wt");
+    if (file != NULL) {
+        fprintf(file, "%s\n", "START OF DRONE PATHS");
+        fprintf(file, "\n%-3d   // version\n", 2);
+        fprintf(file, "%-3d   // n_nodes\n", gCount_drone_path_nodes);
+        for (node_index = 0; node_index < gCount_drone_path_nodes; node_index++) {
+            tDrone_path_node* node;
+
+            node = &gDrone_path_nodes[node_index];
+            fprintf(file, "\t\n// %d:\n", node_index);
+            fprintf(file, "\t%.3f, %.3f, %.3f\n",
+                (double)node->position.v[0],
+                (double)node->position.v[1],
+                (double)node->position.v[2]);
+            fprintf(file, "\t%s\n", node->type >= 0 ? gDrone_forms[node->type].name : "NONE");
+            fprintf(file, "\t%d\n", node->field_0x12e);
+            fprintf(file, "\t%d\n", node->count_sections);
+            for (section_index = 0; section_index < node->count_sections; section_index++) {
+                tDrone_path_node_section* section;
+
+                section = &node->sections[section_index];
+                fprintf(file, "\t\t%d, %d, %d, %d\n",
+                    section->node1,
+                    (tU16)section->node2,
+                    section->type,
+                    section->field_0x21);
+            }
+        }
+        fprintf(file, "\n%s\n", "END OF DRONE PATHS");
+        PFfclose(file);
+    } else {
+        PDFatalError("Unable to open drone path output file");
+    }
+}
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
