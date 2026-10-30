@@ -2823,7 +2823,7 @@ float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
     return min_value;
 }
 extern int gTesting_car_for_sensible_place;
-extern tPhysics_object* gList_collision_infos;
+extern tPhysics_object* gPHIL_list_collision_infos;
 extern tWorld_callbacks gWorld_callbacks;
 extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, br_vector3* pVec3, tWorld_callbacks* pCar_callbacks);
 
@@ -2836,7 +2836,7 @@ int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3*
         return 1;
     }
     gTesting_car_for_sensible_place = 1;
-    r = TestForObjectInSensiblePlace(pCar_spec->collision_info, gList_collision_infos, pVec3, &gWorld_callbacks);
+    r = TestForObjectInSensiblePlace(pCar_spec->collision_info, gPHIL_list_collision_infos, pVec3, &gWorld_callbacks);
     gTesting_car_for_sensible_place = 0;
     return r;
 }
@@ -2921,9 +2921,6 @@ void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar) {
         }
     }
 }
-
-// GLOBAL: CARMA2_HW 0x0074a5f0
-tPhysics_object* gList_collision_infos;
 
 // GLOBAL: CARMA2_HW 0x0065cf78
 tWorld_callbacks gWorld_callbacks = { 0 };
