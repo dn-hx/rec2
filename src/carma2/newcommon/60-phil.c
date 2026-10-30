@@ -201,9 +201,103 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject) {
     return size;
 }
 
-// GetNetworkDataSize
+// based on carpocalypse2 src/carma2/common/phil.c:126 (reference only)
+// FUNCTION: CARMA2_HW 0x0049cee0
+int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data) {
+    int size;
+    tU8* next;
+    tU8 more;
 
-// GetSingleMatrixFromNetworkData
+    switch (*pNet_data & 0xf) {
+    case 0:
+        size = 0x28;
+        break;
+    case 1:
+    case 4:
+        size = 0xc;
+        break;
+    case 2:
+    case 3:
+        size = 0x10;
+        break;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        size = 0;
+    }
+    more = *pNet_data & 0x80;
+    while (more != 0) {
+        next = pNet_data + size;
+        size += GetNetworkDataSize(next);
+        more = *next & 0x40;
+    }
+    return size;
+}
+
+extern br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq);
+extern br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q);
+
+// based on carpocalypse2 src/carma2/common/phil.c:157 (reference only)
+// FUNCTION: CARMA2_HW 0x0049cf50
+int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix) {
+    br_quat quaternion;
+
+    switch (pNet_data[0] & 0xF) {
+    case 0:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 0x14))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 0x14))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 0x14))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 0x14))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        memcpy(pMatrix->m[3], pNet_data + 0x1c, sizeof(pMatrix->m[3]));
+        return 0x28;
+    case 1:
+    case 4:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 4))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 4))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 4))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 4))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        return 0xc;
+    case 2:
+    case 3:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 8))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 8))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 8))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 8))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        return 0x10;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        return -1;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004b5cc0
 int C2_HOOK_FASTCALL PHILInit(void) {

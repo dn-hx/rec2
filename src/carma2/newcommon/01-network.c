@@ -302,7 +302,42 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // LoadCarN
 
-// DisposeCarN
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
+extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
+extern void C2_HOOK_FASTCALL ARResetPiping(void);
+
+// based on carpocalypse2 src/carma2/common/network.c:1043 (reference only)
+// FUNCTION: CARMA2_HW 0x0049e100
+void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
+    int i;
+    int j;
+
+    if (gNet_players[pPlayer_index].car != NULL) {
+        for (i = 0; i < gCurrent_race.number_of_racers; i++) {
+            if (gCurrent_race.opponent_list[i].car_spec == gNet_players[pPlayer_index].car) {
+                gCurrent_race.number_of_racers--;
+                for (j = i; j < gCurrent_race.number_of_racers; j++) {
+                    gCurrent_race.opponent_list[j] = gCurrent_race.opponent_list[j + 1];
+                }
+            }
+        }
+        PHILRemoveObject(gNet_players[pPlayer_index].car->collision_info);
+        if (gProgram_state.racing != 0) {
+            RemoveCarFromEffects(gNet_players[pPlayer_index].car);
+        }
+        DisposeCar(gNet_players[pPlayer_index].car, gNet_players[pPlayer_index].car_index);
+        if (pPlayer_index != gThis_net_player_index) {
+            BrMemFree(gNet_players[pPlayer_index].car);
+            gNet_players[pPlayer_index].car = NULL;
+        }
+        if (gAction_replay_mode != 0) {
+            ToggleReplay(NULL, NULL);
+        }
+        ARResetPiping();
+    }
+}
 
 // PlayerHasLeft
 
@@ -859,3 +894,14 @@ tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar) {
 
 // StatSendPacket
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004fe2c0
+void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

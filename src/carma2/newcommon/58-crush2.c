@@ -66,7 +66,24 @@ void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar) {
     }
 }
 
-// ExplodeMeCarUpMeOldMatey
+extern int gExplosion_sound_id;
+extern br_vector3 gZero_v__car;
+extern tS3_outlet* gCar_outlet;
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+// based on carpocalypse2 src/carma2/common/crush2.c:47 (reference only)
+// FUNCTION: CARMA2_HW 0x0043f6c0
+void C2_HOOK_FASTCALL ExplodeMeCarUpMeOldMatey(tCar_spec* pCar) {
+
+    Explode(&gExplosion_pix_animation_groups, pCar->car_master_actor, &pCar->car_actor->model->bounds, NULL);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound(gCar_outlet, gExplosion_sound_id);
+    } else {
+        DRS3StartSound3D(gCar_outlet, gExplosion_sound_id, &pCar->pos, &gZero_v__car, 1, 255, 0x10000, 0x10000);
+    }
+}
 
 // SetKnackeredFlag
 

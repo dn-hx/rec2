@@ -3128,7 +3128,22 @@ int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
 // MungePlayers
 
-// NetSynchRaceStart2
+extern void C2_HOOK_FASTCALL SetUpNetCarPositions(void);
+extern tU32 gNet_synch_start;
+
+// based on carpocalypse2 src/carma2/common/frontend_netsync.c:25 (reference only)
+// FUNCTION: CARMA2_HW 0x00473570
+int C2_HOOK_FASTCALL NetSynchRaceStart2(tNet_synch_mode pMode) {
+
+    if (pMode != eNet_synch_client) {
+        if (gCurrent_net_game->status.stage == eNet_game_stage0) {
+            gCurrent_net_game->status.stage = 1;
+        }
+        SetUpNetCarPositions();
+        gNet_synch_start = PDGetTotalTime();
+    }
+    return eSO_continue;
+}
 
 // NetSync_Draw
 

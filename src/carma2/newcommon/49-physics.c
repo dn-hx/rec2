@@ -763,9 +763,48 @@ void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects) {
 
 // SimpleRotate
 
-// InterpolateSingleObject
+// based on carpocalypse2 src/carma2/common/physics.c:5266 (reference only)
+// FUNCTION: CARMA2_HW 0x004c2670
+void C2_HOOK_FAKE_THISCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt) {
+    br_vector3 temp;
+    br_vector3 axis;
+    br_scalar length;
+    br_scalar angle;
 
-// InterpolateObjects
+    if (pObject->disable_move_rotate) {
+        return;
+    }
+    length = BrVector3Length(&pObject->rotate_omega);
+    angle = length * pDt;
+    axis.v[0] = pObject->rotate_omega.v[0] / length;
+    axis.v[1] = pObject->rotate_omega.v[1] / length;
+    axis.v[2] = pObject->rotate_omega.v[2] / length;
+    if (fabs(angle) < 0.0001) {
+        return;
+    }
+    BrMatrix34ApplyV(&temp, &pObject->cmpos, &pObject->actor->t.t.mat);
+    pObject->actor->t.t.mat.m[3][0] += temp.v[0];
+    pObject->actor->t.t.mat.m[3][1] += temp.v[1];
+    pObject->actor->t.t.mat.m[3][2] += temp.v[2];
+    BrMatrix34PreRotate(&pObject->actor->t.t.mat, BrRadianToAngle(angle), &axis);
+    BrMatrix34ApplyV(&temp, &pObject->cmpos, &pObject->actor->t.t.mat);
+    pObject->actor->t.t.mat.m[3][0] -= temp.v[0];
+    pObject->actor->t.t.mat.m[3][1] -= temp.v[1];
+    pObject->actor->t.t.mat.m[3][2] -= temp.v[2];
+}
+
+// based on carpocalypse2 src/carma2/common/physics.c:5935 (reference only)
+// FUNCTION: CARMA2_HW 0x004c27c0
+void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, float pDt) {
+    br_vector3 omega_world;
+
+    pObject->rotate_omega.v[0] = pObject->omega.v[0];
+    pObject->rotate_omega.v[1] = pObject->omega.v[1];
+    pObject->rotate_omega.v[2] = pObject->omega.v[2];
+    BrMatrix34ApplyV(&omega_world, &pObject->omega, &pObject->actor->t.t.mat);
+    InterpolateSingleObject(pObject, pDt);
+    BrMatrix34TApplyV(&pObject->omega, &omega_world, &pObject->actor->t.t.mat);
+}
 
 // ApplyGravitySingleObject
 
