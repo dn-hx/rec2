@@ -124,7 +124,7 @@ extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
 
 // BrakeInstantly
 
-// PollCarControls
+extern void C2_HOOK_FASTCALL PollCarControls(void);
 
 extern void C2_HOOK_FASTCALL PollCameraControls(tU32 pCamera_period);
 extern void C2_HOOK_FASTCALL SetFlag2(int i);
@@ -167,7 +167,7 @@ extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
 // SteelBollock
 
-// RichardsSphere
+extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);
 
 extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 

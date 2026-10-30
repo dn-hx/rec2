@@ -140,7 +140,25 @@ void C2_HOOK_FASTCALL SignalToStartRace(void) {
 
 // SetUpNetCarPositions
 
-// ReinitialiseCar
+extern void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL EmptyInventory(void);
+
+// based on carpocalypse2 src/carma2/common/netgame.c:1299
+// FUNCTION: CARMA2_HW 0x00499220
+void C2_HOOK_FASTCALL ReinitialiseCar(tCar_spec* pCar) {
+
+    StopCarSmokingInstantly(pCar);
+    CloseDownPowerUpsForCar(pCar);
+    InitialiseCar(pCar);
+    TotallyRepairACar(pCar);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        gTime_for_punishment = PDGetTotalTime() + 2000;
+        EmptyInventory();
+    }
+}
 
 // RepositionPlayer
 
@@ -315,7 +333,25 @@ void C2_HOOK_FASTCALL DisposeNetHeadups(void) {
 
 // FarEnoughAway
 
-// CarInContactWithFox
+extern tU32 gLast_it_change;
+extern tNet_game_player_info* gLast_lepper;
+extern int gIt_or_fox;
+extern void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer);
+
+// based on carpocalypse2 src/carma2/common/netgame.c:1074
+// FUNCTION: CARMA2_HW 0x0049a990
+void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer) {
+
+    if ((int)(PDGetTotalTime() - gLast_it_change) > 500) {
+        if (gLast_lepper != pPlayer) {
+            gLast_it_change = PDGetTotalTime();
+            if (gIt_or_fox >= 0) {
+                gLast_lepper = &gNet_players[gIt_or_fox];
+            }
+            PlayerIsIt(pPlayer);
+        }
+    }
+}
 
 // SelectRandomFox
 
@@ -440,6 +476,28 @@ void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, in
 int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
     NOT_IMPLEMENTED();
     return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004def00
+void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049a9e0
+void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

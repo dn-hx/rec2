@@ -15,6 +15,8 @@
 #include "00-car.h"
 #include "23-piping.h"
 
+#include <stdlib.h>
+
 // GLOBAL: CARMA2_HW 0x006a0414
 const char* gPedsFolder;
 
@@ -1270,7 +1272,30 @@ void C2_HOOK_FASTCALL CBFillInObject(undefined4* pArg1, undefined4 pArg2) {
 
 // DoGiblets
 
-// DoBloodSpurt
+extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
+extern float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
+extern void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9);
+
+// based on carpocalypse2 src/carma2/common/pedestrn.c:4764
+// FUNCTION: CARMA2_HW 0x004cccc0
+void C2_HOOK_FASTCALL DoBloodSpurt(uintptr_t pArg1, int pArg2, int pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
+    int saved_random_seed;
+    int i;
+    tSmash_vertex* fragment;
+    float scale;
+
+    saved_random_seed = rand();
+    srand(pArg3);
+    for (i = 0; i < gPed_spurty_lumps_count; i++) {
+        fragment = FindShrapnelFragment(gPed_spurt_model, pArg1, 1);
+        if (fragment == NULL) {
+            break;
+        }
+        scale = PositionFragment(fragment->actor, &gPed_spurt_initial_position, 0, (int)pArg4, (int)pArg4, 0, NULL, 0);
+        InitFragmentSpeed(fragment, &gPed_spurt_initial_speed, pArg5, scale, gPed_spurt_min_max_time, pArg2, pArg6, 0, 0);
+    }
+    srand(saved_random_seed);
+}
 
 // DoSpurt
 
@@ -2847,3 +2872,15 @@ void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter
         gPed_vtable->moved_by_physics((undefined4*)pCharacter, (undefined4*)obj, pArg2);
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004eb4a0
+float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8) {
+    NOT_IMPLEMENTED();
+    return 0.0f;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

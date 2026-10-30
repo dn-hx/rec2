@@ -621,7 +621,162 @@ void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
 
 // BrakeInstantly
 
-// PollCarControls
+extern tS3_outlet* gCar_outlet;
+extern int gInstant_handbrake;
+extern int gCredit_multiplier;
+extern int C2_HOOK_FASTCALL HasCurrentJoystick(void);
+extern void C2_HOOK_FASTCALL JumpTheStart(void);
+
+// based on carpocalypse2 src/carma2/common/controls.c:2468 (reference only)
+// FUNCTION: CARMA2_HW 0x00443e80
+void C2_HOOK_FASTCALL PollCarControls(void) {
+    tCar_controls keys;
+    tJoystick joystick;
+    tCar_spec* c;
+    br_scalar speed_squared;
+    int i;
+
+    c = &gProgram_state.current_car;
+    memset(&keys, 0, sizeof(tCar_controls));
+    joystick.left = -1;
+    joystick.right = -1;
+    joystick.acc = -1;
+    joystick.dec = -1;
+    CheckKeysForMouldiness();
+    if (gEntering_message) {
+        c->keys = keys;
+        c->joystick = joystick;
+        return;
+    }
+    if (gKey_mapping[47] < 143 && gKey_mapping[48] < 143) {
+        if (KeyIsDownNoMouldiness(47)) {
+            keys.left = 1;
+        }
+        if (KeyIsDownNoMouldiness(48)) {
+            keys.right = 1;
+        }
+    }
+    if (!(keys.left || keys.right)) {
+        if (PDIsJoystickDPadEnabled()) {
+            if (gJoy_array[0] > 10) {
+                keys.left = 1;
+            }
+            if (gJoy_array[1] > 10) {
+                keys.right = 1;
+            }
+        } else {
+            joystick.left = gJoy_array[0];
+            joystick.right = gJoy_array[1];
+            if (gJoy_array[0] < 0 && gJoy_array[1] < 0) {
+                joystick.left = 0;
+            }
+        }
+    }
+    if (KeyIsDownNoMouldiness(13)) {
+        keys.holdw = 1;
+    }
+    if (KeyIsDownNoMouldiness(54) || gRace_finished) {
+        if (gInstant_handbrake && !gRace_finished) {
+            gProgram_state.current_car.revs = 0.f;
+            speed_squared = BrVector3LengthSquared(&gProgram_state.current_car.collision_info->v);
+            if (gProgram_state.current_car.number_of_wheels_on_ground != 0 && speed_squared > .0001f) {
+                PratcamEvent(41);
+                for (i = 0; i < 5; i++) {
+                    DRS3StartSound(gCar_outlet, eSoundId_TyreScreeching + i);
+                }
+            }
+            if (speed_squared > .1f) {
+                PDPlayFFBEffect("Instant_Handbrake");
+            }
+            BrVector3Set(&gProgram_state.current_car.collision_info->v, 0.f, 0.f, 0.f);
+        } else {
+            keys.brake = 1;
+        }
+    }
+    if (KeyIsDownNoMouldiness(49) && !gRace_finished && !c->knackered && !gWait_for_it) {
+        keys.acc = 1;
+    }
+    if (!keys.acc) {
+        if (PDIsJoystickDPadEnabled()) {
+            if (gJoy_array[2] > 10) {
+                keys.acc = 1;
+            }
+        } else {
+            if (HasCurrentJoystick()) {
+                joystick.acc = gJoy_array[2];
+            }
+        }
+    }
+    if (KeyIsDownNoMouldiness(50) && !gRace_finished && !c->knackered && !gWait_for_it) {
+        keys.dec = 1;
+    }
+    if (!keys.dec) {
+        if (PDIsJoystickDPadEnabled()) {
+            if (gJoy_array[3] > 10) {
+                keys.dec = 1;
+            }
+        } else {
+            if (HasCurrentJoystick()) {
+                joystick.dec = gJoy_array[3];
+            }
+        }
+    }
+
+    if (gCredit_multiplier) {
+
+        int temp;
+
+        temp = joystick.acc;
+        joystick.acc = joystick.dec;
+        joystick.dec = temp;
+
+        temp = joystick.left;
+        joystick.left = joystick.right;
+        joystick.right = temp;
+
+        {
+            int acc = keys.acc;
+            int dec = keys.dec;
+            keys.dec = acc;
+            keys.acc = dec;
+        }
+
+        {
+            int l = keys.left;
+            int r = keys.right;
+            keys.left = r;
+            keys.right = l;
+        }
+    }
+
+    if (KeyIsDownNoMouldiness(56) && c->gear >= 0) {
+        keys.change_down = 1;
+        c->just_changed_gear = 1;
+        if (keys.acc || joystick.acc > 32000) {
+            c->traction_control = 0;
+        } else if (c->gear > 1) {
+            c->gear -= !c->keys.change_down;
+        }
+        if (gCountdown != 0 && !c->keys.change_down) {
+            JumpTheStart();
+        }
+    }
+    if (gCar_flying) {
+        if (KeyIsDownNoMouldiness(14)) {
+            keys.up = 1;
+        }
+        if (KeyIsDownNoMouldiness(12)) {
+            keys.down = 1;
+        }
+    }
+    if (KeyIsDownNoMouldiness(59)) {
+        if (!gEntering_message) {
+            keys.horn = 1;
+        }
+    }
+    c->keys = keys;
+    c->joystick = joystick;
+}
 
 // FUNCTION: CARMA2_HW 0x00444270
 void C2_HOOK_FASTCALL PollCameraControls(tU32 pCamera_period) {
@@ -888,7 +1043,17 @@ void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void) {
 
 // SteelBollock
 
-// RichardsSphere
+extern tCar_spec* gCar_to_view;
+extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar);
+
+// FUNCTION: CARMA2_HW 0x00444f10
+void C2_HOOK_FASTCALL RichardsSphere(int pNum) {
+
+    TotallyRepairACar(gCar_to_view);
+    SphericizeCar(gCar_to_view);
+    NewTextHeadupSlot(4, 0, 2000, -4, "STEEL GONAD O' DEATH");
+}
 
 // FUNCTION: CARMA2_HW 0x00444f40
 void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
@@ -913,6 +1078,17 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
 #endif
 // STUB: CARMA2_HW 0x00443c90
 void C2_HOOK_FASTCALL CheckKevKeys(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004391d0
+void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

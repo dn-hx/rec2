@@ -31,6 +31,9 @@ br_vector3 gRender_bounds_centre;
 // GLOBAL: CARMA2_HW 0x006820d0
 int gCount_drones;
 
+// GLOBAL: CARMA2_HW 0x006820d8
+tDrone_crush_data gDrone_crush_data;
+
 // GLOBAL: CARMA2_HW 0x00684518
 int gTraffic_disabled;
 
@@ -609,7 +612,33 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
 
 // LoadPerRaceDroneStuff
 
-// GetDroneCrushData
+// based on carpocalypse2 src/carma2/common/loading.c:3128
+// FUNCTION: CARMA2_HW 0x00450b50
+tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
+    tDrone_spec* pDrone;
+    int i;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    if (pDrone->form->crushability == gDrone_render_zero) {
+        return NULL;
+    }
+    if (pDrone->field_0xf4 < 0) {
+        for (i = 0; i < pDrone->form->count_models; i++) {
+            if (pDrone->form->field_0x80[i] == 0) {
+                pDrone->form->field_0x80[i] = 1;
+                pDrone->field_0xf4 = i;
+                pDrone->model_actor->model = pDrone->form->models[i];
+                goto selected_model;
+            }
+        }
+        return NULL;
+    }
+selected_model:
+    gDrone_crush_data.model = pDrone->model_actor->model;
+    gDrone_crush_data.crushability = pDrone->form->crushability;
+    gDrone_crush_data.bounds = pDrone->form->field_0x54;
+    return &gDrone_crush_data;
+}
 
 // AllocateAndInitDrones
 

@@ -12,6 +12,7 @@ extern tDrone_form gDrone_forms[64];
 extern int gINT_00681fb0;
 extern int gCount_rendered_drones;
 extern br_vector3 gRender_bounds_centre;
+extern tDrone_crush_data gDrone_crush_data;
 
 extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition);
 // CrappyLittleDrivingStateInfoDprintf
@@ -145,7 +146,7 @@ extern void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void);
 
 // LoadPerRaceDroneStuff
 
-// GetDroneCrushData
+extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject);
 
 // AllocateAndInitDrones
 

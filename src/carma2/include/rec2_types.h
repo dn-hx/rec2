@@ -1903,8 +1903,8 @@ typedef struct {
 typedef struct {
     tU32 start;
     tU32 period;
-    undefined field_0x8;
-    tU8 count_frames;
+    tS8 field_0x8;
+    tS8 count_frames;
     tU8 finished;
     undefined field_0xb;
     br_actor* collision_actor;
@@ -4970,6 +4970,12 @@ typedef struct {
     tU8* field_0x80;
     br_model** models;
 } tDrone_form;
+
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
 
 typedef struct tDrone_path_node_section {
     tS16 node1;
