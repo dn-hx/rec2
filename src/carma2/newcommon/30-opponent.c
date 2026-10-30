@@ -777,8 +777,7 @@ void C2_HOOK_FASTCALL DisposeOpponents(void) {
     }
 }
 
-// GLOBAL: CARMA2_HW 0x00691720
-int gStart_jumped;
+extern int gStart_jumped;
 
 // GLOBAL: CARMA2_HW 0x00691750
 int gAcknowledged_start;

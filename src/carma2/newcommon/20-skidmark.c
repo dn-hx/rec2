@@ -157,6 +157,7 @@ void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num) {
     br_vector3 disp;
     br_scalar dist;
     int on_ground;
+    int old_skidding;
 
     on_ground = pCar_spec->oldd[pWheel_num] < pCar_spec->susp_height[pWheel_num >> 1];
     material = gCurrent_race.material_modifiers[pCar_spec->material_index[pWheel_num]].skid_mark_material;
@@ -177,7 +178,8 @@ void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num) {
         return;
     }
     if (pCar_spec->new_skidding & skid_mask) {
-        if (skid_mask & pCar_spec->old_skidding) {
+        old_skidding = pCar_spec->old_skidding;
+        if (old_skidding & skid_mask) {
             BrVector3Sub(&disp, &pCar_spec->special_start[pWheel_num], &pCar_spec->prev_skid_pos[pWheel_num]);
             dist = BrVector3Length(&disp);
             if (dist < 0.05f) {
@@ -201,7 +203,7 @@ void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num) {
                 pCar_spec->oil_remaining[pWheel_num] = 0.0f;
             }
         } else {
-            pCar_spec->old_skidding |= skid_mask;
+            pCar_spec->old_skidding = old_skidding | skid_mask;
             pCar_spec->total_length[pWheel_num] = 0.0f;
             pCar_spec->old_skid[pWheel_num] = -1;
         }

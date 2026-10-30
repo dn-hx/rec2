@@ -28,9 +28,16 @@ int gNext_oil_pixie = 0;
 // GLOBAL: CARMA2_HW 0x00691714
 int gBig_bang = 0;
 
-/* unannotated filler for the opponent globals at 0x00691718..0x0069175f (defined in 30-opponent.c) so that
+/* unannotated filler for the opponent globals at 0x00691718..0x0069175f so that
    gMinimum_yness_before_knackerisation sits 0x50 bytes after the end of gOily_spills (GetOilFrictionFactors loop-end compare) */
-int gUNK_oil_opponent_gap[18] = { 0 };
+int gUNK_oil_opponent_gap[2] = { 0 };
+
+/* defined here (carpocalypse2 has it in opponent.c) so that it sits exactly 8 bytes after gBig_bang;
+   the QueueOilSpill2/RemoveCarsOilSlicks loop-end compares end at its address */
+// GLOBAL: CARMA2_HW 0x00691720
+int gStart_jumped = 0;
+
+int gUNK_oil_opponent_gap_hi[15] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00691760
 br_scalar gMinimum_yness_before_knackerisation = 0.f;

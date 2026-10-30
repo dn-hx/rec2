@@ -129,7 +129,8 @@ void C2_HOOK_FASTCALL ReinitialiseForwardCamera(void) {
         d = (float)gWidth;
         height = (float)gHeight;
         camera_ptr->aspect = d / height;
-        camera_ptr->yon_z = gCamera_yon * gYon_multiplier;
+        d = gYon_multiplier;
+        camera_ptr->yon_z = d * gCamera_yon;
         switch (gProgram_state.which_view) {
         case eView_left:
             DRMatrix34PostRotateY(&gCamera->t.t.mat, BrDegreeToAngle(gProgram_state.current_car.head_left_angle));
