@@ -357,7 +357,6 @@ void C2_HOOK_FASTCALL ClearEntireScreen(void) {
     BrPixelmapFill(gBack_screen, gGraf_specs[gGraf_spec_index].black_value);
 }
 
-// DistanceFromPlane
 
 // FUNCTION: CARMA2_HW 0x0047b960
 void C2_HOOK_FASTCALL KillSplashScreen(void) {
@@ -907,4 +906,15 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
     gMouse_last_pos.x = pos_x;
     gDoMouseCursor_button_was_down = button_down;
     return mouse_moved;
+}
+
+// FUNCTION: CARMA2_HW 0x0047b910
+br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD) {
+    br_scalar distance;
+
+    distance = pPos->v[0] * pA;
+    distance += pPos->v[1] * pB;
+    distance += pPos->v[2] * pC;
+    distance += pD;
+    return (br_scalar)fabs(distance / (pA * pA + pB * pB + pC * pC));
 }
