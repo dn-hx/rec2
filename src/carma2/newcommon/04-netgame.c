@@ -154,8 +154,7 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
     br_actor* actor;
     tNon_car_spec* non_car;
     tNon_car_spec* candidate_non_car;
-    tTrack_square* column;
-    int non_car_index;
+    tU32 non_car_index;
     tS8 non_car_spec_index;
     tU8 column_x;
     tU8 column_z;
@@ -182,7 +181,7 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
     if (non_car == NULL) {
         if (actor->identifier[1] >= '0' && actor->identifier[1] <= '9') {
             non_car_index = actor->identifier[1] * 10 + actor->identifier[2] - 0x210;
-            non_car_spec_index = (tS8)gNon_car_spec_indices[non_car_index];
+            non_car_spec_index = *(gNon_car_spec_indices + non_car_index);
             if (non_car_spec_index != 0) {
                 candidate_non_car = &gProgram_state.non_cars[non_car_spec_index + 0x27];
             } else {
@@ -200,11 +199,10 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
         if (non_car == NULL) {
             GetSingleMatrixFromNetworkData(pContents->object_hierarchy, &actor->t.t.mat);
             XZToColumnXZ(&column_x, &column_z, actor->t.t.translate.t.v[0], actor->t.t.translate.t.v[2], &gProgram_state.track_spec);
-            column = gProgram_state.track_spec.columns[column_z];
-            if (column[column_x].actor_0x0 == actor->parent) {
+            if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 == actor->parent) {
                 return;
             }
-            if (column[column_x].actor_0x0 == NULL) {
+            if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 == NULL) {
                 return;
             }
             BrActorRemove(actor);

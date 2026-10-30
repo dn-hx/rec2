@@ -386,9 +386,9 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
                 y = *arrow_ptr++;
             }
             if (pArrow_index & 0x4) {
-                temp = x;
-                x = -y;
-                y = temp;
+                temp = y;
+                y = x;
+                x = -temp;
             }
             BrPixelmapPixelSet(pScreen, (int)(pPos->v[0] + x), (int)(pPos->v[1] + y), colour);
         }

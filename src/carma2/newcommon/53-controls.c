@@ -475,7 +475,7 @@ static void AlignChildren(tPhysics_object* pCollision_info) {
 // FUNCTION: CARMA2_HW 0x004429b0
 void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
     int new_pos;
-    int i;
+    int i = 0;
     int j;
     int k;
     br_scalar t;
@@ -502,7 +502,6 @@ void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
             new_pos = 0;
         }
     }
-    i = 0;
     do {
         BrVector3Sub(&nor, &pCar_spec->car_master_actor->t.t.translate.t, (br_vector3*)pCar_spec->last_safe_positions[0].m[3]);
         if (BrVector3LengthSquared(&nor) > 8.3015966f) {
