@@ -1928,21 +1928,7 @@ void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
 
 // DisposeAllLoadedRemaps
 
-extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
-
-// based on carpocalypse2 src/carma2/common/pedestrn.c:4987
-// FUNCTION: CARMA2_HW 0x00404740
-tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
-    int i;
-    tPed_remap** remap;
-
-    for (i = 0, remap = gPed_remaps; (int)remap < (int)&gPed_remaps[10]; remap++, i++) {
-        if (*remap != NULL && strcmp(pName, (*remap)->name) == 0) {
-            return gPed_remaps[i];
-        }
-    }
-    return ReadRemap(pName);
-}
+// FindOrOpenRemap
 
 // Flip3DStoBRaxes
 
@@ -3145,4 +3131,20 @@ void C2_HOOK_FASTCALL RepulseIt(tPedestrian* pPed, tCar_spec* pCar, float pDist_
     (void)pData;
     speed = IRandomBetween(0x4b, 0xc8);
     SetPedFall(pPed, speed, 0x5b, 0x5b, NULL);
+}
+
+extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
+
+// based on carpocalypse2 src/carma2/common/pedestrn.c:4987
+// FUNCTION: CARMA2_HW 0x00404740
+tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
+    int i;
+    tPed_remap** remap;
+
+    for (i = 0, remap = gPed_remaps; (int)remap < (int)&gPed_remaps[10]; remap++, i++) {
+        if (*remap != NULL && strcmp(pName, (*remap)->name) == 0) {
+            return gPed_remaps[i];
+        }
+    }
+    return ReadRemap(pName);
 }
