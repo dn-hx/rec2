@@ -14,6 +14,10 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, b
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 extern void C2_HOOK_FASTCALL AddSparkToPipingSession(int pSpark_index, const br_vector3* pPos, const br_vector3* pV);
+extern void C2_HOOK_FASTCALL AddSmokeColumnToPipingSession(int pIndex, const tSmoke_column_core* pCore, int pVertex, int pColour);
+extern br_scalar C2_HOOK_FASTCALL FastScalarSinAngle(br_angle pBR_angle);
+extern br_scalar C2_HOOK_FASTCALL FastScalarCosAngle(br_angle pBR_angle);
+extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 extern br_pixelmap* gFog_shade_table;
 extern br_pixelmap* gAcid_shade_table;
 extern int gRendering_mirror;
@@ -605,7 +609,49 @@ void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar_spec) {
 
 // MungeShrapnel
 
-// DrMatrix34Rotate
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00511810
+br_scalar C2_HOOK_FASTCALL FastScalarCosAngle(br_angle pBR_angle) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/spark.c:1841 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004f9e80
+void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
+    br_scalar t;
+    br_scalar s;
+    br_scalar c;
+    br_scalar txy;
+    br_scalar txz;
+    br_scalar tyz;
+    br_scalar sx;
+    br_scalar sy;
+    br_scalar sz;
+
+    s = FastScalarSinAngle(r);
+    c = FastScalarCosAngle(r);
+    t = 1.0f - c;
+    txy = t * a->v[0] * a->v[1];
+    txz = t * a->v[0] * a->v[2];
+    tyz = t * a->v[1] * a->v[2];
+    sx = a->v[0] * s;
+    sy = a->v[1] * s;
+    sz = a->v[2] * s;
+    mat->m[0][0] = a->v[0] * a->v[0] * t + c;
+    mat->m[0][1] = sz + txy;
+    mat->m[0][2] = txz - sy;
+    mat->m[1][0] = txy - sz;
+    mat->m[1][1] = a->v[1] * a->v[1] * t + c;
+    mat->m[1][2] = sx + tyz;
+    mat->m[2][0] = sy + txz;
+    mat->m[2][1] = tyz - sx;
+    mat->m[2][2] = a->v[2] * a->v[2] * t + c;
+}
 
 // FUNCTION: CARMA2_HW 0x004fb2f0
 int C2_HOOK_CDECL CmpSmokeZ(const void* p1, const void* p2) {
@@ -988,7 +1034,145 @@ void C2_HOOK_FASTCALL AdjustFlame(int pIndex, int pFrame_count, br_scalar pScale
 
 // ReplaySmokeColumn
 
-// MungeSmokeColumn
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004fbdd0
+void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004fc0e0
+void C2_HOOK_FASTCALL DoSmokeColumn(int i, tU32 pTime, br_vector3* pRet_car_pos) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0042df70
+int C2_HOOK_FASTCALL IsOnNonCarHalf(tCar_spec* pCar, br_vector3* pPos) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/spark.c:1521 (GPL-3.0), replay branch inlined
+// FUNCTION: CARMA2_HW 0x004fba40
+void C2_HOOK_FASTCALL MungeSmokeColumn(tU32 pTime) {
+    int i;
+
+    if (gColumn_flags == 0) {
+        return;
+    }
+    if (gAction_replay_mode) {
+        for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+            if (gColumn_flags & (1 << i)) {
+                br_vector3 replay_pos;
+
+                DoSmokeColumn(i, pTime, &replay_pos);
+                if (gSmoke_column[i].colour == 0) {
+                    FlameAnimate(i, &gSmoke_column[i].pos, pTime);
+                }
+            }
+        }
+        return;
+    }
+
+    gPHIL_mechanics_time_sync = 1;
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if (!(gColumn_flags & (1 << i))) {
+            continue;
+        }
+        if (gSmoke_column[i].lifetime >= pTime) {
+            tPhysics_object* object;
+            tCar_spec* c;
+            br_vector3 car_pos;
+
+            gSmoke_column[i].lifetime -= pTime;
+            object = gSmoke_column[i].core.collision_info;
+            c = gSmoke_column[i].core.car;
+            DoSmokeColumn(i, pTime, &car_pos);
+            if (gSmoke_column[i].core.field_0x0 == 1 && c->car_crush_spec->field_0x4b8 != 0) {
+                if (IsOnNonCarHalf(c, &car_pos)) {
+                    gSmoke_column[i].lifetime = 0;
+                }
+            }
+            if (gSmoke_column[i].colour == 0) {
+                FlameAnimate(i, &gSmoke_column[i].pos, pTime);
+                if (gSmoke_column[i].core.field_0x0 == 1) {
+                    if (gSmoke_column[i].smudge_timer >= pTime) {
+                        gSmoke_column[i].smudge_timer -= pTime;
+                    } else {
+                        gSmoke_column[i].smudge_timer += 2000;
+                        SmudgeCar(c, gSmoke_column[i].vertex_index);
+                        if (c->knackered) {
+                            int plane;
+
+                            plane = IRandomBetween(0, (int)REC2_ASIZE(gSmoke_column[i].core.car->fire_vertex) - 1);
+                            SmudgeCar(c, gSmoke_column[i].core.car->fire_vertex[plane]);
+                        }
+                    }
+                }
+            }
+            gSmoke_column[i].time += pTime;
+            if (gSmoke_column[i].time > 200) {
+                br_vector3 pos;
+                br_vector3 v;
+                br_scalar decay_factor;
+
+                gSmoke_column[i].time -= pTime;
+                gSmoke_column[i].count += 1;
+                pos.v[0] = gSmoke_column[i].pos.v[0] + SRandomBetween(-.03f, .03f);
+                pos.v[1] = gSmoke_column[i].pos.v[1] + (gSmoke_column[i].colour == 0) * .05f;
+                pos.v[2] = gSmoke_column[i].pos.v[2] + SRandomBetween(-.03f, .03f);
+                if (!(gSmoke_column[i].whiter & 0x2) || IRandomBetween(0, 3)) {
+                    if (gSmoke_column[i].whiter > 0) {
+                        gSmoke_column[i].whiter = 2;
+                    } else {
+                        gSmoke_column[i].whiter = -2;
+                    }
+                } else {
+                    gSmoke_column[i].whiter &= 0x1;
+                }
+                decay_factor = ((float)(gSmoke_column[i].whiter > 0) + 1.f) / 2.f;
+                if (gSmoke_column[i].lifetime < 4000) {
+                    decay_factor = gSmoke_column[i].lifetime * decay_factor / 4000.0f;
+                }
+                if (gSmoke_column[i].core.collision_info == NULL) {
+                    BrVector3SetFloat(&v, 0.f, 2.8985507f, 0.f);
+                } else {
+                    BrVector3Cross(&v, &object->omega, &car_pos);
+                    BrMatrix34ApplyV(&car_pos, &v, &object->actor->t.t.mat);
+                    v.v[0] = car_pos.v[0] + WORLD_SCALE * object->v.v[0];
+                    v.v[1] = car_pos.v[1] + WORLD_SCALE * object->v.v[1];
+                    v.v[2] = car_pos.v[2] + WORLD_SCALE * object->v.v[2];
+                }
+                CreatePuffOfSmoke(&pos, &v, decay_factor, decay_factor, gSmoke_column[i].colour + 16);
+            }
+        } else {
+            if (gSmoke_column[i].core.field_0x0 != 0) {
+                ARStartPipingSession(ePipe_chunk_smoke_column);
+                AddSmokeColumnToPipingSession(i, &gSmoke_column[i].core, gSmoke_column[i].vertex_index, gSmoke_column[i].colour);
+                AREndPipingSession();
+            }
+            gColumn_flags &= ~(1 << i);
+            if (gSmoke_column[i].colour == 0) {
+                BrActorRemove(gSmoke_column[i].flame_actor);
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004fc2e0
 void C2_HOOK_FASTCALL DisposeFlame(void) {

@@ -12,6 +12,7 @@
 #include "platform.h"
 #include "30-opponent.h"
 #include "52-errors.h"
+#include "68-timer.h"
 
 #include <string.h>
 #include <math.h>
@@ -105,7 +106,93 @@ void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
     DisposeDronesRaceStuff();
 }
 
-// MungeAIWorld
+extern int gTimers_stack[8];
+extern int gTimers_max_index;
+extern int gTimers_stack_size;
+extern tTimer gTimers[19];
+extern void C2_HOOK_FASTCALL MungeOpponents(void);
+extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
+extern void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime);
+
+static void TimersPush(int pType) {
+    int prev_type;
+
+    gTimers_stack[gTimers_stack_size] = pType;
+    if (gTimers_stack_size == 0) {
+        prev_type = gTimers_max_index;
+    } else {
+        prev_type = gTimers_stack[gTimers_stack_size - 1];
+    }
+    gTimers[prev_type].durations[gTimers[prev_type].index] += PDGetMicroseconds() - gTimers[prev_type].start_time;
+    gTimers[pType].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+}
+
+static void TimersPop(int pType) {
+    int prev_type;
+
+    gTimers[pType].durations[gTimers[pType].index] += PDGetMicroseconds() - gTimers[pType].start_time;
+    if (gTimers_stack_size > 1) {
+        prev_type = gTimers_stack_size - 1;
+    } else {
+        prev_type = gTimers_max_index;
+    }
+    gTimers[prev_type].start_time = PDGetMicroseconds();
+    gTimers_stack_size -= 1;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a9e10
+void C2_HOOK_FASTCALL MungeOpponents(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004512f0
+void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004dde20
+void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/mainloop.c:132 (GPL-3.0), Timers_Push/Pop inlined
+// FUNCTION: CARMA2_HW 0x00401170
+void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period) {
+
+    gTime_stamp_for_this_munging = GetTotalTime();
+    if (gTime_stamp_for_this_munging == 0) {
+        gTime_stamp_for_this_munging = PDGetTotalTime();
+    }
+    gDrone_delta_time = (float)pFrame_period / 1000.f;
+    gFrame_period_for_this_munging = pFrame_period;
+    TimersPush(TIMER_DRN);
+    DoDronePerGameFrameStuff();
+    TimersPop(TIMER_DRN);
+    TimersPush(TIMER_OPP);
+    MungeOpponents();
+    TimersPop(TIMER_OPP);
+    gFirst_drone_processing = 0;
+    ProcessShitMines(gTime_stamp_for_this_munging);
+}
 
 // FUNCTION: CARMA2_HW 0x004013d0
 // FUNCTION: CARMA2_SW 0x004013d0

@@ -85,7 +85,7 @@ extern void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont);
 
 extern void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time);
 
-// DoInstruments
+extern void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time);
 
 // ChangingView
 
