@@ -10,6 +10,7 @@
 #include "rec2_macros.h"
 #include "41-utility.h"
 
+#include <math.h>
 #include <string.h>
 
 extern tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tOpponent_spec* pOpponent_spec, br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance);
@@ -860,7 +861,168 @@ void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* pAnother
     }
 }
 
-// RecordOpponentTwattageOccurrence
+extern int gBig_bang;
+extern tU32 gAcme_frame_count;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// based on carpocalypse2 src/carma2/common/opponent.c:794
+// FUNCTION: CARMA2_HW 0x004aeef0
+void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee) {
+    int bangness;
+    int twatter_index;
+    int twattee_index;
+    int grudginess_caused_by_damage;
+    int new_grudge_value;
+    float damage;
+    tOpponent_spec* twattee_opponent_spec;
+    tOpponent_spec* twatter_opponent_spec;
+
+    if ((pTwatter != NULL && pTwatter->driver == eDriver_oppo) || (pTwattee != NULL && pTwattee->driver == eDriver_oppo)) {
+        damage = pTwattee->damage_magnitude_accumulator;
+        bangness = (int)((100.0 < sqrt(damage * 300000.0)) ? 100.0 : sqrt(damage * 300000.0));
+        grudginess_caused_by_damage = bangness / 10;
+        grudginess_caused_by_damage += 50 * ((pTwattee->car_ID & 0xff00) == 0x300);
+        DoNotDprintf("Frame %0.6d: %s hit %s, damage %f, bangness %d, gBig_bang %d, grudginess %d",
+            gAcme_frame_count,
+            pTwatter->driver_name,
+            pTwattee->driver_name,
+            damage,
+            bangness,
+            gBig_bang,
+            grudginess_caused_by_damage);
+        if (bangness < 5) {
+            return;
+        }
+        pTwatter->last_person_we_hit = pTwattee;
+        pTwatter->field_0x1544 = gTime_stamp_for_this_munging;
+        pTwattee->field_0x1544 = gTime_stamp_for_this_munging;
+        pTwattee->last_person_to_hit_us = pTwatter;
+        pTwattee->grudge_raised_recently = 1;
+        if (bangness >= gBig_bang || (((pTwattee->car_ID & 0xff00) == 0x300) != 0)) {
+            pTwattee->big_bang = 1;
+        }
+        if (bangness >= 80) {
+            pTwattee->scary_bang = 1;
+        }
+        if (pTwatter->driver == eDriver_local_human) {
+            twattee_opponent_spec = NULL;
+            if ((pTwattee->car_ID & 0xff00) == 0x200) {
+                for (twattee_index = 0; twattee_index < gProgram_state.AI_vehicles.number_of_opponents; twattee_index++) {
+                    if (gProgram_state.AI_vehicles.opponents[twattee_index].car_spec == pTwattee) {
+                        twattee_opponent_spec = &gProgram_state.AI_vehicles.opponents[twattee_index];
+                        break;
+                    }
+                }
+            } else if ((pTwattee->car_ID & 0xff00) == 0x300) {
+                for (twattee_index = 0; twattee_index < gNumber_of_cops_before_faffage; twattee_index++) {
+                    if (gProgram_state.AI_vehicles.cops[twattee_index].car_spec == pTwattee) {
+                        twattee_opponent_spec = &gProgram_state.AI_vehicles.cops[twattee_index];
+                        break;
+                    }
+                }
+            }
+            if (pTwattee->scary_bang) {
+                if (gOpponents[twattee_opponent_spec->index].strength_rating < 5) {
+                    twattee_opponent_spec->car_spec->acc_force = 0.f;
+                    twattee_opponent_spec->car_spec->brake_force = 0.f;
+                    twattee_opponent_spec->car_spec->curvature = 0.f;
+                    twattee_opponent_spec->stun_time_ends = MAX(twattee_opponent_spec->stun_time_ends, gTime_stamp_for_this_munging + 30 * MIN(bangness, 100) + 1000);
+                }
+            }
+            twattee_index = twattee_opponent_spec->index;
+            new_grudge_value = grudginess_caused_by_damage + gOpponents[twattee_index].psyche.grudge_against_player;
+            if (new_grudge_value > 100) {
+                new_grudge_value = 100;
+            }
+            gOpponents[twattee_index].psyche.grudge_against_player = new_grudge_value;
+        } else if (pTwattee->driver == eDriver_local_human) {
+            twatter_opponent_spec = NULL;
+            if ((pTwatter->car_ID & 0xff00) == 0x200) {
+                for (twatter_index = 0; twatter_index < gProgram_state.AI_vehicles.number_of_opponents; twatter_index++) {
+                    if (gProgram_state.AI_vehicles.opponents[twatter_index].car_spec == pTwatter) {
+                        twatter_opponent_spec = &gProgram_state.AI_vehicles.opponents[twatter_index];
+                        break;
+                    }
+                }
+            } else if ((pTwatter->car_ID & 0xff00) == 0x300) {
+                for (twatter_index = 0; twatter_index < gNumber_of_cops_before_faffage; twatter_index++) {
+                    if (gProgram_state.AI_vehicles.cops[twatter_index].car_spec == pTwatter) {
+                        twatter_opponent_spec = &gProgram_state.AI_vehicles.cops[twatter_index];
+                        break;
+                    }
+                }
+            }
+            twatter_index = twatter_opponent_spec->index;
+            if (twatter_opponent_spec->current_objective == eOOT_pursue_and_twat && twatter_opponent_spec->pursue_car_data.pursuee == pTwattee) {
+                twatter_opponent_spec->pursue_car_data.time_last_twatted_em = gTime_stamp_for_this_munging;
+            }
+            new_grudge_value = gOpponents[twatter_index].psyche.grudge_against_player - (twatter_opponent_spec->current_objective == eOOT_pursue_and_twat ? 0 : 2 * grudginess_caused_by_damage);
+            if (new_grudge_value < 0) {
+                new_grudge_value = 0;
+            }
+            gOpponents[twatter_index].psyche.grudge_against_player = new_grudge_value;
+        } else {
+            twatter_opponent_spec = NULL;
+            if ((pTwatter->car_ID & 0xff00) == 0x200) {
+                for (twatter_index = 0; twatter_index < gProgram_state.AI_vehicles.number_of_opponents; twatter_index++) {
+                    if (gProgram_state.AI_vehicles.opponents[twatter_index].car_spec == pTwatter) {
+                        twatter_opponent_spec = &gProgram_state.AI_vehicles.opponents[twatter_index];
+                        break;
+                    }
+                }
+            } else if ((pTwatter->car_ID & 0xff00) == 0x300) {
+                for (twatter_index = 0; twatter_index < gNumber_of_cops_before_faffage; twatter_index++) {
+                    if (gProgram_state.AI_vehicles.cops[twatter_index].car_spec == pTwatter) {
+                        twatter_opponent_spec = &gProgram_state.AI_vehicles.cops[twatter_index];
+                        break;
+                    }
+                }
+            }
+            twattee_opponent_spec = NULL;
+            if ((pTwattee->car_ID & 0xff00) == 0x200) {
+                for (twattee_index = 0; twattee_index < gProgram_state.AI_vehicles.number_of_opponents; twattee_index++) {
+                    if (gProgram_state.AI_vehicles.opponents[twattee_index].car_spec == pTwattee) {
+                        twattee_opponent_spec = &gProgram_state.AI_vehicles.opponents[twattee_index];
+                        break;
+                    }
+                }
+            } else if ((pTwattee->car_ID & 0xff00) == 0x300) {
+                for (twattee_index = 0; twattee_index < gNumber_of_cops_before_faffage; twattee_index++) {
+                    if (gProgram_state.AI_vehicles.cops[twattee_index].car_spec == pTwattee) {
+                        twattee_opponent_spec = &gProgram_state.AI_vehicles.cops[twattee_index];
+                        break;
+                    }
+                }
+            }
+            if (pTwattee->scary_bang) {
+                if (gOpponents[twattee_opponent_spec->index].strength_rating < 5) {
+                    twattee_opponent_spec->car_spec->acc_force = 0.f;
+                    twattee_opponent_spec->car_spec->brake_force = 0.f;
+                    twattee_opponent_spec->car_spec->curvature = 0.f;
+                    twattee_opponent_spec->stun_time_ends = MAX(twattee_opponent_spec->stun_time_ends, gTime_stamp_for_this_munging + 30 * bangness + 1000);
+                }
+            }
+            if (twatter_opponent_spec->current_objective == eOOT_pursue_and_twat && twatter_opponent_spec->pursue_car_data.pursuee == pTwattee) {
+                twatter_opponent_spec->pursue_car_data.time_last_twatted_em = gTime_stamp_for_this_munging;
+            }
+            if (VEHICLE_TYPE_FROM_ID(pTwatter->car_ID) == eVehicle_opponent && (((pTwattee->car_ID & 0xff00) == 0x300) != 0)) {
+                twattee_index = twattee_opponent_spec->index;
+                new_grudge_value = grudginess_caused_by_damage + gOpponents[twattee_index].psyche.grudge_against_player;
+                if (new_grudge_value > 100) {
+                    new_grudge_value = 100;
+                }
+                gOpponents[twattee_index].psyche.grudge_against_player = new_grudge_value;
+            }
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetOpponentMood
 

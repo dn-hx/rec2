@@ -186,7 +186,7 @@ extern void C2_HOOK_FASTCALL InitOpponentPsyche(int pOpponent_index);
 
 extern void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* pAnother_car);
 
-// RecordOpponentTwattageOccurrence
+extern void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee);
 
 // GetOpponentMood
 

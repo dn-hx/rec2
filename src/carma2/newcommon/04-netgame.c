@@ -498,11 +498,69 @@ void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer) {
 
 // SelectRandomFox
 
-// CalcPlayerScores
+extern int gIt_or_fox;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049abf0
+void C2_HOOK_FASTCALL CalcPlayerScores(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SendPlayerScores
 
-// DoNetGameManagement
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// based on carpocalypse2 src/carma2/common/netgame.c:600 (SendPlayerScores inlined)
+// FUNCTION: CARMA2_HW 0x0049ab00
+void C2_HOOK_FASTCALL DoNetGameManagement(void) {
+    // GLOBAL: CARMA2_HW 0x00659c34
+    static tU32 last_playerscores_sent = -1;
+    tNet_message_chunk* the_contents;
+    int i;
+
+    if (gNet_mode == eNet_mode_host) {
+        CalcPlayerScores();
+        if (gPHIL_last_physics_tick <= last_playerscores_sent || gPHIL_last_physics_tick >= last_playerscores_sent + 80) {
+            last_playerscores_sent = gPHIL_last_physics_tick;
+            the_contents = NetStartBroadcastContents((tNet_message_type)24, 0);
+            if (the_contents != NULL) {
+                switch (gCurrent_net_game->type) {
+                case eNet_game_type_2:
+                    the_contents->scores.general_score = gINT_0068d920;
+                    break;
+                case eNet_game_type_6:
+                    the_contents->scores.general_score = 0;
+                    for (i = 0; i < gNumber_of_net_players; i++) {
+                        if (gNet_players[i].field_0x80) {
+                            the_contents->scores.general_score |= 1 << i;
+                        }
+                    }
+                    break;
+                case eNet_game_type_foxy:
+                    the_contents->scores.general_score = gNet_players[gIt_or_fox].ID;
+                    break;
+                default:
+                    break;
+                }
+                for (i = 0; i < gNumber_of_net_players; i++) {
+                    the_contents->scores.scores[i] = gNet_players[i].score2;
+                }
+                NetBroadcastContents(the_contents);
+            }
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0049b690
 void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer) {

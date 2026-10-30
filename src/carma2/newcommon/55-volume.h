@@ -11,7 +11,7 @@ extern tSpecial_volume* gDefault_water_spec_vol_real;
 
 extern tSpecial_volume* C2_HOOK_FASTCALL GetDefaultSpecialVolumeForWater(void);
 
-// FindSpecialVolume
+extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
 
 // MungeSpecialVolume
 

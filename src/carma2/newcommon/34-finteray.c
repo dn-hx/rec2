@@ -689,7 +689,98 @@ int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, 
 
 // BoundsTransformTest
 
-// LineBoxColl
+/* FP matching helpers, based on carpocalypse2 src/carma2/common/finteray.c */
+static float C2_HOOK_FASTCALL FinterayScalar(double value) {
+    volatile float scalar = (float)value;
+
+    return scalar;
+}
+
+static int C2_HOOK_FASTCALL FinterayBoxNaN(double value) {
+    union { double value; tU32 words[2]; } bits;
+
+    bits.value = value;
+    return (bits.words[1] & 0x7ff00000u) == 0x7ff00000u && ((bits.words[1] & 0xfffffu) != 0 || bits.words[0] != 0);
+}
+
+static void C2_HOOK_FASTCALL FinterayBoxCopyScalar(br_scalar* output, const br_scalar* input) {
+    tU32 value;
+
+    memcpy(&value, input, sizeof(value));
+    memcpy(output, &value, sizeof(value));
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// based on carpocalypse2 src/carma2/common/finteray.c:1944
+// FUNCTION: CARMA2_HW 0x00460bd0
+int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT) {
+    br_vector3 direction;
+    br_vector3 plane;
+    br_vector3 candidate;
+    int quadrant[3];
+    int inside = 1;
+    int axis;
+    int selected = 0;
+    double coordinate;
+
+    for (axis = 0; axis < 3; axis++) {
+        direction.v[axis] = FinterayScalar((double)pEnd->v[axis] - pStart->v[axis]);
+    }
+    for (axis = 0; axis < 3; axis++) {
+        if (!(pStart->v[axis] >= pBounds->min.v[axis])) {
+            quadrant[axis] = 1;
+            FinterayBoxCopyScalar(&plane.v[axis], &pBounds->min.v[axis]);
+            inside = 0;
+        } else if (pStart->v[axis] > pBounds->max.v[axis]) {
+            quadrant[axis] = 0;
+            FinterayBoxCopyScalar(&plane.v[axis], &pBounds->max.v[axis]);
+            inside = 0;
+        } else {
+            quadrant[axis] = 2;
+        }
+    }
+    if (inside) {
+        for (axis = 0; axis < 3; axis++) {
+            FinterayBoxCopyScalar(&pPoint->v[axis], &pStart->v[axis]);
+        }
+        return -1;
+    }
+    for (axis = 0; axis < 3; axis++) {
+        if (quadrant[axis] == 2 || direction.v[axis] == 0.0f || FinterayBoxNaN(direction.v[axis])) {
+            candidate.v[axis] = -1.0f;
+        } else {
+            candidate.v[axis] = FinterayScalar(((double)plane.v[axis] - pStart->v[axis]) / direction.v[axis]);
+        }
+    }
+    for (axis = 1; axis < 3; axis++) {
+        if (candidate.v[axis] > candidate.v[selected]) {
+            selected = axis;
+        }
+    }
+    if (!(candidate.v[selected] >= 0.0f) || candidate.v[selected] > 1.0f) {
+        return 0;
+    }
+    for (axis = 0; axis < 3; axis++) {
+        if (axis == selected) {
+            FinterayBoxCopyScalar(&pPoint->v[axis], &plane.v[axis]);
+        } else {
+            coordinate = (double)direction.v[axis] * candidate.v[selected] + pStart->v[axis];
+            pPoint->v[axis] = FinterayScalar(coordinate);
+            if (!(coordinate >= pBounds->min.v[axis]) || coordinate > pBounds->max.v[axis]) {
+                return 0;
+            }
+        }
+    }
+    FinterayBoxCopyScalar(pT, &candidate.v[selected]);
+    return selected + 1 + 4 * quadrant[selected];
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00460da0
 int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_vector3* pCenter, br_scalar pRadius_squared, br_vector3* pClosest) {
