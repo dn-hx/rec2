@@ -586,7 +586,81 @@ void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car) {
 
 // ScrapeNoise
 
-// SkidNoise
+// GLOBAL: CARMA2_HW 0x006793c0
+int gSkid_tag[2];
+
+// GLOBAL: CARMA2_HW 0x006793c8
+tCar_spec* gLast_car_to_skid[2];
+
+// GLOBAL: CARMA2_HW 0x00679408
+int gLast_skid_vol[2];
+
+// based on carpocalypse2 src/carma2/common/car.c:5960 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x0041bed0
+void C2_HOOK_FASTCALL SkidNoise(tCar_spec* pCar, int pSide, br_scalar pV, int pMaterial_index) {
+    br_vector3 tv;
+    br_vector3 wvw;
+    br_vector3 world_pos;
+    br_vector3 pos;
+    br_vector3 wv;
+    br_scalar ts;
+    int i;
+
+    extern tS3_outlet* gCar_outlet;
+    extern int C2_HOOK_FASTCALL DRS3SoundStillPlaying(int pTag);
+    extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+    extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
+
+    i = IRandomBetween(0, 1);
+    if (pV < 5.0f) {
+        return;
+    }
+    if (gCurrent_race.material_modifiers[pMaterial_index].tyre_noise_index == -1) {
+        return;
+    }
+    if (IRandomBetween(0, 4) != 0) {
+        return;
+    }
+
+    gLast_skid_vol[i] = pV * 10.0f;
+    pos.v[0] = pCar->wpos[pSide].v[0];
+    pos.v[1] = pCar->wpos[pSide].v[1] - pCar->oldd[pSide];
+    pos.v[2] = pCar->wpos[pSide].v[2];
+    BrMatrix34ApplyP(&world_pos, &pos, &pCar->car_master_actor->t.t.mat);
+    BrVector3InvScale(&world_pos, &world_pos, 6.9f);
+    if (!DRS3SoundStillPlaying(gSkid_tag[i])
+            || (pCar != NULL && pCar->driver == eDriver_local_human && gLast_car_to_skid[i] != pCar)) {
+        gSkid_tag[i] = DRS3StartSound3D(gCar_outlet,
+            IRandomBetween(0, 4) + 9000,
+            &world_pos,
+            &pCar->vel,
+            1,
+            gLast_skid_vol[i],
+            IRandomBetween(49152, 81920),
+            0x10000);
+        gLast_car_to_skid[i] = pCar;
+    }
+    if (gCurrent_race.material_modifiers[pMaterial_index].smoke_type == 1) {
+        wv.v[0] = pCar->collision_info->omega.v[1] * pos.v[2] - pCar->collision_info->omega.v[2] * pos.v[1];
+        wv.v[1] = pCar->collision_info->omega.v[2] * pos.v[0] - pCar->collision_info->omega.v[0] * pos.v[2];
+        wv.v[2] = pCar->collision_info->omega.v[0] * pos.v[1] - pCar->collision_info->omega.v[1] * pos.v[0];
+        tv.v[0] = pCar->collision_info->velocity_car_space.v[0] * 6.9f;
+        tv.v[1] = pCar->collision_info->velocity_car_space.v[1] * 6.9f;
+        tv.v[2] = pCar->collision_info->velocity_car_space.v[2] * 6.9f;
+        wv.v[0] += tv.v[0];
+        wv.v[1] += tv.v[1];
+        wv.v[2] += tv.v[2];
+        ts = -(wv.v[0] * ((br_vector3*)(pCar->field_0x1348))->v[0] + wv.v[1] * ((br_vector3*)(pCar->field_0x1348))->v[1] + wv.v[2] * ((br_vector3*)(pCar->field_0x1348))->v[2]);
+        wvw.v[0] = ((br_vector3*)(pCar->field_0x1348))->v[0] * ts;
+        wvw.v[1] = ((br_vector3*)(pCar->field_0x1348))->v[1] * ts;
+        wvw.v[2] = ((br_vector3*)(pCar->field_0x1348))->v[2] * ts;
+        wv.v[0] += wvw.v[0];
+        wv.v[1] += wvw.v[1];
+        wv.v[2] += wvw.v[2];
+        BrMatrix34ApplyV(&wvw, &wv, &pCar->car_master_actor->t.t.mat);
+        CreatePuffOfSmoke(&world_pos, &wvw, pV / 25.0f, 1.0f, 4);
+    }
+}
 
 // StopSkid
 
@@ -748,7 +822,128 @@ tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* actor) {
 
 // PipeNonCars
 
-// CheckForDeAttachmentOfNonCars
+extern tNon_car_spec* gActive_non_car_list[99];
+extern br_actor* gAdditional_actors;
+extern int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data);
+extern void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
+extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+
+// GLOBAL: CARMA2_HW 0x00679418
+tU32 gCheck_for_deattachment_total_time;
+
+// based on carpocalypse2 src/carma2/common/car.c:3975 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004203c0
+void C2_HOOK_FASTCALL CheckForDeAttachmentOfNonCars(tU32 pTime) {
+    int new_count;
+
+    new_count = 0;
+    if (gNum_active_non_cars != 0) {
+        int i;
+
+        ARStartPipingSession(ePipe_chunk_non_car);
+        for (i = 0; i < gNum_active_non_cars; i++) {
+            tNon_car_spec* non_car = gActive_non_car_list[i];
+
+            if (non_car->car_ID != -1) {
+                PhysicsObjectRecurse(non_car->collision_info, PipeNonCarObject, NULL);
+            }
+        }
+        AREndPipingSession();
+        gCheck_for_deattachment_total_time += pTime;
+        if (gCheck_for_deattachment_total_time >= 1000) {
+            gCheck_for_deattachment_total_time = 0;
+            for (i = 0; i < gNum_active_non_cars; i++) {
+                tNon_car_spec* non_car = gActive_non_car_list[i];
+
+                if (non_car->actor->t.t.translate.t.v[1] < gMin_world_y - 10.f) {
+                    non_car->collision_info->disable_move_rotate = 1;
+                }
+                if (TestForNan(&non_car->actor->t.t.translate.t.v[1])) {
+                    non_car->collision_info->omega.v[0] = 0.f;
+                    non_car->collision_info->omega.v[1] = 0.f;
+                    non_car->collision_info->omega.v[2] = 0.f;
+                    BrMatrix34Identity(&non_car->actor->t.t.mat);
+                    non_car->actor->t.t.translate.t.v[0] = 2000.f;
+                    non_car->actor->t.t.translate.t.v[1] = 0.f;
+                    non_car->actor->t.t.translate.t.v[2] = 0.f;
+                    non_car->collision_info->disable_move_rotate = 1;
+                }
+                gActive_non_car_list[new_count] = non_car;
+                if (non_car->collision_info->disable_move_rotate && non_car->driver == eDriver_4) {
+                    int j;
+                    int drop;
+                    br_actor* non_car_actor;
+
+                    drop = 1;
+                    non_car_actor = non_car->actor;
+                    for (j = 0; j < gNum_cars_and_non_cars; j++) {
+                        tCar_spec* car = gActive_car_list[j];
+
+                        if (car != (tCar_spec*)non_car && !car->collision_info->disable_move_rotate) {
+                            br_matrix34 mat;
+                            br_bounds bb;
+
+                            BrMatrix34Mul(&mat, &non_car_actor->t.t.mat, &car->collision_info->field_0x144);
+                            GetNewBoundingBox(&bb, &non_car_actor->model->bounds, &mat);
+                            if (!(bb.min.v[0] > car->collision_info->field_0x124.max.v[0]
+                                  || bb.min.v[1] > car->collision_info->field_0x124.max.v[1]
+                                  || bb.min.v[2] > car->collision_info->field_0x124.max.v[2]
+                                  || car->collision_info->field_0x124.min.v[0] > bb.max.v[0]
+                                  || car->collision_info->field_0x124.min.v[1] > bb.max.v[1]
+                                  || car->collision_info->field_0x124.min.v[2] > bb.max.v[2])) {
+                                drop = 0;
+                                break;
+                            }
+                        }
+                    }
+                    if (drop) {
+                        if (non_car->flags & 0x10000) {
+                            br_vector3* stored_pos = (br_vector3*)non_car->collision_info->transform_matrix.m[3];
+                            br_vector3 diff;
+
+                            diff.v[0] = non_car->collision_info->field_0x17c.v[0] - stored_pos->v[0];
+                            diff.v[1] = non_car->collision_info->field_0x17c.v[1] - stored_pos->v[1];
+                            diff.v[2] = non_car->collision_info->field_0x17c.v[2] - stored_pos->v[2];
+                            if (diff.v[0] * diff.v[0] + diff.v[1] * diff.v[1] + diff.v[2] * diff.v[2] > 0.005f * 0.005f) {
+                                drop = 0;
+                            } else {
+                                stored_pos->v[0] = non_car->collision_info->field_0x17c.v[0];
+                                stored_pos->v[1] = non_car->collision_info->field_0x17c.v[1];
+                                stored_pos->v[2] = non_car->collision_info->field_0x17c.v[2];
+                            }
+                        }
+                        if ((tCar_spec*)non_car != gCar_to_view) {
+                            BrActorRemove(non_car_actor);
+                            ClearSplashes(non_car->collision_info);
+                            new_count -= 1;
+                            non_car->driver = eDriver_non_car_unused_slot;
+                            if (non_car->car_ID != -1) {
+                                tU8 col_x;
+                                tU8 col_z;
+                                br_actor* parent;
+
+                                XZToColumnXZ(&col_x, &col_z, non_car_actor->t.t.mat.m[3][0], non_car_actor->t.t.mat.m[3][2], &gProgram_state.track_spec);
+                                parent = gTrack_actor;
+                                if (gProgram_state.track_spec.columns[col_z][col_x].actor_0x0 != NULL) {
+                                    parent = gProgram_state.track_spec.columns[col_z][col_x].actor_0x0;
+                                }
+                                BrActorAdd(parent, non_car_actor);
+                            } else if (gAdditional_actors != NULL) {
+                                BrActorAdd(gAdditional_actors, non_car_actor);
+                            }
+                            non_car_actor->type_data = NULL;
+                            PHILRemoveObject(non_car->collision_info);
+                        }
+                    }
+                }
+                new_count += 1;
+            }
+            gNum_active_non_cars = new_count;
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004207e0
 void C2_HOOK_FASTCALL AdjustNonCar(br_actor* pActor, const br_matrix34* pMatrix) {
@@ -1158,6 +1353,23 @@ void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar) {
 #endif
 // STUB: CARMA2_HW 0x004fa5b0
 void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004207a0
+int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+
+// STUB: CARMA2_HW 0x004fee70
+void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

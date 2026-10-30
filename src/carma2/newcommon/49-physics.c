@@ -767,7 +767,119 @@ void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* 
 
 // DoCollisions
 
-// AddDoubleTorqueToMatrix
+// based on carpocalypse2 src/carma2/common/physics.c:3623 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004baa00
+int C2_HOOK_FASTCALL AddDoubleTorqueToMatrix(tPhysics_object* pObject) {
+    tPhysics_object* obj;
+    int acc;
+    int child_acc;
+    float X;
+    float Y;
+    float Z;
+    float eAng;
+    float eLin;
+    float len;
+    float nx;
+    float ny;
+    float nz;
+    float d1;
+    float d2;
+    float bx;
+    float by;
+    float bz;
+    float cx;
+    float cy;
+    float cz;
+    float vx;
+    float vy;
+    float vz;
+    int i;
+    int new1df;
+
+    obj = pObject;
+    acc = 1;
+    if (obj != NULL) {
+    for (; obj != NULL; obj = obj->next) {
+        if (obj->field_0x21c != 1.0f) {
+            obj->I.v[0] /= obj->field_0x21c;
+            obj->I.v[1] /= obj->field_0x21c;
+            obj->I.v[2] /= obj->field_0x21c;
+        }
+        if (obj->field_0xf0 != 0) {
+            obj->field_0xf0 = 0;
+            obj->disable_move_rotate = (tU8)(((tU32)obj->flags >> 5) & 1);
+        }
+        {
+            tU32 f = obj->flags;
+            f = (f & ~0x100) | ((f >> 1) & 0x100);
+            obj->flags = f;
+        }
+        new1df = 0;
+        if (obj->disable_move_rotate == 0) {
+            if (obj->field_0x1df != 0 && obj->field183_0x1d8 == (int)obj) {
+                obj->field_0x1df = 0;
+            }
+            X = ((br_vector3*)obj->field_0x1cc)->v[0] + obj->omega.v[0];
+            Y = ((br_vector3*)obj->field_0x1cc)->v[1] + obj->omega.v[1];
+            Z = ((br_vector3*)obj->field_0x1cc)->v[2] + obj->omega.v[2];
+            eAng = (obj->I.v[0] * X * X + obj->I.v[1] * Y * Y + obj->I.v[2] * Z * Z) / obj->M;
+            if (obj->collision_flag != 0 || obj->field_0x1df == 0) {
+                eLin = obj->v.v[0] * obj->v.v[0] + obj->v.v[1] * obj->v.v[1] + obj->v.v[2] * obj->v.v[2];
+            } else {
+                eLin = 0.0f;
+            }
+            if (eLin < 0.001 && eAng < 0.00009) {
+                len = (float)sqrt(obj->field_0x54.v[0] * obj->field_0x54.v[0] + obj->field_0x54.v[1] * obj->field_0x54.v[1] + obj->field_0x54.v[2] * obj->field_0x54.v[2]);
+                nx = obj->field_0x54.v[0] / len;
+                ny = obj->field_0x54.v[1] / len;
+                nz = obj->field_0x54.v[2] / len;
+                d1 = -(obj->v.v[0] * nx + obj->v.v[1] * ny + obj->v.v[2] * nz);
+                d2 = -(((br_vector3*)obj->field_0x1b4)->v[0] * nx + ((br_vector3*)obj->field_0x1b4)->v[1] * ny + ((br_vector3*)obj->field_0x1b4)->v[2] * nz);
+                if (obj->field_0x1df == 0) {
+                    if (d1 < 0.012f && (d1 - d2) > 0.9f * len) {
+                        bx = obj->omega.v[1] * obj->cmpos.v[2] - obj->omega.v[2] * obj->cmpos.v[1] + obj->velocity_car_space.v[0];
+                        by = obj->omega.v[2] * obj->cmpos.v[0] - obj->omega.v[0] * obj->cmpos.v[2] + obj->velocity_car_space.v[1];
+                        bz = obj->omega.v[0] * obj->cmpos.v[1] - obj->omega.v[1] * obj->cmpos.v[0] + obj->velocity_car_space.v[2];
+                        for (i = 0; i < 8; i++) {
+                            cx = (i & 2) ? obj->bb1.min.v[0] : obj->bb1.max.v[0];
+                            cy = (i & 1) ? obj->bb1.min.v[1] : obj->bb1.max.v[1];
+                            cz = (i & 4) ? obj->bb1.min.v[2] : obj->bb1.max.v[2];
+                            vx = obj->omega.v[1] * cz - obj->omega.v[2] * cy + bx;
+                            vy = obj->omega.v[2] * cx - obj->omega.v[0] * cz + by;
+                            vz = obj->omega.v[0] * cy - obj->omega.v[1] * cx + bz;
+                            if (vx * vx + vy * vy + vz * vz > 0.0004f) {
+                                goto copy;
+                            }
+                        }
+                    } else {
+                        goto copy;
+                    }
+                }
+                if (obj->physics_joint2 == NULL || obj->collision_flag != 0 || obj->transform_matrix.m[1][1] > 0.999) {
+                    new1df = 1;
+                    BrVector3SetFloat(&obj->v, 0.0f, 0.0f, 0.0f);
+                    BrVector3SetFloat(&obj->omega, 0.0f, 0.0f, 0.0f);
+                    BrVector3SetFloat(&obj->rotate_omega, 0.0f, 0.0f, 0.0f);
+                }
+            }
+        }
+copy:
+        obj->field_0x1df = (tU8)new1df;
+        BrMatrix34Copy(&obj->transform_matrix, &obj->actor->t.t.mat);
+        BrMatrix34ApplyP(&obj->pos, &obj->cmpos, &obj->transform_matrix);
+        if (obj->child != NULL) {
+            child_acc = AddDoubleTorqueToMatrix(obj->child);
+            if (obj->field_0x1df != 0) {
+                obj->field_0x1df = (tU8)((child_acc << 1) + obj->field_0x1df);
+            }
+        } else {
+            obj->field_0x1df = (tU8)(obj->field_0x1df * 3);
+        }
+        acc &= ((tU32)obj->field_0x1df >> 1) & 1;
+    }
+    }
+    return acc;
+}
 
 // FUNCTION: CARMA2_HW 0x004bae80
 void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag) {

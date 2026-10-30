@@ -430,7 +430,148 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // FoxyStuff
 
-// DoARenderPass
+extern int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int class, int arg1, int arg2, int arg3);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
+extern void C2_HOOK_FASTCALL ProcessTintedPoly(int pTintedIndex);
+extern void C2_HOOK_FASTCALL RenderTintedPolys(void);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
+extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
+extern int C2_HOOK_FASTCALL IsCarCloaked(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
+extern void C2_HOOK_FASTCALL RenderLimbs(void);
+extern br_pixelmap* gRender_palette;
+extern int gIt_or_fox;
+extern tSpecial_volume* gLast_camera_special_volume;
+extern tNet_game_player_info gNet_players[12];
+extern tNet_mode gNet_mode;
+extern int gNumber_of_net_players;
+extern tDepth_effect_type gSwap_depth_effect_type;
+extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
+extern void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world);
+extern void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
+extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+
+// FUNCTION: CARMA2_HW 0x004e5680
+void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
+    br_camera* camera_data = (br_camera*)pCamera->type_data;
+    int bgnd_col;
+    br_pixelmap* sky_pixelmap;
+    tCar_spec* fox_car;
+    int j;
+    int i;
+    int count;
+    br_scalar original_yon = camera_data->yon_z;
+
+    camera_data->yon_z *= pYon_factor;
+    BrPixelmapFill(pDepth, 0xffffffff);
+    if (!gAFE) {
+        count = 0;
+        if (gNet_mode != eNet_mode_none && (gCurrent_net_game->type == eNet_game_type_6 || gCurrent_net_game->type == eNet_game_type_foxy)) {
+            BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                tNet_game_player_info* net_player = &gNet_players[i];
+                if ((net_player->field_0x80 || i == gIt_or_fox) && !IsCarCloaked(net_player->car)) {
+                    fox_car = net_player->car;
+                    if (fox_car->car_master_actor->render_style != BR_RSTYLE_NONE) {
+                        br_actor** wheel_actors;
+
+                        count += 1;
+                        wheel_actors = fox_car->wheel_actors;
+                        for (j = 0; j < 6; j++) {
+                            if (wheel_actors[j] != NULL) {
+                                wheel_actors[j]->render_style = BR_RSTYLE_NONE;
+                            }
+                        }
+                        BrZbsSceneRenderAdd(fox_car->car_master_actor);
+                    }
+                }
+            }
+            BrZbsSceneRenderEnd();
+            if (count != 0) {
+                if (gHud_tinted4 == -1) {
+                    gHud_tinted4 = CreateTintedPoly(0, 0, 640, 480, 3, 2, 0, 0);
+                }
+                TurnTintedPolyOn(gHud_tinted4);
+                ProcessTintedPoly(gHud_tinted4);
+                RenderTintedPolys();
+                TurnTintedPolyOff(gHud_tinted4);
+                BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+                for (i = 0; i < gNumber_of_net_players; i++) {
+                    tNet_game_player_info* net_player = &gNet_players[i];
+                    if (net_player->field_0x80 || i == gIt_or_fox) {
+                        fox_car = net_player->car;
+                        if (fox_car->car_master_actor->render_style != BR_RSTYLE_NONE) {
+                            br_actor** wheel_actors;
+
+                            wheel_actors = fox_car->wheel_actors;
+                            for (j = 0; j < 6; j++) {
+                                if (wheel_actors[j] != NULL) {
+                                    wheel_actors[j]->render_style = BR_RSTYLE_DEFAULT;
+                                    BrZbsSceneRenderAdd(wheel_actors[j]);
+                                }
+                            }
+                        }
+                    }
+                }
+                BrZbsSceneRenderEnd();
+                fox_car->car_master_actor->render_style = BR_RSTYLE_NONE;
+            }
+        }
+    }
+    sky_pixelmap = (pColour->width == gBack_screen->width) ? gBack_screen : pColour;
+    if (gProgram_state.current_depth_effect.sky_texture != NULL && (gLast_camera_special_volume == NULL || gLast_camera_special_volume->sky_col <= -1)) {
+        BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+        DepthEffectSky(pColour, pDepth, pCamera, pMat34);
+        BrZbsSceneRenderEnd();
+    } else {
+        if (gProgram_state.current_depth_effect.type == eDepth_effect_fog || gSwap_depth_effect_type == eDepth_effect_fog) {
+            bgnd_col = 0xff;
+        } else if (gProgram_state.current_depth_effect.type == eDepth_effect_darkness || gSwap_depth_effect_type == eDepth_effect_darkness) {
+            bgnd_col = 0x00;
+        } else if (gLast_camera_special_volume != NULL && gLast_camera_special_volume->sky_col >= 0) {
+            bgnd_col = gLast_camera_special_volume->sky_col;
+        } else {
+            bgnd_col = 0x00;
+        }
+        if (gNet_mode != eNet_mode_none && (gCurrent_net_game->type == eNet_game_type_6 || gCurrent_net_game->type == eNet_game_type_foxy)) {
+            SetSkyColour(((tU32*)gRender_palette->pixels)[bgnd_col]);
+            BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+            DepthEffectSky(pColour, pDepth, pCamera, pMat34);
+            BrZbsSceneRenderEnd();
+        } else {
+            if (sky_pixelmap->type != BR_PMT_INDEX_8) {
+                bgnd_col = PaletteEntry16Bit(gRender_palette, bgnd_col);
+                bgnd_col = (bgnd_col << 16) | bgnd_col;
+            }
+            BrPixelmapFill(sky_pixelmap, bgnd_col);
+        }
+    }
+    DoSpecialCameraEffect(pCamera, pMat34);
+    if (pShadows) {
+        RenderShadows(gUniverse_actor, &gProgram_state.track_spec, pCamera, pMat34);
+    }
+    BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+    for (i = 4; i > 0; i--) {
+        if (i != 2) {
+            BrSetScreenZOffset(i);
+            BrZbsSceneRenderAdd(gOther_selfs[i - 1]);
+        }
+    }
+    BrSetScreenZOffset(0);
+    ProcessTrack(gUniverse_actor, &gProgram_state.track_spec, pCamera, pMat34);
+    BrZbsSceneRenderAdd(gNon_track_actor);
+    RenderLimbs();
+    RenderLollipops(pColour, pDepth, pCamera, pMat34);
+    if (pEffects) {
+        RenderSparks(pColour, pDepth, pCamera, pMat34, gFrame_period);
+        RenderSmoke(pColour, pDepth, pCamera, pMat34, gFrame_period);
+        RenderElectroBastardRays(pColour, pDepth, pCamera, pMat34, gFrame_period);
+    }
+    BrZbsSceneRenderEnd();
+    camera_data->yon_z = original_yon;
+}
 
 // DoACompleteRenderPass
 
@@ -519,3 +660,39 @@ int gHud_tinted4 = -1;
 
 // GLOBAL: CARMA2_HW 0x006a27dc
 int gShadow_clip_plane_count;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00445cb0
+void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00446340
+void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e74d0
+void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f7450
+void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004fa910
+void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d5d60
+void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

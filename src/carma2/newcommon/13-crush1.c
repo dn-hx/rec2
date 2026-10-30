@@ -1499,6 +1499,9 @@ int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, b
 
 // StartFlapping
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0042f3d0
 void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
     int i;
@@ -1542,6 +1545,10 @@ void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
     }
     pCar_crush->field_0x2b0 = new_count;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // SendReAttachBit
 
 // StopFlapping
@@ -1569,6 +1576,9 @@ int C2_HOOK_CDECL ToggleDoorsActorCallback(br_actor* pActor, void* data) {
 
 // ToggleFlaps
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00434910
 int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_object* pObject) {
     br_vector3 world_direction;
@@ -1588,12 +1598,78 @@ int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_ob
     }
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FullyDetachBit
 
 // SendFullyDetachBit
 
-// DoFullyDetaching
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139];
+extern tCrush_net_full_detach_bit_list_item gNet_crush_full_detach_bit_list[8];
+extern int gCount_net_crush_full_detach_bit_list;
+extern void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
+
+// FUNCTION: CARMA2_HW 0x00438900
+void C2_HOOK_FASTCALL DoFullyDetaching(void) {
+    int i;
+
+    if (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host) {
+        for (i = 0; i < gNum_active_cars; i++) {
+            if (gActive_car_list[i] != NULL && gActive_car_list[i]->driver > 5 && gActive_car_list[i]->car_crush_spec != NULL) {
+                tCar_crush_spec* car_crush = gActive_car_list[i]->car_crush_spec;
+                int j;
+
+                for (j = 0; j < car_crush->field_0x270; j++) {
+                    tCar_bit_spec* bit_car = &car_crush->field_0x274[j];
+                    int detach;
+                    int dt;
+
+                    switch (bit_car->field_0xc[9]) {
+                    case 2:
+                    case 4:
+                        detach = 1;
+                        break;
+                    case 0:
+                    case 1:
+                        detach = BitObjectIsSufficientlyOutsideCarObjectToDetach(bit_car->field_0x8);
+                        dt = PDGetTotalTime() - bit_car->field_0x10;
+                        if (dt < gMax_detach_time_ms) {
+                            detach &= PercentageChance((int)((float)(100 * dt) / gMax_detach_time_ms));
+                        }
+                        break;
+                    default:
+                        detach = 0;
+                        break;
+                    }
+                    if (detach) {
+                        if (gNet_mode != eNet_mode_none) {
+                            int bit_synced;
+                            int k;
+
+                            bit_synced = 0;
+                            for (k = 0; k < gCount_net_crush_full_detach_bit_list; k++) {
+                                if (gNet_crush_full_detach_bit_list[k].object == bit_car->field_0x8) {
+                                    bit_synced = 1;
+                                    break;
+                                }
+                            }
+                            if (!bit_synced) {
+                                SendFullyDetachBit(gActive_car_list[i], bit_car->field_0x8);
+                            }
+                        } else {
+                            FullyDetachBit(gActive_car_list[i], bit_car->field_0x8);
+                        }
+                    }
+                }
+                MungeDetachLists(car_crush);
+            }
+        }
+    }
+}
 
 // CalculateCollisionObjectStuffForSplitHalves
 
@@ -2857,6 +2933,22 @@ tWorld_callbacks gWorld_callbacks = { 0 };
 #endif
 // STUB: CARMA2_HW 0x00429070
 int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, br_vector3* pVec3, tWorld_callbacks* pCar_callbacks) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004314b0
+void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0042f4e0
+void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
