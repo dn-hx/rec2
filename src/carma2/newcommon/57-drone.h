@@ -4,6 +4,12 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
 extern int gFrame;
 extern tDrone_spec* gDrone_specs;
 extern int gCurrent_selected_drone;

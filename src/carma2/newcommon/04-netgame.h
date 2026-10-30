@@ -56,7 +56,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // SetUpNetCarPositions
 
-extern void C2_HOOK_FASTCALL ReinitialiseCar(tCar_spec* pCar);
+// ReinitialiseCar
 
 // RepositionPlayer
 
@@ -96,7 +96,7 @@ extern void C2_HOOK_FASTCALL DisposeNetHeadups(void);
 
 // FarEnoughAway
 
-extern void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer);
+// CarInContactWithFox
 
 // SelectRandomFox
 

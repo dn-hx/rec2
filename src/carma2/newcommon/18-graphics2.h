@@ -76,7 +76,7 @@ extern void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, i
 
 extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
-extern br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD);
+// DistanceFromPlane
 
 extern void C2_HOOK_FASTCALL KillSplashScreen(void);
 

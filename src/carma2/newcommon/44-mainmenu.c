@@ -15,6 +15,9 @@
 
 // QuitVerifyStart
 
+extern int gMouse_was_started__mainmenu;
+extern int gReplace_background;
+
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
 extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
 extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
