@@ -1786,7 +1786,7 @@ void C2_HOOK_FASTCALL MungeSomeOtherCarGraphics(void) {
 
 extern void C2_HOOK_FASTCALL ChangeAmbientPratcam(int pIndex);
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, undefined4 pArg2, br_scalar pMax_distance);
+extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
 extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 extern int C2_HOOK_FASTCALL GetOilSpillCount(void);
@@ -1916,7 +1916,7 @@ void C2_HOOK_FASTCALL MungeCarGraphics(tU32 pFrame_period) {
             } else {
                 the_car = GetCarSpec(cat, car);
             }
-            if (!(the_car != NULL && the_car->driver == eDriver_local_human) && PointOutOfSight(&the_car->pos, 0, gYon_squared)) {
+            if (!(the_car != NULL && the_car->driver == eDriver_local_human) && PointOutOfSight(&the_car->pos, gYon_squared)) {
                 the_car->car_master_actor->render_style = BR_RSTYLE_NONE;
             } else {
                 the_car->car_master_actor->render_style = BR_RSTYLE_DEFAULT;

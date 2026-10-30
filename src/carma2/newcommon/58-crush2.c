@@ -256,7 +256,7 @@ void C2_HOOK_FASTCALL DoWheelDamage(void) {
     extern int gNum_active_cars;
     extern tCar_spec* gActive_car_list[139];
     extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
-    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, undefined4 pArg2, br_scalar pMax_distance);
+    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
     int i;
 
     if (gAction_replay_mode && ARReplayIsReallyPaused()) {
@@ -284,7 +284,7 @@ void C2_HOOK_FASTCALL DoWheelDamage(void) {
                     car->wheel_dam_offset[j] = 0.f;
                     continue;
                 }
-                if (PointOutOfSight(&car->pos, 0, 32.f)) {
+                if (PointOutOfSight(&car->pos, 32.f)) {
                     break;
                 }
                 y_amount = (damage - 30) * gWobble_spam_y[damage & 7];

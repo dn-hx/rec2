@@ -2550,7 +2550,11 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
 
     for (i = 0, face = pModel->faces; i < pModel->nfaces; i++, face++) {
         SpawnPedsOnFace(face, pModel);
+#ifdef REC2_MATCHING
+        if (((int (C2_HOOK_FASTCALL *)(br_material*, br_model*))SmashFaceMustBeUpdateable)(face->material, pModel)) {
+#else
         if (SmashFaceMustBeUpdateable(face->material)) {
+#endif
             if (gMr_blendy == NULL) {
                 gMr_blendy = BrActorAllocate(BR_ACTOR_MODEL, NULL);
                 gMr_blendy->render_style = BR_RSTYLE_FACES;

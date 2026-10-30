@@ -3534,6 +3534,7 @@ void C2_HOOK_FASTCALL Slider_EffectsProc(tFrontend_slider* pSlider) {
 int C2_HOOK_FASTCALL Options_Infunc(tFrontend_spec* pFrontend) {
 
     Generic_Infunc(pFrontend);
+    gOptions_sound_slider.value = gProgram_state.effects_volume / 255.0;
     gOptions_sound_slider.flags = 0;
     gOptions_sound_slider.itemid_left_reference = 10;
     gOptions_sound_slider.itemid_start = 6;
@@ -3543,7 +3544,11 @@ int C2_HOOK_FASTCALL Options_Infunc(tFrontend_spec* pFrontend) {
     gOptions_sound_slider.field_0x18 = 1.0f;
     gOptions_sound_slider.next = NULL;
     gCurrent_frontend_scrollbars = &gOptions_sound_slider;
-    DisplayVolumeSettings(pFrontend);
+    if (gProgram_state.music_volume >= 128) {
+        SelectThisItemIn(pFrontend, 1, 14);
+    } else {
+        SelectThisItemIn(pFrontend, 1, 15);
+    }
     if (gProgram_state.racing) {
         pFrontend->items[0].enabled = kFrontendItemEnabled_enabled;
         pFrontend->items[1].enabled = kFrontendItemEnabled_enabled;

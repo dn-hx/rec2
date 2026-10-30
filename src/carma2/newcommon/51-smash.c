@@ -212,7 +212,7 @@ void C2_HOOK_FASTCALL ResetExplosions(void) {
 
 // RemoveAllExplosionettes
 
-extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, undefined4 pArg2, br_scalar pMax_distance);
+extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
 
 // based on carpocalypse2 src/carma2/common/explosions.c:71 (reference only)
 // FUNCTION: CARMA2_HW 0x004eaaf0
@@ -241,7 +241,7 @@ void C2_HOOK_FASTCALL MungeExplosions(void) {
             explosion->finished = 1;
             continue;
         }
-        if (!gAction_replay_mode && PointOutOfSight(&explosion->collision_actor->t.t.translate.t, 0, 0.f)) {
+        if (!gAction_replay_mode && PointOutOfSight(&explosion->collision_actor->t.t.translate.t, 0.f)) {
             goto remove;
         }
         explosion->field_0x8 = frame;
