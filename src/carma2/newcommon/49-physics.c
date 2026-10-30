@@ -693,13 +693,18 @@ void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* 
             }
             child = pObject->child;
             if (child != NULL && list_cur->disable_move_rotate != 0) {
-                for (child = pObject->child; child != NULL; child = child->next) {
+                child = pObject->child;
+                while (child != NULL) {
                     if (child->field_0xf4.min.v[0] - list_cur->field_0xf4.max.v[0] > 0.01
                             || child->field_0xf4.min.v[1] - list_cur->field_0xf4.max.v[1] > 0.01
                             || child->field_0xf4.min.v[2] - list_cur->field_0xf4.max.v[2] > 0.01
                             || list_cur->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] > 0.01
                             || list_cur->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] > 0.01
                             || list_cur->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] > 0.01) {
+                        child = child->next;
+                        if (child == NULL) {
+                            break;
+                        }
                         continue;
                     }
                     obj = list_cur;

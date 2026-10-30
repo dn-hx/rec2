@@ -220,7 +220,7 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
     if (non_car == NULL) {
         if (actor->identifier[1] >= '0' && actor->identifier[1] <= '9') {
             non_car_index = actor->identifier[1] * 10 + actor->identifier[2] - 0x210;
-            non_car_spec_index = *(gNon_car_spec_indices + non_car_index);
+            non_car_spec_index = gNon_car_spec_indices[non_car_index];
             if (non_car_spec_index != 0) {
                 candidate_non_car = &gProgram_state.non_cars[non_car_spec_index + 0x27];
             } else {
@@ -250,15 +250,15 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
         }
     }
     if ((pContents->flags & 4) != 0) {
-        if ((tU8)non_car->flags == 0) {
-            non_car->flags |= 1;
+        if ((non_car->flags & 0xff) == 0) {
+            non_car->flags = (non_car->flags & ~0xfe) | 1;
         }
     } else {
         non_car->flags &= ~0xff;
     }
     if ((pContents->flags & 8) != 0) {
         if ((non_car->flags & 0xff00) == 0) {
-            non_car->flags |= 0x100;
+            non_car->flags = (non_car->flags & ~0xfe00) | 0x100;
         }
     } else {
         non_car->flags &= ~0xff00;
