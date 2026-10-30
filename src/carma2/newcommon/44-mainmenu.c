@@ -15,7 +15,34 @@
 
 // QuitVerifyStart
 
-// QuitVerifyDone
+extern void C2_HOOK_FASTCALL FadePaletteDown(void);
+extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
+extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+
+// FUNCTION: CARMA2_HW 0x00494400
+int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out) {
+    (void)pCurrent_mode;
+    (void)pGo_ahead;
+    (void)pEscaped;
+    (void)pTimed_out;
+
+    FadePaletteDown();
+    TurnOnPanelFlics();
+    if (gMouse_was_started__mainmenu != 0) {
+        RemoveTransientBitmaps(1);
+    }
+    if (gReplace_background != 0) {
+        if (pCurrent_choice == 0) {
+            ClearEntireScreen();
+        }
+        PDScreenBufferSwap(0);
+        FadePaletteUp();
+    }
+    return pCurrent_choice == 0;
+}
 
 // STUB: CARMA2_HW 0x00494450
 int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background) {
@@ -54,3 +81,8 @@ void C2_HOOK_FASTCALL DoOptionsMenu(void) {
     }
 }
 
+// GLOBAL: CARMA2_HW 0x0068c850
+int gMouse_was_started__mainmenu = 0;
+
+// GLOBAL: CARMA2_HW 0x0068c854
+int gReplace_background = 0;

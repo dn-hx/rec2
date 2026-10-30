@@ -1153,7 +1153,103 @@ void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF) {
 
 // DisposeKevStuff
 
-// DisposeKevStuffCar
+// GLOBAL: CARMA2_HW 0x006601b0
+const char gSolidgrn_material[10] = "solidgrn";
+
+extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
+extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
+extern void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
+extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
+extern int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel);
+
+// based on carpocalypse2 src/carma2/common/spark.c:687
+// FUNCTION: CARMA2_HW 0x004fe360
+void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
+    int i;
+    int j;
+    tCar_crush_spec* spec;
+    br_actor* actor;
+    br_model* model;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush;
+    br_material* solid_mat;
+    int funk_index;
+
+    if (!gAFE) {
+        return;
+    }
+    spec = pCar->car_crush_spec;
+    DRActorEnumRecurse(pCar->car_model_actor, ActorFunks, (void*)MasterDisableFunkotronic);
+    for (i = 0; i < spec->field_0x270; i++) {
+        actor = spec->field_0x274[i].field_0x0;
+        user = (tUser_crush_data*)actor->user;
+        if (user == NULL) {
+            continue;
+        }
+        crush = user->crush_data;
+        if (crush == NULL) {
+            continue;
+        }
+        if (crush->smashables == NULL) {
+            continue;
+        }
+        for (j = 0; j < crush->count_smashables; j++) {
+            funk_index = crush->smashables[j].funk;
+            if (funk_index >= 0) {
+                MasterDisableFunkotronic(funk_index);
+            }
+        }
+    }
+    for (i = 0; i < spec->field_0x2b0; i++) {
+        actor = spec->field_0x2b4[i].field_0x0;
+        user = (tUser_crush_data*)actor->user;
+        if (user == NULL) {
+            continue;
+        }
+        crush = user->crush_data;
+        if (crush == NULL) {
+            continue;
+        }
+        if (crush->smashables == NULL) {
+            continue;
+        }
+        for (j = 0; j < crush->count_smashables; j++) {
+            funk_index = crush->smashables[j].funk;
+            if (funk_index >= 0) {
+                MasterDisableFunkotronic(funk_index);
+            }
+        }
+    }
+    solid_mat = BrMaterialFind(gSolidgrn_material);
+    if (solid_mat == NULL) {
+        return;
+    }
+    if (solid_mat->colour_map == NULL) {
+        return;
+    }
+    gRecalc_mass_car = pCar;
+    pCar->field_0x1960 = solid_mat->colour_map;
+    ForEveryCarMaterial(pCar, SetMaterialPrelitCB, 1);
+    pCar->shell_model->custom = AFEModelUpdate;
+    pCar->shell_model->flags |= BR_MODF_CUSTOM;
+    user = (tUser_crush_data*)pCar->car_model_actor->user;
+    model = user->models[1];
+    if (model != NULL) {
+        model->flags |= BR_MODF_CUSTOM;
+        model->custom = AFEModelUpdate;
+    }
+    DRActorEnumRecurse(pCar->car_model_actor, ForEveryActorModelNoGrooves, (void*)SetModelAFEUpdateCB);
+    for (i = 0; i < spec->field_0x270; i++) {
+        model = spec->field_0x274[i].field_0x0->model;
+        model->flags |= BR_MODF_CUSTOM;
+        model->custom = AFEModelUpdate;
+    }
+    for (i = 0; i < spec->field_0x2b0; i++) {
+        model = spec->field_0x2b4[i].field_0x0->model;
+        model->flags |= BR_MODF_CUSTOM;
+        model->custom = AFEModelUpdate;
+    }
+}
 
 // MakeCarIt
 
@@ -1284,6 +1380,34 @@ tCar_spec* gRecalc_mass_car = NULL;
 
 // STUB: CARMA2_HW 0x004226d0
 tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f9180
+void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f95e0
+int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f9600
+int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004fec30
+intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext) {
     NOT_IMPLEMENTED();
 }
 

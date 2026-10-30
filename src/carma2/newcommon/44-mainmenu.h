@@ -6,7 +6,11 @@
 
 // QuitVerifyStart
 
-// QuitVerifyDone
+extern int gMouse_was_started__mainmenu;
+
+extern int gReplace_background;
+
+extern int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out);
 
 extern int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background);
 

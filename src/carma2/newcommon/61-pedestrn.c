@@ -2130,6 +2130,9 @@ tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed) {
 }
 // CharacterNoLongerCollideworthy
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00409300
 void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV) {
     tPhysics_object* child;
@@ -2141,6 +2144,9 @@ void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV) {
         SetObjectV(child, pV);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SetObjectOmega
 
@@ -2300,11 +2306,7 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// BonerPassiveCollision
-
 // BonerActiveHalted
-
-// BonerPedMovedByPhysics
 
 // DismemberCharacter
 
@@ -2745,3 +2747,103 @@ void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, tS16 pArg2, tS16 pOri
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+
+// based on carpocalypse2 pedestrn.c:8491
+// FUNCTION: CARMA2_HW 0x0040b620
+int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    tPhysics_object* child;
+    tPhysics_object* obj;
+
+    if (pCharacter->field_0x14 == 0) {
+        return 1;
+    }
+    if (pCharacter->field_0x14 & 4) {
+        obj = NULL;
+    } else {
+        if (pCharacter->field_0x14 & 1) {
+            obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+        } else {
+            tPed_form_boned_phys* bp = &pCharacter->personality->form->boned_physicing[pCharacter->field_0x5];
+            int i;
+
+            obj = NULL;
+            for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+                if (bp->collision_infos[i]->shape != NULL) {
+                    obj = bp->collision_infos[i];
+                    break;
+                }
+            }
+        }
+
+        obj->disable_move_rotate = 0;
+        {
+            br_vector3* field_0xd8 = &pCharacter->field_0xd8;
+
+            if (field_0xd8 != NULL) {
+                obj->v.v[0] = field_0xd8->v[0];
+                obj->v.v[1] = field_0xd8->v[1];
+                obj->v.v[2] = field_0xd8->v[2];
+                {
+                    child = obj->child;
+                    while (child != NULL) {
+                        SetObjectV(child, field_0xd8);
+                        child = child->next;
+                    }
+                }
+            }
+        }
+
+        PHILMakeObjectActive(obj, NULL, NULL, 1);
+        obj->field_0xed = 1;
+        PHILSetObjectProperty(obj, 0, 1.0);
+        PHILSetObjectProperty(obj, 3, 0);
+        PHILSetObjectProperty(obj, 4, 0);
+        PHILSetObjectProperty(obj, 5, 0);
+        pCharacter->field_0x14 |= 4;
+    }
+    pCharacter->field_0x14 |= 4;
+    if (gPed_vtable->passive_collision != NULL) {
+        gPed_vtable->passive_collision((undefined4*)pCharacter, (undefined4)obj, (undefined4*)pArg2);
+    }
+    return 0;
+}
+
+// based on carpocalypse2 pedestrn.c:8554
+// FUNCTION: CARMA2_HW 0x0040b770
+void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    tPhysics_object* obj;
+    br_matrix34* character_matrix;
+    br_matrix34 mat34;
+    tPed_form* form;
+
+    if (!(pCharacter->field_0x14 & 1)) {
+        return;
+    }
+
+    form = pCharacter->personality->form;
+    if (pCharacter->field_0x4 < 0) {
+        character_matrix = &pCharacter->field_0x2c;
+    } else if (pCharacter->field_0xe8 != NULL) {
+        character_matrix = pCharacter->field_0xe8;
+    } else {
+        character_matrix = &form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+    }
+    BrMatrix34LPInverse(&mat34, &form->moves[pCharacter->field_0x7].move->frames[(tS16)pCharacter->field_0x1c].mat);
+    BrMatrix34Mul(&pCharacter->field_0x8c, &mat34, character_matrix);
+    pCharacter->field_0x8c.m[3][0] = 0.f;
+    pCharacter->field_0x8c.m[3][1] = 0.f;
+    pCharacter->field_0x8c.m[3][2] = 0.f;
+    SetCharacterBonePositions(pCharacter, 3, 0);
+
+    obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+    pCharacter->field_0xd8.v[0] = obj->v.v[0];
+    pCharacter->field_0xd8.v[1] = obj->v.v[1];
+    pCharacter->field_0xd8.v[2] = obj->v.v[2];
+
+    if (gPed_vtable->moved_by_physics != NULL) {
+        gPed_vtable->moved_by_physics((undefined4*)pCharacter, (undefined4*)obj, pArg2);
+    }
+}
