@@ -1303,7 +1303,46 @@ void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_v
     }
 }
 
-// QueueDroneCrush
+extern int gCount_queued_drone_crushes;
+extern tQueued_drone_crush gQueued_drone_crushes[4];
+
+// FUNCTION: CARMA2_HW 0x0042d1e0
+void C2_HOOK_FASTCALL QueueDroneCrush(tPhysics_object* pObject, int pChain_count, br_vector3* pChain, br_vector3* pForce) {
+    br_vector3 normal;
+    float length;
+    float dot;
+    int i;
+    int j;
+
+    length = (float)sqrt(pForce->v[0] * pForce->v[0] + pForce->v[2] * pForce->v[2] + pForce->v[1] * pForce->v[1]);
+    normal.v[0] = pForce->v[0] / length;
+    normal.v[1] = pForce->v[1] / length;
+    normal.v[2] = pForce->v[2] / length;
+    for (i = 0; i < gCount_queued_drone_crushes; i++) {
+        if (gQueued_drone_crushes[i].field_0x0 != (undefined4*)pObject) {
+            continue;
+        }
+        for (j = 0; j < gQueued_drone_crushes[i].count; j++) {
+            dot = gQueued_drone_crushes[i].items[j].field_0x38.v[0] * normal.v[0]
+                + gQueued_drone_crushes[i].items[j].field_0x38.v[1] * normal.v[1]
+                + gQueued_drone_crushes[i].items[j].field_0x38.v[2] * normal.v[2];
+            if (dot > 0.707107f) {
+                gQueued_drone_crushes[i].items[j].field_0x34 += length;
+                return;
+            }
+        }
+        if (gQueued_drone_crushes[i].count < 2) {
+            AddDroneCrush(&gQueued_drone_crushes[i].items[gQueued_drone_crushes[i].count], &normal, length, pChain_count, pChain);
+            gQueued_drone_crushes[i].count++;
+        }
+    }
+    if (gCount_queued_drone_crushes < 4) {
+        gQueued_drone_crushes[gCount_queued_drone_crushes].field_0x0 = (undefined4*)pObject;
+        gQueued_drone_crushes[gCount_queued_drone_crushes].count = 0;
+        AddDroneCrush(&gQueued_drone_crushes[gCount_queued_drone_crushes].items[0], &normal, length, pChain_count, pChain);
+        gCount_queued_drone_crushes++;
+    }
+}
 
 // DoCrushing
 
@@ -3373,3 +3412,6 @@ void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x0067bad8
+tQueued_drone_crush gQueued_drone_crushes[4];

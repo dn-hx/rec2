@@ -1801,7 +1801,107 @@ int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // NapalmPeds
 
-// RepulseOpponents2
+extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+extern tPlayer_ID gLocal_net_ID;
+extern tS3_outlet* gCar_outlet;
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+extern tU32 gPHIL_last_physics_tick;
+extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+extern void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c);
+
+// FUNCTION: CARMA2_HW 0x004de1f0
+int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pTell_net) {
+    tCar_spec* car;
+    int car_count;
+    int category;
+    int count;
+    float distance;
+    int car_index;
+    tU32 time;
+    float* params;
+    br_vector3 delta;
+    br_vector3 dir;
+    float r1;
+    float r2;
+    float r3;
+
+    count = 0;
+    time = GetTotalTime();
+    for (category = eVehicle_self; category < eVehicle_not_really; category++) {
+        car_count = category == eVehicle_self ? 1 : GetCarCount((tVehicle_type)category);
+        for (car_index = 0; car_index < car_count; car_index++) {
+            car = category == eVehicle_self ? &gProgram_state.current_car : GetCarSpec((tVehicle_type)category, car_index);
+            if (car == pCar) {
+                continue;
+            }
+            delta.v[0] = car->pos.v[0] - pCar->pos.v[0];
+            delta.v[1] = car->pos.v[1] - pCar->pos.v[1];
+            delta.v[2] = car->pos.v[2] - pCar->pos.v[2];
+            params = pPowerup->float_params;
+            distance = (float)sqrt(delta.v[0] * delta.v[0] + delta.v[1] * delta.v[1] + delta.v[2] * delta.v[2]);
+            if (distance < params[3]) {
+                count++;
+                if (gNet_mode != eNet_mode_client) {
+                    float radial;
+
+                    radial = ((params[3] - distance) / params[3]) / car->field_0x4c8;
+                    if (distance <= 2.384185791015625e-07f) {
+                        dir.v[0] = 1.f;
+                        dir.v[1] = 0.f;
+                        dir.v[2] = 0.f;
+                    } else {
+                        float inv;
+
+                        inv = 1.f / distance;
+                        dir.v[0] = inv * delta.v[0];
+                        dir.v[1] = inv * delta.v[1];
+                        dir.v[2] = inv * delta.v[2];
+                    }
+                    if ((float)fabs(dir.v[1]) < 0.1) {
+                        dir.v[1] = params[1];
+                    }
+                    {
+                        float strength;
+
+                        strength = radial * params[0];
+                        car->collision_info->v.v[0] = dir.v[0] * strength + car->collision_info->v.v[0];
+                        car->collision_info->v.v[1] = dir.v[1] * strength + car->collision_info->v.v[1];
+                        car->collision_info->v.v[2] = dir.v[2] * strength + car->collision_info->v.v[2];
+                    }
+                    r1 = FRandomPosNeg(params[2] * radial);
+                    r2 = FRandomPosNeg(params[2] * radial);
+                    r3 = FRandomPosNeg(params[2] * radial);
+                    car->collision_info->omega.v[0] = r1 + car->collision_info->omega.v[0];
+                    car->collision_info->omega.v[1] = r2 + car->collision_info->omega.v[1];
+                    car->collision_info->omega.v[2] = r3 + car->collision_info->omega.v[2];
+                    car->collision_info->disable_move_rotate = 0;
+                    car->collision_info->field_0x49c = gPHIL_last_physics_tick + 0x28;
+                    car->time_last_hit = PDGetTotalTime();
+                    car->last_hit_by = pCar;
+                }
+                AddRepulseLink(time, pCar, car, &pCar->pos, &car->pos, 0.06f, 0.12f);
+            }
+        }
+    }
+    if (gNet_mode != eNet_mode_none && pTell_net != 0) {
+        tNet_message* message;
+
+        message = NetBuildGuaranteedMessage(0x23, 0);
+        *(int*)((tU8*)message + 0x1c) = gLocal_net_ID;
+        *(int*)((tU8*)message + 0x20) = pPowerup - gPowerup_array;
+        NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
+    }
+    if (count != 0) {
+        if (pCar != NULL && pCar->driver == eDriver_local_human) {
+            DRS3StartSound3D(gCar_outlet, 0x1324, &pCar->pos, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+        }
+        return pPowerup - gPowerup_array;
+    }
+    return -1;
+}
 
 // RepulseOpponents
 
@@ -3194,6 +3294,18 @@ void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
 int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime) {
     NOT_IMPLEMENTED();
     return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004da870
+void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c) {
+
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

@@ -614,7 +614,204 @@ int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime) {
 
 // ARMoveToStartOfReplay
 
-// ARDoActionReplay
+extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
+extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
+extern tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession);
+extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
+extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time);
+typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+
+// FUNCTION: CARMA2_HW 0x00403260
+void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
+    tU8* volatile session;
+    tU8* first_session;
+    tU8* look;
+    tU8* chunk;
+    tU8* frame_start;
+    tU8* previous_session;
+    tU8* end_marker;
+    tPipe_chunk* previous_chunk;
+    tU32 time;
+    tU32 total;
+    tU32 i;
+    int j;
+    int count;
+    int frame;
+    int type;
+    int done;
+    int forwards;
+
+    session = gPipe_play_ptr;
+    first_session = session;
+    time = GetTotalTime();
+    count = abs(pFrames);
+    frame = 0;
+    previous_session = NULL;
+    frame_start = NULL;
+    while (frame < count && previous_session != session && !KeyIsDown(0)) {
+        look = session;
+        if (pFrames > 0) {
+            if (gPipe_play_ptr != gPipe_record_ptr) {
+                for (;;) {
+                    if (((tU32*)look)[0] == 0) {
+                        gLast_replay_frame_time = ((tU32*)look)[3];
+                        break;
+                    }
+                    look = look + LengthOfSession((tPipe_chunk*)look);
+                    if (look >= gPipe_buffer_working_end) {
+                        if (look == gPipe_record_ptr) {
+                            break;
+                        }
+                        look = gPipe_buffer_start;
+                    }
+                    if (look == gPipe_record_ptr) {
+                        break;
+                    }
+                }
+            }
+        } else if (!MoveSessionPointerBackOne(&look)) {
+            while (!MoveSessionPointerBackOne(&look)) {
+                if (((tU32*)look)[0] == 0) {
+                    gLast_replay_frame_time = ((tU32*)look)[3];
+                    break;
+                }
+            }
+        }
+        if (ARSomeReplayLeft()) {
+            for (j = 0; j < gPipe_count_callbacks; j++) {
+                if (gPipe_callbacks[j].reset != NULL) {
+                    gPipe_callbacks[j].reset();
+                }
+            }
+        }
+        pBefore_frame(gFrame_period);
+        frame_start = session;
+        if (pFrames > 0) {
+            for (;;) {
+                if (session == gPipe_record_ptr) {
+                    done = 1;
+                } else {
+                    total = 0;
+                    for (i = 0; i < ((tU32*)session)[1]; i++) {
+                        total += LengthOfChunk((tPipe_chunk*)(session + 8 + total), ((tU32*)session)[0]);
+                    }
+                    total += 0xa;
+                    if ((total & 1) != 0) {
+                        FatalError(0x62);
+                    }
+                    gPipe_buffer_end_marker = session + total - 2;
+                    chunk = session + 8;
+                    type = ((tU32*)session)[0];
+                    for (i = 0; i < ((tU32*)session)[1]; i++) {
+                        if (gPipe_callbacks[type].apply != NULL) {
+                            gPipe_callbacks[type].apply((tPipe_chunk**)&chunk);
+                        }
+                        ARAdvanceChunkPtr((tPipe_chunk**)&chunk, type);
+                    }
+                    session = session + LengthOfSession((tPipe_chunk*)session);
+                    if (session >= gPipe_buffer_working_end && session != gPipe_record_ptr) {
+                        session = gPipe_buffer_start;
+                    }
+                    done = (type == 0);
+                }
+                if (done) {
+                    break;
+                }
+                pBetween_sessions(pFrames);
+            }
+            gPipe_play_ptr = session;
+        } else if (pFrames < 0) {
+            for (;;) {
+                if (MoveSessionPointerBackOne((tU8**)&session)) {
+                    done = 1;
+                    break;
+                }
+                total = LengthOfSession((tPipe_chunk*)session);
+                gPipe_buffer_end_marker = session + total - 2;
+                chunk = session + 8;
+                type = ((tU32*)session)[0];
+                for (i = 0; i < ((tU32*)session)[1]; i++) {
+                    end_marker = gPipe_buffer_end_marker;
+                    if (gPipe_callbacks[type].flags >= 2 && gPipe_callbacks[type].flags != 5) {
+                        previous_chunk = FUN_00403800((tPipe_chunk*)session, (tPipe_chunk_type)type, ((tU32*)chunk)[0]);
+                    } else {
+                        previous_chunk = NULL;
+                    }
+                    gPipe_buffer_end_marker = end_marker;
+                    switch (gPipe_callbacks[type].flags) {
+                    case 1:
+                        if (gPipe_callbacks[type].apply != NULL) {
+                            gPipe_callbacks[type].apply((tPipe_chunk**)&chunk);
+                            ARAdvanceChunkPtr((tPipe_chunk**)&chunk, type);
+                        }
+                        break;
+                    case 2:
+                        if (gPipe_callbacks[type].apply != NULL) {
+                            if (previous_chunk != NULL) {
+                                gPipe_undo_enabled = 1;
+                                gPipe_callbacks[type].apply((tPipe_chunk**)&previous_chunk);
+                                gPipe_undo_enabled = 0;
+                            }
+                            ARAdvanceChunkPtr((tPipe_chunk**)&chunk, type);
+                        }
+                        break;
+                    case 3:
+                        if (gPipe_callbacks[type].apply != NULL) {
+                            if (previous_chunk != NULL) {
+                                gPipe_undo_enabled = 1;
+                                gPipe_callbacks[type].apply((tPipe_chunk**)&previous_chunk);
+                                gPipe_undo_enabled = 0;
+                                ARAdvanceChunkPtr((tPipe_chunk**)&chunk, type);
+                            } else {
+                                gPipe_callbacks[type].apply((tPipe_chunk**)&chunk);
+                            }
+                        }
+                        break;
+                    default:
+                        if (gPipe_callbacks[type].undo != NULL) {
+                            gPipe_callbacks[type].undo((tPipe_chunk**)&chunk, previous_chunk);
+                        }
+                        ARAdvanceChunkPtr((tPipe_chunk**)&chunk, type);
+                        break;
+                    }
+                }
+                look = session;
+                done = MoveSessionPointerBackOne(&look) || ((tU32*)look)[0] == 0;
+                if (done) {
+                    break;
+                }
+                pBetween_sessions(pFrames);
+            }
+            gPipe_play_ptr = session;
+        }
+        pAfter_frame(gFrame_period);
+        previous_session = frame_start;
+        frame++;
+    }
+    if (gPipe_play_ptr == gPipe_record_ptr) {
+        forwards = 0;
+    } else if (gPipe_play_ptr == gPipe_buffer_oldest) {
+        forwards = 1;
+    } else if (gReplay_rate != 0.f) {
+        if (gReplay_rate > 0.f) {
+            forwards = 1;
+        } else {
+            forwards = 0;
+        }
+    } else {
+        forwards = gPlay_direction > 0;
+    }
+    if (!forwards) {
+        ScanAndPlaySoundsToBe(first_session, time, GetTotalTime());
+    }
+    if (previous_session == session) {
+        gReplay_rate = 0.f;
+        gReplay_pause_state = 1;
+    }
+    if (KeyIsDown(0)) {
+        WaitForNoKeys();
+    }
+}
 
 // ReverseSound
 
@@ -2421,6 +2618,30 @@ void C2_HOOK_FASTCALL DisposePiping(void) {
         BrMemFree(gLocal_buffer);
         gLocal_buffer = NULL;
     }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00403750
+tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession) {
+
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x00403800
+tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner) {
+
+    NOT_IMPLEMENTED();
+    return NULL;
+}
+// STUB: CARMA2_HW 0x00403990
+void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time) {
+
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
