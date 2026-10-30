@@ -758,12 +758,13 @@ const char* gBurning_ped_map_names[7] = {
 // GLOBAL: CARMA2_HW 0x00694308
 br_model* gBurning_ped_models[7];
 
+/* explicit initializers keep the loop-end compare address (materials + 7) on gUNK_0069fda4 */
 // GLOBAL: CARMA2_HW 0x0069fd88
-br_material* gBurning_ped_materials[7];
+br_material* gBurning_ped_materials[7] = { 0 };
 
-// UNCERTAIN: unreferenced 20-byte gap, loop-end compare in InitNapalmNolts
+// UNCERTAIN: unreferenced 4-byte gap before gPed_spurt_initial_position (0x69fda8)
 // GLOBAL: CARMA2_HW 0x0069fda4
-int gUNK_0069fda4[5];
+int gUNK_0069fda4 = 0;
 
 // based on carpocalypse2 pedestrn.c:1064
 // FUNCTION: CARMA2_HW 0x004cb630

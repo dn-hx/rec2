@@ -1283,7 +1283,7 @@ int C2_HOOK_FASTCALL RQDcmpV(br_scalar* pMatrix, int pSize, br_scalar* pOrthogon
             for (j = 0; j <= i; j++) {
                 sum = 0.f;
                 for (k = i; k < pSize; k++) {
-                    sum += pOrthogonal[k * pSize + j] * row[k];
+                    sum += row[k] * pOrthogonal[k * pSize + j];
                 }
                 tau = sum / divisor;
                 for (k = i; k < pSize; k++) {

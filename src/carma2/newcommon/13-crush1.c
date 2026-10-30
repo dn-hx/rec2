@@ -890,9 +890,11 @@ intptr_t C2_HOOK_CDECL InitVertexDataCB(br_actor* pActor, void* data) {
     for (i = 0; i < car_spec->count_detail_levels; i++) {
         br_model* model = user_crush_data->models[i];
         if (model != NULL && model->nvertices != 0 && model->user != NULL) {
-            tUser_detail_level_model* model_user_data = model->user;
             tModel_detail_vertex_data* vertex_data;
+            tUser_detail_level_model* model_user_data;
             int v;
+
+            model_user_data = model->user;
 
             model_user_data->field_0x4 = BrMemAllocate(model->nvertices * sizeof(tModel_detail_vertex_data), kMem_crush_data);
             vertex_data = model_user_data->field_0x4;
