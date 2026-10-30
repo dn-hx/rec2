@@ -212,7 +212,7 @@ int C2_HOOK_FASTCALL WrecksUpdateFunc(tFrontend_spec* pFrontend) {
         int dt;
 
         dt = now - gFrontend_wrecks_previous_update;
-        gFrontend_wreck_bought_car_dz = 0.0025 * dt + gFrontend_wreck_bought_car_dz;
+        gFrontend_wreck_bought_car_dz += (float)(0.0025 * dt);
         if (gFrontend_wreck_bought_car_dz > 2.5) {
             gFrontend_wreck_bought_car_dz = 0.f;
             gWreck_gallery_sell_infos[gFrontend_wrecks_current].sold = 1;

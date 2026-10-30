@@ -140,10 +140,13 @@ intptr_t C2_HOOK_CDECL FoundAnActor(br_actor* pActor, void* pContext) {
         return 0;
     }
     if (context->match_type == 1) {
+        char* name;
+
         if (pActor->type != BR_ACTOR_MODEL || pActor->model == NULL || pActor->model->identifier == NULL) {
             return 0;
         }
-        if (context->identifier_index >= 0 && pActor->model->identifier[context->identifier_index] != context->identifier_value) {
+        name = pActor->model->identifier;
+        if (context->identifier_index >= 0 && name[context->identifier_index] != context->identifier_value) {
             return 0;
         }
         if (context->identifier_index < 0 && pActor->model->identifier[strlen(pActor->model->identifier) + context->identifier_index] != context->identifier_value) {
