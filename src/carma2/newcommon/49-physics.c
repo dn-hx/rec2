@@ -662,43 +662,43 @@ void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* 
             }
             child = pObject->child;
             if (child != NULL && list_cur->disable_move_rotate != 0) {
-                while (child != NULL) {
-                    if (child->field_0xf4.min.v[0] - list_cur->field_0xf4.max.v[0] <= 0.01
-                            && child->field_0xf4.min.v[1] - list_cur->field_0xf4.max.v[1] <= 0.01
-                            && child->field_0xf4.min.v[2] - list_cur->field_0xf4.max.v[2] <= 0.01
-                            && list_cur->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] <= 0.01
-                            && list_cur->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] <= 0.01
-                            && list_cur->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] <= 0.01) {
-                        obj = list_cur;
-                        while (obj->parent != NULL) {
-                            if (obj->physics_joint1 == NULL || obj->physics_joint1->type == eJoint_none) {
-                                break;
-                            }
-                            obj = obj->parent;
-                        }
-                        obj->box_face_ref = gFace_num__car - 2;
-                        child = obj->child;
-                        obj->disable_move_rotate = 0;
-                        if (child != NULL || obj->physics_joint1 != NULL || obj->physics_joint2 != NULL) {
-                            if (obj->field_0x218 == 0) {
-                                MoveJointedObject(obj, 0.f);
-                            }
-                            child = obj->child;
-                            while (child != NULL) {
-                                if (child->disable_move_rotate) {
-                                    child->box_face_ref = gFace_num__car - 2;
-                                    child->disable_move_rotate = 0;
-                                }
-                                if (child->child != NULL) {
-                                    MakeObjectListDoSomething(child->child);
-                                }
-                                child = child->next;
-                            }
-                        }
-                        CheckForObjectHierachyTouchingObjectList(obj, pList_original, pList_original);
-                        break;
+                for (child = pObject->child; child != NULL; child = child->next) {
+                    if (child->field_0xf4.min.v[0] - list_cur->field_0xf4.max.v[0] > 0.01
+                            || child->field_0xf4.min.v[1] - list_cur->field_0xf4.max.v[1] > 0.01
+                            || child->field_0xf4.min.v[2] - list_cur->field_0xf4.max.v[2] > 0.01
+                            || list_cur->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] > 0.01
+                            || list_cur->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] > 0.01
+                            || list_cur->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] > 0.01) {
+                        continue;
                     }
-                    child = child->next;
+                    obj = list_cur;
+                    while (obj->parent != NULL) {
+                        if (obj->physics_joint1 == NULL || obj->physics_joint1->type == eJoint_none) {
+                            break;
+                        }
+                        obj = obj->parent;
+                    }
+                    obj->box_face_ref = gFace_num__car - 2;
+                    child = obj->child;
+                    obj->disable_move_rotate = 0;
+                    if (child != NULL || obj->physics_joint1 != NULL || obj->physics_joint2 != NULL) {
+                        if (obj->field_0x218 == 0) {
+                            MoveJointedObject(obj, 0.f);
+                        }
+                        child = obj->child;
+                        while (child != NULL) {
+                            if (child->disable_move_rotate) {
+                                child->box_face_ref = gFace_num__car - 2;
+                                child->disable_move_rotate = 0;
+                            }
+                            if (child->child != NULL) {
+                                MakeObjectListDoSomething(child->child);
+                            }
+                            child = child->next;
+                        }
+                    }
+                    CheckForObjectHierachyTouchingObjectList(obj, pList_original, pList_original);
+                    break;
                 }
             }
             if (list_cur->child != NULL) {

@@ -303,7 +303,7 @@ void C2_HOOK_FASTCALL ControlOurCar(tU32 pTime_difference) {
                     && (car->frame_collision_flag || car->collision_info->disable_move_rotate)) {
 
                 tmp.v[0] = -car->collision_info->transform_matrix.m[1][2];
-                tmp.v[1] = 0.f;
+                *(int*)&tmp.v[1] = 0;
                 tmp.v[2] = car->collision_info->transform_matrix.m[1][0];
                 BrVector3Normalise(&tmp, &tmp);
                 BrMatrix34TApplyV(&delta_omega, &tmp, &car->collision_info->transform_matrix);
@@ -392,6 +392,7 @@ void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
     int i;
     br_vector3 tv;
     br_scalar dt;
+    br_vector3 minus_k;
 
     if (gCar_flying) {
         BrMatrix34Copy(&gCar_to_view->collision_info->actor->t.t.mat, &gCar_to_view->collision_info->transform_matrix);
@@ -399,7 +400,6 @@ void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
     for (i = 0; i < gNum_cars_and_non_cars; i++) {
         tCar_spec* car;
         float original_speed;
-        br_vector3 minus_k;
 
         car = gActive_car_list[i];
         BrMatrix34ApplyP(&car->pos, &car->collision_info->cmpos, &car->car_master_actor->t.t.mat);
