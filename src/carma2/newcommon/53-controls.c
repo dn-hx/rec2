@@ -53,6 +53,9 @@ int gHeadup_map_h;
 // GLOBAL: CARMA2_HW 0x0067c400
 char gString[84];
 
+// GLOBAL: CARMA2_HW 0x0067c3bc
+int gRecover_timer;
+
 // GLOBAL: CARMA2_HW 0x0067c3c8
 char* gAbuse_text[10] = { 0 };
 
@@ -62,6 +65,9 @@ int gUNK_0067c3f0 = 0;
 
 // GLOBAL: CARMA2_HW 0x0067c3f8
 int gRecovery_voucher_count;
+
+// GLOBAL: CARMA2_HW 0x0067c460
+int gHad_auto_recover;
 
 // GLOBAL: CARMA2_HW 0x0067c46c
 int gAllow_car_flying;
@@ -374,7 +380,64 @@ void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar) {
 
 // SetQuickRecovery
 
-// SetRecovery
+/* based on carpocalypse2 src/carma2/common/controls.c:896 */
+// FUNCTION: CARMA2_HW 0x00442300
+void C2_HOOK_FASTCALL SetRecovery(void) {
+    extern int gINT_0068b8e4;
+    extern int gINT_0068b8e8;
+    extern int gCancel_recover;
+    extern int gIt_or_fox;
+    extern int gToo_late;
+
+    if (gINT_0068b8e4
+        || gINT_0068b8e8
+        || gRace_finished
+        || gProgram_state.current_car.knackered
+        || gWait_for_it
+        || gHad_auto_recover
+        || gPalette_fade_time != 0) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_none) {
+        gRecover_car = 1;
+        gRecover_timer = 0;
+    } else if (gProgram_state.current_car.time_to_recover == 0) {
+        gCancel_recover = 1;
+        if (CheckRecoverCost()) {
+            if (gCurrent_net_game->type == eNet_game_type_foxy) {
+                if (gThis_net_player_index == gIt_or_fox) {
+                    gToo_late = 0;
+                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 5000;
+                } else {
+                    gToo_late = 0;
+                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 1000;
+                }
+            } else {
+                if (gCurrent_net_game->type == 6 &&
+                    gNet_players[gThis_net_player_index].field_0x80 != 0) {
+                    gToo_late = 0;
+                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 500;
+                } else {
+                    gToo_late = 0;
+                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 3000;
+                }
+            }
+        }
+    }
+    else if (gCancel_recover) {
+        if (GetRaceTime() + 600 < gProgram_state.current_car.time_to_recover) {
+            gProgram_state.current_car.time_to_recover = 0;
+            if (!gINT_0067c470) {
+                float cost = (gNet_mode == eNet_mode_none) ? gRecovery_cost.initial[gProgram_state.skill_level] : gRecovery_cost.initial_network[gCurrent_net_game->type];
+                EarnCredits((int)cost);
+            }
+            NewTextHeadupSlot2(4, 0, 2000, -4, GetMiscString(eMiscString_recovery_cancelled), 0);
+        } else {
+            NewTextHeadupSlot2(4, 0, 2000, -4, GetMiscString(eMiscString_too_late_to_cancel), 1);
+            gToo_late = 1;
+        }
+    }
+}
 
 // RecoverCar
 
@@ -638,10 +701,6 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
 #endif
 // Action proc of gToggle_array, not implemented yet (stub)
 void C2_HOOK_FASTCALL ToggleFlaps(void) {
-    NOT_IMPLEMENTED();
-}
-// Action proc of gToggle_array, not implemented yet (stub)
-void C2_HOOK_FASTCALL SetRecovery(void) {
     NOT_IMPLEMENTED();
 }
 // Action proc of gToggle_array, not implemented yet (stub)

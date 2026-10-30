@@ -236,7 +236,7 @@ extern int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3*
 
 // DetachBit
 
-// DoDetaching
+extern void C2_HOOK_FASTCALL DoDetaching(void);
 
 // FlapBit
 

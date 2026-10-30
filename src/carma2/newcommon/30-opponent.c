@@ -416,7 +416,92 @@ void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spe
     }
 }
 
-// ProcessReturnToStart
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: not implemented yet
+tS16 C2_HOOK_FASTCALL FindNearestPathSection(br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance) {
+    return 0;
+}
+
+// STUB: not implemented yet
+void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec) {
+}
+
+// STUB: not implemented yet
+tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle) {
+    return eFPR_OK;
+}
+
+// STUB: not implemented yet
+int C2_HOOK_FASTCALL TeleportCopToStart(tOpponent_spec* pOpponent_spec) {
+    return 0;
+}
+
+// STUB: not implemented yet
+void C2_HOOK_FASTCALL ClearOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec) {
+}
+
+/* based on carpocalypse2 src/carma2/common/opponent.c:2652 */
+// FUNCTION: CARMA2_HW 0x004abc40
+void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    br_vector3 section_v;
+    br_vector3 our_pos_xz;
+    br_vector3 cop_to_start;
+    br_scalar distance;
+    int res;
+
+    switch (pCommand) {
+    case ePOC_start:
+        DoNotDprintf("%s: ProcessReturnToStart() - new objective started", pOpponent_spec->car_spec->driver_name);
+        pOpponent_spec->return_to_start_data.waiting_near_start = 0;
+        pOpponent_spec->return_to_start_data.section_no = FindNearestPathSection(&pOpponent_spec->start_pos, &section_v, &pOpponent_spec->return_to_start_data.nearest_path_point, &distance);
+        pOpponent_spec->return_to_start_data.nearest_path_point.v[1] = 0.0;
+        CalcReturnToStartPointRoute(pOpponent_spec);
+        ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+        break;
+    case ePOC_run:
+        if (TeleportCopToStart(pOpponent_spec)) {
+            break;
+        }
+        if (pOpponent_spec->return_to_start_data.waiting_near_start) {
+            pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
+        } else {
+            BrVector3Copy(&our_pos_xz, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t);
+            our_pos_xz.v[1] = 0.0f;
+            BrVector3Sub(&cop_to_start, &pOpponent_spec->start_pos, &our_pos_xz);
+            if (BrVector3Length(&cop_to_start) >= 10.0) {
+                if (pOpponent_spec->follow_path_data.section_no > 20000) {
+                    ShiftOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->follow_path_data.section_no - 20000);
+                    pOpponent_spec->follow_path_data.section_no = 20000;
+                }
+                if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections) - 1) {
+                    CalcReturnToStartPointRoute(pOpponent_spec);
+                }
+                res = ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0);
+                if (res == eFPR_given_up || res == eFPR_end_of_path) {
+                    if (res == eFPR_given_up) {
+                        DoNotDprintf("%s: Restarting return_to_start route because ProcessFollowPath() gave up.", pOpponent_spec->car_spec->driver_name);
+                    } else {
+                        DoNotDprintf("%s: Restarting return_to_start route because ran out of path!", pOpponent_spec->car_spec->driver_name);
+                    }
+                    ClearOpponentsProjectedRoute(pOpponent_spec);
+                    CalcReturnToStartPointRoute(pOpponent_spec);
+                    ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+                }
+            } else {
+                pOpponent_spec->return_to_start_data.waiting_near_start = 1;
+                pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ProcessLevitate
 

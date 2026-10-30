@@ -1491,7 +1491,109 @@ int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, b
 
 // DetachBit
 
-// DoDetaching
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: not implemented yet
+int C2_HOOK_FASTCALL BitIsInBentPartOfCar(br_actor* pActor, float pArg2, float pArg3) {
+    return 0;
+}
+
+// STUB: not implemented yet
+tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
+    return NULL;
+}
+
+// STUB: not implemented yet
+tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, int* pArg4, br_vector3* pArg5, br_bounds3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
+    return NULL;
+}
+
+// STUB: not implemented yet
+void C2_HOOK_FASTCALL SendDetachBit(tCar_spec* pCar, br_actor* pActor) {
+}
+
+// STUB: not implemented yet
+void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4) {
+}
+
+/* based on carpocalypse2 src/carma2/common/flap.c:188 */
+// FUNCTION: CARMA2_HW 0x00436ad0
+void C2_HOOK_FASTCALL DoDetaching(void) {
+    extern int gCount_net_crush_detach_list;
+    extern int gCount_net_crush_semi_detach_bit_list;
+    extern tCrush_net_detach_list_item gNet_crush_detach_list[8];
+    extern tCrush_net_semi_detach_bit_list_item gNet_crush_semi_detach_bit_list[8];
+
+    if (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host) {
+        int new_count_crush_detach_list;
+        int i;
+
+        new_count_crush_detach_list = 0;
+        for (i = 0; i < gCount_crush_detach_list; i++) {
+            tCrush_detach_list_item* detach_list_item;
+            int keep;
+            int synced;
+
+            detach_list_item = &gCrush_detach_list[i];
+            keep = 1;
+            synced = 0;
+            if (gPHIL_last_physics_tick >= detach_list_item->time) {
+                keep = 0;
+
+                if (!((detach_list_item->car->car_crush_spec->field_0x144
+                            && BitIsInBentPartOfCar(detach_list_item->actor,
+                                   detach_list_item->car->car_crush_spec->field_0x174,
+                                   detach_list_item->car->car_crush_spec->field_0x180))
+                        || detach_list_item->car->car_crush_spec->field_0x4b8)) {
+
+                    if (gNet_mode == eNet_mode_none) {
+                        if (detach_list_item->field_0x10) {
+
+                            DetachBit(detach_list_item->car, detach_list_item->actor, NULL);
+                        } else {
+                            SemiDetachBit(detach_list_item->car, detach_list_item->actor, detach_list_item->field_0x8, &keep, NULL, NULL, NULL, NULL);
+                        }
+                    } else {
+                        if (detach_list_item->field_0x10) {
+                            int j;
+
+                            for (j = 0; j < gCount_net_crush_detach_list; j++) {
+                                if (gNet_crush_detach_list[j].actor == detach_list_item->actor) {
+                                    synced = 1;
+                                    break;
+                                }
+                            }
+                            if (!synced) {
+                                SendDetachBit(detach_list_item->car, detach_list_item->actor);
+                            }
+                        } else {
+                            int j;
+
+                            for (j = 0; j < gCount_net_crush_semi_detach_bit_list; j++) {
+                                if (gNet_crush_semi_detach_bit_list[j].actor == detach_list_item->actor) {
+                                    synced = 1;
+                                    break;
+                                }
+                            }
+                            if (!synced) {
+                                SendSemiDetachBit(detach_list_item->car, detach_list_item->actor, detach_list_item->field_0x8, NULL);
+                            }
+                        }
+                    }
+                }
+            }
+            if (keep && i != new_count_crush_detach_list) {
+                gCrush_detach_list[new_count_crush_detach_list] = gCrush_detach_list[i];
+                new_count_crush_detach_list += 1;
+            }
+        }
+        gCount_crush_detach_list = new_count_crush_detach_list;
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FlapBit
 
@@ -1836,7 +1938,6 @@ static void C2_HOOK_FASTCALL DoCrushing(void) { }
 static void C2_HOOK_FASTCALL DoDroneCrushing(void) { }
 static void C2_HOOK_FASTCALL DoShapeSwapping(void) { }
 static void C2_HOOK_FASTCALL DoFlapping(void) { }
-static void C2_HOOK_FASTCALL DoDetaching(void) { }
 static void C2_HOOK_FASTCALL DoBending(void) { }
 static void C2_HOOK_FASTCALL ClearCrushLists(void) { }
 

@@ -398,6 +398,12 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
 // GLOBAL: CARMA2_HW 0x0068c858
 int gINT_0068c858;
 
+// GLOBAL: CARMA2_HW 0x0068c874
+int gINT_0068c874;
+
+// GLOBAL: CARMA2_HW 0x0068c878
+int gINT_0068c878;
+
 // GLOBAL: CARMA2_HW 0x0068d6a8
 br_matrix34 gCar_in_map_space;
 
@@ -807,7 +813,123 @@ void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, tU32 pT
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00494900
+void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: not implemented yet
+void C2_HOOK_FASTCALL DoNearestOpponentRelativeheightMarkerStuff(br_pixelmap* pMap) {
+}
+
+// STUB: not implemented yet
+static void C2_HOOK_FASTCALL DoDirectionFinderStuff(br_pixelmap* pMap) {
+}
+
+// STUB: not implemented yet
+static br_uint_32 C2_HOOK_FASTCALL CarArrowColour(tCar_spec* pCar, tVehicle_type pCategory) {
+    return 0;
+}
+
+extern void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans);
+
+/* based on carpocalypse2 src/carma2/common/displays.c:1059 */
+// FUNCTION: CARMA2_HW 0x004950b0
+void C2_HOOK_FASTCALL MapOverlay(void) {
+    extern int gHeadup_detail_level;
+    tU32 the_time;
+    br_uint_16 original_base_x;
+    br_matrix23 mat23;
+    br_vector3 player_pos;
+
+    BrMatrix34ApplyP(&gOrigin_map, &gPlayer_car_master_actor->t.t.translate.t, &gCurrent_race.map_transformation);
+    gOrigin_headup_map.v[0] = gOrigin_map.v[0] - (float)(gINT_0074ab94 / 2);
+    gOrigin_headup_map.v[1] = gOrigin_map.v[1] - (float)(gINT_0074abec / 2);
+    gINT_0068c878 = (int)(gOrigin_headup_map.v[0] + .5);
+    gINT_0068c874 = (int)(gOrigin_headup_map.v[1] + .5);
+    if (gINT_0068c878 < 0 || gINT_0068c874 < 0
+            || gINT_0068c878 > gCurrent_race.map_image->width
+            || gINT_0068c874 > gCurrent_race.map_image->height) {
+        BrPixelmapFill(gMap_overlay, 0);
+    }
+    if (gINT_0074ab94 > gINT_0074abec) {
+        gINT_0068c858 = (gINT_0074ab94 - gINT_0074abec) / 2;
+        gINT_0068d890 = 0;
+        BrPixelmapRectangleCopy(gMap_overlay,
+            0, 0,
+            gCurrent_race.map_image,
+            gINT_0068c878, gINT_0068c874 - gINT_0068c858,
+            gINT_0074ab94, gINT_0074ab94);
+    } else {
+        gINT_0068c858 = 0;
+        gINT_0068d890 = (gINT_0074abec - gINT_0074ab94) / 2;
+        BrPixelmapRectangleCopy(gMap_overlay,
+            0, 0,
+            gCurrent_race.map_image,
+            gINT_0068c878 - gINT_0068d890, gINT_0068c874,
+            gINT_0074abec, gINT_0074abec);
+    }
+    gCurrent_race.map_transformation.m[3][0] -= gOrigin_headup_map.v[0] - (float)gINT_0068d890;
+    gCurrent_race.map_transformation.m[3][1] -= gOrigin_headup_map.v[1] - (float)gINT_0068c858;
+    BrMatrix34Mul(&gCar_in_map_space,
+        &gProgram_state.current_car.car_master_actor->t.t.mat,
+        &gCurrent_race.map_transformation);
+    mat23.m[0][0] = gCar_in_map_space.m[0][0];
+    mat23.m[0][1] = gCar_in_map_space.m[0][1];
+    mat23.m[1][0] = gCar_in_map_space.m[2][0];
+    mat23.m[1][1] = gCar_in_map_space.m[2][1];
+    mat23.m[2][0] = 0.f;
+    mat23.m[2][1] = 0.f;
+    BrMatrix23LPNormalise(&gMatrix23_0068c880, &mat23);
+    DoMapOverlays(gMap_overlay);
+    gCurrent_race.map_transformation.m[3][0] += gOrigin_headup_map.v[0] - (float)gINT_0068d890;
+    gCurrent_race.map_transformation.m[3][1] += gOrigin_headup_map.v[1] - (float)gINT_0068c858;
+    the_time = PDGetTotalTime();
+    PossibleLock(1);
+    if (gMini_map_visible && gMap_overlay != NULL) {
+        DRPixelmapRotatedAndFeatheredCopy(&gMatrix23_0068c880,
+            gBack_screen,
+            gHeadup_map_x + 8, gHeadup_map_y,
+            gMap_overlay,
+            gINT_0068d890 + gINT_0074ab8c, gINT_0068c858 + gINT_0074ab88,
+            gHeadup_map_w, gHeadup_map_h,
+            gMap_trans);
+    }
+    InitMap();
+
+    original_base_x = gMini_map->base_x;
+    gMini_map->base_x = gMini_map->base_x / 2;
+    DoDirectionFinderStuff(gMini_map);
+    gMini_map->base_x = original_base_x;
+    if (gMini_map_visible) {
+        if (gCurrent_race.race_spec->race_type == kRaceType_Carma1
+                || gCurrent_race.race_spec->race_type == kRaceType_Checkpoints) {
+
+            DoSomeThingsToCheckpoints(gMini_map, the_time, DrawOffsetCheckpoint, 1);
+        }
+        if (gMini_map->type == BR_PMT_INDEX_8) {
+            gMini_map->base_x = 0;
+        } else {
+            gMini_map->base_x /= 2;
+        }
+        player_pos.v[0] = (float)(gHeadup_map_w / 2 + gHeadup_map_x + 8);
+        player_pos.v[1] = (float)(gHeadup_map_h / 2 + gHeadup_map_y);
+        player_pos.v[2] = gMini_map_arrow_z;
+        DrawArrow(gBack_screen, 0, &player_pos, CarArrowColour(&gProgram_state.current_car, eVehicle_self));
+    }
+    DoNearestOpponentRelativeheightMarkerStuff(gMini_map);
+    gMini_map->base_x = original_base_x;
+    PossibleUnlock(1);
+    if (gHeadup_detail_level > 2) {
+        DoOpponentStatusHeadup();
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // InitNearestCar
 

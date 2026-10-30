@@ -64,13 +64,13 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 // MungeMoodMessage
 
-// DoOpponentStatusHeadup
+extern void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void);
 
 // AllocateOppoBarActor
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+extern void C2_HOOK_FASTCALL MapOverlay(void);
 
 // InitNearestCar
 

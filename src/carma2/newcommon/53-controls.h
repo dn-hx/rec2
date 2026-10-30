@@ -91,7 +91,7 @@ extern void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar);
 
 // SetQuickRecovery
 
-// SetRecovery
+extern void C2_HOOK_FASTCALL SetRecovery(void);
 
 // RecoverCar
 
