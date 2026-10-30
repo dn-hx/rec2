@@ -298,7 +298,37 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // NetSetPlayerSystemInfo
 
-// FillInThisPlayer
+extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
+extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer);
+
+// based on carpocalypse2 src/carma2/common/network.c:1015 (reference only)
+// FUNCTION: CARMA2_HW 0x0049e3a0
+void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost) {
+    int car_choice;
+
+    pPlayer->host = pHost;
+    pPlayer->ID = PDNetExtractPlayerID(pGame);
+    strcpy(pPlayer->player_name, gProgram_state.player_name);
+    pPlayer->this_players_time_stamp = PDGetTotalTime();
+    pPlayer->car_index = pCar_index;
+    pPlayer->reposition_time = 0;
+    pPlayer->last_waste_message = 0;
+    pPlayer->wasteage_attributed = 0;
+    *(int*)pPlayer->field_0x58 = 0;
+    *(int*)pPlayer->field_0x74 = 1;
+    pPlayer->field_0x7c = 0;
+    pPlayer->field_0x88 = 0;
+    pPlayer->score = 0;
+    pPlayer->field_0x80 = 0;
+    *(int*)pPlayer->field_0x84 = 0;
+    pPlayer->field_0xcc = NULL;
+    *(int*)pPlayer->field_0xd0 = 0;
+    car_choice = pGame->options.car_choice;
+    if (car_choice == eNet_car_all || car_choice == eNet_car_novelty) {
+        pPlayer->next_car_index = -1;
+    }
+    InitialisePlayerScore(pPlayer);
+}
 
 // LoadCarN
 
@@ -991,3 +1021,17 @@ int C2_HOOK_FASTCALL NetSendMessageToPlayer(tNet_game_details* pNet_game, tNet_m
     }
     return -3;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0051a130
+tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

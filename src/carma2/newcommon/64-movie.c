@@ -115,6 +115,7 @@ typedef struct {
 #define QT_FlattenMovieData ((Movie (C2_HOOK_CDECL *)(Movie, long, const FSSpec*, OSType, ScriptCode, long))FlattenMovieData)
 #define QT_DisposeMovie ((void (C2_HOOK_CDECL *)(Movie))DisposeMovie)
 #define QT_DisposeHandle ((void (C2_HOOK_CDECL *)(Handle))DisposeHandle)
+#define QT_CreateMovieFile ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)
 
 extern short gQuicktime_movie_file;
 extern Movie gQuicktime_movie;
@@ -191,7 +192,118 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
 
 // GenerateOneMovieFrame
 
-// MovieRecordFrame
+extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
+extern int C2_HOOK_FASTCALL CreateMovie(void);
+extern int C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
+extern FSSpec gQt_file_spec;
+extern struct Rect gQuicktime_rect;
+extern int gRecording_paused;
+extern tU32 gRecording_time;
+extern int gRecording_mouse_disabled;
+
+// based on carpocalypse2 src/carma2/common/video.c:190 (reference only)
+// FUNCTION: CARMA2_HW 0x004e1da0
+int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
+    tU32 remaining;
+    int width;
+    int height;
+    char path[260];
+
+    switch (gNext_replay_record_state) {
+    case 1:
+        gNext_replay_record_state = 2;
+        return 0;
+    case 2:
+        WaitFor(2000);
+        width = gCurrent_graf_data->width;
+        if (gNbPixelBits == 16) {
+            width = width / 2;
+        }
+        height = gCurrent_graf_data->height;
+        if (gNbPixelBits == 16) {
+            height = height / 2;
+        }
+        gQuicktime_rect.top = 0;
+        gQuicktime_rect.left = 0;
+        gQuicktime_rect.right = width;
+        gQuicktime_rect.bottom = height;
+        if (QT_CreateMovieFile(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie) != 0) {
+            PathCat(gQuick_time_temp_path, gApplication_path, "QTTMP");
+            PathCat(gQuick_time_movie_path_stub, gApplication_path, "MOVIE");
+            if (QT_CreateMovieFile(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie) != 0) {
+                gNext_replay_record_state = 10;
+                gShow_status_message = 1;
+                gStatus_message_1 = eMiscString_movie_error;
+                gStatus_message_2 = eMiscString_aborting;
+                return 0;
+            }
+        }
+        gNext_replay_record_state = 3;
+        gShow_status_message = 1;
+        gStatus_message_1 = eMiscString_initialising_movie;
+        gStatus_message_2 = eMiscString_please_wait;
+        return 0;
+    case 3:
+        if (CreateMovie() != 0) {
+            gNext_replay_record_state = 10;
+            gShow_status_message = 1;
+            gStatus_message_1 = eMiscString_movie_error;
+            gStatus_message_2 = eMiscString_aborting;
+            return 0;
+        }
+        gNext_replay_record_state = 4;
+        gShow_status_message = 1;
+        gStatus_message_1 = eMiscString_recording_movie;
+        gStatus_message_2 = 0;
+        return 0;
+    case 4:
+        if (gRecording_paused == 0) {
+            remaining = gRecording_time + pFrame_period;
+            while (remaining >= 1000 / 18) {
+                if (GenerateOneMovieFrame(pScreen) != 0) {
+                    gNext_replay_record_state = 10;
+                    gShow_status_message = 1;
+                    gStatus_message_1 = eMiscString_movie_error;
+                    gStatus_message_2 = eMiscString_aborting;
+                    return 0;
+                }
+                remaining -= 1000 / 18;
+            }
+            gRecording_time = remaining;
+            return 0;
+        }
+        break;
+    case 5:
+        gRecording_mouse_disabled = 0;
+        break;
+    case 10:
+        WaitFor(2000);
+        gNext_replay_record_state = 0;
+        if (gQuicktime_movie_file != 0) {
+            QT_CloseMovieFile(gQuicktime_movie_file);
+        }
+        QT_DisposeMovie(gQuicktime_movie);
+        PDFileDelete(gQuick_time_temp_path, 1);
+        sprintf(path, "%s.#Res", gQuick_time_temp_path);
+        PDFileDelete(path, 1);
+        if (gQuicktime_frame_pixmap_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_frame_pixmap_handle);
+            gQuicktime_frame_pixmap_handle = NULL;
+        }
+        if (gQuicktime_image_description_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_image_description_handle);
+            gQuicktime_image_description_handle = NULL;
+        }
+        if (gQuicktime_compressed_frame_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_compressed_frame_handle);
+            gQuicktime_compressed_frame_handle = NULL;
+        }
+        return 0;
+    case 20:
+        break;
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x004e2100
 // FUNCTION: CARMA2_SW 0x004de480
@@ -261,6 +373,21 @@ Track gQuicktime_track;
 // GLOBAL: CARMA2_HW 0x006a0c2c
 int gQuicktime_movie_counter;
 
+// GLOBAL: CARMA2_HW 0x006a0b08
+FSSpec gQt_file_spec;
+
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
+
+// GLOBAL: CARMA2_HW 0x006a0c28
+int gRecording_paused;
+
+// GLOBAL: CARMA2_HW 0x006a0c54
+tU32 gRecording_time;
+
+// GLOBAL: CARMA2_HW 0x006baa28
+int gRecording_mouse_disabled;
+
 // GLOBAL: CARMA2_HW 0x006a23bc
 int gStatus_message_1;
 
@@ -274,6 +401,26 @@ int gStatus_message_2;
 // STUB: CARMA2_HW 0x004e1250
 void C2_HOOK_FASTCALL WriteBannerFrame(void) {
     NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004e0fe0
+int C2_HOOK_FASTCALL CreateMovie(void) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+
+// STUB: CARMA2_HW 0x004e1c70
+int C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+    return 0;
 }
 
 #ifdef REC2_MATCHING
