@@ -13,7 +13,7 @@ Status of this fork's `workv3` branch (2026-10-30, `reccmp`, `CARMA2_HW.EXE`):
 | Metric | Value |
 |---|---|
 | Functions implemented | 3689 / 5162 (71.46%) |
-| Functions at exactly 100% similar | 2748 |
+| Functions at exactly 100% similar | 2754 |
 | Accuracy | 89.84% |
 | Progress | 64.20% |
 
