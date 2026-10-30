@@ -10,6 +10,8 @@
 #include "c2_string.h"
 #include "10-loading2.h"
 
+#include <math.h>
+
 extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
@@ -33,6 +35,9 @@ int* gShade_table = &gShade_list[8];
 
 // GLOBAL: CARMA2_HW 0x006a82b4
 int gNum_dust_tables;
+
+// GLOBAL: CARMA2_HW 0x006aa578
+int gSpark_next;
 
 // GLOBAL: CARMA2_HW 0x006aa57c
 int gSpark_flags;
@@ -59,6 +64,9 @@ tBRender_smoke* gBR_smoke_pointers[35];
 
 // GLOBAL: CARMA2_HW 0x006aa56c
 int gN_BR_smoke_structs;
+
+// GLOBAL: CARMA2_HW 0x006a82ac
+int gSplash_next;
 
 // GLOBAL: CARMA2_HW 0x006a82b8
 tSplash gSplash[32] = { 0 };
@@ -1465,7 +1473,139 @@ void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, i
     CreateSmokeColumn2(1, pCar->car_master_actor, pCar, NULL, pLevel, fire_value, 0x989680);
 }
 
-// SingleSplash
+/* based on carpocalypse2 src/carma2/common/spark.c (reference only) */
+static br_scalar C2_HOOK_CDECL SmokeScalarRound(double pValue) {
+    volatile union { br_scalar scalar; tU32 bits; } stored;
+    union { br_scalar scalar; tU32 bits; } result;
+
+    stored.scalar = (br_scalar)pValue;
+    result.bits = stored.bits;
+    return result.scalar;
+}
+
+static double C2_HOOK_CDECL SplashSubtractFromScalar(double pValue, const br_scalar* pScalar) {
+    double result;
+
+#if defined(_MSC_VER) && defined(_M_IX86)
+    __asm {
+        mov ecx, pScalar
+        fld pValue
+        fsubr dword ptr [ecx]
+        fstp result
+    }
+#elif defined(__GNUC__) && defined(__i386__)
+    __asm__ volatile (
+        "fldl %[value]\n\t"
+        "fsubrs %[scalar]\n\t"
+        "fstpl %[result]\n\t"
+        : [result] "=m" (result)
+        : [value] "m" (pValue), [scalar] "m" (*pScalar)
+        : "st", "memory");
+#else
+    result = (double)*pScalar - pValue;
+#endif
+    return result;
+}
+
+// FUNCTION: CARMA2_HW 0x004fd530
+void C2_HOOK_FASTCALL SingleSplash(tPhysics_object* pObject, const br_matrix34* pMatrix, const br_vector3* pVelocity, const br_vector3* pNormal_velocity, const br_vector3* pOmega, const br_vector3* pPoint, const br_vector3* pNormal, tU32 pTime) {
+    br_vector3 cross;
+    br_vector3 velocity;
+    br_vector3 recoil;
+    br_scalar scaled;
+    br_scalar speed;
+    br_scalar size;
+    br_scalar range;
+    double dot;
+    double random;
+    double wide;
+    tCar_spec* car;
+    int index;
+    int i;
+
+    BrMatrix34ApplyP((br_vector3*)gSplash[gSplash_next].actor->t.t.mat.m[3], pPoint, pMatrix);
+    cross.v[0] = SmokeScalarRound((double)pOmega->v[1] * pPoint->v[2] - (double)pOmega->v[2] * pPoint->v[1]);
+    cross.v[1] = SmokeScalarRound((double)pOmega->v[2] * pPoint->v[0] - (double)pOmega->v[0] * pPoint->v[2]);
+    cross.v[2] = SmokeScalarRound((double)pOmega->v[0] * pPoint->v[1] - (double)pOmega->v[1] * pPoint->v[0]);
+    BrMatrix34ApplyV(&velocity, &cross, pMatrix);
+    for (i = 0; i < 3; i++) {
+        scaled = SmokeScalarRound((double)pVelocity->v[i] * 6.9);
+        velocity.v[i] = SmokeScalarRound((double)velocity.v[i] + scaled);
+    }
+    speed = SmokeScalarRound(sqrt(((double)velocity.v[0] * velocity.v[0]
+        + (double)velocity.v[1] * velocity.v[1]) + (double)velocity.v[2] * velocity.v[2]));
+    dot = ((double)pNormal->v[1] * velocity.v[1] + (double)pNormal->v[2] * velocity.v[2])
+        + (double)pNormal->v[0] * velocity.v[0];
+    wide = SplashSubtractFromScalar(fabs(dot) * -5.f, &speed) * .006666666828095913f - -.04782608523964882f;
+    size = SmokeScalarRound(wide);
+    if (wide > .5f) {
+        size = .5f;
+    }
+    dot = ((double)pNormal_velocity->v[2] * pPoint->v[2] + (double)pNormal_velocity->v[1] * pPoint->v[1])
+        + (double)pNormal_velocity->v[0] * pPoint->v[0];
+    if (!(dot >= 0.0)) {
+        size = SmokeScalarRound((double)size * .5f);
+    }
+    index = gSplash_next;
+    gSplash[index].size = SmokeScalarRound(SRandomBetween(SmokeScalarRound((double)size * .5f), size));
+    if (!((tU32)gSplash_flags & (1u << (gSplash_next & 31)))) {
+        BrActorAdd(gNon_track_actor, gSplash[index].actor);
+    }
+    gSplash_flags = (int)((tU32)gSplash_flags | (1u << (gSplash_next & 31)));
+    gSplash[gSplash_next].just_done = 1;
+    if (pObject != NULL && !gAction_replay_mode) {
+        car = pObject->flags_0x238 == 1 ? (tCar_spec*)pObject->owner : NULL;
+        if (car != NULL) {
+            random = SRandomBetween(0.f, 1.f);
+            if (random < (double)pTime * .003f) {
+                range = SmokeScalarRound(sqrt((double)speed * .014285714365541935f) * 15.f);
+                for (i = 0; i < 3; i++) {
+                    wide = (double)velocity.v[i] * .14492753148078918f;
+                    velocity.v[i] = SmokeScalarRound(wide);
+                    recoil.v[i] = SmokeScalarRound(wide * -.1f);
+                }
+                if (range > 15.f) {
+                    range = 15.f;
+                }
+                random = SRandomBetween(5.f, range);
+                recoil.v[1] = SmokeScalarRound((double)recoil.v[1] - random * -.14492753623188406);
+                BrMatrix34TApplyV(&velocity, &recoil, &pObject->actor->t.t.mat);
+                cross.v[0] = SmokeScalarRound(((double)pObject->water_normal.v[2] * velocity.v[1]
+                    - (double)pObject->water_normal.v[1] * velocity.v[2]) * .5f);
+                cross.v[1] = SmokeScalarRound(((double)pObject->water_normal.v[0] * velocity.v[2]
+                    - (double)pObject->water_normal.v[2] * velocity.v[0]) * .5f);
+                cross.v[2] = SmokeScalarRound(((double)pObject->water_normal.v[1] * velocity.v[0]
+                    - (double)pObject->water_normal.v[0] * velocity.v[1]) * .5f);
+                dot = ((double)pPoint->v[1] * cross.v[1] + (double)pPoint->v[2] * cross.v[2])
+                    + (double)pPoint->v[0] * cross.v[0];
+                for (i = 0; i < 3; i++) {
+                    velocity.v[i] = SmokeScalarRound(dot > 0.0 ? (double)velocity.v[i] + cross.v[i]
+                        : (double)velocity.v[i] - cross.v[i]);
+                }
+                index = gSpark_next;
+                gSparks[index].pos.v[0] = pPoint->v[0];
+                gSparks[index].pos.v[1] = pPoint->v[1];
+                gSparks[index].pos.v[2] = pPoint->v[2];
+                BrVector3SetFloat(&gSparks[index].normal, 0.f, 0.f, 0.f);
+                index = gSpark_next;
+                memcpy(&gSparks[index].v, &velocity, sizeof(velocity));
+                gSparks[index].count = 500;
+                gSparks[index].car = car;
+                gSparks[index].time_sync = 1;
+                gSparks[index].colour = 1;
+                gSpark_flags = (int)((tU32)gSpark_flags | (1u << (index & 31)));
+                gSpark_next = (int)((tU32)index + 1u);
+                if (gSpark_next >= 32) {
+                    gSpark_next = 0;
+                }
+            }
+        }
+    }
+    gSplash_next = (int)((tU32)gSplash_next + 1u);
+    if ((tU32)gSplash_next >= 32u) {
+        gSplash_next = 0;
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

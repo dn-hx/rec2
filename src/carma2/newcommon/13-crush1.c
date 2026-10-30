@@ -1655,7 +1655,50 @@ void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
 
 // StopFlapping
 
-// DoFlapping
+/* StartFlapping and FlapBits only exist inlined into their callers in the original */
+static void C2_HOOK_FASTCALL StartFlapping(br_actor* pActor, tCar_spec* pCar_spec, int pArg3, float pArg4) {
+    NOT_IMPLEMENTED();
+}
+
+static void C2_HOOK_FASTCALL FlapBits(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
+
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139];
+extern tToggled_door gToggled_doors[16];
+extern int gCount_toggled_doors;
+extern void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec);
+
+// FUNCTION: CARMA2_HW 0x004381b0
+void C2_HOOK_FASTCALL DoFlapping(void) {
+    int i;
+
+    for (i = 0; i < gCount_toggled_doors; i++) {
+        tToggled_door *toggle_door = &gToggled_doors[i];
+        if (toggle_door->actor != NULL) {
+            tUser_crush_data *user_crush_data = toggle_door->actor->user;
+            if (user_crush_data != NULL && user_crush_data->crush_data != NULL &&
+                user_crush_data->crush_data->flap_data != NULL) {
+                tCar_crush_flap_data *flap_data = user_crush_data->crush_data->flap_data;
+                if (!flap_data->field_0x0 && (toggle_door->field_0x8 & 0x1)) {
+                    StartFlapping(toggle_door->actor, toggle_door->car, flap_data->field_0x0, toggle_door->field_0xc);
+                } else if (flap_data->field_0x0 && !(toggle_door->field_0x8 & 0x1)) {
+                    StopFlapping(toggle_door->actor, toggle_door->car);
+                }
+            }
+        }
+    }
+    gCount_toggled_doors = 0;
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car;
+
+        car = gActive_car_list[i];
+        if (car != NULL && car->driver >= eDriver_oppo) {
+            FlapBits(car);
+        }
+    }
+}
 
 // ToggleFlapsCB2
 
@@ -1937,7 +1980,6 @@ static void C2_HOOK_FASTCALL DoSpams(void) { }
 static void C2_HOOK_FASTCALL DoCrushing(void) { }
 static void C2_HOOK_FASTCALL DoDroneCrushing(void) { }
 static void C2_HOOK_FASTCALL DoShapeSwapping(void) { }
-static void C2_HOOK_FASTCALL DoFlapping(void) { }
 static void C2_HOOK_FASTCALL DoBending(void) { }
 static void C2_HOOK_FASTCALL ClearCrushLists(void) { }
 

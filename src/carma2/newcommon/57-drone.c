@@ -150,8 +150,6 @@ FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
 
 // RemoveDroneFromPHIL
 
-// InitDroneCollisionObject
-
 /* local declarations (no new includes/externs; 60-phil.h is not included here) */
 extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
@@ -373,7 +371,34 @@ void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone) {
     }
 }
 
-// CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing
+extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
+extern tPhysics_object* gPHIL_list_collision_infos;
+extern int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2);
+
+/* inlined into its callers in the original (no standalone copy) */
+static int C2_HOOK_FASTCALL DroneHasCollided(tDrone_spec* pDrone_spec) {
+    tPhysics_object* collision;
+
+    for (collision = gPHIL_list_collision_infos; collision != NULL; collision = collision->next) {
+        if (&pDrone_spec->collision_info != collision && TestObjectOverlap(&pDrone_spec->collision_info, collision)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004518e0
+int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone) {
+
+    if (gTime_stamp_for_this_munging > pDrone->last_collide_check + 1000) {
+        pDrone->last_collide_check = gTime_stamp_for_this_munging;
+        InitDroneCollisionObject(pDrone);
+
+        return !DroneHasCollided(pDrone);
+    } else {
+        return 0;
+    }
+}
 
 // StartProcessingThisDrone
 

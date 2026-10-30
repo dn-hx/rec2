@@ -13,6 +13,10 @@
 #include "28-world3.h"
 #include "globvrpb.h"
 
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car);
+void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash);
+
 // GLOBAL: CARMA2_HW 0x0065feb0
 const char* gRepeatability_names[4] = {
     "none",
@@ -408,7 +412,36 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // DoDelayedSmash
 
-// MungeDelayedSideEffects
+// based on carpocalypse2 src/carma2/common/smash.c (reference)
+// FUNCTION: CARMA2_HW 0x004ecc80
+void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
+    int i;
+    tU32 the_time;
+
+    the_time = PDGetTotalTime();
+    for (i = 0; i < REC2_ASIZE(gSmash_explosions); i++) {
+        tSmash_explosion* delayed_effect = &gSmash_explosions[i];
+
+        if (delayed_effect->active) {
+            switch (delayed_effect->type) {
+            case 0:
+                DoDelayedNonCar(the_time, &delayed_effect->what.non_car);
+                if (delayed_effect->what.non_car.count_actions == 0) {
+                    delayed_effect->active = 0;
+                }
+                break;
+            case 1:
+                if (the_time >= delayed_effect->what.smash.field_0x18) {
+                    DoDelayedSmash(&delayed_effect->what.smash);
+                    delayed_effect->active = 0;
+                }
+                break;
+            }
+        }
+
+    }
+}
+
 
 // ActivateNonCarSideEffects
 
@@ -1890,6 +1923,17 @@ void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, unde
 void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: DoDelayedNonCar
+void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car) { NOT_IMPLEMENTED(); }
+// STUB: DoDelayedSmash
+void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) { NOT_IMPLEMENTED(); }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

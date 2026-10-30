@@ -566,9 +566,10 @@ int C2_HOOK_FASTCALL CheckRecoverCost(void) {
 
 // SortOutRecover
 
-// SetFlipUpCar
-
 // based on carpocalypse2 src/carma2/common/controls.c:2143 and upstream controls.c (reference only)
+extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
+extern void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
 extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
@@ -594,6 +595,18 @@ static void AlignChildren(tPhysics_object* pCollision_info) {
         BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
         BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
         FlipUpCollisionInfo(child);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00442970
+void C2_HOOK_FASTCALL SetFlipUpCar(tCar_spec* pCar) {
+
+    if (gNet_mode != eNet_mode_none && pCar != NULL && pCar->driver == eDriver_local_human) {
+        DisableCar(pCar);
+        gPalette_fade_time = GetRaceTime();
+        NetPlayerStatusChanged(ePlayer_status_recovering);
+    } else {
+        FlipUpCar(pCar);
     }
 }
 

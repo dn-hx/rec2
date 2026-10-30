@@ -3111,3 +3111,24 @@ void C2_HOOK_FASTCALL MungeNapalm(void) {
     }
     AREndPipingSession();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: SetPedFall
+int C2_HOOK_FASTCALL SetPedFall(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) { NOT_IMPLEMENTED(); return 0; }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// based on carpocalypse2 src/carma2/common/pedestrn.c (reference)
+// FUNCTION: CARMA2_HW 0x004ce330
+void C2_HOOK_FASTCALL RepulseIt(tPedestrian* pPed, tCar_spec* pCar, float pDist_sq, tU32 pNow, void* pData) {
+    int speed;
+
+    (void)pDist_sq;
+    (void)pNow;
+    (void)pData;
+    speed = IRandomBetween(0x4b, 0xc8);
+    SetPedFall(pPed, speed, 0x5b, 0x5b, NULL);
+}

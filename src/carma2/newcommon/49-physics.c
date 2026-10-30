@@ -983,7 +983,105 @@ void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, unde
 
 // RotateObject
 
-// TranslateObject
+// based on carpocalypse2 src/carma2/common/physics.c (reference)
+// FUNCTION: CARMA2_HW 0x004c18d0
+void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject) {
+    tPhysics_joint* joint;
+    tPhysics_object* child;
+    br_vector3 axis;
+    br_vector3 tmp[3];
+    br_scalar imp[3];
+    br_scalar friction;
+    br_scalar friction_sq;
+    br_scalar sum_sq;
+    br_scalar num;
+    br_scalar denom;
+    br_scalar scale;
+    int i;
+
+    joint = pObject->physics_joint1;
+    if (joint != NULL && joint->friction != 0.0f) {
+        if (pObject->field_0x230 != NULL) {
+            br_vector3* src = (br_vector3*)&pObject->transform_matrix.m[0][0];
+            float* impPtr = imp;
+            br_vector3* tmpPtr = tmp;
+            float* iPtr = &pObject->I.v[0];
+            float* oPtr = &pObject->omega.v[0];
+            int k = 3;
+            friction = joint->friction * 0.04f;
+            sum_sq = 0.0f;
+            friction_sq = friction * friction;
+            do {
+                float t;
+                float* tp = &tmpPtr->v[0];
+                float* ap = &axis.v[0];
+                float* ip = &pObject->field_0x230->I.v[0];
+                int n = 3;
+                BrMatrix34TApplyV(&axis, src, &pObject->field_0x230->transform_matrix);
+                num = pObject->field_0x230->omega.v[0] * axis.v[0] + pObject->field_0x230->omega.v[2] * axis.v[2] + pObject->field_0x230->omega.v[1] * axis.v[1] - *oPtr;
+                do {
+                    *tp = *ap / *ip;
+                    tp++;
+                    ap++;
+                    ip++;
+                    n--;
+                } while (n != 0);
+                denom = 1.0 / *iPtr + (tmpPtr->v[0] * axis.v[0] + tmpPtr->v[2] * axis.v[2] + tmpPtr->v[1] * axis.v[1]);
+                t = num / denom;
+                sum_sq += t * t;
+                *impPtr = t;
+                src++;
+                impPtr++;
+                tmpPtr++;
+                iPtr++;
+                oPtr++;
+                k--;
+            } while (k != 0);
+            if (friction_sq < sum_sq) {
+                scale = sqrt(friction_sq / sum_sq);
+                imp[0] *= scale;
+                imp[1] *= scale;
+                imp[2] *= scale;
+            }
+            for (i = 0; i < 3; i++) {
+                pObject->omega.v[i] += imp[i] / pObject->I.v[i];
+                pObject->field_0x230->omega.v[0] -= imp[i] * tmp[i].v[0];
+                pObject->field_0x230->omega.v[1] -= imp[i] * tmp[i].v[1];
+                pObject->field_0x230->omega.v[2] -= imp[i] * tmp[i].v[2];
+            }
+        }
+    }
+
+    joint = pObject->physics_joint2;
+    if (joint != NULL && joint->friction != 0.0f) {
+        float* b = &pObject->I.v[0];
+        friction = joint->friction * 0.04f;
+        friction_sq = friction * friction;
+        sum_sq = 0.0f;
+        for (i = 0; i < 3; i++) {
+            float u = b[0] * b[27];
+            sum_sq += u * u;
+            imp[i] = u;
+            b++;
+        }
+        if (sum_sq > friction_sq) {
+            scale = sqrt(friction_sq / sum_sq);
+            imp[0] *= scale;
+            imp[1] *= scale;
+            imp[2] *= scale;
+        }
+        for (i = 0; i < 3; i++) {
+            pObject->omega.v[i] -= imp[i] / pObject->I.v[i];
+        }
+    }
+
+    for (child = pObject->child; child != NULL; child = child->next) {
+        if (child->disable_move_rotate == 0) {
+            TranslateObject(child);
+        }
+    }
+}
+
 
 // GetFacesNearObject
 

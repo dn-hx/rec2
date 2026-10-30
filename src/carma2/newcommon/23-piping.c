@@ -930,7 +930,24 @@ void C2_HOOK_FASTCALL AddFlameToPipingSession(int pIndex, int pFrame, br_scalar 
 
 // AddSplashToPipingSession
 
-// AddExtendedSplashToPipingSession
+extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pCollision_info, int pParam);
+
+// FUNCTION: CARMA2_HW 0x004c7160
+void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollision, void* pArg2) {
+    tU8 flag;
+
+    if (PHILGetObjectProperty(pCollision, 6) != 0.0f) {
+        flag = 0xff;
+    } else {
+        flag = pCollision->flags_0x238;
+    }
+    *(volatile float*)&gUNK_0069410c = pCollision->water_d;
+    ARAddVariedDataToSession((tPipe_chunk_type)0x3b, (uintptr_t)pArg2, 4,
+        1, 0, (*(int*)&flag) & 0xff,
+        4, 4, gUNK_0069410c,
+        0xc, 8, &pCollision->water_normal,
+        0x18, 0x14, &pCollision->bb2);
+}
 
 // AddCarToPipingSession
 

@@ -48,7 +48,7 @@ extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_sp
 
 extern int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces);
 
-extern void C2_HOOK_FASTCALL NewCalcGetNearPlayerRoute(tOpponent_spec* pOpponent_spec, tCar_spec* pPursuee, int pForce);
+// NewCalcGetNearPlayerRoute
 
 // CalcReturnToStartPointRoute
 
@@ -75,7 +75,7 @@ extern int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOppone
 
 extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 
-extern void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
+// ProcessReturnToStart
 
 // ProcessLevitate
 
