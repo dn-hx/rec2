@@ -37,7 +37,11 @@ int gUNK_oil_opponent_gap[2] = { 0 };
 // GLOBAL: CARMA2_HW 0x00691720
 int gStart_jumped = 0;
 
-int gUNK_oil_opponent_gap_hi[15] = { 0 };
+/* split so the array starts 8-aligned (0x00691728): MSVC 8-aligns initialized arrays, so a single
+   int[15] here would be padded to 0x00691728 and push gMinimum_yness_before_knackerisation 4 bytes late */
+int gUNK_oil_opponent_gap_hi_lo = 0;
+
+int gUNK_oil_opponent_gap_hi[14] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00691760
 br_scalar gMinimum_yness_before_knackerisation = 0.f;
