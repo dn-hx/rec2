@@ -659,7 +659,118 @@ void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, t
         }
     }
 }
-// DoMapOverlays
+extern int C2_HOOK_FASTCALL GetPedCount(void);
+extern int C2_HOOK_FASTCALL GetPowerupCount(void);
+extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition);
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+extern tPedestrian* gPedestrian_array;
+
+static int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPos) {
+    (void)pIndex; (void)pPos;
+    return 0;
+}
+
+static void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const br_vector3* pPos, int pColour) {
+    (void)pScreen; (void)pTime; (void)pPos; (void)pColour;
+}
+
+static void C2_HOOK_FASTCALL DrawCarArrow(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pTime, br_vector3* pPos, int pCategory) {
+    (void)pScreen; (void)pCar; (void)pTime; (void)pPos; (void)pCategory;
+}
+
+static void C2_HOOK_FASTCALL DrawSmashBlip(br_pixelmap* pScreen, tU32 pTime, br_vector3* pPos, int pIndex) {
+    (void)pScreen; (void)pTime; (void)pPos; (void)pIndex;
+}
+
+/* based on carpocalypse2 src/carma2/common/displays.c:553 */
+// FUNCTION: CARMA2_HW 0x00495e10
+void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen) {
+    tU32 the_time;
+    int category;
+    int car_count;
+    tCar_spec* car;
+    int ped_count;
+    int powerup_count;
+    tNet_game_player_info* net_player;
+    int i;
+    br_vector3 ped_position;
+    br_vector3* smash_position;
+    br_actor* actor;
+    tSmashable_race_target* smash_target;
+
+    the_time = PDGetTotalTime();
+    if (gCurrent_race.race_spec->race_type == kRaceType_Carma1 || gCurrent_race.race_spec->race_type == kRaceType_Checkpoints) {
+        if (gMap_view == 2) {
+            DoSomeThingsToCheckpoints(pScreen, the_time, CalcMapCheckpoint, 1);
+            DoSomeThingsToCheckpoints(pScreen, the_time, DrawCheckpoint, 1);
+        } else {
+            DoSomeThingsToCheckpoints(pScreen, the_time, CalcMapCheckpoint2, 1);
+        }
+    }
+    if ((gShow_peds_on_map || gCurrent_race.race_spec->race_type == kRaceType_Peds)
+            || (gNet_mode != eNet_mode_none && gCurrent_net_game->options.show_powerups_on_map)) {
+
+        ped_count = GetPedCount();
+        for (i = 0; i < ped_count; i++) {
+            if (GetPedPosition(i, &ped_position)) {
+                DrawMapSmallBlip(pScreen, the_time, &ped_position, 52);
+            }
+        }
+    }
+
+    if ((gNet_mode != eNet_mode_none && gCurrent_net_game->options.show_powerups_on_map)
+            || gCurrent_race.race_spec->expansion) {
+
+        powerup_count = GetPowerupCount();
+        for (i = 0; i < powerup_count; i++) {
+            GetPowerupPosition(i, &ped_position);
+            DrawMapSmallBlip(pScreen, the_time, &ped_position, 4);
+        }
+    }
+    for (category = gShow_opponents ? eVehicle_opponent : eVehicle_self; category >= (gMap_view == 1 ? eVehicle_net_player : eVehicle_self); category -= 1) {
+        if (category == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(category);
+        }
+        for (i = 0; i < car_count; i++) {
+            if (category == eVehicle_self) {
+                car = &gProgram_state.current_car;
+            } else {
+                car = GetCarSpec(category, i);
+            }
+            if (gNet_mode != eNet_mode_none) {
+                net_player = NetPlayerFromCar(car);
+            }
+            if (gNet_mode == eNet_mode_none
+                    || (!car->knackered && !net_player->wasted && net_player->player_status >= ePlayer_status_racing)) {
+
+                if (category == eVehicle_self) {
+                    actor = gPlayer_car_master_actor;
+                } else {
+                    actor = GetCarSpec(category, i)->car_master_actor;
+                }
+                DrawCarArrow(pScreen, car, the_time, &actor->t.t.translate.t, category);
+            }
+        }
+    }
+    if (gCurrent_race.race_spec->race_type >= kRaceType_Smash) {
+        for (i = 0; i < gCount_smashable_race_targets; i++) {
+            smash_target = &gSmashable_race_targets[i];
+
+            if ((smash_target->model != NULL && smash_target->actor->render_style != BR_RSTYLE_NONE && smash_target->actor->model == smash_target->model)
+                    || (smash_target->field_0x8 >= 0 && gPedestrian_array[smash_target->field_0x8].hit_points > 0)) {
+                if (smash_target->field_0x8 >= 0) {
+                    smash_position = &gPedestrian_array[smash_target->field_0x8].pos;
+                } else {
+                    smash_position = &smash_target->actor->t.t.translate.t;
+                }
+
+                DrawSmashBlip(pScreen, the_time, smash_position, i);
+            }
+        }
+    }
+}
 
 // StartMap
 

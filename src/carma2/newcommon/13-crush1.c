@@ -1831,7 +1831,29 @@ void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel) {
 
 // DoSpams
 
-// CrushBendFlapRend
+static void C2_HOOK_FASTCALL DoSpams(void) { }
+static void C2_HOOK_FASTCALL DoCrushing(void) { }
+static void C2_HOOK_FASTCALL DoDroneCrushing(void) { }
+static void C2_HOOK_FASTCALL DoShapeSwapping(void) { }
+static void C2_HOOK_FASTCALL DoFlapping(void) { }
+static void C2_HOOK_FASTCALL DoDetaching(void) { }
+static void C2_HOOK_FASTCALL DoBending(void) { }
+static void C2_HOOK_FASTCALL ClearCrushLists(void) { }
+
+/* based on carpocalypse2 src/carma2/common/crush.c:4081 */
+// FUNCTION: CARMA2_HW 0x00436170
+void C2_HOOK_FASTCALL CrushBendFlapRend(void) {
+
+    DoSpams();
+    DoCrushing();
+    DoDroneCrushing();
+    DoShapeSwapping();
+    DoFlapping();
+    DoDetaching();
+    DoFullyDetaching();
+    DoBending();
+    ClearCrushLists();
+}
 
 // SphericizeModel
 
