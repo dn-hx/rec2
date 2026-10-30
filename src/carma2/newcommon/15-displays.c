@@ -921,6 +921,10 @@ void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
     gLast_earn_time = the_time;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0044b440
 // FUNCTION: CARMA2_SW 0x0044b5d0
 void C2_HOOK_FASTCALL EarnCredits(int pAmount) {

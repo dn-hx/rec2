@@ -1,3 +1,7 @@
+/* This TU's codegen is sensitive to the count of shared-header declarations
+ * (RoadUntexToPersp 0x447c60); the net-message types are unused here. */
+#define REC2_NO_NET_MESSAGE_TYPEDEFS
+
 #include "17-world2.h"
 
 #include "41-utility.h"

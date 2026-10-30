@@ -30,7 +30,7 @@ extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shap
 extern int C2_HOOK_FASTCALL TimeToSendData(void);
 // SendCarData
 
-extern void C2_HOOK_FASTCALL ReceivedRecover(tNet_message_chunk_recover* pContents);
+// ReceivedRecover
 
 // CopyMechanics
 
@@ -46,7 +46,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // SendAllNonCarPositions
 
-extern void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents);
+// ReceivedNonCarPosition
 
 // ReceivedNonCar
 
@@ -130,6 +130,6 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
-extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
+// RemovePlayerFromShapeStatusLists
 
 #endif // GUARD_04_NETGAME_H

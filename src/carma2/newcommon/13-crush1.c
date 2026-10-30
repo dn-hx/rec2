@@ -1,3 +1,11 @@
+#define REC2_NO_CRUSH_DECLS
+
+#define REC2_NO_SMASH_DECLS
+
+/* This TU's x87 codegen is sensitive to the count of shared-header declarations
+ * (DRActorEnumRecurseWithTranslation 0x42b760); the net-message types are unused here. */
+#define REC2_NO_NET_MESSAGE_TYPEDEFS
+
 #include "13-crush1.h"
 
 #include "08-loading1.h"
@@ -315,22 +323,6 @@ intptr_t C2_HOOK_CDECL AccumulateSquashVertices(br_actor* pActor, void* pData) {
 }
 
 // InitModelMasterCrushData
-
-// FUNCTION: CARMA2_HW 0x0042a9b0
-void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush) {
-    int i;
-
-    pCar_crush->field_0x24 = 0;
-    pCar_crush->field_0x26 = 0;
-
-    if (gNet_mode == eNet_mode_host) {
-        pCar_crush->network_stuff = BrMemAllocate(sizeof(tCar_crush_network_shapes), kMem_crush_data);
-        for (i = 1; i < gNumber_of_net_players; i++) {
-            pCar_crush->network_stuff->items[i - 1].network_id = gNet_players[i].ID;
-            pCar_crush->network_stuff->items[i - 1].field_0x4 = 0;
-        }
-    }
-}
 
 // FUNCTION: CARMA2_HW 0x0042acb0
 // FUNCTION: CARMA2_SW 0x0042ad40
@@ -1315,21 +1307,6 @@ void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_v
 
 // DoCrushing
 
-// based on carpocalypse2 src/carma2/common/crush1.c:602
-// FUNCTION: CARMA2_HW 0x0042d770
-void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue) {
-    int i;
-
-    pCrush->count = pCount_vectors;
-    for (i = 0; i < pCount_vectors; i++) {
-        BrVector3Copy(&pCrush->vectors[i], &pVectors[i]);
-    }
-    BrVector3Copy(&pCrush->field_0x34, pVector1);
-    BrVector3Copy(&pCrush->field_0x44, pVector2);
-    pCrush->field_0x40 = pScalar;
-    pCrush->field_0x50 = pValue;
-}
-
 // QueueCarCrush
 
 // FUNCTION: CARMA2_HW 0x0042d7e0
@@ -2219,53 +2196,6 @@ void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vector3* pS
 
 // GetNetShapeDataLengthFromData
 
-// FUNCTION: CARMA2_HW 0x0043d9c0
-void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar) {
-    int i;
-    int j;
-    int count;
-    tCar_crush_shape_info* shape_info;
-    tPhysics_shape* shape;
-    br_vector3* point;
-
-    C2_HOOK_BUG_ON(sizeof(tCompressed_vector3) != 6);
-
-    if (pCar->car_crush_spec->field_0x4b8) {
-        count = 0;
-        for (shape = pCar->collision_info->shape; shape != NULL; shape = shape->common.next) {
-            if (shape->common.type == kCollisionShapeType_Polyhedron || shape->common.type == kCollisionShapeType_Wireframe_Polyhedron) {
-                count++;
-            }
-        }
-        *pData++ = (tU8)count;
-        for (shape = pCar->collision_info->shape; shape != NULL; shape = shape->common.next) {
-            if (shape->common.type == kCollisionShapeType_Polyhedron || shape->common.type == kCollisionShapeType_Wireframe_Polyhedron) {
-                *pData = (tU8)shape->polyhedron.polyhedron.count_points;
-                pData++;
-                for (j = 0; j < shape->polyhedron.polyhedron.count_points; j++) {
-                    point = shape->polyhedron.polyhedron.points;
-                    point += j;
-                    CompressVector3((tCompressed_vector3*)pData, point, -2.5f, 2.5f);
-                    pData += sizeof(tCompressed_vector3);
-                }
-            }
-        }
-    } else {
-        count = 0;
-        for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
-            count += pCar->car_crush_spec->field_0x4[i].count_points;
-        }
-        *pData++ = (tU8)count;
-        for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
-            shape_info = &pCar->car_crush_spec->field_0x4[i];
-            for (j = 0; j < shape_info->count_points; j++) {
-                CompressVector3((tCompressed_vector3*)pData, &shape_info->field_0x18[j].field_0xc, -2.5f, 2.5f);
-                pData += sizeof(tCompressed_vector3);
-            }
-        }
-    }
-}
-
 // DecodeNetShapeData
 
 // CopyBendInMessage
@@ -2714,3 +2644,81 @@ int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3*
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// FUNCTION: CARMA2_HW 0x0042a9b0
+void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush) {
+    int i;
+
+    pCar_crush->field_0x24 = 0;
+    pCar_crush->field_0x26 = 0;
+
+    if (gNet_mode == eNet_mode_host) {
+        pCar_crush->network_stuff = BrMemAllocate(sizeof(tCar_crush_network_shapes), kMem_crush_data);
+        for (i = 1; i < gNumber_of_net_players; i++) {
+            pCar_crush->network_stuff->items[i - 1].network_id = gNet_players[i].ID;
+            pCar_crush->network_stuff->items[i - 1].field_0x4 = 0;
+        }
+    }
+}
+
+// based on carpocalypse2 src/carma2/common/crush1.c:602
+// FUNCTION: CARMA2_HW 0x0042d770
+void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue) {
+    int i;
+
+    pCrush->count = pCount_vectors;
+    for (i = 0; i < pCount_vectors; i++) {
+        BrVector3Copy(&pCrush->vectors[i], &pVectors[i]);
+    }
+    BrVector3Copy(&pCrush->field_0x34, pVector1);
+    BrVector3Copy(&pCrush->field_0x44, pVector2);
+    pCrush->field_0x40 = pScalar;
+    pCrush->field_0x50 = pValue;
+}
+
+// FUNCTION: CARMA2_HW 0x0043d9c0
+void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar) {
+    int i;
+    int j;
+    int count;
+    tCar_crush_shape_info* shape_info;
+    tPhysics_shape* shape;
+    br_vector3* point;
+
+    C2_HOOK_BUG_ON(sizeof(tCompressed_vector3) != 6);
+
+    if (pCar->car_crush_spec->field_0x4b8) {
+        count = 0;
+        for (shape = pCar->collision_info->shape; shape != NULL; shape = shape->common.next) {
+            if (shape->common.type == kCollisionShapeType_Polyhedron || shape->common.type == kCollisionShapeType_Wireframe_Polyhedron) {
+                count++;
+            }
+        }
+        *pData++ = (tU8)count;
+        for (shape = pCar->collision_info->shape; shape != NULL; shape = shape->common.next) {
+            if (shape->common.type == kCollisionShapeType_Polyhedron || shape->common.type == kCollisionShapeType_Wireframe_Polyhedron) {
+                *pData = (tU8)shape->polyhedron.polyhedron.count_points;
+                pData++;
+                for (j = 0; j < shape->polyhedron.polyhedron.count_points; j++) {
+                    point = shape->polyhedron.polyhedron.points;
+                    point += j;
+                    CompressVector3((tCompressed_vector3*)pData, point, -2.5f, 2.5f);
+                    pData += sizeof(tCompressed_vector3);
+                }
+            }
+        }
+    } else {
+        count = 0;
+        for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
+            count += pCar->car_crush_spec->field_0x4[i].count_points;
+        }
+        *pData++ = (tU8)count;
+        for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
+            shape_info = &pCar->car_crush_spec->field_0x4[i];
+            for (j = 0; j < shape_info->count_points; j++) {
+                CompressVector3((tCompressed_vector3*)pData, &shape_info->field_0x18[j].field_0xc, -2.5f, 2.5f);
+                pData += sizeof(tCompressed_vector3);
+            }
+        }
+    }
+}

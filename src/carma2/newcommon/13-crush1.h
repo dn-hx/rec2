@@ -49,7 +49,9 @@ extern intptr_t C2_HOOK_CDECL AccumulateSquashVertices(br_actor* pActor, void* p
 
 // InitModelMasterCrushData
 
+#ifndef REC2_NO_CRUSH_DECLS
 extern void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush);
+#endif
 
 extern int C2_HOOK_CDECL IncreasingCompare(const void* pValue1, const void* pValue2);
 
@@ -176,7 +178,9 @@ extern void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, con
 
 // DoCrushing
 
+#ifndef REC2_NO_CRUSH_DECLS
 extern void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue);
+#endif
 
 // QueueCarCrush
 
@@ -524,7 +528,9 @@ extern void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vect
 
 // GetNetShapeDataLengthFromData
 
+#ifndef REC2_NO_CRUSH_DECLS
 extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
+#endif
 
 // DecodeNetShapeData
 

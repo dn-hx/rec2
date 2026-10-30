@@ -45,7 +45,9 @@ extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3*
 
 // ApplyTimeSpec
 
+#ifndef REC2_NO_SMASH_DECLS
 extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
+#endif
 
 // SetShrapnelFragment
 
@@ -71,7 +73,9 @@ extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU
 
 // DoAward
 
+#ifndef REC2_NO_SMASH_DECLS
 extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
+#endif
 
 // DoSpecial
 

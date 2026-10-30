@@ -78,7 +78,7 @@ extern int C2_HOOK_FASTCALL NetReallySendMessageToPlayer(tNet_game_details* pNet
 
 extern int C2_HOOK_FASTCALL NetSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage);
 
-extern int C2_HOOK_FASTCALL NetSendMessageToAllPlayers(tNet_game_details* pNet_game, tNet_message* pMessage);
+// NetSendMessageToAllPlayers
 
 // NetGetContentsSize
 

@@ -5170,12 +5170,14 @@ typedef struct {
     tCompressed_car_crush car_crush;
 } tNet_message_car_crush;
 
+#ifndef REC2_NO_NET_MESSAGE_TYPEDEFS
 typedef struct {
     tNet_message_chunk_header header;
     undefined field_0x2[2];
     tPlayer_ID player;
     tU32 time;
 } tNet_message_chunk_recover;
+#endif
 
 typedef struct {
     int ID;
@@ -5287,6 +5289,7 @@ typedef struct {
     tU8 object_hierarchy[];
 } tNet_message_chunk_mine_explode;
 
+#ifndef REC2_NO_NET_MESSAGE_TYPEDEFS
 typedef struct {
     tNet_message_chunk_header header;
     undefined field_0x2[6];
@@ -5294,6 +5297,7 @@ typedef struct {
     br_matrix34 mat;
     tU16 flags;
 } tNet_message_chunk_non_car_position;
+#endif
 
 typedef union {
     tNet_message_chunk_raw raw;
