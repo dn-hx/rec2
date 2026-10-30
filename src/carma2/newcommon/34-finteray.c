@@ -2,6 +2,9 @@
 
 #include "rec2_macros.h"
 
+#include <math.h>
+#include <string.h>
+
 // GLOBAL: CARMA2_HW 0x005964c0
 int gPling_materials = 1;
 
@@ -601,3 +604,180 @@ int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_ve
 
 // CastRayDownThruFaces
 
+
+// extern so 49-physics.c keeps ownership of the global
+extern tFace_ref* gPling_face;
+
+static __inline int C2_HOOK_FASTCALL ModelPickBox_Clip(br_vector3* polygon, int count, int axis, br_scalar limit, int upper) {
+    br_vector3 clipped[12];
+    int previous = count - 1;
+    int vertex, component;
+    int result = 0;
+
+    for (vertex = 0; vertex < count; vertex++) {
+        if ((polygon[vertex].v[axis] > limit) != (polygon[previous].v[axis] > limit)) {
+            for (component = 0; component < 3; component++) {
+                if (component != axis) {
+                    clipped[result].v[component] = ((polygon[vertex].v[component] - polygon[previous].v[component])
+                        * (limit - polygon[previous].v[axis]))
+                        / (polygon[vertex].v[axis] - polygon[previous].v[axis]) + polygon[previous].v[component];
+                }
+            }
+            clipped[result].v[axis] = limit;
+            result++;
+        }
+        if ((!upper && polygon[vertex].v[axis] >= limit)
+            || (upper && polygon[vertex].v[axis] <= limit)) {
+            for (component = 0; component < 3; component++) {
+                clipped[result].v[component] = polygon[vertex].v[component];
+            }
+            result++;
+        }
+        previous = vertex;
+    }
+    for (vertex = 0; vertex < result; vertex++) {
+        for (component = 0; component < 3; component++) {
+            polygon[vertex].v[component] = clipped[vertex].v[component];
+        }
+    }
+    return result;
+}
+
+// based on ApexWorm/rec2 6ef908265 (reference only)
+// FUNCTION: CARMA2_HW 0x0045ff90
+int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
+    v11model* prepared = ((volatile br_model*)model)->prepared;
+    v11group* prepared_group;
+    v11face* face;
+    br_vector3 polygon[12];
+    br_vector3 normal;
+    int group, f, vertex, component, axis, count;
+    int indices[3];
+    float distance;
+    br_scalar limit;
+    int rejected;
+    br_uint_16 original_face;
+
+    if (max_face <= 0) {
+        return 0;
+    }
+    for (group = 0; group < model->prepared->ngroups; group++) {
+        prepared_group = &model->prepared->groups[group];
+        face = prepared_group->faces;
+        for (f = 0; f < model->prepared->groups[group].nfaces; f++, face++) {
+            indices[0] = face->vertices[0];
+            distance = (prepared_group->vertices[indices[0]].p.v[0] - bnds->box_centre.v[0]) * face->eqn.v[0]
+                + (prepared_group->vertices[indices[0]].p.v[2] - bnds->box_centre.v[2]) * face->eqn.v[2]
+                + (prepared_group->vertices[indices[0]].p.v[1] - bnds->box_centre.v[1]) * face->eqn.v[1];
+            if (fabs(distance) > bnds->radius) {
+                continue;
+            }
+            indices[1] = face->vertices[1];
+            indices[2] = face->vertices[2];
+            rejected = 0;
+            for (axis = 0; axis < 3; axis++) {
+                limit = bnds->real_bounds.min.v[axis];
+                if (!(prepared_group->vertices[indices[0]].p.v[axis] >= limit)
+                    && !(prepared_group->vertices[indices[1]].p.v[axis] >= limit)
+                    && !(prepared_group->vertices[indices[2]].p.v[axis] >= limit)) {
+                    rejected = 1;
+                    break;
+                }
+                limit = bnds->real_bounds.max.v[axis];
+                if (prepared_group->vertices[indices[0]].p.v[axis] > limit
+                    && prepared_group->vertices[indices[1]].p.v[axis] > limit
+                    && prepared_group->vertices[indices[2]].p.v[axis] > limit) {
+                    rejected = 1;
+                    break;
+                }
+            }
+            if (rejected) {
+                continue;
+            }
+            for (vertex = 0; vertex < 3; vertex++) {
+                for (component = 0; component < 3; component++) {
+                    polygon[vertex + 1].v[component] = model->prepared->groups[group].vertices[indices[vertex]].p.v[component] - bnds->mat->m[3][component];
+                }
+            }
+            BrMatrix34TApplyV(&polygon[0], &polygon[1], bnds->mat);
+            BrMatrix34TApplyV(&polygon[1], &polygon[2], bnds->mat);
+            BrMatrix34TApplyV(&polygon[2], &polygon[3], bnds->mat);
+            count = 3;
+            for (axis = 0; axis < 3; axis++) {
+                count = ModelPickBox_Clip(polygon, count, axis, bnds->original_bounds.min.v[axis], 0);
+                if (count < 3) {
+                    break;
+                }
+                count = ModelPickBox_Clip(polygon, count, axis, bnds->original_bounds.max.v[axis], 1);
+                if (count < 3) {
+                    break;
+                }
+            }
+            if (count < 3) {
+                continue;
+            }
+            for (vertex = 0; vertex < 3; vertex++) {
+                if (pMat != NULL) {
+                    BrMatrix34ApplyP(&face_list->v[vertex], &model->prepared->groups[group].vertices[indices[vertex]].p, pMat);
+                } else {
+                    for (component = 0; component < 3; component++) {
+                        face_list->v[vertex].v[component] = model->prepared->groups[group].vertices[indices[vertex]].p.v[component];
+                    }
+                }
+            }
+            for (component = 0; component < 3; component++) {
+                if (pMat != NULL) {
+                    normal.v[component] = face->eqn.v[component];
+                } else {
+                    face_list->normal.v[component] = face->eqn.v[component];
+                }
+            }
+            if (pMat != NULL) {
+                BrMatrix34ApplyV(&face_list->normal, &normal, pMat);
+            }
+            face_list->material = *model->prepared->groups[group].face_colours.materials;
+            if (face_list->material == NULL) {
+                face_list->material = model_material;
+            }
+            if (pMat != NULL) {
+                face_list->d = face_list->normal.v[2] * face_list->v[0].v[2] + face_list->normal.v[1] * face_list->v[0].v[1] + face_list->v[0].v[0] * face_list->normal.v[0];
+            } else {
+                face_list->d = face->eqn.v[3];
+            }
+            face_list->a = actor;
+            if (model->flags & BR_MODF_UPDATEABLE) {
+                face_list->g = -1;
+                original_face = model->prepared->groups[group].face_user[f];
+                face_list->f = original_face;
+                face_list->flags = model->faces[original_face].flags;
+                for (vertex = 0; vertex < 3; vertex++) {
+                    face_list->map[vertex] = &model->vertices[model->faces[original_face].vertices[vertex]].map;
+                }
+            } else {
+                face_list->g = (tS16)group;
+                face_list->f = (tS16)f;
+                face_list->flags = 0;
+                for (vertex = 0; vertex < 3; vertex++) {
+                    if (prepared->groups[group].faces[f].edges[vertex] == 0) {
+                        face_list->flags |= 1 << vertex;
+                    }
+                }
+                for (vertex = 0; vertex < 3; vertex++) {
+                    face_list->map[vertex] = &model->prepared->groups[group].vertices[indices[vertex]].map;
+                }
+            }
+            if (face_list->material != NULL && face_list->material->identifier != NULL && face_list->material->identifier[0] == '!') {
+                gPling_face = face_list;
+            }
+            face_list++;
+            max_face--;
+            if (max_face == 0) {
+                break;
+            }
+        }
+        if (max_face == 0) {
+            return 0;
+        }
+    }
+    return max_face;
+}

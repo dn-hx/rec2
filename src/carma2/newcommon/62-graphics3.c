@@ -395,7 +395,132 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
     }
 }
 
-// DrawMapBlip
+// GLOBAL: CARMA2_HW 0x0068c858
+int gINT_0068c858;
+
+// GLOBAL: CARMA2_HW 0x0068d6a8
+br_matrix34 gCar_in_map_space;
+
+// GLOBAL: CARMA2_HW 0x0068d6d8
+br_vector2 gVector2_0068d6d8;
+
+// GLOBAL: CARMA2_HW 0x0068d6e0
+float gFLOAT_0068d6e0;
+
+// GLOBAL: CARMA2_HW 0x0068d890
+int gINT_0068d890;
+
+// based on carpocalypse2 src/carma2/common/graphics.c:1387 (reference only)
+// FUNCTION: CARMA2_HW 0x00496270
+void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pTime, br_matrix34* pTrans, const br_vector3* pPos, br_uint_32 pColour) {
+    tU32 time_diff;
+    br_vector3 map_pos;
+    float tv1;
+    float tv2;
+    float local_pos[2];
+    int colour;
+    int colours[2];
+    int arrow_index;
+    int size;
+    extern float gFLOAT_0074ab90;
+    extern int gIt_or_fox;
+    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
+
+    time_diff = pTime - gMap_time;
+    BrMatrix34ApplyP(&map_pos, pPos, &gCurrent_race.map_transformation);
+    map_pos.v[2] = 0.0;
+    if (((pCar != NULL && pCar->driver == eDriver_oppo) || (pCar != NULL && pCar->driver == eDriver_net_human))
+            && (!pCar->knackered || pCar == gTarget_lock_car_1)
+            && (gCurrent_race.race_spec->race_type != kRaceType_Cars || pCar->is_race_goal)
+            && (gNet_mode == eNet_mode_none
+                    || (gCurrent_net_game->type == eNet_game_type_6 && NetPlayerFromCar(pCar)->field_0x80 == 0)
+                    || (gCurrent_net_game->type == eNet_game_type_foxy && pCar == gNet_players[gIt_or_fox].car)
+                    || (gCurrent_net_game->type != eNet_game_type_6 && gCurrent_net_game->type != eNet_game_type_foxy))) {
+        local_pos[0] = (float)(gHeadup_map_half_width + gINT_0068d890 + gINT_0074ab8c) - map_pos.v[0];
+        local_pos[1] = (float)(gHeadup_map_half_height + gINT_0068c858 + gINT_0074ab88) - map_pos.v[1];
+        tv1 = -map_pos.v[2];
+        tv2 = local_pos[1] * local_pos[1] + local_pos[0] * local_pos[0] + tv1 * tv1;
+        if (((gTarget_lock_car_2 == NULL
+                || (!gTarget_lock_enabled && tv2 < gFLOAT_0074ab90)
+                || (gTarget_lock_enabled && pCar == gTarget_lock_car_2)))
+                        && !pCar->knackered) {
+            gVector2_0068d6d8.v[0] = local_pos[0];
+            gVector2_0068d6d8.v[1] = local_pos[1];
+            gFLOAT_0068d6e0 = tv1;
+            gTarget_lock_car_2 = pCar;
+            gFLOAT_0074ab90 = tv2;
+        }
+    }
+    if (gMini_map_visible || gMap_view == 2) {
+        BrMatrix34Mul(&gCar_in_map_space, pTrans, &gCurrent_race.map_transformation);
+        arrow_index = ((int)((int)(360.f - FastScalarArcTan2(gCar_in_map_space.m[2][0], gCar_in_map_space.m[2][1]) + 12.25) * (1.0 / 22.5))) % 16;
+        if (pCar == NULL || pCar->driver != eDriver_local_human || (pTime & 0x100)) {
+            DrawArrow(pScreen, arrow_index, &map_pos, pColour);
+        }
+        colours[0] = pColour;
+        colours[1] = (pColour < 0xe0) ? (((pColour & 7) < 4) ? 0xff : 0) : (((pColour & 0xf) < 8) ? 0xff : 0);
+        if (gBack_screen->type != BR_PMT_INDEX_8) {
+            colours[0] = PaletteEntry16Bit(gRender_palette, pColour);
+            colours[1] = PaletteEntry16Bit(gRender_palette, colours[1]);
+        }
+        colour = colours[pTime & 0x100];
+        if (gNet_mode != eNet_mode_none
+                && gCurrent_net_game->type == eNet_game_type_foxy
+                && pCar == gNet_players[gIt_or_fox].car) {
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 8.f),
+                (int)(map_pos.v[1] - 8.f),
+                (int)(map_pos.v[0] + 8.f),
+                (int)(map_pos.v[1] - 8.f),
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 8.f),
+                (int)(map_pos.v[1] + 8.f),
+                (int)(map_pos.v[0] + 8.f),
+                (int)(map_pos.v[1] + 8.f),
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 8.f),
+                (int)(map_pos.v[1] - 8.f),
+                (int)(map_pos.v[0] - 8.f),
+                (int)(map_pos.v[1] + 8.f),
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] + 8.f),
+                (int)(map_pos.v[1] - 8.f),
+                (int)(map_pos.v[0] + 8.f),
+                (int)(map_pos.v[1] + 8.f),
+                colour);
+        }
+        if (time_diff <= 500 && pCar != NULL && pCar->driver == eDriver_local_human) {
+            size = (35000 - 70 * time_diff) / 500;
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 0.5f) - size,
+                (int)(map_pos.v[1] - 0.5f) - size,
+                (int)(map_pos.v[0] + 0.5f) + size,
+                (int)(map_pos.v[1] - 0.5f) + size,
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 0.5f) - size,
+                (int)(map_pos.v[1] + 0.5f) + size,
+                (int)(map_pos.v[0] + 0.5f) + size,
+                (int)(map_pos.v[1] + 0.5f) + size,
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] - 0.5f) - size,
+                (int)(map_pos.v[1] - 0.5f) - size,
+                (int)(map_pos.v[0] - 0.5f) - size,
+                (int)(map_pos.v[1] + 0.5f) + size,
+                colour);
+            BrPixelmapLine(pScreen,
+                (int)(map_pos.v[0] + 0.5f) + size,
+                (int)(map_pos.v[1] - 0.5f) - size,
+                (int)(map_pos.v[0] + 0.5f) + size,
+                (int)(map_pos.v[1] + 0.5f) + size,
+                colour);
+        }
+    }
+}
 
 // DrawSmashBlip
 
