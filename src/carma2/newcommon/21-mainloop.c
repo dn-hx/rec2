@@ -146,7 +146,29 @@ void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period) {
 
 // MungeRaceFinished
 
-// CalculateCameraStuff
+/* based on carpocalypse2 src/carma2/common/mainloop.c:151 */
+// FUNCTION: CARMA2_HW 0x004940e0
+void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
+    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
+    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
+    extern void C2_HOOK_FASTCALL ResetPedNearness(void);
+    extern br_vector3 gPrev_camera_position;
+    extern float gCamera_to_horiz_angle;
+    extern float gYon_squared;
+    br_camera* camera;
+
+    gOur_pos = &gPlayer_car_master_actor->t.t.translate.t;
+    PositionExternalCamera(&gProgram_state.current_car, pCamera_period);
+    BrActorToActorMatrix34(&gCamera_to_world, gCamera, gUniverse_actor);
+    BrActorToActorMatrix34(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
+    gCamera_to_horiz_angle = FastScalarArcTan2(gCamera_to_world.m[2][1], gCamera_to_world.m[1][1]);
+    camera = gCamera->type_data;
+    gYon_squared = gYon_multiplier * gYon_multiplier * camera->yon_z * camera->yon_z;
+    if (REC2_SQR(gCamera_to_world.m[3][0] - gPrev_camera_position.v[0]) + REC2_SQR(gCamera_to_world.m[3][1] - gPrev_camera_position.v[1]) + REC2_SQR(gCamera_to_world.m[3][2] - gPrev_camera_position.v[2]) > 400.0) {
+        ResetPedNearness();
+    }
+    gPrev_camera_position = *(br_vector3*)gCamera_to_world.m[3];
+}
 
 // CheckActiveCarList
 
@@ -180,3 +202,9 @@ tRace_result C2_HOOK_FASTCALL DoRace(void) {
     return result;
 }
 
+
+// GLOBAL: CARMA2_HW 0x0068c738
+br_vector3 gPrev_camera_position;
+
+// GLOBAL: CARMA2_HW 0x00704e44
+float gCamera_to_horiz_angle;

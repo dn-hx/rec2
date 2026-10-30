@@ -688,8 +688,6 @@ void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void) {
 
 // RenderSmoke
 
-// CreatePuffOfSmoke
-
 // FUNCTION: CARMA2_HW 0x004fb510
 void C2_HOOK_FASTCALL ResetSmoke(void) {
     gSmoke_flags = 0;
@@ -1497,3 +1495,8 @@ intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pCont
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// STUB: CARMA2_HW 0x004fb330
+void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType) {
+    NOT_IMPLEMENTED();
+}

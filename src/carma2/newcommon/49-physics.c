@@ -125,7 +125,38 @@ tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector
 
 // RayCastThruFaceList2
 
-// RayCastInBox
+/* based on the original disassembly (carpocalypse2 src/carma2/common/physics.c:3280 and ApexWorm c0f29cfd4 as reference) */
+// FUNCTION: CARMA2_HW 0x0041e480
+int C2_HOOK_FASTCALL RayCastInBox(br_vector3* pRay_pos, br_vector3* pRay_dir, br_vector3* pHit_pos, br_scalar* pT, tPhysics_object* pObject) {
+    extern int gUNK_006793d0;
+    br_vector3 normal;
+    br_vector3 coll_pos;
+    br_scalar t;
+    int best;
+    int i;
+
+    *pT = 2.f;
+    for (i = pObject->box_face_start; i < pObject->box_face_end; i++) {
+        if (gUNK_006793d0 != 0 && (gFace_list__car[i].flags & 0x80) != 0) {
+            continue;
+        }
+        CheckSingleFace(&gFace_list__car[i], pRay_pos, pRay_dir, &normal, &t, &coll_pos);
+        if (t < *pT) {
+            *pT = t;
+            best = i;
+            *pHit_pos = normal;
+        }
+    }
+    if (*pT < 2.f) {
+        int c;
+
+        c = gFace_list__car[best].material->identifier[0] - '/';
+        if (c >= 0 && c < 11) {
+            return c;
+        }
+    }
+    return 0;
+}
 
 // FaceOffCount2
 
@@ -1530,3 +1561,6 @@ void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDe
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x006793d0
+int gUNK_006793d0;

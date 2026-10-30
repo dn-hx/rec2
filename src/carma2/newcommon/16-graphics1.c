@@ -112,7 +112,36 @@ br_actor* gHud_actor_storage[128];
 // GLOBAL: CARMA2_HW 0x006a22c4
 int gNumber_of_lollipops;
 
-// MungeClipPlane
+/* based on carpocalypse2 src/carma2/common/graphics.c:1901 */
+// FUNCTION: CARMA2_HW 0x004e9680
+void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset) {
+    extern int gShadow_clip_plane_count;
+    br_vector3 v4;
+    br_vector3 v3;
+    br_vector3 v1;
+    br_vector3 v2;
+
+    BrMatrix34ApplyP(&v1, p1, &pCar->car_master_actor->t.t.mat);
+    BrMatrix34ApplyP(&v2, p2, &pCar->car_master_actor->t.t.mat);
+    BrVector3Sub(&v3, p2, p1);
+    v4.v[0] = pLight->v[2] * v3.v[1] - pLight->v[1] * v3.v[2];
+    v4.v[1] = pLight->v[0] * v3.v[2] - pLight->v[2] * v3.v[0];
+    v4.v[2] = pLight->v[1] * v3.v[0] - pLight->v[0] * v3.v[1];
+    if (fabs(v4.v[0]) >= 0.01 || fabs(v4.v[1]) >= 0.01 || fabs(v4.v[2]) >= 0.01) {
+        BrVector3Sub(&v3, p1, pOffset);
+        if (BrVector3Dot(&v3, &v4) > 0.f) {
+            BrVector3Negate(&v4, &v4);
+        }
+        BrVector3Normalise(&v3, &v4);
+        BrMatrix34ApplyV(&v4, &v3, &pCar->car_master_actor->t.t.mat);
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[0] = v4.v[0];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[1] = v4.v[1];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[2] = v4.v[2];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[3] = -BrVector3Dot(&v4, &v1);
+        gShadow_clip_planes[gShadow_clip_plane_count].length = (v1.v[2] - v2.v[2]) * (v1.v[2] - v2.v[2]) + (v1.v[0] - v2.v[0]) * (v1.v[0] - v2.v[0]);
+        gShadow_clip_plane_count += 1;
+    }
+}
 
 // TryThisEdge
 
@@ -487,3 +516,6 @@ void C2_HOOK_FASTCALL CleanPolyFontDanglers(void) {
 
 // GLOBAL: CARMA2_HW 0x0065fb54
 int gHud_tinted4 = -1;
+
+// GLOBAL: CARMA2_HW 0x006a27dc
+int gShadow_clip_plane_count;
