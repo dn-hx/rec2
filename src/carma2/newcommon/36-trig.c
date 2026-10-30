@@ -9,11 +9,10 @@
 // covers it, so the layout here keeps them resolving as in the original image:
 //  - gFloat_sine_table_270/360 below sit exactly at table + 270*4 / + 360*4
 //    and are annotated with the original folded addresses;
-//  - this 4-byte anchor shifts gFloat_sine_table by 8 bytes so that the three
+//  - gFloat_sine_table starts directly at this file's data so that the three
 //    negative folded bases fall inside the neighbouring string literals, which
-//    reccmp does not name (as in the original image).
-int gFloat_sine_table_anchor = 1;
-
+//    reccmp does not name (as in the original image). gTrig_layout_pad below
+//    keeps the following translation units' data where it was.
 // GLOBAL: CARMA2_HW 0x00661398
 // GLOBAL: CARMA2_SW 0x0065bcf0
 float gFloat_sine_table[91] = {
@@ -139,6 +138,10 @@ char gFloat_sine_table_pad360[352] = { 1 };
 
 // GLOBAL: CARMA2_HW 0x00661938
 float gFloat_sine_table_360[1] = { 1.0f };
+
+// Layout filler: compensates for the removed sine-table anchor so that the
+// data of the translation units following this one keeps its addresses.
+char gTrig_layout_pad[8] = { 1 };
 
 
 // GLOBAL: CARMA2_HW 0x006ab950
