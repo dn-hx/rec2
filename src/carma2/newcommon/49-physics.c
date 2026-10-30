@@ -93,7 +93,35 @@ int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const b
     return pCount;
 }
 
-// RayCastThruFaceList
+// based on carpocalypse2 src/carma2/common/physics.c:80 (and ApexWorm/rec2 44a06345a)
+// FUNCTION: CARMA2_HW 0x004225f0
+tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount) {
+    br_vector3 normal;
+    br_vector3 collision_position;
+    br_scalar t;
+    tFace_ref* best;
+    int i;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tFace_ref, flags, 0x40);
+
+    *pT = 2.f;
+    for (i = 0; i < pCount; i++, pFaces++) {
+        if ((pFaces->flags & 0x80) == 0) {
+            CheckSingleFace(pFaces, pPosition, pDirection, &normal, &t, &collision_position);
+            if (t < *pT) {
+                *pT = t;
+                BrVector3Copy(pNormal, &normal);
+                best = pFaces;
+                BrVector3Copy(pCollision_position, &collision_position);
+            }
+        }
+    }
+    if (*pT < 2.f) {
+        return best;
+    } else {
+        return NULL;
+    }
+}
 
 // RayCastThruFaceList2
 

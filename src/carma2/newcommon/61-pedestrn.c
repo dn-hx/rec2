@@ -2884,3 +2884,40 @@ void C2_HOOK_FASTCALL DoBloodSpurt(uintptr_t pArg1, int pArg2, int pArg3, br_vec
     }
     srand(saved_random_seed);
 }
+
+extern br_vector3 gZero_vector__smash;
+
+// based on REA pseudocode 0x4ccb10 and carpocalypse2 src/carma2/common/pedestrn.c:7333
+// FUNCTION: CARMA2_HW 0x004ccb10
+void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSeed, float pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
+    int old_rand;
+    int i;
+    int j;
+    int max_instances;
+    tPed_giblet_size_spec* spec;
+
+    old_rand = rand();
+    srand(pSeed);
+    spec = &gGiblet_sizes[pSize_index];
+    for (i = pSize_index; i < gGiblet_size_count; i++, spec++) {
+        if (pForce < spec->min_force) {
+            continue;
+        }
+        max_instances = (int)((pForce - spec->min_force) / spec->instance_force - -1.0f);
+        if (max_instances > spec->max_count) {
+            max_instances = spec->max_count;
+        }
+        for (j = 0; j < max_instances; j++) {
+            tSmash_vertex* fragment;
+            float v;
+
+            fragment = FindShrapnelFragment(spec->models[IRandomBetween(0, spec->model_count - 1)], pTime, 2);
+            if (fragment == NULL) {
+                break;
+            }
+            v = PositionFragment(fragment->actor, &gGiblet_initial_position, 0, (int)pArg6, (int)pArg7, 0, 0, 0);
+            InitFragmentSpeed(fragment, &gGiblet_initial_speed, pArg8, v, gGiblet_min_max_time, pTime, &gZero_vector__smash, 0, 0);
+        }
+    }
+    srand(old_rand);
+}
