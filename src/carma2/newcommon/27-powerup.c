@@ -26,6 +26,15 @@
 #include "63-loading3.h"
 #include "platform.h"
 
+extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
+extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
+extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
+extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
+extern tS3_outlet* gCar_outlet;
+extern void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern const float gConst_0p1;
+extern const double gConst_10_over_7;
+
 // GLOBAL: CARMA2_HW 0x006a0ad4
 const char* gPowerup_txt_path;
 
@@ -275,9 +284,65 @@ int C2_HOOK_FASTCALL GotCredits(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dc240
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc240
 int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int powerup_index;
+    int old0, old1, old2;
+    int idx;
+    int amount;
+    int orig_idx;
+    int dir;
+
+    powerup_index = pPowerup - gPowerup_array;
+    old0 = pCar->power_up_levels[0];
+    old1 = pCar->power_up_levels[1];
+    old2 = pCar->power_up_levels[2];
+    if (pPowerup->integer_params[0] != 0 && pPowerup->integer_params[1] != 0 && pPowerup->integer_params[2] != 0) {
+        GainAPO2(pCar, 0, pPowerup->integer_params[0]);
+        GainAPO2(pCar, 1, pPowerup->integer_params[1]);
+        GainAPO2(pCar, 2, pPowerup->integer_params[2]);
+    } else {
+        if (pPowerup->integer_params[0] != 0) {
+            idx = 0;
+            amount = pPowerup->integer_params[0];
+        } else if (pPowerup->integer_params[1] != 0) {
+            idx = 1;
+            amount = pPowerup->integer_params[1];
+        } else {
+            idx = 2;
+            amount = pPowerup->integer_params[2];
+        }
+        if (GainAPO2(pCar, idx, amount) == 0) {
+            orig_idx = idx;
+            dir = PercentageChance(50) ? 1 : -1;
+            idx += dir;
+            if (idx < 0) {
+                idx = 2;
+            } else if (idx > 2) {
+                idx = 0;
+            }
+            if (GainAPO2(pCar, idx, amount) == 0) {
+                idx += dir;
+                if (idx < 0) {
+                    idx = 2;
+                } else if (idx > 2) {
+                    idx = 0;
+                }
+                GainAPO2(pCar, idx, amount);
+            }
+            powerup_index += idx - orig_idx;
+        }
+    }
+    if (old0 == pCar->power_up_levels[0] && old1 == pCar->power_up_levels[1] && old2 == pCar->power_up_levels[2]) {
+        if (gNet_mode != eNet_mode_none) {
+            EarnCredits(gSubstitution_value_APO.initial_network[gCurrent_net_game->type]);
+        } else {
+            EarnCredits(gSubstitution_value_APO.initial[gProgram_state.skill_level]);
+        }
+        return -1;
+    }
+    return powerup_index;
 }
 
 extern int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime);
@@ -297,9 +362,96 @@ int C2_HOOK_FASTCALL GotTimeOrPower(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dc4d0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc4d0
 int C2_HOOK_FASTCALL GainAPOPotential(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int powerup_index;
+    volatile int old0, old1, old2;
+    int idx;
+    int amount;
+    int orig_idx;
+    int dir;
+    int old;
+    int nw;
+
+    old0 = pCar->power_up_slots[0];
+    old1 = pCar->power_up_slots[1];
+    old2 = pCar->power_up_slots[2];
+    powerup_index = pPowerup - gPowerup_array;
+    if (pPowerup->integer_params[0] != 0 && pPowerup->integer_params[1] != 0 && pPowerup->integer_params[2] != 0) {
+        nw = pCar->power_up_slots[0] + pPowerup->integer_params[0];
+        pCar->power_up_slots[0] = nw;
+        if (nw > gInitial_powerup_slots[0]) {
+            pCar->power_up_slots[0] = gInitial_powerup_slots[0];
+        }
+        nw = pCar->power_up_slots[1] + pPowerup->integer_params[1];
+        pCar->power_up_slots[1] = nw;
+        if (nw > gInitial_powerup_slots[1]) {
+            pCar->power_up_slots[1] = gInitial_powerup_slots[1];
+        }
+        nw = pCar->power_up_slots[2] + pPowerup->integer_params[2];
+        pCar->power_up_slots[2] = nw;
+        if (nw > gInitial_powerup_slots[2]) {
+            pCar->power_up_slots[2] = gInitial_powerup_slots[2];
+        }
+    } else {
+        if (pPowerup->integer_params[0] != 0) {
+            idx = 0;
+            amount = pPowerup->integer_params[0];
+        } else if (pPowerup->integer_params[1] != 0) {
+            idx = 1;
+            amount = pPowerup->integer_params[1];
+        } else {
+            idx = 2;
+            amount = pPowerup->integer_params[2];
+        }
+        old = pCar->power_up_slots[idx];
+        nw = old + amount;
+        pCar->power_up_slots[idx] = nw;
+        if (nw > gInitial_powerup_slots[idx]) {
+            pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+        }
+        if (pCar->power_up_slots[idx] == old) {
+            orig_idx = idx;
+            dir = PercentageChance(50) ? 1 : -1;
+            idx += dir;
+            if (idx < 0) {
+                idx = 2;
+            } else if (idx > 2) {
+                idx = 0;
+            }
+            old = pCar->power_up_slots[idx];
+            nw = old + amount;
+            pCar->power_up_slots[idx] = nw;
+            if (nw > gInitial_powerup_slots[idx]) {
+                pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+            }
+            if (pCar->power_up_slots[idx] == old) {
+                idx += dir;
+                if (idx < 0) {
+                    idx = 2;
+                } else if (idx > 2) {
+                    idx = 0;
+                }
+                old = pCar->power_up_slots[idx];
+                nw = old + amount;
+                pCar->power_up_slots[idx] = nw;
+                if (nw > gInitial_powerup_slots[idx]) {
+                    pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+                }
+            }
+            powerup_index += idx - orig_idx;
+        }
+    }
+    if (old0 == pCar->power_up_slots[0] && old1 == pCar->power_up_slots[1] && old2 == pCar->power_up_slots[2]) {
+        if (gNet_mode != eNet_mode_none) {
+            EarnCredits(gPotential_substitution_value_APO.initial_network[gCurrent_net_game->type]);
+        } else {
+            EarnCredits(gPotential_substitution_value_APO.initial[gProgram_state.skill_level]);
+        }
+        return -1;
+    }
+    return powerup_index;
 }
 
 extern void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale);
@@ -356,19 +508,42 @@ void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     ChangePedScaling(&scale);
 }
 
-// STUB: CARMA2_HW 0x004dca00
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dca00
 void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    ScalePedHeads(1.0f);
 }
 
-// STUB: CARMA2_HW 0x004dca30
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dca30
 int C2_HOOK_FASTCALL SetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    if (pPowerup->initial_value > 0) {
+        PlayExclusiveFFBEffect("Afterburner", 1);
+    }
+    pCar->field_0x4d4 = pPowerup->float_params[0];
+    pCar->grip_multiplier = pPowerup->float_params[1];
+    SetCarSuspGiveAndHeight(pCar,
+                            ((volatile float*)pPowerup->float_params)[2],
+                            ((volatile float*)pPowerup->float_params)[3],
+                            ((volatile float*)pPowerup->float_params)[6],
+                            ((volatile float*)pPowerup->float_params)[4],
+                            ((volatile float*)pPowerup->float_params)[5]);
+    return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dcae0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dcae0
 int C2_HOOK_FASTCALL TrashBodywork(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    TotallySpamTheModel(pCar, pCar->softness_factor * gConst_0p1 * gConst_10_over_7);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound2(gCar_outlet, 0x1388, 1, 0xff, 0xff, -1, -1);
+        DRS3StartSound2(gCar_outlet, 0x1389, 1, 0xff, 0xff, -1, -1);
+        DRS3StartSound2(gCar_outlet, 0x138a, 1, 0xff, 0xff, -1, -1);
+    }
+    return pPowerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004dcc00
@@ -3683,3 +3858,9 @@ void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x0058ac40
+const float gConst_0p1 = 0.1f;
+
+// GLOBAL: CARMA2_HW 0x0058ac48
+const double gConst_10_over_7 = 10.0 / 7.0;
