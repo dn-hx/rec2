@@ -466,7 +466,120 @@ void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor) {
 
 // DoConnotationsMultiLevel
 
-// SmashItIntoVerySmallPiecesIndeed
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
+extern void C2_HOOK_FASTCALL EarnCredits100(int pAmount);
+extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
+extern void C2_HOOK_FASTCALL AwardTime5(tU32 pTime);
+extern void C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
+extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
+extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
+extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
+extern int C2_HOOK_FASTCALL ToggleRuntimeVariable(int pAddress);
+extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext);
+extern void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance);
+extern void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor);
+extern void C2_HOOK_FASTCALL WorkerShrapnelShower(int pArg3, tShrapnel_spec* pShrapnel, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, const br_vector3* pOffset, int pFlag);
+extern tS3_outlet* gCar_outlet;
+extern br_vector3 gZero_v__car;
+extern float gYon_squared;
+
+// based on carpocalypse2 src/carma2/common/smashing.c:940 (reference only)
+// FUNCTION: CARMA2_HW 0x004ed490
+void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
+    int i;
+    tCar_spec* owner;
+    tSide_effects* side_effects;
+    tSpecial_effects_spec* special_effects;
+    tSmash_run_time_variable_change* variable_change;
+    int value;
+
+    if (pConnotations->count_sounds != 0) {
+        DRS3StartSound3D(gCar_outlet, pConnotations->sounds[IRandomBetween(0, pConnotations->count_sounds - 1)], pSound_position, &gZero_v__car, 1, 255, IRandomBetween(0xe000, 0x12000), 0x10000);
+    }
+    if (pFlag == 0) {
+        side_effects = &pConnotations->side_effects;
+        if (side_effects->activations.count_activations != 0) {
+            QueueNonCarCuboidActivation(pActor, &side_effects->activations, pObject);
+        }
+        if (side_effects->side_effects.count_side_effects != 0) {
+            FUN_004edbe0(pSpec, pObject, &side_effects->side_effects, pArg16, pDistance);
+        }
+        if (side_effects->room_turn_on_code != 0
+                && pObject != NULL
+                && pObject->owner != NULL
+                && pObject->flags_0x238 == 1
+                && ((tCar_spec*)pObject->owner)->driver == eDriver_local_human) {
+            if (BR_SQR3(pObject->actor->t.t.translate.t.v[0] - pPoint->v[0], pObject->actor->t.t.translate.t.v[1] - pPoint->v[1], pObject->actor->t.t.translate.t.v[2] - pPoint->v[2]) < 2.0) {
+                FUN_004f1030(pObject, side_effects->room_turn_on_code, NULL);
+            }
+        }
+    }
+    for (i = 0; i < pConnotations->count_shrapnel; i++) {
+        WorkerShrapnelShower(pArg3, &pConnotations->shrapnel[i], pSeed, pArg6, pPoint, pSound_position, pActor, pTime, pArg11, pTransform, pBounds, pPosition, pDistance, (br_vector3*)&pObject->transform_matrix.m[3], pFlag);
+    }
+    if (pFlag == 0) {
+        owner = (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) ? (tCar_spec*)pObject->owner : NULL;
+        if ((owner != NULL
+                    && (pConnotations->award.frequency == kRepeatability_Repeated
+                        || (pConnotations->award.frequency == kRepeatability_SingleShot && *(int*)pConnotations->field_0x28c == 0))
+                    && owner->driver == eDriver_local_human)
+                || pConnotations->award.frequency == kRepeatability_DoItRegardless) {
+            *(int*)pConnotations->field_0x28c = 1;
+            if (pConnotations->award.field_0x4 > 0.0f) {
+                EarnCredits((int)pConnotations->award.field_0x4);
+            } else {
+                float credits;
+                credits = -(pDistance * pConnotations->award.field_0x4);
+                if (credits >= 20000.0f) {
+                    credits = 20000.0f;
+                }
+                EarnCredits100((int)credits);
+            }
+            if (pConnotations->award.field_0x8 > 0.0f) {
+                AwardTime((int)pConnotations->award.field_0x8);
+            } else {
+                float time;
+                time = -(pDistance * pConnotations->award.field_0x8);
+                if (time >= 60.0f) {
+                    time = 60.0f;
+                }
+                AwardTime5((int)time);
+            }
+            if (pConnotations->award.field_0xc != 0) {
+                NewTextHeadupSlot2(4, 0, 3000, -4, GetMiscString(pConnotations->award.field_0xc), 0);
+            }
+            if (pConnotations->award.field_0x10 != 0) {
+                DoFancyHeadup(pConnotations->award.field_0x10);
+            }
+        }
+    }
+    special_effects = &pConnotations->special_effects;
+    pDistance = gYon_squared;
+    if (gAction_replay_mode != 0 || PointOutOfSight(&pActor->t.t.translate.t, pDistance) == 0) {
+        if (special_effects->explosion_animation.count_groups != 0) {
+            Explode(&special_effects->explosion_animation, pActor, pBounds, NULL);
+        }
+    }
+    if (special_effects->slick.material != NULL) {
+        DoSpillage(&special_effects->slick, pActor);
+    }
+    variable_change = pConnotations->variable_changes.runtime_changes;
+    for (i = 0; i < pConnotations->variable_changes.count; i++, variable_change++) {
+        value = variable_change->field_0x0;
+        if (value != 9999) {
+            AccumulateRuntimeVariable((tU16)variable_change->field_0x2, value);
+        } else {
+            ToggleRuntimeVariable((tU16)variable_change->field_0x2);
+        }
+    }
+    if (gCurrent_race.race_spec->race_type >= kRaceType_Smash
+            && GetRuntimeVariable(gCurrent_race.race_spec->options.smash.var_smash_number) >= gCurrent_race.race_spec->options.smash.var_smash_target) {
+        RaceCompleted(eRace_over_3);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ecfa0
 void C2_HOOK_FASTCALL InitSmashQueue(void) {
@@ -1958,6 +2071,25 @@ void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_act
 void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car) { NOT_IMPLEMENTED(); }
 // STUB: DoDelayedSmash
 void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) { NOT_IMPLEMENTED(); }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004ed860
+void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004edbe0
+void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004f1030
+void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
