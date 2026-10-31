@@ -1068,7 +1068,32 @@ void C2_HOOK_FASTCALL ToggleFlying(void) {
         gCar_flying = 0;
     }
 }
-// CycleInvulnerability
+// GLOBAL: CARMA2_HW 0x0067c498
+int gInvulnerability;
+
+// FUNCTION: CARMA2_HW 0x00444420
+void C2_HOOK_FASTCALL CycleInvulnerability(void) {
+    char message[256];
+
+    gInvulnerability = (gInvulnerability + 1) % 8;
+    gCar_to_view->invulnerable_no_damage = gInvulnerability & 1;
+    gCar_to_view->invulnerable_no_crushage = gInvulnerability & 2;
+    gCar_to_view->invulnerable_no_wastage = gInvulnerability & 4;
+    message[0] = '\0';
+    if (gInvulnerability == 0) {
+        strcpy(message, "FULLY VULNERABLE");
+    }
+    if (gCar_to_view->invulnerable_no_damage) {
+        strcat(message, " NO DAMAGE");
+    }
+    if (gCar_to_view->invulnerable_no_crushage != 0) {
+        strcat(message, " NO CRUSHAGE");
+    }
+    if (gCar_to_view->invulnerable_no_wastage != 0) {
+        strcat(message, " NO WASTAGE");
+    }
+    NewTextHeadupSlot(4, 0, 1000, -4, message);
+}
 
 // FUNCTION: CARMA2_HW 0x00444590
 void C2_HOOK_FASTCALL ToggleTimerFreeze(void) {
@@ -1190,7 +1215,21 @@ void C2_HOOK_FASTCALL CycleSoundDetailLevel(void) {
     }
 }
 
-// CycleCarSimplificationLevel
+extern int gCar_simplification_level;
+
+// FUNCTION: CARMA2_HW 0x00444820
+void C2_HOOK_FASTCALL CycleCarSimplificationLevel(void) {
+    const char* src;
+    char* dst;
+
+    gCar_simplification_level++;
+    gCar_simplification_level = gCar_simplification_level % 5u;
+    src = GetMiscString(eMiscString_car_simplification_level_D);
+    dst = BrMemAllocate(strlen(src) + 21, kMem_simp_level);
+    sprintf(dst, src, gCar_simplification_level);
+    NewTextHeadupSlot(4, 0, 2000, -4, dst);
+    BrMemFree(dst);
+}
 
 // FUNCTION: CARMA2_HW 0x004448a0
 // FUNCTION: CARMA2_SW 0x00444980
@@ -1218,7 +1257,48 @@ void C2_HOOK_FASTCALL UserSendMessage(void) {
 }
 // EnterUserMessage
 
-// DisplayUserMessage
+extern void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
+extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);
+extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const char* pText, br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pCentred);
+extern tDR_font gFonts[28];
+extern tGraf_data* gCurrent_graf_data;
+
+// FUNCTION: CARMA2_HW 0x00444c00
+void C2_HOOK_FASTCALL DisplayUserMessage(void) {
+    char* the_message;
+    int len;
+    tDR_font* font;
+
+    font = &gFonts[6];
+    the_message = &gString[20];
+    if (!gEntering_message || gNet_mode == eNet_mode_none) {
+        return;
+    }
+
+    len = strlen(the_message);
+    if (len < 63 && (PDGetTotalTime() & 0x200)) {
+        the_message[len] = '_';
+        the_message[len + 1] = '\0';
+    }
+    DimRectangle(gBack_screen,
+        15 * gBack_screen->width / 100,
+        gCurrent_graf_data->net_message_enter_y - font->height,
+        85 * gBack_screen->width / 100,
+        gCurrent_graf_data->net_message_enter_y + 6 * font->height,
+        1);
+
+    DRPixelmapText(gBack_screen, 20 * gBack_screen->width / 100, gCurrent_graf_data->net_message_enter_y, font, GetMiscString(227), 100);
+    OoerrIveGotTextInMeBoxMissus(
+        6,
+        the_message,
+        gBack_screen,
+        20 * gBack_screen->width / 100,
+        gCurrent_graf_data->net_message_enter_y + 2 * font->height,
+        80 * gBack_screen->width / 100,
+        gCurrent_graf_data->net_message_enter_y + 6 * font->height,
+        0);
+    the_message[len] = '\0';
+}
 
 // FUNCTION: CARMA2_HW 0x00444d70
 void C2_HOOK_FASTCALL InitAbuseomatic(void) {
