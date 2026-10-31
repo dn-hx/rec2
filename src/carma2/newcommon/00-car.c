@@ -456,12 +456,39 @@ void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
 
 // MungeCarsMass
 
+extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00415ef0
+// based on carpocalypse2 src/carma2/common/car.c:4806 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x00415ef0
 void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scalar pDt) {
-    NOT_IMPLEMENTED();
+    br_scalar drag;
+    br_scalar k;
+    br_vector3 v;
+
+    drag = pDt * 0.0005f;
+    if (pObject->last_special_volume != NULL) {
+        k = pObject->last_special_volume->viscosity_multiplier;
+        if (pCar->underwater_ability != 0) {
+            k *= 0.6;
+        }
+        drag *= k;
+        drag *= pObject->water_depth_factor;
+    }
+
+    k = BrVector3Length(&pObject->v) * drag * 6.9 / pObject->M;
+    v.v[0] = pObject->v.v[0] * k;
+    v.v[1] = pObject->v.v[1] * k;
+    v.v[2] = pObject->v.v[2] * k;
+    DRVector3Diminish(&pObject->v, &v);
+
+    k = BrVector3Length(&pObject->omega) * drag;
+    v.v[0] = pObject->omega.v[0] * k;
+    v.v[1] = pObject->omega.v[1] * k;
+    v.v[2] = pObject->omega.v[2] * k;
+    ApplyWaterOmegaBrake(pObject, &v);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1794,14 +1821,31 @@ extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pVal
 extern float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 extern float gYon_squared;
 extern int gIt_or_fox;
+extern float gFloat_sine_table[91];
+extern float gFloat_sine_table_360[1];
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x005115b0
+// based on carpocalypse2 src/carma2/common/trig.c:178 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x005115b0
 br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees) {
-    NOT_IMPLEMENTED();
-    return 0.f;
+
+    if (pAngle_in_degrees < 0) {
+        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
+    } else {
+        pAngle_in_degrees = pAngle_in_degrees % 360;
+    }
+    if (pAngle_in_degrees > 270) {
+        return -*(gFloat_sine_table_360 - pAngle_in_degrees);
+    }
+    if (pAngle_in_degrees > 180) {
+        return -gFloat_sine_table[pAngle_in_degrees - 180];
+    }
+    if (pAngle_in_degrees > 90) {
+        return *(gFloat_sine_table + 180 - pAngle_in_degrees);
+    }
+    return gFloat_sine_table[pAngle_in_degrees];
 }
 
 // based on carpocalypse2 src/carma2/common/physics.c (reference only)
@@ -2205,12 +2249,183 @@ void C2_HOOK_FASTCALL AdjustDownForce(void) {
     NewTextHeadupSlot(4, 0, 1500, -4, s);
 }
 
+extern int gFlyCarMode;
+extern br_scalar gFlyCarAngularVelocity;
+extern int gFlyCarKeyFlags;
+extern int gFlyCarKeyTimer0;
+extern int gFlyCarKeyTimer1;
+extern int gFlyCarKeyTimer2;
+extern int gFlyCarKeyTimer3;
+extern void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix34* pParent_matrix);
+extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0041f4f0
+// FUNCTION: CARMA2_HW 0x0041f4f0
 void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt) {
-    NOT_IMPLEMENTED();
+    br_matrix34* mat;
+    br_vector3 a;
+    br_vector3 b;
+    br_vector3 norm;
+    br_vector3 norm2;
+    br_material* material;
+    br_scalar dist;
+    br_scalar dist2;
+    br_scalar temp0;
+    br_scalar temp1;
+    br_scalar temp2;
+    br_scalar temp3;
+    int shift_down;
+    int ctrl_only;
+    int mode_saved;
+    int i;
+
+    mat = &c->collision_info->actor->t.t.mat;
+    shift_down = PDKeyDown(0);
+    if (shift_down == 0 && PDKeyDown(1) != 0) {
+        ctrl_only = 1;
+    } else {
+        ctrl_only = 0;
+    }
+
+    mode_saved = gFlyCarMode;
+    if ((gFlyCarKeyFlags & 0x40000) == 0 && gFlyCarKeyTimer2 < 1) {
+        if ((gFlyCarKeyFlags & 0x80000) == 0 && gFlyCarKeyTimer3 < 1) {
+            if ((gFlyCarKeyFlags & 0x200000) != 0 && shift_down != 0) {
+                gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * 3.0f * 0.1449275362318841;
+                gFlyCarMode = 1;
+            } else if ((gFlyCarKeyFlags & 0x400000) != 0 && shift_down != 0) {
+                gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * -3.0f * 0.1449275362318841;
+                gFlyCarMode = 1;
+            } else if ((gFlyCarKeyFlags & 0x10000) != 0 && ctrl_only != 0) {
+                gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * -3.0f * 0.1449275362318841;
+                gFlyCarMode = 0;
+            } else if ((gFlyCarKeyFlags & 0x20000) != 0 && ctrl_only != 0) {
+                gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * 3.0f * 0.1449275362318841;
+                gFlyCarMode = 0;
+            } else if (dt * 3.0f <= gFlyCarAngularVelocity || gFlyCarAngularVelocity <= dt * -3.0f) {
+                gFlyCarAngularVelocity = gFlyCarAngularVelocity - (gFlyCarAngularVelocity / fabs(gFlyCarAngularVelocity)) * dt * 3.0f;
+            } else {
+                gFlyCarAngularVelocity = 0.0f;
+            }
+        } else {
+            gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * 10.0f * 0.1449275362318841;
+            gFlyCarMode = 2;
+        }
+    } else {
+        gFlyCarAngularVelocity = gFlyCarAngularVelocity - dt * -10.0f * 0.1449275362318841;
+        gFlyCarMode = 2;
+    }
+    if (gFlyCarMode != mode_saved) {
+        gFlyCarAngularVelocity = 0.0f;
+    }
+    if ((gFlyCarKeyFlags & 0x100000) != 0) {
+        gFlyCarAngularVelocity = 0.0f;
+    }
+    if (shift_down != 0) {
+        i = 2;
+        c->collision_info->omega.v[1] = 0.0f;
+    } else {
+        i = 1;
+        c->collision_info->omega.v[2] = 0.0f;
+    }
+    if (((gFlyCarKeyFlags & 0x10000) != 0 || 0 < gFlyCarKeyTimer0) && ctrl_only == 0) {
+        c->collision_info->omega.v[i] = dt + c->collision_info->omega.v[i];
+    } else if (((gFlyCarKeyFlags & 0x20000) != 0 || 0 < gFlyCarKeyTimer1) && ctrl_only == 0) {
+        c->collision_info->omega.v[i] = c->collision_info->omega.v[i] - dt;
+    } else {
+        c->collision_info->omega.v[i] = 0.0f;
+    }
+    if ((gFlyCarKeyFlags & 0x200000) != 0 && shift_down == 0) {
+        c->collision_info->omega.v[0] = dt + c->collision_info->omega.v[0];
+    } else if ((gFlyCarKeyFlags & 0x400000) != 0 && shift_down == 0) {
+        c->collision_info->omega.v[0] = c->collision_info->omega.v[0] - dt;
+    } else {
+        c->collision_info->omega.v[0] = 0.0f;
+    }
+    if (c->collision_info->omega.v[0] != 0.0f) {
+        BrMatrix34PreRotateX(mat, BrRadianToAngle(c->collision_info->omega.v[0] * dt));
+    }
+    if (c->collision_info->omega.v[1] != 0.0f) {
+        norm.v[0] = mat->m[3][0];
+        norm.v[1] = mat->m[3][1];
+        norm.v[2] = mat->m[3][2];
+        mat->m[3][0] = mat->m[3][0] - norm.v[0];
+        mat->m[3][1] = mat->m[3][1] - norm.v[1];
+        mat->m[3][2] = mat->m[3][2] - norm.v[2];
+        BrMatrix34PostRotateY(mat, BrRadianToAngle(c->collision_info->omega.v[1] * dt));
+        mat->m[3][0] = norm.v[0] + mat->m[3][0];
+        mat->m[3][1] = norm.v[1] + mat->m[3][1];
+        mat->m[3][2] = norm.v[2] + mat->m[3][2];
+    }
+    if (c->collision_info->omega.v[2] != 0.0f) {
+        BrMatrix34PreRotateZ(mat, BrRadianToAngle(c->collision_info->omega.v[2] * dt));
+    }
+    c->collision_info->v.v[0] = -gFlyCarAngularVelocity * mat->m[gFlyCarMode][0];
+    c->collision_info->v.v[1] = -gFlyCarAngularVelocity * mat->m[gFlyCarMode][1];
+    c->collision_info->v.v[2] = -gFlyCarAngularVelocity * mat->m[gFlyCarMode][2];
+    temp0 = c->collision_info->v.v[2] * dt;
+    temp1 = c->collision_info->v.v[0];
+    temp2 = c->collision_info->v.v[1] * dt + mat->m[3][1];
+    temp3 = temp0 + mat->m[3][2];
+    mat->m[3][1] = temp2;
+    mat->m[3][0] = temp1 * dt + mat->m[3][0];
+    mat->m[3][2] = temp3;
+    if ((gFlyCarKeyFlags & 0x800000) != 0) {
+        if (ctrl_only != 0) {
+            BrMatrix34PreRotateX(mat, BrRadianToAngle(asin(mat->m[1][1])));
+            BrMatrix34PreRotateZ(mat, (br_angle)(long)(asin(mat->m[0][1]) * -10430.378350470453));
+        } else {
+            b.v[0] = mat->m[3][0];
+            b.v[1] = mat->m[3][1];
+            b.v[2] = mat->m[3][2];
+            mat->m[3][0] = mat->m[3][0] - b.v[0];
+            mat->m[3][1] = mat->m[3][1] - b.v[1];
+            mat->m[3][2] = mat->m[3][2] - b.v[2];
+            BrMatrix34RotateY(mat, 0x3ffc - BrRadianToAngle(atan2(mat->m[2][2], mat->m[2][0])));
+            mat->m[3][0] = b.v[0];
+            mat->m[3][1] = b.v[1];
+            mat->m[3][2] = b.v[2];
+            BrVector3SetFloat(&b, 0.0f, -10.0f, 0.0f);
+            a.v[0] = mat->m[3][0];
+            a.v[1] = mat->m[3][1];
+            a.v[2] = mat->m[3][2];
+            ActorFindFace(&a, &b, gTrack_actor, &norm, &dist, &material, NULL);
+            a.v[1] = a.v[1] - -10.0f;
+            ActorFindFace(&a, &b, gTrack_actor, &norm2, &dist2, &material, NULL);
+            if (dist2 <= 1.0f) {
+                BrVector3SetFloat(&b, 0.0f, -5.01f, 0.0f);
+                a.v[1] = a.v[1] - 10.0f;
+                i = 0;
+                do {
+                    a.v[1] = a.v[1] - -0.5f;
+                    ActorFindFace(&a, &b, gTrack_actor, &norm2, &dist2, &material, NULL);
+                    if (dist2 <= 1.0f) {
+                        break;
+                    }
+                    i++;
+                } while (i < 20);
+                dist2 = dist2 * -0.05f - (float)(i + 1) * -0.05f;
+            }
+            if (dist2 < dist) {
+                norm.v[0] = norm2.v[0];
+                dist = -dist2;
+                norm.v[1] = norm2.v[1];
+                norm.v[2] = norm2.v[2];
+            }
+            if (fabs(dist) <= 1.0f) {
+                mat->m[3][1] = mat->m[3][1] - dist * 10.0f;
+                BrMatrix34PreRotateX(mat, BrRadianToAngle(asin(mat->m[2][0] * norm.v[0] + (mat->m[2][2] * norm.v[2] + mat->m[2][1] * norm.v[1]))));
+                BrMatrix34PreRotateZ(mat, (br_angle)(long)(asin(mat->m[0][0] * norm.v[0] + (mat->m[0][2] * norm.v[2] + mat->m[0][1] * norm.v[1])) * -10430.378350470453));
+            }
+        }
+    }
+    c->direction.v[0] = -mat->m[2][0];
+    c->direction.v[1] = -mat->m[2][1];
+    c->direction.v[2] = -mat->m[2][2];
+    BrMatrix34ApplyP(&c->pos, &c->collision_info->cmpos, mat);
+    UpdateChildTransforms(c->collision_info, NULL);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2880,6 +3095,50 @@ int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2) {
         }
     }
     return 1;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004c2c90
+void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x0058f704
+int gFlyCarMode = 2;
+
+// GLOBAL: CARMA2_HW 0x00679414
+br_scalar gFlyCarAngularVelocity;
+
+// GLOBAL: CARMA2_HW 0x0075cefc
+int gFlyCarKeyFlags;
+
+// GLOBAL: CARMA2_HW 0x0075cf00
+int gFlyCarKeyTimer0;
+
+// GLOBAL: CARMA2_HW 0x0075cf04
+int gFlyCarKeyTimer1;
+
+// GLOBAL: CARMA2_HW 0x0075cf08
+int gFlyCarKeyTimer2;
+
+// GLOBAL: CARMA2_HW 0x0075cf0c
+int gFlyCarKeyTimer3;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on carpocalypse2 src/carma2/common/physics.c:10438 (GPL-3.0)
+// STUB: CARMA2_HW 0x004c62e0
+void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix34* pParent_matrix) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
