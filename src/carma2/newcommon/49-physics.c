@@ -994,9 +994,27 @@ extern tNet_mode gNet_mode;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049c000
+extern br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq);
+extern br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q);
+
+// FUNCTION: CARMA2_HW 0x0049c000
 void C2_HOOK_FASTCALL GetMatrixFromOrientation(br_matrix34* pMatrix, const tU16* pOrientation) {
-    NOT_IMPLEMENTED();
+    br_quat quaternion;
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+    br_scalar w;
+
+    x = (br_scalar)pOrientation[0] * 1.5259255e-05f;
+    y = (br_scalar)pOrientation[1] * 1.5259255e-05f;
+    z = (br_scalar)pOrientation[2] * 1.5259255e-05f;
+    w = (br_scalar)pOrientation[3] * 1.5259255e-05f;
+    quaternion.x = (x + x) - 1.0f;
+    quaternion.y = (y + y) - 1.0f;
+    quaternion.z = (z + z) - 1.0f;
+    quaternion.w = (w + w) - 1.0f;
+    BrQuatNormalise(&quaternion, &quaternion);
+    BrQuatToMatrix34(pMatrix, &quaternion);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1849,16 +1867,209 @@ void C2_HOOK_FASTCALL InitPhysics(void) {
 
 // GetCollObjFromID
 
+extern int C2_HOOK_FASTCALL FUN_004b9650(tPhysics_object* pObject, tPhysics_object* pObject2);
+extern void* C2_HOOK_FASTCALL FUN_004c5c70(int pSize);
+extern int C2_HOOK_FASTCALL FUN_004b8350(tPhysics_object* pObject, tPhysics_joint_force* pForce);
+extern void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pCount, tPhysics_joint_force** pRecords, int pCount2);
+extern void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+extern void C2_HOOK_FASTCALL FUN_004c53b0(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount);
+extern br_scalar C2_HOOK_FASTCALL FUN_004b7290(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse);
+extern void C2_HOOK_FASTCALL FUN_004b8ee0(tPhysics_object* pObject, float pDelta_time);
+
+typedef struct tPhysics_joint_force_group {
+    int count;
+    tPhysics_joint_force* records;
+    undefined4 field_0x8[3];
+    br_scalar* orthogonal;
+    br_scalar* matrix;
+} tPhysics_joint_force_group;
+
+// FUNCTION: CARMA2_HW 0x004b7290
+br_scalar C2_HOOK_FASTCALL FUN_004b7290(tPhysics_object* pObject) {
+    br_scalar energy;
+    br_scalar total;
+    tPhysics_object* obj;
+    int i;
+
+    total = 0.f;
+    for (obj = pObject; obj != NULL; obj = obj->next) {
+        energy = 0.f;
+        for (i = 0; i < 3; i++) {
+            energy += obj->v.v[i] * obj->v.v[i] * obj->M + obj->omega.v[i] * obj->omega.v[i] * obj->I.v[i];
+        }
+        total = total + energy + FUN_004b7290(obj->child);
+    }
+    return total;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004b7510
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+// FUNCTION: CARMA2_HW 0x004b7510
 void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
-    NOT_IMPLEMENTED();
+    br_scalar energy;
+    br_scalar total;
+    tPhysics_joint_force* records[40];
+    br_scalar velocity[100];
+    br_scalar impulses[100];
+    tPhysics_joint_force_group* joint_forces;
+    tPhysics_joint_force* record;
+    tPhysics_object* obj;
+    int count;
+    int actual_count;
+    int i;
+
+    count = FUN_004b9650(pObject, NULL);
+    if (count != 0) {
+        joint_forces = (tPhysics_joint_force_group*)FUN_004c5c70((count + 12) * count * 8 + 28);
+        IncreasePhysicsScratchPointer((count + 12) * count * 8 + 28);
+        joint_forces->count = count;
+        joint_forces->records = (tPhysics_joint_force*)((tU8*)joint_forces + 28);
+        joint_forces->orthogonal = (br_scalar*)(joint_forces->records + count);
+        joint_forces->matrix = joint_forces->orthogonal + count * count;
+        actual_count = FUN_004b8350(pObject, joint_forces->records);
+        pObject->field_0x218 = (undefined4)joint_forces;
+        record = joint_forces->records;
+        for (i = 0; i < actual_count; i++) {
+            records[i] = record++;
+        }
+        FUN_004bf490(joint_forces->matrix, actual_count, records, actual_count);
+        FUN_004b77b0(velocity, records, actual_count);
+        FUN_004c53b0(joint_forces->matrix, joint_forces->orthogonal, velocity, impulses, actual_count);
+        if (pDelta_time == 0.f) {
+            return;
+        }
+        total = 0.f;
+        for (obj = pObject; obj != NULL; obj = obj->next) {
+            energy = 0.f;
+            for (i = 0; i < 3; i++) {
+                energy += obj->v.v[i] * obj->v.v[i] * obj->M + obj->omega.v[i] * obj->omega.v[i] * obj->I.v[i];
+            }
+            total = FUN_004b7290(obj->child) + energy + total;
+        }
+        for (i = 0; i < actual_count; i++) {
+            FUN_004b7960(records[i], impulses[i]);
+        }
+        total = 0.f;
+        for (obj = pObject; obj != NULL; obj = obj->next) {
+            energy = 0.f;
+            for (i = 0; i < 3; i++) {
+                energy += obj->v.v[i] * obj->v.v[i] * obj->M + obj->omega.v[i] * obj->omega.v[i] * obj->I.v[i];
+            }
+            total = FUN_004b7290(obj->child) + energy + total;
+        }
+        if (pDelta_time > 0.f) {
+            FUN_004b8ee0(pObject, pDelta_time);
+        }
+        return;
+    }
+    if (pObject->child != NULL) {
+        FUN_004b8ee0(pObject, pDelta_time);
+        return;
+    }
+    pObject->actor->t.t.mat.m[3][0] = pObject->v.v[0] * pDelta_time + pObject->actor->t.t.mat.m[3][0];
+    pObject->actor->t.t.mat.m[3][1] = pObject->v.v[1] * pDelta_time + pObject->actor->t.t.mat.m[3][1];
+    pObject->actor->t.t.mat.m[3][2] = pObject->v.v[2] * pDelta_time + pObject->actor->t.t.mat.m[3][2];
+    RotateObject(pObject, 0, pDelta_time);
 }
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
 
 // GLOBAL: CARMA2_HW 0x006793d0
 int gUNK_006793d0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b9650
+int C2_HOOK_FASTCALL FUN_004b9650(tPhysics_object* pObject, tPhysics_object* pObject2) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004c5c70
+void* C2_HOOK_FASTCALL FUN_004c5c70(int pSize) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b8350
+int C2_HOOK_FASTCALL FUN_004b8350(tPhysics_object* pObject, tPhysics_joint_force* pForce) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004bf490
+void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pCount, tPhysics_joint_force** pRecords, int pCount2) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b77b0
+void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004c53b0
+void C2_HOOK_FASTCALL FUN_004c53b0(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b7960
+void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b8ee0
+void C2_HOOK_FASTCALL FUN_004b8ee0(tPhysics_object* pObject, float pDelta_time) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
