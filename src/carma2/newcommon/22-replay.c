@@ -567,10 +567,12 @@ void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4, int f
     NOT_IMPLEMENTED();
 }
 
+extern void C2_HOOK_FASTCALL DoGibShower(int pId, int pTime, int pSeed, int pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
+
 // FUNCTION: CARMA2_HW 0x004ccae0
 void C2_HOOK_FASTCALL WorkerGibShower(int field_0x0, int field_0xc, int field_0x8, int field_0x10, int field_0x4, br_vector3* pField_0x14, br_vector3* pField_0x20, br_vector3* pField_0x2c) {
 
-    NOT_IMPLEMENTED();
+    DoGibShower(field_0x0, field_0xc, field_0x8, field_0x10, field_0x4, pField_0x14, pField_0x20, pField_0x2c);
 }
 
 // FUNCTION: CARMA2_HW 0x004ccc40
@@ -710,14 +712,52 @@ void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, v
 
 // FUNCTION: CARMA2_HW 0x004f8630
 void C2_HOOK_FASTCALL WorkerSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
+    br_vector3* pPos;
+    br_vector3* pLength;
+    int i;
+    br_actor* actor;
+    br_vector3 delta;
 
-    NOT_IMPLEMENTED();
+    pPos = (br_vector3*)pField_0x4;
+    pLength = (br_vector3*)pField_0x10;
+    i = field_0x0 & 0xff;
+    gSpark_flags |= 1 << field_0x0;
+    if (gSparks[i].car != NULL) {
+        actor = gSparks[i].car->car_master_actor;
+        delta.v[0] = pPos->v[0] - actor->t.t.translate.t.v[0];
+        delta.v[1] = pPos->v[1] - actor->t.t.translate.t.v[1];
+        delta.v[2] = pPos->v[2] - actor->t.t.translate.t.v[2];
+        BrMatrix34TApplyV(&gSparks[i].pos, &delta, &actor->t.t.mat);
+    } else {
+        gSparks[i].pos.v[0] = pPos->v[0];
+        gSparks[i].pos.v[1] = pPos->v[1];
+        gSparks[i].pos.v[2] = pPos->v[2];
+    }
+    gSparks[i].length.v[0] = pLength->v[0];
+    gSparks[i].length.v[1] = pLength->v[1];
+    gSparks[i].length.v[2] = pLength->v[2];
+    gSparks[i].colour = field_0x0 >> 8;
 }
+
+extern int gShrapnel_flags;
+extern tShrapnel gShrapnel[30];
 
 // FUNCTION: CARMA2_HW 0x004f86f0
 void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14) {
+    int i;
 
-    NOT_IMPLEMENTED();
+    i = field_0x0 & 0x7fff;
+    if ((gShrapnel_flags & (1 << i)) == 0) {
+        BrActorAdd(gNon_track_actor, gShrapnel[i].actor);
+    }
+    gShrapnel_flags |= 1 << i;
+    gShrapnel[i].actor->t.t.translate.t.v[0] = ((br_vector3*)pField_0x4)->v[0];
+    gShrapnel[i].actor->t.t.translate.t.v[1] = ((br_vector3*)pField_0x4)->v[1];
+    gShrapnel[i].actor->t.t.translate.t.v[2] = ((br_vector3*)pField_0x4)->v[2];
+    if ((field_0x0 & 0x8000) != 0) {
+        gShrapnel[i].age = field_0x10;
+        gShrapnel[i].actor->material = (br_material*)field_0x14;
+    }
 }
 
 // based on ApexWorm/rec2 715455cdd

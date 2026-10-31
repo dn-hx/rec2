@@ -280,9 +280,21 @@ int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004dc470
+extern int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime);
+extern void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale);
+extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc470
 int C2_HOOK_FASTCALL GotTimeOrPower(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    if (gNet_mode) {
+        return GotPowerupX(pCar, gNet_powerup_time_replacement, 1, 1, 0);
+    }
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        AwardTime(IRandomBetween(pPowerup->integer_params[0], pPowerup->integer_params[1]));
+    }
+    return pPowerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004dc4d0
@@ -303,9 +315,14 @@ int C2_HOOK_FASTCALL SetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dc7a0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc7a0
 int C2_HOOK_FASTCALL SetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    br_scalar head_scale;
+
+    head_scale = pPowerup->float_params[0];
+    ScalePedHeads(head_scale);
+    return pPowerup - gPowerup_array;
 }
 
 // based on ApexWorm/rec2 835aafbad
@@ -3317,6 +3334,17 @@ int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMe
 // STUB: CARMA2_HW 0x004da870
 void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c) {
 
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004d6ab0
+void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

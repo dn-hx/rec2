@@ -1925,9 +1925,16 @@ void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, 
         0xc, 0x34, pArg14,
         0x30, 0xa0, pArg15);
 }
-// STUB: CARMA2_HW 0x004c8d40
+// based on ApexWorm/rec2 239956756 src/carma2/newcommon/23-piping.c
+// FUNCTION: CARMA2_HW 0x004c8d40
 void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
-    NOT_IMPLEMENTED();
+
+    ARDoSingleVariedSession(50, pId, 5,
+        4, 4, (uintptr_t)pArg2,
+        4, 0, (uintptr_t)pArg3,
+        12, 8, (uintptr_t)pArg4,
+        12, 20, (uintptr_t)pArg5,
+        12, 32, (uintptr_t)pArg6);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
