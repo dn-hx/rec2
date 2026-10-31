@@ -2,6 +2,8 @@
 
 #include "51-smash.h"
 
+#include <math.h>
+
 #include "08-loading1.h"
 #include "41-utility.h"
 #include "globvars.h"
@@ -67,6 +69,9 @@ int gCount_track_smashable_environment_specs_2 = 0;
 // GLOBAL: CARMA2_HW 0x006a828c
 int gCount_queued_smashes = 0;
 
+// GLOBAL: CARMA2_HW 0x006a8294
+int gINT_006a8294 = 0;
+
 
 // GLOBAL: CARMA2_HW 0x006abee8
 br_vector3 gZero_vector__smash;
@@ -79,6 +84,9 @@ const char* gExplosion_rotate_names[2] = {
     "norotate",
     "randomrotate",
 };
+
+// GLOBAL: CARMA2_HW 0x006a3334
+int gINT_006a3334 = 0;
 
 // GLOBAL: CARMA2_HW 0x006a3338
 int gShrapnel_ghost_actor_count;
@@ -315,9 +323,49 @@ void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_ini
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004eb180
+// based on carpocalypse2 src/carma2/common/smashing.c (reference only)
+// FUNCTION: CARMA2_HW 0x004eb180
 void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
-    NOT_IMPLEMENTED();
+    float* f = (float*)pArg1;
+    br_vector3 unit;
+    float len;
+    int i;
+
+    pArg3->v[0] = f[2] * pArg2->v[0];
+    pArg3->v[1] = pArg2->v[1] * f[2];
+    pArg3->v[2] = pArg2->v[2] * f[2];
+
+    if (pArg7 != NULL && pArg8 != NULL && f[0] != 0.f && f[1] != 0.f) {
+        BrVector3Sub(&unit, pArg7, pArg8);
+        len = BrVector3Length(&unit);
+        unit.v[0] = FRandomBetween(f[0], f[1]) / len * unit.v[0];
+        unit.v[1] = FRandomBetween(f[0], f[1]) / len * unit.v[1];
+        unit.v[2] = FRandomBetween(f[0], f[1]) / len * unit.v[2];
+        pArg3->v[0] += unit.v[0];
+        pArg3->v[1] += unit.v[1];
+        pArg3->v[2] += unit.v[2];
+    }
+
+    for (i = 0; i < 3; i++) {
+        pArg3->v[i] = (FRandomPosNeg(f[3]) + pArg3->v[i]) * pArg5;
+        pArg4->v[i] = FRandomBetween(0.f, 1.f);
+    }
+
+    pArg3->v[1] += FRandomBetween(0.f, f[4]);
+
+    BrVector3Normalise(&unit, pArg6);
+    unit.v[0] = FRandomBetween(0.f, f[5]) * unit.v[0];
+    unit.v[1] = FRandomBetween(0.f, f[5]) * unit.v[1];
+    unit.v[2] = FRandomBetween(0.f, f[5]) * unit.v[2];
+    pArg3->v[0] += unit.v[0];
+    pArg3->v[1] += unit.v[1];
+    pArg3->v[2] += unit.v[2];
+
+    BrVector3Normalise(pArg4, pArg4);
+
+    pArg4->v[0] *= FRandomPosNeg(pArg5 * f[6]);
+    pArg4->v[1] *= FRandomPosNeg(pArg5 * f[6]);
+    pArg4->v[2] *= FRandomPosNeg(pArg5 * f[6]);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -453,12 +501,47 @@ void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
 
 // DoConnotations
 
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern tS3_outlet* gCar_outlet;
+extern br_vector3 gZero_v__car;
+extern float gYon_squared;
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004ecea0
+// based on carpocalypse2 src/carma2/common/smashing.c and the original disassembly
+// FUNCTION: CARMA2_HW 0x004ecea0
 void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor) {
-    NOT_IMPLEMENTED();
+    br_bounds3* pBounds;
+    float yon_squared;
+
+    if (gPowerup_respawn_smashable.mode_data.shrapnel.connotations.count_sounds != 0) {
+        DRS3StartSound3D(gCar_outlet, gPowerup_respawn_smashable.mode_data.shrapnel.connotations.sounds[IRandomBetween(0, gPowerup_respawn_smashable.mode_data.shrapnel.connotations.count_sounds - 1)], &pActor->t.t.translate.t, &gZero_v__car, 1, 255, IRandomBetween(0xe000, 0x12000), 0x10000);
+    }
+    pBounds = &pActor->model->bounds;
+    yon_squared = gYon_squared;
+    if (gAction_replay_mode != 0 || PointOutOfSight(&pActor->t.t.translate.t, yon_squared) == 0) {
+        if (gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.explosion_animation.count_groups != 0) {
+            Explode(&gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.explosion_animation, pActor, pBounds, NULL);
+        }
+    }
+    if (gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.material != NULL) {
+        QueueOilSpill2(NULL, pActor, pActor->model,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x0,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x4,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x8,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0xc,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x10,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x14,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x20,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x24,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x18,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.field_0x1c,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.material,
+            gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.material2);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1633,13 +1716,49 @@ void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
 
 // SmashEnvironment
 
+extern float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork);
+extern void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f52f0
-// STUB: CARMA2_SW 0x004f0f50
+// FUNCTION: CARMA2_HW 0x004f52f0
+// FUNCTION: CARMA2_SW 0x004f0f50
 float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
+    float result;
+    int flag;
+    char* identifier;
+    tSmashable_item_spec* trigger;
+
+    result = -1.f;
+    flag = 0;
+    if (pActor != NULL) {
+        identifier = pActor->identifier;
+        if (identifier != NULL && identifier[0] == '&') {
+            trigger = gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')];
+            if (trigger != NULL) {
+                if ((pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 1) && identifier[3] != '!')
+                        || (pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 4) && identifier[3] == '!')
+                        || (pSnap != 0 && (trigger->trigger_object.number.field_0x1 & 2))) {
+                    gINT_006a3334 = 0;
+                    result = ApplySmashTriggerEffect(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                    if (flag != 0 && pNetwork == 0) {
+                        ApplySmashTriggerNumber(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+// STUB: CARMA2_HW 0x004f4e20
+float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
+    NOT_IMPLEMENTED();
+    return 0.f;
+}
+// STUB: CARMA2_HW 0x004f5110
+void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
     NOT_IMPLEMENTED();
 }
 
@@ -1893,12 +2012,69 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
     }
 }
 
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
+extern tWorld_callbacks gWorld_callbacks;
+extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8);
+extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
+extern int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004f6130
+// FUNCTION: CARMA2_HW 0x004f6130
 void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
-    NOT_IMPLEMENTED();
+    tCar_spec* car;
+    tPhysics_object* pCollision;
+    br_vector3* pPoint;
+    tBounds bounds;
+    br_matrix34 matrix;
+    tFace_ref faces[20];
+    int car_id;
+    int count;
+    int i;
+
+    pCollision = NULL;
+    car_id = pSmash->field_0x8[0];
+    if (car_id != -1) {
+        if (gNet_mode == eNet_mode_none) {
+            if ((car_id & 0xffffff00) == 0) {
+                car = &gProgram_state.current_car;
+            } else {
+                car = GetCarSpec(car_id >> 8, car_id & 0xff);
+            }
+        } else if (car_id < gNumber_of_net_players) {
+            car = gNet_players[car_id].car;
+        } else {
+            car = NULL;
+        }
+        if (car != NULL) {
+            pCollision = car->collision_info;
+        }
+    }
+    if (pCollision != NULL) {
+        BrMatrix34Identity(&matrix);
+        bounds.mat = &matrix;
+        pPoint = (br_vector3*)&pSmash->field_0x8[2];
+        *(br_vector3*)matrix.m[3] = *pPoint;
+        BrVector3Set(&bounds.original_bounds.min, -0.05f, -0.05f, -0.05f);
+        BrVector3Set(&bounds.original_bounds.max, 0.05f, 0.05f, 0.05f);
+        FillInBounds(&bounds);
+        count = FindFacesInBox(&bounds, faces, 20, &gWorld_callbacks);
+        for (i = 0; i < count; i++) {
+            if (FUN_004f0d50((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
+                break;
+            }
+        }
+        if (i == count) {
+            return;
+        }
+        gINT_006a8294 = pSmash->field_0x8[11] & 1;
+        SmashEnvironment((tPhysics_object*)pPoint, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], (br_vector3*)pSmash, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
+        FlushSmashQueue(0);
+        gINT_006a8294 = 0;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2013,9 +2189,38 @@ const char* gSmashable_collision_type_names[3] = {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004eff30
+// based on carpocalypse2 src/carma2/common/smashing.c (reference only)
+// FUNCTION: CARMA2_HW 0x004eff30
 void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
-    NOT_IMPLEMENTED();
+    float f_dt;
+    float omega;
+    double angle;
+    br_vector3 pos;
+    br_vector3 axis;
+
+    f_dt = pDelta_time * 0.001f;
+    if (f_dt != 0.f && pFragment->field_0x34 == 0) {
+        pFragment->actor->t.t.translate.t.v[0] -= pFragment->v.v[0] * f_dt * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[1] -= (pFragment->v.v[1] * f_dt - gGravity_multiplier * f_dt * f_dt * 4.9) * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[2] -= pFragment->v.v[2] * f_dt * -0.14492753;
+        pFragment->v.v[1] -= f_dt * gGravity_multiplier * 9.8;
+        omega = (float)sqrt(pFragment->omega.v[1] * pFragment->omega.v[1] + pFragment->omega.v[2] * pFragment->omega.v[2] + pFragment->omega.v[0] * pFragment->omega.v[0]);
+        axis.v[0] = pFragment->omega.v[0] / omega;
+        axis.v[1] = pFragment->omega.v[1] / omega;
+        axis.v[2] = pFragment->omega.v[2] / omega;
+        angle = omega * f_dt;
+        if (fabs(angle) >= 0.0001) {
+            pos = pFragment->actor->t.t.translate.t;
+            BrVector3Set(&pFragment->actor->t.t.translate.t, 0.f, 0.f, 0.f);
+            BrMatrix34PostRotate(&pFragment->actor->t.t.mat, BrRadianToAngle(angle), &axis);
+            BrVector3Copy(&pFragment->actor->t.t.translate.t, &pos);
+        }
+    }
+    if (pTime < pFragment->field_0x10) {
+        pFragment->actor->render_style = BR_RSTYLE_FACES;
+    } else {
+        pFragment->actor->render_style = BR_RSTYLE_NONE;
+    }
 }
 extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
 // based on carpocalypse2 src/carma2/common/crush.c
@@ -2089,6 +2294,11 @@ void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, t
 // STUB: CARMA2_HW 0x004f1030
 void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor) {
     NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004f0d50
+int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
+    NOT_IMPLEMENTED();
+    return 0;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
