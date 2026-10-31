@@ -1752,14 +1752,174 @@ float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, fl
     }
     return result;
 }
-// STUB: CARMA2_HW 0x004f4e20
+struct tNet_stored_smash {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    tU32 player;
+    br_scalar field_0xc;
+    br_vector3 field_0x10;
+    br_vector3 field_0x1c;
+    br_vector3 field_0x28;
+    undefined4 field_0x34;
+};
+
+extern void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_model* pOld_model, br_model* pNew_model);
+extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
+extern void C2_HOOK_FASTCALL AddChangedPoint(const br_vector3* pPoint);
+extern float C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, tFace_ref* pFace);
+extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, undefined4* pArg3);
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+extern tU32 gPHIL_last_physics_tick;
+extern int gFace_num__car;
+extern int gCount_shrapnel_shower_calls;
+
+// FUNCTION: CARMA2_HW 0x004f4e20
 float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
-    NOT_IMPLEMENTED();
-    return 0.f;
+    br_matrix34 matrix;
+    br_bounds3 bounds;
+    br_vector3 v;
+    int seed;
+    tU32 time;
+    float result;
+    tPhysics_object* object;
+    char* identifier;
+    br_actor* child;
+    int changed;
+    int i;
+
+    object = pObject;
+    result = -1.f;
+    time = GetTotalTime();
+    gINT_006a3334 = 0;
+    *pFlag = 0;
+    if (pMagnitude < pSpec->mode_data.shrapnel.removal_threshold) {
+        return -1.f;
+    }
+    v.v[0] = ((float*)object->field_0x1b4)[0] * 6.9;
+    v.v[1] = ((float*)object->field_0x1b4)[1] * 6.9;
+    v.v[2] = ((float*)object->field_0x1b4)[2] * 6.9;
+    seed = (int)pForce->v[1] ^ (int)pForce->v[2] ^ (int)pForce->v[0];
+    bounds = pActor->model->bounds;
+    gINT_006a3334 = 0;
+    changed = 0;
+    switch (pSpec->mode) {
+    case kSmashableMode_NoChange:
+        if (pSpec->field_0x10 == 0) {
+            changed = 1;
+        }
+        pSpec->field_0x10 = GetTotalTime();
+        break;
+    case kSmashableMode_Remove:
+        if (pActor->render_style != 1) {
+            changed = 1;
+            pActor->render_style = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, NULL);
+            if (pActor != NULL && (identifier = pActor->identifier) != NULL && identifier[0] == '&'
+                    && gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')] != NULL
+                    && pActor == object->actor) {
+                pActor->t.t.translate.t.v[1] = -1000.f;
+                object->transform_matrix.m[3][1] = -1000.f;
+            }
+        }
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        object->box_face_ref = gFace_num__car - 2;
+        break;
+    case kSmashableMode_ReplaceModel:
+        if (pActor->model != pSpec->replace.model) {
+            changed = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, pSpec->replace.model);
+            pActor->model = pSpec->replace.model;
+            if (PercentageChance(pSpec->replace.smoke_fire_chance.chance_fire) && pSpec->replace.smoke_fire_chance.model_1_int > 0) {
+                for (i = 0; i < pSpec->replace.smoke_fire_chance.model_1_int; i++) {
+                    CreateSmokeColumn2(0, pActor, NULL, NULL, IRandomBetween(pSpec->replace.smoke_fire_chance.model_2_int, pSpec->replace.smoke_fire_chance.model_3_int), IRandomBetween(0, pActor->model->prepared->groups->nvertices), 10000000);
+                }
+            }
+            for (child = pActor->children; child != NULL; child = child->next) {
+                PipeSingleSmashModelChange(child, child->model, NULL);
+                child->render_style = 1;
+            }
+            AddChangedPoint(&pActor->t.t.translate.t);
+        }
+        object->box_face_ref = gFace_num__car - 2;
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        break;
+    default:
+        break;
+    }
+    if (changed) {
+        result = pSpec->mode_data.shrapnel.removal_threshold;
+        *pFlag = 1;
+        BrActorToActorMatrix34(&matrix, pActor, gUniverse_actor);
+        SmashItIntoVerySmallPiecesIndeed(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
+    }
+    return result;
 }
-// STUB: CARMA2_HW 0x004f5110
+// FUNCTION: CARMA2_HW 0x004f5110
 void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
-    NOT_IMPLEMENTED();
+    tCar_spec* car;
+    tNet_message* message;
+    tNet_stored_smash* chunk;
+    tNet_stored_smash* stored;
+    br_vector3 point;
+    float d;
+    int id;
+
+    if (gNet_mode == 0) {
+        return;
+    }
+    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
+        car = (tCar_spec*)pObject->owner;
+        if (car->driver > 5) {
+            if (car == NULL || car->driver != 8) {
+                return;
+            }
+        }
+    }
+    if (pFace != NULL) {
+        d = -DistanceFromFace(pPosition, pFace);
+        point.v[0] = pFace->normal.v[0] * d;
+        point.v[1] = pFace->normal.v[1] * d;
+        point.v[2] = pFace->normal.v[2] * d;
+        BrVector3Add(&point, &point, pPosition);
+    } else {
+        point = *pPosition;
+    }
+    message = NetBuildGuaranteedMessage(0x21, 0);
+    chunk = (tNet_stored_smash*)&message->guaranteed;
+    chunk->field_0x4 = gPHIL_last_physics_tick + 40;
+    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
+        car = (tCar_spec*)pObject->owner;
+        if (car != NULL && car->driver > 5) {
+            if (gNet_mode == 0) {
+                id = (tU16)car->car_ID;
+            } else {
+                id = (int)(NetPlayerFromCar(car) - gNet_players);
+            }
+        } else {
+            id = -1;
+        }
+    } else {
+        id = -1;
+    }
+    chunk->player = id;
+    chunk->field_0xc = pMagnitude;
+    chunk->field_0x10 = point;
+    chunk->field_0x1c = *pNormal;
+    chunk->field_0x28 = *pForce;
+    if (pArg7 != 0) {
+        chunk->field_0x34 = 2;
+    } else {
+        chunk->field_0x34 = 0;
+    }
+    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
+    if (gNet_mode == 2 && gCount_host_smashes < 1000) {
+        stored = &gNet_host_smashes[gCount_host_smashes];
+        gCount_host_smashes++;
+        *stored = *chunk;
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -2082,6 +2242,12 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
 
 /* local declaration instead of including 04-netgame.h here */
 extern tU32 gPHIL_last_physics_tick;
+extern int gFace_num__car;
+extern int gCount_shrapnel_shower_calls;
+extern int gNext_explosion_slot;
+extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
+extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
+extern intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext);
 
 // FUNCTION: CARMA2_HW 0x004f62e0
 void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
@@ -2261,9 +2427,124 @@ void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, unde
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004ead00
+// FUNCTION: CARMA2_HW 0x004ead00
 void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
-    NOT_IMPLEMENTED();
+    tExplosion_animation_group* group;
+    tExplosion* slot;
+    tU32 now;
+    int count;
+    int slot_index;
+    int slot_found;
+    int i;
+    int j;
+    int k;
+    int frametime;
+    int start_delay;
+    tU16 angle;
+    float scaling;
+    float sx_min;
+    float sx_max;
+    float sy_min;
+    float sy_max;
+    float sz_min;
+    float sz_max;
+    float px;
+    float py;
+    float pz;
+    float rand_value;
+    int sign;
+
+    now = GetTotalTime();
+    if (pActor == NULL) {
+        return;
+    }
+    for (i = 0; i < pExplosion_animation->count_groups; i++) {
+        group = &pExplosion_animation->groups[i];
+        count = IRandomBetween((tS16)group->min_count, (tS16)group->max_count);
+        sx_min = group->min_xyz_factor.v[0] * pBounds->max.v[0];
+        sx_max = group->max_xyz_factor.v[0] * pBounds->max.v[0];
+        sy_min = group->min_xyz_factor.v[1] * pBounds->max.v[1];
+        sy_max = group->max_xyz_factor.v[1] * pBounds->max.v[1];
+        sz_min = group->min_xyz_factor.v[2] * pBounds->max.v[2];
+        sz_max = group->max_xyz_factor.v[2] * pBounds->max.v[2];
+        if (count <= 0) {
+            continue;
+        }
+        for (j = 0; j < count; j++) {
+            rand_value = FRandomBetween(sx_min, sx_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            px = sign * rand_value;
+            rand_value = FRandomBetween(sy_min, sy_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            py = sign * rand_value;
+            rand_value = FRandomBetween(sz_min, sz_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            pz = sign * rand_value;
+            if (pPos != NULL) {
+                px += pPos->v[0];
+                py += pPos->v[1];
+                pz += pPos->v[2];
+            }
+            px += group->offset.v[0];
+            py += group->offset.v[1];
+            pz += group->offset.v[2];
+            if (group->rotate_modus != kExplosionRotateModus_NoRotate) {
+                angle = (tU16)IRandomBetween(0, 0xffff);
+            } else {
+                angle = 0;
+            }
+            scaling = FRandomBetween(group->min_scaling_factor, group->max_scaling_factor);
+            frametime = IRandomBetween(group->min_frametime_ms, group->max_frametime_ms);
+            start_delay = IRandomBetween(group->min_start_delay_ms, group->max_start_delay_ms);
+            slot_found = 0;
+            slot_index = 0;
+            slot = gExplosions;
+            do {
+                if (slot->start == 0) {
+                    slot_found = 1;
+                    break;
+                }
+                slot_index++;
+                slot++;
+            } while (slot_index < (int)REC2_ASIZE(gExplosions));
+            if (slot_index == (int)REC2_ASIZE(gExplosions)) {
+                slot_index = gNext_explosion_slot;
+                slot = &gExplosions[slot_index];
+                do {
+                    slot_index++;
+                    if (slot_index < (int)REC2_ASIZE(gExplosions)) {
+                        slot++;
+                    } else {
+                        slot_index = 0;
+                        slot = gExplosions;
+                    }
+                    if (slot->finished != 0) {
+                        slot_found = 1;
+                        gNext_explosion_slot = slot_index;
+                        break;
+                    }
+                } while (slot_index != gNext_explosion_slot);
+            }
+            if (!slot_found) {
+                return;
+            }
+            slot->start = now + start_delay;
+            slot->count_frames = (tS8)group->count_frames;
+            slot->period = frametime;
+            slot->field_0x14 = scaling * 0.14492753;
+            slot->collision_actor = pActor;
+            slot->finished = 0;
+            slot->field_0x8 = 0xff;
+            for (k = 0; k < group->count_frames; k++) {
+                *(tExplosion_frame*)&slot->frames[k] = *(tExplosion_frame*)&group->frames[k];
+            }
+            slot->field_0x1c.v[0] = px;
+            slot->field_0x1c.v[1] = py;
+            slot->field_0x1c.v[2] = pz;
+            slot->angle = angle;
+            PipeSingleExplosion(slot_index, slot);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2283,9 +2564,91 @@ void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) { NOT_IMPLEMENTED()
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004ed860
+/* context filled by the DRActorEnumRecurse callback FUN_004edb20 */
+typedef struct {
+    br_bounds3* bounds;
+    tU8 field_0x4;
+    tS8 count;
+    undefined field_0x6[2];
+    br_actor* actors[20];
+} tNon_car_search_context;
+
+// FUNCTION: CARMA2_HW 0x004ed860
 void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
-    NOT_IMPLEMENTED();
+    tNon_car_search_context search;
+    tDelayed_non_car delayed;
+    br_bounds3 bounds;
+    br_matrix34* matrix;
+    tNon_car_cuboid_activation* activation;
+    int* pActive;
+    tU32 time;
+    tU32 min_column_x;
+    tU32 min_column_z;
+    tU32 max_column_x;
+    tU32 max_column_z;
+    int slot_index;
+    int column_x;
+    int column_z;
+    int axis;
+    int i;
+    int j;
+
+    time = GetTotalTime();
+    if (pActor == NULL || pActor->identifier == NULL || pActor->identifier[0] != '&') {
+        matrix = (br_matrix34*)((tU8*)pContext + 0x8c);
+    } else {
+        matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
+    }
+    activation = pActivations->activations;
+    for (i = 0; i < pActivations->count_activations; i++, activation++) {
+        search.count = 0;
+        if (activation->field_0x4 == 1) {
+            bounds = activation->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.min, &activation->bounds.min, matrix);
+            BrMatrix34ApplyP(&bounds.max, &activation->bounds.max, matrix);
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.min.v[axis] > bounds.max.v[axis]) {
+                    br_scalar value = bounds.min.v[axis];
+
+                    bounds.min.v[axis] = bounds.max.v[axis];
+                    bounds.max.v[axis] = value;
+                }
+            }
+        }
+        search.bounds = &bounds;
+        search.field_0x4 = (tU8)activation->field_0x8;
+        XZToColumnXZ((tU8*)&min_column_x, (tU8*)&min_column_z, bounds.min.v[0], bounds.min.v[2], &gProgram_state.track_spec);
+        XZToColumnXZ((tU8*)&max_column_x, (tU8*)&max_column_z, bounds.max.v[0], bounds.max.v[2], &gProgram_state.track_spec);
+        for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
+            for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
+                if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
+                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, FUN_004edb20, &search) != 0) {
+                    break;
+                }
+            }
+        }
+        delayed.field_0x0 = *(br_vector3*)((tU8*)pContext + 0x68);
+        delayed.field_0xc = *(br_vector3*)((tU8*)matrix + 0x24);
+        delayed.field_0x18 = (undefined4*)&activation->field_0x24;
+        delayed.count_actions = search.count;
+        for (j = 0; j < delayed.count_actions; j++) {
+            delayed.actor_time_actions[j].actor = search.actors[j];
+            delayed.actor_time_actions[j].time = time + IRandomBetween((tU16)activation->field_0x0, (tU16)activation->field_0x2);
+        }
+        pActive = &gSmash_explosions[0].active;
+        for (slot_index = 0; *pActive != 0; slot_index++) {
+            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+            if ((tU8*)pActive >= (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                break;
+            }
+        }
+        if (slot_index < (int)REC2_ASIZE(gSmash_explosions)) {
+            gSmash_explosions[slot_index].type = 0;
+            gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
+            gSmash_explosions[slot_index].what.non_car = delayed;
+        }
+    }
 }
 // STUB: CARMA2_HW 0x004edbe0
 void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
@@ -2298,6 +2661,37 @@ void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor
 // STUB: CARMA2_HW 0x004f0d50
 int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
     NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006a829c
+int gCount_shrapnel_shower_calls = 0;
+
+// GLOBAL: CARMA2_HW 0x006a82a0
+int gNext_explosion_slot = 0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00516090
+float C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, tFace_ref* pFace) {
+    return pPoint->v[0] * pFace->normal.v[0] + pPoint->v[1] * pFace->normal.v[1] + pPoint->v[2] * pFace->normal.v[2] - pFace->d;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004edb20
+intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext) {
+    /* DRActorEnumRecurse callback for QueueNonCarCuboidActivation: collects the
+       actors of the overlapped track squares.  Not implemented yet (returns 0 so
+       that no non-car activation is queued). */
     return 0;
 }
 #ifdef REC2_MATCHING
