@@ -693,14 +693,191 @@ void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix3
     }
 }
 
-// STUB: CARMA2_HW 0x0045f690
+// FUNCTION: CARMA2_HW 0x0045f690
 void C2_HOOK_FASTCALL FillInBounds(tBounds* bnds) {
-    NOT_IMPLEMENTED();
+    br_vector3 a;
+    br_vector3 c[3];
+    int n2;
+    int n1;
+    int n0;
+    int i;
+
+    BrVector3Add(&a, &bnds->original_bounds.min, &bnds->original_bounds.max);
+    BrVector3Scale(&a, &a, 0.5f);
+    BrMatrix34ApplyP(&bnds->box_centre, &a, bnds->mat);
+    BrVector3Sub(&a, &bnds->original_bounds.max, &bnds->original_bounds.min);
+    bnds->radius = BrVector3Length(&a) * 0.5f;
+    BrMatrix34ApplyP(&bnds->real_bounds.min, &bnds->original_bounds.min, bnds->mat);
+    BrVector3Copy(&bnds->real_bounds.max, &bnds->real_bounds.min);
+    for (i = 0; i < 3; i++) {
+        c[i].v[0] = a.v[i] * bnds->mat->m[i][0];
+        c[i].v[1] = a.v[i] * bnds->mat->m[i][1];
+        c[i].v[2] = a.v[i] * bnds->mat->m[i][2];
+    }
+    for (i = 0; i < 3; i++) {
+        n0 = c[0].v[i] < 0.f;
+        n1 = c[1].v[i] < 0.f;
+        n2 = c[2].v[i] < 0.f;
+        bnds->real_bounds.min.v[i] += (float)n2 * c[2].v[i] + (float)n0 * c[0].v[i] + (float)n1 * c[1].v[i];
+        n0 = c[0].v[i] > 0.f;
+        n1 = c[1].v[i] > 0.f;
+        n2 = c[2].v[i] > 0.f;
+        bnds->real_bounds.max.v[i] += (float)n1 * c[1].v[i] + (float)n0 * c[0].v[i] + (float)n2 * c[2].v[i];
+    }
 }
 
-// STUB: CARMA2_HW 0x0045f8c0
+extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
+extern int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat);
+extern int gActorBoxPick_StopGroovidelics;
+
+// based on carpocalypse2 src/carma2/common/finteray.c (BoundsTransformTest inlined, as in the original)
+// FUNCTION: CARMA2_HW 0x0045f8c0
 int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, br_material* material, tFace_ref* face_list, int max_face, br_matrix34* pMat, tWorld_callbacks* pWorld_callbacks) {
-    NOT_IMPLEMENTED();
+    br_model* this_model;
+    br_material* this_material;
+    br_bounds br_bnds;
+    int test_children;
+    tBounds new_bounds;
+    br_matrix34 invmat;
+    br_matrix34 mat;
+    br_matrix34 box_to_actor;
+    br_matrix34 mat2;
+    int i;
+    int n;
+    br_actor* a;
+    br_actor* next_a;
+
+    i = 0;
+    test_children = 1;
+    if (ap->model != NULL) {
+        this_model = ap->model;
+    } else {
+        this_model = model;
+    }
+    if (ap->material != NULL) {
+        this_material = ap->material;
+    } else {
+        this_material = material;
+    }
+    if (ap->render_style == BR_RSTYLE_NONE) {
+        return max_face;
+    }
+    if (ap->identifier != NULL && ap->identifier[0] == '&') {
+        if (this_model == NULL) {
+            return max_face;
+        }
+        if (ap->children == NULL) {
+            br_vector3 o;
+            br_scalar val;
+
+            if (ap->type != BR_ACTOR_MODEL) {
+                return max_face;
+            }
+            BrVector3Sub(&o, &this_model->bounds.max, &this_model->bounds.min);
+            val = this_model->bounds.min.v[0] * ap->t.t.mat.m[0][0] + this_model->bounds.min.v[1] * ap->t.t.mat.m[1][0] + this_model->bounds.min.v[2] * ap->t.t.mat.m[2][0] + ap->t.t.mat.m[3][0];
+            if ((ap->t.t.mat.m[0][0] <= 0.0f ? 0.0f : o.v[0] * ap->t.t.mat.m[0][0])
+                    + (ap->t.t.mat.m[1][0] <= 0.0f ? 0.0f : o.v[1] * ap->t.t.mat.m[1][0])
+                    + (ap->t.t.mat.m[2][0] <= 0.0f ? 0.0f : o.v[2] * ap->t.t.mat.m[2][0])
+                    + val
+                    < bnds->real_bounds.min.v[0]) {
+                return max_face;
+            }
+            if ((ap->t.t.mat.m[0][0] < 0.0f ? o.v[0] * ap->t.t.mat.m[0][0] : 0.0f)
+                    + (ap->t.t.mat.m[1][0] < 0.0f ? o.v[1] * ap->t.t.mat.m[1][0] : 0.0f)
+                    + (ap->t.t.mat.m[2][0] < 0.0f ? o.v[2] * ap->t.t.mat.m[2][0] : 0.0f)
+                    + val
+                    > bnds->real_bounds.max.v[0]) {
+                return max_face;
+            }
+            val = this_model->bounds.min.v[0] * ap->t.t.mat.m[0][2] + this_model->bounds.min.v[1] * ap->t.t.mat.m[1][2] + this_model->bounds.min.v[2] * ap->t.t.mat.m[2][2] + ap->t.t.mat.m[3][2];
+            if ((ap->t.t.mat.m[0][2] <= 0.0f ? 0.0f : o.v[0] * ap->t.t.mat.m[0][2])
+                    + (ap->t.t.mat.m[1][2] <= 0.0f ? 0.0f : o.v[1] * ap->t.t.mat.m[1][2])
+                    + (ap->t.t.mat.m[2][2] <= 0.0f ? 0.0f : o.v[2] * ap->t.t.mat.m[2][2])
+                    + val
+                    < bnds->real_bounds.min.v[2]) {
+                return max_face;
+            }
+            if ((ap->t.t.mat.m[0][2] < 0.0f ? o.v[0] * ap->t.t.mat.m[0][2] : 0.0f)
+                    + (ap->t.t.mat.m[1][2] < 0.0f ? o.v[1] * ap->t.t.mat.m[1][2] : 0.0f)
+                    + (ap->t.t.mat.m[2][2] < 0.0f ? o.v[2] * ap->t.t.mat.m[2][2] : 0.0f)
+                    + val
+                    > bnds->real_bounds.max.v[2]) {
+                return max_face;
+            }
+            val = this_model->bounds.min.v[0] * ap->t.t.mat.m[0][1] + this_model->bounds.min.v[1] * ap->t.t.mat.m[1][1] + this_model->bounds.min.v[2] * ap->t.t.mat.m[2][1] + ap->t.t.mat.m[3][1];
+            if ((ap->t.t.mat.m[0][1] <= 0.0f ? 0.0f : o.v[0] * ap->t.t.mat.m[0][1])
+                    + (ap->t.t.mat.m[1][1] <= 0.0f ? 0.0f : o.v[1] * ap->t.t.mat.m[1][1])
+                    + (ap->t.t.mat.m[2][1] <= 0.0f ? 0.0f : o.v[2] * ap->t.t.mat.m[2][1])
+                    + val
+                    < bnds->real_bounds.min.v[1]) {
+                return max_face;
+            }
+            if ((ap->t.t.mat.m[0][1] < 0.0f ? o.v[0] * ap->t.t.mat.m[0][1] : 0.0f)
+                    + (ap->t.t.mat.m[1][1] < 0.0f ? o.v[1] * ap->t.t.mat.m[1][1] : 0.0f)
+                    + (ap->t.t.mat.m[2][1] < 0.0f ? o.v[2] * ap->t.t.mat.m[2][1] : 0.0f)
+                    + val
+                    > bnds->real_bounds.max.v[1]) {
+                return max_face;
+            }
+        }
+        if (pMat != NULL) {
+            BrMatrix34Mul(&mat, &ap->t.t.mat, pMat);
+            pMat = &mat;
+        } else {
+            pMat = &ap->t.t.mat;
+        }
+        BrMatrix34LPInverse(&invmat, &ap->t.t.mat);
+        BrMatrix34Mul(&mat2, bnds->mat, &invmat);
+        new_bounds.mat = &mat2;
+        BrVector3Copy(&new_bounds.original_bounds.min, &bnds->original_bounds.min);
+        BrVector3Copy(&new_bounds.original_bounds.max, &bnds->original_bounds.max);
+        BrMatrix34ApplyP(&new_bounds.box_centre, &bnds->box_centre, &invmat);
+        new_bounds.radius = bnds->radius;
+        GetNewBoundingBox(&new_bounds.real_bounds, &new_bounds.original_bounds, new_bounds.mat);
+        if (ap->identifier[1] >= '0' && ap->identifier[1] <= '9') {
+            if (!BoundsOverlapTest__finteray(&new_bounds.real_bounds, &this_model->bounds)) {
+                return max_face;
+            }
+            BrMatrix34LPInverse(&invmat, bnds->mat);
+            BrMatrix34Mul(&box_to_actor, &ap->t.t.mat, &invmat);
+            GetNewBoundingBox(&br_bnds, &ap->model->bounds, &box_to_actor);
+            if (!BoundsOverlapTest__finteray(&br_bnds, &bnds->original_bounds)) {
+                return max_face;
+            }
+            if (pWorld_callbacks != NULL && pWorld_callbacks->pull_actor_from_world != NULL) {
+                if (pWorld_callbacks->pull_actor_from_world(ap) != NULL) {
+                    return max_face;
+                }
+            }
+        }
+        bnds = &new_bounds;
+    }
+    if (ap->type == BR_ACTOR_MODEL) {
+        if (this_model == NULL) {
+            return max_face;
+        }
+        if (gActorBoxPick_StopGroovidelics != 0 && BoundsOverlapTest__finteray(&bnds->real_bounds, &this_model->bounds) != 0) {
+            n = ModelPickBox(ap, bnds, this_model, this_material, face_list, max_face, pMat);
+            if (pMat != NULL && max_face != n && pWorld_callbacks != NULL && pWorld_callbacks->stop_groovidelic != NULL) {
+                pWorld_callbacks->stop_groovidelic(ap);
+            }
+            i = max_face - n;
+            max_face = n;
+        }
+    } else if (ap->type >= BR_ACTOR_BOUNDS && ap->type <= BR_ACTOR_BOUNDS_CORRECT) {
+        test_children = BoundsOverlapTest__finteray(&bnds->real_bounds, (br_bounds*)ap->type_data);
+    }
+    if (test_children != 0) {
+        a = ap->children;
+        while (a != NULL) {
+            next_a = a->next;
+            n = ActorBoxPick(bnds, a, this_model, this_material, &face_list[i], max_face, pMat, pWorld_callbacks);
+            i += max_face - n;
+            max_face = n;
+            a = next_a;
+        }
+    }
+    return max_face;
 }
 
 // ModelPickBox
