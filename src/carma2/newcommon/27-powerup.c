@@ -546,14 +546,52 @@ int C2_HOOK_FASTCALL TrashBodywork(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dcc00
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dcc00
 void C2_HOOK_FASTCALL TheEffectsOfDrugs(tPowerup* pPowerup, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    int i;
+    int offset;
+
+    offset = GetTotalTime() / 100;
+    if (offset == 0) {
+        memcpy(gRender_palette->pixels, gDrug_trip_data, 0x400);
+    }
+    for (i = 1; i < 0xe0; i++) {
+        ((tU32*)gRender_palette->pixels)[i] = ((tU32*)gDrug_trip_data)[(i + offset) & 0xff];
+    }
+    ((tU32*)gRender_palette->pixels)[0] = ((tU32*)gDrug_trip_data)[0];
+    for (i = 0xe0; i < 0x100; i++) {
+        *(tU32*)((tU8*)gRender_palette->pixels + i * 4) = *(tU32*)((tU8*)gDrug_trip_data + i * 4);
+    }
+    ResetPalette();
 }
 
-// STUB: CARMA2_HW 0x004dcca0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dcca0
 int C2_HOOK_FASTCALL SetOpponentsSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    tCar_spec* opponent_car;
+    tPowerup* afterburner;
+    int i;
+
+    for (i = 0; i < gCurrent_race.number_of_racers && gCurrent_race.opponent_list[i].index != 0x1d; i++) {
+    }
+    if (i < gCurrent_race.number_of_racers) {
+        opponent_car = gCurrent_race.opponent_list[i].car_spec;
+        afterburner = gPowerup_array + 5;
+        if (afterburner->initial_value > 0) {
+            PlayExclusiveFFBEffect("Afterburner", 1);
+        }
+        opponent_car->field_0x4d4 = afterburner->float_params[0];
+        opponent_car->grip_multiplier = afterburner->float_params[1];
+        SetCarSuspGiveAndHeight(opponent_car,
+                                ((volatile float*)afterburner->float_params)[2],
+                                ((volatile float*)afterburner->float_params)[3],
+                                ((volatile float*)afterburner->float_params)[6],
+                                ((volatile float*)afterburner->float_params)[4],
+                                ((volatile float*)afterburner->float_params)[5]);
+    }
+    gOpponent_speed_factor = pPowerup->float_params[0];
+    return pPowerup - gPowerup_array;
 }
 
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
@@ -571,14 +609,118 @@ int C2_HOOK_FASTCALL SetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dd700
+extern tPhysics_object* gPHIL_list_collision_infos;
+extern tWorld_callbacks gWorld_callbacks;
+extern br_vector3 gZero_v__car;
+extern tFace_ref gFace_list__car[300];
+extern tPhysics_object* gUNK_0079ecbc;
+extern void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor);
+extern void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
+extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, br_vector3* pVec3, tWorld_callbacks* pCar_callbacks);
+extern tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+// based on the original disassembly (ConfigureShitMine/InitializeMineMotion hold the carpocalypse2 ShitMine body)
+// FUNCTION: CARMA2_HW 0x004dd700
 int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int i;
+    int best_index;
+    tShit_mine* mine;
+    tFace_ref* face;
+    tU32 time;
+    tU32 best;
+    br_scalar dist;
+    br_vector3 d;
+    br_vector3 dir;
+    br_vector3 car_pos;
+    br_vector3 mine_pos;
+    br_vector3 out2;
+
+    if (gNet_mode == eNet_mode_client) {
+        return pPowerup - gPowerup_array;
+    }
+    mine = NULL;
+    for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
+        if (!(gShit_mines[i].flags & 0x1)) {
+            mine = &gShit_mines[i];
+            break;
+        }
+    }
+    if (mine == NULL) {
+        time = GetTotalTime();
+        best = (tU32)(pPowerup->float_params[0] * 1000.0);
+        best_index = -1;
+        for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
+            tU32 remaining;
+
+            if ((gShit_mines[i].flags & 0x4) != 0 && (gShit_mines[i].flags & 0x2) == 0) {
+                remaining = gShit_mines[i].next_think_time - time;
+                if (remaining < best) {
+                    best = remaining;
+                    best_index = i;
+                }
+            }
+        }
+        if (best_index == -1) {
+            return pPowerup - gPowerup_array;
+        }
+        mine = &gShit_mines[best_index];
+    }
+    ConfigureShitMine(mine, pPowerup, pCar);
+    mine->field_0x30 = pCar;
+    mine->field_0x35++;
+    InitializeMineMotion(mine, pCar);
+    if (gNet_mode == eNet_mode_none) {
+        PipeSingleMatrix34Type66(mine->collision_info->actor);
+    }
+    if ((mine->flags & 0x40) != 0) {
+        DRS3StartSound3D(gCar_outlet, 0x151d, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+    } else {
+        DRS3StartSound3D(gCar_outlet, 0x151c, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+    }
+    if (mine->field_0x30 != NULL && mine->field_0x30->driver == eDriver_local_human) {
+        PlayExclusiveFFBEffect("Mine_Shit", 0);
+    }
+    BrMatrix34ApplyP(&car_pos, &pCar->collision_info->cmpos, &pCar->collision_info->transform_matrix);
+    BrMatrix34ApplyP(&mine_pos, &mine->collision_info->cmpos, &mine->collision_info->transform_matrix);
+    BrVector3Sub(&d, &mine_pos, &car_pos);
+    BrVector3Normalise(&dir, &d);
+    d.v[0] = d.v[0] + dir.v[0] * 0.15;
+    d.v[1] = d.v[1] + dir.v[1] * 0.15;
+    d.v[2] = d.v[2] + dir.v[2] * 0.15;
+    if (!TestForObjectInSensiblePlace(mine->collision_info, gPHIL_list_collision_infos, &d, &gWorld_callbacks)) {
+        CollideShitMine(mine->collision_info, gUNK_0079ecbc, 1.0f);
+    } else {
+        face = FindFloorInBoxM(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
+        if (face == NULL) {
+            face = FindFloorInBoxM(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[mine->collision_info->box_face_start], mine->collision_info->box_face_end - mine->collision_info->box_face_start);
+            if (face == NULL) {
+                return pPowerup - gPowerup_array;
+            }
+        }
+        BrVector3Scale(&d, &d, -(1.0f - dist) - 0.1);
+        mine->collision_info->transform_matrix.m[3][0] += d.v[0];
+        mine->collision_info->transform_matrix.m[3][1] += d.v[1];
+        mine->collision_info->transform_matrix.m[3][2] += d.v[2];
+        CollideShitMine(pCar->collision_info, mine->collision_info, 1.0f);
+    }
+    return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004de040
+extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
+extern br_material* oily_material;
+
+// based on carpocalypse2 src/carma2/common/powerups.c (QueueOilSpill inlined as QueueOilSpill2)
+// FUNCTION: CARMA2_HW 0x004de040
 int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    PlayExclusiveFFBEffect("Oil_Slick", 0);
+    QueueOilSpill2(NULL, pCar->car_master_actor, pCar->car_actor->model, 0,
+                   0.35f, 0.6f, 9.0e-05f, 0.0003f, 0.2f, 1.5f, 2.5f, 0.01f, 0.15f,
+                   oily_material, NULL);
+    return pPowerup - gPowerup_array;
 }
 
 extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
@@ -640,9 +782,13 @@ int C2_HOOK_FASTCALL NapalmPeds(tPowerup* pPowerup, tCar_spec* pCar) {
     return result;
 }
 
-// STUB: CARMA2_HW 0x004de1e0
+extern int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pTell_net);
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de1e0
 int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    return RepulseOpponents2(pPowerup, pCar, 1);
 }
 
 // based on carpocalypse2 src/carma2/common/powerups.c
@@ -3864,3 +4010,50 @@ const float gConst_0p1 = 0.1f;
 
 // GLOBAL: CARMA2_HW 0x0058ac48
 const double gConst_10_over_7 = 10.0 / 7.0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004dd3f0
+void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004dd590
+void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004c8fb0
+void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004ddc20
+void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x0079ecbc
+tPhysics_object* gUNK_0079ecbc;
