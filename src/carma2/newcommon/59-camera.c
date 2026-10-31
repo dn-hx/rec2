@@ -215,7 +215,10 @@ tU8 gCamera_type_allowed_gameplay[9] = { 1, 0, 0, 0, 1, 0, 0, 1, 1 };
 // GLOBAL: CARMA2_HW 0x0058f62c
 tActionReplayCameraMode old_camera_mode = kActionReplayCameraMode_Invalid;
 
-// GLOBAL: CARMA2_HW 0x0058f640
+// 0x0058f640 is listed as a string in reccmp/carma2_hw-ascii.csv, so a
+// GLOBAL annotation here would give the orig entity a name it can never match
+// (reccmp keeps the CSV string type); leave it unnamed and let reccmp's string
+// analysis name it from its " " contents.
 char gCamera_hud_timer_separator[4] = " ";
 
 // GLOBAL: CARMA2_HW 0x00679298
