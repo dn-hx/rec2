@@ -359,7 +359,7 @@ br_model* C2_HOOK_FASTCALL BuildTintedPolyModel(int x0, int y0, int width, int h
 }
 
 // FUNCTION: CARMA2_HW 0x004d7c80
-static void C2_HOOK_FASTCALL FreeTintedPolyActor(int pTintedIndex) {
+void C2_HOOK_FASTCALL FreeTintedPolyActor(int pTintedIndex) {
     if (!gTintedPolys[pTintedIndex].used) {
         return;
     }
@@ -385,7 +385,24 @@ void C2_HOOK_FASTCALL FreeAllTintedPolyActor(void) {
     int i;
 
     for (i = 0; i < (int)REC2_ASIZE(gTintedPolys); i++) {
-        FreeTintedPolyActor(i);
+        if (!gTintedPolys[i].used) {
+            continue;
+        }
+        if (gTintedPolys[i].material != NULL) {
+            BrMaterialFree(gTintedPolys[i].material);
+        }
+        if (gTintedPolys[i].model != NULL) {
+            BrModelFree(gTintedPolys[i].model);
+        }
+        if (gTintedPolys[i].actor != NULL) {
+            BrActorRemove(gTintedPolys[i].actor);
+            BrActorFree(gTintedPolys[i].actor);
+            gTintedPolys[i].actor = NULL;
+        }
+        gTintedPolys[i].class = 0;
+        gTintedPolys[i].material2 = NULL;
+        gTintedPolys[i].visible = 0;
+        gTintedPolys[i].used = 0;
     }
 }
 

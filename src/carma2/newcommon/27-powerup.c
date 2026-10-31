@@ -528,9 +528,11 @@ int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004de9a0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de9a0
 void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    MakePedsNotEthereal();
 }
 
 // STUB: CARMA2_HW 0x004de9b0
@@ -543,9 +545,17 @@ int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004debb0
-int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004debb0
+int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car) {
+
+    car->field_0x4c8 = powerup->float_params[0];
+    if (gNet_mode) {
+        RecalculateCarMassMomentOfInertia(car);
+    }
+    return powerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004df220
@@ -3533,6 +3543,17 @@ int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
 #endif
 // STUB: CARMA2_HW 0x004d6b40
 void C2_HOOK_FASTCALL MakePedsEthereal(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004f9020
+void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

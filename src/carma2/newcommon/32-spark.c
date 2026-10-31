@@ -2227,9 +2227,28 @@ int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004fec30
+// based on carpocalypse2 src/carma2/common/spark.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fec30
 intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush_data;
+    int (C2_HOOK_FASTCALL* callback)(br_model*);
+
+    callback = (int (C2_HOOK_FASTCALL*)(br_model*))pContext;
+    if (pActor->type != BR_ACTOR_MODEL) {
+        return 0;
+    }
+    if (pActor->model == NULL) {
+        return 0;
+    }
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    if (user_crush_data->groove != NULL) {
+        return 0;
+    }
+    callback(pActor->model);
+    return 0;
 }
 
 #ifdef REC2_MATCHING
@@ -2260,14 +2279,53 @@ void C2_HOOK_FASTCALL GetVelocitiesFromMatrices(br_vector3* pVel, br_vector3* pR
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004fe8a0
+// based on carpocalypse2 src/carma2/common/spark.c:1216 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fe8a0
 intptr_t C2_HOOK_CDECL ForEveryActorMaterial(br_actor* pActor, void* pContext) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush_data;
+    tMaterialMaybeUpdate_cbfn* callback;
+
+    callback = pContext;
+    if (pActor->type != BR_ACTOR_MODEL) {
+        return 0;
+    }
+    if (pActor->model == NULL) {
+        return 0;
+    }
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    if (pActor->material != NULL) {
+        callback(pActor->material);
+    }
+    ForEveryModelMaterial(pActor->model, callback);
     return 0;
 }
-// STUB: CARMA2_HW 0x004fe930
+// based on carpocalypse2 src/carma2/common/spark.c:1243 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fe930
 intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pContext) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush_data;
+    tMaterialMaybeUpdate_cbfn* callback;
+
+    callback = pContext;
+    if (pActor->type != BR_ACTOR_MODEL) {
+        return 0;
+    }
+    if (pActor->model == NULL) {
+        return 0;
+    }
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    if (user_crush_data->groove != NULL) {
+        return 0;
+    }
+    if (pActor->material != NULL) {
+        callback(pActor->material);
+    }
+    ForEveryModelMaterial(pActor->model, callback);
     return 0;
 }
 #ifdef REC2_MATCHING

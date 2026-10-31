@@ -37,10 +37,21 @@ void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 
     RemoveTransientBitmaps(1);
 }
-// STUB: CARMA2_HW 0x004e6900
-void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(void) {
+// based on carpocalypse2 src/carma2/common/replay.c:286 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004e6900
+void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number) {
+    extern tU32 gTime_of_last_zappy_headups;
+    extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+    extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
+    tU32 time;
 
-    NOT_IMPLEMENTED();
+    time = PDGetTotalTime();
+    if (abs(pFrame_number) > 0x2710 && time - gTime_of_last_zappy_headups > 0x32) {
+        ActualActionReplayHeadups(pFrame_number);
+        gTime_of_last_zappy_headups = time;
+        PDScreenBufferSwap(0);
+        RemoveTransientBitmaps(1);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004e6270
@@ -49,10 +60,17 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
     ActualActionReplayHeadups(0);
 }
 
-// STUB: CARMA2_HW 0x004e6950
+// based on carpocalypse2 src/carma2/common/replay.c:302 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004e6950
 void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
+    extern tU32 gCamera_period;
+    extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
+    extern void C2_HOOK_FASTCALL MungePedestrians(int pFrame_period);
 
-    NOT_IMPLEMENTED();
+    UpdateFramePeriod(&gCamera_period);
+    if (ARGetReplayRate() < 0.0f) {
+        MungePedestrians(pFrame_period);
+    }
 }
 
 extern void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period);
@@ -112,7 +130,7 @@ void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
                 RenderAFrame(1);
             }
             if (!ARToggleReplay(TurnOnActionReplay, TurnOffActionReplay, AfterActionReplay,
-                    DoZappyActionReplayHeadups, PreProcess, PostProcess, NULL, NULL)) {
+                    (tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess, NULL, NULL)) {
                 NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_action_replay_unavailable));
             }
         }
@@ -337,7 +355,7 @@ void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2) {
         RenderAFrame(1);
     }
     if (!ARToggleReplay(TurnOnActionReplay, TurnOffActionReplay, AfterActionReplay,
-            DoZappyActionReplayHeadups, PreProcess, PostProcess, pArg1, pArg2)) {
+            (tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess, pArg1, pArg2)) {
         NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_action_replay_unavailable));
     }
 }
@@ -478,10 +496,14 @@ void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 f
     DoDroneFunkyGroovyThings(drone);
 }
 
+// based on ApexWorm/rec2 36e8ff344
 // FUNCTION: CARMA2_HW 0x004b7220
 void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
+    tPhysics_object* object;
 
-    NOT_IMPLEMENTED();
+    object = (tPhysics_object*)field_0x0;
+    BrMatrix34Copy(&object->transform_matrix, pField_0x4);
+    BrMatrix34Copy(&object->actor->t.t.mat, pField_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9070
@@ -712,10 +734,14 @@ void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_0x4, vo
     NOT_IMPLEMENTED();
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004da960
 void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
+    extern tRepulse_link gRepulse_links[6];
 
-    NOT_IMPLEMENTED();
+    gRepulse_links[field_0x0].pos_origin = (br_vector3*)field_0x4;
+    gRepulse_links[field_0x0].pos_victim = (br_vector3*)field_0x8;
+    gRepulse_links[field_0x0].time = (tU32)field_0xc;
 }
 
 // based on ApexWorm/rec2 5b75cde93
@@ -1054,3 +1080,9 @@ tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_ins
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x006a2380
+tU32 gTime_of_last_zappy_headups;
+
+// GLOBAL: CARMA2_HW 0x0074abf0
+tU32 gCamera_period;
