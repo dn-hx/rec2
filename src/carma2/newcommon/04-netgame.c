@@ -472,7 +472,68 @@ void C2_HOOK_FASTCALL DisposeNetHeadups(void) {
 
 // CheckForVampireWinner
 
-// PlayerIsInfected
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
+extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
+
+// based on carpocalypse2 src/carma2/common/netgame.c:609
+// FUNCTION: CARMA2_HW 0x0049b540
+void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer) {
+    int i;
+    int infected_count;
+    int winner_index;
+    tPlayer_ID* player_id;
+    int* player_infected;
+    char message[256];
+
+    if (pPlayer->field_0x80 == 0) {
+        DisposeKevStuffCar(pPlayer->car);
+        *(int*)((tU8*)pPlayer->car + 0x1bc) = 1;
+        *(int*)((tU8*)pPlayer->car + 0x1b4) = 1;
+        *(int*)((tU8*)pPlayer->car + 0x1b8) = 1;
+        pPlayer->field_0x80 = 1;
+        for (i = 0; i < 3; i++) {
+            pPlayer->car->power_up_levels[i] = pPlayer->car->power_up_slots[i];
+        }
+        if (gNet_mode == eNet_mode_host) {
+            sprintf(message, "%s", GetMiscString(0xba));
+            NetSendHeadupToPlayer(message, pPlayer->ID);
+            i = 0;
+            if (0 < gNumber_of_net_players) {
+                player_id = &gNet_players[0].ID;
+                do {
+                    if ((tNet_game_player_info*)(player_id - 9) != pPlayer) {
+                        sprintf(message, "%s %s", pPlayer->player_name, GetMiscString(0xb9));
+                        NetSendHeadupToPlayer(message, *player_id);
+                    }
+                    i++;
+                    player_id += 0x35;
+                } while (i < gNumber_of_net_players);
+            }
+        }
+        pPlayer->score2 = -1 - GetTotalTime();
+        infected_count = 0;
+        i = gProgram_state.racing;
+        winner_index = 0;
+        if (i != 0 && gNet_mode == eNet_mode_host) {
+            i = 0;
+            if (0 < gNumber_of_net_players) {
+                player_infected = &gNet_players[0].field_0x80;
+                do {
+                    if (*player_infected == 0) {
+                        infected_count++;
+                        winner_index = i;
+                    }
+                    i++;
+                    player_infected += 0x35;
+                } while (i < gNumber_of_net_players);
+            }
+            if (infected_count <= 1) {
+                DeclareWinner(winner_index);
+            }
+        }
+    }
+}
 
 // FarEnoughAway
 
@@ -1116,6 +1177,17 @@ void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPl
             SendGuaranteedMessageToPlayer(gCurrent_net_game, message, pPlayer_id, 0);
         }
     }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049a760
+void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
