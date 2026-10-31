@@ -31,11 +31,45 @@ char gQuick_time_movie_path_stub[256];
 // GLOBAL: CARMA2_HW 0x00705340
 char gQuick_time_banner_texture_name[256];
 
-// GLOBAL: CARMA2_HW 0x0065ee50
-char gDefault_quick_time_quality[] = "normal";
-
+// Byte image of the original option tables: 8 (resp. 6) entries of
+// { char name[32]; unsigned int code; }. The name at offset 0 is also the
+// default name used by SetQuickTimeDefaults.
 // GLOBAL: CARMA2_HW 0x0065ed30
-char gDefault_quick_time_compressor[] = "animation";
+char gDefault_quick_time_compressor[0x120] =
+    /* animation    0x726c6520 */
+    "animation\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\040\145\154\162"
+    /* video        0x72707a61 */
+    "video\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\141\172\160\162"
+    /* jpeg         0x6a706567 */
+    "jpeg\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\147\145\160\152"
+    /* raw          0x72617720 */
+    "raw\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\040\167\141\162"
+    /* flic         0x666c6963 */
+    "flic\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\143\151\154\146"
+    /* gif          0x67696620 */
+    "gif\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\040\146\151\147"
+    /* cinepak      0x63766964 */
+    "cinepak\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\144\151\166\143"
+    /* compactvideo 0x63647663 */
+    "compactvideo\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\143\166\144\143";
+
+// GLOBAL: CARMA2_HW 0x0065ee50
+char gDefault_quick_time_quality[0xd8] =
+    /* normal       0x00000200 */
+    "normal\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\000\002\000\000"
+    /* min          0x00000000 */
+    "min\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\000\000\000\000"
+    /* low          0x00000100 */
+    "low\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\000\001\000\000"
+    /* high         0x00000300 */
+    "high\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\000\003\000\000"
+    /* max          0x000003ff */
+    "max\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\377\003\000\000"
+    /* lossless     0x00000400 */
+    "lossless\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\000\004\000\000";
+
+// GLOBAL: CARMA2_HW 0x0065ef28
+int gQuickTime_quality_code = -1;
 
 // GLOBAL: CARMA2_HW 0x006a23b8
 int gShow_status_message;
@@ -96,7 +130,98 @@ void C2_HOOK_FASTCALL SetQuickTimeDefaults(void) {
     }
 }
 
-// MovieRecordButtonPressed
+typedef struct {
+    char name[32];
+    unsigned int code;
+} tQuickTime_name_code;
+
+extern tS3_outlet* gEffects_outlet;
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int gStatus_message_1;
+extern int gStatus_message_2;
+extern int gRecording_paused;
+extern int gQuickTime_quality_code;
+extern int gQuickTime_compressor_code;
+extern short gQuicktime_movie_file;
+extern FSSpec gQt_file_spec;
+extern int C2_HOOK_CDECL FUN_00575340(char* pString);
+
+#pragma pack(push, 1)
+typedef struct {
+    short vRefNum;
+    long parID;
+    char name[64];
+} tMoviePackedFSSpec;
+#pragma pack(pop)
+
+// based on carpocalypse2 src/carma2/common/movie.c:148
+// FUNCTION: CARMA2_HW 0x004e1810
+void C2_HOOK_FASTCALL MovieRecordButtonPressed(void) {
+    const tQuickTime_name_code* pOption;
+    int i;
+
+    if (gQuickTime_initialized != 0) {
+        if (gNext_replay_record_state == 4) {
+            gRecording_paused = gRecording_paused == 0;
+            if (gRecording_paused != 0) {
+                DRS3StartSound(gEffects_outlet, 0x232b);
+                DRS3StartSound(gEffects_outlet, 0x157c);
+                gShow_status_message = 1;
+                gStatus_message_1 = 0x119;
+                gStatus_message_2 = 0;
+                return;
+            }
+            DRS3StartSound(gEffects_outlet, 0x2333);
+            gShow_status_message = 1;
+            gStatus_message_1 = 0x117;
+            gStatus_message_2 = 0;
+            return;
+        }
+        if (gNext_replay_record_state == 0) {
+            gStatus_message_1 = 0x116;
+            gNext_replay_record_state = 1;
+            gShow_status_message = 1;
+            gStatus_message_2 = 0x118;
+            gQuicktime_movie_file = 0;
+            gRecording_paused = 0;
+            if (gQuickTime_quality_code == -1) {
+                for (i = 0, pOption = (const tQuickTime_name_code*)gDefault_quick_time_quality;
+                    pOption < (const tQuickTime_name_code*)gDefault_quick_time_quality + 6;
+                    i++, pOption++) {
+                    if (strcmp(pOption->name, gQuick_time_quality) == 0) {
+                        goto quality_found;
+                    }
+                }
+                gQuickTime_quality_code = 0x100;
+                goto quality_continue;
+            }
+quality_continue:
+            if (gQuickTime_compressor_code == 0) {
+                for (i = 0, pOption = (const tQuickTime_name_code*)gDefault_quick_time_compressor;
+                    pOption < (const tQuickTime_name_code*)gDefault_quick_time_compressor + 8;
+                    i++, pOption++) {
+                    if (strcmp(pOption->name, gQuick_time_compressor) == 0) {
+                        goto compressor_found;
+                    }
+                }
+                gQuickTime_compressor_code = 0x726c6520;
+                goto compressor_done;
+compressor_found:
+                gQuickTime_compressor_code = ((const tQuickTime_name_code*)gDefault_quick_time_compressor)[i].code;
+compressor_done:
+                ;
+            }
+            ((tMoviePackedFSSpec*)&gQt_file_spec)->vRefNum = 0;
+            ((tMoviePackedFSSpec*)&gQt_file_spec)->parID = 0;
+            strcpy(((tMoviePackedFSSpec*)&gQt_file_spec)->name, gQuick_time_temp_path);
+            FUN_00575340(((tMoviePackedFSSpec*)&gQt_file_spec)->name);
+        }
+    }
+    return;
+quality_found:
+    gQuickTime_quality_code = ((const tQuickTime_name_code*)gDefault_quick_time_quality)[i].code;
+    goto quality_continue;
+}
 
 #pragma pack(push, 1)
 typedef struct {
@@ -487,6 +612,21 @@ short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFram
 }
 // STUB: CARMA2_HW 0x0056b440
 short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006a0c4c
+int gQuickTime_compressor_code;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00575340
+int C2_HOOK_CDECL FUN_00575340(char* pString) {
     NOT_IMPLEMENTED();
     return 0;
 }
