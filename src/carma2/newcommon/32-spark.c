@@ -610,11 +610,6 @@ int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial) {
     }
 }
 
-// STUB: CARMA2_HW 0x004f9620
-void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
-}
-
 extern int gNum_splash_types;
 extern int gAFE;
 extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
@@ -2263,10 +2258,70 @@ void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004030f0
+// based on carpocalypse2 src/carma2/common/piping.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004030f0
 tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner) {
-    NOT_IMPLEMENTED();
-    return NULL;
+    extern tU8* gPipe_play_ptr;
+    extern tU8* gPipe_record_ptr;
+    extern tU8* gPipe_buffer_working_end;
+    extern tU8* gPipe_buffer_start;
+    extern const tReplay_callback* gPipe_callbacks;
+    tU8* cur;
+    tU8* chunk;
+    tU32 i;
+    tU32 length;
+    tU32 total;
+
+    cur = gPipe_play_ptr;
+    if (cur == gPipe_record_ptr) {
+        return NULL;
+    }
+    for (;;) {
+        if (((tPipe_session*)cur)->type == pType) {
+            chunk = cur + 8;
+            for (i = 0; i < ((tPipe_session*)cur)->count; i++) {
+                if (*(uintptr_t*)chunk == pOwner) {
+                    return chunk;
+                }
+                if (gPipe_callbacks[pType].calc_length != NULL) {
+                    length = gPipe_callbacks[pType].calc_length((tPipe_chunk*)chunk);
+                    length = length + gPipe_callbacks[pType].length + sizeof(void*);
+                } else {
+                    length = gPipe_callbacks[pType].length + sizeof(void*);
+                }
+                chunk = chunk + length;
+            }
+        }
+        total = 0;
+        for (i = 0; i < ((tPipe_session*)cur)->count; i++) {
+            tU32 chunk_type;
+            tU8* the_chunk;
+
+            chunk_type = (tU32)((tPipe_session*)cur)->type;
+            the_chunk = cur + 8 + total;
+            if (gPipe_callbacks[chunk_type].calc_length != NULL) {
+                length = gPipe_callbacks[chunk_type].calc_length((tPipe_chunk*)the_chunk);
+                length = length + gPipe_callbacks[chunk_type].length + sizeof(void*);
+            } else {
+                length = gPipe_callbacks[chunk_type].length + sizeof(void*);
+            }
+            total += length;
+        }
+        total += 10;
+        if ((total & 1) != 0) {
+            FatalError(0x62);
+        }
+        cur = cur + total;
+        if ((uintptr_t)cur >= (uintptr_t)gPipe_buffer_working_end) {
+            if (cur == gPipe_record_ptr) {
+                return NULL;
+            }
+            cur = gPipe_buffer_start;
+        }
+        if (cur == gPipe_record_ptr) {
+            return NULL;
+        }
+    }
 }
 // STUB: CARMA2_HW 0x004fda70
 void C2_HOOK_FASTCALL GetVelocitiesFromMatrices(br_vector3* pVel, br_vector3* pRot, br_matrix34* pMat_now, br_matrix34* pMat_prev, tU32 pTime) {
@@ -2331,3 +2386,60 @@ intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pC
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// based on carpocalypse2 src/carma2/common/spark.c (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004f9620
+void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar_spec) {
+    extern void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex);
+    tCar_crush_spec* spec;
+    int i;
+    int j;
+    int funk_index;
+
+    spec = pCar_spec->car_crush_spec;
+    DRActorEnumRecurse(pCar_spec->car_model_actor, ActorFunks, (void*)MasterEnableFunkotronic);
+    for (i = 0; i < spec->field_0x270; i++) {
+        br_actor* bit_actor;
+        tUser_crush_data* user;
+        tCar_crush_buffer_entry* crush;
+
+        bit_actor = spec->field_0x274[i].field_0x0;
+        if (bit_actor->user != NULL) {
+            user = (tUser_crush_data*)bit_actor->user;
+            crush = user->crush_data;
+            if (crush != NULL) {
+                if (crush->smashables != NULL) {
+                    for (j = 0; j < crush->count_smashables; j++) {
+                        funk_index = j[crush->smashables].funk;
+                        if (funk_index >= 0) {
+                            MasterEnableFunkotronic(funk_index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (i = 0; i < spec->field_0x2b0; i++) {
+        br_actor* bit_actor;
+        tUser_crush_data* user;
+        tCar_crush_buffer_entry* crush;
+
+        bit_actor = spec->field_0x2b4[i].field_0x0;
+        if (bit_actor->user != NULL) {
+            user = (tUser_crush_data*)bit_actor->user;
+            crush = user->crush_data;
+            if (crush != NULL) {
+                if (crush->smashables != NULL) {
+                    for (j = 0; j < crush->count_smashables; j++) {
+                        funk_index = crush->smashables[j].funk;
+                        if (funk_index >= 0) {
+                            MasterEnableFunkotronic(funk_index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ForEveryCarMaterial(pCar_spec, RestorePixelmap, 1);
+    pCar_spec->field_0x1960 = NULL;
+}

@@ -729,9 +729,65 @@ int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDe
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004def00
+extern tPowerup* gPowerup_array;
+extern int gNumber_of_powerups;
+extern tHeadup_icon gPickedup_powerups[20];
+extern int gNumber_of_icons;
+extern tPlayer_ID gLocal_net_ID;
+extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+
+// based on carpocalypse2 src/carma2/common/powerups.c:1105
+// FUNCTION: CARMA2_HW 0x004def00
 void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int powerup_address;
+    int message_address;
+    tU32 total_time;
+    int* active_powerup;
+    int* picked_up_powerup;
+    int powerup_offset;
+    int i;
+    int j;
+
+    if (((pCar != NULL) && (pCar->driver == eDriver_local_human)) && (i = 0, 0 < gNumber_of_powerups)) {
+        powerup_offset = 0;
+        active_powerup = pCar->powerups;
+        do {
+            if ((*active_powerup != 0) && (powerup_address = (int)((char*)gPowerup_array + powerup_offset), (((tPowerup*)powerup_address)->net_type & 1) == 0)) {
+                if (((tPowerup*)powerup_address)->got_time != 0 && ((tPowerup*)powerup_address)->lose_proc != NULL) {
+                    ((tPowerup*)powerup_address)->lose_proc((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
+                }
+                if (((tPowerup*)powerup_address)->net_type & 0x80) {
+                    ARPowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
+                }
+                if (gNet_mode != 0) {
+                    message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
+                    *(int*)(message_address + 0x28) = 2;
+                    *(tPlayer_ID*)(message_address + 0x1c) = gLocal_net_ID;
+                    *(int*)(message_address + 0x20) = (powerup_address - (int)gPowerup_array) / 0xac;
+                    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)message_address, 0);
+                }
+                gProgram_state.current_car.powerups[(powerup_address - (int)gPowerup_array) / 0xac] = 0;
+                if (((tPowerup*)powerup_address)->initial_value == 0 && (j = 0, 0 < gNumber_of_icons)) {
+                    picked_up_powerup = (int*)&gPickedup_powerups[0].powerup;
+                    while (j < gNumber_of_icons) {
+                        if (powerup_address == *picked_up_powerup) {
+                            gPickedup_powerups[j].fizzle_stage = 3;
+                            gPickedup_powerups[j].fizzle_direction = -1;
+                            total_time = GetTotalTime();
+                            gPickedup_powerups[j].fizzle_start = total_time;
+                            break;
+                        }
+                        j++;
+                        picked_up_powerup += 5;
+                    }
+                }
+                ((tPowerup*)powerup_address)->got_time = 0;
+            }
+            i++;
+            active_powerup++;
+            powerup_offset += 0xac;
+        } while (i < gNumber_of_powerups);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -740,9 +796,35 @@ void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049a9e0
+extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
+
+// based on carpocalypse2 src/carma2/common/netgame.c:304
+// FUNCTION: CARMA2_HW 0x0049a9e0
 void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer) {
-    NOT_IMPLEMENTED();
+    int i;
+    char s[256];
+
+    if (gIt_or_fox == pPlayer - gNet_players) {
+        return;
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        StopCarBeingIt(gNet_players[i].car);
+    }
+    if (gCurrent_net_game->type == eNet_game_type_foxy) {
+        pPlayer->car->power_up_levels[1] = 0;
+    }
+    DisposeKevStuffCar(pPlayer->car);
+    gIt_or_fox = pPlayer - gNet_players;
+    sprintf(s, "%s", GetMiscString(0xbc));
+    NetSendHeadupToPlayer(s, pPlayer->ID);
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (&gNet_players[i] != pPlayer) {
+            sprintf(s, "%s %s", pPlayer->player_name, GetMiscString(0xbb));
+            NetSendHeadupToPlayer(s, gNet_players[i].ID);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -765,10 +847,69 @@ void C2_HOOK_FASTCALL SetUpNetCarPositions(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049f6f0
+extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
+
+// based on carpocalypse2 src/carma2/common/network.c:1732
+// FUNCTION: CARMA2_HW 0x0049f6f0
 tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id) {
-    NOT_IMPLEMENTED();
+    int i;
+    int chunk_size;
+    int offset;
+    tNet_message* message;
+    tNet_message_chunk* chunk;
+    tNet_game_player_info* player;
+
+    chunk_size = NetGetContentsSize(pType, pSize_decider);
+    i = 0;
+    if (gNumber_of_net_players <= 0) {
+        return NULL;
+    }
+    for (; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].ID == pPlayer_id) {
+            goto found_player;
+        }
+    }
     return NULL;
+
+found_player:
+    player = &gNet_players[i];
+    if (player == &gNet_players[gThis_net_player_index]) {
+        PDFatalError("Trying to send network message to self");
+    }
+    message = player->field_0xcc;
+    if (message != NULL && message->header.field_0x16 + chunk_size > 0x200) {
+        tPlayer_ID player_id = player->ID;
+        tNet_game_details* game = gCurrent_net_game;
+
+        if (gNet_mode != eNet_mode_none) {
+            message->header.field_0x8 = gLocal_net_ID;
+            message->header.field_0x10 = PDGetTotalTime();
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                if (gNet_players[i].ID == player_id) {
+                    goto send_message;
+                }
+            }
+            goto clear_message;
+
+send_message:
+            PDNetSendMessageToAddress(game, message, &gNet_players[i]);
+        }
+clear_message:
+        player->field_0xcc = message = NULL;
+    }
+    if (message == NULL) {
+        player->field_0xcc = NetAllocateMessage(0x200);
+        message = player->field_0xcc;
+        message->header.field_0x16 = (tU16)sizeof(tNet_message_header);
+        message->header.field_0x14 = 0;
+    }
+    offset = message->header.field_0x16;
+    chunk = (tNet_message_chunk*)((tU8*)message + offset);
+    message->header.field_0x16 += (tU16)chunk_size;
+    message->header.field_0x14 += 1;
+    chunk->raw.header.type = pType;
+    chunk->raw.header.size = (tU8)chunk_size;
+    return chunk;
 }
 
 // based on carpocalypse2 src/carma2/common/crush.c
@@ -920,6 +1061,28 @@ void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4
 #endif
 // STUB: CARMA2_HW 0x0043d690
 void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004fe570
+void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049daf0
+void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
