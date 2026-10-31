@@ -1679,5 +1679,5 @@ void C2_HOOK_FASTCALL ReceivedMessage(tNet_message* pMessage, void* pSender_addr
 // GLOBAL: CARMA2_HW 0x0068d968
 int gINT_0068d968;
 
-// GLOBAL: CARMA2_HW 0x0075bc24
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075bc24
 int gINT_0075bc24;
