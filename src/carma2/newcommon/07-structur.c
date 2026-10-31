@@ -101,17 +101,82 @@ int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
     return result;
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x005030b0
-// STUB: CARMA2_SW 0x004fea00
+extern void C2_HOOK_FASTCALL ToggleMap(void);
+extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+
+// FUNCTION: CARMA2_HW 0x005030b0
+// FUNCTION: CARMA2_SW 0x004fea00
 void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason) {
-    NOT_IMPLEMENTED();
+
+    if (gRace_finished) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_host && pReason < eRace_over_8) {
+        NetFinishRace(gCurrent_net_game, pReason);
+    }
+    if (pReason == eRace_over_out_of_time || pReason == eRace_over_7) {
+        ChangeAmbientPratcam(35);
+    } else if (pReason < eRace_over_abandoned) {
+        ChangeAmbientPratcam(34);
+    }
+    gRace_over_reason = pReason;
+    if (gMap_view == 2) {
+        ToggleMap();
+    }
+    switch (gRace_over_reason) {
+    case eRace_over_8:
+        ChangeAmbientPratcam(34);
+        DoFancyHeadup(29);
+        break;
+    case eRace_over_9:
+        ChangeAmbientPratcam(36);
+        DoFancyHeadup(26);
+        break;
+    case eRace_over_out_of_time:
+        ChangeAmbientPratcam(35);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(33);
+        } else {
+            DoFancyHeadup(22);
+        }
+        DRS3StartSound(gPedestrians_outlet, eSoundId_OutOfTime2);
+        break;
+    case eRace_over_7:
+        ChangeAmbientPratcam(35);
+        DoFancyHeadup(35);
+        break;
+    case eRace_over_0:
+    case eRace_over_1:
+    case eRace_over_2:
+    case eRace_over_3:
+        ChangeAmbientPratcam(34);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(34);
+        } else {
+            DoFancyHeadup(23);
+        }
+        DRS3StartSound(gPedestrians_outlet, eSoundId_RaceComplete);
+        break;
+    case eRace_over_abandoned:
+        if (gNet_mode == eNet_mode_client) {
+            gHost_abandon_game = 1;
+            NetFullScreenMessage(eMiscString_host_abandoned_race, 0);
+        }
+        break;
+    case eRace_over_6:
+        ChangeAmbientPratcam(36);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(33);
+        } else {
+            DoFancyHeadup(24);
+        }
+        break;
+    default:
+        break;
+    }
+    gRace_finished = gNet_mode == eNet_mode_none ? 10000 : 8000;
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x00503270
 void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
@@ -966,9 +1031,32 @@ void C2_HOOK_FASTCALL InitRace(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004c6580
+// FUNCTION: CARMA2_HW 0x004c6580
 void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
-    NOT_IMPLEMENTED();
+    int cat;
+    int car_count;
+    int i;
+
+    for (cat = eVehicle_self; cat <= eVehicle_not_really; cat++) {
+        if (cat == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(cat);
+        }
+        for (i = 0; i < car_count; i++) {
+            tCar_spec* car;
+
+            car = cat == eVehicle_self ? &gProgram_state.current_car : GetCarSpec(cat, i);
+            if (cat != eVehicle_not_really) {
+                int j;
+
+                for (j = 0; j < 12; j++) {
+                    car->frame_start_damage[j] = 0;
+                }
+            }
+            car->car_ID = (tU16)((cat << 8) + i);
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004e3440
@@ -2058,3 +2146,18 @@ tU32 gLast_it_change = 0;
 
 // GLOBAL: CARMA2_HW 0x0068d938
 int gWinner_declared = 0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a5710
+void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004a0080
+void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
