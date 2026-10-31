@@ -832,10 +832,23 @@ tPlayer_status C2_HOOK_FASTCALL NetGetPlayerStatus(void) {
 
 // NetGuaranteedSendMessageToEverybody
 
-// STUB: CARMA2_HW 0x004a5c80
-// STUB: CARMA2_SW 0x004a1e00
-void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a5e20
+int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail) {
     NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004a5c80
+// FUNCTION: CARMA2_SW 0x004a1e00
+void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
+
+    SendGuaranteedMessageToPlayer(pDetails, pMessage, gNet_players[0].ID, pNotifyFail);
 }
 
 #ifdef REC2_MATCHING

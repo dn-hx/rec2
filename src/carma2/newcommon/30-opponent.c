@@ -11,6 +11,7 @@
 #include "41-utility.h"
 
 #include <math.h>
+#include <stdarg.h>
 #include <string.h>
 
 extern tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tOpponent_spec* pOpponent_spec, br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance);
@@ -1506,9 +1507,39 @@ extern br_scalar gHead_on_cos_value;
 void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpponent_spec) {
     NOT_IMPLEMENTED();
 }
-// STUB: CARMA2_HW 0x004aad70
+// based on carpocalypse2 src/carma2/common/opponent.c (reference only)
+// FUNCTION: CARMA2_HW 0x004aad70
 void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_objective_type pObjective_type, ...) {
-    NOT_IMPLEMENTED();
+    extern void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
+    va_list ap;
+
+    if (pOpponent_spec->current_objective != eOOT_none) {
+        ProcessCurrentObjective(pOpponent_spec, ePOC_die);
+    }
+    pOpponent_spec->current_objective = pObjective_type;
+    pOpponent_spec->time_this_objective_started = gTime_stamp_for_this_munging;
+    pOpponent_spec->time_for_this_objective_to_finish = gTime_stamp_for_this_munging + IRandomBetween(20, 60) * 1000;
+    if (pObjective_type == eOOT_pursue_and_twat) {
+        pOpponent_spec->time_for_this_objective_to_finish += 90000;
+    }
+    switch (pObjective_type) {
+    case eOOT_complete_race:
+        gNum_of_opponents_completing_race += 1;
+        break;
+    case eOOT_pursue_and_twat:
+        va_start(ap, pObjective_type);
+        pOpponent_spec->pursue_car_data.pursuee = va_arg(ap, tCar_spec*);
+        va_end(ap);
+        gNum_of_opponents_pursuing += 1;
+        break;
+    case eOOT_get_near_player:
+        gNum_of_opponents_getting_near += 1;
+        break;
+    default:
+        break;
+    }
+    DoNotDprintf("%s: NewObjective() - type %d", pOpponent_spec->car_spec->driver_name, pObjective_type);
+    ProcessCurrentObjective(pOpponent_spec, ePOC_start);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

@@ -1312,12 +1312,49 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
 }
 
 
+extern tCheat gKev_keys[];
+extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
+extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00443c90
+// based on carpocalypse2 src/carma2/common/controls.c:1436 (reference only)
+// FUNCTION: CARMA2_HW 0x00443c90
 void C2_HOOK_FASTCALL CheckKevKeys(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    tU32* value;
+    char s[128];
+
+    value = KevKeyService();
+    if (value[0] == 0) {
+        return;
+    }
+
+    for (i = 0; gKev_keys[i].action_proc != NULL; i++) {
+        if (gKev_keys[i].code == value[0] && gKev_keys[i].code2 == value[1]) {
+            break;
+        }
+    }
+
+    if (gKev_keys[i].action_proc != NULL) {
+        if (gNet_mode != eNet_mode_none) {
+            if (gKev_keys[i].num != 0xa11ee75d) {
+                strcpy(s, gNet_players[gThis_net_player_index].player_name);
+                strcat(s, " ");
+                strcat(s, GetMiscString(224));
+                NetSendHeadupToAllPlayers(s);
+            } else {
+                strcpy(s, gNet_players[gThis_net_player_index].player_name);
+                strcat(s, " ");
+                strcat(s, GetMiscString(225));
+                NetSendHeadupToEverybody(s);
+                gKev_keys[i].action_proc(gKev_keys[i].num);
+            }
+            return;
+        }
+        gKev_keys[i].action_proc(gKev_keys[i].num);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1337,9 +1374,24 @@ void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00442e10
+// based on carpocalypse2 src/carma2/common/controls.c:1519 (reference only)
+// FUNCTION: CARMA2_HW 0x00442e10
 void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* child;
+
+    for (child = pCollision_info->child; child != NULL; child = child->next) {
+        int i;
+        int j;
+
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                child->transform_matrix.m[i][j] = pCollision_info->transform_matrix.m[i][j];
+            }
+        }
+        BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
+        FlipUpCollisionInfo(child);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1350,3 +1402,118 @@ int gToo_late;
 
 // GLOBAL: CARMA2_HW 0x00590f60
 int gCancel_recover = 1;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049d430
+void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049d780
+void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x00590970
+tCheat gKev_keys[] = {
+    { 0xa11ee75d, 0xf805eddd, SetFlag      , 0xa11ee75d },
+    { 0x398da28c, 0x44339dd4, SetFlag      , 0x564e78b9 },
+    { 0x7dc510f3, 0x65c61537, SetFlag2     , 0x00000001 },
+    { 0x309e4f55, 0xecc7daaf, FinishRace   , 0x00000000 },
+    { 0x1bcbe148, 0x040161b1, GetPowerup   , 0x00000000 },
+    { 0x1d5e7725, 0x0ed62a70, GetPowerup   , 0x00000001 },
+    { 0x22c65063, 0xe4331bc8, GetPowerup   , 0x00000002 },
+    { 0x1a37d28a, 0x139787e4, GetPowerup   , 0x00000003 },
+    { 0x1dcba360, 0x1e38bfa1, GetPowerup   , 0x00000004 },
+    { 0x24c99afb, 0xd908f952, GetPowerup   , 0x00000005 },
+    { 0x200c1bd4, 0x663de391, GetPowerup   , 0x00000006 },
+    { 0x252a2e6b, 0x3304d647, GetPowerup   , 0x00000007 },
+    { 0x218f555c, 0xe2d3ac58, GetPowerup   , 0x00000008 },
+    { 0x1fc7655b, 0xa12f9258, GetPowerup   , 0x00000009 },
+    { 0x2b2e6891, 0x4bd611c2, GetPowerup   , 0x0000000a },
+    { 0x2db8b34a, 0x4418ac58, GetPowerup   , 0x0000000b },
+    { 0x3001467e, 0xb323f944, GetPowerup   , 0x0000000c },
+    { 0x23968eda, 0x9259246e, GetPowerup   , 0x0000000d },
+    { 0x1f3baa55, 0x56c505a9, GetPowerup   , 0x0000000f },
+    { 0x214a2558, 0x56cbf421, GetPowerup   , 0x00000010 },
+    { 0x373ae69a, 0xef8c998f, GetPowerup   , 0x00000011 },
+    { 0x327ebd75, 0x605a9e3e, GetPowerup   , 0x00000012 },
+    { 0x350c0384, 0x73e576d2, GetPowerup   , 0x00000013 },
+    { 0x17f03c24, 0x0071650c, GetPowerup   , 0x00000014 },
+    { 0x32aeca21, 0x689d3168, GetPowerup   , 0x00000015 },
+    { 0x191841aa, 0x10fbd770, GetPowerup   , 0x00000016 },
+    { 0x26026896, 0x630e5fa9, GetPowerup   , 0x00000017 },
+    { 0x2440ca1b, 0x2e68304c, GetPowerup   , 0x00000018 },
+    { 0x37a11b1b, 0x6820b87d, GetPowerup   , 0x00000019 },
+    { 0x2f2ea509, 0x6bb804b7, GetPowerup   , 0x0000001a },
+    { 0x28f522f1, 0x2f52f8c0, GetPowerup   , 0x0000001b },
+    { 0x26c15553, 0xba19a354, GetPowerup   , 0x00000020 },
+    { 0x3964b52b, 0x40c94648, GetPowerup   , 0x00000021 },
+    { 0x18bf123a, 0x0080c0a9, GetPowerup   , 0x00000022 },
+    { 0x2a439e13, 0x3356c0b0, GetPowerup   , 0x00000023 },
+    { 0x28769902, 0x50a5d8d1, GetPowerup   , 0x00000024 },
+    { 0x2d5aa4e5, 0x427f9d82, GetPowerup   , 0x00000025 },
+    { 0x1e73b354, 0x17741619, GetPowerup   , 0x00000026 },
+    { 0x1cac0a7c, 0x0a461bb1, GetPowerup   , 0x00000027 },
+    { 0x1e3c613a, 0x6b56e92c, GetPowerup   , 0x00000028 },
+    { 0x2f4c3519, 0x082321f8, GetPowerup   , 0x00000029 },
+    { 0x21f0d261, 0xdae090b9, GetPowerup   , 0x0000002a },
+    { 0x1c727344, 0x78f65c91, GetPowerup   , 0x0000002b },
+    { 0x2f574845, 0x75ff1428, GetPowerup   , 0x0000002c },
+    { 0x1f0601e3, 0x9455c4c8, GetPowerup   , 0x0000002d },
+    { 0x26219ff3, 0xfdfd8b46, GetPowerup   , 0x0000002f },
+    { 0x26afbb31, 0xe3275e40, GetPowerup   , 0x00000030 },
+    { 0x25205546, 0xcf86a14c, GetPowerup   , 0x00000031 },
+    { 0x1a0a8e5b, 0x02035340, GetPowerup   , 0x00000033 },
+    { 0x1bdea925, 0x5d98fd0c, GetPowerup   , 0x00000034 },
+    { 0x2d4dd2a9, 0xf01ba696, GetPowerup   , 0x00000035 },
+    { 0x2e7a7505, 0x8920e4f6, GetPowerup   , 0x00000036 },
+    { 0x17290940, 0x00901801, GetPowerup   , 0x00000037 },
+    { 0x1d4e7a9c, 0x030e2650, GetPowerup   , 0x00000038 },
+    { 0x3579d64a, 0x3d2e34c3, GetPowerup   , 0x00000039 },
+    { 0x28f4d49c, 0xb3418148, GetPowerup   , 0x0000003a },
+    { 0x1d6ba9c3, 0x0e017749, GetPowerup   , 0x0000003b },
+    { 0x310971ab, 0xcb973702, GetPowerup   , 0x0000003c },
+    { 0x28451eeb, 0x30ff63cb, GetPowerup   , 0x0000003d },
+    { 0x1ebfa5ba, 0x92e034ec, GetPowerup   , 0x0000003e },
+    { 0x27079773, 0xd1ef511c, GetPowerup   , 0x0000003f },
+    { 0x388de72c, 0x047a8dca, GetPowerup   , 0x00000040 },
+    { 0x1a0da9fc, 0x0180e010, GetPowerup   , 0x00000041 },
+    { 0x2975a10c, 0xefd65f5d, GetPowerup   , 0x00000042 },
+    { 0x1e5cc6ca, 0x17b76391, GetPowerup   , 0x00000043 },
+    { 0x250c6f99, 0xbdda24cc, GetPowerup   , 0x00000044 },
+    { 0x33950e49, 0x2890738c, GetPowerup   , 0x00000045 },
+    { 0x4e5f487a, 0x3dc635b8, GetPowerup   , 0x00000046 },
+    { 0x3815584c, 0x91bbc26e, GetPowerup   , 0x00000047 },
+    { 0x459732b2, 0xb571e010, GetPowerup   , 0x00000048 },
+    { 0x62871003, 0x79b15084, GetPowerup   , 0x00000049 },
+    { 0x2d72ebb4, 0x5fd4d3ca, GetPowerup   , 0x0000004a },
+    { 0x2c3be2aa, 0x90e0eb9c, GetPowerup   , 0x0000004b },
+    { 0x2b2be28b, 0x30e0eb7b, GetPowerup   , 0x0000004c },
+    { 0x29be089d, 0x635ceb96, GetPowerup   , 0x0000004d },
+    { 0x4897982d, 0x06c4fa99, GetPowerup   , 0x0000004e },
+    { 0x44d50f49, 0x010edb42, GetPowerup   , 0x0000004f },
+    { 0x403afae5, 0x0104a7d2, GetPowerup   , 0x00000050 },
+    { 0x45c19e5e, 0x011b2cf9, GetPowerup   , 0x00000051 },
+    { 0x2f790ebd, 0x2fd87f6b, GetPowerup   , 0x00000052 },
+    { 0x244f60c9, 0x31f4fda3, GetPowerup   , 0x00000053 },
+    { 0x2b0794d3, 0x12927dc9, GetPowerup   , 0x00000054 },
+    { 0x2a44b628, 0x0c3e7edb, GetPowerup   , 0x00000055 },
+    { 0x2998e46d, 0x1360a63e, GetPowerup   , 0x00000056 },
+    { 0x23248728, 0xc84d9d51, GetPowerup   , 0x00000057 },
+    { 0x289c1822, 0x136e9fc3, GetPowerup   , 0x00000058 },
+    { 0x35abb7d0, 0xa08da57c, GetPowerup   , 0x0000005a },
+    { 0x1c1fdd92, 0x01dd060c, GetPowerup   , 0x0000005b },
+    { 0x253069c1, 0x4972796a, GetPowerup   , 0x0000005c },
+    { 0x33ca4873, 0x3b005b24, GetPowerup   , 0x0000005d },
+    { 0x1f56cde5, 0x8f213aae, GetPowerup   , 0x0000005e },
+    { 0x1784995b, 0x0163c389, GetPowerup   , 0x00000060 },
+    { 0x3003eccb, 0x1d74f36f, GetPowerup   , 0x00000061 },
+    { 0x4b054b60, 0x6b6736cb, RichardsSphere, 0x00000000 },
+    { 0x00000000, 0x00000000, NULL,        0x00000000 },
+};

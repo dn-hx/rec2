@@ -464,9 +464,38 @@ void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCo
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00402ab0
+// FUNCTION: CARMA2_HW 0x00402ab0
 void C2_HOOK_FASTCALL ARDoSingleSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize) {
-    NOT_IMPLEMENTED();
+    tU32 new_size;
+
+    if (gPipe_buffer_start == NULL || gAction_replay_mode || !gProgram_state.racing) {
+        return;
+    }
+    /* ARStartPipingSession (StartPipingSession2) inlined */
+    if (gReentrancy_count != 0) {
+        gReentrancy_array[gReentrancy_count - 1] = ((int*)gLocal_buffer)[0];
+        EndPipingSession2(0);
+    }
+    gReentrancy_count += 1;
+    ((int*)gLocal_buffer)[0] = pType;
+    ((int*)gLocal_buffer)[1] = 0;
+    gLocal_buffer_size = 2 * sizeof(int);
+    gMr_chunky = gLocal_buffer + 2 * sizeof(int);
+    /* ARAddDataToSession inlined */
+    if (gPipe_buffer_start != NULL && !gAction_replay_mode && gProgram_state.racing) {
+        new_size = gLocal_buffer_size + pSize + sizeof(void*);
+        if (new_size < 15000) {
+            ((int*)gLocal_buffer)[1] += 1;
+            *((uintptr_t*)gMr_chunky) = pOwner;
+            gMr_chunky += sizeof(uintptr_t);
+            if (pSize != 0) {
+                memcpy(gMr_chunky, pData, pSize);
+            }
+            gMr_chunky += pSize;
+            gLocal_buffer_size = new_size;
+        }
+    }
+    EndPipingSession2(1);
 }
 
 #ifdef REC2_MATCHING

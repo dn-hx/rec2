@@ -87,9 +87,47 @@ void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDro
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0044eb70
+extern tDrone_state_function* gDrone_state_functions[6];
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+static void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
+
+// FUNCTION: CARMA2_HW 0x0044eb70
 void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
-    NOT_IMPLEMENTED();
+
+    switch ((int)state) {
+    case eDrone_state_RUN:
+        DoNotDprintf("DroneStateFuncPhysicsActive() RUN");
+        if (pDrone->field_0x44) {
+            if (!(pDrone->form->flags & 0x4)) {
+                return;
+            }
+            if (pDrone->field_0x45) {
+                return;
+            }
+        }
+        if (!(pDrone->form->flags & 0x2)) {
+            return;
+        }
+        PHILRemoveObject(&pDrone->collision_info);
+        pDrone->collision_info.field_0x1a0 = 0x100000;
+        PHILSetObjectProperty(&pDrone->collision_info, 3, 1);
+        pDrone->field_0x5d4 = 0;
+        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 1);
+        if (pDrone->current_state != 1) {
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+            }
+            pDrone->time_last_munge = gTime_stamp_for_this_munging;
+            pDrone->prev_states[1] = pDrone->prev_states[0];
+            pDrone->prev_states[0] = pDrone->current_state;
+            pDrone->current_state = 1;
+            if (gDrone_state_functions[1] != NULL) {
+                gDrone_state_functions[1](pDrone, eDrone_state_START);
+            }
+        }
+        break;
+    }
 }
 
 // STUB: CARMA2_HW 0x0044ec50
