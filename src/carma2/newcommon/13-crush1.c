@@ -1554,7 +1554,7 @@ tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActo
 void C2_HOOK_FASTCALL SendDetachBit(tCar_spec* pCar, br_actor* pActor) {
 }
 
-// STUB: not implemented yet
+// STUB: CARMA2_HW 0x0042dab0
 void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4) {
 }
 
@@ -3535,8 +3535,71 @@ void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObje
     }
 }
 
-// STUB: CARMA2_HW 0x0042f4e0
+extern int gCrush_deferred;
+extern int gNum_active_non_cars;
+extern tNon_car_spec* gActive_non_car_list[99];
+extern int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
+extern void C2_HOOK_FASTCALL PHILDetachObjectState(tPhysics_object* pObject);
+
+// based on carpocalypse2 src/carma2/common/flap.c
+// FUNCTION: CARMA2_HW 0x0042f4e0
 void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
+    void* bit;
+    void* b2;
+    void* b3;
+    void* state;
+
+    bit = pObject->actor;
+    if (bit == NULL) {
+        return;
+    }
+    b2 = *(void**)((tU8*)bit + 0x60);
+    if (b2 == NULL) {
+        return;
+    }
+    b3 = *(void**)((tU8*)b2 + 0x8);
+    if (b3 == NULL) {
+        return;
+    }
+    state = *(void**)((tU8*)b3 + 0x34);
+    if (state == NULL) {
+        return;
+    }
+    if (*(int*)((tU8*)state + 0x28) != 1) {
+        return;
+    }
+
+    PHILRemoveFromParentChain(pObject);
+    if (pObject->physics_joint1 != NULL) {
+        *(int*)pObject->physics_joint1 = 0;
+        pObject->physics_joint1 = NULL;
+    }
+    if (gCrush_deferred != 0) {
+        PHILDetachObjectState(pCar->collision_info);
+    }
+    pObject->flags |= 0x100;
+
+    b2 = *(void**)((tU8*)bit + 0x5c);
+    if (gNum_active_non_cars != 0x63) {
+        *(int*)((tU8*)b2 + 0xc) = gDetached_bit_driver;
+        gActive_non_car_list[gNum_active_non_cars] = (tNon_car_spec*)b2;
+        gNum_active_non_cars += 1;
+        PHILAddActiveObjectImmediately(*(void**)((tU8*)b2 + 0x8), NULL, NULL, NULL);
+    }
+    PipeSingleNonCar(*(tU16*)((tU8*)b2 + 0x80), bit);
+    *(tU8*)((tU8*)(*(void**)((tU8*)bit + 0x14)) + 0x3) = 0x21;
+    *(int*)((tU8*)state + 0x28) = 2;
+    pCar->use_shell_model = 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b9750
+void C2_HOOK_FASTCALL PHILDetachObjectState(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

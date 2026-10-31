@@ -808,9 +808,29 @@ void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient) {
     }
 }
 
-// STUB: CARMA2_HW 0x0042da20
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139];
+extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4);
+
+// based on ApexWorm/rec2 bf0127d92 src/carma2/newcommon/13-crush1.c
+// FUNCTION: CARMA2_HW 0x0042da20
 void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+
+    for (i = 0; i < gNum_active_cars; i++) {
+        car = gActive_car_list[i];
+        if (car != NULL && car->driver > eDriver_oppo - 1) {
+            crush_spec = car->car_crush_spec;
+            if (crush_spec != NULL) {
+                for (j = 0; j < crush_spec->field_0x270; j++) {
+                    SendSemiDetachBit(gActive_car_list[i], crush_spec->field_0x274[j].field_0x0, 0.f, pRecipient);
+                }
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004f0f80

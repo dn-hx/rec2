@@ -502,22 +502,77 @@ void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
     }
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004ca500
 void C2_HOOK_FASTCALL WorkerPedMove(int field_0x0, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38) {
+    extern int gBOOL_00744804;
+    extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
+    extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+    int current_move_id;
 
-    NOT_IMPLEMENTED();
+    ped = (tPedestrian*)field_0x0;
+    if (!gBOOL_00744804) {
+        if (field_0x4 != -1) {
+            current_move_id = ped->character->personality->form->moves[ped->character->field_0x7].id;
+            BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)pField_0x38);
+            SetCharacterMove(ped->character, field_0x4, *(float*)&field_0xc, field_0x14, field_0x8_1, GetTotalTime());
+            if (!(ped->character->field_0x14 & 4)) {
+                SetCharacterPosition(ped->character, pField_0x24, -1);
+            }
+            if (current_move_id != field_0x4) {
+                ped->character->field_0x1c = (tU16)zero;
+                SetCharacterBonePositions(ped->character, 0, 0);
+            }
+        }
+        if (field_0x34 != -1) {
+            ped->action = (tPed_action)field_0x34;
+        }
+    }
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004ca5a0
 void C2_HOOK_FASTCALL WorkerPedMoveUndo(int field_0x0, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38) {
+    extern int gBOOL_00744804;
+    extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
+    extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+    int old_move_id;
 
-    NOT_IMPLEMENTED();
+    if (gBOOL_00744804 != 0) {
+        return;
+    }
+    ped = (tPedestrian*)field_0x0;
+    if (field_0x6 != -1) {
+        old_move_id = ped->character->personality->form->moves[ped->character->field_0x7].id;
+        BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)pField_0x38);
+        SetCharacterMove(ped->character, field_0x6, *(float*)&field_0x10, zero2, zero, GetTotalTime());
+        if ((ped->character->field_0x14 & 4) == 0) {
+            SetCharacterPosition(ped->character, pField_0x18, -1);
+        }
+        if (old_move_id != field_0x6) {
+            ped->character->field_0x1c = (tU16)field_0xa;
+            SetCharacterBonePositions(ped->character, 0, 0);
+            ped->character->field_0x24 = GetTotalTime();
+        }
+    }
+    if (field_0x30 != -1) {
+        ped->action = (tPed_action)field_0x30;
+    }
 }
 
+// adapted from the disassembly (carpocalypse2 leaves this one unimplemented)
 // FUNCTION: CARMA2_HW 0x004ca650
 void C2_HOOK_FASTCALL WorkerPedFPChange(int field_0x0, tPipe_stack_word field_0x4) {
+    extern int gBOOL_00744804;
+    extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
 
-    NOT_IMPLEMENTED();
+    if (!gBOOL_00744804) {
+        SetCharacterMove(((tPedestrian*)field_0x0)->character, -1, *(float*)&field_0x4.value, 0, 0, GetTotalTime());
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004ca680
@@ -532,10 +587,22 @@ void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 fiel
     NOT_IMPLEMENTED();
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004ca7d0
 void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
+    extern tPedestrian* gPedestrian_array;
+    extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
 
-    NOT_IMPLEMENTED();
+    ped = &gPedestrian_array[field_0x0 & 0xffff];
+    BrMatrix34Copy(GetCharacterMatrixPtr(ped->character), pMatrix);
+    ped->pos.v[0] = pMatrix->m[3][0];
+    ped->pos.v[1] = pMatrix->m[3][1];
+    ped->pos.v[2] = pMatrix->m[3][2];
+    RecalculateOrientationOfRoot(ped->character);
+    SetCharacterBonePositions(ped->character, 3, 0);
 }
 
 // FUNCTION: CARMA2_HW 0x004ca830
@@ -561,16 +628,47 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
     NOT_IMPLEMENTED();
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004ca900
 void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field_0x7) {
+    extern const int gPow2_array[32];
+    extern tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
+    tPedestrian* ped;
+    br_actor* actor;
+    tPed_character_instance* character;
 
-    NOT_IMPLEMENTED();
+    ped = (tPedestrian*)field_0x0;
+    ped->character->field_0xc |= gPow2_array[field_0x4];
+    ped->character->field_0x6 = *(tS8*)&field_0x7;
+    MakeCharacterPhysicsForBone(ped->character, field_0x4, 1, 0);
+    character = ped->character;
+    actor = character->personality->form->actor_sets[(tS8)character->field_0x4].actors[field_0x4];
+    if (actor->parent == NULL && (field_0x4 == 0 || (gPow2_array[field_0x4] & character->field_0xc) != 0)) {
+        BrActorAdd(gNon_track_actor, actor);
+    }
 }
 
+// based on carpocalypse2 src/carma2/common/replay_workers.c (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004ca980
 void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4, int field_0x6) {
+    extern const int gPow2_array[32];
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+    tPed_character_instance* character;
+    tPed_form_actor_set* actor_set;
+    br_actor* actor;
 
-    NOT_IMPLEMENTED();
+    ped = (tPedestrian*)field_0x0;
+    actor_set = &ped->character->personality->form->actor_sets[(tS8)ped->character->field_0x4];
+    ped->character->field_0xc &= ~gPow2_array[field_0x4];
+    ped->character->field_0x10 &= ~gPow2_array[field_0x4];
+    ped->character->field_0x6 = *(tS8*)&field_0x6;
+    character = ped->character;
+    SetCharacterBonePositions(character, 3, 0);
+    actor = actor_set->actors[field_0x4];
+    if (actor->parent != NULL) {
+        BrActorRemove(actor);
+    }
 }
 
 extern void C2_HOOK_FASTCALL DoGibShower(int pId, int pTime, int pSeed, int pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
@@ -936,6 +1034,22 @@ br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, b
 // STUB: CARMA2_HW 0x00451e70
 void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0040b0a0
+void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x00408580
+tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
+    NOT_IMPLEMENTED();
+    return NULL;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
