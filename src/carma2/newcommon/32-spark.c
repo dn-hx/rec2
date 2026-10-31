@@ -98,7 +98,7 @@ tSmoke_column gSmoke_column[10] = { 0 };
 tSpark gSparks[32] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006aa380
-br_model* gLollipop_model;
+br_model* gLollipop_model = NULL;
 
 // GLOBAL: CARMA2_HW 0x006aa59c
 int gColumn_flags;

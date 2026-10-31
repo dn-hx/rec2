@@ -941,9 +941,34 @@ tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004fe2c0
+// FUNCTION: CARMA2_HW 0x004fe2c0
 void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int i;
+    extern tCar_spec* gCar_to_view;
+    extern br_angle gCamera_yaw;
+    extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
+
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if (gSmoke_column[i].core.car == pCar) {
+            gSmoke_column[i].lifetime = 0;
+            gSmoke_column[i].core.car = NULL;
+            gSmoke_column[i].core.car_actor = NULL;
+        }
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gSparks); i++) {
+        if ((gSpark_flags & (1 << i)) != 0 && gSparks[i].car == pCar) {
+            gSparks[i].count = 0;
+            gSpark_flags &= ~(1 << i);
+        }
+    }
+    if (pCar == gCar_to_view) {
+        gCamera_yaw = 0;
+        gCar_to_view = &gProgram_state.current_car;
+        InitialiseExternalCamera();
+        PositionExternalCamera(gCar_to_view, 200);
+        gCar_to_view = &gProgram_state.current_car;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

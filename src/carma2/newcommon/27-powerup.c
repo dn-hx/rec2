@@ -3585,9 +3585,13 @@ int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004d6b40
+// FUNCTION: CARMA2_HW 0x004d6b40
 void C2_HOOK_FASTCALL MakePedsEthereal(void) {
-    NOT_IMPLEMENTED();
+
+    MungeAllCharacterMaterials(EtherealiseMaterial1);
+    MungeAllCharacterObjects(EtherealiseCharacter1);
+    MungeAllCharacterModels(EtherealiseMaterial2);
+    gEthereal_pedestrians = 1;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
