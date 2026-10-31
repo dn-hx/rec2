@@ -3598,9 +3598,14 @@ void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004b9750
+extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern int gINT_00692dc8;
+
+// FUNCTION: CARMA2_HW 0x004b9750
 void C2_HOOK_FASTCALL PHILDetachObjectState(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    pObject->field_0x218 = 0;
+    MoveJointedObject(pObject, 0.f);
+    gINT_00692dc8 = 1;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -3619,3 +3624,6 @@ void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGa
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x00692dc8
+int gINT_00692dc8 = 0;
