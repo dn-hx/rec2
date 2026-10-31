@@ -842,11 +842,36 @@ void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_cal
     }
 }
 
-// ReverseSound
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00564d4a
+void C2_HOOK_FASTCALL S3ReverseSample(tS3_effect_tag pEffect, tS3_sound_tag pTag) {
+    NOT_IMPLEMENTED();
+}
 
-// ARGoBackwards
+// STUB: CARMA2_HW 0x00564d75
+int C2_HOOK_FASTCALL S3SetSampleFilterCallbacks(tS3_sample_filter pFunc1, tS3_sample_filter pFunc2) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
-// ARGoForwards
+// FUNCTION: CARMA2_HW 0x00403d10
+void C2_HOOK_FASTCALL ReverseSound(tS3_effect_tag pEffect, tS3_sound_tag pTag) {
+    S3ReverseSample(pEffect, pTag);
+}
+
+// FUNCTION: CARMA2_HW 0x00403d00
+int C2_HOOK_FASTCALL ARGoBackwards(void) {
+    return S3SetSampleFilterCallbacks(ReverseSound, ReverseSound);
+}
+
+// FUNCTION: CARMA2_HW 0x00403d20
+int C2_HOOK_FASTCALL ARGoForwards(void) {
+    return S3SetSampleFilterCallbacks(NULL, NULL);
+}
 
 // FUNCTION: CARMA2_HW 0x00403d30
 void C2_HOOK_FASTCALL ARService(void) {
@@ -2627,9 +2652,15 @@ int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk) {
     return 4 + 6 * model->nvertices;
 }
 
-// CalcEndMyBendLength
+// FUNCTION: CARMA2_HW 0x004ca450
+int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
+    return *(int*)((tU8*)pChunk + 4);
+}
 
-// CalcRemoveFacesLength
+// FUNCTION: CARMA2_HW 0x004ca460
+int C2_HOOK_FASTCALL CalcRemoveFacesLength(tPipe_chunk* pChunk) {
+    return 8 + 8 * *(int*)((tU8*)pChunk + 8);
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
