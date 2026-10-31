@@ -12,10 +12,12 @@
 #include "platform.h"
 #include "30-opponent.h"
 #include "52-errors.h"
+#include "rec2_macros.h"
 #include "68-timer.h"
 
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x0058f038
 int gFirst_drone_processing = 1;
@@ -1178,12 +1180,189 @@ void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone) {
     }
 }
 
+/* callees of the functions below that live in other translation units */
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateShapeBox(int pType);
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
+extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
+extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
+extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
+extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
+extern int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
+extern void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext);
+extern void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
+extern intptr_t C2_HOOK_CDECL PredicateSpamPanel(br_actor* pActor, void* pArg);
+extern intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern int gCrush_panel_ids[10];
+
+extern int gCrush_deferred;
+extern int gArrow_mode;
+extern br_scalar gMax_crush_force;
+extern br_scalar gCrushZero;
+extern int gFace_num__car;
+extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
+extern int gCount_car_damage_crush_list;
+
+extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
+extern const char* gGroove_funk_type_names[3];
+extern const char* gDrone_axis_names[3];
+extern const char* gFunk_speed_control_names[2];
+extern const char* gReverseness_type_names[2];
+extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
+extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2);
+extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
+
+/* helpers that the original inlines into LoadFunksAndGrooves (carpocalypse2 loading.c) */
+static int ReadPastThisLine(FILE* pF, const char* pLine) {
+    char s[256];
+
+    for (;;) {
+        if (PFfeof(pF)) {
+            return 0;
+        }
+        GetALineAndDontArgue(pF, s);
+        if (strcmp(s, pLine) == 0) {
+            return 1;
+        }
+    }
+}
+
+static int MatchGrooveFunkType(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gGroove_funk_type_names; ppName < &gGroove_funk_type_names[3]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int GrooveAxisFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gDrone_axis_names; ppName < &gDrone_axis_names[3]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int GrooveSpeedControlFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gFunk_speed_control_names; ppName < &gFunk_speed_control_names[2]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int GrooveReversenessFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gReverseness_type_names; ppName < &gReverseness_type_names[2]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00450680
+// FUNCTION: CARMA2_HW 0x00450680
 void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF) {
-    NOT_IMPLEMENTED();
+    char s[256];
+    tFunk_groove* funk_groove;
+    tU8 funk_type;
+    int axis;
+    int reverseness;
+    int speed_control;
+
+    if (!ReadPastThisLine(pF, "START OF FUNKYGROOVY STUFF")) {
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+    }
+    if (pDrone->funk_grooves == NULL) {
+        pDrone->funk_grooves = BrMemAllocate(sizeof(tFunk_grooves), kMem_drone_funk_groove);
+    }
+    GetALineAndDontArgue(pF, s);
+    while (strcmp(s, "END OF FUNKYGROOVY STUFF") != 0) {
+        if (PFfeof(pF)) {
+            return;
+        }
+        if (pDrone->funk_grooves->count >= 10) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+        }
+        funk_groove = &pDrone->funk_grooves->items[pDrone->funk_grooves->count];
+        funk_type = MatchGrooveFunkType(s);
+        funk_groove->type = funk_type;
+        switch (funk_type) {
+        case eFunk_groove_type_spinny_groove:
+            GetALineAndDontArgue(pF, s);
+            funk_groove->actor = (br_actor*)DRActorEnumRecurse(pDrone->model_actor, (br_actor_enum_cbfn*)MrFindy, s);
+            if (funk_groove->actor == NULL) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            GetALineAndDontArgue(pF, s);
+            axis = GrooveAxisFromString(s);
+            if (axis < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.axis = axis;
+            GetALineAndDontArgue(pF, s);
+            speed_control = GrooveSpeedControlFromString(s);
+            if (speed_control < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.speed_control = speed_control;
+            GetALineAndDontArgue(pF, s);
+            reverseness = GrooveReversenessFromString(s);
+            if (reverseness < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.reverse = reverseness;
+            funk_groove->spinny.omega = (float)(GetAScalar(pF) * REC2_PI);
+            break;
+
+        case eFunk_groove_type_steering_groove:
+            GetALineAndDontArgue(pF, s);
+            funk_groove->actor = (br_actor*)DRActorEnumRecurse(pDrone->model_actor, (br_actor_enum_cbfn*)MrFindy, s);
+            if (funk_groove->actor == NULL) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            GetALineAndDontArgue(pF, s);
+            reverseness = GrooveReversenessFromString(s);
+            if (reverseness < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->steering.reverse = reverseness;
+            break;
+        }
+        pDrone->funk_grooves->count += 1;
+        GetALineAndDontArgue(pF, s);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1210,9 +1389,60 @@ int gChallenger_index__opponent = -1;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0044f980
+// FUNCTION: CARMA2_HW 0x0044f980
 void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
-    NOT_IMPLEMENTED();
+    br_bounds3 bnds;
+    tPhysics_object* pPhysics;
+    tPhysics_shape* original_shape;
+    br_scalar size_x;
+
+    pPhysics = &pDrone_spec->collision_info;
+    BrActorToBounds(&bnds, pDrone_spec->actor);
+    bnds.min.v[1] = bnds.min.v[1] - -0.001f;
+    if (pDrone_spec->field_0x46) {
+        original_shape = pPhysics->shape;
+    }
+    memset(pPhysics, 0, sizeof(tPhysics_object));
+    if (pDrone_spec->field_0x46) {
+        pPhysics->shape = original_shape;
+    }
+    else {
+        pPhysics->shape = (tPhysics_shape*)AllocateShapeBox(kMem_drone_collision_stuff);
+        pPhysics->shape->box.common.bb = bnds;
+        pPhysics->shape->box.common.field_0x1c = bnds;
+        pPhysics->shape->box.common.next = NULL;
+        pDrone_spec->field_0x46 = 1;
+    }
+    pPhysics->flags_0x238 = 16;
+    pPhysics->owner = pDrone_spec;
+    pPhysics->actor = pDrone_spec->actor;
+    pPhysics->M = pDrone_spec->form->M;
+    BrVector3Set(&pPhysics->cmpos, 0.f, .09f, 0.f);
+    BrVector3Set(&pPhysics->field_0x54, 0.f, -.4f / WORLD_SCALE, 0.f);
+    BrMatrix34Copy(&pPhysics->transform_matrix, &pDrone_spec->actor->t.t.mat);
+    pPhysics->box_face_ref = gFace_num__car - 2;
+    pPhysics->field_0x1a0 = 0x100000;
+    FillInShape(pPhysics->shape);
+    UpdateCollisionObject(pPhysics);
+    GetNewBoundingBox(&pPhysics->field_0xf4, &pPhysics->bb1, &pPhysics->transform_matrix);
+    size_x = bnds.max.v[0] - bnds.min.v[0];
+    pPhysics->I.v[0] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + (bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1])) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[1] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[2] = ((bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->cmpos.v[0] = bnds.min.v[0] - pDrone_spec->form->center.v[1] * size_x * -0.01;
+    pPhysics->cmpos.v[1] = bnds.min.v[1] - pDrone_spec->form->center.v[2] * (bnds.max.v[1] - bnds.min.v[1]) * -0.01;
+    pPhysics->cmpos.v[2] = bnds.min.v[2] - pDrone_spec->form->center.v[0] * (bnds.max.v[2] - bnds.min.v[2]) * -0.01;
+    if (pDrone_spec->form->type == kDroneType_train) {
+        pPhysics->world_friction = -.75;
+    }
+    pPhysics->disable_move_rotate = 1;
+    pPhysics->field_0xed = 1;
+    pPhysics->flags |= 0x40;
+    pPhysics->drivable_on = !!(pDrone_spec->form->flags & 0x8);
+    BrVector3SetFloat(&pPhysics->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->velocity_car_space, 0.f, 0.f, 0.f);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1221,9 +1451,28 @@ void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00428d40
+// FUNCTION: CARMA2_HW 0x00428d40
 int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2) {
-    NOT_IMPLEMENTED();
+    tPhysics_shape* shape1;
+    tPhysics_shape* shape2;
+
+    shape1 = pObject1->shape;
+    shape2 = pObject2->shape;
+    if (FlagsAreGo(pObject1, pObject2) && BoundsOverlapTest__finteray(&pObject1->field_0xf4, &pObject2->field_0xf4)) {
+        while (shape1 != NULL) {
+            while (shape2 != NULL) {
+                if (TestShapeEdgeIntersection(pObject1, pObject2, shape1, shape2)) {
+                    return 1;
+                }
+                if (TestShapeEdgeIntersection(pObject2, pObject1, shape2, shape1)) {
+                    return 1;
+                }
+                shape2 = shape2->common.next;
+            }
+            shape1 = shape1->common.next;
+        }
+    }
+    return 0;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1245,9 +1494,247 @@ int gINT_006844fc;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00431610
+// FUNCTION: CARMA2_HW 0x00431610
 void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
-    NOT_IMPLEMENTED();
+    tCar_crush_spec* spec;
+    tPhysics_object* collision_info;
+    tPhysics_object* panel_actor;
+    br_actor* model_actor;
+    br_actor* node;
+    br_actor* next_node;
+    br_actor* shell;
+    float damage2;
+    float vdim[6];
+    float vlow[3];
+    float vhigh[3];
+    float f1;
+    float len;
+    float inv_len;
+    br_vector3 vec_dir;
+    br_vector3 spam_vec;
+    br_vector3 tmp1;
+    br_vector3 tmp2;
+    struct {
+        tCar_spec* car;
+        int* pCount;
+        float rate;
+    } context;
+    int pCount;
+    tU32 tick;
+    int i;
+    int j;
+    int axis;
+    int flip;
+    int rnd;
+    int found;
+    int count;
+
+    if (gArrow_mode != 0) {
+        return;
+    }
+    if (gCrush_deferred != 0) {
+        count = gCount_car_damage_crush_list;
+        if (count == 8) {
+            return;
+        }
+        for (i = 0; i < count; i++) {
+            if (gCar_damage_crush_list[i].car == pCar_spec) {
+                if (pDamage > gCar_damage_crush_list[i].damage) {
+                    gCar_damage_crush_list[i].damage = pDamage;
+                }
+                return;
+            }
+        }
+        gCar_damage_crush_list[count].car = pCar_spec;
+        gCar_damage_crush_list[count].damage = pDamage;
+        gCount_car_damage_crush_list = count + 1;
+        return;
+    }
+    spec = pCar_spec->car_crush_spec;
+    if (spec == NULL) {
+        return;
+    }
+    if (pCar_spec->invulnerable_no_crushage != 0) {
+        return;
+    }
+    if (spec->field_0x4b8 != 0) {
+        return;
+    }
+    if (spec->field_0x144 != 0) {
+        return;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        srand(pCar_spec->car_crush_spec->field_0x574);
+        pCar_spec->car_crush_spec->field_0x574 = rand();
+    }
+    for (i = 0; i < 10; i++) {
+        gCrush_panel_ids[i] = IRandomBetween(1, pCar_spec->car_crush_spec->nb_entries);
+    }
+
+    model_actor = pCar_spec->car_model_actor;
+    node = model_actor->children;
+    while (node != NULL) {
+        next_node = node->next;
+        if (DRActorRecurseWithPredicate(node, PredicateSpamPanel, pCar_spec) != 0) {
+            goto paint;
+        }
+        node = next_node;
+    }
+    shell = (br_actor*)model_actor->user;
+    if (shell != NULL) {
+        shell = shell->children;
+        if (shell != NULL && *(void**)((tU8*)shell + 0x34) != NULL) {
+            rnd = *(tU8*)((tU8*)shell + 0x20);
+            found = 0;
+            for (i = 0; i < 10; i++) {
+                if (gCrush_panel_ids[i] == rnd) {
+                    found = 1;
+                    break;
+                }
+            }
+            if (found != 0) {
+                panel_actor = DetachBit(pCar_spec, model_actor, NULL);
+                if (panel_actor != NULL) {
+                    BrMatrix34ApplyP(&tmp1, &pCar_spec->collision_info->cmpos, (br_matrix34*)((tU8*)pCar_spec->collision_info->actor + 0x2c));
+                    BrMatrix34ApplyP(&tmp2, &panel_actor->cmpos, (br_matrix34*)((tU8*)panel_actor->actor + 0x2c));
+                    tmp2.v[0] = tmp2.v[0] - tmp1.v[0];
+                    tmp2.v[1] = tmp2.v[1] - tmp1.v[1];
+                    tmp2.v[2] = tmp2.v[2] - tmp1.v[2];
+                    len = (float)sqrt(tmp2.v[0] * tmp2.v[0] + tmp2.v[1] * tmp2.v[1] + tmp2.v[2] * tmp2.v[2]);
+                    if (len <= 2.3841858e-07f) {
+                        tmp2.v[0] = 1.0f;
+                        tmp2.v[1] = 0.0f;
+                        tmp2.v[2] = 0.0f;
+                    } else {
+                        inv_len = (float)(1.0 / len);
+                        tmp2.v[0] = inv_len * tmp2.v[0];
+                        tmp2.v[1] = inv_len * tmp2.v[1];
+                        tmp2.v[2] = inv_len * tmp2.v[2];
+                    }
+                    panel_actor->v.v[0] = tmp2.v[0] * 1.1594203f + panel_actor->v.v[0];
+                    panel_actor->v.v[1] = tmp2.v[1] * 1.1594203f + panel_actor->v.v[1];
+                    panel_actor->v.v[2] = tmp2.v[2] * 1.1594203f + panel_actor->v.v[2];
+                    panel_actor->v.v[0] = pCar_spec->collision_info->v.v[0] + tmp2.v[0] * 1.1594203f;
+                    panel_actor->v.v[1] = pCar_spec->collision_info->v.v[1] + tmp2.v[1] * 1.1594203f;
+                    panel_actor->v.v[2] = pCar_spec->collision_info->v.v[2] + tmp2.v[2] * 1.1594203f;
+                }
+            }
+        }
+    }
+
+paint:
+    damage2 = pDamage * 1.5f;
+    collision_info = pCar_spec->collision_info;
+    pCount = 1;
+    tick = gPHIL_last_physics_tick;
+    vdim[0] = collision_info->bb1.min.v[0] - 0.028985508f;
+    vdim[1] = collision_info->bb1.min.v[1] - 0.028985508f;
+    vdim[2] = collision_info->bb1.min.v[2] - 0.028985508f;
+    vdim[3] = collision_info->bb1.max.v[0] - -0.028985508f;
+    vdim[4] = collision_info->bb1.max.v[1] - -0.028985508f;
+    vdim[5] = collision_info->bb1.max.v[2] - -0.028985508f;
+    i = 10;
+    do {
+        rnd = IRandomBetween(0, 5);
+        axis = rnd >> 1;
+        flip = rnd & 1;
+        vlow[axis] = flip != 0 ? vdim[axis] : vdim[axis + 3];
+        vhigh[axis] = flip != 0 ? vdim[axis + 3] : vdim[axis];
+        j = (axis + 1) % 3;
+        vlow[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        j = (j + 1) % 3;
+        vlow[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[0] = vhigh[0] - vlow[0];
+        vhigh[1] = vhigh[1] - vlow[1];
+        f1 = vhigh[2] - vlow[2];
+        vhigh[2] = (float)sqrt(f1 * f1 + vhigh[1] * vhigh[1] + vhigh[0] * vhigh[0]);
+        if (vhigh[2] <= 2.3841858e-07f) {
+            vhigh[0] = 1.0f;
+            vhigh[1] = 0.0f;
+            vhigh[2] = 0.0f;
+        } else {
+            vhigh[2] = (float)(1.0 / vhigh[2]);
+            vhigh[0] = vhigh[2] * vhigh[0];
+            vhigh[1] = vhigh[2] * vhigh[1];
+            vhigh[2] = vhigh[2] * f1;
+        }
+        memcpy(&vec_dir, vlow, sizeof(vec_dir));
+        (void)vec_dir.v[0];
+        spec = pCar_spec->car_crush_spec;
+        if (spec != NULL && pCar_spec->invulnerable_no_crushage == 0 && spec->field_0x4b8 == 0) {
+            context.car = pCar_spec;
+            context.pCount = &pCount;
+            context.rate = damage2;
+            if (context.rate > gMax_crush_force) {
+                context.rate = gMax_crush_force;
+            }
+            context.rate = context.rate / (float)pCount;
+            if (spec->field_0x144 != 0) {
+                ARStartPipingSession((tPipe_chunk_type)3);
+                DRActorEnumRecurseWithSnart(pCar_spec->car_model_actor, NULL, CrushCarModelCbfn, &context);
+                AREndPipingSession();
+            } else {
+                InitialiseSpamCrush(pCar_spec, &context);
+                ARStartPipingSession((tPipe_chunk_type)3);
+                DRActorEnumRecurseWithSnart(pCar_spec->car_master_actor, NULL, CrushCarActorCbfn, &context);
+                AREndPipingSession();
+                pCar_spec->use_shell_model = 0;
+            }
+        }
+        i = i - 1;
+    } while (i != 0);
+    (void)tick;
+    if (pCar_spec->car_crush_spec->field_0x144 != 0) {
+        return;
+    }
+    if (PercentageCarHealth(pCar_spec) >= 0x4b) {
+        return;
+    }
+    if (PercentageChance((int)(pCar_spec->car_crush_spec->snappability_factor * 25.0f)) != 0) {
+        DeleteFarCrushes(pCar_spec);
+        return;
+    }
+    if (pCar_spec->car_crush_spec->bendability_factor == 0.0f) {
+        return;
+    }
+    rnd = IRandomBetween(1, 8) - 1;
+    switch (rnd) {
+    case 0:
+        spam_vec.v[0] = 0.0f;
+        spam_vec.v[1] = pCar_spec->collision_info->bb1.max.v[1];
+        spam_vec.v[2] = pCar_spec->car_crush_spec->bend_z_min;
+        BendCar(pCar_spec, 0xe002, 0, 0, &spam_vec, pCar_spec->collision_info->bb1.max.v[2], 0);
+        return;
+    case 1:
+        spam_vec.v[0] = 0.0f;
+        spam_vec.v[1] = pCar_spec->collision_info->bb1.min.v[1];
+        spam_vec.v[2] = pCar_spec->car_crush_spec->bend_z_min;
+        BendCar(pCar_spec, 0x1ffe, 0, 0, &spam_vec, pCar_spec->collision_info->bb1.max.v[2], 0);
+        return;
+    case 2:
+        spam_vec.v[0] = pCar_spec->collision_info->bb1.min.v[0];
+        spam_vec.v[1] = 0.0f;
+        spam_vec.v[2] = pCar_spec->car_crush_spec->bend_z_min;
+        BendCar(pCar_spec, 0, 0xe002, 0, &spam_vec, pCar_spec->collision_info->bb1.max.v[2], 0);
+        return;
+    case 3:
+        spam_vec.v[0] = pCar_spec->collision_info->bb1.max.v[0];
+        spam_vec.v[1] = 0.0f;
+        spam_vec.v[2] = pCar_spec->car_crush_spec->bend_z_min;
+        BendCar(pCar_spec, 0, 0x1ffe, 0, &spam_vec, pCar_spec->collision_info->bb1.max.v[2], 0);
+        return;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        spam_vec.v[0] = (pCar_spec->collision_info->bb1.min.v[0] + pCar_spec->collision_info->bb1.max.v[0]) * 0.5f;
+        spam_vec.v[1] = (pCar_spec->collision_info->bb1.min.v[1] + pCar_spec->collision_info->bb1.max.v[1]) * 0.5f;
+        spam_vec.v[2] = pCar_spec->car_crush_spec->bend_z_max;
+        BendCar(pCar_spec, 0, 0, 0x1ffe, &spam_vec, pCar_spec->collision_info->bb1.min.v[2], 0);
+        return;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1256,9 +1743,44 @@ void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDama
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0043f930
+// FUNCTION: CARMA2_HW 0x0043f930
 void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
-    NOT_IMPLEMENTED();
+    tDamage_unit* damage_unit;
+    int old_level;
+    int new_level;
+
+    if (pCar != NULL && pCar->driver >= eDriver_net_human && pDamage_type == eDamage_driver) {
+        return;
+    }
+    if (pCar->invulnerable_no_damage || pMagnitude < 5) {
+        return;
+    }
+    damage_unit = &pCar->damage_units[pDamage_type];
+    old_level = damage_unit->damage_level;
+    new_level = pMagnitude + damage_unit->damage_level;
+    damage_unit->damage_level = new_level;
+    if (new_level >= 99) {
+        if (pMagnitude < 10) {
+            damage_unit->damage_level = old_level;
+        }
+        else {
+            damage_unit->damage_level = 99;
+        }
+    }
+    if (SetKnackeredFlag(pCar)) {
+        return;
+    }
+    if (pCar == NULL || pCar->driver != eDriver_oppo) {
+        if (gNet_mode == eNet_mode_none
+                && ((pCar->damage_units[eDamage_engine].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99)
+                    || (pCar->damage_units[eDamage_transmission].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99))) {
+            QueueOilSpill(pCar);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1283,6 +1805,25 @@ tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_dista
     DronePlaneWithinProcessingDistance,
     DroneTrainWithinProcessingDistance,
     DronePlaneWithinProcessingDistance,
+};
+
+// GLOBAL: CARMA2_HW 0x00594790
+const char* gDrone_axis_names[3] = {
+    "x",
+    "y",
+    "z",
+};
+
+// GLOBAL: CARMA2_HW 0x005947a0
+const char* gFunk_speed_control_names[2] = {
+    "controller",
+    "dronespeed",
+};
+
+// GLOBAL: CARMA2_HW 0x005947a8
+const char* gReverseness_type_names[2] = {
+    "forward",
+    "reverse",
 };
 
 // GLOBAL: CARMA2_HW 0x005947b0
@@ -1311,6 +1852,9 @@ br_material* gMat_dk_grn;
 
 // GLOBAL: CARMA2_HW 0x00676878
 br_material* gMat_lt_grn;
+
+// GLOBAL: CARMA2_HW 0x0067baa0
+int gCrush_panel_ids[10];
 
 /* stubs for original helpers that are inlined into DoDronePerGameFrameStuff */
 #ifdef REC2_MATCHING
@@ -1362,6 +1906,87 @@ void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
 #endif
 // STUB: CARMA2_HW 0x00401fe0
 void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004ba4f0
+int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00428dc0
+int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00435e10
+intptr_t C2_HOOK_CDECL PredicateSpamPanel(br_actor* pActor, void* pArg) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00435dd0
+int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00432e70
+void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00435d40
+void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00433c70
+void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
