@@ -19,6 +19,8 @@
 #include "49-physics.h"
 #include "34-finteray.h"
 
+#include "c2_string.h"
+
 extern tNon_car_spec* gActive_non_car_list[99];
 
 int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal);
@@ -184,11 +186,52 @@ extern int gPed_count;
 extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
 extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 
+extern float gCamera_angle;
+extern tRace_over_reason gRace_over_reason;
+extern int C2_HOOK_FASTCALL TestForNan(const float* f);
+extern void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matrix34* pMat, br_vector3* pPos, float pSpeed, float pSpeedo_speed, br_vector3* pDirection, br_vector3* pOmega, tU32 pTime_difference);
+extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
+extern tU32 C2_HOOK_FASTCALL GetRaceTime(void);
+extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
+extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
+extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
+extern br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void);
+extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
+extern void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime);
+extern void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime);
+extern void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime);
+
+// GLOBAL: CARMA2_HW 0x0058f5fc
+int gNet_player_to_view_index = -1;
+
 // GLOBAL: CARMA2_HW 0x0058f600
 tU8 gCamera_type_allowed_replay[9] = { 1, 1, 1, 1, 1, 0, 0, 1, 1 };
 
 // GLOBAL: CARMA2_HW 0x0058f610
 tU8 gCamera_type_allowed_gameplay[9] = { 1, 0, 0, 0, 1, 0, 0, 1, 1 };
+
+// GLOBAL: CARMA2_HW 0x0058f62c
+tActionReplayCameraMode old_camera_mode = kActionReplayCameraMode_Invalid;
+
+// GLOBAL: CARMA2_HW 0x0058f640
+char gCamera_hud_timer_separator[4] = " ";
+
+// GLOBAL: CARMA2_HW 0x00679298
+tU32 time_of_death;
+
+// GLOBAL: CARMA2_HW 0x006792bc
+int gOpponent_viewing_mode;
+
+// GLOBAL: CARMA2_HW 0x00679304
+br_angle gPanning_camera_angle;
+
+// GLOBAL: CARMA2_HW 0x0067931c
+int old_hither;
+
+// GLOBAL: CARMA2_HW 0x00679320
+tU32 headup_timer;
 
 // FUNCTION: CARMA2_HW 0x0040e790
 void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
@@ -270,10 +313,201 @@ void C2_HOOK_FASTCALL ChangeCameraType(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0040ea30
-// STUB: CARMA2_SW 0x0040ea10
+// FUNCTION: CARMA2_HW 0x0040ea30
+// FUNCTION: CARMA2_SW 0x0040ea10
 void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    br_camera* camera;
+    tCar_spec* c;
+    char message[256];
+
+    camera = gCamera->type_data;
+    if (TestForNan(&camera->hither_z) != 0) {
+        camera->hither_z = (float)old_hither;
+    }
+    old_hither = (int)camera->hither_z;
+    if (gAction_replay_mode != 0) {
+        if (!gCamera_type_allowed_replay[gAction_replay_camera_mode]) {
+            goto not_allowed;
+        }
+    } else {
+        if (!gCamera_type_allowed_gameplay[gAction_replay_camera_mode]) {
+            goto not_allowed;
+        }
+    }
+    if (gAction_replay_camera_mode >= 9) {
+        goto not_allowed;
+    }
+    if (gAction_replay_camera_mode == kActionReplayCameraMode_Drone && !OKToViewDrones()) {
+        goto not_allowed;
+    }
+    if (gAction_replay_camera_mode == kActionReplayCameraMode_Peds && gPed_count == 0) {
+        goto not_allowed;
+    }
+    goto positioned;
+not_allowed:
+    if (!KeyIsDown(8)) {
+        gAction_replay_camera_mode++;
+        if (gAction_replay_camera_mode >= 9) {
+            gAction_replay_camera_mode = 0;
+        }
+    } else {
+        gAction_replay_camera_mode--;
+        if (gAction_replay_camera_mode >= 9 || gAction_replay_camera_mode < 0) {
+            gAction_replay_camera_mode = 8;
+        }
+    }
+    if (gAction_replay_mode != 0) {
+        if (!gCamera_type_allowed_replay[gAction_replay_camera_mode]) {
+            goto change;
+        }
+    } else {
+        if (!gCamera_type_allowed_gameplay[gAction_replay_camera_mode]) {
+            goto change;
+        }
+    }
+    if (gAction_replay_camera_mode >= 9) {
+        goto change;
+    }
+    if (gAction_replay_camera_mode == kActionReplayCameraMode_Drone && !OKToViewDrones()) {
+        goto change;
+    }
+    if (gAction_replay_camera_mode == kActionReplayCameraMode_Peds && gPed_count == 0) {
+        goto change;
+    }
+    goto store;
+change:
+    ChangeCameraType();
+store:
+    if (gAction_replay_mode != 0) {
+        gAR_camera_type = gAction_replay_camera_mode;
+    } else {
+        gCamera_type = gAction_replay_camera_mode;
+    }
+    SetCameraType(gAction_replay_camera_mode);
+positioned:
+    if (gNet_mode != eNet_mode_none
+            && (gCurrent_net_game->type == eNet_game_type_4 || gCurrent_net_game->type == eNet_game_type_fight_to_death)) {
+        if (gRace_finished == 0) {
+            time_of_death = 0;
+            gOpponent_viewing_mode = 0;
+        } else if (time_of_death == 0) {
+            time_of_death = GetRaceTime();
+        } else if (time_of_death + 10000 <= GetRaceTime()) {
+            if (gOpponent_viewing_mode == 0) {
+                gOpponent_viewing_mode = 1;
+                gNet_player_to_view_index = -2;
+                ViewNetPlayer();
+            }
+            if (gNumber_of_net_players <= gNet_player_to_view_index) {
+                gNet_player_to_view_index = -2;
+                ViewNetPlayer();
+            }
+            if (gNet_player_to_view_index < 0 && GetRaceLeader() != gCar_to_view) {
+                gNet_player_to_view_index = -2;
+                ViewNetPlayer();
+            }
+            if ((headup_timer + 1000 < GetRaceTime() || GetRaceTime() < headup_timer)
+                    && gRace_over_reason == eRace_not_over_yet) {
+                strcpy(message, GetMiscString(0xd9));
+                strcat(message, gCamera_hud_timer_separator);
+                if (gNet_player_to_view_index < 0) {
+                    strcat(message, GetMiscString(0xda));
+                } else {
+                    strcat(message, gNet_players[gNet_player_to_view_index].player_name);
+                }
+                headup_timer = GetRaceTime();
+                NewTextHeadupSlot(6, 0, 500, -4, message);
+            }
+        }
+    }
+    if (gProgram_state.cockpit_on != 0) {
+        return;
+    }
+    if (gOpponent_viewing_mode != 0 && gAction_replay_mode != 0) {
+        c = &gProgram_state.current_car;
+    } else {
+        c = gCar_to_view;
+    }
+    if (c->car_master_actor->t.t.translate.t.v[0] > 500.f) {
+        return;
+    }
+    if (old_camera_mode != gAction_replay_camera_mode) {
+        camera->field_of_view = BrDegreeToAngle(gCamera_angle);
+    }
+    camera->hither_z = gCamera_hither;
+    switch (gAction_replay_camera_mode) {
+    case kActionReplayCameraMode_Standard:
+    case kActionReplayCameraMode_Rigid:
+    case kActionReplayCameraMode_Reversing:
+        GeneralisedPositionExternalCamera(c, &c->car_master_actor->t.t.mat, &c->pos,
+                c->speed, c->speedo_speed, &c->direction, &c->collision_info->omega, pTime);
+        break;
+    case kActionReplayCameraMode_Panning:
+        CheckDisablePlingMaterials(c);
+        camera = gCamera->type_data;
+        if (gPanning_camera_angle == 0) {
+            gPanning_camera_angle = (br_angle)(BrDegreeToAngle(gCamera_angle) * 0.7);
+        }
+        camera->field_of_view = gPanning_camera_angle;
+        if (old_camera_mode != kActionReplayCameraMode_Panning) {
+            SetUpPanningCamera(c);
+        }
+        PanningExternalCamera(c, pTime);
+        EnablePlingMaterials();
+        break;
+    case kActionReplayCameraMode_ActionTracking:
+        CheckDisablePlingMaterials(c);
+        camera = gCamera->type_data;
+        if (gPanning_camera_angle == 0) {
+            gPanning_camera_angle = (br_angle)(BrDegreeToAngle(gCamera_angle) * 0.7);
+        }
+        camera->field_of_view = gPanning_camera_angle;
+        if (IncidentCam(c, pTime) != 0) {
+            break;
+        }
+        if (old_camera_mode != gAction_replay_camera_mode) {
+            SetUpPanningCamera(c);
+        }
+        PanningExternalCamera(c, pTime);
+        EnablePlingMaterials();
+        break;
+    case kActionReplayCameraMode_Manual:
+        FrozenCamera(c, pTime);
+        break;
+    case kActionReplayCameraMode_Peds:
+        {
+            tPed_character_instance* ped;
+            br_matrix34* mat;
+
+            ped = GetTestPed();
+            if (ped == NULL) {
+                ChangeCameraType();
+            } else {
+                mat = GetCharacterMatrixPtr(ped);
+                GeneralisedPositionExternalCamera(NULL, mat, (br_vector3*)mat->m[3],
+                        0.f, 0.f, &ped->field_0xc0, &gZero_v__car, pTime);
+            }
+        }
+        break;
+    case kActionReplayCameraMode_Drone:
+        if (OKToViewDrones()) {
+            br_matrix34* mat;
+            br_vector3* direction;
+
+            mat = GetCurrentViewDroneMat();
+            direction = GetCurrentViewDroneDirection();
+            GeneralisedPositionExternalCamera(NULL, mat, (br_vector3*)mat->m[3],
+                    0.f, 0.f, direction, &gZero_v__car, pTime);
+        }
+        break;
+    case kActionReplayCameraMode_Internal:
+        camera->hither_z = gCamera_cockpit_hither;
+        PositionCarMountedCamera(c, pTime);
+        break;
+    default:
+        break;
+    }
+    old_camera_mode = gAction_replay_camera_mode;
 }
 
 #ifdef REC2_MATCHING
@@ -369,10 +603,169 @@ static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t);
 void C2_HOOK_FASTCALL DoCameraControls(tCamera_key_flags* pCamera_controls, tU32 pTime_difference) { NOT_IMPLEMENTED(); }
 // STUB: MoveWithWheels
 void C2_HOOK_FASTCALL MoveWithWheels(tCar_spec* pCar, br_vector3* pDir, int pManual_swing) { NOT_IMPLEMENTED(); }
-// STUB: CARMA2_HW 0x00411980
-void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) { NOT_IMPLEMENTED(); }
-// STUB: CARMA2_HW 0x00411fc0
-void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) { NOT_IMPLEMENTED(); }
+// GLOBAL: CARMA2_HW 0x0058f63c
+static int elapsed_time = -1;
+
+// GLOBAL: CARMA2_HW 0x00679338
+static br_vector3 old_vn;
+
+// FUNCTION: CARMA2_HW 0x00411980
+void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) {
+    br_angle yaw;
+    br_scalar cos_dtheta;
+    br_scalar sign;
+    int manual_swing;
+    br_scalar v16;
+    br_scalar v17;
+    br_scalar v18;
+    br_scalar abs_v18;
+    br_angle v8;
+    br_angle v9;
+    br_angle omega;
+    br_scalar ts;
+
+    manual_swing = gOld_yaw__car != gCamera_yaw;
+    if (elapsed_time > 500) {
+        elapsed_time = -1;
+    }
+    if (elapsed_time >= 0) {
+        elapsed_time += pTime_difference;
+    }
+    sign = -BrVector3Dot((br_vector3*)pM1->m[2], pVn);
+    if ((sign < 0.f) == gCamera_sign) {
+        elapsed_time = -1;
+    } else if (BrVector3Dot(pVn, &old_vn) <= 0.f || elapsed_time >= 0) {
+        if (gAction_replay_camera_mode != kActionReplayCameraMode_Standard || gCamera_sign) {
+            if (elapsed_time < 0) {
+                elapsed_time = 0;
+            }
+            if (elapsed_time < 500 && sign <= 0.f) {
+                BrVector3Negate(pVn, pVn);
+            } else {
+                elapsed_time = 500;
+                if ((sign > 0.f ? 0.0001 : 0.0006) < fabs(pSpeedo_speed) && !gCar_flying) {
+                    gCamera_sign = !gCamera_sign;
+                    gUNK_006792f4 = BrDegreeToAngle(200.0 * (gUNK_006792f8 ? .06 : .04));
+                    if (gCamera_yaw > BR_ANGLE_DEG(180)) {
+                        yaw = gCamera_yaw - BR_ANGLE_DEG(180);
+                    } else {
+                        yaw = gCamera_yaw;
+                    }
+                    if (gCamera_yaw + BR_ANGLE_DEG(90) > BR_ANGLE_DEG(180)) {
+                        gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
+                    } else if (yaw > BR_ANGLE_DEG(45) && yaw < BR_ANGLE_DEG(135)) {
+                        gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
+                    }
+                    goto camera_positioned;
+                }
+                BrVector3Negate(pVn, pVn);
+            }
+        } else {
+            BrVector3Negate(pVn, pVn);
+        }
+    } else {
+        gCamera_sign = !gCamera_sign;
+        if (gCamera_yaw > BR_ANGLE_DEG(180)) {
+            yaw = gCamera_yaw - BR_ANGLE_DEG(180);
+        } else {
+            yaw = gCamera_yaw;
+        }
+        if (yaw > BR_ANGLE_DEG(45) && yaw < BR_ANGLE_DEG(135)) {
+            gCamera_yaw = -gCamera_yaw;
+        }
+    }
+camera_positioned:
+    BrVector3Copy(&old_vn, pVn);
+    if (gCamera_sign) {
+        yaw = -gCamera_yaw;
+    } else {
+        yaw = gCamera_yaw;
+    }
+    if (!gCar_flying) {
+        DrVector3RotateY(pVn, yaw);
+    }
+    v16 = pVn->v[0] * gView_direction.v[0] + pVn->v[2] * gView_direction.v[2];
+    v17 = pVn->v[0] * gView_direction.v[2] - pVn->v[2] * gView_direction.v[0];
+    if (v16 < 0.5 && gCamera_yaw == 0) {
+        gUNK_006792f8 = 1;
+    }
+    v18 = pOmega->v[0] * pM1->m[0][1] + pOmega->v[1] * pM1->m[1][1] + pOmega->v[2] * pM1->m[2][1];
+    abs_v18 = fabs(v18);
+    v8 = BrRadianToAngle((float)pTime_difference * (abs_v18 - -0.08726646f) / 1000.f);
+    v9 = BrRadianToAngle(sqrt(fabs(v17)));
+    if (!(gUNK_006792f4 == 0 && v16 > 0.f && v9 < v8) && !gCar_flying && !manual_swing) {
+        if (gUNK_006792f4 == 0) {
+            gUNK_006792f4 = BrDegreeToAngle((gUNK_006792f8 ? .06 : .04) * 50.0);
+        }
+        omega = pTime_difference * gUNK_006792f4 / 100;
+        if (omega < v8) {
+            omega = v8;
+        }
+        cos_dtheta = BR_COS(omega);
+        if (cos_dtheta > v16) {
+            if (v16 < -0.7 && abs_v18 > 0.8 && v18 * v17 > 0.f) {
+                omega = -omega;
+            }
+            ts = BrAngleToRadian(omega);
+            if (v17 > 0.f) {
+                pVn->v[0] = sinf(ts) * gView_direction.v[2] + cosf(ts) * gView_direction.v[0];
+                pVn->v[2] = cosf(ts) * gView_direction.v[2] - sinf(ts) * gView_direction.v[0];
+            } else {
+                pVn->v[0] = cosf(ts) * gView_direction.v[0] - sinf(ts) * gView_direction.v[2];
+                pVn->v[2] = sinf(ts) * gView_direction.v[0] + cosf(ts) * gView_direction.v[2];
+            }
+            gUNK_006792f4 += BrDegreeToAngle(pTime_difference * (gUNK_006792f8 ? .06 : .04));
+            if (gUNK_006792f4 > BrDegreeToAngle(gUNK_006792f8 ? 40. : 10.)) {
+                gUNK_006792f4 = BrDegreeToAngle(gUNK_006792f8 ? 40. : 10.);
+            }
+            return;
+        }
+    }
+    gUNK_006792f4 = 0;
+    gCamera_mode = 0;
+    gUNK_006792f8 = 0;
+}
+// FUNCTION: CARMA2_HW 0x00411fc0
+void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) {
+    br_vector3 vn;
+    br_vector3 tv;
+    br_vector3 tv2;
+    br_scalar dist;
+    br_scalar frac;
+    br_angle theta;
+    br_vector3* pos;
+    br_camera* camera_ptr;
+    int swoop;
+
+    camera_ptr = gCamera->type_data;
+    theta = (br_angle)(pFov_factor * 0.2f * camera_ptr->field_of_view);
+    swoop = gCountdown && gCamera_height > pPos->v[1] - -0.01f;
+    if (swoop) {
+        BrVector3Sub(&tv, &gAverage_grid_position, pPos);
+        frac = (gCamera_height - pPos->v[1]) * 0.1f;
+        BrVector3Scale(&tv, &tv, frac);
+        BrVector3Add(&tv, pPos, &tv);
+        pos = &tv;
+        theta = (br_angle)((1.0f - frac) * theta);
+    } else {
+        pos = pPos;
+    }
+    BrVector3Sub(&vn, pPos, (br_vector3*)pMat->m[3]);
+    vn.v[1] = 0.f;
+    BrVector3Normalise(&vn, &vn);
+    pMat->m[0][0] = -vn.v[2];
+    pMat->m[0][1] = 0.0f;
+    pMat->m[1][0] = 0.0f;
+    pMat->m[0][2] = vn.v[0];
+    pMat->m[2][0] = -vn.v[0];
+    pMat->m[1][1] = 1.0f;
+    pMat->m[1][2] = 0.0f;
+    pMat->m[2][2] = -vn.v[2];
+    pMat->m[2][1] = 0.0f;
+    BrVector3Sub(&tv2, pos, (br_vector3*)pMat->m[3]);
+    dist = BrVector3Dot(&tv2, &vn);
+    BrMatrix34PreRotateX(pMat, theta - BR_ATAN2(pMat->m[3][1] - pos->v[1], dist));
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -935,6 +1328,23 @@ int gCamera_has_collided;
 #endif
 // STUB: ShapeRayCast
 int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal) { NOT_IMPLEMENTED(); return 0; }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0040ef90
+void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x0040f510
+void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x0040f590
+void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x004104b0
+void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) { NOT_IMPLEMENTED(); }
+// STUB: CARMA2_HW 0x004105f0
+void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar) { NOT_IMPLEMENTED(); }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
