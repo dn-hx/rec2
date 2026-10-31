@@ -391,7 +391,31 @@ void C2_HOOK_FASTCALL DisablePlingMaterials(void) {
 
 // StationarySphereEdgeCollide
 
-// PointSphereCollision
+// based on carpocalypse2 src/carma2/common/finteray.c:3351
+// FUNCTION: CARMA2_HW 0x0045d860
+void C2_HOOK_FASTCALL PointSphereCollision(br_vector3* pPoint, br_vector3* pSphere_center, br_scalar pRadius, br_vector3* pNormal, br_scalar* pCollision_t) {
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    volatile br_scalar distance_squared;
+    br_scalar radius_squared;
+    br_scalar scale;
+
+    dx = pPoint->v[0] - pSphere_center->v[0];
+    dy = pPoint->v[1] - pSphere_center->v[1];
+    dz = pPoint->v[2] - pSphere_center->v[2];
+    distance_squared = dx * dx + dy * dy + dz * dz;
+    if ((pRadius - -0.002f) * (pRadius - -0.002f) > distance_squared) {
+        radius_squared = pRadius * pRadius;
+        if (radius_squared < distance_squared) {
+            scale = (br_scalar)(1.0 / sqrt(distance_squared));
+            pNormal->v[0] = scale * dx;
+            pNormal->v[1] = scale * dy;
+            pNormal->v[2] = scale * dz;
+            *pCollision_t = 1.0f;
+        }
+    }
+}
 
 // SphereEdgeCollide
 
