@@ -11,6 +11,7 @@
 #include "platform.h"
 #include "30-opponent.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
@@ -186,7 +187,7 @@ extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 extern int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix);
 extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
 extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
-extern void C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
 
 // FUNCTION: CARMA2_HW 0x00498c00
 void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
@@ -1320,9 +1321,77 @@ tU32 gNet_synch_start;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00499000
+extern int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_one);
+extern void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag);
+extern int gInitialised_grid;
+
+// based on carpocalypse2 src/carma2/common/netgame.c
+// FUNCTION: CARMA2_HW 0x00499000
 void C2_HOOK_FASTCALL SetUpNetCarPositions(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    int grid_index;
+    int racer_count;
+
+    DisableNetService();
+    if (!gInitialised_grid) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            gNet_players[i].grid_position_set = 0;
+            gNet_players[i].last_waste_message = 0;
+            gNet_players[i].wasteage_attributed = 0;
+        }
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        gCurrent_race.opponent_list[i].index = -1;
+        gCurrent_race.opponent_list[i].ranking = IRandomBetween(0, 99);
+        gCurrent_race.opponent_list[i].car_spec = gNet_players[i].car;
+        gCurrent_race.opponent_list[i].net_player_index = i;
+        gNet_players[i].opponent_list_index = i;
+    }
+    racer_count = gNumber_of_net_players;
+    if (!gInitialised_grid && gCurrent_net_game->options.grid_start) {
+        qsort(gCurrent_race.opponent_list, gNumber_of_net_players, sizeof(tOpp_spec), SortGridFunction);
+    }
+    gCurrent_race.number_of_racers = 0;
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        gNet_players[gCurrent_race.opponent_list[i].net_player_index].opponent_list_index = i;
+    }
+    for (i = 0; i < racer_count; i++) {
+        if ((gCurrent_race.opponent_list[i].car_spec != NULL
+                && gCurrent_race.opponent_list[i].car_spec->driver == eDriver_oppo
+                && !gInitialised_grid)
+            || (gCurrent_race.opponent_list[i].car_spec != NULL
+                && gCurrent_race.opponent_list[i].car_spec->driver >= eDriver_net_human
+                && !gNet_players[gCurrent_race.opponent_list[i].net_player_index].grid_position_set)) {
+            grid_index = -1;
+            for (j = 0; j < 12 && grid_index < 0; j++) {
+                grid_index = j;
+                for (k = 0; k < racer_count; k++) {
+                    if (k != i
+                            && gNet_players[gCurrent_race.opponent_list[k].net_player_index].grid_position_set
+                            && gNet_players[gCurrent_race.opponent_list[k].net_player_index].grid_index == j) {
+                        grid_index = -1;
+                        break;
+                    }
+                }
+            }
+            if (grid_index < 0) {
+                FatalError(0x6e);
+            }
+            SetInitialPosition(&gCurrent_race, i, grid_index);
+            gNet_players[gCurrent_race.opponent_list[i].net_player_index].grid_index = grid_index;
+            if (!gInitialised_grid) {
+                gCurrent_race.number_of_racers = i + 1;
+            } else {
+                InitialiseCar2(gCurrent_race.opponent_list[i].car_spec, 0);
+            }
+            gNet_players[gCurrent_race.opponent_list[i].net_player_index].grid_position_set = 1;
+        }
+    }
+    gCurrent_race.number_of_racers = racer_count;
+    gInitialised_grid = 1;
+    ReenableNetService();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1458,9 +1527,35 @@ void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient) {
     }
 }
 
-// STUB: CARMA2_HW 0x004f0f80
+extern int gCount_host_smashes;
+extern tU8* gNet_host_smashes;
+extern int C2_HOOK_FASTCALL NetSendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
+
+// based on carpocalypse2 src/carma2/common/world.c
+// FUNCTION: CARMA2_HW 0x004f0f80
 void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
-    NOT_IMPLEMENTED();
+    tNet_message* message;
+    tU8 field_0x18;
+    tU8 field_0x19;
+    int i;
+    int offset;
+
+    message = NetBuildMessage(0x21, 0);
+    field_0x18 = ((tU8*)message)[0x18];
+    field_0x19 = ((tU8*)message)[0x19];
+    i = 0;
+    if (0 < gCount_host_smashes) {
+        offset = 0;
+        do {
+            memcpy((tU8*)message + 0x18, gNet_host_smashes + offset, 0x38);
+            ((tU8*)message)[0x18] = field_0x18;
+            *(tU32*)((tU8*)message + 0x4c) |= 1;
+            ((tU8*)message)[0x19] = field_0x19;
+            NetSendMessageToPlayer(gCurrent_net_game, message, pRecipient->ID);
+            i++;
+            offset += 0x38;
+        } while (i < gCount_host_smashes);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1469,9 +1564,50 @@ void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049cd90
-void C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode) {
-    NOT_IMPLEMENTED();
+extern int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
+
+// based on carpocalypse2 src/carma2/common/crush.c
+// FUNCTION: CARMA2_HW 0x0049cd90
+int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    int total_size;
+    tU8* current_data;
+    tPhysics_object* matching_child;
+    tPhysics_object* child;
+    tPhysics_object* recursive_child;
+
+    if (pObj != NULL && ((tU8*)pField)[1] != pObj->uid) {
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+    }
+    total_size = SetObjectNetworkStuff(pField, pObj, pMode);
+    if ((((tU8*)pField)[0] & 0x80) != 0) {
+        do {
+            current_data = (tU8*)pField + total_size;
+            if (pObj != NULL) {
+                child = pObj->child;
+                while (child != NULL && child->uid != current_data[1]) {
+                    child = child->next;
+                }
+                matching_child = child;
+            } else {
+                matching_child = NULL;
+            }
+            if (pObj != NULL) {
+                child = pObj->child;
+                while (child != NULL && child->uid != current_data[1]) {
+                    child = child->next;
+                }
+                recursive_child = child;
+            } else {
+                recursive_child = NULL;
+            }
+            total_size += SelectCrushNetwork((undefined4*)current_data, recursive_child, pMode);
+            if (matching_child != NULL) {
+                matching_child->field_0xf0 = pObj->field_0xf0;
+            }
+        } while ((current_data[0] & 0x40) != 0);
+    }
+    return total_size;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1543,9 +1679,54 @@ void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0043d690
+// based on carpocalypse2 src/carma2/common/crush.c
+// FUNCTION: CARMA2_HW 0x0043d690
 void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
-    NOT_IMPLEMENTED();
+    tU8* message;
+    int hierarchy_size;
+    int contents_size;
+    int written_size;
+    tCar_spec* car;
+    tNet_message* guaranteed_message;
+    br_vector3* crush_vector;
+
+    guaranteed_message = NULL;
+    car = NULL;
+    hierarchy_size = GetHierarchyNetworkSize(pNon_car->collision_info);
+    contents_size = hierarchy_size + 0x16;
+    if (pRecipient == NULL) {
+        if (pNon_car->collision_info->disable_move_rotate == 0 || (pNon_car->flags & 0x100000) == 0) {
+            message = (tU8*)NetStartBroadcastContents(0x29, contents_size);
+        } else {
+            guaranteed_message = NetBuildGuaranteedMessage(0x29, contents_size);
+            message = (tU8*)guaranteed_message + 0x18;
+            pNon_car->flags &= ~0x100000;
+        }
+    } else {
+        message = (tU8*)NetGetToPlayerContents(0x29, contents_size, pRecipient->ID);
+    }
+    if (message != NULL) {
+        if (pNon_car->actor != NULL) {
+            car = (tCar_spec*)pNon_car->actor->user;
+        }
+        *(undefined4*)(message + 8) = pArg2;
+        *(tPlayer_ID*)(message + 4) = NetPlayerFromCar(car)->ID;
+        *(tU16*)(message + 0xc) = (tU16)(pNon_car->collision_info->disable_move_rotate << 1);
+        crush_vector = &car->car_crush_spec->field_0x548;
+        CompressVector3((tCompressed_vector3*)(message + 0xe), crush_vector, -1.0f, 1.0f);
+        *(tU16*)(message + 0x14) = DRScalarToU16(*(float*)((tU8*)crush_vector + 0xc), -2.5f, 2.5f);
+        written_size = GetHierarchyNetworkStuff(pNon_car->collision_info, message + 0x16, 0x48);
+        if (written_size != hierarchy_size) {
+            FatalError(0x72, "in split half non_car object data");
+        }
+        if (pRecipient == NULL) {
+            if (guaranteed_message == NULL) {
+                NetBroadcastContents((tNet_message_chunk*)message);
+                return;
+            }
+            NetGuaranteedSendMessageToEverybody(gCurrent_net_game, guaranteed_message, 0);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1554,9 +1735,44 @@ void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004fe570
+extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
+extern int C2_HOOK_FASTCALL ResetFoxModelCallback(br_model* pModel);
+extern int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial);
+extern void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves);
+
+// based on carpocalypse2 src/carma2/common/spark.c
+// FUNCTION: CARMA2_HW 0x004fe570
 void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush_data;
+    tCar_crush_spec* crush_spec;
+    br_model* model;
+    int i;
+
+    if (gAFE == 0) {
+        return;
+    }
+    crush_spec = pCar->car_crush_spec;
+    model = pCar->shell_model;
+    model->custom = NULL;
+    model->flags &= ~BR_MODF_CUSTOM;
+    user_crush_data = pCar->car_model_actor->user;
+    model = user_crush_data->models[1];
+    if (model != NULL) {
+        model->flags &= ~BR_MODF_CUSTOM;
+        model->custom = NULL;
+    }
+    DRActorEnumRecurse(pCar->car_model_actor, ForEveryActorModelNoGrooves, (void*)ResetFoxModelCallback);
+    for (i = 0; i < crush_spec->field_0x270; i++) {
+        model = crush_spec->field_0x274[i].field_0x0->model;
+        model->flags &= ~BR_MODF_CUSTOM;
+        model->custom = NULL;
+    }
+    for (i = 0; i < crush_spec->field_0x2b0; i++) {
+        model = crush_spec->field_0x2b4[i].field_0x0->model;
+        model->flags &= ~BR_MODF_CUSTOM;
+        model->custom = NULL;
+    }
+    ForEveryCarMaterial(pCar, ResetFoxLighting, 1);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1627,6 +1843,18 @@ int gScore_winner = 20;
 #endif
 // STUB: CARMA2_HW 0x0043f730
 int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049c630
+int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
     NOT_IMPLEMENTED();
     return 0;
 }
