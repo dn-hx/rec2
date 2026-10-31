@@ -4,6 +4,7 @@
 
 #include "55-volume.h"
 
+#include <stdarg.h>
 #include <string.h>
 
 extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
@@ -104,19 +105,174 @@ void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const 
 
 // GetOmegaFromOmega16
 
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0049c0d0
+// FUNCTION: CARMA2_HW 0x0049c0d0
 int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, tU32 pSize) {
+    tU16* pBuffer16;
+    br_quat quat;
+    float value;
+    int i;
 
-    NOT_IMPLEMENTED();
+    if (pObject->physics_joint1 != NULL) {
+        switch (pObject->physics_joint1->type) {
+        case eJoint_hinge:
+        case eJoint_quick_hinge:
+            if (pSize < 0xc) {
+                return -1;
+            }
+            pBuffer[0] = (tU8)pObject->physics_joint1->type;
+            pBuffer[1] = pObject->uid;
+            value = pObject->omega.v[0] * pObject->physics_joint1->hinge_axis.v[0];
+            value += pObject->omega.v[1] * pObject->physics_joint1->hinge_axis.v[1];
+            value += pObject->omega.v[2] * pObject->physics_joint1->hinge_axis.v[2];
+            if (value > 39.269909f) {
+                value = 39.269909f;
+            }
+            if (value < -39.269909f) {
+                value = -39.269909f;
+            }
+            value = (value + 39.269909f) * 0.012732396f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[1] = (tU16)(value + .5f);
+            BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+            pBuffer16 = (tU16*)(pBuffer + 4);
+
+            value = quat.x;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            pBuffer16[0] = (tU16)(value + .5f);
+
+            value = quat.y;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            pBuffer16[1] = (tU16)(value + .5f);
+
+            pBuffer16[2] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
+            pBuffer16[3] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+            return 0xc;
+        case eJoint_universal:
+        case eJoint_ball_n_socket:
+            if (pSize < 0x10) {
+                return -1;
+            }
+            pBuffer[0] = (tU8)pObject->physics_joint1->type;
+            pBuffer[1] = pObject->uid;
+            pBuffer16 = (tU16*)(pBuffer + 2);
+            for (i = 0; i < 3; i++) {
+                value = pObject->omega.v[i];
+                if (value > 39.269909f) {
+                    value = 39.269909f;
+                }
+                if (value < -39.269909f) {
+                    value = -39.269909f;
+                }
+                value = (value + 39.269909f) * 0.012732396f;
+                value *= 65534.f;
+                *pBuffer16++ = (tU16)(value + .5f);
+            }
+            BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+
+            value = quat.x;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[4] = (tU16)(value + .5f);
+
+            value = quat.y;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[5] = (tU16)(value + .5f);
+
+            ((tU16*)pBuffer)[6] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
+            ((tU16*)pBuffer)[7] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+            return 0x10;
+        case eJoint_none:
+            break;
+        default:
+            PhysicsError((tPhysicsError)9, "netphys got messed up");
+        }
+    }
+
+    if (pSize < 0x28) {
+        return -1;
+    }
+    pBuffer[0] = (tU8)eJoint_none;
+    pBuffer[1] = pObject->uid;
+    pBuffer16 = (tU16*)(pBuffer + 2);
+    for (i = 0; i < 3; i++) {
+        value = pObject->omega.v[i];
+        if (value > 39.269909f) {
+            value = 39.269909f;
+        }
+        if (value < -39.269909f) {
+            value = -39.269909f;
+        }
+        value = (value + 39.269909f) * 0.012732396f;
+        value *= 65534.f;
+        *pBuffer16++ = (tU16)(value + .5f);
+    }
+    ((float*)(pBuffer + 8))[0] = pObject->v.v[0];
+    ((float*)(pBuffer + 8))[1] = pObject->v.v[1];
+    ((float*)(pBuffer + 8))[2] = pObject->v.v[2];
+    ((float*)(pBuffer + 0x1c))[0] = pObject->transform_matrix.m[3][0];
+    ((float*)(pBuffer + 0x1c))[1] = pObject->transform_matrix.m[3][1];
+    ((float*)(pBuffer + 0x1c))[2] = pObject->transform_matrix.m[3][2];
+    BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+
+    value = quat.x;
+    if (value > 1.f) {
+        value = 1.f;
+    }
+    if (value < -1.f) {
+        value = -1.f;
+    }
+    value = (value + 1.f) * .5f;
+    value *= 65534.f;
+    ((tU16*)(pBuffer + 0x14))[0] = (tU16)(value + .5f);
+
+    value = quat.y;
+    if (value > 1.f) {
+        value = 1.f;
+    }
+    if (value < -1.f) {
+        value = -1.f;
+    }
+    value = (value + 1.f) * .5f;
+    value *= 65534.f;
+    ((tU16*)(pBuffer + 0x14))[1] = (tU16)(value + .5f);
+
+    ((tU16*)(pBuffer + 0x14))[2] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
+    ((tU16*)(pBuffer + 0x14))[3] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+    return 0x28;
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x0049c5e0
 int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax) {
@@ -129,6 +285,10 @@ int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax) {
     }
     return (int)((pVal - pMin) / (pMax - pMin) * 65534.f - 0.5f);
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetVelocityAndPosition
 
@@ -169,8 +329,6 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 // FindObject
 
 // WriteHierarchyNetworkStuff
-
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
 // The original inlines the joint size switch (no separate call), so keep it static.
 static int SizeOfObjectNetworkStuff(tPhysics_joint_type pType) {
@@ -390,11 +548,62 @@ int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004b5ea0
-int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject) {
+extern tPhysics_object* gPHIL_queued_objects_for_removal[1];
 
-    NOT_IMPLEMENTED();
-    return 0;
+// FUNCTION: CARMA2_HW 0x004b5ea0
+int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject) {
+    int i;
+    tPHIL_queued_header* object_info;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (pObject->field_0x239 == 2) {
+        ((tPHIL_queued_header*)pObject->field_0x240)->collision_info = NULL;
+        pObject->field_0x240 = NULL;
+        pObject->field_0x239 = 0;
+        return 0;
+    }
+    if (gPHIL_munging_objects && !gPHIL_object_added) {
+        gPHIL_queued_objects_for_removal[gPHIL_count_queued_objects_for_removal] = pObject;
+        gPHIL_count_queued_objects_for_removal = gPHIL_count_queued_objects_for_removal + 1;
+        return 0;
+    }
+    i = 0;
+    object_info = gPhil_queued_objects.headers;
+    while (object_info->collision_info != pObject) {
+        object_info++;
+        i = i + 1;
+        if ((int)object_info >= (int)&gPhil_queued_objects.headers[100]) {
+            break;
+        }
+    }
+    if (i != 100 && pObject->field_0x240 != NULL) {
+        ((tPHIL_queued_header*)pObject->field_0x240)->collision_info = NULL;
+        pObject->field_0x240 = NULL;
+        gPHIL_count_list_collision_infos = gPHIL_count_list_collision_infos + -1;
+        if (pObject == gPHIL_list_collision_infos) {
+            gPHIL_list_collision_infos = pObject->next;
+            if (pObject->next != NULL) {
+                pObject->next->prev = NULL;
+            }
+        }
+        i = 0;
+        object_info = gPhil_queued_objects.headers;
+        while (object_info->collision_info == NULL || object_info->collision_info->next != pObject) {
+            object_info++;
+            i = i + 1;
+            if ((int)object_info >= (int)&gPhil_queued_objects.headers[100]) {
+                return 0;
+            }
+        }
+        gPhil_queued_objects.headers[i].collision_info->next = pObject->next;
+        if (pObject->next != NULL) {
+            pObject->next->prev = gPhil_queued_objects.headers[i].collision_info;
+        }
+        return 0;
+    }
+    return 3;
 }
 
 // FUNCTION: CARMA2_HW 0x004b5fd0
@@ -640,9 +849,81 @@ int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_m
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004b63b0
+extern int gFace_num__car;
+extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
+
+// FUNCTION: CARMA2_HW 0x004b63b0
 int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...) {
-    NOT_IMPLEMENTED();
+    va_list va;
+    tPHIL_queued_header* owner;
+    int value;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (pObject->field_0x239 != 2) {
+        owner = pObject->field_0x240;
+    } else {
+        owner = pObject->field_0x240;
+    }
+    if (owner != NULL) {
+    if (pProperty < 0 || pProperty >= 9) {
+        return 5;
+    }
+    va_start(va, pProperty);
+    switch (pProperty) {
+    case 0:
+        owner->field_0x10 = (float)va_arg(va, double);
+        break;
+    case 1:
+        if (va_arg(va, int)) {
+            owner->field_0x4 |= 1;
+            PositionChildren(pObject);
+        } else {
+            owner->field_0x4 &= 1;
+        }
+        break;
+    case 2:
+        owner->field_0xc = (float)va_arg(va, double);
+        break;
+    case 3:
+        value = (va_arg(va, int) != 0) & 1;
+        pObject->flags = (pObject->flags & ~0x40) | (value << 6);
+        if (!(pObject->flags & 0x40)) {
+            pObject->box_face_ref = (tU16)((tU32)gFace_num__car - 2u);
+        }
+        break;
+    case 4:
+        value = (va_arg(va, int) != 0) & 1;
+        pObject->flags = (pObject->flags & ~8) | (value << 3);
+        break;
+    case 5:
+        value = (va_arg(va, int) != 0) & 1;
+        pObject->flags = (pObject->flags & ~0x10) | (value << 4);
+        break;
+    case 6:
+        if (va_arg(va, int)) {
+            owner->field_0x4 |= 4;
+        } else {
+            owner->field_0x4 &= 4;
+        }
+        break;
+    case 7:
+        if (va_arg(va, int)) {
+            owner->field_0x4 |= 8;
+            pObject->water_d = 10000.f;
+        } else {
+            owner->field_0x4 &= 8;
+        }
+        break;
+    case 8:
+        owner->field_0x14 = (float)va_arg(va, double);
+        break;
+    }
+    va_end(va);
+    return 0;
+    }
+    return 3;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -698,8 +979,23 @@ extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 void C2_HOOK_FASTCALL PHILMungeObjects(tPhysics_object* pObjects) { NOT_IMPLEMENTED(); }
 // STUB: PHILInterpolateObjects
 void C2_HOOK_FASTCALL PHILInterpolateObjects(tPhysics_object* pObjects, tU32 pTime) { NOT_IMPLEMENTED(); }
-// STUB: CARMA2_HW 0x004b71b0
-void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject) { NOT_IMPLEMENTED(); }
+// FUNCTION: CARMA2_HW 0x004b71b0
+void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator) {
+    if (pObject->field_0x240 == NULL || ((tPHIL_queued_header*)pObject->field_0x240)->field_0x8 != 1) {
+        pObject->flags |= 0x1000;
+        return;
+    }
+    if (gPHIL_original_activate_passive != NULL) {
+        gPHIL_original_activate_passive(pObject);
+    }
+    if (((int (C2_HOOK_FASTCALL*)(tPhysics_object*, tPhysics_object*))gPHIL_callbacks->passive_activated) != NULL) {
+        if (((int (C2_HOOK_FASTCALL*)(tPhysics_object*, tPhysics_object*))gPHIL_callbacks->passive_activated)(pObject, pActivator)) {
+            PHILMakeObjectActive(pObject, NULL, NULL, 1);
+        }
+    } else {
+        PHILMakeObjectActive(pObject, NULL, NULL, 1);
+    }
+}
 // STUB: FlushQueuedAddsAndRemoves
 void C2_HOOK_FASTCALL FlushQueuedAddsAndRemoves(void) { NOT_IMPLEMENTED(); }
 // STUB: ChangedObjectsCallbacks
@@ -724,7 +1020,7 @@ void C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_t
     }
     now = pLast_tick_time + pFrame_period;
     gPHIL_original_activate_passive = pCallbacks->world_callbacks->activate_passive;
-    pCallbacks->world_callbacks->activate_passive = PHILActivatePassive;
+    pCallbacks->world_callbacks->activate_passive = (tWorld_callback_active_passive_cbfn*)PHILActivatePassive;
     gPHIL_callbacks = pCallbacks;
     if (gPHIL_last_physics_tick < pLast_tick_time) {
         gPHIL_last_physics_tick = 40 * (pLast_tick_time / 40);
