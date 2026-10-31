@@ -649,16 +649,36 @@ void C2_HOOK_FASTCALL WorkerPowerupRespawnUndo(int field_0x0, int field_0x4) {
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004eb8f0
 void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 field_0x4, tU32 field_0x84, tU32 field_0x44, br_vector3* field_0x8, br_vector3* field_0x20, br_vector3* field_0x2c, tU32 field_0x50, tU32 field_0x48, tU32 field_0x0, br_vector3* field_0x54, br_vector3* field_0x88, br_vector3* field_0x14, tU32 field_0xa0, br_vector3* field_0x38, tU32 field_0) {
 
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
+extern tSmash_vertex gSmash_glass_fragments[200];
 
 // FUNCTION: CARMA2_HW 0x004f0380
 void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
+    int i;
+    tSmash_vertex* fragment;
+    float delta_time;
 
-    NOT_IMPLEMENTED();
+    WorkerShrapnelShower(prev_0x4, prev_0x84, prev_0x44, prev_0x8, prev_0x20, prev_0x2c, prev_0x50, prev_0x48, prev_0x0, prev_0x54, prev_0x88, prev_0x14, prev_0xa0, prev_0x38, 0);
+    delta_time = (float)(chunk_0x48 - prev_0x48);
+    for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
+        if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
+            fragment->field_0x34 = 0;
+            DoFragMovement(fragment, GetTotalTime(), delta_time);
+            fragment->field_0x34 = 1;
+        }
+    }
 }
 
 // based on ApexWorm/rec2 832cae840

@@ -1722,9 +1722,25 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
 void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
     NOT_IMPLEMENTED();
 }
-// STUB: CARMA2_HW 0x004ace20
+// based on carpocalypse2 src/carma2/common/opponent.c
+// FUNCTION: CARMA2_HW 0x004ace20
 void C2_HOOK_FASTCALL ObjectiveComplete(tOpponent_spec* pOpponent_spec) {
-    NOT_IMPLEMENTED();
+
+    DoNotDprintf("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
+    pOpponent_spec->new_objective_required = 1;
+    switch (pOpponent_spec->current_objective) {
+    case eOOT_complete_race:
+        gNum_of_opponents_completing_race -= 1;
+        break;
+    case eOOT_pursue_and_twat:
+        gNum_of_opponents_pursuing -= 1;
+        break;
+    case eOOT_get_near_player:
+        gNum_of_opponents_getting_near -= 1;
+        break;
+    default:
+        break;
+    }
 }
 // STUB: CARMA2_HW 0x004ac890
 void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {

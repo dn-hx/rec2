@@ -255,12 +255,24 @@ static void C2_HOOK_FASTCALL AutoGoody(tU32 pTime) {
 
 // GotPowerup
 
+extern void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004dc170
+// based on carpocalypse2 src/carma2/common/powerups.c:1800
+// FUNCTION: CARMA2_HW 0x004dc170
 int C2_HOOK_FASTCALL GotCredits(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int credits;
+    char str[256];
+
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        credits = (IRandomBetween(pPowerup->integer_params[0], pPowerup->integer_params[1]) / 100) * 100;
+        strcpy(str, pPowerup->message);
+        strcat(str, " ");
+        EarnCredits2(credits, str);
+    }
+    return pPowerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004dc240

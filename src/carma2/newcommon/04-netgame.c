@@ -593,6 +593,9 @@ void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer) {
 
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern int gNum_active_non_cars;
+extern tNon_car_spec* gActive_non_car_list[99];
 extern void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient);
 extern void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient);
 extern void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient);
@@ -767,9 +770,23 @@ tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize
     return NULL;
 }
 
-// STUB: CARMA2_HW 0x0043d5b0
+// based on carpocalypse2 src/carma2/common/crush.c
+// FUNCTION: CARMA2_HW 0x0043d5b0
 void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient) {
-    NOT_IMPLEMENTED();
+    int i;
+    tNon_car_spec** pNon_car;
+
+    i = 0;
+    if (gNum_active_non_cars > 0) {
+        pNon_car = gActive_non_car_list;
+        do {
+            if ((*pNon_car)->driver == 2) {
+                SendDetachedNonCarData(*pNon_car, -1, pRecipient);
+            }
+            i++;
+            pNon_car++;
+        } while (i < gNum_active_non_cars);
+    }
 }
 
 // STUB: CARMA2_HW 0x0043d7d0
@@ -795,6 +812,17 @@ void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
 #endif
 // STUB: CARMA2_HW 0x0049cd90
 void C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0043d1d0
+void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

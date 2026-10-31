@@ -3247,9 +3247,60 @@ void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec) {
     }
     gCount_car_damage_crush_list = new_count;
 }
-// STUB: CARMA2_HW 0x004387d0
+extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+extern tS3_outlet* gCar_outlet;
+extern br_vector3 gZero_v__car;
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+// based on carpocalypse2 src/carma2/common/crush.c:9022
+// FUNCTION: CARMA2_HW 0x004387d0
 void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_flap_data* flap_data;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    flap_data = crush_data->flap_data;
+    if (flap_data == NULL) {
+        return;
+    }
+    if (flap_data->kev_o_flap) {
+        if (gNet_mode != eNet_mode_none) {
+            if (gNet_mode == eNet_mode_host) {
+                tPhysics_object* object;
+                tNet_message* message;
+
+                object = *(tPhysics_object**)((char*)flap_data + 0x24);
+                message = NetBuildGuaranteedMessage(0x26, 0);
+                message->guaranteed.contents.detach_bit.ID = NetPlayerFromCar(pCar_spec)->ID;
+                message->guaranteed.contents.detach_bit.field_0x4 = object->uid;
+                message->guaranteed.contents.detach_bit.field_0x8 = gPHIL_last_physics_tick + 120;
+                NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, 0);
+            }
+        } else {
+            ReAttachBit(pCar_spec, pCar_spec->car_model_actor, pActor, *(tPhysics_object**)((char*)flap_data + 0x24));
+            MungeDetachLists(pCar_spec->car_crush_spec);
+        }
+    } else {
+        pCar_spec->car_crush_spec->field_0x134 -= 1;
+        BrMatrix34Identity(&pActor->t.t.mat);
+        PipeSingleFlap(pActor, -flap_data->field_0x4);
+        flap_data->field_0x4 = 0;
+        flap_data->field_0x2 = 0;
+        flap_data->field_0x6 = 0x3ffc;
+        flap_data->field_0x8 = 0x3ffc;
+        flap_data->field_0x0 = 0;
+    }
+    DRS3StartSound3D(gCar_outlet, 0x1482, &pCar_spec->car_master_actor->t.t.translate.t, &gZero_v__car, 1, 255, IRandomBetween(0xe000, 0x12000), 0x10000);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -3417,3 +3468,14 @@ void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) 
 
 // GLOBAL: CARMA2_HW 0x0067bad8
 tQueued_drone_crush gQueued_drone_crushes[4];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004a5bc0
+void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
