@@ -1005,9 +1005,93 @@ void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDep
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004d5d60
+// FUNCTION: CARMA2_HW 0x004d5d60
 void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    extern tProximity_ray gProximity_rays[20];
+    extern tPedestrian* gPedestrian_array;
+    extern br_pixelmap* gProx_ray_shade_table;
+    extern void C2_HOOK_FASTCALL ARStartPipingSession(int pType);
+    extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+    extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
+    extern int C2_HOOK_FASTCALL DrawLine3D(const br_vector3* pStart, const br_vector3* pEnd, br_pixelmap* pScreen, br_pixelmap* pDepth, br_pixelmap* pShade);
+    tU32 the_time;
+    int i;
+    float seed;
+    br_vector3 car_pos;
+    br_vector3 ped_pos;
+    br_vector3 car_pos_cam;
+    br_vector3 ped_pos_cam;
+    br_vector3 car_add;
+    br_vector3 car_add_c;
+    br_vector3 ray;
+    br_vector3 r1;
+    br_vector3 from_pos;
+    br_vector3 to_pos;
+    br_model* car_model;
+    br_scalar distance;
+    br_scalar t;
+    int model_updated = 0;
+    br_uint_8 b = 0xff;
+
+    the_time = GetTotalTime();
+    ARStartPipingSession(0x15);
+    for (i = 0; i < (int)REC2_ASIZE(gProximity_rays); i++) {
+
+        if (gProximity_rays[i].start_time == 0) {
+            continue;
+        }
+        if (the_time - gProximity_rays[i].start_time >= 500) {
+            gProximity_rays[i].start_time = 0;
+            continue;
+        }
+        if (gNo_2d_effects && !model_updated) {
+            BrActorRemove(gLine_actor);
+            BrActorAdd(gCamera, gLine_actor);
+            gLine_model->vertices[0].red = 0x80;
+            gLine_model->vertices[0].grn = 0x80;
+            gLine_model->vertices[0].blu = b;
+            gLine_model->vertices[1].red = b;
+            gLine_model->vertices[1].grn = b;
+            gLine_model->vertices[1].blu = b;
+            BrModelUpdate(gLine_model, BR_MODU_ALL);
+            model_updated = 1;
+        }
+        AddProxRayToPipingSession(i, gProximity_rays[i].car, gProximity_rays[i].ped - gPedestrian_array, gProximity_rays[i].start_time);
+        car_model = gProximity_rays[i].car->car_actor->model;
+
+        BrVector3Set(&car_add_c, 0.f, (car_model->bounds.max.v[1] - car_model->bounds.min.v[1]) / -5.f, 0.f);
+        BrMatrix34ApplyV(&car_add, &car_add_c, &gProximity_rays[i].car->car_master_actor->t.t.mat);
+        BrVector3Add(&car_pos, &gProximity_rays[i].car->pos, &car_add);
+        BrVector3Copy(&ped_pos, &gProximity_rays[i].ped->pos);
+        DRMatrix34TApplyP(&car_pos_cam, &car_pos, &gCamera_to_world);
+        DRMatrix34TApplyP(&ped_pos_cam, &ped_pos, &gCamera_to_world);
+
+        BrVector3Sub(&r1, &ped_pos_cam, &car_pos_cam);
+        distance = BrVector3Length(&r1);
+        BrVector3Normalise(&r1, &r1);
+
+        from_pos = car_pos_cam;
+
+        seed = ped_pos.v[0] + ped_pos.v[1] + ped_pos.v[2] + car_pos.v[0] + car_pos.v[1] + car_pos.v[2];
+        srand(*(int*)&seed + the_time);
+
+        for (t = 0.f; t < distance; t = t - -0.05f) {
+            BrVector3Scale(&ray, &r1, t);
+            BrVector3Add(&to_pos, &ray, &car_pos_cam);
+            to_pos.v[0] += SRandomPosNeg(.1f);
+            to_pos.v[1] += SRandomPosNeg(.1f);
+            to_pos.v[2] += SRandomPosNeg(.1f);
+            DrawLine3D(&to_pos, &from_pos, pRender_screen, pDepth_buffer, gProx_ray_shade_table);
+            t = t - -0.05f;
+            from_pos = to_pos;
+        }
+        DrawLine3D(&ped_pos_cam, &from_pos, pRender_screen, pDepth_buffer, gProx_ray_shade_table);
+    }
+    AREndPipingSession();
+    if (gNo_2d_effects && model_updated) {
+        BrActorRemove(gLine_actor);
+        BrActorAdd(gDont_render_actor, gLine_actor);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1029,4 +1113,3 @@ br_matrix34 gIdentity34 = {
 
 // GLOBAL: CARMA2_HW 0x006a2440
 int gShadow_dim_amount;
-

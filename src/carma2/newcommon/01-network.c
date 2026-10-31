@@ -952,14 +952,87 @@ void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049f9c0
+// FUNCTION: CARMA2_HW 0x0049f9c0
 tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider) {
-    NOT_IMPLEMENTED();
+    int i;
+    int size;
+    int offset;
+    tNet_message* message;
+    tNet_message_chunk* chunk;
+    tNet_game_player_info* player;
+    tPlayer_ID key;
+    extern int gINT_00659d34;
+
+    if (gINT_00659d34 >= 0) {
+        PDFatalError("Broadcast stacks messed up");
+    }
+    i = 0;
+    if (gNumber_of_net_players <= 0) {
+        return NULL;
+    }
+    for (; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            goto found_player;
+        }
+    }
     return NULL;
+
+found_player:
+    gINT_00659d34 = i;
+    key = gNet_players[i].ID;
+    size = (int)NetGetContentsSize(pType, pSize_decider);
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].ID == key) {
+            goto found_target;
+        }
+    }
+    return NULL;
+
+found_target:
+    player = &gNet_players[i];
+    if (player == &gNet_players[gThis_net_player_index]) {
+        PDFatalError("Trying to send network message to self");
+    }
+    message = player->field_0xcc;
+    if (message != NULL && size + message->header.field_0x16 > 0x200) {
+        tPlayer_ID player_id = player->ID;
+        tNet_game_details* game = gCurrent_net_game;
+
+        if (gNet_mode != eNet_mode_none) {
+            message->header.field_0x8 = gLocal_net_ID;
+            message->header.field_0x10 = PDGetTotalTime();
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                if (gNet_players[i].ID == player_id) {
+                    goto send_message;
+                }
+            }
+            goto clear_message;
+
+send_message:
+            PDNetSendMessageToAddress(game, message, &gNet_players[i].pd_net_info);
+        }
+clear_message:
+        player->field_0xcc = message = NULL;
+    }
+    if (message == NULL) {
+        message = player->field_0xcc = NetAllocateMessage(0x200);
+        message->header.field_0x16 = (tU16)sizeof(tNet_message_header);
+        message->header.field_0x14 = 0;
+    }
+    offset = message->header.field_0x16;
+    chunk = (tNet_message_chunk*)((tU8*)message + offset);
+    message->header.field_0x16 += (tU16)size;
+    message->header.field_0x14 += 1;
+    chunk->raw.header.type = pType;
+    chunk->raw.header.size = (tU8)size;
+    return chunk;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x00659d34
+int gINT_00659d34 = -1;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

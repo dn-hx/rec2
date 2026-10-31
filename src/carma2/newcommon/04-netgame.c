@@ -597,6 +597,7 @@ extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, und
 extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
 extern void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 extern void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient);
 extern void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient);
 
@@ -789,9 +790,22 @@ void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRec
     }
 }
 
-// STUB: CARMA2_HW 0x0043d7d0
+// FUNCTION: CARMA2_HW 0x0043d7d0
 void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient) {
-    NOT_IMPLEMENTED();
+    int i;
+    tNon_car_spec** pNon_car;
+
+    i = 0;
+    if (gNum_active_non_cars > 0) {
+        pNon_car = gActive_non_car_list;
+        do {
+            if ((*pNon_car)->driver == 3) {
+                SendSplitHalfNonCarData(*pNon_car, -1, pRecipient);
+            }
+            i++;
+            pNon_car++;
+        } while (i < gNum_active_non_cars);
+    }
 }
 
 // STUB: CARMA2_HW 0x0042da20
@@ -876,6 +890,17 @@ void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4
             NetGuaranteedSendMessageToEverybody(gCurrent_net_game, guaranteed_message, 0);
         }
     }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0043d690
+void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

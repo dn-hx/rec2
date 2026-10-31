@@ -492,8 +492,14 @@ void C2_HOOK_FASTCALL WorkerSmudge(tPipe_chunk** pChunk, int pScale) {
 
 // FUNCTION: CARMA2_HW 0x004ca4d0
 void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
+    extern int gBOOL_00744804;
+    extern tPedestrian* gPedestrian_array;
+    extern br_vector3 gY_unit_vector;
+    extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
 
-    NOT_IMPLEMENTED();
+    if (!gBOOL_00744804) {
+        SetCharacterDirection(gPedestrian_array[field_0x0 & 0xffff].character, pDir, &gY_unit_vector);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004ca500

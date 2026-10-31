@@ -406,14 +406,44 @@ int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004de0c0
+extern int C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
+extern int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3);
+extern void C2_HOOK_FASTCALL FUN_0045c760(void);
+extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern tS3_outlet* gCar_outlet;
+
+// GLOBAL: CARMA2_HW 0x0058ac90
+const double gConst_inverse_world_scale = 1.0 / 6.9;
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de0c0
 int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    PlayExclusiveFFBEffect("Kangeroo", 0);
+    PratcamEvent(0x2a);
+    *(float*)((tU8*)pCar->collision_info + 0x6c) = pPowerup->float_params[0] * gConst_inverse_world_scale + *(float*)((tU8*)pCar->collision_info + 0x6c);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound(gCar_outlet, 0x2332);
+    }
+    *((tU8*)pCar->collision_info + 0xec) = 0;
+    return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004de140
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de140
 int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int result;
+
+    if (FindPedestrianNearCar(pCar, pPowerup->float_params[0]) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Ped_Ray", 0);
+    }
+    return result;
 }
 
 // STUB: CARMA2_HW 0x004de190
@@ -426,14 +456,33 @@ int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004de540
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de540
 int C2_HOOK_FASTCALL RepulsePedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int result;
+    float* params;
+
+    params = pPowerup->float_params;
+    if (DoPedestrianRepulsifictor(pCar, params[0], params[2], params[1], params[3]) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Repulse", 0);
+    }
+    return result;
 }
 
-// STUB: CARMA2_HW 0x004de5d0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de5d0
 void C2_HOOK_FASTCALL ResetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    float f = 1.0f;
+
+    FUN_0045c760();
+    pCar->field_0x4d4 = f;
+    pCar->grip_multiplier = f;
+    SetCarSuspGiveAndHeight(pCar, f, f, f, 0.0f, 0.0f);
 }
 
 // STUB: CARMA2_HW 0x004de610
@@ -3365,6 +3414,41 @@ void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCa
 #endif
 // STUB: CARMA2_HW 0x004d6ab0
 void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045c6b0
+int C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004ce280
+int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045c760
+void C2_HOOK_FASTCALL FUN_0045c760(void) {
     NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING

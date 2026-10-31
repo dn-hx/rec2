@@ -541,8 +541,11 @@ float gPed_max_survivable_impact;
 // GLOBAL: CARMA2_HW 0x0069bc20
 float gPed_damage_per_force;
 
+// GLOBAL: CARMA2_HW 0x00694140
+tProximity_ray gProximity_rays[20] = { { 0 } };
+
 // GLOBAL: CARMA2_HW 0x00694230
-int gPed_animal_count;
+int gPed_animal_count = 0;
 
 /* UNCERTAIN: stride 0x20 in the original (tPed_animal_name in rec2_types.h is char[50]) */
 // GLOBAL: CARMA2_HW 0x0069fdb8
