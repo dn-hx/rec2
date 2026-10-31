@@ -2655,11 +2655,41 @@ void C2_HOOK_FASTCALL DisposePiping(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00403750
+// based on ApexWorm/rec2 40095a07a, carpocalypse2 23-piping.c
+// FUNCTION: CARMA2_HW 0x00403750
 tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession) {
+    tU32 size;
+    tU32 i;
+    tU32 length;
+    tU32 type;
+    tU32* session;
+    tU8* the_chunk;
+    const tReplay_callback* callbacks;
 
-    NOT_IMPLEMENTED();
-    return 0;
+    session = (tU32*)pSession;
+    size = 0;
+    i = 0;
+    if (i < session[1]) {
+        callbacks = gPipe_callbacks;
+        do {
+            type = session[0];
+            the_chunk = (tU8*)(session + 2) + size;
+            if (callbacks[type].calc_length != NULL) {
+                length = callbacks[type].calc_length((tPipe_chunk*)the_chunk);
+                callbacks = gPipe_callbacks;
+                length += callbacks[type].length + 4;
+            } else {
+                length = callbacks[type].length + 4;
+            }
+            size += length;
+            i++;
+        } while (i < session[1]);
+    }
+    size += 10;
+    if ((size & 1) != 0) {
+        FatalError(0x62);
+    }
+    return size;
 }
 // STUB: CARMA2_HW 0x00403800
 tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner) {
