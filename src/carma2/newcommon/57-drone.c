@@ -58,9 +58,6 @@ tDrone_form gDrone_forms[64];
 // GLOBAL: CARMA2_HW 0x00681fb0
 int gINT_00681fb0;
 
-// GLOBAL: CARMA2_HW 0x00681fb4
-int gCount_active_drones;
-
 // GLOBAL: CARMA2_HW 0x00684500
 int gCount_rendered_drones;
 
