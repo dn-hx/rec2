@@ -409,7 +409,90 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
     BrActorAdd(gUniverse_actor, gForward_sky_actor);
 }
 
-// DoHorizon
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_underground;
+extern void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour);
+
+// based on carpocalypse2 src/carma2/common/depth.c:280
+
+// FUNCTION: CARMA2_HW 0x004459e0
+void C2_HOOK_FAKE_THISCALL DoHorizon(br_pixelmap* pRender_buffer, undefined4 pEdx, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    br_pixelmap* sky_map;
+    br_camera* camera_data;
+    double half_fov;
+    float horizontal_scale;
+    float tangent_half_fov;
+    tU16 horizontal_fov;
+    tU16 yaw;
+    int angle_scale;
+    int source_x;
+    int source_y;
+    int screen_y;
+    int copy_width;
+    int copied_width;
+    int remaining_width;
+    int top_height;
+    int bottom_height;
+    float pitch_cosine;
+    float pitch_sine;
+    float angle_fraction;
+    tU8 top_colour;
+    tU8 bottom_colour;
+
+    (void)pEdx;
+    copied_width = 0;
+    sky_map = gHorizon_material->colour_map;
+    camera_data = pCamera->type_data;
+    half_fov = (double)((tU16)camera_data->field_of_view >> 1) * (PI / 32768.0);
+    tangent_half_fov = (float)sin(half_fov) / (float)cos(half_fov);
+    horizontal_scale = camera_data->aspect * tangent_half_fov * sky_map->width / pRender_buffer->width;
+    horizontal_fov = (tU16)(BrRadianToAngle(atan2(horizontal_scale, 1.0)) * 2);
+    angle_scale = 0xfff0 / (int)(1.0f / ((double)horizontal_fov / 65536.0) - -0.5f);
+    yaw = (tU16)BrRadianToAngle(atan2(pCamera_to_world->m[2][0], pCamera_to_world->m[2][2]));
+    angle_fraction = (float)((double)angle_scale * (1.0 / 65536.0));
+    source_x = (int)(-(((double)yaw * (1.0 / 65536.0)) / angle_fraction) * sky_map->width);
+    for (; source_x < 0; source_x += sky_map->width) {
+    }
+    for (; sky_map->width < source_x; source_x -= sky_map->width) {
+    }
+
+    pitch_cosine = (float)sqrt(pCamera_to_world->m[2][0] * pCamera_to_world->m[2][0] + pCamera_to_world->m[2][2] * pCamera_to_world->m[2][2]);
+    pitch_sine = pCamera_to_world->m[2][1] / pitch_cosine;
+    pitch_sine = pitch_sine / tangent_half_fov;
+    source_y = (int)gSky_image_underground * sky_map->height / (int)gSky_image_height;
+    source_y -= (int)(pitch_sine * pRender_buffer->height * 0.5f);
+    source_y -= sky_map->height;
+    screen_y = source_y;
+
+    if (pRender_buffer->width > 0) {
+        do {
+            remaining_width = sky_map->width - source_x;
+            copy_width = pRender_buffer->width - copied_width;
+            if (remaining_width <= copy_width) {
+                copy_width = remaining_width;
+            }
+            DRPixelmapRectangleCopy(pRender_buffer, copied_width - pRender_buffer->origin_x,
+                    screen_y, sky_map, source_x - sky_map->origin_x, -sky_map->origin_y,
+                    copy_width, sky_map->height);
+            copied_width += copy_width;
+            source_x = 0;
+        } while (copied_width < pRender_buffer->width);
+    }
+
+    top_height = screen_y + pRender_buffer->origin_y;
+    if (top_height > 0) {
+        top_colour = *(tU8*)sky_map->pixels;
+        DRPixelmapRectangleFill(pRender_buffer, -pRender_buffer->origin_x, -pRender_buffer->origin_y,
+                pRender_buffer->width, top_height, top_colour);
+    }
+
+    bottom_height = pRender_buffer->height - screen_y - sky_map->height - pRender_buffer->origin_y;
+    if (bottom_height > 0) {
+        bottom_colour = *((tU8*)sky_map->pixels + sky_map->row_bytes * (sky_map->height - 1));
+        DRPixelmapRectangleFill(pRender_buffer, -pRender_buffer->origin_x,
+                screen_y + sky_map->height, pRender_buffer->width, bottom_height, bottom_colour);
+    }
+}
 
 // DoDepthCue
 
@@ -796,3 +879,14 @@ void C2_HOOK_FASTCALL SetSkyColour(br_colour c) {
     gHorizon_material->colour = c;
 }
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x005156d0
+void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
