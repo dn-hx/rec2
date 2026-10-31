@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
 extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index);
 
@@ -610,8 +611,6 @@ tU32 gDrivable_on_count;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00425ba0
-int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2) { NOT_IMPLEMENTED(); return 0; }
 // STUB: CARMA2_HW 0x004f1140
 float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8) { NOT_IMPLEMENTED(); return 0.f; }
 // STUB: CARMA2_HW 0x004ecfb0
@@ -2764,6 +2763,44 @@ void C2_HOOK_FASTCALL FUN_0043fb70(tCar_spec* pCar, br_vector3* pPoint, br_vecto
 // STUB: CARMA2_HW 0x0042d400
 void C2_HOOK_FASTCALL FUN_0042d400(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+static int notfinite(const float* f) {
+    if (f != NULL) {
+        return ((~*(tU32*)f) & 0x7f800000) == 0;
+    } else {
+        return 0;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on carpocalypse2 src/carma2/common/finteray.c:630 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x00425ba0
+int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2) {
+    int i;
+
+    if (b1->min.v[2] > b2->max.v[2]
+           || b2->min.v[2] > b1->max.v[2]
+           || b1->min.v[1] > b2->max.v[1]
+           || b2->min.v[1] > b1->max.v[1]
+           || b1->min.v[0] > b2->max.v[0]
+           || b2->min.v[0] > b1->max.v[0]) {
+
+        return 0;
+    }
+
+    for (i = 0; i < 3; i++) {
+        if (notfinite(&b1->min.v[i]) || notfinite(&b1->max.v[i])
+                || notfinite(&b2->min.v[i]) || notfinite(&b2->max.v[i])) {
+            return 0;
+        }
+    }
+    return 1;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

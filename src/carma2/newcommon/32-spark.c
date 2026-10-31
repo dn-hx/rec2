@@ -846,17 +846,6 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
     AREndPipingSession();
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x00511810
-br_scalar C2_HOOK_FASTCALL FastScalarCosAngle(br_angle pBR_angle) {
-    NOT_IMPLEMENTED();
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // based on carpocalypse2 src/carma2/common/spark.c:1841 (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004f9e80
 void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
@@ -2050,14 +2039,57 @@ void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
 
 // ForEveryActorMaterialNoGrooves
 
+static void C2_HOOK_FASTCALL ForEveryModelMaterial(br_model* pModel, tMaterialMaybeUpdate_cbfn* pCallback) {
+    int i;
+    int need_update = 0;
+
+    if (pModel == NULL) {
+        return;
+    }
+    for (i = 0; i < pModel->prepared->ngroups; i++) {
+        br_material* material = pModel->faces[*pModel->prepared->groups[i].face_user].material;
+
+        if (material != NULL) {
+            need_update |= pCallback(material);
+        }
+    }
+    if (need_update) {
+        BrModelUpdate(pModel, 0x10);
+    }
+}
+
+extern intptr_t C2_HOOK_CDECL ForEveryActorMaterial(br_actor* pActor, void* pContext);
+extern intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pContext);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004fe640
-// STUB: CARMA2_SW 0x004f9f20
+// based on carpocalypse2 src/carma2/common/spark.c:1216 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004fe640
+// FUNCTION: CARMA2_SW 0x004f9f20
 void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves) {
-    NOT_IMPLEMENTED();
+    int i;
+    tCar_crush_spec* pCrush_spec = pCar_spec->car_crush_spec;
+    tUser_crush_data* user_crush_data;
+
+    if (pCar_spec->car_master_actor->material != NULL) {
+        pCallback(pCar_spec->car_master_actor->material);
+    }
+    ForEveryModelMaterial(pCar_spec->shell_model, pCallback);
+    user_crush_data = pCar_spec->car_model_actor->user;
+    ForEveryModelMaterial(user_crush_data->models[1], pCallback);
+    if (pGrooves) {
+        DRActorEnumRecurse(pCar_spec->car_model_actor, ForEveryActorMaterial, pCallback);
+    } else {
+        DRActorEnumRecurse(pCar_spec->car_model_actor, ForEveryActorMaterialNoGrooves, pCallback);
+    }
+    for (i = 0; i < pCrush_spec->field_0x270; i++) {
+        ForEveryModelMaterial(pCrush_spec->field_0x274[i].field_0x0->model, pCallback);
+    }
+    for (i = 0; i < pCrush_spec->field_0x2b0; i++) {
+        ForEveryModelMaterial(pCrush_spec->field_0x2b4[i].field_0x0->model, pCallback);
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -2220,6 +2252,23 @@ tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner) {
 // STUB: CARMA2_HW 0x004fda70
 void C2_HOOK_FASTCALL GetVelocitiesFromMatrices(br_vector3* pVel, br_vector3* pRot, br_matrix34* pMat_now, br_matrix34* pMat_prev, tU32 pTime) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004fe8a0
+intptr_t C2_HOOK_CDECL ForEveryActorMaterial(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x004fe930
+intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+    return 0;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

@@ -194,7 +194,10 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
 
 extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 extern int C2_HOOK_FASTCALL CreateMovie(void);
-extern int C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
+extern short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
+extern void C2_HOOK_FASTCALL FUN_004e1400(void* pFrame_pixmap_handle, br_pixelmap* pScreen);
+extern short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8);
+extern short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time);
 extern FSSpec gQt_file_spec;
 extern struct Rect gQuicktime_rect;
 extern int gRecording_paused;
@@ -394,6 +397,12 @@ int gStatus_message_1;
 // GLOBAL: CARMA2_HW 0x006a23c0
 int gStatus_message_2;
 
+// GLOBAL: CARMA2_HW 0x0065ef2c
+int gQuicktime_frame_flags = 1;
+
+// GLOBAL: CARMA2_HW 0x006a0c44
+br_uint_16* gQuicktime_frame_pixels;
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -417,12 +426,70 @@ int C2_HOOK_FASTCALL CreateMovie(void) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x004e1c70
-int C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
-    NOT_IMPLEMENTED();
+// based on carpocalypse2 src/carma2/common/video.c:322 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x004e1c70
+short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
+    int frame_flags;
+    int pixmap_width;
+    int frame_size;
+    char codec_info;
+    short result;
+
+    if (gQuicktime_frame_flags != 0) {
+        frame_flags = 0xc0;
+        gQuicktime_frame_flags = 0;
+    } else {
+        frame_flags = 0x40;
+    }
+    PossibleLock(1);
+    *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
+    if (gNbPixelBits == 16) {
+        pixmap_width = gCurrent_graf_data->width / 2;
+    } else {
+        pixmap_width = gCurrent_graf_data->width;
+    }
+    *(short*)(*gQuicktime_frame_pixmap_handle + 4) = pixmap_width * 2;
+    FUN_004e1400(gQuicktime_frame_pixmap_handle, pScreen);
+    result = FUN_0056d8c0(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle,
+            &gQuicktime_rect, frame_flags, *gQuicktime_compressed_frame_handle,
+            &frame_size, &codec_info, 0);
+    if (result != 0) {
+        PossibleUnlock(1);
+        return result;
+    }
+    *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
+    result = FUN_0056b440(gQuicktime_media, gQuicktime_compressed_frame_handle, 0,
+            *(int*)(*gQuicktime_image_description_handle + 0x2c),
+            0x37, gQuicktime_image_description_handle, 1, 0, 0);
+    if (result != 0) {
+        PossibleUnlock(1);
+        return result;
+    }
+    PossibleUnlock(1);
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004e1400
+void C2_HOOK_FASTCALL FUN_004e1400(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x0056d8c0
+short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x0056b440
+short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

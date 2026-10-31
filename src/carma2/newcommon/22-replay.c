@@ -575,10 +575,25 @@ void C2_HOOK_FASTCALL WorkerGibShower(int field_0x0, int field_0xc, int field_0x
     DoGibShower(field_0x0, field_0xc, field_0x8, field_0x10, field_0x4, pField_0x14, pField_0x20, pField_0x2c);
 }
 
+extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
+extern tSmash_vertex gSmash_glass_fragments[200];
+
+// based on carpocalypse2 src/carma2/common/replay.c
 // FUNCTION: CARMA2_HW 0x004ccc40
 void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
+    int i;
+    tSmash_vertex* fragment;
+    float delta_time;
 
-    NOT_IMPLEMENTED();
+    DoGibShower(prev_0x0, prev_0xc, prev_0x8, prev_0x10, prev_0x4, prev_0x14, prev_0x20, prev_0x2c);
+    delta_time = (float)(field_0xc - prev_0xc);
+    for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
+        if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
+            fragment->field_0x34 = 0;
+            DoFragMovement(fragment, GetTotalTime(), delta_time);
+            fragment->field_0x34 = 1;
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004d6180

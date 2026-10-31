@@ -336,14 +336,24 @@ void C2_HOOK_FASTCALL ResetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) 
     pCar->invulnerable_no_damage = 0;
 }
 
-// STUB: CARMA2_HW 0x004dc990
+extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc990
 int C2_HOOK_FASTCALL DoInstantRepair(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        TotallyRepairCar();
+    }
+    return pPowerup - gPowerup_array;
 }
 
-// STUB: CARMA2_HW 0x004dc9d0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dc9d0
 void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    br_vector3 scale = { { 1.0f, 1.0f, 1.0f } };
+
+    ChangePedScaling(&scale);
 }
 
 // STUB: CARMA2_HW 0x004dca00
@@ -371,9 +381,19 @@ int C2_HOOK_FASTCALL SetOpponentsSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004dce80
+extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
+
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dce80
 int C2_HOOK_FASTCALL SetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    SetCarSuspGiveAndHeight(pCar,
+                            ((volatile float*)pPowerup->float_params)[0],
+                            ((volatile float*)pPowerup->float_params)[1],
+                            ((volatile float*)pPowerup->float_params)[4],
+                            ((volatile float*)pPowerup->float_params)[2],
+                            ((volatile float*)pPowerup->float_params)[3]);
+    return pPowerup - gPowerup_array;
 }
 
 // STUB: CARMA2_HW 0x004dd700
