@@ -2353,7 +2353,83 @@ void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
     }
 }
 
-// SendCurrentPowerups
+extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
+extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
+// based on carpocalypse2 src/carma2/common/powerups.c:200
+// FUNCTION: CARMA2_HW 0x004dedf0
+void C2_HOOK_FASTCALL SendCurrentPowerups(void) {
+    tCar_spec* car;
+    tNet_message_chunk_powerup* message;
+    int locals[3];
+    int player_id;
+    int net_player_index;
+    int powerup_index;
+    int* powerup_time;
+    int current_time;
+    tNet_game_player_info* net_player;
+
+    player_id = locals[2];
+    locals[1] = 0;
+    do {
+        locals[0] = locals[1] == 0 ? 1 : GetCarCount(locals[1]);
+        locals[2] = 0;
+        if (locals[0] > 0) {
+            do {
+                if (locals[1] == 0) {
+                    car = &gProgram_state.current_car;
+                } else {
+                    car = GetCarSpec(locals[1], locals[2]);
+                }
+                net_player_index = 0;
+                if (gNumber_of_net_players > 0) {
+                    net_player = gNet_players;
+                    while (net_player_index < gNumber_of_net_players) {
+                        if (net_player->car == car) {
+                            player_id = gNet_players[net_player_index].ID;
+                            break;
+                        }
+                        net_player_index++;
+                        net_player++;
+                    }
+                }
+                powerup_index = 0;
+                if (gNumber_of_powerups > 0) {
+                    powerup_time = car->powerups;
+                    do {
+                        if (*powerup_time != 0) {
+                            message = (tNet_message_chunk_powerup*)NetStartBroadcastContents((tNet_message_type)0x16, 0);
+                            if (message != NULL) {
+                                message->field_0x10 = 1;
+                                message->player_id = player_id;
+                                message->powerup_index = powerup_index;
+                                current_time = GetTotalTime();
+                                message->time_remaining = *powerup_time - current_time;
+                                NetBroadcastContents((tNet_message_chunk*)message);
+                            }
+                        }
+                        powerup_index++;
+                        powerup_time++;
+                    } while (powerup_index < gNumber_of_powerups);
+                }
+                locals[2]++;
+            } while (locals[2] < locals[0]);
+        }
+        locals[1]++;
+    } while (locals[1] <= 1);
+}
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // LoseAllLocalPowerups
 
