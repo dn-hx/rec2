@@ -1280,7 +1280,135 @@ void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush
 }
 // RemoveDuplicatePoints
 
-// SimpleCrushModel
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+extern void C2_HOOK_FASTCALL FUN_004c7f40(br_model* pModel, br_vector3* pSrc, const float* pScalars);
+
+// based on carpocalypse2 src/carma2/common/crush1.c:388 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x0042c540
+void C2_HOOK_FASTCALL SimpleCrushModel(br_model* pModel, int pCount, float* pPoints, float* pDir, float* pBounds) {
+    float unique[12];
+    float weights[1024];
+    float* pNext;
+    float* pOut;
+    float* pVert;
+    int remaining;
+    int count;
+    int axis;
+    int found;
+    int k;
+    float len;
+    float scale;
+    float norm_x;
+    float norm_y;
+    float bend;
+    float a;
+    float b;
+    float dist_sq;
+    tU16 v;
+
+    if (pModel == NULL) {
+        return;
+    }
+    if (pModel->nvertices > 0x400) {
+        PDFatalError("SimpleCrushModel can't cope with that many vertices");
+    }
+    if (pCount < 1) {
+        return;
+    }
+    if (pCount > 4) {
+        pCount = 4;
+    }
+    count = 1;
+    unique[0] = pPoints[0];
+    unique[1] = pPoints[1];
+    unique[2] = pPoints[2];
+    if (pCount > 1) {
+        remaining = pCount - 1;
+        pNext = pPoints + 3;
+        pOut = unique + 4;
+        do {
+            found = 1;
+            for (k = 0; k < count; k++) {
+                float* pU = unique + k * 3;
+
+                if ((float)fabs(pU[0] - pNext[0]) < 0.005f && (float)fabs(pU[1] - pNext[1]) < 0.005f
+                    && (float)fabs(pU[2] - pNext[2]) < 0.005f) {
+                    found = 0;
+                    break;
+                }
+            }
+            if (found) {
+                pOut[-1] = pNext[0];
+                pOut[0] = pNext[1];
+                pOut[1] = pNext[2];
+                pOut += 3;
+                count++;
+            }
+            remaining--;
+            pNext += 3;
+        } while (remaining != 0);
+    }
+    if (TooFarToCrush(pModel, count, (br_vector3*)unique, gMax_crush_dist_sq) != 0) {
+        return;
+    }
+    len = (float)sqrt(pDir[1] * pDir[1] + pDir[2] * pDir[2] + pDir[0] * pDir[0]);
+    if (len > 2.3841858e-07f) {
+        scale = 1.0 / len;
+        norm_x = pDir[0] * scale;
+        norm_y = pDir[1] * scale;
+    } else {
+        norm_x = 1.0f;
+        norm_y = 0.0f;
+    }
+    if ((float)fabs(norm_x) <= 0.707107f) {
+        axis = 1;
+        if ((float)fabs(norm_y) <= 0.707107f) {
+            axis = 2;
+        }
+    } else {
+        axis = 0;
+    }
+    v = 0;
+    if (pModel->nvertices > 0) {
+        do {
+            pVert = (float*)((tU8*)pModel->vertices + (tU32)v * 0x28);
+            dist_sq = DistSq((br_vector3*)pVert, count, (br_vector3*)unique);
+            if (dist_sq <= gMax_crush_dist_sq) {
+                bend = 1.0f - (float)sqrt(dist_sq * 47.61f);
+            } else {
+                bend = 0.0f;
+            }
+            weights[v] = bend;
+            if (bend != gCrushZero) {
+                a = (pBounds[axis] - pVert[axis]) / pDir[axis];
+                b = (pBounds[axis + 3] - pVert[axis]) / pDir[axis];
+                if (b <= a) {
+                    a = b;
+                }
+                if (a > gCrushZero) {
+                    if (a < bend) {
+                        weights[v] = a;
+                    }
+                } else {
+                    weights[v] = 0.0f;
+                }
+                if (weights[v] != gCrushZero) {
+                    pVert[0] = pVert[0] + weights[v] * pDir[0];
+                    pVert[1] = pDir[1] * weights[v] + pVert[1];
+                    pVert[2] = pDir[2] * weights[v] + pVert[2];
+                }
+            }
+            v++;
+        } while (v < pModel->nvertices);
+    }
+    FUN_004c7f40(pModel, (br_vector3*)pDir, weights);
+    if ((pModel->flags & 0x20) != 0 && pModel->user != NULL) {
+        *(int*)pModel->user = 1;
+        return;
+    }
+    pModel->custom = JitModelUpdate;
+    pModel->flags = pModel->flags | 0x20;
+}
 
 // CrushDrone
 
@@ -1428,7 +1556,177 @@ void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pCar, flo
 
 // BitIsInBentPartOfCar
 
-// SetUpFlapJoint
+// based on carpocalypse2 src/carma2/common/flap.c:2023 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x00437ac0
+void C2_HOOK_FASTCALL SetUpFlapJoint(tPhysics_joint* pJoint, tCar_crush_flap_data* pFlap_data, br_model* pModel, tPhysics_object* pObject, br_vector3* pPoint1, br_vector3* pPoint2, br_vector3* pPoint3) {
+    float* pfVar1;
+    float* pfVar8;
+    float* joint;
+    float* point_1;
+    float* point_2;
+    float* point_3;
+    br_vector3 local_point;
+    br_matrix34 rotation;
+    float fVar2;
+    float fVar3;
+    float fVar5;
+    float fVar6;
+
+    joint = (float*)pJoint;
+    point_1 = (float*)pPoint1;
+    point_2 = (float*)pPoint2;
+    point_3 = (float*)pPoint3;
+    pJoint->type = eJoint_quick_hinge;
+    if (point_1 == NULL) {
+        point_1 = (float*)&pModel->vertices[pFlap_data->hinge0].p;
+    }
+    pfVar8 = point_2;
+    if (point_2 == NULL) {
+        pfVar8 = (float*)&pModel->vertices[pFlap_data->hinge1].p;
+    }
+    if (point_3 != NULL) {
+        point_2 = point_3;
+    } else {
+        point_2 = (float*)&pModel->vertices[pFlap_data->hinge2].p;
+    }
+    joint[2] = *point_1;
+    joint[3] = point_1[1];
+    joint[4] = point_1[2];
+    BrMatrix34ApplyP(&local_point, (br_vector3*)&joint[2], &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse((br_vector3*)&joint[5], &local_point, &pObject->parent->actor->t.t.mat);
+    pfVar1 = (float*)(joint + 0xe);
+    *pfVar1 = *pfVar8 - *point_1;
+    joint[0xf] = pfVar8[1] - point_1[1];
+    fVar2 = pfVar8[2] - point_1[2];
+    joint[0x10] = fVar2;
+    fVar2 = (float)sqrt(fVar2 * fVar2 + (float)joint[0xf] * (float)joint[0xf] + *pfVar1 * *pfVar1);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        *pfVar1 = *pfVar1 * fVar2;
+        joint[0xf] = (float)joint[0xf] * fVar2;
+        joint[0x10] = (float)joint[0x10] * fVar2;
+    } else {
+        *pfVar1 = 1.0;
+        joint[0xf] = 0;
+        joint[0x10] = 0;
+    }
+    joint[0x11] = *pfVar1;
+    joint[0x12] = joint[0xf];
+    joint[0x13] = joint[0x10];
+    if (*pfVar1 == gCrushZero && (float)joint[0x10] == gCrushZero) {
+        joint[8] = 1.0f;
+        joint[9] = 0;
+        joint[10] = 0;
+    } else {
+        joint[8] = -(float)joint[0x10];
+        joint[10] = *pfVar1;
+        joint[9] = 0;
+    }
+    fVar2 = (float)sqrt((float)joint[10] * (float)joint[10] + (float)joint[8] * (float)joint[8]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[9] = 0;
+        joint[8] = (float)joint[8] * fVar2;
+        joint[10] = (float)joint[10] * fVar2;
+    } else {
+        joint[8] = 1.0f;
+        joint[9] = 0;
+        joint[10] = 0;
+    }
+    joint[0xb] = (float)joint[0xf] * (float)joint[10] - (float)joint[0x10] * (float)joint[9];
+    joint[0xc] = (float)joint[8] * (float)joint[0x10] - *pfVar1 * (float)joint[10];
+    fVar3 = *pfVar1 * (float)joint[9] - (float)joint[8] * (float)joint[0xf];
+    joint[0xd] = fVar3;
+    fVar2 = (float)sqrt(fVar3 * fVar3 + (float)joint[0xc] * (float)joint[0xc] + (float)joint[0xb] * (float)joint[0xb]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[0xb] = (float)joint[0xb] * fVar2;
+        joint[0xc] = (float)joint[0xc] * fVar2;
+        joint[0xd] = fVar2 * fVar3;
+    } else {
+        joint[0xb] = 1.0f;
+        joint[0xc] = 0;
+        joint[0xd] = 0;
+    }
+    pJoint->count_limits = 2;
+    joint[0x17] = *point_2 - *point_1;
+    joint[0x18] = point_2[1] - point_1[1];
+    fVar2 = point_2[2];
+    fVar3 = point_1[2];
+    joint[0x19] = fVar2 - fVar3;
+    fVar2 = (float)joint[0x17] - *pfVar1 * (*pfVar1 * (float)joint[0x17] + (float)joint[0x10] * (fVar2 - fVar3) + (float)joint[0xf] * (float)joint[0x18]);
+    fVar3 = (float)joint[0x18] - ((float)joint[0x10] * (float)joint[0x19] + (float)joint[0xf] * (float)joint[0x18] + (float)joint[0x17] * *pfVar1) * (float)joint[0xf];
+    fVar6 = (float)joint[0x19] - (float)joint[0x10] * ((float)joint[0x18] * (float)joint[0xf] + (float)joint[0x10] * (float)joint[0x19] + (float)joint[0x17] * *pfVar1);
+    joint[0x17] = fVar2;
+    fVar5 = (float)sqrt(fVar6 * fVar6 + fVar3 * fVar3 + fVar2 * fVar2);
+    joint[0x18] = fVar3;
+    joint[0x19] = fVar6;
+    if (fVar5 > 2.3841858e-07f) {
+        fVar5 = 1.0 / fVar5;
+        joint[0x17] = fVar5 * fVar2;
+        joint[0x18] = fVar5 * fVar3;
+        joint[0x19] = (float)joint[0x19] * fVar5;
+    } else {
+        joint[0x17] = 1.0f;
+        joint[0x18] = 0;
+        joint[0x19] = 0;
+    }
+    joint[0x1a] = (float)joint[0xf] * (float)joint[0x19] - (float)joint[0x10] * (float)joint[0x18];
+    pfVar8 = (float*)(joint + 0x1f);
+    joint[0x1b] = (float)joint[0x10] * (float)joint[0x17] - *pfVar1 * (float)joint[0x19];
+    *pfVar8 = (float)joint[0x17];
+    fVar3 = *pfVar1 * (float)joint[0x18] - (float)joint[0x17] * (float)joint[0xf];
+    joint[0x20] = joint[0x18];
+    joint[0x21] = joint[0x19];
+    joint[0x1c] = fVar3;
+    fVar2 = (float)sqrt(fVar3 * fVar3 + (float)joint[0x1b] * (float)joint[0x1b] + (float)joint[0x1a] * (float)joint[0x1a]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[0x1a] = (float)joint[0x1a] * fVar2;
+        joint[0x1b] = (float)joint[0x1b] * fVar2;
+        joint[0x1c] = fVar2 * fVar3;
+    } else {
+        joint[0x1a] = 1.0f;
+        joint[0x1b] = 0;
+        joint[0x1c] = 0;
+    }
+    BrMatrix34Rotate(&rotation, (br_angle)(pFlap_data->field_0x6 - 0x3ffc), (br_vector3*)pfVar1);
+    BrMatrix34ApplyV((br_vector3*)&joint[0x22], (br_vector3*)&joint[0x1f], &rotation);
+    fVar2 = (float)joint[0x1a] * 0.01f + (float)joint[0x17];
+    fVar6 = (float)joint[0x1b] * 0.01f + (float)joint[0x18];
+    fVar5 = (float)joint[0x1c] * 0.01f + (float)joint[0x19];
+    fVar3 = (float)sqrt(fVar5 * fVar5 + fVar6 * fVar6 + fVar2 * fVar2);
+    joint[0x17] = fVar2;
+    joint[0x18] = fVar6;
+    joint[0x19] = fVar5;
+    if (fVar3 > 2.3841858e-07f) {
+        fVar3 = 1.0 / fVar3;
+        joint[0x17] = fVar3 * fVar2;
+        joint[0x18] = fVar3 * fVar6;
+        joint[0x19] = (float)joint[0x19] * fVar3;
+    } else {
+        joint[0x17] = 1.0f;
+        joint[0x18] = 0;
+        joint[0x19] = 0;
+    }
+    fVar2 = (float)joint[0x22] * 0.01f + *pfVar8;
+    fVar6 = (float)joint[0x23] * 0.01f + (float)joint[0x20];
+    fVar5 = (float)joint[0x24] * 0.01f + (float)joint[0x21];
+    *pfVar8 = fVar2;
+    fVar3 = (float)sqrt(fVar5 * fVar5 + fVar6 * fVar6 + fVar2 * fVar2);
+    joint[0x20] = fVar6;
+    joint[0x21] = fVar5;
+    if (fVar3 > 2.3841858e-07f) {
+        fVar3 = 1.0 / fVar3;
+        *pfVar8 = fVar3 * fVar2;
+        joint[0x20] = fVar3 * fVar6;
+        joint[0x21] = fVar3 * fVar5;
+        return;
+    }
+    *pfVar8 = 1.0;
+    joint[0x20] = 0;
+    joint[0x21] = 0;
+}
 
 // FUNCTION: CARMA2_HW 0x0042d950
 void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel) {
@@ -2721,7 +3019,124 @@ void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vector3* pS
 
 // ARUndoSplitWeld
 
-// ReceivedCrush
+extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
+extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
+extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound);
+extern intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
+
+// based on carpocalypse2 src/carma2/common/crush.c:8445 (GPL-3.0)
+// FUNCTION: CARMA2_HW 0x0043c480
+void C2_HOOK_FASTCALL ReceivedCrush(tU8* pContents) {
+    tCar_crush crush;
+    struct {
+        tCar_spec* car;
+        tCar_crush* crush;
+        float force;
+    } context;
+    br_actor* master_actor;
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+    br_vector3 direction;
+    float crush_y;
+    float crush_z;
+    float magnitude;
+    int axis;
+    int sign;
+    int found;
+    int count;
+    int i;
+    int j;
+    tCar_crush_shape_info* shape;
+    tCar_crush_reordered_shape_info* entry;
+
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car != NULL && gNet_mode != 2 && car->active == 0 && gArrow_mode == 0) {
+        ExpandCrush(&crush, (tCompressed_car_crush*)(pContents + 8));
+        crush_spec = car->car_crush_spec;
+        master_actor = car->car_master_actor;
+        if (crush_spec != NULL && car->invulnerable_no_crushage == 0 && crush_spec->field_0x4b8 == 0) {
+            context.car = car;
+            context.crush = &crush;
+            context.force = crush.field_0x40;
+            if (context.force > gMax_crush_force) {
+                context.force = gMax_crush_force;
+            }
+            context.force = context.force / (float)crush.count;
+
+            if (crush_spec->field_0x144 != 0) {
+                ARStartPipingSession(3);
+                DRActorEnumRecurseWithSnart(car->car_model_actor, NULL, CrushCarModelCbfn, &context);
+                AREndPipingSession();
+                return;
+            }
+
+            crush_y = context.force * crush.field_0x44.v[1];
+            crush_z = context.force * crush.field_0x44.v[2];
+            direction.v[0] = gCrushZero;
+            if (crush_y > gCrushZero) {
+                crush_y = gCrushZero;
+            }
+            magnitude = (float)sqrt(crush_y * crush_y + crush_z * crush_z);
+            if (magnitude >= 1e-05f) {
+                direction.v[0] = gCrushZero / magnitude;
+                direction.v[1] = crush_y / magnitude;
+                direction.v[2] = crush_z / magnitude;
+                if ((float)fabs(direction.v[0]) <= 0.707107f) {
+                    axis = 1;
+                    if ((float)fabs(direction.v[1]) <= 0.707107f) {
+                        axis = 2;
+                    }
+                } else {
+                    axis = 0;
+                }
+                sign = (direction.v[axis] > gCrushZero) ? 1 : 0;
+                found = 0;
+                count = crush_spec->field_0xa4.counts[axis][sign];
+                if (count > 0) {
+                    i = 0;
+                    do {
+                        if (sign == 0) {
+                            if (crush_spec->field_0xbc.limits[axis][0].values[i] < crush.field_0x34.v[axis]) {
+                                found = i;
+                                break;
+                            }
+                        } else {
+                            if (crush.field_0x34.v[axis] < crush_spec->field_0xbc.limits[axis][1].values[i]) {
+                                found = i;
+                                break;
+                            }
+                        }
+                        i++;
+                    } while (i < count);
+                }
+
+                if (crush_spec->count_shapes > 0) {
+                    i = 0;
+                    do {
+                        shape = &crush_spec->field_0x4[i];
+                        if (shape->field_0x8 == 0) {
+                            for (j = 0; j < shape->count_points; j++) {
+                                entry = &shape->field_0x18[j];
+                                FUN_0043c7a0(&entry->field_0x18, crush.count, crush.vectors[0].v, &direction,
+                                    entry->field_0x24 * magnitude, entry->field_0x28, &crush_spec->field_0xbc, found);
+                                CrushShapeFinishVertex(&entry->field_0x18, entry->field_0x28, &crush_spec->field_0xbc);
+                            }
+                        }
+                        i++;
+                    } while (i < crush_spec->count_shapes);
+                }
+                crush_spec->expand_bounding_box = 7;
+            }
+
+            ARStartPipingSession(3);
+            DRActorEnumRecurseWithSnart(master_actor, NULL, CrushCarActorCbfn, &context);
+            AREndPipingSession();
+            car->use_shell_model = 0;
+        }
+    }
+}
 
 // FindBitWithID
 
@@ -3627,3 +4042,28 @@ void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGa
 
 // GLOBAL: CARMA2_HW 0x00692dc8
 int gINT_00692dc8 = 0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0043c7a0
+void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x00431e20
+intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x00433260
+intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+// STUB: CARMA2_HW 0x004c7f40
+void C2_HOOK_FASTCALL FUN_004c7f40(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
