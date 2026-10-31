@@ -93,6 +93,15 @@ int gWater_shade_table_power;
 // GLOBAL: CARMA2_HW 0x0067c4d8
 br_actor* gForward_sky_actor;
 
+// GLOBAL: CARMA2_HW 0x0067c4ac
+br_angle gOld_fov;
+
+// GLOBAL: CARMA2_HW 0x0067c4b8
+br_scalar gOld_yon;
+
+// GLOBAL: CARMA2_HW 0x0067c4c0
+br_actor* gRearview_sky_actor;
+
 static void C2_HOOK_FASTCALL FrobFog(void);
 
 extern void C2_HOOK_FASTCALL GenerateSmokeShades(void);

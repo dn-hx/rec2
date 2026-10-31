@@ -1,4 +1,8 @@
 #include "59-camera.h"
+#include "globvrpb.h"
+#include "globvrme.h"
+#include "01-network.h"
+#include "15-displays.h"
 #include "globvrkm.h"
 #include "globvars.h"
 
@@ -47,13 +51,70 @@ br_scalar gCamera_zoom = 0.2f;
 
 // CheckCameraHither
 
-// GetRaceLeader
+extern int gIt_or_fox;
+
+// FUNCTION: CARMA2_HW 0x0040f4a0
+tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void) {
+    int i;
+    int best;
+    tCar_spec* leader;
+
+    leader = gNet_players[0].car;
+    best = *(int*)&gNet_players[0].field_0x94;
+    if (gCurrent_net_game->type == eNet_game_type_foxy && gIt_or_fox >= 0 && gIt_or_fox < gNumber_of_net_players) {
+        return gNet_players[gIt_or_fox].car;
+    }
+    if (gNumber_of_net_players > 1) {
+        for (i = 1; i < gNumber_of_net_players; i++) {
+            if (*(int*)&gNet_players[i].field_0x94 < best) {
+                best = *(int*)&gNet_players[i].field_0x94;
+                leader = gNet_players[i].car;
+            }
+        }
+    }
+    return leader;
+}
 
 // AmIGettingBoredWatchingCameraSpin
 
 // ViewNetPlayer
 
-// ViewOpponent
+// GLOBAL: CARMA2_HW 0x0058f628
+int gView_opponent_index = -1;
+
+// FUNCTION: CARMA2_HW 0x0040e590
+void C2_HOOK_FASTCALL ViewOpponent(void) {
+    const char* name;
+
+    gView_opponent_index++;
+    if (gNet_mode != eNet_mode_none) {
+        if (gView_opponent_index >= gNumber_of_net_players) {
+            gView_opponent_index = 0;
+        }
+        if (gNet_mode == eNet_mode_host) {
+            gCar_to_view = gNet_players[gView_opponent_index].car;
+        } else if (gCar_to_view_id == 0) {
+            tNet_message* message;
+
+            gCar_to_view_id = gNet_players[gView_opponent_index].ID;
+            message = NetBuildGuaranteedMessage(0x2f, 0);
+            *(tPlayer_ID*)((tU8*)message + 0x1c) = gCar_to_view_id;
+            NetGuaranteedSendMessageToHost(gCurrent_net_game, message, NULL);
+            return;
+        }
+        name = gNet_players[gView_opponent_index].player_name;
+    } else {
+        if (gView_opponent_index >= gNum_viewable_cars) {
+            gView_opponent_index = 0;
+        }
+        gCar_to_view = gViewable_car_list[gView_opponent_index];
+        name = gCar_to_view->driver_name;
+    }
+    NewTextHeadupSlot(4, 0, 2000, -3, name);
+    gCamera_yaw = 0;
+    InitialiseExternalCamera();
+    PositionExternalCamera(gCar_to_view, 200);
+}
 
 // FUNCTION: CARMA2_HW 0x0040e680
 // FUNCTION: CARMA2_SW 0x0040e660
