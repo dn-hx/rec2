@@ -162,7 +162,25 @@ br_matrix34 mattmp2__trig;
 
 // FastScalarSin
 
-// FastScalarCos
+// FUNCTION: CARMA2_HW 0x00511620
+br_scalar C2_HOOK_FASTCALL FastScalarCos(int pAngle_in_degrees) {
+
+    if (pAngle_in_degrees < 0) {
+        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
+    } else {
+        pAngle_in_degrees = pAngle_in_degrees % 360;
+    }
+    if (pAngle_in_degrees > 270) {
+        return gFloat_sine_table[pAngle_in_degrees - 270];
+    }
+    if (pAngle_in_degrees > 180) {
+        return -*(gFloat_sine_table_270 - pAngle_in_degrees);
+    }
+    if (pAngle_in_degrees > 90) {
+        return -gFloat_sine_table[pAngle_in_degrees - 90];
+    }
+    return *(gFloat_sine_table + 90 - pAngle_in_degrees);
+}
 
 // FUNCTION: CARMA2_HW 0x00511780
 br_scalar C2_HOOK_FASTCALL FastScalarSinAngle(br_angle pBR_angle) {
