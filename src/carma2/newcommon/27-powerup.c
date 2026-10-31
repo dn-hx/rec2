@@ -34,6 +34,11 @@ extern tS3_outlet* gCar_outlet;
 extern void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
 extern const float gConst_0p1;
 extern const double gConst_10_over_7;
+extern const double gConst_inverse_world_scale;
+extern const double gConst_1p0;
+extern const double gConst_world_scale;
+extern const double gConst_2pi;
+extern const float gConst_25;
 
 // GLOBAL: CARMA2_HW 0x006a0ad4
 const char* gPowerup_txt_path;
@@ -820,14 +825,53 @@ void C2_HOOK_FASTCALL ResetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
     SetCarSuspGiveAndHeight(pCar, f, f, f, 0.0f, 0.0f);
 }
 
-// STUB: CARMA2_HW 0x004de610
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de610
 void C2_HOOK_FASTCALL PukeDrugsBackUp(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    (void)pPowerup;
+    if (pCar == NULL) {
+        return;
+    }
+    if (pCar->driver != eDriver_local_human) {
+        return;
+    }
+    gOn_drugs = 0;
+    memcpy(gRender_palette->pixels, gDrug_trip_data, 0x400);
+    for (i = 1; i < 0xe0; i++) {
+        ((tU32*)gRender_palette->pixels)[i] = ((tU32*)gDrug_trip_data)[i & 0xff];
+    }
+    ((tU32*)gRender_palette->pixels)[0] = ((tU32*)gDrug_trip_data)[0];
+    for (i = 0xe0; i < 0x100; i++) {
+        *(tU32*)((tU8*)gRender_palette->pixels + i * 4) = *(tU32*)((tU8*)gDrug_trip_data + i * 4);
+    }
+    ResetPalette();
 }
 
-// STUB: CARMA2_HW 0x004de6b0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de6b0
 void C2_HOOK_FASTCALL ResetOpponentsSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    tCar_spec* opponent_car;
+    int count;
+    int i;
+    float f;
+
+    count = gCurrent_race.number_of_racers;
+    for (i = 0; i < count; i++) {
+        if (gCurrent_race.opponent_list[i].index == 0x1d) {
+            break;
+        }
+    }
+    if (i < count) {
+        opponent_car = gCurrent_race.opponent_list[i].car_spec;
+        f = 1.0f;
+        FUN_0045c760();
+        opponent_car->field_0x4d4 = f;
+        opponent_car->grip_multiplier = f;
+        SetCarSuspGiveAndHeight(opponent_car, f, f, f, 0.0f, 0.0f);
+    }
+    gOpponent_speed_factor = 1.0f;
 }
 
 // based on carpocalypse2 src/carma2/common/powerups.c
@@ -837,9 +881,14 @@ void C2_HOOK_FASTCALL ResetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
     SetCarSuspGiveAndHeight(pCar, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
 }
 
-// STUB: CARMA2_HW 0x004de7a0
+// based on ApexWorm/rec2 bd962f6c3
+// FUNCTION: CARMA2_HW 0x004de7a0
 int C2_HOOK_FASTCALL PickAtRandom(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int selected_powerup;
+
+    selected_powerup = pPowerup->integer_params[IRandomBetween(0, pPowerup->number_of_integer_params - 1)];
+    GotPowerupEarwig(pCar, selected_powerup, 1, 1);
+    return -1;
 }
 
 // based on carpocalypse2 src/carma2/common/powerups.c
@@ -857,14 +906,53 @@ void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
     MakePedsNotEthereal();
 }
 
-// STUB: CARMA2_HW 0x004de9b0
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004de9b0
 void C2_HOOK_FASTCALL DoBouncey(tPowerup* pPowerup, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    double elapsed;
+
+    elapsed = (double)(GetTotalTime() - gProgram_state.current_car.last_bounce);
+    if (elapsed < gProgram_state.current_car.bounce_rate || gProgram_state.current_car.number_of_wheels_on_ground <= 2) {
+        return;
+    }
+    PratcamEvent(0x2a);
+    gProgram_state.current_car.last_bounce = GetTotalTime();
+    gProgram_state.current_car.collision_info->v.v[1] = gProgram_state.current_car.collision_info->v.v[1] + gProgram_state.current_car.bounce_amount * gConst_inverse_world_scale;
+    DRS3StartSound(gCar_outlet, 0x2332);
+    gProgram_state.current_car.collision_info->disable_move_rotate = 0;
 }
 
-// STUB: CARMA2_HW 0x004dea40
+// based on carpocalypse2 src/carma2/common/powerups.c
+// FUNCTION: CARMA2_HW 0x004dea40
 int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    float d;
+    int max_damage;
+    int j;
+
+    if (pCar->field_0x4c8 <= gConst_1p0) {
+        if (gNet_mode == eNet_mode_none || NetPlayerFromCar(pCar) == NULL || NetPlayerFromCar(pCar)->field_0x80 == 0) {
+            pCar->collision_info->v.v[1] = pCar->collision_info->v.v[1] + FRandomBetween(pPowerup->float_params[0], pPowerup->float_params[1]) / (pCar->collision_info->M * gConst_world_scale);
+            pCar->collision_info->omega.v[2] = pCar->collision_info->omega.v[2] + FRandomPosNeg(pPowerup->float_params[2]) * gConst_2pi / pCar->collision_info->M;
+            pCar->collision_info->omega.v[0] = pCar->collision_info->omega.v[0] + FRandomPosNeg(pPowerup->float_params[3]) * gConst_2pi / pCar->collision_info->M;
+            if (pCar != NULL && pCar->driver > 5) {
+                d = pCar->softness_factor * gConst_10_over_7;
+                if (pCar->invulnerable_no_damage == 0) {
+                    max_damage = (int)(d * gConst_25);
+                    j = 0;
+                    while (j < 12) {
+                        DamageUnit(pCar, j, IRandomBetween(0, max_damage));
+                        j++;
+                    }
+                }
+                if (pCar->invulnerable_no_crushage == 0) {
+                    TotallySpamTheModel(pCar, d * gConst_0p1);
+                }
+            }
+            pCar->collision_info->disable_move_rotate = 0;
+            return pPowerup - gPowerup_array;
+        }
+    }
+    return pPowerup - gPowerup_array;
 }
 
 extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
@@ -4010,6 +4098,18 @@ const float gConst_0p1 = 0.1f;
 
 // GLOBAL: CARMA2_HW 0x0058ac48
 const double gConst_10_over_7 = 10.0 / 7.0;
+
+// GLOBAL: CARMA2_HW 0x0058abe0
+const double gConst_world_scale = 6.9;
+
+// GLOBAL: CARMA2_HW 0x0058abe8
+const double gConst_2pi = 6.283185307179586;
+
+// GLOBAL: CARMA2_HW 0x0058ac18
+const double gConst_1p0 = 1.0;
+
+// GLOBAL: CARMA2_HW 0x0058ac8c
+const float gConst_25 = 25.0f;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
