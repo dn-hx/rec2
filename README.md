@@ -12,10 +12,10 @@ Status of this fork's `workv3` branch (2026-10-30, `reccmp`, `CARMA2_HW.EXE`):
 
 | Metric | Value |
 |---|---|
-| Functions implemented | 3714 / 5162 (71.95%) |
-| Functions at exactly 100% similar | 2786 |
-| Accuracy | 90.04% |
-| Progress | 64.79% |
+| Functions implemented | 3723 / 5162 (72.12%) |
+| Functions at exactly 100% similar | 2794 |
+| Accuracy | 90.09% |
+| Progress | 64.98% |
 
 Functions below 100% are not counted as exact. Most best attempts are kept out of the tree until they match; a few runtime-faithful partials (InitPowerups, LoadPowerups, UpdateCollisionObject, LoadPanGameDroneInfo, InitDepthEffects, ReadPowerupSmash, ReadShrapnelSpec, ReadSpillData, InitPolyPedSystem, InitBoner, ReadPedGiblets, InitNapalmNolts, NetPlayerStatusChanged, PlaySmackerFile, FRONTEND_Setup, FRONTEND_GenericMenuHandler, CheckSystemKeys, FRONTEND_DrawMenu, DoMouseCursor, Generic_MenuHandler, Controls_SlotActivated, WrecksUpdateFunc, OrthogonalVector, DRMatrix34RotateCos, PipeSingleSmashRemoveFaces, RepairSmash, AddPolyhedronCollisionShapePlanes, NetSendMessageToAllPlayers and the front-end menu procedures) are kept in for runtime milestones.
 
