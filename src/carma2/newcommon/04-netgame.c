@@ -1081,9 +1081,41 @@ void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049daf0
+extern void C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+
+// based on carpocalypse2 src/carma2/common/network.c:305
+// FUNCTION: CARMA2_HW 0x0049daf0
 void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id) {
-    NOT_IMPLEMENTED();
+    if (gNet_mode != eNet_mode_none) {
+        if (pPlayer_id == gLocal_net_ID) {
+            if (gProgram_state.racing) {
+                NewTextHeadupSlot(4, 0, 3000, -4, pMessage);
+                return;
+            }
+        } else {
+            int size_headup;
+            int size_guaranteed;
+            int size_headup_again;
+            int full_size;
+            tNet_message* message;
+
+            size_headup = NetGetContentsSize(0xd, 0);
+            size_guaranteed = NetGetContentsSize(5, 0);
+            size_headup_again = NetGetContentsSize(0xd, 0);
+            full_size = size_headup_again + 0x18 + size_guaranteed;
+            message = NetAllocateMessage(full_size);
+            if (message != NULL) {
+                message->contents.raw.header.size = (tU8)size_headup;
+                message->header.field_0x14 = 0xff;
+                message->header.field_0x16 = (tU16)full_size;
+                message->contents.raw.header.type = 0xd;
+                ((tU8*)message)[0x19 + (tU8)size_headup] = 5;
+                ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
+            }
+            strcpy((char*)message + 0x1a, pMessage);
+            SendGuaranteedMessageToPlayer(gCurrent_net_game, message, pPlayer_id, 0);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
