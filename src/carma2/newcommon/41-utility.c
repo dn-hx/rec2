@@ -1706,8 +1706,7 @@ void C2_HOOK_FASTCALL PrintScreen(void) {
 
 // FUNCTION: CARMA2_HW 0x00518e70
 int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial) {
-    int* piVar1;
-    int iVar2;
+    br_token_value* prims;
 
     if (gScreen->type == BR_PMT_INDEX_8) {
         if (pMaterial->index_blend == BrTableFind("BLEND75.TAB")) {
@@ -1716,13 +1715,14 @@ int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial) {
         if (pMaterial->index_blend == BrTableFind("BLEND50.TAB")) {
             return 50;
         }
-        iVar2 = (int)BrTableFind("BLEND25.TAB");
-        iVar2 = (int)pMaterial->index_blend - iVar2;
-        return (-(iVar2 != 0) & 25) + 75;
+        if (pMaterial->index_blend == BrTableFind("BLEND25.TAB")) {
+            return 75;
+        }
+        return 100;
     }
-    piVar1 = (int*)pMaterial->extra_prim;
-    if (piVar1 != NULL && piVar1[0] == BRT_BLEND_B && piVar1[1] == 1 && piVar1[2] == BRT_OPACITY_X) {
-        return ((piVar1[3] >> 16) * 100) / 256;
+    prims = pMaterial->extra_prim;
+    if (prims != NULL && prims[0].t == BRT_BLEND_B && prims[0].v.b == 1 && prims[1].t == BRT_OPACITY_X) {
+        return (100 * (prims[1].v.x >> 16)) / 256;
     }
     return 100;
 }
