@@ -21,6 +21,7 @@
 #include "42-input.h"
 
 #include "49-physics.h"
+#include "51-smash.h"
 #include "53-controls.h"
 #include "60-phil.h"
 #include "61-pedestrn.h"
@@ -138,9 +139,13 @@ int gUNK_007059c4 = 0;
 // GLOBAL: CARMA2_HW 0x007059c8
 int gUNK_007059c8 = 0;
 
+/* explicit initializers keep gRespawn_powerups and gMutant_tail_first_collision_info adjacent (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006a0458
+tRespawn_powerup gRespawn_powerups[100] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006a0908
 // GLOBAL: CARMA2_SW 0x0069a960
-tPhysics_object* gMutant_tail_object;
+tPhysics_object* gMutant_tail_object = NULL;
 
 // GLOBAL: CARMA2_HW 0x006a0acc
 // GLOBAL: CARMA2_SW 0x0069ab24
@@ -466,9 +471,45 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // DoPowerupPeriodics
 
-// CheckRespawnQueue
+/* inlined into MungePowerupStuff in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {
+    int i;
 
-// MungePowerupStuff
+    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
+        tRespawn_powerup* respawn_powerup = &gRespawn_powerups[i];
+        if (respawn_powerup->actor == NULL || (int)pTime < (int)respawn_powerup->respawn_time) {
+            continue;
+        }
+        if (respawn_powerup->actor->render_style != BR_RSTYLE_FACES) {
+            respawn_powerup->actor->render_style = BR_RSTYLE_FACES;
+        }
+        PipeSinglePowerupRespawn(respawn_powerup->actor, respawn_powerup->index);
+        DoPowerupRespawnSmash(respawn_powerup->actor);
+        respawn_powerup->actor = NULL;
+    }
+}
+
+/* MungeRepulseRays (0x004db8e0) is not part of this replay batch; an inert stub
+   keeps MungePowerupStuff linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004db8e0
+void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004db880
+void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1) {
+    tU32 time;
+
+    time = GetTotalTime();
+    MungeRepulseRays(time);
+    CheckRespawnQueue(time);
+}
 
 void C2_HOOK_FASTCALL GotPowerupN(int pN) {
     int modifiers;
