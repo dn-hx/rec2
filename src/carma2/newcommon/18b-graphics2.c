@@ -225,18 +225,3 @@ void C2_HOOK_FASTCALL EnableLights(void) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x0047d7b0
-// FUNCTION: CARMA2_SW 0x0047d970
-void C2_HOOK_FASTCALL DRPixelmapBlend75Copy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
-    int x;
-    int y;
-    tU8* dest_ptr;
-
-    for (y = 0; y < pSource->height; y++) {
-        dest_ptr = (tU8*)pDest->pixels + (pDest_y + y) * pDest->row_bytes + pDest_x;
-        for (x = 0; x < pSource->width; x++) {
-            *dest_ptr = ((tU8*)gBlend75_table->pixels)[*dest_ptr + 256 * ((tU8*)pSource->pixels)[y * pSource->row_bytes + x]];
-            dest_ptr++;
-        }
-    }
-}
