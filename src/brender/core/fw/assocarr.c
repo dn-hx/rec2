@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "assocarr.h"
 
 #include "fwsetup.h"
@@ -18,7 +10,6 @@
 #include "c2_stdlib.h"
 
 // FUNCTION: CARMA2_HW 0x00531500
-// FUNCTION: CARMA2_SW 0x0052cba0
 br_associative_array* C2_HOOK_CDECL BrAssociativeArrayAllocate(void) {
     br_associative_array* pArray;
 
@@ -53,7 +44,6 @@ br_error C2_HOOK_CDECL Set_Associative_Array_Value(br_associative_array* pArray,
 }
 
 // FUNCTION: CARMA2_HW 0x00531540
-// FUNCTION: CARMA2_SW 0x0052cbe0
 br_error C2_HOOK_STDCALL BrAssociativeArraySetEntry(br_associative_array* pArray, br_token t, br_value v) {
     br_uint_16 i;
     br_token_value* temp;

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "render.h"
 
 #include "actsupt.h"
@@ -115,7 +107,6 @@ void C2_HOOK_CDECL BrDbModelRender(br_actor* actor, br_model* model, br_material
 }
 
 // FUNCTION: CARMA2_HW 0x00521bf0
-// FUNCTION: CARMA2_SW 0x0051d290
 br_uint_32 C2_HOOK_CDECL BrOnScreenCheck(br_bounds3* bounds) {
     br_token r;
 
@@ -433,7 +424,6 @@ void C2_HOOK_CDECL BrZbSceneRenderEnd(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x005226d0
-// FUNCTION: CARMA2_SW 0x0051dd70
 void C2_HOOK_CDECL BrZbSceneRender(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
 
     if (v1db.renderer != NULL) {
@@ -513,7 +503,6 @@ br_primitive_cbfn* C2_HOOK_CDECL BrZsPrimitiveCallbackSet(br_primitive_cbfn* new
 }
 
 // FUNCTION: CARMA2_HW 0x00522c80
-// FUNCTION: CARMA2_SW 0x0051e320
 void C2_HOOK_CDECL BrZbsSceneRenderBegin(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
     br_camera* camera_data;
 
@@ -526,6 +515,7 @@ void C2_HOOK_CDECL BrZbsSceneRenderBegin(br_actor* world, br_actor* camera, br_p
 
     v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)colour_buffer);
     v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)NULL);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)depth_buffer);
     v1db.heap.current = v1db.heap.base;
     camera_data = camera->type_data;
     v1db.default_order_table->max_z = camera_data->yon_z;
@@ -540,14 +530,12 @@ void C2_HOOK_CDECL BrZbsSceneRenderBegin(br_actor* world, br_actor* camera, br_p
 }
 
 // FUNCTION: CARMA2_HW 0x00522ea0
-// FUNCTION: CARMA2_SW 0x0051e540
 void C2_HOOK_CDECL BrZbsSceneRenderAdd(br_actor* tree) {
 
     sceneRenderAdd(tree);
 }
 
 // FUNCTION: CARMA2_HW 0x00522eb0
-// FUNCTION: CARMA2_SW 0x0051e550
 void C2_HOOK_CDECL BrZbsSceneRenderEnd(void) {
 
     v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)v1db.colour_buffer);
@@ -565,7 +553,6 @@ void C2_HOOK_CDECL BrZbsSceneRenderEnd(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00522f30
-// FUNCTION: CARMA2_SW 0x0051e5d0
 void C2_HOOK_CDECL BrZbsSceneRender(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
 
     if (v1db.renderer == NULL) {
@@ -583,7 +570,6 @@ void C2_HOOK_CDECL BrZbModelRender(br_actor* actor, br_model* model, br_material
 }
 
 // FUNCTION: CARMA2_HW 0x00523070
-// FUNCTION: CARMA2_SW 0x0051e710
 void C2_HOOK_CDECL BrZsModelRender(br_actor* actor, br_model* model, br_material* material, br_order_table* order_table, br_uint_8 style, int on_screen, int use_custom) {
 
     BrDbModelRender(actor, model, material, order_table, style, on_screen, use_custom);

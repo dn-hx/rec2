@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "gprim.h"
 
 #include "object.h"
@@ -50,7 +42,6 @@ br_tv_template_entry geometryPrimitivesTemplateEntries[] = {
 };
 
 // FUNCTION: CARMA2_HW 0x00541160
-// FUNCTION: CARMA2_SW 0x0053c800
 br_geometry_primitives* C2_HOOK_STDCALL GeometryPrimitivesAllocate(br_soft_renderer_facility* type, const char* id) {
     br_geometry_primitives_soft* self;
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "v1model.h"
 
 #include "convert.h"
@@ -20,7 +12,6 @@
 #include "c2_string.h"
 
 // FUNCTION: CARMA2_HW 0x00542f90
-// FUNCTION: CARMA2_SW 0x0053e630
 void C2_HOOK_CDECL V1Faces_ScratchAllocate(br_geometry* self, br_soft_renderer* renderer) {
     char *sp;
     br_size_t scratch_size;
@@ -85,7 +76,6 @@ void C2_HOOK_CDECL V1Faces_ScratchAllocate(br_geometry* self, br_soft_renderer* 
 }
 
 // FUNCTION: CARMA2_HW 0x00543110
-// FUNCTION: CARMA2_SW 0x0053e7b0
 void C2_HOOK_CDECL V1Face_CullNone(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -96,10 +86,7 @@ void C2_HOOK_CDECL V1Face_CullNone(br_geometry* self, br_soft_renderer* renderer
     C2_HOOK_BUG_ON(TFF_VISIBLE != 0x4);
     C2_HOOK_BUG_ON(sizeof(v11face) != 0x1c);
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
-
+    for (f = 0, tfp = rend.temp_faces, fp = rend.faces; f < rend.nfaces; f++, tfp++, fp++) {
         tfp->flag = TFF_VISIBLE;
 
         rend.vertex_counts[fp->vertices[0]] += 1;
@@ -110,7 +97,6 @@ void C2_HOOK_CDECL V1Face_CullNone(br_geometry* self, br_soft_renderer* renderer
 }
 
 // FUNCTION: CARMA2_HW 0x00543190
-// FUNCTION: CARMA2_SW 0x0053e830
 void C2_HOOK_CDECL V1Face_OS_CullNone(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -127,7 +113,6 @@ void C2_HOOK_CDECL V1Face_OS_CullNone(br_geometry* self, br_soft_renderer* rende
 }
 
 // FUNCTION: CARMA2_HW 0x005431f0
-// FUNCTION: CARMA2_SW 0x0053e890
 void C2_HOOK_CDECL V1Face_CullOneSided(br_geometry* self, br_soft_renderer* renderer) {
 
     switch (renderer->state.matrix.view_to_screen_hint) {
@@ -144,7 +129,6 @@ void C2_HOOK_CDECL V1Face_CullOneSided(br_geometry* self, br_soft_renderer* rend
 }
 
 // FUNCTION: CARMA2_HW 0x005432b0
-// FUNCTION: CARMA2_SW 0x0053e950
 void C2_HOOK_CDECL V1Face_CullOneSidedPerspective(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -172,7 +156,6 @@ void C2_HOOK_CDECL V1Face_CullOneSidedPerspective(br_geometry* self, br_soft_ren
 }
 
 // FUNCTION: CARMA2_HW 0x00543380
-// FUNCTION: CARMA2_SW 0x0053ea20
 void C2_HOOK_CDECL V1Face_CullOneSidedParallel(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -200,7 +183,6 @@ void C2_HOOK_CDECL V1Face_CullOneSidedParallel(br_geometry* self, br_soft_render
 }
 
 // FUNCTION: CARMA2_HW 0x00543450
-// FUNCTION: CARMA2_SW 0x0053eaf0
 void C2_HOOK_CDECL V1Face_OS_CullOneSided(br_geometry* self, br_soft_renderer* renderer) {
 
     switch (renderer->state.matrix.view_to_screen_hint) {
@@ -217,7 +199,6 @@ void C2_HOOK_CDECL V1Face_OS_CullOneSided(br_geometry* self, br_soft_renderer* r
 }
 
 // FUNCTION: CARMA2_HW 0x005434e0
-// FUNCTION: CARMA2_SW 0x0053eb80
 void C2_HOOK_CDECL V1Face_CullTwoSided(br_geometry* self, br_soft_renderer* renderer) {
 
 #ifndef REC2_MATCHING
@@ -239,7 +220,6 @@ void C2_HOOK_CDECL V1Face_CullTwoSided(br_geometry* self, br_soft_renderer* rend
 }
 
 // FUNCTION: CARMA2_HW 0x005435a0
-// FUNCTION: CARMA2_SW 0x0053ec40
 void C2_HOOK_CDECL V1Face_CullTwoSidedPerspective(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     int df;
@@ -270,7 +250,6 @@ void C2_HOOK_CDECL V1Face_CullTwoSidedPerspective(br_geometry* self, br_soft_ren
 }
 
 // FUNCTION: CARMA2_HW 0x005436b0
-// FUNCTION: CARMA2_SW 0x0053ed50
 void C2_HOOK_CDECL V1Face_CullTwoSidedParallel(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     int df;
@@ -301,7 +280,6 @@ void C2_HOOK_CDECL V1Face_CullTwoSidedParallel(br_geometry* self, br_soft_render
 }
 
 // FUNCTION: CARMA2_HW 0x005437c0
-// FUNCTION: CARMA2_SW 0x0053ee60
 void C2_HOOK_CDECL V1Face_OS_CullTwoSided(br_geometry* self, br_soft_renderer* renderer) {
 
     switch (renderer->state.matrix.view_to_screen_hint) {
@@ -318,7 +296,6 @@ void C2_HOOK_CDECL V1Face_OS_CullTwoSided(br_geometry* self, br_soft_renderer* r
 }
 
 // FUNCTION: CARMA2_HW 0x00543850
-// FUNCTION: CARMA2_SW 0x0053eef0
 void C2_HOOK_CDECL V1Face_Outcode(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -357,7 +334,6 @@ void C2_HOOK_CDECL V1Face_Outcode(br_geometry* self, br_soft_renderer* renderer)
 }
 
 // FUNCTION: CARMA2_HW 0x00543940
-// FUNCTION: CARMA2_SW 0x0053efe0
 void C2_HOOK_CDECL V1Face_Render(br_geometry* self, br_soft_renderer* renderer) {
     int f;
     temp_face_soft* tfp;
@@ -398,9 +374,7 @@ void C2_HOOK_CDECL V1Face_OS_Render(br_geometry* self, br_soft_renderer* rendere
     v11face* fp;
     brp_block* unclipped = renderer->state.cache.face_blocks_onscreen[renderer->state.cache.nface_blocks_onscreen].chain;
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
+    for (f = 0, tfp = rend.temp_faces, fp = rend.faces; f < rend.nfaces; f++, tfp++, fp++) {
         if (tfp->flag & TFF_VISIBLE) {
             unclipped->render(unclipped,
                 &rend.temp_vertices[fp->vertices[0]],
@@ -419,9 +393,7 @@ void C2_HOOK_CDECL V1Face_OSV_Render(br_geometry* self, br_soft_renderer* render
     v11face* fp;
     brp_block* unclipped = renderer->state.cache.face_blocks_onscreen[renderer->state.cache.nface_blocks_onscreen].chain;
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
+    for (f = 0, tfp = rend.temp_faces, fp = rend.faces; f < rend.nfaces; f++, tfp++, fp++) {
         unclipped->render(unclipped,
             &rend.temp_vertices[fp->vertices[0]],
             &rend.temp_vertices[fp->vertices[1]],
@@ -603,7 +575,6 @@ static void C2_HOOK_STDCALL V1Faces_GeometryFnsUpdate(br_geometry_v1_model_soft*
 }
 
 // FUNCTION: CARMA2_HW 0x00542960
-// FUNCTION: CARMA2_SW 0x0053e000
 br_error C2_HOOK_STDCALL V1Model_Render(br_geometry_v1_model_soft* self, br_soft_renderer* renderer, v11model* model, br_renderer_state_stored* default_state, br_token type, br_boolean on_screen) {
     int i, g;
     br_renderer_state_stored_soft* state;
@@ -701,7 +672,6 @@ br_error C2_HOOK_STDCALL V1Model_Render(br_geometry_v1_model_soft* self, br_soft
 }
 
 // FUNCTION: CARMA2_HW 0x00542930
-// FUNCTION: CARMA2_SW 0x0053dfd0
 br_error C2_HOOK_CDECL _M_br_geometry_v1_model_soft_render(br_geometry_v1_model_soft* self, br_renderer* renderer, v11model* model, br_renderer_state_stored* default_state, br_token type) {
     br_error r;
 
@@ -711,7 +681,6 @@ br_error C2_HOOK_CDECL _M_br_geometry_v1_model_soft_render(br_geometry_v1_model_
 }
 
 // FUNCTION: CARMA2_HW 0x00543a10
-// FUNCTION: CARMA2_SW 0x0053f0b0
 br_error C2_HOOK_CDECL _M_br_geometry_v1_model_soft_renderOnScreen(br_geometry_v1_model_soft* self, br_renderer* renderer, v11model* model, br_renderer_state_stored* default_state, br_token type) {
     br_error r;
 

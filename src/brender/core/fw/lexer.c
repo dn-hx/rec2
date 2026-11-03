@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "lexer.h"
 
 #include "brprintf.h"
@@ -19,12 +11,10 @@
 #include "c2_stdlib.h"
 
 // FUNCTION: CARMA2_HW 0x0052f3f0
-// FUNCTION: CARMA2_SW 0x0052aa90
 void C2_HOOK_CDECL lexerError(br_lexer* l, const char* string) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f390
-// FUNCTION: CARMA2_SW 0x0052aa30
 br_lexer* C2_HOOK_CDECL BrLexerAllocate(br_lexer_keyword* keywords, int nkeywords) {
     br_lexer* l;
 
@@ -43,7 +33,6 @@ br_lexer* C2_HOOK_CDECL BrLexerAllocate(br_lexer_keyword* keywords, int nkeyword
 }
 
 // FUNCTION: CARMA2_HW 0x0052f400
-// FUNCTION: CARMA2_SW 0x0052aaa0
 char C2_HOOK_CDECL BrLexerCommentSet(br_lexer* l, char eol_comment) {
     char old;
 
@@ -53,7 +42,6 @@ char C2_HOOK_CDECL BrLexerCommentSet(br_lexer* l, char eol_comment) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f410
-// FUNCTION: CARMA2_SW 0x0052aab0
 br_lexer_error_cbfn* C2_HOOK_CDECL BrLexerErrorSet(br_lexer* l, br_lexer_error_cbfn* error) {
     br_lexer_error_cbfn* old;
 
@@ -67,21 +55,18 @@ br_lexer_error_cbfn* C2_HOOK_CDECL BrLexerErrorSet(br_lexer* l, br_lexer_error_c
 }
 
 // FUNCTION: CARMA2_HW 0x0052f450
-// FUNCTION: CARMA2_SW 0x0052aaf0
 void C2_HOOK_CDECL BrLexerFree(br_lexer* l) {
 
     BrResFree(l);
 }
 
 // FUNCTION: CARMA2_HW 0x0052f4f0
-// FUNCTION: CARMA2_SW 0x0052ab90
 void C2_HOOK_CDECL fileGetchar(br_lexer_source* source) {
 
     source->next = BrFileGetChar(source->ptr);
 }
 
 // FUNCTION: CARMA2_HW 0x0052f460
-// FUNCTION: CARMA2_SW 0x0052ab00
 br_error C2_HOOK_CDECL BrLexerPushFile(br_lexer* l, char* file) {
     br_lexer_source* s;
     void* f;
@@ -108,7 +93,6 @@ br_error C2_HOOK_CDECL BrLexerPushFile(br_lexer* l, char* file) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f570
-// FUNCTION: CARMA2_SW 0x0052ac10
 void C2_HOOK_CDECL stringGetchar(br_lexer_source* source) {
     char* cp;
 
@@ -122,7 +106,6 @@ void C2_HOOK_CDECL stringGetchar(br_lexer_source* source) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f510
-// FUNCTION: CARMA2_SW 0x0052abb0
 br_error C2_HOOK_CDECL BrLexerPushString(br_lexer* l, char* string, char* name) {
     br_lexer_source* s;
 
@@ -141,7 +124,6 @@ br_error C2_HOOK_CDECL BrLexerPushString(br_lexer* l, char* string, char* name) 
 }
 
 // FUNCTION: CARMA2_HW 0x0052f5a0
-// FUNCTION: CARMA2_SW 0x0052ac40
 br_lexer_source* C2_HOOK_CDECL BrLexerPop(br_lexer* l) {
     br_lexer_source* s;
 
@@ -155,7 +137,6 @@ br_lexer_source* C2_HOOK_CDECL BrLexerPop(br_lexer* l) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f5c0
-// FUNCTION: CARMA2_SW 0x0052ac60
 void C2_HOOK_STDCALL lexerAdvance(br_lexer* l) {
     int n;
     br_boolean got_point;
@@ -265,14 +246,12 @@ void C2_HOOK_STDCALL lexerAdvanceDump(br_lexer* l) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f950
-// FUNCTION: CARMA2_SW 0x0052aff0
 br_error C2_HOOK_CDECL BrLexerDumpSet(br_lexer* l, br_putline_cbfn* putline, void* putline_arg) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0052f960
-// FUNCTION: CARMA2_SW 0x0052b000
 void C2_HOOK_CDECL BrLexerTokenError(br_lexer* l, br_lexer_token_id t) {
     int i;
     char tmp[256];
@@ -327,7 +306,6 @@ void C2_HOOK_CDECL BrLexerTokenError(br_lexer* l, br_lexer_token_id t) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052fa90
-// FUNCTION: CARMA2_SW 0x0052b130
 void C2_HOOK_CDECL BrLexerPosition(br_lexer* l, char* buf, br_size_t buf_size) {
 
     if ((l->source != NULL) && (l->source->name != NULL)) {
@@ -338,7 +316,6 @@ void C2_HOOK_CDECL BrLexerPosition(br_lexer* l, char* buf, br_size_t buf_size) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052fad0
-// FUNCTION: CARMA2_SW 0x0052b170
 br_fixed_ls C2_HOOK_CDECL BrParseFixed(br_lexer* l) {
     br_boolean neg;
     br_fixed_ls x;
@@ -368,17 +345,15 @@ br_fixed_ls C2_HOOK_CDECL BrParseFixed(br_lexer* l) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052fb40
-// FUNCTION: CARMA2_SW 0x0052b1e0
 br_float C2_HOOK_CDECL BrParseFloat(br_lexer* l) {
     br_boolean neg;
     br_float f;
 
-    neg = 0;
     if (l->current.id == T_PLUS) {
         l->advance(l);
     }
-    if (l->current.id == T_DASH) {
-        neg = 1;
+    neg = l->current.id == T_DASH;
+    if (neg) {
         l->advance(l);
     }
     if (l->current.id == T_REAL) {
@@ -390,7 +365,7 @@ br_float C2_HOOK_CDECL BrParseFloat(br_lexer* l) {
     } else {
         l->error(l, "expecting a float");
         l->advance(l);
-        f = 0.0f;
+        f = 0.f;
     }
     if (neg) {
         f = -f;
@@ -399,7 +374,6 @@ br_float C2_HOOK_CDECL BrParseFloat(br_lexer* l) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052fbb0
-// FUNCTION: CARMA2_SW 0x0052b250
 br_int_32 C2_HOOK_CDECL BrParseInteger(br_lexer* l) {
     br_boolean neg;
     br_int_32 i;
@@ -426,7 +400,6 @@ br_int_32 C2_HOOK_CDECL BrParseInteger(br_lexer* l) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052fc00
-// FUNCTION: CARMA2_SW 0x0052b2a0
 br_int_32 C2_HOOK_CDECL BrParseVectorFixed(br_lexer* l, br_fixed_ls* v, br_int_32 max) {
     int n;
 
@@ -464,14 +437,13 @@ br_int_32 C2_HOOK_CDECL BrParseVectorFixed(br_lexer* l, br_fixed_ls* v, br_int_3
 }
 
 // FUNCTION: CARMA2_HW 0x0052fc90
-// FUNCTION: CARMA2_SW 0x0052b330
 br_int_32 C2_HOOK_CDECL BrParseVectorFloat(br_lexer* l, br_float* v, br_int_32 max) {
     int n;
 
-    if (l->current.id != T_LSQUARE) {
-        BrLexerTokenError(l, T_LSQUARE);
-    } else {
+    if (l->current.id == T_LSQUARE) {
         l->advance(l);
+    } else {
+        BrLexerTokenError(l, T_LSQUARE);
     }
     for (n = 0; n < max; n++) {
 #ifdef BRENDER_FIX_BUGS
@@ -502,7 +474,6 @@ br_int_32 C2_HOOK_CDECL BrParseVectorFloat(br_lexer* l, br_float* v, br_int_32 m
 }
 
 // FUNCTION: CARMA2_HW 0x0052fd80
-// FUNCTION: CARMA2_SW 0x0052b420
 br_int_32 C2_HOOK_CDECL BrParseMatrixFixed(br_lexer* l, br_fixed_ls* m, br_int_32 width, br_int_32 max_h) {
     int n;
 
@@ -539,7 +510,6 @@ br_int_32 C2_HOOK_CDECL BrParseMatrixFixed(br_lexer* l, br_fixed_ls* m, br_int_3
 }
 
 // FUNCTION: CARMA2_HW 0x0052fe10
-// FUNCTION: CARMA2_SW 0x0052b4b0
 br_int_32 C2_HOOK_CDECL BrParseMatrixFloat(br_lexer* l, br_float* m, br_int_32 width, br_int_32 max_h) {
     int n;
 

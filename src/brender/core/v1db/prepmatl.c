@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "prepmatl.h"
 
 #include "dbsetup.h"
@@ -16,7 +8,6 @@
 #define PARTS_MASK ((unsigned)(BR_STATE_SURFACE | BR_STATE_PRIMITIVE | BR_STATE_CULL))
 
 // FUNCTION: CARMA2_HW 0x00520e70
-// FUNCTION: CARMA2_SW 0x0051c510
 void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
     br_token_value tva[32];
     br_token_value* tvp;
@@ -293,7 +284,6 @@ void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
 }
 
 // FUNCTION: CARMA2_HW 0x00521460
-// FUNCTION: CARMA2_SW 0x0051cb00
 void C2_HOOK_STDCALL BrMaterialClear(br_material* mat) {
     br_object* stored = (br_object*)mat->stored;
 

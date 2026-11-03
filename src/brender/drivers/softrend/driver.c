@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include <brender/brender.h>
 
 #include "core/fw/object.h"
@@ -26,11 +18,9 @@
 
 
 // GLOBAL: CARMA2_HW 0x0079feb0
-// GLOBAL: CARMA2_SW 0x00796450
 br_uint_32 DriverTimestamp;
 
 // FUNCTION: CARMA2_HW 0x00540590
-// FUNCTION: CARMA2_SW 0x0053bc30
 br_device* C2_HOOK_CDECL BrDrv1Begin(const char* arguments) {
     br_device *device;
 

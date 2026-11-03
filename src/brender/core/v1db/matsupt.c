@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "matsupt.h"
 
 #include "dbsetup.h"
@@ -17,7 +9,6 @@
 #include <stddef.h>
 
 // FUNCTION: CARMA2_HW 0x0051f240
-// FUNCTION: CARMA2_SW 0x0051a8e0
 br_material* C2_HOOK_CDECL BrMaterialAllocate(const char* name) {
     br_material* m;
 
@@ -36,7 +27,6 @@ br_material* C2_HOOK_CDECL BrMaterialAllocate(const char* name) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f2a0
-// FUNCTION: CARMA2_SW 0x0051a940
 void C2_HOOK_CDECL BrMaterialFree(br_material* m) {
 
     BrResFree(m);

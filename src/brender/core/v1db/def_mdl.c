@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "def_mdl.h"
 
 #include "brender/br_types.h"
@@ -39,7 +31,6 @@ br_vertex default_model_vertices[] = {
 };
 
 // GLOBAL: CARMA2_HW 0x006653e8
-// GLOBAL: CARMA2_SW 0x0065fb80
 br_model _BrDefaultModel = {
     0,
     "default_model",

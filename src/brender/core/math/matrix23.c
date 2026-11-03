@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "matrix23.h"
 
 #include "c2_math.h"
@@ -17,15 +9,12 @@
 
 
 // GLOBAL: CARMA2_HW 0x006b0a20
-// GLOBAL: CARMA2_SW 0x006aa1a8
 br_matrix23 mattmp1_23;
 
 // GLOBAL: CARMA2_HW 0x006b0a38
-// GLOBAL: CARMA2_SW 0x006aa1c0
 br_matrix23 mattmp2_23;
 
 // FUNCTION: CARMA2_HW 0x00534ae0
-// FUNCTION: CARMA2_SW 0x00530180
 void C2_HOOK_CDECL BrMatrix23Copy(br_matrix23* A, const br_matrix23* B) {
 
     A(0, 0) = B(0, 0);
@@ -37,7 +26,6 @@ void C2_HOOK_CDECL BrMatrix23Copy(br_matrix23* A, const br_matrix23* B) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534b10
-// FUNCTION: CARMA2_SW 0x005301b0
 void C2_HOOK_CDECL BrMatrix23Mul(br_matrix23* A, const br_matrix23* B, const br_matrix23* C) {
 
     A(0, 0) = BR_MAC2(B(0, 0), C(0, 0), B(0, 1), C(1, 0));
@@ -49,7 +37,6 @@ void C2_HOOK_CDECL BrMatrix23Mul(br_matrix23* A, const br_matrix23* B, const br_
 }
 
 // FUNCTION: CARMA2_HW 0x00534ba0
-// FUNCTION: CARMA2_SW 0x00530240
 void C2_HOOK_CDECL BrMatrix23Identity(br_matrix23* mat) {
 
     M(0, 0) = 1.f;
@@ -61,7 +48,6 @@ void C2_HOOK_CDECL BrMatrix23Identity(br_matrix23* mat) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534bc0
-// FUNCTION: CARMA2_SW 0x00530260
 void C2_HOOK_CDECL BrMatrix23Rotate(br_matrix23* mat, br_angle rz) {
     br_scalar s;
     br_scalar c;
@@ -78,7 +64,6 @@ void C2_HOOK_CDECL BrMatrix23Rotate(br_matrix23* mat, br_angle rz) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534c20
-// FUNCTION: CARMA2_SW 0x005302c0
 void C2_HOOK_CDECL BrMatrix23Translate(br_matrix23* mat, br_scalar dx, br_scalar dy) {
 
     M(0, 0) = BR_SCALAR(1.f);
@@ -90,7 +75,6 @@ void C2_HOOK_CDECL BrMatrix23Translate(br_matrix23* mat, br_scalar dx, br_scalar
 }
 
 // FUNCTION: CARMA2_HW 0x00534c50
-// FUNCTION: CARMA2_SW 0x005302f0
 void C2_HOOK_CDECL BrMatrix23Scale(br_matrix23* mat, br_scalar sx, br_scalar sy) {
 
     M(0, 0) = sx;
@@ -102,7 +86,6 @@ void C2_HOOK_CDECL BrMatrix23Scale(br_matrix23* mat, br_scalar sx, br_scalar sy)
 }
 
 // FUNCTION: CARMA2_HW 0x00534c70
-// FUNCTION: CARMA2_SW 0x00530310
 void C2_HOOK_CDECL BrMatrix23ShearX(br_matrix23* mat, br_scalar sy) {
 
     M(0, 0) = BR_SCALAR(1.f);
@@ -114,7 +97,6 @@ void C2_HOOK_CDECL BrMatrix23ShearX(br_matrix23* mat, br_scalar sy) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534ca0
-// FUNCTION: CARMA2_SW 0x00530340
 void C2_HOOK_CDECL BrMatrix23ShearY(br_matrix23* mat, br_scalar sx) {
 
     M(0, 0) = BR_SCALAR(1.f);
@@ -126,7 +108,6 @@ void C2_HOOK_CDECL BrMatrix23ShearY(br_matrix23* mat, br_scalar sx) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534cd0
-// FUNCTION: CARMA2_SW 0x00530370
 br_scalar C2_HOOK_CDECL BrMatrix23Inverse(br_matrix23* B, const br_matrix23* A) {
     br_scalar det;
     br_scalar idet;
@@ -163,7 +144,6 @@ br_scalar C2_HOOK_CDECL BrMatrix23Inverse(br_matrix23* B, const br_matrix23* A) 
 }
 
 // FUNCTION: CARMA2_HW 0x00534de0
-// FUNCTION: CARMA2_SW 0x00530480
 void C2_HOOK_CDECL BrMatrix23LPInverse(br_matrix23* B, const br_matrix23* A) {
 
     B(0, 0) = A(1, 1);
@@ -175,7 +155,6 @@ void C2_HOOK_CDECL BrMatrix23LPInverse(br_matrix23* B, const br_matrix23* A) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534e30
-// FUNCTION: CARMA2_SW 0x005304d0
 void C2_HOOK_CDECL BrMatrix23LPNormalise(br_matrix23* A, const br_matrix23* B) {
 
     br_scalar norm = (br_scalar)sqrt(BR_MAC2(B(1, 0), B(1, 0), B(1, 1), B(1,1)));
@@ -193,7 +172,6 @@ void C2_HOOK_CDECL BrMatrix23LPNormalise(br_matrix23* A, const br_matrix23* B) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534eb0
-// FUNCTION: CARMA2_SW 0x00530550
 void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* A, const br_vector2* B, const br_matrix23* C) {
 
     A->v[0] = BR_MAC2(B->v[0], C(0, 0), B->v[1], C(1, 0)) + C(2, 0);
@@ -201,7 +179,6 @@ void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* A, const br_vector2* B, const br
 }
 
 // FUNCTION: CARMA2_HW 0x00534ef0
-// FUNCTION: CARMA2_SW 0x00530590
 void C2_HOOK_CDECL BrMatrix23ApplyV(br_vector2* A, const br_vector2* B, const br_matrix23* C) {
 
     A->v[0] = BR_MAC2(B->v[0], C(0, 0), B->v[1], C(1, 0));
@@ -209,7 +186,6 @@ void C2_HOOK_CDECL BrMatrix23ApplyV(br_vector2* A, const br_vector2* B, const br
 }
 
 // FUNCTION: CARMA2_HW 0x00534f30
-// FUNCTION: CARMA2_SW 0x005305d0
 void C2_HOOK_CDECL BrMatrix23TApplyP(br_vector2* A, const br_vector2* B, const br_matrix23* C) {
 
     A->v[0] = BR_MAC2(B->v[0], C(0, 0), B->v[1], C(0, 1));
@@ -217,7 +193,6 @@ void C2_HOOK_CDECL BrMatrix23TApplyP(br_vector2* A, const br_vector2* B, const b
 }
 
 // FUNCTION: CARMA2_HW 0x00534f70
-// FUNCTION: CARMA2_SW 0x00530610
 void C2_HOOK_CDECL BrMatrix23TApplyV(br_vector2* A, const br_vector2* B, const br_matrix23* C) {
 
     A->v[0] = BR_MAC2(B->v[0], C(0, 0), B->v[1], C(0, 1));
@@ -225,7 +200,6 @@ void C2_HOOK_CDECL BrMatrix23TApplyV(br_vector2* A, const br_vector2* B, const b
 }
 
 // FUNCTION: CARMA2_HW 0x00534fb0
-// FUNCTION: CARMA2_SW 0x00530650
 void C2_HOOK_CDECL BrMatrix23Pre(br_matrix23* mat, const br_matrix23* A) {
 
     BrMatrix23Mul(&mattmp1_23, A, mat);
@@ -238,7 +212,6 @@ void C2_HOOK_CDECL BrMatrix23Pre(br_matrix23* mat, const br_matrix23* A) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535000
-// FUNCTION: CARMA2_SW 0x005306a0
 void C2_HOOK_CDECL BrMatrix23Post(br_matrix23* mat, const br_matrix23* A) {
 
     BrMatrix23Mul(&mattmp1_23, mat, A);
@@ -254,7 +227,6 @@ void C2_HOOK_CDECL BrMatrix23PreRotate(br_matrix23* mat, br_angle rz) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535110
-// FUNCTION: CARMA2_SW 0x005307b0
 void C2_HOOK_CDECL BrMatrix23PostRotate(br_matrix23* mat, br_angle rz) {
 
     BrMatrix23Rotate(&mattmp2_23, rz);
@@ -263,7 +235,6 @@ void C2_HOOK_CDECL BrMatrix23PostRotate(br_matrix23* mat, br_angle rz) {
 }
 
 // FUNCTION: CARMA2_HW 0x005351d0
-// FUNCTION: CARMA2_SW 0x00530870
 void C2_HOOK_CDECL BrMatrix23PreTranslate(br_matrix23* mat, br_scalar x, br_scalar y) {
 
     BrMatrix23Translate(&mattmp2_23, x, y);
@@ -272,7 +243,6 @@ void C2_HOOK_CDECL BrMatrix23PreTranslate(br_matrix23* mat, br_scalar x, br_scal
 }
 
 // FUNCTION: CARMA2_HW 0x00535260
-// FUNCTION: CARMA2_SW 0x00530900
 void C2_HOOK_CDECL BrMatrix23PostTranslate(br_matrix23* A, br_scalar x, br_scalar y) {
 
     A(2, 0) += x;
@@ -280,7 +250,6 @@ void C2_HOOK_CDECL BrMatrix23PostTranslate(br_matrix23* A, br_scalar x, br_scala
 }
 
 // FUNCTION: CARMA2_HW 0x00535280
-// FUNCTION: CARMA2_SW 0x00530920
 void C2_HOOK_CDECL BrMatrix23PreScale(br_matrix23* mat, br_scalar sx, br_scalar sy) {
 
     BrMatrix23Scale(&mattmp2_23, sx, sy);
@@ -289,7 +258,6 @@ void C2_HOOK_CDECL BrMatrix23PreScale(br_matrix23* mat, br_scalar sx, br_scalar 
 }
 
 // FUNCTION: CARMA2_HW 0x00535310
-// FUNCTION: CARMA2_SW 0x005309b0
 void C2_HOOK_CDECL BrMatrix23PostScale(br_matrix23* mat, br_scalar sx, br_scalar sy) {
 
     BrMatrix23Scale(&mattmp2_23, sx, sy);
@@ -298,7 +266,6 @@ void C2_HOOK_CDECL BrMatrix23PostScale(br_matrix23* mat, br_scalar sx, br_scalar
 }
 
 // FUNCTION: CARMA2_HW 0x005353a0
-// FUNCTION: CARMA2_SW 0x00530a40
 void C2_HOOK_CDECL BrMatrix23PreShearX(br_matrix23* mat, br_scalar sy) {
 
     BrMatrix23ShearX(&mattmp2_23, sy);
@@ -307,7 +274,6 @@ void C2_HOOK_CDECL BrMatrix23PreShearX(br_matrix23* mat, br_scalar sy) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535430
-// FUNCTION: CARMA2_SW 0x00530ad0
 void C2_HOOK_CDECL BrMatrix23PostShearX(br_matrix23* mat, br_scalar sy) {
 
     BrMatrix23ShearX(&mattmp2_23, sy);
@@ -316,7 +282,6 @@ void C2_HOOK_CDECL BrMatrix23PostShearX(br_matrix23* mat, br_scalar sy) {
 }
 
 // FUNCTION: CARMA2_HW 0x005354c0
-// FUNCTION: CARMA2_SW 0x00530b60
 void C2_HOOK_CDECL BrMatrix23PreShearY(br_matrix23* mat, br_scalar sx) {
 
     BrMatrix23ShearY(&mattmp2_23, sx);
@@ -325,7 +290,6 @@ void C2_HOOK_CDECL BrMatrix23PreShearY(br_matrix23* mat, br_scalar sx) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535550
-// FUNCTION: CARMA2_SW 0x00530bf0
 void C2_HOOK_CDECL BrMatrix23PostShearY(br_matrix23* mat, br_scalar sx) {
 
     BrMatrix23ShearY(&mattmp2_23, sx);

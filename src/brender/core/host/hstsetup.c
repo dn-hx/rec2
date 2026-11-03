@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "hstsetup.h"
 
 #include "core/host/cpuid.h"
@@ -19,8 +11,7 @@
 #include "core/fw/image.h"
 
 // GLOBAL: CARMA2_HW 0x006700a8
-// GLOBAL: CARMA2_SW 0x0066a838
-host_info const hostInfo = {
+host_info hostInfo = {
     sizeof(host_info),
     "Microsoft WIN32",
     0,
@@ -83,7 +74,6 @@ void* functionPointers_BRHOST1[50] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0066fe70
-// GLOBAL: CARMA2_SW 0x0066a600
 const char* namePointers_BRHOST1[50] = {
     "_HostExceptionHook",
     "_HostExceptionUnhook",
@@ -211,7 +201,6 @@ br_image Image_BRHOST1 = {
 };
 
 // FUNCTION: CARMA2_HW 0x0053fab0
-// FUNCTION: CARMA2_SW 0x0053b150
 void C2_HOOK_CDECL HostBegin(void) {
 
     RealSelectorBegin();
@@ -219,15 +208,14 @@ void C2_HOOK_CDECL HostBegin(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0053fad0
-// FUNCTION: CARMA2_SW 0x0053b170
 void C2_HOOK_CDECL HostEnd(void) {
 
     BrImageRemove(&Image_BRHOST1);
     RealSelectorEnd();
 }
 
+// IDA: br_error __cdecl HostInfo(host_info *buffer, br_size_t buffersize)
 // FUNCTION: CARMA2_HW 0x0053faf0
-// FUNCTION: CARMA2_SW 0x0053b190
 br_error C2_HOOK_CDECL HostInfo(host_info* buffer, br_size_t buffersize) {
     br_uint_32 features;
 

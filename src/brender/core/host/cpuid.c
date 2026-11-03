@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "cpuid.h"
 
 #include "c2_hooks.h"
@@ -19,8 +11,7 @@
 #ifdef REC2_MATCHING
 
 // GLOBAL: CARMA2_HW 0x0054053f
-// GLOBAL: CARMA2_SW 0x0053bbdf
-const br_token cpu_types[] = {
+br_token cpu_types[] = {
     BRT_INTEL_386,
     BRT_INTEL_386,
     BRT_INTEL_386,
@@ -31,7 +22,6 @@ const br_token cpu_types[] = {
 };
 
 // FUNCTION: CARMA2_HW 0x005404b0
-// FUNCTION: CARMA2_SW 0x0053bb50
 C2_NAKED void C2_HOOK_CDECL CPUInfo(br_token* cpu_type, br_uint_32* features) {
     __asm {
         push              ebp

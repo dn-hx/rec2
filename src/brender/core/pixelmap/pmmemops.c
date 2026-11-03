@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "pmmemops.h"
 
 #include "brender/br_defs.h"
@@ -96,7 +88,6 @@ br_uint_8 g_endMasks[9] = {
     } while (0)
 
 // FUNCTION: CARMA2_HW 0x0053df30
-// FUNCTION: CARMA2_SW 0x005395d0
 void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest_stride, void* src, br_uint_32 s_stride, br_uint_32 start_bit, br_uint_32 end_bit, br_uint_32 height, br_uint_32 bpp, br_uint_32 colour) {
     br_uint_8 start_mask;
     br_uint_8 end_mask;
@@ -167,7 +158,6 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
 }
 
 // FUNCTION: CARMA2_HW 0x0053e686
-// FUNCTION: CARMA2_SW 0x005399ba
 void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour) {
 
     switch (bpp) {

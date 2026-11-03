@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "custsupt.h"
 
 #include "dbsetup.h"
@@ -30,7 +22,6 @@ const float gScreenZOffsetPresetChoices[7] = {
 };
 
 // FUNCTION: CARMA2_HW 0x00540560
-// FUNCTION: CARMA2_SW 0x0053bc00
 void C2_HOOK_CDECL BrSetScreenZOffset(br_uint_32 pOffset) {
 
     C2_HOOK_BUG_ON(BR_ASIZE(gScreenZOffsetPresetChoices) != 7);
@@ -163,11 +154,11 @@ void C2_HOOK_CDECL BrPointToScreenXYMany(br_vector2* screens, const br_vector3* 
         v1db.model_to_screen_valid = 1;
     }
 
-    for (i = 0; i < npoints; i++) {
-        BrMatrix4ApplyP(&sp, &points[i], &v1db.model_to_screen);
+    for (i = 0; i < npoints; i++, points++, screens++) {
+        BrMatrix4ApplyP(&sp, points, &v1db.model_to_screen);
 
-        screens[i].v[0] = v1db.vp_ox + sp.v[0] * v1db.vp_width / sp.v[3];
-        screens[i].v[1] = v1db.vp_oy + sp.v[1] * v1db.vp_height / sp.v[3];
+        screens->v[0] = v1db.vp_ox + sp.v[0] * v1db.vp_width / sp.v[3];
+        screens->v[1] = v1db.vp_oy + sp.v[1] * v1db.vp_height / sp.v[3];
     }
 }
 
@@ -197,7 +188,7 @@ void C2_HOOK_CDECL BrPointToScreenXYZOMany(br_vector3* screens, br_uint_32* outc
 // FUNCTION: CARMA2_HW 0x00527240
 br_scalar C2_HOOK_CDECL BrZbDepthToScreenZ(br_uint_32 depth_z, br_camera* camera) {
 
-    return BrFixedToScalar(BrFixedNeg(depth_z));
+    return BrFixedToScalar((br_int_32)BrFixedNeg(depth_z));
 }
 
 // FUNCTION: CARMA2_HW 0x00527260

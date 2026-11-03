@@ -1,17 +1,8 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "real.h"
 
 #include "c2_stdlib.h"
 
 // GLOBAL: CARMA2_HW 0x0067052a
-// GLOBAL: CARMA2_SW 0x0066acba
 br_uint_16 _RealSelector;
 
 #ifdef REC2_MATCHING
@@ -34,17 +25,31 @@ struct {
 #endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00540086
-// FUNCTION: CARMA2_SW 0x0053b726
+__declspec(naked) br_error C2_HOOK_CDECL HostSelectorReal(br_uint_16 *selp) {
+
+    __asm {
+        push    ebp
+        mov     ebp, esp
+        mov     eax, dword ptr [ebp + 8]
+        mov     dx, word ptr [_RealSelector]
+        mov     word ptr [eax], dx
+        xor     eax, eax
+        leave
+        ret
+    }
+}
+#else
 br_error C2_HOOK_CDECL HostSelectorReal(br_uint_16 *selp) {
 
     *selp = _RealSelector;
     return 0;
 }
+#endif
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0053ff34
-// FUNCTION: CARMA2_SW 0x0053b5d4
 __declspec(naked) br_error C2_HOOK_CDECL HostRealAllocate(struct host_real_memory *mem, br_uint_32 size_arg) {
 
     __asm {
@@ -71,7 +76,6 @@ br_error C2_HOOK_CDECL HostRealAllocate(struct host_real_memory *mem, br_uint_32
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0053ff51
-// FUNCTION: CARMA2_SW 0x0053b5f1
 __declspec(naked) br_error C2_HOOK_CDECL HostRealFree(struct host_real_memory *mem) {
 
     __asm {
@@ -93,7 +97,6 @@ br_error C2_HOOK_CDECL HostRealFree(struct host_real_memory *mem) {
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0053ff5a
-// FUNCTION: CARMA2_SW 0x0053b5fa
 __declspec(naked) br_error C2_HOOK_CDECL HostRealInterruptGet(br_uint_32 vector, br_uint_16 *offp, br_uint_16 *vsegp) {
 
     __asm {
@@ -124,7 +127,6 @@ br_error C2_HOOK_CDECL HostRealInterruptGet(br_uint_32 vector, br_uint_16 *offp,
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0053ff7e
-// FUNCTION: CARMA2_SW 0x0053b61e
 __declspec(naked) br_error C2_HOOK_CDECL HostRealInterruptSet(br_uint_32 vector, br_uint_32 voff, br_uint_32 vseg) {
     __asm {
         push    ebp
@@ -151,7 +153,6 @@ br_error C2_HOOK_CDECL HostRealInterruptSet(br_uint_32 vector, br_uint_32 voff, 
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0053ff9c
-// FUNCTION: CARMA2_SW 0x0053b63c
 __declspec(naked) br_error C2_HOOK_CDECL HostRealInterruptCall(br_uint_32 vector, union host_regs *regs) {
 
     __asm {
@@ -226,7 +227,6 @@ br_error C2_HOOK_CDECL HostRealInterruptCall(br_uint_32 vector, union host_regs 
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00540062
-// FUNCTION: CARMA2_SW 0x0053b702
 __declspec(naked) br_error C2_HOOK_CDECL RealSelectorBegin(void) {
 
     __asm {

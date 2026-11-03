@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "genrend.h"
 
 #include "rend.h"
@@ -155,17 +147,22 @@ void C2_HOOK_CDECL Vertex_OS_TransformProjectBoundsGeom(br_geometry* self, br_so
     brp_vertex* tvp;
     fmt_vertex* vp;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
-        vp = &rend.vertices[v];
+    tvp = rend.temp_vertices;
+    vp = rend.vertices;
 
+    for (v = 0; v < rend.nvertices; v++, tvp++, vp++) {
         if (rend.vertex_counts[v] == 0) {
             continue;
         }
 
         TRANSFORM_VERTEX((br_vector4*)(tvp->comp + C_X), &vp->p, &scache.model_to_screen);
-        PROJECT_VERTEX(tvp, tvp->comp[C_X], tvp->comp[C_Y], tvp->comp[C_Z], tvp->comp[C_W]);
-        UPDATE_BOUNDS(tvp);
+        tvp->comp[C_SX] = renderer->state.cache.comp_offsets[C_SX] + renderer->state.cache.comp_scales[C_SX] * tvp->comp[C_X] / tvp->comp[C_W];
+        tvp->comp[C_SY] = renderer->state.cache.comp_offsets[C_SY] + renderer->state.cache.comp_scales[C_SY] * tvp->comp[C_Y] / tvp->comp[C_W];
+        tvp->comp[C_SZ] = renderer->state.cache.comp_offsets[C_SZ] + renderer->state.cache.comp_scales[C_SZ] * tvp->comp[C_Z] / tvp->comp[C_W] + gScreenZOffset;
+        if (tvp->comp[C_SX] > scache.max.v[0]) { scache.max.v[0] = tvp->comp[C_SX]; }
+        if (tvp->comp[C_SX] < scache.min.v[0]) { scache.min.v[0] = tvp->comp[C_SX]; }
+        if (tvp->comp[C_SY] > scache.max.v[1]) { scache.max.v[1] = tvp->comp[C_SY]; }
+        if (tvp->comp[C_SY] < scache.min.v[1]) { scache.min.v[1] = tvp->comp[C_SY]; }
 
         for (i = 0; i < renderer->state.cache.nvertex_fns; i++) {
             renderer->state.cache.vertex_fns[i]((br_renderer*)renderer, &vp->p, &vp->map, &vp->n, rend.vertex_colours[v], tvp->comp);
@@ -335,7 +332,6 @@ void C2_HOOK_CDECL Vertex_ClearFlags(br_geometry* self, br_soft_renderer* render
 }
 
 // FUNCTION: CARMA2_HW 0x005476f0
-// FUNCTION: CARMA2_SW 0x00542d90
 void C2_HOOK_STDCALL VertexGeometryFns(br_soft_renderer* renderer, geometry_fn* prim_outcode) {
 
     C2_HOOK_BUG_ON(ENBL_BOUNDS != 0x10);

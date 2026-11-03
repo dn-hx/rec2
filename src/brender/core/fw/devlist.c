@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "devlist.h"
 
 #include "fwsetup.h"
@@ -31,7 +23,6 @@ br_error C2_HOOK_CDECL AddRequestedDrivers(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00528490
-// FUNCTION: CARMA2_SW 0x00523b10
 br_error C2_HOOK_STDCALL devAdd(br_device** pdev, br_device_begin_fn* dev_begin, const char* args, br_image* image) {
     int i;
     br_device* dev;
@@ -72,7 +63,6 @@ br_error C2_HOOK_STDCALL devAdd(br_device** pdev, br_device_begin_fn* dev_begin,
 }
 
 // FUNCTION: CARMA2_HW 0x00528430
-// FUNCTION: CARMA2_SW 0x00523ab0
 br_error C2_HOOK_CDECL BrDevAdd(br_device** pdev, const char* image, const char* args) {
     br_image* dev_image;
     br_device_begin_fn* dev_begin;
@@ -90,13 +80,11 @@ br_error C2_HOOK_CDECL BrDevAdd(br_device** pdev, const char* image, const char*
 }
 
 // FUNCTION: CARMA2_HW 0x005285a0
-// FUNCTION: CARMA2_SW 0x00523c20
 br_error C2_HOOK_CDECL BrDevAddStatic(br_device** pdev, br_device_begin_fn* dev_begin, const char* args) {
     return devAdd(pdev, dev_begin, args, NULL);
 }
 
 // FUNCTION: CARMA2_HW 0x005285c0
-// FUNCTION: CARMA2_SW 0x00523c40
 br_error C2_HOOK_CDECL BrDevCheckAdd(br_device** pdev, const char* name, const char* args) {
 
     if (BrDevFind(pdev, name) == 0) {
@@ -148,7 +136,6 @@ br_error C2_HOOK_CDECL BrDevAddConfig(const char* config) {
 }
 
 // FUNCTION: CARMA2_HW 0x00528800
-// FUNCTION: CARMA2_SW 0x00523e80
 br_error C2_HOOK_CDECL BrDevRemove(br_device* dev) {
     int i;
 
@@ -166,7 +153,6 @@ br_error C2_HOOK_CDECL BrDevRemove(br_device* dev) {
 }
 
 // FUNCTION: CARMA2_HW 0x00528860
-// FUNCTION: CARMA2_SW 0x00523ee0
 br_error C2_HOOK_CDECL BrDevFind(br_device** pdev, const char* pattern) {
     int i;
 
@@ -233,7 +219,6 @@ br_error C2_HOOK_CDECL BrDevCount(br_int_32* ndevices, const char* pattern) {
 }
 
 // FUNCTION: CARMA2_HW 0x00528ac0
-// FUNCTION: CARMA2_SW 0x00524140
 br_error C2_HOOK_CDECL BrDevContainedFind(br_object** ph, br_token type, const char* pattern, br_token_value* tv) {
     int i;
 

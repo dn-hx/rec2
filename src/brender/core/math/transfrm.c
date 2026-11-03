@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "transfrm.h"
 
 #include "angles.h"
@@ -94,7 +86,6 @@ br_uint_8 _CombineTransforms[7][7] = {
 };
 
 // FUNCTION: CARMA2_HW 0x00531870
-// FUNCTION: CARMA2_SW 0x0052cf10
 void C2_HOOK_CDECL BrTransformToMatrix34(br_matrix34* mat, const br_transform* xform) {
 
     switch (xform->type) {
@@ -166,7 +157,6 @@ void C2_HOOK_CDECL BrTransformToMatrix34(br_matrix34* mat, const br_transform* x
 }
 
 // FUNCTION: CARMA2_HW 0x00531b60
-// FUNCTION: CARMA2_SW 0x0052d200
 void C2_HOOK_CDECL BrMatrix34PreTransform(br_matrix34* mat, const br_transform* xform) {
     br_matrix34 tmp;
 
@@ -179,7 +169,6 @@ void C2_HOOK_CDECL BrMatrix34PreTransform(br_matrix34* mat, const br_transform* 
 }
 
 // FUNCTION: CARMA2_HW 0x00531ba0
-// FUNCTION: CARMA2_SW 0x0052d240
 void C2_HOOK_CDECL BrMatrix34PostTransform(br_matrix34* mat, const br_transform* xform) {
     br_matrix34 tmp;
 
@@ -192,7 +181,6 @@ void C2_HOOK_CDECL BrMatrix34PostTransform(br_matrix34* mat, const br_transform*
 }
 
 // FUNCTION: CARMA2_HW 0x00531be0
-// FUNCTION: CARMA2_SW 0x0052d280
 void C2_HOOK_CDECL BrMatrix4PreTransform(br_matrix4* mat, const br_transform* xform) {
     br_matrix34 tmp;
 
@@ -203,7 +191,6 @@ void C2_HOOK_CDECL BrMatrix4PreTransform(br_matrix4* mat, const br_transform* xf
 }
 
 // FUNCTION: CARMA2_HW 0x00531c20
-// FUNCTION: CARMA2_SW 0x0052d2c0
 void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34* mat) {
 
     switch (xform->type) {
@@ -238,7 +225,6 @@ void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34*
 }
 
 // FUNCTION: CARMA2_HW 0x00531d70
-// FUNCTION: CARMA2_SW 0x0052d410
 void C2_HOOK_CDECL BrTransformToTransform(br_transform* dest, const br_transform* src) {
     br_matrix34 temp;
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "resreg.h"
 
 #include "fwsetup.h"
@@ -15,7 +7,6 @@
 #include "c2_stdlib.h"
 
 // FUNCTION: CARMA2_HW 0x00527fd0
-// FUNCTION: CARMA2_SW 0x00523670
 br_resource_class* C2_HOOK_CDECL BrResClassAdd(br_resource_class* rclass) {
     br_resource_class* r;
 
@@ -92,4 +83,39 @@ br_uint_32 C2_HOOK_CDECL BrResClassCount(char* pattern) {
 br_uint_32 C2_HOOK_CDECL BrResClassEnum(char* pattern, br_resclass_enum_cbfn* callback, void* arg) {
 
     return BrRegistryEnum(&fw.reg_resource_classes, pattern, (br_enum_cbfn*)callback, arg);
+}
+
+#if defined(_MSC_VER) && defined(_M_IX86)
+C2_NAKED
+#endif
+// FUNCTION: CARMA2_HW 0x00528130
+void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount) {
+#if defined(_MSC_VER) && defined(_M_IX86)
+    __asm {
+        push ebp
+        mov ebp, esp
+        push eax
+        push ecx
+        push edi
+        push es
+        mov ax, ds
+        mov es, ax
+        mov eax, dword ptr [ebp+0xc]
+        mov ecx, dword ptr [ebp+0x10]
+        mov edi, dword ptr [ebp+0x8]
+        rep stosd
+        pop es
+        pop edi
+        pop ecx
+        pop eax
+        leave
+        ret
+    }
+#else
+    int i;
+
+    for (i = 0; i < pCount; i++) {
+        pDestination[i] = pValue;
+    }
+#endif
 }

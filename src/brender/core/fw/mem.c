@@ -1,18 +1,9 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "mem.h"
 
 #include "core/fw/fwsetup.h"
 #include "core/std/brstdlib.h"
 
 // FUNCTION: CARMA2_HW 0x005275c0
-// FUNCTION: CARMA2_SW 0x00522c60
 void* C2_HOOK_CDECL BrMemAllocate(br_size_t size, br_uint_8 type) {
     void* b;
 
@@ -23,14 +14,12 @@ void* C2_HOOK_CDECL BrMemAllocate(br_size_t size, br_uint_8 type) {
 
 // IDA: void __cdecl BrMemFree(void *block)
 // FUNCTION: CARMA2_HW 0x005275f0
-// FUNCTION: CARMA2_SW 0x00522c90
 void C2_HOOK_CDECL BrMemFree(void* block) {
 
     fw.mem->free(block);
 }
 
 // FUNCTION: CARMA2_HW 0x00527610
-// FUNCTION: CARMA2_SW 0x00522cb0
 br_size_t C2_HOOK_CDECL BrMemInquire(br_uint_8 type) {
     br_size_t i;
 
@@ -39,7 +28,6 @@ br_size_t C2_HOOK_CDECL BrMemInquire(br_uint_8 type) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527630
-// FUNCTION: CARMA2_SW 0x00522cd0
 br_int_32 C2_HOOK_CDECL BrMemAlign(br_uint_8 type) {
     br_int_32 i = 0;
 
@@ -50,7 +38,6 @@ br_int_32 C2_HOOK_CDECL BrMemAlign(br_uint_8 type) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527650
-// FUNCTION: CARMA2_SW 0x00522cf0
 void* C2_HOOK_CDECL BrMemCalloc(int nelems, br_size_t size, br_uint_8 type) {
     void* b;
 
@@ -60,7 +47,6 @@ void* C2_HOOK_CDECL BrMemCalloc(int nelems, br_size_t size, br_uint_8 type) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527680
-// FUNCTION: CARMA2_SW 0x00522d20
 char* C2_HOOK_CDECL BrMemStrDup(const char* str) {
     int l;
     char* nstr;

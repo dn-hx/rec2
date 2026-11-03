@@ -1,17 +1,8 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "pattern.h"
 
 #include <ctype.h>
 
 // FUNCTION: CARMA2_HW 0x00529860
-// FUNCTION: CARMA2_SW 0x005243d0
 br_boolean C2_HOOK_CDECL BrNamePatternMatch(const char* p, const char* s) {
     const char* cp;
 

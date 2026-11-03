@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "light24.h"
 
 #include "lightmac.h"
@@ -20,7 +12,6 @@ void C2_HOOK_CDECL SurfaceColourZero(br_soft_renderer* self, br_vector3* p, br_v
 }
 
 // FUNCTION: CARMA2_HW 0x00548c40
-// FUNCTION: CARMA2_SW 0x005442e0
 void C2_HOOK_CDECL SurfaceColourUnlit(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     comp[C_R] = self->state.cache.comp_scales[C_R] * (float)BR_RED(colour) / 256.f + self->state.cache.comp_offsets[C_R];
@@ -29,7 +20,6 @@ void C2_HOOK_CDECL SurfaceColourUnlit(br_soft_renderer* self, br_vector3* p, br_
 }
 
 // FUNCTION: CARMA2_HW 0x00548cf0
-// FUNCTION: CARMA2_SW 0x00544390
 void C2_HOOK_CDECL SurfaceColourLit(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
     int i;
     active_light* alp;
@@ -76,6 +66,7 @@ void C2_HOOK_STDCALL lightingColourNull(br_soft_renderer* self, br_vector3* p, b
 
 }
 
+// PARTIAL 76.41%: lightingColourDirectSpecular 0x5491b0 - frame is 8 bytes vs 0x18 (MSVC gives the three unsigned->float temps one slot instead of three) plus x87 scheduling tie-breaks (kd product vs channel conversion order, power load vs dot duplicate)
 // FUNCTION: CARMA2_HW 0x005491b0
 void C2_HOOK_STDCALL lightingColourDirectSpecular(br_soft_renderer* self, br_vector3* p, br_vector3* n, br_colour colour, active_light* alp, br_scalar* comp) {
     br_scalar dot;
@@ -86,19 +77,16 @@ void C2_HOOK_STDCALL lightingColourDirectSpecular(br_soft_renderer* self, br_vec
         return;
     }
 
-    red = BrFixedToFloat(BR_RED(colour) << 8) * dot;
-    grn = BrFixedToFloat(BR_GRN(colour) << 8) * dot;
-    blu = BrFixedToFloat(BR_BLU(colour) << 8) * dot;
+    red = BrFixedToScalar(BR_RED(colour) << 8) * (dot * self->state.surface.kd);
+    grn = BrFixedToScalar(BR_GRN(colour) << 8) * (dot * self->state.surface.kd);
+    blu = BrFixedToScalar(BR_BLU(colour) << 8) * (dot * self->state.surface.kd);
 
     if (self->state.surface.ks != 0.f) {
         dot = BrVector3Dot(&alp->half, n);
         if (dot > SPECULARPOW_CUTOFF) {
-            br_scalar specular;
-
-            specular = alp->intensity * SPECULAR_POWER(self->state.surface.ks);
-            red += specular;
-            grn += specular;
-            blu += specular;
+            red += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
+            grn += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
+            blu += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
         }
     }
 
@@ -183,28 +171,34 @@ void C2_HOOK_STDCALL lightingColourPointSpecular(br_soft_renderer* self, br_vect
     comp[C_B] += blu * alp->intensity * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
 }
 
+// PARTIAL 67.63%: lightingColourPointAttnSpecular 0x5498f0 - frame and instruction count match (0x14/246 vs 241) but x87 scheduling differs: ours leaves attn in a register and reloads dot from its home slot, the original spills attn to [esp+0x2c] before the dot test and keeps dot live in st(0) (fcom+fst), which also gives it the shared dot*kd product (fmulp st(4),st)
 // FUNCTION: CARMA2_HW 0x005498f0
 void C2_HOOK_STDCALL lightingColourPointAttnSpecular(br_soft_renderer* self, br_vector3* p, br_vector3* n, br_colour colour, active_light* alp, br_scalar* comp) {
     br_scalar dot;
     br_scalar dist, dist2;
     br_scalar attn;
     br_vector3 dirn;
+    br_scalar inv;
     br_scalar red, grn, blu;
 
     BrVector3Sub(&dirn, &alp->position, p);
     dist = BrVector3Length(&dirn);
-    if (dist <= BR_SCALAR_EPSILON) {
+    if (dist <= BR_SCALAR_EPSILON * 2) {
         return;
     }
-    dist2 = (dist < 180.f) ? dist * dist : 32767.f;
-    BrVector3InvScale(&dirn, &dirn, dist);
+    inv = (br_scalar)(1.0 / dist);
+    dirn.v[0] = dirn.v[0] * inv;
+    dirn.v[1] = dirn.v[1] * inv;
+    dirn.v[2] = dirn.v[2] * inv;
+    dist2 = (dist >= 180.f) ? 32767.f : dist * dist;
     dot = BrVector3Dot(&dirn, n);
+    attn = 1.0 / (alp->s->attenuation_q * dist2 + alp->s->attenuation_l * dist + alp->s->attenuation_c);
     if (dot <= 0.f) {
         return;
     }
-    red = BrFixedToScalar(BR_RED(colour) << 8) * self->state.surface.kd * dot;
-    grn = BrFixedToScalar(BR_GRN(colour) << 8) * self->state.surface.kd * dot;
-    blu = BrFixedToScalar(BR_BLU(colour) << 8) * self->state.surface.kd * dot;
+    red = BrFixedToScalar(BR_RED(colour) << 8) * (dot * self->state.surface.kd);
+    grn = BrFixedToScalar(BR_GRN(colour) << 8) * (dot * self->state.surface.kd);
+    blu = BrFixedToScalar(BR_BLU(colour) << 8) * (dot * self->state.surface.kd);
     if (self->state.surface.ks != 0.f) {
         br_vector3 tmp;
 
@@ -220,11 +214,10 @@ void C2_HOOK_STDCALL lightingColourPointAttnSpecular(br_soft_renderer* self, br_
             blu += specular;
         }
     }
-    attn = 1.f / (alp->s->attenuation_q * dist2 + alp->s->attenuation_l * dist + alp->s->attenuation_c);
 
-    comp[C_R] += red * attn * BrFixedToFloat(BR_RED(alp->s->colour) << 8);
-    comp[C_G] += grn * attn * BrFixedToFloat(BR_GRN(alp->s->colour) << 8);
-    comp[C_B] += blu * attn * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
+    comp[C_R] += (red * attn) * BrFixedToFloat(BR_RED(alp->s->colour) << 8);
+    comp[C_G] += (grn * attn) * BrFixedToFloat(BR_GRN(alp->s->colour) << 8);
+    comp[C_B] += (blu * attn) * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
 }
 
 // FUNCTION: CARMA2_HW 0x00549be0

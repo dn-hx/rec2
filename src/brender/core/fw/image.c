@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "image.h"
 
 #include "loader.h"
@@ -21,14 +13,12 @@
 #include "br_platform.h"
 
 // FUNCTION: CARMA2_HW 0x0052fed0
-// FUNCTION: CARMA2_SW 0x0052b570
 br_boolean C2_HOOK_CDECL BrImageAdd(br_image* img) {
     BrAddHead(&fw.images, &img->node);
     return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0052fef0
-// FUNCTION: CARMA2_SW 0x0052b590
 br_boolean C2_HOOK_CDECL BrImageRemove(br_image* img) {
     BrRemove(&img->node);
     return 1;
@@ -68,7 +58,6 @@ br_image* C2_HOOK_STDCALL imageLoadHost(const char* name) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052ffa0
-// FUNCTION: CARMA2_SW 0x0052b640
 br_image* C2_HOOK_CDECL BrImageReference(const char* name) {
     const char* suffix;
     char* suffix2;
@@ -151,7 +140,6 @@ void* C2_HOOK_STDCALL imageLookupName(br_image* img, const char* name, br_uint_3
 }
 
 // FUNCTION: CARMA2_HW 0x005301e0
-// FUNCTION: CARMA2_SW 0x0052b880
 void* C2_HOOK_CDECL BrImageLookupName(br_image* img, const char* name, br_uint_32 hint) {
     char* scratch;
     void* p;
@@ -176,7 +164,6 @@ void* C2_HOOK_CDECL BrImageLookupName(br_image* img, const char* name, br_uint_3
 }
 
 // FUNCTION: CARMA2_HW 0x00530320
-// FUNCTION: CARMA2_SW 0x0052b9c0
 void* C2_HOOK_CDECL BrImageLookupOrdinal(br_image* img, br_uint_32 ordinal) {
 
     if (img->type == 3) {
@@ -189,7 +176,6 @@ void* C2_HOOK_CDECL BrImageLookupOrdinal(br_image* img, br_uint_32 ordinal) {
 }
 
 // FUNCTION: CARMA2_HW 0x00530360
-// FUNCTION: CARMA2_SW 0x0052ba00
 void C2_HOOK_CDECL BrImageDereference(br_image* image) {
     int i;
     image->ref_count--;

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "loader.h"
 
 #include "core/fw/diag.h"
@@ -46,7 +38,6 @@
 #define ENTRY_OFFSET(e) ((e) & 0xfff)
 
 // FUNCTION: CARMA2_HW 0x00530e70
-// FUNCTION: CARMA2_SW 0x0052c510
 br_image* C2_HOOK_STDCALL ImageLoad(const char* name) {
     void* fh;
 	int mode = BR_FS_MODE_BINARY;

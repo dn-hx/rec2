@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "prepmesh.h"
 
 #include "dbsetup.h"
@@ -37,16 +29,15 @@
 
 
 // GLOBAL: CARMA2_HW 0x006ad4e0
-// GLOBAL: CARMA2_SW 0x006a6c68
 br_model* compareModel;
 
-// GLOBAL: CARMA2_HW 0x006ad4e4
+// GLOBAL: CARMA2_HW 0x006ad4e8
 static char* pm_edge_scratch;
 
 // GLOBAL: CARMA2_HW 0x006ad4dc
 static struct pm_temp_edge * pm_edge_table;
 
-// GLOBAL: CARMA2_HW 0x006ad4e8
+// GLOBAL: CARMA2_HW 0x006ad4e4
 static pm_temp_edge** pm_edge_hash;
 
 // GLOBAL: CARMA2_HW 0x006ad4ec
@@ -56,7 +47,6 @@ static int num_edges;
 #define PREP_ALIGN(x) (((x)+(PREP_BOUNDARY-1)) & ~(PREP_BOUNDARY-1))
 
 int C2_HOOK_STDCALL addEdge(br_uint_16 first, br_uint_16 last) {
-    int edge;
     struct pm_temp_edge *tep;
 
     for (tep = pm_edge_hash[last]; tep != NULL; tep = tep->next) {
@@ -75,14 +65,10 @@ int C2_HOOK_STDCALL addEdge(br_uint_16 first, br_uint_16 last) {
     tep->next = pm_edge_hash[first];
     pm_edge_hash[first] = tep;
 
-    edge = num_edges;
-    num_edges++;
-
-    return edge;
+    return num_edges++;
 }
 
 // FUNCTION: CARMA2_HW 0x00520560
-// FUNCTION: CARMA2_SW 0x0051bc00
 void C2_HOOK_STDCALL prepareEdges(v11group* group, br_model* model) {
     br_size_t scratch_size;
     br_face* mfp;
@@ -92,13 +78,11 @@ void C2_HOOK_STDCALL prepareEdges(v11group* group, br_model* model) {
     C2_HOOK_BUG_ON(sizeof(*pm_edge_table) != 12);
     C2_HOOK_BUG_ON(sizeof(*pm_edge_hash) != 4);
 
-    scratch_size = group->nfaces * 3 * sizeof(*pm_edge_table) +
-            group->nvertices * sizeof(*pm_edge_hash);
+    scratch_size = (group->nfaces * 9 + group->nvertices) * sizeof(*pm_edge_hash);
 
     pm_edge_scratch = BrScratchAllocate(scratch_size);
-
     pm_edge_hash = (struct pm_temp_edge**)pm_edge_scratch;
-    pm_edge_table = (struct pm_temp_edge*)(pm_edge_scratch) + group->nvertices * sizeof(*pm_edge_hash);
+    pm_edge_table = (struct pm_temp_edge*)(pm_edge_scratch + group->nvertices * sizeof(*pm_edge_hash));
 
     BrMemSet(pm_edge_hash, 0, group->nvertices * sizeof(*pm_edge_hash));
 
@@ -165,7 +149,6 @@ int C2_HOOK_CDECL FacesCompare(const void* p1, const void* p2) {
 }
 
 // FUNCTION: CARMA2_HW 0x00520860
-// FUNCTION: CARMA2_SW 0x0051bf00
 int C2_HOOK_CDECL TVCompare_XYZ(const void* p1, const void* p2) {
     prep_vertex* tv1;
     prep_vertex* tv2;
@@ -198,7 +181,6 @@ int C2_HOOK_CDECL TVCompare_XYZ(const void* p1, const void* p2) {
 }
 
 // FUNCTION: CARMA2_HW 0x005208e0
-// FUNCTION: CARMA2_SW 0x0051bf80
 int C2_HOOK_CDECL TVCompare_MXYZUVN(const void* p1, const void* p2) {
     prep_vertex* tv1;
     prep_vertex* tv2;
@@ -285,12 +267,12 @@ int C2_HOOK_CDECL TVCompare_MVN(const void* p1, const void* p2) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f5f0
-br_fraction C2_HOOK_CDECL BrScalarToFractionClamp(br_scalar s) {
+br_fraction C2_HOOK_STDCALL BrScalarToFractionClamp(br_scalar s) {
+    if (s <= -1.0f) {
+        return -0.99999988f;
+    }
     if (s >= 1.0f) {
         return 1.0f;
-    }
-    if (s < -1.0f) {
-        return -0.99999988f;
     }
     return s;
 }
@@ -325,7 +307,6 @@ void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_ver
 }
 
 // FUNCTION: CARMA2_HW 0x00520b50
-// FUNCTION: CARMA2_SW 0x0051c1f0
 void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
     br_vector3 o_n;
     prep_vertex** outer;
@@ -344,7 +325,6 @@ void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, p
 }
 
 // FUNCTION: CARMA2_HW 0x00520c60
-// FUNCTION: CARMA2_SW 0x0051c300
 void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_model* model) {
     br_vertex* srcv;
 
@@ -364,7 +344,6 @@ void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_mod
 }
 
 // FUNCTION: CARMA2_HW 0x00520d80
-// FUNCTION: CARMA2_SW 0x0051c420
 void C2_HOOK_STDCALL CopyFace(v11group* group, int f, br_face* src, br_model* model) {
 
     group->faces[f].vertices[0] = src->vertices[0];
@@ -636,7 +615,6 @@ void C2_HOOK_STDCALL PrepareBoundingBox(br_model* model) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f630
-// FUNCTION: CARMA2_SW 0x0051acd0
 int C2_HOOK_STDCALL IsMaterialTransparent(const br_material* material) {
     br_token_value* tvp;
 
@@ -674,7 +652,6 @@ int C2_HOOK_STDCALL IsMaterialTransparent(const br_material* material) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f6a0
-// FUNCTION: CARMA2_SW 0x0051ad40
 void C2_HOOK_STDCALL RegenerateFaceNormals(v11model* v11m) {
     int g;
     int f;
@@ -692,7 +669,6 @@ void C2_HOOK_STDCALL RegenerateFaceNormals(v11model* v11m) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f730
-// FUNCTION: CARMA2_SW 0x0051add0
 void C2_HOOK_STDCALL RegenerateVertexNormals(v11model* v11m) {
     int g;
     int v;
@@ -727,7 +703,6 @@ void C2_HOOK_STDCALL RegenerateVertexNormals(v11model* v11m) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051f950
-// FUNCTION: CARMA2_SW 0x0051aff0
 void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
     int g, f, v;
     struct v11model *v11m;
@@ -885,7 +860,6 @@ void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
 }
 
 // FUNCTION: CARMA2_HW 0x00520e30
-// FUNCTION: CARMA2_SW 0x0051c4d0
 void C2_HOOK_STDCALL BrModelClear(br_model* model) {
 
     // remove prepared mesh

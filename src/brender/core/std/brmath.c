@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "brmath.h"
 
 #include "c2_math.h"
@@ -21,7 +13,6 @@ float C2_HOOK_CDECL BrFloatCeil(float f) {
 }
 
 // FUNCTION: CARMA2_HW 0x0053f4e0
-// FUNCTION: CARMA2_SW 0x0053ab80
 float C2_HOOK_CDECL BrFloatSqrt(float f) {
 
 #ifdef REC2_MATCHING
@@ -34,7 +25,7 @@ float C2_HOOK_CDECL BrFloatSqrt(float f) {
 // FUNCTION: CARMA2_HW 0x0053f4f0
 float C2_HOOK_CDECL BrFloatPow(float a, float b) {
 
-    return powf(a, b);
+    return (float)pow(a, b);
 }
 
 // FUNCTION: CARMA2_HW 0x0053f500

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "otable.h"
 
 #include "custsupt.h"
@@ -242,8 +234,11 @@ void C2_HOOK_STDCALL SetOrderTableRange(br_order_table* order_table) {
         if ((order_table->flags & 0x10) != 0){
             order_table->sort_z = order_table->max_z;
         } else {
-            if ((order_table->flags & 0x20) != 0)
-                order_table->sort_z = order_table->min_z + 0.5f * range;
+            if ((order_table->flags & 0x20) != 0) {
+                float scaled_range = 0.5f * range;
+
+                order_table->sort_z = order_table->min_z + scaled_range;
+            }
         }
     }
 }

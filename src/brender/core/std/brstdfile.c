@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "brstdfile.h"
 
 #include "core/fw/diag.h"
@@ -34,7 +26,6 @@ br_filesystem BrStdioFilesystem = {
 };
 
 // GLOBAL: CARMA2_HW 0x0066fdf4
-// GLOBAL: CARMA2_SW 0x0066a584
 br_filesystem* _BrDefaultFilesystem = &BrStdioFilesystem;
 
 // FUNCTION: CARMA2_HW 0x0053f660
@@ -43,7 +34,6 @@ br_uint_32 C2_HOOK_CDECL BrStdioAttributes(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0053f670
-// FUNCTION: CARMA2_SW 0x0053ad10
 void* C2_HOOK_CDECL BrStdioOpenRead(const char* name, br_size_t n_magics, br_mode_test_cbfn* identify, int* mode_result) {
     FILE* fh;
     br_uint_8 magics[16];
@@ -71,7 +61,7 @@ void* C2_HOOK_CDECL BrStdioOpenRead(const char* name, br_size_t n_magics, br_mod
             if (*brender_path_ptr == ';') {
                 brender_path_ptr++;
             }
-            if (path != path_ptr && path_ptr[-1] != ':'&& path_ptr[-1] != '/'&& path_ptr[-1] != '\\') {
+            if (path_ptr != path && path_ptr[-1] != ':'&& path_ptr[-1] != '/'&& path_ptr[-1] != '\\') {
                 *path_ptr++ = '/';
             }
             strcpy(path_ptr, name);
@@ -118,7 +108,6 @@ void* C2_HOOK_CDECL BrStdioOpenRead(const char* name, br_size_t n_magics, br_mod
 }
 
 // FUNCTION: CARMA2_HW 0x0053f8a0
-// FUNCTION: CARMA2_SW 0x0053af40
 void* C2_HOOK_CDECL BrStdioOpenWrite(const char* name, int mode) {
     FILE* fh;
 
@@ -158,14 +147,12 @@ br_size_t C2_HOOK_CDECL BrStdioRead(void* buf, br_size_t size, unsigned int n, v
 }
 
 // FUNCTION: CARMA2_HW 0x0053f960
-// FUNCTION: CARMA2_SW 0x0053b000
 br_size_t C2_HOOK_CDECL BrStdioWrite(const void* buf, br_size_t size, unsigned int n, void* f) {
 
     return fwrite(buf, size, n, f);
 }
 
 // FUNCTION: CARMA2_HW 0x0053f980
-// FUNCTION: CARMA2_SW 0x0053b020
 br_size_t C2_HOOK_CDECL BrStdioGetLine(char* buf, br_size_t buf_len, void* f) {
     br_size_t l;
 
@@ -183,7 +170,6 @@ br_size_t C2_HOOK_CDECL BrStdioGetLine(char* buf, br_size_t buf_len, void* f) {
 }
 
 // FUNCTION: CARMA2_HW 0x0053f9c0
-// FUNCTION: CARMA2_SW 0x0053b060
 void C2_HOOK_CDECL BrStdioPutLine(char* buf, void* f) {
 
     fputs(buf, f);
@@ -191,7 +177,6 @@ void C2_HOOK_CDECL BrStdioPutLine(char* buf, void* f) {
 }
 
 // FUNCTION: CARMA2_HW 0x0053f9e0
-// FUNCTION: CARMA2_SW 0x0053b080
 void C2_HOOK_CDECL BrStdioAdvance(br_size_t count, void* f) {
     fseek(f, count, SEEK_CUR);
 }

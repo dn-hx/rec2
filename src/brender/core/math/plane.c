@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "plane.h"
 
 #include "core/std/brmath.h"
@@ -13,7 +5,6 @@
 #include "c2_math.h"
 
 // FUNCTION: CARMA2_HW 0x00536fb0
-// FUNCTION: CARMA2_SW 0x00532650
 br_int_32 C2_HOOK_CDECL BrPlaneEquation(br_vector4* eqn, const br_vector3* v0, const br_vector3* v1, const br_vector3* v2) {
     float ax;
     float ay;

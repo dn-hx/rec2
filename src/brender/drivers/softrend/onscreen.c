@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "onscreen.h"
 
 #define MAKE_EQN(sign,row)                                                      \
@@ -35,7 +27,6 @@
     )
 
 // FUNCTION: CARMA2_HW 0x00544830
-// FUNCTION: CARMA2_SW 0x0053fed0
 br_token C2_HOOK_STDCALL OnScreenCheck(br_soft_renderer* self, br_matrix4* model_to_screen, br_bounds3* bounds) {
     int accept = 1;
     br_vector4 eqn;

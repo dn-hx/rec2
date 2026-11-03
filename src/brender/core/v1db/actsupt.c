@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "actsupt.h"
 
 #include "dbsetup.h"
@@ -22,7 +14,6 @@
 #include "core/math/transfrm.h"
 
 // FUNCTION: CARMA2_HW 0x0051ded0
-// FUNCTION: CARMA2_SW 0x00519570
 br_uint_32 C2_HOOK_CDECL BrActorEnum(br_actor* parent, br_actor_enum_cbfn* callback, void* arg) {
     br_actor* a;
     br_actor* next;
@@ -104,7 +95,6 @@ void C2_HOOK_STDCALL RenumberActor(br_actor* a, int d) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051dfe0
-// FUNCTION: CARMA2_SW 0x00519680
 br_actor* C2_HOOK_CDECL BrActorAdd(br_actor* parent, br_actor* a) {
     br_actor* ac;
 
@@ -119,7 +109,6 @@ br_actor* C2_HOOK_CDECL BrActorAdd(br_actor* parent, br_actor* a) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051e070
-// FUNCTION: CARMA2_SW 0x00519710
 br_actor* C2_HOOK_CDECL BrActorRemove(br_actor* a) {
     br_actor* ac;
 
@@ -147,7 +136,6 @@ void C2_HOOK_CDECL BrActorRelink(br_actor* parent, br_actor* a) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051e1a0
-// FUNCTION: CARMA2_SW 0x00519840
 br_actor* C2_HOOK_CDECL BrActorAllocate(br_uint_8 type, void* type_data) {
     br_actor* a;
     br_light* light;
@@ -217,7 +205,6 @@ void C2_HOOK_STDCALL InternalActorFree(br_actor* a) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051e2c0
-// FUNCTION: CARMA2_SW 0x00519960
 void C2_HOOK_CDECL BrActorFree(br_actor* a) {
 
     InternalActorFree(a);
@@ -515,7 +502,6 @@ void C2_HOOK_STDCALL ActorToBounds(br_bounds* dest, br_actor* ap, br_model* mode
 }
 
 // FUNCTION: CARMA2_HW 0x0051eb20
-// FUNCTION: CARMA2_SW 0x0051a1c0
 br_bounds* C2_HOOK_CDECL BrActorToBounds(br_bounds* b, br_actor* ap) {
     br_matrix34 m2v;
     br_model* model;

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "pmsetup.h"
 
 #include "core/fw/image.h"
@@ -22,18 +14,15 @@
 
 
 // GLOBAL: CARMA2_HW 0x0079f950
-// GLOBAL: CARMA2_SW 0x00795ef0
 br_pixelmap_state _pixelmap;
 
 // GLOBAL: CARMA2_HW 0x0058b968
-// GLOBAL: CARMA2_SW 0x00586930
 br_resource_class pm_resourceClasses[] = {
     { 0u, "PIXELMAP", BR_MEMORY_PIXELMAP, NULL, 0u },
     { 0u, "PIXELS",     BR_MEMORY_PIXELS, NULL, 32u }
 };
 
 // GLOBAL: CARMA2_HW 0x0066dd30
-// GLOBAL: CARMA2_SW 0x006684c0
 void* functionPointers_BRPMAP1[] = {
     PixelmapCopyBitsClip,
     PixelmapLineClip,
@@ -115,7 +104,6 @@ void* functionPointers_BRPMAP1[] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0066db58
-// GLOBAL: CARMA2_SW 0x006682e8
 const char* namePointers_BRPMAP1[] = {
     "_PixelmapCopyBitsClip",
     "_PixelmapLineClip",
@@ -197,7 +185,6 @@ const char* namePointers_BRPMAP1[] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0066dc90
-// GLOBAL: CARMA2_SW 0x00668420
 br_uint_16 nameOrdinals_BRPMAP1[77] = {
     0,
     1,
@@ -279,7 +266,6 @@ br_uint_16 nameOrdinals_BRPMAP1[77] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0066de68
-// GLOBAL: CARMA2_SW 0x006685f8
 br_image Image_BRMAP1 = {
     { 0 },
     "BRPMAP1",
@@ -299,7 +285,6 @@ br_image Image_BRMAP1 = {
 };
 
 // FUNCTION: CARMA2_HW 0x005395a0
-// FUNCTION: CARMA2_SW 0x00534c40
 void C2_HOOK_CDECL BrPixelmapBegin(void) {
     int i;
 
@@ -315,7 +300,6 @@ void C2_HOOK_CDECL BrPixelmapBegin(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x005395f0
-// FUNCTION: CARMA2_SW 0x00534c90
 void C2_HOOK_CDECL BrPixelmapEnd(void) {
 
     BrImageRemove(&Image_BRMAP1);

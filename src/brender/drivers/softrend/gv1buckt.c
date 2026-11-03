@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "gv1buckt.h"
 
 #include "object.h"
@@ -16,7 +8,6 @@
 #include "core/fw/tokenval.h"
 
 // GLOBAL: CARMA2_HW 0x0058c080
-// GLOBAL: CARMA2_SW 0x00587048
 const br_geometry_v1_buckets_dispatch geometryV1BucketsDispatch = {
     NULL,
     NULL,
@@ -40,7 +31,6 @@ const br_geometry_v1_buckets_dispatch geometryV1BucketsDispatch = {
 };
 
 // GLOBAL: CARMA2_HW 0x0058c038
-// GLOBAL: CARMA2_SW 0x00587000
 br_tv_template_entry geometryV1BucketsTemplateEntries[] ={
     { BRT_IDENTIFIER_CSTR,      NULL,   offsetof(br_geometry_v1_buckets_soft, identifier),          5, 3, 0, 0, },
     { BRT_RENDERER_FACILITY_O,  NULL,   offsetof(br_geometry_v1_buckets_soft, renderer_facility),   5, 3, 0, 0, },
@@ -49,7 +39,6 @@ br_tv_template_entry geometryV1BucketsTemplateEntries[] ={
 
 
 // FUNCTION: CARMA2_HW 0x005412b0
-// FUNCTION: CARMA2_SW 0x0053c950
 br_geometry_v1_buckets* C2_HOOK_STDCALL GeometryV1BucketsAllocate(br_soft_renderer_facility *type, const char *id) {
     br_geometry_v1_buckets_soft* self;
 
@@ -70,7 +59,6 @@ br_geometry_v1_buckets* C2_HOOK_STDCALL GeometryV1BucketsAllocate(br_soft_render
 }
 
 // FUNCTION: CARMA2_HW 0x00541300
-// FUNCTION: CARMA2_SW 0x0053c9a0
 void C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_free(br_geometry_v1_buckets_soft* self) {
 
     self->renderer_facility->dispatch->_remove((br_object_container*)self->renderer_facility, (br_object*)self);
@@ -78,21 +66,18 @@ void C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_free(br_geometry_v1_buckets_so
 }
 
 // FUNCTION: CARMA2_HW 0x00541320
-// FUNCTION: CARMA2_SW 0x0053c9c0
 br_token C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_type(br_geometry_v1_buckets_soft* self) {
 
     return BRT_GEOMETRY_V1_BUCKETS;
 }
 
 // FUNCTION: CARMA2_HW 0x00541330
-// FUNCTION: CARMA2_SW 0x0053c9d0
 br_boolean C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_isType(br_geometry_v1_buckets_soft* self, br_token t) {
 
     return t == BRT_GEOMETRY_PRIMITIVES || t == BRT_GEOMETRY || t == BRT_OBJECT;
 }
 
 // FUNCTION: CARMA2_HW 0x00541350
-// FUNCTION: CARMA2_SW 0x0053c9f0
 br_int_32 C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_space(br_geometry_v1_buckets_soft* self) {
 
     C2_HOOK_BUG_ON(sizeof(br_geometry_v1_buckets_soft) != 0x10);
@@ -100,7 +85,6 @@ br_int_32 C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_space(br_geometry_v1_buck
 }
 
 // FUNCTION: CARMA2_HW 0x00541360
-// FUNCTION: CARMA2_SW 0x_0053ca00
 br_tv_template* C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_templateQuery(br_geometry_v1_buckets_soft* self) {
 
 #ifndef REC2_MATCHING
@@ -117,7 +101,6 @@ br_tv_template* C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_templateQuery(br_ge
 }
 
 // FUNCTION: CARMA2_HW 0x00541390
-// FUNCTION: CARMA2_SW 0x0053ca30
 br_error C2_HOOK_CDECL _M_br_geometry_v1_buckets_soft_render(br_renderer_state_stored* self, br_soft_renderer* renderer, br_primitive** buckets, br_int_32 nbuckets) {
     br_primitive* p;
 	br_renderer_state_stored* last_state;

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "device.h"
 
 #include "object.h"
@@ -17,7 +9,6 @@
 #include "core/fw/tokenval.h"
 
 // GLOBAL: CARMA2_HW 0x0058bcb0
-// GLOBAL: CARMA2_SW 0x00586c78
 br_device_dispatch softrendr_deviceDispatch = {
     NULL,
     NULL,
@@ -49,13 +40,11 @@ br_device_dispatch softrendr_deviceDispatch = {
 };
 
 // GLOBAL: CARMA2_HW 0x0058bc98
-// GLOBAL: CARMA2_SW 0x00586c60
 br_tv_template_entry deviceTemplateEntries[] = {
     { BRT_IDENTIFIER_CSTR, NULL, offsetof(br_soft_device, identifier), 5, 3, 0, 0 },
 };
 
 // FUNCTION: CARMA2_HW 0x00540880
-// FUNCTION: CARMA2_SW 0x0053bf20
 void C2_HOOK_CDECL _M_br_softrend_device_free(br_soft_device* self) {
 
     BrObjectContainerFree((br_object_container *)self, BR_NULL_TOKEN, NULL, NULL);
@@ -63,21 +52,18 @@ void C2_HOOK_CDECL _M_br_softrend_device_free(br_soft_device* self) {
 }
 
 // FUNCTION: CARMA2_HW 0x005408a0
-// FUNCTION: CARMA2_SW 0x0053bf40
 br_token C2_HOOK_CDECL _M_br_softrend_device_type(br_soft_device* self) {
 
     return BRT_DEVICE;
 }
 
 // FUNCTION: CARMA2_HW 0x005408b0
-// FUNCTION: CARMA2_SW 0x0053bf50
 int C2_HOOK_CDECL _M_br_softrend_device_isType(br_soft_device* self, br_token t) {
 
     return t == BRT_DEVICE || t == BRT_OBJECT_CONTAINER || t == BRT_OBJECT;
 }
 
 // FUNCTION: CARMA2_HW 0x005408d0
-// FUNCTION: CARMA2_SW 0x0053bf70
 br_size_t C2_HOOK_CDECL _M_br_softrend_device_space(br_soft_device* self) {
 
     C2_HOOK_BUG_ON(sizeof(br_soft_device) != 0x58);
@@ -85,7 +71,6 @@ br_size_t C2_HOOK_CDECL _M_br_softrend_device_space(br_soft_device* self) {
 }
 
 // FUNCTION: CARMA2_HW 0x005408e0
-// FUNCTION: CARMA2_SW 0x0053bf80
 br_tv_template* C2_HOOK_CDECL _M_br_soft_device_templateQuery(br_soft_device* self) {
 
     if (self->templates.deviceTemplate == NULL) {
@@ -98,14 +83,12 @@ br_tv_template* C2_HOOK_CDECL _M_br_soft_device_templateQuery(br_soft_device* se
 }
 
 // FUNCTION: CARMA2_HW 0x00540910
-// FUNCTION: CARMA2_SW 0x0053bfb0
 void* C2_HOOK_CDECL _M_br_softrend_device_listQuery(br_soft_device* self) {
 
     return self->object_list;
 }
 
 // FUNCTION: CARMA2_HW 0x00540810
-// FUNCTION: CARMA2_SW 0x0053beb0
 br_device* C2_HOOK_STDCALL DeviceSoftAllocate(const char* identifier) {
     br_soft_device *self;
 

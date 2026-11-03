@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "mapping.h"
 
 #include "setup.h"
@@ -19,14 +11,13 @@
             + self->state.cache.map_transform.m[2][1];      \
     } while (0)
 
+// PARTIAL 79.85%: x87 order of dot/scale differs
 // FUNCTION: CARMA2_HW 0x0054b150
-// FUNCTION: CARMA2_SW 0x005467f0
 void C2_HOOK_CDECL SurfaceMapEnvironmentInfinite(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* normal, br_colour colour, br_scalar* comp) {
     br_vector3 r, wr;
-    br_scalar d, cu, cv;
+    br_scalar cu, cv;
 
-    d = 2.f * BrVector3Dot(&scache.eye_m_normalised, normal);
-    BrVector3Scale(&r, normal, d);
+    BrVector3Scale(&r, normal, 2.f * BrVector3Dot(normal, &scache.eye_m_normalised));
     BrVector3Sub(&r, &r, &scache.eye_m_normalised);
 
     if (self->state.matrix.view_to_environment_hint != BRT_DONT_CARE) {
@@ -44,7 +35,6 @@ void C2_HOOK_CDECL SurfaceMapEnvironmentInfinite(br_soft_renderer* self, br_vect
 }
 
 // FUNCTION: CARMA2_HW 0x0054b320
-// FUNCTION: CARMA2_SW 0x005469c0
 void C2_HOOK_CDECL SurfaceMapEnvironmentLocal(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* normal, br_colour colour, br_scalar* comp) {
     br_vector3 eye;
     br_vector3 r, wr;
@@ -72,35 +62,30 @@ void C2_HOOK_CDECL SurfaceMapEnvironmentLocal(br_soft_renderer* self, br_vector3
 }
 
 // FUNCTION: CARMA2_HW 0x0054b560
-// FUNCTION: CARMA2_SW 0x00546c00
 void C2_HOOK_CDECL SurfaceMapGeometryX(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     APPLY_UV(comp[C_U], comp[C_V], p->v[1], p->v[2]);
 }
 
 // FUNCTION: CARMA2_HW 0x0054b5b0
-// FUNCTION: CARMA2_SW 0x00546c50
 void C2_HOOK_CDECL SurfaceMapGeometryY(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     APPLY_UV(comp[C_U], comp[C_V], p->v[2], p->v[0]);
 }
 
 // FUNCTION: CARMA2_HW 0x0054b600
-// FUNCTION: CARMA2_SW 0x00546ca0
 void C2_HOOK_CDECL SurfaceMapGeometryZ(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     APPLY_UV(comp[C_U], comp[C_V], p->v[0], p->v[1]);
 }
 
 // FUNCTION: CARMA2_HW 0x0054b650
-// FUNCTION: CARMA2_SW 0x00546cf0
 void C2_HOOK_CDECL SurfaceMapGeometryMap(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     APPLY_UV(comp[C_U], comp[C_V], map->v[0], map->v[1]);
 }
 
 // FUNCTION: CARMA2_HW 0x0054b6a0
-// FUNCTION: CARMA2_SW 0x00546d40
 void C2_HOOK_CDECL SurfaceMapGeometryMapScale(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     comp[C_U] = self->state.cache.map_transform.m[0][0] * map->v[0];
@@ -108,7 +93,6 @@ void C2_HOOK_CDECL SurfaceMapGeometryMapScale(br_soft_renderer* self, br_vector3
 }
 
 // FUNCTION: CARMA2_HW 0x0054b6d0
-// FUNCTION: CARMA2_SW 0x00546d70
 void C2_HOOK_CDECL SurfaceMapGeometryMapScaleTranslate(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     comp[C_U] = self->state.cache.map_transform.m[0][0] * map->v[0] + self->state.cache.map_transform.m[2][0];
@@ -116,7 +100,6 @@ void C2_HOOK_CDECL SurfaceMapGeometryMapScaleTranslate(br_soft_renderer* self, b
 }
 
 // FUNCTION: CARMA2_HW 0x0054b710
-// FUNCTION: CARMA2_SW 0x00546db0
 void C2_HOOK_CDECL SurfaceMapGeometryMapCopy(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
 
     comp[C_U] = map->v[0];

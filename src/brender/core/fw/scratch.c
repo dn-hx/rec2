@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "scratch.h"
 
 #include "core/fw/diag.h"
@@ -16,7 +8,6 @@
 char scratchString[512] = "SCRATCH";
 
 // FUNCTION: CARMA2_HW 0x00529e80
-// FUNCTION: CARMA2_SW 0x005249f0
 void* C2_HOOK_CDECL BrScratchAllocate(br_size_t size) {
 
     if (fw.scratch_inuse != 0) {
@@ -37,7 +28,6 @@ void* C2_HOOK_CDECL BrScratchAllocate(br_size_t size) {
 }
 
 // FUNCTION: CARMA2_HW 0x00529ef0
-// FUNCTION: CARMA2_SW 0x00524a60
 void C2_HOOK_CDECL BrScratchFree(void* scratch) {
 
     fw.scratch_inuse = 0;
@@ -62,15 +52,20 @@ br_size_t C2_HOOK_CDECL BrScratchInquire(void) {
     return fw.scratch_size;
 }
 
+// BrScratchString 0x529f50: the body is the original's. It scored 50% only because
+// reccmp/carma2_hw-ascii.csv typed 0x666ea8 as `string,"SCRATCH"`, which overrides the ORIG type, so
+// match_variables (needs orig DATA) and match_strings (needs a recomp STRING) both skipped the operand.
+// The row is now `0x666ea8,global,scratchString`, which pairs the two
+// `scratchString (DATA)` operands. Do not "simplify" this to `return "SCRATCH";`: that would match but
+// hands callers an 8-byte .rdata literal while BrVSprintf/BrFileGetLine write up to
+// BrScratchStringSize() = 512 bytes into the buffer.
 // FUNCTION: CARMA2_HW 0x00529f50
-// FUNCTION: CARMA2_SW 0x00524ac0
 char* C2_HOOK_CDECL BrScratchString(void) {
 
     return scratchString;
 }
 
 // FUNCTION: CARMA2_HW 0x00529f60
-// FUNCTION: CARMA2_SW 0x00524ad0
 br_size_t C2_HOOK_CDECL BrScratchStringSize(void) {
 
     return sizeof(scratchString);

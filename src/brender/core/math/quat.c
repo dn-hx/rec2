@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "quat.h"
 
 #include "matrix34.h"
@@ -18,7 +10,6 @@
 #define Q_EL(e) (((br_scalar*)&(q->x))[(e)])
 
 // FUNCTION: CARMA2_HW 0x005355e0
-// FUNCTION: CARMA2_SW 0x00530c80
 br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r) {
     br_scalar x1;
     br_scalar x2;
@@ -39,7 +30,6 @@ br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r)
 }
 
 // FUNCTION: CARMA2_HW 0x00535710
-// FUNCTION: CARMA2_SW 0x00530db0
 br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq) {
     br_scalar s;
 
@@ -52,7 +42,6 @@ br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535790
-// FUNCTION: CARMA2_SW 0x00530e30
 br_quat* C2_HOOK_CDECL BrQuatInvert(br_quat* q, const br_quat* qq) {
 
     q->x = -qq->x;
@@ -63,7 +52,6 @@ br_quat* C2_HOOK_CDECL BrQuatInvert(br_quat* q, const br_quat* qq) {
 }
 
 // FUNCTION: CARMA2_HW 0x005357c0
-// FUNCTION: CARMA2_SW 0x00530e60
 br_quat* C2_HOOK_CDECL BrQuatSlerp(br_quat* q, const br_quat* l, const br_quat* r, br_scalar a, br_int_16 spins) {
     int omega;
     int omega_spin;
@@ -106,7 +94,6 @@ br_quat* C2_HOOK_CDECL BrQuatSlerp(br_quat* q, const br_quat* l, const br_quat* 
 }
 
 // FUNCTION: CARMA2_HW 0x005359a0
-// FUNCTION: CARMA2_SW 0x00531040
 br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q) {
     br_scalar xs;
     br_scalar ys;
@@ -151,7 +138,6 @@ br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q) 
 }
 
 // FUNCTION: CARMA2_HW 0x00535ae0
-// FUNCTION: CARMA2_SW 0x00531180
 br_quat* C2_HOOK_CDECL BrMatrix34ToQuat(br_quat* q, const br_matrix34* mat) {
     br_scalar tr;
     br_scalar s;
@@ -183,7 +169,6 @@ br_quat* C2_HOOK_CDECL BrMatrix34ToQuat(br_quat* q, const br_matrix34* mat) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535c70
-// FUNCTION: CARMA2_SW 0x00531310
 br_matrix4* C2_HOOK_CDECL BrQuatToMatrix4(br_matrix4* mat, const br_quat* q) {
     br_matrix34 tmp;
 
@@ -193,7 +178,6 @@ br_matrix4* C2_HOOK_CDECL BrQuatToMatrix4(br_matrix4* mat, const br_quat* q) {
 }
 
 // FUNCTION: CARMA2_HW 0x00535ca0
-// FUNCTION: CARMA2_SW 0x00531340
 br_quat* C2_HOOK_CDECL BrMatrix4ToQuat(br_quat* q, const br_matrix4* mat) {
     br_matrix34 tmp;
 

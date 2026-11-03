@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "resource.h"
 
 
@@ -59,7 +51,6 @@ resource_header* C2_HOOK_CDECL UserToRes(void* r) {
 }
 
 // FUNCTION: CARMA2_HW 0x005276c0
-// FUNCTION: CARMA2_SW 0x00522d60
 void* C2_HOOK_CDECL BrResAllocate(void* vparent, br_size_t size, br_uint_8 res_class) {
     resource_header* res;
     resource_header* parent;
@@ -107,7 +98,6 @@ void* C2_HOOK_CDECL BrResAllocate(void* vparent, br_size_t size, br_uint_8 res_c
 }
 
 // FUNCTION: CARMA2_HW 0x005277f0
-// FUNCTION: CARMA2_SW 0x00522e90
 void C2_HOOK_STDCALL BrResInternalFree(resource_header* res, br_boolean callback) {
     void* r;
     int original_class;
@@ -138,21 +128,18 @@ void C2_HOOK_STDCALL BrResInternalFree(resource_header* res, br_boolean callback
 }
 
 // FUNCTION: CARMA2_HW 0x005277c0
-// FUNCTION: CARMA2_SW 0x00522e60
 void C2_HOOK_CDECL BrResFree(void* vres) {
 
     BrResInternalFree(UserToRes(vres), 1);
 }
 
 // FUNCTION: CARMA2_HW 0x005278b0
-// FUNCTION: CARMA2_SW 0x00522f50
 void C2_HOOK_CDECL BrResFreeNoCallback(void* vres) {
 
     BrResInternalFree(UserToRes(vres), 0);
 }
 
 // FUNCTION: CARMA2_HW 0x005278e0
-// FUNCTION: CARMA2_SW 0x00522f80
 void* C2_HOOK_CDECL BrResAdd(void* vparent, void* vres) {
     resource_header* res;
     resource_header* parent;
@@ -168,7 +155,6 @@ void* C2_HOOK_CDECL BrResAdd(void* vparent, void* vres) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527940
-// FUNCTION: CARMA2_SW 0x00522fe0
 void* C2_HOOK_CDECL BrResRemove(void* vres) {
     resource_header* res;
 
@@ -186,7 +172,6 @@ br_uint_8 C2_HOOK_CDECL BrResClass(void* vres) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527990
-// FUNCTION: CARMA2_SW 0x00523030
 br_boolean C2_HOOK_CDECL BrResIsChild(void* vparent, void* vchild) {
     resource_header* parent;
     resource_header* child;
@@ -204,7 +189,6 @@ br_boolean C2_HOOK_CDECL BrResIsChild(void* vparent, void* vchild) {
 }
 
 // FUNCTION: CARMA2_HW 0x005279f0
-// FUNCTION: CARMA2_SW 0x00523090
 br_uint_32 C2_HOOK_CDECL BrResSize(void* vres) {
     resource_header* res;
 
@@ -223,7 +207,6 @@ br_uint_32 C2_HOOK_CDECL ResSizeTotal(void* vres, br_uint_32* ptotal) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527a30
-// FUNCTION: CARMA2_SW 0x005230d0
 br_uint_32 C2_HOOK_CDECL BrResSizeTotal(void* vres) {
     br_uint_32 total;
 
@@ -261,7 +244,6 @@ br_uint_32 C2_HOOK_CDECL BrResCheck(void* vres, int no_tag) {
 }
 
 // FUNCTION: CARMA2_HW 0x00527c10
-// FUNCTION: CARMA2_SW 0x005232b0
 char* C2_HOOK_CDECL BrResStrDup(void* vparent, const char* str) {
     int l;
     char* nstr;

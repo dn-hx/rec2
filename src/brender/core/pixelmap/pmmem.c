@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "pmmem.h"
 
 #include "genclip.h"
@@ -31,7 +23,6 @@ br_tv_template_entry matchTemplateEntries[] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0058baf0
-// GLOBAL: CARMA2_SW 0x00586ab8
 br_device_pixelmap_dispatch devicePixelmapDispatch = {
     NULL,
     NULL,
@@ -100,7 +91,6 @@ br_tv_template_entry devicePixelmapTemplateEntries[] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0058b990
-// GLOBAL: CARMA2_SW 0x00586958
 pm_type_info pmTypeInfo[32] = {
     { 0x1,  0x1,  0x20, 0x1, },
     { 0x2,  0x1,  0x10, 0x1, },
@@ -137,7 +127,6 @@ pm_type_info pmTypeInfo[32] = {
 };
 
 // FUNCTION: CARMA2_HW 0x00539620
-// FUNCTION: CARMA2_SW 0x00534cc0
 br_device_pixelmap* C2_HOOK_STDCALL DevicePixelmapMemAllocate(br_uint_8 type, br_uint_16 w, br_uint_16 h, void* pixels, int flags) {
     br_device_pixelmap* pm;
     pm_type_info* tip;
@@ -182,7 +171,6 @@ br_device_pixelmap* C2_HOOK_STDCALL DevicePixelmapMemAllocate(br_uint_8 type, br
 }
 
 // FUNCTION: CARMA2_HW 0x00539730
-// FUNCTION: CARMA2_SW 0x00534dd0
 void C2_HOOK_STDCALL CheckDispatch(br_device_pixelmap* pm) {
     if (pm->dispatch == NULL) {
         pm->dispatch = &devicePixelmapDispatch;
@@ -190,7 +178,6 @@ void C2_HOOK_STDCALL CheckDispatch(br_device_pixelmap* pm) {
 }
 
 // FUNCTION: CARMA2_HW 0x00539750
-// FUNCTION: CARMA2_SW 0x00534df0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_allocateSub(br_device_pixelmap* self, br_device_pixelmap** newpm, br_rectangle* rect) {
     br_device_pixelmap* pm;
     br_rectangle out;
@@ -217,48 +204,41 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_allocateSub(br_device_pixelmap*
 }
 
 // FUNCTION: CARMA2_HW 0x005397f0
-// FUNCTION: CARMA2_SW 0x00534e90
 void C2_HOOK_CDECL _M_br_device_pixelmap_mem_free(br_device_pixelmap* self) {
     BrResFree(self);
 }
 
 // FUNCTION: CARMA2_HW 0x00539800
-// FUNCTION: CARMA2_SW 0x00534ea0
 char* C2_HOOK_CDECL _M_br_device_pixelmap_mem_identifier(br_device_pixelmap* self) {
 
     return self->pm_identifier;
 }
 
 // FUNCTION: CARMA2_HW 0x00539810
-// FUNCTION: CARMA2_SW 0x00534eb0
 br_token C2_HOOK_CDECL _M_br_device_pixelmap_mem_type(br_device_pixelmap* self) {
 
     return BRT_DEVICE_PIXELMAP;
 }
 
 // FUNCTION: CARMA2_HW 0x00539820
-// FUNCTION: CARMA2_SW 0x00534ec0
 br_boolean C2_HOOK_CDECL _M_br_device_pixelmap_mem_isType(br_device_pixelmap* self, br_token t) {
 
     return t == BRT_DEVICE_PIXELMAP || t == BRT_OBJECT;
 }
 
 // FUNCTION: CARMA2_HW 0x00539840
-// FUNCTION: CARMA2_SW 0x00534ee0
 br_device* C2_HOOK_CDECL _M_br_device_pixelmap_mem_device(br_device_pixelmap* self) {
 
     return NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00539850
-// FUNCTION: CARMA2_SW 0x00534ef0
 br_int_32 C2_HOOK_CDECL _M_br_device_pixelmap_mem_space(br_device_pixelmap* self) {
 
     return BrResSizeTotal(self);
 }
 
 // FUNCTION: CARMA2_HW 0x00539860
-// FUNCTION: CARMA2_SW 0x00534f00
 br_tv_template* C2_HOOK_CDECL _M_br_device_pixelmap_mem_queryTemplate(br_device_pixelmap* self) {
 
     if (_pixelmap.device_pixelmap_template == NULL) {
@@ -268,14 +248,12 @@ br_tv_template* C2_HOOK_CDECL _M_br_device_pixelmap_mem_queryTemplate(br_device_
 }
 
 // FUNCTION: CARMA2_HW 0x00539890
-// FUNCTION: CARMA2_SW 0x00534f30
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_validSource(br_device_pixelmap* self, br_boolean* b, br_object* h) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x005398a0
-// FUNCTION: CARMA2_SW 0x00534f40
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_resize(br_device_pixelmap* self, br_int_32 width, br_int_32 height) {
     char* pixels;
     pm_type_info* tip;
@@ -306,8 +284,8 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_resize(br_device_pixelmap* self
     return 0;
 }
 
+// IDA: br_error __cdecl _M_br_device_pixelmap_mem_match(br_device_pixelmap *self, br_device_pixelmap **newpm, br_token_value *tv)
 // FUNCTION: CARMA2_HW 0x00539990
-// FUNCTION: CARMA2_SW 0x00535030
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_match(br_device_pixelmap* self, br_device_pixelmap** newpm, br_token_value* tv) {
     match_tokens mt = { BRT_NONE, 0 };
     br_int_32 count;
@@ -387,7 +365,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_match(br_device_pixelmap* self,
 }
 
 // FUNCTION: CARMA2_HW 0x00539bf0
-// FUNCTION: CARMA2_SW 0x00535290
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyTo(br_device_pixelmap* self, br_device_pixelmap* src) {
     br_int_8 bytes;
 
@@ -442,7 +419,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyTo(br_device_pixelmap* self
 }
 
 // FUNCTION: CARMA2_HW 0x00539dc0
-// FUNCTION: CARMA2_SW 0x00535460
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyFrom(br_device_pixelmap* self, br_device_pixelmap* dest) {
     br_int_8 bytes;
 
@@ -468,7 +444,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyFrom(br_device_pixelmap* se
                     bytes);
         }
     } else {
-        if ((self->pm_row_bytes & 0x7) == 0) {
+        if ((dest->pm_row_bytes & 0x7) == 0) {
             pm_mem_copy_colour_rowbyrow(
                     (br_uint_8*)dest->pm_pixels, dest->pm_pixels_qualifier,
                     (br_uint_8*)self->pm_pixels, self->pm_pixels_qualifier,
@@ -498,7 +474,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyFrom(br_device_pixelmap* se
 }
 
 // FUNCTION: CARMA2_HW 0x00539f90
-// FUNCTION: CARMA2_SW 0x00535630
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_fill(br_device_pixelmap* self, br_uint_32 colour) {
     br_int_8 bytes;
 
@@ -535,49 +510,42 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_fill(br_device_pixelmap* self, 
 }
 
 // FUNCTION: CARMA2_HW 0x0053a0f0
-// FUNCTION: CARMA2_SW 0x00535790
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_doubleBuffer(br_device_pixelmap* self, br_device_pixelmap* src) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a100
-// FUNCTION: CARMA2_SW 0x005357a0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyDirty(br_device_pixelmap* self, br_device_pixelmap* src, br_rectangle* dirty, br_int_32 num_rects) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a110
-// FUNCTION: CARMA2_SW 0x005357b0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyToDirty(br_device_pixelmap* self, br_device_pixelmap* src, br_rectangle* dirty, br_int_32 num_rects) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a120
-// FUNCTION: CARMA2_SW 0x005357c0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyFromDirty(br_device_pixelmap* self, br_device_pixelmap* src, br_rectangle* dirty, br_int_32 num_rects) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a130
-// FUNCTION: CARMA2_SW 0x005357d0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_fillDirty(br_device_pixelmap* self, br_uint_32 colour, br_rectangle* dirty, br_int_32 num_rects) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a140
-// FUNCTION: CARMA2_SW 0x005357e0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_doubleBufferDirty(br_device_pixelmap* self, br_device_pixelmap* src, br_rectangle* dirty, br_int_32 num_rects) {
 
     return 0x1008;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a150
-// FUNCTION: CARMA2_SW 0x005357f0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleCopyTo(br_device_pixelmap* self, br_point* p, br_device_pixelmap* src, br_rectangle* r) {
     int bytes;
     br_rectangle ar;
@@ -639,7 +607,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleCopyTo(br_device_pixel
 }
 
 // FUNCTION: CARMA2_HW 0x0053a3f0
-// FUNCTION: CARMA2_SW 0x00535a90
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleCopyFrom(br_device_pixelmap* self, br_point* p, br_device_pixelmap* dest, br_rectangle* r) {
     int bytes;
     br_rectangle ar;
@@ -701,14 +668,12 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleCopyFrom(br_device_pix
 }
 
 // FUNCTION: CARMA2_HW 0x0053a690
-// FUNCTION: CARMA2_SW 0x00535d30
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleStretchCopyTo(br_device_pixelmap* self, br_rectangle* destinationRectangle, br_device_pixelmap* src, br_rectangle* sourceRectangle) {
 
     return 0x1002;
 }
 
 // FUNCTION: CARMA2_HW 0x0053a6a0
-// FUNCTION: CARMA2_SW 0x00535d40
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleStretchCopyFrom(br_device_pixelmap* self, br_rectangle* d, br_device_pixelmap* src, br_rectangle* s) {
 
     return 0x1002;
@@ -716,7 +681,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleStretchCopyFrom(br_dev
 
 
 // FUNCTION: CARMA2_HW 0x0053a6b0
-// FUNCTION: CARMA2_SW 0x00535d50
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleFill(br_device_pixelmap* self, br_rectangle* rect, br_uint_32 colour) {
     br_rectangle arect;
     br_int_8 bytes;
@@ -771,7 +735,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rectangleFill(br_device_pixelma
 }
 
 // FUNCTION: CARMA2_HW 0x0053a870
-// FUNCTION: CARMA2_SW 0x00535f10
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelSet(br_device_pixelmap* self, br_point* p, br_uint_32 colour) {
     br_point ap;
     br_int_8 bytes;
@@ -785,7 +748,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelSet(br_device_pixelmap* se
 }
 
 // FUNCTION: CARMA2_HW 0x0053a8f0
-// FUNCTION: CARMA2_SW 0x00535f90
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_line(br_device_pixelmap* self, br_point* s, br_point* e, br_uint_32 colour) {
 #if 0
     int dx;
@@ -870,7 +832,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_line(br_device_pixelmap* self, 
 }
 
 // FUNCTION: CARMA2_HW 0x0053be40
-// FUNCTION: CARMA2_SW 0x005374e0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyBits(br_device_pixelmap* self, br_point* point, br_uint_8* src, br_uint_16 s_stride, br_rectangle* bit_rect, br_uint_32 colour) {
     int bytes;
     int bit;
@@ -899,7 +860,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyBits(br_device_pixelmap* se
 }
 
 // FUNCTION: CARMA2_HW 0x0053bf00
-// FUNCTION: CARMA2_SW 0x005375a0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelQuery(br_device_pixelmap* self, br_uint_32* pcolour, br_point* p) {
     br_point ap;
     br_int_8 bytes;
@@ -913,7 +873,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelQuery(br_device_pixelmap* 
 }
 
 // FUNCTION: CARMA2_HW 0x0053bf80
-// FUNCTION: CARMA2_SW 0x00537620
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelAddressQuery(br_device_pixelmap* self, void** pptr, br_uint_32* pqual, br_point* p) {
     br_int_8 bytes;
     br_point ap;
@@ -934,7 +893,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelAddressQuery(br_device_pix
 }
 
 // FUNCTION: CARMA2_HW 0x0053c010
-// FUNCTION: CARMA2_SW 0x005376b0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelAddressSet(br_device_pixelmap* self, void* ptr, br_uint_32* qual) {
 
     if (ptr != NULL) {
@@ -947,7 +905,6 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_pixelAddressSet(br_device_pixel
 }
 
 // FUNCTION: CARMA2_HW 0x0053c030
-// FUNCTION: CARMA2_SW 0x005376d0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_originSet(br_device_pixelmap* self, br_point* p) {
 
     self->pm_origin_x = p->x;
@@ -956,49 +913,42 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_originSet(br_device_pixelmap* s
 }
 
 // FUNCTION: CARMA2_HW 0x0053c050
-// FUNCTION: CARMA2_SW 0x005376f0
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rowSize(br_device_pixelmap* self, br_size_t* sizep) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c060
-// FUNCTION: CARMA2_SW 0x00537710
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rowQuery(br_device_pixelmap* self, void* buffer, br_size_t buffer_size, br_int_32 row) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c070
-// FUNCTION: CARMA2_SW 0x00537700
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_rowSet(br_device_pixelmap* self, void* buffer, br_size_t buffer_size, br_int_32 row) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c080
-// FUNCTION: CARMA2_SW 0x00537720
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_flush(br_device_pixelmap* self) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c090
-// FUNCTION: CARMA2_SW 0x00537730
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_synchronise(br_device_pixelmap* self, br_token sync_type, br_boolean block) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c0a0
-// FUNCTION: CARMA2_SW 0x00537740
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_directLock(br_device_pixelmap* self, br_boolean block) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0053c0b0
-// FUNCTION: CARMA2_SW 0x00537750
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_directUnlock(br_device_pixelmap* self) {
 
     return 0;

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "tokenval.h"
 
 #include "brprintf.h"
@@ -21,7 +13,6 @@
 static br_error parseTokenValue(br_lexer* l, br_token_value* tv, br_size_t size);
 
 // FUNCTION: CARMA2_HW 0x0052d740
-// FUNCTION: CARMA2_SW 0x00528de0
 br_tv_template* C2_HOOK_CDECL BrTVTemplateAllocate(void* res, br_tv_template_entry* entries, int n_entries) {
     br_tv_template* t;
 
@@ -33,7 +24,6 @@ br_tv_template* C2_HOOK_CDECL BrTVTemplateAllocate(void* res, br_tv_template_ent
 }
 
 // FUNCTION: CARMA2_HW 0x0052d770
-// FUNCTION: CARMA2_SW 0x00528e10
 void C2_HOOK_CDECL BrTVTemplateFree(br_tv_template* t) {
 
     BrResFree(t);
@@ -52,7 +42,6 @@ void C2_HOOK_STDCALL templateResolveNames(br_tv_template* template) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052d7f0
-// FUNCTION: CARMA2_SW 0x00528e90
 void C2_HOOK_STDCALL templateMakeMap(br_tv_template* template) {
     br_tv_template_entry* tp;
     br_int_32 min;
@@ -380,7 +369,6 @@ br_error C2_HOOK_STDCALL ValueQuery(br_token_value* tv, void** pextra, br_size_t
 }
 
 // FUNCTION: CARMA2_HW 0x0052e630
-// FUNCTION: CARMA2_SW 0x00529cd0
 br_error C2_HOOK_STDCALL ValueSet(void* block, br_token_value* tv, br_tv_template_entry* tep) {
     void* mem;
     int i;
@@ -589,7 +577,6 @@ br_size_t C2_HOOK_STDCALL ValueExtraSize(void* block, br_tv_template_entry* tep)
 }
 
 // FUNCTION: CARMA2_HW 0x0052d780
-// FUNCTION: CARMA2_SW 0x00528e20
 br_error C2_HOOK_CDECL BrTokenValueQuery(br_uint_32* pvalue, br_uint_32* extra, br_size_t extra_size, br_token t, void* block, br_tv_template* template) {
     br_int_32 o;
     br_tv_template_entry* tep;
@@ -613,7 +600,6 @@ br_error C2_HOOK_CDECL BrTokenValueQuery(br_uint_32* pvalue, br_uint_32* extra, 
 }
 
 // FUNCTION: CARMA2_HW 0x0052e230
-// FUNCTION: CARMA2_SW 0x005298d0
 br_error C2_HOOK_CDECL BrTokenValueQueryMany(br_token_value* tv, void* extra, br_size_t extra_size, br_int_32* pcount, void* block, br_tv_template* template) {
     br_int_32 o;
     br_tv_template_entry* tep;
@@ -666,7 +652,6 @@ br_error C2_HOOK_CDECL BrTokenValueQueryManySize(br_size_t* psize, br_token_valu
 }
 
 // FUNCTION: CARMA2_HW 0x0052e430
-// FUNCTION: CARMA2_SW 0x00529ad0
 br_error C2_HOOK_CDECL BrTokenValueQueryAll(br_token_value* buffer, br_size_t buffer_size, void* block, br_tv_template* template) {
     br_tv_template_entry* tp;
     int n;
@@ -713,7 +698,6 @@ br_error C2_HOOK_CDECL BrTokenValueQueryAll(br_token_value* buffer, br_size_t bu
 }
 
 // FUNCTION: CARMA2_HW 0x0052e510
-// FUNCTION: CARMA2_SW 0x00529bb0
 br_error C2_HOOK_CDECL BrTokenValueQueryAllSize(br_size_t* psize, void* block, br_tv_template* template) {
     br_tv_template_entry* tp;
     int e;
@@ -741,7 +725,6 @@ br_error C2_HOOK_CDECL BrTokenValueQueryAllSize(br_size_t* psize, void* block, b
 }
 
 // FUNCTION: CARMA2_HW 0x0052e5b0
-// FUNCTION: CARMA2_SW 0x00529c50
 br_error C2_HOOK_CDECL BrTokenValueSet(void* mem, br_uint_32* pcombined_mask, br_token t, br_uint_32 value, br_tv_template* template) {
     br_int_32 o;
     br_error r;
@@ -768,7 +751,6 @@ br_error C2_HOOK_CDECL BrTokenValueSet(void* mem, br_uint_32* pcombined_mask, br
 }
 
 // FUNCTION: CARMA2_HW 0x0052e940
-// FUNCTION: CARMA2_SW 0x00529fe0
 br_error C2_HOOK_CDECL BrTokenValueSetMany(void* mem, br_int_32* pcount, br_uint_32* pcombined_mask, br_token_value* tv, br_tv_template* template) {
     br_int_32 o;
     br_int_32 n;
@@ -1161,7 +1143,6 @@ void C2_HOOK_CDECL BrTokenValueDump(br_token_value* tv, char* prefix, br_putline
 #define T_TRUE  (T_KEYWORD + 1)
 
 // FUNCTION: CARMA2_HW 0x0052e9f0
-// FUNCTION: CARMA2_SW 0x0052a090
 br_error C2_HOOK_CDECL BrStringToTokenValue(br_token_value* buffer, br_size_t buffer_size, char* str) {
     br_lexer* l;
     br_error r;
@@ -1376,7 +1357,6 @@ static br_error parseTokenValue(br_lexer* l, br_token_value* tv, br_size_t size)
 }
 
 // FUNCTION: CARMA2_HW 0x0052ee40
-// FUNCTION: CARMA2_SW 0x0052a4e0
 br_boolean C2_HOOK_CDECL BrTokenValueCompare(br_token_value* tv1, br_token_value* tv2) {
     int i;
 
