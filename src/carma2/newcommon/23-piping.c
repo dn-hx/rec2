@@ -636,11 +636,17 @@ int C2_HOOK_FASTCALL ARReplayPauseState(void) {
     return gPaused;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00402390
 // FUNCTION: CARMA2_SW 0x00402390
 float C2_HOOK_FASTCALL ARGetReplayRate(void) {
     return gReplay_rate;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004023a0
 // FUNCTION: CARMA2_SW 0x004023a0
