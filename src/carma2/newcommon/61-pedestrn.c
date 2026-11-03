@@ -552,6 +552,9 @@ typedef struct {
 // GLOBAL: CARMA2_HW 0x00677734
 tPed_morph_slot gPed_morph_slots[20] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x00679264
+br_actor* gMr_blendy = 0;
+
 // GLOBAL: CARMA2_HW 0x0067697c
 tPedForms_vtable* gPed_vtable = 0;
 
