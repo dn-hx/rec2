@@ -230,7 +230,7 @@ void* C2_HOOK_FASTCALL S3BufferWav(const char* pPath, tS3_buffer_desc* pBuffer_d
 }
 
 // FUNCTION: CARMA2_HW 0x00569865
-int C2_HOOK_FASTCALL S3PlaySample(tS3_channel* pChannel) {
+int C2_HOOK_FASTCALL S3PlaySample(tS3_channel* pChannel, tS3_descriptor* pDesc) {
 
     return PDS3PlaySample(pChannel);
 }
