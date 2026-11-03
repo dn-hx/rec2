@@ -521,11 +521,11 @@ const br_scalar gFloat_00589358 = 0.f;
 // GLOBAL: CARMA2_HW 0x00676928
 tPed_form* gPed_forms[20] = { 0 };
 
-// GLOBAL: CARMA2_HW 0x00677260
-tPed_personality* gPed_personalities[50] = { 0 };
-
 // GLOBAL: CARMA2_HW 0x00677238
 tPed_remap* gPed_remaps[10] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677260
+tPed_personality* gPed_personalities[50] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0067772c
 int gCount_pedestrian_personality_cloned_materials;
