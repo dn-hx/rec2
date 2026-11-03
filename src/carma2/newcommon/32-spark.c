@@ -30,8 +30,23 @@ const br_scalar gFLOAT_0058b008 = 0.0f;
 // GLOBAL: CARMA2_HW 0x006aa574
 int gReplay_splash_flags;
 
+/* UNCERTAIN: the shared tReplay_splash in rec2_types.h carries an extra field_0x18 that the
+   original struct does not have (element size 0x34 instead of the original 0x30). Use a local
+   layout for gReplay_splashes so indexed access keeps the original stride. */
+typedef struct {
+    union {
+        br_actor* actor;
+        tPedestrian* ped;
+        tPhysics_object* phil_object;
+    } object;
+    undefined4 type;
+    float water_density;
+    br_vector3 normal;
+    br_bounds3 bb;
+} tReplay_splash_local;
+
 // GLOBAL: CARMA2_HW 0x006aa388
-tReplay_splash gReplay_splashes[10];
+tReplay_splash_local gReplay_splashes[10];
 
 // GLOBAL: CARMA2_HW 0x006aa568
 int gDust_rotate;
@@ -1150,7 +1165,7 @@ void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
     extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pCollision_info, int pParam);
     extern void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollision, void* pArg2);
     extern int gReplay_splash_flags;
-    extern tReplay_splash gReplay_splashes[10];
+    extern tReplay_splash_local gReplay_splashes[10];
     extern const br_scalar gFLOAT_0058b008;
     void* object;
     int i;
