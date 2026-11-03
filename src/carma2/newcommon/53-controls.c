@@ -811,3 +811,21 @@ void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, flo
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045acf0
+void C2_HOOK_FASTCALL FUN_0045acf0(void) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00511200
+void C2_HOOK_FASTCALL FUN_00511200(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
+
+    FUN_0045acf0();
+}
