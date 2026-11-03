@@ -704,3 +704,8 @@ void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY)
         AddRollingLetter(the_string[i], i * gCurrent_graf_data->rolling_letter_x_pitch + pX, pY, eRT_numeric);
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x00483e90
+void C2_HOOK_FASTCALL InputNoOp(void) {
+}

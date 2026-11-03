@@ -242,11 +242,6 @@ void C2_HOOK_FASTCALL SmoothificateCarMaterial(br_material* pMaterial) {
 }
 
 // FUNCTION: CARMA2_HW 0x00486d60
-// FUNCTION: CARMA2_SW 0x00483e90
-void C2_HOOK_FASTCALL MungeLightingEffects(void) {
-
-    // empty
-}
 
 // FUNCTION: CARMA2_HW 0x00486d70
 // FUNCTION: CARMA2_SW 0x00483ea0
