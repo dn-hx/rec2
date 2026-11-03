@@ -299,7 +299,32 @@ void C2_HOOK_FASTCALL TDamageLFWheel(void) {
 
 // SortOutRecover
 
-// SetFlipUpCar
+// and upstream controls.c (reference only)
+extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
+extern void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004429b0
+void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00442970
+void C2_HOOK_FASTCALL SetFlipUpCar(tCar_spec* pCar) {
+
+    if (gNet_mode != eNet_mode_none && pCar != NULL && pCar->driver == eDriver_local_human) {
+        DisableCar(pCar);
+        gPalette_fade_time = GetRaceTime();
+        NetPlayerStatusChanged(ePlayer_status_recovering);
+    } else {
+        FlipUpCar(pCar);
+    }
+}
 
 
 // FUNCTION: CARMA2_HW 0x00442e10
