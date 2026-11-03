@@ -429,7 +429,11 @@ const char* gBurning_ped_map_names[7] = {
 br_model* gBurning_ped_models[7];
 
 // GLOBAL: CARMA2_HW 0x0069fd88
-br_material* gBurning_ped_materials[7];
+br_material* gBurning_ped_materials[7] = { 0 };
+
+// UNCERTAIN: unreferenced 4-byte gap before gPed_spurt_initial_position (0x69fda8)
+// GLOBAL: CARMA2_HW 0x0069fda4
+int gUNK_0069fda4 = 0;
 
 // GLOBAL: CARMA2_HW 0x0069411c
 int gGiblet_scrape_start;
@@ -484,9 +488,6 @@ tExplosion_animation gPed_medium_blood_cloud;
 
 // GLOBAL: CARMA2_HW 0x00694488
 tExplosion_animation gPed_large_blood_cloud;
-
-// GLOBAL: CARMA2_HW 0x0069bc10
-br_material* gPed_slick_material = 0;
 
 // GLOBAL: CARMA2_HW 0x0069bce8
 int gCount_race_pedestrian_specs;
@@ -606,7 +607,13 @@ int gPeds_suicidal;
 int gExploding_pedestrians;
 
 // GLOBAL: CARMA2_HW 0x0069b9f0
-tNapalm_bolt gNapalm_bolts[5];
+tNapalm_bolt gNapalm_bolts[5] = { 0 };
+
+// UNCERTAIN: unreferenced 4-byte gap
+int gUNK_0069bc0c = 0;
+
+// GLOBAL: CARMA2_HW 0x0069bc10
+br_material* gPed_slick_material = 0;
 
 // GLOBAL: CARMA2_HW 0x0069412c
 // GLOBAL: CARMA2_SW 0x0068e184
