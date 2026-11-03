@@ -1883,3 +1883,10 @@ int C2_HOOK_FASTCALL S3CountActiveChannels(tS3_outlet* pOutlet) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056583f
+int C2_HOOK_FASTCALL S3GetLastError(void) {
+
+    return gS3_last_error;
+}
