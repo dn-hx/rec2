@@ -5354,10 +5354,10 @@ void C2_HOOK_FASTCALL PedPreCollisionStuff(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0040b760
+// FUNCTION: CARMA2_HW 0x0040b760
 int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
-    NOT_IMPLEMENTED();
-    return 0;
+
+    return BonerActiveHalted2(pCharacter, 0);
 }
 
 // STUB: CARMA2_HW 0x0040b620
