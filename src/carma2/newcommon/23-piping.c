@@ -3147,9 +3147,15 @@ int C2_HOOK_FASTCALL CalcShrapnelLength(tPipe_chunk* pChunk) {
 // CalcRemoveFacesLength
 
 
-// STUB: CARMA2_HW 0x004c7130
+// FUNCTION: CARMA2_HW 0x004c7130
 void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pCollision) {
-    NOT_IMPLEMENTED();
+    br_scalar water_d;
+
+    water_d = pCollision->water_d;
+    *(volatile br_scalar*)&gUNK_0069410c = water_d;
+    ARAddVariedDataToSession((tPipe_chunk_type)0x14, (uintptr_t)pCollision, 2,
+        4, 0, *(tU32*)&gUNK_0069410c,
+        0xc, 4, &pCollision->water_normal);
 }
 
 // STUB: CARMA2_HW 0x004c7160
