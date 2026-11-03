@@ -2145,6 +2145,7 @@ int C2_HOOK_FASTCALL S3IsMidiEnabled(void) {
     return 0;
 }
 
+extern int C2_HOOK_FASTCALL PDS3ResumeCDA(tS3_channel* pChannel);
 
 // FUNCTION: CARMA2_HW 0x00565cce
 int C2_HOOK_FASTCALL S3ResumeCDAChannel(int pTag) {
