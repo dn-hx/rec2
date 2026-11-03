@@ -43,11 +43,25 @@ int gCursor_line_width = 5;
 
 // GLOBAL: CARMA2_HW 0x0067be98
 // GLOBAL: CARMA2_SW 0x00676608
-tTransient_bm gTransient_bitmaps[50];
+tTransient_bm gTransient_bitmaps[50] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0067c348
 // GLOBAL: CARMA2_SW 0x00676ab8
-int gNext_transient;
+int gNext_transient = 0;
+
+/* UNCERTAIN: unreferenced dword, only seen as gTransient_bitmaps loop end */
+// GLOBAL: CARMA2_HW 0x0067c34c
+int gUNK_0067c34c = 0;
+
+/* UNCERTAIN: unreferenced dwords, only seen as gTransient_bitmaps loop ends (field walks) */
+// GLOBAL: CARMA2_HW 0x0067c350
+int gUNK_0067c350 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c354
+int gUNK_0067c354 = 0;
+
+// GLOBAL: CARMA2_HW 0x0067c358
+int gUNK_0067c358 = 0;
 
 // GLOBAL: CARMA2_HW 0x0067c390
 // GLOBAL: CARMA2_SW 0x00676b04
@@ -410,7 +424,6 @@ void C2_HOOK_FASTCALL EnsureRenderPalette(void) {
 #endif
 
 // FUNCTION: CARMA2_HW 0x0043dff0
-// FUNCTION: CARMA2_SW 0x0043e040
 void C2_HOOK_FASTCALL InitTransientBitmaps(void) {
     int i;
 
