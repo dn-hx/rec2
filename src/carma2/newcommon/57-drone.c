@@ -70,6 +70,9 @@ int gINT_00681fb0;
 // GLOBAL: CARMA2_HW 0x00684500
 int gCount_rendered_drones;
 
+// GLOBAL: CARMA2_HW 0x00681fb4
+int gCount_active_drones;
+
 // GLOBAL: CARMA2_HW 0x00684514
 // GLOBAL: CARMA2_SW 0x0067ec54
 int gFrame;
@@ -81,6 +84,11 @@ int gFrame;
 extern void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 extern tDrone_state_function* gDrone_state_functions[6];
+
+/* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
+static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
+    DoNotDprintf_drone("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
+}
 
 // FUNCTION: CARMA2_HW 0x00451620
 void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
@@ -476,7 +484,28 @@ void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec) {
     }
 }
 
-// StopProcessingThisDrone
+// FUNCTION: CARMA2_HW 0x00451710
+void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
+
+    if (pDrone->field_0x44) {
+        if (pForce || (!(pDrone->form->flags & 0x4) && pDrone->current_state != 3 && gCount_active_drones > 0)) {
+            pDrone->field_0x44 = 0;
+            gCount_active_drones -= 1;
+            if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
+                DoNotDprintf_drone("STOP RENDERING: %d", pDrone->id);
+                gCount_rendered_drones -= 1;
+                pDrone->actor->render_style = BR_RSTYLE_NONE;
+                PipeSingleDroneRender(pDrone, 0);
+            }
+            PHILRemoveObject(&pDrone->collision_info);
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, (tDroneStateFuncState)2);
+            }
+            DoNotDprintf_drone("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+            DroneCrappyLittleVector3DPrintf("     Pos", &pDrone->actor->t.t.translate.t);
+        }
+    }
+}
 
 // StartRenderingThisDrone
 
