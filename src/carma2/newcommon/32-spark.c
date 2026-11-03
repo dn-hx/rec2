@@ -91,11 +91,19 @@ tBRender_smoke* gBR_smoke_pointers[35];
 int gN_BR_smoke_structs;
 
 // GLOBAL: CARMA2_HW 0x006a8638
-br_pixelmap* gFlame_map[20];
+br_pixelmap* gFlame_map[20] = { 0 };
+
+/* UNCERTAIN: unknown, unreferenced 0x90 bytes after gFlame_map (only seen as its loop end); keeps the layout adjacent */
+// GLOBAL: CARMA2_HW 0x006a8688
+tU8 gUNK_006a8688[0x90] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a96a8
 // GLOBAL: CARMA2_SW 0x006a30f8
-tSmoke_column gSmoke_column[10];
+tSmoke_column gSmoke_column[10] = { 0 };
+
+/* explicit initializers keep gSmoke_column and gSparks adjacent as in the original (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x006a9b80
+tSpark gSparks[32] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006aa380
 // GLOBAL: CARMA2_SW 0x006a3dd0
