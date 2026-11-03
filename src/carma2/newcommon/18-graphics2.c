@@ -206,9 +206,7 @@ void C2_HOOK_FASTCALL DRSetPalette3(br_pixelmap* pThe_palette, int pSet_current_
     if (!gFaded_palette) {
         PDSetPalette(pThe_palette);
     }
-    if (pThe_palette != gRender_palette) {
-        gPalette_munged |= 0x1;
-    }
+    gPalette_munged |= pThe_palette != gRender_palette;
 }
 
 void C2_HOOK_FASTCALL DRSetPalette2(br_pixelmap* pThe_palette, int pSet_current_palette) {
@@ -377,7 +375,12 @@ void C2_HOOK_FASTCALL InitPaletteAnimate(void) {
     gPalette_index = 0;
 }
 
-// RevertPalette
+// FUNCTION: CARMA2_HW 0x004b52b0
+void C2_HOOK_FASTCALL RevertPalette(void) {
+
+    memcpy(gRender_palette->pixels, gOrig_render_palette->pixels, 256 * sizeof(br_colour));
+    DRSetPalette3(gRender_palette, 1);
+}
 
 // FUNCTION: CARMA2_HW 0x004b5320
 // FUNCTION: CARMA2_SW 0x004b1a70
