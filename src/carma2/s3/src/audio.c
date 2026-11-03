@@ -1910,3 +1910,23 @@ void C2_HOOK_FASTCALL S3ToggleCDA(void) {
         gS3_CDA_enabled = 1;
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x00566480
+int C2_HOOK_FASTCALL S3SetChannelPosition(tS3_sound_tag pChannel_tag, const tS3_vector3* pPosition) {
+    tS3_channel* channel;
+
+    if (gS3_enabled != 0) {
+        channel = S3GetChannelForTag(pChannel_tag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->spatial_sound == 0) {
+            return 11;
+        }
+        channel->position.x = pPosition->x;
+        channel->position.y = pPosition->y;
+        channel->position.z = pPosition->z;
+    }
+    return eS3_error_none;
+}
