@@ -13,6 +13,7 @@
 
 #include "16-graphics1.h"
 #include "18-graphics2.h"
+#include "23-piping.h"
 #include "32-spark.h"
 #include "41-utility.h"
 #include "42-input.h"
@@ -1056,7 +1057,7 @@ void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition) {
 
 // FUNCTION: CARMA2_HW 0x004df200
 // FUNCTION: CARMA2_SW 0x004db700
-void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
+void C2_HOOK_FASTCALL FUN_004df200(tPowerup* pPowerup, tCar_spec* pCar) {
 
     if (pPowerup->got_proc != NULL) {
         pPowerup->got_proc(pPowerup, pCar);
@@ -1495,3 +1496,10 @@ int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
     }
     return (int*)&gJoystick_effects[index * 232];
 }
+
+// FUNCTION: CARMA2_HW 0x004c8da0
+void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    ARDoSingleVariedSession(0x34, (uintptr_t)pPowerup, 1, 4, 0, (uintptr_t)pCar);
+}
+
