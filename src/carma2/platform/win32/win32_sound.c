@@ -546,3 +546,16 @@ int C2_HOOK_FASTCALL PDS3PauseMidiChannel(tS3_channel* pChannel) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00569eda
+int C2_HOOK_FASTCALL PDS3ResumeMidiChannel(tS3_channel* pChannel) {
+    MCIDEVICEID device;
+
+    device = pChannel->mciDevice;
+    if (gPDS3_midi_restart_required != 0) {
+        gPDS3_midi_restart_required = 0;
+        mciSendCommandA(device, MCI_PLAY, 0, (DWORD_PTR)&mci_play_parms);
+    }
+    return 0;
+}
