@@ -1511,3 +1511,29 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
     ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
+
+
+typedef struct {
+    float distance;
+    tPedestrian* ped;
+} tNapalm_ped_distance;
+
+typedef struct {
+    int count;
+    tNapalm_ped_distance peds[100];
+} tNapalm_ped_distances;
+
+// FUNCTION: CARMA2_HW 0x004ce770
+int C2_HOOK_FASTCALL NapalmPedDistanceCallback(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pNow, tPedestrian_distances* pDistances) {
+    tNapalm_ped_distances* data = (tNapalm_ped_distances*)pDistances;
+    int result;
+
+    result = (int)pPed->field_0x0c;
+    if (result != 0 && pPed->field_0x0c->field_0x98 == 0) {
+        data->peds[data->count].ped = pPed;
+        data->peds[data->count].distance = pDistance_squared;
+        data->count++;
+        result = 1;
+    }
+    return result;
+}
