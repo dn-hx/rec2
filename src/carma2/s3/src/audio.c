@@ -1890,3 +1890,11 @@ int C2_HOOK_FASTCALL S3GetLastError(void) {
 
     return gS3_last_error;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565849
+int C2_HOOK_FASTCALL S3SetChannelTag(tS3_channel* pChannel, tS3_sound_tag pTag) {
+
+    pChannel->tag = pTag;
+    return 0;
+}
