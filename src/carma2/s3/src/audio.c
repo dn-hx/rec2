@@ -2097,3 +2097,21 @@ int C2_HOOK_FASTCALL FUN_0056a6cd(int pTag, int pPitch) {
     }
     return eS3_error_none;
 }
+
+
+// FUNCTION: CARMA2_HW 0x005696f9
+int C2_HOOK_FASTCALL S3ChangePitchSpeed(tS3_sound_tag pTag, int pPitch) {
+    tS3_channel* channel;
+
+    channel = S3GetChannelForTag(pTag);
+    if (channel == NULL) {
+        return eS3_error_bad_stag;
+    }
+    if (channel->type == 0) {
+        return FUN_00564a56(pTag, pPitch);
+    }
+    if (channel->type == 1) {
+        return FUN_0056a6cd(pTag, pPitch);
+    }
+    return eS3_error_digi_init;
+}
