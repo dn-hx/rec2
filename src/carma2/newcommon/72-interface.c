@@ -49,9 +49,6 @@
 // GLOBAL: CARMA2_SW 0x0068307c
 int gNet_storage_space_initialized;
 
-// GLOBAL: CARMA2_HW 0x00763960
-// GLOBAL: CARMA2_SW 0x00759ec0
-tNet_game_options gNet_settings[9];
 
 // GLOBAL: CARMA2_HW 0x00688aa8
 // GLOBAL: CARMA2_SW 0x00683008
@@ -217,7 +214,11 @@ double gFrontend_throb_factor;
 
 // GLOBAL: CARMA2_HW 0x00763940
 // GLOBAL: CARMA2_SW 0x00759ea0
-br_actor* gFrontend_billboard_actors[8];
+br_actor* gFrontend_billboard_actors[8] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00763960
+// GLOBAL: CARMA2_SW 0x00759ec0
+tNet_game_options gNet_settings[9] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00688b10
 // GLOBAL: CARMA2_SW 0x00683070
