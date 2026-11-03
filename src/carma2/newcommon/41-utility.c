@@ -2005,3 +2005,10 @@ void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor) {
     BrActorRemove(pActor);
     BrActorFree(pActor);
 }
+
+
+// FUNCTION: CARMA2_HW 0x005192a0
+void C2_HOOK_FASTCALL FUN_005192a0(br_uint_16* pPixel) {
+
+    *pPixel = ((*pPixel >> 1) & 0x7fe0) + (*pPixel & 0x1f);
+}
