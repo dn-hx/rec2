@@ -588,3 +588,14 @@ int C2_HOOK_FASTCALL PDS3PauseCDA(volatile undefined4 pUnused_arg) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056a21f
+int C2_HOOK_FASTCALL PDS3ResumeCDA(tS3_channel* pChannel) {
+
+    if (gPDS3_cda_media_present != 0 && gPDS3_cda_paused != 0) {
+        gPDS3_cda_paused = 0;
+        mciSendCommandA(gPDS3_mci_open_parms.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&gPDS3_cda_play_parms);
+    }
+    return 0;
+}
