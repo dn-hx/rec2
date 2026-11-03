@@ -2012,3 +2012,18 @@ void C2_HOOK_FASTCALL S3LoadSampleList(int* pSample_ids, int pCount) {
         }
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x00568a54
+void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_count) {
+    int sound_id;
+
+    if (gS3_enabled != 0) {
+        while (pSound_count != 0) {
+            sound_id = *pSound_ids;
+            S3ReleaseSound(sound_id);
+            pSound_ids++;
+            pSound_count = pSound_count - 1;
+        }
+    }
+}
