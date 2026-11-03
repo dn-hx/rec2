@@ -2293,9 +2293,13 @@ void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk) {
 
 // FUNCTION: CARMA2_HW 0x004c9280
 void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
-    tPipe_chunk_smoke_column_replay* chunk = (tPipe_chunk_smoke_column_replay*)*pChunk;
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke_column, vertex, 0x10);
 
-    return WorkerSmokeColumn(chunk->field_0x0 & 0x3fff, (br_vector3*)chunk->pad, chunk->field_0x14, chunk->field_0x0 >> 14);
+    AdjustSmokeColumn((*pChunk)->subject_index & 0x3fff,
+        &((tPipe_chunk_smoke_column*)(*pChunk)->data.raw_data)->core,
+        ((tPipe_chunk_smoke_column*)(*pChunk)->data.raw_data)->vertex,
+        (*pChunk)->subject_index >> 14);
 }
 
 // FUNCTION: CARMA2_HW 0x004c92a0
