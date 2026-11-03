@@ -689,3 +689,11 @@ void C2_HOOK_FASTCALL S3BindListenerPosition(tS3_vector3* pos) {
     gS3_listener_pos_is_brender = 0;
     S3CopyS3Vector3((tS3_vector3*)&gS3_listener_position_old, pos);
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565fd4
+void C2_HOOK_FASTCALL S3BindListenerVelocity(br_vector3* vel) {
+
+    gS3_listener_vel_ptr = vel;
+    gS3_listener_vel_is_brender = 0;
+}
