@@ -22,6 +22,7 @@
 
 #include "49-physics.h"
 #include "51-smash.h"
+#include "69-sound.h"
 #include "53-controls.h"
 #include "60-phil.h"
 #include "61-pedestrn.h"
@@ -882,7 +883,34 @@ int C2_HOOK_FASTCALL SetUnderwater(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// TrashBodywork
+extern const float gConst_0p1;
+extern const double gConst_10_over_7;
+extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+
+/* TotallySpamTheModel (0x00431610) lives in the carma2/common crush TU, which is
+   not part of this replay batch; an inert stub keeps TrashBodywork linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00431610
+void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004dcae0
+int C2_HOOK_FASTCALL TrashBodywork(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    TotallySpamTheModel(pCar, pCar->softness_factor * gConst_0p1 * gConst_10_over_7);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound2(gCar_outlet, 0x1388, 1, 0xff, 0xff, -1, -1);
+        DRS3StartSound2(gCar_outlet, 0x1389, 1, 0xff, 0xff, -1, -1);
+        DRS3StartSound2(gCar_outlet, 0x138a, 1, 0xff, 0xff, -1, -1);
+    }
+    return pPowerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004dcb90
 // FUNCTION: CARMA2_SW 0x004d9090
@@ -2086,6 +2114,12 @@ void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCa
 
 // GLOBAL: CARMA2_HW 0x0058ac00
 const float gConst_0p5 = 0.5f;
+
+// GLOBAL: CARMA2_HW 0x0058ac40
+const float gConst_0p1 = 0.1f;
+
+// GLOBAL: CARMA2_HW 0x0058ac48
+const double gConst_10_over_7 = 10.0 / 7.0;
 
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
