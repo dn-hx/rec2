@@ -4412,3 +4412,68 @@ no_transform:
         DisableFunkotronic(pSmashable->funk);
     }
 }
+
+
+typedef struct {
+    tU32 cbSize;
+    tU32 dwFlags;
+    tU32 dwDuration;
+    tU32 dwSamplePeriod;
+    tU32 dwGain;
+    tU32 dwTriggerButton;
+    tU32 dwTriggerRepeatInterval;
+    tU32 cAxes;
+    tU32* rgdwAxes;
+    tU32 cDirections;
+    void* rglDirection;
+    tU32 cbTypeSpecificParams;
+    void* lpvTypeSpecificParams;
+} tDIEFFECT;
+
+typedef struct {
+    tDIEFFECT di_effect;
+    tU8 type_specific_params[24];
+    tU8 field_0x4c[20];
+    tS32 field_0x60;
+    tU32 field_0x64;
+    char name[128];
+} tJoystickForceEffect;
+
+typedef struct tDirectInputEffect tDirectInputEffect;
+
+typedef struct {
+    void* field_0x0[6];
+    int (C2_HOOK_STDCALL* SetParameters)(tDirectInputEffect* pEffect, const tDIEFFECT* pParams, tU32 pFlags);
+} tDirectInputEffectVtbl;
+
+struct tDirectInputEffect {
+    tDirectInputEffectVtbl* lpVtbl;
+};
+
+extern tJoystickForceEffect gJoystick_effects[30];
+extern tDirectInputEffect* gDirectInputEffects[30];
+extern int gForceFeedbackAvailable;
+extern int gCollision_force_joystick_effect_index;
+extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
+
+// FUNCTION: CARMA2_HW 0x00458720
+int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection) {
+    /* This SDK spells DIEP_TYPESPECIFICPARAMS and DIEP_DIRECTION 0x100 and 0x40. */
+    if (!gForceFeedbackAvailable) {
+        return 0;
+    }
+    if (pMagnitude > 10000) {
+        pMagnitude = 10000;
+    }
+    *(tS32*)&gJoystick_effects[gCollision_force_joystick_effect_index].type_specific_params = pMagnitude;
+    gJoystick_effects[gCollision_force_joystick_effect_index].field_0x60 = pDirection;
+    if (gDirectInputEffects[gCollision_force_joystick_effect_index] != NULL) {
+        gDirectInputEffects[gCollision_force_joystick_effect_index]->lpVtbl->SetParameters(gDirectInputEffects[gCollision_force_joystick_effect_index], &gJoystick_effects[gCollision_force_joystick_effect_index].di_effect, 0x100);
+        gDirectInputEffects[gCollision_force_joystick_effect_index]->lpVtbl->SetParameters(gDirectInputEffects[gCollision_force_joystick_effect_index], &gJoystick_effects[gCollision_force_joystick_effect_index].di_effect, 0x40);
+    }
+    StartDinputEffect(gCollision_force_joystick_effect_index);
+    return 1;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
