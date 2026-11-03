@@ -419,7 +419,6 @@ int C2_HOOK_FASTCALL PDAnyKeyDown(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00482d70
-// FUNCTION: CARMA2_SW 0x0047feb0
 int C2_HOOK_FASTCALL AnyKeyDown(void) {
     int the_key;
 
