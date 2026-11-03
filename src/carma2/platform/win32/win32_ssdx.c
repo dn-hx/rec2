@@ -243,25 +243,23 @@ void C2_HOOK_FASTCALL SSDXStop(void) {
     }
 
     if (gUse_DirectDraw) {
-
         if (gAttached_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releaseing attached surface...");
+            dr_dprintf("SSDXStop(): Releasing attached surface...");
             IDirectDrawSurface_Release(gAttached_surface);
             gAttached_surface = NULL;
         }
         if (gPrimary_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releaseing primary surface...");
+            dr_dprintf("SSDXStop(): Releasing primary surface...");
             IDirectDrawSurface_Release(gPrimary_surface);
             gPrimary_surface = NULL;
         }
     } else {
-
+        dr_dprintf("SSDXStop(): Restoring display mode");
         if (gDirectDraw2 != NULL) {
-            dr_dprintf("SSDXStop(): Restoring display mode");
             IDirectDraw2_RestoreDisplayMode(gDirectDraw2);
         }
         if (gPrimary_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releaseing primary surface...");
+            dr_dprintf("SSDXStop(): Releasing primary surface...");
             IDirectDrawSurface_Release(gPrimary_surface);
             gAttached_surface = NULL;
             gPrimary_surface = NULL;
