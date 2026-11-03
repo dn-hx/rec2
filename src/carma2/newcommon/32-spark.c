@@ -90,6 +90,10 @@ tBRender_smoke* gBR_smoke_pointers[35];
 // GLOBAL: CARMA2_HW 0x006aa56c
 int gN_BR_smoke_structs;
 
+/* explicit initializer keeps gSplash and gFlame_map adjacent as in the original (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x006a82b8
+tSplash gSplash[32] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006a8638
 br_pixelmap* gFlame_map[20] = { 0 };
 
@@ -104,6 +108,18 @@ tSmoke_column gSmoke_column[10] = { 0 };
 /* explicit initializers keep gSmoke_column and gSparks adjacent as in the original (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x006a9b80
 tSpark gSparks[32] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006aa570
+int gSplash_flags;
+
+// GLOBAL: CARMA2_HW 0x006a8758
+br_model* gSplash_model;
+
+// GLOBAL: CARMA2_HW 0x006a9130
+br_material* gSplash_material[20];
+
+// GLOBAL: CARMA2_HW 0x006aa5a4
+int gNum_splash_types;
 
 // GLOBAL: CARMA2_HW 0x006aa380
 // GLOBAL: CARMA2_SW 0x006a3dd0
@@ -799,7 +815,30 @@ void C2_HOOK_FASTCALL InitFlame(void) {
 
 // InitSplash
 
-// DisposeSplash
+// FUNCTION: CARMA2_HW 0x004fc680
+void C2_HOOK_FASTCALL DisposeSplash(void) {
+    int i;
+    tSplash* splash;
+
+    for (i = 0; i < gNum_splash_types; i++) {
+        BrMapRemove(gSplash_material[i]->colour_map);
+        BrPixelmapFree(gSplash_material[i]->colour_map);
+        BrMaterialRemove(gSplash_material[i]);
+        BrMaterialFree(gSplash_material[i]);
+    }
+    i = 0;
+    splash = &gSplash[0];
+    do {
+        if ((gSplash_flags & (1 << i)) != 0 && splash->actor->parent != NULL) {
+            BrActorRemove(splash->actor);
+        }
+        BrActorFree(splash->actor);
+        splash++;
+        i++;
+    } while ((int)splash < (int)((tU8*)gSplash + sizeof(gSplash)));
+    BrModelRemove(gSplash_model);
+    BrModelFree(gSplash_model);
+}
 
 // DrawTheGlow
 
