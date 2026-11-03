@@ -25,6 +25,7 @@ extern MCI_OPEN_PARMS gPDS3_mci_open_parms;
 extern MCI_SET_PARMS gPDS3_mci_set_parms;
 extern int gPDS3_cda_initialized;
 extern int gPDS3_midi_playing;
+extern int gPDS3_midi_restart_required;
 extern int gPDS3_cda_media_present;
 extern int gPDS3_cda_is_playing;
 extern int gPDS3_cda_paused;
