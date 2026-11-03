@@ -3034,7 +3034,11 @@ void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk) {
 
 // UndoCrush
 
-// UndoSmudge
+// FUNCTION: CARMA2_HW 0x004c9db0
+void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    return WorkerSmudge(pChunk, -1);
+}
 
 // UndoDamage
 
