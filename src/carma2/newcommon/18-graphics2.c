@@ -449,12 +449,7 @@ void C2_HOOK_FASTCALL DeallocateAllTransientBitmaps(void) {
     }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 // FUNCTION: CARMA2_HW 0x0043e010
-// FUNCTION: CARMA2_SW 0x0043e060
 void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
     int i;
     int order_number;
@@ -480,10 +475,6 @@ void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
     }
     gNext_transient = 0;
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // SaveTransient
 
