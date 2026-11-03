@@ -1812,7 +1812,72 @@ void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car) {
     gRearview_camera->t.t.mat.m[3][2] = sz;
 }
 
-// PissedEffect
+extern float gCamera_angle;
+extern float gCosine_array[65];
+extern const float gConst_0p0;
+extern const double gConst_2pi;
+extern const double gConst_3pi_over_2;
+extern const double gConst_minus_128_over_pi;
+extern const double gConst_pi;
+extern const double gConst_pi_over_2;
+extern const float gConst_minus_1p0;
+extern const double gConst_radians_to_degrees;
+extern double C2_HOOK_CDECL fmod(double pX, double pY);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004df3b0
+void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
+    tU32 now;
+    float* pOut;
+    float* p;
+    int k;
+    float amp;
+    double ph;
+    float c;
+    int idx;
+    float v;
+
+    now = GetTotalTime();
+    if (gCredit_multiplier == 0) {
+        return;
+    }
+    pOut = gPissed_flicker_frames;
+    do {
+        p = pOut;
+        for (k = 1; k; k--) {
+            amp = p[-12];
+            if (amp != gConst_0p0) {
+                ph = fmod(now + p[12], p[0]) / p[0] * gConst_2pi;
+                if (ph > gConst_3pi_over_2) {
+                    idx = (int)((gConst_2pi - ph) * gConst_minus_128_over_pi);
+                    c = gCosine_array[-idx];
+                } else if (ph > gConst_pi) {
+                    idx = (int)((ph - gConst_pi) * gConst_minus_128_over_pi);
+                    c = -gCosine_array[-idx];
+                } else if (ph > gConst_pi_over_2) {
+                    idx = (int)((gConst_pi - ph) * gConst_minus_128_over_pi);
+                    c = -gCosine_array[-idx];
+                } else {
+                    idx = (int)(ph * gConst_minus_128_over_pi);
+                    c = gCosine_array[-idx];
+                }
+                v = (c * amp - gConst_minus_1p0) * gCamera_angle * gConst_radians_to_degrees;
+                *(tU16*)((tU8*)gCamera->type_data + 6) = (tU16)(int)v;
+            }
+            p += 1;
+        }
+        pOut += 3;
+    } while ((int)pOut < (int)&gPissed_flicker_limit);
+    if (GetTotalTime() > (tU32)gPissed_next_time) {
+        DRS3StartSound2(gCar_outlet, PercentageChance(50) ? 0xe12 : 0xe13, 1, 0xff, 0xff, IRandomBetween(0xc000, 0x14000), -1);
+        gPissed_next_time = GetTotalTime() + IRandomBetween(0x5dc, 0xbb8);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004df650
 // FUNCTION: CARMA2_SW 0x004dbb50
@@ -2447,6 +2512,12 @@ void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCa
 // GLOBAL: CARMA2_HW 0x0058ac00
 const float gConst_0p5 = 0.5f;
 
+// GLOBAL: CARMA2_HW 0x0058ac0c
+const float gConst_0p0 = 0.0f;
+
+// GLOBAL: CARMA2_HW 0x0058abe8
+const double gConst_2pi = 6.283185307179586;
+
 // GLOBAL: CARMA2_HW 0x0058ac40
 const float gConst_0p1 = 0.1f;
 
@@ -2458,6 +2529,24 @@ const double gConst_minus_0p15 = -0.15;
 
 // GLOBAL: CARMA2_HW 0x0058ac90
 const double gConst_inverse_world_scale = 1.0 / 6.9;
+
+// GLOBAL: CARMA2_HW 0x0058ac98
+const double gConst_3pi_over_2 = 4.71238898038469;
+
+// GLOBAL: CARMA2_HW 0x0058aca0
+const double gConst_minus_128_over_pi = -40.74366543152521;
+
+// GLOBAL: CARMA2_HW 0x0058aca8
+const double gConst_pi = 3.141592653589793;
+
+// GLOBAL: CARMA2_HW 0x0058acb0
+const double gConst_pi_over_2 = 1.5707963267948966;
+
+// GLOBAL: CARMA2_HW 0x0058acb8
+const float gConst_minus_1p0 = -1.0f;
+
+// GLOBAL: CARMA2_HW 0x0058acc0
+const double gConst_radians_to_degrees = 182.04444444444445;
 
 // FUNCTION: CARMA2_HW 0x004dd590
 void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
