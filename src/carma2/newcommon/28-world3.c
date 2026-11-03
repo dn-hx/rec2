@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include <string.h>
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0

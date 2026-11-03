@@ -13,6 +13,7 @@
 #include "08-loading1.h"
 #include "13-crush1.h"
 #include "41-utility.h"
+#include "23-piping.h"
 #include "60-phil.h"
 #include "globvars.h"
 #include "globvrpb.h"
@@ -529,6 +530,8 @@ void C2_HOOK_FASTCALL ObjectiveComplete(tOpponent_spec* pOpponent_spec) {
 // NoteCarsCurrentlyUsed
 
 
+extern int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
+
 // FUNCTION: CARMA2_HW 0x004a7ea0
 void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount) {
     int i;
@@ -660,6 +663,8 @@ tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, br_vector3* pAc
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
 
 // FUNCTION: CARMA2_HW 0x004a8170
 int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOpponent_spec, br_scalar pSpeed) {

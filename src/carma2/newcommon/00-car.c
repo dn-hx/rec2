@@ -36,6 +36,7 @@
 #include "49-physics.h"
 #include "51-smash.h"
 #include "53-controls.h"
+#include "55-volume.h"
 #include "57-drone.h"
 #include "58-crush2.h"
 #include "60-phil.h"

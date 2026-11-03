@@ -694,6 +694,10 @@ void C2_HOOK_FASTCALL EdgeTriggerModeOff(void) {
 }
 
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat="
+#endif
 // FUNCTION: CARMA2_HW 0x00483e20
 void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY) {
     char the_string[32];
@@ -704,6 +708,9 @@ void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY)
         AddRollingLetter(the_string[i], i * gCurrent_graf_data->rolling_letter_x_pitch + pX, pY, eRT_numeric);
     }
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x00483e90
