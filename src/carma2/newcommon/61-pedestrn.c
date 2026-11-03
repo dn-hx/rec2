@@ -724,9 +724,17 @@ void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSee
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9) {
     NOT_IMPLEMENTED();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004eb6a0
 void C2_HOOK_FASTCALL FUN_004eb6a0(br_matrix34* pMatrix) {
@@ -773,10 +781,19 @@ void C2_HOOK_FASTCALL FUN_004eb6a0(br_matrix34* pMatrix) {
 }
 
 // STUB: CARMA2_HW 0x004eb4a0
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004eb4a0
 float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8) {
     NOT_IMPLEMENTED();
     return 0.f;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes) {
     NOT_IMPLEMENTED();
