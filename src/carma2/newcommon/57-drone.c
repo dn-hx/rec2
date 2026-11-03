@@ -656,7 +656,7 @@ void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDro
                 break;
             }
             if (pDrone->field_0xdc == 1) {
-                PipeSingleDroneStraightPos(pDrone, pDrone->field_0x10,
+                PipeSingleDroneStraightPos(pDrone, (tDrone_path_node_section*)pDrone->field_0x10,
                     DRScalarToU16(pDrone->field_0x48, -500.f, 500.f),
                     DRScalarToU16(pDrone->field_0x4c, 0.f, 255.f));
                 return;

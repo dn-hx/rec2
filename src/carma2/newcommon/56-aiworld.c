@@ -13,9 +13,12 @@
 #include "10-loading2.h"
 #include "18-graphics2.h"
 #include "30-opponent.h"
+#include "41-utility.h"
 #include "57-drone.h"
 #include "globvars.h"
 #include "platform.h"
+
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0058f038
 int gFirst_drone_processing = 1;
