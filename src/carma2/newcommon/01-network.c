@@ -2113,9 +2113,25 @@ void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049a940
+// FUNCTION: CARMA2_HW 0x0049a940
 void C2_HOOK_FASTCALL CheckForVampireWinner(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    int players_left;
+    int winner_index;
+
+    players_left = 0;
+    winner_index = 0;
+    if (gProgram_state.racing && gNet_mode == eNet_mode_host) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (!gNet_players[i].field_0x80) {
+                players_left++;
+                winner_index = i;
+            }
+        }
+        if (players_left <= 1) {
+            DeclareWinner(winner_index);
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
