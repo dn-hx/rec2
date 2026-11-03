@@ -3628,6 +3628,13 @@ tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_ty
 }
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* The original S3 library is /Od code: locals live in a volatile stack struct. */
+#ifdef _MSC_VER
+#pragma optimize("", off)
+#endif
 // FUNCTION: CARMA2_HW 0x00564e5e
 int C2_HOOK_FASTCALL FUN_00564e5e(int pSound) {
     extern tS3_descriptor* C2_HOOK_FASTCALL S3GetDescriptorByID(int pSample_id);
@@ -3643,6 +3650,9 @@ int C2_HOOK_FASTCALL FUN_00564e5e(int pSound) {
     locals.buffer_description = locals.descriptor->buffer_description;
     return locals.buffer_description->sample_size * 1000 / locals.buffer_description->sample_rate;
 }
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
 
 // STUB: CARMA2_HW 0x004e7090
 void C2_HOOK_FASTCALL InitializeActionReplayPix(void) {
@@ -3657,6 +3667,9 @@ void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_cal
 void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x004c72f0
