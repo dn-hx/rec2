@@ -5228,6 +5228,10 @@ void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar, br_ve
 
 // DisposeAllBonerData
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0040b420
 // FUNCTION: CARMA2_SW 0x0040b410
 int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pModel_index, int pModel_set) {
@@ -5270,7 +5274,15 @@ int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, 
     return 1;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // SetCharacterBoneModelP
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0040b530
 // FUNCTION: CARMA2_SW 0x0040b520
@@ -5282,12 +5294,28 @@ void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharac
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0040b570
 // FUNCTION: CARMA2_SW 0x0040b560
 br_model* C2_HOOK_FASTCALL GetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index) {
 
     return pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBone_index]->model;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0040b590
 // FUNCTION: CARMA2_SW 0x0040b580
@@ -5296,6 +5324,10 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
 
     return pCharacter->field_0xa;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // BonerPassiveCollision
 
