@@ -1422,10 +1422,22 @@ tS3_error_codes C2_HOOK_FASTCALL S3MIDILoadSong(tS3_channel* pChannel) {
 // FUNCTION: CARMA2_HW 0x00564d4a
 // FUNCTION: CARMA2_SW 0x005603ea
 void C2_HOOK_FASTCALL S3ReverseSample(tS3_effect_tag pEffect, tS3_sound_tag pTag) {
-    tS3_channel* channel = S3GetChannelForTag(pTag);
-    if (channel != NULL) {
-        PDReverseAudio(channel);
+    extern tS3_channel* C2_HOOK_FASTCALL S3GetChannelForTag(int pTag);
+    struct {
+        int reserved_0;
+        tS3_channel* channel;
+        int reserved_1;
+        int reserved_2;
+        int reserved_3;
+        int reserved_4;
+    } volatile locals;
+
+    (void)pEffect;
+    locals.channel = S3GetChannelForTag(pTag);
+    if (locals.channel == NULL) {
+        return;
     }
+    PDReverseAudio(locals.channel);
 }
 
 // FUNCTION: CARMA2_HW 0x00564d75
