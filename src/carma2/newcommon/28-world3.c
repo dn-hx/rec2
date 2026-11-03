@@ -684,7 +684,6 @@ int C2_HOOK_FASTCALL GetFileName(const char *path, tName_list *pList) {
 }
 
 // FUNCTION: CARMA2_HW 0x00502780
-// FUNCTION: CARMA2_SW 0x004fe0d0
 int C2_HOOK_FASTCALL GetAdditionalFileName(const char* path, tName_list* pList) {
     tPath_name pathCopy;
     tPath_name upperPath;
