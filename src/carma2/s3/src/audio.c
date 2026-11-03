@@ -2067,3 +2067,16 @@ int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00569e29
+int C2_HOOK_FASTCALL PDS3UnmuteMidiChannel(tS3_channel* pChannel) {
+    MCIDEVICEID device;
+
+    device = pChannel->mciDevice;
+    if (gPDS3_midi_playing != 0) {
+        gPDS3_mci_audio_parms.dwAudio = 0;
+        mciSendCommandA(device, MCI_SET, MCI_SET_AUDIO | MCI_SET_ON, (DWORD_PTR)&gPDS3_mci_audio_parms);
+    }
+    return 0;
+}
