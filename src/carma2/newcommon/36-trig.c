@@ -11,6 +11,14 @@
 #include "c2_math.h"
 #include "rec2_macros.h"
 
+// Alignment filler: the pooled string literals of the preceding translation
+// units end right where this file's data starts, so without it the negative
+// folded base table - 270*4 lands exactly on a string literal and reccmp names
+// it, while the original leaves it unnamed. Shifting the table by 4 bytes puts
+// that base inside a string (unnamed in reccmp) without changing any relative
+// offset inside this file.
+char gTrig_layout_prepad[4] = { 1 };
+
 // GLOBAL: CARMA2_HW 0x00661398
 // GLOBAL: CARMA2_SW 0x0065bcf0
 float gFloat_sine_table[91] = {
@@ -163,26 +171,26 @@ float C2_HOOK_FASTCALL FastFloatSin(int pAngle) {
     return gFloat_sine_table[angle];
 }
 
+
 // FUNCTION: CARMA2_HW 0x00511440
 // FUNCTION: CARMA2_SW 0x0050c890
-float C2_HOOK_FASTCALL FastFloatCos(int pAngle_degrees) {
+float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
 
-    if (pAngle_degrees < 0) {
-        pAngle_degrees = 360 - -pAngle_degrees % 360;
+    if (pAngle_in_degrees < 0) {
+        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
     } else {
-        pAngle_degrees = pAngle_degrees % 360;
+        pAngle_in_degrees = pAngle_in_degrees % 360;
     }
-
-    if (pAngle_degrees > 270) {
-        return gFloat_sine_table[pAngle_degrees - 270];
+    if (pAngle_in_degrees > 270) {
+        return gFloat_sine_table[pAngle_in_degrees - 270];
     }
-    if (pAngle_degrees > 180) {
-        return -gFloat_sine_table[270 - pAngle_degrees];
+    if (pAngle_in_degrees > 180) {
+        return -*(gFloat_sine_table + 270 - pAngle_in_degrees);
     }
-    if (pAngle_degrees > 90) {
-        return -gFloat_sine_table[pAngle_degrees - 90];
+    if (pAngle_in_degrees > 90) {
+        return -gFloat_sine_table[pAngle_in_degrees - 90];
     }
-    return *(gFloat_sine_table + 90 - pAngle_degrees);
+    return *(gFloat_sine_table + 90 - pAngle_in_degrees);
 }
 
 // FUNCTION: CARMA2_HW 0x005115b0
