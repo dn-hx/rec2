@@ -285,7 +285,6 @@ void C2_HOOK_FASTCALL ResetPollKeys(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004821c0
-// FUNCTION: CARMA2_SW 0x0047f300
 void C2_HOOK_FASTCALL CheckKeysForMouldiness(void) {
 
     if (PDGetTotalTime() - gLast_poll_keys > 500) {
