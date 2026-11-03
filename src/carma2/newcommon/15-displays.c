@@ -156,6 +156,9 @@ tU32 gLast_time_credit_amount;
 // GLOBAL: CARMA2_SW 0x00795020
 int gOld_times[10];
 
+// GLOBAL: CARMA2_HW 0x0067f890
+tQueued_headup gQueued_headups[4];
+
 // GLOBAL: CARMA2_HW 0x0067f888
 // GLOBAL: CARMA2_SW 0x00679ff4
 int gQueued_headup_count;

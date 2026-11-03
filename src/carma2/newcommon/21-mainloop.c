@@ -208,3 +208,46 @@ void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetwee
         MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
     }
 }
+
+
+extern int gQueued_headup_count;
+extern tQueued_headup gQueued_headups[4];
+
+// FUNCTION: CARMA2_HW 0x004497b0
+void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
+    __asm {
+        mov eax, dword ptr [gQueued_headup_count]
+        push ebx
+        mov ecx, eax
+        push esi
+        shl ecx, 5
+        add ecx, eax
+        push edi
+        lea edx, [eax + ecx*2]
+        shl edx, 2
+        test eax, eax
+        je clear_queued_headups_done
+
+    clear_queued_headups_loop:
+        sub edx, 0x10c
+        mov esi, offset gQueued_headups + 0x10c
+        mov ecx, edx
+        mov edi, offset gQueued_headups
+        mov ebx, ecx
+        dec eax
+        shr ecx, 2
+        rep movsd
+        mov ecx, ebx
+        and ecx, 3
+        test eax, eax
+        rep movsb
+        jne clear_queued_headups_loop
+
+    clear_queued_headups_done:
+        pop edi
+        pop esi
+        mov dword ptr [gQueued_headup_count], eax
+        pop ebx
+        ret
+    }
+}
