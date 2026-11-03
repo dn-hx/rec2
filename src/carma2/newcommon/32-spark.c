@@ -844,11 +844,19 @@ void C2_HOOK_FASTCALL DisposeSplash(void) {
 
 // PipeInstantUnSmudge
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004fc9c0
 void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point) {
     (void)pCar;
     (void)pFire_point;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004fc9d0
 // FUNCTION: CARMA2_SW 0x004f7f30
@@ -899,6 +907,8 @@ void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject) {
         }
     }
 }
+
+extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
 
 // FUNCTION: CARMA2_HW 0x004fcab0
 void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pLevel) {
