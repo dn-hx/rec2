@@ -73,6 +73,9 @@ int gCount_rendered_drones;
 // GLOBAL: CARMA2_HW 0x00681fb4
 int gCount_active_drones;
 
+// GLOBAL: CARMA2_HW 0x0068452c
+int gShow_drone_paths;
+
 // GLOBAL: CARMA2_HW 0x00684514
 // GLOBAL: CARMA2_SW 0x0067ec54
 int gFrame;
@@ -507,7 +510,37 @@ void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
     }
 }
 
-// StartRenderingThisDrone
+// FUNCTION: CARMA2_HW 0x00451810
+void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone) {
+
+    if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
+        return;
+    }
+    if (gShow_drone_paths && pDrone->actor->render_style == BR_RSTYLE_BOUNDING_FACES) {
+        return;
+    }
+    if (gShow_drone_paths || (pDrone->field_0x44 && gCount_rendered_drones < 10)) {
+
+        DoNotDprintf_drone("START RENDERING: %d", pDrone->id);
+        gCount_rendered_drones += 1;
+        pDrone->actor->render_style = BR_RSTYLE_FACES;
+        PipeSingleDroneRender(pDrone, 1);
+    } else {
+        DoNotDprintf_drone("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 1);
+        if (pDrone->current_state != 1) {
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+            }
+            pDrone->time_last_munge = gTime_stamp_for_this_munging;
+            pDrone->prev_states[1] = pDrone->prev_states[0];
+            pDrone->prev_states[0] = pDrone->current_state;
+            pDrone->current_state = 1;
+            if (gDrone_state_functions[1] != NULL) {
+                gDrone_state_functions[1](pDrone, eDrone_state_START);
+            }
+        }
+    }
+}
 
 // CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing
 
