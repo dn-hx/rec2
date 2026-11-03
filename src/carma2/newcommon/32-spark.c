@@ -116,6 +116,15 @@ br_pixelmap* gFlame_map[20] = { 0 };
 // GLOBAL: CARMA2_HW 0x006a8688
 tU8 gUNK_006a8688[0x90] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x006aa580
+int gShrapnel_index;
+
+// GLOBAL: CARMA2_HW 0x006aa584
+int gShrapnel_flags;
+
+// GLOBAL: CARMA2_HW 0x006a9180
+tShrapnel gShrapnel[30] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006a96a8
 // GLOBAL: CARMA2_SW 0x006a30f8
 tSmoke_column gSmoke_column[10] = { 0 };
@@ -285,7 +294,20 @@ void C2_HOOK_FASTCALL ResetSparks(void) {
     gSpark_flags = 0;
 }
 
-// ResetShrapnel
+// FUNCTION: CARMA2_HW 0x004f87b0
+void C2_HOOK_FASTCALL ResetShrapnel(void) {
+    int i;
+
+    if (gShrapnel_flags == 0) {
+        return;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gShrapnel); i++) {
+        if (((1 << i) & gShrapnel_flags) != 0 && gShrapnel[i].actor->parent != NULL) {
+            BrActorRemove(gShrapnel[i].actor);
+        }
+    }
+    gShrapnel_flags = 0;
+}
 
 // CreateShrapnelShower2
 
