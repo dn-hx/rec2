@@ -4128,11 +4128,19 @@ void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove) {
 
 // DisposeAllLoadedMoves
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // STUB: CARMA2_HW 0x00404410
 tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pName) {
     NOT_IMPLEMENTED();
     return NULL;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004046d0
 // FUNCTION: CARMA2_SW 0x004046d0
