@@ -63,9 +63,21 @@ int gUNK_0067c354 = 0;
 // GLOBAL: CARMA2_HW 0x0067c358
 int gUNK_0067c358 = 0;
 
+extern int gMouse_in_use;
+extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
+
 // GLOBAL: CARMA2_HW 0x0067c390
 // GLOBAL: CARMA2_SW 0x00676b04
 int gMouse_started;
+
+// GLOBAL: CARMA2_HW 0x0067be94
+int gTransient_bitmap_index;
+
+// GLOBAL: CARMA2_HW 0x0067be90
+int gCurrent_cursor_index;
+
+// GLOBAL: CARMA2_HW 0x0079ecb0
+tMouse_coord gMouse_last_pos;
 
 // GLOBAL: CARMA2_HW 0x006923a4
 // GLOBAL: CARMA2_SW 0x0068c3fc
@@ -517,9 +529,17 @@ void C2_HOOK_FASTCALL AllocateCursorTransient(void) {
 
 // InitMouseTargetLines
 
-// STUB: CARMA2_HW 0x0043e6c0
+// FUNCTION: CARMA2_HW 0x0043e6c0
 void C2_HOOK_FASTCALL StartMouseCursor(void) {
-    NOT_IMPLEMENTED();
+    if (gCursor_tinted_top == -1) {
+        AllocateCursorTransient();
+    }
+    gNext_transient = 0;
+    gTransient_bitmap_index = 0;
+    GetMousePosition(&gMouse_last_pos.x, &gMouse_last_pos.y);
+    gMouse_in_use = 0;
+    gCurrent_cursor_index = 2;
+    gMouse_started = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0043e710
