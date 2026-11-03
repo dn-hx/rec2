@@ -917,3 +917,23 @@ void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender)
     }
     pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
 }
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// GLOBAL: CARMA2_HW 0x0065a3c8
+int gChallenger_index__opponent = -1;
+
+// FUNCTION: CARMA2_HW 0x004a95f0
+void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet) {
+    extern int gChallenger_index__opponent;
+
+    if (pSet) {
+        gChallenger_index__opponent = pIndex;
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
