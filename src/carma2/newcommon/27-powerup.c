@@ -17,8 +17,10 @@
 #include "23-piping.h"
 #include "25-grafdata.h"
 #include "32-spark.h"
+#include "39-oil.h"
 #include "41-utility.h"
 #include "42-input.h"
+#include "43-pratcam.h"
 
 #include "49-physics.h"
 #include "51-smash.h"
@@ -1140,7 +1142,15 @@ void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatrix) {
     pActor->render_style = BR_RSTYLE_NONE;
 }
 
-// PissOutOil
+// FUNCTION: CARMA2_HW 0x004de040
+int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    PlayExclusiveFFBEffect("Oil_Slick", 0);
+    QueueOilSpill2(NULL, pCar->car_master_actor, pCar->car_actor->model, 0,
+                   0.35f, 0.6f, 9.0e-05f, 0.0003f, 0.2f, 1.5f, 2.5f, 0.01f, 0.15f,
+                   oily_material, NULL);
+    return pPowerup - gPowerup_array;
+}
 
 // KangerooJump
 
@@ -2172,6 +2182,9 @@ const double gConst_10_over_7 = 10.0 / 7.0;
 
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
+
+// GLOBAL: CARMA2_HW 0x0058ac90
+const double gConst_inverse_world_scale = 1.0 / 6.9;
 
 // FUNCTION: CARMA2_HW 0x004dd590
 void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
