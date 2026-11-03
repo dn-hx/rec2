@@ -518,14 +518,15 @@ const br_scalar gFloat_00589358 = 0.f;
 // GLOBAL: CARMA2_HW 0x00676928
 tPed_form* gPed_forms[20] = { 0 };
 
-// GLOBAL: CARMA2_HW 0x00677260
-tPed_personality* gPed_personalities[50] = { 0 };
-
 // GLOBAL: CARMA2_HW 0x00676980
 tPed_move* gPed_moves[250] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00677238
 tPed_remap* gPed_remaps[10] = { 0 };
+
+/* explicit initializers keep gPed_personalities adjacent to gPed_remaps (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00677260
+tPed_personality* gPed_personalities[50] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0067772c
 int gCount_pedestrian_personality_cloned_materials;
@@ -4144,12 +4145,6 @@ void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove) {
 
 // DisposeAllLoadedMoves
 
-// STUB: CARMA2_HW 0x00404410
-tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pName) {
-    NOT_IMPLEMENTED();
-    return NULL;
-}
-
 // FUNCTION: CARMA2_HW 0x004046d0
 // FUNCTION: CARMA2_SW 0x004046d0
 void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
@@ -4165,6 +4160,8 @@ void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
 }
 
 // DisposeAllLoadedRemaps
+
+extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
 
 // FUNCTION: CARMA2_HW 0x00404740
 tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
