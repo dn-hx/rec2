@@ -1598,7 +1598,7 @@ void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject) {
 // FUNCTION: CARMA2_SW 0x004fa6f0
 void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {
 
-    if (PHILGetObjectProperty(pObject, 6) != 0.f) {
+    if (PHILGetObjectProperty(pObject, 6) != gFLOAT_0058b008) {
         return pObject;
     }
     if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
