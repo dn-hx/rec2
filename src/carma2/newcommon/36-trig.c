@@ -107,25 +107,60 @@ float gFloat_sine_table[91] = {
     1.0f,
 };
 
-// FUNCTION: CARMA2_HW 0x005113d0
-// FUNCTION: CARMA2_SW 0x0050c820
-float C2_HOOK_FASTCALL FastFloatSin(int pAngle_degrees) {
+// GLOBAL: CARMA2_HW 0x00661508
+br_fixed_ls gFixed_sine_table[91] = {
+    0x0, 0x477, 0x8ef, 0xd65, 0x11db, 0x164f, 0x1ac2, 0x1f32,
+    0x23a0, 0x280c, 0x2c74, 0x30d8, 0x3539, 0x3996, 0x3dee, 0x4241,
+    0x4690, 0x4ad8, 0x4f1b, 0x5358, 0x578e, 0x5bbe, 0x5fe6, 0x6406,
+    0x681f, 0x6c30, 0x7039, 0x7438, 0x782f, 0x7c1c, 0x7fff, 0x83d9,
+    0x87a8, 0x8b6d, 0x8f27, 0x92d5, 0x9679, 0x9a10, 0x9d9b, 0xa11b,
+    0xa48d, 0xa7f3, 0xab4c, 0xae97, 0xb1d5, 0xb504, 0xb826, 0xbb39,
+    0xbe3e, 0xc134, 0xc41b, 0xc6f3, 0xc9bb, 0xcc73, 0xcf1b, 0xd1b3,
+    0xd43b, 0xd6b3, 0xd919, 0xdb6f, 0xddb3, 0xdfe7, 0xe208, 0xe419,
+    0xe617, 0xe803, 0xe9de, 0xeba6, 0xed5b, 0xeeff, 0xf08f, 0xf20d,
+    0xf378, 0xf4d0, 0xf615, 0xf746, 0xf865, 0xf970, 0xfa67, 0xfb4b,
+    0xfc1c, 0xfcd9, 0xfd82, 0xfe17, 0xfe98, 0xff06, 0xff60, 0xffa6,
+    0xffd8, 0xfff6, 0x10000,
+};
 
-    if (pAngle_degrees < 0) {
-        pAngle_degrees = 360 - -pAngle_degrees % 360;
+// Address anchors for the positive folded bases (see the comment above).
+// They are only used as the base of `table - angle` style expressions, so the
+// values they read live in gFloat_sine_table itself; the padding keeps them at
+// table + 270*4 and table + 360*4 respectively.
+char gFloat_sine_table_pad270[344] = { 1 };
+
+// GLOBAL: CARMA2_HW 0x006617d0
+float gFloat_sine_table_270[1] = { 1.0f };
+
+char gFloat_sine_table_pad360[352] = { 1 };
+
+// GLOBAL: CARMA2_HW 0x00661938
+float gFloat_sine_table_360[1] = { 1.0f };
+
+// Layout filler: compensates for the removed sine-table anchor so that the
+// data of the translation units following this one keeps its addresses.
+char gTrig_layout_pad[8] = { 1 };
+
+// FUNCTION: CARMA2_HW 0x005113d0
+float C2_HOOK_FASTCALL FastFloatSin(int pAngle) {
+
+    int angle;
+
+    if (pAngle < 0) {
+        angle = 360 - ((-pAngle) % 360);
     } else {
-        pAngle_degrees = pAngle_degrees % 360;
+        angle = pAngle % 360;
     }
-    if (pAngle_degrees > 270) {
-        return -gFloat_sine_table[360 - pAngle_degrees];
+    if (angle > 270) {
+        return -*(gFloat_sine_table_360 - angle);
     }
-    if (pAngle_degrees > 180) {
-        return -gFloat_sine_table[pAngle_degrees - 180];
+    if (angle > 180) {
+        return -gFloat_sine_table[angle - 180];
     }
-    if (pAngle_degrees > 90) {
-        return *(gFloat_sine_table + 90 - (pAngle_degrees - 90));
+    if (angle > 90) {
+        return *(gFloat_sine_table + 180 - angle);
     }
-    return gFloat_sine_table[pAngle_degrees];
+    return gFloat_sine_table[angle];
 }
 
 // FUNCTION: CARMA2_HW 0x00511440
