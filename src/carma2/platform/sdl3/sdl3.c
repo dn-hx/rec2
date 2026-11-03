@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "sdl3.h"
 
 #include <SDL3/SDL.h>
@@ -81,7 +73,7 @@ int gUnknown_int_0074cf48;
 tJoystick_info g_Joystick_infos[16];
 int g_Count_Joystick_infos;
 
-const char gExtendedAsciiToNormalAscii[128] = {
+char gExtendedAsciiToNormalAscii[128] = {
     ' ', ' ',  ' ',  ' ', ' ',  ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
     ' ', '\'', '\'', ' ', ' ',  ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
     ' ', '~',  'c',  '$', '*',  'Y', '|', ' ', '"', 'c', 'a', '<', '-', '-', 'R', '-',
@@ -253,7 +245,7 @@ C2_NORETURN void PDShutdownSystem(void) {
 
     gBack_screen = NULL;
     if (been_here) {
-        PDCloseReplayFile();
+        PDDisposeActionReplayBuffer();
         exit(127);
     } else {
         been_here = 1;
@@ -282,7 +274,7 @@ C2_NORETURN void PDShutdownSystem(void) {
         }
         dr_dprintf("End of PDShutdownSystem()");
         CloseDiagnostics();
-        PDCloseReplayFile();
+        PDDisposeActionReplayBuffer();
         SDL_Quit();
         exit(gExit_code);
     }
@@ -719,7 +711,12 @@ void PDFileDelete(const char *pPath, int pIgnore_read_only) {
     SDL_RemovePath(pPath);
 }
 
-void PDCloseReplayFile(void) {
+void PDDisposeActionReplayBuffer(void) {
+}
+
+int PDstrcmpi(const char* str1, const char* str2) {
+
+    return SDL_strcasecmp(str1, str2);
 }
 
 int PDmemicmp(const char* str1, const char* str2, size_t count) {

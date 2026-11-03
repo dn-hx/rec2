@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "piping.h"
 
 #include "compress.h"
@@ -115,7 +107,6 @@ int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_
 }
 
 // FUNCTION: CARMA2_HW 0x004023e0
-// FUNCTION: CARMA2_SW 0x004023e0
 void C2_HOOK_FASTCALL ARResetPiping(void) {
 
     gPipe_record_ptr = gPipe_buffer_start;
@@ -125,7 +116,6 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051b9a0
-// FUNCTION: CARMA2_SW 0x00515770
 void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** buffer, tU32* size) {
 
     PDReallyAllocateActionReplayBuffer();
@@ -138,7 +128,6 @@ void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** buffer, tU32* size) {
 }
 
 // FUNCTION: CARMA2_HW 0x00402410
-// FUNCTION: CARMA2_SW 0x00402410
 void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks) {
 
     if (pEnable) {
@@ -953,7 +942,7 @@ void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, undefined4 pAr
 // FUNCTION: CARMA2_HW 0x004c83f0
 void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar) {
 
-    ARDoSingleVariedSession(ePipe_chunk_single_graphical_wheel_stuff, (uintptr_t)pCar, 5,
+    ARDoSingleVariedSession(ePipe_chunk_single_graphpical_wheel_stuff, (uintptr_t)pCar, 5,
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, steering_angle), (tU16)(pCar->steering_angle * (32767.f / 60.f)),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lf_sus_position), pCar->lf_sus_position * 127.f * (20.f / 3.f),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rf_sus_position), pCar->rf_sus_position * 127.f * (20.f / 3.f),

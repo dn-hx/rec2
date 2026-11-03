@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "replay.h"
 
 #include "car.h"
@@ -316,14 +308,12 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32 *pFrame_period, tU32* pAvera
 }
 
 // FUNCTION: CARMA2_HW 0x00402360
-// FUNCTION: CARMA2_SW 0x00402360
 int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void) {
 
     return gReplay_rate == 0.f;
 }
 
 // FUNCTION: CARMA2_HW 0x00402390
-// FUNCTION: CARMA2_SW 0x00402390
 float C2_HOOK_FASTCALL ARGetReplayRate(void) {
     return gReplay_rate;
 }
@@ -347,7 +337,6 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004023a0
-// FUNCTION: CARMA2_SW 0x004023a0
 void C2_HOOK_FASTCALL ARSetReplayRate(float rate) {
     gReplay_rate = rate;
 }

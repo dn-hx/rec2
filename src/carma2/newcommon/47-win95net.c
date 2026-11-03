@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "47-win95net.h"
 
 #include "52-errors.h"
@@ -15,17 +7,20 @@
 
 #include <wsipx.h>
 
-// PDNetShutdown
-
 // StartLookup
 
-// PDNetStartProducingJoinList
-
-// PDNetEndJoinList
-
-// PDNetGetNextJoinGame
-
 // CreateNBPAddress
+
+// The remaining PDNet* entry points (Shutdown, StartProducingJoinList, EndJoinList,
+// GetNextJoinGame, JoinGame, LeaveGame, HostFinishGame, ObtainSystemUserName,
+// SendMessageToAddress, GetNextMessage, GetHeaderSize) are implemented in
+// src/carma2/platform/win32/win32net.c.
+
+// FUNCTION: CARMA2_HW 0x0051a070
+void C2_HOOK_FASTCALL PDNetDisposeGameDetails(void) {
+
+    dr_dprintf("PDNetDisposeGameDetails()");
+}
 
 // FUNCTION: CARMA2_HW 0x0051a080
 int C2_HOOK_FASTCALL PDNetHostGame(tNet_game_details* pDetails, char* pHost_name, void** pHost_address) {
@@ -34,32 +29,27 @@ int C2_HOOK_FASTCALL PDNetHostGame(tNet_game_details* pDetails, char* pHost_name
     return 1;
 }
 
-// PDNetJoinGame
-
-// PDNetLeaveGame
-
-// PDNetHostFinishGame
-
-// PDNetExtractGameID
-
-// PDNetExtractPlayerID
-
-// PDNetObtainSystemUserName
-
-// PDNetSendMessageToAddress
-
-// PDNetGetNextMessage
+// FUNCTION: CARMA2_HW 0x0051a0d0
+tU32 C2_HOOK_FASTCALL PDNetExtractGameID(tNet_game_details* pDetails) {
+    dr_dprintf("PDNetExtractGameID()");
+    dr_dprintf("...returning %8.8x",
+        ((((tU8*)pDetails->pd_net_info.addr)[8] << 8
+          | ((tU8*)pDetails->pd_net_info.addr)[9]) << 8
+         | ((tU8*)pDetails->pd_net_info.addr)[10]) << 8
+        | ((tU8*)pDetails->pd_net_info.addr)[11]);
+    return ((((tU8*)pDetails->pd_net_info.addr)[8] << 8
+             | ((tU8*)pDetails->pd_net_info.addr)[9]) << 8
+            | ((tU8*)pDetails->pd_net_info.addr)[10]) << 8
+           | ((tU8*)pDetails->pd_net_info.addr)[11];
+}
 
 // SetForRecieve
 
 // FUNCTION: CARMA2_HW 0x0051a5f0
-// FUNCTION: CARMA2_SW 0x005140d0
 void C2_HOOK_FASTCALL PDNetSetPlayerSystemInfo(tNet_game_player_info* pPlayer, void* pSender_address) {
     C2_HOOK_BUG_ON(sizeof(SOCKADDR_IPX) != 14);
 
     dr_dprintf("PDNetSetPlayerSystemInfo()");
     memcpy(pPlayer->pd_net_info.addr, pSender_address, sizeof(SOCKADDR_IPX));
 }
-
-// PDNetGetHeaderSize
 

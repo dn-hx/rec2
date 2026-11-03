@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "network.h"
 
 #include "controls.h"
@@ -537,12 +529,7 @@ tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize) {
     return message;
 }
 
-// FUNCTION: CARMA2_HW 0x0049f860
-tNet_message_chunk* C2_HOOK_FASTCALL NetAllocateMessageChunk(int pType, int pOption) {
-
-    NOT_IMPLEMENTED();
-    return NULL;
-}
+// NetAllocateMessageChunk (0x0049f860) is defined in 13-crush1.c
 
 // FUNCTION: CARMA2_HW 0x004a69b0
 tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec *pCar) {

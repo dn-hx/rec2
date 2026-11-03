@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "sdl3_input.h"
 
 #include "sdl3.h"
@@ -625,6 +617,15 @@ void C2_HOOK_FASTCALL PDSetJoystickFFBGain(int pGain) {
     if (!SDL_SetHapticGain(info->haptic, pGain)) {
         SDL_LogWarn(SDL_LOG_CATEGORY_INPUT, "Cannot set force feedback gain: %s", SDL_GetError());
     }
+}
+
+// No-op on SDL3: the constant/haptics forces are driven through PDSetJoystickFFBGain.
+int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude) {
+    return 0;
+}
+
+int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude) {
+    return 0;
 }
 
 tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void) {

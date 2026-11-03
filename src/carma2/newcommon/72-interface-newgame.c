@@ -1,20 +1,12 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "72-interface-newgame.h"
 
 #include "72-interface.h"
 
+extern tFrontend_spec gFrontend_MAIN;
+int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005bf280
-// GLOBAL: CARMA2_SW 0x005ba1b0
 tFrontend_spec gFrontend_NEWGAME = {
-#if 0 // FIXME: enable this
     "newgame",
     0,
     6,
@@ -36,7 +28,4 @@ tFrontend_spec gFrontend_NEWGAME = {
         { 2, ChooseSkill,   NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
         { 7, temp,          NULL, 1, 17, 18, 0, 0, 0, 0, 1, 1, },
     }
-#else
-    0
-#endif
 };

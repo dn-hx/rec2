@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "oil.h"
 
 #include "finteray.h"
@@ -269,7 +261,7 @@ void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
                         oil->stop_time = 0;
                         SetInitialOilStuff(oil, the_model);
                         if (gNet_mode == eNet_mode_host && oil->car != NULL) {
-                            message = NetBuildGuaranteedMessage(eNet_message_chunk_type_oil_spill, 0);
+                            message = NetBuildGuaranteedMessage(31, 0);
                             message->contents.oil_spill.player = NetPlayerFromCar(oil->car)->ID;
                             message->contents.oil_spill.full_size = oil->full_size;
                             message->contents.oil_spill.grow_rate = oil->grow_rate;

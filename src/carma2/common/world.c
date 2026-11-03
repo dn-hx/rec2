@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "world.h"
 
 #include "animation.h"
@@ -505,7 +497,6 @@ intptr_t C2_HOOK_CDECL ProcessMaterials(br_actor* pActor, material_cbfn* pCallba
 }
 
 // FUNCTION: CARMA2_HW 0x00448ea0
-// FUNCTION: CARMA2_SW 0x004492c0
 intptr_t C2_HOOK_CDECL SetAccessoryRenderingCB(br_actor* pActor, void* pFlag) {
     if (pActor->identifier != NULL && pActor->identifier[0] == '&') {
         pActor->render_style = *(br_uint_8*)pFlag;
@@ -523,7 +514,7 @@ void C2_HOOK_FASTCALL SetAccessoryRendering(int pOn) {
         } else {
             style = BR_RSTYLE_NONE;
         }
-        DRActorEnumRecurse(gTrack_actor, SetAccessoryRenderingCB, &style);
+        DRActorEnumRecurse(gTrack_actor, (br_actor_enum_cbfn*)SetAccessoryRenderingCB, &style);
     }
     gRendering_accessories = pOn;
 }
@@ -3267,7 +3258,7 @@ void C2_HOOK_FASTCALL ReadSmashTexture(tSmashable_item_spec* pSmash_item, tSmash
     pTexture_change->field_0x60 = 1.f;
     pTexture_change->field_0x64 = 0.f;
     pTexture_change->field_0x68 = 0.f;
-    ReadSmashLevels(pF,
+    LoadSmashableLevels(pF,
         &pTexture_change->levels,
         &pTexture_change->count_levels,
         pSmash_item->mode == kSmashableMode_TextureChange,
@@ -6165,7 +6156,7 @@ tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_vol
 }
 
 // FUNCTION: CARMA2_HW 0x004748a0
-void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue) {
+void C2_HOOK_FAKE_THISCALL ControlBoundFunkGroove(int pSlot_number, undefined4 pArg2, float pValue) {
 
     if (pSlot_number < 0) {
         return;
@@ -6179,7 +6170,7 @@ void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x004748e0
-float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, float pValue) {
+float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
 
     if (pSlot_number < 0) {
         return 0.f;

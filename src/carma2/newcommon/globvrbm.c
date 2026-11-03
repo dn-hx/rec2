@@ -1,14 +1,6 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "globvrbm.h"
 
-#ifdef REC2_HW
+
 // GLOBAL: CARMA2_HW 0x0074ca90
 br_actor* gPrat_actor;
 
@@ -24,8 +16,12 @@ br_actor* gStatbarHUD1_actor;
 // GLOBAL: CARMA2_HW 0x0074cab0
 br_actor* gHeadup2_actor;
 
+/* explicit initializers keep gMaterial and gHUDsquare_actor adjacent (loop-end compares) */
+// GLOBAL: CARMA2_HW 0x0074cee8
+br_material* gMaterial[2] = { NULL, NULL };
+
 // GLOBAL: CARMA2_HW 0x0074cef0
-br_actor* gHUDsquare_actor;
+br_actor* gHUDsquare_actor = NULL;
 
 // GLOBAL: CARMA2_HW 0x0074cf0c
 br_actor* gMapHUD_actor;
@@ -347,4 +343,3 @@ int gOffence_dim_x = 0x1c0;
 
 // GLOBAL: CARMA2_HW 0x00655f38
 int gOffence_dim_y = 0x31;
-#endif

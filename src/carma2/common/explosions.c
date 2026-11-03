@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "explosions.h"
 
 #include "animation.h"
@@ -113,7 +105,7 @@ void C2_HOOK_FASTCALL ReadExplosionInfo(FILE* pF, int* pChance_explosion, int* p
     ReadExplosion(pF, pExplosion_groups);
 }
 
-int C2_HOOK_FASTCALL PointOutOfSightNotAR(const br_vector3* pPoint, float pMax_distance) {
+int C2_HOOK_FAKE_THISCALL PointOutOfSightNotAR(const br_vector3* pPoint, undefined4 pArg2, float pMax_distance) {
 
     if (gAction_replay_mode) {
         return 1;
@@ -151,7 +143,7 @@ void C2_HOOK_FASTCALL MungeExplosions(void) {
             explosion->finished = 1;
             continue;
         }
-        if (PointOutOfSightNotAR(&explosion->collision_actor->t.t.translate.t, 0.f)) {
+        if (PointOutOfSightNotAR(&explosion->collision_actor->t.t.translate.t REC2_THISCALL_EDX, 0.f)) {
             if (explosion->actor->parent != NULL) {
                 BrActorRemove(explosion->actor);
             }

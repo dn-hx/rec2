@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "68-timer.h"
 
 #include "19-font.h"
@@ -15,16 +7,37 @@
 
 #include "c2_string.h"
 
-// GLOBAL: CARMA2_HW 0x006b7818
-// GLOBAL: CARMA2_SW 0x006ae4f8
-int gTimers_stack_size;
+/* UNCERTAIN: unknown 8 bytes before gTimers_stack, the second dword is only reached as gTimers_stack[-1] */
+int gUNK_006b75d8 = 0;
 
+// GLOBAL: CARMA2_HW 0x006b75dc
+int gUNK_006b75dc = 0;
+
+// GLOBAL: CARMA2_HW 0x006b75e0
+int gTimers_stack[8] = { 0 };
+
+/* explicit initializers keep this block adjacent and in address order as in the original (Timers_Init loop-end compare) */
 // GLOBAL: CARMA2_HW 0x006b7600
-tTimer gTimers[19];
+tTimer gTimers[19] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006b7814
-// GLOBAL: CARMA2_SW 0x006ae4f4
-int gTimers_max_index;
+int gTimers_max_index = 0;
+
+// GLOBAL: CARMA2_HW 0x006b7818
+int gTimers_stack_size = 0;
+
+// GLOBAL: CARMA2_HW 0x006b781c
+tRace_over_reason gRace_over_reason = 0;
+
+// GLOBAL: CARMA2_HW 0x006b7820
+tBrender_storage* gStorage_for_callbacks = NULL;
+
+/* UNCERTAIN: unknown, unreferenced 4 bytes (only seen as gTimers loop end) */
+// GLOBAL: CARMA2_HW 0x006b7824
+int gUNK_006b7824 = 0;
+
+
+
 
 // GLOBAL: CARMA2_HW 0x006aaa40
 int gTimers_draw_x;
@@ -45,14 +58,12 @@ tU32 gTimers_frame_end_time;
 int gTimers_draw_y;
 
 // GLOBAL: CARMA2_HW 0x006aaa58
-// GLOBAL: CARMA2_SW 0x006a44a8
 tU32 gTimers_frame_start_time;
 
 // GLOBAL: CARMA2_HW 0x006aaa5c
 tU32 gTimers_tolerance;
 
 // FUNCTION: CARMA2_HW 0x00504300
-// FUNCTION: CARMA2_SW 0x004ffc50
 void C2_HOOK_FASTCALL Timers_Init(void) {
     int i;
     int j;
@@ -109,7 +120,6 @@ void C2_HOOK_FASTCALL Timers_Init(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00504700
-// FUNCTION: CARMA2_SW 0x004ffef0
 void C2_HOOK_FASTCALL Timers_StartFrame(void) {
     int i;
 

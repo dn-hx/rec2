@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "shrapnel.h"
 
 #include "crush.h"
@@ -33,7 +25,7 @@ const char* gShrapnel_type_names[4] = {
 
 
 // GLOBAL: CARMA2_HW 0x006a3338
-int gShrapnel_child_count;
+int gShrapnel_ghost_actor_count;
 
 // GLOBAL: CARMA2_HW 0x006a5140
 br_actor* gSmashable_noncar_shrapnel_actors[100];
@@ -50,8 +42,8 @@ const char* gSmash_side_effect_direction_names[3] = {
 intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
     br_actor** pActorBuffer = data;
 
-    pActorBuffer[gShrapnel_child_count] = pActor;
-    gShrapnel_child_count += 1;
+    pActorBuffer[gShrapnel_ghost_actor_count] = pActor;
+    gShrapnel_ghost_actor_count += 1;
     return 0;
 }
 
@@ -151,10 +143,10 @@ void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs
                 spec->type_info.ghost.bounds_dx = bounds.max.v[0] - bounds.min.v[0];
                 spec->type_info.ghost.bounds_dy = bounds.max.v[1] - bounds.min.v[1];
 
-                gShrapnel_child_count = 0;
+                gShrapnel_ghost_actor_count = 0;
                 BrActorEnum(actor, AddGhostActorToBuffer, actor_buffer);
-                spec->type_info.ghost.count_actors = gShrapnel_child_count;
-                spec->type_info.ghost.actors = BrMemAllocate(gShrapnel_child_count * sizeof(br_actor*), kMem_smashable_env_info);
+                spec->type_info.ghost.count_actors = gShrapnel_ghost_actor_count;
+                spec->type_info.ghost.actors = BrMemAllocate(gShrapnel_ghost_actor_count * sizeof(br_actor*), kMem_smashable_env_info);
                 for (k = 0; k < spec->type_info.ghost.count_actors; k++) {
                     BrActorRemove(actor_buffer[k]);
                     spec->type_info.ghost.actors[k] = actor_buffer[k];

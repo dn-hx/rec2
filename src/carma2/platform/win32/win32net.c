@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "win32net.h"
 
 #include "win32.h"
@@ -25,11 +17,9 @@
 
 
 // GLOBAL: CARMA2_HW 0x006b3380
-// GLOBAL: CARMA2_SW 0x006acae0
 char gPathNetworkIni[240];
 
 // GLOBAL: CARMA2_HW 0x006ad4c4
-// GLOBAL: CARMA2_SW 0x006a6c4c
 int gPathNetworkIniValid;
 
 // GLOBAL: CARMA2_HW 0x006ac12c
@@ -87,21 +77,17 @@ char gSend_buffer[512];
 char gReceive_buffer[512];
 
 // GLOBAL: CARMA2_HW 0x006ac35c
-// GLOBAL: CARMA2_SW 0x006a58ac
 int gNumber_of_hosts;
 
 // GLOBAL: CARMA2_HW 0x006ac574
-// GLOBAL: CARMA2_SW 0x006a5ac4
 tPD_net_game_info* gJoinable_games;
 
 // FUNCTION: CARMA2_HW 0x0051a190
-// FUNCTION: CARMA2_SW 0x00513c70
 void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
     char buffer[16];
-    DWORD size;
+    DWORD size = sizeof(buffer);
     char *p;
 
-    size = sizeof(buffer);
     dr_dprintf("PDNetObtainSystemUserName()");
 
     if (GetComputerNameA(buffer, &size) && size != 0) {
@@ -114,7 +100,6 @@ void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051a010
-// FUNCTION: CARMA2_SW 0x00513af0
 void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr* pSock_addr) {
 
     sprintf(pString,
@@ -134,7 +119,6 @@ void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr
 }
 
 // FUNCTION: CARMA2_HW 0x00519560
-// FUNCTION: CARMA2_SW 0x00513040
 int C2_HOOK_FASTCALL PDNetInitialise(void) {
     char default_null;
     char s[32];
@@ -259,8 +243,10 @@ int C2_HOOK_FASTCALL PDNetInitialise(void) {
     return 0;
 }
 
+// LIBRARY: CARMA2_HW 0x0051de9a
+// _closesocket@4
+
 // FUNCTION: CARMA2_HW 0x00519a10
-// FUNCTION: CARMA2_SW 0x005134f0
 int C2_HOOK_FASTCALL PDNetShutdown(void) {
 
     dr_dprintf("PDNetShutdown()");
@@ -272,7 +258,6 @@ int C2_HOOK_FASTCALL PDNetShutdown(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00519a40
-// FUNCTION: CARMA2_SW 0x00513520
 void C2_HOOK_FASTCALL PDNetStartProducingJoinList(void) {
 
     C2_HOOK_BUG_ON(sizeof(tPD_net_game_info) * JOINABLE_GAMES_CAPACITY != 0x140);
@@ -286,7 +271,6 @@ void C2_HOOK_FASTCALL PDNetStartProducingJoinList(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00519a80
-// FUNCTION: CARMA2_SW 0x00513560
 void C2_HOOK_FASTCALL PDNetEndJoinList(void) {
 
     dr_dprintf("PDNetEndJoinList()");
@@ -410,7 +394,6 @@ int C2_HOOK_FASTCALL ReceiveHostResponses(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00519ab0
-// FUNCTION: CARMA2_SW 0x00513590
 int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex) {
     static tU32 next_broadcast_time = 0;
     int i;
@@ -451,14 +434,12 @@ int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex) 
 }
 
 // FUNCTION: CARMA2_HW 0x0051a6a0
-// FUNCTION: CARMA2_SW 0x00514180
 int C2_HOOK_FASTCALL PDNetGetHeaderSize(void) {
 
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0051a0a0
-// FUNCTION: CARMA2_SW 0x00513b80
 int C2_HOOK_FASTCALL PDNetJoinGame(tNet_game_details* pGame_details, const char* pName) {
 
     dr_dprintf("PDNetJoinGame()");
@@ -466,21 +447,18 @@ int C2_HOOK_FASTCALL PDNetJoinGame(tNet_game_details* pGame_details, const char*
 }
 
 // FUNCTION: CARMA2_HW 0x0051a0c0
-// FUNCTION: CARMA2_SW 0x00513ba0
 void C2_HOOK_FASTCALL PDNetHostFinishGame(void) {
 
     dr_dprintf("PDNetHostFinishGame()");
 }
 
 // FUNCTION: CARMA2_HW 0x0051a0b0
-// FUNCTION: CARMA2_SW 0x00513b90
 void C2_HOOK_FASTCALL PDNetLeaveGame(void) {
 
     dr_dprintf("PDNetLeaveGame()");
 }
 
 // FUNCTION: CARMA2_HW 0x0051a380
-// FUNCTION: CARMA2_SW 0x00513e60
 tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, void** pSender_address) {
     char addr_str[32];
     int sa_len;
@@ -526,8 +504,13 @@ tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, 
     return NULL;
 }
 
+// LIBRARY: CARMA2_HW 0x0051deca
+// _sendto@24
+
+// LIBRARY: CARMA2_HW 0x0051deb2
+// _WSAGetLastError@0
+
 // FUNCTION: CARMA2_HW 0x0051a630
-// FUNCTION: CARMA2_SW 0x00514110
 int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress) {
 
     /* FIXME: sizeof(struct sockaddr) == 16 */
@@ -538,5 +521,64 @@ int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet
         return 1;
     }
     NetDisposeMessage(pDetails,(tNet_message *)pMessage);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0051a210
+int C2_HOOK_FASTCALL PDNetSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer_id) {
+    int i;
+    char* p;
+    tPD_net_player_info* to;
+
+    i = 0;
+    if (0 < gNumber_of_net_players) {
+        p = gNet_players[0].pd_net_info.addr + 9;
+        while (i < gNumber_of_net_players) {
+            if (p[-1] == (char)(pPlayer_id >> 24) && p[0] == (char)(pPlayer_id >> 16) && p[1] == (char)(pPlayer_id >> 8) && p[2] == (char)pPlayer_id) {
+                to = &gNet_players[i].pd_net_info;
+                goto found;
+            }
+            i++;
+            p += sizeof(tNet_game_player_info);
+        }
+    }
+    to = NULL;
+found:
+    if (to != NULL && sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, (const struct sockaddr*)to, 14) == SOCKET_ERROR) {
+        dr_dprintf("PDNetSendMessageToPlayer(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+        NetDisposeMessage(pDetails, pMessage);
+        return 1;
+    }
+    NetDisposeMessage(pDetails, pMessage);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0051a2e0
+int C2_HOOK_FASTCALL PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage) {
+    int i;
+
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            if (sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, (const struct sockaddr*)&gNet_players[i].pd_net_info, 14) == SOCKET_ERROR) {
+                dr_dprintf("PDNetSendMessageToAllPlayers(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+                NetDisposeMessage(pDetails, pMessage);
+                return 1;
+            }
+        }
+    }
+    NetDisposeMessage(pDetails, pMessage);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0051a620
+void C2_HOOK_FASTCALL PDNetDisposePlayer(void) {
+
+    dr_dprintf("PDNetDisposePlayer()");
+}
+
+// FUNCTION: CARMA2_HW 0x0051a690
+int C2_HOOK_FASTCALL PDNetInitClient(void) {
+
+    dr_dprintf("PDNetInitClient()");
     return 0;
 }

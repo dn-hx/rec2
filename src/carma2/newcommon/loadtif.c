@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "loadtif.h"
 
 #include "08-loading1.h"
@@ -149,7 +141,6 @@ int C2_HOOK_FASTCALL CheckPixOutdated(const char* pDirectory, const char* pStem,
 }
 
 // FUNCTION: CARMA2_HW 0x00485750
-// FUNCTION: CARMA2_SW 0x00482890
 br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex2(const char* pDirectory, const char* pFile_stem, br_pixelmap* pPalette, int pFlags, int* pError_code, int pTiff_palette) {
     tPath_name tif_path;
     tPath_name pix_path;
@@ -241,27 +232,146 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex2(const char* pDirectory, const 
 }
 
 // FUNCTION: CARMA2_HW 0x004856c0
-// FUNCTION: CARMA2_SW 0x00482800
 br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex(const char* pDirectory, const char* pFile_stem, br_pixelmap* pPalette, int pFlags, int* pError_code) {
     br_pixelmap* texture;
 
-    if ((pFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp
-            || (texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 1)) == NULL) {
-        texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 0);
+    if ((pFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
+        goto load_palette;
     }
+    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 1);
     if (texture != NULL) {
-        texture->identifier = BrResStrDup(texture, pFile_stem);
-        if (texture->identifier == NULL) {
-            BrPixelmapFree(texture);
-            *pError_code = 2;
-            return NULL;
-        }
+        goto identifier;
     }
+load_palette:
+    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 0);
+    if (texture == NULL) {
+        goto return_texture;
+    }
+identifier:
+    texture->identifier = BrResStrDup(texture, pFile_stem);
+    if (texture->identifier == NULL) {
+        BrPixelmapFree(texture);
+        *pError_code = 2;
+        return NULL;
+    }
+return_texture:
     return texture;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00486860
+int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data) {
+    int stemLength;
+    tPath_name textureName;
+    tLoadDirectoryStructureCBResult* itemResult;
+    br_pixelmap* texture;
+    const char* directory;
+    br_pixelmap* pPalette;
+    int loadFlags;
+    int* errorCode;
+
+    stemLength = (int)strlen(filePath) - 4;
+    if (stemLength <= 0) {
+        return 0;
+    }
+    if (PDstrcmpi(filePath + stemLength, ".TIF") != 0) {
+        return 0;
+    }
+    sprintf(textureName, "%.*s", stemLength, filePath);
+    if (!data->isTiffx && data->results != NULL) {
+        itemResult = data->results;
+        while (itemResult != NULL) {
+            if (PDstrcmpi(textureName, itemResult->name) == 0) {
+                break;
+            }
+            itemResult = itemResult->next;
+        }
+        if (itemResult != NULL) {
+            return 0;
+        }
+    }
+    directory = data->directory;
+    pPalette = data->pPalette;
+    loadFlags = data->loadFlags;
+    errorCode = data->errorCode;
+    texture = NULL;
+    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
+        texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 1);
+    }
+    if (texture == NULL) {
+        texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 0);
+    }
+    if (texture != NULL) {
+        texture->identifier = BrResStrDup(texture, textureName);
+        if (texture->identifier == NULL) {
+            BrPixelmapFree(texture);
+            *errorCode = 2;
+            texture = NULL;
+        }
+    }
+    if (texture != NULL) {
+        BrPixelmapFree(texture);
+    }
+    if (*errorCode != 0) {
+        return *errorCode;
+    }
+    if (!data->isTiffx) {
+        return 0;
+    }
+    itemResult = BrMemAllocate(sizeof(*itemResult), BR_MEMORY_APPLICATION);
+    if (itemResult == NULL) {
+        *errorCode = 2;
+        return 2;
+    }
+    itemResult->name = BrMemStrDup(textureName);
+    if (itemResult->name == NULL) {
+        *errorCode = 2;
+        return 2;
+    }
+    itemResult->next = data->results;
+    data->results = itemResult;
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00486760
+void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode) {
+    tLoadDirectoryStructureCBData data;
+    tLoadDirectoryStructureCBResult* nextItem;
+    tPath_name pathBuffer;
+
+    data.directory = directory;
+    data.pPalette = pPalette;
+    data.loadFlags = loadFlags | kLoadTextureFlags_SaveBrenderTexture;
+    data.errorCode = errorCode;
+    data.results = NULL;
+    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
+        sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFX");
+        data.isTiffx = 0x1;
+        PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+    }
+    if (*errorCode != 0) {
+        return;
+    }
+    sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFRGB");
+    data.isTiffx = 0x0;
+    PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+
+    while (data.results != NULL) {
+        nextItem = data.results->next;
+        if (data.results->name != NULL) {
+            BrMemFree(data.results->name);
+        }
+        BrMemFree(data.results);
+        data.results = nextItem;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004869e0
-// FUNCTION: CARMA2_SW 0x00483b20
 int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
     FILE* f;
     char s1[256];
@@ -313,7 +423,6 @@ int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
 }
 
 // FUNCTION: CARMA2_HW 0x00486b20
-// FUNCTION: CARMA2_SW 0x00483c60
 int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_source) {
     char *ptr;
     FILE *f;
@@ -345,7 +454,6 @@ int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_sou
 }
 
 // FUNCTION: CARMA2_HW 0x00486be0
-// FUNCTION: CARMA2_SW 0x00483d20
 int C2_HOOK_FASTCALL PDGetLastModificationTime(const char* pPath) {
     struct stat statbuf;
 
@@ -356,7 +464,6 @@ int C2_HOOK_FASTCALL PDGetLastModificationTime(const char* pPath) {
 }
 
 // FUNCTION: CARMA2_HW 0x00486c00
-// FUNCTION: CARMA2_SW 0x00483d40
 int C2_HOOK_FASTCALL PDFileExists(const char *pPath) {
     struct stat statbuf;
 
@@ -366,7 +473,6 @@ int C2_HOOK_FASTCALL PDFileExists(const char *pPath) {
 // PDmkdir
 
 // FUNCTION: CARMA2_HW 0x00485fe0
-// FUNCTION: CARMA2_SW 0x00483120
 br_pixelmap* C2_HOOK_FASTCALL LoadTiff8bit(const char *pPath, int pFlags, int *pError_code) {
     TIFF* tif;
     br_pixelmap* pm;
@@ -445,7 +551,6 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiff8bit(const char *pPath, int pFlags, int *p
 }
 
 // FUNCTION: CARMA2_HW 0x004864a0
-// FUNCTION: CARMA2_SW 0x004835e0
 br_pixelmap* C2_HOOK_FASTCALL LoadTiff16bit(const char *pPath, int pFlags, int *pError_code) {
     TIFF* tif;
     br_pixelmap* pm;
@@ -602,7 +707,6 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiffUsingPalette(const char* pPath, br_pixelma
 }
 
 // FUNCTION: CARMA2_HW 0x00486240
-// FUNCTION: CARMA2_SW 0x00483380
 int C2_HOOK_FASTCALL DRstrrcasestr(int* pOffset, const char* pHaystack, int pLength_haystack, const char* pNeedle) {
     int len_needle;
     int pos_haystack;
@@ -699,7 +803,6 @@ int C2_HOOK_FASTCALL FindPaletteColourXRGB8888(br_colour pColour, br_pixelmap *p
 }
 
 // FUNCTION: CARMA2_HW 0x004862b0
-// FUNCTION: CARMA2_SW 0x004833f0
 int C2_HOOK_FASTCALL FindPaletteColour(br_colour pColour, br_pixelmap *pPalette) {
 
     if (pPalette->type == BR_PMT_RGB_565) {
@@ -708,3 +811,24 @@ int C2_HOOK_FASTCALL FindPaletteColour(br_colour pColour, br_pixelmap *pPalette)
         return FindPaletteColourXRGB8888(pColour, pPalette);
     }
 }
+
+/* rec2 runtime fix, no original counterpart: CARMA2_HW's statically linked libtiff never had default
+ * handlers. TIFFWarning (0x554081) and TIFFError (0x5532b5) call the handler globals at 0x6b1260 /
+ * 0x6b1264, which sit in .bss (NULL) and are never written (TIFFSetWarningHandler 0x554060 and
+ * TIFFSetErrorHandler 0x553290 have no callers). The libtiff-3.4 Win32 port we link (tif_win32.c)
+ * installs MessageBox handlers instead, which block the game on harmless warnings such as
+ * "unknown field with tag 34377" in LOADSCRN.TIF. Reset both handlers to NULL before main runs,
+ * through a CRT initializer, so no matched function changes. */
+#if defined(__GNUC__)
+__attribute__((constructor))
+#endif
+static void C2_HOOK_CDECL Rec2SilenceTiffHandlers(void) {
+    TIFFSetWarningHandler(NULL);
+    TIFFSetErrorHandler(NULL);
+}
+
+#if defined(_MSC_VER)
+#pragma data_seg(".CRT$XCU")
+void (C2_HOOK_CDECL *gRec2_silence_tiff_handlers)(void) = Rec2SilenceTiffHandlers;
+#pragma data_seg()
+#endif

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "displays.h"
 
 #include "controls.h"
@@ -637,8 +629,12 @@ void C2_HOOK_FASTCALL KillOldestQueuedHeadup(void) {
 // FUNCTION: CARMA2_HW 0x004497b0
 void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
 
+    int size = gQueued_headup_count * sizeof(tQueued_headup);
+
     while (gQueued_headup_count != 0) {
-        KillOldestQueuedHeadup();
+        size -= sizeof(tQueued_headup);
+        gQueued_headup_count -= 1;
+        memcpy(&gQueued_headups[0], &gQueued_headups[1], size);
     }
 }
 
@@ -1288,11 +1284,6 @@ void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time) {
     if (&gProgram_state.current_car != gCar_to_view) {
         return;
     }
-#ifdef REC2_SW
-    if (gHeadup_detail_level == 1 || gHeadup_detail_level == 3) {
-        return;
-    }
-#endif
     if (gProgram_state.cockpit_on && gProgram_state.cockpit_image_index >= 0) {
         if (gProgram_state.which_view != eView_forward) {
             return;
@@ -1303,9 +1294,8 @@ void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time) {
         the_wobble_x = gProgram_state.current_car.damage_x_offset;
         the_wobble_y = gProgram_state.current_car.damage_y_offset;
     }
-#ifdef REC2_HW
+
     DRPixelmapCopy(gDamage_hud, gGrey_top5);
-#endif
 
     for (i = 0; i < REC2_ASIZE(gProgram_state.current_car.damage_units); i++) {
         the_damage = &gProgram_state.current_car.damage_units[i];

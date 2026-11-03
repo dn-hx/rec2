@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "35-intrface.h"
 
 #include "08-loading1.h"
@@ -18,53 +10,40 @@
 #include "globvars.h"
 #include "platform.h"
 
-#include "c2_string.h"
-
 // GLOBAL: CARMA2_HW 0x0068c1f0
-// GLOBAL: CARMA2_SW 0x00686238
 int gAlways_typing;
 
 // GLOBAL: CARMA2_HW 0x0068c1ec
-// GLOBAL: CARMA2_SW 0x00686234
 int gDisabled_count;
 
 // GLOBAL: CARMA2_HW 0x0068c1f8
-// GLOBAL: CARMA2_SW 0x00686240
 int gDisabled_choices[10];
 
 // GLOBAL: CARMA2_HW 0x0075b8fc
-// GLOBAL: CARMA2_SW 0x00751e5c
 int gTyping_slot;
 
 // GLOBAL: CARMA2_HW 0x0068c1e8
-// GLOBAL: CARMA2_SW 0x00686230
 const tInterface_spec* gSpec;
 
 // GLOBAL: CARMA2_HW 0x0068c220
-// GLOBAL: CARMA2_SW 0x00686268
 int gCurrent_mode;
 
 // GLOBAL: CARMA2_HW 0x0068c224
-// GLOBAL: CARMA2_SW 0x0068626c
 int gCurrent_choice;
 
 // GLOBAL: CARMA2_HW 0x0068c228
-// GLOBAL: CARMA2_SW 0x00686270
 tU32 gStart_time;
 
 // GLOBAL: CARMA2_HW 0x0079ecb8
-// GLOBAL: CARMA2_SW 0x00795244
 int gMouse_in_use;
 
 // FUNCTION: CARMA2_HW 0x00484620
-// FUNCTION: CARMA2_SW 0x00481760
 void C2_HOOK_FASTCALL SetAlwaysTyping(void) {
 
     gAlways_typing = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x00484630
-// FUNCTION: CARMA2_SW 0x00481770
 void C2_HOOK_FASTCALL ClearAlwaysTyping(void) {
 
     gAlways_typing = 0;
@@ -81,8 +60,6 @@ int C2_HOOK_FASTCALL ChoiceDisabled(int pChoice) {
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x00484640
-// FUNCTION: CARMA2_SW 0x00481780
 void C2_HOOK_FASTCALL ResetInterfaceTimeout__intrface(void) {
 
     gStart_time = PDGetTotalTime();
@@ -102,22 +79,7 @@ void C2_HOOK_FASTCALL DisableChoice(int pChoice) {
     gDisabled_count++;
 }
 
-// FUNCTION: CARMA2_HW 0x00484680
-// FUNCTION: CARMA2_SW 0x004817c0
-void C2_HOOK_FASTCALL EnableChoice(int pChoice) {
-    int i;
-
-    for (i = 0; i < gDisabled_count; i++) {
-        if (gDisabled_choices[i] == pChoice) {
-            memcpy(&gDisabled_choices[i], &gDisabled_choices[i + 1], (gDisabled_count - i - 1) * sizeof(gDisabled_choices[0]));
-            gDisabled_count--;
-            break;
-        }
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x00484dd0
-// FUNCTION: CARMA2_SW 0x00481f10
 void C2_HOOK_FASTCALL ChangeSelection(const tInterface_spec* pSpec, int* pOld_selection, int* pNew_selection, int pMode, int pSkip_disabled) {
 
     if (ChoiceDisabled(*pNew_selection)) {
@@ -158,8 +120,12 @@ void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec) {
     // empty
 }
 
+// FUNCTION: CARMA2_HW 0x00484640
+void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void) {
+    gStart_time = PDGetTotalTime();
+}
+
 // FUNCTION: CARMA2_HW 0x004846e0
-// FUNCTION: CARMA2_SW 0x00481820
 int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice) {
     tProg_status entry_status;
     int i;
@@ -388,7 +354,6 @@ void C2_HOOK_FASTCALL ChangeSelectionTo(int pNew_choice, int pNew_mode) {
 }
 
 // FUNCTION: CARMA2_HW 0x00484f40
-// FUNCTION: CARMA2_SW 0x00482080
 int C2_HOOK_FASTCALL WhichItemIsSelectedIn(tFrontend_spec* pFrontend, int pGroup) {
     int i;
 
@@ -403,7 +368,6 @@ int C2_HOOK_FASTCALL WhichItemIsSelectedIn(tFrontend_spec* pFrontend, int pGroup
 }
 
 // FUNCTION: CARMA2_HW 0x00484f70
-// FUNCTION: CARMA2_SW 0x004820b0
 void C2_HOOK_FASTCALL SelectThisItemIn(tFrontend_spec* pFrontend, int pGroup, int pValue) {
     int i;
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "init.h"
 
 #include "car.h"
@@ -1474,7 +1466,7 @@ void C2_HOOK_FASTCALL InitRace(void) {
     gShow_peds_on_map = 0;
 
     PossibleService();
-    SetCarSuspGiveAndHeight(&gProgram_state.current_car, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+    SetCarSuspGiveAndHeight(&gProgram_state.current_car REC2_THISCALL_EDX, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
     ResetPowerups();
     PossibleService();
     ResetSparks();

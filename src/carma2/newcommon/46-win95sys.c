@@ -1,15 +1,8 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "46-win95sys.h"
 
 #include "08-loading1.h"
 #include "platform.h"
+#include "08-loading1.h"
 
 // FUN_100bf5a4
 
@@ -166,9 +159,8 @@ void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051b9d0
-// FUNCTION: CARMA2_SW 0x005157a0
-void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
-    (void)pBuffer;
+void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer) {
+
 }
 
 // PDInitJoysticks

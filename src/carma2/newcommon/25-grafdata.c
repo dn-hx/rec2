@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "25-grafdata.h"
 
 #include "52-errors.h"
@@ -14,7 +6,6 @@
 #include "rec2_types.h"
 
 // GLOBAL: CARMA2_HW 0x00655f58
-// GLOBAL: CARMA2_SW 0x00650d68
 tGraf_data gGraf_data[2] = {
     {
         320,
@@ -679,19 +670,15 @@ tGraf_data gGraf_data[2] = {
 };
 
 // GLOBAL: CARMA2_HW 0x0074d630
-// GLOBAL: CARMA2_SW 0x00743b90
 int gGraf_data_index;
 
 // GLOBAL: CARMA2_HW 0x0074b770
-// GLOBAL: CARMA2_SW 0x00741e30
 int gReal_graf_data_index;
 
 // GLOBAL: CARMA2_HW 0x0074b774
-// GLOBAL: CARMA2_SW 0x00741e34
 tGraf_data* gCurrent_graf_data;
 
 // FUNCTION: CARMA2_HW 0x0047b3e0
-// FUNCTION: CARMA2_SW 0x0047a940
 void C2_HOOK_FASTCALL CalcGrafDataIndex(void) {
     int i;
 

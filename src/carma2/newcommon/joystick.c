@@ -1,48 +1,34 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "joystick.h"
 
 #include "08-loading1.h"
 #include "41-utility.h"
 #include "globvars.h"
 #include "platform.h"
+#include "15-displays.h"
 
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
 
 // GLOBAL: CARMA2_HW 0x00595f84
-// GLOBAL: CARMA2_SW 0x00590ee4
 int gINT_00595f84 = 7500;
 
 // GLOBAL: CARMA2_HW 0x00595f88
-// GLOBAL: CARMA2_SW 0x00590ee8
 int gJoystick_index = -1;
 
 // GLOBAL: CARMA2_HW 0x00595f90
-// GLOBAL: CARMA2_SW 0x00590ef0
 float gJoystick_x_steering = 1.f;
 
 // GLOBAL: CARMA2_HW 0x00595f94
-// GLOBAL: CARMA2_SW 0x00590ef4
 float gJoystick_y_throttle = 1.f;
 
 // GLOBAL: CARMA2_HW 0x00596310
-// GLOBAL: CARMA2_SW 0x00591270
 int gINT_00596310 = 50;
 
 // GLOBAL: CARMA2_HW 0x00686184
-// GLOBAL: CARMA2_SW 0x006808c4
 int gJoystick_preferences_backup_valid;
 
 // GLOBAL: CARMA2_HW 0x0079d8c0
-// GLOBAL: CARMA2_SW 0x00793e20
 tButtonJoystickInfo gJoystick_preferences_backup;
 
 typedef struct tJoystick_preference_node {
@@ -50,19 +36,92 @@ typedef struct tJoystick_preference_node {
     struct tJoystick_preference_node* next;
 } tJoystick_preference_node;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045a0f0
-// FUNCTION: CARMA2_SW 0x00459e80
 int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+/* DirectInput 5 type subset, declared locally: the DirectX SDK include directory
+   is only visible to the platform target, not to newcommon.  Layouts match the
+   SDK headers (DIEFFECT is 0x34 bytes, matching tJoystick_force_effect in
+   win32_types.h, whose name field sits at 0x68). */
+typedef struct {
+    tU32 dwSize;
+    tU32 dwFlags;
+    tU32 dwDuration;
+    tU32 dwSamplePeriod;
+    tU32 dwGain;
+    tU32 dwTriggerButton;
+    tU32 dwTriggerRepeatInterval;
+    tU32 cAxes;
+    tU32* rgdwAxes;
+    tS32* rglDirection;
+    void* lpEnvelope;
+    tU32 cbTypeSpecificParams;
+    void* lpvTypeSpecificParams;
+} tDIEFFECT;
+
+typedef struct {
+    tU32 Data1;
+    tU16 Data2;
+    tU16 Data3;
+    tU8 Data4[8];
+} tGUID;
+
+typedef struct {
+    tDIEFFECT di_effect;
+    tU8 type_specific_params[24];
+    tU8 field_0x4c[20];
+    tS32 field_0x60;
+    tU32 field_0x64;
+    char name[128];
+} tJoystickForceEffect;
+
+typedef struct tJoystick_effect_spec {
+    tGUID guid;
+    const tDIEFFECT* effect;
+} tJoystick_effect_spec;
+
+typedef struct tDirectInputEffect tDirectInputEffect;
+
+typedef struct tDirectInputDeviceVtbl {
+    void* vtbl_0x00[18];
+    int (C2_HOOK_STDCALL* CreateEffect)(void* pDevice, const tGUID* pGuid, tDIEFFECT* pEffect, tDirectInputEffect** ppEffect, void* pUnkOuter);
+} tDirectInputDeviceVtbl;
+
+typedef struct tDirectInputDevice2A {
+    tDirectInputDeviceVtbl* lpVtbl;
+} tDirectInputDevice2A;
+
+extern tJoystickForceEffect gJoystick_effects[30];
+extern int gCount_joystick_effects;
+extern tDirectInputEffect* gDirectInputEffects[30];
+extern tDirectInputDevice2A* gDirectInputJoystickDevices[16];
+
+// FUNCTION: CARMA2_HW 0x0045a100
+int C2_HOOK_FASTCALL CreateDinputEffectFromSpec(int pJoystickIndex, const tJoystick_effect_spec* pEffectSpec, const char* pName) {
+    tDirectInputDevice2A* device;
+
+    memcpy(&gJoystick_effects[gCount_joystick_effects].di_effect, pEffectSpec->effect, sizeof(tDIEFFECT));
+    device = gDirectInputJoystickDevices[pJoystickIndex];
+    device->lpVtbl->CreateEffect(device, &pEffectSpec->guid, &gJoystick_effects[gCount_joystick_effects].di_effect, &gDirectInputEffects[gCount_joystick_effects], NULL);
+    strcpy(gJoystick_effects[gCount_joystick_effects].name, pName);
+    gCount_joystick_effects += 1;
+    return gCount_joystick_effects - 1;
+}
 
 // FUNCTION: CARMA2_HW 0x0045a2e0
-// FUNCTION: CARMA2_SW 0x0045a070
-void C2_HOOK_FASTCALL PeekCharacter(FILE* pF) {
+int C2_HOOK_FASTCALL PeekChar(FILE* pFile) {
     char c;
 
-    c = (char)fgetc(pF);
-    ungetc(c, pF);
+    c = fgetc(pFile);
+    return ungetc(c, pFile);
 }
 
 // FUNCTION: CARMA2_HW 0x0045a300
@@ -84,7 +143,6 @@ int C2_HOOK_FASTCALL ReadUntilCharacter(FILE* pF, char* pBuffer, int pBuffer_siz
 }
 
 // FUNCTION: CARMA2_HW 0x0045b920
-// FUNCTION: CARMA2_SW 0x0045b3a0
 int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo) {
     char s[256];
     char joystick_name[256];
@@ -120,7 +178,6 @@ int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInf
 }
 
 // FUNCTION: CARMA2_HW 0x0045b7e0
-// FUNCTION: CARMA2_SW 0x0045b260
 int C2_HOOK_FASTCALL FindJoystickPreferences(FILE* pF, const char* pJoystick_name) {
     fpos_t position;
     char joystick_name[256];
@@ -158,7 +215,6 @@ int C2_HOOK_FASTCALL FindJoystickPreferences(FILE* pF, const char* pJoystick_nam
 }
 
 // FUNCTION: CARMA2_HW 0x0045bbc0
-// FUNCTION: CARMA2_SW 0x0045b640
 int C2_HOOK_FASTCALL ReadJoystickPreferences(FILE* pF, tButtonJoystickInfo* pInfo) {
     char s[256];
     size_t count_buttons;
@@ -188,7 +244,6 @@ int C2_HOOK_FASTCALL ReadJoystickPreferences(FILE* pF, tButtonJoystickInfo* pInf
 }
 
 // FUNCTION: CARMA2_HW 0x0045bcc0
-// FUNCTION: CARMA2_SW 0x0045b740
 int C2_HOOK_FASTCALL CountJoystickPreferences(FILE* pF) {
     char s[256];
     int count = 0;
@@ -212,7 +267,6 @@ int C2_HOOK_FASTCALL CountJoystickPreferences(FILE* pF) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045bd90
-// FUNCTION: CARMA2_SW 0x0045b810
 int C2_HOOK_FASTCALL SaveJoystickPreferences(void) {
     tPath_name path;
     char error[256];
@@ -331,7 +385,6 @@ int C2_HOOK_FASTCALL SaveJoystickPreferences(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045bd50
-// FUNCTION: CARMA2_SW 0x0045b7d0
 void C2_HOOK_FASTCALL EnableJoysticks(void) {
     tButtonJoystickInfo* info;
 
@@ -343,7 +396,6 @@ void C2_HOOK_FASTCALL EnableJoysticks(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045bd70
-// FUNCTION: CARMA2_SW 0x0045b7f0
 void C2_HOOK_FASTCALL DisableJoysticks(void) {
     tButtonJoystickInfo* info;
 
@@ -355,7 +407,6 @@ void C2_HOOK_FASTCALL DisableJoysticks(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c0b0
-// FUNCTION: CARMA2_SW 0x0045bb30
 int C2_HOOK_FASTCALL LoadJoystickPreferences(void) {
     tPath_name path;
     tButtonJoystickInfo* info;
@@ -395,7 +446,6 @@ int C2_HOOK_FASTCALL LoadJoystickPreferences(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c1e0
-// FUNCTION: CARMA2_SW 0x0045bc60
 void C2_HOOK_FASTCALL BackupJoystickPreferences(void) {
     tButtonJoystickInfo* info;
 
@@ -407,7 +457,6 @@ void C2_HOOK_FASTCALL BackupJoystickPreferences(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c210
-// FUNCTION: CARMA2_SW 0x0045bc90
 void C2_HOOK_FASTCALL RestoreJoystickPreferences(void) {
     tButtonJoystickInfo* info;
 
@@ -419,6 +468,9 @@ void C2_HOOK_FASTCALL RestoreJoystickPreferences(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c460
 int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     tButtonJoystickInfo* info;
@@ -431,9 +483,50 @@ int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     }
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+// FUNCTION: CARMA2_HW 0x0045c490
+void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue) {
+
+    tButtonJoystickInfo* joystick;
+
+    joystick = PDGetCurrentJoystickData();
+    if (joystick != NULL) {
+        joystick->field_0xd8 = pValue;
+        if (joystick->field_0xd8 > 2.0) {
+            joystick->field_0xd8 = 2.0f;
+        }
+        if (joystick->field_0xd8 < 0.0) {
+            joystick->field_0xd8 = 0.0f;
+        }
+        gJoystick_x_steering = joystick->field_0xd8;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0045c4f0
+void C2_HOOK_FASTCALL SetJoystickYAxis(float pValue) {
+
+    tButtonJoystickInfo* joystick;
+
+    joystick = PDGetCurrentJoystickData();
+    if (joystick != NULL) {
+        joystick->field_0xdc = pValue;
+        if (joystick->field_0xdc > 2.0) {
+            joystick->field_0xdc = 2.0f;
+        }
+        if (joystick->field_0xdc < 0.0) {
+            joystick->field_0xdc = 0.0f;
+        }
+        gJoystick_y_throttle = joystick->field_0xdc;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c570
-// FUNCTION: CARMA2_SW 0x0045bfb0
 void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     tButtonJoystickInfo* info;
 
@@ -442,9 +535,37 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
         info->field_0xe0 = pEnabled;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+typedef struct {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
+
+extern tJoystick_headup_text gJoystick_headup_texts[21];
+
+// FUNCTION: CARMA2_HW 0x0045c590
+unsigned int C2_HOOK_FASTCALL GetJoystickButtonIndexForKey(int pKey) {
+    tButtonJoystickInfo* joystick_info;
+    unsigned int i;
+
+    joystick_info = PDGetCurrentJoystickData();
+    if (joystick_info != NULL) {
+        for (i = 0; i < joystick_info->count_buttons; i++) {
+            if (gJoystick_headup_texts[joystick_info->buttons[i]].key == pKey) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0045c780
-// FUNCTION: CARMA2_SW 0x0045c1c0
 int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
 
     gINT_00596310 += 25;
@@ -454,9 +575,11 @@ int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
     PDSetJoystickFFBGain(gINT_00596310);
     return gINT_00596310;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045c7b0
-// FUNCTION: CARMA2_SW 0x0045c1f0
 void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue) {
     tButtonJoystickInfo* info;
 
@@ -475,7 +598,6 @@ void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c7f0
-// FUNCTION: CARMA2_SW 0x0045c230
 int C2_HOOK_FASTCALL GetJoystickFBBGain(void) {
     tButtonJoystickInfo* info;
 
@@ -487,7 +609,6 @@ int C2_HOOK_FASTCALL GetJoystickFBBGain(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c810
-// FUNCTION: CARMA2_SW 0x0045c250
 void C2_HOOK_FASTCALL SetJoystickX(float pValue) {
     tButtonJoystickInfo* info;
 
@@ -505,7 +626,6 @@ void C2_HOOK_FASTCALL SetJoystickX(float pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c870
-// FUNCTION: CARMA2_SW 0x0045c2b0
 void C2_HOOK_FASTCALL SetJoystickY(float pValue) {
     tButtonJoystickInfo* info;
 
@@ -523,7 +643,6 @@ void C2_HOOK_FASTCALL SetJoystickY(float pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c8d0
-// FUNCTION: CARMA2_SW 0x0045c310
 float C2_HOOK_FASTCALL GetJoystickX(void) {
     tButtonJoystickInfo* info;
 
@@ -535,7 +654,6 @@ float C2_HOOK_FASTCALL GetJoystickX(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0045c8f0
-// FUNCTION: CARMA2_SW 0x0045c330
 float C2_HOOK_FASTCALL GetJoystickY(void) {
     tButtonJoystickInfo* info;
 
@@ -544,4 +662,52 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
         return info->field_0xdc;
     }
     return gJoystick_y_throttle;
+}
+
+// FUNCTION: CARMA2_HW 0x00511280
+void C2_HOOK_FASTCALL ToggleJoystickYAxis(void) {
+    char buffer[256];
+
+    if (ToggleJoystickThrottle()) {
+        sprintf(buffer, "Y Axis Enabled");
+    } else {
+        sprintf(buffer, "Y Axis Disabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x005112d0
+void C2_HOOK_FASTCALL ToggleJoystickEnable(void) {
+    char buffer[256];
+
+    if (HasCurrentJoystick()) {
+        PDDisableJoysticks();
+        sprintf(buffer, "Joystick Disabled");
+    } else {
+        PDEnableJoysticks();
+        sprintf(buffer, "Joystick Enabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x00511330
+void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
+    char buffer[256];
+
+    if (PDIsJoystickDPadEnabled()) {
+        SetJoystickDPadEnabled(0);
+        sprintf(buffer, "D-Pad Mode Disabled");
+    } else {
+        SetJoystickDPadEnabled(1);
+        sprintf(buffer, "D-Pad Mode Enabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
+}
+
+// FUNCTION: CARMA2_HW 0x00511390
+void C2_HOOK_FASTCALL IncreaseJoystickFFB(void) {
+    char buffer[256];
+
+    sprintf(buffer, "FFB Gain Set to %d%%", CycleJoystickFFBGain());
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
 }

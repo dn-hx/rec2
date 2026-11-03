@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "tinted.h"
 
 #include "finteray.h"
@@ -524,9 +516,7 @@ void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex) {
 
 // FUNCTION: CARMA2_HW 0x004d8290
 void C2_HOOK_FASTCALL RenderTintedPolys(void) {
-#ifdef REC2_HW
     BrZbsSceneRender(gTintedPolyCamera, gTintedPolyCamera, gBack_screen, gDepth_buffer);
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x004d82b0

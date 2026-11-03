@@ -1,26 +1,10 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "65-hull.h"
 
 // GLOBAL: CARMA2_HW 0x0067942c
-// GLOBAL: CARMA2_SW 0x00673b9c
 tCollision_shape_polyhedron_data* gPolyhedron_to_sort;
 
 // GLOBAL: CARMA2_HW 0x00679420
-// GLOBAL: CARMA2_SW 0x00673b90
 br_vector3 gPhysics_reference_normal_comparison;
-
-// STUB: CARMA2_HW 0x00420910
-// STUB: CARMA2_SW 0x00420990
-tPhysicsError C2_HOOK_FASTCALL ConvexHull2D(tCollision_shape_polyhedron_data* pPolyhedron) {
-    NOT_IMPLEMENTED();
-}
 
 // FUNCTION: CARMA2_HW 0x00420d60
 br_scalar C2_HOOK_FASTCALL SignedTwiceAreaOf3DTriangle(const br_vector3* pV1, const br_vector3* pV2) {
@@ -38,8 +22,10 @@ br_scalar C2_HOOK_FASTCALL SignedTwiceAreaOf3DTriangle(const br_vector3* pV1, co
 #pragma inline_depth(0)
 #endif
 
+// PARTIAL 97.09 (EFFECTIVE, operand encodings only): the original encodes the tv1 component loads as
+// [edx+ecx] (base=points) while VC11 always emits [ecx+edx]; registers and addresses are identical.
+// Not source-controllable (SIB base/index encoder choice, VC5 vs VC11).
 // FUNCTION: CARMA2_HW 0x00420dc0
-// FUNCTION: CARMA2_SW 0x00420e40
 int C2_HOOK_CDECL CompareAngle(const void *pLhs, const void *pRhs) {
     tCollision_shape_polyhedron_data* polyhedron;
     br_scalar s1, s2;
@@ -73,7 +59,6 @@ int C2_HOOK_CDECL CompareAngle(const void *pLhs, const void *pRhs) {
 #endif
 
 // FUNCTION: CARMA2_HW 0x00420ef0
-// FUNCTION: CARMA2_SW 0x00420f70
 int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3) {
 
     return (float)fabs((pV3->v[2] - pV1->v[2]) * (pV2->v[1] - pV1->v[1]) - (pV3->v[1] - pV1->v[1]) * (pV2->v[2] - pV1->v[2])) < 1e-6f
@@ -82,6 +67,8 @@ int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, con
 }
 
 // Left
+
+// ConvexHull2D
 
 // DRVector4Negate
 
@@ -101,11 +88,7 @@ int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, con
 
 // PointOnShape
 
-// STUB: CARMA2_HW 0x00420fb0
-// STUB: CARMA2_SW 0x00421030
-tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron) {
-    NOT_IMPLEMENTED();
-}
+// ConvexHull3D
 
 // GetPointSample
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "../include/s3/internal/3d.h"
 
 #include "audio.h"
@@ -30,7 +22,6 @@ float gFLOAT_006b2c4c;
 float gFLOAT_006b2c68;
 
 // GLOBAL: CARMA2_HW 0x006b2c20
-// GLOBAL: CARMA2_SW 0x006ac3a8
 br_vector3 gS3_listener_position_now;
 
 // GLOBAL: CARMA2_HW 0x006b2c58
@@ -40,30 +31,24 @@ br_vector3 gS3_listener_vel_now;
 br_vector3 gS3_listener_left_now;
 
 // GLOBAL: CARMA2_HW 0x006b2c50
-// GLOBAL: CARMA2_SW 0x006ac3d8
 int gS3_listener_pos_is_brender;
 
 // GLOBAL: CARMA2_HW 0x006b2c70
-// GLOBAL: CARMA2_SW 0x006ac3f8
 br_vector3* gS3_listener_pos_ptr;
 
 // GLOBAL: CARMA2_HW 0x006b2c40
 br_vector3 gS3_listener_position_old;
 
 // GLOBAL: CARMA2_HW 0x006b2c74
-// GLOBAL: CARMA2_SW 0x006ac3fc
 br_vector3* gS3_listener_vel_ptr;
 
 // GLOBAL: CARMA2_HW 0x006b2c64
-// GLOBAL: CARMA2_SW 0x006ac3ec
 int gS3_listener_vel_is_brender;
 
 // GLOBAL: CARMA2_HW 0x006b2c78
-// GLOBAL: CARMA2_SW 0x006ac400
 br_vector3* gS3_listener_left_ptr;
 
 // GLOBAL: CARMA2_HW 0x006b2c54
-// GLOBAL: CARMA2_SW 0x006ac3dc
 int gS3_listener_left_is_brender;
 
 
@@ -85,7 +70,6 @@ void C2_HOOK_FASTCALL S3StopSoundSource(tS3_sound_source* src) {
 }
 
 // FUNCTION: CARMA2_HW 0x00567875
-// FUNCTION: CARMA2_SW 0x00562f15
 void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag, tS3_sound_source* src, float pMax_distance_squared, int pPeriod, tS3_repeats pAmbient_repeats, tS3_volume pVolume, int pPitch, tS3_speed pSpeed) {
     tS3_channel* channel;
     int is_sample;
@@ -199,7 +183,6 @@ int C2_HOOK_STDCALL FUN_00565e39(float a1, float a2, float a3) {
 }
 
 // FUNCTION: CARMA2_HW 0x00565d70
-// FUNCTION: CARMA2_SW 0x00561410
 int C2_HOOK_STDCALL S3Set3DSoundEnvironment(float a1, float a2, float a3) {
 
     S3_FUN_00565e39_MACRO(a1, a2, a3);
@@ -210,7 +193,6 @@ int C2_HOOK_STDCALL S3Set3DSoundEnvironment(float a1, float a2, float a3) {
 }
 
 // FUNCTION: CARMA2_HW 0x00565ec7
-// FUNCTION: CARMA2_SW 0x00561567
 void C2_HOOK_FASTCALL S3CopyBrVector3(br_vector3* pDest, br_vector3* pSrc) {
 
     pDest->v[0] = pSrc->v[0];
@@ -227,7 +209,6 @@ void C2_HOOK_FASTCALL S3CopyS3Vector3(tS3_vector3* pDest, tS3_vector3* pSrc) {
 }
 
 // FUNCTION: CARMA2_HW 0x00565faa
-// FUNCTION: CARMA2_SW 0x0056164a
 void C2_HOOK_FASTCALL S3BindListenerPositionBRender(br_vector3* pos) {
 
     gS3_listener_pos_is_brender = 1;
@@ -236,7 +217,6 @@ void C2_HOOK_FASTCALL S3BindListenerPositionBRender(br_vector3* pos) {
 }
 
 // FUNCTION: CARMA2_HW 0x00565ff1
-// FUNCTION: CARMA2_SW 0x00561691
 void C2_HOOK_FASTCALL S3BindListenerVelocityBRender(br_vector3* vel) {
 
     gS3_listener_vel_ptr = vel;
@@ -244,7 +224,6 @@ void C2_HOOK_FASTCALL S3BindListenerVelocityBRender(br_vector3* vel) {
 }
 
 // FUNCTION: CARMA2_HW 0x0056602b
-// FUNCTION: CARMA2_SW 0x005616cb
 void C2_HOOK_FASTCALL S3BindListenerLeftBRender(br_vector3* left) {
 
     gS3_listener_left_ptr = left;
@@ -252,7 +231,6 @@ void C2_HOOK_FASTCALL S3BindListenerLeftBRender(br_vector3* left) {
 }
 
 // FUNCTION: CARMA2_HW 0x00566048
-// FUNCTION: CARMA2_SW 0x005616e8
 int C2_HOOK_FASTCALL S3StartSound3D(tS3_outlet *pOutlet, int pSound, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed) {
     tS3_descriptor* descriptor;
     tS3_channel* channel;
@@ -334,7 +312,7 @@ int C2_HOOK_FASTCALL S3StartSound3D(tS3_outlet *pOutlet, int pSound, const br_ve
             channel->source_rate = gS3_channel_template.source_rate;
             channel->max_distance_squared = gS3_channel_template.max_distance_squared;
             S3ExecuteSampleFilterFuncs(channel);
-            if (!S3PlaySample(channel, descriptor)) {
+            if (!S3PlaySample(channel)) {
                 channel->needs_service = 1;
                 gS3_last_error = eS3_error_start_sound;
                 return 0;
@@ -346,7 +324,6 @@ int C2_HOOK_FASTCALL S3StartSound3D(tS3_outlet *pOutlet, int pSound, const br_ve
 }
 
 // FUNCTION: CARMA2_HW 0x0056773c
-// FUNCTION: CARMA2_SW 0x00562ddc
 int C2_HOOK_FASTCALL S3BindAmbientSoundToOutlet(tS3_outlet* pOutlet, int pSound, tS3_sound_source* source, float pMax_distance, int pPeriod, int pRepeats, int pVolume, int pPitch, int pSpeed) {
     tS3_descriptor* desc;
 
@@ -393,7 +370,6 @@ int C2_HOOK_FASTCALL S3BindAmbientSoundToOutlet(tS3_outlet* pOutlet, int pSound,
 }
 
 // FUNCTION: CARMA2_HW 0x005676da
-// FUNCTION: CARMA2_SW 0x00562d7a
 void C2_HOOK_FASTCALL S3CopyVector3(void* pDest, void* pSrc, int pIs_BRender) {
 
     if (pIs_BRender) {
@@ -404,7 +380,6 @@ void C2_HOOK_FASTCALL S3CopyVector3(void* pDest, void* pSrc, int pIs_BRender) {
 }
 
 // FUNCTION: CARMA2_HW 0x005675ce
-// FUNCTION: CARMA2_SW 0x00562c6e
 void C2_HOOK_FASTCALL S3UpdateListenerVectors(void) {
 
     if (gS3_listener_pos_ptr != NULL) {
@@ -507,7 +482,7 @@ int C2_HOOK_FASTCALL S3UpdateSourcePosition(tS3_sound_source *pSource) {
             channel->needs_service = 0;
             channel->termination_reason = 0;
             S3ExecuteSampleFilterFuncs(channel);
-            if (S3PlaySample(channel, descriptor) == 0) {
+            if (S3PlaySample(channel) == 0) {
                 channel->needs_service = 1;
                 gS3_last_error = eS3_error_start_sound;
                 return 0;
@@ -523,48 +498,46 @@ int C2_HOOK_FASTCALL S3UpdateSourcePosition(tS3_sound_source *pSource) {
 }
 
 // FUNCTION: CARMA2_HW 0x00567ea5
-// FUNCTION: CARMA2_SW 0x00563545
 int C2_HOOK_FASTCALL S3UpdateSourceVectors(void) {
     tS3_sound_source* source;
 
-    for (source = gS3_state.sources; source != NULL; source = source->next) {
-        if (!source->ambient) {
-            continue;
-        }
-        if (source->period > 0) {
-            source->time_since_last_played += gS3_delta_time;
-        }
-        if (source->channel != NULL && source->tag != source->channel->tag) {
-            S3StopChannel(source->channel);
-            source->channel = NULL;
-            source->tag = 0;
-        }
-        if (source->channel == NULL) {
-            if (source->period < source->time_since_last_played && source->period != 0 && source->tag == 0) {
-                if (source->volume > 0) {
-                    if (S3UpdateSourcePosition(source) == 0) {
-                        source->channel = NULL;
-                        source->tag = 0;
-                    }
-                }
-                source->time_since_last_played = 0;
+    source = gS3_state.sources;
+    while (source != NULL) {
+        if (source->ambient) {
+            if (source->period > 0) {
+                source->time_since_last_played += gS3_delta_time;
             }
-            else if ((!source->ambient_repeats || source->period == 0) && source->tag == 0) {
-                if (source->volume > 0) {
-                    if (S3UpdateSourcePosition(source) == 0) {
-                        source->channel = NULL;
-                        source->tag = 0;
+            if (source->channel != NULL && source->tag != source->channel->tag) {
+                S3StopChannel(source->channel);
+                source->channel = NULL;
+                source->tag = 0;
+            }
+            if (source->channel == NULL) {
+                if (source->time_since_last_played > source->period && source->period != 0 && source->tag == 0) {
+                    if (source->volume > 0) {
+                        if (S3UpdateSourcePosition(source) == 0) {
+                            source->channel = NULL;
+                            source->tag = 0;
+                        }
                     }
+                    source->time_since_last_played = 0;
+                } else if ((!source->ambient_repeats || source->period == 0) && source->tag == 0) {
+                    if (source->volume > 0) {
+                        if (S3UpdateSourcePosition(source) == 0) {
+                            source->channel = NULL;
+                            source->tag = 0;
+                        }
+                    }
+                    source->time_since_last_played = 0;
                 }
-                source->time_since_last_played = 0;
             }
         }
+        source = source->next;
     }
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0056711c
-// FUNCTION: CARMA2_SW 0x005627bc
 int C2_HOOK_FASTCALL S3Calculate3D(tS3_channel* pChannel, int pAmbient) {
     float dist_squared;
     float dist;
@@ -641,7 +614,6 @@ int C2_HOOK_FASTCALL S3Calculate3D(tS3_channel* pChannel, int pAmbient) {
 }
 
 // FUNCTION: CARMA2_HW 0x00567575
-// FUNCTION: CARMA2_SW 0x00562c15
 int C2_HOOK_FASTCALL S3Service3D(tS3_channel* pChannel) {
     int updated;
 
@@ -651,4 +623,50 @@ int C2_HOOK_FASTCALL S3Service3D(tS3_channel* pChannel) {
         PDS3UpdateChannelFrequency(pChannel);
     }
     return updated;
+}
+
+// FUNCTION: CARMA2_HW 0x00565ea0
+void C2_HOOK_FASTCALL S3SetVector3(tS3_vector3* pVec, float pX, float pY, float pZ) {
+
+    pVec->x = pX;
+    pVec->y = pY;
+    pVec->z = pZ;
+}
+
+// FUNCTION: CARMA2_HW 0x00565ef9
+void C2_HOOK_FASTCALL S3SetListenerPositionNow(br_vector3* pPos) {
+
+    gS3_listener_position_now.v[0] = pPos->v[0];
+    gS3_listener_position_now.v[1] = pPos->v[1];
+    gS3_listener_position_now.v[2] = pPos->v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x00565f53
+void C2_HOOK_FASTCALL S3SetListenerLeftNow(br_vector3* pLeft) {
+
+    gS3_listener_left_now.v[0] = pLeft->v[0];
+    gS3_listener_left_now.v[1] = pLeft->v[1];
+    gS3_listener_left_now.v[2] = pLeft->v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x00565f80
+void C2_HOOK_FASTCALL S3BindListenerPosition(tS3_vector3* pos) {
+
+    gS3_listener_pos_ptr = (br_vector3*)pos;
+    gS3_listener_pos_is_brender = 0;
+    S3CopyS3Vector3((tS3_vector3*)&gS3_listener_position_old, pos);
+}
+
+// FUNCTION: CARMA2_HW 0x00565fd4
+void C2_HOOK_FASTCALL S3BindListenerVelocity(br_vector3* vel) {
+
+    gS3_listener_vel_ptr = vel;
+    gS3_listener_vel_is_brender = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0056600e
+void C2_HOOK_FASTCALL S3BindListenerLeft(br_vector3* left) {
+
+    gS3_listener_left_ptr = left;
+    gS3_listener_left_is_brender = 0;
 }

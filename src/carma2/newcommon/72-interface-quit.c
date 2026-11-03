@@ -1,18 +1,11 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "72-interface-quit.h"
 
 #include "72-interface.h"
 
+extern tFrontend_spec gFrontend_MAIN;
+
 // GLOBAL: CARMA2_HW 0x00649df0
 tFrontend_spec gFrontend_QUIT = {
-#if 0 // FIXME: enable this
     "Quit",
     0,
     3,
@@ -31,7 +24,4 @@ tFrontend_spec gFrontend_QUIT = {
         { 0xf1,     Options_Quit,   NULL,       2, 17, 18, 0, 0, 0, 0, 1, 1, },
         { 0xf2,     temp,           (void*)1,   0, 17, 18, 0, 0, 0, 0, 1, 1, },
     }
-#else
-    0
-#endif
 };

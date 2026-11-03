@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "pedestrn.h"
 
 #include "animation.h"
@@ -97,7 +89,7 @@ int gPed_dismember_spurting_member_count;
 tSmashable_initial_position_spec gPed_spurt_initial_position;
 
 // GLOBAL: CARMA2_HW 0x006944a0
-tMovement_spec gPed_spurt_initial_speed;
+tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 
 // GLOBAL: CARMA2_HW 0x006942f8
 int gPed_spurt_min_max_time[2];
@@ -112,7 +104,7 @@ int gGiblet_scrape_start;
 tSmashable_initial_position_spec gGiblet_initial_position;
 
 // GLOBAL: CARMA2_HW 0x0069bc38
-tMovement_spec gGiblet_initial_speed;
+tSmashable_initial_speed_spec gGiblet_initial_speed;
 
 // GLOBAL: CARMA2_HW 0x006a0408
 int gGiblet_min_max_time[2];
@@ -693,8 +685,10 @@ void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA
 }
 
 // FUNCTION: CARMA2_HW 0x00404290
-void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, float pX, float pY, float pZ) {
+void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
     int i;
+
+    REC2_THISCALL_UNUSED(pArg2);
 
     for (i = 0; i < pModel->nvertices; i++) {
         pModel->vertices[i].p.v[0] *= pX;
@@ -705,8 +699,10 @@ void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, float pX, float pY, float 
 }
 
 // FUNCTION: CARMA2_HW 0x004042f0
-void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, float pScale) {
+void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
     int i;
+
+    REC2_THISCALL_UNUSED(pArg2);
 
     for (i = 0; i < pModel->nvertices; i++) {
         pModel->vertices[i].p.v[0] *= pScale;
@@ -736,7 +732,7 @@ br_model* ReadSmashableInitialModel(FILE* pFile, br_scalar pScale_factor) {
     if (model == NULL) {
         FatalError(kFatalError_CannotFindGibletModel_S, s);
     }
-    ScaleModel(model, scale * pScale_factor);
+    ScaleModel(model REC2_THISCALL_EDX, scale * pScale_factor);
     model->faces[0].material->index_base = index;
     model->faces[0].material->index_range = 1;
     model->faces[0].material->colour = BR_COLOUR_RGB(r, g, b);
@@ -2337,7 +2333,31 @@ void C2_HOOK_FASTCALL MungeNapalm(void) {
 // FUNCTION: CARMA2_HW 0x004096f0
 void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter) {
 
-    NOT_IMPLEMENTED();
+    if (pCharacter->field_0xbc != NULL) {
+        pCharacter->field_0xbc->field_0x4 = 0;
+        if (pCharacter->field_0xbc->field_0x2c != 0) {
+            tPed_form* form;
+            br_matrix34* destination;
+            br_matrix34 local;
+
+            form = pCharacter->personality->form;
+            if (pCharacter->field_0x4 < 0) {
+                destination = &pCharacter->field_0x2c;
+            } else {
+                destination = pCharacter->field_0xe8;
+                if (destination == NULL) {
+                    destination = &form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+                }
+            }
+            BrMatrix34LPInverse(&local, &form->moves[pCharacter->field_0x7].move->frames[(short)pCharacter->field_0x1c].mat);
+            BrMatrix34Mul(&pCharacter->field_0x8c, &local, destination);
+            pCharacter->field_0x8c.m[3][0] = 0.0f;
+            pCharacter->field_0x8c.m[3][1] = 0.0f;
+            pCharacter->field_0x8c.m[3][2] = 0.0f;
+        }
+        pCharacter->field_0xbc = NULL;
+        SetCharacterBonePositions(pCharacter, 0, 0);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004cc860
@@ -2359,7 +2379,7 @@ void C2_HOOK_FASTCALL OneLessPed(tPedestrian* pPed) {
 }
 
 // FUNCTION: CARMA2_HW 0x004cd260
-void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight) {
+void C2_HOOK_FAKE_THISCALL ScoreForKilledPedestrian(tPedestrian* pPed, undefined4 pArg2, float pHeight) {
 
     NOT_IMPLEMENTED();
 }
@@ -2388,7 +2408,7 @@ int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     }
     MakePedVanish(pPed);
     if (pPed->hit_points > 0) {
-        ScoreForKilledPedestrian(pPed, pPed->pos.v[1] - FindYVerticallyBelow(&pPed->pos));
+        ScoreForKilledPedestrian(pPed REC2_THISCALL_EDX, pPed->pos.v[1] - FindYVerticallyBelow(&pPed->pos));
     }
     return 1;
 }
@@ -2915,7 +2935,7 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                 if (ped->field_0x0c != NULL && ped->field_0x0c->field_0x98 != 0) {
                     if (ped->field_0x0c->field_0x98 >= 0) {
                         if (ped->hit_points > 0) {
-                            ScoreForKilledPedestrian(ped, 0.f);
+                            ScoreForKilledPedestrian(ped REC2_THISCALL_EDX, 0.f);
                         }
                         StopObjectSmokingInstantly(ped->character->personality->form->simple_physicing[ped->character->field_0x5].collision_info);
                         ped->field_0x0c->field_0x98 = 0;

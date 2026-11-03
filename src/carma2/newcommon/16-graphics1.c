@@ -1,90 +1,98 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "16-graphics1.h"
 
 #include "02-init.h"
-#include "07-structur.h"
 #include "15-displays.h"
 #include "19-font.h"
-#include "27-powerup.h"
-#include "30-opponent.h"
 #include "41-utility.h"
 #include "52-errors.h"
-#include "62-graphics3.h"
 #include "63-loading3.h"
-#include "66-tintedpoly.h"
 #include "brender/brender.h"
 #include "globvars.h"
 #include "platform.h"
 #include "rec2_types.h"
 #include "rec2_macros.h"
+#include "00-car.h"
+#include "18-graphics2.h"
+#include "33-depth.h"
+#include "34-finteray.h"
+#include "39-oil.h"
+#include "49-physics.h"
+#include "67-lighting.h"
+
+#define SHADOW_D_IGNORE_FLAG 10000.f
+
+br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD);
 
 #include <string.h>
 
 // GLOBAL: CARMA2_HW 0x00703e24
-// GLOBAL: CARMA2_SW 0x006fab04
 int gWidth;
 
 // GLOBAL: CARMA2_HW 0x00703e20
-// GLOBAL: CARMA2_SW 0x006fab00
 int gHeight;
 
 // GLOBAL: CARMA2_HW 0x00705060
-// GLOBAL: CARMA2_SW 0x006fbb28
 int gX_offset;
 
 // GLOBAL: CARMA2_HW 0x006baa2c
-// GLOBAL: CARMA2_SW 0x006b1708
 int gY_offset;
 
 // GLOBAL: CARMA2_HW 0x0068be30
 int gBrZb_initialized;
 
 // GLOBAL: CARMA2_HW 0x006a22bc
-// GLOBAL: CARMA2_SW 0x0069c314
 br_pixelmap* gRear_pixelmap;
 
 // GLOBAL: CARMA2_HW 0x006a22b8
 br_pixelmap* gEvalu;
 
+/* explicit initializers keep both blocks adjacent and in address order (InitWobbleStuff loop-end compares) */
 // GLOBAL: CARMA2_HW 0x006a22f8
-tWobble_spec gWobble_array[5];
+tWobble_spec gWobble_array[5] = { 0 };
 
+/* UNCERTAIN: unreferenced dword */
+// GLOBAL: CARMA2_HW 0x006a2348
+int gUNK_006a2348 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a234c
+float gPrevious_rear_yon = 0.f;
+
+/* UNCERTAIN: unreferenced dwords (0x006a2354 is only seen as gWobble_array loop end) */
+// GLOBAL: CARMA2_HW 0x006a2350
+int gUNK_006a2350 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a2354
+int gUNK_006a2354 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a2358
+int gAR_fudge_headups;
+
+/* 65 entries: InitWobbleStuff fills 0..64 inclusive (loop ends at 0x00705184 = gScreen_wobble_y) */
 // GLOBAL: CARMA2_HW 0x00705080
-// GLOBAL: CARMA2_SW 0x006fbb40
-float gCosine_array[64];
+float gCosine_array[65] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00705184
+int gScreen_wobble_y = 0;
+
+// GLOBAL: CARMA2_HW 0x00705188
+int gScreen_wobble_x = 0;
 
 // GLOBAL: CARMA2_HW 0x0065fdc8
-// GLOBAL: CARMA2_SW 0x0065a708
 tShadow_level gShadow_level = eShadow_us_only;
 
-// GLOBAL: CARMA2_HW 0x0065fb54
-int gHud_tinted4 = -1;
-
 // GLOBAL: CARMA2_HW 0x0068be38
-// GLOBAL: CARMA2_SW 0x00685e7c
 int gRender_indent;
 
 // GLOBAL: CARMA2_HW 0x006baa40
-// GLOBAL: CARMA2_SW 0x006b1720
 tU8 gTemporary_physics_render_buffer[300000];
 
 // GLOBAL: CARMA2_HW 0x006a2448
-// GLOBAL: CARMA2_SW 0x0069c4a0
 tClip_details gShadow_clip_planes[8];
 
 // GLOBAL: CARMA2_HW 0x006a23d8
-// GLOBAL: CARMA2_SW 0x0069c430
 int gFancy_shadow;
 
 // GLOBAL: CARMA2_HW 0x006a27e0
-// GLOBAL: CARMA2_SW 0x0069c838
 br_material* gShadow_material;
 
 // GLOBAL: CARMA2_HW 0x006a27d0
@@ -97,35 +105,16 @@ br_vector3 gShadow_light_z;
 br_vector3 gShadow_light_x;
 
 // GLOBAL: CARMA2_HW 0x006a27e4
-// GLOBAL: CARMA2_SW 0x0069c83c
 br_model* gShadow_model;
 
 // GLOBAL: CARMA2_HW 0x006a2444
-// GLOBAL: CARMA2_SW 0x0069c49c
 br_actor* gShadow_actor;
 
-// GLOBAL: CARMA2_HW 0x00705188
-// GLOBAL: CARMA2_SW 0x006fbc48
-int gScreen_wobble_x;
-
-// GLOBAL: CARMA2_HW 0x00705184
-// GLOBAL: CARMA2_SW 0x006fbc44
-int gScreen_wobble_y;
-
-// GLOBAL: CARMA2_HW 0x0070518c
-// GLOBAL: CARMA2_SW 0x006fbc4c
-br_material* gMaterial_below;
-
-// GLOBAL: CARMA2_HW 0x00705190
-// GLOBAL: CARMA2_SW 0x006fbc50
-int gFrontend_wrecks_car_count;
 
 // GLOBAL: CARMA2_HW 0x006a2488
-// GLOBAL: CARMA2_SW 0x0069c4e0
 tSaved_table gSaved_shade_tables[100];
 
 // GLOBAL: CARMA2_HW 0x006a27a8
-// GLOBAL: CARMA2_SW 0x0069c800
 int gSaved_table_count;
 
 // GLOBAL: CARMA2_HW 0x00703e28
@@ -135,92 +124,321 @@ int gHud_actor_storage_size;
 br_actor* gHud_actor_storage[128];
 
 // GLOBAL: CARMA2_HW 0x006a22c4
-// GLOBAL: CARMA2_SW 0x0069c31c
 int gNumber_of_lollipops;
 
-// MungeClipPlane
+// FUNCTION: CARMA2_HW 0x004e9680
+void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset) {
+    extern int gShadow_clip_plane_count;
+    br_vector3 v4;
+    br_vector3 v3;
+    br_vector3 v1;
+    br_vector3 v2;
 
-// TryThisEdge
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// STUB: CARMA2_HW 0x004e7650
-// STUB: CARMA2_SW 0x004e3470
-void C2_HOOK_FASTCALL ProcessShadow(tCar_spec* pCar, br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform, br_scalar pDistance_factor) {
-    NOT_IMPLEMENTED();
+    BrMatrix34ApplyP(&v1, p1, &pCar->car_master_actor->t.t.mat);
+    BrMatrix34ApplyP(&v2, p2, &pCar->car_master_actor->t.t.mat);
+    BrVector3Sub(&v3, p2, p1);
+    v4.v[0] = pLight->v[2] * v3.v[1] - pLight->v[1] * v3.v[2];
+    v4.v[1] = pLight->v[0] * v3.v[2] - pLight->v[2] * v3.v[0];
+    v4.v[2] = pLight->v[1] * v3.v[0] - pLight->v[0] * v3.v[1];
+    if (fabs(v4.v[0]) >= 0.01 || fabs(v4.v[1]) >= 0.01 || fabs(v4.v[2]) >= 0.01) {
+        BrVector3Sub(&v3, p1, pOffset);
+        if (BrVector3Dot(&v3, &v4) > 0.f) {
+            BrVector3Negate(&v4, &v4);
+        }
+        BrVector3Normalise(&v3, &v4);
+        BrMatrix34ApplyV(&v4, &v3, &pCar->car_master_actor->t.t.mat);
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[0] = v4.v[0];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[1] = v4.v[1];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[2] = v4.v[2];
+        ((br_vector4*)gShadow_clip_planes[gShadow_clip_plane_count].clip->type_data)->v[3] = -BrVector3Dot(&v4, &v1);
+        gShadow_clip_planes[gShadow_clip_plane_count].length = (v1.v[2] - v2.v[2]) * (v1.v[2] - v2.v[2]) + (v1.v[0] - v2.v[0]) * (v1.v[0] - v2.v[0]);
+        gShadow_clip_plane_count += 1;
+    }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
+void C2_HOOK_FASTCALL TryThisEdge(tCar_spec* pCar, br_vector3* pLight, int pIndex_1, br_scalar pSign_1, int pIndex_2, br_scalar pSign_2, int pPoint_index_1, int pPoint_index_2, br_vector3* pOffset) {
+    extern int gShadow_clip_plane_count;
+    extern br_vector3 gShadow_points[8];
+    br_scalar dot_1;
+    br_scalar dot_2;
+    br_scalar mult;
 
-// FUNCTION: CARMA2_HW 0x004e74d0
-// FUNCTION: CARMA2_SW 0x004e32f0
-void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
-    int i;
-    int cat;
-    int car_count;
-    tCar_spec* the_car;
-    br_vector3 camera_to_car;
-    br_scalar distance_factor;
-
-    if (gShadow_level != eShadow_none) {
-        for (cat = eVehicle_self; cat <= (gShadow_level == eShadow_everyone ? eVehicle_drone : gShadow_level == eShadow_us_and_opponents ? eVehicle_rozzer : eVehicle_self); cat++) {
-            if (cat == eVehicle_self) {
-                car_count = 1;
-            } else {
-                car_count = GetCarCount(cat);
-            }
-            for (i = 0; i < car_count; i++) {
-                if (cat == eVehicle_self) {
-                    the_car = &gProgram_state.current_car;
-                } else {
-                    the_car = GetCarSpec(cat, i);
-                }
-                if (!the_car->active) {
-                    continue;
-                }
-                if (IsCarCloaked(the_car)) {
-                    continue;
-                }
-                if (!gAction_replay_mode) {
-                    BrVector3Sub(&camera_to_car, (br_vector3*)gCamera_to_world.m[3], &the_car->car_master_actor->t.t.translate.t);
-                    distance_factor = BrVector3LengthSquared(&camera_to_car);
-                    if (distance_factor > 36.0f) {
-                        continue;
-                    }
-                }
-                ProcessShadow(the_car, gUniverse_actor, &gProgram_state.track_spec, gCamera, &gCamera_to_world, distance_factor);
-            }
-        }
-        if (gFancy_shadow) {
-            for (i = 0; i < gSaved_table_count; i++) {
-                gSaved_shade_tables[i].original->height = gSaved_shade_tables[i].copy->height;
-                gSaved_shade_tables[i].original->pixels = gSaved_shade_tables[i].copy->pixels;
-                BrTableUpdate(gSaved_shade_tables[i].original, BR_TABU_ALL);
-            }
+    dot_1 = pSign_1 * pLight->v[pIndex_1];
+    dot_2 = pSign_2 * pLight->v[pIndex_2];
+    mult = dot_1 * dot_2;
+    if (mult < 0 || (mult == 0 && (dot_1 > 0 || dot_2 > 0))) {
+        if (gShadow_clip_plane_count < 6) {
+            MungeClipPlane(pLight, pCar, &gShadow_points[pPoint_index_1], &gShadow_points[pPoint_index_2], pOffset);
         }
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004e7650
+void C2_HOOK_FASTCALL ProcessShadow(tCar_spec* pCar, br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform, br_scalar pDistance_factor) {
+    int i;
+    int face_count;
+    int oily_count;
+    int f_num;
+    br_vector3 pos;
+    br_vector3 light_ray_car;
+    br_vector3 shadow_points_world[8];
+    br_vector3 poly_centre;
+    br_vector3 car_to_poly;
+    br_vector3 ray;
+    br_vector3 ray_pos;
+    br_vector3 normal;
+    br_vector4* clip_normal;
+    br_bounds3 bounds;
+    br_vector3 center;
+    br_scalar oily_size;
+    br_scalar highest_underneath;
+    br_scalar shadow_scaling_factor;
+    br_scalar first_poly_below;
+    br_scalar distance;
+    br_scalar ray_length;
+    tBounds kev_bounds;
+    tFace_ref the_list[100];
+    tFace_ref* face_ref;
+    tFace_ref* list_ptr;
+    br_actor* oily_actor;
+    br_material* material;
+    br_vertex verts[48];
+    br_face faces[16];
+    tUser_crush_data* user_crush_data;
+    br_model* car_crush_model;
+    extern br_matrix34 gIdentity34;
+    extern int gShadow_dim_amount;
+    extern br_vector3 gShadow_points[8];
+    extern int gShadow_clip_plane_count;
+
+#if defined(REC2_FIX_BUGS)
+    ray_length = 0.f;
+#endif
+
+    f_num = 0;
+    user_crush_data = pCar->car_model_actor->user;
+    car_crush_model = user_crush_data->models[0];
+    BrVector3Copy(&bounds.min, &car_crush_model->bounds.min);
+    BrVector3Copy(&bounds.max, &car_crush_model->bounds.max);
+    BrVector3Set(&gShadow_points[0], bounds.max.v[0], bounds.max.v[1], bounds.max.v[2]);
+    BrVector3Set(&gShadow_points[1], bounds.max.v[0], bounds.max.v[1], bounds.min.v[2]);
+    BrVector3Set(&gShadow_points[2], bounds.min.v[0], bounds.max.v[1], bounds.min.v[2]);
+    BrVector3Set(&gShadow_points[3], bounds.min.v[0], bounds.max.v[1], bounds.max.v[2]);
+    BrVector3Set(&gShadow_points[4], bounds.max.v[0], bounds.min.v[1], bounds.max.v[2]);
+    BrVector3Set(&gShadow_points[5], bounds.max.v[0], bounds.min.v[1], bounds.min.v[2]);
+    BrVector3Set(&gShadow_points[6], bounds.min.v[0], bounds.min.v[1], bounds.min.v[2]);
+    BrVector3Set(&gShadow_points[7], bounds.min.v[0], bounds.min.v[1], bounds.max.v[2]);
+    gShadow_clip_plane_count = 0;
+    BrMatrix34TApplyV(&light_ray_car, &gShadow_light_ray, &pCar->car_master_actor->t.t.mat);
+    Vector3Average(&center, &bounds.max, &bounds.min);
+    TryThisEdge(pCar, &light_ray_car, 2,  1.f, 1,  1.f, 0, 3, &center);
+    TryThisEdge(pCar, &light_ray_car, 2, -1.f, 1,  1.f, 1, 2, &center);
+    TryThisEdge(pCar, &light_ray_car, 2, -1.f, 1, -1.f, 6, 5, &center);
+    TryThisEdge(pCar, &light_ray_car, 2,  1.f, 1, -1.f, 7, 4, &center);
+    TryThisEdge(pCar, &light_ray_car, 0,  1.f, 1,  1.f, 1, 0, &center);
+    TryThisEdge(pCar, &light_ray_car, 0, -1.f, 1,  1.f, 2, 3, &center);
+    TryThisEdge(pCar, &light_ray_car, 0, -1.f, 1, -1.f, 7, 6, &center);
+    TryThisEdge(pCar, &light_ray_car, 0,  1.f, 1, -1.f, 4, 5, &center);
+    TryThisEdge(pCar, &light_ray_car, 0,  1.f, 2,  1.f, 4, 0, &center);
+    TryThisEdge(pCar, &light_ray_car, 0, -1.f, 2,  1.f, 3, 7, &center);
+    TryThisEdge(pCar, &light_ray_car, 0, -1.f, 2, -1.f, 2, 6, &center);
+    TryThisEdge(pCar, &light_ray_car, 0,  1.f, 2, -1.f, 5, 1, &center);
+
+    for (i = 0; i < gShadow_clip_plane_count; ++i) {
+        BrClipPlaneEnable(gShadow_clip_planes[i].clip);
+    }
+
+    face_count = 0;
+    if (!gAction_replay_mode && pCar->number_of_wheels_on_ground > 2) {
+        face_count = GetPrecalculatedFacesUnderCar(pCar, &face_ref);
+    }
+    if (face_count != 0) {
+        highest_underneath = 0.0;
+    } else {
+        BrVector3Set(&kev_bounds.original_bounds.min,  1000.f,  1000.f,  1000.f);
+        BrVector3Set(&kev_bounds.original_bounds.max, -1000.f, -1000.f, -1000.f);
+        for (i = 0; i < REC2_ASIZE(shadow_points_world); i++) {
+            BrMatrix34ApplyP(&shadow_points_world[i], &gShadow_points[i], &pCar->car_master_actor->t.t.mat);
+            if (shadow_points_world[i].v[0] < kev_bounds.original_bounds.min.v[0]) {
+                kev_bounds.original_bounds.min.v[0] = shadow_points_world[i].v[0];
+            } else if (shadow_points_world[i].v[0] > kev_bounds.original_bounds.max.v[0]) {
+                kev_bounds.original_bounds.max.v[0] = shadow_points_world[i].v[0];
+            }
+            if (shadow_points_world[i].v[1] < kev_bounds.original_bounds.min.v[1]) {
+                kev_bounds.original_bounds.min.v[1] = shadow_points_world[i].v[1];
+            } else if (shadow_points_world[i].v[1] > kev_bounds.original_bounds.max.v[1]) {
+                kev_bounds.original_bounds.max.v[1] = shadow_points_world[i].v[1];
+            }
+            if (shadow_points_world[i].v[2] < kev_bounds.original_bounds.min.v[2]) {
+                kev_bounds.original_bounds.min.v[2] = shadow_points_world[i].v[2];
+            } else if (shadow_points_world[i].v[2] > kev_bounds.original_bounds.max.v[2]) {
+                kev_bounds.original_bounds.max.v[2] = shadow_points_world[i].v[2];
+            }
+        }
+        kev_bounds.original_bounds.min.v[1] -= 4.4f;
+        kev_bounds.mat = &gIdentity34;
+        face_count = FindFacesInBox(&kev_bounds, the_list, REC2_ASIZE(the_list), NULL);
+        face_ref = the_list;
+        highest_underneath = 1000.f;
+        ray_length = kev_bounds.original_bounds.max.v[1] - kev_bounds.original_bounds.min.v[1];
+        BrVector3Set(&ray, 0.f, -ray_length, 0.f);
+        BrVector3Copy(&ray_pos, &pCar->car_master_actor->t.t.translate.t);
+        ray_pos.v[1] = kev_bounds.original_bounds.max.v[1];
+    }
+    if (face_count != 0) {
+        first_poly_below = -1000.0;
+        for (i = 0; i < face_count; i++) {
+            list_ptr = &face_ref[i];
+
+            if (list_ptr->normal.v[1] >= -0.1 || (list_ptr->material != NULL && (list_ptr->material->flags & BR_MATF_TWO_SIDED))) {
+                if (list_ptr->normal.v[1] < 0.0
+                        || (list_ptr->material != NULL && list_ptr->material->identifier != NULL && (list_ptr->material->identifier[0] == '!' || list_ptr->material->identifier[0] == '>'))
+                        || ((list_ptr->v[0].v[1] > pCar->pos.v[1] || list_ptr->v[1].v[1] > pCar->pos.v[1] || list_ptr->v[2].v[1] > pCar->pos.v[1]) && list_ptr->normal.v[1] < 0.1f)) {
+                    list_ptr->d += SHADOW_D_IGNORE_FLAG;
+                }
+            } else {
+                BrVector3Add(&poly_centre, &list_ptr->v[0], &list_ptr->v[1]);
+                BrVector3Add(&poly_centre, &poly_centre, &list_ptr->v[2]);
+                BrVector3InvScale(&poly_centre, &poly_centre, 3.f);
+                if (poly_centre.v[1] > first_poly_below) {
+                    BrVector3Sub(&car_to_poly, &poly_centre, &pCar->car_master_actor->t.t.translate.t);
+
+                    if (BrVector3Dot(&list_ptr->normal, &car_to_poly) > 0.0) {
+                        first_poly_below = poly_centre.v[1];
+                    }
+                }
+                list_ptr->d += SHADOW_D_IGNORE_FLAG;
+            }
+        }
+        for (i = 0; i < face_count; i++) {
+            list_ptr = &face_ref[i];
+
+            if (list_ptr->d < SHADOW_D_IGNORE_FLAG / 2.f) {
+                if (list_ptr->v[0].v[1] >= first_poly_below || list_ptr->v[1].v[1] >= first_poly_below || list_ptr->v[2].v[1] >= first_poly_below) {
+                    if (gFancy_shadow) {
+                        faces[f_num].material = list_ptr->material;
+                        if (gShadow_workaround) {
+                            list_ptr->material->ka = 0.75f * gLighting_data.ambient_else;
+                            BrMaterialUpdate(list_ptr->material, BR_MATU_LIGHTING);
+                        } else if (list_ptr->material != NULL && list_ptr->material->colour_map != NULL && (!(list_ptr->material->flags & BR_MATF_LIGHT))) {
+                            list_ptr->material->flags |= BR_MATF_LIGHT | BR_MATF_SMOOTH;
+                            BrMaterialUpdate(list_ptr->material, BR_MATU_RENDERING);
+                        }
+                    } else {
+                        faces[f_num].material = gShadow_material;
+                    }
+
+                    BrVector3Copy(&verts[3 * f_num + 0].p, &list_ptr->v[0]);
+                    BrVector2Copy(&verts[3 * f_num + 0].map, list_ptr->map[0]);
+                    BrVector3Copy(&verts[3 * f_num + 1].p, &list_ptr->v[1]);
+                    BrVector2Copy(&verts[3 * f_num + 1].map, list_ptr->map[1]);
+                    BrVector3Copy(&verts[3 * f_num + 2].p, &list_ptr->v[2]);
+                    BrVector2Copy(&verts[3 * f_num + 2].map, list_ptr->map[2]);
+                    faces[f_num].vertices[0] = 3 * f_num + 0;
+                    faces[f_num].vertices[1] = 3 * f_num + 1;
+                    faces[f_num].vertices[2] = 3 * f_num + 2;
+                    f_num += 1;
+                    if (highest_underneath > 0.0) {
+                        CheckSingleFace(list_ptr, &ray_pos, &ray, &normal, &distance, &pos);
+                        if (distance < 1.f && ray_length * distance < highest_underneath) {
+                            highest_underneath = ray_length * distance;
+                        }
+                    }
+                    if (f_num >= REC2_ASIZE(faces)) {
+                        break;
+                    }
+                }
+            } else {
+                list_ptr->d -= SHADOW_D_IGNORE_FLAG;
+            }
+        }
+        highest_underneath -= (bounds.max.v[1] - bounds.min.v[1]);
+        if (highest_underneath > 2.2f) {
+            highest_underneath = 2.2f;
+        } else if (highest_underneath < 0.f) {
+            highest_underneath = 0.0;
+        }
+        if (gFancy_shadow) {
+            gShadow_dim_amount = (int)(2.5f + (2.2f - highest_underneath) * 5.0f / 2.2f);
+            for (i = 0; i < gSaved_table_count; i++) {
+                gSaved_shade_tables[i].original->height = 1;
+                gSaved_shade_tables[i].original->pixels = (tU8*)gDepth_shade_table->pixels + gShadow_dim_amount * gDepth_shade_table->row_bytes;
+                BrTableUpdate(gSaved_shade_tables[i].original, BR_TABU_ALL);
+            }
+        }
+        shadow_scaling_factor = 0.4f + (2.2f - highest_underneath) * 0.52f / 2.2f;
+        for (i = 0; i < gShadow_clip_plane_count; i++) {
+            clip_normal = gShadow_clip_planes[i].clip->type_data;
+            distance = DistanceFromPlane(&pCar->car_master_actor->t.t.translate.t, clip_normal->v[0], clip_normal->v[1], clip_normal->v[2], clip_normal->v[3]);
+            BrVector3Set(&gShadow_clip_planes[i].clip->t.t.translate.t,
+                (1.f - shadow_scaling_factor) * distance * clip_normal->v[0],
+                (1.f - shadow_scaling_factor) * distance * clip_normal->v[1],
+                (1.f - shadow_scaling_factor) * distance * clip_normal->v[2]);
+        }
+        if (f_num != 0) {
+            DisableLights();
+            BrZbsSceneRenderBegin(gUniverse_actor, gCamera, gRender_screen, gDepth_buffer);
+            EnableLights();
+            BrSetScreenZOffset(2);
+            gShadow_model->vertices = verts;
+            gShadow_model->faces = faces;
+            gShadow_model->nfaces = f_num;
+            gShadow_model->nvertices = 3 * f_num;
+            gShadow_actor->render_style = BR_RSTYLE_FACES;
+            BrModelAdd(gShadow_model);
+            BrZbsSceneRenderAdd(gShadow_actor);
+            BrModelRemove(gShadow_model);
+            if (pCar->shadow_intersection_flags != 0) {
+                oily_count = GetOilSpillCount();
+                for (i = 0; i < oily_count; ++i) {
+                    if (pCar->shadow_intersection_flags & (1 << i)) {
+                        GetOilSpillDetails(i, &oily_actor, &oily_size);
+                        if (oily_actor) {
+                            MungeIndexedOilsHeightAboveGround(i);
+                            BrZbSceneRenderAdd(oily_actor);
+                        }
+                    }
+                }
+            }
+            BrSetScreenZOffset(0);
+            BrZbSceneRenderEnd();
+
+            for (i = 0; i < f_num; i++) {
+                if (gFancy_shadow) {
+                    material = gShadow_model->faces[i].material;
+                    if (gShadow_workaround) {
+                        SmoothificateWorldMaterial(material);
+                    } else {
+                        if (material != NULL && material->colour_map != NULL && (material->flags & BR_MATF_LIGHT)) {
+                            material->flags &= ~(BR_MATF_LIGHT | BR_MATF_PRELIT | BR_MATF_SMOOTH);
+                            BrMaterialUpdate(material, BR_MATU_RENDERING);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    gShadow_actor->render_style = BR_RSTYLE_NONE;
+    for (i = 0; i < gShadow_clip_plane_count; i++) {
+        BrClipPlaneDisable(gShadow_clip_planes[i].clip);
+    }
+}
+
+// RenderShadows
+
 // FUNCTION: CARMA2_HW 0x004e9940
-// FUNCTION: CARMA2_SW 0x004e5700
 void C2_HOOK_FASTCALL SetShadowLevel(tShadow_level pLevel) {
 
     gShadow_level = pLevel;
 }
 
 // FUNCTION: CARMA2_HW 0x004e9950
-// FUNCTION: CARMA2_SW 0x004e5710
 tShadow_level C2_HOOK_FASTCALL GetShadowLevel(void) {
 
     return gShadow_level;
 }
 
 // FUNCTION: CARMA2_HW 0x004e9960
-// FUNCTION: CARMA2_SW 0x004e5720
 void C2_HOOK_FASTCALL ToggleShadow(void) {
 
     if (gShadow_level++ == eShadow_everyone) {
@@ -243,7 +461,6 @@ void C2_HOOK_FASTCALL ToggleShadow(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e99d0
-// FUNCTION: CARMA2_SW 0x004e5790
 void C2_HOOK_FASTCALL InitShadow(void) {
     int i;
 
@@ -269,7 +486,6 @@ void C2_HOOK_FASTCALL InitShadow(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e9b10
-// FUNCTION: CARMA2_SW 0x004e58d0
 br_uint_32 C2_HOOK_CDECL SaveShadeTable(br_pixelmap* pTable, void* pArg) {
     br_pixelmap* copy;
 
@@ -290,7 +506,6 @@ br_uint_32 C2_HOOK_CDECL SaveShadeTable(br_pixelmap* pTable, void* pArg) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e9ae0
-// FUNCTION: CARMA2_SW 0x004e58a0
 void C2_HOOK_FASTCALL SaveShadeTables(void) {
     PossibleService();
     gSaved_table_count = 0;
@@ -298,7 +513,6 @@ void C2_HOOK_FASTCALL SaveShadeTables(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e9b60
-// FUNCTION: CARMA2_SW 0x004e5920
 void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
     int i;
 
@@ -307,20 +521,24 @@ void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
     }
 }
 
-// ShadowMode
+// FUNCTION: CARMA2_HW 0x004e9b90
+void C2_HOOK_FASTCALL ShadowMode(void) {
 
+    gFancy_shadow = !gFancy_shadow;
+    if (gFancy_shadow) {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Translucent shadow");
+    } else {
+        NewTextHeadupSlot(4, 0, 2000, -4, "Solid shadow");
+    }
+}
 // LollipopizeActor
 
 // FUNCTION: CARMA2_HW 0x004e4900
-// FUNCTION: CARMA2_SW 0x004e0c90
 void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
 }
 
-// RenderLollipops
-
 // FUNCTION: CARMA2_HW 0x004e4940
-// FUNCTION: CARMA2_SW 0x004e0cd0
 void C2_HOOK_FASTCALL SetupDepthBuffer(void) {
 
     if (gDepth_buffer != NULL) {
@@ -334,7 +552,6 @@ void C2_HOOK_FASTCALL SetupDepthBuffer(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e4980
-// FUNCTION: CARMA2_SW 0x004e0d10
 void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, int pWidth, int pHeight) {
 
     PDAllocateScreenAndBack();
@@ -346,9 +563,9 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
     }
     gRender_screen = DRPixelmapAllocateSub(gBack_screen, (br_uint_16)pX_offset, (br_uint_16)pY_offset, (br_uint_16)pWidth, (br_uint_16)pHeight);
     gWidth = pWidth;
-    gHeight = pHeight;
     gX_offset = pX_offset;
     gY_offset = pY_offset;
+    gHeight = pHeight;
     if (gGraf_specs[gGraf_spec_index].doubled) {
         gScreen->base_x = (gGraf_specs[gGraf_spec_index].phys_width - 2 * gGraf_specs[gGraf_spec_index].total_width) / 2;
         gScreen->base_y = (gGraf_specs[gGraf_spec_index].phys_height - 2 * gGraf_specs[gGraf_spec_index].total_height) / 2;
@@ -371,23 +588,39 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
     BrMapAdd(gRear_pixelmap);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern int gHud_tinted1;
+extern int gHud_tinted2;
+extern int gHud_tinted4;
+extern int gMap_render_x_i;
+extern int gMap_render_y_i;
+extern int gMap_render_width_i;
+extern int gMap_render_height_i;
+extern void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int width, int height);
+
 // FUNCTION: CARMA2_HW 0x004e4b40
 // FUNCTION: CARMA2_SW 0x004e0ed0
 void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
 
     ReinitialiseRenderStuff();
     if (gMap_view == 2) {
-        gRender_screen->base_x = (br_uint_16)gMap_render_x_i;
-        gRender_screen->base_y = (br_uint_16)gMap_render_y_i;
-        gRender_screen->width = (br_uint_16)gMap_render_width_i;
-        gRender_screen->height = (br_uint_16)gMap_render_height_i;
+        gRender_screen->base_x = gMap_render_x_i;
+        gRender_screen->base_y = gMap_render_y_i;
+        gRender_screen->width = gMap_render_width_i;
+        gRender_screen->height = gMap_render_height_i;
     } else {
-        gRender_screen->base_x = (br_uint_16)gProgram_state.current_render_left;
-        gRender_screen->base_y = (br_uint_16)gProgram_state.current_render_top;
-        gRender_screen->height = (br_uint_16)(gProgram_state.current_render_bottom - gProgram_state.current_render_top);
-        gRender_screen->width = (br_uint_16)(gProgram_state.current_render_right - gProgram_state.current_render_left);
+        gRender_screen->base_x = gProgram_state.current_render_left;
+        gRender_screen->base_y = gProgram_state.current_render_top;
+        gRender_screen->height = gProgram_state.current_render_bottom - gProgram_state.current_render_top;
+        gRender_screen->width = gProgram_state.current_render_right - gProgram_state.current_render_left;
     }
-    if (gRender_screen->row_bytes != gRender_screen->width) {
+    if (gRender_screen->width != gRender_screen->row_bytes) {
         gRender_screen->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
     } else {
         gRender_screen->flags |= BR_PMF_ROW_WHOLEPIXELS;
@@ -397,27 +630,16 @@ void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
     gWidth = gRender_screen->width;
     gHeight = gRender_screen->height;
     ReinitialiseForwardCamera();
-#ifdef REC2_HW
-    SetTintedPolySize(gHud_tinted1,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-    SetTintedPolySize(gHud_tinted2,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-    SetTintedPolySize(gHud_tinted4,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-#endif
+    SetTintedPolySize(gHud_tinted1, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted2, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted4, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004e4cd0
-// FUNCTION: CARMA2_SW 0x004e0fe0
 void C2_HOOK_FASTCALL ScreenSmaller(void) {
 
     if (gMap_view != 2) {
@@ -426,15 +648,10 @@ void C2_HOOK_FASTCALL ScreenSmaller(void) {
             gRender_indent = 8;
         }
         AdjustRenderScreenSize();
-#ifdef REC2_SW
-        gDepth_buffer->row_bytes = 2 * gRender_screen->width;
-        gDepth_buffer->base_x = gRender_screen->base_x;
-#endif
     }
 }
 
 // FUNCTION: CARMA2_HW 0x004e4d00
-// FUNCTION: CARMA2_SW 0x004e1040
 void C2_HOOK_FASTCALL ScreenLarger(void) {
 
     if (gMap_view != 2) {
@@ -443,15 +660,10 @@ void C2_HOOK_FASTCALL ScreenLarger(void) {
             gRender_indent = 0;
         }
         AdjustRenderScreenSize();
-#ifdef REC2_SW
-        gDepth_buffer->row_bytes = 2 * gRender_screen->width;
-        gDepth_buffer->base_x = gRender_screen->base_x;
-#endif
     }
 }
 
 // FUNCTION: CARMA2_HW 0x004e4d30
-// FUNCTION: CARMA2_SW 0x004e1090
 void C2_HOOK_FASTCALL ClearWobbles(void) {
     int i;
 
@@ -461,7 +673,6 @@ void C2_HOOK_FASTCALL ClearWobbles(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e4d50
-// FUNCTION: CARMA2_SW 0x004e10b0
 void C2_HOOK_FASTCALL InitWobbleStuff(void) {
     int i;
 
@@ -473,17 +684,35 @@ void C2_HOOK_FASTCALL InitWobbleStuff(void) {
     gEvalu = LoadPixelmap("Evalu01.PIX");
 }
 
-// NewScreenWobble
+// FUNCTION: CARMA2_HW 0x004e4db0
+void C2_HOOK_STDCALL NewScreenWobble(double pAmplitude_x, double pAmplitude_y, double pPeriod) {
+    int i;
+    int index = -1;
+    int oldest_time = 0x7fffffff;
+
+    for (i = 0; i < (int)REC2_ASIZE(gWobble_array); ++i) {
+        if (gWobble_array[i].time_started == 0) {
+            index = i;
+            break;
+        }
+        if (gWobble_array[i].time_started < oldest_time) {
+            oldest_time = gWobble_array[i].time_started;
+            index = i;
+        }
+    }
+    gWobble_array[index].time_started = (int)GetTotalTime();
+    gWobble_array[index].amplitude_x = (float)pAmplitude_x;
+    gWobble_array[index].amplitude_y = (float)pAmplitude_y;
+    gWobble_array[index].period = (float)pPeriod;
+}
 
 // FUNCTION: CARMA2_HW 0x004e4e20
-// FUNCTION: CARMA2_SW 0x004e1180
 void C2_HOOK_FASTCALL SetScreenWobble(int pX, int pY) {
     gScreen_wobble_x = pX;
     gScreen_wobble_y = pY;
 }
 
 // FUNCTION: CARMA2_HW 0x004e4e30
-// FUNCTION: CARMA2_SW 0x004e1190
 void C2_HOOK_FASTCALL ResetScreenWobble(void) {
     gScreen_wobble_x = 0;
     gScreen_wobble_y = 0;
@@ -497,18 +726,416 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // FoxyStuff
 
-// DoARenderPass
+extern int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int class, int arg1, int arg2, int arg3);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
+extern void C2_HOOK_FASTCALL ProcessTintedPoly(int pTintedIndex);
+extern void C2_HOOK_FASTCALL RenderTintedPolys(void);
+extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
+extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
+extern int C2_HOOK_FASTCALL IsCarCloaked(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
+extern void C2_HOOK_FASTCALL RenderLimbs(void);
+extern br_pixelmap* gRender_palette;
+extern int gIt_or_fox;
+extern tSpecial_volume* gLast_camera_special_volume;
+extern tNet_game_player_info gNet_players[12];
+extern tNet_mode gNet_mode;
+extern int gNumber_of_net_players;
+extern tDepth_effect_type gSwap_depth_effect_type;
+extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
+extern void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world);
+extern void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
+extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
-// DoACompleteRenderPass
+// FUNCTION: CARMA2_HW 0x004e5680
+void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
+    br_camera* camera_data = (br_camera*)pCamera->type_data;
+    int bgnd_col;
+    br_pixelmap* sky_pixelmap;
+    tCar_spec* fox_car;
+    int j;
+    int i;
+    int count;
+    br_scalar original_yon = camera_data->yon_z;
 
-// STUB: CARMA2_HW 0x004e4e40
-// STUB: CARMA2_SW 0x004e11a0
+    camera_data->yon_z *= pYon_factor;
+    BrPixelmapFill(pDepth, 0xffffffff);
+    if (!gAFE) {
+        count = 0;
+        if (gNet_mode != eNet_mode_none && (gCurrent_net_game->type == eNet_game_type_6 || gCurrent_net_game->type == eNet_game_type_foxy)) {
+            BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                tNet_game_player_info* net_player = &gNet_players[i];
+                if ((net_player->field_0x80 || i == gIt_or_fox) && !IsCarCloaked(net_player->car)) {
+                    fox_car = net_player->car;
+                    if (fox_car->car_master_actor->render_style != BR_RSTYLE_NONE) {
+                        br_actor** wheel_actors;
+
+                        count += 1;
+                        wheel_actors = fox_car->wheel_actors;
+                        for (j = 0; j < 6; j++) {
+                            if (wheel_actors[j] != NULL) {
+                                wheel_actors[j]->render_style = BR_RSTYLE_NONE;
+                            }
+                        }
+                        BrZbsSceneRenderAdd(fox_car->car_master_actor);
+                    }
+                }
+            }
+            BrZbsSceneRenderEnd();
+            if (count != 0) {
+                if (gHud_tinted4 == -1) {
+                    gHud_tinted4 = CreateTintedPoly(0, 0, 640, 480, 3, 2, 0, 0);
+                }
+                TurnTintedPolyOn(gHud_tinted4);
+                ProcessTintedPoly(gHud_tinted4);
+                RenderTintedPolys();
+                TurnTintedPolyOff(gHud_tinted4);
+                BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+                for (i = 0; i < gNumber_of_net_players; i++) {
+                    tNet_game_player_info* net_player = &gNet_players[i];
+                    if (net_player->field_0x80 || i == gIt_or_fox) {
+                        fox_car = net_player->car;
+                        if (fox_car->car_master_actor->render_style != BR_RSTYLE_NONE) {
+                            br_actor** wheel_actors;
+
+                            wheel_actors = fox_car->wheel_actors;
+                            for (j = 0; j < 6; j++) {
+                                if (wheel_actors[j] != NULL) {
+                                    wheel_actors[j]->render_style = BR_RSTYLE_DEFAULT;
+                                    BrZbsSceneRenderAdd(wheel_actors[j]);
+                                }
+                            }
+                        }
+                    }
+                }
+                BrZbsSceneRenderEnd();
+                fox_car->car_master_actor->render_style = BR_RSTYLE_NONE;
+            }
+        }
+    }
+    sky_pixelmap = (pColour->width == gBack_screen->width) ? gBack_screen : pColour;
+    if (gProgram_state.current_depth_effect.sky_texture != NULL && (gLast_camera_special_volume == NULL || gLast_camera_special_volume->sky_col <= -1)) {
+        BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+        DepthEffectSky(pColour, pDepth, pCamera, pMat34);
+        BrZbsSceneRenderEnd();
+    } else {
+        if (gProgram_state.current_depth_effect.type == eDepth_effect_fog || gSwap_depth_effect_type == eDepth_effect_fog) {
+            bgnd_col = 0xff;
+        } else if (gProgram_state.current_depth_effect.type == eDepth_effect_darkness || gSwap_depth_effect_type == eDepth_effect_darkness) {
+            bgnd_col = 0x00;
+        } else if (gLast_camera_special_volume != NULL && gLast_camera_special_volume->sky_col >= 0) {
+            bgnd_col = gLast_camera_special_volume->sky_col;
+        } else {
+            bgnd_col = 0x00;
+        }
+        if (gNet_mode != eNet_mode_none && (gCurrent_net_game->type == eNet_game_type_6 || gCurrent_net_game->type == eNet_game_type_foxy)) {
+            SetSkyColour(((tU32*)gRender_palette->pixels)[bgnd_col]);
+            BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+            DepthEffectSky(pColour, pDepth, pCamera, pMat34);
+            BrZbsSceneRenderEnd();
+        } else {
+            if (sky_pixelmap->type != BR_PMT_INDEX_8) {
+                bgnd_col = PaletteEntry16Bit(gRender_palette, bgnd_col);
+                bgnd_col = (bgnd_col << 16) | bgnd_col;
+            }
+            BrPixelmapFill(sky_pixelmap, bgnd_col);
+        }
+    }
+    DoSpecialCameraEffect(pCamera, pMat34);
+    if (pShadows) {
+        RenderShadows(gUniverse_actor, &gProgram_state.track_spec, pCamera, pMat34);
+    }
+    BrZbsSceneRenderBegin(gUniverse_actor, pCamera, pColour, pDepth);
+    for (i = 4; i > 0; i--) {
+        if (i != 2) {
+            BrSetScreenZOffset(i);
+            BrZbsSceneRenderAdd(gOther_selfs[i - 1]);
+        }
+    }
+    BrSetScreenZOffset(0);
+    ProcessTrack(gUniverse_actor, &gProgram_state.track_spec, pCamera, pMat34);
+    BrZbsSceneRenderAdd(gNon_track_actor);
+    RenderLimbs();
+    RenderLollipops(pColour, pDepth, pCamera, pMat34);
+    if (pEffects) {
+        RenderSparks(pColour, pDepth, pCamera, pMat34, gFrame_period);
+        RenderSmoke(pColour, pDepth, pCamera, pMat34, gFrame_period);
+        RenderElectroBastardRays(pColour, pDepth, pCamera, pMat34, gFrame_period);
+    }
+    BrZbsSceneRenderEnd();
+    camera_data->yon_z = original_yon;
+}
+
+extern int gCount_extra_renders;
+extern tExtra_render gExtra_renders[6];
+extern int gRendering_mirror;
+
+// FUNCTION: CARMA2_HW 0x004e54f0
+void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
+
+    int i;
+    tExtra_render* pExtra;
+    br_matrix34 mat;
+
+    gRendering_mirror = pMirror;
+    if (pMirror != 0 && gPrevious_rear_yon != ((br_camera*)pCamera->type_data)->yon_z) {
+        gPrevious_rear_yon = ((br_camera*)pCamera->type_data)->yon_z;
+        MungeRearviewSky();
+    }
+    if (gRendering_mirror == 0) {
+        gRear_pixelmap->base_x = 0;
+        gRear_pixelmap->base_y = 0;
+        i = 0;
+        if (gCount_extra_renders > 0) {
+            pExtra = gExtra_renders;
+            do {
+                gRear_pixelmap->origin_x = pExtra->material->colour_map->width / 2;
+                gRear_pixelmap->origin_y = pExtra->material->colour_map->height / 2;
+                gRear_pixelmap->width = pExtra->material->colour_map->width;
+                gRear_pixelmap->height = pExtra->material->colour_map->height;
+                if (gRear_pixelmap->width != gRear_pixelmap->row_bytes) {
+                    gRear_pixelmap->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
+                } else {
+                    gRear_pixelmap->flags |= BR_PMF_ROW_WHOLEPIXELS;
+                }
+                BrActorToActorMatrix34(&mat, pExtra->actor, gUniverse_actor);
+                DoARenderPass(&mat, pExtra->actor, gRear_pixelmap, gDepth_buffer, 1.f, 0, 0, 0);
+                DRPixelmapCopyMapBlack(pExtra->material->colour_map, gRear_pixelmap);
+                BrMaterialUpdate(pExtra->material, 8);
+                i++;
+                pExtra++;
+            } while (i < gCount_extra_renders);
+        }
+    }
+    DoARenderPass(pCamera_to_world, pCamera, pScreen, pDepth, 1.f, pMirror == 0, pMirror == 0, pMirror == 0);
+    gRendering_mirror = 0;
+}
+
+extern int gMirror_on__graphics;
+extern br_matrix34 gSheer_mat;
+extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
+extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
+extern tU32 gPalette_fade_time;
+extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
+extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
+extern tGraf_data* gCurrent_graf_data;
+extern void C2_HOOK_FASTCALL DoHeadups(tU32 pThe_time);
+extern void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time);
+extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
+extern void C2_HOOK_FASTCALL DoTestHeadup(void);
+extern void C2_HOOK_FASTCALL DisplayUserMessage(void);
+extern int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period);
+extern void C2_HOOK_FASTCALL SynchronizeActionReplay(void);
+extern void C2_HOOK_FASTCALL MapStuffBeforeRender(void);
+extern void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen);
+extern void C2_HOOK_FASTCALL MapOverlay(void);
+extern br_vector2 gOrigin_headup_map;
+extern int gBack_original_origin_x;
+extern int gBack_original_origin_y;
+extern int gBack_original_base_x;
+extern int gBack_original_base_y;
+extern int gThis_net_player_index;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00496d80
+void C2_HOOK_FASTCALL MapStuffAfterRender(void) {
+    if (gCurrent_race.map_image != NULL) {
+        if (gMap_view == 2) {
+            gOrigin_headup_map.v[0] = 0.f;
+            gOrigin_headup_map.v[1] = 0.f;
+            DoMapOverlays(gBack_screen);
+            gBack_screen->origin_x = gBack_original_origin_x;
+            gBack_screen->origin_y = gBack_original_origin_y;
+            gBack_screen->base_x = gBack_original_base_x;
+            gBack_screen->base_y = gBack_original_base_y;
+        } else if (gMap_view == 1 && !gAction_replay_mode && !(gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox)) {
+            MapOverlay();
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004e4e40
 void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {
-    NOT_IMPLEMENTED();
+    int i;
+    int x_shift;
+    int y_shift;
+    int cockpit_on;
+    char* old_pixels;
+    br_matrix34 old_camera_matrix;
+    br_matrix34 old_mirror_cam_matrix;
+    tU32 the_time;
+    tU32 time_going;
+    double angle;
+    double mod_angle;
+    double cosine_over_angle;
+
+    gRender_screen->pixels = gBack_screen->pixels;
+    the_time = GetTotalTime();
+    old_pixels = gRender_screen->pixels;
+    cockpit_on = gProgram_state.cockpit_on && gProgram_state.cockpit_image_index >= 0 && gMap_view != 2;
+    gMirror_on__graphics = gProgram_state.mirror_on && cockpit_on && gProgram_state.which_view == eView_forward;
+
+    StartRenderingHeadups();
+    MapStuffBeforeRender();
+    if (!gAction_replay_mode) {
+        if (gProgram_state.new_view == eView_undefined) {
+        gScreen_wobble_x = 0;
+        gScreen_wobble_y = 0;
+        for (i = 0; i < REC2_ASIZE(gWobble_array); i++) {
+            if (gWobble_array[i].time_started != 0) {
+                time_going = the_time - gWobble_array[i].time_started;
+                if (time_going > 1000) {
+                    gWobble_array[i].time_started = 0;
+                } else {
+                    mod_angle = fmodf(time_going / gWobble_array[i].period, TAU_F);
+                    if (mod_angle > 1.5f * PI_F) {
+                        cosine_over_angle = gCosine_array[(unsigned int)((TAU_F - mod_angle) / PI_F * 128.f)];
+                    } else if (mod_angle > PI_F) {
+                        cosine_over_angle = -gCosine_array[(unsigned int)((mod_angle - PI_F) / PI_F * 128.f)];
+                    } else if (mod_angle > .5f * PI_F) {
+                        cosine_over_angle = -gCosine_array[(unsigned int)((PI_F - mod_angle) / PI_F * 128.f)];
+                    } else {
+                        cosine_over_angle = gCosine_array[(unsigned int)(mod_angle / PI_F * 128.f)];
+                    }
+                    angle = cosine_over_angle / (1.f + time_going * .0035f);
+                    gScreen_wobble_x += (int)(gWobble_array[i].amplitude_x * angle);
+                    gScreen_wobble_y += (int)(gWobble_array[i].amplitude_y * angle);
+                }
+            }
+        }
+        if (gScreen_wobble_x > gCurrent_graf_data->cock_margin_x) {
+            gScreen_wobble_x = gCurrent_graf_data->cock_margin_x;
+        } else if (gScreen_wobble_x < -gCurrent_graf_data->cock_margin_x) {
+            gScreen_wobble_x = -gCurrent_graf_data->cock_margin_x;
+        }
+        if (gScreen_wobble_y > gCurrent_graf_data->cock_margin_y) {
+            gScreen_wobble_y = gCurrent_graf_data->cock_margin_y;
+        } else if (gScreen_wobble_y < -gCurrent_graf_data->cock_margin_y) {
+            gScreen_wobble_y = -gCurrent_graf_data->cock_margin_y;
+        }
+        PipeSingleScreenWobble(gScreen_wobble_x, gScreen_wobble_y);
+        }
+    }
+    if (cockpit_on) {
+        if (-gScreen_wobble_x > gX_offset) {
+            x_shift = -gX_offset;
+        } else if (gScreen_wobble_x + gX_offset + gRender_screen->width > gBack_screen->width) {
+            x_shift = gBack_screen->width - gRender_screen->width - gX_offset;
+        } else {
+            x_shift = gScreen_wobble_x;
+        }
+        if (-gScreen_wobble_y > gY_offset) {
+            y_shift = -gY_offset;
+        } else if (gScreen_wobble_y + gY_offset + gRender_screen->height > gBack_screen->height) {
+            y_shift = gBack_screen->height - gRender_screen->height - gY_offset;
+        } else {
+            y_shift = gScreen_wobble_y;
+        }
+    } else {
+        x_shift = 0;
+        y_shift = 0;
+    }
+    BrMatrix34Copy(&old_camera_matrix, &gCamera->t.t.mat);
+    if (gMirror_on__graphics) {
+        BrMatrix34Copy(&old_mirror_cam_matrix, &gRearview_camera->t.t.mat);
+    }
+    if (cockpit_on) {
+        gSheer_mat.m[2][1] = y_shift / (float)gRender_screen->height;
+        gSheer_mat.m[2][0] = -x_shift / (float)gRender_screen->width;
+        BrMatrix34Pre(&gCamera->t.t.mat, &gSheer_mat);
+        gCamera->t.t.translate.t.v[0] -= gScreen_wobble_x * 1.5f / gRender_screen->width / WORLD_SCALE;
+        gCamera->t.t.translate.t.v[1] += gScreen_wobble_y * 1.5f / gRender_screen->width / WORLD_SCALE;
+    }
+    gRender_screen->pixels = (char*)gRender_screen->pixels + x_shift + y_shift * gRender_screen->row_bytes;
+    if (gRender_indent && gMap_view != 2) {
+        BrPixelmapRectangleFill(
+                gBack_screen,
+                0,
+                0,
+                gGraf_specs[gGraf_spec_index].total_width,
+                gProgram_state.current_render_top,
+                0);
+        BrPixelmapRectangleFill(
+                gBack_screen,
+                0,
+                gProgram_state.current_render_bottom,
+                gGraf_specs[gGraf_spec_index].total_width,
+                gGraf_specs[gGraf_spec_index].total_height - gProgram_state.current_render_bottom,
+                0);
+        BrPixelmapRectangleFill(
+                gBack_screen,
+                0,
+                gProgram_state.current_render_top,
+                gProgram_state.current_render_left,
+                gProgram_state.current_render_bottom - gProgram_state.current_render_top,
+                0);
+        BrPixelmapRectangleFill(
+                gBack_screen,
+                gProgram_state.current_render_right,
+                gProgram_state.current_render_top,
+                gGraf_specs[gGraf_spec_index].total_width - gProgram_state.current_render_right,
+                gProgram_state.current_render_bottom - gProgram_state.current_render_top,
+                0);
+    }
+    gRendering_mirror = 0;
+    for (i = 0; i < 1; i++) {
+        DoACompleteRenderPass(0, &gCamera_to_world, gCamera, gRender_screen, gDepth_buffer);
+    }
+    gCamera->t.t.mat = old_camera_matrix;
+    if (gMirror_on__graphics) {
+        DoACompleteRenderPass(1, &gRearview_camera_to_world, gRearview_camera, gRearview_screen, gRearview_depth_buffer);
+        gRearview_camera->t.t.mat = old_mirror_cam_matrix;
+    }
+    RenderTintedPolys();
+    if (gMap_view != 2) {
+        DimAFewBits();
+        DoDamageScreen(the_time);
+        if (!gAction_replay_mode || gAR_fudge_headups) {
+            DoHeadups(the_time);
+        }
+        DoInstruments(the_time);
+        if (!gAction_replay_mode || gAR_fudge_headups) {
+            DrawPowerups(the_time);
+        }
+    }
+    if (gMap_view != 2 && (!gAction_replay_mode || gAR_fudge_headups)) {
+        DoTestHeadup();
+        DoPSPowerupHeadups();
+    }
+    MapStuffAfterRender();
+    if (gNet_mode != eNet_mode_none) {
+        DisplayUserMessage();
+    }
+    if (gAction_replay_mode) {
+        MovieRecordFrame(gBack_screen, gFrame_period);
+    }
+    if (gAction_replay_mode && !gAR_fudge_headups) {
+        DoActionReplayHeadups();
+    }
+    StopRenderingHeadups();
+    if (gAction_replay_mode) {
+        SynchronizeActionReplay();
+    } else {
+        PipeSingleFrameFinish();
+    }
+    gRender_screen->pixels = old_pixels;
+    if (!gPalette_fade_time || GetRaceTime() > gPalette_fade_time + 500u) {
+        PDScreenBufferSwap(0);
+    }
+    if (gAction_replay_mode) {
+        DoActionReplayPostSwap();
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004e5a70
-// FUNCTION: CARMA2_SW 0x004e1c30
 void C2_HOOK_FASTCALL StartRenderingHeadups(void) {
     CleanPolyFontDanglers();
     gHud_actor_storage_size = 0;
@@ -570,7 +1197,6 @@ void C2_HOOK_FASTCALL StopRenderingHeadups(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e5c70
-// FUNCTION: CARMA2_SW 0x004e1c90
 void C2_HOOK_FASTCALL CleanPolyFontDanglers(void) {
     int i;
 
@@ -581,4 +1207,248 @@ void C2_HOOK_FASTCALL CleanPolyFontDanglers(void) {
         }
     }
     gCount_polyfont_glyph_actors = 0;
+}
+
+// GLOBAL: CARMA2_HW 0x0065fb20
+br_matrix34 gSheer_mat = {
+    { { 1.0, 0.0, 0.0 },
+      { 0.0, 1.0, 0.0 },
+      { 0.0, 0.0, 1.0 },
+      { 0.0, 0.0, 0.0 } }
+};
+
+// GLOBAL: CARMA2_HW 0x0065fb54
+int gHud_tinted4 = -1;
+
+// GLOBAL: CARMA2_HW 0x006a27dc
+int gShadow_clip_plane_count;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern int gRendering_mirror;
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern br_actor* gRearview_sky_actor;
+extern br_actor* gForward_sky_actor;
+extern br_model* gForward_sky_model;
+extern br_material* gHorizon_material;
+extern br_angle gOld_fov;
+extern br_scalar gOld_yon;
+extern br_angle gSky_image_width;
+
+// FUNCTION: CARMA2_HW 0x00445cb0
+void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    br_angle yaw;
+    br_actor* actor;
+
+    yaw = BrRadianToAngle(atan2(pCamera_to_world->m[2][0], pCamera_to_world->m[2][2]));
+    if (gProgram_state.cockpit_on || ((gAction_replay_camera_mode * gAction_replay_mode) != 0)
+            || gAction_replay_camera_mode == kActionReplayCameraMode_Internal || gAdapt_sky_model_for_cockpit) {
+
+        if (gRendering_mirror) {
+            actor = gRearview_sky_actor;
+        } else {
+            actor = gForward_sky_actor;
+            if (gOld_fov != ((br_camera*)gCamera->type_data)->field_of_view || gOld_yon != ((br_camera*)gCamera->type_data)->yon_z) {
+                gOld_fov = ((br_camera*)gCamera->type_data)->field_of_view;
+                gOld_yon = ((br_camera*)gCamera->type_data)->yon_z;
+                MungeSkyModel(gCamera, gForward_sky_model);
+            }
+        }
+        BrMatrix34RotateY(&actor->t.t.mat, yaw);
+        BrVector3Copy(&actor->t.t.translate.t, (br_vector3*)pCamera_to_world->m[3]);
+        gHorizon_material->map_transform.m[0][0] = 1.f;
+        gHorizon_material->map_transform.m[0][1] = 0.f;
+        gHorizon_material->map_transform.m[1][0] = 0.f;
+        gHorizon_material->map_transform.m[1][1] = 1.f;
+        gHorizon_material->map_transform.m[2][0] = -((yaw * 1.52587890625e-05) / (gSky_image_width * 1.52587890625e-05));
+        gHorizon_material->map_transform.m[2][1] = 0.f;
+        BrMaterialUpdate(gHorizon_material, BR_MATU_ALL);
+        actor->render_style = BR_RSTYLE_FACES;
+        BrZbsSceneRenderAdd(actor);
+        actor->render_style = BR_RSTYLE_NONE;
+    }
+}
+
+extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+
+// FUNCTION: CARMA2_HW 0x004e74d0
+void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
+    int i;
+    int cat;
+    int car_count;
+    tCar_spec* the_car;
+    br_scalar distance_factor;
+    br_vector3 camera_to_car;
+
+    if (gShadow_level != eShadow_none) {
+        for (cat = eVehicle_self; cat <= (gShadow_level == eShadow_everyone ? eVehicle_drone : gShadow_level == eShadow_us_and_opponents ? eVehicle_rozzer : eVehicle_self); cat++) {
+            if (cat == eVehicle_self) {
+                car_count = 1;
+            } else {
+                car_count = GetCarCount(cat);
+            }
+            for (i = 0; i < car_count; i++) {
+                if (cat == eVehicle_self) {
+                    the_car = &gProgram_state.current_car;
+                } else {
+                    the_car = GetCarSpec(cat, i);
+                }
+                if (!the_car->active) {
+                    continue;
+                }
+                if (IsCarCloaked(the_car)) {
+                    continue;
+                }
+                if (!gAction_replay_mode) {
+                    BrVector3Sub(&camera_to_car, (br_vector3*)gCamera_to_world.m[3], &the_car->car_master_actor->t.t.translate.t);
+                    distance_factor = BrVector3LengthSquared(&camera_to_car);
+                    if (distance_factor > 36.0f) {
+                        continue;
+                    }
+                }
+                ProcessShadow(the_car, gUniverse_actor, &gProgram_state.track_spec, gCamera, &gCamera_to_world, distance_factor);
+            }
+        }
+        if (gFancy_shadow) {
+            for (i = 0; i < gSaved_table_count; i++) {
+                gSaved_shade_tables[i].original->height = gSaved_shade_tables[i].copy->height;
+                gSaved_shade_tables[i].original->pixels = gSaved_shade_tables[i].copy->pixels;
+                BrTableUpdate(gSaved_shade_tables[i].original, BR_TABU_ALL);
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004d5d60
+void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    extern tProximity_ray gProximity_rays[20];
+    extern tPedestrian* gPedestrian_array;
+    extern br_pixelmap* gProx_ray_shade_table;
+    extern void C2_HOOK_FASTCALL ARStartPipingSession(int pType);
+    extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+    extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
+    extern int C2_HOOK_FASTCALL DrawLine3D(const br_vector3* pStart, const br_vector3* pEnd, br_pixelmap* pScreen, br_pixelmap* pDepth, br_pixelmap* pShade);
+    tU32 the_time;
+    int i;
+    float seed;
+    br_vector3 car_pos;
+    br_vector3 ped_pos;
+    br_vector3 car_pos_cam;
+    br_vector3 ped_pos_cam;
+    br_vector3 car_add;
+    br_vector3 car_add_c;
+    br_vector3 ray;
+    br_vector3 r1;
+    br_vector3 from_pos;
+    br_vector3 to_pos;
+    br_model* car_model;
+    br_scalar distance;
+    br_scalar t;
+    int model_updated = 0;
+    br_uint_8 b = 0xff;
+
+    the_time = GetTotalTime();
+    ARStartPipingSession(0x15);
+    for (i = 0; i < (int)REC2_ASIZE(gProximity_rays); i++) {
+
+        if (gProximity_rays[i].start_time == 0) {
+            continue;
+        }
+        if (the_time - gProximity_rays[i].start_time >= 500) {
+            gProximity_rays[i].start_time = 0;
+            continue;
+        }
+        if (gNo_2d_effects && !model_updated) {
+            BrActorRemove(gLine_actor);
+            BrActorAdd(gCamera, gLine_actor);
+            gLine_model->vertices[0].red = 0x80;
+            gLine_model->vertices[0].grn = 0x80;
+            gLine_model->vertices[0].blu = b;
+            gLine_model->vertices[1].red = b;
+            gLine_model->vertices[1].grn = b;
+            gLine_model->vertices[1].blu = b;
+            BrModelUpdate(gLine_model, BR_MODU_ALL);
+            model_updated = 1;
+        }
+        AddProxRayToPipingSession(i, gProximity_rays[i].car, gProximity_rays[i].ped - gPedestrian_array, gProximity_rays[i].start_time);
+        car_model = gProximity_rays[i].car->car_actor->model;
+
+        BrVector3Set(&car_add_c, 0.f, (car_model->bounds.max.v[1] - car_model->bounds.min.v[1]) / -5.f, 0.f);
+        BrMatrix34ApplyV(&car_add, &car_add_c, &gProximity_rays[i].car->car_master_actor->t.t.mat);
+        BrVector3Add(&car_pos, &gProximity_rays[i].car->pos, &car_add);
+        BrVector3Copy(&ped_pos, &gProximity_rays[i].ped->pos);
+        DRMatrix34TApplyP(&car_pos_cam, &car_pos, &gCamera_to_world);
+        DRMatrix34TApplyP(&ped_pos_cam, &ped_pos, &gCamera_to_world);
+
+        BrVector3Sub(&r1, &ped_pos_cam, &car_pos_cam);
+        distance = BrVector3Length(&r1);
+        BrVector3Normalise(&r1, &r1);
+
+        from_pos = car_pos_cam;
+
+        seed = ped_pos.v[0] + ped_pos.v[1] + ped_pos.v[2] + car_pos.v[0] + car_pos.v[1] + car_pos.v[2];
+        srand(*(int*)&seed + the_time);
+
+        for (t = 0.f; t < distance; t = t - -0.05f) {
+            BrVector3Scale(&ray, &r1, t);
+            BrVector3Add(&to_pos, &ray, &car_pos_cam);
+            to_pos.v[0] += SRandomPosNeg(.1f);
+            to_pos.v[1] += SRandomPosNeg(.1f);
+            to_pos.v[2] += SRandomPosNeg(.1f);
+            DrawLine3D(&to_pos, &from_pos, pRender_screen, pDepth_buffer, gProx_ray_shade_table);
+            t = t - -0.05f;
+            from_pos = to_pos;
+        }
+        DrawLine3D(&ped_pos_cam, &from_pos, pRender_screen, pDepth_buffer, gProx_ray_shade_table);
+    }
+    AREndPipingSession();
+    if (gNo_2d_effects && model_updated) {
+        BrActorRemove(gLine_actor);
+        BrActorAdd(gDont_render_actor, gLine_actor);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006a23e0
+br_vector3 gShadow_points[8] = { { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } },
+                                 { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } }, { { 0.f, 0.f, 0.f } } };
+
+// GLOBAL: CARMA2_HW 0x00655e00
+br_matrix34 gIdentity34 = {
+    {
+        { 1.0, 0.0, 0.0 },
+        { 0.0, 1.0, 0.0 },
+        { 0.0, 0.0, 1.0 },
+        { 0.0, 0.0, 0.0 },
+    }
+};
+
+// GLOBAL: CARMA2_HW 0x006a2440
+int gShadow_dim_amount;
+
+/* Initialised on purpose: as a COMMON symbol this 0x190-byte array was sorted by size straight
+   after gShadow_clip_planes (0x40) and became the symbol reccmp resolves for InitShadow's folded
+   loop-end operand (0x4e9a0f), where the original names gSaved_shade_tables. In .data it stops
+   taking that .bss slot. */
+// GLOBAL: CARMA2_HW 0x006a2128
+void* gLollipop_queue[100] = { 0 };
+
+// FUNCTION: CARMA2_HW 0x004e4910
+int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex) {
+    extern void* gLollipop_queue[100];
+
+    if (pIndex < 0) {
+        if (gNumber_of_lollipops < 100) {
+            gLollipop_queue[gNumber_of_lollipops] = pItem;
+            gNumber_of_lollipops++;
+            return gNumber_of_lollipops - 1;
+        }
+        return -1;
+    }
+    gLollipop_queue[pIndex] = pItem;
+    return pIndex;
 }

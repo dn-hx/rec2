@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "69-sound.h"
 
 #include "00-car.h"
@@ -19,86 +11,66 @@
 #include "globvars.h"
 #include "platform.h"
 #include "rec2_macros.h"
-#include "s3/internal/audio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // GLOBAL: CARMA2_HW 0x00684550
-// GLOBAL: CARMA2_SW 0x0067ec90
 const char* gPed_sound_path;
 
 // GLOBAL: CARMA2_HW 0x0068b898
-// GLOBAL: CARMA2_SW 0x00685df8
 int gCD_fully_installed;
 
 // GLOBAL: CARMA2_HW 0x00684558
-// GLOBAL: CARMA2_SW 0x0067ec98
 int gServicing_sound;
 
 // GLOBAL: CARMA2_HW 0x00684560
-// GLOBAL: CARMA2_SW 0x0067eca0
 int gSound_sources_inited;
 
 // GLOBAL: CARMA2_HW 0x00684544
-// GLOBAL: CARMA2_SW 0x0067ec84
 tU32 gLast_sound_service;
 
 // GLOBAL: CARMA2_HW 0x0068454c
-// GLOBAL: CARMA2_SW 0x0067ec8c
 int gCDA_started_playing;
 
 // GLOBAL: CARMA2_HW 0x00684548
-// GLOBAL: CARMA2_SW 0x0067ec88
 tU32 gNext_track_finished_check;
 
 // GLOBAL: CARMA2_HW 0x00684564
-// GLOBAL: CARMA2_SW 0x0067eca4
 int gMusic_available;
 
 // GLOBAL: CARMA2_HW 0x00684568
-// GLOBAL: CARMA2_SW 0x0067eca8
 int gINT_00684568;
 
 // GLOBAL: CARMA2_HW 0x00684554
-// GLOBAL: CARMA2_SW 0x0067ec94
 int gINT_00684554;
 
 // GLOBAL: CARMA2_HW 0x00595c44
-// GLOBAL: CARMA2_SW 0x00590ba4
 int gINT_00595c44 = 1;
 
 // GLOBAL: CARMA2_HW 0x00595c20
-// GLOBAL: CARMA2_SW 0x00590b80
 int gINT_00595c20 = 9998;
 
 // GLOBAL: CARMA2_HW 0x0068455c
-// GLOBAL: CARMA2_SW 0x0067ec9c
 undefined4 gUNK_0068455c;
 
 // GLOBAL: CARMA2_HW 0x0079e13c
-// GLOBAL: CARMA2_SW 0x0079469c
 int gCD_is_disabled;
 
 // GLOBAL: CARMA2_HW 0x00595c78
-// GLOBAL: CARMA2_SW 0x00590bd8
 int gRandom_CDA_tunes[8] = { 9600, 9601, 9602, 9603, 9604, 9605, 9606, 9607 };
 
 // GLOBAL: CARMA2_HW 0x00595c98
-// GLOBAL: CARMA2_SW 0x00590bf8
 int gRandom_CDA_tunes_1[4] = { 9600, 9601, 9602, 9603 };
 
 // GLOBAL: CARMA2_HW 0x00595ca8
-// GLOBAL: CARMA2_SW 0x00590c08
 int gRandom_CDA_tunes_2[4] = { 9604, 9605, 9606, 9607 };
 
 // GLOBAL: CARMA2_HW 0x00595c50
-// GLOBAL: CARMA2_SW 0x00590bb0
 int gLast_tune = -1;
 
 // GLOBAL: CARMA2_HW 0x00595c28
-// GLOBAL: CARMA2_SW 0x00590b88
 const char* gSound_periodicity_choices[3] = {
     "RANDOM",
     "PERIODIC",
@@ -106,47 +78,40 @@ const char* gSound_periodicity_choices[3] = {
 };
 
 // GLOBAL: CARMA2_HW 0x00595c48
-// GLOBAL: CARMA2_SW 0x00590ba8
 int gSound_detail_level = 1;
 
 // GLOBAL: CARMA2_HW 0x00684570
-// GLOBAL: CARMA2_SW 0x0067ecb0
 tEnvironment_sound_source gEnvironment_sound_sources[5];
 
 // GLOBAL: CARMA2_HW 0x006845fc
-// GLOBAL: CARMA2_SW 0x0067ed3c
 tS3_outlet* gEffects_outlet;
 
 // GLOBAL: CARMA2_HW 0x00684600
-// GLOBAL: CARMA2_SW 0x0067ed40
 tS3_outlet* gCar_outlet;
 
 // GLOBAL: CARMA2_HW 0x00684604
-// GLOBAL: CARMA2_SW 0x0067ed44
 tS3_outlet* gEngine_outlet;
 
 // GLOBAL: CARMA2_HW 0x00684608
-// GLOBAL: CARMA2_SW 0x0067ed48
 tS3_outlet* gDriver_outlet;
 
 // GLOBAL: CARMA2_HW 0x0068460c
-// GLOBAL: CARMA2_SW 0x0067ed4c
 tS3_outlet* gPedestrians_outlet;
 
 // GLOBAL: CARMA2_HW 0x00684610
-// GLOBAL: CARMA2_SW 0x0067ed50
 tS3_outlet* gMusic_outlet;
 
 // GLOBAL: CARMA2_HW 0x00684614
-// GLOBAL: CARMA2_SW 0x0067ed54
 tS3_outlet* gXXX_outlet;
 
+/* 7 entries: GetIndexFromOutlet scans up to 0x0079e17c (= gEnvironmental_sound_sources_buffer_index); initialized to keep them adjacent */
 // GLOBAL: CARMA2_HW 0x0079e160
-// GLOBAL: CARMA2_SW 0x007946c0
-tS3_outlet* gIndexed_outlets[6];
+tS3_outlet* gIndexed_outlets[7] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0079e17c
+int gEnvironmental_sound_sources_buffer_index = 0;
 
 // GLOBAL: CARMA2_HW 0x00595c38
-// GLOBAL: CARMA2_SW 0x00590b98
 const char* gSound_generator_type_names[3] = {
     "NONCAR",
     "ACTOR",
@@ -154,50 +119,37 @@ const char* gSound_generator_type_names[3] = {
 };
 
 // GLOBAL: CARMA2_HW 0x00655dd8
-// GLOBAL: CARMA2_SW 0x00650cc0
 int gVirgin_pass = 1;
 
 // GLOBAL: CARMA2_HW 0x00595c4c
-// GLOBAL: CARMA2_SW 0x00590bac
 int gOld_sound_detail_level = -1;
 
 // GLOBAL: CARMA2_HW 0x0079e120
-// GLOBAL: CARMA2_SW 0x00794680
 br_vector3 gCamera_left;
 
 // GLOBAL: CARMA2_HW 0x0079e130
-// GLOBAL: CARMA2_SW 0x00794690
 br_vector3 gCamera_position;
 
 // GLOBAL: CARMA2_HW 0x0079e180
-// GLOBAL: CARMA2_SW 0x007946e0
 br_vector3 gOld_camera_position;
 
 // GLOBAL: CARMA2_HW 0x0079ea60
-// GLOBAL: CARMA2_SW 0x00794fc0
 br_vector3 gCamera_velocity;
 
 // GLOBAL: CARMA2_HW 0x00684540
-// GLOBAL: CARMA2_SW 0x0067ec80
 tU32 gNext_sound_generator_munging;
 
 // GLOBAL: CARMA2_HW 0x0079e18c
-// GLOBAL: CARMA2_SW 0x007946ec
 int gCount_environmental_sound_sources;
 
-// GLOBAL: CARMA2_HW 0x0079e17c
-// GLOBAL: CARMA2_SW 0x007946dc
-int gEnvironmental_sound_sources_buffer_index;
 
 // FUNCTION: CARMA2_HW 0x00500060
-// FUNCTION: CARMA2_SW 0x004fb940
 void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
 
     // empty
 }
 
 // FUNCTION: CARMA2_HW 0x00454f40
-// FUNCTION: CARMA2_SW 0x00454cd0
 void C2_HOOK_FASTCALL UsePathFileToDetermineIfFullInstallation(void) {
 
     char line1[80];
@@ -230,7 +182,6 @@ void C2_HOOK_FASTCALL UsePathFileToDetermineIfFullInstallation(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455080
-// FUNCTION: CARMA2_SW 0x00454e10
 void C2_HOOK_FASTCALL InitSound(void) {
     tPath_name the_path;
     int engine_channel_count;
@@ -345,7 +296,6 @@ void C2_HOOK_FASTCALL InitSound(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455690
-// FUNCTION: CARMA2_SW 0x00455420
 tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound) {
 
     if (gSound_enabled) {
@@ -358,6 +308,7 @@ tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id 
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004556f0
 int C2_HOOK_FASTCALL DRS3StartSoundNoPiping(tS3_outlet* pOutlet, tS3_sound_id pSound) {
 
     if (gSound_enabled) {
@@ -368,7 +319,6 @@ int C2_HOOK_FASTCALL DRS3StartSoundNoPiping(tS3_outlet* pOutlet, tS3_sound_id pS
 }
 
 // FUNCTION: CARMA2_HW 0x00455710
-// FUNCTION: CARMA2_SW 0x004554a0
 int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet *pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch) {
 
     if (gSound_enabled) {
@@ -396,7 +346,6 @@ int C2_HOOK_FASTCALL DRS3ChangeVolume(int pChannel_id, int pVolume) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455840
-// FUNCTION: CARMA2_SW 0x004555d0
 int C2_HOOK_FASTCALL DRS3StopSound(tS3_sound_tag pSound_tag) {
 
     if (gSound_enabled) {
@@ -417,8 +366,18 @@ tS3_error_codes C2_HOOK_FASTCALL DRS3LoadSound(tS3_sound_id pThe_sound) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x004558a0
-// FUNCTION: CARMA2_SW 0x00455630
+extern int C2_HOOK_FASTCALL S3ReleaseSound(int pSound_id);
+
+// FUNCTION: CARMA2_HW 0x00455880
+int C2_HOOK_FASTCALL DRS3ReleaseSound(int pSound_id) {
+
+    if (gSound_enabled) {
+        return S3ReleaseSound(pSound_id);
+    } else {
+        return 0;
+    }
+}
+
 void C2_HOOK_FASTCALL DRS3Service(void) {
 
     if (gSound_enabled) {
@@ -426,19 +385,7 @@ void C2_HOOK_FASTCALL DRS3Service(void) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x00455880
-// FUNCTION: CARMA2_SW 0x00455610
-int C2_HOOK_FASTCALL DRS3ReleaseSound(tS3_sound_id pThe_sound) {
-
-    if (gSound_enabled) {
-        return S3ReleaseSound(pThe_sound);
-    } else {
-        return 0;
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x004558f0
-// FUNCTION: CARMA2_SW 0x00455680
 int C2_HOOK_FASTCALL DRS3SoundStillPlaying(int pTag) {
 
     if (gSound_enabled) {
@@ -449,7 +396,6 @@ int C2_HOOK_FASTCALL DRS3SoundStillPlaying(int pTag) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455910
-// FUNCTION: CARMA2_SW 0x004556a0
 void C2_HOOK_FASTCALL DRS3ShutDown(void) {
 
     if (gSound_enabled) {
@@ -468,18 +414,15 @@ int C2_HOOK_FASTCALL DRS3SetOutletVolume(tS3_outlet* pOutlet, int pVolume) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455950
-// FUNCTION: CARMA2_SW 0x004556e0
 int C2_HOOK_FASTCALL DRS3SetVolume(int pVolume) {
 
     if (gSound_enabled) {
         return S3SetVolume(pVolume);
-    } else {
-        return 0;
     }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00455970
-// FUNCTION: CARMA2_SW 0x00455700
 int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet) {
 
     if (gSound_enabled) {
@@ -489,7 +432,6 @@ int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet) {
 }
 
 // FUNCTION: CARMA2_HW 0x004559e0
-// FUNCTION: CARMA2_SW 0x00455770
 int C2_HOOK_FASTCALL DRS3StopAllOutletSoundsExceptCDA(void) {
 
     if (gSound_enabled) {
@@ -505,7 +447,6 @@ int C2_HOOK_FASTCALL DRS3StopAllOutletSoundsExceptCDA(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455a50
-// FUNCTION: CARMA2_SW 0x004557e0
 void C2_HOOK_FASTCALL ToggleSoundEnable(void) {
 
     if (gSound_enabled) {
@@ -519,7 +460,6 @@ void C2_HOOK_FASTCALL ToggleSoundEnable(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455a80
-// FUNCTION: CARMA2_SW 0x00455810
 void C2_HOOK_FASTCALL SoundService(void) {
 
     if (!gSound_enabled) {
@@ -544,7 +484,6 @@ void C2_HOOK_FASTCALL SoundService(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455bb0
-// FUNCTION: CARMA2_SW 0x00455940
 void C2_HOOK_FASTCALL InitSoundSources(void) {
     int toggle;
     int cat;
@@ -619,7 +558,6 @@ void C2_HOOK_FASTCALL InitSoundSources(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455de0
-// FUNCTION: CARMA2_SW 0x00455b70
 void C2_HOOK_FASTCALL DisposeSoundSources(void) {
     int cat;
     int car_count;
@@ -674,7 +612,6 @@ void C2_HOOK_FASTCALL DisposeSoundSources(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00455f80
-// FUNCTION: CARMA2_SW 0x00455d10
 int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed) {
 
     if (gSound_enabled) {
@@ -690,8 +627,17 @@ int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const 
     }
 }
 
+extern tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed);
+
+// FUNCTION: CARMA2_HW 0x00456010
+tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSoundFromSource3(tS3_sound_source* pSource, tS3_sound_id pSound, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed) {
+    if (gSound_enabled) {
+        return S3StartSoundFromSource3(pSound, pSource, pRepeats, pVolume, pPitch, pSpeed);
+    }
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x00456070
-// FUNCTION: CARMA2_SW 0x00455e00
 void C2_HOOK_FASTCALL MungeEngineNoise(void) {
     int cat;
     int car_count;
@@ -784,7 +730,6 @@ void C2_HOOK_FASTCALL MungeEngineNoise(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00456530
-// FUNCTION: CARMA2_SW 0x004562c0
 void C2_HOOK_FASTCALL SetSoundVolumes(int pCD_audio) {
 
     if (!gSound_enabled) {
@@ -814,14 +759,12 @@ void C2_HOOK_FASTCALL SetSoundVolumes(int pCD_audio) {
 }
 
 // FUNCTION: CARMA2_HW 0x004566a0
-// FUNCTION: CARMA2_SW 0x00456430
 tS3_outlet* C2_HOOK_FASTCALL GetOutletFromIndex(int pIndex) {
 
     return gIndexed_outlets[pIndex];
 }
 
 // FUNCTION: CARMA2_HW 0x004566b0
-// FUNCTION: CARMA2_SW 0x00456440
 int C2_HOOK_FASTCALL GetIndexFromOutlet(tS3_outlet* pOutlet) {
     int i;
 
@@ -834,7 +777,6 @@ int C2_HOOK_FASTCALL GetIndexFromOutlet(tS3_outlet* pOutlet) {
 }
 
 // FUNCTION: CARMA2_HW 0x004566d0
-// FUNCTION: CARMA2_SW 0x00456460
 int C2_HOOK_FASTCALL DRS3StartCDA(int pSound) {
 
     if (pSound == 9999 || pSound == 9998 || pSound == 9997) {
@@ -883,7 +825,6 @@ void C2_HOOK_FASTCALL DRS3StopCDA(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00456840
-// FUNCTION: CARMA2_SW 0x004565d0
 void C2_HOOK_FASTCALL StartMusicTrack(int pMusic_track) {
 
     StopMusic();
@@ -907,7 +848,6 @@ void C2_HOOK_FASTCALL StartMusic(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00456910
-// FUNCTION: CARMA2_SW 0x004566a0
 void C2_HOOK_FASTCALL StopMusic(void) {
 
     if (gCD_fully_installed) {
@@ -916,7 +856,6 @@ void C2_HOOK_FASTCALL StopMusic(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00456950
-// FUNCTION: CARMA2_SW 0x004566e0
 void C2_HOOK_FASTCALL SetSoundDetailLevel(int pLevel) {
 
     gSound_detail_level = pLevel;
@@ -933,14 +872,12 @@ void C2_HOOK_FASTCALL ReallySetSoundDetailLevel(int pLevel) {
 }
 
 // FUNCTION: CARMA2_HW 0x004569e0
-// FUNCTION: CARMA2_SW 0x00456770
 int C2_HOOK_FASTCALL GetSoundDetailLevel(void) {
 
     return gSound_detail_level;
 }
 
 // FUNCTION: CARMA2_HW 0x004569f0
-// FUNCTION: CARMA2_SW 0x00456780
 void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpec) {
     int i;
     float f1, f2;
@@ -985,9 +922,124 @@ void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpe
 
 // FoundSoundSource
 
-// MungeSoundGenerators
+extern int gAmbient_sound;
+extern int gNum_active_non_cars;
+extern tNon_car_spec* gActive_non_car_list[99];
 
-// MungeEnvironmentalSound
+static tEnvironment_sound_generator_info sEnv_sound_sources_buffer[2][64];
+
+static void C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, int pIdentifier_value, int pIdentifier_index, int pMatch_flags, void* pCallback, void* pContext) {
+    (void)pTrack; (void)pPos; (void)pMax_dist; (void)pMatch_type; (void)pIdentifier_value;
+    (void)pIdentifier_index; (void)pMatch_flags; (void)pCallback; (void)pContext;
+}
+
+static intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
+    (void)pActor; (void)pContext;
+    return 0;
+}
+
+void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos) {
+    (void)pSrc_object; (void)pEnv_info; (void)pVolume; (void)pPos;
+}
+
+// FUNCTION: CARMA2_HW 0x00456ea0
+void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
+    tEnvironment_sound_generator_vector found_sources;
+    int i;
+
+    if (gAmbient_sound) {
+
+        if (GetTotalTime() - gNext_sound_generator_munging >= 200) {
+
+            gNext_sound_generator_munging += 200;
+            found_sources.sources = sEnv_sound_sources_buffer[gEnvironmental_sound_sources_buffer_index ^ 1];
+            found_sources.count = 0;
+            ProcessNearbyActors(&gProgram_state.track_spec, (br_vector3*)gCamera_to_world.m[3], 10.f, 1, ')', 0, 0x1003, (void*)FoundSoundSource, &found_sources);
+            for (i = 0; i < gProgram_state.count_track_sound_generators; i++) {
+                tTrackSoundGenerator* generator = &gProgram_state.track_sound_generators[i];
+                if (generator->type == kSoundGeneratorType_point && Vector3DistanceSquared(&generator->point, (br_vector3*)gCamera_to_world.m[3]) < 10.f * 10.f) {
+                    tEnvironment_sound_generator_info* src = &found_sources.sources[found_sources.count];
+                    src->generator = generator;
+                    src->soundfx = generator->fx;
+                    src->pos = generator->point;
+                    src->actor = NULL;
+                    found_sources.count += 1;
+                }
+            }
+            for (i = 0; i < gNum_active_non_cars; i++) {
+                tNon_car_spec* c = gActive_non_car_list[i];
+                br_actor* a = c->collision_info->actor;
+                int src_count = found_sources.count;
+                if (a != NULL && a->model != NULL
+                        && a->model->identifier != NULL && a->model->identifier[0] == ')'
+                        && Vector3DistanceSquared(&a->t.t.translate.t, (br_vector3*)gCamera_to_world.m[3]) < 10.f * 10.f) {
+                    FoundSoundSource(a, &found_sources);
+                    if (src_count < found_sources.count && !Vector3IsZero(&c->collision_info->v)) {
+                        found_sources.sources[src_count].soundfx = found_sources.sources[src_count].generator->fx1_noncar;
+                    }
+                }
+            }
+            for (i = 0; i < found_sources.count; i++) {
+                int j;
+                tEnvironment_sound_generator_info* src_now = &found_sources.sources[i];
+
+                for (j = 0; j < gCount_environmental_sound_sources; j++) {
+                    tEnvironment_sound_generator_info* src_prev = &sEnv_sound_sources_buffer[gEnvironmental_sound_sources_buffer_index][j];
+
+                    if (src_now->generator == src_prev->generator && src_now->actor == src_prev->actor) {
+                        src_now->soundfx.field_0xc = src_prev->soundfx.field_0xc;
+                        break;
+                    }
+                }
+            }
+            gEnvironmental_sound_sources_buffer_index ^= 1;
+            gCount_environmental_sound_sources = found_sources.count;
+        }
+
+        for (i = 0; i < gCount_environmental_sound_sources; i++) {
+            br_vector3 delta;
+            tEnvironment_sound_generator_info* src;
+            void* src_obj;
+
+            src = &sEnv_sound_sources_buffer[gEnvironmental_sound_sources_buffer_index][i];
+            BrVector3Sub(&delta, &src->pos, (br_vector3*)gCamera_to_world.m[3]);
+            src_obj = src->actor;
+            if (src_obj == NULL) {
+                src_obj = src->generator;
+            }
+            DoAnEnvironmentalSound(src_obj, src, (int)((10.f - BrVector3LengthSquared(&delta)) * 255.f / 10.f), &src->pos);
+        }
+    }
+}
+
+extern int gFaded_palette;
+extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
+
+// FUNCTION: CARMA2_HW 0x00456e20
+void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
+    int* puVar1;
+    int* piVar2;
+
+    if (gAmbient_sound != 0) {
+        puVar1 = (int*)&gEnvironment_sound_sources[0].field_0x18;
+        do {
+            *puVar1 = 0;
+            puVar1 = puVar1 + 7;
+        } while ((int)puVar1 < (int)&gXXX_outlet);
+        if (gFaded_palette == 0) {
+            FindSpecialVolume((br_vector3*)&gCamera_to_world.m[3], NULL, 1);
+            MungeSoundGenerators();
+        }
+        piVar2 = (int*)&gEnvironment_sound_sources[0].field_0x10;
+        do {
+            if (piVar2[2] == 0 && piVar2[0] != 0) {
+                S3UpdateSoundSource(gXXX_outlet, -1, (tS3_sound_source*)piVar2[-4], -1.f, -1, -1, 0, -1, -1);
+                piVar2[0] = 0;
+            }
+            piVar2 = piVar2 + 7;
+        } while ((int)piVar2 < (int)&gPedestrians_outlet);
+    }
+}
 
 void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pName, int pIndex) {
     br_model* model;
@@ -1007,7 +1059,6 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
 }
 
 // FUNCTION: CARMA2_HW 0x004572f0
-// FUNCTION: CARMA2_SW 0x00457080
 void C2_HOOK_FASTCALL ReadSoundGenerators(tTrack_spec* pTrack_spec, FILE* pF) {
     float x;
     float y;
@@ -1047,7 +1098,6 @@ void C2_HOOK_FASTCALL ReadSoundGenerators(tTrack_spec* pTrack_spec, FILE* pF) {
 }
 
 // FUNCTION: CARMA2_HW 0x00457450
-// FUNCTION: CARMA2_SW 0x004571e0
 void C2_HOOK_FASTCALL WriteOutSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpec) {
     int i;
 
@@ -1081,26 +1131,24 @@ void C2_HOOK_FASTCALL WriteOutSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* 
 }
 
 // FUNCTION: CARMA2_HW 0x00457570
-// FUNCTION: CARMA2_SW 0x00457300
 void C2_HOOK_FASTCALL SetDefaultSoundFolderName(void) {
 
     gPed_sound_path = NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00457580
-// FUNCTION: CARMA2_SW 0x00457310
 void C2_HOOK_FASTCALL ConfigureBloodPedSoundPath(void) {
     gPed_sound_path = NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00457590
-// FUNCTION: CARMA2_SW 0x00457320
 void C2_HOOK_FASTCALL ConfigureZombiePedSoundPath(void) {
     gPed_sound_path = "ZOMSOUND";
 }
 
 // FUNCTION: CARMA2_HW 0x004575a0
-// FUNCTION: CARMA2_SW 0x00457330
 void C2_HOOK_FASTCALL ConfigureAlienPedSoundPath(void) {
     gPed_sound_path = "ALSOUND";
 }
+
+/* S3StartSoundFromSource3 is implemented in src/carma2/s3/src/audio.c (0x00566dc1) */

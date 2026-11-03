@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "utility.h"
 
 #include "52-errors.h"
@@ -87,7 +79,7 @@ br_error C2_HOOK_FASTCALL DRBrEnd(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00515910
-void C2_HOOK_FASTCALL DRstrlwr(char* pStr) {
+void C2_HOOK_FASTCALL StringTransformToLower(char* pStr) {
     int i;
     int len;
 
@@ -1388,7 +1380,7 @@ int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterialPrimitively(br_material *pM
 }
 
 // FUNCTION: CARMA2_HW 0x00518e70
-int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material *pMaterial) {
+int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material *pMaterial) {
 
     if (gScreen->type == BR_PMT_INDEX_8) {
         return GetBlendificatiousnessOfMaterialTablishly(pMaterial);

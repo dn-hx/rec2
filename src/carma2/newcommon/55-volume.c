@@ -1,35 +1,37 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "55-volume.h"
 
 #include "00-car.h"
 #include "08-loading1.h"
 #include "34-finteray.h"
 #include "41-utility.h"
+#include "52-errors.h"
 #include "69-sound.h"
 #include "70-packfile.h"
 #include "globvars.h"
+#include "brender/brender.h"
 
 #include "c2_string.h"
 
 #include "rec2_macros.h"
 
 // GLOBAL: CARMA2_HW 0x00761b80
-// GLOBAL: CARMA2_SW 0x007580e0
 tSpecial_volume gDefault_default_water_spec_vol;
 
 // GLOBAL: CARMA2_HW 0x00761f44
-// GLOBAL: CARMA2_SW 0x007584a4
 tSpecial_volume* gDefault_water_spec_vol_real;
 
+// GLOBAL: CARMA2_HW 0x00660258
+const char* gSpecial_effects_boundary_choices[4] = {
+    "BOX",
+    "PLANE",
+    "DEFAULT",
+    "NEW",
+};
+
+// GLOBAL: CARMA2_HW 0x0068b878
+int gDefault_engine_noise_index;
+
 // GLOBAL: CARMA2_HW 0x00660268
-// GLOBAL: CARMA2_SW 0x0065ab48
 const char* gSoundType_choices[2] = {
     "SATURATED",
     "SCATTERED"
@@ -40,12 +42,142 @@ tSpecial_volume* C2_HOOK_FASTCALL GetDefaultSpecialVolumeForWater(void) {
     return gDefault_water_spec_vol_real;
 }
 
-// FindSpecialVolume
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos);
+
+// PARTIAL 78.03%: DoEnvSound 0x456af0 - x87 schedule of inlined normalise differs
+// FUNCTION: CARMA2_HW 0x00456af0
+void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir) {
+    br_vector3 pos;
+    br_vector3 dir;
+    float neg;
+
+    if (gAmbient_sound && pType != -1) {
+        if (pType == 0) {
+            if (pSound_dist != 0.0f) {
+                BrVector3Normalise(&dir, pSound_dir);
+                neg = -pSound_dist;
+                pos.v[0] = dir.v[0] * neg + pP->v[0];
+                pos.v[1] = dir.v[1] * neg + pP->v[1];
+                pos.v[2] = dir.v[2] * neg + pP->v[2];
+            } else {
+                pos.v[0] = pP->v[0];
+                pos.v[1] = pP->v[1];
+                pos.v[2] = pP->v[2];
+            }
+        } else {
+            pos.v[0] = SRandomPosNeg(10.f) + pP->v[0];
+            pos.v[1] = SRandomPosNeg(10.f) + pP->v[1];
+            pos.v[2] = SRandomPosNeg(10.f) + pP->v[2];
+        }
+        DoAnEnvironmentalSound(pVolume, (tEnvironment_sound_generator_info*)pSound_data, (int)((10.f - pSound_dist) * 255.f * 0.1f), &pos);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004ff120
+tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3) {
+    int i;
+    tSpecial_volume* result;
+
+    result = NULL;
+    for (i = 0; i < gProgram_state.special_volume_count && (result == NULL || pArg3); i++) {
+        tSpecial_volume* v = &gProgram_state.special_volumes[i];
+        tSpecial_volume* sound_volume = NULL;
+        tSpecial_volume* containing_volume = sound_volume;
+        float sound_dist = 1e7f;
+        br_vector3 sound_dir;
+        int fartest_bnds_axis = 0;
+
+        if (v->boundary_type == eFx_boundary_box) {
+            if (pP->v[0] > v->boundary.box.bounds.min.v[0]
+                    && pP->v[0] < v->boundary.box.bounds.max.v[0]
+                    && pP->v[1] > v->boundary.box.bounds.min.v[1]
+                    && pP->v[1] < v->boundary.box.bounds.max.v[1]
+                    && pP->v[2] > v->boundary.box.bounds.min.v[2]
+                    && pP->v[2] < v->boundary.box.bounds.max.v[2]) {
+                br_vector3 pnt_norm;
+                float fartest_dist;
+                int j;
+
+                BrMatrix34ApplyP(&pnt_norm, pP, &v->boundary.box.inv_mat);
+                fartest_dist = 0.f;
+                for (j = 0; j < 3; j++) {
+                    float dist;
+                    int bnds_axis;
+
+                    if (pnt_norm.v[j] <= -1.f) {
+                        dist = -1.f - pnt_norm.v[j];
+                        bnds_axis = j + 3;
+                    } else if (pnt_norm.v[j] > 1.f) {
+                        dist = pnt_norm.v[j] - 1.f;
+                        bnds_axis = j;
+                    } else {
+                        dist = 0.f;
+                    }
+                    if (dist > fartest_dist) {
+                        fartest_bnds_axis = bnds_axis;
+                        fartest_dist = dist;
+                    }
+                }
+                if (fartest_dist != 0.f && v->soundfx_type != kSoundFx_None) {
+                    int axis = fartest_bnds_axis % 3;
+
+                    fartest_dist /= v->boundary.box.axis_length.v[axis];
+                    if (fartest_dist < 1e7f) {
+                        float delta = (float)(fartest_bnds_axis < 3 ? 1 : -1);
+
+                        BrVector3Scale(&sound_dir, (br_vector3*)v->boundary.box.mat.m[axis], delta);
+                        sound_volume = v;
+                        sound_dist = fartest_dist;
+                    }
+                } else if (fartest_dist == 0.f) {
+                    containing_volume = v;
+                }
+            }
+        } else if (v->boundary_type == eFx_boundary_plane) {
+            float dist;
+
+            dist = DistanceFromFaceND(pP, (br_vector3*)&v->boundary.plane, v->boundary.box.mat.m[1][0]);
+            containing_volume = v;
+            if (dist >= 0.f) {
+                containing_volume = NULL;
+                if (dist < 1e7f && v->soundfx_type != kSoundFx_None) {
+                    BrVector3Copy(&sound_dir, &v->boundary.plane);
+                    sound_volume = v;
+                    sound_dist = dist;
+                }
+            }
+        }
+        if (containing_volume != NULL) {
+            sound_dist = 0.f;
+            sound_volume = containing_volume;
+            if (result == NULL) {
+                result = containing_volume;
+            }
+        }
+        if (pArg3 && sound_volume != NULL && sound_dist < 10.f) {
+            DoEnvSound(sound_volume, pP, sound_volume->soundfx_type, &sound_volume->soundfx_data, sound_dist, &sound_dir);
+        }
+    }
+    return result;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // MungeSpecialVolume
 
 // FUNCTION: CARMA2_HW 0x004ff530
-// FUNCTION: CARMA2_SW 0x004fae10
 void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject) {
     br_vector3 direction;
     br_vector3 normal;
@@ -74,7 +206,6 @@ void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject) {
 // TestAutoSpecialVolume
 
 // FUNCTION: CARMA2_HW 0x004ff8d0
-// FUNCTION: CARMA2_SW 0x004fb1b0
 void C2_HOOK_FASTCALL ParseSpecialVolume(FILE* pF, tSpecial_volume* pSpec, char* pScreen_name_str, int soundfx) {
     char s[256];
 
@@ -183,7 +314,6 @@ void C2_HOOK_FASTCALL SaveSpecialVolumes(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ffd20
-// FUNCTION: CARMA2_SW 0x004fb600
 void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec) {
     br_bounds bnds;
 
@@ -193,4 +323,67 @@ void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec) {
     BrMatrix34Inverse(&pSpec->boundary.box.inv_mat, &pSpec->boundary.box.mat);
 }
 
-// ReadSpecialVolumes
+// FUNCTION: CARMA2_HW 0x004ffd80
+void C2_HOOK_FASTCALL ReadSpecialVolumes(FILE* pF) {
+    gDefault_engine_noise_index = GetAnInt(pF);
+    gDefault_water_spec_vol_real = &gDefault_default_water_spec_vol;
+    gProgram_state.special_volume_count = GetAnInt(pF);
+    if (gProgram_state.special_volume_count != 0) {
+        int i;
+        int type;
+        tSpecial_volume* spec;
+
+        gProgram_state.special_volumes = BrMemAllocate(gProgram_state.special_volume_count * sizeof(tSpecial_volume), kMem_special_volume);
+        for (i = 0, spec = gProgram_state.special_volumes; i < gProgram_state.special_volume_count; i++, spec++) {
+            br_bounds unit_bounds;
+
+            PossibleService();
+            type = GetALineAndInterpretCommand(pF, gSpecial_effects_boundary_choices, REC2_ASIZE(gSpecial_effects_boundary_choices));
+            spec->boundary_type = type;
+            if (type == eFx_boundary_new) {
+                spec->boundary_type = eFx_boundary_box;
+            }
+            switch (spec->boundary_type) {
+            case eFx_boundary_box:
+                GetThreeScalars(pF, &spec->boundary.box.mat.m[0][0], &spec->boundary.box.mat.m[0][1], &spec->boundary.box.mat.m[0][2]);
+                GetThreeScalars(pF, &spec->boundary.box.mat.m[1][0], &spec->boundary.box.mat.m[1][1], &spec->boundary.box.mat.m[1][2]);
+                GetThreeScalars(pF, &spec->boundary.box.mat.m[2][0], &spec->boundary.box.mat.m[2][1], &spec->boundary.box.mat.m[2][2]);
+                GetThreeScalars(pF, &spec->boundary.box.mat.m[3][0], &spec->boundary.box.mat.m[3][1], &spec->boundary.box.mat.m[3][2]);
+                unit_bounds.min.v[0] = -1.0f;
+                unit_bounds.min.v[1] = -1.0f;
+                unit_bounds.min.v[2] = -1.0f;
+                unit_bounds.max.v[0] = 1.0f;
+                unit_bounds.max.v[1] = 1.0f;
+                unit_bounds.max.v[2] = 1.0f;
+                GetNewBoundingBox(&spec->boundary.box.bounds, &unit_bounds, &spec->boundary.box.mat);
+                BrMatrix34Inverse(&spec->boundary.box.inv_mat, &spec->boundary.box.mat);
+                spec->boundary.box.axis_length.v[0] = BrVector3Length((br_vector3*)spec->boundary.box.inv_mat.m[0]);
+                spec->boundary.box.axis_length.v[1] = BrVector3Length((br_vector3*)spec->boundary.box.inv_mat.m[1]);
+                spec->boundary.box.axis_length.v[2] = BrVector3Length((br_vector3*)spec->boundary.box.inv_mat.m[2]);
+                ParseSpecialVolume(pF, spec, NULL, type == eFx_boundary_box);
+                if (spec->soundfx_type != kSoundFx_None) {
+                    int j;
+
+                    for (j = 0; j < 3; j++) {
+                        spec->boundary.box.bounds.min.v[j] -= 10.f;
+                    }
+                    for (j = 0; j < 3; j++) {
+                        spec->boundary.box.bounds.max.v[j] += 10.f;
+                    }
+                }
+                break;
+            case eFx_boundary_plane:
+                GetFourScalars(pF, &spec->boundary.plane.v[0], &spec->boundary.plane.v[1], &spec->boundary.plane.v[2], &spec->boundary.plane.v[3]);
+                ParseSpecialVolume(pF, spec, NULL, 1);
+                break;
+            case eFx_boundary_default:
+                ParseSpecialVolume(pF, spec, NULL, 0);
+                gDefault_water_spec_vol_real = spec;
+                break;
+            default:
+                FatalError(kFatalError_ProblemWithSpecialVolumeNumber_I);
+                break;
+            }
+        }
+    }
+}

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "spark.h"
 
 #include "depth.h"
@@ -728,7 +720,7 @@ void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUp
 // FUNCTION: CARMA2_HW 0x004fed50
 intptr_t C2_HOOK_FASTCALL UnBlendifyMaterialCB(br_material* pMaterial) {
 
-    if (GetBlenficatiousnessOfMaterial(pMaterial) == 100) {
+    if (GetBlendificatiousnessOfMaterial(pMaterial) == 100) {
         return 0;
     }
     BlendifyMaterial(pMaterial, 100);
@@ -745,7 +737,7 @@ void C2_HOOK_FASTCALL UnBlendifyCar(tCar_spec* pCar_spec) {
 // FUNCTION: CARMA2_HW 0x004fed00
 intptr_t C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial) {
 
-    if (GetBlenficatiousnessOfMaterial(pMaterial) == 25) {
+    if (GetBlendificatiousnessOfMaterial(pMaterial) == 25) {
         return 0;
     }
     BlendifyMaterial(pMaterial, 25);

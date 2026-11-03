@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "05-drmem.h"
 
 #include "brender/brender.h"
@@ -16,16 +8,12 @@
 
 #ifdef REC2_MATCHING
 #include <windows.h>
-
-extern SYSTEM_INFO gSystem_info;
 #endif
 
 // GLOBAL: CARMA2_HW 0x006815c8
-// GLOBAL: CARMA2_SW 0x0067bd08
 br_resource_class gStainless_classes[126];
 
 // GLOBAL: CARMA2_HW 0x005937e8
-// GLOBAL: CARMA2_SW 0x0058e748
 br_allocator gAllocator = {
     "Death Race",
     DRStdlibAllocate,
@@ -35,11 +23,9 @@ br_allocator gAllocator = {
 };
 
 // GLOBAL: CARMA2_HW 0x00681fa4
-// GLOBAL: CARMA2_SW 0x0067c6e4
 int gNon_fatal_allocation_errors;
 
 // GLOBAL: CARMA2_HW 0x005933e8
-// GLOBAL: CARMA2_SW 0x0058e348
 const char* gMem_names[256] = {
     "",
     "BR_MEMORY_SCRATCH",
@@ -301,19 +287,19 @@ const char* gMem_names[256] = {
 
 #ifdef REC2_MATCHING
 // GLOBAL: CARMA2_HW 0x00681fa8
-// GLOBAL: CARMA2_SW 0x0067c6e8
 br_size_t gPage_size;
+
+// GLOBAL: CARMA2_HW 0x0079ea80
+SYSTEM_INFO gSystem_info;
 #endif
 
 // FUNCTION: CARMA2_HW 0x0044c7f0
-// FUNCTION: CARMA2_SW 0x0044c5a0
 void C2_HOOK_FASTCALL SetNonFatalAllocationErrors(void) {
 
     gNon_fatal_allocation_errors = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0044c800
-// FUNCTION: CARMA2_SW 0x0044c5b0
 void C2_HOOK_FASTCALL ResetNonFatalAllocationErrors(void) {
 
     gNon_fatal_allocation_errors = 0;
@@ -327,39 +313,16 @@ int C2_HOOK_FASTCALL AllocationErrorsAreFatal(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044c820
-// FUNCTION: CARMA2_SW 0x0044c5d0
 void C2_HOOK_FASTCALL MAMSInitMem(void) {
 
 }
 
 // FUNCTION: CARMA2_HW 0x0044c850
-// FUNCTION: CARMA2_SW 0x0044c600
 void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle) {
 
 }
 
-// FUNCTION: CARMA2_HW 0x0044c860
-// FUNCTION: CARMA2_SW 0x0044c610
-void C2_HOOK_FASTCALL TouchMemoryPages(void* pMemory, br_size_t pSize) {
-#ifdef REC2_MATCHING
-    br_size_t offset;
-
-    if (gPage_size == 0) {
-        GetSystemInfo(&gSystem_info);
-        gPage_size = gSystem_info.dwPageSize;
-    }
-    for (offset = gPage_size * 16; offset < pSize; offset += gPage_size) {
-        *((volatile br_uint_8*)pMemory + (offset - 16 * gPage_size)) = *((volatile br_uint_8*)pMemory + (offset - 16 * gPage_size));
-        *((volatile br_uint_8*)pMemory + offset) = *((volatile br_uint_8*)pMemory + offset);
-    }
-#else
-    (void)pMemory;
-    (void)pSize;
-#endif
-}
-
 // FUNCTION: CARMA2_HW 0x0044c8c0
-// FUNCTION: CARMA2_SW 0x0044c670
 void* C2_HOOK_CDECL DRStdlibAllocate(br_size_t size, br_uint_8 type) {
     void* p;
     char s[256];
@@ -401,7 +364,6 @@ void* C2_HOOK_CDECL DRStdlibAllocate(br_size_t size, br_uint_8 type) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044c990
-// FUNCTION: CARMA2_SW 0x0044c740
 void C2_HOOK_CDECL DRStdlibFree(void* mem) {
 
     #ifdef REC2_MATCHING
@@ -415,19 +377,16 @@ void C2_HOOK_CDECL DRStdlibFree(void* mem) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044c9c0
-// FUNCTION: CARMA2_SW 0x0044c770
 br_size_t C2_HOOK_CDECL DRStdlibInquire(br_uint_8 type) {
     return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0044c9d0
-// FUNCTION: CARMA2_SW 0x0044c780
 br_uint_32 C2_HOOK_CDECL Claim4ByteAlignment(br_uint_8 type) {
     return 4;
 }
 
 // FUNCTION: CARMA2_HW 0x0044c9e0
-// FUNCTION: CARMA2_SW 0x0044c790
 void C2_HOOK_FASTCALL InstallDRMemCalls(void) {
 
     BrAllocatorSet(&gAllocator);
@@ -438,7 +397,6 @@ void C2_HOOK_FASTCALL InstallDRMemCalls(void) {
 // MAMSLock (see plaform)
 
 // FUNCTION: CARMA2_HW 0x0044ca40
-// FUNCTION: CARMA2_SW 0x0044c7f0
 void C2_HOOK_FASTCALL CreateStainlessClasses(void) {
     int i;
 
@@ -451,7 +409,7 @@ void C2_HOOK_FASTCALL CreateStainlessClasses(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044ca80
-// FUNCTION: CARMA2_SW 0x0044c830
 void C2_HOOK_FASTCALL CheckMemory(void) {
 
 }
+

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "powerups.h"
 
 #include "animation.h"
@@ -294,7 +286,7 @@ tRepulse_link gRepulse_links[6];
 tPhysics_joint* gMutant_tail_first_joint;
 
 // GLOBAL: CARMA2_HW 0x006a0908
-tPhysics_object* gMutant_tail_object;
+tPhysics_object* gMutant_tail_first_collision_info;
 
 // GLOBAL: CARMA2_HW 0x00705540
 int gMutant_tail_state;
@@ -425,10 +417,10 @@ void C2_HOOK_FASTCALL InitTail(void) {
         is_link = i != gCount_mutant_tail_parts - 1;
         if (is_link) {
             model = BrModelFind("TAILLINK");
-            collision_info = MungeBoxObject(model, gMass_mutant_tail_link);
+            collision_info = MungeBoxObject(model REC2_THISCALL_EDX, gMass_mutant_tail_link);
         } else {
             model = BrModelFind("TAILBALL");
-            collision_info = MungeSphereObject(model, gMass_mutant_tail_ball);
+            collision_info = MungeSphereObject(model REC2_THISCALL_EDX, gMass_mutant_tail_ball);
         }
 
         C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPhysics_object, physics_joint1, 0x188);
@@ -440,7 +432,7 @@ void C2_HOOK_FASTCALL InitTail(void) {
                           0.f, 0.f, model->bounds.min.v[2] * (is_link ? 0.99f : 0.45f));
         if (i == 0) {
             gMutant_tail_first_joint = collision_info->physics_joint1;
-            gMutant_tail_object = collision_info;
+            gMutant_tail_first_collision_info = collision_info;
 
             C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPhysics_joint, type, 0x00);
             C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPhysics_joint, friction, 0x04);
@@ -875,7 +867,7 @@ void C2_HOOK_FASTCALL InitMineShit(void) {
     for (i = 0; i < REC2_ASIZE(gShit_mines); i++) {
         gShit_mines[i].flags = 4;
         gShit_mines[i].field_0x35 = 0;
-        gShit_mines[i].collision_info = MungeSphereObject(BrModelFind("SHITMINE.ACT"), gMass_mine);
+        gShit_mines[i].collision_info = MungeSphereObject(BrModelFind("SHITMINE.ACT") REC2_THISCALL_EDX, gMass_mine);
         gShit_mines[i].collision_info->uid = i;
         gShit_mines[i].collision_info->flags_0x238 = 0x40;
         gShit_mines[i].collision_info->owner = &gShit_mines[i];
@@ -914,7 +906,7 @@ int C2_HOOK_FASTCALL MineExplode(tShit_mine *pMine) {
     }
     pMine->flags |= 0x2;
     if (gNet_mode == eNet_mode_host) {
-        message = NetBuildGuaranteedMessage(eNet_message_chunk_type_mine_explosion, GetHierarchyNetworkSize(pMine->collision_info));
+        message = NetBuildGuaranteedMessage(49, GetHierarchyNetworkSize(pMine->collision_info));
         FillInMine(&message->contents, pMine, -1);
         NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, 0);
     }
@@ -970,7 +962,7 @@ void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime) {
                 mine->flags &= ~0x80;
                 car_vulnerable = CarVulnerableByMine(car);
                 if (car_vulnerable) {
-                    TotallySpamTheModel(car, 0.1f * mine->max_damage);
+                    TotallySpamTheModel(car REC2_THISCALL_EDX, 0.1f * mine->max_damage);
                 }
                 if (car_vulnerable && (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host)) {
                     car->collision_info->v.v[1] += FRandomBetween(mine->field3_0xc, mine->initial_y_speed_factor) / (car->collision_info->M * WORLD_SCALE);

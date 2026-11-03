@@ -1,54 +1,46 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "06-apo.h"
 
-#include "01-network.h"
 #include "08-loading1.h"
 #include "15-displays.h"
-#include "24-loadsave.h"
 #include "27-powerup.h"
 #include "41-utility.h"
 #include "globvars.h"
 #include "globvrpb.h"
-
-#include "rec2_macros.h"
+#include "27-powerup.h"
+#include "08-loading1.h"
 
 #include "c2_stdio.h"
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x00762130
+int gInitial_powerup_slots[3] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0076213c
+int gUNK_0076213c = 0;
+
+// GLOBAL: CARMA2_HW 0x0068b8e4
+int gINT_0068b8e4;
+
+// GLOBAL: CARMA2_HW 0x0068b8e8
+int gINT_0068b8e8;
+
+// GLOBAL: CARMA2_HW 0x0074a734
+int gIt_or_fox;
+
 // FUNCTION: CARMA2_HW 0x00502e00
-// FUNCTION: CARMA2_SW 0x004fe750
 void C2_HOOK_FASTCALL MaxOutAPO(void) {
     int i;
 
-    C2_HOOK_BUG_ON(REC2_ASIZE(gInitial_powerup_slots) != 3);
-    for (i = 0; i < (int)REC2_ASIZE(gInitial_powerup_slots); i++) {
+    for (i = 0; i < 3; i++) {
         gProgram_state.current_car.power_up_levels[i] = gInitial_powerup_slots[i];
         gProgram_state.current_car.power_up_slots[i] = gInitial_powerup_slots[i];
     }
 }
-
 // FUNCTION: CARMA2_HW 0x00502e20
-// FUNCTION: CARMA2_SW 0x004fe770
 void C2_HOOK_FASTCALL ImprovePSPowerup(tCar_spec* pCar, int pIndex) {
 
     pCar->power_up_levels[pIndex]++;
     NewTextHeadupSlot(4, 0, 3000, -4, GetMiscString(eMiscString_increase_apo_start + pIndex));
-}
-
-// FUNCTION: CARMA2_HW 0x00502e50
-// FUNCTION: CARMA2_SW 0x004fe7a0
-void C2_HOOK_FASTCALL BuyArmour(void) {
-
-    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
-        BuyPSPowerup(0);
-    }
 }
 
 // FUNCTION: CARMA2_HW 0x00502e70
@@ -76,8 +68,15 @@ void C2_HOOK_FASTCALL BuyPSPowerup(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00502e50
+void C2_HOOK_FASTCALL BuyArmour(void) {
+
+    if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
+        BuyPSPowerup(0);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00502fd0
-// FUNCTION: CARMA2_SW 0x004fe920
 void C2_HOOK_FASTCALL BuyPower(void) {
 
     if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {
@@ -90,7 +89,6 @@ void C2_HOOK_FASTCALL BuyPower(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00503030
-// FUNCTION: CARMA2_SW 0x004fe980
 void C2_HOOK_FASTCALL BuyOffense(void) {
 
     if (gINT_0068b8e4 == 0 && gINT_0068b8e8 == 0) {

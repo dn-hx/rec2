@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "crush.h"
 
 #include "animation.h"
@@ -451,7 +443,7 @@ void C2_HOOK_FASTCALL ReadAward(FILE* pF, tAward_info* pAward_info) {
 }
 
 // FUNCTION: CARMA2_HW 0x004eea20
-void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pSmashable_levels, int* pCount_smashable_levels, int pIs_texture_change, tBrender_storage* pBrender_storage) {
+void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pSmashable_levels, int* pCount_smashable_levels, int pIs_texture_change, tBrender_storage* pBrender_storage) {
     char s[256];
     int i;
     int j;
@@ -522,7 +514,7 @@ void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pSmashable_le
 }
 
 // FUNCTION: CARMA2_HW 0x004ee990
-void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
+void C2_HOOK_FASTCALL LoadCarCrushSmashDataEntries(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
     int i;
 
     /* Number of 'Smash data' entries */
@@ -534,7 +526,7 @@ void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_
         /* name of material */
         GetAString(pF, pCar_crush_buffer_entry->smashables[i].material_name);
         pCar_crush_buffer_entry->smashables[i].funk = -1;
-        ReadSmashLevels(pF, &pCar_crush_buffer_entry->smashables[i].levels, &pCar_crush_buffer_entry->smashables[i].count_smashable_levels, 0, pBrender_storage);
+        LoadSmashableLevels(pF, &pCar_crush_buffer_entry->smashables[i].levels, &pCar_crush_buffer_entry->smashables[i].count_smashable_levels, 0, pBrender_storage);
     }
 }
 
@@ -547,7 +539,7 @@ void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* p
     if (strlen(pCar_crush_buffer_entry->actor_name) < 4) {
         PDFatalError("Less than 4 chars in car actor identifier");
     }
-    DRstrlwr(pCar_crush_buffer_entry->actor_name);
+    StringTransformToLower(pCar_crush_buffer_entry->actor_name);
     /* Softness */
     switch (GetALineAndInterpretCommand(pF, gSoftness_names, REC2_ASIZE(gSoftness_names))) {
     case eSoftness_VerySoft:
@@ -686,7 +678,7 @@ void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* p
         pCar_crush_buffer_entry->detach_data->count_shape_points = 0;
     }
     pCar_crush_buffer_entry->field_0x2c = 0;
-    ReadSmashableData(pF, pCar_crush_buffer_entry, pBrender_storage);
+    LoadCarCrushSmashDataEntries(pF, pCar_crush_buffer_entry, pBrender_storage);
 }
 
 // FUNCTION: CARMA2_HW 0x0042a280
@@ -1902,7 +1894,7 @@ void C2_HOOK_FASTCALL CompletelyUnBendWheels(tCar_spec* pCar_spec) {
     for (i = 0; i < REC2_ASIZE(pCar_spec->wpos); i++) {
         BrVector3Copy(&pCar_spec->wpos[i], &pCar_spec->car_crush_spec->field_0x234[i]);
     }
-    SetCarSuspGiveAndHeight(pCar_spec, 1.f, 1.f, 1.f, 0.f, 0.f);
+    SetCarSuspGiveAndHeight(pCar_spec REC2_THISCALL_EDX, 1.f, 1.f, 1.f, 0.f, 0.f);
     pCar_spec->field_0x1260 = 0.f;
 }
 
@@ -2206,7 +2198,7 @@ void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pActor_arg2, b
 }
 
 // FUNCTION: CARMA2_HW 0x00431610
-void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
+void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, undefined4 pArg2, float pDamage) {
 
     NOT_IMPLEMENTED();
 }
@@ -2268,7 +2260,7 @@ void C2_HOOK_FASTCALL DoWheelDamage(tU32 pFrame_period) {
                     car->wheel_dam_offset[j] = 0.f;
                     continue;
                 }
-                if (PointOutOfSight(&car->pos, 32.f)) {
+                if (PointOutOfSight(&car->pos REC2_THISCALL_EDX, 32.f)) {
                     break;
                 }
                 y_amount = (damage - 30) * gWobble_spam_y[damage % 8];
@@ -2335,7 +2327,7 @@ void C2_HOOK_FASTCALL DoSpams(void) {
     int i;
 
     for (i = 0; i < gCount_car_damage_crush_list; i++) {
-        TotallySpamTheModel(gCar_damage_crush_list[i].car, gCar_damage_crush_list[i].damage);
+        TotallySpamTheModel(gCar_damage_crush_list[i].car REC2_THISCALL_EDX, gCar_damage_crush_list[i].damage);
     }
     gCount_car_damage_crush_list = 0;
 }
@@ -2750,13 +2742,6 @@ void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar) {
 
 // FUNCTION: CARMA2_HW 0x004f52f0
 float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pArg3, br_vector3 *pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8) {
-
-    NOT_IMPLEMENTED();
-    return 0.f;
-}
-
-// FUNCTION: CARMA2_HW 0x004f1140
-float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8) {
 
     NOT_IMPLEMENTED();
     return 0.f;

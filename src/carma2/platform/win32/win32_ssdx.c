@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #include "win32_ssdx.h"
 
 #include "win32.h"
@@ -27,82 +19,62 @@
 #include "rec2_macros.h"
 
 // GLOBAL: CARMA2_HW 0x006aa9e0
-// GLOBAL: CARMA2_SW 0x006a4430
-int gWindowed;
+int gUse_DirectDraw;
 
-// GLOBAL: CARMA2_SW 0x006a4458
 // GLOBAL: CARMA2_HW 0x006aaa08
 HWND gHWnd_SSDX;
 
 // GLOBAL: CARMA2_HW 0x006aa9d8
-// GLOBAL: CARMA2_SW 0x006a4428
 int gEnumerate_DirectX_surfaces;
 
+
 // GLOBAL: CARMA2_HW 0x006aa5c8
-// GLOBAL: CARMA2_SW 0x006a4018
 RECT gSSDXRect;
 
 // GLOBAL: CARMA2_HW 0x006aa9f8
-// GLOBAL: CARMA2_SW 0x006a4448
 LPDIRECTDRAWSURFACE gPrimary_surface;
 
 // GLOBAL: CARMA2_HW 0x006aa9fc
-// GLOBAL: CARMA2_SW 0x006a444c
 LPDIRECTDRAWSURFACE gAttached_surface;
 
 // GLOBAL: CARMA2_HW 0x006aaa00
-// GLOBAL: CARMA2_SW 0x006a4450
 LPDIRECTDRAWCLIPPER gDirectDrawClipper;
 
 // GLOBAL: CARMA2_HW 0x006aaa14
-// GLOBAL: CARMA2_SW 0x006a4464
 LPDIRECTDRAW gDirectDraw;
 
 // GLOBAL: CARMA2_HW 0x006aaa18
-// GLOBAL: CARMA2_SW 0x006a4468
 LPDIRECTDRAW2 gDirectDraw2;
 
 // GLOBAL: CARMA2_HW 0x006aaa04
-// GLOBAL: CARMA2_SW 0x006a4454
 LPDIRECTDRAWPALETTE gDirectDrawPalette;
 
 // GLOBAL: CARMA2_HW 0x006aa5d8
-// GLOBAL: CARMA2_SW 0x006a4028
 PALETTEENTRY gSSDX_system_palette[256];
 
 // GLOBAL: CARMA2_HW 0x006aa9dc
-// GLOBAL: CARMA2_SW 0x006a442c
-LPVOID gSSDXLockedSurfaceData;
+LPRECT gSSDXLockedRect;
 
 // GLOBAL: CARMA2_HW 0x006aaa0c
-// GLOBAL: CARMA2_SW 0x006a445c
 int gAttached_surface_locked;
 
 // GLOBAL: CARMA2_HW 0x006aa9e8
-// GLOBAL: CARMA2_SW 0x006a4438
 RECT gSSDXWindowPos;
 
 // GLOBAL: CARMA2_HW 0x007a0540
-// GLOBAL: CARMA2_SW 0x00796ae0
 MCI_OPEN_PARMS mci_open_params;
 
 // GLOBAL: CARMA2_HW 0x007a0530
-// GLOBAL: CARMA2_SW 0x00796ad0
 MCI_PLAY_PARMS mci_play_parms;
 
 // GLOBAL: CARMA2_HW 0x007a04e0
 MCI_PLAY_PARMS gPDS3_cda_play_parms;
 
 // GLOBAL: CARMA2_HW 0x006aaa10
-// GLOBAL: CARMA2_SW 0x006a4460
 int gSSDXPitch;
-
-// GLOBAL: CARMA2_SW 0x006a5db0
-PALETTEENTRY gPD_palette_entries[256];
 
 
 // FUNCTION: CARMA2_HW 0x00500070
-// FUNCTION: CARMA2_SW 0x004fb950
 HRESULT CALLBACK LocalEnumAttachedSurfacesCallback(LPDIRECTDRAWSURFACE lpSurface, LPDDSURFACEDESC lpSurfaceDesc, LPVOID lpContext) {
     int* counter = lpContext;
     dr_dprintf("LocalEnumAttachedSurfacesCallback(): Enum-ing attached surface #%d, address 0x%p", *counter, lpSurface);
@@ -111,7 +83,6 @@ HRESULT CALLBACK LocalEnumAttachedSurfacesCallback(LPDIRECTDRAWSURFACE lpSurface
 }
 
 // FUNCTION: CARMA2_HW 0x005000a0
-// FUNCTION: CARMA2_SW 0x004fb980
 void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch) {
     DDSURFACEDESC desc;
     HRESULT res;
@@ -121,78 +92,81 @@ void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch)
     SetRect(&gSSDXRect, 0, 0, pWidth, pHeight);
 
     memset(&desc, 0, sizeof(desc));
+    C2_HOOK_BUG_ON(sizeof(desc) != 0x6c);
     desc.dwSize = sizeof(desc);
     desc.dwFlags = DDSD_CAPS;
     desc.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
     dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for primary surface...");
     res = IDirectDraw2_CreateSurface(gDirectDraw, &desc, &gPrimary_surface, NULL);
-    if (res == DD_OK) {
-        memset(&desc, 0, sizeof(desc));
-        desc.dwSize = sizeof(desc);
-        desc.dwFlags = DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS;
-        desc.dwHeight = pHeight;
-        desc.dwWidth = pWidth;
-#ifdef REC2_HW
-        desc.ddsCaps.dwCaps = DDSCAPS_3DDEVICE | DDSCAPS_PALETTE | DDSCAPS_FLIP | DDSCAPS_ALPHA;
-#endif
-#ifdef REC2_SW
-        desc.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY | DDSCAPS_OFFSCREENPLAIN;
-#endif
-        dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for attached surface...");
-        res = IDirectDraw_CreateSurface(gDirectDraw, &desc, &gAttached_surface, NULL);
-        if (res == DD_OK) {
-            res = IDirectDraw_CreateClipper(gDirectDraw, 0, &gDirectDrawClipper, NULL);
-            if (res == DD_OK) {
-                res = IDirectDrawClipper_SetHWnd(gDirectDrawClipper, 0, gHWnd_SSDX);
-                if (res == DD_OK) {
-                    hdc = GetDC(gHWnd_SSDX);
-                    GetSystemPaletteEntries(hdc, 0, REC2_ASIZE(gSSDX_system_palette), gSSDX_system_palette);
-                    ReleaseDC(gHWnd_SSDX, hdc);
-                    for (i = 0; i < REC2_ASIZE(gSSDX_system_palette); i++) {
-                        if (i > 10 && i < 245) {
-                            gSSDX_system_palette[i].peFlags = 0;
-                        } else {
-                            gSSDX_system_palette[i].peFlags = PC_NOCOLLAPSE;
-                        }
-                    }
-                    dr_dprintf("LocalWindowedDDSetup(): Calling CreatePalette()...");
-                    res = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, gSSDX_system_palette, &gDirectDrawPalette, NULL);
-                    if (res == DD_OK) {
-                        dr_dprintf("LocalWindowedDDSetup(): Calling SetPalette()...");
-                        res = IDirectDrawSurface_SetPalette(gPrimary_surface, gDirectDrawPalette);
-                        if (res != DD_OK) {
-                            SSDXLogDirectDrawError(res);
-                        }
-                    } else {
-                        SSDXLogDirectDrawError(res);
-                    }
-                } else {
-                    SSDXLogDirectDrawError(res);
-                }
-            } else {
-                SSDXLogDirectDrawError(res);
-            }
-        } else {
-            SSDXLogDirectDrawError(res);
-        }
-    } else {
-        SSDXLogDirectDrawError(res);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
     }
+
+    memset(&desc, 0, sizeof(desc));
+    desc.dwSize = sizeof(desc);
+    desc.dwFlags = DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS;
+    desc.dwHeight = pHeight;
+    desc.dwWidth = pWidth;
+    desc.ddsCaps.dwCaps = DDSCAPS_3DDEVICE | DDSCAPS_PALETTE | DDSCAPS_FLIP | DDSCAPS_ALPHA;
+    dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for attached surface...");
+    res = IDirectDraw_CreateSurface(gDirectDraw, &desc, &gAttached_surface, NULL);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
+    }
+
+    res = IDirectDraw_CreateClipper(gDirectDraw, 0, &gDirectDrawClipper, NULL);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
+    }
+
+    res = IDirectDrawClipper_SetHWnd(gDirectDrawClipper, 0, gHWnd_SSDX);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
+    }
+
+    hdc = GetDC(gHWnd_SSDX);
+    GetSystemPaletteEntries(hdc, 0, REC2_ASIZE(gSSDX_system_palette), gSSDX_system_palette);
+    ReleaseDC(gHWnd_SSDX, hdc);
+    for (i = 0; i < REC2_ASIZE(gSSDX_system_palette); i++) {
+        if (i > 10 && i < 245) {
+            gSSDX_system_palette[i].peFlags = 0;
+        } else {
+            gSSDX_system_palette[i].peFlags = PC_NOCOLLAPSE;
+        }
+    }
+    dr_dprintf("LocalWindowedDDSetup(): Calling CreatePalette()...");
+    res = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, gSSDX_system_palette, &gDirectDrawPalette, NULL);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
+    }
+
+    dr_dprintf("LocalWindowedDDSetup(): Calling SetPalette()...");
+    res = IDirectDrawSurface_SetPalette(gPrimary_surface, gDirectDrawPalette);
+    if (res != DD_OK) {
+        SSDXLogError(res);
+        goto post_creation;
+    }
+post_creation:
+    SSDXLockAttachedSurface();
     if (gAttached_surface_locked) {
-        res = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedSurfaceData);
+        res = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedRect);
         if (res == DD_OK) {
             gAttached_surface_locked = 0;
         } else {
             dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
-            SSDXLogDirectDrawError(res);
+            SSDXLogError(res);
         }
     }
     *pPitch = gSSDXPitch;
 }
 
 // FUNCTION: CARMA2_HW 0x005002d0
-// FUNCTION: CARMA2_SW 0x004fbbb0
-void C2_HOOK_FASTCALL SSDXLogDirectDrawError(HRESULT hRes) {
+void C2_HOOK_FASTCALL SSDXLogError(HRESULT hRes) {
 
 #define LOG_CASE_DDERR(V) case V: dr_dprintf("%s (%x)", #V, hRes); return
     switch (hRes) {
@@ -219,40 +193,21 @@ void C2_HOOK_FASTCALL SSDXLogDirectDrawError(HRESULT hRes) {
 }
 
 // FUNCTION: CARMA2_HW 0x00500500
-// FUNCTION: CARMA2_SW 0x004fbde0
-int C2_HOOK_FASTCALL SSDXStart(void *p_hWnd, int p_windowed, int p_EnumerateDDX, int p_flags) {
+int C2_HOOK_FASTCALL SSDXStart(void *p_hWnd, int p_DirectDraw, int p_EnumerateDDX, int p_flags) {
     HRESULT hRes;
 
     hRes = 0;
     dr_dprintf("SSDXStart(): START...");
-    gWindowed = p_windowed;
+    gUse_DirectDraw = p_DirectDraw;
     if (p_EnumerateDDX) {
         gEnumerate_DirectX_surfaces = 1;
-        if (p_windowed) {
+        if (p_DirectDraw) {
             gEnumerate_DirectX_surfaces = 0;
         }
     } else {
         gEnumerate_DirectX_surfaces = 0;
     }
     gHWnd_SSDX = p_hWnd;
-#ifdef REC2_SW
-    if (p_flags & 0x1) {
-        dr_dprintf("SSDXStart(): Calling DirectDrawCreate()...");
-        hRes = DirectDrawCreate(0, &gDirectDraw, NULL);
-        if (hRes == DD_OK) {
-            dr_dprintf("SSDXStart(): Querying for IID_IDirectDraw2 interface");
-            hRes = IDirectDraw_QueryInterface(gDirectDraw, &IID_IDirectDraw2, (void**) &gDirectDraw2);
-            if (hRes == DD_OK) {
-                dr_dprintf("SSDXStart(): Calling SetCooperativeLevel()...");
-                if (gWindowed) {
-                    hRes = IDirectDraw_SetCooperativeLevel(gDirectDraw, gHWnd_SSDX, DDSCL_NORMAL);
-                } else {
-                    hRes = IDirectDraw_SetCooperativeLevel(gDirectDraw, gHWnd_SSDX, DDSCL_ALLOWMODEX | DDSCL_EXCLUSIVE | DDSCL_ALLOWREBOOT | DDSCL_FULLSCREEN);
-                }
-            }
-        }
-    } else
-#endif
     if (p_flags & 0x2) {
         dr_dprintf("SSDXStart(): Calling DirectSoundCreate()...");
 #ifdef DSOUND_ENABLED
@@ -262,14 +217,13 @@ int C2_HOOK_FASTCALL SSDXStart(void *p_hWnd, int p_windowed, int p_EnumerateDDX,
 #endif
     }
     if (hRes != DS_OK) {
-        SSDXLogDirectDrawError(hRes);
+        SSDXLogError(hRes);
     }
     dr_dprintf("SSDXStart(): END.");
     return (int)hRes;
 }
 
 // FUNCTION: CARMA2_HW 0x00500590
-// FUNCTION: CARMA2_SW 0x004fbef0
 void C2_HOOK_FASTCALL SSDXStop(void) {
 
     SSDXUnlockAttachedSurface();
@@ -288,24 +242,26 @@ void C2_HOOK_FASTCALL SSDXStop(void) {
         gDirectDrawClipper = NULL;
     }
 
-    if (gWindowed) {
+    if (gUse_DirectDraw) {
+
         if (gAttached_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releasing attached surface...");
+            dr_dprintf("SSDXStop(): Releaseing attached surface...");
             IDirectDrawSurface_Release(gAttached_surface);
             gAttached_surface = NULL;
         }
         if (gPrimary_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releasing primary surface...");
+            dr_dprintf("SSDXStop(): Releaseing primary surface...");
             IDirectDrawSurface_Release(gPrimary_surface);
             gPrimary_surface = NULL;
         }
     } else {
-        dr_dprintf("SSDXStop(): Restoring display mode");
+
         if (gDirectDraw2 != NULL) {
+            dr_dprintf("SSDXStop(): Restoring display mode");
             IDirectDraw2_RestoreDisplayMode(gDirectDraw2);
         }
         if (gPrimary_surface != NULL) {
-            dr_dprintf("SSDXStop(): Releasing primary surface...");
+            dr_dprintf("SSDXStop(): Releaseing primary surface...");
             IDirectDrawSurface_Release(gPrimary_surface);
             gAttached_surface = NULL;
             gPrimary_surface = NULL;
@@ -314,7 +270,6 @@ void C2_HOOK_FASTCALL SSDXStop(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x005006d0
-// FUNCTION: CARMA2_SW 0x004fc030
 void C2_HOOK_FASTCALL SSDXRelease(void) {
 
     if (gDirectDraw2 != NULL) {
@@ -335,11 +290,10 @@ void C2_HOOK_FASTCALL SSDXRelease(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00500760
-// FUNCTION: CARMA2_SW 0x004fc0c0
-int C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, int* pPitch) {
+void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, int* pPitch) {
     HRESULT result;
 
-    if (gWindowed) {
+    if (gUse_DirectDraw) {
         LocalWindowedDDSetup(pWidth, pHeight, pPitch);
     }
     dr_dprintf("SSDXDirectDrawSetup(): Calling SetDisplayMode( %dx%dx%d )...", pWidth, pHeight, pBits);
@@ -397,65 +351,68 @@ int C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, int
         dr_dprintf("SSDXDirectDrawSetup(): Directdraw initialised: surface pith %d", gSSDXPitch);
     } else {
         dr_dprintf("WARNING: Problems during SSDXDirectDrawSetup()");
-        SSDXLogDirectDrawError(result);
+        SSDXLogError(result);
     }
-    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x00500a30
-// FUNCTION: CARMA2_SW 0x004fc390
-void* C2_HOOK_FASTCALL SSDXLockAttachedSurface(void) {
+void C2_HOOK_FASTCALL SSDXLockAttachedSurface(void) {
     HRESULT result;
     DDSURFACEDESC surfaceDesc;
 
     if (!gAttached_surface_locked) {
-        if (gAttached_surface != NULL) {
-            result = IDirectDrawSurface_IsLost(gPrimary_surface);
-            if (result == DDERR_SURFACELOST) {
-                dr_dprintf("SSDXLockAttachedSurface(): Primary surface is lost, restoring...");
-                result = IDirectDrawSurface_Restore(gPrimary_surface);
-            }
-            if (result == DD_OK) {
-                result = IDirectDrawSurface_IsLost(gAttached_surface);
-                if (result == DDERR_SURFACELOST) {
-                    dr_dprintf("SSDXLockAttachedSurface(): Attached surface is lost, restoring...");
-                    result = IDirectDrawSurface_Restore(gAttached_surface);
-                }
-                if (result == DD_OK) {
-                    memset(&surfaceDesc, 0, sizeof(surfaceDesc));
-                    surfaceDesc.dwSize = sizeof(surfaceDesc);
-                    result = IDirectDrawSurface_Lock(gAttached_surface, NULL, &surfaceDesc, DDLOCK_WAIT, NULL);
-                    if (result == DD_OK) {
-                        gAttached_surface_locked = 1;
-                        gSSDXLockedSurfaceData = surfaceDesc.lpSurface;
-                        gSSDXPitch = surfaceDesc.lPitch;
-                        return surfaceDesc.lpSurface;
-                    }
-                }
-            }
-            SSDXLogDirectDrawError(result);
-        }
-    }
-    if (gAttached_surface_locked) {
         dr_dprintf("WARNING: SSDXLockAttachedSurface() called but surface already locked");
+        goto error;
     }
+    if (gAttached_surface == NULL) {
+        goto error;
+    }
+    result = IDirectDrawSurface_IsLost(gPrimary_surface);
+    if (result == DDERR_SURFACELOST) {
+        dr_dprintf("SSDXLockAttachedSurface(): Primary surface is lost, restoring...");
+        result = IDirectDrawSurface_Restore(gPrimary_surface);
+    }
+    if (result != DD_OK) {
+        SSDXLogError(result);
+        goto error;
+    }
+    result = IDirectDrawSurface_IsLost(gAttached_surface);
+    if (result == DDERR_SURFACELOST) {
+        dr_dprintf("SSDXLockAttachedSurface(): Attached surface is lost, restoring...");
+        result = IDirectDrawSurface_Restore(gAttached_surface);
+    }
+    if (result != DD_OK) {
+        SSDXLogError(result);
+        goto error;
+    }
+    C2_HOOK_BUG_ON(sizeof(surfaceDesc) != 0x6c);
+    memset(&surfaceDesc, 0, sizeof(surfaceDesc));
+    surfaceDesc.dwSize = sizeof(surfaceDesc);
+    result = IDirectDrawSurface_Lock(gAttached_surface, NULL, &surfaceDesc, DDLOCK_WAIT, NULL);
+    if (result != DD_OK) {
+        SSDXLogError(result);
+        goto error;
+    }
+    gAttached_surface_locked = 1;
+    gSSDXLockedRect = surfaceDesc.lpSurface;
+    gSSDXPitch = surfaceDesc.lPitch;
+    return;
+error:
     if (gAttached_surface == NULL) {
         dr_dprintf("WARNING: SSDXLockAttachedSurface() called but no attached surface available");
     }
-    return NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00500b40
-// FUNCTION: CARMA2_SW 0x004fc4a0
 void C2_HOOK_FASTCALL SSDXUnlockAttachedSurface(void) {
 
     if (gAttached_surface_locked) {
-        HRESULT result = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedSurfaceData);
+        HRESULT result = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedRect);
         if (result == DD_OK) {
             gAttached_surface_locked = 0;
         } else {
             dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
-            SSDXLogDirectDrawError(result);
+            SSDXLogError(result);
         }
     }
 }
@@ -463,7 +420,7 @@ void C2_HOOK_FASTCALL SSDXUnlockAttachedSurface(void) {
 // FUNCTION: CARMA2_HW 0x00500b90
 void C2_HOOK_FASTCALL SSDXBlitOrFlip(void) {
 
-    if (gWindowed) {
+    if (gUse_DirectDraw) {
         SSDXBlit();
     } else {
         IDirectDrawSurface_Flip(gPrimary_surface, NULL, DDFLIP_WAIT);
@@ -477,10 +434,9 @@ void C2_HOOK_FASTCALL SSDXBlit(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00500c00
-// FUNCTION: CARMA2_SW 0x004fc560
 void C2_HOOK_FASTCALL SSDXSetPaletteEntries(PALETTEENTRY* pPalette, int pStart, int pCount) {
 
-    if (gWindowed && gDirectDrawPalette != NULL) {
+    if (gUse_DirectDraw && gDirectDrawPalette != NULL) {
         int i;
 
         for (i = MAX(10, pStart); i < MIN(0xf6, pStart + pCount - 1); i++) {
@@ -499,7 +455,7 @@ void C2_HOOK_FASTCALL SSDXSetPaletteEntries(PALETTEENTRY* pPalette, int pStart, 
 void C2_HOOK_FASTCALL SSDXSetPrimaryPalette(void) {
     HRESULT result;
 
-    if (!gWindowed) {
+    if (!gUse_DirectDraw) {
         return;
     }
     if (gDirectDrawPalette == NULL) {
@@ -516,10 +472,9 @@ void C2_HOOK_FASTCALL SSDXSetPrimaryPalette(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00500cf0
-// FUNCTION: CARMA2_SW 0x004fc650
 void C2_HOOK_FASTCALL SSDXWindowPosOrSizeChanged(HWND pHwnd) {
 
-    if (gWindowed) {
+    if (gUse_DirectDraw) {
         GetClientRect(pHwnd, &gSSDXWindowPos);
         ClientToScreen(pHwnd, (POINT*)&gSSDXWindowPos.left);
         ClientToScreen(pHwnd, (POINT*)&gSSDXWindowPos.right);
@@ -527,14 +482,3 @@ void C2_HOOK_FASTCALL SSDXWindowPosOrSizeChanged(HWND pHwnd) {
             gSSDXWindowPos.left, gSSDXWindowPos.top, gSSDXWindowPos.right, gSSDXWindowPos.bottom);
     }
 }
-
-#ifdef REC2_SW
-// FUNCTION: CARMA2_SW 0x004fc4f0
-int C2_HOOK_FASTCALL SSDXFlip(void) {
-    if (gWindowed) {
-        return IDirectDrawSurface_Blt(gPrimary_surface, &gSSDXWindowPos, gAttached_surface, &gSSDXRect, DDBLT_WAIT, 0);
-    } else {
-        return IDirectDrawSurface_Flip(gPrimary_surface, 0, DDFLIP_WAIT);
-    }
-}
-#endif
