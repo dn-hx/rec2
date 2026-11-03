@@ -13,16 +13,21 @@
 #include "09-funks.h"
 #include "23-piping.h"
 #include "30-opponent.h"
+#include "34-finteray.h"
 #include "41-utility.h"
 #include "49-physics.h"
 #include "51-smash.h"
 #include "60-phil.h"
+#include "00-car.h"
 #include "globvars.h"
+#include "globvrpb.h"
 #include "platform.h"
 #include "rec2_macros.h"
 
 #include "c2_math.h"
 #include "c2_string.h"
+
+#include <ctype.h>
 
 extern tPolyhedron_edge_indexes gBox_edge_indexes[12];
 
@@ -90,12 +95,6 @@ tQueued_drone_crush gQueued_drone_crushes[4];
 // GLOBAL: CARMA2_HW 0x0079ecbc
 tPhysics_object* gUNK_0079ecbc;
 
-int gNumber_of_net_players;
-
-tNet_game_player_info gNet_players[12];
-
-tNet_mode gNet_mode;
-
 // GLOBAL: CARMA2_HW 0x0067bd58
 int gCount_toggled_doors;
 
@@ -129,7 +128,7 @@ typedef struct tCrush_net_reattach_list_item_local {
     undefined4 field_0x8;
 } tCrush_net_reattach_list_item_local;
 
-tCrush_net_reattach_list_item_local gNet_crush_reattach_bit_list[8];
+extern tCrush_net_reattach_list_item_local gNet_crush_reattach_bit_list[8];
 
 // GLOBAL: CARMA2_HW 0x0067b7d8
 tCrush_net_full_detach_bit_list_item gNet_crush_full_detach_bit_list[8];
@@ -145,8 +144,6 @@ int gCollision_face_mask__raycast;
 
 // GLOBAL: CARMA2_HW 0x00679438
 int gSensible_place_collect_active;
-
-tFace_ref gFace_list__car[300];
 
 
 // GLOBAL: CARMA2_HW 0x00679698

@@ -818,7 +818,7 @@ int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_object* 
 
 // FUNCTION: CARMA2_HW 0x004ba550
 // FUNCTION: CARMA2_SW 0x004b6c70
-int C2_HOOK_FASTCALL ScaleCollisionImpulses(tPhysics_joint_force* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse) {
+int C2_HOOK_FASTCALL ScaleCollisionImpulses(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse) {
     extern int gINT_00692dc8;
     extern br_scalar gFLOAT_0058a768;
     int i;
@@ -842,19 +842,19 @@ int C2_HOOK_FASTCALL ScaleCollisionImpulses(tPhysics_joint_force* pContacts, flo
         f = pImpulses[pSmash_indices[i]];
         pImpulses[pSmash_indices[i]] = f * (0.f - scale);
         if (pContacts[pSmash_indices[i]].type & 0x100) {
-            f = pContacts[pSmash_indices[i]].field_0x44.v[0];
-            pContacts[pSmash_indices[i]].field_0x44.v[0] = f * scale;
-            f = pContacts[pSmash_indices[i]].field_0x44.v[1];
-            pContacts[pSmash_indices[i]].field_0x44.v[1] = f * scale;
-            f = pContacts[pSmash_indices[i]].field_0x44.v[2];
-            pContacts[pSmash_indices[i]].field_0x44.v[2] = f * scale;
-            if (pContacts[pSmash_indices[i]].object_b != NULL) {
-                f = pContacts[pSmash_indices[i]].field_0x44.v[0];
-                pContacts[pSmash_indices[i]].field_0x44.v[0] = f * scale;
-                f = pContacts[pSmash_indices[i]].field_0x44.v[1];
-                pContacts[pSmash_indices[i]].field_0x44.v[1] = f * scale;
-                f = pContacts[pSmash_indices[i]].field_0x44.v[2];
-                pContacts[pSmash_indices[i]].field_0x44.v[2] = f * scale;
+            f = pContacts[pSmash_indices[i]].impulse1.v[0];
+            pContacts[pSmash_indices[i]].impulse1.v[0] = f * scale;
+            f = pContacts[pSmash_indices[i]].impulse1.v[1];
+            pContacts[pSmash_indices[i]].impulse1.v[1] = f * scale;
+            f = pContacts[pSmash_indices[i]].impulse1.v[2];
+            pContacts[pSmash_indices[i]].impulse1.v[2] = f * scale;
+            if (pContacts[pSmash_indices[i]].object2 != NULL) {
+                f = pContacts[pSmash_indices[i]].impulse1.v[0];
+                pContacts[pSmash_indices[i]].impulse1.v[0] = f * scale;
+                f = pContacts[pSmash_indices[i]].impulse1.v[1];
+                pContacts[pSmash_indices[i]].impulse1.v[1] = f * scale;
+                f = pContacts[pSmash_indices[i]].impulse1.v[2];
+                pContacts[pSmash_indices[i]].impulse1.v[2] = f * scale;
             }
         }
     }
@@ -2093,7 +2093,9 @@ void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_bounds3
 
 
 /* MSVC5 has no __declspec(noinline); keep the SetListDoingNothingFlag call out-of-line. */
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004b9e40
 void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable) {
@@ -2120,7 +2122,9 @@ void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision
     } while (cur != NULL && cur != pCollision_info);
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(1)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x004bd830

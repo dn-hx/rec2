@@ -10,12 +10,19 @@
 
 #include "00-car.h"
 #include "09-funks.h"
+#include "13-crush1.h"
 #include "16-graphics1.h"
+#include "18-graphics2.h"
+#include "22-replay.h"
 #include "27-powerup.h"
+#include "30-opponent.h"
 #include "32-spark.h"
-
+#include "41-utility.h"
+#include "46-win95sys.h"
+#include "49-physics.h"
 #include "51-smash.h"
 #include "61-pedestrn.h"
+#include "64-movie.h"
 #include "69-sound.h"
 #include "20-skidmark.h"
 #include "39-oil.h"
@@ -27,6 +34,8 @@
 #include <limits.h>
 #include <stddef.h>
 #include <string.h>
+
+extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
 
 #define CRUSH_SPACE_SIZE 0x4000
 
