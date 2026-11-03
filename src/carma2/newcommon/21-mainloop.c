@@ -15,6 +15,7 @@
 #include "platform.h"
 #include "rec2_macros.h"
 #include <stdlib.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0068c814
 // GLOBAL: CARMA2_SW 0x00686868
@@ -245,6 +246,7 @@ void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetwee
 extern int gQueued_headup_count;
 extern tQueued_headup gQueued_headups[4];
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x004497b0
 void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
     __asm {
@@ -283,6 +285,19 @@ void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
         ret
     }
 }
+#else
+void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
+    int size = gQueued_headup_count * sizeof(tQueued_headup);
+
+    C2_HOOK_BUG_ON(sizeof(tQueued_headup) != 0x10c);
+
+    while (gQueued_headup_count != 0) {
+        size -= sizeof(tQueued_headup);
+        gQueued_headup_count -= 1;
+        memcpy(&gQueued_headups[0], &gQueued_headups[1], size);
+    }
+}
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x0045b0a0
