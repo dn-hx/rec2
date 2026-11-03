@@ -662,3 +662,12 @@ void C2_HOOK_FASTCALL S3SetVector3(tS3_vector3* pVec, float pX, float pY, float 
     pVec->y = pY;
     pVec->z = pZ;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565ef9
+void C2_HOOK_FASTCALL S3SetListenerPositionNow(br_vector3* pPos) {
+
+    gS3_listener_position_now.v[0] = pPos->v[0];
+    gS3_listener_position_now.v[1] = pPos->v[1];
+    gS3_listener_position_now.v[2] = pPos->v[2];
+}
