@@ -532,6 +532,19 @@ void C2_HOOK_FASTCALL DRMatrix34RotateZ(br_matrix34* mat, br_angle rz) {
     mat->m[3][2] = 0.0f;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x005123f0
+void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x005127b0
 void C2_HOOK_FASTCALL DRMatrix34PostRotateX(br_matrix34* mat, br_angle rx) {
     int angle_in_degrees;
@@ -746,6 +759,14 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateZ(br_matrix34* mat, br_angle rz) {
     mattmp2__trig.m[3][1] = 0.0f;
     mattmp2__trig.m[3][2] = 0.0f;
     BrMatrix34Mul(&mattmp1__trig, mat, &mattmp2__trig);
+    BrMatrix34Copy(mat, &mattmp1__trig);
+}
+
+// FUNCTION: CARMA2_HW 0x00512f80
+void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+
+    DRMatrix34Rotate(&mattmp2__trig, r, axis);
+    BrMatrix34Mul(&mattmp1__trig, &mattmp2__trig, mat);
     BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
