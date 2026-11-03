@@ -4201,11 +4201,19 @@ tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
 
 // RemapModelAxis
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // STUB: CARMA2_HW 0x00404f60
 tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
     NOT_IMPLEMENTED();
     return NULL;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DisposeCharacterForm
 
