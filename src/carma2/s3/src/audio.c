@@ -2122,3 +2122,15 @@ void C2_HOOK_FASTCALL S3EnableMidi(void) {
 
     gS3_enable_midi = 1;
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056a433
+void C2_HOOK_FASTCALL S3ToggleMidiEnabled(void) {
+
+    if (gS3_enable_midi) {
+        S3StopMidiInternal();
+        gS3_enable_midi = 0;
+    } else {
+        gS3_enable_midi = 1;
+    }
+}
