@@ -428,16 +428,37 @@ br_pixelmap* C2_HOOK_FASTCALL LoadSingleShadeTable(tBrender_storage* pStorage_sp
 }
 
 // FUNCTION: CARMA2_HW 0x005017e0
-// FUNCTION: CARMA2_SW 0x004fd140
 br_material* C2_HOOK_FASTCALL LoadSingleMaterial(tBrender_storage* pStorage_space, const char* pName) {
     br_material* material;
+    tAdd_to_storage_result add_result;
+    int i;
 
     material = LoadMaterial(pName);
     if (material == NULL) {
         return BrMaterialFind(pName);
     }
 
-    switch (AddMaterialToStorage(pStorage_space, material)) {
+    gDuplicate_material = NULL;
+    if (pStorage_space->materials_count < pStorage_space->max_materials) {
+        for (i = 0; i < pStorage_space->materials_count; i++) {
+            if (pStorage_space->materials[i]->identifier != NULL
+                    && material->identifier != NULL
+                    && strcmp(pStorage_space->materials[i]->identifier, material->identifier) == 0) {
+                gDuplicate_material = pStorage_space->materials[i];
+                add_result = eStorage_duplicate;
+                goto dispatch;
+            }
+        }
+        pStorage_space->materialProps[pStorage_space->materials_count] = 0;
+        pStorage_space->materials[pStorage_space->materials_count] = material;
+        pStorage_space->materials_count += 1;
+        add_result = eStorage_allocated;
+    } else {
+        add_result = eStorage_not_enough_room;
+    }
+
+dispatch:
+    switch (add_result) {
     case eStorage_allocated:
         BrMaterialAdd(material);
         return material;
@@ -450,11 +471,9 @@ br_material* C2_HOOK_FASTCALL LoadSingleMaterial(tBrender_storage* pStorage_spac
         return gDuplicate_material;
     case eStorage_not_enough_room:
         FatalError(kFatalError_InsufficientMaterialSlots);
-        return NULL;
+        break;
     }
-#ifdef REC2_FIX_BUGS
     return NULL;
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x00501930
