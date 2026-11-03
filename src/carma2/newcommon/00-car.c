@@ -3035,9 +3035,23 @@ void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild) {
     }
 }
 
-// STUB: CARMA2_HW 0x00417030
+extern void C2_HOOK_FASTCALL MoveNonCar(tNon_car_spec* pNon_car, br_scalar pDt);
+
+// FUNCTION: CARMA2_HW 0x00417030
 void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pDt) {
-    NOT_IMPLEMENTED();
+
+    if (pNon_car->collision_info->water_d != 10000.f) {
+        TestAutoSpecialVolume(pNon_car->collision_info);
+    }
+    MungeSpecialVolume(pNon_car->collision_info);
+    if (((tCar_spec*)pNon_car)->dt >= 0.f) {
+        pDt = ((tCar_spec*)pNon_car)->dt;
+    }
+    MoveNonCar(pNon_car, pDt);
+    BrMatrix34ApplyP(&((tCar_spec*)pNon_car)->pos, &((tCar_spec*)pNon_car)->centre_of_mass_world_scale, &pNon_car->actor->t.t.mat);
+    ((tCar_spec*)pNon_car)->pos.v[0] = ((tCar_spec*)pNon_car)->pos.v[0] * 0.14492753f;
+    ((tCar_spec*)pNon_car)->pos.v[1] = ((tCar_spec*)pNon_car)->pos.v[1] * 0.14492753f;
+    ((tCar_spec*)pNon_car)->pos.v[2] = ((tCar_spec*)pNon_car)->pos.v[2] * 0.14492753f;
 }
 
 // STUB: CARMA2_HW 0x004168c0
