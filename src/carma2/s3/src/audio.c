@@ -1630,17 +1630,16 @@ int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, uns
 tS3_error_codes C2_HOOK_FASTCALL S3MIDITagHasStoppedPlaying(int pTag) {
     tS3_channel* channel;
 
-    if (!gS3_enable_midi) {
-        return eS3_error_digi_init;
+    if (gS3_enable_midi) {
+        channel = S3GetChannelForTag(pTag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->type == 1) {
+            return PDS3IsMIDIStopped(channel);
+        }
     }
-    channel = S3GetChannelForTag(pTag);
-    if (channel == NULL) {
-        return eS3_error_bad_stag;
-    }
-    if (channel->type != 1) {
-        return eS3_error_digi_init;
-    }
-    return PDS3IsMIDIStopped(channel);
+    return eS3_error_digi_init;
 }
 
 // FUNCTION: CARMA2_HW 0x0056a866
