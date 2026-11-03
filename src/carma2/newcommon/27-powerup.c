@@ -1235,7 +1235,24 @@ int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar) {
     return RepulseOpponents2(pPowerup, pCar, 1);
 }
 
-// RepulsePedestrians
+extern int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3);
+
+// FUNCTION: CARMA2_HW 0x004de540
+int C2_HOOK_FASTCALL RepulsePedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
+    int result;
+    float* params;
+
+    params = pPowerup->float_params;
+    if (DoPedestrianRepulsifictor(pCar, params[0], params[2], params[1], params[3]) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Repulse", 0);
+    }
+    return result;
+}
 
 // ReceivedRepulse
 
