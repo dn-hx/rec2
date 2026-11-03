@@ -693,3 +693,14 @@ void C2_HOOK_FASTCALL EdgeTriggerModeOff(void) {
     gEdge_trigger_mode = 0;
 }
 
+
+// FUNCTION: CARMA2_HW 0x00483e20
+void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY) {
+    char the_string[32];
+    unsigned int i;
+
+    sprintf(the_string, "%0.*d", pWidth, pNumber);
+    for (i = 0; i < strlen(the_string); i++) {
+        AddRollingLetter(the_string[i], i * gCurrent_graf_data->rolling_letter_x_pitch + pX, pY, eRT_numeric);
+    }
+}
