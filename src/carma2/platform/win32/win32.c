@@ -625,10 +625,9 @@ int C2_HOOK_FASTCALL PDDoWeLeadAnAustereExistance(void) {
 
 // FUNCTION: CARMA2_HW 0x0051c850
 void C2_HOOK_FASTCALL PDSetPaletteEntries(br_pixelmap *pPalette, int pFirst_colour, int pCount) {
-    int i;
-    PALETTEENTRY colours[256];
     tU32 *pixels = pPalette->pixels;
-
+    PALETTEENTRY colours[256];
+    int i;
     for (i = 0; i < pCount; i++) {
         tU32 c;
 
