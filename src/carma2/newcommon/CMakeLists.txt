@@ -26,7 +26,6 @@ foreach(edition ${REC2_EDITIONS})
         16-graphics1.c
         17-world2.c
         18-graphics2.c
-        18b-graphics2.c
         19-font.c
         20-skidmark.c
         21-mainloop.c
@@ -58,6 +57,7 @@ foreach(edition ${REC2_EDITIONS})
         47-win95net.c
         48-radhelp.c
         49-physics.c
+        50-fog.c
         51-smash.c
         52-errors.c
         53-controls.c
@@ -71,6 +71,7 @@ foreach(edition ${REC2_EDITIONS})
         61-pedestrn.c
         62-graphics3.c
         63-loading3.c
+        63b-spurt.c
         64-movie.c
         65-hull.c
         66-tintedpoly.c
@@ -78,6 +79,7 @@ foreach(edition ${REC2_EDITIONS})
         68-timer.c
         69-sound.c
         70-packfile.c
+        71-newgame.c
         72-interface.c
         72-interface-main.c
         72-interface-netsync.c
