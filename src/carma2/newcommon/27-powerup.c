@@ -1857,3 +1857,45 @@ void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
         BrActorFree(pActor);
     }
 }
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004c60a0
+void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info) {
+    NOT_IMPLEMENTED();
+}
+
+// GLOBAL: CARMA2_HW 0x006a0adc
+int gCollision_info_uid_counter;
+
+// FUNCTION: CARMA2_HW 0x004da400
+tPhysics_object* C2_HOOK_FASTCALL MungeSphereObject(br_model* pModel, float pWeight) {
+    tPhysics_object* collision_info;
+
+    C2_HOOK_BUG_ON(sizeof(tPhysics_object) != 1240);
+
+    collision_info = BrMemAllocate(sizeof(tPhysics_object), kMem_collision_object);
+    collision_info->shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
+    BrVector3Set(&collision_info->shape->sphere.sphere.center, 0.f, 0.f, 0.f);
+    collision_info->shape->sphere.sphere.radius = (pModel->bounds.max.v[0] - pModel->bounds.min.v[0] + pModel->bounds.max.v[1] - pModel->bounds.min.v[1] + pModel->bounds.max.v[2] - pModel->bounds.min.v[2]) / 6.f;
+    FillInShape(collision_info->shape);
+    collision_info->uid = gCollision_info_uid_counter;
+    gCollision_info_uid_counter++;
+    UpdateCollisionObject(collision_info);
+    collision_info->M = pWeight;
+    BrVector3Set(&collision_info->I,
+        REC2_SQR(collision_info->shape->sphere.sphere.radius) * pWeight / 6.f,
+        REC2_SQR(collision_info->shape->sphere.sphere.radius) * pWeight / 6.f,
+        REC2_SQR(collision_info->shape->sphere.sphere.radius) * pWeight / 6.f);
+    BrVector3SetFloat(&collision_info->field_0x54, 0.f, 1/-17.25f, 0.f);
+    collision_info->actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    BrMatrix34Copy(&collision_info->actor->t.t.mat, &collision_info->transform_matrix);
+    collision_info->actor->model = pModel;
+    collision_info->box_face_ref = gFace_num__car - 2;
+    return collision_info;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
