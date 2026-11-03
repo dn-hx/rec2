@@ -27,6 +27,11 @@
 #include <fcntl.h>
 #include <stddef.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <mmsystem.h>
+#endif
+
 
 // GLOBAL: CARMA2_HW 0x007a06c0
 // GLOBAL: CARMA2_SW 0x00796c60
@@ -2026,4 +2031,26 @@ void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_count) {
             pSound_count = pSound_count - 1;
         }
     }
+}
+
+
+// GLOBAL: CARMA2_HW 0x007a00a0
+MCI_SET_PARMS gPDS3_mci_audio_parms;
+
+// GLOBAL: CARMA2_HW 0x007a00c0
+MCI_SEQ_SET_PARMS gPDS3_mci_seq_set_parms;
+
+extern MCI_STATUS_PARMS gPDS3_mci_midi_status_parms;
+extern int gPDS3_midi_playing;
+
+// FUNCTION: CARMA2_HW 0x00569d67
+int C2_HOOK_FASTCALL PDS3UpdateMidiChannelPitch(tS3_channel* pChannel, int pPitch) {
+    MCIDEVICEID device;
+
+    device = pChannel->mciDevice;
+    gPDS3_mci_midi_status_parms.dwItem = MCI_SEQ_STATUS_TEMPO;
+    mciSendCommandA(device, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD_PTR)&gPDS3_mci_midi_status_parms);
+    gPDS3_mci_seq_set_parms.dwTempo = gPDS3_mci_midi_status_parms.dwReturn * (int)ldexp((double)pPitch, -16);
+    mciSendCommandA(device, MCI_SET, MCI_SEQ_SET_TEMPO, (DWORD_PTR)&gPDS3_mci_seq_set_parms);
+    return 0;
 }
