@@ -1570,3 +1570,18 @@ void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
         }
     }
 }
+
+
+extern int gEthereal_pedestrians;
+extern void C2_HOOK_FASTCALL MungeAllCharacterMaterials(void (C2_HOOK_FASTCALL* pCallback)(void*));
+extern void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback)(void*));
+extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*));
+
+// FUNCTION: CARMA2_HW 0x004d6b40
+void C2_HOOK_FASTCALL MakePedsEthereal(void) {
+
+    MungeAllCharacterMaterials((void (C2_HOOK_FASTCALL*)(void*))BlendifyMaterial25);
+    MungeAllCharacterObjects((void (C2_HOOK_FASTCALL*)(void*))DisableCollisionsForEthereal);
+    MungeAllCharacterModels((void (C2_HOOK_FASTCALL*)(void*))ModelUpdatePrimitiveMaterials);
+    gEthereal_pedestrians = 1;
+}
