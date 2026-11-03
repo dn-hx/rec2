@@ -4268,3 +4268,22 @@ void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_c
 void C2_HOOK_FASTCALL FUN_004c86f0(int pOwner, void* pData, tU32 pArg3) {
     ARDoSingleVariedSession(0x1b, pOwner, 2, 0x10, 0, pData, 4, 0x10, pArg3);
 }
+
+
+// Per-actor crush pass callback (calls FUN_004ee290 for each smashable part).
+// STUB: CARMA2_HW 0x004f5a70
+intptr_t C2_HOOK_CDECL FUN_004f5a70(br_actor* pActor, void* pContext) {
+    return 0;
+}
+
+// Walks the car's master actor tree applying the crush callback to every actor.
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004f5a60
+void C2_HOOK_FASTCALL FUN_004f5a60(tCar_spec* pCar_spec) {
+    DRActorEnumRecurse(pCar_spec->car_master_actor, FUN_004f5a70, pCar_spec);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
