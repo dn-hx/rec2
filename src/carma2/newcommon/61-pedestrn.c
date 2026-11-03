@@ -795,12 +795,8 @@ void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, b
     }
 }
 
-// STUB: CARMA2_HW 0x004b63b0
-int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...) {
-    NOT_IMPLEMENTED();
-    return 0;
-}
 
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
 // STUB: CARMA2_HW 0x004087b0
 void C2_HOOK_FASTCALL MakeCharacterPhysicsSetup(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr) {
