@@ -67,9 +67,7 @@ extern void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosio
 
 // DoExplosionette
 
-extern float gYon_squared;
-
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation *pExplosion_animation,br_actor *pActor, const br_bounds3* pBounds, const br_vector3* pPos);
 
 extern void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec);
 

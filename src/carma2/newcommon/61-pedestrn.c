@@ -2647,13 +2647,10 @@ void C2_HOOK_FASTCALL CachePedestrianFaces(tPedestrian* pPed, br_vector3* pHit_p
     }
 }
 
-// STUB: CARMA2_HW 0x004525c0
-void C2_HOOK_FASTCALL DroneNoOp(void) { }
-
 // FUNCTION: CARMA2_HW 0x004cef80
 void C2_HOOK_FASTCALL PedScanForObjects(tPedestrian* pPed, tU32 pTime) {
     extern br_vector3 gY_unit_vector;
-    extern void C2_HOOK_FASTCALL DroneNoOp(void);
+    extern void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void);
     tPed_cache_006944c0* ped_cache;
     tPhysics_object* object;
     tPhysics_object* best_object;
@@ -2753,7 +2750,7 @@ void C2_HOOK_FASTCALL PedScanForObjects(tPedestrian* pPed, tU32 pTime) {
                             best_object = object;
                             target_pos = *object_pos;
                             if (object->flags_0x238 == 16) {
-                                DroneNoOp();
+                                DroneLookWhereYoureGoingYouBlindCunt();
                             }
                             srand(pTime ^ (tU32)pPed);
                             goto found_target;
@@ -4154,7 +4151,10 @@ tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pName) {
 }
 
 // FUNCTION: CARMA2_HW 0x004046d0
+// FUNCTION: CARMA2_SW 0x004046d0
 void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_remap, bones, 0x2c);
 
     if (pRemap != NULL) {
         if (pRemap->bones != NULL) {
@@ -4202,6 +4202,7 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
 // DisposeAllLoadedForms
 
 // FUNCTION: CARMA2_HW 0x00406a30
+// FUNCTION: CARMA2_SW 0x00406a30
 void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter) {
 
     if (pCharacter != NULL) {

@@ -304,20 +304,11 @@ void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosion) {
 
 // DoExplosionette
 
-// Explode
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 // STUB: CARMA2_HW 0x004ead00
-void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
+// STUB: CARMA2_SW 0x004e69e0
+void C2_HOOK_FASTCALL Explode(tExplosion_animation *pExplosion_animation,br_actor *pActor, const br_bounds3* pBounds, const br_vector3* pPos) {
     NOT_IMPLEMENTED();
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x004eb020
 // FUNCTION: CARMA2_SW 0x004e6d00
