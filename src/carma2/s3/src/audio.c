@@ -2054,3 +2054,16 @@ int C2_HOOK_FASTCALL PDS3UpdateMidiChannelPitch(tS3_channel* pChannel, int pPitc
     mciSendCommandA(device, MCI_SET, MCI_SEQ_SET_TEMPO, (DWORD_PTR)&gPDS3_mci_seq_set_parms);
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00569de5
+int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel) {
+    MCIDEVICEID device;
+
+    device = pChannel->mciDevice;
+    if (gPDS3_midi_playing != 0) {
+        gPDS3_mci_audio_parms.dwAudio = MCI_SET_AUDIO_ALL;
+        mciSendCommandA(device, MCI_SET, MCI_SET_AUDIO | MCI_SET_OFF, (DWORD_PTR)&gPDS3_mci_audio_parms);
+    }
+    return 0;
+}
