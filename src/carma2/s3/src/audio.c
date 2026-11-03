@@ -1849,3 +1849,10 @@ void C2_HOOK_FASTCALL S3ToggleEnabled(void) {
         gS3_enabled = 1;
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x005656ea
+int C2_HOOK_FASTCALL S3GetTerminationReason(tS3_channel* pChannel) {
+
+    return pChannel->termination_reason;
+}
