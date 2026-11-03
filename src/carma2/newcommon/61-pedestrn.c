@@ -801,11 +801,6 @@ int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty,
     return 0;
 }
 
-// STUB: CARMA2_HW 0x004b62b0
-int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
-    return 0;
-}
 
 // STUB: CARMA2_HW 0x004087b0
 void C2_HOOK_FASTCALL MakeCharacterPhysicsSetup(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr) {
