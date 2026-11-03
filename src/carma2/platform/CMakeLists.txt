@@ -47,7 +47,9 @@ foreach(edition ${REC2_EDITIONS})
                 DirectX::dinput
                 DirectX::dxguid
                 winmm
-                ws2_32
+                # wsock32 (not ws2_32): the original imports WSOCK32.dll, so the import thunks
+                # only match reccmp when the same DLL is linked (workv3 behaviour).
+                wsock32
                 IForce2::IForce2
         )
         if(SOUND_ENABLED)
