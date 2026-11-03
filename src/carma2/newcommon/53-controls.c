@@ -829,3 +829,21 @@ void C2_HOOK_FASTCALL FUN_00511200(void) {
 
     FUN_0045acf0();
 }
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045a670
+void C2_HOOK_FASTCALL FUN_0045a670(void) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00511210
+void C2_HOOK_FASTCALL FUN_00511210(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+
+    FUN_0045a670();
+}
