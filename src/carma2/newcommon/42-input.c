@@ -295,24 +295,23 @@ void C2_HOOK_FASTCALL CheckKeysForMouldiness(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004824c0
-// FUNCTION: CARMA2_SW 0x0047f600
 int C2_HOOK_FASTCALL EitherMouseButtonDown(void) {
     tMouse_coord pos;
-    tMouse_coord prev_pos = gCurrent_mouse_position;
-    int left;
-    int right;
+    tMouse_coord click_pos;
+    int buttons[2];
+    int prev_x;
+    int prev_y;
 
+    prev_x = gCurrent_mouse_position.x;
+    prev_y = gCurrent_mouse_position.y;
     GetMousePosition(&pos.x, &pos.y);
-    if (prev_pos.x == pos.x && prev_pos.y == pos.y) {
-        tMouse_coord click_pos;
-
-        int ok = PDGetMouseClickPosition(&click_pos.x, &click_pos.y);
-        if (ok && pos.x == click_pos.x && pos.y == click_pos.y) {
+    if (prev_x == pos.x && prev_y == pos.y) {
+        if (PDGetMouseClickPosition(&click_pos.x, &click_pos.y) && pos.x == click_pos.x && pos.y == click_pos.y) {
             return 2;
         }
     }
-    PDMouseButtons(&left, &right);
-    if (left || right) {
+    PDMouseButtons(&buttons[0], &buttons[1]);
+    if (buttons[0] || buttons[1]) {
         return 1;
     }
     return 0;
