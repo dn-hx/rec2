@@ -4348,6 +4348,10 @@ tPed_personality* C2_HOOK_FASTCALL FindOrOpenPersonality(const char* pName) {
 
 // BuildCharacterInstance
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00407aa0
 // FUNCTION: CARMA2_SW 0x00407a90
 br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter) {
@@ -4360,6 +4364,10 @@ br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCh
     }
     return &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00407ad0
 // FUNCTION: CARMA2_SW 0x00407ac0
