@@ -669,6 +669,9 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
     gReentrancy_count = 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00402410
 void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks) {
 
@@ -684,6 +687,9 @@ void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tRep
     }
     ARResetPiping();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ARDispose
 
