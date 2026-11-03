@@ -43,6 +43,12 @@ typedef struct {
 } tPipe_chunk_funk_enable;
 
 typedef struct {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    undefined4 field_0x8;
+} tPipe_chunk_vanish;
+
+typedef struct {
     int field_0x0;
     int field_0x4;
     tU8 field_0x8[0x10];
@@ -2901,7 +2907,12 @@ void C2_HOOK_FASTCALL ApplyFunkEnable(tPipe_chunk** pChunk) {
     return AdjustFunkEnable(chunk->field_0x0, chunk->field_0x4);
 }
 
-// ApplyVanishDismembered
+// FUNCTION: CARMA2_HW 0x004c9c30
+void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk) {
+    tPipe_chunk_vanish* chunk = (tPipe_chunk_vanish*)*pChunk;
+
+    PedApplyVanishDismembered((tPedestrian*)chunk->field_0x0, chunk->field_0x8);
+}
 
 // ApplyDSModel
 
