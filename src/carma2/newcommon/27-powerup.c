@@ -158,9 +158,15 @@ tU32 gInventory_timeout;
 // GLOBAL: CARMA2_SW 0x007951b0
 int gInstant_handbrake;
 
+// GLOBAL: CARMA2_HW 0x006a0960
+tRepulse_link gRepulse_links[6] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a0a50
+tU8* gRace_powerup_respawn_bools = NULL;
+
 // GLOBAL: CARMA2_HW 0x006a0a54
 // GLOBAL: CARMA2_SW 0x0069aaac
-tPowerup* gPowerup_array;
+tPowerup* gPowerup_array = NULL;
 
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
@@ -1596,4 +1602,45 @@ void C2_HOOK_FASTCALL MakePedsEthereal(void) {
     MungeAllCharacterObjects((void (C2_HOOK_FASTCALL*)(void*))DisableCollisionsForEthereal);
     MungeAllCharacterModels((void (C2_HOOK_FASTCALL*)(void*))ModelUpdatePrimitiveMaterials);
     gEthereal_pedestrians = 1;
+}
+
+
+// FUNCTION: CARMA2_HW 0x004da870
+void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c) {
+    tRepulse_link* link;
+    tU32 link_time;
+    tU32 min_time;
+    int index;
+    int best;
+    int i;
+
+    min_time = 0x7fffffff;
+    best = (int)pOrigin;
+    index = -1;
+    i = 0;
+    link = &gRepulse_links[0];
+    while ((int)link < (int)&gRepulse_links[6]) {
+        link_time = link->time;
+        if (link_time == 0) {
+            index = i;
+            break;
+        }
+        if (link_time < min_time) {
+            min_time = link_time;
+            best = i;
+        }
+        link++;
+        i++;
+    }
+    if (index < 0) {
+        index = best;
+    }
+    gRepulse_links[index].pos_origin = pOrigin;
+    gRepulse_links[index].pos_victim = pVictim;
+    gRepulse_links[index].time = pTime;
+    gRepulse_links[index].field_0x10 = 0xffffffff;
+    gRepulse_links[index].field_0x18 = pField_0x18;
+    gRepulse_links[index].field_0x1c = pField_0x1c;
+    gRepulse_links[index].car = pCar;
+    gRepulse_links[index].field_0x24 = (undefined4)pCar2;
 }
