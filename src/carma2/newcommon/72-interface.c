@@ -357,6 +357,12 @@ br_material* gFrontend_backdrop_materials[3];
 // GLOBAL: CARMA2_HW 0x00687030
 br_actor* gFrontend_backdrop_actors[3];
 
+// GLOBAL: CARMA2_HW 0x00688af0
+br_actor* gFrontend_wrecks_camera;
+
+// GLOBAL: CARMA2_HW 0x00688aec
+br_actor* gFrontend_wrecks_actor;
+
 // GLOBAL: CARMA2_HW 0x00686ef8
 // GLOBAL: CARMA2_SW 0x00681638
 int gFrontend_interpolate_steps_left;
@@ -1991,7 +1997,28 @@ int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size) {
     return 1;
 }
 
-// DisposeWrecksGallery
+// FUNCTION: CARMA2_HW 0x0046e620
+void C2_HOOK_FASTCALL DisposeWrecksGallery(void) {
+    int i;
+
+    for (i = 0; i < gFrontend_wrecks_car_count; i++) {
+        BrActorRemove(gWreck_gallery_car_infos[i].actor);
+    }
+    if (gFrontend_wrecks_camera != NULL) {
+        if (gFrontend_wrecks_camera->parent != NULL) {
+            BrActorRemove(gFrontend_wrecks_camera);
+        }
+        BrActorFree(gFrontend_wrecks_camera);
+    }
+    if (gFrontend_wrecks_actor != NULL) {
+        if (gFrontend_wrecks_actor->parent != NULL) {
+            BrActorRemove(gFrontend_wrecks_actor);
+        }
+        BrActorFree(gFrontend_wrecks_actor);
+    }
+    gFrontend_wrecks_actor = NULL;
+    gFrontend_wrecks_camera = NULL;
+}
 
 // FUNCTION: CARMA2_HW 0x0046e6c0
 // FUNCTION: CARMA2_SW 0x0046dd60
