@@ -116,7 +116,7 @@ br_error C2_HOOK_STDCALL StateCopyToStored(br_renderer_state_stored_soft* dest, 
         memcpy(&dest->cache, &src->cache, sizeof(soft_state_cache));
     }
 
-    if (copy_mask != MASK_CACHED_STATES) {
+    if ((copy_mask & MASK_CACHED_STATES) != MASK_CACHED_STATES) {
         dest->cache.valid = 0;
     }
     return 0;
