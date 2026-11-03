@@ -3023,9 +3023,16 @@ void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00416030
+// FUNCTION: CARMA2_HW 0x00416030
 void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild) {
-    NOT_IMPLEMENTED();
+
+    while (pChild != NULL) {
+        AddDrag(pCar, pChild, 0.04f);
+        if (pChild->child != NULL) {
+            DragChildren(pCar, pChild->child);
+        }
+        pChild = pChild->next;
+    }
 }
 
 // STUB: CARMA2_HW 0x00417030
