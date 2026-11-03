@@ -1429,3 +1429,56 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
 void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
     NOT_IMPLEMENTED();
 }
+
+
+extern tPed_personality* gPed_personalities[50];
+extern tPed_form* gPed_forms[20];
+extern float gPed_sin_table[256];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* ScalePedPersonality (0x0040bb20) and ScalePedForm (0x0040bee0) are not implemented in rec2
+   yet; inert stubs keep ScaleAllPeds linkable and runtime-safe. */
+// STUB: CARMA2_HW 0x0040bb20
+void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode) {
+    (void)pPersonality; (void)pIndex; (void)pScale; (void)pMode;
+}
+// STUB: CARMA2_HW 0x0040bee0
+void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
+    (void)pForm; (void)pIndex; (void)pScale; (void)pMode;
+}
+// FUNCTION: CARMA2_HW 0x0040c420
+void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode) {
+    int i;
+
+    for (i = 0; i < 50; i++) {
+        int index;
+
+        if (gPed_personalities[i] == NULL) {
+            continue;
+        }
+        if (pMorph_or_personality != -2) {
+            index = pMorph_or_personality;
+        } else {
+            index = gPed_personalities[i]->form->index_head_bone;
+        }
+        ScalePedPersonality(gPed_personalities[i], index, pScale, pMode);
+    }
+    for (i = 0; i < 20; i++) {
+        int index;
+
+        if (gPed_forms[i] == NULL) {
+            continue;
+        }
+        if (pMorph_or_personality != -2) {
+            index = pMorph_or_personality;
+        } else {
+            index = gPed_forms[i]->index_head_bone;
+        }
+        ScalePedForm(gPed_forms[i], index, pScale, pMode);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
