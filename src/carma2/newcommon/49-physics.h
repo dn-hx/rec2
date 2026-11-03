@@ -254,8 +254,6 @@ extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_o
 
 // DoInterGroupCollisions
 
-extern int C2_HOOK_FASTCALL ScaleCollisionImpulses(tPhysics_joint_force* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse);
-
 // DoCollisions
 
 // AddDoubleTorqueToMatrix
