@@ -75,7 +75,21 @@ void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 
 // DoZappyActionReplayHeadups
 
-// DoActionReplayHeadups
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004e6280
+void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004e6270
+void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
+
+    ActualActionReplayHeadups(0);
+}
 
 // PreProcess
 
