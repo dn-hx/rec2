@@ -273,6 +273,20 @@ void C2_HOOK_FASTCALL PHILDisable(void) {
 
 // PHILAddObject
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004b5d40
+int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 extern tPhysics_object* gPHIL_queued_objects_for_removal[1];
 
 // FUNCTION: CARMA2_HW 0x004b5ea0
@@ -458,7 +472,42 @@ int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject, const
     }
 }
 
-// PHILAddActiveObject
+/* the body after the gPHIL_disabled test; inlined (its edi save appears after that test in the original); name invented */
+static int C2_HOOK_FASTCALL PHILAddActiveObjectInner(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    int result;
+
+    result = PHILAddObject(pInfo);
+    if (result != 0) {
+        return result;
+    }
+    if (pMatrix != NULL && !gPHIL_disabled) {
+        if (pInfo->field_0x239 == 2) {
+            tQueued_object_info* object_info = pInfo->field_0x240;
+            object_info->field_0x30 = *pMatrix;
+            object_info->flags |= 0x4;
+        } else {
+            tQueued_object_info* object_info = pInfo->field_0x240;
+            if (object_info != NULL) {
+                if (object_info->field_0x8 != 1) {
+                    return 4;
+                }
+                object_info->object->actor->t.t.mat = *pMatrix;
+            } else {
+                return 3;
+            }
+        }
+    }
+    return PHILMakeObjectActive(pInfo, pArg3, pArg4, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x004b6210
+int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    return PHILAddActiveObjectInner(pInfo, pMatrix, pArg3, pArg4);
+}
 
 // PHILAddObjectImmediately
 
