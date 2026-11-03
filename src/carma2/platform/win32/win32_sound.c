@@ -567,3 +567,9 @@ int C2_HOOK_FASTCALL PDS3StopMidiChannelWrapper(tS3_channel* pChannel, int pArg2
     PDS3StopMidiChannel(pChannel);
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00569f85
+int C2_HOOK_FASTCALL PDS3Return0_C(tS3_channel* pChannel) {
+    return 0;
+}
