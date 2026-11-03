@@ -1776,3 +1776,16 @@ double C2_HOOK_STDCALL S3FRandomBetween2(double pMin, double pMax) {
 
     return (pMax - pMin) * (double)rand() / 32767.0 + pMin;
 }
+
+
+// FUNCTION: CARMA2_HW 0x005642b5
+int C2_HOOK_FASTCALL S3IRandomBetweenLog__dup(int pMin, int pMax, int pDefault) {
+    double dbl;
+
+    if (pMin == -1 || pMin >= pMax) {
+        return pDefault;
+    } else {
+        dbl = exp(S3FRandomBetween2(log(pMin), log(pMax)));
+        return (int)(ldexp(dbl, -16) * pDefault);
+    }
+}
