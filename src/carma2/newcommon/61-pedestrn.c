@@ -4095,22 +4095,6 @@ void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
 
 // DRVector3SafeCrossXZ
 
-// FUNCTION: CARMA2_HW 0x00404290
-void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
-    int i;
-    br_vertex* v;
-
-    REC2_THISCALL_UNUSED(pArg2);
-
-    v = pModel->vertices;
-    for (i = 0; i < pModel->nvertices; i++, v++) {
-        v->p.v[0] = pX * v->p.v[0];
-        v->p.v[1] = pY * v->p.v[1];
-        v->p.v[2] = pZ * v->p.v[2];
-    }
-    BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
-}
-
 // FUNCTION: CARMA2_HW 0x004042f0
 void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
     int i;
@@ -4371,6 +4355,24 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacte
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// Moved here from the top of the file: at its original position this TU compiles it as
+// `fld vertex; fmul pX` (reccmp 94.12); at this position it is 100%. Measured with reccmp.
+// FUNCTION: CARMA2_HW 0x00404290
+void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
+    int i;
+    br_vertex* v;
+
+    REC2_THISCALL_UNUSED(pArg2);
+
+    v = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++, v++) {
+        v->p.v[0] = pX * v->p.v[0];
+        v->p.v[1] = pY * v->p.v[1];
+        v->p.v[2] = pZ * v->p.v[2];
+    }
+    BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
+}
 
 // FUNCTION: CARMA2_HW 0x004083b0
 // FUNCTION: CARMA2_SW 0x004083b0
