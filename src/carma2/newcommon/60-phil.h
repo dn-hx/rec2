@@ -15,6 +15,16 @@
 extern int gPHIL_disabled;
 extern tPhysics_object* gPHIL_list_collision_infos;
 extern tU32 gPHIL_last_physics_tick;
+extern int gCrush_deferred;
+extern int gPHIL_doing_physics;
+extern int gPHIL_count_list_collision_infos;
+extern tPHIL_queued_objects gPhil_queued_objects;
+extern tWorld_callback_active_passive_cbfn* gPHIL_original_activate_passive;
+extern int gPHIL_count_queued_objects_for_removal;
+extern int gPHIL_count_queued_objects;
+extern int gPHIL_munging_objects;
+extern int gPHIL_object_added;
+extern int gPHIL_mechanics_time_sync;
 
 // ScalarToFraction
 
