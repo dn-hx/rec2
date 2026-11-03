@@ -30,6 +30,9 @@ int gEdge_trigger_mode;
 // GLOBAL: CARMA2_SW 0x00651bb8
 int gGo_ahead_keys[3] = { 51, 52, 106 };
 
+// GLOBAL: CARMA2_HW 0x0065720c
+int gLast_key_down = -1000;
+
 // base of the negative-index trick in CyclePollKeys (gJoy_array - 0x23c)
 // GLOBAL: CARMA2_HW 0x0074b384
 int gUNK_0074b384[1];
@@ -112,9 +115,6 @@ int gJoy2_x;
 
 // GLOBAL: CARMA2_HW 0x0068becc
 int gJoy2_y;
-
-// GLOBAL: CARMA2_HW 0x0065720c
-int gLast_key_down = -1000;
 
 // GLOBAL: CARMA2_HW 0x0068c1d0
 tU32 gLast_key_down_time;
@@ -429,22 +429,20 @@ int C2_HOOK_FASTCALL AnyKeyDown(void) {
 // KevKeyService
 
 // FUNCTION: CARMA2_HW 0x00483040
-// FUNCTION: CARMA2_SW 0x00480180
 int C2_HOOK_FASTCALL KeyIsDown(int pKey_index) {
     int i;
 
     CheckKeysForMouldiness();
-    switch (pKey_index) {
-    case -2:
+    if (pKey_index == -2) {
         return 1;
-    case -1:
+    } else if (pKey_index == -1) {
         for (i = 0; i < REC2_ASIZE(gGo_ahead_keys); i++) {
             if (gKey_array[gGo_ahead_keys[i]]) {
                 return 1;
             }
         }
         return 0;
-    default:
+    } else {
         return gKey_array[gKey_mapping[pKey_index]];
     }
 }
