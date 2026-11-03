@@ -5082,7 +5082,6 @@ typedef struct {
     undefined4 type;
     float water_density;
     br_vector3 normal;
-    float field_0x18;
     br_bounds3 bb;
 } tReplay_splash;
 
