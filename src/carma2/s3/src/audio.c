@@ -2080,3 +2080,20 @@ int C2_HOOK_FASTCALL PDS3UnmuteMidiChannel(tS3_channel* pChannel) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056a6cd
+int C2_HOOK_FASTCALL FUN_0056a6cd(int pTag, int pPitch) {
+    tS3_channel* channel;
+
+    if (gS3_enable_midi != 0) {
+        channel = S3GetChannelForTag(pTag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->type == 1 && PDS3UpdateMidiChannelPitch(channel, pPitch) == 0) {
+            return eS3_error_function_failed;
+        }
+    }
+    return eS3_error_none;
+}
