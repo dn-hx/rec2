@@ -2797,7 +2797,7 @@ void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk) {
     tPipe_chunk_ped_dir* chunk = (tPipe_chunk_ped_dir*)*pChunk;
 
-    return WorkerPedDir(chunk->field_0x0, &chunk->field_0x4);
+    return PedApplyPedDir(chunk->field_0x0, &chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9ae0
