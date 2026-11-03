@@ -46,7 +46,10 @@ int gPed_count;
 
 // GLOBAL: CARMA2_HW 0x0068c748
 // GLOBAL: CARMA2_SW 0x00686798
-int gQueued_wasted_messages[5];
+int gQueued_wasted_messages[5] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0068c75c
+int gCompletion_bonus_post_race = 0;
 
 // GLOBAL: CARMA2_HW 0x0068c760
 // GLOBAL: CARMA2_SW 0x006867b0
@@ -72,8 +75,14 @@ void C2_HOOK_FASTCALL LoseOldestWastedMassage(void) {
 // FUNCTION: CARMA2_SW 0x0048f840
 void C2_HOOK_FASTCALL QueueWastedMassage(int pIndex) {
 
-    if (gQueued_wasted_messages_count == (int)REC2_ASIZE(gQueued_wasted_messages)) {
-        LoseOldestWastedMassage();
+    if (gQueued_wasted_messages_count == REC2_ASIZE(gQueued_wasted_messages)) {
+        int i;
+
+        for (i = 1; i < gQueued_wasted_messages_count; i++) {
+            gQueued_wasted_messages[i - 1] = gQueued_wasted_messages[i];
+        }
+        gQueued_wasted_messages_count = REC2_ASIZE(gQueued_wasted_messages) - 1;
+        gLast_wasted_message_start = GetTotalTime();
     }
     if (gQueued_wasted_messages_count == 0) {
         gLast_wasted_message_start = GetTotalTime();
