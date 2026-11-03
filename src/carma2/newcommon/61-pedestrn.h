@@ -331,7 +331,7 @@ extern void C2_HOOK_FASTCALL GetPedestrianDebugInfo(char* pBuffer, int pPed_inde
 
 // UpdateIfBackwardsAR
 
-extern int C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale);
+extern void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale);
 
 // ChangeHeadScaling
 

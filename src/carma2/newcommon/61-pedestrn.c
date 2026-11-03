@@ -3820,10 +3820,34 @@ void C2_HOOK_FASTCALL GetPedestrianDebugInfo(char* pBuffer, int pPed_index) {
 
 // UpdateIfBackwardsAR
 
-// STUB: CARMA2_HW 0x004d69b0
+// FUNCTION: CARMA2_HW 0x004d69b0
 // STUB: CARMA2_SW 0x004d2fb0
-int C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
-    NOT_IMPLEMENTED();
+void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
+    br_scalar s[3];
+    int i;
+    tPedestrian* ped;
+
+    s[0] = pScale->v[0] / gPed_scale.v[0];
+    s[1] = pScale->v[1] / gPed_scale.v[1];
+    s[2] = pScale->v[2] / gPed_scale.v[2];
+    if (s[0] == 1.0 && s[1] == 1.0 && s[2] == 1.0) {
+        return;
+    }
+    ScaleAllPeds(-1, s, 1);
+    gPed_scale.v[0] = pScale->v[0];
+    gPed_scale.v[1] = pScale->v[1];
+    gPed_scale.v[2] = pScale->v[2];
+    gAverage_ped_scale = (gPed_scale.v[0] + gPed_scale.v[1] + gPed_scale.v[2]) * 0.33333334f;
+    if (gAction_replay_mode != 0) {
+        if (ARGetReplayRate() < 0.0f) {
+            ped = gPedestrian_array;
+            for (i = 0; i < gPed_count; i++, ped++) {
+                if (ped->flags & 1) {
+                    SetCharacterBonePositions(ped->character, 3, 0);
+                }
+            }
+        }
+    }
 }
 
 // ChangeHeadScaling
