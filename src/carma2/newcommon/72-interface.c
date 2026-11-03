@@ -3632,3 +3632,10 @@ int C2_HOOK_FASTCALL InterfaceMenuInfunc(tFrontend_spec* pFrontend) {
 int C2_HOOK_FASTCALL InterfaceReturnTrue(void) {
     return 1;
 }
+
+
+// FUNCTION: CARMA2_HW 0x004743c0
+int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2) {
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
+}
