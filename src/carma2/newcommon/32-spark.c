@@ -1049,3 +1049,19 @@ void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
 // AdjustSplashReplay
 
 // InitReplaySplashes
+
+/* AFEModelUpdate (0x004f9180) is not implemented in this replay yet; an inert stub
+   gives SetModelAFEUpdateCB a linkable target and preserves the call target name. */
+extern void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
+
+// STUB: CARMA2_HW 0x004f9180
+void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x004f95e0
+int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel) {
+    pModel->flags |= BR_MODF_CUSTOM;
+    pModel->custom = AFEModelUpdate;
+    return 1;
+}
