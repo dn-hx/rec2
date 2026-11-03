@@ -10,6 +10,7 @@
 
 #include "00-car.h"
 #include "09-funks.h"
+#include "13-crush1.h"
 #include "16-graphics1.h"
 #include "27-powerup.h"
 #include "32-spark.h"
@@ -2914,7 +2915,16 @@ void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk) {
     PedApplyVanishDismembered((tPedestrian*)chunk->field_0x0, chunk->field_0x8);
 }
 
-// ApplyDSModel
+// FUNCTION: CARMA2_HW 0x004c9c40
+void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
+    tPipe_chunk* chunk = *pChunk;
+
+    if (*(tS16*)((tU8*)chunk + 4) != 0) {
+        MakeModelMaterialsDoubleSided((br_model*)*(void**)chunk);
+    } else {
+        DRActorEnumRecurse(((tCar_spec*)*(void**)chunk)->car_model_actor, (br_actor_enum_cbfn*)MakeCarModelsMaterialsSingleSided, *(void**)chunk);
+    }
+}
 
 // ApplyPedDiagnostics
 
