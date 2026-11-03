@@ -9,6 +9,7 @@
 #include "45-cutscene.h"
 
 #include "18-graphics2.h"
+#include "18b-graphics2.h"
 #include "42-input.h"
 #include "41-utility.h"
 #include "69-sound.h"

@@ -10,20 +10,30 @@
 
 #include "08-loading1.h"
 #include "10-loading2.h"
+#include "07-structur.h"
+#include "15-displays.h"
 #include "21-mainloop.h"
 #include "22-replay.h"
 #include "23-piping.h"
 #include "27-powerup.h"
+#include "28-world3.h"
+#include "29-raycast.h"
 #include "30-opponent.h"
+#include "32-spark.h"
 #include "41-utility.h"
-#include "52-errors.h"
 #include "42-input.h"
+#include "43-pratcam.h"
 #include "49-physics.h"
+#include "51-smash.h"
+#include "52-errors.h"
+#include "54-runtime.h"
+#include "60-phil.h"
 #include "62-graphics3.h"
 #include "63-loading3.h"
 #include "66-tintedpoly.h"
 #include "69-sound.h"
 #include "70-packfile.h"
+#include "00-car.h"
 #include "globvars.h"
 #include "brender/brender.h"
 #include "globvars.h"
@@ -48,6 +58,10 @@ extern void C2_HOOK_FASTCALL RepulseIt(tPedestrian* pPed, tCar_spec* pCar, float
 extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
 
 extern void C2_HOOK_FASTCALL PipeSinglePedFPChange(tPedestrian* pPed, float pValue, float pUnused);
+
+extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
+
+extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
 
 // GLOBAL: CARMA2_HW 0x0058aae0
 double gPed_face_cache_margin = -0.21739130434782608;
@@ -5557,7 +5571,7 @@ int C2_HOOK_FASTCALL MakeCharacterPhysics(tPed_character_instance* pCharacter, t
         }
     }
     if (gPed_vtable->fill_in_object != NULL) {
-        gPed_vtable->fill_in_object((undefined4*)pObject, pKind + 2);
+        gPed_vtable->fill_in_object((tPhysics_object*)pObject, pKind + 2);
     }
     return 1;
 }
