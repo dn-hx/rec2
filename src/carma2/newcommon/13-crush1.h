@@ -428,6 +428,8 @@ extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
 
+extern void C2_HOOK_FASTCALL PHILRemoveFromParentChain(tPhysics_object* pObject);
+
 // AddTotalDeflectionOfModel
 
 // AddTotalDeflection

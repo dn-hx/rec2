@@ -10,12 +10,18 @@
 
 #include "00-car.h"
 #include "01-network.h"
+#include "04-netgame.h"
+#include "08-loading1.h"
 
+#include "13-crush1.h"
+#include "15-displays.h"
 #include "16-graphics1.h"
 #include "18-graphics2.h"
 #include "19-font.h"
 #include "23-piping.h"
 #include "25-grafdata.h"
+#include "28-world3.h"
+#include "30-opponent.h"
 #include "32-spark.h"
 #include "39-oil.h"
 #include "41-utility.h"
@@ -28,11 +34,17 @@
 #include "53-controls.h"
 #include "60-phil.h"
 #include "61-pedestrn.h"
+#include "63-loading3.h"
+#include "70-packfile.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "platform.h"
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+
+extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
+extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
 typedef struct {
     tNet_message_chunk_header header;
@@ -1646,6 +1658,12 @@ void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
     }
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 // FUNCTION: CARMA2_HW 0x004dedf0
 // STUB: CARMA2_SW 0x004db2f0
 void C2_HOOK_FASTCALL SendCurrentPowerups(void) {
@@ -1708,6 +1726,10 @@ void C2_HOOK_FASTCALL SendCurrentPowerups(void) {
         locals[1]++;
     } while (locals[1] <= 1);
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // LoseAllLocalPowerups
 

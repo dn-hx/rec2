@@ -18,6 +18,7 @@
 #include "52-errors.h"
 #include "60-phil.h"
 #include "63-loading3.h"
+#include "70-packfile.h"
 
 #include "globvars.h"
 #include "globvrkm.h"

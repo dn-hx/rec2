@@ -66,7 +66,7 @@ extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
 
 // ExcludedPowerup
 
-// GotPowerupX
+extern int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime);
 
 // GotPowerupXX
 
@@ -437,6 +437,8 @@ extern void C2_HOOK_FASTCALL RemoveFromCloakingList(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL IsCarCloaked(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar);
+
+extern void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode);
 
 // PeriodicCloaking
 
