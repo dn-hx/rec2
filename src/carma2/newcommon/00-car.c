@@ -408,7 +408,18 @@ void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex) {
 
 extern tSlot_info gInitial_APO[3];
 extern tSlot_info gInitial_APO_potential[3];
+extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL InitCarSkidStuff(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ResetRecoveryVouchers(void);
+extern void C2_HOOK_FASTCALL RemoveFromCloakingList(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00413f70
 void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag) {
     int index;
@@ -567,6 +578,9 @@ void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag) 
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00414400
 void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar) {
@@ -2788,11 +2802,19 @@ float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
     return min_value;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // STUB: CARMA2_HW 0x0041fc60
 // STUB: CARMA2_SW 0x0041fce0
 void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
     NOT_IMPLEMENTED();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // TestForCarInSensiblePlace
 
