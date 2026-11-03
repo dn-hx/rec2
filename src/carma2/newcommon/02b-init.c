@@ -94,6 +94,7 @@ void C2_HOOK_FASTCALL AllocateActors(void) {
 void C2_HOOK_FASTCALL AllocateCamera(void) {
     br_camera* camera_ptr;
     int i;
+    br_scalar f;
 
     for (i = 0; i < (int)REC2_ASIZE(gCamera_list); i++) {
         gCamera_list[i] = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
@@ -106,7 +107,9 @@ void C2_HOOK_FASTCALL AllocateCamera(void) {
         camera_ptr->field_of_view = BrDegreeToAngle(gCamera_angle);
         camera_ptr->hither_z = gCamera_hither;
         camera_ptr->yon_z = gCamera_yon;
-        camera_ptr->aspect = (float)gWidth / (float)gHeight;
+
+        f = (float)gWidth;
+        camera_ptr->aspect = f / (float)gHeight;
     }
 
     if (gCamera_list[0] == NULL) {
@@ -128,7 +131,8 @@ void C2_HOOK_FASTCALL AllocateCamera(void) {
     camera_ptr->field_of_view = BrDegreeToAngle(gCamera_angle);
     camera_ptr->hither_z = gCamera_hither;
     camera_ptr->yon_z = (br_scalar)((double)gCamera_yon / 2.0);
-    camera_ptr->aspect = (float)gWidth / (float)gHeight;
+    f = (float)gWidth;
+    camera_ptr->aspect = f / (float)gHeight;
     if (gRearview_camera == NULL) {
         FatalError(kFatalError_CannotAllocateCamera);
     }
