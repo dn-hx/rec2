@@ -16,6 +16,7 @@
 #include "32-spark.h"
 
 #include "51-smash.h"
+#include "57-drone.h"
 #include "61-pedestrn.h"
 #include "69-sound.h"
 #include "20-skidmark.h"
@@ -42,6 +43,14 @@ typedef struct {
     int field_0x0;
     tU16 field_0x4;
 } tPipe_chunk_funk_enable;
+
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+    tU16 field_0x6;
+    tU16 field_0x8;
+    tU16 field_0xa;
+} tPipe_chunk_drone_corner_pos;
 
 typedef struct {
     undefined4 field_0x0;
@@ -2945,7 +2954,12 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+// FUNCTION: CARMA2_HW 0x004c9cd0
+void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_corner_pos* chunk = (tPipe_chunk_drone_corner_pos*)*pChunk;
+
+    return ApplyDroneCornerPos2(chunk->field_0x0, chunk->field_0x4, chunk->field_0x6, chunk->field_0x8, (const tCompressed_matrix34*)&chunk->field_0xa);
+}
 
 // ApplyDroneStraightPos
 
