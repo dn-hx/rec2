@@ -529,8 +529,12 @@ int gPed_overall_movement_disabled = 0;
 // GLOBAL: CARMA2_HW 0x00677238
 tPed_remap* gPed_remaps[10] = { 0 };
 
+/* explicit initializers keep gPed_personalities and gPed_sin_table adjacent (loop-end compares) */
 // GLOBAL: CARMA2_HW 0x00677260
 tPed_personality* gPed_personalities[50] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677328
+float gPed_sin_table[256] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0067772c
 int gCount_pedestrian_personality_cloned_materials;
@@ -543,9 +547,6 @@ int gDAT_00677728 = 0;
 
 // GLOBAL: CARMA2_HW 0x00676e30
 float gPed_cos_table[256] = { 0 };
-
-// GLOBAL: CARMA2_HW 0x00677328
-float gPed_sin_table[256] = { 0 };
 
 typedef struct {
     int field_0x0;
