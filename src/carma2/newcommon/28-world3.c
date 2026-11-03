@@ -257,7 +257,7 @@ tAdd_to_storage_result C2_HOOK_FASTCALL AddShadeTableToStorage(tBrender_storage*
 
 // FUNCTION: CARMA2_HW 0x00501190
 // FUNCTION: CARMA2_SW 0x004fcaf0
-tAdd_to_storage_result C2_HOOK_FASTCALL AddMaterialToStorage(tBrender_storage* pStorage_space, br_material* pThe_mat) {
+__inline tAdd_to_storage_result C2_HOOK_FASTCALL AddMaterialToStorage(tBrender_storage* pStorage_space, br_material* pThe_mat) {
     int i;
 
     gDuplicate_material = NULL;
@@ -595,7 +595,6 @@ int C2_HOOK_FASTCALL AddModels(tBrender_storage* pStorage_space, const char* pPa
 }
 
 // FUNCTION: CARMA2_HW 0x00502060
-// FUNCTION: CARMA2_SW 0x004fd9b0
 int C2_HOOK_FASTCALL AddMaterials(tBrender_storage* pStorage_space, const char* pPath, tRendererShadingType pShading) {
     int i;
     int new_ones;
