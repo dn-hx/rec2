@@ -45,6 +45,12 @@ typedef struct {
 } tPipe_chunk_funk_enable;
 
 typedef struct {
+    uintptr_t pOwner;
+    tU8 type_from;
+    tU8 type_to;
+} tPipe_chunk_transform_type;
+
+typedef struct {
     int field_0x0;
     br_vector3 field_0x4;
 } tPipe_chunk_shit_mine;
@@ -3019,7 +3025,10 @@ void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk) {
     return ARUndoShitMine((br_actor*)(intptr_t)chunk->field_0x0, (br_matrix34*)&chunk->field_0x4);
 }
 
-// ApplyTransformType
+// FUNCTION: CARMA2_HW 0x004c9d70
+void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk) {
+    ((br_actor*)((tPipe_chunk_transform_type*)*pChunk)->pOwner)->t.type = ((tPipe_chunk_transform_type*)*pChunk)->type_to;
+}
 
 // ApplyOppoRenderage
 
