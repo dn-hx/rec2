@@ -4534,11 +4534,17 @@ tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance *pPed) {
     return NULL;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x00409090
 int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter) {
     NOT_IMPLEMENTED();
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00409300
 // FUNCTION: CARMA2_SW 0x00409300
