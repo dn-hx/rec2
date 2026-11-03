@@ -802,16 +802,28 @@ int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty,
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x004b62b0
 int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // STUB: CARMA2_HW 0x004087b0
 void C2_HOOK_FASTCALL MakeCharacterPhysicsSetup(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr) {
     NOT_IMPLEMENTED();
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004ca4d0
 // FUNCTION: CARMA2_SW 0x004c6c00
