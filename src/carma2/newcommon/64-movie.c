@@ -19,6 +19,12 @@
 
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x006736a8
+void* gQuickTime_dispatcher;
+
+// GLOBAL: CARMA2_HW 0x006736b4
+void* gQuickTime_dispatch;
+
 // GLOBAL: CARMA2_HW 0x006a0c24
 // GLOBAL: CARMA2_SW 0x0069ac7c
 int gQuickTime_initialized;
@@ -193,3 +199,16 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
 
 // FreeS3SoundOutput
 
+
+// FUNCTION: CARMA2_HW 0x0056a900
+__declspec(naked) int C2_HOOK_CDECL FUN_0056a900(void) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_a900
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_a900:
+        mov     eax, 0x20002
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
