@@ -1953,8 +1953,7 @@ static __inline void MungeNapalm_KillBolt(tNapalm_bolt* pBolt) {
     pBolt->ped = NULL;
 }
 
-// STUB: CARMA2_HW 0x004fb630
-void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime) { NOT_IMPLEMENTED(); }
+// TMP-MEASURE removed for 0x4fb630
 
 // FUNCTION: CARMA2_HW 0x004ce7d0
 void C2_HOOK_FASTCALL MungeNapalm(void) {
