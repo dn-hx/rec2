@@ -1518,6 +1518,9 @@ int C2_HOOK_FASTCALL PDDisableJoysticks(void) {
     return gCountEnumeratedJoystickDinputDevices;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004580e0
 int C2_HOOK_FASTCALL PDFindJoystickEffect(const char* effectName) {
     int i;
@@ -1659,3 +1662,6 @@ void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName) {
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
