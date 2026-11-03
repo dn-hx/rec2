@@ -1932,3 +1932,19 @@ void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2)
 
 }
 
+
+// FUNCTION: CARMA2_HW 0x00514de0
+void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource) {
+    pDestination->flags = pSource->flags;
+    pDestination->ka = pSource->ka;
+    pDestination->kd = pSource->kd;
+    pDestination->ks = pSource->ks;
+    pDestination->power = pSource->power;
+    pDestination->colour = pSource->colour;
+    pDestination->index_base = pSource->index_base;
+    pDestination->index_range = pSource->index_range;
+    pDestination->index_shade = pSource->index_shade;
+    pDestination->colour_map = pSource->colour_map;
+    pDestination->map_transform = pSource->map_transform;
+    pDestination->identifier = pSource->identifier;
+}
