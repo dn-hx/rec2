@@ -606,6 +606,10 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_SW 0x0073b270
 int gExploding_pedestrians;
 
+/* explicit initializers keep gPed_cache_006944c0, gNapalm_bolts and gPed_slick_material adjacent (loop-end compares in InitPedsForRace) */
+// GLOBAL: CARMA2_HW 0x006944c0
+tPed_cache_006944c0 gPed_cache_006944c0[100] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x0069b9f0
 tNapalm_bolt gNapalm_bolts[5] = { 0 };
 
@@ -669,9 +673,6 @@ tU32 gPed_last_munging;
 
 // GLOBAL: CARMA2_HW 0x00694328
 tPed_cache_006944c0 gPed_cache_00694328;
-
-// GLOBAL: CARMA2_HW 0x006944c0
-tPed_cache_006944c0 gPed_cache_006944c0[100] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00694128
 float gPed_popup_distance_inner;
