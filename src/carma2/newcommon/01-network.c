@@ -977,6 +977,10 @@ tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2
 }
 
 // based on ApexWorm/rec2 86c692d7f (reference only)
+// PARTIAL 100% effective: the body is upstream origin/master's and differs from the original in one
+// instruction only, a SIB base/index field swap (mov byte ptr [eax+ebx+0x19] vs [ebx+eax+0x19]).
+// That encoding was invariant under four source formulations measured (member form, cast form,
+// swapped add operands, byte-subscript store), so it is a translation-unit codegen coin flip.
 // FUNCTION: CARMA2_HW 0x0049f680
 // FUNCTION: CARMA2_SW 0x0049b800
 tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption) {
@@ -996,8 +1000,8 @@ tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, 
         the_message->header.field_0x14 = 0xff;
         the_message->header.field_0x16 = (tU16)the_size;
         the_message->contents.raw.header.type = pNet_message_type;
-        ((tNet_message_guaranteed*)((tU8*)&the_message->contents + (tU8)contents_size))->header.type = 5;
-        ((tU8*)the_message)[0x18 + the_message->contents.raw.header.size] = (tU8)guarantee_size;
+        ((tNet_message_guaranteed*)((tU8*)&the_message->contents + the_message->contents.raw.header.size))->header.type = 5;
+        ((tNet_message_guaranteed*)((tU8*)&the_message->contents + the_message->contents.raw.header.size))->header.size = (tU8)guarantee_size;
     }
     return the_message;
 }
