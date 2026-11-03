@@ -21,6 +21,7 @@
 #include "52-errors.h"
 #include "59-camera.h"
 #include "62-graphics3.h"
+#include "69-sound.h"
 
 #include "globvars.h"
 #include "globvrpb.h"
@@ -1376,7 +1377,7 @@ void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
         do {
             if (item_spec->trigger_type == kSmashableTrigger_Material) {
                 SplondificatalizeIdentifier(
-                    item_spec->trigger_object.material,
+                    (br_actor*)item_spec->trigger_object.material,
                     &item_spec->trigger_object.material->identifier,
                     i);
             }

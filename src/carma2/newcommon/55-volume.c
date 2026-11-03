@@ -12,6 +12,7 @@
 #include "08-loading1.h"
 #include "34-finteray.h"
 #include "41-utility.h"
+#include "49-physics.h"
 #include "69-sound.h"
 #include "70-packfile.h"
 #include "globvars.h"
