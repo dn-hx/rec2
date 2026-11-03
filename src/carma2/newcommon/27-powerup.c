@@ -1468,6 +1468,7 @@ int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
 extern void C2_HOOK_FASTCALL MakePedsEthereal(void);
 extern void C2_HOOK_FASTCALL MakePedsNotEthereal(void);
+extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x004de930
 int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -1511,7 +1512,15 @@ void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // HitMine
 
-// SetMassMultiplier
+// FUNCTION: CARMA2_HW 0x004debb0
+int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car) {
+
+    car->field_0x4c8 = powerup->float_params[0];
+    if (gNet_mode) {
+        RecalculateCarMassMomentOfInertia(car);
+    }
+    return powerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004debf0
 // FUNCTION: CARMA2_SW 0x004db0f0
@@ -2066,6 +2075,10 @@ void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pI
 // STUB: CARMA2_HW 0x0040bee0
 void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
     (void)pForm; (void)pIndex; (void)pScale; (void)pMode;
+}
+// STUB: CARMA2_HW 0x004f9020
+void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
+    (void)pCar;
 }
 // FUNCTION: CARMA2_HW 0x0040c420
 void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode) {
