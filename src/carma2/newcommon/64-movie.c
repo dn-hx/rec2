@@ -268,3 +268,17 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompress
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056c6e0
+__declspec(naked) void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c6e0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c6e0:
+        mov     eax, 0x2018e
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
