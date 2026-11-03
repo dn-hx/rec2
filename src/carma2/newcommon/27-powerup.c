@@ -1256,7 +1256,28 @@ int C2_HOOK_FASTCALL RepulsePedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // ReceivedRepulse
 
-// ResetEngineFactor
+/* FUN_0045c760 (0x0045c760) belongs to another replay batch; an inert stub keeps
+   ResetEngineFactor linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0045c760
+void C2_HOOK_FASTCALL FUN_0045c760(void) {
+    NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004de5d0
+void C2_HOOK_FASTCALL ResetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
+    float f = 1.0f;
+
+    FUN_0045c760();
+    pCar->field_0x4d4 = f;
+    pCar->grip_multiplier = f;
+    SetCarSuspGiveAndHeight(pCar, f, f, f, 0.0f, 0.0f);
+}
 
 // FUNCTION: CARMA2_HW 0x004de600
 // FUNCTION: CARMA2_SW 0x004dab00
