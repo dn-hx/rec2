@@ -1482,3 +1482,16 @@ void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale,
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+
+extern char gJoystick_effects[];
+extern int gCount_joystick_effects;
+
+// FUNCTION: CARMA2_HW 0x00458430
+int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
+
+    if (index < 0 || index > gCount_joystick_effects) {
+        return NULL;
+    }
+    return (int*)&gJoystick_effects[index * 232];
+}
