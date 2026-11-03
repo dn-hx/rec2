@@ -1930,3 +1930,23 @@ int C2_HOOK_FASTCALL S3SetChannelPosition(tS3_sound_tag pChannel_tag, const tS3_
     }
     return eS3_error_none;
 }
+
+
+// FUNCTION: CARMA2_HW 0x005664e6
+int C2_HOOK_FASTCALL S3SetChannelVelocity(tS3_sound_tag pChannel_tag, const tS3_vector3* pVelocity) {
+    tS3_channel* channel;
+
+    if (gS3_enabled != 0) {
+        channel = S3GetChannelForTag(pChannel_tag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->spatial_sound == 0) {
+            return 11;
+        }
+        channel->velocity.x = pVelocity->x;
+        channel->velocity.y = pVelocity->y;
+        channel->velocity.z = pVelocity->z;
+    }
+    return eS3_error_none;
+}
