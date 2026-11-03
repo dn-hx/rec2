@@ -680,3 +680,12 @@ void C2_HOOK_FASTCALL S3SetListenerLeftNow(br_vector3* pLeft) {
     gS3_listener_left_now.v[1] = pLeft->v[1];
     gS3_listener_left_now.v[2] = pLeft->v[2];
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565f80
+void C2_HOOK_FASTCALL S3BindListenerPosition(tS3_vector3* pos) {
+
+    gS3_listener_pos_ptr = (br_vector3*)pos;
+    gS3_listener_pos_is_brender = 0;
+    S3CopyS3Vector3((tS3_vector3*)&gS3_listener_position_old, pos);
+}
