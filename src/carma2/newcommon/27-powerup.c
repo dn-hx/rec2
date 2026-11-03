@@ -3568,19 +3568,22 @@ int C2_HOOK_FASTCALL PedValium(tPowerup* powerup, tCar_spec* car) {
 
 // FUNCTION: CARMA2_HW 0x004e06a0
 void C2_HOOK_FASTCALL RemoveTail(void) {
-    tPhysics_object* puVar1;
+    tPhysics_object* object;
 
     if (gMutant_tail_state != 0) {
-        puVar1 = gMutant_tail_first_collision_info;
-        for (; puVar1 != NULL; puVar1 = *(tPhysics_object**)((char*)puVar1 + 0x224)) {
-            BrActorRemove(puVar1->actor);
+        object = gMutant_tail_first_collision_info;
+        if (gMutant_tail_first_collision_info != NULL) {
+            while (object != NULL) {
+                BrActorRemove(object->actor);
+                object = object->child;
+            }
         }
         if (gMutant_tail_state == 2) {
             PHILRemoveFromParentChain(gMutant_tail_first_collision_info);
         } else {
             PHILRemoveObject(gMutant_tail_first_collision_info);
         }
-        *(tPhysics_joint**)((char*)gMutant_tail_first_collision_info + 0x188) = gMutant_tail_first_joint;
+        gMutant_tail_first_collision_info->physics_joint1 = gMutant_tail_first_joint;
         gMutant_tail_state = 0;
     }
 }
