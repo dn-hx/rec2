@@ -3185,9 +3185,14 @@ void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType) {
     StartPipingSession2(pType, 1);
 }
 
-// STUB: CARMA2_HW 0x004c8540
+// FUNCTION: CARMA2_HW 0x004c8540
 void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPosition, float pForce) {
-    NOT_IMPLEMENTED();
+
+    gUNK_0069410c = *(tU32*)&pForce;
+    ARDoSingleVariedSession(ePipe_chunk_ped_incident, 1, 3,
+        4, 0, *(tU32*)&pForce,
+        2, 4, (tU16)pCar->car_ID,
+        0xc, 8, pPosition);
 }
 
 void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pForce) {
