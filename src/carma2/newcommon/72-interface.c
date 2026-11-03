@@ -350,6 +350,9 @@ tFrontend_slider gOptions_sound_slider;
 // GLOBAL: CARMA2_SW 0x00683044
 int gValid_stashed_save_game; // FIXME: rename variable?
 
+// GLOBAL: CARMA2_HW 0x00688780
+tSave_game gStashed_save_game;
+
 // GLOBAL: CARMA2_HW 0x00688408
 tConnected_items gControls_scroller;
 
@@ -860,7 +863,20 @@ void C2_HOOK_FASTCALL RefreshRacesScroller(tFrontend_spec* pFrontend) {
 
 // RestoreSinglePlayerState
 
-// MaybeRestoreSavedGame
+static void C2_HOOK_FASTCALL RestoreSinglePlayerState(void) {
+
+    LoadRaces(gRace_list, &gNumber_of_races, -1);
+    DoLoadGame2(&gStashed_save_game);
+    gValid_stashed_save_game = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00466e90
+void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void) {
+
+    if (gValid_stashed_save_game) {
+        RestoreSinglePlayerState();
+    }
+}
 
 // NetworkJoinUpdateScroller
 
