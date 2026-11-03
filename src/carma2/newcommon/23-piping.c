@@ -3365,7 +3365,12 @@ void C2_HOOK_FASTCALL UndoPowerupRespawn(tPipe_chunk** pChunk, tPipe_chunk* pPre
     ARUndoPowerupRespawn((br_actor*)(*pChunk)->subject_index, (*pChunk)->data.powerup_respawn.index);
 }
 
-// UndoShitMine
+// FUNCTION: CARMA2_HW 0x004ca3c0
+void C2_HOOK_FASTCALL UndoShitMine(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_shit_mine* chunk = (tPipe_chunk_shit_mine*)*pChunk;
+
+    return ARUndoShitMine((br_actor*)(intptr_t)chunk->field_0x0, (br_matrix34*)&chunk->field_0x4);
+}
 
 // UndoEndShitMine
 
