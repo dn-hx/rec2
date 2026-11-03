@@ -2891,7 +2891,7 @@ void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupLose(chunk->field_0x0, chunk->field_0x4);
+    return ARPowerupLose((tPowerup*)chunk->field_0x0, (tCar_spec*)chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9c20
