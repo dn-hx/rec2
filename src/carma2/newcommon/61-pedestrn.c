@@ -4259,6 +4259,10 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
 
 // DisposeAllLoadedForms
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00406a30
 // FUNCTION: CARMA2_SW 0x00406a30
 void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter) {
@@ -4267,6 +4271,10 @@ void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharact
         BrMemFree(pCharacter);
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00406a40
 tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName) {
