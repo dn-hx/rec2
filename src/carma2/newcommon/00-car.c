@@ -945,17 +945,22 @@ void C2_HOOK_FASTCALL CalcEngineForce(tCar_spec* pCar, br_scalar pDt) {
 
 // PrepareCars
 
+extern void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar);
+
 // FUNCTION: CARMA2_HW 0x004157e0
-// FUNCTION: CARMA2_SW 0x00415810
 void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar) {
 
-    pCar->steering_angle = (br_scalar)BrRadianToDegree(atan((pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * (pCar->field_0x1260 + pCar->curvature)));
-    pCar->lr_sus_position = (br_scalar)((pCar->wpos[0].v[1] - pCar->oldd[0]) / WORLD_SCALE_D);
-    pCar->rr_sus_position = (br_scalar)((pCar->wpos[1].v[1] - pCar->oldd[1]) / WORLD_SCALE_D);
-    pCar->lf_sus_position = (br_scalar)((pCar->wpos[2].v[1] - pCar->oldd[2]) / WORLD_SCALE_D);
-    pCar->rf_sus_position = (br_scalar)((pCar->wpos[3].v[1] - pCar->oldd[3]) / WORLD_SCALE_D);
+    pCar->steering_angle = (float)(atan((pCar->wpos[0].v[2] - pCar->wpos[2].v[2])
+            * (pCar->field_0x1260 + pCar->curvature)) * (180.0 / PI));
+    pCar->lr_sus_position = (pCar->wpos[0].v[1] - pCar->oldd[0]) * 0.14492753623188406;
+    pCar->rr_sus_position = (pCar->wpos[1].v[1] - pCar->oldd[1]) * 0.14492753623188406;
+    pCar->lf_sus_position = (pCar->wpos[2].v[1] - pCar->oldd[2]) * 0.14492753623188406;
+    pCar->rf_sus_position = (pCar->wpos[3].v[1] - pCar->oldd[3]) * 0.14492753623188406;
     PipeSingleGraphicalWheelStuff(pCar);
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FinishCars
 
