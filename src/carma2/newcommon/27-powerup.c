@@ -1593,6 +1593,50 @@ void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale,
 extern char gJoystick_effects[];
 extern int gCount_joystick_effects;
 
+extern int gForceFeedbackAvailable;
+extern int gCurrent_ffb_effect_index;
+extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
+
+// GLOBAL: CARMA2_HW 0x0059630c
+int gCurrent_ffb_effect_index = -1;
+
+/* StopDinputEffect (0x00457ed0) lives in the platform dinput TU, which is not part
+   of this replay batch; an inert stub keeps PlayExclusiveFFBEffect linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00457ed0
+void C2_HOOK_FASTCALL StopDinputEffect(int pIndex) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x0045c6b0
+void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2) {
+    int index;
+    int* effect;
+
+    if (!gForceFeedbackAvailable) {
+        return;
+    }
+    index = PDFindJoystickEffect(pEffect_name);
+    if (index == -1) {
+        return;
+    }
+    if (gCurrent_ffb_effect_index != -1 && gCurrent_ffb_effect_index != index) {
+        StopDinputEffect(gCurrent_ffb_effect_index);
+        UnloadDinputFFBEffectAtIndex(gCurrent_ffb_effect_index);
+        gCurrent_ffb_effect_index = -1;
+    }
+    if (gCurrent_ffb_effect_index != -1) {
+        effect = GetJoystickEffect(gCurrent_ffb_effect_index);
+        if (pArg2 == 0 && effect != NULL && effect[2] == -1) {
+            return;
+        }
+    }
+    gCurrent_ffb_effect_index = index;
+    StartDinputEffect(index);
+}
+
 // FUNCTION: CARMA2_HW 0x00458430
 int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
 
@@ -1601,6 +1645,9 @@ int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
     }
     return (int*)&gJoystick_effects[index * 232];
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004c8da0
 void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
