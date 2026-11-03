@@ -69,6 +69,9 @@ int gNum_of_opponents_pursuing;
 // GLOBAL: CARMA2_SW 0x0068b7b4
 tU8* gBit_per_node;
 
+// GLOBAL: CARMA2_HW 0x0058a478
+float gOppo_render_zero = 0.0f;
+
 // GLOBAL: CARMA2_HW 0x00691764
 // GLOBAL: CARMA2_SW 0x0068b7bc
 float gIn_view_distance;
@@ -822,3 +825,14 @@ void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* pAnother
 // RecordOpponentTwattageOccurrence
 
 // GetOpponentMood
+
+
+extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
+
+// FUNCTION: CARMA2_HW 0x004a7a20
+void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender) {
+    if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
+        pRender = (pRender == 0);
+    }
+    pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
+}
