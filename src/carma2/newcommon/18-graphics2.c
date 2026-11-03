@@ -542,12 +542,21 @@ void C2_HOOK_FASTCALL StartMouseCursor(void) {
     gMouse_started = 1;
 }
 
+extern int gMouse_started;
+
 // FUNCTION: CARMA2_HW 0x0043e710
-// FUNCTION: CARMA2_SW 0x0043e820
 void C2_HOOK_FASTCALL EndMouseCursor(void) {
+    int i;
 
     RemoveTransientBitmaps(1);
-    DeallocateAllTransientBitmaps();
+    /* DeallocateAllTransientBitmaps inlined */
+    for (i = 0; i < (int)REC2_ASIZE(gTransient_bitmaps); i++) {
+        if (gTransient_bitmaps[i].pixmap != NULL) {
+            BrPixelmapFree(gTransient_bitmaps[i].pixmap);
+            gTransient_bitmaps[i].pixmap = NULL;
+            gTransient_bitmaps[i].in_use = 0;
+        }
+    }
     gMouse_started = 0;
 }
 
