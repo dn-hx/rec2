@@ -363,6 +363,15 @@ br_actor* gFrontend_wrecks_camera;
 // GLOBAL: CARMA2_HW 0x00688aec
 br_actor* gFrontend_wrecks_actor;
 
+// GLOBAL: CARMA2_HW 0x00686f68
+tFrontend_slider gControls_slider_1;
+
+// GLOBAL: CARMA2_HW 0x006883c8
+tFrontend_slider gControls_slider_2;
+
+// GLOBAL: CARMA2_HW 0x00688ac0
+tFrontend_slider gControls_slider_3;
+
 // GLOBAL: CARMA2_HW 0x00686ef8
 // GLOBAL: CARMA2_SW 0x00681638
 int gFrontend_interpolate_steps_left;
@@ -3038,7 +3047,145 @@ int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// Controls_Infunc
+// GLOBAL: CARMA2_HW 0x006864f8
+int gFrontend_controls_count_keys;
+
+// GLOBAL: CARMA2_HW 0x006869e0
+int gBackup_key_mappings[4][77] = { 0 };
+
+// UNCERTAIN: placeholder for the unknown data after gBackup_key_mappings
+// GLOBAL: CARMA2_HW 0x00686eb0
+int gUNK_00686eb0[2] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00688440
+int gOrig_key_map_index;
+
+// GLOBAL: CARMA2_HW 0x00688700
+int gOrig_joystick_index;
+
+// GLOBAL: CARMA2_HW 0x00688704
+float gOriginal_joystick_x;
+
+// GLOBAL: CARMA2_HW 0x00688708
+float gOriginal_joystick_y;
+
+// GLOBAL: CARMA2_HW 0x0068870c
+int gOriginal_joystick_fbb;
+
+// GLOBAL: CARMA2_HW 0x00688710
+int gOriginal_joystick_dpad;
+
+// FUNCTION: CARMA2_HW 0x004725f0
+int C2_HOOK_FASTCALL Controls_Infunc(tFrontend_spec* pFrontend) {
+    int i;
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gCurrent_frontend_scrollbars = NULL;
+    gConnected_items = NULL;
+    gPTR_00686508 = NULL;
+    {
+        FILE* f;
+        char s[256];
+        tPath_name the_path;
+        int len;
+        int j;
+
+        PathCat(the_path, gApplication_path, "KEYNAMES.TXT");
+        f = DRfopen(the_path, "rt");
+        if (f == NULL) {
+            FatalError(0x6a);
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gKey_names); i++) {
+            PFfgets(s, 256, f);
+            len = strlen(s);
+            for (j = 0; j < len; j++) {
+                if ((tU8)s[j] < 0x20) {
+                    memcpy(&s[j], &s[j + 1], (len - j) * sizeof(char));
+                    len--;
+                }
+            }
+            gKey_names[i] = BrMemAllocate(strlen(s) + 1, kMem_misc);
+            strcpy(gKey_names[i], s);
+        }
+        PFfclose(f);
+    }
+    gFrontend_controls_count_keys = 29;
+    gOrig_key_map_index = gKey_map_index;
+    for (i = 0; i < 4; i++) {
+        FILE* f;
+        tPath_name the_path;
+        int k;
+
+        gKey_map_index = i;
+        PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
+        the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
+        f = DRfopen(the_path, "rt");
+        if (f == NULL) {
+            FatalError(kFatalError_CouldNotOpenKeyMapFile);
+        }
+        for (k = 0; k < (int)REC2_ASIZE(gKey_mapping); k++) {
+            fscanf(f, "%d", &gKey_mapping[k]);
+        }
+        PFfclose(f);
+        memcpy(gBackup_key_mappings[i], gKey_mapping, sizeof(gKey_mapping));
+    }
+    gKey_map_index = gOrig_key_map_index;
+    memcpy(gKey_mapping, gBackup_key_mappings[gKey_map_index], sizeof(gKey_mapping));
+    gOrig_joystick_index = gJoystick_index;
+    gJoystick_index = 0;
+    gOriginal_joystick_x = GetJoystickX();
+    gOriginal_joystick_y = GetJoystickY();
+    gOriginal_joystick_fbb = GetJoystickFBBGain();
+    gOriginal_joystick_dpad = PDIsJoystickDPadEnabled();
+    gJoystick_index = gOrig_joystick_index;
+    SelectThisItemIn(pFrontend, 1, gKey_map_index + 39);
+    gControls_scroller.field_0x0 = gFrontend_controls_count_keys;
+    gControls_scroller.range_length = 10;
+    gControls_scroller.field_0x8 = 0;
+    gControls_scroller.count_ranges = 2;
+    gControls_scroller.range_starts[0] = 43;
+    gControls_scroller.range_starts[1] = 53;
+    gControls_scroller.next = NULL;
+    gConnected_items = &gControls_scroller;
+    gControls_slider_1.flags = 0;
+    gControls_slider_1.itemid_left_reference = 14;
+    gControls_slider_1.itemid_start = 1;
+    gControls_slider_1.width = 236;
+    gControls_slider_1.callback = Slider_XProc;
+    gControls_slider_1.field_0x14 = 0.0f;
+    gControls_slider_1.field_0x18 = 2.0f;
+    gControls_slider_2.flags = 0;
+    gControls_slider_2.itemid_left_reference = 19;
+    gControls_slider_2.itemid_start = 4;
+    gControls_slider_2.width = 236;
+    gControls_slider_2.callback = Slider_YProc;
+    gControls_slider_2.field_0x14 = 0.0f;
+    gControls_slider_2.field_0x18 = 2.0f;
+    gControls_slider_3.flags = 0;
+    gControls_slider_3.itemid_left_reference = 23;
+    gControls_slider_3.itemid_start = 7;
+    gControls_slider_3.width = 236;
+    gControls_slider_3.callback = Slider_ForceProc;
+    gControls_slider_3.field_0x14 = 0.0f;
+    gControls_slider_3.field_0x18 = 1.0f;
+    gControls_slider_1.next = &gControls_slider_2;
+    gControls_slider_2.next = &gControls_slider_3;
+    gControls_slider_3.next = NULL;
+    gCurrent_frontend_scrollbars = &gControls_slider_1;
+    DisplayJoystickSettings(pFrontend);
+    RefreshScrollSet(pFrontend);
+    return 1;
+}
 
 // Controls_Outfunc
 
