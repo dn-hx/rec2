@@ -891,14 +891,16 @@ tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupp
 
 // FUNCTION: CARMA2_HW 0x0046aa20
 void C2_HOOK_FASTCALL MenuSetCarImage(int pCar_index, int pBrender_index) {
-    tPath_name pack_path;
-    char pack_filename[64];
-    char pm_name[20];
+    char* car_file_name;
     char* pos_dot;
+    char pack_filename[40];
+    char pm_name[20];
+    tPath_name pack_path;
     tTWTVFS twt;
     int i;
 
-    pos_dot = strrchr(gOpponents[pCar_index].car_file_name, '.');
+    car_file_name = gOpponents[pCar_index].car_file_name;
+    pos_dot = strrchr(car_file_name, '.');
     PathCat(pack_path, gApplication_path, "INTRFACE");
     PathCat(pack_path, pack_path, "CARIMAGE");
     strcpy(pack_filename, gOpponents[pCar_index].car_file_name);
@@ -907,7 +909,7 @@ void C2_HOOK_FASTCALL MenuSetCarImage(int pCar_index, int pBrender_index) {
     PathCat(pack_path, pack_path, pack_filename);
     twt = OpenPackFileAndSetTiffLoading(pack_path);
     for (i = 0; i < 6; i++) {
-        sprintf(pm_name, "%.*s%c.TIF", (int)(pos_dot - gOpponents[pCar_index].car_file_name), gOpponents[pCar_index].car_file_name, 'A' + i);
+        sprintf(pm_name, "%.*s%c.TIF", (int)(pos_dot - car_file_name), car_file_name, 'A' + i);
         BrMapRemove(gFrontend_images[i + 1]);
         BrPixelmapFree(gFrontend_images[i + 1]);
         gFrontend_images[i + 1] = GetThisFuckingPixelmapPleaseMrTwatter(pack_path, pm_name);
