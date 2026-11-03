@@ -1602,3 +1602,21 @@ void C2_HOOK_FASTCALL StopDinputEffect(int pIndex) {
         IDirectInputEffect_Stop(effect);
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x00458610
+int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain) {
+    IDirectInputEffect* effect;
+
+    if (!gForceFeedbackAvailable) {
+        return 0;
+    }
+    if (gJoystick_effects[pIndex].di_effect.dwGain != pGain) {
+        gJoystick_effects[pIndex].di_effect.dwGain = pGain;
+    }
+    effect = gDirectInputEffects[pIndex];
+    if (effect != NULL) {
+        IDirectInputEffect_SetParameters(effect, &gJoystick_effects[pIndex].di_effect, DIEP_GAIN);
+    }
+    return 1;
+}
