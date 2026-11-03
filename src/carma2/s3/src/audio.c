@@ -1856,3 +1856,10 @@ int C2_HOOK_FASTCALL S3GetTerminationReason(tS3_channel* pChannel) {
 
     return pChannel->termination_reason;
 }
+
+
+// FUNCTION: CARMA2_HW 0x005656fb
+int C2_HOOK_FASTCALL S3GetRepetitions(tS3_channel* pChannel) {
+
+    return pChannel->repetitions;
+}
