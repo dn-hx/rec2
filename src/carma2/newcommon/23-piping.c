@@ -1421,7 +1421,7 @@ int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_
             gDisable_piped_sounds = 1;
             old_rate = gReplay_rate;
             gReplay_rate = 100.f;
-            ARDoActionReplay(0x7fffffff, (tReplay_between_sessions_callback)pZappy_AR_cb, pPreprocess_cb, pPostProcess_cb);
+            MoveReplayBuffer(0x7fffffff, (tReplay_session_callback*)pZappy_AR_cb, pPreprocess_cb, pPostProcess_cb);
             gDisable_piped_sounds = 0;
             gReplay_rate = old_rate;
             S3SetSampleFilterCallbacks(NULL, NULL);
