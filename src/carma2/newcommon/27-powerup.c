@@ -1744,7 +1744,50 @@ void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar) {
     }
 }
 
-// SetPissed
+// GLOBAL: CARMA2_HW 0x006a0a68
+int gPissed_next_time;
+
+// GLOBAL: CARMA2_HW 0x00705c14
+float gPissed_flicker_frames[3];
+
+// GLOBAL: CARMA2_HW 0x00705c20
+float gPissed_flicker_limit;
+
+// GLOBAL: CARMA2_HW 0x00705c74
+float gPissed_hold_time;
+
+// GLOBAL: CARMA2_HW 0x00705be0
+int gCredit_multiplier;
+
+// FUNCTION: CARMA2_HW 0x004df220
+int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
+
+    if (car != NULL && car->driver == eDriver_local_human) {
+        float* pOut;
+        int k;
+
+        DRS3StartSound2(gCar_outlet, 0xe11, 1, 0xff, 0xff, -1, -1);
+        gPissed_next_time = GetTotalTime() + IRandomBetween(0x5dc, 0xbb8);
+        gCredit_multiplier = *powerup->integer_params;
+        gPissed_hold_time = powerup->float_params[3];
+
+        pOut = gPissed_flicker_frames;
+        do {
+            float* p = pOut;
+            for (k = 1; k; k--) {
+                float tmp;
+
+                p[-12] = powerup->float_params[0];
+                tmp = FRandomBetween(powerup->float_params[1], powerup->float_params[2]);
+                p[0] = tmp;
+                p[12] = FRandomBetween(0.0f, tmp);
+                p += 1;
+            }
+            pOut += 3;
+        } while ((int)pOut < (int)&gPissed_flicker_limit);
+    }
+    return powerup - gPowerup_array;
+}
 
 // ResetPissed
 
