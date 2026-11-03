@@ -393,7 +393,6 @@ int C2_HOOK_FASTCALL PDKeyDown(int pKey_index) {
 // PDKeyDown3
 
 // FUNCTION: CARMA2_HW 0x00482a00
-// FUNCTION: CARMA2_SW 0x0047fb40
 int C2_HOOK_FASTCALL PDAnyKeyDown(void) {
     int i;
 
