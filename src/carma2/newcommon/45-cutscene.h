@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_45_CUTSCENE_H
 #define GUARD_45_CUTSCENE_H
 
@@ -21,7 +13,7 @@ extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoNewGameAnimation(void);
 
-extern void C2_HOOK_FASTCALL DoGoToTrackAnimation(void);
+extern void C2_HOOK_FASTCALL DoGoToRaceAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
 
@@ -29,6 +21,8 @@ extern void C2_HOOK_FASTCALL DoGameOverAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
-// StartLoadingScreen
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+
+extern void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name);
 
 #endif // GUARD_45_CUTSCENE_H

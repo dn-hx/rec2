@@ -1,33 +1,19 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_49_PHYSICS_H
 #define GUARD_49_PHYSICS_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern int gINT_00692dc8;
-
 extern tPhysicsError_cbfn* gPhysics_error_cb;
 extern void* gPhysics_buffer1_ptr;
 extern void* gPhysics_buffer2_ptr;
 extern int gImmortal_peds;
-extern int gBOOL_00744804;
-extern tPedestrian* gPedestrian_array;
 extern void* gPhysics_buffer3_ptr;
-extern int gPHIL_mechanics_time_sync;
 extern int gPhysics_other_buffer_capacity;
-extern tProximity_ray gProximity_rays[20];
-extern br_actor* gPed_limbed_actors[30];
 extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
-extern int gFace_count;
+extern tFace_ref* gPling_face;
+extern int gActorBoxPick_StopGroovidelics;
 
 // count
 
@@ -37,9 +23,9 @@ void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector
 
 extern int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const br_vector3* pPoint_a, br_scalar pT, const br_vector3* pPoint_b, const br_vector3* pNormal, int pCount, tPhysics_object* pObject_a, tPhysics_object* pObject_b, int pType, void* pUnused, br_scalar pValue);
 
-extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
+// RayCastThruFaceList
 
-extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
+// RayCastThruFaceList2
 
 // RayCastInBox
 
@@ -51,7 +37,7 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // EliminateFaces
 
-// GetShapePoint
+extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex);
 
 // GetObjectObjectEdgeIntersections
 
@@ -81,7 +67,7 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // GetObjectCornerToObjectFacePoints
 
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds3* pBounds_1, br_bounds3* pBounds_2);
+// BoundsOverlapTest
 
 // GetObjectObjectEdgePoints
 
@@ -97,13 +83,11 @@ extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds3* pBounds_1, br_bounds3*
 
 // GetObjectObjectForceInfo
 
-extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex);
+// AddOldForces
 
-extern int C2_HOOK_FASTCALL AddOldForces(tPhysics_joint_force* pForces, int pCount, const tPhysics_joint_force* pOld_forces, int pOld_count);
+extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject_a, tPhysics_object* pObject_b, tPhysics_shape* pShape_a, tPhysics_shape* pShape_b);
 
-extern int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pCollision_1, tPhysics_object* pCollision_2);
-
-extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, tPhysics_shape* pCollision_shape_1, tPhysics_shape* pCollision_shape_2);
+// TestObjectOverlap
 
 // TestObjectOverlapIgnoreCloseRelatives
 
@@ -149,7 +133,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // LimitOmega
 
-// CapOmega
+extern void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject);
 
 // ListLimitOmega
 
@@ -183,21 +167,35 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // CheckPointVelocities
 
+extern void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocityList(tPhysics_object* pObject);
+
+extern void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse);
+
 extern void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 
-extern void C2_HOOK_FASTCALL SetListDoingNothingFlag(tPhysics_object* pObject, int pFlag);
+// SetListDoingNothingFlag
 
 // SetGroupDoingNothingFlag
 
-extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pObject, int pFlag);
+// SetHierarchyDoingNothingFlag
 
 // CheckDoingNothingFlag
 
-extern void C2_HOOK_FASTCALL SetGroup(tPhysics_object* pObject, int pGroup);
+// SetGroup
 
 // GroupTogether
 
 // GetPreCalculatedJointForces
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable);
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object *pCollision_info, tU32 pDisable);
+
+extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object *pCollision_info, tU32 pDisable);
 
 extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject);
 
@@ -215,11 +213,11 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // ReduceReducedList
 
-extern void C2_HOOK_FASTCALL SetObjectTrialPositionType(tPhysics_object* pObject, int pType);
+// SetObjectTrialPositionType
 
 // FillInTrialWorkspace
 
-extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_object* pCollision_2);
+extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
 
 // CollideObjectWithReducedObjectList
 
@@ -233,27 +231,29 @@ extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_o
 
 // DoInterGroupCollisions
 
-extern int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, br_scalar* pImpulses, int pCount, const int* pIndices, int pIndex_count, br_scalar pThreshold);
+// ReduceEffectOfForces
 
 // DoCollisions
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag);
 
-// SetUpQuickHingeData
+extern int C2_HOOK_FASTCALL SetUpQuickHingeData(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
 
 // InitQuickHinge
 
 // CalcQuickHingeData
 
-extern void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
+// SetUpForce
 
 // SetUpTorqueHingePartners
 
 // SetUpHingePartners
 
 // MakeMatrix
+
+extern void C2_HOOK_FASTCALL SetFieldF0Tree(tPhysics_object* pObject, int pValue);
 
 extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
@@ -277,7 +277,7 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // RotateObjectSecondOrder
 
-extern void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, br_scalar pTime);
+extern void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, undefined4 pUnused, br_scalar pTime);
 
 // RotateObject
 
@@ -285,9 +285,9 @@ extern void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, br
 
 // GetFacesNearObject
 
-extern void C2_HOOK_FASTCALL ResetObjectAndChildren(tPhysics_object* pObject);
+// ResetObjectAndChildren
 
-extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
+// ResetObjectList
 
 // RepositionObjectGroup
 
@@ -309,7 +309,7 @@ extern void C2_HOOK_FASTCALL InternalPositionChildren(tPhysics_object* pParent, 
 
 extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 
-extern void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vector3* pTorque);
+// ApplyTorque
 
 // ApplyDiminishingTorque
 
@@ -327,7 +327,7 @@ extern void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vect
 
 // RQSingleExpand
 
-extern int C2_HOOK_FASTCALL RQDcmpV(br_scalar* pMatrix, int pDim, br_scalar* pQ);
+extern int C2_HOOK_FASTCALL RQDcmpV(br_scalar* matrix, int size, br_scalar* orthogonal);
 
 // MakeIdentity
 
@@ -353,7 +353,7 @@ extern int C2_HOOK_FASTCALL MatrixProcess(br_scalar* pR, br_scalar* pQ, int pDim
 
 extern void C2_HOOK_FASTCALL RqBackSub(const br_scalar* pR, const br_scalar* pQ, const br_scalar* pRhs, br_scalar* pX, int pDim);
 
-extern void* C2_HOOK_FASTCALL GetPhysicsScratchPointer(int pSize);
+// GetPhysicsScratchPointer
 
 extern void C2_HOOK_FASTCALL IncreasePhysicsScratchPointer(int pSize);
 
@@ -375,29 +375,35 @@ extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* 
 
 extern void C2_HOOK_FASTCALL FreeShape(void* pData);
 
+extern void C2_HOOK_FASTCALL FreeThingForm(void* pData);
+
 extern void C2_HOOK_FASTCALL FreeShapeList(tPhysics_shape *pShape);
 
 extern void C2_HOOK_FASTCALL FreePhysicsJoint(tPhysics_joint* pJoint);
 
 extern void C2_HOOK_FASTCALL GetBoundsFromPointList(const br_vector3* pVertices, int pCount_vertices, br_bounds3* pBounds);
 
-extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+// FillInShape
 
 // UpdateCollisionObject
 
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
-// PhysicsWarning
+extern void C2_HOOK_FASTCALL PhysicsWarning(const char* pMessage);
 
 extern void C2_HOOK_FASTCALL PhysicsSetErrorHandler(tPhysicsError_cbfn* pError_cbfn);
 
-extern void C2_HOOK_FASTCALL RepositionAndOrientateChildren(tPhysics_object* pObject, br_matrix34* pParent_matrix);
+// RepositionAndOrientateChildren
 
 extern void C2_HOOK_FASTCALL PhysicsAddObject(tPhysics_object* pParent, tPhysics_object* pChild);
 
-extern void C2_HOOK_FASTCALL PhysicsAddObjectList(tPhysics_object* pParent, tPhysics_object* pChild);
+// PhysicsAddObjectList
 
-extern void C2_HOOK_FASTCALL PhysicsRemoveObject(tPhysics_object* pObject);
+// PhysicsRemoveObject
+
+extern void C2_HOOK_FASTCALL AddCollisionInfoChild(tPhysics_object* pParent, tPhysics_object* pChild);
+
+extern void C2_HOOK_FASTCALL PHILRemoveFromParentChain(tPhysics_object* pObject);
 
 extern int C2_HOOK_FASTCALL PhysicsObjectRecurse(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
 
@@ -411,7 +417,7 @@ extern float C2_HOOK_FASTCALL GetFrictionFromFace(const tFace_ref* pFace);
 
 extern void C2_HOOK_FASTCALL DoPhysicsError(tPhysicsError pError, const char* pMessage);
 
-// ResetMan2
+extern void C2_HOOK_FASTCALL ResetMan2(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL SetUpTestObjects(void);
 

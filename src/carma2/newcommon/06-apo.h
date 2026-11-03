@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_06_APO_H
 #define GUARD_06_APO_H
 
@@ -13,13 +5,17 @@
 
 #include "rec2_types.h"
 
-extern void C2_HOOK_FASTCALL MaxOutAPO(void);
+extern int gInitial_powerup_slots[3];
+extern int gINT_0068b8e4;
+extern int gINT_0068b8e8;
+extern int gIt_or_fox;
 
+extern void C2_HOOK_FASTCALL MaxOutAPO(void);
 extern void C2_HOOK_FASTCALL ImprovePSPowerup(tCar_spec* pCar, int pIndex);
 
-extern void C2_HOOK_FASTCALL BuyArmour(void);
-
 extern void C2_HOOK_FASTCALL BuyPSPowerup(int pIndex);
+
+extern void C2_HOOK_FASTCALL BuyArmour(void);
 
 extern void C2_HOOK_FASTCALL BuyPower(void);
 

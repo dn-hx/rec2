@@ -1,19 +1,15 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_04_NETGAME_H
 #define GUARD_04_NETGAME_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern tNet_game_player_info* gLast_lepper;
-extern int gLast_it_change;
+extern tU32 gPHIL_last_physics_tick;
+extern int gNot_shown_race_type_headup;
+extern tU32 gTime_for_punishment;
+extern int gNet_cash_headup;
+extern int gINT_0068d920;
+extern int gNet_ped_headup;
 
 // SendShapeNumbers
 
@@ -31,8 +27,7 @@ extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shap
 
 // AddShapeStuffToMechanicsMessage
 
-// TimeToSendData
-
+extern int C2_HOOK_FASTCALL TimeToSendData(void);
 // SendCarData
 
 // ReceivedRecover
@@ -55,11 +50,11 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // ReceivedNonCar
 
-extern void C2_HOOK_FASTCALL SignalToStartRace(void);
+// SignalToStartRace
 
 // SignalToRepositionCar
 
-extern void C2_HOOK_FASTCALL SetUpNetCarPositions(void);
+// SetUpNetCarPositions
 
 // ReinitialiseCar
 
@@ -69,7 +64,7 @@ extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 
-// DoNetworkHeadups
+extern void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits);
 
 // SortNetHeadAscending
 
@@ -91,17 +86,17 @@ extern void C2_HOOK_FASTCALL DisposeNetHeadups(void);
 
 // EverybodysLost
 
-extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
+// DeclareWinner
 
-extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
+// PlayerIsIt
+
+// CheckForVampireWinner
 
 // PlayerIsInfected
 
 // FarEnoughAway
 
-extern void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer);
-
-extern void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer);
+// CarInContactWithFox
 
 // SelectRandomFox
 
@@ -109,9 +104,9 @@ extern void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer);
 
 // SendPlayerScores
 
-// DoNetGameManagement
+extern void C2_HOOK_FASTCALL DoNetGameManagement(void);
 
-extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer);
+// InitialisePlayerScore
 
 // InitPlayers
 
@@ -125,9 +120,9 @@ extern void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void);
 
 // SendGameplay
 
-extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+// SendGameplayToAllPlayers
 
-extern void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+// SendGameplayToHost
 
 extern void C2_HOOK_FASTCALL InitNetGameplayStuff(void);
 

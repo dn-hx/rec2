@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_WORLD_H
 #define REC2_WORLD_H
 
@@ -398,9 +390,9 @@ void C2_HOOK_CDECL ZlibFsAdvance(br_size_t, void*);
 
 tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
 
-void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
+void C2_HOOK_FAKE_THISCALL ControlBoundFunkGroove(int pSlot_number, undefined4 pArg2, float pValue);
 
-float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, float pValue);
+float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 
 void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
 

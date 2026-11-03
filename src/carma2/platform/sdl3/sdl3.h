@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_SDL3_H
 #define REC2_SDL3_H
 
@@ -124,7 +116,7 @@ extern void PDExtractDirectory(char *pDest, const char *pPath);
 
 extern void PDPageInProcessMemory(void);
 
-extern void PDCloseReplayFile(void);
+extern void PDDisposeActionReplayBuffer(void);
 
 extern void SDL3ServiceMessages(void);
 extern void C2_HOOK_FASTCALL SDL3AddGamepad(SDL_JoystickID which);

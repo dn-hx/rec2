@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef C2_WIN32_SOUND_H
 #define C2_WIN32_SOUND_H
 
@@ -37,7 +29,6 @@ extern MCI_PLAY_PARMS mci_play_parms;
 extern MCI_PLAY_PARMS gPDS3_cda_play_parms;
 
 enum tSSDXFlags {
-    SSDX_InitDirectDraw = 0x1,
     SSDX_InitDirectSound = 0x2,
 };
 
@@ -57,7 +48,7 @@ extern const char* C2_HOOK_FASTCALL PDS3GetWorkingDirectory(void);
 
 extern int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel);
 
-extern void C2_HOOK_FASTCALL PDS3CheckCDAMedia(tS3_channel* pChannel);
+extern void C2_HOOK_FASTCALL PDS3CheckCDAMedia(void);
 
 extern int C2_HOOK_FASTCALL PDS3StopCDAChannel(tS3_channel* pChannel);
 

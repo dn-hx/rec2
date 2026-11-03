@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef S3_AUDIO_H
 #define S3_AUDIO_H
 
@@ -122,7 +114,7 @@ extern int C2_HOOK_FASTCALL S3ServiceChannel(tS3_channel *pChannel);
 
 extern int C2_HOOK_FASTCALL S3ServiceSpatialSound(tS3_channel* pChannel);
 
-extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
+extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceInternal(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
 
 extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceBR(br_vector3* pPosition, br_vector3* pVelocity, tS3_outlet* pBound_outlet);
 
@@ -139,10 +131,6 @@ extern tS3_channel* C2_HOOK_FASTCALL S3AllocateChannel(tS3_outlet* pOutlet, int 
 extern int C2_HOOK_FASTCALL S3MIDILoadSong2(tS3_channel* pChannel);
 
 extern tS3_error_codes C2_HOOK_FASTCALL S3MIDILoadSong(tS3_channel* pChannel);
-
-extern void C2_HOOK_FASTCALL S3ReverseSample(tS3_effect_tag pEffect, tS3_sound_tag pTag);
-
-extern int C2_HOOK_FASTCALL S3SetSampleFilterCallbacks(tS3_sample_filter pEnable, tS3_sample_filter pDisable);
 
 extern int C2_HOOK_FASTCALL S3ExecuteSampleFilterFuncs(tS3_channel* pChannel);
 
@@ -167,5 +155,47 @@ extern int C2_HOOK_FASTCALL S3ServiceMIDIChannel(tS3_channel* pChannel);
 extern int C2_HOOK_FASTCALL S3IsCDAPlaying(void);
 
 extern int C2_HOOK_FASTCALL S3UpdateCDAVolume(tS3_channel* pChannel, int pVolume);
+
+extern double C2_HOOK_STDCALL S3FRandomBetween2(double pMin, double pMax);
+
+extern int C2_HOOK_FASTCALL S3IRandomBetweenLog__dup(int pMin, int pMax, int pDefault);
+
+extern tS3_error_codes C2_HOOK_FASTCALL S3SetChannelPitch(tS3_sound_tag pChannel_tag, int pPitch);
+
+extern void C2_HOOK_FASTCALL S3ToggleEnabled(void);
+
+extern int C2_HOOK_FASTCALL S3GetTerminationReason(tS3_channel* pChannel);
+
+extern int C2_HOOK_FASTCALL S3GetRepetitions(tS3_channel* pChannel);
+
+extern int C2_HOOK_FASTCALL S3CountActiveChannels(tS3_outlet* pOutlet);
+
+extern int C2_HOOK_FASTCALL S3GetLastError(void);
+
+extern int C2_HOOK_FASTCALL S3SetChannelTag(tS3_channel* pChannel, tS3_sound_tag pTag);
+
+extern void C2_HOOK_FASTCALL S3ToggleCDA(void);
+
+extern int C2_HOOK_FASTCALL S3ResumeCDAChannel(int pTag);
+
+extern int C2_HOOK_FASTCALL S3SetChannelPosition(tS3_sound_tag pChannel_tag, const tS3_vector3* pPosition);
+
+extern int C2_HOOK_FASTCALL S3SetChannelVelocity(tS3_sound_tag pChannel_tag, const tS3_vector3* pVelocity);
+
+extern int C2_HOOK_FASTCALL S3SetSoundSourceBinding(tS3_sound_source* pSource, void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
+
+extern void C2_HOOK_FASTCALL S3LoadSampleList(int* pSample_ids, int pCount);
+
+extern void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_count);
+
+extern int C2_HOOK_FASTCALL S3ChangePitchSpeed(tS3_sound_tag pTag, int pPitch);
+
+extern void C2_HOOK_FASTCALL S3EnableMidi(void);
+
+extern void C2_HOOK_FASTCALL S3ToggleMidiEnabled(void);
+
+extern int C2_HOOK_FASTCALL S3IsMidiEnabled(void);
+
+extern tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed);
 
 #endif // S3_AUDIO_H

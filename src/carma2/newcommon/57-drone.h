@@ -1,56 +1,52 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_57_DRONE_H
 #define GUARD_57_DRONE_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern br_vector3 gRender_bounds_centre;
-extern int gINT_00681fb0;
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
 extern int gFrame;
-extern int gCurrent_selected_drone;
-extern int gCount_drones;
-extern tDrone_form gDrone_forms[64];
-extern int gCount_drone_forms;
-extern int gCount_drone_path_nodes;
 extern tDrone_spec* gDrone_specs;
-extern tDrone_path_node* gDrone_path_nodes;
-extern int gCount_drones;
 extern int gCurrent_selected_drone;
+extern tDrone_path_node* gDrone_path_nodes;
+extern tDrone_form gDrone_forms[64];
+extern int gINT_00681fb0;
+extern int gCount_rendered_drones;
+extern br_vector3 gRender_bounds_centre;
+extern tDrone_crush_data gDrone_crush_data;
 
-// DoNotDprintf
+extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition);
 
-// CrappyLittleVector3DPrintf
+extern void C2_HOOK_FASTCALL DroneNoOp(void);
 
+extern void C2_HOOK_FASTCALL SelectNextDrone(void);
 // CrappyLittleDrivingStateInfoDprintf
 
 // DroneStraightestArcForCorner2D
 
-extern FILE* C2_HOOK_FASTCALL OpenDroneFile(char* pDrone_name);
-
+extern FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name);
 // LoadDroneTypeInfo
 
-extern void C2_HOOK_FASTCALL ReallyRemoveDroneFromPHIL(tDrone_spec* pDrone);
+// ReallyRemoveDroneFromPHIL
 
-extern void C2_HOOK_FASTCALL RemoveDroneFromPHIL(tDrone_spec* pDrone);
+// RemoveDroneFromPHIL
 
 // InitDroneCollisionObject
 
 // ReallyAddDroneToPHIL
 
+extern void C2_HOOK_FASTCALL DoDefaultDroneStateAction(tDrone_spec* pDrone_spec);
+
 // AddDroneToPHIL
 
 // PreprocessDronePaths
 
-extern int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* pData);
-
+extern int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* data);
 // LinkDroneActorsToModelsAndSetRenderStyle
 
 // LoadDroneActorsModels
@@ -95,15 +91,14 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinRenderingDistance(const br_vector3* 
 
 // SemiInitDroneSpec
 
-// InitDroneSpec
-
+extern void C2_HOOK_FASTCALL InitDroneSpec(tDrone_spec* pDrone_spec, int pNode);
 // ChooseNextNode
 
 // DroneOrientationChanged
 
 // DroneyObjectInSensiblePlace
 
-// StopRenderingThisDrone
+extern void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec);
 
 // StopProcessingThisDrone
 
@@ -157,43 +152,38 @@ extern void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void);
 
 // InitDrones
 
-extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
+// DisposeDronesRaceStuff
 
-extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
+// LoadPerRaceDroneStuff
 
-// GetDroneCrushData
+extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject);
 
 // AllocateAndInitDrones
 
-extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
+// LoadInDronePaths
 
 extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
 // DoDronePerGameFrameStuff
 
-extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
-
 // MyDroneHathCollideth
 
 // MyDroneHathHalteth
 
-// MoveMyDroneBaby
+extern void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2);
 
 // DroneLookWhereYoureGoingYouBlindCunt
-
-extern void C2_HOOK_FASTCALL SelectNextDrone(void);
 
 extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 
 extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
+extern br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void);
 
-// GetCurrentViewDroneDirection
+extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 
-// ApplyDroneRender2
+// ApplyDroneStraightPos2
 
-extern void C2_HOOK_FASTCALL ApplyDroneStraightPos2(int pDrone_id, tDrone_path_node_section* pSection, tU16 pSpeed, tU16 pDistance);
-
-extern void C2_HOOK_FASTCALL ApplyDroneCornerPos2(int pDrone_id, tU16 pSpeed, tU16 pField_0x74, tU16 pRadius, const tCompressed_matrix34* pMatrix);
+// ApplyDroneCornerPos2
 
 // ReallocModelFacesAndVertices
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_35_INTRFACE_H
 #define GUARD_35_INTRFACE_H
 
@@ -24,11 +16,11 @@ extern void C2_HOOK_FASTCALL ResetInterfaceTimeout__intrface(void);
 
 extern void C2_HOOK_FASTCALL DisableChoice(int pChoice);
 
-extern void C2_HOOK_FASTCALL EnableChoice(int pChoice);
-
 extern void C2_HOOK_FASTCALL ChangeSelection(const tInterface_spec* pSpec, int* pOld_selection, int* pNew_selection, int pMode, int pSkip_disabled);
 
 extern void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec);
+
+extern void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void);
 
 extern int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice);
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef BR_INLINE_FUNCS_H
 #define BR_INLINE_FUNCS_H
 
@@ -178,7 +170,7 @@
 #define BR_ONE_LS 65536
 #define BR_FIXED_INT(I) ((br_fixed_ls)(((int)(I)) * BR_ONE_LS))
 #define BR_FIXED_UINT(I) ((br_fixed_ls)(((unsigned int)(I)) * BR_ONE_LS))
-#define BrFixedToFloat(s) ((float)((s) * (1.0 / (float)BR_ONE_LS)))
+#define BrFixedToFloat(s) ((float)((s) * (1.0f / (float)BR_ONE_LS)))
 #define BrFixedToInt(s) ((s) / BR_ONE_LS)
 #define BrFloatToFixed(f)	((br_fixed_ls)((f)*(float)BR_ONE_LS))
 #endif

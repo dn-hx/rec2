@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_PEDESTRN_H
 #define REC2_PEDESTRN_H
 
@@ -42,9 +34,9 @@ void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable);
 
 void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 
-void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, float pX, float pY, float pZ);
+void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ);
 
-void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, float pScale);
+void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
 
 void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pFile);
 
@@ -132,7 +124,7 @@ undefined4 C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance*
 
 void C2_HOOK_FASTCALL OneLessPed(tPedestrian* pPed);
 
-void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight);
+void C2_HOOK_FAKE_THISCALL ScoreForKilledPedestrian(tPedestrian* pPed, undefined4 pArg2, float pHeight);
 
 int C2_HOOK_FASTCALL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel);
 

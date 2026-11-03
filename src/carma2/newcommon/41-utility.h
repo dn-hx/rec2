@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_41_UTILITY_H
 #define GUARD_41_UTILITY_H
 
@@ -58,9 +50,7 @@ extern int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, 
 
 extern int C2_HOOK_FASTCALL DRPixelmapLoadMany(const char* texturePathNoExt, br_pixelmap** pixelmaps, size_t capacity);
 
-extern void C2_HOOK_FASTCALL WaitFor(tU32);
-
-extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
+extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
 
 extern intptr_t C2_HOOK_CDECL CompareActorID(br_actor* pActor, void* pArg);
 
@@ -73,8 +63,6 @@ extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor,
 // DRActorEnumRecurseWithSnart
 
 extern int C2_HOOK_FASTCALL sign(int pNumber);
-
-extern float C2_HOOK_FASTCALL fsign(float pValue);
 
 extern FILE* C2_HOOK_FASTCALL OpenUniqueFileB(char* pPrefix, char* pExtension);
 
@@ -93,8 +81,6 @@ extern void C2_HOOK_FASTCALL AssertThisTimeAsCurrentTime(void);
 extern void C2_HOOK_FASTCALL TimerString(tU32 pTime, char* pStr, undefined4 pArg3, int pFudge_colon, int pFloat);
 
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
-
-extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDestination);
 
 extern int C2_HOOK_FASTCALL Flash(tU32 pPeriod, tU32* pLast_change, int* pCurrent_state);
 
@@ -116,15 +102,13 @@ extern void C2_HOOK_FASTCALL PossibleService(void);
 
 extern void C2_HOOK_FASTCALL DRMatrix34TApplyP(br_vector3* pA, const br_vector3* pB, const br_matrix34* pC);
 
-extern void C2_HOOK_FASTCALL DRPixelmapRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h);
+extern void C2_HOOK_FASTCALL DRPixelmapRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
 extern int C2_HOOK_FASTCALL NormalSideOfPlane(br_vector3* pPoint, br_vector3* pNormal, br_scalar pD);
 
 extern br_material* C2_HOOK_FASTCALL DRMaterialClone(br_material* pMaterial, int pSet_identifier);
 
 extern int C2_HOOK_FASTCALL DRStricmp(const char* p1, const char* p2);
-
-extern void C2_HOOK_FASTCALL DRstrupr(char* s);
 
 extern void C2_HOOK_FASTCALL DRstrlwr(char* s);
 
@@ -140,8 +124,6 @@ extern intptr_t C2_HOOK_CDECL FindMaterialCB(br_actor* pActor, void* data);
 
 extern br_material* C2_HOOK_FASTCALL FindMaterial(const char* pName, br_actor* pActor, int pRecursive);
 
-extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
-
 extern void C2_HOOK_FASTCALL BlendifyMaterialTablishly(br_material* pMaterial, int pPercent);
 
 extern void C2_HOOK_FASTCALL BlendifyMaterialPrimitively(br_material* pMaterial, int pPercent);
@@ -152,13 +134,11 @@ extern void C2_HOOK_FASTCALL DRModelUpdateAndKevificateMaterials(br_model* pMode
 
 extern int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel, br_uint_16 pFlags);
 
-extern br_scalar C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, const tFace_ref* pFace);
+// DistanceFromFace
 
 extern void C2_HOOK_FASTCALL DRBoundsCopy(br_bounds3* pDest, const br_bounds3* pSrc);
 
 extern int C2_HOOK_FASTCALL TestForNan(const float* f);
-
-extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pVector);
 
 extern int C2_HOOK_FASTCALL DRVector3TestForNan(const br_vector3* pV);
 
@@ -182,15 +162,13 @@ extern void C2_HOOK_FASTCALL CompressMatrix34(tCompressed_matrix3* pCompressed_m
 
 extern void C2_HOOK_FASTCALL ExpandMatrix34(br_matrix34* pMatrix, const tCompressed_matrix3* pCompressed, int pInactive);
 
-#ifdef REC2_HW
 extern void C2_HOOK_FASTCALL PossibleLock(int pValue);
 
 extern int C2_HOOK_FASTCALL PossibleUnlock(int pValue);
-#endif
 
 extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
 
-extern tU16 C2_HOOK_FASTCALL Colour24BitTo16Bit(br_colour pColour);
+// Colour24BitTo16Bit
 
 extern br_pixelmap* C2_HOOK_FASTCALL PaletteOf16Bits(br_pixelmap* pSrc);
 
@@ -212,15 +190,13 @@ extern void C2_HOOK_FASTCALL BRPM_convert(br_pixelmap* pMap, int pPixel_type);
 
 extern void C2_HOOK_FASTCALL PrintScreen(void);
 
-extern intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData);
-
 // FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport
 
 // GetBlenficatiousnessOfMaterialTablishly
 
 // GetBlenficatiousnessOfMaterialPrimitively
 
-extern int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial);
+// GetBlenficatiousnessOfMaterial
 
 extern char* C2_HOOK_FASTCALL MungeCommas(int pValue);
 
@@ -230,10 +206,22 @@ extern void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, ch
 
 extern void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum);
 
-extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h);
 
 extern void C2_HOOK_FASTCALL PixelmapSwapByteOrder(br_pixelmap* pMap);
 
 extern void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2);
+
+// signf
+
+// CopyMiscString
+
+// CopyBrMaterial
+
+// GetBlendTableName
+
+// DRVector2TestForNan
+
+// DRVector4TestForNan
 
 #endif // GUARD_41_UTILITY_H

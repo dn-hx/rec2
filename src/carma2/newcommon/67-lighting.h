@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_67_LIGHTING_H
 #define GUARD_67_LIGHTING_H
 
@@ -41,8 +33,6 @@ extern void C2_HOOK_FASTCALL MungeLightingEffects(void);
 extern void C2_HOOK_FASTCALL KillLightingEffects(void);
 
 extern void C2_HOOK_FASTCALL InitLightingEffects(void);
-
-extern void C2_HOOK_FASTCALL FUN_00486d90(br_scalar pArg1, br_scalar pArg2);
 
 extern void C2_HOOK_FASTCALL LoadStaticLightingForRace(const char* pRace_lighting_path);
 

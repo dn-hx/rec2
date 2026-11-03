@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_20_SKIDMARK_H
 #define GUARD_20_SKIDMARK_H
 
@@ -14,10 +6,6 @@
 
 extern char* gBoring_material_names[2];
 extern char* gMaterial_names[2];
-extern const char* gShrapnel_type_names[4];
-extern const char* gInitial_position_type_names[3];
-extern const char* gInitial_position_sphere_where[2];
-extern const char* gExplosion_rotate_names[2];
 extern br_material* gMaterial[2];
 extern tSkid gSkids[100];
 extern int gCurrent_skid;
@@ -50,6 +38,6 @@ extern void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num);
 
 extern void C2_HOOK_FASTCALL InitCarSkidStuff(tCar_spec* pCar);
 
-// SkidsPerFrame
+extern void C2_HOOK_FASTCALL SkidsPerFrame(void);
 
 #endif // GUARD_20_SKIDMARK_H

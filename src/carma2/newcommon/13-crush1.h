@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_13_CRUSH1_H
 #define GUARD_13_CRUSH1_H
 
@@ -24,6 +16,10 @@ extern tCrush_info_buffer gSplit_car_crush_info_buffer;
 extern tPhysics_object* gSplit_car_collision_infos;
 extern tDriver gSplit_car_driver;
 extern tPhysics_shape* gGonad_sphere_collision_shape;
+extern br_scalar gCrushZero;
+extern int gCount_crush_detach_list;
+extern tCrush_detach_list_item gCrush_detach_list[16];
+extern tU32 gINT_0067be84;
 
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 
@@ -45,25 +41,23 @@ extern void C2_HOOK_FASTCALL CreateDefaultCrushData(br_actor* pActor, tCar_spec*
 
 // LoadCrushDataFile
 
-// LinkCrushDataToActor
+extern intptr_t C2_HOOK_CDECL LinkCrushDataToActor(br_actor* pActor, void* pData);
 
-// LinkCrushDataToActors
-
-extern void C2_HOOK_FASTCALL LinkCarCrushDatas(br_actor* pActor, tCar_crush_buffer* pBuffer);
-
-extern intptr_t C2_HOOK_CDECL LinkCarCrushData(br_actor* pActor, void* pData);
+extern void C2_HOOK_FASTCALL LinkCrushDataToActors(br_actor* pActor, tCar_crush_buffer* pBuffer);
 
 extern intptr_t C2_HOOK_CDECL AccumulateSquashVertices(br_actor* pActor, void* pData);
 
 // InitModelMasterCrushData
 
-// InitNetworkShapesStuff
+#ifndef REC2_NO_CRUSH_DECLS
+extern void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush);
+#endif
 
 extern int C2_HOOK_CDECL IncreasingCompare(const void* pValue1, const void* pValue2);
 
 extern int C2_HOOK_CDECL DecreasingCompare(const void* pValue1, const void* pValue2);
 
-extern tU16 C2_HOOK_FASTCALL CrushLimitNumber(const br_vector3* pPoint, const tCar_crush_limits* pLimits, const tCar_crush_count_limits* pCount_limits, int* pInvalid);
+// CrushLimitNumber
 
 // SoftnessOfNearestPointCB
 
@@ -87,7 +81,7 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pAc
 
 // FindNearestParentVertex
 
-// SetUpSemiDetachJointStuff
+extern void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds);
 
 // InitPhysCrushDataCB
 
@@ -95,7 +89,7 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pAc
 
 // CalculateReferencePoints
 
-extern intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* pActor, void* pData);
+// InitModelCrushDataCB
 
 // InitModelCrushData
 
@@ -111,7 +105,7 @@ extern intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* pActor, void* pData
 
 // CheckWheelPositions
 
-// InitPhysModCrushData
+extern void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL DisposeMasterCrushData(tCar_crush_spec* pCar_crush, tCar_spec* pCar);
 
@@ -125,7 +119,7 @@ extern void C2_HOOK_FASTCALL DisposeVertexData(tModel_detail_vertex_data* pVerte
 
 // PointTriangleDistSq
 
-// PointRectDistSq
+extern float C2_HOOK_FASTCALL PointRectDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB, const br_vector3* pC);
 
 // PointSimplexDistSq
 
@@ -133,9 +127,13 @@ extern float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_
 
 // LimitImpactScale
 
-extern float C2_HOOK_FASTCALL GetImpactScale(const br_vector3* pP, int pCount, const br_vector3* pVertices, float pMax_dist_sq);
+// GetImpactScale
 
 extern int C2_HOOK_FASTCALL TooFarToCrush(const br_model* pModel, int pCount, const br_vector3* pVertices, float pMax_dist_sq);
+
+extern void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, tCar_crush_limits* pLimits, int pFound);
+
+extern float C2_HOOK_FASTCALL CrushShapeBendFactor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq);
 
 extern int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector);
 
@@ -147,7 +145,7 @@ extern int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector);
 
 // CrushPoint
 
-extern void C2_HOOK_FASTCALL ClipPointToLimits(br_vector3* pPoint, tU16 pLimit_bits, const tCar_crush_limits* pLimits);
+// ClipPointToLimits
 
 // CrushCollisionShapes
 
@@ -159,10 +157,11 @@ extern void C2_HOOK_FASTCALL ClipPointToLimits(br_vector3* pPoint, tU16 pLimit_b
 
 // SendCrush
 
+extern void C2_HOOK_FASTCALL CrushShapeFinishVertex(br_vector3* pVertexPos, tU16 pFlags, tCar_crush_limits* pLimits);
+
 extern void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_crush* pSrc);
 
-// ExpandCrush
-
+extern void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc);
 // RemoveDuplicatePoints
 
 // SimpleCrushModel
@@ -179,11 +178,13 @@ extern void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, con
 
 // DoCrushing
 
+#ifndef REC2_NO_CRUSH_DECLS
 extern void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue);
+#endif
 
 // QueueCarCrush
 
-// SetBitForDetachment
+extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pCar, float pArg3, int pArg4);
 
 // SetFlappage
 
@@ -223,19 +224,19 @@ extern void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel);
 
 // SemiDetachBit
 
-extern int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, br_vector3* pP3, br_bounds3* pBounds, br_actor* pActor);
+extern int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, br_vector3* pP33, br_bounds3* pBounds, br_actor* pActor);
 
-extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, tNet_game_player_info* pPlayer);
+// SendSemiDetachBit
 
 // SendDetachBit
 
-extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPlayer);
+// SendAllSemiDetachedBits
 
 // AddNonCar
 
 // DetachBit
 
-// DoDetaching
+extern void C2_HOOK_FASTCALL DoDetaching(void);
 
 // FlapBit
 
@@ -243,17 +244,16 @@ extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPla
 
 // StartFlapping
 
-// MungeDetachLists
+extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
+// SendReAttachBit
 
-extern void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject);
-
-extern void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec);
+// StopFlapping
 
 // DoFlapping
 
 // ToggleFlapsCB2
 
-// ToggleFlapsCB
+extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data);
 
 // SendToggleFlaps
 
@@ -301,7 +301,7 @@ extern intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor
 
 // IsOnNonCarHalf
 
-// SplitCar
+extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
 
 // QuantizePlane
 
@@ -373,7 +373,7 @@ extern void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel);
 
 // TotallySpamTheCar
 
-extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
+// DRActorEnumRecurseUltraPlus
 
 // FireOffBitsCB
 
@@ -387,7 +387,7 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, b
 
 // SphericizePhysics
 
-// SphericizeCar
+extern void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar);
 
 extern intptr_t C2_HOOK_CDECL BattenDownTheHatches(br_actor* pActor, void* pUser);
 
@@ -405,15 +405,14 @@ extern intptr_t C2_HOOK_CDECL EnableGroovers(br_actor* pActor, void* pData);
 
 // DoCompletelyUnBentThings
 
-extern void C2_HOOK_FASTCALL TotallyRepairCarCollisionShapes(tCar_spec* pCar_spec);
-
+extern void C2_HOOK_FASTCALL TotallyRepairCarCollisionShapes(tCar_spec *pCar_spec);
 // TotallyRepairModel
 
 extern intptr_t C2_HOOK_CDECL TotallyRepairModels(br_actor* pActor, void* pUser);
 
 extern int C2_HOOK_FASTCALL TotallyRepairObject(tPhysics_object* pCollision_info, void* pUser_data);
 
-extern void C2_HOOK_FASTCALL SendReAttachAllBits(tCar_spec* pCar);
+// SendReAttachAllBits
 
 extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 
@@ -473,7 +472,7 @@ extern void C2_HOOK_FASTCALL ARCompressModelMash(tCompressed_vector3* pDest, br_
 
 extern void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vector3* pSrc);
 
-extern void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vector3* pSrc);
+// ARUndoModelMash
 
 // ARApplyFlap
 
@@ -529,7 +528,9 @@ extern void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vecto
 
 // GetNetShapeDataLengthFromData
 
+#ifndef REC2_NO_CRUSH_DECLS
 extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
+#endif
 
 // DecodeNetShapeData
 

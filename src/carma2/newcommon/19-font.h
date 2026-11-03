@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_19_FONT_H
 #define GUARD_19_FONT_H
 
@@ -17,7 +9,7 @@ extern br_pixelmap* gTexture_maps[1024];
 extern int gSize_font_texture_pages;
 extern br_actor* gPolyfont_glyph_actors[256];
 extern int gCount_polyfont_glyph_actors;
-extern tDR_font gFonts[24];
+extern tDR_font gFonts[28];
 extern int gRender_poly_text;
 extern br_actor* gString_root_actor;
 

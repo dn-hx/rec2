@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef S3_3D_H
 #define S3_3D_H
 
@@ -51,5 +43,17 @@ int C2_HOOK_FASTCALL S3UpdateSourceVectors(void);
 int C2_HOOK_FASTCALL S3Calculate3D(tS3_channel* pChannel, int pAmbient);
 
 int C2_HOOK_FASTCALL S3Service3D(tS3_channel* pChannel);
+
+void C2_HOOK_FASTCALL S3SetVector3(tS3_vector3* pVec, float pX, float pY, float pZ);
+
+void C2_HOOK_FASTCALL S3SetListenerPositionNow(br_vector3* pPos);
+
+void C2_HOOK_FASTCALL S3SetListenerLeftNow(br_vector3* pLeft);
+
+void C2_HOOK_FASTCALL S3BindListenerPosition(tS3_vector3* pos);
+
+void C2_HOOK_FASTCALL S3BindListenerVelocity(br_vector3* vel);
+
+void C2_HOOK_FASTCALL S3BindListenerLeft(br_vector3* left);
 
 #endif // S3_3D_H

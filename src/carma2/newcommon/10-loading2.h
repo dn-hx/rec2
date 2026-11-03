@@ -1,25 +1,14 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_10_LOADING2_H
 #define GUARD_10_LOADING2_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern int gCamera_type;
-
 extern const char* gPedTextTxtPath;
 extern int gGroove_funk_offset;
 extern const char* gNet_avail_names[4];
 extern tHeadup_info gHeadup_image_info[45];
 extern br_pixelmap* gHeadup_images[45];
-extern tActionReplayCameraMode gAction_replay_camera_mode_00679324;
 
 extern void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes);
 
@@ -121,7 +110,7 @@ extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
 
 extern void C2_HOOK_FASTCALL ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions);
 
-extern int C2_HOOK_FASTCALL PrintNetOptions(FILE* pF, int pIndex);
+// PrintNetOptions
 
 extern int C2_HOOK_FASTCALL SaveOptions(void);
 
@@ -136,5 +125,12 @@ extern void C2_HOOK_FASTCALL ConfigureBloodPedTextTxtPath(void);
 extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
+
+extern int gCamera_type;
+extern tExplosion_animation gExplosion_pix_animation_groups;
+extern int gExplosion_sound_id;
+extern int gWasted_explosion_chance;
+
+extern void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF);
 
 #endif // GUARD_10_LOADING2_H

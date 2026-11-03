@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef C2_PLATFORM_H
 #define C2_PLATFORM_H
 
@@ -24,7 +16,6 @@ extern int gINT_00595f9c;
 extern void* gHWnd;
 extern void* gPDActionReplayBuffer;
 extern int gPDActionReplayBufferSize;
-extern int gDefault_spec_index;
 
 extern int PDGetRegisterSourceLocation(char* buffer, int* buffer_size);
 
@@ -63,7 +54,7 @@ extern void C2_HOOK_FASTCALL PDSetPaletteEntries(br_pixelmap* pPalette, int pFir
 
 extern void C2_HOOK_FASTCALL PDSetPalette(br_pixelmap *pixelmap);
 
-extern void C2_HOOK_FASTCALL PDEnumPath(const char* path, tEnumPathCallback pCallback, void* data);
+extern int C2_HOOK_FASTCALL PDEnumPath(const char* path, tEnumPathCallback pCallback, void* data);
 
 extern int C2_HOOK_FASTCALL PDmkdir(const char* path);
 
@@ -216,12 +207,8 @@ extern int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void);
 
 extern void C2_HOOK_FASTCALL PDReallyAllocateActionReplayBuffer(void);
 
+extern int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2);
+
 extern int C2_HOOK_FASTCALL PDmemicmp(const char* str1, const char* str2, size_t count);
-
-#ifdef REC2_SW
-extern void C2_HOOK_FASTCALL PDSwitchToHiresMode(void);
-
-extern void C2_HOOK_FASTCALL PDSwitchToLoresMode(void);
-#endif
 
 #endif // C2_PLATFORM_H

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_GLOBVARS_H
 #define REC2_GLOBVARS_H
 
@@ -79,13 +71,7 @@ extern int gDevious_2d;
 extern int gNumber_of_actors;
 extern br_actor* gActor_array[100];
 extern int gNumber_of_lights;
-#ifdef REC2_HW
 extern tLighting_data gLighting_data;
-#endif
-#ifdef REC2_SW
-extern tLighting_data_ambient gLighting_data_ambient;
-extern tLighting_data_diffuse gLighting_data_diffuse;
-#endif
 extern br_actor* gLight_array[50];
 
 extern br_actor* gHUD_root;
@@ -140,7 +126,6 @@ extern int gDisallow_abandon_race;
 //extern int gPipe_reg_snap_before_our_car;
 //extern int gPipe_reg_snap_after_our_car;
 extern int gAction_replay_mode;
-extern int gPed_overall_movement_disabled;
 //extern int gDefault_engine_noise_index;
 //extern int gSausage_override;
 //extern int gAustere_override;
@@ -162,7 +147,6 @@ extern br_scalar gYon_multiplier;
 //extern VFILE* gDiagnostic_file;
 //extern br_vector3 gDisabled_vector;
 extern tU32 gI_am_cheating;
-extern int gINT_0068b8e4;
 //extern char gNet_player_name[32];
 //extern br_matrix34 gRearview_camera_to_world;
 //extern tSpecial_volume gDefault_default_water_spec_vol;
@@ -174,7 +158,6 @@ extern float gOpponent_speed_factor;
 //extern float gNet_recovery_cost[7];
 //extern float gCar_crush_softness;
 extern br_vector3* gOur_pos;
-extern int gTrack_version;
 //extern float gCar_crush_max_fold;
 extern tBrender_storage gNet_cars_storage_space;
 //extern float gNet_softness[7];
@@ -215,7 +198,6 @@ extern br_actor* gSelf;
 extern br_pixelmap* gScreen;
 //extern br_pixelmap* gScreen;
 extern br_pixelmap* gRender_screen;
-extern int gInitial_powerup_slots[3];
 extern br_actor* gRearview_camera;
 extern br_scalar gCamera_hither;
 extern br_pixelmap* gBack_screen;
@@ -227,9 +209,6 @@ extern int gHas_double_back_screen;
 extern br_pixelmap* gRearview_depth_buffer;
 //extern br_pixelmap* gWhole_screen;
 extern br_pixelmap* gIcons_pix;
-#ifdef REC2_SW
-extern br_pixelmap* gIcons_low_pix;
-#endif
 extern br_scalar gCamera_yon;
 extern br_actor* gCamera;
 extern br_actor* gOther_selfs[4];

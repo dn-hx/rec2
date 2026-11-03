@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_42_INPUT_H
 #define GUARD_42_INPUT_H
 
@@ -66,7 +58,7 @@ extern int C2_HOOK_FASTCALL PDAnyKeyDown(void);
 
 extern int C2_HOOK_FASTCALL AnyKeyDown(void);
 
-// KevKeyService
+extern tU32* C2_HOOK_FASTCALL KevKeyService(void);
 
 extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
 
@@ -84,19 +76,17 @@ extern int C2_HOOK_FASTCALL AddRollingLetter(char pChar, int pX, int pY, tRollin
 
 extern void C2_HOOK_FASTCALL AddRollingString(char* pStr, int pX, int pY, tRolling_type pRolling_type);
 
+extern void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY);
+
+extern void C2_HOOK_FASTCALL InputNoOp(void);
+
 extern void C2_HOOK_FASTCALL BlankSlot(int pIndex, int pName_length, int pVisible_length);
 
 extern int C2_HOOK_FASTCALL ChangeCharTo(int pSlot_index, int pChar_index, char pNew_char);
 
-extern void C2_HOOK_FASTCALL StopTyping(int pSlot_index);
-
 extern void C2_HOOK_FASTCALL RevertTyping(int pSlot_index, char* pRevert_str);
 
 extern void C2_HOOK_FASTCALL StartTyping(int pSlot_index, char* pText, int pVisible_length);
-
-extern void C2_HOOK_FASTCALL SetSlotXY(int pSlot_index, int pX_coord, int pY_coord);
-
-extern void C2_HOOK_FASTCALL GetTypedName(char* pDestn, int pMax_length);
 
 extern void C2_HOOK_FASTCALL KillCursor(int pSlot_index);
 

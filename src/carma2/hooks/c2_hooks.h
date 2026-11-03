@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef C2_HOOKS_H
 #define C2_HOOKS_H
 
@@ -39,6 +31,7 @@ extern C2_NORETURN void rec2_error(const char *reason, const char *function, con
 #define C2_HOOK_FASTCALL __fastcall
 #define C2_HOOK_STDCALL __stdcall
 #define C2_HOOK_THISCALL __thiscall
+#define C2_HOOK_FAKE_THISCALL __fastcall
 
 // FIXME: rewrite to C2_HOOK_STATIC_ASSERT
 #define C2_HOOK_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
@@ -52,6 +45,7 @@ extern C2_NORETURN void rec2_error(const char *reason, const char *function, con
 #define C2_HOOK_FASTCALL
 #define C2_HOOK_STDCALL
 #define C2_HOOK_THISCALL
+#define C2_HOOK_FAKE_THISCALL
 
 #define C2_HOOK_ASSERT(condition)
 #define C2_HOOK_BUG_ON(condition)
@@ -62,17 +56,5 @@ extern C2_NORETURN void rec2_error(const char *reason, const char *function, con
 typedef unsigned char undefined;
 typedef unsigned short undefined2;
 typedef unsigned int undefined4;
-
-#ifdef REC2_HW
-#define REC2_HW_RUN(X) X
-#else
-#define REC2_HW_RUN(X)
-#endif
-
-#ifdef REC2_SW
-#define REC2_SW_RUN(X) X
-#else
-#define REC2_SW_RUN(X)
-#endif
 
 #endif // C2_HOOKS_H

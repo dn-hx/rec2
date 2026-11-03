@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_LOADING_H
 #define REC2_LOADING_H
 
@@ -259,7 +251,7 @@ void C2_HOOK_FASTCALL DRclearerr(FILE* pFile);
 
 int C2_HOOK_FASTCALL PFfgetc(FILE* pFile);
 
-int C2_HOOK_FASTCALL DRgetc(FILE* pFile);
+int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile);
 
 int C2_HOOK_FASTCALL PFungetc(int ch, FILE* file);
 

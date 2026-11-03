@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_POWERUPS_H
 #define REC2_POWERUPS_H
 
@@ -22,7 +14,7 @@ extern const char* gRepeatability_names[4];
 extern tShit_mine gShit_mines[20];
 extern tRepulse_link gRepulse_links[6];
 extern tPhysics_joint* gMutant_tail_first_joint;
-extern tPhysics_object* gMutant_tail_object;
+extern tPhysics_object* gMutant_tail_first_collision_info;
 extern int gMutant_tail_state;
 extern br_model* gModel_powerup_armor;
 extern br_model* gModel_powerup_power;

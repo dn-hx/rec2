@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_VECTOR_H
 #define REC2_VECTOR_H
 
@@ -75,9 +67,9 @@ br_scalar C2_HOOK_CDECL BrVector4Dot(const br_vector4* v1, const br_vector4* v2)
 
 void C2_HOOK_CDECL BrVector4Copy(br_vector4* v1, const br_vector4* v2);
 
-br_scalar C2_HOOK_CDECL BrFVector2Dot(const br_fvector2* v1, const br_vector2* v2);
+br_scalar C2_HOOK_STDCALL BrFVector2Dot(const br_fvector2* v1, const br_vector2* v2);
 
-void C2_HOOK_CDECL BrFVector3Copy(br_fvector3* v1, const br_vector3* v2);
+void C2_HOOK_STDCALL BrFVector3Copy(br_fvector3* v1, const br_vector3* v2);
 
 void C2_HOOK_CDECL BrVector3ScaleF(br_vector3* v1, const br_fvector3* v2, br_scalar s);
 

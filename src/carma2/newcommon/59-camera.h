@@ -1,40 +1,30 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_59_CAMERA_H
 #define GUARD_59_CAMERA_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern int gNet_player_to_view_index;
-extern int gOpponent_viewing_mode;
-extern int gAction_replay_manual_camera_target_type;
 extern int gCamera_frozen;
-extern tSave_camera gSave_camera[2];
 extern br_actor* gPed_actor;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern tSave_camera gSave_camera[2];
+extern br_scalar gCamera_zoom;
 
-// DoCameraControls
+// DoCameraControls  (no own address: inlined into GeneralisedPositionExternalCamera 0x00410c60)
 
 // FrozenCamera
 
 // CheckCameraHither
 
-extern tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void);
+// GetRaceLeader
 
 // AmIGettingBoredWatchingCameraSpin
 
-extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
+// ViewNetPlayer
 
-extern void C2_HOOK_FASTCALL ViewOpponent(void);
+// ViewOpponent
 
 extern void C2_HOOK_FASTCALL ReallyViewOpponent(void);
 
@@ -42,15 +32,14 @@ extern void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar);
 
 // SetPanningFieldOfView
 
-extern int C2_HOOK_FASTCALL IsCameraTypeAllowed(int pCamera_mode);
+// IsCameraTypeAllowed
 
 extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
-
 extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
 
 extern void C2_HOOK_FASTCALL ChangeCameraType(void);
 
-extern void C2_HOOK_FASTCALL ToggleCockpit(void);
+// ToggleCockpit
 
 // PositionCarMountedCamera
 
@@ -72,10 +61,8 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 
 // SetUpPanningCamera
 
-extern void C2_HOOK_FASTCALL SaveCameraPosition(int pIndex);
-
-extern void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex);
-
+extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
+extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
 // GeneralisedPositionExternalCamera
@@ -86,7 +73,7 @@ extern void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex);
 
 // PositionDroneCam
 
-// MoveWithWheels
+// MoveWithWheels  (no own address: inlined into GeneralisedPositionExternalCamera 0x00410c60)
 
 // SwingCamera
 
@@ -96,7 +83,7 @@ extern void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex);
 
 // CollideCamera2
 
-// CollideCameraWithOtherCars
+extern int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pCamera_pos);
 
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 

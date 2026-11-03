@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_05_DRMEM_H
 #define GUARD_05_DRMEM_H
 
@@ -21,8 +13,6 @@ extern int C2_HOOK_FASTCALL AllocationErrorsAreFatal(void);
 extern void C2_HOOK_FASTCALL MAMSInitMem(void);
 
 extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
-
-extern void C2_HOOK_FASTCALL TouchMemoryPages(void* pMemory, br_size_t pSize);
 
 extern void* C2_HOOK_CDECL DRStdlibAllocate(br_size_t size, br_uint_8 type);
 

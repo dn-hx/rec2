@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef C2_WIN32_INPUT_H
 #define C2_WIN32_INPUT_H
 
@@ -28,6 +20,18 @@ extern void C2_HOOK_FASTCALL CloseDirectInput(void);
 extern int C2_HOOK_FASTCALL InitForceFeedback(void);
 
 extern void C2_HOOK_FASTCALL KeyBegin(void);
+
+extern void C2_HOOK_FASTCALL ShowCurrentJoystickName(void);
+
+extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
+
+extern void C2_HOOK_FASTCALL StopDinputEffect(int pIndex);
+
+extern int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain);
+
+extern int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude);
+
+extern int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude);
 
 extern int C2_HOOK_FASTCALL JoystickDInputBegin(void);
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_15_DISPLAYS_H
 #define GUARD_15_DISPLAYS_H
 
@@ -45,9 +37,9 @@ extern int gLast_credit_headup__displays;
 extern tU32 gLast_earn_time;
 extern int gLast_time_credit_headup;
 extern tU32 gLast_time_earn_time;
-extern tU32 gLast_time_credit_amount;
 extern int gOld_times[10];
 extern int gQueued_headup_count;
+extern int gLast_time_credit_amount;
 
 
 // static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void);
@@ -57,7 +49,6 @@ extern void C2_HOOK_FASTCALL InitHeadups(void);
 extern void C2_HOOK_FASTCALL ClearHeadup(int pIndex);
 
 extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
-
 extern void C2_HOOK_FASTCALL ClearHeadups(void);
 
 extern void C2_HOOK_FASTCALL DimAFewBits(void);
@@ -84,19 +75,19 @@ extern int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate,
 
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
 
+extern void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY);
+
 extern void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y);
 
 extern void C2_HOOK_FASTCALL ChangeHeadupText(int pHeadup_index, char* pNew_text);
 
 extern void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont);
 
-extern void C2_HOOK_FASTCALL ChangeHeadupColour(int pHeadup_index, int pNew_colour);
-
 extern void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time);
 
 // DoInstruments
 
-extern void C2_HOOK_FASTCALL ChangingView(void);
+// ChangingView
 
 extern void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text);
 
@@ -107,8 +98,6 @@ extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 extern int C2_HOOK_FASTCALL SpendCredits(int pAmount);
 
 extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
-
-// AwardTime5
 
 extern void C2_HOOK_FASTCALL AwardTime5(tU32 pTime);
 

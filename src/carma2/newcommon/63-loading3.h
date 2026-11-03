@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_63_LOADING3_H
 #define GUARD_63_LOADING3_H
 
@@ -20,10 +12,6 @@ extern br_pixelmap* C2_HOOK_FASTCALL DRLdImg(const char* texturePathDir, const c
 extern br_pixelmap* C2_HOOK_FASTCALL RealLoadPixelmap(const char* pPath_name);
 
 extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
-
-extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap2(const char* pPath_name);
-
-extern int C2_HOOK_FASTCALL LoadInterfacePixelmaps(const char *pPath_name, br_pixelmap** pMaps, int pCapacity);
 
 extern br_pixelmap* C2_HOOK_FASTCALL LoadShadeTable(const char* pName);
 

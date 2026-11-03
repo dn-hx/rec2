@@ -1,15 +1,9 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_REC2_MACROS_H
 #define REC2_REC2_MACROS_H
 
 #define REC2_UNREACHABLE()  abort()
+#define REC2_THISCALL_UNUSED(VAR) do { (void)VAR; } while (0)
+#define REC2_THISCALL_EDX , 0
 
 #define REC2_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
 
@@ -30,7 +24,6 @@
 #define V11MODEL(model) (((v11model*)model->prepared))
 
 #define WORLD_SCALE 6.9f
-#define WORLD_SCALE_D 6.9
 
 #define GROOVE_FUNK_MAX_PER_CAR 36
 #define REC2_PI 3.141592653589793

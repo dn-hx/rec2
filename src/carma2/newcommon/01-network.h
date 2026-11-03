@@ -1,19 +1,8 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_01_NETWORK_H
 #define GUARD_01_NETWORK_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
-
-extern int gIt_or_fox;
-extern int INT_00659d34;
 
 extern int C2_HOOK_FASTCALL NetInitialise(void);
 
@@ -43,8 +32,7 @@ extern void C2_HOOK_FASTCALL DisposeCurrentJoinPollGame(void);
 
 extern void C2_HOOK_FASTCALL DoNextJoinPoll(void);
 
-extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc* pAdd_proc);
-
+extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc);
 // NetEndJoinList
 
 extern void C2_HOOK_FASTCALL NetDisposePIDGameInfo(tNet_game_details* pDetails);
@@ -86,14 +74,13 @@ extern void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_lengt
 extern int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
 
 extern int C2_HOOK_FASTCALL NetReallySendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
-
 // NetSendMessageToPlayer
 
 extern int C2_HOOK_FASTCALL NetSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage);
 
-extern int C2_HOOK_FASTCALL NetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage);
+// NetSendMessageToAllPlayers
 
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tU32 pSize_decider);
+// NetGetContentsSize
 
 // NetGetMessageSize
 
@@ -101,13 +88,13 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined
 
 extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
 
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pPlayer, int pContents_size);
+// NetGetToPlayerContentsSize (defined in 01-network.c; no extern here: an extra declaration in this header shifts MSVC codegen of DistanceFromFaceND 0x005162a0)
 
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tNet_message_type pType, tU32 pSize_decider, tPlayer_ID pPlayer);
+// NetGetToPlayerContents
 
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToHostContents(tNet_message_type pType, tU32 pSize_decider);
+// NetGetToHostContents
 
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tU32 pSize_decider);
+// NetStartBroadcastContents
 
 // NetBroadcastContents
 
@@ -207,17 +194,17 @@ extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
 
 extern tPlayer_status C2_HOOK_FASTCALL NetGetPlayerStatus(void);
 
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+// NetGuaranteedSendMessageToAllPlayers
 
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+// NetGuaranteedSendMessageToEverybody
 
 extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
 
-extern void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress, tPlayer_ID pPlayer, void* pNotifyFail);
+// AddToGuaranteeList
 
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+// NetGuaranteedSendMessageToPlayer
 
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress, void* pNotifyFail);
+// NetGuaranteedSendMessageToAddress
 
 extern void C2_HOOK_FASTCALL ResendGuaranteedMessages(void);
 
@@ -229,7 +216,7 @@ extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 
 extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 
-extern void C2_HOOK_FASTCALL GetCheckSum(tNet_message* pMessage);
+// GetCheckSum
 
 // CheckCheckSum
 

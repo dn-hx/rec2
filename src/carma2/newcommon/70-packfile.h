@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_70_PACKFILE_H
 #define GUARD_70_PACKFILE_H
 
@@ -22,7 +14,7 @@ extern tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path);
 
 extern void C2_HOOK_FASTCALL ClosePackFile(tTWTVFS twt);
 
-extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern int C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 
 extern FILE* C2_HOOK_FASTCALL PFfopen(const char* pPath, const char* mode);
 
@@ -40,8 +32,6 @@ extern int C2_HOOK_FASTCALL PFfwrite(const void* buf, br_size_t size, unsigned i
 
 extern int C2_HOOK_FASTCALL PFftell(FILE* pF);
 
-extern int C2_HOOK_FASTCALL PFfsetpos(FILE*, fpos_t*);
-
 extern int C2_HOOK_FASTCALL PFfseek(FILE* pF, int offset, int whence);
 
 extern void C2_HOOK_FASTCALL PFrewind(FILE* pF);
@@ -49,6 +39,8 @@ extern void C2_HOOK_FASTCALL PFrewind(FILE* pF);
 extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 
 extern int C2_HOOK_FASTCALL DRferror(FILE* pFile);
+
+extern void C2_HOOK_FASTCALL PFclearerr(FILE* pFile);
 
 extern void C2_HOOK_FASTCALL PFForEveryFile(const char* pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine);
 
@@ -61,7 +53,5 @@ extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
 
 extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
-
-extern void C2_HOOK_FASTCALL TurnOnPaletteConversion(void);
 
 #endif // GUARD_70_PACKFILE_H

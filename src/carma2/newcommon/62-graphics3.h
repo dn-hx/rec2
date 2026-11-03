@@ -1,54 +1,40 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_62_GRAPHICS3_H
 #define GUARD_62_GRAPHICS3_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-extern const int gArrows[2][4][60];
-extern br_vector3 y_unit_vector;
 extern int gMini_map_visible;
 extern int gCount_smashable_race_targets;
 extern tSmashable_race_target gSmashable_race_targets[300];
 extern tCar_icon gCar_icons[128];
 extern br_actor* gCar_icons_model_actor;
-extern tCar_spec* gTarget_lock_car_1;
-extern tCar_spec* gTarget_lock_car_2;
 extern int gTarget_lock_enabled;
-extern br_matrix23 gMatrix23_0068c880;
+extern int gMap_render_x_i;
+extern int gMap_render_y_i;
+extern int gMap_render_width_i;
+extern int gMap_render_height_i;
 extern br_vector3 gOrigin_map;
 extern br_vector2 gOrigin_headup_map;
-extern int gMap_render_y_i;
-extern int gMap_render_x_i;
-extern int gMap_render_height_i;
-extern int gMap_render_width_i;
-extern tU32 last_flash;
-extern int flash_state;
+extern br_matrix23 gMatrix23_0068c880;
+extern int gTrack_version;
 
 // CarArrowColour
 
-extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
+// ToggleTargetLock
 
 extern void C2_HOOK_FASTCALL CycleTargetLock(void);
 
-extern void C2_HOOK_FASTCALL CycleMapOptions(void);
+// CycleMapOptions
 
 extern void C2_HOOK_FASTCALL ToggleMapTransparency(void);
 
 extern void C2_HOOK_FASTCALL InitTargetLock(void);
 
 extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
-
 // OppositeColour
 
-extern void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, const br_vector3* pPos, br_uint_32 pColour);
+// DrawArrow
 
 // DrawMapBlip
 
@@ -62,14 +48,10 @@ extern void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_i
 
 extern void C2_HOOK_FASTCALL DoSomeThingsToCheckpoints(br_pixelmap* pMap, tU32 pTime, tDoSomethingsToCheckpoints_cbfn* pCallback, int pDraw_prev);
 
-// CalcMapCheckpoint
-
+extern void C2_HOOK_FASTCALL CalcMapCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 extern void C2_HOOK_FASTCALL CalcMapCheckpoint2(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
-
-// DrawCheckpoint
-
+extern void C2_HOOK_FASTCALL DrawCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 extern void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
-
 // DoMapOverlays
 
 // StartMap
@@ -82,13 +64,13 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 // MungeMoodMessage
 
-// DoOpponentStatusHeadup
+extern void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void);
 
 // AllocateOppoBarActor
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+extern void C2_HOOK_FASTCALL MapOverlay(void);
 
 // InitNearestCar
 
@@ -100,13 +82,13 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 extern void C2_HOOK_FASTCALL InitMap(void);
 
-#ifdef REC2_HW
 extern void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap);
-#endif
 
 // static void C2_HOOK_FASTCALL MapChanged(void);
 
-// CheckMapMoveKeys
+extern void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void);
+
+extern void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0, int pKey1);
 
 extern void C2_HOOK_FASTCALL InitSmashTargets(void);
 

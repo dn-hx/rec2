@@ -1,0 +1,35 @@
+#ifndef GUARD_71_NEWGAME_H
+#define GUARD_71_NEWGAME_H
+
+#include "c2_hooks.h"
+#include "rec2_types.h"
+
+extern tNet_game_options gNet_settings[9];
+extern int gNet_grid_starts[10];
+
+// SetGameTarget
+
+extern void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* pGame_options);
+// ReadNetGameChoices
+
+extern int C2_HOOK_FASTCALL PickARandomCar(void);
+
+// RequestCarDetails
+
+extern void C2_HOOK_FASTCALL PollCarDetails(tNet_game_details* pNet_game);
+
+extern void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions);
+
+extern void C2_HOOK_FASTCALL DefaultNetSettings(void);
+
+// DisposeJoinableGame
+
+// InitGamesToJoin
+
+// DisposeJoinList
+
+// AddToJoinList
+
+// FillInRaceDescription
+
+#endif // GUARD_71_NEWGAME_H

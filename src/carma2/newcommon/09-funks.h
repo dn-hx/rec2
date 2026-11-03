@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_09_FUNKS_H
 #define GUARD_09_FUNKS_H
 
@@ -31,8 +23,7 @@ extern void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon);
 
 extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
 
-// ControlBoundFunkGroovePlus
-
+extern float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 // ShiftBoundGrooveFunks
 
 // AddNewFunkotronic
@@ -47,13 +38,9 @@ extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material
 
 // FindSmashableMaterial
 
-// AddFunkotronics
-
 extern void C2_HOOK_FASTCALL DisposeGroovidelics(int pOwner);
 
 // AddNewGroovidelic
-
-// AddGroovidelics
 
 extern void C2_HOOK_FASTCALL KillGroovadelic(int pOwner);
 

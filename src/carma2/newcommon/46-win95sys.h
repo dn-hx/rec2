@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_46_WIN95SYS_H
 #define GUARD_46_WIN95SYS_H
 
@@ -86,7 +78,7 @@ extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pCh
 
 // HCalcPathName
 
-// extern void C2_HOOK_FASTCALL PDSetFileVariables(void); /* See platform.h */
+void C2_HOOK_FASTCALL PDSetFileVariables(void);
 
 // PDBuildAppPath
 
@@ -120,7 +112,7 @@ extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pCh
 
 extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize);
 
-extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
+// PDDisposeActionReplayBuffer
 
 // PDInitJoysticks
 

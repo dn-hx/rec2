@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_GLOBVRBM_H
 #define REC2_GLOBVRBM_H
 
@@ -13,7 +5,6 @@
 
 #include <brender/br_types.h>
 
-#ifdef REC2_HW
 extern br_actor* gPrat_actor;
 extern br_actor* g2d_camera;
 extern br_actor* gPowerupHUD_actor;
@@ -137,6 +128,5 @@ extern int gOffence_dim_w;
 extern int gOffence_dim_h;
 extern int gOffence_dim_x;
 extern int gOffence_dim_y;
-#endif
 
 #endif //REC2_GLOBVRBM_H

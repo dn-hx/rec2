@@ -1,26 +1,11 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_32_SPARK_H
 #define GUARD_32_SPARK_H
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-#ifdef REC2_HW
 extern int gShade_list[16];
 extern int* gShade_table;
-#endif
-#ifdef REC2_SW
-extern br_pixelmap* gShade_list[16];
-extern br_pixelmap** gShade_table;
-#endif
-extern tSmash_vertex gSmash_glass_fragments[200];
 extern int gNum_dust_tables;
 extern int gSpark_flags;
 extern br_pixelmap* gIt_shade_table;
@@ -28,20 +13,18 @@ extern int gSmoke_flags;
 extern int gSmoke_num;
 extern tSmoke gSmoke[25];
 extern br_material* gBlack_material;
-extern tSmashable_environment_name* gSmashable_noncars;
-extern int gCount_smashable_noncars;
 extern tBRender_smoke* gBR_smoke_pointers[35];
 extern int gN_BR_smoke_structs;
 extern int gColumn_flags;
-extern br_model* gShrapnel_model[2];
 extern br_pixelmap* gFlame_map[20];
 extern br_model* gLollipop_model;
 extern tSmoke_column gSmoke_column[10];
 extern br_matrix4 gCameraToScreen;
 extern br_camera* gSpark_cam;
-extern tCar_spec* gCar_of_material;
-extern br_pixelmap* gFog_shade_table;
-extern br_pixelmap* gAcid_shade_table;
+extern tSpark gSparks[32];
+extern int gReplay_splash_flags;
+extern tReplay_splash gReplay_splashes[10];
+extern br_token_value* gDAT_00660148;
 
 // DrawDot
 
@@ -71,7 +54,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 extern void C2_HOOK_FASTCALL ResetSparks(void);
 
-// ResetShrapnel
+extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
 // CreateShrapnelShower2
 
@@ -83,7 +66,7 @@ extern void C2_HOOK_FASTCALL ResetSparks(void);
 
 // InitShrapnel
 
-extern void C2_HOOK_FASTCALL LoadInShrapnel(void);
+// LoadInShrapnel
 
 // KillShrapnel
 
@@ -91,13 +74,13 @@ extern void C2_HOOK_FASTCALL LoadInShrapnel(void);
 
 // ReplayShrapnel
 
-// ActorFunks
+extern intptr_t C2_HOOK_CDECL ActorFunks(br_actor* pActor, void* pContext);
 
 extern void C2_HOOK_FASTCALL MasterDisableCarFunks(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar_spec);
 
-extern int C2_HOOK_FASTCALL SetPixelmap(br_material* pMaterial);
+// SetPixelmap
 
 extern void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar);
 
@@ -123,7 +106,7 @@ extern void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar);
 
 // MungeShrapnel
 
-// DrMatrix34Rotate
+extern void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a);
 
 extern int C2_HOOK_CDECL CmpSmokeZ(const void* p1, const void* p2);
 
@@ -137,9 +120,7 @@ extern void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void);
 
 // ReplaySmoke
 
-// GenerateContinuousSmoke
-
-// RenderSmoke
+extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 
@@ -169,15 +150,15 @@ extern void C2_HOOK_FASTCALL AdjustFlame(int pIndex, int pFrame_count, br_scalar
 
 // ReplaySmokeColumn
 
-// MungeSmokeColumn
+extern void C2_HOOK_FASTCALL MungeSmokeColumn(tU32 pTime);
 
-// DisposeFlame
+extern void C2_HOOK_FASTCALL DisposeFlame(void);
 
 extern void C2_HOOK_FASTCALL InitFlame(void);
 
 // InitSplash
 
-// DisposeSplash
+extern void C2_HOOK_FASTCALL DisposeSplash(void);
 
 // DrawTheGlow
 
@@ -195,7 +176,7 @@ extern void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject);
 
-// ConditionalSmokeColumn
+extern void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pLevel);
 
 // SingleSplash
 
@@ -215,7 +196,7 @@ extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
 
 // DisposeKevStuff
 
-// DisposeKevStuffCar
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
 
 // MakeCarIt
 
@@ -231,11 +212,9 @@ extern void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterial
 
 // ForEveryCarModelCB
 
-extern intptr_t C2_HOOK_CDECL ForEveryCarModelCB(br_actor* pActor, void *pContext);
-
 // ForEveryCarModel
 
-extern int C2_HOOK_FASTCALL MightBlendifyMaterial(br_material* pMaterial, int pBlend_factor);
+// MightBlendifyMaterial
 
 extern int C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial);
 
@@ -247,14 +226,12 @@ extern void C2_HOOK_FASTCALL UnBlendifyCar(tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
-// ClearSplashReplay
+extern void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject);
 
 extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
-// ClearSplashes
-
 // AdjustSplashReplay
 
-// InitReplaySplashes
+extern void C2_HOOK_FASTCALL InitReplaySplashes(void);
 
 #endif // GUARD_32_SPARK_H

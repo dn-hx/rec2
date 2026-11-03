@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_58_CRUSH2_H
 #define GUARD_58_CRUSH2_H
 
@@ -19,17 +11,14 @@ extern int gCredits_rolling_car[3];
 extern float gSeconds_per_unit_car_damage[3];
 extern int gTime_wasting_car[3];
 extern int gTime_per_ped_kill[3];
-extern float gWobble_spam_y[8];
-extern float gWobble_spam_z[8];
-extern float gWheel_circ_to_width;
 
 // CheckLastCar
 
 extern void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar);
 
-// ExplodeMeCarUpMeOldMatey
+extern void C2_HOOK_FASTCALL ExplodeMeCarUpMeOldMatey(tCar_spec* pCar);
 
-// SetKnackeredFlag
+extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
 
 // DamageUnit2
 
@@ -51,11 +40,11 @@ extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
-extern void C2_HOOK_FASTCALL DoWheelDamage(tU32 pFrame_period);
+// DoWheelDamage
 
 extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
-// PercentageCarHealth
+extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 
 // ChristmasLights
 

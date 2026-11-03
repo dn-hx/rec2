@@ -1,17 +1,8 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_00_CAR_H
 #define GUARD_00_CAR_H
 
 #include "rec2_types.h"
 
-extern int gTesting_car_for_sensible_place;
 extern int gCunning_stunt_bonus[3];
 extern float gArmour_starting_value[100];
 extern int gExplosion_sound_id;
@@ -20,35 +11,22 @@ extern float gOffensive_starting_value[100];
 extern tFloat_bunch_info gCar_softness;
 extern tFloat_bunch_info gCar_car_damage_multiplier;
 extern br_vector3 gZero_v__car;
-extern int gFreeze_mechanics;
 extern int gNum_active_non_cars;
-extern tNon_car_spec* gActive_non_car_list[99];
-extern int gEliminate_faces;
-extern int gInTheSea;
 extern int gFace_num__car;
+extern int gInTheSea;
+extern tU32 gQuite_wild_end;
+extern tU32 gQuite_wild_start;
+extern tU32 gOn_me_wheels_start;
+extern tU32 gWoz_upside_down_at_all;
+extern tU32 gWild_start;
+extern int gNum_active_cars;
+extern tCar_spec* gActive_car_list[139]; /* FIXME: uncertain about array length */  // GLOBAL: CARMA2_HW 0x0079ef2c int gNum_cars_and_non_cars;
+extern int gFace_count;
 extern tFace_ref gFace_list__car[300];
+extern br_scalar gMin_world_y;
+extern tPhysics_object* gUnknown_car_collision_info;
 
 extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageTrans(int pAmount);
-
-extern void C2_HOOK_FASTCALL DamageLFWheel(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageLFBrake(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageLRBrake(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageLRWheel(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageRFWheel(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageRFBrake(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageRRBrake(int pDamage_amount);
-
-extern void C2_HOOK_FASTCALL DamageRRWheel(int pDamage_amount);
 
 extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
 
@@ -58,9 +36,9 @@ extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
 
 // InitialiseCar
 
-// InitialiseCarsEtc
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
 
-extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, tU32 pGrid_index);
+// SetInitialPosition
 
 extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
 
@@ -69,7 +47,6 @@ extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
 // NewFaceListCallBack
 
 extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
-
 // RememberSafePosition
 
 // ControlNetCars
@@ -80,7 +57,7 @@ extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
 // PrepareCars
 
-extern void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar);
+// CalcGraphicalWheelStuff
 
 // FinishCars
 
@@ -90,9 +67,9 @@ extern void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar);
 
 // MungeCarsMass
 
-// AddDrag
+extern void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scalar pDt);
 
-// DragChildren
+extern void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild);
 
 // DoCarStuff
 
@@ -106,29 +83,29 @@ extern void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar);
 
 // APTCPreCollision
 
-extern void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar);
 
 // APTCPostCollision
 
-// APTCActiveHalted
+extern int C2_HOOK_FASTCALL APTCActiveHalted(tPhysics_object* pObject);
 
-// APTCPassiveActivated
+extern int C2_HOOK_FASTCALL APTCPassiveActivated(tPhysics_object* pObject, undefined4 pArg2);
 
-// APTCChangedObjects
+extern void C2_HOOK_FASTCALL APTCChangedObjects(tPhysics_object* pObject, undefined4 pArg2);
 
 // ApplyPhysicsToCars
 
-// MoveAndCollideCar
+extern void C2_HOOK_FASTCALL MoveAndCollideCar(tCar_spec* pCar, br_scalar pDt);
 
 // MoveAndCollideNonCar
 
-extern void C2_HOOK_FASTCALL ControlCar2(tCar_spec* pCar, br_scalar pDt);
+extern void C2_HOOK_FAKE_THISCALL ControlCar2(tCar_spec* pCar, void* pUnused, br_scalar pDt);
 
-extern void C2_HOOK_FASTCALL ControlCar3(tCar_spec* pCar, br_scalar pDt);
+extern void C2_HOOK_FAKE_THISCALL ControlCar3(tCar_spec* pCar, void* pUnused, br_scalar pDt);
 
 // ControlCar4
 
-extern void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, br_scalar pDt);
+extern void C2_HOOK_FAKE_THISCALL ControlCar5(tCar_spec* pCar, void* pUnused, br_scalar pDt);
 
 // ControlCar1
 
@@ -164,7 +141,7 @@ extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 
 // StopSkid
 
-// CrashNoise
+extern void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial);
 
 // CrushAndDamageCar
 
@@ -174,7 +151,7 @@ extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 
 // ProcessForcesCallBack
 
-extern int C2_HOOK_FASTCALL ProcessJointForcesCallBack(void* pArg1, void* pArg2, void* pArg3);
+// ProcessJointForcesCallBack
 
 // MultiFindFloorInBoxM
 
@@ -182,49 +159,42 @@ extern int C2_HOOK_FASTCALL ProcessJointForcesCallBack(void* pArg1, void* pArg2,
 
 // MultiFindFloorInBoxBU
 
+extern int C2_HOOK_FASTCALL ProcessJointForcesCallback(undefined4 param_1, undefined4 param_2, undefined4 param_3);
+
 extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
 
 // findfloor
 
-extern int C2_HOOK_FASTCALL FindFloorInBoxBU(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pDistance, tPhysics_object* pObject);
+// FindFloorInBoxBU
 
 extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
-
 // SetAmbientPratCam
 
-extern void C2_HOOK_FASTCALL SetTextureBits(tCar_spec* pCar);
+// SetTextureBits
 
-extern void C2_HOOK_FASTCALL MungeSomeOtherCarGraphics(void);
+// MungeSomeOtherCarGraphics
 
 extern void C2_HOOK_FASTCALL MungeCarGraphics(tU32 pFrame_period);
 
-extern void C2_HOOK_FASTCALL DoLODCarModels(void);
-
 extern intptr_t C2_HOOK_CDECL TurnOffNonGroovers(br_actor* pActor, void* pData);
+// DoLODCarModels
 
-// DoComplexCarModels
-
-extern void C2_HOOK_FASTCALL ResetCarScreens(void);
-
-extern void C2_HOOK_FASTCALL ToggleCarToCarCollisions(void);
-
-extern void C2_HOOK_FASTCALL SwapCar(void);
+extern void C2_HOOK_FASTCALL DoComplexCarModels(void);
+// ResetCarScreens
 
 extern void C2_HOOK_FASTCALL AdjustDownForce(void);
-
-extern void C2_HOOK_FASTCALL FreezeMechanics(void);
 
 // FlyCar
 
 // GetCarOverallBoundsMinY
 
-extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
+// SetCarSuspGiveAndHeight
 
 // TestForCarInSensiblePlace
 
-extern tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* pActor);
+// PullActorFromWorld
 
-extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor);
+// DoPullActorFromWorld
 
 // PipeNonCarObject
 
@@ -235,9 +205,16 @@ extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor);
 extern void C2_HOOK_FASTCALL AdjustNonCar(br_actor* pActor, const br_matrix34* pMatrix);
 
 extern int C2_HOOK_FASTCALL GetPrecalculatedFacesUnderCar(tCar_spec* pCar, tFace_ref** pFace_refs);
-
 extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
+
+extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, int pGrid_index);
+
+extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
+
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+
+extern void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag);
 
 #endif // GUARD_00_CAR_H

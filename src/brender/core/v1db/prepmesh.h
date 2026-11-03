@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_PREPMESH_H
 #define REC2_PREPMESH_H
 
@@ -27,7 +19,7 @@ extern int C2_HOOK_CDECL TVCompare_MXYZUVN(const void* p1, const void* p2);
 
 extern int C2_HOOK_CDECL TVCompare_MVN(const void* p1, const void* p2);
 
-extern br_fraction C2_HOOK_CDECL BrScalarToFractionClamp(br_scalar s);
+extern br_fraction C2_HOOK_STDCALL BrScalarToFractionClamp(br_scalar s);
 
 extern void C2_HOOK_STDCALL PrepareFaceNormals(br_model* model);
 

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_08_LOADING1_H
 #define GUARD_08_LOADING1_H
 
@@ -17,19 +9,14 @@
 extern int gDecode_thing;
 extern tU32 gTime_stamp_for_this_munging;
 extern int gFunk_groove_flags[30];
-extern br_pixelmap* gCursors[8];
 
 extern tU32 C2_HOOK_FASTCALL ReadU32(FILE* pF);
 
 extern tU16 C2_HOOK_FASTCALL ReadU16(FILE* pF);
 
-extern tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF);
-
 extern float C2_HOOK_FASTCALL ReadF32(FILE* pF);
 
 extern tS32 C2_HOOK_FASTCALL ReadS32(FILE* pF);
-
-extern tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF);
 
 extern void C2_HOOK_FASTCALL WriteU32L(FILE* pF, tU32 pNumber);
 
@@ -42,8 +29,6 @@ extern tU32 C2_HOOK_FASTCALL MemReadU32(char** pPtr);
 extern tU16 C2_HOOK_FASTCALL MemReadU16(char** pPtr);
 
 extern tU8 C2_HOOK_FASTCALL MemReadU8(char** pPtr);
-
-extern tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr);
 
 extern tS16 C2_HOOK_FASTCALL MemReadS16(char** pPtr);
 
@@ -89,11 +74,7 @@ extern void C2_HOOK_FASTCALL StripCRNL(char* line);
 
 extern void C2_HOOK_CDECL SubsStringJob(char *pFormat, ...);
 
-extern void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS);
-
 extern void C2_HOOK_FASTCALL EncodeFile(char* pThe_path);
-
-extern void C2_HOOK_FASTCALL SkipNLines(FILE* pF);
 
 extern char* C2_HOOK_FASTCALL GetALineWithNoPossibleService(FILE* pF, char* pS);
 
@@ -128,5 +109,7 @@ extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
 extern void C2_HOOK_FASTCALL DisposeTrack(void);
 
 extern int GetRegisterSourceLocation(char* pSource_location);
+
+extern void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec);
 
 #endif // GUARD_08_LOADING1_H

@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_JOYSTICK_H
 #define REC2_JOYSTICK_H
 
@@ -36,15 +28,21 @@ extern void C2_HOOK_FASTCALL RestoreJoystickPreferences(void);
 
 extern int C2_HOOK_FASTCALL HasCurrentJoystick(void);
 
-extern void C2_HOOK_FASTCALL PeekCharacter(FILE* pF);
-
 extern int C2_HOOK_FASTCALL ReadUntilCharacter(FILE* pF, char* pBuffer, int pBuffer_size, char pLimit_char);
+
+extern int C2_HOOK_FASTCALL PeekChar(FILE* pFile);
+
+extern unsigned int C2_HOOK_FASTCALL GetJoystickButtonIndexForKey(int pKey);
 
 extern int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo);
 
 extern int C2_HOOK_FASTCALL CountJoystickPreferences(FILE* pF);
 
 extern int C2_HOOK_FASTCALL ToggleJoystickThrottle(void);
+
+extern void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue);
+
+extern void C2_HOOK_FASTCALL SetJoystickYAxis(float pValue);
 
 extern void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled);
 
@@ -61,5 +59,13 @@ extern void C2_HOOK_FASTCALL SetJoystickY(float pValue);
 extern float C2_HOOK_FASTCALL GetJoystickX(void);
 
 extern float C2_HOOK_FASTCALL GetJoystickY(void);
+
+extern void C2_HOOK_FASTCALL ToggleJoystickYAxis(void);
+
+extern void C2_HOOK_FASTCALL ToggleJoystickEnable(void);
+
+extern void C2_HOOK_FASTCALL ToggleJoystickDPad(void);
+
+extern void C2_HOOK_FASTCALL IncreaseJoystickFFB(void);
 
 #endif /* REC2_JOYSTICK_H */

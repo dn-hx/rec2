@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_EXPLOSIONS_H
 #define REC2_EXPLOSIONS_H
 
@@ -22,7 +14,7 @@ void C2_HOOK_FASTCALL ResetExplosions(void);
 
 void C2_HOOK_FASTCALL ReadExplosionInfo(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups);
 
-int C2_HOOK_FASTCALL PointOutOfSightNotAR(const br_vector3* pPoint, float pMax_distance);
+int C2_HOOK_FAKE_THISCALL PointOutOfSightNotAR(const br_vector3* pPoint, undefined4 pArg2, float pMax_distance);
 
 void C2_HOOK_FASTCALL MungeExplosions(void);
 

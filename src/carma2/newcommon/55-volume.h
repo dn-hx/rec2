@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_55_VOLUME_H
 #define GUARD_55_VOLUME_H
 
@@ -19,7 +11,7 @@ extern tSpecial_volume* gDefault_water_spec_vol_real;
 
 extern tSpecial_volume* C2_HOOK_FASTCALL GetDefaultSpecialVolumeForWater(void);
 
-// FindSpecialVolume
+extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
 
 // MungeSpecialVolume
 
@@ -33,6 +25,6 @@ extern void C2_HOOK_FASTCALL SaveSpecialVolumes(void);
 
 extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
 
-// ReadSpecialVolumes
+extern void C2_HOOK_FASTCALL ReadSpecialVolumes(FILE* pF);
 
 #endif // GUARD_55_VOLUME_H

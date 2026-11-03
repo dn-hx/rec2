@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef REC2_UTILITY_H
 #define REC2_UTILITY_H
 
@@ -28,7 +20,7 @@ extern br_pixelmap* gPalette_source;
 
 br_error C2_HOOK_FASTCALL DRBrEnd(void);
 
-void C2_HOOK_FASTCALL DRstrlwr(char* pStr);
+void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
 
 void C2_HOOK_FASTCALL Uppercaseificate(char* dest, const char* src);
 
@@ -144,7 +136,7 @@ int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterialTablishly(br_material *pMat
 
 int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterialPrimitively(br_material *pMaterial);
 
-int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material *pMaterial);
+int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material *pMaterial);
 
 tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
 

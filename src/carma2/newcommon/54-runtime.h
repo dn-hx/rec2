@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_54_RUNTIME_H
 #define GUARD_54_RUNTIME_H
 
@@ -14,11 +6,10 @@
 
 extern tS8 gRace_memory[1000];
 
-// GetRuntimeVariable
+extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
+extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
 
-// AccumulateRuntimeVariable
-
-// ToggleRuntimeVariable
+extern int C2_HOOK_FASTCALL ToggleRuntimeVariable(int pAddress);
 
 extern void C2_HOOK_FASTCALL ClearAllRuntimeVariables(void);
 

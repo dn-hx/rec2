@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_21_MAINLOOP_H
 #define GUARD_21_MAINLOOP_H
 
@@ -20,16 +12,14 @@ extern tU32 gOld_camera_time;
 extern tU32 gActual_last_tick_count;
 extern tU32 gAverage_frame_period;
 extern tU32 gLast_tick_count;
-extern int gPed_count;
-extern int gQueued_wasted_messages[5];
-extern int gQueued_wasted_messages_count;
-extern tU32 gLast_wasted_message_start;
 
 // CalculateFrameRate
 
-extern void C2_HOOK_FASTCALL LoseOldestWastedMassage(void);
+// LoseOldestWastedMassage
 
 extern void C2_HOOK_FASTCALL QueueWastedMassage(int pIndex);
+
+extern void C2_HOOK_FASTCALL ClearQueuedHeadups(void);
 
 // MungeHeadups
 

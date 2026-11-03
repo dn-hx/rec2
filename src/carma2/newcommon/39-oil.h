@@ -1,11 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright 2022-2026 rec2 developers
- */
-
 #ifndef GUARD_39_OIL_H
 #define GUARD_39_OIL_H
 
@@ -26,11 +18,11 @@ extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_acto
 
 extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
 
-// OKToSpillOil
+// OKToSpillOil  (no own address: inlined into ProcessOilSpills 0x4a6e50)
 
 // MungeOilsHeightAboveGround
 
-// MungeIndexedOilsHeightAboveGround
+extern void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex);
 
 extern void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel);
 
@@ -48,6 +40,6 @@ extern void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_sc
 
 extern void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents);
 
-// RemoveCarsOilSlicks
+extern void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar);
 
 #endif // GUARD_39_OIL_H
