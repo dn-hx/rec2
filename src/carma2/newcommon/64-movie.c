@@ -450,3 +450,17 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056c600
+__declspec(naked) short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c600
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c600:
+        mov     eax, 0x20183
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
