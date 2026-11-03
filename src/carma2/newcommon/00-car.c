@@ -626,7 +626,7 @@ void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race) {
     }
     InitialiseExternalCamera();
     if (gUnknown_car_collision_info != NULL && gProgram_state.current_car.collision_info != gUnknown_car_collision_info->parent) {
-        AddCollisionInfoChild(gProgram_state.current_car.collision_info, gUnknown_car_collision_info);
+        PhysicsAddObjectList(gProgram_state.current_car.collision_info, gUnknown_car_collision_info);
     }
 }
 
