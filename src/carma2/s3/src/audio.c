@@ -1965,3 +1965,35 @@ tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pV
     }
     return NULL;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00566686
+int C2_HOOK_FASTCALL S3SetSoundSourceBinding(tS3_sound_source* pSource, void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+    tS3_sound_source* iter;
+    tS3_sound_source* src;
+    int found;
+
+    found = 0;
+    if (pSource == NULL) {
+        return eS3_error_nonexistant_source;
+    }
+    iter = gS3_state.sources;
+    if (iter == pSource) {
+        found = 1;
+    } else {
+        while (iter->next != NULL && !found) {
+            iter = iter->next;
+            if (iter == pSource) {
+                found = 1;
+            }
+        }
+    }
+    if (!found) {
+        return eS3_error_nonexistant_source;
+    }
+    src = pSource;
+    src->bound_outlet = pBound_outlet;
+    src->position_ptr = pPosition;
+    src->velocity_ptr = pVelocity;
+    return eS3_error_none;
+}
