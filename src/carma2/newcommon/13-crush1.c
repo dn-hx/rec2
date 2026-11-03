@@ -4242,3 +4242,23 @@ void C2_HOOK_FASTCALL PHILDetachObjectState(tPhysics_object* pObject) {
     MoveJointedObject(pObject, 0.f);
     gINT_00692dc8 = 1;
 }
+
+
+// FUNCTION: CARMA2_HW 0x004c7fa0
+void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates) {
+    extern tPipe_smudge_data* gSmudge_space;
+    extern void C2_HOOK_FASTCALL ARDoSingleSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize);
+    tU32 copy_size;
+
+    if (gSmudge_space != NULL) {
+        if (pVertex_count > 600) {
+            pVertex_count = 600;
+        }
+        copy_size = pVertex_count * sizeof(tSmudged_vertex);
+        gSmudge_space->vertex_count = (tU16)pVertex_count;
+        gSmudge_space->model_index = pModel_index;
+        memcpy(gSmudge_space->vertex_changes, pCoordinates, copy_size);
+        /* 8 = offsetof(tPipe_smudge_data, vertex_changes) */
+        ARDoSingleSession(ePipe_chunk_smudge, pCar_ID, gSmudge_space, copy_size + 8);
+    }
+}
