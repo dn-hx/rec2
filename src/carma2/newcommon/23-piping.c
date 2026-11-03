@@ -3344,7 +3344,18 @@ void C2_HOOK_FASTCALL UndoVector3(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk
         &((tPipe_single_vector*)(*pChunk)->data.raw_data)->vector);
 }
 
-// UndoNapalmBolt
+// FUNCTION: CARMA2_HW 0x004ca390
+void C2_HOOK_FASTCALL UndoNapalmBolt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    if (pPrev_chunk != NULL) {
+        tPipe_chunk_napalm_bolt* chunk = (tPipe_chunk_napalm_bolt*)*pChunk;
+        tPipe_chunk_napalm_bolt* prev = (tPipe_chunk_napalm_bolt*)pPrev_chunk;
+
+        if (prev->field_0x4 == chunk->field_0x4) {
+            return AdjustNapalmBolt(prev->field_0x0, (tPedestrian*)(intptr_t)prev->field_0x4, &prev->field_0x8);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ca3b0
 // FUNCTION: CARMA2_SW 0x004c6ae0
