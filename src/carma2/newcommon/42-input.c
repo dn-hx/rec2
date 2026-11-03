@@ -455,7 +455,6 @@ int C2_HOOK_FASTCALL KeyIsDownNoMouldiness(int pKey_index) {
 }
 
 // FUNCTION: CARMA2_HW 0x004833b0
-// FUNCTION: CARMA2_SW 0x004804f0
 void C2_HOOK_FASTCALL WaitForNoKeys(void) {
 
     do {
