@@ -438,9 +438,8 @@ int gDisallow_abandon_race;
 // GLOBAL: CARMA2_SW 0x00671084
 int gAction_replay_mode = 0;
 
-// GLOBAL: CARMA2_HW 0x00676978
-// GLOBAL: CARMA2_SW 0x006710e8
-int gPed_overall_movement_disabled = 0;
+// gPed_overall_movement_disabled is defined in 61-pedestrn.c: it must sit directly
+// after gPed_forms so the compiler emits the same loop-end compare symbol as the original.
 
 //int gDefault_engine_noise_index;
 //int gAusterity_mode;

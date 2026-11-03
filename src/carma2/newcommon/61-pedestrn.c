@@ -518,8 +518,13 @@ float gPed_buoyancy_factor;
 // GLOBAL: CARMA2_HW 0x00589358
 const br_scalar gFloat_00589358 = 0.f;
 
+/* explicit initializers keep gPed_forms and gPed_overall_movement_disabled adjacent (loop-end compare) */
 // GLOBAL: CARMA2_HW 0x00676928
 tPed_form* gPed_forms[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00676978
+// GLOBAL: CARMA2_SW 0x006710e8
+int gPed_overall_movement_disabled = 0;
 
 // GLOBAL: CARMA2_HW 0x00677238
 tPed_remap* gPed_remaps[10] = { 0 };
