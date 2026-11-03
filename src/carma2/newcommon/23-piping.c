@@ -831,6 +831,9 @@ void C2_HOOK_FASTCALL AREndPipingSession(void) {
     EndPipingSession2(1);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004028a0
 // FUNCTION: CARMA2_SW 0x004028a0
 void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize) {
@@ -854,6 +857,9 @@ void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pDat
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00402930
 // STUB: CARMA2_SW 0x00402930
