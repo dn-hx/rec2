@@ -3175,9 +3175,163 @@ void C2_HOOK_FASTCALL WeldCarPartial(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0043ceb0
-void C2_HOOK_FASTCALL UpdateCrushPainList(void) {
+typedef struct {
+    br_actor* actor;
+    tCar_spec* car;
+    tU32 time;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_bounds3 bounds;
+    float field_0x48;
+} tUpdate_crush_semi_detach_item;
+extern tUpdate_crush_semi_detach_item gNet_crush_semi_detach_bit_list[8];
+extern int gCount_net_crush_semi_detach_bit_list;
+typedef struct {
+    br_actor* actor;
+    tCar_spec* car;
+    tU32 time;
+    br_bounds3 bounds;
+} tUpdate_crush_detach_item;
+extern tUpdate_crush_detach_item gNet_crush_detach_list[8];
+extern int gCount_net_crush_detach_list;
+typedef struct {
+    tCar_spec* car;
+    tPhysics_object* object;
+    tU32 time;
+} tUpdate_crush_full_detach_item;
+extern tUpdate_crush_full_detach_item gNet_crush_full_detach_bit_list[8];
+extern int gCount_net_crush_full_detach_bit_list;
+extern tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActor, tU32 pArg3, int* pArg4, br_vector3* pArg5, br_bounds3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
+extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
+extern void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00436d60
+tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActor, tU32 pArg3, int* pArg4, br_vector3* pArg5, br_bounds3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
     NOT_IMPLEMENTED();
+    return NULL;
+}
+
+// STUB: CARMA2_HW 0x00433350
+tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
+    NOT_IMPLEMENTED();
+    return NULL;
+}
+
+// STUB: CARMA2_HW 0x00434010
+void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043ceb0
+void C2_HOOK_FASTCALL UpdateCrushPainList(void) {
+    tCar_crush_spec* car_crush;
+    tCar_spec* car;
+    br_actor* bit;
+    int count;
+    int keep;
+    int found;
+    int i;
+    int j;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_semi_detach_bit_list; i++) {
+        keep = 1;
+        if (gNet_crush_semi_detach_bit_list[i].time <= gPHIL_last_physics_tick) {
+            SemiDetachBit(gNet_crush_semi_detach_bit_list[i].car, gNet_crush_semi_detach_bit_list[i].actor,
+                *(tU32*)&gNet_crush_semi_detach_bit_list[i].field_0x48, &keep,
+                &gNet_crush_semi_detach_bit_list[i].field_0xc,
+                &gNet_crush_semi_detach_bit_list[i].bounds,
+                &gNet_crush_semi_detach_bit_list[i].field_0x18,
+                &gNet_crush_semi_detach_bit_list[i].field_0x24);
+        }
+        if (keep != 0) {
+            if (count != i) {
+                gNet_crush_semi_detach_bit_list[count] = gNet_crush_semi_detach_bit_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_semi_detach_bit_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_detach_list; i++) {
+        if (gNet_crush_detach_list[i].time <= gPHIL_last_physics_tick) {
+            DetachBit(gNet_crush_detach_list[i].car, gNet_crush_detach_list[i].actor,
+                &gNet_crush_detach_list[i].bounds);
+        } else {
+            if (count != i) {
+                gNet_crush_detach_list[count] = gNet_crush_detach_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_detach_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_full_detach_bit_list; i++) {
+        if (gNet_crush_full_detach_bit_list[i].time <= gPHIL_last_physics_tick) {
+            FullyDetachBit(gNet_crush_full_detach_bit_list[i].car, gNet_crush_full_detach_bit_list[i].object);
+            MungeDetachLists(gNet_crush_full_detach_bit_list[i].car->car_crush_spec);
+        } else {
+            if (count != i) {
+                gNet_crush_full_detach_bit_list[count] = gNet_crush_full_detach_bit_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_full_detach_bit_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_reattach_bit_list; i++) {
+        if (gNet_crush_reattach_bit_list[i].time <= gPHIL_last_physics_tick) {
+            car = gNet_crush_reattach_bit_list[i].car;
+            bit = gNet_crush_reattach_bit_list[i].actor;
+            car_crush = car->car_crush_spec;
+            if (bit == NULL) {
+                for (j = 0; j < car_crush->field_0x2b0; j++) {
+                    ReAttachBit(car, car_crush->field_0x2b4[j].field_0x4, car_crush->field_0x2b4[j].field_0x0, NULL);
+                }
+                car_crush->field_0x2b0 = 0;
+                for (j = 0; j < car_crush->field_0x270; j++) {
+                    ReAttachBit(car, car_crush->field_0x274[j].field_0x4, car_crush->field_0x274[j].field_0x0, car_crush->field_0x274[j].field_0x8);
+                }
+                car_crush->field_0x270 = 0;
+            } else {
+                found = 0;
+                for (j = 0; j < car_crush->field_0x2b0; j++) {
+                    if (car_crush->field_0x2b4[j].field_0x0 == bit) {
+                        ReAttachBit(car, car_crush->field_0x2b4[j].field_0x4, bit, NULL);
+                        MungeDetachLists(car_crush);
+                        found = 1;
+                    }
+                }
+                if (!found) {
+                    for (j = 0; j < car_crush->field_0x270; j++) {
+                        if (car_crush->field_0x274[j].field_0x0 == bit) {
+                            ReAttachBit(car, car_crush->field_0x274[j].field_0x4, bit, car_crush->field_0x274[j].field_0x8);
+                            MungeDetachLists(car_crush);
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            if (count != i) {
+                gNet_crush_reattach_bit_list[count] = gNet_crush_reattach_bit_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_reattach_bit_list = count;
 }
 
 // STUB: CARMA2_HW 0x004203c0
