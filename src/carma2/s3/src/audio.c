@@ -1266,7 +1266,7 @@ int C2_HOOK_FASTCALL S3ServiceSpatialSound(tS3_channel* pChannel) {
 
 // FUNCTION: CARMA2_HW 0x005665d4
 // FUNCTION: CARMA2_SW 0x00561c74
-tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceInternal(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
     tS3_sound_source* src;
 
     C2_HOOK_BUG_ON(sizeof(tS3_sound_source) != 0x44);
@@ -1306,7 +1306,7 @@ tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceBR(br_vector3* pPosition, 
     tS3_sound_source* source;
 
     if (gS3_enabled) {
-        source = S3CreateSoundSource(pPosition, pVelocity, pBound_outlet);
+        source = S3CreateSoundSourceInternal(pPosition, pVelocity, pBound_outlet);
         if (source != NULL) {
             source->brender_vector = 1;
         }
@@ -1949,4 +1949,19 @@ int C2_HOOK_FASTCALL S3SetChannelVelocity(tS3_sound_tag pChannel_tag, const tS3_
         channel->velocity.z = pVelocity->z;
     }
     return eS3_error_none;
+}
+
+
+// FUNCTION: CARMA2_HW 0x0056654c
+tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+    tS3_sound_source* source;
+
+    if (gS3_enabled != 0) {
+        source = S3CreateSoundSourceInternal(pPosition, pVelocity, pBound_outlet);
+        if (source != NULL) {
+            source->brender_vector = 0;
+        }
+        return source;
+    }
+    return NULL;
 }
