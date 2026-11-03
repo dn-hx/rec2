@@ -4234,3 +4234,11 @@ int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x004b9750
+void C2_HOOK_FASTCALL PHILDetachObjectState(tPhysics_object* pObject) {
+    pObject->field_0x218 = 0;
+    MoveJointedObject(pObject, 0.f);
+    gINT_00692dc8 = 1;
+}
