@@ -67,6 +67,9 @@ int gTraffic_disabled;
 // GLOBAL: CARMA2_SW 0x0067c6f0
 int gINT_00681fb0;
 
+// GLOBAL: CARMA2_HW 0x00684500
+int gCount_rendered_drones;
+
 // GLOBAL: CARMA2_HW 0x00684514
 // GLOBAL: CARMA2_SW 0x0067ec54
 int gFrame;
@@ -463,7 +466,15 @@ void C2_HOOK_FASTCALL InitDroneSpec(tDrone_spec* pDrone_spec, int pNode) {
 
 // DroneyObjectInSensiblePlace
 
-// StopRenderingThisDrone
+// FUNCTION: CARMA2_HW 0x004516d0
+void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec) {
+    if (pDrone_spec->actor->render_style == BR_RSTYLE_FACES) {
+        DoNotDprintf_drone("STOP RENDERING: %d", pDrone_spec->id);
+        gCount_rendered_drones -= 1;
+        pDrone_spec->actor->render_style = BR_RSTYLE_NONE;
+        PipeSingleDroneRender(pDrone_spec, 0);
+    }
+}
 
 // StopProcessingThisDrone
 
