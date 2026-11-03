@@ -2144,3 +2144,24 @@ int C2_HOOK_FASTCALL S3IsMidiEnabled(void) {
     }
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565cce
+int C2_HOOK_FASTCALL S3ResumeCDAChannel(int pTag) {
+    struct {
+        int result;
+        tS3_channel* channel;
+    } locals;
+
+    locals.result = 0;
+    if (gS3_CDA_enabled) {
+        locals.channel = S3GetChannelForTag(pTag);
+        if (locals.channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (locals.channel->type == 2) {
+            locals.result = PDS3ResumeCDA(locals.channel);
+        }
+    }
+    return locals.result;
+}
