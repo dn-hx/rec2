@@ -108,8 +108,8 @@ const char* gSmashable_track_environment_path;
 // GLOBAL: CARMA2_SW 0x0069f620
 tStored_smash* gNet_host_smashes;
 
-// GLOBAL: CARMA2_HW 0x00762100
 /* owned by 09-funks.c; defined here because that file does not have it yet */
+// GLOBAL: CARMA2_HW 0x00762100
 float gYon_squared = 0.f;
 
 /* explicit initializers keep gExplosions, gSmash_explosions and gPowerup_respawn_smashable adjacent as in the original (loop-end compares) */
