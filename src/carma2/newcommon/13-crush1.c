@@ -2156,7 +2156,57 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // UnBendActor
 
-// UnBendCollisionShape
+// Inferred layout of the bend data stored at tCar_crush_spec::field_0x154
+// (the record is not modelled in rec2_types.h yet).
+typedef struct tBend_data_local {
+    br_scalar field_0x0;
+    br_scalar field_0x4;
+    undefined field_0x8[4];
+    br_scalar field_0xc;
+    br_scalar field_0x10;
+    undefined field_0x14[4];
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_vector3 field_0x30;
+    br_angle field_0x3c;
+    br_angle field_0x3e;
+    br_angle field_0x40;
+    undefined field_0x42[2];
+    br_vector3 field_0x44;
+    br_vector3 field_0x50;
+    br_vector3 field_0x5c;
+    br_vector3 field_0x68;
+    int field_0x74;
+    tCar_crush_vertex_data* field_0x78;
+} tBend_data_local;
+
+typedef struct tBend_point_context_local {
+    tCar_spec* car;
+    br_matrix34 matrix;
+    tBend_data_local* bend;
+} tBend_point_context_local;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00434f60
+void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_local* pContext) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043aa20
+void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
+    int i;
+
+    for (i = 0; i < pShape->count_points; i++) {
+        pShape->field_0x18[i].field_0x18.v[0] = pShape->field_0x18[i].field_0x2c.v[0];
+        pShape->field_0x18[i].field_0x18.v[1] = pShape->field_0x18[i].field_0x2c.v[1];
+        pShape->field_0x18[i].field_0x18.v[2] = pShape->field_0x18[i].field_0x2c.v[2];
+        BendPoint(&pShape->field_0x18[i].field_0x18, pContext);
+    }
+}
 
 // UnBendCollisionShapes
 
@@ -4117,30 +4167,6 @@ void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVerte
     }
 }
 
-
-// Inferred layout of the bend data stored at tCar_crush_spec::field_0x154
-// (the record is not modelled in rec2_types.h yet).
-typedef struct tBend_data_local {
-    br_scalar field_0x0;
-    br_scalar field_0x4;
-    undefined field_0x8[4];
-    br_scalar field_0xc;
-    br_scalar field_0x10;
-    undefined field_0x14[4];
-    br_vector3 field_0x18;
-    br_vector3 field_0x24;
-    br_vector3 field_0x30;
-    br_angle field_0x3c;
-    br_angle field_0x3e;
-    br_angle field_0x40;
-    undefined field_0x42[2];
-    br_vector3 field_0x44;
-    br_vector3 field_0x50;
-    br_vector3 field_0x5c;
-    br_vector3 field_0x68;
-    int field_0x74;
-    tCar_crush_vertex_data* field_0x78;
-} tBend_data_local;
 
 // Inferred layout of the context handed to the model-bend callbacks
 // (matrix at 0x0, corner displacements, bend data at 0x60, car at 0x64).
