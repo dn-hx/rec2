@@ -50,6 +50,8 @@ extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
+extern void C2_HOOK_FASTCALL DisposePiping(void);
+
 // ARInitialise
 
 // ARDispose

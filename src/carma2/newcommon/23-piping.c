@@ -1683,10 +1683,15 @@ void C2_HOOK_FASTCALL InitialiseActionReplay(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004c6c60
+// FUNCTION: CARMA2_HW 0x004c6c60
 // STUB: CARMA2_SW 0x004c3390
 void C2_HOOK_FASTCALL DisposeActionReplay(void) {
-    NOT_IMPLEMENTED();
+    DisposePiping();
+    if (gCrush_space != NULL) {
+        BrMemFree(gCrush_space);
+        gCrush_space = NULL;
+    }
+
 }
 
 // CheckIncident
@@ -3162,6 +3167,9 @@ void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pF
 }
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004024a0
 void C2_HOOK_FASTCALL DisposePiping(void) {
 
@@ -3174,6 +3182,9 @@ void C2_HOOK_FASTCALL DisposePiping(void) {
         gLocal_buffer = NULL;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x00402540
