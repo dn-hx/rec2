@@ -520,3 +520,9 @@ void C2_HOOK_FASTCALL PDS3ServiceCDA(tS32 pDelta_time) {
 int C2_HOOK_FASTCALL PDS3Return0(void) {
     return 0;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00569b29
+int C2_HOOK_FASTCALL PDS3Return0_B(void) {
+    return 0;
+}
