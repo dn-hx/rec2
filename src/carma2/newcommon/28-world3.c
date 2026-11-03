@@ -2651,54 +2651,45 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
 // FUNCTION: CARMA2_HW 0x004f5ae0
 void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2) {
     int i;
-    int j;
-    int k;
-    int nfaces;
-    int dx;
-    int dy;
-    float min_x;
-    float max_x;
-    float min_y;
-    float max_y;
-    v11group* v11g;
-    v11face* v11f;
-    fmt_vertex* vertices;
 
     *pArea1 = 0;
     *pArea2 = 0;
 
     for (i = 0; i < V11MODEL(pModel)->ngroups; i++) {
-        v11g = &V11MODEL(pModel)->groups[i];
-        v11f = v11g->faces;
-        vertices = v11g->vertices;
-        nfaces = v11g->nfaces;
+        int j;
+        fmt_vertex* vertices = V11MODEL(pModel)->groups[i].vertices;
+        v11face* v11f = V11MODEL(pModel)->groups[i].faces;
 
-        for (j = 0; j < nfaces; j++, v11f++) {
-            min_x = 10000.f;
-            max_x = -10000.f;
-            min_y = 10000.f;
-            max_y = -10000.f;
+        for (j = V11MODEL(pModel)->groups[i].nfaces; j > 0; j--, v11f++) {
+            int k;
+            br_vector2 min = {{ 10000.f, 10000.f }};
+            br_vector2 max = {{ -10000.f, -10000.f }};
+            int dx;
+            int dy;
+            int area;
 
             for (k = 0; k < 3; k++) {
-                int vertex_i = v11f->vertices[k];
+                fmt_vertex* vertex = vertices + v11f->vertices[k];
 
-                if (vertices[vertex_i].map.v[0] < min_x) {
-                    min_x = vertices[vertex_i].map.v[0];
+                if (vertex->map.v[0] < min.v[0]) {
+                    min.v[0] = vertex->map.v[0];
                 }
-                if (vertices[vertex_i].map.v[0] > max_x) {
-                    max_x = vertices[vertex_i].map.v[0];
+                if (vertex->map.v[0] > max.v[0]) {
+                    max.v[0] = vertex->map.v[0];
                 }
-                if (vertices[vertex_i].map.v[1] < min_y) {
-                    min_y = vertices[vertex_i].map.v[1];
+                if (vertex->map.v[1] < min.v[1]) {
+                    min.v[1] = vertex->map.v[1];
                 }
-                if (vertices[vertex_i].map.v[1] > max_y) {
-                    max_y = vertices[vertex_i].map.v[1];
+                if (vertex->map.v[1] > max.v[1]) {
+                    max.v[1] = vertex->map.v[1];
                 }
             }
-            dy = (int)(max_y - min_y + 0.9);
-            dx = (int)(max_x - min_x + 0.9);
-            *pArea1 += dx * dy;
-            *pArea2 += dx * dy;
+            /* The originals subtract a negative double-precision constant. */
+            dy = (int)(max.v[1] - min.v[1] - -0.9);
+            dx = (int)(max.v[0] - min.v[0] - -0.9);
+            area = dx * dy;
+            *pArea1 += area;
+            *pArea2 += area;
         }
     }
     *pArea1 += 50;
