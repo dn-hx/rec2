@@ -1466,7 +1466,15 @@ int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// SetGhostPeds
+extern void C2_HOOK_FASTCALL MakePedsEthereal(void);
+extern void C2_HOOK_FASTCALL MakePedsNotEthereal(void);
+
+// FUNCTION: CARMA2_HW 0x004de930
+int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    MakePedsEthereal();
+    return pPowerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004de960
 void C2_HOOK_FASTCALL ResetDancingPeds(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -2236,6 +2244,9 @@ extern void C2_HOOK_FASTCALL MungeAllCharacterMaterials(void (C2_HOOK_FASTCALL* 
 extern void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback)(void*));
 extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*));
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004d6b40
 void C2_HOOK_FASTCALL MakePedsEthereal(void) {
 
@@ -2244,6 +2255,9 @@ void C2_HOOK_FASTCALL MakePedsEthereal(void) {
     MungeAllCharacterModels((void (C2_HOOK_FASTCALL*)(void*))ModelUpdatePrimitiveMaterials);
     gEthereal_pedestrians = 1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x004da870
