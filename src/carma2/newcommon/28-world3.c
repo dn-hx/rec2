@@ -986,3 +986,21 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
         }
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x004d3520
+void C2_HOOK_FASTCALL FinishUpLoadingPeds(void) {
+    extern int gPed_count;
+    extern tPedestrian* gPedestrian_array;
+    tPedestrian* new_pedestrians;
+    int i;
+
+    dr_dprintf("%d pedestrians, %d bytes each, total = %d bytes\n", gPed_count, sizeof(tRace_pedestrian), gPed_count * sizeof(tRace_pedestrian));
+    new_pedestrians = BrMemAllocate(gPed_count * sizeof(tPedestrian), kMem_ped_array);
+    memcpy(new_pedestrians, gPedestrian_array, gPed_count * sizeof(tPedestrian));
+    BrMemFree(gPedestrian_array);
+    gPedestrian_array = new_pedestrians;
+    for (i = 0; i < gPed_count; i++) {
+        gPedestrian_array[i].character->ped = &gPedestrian_array[i];
+    }
+}
