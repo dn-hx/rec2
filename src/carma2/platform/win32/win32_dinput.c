@@ -1620,3 +1620,19 @@ int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain) {
     }
     return 1;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00459ed0
+tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickButtonInfos(size_t pSize) {
+    tButtonJoystickInfo* data;
+
+    if (pSize != 0 && gJoystick_index != -1 && gDirectInputJoystickInfos[gJoystick_index].data == NULL) {
+        data = malloc(pSize);
+        gDirectInputJoystickInfos[gJoystick_index].data = data;
+        if (data != NULL) {
+            gDirectInputJoystickInfos[gJoystick_index].sizeData = pSize;
+            return gDirectInputJoystickInfos[gJoystick_index].data;
+        }
+    }
+    return NULL;
+}
