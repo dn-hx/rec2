@@ -3095,7 +3095,23 @@ void C2_HOOK_FASTCALL UndoFlap(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 
 // UndoModelMash
 
-// UndoRelink
+// FUNCTION: CARMA2_HW 0x004c9f90
+void C2_HOOK_FASTCALL UndoRelink(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_relink* chunk = (tPipe_chunk_relink*)*pChunk;
+    br_actor* actor = chunk->actor;
+    br_actor* parent = (br_actor*)chunk->field_0x8;
+    if (actor->parent != NULL) {
+        if (parent != NULL) {
+            RelinkActorKeepWorldTransform(parent, actor);
+        } else {
+            BrActorRemove(actor);
+        }
+    } else {
+        if (parent != NULL) {
+            BrActorAdd(parent, actor);
+        }
+    }
+}
 
 // UndoSplitWeld
 
