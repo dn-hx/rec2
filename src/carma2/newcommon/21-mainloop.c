@@ -251,3 +251,53 @@ void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
         ret
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0045b0a0
+void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer) {
+    tHeadup_text* node;
+    tHeadup_text* current;
+    int index;
+    int i;
+
+    node = pBuffer->texts;
+    if (node == NULL) {
+        return;
+    }
+    if (pBuffer->field_0x4 == NULL) {
+        pBuffer->field_0x4 = pBuffer->texts;
+        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
+            i = pBuffer->count - pBuffer->field_0x10;
+            node = pBuffer->texts;
+            for (; i > 0; i--) {
+                node = node->next;
+            }
+            pBuffer->field_0x4 = node;
+            return;
+        }
+    }
+    current = pBuffer->field_0x4;
+    index = 0;
+    for (node = pBuffer->texts; node != current; node = node->next) {
+        index++;
+    }
+    if (pBuffer->pos_last_add >= index + pBuffer->field_0x10
+            || pBuffer->pos_last_add <= index) {
+        if (pBuffer->pos_last_add == index + pBuffer->field_0x10) {
+            if (pBuffer->count - index < pBuffer->field_0x10) {
+                return;
+            }
+            pBuffer->field_0x4 = current->next;
+            return;
+        }
+        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
+            node = pBuffer->texts;
+            for (i = pBuffer->count - pBuffer->field_0x10; i > 0; i--) {
+                node = node->next;
+            }
+            pBuffer->field_0x4 = node;
+            return;
+        }
+        pBuffer->field_0x4 = pBuffer->text_last_add;
+    }
+}
