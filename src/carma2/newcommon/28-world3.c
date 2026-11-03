@@ -532,11 +532,11 @@ int C2_HOOK_FASTCALL AddShadeTables(tBrender_storage* pStorage_space, const char
 }
 
 // FUNCTION: CARMA2_HW 0x00501e40
-// FUNCTION: CARMA2_SW 0x004fd7a0
 int C2_HOOK_FASTCALL AddModels(tBrender_storage* pStorage_space, const char* pPath) {
     int i;
     int new_ones;
     int total;
+    tAdd_to_storage_result add_result;
     br_model* temp_array[2000];
 
     new_ones = 0;
@@ -549,9 +549,33 @@ int C2_HOOK_FASTCALL AddModels(tBrender_storage* pStorage_space, const char* pPa
         if (temp_array[i] == NULL) {
             continue;
         }
-        switch (AddModelToStorage(pStorage_space, temp_array[i])) {
+        gDuplicate_model = NULL;
+        if (pStorage_space->models_count < pStorage_space->max_models) {
+            if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
+                int j;
+
+                for (j = 0; j < pStorage_space->models_count; j++) {
+                    if (pStorage_space->models[j] != NULL
+                        && pStorage_space->models[j]->identifier != NULL
+                            && temp_array[i]->identifier != NULL
+                            && strcmp(pStorage_space->models[j]->identifier, temp_array[i]->identifier) == 0) {
+                        gDuplicate_model = pStorage_space->models[j];
+                        add_result = eStorage_duplicate;
+                        goto dispatch;
+                    }
+                }
+            }
+            pStorage_space->models[pStorage_space->models_count] = temp_array[i];
+            pStorage_space->models_count += 1;
+            add_result = eStorage_allocated;
+        } else {
+            add_result = eStorage_not_enough_room;
+        }
+    dispatch:
+        switch (add_result) {
         case eStorage_allocated:
             temp_array[i]->flags |= BR_MODF_UPDATEABLE;
+            temp_array[i]->flags &= ~BR_MODF_DONT_WELD;
             BrModelAdd(temp_array[i]);
             new_ones++;
             break;
