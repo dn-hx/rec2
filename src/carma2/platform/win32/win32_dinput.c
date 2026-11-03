@@ -1647,3 +1647,15 @@ void C2_HOOK_FASTCALL FreeCurrentJoystickButtonInfos(void) {
         gDirectInputJoystickInfos[gJoystick_index].sizeData = 0;
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0045c740
+void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName) {
+
+    if (gForceFeedbackAvailable) {
+        int index = PDFindJoystickEffect(effectName);
+        if (index != -1) {
+            StopDinputEffect(index);
+        }
+    }
+}
