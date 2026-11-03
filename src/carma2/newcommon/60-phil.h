@@ -20,6 +20,7 @@ extern int gPHIL_doing_physics;
 extern int gPHIL_count_list_collision_infos;
 extern tPHIL_queued_objects gPhil_queued_objects;
 extern tWorld_callback_active_passive_cbfn* gPHIL_original_activate_passive;
+extern tPhysics_callbacks* gPHIL_callbacks;
 extern int gPHIL_count_queued_objects_for_removal;
 extern int gPHIL_count_queued_objects;
 extern int gPHIL_munging_objects;
