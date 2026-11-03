@@ -200,6 +200,7 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
 // FreeS3SoundOutput
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056a900
 __declspec(naked) int C2_HOOK_CDECL FUN_0056a900(void) {
     __asm {
@@ -212,8 +213,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056a900(void) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056a900(void) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056a920
 __declspec(naked) int C2_HOOK_CDECL FUN_0056a920(void) {
     __asm {
@@ -226,8 +233,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056a920(void) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056a920(void) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056b340
 __declspec(naked) int C2_HOOK_CDECL FUN_0056b340(void* pMedia) {
     __asm {
@@ -240,8 +253,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056b340(void* pMedia) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056b340(void* pMedia) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056b440
 __declspec(naked) short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
     __asm {
@@ -254,8 +273,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompress
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c640
 __declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor) {
     __asm {
@@ -268,8 +293,14 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompress
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor) {
+    return NULL;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c6e0
 __declspec(naked) void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
     __asm {
@@ -282,8 +313,14 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
+    return NULL;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056d7e0
 __declspec(naked) int C2_HOOK_CDECL FUN_0056d7e0(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
     __asm {
@@ -296,8 +333,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056d7e0(void* pFrame_pixmap_handle, voi
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056d7e0(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056d8a0
 __declspec(naked) int C2_HOOK_CDECL FUN_0056d8a0(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
     __asm {
@@ -310,8 +353,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056d8a0(void* pImage_sequence, void* pF
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056d8a0(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056d8c0
 __declspec(naked) short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
     __asm {
@@ -324,8 +373,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_p
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056fde0
 __declspec(naked) void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor) {
     __asm {
@@ -338,8 +393,14 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor) {
+    return NULL;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x005705c0
 __declspec(naked) int C2_HOOK_CDECL FUN_005705c0(void) {
     __asm {
@@ -352,8 +413,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_005705c0(void) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_005705c0(void) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00570600
 __declspec(naked) void* C2_HOOK_CDECL FUN_00570600(int pSize) {
     __asm {
@@ -366,8 +433,14 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_00570600(int pSize) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void* C2_HOOK_CDECL FUN_00570600(int pSize) {
+    return NULL;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x005707e0
 __declspec(naked) void C2_HOOK_CDECL FUN_005707e0(void* pHandle) {
     __asm {
@@ -380,8 +453,13 @@ __declspec(naked) void C2_HOOK_CDECL FUN_005707e0(void* pHandle) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void C2_HOOK_CDECL FUN_005707e0(void* pHandle) {
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00570a40
 __declspec(naked) void C2_HOOK_CDECL FUN_00570a40(void* pHandle) {
     __asm {
@@ -394,8 +472,13 @@ __declspec(naked) void C2_HOOK_CDECL FUN_00570a40(void* pHandle) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void C2_HOOK_CDECL FUN_00570a40(void* pHandle) {
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056abe0
 __declspec(naked) void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
     __asm {
@@ -408,8 +491,13 @@ __declspec(naked) void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056b240
 __declspec(naked) int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
     __asm {
@@ -422,8 +510,14 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
+    return 0;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056b360
 __declspec(naked) short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
     __asm {
@@ -436,8 +530,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056baa0
 __declspec(naked) short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
     __asm {
@@ -450,8 +550,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c600
 __declspec(naked) short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
     __asm {
@@ -464,8 +570,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_star
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c720
 __declspec(naked) short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
     __asm {
@@ -478,8 +590,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreato
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c800
 __declspec(naked) void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
     __asm {
@@ -492,8 +610,14 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_fl
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
+    return NULL;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056dac0
 __declspec(naked) short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
     __asm {
@@ -506,8 +630,14 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
+    return 1;
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00570ac0
 __declspec(naked) void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
     __asm {
@@ -520,8 +650,13 @@ __declspec(naked) void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
+}
+#endif
 
 
+#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00575340
 __declspec(naked) int C2_HOOK_CDECL FUN_00575340(char* pString) {
     __asm {
@@ -534,3 +669,8 @@ __declspec(naked) int C2_HOOK_CDECL FUN_00575340(char* pString) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+#else
+int C2_HOOK_CDECL FUN_00575340(char* pString) {
+    return 0;
+}
+#endif
