@@ -10,6 +10,7 @@
 
 #include "18-graphics2.h"
 #include "30-opponent.h"
+#include "23-piping.h"
 #include "globvars.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
@@ -121,4 +122,52 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
 void C2_HOOK_FASTCALL ARSetPause(int pPause) {
     gPaused = pPause;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00403020
+tU32 C2_HOOK_FASTCALL ARGetStartTime(void) {
+    extern void C2_HOOK_CDECL FatalError(int pStr_index, ...);
+    tU8* session;
+    tU32 i;
+    tU32 length;
+    tU32 total;
+
+    session = gPipe_buffer_oldest;
+    for (;;) {
+        total = 0;
+        for (i = 0; i < ((tPipe_session*)session)->count; i++) {
+            tU32 chunk_type;
+            tU8* the_chunk;
+
+            chunk_type = (tU32)((tPipe_session*)session)->type;
+            the_chunk = session + 8 + total;
+            if (gPipe_callbacks[chunk_type].calc_length != NULL) {
+                length = gPipe_callbacks[chunk_type].calc_length((tPipe_chunk*)the_chunk);
+                length = length + gPipe_callbacks[chunk_type].length + sizeof(void*);
+            } else {
+                length = gPipe_callbacks[chunk_type].length + sizeof(void*);
+            }
+            total += length;
+        }
+        total += 10;
+        if ((total & 1) != 0) {
+            FatalError(0x62);
+        }
+        session = session + total;
+        if ((uintptr_t)session >= (uintptr_t)gPipe_buffer_working_end && session != gPipe_record_ptr) {
+            session = gPipe_buffer_start;
+        }
+        if (session == gPipe_record_ptr) {
+            return 0;
+        }
+        if (((tPipe_session*)session)->type == 0) {
+            return *(tU32*)(session + 12);
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
