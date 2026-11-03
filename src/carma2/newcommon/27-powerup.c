@@ -148,7 +148,7 @@ tRespawn_powerup gRespawn_powerups[100] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a0908
 // GLOBAL: CARMA2_SW 0x0069a960
-tPhysics_object* gMutant_tail_object = NULL;
+tPhysics_object* gMutant_tail_first_collision_info = NULL;
 
 // GLOBAL: CARMA2_HW 0x006a0acc
 // GLOBAL: CARMA2_SW 0x0069ab24
@@ -2098,7 +2098,62 @@ int C2_HOOK_FASTCALL PedValium(tPowerup* powerup, tCar_spec* car) {
 
 // PowerupCancel
 
-// GrowATail
+extern int gNumber_of_icons;
+extern tU32 gINT_00705b70;
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004b6210
+int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    (void)pInfo; (void)pMatrix; (void)pArg3; (void)pArg4;
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+extern const float gConst_0p5;
+extern const double gConst_0p95;
+
+// FUNCTION: CARMA2_HW 0x004e02b0
+int C2_HOOK_FASTCALL GrowATail(tPowerup* pPowerup, tCar_spec* pCar) {
+    tPhysics_object* node;
+    br_matrix34 tmp;
+    br_vector3 tmp_v;
+
+    if (gMutant_tail_state == 2) {
+        return -1;
+    }
+    if (gMutant_tail_state == 1) {
+        PHILRemoveObject(gMutant_tail_first_collision_info);
+        gMutant_tail_first_collision_info->physics_joint1 = gMutant_tail_first_joint;
+    } else {
+        PipeSingleSpecial(1);
+    }
+    BrVector3SetFloat(&gMutant_tail_first_collision_info->physics_joint1->field_0x14, 0.0f, (pCar->collision_info->bb1.max.v[1] - pCar->collision_info->bb1.min.v[1]) * gConst_0p5, pCar->collision_info->bb1.max.v[2] * gConst_0p95);
+    PhysicsAddObject(pCar->collision_info, gMutant_tail_first_collision_info);
+    node = gMutant_tail_first_collision_info;
+    while (node != NULL) {
+        if (node->actor->parent == NULL) {
+            BrActorAdd(gNon_track_actor, node->actor);
+        }
+        node->owner = (void*)pCar;
+        BrMatrix34Translate(&node->actor->t.t.mat, -node->physics_joint1->field_0x08.v[0], -node->physics_joint1->field_0x08.v[1], -node->physics_joint1->field_0x08.v[2]);
+        BrMatrix34Copy(&tmp, &pCar->collision_info->actor->t.t.mat);
+        BrMatrix34Post(&node->actor->t.t.mat, &tmp);
+        BrMatrix34Rotate(&tmp, 0xf8d4, (br_vector3*)&node->actor->t.t.mat);
+        BrMatrix34Post(&node->actor->t.t.mat, &tmp);
+        BrMatrix34ApplyP(&tmp_v, &node->physics_joint1->field_0x14, &node->parent->actor->t.t.mat);
+        BrMatrix34PostTranslate(&node->actor->t.t.mat, tmp_v.v[0], tmp_v.v[1], tmp_v.v[2]);
+        BrMatrix34Copy(&node->transform_matrix, &node->actor->t.t.mat);
+        node->field_0xed = 1;
+        node = node->child;
+    }
+    GotPowerupEarwig(pCar, 0x5f, 0, 1);
+    gMutant_tail_state = 2;
+    DRS3StartSound2(gCar_outlet, 0xf3d, 1, 0xff, 0xff, -1, -1);
+    return pPowerup - gPowerup_array;
+}
 
 // CutOffTail
 
@@ -2108,19 +2163,19 @@ void C2_HOOK_FASTCALL RemoveTail(void) {
     tPhysics_object* object;
 
     if (gMutant_tail_state != 0) {
-        object = gMutant_tail_object;
-        if (gMutant_tail_object != NULL) {
+        object = gMutant_tail_first_collision_info;
+        if (gMutant_tail_first_collision_info != NULL) {
             while (object != NULL) {
                 BrActorRemove(object->actor);
                 object = object->child;
             }
         }
         if (gMutant_tail_state == 2) {
-            PhysicsRemoveObject(gMutant_tail_object);
+            PhysicsRemoveObject(gMutant_tail_first_collision_info);
         } else {
-            PHILRemoveObject(gMutant_tail_object);
+            PHILRemoveObject(gMutant_tail_first_collision_info);
         }
-        gMutant_tail_object->physics_joint1 = gMutant_tail_first_joint;
+        gMutant_tail_first_collision_info->physics_joint1 = gMutant_tail_first_joint;
         gMutant_tail_state = 0;
     }
 }
@@ -2130,7 +2185,7 @@ void C2_HOOK_FASTCALL RemoveTail(void) {
 void C2_HOOK_FASTCALL DoInitialTail(void) {
     tPhysics_object* object;
 
-    for (object = gMutant_tail_object; object != NULL; object = object->child) {
+    for (object = gMutant_tail_first_collision_info; object != NULL; object = object->child) {
         object->actor->render_style = BR_RSTYLE_FACES;
     }
 }
@@ -2140,7 +2195,7 @@ void C2_HOOK_FASTCALL DoInitialTail(void) {
 void C2_HOOK_FASTCALL UndoInitialTail(void) {
     tPhysics_object* object;
 
-    for (object = gMutant_tail_object; object != NULL; object = object->child) {
+    for (object = gMutant_tail_first_collision_info; object != NULL; object = object->child) {
         object->actor->render_style = BR_RSTYLE_NONE;
     }
 }
@@ -2673,6 +2728,9 @@ const float gConst_minus_1p0 = -1.0f;
 // GLOBAL: CARMA2_HW 0x0058acc0
 const double gConst_radians_to_degrees = 182.04444444444445;
 
+// GLOBAL: CARMA2_HW 0x0058acc8
+const double gConst_0p95 = 0.95;
+
 // FUNCTION: CARMA2_HW 0x004dd590
 void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
     extern const double gConst_minus_0p15;
@@ -2753,6 +2811,11 @@ void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
 void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info) {
     NOT_IMPLEMENTED();
 }
+
+/* gNumber_of_icons is defined in workv3's 07-structur.c (ResetPowerups); that file is not
+   implemented in the rebuild tree, so define the global here. */
+// GLOBAL: CARMA2_HW 0x006a0944
+int gNumber_of_icons;
 
 // GLOBAL: CARMA2_HW 0x006a0adc
 int gCollision_info_uid_counter;
