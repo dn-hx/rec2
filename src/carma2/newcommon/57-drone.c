@@ -79,7 +79,10 @@ extern void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 extern tDrone_state_function* gDrone_state_functions[6];
 
-// CrappyLittleVector3DPrintf
+// FUNCTION: CARMA2_HW 0x00451620
+void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
+    DoNotDprintf_drone("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
+}
 
 // CrappyLittleDrivingStateInfoDprintf
 
