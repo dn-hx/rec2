@@ -240,3 +240,17 @@ __declspec(naked) int C2_HOOK_CDECL FUN_0056b340(void* pMedia) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056b440
+__declspec(naked) short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_b440
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_b440:
+        mov     eax, 0x2007c
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
