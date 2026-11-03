@@ -733,6 +733,9 @@ tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession) {
     }
     return size;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004024e0
 void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_chunk_type pType) {
     tU8* cur;
@@ -755,6 +758,9 @@ void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_chunk_ty
         *pChunk_ptr = (tPipe_chunk*)cur;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // PipingFrameReset
 
