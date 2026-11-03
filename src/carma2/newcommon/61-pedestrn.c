@@ -1215,6 +1215,10 @@ void C2_HOOK_FASTCALL MakeActorRenderable(br_actor* pActor, int pBone_index, tPe
     }
 }
 
+// kept out of line: DisposePedForm 0x4067e0 calls both (original has real calls)
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004cbca0
 // FUNCTION: CARMA2_SW 0x004c83a0
 void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor) {
@@ -1223,7 +1227,13 @@ void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor) {
         BrActorRemove(pActor);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004cbcc0
 int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
     if (pActor->parent != NULL) {
@@ -1232,6 +1242,9 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
         return 0;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004cc2c0
 void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime) {
