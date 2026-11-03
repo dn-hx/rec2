@@ -9,6 +9,7 @@
 #include "53-controls.h"
 
 #include "00-car.h"
+#include "13-crush1.h"
 #include "15-displays.h"
 #include "16-graphics1.h"
 #include "17-world2.h"
@@ -769,7 +770,9 @@ void C2_HOOK_FASTCALL FUN_0045c240(void) {
 #endif
 // FUNCTION: CARMA2_HW 0x0045aa60
 void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
+#ifdef REC2_HW
     extern br_actor* g2d_camera;
+#endif
 
     if (gAcc_poly_material == NULL) {
         gAcc_poly_material = BrMaterialAllocate("Acc Poly Mat");
