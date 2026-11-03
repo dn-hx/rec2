@@ -1167,7 +1167,37 @@ int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// AnnihilatePeds
+extern int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius);
+extern int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar);
+
+/* NapalmPedestrianNearCar (0x004ce560) is not part of this replay batch; an inert
+   stub keeps NapalmPeds linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004ce560
+int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004de140
+int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    int result;
+
+    if (FindPedestrianNearCar(pCar, pPowerup->float_params[0]) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Ped_Ray", 0);
+    }
+    return result;
+}
 
 // NapalmPeds
 
