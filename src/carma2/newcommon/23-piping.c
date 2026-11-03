@@ -47,6 +47,12 @@ typedef struct {
 typedef struct {
     int field_0x0;
     int field_0x4;
+    br_vector3 field_0x8;
+} tPipe_chunk_napalm_bolt;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
     tU16 field_0x8;
     tU16 field_0xa;
 } tPipe_chunk_drone_straight_pos;
@@ -2980,7 +2986,12 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk) {
 }
 
-// ApplyNapalmBolt
+// FUNCTION: CARMA2_HW 0x004c9d20
+void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk) {
+    tPipe_chunk_napalm_bolt* chunk = (tPipe_chunk_napalm_bolt*)*pChunk;
+
+    return AdjustNapalmBolt(chunk->field_0x0, (tPedestrian*)(intptr_t)chunk->field_0x4, &chunk->field_0x8);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d40
 // FUNCTION: CARMA2_SW 0x004c6470
