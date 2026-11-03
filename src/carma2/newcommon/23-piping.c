@@ -46,6 +46,11 @@ typedef struct {
 
 typedef struct {
     int field_0x0;
+    br_vector3 field_0x4;
+} tPipe_chunk_shit_mine;
+
+typedef struct {
+    int field_0x0;
     int field_0x4;
     br_vector3 field_0x8;
 } tPipe_chunk_napalm_bolt;
@@ -3000,7 +3005,12 @@ void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk) {
     ARDoPowerupRespawn((br_actor*)(*pChunk)->subject_index, (*pChunk)->data.powerup_respawn.index);
 }
 
-// ApplyShitMine
+// FUNCTION: CARMA2_HW 0x004c9d50
+void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk) {
+    tPipe_chunk_shit_mine* chunk = (tPipe_chunk_shit_mine*)*pChunk;
+
+    return ARDoShitMine((br_actor*)(intptr_t)chunk->field_0x0, (br_matrix34*)&chunk->field_0x4);
+}
 
 // ApplyEndShitMine
 
