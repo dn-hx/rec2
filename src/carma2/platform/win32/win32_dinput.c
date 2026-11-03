@@ -1591,3 +1591,14 @@ int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection
 void C2_HOOK_FASTCALL StartDinputEffect(int pIndex) {
     NOT_IMPLEMENTED();
 }
+
+
+// FUNCTION: CARMA2_HW 0x00457ed0
+void C2_HOOK_FASTCALL StopDinputEffect(int pIndex) {
+    IDirectInputEffect* effect;
+
+    effect = gDirectInputEffects[pIndex];
+    if (effect != NULL) {
+        IDirectInputEffect_Stop(effect);
+    }
+}
