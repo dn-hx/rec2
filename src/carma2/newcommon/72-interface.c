@@ -600,7 +600,7 @@ br_pixelmap* C2_HOOK_FASTCALL GetThisFuckingPixelmapPleaseMrTwatter(const char* 
     size_t i;
 
     result = NULL;
-    PathCat(the_path, pFolder, "PIXIES.P08");
+    PathCat(the_path, pFolder, "PIXIES.P16");
     f = PFfopen(the_path, "rb");
     if (f != NULL) {
         PFfclose(f);
