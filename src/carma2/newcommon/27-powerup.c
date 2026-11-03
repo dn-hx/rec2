@@ -1543,3 +1543,30 @@ int C2_HOOK_FASTCALL NapalmPedDistanceCallback(tPedestrian* pPed, tCar_spec* pCa
 int C2_HOOK_CDECL NapalmPedDistanceCompare(const void* pValue1, const void* pValue2) {
     return (int)(((const tNapalm_ped_distance*)pValue1)->distance - ((const tNapalm_ped_distance*)pValue2)->distance);
 }
+
+
+extern float gPed_head_scale;
+extern int gPed_count;
+
+// FUNCTION: CARMA2_HW 0x004d6ab0
+void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
+    br_scalar s[3];
+    int i;
+    tPedestrian* ped;
+
+    s[0] = pHead_scale / gPed_head_scale;
+    s[1] = s[0];
+    s[2] = s[0];
+    ScaleAllPeds(-2, s, 0);
+    gPed_head_scale = pHead_scale;
+    if (gAction_replay_mode != 0) {
+        if (ARGetReplayRate() < 0.0f) {
+            ped = gPedestrian_array;
+            for (i = 0; i < gPed_count; i++, ped++) {
+                if (ped->flags & 1) {
+                    SetCharacterBonePositions(ped->character, 3, 0);
+                }
+            }
+        }
+    }
+}
