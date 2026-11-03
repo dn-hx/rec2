@@ -28,6 +28,14 @@
 
 #include "c2_string.h"
 
+typedef struct {
+    tNet_message_chunk_header header;
+    tPlayer_ID player_id;
+    int powerup_index;
+    int time_remaining;
+    int field_0x10;
+} tNet_message_chunk_powerup;
+
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
 int gInventory[20];
@@ -1069,7 +1077,65 @@ void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* pPowerup, tCar_spec* pCar) {
     gMutant_speed = 0.f;
 }
 
-// ReceivedPowerup
+// GLOBAL: CARMA2_HW 0x006a0ad0
+int gNumber_of_powerups;
+
+extern tPlayer_ID gLocal_net_ID;
+
+/* GotPowerupX (0x004d9150) is not implemented in this replay yet; an inert stub
+   keeps ReceivedPowerup linkable and preserves the call target name. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004d9150
+int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime) {
+    NOT_IMPLEMENTED();
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004dece0
+void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
+    tPowerup* powerup;
+    tCar_spec* car;
+
+    if (!gProgram_state.racing || pMessage->powerup_index >= gNumber_of_powerups || pMessage->powerup_index < 0) {
+        return;
+    }
+    powerup = &gPowerup_array[pMessage->powerup_index];
+    if (pMessage->field_0x10 != 0 && pMessage->field_0x10 != 1) {
+        if ((powerup->net_type & 1) == 0 && powerup->lose_proc != NULL) {
+            car = NetCarFromPlayerID(pMessage->player_id);
+            if (car != NULL) {
+                powerup->lose_proc(powerup, car);
+                car->powerups[pMessage->powerup_index] = 0;
+            }
+        }
+        return;
+    }
+    if ((powerup->net_type & 1) != 0) {
+        GotPowerupX(&gProgram_state.current_car, pMessage->powerup_index, 0, pMessage->field_0x10 == 0, pMessage->time_remaining);
+    } else if (pMessage->player_id != gLocal_net_ID && powerup->got_proc != NULL) {
+        car = NetCarFromPlayerID(pMessage->player_id);
+        if (car != NULL) {
+            powerup->got_proc(powerup, car);
+            switch (powerup->type) {
+            case ePowerup_instantaneous:
+                break;
+            case ePowerup_timed:
+                car->powerups[pMessage->powerup_index] = GetTotalTime() + pMessage->time_remaining;
+                break;
+            case ePowerup_whole_race:
+                car->powerups[pMessage->powerup_index] = -1;
+                return;
+            default:
+                break;
+            }
+        }
+    }
+}
 
 // STUB: CARMA2_HW 0x004dedf0
 // STUB: CARMA2_SW 0x004db2f0
@@ -1711,14 +1777,6 @@ void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
     pMine->collision_info->omega.v[2] = 0.f;
 }
 
-
-typedef struct {
-    tNet_message_chunk_header header;
-    tPlayer_ID player_id;
-    int powerup_index;
-    int time_remaining;
-    int field_0x10;
-} tNet_message_chunk_powerup;
 
 // FUNCTION: CARMA2_HW 0x004de5a0
 int C2_HOOK_FASTCALL ReceivedRepulseOpponents(tNet_message_chunk_powerup* pMessage) {
