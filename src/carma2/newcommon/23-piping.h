@@ -52,6 +52,10 @@ extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 extern void C2_HOOK_FASTCALL DisposePiping(void);
 
+extern void C2_HOOK_FASTCALL SetPipeUndoFlag(void);
+
+extern void C2_HOOK_FASTCALL ClearPipeUndoFlag(void);
+
 // ARInitialise
 
 // ARDispose

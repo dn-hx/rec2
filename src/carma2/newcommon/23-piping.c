@@ -3044,7 +3044,18 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoSpecial
 
-// UndoScreenWobble
+// FUNCTION: CARMA2_HW 0x004c9e50
+void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    SetPipeUndoFlag();
+    if (pPrev_chunk != NULL) {
+        tPipe_chunk_screen_wobble* wobble = (tPipe_chunk_screen_wobble*)((tU8*)pPrev_chunk + 4);
+        SetScreenWobble(wobble->wobble_x, wobble->wobble_y);
+    } else {
+        SetScreenWobble(0, 0);
+    }
+    ClearPipeUndoFlag();
+}
 
 // UndoSplash
 
@@ -3338,6 +3349,9 @@ int C2_HOOK_FASTCALL ARReplayPlaying(void) {
 }
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004030d0
 void C2_HOOK_FASTCALL SetPipeUndoFlag(void) {
     gPipe_undo_enabled = 1;
@@ -3346,6 +3360,9 @@ void C2_HOOK_FASTCALL SetPipeUndoFlag(void) {
 void C2_HOOK_FASTCALL ClearPipeUndoFlag(void) {
     gPipe_undo_enabled = 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x00403800
