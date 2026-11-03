@@ -33,7 +33,6 @@ void DisposeHandle(Handle h) {
 }
 
 // STUB: CARMA2_HW 0x0056a8e0
-// STUB: CARMA2_SW 0x00565f80
 OSErr EnterMovies(void) {
     return 0x1;
 }
