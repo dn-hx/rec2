@@ -118,10 +118,15 @@ tU32 gLast_key_down_time;
 // GLOBAL: CARMA2_HW 0x0068bed8
 int gModifiers_down;
 
+#ifdef REC2_MATCHING
+#define REC2_INLINE __inline
+#else
+#define REC2_INLINE
+#endif
 
 // FUNCTION: CARMA2_HW 0x00482770
 // FUNCTION: CARMA2_SW 0x0047f8b0
-void C2_HOOK_FASTCALL SetJoystickArrays(int* pKeys, int pMark) {
+REC2_INLINE void C2_HOOK_FASTCALL SetJoystickArrays(int* pKeys, int pMark) {
     int i;
 
     for (i = 0; i < 44; i++) {
@@ -236,7 +241,6 @@ void C2_HOOK_FASTCALL SetJoystickArrays(int* pKeys, int pMark) {
 }
 
 // FUNCTION: CARMA2_HW 0x00481eb0
-// FUNCTION: CARMA2_SW 0x0047eff0
 void C2_HOOK_FASTCALL PollKeys(void) {
 
     gKey_poll_counter += 1;
