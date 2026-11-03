@@ -352,3 +352,17 @@ __declspec(naked) int C2_HOOK_CDECL FUN_005705c0(void) {
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x00570600
+__declspec(naked) void* C2_HOOK_CDECL FUN_00570600(int pSize) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_0600
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_0600:
+        mov     eax, 0x150008
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
