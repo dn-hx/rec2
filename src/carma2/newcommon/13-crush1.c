@@ -4116,3 +4116,70 @@ void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVerte
         *pOut = t;
     }
 }
+
+
+// Inferred layout of the bend data stored at tCar_crush_spec::field_0x154
+// (the record is not modelled in rec2_types.h yet).
+typedef struct tBend_data_local {
+    br_scalar field_0x0;
+    br_scalar field_0x4;
+    undefined field_0x8[4];
+    br_scalar field_0xc;
+    br_scalar field_0x10;
+    undefined field_0x14[4];
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_vector3 field_0x30;
+    br_angle field_0x3c;
+    br_angle field_0x3e;
+    br_angle field_0x40;
+    undefined field_0x42[2];
+    br_vector3 field_0x44;
+    br_vector3 field_0x50;
+    br_vector3 field_0x5c;
+    br_vector3 field_0x68;
+    int field_0x74;
+    tCar_crush_vertex_data* field_0x78;
+} tBend_data_local;
+
+// Inferred layout of the context handed to the model-bend callbacks
+// (matrix at 0x0, corner displacements, bend data at 0x60, car at 0x64).
+typedef struct tUnbend_model_context_local {
+    br_matrix34 matrix;
+    br_vector3 field_0x30;
+    br_vector3 field_0x3c;
+    br_vector3 field_0x48;
+    br_vector3 field_0x54;
+    tBend_data_local* bend;
+    tCar_spec* car;
+} tUnbend_model_context_local;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0043a5b0
+void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// Unbends every detail-level model of the actor (callback of UnBendActor).
+// FUNCTION: CARMA2_HW 0x0043a560
+intptr_t C2_HOOK_FASTCALL UnBendActorCB(br_actor* pActor, br_vector3* pDelta, void* pData) {
+    tUser_crush_data* user_crush;
+    const tUnbend_model_context_local* context;
+    int i;
+
+    user_crush = pActor->user;
+    if (user_crush == NULL) {
+        return 0;
+    }
+    if (user_crush->crush_data != NULL) {
+        context = pData;
+        for (i = 0; i < context->car->count_detail_levels; i++) {
+            FUN_0043a5b0(user_crush->models[i], pDelta, pData);
+        }
+    }
+    return 0;
+}
