@@ -3158,6 +3158,8 @@ void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pCollision) {
         0xc, 4, &pCollision->water_normal);
 }
 
+extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pCollision_info, int pParam);
+
 // FUNCTION: CARMA2_HW 0x004c7160
 void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollision, void* pArg2) {
     tU8 flag;
