@@ -653,3 +653,12 @@ int C2_HOOK_FASTCALL S3Service3D(tS3_channel* pChannel) {
     }
     return updated;
 }
+
+
+// FUNCTION: CARMA2_HW 0x00565ea0
+void C2_HOOK_FASTCALL S3SetVector3(tS3_vector3* pVec, float pX, float pY, float pZ) {
+
+    pVec->x = pX;
+    pVec->y = pY;
+    pVec->z = pZ;
+}
