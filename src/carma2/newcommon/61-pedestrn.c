@@ -4297,11 +4297,19 @@ void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat,
 
 // BonerCloneModel
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // STUB: CARMA2_HW 0x00406ab0
 tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
     NOT_IMPLEMENTED();
     return NULL;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DisposePersonality
 
