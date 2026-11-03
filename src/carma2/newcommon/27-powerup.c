@@ -1469,6 +1469,7 @@ int C2_HOOK_FASTCALL SetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 extern void C2_HOOK_FASTCALL MakePedsEthereal(void);
 extern void C2_HOOK_FASTCALL MakePedsNotEthereal(void);
 extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 
 // FUNCTION: CARMA2_HW 0x004de930
 int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -1645,10 +1646,67 @@ void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
     }
 }
 
-// STUB: CARMA2_HW 0x004dedf0
+// FUNCTION: CARMA2_HW 0x004dedf0
 // STUB: CARMA2_SW 0x004db2f0
 void C2_HOOK_FASTCALL SendCurrentPowerups(void) {
-    NOT_IMPLEMENTED();
+    tCar_spec* car;
+    tNet_message_chunk_powerup* message;
+    int locals[3];
+    int player_id;
+    int net_player_index;
+    int powerup_index;
+    int* powerup_time;
+    int current_time;
+    tNet_game_player_info* net_player;
+
+    player_id = locals[2];
+    locals[1] = 0;
+    do {
+        locals[0] = locals[1] == 0 ? 1 : GetCarCount(locals[1]);
+        locals[2] = 0;
+        if (locals[0] > 0) {
+            do {
+                if (locals[1] == 0) {
+                    car = &gProgram_state.current_car;
+                } else {
+                    car = GetCarSpec(locals[1], locals[2]);
+                }
+                net_player_index = 0;
+                if (gNumber_of_net_players > 0) {
+                    net_player = gNet_players;
+                    while (net_player_index < gNumber_of_net_players) {
+                        if (net_player->car == car) {
+                            player_id = gNet_players[net_player_index].ID;
+                            break;
+                        }
+                        net_player_index++;
+                        net_player++;
+                    }
+                }
+                powerup_index = 0;
+                if (gNumber_of_powerups > 0) {
+                    powerup_time = car->powerups;
+                    do {
+                        if (*powerup_time != 0) {
+                            message = (tNet_message_chunk_powerup*)NetStartBroadcastContents((tNet_message_type)0x16, 0);
+                            if (message != NULL) {
+                                message->field_0x10 = 1;
+                                message->player_id = player_id;
+                                message->powerup_index = powerup_index;
+                                current_time = GetTotalTime();
+                                message->time_remaining = *powerup_time - current_time;
+                                NetBroadcastContents((tNet_message_chunk*)message);
+                            }
+                        }
+                        powerup_index++;
+                        powerup_time++;
+                    } while (powerup_index < gNumber_of_powerups);
+                }
+                locals[2]++;
+            } while (locals[2] < locals[0]);
+        }
+        locals[1]++;
+    } while (locals[1] <= 1);
 }
 
 // LoseAllLocalPowerups
@@ -2075,6 +2133,10 @@ void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pI
 // STUB: CARMA2_HW 0x0040bee0
 void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
     (void)pForm; (void)pIndex; (void)pScale; (void)pMode;
+}
+// STUB: CARMA2_HW 0x0049fb70
+void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage) {
+    (void)pMessage;
 }
 // STUB: CARMA2_HW 0x004f9020
 void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
