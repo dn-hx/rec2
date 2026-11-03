@@ -30,6 +30,10 @@ int gEdge_trigger_mode;
 // GLOBAL: CARMA2_SW 0x00651bb8
 int gGo_ahead_keys[3] = { 51, 52, 106 };
 
+// base of the negative-index trick in CyclePollKeys (gJoy_array - 0x23c)
+// GLOBAL: CARMA2_HW 0x0074b384
+int gUNK_0074b384[1];
+
 // GLOBAL: CARMA2_HW 0x0074b5c0
 tJoy_array gJoy_array;
 
@@ -251,7 +255,6 @@ void C2_HOOK_FASTCALL PollKeys(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00482160
-// FUNCTION: CARMA2_SW 0x0047f2a0
 void C2_HOOK_FASTCALL CyclePollKeys(void) {
     int i;
 
@@ -259,7 +262,7 @@ void C2_HOOK_FASTCALL CyclePollKeys(void) {
         if (gKey_array[i] > gKey_poll_counter) {
             gKey_array[i] = 0;
             if (i > 143) {
-                gJoy_array[i - 143] = -1; // yes this is a little weird I know...
+                gUNK_0074b384[i] = -1; // yes this is a little weird I know...
             }
         }
     }
