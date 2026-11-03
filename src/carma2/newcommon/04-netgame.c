@@ -279,46 +279,60 @@ extern int C2_HOOK_FASTCALL PickARandomCar(void);
 extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
 
+// Local image of the start-race chunk (type 0xc) of a net message: the layout lives in the
+// HW-only message union upstream, so it is declared here to keep rec2_types.h untouched.
+typedef struct {
+    tU8 index;
+    tU8 next_car_index;
+    tCompressed_matrix3 matrix;
+} tNet_start_race_car_local;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    tU8 car_count;
+    tU8 racing;
+    tU8 next_race;
+    tNet_start_race_car_local car_list[12];
+} tNet_start_race_chunk_local;
+
 // FUNCTION: CARMA2_HW 0x00498e70
 void C2_HOOK_FASTCALL SignalToStartRace(void) {
+    tNet_message* the_message;
+    int inactive;
     int i;
     int j;
-    int inactive;
-    tU8* dst;
-    tNet_message* message;
 
     gCurrent_net_game->no_races_yet = 0;
     gINT_0074c6d4 = 0;
     gINT_0074b780 = 1;
-    message = NetBuildGuaranteedMessage(0xc, 0);
-    dst = (tU8*)message + 0x1e;
-    ((tU8*)message)[0x1b] = (tU8)gProgram_state.racing;
-    ((tU8*)message)[0x1a] = (tU8)gCurrent_race.number_of_racers;
-    for (i = 0; i < gCurrent_race.number_of_racers; i++, dst += 0x14) {
-        CompressMatrix34((tCompressed_matrix3*)(dst + 2), &inactive,
+    the_message = NetBuildGuaranteedMessage(0xc, 0);
+    ((tNet_start_race_chunk_local*)&the_message->contents)->racing = (tU8)gProgram_state.racing;
+    ((tNet_start_race_chunk_local*)&the_message->contents)->car_count = (tU8)gCurrent_race.number_of_racers;
+    for (i = 0; i < gCurrent_race.number_of_racers; i++) {
+        CompressMatrix34(&((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].matrix, &inactive,
             &gCurrent_race.opponent_list[i].car_spec->car_master_actor->t.t.mat);
         for (j = 0; j < gNumber_of_net_players; j++) {
             if (gCurrent_race.opponent_list[i].car_spec == gNet_players[j].car) {
-                dst[0] = (tU8)j;
+                ((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index = (tU8)j;
                 if (inactive) {
-                    dst[0] |= 0x80;
+                    ((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index |= 0x80;
                 }
                 break;
             }
         }
         if (gCurrent_net_game->options.car_choice == eNet_car_all || gCurrent_net_game->options.car_choice == eNet_car_novelty) {
-            if (gNet_players[dst[0] & 0x7f].next_car_index < 0) {
-                gNet_players[dst[0] & 0x7f].next_car_index = PickARandomCar();
-                gCar_details[gNet_players[dst[0] & 0x7f].next_car_index].ownership = 1;
+            if (gNet_players[((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index & 0x7f].next_car_index < 0) {
+                gNet_players[((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index & 0x7f].next_car_index = PickARandomCar();
+                gCar_details[gNet_players[((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index & 0x7f].next_car_index].ownership = 1;
             }
-            dst[1] = (tU8)gNet_players[dst[0] & 0x7f].next_car_index;
+            ((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].next_car_index = (tU8)gNet_players[((tNet_start_race_chunk_local*)&the_message->contents)->car_list[i].index & 0x7f].next_car_index;
         }
     }
     if (gPending_race < 0) {
         gPending_race = PickNetRace(gProgram_state.current_race_index, gCurrent_net_game->options.race_sequence_type);
     }
-    ((tU8*)message)[0x1c] = (tU8)gPending_race;
-    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
+    ((tNet_start_race_chunk_local*)&the_message->contents)->next_race = (tU8)gPending_race;
+    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, the_message, NULL);
     if (gProgram_state.racing) {
         SendCurrentPowerups();
     }
