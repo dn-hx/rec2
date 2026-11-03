@@ -916,3 +916,12 @@ void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2
 void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
     NOT_IMPLEMENTED();
 }
+
+
+// FUNCTION: CARMA2_HW 0x004516b0
+void C2_HOOK_FASTCALL DoDefaultDroneStateAction(tDrone_spec* pDrone_spec) {
+
+    if (gDrone_state_functions[pDrone_spec->current_state] != NULL) {
+        gDrone_state_functions[pDrone_spec->current_state](pDrone_spec, eDrone_state_DEFAULT);
+    }
+}
