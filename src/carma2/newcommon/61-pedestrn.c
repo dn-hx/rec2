@@ -402,6 +402,10 @@ static int C2_HOOK_FASTCALL PedProxSideTest(tPed_prox_flag_cell* pCell, int pInd
     }
     return NormalSideOfPlane(pPoint, pNormal, pD);
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 
 // GLOBAL: CARMA2_HW 0x007447cc
 int gCount_killed_peds;
@@ -5358,6 +5362,9 @@ float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_instance
 
 // ScaleBone
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0040c490
 void C2_HOOK_FASTCALL MungeAllCharacterMaterials(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
     int i;
@@ -5372,6 +5379,9 @@ void C2_HOOK_FASTCALL MungeAllCharacterMaterials(void (C2_HOOK_FASTCALL* pCallba
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0040c4e0
 void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
     int i;
@@ -5393,6 +5403,9 @@ void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0040c560
 void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
     int i;
