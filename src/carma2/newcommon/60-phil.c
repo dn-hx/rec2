@@ -184,7 +184,36 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject) {
     return size;
 }
 
-// GetNetworkDataSize
+// FUNCTION: CARMA2_HW 0x0049cee0
+int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data) {
+    int size;
+    tU8* next;
+    tU8 more;
+
+    switch (*pNet_data & 0xf) {
+    case 0:
+        size = 0x28;
+        break;
+    case 1:
+    case 4:
+        size = 0xc;
+        break;
+    case 2:
+    case 3:
+        size = 0x10;
+        break;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        size = 0;
+    }
+    more = *pNet_data & 0x80;
+    while (more != 0) {
+        next = pNet_data + size;
+        size += GetNetworkDataSize(next);
+        more = *next & 0x40;
+    }
+    return size;
+}
 
 // GetSingleMatrixFromNetworkData
 
