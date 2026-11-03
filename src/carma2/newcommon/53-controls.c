@@ -13,6 +13,7 @@
 #include "16-graphics1.h"
 #include "17-world2.h"
 #include "27-powerup.h"
+#include "24-loadsave.h"
 #include "37-brucetrk.h"
 #include "41-utility.h"
 #include "43-pratcam.h"
@@ -661,3 +662,152 @@ int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2) {
     }
     return 0;
 }
+
+
+typedef struct tJoystick_headup_text {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
+
+// GLOBAL: CARMA2_HW 0x00596250
+tJoystick_headup_text gJoystick_headup_texts[21] = {
+    { "Recover", 60 },
+    { "Reapir", 45 },
+    { "Hand Brake", 54 },
+    { "Use Powerup", 61 },
+    { "Next Powerup", 64 },
+    { "Prev Powerup", 63 },
+    { "Wheel Spin", 56 },
+    { "Map", 57 },
+    { "Cockpit View", 46 },
+    { "Buy Armour", 67 },
+    { "Buy Power", 68 },
+    { "Buy Offensive", 69 },
+    { "Target Lock", 72 },
+    { "Cycle Target", 73 },
+    { "Camera Mode", 75 },
+    { "Doors", 74 },
+    { "Horn", 59 },
+    { "Accelerate", 49 },
+    { "Brake", 50 },
+    { "Left", 47 },
+    { "Right", 48 },
+};
+
+// GLOBAL: CARMA2_HW 0x005962f8
+br_token_value gAccent_poly_prims[3] = {
+    { BRT_BLEND_B, { 1 } },
+    { BRT_OPACITY_X, { 0x4b0000 } },
+    { BR_NULL_TOKEN, { 0 } },
+};
+
+// GLOBAL: CARMA2_HW 0x00686174
+br_actor* gAcc_poly_actor;
+
+// GLOBAL: CARMA2_HW 0x00686178
+br_material* gAcc_poly_material;
+
+// GLOBAL: CARMA2_HW 0x0068617c
+br_model* gAcc_poly_model;
+
+// GLOBAL: CARMA2_HW 0x00686180
+int gRender_acc_poly_actor;
+
+// GLOBAL: CARMA2_HW 0x0079d8a0
+tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+
+// FUNCTION: CARMA2_HW 0x0045c240
+void C2_HOOK_FASTCALL FUN_0045c240(void) {
+    extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
+    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+    tJoystick_headup_text* entry;
+    tHeadup_text* text;
+    int i;
+
+    if (gINT_0068b8e8) {
+        gINT_0068b8e8 = 0;
+        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
+            BrActorRemove(gAcc_poly_actor);
+            gRender_acc_poly_actor = 0;
+        }
+    } else {
+        gINT_0068b8e8 = 1;
+        MoveHeadupTo(gProgram_state.frame_rate_headup, 10, 350);
+        for (i = 0; i < 22; i++) {
+            MoveHeadupTo(gRace_head_ups[i], 10, 120 + i * 10);
+            ChangeHeadupFont(gRace_head_ups[i], -2);
+        }
+        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
+        if (gJoystick_headup_buffer_0079d8a0.count == 0) {
+            if (gJoystick_headup_buffer_0079d8a0.field_0x14 < 5) {
+                gJoystick_headup_buffer_0079d8a0.field_0x14 = 10;
+            }
+            gJoystick_headup_buffer_0079d8a0.texts = NULL;
+            gJoystick_headup_buffer_0079d8a0.count = 0;
+            gJoystick_headup_buffer_0079d8a0.pos_last_add = 0;
+            gJoystick_headup_buffer_0079d8a0.text_last_add = NULL;
+            gJoystick_headup_buffer_0079d8a0.field_0x4 = NULL;
+            gJoystick_headup_buffer_0079d8a0.field_0x10 = 22;
+            entry = gJoystick_headup_texts;
+            do {
+                text = malloc(sizeof(tHeadup_text));
+                if (text != NULL) {
+                    text->next = NULL;
+                    strncpy(text->text, entry->text, 0x28);
+                    FUN_0045a920(&gJoystick_headup_buffer_0079d8a0, text, 0);
+                }
+                entry++;
+            } while ((int)entry < (int)gAccent_poly_prims);
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0045aa60
+void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
+    extern br_actor* g2d_camera;
+
+    if (gAcc_poly_material == NULL) {
+        gAcc_poly_material = BrMaterialAllocate("Acc Poly Mat");
+        gAcc_poly_material->colour = 0x80;
+        gAcc_poly_material->flags = BR_MATF_ALWAYS_VISIBLE;
+        BrMaterialAdd(gAcc_poly_material);
+        gAcc_poly_material->extra_prim = gAccent_poly_prims;
+        gAcc_poly_material->extra_prim[1].v.x = 0x800000;
+        BrMaterialUpdate(gAcc_poly_material, BR_MATU_EXTRA_PRIM);
+    }
+    if (gAcc_poly_actor == NULL) {
+        gAcc_poly_model = BrModelAllocate("Tint Poly", 6, 2);
+        BrVector3Set(&gAcc_poly_model->vertices[0].p, pX, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[1].p, pX + pWidth, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[2].p, pX, -(pY + pHeight), -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[3].p, pX + pWidth, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[4].p, pX + pWidth, -(pY + pHeight), -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[5].p, pX, -(pY + pHeight), -1.01f);
+        gAcc_poly_model->faces[0].vertices[0] = 0;
+        gAcc_poly_model->faces[0].vertices[1] = 1;
+        gAcc_poly_model->faces[0].vertices[2] = 2;
+        gAcc_poly_model->faces[1].vertices[0] = 3;
+        gAcc_poly_model->faces[1].vertices[1] = 4;
+        gAcc_poly_model->faces[1].vertices[2] = 5;
+        gAcc_poly_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        gAcc_poly_actor->material = gAcc_poly_material;
+        gAcc_poly_model->faces[0].material = gAcc_poly_material;
+        gAcc_poly_model->faces[1].material = gAcc_poly_material;
+        gAcc_poly_actor->model = gAcc_poly_model;
+        BrModelAdd(gAcc_poly_model);
+    }
+#ifdef REC2_HW
+    if (!gRender_acc_poly_actor) {
+        gRender_acc_poly_actor = 1;
+        BrActorAdd(g2d_camera, gAcc_poly_actor);
+    }
+#endif
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
