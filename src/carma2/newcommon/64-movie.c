@@ -478,3 +478,17 @@ __declspec(naked) short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreato
         jmp     dword ptr [gQuickTime_dispatch]
     }
 }
+
+
+// FUNCTION: CARMA2_HW 0x0056c800
+__declspec(naked) void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c800
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c800:
+        mov     eax, 0x2019c
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
