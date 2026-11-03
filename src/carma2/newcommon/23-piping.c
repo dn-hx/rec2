@@ -2602,7 +2602,7 @@ void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk) {
             }
             return;
         case 1:
-            return WorkerSpecial();
+            return DoInitialTail();
     }
 }
 
