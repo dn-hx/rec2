@@ -712,7 +712,16 @@ int C2_HOOK_FASTCALL SetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// SetPedHeadSize
+extern void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale);
+
+// FUNCTION: CARMA2_HW 0x004dc7a0
+int C2_HOOK_FASTCALL SetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
+    br_scalar head_scale;
+
+    head_scale = pPowerup->float_params[0];
+    ScalePedHeads(head_scale);
+    return pPowerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc7d0
 // FUNCTION: CARMA2_SW 0x004d8cd0
@@ -1956,6 +1965,9 @@ int C2_HOOK_CDECL NapalmPedDistanceCompare(const void* pValue1, const void* pVal
 extern float gPed_head_scale;
 extern int gPed_count;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004d6ab0
 void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
     br_scalar s[3];
@@ -1978,6 +1990,9 @@ void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 extern int gEthereal_pedestrians;
