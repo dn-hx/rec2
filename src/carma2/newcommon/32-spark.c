@@ -12,6 +12,7 @@
 #include "08-loading1.h"
 #include "10-loading2.h"
 #include "18-graphics2.h"
+#include "22-replay.h"
 #include "23-piping.h"
 #include "41-utility.h"
 #include "49-physics.h"

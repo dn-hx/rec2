@@ -66,6 +66,8 @@ extern void C2_HOOK_FASTCALL AfterActionReplay(void);
 
 extern void C2_HOOK_FASTCALL ApplyTime(tU32 pTime);
 
+extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
+
 extern void C2_HOOK_FASTCALL ARSetPause(int pPause);
 
 #endif // GUARD_22_REPLAY_H

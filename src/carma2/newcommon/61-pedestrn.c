@@ -9,6 +9,16 @@
 #include "61-pedestrn.h"
 
 #include "08-loading1.h"
+#include "00-car.h"
+#include "07-structur.h"
+#include "15-displays.h"
+#include "28-world3.h"
+#include "32-spark.h"
+#include "29-raycast.h"
+#include "43-pratcam.h"
+#include "51-smash.h"
+#include "54-runtime.h"
+#include "60-phil.h"
 #include "10-loading2.h"
 #include "21-mainloop.h"
 #include "22-replay.h"
@@ -24,6 +34,9 @@
 #include "66-tintedpoly.h"
 #include "69-sound.h"
 #include "70-packfile.h"
+
+extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
+extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
 #include "globvars.h"
 #include "brender/brender.h"
 #include "globvars.h"
@@ -5534,7 +5547,7 @@ int C2_HOOK_FASTCALL MakeCharacterPhysics(tPed_character_instance* pCharacter, t
         }
     }
     if (gPed_vtable->fill_in_object != NULL) {
-        gPed_vtable->fill_in_object((undefined4*)pObject, pKind + 2);
+        gPed_vtable->fill_in_object((tPhysics_object*)pObject, pKind + 2);
     }
     return 1;
 }
