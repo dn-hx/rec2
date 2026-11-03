@@ -868,3 +868,40 @@ tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name) {
     }
     FatalError(kFatalError_BonerError_TooManyRemapsLoaded, 0);
 }
+
+
+extern tPed_move* gPed_moves[250];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00404840
+static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    NOT_IMPLEMENTED();
+    return NULL;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004047b0
+tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    int i;
+
+    for (i = 0; i < 250; i++) {
+        if (gPed_moves[i] != NULL && strcmp(pName, gPed_moves[i]->name) == 0) {
+            return gPed_moves[i];
+        }
+    }
+    return ReadMove(pName, pForm, pLooping_reset_flags, pMovement_direction, pFlags);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

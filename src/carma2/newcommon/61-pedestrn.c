@@ -506,9 +506,6 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_HW 0x0069bcf0
 tPed_movement_spec* gPed_movements;
 
-// GLOBAL: CARMA2_HW 0x00676d68
-br_material* gPedestrian_character_cloned_materials[50] = { 0 };
-
 // GLOBAL: CARMA2_HW 0x007447fc
 float gPed_buoyancy_factor;
 
@@ -520,6 +517,10 @@ tPed_form* gPed_forms[20] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00676980
 tPed_move* gPed_moves[250] = { 0 };
+
+/* explicit initializers keep gPedestrian_character_cloned_materials adjacent to gPed_moves (loop-end compare) */
+// GLOBAL: CARMA2_HW 0x00676d68
+br_material* gPedestrian_character_cloned_materials[50] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00677238
 tPed_remap* gPed_remaps[10] = { 0 };
