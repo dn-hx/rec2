@@ -2633,7 +2633,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
             && (((tNon_car_spec*)objs[0]->owner)->flags & 0x40000) != 0
             && (((tNon_car_spec*)objs[0]->owner)->flags & 0xff) == 0
             && (((tNon_car_spec*)objs[0]->owner)->flags & 0xff00) == 0
-            && ((tNon_car_spec*)objs[0]->owner)->field_0xf8 == 0
+            && *(int*)((tNon_car_spec*)objs[0]->owner)->field_0xf8 == 0
             && gUNK_006793d0 != 3) {
         ((tNon_car_spec*)objs[0]->owner)->flags = (((tNon_car_spec*)objs[0]->owner)->flags & 1) | 1;
     }
