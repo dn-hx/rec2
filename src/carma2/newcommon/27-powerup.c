@@ -161,6 +161,14 @@ int gInstant_handbrake;
 // GLOBAL: CARMA2_SW 0x0069aaac
 tPowerup* gPowerup_array;
 
+// FUNCTION: CARMA2_HW 0x004c8fb0
+void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
+    extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
+
+    ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
+        0x30, 0, (uintptr_t)&pActor->t.t.mat);
+}
+
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
 char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
@@ -172,7 +180,19 @@ char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
 
 // DoPowerupTextHeadup
 
-// QueueIconGoing
+// FUNCTION: CARMA2_HW 0x004d9670
+void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons) {
+    int i;
+
+    for (i = 0; i < *pCount_icons; i++) {
+        if (pPowerup == pHeadup_icons[i].powerup) {
+            pHeadup_icons[i].fizzle_stage = 3;
+            pHeadup_icons[i].fizzle_direction = -1;
+            pHeadup_icons[i].fizzle_start = GetTotalTime();
+            break;
+        }
+    }
+}
 
 // QueueIconComing
 
@@ -380,7 +400,28 @@ void C2_HOOK_FASTCALL GotPowerup9(void) {
 
 // GotCredits
 
-// GainAPO2
+// FUNCTION: CARMA2_HW 0x004dc3e0
+int C2_HOOK_FASTCALL GainAPO2(tCar_spec* pCar, int pIndex, int pAmount) {
+    int old;
+
+    while (pAmount < 0) {
+        if (pCar->power_up_levels[pIndex] >= pCar->power_up_slots[pIndex]) {
+            return 0;
+        }
+        pAmount = pCar->power_up_slots[pIndex] - pCar->power_up_levels[pIndex];
+    }
+    if (pIndex == 1 && gNet_mode != eNet_mode_none
+        && gCurrent_net_game->type == eNet_game_type_foxy
+        && gThis_net_player_index == gIt_or_fox) {
+        return 0;
+    }
+    old = pCar->power_up_levels[pIndex];
+    pCar->power_up_levels[pIndex] = old + pAmount;
+    if (pCar->power_up_levels[pIndex] > pCar->power_up_slots[pIndex]) {
+        pCar->power_up_levels[pIndex] = pCar->power_up_slots[pIndex];
+    }
+    return pCar->power_up_levels[pIndex] - old;
+}
 
 // GainAPOPot2
 
@@ -1330,6 +1371,31 @@ br_actor* C2_HOOK_FASTCALL CreateBillBoard(br_pixelmap* pTexture) {
     BrMaterialAdd(material);
     BrModelAdd(model);
     return actor;
+}
+
+// FUNCTION: CARMA2_HW 0x004e0ba0
+void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
+    extern br_material* C2_HOOK_CDECL BrMaterialRemove(br_material* pMaterial);
+    extern void C2_HOOK_CDECL BrMaterialFree(br_material* pMaterial);
+    extern br_model* C2_HOOK_CDECL BrModelRemove(br_model* pModel);
+    extern void C2_HOOK_CDECL BrModelFree(br_model* pModel);
+    extern br_actor* C2_HOOK_CDECL BrActorRemove(br_actor* pActor);
+    extern void C2_HOOK_CDECL BrActorFree(br_actor* pActor);
+
+    if (pActor != NULL) {
+        if (pActor->material != NULL) {
+            BrMaterialRemove(pActor->material);
+            BrMaterialFree(pActor->material);
+        }
+        if (pActor->model != NULL) {
+            BrModelRemove(pActor->model);
+            BrModelFree(pActor->model);
+        }
+        if (pActor->parent != NULL) {
+            BrActorRemove(pActor);
+        }
+        BrActorFree(pActor);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004e0c00
