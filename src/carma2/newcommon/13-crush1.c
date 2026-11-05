@@ -144,6 +144,33 @@ tDriver gSplit_car_driver;
 // GLOBAL: CARMA2_SW 0x00673e24
 tPhysics_shape* gGonad_sphere_collision_shape;
 
+// FUNCTION: CARMA2_HW 0x0041fbe0
+float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
+    float rear;
+    float rear_susp;
+    float rear_min;
+    float front_min;
+    float min_value;
+
+    rear = pCar_spec->wpos[0].v[1];
+    rear_susp = pCar_spec->susp_height[0];
+    rear_min = rear - rear_susp;
+    front_min = pCar_spec->wpos[2].v[1] - pCar_spec->susp_height[1];
+    rear_min = rear_min * (1.0f / WORLD_SCALE);
+    front_min = front_min * (1.0f / WORLD_SCALE);
+    min_value = pCar_spec->collision_info->bb1.min.v[1];
+
+    if (rear_min < front_min) {
+        if (rear_min < min_value) {
+            return rear_min;
+        }
+    }
+    if (front_min < min_value) {
+        return front_min;
+    }
+    return min_value;
+}
+
 // FUNCTION: CARMA2_HW 0x00429bb0
 // FUNCTION: CARMA2_SW 0x00429c40
 void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF) {
