@@ -48,6 +48,21 @@ br_model* gDuplicate_model;
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
 
+// GLOBAL: CARMA2_HW 0x006b6600
+br_actor* gLast_actor;
+
+// GLOBAL: CARMA2_HW 0x006b6620
+br_model* gAdditional_models[1000];
+
+// GLOBAL: CARMA2_HW 0x006ab948
+int gNumber_of_additional_models;
+
+// GLOBAL: CARMA2_HW 0x006b6500
+char gAdditional_actor_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6400
+char gAdditional_model_path[256];
+
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
 void C2_HOOK_FASTCALL InitTreeSurgery(void) {
