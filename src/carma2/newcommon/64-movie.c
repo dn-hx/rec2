@@ -129,6 +129,10 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004e1c30
+void C2_HOOK_FASTCALL NoOp_004e1c30(void) {
+}
+
 // GenerateOneMovieFrame
 
 // MovieRecordFrame
