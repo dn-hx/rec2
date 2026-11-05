@@ -609,5 +609,45 @@ void C2_HOOK_FASTCALL ToggleShellModel(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0045a670
+void C2_HOOK_FASTCALL FUN_0045a670(void) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0045acf0
+void C2_HOOK_FASTCALL FUN_0045acf0(void) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x00511200
+void C2_HOOK_FASTCALL FUN_00511200(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
+
+    FUN_0045acf0();
+}
+
+// FUNCTION: CARMA2_HW 0x00511210
+void C2_HOOK_FASTCALL FUN_00511210(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+
+    FUN_0045a670();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // ToggleHeadupLevel
 
