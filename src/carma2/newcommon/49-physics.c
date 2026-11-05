@@ -833,6 +833,38 @@ void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004c2910
+void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject) {
+    tPhysics_object* pChild;
+
+    if (!pObject->disable_move_rotate) {
+        pObject->v.v[0] += pObject->field_0x54.v[0];
+        pObject->v.v[1] += pObject->field_0x54.v[1];
+        pObject->v.v[2] += pObject->field_0x54.v[2];
+    }
+    if (pObject->child != NULL) {
+        for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
+            PhysicsObjectMoveVelocity(pChild);
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004c2970
+void C2_HOOK_FASTCALL PhysicsObjectMoveVelocityList(tPhysics_object* pObject) {
+
+    while (pObject != NULL) {
+        if (!pObject->disable_move_rotate) {
+            pObject->v.v[0] += pObject->field_0x54.v[0];
+            pObject->v.v[1] += pObject->field_0x54.v[1];
+            pObject->v.v[2] += pObject->field_0x54.v[2];
+        }
+        if (pObject->child != NULL) {
+            PhysicsObjectMoveVelocityList(pObject->child);
+        }
+        pObject = pObject->next;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004c29d0
 void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse) {
     tPhysics_object* pChild;
