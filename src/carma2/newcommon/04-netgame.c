@@ -22,6 +22,7 @@
 #include "globvrpb.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "rec2_types.h"
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
@@ -96,7 +97,18 @@ int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shapes* pSh
 
 // SendCarData
 
-// ReceivedRecover
+// FUNCTION: CARMA2_HW 0x00498390
+void C2_HOOK_FASTCALL ReceivedRecover(tNet_message_chunk_recover* pContents) {
+    int i;
+
+    if (gNet_players[gThis_net_player_index].ID != pContents->player) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].ID == pContents->player) {
+                gNet_players[i].car->time_to_recover = pContents->time;
+            }
+        }
+    }
+}
 
 // CopyMechanics
 
@@ -115,7 +127,18 @@ void C2_HOOK_FASTCALL ReceivedCopInfo(void) {
 
 // SendAllNonCarPositions
 
-// ReceivedNonCarPosition
+// FUNCTION: CARMA2_HW 0x00498bc0
+void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents) {
+    br_actor* actor;
+
+    actor = gProgram_state.track_spec.non_car_list[pContents->ID];
+    if (actor != NULL && gNet_mode != eNet_mode_host) {
+        BrMatrix34Copy(&actor->t.t.mat, &pContents->mat);
+        if (pContents->flags != 0) {
+            actor->identifier[3] = '!';
+        }
+    }
+}
 
 // ReceivedNonCar
 
