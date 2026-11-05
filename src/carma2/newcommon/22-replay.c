@@ -13,6 +13,7 @@
 #include "globvars.h"
 #include "41-utility.h"
 #include "13-crush1.h"
+#include "51-smash.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
 // GLOBAL: CARMA2_SW 0x0067106c
@@ -353,4 +354,60 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
         SetCharacterBoneModel(ped->character, field_0x4, field_0x6, field_0x8);
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004eb8f0
+void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, tU32 pActor, tU32 pTime, tU32 pArg9, br_vector3* pTransform, br_vector3* pFragment_owner, br_vector3* pPosition, tU32 pDistance, br_vector3* pArg14, tU32 pArg15) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x004f0380
+void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
+    int i;
+    tSmash_vertex* fragment;
+    float delta_time;
+
+    WorkerShrapnelShower(prev_0x4, prev_0x84, prev_0x44, prev_0x8, prev_0x20, prev_0x2c, prev_0x50, prev_0x48, prev_0x0, prev_0x54, prev_0x88, prev_0x14, prev_0xa0, prev_0x38, 0);
+    delta_time = (float)(chunk_0x48 - prev_0x48);
+    for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
+        if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
+            fragment->field_0x34 = 0;
+            DoFragMovement(fragment, GetTotalTime(), delta_time);
+            fragment->field_0x34 = 1;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004f5fa0
+void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+    br_model* pModel;
+    br_material* pMaterial;
+    const br_uint_16* source;
+    br_face* face;
+    int i;
+
+    pModel = (br_model*)field_0x0;
+    source = pField_0xc;
+    pMaterial = (br_material*)field_0x4;
+    face = pModel->faces + pModel->nfaces;
+    for (i = 0; i < field_0x8; i++) {
+        face->material = pMaterial;
+        face->vertices[0] = source[0];
+        face->vertices[1] = source[1];
+        face->vertices[2] = source[2];
+        face->smoothing = source[3];
+        face->flags = 0;
+        face++;
+        source += 4;
+    }
+    pModel->nfaces += field_0x8;
+    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
