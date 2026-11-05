@@ -22,6 +22,7 @@
 #include "platform.h"
 
 #include "c2_stdio.h"
+#include "23-piping.h"
 
 #include <math.h>
 
@@ -68,6 +69,9 @@ int gINT_00681fb0;
 // GLOBAL: CARMA2_HW 0x00684514
 // GLOBAL: CARMA2_SW 0x0067ec54
 int gFrame;
+
+// GLOBAL: CARMA2_HW 0x00589dc4
+float gDrone_render_zero = 0.0f;
 
 // DoNotDprintf
 
@@ -277,6 +281,19 @@ int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3* pPos) 
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0044cfc0
+void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // CalcRenderBoundsCentre
 
 // DoDroneDistanceChecks
@@ -426,7 +443,13 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 
 // MyDroneHathHalteth
 
-// MoveMyDroneBaby
+// FUNCTION: CARMA2_HW 0x00452410
+void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2) {
+    tDrone_spec* pDrone;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf_drone("MoveMyDroneBaby(): Drone %d, State %d", pDrone->id, pDrone->current_state);
+}
 
 // FUNCTION: CARMA2_HW 0x004525c0
 // FUNCTION: CARMA2_SW 0x00452350
@@ -460,7 +483,17 @@ br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void) {
 
 // GetCurrentViewDroneDirection
 
-// ApplyDroneRender2
+// FUNCTION: CARMA2_HW 0x00452810
+void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender) {
+
+    if (gAction_replay_mode && ARGetReplayRate() < gDrone_render_zero) {
+        pRender = (pRender == 0);
+        DoNotDprintf_drone("B DRONERENDER");
+    } else {
+        DoNotDprintf_drone("F DRONERENDER");
+    }
+    gDrone_specs[pIndex].actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_FACES;
+}
 
 // FUNCTION: CARMA2_HW 0x00452880
 // FUNCTION: CARMA2_SW 0x00452610
