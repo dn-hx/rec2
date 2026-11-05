@@ -590,3 +590,9 @@ void C2_HOOK_FASTCALL SetSkyColour(br_colour c) {
     gHorizon_material->colour = c;
 }
 
+// FUNCTION: CARMA2_HW 0x005156d0
+void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour) {
+
+    BrPixelmapRectangleFill(dst, x, y, w, h, colour);
+}
+
