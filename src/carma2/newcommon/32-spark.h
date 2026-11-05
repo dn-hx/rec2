@@ -265,4 +265,6 @@ extern int gShrapnel_flags;
 
 extern tShrapnel gShrapnel[30];
 
+extern int gDust_rotate;
+
 #endif // GUARD_32_SPARK_H
