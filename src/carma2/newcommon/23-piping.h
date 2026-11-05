@@ -530,4 +530,8 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 extern tPipe_smudge_data* gSmudge_space;
 
+extern int gPipe_undo_enabled;
+
+extern volatile undefined4 gUNK_0069410c;
+
 #endif // GUARD_23_PIPING_H
