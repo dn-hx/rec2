@@ -236,4 +236,8 @@ extern void C2_HOOK_FASTCALL PixelmapSwapByteOrder(br_pixelmap* pMap);
 
 extern void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2);
 
+extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
+
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+
 #endif // GUARD_41_UTILITY_H
