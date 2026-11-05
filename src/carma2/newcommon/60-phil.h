@@ -58,7 +58,7 @@ extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL PHILDisable(void);
 
-// PHILAddObject
+extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
 
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 
@@ -115,5 +115,9 @@ extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_
 extern float gFLOAT_00692dd0;
 
 extern float gFLOAT_00692dd4;
+
+extern int gPHIL_munging_objects;
+
+extern int gPHIL_object_added;
 
 #endif // GUARD_60_PHIL_H

@@ -209,4 +209,6 @@ extern void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...);
 
 extern float gDrone_render_zero;
 
+extern tU32 gINT_00705b70;
+
 #endif // GUARD_57_DRONE_H

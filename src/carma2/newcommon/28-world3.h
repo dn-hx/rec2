@@ -128,4 +128,10 @@ extern char gAdditional_actor_path[256];
 
 extern char gAdditional_model_path[256];
 
+extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
+
+extern void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading);
+
+extern void C2_HOOK_FASTCALL AllowDuplicates(void);
+
 #endif // GUARD_28_WORLD3_H

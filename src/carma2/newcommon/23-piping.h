@@ -542,4 +542,8 @@ extern undefined4* gCrush_space;
 
 extern int gUNK_006a23b4;
 
+extern tU8* gPipe_play_ptr;
+
+extern tU8* gPipe_record_ptr;
+
 #endif // GUARD_23_PIPING_H
