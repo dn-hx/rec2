@@ -241,4 +241,6 @@ extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
+extern int gMetal_crunch_sound_id[5];
+
 #endif // GUARD_00_CAR_H

@@ -97,6 +97,9 @@ tCar_spec* gActive_car_list[139];
 // GLOBAL: CARMA2_SW 0x007430ac
 int gNum_active_cars;
 
+// GLOBAL: CARMA2_HW 0x00676854
+int gStop_opponents_moving;
+
 // FUNCTION: CARMA2_HW 0x004a8160
 // FUNCTION: CARMA2_SW 0x004a42d0
 void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
