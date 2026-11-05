@@ -23,6 +23,12 @@ tPhysics_object* gPHIL_list_collision_infos;
 // GLOBAL: CARMA2_SW 0x007410ac
 tU32 gPHIL_last_physics_tick;
 
+// GLOBAL: CARMA2_HW 0x00692dd0
+float gFLOAT_00692dd0;
+
+// GLOBAL: CARMA2_HW 0x00692dd4
+float gFLOAT_00692dd4;
+
 // ScalarToFraction
 
 // FractionToScalar
