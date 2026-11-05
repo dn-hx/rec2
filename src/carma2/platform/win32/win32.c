@@ -804,6 +804,13 @@ void C2_HOOK_FASTCALL PDEnterDebugger(const char *pStr) {
     ShowCursor(FALSE);
 }
 
+// FUNCTION: CARMA2_HW 0x0051a7d0
+int C2_HOOK_CDECL PDMissingMaterial(const char* pName) {
+
+    dr_dprintf("SOMETHING MISSING WARNING - Can't find material '%s'", pName);
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0051d4b0
 // FUNCTION: CARMA2_SW 0x00518cd0
 int C2_HOOK_FASTCALL PDFileUnlock(const char *pThe_path) {
@@ -859,6 +866,13 @@ void C2_HOOK_FASTCALL PDEnumPath(const char *path, tEnumPathCallback pCallback, 
         FindClose(hFindFile);
     }
     SetCurrentDirectoryA(originalCurrentDirectory);
+}
+
+// FUNCTION: CARMA2_HW 0x00492830
+tU32 C2_HOOK_FASTCALL GetLastTickCount(void) {
+    extern tU32 gLast_tick_count;
+
+    return gLast_tick_count;
 }
 
 // FUNCTION: CARMA2_HW 0x00486c20
@@ -1261,6 +1275,13 @@ void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only) {
         FUN_005171c0();
     }
 #endif
+}
+
+// FUNCTION: CARMA2_HW 0x0051c540
+void C2_HOOK_FASTCALL PDRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h) {
+    if (src != dst) {
+        BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
+    }
 }
 
 #ifdef REC2_SW
