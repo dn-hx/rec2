@@ -951,6 +951,17 @@ void C2_HOOK_FASTCALL S3StopCDA(void) {
     gS3_CDA_enabled = 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00565b93
+void C2_HOOK_FASTCALL S3ToggleCDA(void) {
+
+    if (gS3_CDA_enabled) {
+        S3StopCDAInternal();
+        gS3_CDA_enabled = 0;
+    } else {
+        gS3_CDA_enabled = 1;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0056a7bd
 // FUNCTION: CARMA2_SW 0x00565e5d
 void C2_HOOK_FASTCALL S3StopMidiInternal(void) {
@@ -1141,6 +1152,25 @@ double C2_HOOK_STDCALL S3FRandomBetween(double pMin, double pMax) {
     return (pMax - pMin) * (double)rand() / 32767.0 + pMin;
 }
 
+// FUNCTION: CARMA2_HW 0x00566480
+int C2_HOOK_FASTCALL S3SetChannelPosition(tS3_sound_tag pChannel_tag, const tS3_vector3* pPosition) {
+    tS3_channel* channel;
+
+    if (gS3_enabled != 0) {
+        channel = S3GetChannelForTag(pChannel_tag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->spatial_sound == 0) {
+            return 11;
+        }
+        channel->position.x = pPosition->x;
+        channel->position.y = pPosition->y;
+        channel->position.z = pPosition->z;
+    }
+    return eS3_error_none;
+}
+
 // FUNCTION: CARMA2_HW 0x00564278
 int C2_HOOK_FASTCALL S3IRandomBetween(int pMin, int pMax, int pDefault) {
 
@@ -1256,6 +1286,13 @@ int C2_HOOK_FASTCALL S3SoundStillPlaying(int pTag) {
 int C2_HOOK_FASTCALL S3GetLastError(void) {
 
     return gS3_last_error;
+}
+
+// FUNCTION: CARMA2_HW 0x00565849
+int C2_HOOK_FASTCALL S3SetChannelTag(tS3_channel* pChannel, tS3_sound_tag pTag) {
+
+    pChannel->tag = pTag;
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x005649c8
