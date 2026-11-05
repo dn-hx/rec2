@@ -125,6 +125,15 @@ br_pixelmap* gFog_shade_table;
 // GLOBAL: CARMA2_SW 0x00795184
 br_pixelmap* gAcid_shade_table;
 
+// GLOBAL: CARMA2_HW 0x006a9b80
+tSpark gSparks[32] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006aa584
+int gShrapnel_flags;
+
+// GLOBAL: CARMA2_HW 0x006a9180
+tShrapnel gShrapnel[30] = { 0 };
+
 // DrawDot
 
 // SetWorldToScreen
@@ -240,7 +249,18 @@ void C2_HOOK_FASTCALL ResetSparks(void) {
 
 // CreateShrapnelShowerWorld
 
-// CreateShrapnelShower
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f8800
+void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // random
 
