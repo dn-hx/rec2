@@ -211,4 +211,13 @@ extern float gDrone_render_zero;
 
 extern tU32 gINT_00705b70;
 
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
+
+extern tDrone_crush_data gDrone_crush_data;
+
 #endif // GUARD_57_DRONE_H
