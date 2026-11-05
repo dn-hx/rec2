@@ -264,6 +264,18 @@ int C2_HOOK_FASTCALL GetAnInt(FILE* pF) {
     return value;
 }
 
+// FUNCTION: CARMA2_HW 0x0048fb50
+tU32 C2_HOOK_FASTCALL DecimalDigitsToBitmask(tU32 pValue) {
+    tU32 result;
+    tU32 v;
+
+    result = 0;
+    for (v = pValue; v != 0; v /= 10) {
+        result = (v % 10) | (result + result);
+    }
+    return result;
+}
+
 // FUNCTION: CARMA2_HW 0x004900e0
 // FUNCTION: CARMA2_SW 0x0048d350
 float C2_HOOK_FASTCALL GetAFloat(FILE* pF) {
@@ -713,6 +725,31 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     rename(new_file, pThe_path);
 }
 
+// FUNCTION: CARMA2_HW 0x00490bc0
+void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path) {
+    int len;
+
+    len = strlen(pThe_path);
+    if (strcmp(&pThe_path[len - 4], ".TXT") != 0) {
+        return;
+    }
+    if (strcmp(&pThe_path[len - 12], "DKEYMAP0.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP1.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP2.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP3.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_0.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_1.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_2.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_3.TXT") == 0
+            || strcmp(&pThe_path[len - 11], "OPTIONS.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYNAMES.TXT") == 0
+            || strcmp(&pThe_path[len - 10], "KEYMAP.TXT") == 0
+            || strcmp(&pThe_path[len - 9], "PATHS.TXT") == 0) {
+        return;
+    }
+    EncodeFile(pThe_path);
+}
+
 // FUNCTION: CARMA2_HW 0x00490ec0
 // FUNCTION: CARMA2_SW 0x0048e130
 void C2_HOOK_FASTCALL SkipNLines(FILE* pF) {
@@ -1107,6 +1144,10 @@ void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner) {
 void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info) {
 
     // empty
+}
+
+// FUNCTION: CARMA2_HW 0x0044bf80
+void C2_HOOK_FASTCALL LoadingNoOp(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044bfa0
