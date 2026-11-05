@@ -1515,7 +1515,22 @@ void C2_HOOK_FASTCALL DoPhysicsError(tPhysicsError pError, const char* pMessage)
     FatalError(1000 + pError, s);
 }
 
-// ResetMan2
+// FUNCTION: CARMA2_HW 0x004b5c00
+void C2_HOOK_FASTCALL ResetMan2(tPhysics_object* pObject) {
+
+    while (pObject != NULL) {
+        BrMatrix34Translate(&pObject->transform_matrix, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+        pObject->disable_move_rotate = 1;
+        if (pObject->child != NULL) {
+            ResetMan2(pObject->child);
+        }
+        pObject = pObject->next;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004b5aa0
 void C2_HOOK_FASTCALL SetUpTestObjects(void) {
@@ -1536,6 +1551,41 @@ void C2_HOOK_FASTCALL InitPhysics(void) {
 
     PhysicsSetErrorHandler(DoPhysicsError);
     InitPhysicsWorkspace(gTemporary_physics_render_buffer, sizeof(gTemporary_physics_render_buffer));
+}
+
+// FUNCTION: CARMA2_HW 0x004b73a0
+void C2_HOOK_FASTCALL FUN_004b73a0(tPhysics_object* pObject, const br_matrix34* pParent_matrix, const br_matrix34* pRoot_matrix) {
+    br_matrix34 inverse;
+    br_matrix34 normalised;
+    br_vector3 transformed;
+    tPhysics_joint* joint;
+    int i;
+
+    for (; pObject != NULL; pObject = pObject->next) {
+        if ((pObject->flags & 0x400) != 0) {
+            BrMatrix34LPInverse(&inverse, &pObject->parent->transform_matrix);
+            BrMatrix34LPNormalise(&normalised, &inverse);
+            BrMatrix34Mul(&inverse, &pObject->transform_matrix, &normalised);
+            BrMatrix34Mul(&pObject->field_0x1e8, &inverse, &pObject->parent->field_0x1e8);
+        }
+        joint = pObject->physics_joint1;
+        if (joint != NULL) {
+            if ((pObject->flags & 0x400) != 0) {
+                FUN_004b73a0(pObject->child, pParent_matrix, pRoot_matrix);
+            } else {
+                BrMatrix34ApplyP(&transformed, &joint->field_0x14, pParent_matrix);
+                DrMatrix34ApplyLPInverse(&joint->field_0x14, &transformed, pRoot_matrix);
+                if (joint->type == 1 || joint->type == 4) {
+                    BrMatrix34ApplyV(&transformed, &joint->parent_bone_axis, pParent_matrix);
+                    BrMatrix34TApplyV(&joint->parent_bone_axis, &transformed, pRoot_matrix);
+                }
+            }
+            for (i = 0; i < joint->count_limits; i++) {
+                BrMatrix34ApplyV(&transformed, &joint->limits[i].parent, pParent_matrix);
+                BrMatrix34TApplyV(&joint->limits[i].parent, &transformed, pRoot_matrix);
+            }
+        }
+    }
 }
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
