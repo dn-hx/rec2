@@ -27,4 +27,14 @@ extern int C2_HOOK_FASTCALL AnyBuyableCars(void);
 
 // MungeRaceProgression
 
+// OriginalResetInterfaceTimeout
+
+// gReceived_game_scores
+
+// gPlayer_lookup_racesumm
+
+// gMoney_pre_race
+
+// gAPO_pre_race
+
 #endif // GUARD_31_RACESUMM_H

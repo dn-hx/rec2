@@ -113,6 +113,10 @@ void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
     }
 }
 
+// PDNetSendMessageToAllPlayers
+
+// PDNetSendMessageToPlayer
+
 // FUNCTION: CARMA2_HW 0x0051a010
 // FUNCTION: CARMA2_SW 0x00513af0
 void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr* pSock_addr) {

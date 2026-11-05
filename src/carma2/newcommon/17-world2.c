@@ -247,6 +247,8 @@ int C2_HOOK_FASTCALL StorageContainsPixelmap(tBrender_storage* pStorage, br_pixe
     return i != pStorage->pixelmaps_count;
 }
 
+// HideStoredOpaqueTextures
+
 // FUNCTION: CARMA2_SW 0x00447e10
 void C2_HOOK_FASTCALL HideStoredOpaqueTextures(tBrender_storage* pStorage) {
     int i;
@@ -280,6 +282,8 @@ void C2_HOOK_FASTCALL RevealStoredTransparentTextures(tBrender_storage* pStorage
         }
     }
 }
+
+// HideStoredTextures
 
 void C2_HOOK_FASTCALL HideStoredTextures(tBrender_storage* pStorage) {
     int i;

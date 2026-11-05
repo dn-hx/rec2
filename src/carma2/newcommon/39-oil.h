@@ -18,6 +18,8 @@ extern tOil_spill_info gOily_spills[32];
 extern br_material* oily_material;
 extern int gNext_oil_pixie;
 
+// gStart_jumped
+
 extern void C2_HOOK_FASTCALL InitOilSpills(void);
 
 extern void C2_HOOK_FASTCALL ResetOilSpills(void);
@@ -47,6 +49,8 @@ extern void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, b
 extern void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap);
 
 extern void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents);
+
+// PipeSingleOilSpill
 
 // RemoveCarsOilSlicks
 

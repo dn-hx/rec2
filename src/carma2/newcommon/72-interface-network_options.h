@@ -13,4 +13,10 @@
 
 extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
 
+// NetOptions_Infunc
+
+// NetOptions_Ok
+
+// NetOptions_Cancel
+
 #endif /* GUARD_72_NETWORK_OPTIONS_H */

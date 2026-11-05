@@ -12,11 +12,13 @@
 #include "08-loading1.h"
 #include "10-loading2.h"
 #include "18-graphics2.h"
+#include "23-piping.h"
 #include "41-utility.h"
 #include "49-physics.h"
 #include "52-errors.h"
 #include "60-phil.h"
 #include "63-loading3.h"
+#include "70-packfile.h"
 
 #include "globvars.h"
 #include "globvrkm.h"
@@ -24,6 +26,8 @@
 
 #include "c2_string.h"
 
+
+// FindNextChunk
 // GLOBAL: CARMA2_HW 0x00660110
 // GLOBAL: CARMA2_SW 0x0065aa58
 int gSmoke_on = 1;
@@ -52,6 +56,8 @@ tSmash_vertex gSmash_glass_fragments[200];
 // GLOBAL: CARMA2_SW 0x006a2314
 int gNum_dust_tables;
 
+// gSplash
+
 // GLOBAL: CARMA2_HW 0x006aa57c
 // GLOBAL: CARMA2_SW 0x006a3fc8
 int gSpark_flags;
@@ -72,11 +78,15 @@ int gSmoke_num;
 // GLOBAL: CARMA2_SW 0x006a2730
 tSmoke gSmoke[25];
 
+// gSplash_material
+
 // GLOBAL: CARMA2_HW 0x006a8760
 tBRender_smoke* gBR_smoke_pointers[35];
 
 // GLOBAL: CARMA2_HW 0x006aa56c
 int gN_BR_smoke_structs;
+
+// gSplash_flags
 
 // GLOBAL: CARMA2_HW 0x006a8638
 br_pixelmap* gFlame_map[20];
@@ -89,9 +99,15 @@ tSmoke_column gSmoke_column[10];
 // GLOBAL: CARMA2_SW 0x006a3dd0
 br_model* gLollipop_model;
 
+// gReplay_splashes
+
 // GLOBAL: CARMA2_HW 0x006aa59c
 // GLOBAL: CARMA2_SW 0x006a3fec
 int gColumn_flags;
+
+// gNum_splash_types
+
+// gColumn_next
 
 // GLOBAL: CARMA2_HW 0x006aa588
 // GLOBAL: CARMA2_SW 0x006a3fd8
@@ -111,6 +127,8 @@ int gCount_smashable_noncars;
 
 // GLOBAL: CARMA2_HW 0x006a8718
 br_matrix4 gCameraToScreen;
+
+// gSplash_model
 
 // GLOBAL: CARMA2_HW 0x006a82b0
 br_camera* gSpark_cam;

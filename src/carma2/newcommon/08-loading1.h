@@ -31,11 +31,21 @@ extern tS32 C2_HOOK_FASTCALL ReadS32(FILE* pF);
 
 extern tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF);
 
+// ReadS8
+
 extern void C2_HOOK_FASTCALL WriteU32L(FILE* pF, tU32 pNumber);
 
 extern void C2_HOOK_FASTCALL WriteU16L(FILE* pF, tU16 pNumber);
 
 extern void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber);
+
+// SkipBytes
+
+// WriteS8L
+
+// WriteS16L
+
+// WriteS32L
 
 extern tU32 C2_HOOK_FASTCALL MemReadU32(char** pPtr);
 
@@ -92,6 +102,8 @@ extern void C2_HOOK_CDECL SubsStringJob(char *pFormat, ...);
 extern void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS);
 
 extern void C2_HOOK_FASTCALL EncodeFile(char* pThe_path);
+
+// EncodeAllFilesInDirectory
 
 extern void C2_HOOK_FASTCALL SkipNLines(FILE* pF);
 

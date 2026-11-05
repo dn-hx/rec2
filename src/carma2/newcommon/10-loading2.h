@@ -12,6 +12,8 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// SAVE_OPTIONS_CHECK
+
 extern int gCamera_type;
 
 extern const char* gPedTextTxtPath;
@@ -136,5 +138,11 @@ extern void C2_HOOK_FASTCALL ConfigureBloodPedTextTxtPath(void);
 extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
+
+// gSimple_material_colours
+
+// gSimple_materials
+
+// gDamage_names
 
 #endif // GUARD_10_LOADING2_H

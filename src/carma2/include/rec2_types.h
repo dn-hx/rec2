@@ -5930,4 +5930,6 @@ typedef struct {
 } tNet_message_chunk_recover;
 
 
+// tSmashable_initial_speed_spec
+
 #endif // REC2_TYPES_H

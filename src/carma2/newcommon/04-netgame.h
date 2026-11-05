@@ -12,6 +12,10 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// tNet_score_entry
+
+// tNet_message_chunk_car_crush_sync
+
 extern tNet_game_player_info* gLast_lepper;
 extern int gLast_it_change;
 
@@ -36,6 +40,8 @@ extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shap
 // SendCarData
 
 // ReceivedRecover
+
+// ReceivedCrushSync
 
 // CopyMechanics
 
@@ -137,10 +143,26 @@ extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCo
 
 // RemovePlayerFromShapeStatusLists
 
+// ForEveryActorModelNoGrooves
+
+// StopCarBeingIt
+
+// SendGuaranteedMessageToPlayer
+
 extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 
 extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
 extern tU32 gPHIL_last_physics_tick;
+
+// SendDetachedNonCarData
+
+// SendDetachedNonCarDataToPlayer
+
+// gINT_0068d920
+
+// gTime_for_punishment
+
+// gNot_shown_race_type_headup
 
 #endif // GUARD_04_NETGAME_H

@@ -13,6 +13,76 @@
 #include "rec2_types.h"
 #include <s3/s3.h>
 
+// tPipe_chunk_blood_spurt
+
+// tPipe_chunk_remove_faces_replay
+
+// tPipe_chunk_frame_bound
+
+// tPipe_chunk_transform_type
+
+// tPipe_chunk_napalm_bolt
+
+// tPipe_chunk_drone_straight_pos
+
+// tPipe_chunk_drone_corner_pos
+
+// tPipe_chunk_vanish
+
+// tPipe_chunk_funk_enable
+
+// tPipe_chunk_powerup
+
+// tPipe_chunk_phil_object
+
+// tPipe_chunk_ped_model_change
+
+// tPipe_chunk_ped_pos
+
+// tPipe_chunk_ped_fp_change
+
+// tPipe_chunk_ped_physics
+
+// tPipe_chunk_ped_move
+
+// tPipe_chunk_ped_dir
+
+// tPipe_chunk_ped_status
+
+// tPipe_chunk_actor_trans
+
+// tReplay_actor_trans_effect
+
+// tPipe_chunk_remove_faces
+
+// tPipe_chunk_shrapnel_shower
+
+// tPipe_chunk_model_mash
+
+// tPipe_chunk_skid_adjust
+
+// tPipe_chunk_prox_ray_replay
+
+// tPipe_chunk_graphpical_wheel_stuff
+
+// tPipe_chunk_sound
+
+// tPipe_chunk_oil_spill
+
+// tPipe_chunk_extended_splash
+
+// tPipe_chunk_splash
+
+// tReplay_splash_effect
+
+// tPipe_chunk_groove_stop
+
+// tPipe_chunk_shrapnel_replay
+
+// tPipe_chunk_spark_replay
+
+// tPipe_chunk_crush
+
 extern tU8* gLocal_buffer;
 extern tU8* gPipe_buffer_working_end;
 extern int gReentrancy_count;
@@ -26,6 +96,8 @@ extern int gDisable_piped_sounds;
 typedef void C2_HOOK_FASTCALL tReplay_session_callback(int pFrames);
 extern float gReplay_rate;
 extern const tReplay_callback* gPipe_callbacks;
+
+// gPipe_buffer_size
 extern tU8* gPipe_play_ptr;
 extern tU8* gPipe_buffer_oldest;
 extern tU8* gPipe_record_ptr;
@@ -47,6 +119,8 @@ extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
+
+// DisposePiping
 
 // ARInitialise
 
@@ -135,6 +209,18 @@ extern int C2_HOOK_FASTCALL ARGoForwards(void);
 extern void C2_HOOK_FASTCALL ARService(void);
 
 extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
+
+// WorkerSplitWeldApply
+
+// WorkerModelMashUndo
+
+// WorkerCrushUndo
+
+// WorkerDroneStraightPos
+
+// WorkerDroneCornerPos
+
+// WorkerCrush
 
 // ARToggleReplay
 
@@ -440,6 +526,8 @@ extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
+// ApplyReplayFrameTime
+
 // UndoDamage
 
 // UndoSpecial
@@ -526,13 +614,49 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
+// DoBloodSpurtUndo
+
+// WorkerPedStatusUndo
+
+// WorkerPedDiagnostics
+
+// DoVanishDismembered
+
+// WorkerPowerupLose
+
+// WorkerPowerupGot
+
+// WorkerPedPos
+
+// WorkerPedDir
+
+// WorkerPedStatus
+
+// WorkerProxRay
+
+// WorkerSpecial
+
 // CalcRemoveFacesLength
 
 extern tPipe_smudge_data* gSmudge_space;
 
+// gCar_pos
+
+// gCar_ptr
+
+// gReference_pos
+
+// gMax_distance
+
 extern int gPipe_undo_enabled;
 
+// gOldest_time
+
+// gPipe_count_callbacks
+
 extern volatile undefined4 gUNK_0069410c;
+
+// gTrigger_time
 
 extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
 
@@ -540,7 +664,11 @@ extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
 
 extern undefined4* gCrush_space;
 
+// gYoungest_time
+
 extern int gUNK_006a23b4;
+
+// gShrapnel_shower_matrix
 
 extern tU8* gPipe_play_ptr;
 
@@ -550,5 +678,17 @@ typedef struct {
     tU32 value;
 } tPipe_stack_word;
 
+
+// FUN_DisposeReplayBuffer
+
+// gReentrancy_array
+
+// gReplay_callbacks
+
+// PositionFragment
+
+// InitFragmentSpeed
+
+// FUN_00564e5e
 
 #endif // GUARD_23_PIPING_H

@@ -51,6 +51,10 @@
 
 #include "c2_string.h"
 
+
+// gSimple_material_colours
+
+// gDamage_names
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
 FILE* gTempFile;
@@ -106,6 +110,8 @@ int gDemo_race_rank_equivalent;
 // GLOBAL: CARMA2_HW 0x0074b4fc
 // GLOBAL: CARMA2_SW 0x00741bbc
 int gCount_demo_opponents;
+
+// gSimple_materials
 
 // GLOBAL: CARMA2_HW 0x0074b4c0
 // GLOBAL: CARMA2_SW 0x00741b80

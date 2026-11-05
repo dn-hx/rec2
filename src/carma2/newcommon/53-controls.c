@@ -27,10 +27,27 @@
 #include "c2_string.h"
 #include "04-netgame.h"
 #include "01-network.h"
+#include "06-apo.h"
 #include "13-crush1.h"
+#include "18-graphics2.h"
+#include "19-font.h"
+#include "25-grafdata.h"
+#include "29-raycast.h"
+#include "42-input.h"
+#include "49-physics.h"
+#include "59-camera.h"
+#include "62-graphics3.h"
 
 #include <stdio.h>
 
+
+// RepairCar
+
+// gUNK_005904c0
+
+// gJoystick_headup_texts
+
+// gAccent_poly_prims
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
 int gCheckpoint_finder_enabled = 1;
@@ -71,9 +88,17 @@ int gHeadup_map_w;
 // GLOBAL: CARMA2_SW 0x00741260
 int gHeadup_map_h;
 
+// gHeadup_text_buffer_0079d880
+
+// gCamera_key_flags
+
 // GLOBAL: CARMA2_HW 0x0067c400
 // GLOBAL: CARMA2_SW 0x00676b78
 char gString[84];
+
+// old_indent
+
+// gWhich_edit_mode
 
 // GLOBAL: CARMA2_HW 0x0067c3c8
 // GLOBAL: CARMA2_SW 0x00676b40
@@ -87,6 +112,8 @@ int gRecovery_voucher_count;
 // GLOBAL: CARMA2_SW 0x00676be4
 int gAllow_car_flying;
 
+// gINT_0067c470
+
 // GLOBAL: CARMA2_HW 0x0067c474
 // GLOBAL: CARMA2_SW 0x00676bec
 int gEntering_message;
@@ -97,6 +124,18 @@ tRace_over_reason gRace_over_reason;
 
 // GLOBAL: CARMA2_HW 0x0067c478
 tU32 gPalette_fade_time;
+
+// gAcc_poly_model
+
+// gAcc_poly_material
+
+// gInvulnerability
+
+// gRender_acc_poly_actor
+
+// gAcc_poly_actor
+
+// gToo_poor_for_recovery_timeout
 
 void C2_HOOK_FASTCALL CompleteRace(void) {
     gRace_over_reason = eRace_over_0;
@@ -618,6 +657,12 @@ void C2_HOOK_FASTCALL FUN_0045a670(void) {
     NOT_IMPLEMENTED();
 }
 
+// CreateAccentPolyActor
+
+// FUN_0045a920
+
+// FUN_0045a7f0
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -630,6 +675,10 @@ void C2_HOOK_FASTCALL FUN_0045a670(void) {
 void C2_HOOK_FASTCALL FUN_0045acf0(void) {
     NOT_IMPLEMENTED();
 }
+
+// FUN_0045c240
+
+// SetCollisionInfoChildsDoNothing
 
 // FUNCTION: CARMA2_HW 0x00511200
 void C2_HOOK_FASTCALL FUN_00511200(void) {
@@ -644,6 +693,10 @@ void C2_HOOK_FASTCALL FUN_00511210(void) {
 
     FUN_0045a670();
 }
+
+// ToggleJoystickHeadup
+
+// StringTransformToLower
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

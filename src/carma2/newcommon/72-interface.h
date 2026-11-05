@@ -483,4 +483,22 @@ extern void C2_HOOK_FASTCALL IString_Free(void);
 
 extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
+// gFrontend_camera
+
+// gFrontend_backdrop0_material_prims
+
+// gFrontend_backdrop1_material_prims
+
+// gFrontend_backdrop2_material_prims
+
+// gFrontend_backdrop_materials
+
+// gFrontend_backdrop_actors
+
+// gFrontend_wrecks_camera
+
+// gFrontend_wrecks_actor
+
+// gFrontend_controls_count_keys
+
 #endif // GUARD_72_INTERFACE_H

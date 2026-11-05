@@ -13,4 +13,18 @@
 
 extern tFrontend_spec gFrontend_NETWORK;
 
+// NetRaceUp
+
+// NetworkJoinMenuOutfunc
+
+// NetToggleMode
+
+// NetJoinChooseThisGame
+
+// NetHostChooseThisRace
+
+// NetCancel
+
+// gINT_00688748
+
 #endif /* GUARD_72_NETWORK_H */

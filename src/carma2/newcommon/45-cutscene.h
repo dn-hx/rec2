@@ -29,6 +29,10 @@ extern void C2_HOOK_FASTCALL DoGameOverAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
+// DoFeatureUnavailableInDemo
+
 // StartLoadingScreen
+
+// FUN_004835d0
 
 #endif // GUARD_45_CUTSCENE_H

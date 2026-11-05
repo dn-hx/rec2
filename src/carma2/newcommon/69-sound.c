@@ -196,6 +196,8 @@ void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
     // empty
 }
 
+// S3StartSoundFromSource3
+
 // FUNCTION: CARMA2_HW 0x00454f40
 // FUNCTION: CARMA2_SW 0x00454cd0
 void C2_HOOK_FASTCALL UsePathFileToDetermineIfFullInstallation(void) {
@@ -357,6 +359,8 @@ tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id 
         return 0;
     }
 }
+
+// DRS3StartSoundNoPiping
 
 int C2_HOOK_FASTCALL DRS3StartSoundNoPiping(tS3_outlet* pOutlet, tS3_sound_id pSound) {
 
@@ -689,6 +693,8 @@ int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const 
         return 0;
     }
 }
+
+// DRS3StartSoundFromSource3
 
 // FUNCTION: CARMA2_HW 0x00456070
 // FUNCTION: CARMA2_SW 0x00455e00

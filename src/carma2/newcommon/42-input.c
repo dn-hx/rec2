@@ -559,6 +559,8 @@ void C2_HOOK_FASTCALL AddRollingString(char* pStr, int pX, int pY, tRolling_type
     }
 }
 
+// AddRollingNumber
+
 // FUNCTION: CARMA2_HW 0x00483e90
 void C2_HOOK_FASTCALL InputNoOp(void) {
 }

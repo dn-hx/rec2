@@ -7,8 +7,14 @@
  */
 
 #include "21-mainloop.h"
+#include "00-car.h"
+#include "09-funks.h"
+#include "15-displays.h"
+#include "16-graphics1.h"
+#include "23-piping.h"
 
 #include "41-utility.h"
+#include "42-input.h"
 #include "69-sound.h"
 #include "globvars.h"
 #include "globvrpb.h"
@@ -16,6 +22,22 @@
 #include "rec2_macros.h"
 #include <stdlib.h>
 
+
+// FUN_00403cc0
+
+// AdjustHeadupTextBuffer
+
+// gPrev_camera_position
+
+// gReplay_button_rects
+
+// gReplay_button_keys
+
+// PickActionReplayManualCameraTarget
+
+// FUN_00403c70
+
+// FUN_00403210
 // GLOBAL: CARMA2_HW 0x0068c814
 // GLOBAL: CARMA2_SW 0x00686868
 tU32 gOld_camera_time;
@@ -27,6 +49,14 @@ tU32 gActual_last_tick_count;
 // GLOBAL: CARMA2_HW 0x0068c824
 // GLOBAL: CARMA2_SW 0x00686878
 tU32 gAverage_frame_period;
+
+// gUnk_006a23d0
+
+// gReplay_show_controls
+
+// gUnk_006a23cc
+
+// gCamera_to_horiz_angle
 
 // GLOBAL: CARMA2_HW 0x00761ef0
 // GLOBAL: CARMA2_SW 0x00758450
@@ -177,6 +207,8 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
 
     NOT_IMPLEMENTED();
 }
+
+// PollActionReplayControls
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

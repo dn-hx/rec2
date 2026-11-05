@@ -35,4 +35,8 @@ extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
 
 // ReadSpecialVolumes
 
+// gDefault_engine_noise_index
+
+// gSpecial_effects_boundary_choices
+
 #endif // GUARD_55_VOLUME_H

@@ -21,7 +21,19 @@ extern int gCredits_checkpoint[3];
 extern tU32 gLast_checkpoint_time;
 extern int gHud_tinted1_visible;
 extern int gHud_tinted2_visible;
+
+// gInitialised_grid
 extern int gLast_wrong_checkpoint;
+
+// gCount_car_damage_crush_list
+
+// gCount_net_crush_semi_detach_bit_list
+
+// gCount_queued_drone_crushes
+
+// gCrush_lists
+
+// gCount_net_crush_reattach_bit_list
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
@@ -70,5 +82,21 @@ extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
 extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
 extern int gCount_toggled_doors;
+
+// gWinner_declared
+
+// gCount_net_crush_full_detach_bit_list
+
+// gCount_net_crush_detach_list
+
+// gCrush_data_entry_counter
+
+// gINT_0067bdfc
+
+// ResetCrushSystems
+
+// InitPlayers
+
+// InitLastDamageArrayEtc
 
 #endif // GUARD_07_STRUCTUR_H

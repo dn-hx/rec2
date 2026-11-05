@@ -231,6 +231,8 @@ extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar)
 
 extern void C2_HOOK_FASTCALL GetCheckSum(tNet_message* pMessage);
 
+// RemoveCarFromEffects
+
 // CheckCheckSum
 
 // StatReceivePacket

@@ -7,9 +7,11 @@
  */
 
 #include "61-pedestrn.h"
+#include "00-car.h"
 
 #include "08-loading1.h"
 #include "10-loading2.h"
+#include "15-displays.h"
 #include "21-mainloop.h"
 #include "22-replay.h"
 #include "27-powerup.h"
@@ -32,11 +34,24 @@
 #include "c2_string.h"
 #include "23-piping.h"
 #include "28-world3.h"
+#include "43-pratcam.h"
+#include "51-smash.h"
+#include "52-errors.h"
 #include "57-drone.h"
+#include "60-phil.h"
+#include "rec2_types.h"
 
+
+// gFloat_00589358
+
+// gPed_noise_table
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
 const char* gPedsFolder;
+
+// gPed_valium_left
+
+// gPed_last_score_time
 
 // GLOBAL: CARMA2_HW 0x006a0420
 // GLOBAL: CARMA2_SW 0x0069a478
@@ -49,6 +64,18 @@ br_actor* gLimbs_actor;
 // GLOBAL: CARMA2_HW 0x0065d7d4
 // GLOBAL: CARMA2_SW 0x0065810c
 int gGoreLevel = 1;
+
+// gCalm_ped_anim_sequence
+
+// gBurning_ped_map_names
+
+// gPedestrian_character_cloned_materials
+
+// gPed_vtable
+
+// gPed_moves
+
+// gPed_forms
 
 // GLOBAL: CARMA2_HW 0x0065d7c8
 // GLOBAL: CARMA2_SW 0x00658100
@@ -64,6 +91,14 @@ int gExplosives_on = 1;
 // GLOBAL: CARMA2_SW 0x006719a4
 int gPed_retain_root_mode = 0;
 
+// gPed_recent_ped
+
+// gCount_pedestrian_personality_cloned_materials
+
+// gPed_remaps
+
+// gPed_personalities
+
 // GLOBAL: CARMA2_HW 0x007447e0
 // GLOBAL: CARMA2_SW 0x0073b2a0
 float gPedestrian_speed_factor;
@@ -71,6 +106,12 @@ float gPedestrian_speed_factor;
 // GLOBAL: CARMA2_HW 0x007447f0
 // GLOBAL: CARMA2_SW 0x0073b2b0
 int gSelected_ped;
+
+// gPed_head_scale
+
+// gTotal_count_smash_peds
+
+// gPed_buoyancy_factor
 
 // GLOBAL: CARMA2_HW 0x007447ac
 // GLOBAL: CARMA2_SW 0x0073b26c
@@ -80,12 +121,34 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_SW 0x0073b270
 int gExploding_pedestrians;
 
+// gPedestrians_in_sight
+
 // GLOBAL: CARMA2_HW 0x0069b9f0
 tNapalm_bolt gNapalm_bolts[5];
+
+// gAverage_ped_scale
+
+// gPed_recent_points
+
+// gPed_groups
 
 // GLOBAL: CARMA2_HW 0x0069412c
 // GLOBAL: CARMA2_SW 0x0068e184
 int gCount_changed_points;
+
+// gPed_times
+
+// gBurning_ped_models
+
+// gPed_groups_count
+
+// gRace_pedestrian_specs
+
+// gPed_spurt_min_max_time
+
+// gPed_spurt_model
+
+// gPed_spurty_lumps_count
 
 // GLOBAL: CARMA2_HW 0x0069bc68
 // GLOBAL: CARMA2_SW 0x00695cc0
@@ -99,6 +162,10 @@ int gPed_nearness;
 // GLOBAL: CARMA2_SW 0x0068e4f0
 tTWTVFS gTwtPeds;
 
+// gPed_cache_006944c0
+
+// gPed_spurt_initial_speed
+
 // GLOBAL: CARMA2_HW 0x007447a4
 // GLOBAL: CARMA2_SW 0x0073b264
 float gMutant_speed;
@@ -111,9 +178,31 @@ int gDancing_peds;
 // GLOBAL: CARMA2_SW 0x0073b278
 int gDrunk_pedestrians;
 
+// gCount_killed_peds
+
+// gPed_scale
+
 // GLOBAL: CARMA2_HW 0x0069bce0
 // GLOBAL: CARMA2_SW 0x00695d38
 int gPeds_already_munged;
+
+// gPipe_halted_ped_status
+
+// gPed_face_caches
+
+// gPed_points
+
+// gPed_score_multiplier
+
+// gBurning_ped_materials
+
+// gPed_movements
+
+// gPed_movements_count
+
+// gCount_race_pedestrian_specs
+
+// gPed_spurt_initial_position
 
 // GLOBAL: CARMA2_HW 0x0065d7b8
 // GLOBAL: CARMA2_SW 0x006580f0
@@ -1162,6 +1251,8 @@ void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove) {
     }
 }
 
+// DisposePedMoves
+
 // DisposeAllLoadedMoves
 
 // ReadRemap
@@ -1179,6 +1270,12 @@ void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap) {
         BrMemFree(pRemap);
     }
 }
+
+// DisposePedForms
+
+// DisposePedForm
+
+// DisposeAllRemaps
 
 // DisposeAllLoadedRemaps
 
@@ -1210,6 +1307,10 @@ void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharact
         BrMemFree(pCharacter);
     }
 }
+
+// DisposeAllPedPersonalities
+
+// DisposePedPersonality
 
 // FindOrOpenForm
 
@@ -1313,6 +1414,10 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
     }
     return MakeCharacterRenderable2(pCharacter, i);
 }
+
+// MakeCharacterPhysicsSetup
+
+// MakeCharacterPhysics
 
 // CharacterNoLongerRenderable
 
@@ -1582,6 +1687,8 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
 
     return BonerActiveHalted2(pCharacter, 0);
 }
+
+// MakeCharacterBonePhysicworthy
 
 // BonerPedMovedByPhysics
 

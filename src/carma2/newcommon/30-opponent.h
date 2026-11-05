@@ -27,6 +27,8 @@ extern tU8* gBit_per_node;
 extern float gIn_view_distance;
 extern int gRoute_search_calls;
 extern int gRoute_search_last_target_count;
+
+// gAcknowledged_start
 extern int gRoute_search_target_count;
 extern float gShortest_route_length;
 extern tCar_spec* gActive_car_list[139];

@@ -898,6 +898,8 @@ void C2_HOOK_FASTCALL MAMSUnlock(void **pPtr) {
 void C2_HOOK_FASTCALL MAMSLock(void **pPtr) {
 }
 
+// PDstrcmpi
+
 // FUNCTION: CARMA2_HW 0x0051d640
 // FUNCTION: CARMA2_SW 0x00517a70
 void C2_HOOK_FASTCALL PDForEveryFileRecurse(const char *pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine) {
@@ -1356,6 +1358,8 @@ void C2_HOOK_FASTCALL PDGetMousePosition(int *pX, int *pY) {
     }
 #endif
 }
+
+// PDConvertMousePosition
 
 // FUNCTION: CARMA2_HW 0x0051c280
 // FUNCTION: CARMA2_SW 0x00516160

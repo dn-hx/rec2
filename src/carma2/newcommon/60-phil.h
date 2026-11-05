@@ -13,7 +13,11 @@
 #include "rec2_types.h"
 
 extern int gPHIL_disabled;
+
+// gPHIL_count_list_collision_infos
 extern tPhysics_object* gPHIL_list_collision_infos;
+
+// gCrush_deferred
 extern tU32 gPHIL_last_physics_tick;
 
 // ScalarToFraction
@@ -119,5 +123,17 @@ extern float gFLOAT_00692dd4;
 extern int gPHIL_munging_objects;
 
 extern int gPHIL_object_added;
+
+// gPHIL_callbacks
+
+// gPHIL_original_activate_passive
+
+// gPHIL_queued_objects_for_removal
+
+// gPHIL_count_queued_objects_for_removal
+
+// gPHIL_count_queued_objects
+
+// gPhil_queued_objects
 
 #endif // GUARD_60_PHIL_H

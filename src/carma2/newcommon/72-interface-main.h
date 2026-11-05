@@ -13,4 +13,8 @@
 
 extern tFrontend_spec gFrontend_MAIN;
 
+// FRONTEND_Main
+
+// LoadGameInFunc
+
 #endif /* GUARD_72_MAIN_H */

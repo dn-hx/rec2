@@ -102,6 +102,8 @@ extern void C2_HOOK_FASTCALL InitMap(void);
 
 #ifdef REC2_HW
 extern void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap);
+
+// UpdateMapAndSaveOptions
 #endif
 
 // static void C2_HOOK_FASTCALL MapChanged(void);
@@ -115,5 +117,13 @@ extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, 
 extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
 
 extern br_actor* gLit_op_stat_actor;
+
+// gBack_original_origin_x
+
+// gBack_original_origin_y
+
+// gBack_original_base_x
+
+// gBack_original_base_y
 
 #endif // GUARD_62_GRAPHICS3_H

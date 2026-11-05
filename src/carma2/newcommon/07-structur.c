@@ -9,6 +9,7 @@
 #include "07-structur.h"
 
 #include "04-netgame.h"
+#include "06-apo.h"
 #include "13-crush1.h"
 #include "15-displays.h"
 #include "18b-graphics2.h"
@@ -21,7 +22,14 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+#include "rec2_macros.h"
 
+
+// ResetCrushSystems
+
+// InitPlayers
+
+// InitLastDamageArrayEtc
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
 int gHud_tinted1 = -1;
@@ -51,12 +59,34 @@ int gHud_tinted1_visible;
 // GLOBAL: CARMA2_SW 0x006a448c
 int gHud_tinted2_visible;
 
+// gInitialised_grid
+
 // GLOBAL: CARMA2_HW 0x00660cdc
 // GLOBAL: CARMA2_SW 0x0065b650
 int gLast_wrong_checkpoint = -1;
 
+// gCount_car_damage_crush_list
+
+// gCount_net_crush_semi_detach_bit_list
+
+// gCount_queued_drone_crushes
+
+// gCrush_lists
+
+// gCount_net_crush_reattach_bit_list
+
 // GLOBAL: CARMA2_HW 0x0067bd58
 int gCount_toggled_doors;
+
+// gWinner_declared
+
+// gCount_net_crush_full_detach_bit_list
+
+// gCount_net_crush_detach_list
+
+// gCrush_data_entry_counter
+
+// gINT_0067bdfc
 
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0

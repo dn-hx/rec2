@@ -50,6 +50,8 @@ int gCount_drone_path_nodes;
 // GLOBAL: CARMA2_SW 0x0067ec38
 int gCurrent_selected_drone;
 
+// gCount_rendered_drones
+
 // GLOBAL: CARMA2_HW 0x00684504
 // GLOBAL: CARMA2_SW 0x0067ec44
 tDrone_spec* gDrone_specs;
@@ -62,6 +64,8 @@ tDrone_path_node* gDrone_path_nodes;
 // GLOBAL: CARMA2_SW 0x0067ec58
 int gTraffic_disabled;
 
+// gShow_drone_paths
+
 // GLOBAL: CARMA2_HW 0x00681fb0
 // GLOBAL: CARMA2_SW 0x0067c6f0
 int gINT_00681fb0;
@@ -72,6 +76,10 @@ int gFrame;
 
 // GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
+
+// gDefault_drone_direction
+
+// gDrone_state_functions
 
 // GLOBAL: CARMA2_HW 0x00705b70
 tU32 gINT_00705b70;
@@ -453,6 +461,8 @@ void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
     gINT_00681fb0 = 0;
     gFrame++;
 }
+
+// DoDefaultDroneStateAction
 
 // DoDronePerGameFrameStuff
 

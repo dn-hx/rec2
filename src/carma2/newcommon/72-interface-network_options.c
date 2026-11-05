@@ -11,6 +11,12 @@
 #include "72-interface.h"
 
 
+
+// NetOptions_Infunc
+
+// NetOptions_Ok
+
+// NetOptions_Cancel
 // GLOBAL: CARMA2_HW 0x00610208
 tFrontend_spec gFrontend_NETWORK_OPTIONS = {
 #if 0 // FIXME: enable this

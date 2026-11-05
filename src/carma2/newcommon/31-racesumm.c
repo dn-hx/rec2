@@ -7,8 +7,15 @@
  */
 
 #include "31-racesumm.h"
+#include "01-network.h"
+#include "18-graphics2.h"
 
 #include "30-opponent.h"
+#include "44-mainmenu.h"
+#include "69-sound.h"
+#include "globvars.h"
+#include "globvrpb.h"
+#include "platform.h"
 
 // SortScores
 
@@ -18,6 +25,16 @@
 
 // DoEndRaceSummary
 
+
+// OriginalResetInterfaceTimeout
+
+// gReceived_game_scores
+
+// gPlayer_lookup_racesumm
+
+// gMoney_pre_race
+
+// gAPO_pre_race
 // FUNCTION: CARMA2_HW 0x004e33d0
 // FUNCTION: CARMA2_SW 0x004df760
 int C2_HOOK_FASTCALL AnyBuyableCars(void) {

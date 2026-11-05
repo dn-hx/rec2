@@ -7,17 +7,23 @@
  */
 
 #include "60-phil.h"
+#include "23-piping.h"
 
 #include "49-physics.h"
 #include "55-volume.h"
+#include "rec2_macros.h"
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
 int gPHIL_disabled = 1;
 
+// gPHIL_count_list_collision_infos
+
 // GLOBAL: CARMA2_HW 0x0074a5f0
 // GLOBAL: CARMA2_SW 0x007410b0
 tPhysics_object* gPHIL_list_collision_infos;
+
+// gCrush_deferred
 
 // GLOBAL: CARMA2_HW 0x0074a5ec
 // GLOBAL: CARMA2_SW 0x007410ac
@@ -34,6 +40,18 @@ int gPHIL_munging_objects;
 
 // GLOBAL: CARMA2_HW 0x006923e4
 int gPHIL_object_added;
+
+// gPHIL_callbacks
+
+// gPHIL_original_activate_passive
+
+// gPHIL_queued_objects_for_removal
+
+// gPHIL_count_queued_objects_for_removal
+
+// gPHIL_count_queued_objects
+
+// gPhil_queued_objects
 
 // ScalarToFraction
 

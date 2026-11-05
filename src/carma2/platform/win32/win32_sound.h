@@ -25,6 +25,8 @@ extern MCI_OPEN_PARMS gPDS3_mci_open_parms;
 extern MCI_SET_PARMS gPDS3_mci_set_parms;
 extern int gPDS3_cda_initialized;
 extern int gPDS3_midi_playing;
+
+// gPDS3_midi_restart_required
 extern int gPDS3_cda_media_present;
 extern int gPDS3_cda_is_playing;
 extern int gPDS3_cda_paused;
@@ -56,6 +58,10 @@ extern int C2_HOOK_FASTCALL PDReverseAudio(tS3_channel* pChannel);
 extern const char* C2_HOOK_FASTCALL PDS3GetWorkingDirectory(void);
 
 extern int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel);
+
+// PDS3ResumeMidiChannel
+
+// PDS3PauseMidiChannel
 
 extern void C2_HOOK_FASTCALL PDS3CheckCDAMedia(tS3_channel* pChannel);
 

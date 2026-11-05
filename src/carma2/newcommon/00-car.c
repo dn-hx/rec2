@@ -11,6 +11,7 @@
 #include "01-network.h"
 #include "02-init.h"
 #include "04-netgame.h"
+#include "07-structur.h"
 #include "10-loading2.h"
 #include "13-crush1.h"
 #include "15-displays.h"
@@ -22,11 +23,13 @@
 #include "27-powerup.h"
 #include "29-raycast.h"
 #include "30-opponent.h"
+#include "32-spark.h"
 #include "34-finteray.h"
 #include "37-brucetrk.h"
 #include "41-utility.h"
 #include "49-physics.h"
 #include "53-controls.h"
+#include "55-volume.h"
 #include "58-crush2.h"
 #include "59-camera.h"
 #include "60-phil.h"
@@ -565,6 +568,8 @@ void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar) {
     pCar->rf_sus_position = (br_scalar)((pCar->wpos[3].v[1] - pCar->oldd[3]) / WORLD_SCALE_D);
     PipeSingleGraphicalWheelStuff(pCar);
 }
+
+// SetCollisionFlagsAndStuff
 
 // FinishCars
 
@@ -1270,6 +1275,10 @@ void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
 }
 
+// ReceivedCrushReattachBit
+
+// ComputeCarImpact
+
 // FUNCTION: CARMA2_HW 0x0043d900
 int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {
     tCar_crush_spec* crush;
@@ -1461,3 +1470,11 @@ void C2_HOOK_FASTCALL CompressCarDataChunk(tNet_message_chunk* pMessage, int pPl
     *(int*)(chunk + 4) = gNet_players[pPlayer_index].ID;
     *(int*)(chunk + 0x10) = *(int*)((tU8*)car + 0x18a4);
 }
+
+// MungeSpecialVolume
+
+// ClearSplashes
+
+// GetFacesInBox
+
+// SelectCrushNetwork

@@ -9,18 +9,29 @@
 #include "28-world3.h"
 
 #include "08-loading1.h"
+#include "37-brucetrk.h"
 #include "41-utility.h"
 #include "51-smash.h"
 #include "52-errors.h"
+#include "61-pedestrn.h"
 #include "63-loading3.h"
 #include "69-sound.h"
 #include "70-packfile.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "platform.h"
 #include "rec2_macros.h"
 
 #include <string.h>
 
+
+// ReadRemap
+
+// gPed_remap_axis_choices
+
+// FinishUpLoadingPeds
+
+// MungeSmashMaterialNames
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0
 br_actor* gAdditional_actors;
@@ -817,3 +828,5 @@ void C2_HOOK_FASTCALL AllowDuplicates(void) {
 
     gDisallow_duplicates = 0;
 }
+
+// SwapPixelmapInStorage

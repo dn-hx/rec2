@@ -20,6 +20,12 @@
 
 extern void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial);
 
+// StopProcessingThisDrone
+
+// DoNotDprintf_drone
+
+// DoDamage
+
 extern void C2_HOOK_FASTCALL InitPanGameAIWorld(void);
 
 extern void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF);
@@ -45,5 +51,15 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 // MakeAISimpleEditSectionHere
 
 extern int gChallenger_index__opponent;
+
+// gCount_active_drones
+
+// gTrack_drone_min_y
+
+// gDrone_delta_time
+
+// gFrame_period_for_this_munging
+
+// gFirst_drone_processing
 
 #endif // GUARD_56_AIWORLD_H

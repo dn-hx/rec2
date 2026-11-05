@@ -1018,6 +1018,8 @@ int C2_HOOK_FASTCALL PDCheckDriveExists(const char* pThe_path) {
     return PDCheckDriveExists2(pThe_path, NULL, 0);
 }
 
+// CloneActor
+
 br_actor* C2_HOOK_FASTCALL CloneActor(br_actor* pActor) {
     br_actor *clone;
     br_actor *child;

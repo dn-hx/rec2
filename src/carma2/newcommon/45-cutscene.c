@@ -78,6 +78,8 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
     WaitForNoKeys();
 }
 
+// DoFeatureUnavailableInDemo
+
 // FUNCTION: CARMA2_HW 0x0043f5c0
 // FUNCTION: CARMA2_SW 0x0043f6a0
 void C2_HOOK_FASTCALL StartLoadingScreen(void) {
@@ -100,6 +102,8 @@ void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time) {
     gSound_ID = pSound_ID;
     gSound_time = pSound_time;
 }
+
+// FUN_004835d0
 
 // FUNCTION: CARMA2_HW 0x004fa8d0
 void C2_HOOK_FASTCALL DustRotate(void) {

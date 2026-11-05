@@ -22,22 +22,36 @@ extern br_pixelmap** gShade_table;
 #endif
 extern tSmash_vertex gSmash_glass_fragments[200];
 extern int gNum_dust_tables;
+
+// gSplash
 extern int gSpark_flags;
 extern br_pixelmap* gIt_shade_table;
 extern int gSmoke_flags;
 extern int gSmoke_num;
 extern tSmoke gSmoke[25];
+
+// gSplash_material
 extern br_material* gBlack_material;
 extern tSmashable_environment_name* gSmashable_noncars;
 extern int gCount_smashable_noncars;
 extern tBRender_smoke* gBR_smoke_pointers[35];
 extern int gN_BR_smoke_structs;
+
+// gSplash_flags
 extern int gColumn_flags;
+
+// gNum_splash_types
+
+// gColumn_next
 extern br_model* gShrapnel_model[2];
 extern br_pixelmap* gFlame_map[20];
 extern br_model* gLollipop_model;
+
+// gReplay_splashes
 extern tSmoke_column gSmoke_column[10];
 extern br_matrix4 gCameraToScreen;
+
+// gSplash_model
 extern br_camera* gSpark_cam;
 extern tCar_spec* gCar_of_material;
 extern br_pixelmap* gFog_shade_table;
@@ -274,5 +288,7 @@ extern int gReplay_splash_flags;
 extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 
 extern const br_scalar gFLOAT_0058b008;
+
+// FindNextChunk
 
 #endif // GUARD_32_SPARK_H

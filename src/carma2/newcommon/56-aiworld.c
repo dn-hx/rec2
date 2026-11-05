@@ -9,15 +9,34 @@
 #include "56-aiworld.h"
 
 #include "05-drmem.h"
+#include "08-loading1.h"
 #include "10-loading2.h"
 #include "18-graphics2.h"
+#include "23-piping.h"
 #include "30-opponent.h"
+#include "39-oil.h"
+#include "41-utility.h"
 #include "57-drone.h"
+#include "58-crush2.h"
+#include "60-phil.h"
+#include "globvars.h"
+#include "globvrpb.h"
+#include "platform.h"
 
 // MakeVertexAndOffsetIt
 
+
+// gFirst_drone_processing
 // GLOBAL: CARMA2_HW 0x0065a3c8
 int gChallenger_index__opponent = -1;
+
+// gCount_active_drones
+
+// gTrack_drone_min_y
+
+// gDrone_delta_time
+
+// gFrame_period_for_this_munging
 
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
@@ -29,6 +48,12 @@ void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_u
     pModel->faces[pFace_num].smoothing = 0xffff;
     pModel->faces[pFace_num].material = pMaterial;
 }
+
+// StopProcessingThisDrone
+
+// DoNotDprintf_drone
+
+// DoDamage
 
 // FUNCTION: CARMA2_HW 0x00401000
 // FUNCTION: CARMA2_SW 0x00401000

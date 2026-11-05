@@ -12,7 +12,11 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// tJoystick_headup_text
+
 extern int gAllow_car_flying;
+
+// gINT_0067c470
 extern int gEntering_message;
 extern int gCheckpoint_finder_enabled;
 extern float gMap_render_x;
@@ -24,6 +28,10 @@ extern int gHeadup_map_x;
 extern int gHeadup_map_y;
 extern int gHeadup_map_w;
 extern int gHeadup_map_h;
+
+// gHeadup_text_buffer_0079d880
+
+// gCamera_key_flags
 extern int gRecovery_voucher_count;
 
 extern tRace_over_reason gRace_over_reason;
@@ -202,8 +210,46 @@ extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
 extern tU32 gPalette_fade_time;
 
+// gAcc_poly_model
+
+// gAcc_poly_material
+
+// gInvulnerability
+
+// gRender_acc_poly_actor
+
+// gAcc_poly_actor
+
+// gToo_poor_for_recovery_timeout
+
 extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
 
+// FUN_0045c240
+
+// SetCollisionInfoChildsDoNothing
+
 extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+
+// CreateAccentPolyActor
+
+// FUN_0045a920
+
+// FUN_0045a7f0
+
+// RepairCar
+
+// gWhich_edit_mode
+
+// gUNK_005904c0
+
+// gJoystick_headup_texts
+
+// gAccent_poly_prims
+
+// old_indent
+
+// StringTransformToLower
+
+// ToggleJoystickHeadup
 
 #endif // GUARD_53_CONTROLS_H

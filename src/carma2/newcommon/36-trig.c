@@ -11,6 +11,18 @@
 #include "c2_math.h"
 #include "rec2_macros.h"
 
+
+// gFloat_sine_table_360
+
+// gFloat_sine_table_270
+
+// mattmp2__trig
+
+// mattmp1__trig
+
+// mat23tmp2
+
+// mat23tmp1
 // GLOBAL: CARMA2_HW 0x00661398
 // GLOBAL: CARMA2_SW 0x0065bcf0
 float gFloat_sine_table[91] = {
@@ -320,6 +332,8 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
     return FastFloatArcTan2Angle(pY, pX);
 }
 
+// DRMatrix34Rotate
+
 // DRMatrix34RotateX
 
 // DRMatrix34RotateY
@@ -333,6 +347,10 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
 void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
     NOT_IMPLEMENTED();
 }
+
+// DRMatrix34PostRotate
+
+// DRMatrix34PreRotate
 
 // DRMatrix34PreRotateZ
 

@@ -92,6 +92,8 @@ extern void C2_HOOK_FASTCALL DoUncompressed(tFlic_descriptor* pFlic_info, tU32 p
 
 extern void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
 
+// PlayFlic
+
 // DoMini
 
 // DrawTranslations
@@ -107,6 +109,8 @@ extern void C2_HOOK_FASTCALL UnlockFlic(int pIndex);
 extern int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length);
 
 extern void C2_HOOK_FASTCALL FreeFlic(int pIndex);
+
+// RunFlicAt
 
 extern void C2_HOOK_FASTCALL SwapScreen(void);
 
@@ -126,6 +130,8 @@ extern void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval);
 
 extern void C2_HOOK_FASTCALL FlushFlicQueue(void);
 
+// InitialiseFlicPanel
+
 extern void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex);
 
 extern br_pixelmap* C2_HOOK_FASTCALL GetPanelPixelmap(int pPanel_index);
@@ -138,8 +144,14 @@ extern void C2_HOOK_FASTCALL ResumePendingFlic(void);
 
 extern tU32 gSound_time;
 
+// gLast_flic_name
+
 extern int gSound_ID;
 
 extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
+
+// gPanel_flic_left
+
+// gPanel_flic_top
 
 #endif // GUARD_38_FLICPLAY_H

@@ -421,6 +421,8 @@ extern void C2_HOOK_FASTCALL SetUpTestObjects(void);
 
 extern void C2_HOOK_FASTCALL InitPhysics(void);
 
+// FUN_004b7310
+
 // PointOutOfSightNotAR
 
 // CalcCollObjIDFromCarSpec
@@ -444,5 +446,9 @@ extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scala
 extern int C2_HOOK_FASTCALL CollectJointLimitsIntoBuffer(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
 
 extern int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject);
+
+// SetCollisionInfoDoNothingChain
+
+// SetCollisionInfoDoNothing
 
 #endif // GUARD_49_PHYSICS_H

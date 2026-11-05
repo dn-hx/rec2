@@ -157,6 +157,8 @@ tU32 gLast_time_credit_amount;
 // GLOBAL: CARMA2_SW 0x00795020
 int gOld_times[10];
 
+// gHeadup_oppo_ped_text
+
 // GLOBAL: CARMA2_HW 0x0067f888
 // GLOBAL: CARMA2_SW 0x00679ff4
 int gQueued_headup_count;
@@ -604,6 +606,8 @@ void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex) {
         }
     }
 }
+
+// MoveHeadupKeepOffset
 
 // FUNCTION: CARMA2_HW 0x0044a8a0
 void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y) {

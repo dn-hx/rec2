@@ -25,6 +25,8 @@ tFunkotronic_spec* gFunkotronics_array;
 // GLOBAL: CARMA2_SW 0x00685db0
 tGroovidelic_spec* gGroovidelics_array;
 
+// gYon_squared
+
 // GLOBAL: CARMA2_HW 0x0068b848
 // GLOBAL: CARMA2_SW 0x00685da8
 int gGroovidelics_array_size;

@@ -10,12 +10,17 @@
 
 #include "00-car.h"
 #include "09-funks.h"
+#include "13-crush1.h"
 #include "16-graphics1.h"
+#include "18-graphics2.h"
+#include "20-skidmark.h"
 #include "22-replay.h"
 #include "27-powerup.h"
 #include "30-opponent.h"
 #include "32-spark.h"
+#include "39-oil.h"
 #include "41-utility.h"
+#include "46-win95sys.h"
 
 #include "51-smash.h"
 #include "52-errors.h"
@@ -24,6 +29,7 @@
 #include "globvars.h"
 #include "platform.h"
 #include "60-phil.h"
+#include "rec2_types.h"
 
 #include <s3/internal/audio.h>
 
@@ -33,6 +39,8 @@
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
+
+// gReplay_callbacks
 // GLOBAL: CARMA2_HW 0x006768b4
 // GLOBAL: CARMA2_SW 0x00671024
 tU8* gLocal_buffer;
@@ -72,9 +80,13 @@ float gReplay_rate;
 // GLOBAL: CARMA2_HW 0x006768c8
 tU8* gPipe_buffer_end_marker = NULL;
 
+// gReentrancy_array
+
 // GLOBAL: CARMA2_HW 0x006768e8
 // GLOBAL: CARMA2_SW 0x00671058
 const tReplay_callback* gPipe_callbacks;
+
+// gPipe_buffer_size
 
 // GLOBAL: CARMA2_HW 0x006768b8
 // GLOBAL: CARMA2_SW 0x00671028
@@ -99,17 +111,35 @@ tU32 gPipe_sound_time_window;
 // GLOBAL: CARMA2_HW 0x006940d4
 tPipe_smudge_data* gSmudge_space;
 
+// gCar_pos
+
+// gCar_ptr
+
+// gReference_pos
+
+// gMax_distance
+
 // GLOBAL: CARMA2_HW 0x0067690c
 int gPipe_undo_enabled = 0;
+
+// gOldest_time
+
+// gPipe_count_callbacks
 
 // GLOBAL: CARMA2_HW 0x0069410c
 volatile undefined4 gUNK_0069410c;
 
+// gTrigger_time
+
 // GLOBAL: CARMA2_HW 0x00694104
 undefined4* gCrush_space;
 
+// gYoungest_time
+
 // GLOBAL: CARMA2_HW 0x006a23b4
 int gUNK_006a23b4 = 0;
+
+// gShrapnel_shower_matrix
 
 // ARReplayForwards
 
@@ -158,6 +188,8 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
     gPipe_buffer_oldest = NULL;
     gReentrancy_count = 0;
 }
+
+// DisposePiping
 
 // FUNCTION: CARMA2_HW 0x00402540
 int C2_HOOK_FASTCALL ARReplayPlaying(void) {
@@ -507,6 +539,18 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
     gAction_replay_mode = 0;
     gLast_replay_frame_time = PDGetTotalTime();
 }
+
+// WorkerSplitWeldApply
+
+// WorkerModelMashUndo
+
+// WorkerCrushUndo
+
+// WorkerDroneStraightPos
+
+// WorkerDroneCornerPos
+
+// WorkerCrush
 
 // ARToggleReplay
 
@@ -1473,6 +1517,8 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
     DoSmudge(pChunk, -1);
 }
 
+// ApplyReplayFrameTime
+
 // UndoDamage
 
 // UndoSpecial
@@ -1710,6 +1756,28 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
     return pChunk->data.bend.size;
 }
 
+// DoBloodSpurtUndo
+
+// WorkerPedStatusUndo
+
+// WorkerPedDiagnostics
+
+// DoVanishDismembered
+
+// WorkerPowerupLose
+
+// WorkerPowerupGot
+
+// WorkerPedPos
+
+// WorkerPedDir
+
+// WorkerPedStatus
+
+// WorkerProxRay
+
+// WorkerSpecial
+
 // FUNCTION: CARMA2_HW 0x004e70d0
 void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
     br_pixelmap** pp;
@@ -1724,6 +1792,14 @@ void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
         pp++;
     } while ((int)pp < (int)&gUNK_006a23b4);
 }
+
+// FUN_00564e5e
+
+// InitFragmentSpeed
+
+// PositionFragment
+
+// FUN_DisposeReplayBuffer
 
 // CalcRemoveFacesLength
 

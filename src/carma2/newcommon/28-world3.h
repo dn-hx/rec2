@@ -118,6 +118,8 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
+// SwapPixelmapInStorage
+
 extern br_actor* gLast_actor;
 
 extern br_model* gAdditional_models[1000];
@@ -133,5 +135,13 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 extern void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
+
+// ReadRemap
+
+// gPed_remap_axis_choices
+
+// FinishUpLoadingPeds
+
+// MungeSmashMaterialNames
 
 #endif // GUARD_28_WORLD3_H

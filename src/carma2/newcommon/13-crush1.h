@@ -14,7 +14,19 @@
 
 #include <stdio.h>
 
+// tFind_crush_actor_arg
+
+// tBend_data_local
+
+// tUnbend_model_context_local
+
+// tNet_message_chunk_semi_detach_bit
+
+// tCrush_net_reattach_list_item_local
+
 extern undefined4 gCrush_array_0067a190[10];
+
+// gNet_crush_detach_list
 extern undefined4 gDAT_00679440;
 extern tCrush_info_buffer gDetached_bit_crush_info_buffer;
 extern tPhysics_object* gDetached_bit_collision_infos;
@@ -255,6 +267,8 @@ extern void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec
 
 extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data);
 
+// ToggleDoorsActorCallback
+
 // SendToggleFlaps
 
 // ToggleFlaps
@@ -395,6 +409,10 @@ extern int C2_HOOK_FASTCALL BattenDownTheObjects(tPhysics_object* pCollision_inf
 
 extern void C2_HOOK_FASTCALL CompletelyUnBendCollisionShape(tCar_crush_shape_info* pShape);
 
+// FUN_0043a5b0
+
+// UnBendActorCB
+
 // CompletelyUnBendCollisionShapes
 
 // CompletelyUnBendWheels
@@ -475,6 +493,8 @@ extern void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vect
 
 extern void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vector3* pSrc);
 
+// FindActorByCrushEntryID
+
 // ARApplyFlap
 
 // ARApplySplitWeld
@@ -545,11 +565,15 @@ extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
+// NetAllocateMessageChunk
+
 extern intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void* pArg);
 
 extern void C2_HOOK_FASTCALL FUN_00435960(br_model* pModel, const br_vector3* pOffset, tCar_spec** ppCar, br_actor* pActor);
 
 extern br_scalar gCrushZero;
+
+// gWorld_callbacks
 
 extern void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar);
 
@@ -568,5 +592,21 @@ extern int C2_HOOK_FASTCALL FUN_00424270(float* pStart, float* pEnd, int* pObjec
 extern tToggled_door gToggled_doors[16];
 
 extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars);
+
+// gNet_crush_reattach_bit_list
+
+// gCount_crush_detach_list
+
+// TestForCarInSensiblePlace
+
+// gNet_crush_semi_detach_bit_list
+
+// gNet_crush_full_detach_bit_list
+
+// gCrush_detach_list
+
+// gCar_damage_crush_list
+
+// gINT_0067be84
 
 #endif // GUARD_13_CRUSH1_H

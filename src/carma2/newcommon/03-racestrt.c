@@ -7,9 +7,13 @@
  */
 
 #include "03-racestrt.h"
+#include "41-utility.h"
+#include "globvars.h"
 
 #include "rec2_types.h"
 
+
+// gOur_starting_position
 // GLOBAL: CARMA2_HW 0x006a0d38
 // GLOBAL: CARMA2_SW 0x0069ad90
 tU32 gLast_host_query;

@@ -13,4 +13,6 @@
 
 extern tFrontend_spec gFrontend_NETSYNC;
 
+// NetSync_Infunc
+
 #endif /* GUARD_72_NETSYNC_H */

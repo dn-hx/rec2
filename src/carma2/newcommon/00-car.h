@@ -11,6 +11,12 @@
 
 #include "rec2_types.h"
 
+// tNet_message_chunk_crush_reattach_bit
+
+// PO_U8
+
+// PO_U32
+
 extern int gTesting_car_for_sensible_place;
 extern int gCunning_stunt_bonus[3];
 extern float gArmour_starting_value[100];
@@ -241,6 +247,10 @@ extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
+// ReceivedCrushReattachBit
+
+// ComputeCarImpact
+
 extern int gMetal_crunch_sound_id[5];
 
 extern tFace_ref gFace_list__car[300];
@@ -255,5 +265,15 @@ typedef struct {
 
 #define PO_U16(o, off) (*(tU16*)((char*)(o) + (off)))
 
+
+// SelectCrushNetwork
+
+// GetFacesInBox
+
+// ClearSplashes
+
+// MungeSpecialVolume
+
+// InitialiseExternalCamera
 
 #endif // GUARD_00_CAR_H

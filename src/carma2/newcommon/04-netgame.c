@@ -10,12 +10,15 @@
 
 #include "00-car.h"
 #include "01-network.h"
+#include "03-racestrt.h"
 #include "07-structur.h"
 #include "13-crush1.h"
 #include "27-powerup.h"
 #include "30-opponent.h"
 #include "32-spark.h"
 #include "41-utility.h"
+#include "52-errors.h"
+#include "60-phil.h"
 #include "63-loading3.h"
 #include "72-interface.h"
 #include "globvars.h"
@@ -24,6 +27,12 @@
 #include "rec2_macros.h"
 #include "rec2_types.h"
 
+
+// SendDetachedNonCarData
+
+// SendDetachedNonCarDataToPlayer
+
+// gINT_0068d920
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
 br_pixelmap* gDigits_pix;
@@ -39,6 +48,8 @@ int gLast_it_change;
 // GLOBAL: CARMA2_HW 0x0068d92c
 // GLOBAL: CARMA2_SW 0x00687984
 tU32 gTime_for_punishment;
+
+// gNot_shown_race_type_headup
 
 // SendShapeNumbers
 
@@ -109,6 +120,8 @@ void C2_HOOK_FASTCALL ReceivedRecover(tNet_message_chunk_recover* pContents) {
         }
     }
 }
+
+// ReceivedCrushSync
 
 // CopyMechanics
 
@@ -516,6 +529,12 @@ void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, in
         }
     }
 }
+
+// ForEveryActorModelNoGrooves
+
+// StopCarBeingIt
+
+// SendGuaranteedMessageToPlayer
 
 
 #ifdef REC2_MATCHING

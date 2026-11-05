@@ -9,9 +9,13 @@
 #include "38-flicplay.h"
 
 #include "08-loading1.h"
+#include "18-graphics2.h"
 #include "19-font.h"
+#include "40-main.h"
 #include "41-utility.h"
+#include "42-input.h"
 #include "52-errors.h"
+#include "69-sound.h"
 #include "70-packfile.h"
 #include "globvars.h"
 #include "platform.h"
@@ -119,6 +123,10 @@ int gTranslation_count;
 // GLOBAL: CARMA2_SW 0x00680928
 tFlic_descriptor* gFirst_flic;
 
+// gPanel_flic_top
+
+// gPanel_flic_left
+
 // GLOBAL: CARMA2_HW 0x006861d8
 // GLOBAL: CARMA2_SW 0x00680918
 void* gPalette_pixels;
@@ -173,6 +181,8 @@ int gPending_pending_flic;
 
 // GLOBAL: CARMA2_HW 0x00686328
 tU32 gSound_time;
+
+// gLast_flic_name
 
 // GLOBAL: CARMA2_HW 0x00686300
 int gSound_ID;
@@ -847,6 +857,8 @@ void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pCh
     }
 }
 
+// PlayFlic
+
 // DoMini
 
 // DrawTranslations
@@ -932,6 +944,8 @@ void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
         gMain_flic_list[pIndex].data_ptr = NULL;
     }
 }
+
+// RunFlicAt
 
 // FUNCTION: CARMA2_HW 0x00462c10
 // FUNCTION: CARMA2_SW 0x004626a0
@@ -1051,6 +1065,8 @@ void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval) {
 void C2_HOOK_FASTCALL FlushFlicQueue(void) {
     NOT_IMPLEMENTED();
 }
+
+// InitialiseFlicPanel
 
 // FUNCTION: CARMA2_HW 0x004630b0
 // FUNCTION: CARMA2_SW 0x00462b40

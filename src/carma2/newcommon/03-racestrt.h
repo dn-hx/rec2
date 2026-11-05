@@ -22,4 +22,6 @@ extern int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pS
 
 // ReceivedViewCar
 
+// gOur_starting_position
+
 #endif // GUARD_03_RACESTRT_H

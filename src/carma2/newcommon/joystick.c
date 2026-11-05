@@ -9,7 +9,9 @@
 #include "joystick.h"
 
 #include "08-loading1.h"
+#include "15-displays.h"
 #include "41-utility.h"
+#include "53-controls.h"
 #include "globvars.h"
 #include "platform.h"
 
@@ -479,6 +481,8 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     }
 }
 
+// GetJoystickButtonIndexForKey
+
 // FUNCTION: CARMA2_HW 0x0045c780
 // FUNCTION: CARMA2_SW 0x0045c1c0
 int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
@@ -581,3 +585,11 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
     }
     return gJoystick_y_throttle;
 }
+
+// IncreaseJoystickFFB
+
+// ToggleJoystickDPad
+
+// ToggleJoystickEnable
+
+// ToggleJoystickYAxis

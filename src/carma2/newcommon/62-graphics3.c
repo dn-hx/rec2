@@ -193,9 +193,17 @@ int gMap_render_width_i;
 // GLOBAL: CARMA2_SW 0x0068773c
 br_pixelmap* gCheckpoint_numbers;
 
+// gBack_original_origin_y
+
+// gBack_original_origin_x
+
 // GLOBAL: CARMA2_HW 0x0068d884
 // GLOBAL: CARMA2_SW 0x006878dc
 br_pixelmap* gSmashy_dot;
+
+// gBack_original_base_y
+
+// gBack_original_base_x
 
 // GLOBAL: CARMA2_HW 0x0068c87c
 // GLOBAL: CARMA2_SW 0x006868d4
@@ -853,6 +861,8 @@ void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap) {
     gCar_icons_model_actor->material->flags = BR_MATF_PRELIT | BR_MATF_SMOOTH | BR_MATF_ALWAYS_VISIBLE;
     BrMaterialAdd(gCar_icons_model_actor->material);
 }
+
+// UpdateMapAndSaveOptions
 #endif
 
 static void C2_HOOK_FASTCALL MapChanged(void) {

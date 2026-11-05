@@ -27,12 +27,30 @@
 
 #include "c2_string.h"
 #include "04-netgame.h"
+#include "23-piping.h"
+#include "59-camera.h"
 
 #include <stdio.h>
 
+
+// PipeSingleShrapnelShower
+
+// PipeSingleBloodSpurt
+
+// gRepeatability_names
+
+// gPosition_type_names
 // GLOBAL: CARMA2_HW 0x006a6d38
 // GLOBAL: CARMA2_SW 0x006a0d98
 int gMaterials_to_adapt_count;
+
+// gCount_host_smashes
+
+// gPowerup_respawn_smashable
+
+// gRepair_animations
+
+// gSmash_explosions
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
@@ -40,6 +58,8 @@ int gAllow_material_adapt;
 
 // GLOBAL: CARMA2_HW 0x006a3340
 br_material* gMaterials_to_adapt[200];
+
+// gUnknown_smashable_006a3660
 
 // GLOBAL: CARMA2_HW 0x006a3338
 // GLOBAL: CARMA2_SW 0x0069d398
@@ -53,6 +73,8 @@ tSmashable_item_spec* gTrack_smashable_environment_specs;
 // GLOBAL: CARMA2_SW 0x0069f1a0
 br_actor* gSmashable_noncar_shrapnel_actors[100];
 
+// gPowerup_pickup_smashable
+
 // GLOBAL: CARMA2_HW 0x006a55b0
 // GLOBAL: CARMA2_SW 0x0069f610
 int gCount_smashable_noncar_shrapnel_actors;
@@ -64,6 +86,8 @@ int gCount_track_smashable_environment_specs;
 // GLOBAL: CARMA2_HW 0x006a55b8
 // GLOBAL: CARMA2_SW 0x0069f618
 const char* gSmashable_track_environment_path;
+
+// gSize_powerup_queue
 
 // GLOBAL: CARMA2_HW 0x006a55c0
 // GLOBAL: CARMA2_SW 0x0069f620
@@ -384,6 +408,8 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 void C2_HOOK_FASTCALL InitSmashQueue(void) {
     gCount_queued_smashes = 0;
 }
+
+// FUN_004edb20
 
 // FlushPowerupQueue
 
@@ -714,6 +740,8 @@ void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
     pBounds->max.v[2] = MAX(z1, z2);
 }
 
+// ReadShrapnelSideEffects
+
 // FUNCTION: CARMA2_HW 0x004ef830
 void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pUnused, int pLevel) {
     extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
@@ -861,6 +889,8 @@ void C2_HOOK_FASTCALL RemoveAllDecals(void) {
 void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF) {
     NOT_IMPLEMENTED();
 }
+
+// ReadNonCarCuboidActivation
 
 // FUNCTION: CARMA2_HW 0x004efe00
 // FUNCTION: CARMA2_SW 0x004eba60

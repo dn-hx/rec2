@@ -11,7 +11,9 @@
 #include "16-graphics1.h"
 #include "25-grafdata.h"
 #include "33-depth.h"
+#include "35-intrface.h"
 #include "41-utility.h"
+#include "42-input.h"
 #include "52-errors.h"
 #include "63-loading3.h"
 #include "66-tintedpoly.h"
@@ -40,6 +42,10 @@ int gCursor_tinted_center = -1;
 
 // GLOBAL: CARMA2_HW 0x0058fde0
 int gCursor_line_width = 5;
+
+// gCurrent_cursor_index
+
+// gTransient_bitmap_index
 
 // GLOBAL: CARMA2_HW 0x0067be98
 // GLOBAL: CARMA2_SW 0x00676608
@@ -72,6 +78,8 @@ br_pixelmap* gRender_palette;
 // GLOBAL: CARMA2_HW 0x0079ec14
 // GLOBAL: CARMA2_SW 0x00795174
 int gDim_amount;
+
+// gMouse_last_pos
 
 // GLOBAL: CARMA2_HW 0x0074a680
 // GLOBAL: CARMA2_SW 0x00741140
@@ -780,6 +788,8 @@ void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y, br_pix
 
     DRPixelmapRectangleMaskedCopy(gBack_screen, pDest_x, pDest_y, pSource, 0, 0, pSource->width, pSource->height);
 }
+
+// PoshDrawLine
 
 // FUNCTION: CARMA2_HW 0x0047c9c0
 void C2_HOOK_FASTCALL DrawRectangleOutlineWithPalette(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {

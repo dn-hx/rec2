@@ -12,6 +12,7 @@
 #include "08-loading1.h"
 #include "34-finteray.h"
 #include "41-utility.h"
+#include "52-errors.h"
 #include "69-sound.h"
 #include "70-packfile.h"
 #include "globvars.h"
@@ -20,6 +21,10 @@
 
 #include "rec2_macros.h"
 
+
+// gDefault_engine_noise_index
+
+// gSpecial_effects_boundary_choices
 // GLOBAL: CARMA2_HW 0x00761b80
 // GLOBAL: CARMA2_SW 0x007580e0
 tSpecial_volume gDefault_default_water_spec_vol;

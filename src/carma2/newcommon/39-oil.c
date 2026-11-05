@@ -9,6 +9,7 @@
 #include "39-oil.h"
 
 #include "01-network.h"
+#include "23-piping.h"
 #include "41-utility.h"
 #include "63-loading3.h"
 #include "globvars.h"
@@ -34,6 +35,8 @@ br_material* oily_material;
 
 // GLOBAL: CARMA2_HW 0x00691710
 int gNext_oil_pixie;
+
+// gStart_jumped
 
 // FUNCTION: CARMA2_HW 0x004a6a10
 // FUNCTION: CARMA2_SW 0x004a2b90
@@ -203,6 +206,8 @@ void C2_HOOK_FASTCALL ReceivedOilSpill(tNet_message_chunk* pContents) {
         0.35f, 0.6f, 0.00003f, 0.0001f, 0.1f, 1.5f, 2.5f, 0.01f, 0.15f,
         oily_material, NULL);
 }
+
+// PipeSingleOilSpill
 
 // RemoveCarsOilSlicks
 

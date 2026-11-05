@@ -11,6 +11,10 @@
 #include "72-interface.h"
 
 
+
+// FRONTEND_Main
+
+// LoadGameInFunc
 // GLOBAL: CARMA2_HW 0x005a80f0
 // GLOBAL: CARMA2_SW 0x005a3020
 tFrontend_spec gFrontend_MAIN = {

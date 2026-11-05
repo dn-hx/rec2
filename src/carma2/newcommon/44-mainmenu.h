@@ -25,4 +25,6 @@ extern int gMouse_was_started__mainmenu;
 
 extern int gReplace_background;
 
+// FRONTEND_Main
+
 #endif // GUARD_44_MAINMENU_H

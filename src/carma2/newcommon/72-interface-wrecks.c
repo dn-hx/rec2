@@ -11,6 +11,12 @@
 #include "72-interface.h"
 
 
+
+// BuyCurrentCar
+
+// WrecksInFunc
+
+// WrecksUpdateFunc
 // GLOBAL: CARMA2_HW 0x005f8e68
 // GLOBAL: CARMA2_SW 0x005f3d98
 tFrontend_spec gFrontend_WRECKS = {

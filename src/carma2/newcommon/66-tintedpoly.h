@@ -20,6 +20,8 @@ extern void C2_HOOK_FASTCALL InitTintedPolyStuff(void);
 
 extern br_model* C2_HOOK_FASTCALL BuildTintedPolyModel(int x0, int y0, int width, int height, int nbX, int nbY);
 
+// FreeTintedPolyActor
+
 // static br_material* C2_HOOK_FASTCALL BuildTintedPolyMaterial(int pOpacity);
 
 // void C2_HOOK_FASTCALL GetRangeOfValuesFromPixelmap(br_pixelmap* pMap, int* pDarkest, int* pBrightest);

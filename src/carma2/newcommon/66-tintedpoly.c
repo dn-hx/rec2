@@ -31,6 +31,8 @@ const char* gForm_non_humanoid_names[1] = {
 // GLOBAL: CARMA2_SW 0x006fc740
 tTintedPoly gTintedPolys[10];
 
+// gEthereal_pedestrians
+
 // GLOBAL: CARMA2_HW 0x006a0430
 // GLOBAL: CARMA2_SW 0x0069a488
 br_actor* gTintedPolyCamera;
@@ -393,6 +395,8 @@ br_model* C2_HOOK_FASTCALL BuildTintedPolyModel(int x0, int y0, int width, int h
     model->flags |= BR_MODF_DONT_WELD | BR_MODF_KEEP_ORIGINAL;
     return model;
 }
+
+// FreeTintedPolyActor
 
 // FUNCTION: CARMA2_HW 0x004d7c80
 // FUNCTION: CARMA2_SW 0x004d4190

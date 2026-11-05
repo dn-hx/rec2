@@ -12,23 +12,87 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// tPed_anim_seq_2
+
 extern int gPed_count_limbed_actors;
 extern br_actor* gLimbs_actor;
 
 extern int gPed_retain_root_mode;
+
+// gPed_recent_ped
+
+// gCount_pedestrian_personality_cloned_materials
+
+// gPed_remaps
+
+// gPed_personalities
 extern float gPedestrian_speed_factor;
 extern int gSelected_ped;
+
+// gPed_head_scale
+
+// gTotal_count_smash_peds
+
+// gPed_buoyancy_factor
 extern int gPeds_suicidal;
 extern int gExploding_pedestrians;
+
+// gPedestrians_in_sight
 extern tNapalm_bolt gNapalm_bolts[5];
+
+// gAverage_ped_scale
+
+// gPed_recent_points
+
+// gPed_groups
 extern int gCount_changed_points;
+
+// gPed_times
+
+// gBurning_ped_models
+
+// gPed_groups_count
+
+// gRace_pedestrian_specs
+
+// gPed_spurt_min_max_time
+
+// gPed_spurt_model
+
+// gPed_spurty_lumps_count
 extern br_vector3 gChanged_points[10];
 extern int gPed_nearness;
 extern tTWTVFS gTwtPeds;
+
+// gPed_cache_006944c0
+
+// gPed_spurt_initial_speed
 extern float gMutant_speed;
 extern int gDancing_peds;
 extern int gDrunk_pedestrians;
+
+// gCount_killed_peds
+
+// gPed_scale
 extern int gPeds_already_munged;
+
+// gPipe_halted_ped_status
+
+// gPed_face_caches
+
+// gPed_points
+
+// gPed_score_multiplier
+
+// gBurning_ped_materials
+
+// gPed_movements
+
+// gPed_movements_count
+
+// gCount_race_pedestrian_specs
+
+// gPed_spurt_initial_position
 extern int gPed_cache_sizes_1[4];
 extern tPed_face_cache_0x34* gPed_face_cache_heads[4];
 extern int gPed_cache_notify_flags;
@@ -407,11 +471,19 @@ extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 
 // DisposeMove
 
+// DisposePedMoves
+
 // DisposeAllLoadedMoves
 
 // ReadRemap
 
 extern void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap);
+
+// DisposePedForms
+
+// DisposePedForm
+
+// DisposeAllRemaps
 
 // DisposeAllLoadedRemaps
 
@@ -436,6 +508,10 @@ extern void C2_HOOK_FASTCALL DisposeRemap(tPed_remap* pRemap);
 // DisposeAllLoadedForms
 
 extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter);
+
+// DisposeAllPedPersonalities
+
+// DisposePedPersonality
 
 // FindOrOpenForm
 
@@ -468,6 +544,10 @@ extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* 
 extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
 
 extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter);
+
+// MakeCharacterPhysicsSetup
+
+// MakeCharacterPhysics
 
 // CharacterNoLongerRenderable
 
@@ -545,6 +625,8 @@ extern int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pChara
 
 // BonerActiveHalted
 
+// MakeCharacterBonePhysicworthy
+
 // BonerPedMovedByPhysics
 
 // DismemberCharacter
@@ -574,5 +656,29 @@ extern void C2_HOOK_FASTCALL EnableOverallMovement(void);
 extern void C2_HOOK_FASTCALL EnableRetainRootMode(void);
 
 extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
+
+// gPed_forms
+
+// ScaleModel
+
+// gPed_moves
+
+// gPed_vtable
+
+// gFloat_00589358
+
+// gPedestrian_character_cloned_materials
+
+// gBurning_ped_map_names
+
+// gPed_last_score_time
+
+// gPed_noise_table
+
+// gEthereal_pedestrians
+
+// gPed_valium_left
+
+// gCalm_ped_anim_sequence
 
 #endif // GUARD_61_PEDESTRN_H

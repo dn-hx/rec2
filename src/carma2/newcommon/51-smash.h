@@ -12,15 +12,33 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// READ_POWERUP_SMASHABLE
+
+// tNon_car_search_context
+
 extern int gAllow_material_adapt;
 extern br_material* gMaterials_to_adapt[200];
+
+// gUnknown_smashable_006a3660
 extern int gMaterials_to_adapt_count;
+
+// gCount_host_smashes
+
+// gPowerup_respawn_smashable
+
+// gRepair_animations
+
+// gSmash_explosions
 extern int gShrapnel_child_count;
 
 extern tSmashable_item_spec* gTrack_smashable_environment_specs;
 extern br_actor* gSmashable_noncar_shrapnel_actors[100];
+
+// gPowerup_pickup_smashable
 extern int gCount_smashable_noncar_shrapnel_actors;
 extern const char* gSmashable_track_environment_path;
+
+// gSize_powerup_queue
 extern int gCount_track_smashable_environment_specs;
 extern tStored_smash* gNet_host_smashes;
 
@@ -123,6 +141,8 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
+// FUN_004edb20
+
 // FlushPowerupQueue
 
 // FlushSmashQueue
@@ -156,6 +176,8 @@ extern void C2_HOOK_FASTCALL FreeExplosionAnimation(tExplosion_animation* pAnima
 extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
 
 extern void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds);
+
+// ReadShrapnelSideEffects
 
 // FreeExplosion
 
@@ -198,6 +220,8 @@ extern void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush
 extern void C2_HOOK_FASTCALL RemoveAllDecals(void);
 
 extern void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF);
+
+// ReadNonCarCuboidActivation
 
 extern void C2_HOOK_FASTCALL InitSmashing(void);
 
@@ -344,5 +368,13 @@ extern int gINT_006a3334;
 extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 
 extern tQueued_net_smash gQueued_net_smashes[50];
+
+// PipeSingleShrapnelShower
+
+// PipeSingleBloodSpurt
+
+// gRepeatability_names
+
+// gPosition_type_names
 
 #endif // GUARD_51_SMASH_H

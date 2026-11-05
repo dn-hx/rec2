@@ -13,4 +13,10 @@
 
 extern tFrontend_spec gFrontend_WRECKS;
 
+// BuyCurrentCar
+
+// WrecksInFunc
+
+// WrecksUpdateFunc
+
 #endif /* GUARD_72_WRECKS_H */

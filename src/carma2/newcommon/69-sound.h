@@ -29,6 +29,8 @@ extern int gCD_fully_installed;
 
 extern void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size);
 
+// S3StartSoundFromSource3
+
 extern void C2_HOOK_FASTCALL UsePathFileToDetermineIfFullInstallation(void);
 
 extern void C2_HOOK_FASTCALL InitSound(void);
@@ -70,6 +72,8 @@ extern void C2_HOOK_FASTCALL InitSoundSources(void);
 extern void C2_HOOK_FASTCALL DisposeSoundSources(void);
 
 extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+// DRS3StartSoundFromSource3
 
 extern void C2_HOOK_FASTCALL MungeEngineNoise(void);
 

@@ -48,6 +48,8 @@ char gS3_working_directory[260];
 // GLOBAL: CARMA2_SW 0x006ac52c
 int gPDS3_midi_playing;
 
+// gPDS3_midi_restart_required
+
 // GLOBAL: CARMA2_HW 0x006b2dac
 // GLOBAL: CARMA2_SW 0x006ac534
 int gPDS3_cda_media_present;
@@ -254,6 +256,10 @@ int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel) {
     }
     return 0;
 }
+
+// PDS3ResumeMidiChannel
+
+// PDS3PauseMidiChannel
 
 // FUNCTION: CARMA2_HW 0x0056a0e1
 // FUNCTION: CARMA2_SW 0x00565781

@@ -22,6 +22,8 @@
 // GLOBAL: CARMA2_SW 0x0067106c
 int gPaused;
 
+// gTime_of_last_zappy_headups
+
 // GLOBAL: CARMA2_HW 0x0058f2d8
 // GLOBAL: CARMA2_SW 0x0058a2d8
 const int gPow2_array[32] = {
@@ -55,8 +57,12 @@ int gAR_camera_type = 2;
 // GLOBAL: CARMA2_SW 0x0058a6a4
 int gCar_car_collisions = 1;
 
+// gReplay_pixie_names
+
 // GLOBAL: CARMA2_HW 0x006a2388
 br_pixelmap* gReplay_pixelmaps[11];
+
+// gCamera_period
 
 // GLOBAL: CARMA2_HW 0x0058f6b0
 // GLOBAL: CARMA2_SW 0x0058a6b0
@@ -162,6 +168,8 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
 void C2_HOOK_FASTCALL ARSetPause(int pPause) {
     gPaused = pPause;
 }
+
+// MakeCharacterPhysicsForBone
 
 // FUNCTION: CARMA2_HW 0x0040b500
 void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4) {
@@ -403,6 +411,8 @@ void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
     SetCharacterBonePositions(ped->character, 3, 0);
 }
 
+// WorkerPedModelChangeUndo
+
 // FUNCTION: CARMA2_HW 0x004ca8d0
 void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
     extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
@@ -416,6 +426,8 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
         SetCharacterBoneModel(ped->character, field_0x4, field_0x6, field_0x8);
     }
 }
+
+// WorkerPedDismember
 
 // FUNCTION: CARMA2_HW 0x004da960
 void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {

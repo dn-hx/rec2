@@ -138,6 +138,8 @@ tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF) {
     return raw_short;
 }
 
+// ReadS8
+
 // FUNCTION: CARMA2_HW 0x0048f910
 void C2_HOOK_FASTCALL WriteU32L(FILE* pF, tU32 pNumber) {
     tU32 raw_long;
@@ -163,6 +165,14 @@ void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber) {
     raw_byte = pNumber;
     PFfwrite(&raw_byte, sizeof(raw_byte), 1, pF);
 }
+
+// SkipBytes
+
+// WriteS8L
+
+// WriteS16L
+
+// WriteS32L
 
 // FUNCTION: CARMA2_HW 0x0048fa00
 // FUNCTION: CARMA2_SW 0x0048cc70
@@ -724,6 +734,8 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     remove(pThe_path);
     rename(new_file, pThe_path);
 }
+
+// EncodeAllFilesInDirectory
 
 // FUNCTION: CARMA2_HW 0x00490bc0
 void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path) {

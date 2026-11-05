@@ -36,4 +36,8 @@ tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, 
 
 int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
 
+// PDNetSendMessageToPlayer
+
+// PDNetSendMessageToAllPlayers
+
 #endif // C2_WIN32_NET_H

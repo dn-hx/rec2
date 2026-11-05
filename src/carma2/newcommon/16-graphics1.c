@@ -9,6 +9,7 @@
 #include "16-graphics1.h"
 
 #include "02-init.h"
+#include "06-apo.h"
 #include "07-structur.h"
 #include "15-displays.h"
 #include "19-font.h"
@@ -21,12 +22,15 @@
 #include "66-tintedpoly.h"
 #include "brender/brender.h"
 #include "globvars.h"
+#include "globvrpb.h"
 #include "platform.h"
 #include "rec2_types.h"
 #include "rec2_macros.h"
 
 #include <string.h>
 
+
+// MapStuffAfterRender
 // GLOBAL: CARMA2_HW 0x00703e24
 // GLOBAL: CARMA2_SW 0x006fab04
 int gWidth;

@@ -10,9 +10,15 @@
 
 #include "00-car.h"
 #include "01-network.h"
+#include "13-crush1.h"
+#include "15-displays.h"
 
 #include "16-graphics1.h"
 #include "18-graphics2.h"
+#include "19-font.h"
+#include "23-piping.h"
+#include "25-grafdata.h"
+#include "30-opponent.h"
 #include "32-spark.h"
 #include "41-utility.h"
 #include "42-input.h"
@@ -27,9 +33,21 @@
 
 #include "c2_string.h"
 
+
+// ScaleAllPeds
+
+// ScalePedPersonality
+
+// ScalePedForm
+
+// FUN_0045c760
+
+// ARPowerupGot
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
 int gInventory[20];
+
+// gFizzle_in
 
 // GLOBAL: CARMA2_HW 0x006a0a6c
 // GLOBAL: CARMA2_SW 0x0069aac4
@@ -50,6 +68,8 @@ const char* gPowerup_txt_path;
 // GLOBAL: CARMA2_HW 0x006a0ad8
 // GLOBAL: CARMA2_SW 0x0069ab30
 tU32* gReal_render_palette;
+
+// gCollision_info_uid_counter
 
 // GLOBAL: CARMA2_HW 0x006a0ae0
 // GLOBAL: CARMA2_SW 0x0069ab38
@@ -121,13 +141,19 @@ tPhysics_object* gMutant_tail_object;
 // GLOBAL: CARMA2_SW 0x0069ab24
 tPhysics_joint* gMutant_tail_first_joint;
 
+// gNumber_of_powerups
+
 // GLOBAL: CARMA2_HW 0x00705540
 // GLOBAL: CARMA2_SW 0x006fc000
 int gMutant_tail_state;
 
+// gShit_mines
+
 // GLOBAL: CARMA2_HW 0x00705b78
 // GLOBAL: CARMA2_SW 0x006fc638
 float gMass_mutant_tail_link;
+
+// gCredit_multiplier
 
 // GLOBAL: CARMA2_HW 0x00705b74
 // GLOBAL: CARMA2_SW 0x006fc634
@@ -140,6 +166,8 @@ float gMass_mine = 1.0f;
 // GLOBAL: CARMA2_HW 0x006a0454
 // GLOBAL: CARMA2_SW 0x0069a4ac
 int gCount_cloaked_cars;
+
+// gRespawn_powerups
 
 // GLOBAL: CARMA2_HW 0x006a0910
 // GLOBAL: CARMA2_SW 0x0069a968
@@ -167,8 +195,12 @@ const float gConst_0p5 = 0.5f;
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
 
+// gCurrent_ffb_effect_index
+
 // GLOBAL: CARMA2_HW 0x006a0960
 tRepulse_link gRepulse_links[6] = { 0 };
+
+// gRace_powerup_respawn_bools
 
 // FUNCTION: CARMA2_HW 0x004c8fb0
 void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
@@ -177,6 +209,12 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
     ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
+
+// ScalePedHeads
+
+// NapalmPedDistanceCompare
+
+// NapalmPedDistanceCallback
 
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
@@ -270,6 +308,8 @@ void C2_HOOK_FASTCALL InitPowerups(void) {
     NOT_IMPLEMENTED();
 }
 
+// MungeSphereObject
+
 // RemoveRepulseEffect
 
 // ResetRepulseEffects
@@ -296,6 +336,8 @@ void C2_HOOK_FASTCALL EmptyInventory(void) {
 void C2_HOOK_FASTCALL CloseDownPowerUps(void) {
     NOT_IMPLEMENTED();
 }
+
+// AddRepulseLink
 
 // NewRepulseRay
 
@@ -870,6 +912,8 @@ void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatrix) {
 int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pSend_message) {
     NOT_IMPLEMENTED();
 }
+
+// ReceivedRepulseOpponents
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -1577,3 +1621,5 @@ void C2_HOOK_FASTCALL PeriodicCloaking(void) {
         }
     }
 }
+
+// RecalculateCarMassMomentOfInertia

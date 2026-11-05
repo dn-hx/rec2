@@ -12,10 +12,18 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+// tNet_message_chunk_powerup
+
+// tNapalm_ped_distance
+
+// tNapalm_ped_distances
+
 extern br_model* gModel_powerup_armor;
 extern br_model* gModel_powerup_power;
 extern br_model* gModel_powerup_offence;
 extern int gInventory[20];
+
+// gFizzle_in
 extern int gINT_006a0a6c;
 extern int gINT_006a0a5c;
 extern int gInventory_selected;
@@ -34,15 +42,23 @@ extern int gPanicking_peds;
 extern float gPed_gravity_multiplier;
 extern int gCount_mutant_tail_parts;
 extern tPhysics_joint* gMutant_tail_first_joint;
+
+// gNumber_of_powerups
 extern int gMutant_tail_state;
+
+// gShit_mines
 extern tPhysics_object* gMutant_tail_object;
 extern float gMass_mutant_tail_link;
+
+// gCredit_multiplier
 extern float gMass_mutant_tail_ball;
 extern float gMass_mine;
 extern int gInstant_handbrake;
 extern int gInventory_cycling;
 extern tU32 gInventory_timeout;
 extern tU32* gReal_render_palette;
+
+// gCollision_info_uid_counter
 
 extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
 
@@ -94,6 +110,8 @@ extern void C2_HOOK_FASTCALL LoadPowerups(void);
 
 extern void C2_HOOK_FASTCALL InitPowerups(void);
 
+// MungeSphereObject
+
 // RemoveRepulseEffect
 
 // ResetRepulseEffects
@@ -103,6 +121,8 @@ extern void C2_HOOK_FASTCALL EmptyInventory(void);
 // ResetPowerups
 
 extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
+
+// AddRepulseLink
 
 // NewRepulseRay
 
@@ -286,6 +306,8 @@ extern void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatr
 
 extern int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pSend_message);
 
+// ReceivedRepulseOpponents
+
 extern int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar);
 
 // RepulsePedestrians
@@ -440,10 +462,32 @@ extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar
 
 // PeriodicCloaking
 
+// RecalculateCarMassMomentOfInertia
+
 extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
+// gCurrent_ffb_effect_index
+
 extern tRepulse_link gRepulse_links[6];
+
+// gRace_powerup_respawn_bools
+
+// ScaleAllPeds
+
+// ScalePedPersonality
+
+// ScalePedForm
+
+// FUN_0045c760
+
+// NapalmPedDistanceCallback
+
+// NapalmPedDistanceCompare
+
+// ScalePedHeads
+
+// gRespawn_powerups
 
 #endif // GUARD_27_POWERUP_H

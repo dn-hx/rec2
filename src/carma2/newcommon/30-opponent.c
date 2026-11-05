@@ -20,6 +20,7 @@
 #include "platform.h"
 #include "rec2_macros.h"
 #include "23-piping.h"
+#include "39-oil.h"
 #include "56-aiworld.h"
 #include <string.h>
 
@@ -82,6 +83,8 @@ int gRoute_search_calls;
 // GLOBAL: CARMA2_HW 0x0069174c
 // GLOBAL: CARMA2_SW 0x0068b7a4
 int gRoute_search_last_target_count;
+
+// gAcknowledged_start
 
 // GLOBAL: CARMA2_HW 0x0069172c
 // GLOBAL: CARMA2_SW 0x0068b784

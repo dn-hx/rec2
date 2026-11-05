@@ -108,4 +108,8 @@ extern void C2_HOOK_FASTCALL DPixelmapLine2(br_pixelmap* pDst, int pX1, int pY1,
 
 #endif
 
+// PDstrcmpi
+
+// PDConvertMousePosition
+
 #endif // C2_WIN32_WIN32_H

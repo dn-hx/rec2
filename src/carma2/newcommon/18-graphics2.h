@@ -22,6 +22,10 @@ extern int gCursor_tinted_right;
 extern int gCursor_tinted_center;
 extern int gCursor_line_width;
 
+// gCurrent_cursor_index
+
+// gTransient_bitmap_index
+
 extern tTransient_bm gTransient_bitmaps[50];
 extern int gMouse_started;
 extern tU32 gLast_palette_change;
@@ -30,6 +34,8 @@ extern int gPalette_index;
 extern int gNoTransients;
 extern br_pixelmap* gRender_palette;
 extern int gDim_amount;
+
+// gMouse_last_pos
 #ifdef REC2_HW
 extern int gPalette_changed;
 #endif
@@ -105,6 +111,8 @@ extern void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, b
 
 extern void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource);
 
+// PoshDrawLine
+
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
 
 extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
@@ -112,5 +120,7 @@ extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them
 extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
 extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+
+// DimRectangle
 
 #endif // GUARD_18_GRAPHICS2_H

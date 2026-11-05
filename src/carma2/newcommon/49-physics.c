@@ -643,6 +643,10 @@ void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_bounds3
     }
 }
 
+// SetCollisionInfoDoNothing
+
+// SetCollisionInfoDoNothingChain
+
 // TranslateAndRotatePartialObject
 
 // TranslateAndRotateJointedObject
@@ -1756,6 +1760,8 @@ void C2_HOOK_FASTCALL InitPhysics(void) {
     PhysicsSetErrorHandler(DoPhysicsError);
     InitPhysicsWorkspace(gTemporary_physics_render_buffer, sizeof(gTemporary_physics_render_buffer));
 }
+
+// FUN_004b7310
 
 // FUNCTION: CARMA2_HW 0x004b73a0
 void C2_HOOK_FASTCALL FUN_004b73a0(tPhysics_object* pObject, const br_matrix34* pParent_matrix, const br_matrix34* pRoot_matrix) {

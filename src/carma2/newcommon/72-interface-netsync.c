@@ -11,6 +11,8 @@
 #include "72-interface.h"
 
 
+
+// NetSync_Infunc
 // GLOBAL: CARMA2_HW 0x0061bad0
 // GLOBAL: CARMA2_SW 0x00616a00
 tFrontend_spec gFrontend_NETSYNC = {

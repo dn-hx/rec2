@@ -16,6 +16,8 @@ extern br_vector3 gRender_bounds_centre;
 extern int gINT_00681fb0;
 extern int gFrame;
 extern int gCurrent_selected_drone;
+
+// gCount_rendered_drones
 extern int gCount_drones;
 extern tDrone_form gDrone_forms[64];
 extern int gCount_drone_forms;
@@ -169,6 +171,8 @@ extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
 
 extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
+// DoDefaultDroneStateAction
+
 // DoDronePerGameFrameStuff
 
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
@@ -209,6 +213,10 @@ extern void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...);
 
 extern float gDrone_render_zero;
 
+// gDefault_drone_direction
+
+// gDrone_state_functions
+
 extern tU32 gINT_00705b70;
 
 typedef struct {
@@ -219,5 +227,7 @@ typedef struct {
 
 
 extern tDrone_crush_data gDrone_crush_data;
+
+// gShow_drone_paths
 
 #endif // GUARD_57_DRONE_H

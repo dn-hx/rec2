@@ -115,6 +115,8 @@ tFrontend_item_spec gDefault_last_interface_item = {
 // GLOBAL: CARMA2_SW 0x00680c34
 int gFrontend_scrollbars_updated;
 
+// gFrontend_controls_count_keys
+
 // GLOBAL: CARMA2_HW 0x006864fc
 // GLOBAL: CARMA2_SW 0x00680c3c
 int gFrontend_netsummary_first_iteration;
@@ -191,6 +193,14 @@ int gCredits_line_count;
 // GLOBAL: CARMA2_SW 0x00681644
 int* gCredits_heights;
 
+// gFrontend_backdrop_materials
+
+// gFrontend_backdrop2_material_prims
+
+// gFrontend_backdrop1_material_prims
+
+// gFrontend_backdrop0_material_prims
+
 // GLOBAL: CARMA2_HW 0x00687238
 // GLOBAL: CARMA2_SW 0x00681798
 int* gCredits_throbs;
@@ -210,6 +220,10 @@ int* gCredits_fonts;
 // GLOBAL: CARMA2_HW 0x00686f90
 // GLOBAL: CARMA2_SW 0x006816d0
 int gCredits_total_height;
+
+// gFrontend_backdrop_actors
+
+// gFrontend_camera
 
 // GLOBAL: CARMA2_HW 0x006886d0
 // GLOBAL: CARMA2_SW 0x00682c30
@@ -302,6 +316,10 @@ br_pixelmap* gFrontend_backdrop;
 // GLOBAL: CARMA2_HW 0x00688ae8
 // GLOBAL: CARMA2_SW 0x00683048
 br_colour gFrontend_some_color;
+
+// gFrontend_wrecks_actor
+
+// gFrontend_wrecks_camera
 
 // GLOBAL: CARMA2_HW 0x006870b8
 tFrontend_model gFrontend_A_models[13];
