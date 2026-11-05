@@ -9,6 +9,7 @@
 #include "15-displays.h"
 
 #include "08-loading1.h"
+#include "10-loading2.h"
 #include "16-graphics1.h"
 #include "18-graphics2.h"
 #include "18b-graphics2.h"
@@ -212,6 +213,11 @@ static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
         }
     }
     PFfclose(f);
+}
+
+// FUNCTION: CARMA2_HW 0x00449070
+void C2_HOOK_FASTCALL TimerStringGlobalTimer(char* pStr, undefined4 pArg3) {
+    TimerString(gTimer, pStr, pArg3, 0, 0);
 }
 
 // FUNCTION: CARMA2_HW 0x00449090
@@ -634,6 +640,33 @@ void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0044a950
+void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index) {
+    tHeadup* headup;
+    br_pixelmap* image;
+    int justification;
+
+    if (pHeadup_index >= 0) {
+        image = gHeadup_images[pImage_index];
+        headup = &gHeadups[pHeadup_index];
+        justification = headup->justification;
+        *(br_pixelmap**)headup->data.image_info.text = image;
+        switch (justification) {
+        case eJust_left:
+            headup->x = headup->original_x;
+            break;
+        case eJust_right:
+            headup->x = headup->original_x - image->width;
+            return;
+        case eJust_centre:
+            headup->x = headup->original_x - (image->width >> 1);
+            return;
+        default:
+            return;
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0044a9b0
 // FUNCTION: CARMA2_SW 0x0044ab40
 void C2_HOOK_FASTCALL ChangeHeadupColour(int pHeadup_index, int pNew_colour) {
@@ -800,7 +833,10 @@ void C2_HOOK_FASTCALL EarnCredits(int pAmount) {
     EarnCredits2(pAmount, "");
 }
 
-// EarnCredits100
+// FUNCTION: CARMA2_HW 0x0044b450
+void C2_HOOK_FASTCALL EarnCredits100(int pAmount) {
+    EarnCredits(pAmount - (pAmount + 50) % 100 + 50);
+}
 
 // FUNCTION: CARMA2_HW 0x0044b470
 // FUNCTION: CARMA2_SW 0x0044b600
@@ -882,6 +918,15 @@ void C2_HOOK_FASTCALL AwardTime5(tU32 pTime) {
 #else
     AwardTime(pTime - (pTime + 2) % 5 + 2);
 #endif
+}
+
+// FUNCTION: CARMA2_HW 0x0044ba10
+void C2_HOOK_FASTCALL DisplayTimedMessage(char* pText) {
+    LoadFont(1);
+    ClearEntireScreen();
+    DRPixelmapText(gBack_screen, 20, 50, &gFonts[1], pText, 600);
+    PDScreenBufferSwap(0);
+    WaitFor(500);
 }
 
 // DoTestHeadup
