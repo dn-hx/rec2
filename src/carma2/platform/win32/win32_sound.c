@@ -111,6 +111,11 @@ int C2_HOOK_FASTCALL PDS3Init(void) {
     return 1;
 }
 
+// FUNCTION: CARMA2_HW 0x005699a3
+int C2_HOOK_FASTCALL PDS3Return0(void) {
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x00569a2c
 int C2_HOOK_FASTCALL PDS3DDXInit(void) {
 #ifdef DSOUND_ENABLED
@@ -358,6 +363,11 @@ void C2_HOOK_FASTCALL PDS3Stop(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00569b29
+int C2_HOOK_FASTCALL PDS3Return0_B(void) {
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x00569f1b
 // FUNCTION: CARMA2_SW 0x005655bb
 int C2_HOOK_FASTCALL PDS3IsMIDIStopped(tS3_channel *pChannel) {
@@ -368,6 +378,18 @@ int C2_HOOK_FASTCALL PDS3IsMIDIStopped(tS3_channel *pChannel) {
         return 0;
     }
     return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x00569f69
+int C2_HOOK_FASTCALL PDS3StopMidiChannelWrapper(tS3_channel* pChannel, int pArg2, int pArg3, int pArg4, int pArg5, int pArg6) {
+
+    PDS3StopMidiChannel(pChannel);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00569f85
+int C2_HOOK_FASTCALL PDS3Return0_C(tS3_channel* pChannel) {
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0056a260
