@@ -528,4 +528,6 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
 
+extern tPipe_smudge_data* gSmudge_space;
+
 #endif // GUARD_23_PIPING_H

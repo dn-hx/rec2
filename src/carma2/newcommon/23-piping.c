@@ -92,6 +92,9 @@ tU32 gPipe_sound_start_time;
 // GLOBAL: CARMA2_SW 0x00671018
 tU32 gPipe_sound_time_window;
 
+// GLOBAL: CARMA2_HW 0x006940d4
+tPipe_smudge_data* gSmudge_space;
+
 // ARReplayForwards
 
 // FUNCTION: CARMA2_HW 0x00402360
