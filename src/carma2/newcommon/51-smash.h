@@ -325,7 +325,7 @@ extern void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex);
 
 extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar_spec, br_pixelmap* pOld_texture, br_pixelmap* pNew_texture);
 
-// DoNetSmash
+extern void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash);
 
 // ReceivedSmashEnvironment
 
@@ -340,5 +340,9 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 extern tSmash_vertex gSmash_glass_fragments[200];
 
 extern int gINT_006a3334;
+
+extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
+
+extern tQueued_net_smash gQueued_net_smashes[50];
 
 #endif // GUARD_51_SMASH_H

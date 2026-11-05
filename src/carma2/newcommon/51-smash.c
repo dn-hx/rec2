@@ -26,6 +26,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "04-netgame.h"
 
 #include <stdio.h>
 
@@ -86,6 +87,9 @@ br_vector3 gZero_vector__smash;
 
 // GLOBAL: CARMA2_HW 0x006a3334
 int gINT_006a3334 = 0;
+
+// GLOBAL: CARMA2_HW 0x006a3940
+tQueued_net_smash gQueued_net_smashes[50] = { 0 };
 
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
@@ -957,6 +961,30 @@ void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_actor* pActor, char **pIden
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004f36c0
+void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3* pOut) {
+    const float* pData;
+    float dy1;
+    float dx1;
+    float dy0;
+    float dx0;
+    float distance1;
+    float distance0;
+
+    pData = (const float*)pMap;
+    dy1 = pData[27] - pUV->v[1];
+    dx1 = pData[26] - pUV->v[0];
+    dy0 = pData[15] - pUV->v[1];
+    dx0 = pData[14] - pUV->v[0];
+    distance1 = dy1 * dy1 + dx1 * dx1;
+    distance0 = dy0 * dy0 + dx0 * dx0;
+    if (distance1 < distance0) {
+        FUN_004f3740(pMap, (const float*)((const tU8*)pMap + 0x54), (const float*)pUV, (float*)pOut);
+    } else {
+        FUN_004f3740(pMap, (const float*)((const tU8*)pMap + 0x24), (const float*)pUV, (float*)pOut);
+    }
+}
+
 // ReadSmashReplace
 
 // ReadSmashTexture
@@ -1061,6 +1089,19 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
         BrMemFree(pConnotations->side_effects.side_effects.side_effects);
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f3740
+void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // MungeSmashMaterialNames
 
@@ -1422,7 +1463,37 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
     NOT_IMPLEMENTED();
 }
 
-// DoNetSmash
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f6130
+void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x004f62e0
+void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
+    tQueued_net_smash* smash;
+    int count;
+
+    if (gNet_mode == eNet_mode_none) {
+        return;
+    }
+    smash = gQueued_net_smashes;
+    count = REC2_ASIZE(gQueued_net_smashes);
+    while (count-- != 0) {
+        if (smash->field_0x4 != 0 && gPHIL_last_physics_tick >= smash->field_0x4) {
+            smash->field_0x4 = 0;
+            DoNetSmash(smash);
+        }
+        smash++;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ReceivedSmashEnvironment
 
