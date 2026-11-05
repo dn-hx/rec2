@@ -28,4 +28,10 @@ extern int gFrontend_net_initialized;
 extern int gStart_race_sent;
 extern int gRendering_mirror;
 
+extern tNet_mode gNet_mode;
+
+extern int gNumber_of_net_players;
+
+extern tNet_game_player_info gNet_players[12];
+
 #endif // REC2_GLOBVRPB_H

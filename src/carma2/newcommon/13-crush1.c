@@ -23,6 +23,8 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "00-car.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x00679698
 // GLOBAL: CARMA2_SW 0x00673e08
@@ -147,6 +149,12 @@ tPhysics_shape* gGonad_sphere_collision_shape;
 // GLOBAL: CARMA2_HW 0x00589a40
 br_scalar gCrushZero = 0.0f;
 
+// GLOBAL: CARMA2_HW 0x00589a2c
+br_scalar gFLOAT_00589a2c = 0.5f;
+
+// GLOBAL: CARMA2_HW 0x00679430
+int gCollision_face_mask__raycast;
+
 // FUNCTION: CARMA2_HW 0x0041fbe0
 float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
     float rear;
@@ -173,6 +181,62 @@ float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
     }
     return min_value;
 }
+
+// FUNCTION: CARMA2_HW 0x00424140
+int C2_HOOK_FASTCALL FUN_00424140(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7) {
+    br_vector3 actor_translation;
+    int face_index;
+    tFace_ref* face;
+
+    (void)pRay_shape;
+    (void)pArg5;
+    (void)pArg7;
+    gCollision_face_mask__raycast = 0;
+    BrMatrix34TApplyV(&actor_translation, (const br_vector3*)&pObject->actor->t.t.mat.m[3], &pObject->actor->t.t.mat);
+    pBounds_shape->common.field_0x1c.min.v[0] += actor_translation.v[0];
+    pBounds_shape->common.field_0x1c.min.v[1] += actor_translation.v[1];
+    pBounds_shape->common.field_0x1c.min.v[2] += actor_translation.v[2];
+    pBounds_shape->common.field_0x1c.max.v[0] += actor_translation.v[0];
+    pBounds_shape->common.field_0x1c.max.v[1] += actor_translation.v[1];
+    pBounds_shape->common.field_0x1c.max.v[2] += actor_translation.v[2];
+
+    face_index = (int)pObject->box_face_start;
+    face = &gFace_list__car[face_index];
+    if (face_index < pObject->box_face_end) {
+        do {
+            if ((face->flags & 0x80) == 0) {
+                if ((face->flags & 1) == 0) {
+                    pCollision_count = FUN_00424270((float*)&face->v[0], (float*)&face->v[1], (int*)pObject, (int)pBounds_shape,
+                            (undefined4)pRay_shape, pCollision_count, (int)face, (int)pPolyhedron_data);
+                }
+                if ((face->flags & 2) == 0) {
+                    pCollision_count = FUN_00424270((float*)&face->v[1], (float*)&face->v[2], (int*)pObject, (int)pBounds_shape,
+                            (undefined4)pRay_shape, pCollision_count, (int)face, (int)pPolyhedron_data);
+                }
+                if ((face->flags & 4) == 0) {
+                    pCollision_count = FUN_00424270((float*)&face->v[2], (float*)&face->v[0], (int*)pObject, (int)pBounds_shape,
+                            (undefined4)pRay_shape, pCollision_count, (int)face, (int)pPolyhedron_data);
+                }
+            }
+            face_index++;
+            face++;
+        } while (face_index < pObject->box_face_end);
+    }
+    return pCollision_count;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00424270
+int C2_HOOK_FASTCALL FUN_00424270(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00429bb0
 // FUNCTION: CARMA2_SW 0x00429c40
@@ -380,7 +444,21 @@ intptr_t C2_HOOK_CDECL z(br_actor* pActor, void* pData) {
 
 // InitModelMasterCrushData
 
-// InitNetworkShapesStuff
+// FUNCTION: CARMA2_HW 0x0042a9b0
+void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush) {
+    int i;
+
+    pCar_crush->field_0x24 = 0;
+    pCar_crush->field_0x26 = 0;
+
+    if (gNet_mode == eNet_mode_host) {
+        pCar_crush->network_stuff = BrMemAllocate(sizeof(tCar_crush_network_shapes), kMem_crush_data);
+        for (i = 1; i < gNumber_of_net_players; i++) {
+            pCar_crush->network_stuff->items[i - 1].network_id = gNet_players[i].ID;
+            pCar_crush->network_stuff->items[i - 1].field_0x4 = 0;
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0042acb0
 // FUNCTION: CARMA2_SW 0x0042ad40
@@ -1177,7 +1255,18 @@ intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void*
 
 // ReAttachOrFullyDetachDifficultBits
 
-// BendCar
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00433c70
+void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg5, float pArg6, int pArg7) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // QuantizeAngle
 
