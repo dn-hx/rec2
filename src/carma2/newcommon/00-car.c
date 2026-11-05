@@ -1112,6 +1112,44 @@ tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor) {
     return NULL;
 }
 
+// FUNCTION: CARMA2_HW 0x00420310
+int C2_HOOK_FASTCALL FUN_00420310(tPhysics_object* pObject) {
+    tNon_car_spec* non_car;
+
+    non_car = (tNon_car_spec*)pObject->owner;
+    pObject->field_0xed = 1;
+    *(int*)((tU8*)pObject + 0x194) = 0;
+    *(int*)((tU8*)pObject + 0x198) = 0;
+    if (non_car->snap_off_cosine < 1.0f) {
+        pObject->physics_joint2 = NULL;
+    }
+    pObject->field_0x218 = 0;
+    pObject->v.v[0] = 0.0f;
+    pObject->v.v[1] = 0.0f;
+    pObject->v.v[2] = 0.0f;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00420360
+int C2_HOOK_FASTCALL FUN_00420360(tPhysics_object* pObject) {
+    tNon_car_spec* non_car;
+
+    non_car = (tNon_car_spec*)pObject->owner;
+    if (*(br_scalar*)((tU8*)pObject->actor + 0x3c) < non_car->snap_off_cosine) {
+        pObject->field_0xed = 1;
+        *(int*)((tU8*)pObject + 0x194) = 0;
+        *(int*)((tU8*)pObject + 0x198) = 0;
+        if (non_car->snap_off_cosine < 1.0f) {
+            pObject->physics_joint2 = NULL;
+        }
+        pObject->field_0x218 = 0;
+        pObject->v.v[0] = 0.0f;
+        pObject->v.v[1] = 0.0f;
+        pObject->v.v[2] = 0.0f;
+    }
+    return 0;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -1164,4 +1202,33 @@ void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex) {
 // FUNCTION: CARMA2_SW 0x00420980
 void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
+}
+
+// FUNCTION: CARMA2_HW 0x0043d900
+int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {
+    tCar_crush_spec* crush;
+    int* node;
+    int i;
+    int total;
+    int result;
+
+    crush = pCar->car_crush_spec;
+    if (crush->field_0x4b8 != 0) {
+        result = 1;
+        node = *(int**)(*(int*)((tU8*)pCar + 8) + 0x20);
+        if (node != NULL) {
+            do {
+                if (node[0] == 1 || node[0] == 3) {
+                    result = result + 1 + node[0xe] * 6;
+                }
+                node = (int*)node[0xd];
+            } while (node != NULL);
+        }
+        return result;
+    }
+    total = 0;
+    for (i = 0; i < crush->count_shapes; i++) {
+        total += crush->field_0x4[i].count_points;
+    }
+    return total * 6 + 1;
 }
