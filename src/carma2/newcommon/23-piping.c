@@ -95,6 +95,12 @@ tU32 gPipe_sound_time_window;
 // GLOBAL: CARMA2_HW 0x006940d4
 tPipe_smudge_data* gSmudge_space;
 
+// GLOBAL: CARMA2_HW 0x0067690c
+int gPipe_undo_enabled = 0;
+
+// GLOBAL: CARMA2_HW 0x0069410c
+volatile undefined4 gUNK_0069410c;
+
 // ARReplayForwards
 
 // FUNCTION: CARMA2_HW 0x00402360
@@ -367,6 +373,16 @@ tU32 C2_HOOK_FASTCALL ARGetStartTime(void) {
     return ((tPipe_chunk*)session->data)->data.frame_boundary.time;
 }
 
+// FUNCTION: CARMA2_HW 0x004030d0
+void C2_HOOK_FASTCALL SetPipeUndoFlag(void) {
+    gPipe_undo_enabled = 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004030e0
+void C2_HOOK_FASTCALL ClearPipeUndoFlag(void) {
+    gPipe_undo_enabled = 0;
+}
+
 // ARDisableAdvance
 
 // AREnableAdvance
@@ -571,9 +587,29 @@ void C2_HOOK_FASTCALL FUN_004c7500(uintptr_t pOwner, void* pData, tU32 pArg3) {
         4, 0x30, pArg3);
 }
 
-// AddFlameToPipingSession
+// FUNCTION: CARMA2_HW 0x004c70f0
+void C2_HOOK_FASTCALL AddFlameToPipingSession(int pIndex, int pFrame, br_scalar pScale_x, br_scalar pScale_y, br_scalar pOffset_x, br_scalar pOffset_z) {
+    tU32 bits;
 
-// AddSplashToPipingSession
+    (void)pScale_y;
+    (void)pOffset_x;
+    (void)pOffset_z;
+    memcpy(&bits, &pScale_x, sizeof(bits));
+    gUNK_0069410c = bits;
+    ARAddVariedDataToSession((tPipe_chunk_type)18, pIndex, 5,
+        2, 0, pFrame, 4, 4, bits, 4, 8, bits, 4, 12, bits, 4, 16, bits);
+}
+
+// FUNCTION: CARMA2_HW 0x004c7130
+void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pCollision) {
+    br_scalar water_d;
+
+    water_d = pCollision->water_d;
+    *(volatile br_scalar*)&gUNK_0069410c = water_d;
+    ARAddVariedDataToSession((tPipe_chunk_type)0x14, (uintptr_t)pCollision, 2,
+        4, 0, *(tU32*)&gUNK_0069410c,
+        0xc, 4, &pCollision->water_normal);
+}
 
 // AddExtendedSplashToPipingSession
 
