@@ -546,4 +546,9 @@ extern tU8* gPipe_play_ptr;
 
 extern tU8* gPipe_record_ptr;
 
+typedef struct {
+    tU32 value;
+} tPipe_stack_word;
+
+
 #endif // GUARD_23_PIPING_H
