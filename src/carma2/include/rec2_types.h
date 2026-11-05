@@ -5914,4 +5914,20 @@ enum {
 };
 
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[6];
+    tU32 ID;
+    br_matrix34 mat;
+    tU16 flags;
+} tNet_message_chunk_non_car_position;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player;
+    tU32 time;
+} tNet_message_chunk_recover;
+
+
 #endif // REC2_TYPES_H
