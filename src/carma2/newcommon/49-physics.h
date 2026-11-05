@@ -59,7 +59,7 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // GetSphereToFacePoints
 
-// CheckSingleEdgeWithSphere
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace);
 
 // GetSphereToEdgePoints
 
@@ -430,5 +430,7 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 // GetCarSpecFromCollObjID
 
 // GetCollObjFromID
+
+extern int C2_HOOK_FASTCALL FUN_00422030(br_model* pModel, int pCount_vertices, int* pVertex_indices);
 
 #endif // GUARD_49_PHYSICS_H
