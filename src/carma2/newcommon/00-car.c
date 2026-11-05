@@ -1232,3 +1232,41 @@ int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {
     }
     return total * 6 + 1;
 }
+
+// FUNCTION: CARMA2_HW 0x0043d960
+int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
+    tU8 count_or_points;
+    int count;
+    int size;
+
+    count_or_points = *pData++;
+    if (count_or_points <= 4) {
+        count = count_or_points;
+        size = 1;
+        if (count > 0) {
+            do {
+                count_or_points = *pData;
+                size = size + 1 + count_or_points * 6;
+                pData = pData + count_or_points * 6 + 1;
+                count--;
+            } while (count != 0);
+        }
+        return size;
+    }
+    return count_or_points * 6 + 1;
+}
+
+// FUNCTION: CARMA2_HW 0x00498460
+void C2_HOOK_FASTCALL CompressCarDataChunk(tNet_message_chunk* pMessage, int pPlayer_index) {
+    tU8* chunk;
+    tCar_spec* car;
+    br_actor* actor;
+
+    chunk = (tU8*)pMessage;
+    car = gNet_players[pPlayer_index].car;
+    CompressVector3((tCompressed_vector3*)(chunk + 8), &car->car_master_actor->t.t.translate.t, -500.f, 500.f);
+    actor = car->car_master_actor;
+    *(tS16*)(chunk + 2) = (tS16)BrRadianToAngle(atan2(actor->t.t.mat.m[2][0], actor->t.t.mat.m[2][2]));
+    *(int*)(chunk + 4) = gNet_players[pPlayer_index].ID;
+    *(int*)(chunk + 0x10) = *(int*)((tU8*)car + 0x18a4);
+}
