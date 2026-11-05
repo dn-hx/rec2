@@ -59,4 +59,16 @@ extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
 extern void C2_HOOK_FASTCALL ChristmasLights(tCar_spec* pCar, int pMin_damage, int pMax_damage);
 
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float displacement;
+    float* total_displacement;
+} tModel_mash_context_local;
+
+
+extern intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local* pContext);
+
+extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pValue);
+
 #endif // GUARD_58_CRUSH2_H
