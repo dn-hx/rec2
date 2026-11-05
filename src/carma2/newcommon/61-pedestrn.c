@@ -1531,6 +1531,19 @@ int C2_HOOK_FASTCALL GetCharacterBoneIndexByName(tPed_character_instance* pChara
     return -1;
 }
 
+// FUNCTION: CARMA2_HW 0x0040ba80
+void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, br_vector3* pOmega) {
+    tPhysics_object* child;
+
+    child = pObject->child;
+    pObject->omega.v[0] = pOmega->v[0];
+    pObject->omega.v[1] = pOmega->v[1];
+    pObject->omega.v[2] = pOmega->v[2];
+    for (; child != NULL; child = child->next) {
+        SetPhysicsObjectOmegaRecursive(child, pOmega);
+    }
+}
+
 // BonerPassiveCollision
 
 // BonerActiveHalted
@@ -1587,5 +1600,9 @@ void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
 // FUNCTION: CARMA2_SW 0x0040c620
 void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
     gPed_retain_root_mode = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0040c640
+void C2_HOOK_FASTCALL PedNoOp(void) {
 }
 
