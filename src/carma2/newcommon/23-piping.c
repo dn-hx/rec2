@@ -105,6 +105,9 @@ volatile undefined4 gUNK_0069410c;
 // GLOBAL: CARMA2_HW 0x00694104
 undefined4* gCrush_space;
 
+// GLOBAL: CARMA2_HW 0x006a23b4
+int gUNK_006a23b4 = 0;
+
 // ARReplayForwards
 
 // FUNCTION: CARMA2_HW 0x00402360
@@ -1592,6 +1595,21 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
 
     return pChunk->data.bend.size;
+}
+
+// FUNCTION: CARMA2_HW 0x004e70d0
+void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
+    br_pixelmap** pp;
+
+    pp = gReplay_pixelmaps;
+    do {
+        if (*pp != NULL) {
+            BrMapRemove(*pp);
+            BrPixelmapFree(*pp);
+            *pp = NULL;
+        }
+        pp++;
+    } while ((int)pp < (int)&gUNK_006a23b4);
 }
 
 // CalcRemoveFacesLength

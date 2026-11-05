@@ -15,6 +15,7 @@
 #include "13-crush1.h"
 #include "51-smash.h"
 #include "32-spark.h"
+#include "27-powerup.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
 // GLOBAL: CARMA2_SW 0x0067106c
@@ -52,6 +53,9 @@ int gAR_camera_type = 2;
 // GLOBAL: CARMA2_HW 0x0058f6a4
 // GLOBAL: CARMA2_SW 0x0058a6a4
 int gCar_car_collisions = 1;
+
+// GLOBAL: CARMA2_HW 0x006a2388
+br_pixelmap* gReplay_pixelmaps[11];
 
 // GLOBAL: CARMA2_HW 0x0058f6b0
 // GLOBAL: CARMA2_SW 0x0058a6b0
@@ -342,6 +346,35 @@ void C2_HOOK_FASTCALL WorkerPedMove(tPedestrian* pPed, int field_0x4, int field_
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004ca5a0
+void C2_HOOK_FASTCALL WorkerPedMoveUndo(tPedestrian* pPed, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38) {
+    extern int gBOOL_00744804;
+    extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
+    extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    int old_move_id;
+
+    if (gBOOL_00744804 != 0) {
+        return;
+    }
+    if (field_0x6 != -1) {
+        old_move_id = pPed->character->personality->form->moves[pPed->character->field_0x7].id;
+        BrMatrix34Copy(&pPed->character->field_0x8c, (br_matrix34*)pField_0x38);
+        SetCharacterMove(pPed->character, field_0x6, *(float*)&field_0x10, zero2, zero, GetTotalTime());
+        if ((pPed->character->field_0x14 & 4) == 0) {
+            SetCharacterPosition(pPed->character, pField_0x18, -1);
+        }
+        if (old_move_id != field_0x6) {
+            pPed->character->field_0x1c = (tU16)field_0xa;
+            SetCharacterBonePositions(pPed->character, 0, 0);
+            pPed->character->field_0x24 = GetTotalTime();
+        }
+    }
+    if (field_0x30 != -1) {
+        pPed->action = (tPed_action)field_0x30;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004ca8d0
 void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
     extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
@@ -354,6 +387,15 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
     } else {
         SetCharacterBoneModel(ped->character, field_0x4, field_0x6, field_0x8);
     }
+}
+
+// FUNCTION: CARMA2_HW 0x004da960
+void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
+    extern tRepulse_link gRepulse_links[6];
+
+    gRepulse_links[field_0x0].pos_origin = (br_vector3*)field_0x4;
+    gRepulse_links[field_0x0].pos_victim = (br_vector3*)field_0x8;
+    gRepulse_links[field_0x0].time = (tU32)field_0xc;
 }
 
 #ifdef REC2_MATCHING

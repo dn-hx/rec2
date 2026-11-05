@@ -167,6 +167,9 @@ const float gConst_0p5 = 0.5f;
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
 
+// GLOBAL: CARMA2_HW 0x006a0960
+tRepulse_link gRepulse_links[6] = { 0 };
+
 // FUNCTION: CARMA2_HW 0x004c8fb0
 void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
     extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);

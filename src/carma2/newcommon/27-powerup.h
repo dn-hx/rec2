@@ -444,4 +444,6 @@ extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
+extern tRepulse_link gRepulse_links[6];
+
 #endif // GUARD_27_POWERUP_H
