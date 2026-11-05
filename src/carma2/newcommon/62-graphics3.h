@@ -114,4 +114,6 @@ extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, 
 
 extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
 
+extern br_actor* gLit_op_stat_actor;
+
 #endif // GUARD_62_GRAPHICS3_H
