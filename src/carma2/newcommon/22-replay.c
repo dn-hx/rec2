@@ -122,3 +122,130 @@ void C2_HOOK_FASTCALL ARSetPause(int pPause) {
     gPaused = pPause;
 }
 
+// FUNCTION: CARMA2_HW 0x0040b500
+void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4) {
+    if (pCharacter->field_0x4 >= 0) {
+        pCharacter->field_0xa = (tS8)pArg4;
+        pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBone_index]->model = (br_model*)pArg3;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0040c660
+br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b) {
+    br_uint_8 transform_type_combine[7][7] = {
+        { 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 1, 1, 1 },
+        { 0, 1, 1, 1, 1, 2, 2 },
+        { 0, 1, 1, 1, 1, 3, 3 },
+        { 0, 1, 1, 1, 1, 4, 4 },
+        { 0, 1, 2, 3, 4, 5, 5 },
+        { 0, 1, 2, 3, 4, 5, 6 },
+    };
+    br_matrix34 mat_a;
+    br_matrix34 mat_b;
+    br_matrix34 mat_c;
+    br_uint_8 a_type;
+    br_uint_8 b_type;
+
+    if (a == b) {
+        BrMatrix34Identity(m);
+        return BR_TRANSFORM_IDENTITY;
+    }
+    if (a->parent == b) {
+        BrTransformToMatrix34(m, &a->t);
+        return (br_uint_8)a->t.type;
+    }
+    if (b->parent == a) {
+        BrTransformToMatrix34(&mat_b, &b->t);
+        if (b->t.type != BR_TRANSFORM_MATRIX34) {
+            BrMatrix34LPInverse(m, &mat_b);
+        } else {
+            BrMatrix34Inverse(m, &mat_b);
+        }
+        return (br_uint_8)b->t.type;
+    }
+    a_type = BR_TRANSFORM_IDENTITY;
+    BrMatrix34Identity(&mat_a);
+    b_type = BR_TRANSFORM_IDENTITY;
+    BrMatrix34Identity(&mat_b);
+    while (a != NULL && b != NULL && a != b) {
+        if (a->depth > b->depth) {
+            if (a->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&mat_a, &a->t);
+                a_type = transform_type_combine[a_type][a->t.type];
+            }
+            a = a->parent;
+        } else if (b->depth > a->depth) {
+            if (b->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&mat_b, &b->t);
+                b_type = transform_type_combine[b_type][b->t.type];
+            }
+            b = b->parent;
+        } else {
+            if (a->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&mat_a, &a->t);
+                a_type = transform_type_combine[a_type][a->t.type];
+            }
+            if (b->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&mat_b, &b->t);
+                b_type = transform_type_combine[b_type][b->t.type];
+            }
+            b = b->parent;
+            a = a->parent;
+        }
+    }
+    if (b_type == BR_TRANSFORM_IDENTITY) {
+        BrMatrix34Copy(m, &mat_a);
+        return a_type;
+    }
+    if (a_type == BR_TRANSFORM_IDENTITY) {
+        if (b_type != BR_TRANSFORM_MATRIX34) {
+            BrMatrix34LPInverse(m, &mat_b);
+        } else {
+            BrMatrix34Inverse(m, &mat_b);
+        }
+        return b_type;
+    }
+    if (b_type != BR_TRANSFORM_MATRIX34) {
+        BrMatrix34LPInverse(&mat_c, &mat_b);
+    } else {
+        BrMatrix34Inverse(&mat_c, &mat_b);
+    }
+    BrMatrix34Mul(m, &mat_a, &mat_c);
+    return transform_type_combine[a_type][b_type];
+}
+
+// FUNCTION: CARMA2_HW 0x0043c0e0
+void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
+    br_actor* actor;
+    tUser_crush_data* user;
+    tUser_crush_data* parent_user;
+    br_model* parent_model;
+    tCar_crush_flap_data* flap;
+    const br_vector3* hinge;
+    br_vector3 axis;
+    br_scalar nx, ny, nz;
+
+    actor = (br_actor*)field_0x4;
+    user = actor->user;
+    if (user == NULL || user->crush_data == NULL) {
+        return;
+    }
+    flap = user->crush_data->flap_data;
+    if (flap == NULL) {
+        return;
+    }
+    flap->field_0x4 = (tU16)(flap->field_0x4 + field_0x8);
+    hinge = &user->models[0]->vertices[flap->hinge0].p;
+    BrVector3Sub(&axis, &user->models[0]->vertices[flap->hinge1].p, hinge);
+    BrVector3Normalise(&axis, &axis);
+    nx = -hinge->v[0];
+    ny = -hinge->v[1];
+    nz = -hinge->v[2];
+    BrMatrix34Translate(&actor->t.t.mat, nx, ny, nz);
+    BrMatrix34PostRotate(&actor->t.t.mat, flap->field_0x4, &axis);
+    parent_user = (tUser_crush_data*)actor->parent->user;
+    parent_model = parent_user->models[0];
+    BrMatrix34PostTranslate(&actor->t.t.mat, parent_model->vertices[flap->field_0xc].p.v[0], parent_model->vertices[flap->field_0xc].p.v[1], parent_model->vertices[flap->field_0xc].p.v[2]);
+}
+
