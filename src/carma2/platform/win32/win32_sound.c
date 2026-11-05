@@ -274,6 +274,30 @@ void C2_HOOK_FASTCALL PDS3CheckCDAMedia(tS3_channel* pChannel) {
 
 }
 
+// FUNCTION: CARMA2_HW 0x0056a1af
+int C2_HOOK_FASTCALL PDS3PauseCDA(volatile undefined4 pUnused_arg) {
+
+    if (gPDS3_cda_media_present != 0 && gPDS3_cda_paused == 0) {
+        gPDS3_cda_status_parms.dwItem = MCI_STATUS_MODE;
+        mciSendCommandA(gPDS3_mci_open_parms.wDeviceID, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD_PTR)&gPDS3_cda_status_parms);
+        if (gPDS3_cda_status_parms.dwReturn == MCI_MODE_PLAY) {
+            gPDS3_cda_paused = 1;
+            mciSendCommandA(gPDS3_mci_open_parms.wDeviceID, MCI_PAUSE, 0, 0);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0056a21f
+int C2_HOOK_FASTCALL PDS3ResumeCDA(tS3_channel* pChannel) {
+
+    if (gPDS3_cda_media_present != 0 && gPDS3_cda_paused != 0) {
+        gPDS3_cda_paused = 0;
+        mciSendCommandA(gPDS3_mci_open_parms.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&gPDS3_cda_play_parms);
+    }
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0056a093
 // FUNCTION: CARMA2_SW 0x00565733
 int C2_HOOK_FASTCALL PDS3StopCDAChannel(tS3_channel* pChannel) {
