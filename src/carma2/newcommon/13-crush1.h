@@ -553,4 +553,8 @@ extern br_scalar gCrushZero;
 
 extern void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar);
 
+extern tSmashable_level* C2_HOOK_FASTCALL FUN_004ee290(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
+
+extern intptr_t C2_HOOK_CDECL FUN_004f5a70(br_actor* pActor, void* pContext);
+
 #endif // GUARD_13_CRUSH1_H

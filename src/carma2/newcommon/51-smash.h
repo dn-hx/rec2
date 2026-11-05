@@ -339,4 +339,6 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 
 extern tSmash_vertex gSmash_glass_fragments[200];
 
+extern int gINT_006a3334;
+
 #endif // GUARD_51_SMASH_H

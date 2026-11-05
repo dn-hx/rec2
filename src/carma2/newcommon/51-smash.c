@@ -84,6 +84,9 @@ int gCount_queued_smashes;
 // GLOBAL: CARMA2_SW 0x006a5438
 br_vector3 gZero_vector__smash;
 
+// GLOBAL: CARMA2_HW 0x006a3334
+int gINT_006a3334 = 0;
+
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
 void C2_HOOK_FASTCALL InitFogificateMaterials(void) {
