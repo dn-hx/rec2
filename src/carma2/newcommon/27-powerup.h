@@ -440,4 +440,8 @@ extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar
 
 // PeriodicCloaking
 
+extern const float gConst_0p5;
+
+extern const double gConst_minus_0p15;
+
 #endif // GUARD_27_POWERUP_H
