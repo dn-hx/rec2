@@ -253,4 +253,7 @@ typedef struct {
 } tCrush_displacement_context_local;
 
 
+#define PO_U16(o, off) (*(tU16*)((char*)(o) + (off)))
+
+
 #endif // GUARD_00_CAR_H
