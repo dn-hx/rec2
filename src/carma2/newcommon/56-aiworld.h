@@ -44,4 +44,6 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 
 // MakeAISimpleEditSectionHere
 
+extern int gChallenger_index__opponent;
+
 #endif // GUARD_56_AIWORLD_H

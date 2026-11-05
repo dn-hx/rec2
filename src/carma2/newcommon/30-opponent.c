@@ -19,6 +19,8 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
+#include "56-aiworld.h"
 #include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0065a3bc
@@ -100,6 +102,17 @@ int gNum_active_cars;
 // GLOBAL: CARMA2_HW 0x00676854
 int gStop_opponents_moving;
 
+// GLOBAL: CARMA2_HW 0x0058a478
+float gOppo_render_zero = 0.0f;
+
+// FUNCTION: CARMA2_HW 0x004a7a20
+void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender) {
+    if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
+        pRender = (pRender == 0);
+    }
+    pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
+}
+
 // FUNCTION: CARMA2_HW 0x004a8160
 // FUNCTION: CARMA2_SW 0x004a42d0
 void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
@@ -161,6 +174,15 @@ void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOp
     pOpponent_spec->player_to_oppo_d = BrVector3Length(&pOpponent_spec->player_to_oppo_v);
     if (pOpponent_spec->player_to_oppo_d < gIn_view_distance) {
         pOpponent_spec->last_in_view = gTime_stamp_for_this_munging;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004a95f0
+void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet) {
+    extern int gChallenger_index__opponent;
+
+    if (pSet) {
+        gChallenger_index__opponent = pIndex;
     }
 }
 

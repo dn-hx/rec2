@@ -16,6 +16,9 @@
 
 // MakeVertexAndOffsetIt
 
+// GLOBAL: CARMA2_HW 0x0065a3c8
+int gChallenger_index__opponent = -1;
+
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
 void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {
