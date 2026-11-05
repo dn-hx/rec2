@@ -534,4 +534,6 @@ extern int gPipe_undo_enabled;
 
 extern volatile undefined4 gUNK_0069410c;
 
+extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
+
 #endif // GUARD_23_PIPING_H
