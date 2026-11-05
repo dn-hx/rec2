@@ -14,6 +14,7 @@
 #include "41-utility.h"
 #include "13-crush1.h"
 #include "51-smash.h"
+#include "32-spark.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
 // GLOBAL: CARMA2_SW 0x0067106c
@@ -405,6 +406,59 @@ void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, v
     }
     pModel->nfaces += field_0x8;
     DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
+}
+
+// FUNCTION: CARMA2_HW 0x004f8630
+void C2_HOOK_FASTCALL WorkerSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
+    br_vector3* pPos;
+    br_vector3* pLength;
+    int i;
+    br_actor* actor;
+    br_vector3 delta;
+
+    pPos = (br_vector3*)pField_0x4;
+    pLength = (br_vector3*)pField_0x10;
+    i = field_0x0 & 0xff;
+    gSpark_flags |= 1 << field_0x0;
+    if (gSparks[i].car != NULL) {
+        actor = gSparks[i].car->car_master_actor;
+        delta.v[0] = pPos->v[0] - actor->t.t.translate.t.v[0];
+        delta.v[1] = pPos->v[1] - actor->t.t.translate.t.v[1];
+        delta.v[2] = pPos->v[2] - actor->t.t.translate.t.v[2];
+        BrMatrix34TApplyV(&gSparks[i].pos, &delta, &actor->t.t.mat);
+    } else {
+        gSparks[i].pos.v[0] = pPos->v[0];
+        gSparks[i].pos.v[1] = pPos->v[1];
+        gSparks[i].pos.v[2] = pPos->v[2];
+    }
+    gSparks[i].length.v[0] = pLength->v[0];
+    gSparks[i].length.v[1] = pLength->v[1];
+    gSparks[i].length.v[2] = pLength->v[2];
+    gSparks[i].colour = field_0x0 >> 8;
+}
+
+// FUNCTION: CARMA2_HW 0x004f86f0
+void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14) {
+    int i;
+
+    i = field_0x0 & 0x7fff;
+    if ((gShrapnel_flags & (1 << i)) == 0) {
+        BrActorAdd(gNon_track_actor, gShrapnel[i].actor);
+    }
+    gShrapnel_flags |= 1 << i;
+    gShrapnel[i].actor->t.t.translate.t.v[0] = ((br_vector3*)pField_0x4)->v[0];
+    gShrapnel[i].actor->t.t.translate.t.v[1] = ((br_vector3*)pField_0x4)->v[1];
+    gShrapnel[i].actor->t.t.translate.t.v[2] = ((br_vector3*)pField_0x4)->v[2];
+    if ((field_0x0 & 0x8000) != 0) {
+        gShrapnel[i].age = field_0x10;
+        gShrapnel[i].actor->material = (br_material*)field_0x14;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004f8b50
+void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
+    extern void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+    CreateShrapnelShower(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
 }
 
 #ifdef REC2_MATCHING

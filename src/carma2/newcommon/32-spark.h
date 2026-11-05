@@ -77,7 +77,7 @@ extern void C2_HOOK_FASTCALL ResetSparks(void);
 
 // CreateShrapnelShowerWorld
 
-// CreateShrapnelShower
+extern void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 
 // random
 
@@ -256,5 +256,13 @@ extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 // AdjustSplashReplay
 
 // InitReplaySplashes
+
+extern int gSpark_flags;
+
+extern tSpark gSparks[32];
+
+extern int gShrapnel_flags;
+
+extern tShrapnel gShrapnel[30];
 
 #endif // GUARD_32_SPARK_H
