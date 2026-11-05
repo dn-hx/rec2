@@ -649,6 +649,22 @@ void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType) {
 void C2_HOOK_FASTCALL PipeSingleWallIncident(float pSeverity, br_vector3* pImpact_point) {
 }
 
+// FUNCTION: CARMA2_HW 0x004c85c0
+void C2_HOOK_FASTCALL PipeSingleProxRay(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_prox_ray, ped_index, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_prox_ray, ped_index, 0x2);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_prox_ray, car_ID, 0x2);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_prox_ray, car_ID, 0x2);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_prox_ray, time, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_prox_ray, time, 0x4);
+
+    ARDoSingleVariedSession(ePipe_chunk_prox_ray, pRay_index, 3,
+        SIZE_OFFSET_PIPING(tPipe_chunk_prox_ray, ped_index), (tU16)pPed_index,
+        SIZE_OFFSET_PIPING(tPipe_chunk_prox_ray, car_ID), (tU16)pCar->car_ID,
+        SIZE_OFFSET_PIPING(tPipe_chunk_prox_ray, time), pTime);
+}
+
 // FUNCTION: CARMA2_HW 0x004c8600
 // FUNCTION: CARMA2_SW 0x004c4d30
 void C2_HOOK_FASTCALL PipeSingleSkidAdjustment(int pSkid_num, br_matrix34* pMatrix, br_material* pMaterial) {
@@ -740,6 +756,22 @@ void C2_HOOK_FASTCALL PipeSingleSmashTextureChange(tCar_spec* pCar_spec, br_mate
         SIZE_OFFSET_PIPING(tPipe_smash_texture_change, car_spec), pCar_spec,
         SIZE_OFFSET_PIPING(tPipe_smash_texture_change, texture1), pMaterial->colour_map,
         SIZE_OFFSET_PIPING(tPipe_smash_texture_change, texture2), pTexture);
+}
+
+// FUNCTION: CARMA2_HW 0x004c8a40
+void C2_HOOK_FASTCALL PipeSingleRepulseRay(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_repulse_ray, origin, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_repulse_ray, origin, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_repulse_ray, victim, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_repulse_ray, victim, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_repulse_ray, time, 0x8);
+    C2_HOOK_STATIC_ASSERT_STRUCT_MEMBER_SIZE(tPipe_chunk_repulse_ray, time, 0x4);
+
+    ARDoSingleVariedSession(ePipe_chunk_repulse_ray, (uintptr_t)pIndex, 3,
+        SIZE_OFFSET_PIPING(tPipe_chunk_repulse_ray, origin), pOrigin,
+        SIZE_OFFSET_PIPING(tPipe_chunk_repulse_ray, victim), pVictim,
+        SIZE_OFFSET_PIPING(tPipe_chunk_repulse_ray, time), pTime);
 }
 
 // PipeSinglePedStatus
@@ -859,6 +891,15 @@ void C2_HOOK_FASTCALL PipeSingleDSModel(int pDouble_sided, void* pThing) {
 
     ARDoSingleVariedSession(ePipe_single_ds_model, (uintptr_t)pThing, 1,
         SIZE_OFFSET_PIPING(tPipe_single_ds_model, field_0x0), pDouble_sided);
+}
+
+// FUNCTION: CARMA2_HW 0x004c8e50
+void C2_HOOK_FASTCALL PipeSinglePedestrian(tPedestrian* pPed) {
+
+    ARDoSingleVariedSession(0x39, (uintptr_t)pPed, 3,
+        sizeof(tPedestrian), 0, pPed,
+        sizeof(tPed_character_instance), sizeof(tPedestrian), pPed->character,
+        sizeof(tPed_cache_006944c0), sizeof(tPedestrian) + sizeof(tPed_character_instance), pPed->field_0x0c);
 }
 
 // FUNCTION: CARMA2_HW 0x004c8e80
