@@ -11,6 +11,8 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "globvars.h"
+#include "41-utility.h"
+#include "13-crush1.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
 // GLOBAL: CARMA2_SW 0x0067106c
@@ -281,6 +283,27 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
     BrMatrix34PostTranslate(&actor->t.t.mat, parent_model->vertices[flap->field_0xc].p.v[0], parent_model->vertices[flap->field_0xc].p.v[1], parent_model->vertices[flap->field_0xc].p.v[2]);
 }
 
+// FUNCTION: CARMA2_HW 0x0043c3d0
+void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine) {
+    tCar_spec* car;
+    tCar_crush_spec* spec;
+    tUser_crush_data* user;
+    int i;
+
+    car = roadMachine;
+    spec = car->car_crush_spec;
+    user = (tUser_crush_data*)car->car_model_actor->user;
+    for (i = 0; i < car->count_detail_levels; i++) {
+        if (user->models[i] != NULL) {
+            BrModelFree(BrModelRemove(user->models[i]));
+            user->models[i] = (br_model*)*(undefined4*)&spec->field_0x4c4[i * 4];
+        }
+    }
+    car->car_model_actor->model = user->models[0];
+    BrModelFree(BrModelRemove(spec->model_actor->model));
+    DRActorEnumRecurse(car->car_model_actor, MakeCarModelsMaterialsSingleSided, car);
+}
+
 // FUNCTION: CARMA2_HW 0x004b7220
 void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
     tPhysics_object* object;
@@ -288,6 +311,33 @@ void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
     object = (tPhysics_object*)field_0x0;
     BrMatrix34Copy(&object->transform_matrix, pField_0x4);
     BrMatrix34Copy(&object->actor->t.t.mat, pField_0x4);
+}
+
+// FUNCTION: CARMA2_HW 0x004ca500
+void C2_HOOK_FASTCALL WorkerPedMove(tPedestrian* pPed, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38) {
+    extern int gBOOL_00744804;
+    extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
+    extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    int current_move_id;
+
+    if (!gBOOL_00744804) {
+        if (field_0x4 != -1) {
+            current_move_id = pPed->character->personality->form->moves[pPed->character->field_0x7].id;
+            BrMatrix34Copy(&pPed->character->field_0x8c, (br_matrix34*)pField_0x38);
+            SetCharacterMove(pPed->character, field_0x4, *(float*)&field_0xc, field_0x14, field_0x8_1, GetTotalTime());
+            if (!(pPed->character->field_0x14 & 4)) {
+                SetCharacterPosition(pPed->character, pField_0x24, -1);
+            }
+            if (current_move_id != field_0x4) {
+                pPed->character->field_0x1c = (tU16)zero;
+                SetCharacterBonePositions(pPed->character, 0, 0);
+            }
+        }
+        if (field_0x34 != -1) {
+            pPed->action = (tPed_action)field_0x34;
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004ca8d0
