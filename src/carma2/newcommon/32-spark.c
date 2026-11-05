@@ -337,6 +337,19 @@ void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004f9180
+void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // DoSolidGraniteThing
 
 // DoTrueColModelThing
@@ -360,6 +373,13 @@ int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial) {
     } else {
         return 0;
     }
+}
+
+// FUNCTION: CARMA2_HW 0x004f95e0
+int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel) {
+    pModel->flags |= BR_MODF_CUSTOM;
+    pModel->custom = AFEModelUpdate;
+    return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x004f9600
