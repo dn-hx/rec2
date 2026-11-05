@@ -29,6 +29,12 @@ float gFLOAT_00692dd0;
 // GLOBAL: CARMA2_HW 0x00692dd4
 float gFLOAT_00692dd4;
 
+// GLOBAL: CARMA2_HW 0x0074a5e8
+int gPHIL_munging_objects;
+
+// GLOBAL: CARMA2_HW 0x006923e4
+int gPHIL_object_added;
+
 // ScalarToFraction
 
 // FractionToScalar
@@ -202,7 +208,18 @@ void C2_HOOK_FASTCALL PHILDisable(void) {
     gPHIL_disabled = 1;
 }
 
-// PHILAddObject
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004b5d40
+int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // STUB: CARMA2_HW 0x004b5ea0
 // STUB: CARMA2_SW 0x004b25c0
@@ -345,7 +362,20 @@ int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pM
 #pragma auto_inline(on)
 #endif
 
-// PHILAddObjectImmediately
+// FUNCTION: CARMA2_HW 0x004b62b0
+int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddObject(pObject);
+    gPHIL_object_added = 0;
+    return result;
+}
 
 // PHILAddActiveObjectImmediately
 

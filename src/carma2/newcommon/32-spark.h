@@ -269,4 +269,10 @@ extern int gDust_rotate;
 
 extern void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
 
+extern int gReplay_splash_flags;
+
+extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
+
+extern const br_scalar gFLOAT_0058b008;
+
 #endif // GUARD_32_SPARK_H
