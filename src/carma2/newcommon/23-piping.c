@@ -105,6 +105,9 @@ int gPipe_undo_enabled = 0;
 // GLOBAL: CARMA2_HW 0x0069410c
 volatile undefined4 gUNK_0069410c;
 
+// GLOBAL: CARMA2_HW 0x00694104
+undefined4* gCrush_space;
+
 // ARReplayForwards
 
 // FUNCTION: CARMA2_HW 0x00402360

@@ -138,6 +138,9 @@ br_actor* gHud_actor_storage[128];
 // GLOBAL: CARMA2_SW 0x0069c31c
 int gNumber_of_lollipops;
 
+// GLOBAL: CARMA2_HW 0x006a2128
+void* gLollipop_queue[100] = { 0 };
+
 // MungeClipPlane
 
 // TryThisEdge
@@ -315,6 +318,22 @@ void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
 // FUNCTION: CARMA2_SW 0x004e0c90
 void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004e4910
+int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex) {
+    extern void* gLollipop_queue[100];
+
+    if (pIndex < 0) {
+        if (gNumber_of_lollipops < 100) {
+            gLollipop_queue[gNumber_of_lollipops] = pItem;
+            gNumber_of_lollipops++;
+            return gNumber_of_lollipops - 1;
+        }
+        return -1;
+    }
+    gLollipop_queue[pIndex] = pItem;
+    return pIndex;
 }
 
 // RenderLollipops

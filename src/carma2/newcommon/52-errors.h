@@ -21,4 +21,6 @@ extern void C2_HOOK_FASTCALL OpenDiagnostics(void);
 
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 
+extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
+
 #endif // GUARD_52_ERRORS_H
