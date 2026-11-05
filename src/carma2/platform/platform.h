@@ -224,4 +224,6 @@ extern void C2_HOOK_FASTCALL PDSwitchToHiresMode(void);
 extern void C2_HOOK_FASTCALL PDSwitchToLoresMode(void);
 #endif
 
+extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
+
 #endif // C2_PLATFORM_H

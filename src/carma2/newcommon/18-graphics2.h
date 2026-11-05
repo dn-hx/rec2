@@ -105,4 +105,12 @@ extern void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, b
 
 extern void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource);
 
+extern void C2_HOOK_FASTCALL FadePaletteDown(void);
+
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+
+extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+
 #endif // GUARD_18_GRAPHICS2_H

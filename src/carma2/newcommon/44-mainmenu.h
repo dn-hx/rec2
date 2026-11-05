@@ -21,4 +21,8 @@ extern void C2_HOOK_FASTCALL DoMainScreen(void);
 
 extern void C2_HOOK_FASTCALL DoOptionsMenu(void);
 
+extern int gMouse_was_started__mainmenu;
+
+extern int gReplace_background;
+
 #endif // GUARD_44_MAINMENU_H

@@ -140,4 +140,6 @@ extern tU32 gSound_time;
 
 extern int gSound_ID;
 
+extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
+
 #endif // GUARD_38_FLICPLAY_H
