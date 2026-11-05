@@ -141,4 +141,6 @@ extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, un
 
 extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
+extern tU32 gPHIL_last_physics_tick;
+
 #endif // GUARD_04_NETGAME_H
