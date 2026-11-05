@@ -1135,7 +1135,22 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // ScaleModel
 
-// DisposeMove
+// FUNCTION: CARMA2_HW 0x00404350
+void C2_HOOK_FASTCALL DisposeMove(tPed_move* pMove) {
+    int i;
+
+    for (i = 0; i < pMove->count_frames; i++) {
+        if (pMove->frames[i].axis != NULL) {
+            BrMemFree(pMove->frames[i].axis);
+        }
+    }
+    if (pMove->frames != NULL) {
+        BrMemFree(pMove->frames);
+    }
+    if (pMove != NULL) {
+        BrMemFree(pMove);
+    }
+}
 
 // DisposeAllLoadedMoves
 
@@ -1342,7 +1357,26 @@ void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, const br_vector3* pV)
 
 // MakeCharacterPhysicworthy
 
-// RecalculateOrientationOfRoot
+// FUNCTION: CARMA2_HW 0x00409340
+void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed) {
+    br_matrix34* character_matrix;
+    tPed_form* form;
+    br_matrix34 inverse;
+
+    form = pPed->personality->form;
+    if (pPed->field_0x4 < 0) {
+        character_matrix = &pPed->field_0x2c;
+    } else if (pPed->field_0xe8 != NULL) {
+        character_matrix = pPed->field_0xe8;
+    } else {
+        character_matrix = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+    }
+    BrMatrix34LPInverse(&inverse, &form->moves[pPed->field_0x7].move->frames[(short)pPed->field_0x1c].mat);
+    BrMatrix34Mul(&pPed->field_0x8c, &inverse, character_matrix);
+    pPed->field_0x8c.m[3][0] = 0.f;
+    pPed->field_0x8c.m[3][1] = 0.f;
+    pPed->field_0x8c.m[3][2] = 0.f;
+}
 
 // BonerActiveHalted2
 
@@ -1477,6 +1511,24 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0xa, 0xa);
 
     return pCharacter->field_0xa;
+}
+
+// FUNCTION: CARMA2_HW 0x0040b5a0
+int C2_HOOK_FASTCALL GetCharacterBoneIndexByName(tPed_character_instance* pCharacter, const char* pBone_name) {
+    int bone_index;
+    int count_bones;
+
+    bone_index = 0;
+    count_bones = pCharacter->personality->form->count_bones;
+    if (count_bones <= 0) {
+        return -1;
+    }
+    for (; bone_index < count_bones; bone_index++) {
+        if (strcmp(pBone_name, pCharacter->personality->form->bones[bone_index].name) == 0) {
+            return bone_index;
+        }
+    }
+    return -1;
 }
 
 // BonerPassiveCollision
