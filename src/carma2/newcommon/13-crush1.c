@@ -977,7 +977,18 @@ void C2_HOOK_FASTCALL FUN_00439500(void) {
 
 // ToggleFlapsCB2
 
-// ToggleFlapsCB
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0042ddb0
+int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SendToggleFlaps
 

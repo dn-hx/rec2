@@ -137,4 +137,6 @@ extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCo
 
 // RemovePlayerFromShapeStatusLists
 
+extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+
 #endif // GUARD_04_NETGAME_H
