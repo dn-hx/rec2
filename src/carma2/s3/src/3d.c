@@ -199,6 +199,14 @@ int C2_HOOK_STDCALL FUN_00565e39(float a1, float a2, float a3) {
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00565ea0
+void C2_HOOK_FASTCALL S3SetVector3(tS3_vector3* pVec, float pX, float pY, float pZ) {
+
+    pVec->x = pX;
+    pVec->y = pY;
+    pVec->z = pZ;
+}
+
 // FUNCTION: CARMA2_HW 0x00565d70
 // FUNCTION: CARMA2_SW 0x00561410
 int C2_HOOK_STDCALL S3Set3DSoundEnvironment(float a1, float a2, float a3) {
@@ -217,6 +225,30 @@ void C2_HOOK_FASTCALL S3CopyBrVector3(br_vector3* pDest, br_vector3* pSrc) {
     pDest->v[0] = pSrc->v[0];
     pDest->v[1] = pSrc->v[1];
     pDest->v[2] = pSrc->v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x00565ef9
+void C2_HOOK_FASTCALL S3SetListenerPositionNow(br_vector3* pPos) {
+
+    gS3_listener_position_now.v[0] = pPos->v[0];
+    gS3_listener_position_now.v[1] = pPos->v[1];
+    gS3_listener_position_now.v[2] = pPos->v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x00565f53
+void C2_HOOK_FASTCALL S3SetListenerLeftNow(br_vector3* pLeft) {
+
+    gS3_listener_left_now.v[0] = pLeft->v[0];
+    gS3_listener_left_now.v[1] = pLeft->v[1];
+    gS3_listener_left_now.v[2] = pLeft->v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x00565f80
+void C2_HOOK_FASTCALL S3BindListenerPosition(tS3_vector3* pos) {
+
+    gS3_listener_pos_ptr = (br_vector3*)pos;
+    gS3_listener_pos_is_brender = 0;
+    S3CopyS3Vector3((tS3_vector3*)&gS3_listener_position_old, pos);
 }
 
 // FUNCTION: CARMA2_HW 0x0056770a
