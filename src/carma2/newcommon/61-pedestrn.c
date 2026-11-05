@@ -598,6 +598,10 @@ void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed) {
     SetCharacterPhysicsLevelAR(pPed->character, 5);
 }
 
+// FUNCTION: CARMA2_HW 0x004d3600
+void C2_HOOK_FASTCALL FUN_004d3600(void) {
+}
+
 // InitProcessData
 
 // PedFallingForever
@@ -863,6 +867,12 @@ void C2_HOOK_FASTCALL UnmakeMaterialBlendy(br_material* pMaterial) {
 
   BlendifyMaterial(pMaterial, 100);
   BrMaterialUpdate(pMaterial, BR_MATU_ALL);
+}
+
+// FUNCTION: CARMA2_HW 0x004d6c00
+void C2_HOOK_FASTCALL DeetherealiseCharacter1(void* pCharacter) {
+
+    *(tU32*)((char*)pCharacter + 0x19c) &= ~4;
 }
 
 // TurnOffCollisions
