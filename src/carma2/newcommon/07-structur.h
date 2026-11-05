@@ -97,6 +97,6 @@ extern int gCount_toggled_doors;
 
 // InitPlayers
 
-// InitLastDamageArrayEtc
+extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
 
 #endif // GUARD_07_STRUCTUR_H
