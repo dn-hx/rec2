@@ -259,7 +259,18 @@ int C2_HOOK_FASTCALL ARSomeReplayLeft(void) {
 
 // StartPipingSession2
 
-// ARStartPipingSession
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004025e0
+void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
