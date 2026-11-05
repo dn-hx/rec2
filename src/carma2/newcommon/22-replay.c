@@ -386,6 +386,23 @@ void C2_HOOK_FASTCALL WorkerPedFPChange(int field_0x0, tPipe_stack_word field_0x
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004ca7d0
+void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
+    extern tPedestrian* gPedestrian_array;
+    extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+
+    ped = &gPedestrian_array[field_0x0 & 0xffff];
+    BrMatrix34Copy(GetCharacterMatrixPtr(ped->character), pMatrix);
+    ped->pos.v[0] = pMatrix->m[3][0];
+    ped->pos.v[1] = pMatrix->m[3][1];
+    ped->pos.v[2] = pMatrix->m[3][2];
+    RecalculateOrientationOfRoot(ped->character);
+    SetCharacterBonePositions(ped->character, 3, 0);
+}
+
 // FUNCTION: CARMA2_HW 0x004ca8d0
 void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
     extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
