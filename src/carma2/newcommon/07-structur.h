@@ -69,4 +69,6 @@ extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
 
 extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
+extern int gCount_toggled_doors;
+
 #endif // GUARD_07_STRUCTUR_H

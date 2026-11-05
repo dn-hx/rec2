@@ -55,6 +55,9 @@ int gHud_tinted2_visible;
 // GLOBAL: CARMA2_SW 0x0065b650
 int gLast_wrong_checkpoint = -1;
 
+// GLOBAL: CARMA2_HW 0x0067bd58
+int gCount_toggled_doors;
+
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {

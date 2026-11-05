@@ -108,4 +108,6 @@ extern void C2_HOOK_FASTCALL StopRenderingHeadups(void);
 
 extern void C2_HOOK_FASTCALL CleanPolyFontDanglers(void);
 
+extern void* gLollipop_queue[100];
+
 #endif // GUARD_16_GRAPHICS1_H
