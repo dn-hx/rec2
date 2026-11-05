@@ -433,4 +433,14 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 
 extern int C2_HOOK_FASTCALL FUN_00422030(br_model* pModel, int pCount_vertices, int* pVertex_indices);
 
+extern void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pCount, tPhysics_joint_force** pRecords, int pCount2);
+
+extern void C2_HOOK_FASTCALL FUN_004be350(float* pDestination, const float* pSource);
+
+extern void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+
+extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse);
+
+extern int C2_HOOK_FASTCALL CollectJointLimitsIntoBuffer(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
+
 #endif // GUARD_49_PHYSICS_H
