@@ -249,3 +249,26 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
     BrMatrix34PostTranslate(&actor->t.t.mat, parent_model->vertices[flap->field_0xc].p.v[0], parent_model->vertices[flap->field_0xc].p.v[1], parent_model->vertices[flap->field_0xc].p.v[2]);
 }
 
+// FUNCTION: CARMA2_HW 0x004b7220
+void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
+    tPhysics_object* object;
+
+    object = (tPhysics_object*)field_0x0;
+    BrMatrix34Copy(&object->transform_matrix, pField_0x4);
+    BrMatrix34Copy(&object->actor->t.t.mat, pField_0x4);
+}
+
+// FUNCTION: CARMA2_HW 0x004ca8d0
+void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
+    extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
+    extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
+    tPedestrian* ped;
+
+    ped = (tPedestrian*)field_0x0;
+    if (field_0x4 < 0) {
+        SetCharacterAllBonesModel(ped->character, field_0x6, field_0x8);
+    } else {
+        SetCharacterBoneModel(ped->character, field_0x4, field_0x6, field_0x8);
+    }
+}
+
