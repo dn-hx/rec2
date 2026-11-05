@@ -714,6 +714,13 @@ void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
     pBounds->max.v[2] = MAX(z1, z2);
 }
 
+// FUNCTION: CARMA2_HW 0x004ef830
+void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pUnused, int pLevel) {
+    extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
+
+    ActuallyRepairSmash(pCar_spec, pSmashable, pLevel);
+}
+
 // FreeExplosion
 
 // ReadSpecialEffectsSpec
