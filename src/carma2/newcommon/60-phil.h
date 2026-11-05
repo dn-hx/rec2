@@ -110,4 +110,6 @@ extern void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pOb
 
 // PHILApplyPHILObject
 
+extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam);
+
 #endif // GUARD_60_PHIL_H

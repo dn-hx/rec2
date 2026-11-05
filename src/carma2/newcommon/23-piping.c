@@ -23,6 +23,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "60-phil.h"
 
 #include <s3/internal/audio.h>
 
@@ -640,7 +641,24 @@ void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pCollision) {
         0xc, 4, &pCollision->water_normal);
 }
 
-// AddExtendedSplashToPipingSession
+// FUNCTION: CARMA2_HW 0x004c7160
+void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollision, void* pArg2) {
+    tU8 flag;
+    br_scalar water_d;
+
+    if (PHILGetObjectProperty(pCollision, 6) != 0.0f) {
+        flag = 0xff;
+    } else {
+        flag = pCollision->flags_0x238;
+    }
+    water_d = pCollision->water_d;
+    *(volatile br_scalar*)&gUNK_0069410c = water_d;
+    ARAddVariedDataToSession((tPipe_chunk_type)0x3b, (uintptr_t)pArg2, 4,
+        1, 0, (*(int*)&flag) & 0xff,
+        4, 4, *(tU32*)&gUNK_0069410c,
+        0xc, 8, &pCollision->water_normal,
+        0x18, 0x14, &pCollision->bb2);
+}
 
 // AddCarToPipingSession
 
@@ -766,7 +784,15 @@ void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType) {
     ARDoSingleVariedSession(ePipe_chunk_special, pType, 0);
 }
 
-// PipeSingleCarIncident
+// FUNCTION: CARMA2_HW 0x004c8540
+void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPosition, float pForce) {
+
+    gUNK_0069410c = *(tU32*)&pForce;
+    ARDoSingleVariedSession(ePipe_chunk_ped_incident, 1, 3,
+        4, 0, *(tU32*)&pForce,
+        2, 4, (tU16)pCar->car_ID,
+        0xc, 8, pPosition);
+}
 
 // PipeSinglePedIncident
 
@@ -905,7 +931,15 @@ void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone_index,
         SIZE_OFFSET_PIPING(tPipe_single_ped_dismember, new_value), pNew_value);
 }
 
-// PipeSinglePedFPChange
+// FUNCTION: CARMA2_HW 0x004c8c30
+void C2_HOOK_FASTCALL PipeSinglePedFPChange(tPedestrian* pPed, float pValue, float pUnused) {
+
+    gUNK_0069410c = *(tU32*)&pValue;
+    /* chunk type 45 (0x2d): no tPipe_chunk_type constant yet (adding enum constants to rec2_types.h shifts codegen elsewhere) */
+    ARDoSingleVariedSession(45, (uintptr_t)pPed, 2,
+        4, 0, *(tU32*)&pValue,
+        4, 4, *(tU32*)&pValue);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8c60
 // FUNCTION: CARMA2_SW 0x004c5390
