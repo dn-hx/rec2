@@ -134,6 +134,9 @@ int gShrapnel_flags;
 // GLOBAL: CARMA2_HW 0x006a9180
 tShrapnel gShrapnel[30] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x006aa568
+int gDust_rotate;
+
 // DrawDot
 
 // SetWorldToScreen

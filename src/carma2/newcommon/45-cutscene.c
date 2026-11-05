@@ -14,6 +14,8 @@
 #include "41-utility.h"
 #include "69-sound.h"
 #include "globvars.h"
+#include "38-flicplay.h"
+#include "32-spark.h"
 
 // FUNCTION: CARMA2_HW 0x0043e750
 // FUNCTION: CARMA2_SW 0x0043e860
@@ -88,5 +90,27 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
     } else {
         SplashScreenWith("LOADSCRN.PIX");
     }
+}
+
+// FUNCTION: CARMA2_HW 0x00461980
+void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time) {
+    extern int gSound_ID;
+    extern tU32 gSound_time;
+
+    gSound_ID = pSound_ID;
+    gSound_time = pSound_time;
+}
+
+// FUNCTION: CARMA2_HW 0x004fa8d0
+void C2_HOOK_FASTCALL DustRotate(void) {
+    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+    extern int gDust_rotate;
+    extern int gNum_dust_tables;
+
+    gDust_rotate++;
+    if (gDust_rotate >= gNum_dust_tables) {
+        gDust_rotate = 0;
+    }
+    NewTextHeadupSlot(4, 0, 1000, -4, "Dust colour rotated");
 }
 
