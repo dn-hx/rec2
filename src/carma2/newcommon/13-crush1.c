@@ -1289,7 +1289,18 @@ void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVerte
 
 // SphericizePhysics
 
-// SphericizeCar
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004391d0
+void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004398d0
 // FUNCTION: CARMA2_SW 0x00439910
