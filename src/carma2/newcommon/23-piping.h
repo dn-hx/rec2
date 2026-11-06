@@ -33,7 +33,10 @@
 
 // tPipe_chunk_powerup
 
-// tPipe_chunk_phil_object
+typedef struct {
+    int field_0x0;
+    br_matrix34 field_0x4;
+} tPipe_chunk_phil_object;
 
 // tPipe_chunk_ped_model_change
 
@@ -480,7 +483,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyPedModelChange
 
-// ApplyPHILObject
+extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
 // ApplyGibShower
 
