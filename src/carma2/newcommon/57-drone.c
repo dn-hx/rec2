@@ -79,7 +79,15 @@ float gDrone_render_zero = 0.0f;
 
 // gDefault_drone_direction
 
-// gDrone_state_functions
+// GLOBAL: CARMA2_HW 0x00594738
+tDrone_state_function* gDrone_state_functions[6] = {
+    NULL,
+    DroneStateFuncReset,
+    DroneStateFuncControlledMovement,
+    DroneStateFuncPhysicsActive,
+    DroneStateFuncStationaryPassive,
+    NULL,
+};
 
 // GLOBAL: CARMA2_HW 0x00705b70
 tU32 gINT_00705b70;
@@ -316,7 +324,18 @@ void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...) {
 
 // ProcessThisDrone
 
-// DroneStateFuncReset
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0044cc70
+void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // InitDroneDrivingInfo
 
@@ -405,9 +424,31 @@ void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDro
 
 // DoDroneHaltingStuff
 
-// DroneStateFuncPhysicsActive
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// DroneStateFuncStationaryPassive
+// STUB: CARMA2_HW 0x0044eb70
+void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0044ec50
+void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetNewCrushyModelForDrone
 
@@ -555,7 +596,31 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 
 // MyDroneHathCollideth
 
-// MyDroneHathHalteth
+// FUNCTION: CARMA2_HW 0x00452360
+int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject) {
+    tDrone_spec* pDrone;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf_drone("MyDroneHathHalteth(): PHIL called a bloody callback. Rejoice!");
+    pDrone->collision_info.field_0x1a0 = 0x100000;
+    PHILSetObjectProperty(&pDrone->collision_info, 3, 1);
+    pDrone->field_0x5d4 = 0;
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf_drone("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 4);
+    if (pDrone->current_state != 4) {
+        if (gDrone_state_functions[pDrone->current_state] != NULL) {
+            gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+        }
+        pDrone->time_last_munge = gTime_stamp_for_this_munging;
+        pDrone->prev_states[1] = pDrone->prev_states[0];
+        pDrone->prev_states[0] = pDrone->current_state;
+        pDrone->current_state = 4;
+        if (gDrone_state_functions[4] != NULL) {
+            gDrone_state_functions[4](pDrone, eDrone_state_START);
+        }
+    }
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x00452410
 void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2) {
