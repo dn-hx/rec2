@@ -1414,7 +1414,12 @@ void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk) {
 
 // ApplyPedMove
 
-// ApplyPedPhysics
+// FUNCTION: CARMA2_HW 0x004c9b10
+void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_physics* chunk = (tPipe_chunk_ped_physics*)*pChunk;
+
+    return WorkerPedPhysics(chunk->field_0x0, &chunk->field_0x4);
+}
 
 // ApplyPedDismember
 

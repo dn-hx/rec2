@@ -86,6 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// WorkerPedPhysics
+extern void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix);
 
 #endif // GUARD_22_REPLAY_H

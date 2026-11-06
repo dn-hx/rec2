@@ -41,7 +41,10 @@
 
 // tPipe_chunk_ped_fp_change
 
-// tPipe_chunk_ped_physics
+typedef struct {
+    int field_0x0;
+    br_matrix34 field_0x4;
+} tPipe_chunk_ped_physics;
 
 // tPipe_chunk_ped_move
 
@@ -470,7 +473,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyPedMove
 
-// ApplyPedPhysics
+extern void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk);
 
 // ApplyPedDismember
 
