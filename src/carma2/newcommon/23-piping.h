@@ -136,7 +136,7 @@ extern tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_session* pSession);
 
 // ARPipeSearchForwards
 
-// ARIsActionReplayAvailable
+extern int C2_HOOK_FASTCALL ARIsActionReplayAvailable(void);
 
 extern int C2_HOOK_FASTCALL ARSomeReplayLeft(void);
 
