@@ -29,7 +29,7 @@ extern int gCurrent_selected_drone;
 
 // DoNotDprintf
 
-// CrappyLittleVector3DPrintf
+extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition);
 
 // CrappyLittleDrivingStateInfoDprintf
 
