@@ -17,7 +17,7 @@ extern int gINT_00681fb0;
 extern int gFrame;
 extern int gCurrent_selected_drone;
 
-// gCount_rendered_drones
+extern int gCount_rendered_drones;
 extern int gCount_drones;
 extern tDrone_form gDrone_forms[64];
 extern int gCount_drone_forms;
@@ -105,7 +105,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinRenderingDistance(const br_vector3* 
 
 // DroneyObjectInSensiblePlace
 
-// StopRenderingThisDrone
+extern void C2_HOOK_FASTCALL StopRenderingThisDrone(tDrone_spec* pDrone_spec);
 
 // StopProcessingThisDrone
 
