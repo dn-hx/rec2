@@ -1610,7 +1610,15 @@ void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_chunk* 
 
 // UndoPedStatus
 
-// UndoPedMove
+// FUNCTION: CARMA2_HW 0x004ca1e0
+void C2_HOOK_FASTCALL UndoPedMove(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_ped_move* chunk = (tPipe_chunk_ped_move*)*pChunk;
+
+    if (!chunk->field_0x14) {
+        return WorkerPedMoveUndo((tPedestrian*)chunk->field_0x0, chunk->field_0x6, chunk->field_0x10, 0, 0, chunk->field_0xa, &chunk->field_0x18, chunk->field_0x30, &chunk->field_0x38);
+    }
+    return;
+}
 
 // FUNCTION: CARMA2_HW 0x004ca210
 // FUNCTION: CARMA2_SW 0x004c6940
