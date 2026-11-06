@@ -103,7 +103,7 @@ extern void C2_HOOK_FASTCALL InitMap(void);
 #ifdef REC2_HW
 extern void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap);
 
-// UpdateMapAndSaveOptions
+extern void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void);
 #endif
 
 // static void C2_HOOK_FASTCALL MapChanged(void);

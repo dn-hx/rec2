@@ -862,7 +862,11 @@ void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap) {
     BrMaterialAdd(gCar_icons_model_actor->material);
 }
 
-// UpdateMapAndSaveOptions
+// FUNCTION: CARMA2_HW 0x00497610
+void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void) {
+    InitMap();
+    SaveOptions();
+}
 #endif
 
 static void C2_HOOK_FASTCALL MapChanged(void) {
