@@ -16,9 +16,37 @@
 
 // tFind_crush_actor_arg
 
-// tBend_data_local
+typedef struct tBend_data_local {
+    br_scalar field_0x0;
+    br_scalar field_0x4;
+    undefined field_0x8[4];
+    br_scalar field_0xc;
+    br_scalar field_0x10;
+    undefined field_0x14[4];
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_vector3 field_0x30;
+    br_angle field_0x3c;
+    br_angle field_0x3e;
+    br_angle field_0x40;
+    undefined field_0x42[2];
+    br_vector3 field_0x44;
+    br_vector3 field_0x50;
+    br_vector3 field_0x5c;
+    br_vector3 field_0x68;
+    int field_0x74;
+    tCar_crush_vertex_data* field_0x78;
+} tBend_data_local;
 
-// tUnbend_model_context_local
+typedef struct tUnbend_model_context_local {
+    br_matrix34 matrix;
+    br_vector3 field_0x30;
+    br_vector3 field_0x3c;
+    br_vector3 field_0x48;
+    br_vector3 field_0x54;
+    tBend_data_local* bend;
+    tCar_spec* car;
+} tUnbend_model_context_local;
 
 // tNet_message_chunk_semi_detach_bit
 
@@ -409,9 +437,9 @@ extern int C2_HOOK_FASTCALL BattenDownTheObjects(tPhysics_object* pCollision_inf
 
 extern void C2_HOOK_FASTCALL CompletelyUnBendCollisionShape(tCar_crush_shape_info* pShape);
 
-// FUN_0043a5b0
+extern void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext);
 
-// UnBendActorCB
+extern intptr_t C2_HOOK_FASTCALL UnBendActorCB(br_actor* pActor, br_vector3* pDelta, void* pData);
 
 // CompletelyUnBendCollisionShapes
 
