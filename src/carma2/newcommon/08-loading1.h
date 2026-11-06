@@ -43,7 +43,7 @@ extern void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber);
 
 // WriteS8L
 
-// WriteS16L
+extern void C2_HOOK_FASTCALL WriteS16L(FILE* pF, tS16 pNumber);
 
 // WriteS32L
 
