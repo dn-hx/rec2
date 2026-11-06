@@ -118,7 +118,7 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
-// SwapPixelmapInStorage
+extern br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage);
 
 extern br_actor* gLast_actor;
 
