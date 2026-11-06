@@ -26,7 +26,7 @@ extern tU32 gAverage_frame_period;
 
 // gUnk_006a23cc
 
-// gCamera_to_horiz_angle
+extern float gCamera_to_horiz_angle;
 extern tU32 gLast_tick_count;
 extern int gPed_count;
 extern int gQueued_wasted_messages[5];
@@ -47,7 +47,7 @@ extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
 
 // MungeRaceFinished
 
-// CalculateCameraStuff
+extern void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period);
 
 // CheckActiveCarList
 
@@ -61,7 +61,7 @@ extern tRace_result C2_HOOK_FASTCALL DoRace(void);
 
 // AdjustHeadupTextBuffer
 
-// gPrev_camera_position
+extern br_vector3 gPrev_camera_position;
 
 // gReplay_button_rects
 

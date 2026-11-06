@@ -17,7 +17,7 @@
 extern tFunkotronic_spec* gFunkotronics_array;
 extern tGroovidelic_spec* gGroovidelics_array;
 
-// gYon_squared
+extern float gYon_squared;
 extern int gGroovidelics_array_size;
 extern tU32 gPrevious_groove_times[2];
 extern tGroove_funk_binding gGroove_funk_bindings[1440];

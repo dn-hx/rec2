@@ -27,7 +27,8 @@
 
 // AdjustHeadupTextBuffer
 
-// gPrev_camera_position
+// GLOBAL: CARMA2_HW 0x0068c738
+br_vector3 gPrev_camera_position;
 
 // gReplay_button_rects
 
@@ -56,7 +57,8 @@ tU32 gAverage_frame_period;
 
 // gUnk_006a23cc
 
-// gCamera_to_horiz_angle
+// GLOBAL: CARMA2_HW 0x00704e44
+float gCamera_to_horiz_angle;
 
 // GLOBAL: CARMA2_HW 0x00761ef0
 // GLOBAL: CARMA2_SW 0x00758450
@@ -193,7 +195,26 @@ void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period) {
 
 // MungeRaceFinished
 
-// CalculateCameraStuff
+// FUNCTION: CARMA2_HW 0x004940e0
+void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
+    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
+    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
+    extern void C2_HOOK_FASTCALL ResetPedNearness(void);
+    extern br_vector3 gPrev_camera_position;
+    extern float gCamera_to_horiz_angle;
+    extern float gYon_squared;
+
+    gOur_pos = &gPlayer_car_master_actor->t.t.translate.t;
+    PositionExternalCamera(&gProgram_state.current_car, pCamera_period);
+    BrActorToActorMatrix34(&gCamera_to_world, gCamera, gUniverse_actor);
+    BrActorToActorMatrix34(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
+    gCamera_to_horiz_angle = FastScalarArcTan2(gCamera_to_world.m[2][1], gCamera_to_world.m[1][1]);
+    gYon_squared = gYon_multiplier * gYon_multiplier * ((br_camera*)gCamera->type_data)->yon_z * ((br_camera*)gCamera->type_data)->yon_z;
+    if ((REC2_SQR(gCamera_to_world.m[3][0] - gPrev_camera_position.v[0]) + REC2_SQR(gCamera_to_world.m[3][1] - gPrev_camera_position.v[1])) + REC2_SQR(gCamera_to_world.m[3][2] - gPrev_camera_position.v[2]) > 400.0) {
+        ResetPedNearness();
+    }
+    gPrev_camera_position = *(br_vector3*)gCamera_to_world.m[3];
+}
 
 // CheckActiveCarList
 
