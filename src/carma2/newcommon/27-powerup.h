@@ -490,4 +490,8 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
+// GetJoystickEffect
+
+// gCount_joystick_effects
+
 #endif // GUARD_27_POWERUP_H
