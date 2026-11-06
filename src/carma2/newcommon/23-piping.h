@@ -498,7 +498,7 @@ extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
 // ApplyDSModel
 
-// ApplyPedDiagnostics
+extern void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
@@ -618,7 +618,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPedStatusUndo
 
-// WorkerPedDiagnostics
+extern void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_0x4, void* pField_0x58, void* pField_0x144);
 
 // DoVanishDismembered
 
