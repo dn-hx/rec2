@@ -86,7 +86,8 @@ tU8* gPipe_buffer_end_marker = NULL;
 // GLOBAL: CARMA2_SW 0x00671058
 const tReplay_callback* gPipe_callbacks;
 
-// gPipe_buffer_size
+// GLOBAL: CARMA2_HW 0x006768ec
+tU32 gPipe_buffer_size = 0;
 
 // GLOBAL: CARMA2_HW 0x006768b8
 // GLOBAL: CARMA2_SW 0x00671028
@@ -124,7 +125,8 @@ int gPipe_undo_enabled = 0;
 
 // gOldest_time
 
-// gPipe_count_callbacks
+// GLOBAL: CARMA2_HW 0x00676910
+int gPipe_count_callbacks = 0;
 
 // GLOBAL: CARMA2_HW 0x0069410c
 volatile undefined4 gUNK_0069410c;
@@ -211,7 +213,21 @@ int C2_HOOK_FASTCALL ARReplayPlaying(void) {
     }
 }
 
-// ARInitialise
+// FUNCTION: CARMA2_HW 0x00402410
+void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks) {
+
+    if (!pEnable) {
+        gPipe_buffer_start = NULL;
+        gLocal_buffer = NULL;
+    } else {
+        gPipe_callbacks = pCallbacks;
+        gPipe_count_callbacks = pCount_callbacks;
+        PDAllocateActionReplayBuffer(&gPipe_buffer_start, &gPipe_buffer_size);
+        gPipe_buffer_phys_end = gPipe_buffer_start + gPipe_buffer_size;
+        gLocal_buffer = BrMemAllocate(15000, kMem_pipe_model_geometry);
+    }
+    ARResetPiping();
+}
 
 // ARDispose
 

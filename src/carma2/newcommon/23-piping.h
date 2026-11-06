@@ -97,7 +97,7 @@ typedef void C2_HOOK_FASTCALL tReplay_session_callback(int pFrames);
 extern float gReplay_rate;
 extern const tReplay_callback* gPipe_callbacks;
 
-// gPipe_buffer_size
+extern tU32 gPipe_buffer_size;
 extern tU8* gPipe_play_ptr;
 extern tU8* gPipe_buffer_oldest;
 extern tU8* gPipe_record_ptr;
@@ -122,7 +122,7 @@ extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 // DisposePiping
 
-// ARInitialise
+extern void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks);
 
 // ARDispose
 
@@ -652,7 +652,7 @@ extern int gPipe_undo_enabled;
 
 // gOldest_time
 
-// gPipe_count_callbacks
+extern int gPipe_count_callbacks;
 
 extern volatile undefined4 gUNK_0069410c;
 
