@@ -15,15 +15,34 @@
 
 
 
-// BuyCurrentCar
+// FUNCTION: CARMA2_HW 0x0046e780
+int C2_HOOK_FASTCALL BuyCurrentCar(tFrontend_spec* pFrontend) {
+    tCar_spec* car;
+    tOpponent_spec* opponent;
+
+    if (gFrontend_wreck_bought_car_dz != 0.f || gWreck_gallery_sell_infos[gFrontend_wrecks_current].sold) {
+        return 0;
+    }
+    car = GetCarSpec(eVehicle_opponent, gFrontend_wrecks_current);
+    opponent = GetOpponentSpecFromCarSpec(car);
+    gProgram_state.cars_available[gProgram_state.number_of_cars] = car->index;
+    gProgram_state.number_of_cars += 1;
+    gProgram_state.current_car_index = car->index;
+    gProgram_state.credits -= gOpponents[opponent->index].price;
+    gFrontend_wreck_bought_car_dz = 0.001f;
+    DRS3StartSound(gEffects_outlet, eSoundId_Done);
+    return 0;
+}
 
 // WrecksInFunc
 
 // WrecksUpdateFunc
 
-// gWreck_gallery_sell_infos
+// GLOBAL: CARMA2_HW 0x00763720
+tWreck_gallery_sell_info gWreck_gallery_sell_infos[32];
 
-// gFrontend_wrecks_current
+// GLOBAL: CARMA2_HW 0x00763890
+int gFrontend_wrecks_current;
 // GLOBAL: CARMA2_HW 0x005f8e68
 // GLOBAL: CARMA2_SW 0x005f3d98
 tFrontend_spec gFrontend_WRECKS = {

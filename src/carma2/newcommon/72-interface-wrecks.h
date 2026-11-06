@@ -13,14 +13,14 @@
 
 extern tFrontend_spec gFrontend_WRECKS;
 
-// BuyCurrentCar
+extern int C2_HOOK_FASTCALL BuyCurrentCar(tFrontend_spec* pFrontend);
 
 // WrecksInFunc
 
 // WrecksUpdateFunc
 
-// gWreck_gallery_sell_infos
+extern tWreck_gallery_sell_info gWreck_gallery_sell_infos[32];
 
-// gFrontend_wrecks_current
+extern int gFrontend_wrecks_current;
 
 #endif /* GUARD_72_WRECKS_H */
