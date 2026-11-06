@@ -22,9 +22,9 @@ extern int gCursor_tinted_right;
 extern int gCursor_tinted_center;
 extern int gCursor_line_width;
 
-// gCurrent_cursor_index
+extern int gCurrent_cursor_index;
 
-// gTransient_bitmap_index
+extern int gTransient_bitmap_index;
 
 extern tTransient_bm gTransient_bitmaps[50];
 extern int gMouse_started;
@@ -35,7 +35,7 @@ extern int gNoTransients;
 extern br_pixelmap* gRender_palette;
 extern int gDim_amount;
 
-// gMouse_last_pos
+extern tMouse_coord gMouse_last_pos;
 #ifdef REC2_HW
 extern int gPalette_changed;
 #endif
