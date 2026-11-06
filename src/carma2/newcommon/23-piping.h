@@ -636,7 +636,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerSpecial
 
-// CalcRemoveFacesLength
+extern int C2_HOOK_FASTCALL CalcRemoveFacesLength(tPipe_chunk* pChunk);
 
 extern tPipe_smudge_data* gSmudge_space;
 

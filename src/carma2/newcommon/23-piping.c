@@ -1801,5 +1801,8 @@ void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
 
 // FUN_DisposeReplayBuffer
 
-// CalcRemoveFacesLength
+// FUNCTION: CARMA2_HW 0x004ca460
+int C2_HOOK_FASTCALL CalcRemoveFacesLength(tPipe_chunk* pChunk) {
+    return 8 + 8 * *(int*)((tU8*)pChunk + 8);
+}
 
