@@ -14,7 +14,18 @@
 
 // tNet_score_entry
 
-// tNet_message_chunk_car_crush_sync
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU8 count;
+    undefined field_0x9[3];
+    struct {
+        tPlayer_ID player;
+        tU16 crush_state;
+        undefined field_0x6[2];
+    } players[1];
+} tNet_message_chunk_car_crush_sync;
 
 extern tNet_game_player_info* gLast_lepper;
 extern int gLast_it_change;
@@ -41,7 +52,7 @@ extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shap
 
 // ReceivedRecover
 
-// ReceivedCrushSync
+extern void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents);
 
 // CopyMechanics
 
