@@ -302,7 +302,7 @@ extern void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatr
 
 // AnnihilatePeds
 
-// NapalmPeds
+extern int C2_HOOK_FASTCALL NapalmPeds(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pSend_message);
 
@@ -504,6 +504,6 @@ extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
 
 extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
-// NapalmPedestrianNearCar
+extern int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar);
 
 #endif // GUARD_27_POWERUP_H

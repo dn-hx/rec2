@@ -256,7 +256,18 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
 
-// NapalmPedestrianNearCar
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ce560
+int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ScalePedHeads
 
@@ -949,7 +960,20 @@ void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatrix) {
 
 // AnnihilatePeds
 
-// NapalmPeds
+// FUNCTION: CARMA2_HW 0x004de190
+int C2_HOOK_FASTCALL NapalmPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    int result;
+
+    if (NapalmPedestrianNearCar(pCar) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Flamer", 0);
+    }
+    return result;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
