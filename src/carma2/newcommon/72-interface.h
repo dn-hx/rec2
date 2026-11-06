@@ -501,6 +501,6 @@ extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
 // gFrontend_controls_count_keys
 
-// gLast_host_query
+extern tU32 gLast_host_query;
 
 #endif // GUARD_72_INTERFACE_H

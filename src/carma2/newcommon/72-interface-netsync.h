@@ -13,16 +13,16 @@
 
 extern tFrontend_spec gFrontend_NETSYNC;
 
-// NetSync_Infunc
+extern int C2_HOOK_FASTCALL NetSync_Infunc(tFrontend_spec* pFrontend);
 
-// gFrontend_scrollbars_updated
+extern int gFrontend_scrollbars_updated;
 
-// gCurrent_frontend_scrollbars
+extern tFrontend_slider* gCurrent_frontend_scrollbars;
 
-// gConnected_items
+extern tConnected_items* gConnected_items;
 
-// gPTR_00686508
+extern tStruct_00686508* gPTR_00686508;
 
-// gFrontend_net_mode
+extern tNet_mode gFrontend_net_mode;
 
 #endif /* GUARD_72_NETSYNC_H */
