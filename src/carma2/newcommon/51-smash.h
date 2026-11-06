@@ -14,7 +14,13 @@
 
 // READ_POWERUP_SMASHABLE
 
-// tNon_car_search_context
+typedef struct {
+    br_bounds3* bounds;
+    tU8 field_0x4;
+    tS8 count;
+    undefined field_0x6[2];
+    br_actor* actors[20];
+} tNon_car_search_context;
 
 extern int gAllow_material_adapt;
 extern br_material* gMaterials_to_adapt[200];
@@ -141,7 +147,7 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
-// FUN_004edb20
+extern intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext);
 
 // FlushPowerupQueue
 
