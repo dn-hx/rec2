@@ -15,4 +15,14 @@ extern tFrontend_spec gFrontend_NETSYNC;
 
 // NetSync_Infunc
 
+// gFrontend_scrollbars_updated
+
+// gCurrent_frontend_scrollbars
+
+// gConnected_items
+
+// gPTR_00686508
+
+// gFrontend_net_mode
+
 #endif /* GUARD_72_NETSYNC_H */

@@ -7,12 +7,21 @@
  */
 
 #include "72-interface-netsync.h"
+#include "01-network.h"
+#include "04-netgame.h"
+#include "41-utility.h"
+#include "42-input.h"
 
 #include "72-interface.h"
+#include "globvars.h"
+#include "globvrpb.h"
+#include "platform.h"
 
 
 
 // NetSync_Infunc
+
+// gFrontend_net_mode
 // GLOBAL: CARMA2_HW 0x0061bad0
 // GLOBAL: CARMA2_SW 0x00616a00
 tFrontend_spec gFrontend_NETSYNC = {
