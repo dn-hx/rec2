@@ -9,6 +9,9 @@
 #include "72-interface-network.h"
 
 #include "72-interface.h"
+#include "c2_string.h"
+#include "globvars.h"
+#include "platform.h"
 
 
 
