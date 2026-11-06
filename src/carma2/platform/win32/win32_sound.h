@@ -26,7 +26,7 @@ extern MCI_SET_PARMS gPDS3_mci_set_parms;
 extern int gPDS3_cda_initialized;
 extern int gPDS3_midi_playing;
 
-// gPDS3_midi_restart_required
+extern int gPDS3_midi_restart_required;
 extern int gPDS3_cda_media_present;
 extern int gPDS3_cda_is_playing;
 extern int gPDS3_cda_paused;
@@ -59,7 +59,7 @@ extern const char* C2_HOOK_FASTCALL PDS3GetWorkingDirectory(void);
 
 extern int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel);
 
-// PDS3ResumeMidiChannel
+extern int C2_HOOK_FASTCALL PDS3ResumeMidiChannel(tS3_channel* pChannel);
 
 // PDS3PauseMidiChannel
 
