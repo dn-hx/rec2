@@ -145,6 +145,8 @@ char* gFrontend_current_input;
 // GLOBAL: CARMA2_SW 0x00683058
 float gFrontend_wreck_bought_car_dz;
 
+// gFrontend_wrecks_hscroll
+
 // GLOBAL: CARMA2_HW 0x0068723c
 // GLOBAL: CARMA2_SW 0x0068179c
 int gFrontend_text_input_item_index;

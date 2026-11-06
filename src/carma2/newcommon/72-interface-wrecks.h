@@ -19,4 +19,14 @@ extern tFrontend_spec gFrontend_WRECKS;
 
 // WrecksUpdateFunc
 
+// gFrontend_wrecks_light
+
+// gFrontend_wrecks_pixelmap
+
+// gWreck_gallery_sell_infos
+
+// gFrontend_wrecks_current
+
+// gFrontend_wrecks_previous_update
+
 #endif /* GUARD_72_WRECKS_H */

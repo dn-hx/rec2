@@ -31,6 +31,8 @@ extern int gFrontend_change_car_selected_car;
 extern int gFrontend_car_image_outdated;
 extern int gFrontend_opponent_profile_pic_needs_update;
 extern float gFrontend_wreck_bought_car_dz;
+
+// gFrontend_wrecks_hscroll
 extern int gFrontend_wrecks_pending_hscroll;
 extern int gFrontend_wrecks_rotate_prev_x;
 extern int gFrontend_wrecks_rotate_prev_y;
@@ -500,5 +502,9 @@ extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 // gFrontend_wrecks_actor
 
 // gFrontend_controls_count_keys
+
+// gFrontend_wrecks_car_count
+
+// gFrontend_selected_item_index
 
 #endif // GUARD_72_INTERFACE_H

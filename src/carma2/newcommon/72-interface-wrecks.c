@@ -7,8 +7,13 @@
  */
 
 #include "72-interface-wrecks.h"
+#include "30-opponent.h"
+#include "69-sound.h"
 
 #include "72-interface.h"
+#include "c2_string.h"
+#include "globvars.h"
+#include "platform.h"
 
 
 
@@ -17,6 +22,16 @@
 // WrecksInFunc
 
 // WrecksUpdateFunc
+
+// gFrontend_wrecks_light
+
+// gFrontend_wrecks_pixelmap
+
+// gWreck_gallery_sell_infos
+
+// gFrontend_wrecks_current
+
+// gFrontend_wrecks_previous_update
 // GLOBAL: CARMA2_HW 0x005f8e68
 // GLOBAL: CARMA2_SW 0x005f3d98
 tFrontend_spec gFrontend_WRECKS = {
