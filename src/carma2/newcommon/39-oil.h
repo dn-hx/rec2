@@ -18,7 +18,7 @@ extern tOil_spill_info gOily_spills[32];
 extern br_material* oily_material;
 extern int gNext_oil_pixie;
 
-// gStart_jumped
+extern int gStart_jumped;
 
 extern void C2_HOOK_FASTCALL InitOilSpills(void);
 

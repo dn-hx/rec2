@@ -36,7 +36,8 @@ br_material* oily_material;
 // GLOBAL: CARMA2_HW 0x00691710
 int gNext_oil_pixie;
 
-// gStart_jumped
+// GLOBAL: CARMA2_HW 0x00691720
+int gStart_jumped = 0;
 
 // FUNCTION: CARMA2_HW 0x004a6a10
 // FUNCTION: CARMA2_SW 0x004a2b90
