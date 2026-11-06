@@ -426,7 +426,7 @@ extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
 
 // GrowATail
 
-// CutOffTail
+extern int C2_HOOK_FASTCALL CutOffTail(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL RemoveTail(void);
 
@@ -490,10 +490,10 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
-// gLocal_net_ID
+extern tPlayer_ID gLocal_net_ID;
 
-// gCar_outlet
+extern tS3_outlet* gCar_outlet;
 
-// gINT_00705b70
+extern tU32 gINT_00705b70;
 
 #endif // GUARD_27_POWERUP_H
