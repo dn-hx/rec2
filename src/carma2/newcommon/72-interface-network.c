@@ -7,6 +7,7 @@
  */
 
 #include "72-interface-network.h"
+#include "72-interface-netsync.h"
 
 #include "72-interface.h"
 
