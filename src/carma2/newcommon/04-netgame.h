@@ -155,7 +155,7 @@ extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
 
 extern tU32 gPHIL_last_physics_tick;
 
-// SendDetachedNonCarData
+extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 
 // SendDetachedNonCarDataToPlayer
 
