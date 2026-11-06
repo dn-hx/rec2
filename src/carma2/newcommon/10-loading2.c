@@ -55,6 +55,18 @@
 // gSimple_material_colours
 
 // gDamage_names
+
+// LoadCarCrushDataEntry
+
+// gSoftness_names
+
+// gCrush_type_names
+
+// gEase_of_detachment_names
+
+// gCar_crush_shape_names
+
+// gDetach_type_names
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
 FILE* gTempFile;

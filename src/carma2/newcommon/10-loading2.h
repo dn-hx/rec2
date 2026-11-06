@@ -145,4 +145,18 @@ extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
 // gDamage_names
 
+// LoadCarCrushDataEntry
+
+// gSoftness_names
+
+// gCrush_type_names
+
+// gEase_of_detachment_names
+
+// gNormal_force_to_detach
+
+// gCar_crush_shape_names
+
+// gDetach_type_names
+
 #endif // GUARD_10_LOADING2_H
