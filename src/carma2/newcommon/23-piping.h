@@ -61,7 +61,12 @@
 
 // tPipe_chunk_skid_adjust
 
-// tPipe_chunk_prox_ray_replay
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+    tU16 field_0x6;
+    int field_0x8;
+} tPipe_chunk_prox_ray_replay;
 
 // tPipe_chunk_graphpical_wheel_stuff
 
@@ -426,7 +431,7 @@ extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 // ApplySpecial
 
-// ApplyProxRay
+extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
 // ApplySkidAdjustment
 
@@ -632,7 +637,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPedStatus
 
-// WorkerProxRay
+extern void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8);
 
 // WorkerSpecial
 

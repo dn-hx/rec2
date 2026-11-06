@@ -1304,7 +1304,12 @@ void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk) {
 
 // ApplySpecial
 
-// ApplyProxRay
+// FUNCTION: CARMA2_HW 0x004c97f0
+void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk) {
+    tPipe_chunk_prox_ray_replay* chunk = (tPipe_chunk_prox_ray_replay*)*pChunk;
+
+    return WorkerProxRay(chunk->field_0x0, chunk->field_0x6, chunk->field_0x4, chunk->field_0x8);
+}
 
 // ApplySkidAdjustment
 
@@ -1774,7 +1779,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // WorkerPedStatus
 
-// WorkerProxRay
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004d6180
+void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerSpecial
 
