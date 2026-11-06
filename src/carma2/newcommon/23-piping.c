@@ -1531,7 +1531,12 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoSkidAdjustment
 
-// UndoFlap
+// FUNCTION: CARMA2_HW 0x004c9f60
+void C2_HOOK_FASTCALL UndoFlap(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tU8* chunk = (tU8*)*pChunk;
+
+    return WorkerFlap(*(int*)(chunk + 4), -*(tU16*)(chunk + 8));
+}
 
 // UndoModelMash
 

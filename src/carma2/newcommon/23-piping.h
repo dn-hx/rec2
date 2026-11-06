@@ -540,7 +540,7 @@ extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoSkidAdjustment
 
-// UndoFlap
+extern void C2_HOOK_FASTCALL UndoFlap(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoModelMash
 
