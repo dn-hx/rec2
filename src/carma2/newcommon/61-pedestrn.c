@@ -144,11 +144,14 @@ int gCount_changed_points;
 
 // gRace_pedestrian_specs
 
-// gPed_spurt_min_max_time
+// GLOBAL: CARMA2_HW 0x006942f8
+int gPed_spurt_min_max_time[2];
 
-// gPed_spurt_model
+// GLOBAL: CARMA2_HW 0x00694278
+br_model* gPed_spurt_model;
 
-// gPed_spurty_lumps_count
+// GLOBAL: CARMA2_HW 0x0069427c
+int gPed_spurty_lumps_count;
 
 // GLOBAL: CARMA2_HW 0x0069bc68
 // GLOBAL: CARMA2_SW 0x00695cc0
@@ -164,7 +167,8 @@ tTWTVFS gTwtPeds;
 
 // gPed_cache_006944c0
 
-// gPed_spurt_initial_speed
+// GLOBAL: CARMA2_HW 0x006944a0
+tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 
 // GLOBAL: CARMA2_HW 0x007447a4
 // GLOBAL: CARMA2_SW 0x0073b264
@@ -202,7 +206,8 @@ int gPeds_already_munged;
 
 // gCount_race_pedestrian_specs
 
-// gPed_spurt_initial_position
+// GLOBAL: CARMA2_HW 0x0069fda8
+tSmashable_initial_position_spec gPed_spurt_initial_position;
 
 // GLOBAL: CARMA2_HW 0x0065d7b8
 // GLOBAL: CARMA2_SW 0x006580f0

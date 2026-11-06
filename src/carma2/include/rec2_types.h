@@ -5930,6 +5930,14 @@ typedef struct {
 } tNet_message_chunk_recover;
 
 
-// tSmashable_initial_speed_spec
+typedef struct {
+    float min_speed;
+    float max_speed;
+    float impactee_velocity_factor;
+    float random_velocity_max;
+    float random_up_velocity_max;
+    float random_normal_velocity_max;
+    float random_spin_rate_max;
+} tSmashable_initial_speed_spec;
 
 #endif // REC2_TYPES_H
