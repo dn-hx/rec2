@@ -35,7 +35,14 @@
 
 // tPipe_chunk_phil_object
 
-// tPipe_chunk_ped_model_change
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tS16 field_0x8;
+    tS16 field_0xa;
+    int field_0xc;
+} tPipe_chunk_ped_model_change;
 
 // tPipe_chunk_ped_pos
 
@@ -478,7 +485,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyPedPos
 
-// ApplyPedModelChange
+extern void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk);
 
 // ApplyPHILObject
 

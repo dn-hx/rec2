@@ -1422,7 +1422,12 @@ void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk) {
 
 // ApplyPedPos
 
-// ApplyPedModelChange
+// FUNCTION: CARMA2_HW 0x004c9b60
+void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_model_change* chunk = (tPipe_chunk_ped_model_change*)*pChunk;
+
+    return WorkerPedModelChange(chunk->field_0x0, (int)chunk->field_0x4, (int)chunk->field_0x6, (int)chunk->field_0x8);
+}
 
 // ApplyPHILObject
 
