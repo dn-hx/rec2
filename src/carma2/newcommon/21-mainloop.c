@@ -51,7 +51,8 @@ tU32 gActual_last_tick_count;
 // GLOBAL: CARMA2_SW 0x00686878
 tU32 gAverage_frame_period;
 
-// gLast_munge_smash_edge_triggers
+// GLOBAL: CARMA2_HW 0x006a82a4
+tU32 gLast_munge_smash_edge_triggers;
 
 // gUnk_006a23d0
 
@@ -211,7 +212,26 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
     NOT_IMPLEMENTED();
 }
 
-// MungeSmashEdgeTriggers
+// FUNCTION: CARMA2_HW 0x004f64d0
+void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime) {
+    undefined4* p;
+    int i;
+
+    if (gLast_munge_smash_edge_triggers != gPHIL_last_physics_tick) {
+        i = 0;
+        if (i < gCount_track_smashable_environment_specs) {
+            p = &gTrack_smashable_environment_specs->field_0x10;
+            do {
+                if (*p != 0 && *p != pTime) {
+                    *p = 0;
+                }
+                i++;
+                p = (undefined4*)((char*)p + sizeof(tSmashable_item_spec));
+            } while (i < gCount_track_smashable_environment_specs);
+        }
+    }
+    gLast_munge_smash_edge_triggers = gPHIL_last_physics_tick;
+}
 
 // PollActionReplayControls
 
