@@ -504,4 +504,6 @@ extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
 
 extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
+// NapalmPedestrianNearCar
+
 #endif // GUARD_27_POWERUP_H
