@@ -17,6 +17,7 @@
 #include "32-spark.h"
 #include "27-powerup.h"
 #include "23-piping.h"
+#include "63-loading3.h"
 
 // GLOBAL: CARMA2_HW 0x006768fc
 // GLOBAL: CARMA2_SW 0x0067106c
