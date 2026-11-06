@@ -855,7 +855,15 @@ void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPositi
         0xc, 8, pPosition);
 }
 
-// PipeSinglePedIncident
+// FUNCTION: CARMA2_HW 0x004c8580
+void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor) {
+
+    gUNK_0069410c = 0;
+    ARDoSingleVariedSession(ePipe_chunk_ped_incident, 0, 3,
+        4, 0, gUNK_0069410c,
+        4, 4, pPed,
+        4, 8, pActor);
+}
 
 // FUNCTION: CARMA2_HW 0x004c85b0
 // FUNCTION: CARMA2_SW 0x004c4ce0
