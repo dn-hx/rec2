@@ -63,7 +63,14 @@
 
 // tPipe_chunk_prox_ray_replay
 
-// tPipe_chunk_graphpical_wheel_stuff
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS8 field_0x6;
+    tS8 field_0x7;
+    tS8 field_0x8;
+    tS8 field_0x9;
+} tPipe_chunk_graphpical_wheel_stuff;
 
 // tPipe_chunk_sound
 
@@ -420,7 +427,7 @@ extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 // ApplyCar
 
-// ApplyGWS
+extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
 // ApplyDamage
 
