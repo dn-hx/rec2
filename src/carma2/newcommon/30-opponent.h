@@ -54,7 +54,7 @@ extern int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* 
 
 // TurnOpponentPhysicsOn
 
-// TurnOpponentPhysicsOff
+extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec);
 
 // ApplyOppoRenderage2
 
