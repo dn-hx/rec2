@@ -256,6 +256,8 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
 
+// FindPedestrianNearCar
+
 // ScalePedHeads
 
 // NapalmPedDistanceCompare
