@@ -184,7 +184,7 @@ extern void C2_HOOK_FASTCALL GotPowerup9(void);
 
 // GainAPOPot2
 
-// GainAPO
+extern int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar);
 
 // GotTimeOrPower
 
