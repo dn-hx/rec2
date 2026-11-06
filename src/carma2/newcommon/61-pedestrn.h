@@ -55,18 +55,18 @@ extern int gCount_changed_points;
 
 // gRace_pedestrian_specs
 
-// gPed_spurt_min_max_time
+extern int gPed_spurt_min_max_time[2];
 
-// gPed_spurt_model
+extern br_model* gPed_spurt_model;
 
-// gPed_spurty_lumps_count
+extern int gPed_spurty_lumps_count;
 extern br_vector3 gChanged_points[10];
 extern int gPed_nearness;
 extern tTWTVFS gTwtPeds;
 
 // gPed_cache_006944c0
 
-// gPed_spurt_initial_speed
+extern tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 extern float gMutant_speed;
 extern int gDancing_peds;
 extern int gDrunk_pedestrians;
@@ -92,7 +92,7 @@ extern int gPeds_already_munged;
 
 // gCount_race_pedestrian_specs
 
-// gPed_spurt_initial_position
+extern tSmashable_initial_position_spec gPed_spurt_initial_position;
 extern int gPed_cache_sizes_1[4];
 extern tPed_face_cache_0x34* gPed_face_cache_heads[4];
 extern int gPed_cache_notify_flags;
