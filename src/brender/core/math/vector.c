@@ -268,7 +268,7 @@ void C2_HOOK_STDCALL BrVector3ScaleF(br_vector3* v1, const br_fvector3* v2, br_s
 }
 
 // FUNCTION: CARMA2_HW 0x00534970
-br_scalar C2_HOOK_CDECL BrFVector3Dot(const br_fvector3* v1, const br_vector3* v2) {
+br_scalar C2_HOOK_STDCALL BrFVector3Dot(const br_fvector3* v1, const br_vector3* v2) {
 
     return BR_MAC3(v1->v[0], v2->v[0], v1->v[1], v2->v[1], v1->v[2], v2->v[2]);
 }
