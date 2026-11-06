@@ -7,8 +7,12 @@
  */
 
 #include "72-interface-network_options.h"
+#include "35-intrface.h"
+#include "42-input.h"
+#include "72-interface-network.h"
 
 #include "72-interface.h"
+#include "c2_string.h"
 
 
 
@@ -17,6 +21,12 @@
 // NetOptions_Ok
 
 // NetOptions_Cancel
+
+// gFrontend_backup_net_options
+
+// gUNK_006886e8
+
+// gUNK_006883b0
 // GLOBAL: CARMA2_HW 0x00610208
 tFrontend_spec gFrontend_NETWORK_OPTIONS = {
 #if 0 // FIXME: enable this

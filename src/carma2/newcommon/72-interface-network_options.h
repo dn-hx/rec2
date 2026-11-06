@@ -19,4 +19,18 @@ extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
 
 // NetOptions_Cancel
 
+// gFrontend_scrollbars_updated
+
+// gCurrent_frontend_scrollbars
+
+// gConnected_items
+
+// gPTR_00686508
+
+// gFrontend_backup_net_options
+
+// gUNK_006886e8
+
+// gUNK_006883b0
+
 #endif /* GUARD_72_NETWORK_OPTIONS_H */

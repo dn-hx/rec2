@@ -27,4 +27,6 @@ extern tFrontend_spec gFrontend_NETWORK;
 
 // gINT_00688748
 
+// gFrontend_game_type
+
 #endif /* GUARD_72_NETWORK_H */
