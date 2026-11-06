@@ -490,4 +490,6 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
+// StopDinputEffect
+
 #endif // GUARD_27_POWERUP_H
