@@ -81,7 +81,11 @@
 
 // tPipe_chunk_spark_replay
 
-// tPipe_chunk_crush
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[0x10];
+} tPipe_chunk_crush;
 
 extern tU8* gLocal_buffer;
 extern tU8* gPipe_buffer_working_end;
@@ -214,7 +218,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // WorkerModelMashUndo
 
-// WorkerCrushUndo
+extern void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 // WorkerDroneStraightPos
 
@@ -522,7 +526,7 @@ extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
 // ApplyOppoRenderage
 
-// UndoCrush
+extern void C2_HOOK_FASTCALL UndoCrush(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 

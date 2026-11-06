@@ -544,7 +544,18 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
 
 // WorkerModelMashUndo
 
-// WorkerCrushUndo
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0043be50
+void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, void* pField_0xe) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerDroneStraightPos
 
@@ -1508,7 +1519,12 @@ void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk) {
 
 // ApplyOppoRenderage
 
-// UndoCrush
+// FUNCTION: CARMA2_HW 0x004c9d90
+void C2_HOOK_FASTCALL UndoCrush(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_crush* chunk = (tPipe_chunk_crush*)*pChunk;
+
+    return WorkerCrushUndo(chunk->field_0x4, &chunk->field_0x8[0], &chunk->field_0x8[6]);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9db0
 // FUNCTION: CARMA2_SW 0x004c64e0
