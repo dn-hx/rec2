@@ -23,7 +23,7 @@ extern br_model* gModel_powerup_power;
 extern br_model* gModel_powerup_offence;
 extern int gInventory[20];
 
-// gFizzle_in
+extern br_pixelmap* gFizzle_in[3];
 extern int gINT_006a0a6c;
 extern int gINT_006a0a5c;
 extern int gInventory_selected;
@@ -134,7 +134,7 @@ extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
 
 // ResetRepulseRay
 
-// DrawSinglePowerupIcon
+extern int C2_HOOK_FASTCALL DrawSinglePowerupIcon(int pDraw, int pTime, tPowerup* pPowerup, tHeadup_icon* pIcon, int pX, int pY, int pUpdate_x);
 
 // DrawPowerupIcons2
 
