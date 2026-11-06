@@ -43,7 +43,22 @@
 
 // tPipe_chunk_ped_physics
 
-// tPipe_chunk_ped_move
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tU8 field_0x8;
+    tU8 field_0x9;
+    tS16 field_0xa;
+    int field_0xc;
+    int field_0x10;
+    int field_0x14;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    int field_0x30;
+    int field_0x34;
+    br_vector3 field_0x38;
+} tPipe_chunk_ped_move;
 
 // tPipe_chunk_ped_dir
 
@@ -468,7 +483,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyPedDir
 
-// ApplyPedMove
+extern void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk);
 
 // ApplyPedPhysics
 
