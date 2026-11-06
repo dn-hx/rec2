@@ -658,7 +658,7 @@ br_int_32 C2_HOOK_CDECL BrTokenFindMany(const char* pattern, br_token* tokens, b
 }
 
 // FUNCTION: CARMA2_HW 0x0052f300
-br_token C2_HOOK_CDECL BrTokenFindType(br_token* ptype, const char* base, br_token* types, br_int_32 ntypes) {
+br_token C2_HOOK_STDCALL BrTokenFindType(br_token* ptype, const char* base, br_token* types, br_int_32 ntypes) {
     br_token_entry* te;
     int l;
     int t;

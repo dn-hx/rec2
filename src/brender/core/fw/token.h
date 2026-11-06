@@ -19,6 +19,6 @@ br_token C2_HOOK_CDECL BrTokenFind(const char* pattern);
 
 br_int_32 C2_HOOK_CDECL BrTokenFindMany(const char* pattern, br_token* tokens, br_int_32 max_tokens);
 
-br_token C2_HOOK_CDECL BrTokenFindType(br_token* ptype, const char* base, br_token* types, br_int_32 ntypes);
+br_token C2_HOOK_STDCALL BrTokenFindType(br_token* ptype, const char* base, br_token* types, br_int_32 ntypes);
 
 #endif // REC2_TOKEN_H
