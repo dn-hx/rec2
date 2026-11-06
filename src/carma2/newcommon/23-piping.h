@@ -71,9 +71,18 @@
 
 // tPipe_chunk_extended_splash
 
-// tPipe_chunk_splash
+typedef struct {
+    uintptr_t pOwner;
+    float v[4];
+} tPipe_chunk_splash;
 
-// tReplay_splash_effect
+typedef struct {
+    tU8 pad[0x244];
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+    br_scalar size;
+} tReplay_splash_effect;
 
 // tPipe_chunk_groove_stop
 
@@ -408,7 +417,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 // ApplyFlame
 
-// ApplySplash
+extern void C2_HOOK_FASTCALL ApplySplash(tPipe_chunk** pChunk);
 
 // ApplyExtendedSplash
 
