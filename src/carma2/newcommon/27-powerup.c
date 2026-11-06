@@ -44,7 +44,22 @@
 
 // ARPowerupGot
 
-// GetJoystickEffect
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00458430
+int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
+
+    if (index < 0 || index > gCount_joystick_effects) {
+        return NULL;
+    }
+    return (int*)&gJoystick_effects[index];
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
 int gInventory[20];
