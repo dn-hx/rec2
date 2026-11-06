@@ -496,7 +496,7 @@ extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
 // ApplyVanishDismembered
 
-// ApplyDSModel
+extern void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk);
 
 // ApplyPedDiagnostics
 

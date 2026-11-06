@@ -1451,7 +1451,16 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
 
 // ApplyVanishDismembered
 
-// ApplyDSModel
+// FUNCTION: CARMA2_HW 0x004c9c40
+void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
+    tPipe_chunk* chunk = *pChunk;
+
+    if (*(tS16*)((tU8*)chunk + 4) != 0) {
+        MakeModelMaterialsDoubleSided((br_model*)*(void**)chunk);
+    } else {
+        DRActorEnumRecurse(((tCar_spec*)*(void**)chunk)->car_model_actor, (br_actor_enum_cbfn*)MakeCarModelsMaterialsSingleSided, *(void**)chunk);
+    }
+}
 
 // ApplyPedDiagnostics
 
