@@ -210,7 +210,7 @@ extern void C2_HOOK_FASTCALL ARService(void);
 
 extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
-// WorkerSplitWeldApply
+extern void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector);
 
 // WorkerModelMashUndo
 
@@ -546,7 +546,7 @@ extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoRelink
 
-// UndoSplitWeld
+extern void C2_HOOK_FASTCALL UndoSplitWeld(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 

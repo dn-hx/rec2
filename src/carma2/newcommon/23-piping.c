@@ -540,7 +540,18 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
     gLast_replay_frame_time = PDGetTotalTime();
 }
 
-// WorkerSplitWeldApply
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0043c240
+void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerModelMashUndo
 
@@ -1537,7 +1548,29 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoRelink
 
-// UndoSplitWeld
+// FUNCTION: CARMA2_HW 0x004c9fd0
+void C2_HOOK_FASTCALL UndoSplitWeld(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tU32 fn;
+    tCar_spec* car;
+
+    if (*(int*)((tU8*)*pChunk + 0x14)) {
+        fn = *(tU32*)*pChunk;
+        if ((fn & 0xffffff00u) == 0) {
+            car = &gProgram_state.current_car;
+        } else {
+            car = GetCarSpec(fn >> 8, fn & 0xffu);
+        }
+        WorkerSplitWeldUndo(car);
+    } else {
+        fn = *(tU32*)*pChunk;
+        if ((fn & 0xffffff00u) == 0) {
+            car = &gProgram_state.current_car;
+        } else {
+            car = GetCarSpec(fn >> 8, fn & 0xffu);
+        }
+        WorkerSplitWeldApply(car, (br_vector3*)((tU8*)*pChunk + 4));
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ca050
 // FUNCTION: CARMA2_SW 0x004c6780

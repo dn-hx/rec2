@@ -86,6 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// WorkerSplitWeldUndo
+extern void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine);
 
 #endif // GUARD_22_REPLAY_H
