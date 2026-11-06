@@ -206,7 +206,7 @@ extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
 // RichardsSphere
 
-// ToggleHeadupLevel
+extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 
 extern tU32 gPalette_fade_time;
 
