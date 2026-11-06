@@ -143,9 +143,9 @@ extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCo
 
 // RemovePlayerFromShapeStatusLists
 
-// ForEveryActorModelNoGrooves
+extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
 
-// StopCarBeingIt
+extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 
 // SendGuaranteedMessageToPlayer
 
