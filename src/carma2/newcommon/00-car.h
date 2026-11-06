@@ -11,9 +11,30 @@
 
 #include "rec2_types.h"
 
-// tDIEFFECT
+typedef struct {
+    tU32 dwSize;
+    tU32 dwFlags;
+    tU32 dwDuration;
+    tU32 dwSamplePeriod;
+    tU32 dwGain;
+    tU32 dwTriggerButton;
+    tU32 dwTriggerRepeatInterval;
+    tU32 cAxes;
+    tU32* rgdwAxes;
+    tS32* rglDirection;
+    void* lpEnvelope;
+    tU32 cbTypeSpecificParams;
+    void* lpvTypeSpecificParams;
+} tDIEFFECT;
 
-// tJoystickForceEffect
+typedef struct {
+    tDIEFFECT di_effect;
+    tU8 type_specific_params[24];
+    tU8 field_0x4c[20];
+    tS32 field_0x60;
+    tU32 field_0x64;
+    char name[128];
+} tJoystickForceEffect;
 
 // tNet_message_chunk_crush_reattach_bit
 
@@ -280,6 +301,6 @@ typedef struct {
 
 // InitialiseExternalCamera
 
-// gJoystick_effects
+extern tJoystickForceEffect gJoystick_effects[30];
 
 #endif // GUARD_00_CAR_H
