@@ -1283,7 +1283,17 @@ void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
 
 // ApplyExtendedSplash
 
-// ApplyOilSpill
+// FUNCTION: CARMA2_HW 0x004c9330
+void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
+    tPipe_chunk_oil_spill* chunk = (tPipe_chunk_oil_spill*)*pChunk;
+
+#ifdef REC2_MATCHING
+    /* the original passes the raw ints as arguments */
+    ((void (C2_HOOK_FASTCALL*)(int, br_matrix34*, int, int, int, int, int, br_vector3*, int))(void*)AdjustOilSpill)(chunk->field_0x0, (br_matrix34*)&chunk->field_0x4, chunk->field_0x34, chunk->field_0x38, chunk->field_0x3c, 0, chunk->field_0x44, &chunk->field_0x48, chunk->field_0x54);
+#else
+    AdjustOilSpill(chunk->field_0x0, (br_matrix34*)&chunk->field_0x4, *(float*)&chunk->field_0x34, *(float*)&chunk->field_0x38, chunk->field_0x3c, 0, (tCar_spec*)chunk->field_0x44, &chunk->field_0x48, (br_pixelmap*)(intptr_t)chunk->field_0x54);
+#endif
+}
 
 // FUNCTION: CARMA2_HW 0x004c9360
 // FUNCTION: CARMA2_SW 0x004c5a90
