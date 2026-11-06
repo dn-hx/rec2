@@ -468,6 +468,8 @@ extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
+// gConst_0p95
+
 // gCurrent_ffb_effect_index
 
 extern tRepulse_link gRepulse_links[6];
@@ -489,5 +491,7 @@ extern tRepulse_link gRepulse_links[6];
 // ScalePedHeads
 
 // gRespawn_powerups
+
+// gCar_outlet
 
 #endif // GUARD_27_POWERUP_H

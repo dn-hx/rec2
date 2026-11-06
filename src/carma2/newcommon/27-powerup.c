@@ -27,6 +27,7 @@
 #include "53-controls.h"
 #include "60-phil.h"
 #include "61-pedestrn.h"
+#include "69-sound.h"
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
@@ -194,6 +195,8 @@ const float gConst_0p5 = 0.5f;
 
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
+
+// gConst_0p95
 
 // gCurrent_ffb_effect_index
 
