@@ -15,7 +15,7 @@ extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
 
 // NetOptions_Infunc
 
-// NetOptions_Ok
+extern int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend);
 
 // NetOptions_Cancel
 
