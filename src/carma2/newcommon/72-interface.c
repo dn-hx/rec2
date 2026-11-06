@@ -193,13 +193,17 @@ int gCredits_line_count;
 // GLOBAL: CARMA2_SW 0x00681644
 int* gCredits_heights;
 
-// gFrontend_backdrop_materials
+// GLOBAL: CARMA2_HW 0x00686f10
+br_material* gFrontend_backdrop_materials[3];
 
-// gFrontend_backdrop2_material_prims
+// GLOBAL: CARMA2_HW 0x00686f38
+br_token_value gFrontend_backdrop2_material_prims[3];
 
-// gFrontend_backdrop1_material_prims
+// GLOBAL: CARMA2_HW 0x00686f20
+br_token_value gFrontend_backdrop1_material_prims[3];
 
-// gFrontend_backdrop0_material_prims
+// GLOBAL: CARMA2_HW 0x00686f50
+br_token_value gFrontend_backdrop0_material_prims[3];
 
 // GLOBAL: CARMA2_HW 0x00687238
 // GLOBAL: CARMA2_SW 0x00681798
@@ -221,9 +225,11 @@ int* gCredits_fonts;
 // GLOBAL: CARMA2_SW 0x006816d0
 int gCredits_total_height;
 
-// gFrontend_backdrop_actors
+// GLOBAL: CARMA2_HW 0x00687030
+br_actor* gFrontend_backdrop_actors[3];
 
-// gFrontend_camera
+// GLOBAL: CARMA2_HW 0x00686f94
+br_actor* gFrontend_camera;
 
 // GLOBAL: CARMA2_HW 0x006886d0
 // GLOBAL: CARMA2_SW 0x00682c30
@@ -1734,7 +1740,69 @@ void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void) {
 
 // FRONTEND_DrawMenu
 
-// FRONTEND_Setup2D
+// FUNCTION: CARMA2_HW 0x0046cf10
+void C2_HOOK_FASTCALL FRONTEND_Setup2D(void) {
+    br_camera* camera;
+
+    gFrontend_actor = BrActorAllocate(BR_ACTOR_NONE, NULL);
+    gFrontend_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    camera = gFrontend_camera->type_data;
+    camera->type = BR_CAMERA_PARALLEL;
+    camera->field_of_view = BR_ANGLE_DEG(45); /* 0x1ffe */
+    camera->hither_z = 1.f;
+    camera->yon_z = 3.f;
+    camera->width = 640.f;
+    camera->height = 480.f;
+    BrActorAdd(gFrontend_actor, gFrontend_camera);
+    gFrontend_backdrop0_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop0_material_prims[0].v.b = 1;
+    gFrontend_backdrop0_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop0_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop0_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop0_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop1_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop1_material_prims[0].v.b = 1;
+    gFrontend_backdrop1_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop1_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop1_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop1_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop2_material_prims[0].t = BRT_BLEND_B;
+    gFrontend_backdrop2_material_prims[0].v.b = 1;
+    gFrontend_backdrop2_material_prims[1].t = BRT_OPACITY_X;
+    gFrontend_backdrop2_material_prims[1].v.x = 0xb00000;
+    gFrontend_backdrop2_material_prims[2].t = BR_NULL_TOKEN;
+    gFrontend_backdrop2_material_prims[2].v.u32 = 0;
+    gFrontend_backdrop_materials[0] = BrMaterialAllocate("Backdrop_material1");
+    gFrontend_backdrop_materials[1] = BrMaterialAllocate("Backdrop_material2");
+    gFrontend_backdrop_materials[2] = BrMaterialAllocate("Backdrop_material3");
+    gFrontend_backdrop_actors[0] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_actors[1] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_actors[2] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gFrontend_backdrop_materials[0]->colour = 0;
+    gFrontend_backdrop_materials[1]->colour = 0;
+    gFrontend_backdrop_materials[2]->colour = 0;
+    gFrontend_backdrop_materials[0]->index_base = 0;
+    gFrontend_backdrop_materials[1]->index_base = 0;
+    gFrontend_backdrop_materials[2]->index_base = 0;
+    gFrontend_backdrop_materials[0]->index_range = 1;
+    gFrontend_backdrop_materials[1]->index_range = 1;
+    gFrontend_backdrop_materials[2]->index_range = 1;
+    gFrontend_backdrop_materials[0]->extra_prim = gFrontend_backdrop0_material_prims;
+    gFrontend_backdrop_materials[1]->extra_prim = gFrontend_backdrop1_material_prims;
+    gFrontend_backdrop_materials[2]->extra_prim = gFrontend_backdrop2_material_prims;
+    BrMaterialAdd(gFrontend_backdrop_materials[0]);
+    BrMaterialAdd(gFrontend_backdrop_materials[1]);
+    BrMaterialAdd(gFrontend_backdrop_materials[2]);
+    gFrontend_backdrop_actors[0]->material = gFrontend_backdrop_materials[0];
+    gFrontend_backdrop_actors[0]->identifier = BrResStrDup(gFrontend_backdrop_actors[0], "Backdrop");;
+    gFrontend_backdrop_actors[1]->material = gFrontend_backdrop_materials[1];
+    gFrontend_backdrop_actors[1]->identifier = BrResStrDup(gFrontend_backdrop_actors[1], "Backdrop");
+    gFrontend_backdrop_actors[2]->material = gFrontend_backdrop_materials[2];
+    gFrontend_backdrop_actors[2]->identifier = BrResStrDup(gFrontend_backdrop_actors[2], "Backdrop");
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[0]);
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[1]);
+    BrActorAdd(gFrontend_actor, gFrontend_backdrop_actors[2]);
+}
 
 // FRONTEND_Setup
 

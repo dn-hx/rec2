@@ -231,7 +231,7 @@ extern void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void);
 
 // FRONTEND_DrawMenu
 
-// FRONTEND_Setup2D
+extern void C2_HOOK_FASTCALL FRONTEND_Setup2D(void);
 
 // FRONTEND_Setup
 
@@ -483,17 +483,17 @@ extern void C2_HOOK_FASTCALL IString_Free(void);
 
 extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
-// gFrontend_camera
+extern br_actor* gFrontend_camera;
 
-// gFrontend_backdrop0_material_prims
+extern br_token_value gFrontend_backdrop0_material_prims[3];
 
-// gFrontend_backdrop1_material_prims
+extern br_token_value gFrontend_backdrop1_material_prims[3];
 
-// gFrontend_backdrop2_material_prims
+extern br_token_value gFrontend_backdrop2_material_prims[3];
 
-// gFrontend_backdrop_materials
+extern br_material* gFrontend_backdrop_materials[3];
 
-// gFrontend_backdrop_actors
+extern br_actor* gFrontend_backdrop_actors[3];
 
 // gFrontend_wrecks_camera
 
