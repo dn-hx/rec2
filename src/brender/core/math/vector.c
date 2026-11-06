@@ -260,7 +260,7 @@ void C2_HOOK_STDCALL BrFVector3Copy(br_fvector3* v1, const br_vector3* v2) {
 }
 
 // FUNCTION: CARMA2_HW 0x00534940
-void C2_HOOK_CDECL BrVector3ScaleF(br_vector3* v1, const br_fvector3* v2, br_scalar s) {
+void C2_HOOK_STDCALL BrVector3ScaleF(br_vector3* v1, const br_fvector3* v2, br_scalar s) {
 
     v1->v[0] = v2->v[0] * s;
     v1->v[1] = v2->v[1] * s;
