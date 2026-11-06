@@ -86,4 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
+// WorkerPedMoveUndo
+
 #endif // GUARD_22_REPLAY_H
