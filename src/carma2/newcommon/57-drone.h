@@ -17,7 +17,7 @@ extern int gINT_00681fb0;
 extern int gFrame;
 extern int gCurrent_selected_drone;
 
-// gCount_rendered_drones
+extern int gCount_rendered_drones;
 extern int gCount_drones;
 extern tDrone_form gDrone_forms[64];
 extern int gCount_drone_forms;
@@ -109,7 +109,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinRenderingDistance(const br_vector3* 
 
 // StopProcessingThisDrone
 
-// StartRenderingThisDrone
+extern void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone);
 
 // CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing
 
@@ -129,7 +129,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // ProcessThisDrone
 
-// DroneStateFuncReset
+extern void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // InitDroneDrivingInfo
 
@@ -145,9 +145,9 @@ extern void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDron
 
 // DoDroneHaltingStuff
 
-// DroneStateFuncPhysicsActive
+extern void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state);
 
-// DroneStateFuncStationaryPassive
+extern void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // GetNewCrushyModelForDrone
 
@@ -215,7 +215,7 @@ extern float gDrone_render_zero;
 
 // gDefault_drone_direction
 
-// gDrone_state_functions
+extern tDrone_state_function* gDrone_state_functions[6];
 
 extern tU32 gINT_00705b70;
 
@@ -228,6 +228,6 @@ typedef struct {
 
 extern tDrone_crush_data gDrone_crush_data;
 
-// gShow_drone_paths
+extern int gShow_drone_paths;
 
 #endif // GUARD_57_DRONE_H
