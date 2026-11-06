@@ -162,7 +162,7 @@ extern void C2_HOOK_FASTCALL SetFlag2(int pArg);
 
 extern void C2_HOOK_FASTCALL ToggleFlying(void);
 
-// CycleInvulnerability
+extern void C2_HOOK_FASTCALL CycleInvulnerability(void);
 
 extern void C2_HOOK_FASTCALL ToggleTimerFreeze(void);
 
@@ -214,7 +214,7 @@ extern tU32 gPalette_fade_time;
 
 // gAcc_poly_material
 
-// gInvulnerability
+extern int gInvulnerability;
 
 // gRender_acc_poly_actor
 
