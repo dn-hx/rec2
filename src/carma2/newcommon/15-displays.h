@@ -88,7 +88,7 @@ extern int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate,
 
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
 
-// MoveHeadupKeepOffset
+extern void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY);
 
 extern void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y);
 
