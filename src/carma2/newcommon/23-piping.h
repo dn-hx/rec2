@@ -17,7 +17,10 @@
 
 // tPipe_chunk_remove_faces_replay
 
-// tPipe_chunk_frame_bound
+typedef struct {
+    int field_0x0;
+    tU32 field_0x4;
+} tPipe_chunk_frame_bound;
 
 // tPipe_chunk_transform_type
 
@@ -526,7 +529,7 @@ extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// ApplyReplayFrameTime
+extern void C2_HOOK_FASTCALL ApplyReplayFrameTime(tPipe_chunk** pChunk);
 
 // UndoDamage
 

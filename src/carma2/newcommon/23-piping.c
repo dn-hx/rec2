@@ -1517,7 +1517,11 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
     DoSmudge(pChunk, -1);
 }
 
-// ApplyReplayFrameTime
+// FUNCTION: CARMA2_HW 0x004c9dc0
+void C2_HOOK_FASTCALL ApplyReplayFrameTime(tPipe_chunk** pChunk) {
+
+    return ApplyTime(((tPipe_chunk_frame_bound*)*pChunk)->field_0x4);
+}
 
 // UndoDamage
 
