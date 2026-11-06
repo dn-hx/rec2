@@ -33,10 +33,10 @@ extern void C2_HOOK_FASTCALL SaveSpecialVolumes(void);
 
 extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
 
-// ReadSpecialVolumes
+extern void C2_HOOK_FASTCALL ReadSpecialVolumes(FILE* pF);
 
-// gDefault_engine_noise_index
+extern int gDefault_engine_noise_index;
 
-// gSpecial_effects_boundary_choices
+extern const char* gSpecial_effects_boundary_choices[4];
 
 #endif // GUARD_55_VOLUME_H
