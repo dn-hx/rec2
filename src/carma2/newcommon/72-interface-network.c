@@ -15,7 +15,30 @@
 
 
 
-// NetRaceUp
+// FUNCTION: CARMA2_HW 0x00466c00
+int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend) {
+    int i;
+    int race_idx;
+
+    gFrontend_net_current_roll = PDGetTotalTime();
+    if ((int)(gFrontend_net_current_roll - gFrontend_net_last_roll) < 300) {
+        return 0;
+    }
+    gFrontend_net_last_roll = gFrontend_net_current_roll;
+    /* ScrollUp(pFrontend, 1), inlined in the original; the volatile read keeps MSVC
+       from reusing the comparison's copy of indexFirstScrollableItem (it re-loads it) */
+    if (pFrontend->scrollers[1].indexTopItem > *(volatile int*)&pFrontend->scrollers[1].indexFirstScrollableItem) {
+        pFrontend->scrollers[1].indexTopItem -= 1;
+    }
+    /* RefreshNetRacesScroller(pFrontend), inlined in the original */
+    race_idx = pFrontend->scrollers[1].indexTopItem - pFrontend->scrollers[1].indexFirstScrollableItem;
+    for (i = pFrontend->scrollers[1].indexFirstScrollableItem; i <= pFrontend->scrollers[1].indexLastScrollableItem; race_idx++, i++) {
+        strcpy(pFrontend->items[i].text, gRace_list[race_idx].name);
+    }
+    FuckWithWidths(pFrontend);
+    MungeButtonModels(pFrontend, 0);
+    return 0;
+}
 
 // NetworkJoinMenuOutfunc
 

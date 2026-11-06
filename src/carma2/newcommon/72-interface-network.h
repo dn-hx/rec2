@@ -13,7 +13,7 @@
 
 extern tFrontend_spec gFrontend_NETWORK;
 
-// NetRaceUp
+extern int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend);
 
 // NetworkJoinMenuOutfunc
 
