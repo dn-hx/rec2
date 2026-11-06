@@ -55,7 +55,26 @@
 
 // tPipe_chunk_remove_faces
 
-// tPipe_chunk_shrapnel_shower
+typedef struct {
+    tU32 field_0x0;
+    tU32 field_0x4;
+    br_vector3 field_0x8;
+    br_vector3 field_0x14;
+    br_vector3 field_0x20;
+    br_vector3 field_0x2c;
+    br_vector3 field_0x38;
+    tU32 field_0x44;
+    tU32 field_0x48;
+    tU32 field_0x4c;
+    tU32 field_0x50;
+    br_vector3 field_0x54;
+    tU8 field_0x60[0x24];
+    tU32 field_0x84;
+    br_vector3 field_0x88;
+    tU8 field_0x94[0xc];
+    tU32 field_0xa0;
+    br_matrix34 field_0xa4;
+} tPipe_chunk_shrapnel_shower;
 
 // tPipe_chunk_model_mash
 
@@ -552,7 +571,7 @@ extern void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
 
 extern void C2_HOOK_FASTCALL UndoUnBend(void);
 
-// UndoShrapnelShower
+extern void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoNonCarCreation(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
@@ -668,7 +687,7 @@ extern undefined4* gCrush_space;
 
 extern int gUNK_006a23b4;
 
-// gShrapnel_shower_matrix
+extern br_matrix34 gShrapnel_shower_matrix;
 
 extern tU8* gPipe_play_ptr;
 
