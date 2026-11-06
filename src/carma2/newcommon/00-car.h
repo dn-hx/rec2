@@ -11,6 +11,10 @@
 
 #include "rec2_types.h"
 
+// tDIEFFECT
+
+// tJoystickForceEffect
+
 // tNet_message_chunk_crush_reattach_bit
 
 // PO_U8
@@ -275,5 +279,7 @@ typedef struct {
 // MungeSpecialVolume
 
 // InitialiseExternalCamera
+
+// gJoystick_effects
 
 #endif // GUARD_00_CAR_H
