@@ -70,7 +70,7 @@ extern void C2_HOOK_FASTCALL CalcMapCheckpoint2(br_pixelmap* pMap, int pCheckpoi
 
 extern void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 
-// DoMapOverlays
+extern void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen);
 
 // StartMap
 
@@ -88,7 +88,7 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+extern void C2_HOOK_FASTCALL MapOverlay(void);
 
 // InitNearestCar
 
@@ -118,12 +118,12 @@ extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
 
 extern br_actor* gLit_op_stat_actor;
 
-// gBack_original_origin_x
+extern int gBack_original_origin_x;
 
-// gBack_original_origin_y
+extern int gBack_original_origin_y;
 
-// gBack_original_base_x
+extern int gBack_original_base_x;
 
-// gBack_original_base_y
+extern int gBack_original_base_y;
 
 #endif // GUARD_62_GRAPHICS3_H

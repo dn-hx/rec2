@@ -193,17 +193,21 @@ int gMap_render_width_i;
 // GLOBAL: CARMA2_SW 0x0068773c
 br_pixelmap* gCheckpoint_numbers;
 
-// gBack_original_origin_y
+// GLOBAL: CARMA2_HW 0x0068d6e8
+int gBack_original_origin_y;
 
-// gBack_original_origin_x
+// GLOBAL: CARMA2_HW 0x0068d6ec
+int gBack_original_origin_x;
 
 // GLOBAL: CARMA2_HW 0x0068d884
 // GLOBAL: CARMA2_SW 0x006878dc
 br_pixelmap* gSmashy_dot;
 
-// gBack_original_base_y
+// GLOBAL: CARMA2_HW 0x0068d888
+int gBack_original_base_y;
 
-// gBack_original_base_x
+// GLOBAL: CARMA2_HW 0x0068d88c
+int gBack_original_base_x;
 
 // GLOBAL: CARMA2_HW 0x0068c87c
 // GLOBAL: CARMA2_SW 0x006868d4
@@ -551,7 +555,18 @@ void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, t
     }
 }
 
-// DoMapOverlays
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00495e10
+void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // StartMap
 
@@ -638,7 +653,18 @@ void C2_HOOK_FASTCALL AllocateOppoBarActor(int pX, int pY) {
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004950b0
+void C2_HOOK_FASTCALL MapOverlay(void) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // InitNearestCar
 
