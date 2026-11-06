@@ -86,4 +86,8 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
+// RelinkActorKeepWorldTransform
+
+// BrMatrix34ToTransform
+
 #endif // GUARD_22_REPLAY_H
