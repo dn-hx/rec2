@@ -44,16 +44,16 @@ extern tNapalm_bolt gNapalm_bolts[5];
 
 // gPed_recent_points
 
-// gPed_groups
+extern tPed_group_spec* gPed_groups;
 extern int gCount_changed_points;
 
 // gPed_times
 
 // gBurning_ped_models
 
-// gPed_groups_count
+extern int gPed_groups_count;
 
-// gRace_pedestrian_specs
+extern tRace_ped_spec* gRace_pedestrian_specs;
 
 // gPed_spurt_min_max_time
 
@@ -86,11 +86,11 @@ extern int gPeds_already_munged;
 
 // gBurning_ped_materials
 
-// gPed_movements
+extern tPed_movement_spec* gPed_movements;
 
-// gPed_movements_count
+extern int gPed_movements_count;
 
-// gCount_race_pedestrian_specs
+extern int gCount_race_pedestrian_specs;
 
 // gPed_spurt_initial_position
 extern int gPed_cache_sizes_1[4];
@@ -149,7 +149,7 @@ extern void C2_HOOK_FASTCALL PedApplyVanishDismembered(tPedestrian* pPedestrian,
 
 extern void C2_HOOK_FASTCALL PedUndoDismember(tPedestrian* pPed, int pBone_index, tS8 pValue);
 
-// ReadPedSpecs
+extern void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF);
 
 extern br_vector3* C2_HOOK_FASTCALL GetPedPos(tPedestrian* pPed);
 
