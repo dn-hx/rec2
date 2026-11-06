@@ -16,7 +16,7 @@
 
 extern int gAllow_car_flying;
 
-// gINT_0067c470
+extern int gINT_0067c470;
 extern int gEntering_message;
 extern int gCheckpoint_finder_enabled;
 extern float gMap_render_x;
@@ -134,7 +134,7 @@ extern void C2_HOOK_FASTCALL TDamageLFWheel(void);
 
 // CheckOtherRacingKeys
 
-// CheckRecoverCost
+extern int C2_HOOK_FASTCALL CheckRecoverCost(void);
 
 // SortOutRecover
 
@@ -220,7 +220,7 @@ extern tU32 gPalette_fade_time;
 
 // gAcc_poly_actor
 
-// gToo_poor_for_recovery_timeout
+extern tU32 gToo_poor_for_recovery_timeout;
 
 extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
 
