@@ -33,7 +33,7 @@ extern int gSelected_ped;
 
 // gTotal_count_smash_peds
 
-// gPed_buoyancy_factor
+extern float gPed_buoyancy_factor;
 extern int gPeds_suicidal;
 extern int gExploding_pedestrians;
 
@@ -545,9 +545,9 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pC
 
 extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter);
 
-// MakeCharacterPhysicsSetup
+extern void C2_HOOK_FASTCALL MakeCharacterPhysicsSetup(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
-// MakeCharacterPhysics
+extern int C2_HOOK_FASTCALL MakeCharacterPhysics(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
 // CharacterNoLongerRenderable
 
@@ -663,7 +663,7 @@ extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
 
 // gPed_moves
 
-// gPed_vtable
+extern tPedForms_vtable* gPed_vtable;
 
 // gFloat_00589358
 
