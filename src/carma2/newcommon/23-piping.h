@@ -47,7 +47,13 @@
 
 // tPipe_chunk_ped_dir
 
-// tPipe_chunk_ped_status
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[8];
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+} tPipe_chunk_ped_status;
 
 // tPipe_chunk_actor_trans
 
@@ -464,7 +470,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyActorTrans
 
-// ApplyPedStatus
+extern void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk);
 
 // ApplyPedDir
 
@@ -630,7 +636,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPedDir
 
-// WorkerPedStatus
+extern void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x9, tU8 field_0xb, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24);
 
 // WorkerProxRay
 

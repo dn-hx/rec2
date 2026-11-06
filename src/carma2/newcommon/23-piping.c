@@ -1408,7 +1408,12 @@ void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk) {
 
 // ApplyActorTrans
 
-// ApplyPedStatus
+// FUNCTION: CARMA2_HW 0x004c9aa0
+void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_status* chunk = (tPipe_chunk_ped_status*)*pChunk;
+
+    return WorkerPedStatus(chunk->field_0x0, chunk->field_0x4[0], chunk->field_0x4[1], chunk->field_0x4[2], chunk->field_0x4[3], chunk->field_0x4[5], chunk->field_0x4[7], &chunk->field_0xc, &chunk->field_0x18, &chunk->field_0x24);
+}
 
 // ApplyPedDir
 
@@ -1772,7 +1777,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // WorkerPedDir
 
-// WorkerPedStatus
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ca680
+void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x9, tU8 field_0xb, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerProxRay
 
