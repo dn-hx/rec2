@@ -195,7 +195,7 @@ extern void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br
 
 // QueueCarCrush
 
-// SetBitForDetachment
+extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pCar, float pArg3, int pArg4);
 
 // SetFlappage
 
@@ -595,7 +595,7 @@ extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_mod
 
 // gNet_crush_reattach_bit_list
 
-// gCount_crush_detach_list
+extern int gCount_crush_detach_list;
 
 // TestForCarInSensiblePlace
 
@@ -603,10 +603,10 @@ extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_mod
 
 // gNet_crush_full_detach_bit_list
 
-// gCrush_detach_list
+extern tCrush_detach_list_item gCrush_detach_list[16];
 
 // gCar_damage_crush_list
 
-// gINT_0067be84
+extern tU32 gINT_0067be84;
 
 #endif // GUARD_13_CRUSH1_H
