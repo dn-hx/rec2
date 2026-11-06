@@ -86,8 +86,8 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// RelinkActorKeepWorldTransform
+extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
 
-// BrMatrix34ToTransform
+extern void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34* mat);
 
 #endif // GUARD_22_REPLAY_H

@@ -264,7 +264,16 @@ br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, b
     return transform_type_combine[a_type][b_type];
 }
 
-// RelinkActorKeepWorldTransform
+// FUNCTION: CARMA2_HW 0x0040ca40
+void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor) {
+    br_matrix34 mat;
+
+    if (pActor->parent != pParent) {
+        ActorToActorMatrix34Local(&mat, pActor, pParent);
+        BrMatrix34ToTransform(&pActor->t, &mat);
+        BrActorAdd(pParent, BrActorRemove(pActor));
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0043c0e0
 void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
