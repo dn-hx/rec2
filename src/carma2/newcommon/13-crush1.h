@@ -20,7 +20,17 @@
 
 // tUnbend_model_context_local
 
-// tNet_message_chunk_semi_detach_bit
+typedef struct {
+    int ID;
+    tU8 field_0x4;
+    undefined field_0x5[0x8 - 0x5];
+    tU32 field_0x8;
+    tCompressed_vector3 field_0xc;
+    tCompressed_vector3 field_0x12;
+    tCompressed_vector3 field_0x18;
+    tCompressed_vector3 field_0x1e;
+    tCompressed_vector3 field_0x24;
+} tNet_message_chunk_semi_detach_bit;
 
 // tCrush_net_reattach_list_item_local
 
@@ -277,7 +287,7 @@ extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhy
 
 // FullyDetachBit
 
-// SendFullyDetachBit
+extern void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
 
 // DoFullyDetaching
 
