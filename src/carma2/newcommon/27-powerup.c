@@ -210,7 +210,18 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
 
-// ScalePedHeads
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004d6ab0
+void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NapalmPedDistanceCompare
 
@@ -601,7 +612,11 @@ void C2_HOOK_FASTCALL ResetPedSpeed(tPowerup* powerup, tCar_spec* car) {
 
 // ResetPedSize
 
-// ResetPedHeadSize
+// FUNCTION: CARMA2_HW 0x004dca00
+void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    ScalePedHeads(1.0f);
+}
 
 // FUNCTION: CARMA2_HW 0x004dca10
 // FUNCTION: CARMA2_SW 0x004d8f10

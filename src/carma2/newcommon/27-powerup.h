@@ -222,7 +222,7 @@ extern void C2_HOOK_FASTCALL ResetPedSpeed(tPowerup* powerup, tCar_spec* car);
 
 // ResetPedSize
 
-// ResetPedHeadSize
+extern void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL ResetPedExplode(tPowerup* powerup, tCar_spec* car);
 
@@ -486,7 +486,7 @@ extern tRepulse_link gRepulse_links[6];
 
 // NapalmPedDistanceCompare
 
-// ScalePedHeads
+extern void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale);
 
 // gRespawn_powerups
 
