@@ -22,7 +22,8 @@
 // GLOBAL: CARMA2_SW 0x0067106c
 int gPaused;
 
-// gTime_of_last_zappy_headups
+// GLOBAL: CARMA2_HW 0x006a2380
+tU32 gTime_of_last_zappy_headups;
 
 // GLOBAL: CARMA2_HW 0x0058f2d8
 // GLOBAL: CARMA2_SW 0x0058a2d8
@@ -79,7 +80,18 @@ tPolyhedron_edge_indexes gDefault_box_collision_wireframe_edges[12] = {
     { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 },
 };
 
-// ActualActionReplayHeadups
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004e6280
+void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004e6260
 // FUNCTION: CARMA2_SW 0x004e2280
@@ -87,7 +99,21 @@ void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
     RemoveTransientBitmaps(1);
 }
 
-// DoZappyActionReplayHeadups
+// FUNCTION: CARMA2_HW 0x004e6900
+void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number) {
+    extern tU32 gTime_of_last_zappy_headups;
+    extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+    extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
+    tU32 time;
+
+    time = PDGetTotalTime();
+    if (abs(pFrame_number) > 0x2710 && time - gTime_of_last_zappy_headups > 0x32) {
+        ActualActionReplayHeadups(pFrame_number);
+        gTime_of_last_zappy_headups = time;
+        PDScreenBufferSwap(0);
+        RemoveTransientBitmaps(1);
+    }
+}
 
 // DoActionReplayHeadups
 

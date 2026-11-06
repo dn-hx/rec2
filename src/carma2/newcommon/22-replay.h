@@ -16,7 +16,7 @@
 
 extern int gPaused;
 
-// gTime_of_last_zappy_headups
+extern tU32 gTime_of_last_zappy_headups;
 
 extern const int gPow2_array[32];
 
@@ -32,11 +32,11 @@ extern int gCar_car_collisions;
 extern const float gCar_simplification_factor[2][5];
 extern tPolyhedron_edge_indexes gDefault_box_collision_wireframe_edges[12];
 
-// ActualActionReplayHeadups
+extern void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard);
 
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
 
-// DoZappyActionReplayHeadups
+extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
 
 // DoActionReplayHeadups
 
