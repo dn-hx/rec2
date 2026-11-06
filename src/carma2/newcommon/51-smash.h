@@ -221,7 +221,7 @@ extern void C2_HOOK_FASTCALL RemoveAllDecals(void);
 
 extern void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF);
 
-// ReadNonCarCuboidActivation
+extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
 
 extern void C2_HOOK_FASTCALL InitSmashing(void);
 
@@ -375,6 +375,6 @@ extern tQueued_net_smash gQueued_net_smashes[50];
 
 // gRepeatability_names
 
-// gPosition_type_names
+extern const char* gPosition_type_names[2];
 
 #endif // GUARD_51_SMASH_H
