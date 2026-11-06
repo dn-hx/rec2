@@ -289,6 +289,6 @@ extern void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, 
 
 extern const br_scalar gFLOAT_0058b008;
 
-// FindNextChunk
+extern tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner);
 
 #endif // GUARD_32_SPARK_H
