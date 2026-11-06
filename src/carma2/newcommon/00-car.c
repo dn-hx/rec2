@@ -1277,7 +1277,18 @@ void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
 
 // ReceivedCrushReattachBit
 
-// ComputeCarImpact
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0043ace0
+float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOut) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0043d900
 int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {

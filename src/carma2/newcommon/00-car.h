@@ -249,7 +249,7 @@ extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
 // ReceivedCrushReattachBit
 
-// ComputeCarImpact
+extern float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOut);
 
 extern int gMetal_crunch_sound_id[5];
 

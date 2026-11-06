@@ -236,7 +236,7 @@ extern void C2_HOOK_FASTCALL FUN_0045a670(void);
 
 // FUN_0045a7f0
 
-// RepairCar
+extern float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection);
 
 // gWhich_edit_mode
 
