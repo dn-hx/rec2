@@ -37,7 +37,7 @@ extern int gSelected_ped;
 extern int gPeds_suicidal;
 extern int gExploding_pedestrians;
 
-// gPedestrians_in_sight
+extern tPedestrian* gPedestrians_in_sight;
 extern tNapalm_bolt gNapalm_bolts[5];
 
 // gAverage_ped_scale
@@ -265,7 +265,7 @@ extern void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4
 
 // MungeProxRay
 
-// DoToPeds
+extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
 
 // DoPedAnnihilator
 
@@ -675,7 +675,7 @@ extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
 
 // gPed_noise_table
 
-// gEthereal_pedestrians
+extern int gEthereal_pedestrians;
 
 // gPed_valium_left
 
