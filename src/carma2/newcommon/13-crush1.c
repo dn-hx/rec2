@@ -28,6 +28,7 @@
 #include "52-errors.h"
 #include "07-structur.h"
 #include "53-controls.h"
+#include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x00679698
 // GLOBAL: CARMA2_SW 0x00673e08

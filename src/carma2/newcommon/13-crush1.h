@@ -609,4 +609,6 @@ extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_mod
 
 // gINT_0067be84
 
+// gCar_outlet
+
 #endif // GUARD_13_CRUSH1_H
