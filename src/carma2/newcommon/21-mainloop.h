@@ -59,7 +59,7 @@ extern tRace_result C2_HOOK_FASTCALL DoRace(void);
 
 // FUN_00403cc0
 
-// AdjustHeadupTextBuffer
+extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
 
 // gPrev_camera_position
 
