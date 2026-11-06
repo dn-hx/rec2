@@ -16,9 +16,11 @@
 
 // gFloat_sine_table_270
 
-// mattmp2__trig
+// GLOBAL: CARMA2_HW 0x006ab9b0
+br_matrix34 mattmp2__trig;
 
-// mattmp1__trig
+// GLOBAL: CARMA2_HW 0x006ab980
+br_matrix34 mattmp1__trig;
 
 // mat23tmp2
 
@@ -332,7 +334,18 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
     return FastFloatArcTan2Angle(pY, pX);
 }
 
-// DRMatrix34Rotate
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x005123f0
+void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DRMatrix34RotateX
 
@@ -348,7 +361,13 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
     NOT_IMPLEMENTED();
 }
 
-// DRMatrix34PostRotate
+// FUNCTION: CARMA2_HW 0x00512fd0
+void C2_HOOK_FASTCALL DRMatrix34PostRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+
+    DRMatrix34Rotate(&mattmp2__trig, r, axis);
+    BrMatrix34Mul(&mattmp1__trig, mat, &mattmp2__trig);
+    BrMatrix34Copy(mat, &mattmp1__trig);
+}
 
 // DRMatrix34PreRotate
 
