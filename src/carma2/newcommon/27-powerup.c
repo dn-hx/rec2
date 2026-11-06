@@ -10,6 +10,7 @@
 
 #include "00-car.h"
 #include "01-network.h"
+#include "07-structur.h"
 #include "13-crush1.h"
 #include "15-displays.h"
 
@@ -27,6 +28,7 @@
 #include "53-controls.h"
 #include "60-phil.h"
 #include "61-pedestrn.h"
+#include "69-sound.h"
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"

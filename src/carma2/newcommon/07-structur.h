@@ -83,6 +83,8 @@ extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
 extern int gCount_toggled_doors;
 
+// gNumber_of_icons
+
 // gWinner_declared
 
 // gCount_net_crush_full_detach_bit_list

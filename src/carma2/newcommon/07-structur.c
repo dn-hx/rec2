@@ -78,6 +78,8 @@ int gLast_wrong_checkpoint = -1;
 // GLOBAL: CARMA2_HW 0x0067bd58
 int gCount_toggled_doors;
 
+// gNumber_of_icons
+
 // gWinner_declared
 
 // gCount_net_crush_full_detach_bit_list
