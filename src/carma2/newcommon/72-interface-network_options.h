@@ -13,24 +13,24 @@
 
 extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
 
-// NetOptions_Infunc
+extern int C2_HOOK_FASTCALL NetOptions_Infunc(tFrontend_spec* pFrontend);
 
 // NetOptions_Ok
 
 // NetOptions_Cancel
 
-// gFrontend_scrollbars_updated
+extern int gFrontend_scrollbars_updated;
 
-// gCurrent_frontend_scrollbars
+extern tFrontend_slider* gCurrent_frontend_scrollbars;
 
-// gConnected_items
+extern tConnected_items* gConnected_items;
 
-// gPTR_00686508
+extern tStruct_00686508* gPTR_00686508;
 
-// gFrontend_backup_net_options
+extern tNet_game_options gFrontend_backup_net_options;
 
-// gUNK_006886e8
+extern tStruct_00686508 gUNK_006886e8;
 
-// gUNK_006883b0
+extern tStruct_00686508 gUNK_006883b0;
 
 #endif /* GUARD_72_NETWORK_OPTIONS_H */
