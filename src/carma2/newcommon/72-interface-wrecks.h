@@ -19,4 +19,8 @@ extern tFrontend_spec gFrontend_WRECKS;
 
 // WrecksUpdateFunc
 
+// gWreck_gallery_sell_infos
+
+// gFrontend_wrecks_current
+
 #endif /* GUARD_72_WRECKS_H */
