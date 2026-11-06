@@ -81,7 +81,11 @@
 
 // tPipe_chunk_spark_replay
 
-// tPipe_chunk_crush
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[0x10];
+} tPipe_chunk_crush;
 
 extern tU8* gLocal_buffer;
 extern tU8* gPipe_buffer_working_end;
@@ -220,7 +224,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // WorkerDroneCornerPos
 
-// WorkerCrush
+extern void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 // ARToggleReplay
 
@@ -388,7 +392,7 @@ extern void C2_HOOK_FASTCALL PipeSingleTransformType(br_actor* pActor, tS16 pTra
 
 extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec* pOpponent_spec, int pEnable);
 
-// ApplyCrush
+extern void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk);
 

@@ -550,7 +550,18 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
 
 // WorkerDroneCornerPos
 
-// WorkerCrush
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0043bd70
+void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ARToggleReplay
 
@@ -1202,7 +1213,12 @@ void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec* pOpponent_spec, in
         SIZE_OFFSET_PIPING(tPipe_single_oppo_renderage, enable), pEnable);
 }
 
-// ApplyCrush
+// FUNCTION: CARMA2_HW 0x004c9040
+void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk) {
+    tPipe_chunk_crush* chunk = (tPipe_chunk_crush*)*pChunk;
+
+    return WorkerCrush(chunk->field_0x4, &chunk->field_0x8[0], &chunk->field_0x8[6]);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9060
 // FUNCTION: CARMA2_SW 0x004c5790
