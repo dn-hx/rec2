@@ -189,7 +189,18 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
     gReentrancy_count = 0;
 }
 
-// DisposePiping
+// FUNCTION: CARMA2_HW 0x004024a0
+void C2_HOOK_FASTCALL DisposePiping(void) {
+
+    if (gPipe_buffer_start != NULL) {
+        FUN_DisposeReplayBuffer(gPipe_buffer_start);
+    }
+    gPipe_buffer_start = NULL;
+    if (gLocal_buffer != NULL) {
+        BrMemFree(gLocal_buffer);
+        gLocal_buffer = NULL;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00402540
 int C2_HOOK_FASTCALL ARReplayPlaying(void) {
@@ -1799,7 +1810,18 @@ void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
 
 // PositionFragment
 
-// FUN_DisposeReplayBuffer
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0051b9d0
+void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CalcRemoveFacesLength
 

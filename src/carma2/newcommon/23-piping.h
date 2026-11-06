@@ -120,7 +120,7 @@ extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
-// DisposePiping
+extern void C2_HOOK_FASTCALL DisposePiping(void);
 
 // ARInitialise
 
@@ -679,7 +679,7 @@ typedef struct {
 } tPipe_stack_word;
 
 
-// FUN_DisposeReplayBuffer
+extern void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer);
 
 // gReentrancy_array
 
