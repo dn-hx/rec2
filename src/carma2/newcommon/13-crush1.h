@@ -14,7 +14,11 @@
 
 #include <stdio.h>
 
-// tFind_crush_actor_arg
+typedef struct {
+    tU8 id;
+    undefined field_0x1[3];
+    br_actor* actor;
+} tFind_crush_actor_arg;
 
 // tBend_data_local
 
@@ -493,7 +497,7 @@ extern void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vect
 
 extern void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vector3* pSrc);
 
-// FindActorByCrushEntryID
+extern int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg);
 
 // ARApplyFlap
 

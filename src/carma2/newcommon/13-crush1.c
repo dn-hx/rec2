@@ -1751,7 +1751,18 @@ void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vector3* pSr
     SetModelForUpdate(pModel);
 }
 
-// FindActorByCrushEntryID
+// FUNCTION: CARMA2_HW 0x0043cac0
+int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg) {
+    tFind_crush_actor_arg* arg = pArg;
+    tUser_crush_data* user_crush_data;
+
+    user_crush_data = pActor->user;
+    if (user_crush_data != NULL && user_crush_data->crush_data != NULL && user_crush_data->crush_data->id == arg->id) {
+        arg->actor = pActor;
+        return 1;
+    }
+    return 0;
+}
 
 // ARApplyFlap
 
