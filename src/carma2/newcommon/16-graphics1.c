@@ -62,7 +62,8 @@ br_pixelmap* gEvalu;
 // GLOBAL: CARMA2_HW 0x006a22f8
 tWobble_spec gWobble_array[5];
 
-// gPrevious_rear_yon
+// GLOBAL: CARMA2_HW 0x006a234c
+float gPrevious_rear_yon = 0.f;
 
 // GLOBAL: CARMA2_HW 0x00705080
 // GLOBAL: CARMA2_SW 0x006fbb40
@@ -524,9 +525,59 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // FoxyStuff
 
-// DoARenderPass
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// DoACompleteRenderPass
+// STUB: CARMA2_HW 0x004e5680
+void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004e54f0
+void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
+
+    int i;
+    tExtra_render* pExtra;
+    br_matrix34 mat;
+
+    gRendering_mirror = pMirror;
+    if (pMirror != 0 && gPrevious_rear_yon != ((br_camera*)pCamera->type_data)->yon_z) {
+        gPrevious_rear_yon = ((br_camera*)pCamera->type_data)->yon_z;
+        MungeRearviewSky();
+    }
+    if (gRendering_mirror == 0) {
+        gRear_pixelmap->base_x = 0;
+        gRear_pixelmap->base_y = 0;
+        i = 0;
+        if (gCount_extra_renders > 0) {
+            pExtra = gExtra_renders;
+            do {
+                gRear_pixelmap->origin_x = pExtra->material->colour_map->width / 2;
+                gRear_pixelmap->origin_y = pExtra->material->colour_map->height / 2;
+                gRear_pixelmap->width = pExtra->material->colour_map->width;
+                gRear_pixelmap->height = pExtra->material->colour_map->height;
+                if (gRear_pixelmap->width != gRear_pixelmap->row_bytes) {
+                    gRear_pixelmap->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
+                } else {
+                    gRear_pixelmap->flags |= BR_PMF_ROW_WHOLEPIXELS;
+                }
+                BrActorToActorMatrix34(&mat, pExtra->actor, gUniverse_actor);
+                DoARenderPass(&mat, pExtra->actor, gRear_pixelmap, gDepth_buffer, 1.f, 0, 0, 0);
+                DRPixelmapCopyMapBlack(pExtra->material->colour_map, gRear_pixelmap);
+                BrMaterialUpdate(pExtra->material, 8);
+                i++;
+                pExtra++;
+            } while (i < gCount_extra_renders);
+        }
+    }
+    DoARenderPass(pCamera_to_world, pCamera, pScreen, pDepth, 1.f, pMirror == 0, pMirror == 0, pMirror == 0);
+    gRendering_mirror = 0;
+}
 
 // STUB: CARMA2_HW 0x004e4e40
 // STUB: CARMA2_SW 0x004e11a0

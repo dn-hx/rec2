@@ -94,9 +94,9 @@ extern void C2_HOOK_FASTCALL ResetScreenWobble(void);
 
 // FoxyStuff
 
-// DoARenderPass
+extern void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra);
 
-// DoACompleteRenderPass
+extern void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth);
 
 extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 
@@ -112,10 +112,10 @@ extern void* gLollipop_queue[100];
 
 // MapStuffAfterRender
 
-// gPrevious_rear_yon
+extern float gPrevious_rear_yon;
 
-// gCount_extra_renders
+extern int gCount_extra_renders;
 
-// gExtra_renders
+extern tExtra_render gExtra_renders[6];
 
 #endif // GUARD_16_GRAPHICS1_H
