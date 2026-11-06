@@ -59,7 +59,8 @@ int gHud_tinted1_visible;
 // GLOBAL: CARMA2_SW 0x006a448c
 int gHud_tinted2_visible;
 
-// gInitialised_grid
+// GLOBAL: CARMA2_HW 0x0074a738
+int gInitialised_grid;
 
 // GLOBAL: CARMA2_HW 0x00660cdc
 // GLOBAL: CARMA2_SW 0x0065b650

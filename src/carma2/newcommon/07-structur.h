@@ -22,7 +22,7 @@ extern tU32 gLast_checkpoint_time;
 extern int gHud_tinted1_visible;
 extern int gHud_tinted2_visible;
 
-// gInitialised_grid
+extern int gInitialised_grid;
 extern int gLast_wrong_checkpoint;
 
 // gCount_car_damage_crush_list
