@@ -249,7 +249,7 @@ extern int C2_HOOK_FASTCALL StopGettingInputString(void);
 
 extern int C2_HOOK_FASTCALL StartGettingInputString(char* pBuffer, int pBuffer_size);
 
-// DisposeWrecksGallery
+extern void C2_HOOK_FASTCALL DisposeWrecksGallery(void);
 
 extern int C2_HOOK_FASTCALL ScrollToNextCar(tFrontend_spec* pFrontend);
 
@@ -495,9 +495,9 @@ extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
 // gFrontend_backdrop_actors
 
-// gFrontend_wrecks_camera
+extern br_actor* gFrontend_wrecks_camera;
 
-// gFrontend_wrecks_actor
+extern br_actor* gFrontend_wrecks_actor;
 
 // gFrontend_controls_count_keys
 
