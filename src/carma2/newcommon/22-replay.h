@@ -86,6 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// WorkerPedFPChange
+extern void C2_HOOK_FASTCALL WorkerPedFPChange(int field_0x0, tPipe_stack_word field_0x4);
 
 #endif // GUARD_22_REPLAY_H
