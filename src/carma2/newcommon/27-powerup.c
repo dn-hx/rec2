@@ -20,6 +20,7 @@
 #include "25-grafdata.h"
 #include "30-opponent.h"
 #include "32-spark.h"
+#include "39-oil.h"
 #include "41-utility.h"
 #include "42-input.h"
 
