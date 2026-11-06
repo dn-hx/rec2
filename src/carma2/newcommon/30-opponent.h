@@ -224,4 +224,6 @@ extern int gStop_opponents_moving;
 
 extern float gOppo_render_zero;
 
+// SetOppoRender
+
 #endif // GUARD_30_OPPONENT_H
