@@ -135,7 +135,8 @@ tU32 gPalette_fade_time;
 
 // gAcc_poly_actor
 
-// gToo_poor_for_recovery_timeout
+// GLOBAL: CARMA2_HW 0x0067c47c
+tU32 gToo_poor_for_recovery_timeout;
 
 void C2_HOOK_FASTCALL CompleteRace(void) {
     gRace_over_reason = eRace_over_0;

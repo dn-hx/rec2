@@ -271,7 +271,7 @@ extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void
 
 // SendToggleFlaps
 
-// ToggleFlaps
+extern void C2_HOOK_FASTCALL ToggleFlaps(void);
 
 extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_object* pObject);
 

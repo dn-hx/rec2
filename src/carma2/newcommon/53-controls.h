@@ -220,7 +220,7 @@ extern tU32 gPalette_fade_time;
 
 // gAcc_poly_actor
 
-// gToo_poor_for_recovery_timeout
+extern tU32 gToo_poor_for_recovery_timeout;
 
 extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
 
