@@ -424,7 +424,7 @@ extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
 
 // PowerupCancel
 
-// GrowATail
+extern int C2_HOOK_FASTCALL GrowATail(tPowerup* pPowerup, tCar_spec* pCar);
 
 // CutOffTail
 
@@ -468,7 +468,7 @@ extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
-// gConst_0p95
+extern const double gConst_0p95;
 
 // gCurrent_ffb_effect_index
 
@@ -492,6 +492,6 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
-// gCar_outlet
+extern tS3_outlet* gCar_outlet;
 
 #endif // GUARD_27_POWERUP_H
