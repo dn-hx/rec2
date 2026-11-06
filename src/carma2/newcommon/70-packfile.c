@@ -425,8 +425,8 @@ tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path) {
     return res;
 }
 
-// STUB: CARMA2_HW 0x004b4e20
-// STUB: CARMA2_SW 0x004b0f90
+// FUNCTION: CARMA2_HW 0x004b4e20
+// FUNCTION: CARMA2_SW 0x004b0f90
 void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt) {
 
     if (twt >= 0) {
