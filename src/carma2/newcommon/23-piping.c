@@ -1504,7 +1504,10 @@ void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk) {
     ARUndoShitMine((br_actor*)(*pChunk)->subject_index, &(*pChunk)->data.end_shit_mine.m);
 }
 
-// ApplyTransformType
+// FUNCTION: CARMA2_HW 0x004c9d70
+void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk) {
+    ((br_actor*)((tPipe_chunk_transform_type*)*pChunk)->pOwner)->t.type = ((tPipe_chunk_transform_type*)*pChunk)->type_to;
+}
 
 // ApplyOppoRenderage
 

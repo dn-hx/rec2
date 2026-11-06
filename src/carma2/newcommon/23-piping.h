@@ -19,7 +19,11 @@
 
 // tPipe_chunk_frame_bound
 
-// tPipe_chunk_transform_type
+typedef struct {
+    uintptr_t pOwner;
+    tU8 type_from;
+    tU8 type_to;
+} tPipe_chunk_transform_type;
 
 // tPipe_chunk_napalm_bolt
 
@@ -518,7 +522,7 @@ extern void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
-// ApplyTransformType
+extern void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk);
 
 // ApplyOppoRenderage
 
