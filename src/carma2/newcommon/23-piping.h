@@ -13,7 +13,14 @@
 #include "rec2_types.h"
 #include <s3/s3.h>
 
-// tPipe_chunk_blood_spurt
+typedef struct {
+    uintptr_t pOwner;
+    undefined4 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+} tPipe_chunk_blood_spurt;
 
 // tPipe_chunk_remove_faces_replay
 
@@ -580,7 +587,7 @@ extern void C2_HOOK_FASTCALL UndoPedDismember(tPipe_chunk** pChunk, tPipe_chunk*
 
 // UndoGibShower
 
-// UndoBloodSpurt
+extern void C2_HOOK_FASTCALL UndoBloodSpurt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
