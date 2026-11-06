@@ -447,8 +447,8 @@ extern int C2_HOOK_FASTCALL CollectJointLimitsIntoBuffer(tPhysics_object* pObjec
 
 extern int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject);
 
-// SetCollisionInfoDoNothingChain
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable);
 
-// SetCollisionInfoDoNothing
+extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object *pCollision_info, tU32 pDisable);
 
 #endif // GUARD_49_PHYSICS_H
