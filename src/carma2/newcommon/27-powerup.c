@@ -32,6 +32,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "platform.h"
 
 
 // ScaleAllPeds
@@ -56,6 +57,8 @@ int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
     }
     return (int*)&gJoystick_effects[index];
 }
+
+// PlayExclusiveFFBEffect
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
