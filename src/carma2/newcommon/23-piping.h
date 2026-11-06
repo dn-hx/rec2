@@ -77,7 +77,12 @@
 
 // tPipe_chunk_groove_stop
 
-// tPipe_chunk_shrapnel_replay
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[0xc];
+    tU16 field_0x10;
+    int field_0x14;
+} tPipe_chunk_shrapnel_replay;
 
 // tPipe_chunk_spark_replay
 
@@ -394,7 +399,7 @@ extern void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk);
 
 // ApplySpark
 
-// ApplyShrapnel
+extern void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk);
 

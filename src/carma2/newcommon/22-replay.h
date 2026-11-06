@@ -86,6 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// WorkerShrapnel
+extern void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14);
 
 #endif // GUARD_22_REPLAY_H
