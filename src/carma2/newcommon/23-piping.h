@@ -230,7 +230,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // InitLastDamageArrayEtc
 
-// PipeObjectPosition
+extern int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext);
 
 // PipeCarPositions
 
