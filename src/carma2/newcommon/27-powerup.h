@@ -490,4 +490,6 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
+// gLocal_net_ID
+
 #endif // GUARD_27_POWERUP_H
