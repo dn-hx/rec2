@@ -41,7 +41,18 @@
 
 // gPosition_type_names
 
-// FUN_004d9d00
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004d9d00
+void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // GLOBAL: CARMA2_HW 0x006a6d38
 // GLOBAL: CARMA2_SW 0x006a0d98
 int gMaterials_to_adapt_count;
@@ -89,7 +100,8 @@ int gCount_track_smashable_environment_specs;
 // GLOBAL: CARMA2_SW 0x0069f618
 const char* gSmashable_track_environment_path;
 
-// gSize_powerup_queue
+// GLOBAL: CARMA2_HW 0x006a55bc
+int gSize_powerup_queue;
 
 // GLOBAL: CARMA2_HW 0x006a55c0
 // GLOBAL: CARMA2_SW 0x0069f620
@@ -117,7 +129,8 @@ int gINT_006a3334 = 0;
 // GLOBAL: CARMA2_HW 0x006a3940
 tQueued_net_smash gQueued_net_smashes[50] = { 0 };
 
-// gPowerup_queue
+// GLOBAL: CARMA2_HW 0x006a4430
+tPowerup_queue_item gPowerup_queue[50] = { 0 };
 
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
@@ -1131,7 +1144,47 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
     }
 }
 
-// FUN_004f1030
+// FUNCTION: CARMA2_HW 0x004f1030
+void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+    void* info;
+    int type;
+
+    info = pObject->owner;
+    if (pMode == 0xe) {
+        if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+            type = *(volatile int*)((tU8*)info + 0xc);
+            if ((type == 0 || (type != 2 && type != 3))
+                    && gSize_powerup_queue < 0x32
+                    && *(volatile int*)((tU8*)info + 0xc) > 5) {
+                gPowerup_queue[gSize_powerup_queue].actor = pActor;
+                gPowerup_queue[gSize_powerup_queue].car = pObject->owner;
+                gPowerup_queue[gSize_powerup_queue].powerup_index = 0xe;
+                gSize_powerup_queue = gSize_powerup_queue + 1;
+                return;
+            }
+        }
+        FUN_004d9d00(pObject, 0xe);
+        return;
+    }
+    if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+        type = *(volatile int*)((tU8*)info + 0xc);
+        if ((type == 0 || (type != 2 && type != 3))
+                && gSize_powerup_queue < 0x32
+                && *(volatile int*)((tU8*)info + 0xc) == 8) {
+            goto enqueue;
+        }
+    }
+    if (pObject->flags_0x238 == 0x20
+            && (gMutant_tail_state == 2 || GetTotalTime() - gINT_00705b70 < 0x1d4c)) {
+        goto enqueue;
+    }
+    return;
+enqueue:
+    gPowerup_queue[gSize_powerup_queue].actor = pActor;
+    gPowerup_queue[gSize_powerup_queue].car = &gProgram_state.current_car;
+    gPowerup_queue[gSize_powerup_queue].powerup_index = pMode;
+    gSize_powerup_queue = gSize_powerup_queue + 1;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

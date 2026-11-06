@@ -38,7 +38,7 @@ extern br_actor* gSmashable_noncar_shrapnel_actors[100];
 extern int gCount_smashable_noncar_shrapnel_actors;
 extern const char* gSmashable_track_environment_path;
 
-// gSize_powerup_queue
+extern int gSize_powerup_queue;
 extern int gCount_track_smashable_environment_specs;
 extern tStored_smash* gNet_host_smashes;
 
@@ -265,7 +265,7 @@ extern void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSmash);
 
 extern void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_actors);
 
-// FUN_004f1030
+extern void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor);
 
 // MungeSmashMaterialNames
 
@@ -371,7 +371,7 @@ extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTra
 
 extern tQueued_net_smash gQueued_net_smashes[50];
 
-// gPowerup_queue
+extern tPowerup_queue_item gPowerup_queue[50];
 
 // PipeSingleShrapnelShower
 
@@ -381,10 +381,10 @@ extern tQueued_net_smash gQueued_net_smashes[50];
 
 // gPosition_type_names
 
-// FUN_004d9d00
+extern void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode);
 
-// gMutant_tail_state
+extern int gMutant_tail_state;
 
-// gINT_00705b70
+extern tU32 gINT_00705b70;
 
 #endif // GUARD_51_SMASH_H
