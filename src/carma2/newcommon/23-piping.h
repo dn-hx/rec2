@@ -39,7 +39,11 @@
 
 // tPipe_chunk_ped_pos
 
-// tPipe_chunk_ped_fp_change
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+} tPipe_chunk_ped_fp_change;
 
 // tPipe_chunk_ped_physics
 
@@ -572,7 +576,7 @@ extern void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_
 
 extern void C2_HOOK_FASTCALL UndoPedDismember(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoPedFPChange
+extern void C2_HOOK_FASTCALL UndoPedFPChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoPedPos
 
