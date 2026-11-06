@@ -1445,7 +1445,12 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
 
 // ApplyPowerupGot
 
-// ApplyPowerupLose
+// FUNCTION: CARMA2_HW 0x004c9c10
+void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
+
+    return WorkerPowerupLose(chunk->field_0x0, chunk->field_0x4);
+}
 
 // ApplyFunkEnable
 
@@ -1764,7 +1769,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // DoVanishDismembered
 
-// WorkerPowerupLose
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004df210
+void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerPowerupGot
 

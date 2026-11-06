@@ -31,7 +31,10 @@
 
 // tPipe_chunk_funk_enable
 
-// tPipe_chunk_powerup
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+} tPipe_chunk_powerup;
 
 // tPipe_chunk_phil_object
 
@@ -490,7 +493,7 @@ extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
 // ApplyPowerupGot
 
-// ApplyPowerupLose
+extern void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk);
 
 // ApplyFunkEnable
 
@@ -622,7 +625,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // DoVanishDismembered
 
-// WorkerPowerupLose
+extern void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4);
 
 // WorkerPowerupGot
 
