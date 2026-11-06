@@ -232,9 +232,9 @@ extern void C2_HOOK_FASTCALL FUN_0045a670(void);
 
 // CreateAccentPolyActor
 
-// FUN_0045a920
+extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
 
-// FUN_0045a7f0
+extern int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2);
 
 // RepairCar
 
