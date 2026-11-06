@@ -139,9 +139,9 @@ extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
-// gSimple_material_colours
+extern tU32 gSimple_material_colours[12];
 
-// gSimple_materials
+extern br_material* gSimple_materials[32];
 
 // gDamage_names
 
