@@ -42,7 +42,7 @@ extern int gColumn_flags;
 
 // gNum_splash_types
 
-// gColumn_next
+extern int gColumn_next;
 extern br_model* gShrapnel_model[2];
 extern br_pixelmap* gFlame_map[20];
 extern br_model* gLollipop_model;
@@ -165,7 +165,7 @@ extern void C2_HOOK_FASTCALL AdjustSmoke(int pIndex, tU8 pType, br_vector3* pPos
 
 extern void C2_HOOK_FASTCALL AdjustSmokeColumn(int pIndex, const tSmoke_column_core* pCore, int pVertex, int pColour);
 
-// CreateSmokeColumn2
+extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
 
 extern void C2_HOOK_FASTCALL CreateSmokeColumn(tCar_spec *pCar, br_colour pColour, int pVertex_index, tU32 pLifetime);
 
