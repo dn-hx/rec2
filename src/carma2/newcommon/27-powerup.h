@@ -492,6 +492,16 @@ extern tRepulse_link gRepulse_links[6];
 
 extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 
+// PlayExclusiveFFBEffect
+
 extern int gCount_joystick_effects;
+
+// gForceFeedbackAvailable
+
+// StopDinputEffect
+
+// UnloadDinputFFBEffectAtIndex
+
+// StartDinputEffect
 
 #endif // GUARD_27_POWERUP_H
