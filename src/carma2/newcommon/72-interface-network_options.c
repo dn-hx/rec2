@@ -7,8 +7,11 @@
  */
 
 #include "72-interface-network_options.h"
+#include "10-loading2.h"
+#include "35-intrface.h"
 
 #include "72-interface.h"
+#include "globvars.h"
 
 
 
