@@ -144,11 +144,14 @@ int gCount_changed_points;
 
 // gRace_pedestrian_specs
 
-// gPed_spurt_min_max_time
+// GLOBAL: CARMA2_HW 0x006942f8
+int gPed_spurt_min_max_time[2];
 
-// gPed_spurt_model
+// GLOBAL: CARMA2_HW 0x00694278
+br_model* gPed_spurt_model;
 
-// gPed_spurty_lumps_count
+// GLOBAL: CARMA2_HW 0x0069427c
+int gPed_spurty_lumps_count;
 
 // GLOBAL: CARMA2_HW 0x0069bc68
 // GLOBAL: CARMA2_SW 0x00695cc0
@@ -164,7 +167,8 @@ tTWTVFS gTwtPeds;
 
 // gPed_cache_006944c0
 
-// gPed_spurt_initial_speed
+// GLOBAL: CARMA2_HW 0x006944a0
+tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 
 // GLOBAL: CARMA2_HW 0x007447a4
 // GLOBAL: CARMA2_SW 0x0073b264
@@ -202,7 +206,8 @@ int gPeds_already_munged;
 
 // gCount_race_pedestrian_specs
 
-// gPed_spurt_initial_position
+// GLOBAL: CARMA2_HW 0x0069fda8
+tSmashable_initial_position_spec gPed_spurt_initial_position;
 
 // GLOBAL: CARMA2_HW 0x0065d7b8
 // GLOBAL: CARMA2_SW 0x006580f0
@@ -618,7 +623,25 @@ void C2_HOOK_FASTCALL PedProcessContact(tPedestrian* pPed, tPhysics_object* pCol
 
 // DoGiblets
 
-// DoBloodSpurt
+// FUNCTION: CARMA2_HW 0x004cccc0
+void C2_HOOK_FASTCALL DoBloodSpurt(uintptr_t pArg1, int pArg2, int pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
+    int saved_random_seed;
+    int i;
+    tSmash_vertex* fragment;
+    float scale;
+
+    saved_random_seed = rand();
+    srand(pArg3);
+    for (i = 0; i < gPed_spurty_lumps_count; i++) {
+        fragment = FindShrapnelFragment(gPed_spurt_model, pArg1, 1);
+        if (fragment == NULL) {
+            break;
+        }
+        scale = PositionFragment(fragment->actor, &gPed_spurt_initial_position, 0, (int)pArg4, (int)pArg4, 0, NULL, 0);
+        InitFragmentSpeed(fragment, &gPed_spurt_initial_speed, pArg5, scale, gPed_spurt_min_max_time, pArg2, pArg6, 0, 0);
+    }
+    srand(saved_random_seed);
+}
 
 // DoSpurt
 

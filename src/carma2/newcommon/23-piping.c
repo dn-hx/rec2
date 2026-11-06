@@ -1795,9 +1795,31 @@ void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void) {
 
 // FUN_00564e5e
 
-// InitFragmentSpeed
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// PositionFragment
+// STUB: CARMA2_HW 0x004eb120
+void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004eb4a0
+float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUN_DisposeReplayBuffer
 
