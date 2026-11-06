@@ -377,4 +377,6 @@ extern tQueued_net_smash gQueued_net_smashes[50];
 
 // gPosition_type_names
 
+// gCar_outlet
+
 #endif // GUARD_51_SMASH_H

@@ -27,8 +27,10 @@
 
 #include "c2_string.h"
 #include "04-netgame.h"
+#include "09-funks.h"
 #include "23-piping.h"
 #include "59-camera.h"
+#include "69-sound.h"
 
 #include <stdio.h>
 
