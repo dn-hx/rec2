@@ -133,15 +133,15 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // InitDroneDrivingInfo
 
-// MoveThisDronePlane
+extern void C2_HOOK_FASTCALL MoveThisDronePlane(tDrone_spec* pDrone);
 
-// MoveThisDroneCar
+extern void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone);
 
-// PipeDroneMatrix
+extern void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone);
 
 // PossiblyPipeDroneMovement
 
-// DroneStateFuncControlledMovement
+extern void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // DoDroneHaltingStuff
 
