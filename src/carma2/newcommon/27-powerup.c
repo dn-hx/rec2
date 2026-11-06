@@ -43,6 +43,8 @@
 // FUN_0045c760
 
 // ARPowerupGot
+
+// GetJoystickEffect
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
 int gInventory[20];
