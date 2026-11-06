@@ -37,7 +37,13 @@
 
 // PipeSingleBloodSpurt
 
-// gRepeatability_names
+// GLOBAL: CARMA2_HW 0x0065feb0
+const char* gRepeatability_names[4] = {
+    "none",
+    "singleshot",
+    "repeated",
+    "doitregardless",
+};
 
 // GLOBAL: CARMA2_HW 0x0065ff00
 const char* gPosition_type_names[2] = {
@@ -50,7 +56,8 @@ int gMaterials_to_adapt_count;
 
 // gCount_host_smashes
 
-// gPowerup_respawn_smashable
+// GLOBAL: CARMA2_HW 0x006a7ce0
+tSmashable_item_spec gPowerup_respawn_smashable = { 0 };
 
 // gRepair_animations
 
@@ -63,7 +70,8 @@ int gAllow_material_adapt;
 // GLOBAL: CARMA2_HW 0x006a3340
 br_material* gMaterials_to_adapt[200];
 
-// gUnknown_smashable_006a3660
+// GLOBAL: CARMA2_HW 0x006a3660
+tSmashable_item_spec gUnknown_smashable_006a3660 = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a3338
 // GLOBAL: CARMA2_SW 0x0069d398
@@ -77,7 +85,8 @@ tSmashable_item_spec* gTrack_smashable_environment_specs;
 // GLOBAL: CARMA2_SW 0x0069f1a0
 br_actor* gSmashable_noncar_shrapnel_actors[100];
 
-// gPowerup_pickup_smashable
+// GLOBAL: CARMA2_HW 0x006a52d0
+tSmashable_item_spec gPowerup_pickup_smashable = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a55b0
 // GLOBAL: CARMA2_SW 0x0069f610
@@ -499,7 +508,18 @@ br_actor* C2_HOOK_FASTCALL LoadActorFromRace(const char *pName) {
     return BrActorLoad(path);
 }
 
-// ReadSpillData
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ee5e0
+void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004ee780
 // FUNCTION: CARMA2_SW 0x004ea420
@@ -744,7 +764,18 @@ void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
     pBounds->max.v[2] = MAX(z1, z2);
 }
 
-// ReadShrapnelSideEffects
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ef550
+void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004ef830
 void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pUnused, int pLevel) {
@@ -888,10 +919,16 @@ void C2_HOOK_FASTCALL RemoveAllDecals(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004efa00
-// STUB: CARMA2_SW 0x004eb660
+// FUNCTION: CARMA2_HW 0x004efa00
+// FUNCTION: CARMA2_SW 0x004eb660
+// FUNCTION: CARMA2_SW 0x004eb660
 void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF) {
-    NOT_IMPLEMENTED();
+    READ_POWERUP_SMASHABLE(&gPowerup_pickup_smashable, d1, d2);
+    READ_POWERUP_SMASHABLE(&gPowerup_respawn_smashable, d2, d1);
+
+    memset(&gUnknown_smashable_006a3660, 0, sizeof(gUnknown_smashable_006a3660));
+    gUnknown_smashable_006a3660.trigger_type = kSmashableTrigger_Model | kSmashableTrigger_Number;
+    gUnknown_smashable_006a3660.mode = kSmashableMode_Remove;
 }
 
 // FUNCTION: CARMA2_HW 0x004efce0

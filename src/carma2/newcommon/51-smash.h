@@ -12,19 +12,52 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-// READ_POWERUP_SMASHABLE
+#define READ_POWERUP_SMASHABLE(SPEC, A, B) do { \
+    int i; \
+    int d1, d2; \
+    memset((SPEC), 0, sizeof(tSmashable_item_spec)); \
+    (SPEC)->mode_data.shrapnel.connotations.count_sounds = GetAnInt(pF); \
+    for (i = 0; i < (SPEC)->mode_data.shrapnel.connotations.count_sounds; i++) { \
+        (SPEC)->mode_data.shrapnel.connotations.sounds[i] = LoadSingleSound(&gTrack_storage_space, GetAnInt(pF)); \
+    } \
+    ReadShrapnelSpec(pF, (SPEC)->mode_data.shrapnel.connotations.shrapnel, &(SPEC)->mode_data.shrapnel.connotations.count_shrapnel); \
+    ReadExplosion(pF, &(SPEC)->mode_data.shrapnel.connotations.special_effects.explosion_animation); \
+    ReadSpillData(pF, &(SPEC)->mode_data.shrapnel.connotations.special_effects.slick); \
+    ReadNonCarCuboidActivation(pF, &(SPEC)->mode_data.shrapnel.connotations.side_effects.activations); \
+    ReadShrapnelSideEffects(pF, &(SPEC)->mode_data.shrapnel.connotations.side_effects.side_effects); \
+    (SPEC)->mode_data.shrapnel.connotations.side_effects.extension_flags = GetAnInt(pF); \
+    if ((SPEC)->mode_data.shrapnel.connotations.side_effects.extension_flags & 0x1) { \
+        (SPEC)->mode_data.shrapnel.connotations.side_effects.extension_arg = GetAnInt(pF); \
+    } \
+    (SPEC)->mode_data.shrapnel.connotations.side_effects.room_turn_on_code = GetAnInt(pF); \
+    (SPEC)->mode_data.shrapnel.connotations.award.frequency = GetALineAndInterpretCommand(pF, gRepeatability_names, REC2_ASIZE(gRepeatability_names)); \
+    if ((SPEC)->mode_data.shrapnel.connotations.award.frequency != kRepeatability_None) { \
+        (SPEC)->mode_data.shrapnel.connotations.award.field_0x4 = GetAScalar(pF); \
+        (SPEC)->mode_data.shrapnel.connotations.award.field_0x8 = GetAScalar(pF); \
+        (SPEC)->mode_data.shrapnel.connotations.award.field_0xc = GetAnInt(pF); \
+        (SPEC)->mode_data.shrapnel.connotations.award.field_0x10 = GetAnInt(pF); \
+    } \
+    (SPEC)->mode_data.shrapnel.connotations.variable_changes.count = GetAnInt(pF); \
+    for (i = 0; i < (SPEC)->mode_data.shrapnel.connotations.variable_changes.count; i++) { \
+        GetPairOfInts(pF, &(A), &(B)); \
+        (SPEC)->mode_data.shrapnel.connotations.variable_changes.runtime_changes[i].field_0x2 = (A); \
+        (SPEC)->mode_data.shrapnel.connotations.variable_changes.runtime_changes[i].field_0x0 = (B); \
+    } \
+    (SPEC)->trigger_type = kSmashableTrigger_Model | kSmashableTrigger_Number; \
+    (SPEC)->mode = kSmashableMode_Remove; \
+} while (0)
 
 // tNon_car_search_context
 
 extern int gAllow_material_adapt;
 extern br_material* gMaterials_to_adapt[200];
 
-// gUnknown_smashable_006a3660
+extern tSmashable_item_spec gUnknown_smashable_006a3660;
 extern int gMaterials_to_adapt_count;
 
 // gCount_host_smashes
 
-// gPowerup_respawn_smashable
+extern tSmashable_item_spec gPowerup_respawn_smashable;
 
 // gRepair_animations
 
@@ -34,7 +67,7 @@ extern int gShrapnel_child_count;
 extern tSmashable_item_spec* gTrack_smashable_environment_specs;
 extern br_actor* gSmashable_noncar_shrapnel_actors[100];
 
-// gPowerup_pickup_smashable
+extern tSmashable_item_spec gPowerup_pickup_smashable;
 extern int gCount_smashable_noncar_shrapnel_actors;
 extern const char* gSmashable_track_environment_path;
 
@@ -167,7 +200,7 @@ extern void C2_HOOK_FASTCALL ReadSmokeFireChance(FILE* pF, tSmoke_fire_chance* p
 
 extern br_actor* C2_HOOK_FASTCALL LoadActorFromRace(const char *pName);
 
-// ReadSpillData
+extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
 
 extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
 
@@ -177,7 +210,7 @@ extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapne
 
 extern void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds);
 
-// ReadShrapnelSideEffects
+extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
 
 // FreeExplosion
 
@@ -373,7 +406,7 @@ extern tQueued_net_smash gQueued_net_smashes[50];
 
 // PipeSingleBloodSpurt
 
-// gRepeatability_names
+extern const char* gRepeatability_names[4];
 
 extern const char* gPosition_type_names[2];
 
