@@ -230,4 +230,6 @@ extern tDrone_crush_data gDrone_crush_data;
 
 // gShow_drone_paths
 
+// gMutant_tail_state
+
 #endif // GUARD_57_DRONE_H
