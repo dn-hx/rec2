@@ -41,7 +41,7 @@ extern void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber);
 
 // SkipBytes
 
-// WriteS8L
+extern void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber);
 
 // WriteS16L
 

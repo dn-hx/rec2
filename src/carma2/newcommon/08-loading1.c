@@ -168,7 +168,13 @@ void C2_HOOK_FASTCALL WriteU8L(FILE* pF, tU8 pNumber) {
 
 // SkipBytes
 
-// WriteS8L
+// FUNCTION: CARMA2_HW 0x0048f9d0
+void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber) {
+    tS8 raw_byte;
+
+    raw_byte = pNumber;
+    PFfwrite(&raw_byte, sizeof(raw_byte), 1, pF);
+}
 
 // WriteS16L
 
