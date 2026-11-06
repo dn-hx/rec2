@@ -1443,7 +1443,12 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
     }
 }
 
-// ApplyPowerupGot
+// FUNCTION: CARMA2_HW 0x004c9c00
+void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
+
+    return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
+}
 
 // ApplyPowerupLose
 
@@ -1766,7 +1771,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // WorkerPowerupLose
 
-// WorkerPowerupGot
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004df200
+void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerPedPos
 

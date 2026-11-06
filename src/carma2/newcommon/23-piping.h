@@ -31,7 +31,10 @@
 
 // tPipe_chunk_funk_enable
 
-// tPipe_chunk_powerup
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+} tPipe_chunk_powerup;
 
 // tPipe_chunk_phil_object
 
@@ -488,7 +491,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
-// ApplyPowerupGot
+extern void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk);
 
 // ApplyPowerupLose
 
@@ -624,7 +627,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPowerupLose
 
-// WorkerPowerupGot
+extern void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4);
 
 // WorkerPedPos
 
