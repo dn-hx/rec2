@@ -161,8 +161,8 @@ extern tU32 gPHIL_last_physics_tick;
 
 // gINT_0068d920
 
-// gTime_for_punishment
+extern tU32 gTime_for_punishment;
 
-// gNot_shown_race_type_headup
+extern int gNot_shown_race_type_headup;
 
 #endif // GUARD_04_NETGAME_H

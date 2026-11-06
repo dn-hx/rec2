@@ -25,7 +25,7 @@ extern void C2_HOOK_FASTCALL BuyPower(void);
 
 extern void C2_HOOK_FASTCALL BuyOffense(void);
 
-// gIt_or_fox
+extern int gIt_or_fox;
 
 // gINT_0068b8e8
 

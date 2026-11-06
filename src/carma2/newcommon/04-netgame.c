@@ -49,7 +49,8 @@ int gLast_it_change;
 // GLOBAL: CARMA2_SW 0x00687984
 tU32 gTime_for_punishment;
 
-// gNot_shown_race_type_headup
+// GLOBAL: CARMA2_HW 0x0068d934
+int gNot_shown_race_type_headup;
 
 // SendShapeNumbers
 

@@ -83,7 +83,7 @@ extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
 extern int gCount_toggled_doors;
 
-// gWinner_declared
+extern int gWinner_declared;
 
 // gCount_net_crush_full_detach_bit_list
 
@@ -95,7 +95,7 @@ extern int gCount_toggled_doors;
 
 // ResetCrushSystems
 
-// InitPlayers
+extern void C2_HOOK_FASTCALL InitPlayers(void);
 
 // InitLastDamageArrayEtc
 
