@@ -17,7 +17,7 @@ extern tFrontend_spec gFrontend_NETWORK;
 
 // NetworkJoinMenuOutfunc
 
-// NetToggleMode
+extern int C2_HOOK_FASTCALL NetToggleMode(tFrontend_spec* pFrontend);
 
 // NetJoinChooseThisGame
 

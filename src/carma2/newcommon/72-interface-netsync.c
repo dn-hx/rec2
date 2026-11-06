@@ -14,7 +14,8 @@
 
 // NetSync_Infunc
 
-// gFrontend_net_mode
+// GLOBAL: CARMA2_HW 0x0059c820
+tNet_mode gFrontend_net_mode = eNet_mode_thinking_about_it;
 // GLOBAL: CARMA2_HW 0x0061bad0
 // GLOBAL: CARMA2_SW 0x00616a00
 tFrontend_spec gFrontend_NETSYNC = {
