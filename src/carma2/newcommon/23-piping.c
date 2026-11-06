@@ -1281,7 +1281,12 @@ void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
 
 // ApplySplash
 
-// ApplyExtendedSplash
+// FUNCTION: CARMA2_HW 0x004c9310
+void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk) {
+    tPipe_chunk_extended_splash* chunk = (tPipe_chunk_extended_splash*)*pChunk;
+
+    return WorkerExtendedSplash(chunk->field_0x0, (tU8)chunk->field_0x4, chunk->field_0x8, &chunk->field_0xc, &chunk->field_0x18);
+}
 
 // ApplyOilSpill
 

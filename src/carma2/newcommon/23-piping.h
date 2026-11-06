@@ -69,7 +69,13 @@
 
 // tPipe_chunk_oil_spill
 
-// tPipe_chunk_extended_splash
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+} tPipe_chunk_extended_splash;
 
 // tPipe_chunk_splash
 
@@ -410,7 +416,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 // ApplySplash
 
-// ApplyExtendedSplash
+extern void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk);
 
 // ApplyOilSpill
 
