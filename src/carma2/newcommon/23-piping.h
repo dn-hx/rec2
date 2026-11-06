@@ -15,7 +15,12 @@
 
 // tPipe_chunk_blood_spurt
 
-// tPipe_chunk_remove_faces_replay
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+} tPipe_chunk_remove_faces_replay;
 
 // tPipe_chunk_frame_bound
 
@@ -558,7 +563,7 @@ extern void C2_HOOK_FASTCALL UndoNonCarCreation(tPipe_chunk** pChunk, tPipe_chun
 
 extern void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoSmashRemoveFaces
+extern void C2_HOOK_FASTCALL UndoSmashRemoveFaces(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoSmashDecal(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
