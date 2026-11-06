@@ -25,6 +25,6 @@ extern tFrontend_spec gFrontend_NETWORK;
 
 // NetCancel
 
-// gINT_00688748
+extern int gINT_00688748;
 
 #endif /* GUARD_72_NETWORK_H */

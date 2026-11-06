@@ -399,9 +399,9 @@ extern int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend);
 
 // Controls_Outfunc
 
-// Controls_SlotActivated
+extern int C2_HOOK_FASTCALL Controls_SlotActivated(tFrontend_spec* pFrontend);
 
-// Controls_Ok
+extern int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend);
 
 // DisplayNetworkOptions
 
@@ -499,6 +499,6 @@ extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
 // gFrontend_wrecks_actor
 
-// gFrontend_controls_count_keys
+extern int gFrontend_controls_count_keys;
 
 #endif // GUARD_72_INTERFACE_H
