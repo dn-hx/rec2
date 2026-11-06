@@ -157,7 +157,7 @@ extern tU32 gPHIL_last_physics_tick;
 
 extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 
-// SendDetachedNonCarDataToPlayer
+extern void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient);
 
 // gINT_0068d920
 
