@@ -21,7 +21,7 @@
 
 extern int C2_HOOK_FASTCALL AnyBuyableCars(void);
 
-// RecordAPOAndCredits
+extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
 
 // PickRaceWhenGameCompleted
 
@@ -33,8 +33,8 @@ extern int C2_HOOK_FASTCALL AnyBuyableCars(void);
 
 // gPlayer_lookup_racesumm
 
-// gMoney_pre_race
+extern int gMoney_pre_race;
 
-// gAPO_pre_race
+extern int gAPO_pre_race[3];
 
 #endif // GUARD_31_RACESUMM_H
