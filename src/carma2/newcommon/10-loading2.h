@@ -145,4 +145,12 @@ extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
 // gDamage_names
 
+// gCurrent_race_file_index
+
+// gRaces_file_names
+
+// gCountRaceGroups
+
+// gRace_groups
+
 #endif // GUARD_10_LOADING2_H

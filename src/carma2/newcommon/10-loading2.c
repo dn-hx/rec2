@@ -55,9 +55,13 @@
 // gSimple_material_colours
 
 // gDamage_names
+
+// gRaces_file_names
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
 FILE* gTempFile;
+
+// gCurrent_race_file_index
 
 // GLOBAL: CARMA2_HW 0x0068c718
 // GLOBAL: CARMA2_SW 0x00686768
@@ -106,6 +110,8 @@ int gNet_score_targets[8];
 // GLOBAL: CARMA2_HW 0x0074b58c
 // GLOBAL: CARMA2_SW 0x00741c4c
 int gDemo_race_rank_equivalent;
+
+// gCountRaceGroups
 
 // GLOBAL: CARMA2_HW 0x0074b4fc
 // GLOBAL: CARMA2_SW 0x00741bbc
