@@ -546,7 +546,18 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
 
 // WorkerCrushUndo
 
-// WorkerDroneStraightPos
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00452880
+void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerDroneCornerPos
 
@@ -1469,7 +1480,12 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneCornerPos
 
-// ApplyDroneStraightPos
+// FUNCTION: CARMA2_HW 0x004c9cf0
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_straight_pos* chunk = (tPipe_chunk_drone_straight_pos*)*pChunk;
+
+    return WorkerDroneStraightPos(chunk->field_0x0, chunk->field_0x4, chunk->field_0x8, chunk->field_0xa);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d10
 // FUNCTION: CARMA2_SW 0x004c6440
