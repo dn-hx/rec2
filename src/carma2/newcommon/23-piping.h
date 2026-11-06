@@ -57,7 +57,11 @@
 
 // tPipe_chunk_shrapnel_shower
 
-// tPipe_chunk_model_mash
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[4];
+} tPipe_chunk_model_mash;
 
 // tPipe_chunk_skid_adjust
 
@@ -542,7 +546,7 @@ extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoFlap
 
-// UndoModelMash
+extern void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoRelink
 

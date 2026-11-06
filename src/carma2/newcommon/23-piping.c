@@ -1533,7 +1533,12 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoFlap
 
-// UndoModelMash
+// FUNCTION: CARMA2_HW 0x004c9f80
+void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_model_mash* chunk = (tPipe_chunk_model_mash*)*pChunk;
+
+    return ARUndoModelMash((br_model*)chunk->field_0x4, (tCompressed_vector3*)chunk->field_0x8);
+}
 
 // UndoRelink
 
