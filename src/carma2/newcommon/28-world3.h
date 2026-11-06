@@ -140,7 +140,7 @@ extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
 // gPed_remap_axis_choices
 
-// FinishUpLoadingPeds
+extern void C2_HOOK_FASTCALL FinishUpLoadingPeds(void);
 
 // MungeSmashMaterialNames
 
