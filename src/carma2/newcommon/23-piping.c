@@ -1306,7 +1306,11 @@ void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk) {
 
 // ApplyProxRay
 
-// ApplySkidAdjustment
+// FUNCTION: CARMA2_HW 0x004c9810
+void C2_HOOK_FASTCALL ApplySkidAdjustment(tPipe_chunk** pChunk) {
+    tPipe_chunk_skid_adjust* chunk = (tPipe_chunk_skid_adjust*)*pChunk;
+    AdjustSkid(chunk->skid_num, &chunk->matrix, chunk->material);
+}
 
 // ApplyFlap
 

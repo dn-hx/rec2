@@ -59,7 +59,11 @@
 
 // tPipe_chunk_model_mash
 
-// tPipe_chunk_skid_adjust
+typedef struct {
+    int skid_num;
+    br_matrix34 matrix;
+    br_material* material;
+} tPipe_chunk_skid_adjust;
 
 // tPipe_chunk_prox_ray_replay
 
@@ -428,7 +432,7 @@ extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 // ApplyProxRay
 
-// ApplySkidAdjustment
+extern void C2_HOOK_FASTCALL ApplySkidAdjustment(tPipe_chunk** pChunk);
 
 // ApplyFlap
 
