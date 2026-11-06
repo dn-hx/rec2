@@ -21,7 +21,11 @@
 
 // tPipe_chunk_transform_type
 
-// tPipe_chunk_napalm_bolt
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    br_vector3 field_0x8;
+} tPipe_chunk_napalm_bolt;
 
 // tPipe_chunk_drone_straight_pos
 
@@ -594,7 +598,7 @@ extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* 
 
 extern void C2_HOOK_FASTCALL UndoVector3(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoNapalmBolt
+extern void C2_HOOK_FASTCALL UndoNapalmBolt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoPowerupRespawn(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
