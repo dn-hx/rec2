@@ -29,7 +29,10 @@
 
 // tPipe_chunk_vanish
 
-// tPipe_chunk_funk_enable
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+} tPipe_chunk_funk_enable;
 
 // tPipe_chunk_powerup
 
@@ -492,7 +495,7 @@ extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
 // ApplyPowerupLose
 
-// ApplyFunkEnable
+extern void C2_HOOK_FASTCALL ApplyFunkEnable(tPipe_chunk** pChunk);
 
 // ApplyVanishDismembered
 

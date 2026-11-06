@@ -1447,7 +1447,12 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
 
 // ApplyPowerupLose
 
-// ApplyFunkEnable
+// FUNCTION: CARMA2_HW 0x004c9c20
+void C2_HOOK_FASTCALL ApplyFunkEnable(tPipe_chunk** pChunk) {
+    tPipe_chunk_funk_enable* chunk = (tPipe_chunk_funk_enable*)*pChunk;
+
+    return AdjustFunkEnable(chunk->field_0x0, chunk->field_0x4);
+}
 
 // ApplyVanishDismembered
 
