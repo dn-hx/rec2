@@ -652,7 +652,18 @@ void C2_HOOK_FASTCALL PedProcessContact(tPedestrian* pPed, tPhysics_object* pCol
 
 // RepulseIt
 
-// DoPedestrianRepulsifictor
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ce280
+int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CompileBurnableList
 
