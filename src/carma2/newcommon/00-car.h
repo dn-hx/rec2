@@ -272,7 +272,7 @@ typedef struct {
 
 // ClearSplashes
 
-// MungeSpecialVolume
+extern void C2_HOOK_FASTCALL MungeSpecialVolume(tPhysics_object* pObject);
 
 // InitialiseExternalCamera
 
