@@ -468,7 +468,7 @@ extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
-// gCurrent_ffb_effect_index
+extern int gCurrent_ffb_effect_index;
 
 extern tRepulse_link gRepulse_links[6];
 
@@ -492,16 +492,16 @@ extern tRepulse_link gRepulse_links[6];
 
 extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 
-// PlayExclusiveFFBEffect
+extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
 
 extern int gCount_joystick_effects;
 
-// gForceFeedbackAvailable
+extern int gForceFeedbackAvailable;
 
-// StopDinputEffect
+extern void C2_HOOK_FASTCALL StopDinputEffect(int pIndex);
 
-// UnloadDinputFFBEffectAtIndex
+extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
 
-// StartDinputEffect
+extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
 #endif // GUARD_27_POWERUP_H
