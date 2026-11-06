@@ -40,7 +40,13 @@
 
 // ScalePedForm
 
-// FUN_0045c760
+// FUNCTION: CARMA2_HW 0x0045c760
+void C2_HOOK_FASTCALL FUN_0045c760(void) {
+
+    if (gCurrent_ffb_effect_index != -1) {
+        StopDinputEffect(gCurrent_ffb_effect_index);
+    }
+}
 
 // ARPowerupGot
 // GLOBAL: CARMA2_HW 0x006a0a70
@@ -195,7 +201,8 @@ const float gConst_0p5 = 0.5f;
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
 
-// gCurrent_ffb_effect_index
+// GLOBAL: CARMA2_HW 0x0059630c
+int gCurrent_ffb_effect_index = -1;
 
 // GLOBAL: CARMA2_HW 0x006a0960
 tRepulse_link gRepulse_links[6] = { 0 };

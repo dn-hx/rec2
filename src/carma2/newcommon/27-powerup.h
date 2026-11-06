@@ -468,7 +468,7 @@ extern const float gConst_0p5;
 
 extern const double gConst_minus_0p15;
 
-// gCurrent_ffb_effect_index
+extern int gCurrent_ffb_effect_index;
 
 extern tRepulse_link gRepulse_links[6];
 
@@ -480,7 +480,7 @@ extern tRepulse_link gRepulse_links[6];
 
 // ScalePedForm
 
-// FUN_0045c760
+extern void C2_HOOK_FASTCALL FUN_0045c760(void);
 
 // NapalmPedDistanceCallback
 
@@ -490,6 +490,6 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
-// StopDinputEffect
+extern void C2_HOOK_FASTCALL StopDinputEffect(int pIndex);
 
 #endif // GUARD_27_POWERUP_H
