@@ -1652,7 +1652,12 @@ void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
 
 // UndoPowerupGot
 
-// UndoPowerupLose
+// FUNCTION: CARMA2_HW 0x004ca300
+void C2_HOOK_FASTCALL UndoPowerupLose(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
+
+    return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
+}
 
 // UndoFunkEnable
 
@@ -1766,7 +1771,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // WorkerPowerupLose
 
-// WorkerPowerupGot
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004df200
+void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerPedPos
 

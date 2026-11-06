@@ -31,7 +31,10 @@
 
 // tPipe_chunk_funk_enable
 
-// tPipe_chunk_powerup
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+} tPipe_chunk_powerup;
 
 // tPipe_chunk_phil_object
 
@@ -586,7 +589,7 @@ extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* 
 
 // UndoPowerupGot
 
-// UndoPowerupLose
+extern void C2_HOOK_FASTCALL UndoPowerupLose(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoFunkEnable
 
@@ -624,7 +627,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPowerupLose
 
-// WorkerPowerupGot
+extern void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4);
 
 // WorkerPedPos
 
