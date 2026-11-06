@@ -112,4 +112,10 @@ extern void* gLollipop_queue[100];
 
 // MapStuffAfterRender
 
+// gPrevious_rear_yon
+
+// gCount_extra_renders
+
+// gExtra_renders
+
 #endif // GUARD_16_GRAPHICS1_H

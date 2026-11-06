@@ -12,9 +12,11 @@
 #include "06-apo.h"
 #include "07-structur.h"
 #include "15-displays.h"
+#include "18b-graphics2.h"
 #include "19-font.h"
 #include "27-powerup.h"
 #include "30-opponent.h"
+#include "33-depth.h"
 #include "41-utility.h"
 #include "52-errors.h"
 #include "62-graphics3.h"
@@ -59,6 +61,8 @@ br_pixelmap* gEvalu;
 
 // GLOBAL: CARMA2_HW 0x006a22f8
 tWobble_spec gWobble_array[5];
+
+// gPrevious_rear_yon
 
 // GLOBAL: CARMA2_HW 0x00705080
 // GLOBAL: CARMA2_SW 0x006fbb40
