@@ -449,7 +449,19 @@ void C2_HOOK_FASTCALL GotPowerup9(void) {
     GotPowerupN(9);
 }
 
-// GotCredits
+// FUNCTION: CARMA2_HW 0x004dc170
+int C2_HOOK_FASTCALL GotCredits(tPowerup* pPowerup, tCar_spec* pCar) {
+    int credits;
+    char str[256];
+
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        credits = (IRandomBetween(pPowerup->integer_params[0], pPowerup->integer_params[1]) / 100) * 100;
+        strcpy(str, pPowerup->message);
+        strcat(str, " ");
+        EarnCredits2(credits, str);
+    }
+    return pPowerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc3e0
 int C2_HOOK_FASTCALL GainAPO2(tCar_spec* pCar, int pIndex, int pAmount) {
