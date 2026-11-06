@@ -46,7 +46,7 @@ extern void C2_HOOK_FASTCALL InitTreeSurgery(void);
 
 extern void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec);
 
-// ProcessTrack
+extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
 
 // AnimateSky
 
