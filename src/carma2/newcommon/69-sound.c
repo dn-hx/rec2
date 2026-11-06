@@ -15,6 +15,7 @@
 #include "30-opponent.h"
 #include "41-utility.h"
 #include "52-errors.h"
+#include "55-volume.h"
 #include "70-packfile.h"
 #include "globvars.h"
 #include "platform.h"

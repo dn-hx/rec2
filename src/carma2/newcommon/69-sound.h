@@ -129,4 +129,6 @@ extern void C2_HOOK_FASTCALL ConfigureZombiePedSoundPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedSoundPath(void);
 
+// gFaded_palette
+
 #endif // GUARD_69_SOUND_H
