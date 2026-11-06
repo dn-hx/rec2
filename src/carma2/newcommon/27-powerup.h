@@ -58,7 +58,7 @@ extern int gInventory_cycling;
 extern tU32 gInventory_timeout;
 extern tU32* gReal_render_palette;
 
-// gCollision_info_uid_counter
+extern int gCollision_info_uid_counter;
 
 extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
 
@@ -110,7 +110,7 @@ extern void C2_HOOK_FASTCALL LoadPowerups(void);
 
 extern void C2_HOOK_FASTCALL InitPowerups(void);
 
-// MungeSphereObject
+extern tPhysics_object* C2_HOOK_FASTCALL MungeSphereObject(br_model* pModel, float pWeight);
 
 // RemoveRepulseEffect
 
