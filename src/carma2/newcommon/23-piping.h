@@ -79,7 +79,10 @@
 
 // tPipe_chunk_shrapnel_replay
 
-// tPipe_chunk_spark_replay
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[0x10];
+} tPipe_chunk_spark_replay;
 
 // tPipe_chunk_crush
 
@@ -392,7 +395,7 @@ extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec* pOpponent_s
 
 extern void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk);
 
-// ApplySpark
+extern void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk);
 
 // ApplyShrapnel
 
