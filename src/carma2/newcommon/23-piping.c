@@ -1310,7 +1310,12 @@ void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk) {
 
 // ApplyFlap
 
-// ApplyModelMash
+// FUNCTION: CARMA2_HW 0x004c9840
+void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk) {
+    tPipe_chunk_model_mash* chunk = (tPipe_chunk_model_mash*)*pChunk;
+
+    return ARApplyModelMash((br_model*)chunk->field_0x4, (tCompressed_vector3*)chunk->field_0x8);
+}
 
 // ApplyRelink
 

@@ -57,7 +57,11 @@
 
 // tPipe_chunk_shrapnel_shower
 
-// tPipe_chunk_model_mash
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[4];
+} tPipe_chunk_model_mash;
 
 // tPipe_chunk_skid_adjust
 
@@ -432,7 +436,7 @@ extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 // ApplyFlap
 
-// ApplyModelMash
+extern void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk);
 
 // ApplyRelink
 
