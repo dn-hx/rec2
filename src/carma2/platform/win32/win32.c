@@ -898,7 +898,11 @@ void C2_HOOK_FASTCALL MAMSUnlock(void **pPtr) {
 void C2_HOOK_FASTCALL MAMSLock(void **pPtr) {
 }
 
-// PDstrcmpi
+// FUNCTION: CARMA2_HW 0x0047d850
+int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2) {
+
+    return strcasecmp(str1, str2);
+}
 
 // FUNCTION: CARMA2_HW 0x0051d640
 // FUNCTION: CARMA2_SW 0x00517a70

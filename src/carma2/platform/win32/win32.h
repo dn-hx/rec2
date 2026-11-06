@@ -108,7 +108,7 @@ extern void C2_HOOK_FASTCALL DPixelmapLine2(br_pixelmap* pDst, int pX1, int pY1,
 
 #endif
 
-// PDstrcmpi
+extern int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2);
 
 // PDConvertMousePosition
 
