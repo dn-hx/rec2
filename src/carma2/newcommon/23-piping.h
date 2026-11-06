@@ -27,7 +27,11 @@
 
 // tPipe_chunk_drone_corner_pos
 
-// tPipe_chunk_vanish
+typedef struct {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    undefined4 field_0x8;
+} tPipe_chunk_vanish;
 
 // tPipe_chunk_funk_enable
 
@@ -590,7 +594,7 @@ extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* 
 
 // UndoFunkEnable
 
-// UndoVanishDismembered
+extern void C2_HOOK_FASTCALL UndoVanishDismembered(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoVector3(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
@@ -620,7 +624,7 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // WorkerPedDiagnostics
 
-// DoVanishDismembered
+extern void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value);
 
 // WorkerPowerupLose
 
