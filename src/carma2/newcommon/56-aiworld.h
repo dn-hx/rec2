@@ -24,7 +24,7 @@ extern void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_nu
 
 // DoNotDprintf_drone
 
-// DoDamage
+extern void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
 
 extern void C2_HOOK_FASTCALL InitPanGameAIWorld(void);
 

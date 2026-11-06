@@ -53,7 +53,45 @@ void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_u
 
 // DoNotDprintf_drone
 
-// DoDamage
+// FUNCTION: CARMA2_HW 0x0043f930
+void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
+    tDamage_unit* damage_unit;
+    int old_level;
+    int new_level;
+
+    if (pCar != NULL && pCar->driver >= eDriver_net_human && pDamage_type == eDamage_driver) {
+        return;
+    }
+    if (pCar->invulnerable_no_damage || pMagnitude < 5) {
+        return;
+    }
+    damage_unit = &pCar->damage_units[pDamage_type];
+    old_level = damage_unit->damage_level;
+    new_level = pMagnitude + damage_unit->damage_level;
+    damage_unit->damage_level = new_level;
+    if (new_level >= 99) {
+        if (pMagnitude < 10) {
+            damage_unit->damage_level = old_level;
+        }
+        else {
+            damage_unit->damage_level = 99;
+        }
+    }
+    if (SetKnackeredFlag(pCar)) {
+        return;
+    }
+    if (pCar == NULL || pCar->driver != eDriver_oppo) {
+        if (gNet_mode == eNet_mode_none
+                && ((pCar->damage_units[eDamage_engine].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99)
+                    || (pCar->damage_units[eDamage_transmission].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99))) {
+            QueueOilSpill(pCar);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00401000
 // FUNCTION: CARMA2_SW 0x00401000
