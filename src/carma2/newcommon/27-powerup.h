@@ -12,7 +12,13 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-// tNet_message_chunk_powerup
+typedef struct {
+    tNet_message_chunk_header header;
+    tPlayer_ID player_id;
+    int powerup_index;
+    int time_remaining;
+    int field_0x10;
+} tNet_message_chunk_powerup;
 
 // tNapalm_ped_distance
 
@@ -43,7 +49,7 @@ extern float gPed_gravity_multiplier;
 extern int gCount_mutant_tail_parts;
 extern tPhysics_joint* gMutant_tail_first_joint;
 
-// gNumber_of_powerups
+extern int gNumber_of_powerups;
 extern int gMutant_tail_state;
 
 // gShit_mines
@@ -82,7 +88,7 @@ extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
 
 // ExcludedPowerup
 
-// GotPowerupX
+extern int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime);
 
 // GotPowerupXX
 
@@ -388,7 +394,7 @@ extern int C2_HOOK_FASTCALL SetMutantCorpses(tPowerup* pPowerup, tCar_spec* pCar
 
 extern void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* pPowerup, tCar_spec* pCar);
 
-// ReceivedPowerup
+extern void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage);
 
 extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 
@@ -490,6 +496,6 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
-// gLocal_net_ID
+extern tPlayer_ID gLocal_net_ID;
 
 #endif // GUARD_27_POWERUP_H
