@@ -145,7 +145,8 @@ char* gFrontend_current_input;
 // GLOBAL: CARMA2_SW 0x00683058
 float gFrontend_wreck_bought_car_dz;
 
-// gFrontend_wrecks_hscroll
+// GLOBAL: CARMA2_HW 0x00688afc
+int gFrontend_wrecks_hscroll;
 
 // GLOBAL: CARMA2_HW 0x0068723c
 // GLOBAL: CARMA2_SW 0x0068179c
@@ -319,9 +320,11 @@ br_pixelmap* gFrontend_backdrop;
 // GLOBAL: CARMA2_SW 0x00683048
 br_colour gFrontend_some_color;
 
-// gFrontend_wrecks_actor
+// GLOBAL: CARMA2_HW 0x00688aec
+br_actor* gFrontend_wrecks_actor;
 
-// gFrontend_wrecks_camera
+// GLOBAL: CARMA2_HW 0x00688af0
+br_actor* gFrontend_wrecks_camera;
 
 // GLOBAL: CARMA2_HW 0x006870b8
 tFrontend_model gFrontend_A_models[13];

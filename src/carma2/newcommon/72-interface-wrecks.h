@@ -15,18 +15,18 @@ extern tFrontend_spec gFrontend_WRECKS;
 
 // BuyCurrentCar
 
-// WrecksInFunc
+extern int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend);
 
 // WrecksUpdateFunc
 
-// gFrontend_wrecks_light
+extern br_actor* gFrontend_wrecks_light;
 
-// gFrontend_wrecks_pixelmap
+extern br_pixelmap* gFrontend_wrecks_pixelmap;
 
-// gWreck_gallery_sell_infos
+extern tWreck_gallery_sell_info gWreck_gallery_sell_infos[32];
 
-// gFrontend_wrecks_current
+extern int gFrontend_wrecks_current;
 
-// gFrontend_wrecks_previous_update
+extern tU32 gFrontend_wrecks_previous_update;
 
 #endif /* GUARD_72_WRECKS_H */
