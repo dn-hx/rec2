@@ -121,6 +121,6 @@ extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
 extern void C2_HOOK_FASTCALL FadePaletteUp(void);
 
-// DimRectangle
+extern void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
 
 #endif // GUARD_18_GRAPHICS2_H
