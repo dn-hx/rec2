@@ -40,6 +40,8 @@
 // gRepeatability_names
 
 // gPosition_type_names
+
+// FUN_004d9d00
 // GLOBAL: CARMA2_HW 0x006a6d38
 // GLOBAL: CARMA2_SW 0x006a0d98
 int gMaterials_to_adapt_count;
@@ -114,6 +116,8 @@ int gINT_006a3334 = 0;
 
 // GLOBAL: CARMA2_HW 0x006a3940
 tQueued_net_smash gQueued_net_smashes[50] = { 0 };
+
+// gPowerup_queue
 
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
@@ -1126,6 +1130,8 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
         BrMemFree(pConnotations->side_effects.side_effects.side_effects);
     }
 }
+
+// FUN_004f1030
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

@@ -265,6 +265,8 @@ extern void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSmash);
 
 extern void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_actors);
 
+// FUN_004f1030
+
 // MungeSmashMaterialNames
 
 // ExtrapolateTextureCoordinates
@@ -369,6 +371,8 @@ extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTra
 
 extern tQueued_net_smash gQueued_net_smashes[50];
 
+// gPowerup_queue
+
 // PipeSingleShrapnelShower
 
 // PipeSingleBloodSpurt
@@ -376,5 +380,11 @@ extern tQueued_net_smash gQueued_net_smashes[50];
 // gRepeatability_names
 
 // gPosition_type_names
+
+// FUN_004d9d00
+
+// gMutant_tail_state
+
+// gINT_00705b70
 
 #endif // GUARD_51_SMASH_H
