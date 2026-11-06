@@ -50,7 +50,8 @@ int gCount_drone_path_nodes;
 // GLOBAL: CARMA2_SW 0x0067ec38
 int gCurrent_selected_drone;
 
-// gCount_rendered_drones
+// GLOBAL: CARMA2_HW 0x00684500
+int gCount_rendered_drones;
 
 // GLOBAL: CARMA2_HW 0x00684504
 // GLOBAL: CARMA2_SW 0x0067ec44
@@ -64,7 +65,8 @@ tDrone_path_node* gDrone_path_nodes;
 // GLOBAL: CARMA2_SW 0x0067ec58
 int gTraffic_disabled;
 
-// gShow_drone_paths
+// GLOBAL: CARMA2_HW 0x0068452c
+int gShow_drone_paths;
 
 // GLOBAL: CARMA2_HW 0x00681fb0
 // GLOBAL: CARMA2_SW 0x0067c6f0
@@ -77,9 +79,18 @@ int gFrame;
 // GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
 
-// gDefault_drone_direction
+// GLOBAL: CARMA2_HW 0x005947c0
+br_vector3 gDefault_drone_direction = {{ 0.f, 0.f, -1.f }};
 
-// gDrone_state_functions
+// GLOBAL: CARMA2_HW 0x00594738
+tDrone_state_function* gDrone_state_functions[6] = {
+    NULL,
+    DroneStateFuncReset,
+    DroneStateFuncControlledMovement,
+    DroneStateFuncPhysicsActive,
+    DroneStateFuncStationaryPassive,
+    NULL,
+};
 
 // GLOBAL: CARMA2_HW 0x00705b70
 tU32 gINT_00705b70;
@@ -316,7 +327,18 @@ void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...) {
 
 // ProcessThisDrone
 
-// DroneStateFuncReset
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0044cc70
+void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // InitDroneDrivingInfo
 
@@ -405,9 +427,31 @@ void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDro
 
 // DoDroneHaltingStuff
 
-// DroneStateFuncPhysicsActive
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
-// DroneStateFuncStationaryPassive
+// STUB: CARMA2_HW 0x0044eb70
+void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0044ec50
+void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetNewCrushyModelForDrone
 
@@ -595,7 +639,40 @@ br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void) {
     return &gDrone_specs[gCurrent_selected_drone].actor->t.t.mat;
 }
 
-// GetCurrentViewDroneDirection
+// FUNCTION: CARMA2_HW 0x004526c0
+br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void) {
+    tDrone_spec* pDrone;
+
+    pDrone = &gDrone_specs[gCurrent_selected_drone];
+    if (pDrone->actor->render_style != BR_RSTYLE_FACES &&
+        !(gShow_drone_paths && pDrone->actor->render_style == BR_RSTYLE_BOUNDING_FACES)) {
+        if (gShow_drone_paths || (pDrone->field_0x44 && gCount_rendered_drones < 10)) {
+            DoNotDprintf_drone("START RENDERING: %d", pDrone->id);
+            gCount_rendered_drones += 1;
+            pDrone->actor->render_style = BR_RSTYLE_FACES;
+            PipeSingleDroneRender(pDrone, 1);
+        } else {
+            DoNotDprintf_drone("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 1);
+            if (pDrone->current_state != 1) {
+                if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                    gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+                }
+                pDrone->time_last_munge = gTime_stamp_for_this_munging;
+                pDrone->prev_states[1] = pDrone->prev_states[0];
+                pDrone->prev_states[0] = pDrone->current_state;
+                pDrone->current_state = 1;
+                if (gDrone_state_functions[1] != NULL) {
+                    gDrone_state_functions[1](pDrone, eDrone_state_START);
+                }
+            }
+        }
+    }
+    if (BrVector3LengthSquared(&gDrone_specs[gCurrent_selected_drone].field_0x18) > gDrone_render_zero) {
+        return &gDrone_specs[gCurrent_selected_drone].field_0x18;
+    } else {
+        return &gDefault_drone_direction;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00452810
 void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender) {
