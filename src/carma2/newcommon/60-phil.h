@@ -106,7 +106,7 @@ extern void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pOb
 
 // PHILMungeObjects
 
-// PHILActivatePassive
+extern void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator);
 
 // PHILInterpolateObjects
 
@@ -124,9 +124,9 @@ extern int gPHIL_munging_objects;
 
 extern int gPHIL_object_added;
 
-// gPHIL_callbacks
+extern tPhysics_callbacks* gPHIL_callbacks;
 
-// gPHIL_original_activate_passive
+extern tWorld_callback_active_passive_cbfn* gPHIL_original_activate_passive;
 
 // gPHIL_queued_objects_for_removal
 
