@@ -130,7 +130,7 @@ extern void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval);
 
 extern void C2_HOOK_FASTCALL FlushFlicQueue(void);
 
-// InitialiseFlicPanel
+extern void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int pWidth, int pHeight);
 
 extern void C2_HOOK_FASTCALL DisposeFlicPanel(int pIndex);
 
@@ -150,8 +150,8 @@ extern int gSound_ID;
 
 extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
 
-// gPanel_flic_left
+extern int gPanel_flic_left[2];
 
-// gPanel_flic_top
+extern int gPanel_flic_top[2];
 
 #endif // GUARD_38_FLICPLAY_H
