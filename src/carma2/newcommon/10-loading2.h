@@ -145,18 +145,18 @@ extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
 // gDamage_names
 
-// LoadCarCrushDataEntry
+extern void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage);
 
-// gSoftness_names
+extern const char* gSoftness_names[6];
 
-// gCrush_type_names
+extern const char* gCrush_type_names[3];
 
-// gEase_of_detachment_names
+extern const char* gEase_of_detachment_names[5];
 
-// gNormal_force_to_detach
+extern br_scalar gNormal_force_to_detach;
 
-// gCar_crush_shape_names
+extern const char* gCar_crush_shape_names[2];
 
-// gDetach_type_names
+extern const char* gDetach_type_names[4];
 
 #endif // GUARD_10_LOADING2_H

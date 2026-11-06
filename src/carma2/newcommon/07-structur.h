@@ -89,7 +89,7 @@ extern int gCount_toggled_doors;
 
 // gCount_net_crush_detach_list
 
-// gCrush_data_entry_counter
+extern tU8 gCrush_data_entry_counter;
 
 // gINT_0067bdfc
 

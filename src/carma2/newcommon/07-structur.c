@@ -84,7 +84,8 @@ int gCount_toggled_doors;
 
 // gCount_net_crush_detach_list
 
-// gCrush_data_entry_counter
+// GLOBAL: CARMA2_HW 0x0067be08
+tU8 gCrush_data_entry_counter;
 
 // gINT_0067bdfc
 
