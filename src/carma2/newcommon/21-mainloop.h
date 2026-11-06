@@ -20,6 +20,8 @@ extern tU32 gOld_camera_time;
 extern tU32 gActual_last_tick_count;
 extern tU32 gAverage_frame_period;
 
+// gLast_munge_smash_edge_triggers
+
 // gUnk_006a23d0
 
 // gReplay_show_controls
@@ -53,6 +55,8 @@ extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
 
 extern tRace_result C2_HOOK_FASTCALL MainGameLoop(void);
 
+// MungeSmashEdgeTriggers
+
 // PollActionReplayControls
 
 extern tRace_result C2_HOOK_FASTCALL DoRace(void);
@@ -72,5 +76,9 @@ extern tRace_result C2_HOOK_FASTCALL DoRace(void);
 // FUN_00403c70
 
 // FUN_00403210
+
+// gCount_track_smashable_environment_specs
+
+// gTrack_smashable_environment_specs
 
 #endif // GUARD_21_MAINLOOP_H

@@ -8,6 +8,7 @@
 
 #include "21-mainloop.h"
 #include "00-car.h"
+#include "04-netgame.h"
 #include "09-funks.h"
 #include "15-displays.h"
 #include "16-graphics1.h"
@@ -49,6 +50,8 @@ tU32 gActual_last_tick_count;
 // GLOBAL: CARMA2_HW 0x0068c824
 // GLOBAL: CARMA2_SW 0x00686878
 tU32 gAverage_frame_period;
+
+// gLast_munge_smash_edge_triggers
 
 // gUnk_006a23d0
 
@@ -207,6 +210,8 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
 
     NOT_IMPLEMENTED();
 }
+
+// MungeSmashEdgeTriggers
 
 // PollActionReplayControls
 
