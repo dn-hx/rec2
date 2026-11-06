@@ -86,6 +86,6 @@ extern br_pixelmap* gReplay_pixelmaps[11];
 
 // WorkerPedDismember
 
-// WorkerFlap
+extern void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8);
 
 #endif // GUARD_22_REPLAY_H
