@@ -1410,7 +1410,12 @@ void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk) {
 
 // ApplyPedStatus
 
-// ApplyPedDir
+// FUNCTION: CARMA2_HW 0x004c9ad0
+void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_dir* chunk = (tPipe_chunk_ped_dir*)*pChunk;
+
+    return WorkerPedDir(chunk->field_0x0, &chunk->field_0x4);
+}
 
 // ApplyPedMove
 
@@ -1770,7 +1775,18 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // WorkerPedPos
 
-// WorkerPedDir
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ca4d0
+void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // WorkerPedStatus
 
