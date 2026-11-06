@@ -229,7 +229,7 @@ extern void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel);
 
 extern void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel);
 
-// ReAttachBit
+extern void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject);
 
 // CentreModelOnPoint
 
@@ -609,6 +609,6 @@ extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_mod
 
 // gINT_0067be84
 
-// gCar_outlet
+extern tS3_outlet* gCar_outlet;
 
 #endif // GUARD_13_CRUSH1_H

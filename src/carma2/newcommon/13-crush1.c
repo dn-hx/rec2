@@ -974,7 +974,18 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-// ReAttachBit
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x00434010
+void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CentreModelOnPoint
 
@@ -1129,14 +1140,53 @@ void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject)
     NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, NULL);
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// STUB: CARMA2_HW 0x004387d0
-// STUB: CARMA2_SW 0x00438800
+// FUNCTION: CARMA2_HW 0x004387d0
+// FUNCTION: CARMA2_SW 0x00438800
 void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_flap_data* flap_data;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    flap_data = crush_data->flap_data;
+    if (flap_data == NULL) {
+        return;
+    }
+    if (flap_data->kev_o_flap) {
+        if (gNet_mode != eNet_mode_none) {
+            if (gNet_mode == eNet_mode_host) {
+                tPhysics_object* object;
+                tNet_message* message;
+
+                object = *(tPhysics_object**)((char*)flap_data + 0x24);
+                message = NetBuildGuaranteedMessage(0x26, 0);
+                message->guaranteed.contents.detach_bit.ID = NetPlayerFromCar(pCar_spec)->ID;
+                message->guaranteed.contents.detach_bit.field_0x4 = object->uid;
+                message->guaranteed.contents.detach_bit.field_0x8 = gPHIL_last_physics_tick + 120;
+                NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, 0);
+            }
+        } else {
+            ReAttachBit(pCar_spec, pCar_spec->car_model_actor, pActor, *(tPhysics_object**)((char*)flap_data + 0x24));
+            MungeDetachLists(pCar_spec->car_crush_spec);
+        }
+    } else {
+        pCar_spec->car_crush_spec->field_0x134 -= 1;
+        BrMatrix34Identity(&pActor->t.t.mat);
+        PipeSingleFlap(pActor, -flap_data->field_0x4);
+        flap_data->field_0x4 = 0;
+        flap_data->field_0x2 = 0;
+        flap_data->field_0x6 = 0x3ffc;
+        flap_data->field_0x8 = 0x3ffc;
+        flap_data->field_0x0 = 0;
+    }
+    DRS3StartSound3D(gCar_outlet, 0x1482, &pCar_spec->car_master_actor->t.t.translate.t, &gZero_v__car, 1, 255, IRandomBetween(0xe000, 0x12000), 0x10000);
 }
 
 // FUNCTION: CARMA2_HW 0x00439500
