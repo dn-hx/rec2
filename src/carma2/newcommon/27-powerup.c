@@ -58,7 +58,32 @@ int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
     return (int*)&gJoystick_effects[index];
 }
 
-// PlayExclusiveFFBEffect
+// FUNCTION: CARMA2_HW 0x0045c6b0
+void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2) {
+    int index;
+    int* effect;
+
+    if (!gForceFeedbackAvailable) {
+        return;
+    }
+    index = PDFindJoystickEffect(pEffect_name);
+    if (index == -1) {
+        return;
+    }
+    if (gCurrent_ffb_effect_index != -1 && gCurrent_ffb_effect_index != index) {
+        StopDinputEffect(gCurrent_ffb_effect_index);
+        UnloadDinputFFBEffectAtIndex(gCurrent_ffb_effect_index);
+        gCurrent_ffb_effect_index = -1;
+    }
+    if (gCurrent_ffb_effect_index != -1) {
+        effect = GetJoystickEffect(gCurrent_ffb_effect_index);
+        if (pArg2 == 0 && effect != NULL && effect[2] == -1) {
+            return;
+        }
+    }
+    gCurrent_ffb_effect_index = index;
+    StartDinputEffect(index);
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -215,7 +240,8 @@ const float gConst_0p5 = 0.5f;
 // GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = -0.15;
 
-// gCurrent_ffb_effect_index
+// GLOBAL: CARMA2_HW 0x0059630c
+int gCurrent_ffb_effect_index = -1;
 
 // GLOBAL: CARMA2_HW 0x006a0960
 tRepulse_link gRepulse_links[6] = { 0 };
