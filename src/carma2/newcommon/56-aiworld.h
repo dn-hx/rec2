@@ -32,7 +32,7 @@ extern void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF);
 
 extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
 
-// InitialiseAIWorldForRace
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 
@@ -54,12 +54,12 @@ extern int gChallenger_index__opponent;
 
 // gCount_active_drones
 
-// gTrack_drone_min_y
+extern float gTrack_drone_min_y;
 
-// gDrone_delta_time
+extern float gDrone_delta_time;
 
-// gFrame_period_for_this_munging
+extern tU32 gFrame_period_for_this_munging;
 
-// gFirst_drone_processing
+extern int gFirst_drone_processing;
 
 #endif // GUARD_56_AIWORLD_H

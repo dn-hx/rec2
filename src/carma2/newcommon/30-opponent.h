@@ -176,7 +176,7 @@ extern void C2_HOOK_FASTCALL DisposeOpponentPaths(void);
 
 // MungeOpponents
 
-// InitOpponents
+extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeOpponents(void);
 

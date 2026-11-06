@@ -555,7 +555,18 @@ void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
 
 // MungeOpponents
 
-// InitOpponents
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004add50
+void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004ae5d0
 // FUNCTION: CARMA2_SW 0x004aa740
