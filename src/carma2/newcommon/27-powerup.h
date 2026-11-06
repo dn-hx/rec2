@@ -300,7 +300,7 @@ extern void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatr
 
 // KangerooJump
 
-// AnnihilatePeds
+extern int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar);
 
 // NapalmPeds
 
@@ -504,6 +504,6 @@ extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
 
 extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 
-// FindPedestrianNearCar
+extern int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius);
 
 #endif // GUARD_27_POWERUP_H

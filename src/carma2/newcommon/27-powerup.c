@@ -256,7 +256,18 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
 
-// FindPedestrianNearCar
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ce030
+int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ScalePedHeads
 
@@ -947,7 +958,20 @@ void C2_HOOK_FASTCALL ARUndoShitMine(br_actor* pActor, br_matrix34* pMatrix) {
 
 // KangerooJump
 
-// AnnihilatePeds
+// FUNCTION: CARMA2_HW 0x004de140
+int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
+    int result;
+
+    if (FindPedestrianNearCar(pCar, pPowerup->float_params[0]) != 0) {
+        result = pPowerup - gPowerup_array;
+    } else {
+        result = -1;
+    }
+    if (result != -1) {
+        PlayExclusiveFFBEffect("Ped_Ray", 0);
+    }
+    return result;
+}
 
 // NapalmPeds
 
