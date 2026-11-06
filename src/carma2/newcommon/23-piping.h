@@ -25,7 +25,13 @@
 
 // tPipe_chunk_drone_straight_pos
 
-// tPipe_chunk_drone_corner_pos
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+    tU16 field_0x6;
+    tU16 field_0x8;
+    tU16 field_0xa;
+} tPipe_chunk_drone_corner_pos;
 
 // tPipe_chunk_vanish
 
@@ -218,7 +224,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // WorkerDroneStraightPos
 
-// WorkerDroneCornerPos
+extern void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 field_0x6, tU16 field_0x8, tU16* pField_0xa);
 
 // WorkerCrush
 
@@ -504,7 +510,7 @@ extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+extern void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk);
 
 // ApplyDroneStraightPos
 
