@@ -255,7 +255,7 @@ extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPla
 
 // StartFlapping
 
-// MungeDetachLists
+extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
 
 extern void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject);
 
