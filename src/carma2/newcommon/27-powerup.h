@@ -372,7 +372,7 @@ extern void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar
 
 // HitMine
 
-// SetMassMultiplier
+extern int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car);
 
 extern void C2_HOOK_FASTCALL ResetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
 
@@ -462,7 +462,7 @@ extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar
 
 // PeriodicCloaking
 
-// RecalculateCarMassMomentOfInertia
+extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
 
 extern const float gConst_0p5;
 
