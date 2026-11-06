@@ -111,11 +111,11 @@ extern void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer);
 
 // SelectRandomFox
 
-// CalcPlayerScores
+extern void C2_HOOK_FASTCALL CalcPlayerScores(void);
 
 // SendPlayerScores
 
-// DoNetGameManagement
+extern void C2_HOOK_FASTCALL DoNetGameManagement(void);
 
 extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer);
 
@@ -159,7 +159,7 @@ extern tU32 gPHIL_last_physics_tick;
 
 // SendDetachedNonCarDataToPlayer
 
-// gINT_0068d920
+extern int gINT_0068d920;
 
 // gTime_for_punishment
 

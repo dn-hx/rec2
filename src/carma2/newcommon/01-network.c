@@ -571,7 +571,18 @@ tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type
     return NULL;
 }
 
-// NetBroadcastContents
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x0049fb70
+void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0049fcf0
 // FUNCTION: CARMA2_SW 0x0049be70
