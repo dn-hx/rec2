@@ -490,8 +490,8 @@ extern tRepulse_link gRepulse_links[6];
 
 // gRespawn_powerups
 
-// GetJoystickEffect
+extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 
-// gCount_joystick_effects
+extern int gCount_joystick_effects;
 
 #endif // GUARD_27_POWERUP_H
