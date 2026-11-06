@@ -50,7 +50,7 @@ extern int gMutant_tail_state;
 extern tPhysics_object* gMutant_tail_object;
 extern float gMass_mutant_tail_link;
 
-// gCredit_multiplier
+extern int gCredit_multiplier;
 extern float gMass_mutant_tail_ball;
 extern float gMass_mine;
 extern int gInstant_handbrake;
@@ -406,7 +406,7 @@ extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
 // SetPissed
 
-// ResetPissed
+extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
 
 // PissedEffect
 

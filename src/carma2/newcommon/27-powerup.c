@@ -153,7 +153,8 @@ int gMutant_tail_state;
 // GLOBAL: CARMA2_SW 0x006fc638
 float gMass_mutant_tail_link;
 
-// gCredit_multiplier
+// GLOBAL: CARMA2_HW 0x00705be0
+int gCredit_multiplier;
 
 // GLOBAL: CARMA2_HW 0x00705b74
 // GLOBAL: CARMA2_SW 0x006fc634
@@ -1244,7 +1245,28 @@ void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // SetPissed
 
-// ResetPissed
+// FUNCTION: CARMA2_HW 0x004df300
+void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car) {
+    br_scalar sx;
+    br_scalar sy;
+    br_scalar sz;
+
+    gCredit_multiplier = 0;
+    sx = gCamera->t.t.mat.m[3][0];
+    sy = gCamera->t.t.mat.m[3][1];
+    sz = gCamera->t.t.mat.m[3][2];
+    BrMatrix34Identity(&gCamera->t.t.mat);
+    gCamera->t.t.mat.m[3][0] = sx;
+    gCamera->t.t.mat.m[3][1] = sy;
+    gCamera->t.t.mat.m[3][2] = sz;
+    sx = gRearview_camera->t.t.mat.m[3][0];
+    sy = gRearview_camera->t.t.mat.m[3][1];
+    sz = gRearview_camera->t.t.mat.m[3][2];
+    BrMatrix34Identity(&gRearview_camera->t.t.mat);
+    gRearview_camera->t.t.mat.m[3][0] = sx;
+    gRearview_camera->t.t.mat.m[3][1] = sy;
+    gRearview_camera->t.t.mat.m[3][2] = sz;
+}
 
 // PissedEffect
 
