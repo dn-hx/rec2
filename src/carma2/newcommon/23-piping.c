@@ -1506,7 +1506,10 @@ void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk) {
 
 // ApplyTransformType
 
-// ApplyOppoRenderage
+// FUNCTION: CARMA2_HW 0x004c9d80
+void C2_HOOK_FASTCALL ApplyOppoRenderage(tPipe_chunk** pChunk) {
+    SetOppoRender((tOpponent_spec*)*(tU32*)*pChunk, *(tU16*)((tU8*)*pChunk + 4));
+}
 
 // UndoCrush
 

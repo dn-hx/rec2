@@ -224,6 +224,6 @@ extern int gStop_opponents_moving;
 
 extern float gOppo_render_zero;
 
-// SetOppoRender
+extern void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender);
 
 #endif // GUARD_30_OPPONENT_H
