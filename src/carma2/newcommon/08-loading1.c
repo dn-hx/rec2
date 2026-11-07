@@ -374,7 +374,7 @@ br_scalar C2_HOOK_FASTCALL GetAScalar(FILE* pF) {
 }
 
 // FUNCTION: CARMA2_HW 0x00490130
-void GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2) {
+void C2_HOOK_FASTCALL GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2) {
     float f1;
     float f2;
 
@@ -1141,7 +1141,7 @@ void C2_HOOK_FASTCALL DisposeTrack(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004910d0
-int GetRegisterSourceLocation(char* pSource_location) {
+int C2_HOOK_FASTCALL GetRegisterSourceLocation(char* pSource_location) {
 #ifdef REC2_MATCHING
     HKEY hKey;
     LONG status;

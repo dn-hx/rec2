@@ -56,7 +56,7 @@ extern void C2_HOOK_FASTCALL GetFourInts(FILE* pF, int* pF1, int* pF2, int* pF3,
 
 extern br_scalar C2_HOOK_FASTCALL GetAScalar(FILE* pF);
 
-extern void GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2);
+extern void C2_HOOK_FASTCALL GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2);
 
 extern void C2_HOOK_FASTCALL GetThreeScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3);
 
@@ -108,8 +108,24 @@ extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
 
 extern void C2_HOOK_FASTCALL DisposeTrack(void);
 
-extern int GetRegisterSourceLocation(char* pSource_location);
+extern int C2_HOOK_FASTCALL GetRegisterSourceLocation(char* pSource_location);
 
 extern void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec);
+
+
+extern tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF);
+extern tS16 C2_HOOK_FASTCALL ReadS16(FILE* pF);
+extern tS8 C2_HOOK_FASTCALL ReadS8(FILE* pF);
+extern void C2_HOOK_FASTCALL WriteS32L(FILE* pF, tS32 pNumber);
+extern void C2_HOOK_FASTCALL WriteS16L(FILE* pF, tS16 pNumber);
+extern void C2_HOOK_FASTCALL WriteS8L(FILE* pF, tS8 pNumber);
+extern void C2_HOOK_FASTCALL SkipBytes(FILE* pF, int pBytes_to_skip);
+extern tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr);
+extern void C2_HOOK_FASTCALL DisposeKevStuff(void);
+extern void C2_HOOK_FASTCALL LoadingNoOp(void);
+extern tU32 C2_HOOK_FASTCALL DecimalDigitsToBitmask(tU32 pValue);
+extern void C2_HOOK_FASTCALL DecodeLine(char* pS);
+extern void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path);
+extern void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path);
 
 #endif // GUARD_08_LOADING1_H
