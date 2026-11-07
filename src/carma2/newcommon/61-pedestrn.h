@@ -282,7 +282,7 @@ extern void C2_HOOK_FASTCALL InitPedsForRace(void);
 
 // AdjustProxRay
 
-// ResetProxRay
+extern void C2_HOOK_FASTCALL ResetProxRay(void);
 
 extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
 // NextPedCam

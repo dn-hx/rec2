@@ -2223,7 +2223,16 @@ void C2_HOOK_FASTCALL InitPedsForRace(void) {
 
 // AdjustProxRay
 
-// ResetProxRay
+// PARTIAL 83.33%: ResetProxRay 0x004d61f0 - 5 of 6 instructions match; the loop bound compiles to the right absolute address (0x694238) but as a plain constant, while the original records it as the data symbol gPed_slick. Naming gPed_slick in the loop condition changes the strength-reduced shape: index-pointer form 30.77%, pointer-walk form 40.00%.
+// FUNCTION: CARMA2_HW 0x004d61f0
+void C2_HOOK_FASTCALL ResetProxRay(void) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gProximity_rays); i++) {
+        gProximity_rays[i].start_time = 0;
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x004d6210
 tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
