@@ -31,4 +31,8 @@ extern void C2_HOOK_FASTCALL SaveAdditionalActors(void);
 
 extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
 
+
+extern void C2_HOOK_FASTCALL LoadAdditionalStuff(void);
+extern intptr_t C2_HOOK_CDECL MoveModelVertices(br_actor* pActor, br_vector3* pOffset);
+
 #endif // GUARD_11_WORLD1_H

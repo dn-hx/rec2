@@ -29,12 +29,24 @@ extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
 
 // MungeRaceFinished
 
-// CalculateCameraStuff
-
+extern void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period);
 // CheckActiveCarList
 
 extern tRace_result C2_HOOK_FASTCALL MainGameLoop(void);
 
 extern tRace_result C2_HOOK_FASTCALL DoRace(void);
+
+
+extern void C2_HOOK_FASTCALL ResetCarScreens(void);
+extern void C2_HOOK_FASTCALL MungeJoystickHeadups(void);
+extern void C2_HOOK_FASTCALL LastChanceForPedEffects(void);
+extern void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+extern void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period);
+extern void C2_HOOK_FASTCALL PickActionReplayManualCameraTarget(int pCursor_x, int pCursor_y, int pArg3);
+extern void C2_HOOK_FASTCALL FUN_00403c70(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
+extern void C2_HOOK_FASTCALL FUN_00403210(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
+extern void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAverage_frame_period);
+extern void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime);
+extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
 
 #endif // GUARD_21_MAINLOOP_H

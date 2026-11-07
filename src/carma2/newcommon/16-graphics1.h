@@ -25,14 +25,11 @@ extern int gSaved_table_count;
 extern tSaved_table gSaved_shade_tables[100];
 extern int gNumber_of_lollipops;
 
-// MungeClipPlane
-
+extern void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset);
 // TryThisEdge
 
-// ProcessShadow
-
-// RenderShadows
-
+extern void C2_HOOK_FASTCALL ProcessShadow(tCar_spec* pCar, br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform, br_scalar pDistance_factor);
+extern void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
 extern void C2_HOOK_FASTCALL SetShadowLevel(tShadow_level pLevel);
 
 extern tShadow_level C2_HOOK_FASTCALL GetShadowLevel(void);
@@ -81,12 +78,9 @@ extern void C2_HOOK_FASTCALL ResetScreenWobble(void);
 
 // FoxyStuff
 
-// DoARenderPass
-
-// DoACompleteRenderPass
-
-// RenderAFrame
-
+extern void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra);
+extern void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth);
+extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 extern void C2_HOOK_FASTCALL StartRenderingHeadups(void);
 
 extern void C2_HOOK_FASTCALL RenderThisHeadup(br_actor* pActor);
@@ -96,5 +90,11 @@ extern void C2_HOOK_FASTCALL StopRenderingHeadups(void);
 extern void C2_HOOK_FASTCALL CleanPolyFontDanglers(void);
 
 extern void C2_HOOK_FASTCALL ClearWobbles(void);
+
+
+extern void C2_HOOK_FASTCALL MapStuffAfterRender(void);
+extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
+extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
+extern int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex);
 
 #endif // GUARD_16_GRAPHICS1_H

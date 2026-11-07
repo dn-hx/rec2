@@ -14,18 +14,15 @@ extern br_scalar gCamera_zoom;
 
 // DoCameraControls  (no own address: inlined into GeneralisedPositionExternalCamera 0x00410c60)
 
-// FrozenCamera
-
+extern void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime);
 // CheckCameraHither
 
-// GetRaceLeader
-
+extern tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void);
 // AmIGettingBoredWatchingCameraSpin
 
 // ViewNetPlayer
 
-// ViewOpponent
-
+extern void C2_HOOK_FASTCALL ViewOpponent(void);
 extern void C2_HOOK_FASTCALL ReallyViewOpponent(void);
 
 extern void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar);
@@ -39,10 +36,8 @@ extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
 
 extern void C2_HOOK_FASTCALL ChangeCameraType(void);
 
-// ToggleCockpit
-
-// PositionCarMountedCamera
-
+extern void C2_HOOK_FASTCALL ToggleCockpit(void);
+extern void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime);
 extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 
 extern void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime);
@@ -55,18 +50,15 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 
 // MoveCamToIncident
 
-// PanningExternalCamera
-
+extern void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime);
 // CheckForWall
 
-// SetUpPanningCamera
-
+extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL SaveCameraPosition(int i);
 extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 // DrVector3RotateY
 
-// GeneralisedPositionExternalCamera
-
+extern void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matrix34* pMat, br_vector3* pPos, float pSpeed, float pSpeedo_speed, br_vector3* pDirection, br_vector3* pOmega, tU32 pTime_difference);
 // NormalPositionExternalCamera
 
 // PositionPedCam
@@ -75,14 +67,11 @@ extern void C2_HOOK_FASTCALL RestoreCameraPosition(int i);
 
 // MoveWithWheels  (no own address: inlined into GeneralisedPositionExternalCamera 0x00410c60)
 
-// SwingCamera
-
-// PointCameraAtCar
-
+extern void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor);
 // PointCamera
 
-// CollideCamera2
-
+extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
 extern int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pCamera_pos);
 
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
@@ -96,5 +85,9 @@ extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
 // FindAPed
 
 // MouseClickInActionReplay
+
+
+extern int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
+extern void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat);
 
 #endif // GUARD_59_CAMERA_H

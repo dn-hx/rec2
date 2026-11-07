@@ -19,24 +19,20 @@ extern int gActorBoxPick_StopGroovidelics;
 
 void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
 
-// AddObjectWallForce
-
+extern int C2_HOOK_FASTCALL AddObjectWallForce(float* pWalls, const br_vector3* pPoint, float pDistance, const br_vector3* pNormal, tU32 pUnused, int pCount, tPhysics_object* pObject, float pT, float pRadius, const float* pVector);
 extern int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const br_vector3* pPoint_a, br_scalar pT, const br_vector3* pPoint_b, const br_vector3* pNormal, int pCount, tPhysics_object* pObject_a, tPhysics_object* pObject_b, int pType, void* pUnused, br_scalar pValue);
 
-// RayCastThruFaceList
-
+extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
 // RayCastThruFaceList2
 
-// RayCastInBox
-
+extern int C2_HOOK_FASTCALL RayCastInBox(br_vector3* pRay_pos, br_vector3* pRay_dir, br_vector3* pHit_pos, br_scalar* pT, tPhysics_object* pObject);
 // FaceOffCount2
 
 // FaceOffCount
 
 // FaceOnCount
 
-// EliminateFaces
-
+extern int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix);
 extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex);
 
 // GetObjectObjectEdgeIntersections
@@ -45,12 +41,9 @@ extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* p
 
 // GetSphereToFacePoints
 
-// CheckSingleEdgeWithSphere
-
-// GetSphereToEdgePoints
-
-// GetCornerToFacePoints
-
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace);
+extern int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, int pParam1, int pParam2, int pParam3, int pParam4, int pParam5, int pParam6);
+extern int C2_HOOK_FASTCALL GetCornerToFacePoints(tPhysics_object* pObject, int pEdx, tU32 pParam1, int pParam2, int pParam3, char* pParam4, tU32 pParam5);
 // CylinderCheck
 
 // CheckTwoEdges
@@ -147,7 +140,7 @@ extern void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject);
 
 // CountJointForces
 
-// MoveJointedObject
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 // TellPhysicsJointsHaveChanged
 
@@ -159,8 +152,7 @@ extern void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject);
 
 // MatricesAreIdentical
 
-// InternalPrepareObject
-
+extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
 // PrepareObject
 
 // PrepareForCollisions
@@ -205,8 +197,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-// CheckForObjectHierachyTouchingObjectList
-
+extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 // MakeObjectDoSomething
 
 // GetReducedList
@@ -235,8 +226,7 @@ extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* 
 
 // DoCollisions
 
-// AddDoubleTorqueToMatrix
-
+extern int C2_HOOK_FASTCALL AddDoubleTorqueToMatrix(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag);
 
 extern int C2_HOOK_FASTCALL SetUpQuickHingeData(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
@@ -265,8 +255,7 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // NewAddFrictionObjectObject
 
-// NewAddFriction
-
+extern void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks);
 // ApplyForces
 
 // DoJointFriction
@@ -277,25 +266,22 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // RotateObjectSecondOrder
 
-extern void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, undefined4 pUnused, br_scalar pTime);
+extern void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, undefined4 pUnused, br_scalar pTime);
 
-// RotateObject
+extern void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time);
 
-// TranslateObject
-
+extern void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject);
 // GetFacesNearObject
 
-// ResetObjectAndChildren
-
-// ResetObjectList
-
+extern void C2_HOOK_FASTCALL ResetObjectAndChildren(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 // RepositionObjectGroup
 
 // SimpleRotate
 
-// InterpolateSingleObject
+extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt);
 
-// InterpolateObjects
+extern void C2_HOOK_FASTCALL InterpolateObjects(tPhysics_object* pObject, float pDt);
 
 // ApplyGravitySingleObject
 
@@ -436,5 +422,38 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 // GetCarSpecFromCollObjID
 
 // GetCollObjFromID
+
+
+extern void C2_HOOK_FASTCALL GetMatrixFromOrientation(br_matrix34* pMatrix, const tU16* pOrientation);
+extern br_scalar C2_HOOK_FASTCALL PhysicsObjectWeightedSquareSum(tPhysics_object* pObject);
+extern br_scalar C2_HOOK_FASTCALL FUN_004b7290(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL FUN_004b9650(tPhysics_object* pObject, tPhysics_object* pParent_context);
+extern void* C2_HOOK_FASTCALL FUN_004c5c70(int pSize);
+extern int C2_HOOK_FASTCALL FUN_004b8350(tPhysics_object* pObject, tPhysics_joint_force* pForce);
+extern void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pStride, tPhysics_joint_force** pRecords, int pCount);
+extern void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse);
+extern void C2_HOOK_FASTCALL FUN_004b8ee0(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL FUN_004b8cf0(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL FUN_004be4b0(br_scalar* pOut1, br_scalar* pOut2, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
+extern tPhysics_object** C2_HOOK_FASTCALL AppendOverlappingObjects(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object** pObjects);
+extern int C2_HOOK_FASTCALL FUN_004bd9e0(tPhysics_object* pObject, tPhysics_object** pOverlapping, tPhysics_joint_force* pContacts, int pCount, tWorld_callbacks* pWorld_callbacks, tPhysics_object* pList);
+extern int C2_HOOK_FASTCALL FUN_00425ca0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount);
+extern void C2_HOOK_FASTCALL FUN_004bddd0(tPhysics_object* pObject1, tPhysics_object* pObject2);
+extern void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pList);
+extern void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_bounds3* pBox);
+extern int C2_HOOK_FASTCALL CollectJointLimitsIntoBuffer(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
+extern int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
+extern int C2_HOOK_FASTCALL CopyPhysicsJointData(tPhysics_joint_force* pDestination, int pDestination_index, const tPhysics_joint_force* pSource, int pCount);
+extern int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL FUN_004bd4f0(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2);
+extern tCollision_shape_polyhedron_data* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_points);
+extern int C2_HOOK_FASTCALL FUN_00422030(br_model* pModel, int pCount_vertices, int* pVertex_indices);
+extern tPhysicsError C2_HOOK_FASTCALL FUN_00422400(tCollision_shape_polyhedron_data* pPolyhedron, int* pVertex_indices, br_model* pModel, int pCount_vertices);
+extern int C2_HOOK_FASTCALL FUN_00422500(tCollision_shape_polyhedron_data* pPolyhedron, br_model* pModel, int pMin_point_count, int pMax_point_count, int* pVertex_indices);
+extern void C2_HOOK_FASTCALL FUN_004b73a0(tPhysics_object* pObject, const br_matrix34* pParent_matrix, const br_matrix34* pRoot_matrix);
+extern void C2_HOOK_FASTCALL FUN_004b7310(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL FUN_004be350(float* pDestination, const float* pSource);
+extern void C2_HOOK_FASTCALL FUN_004b8fe0(tPhysics_object* pObject, float pDelta_time);
 
 #endif // GUARD_49_PHYSICS_H

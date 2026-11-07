@@ -2,6 +2,7 @@
 #define GUARD_LOADTIF_H
 
 #include "brender/brender.h"
+#include "rec2_types.h"
 
 extern br_pixelmap* C2_HOOK_FASTCALL CreatePalettePixelmapFromRGBChannels(br_uint_16* pRed_channel, br_uint_16* pGrn_channel, br_uint_16* pBlu_channel, int pRGB555);
 
@@ -32,5 +33,9 @@ extern int BuildPathWithDirAndSuffix(char* pDest_dir_path, char* pDest_file_path
 extern int C2_HOOK_FASTCALL DRstrrcasestr(int* pOffset, const char* pHaystack, int pLength_haystack, const char* pNeedle);
 
 extern int C2_HOOK_FASTCALL FindPaletteColour(br_colour pRgb, br_pixelmap *pPalette);
+
+
+extern int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data);
+extern void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode);
 
 #endif // GUARD_LOADTIF_H

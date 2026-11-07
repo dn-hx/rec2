@@ -1332,7 +1332,7 @@ void C2_HOOK_FASTCALL BroadcastStatus(void) {
 }
 
 // inlined helper of CheckForDisappearees (see NetStartBroadcastContents/NetBroadcastContents)
-static void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(const char* pMessage) {
+static void C2_HOOK_FASTCALL NetSendHeadupToAllPlayersHelper(const char* pMessage) {
     tNet_message* message;
     tNet_message_chunk* chunk;
     tPlayer_ID key;
@@ -1419,7 +1419,7 @@ void C2_HOOK_FASTCALL CheckForDisappearees(void) {
                 misc = GetMiscString(0x5a);
                 strcat(buffer, " ");
                 strcat(buffer, misc);
-                NetSendHeadupToAllPlayers(buffer);
+                NetSendHeadupToAllPlayersHelper(buffer);
                 RemoveNetPlayer(gNet_players[i].ID);
                 if (gProgram_state.racing != 0) {
                     NewTextHeadupSlot(4, 0, 3000, -4, buffer);

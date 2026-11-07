@@ -129,7 +129,7 @@ void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x004748e0
-float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
+float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
 
     if (pSlot_number < 0) {
         return 0.f;

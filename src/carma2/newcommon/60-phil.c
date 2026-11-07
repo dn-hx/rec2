@@ -1060,7 +1060,7 @@ void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysic
         }
     }
 }
-extern void C2_HOOK_FAKE_THISCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt);
+extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt);
 extern void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse);
 extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DRVector3Diminish(br_vector3* pV1, const br_vector3* pV2);
@@ -1070,7 +1070,7 @@ extern float gGravity_multiplier;
 // PARTIAL 88.61%: RepositionObjectGroup 0x004c2830 - body complete; remaining diff is x87 scheduling of the
 // three v*dt products (the original keeps them in st registers, this build spills/reorders by two instructions).
 // FUNCTION: CARMA2_HW 0x004c2830
-void C2_HOOK_FAKE_THISCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt) {
+void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt) {
     tPhysics_object* pChild;
     float t0;
     float t1;
@@ -1579,7 +1579,7 @@ int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_ti
 
 
 extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
-extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject);
 extern int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);

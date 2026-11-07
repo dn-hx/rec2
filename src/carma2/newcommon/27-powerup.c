@@ -36,7 +36,7 @@ extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, in
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 extern tS3_outlet* gCar_outlet;
-extern void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
 extern const float gConst_0p1;
 extern const double gConst_10_over_7;
 extern const double gConst_inverse_world_scale;
@@ -1695,7 +1695,7 @@ void C2_HOOK_FASTCALL LoadPowerups(void) {
 // InitRepulseEffects
 
 // FUNCTION: CARMA2_HW 0x004da290
-tPhysics_object* C2_HOOK_FAKE_THISCALL MungeBoxObject(br_model* pModel, undefined4 pArg2, float pMass) {
+tPhysics_object* C2_HOOK_FASTCALL MungeBoxObject(br_model* pModel, undefined4 pArg2, float pMass) {
     tPhysics_object* box;
 
     C2_HOOK_BUG_ON(sizeof(tPhysics_object) != 0x4d8);
@@ -3160,13 +3160,6 @@ void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* powerup, tCar_spec* car) {
     gMutant_speed = 0.0f;
 }
 
-typedef struct {
-    tNet_message_chunk_header header;
-    tPlayer_ID player_id;
-    int powerup_index;
-    int time_remaining;
-    int field_0x10;
-} tNet_message_chunk_powerup;
 
 extern tPlayer_ID gLocal_net_ID;
 extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);

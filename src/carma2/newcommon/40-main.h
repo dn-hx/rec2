@@ -5,8 +5,7 @@
 
 extern C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void);
 
-// ServiceTheGame
-
+extern void C2_HOOK_FASTCALL ServiceTheGame(int pRacing);
 extern void C2_HOOK_FASTCALL ServiceGame(void);
 
 // ServiceGameInRace

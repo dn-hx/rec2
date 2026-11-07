@@ -443,7 +443,7 @@ void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
 /* local declarations for ProcessShitMines (no new includes/externs in headers) */
 extern tShit_mine gShit_mines[20];
 extern tU32 gPHIL_last_physics_tick;
-extern void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
 extern void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
@@ -1501,7 +1501,7 @@ int gINT_006844fc;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00431610
-void C2_HOOK_FAKE_THISCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
+void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
     tCar_crush_spec* spec;
     tPhysics_object* collision_info;
     tPhysics_object* panel_actor;

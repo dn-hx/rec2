@@ -94,4 +94,7 @@ extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
 
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
 
+
+extern void C2_HOOK_FASTCALL SetSlotXY(int pSlot_index, int pX_coord, int pY_coord);
+
 #endif // GUARD_42_INPUT_H

@@ -23,7 +23,7 @@ extern void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon);
 
 extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
 
-extern float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
+extern float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 // ShiftBoundGrooveFunks
 
 // AddNewFunkotronic
@@ -32,8 +32,7 @@ extern void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner);
 
 extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
 
-// AddProximities
-
+extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
 // TryThisFunkLink
 
 // FindSmashableMaterial
@@ -48,12 +47,9 @@ extern void C2_HOOK_FASTCALL KillFunkotronic(int pOwner);
 
 // NormaliseDegreeAngle
 
-// FunkThoseTronics
-
-// PathGrooveBastard
-
-// ObjectGrooveBastard
-
+extern void C2_HOOK_FASTCALL FunkThoseTronics(void);
+extern void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
+extern void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
 extern void C2_HOOK_FASTCALL GrooveThisDelic(tGroovidelic_spec* pGroove, tU32 pTime, int pInterrupt_it);
 
 extern void C2_HOOK_FASTCALL GrooveThoseDelics(void);
@@ -81,5 +77,8 @@ extern void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex);
 extern void C2_HOOK_FASTCALL AdjustFunkEnable(int pIndex, tS16 pFlags);
 
 extern tGroovidelic_spec* C2_HOOK_FASTCALL ActorsGroove(br_actor* pActor);
+
+
+extern void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis);
 
 #endif // GUARD_09_FUNKS_H

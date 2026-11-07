@@ -36,8 +36,7 @@ extern void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, i
 
 extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
-// DoHorizon
-
+extern void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 // DoDepthCue
 
 // DoFog
@@ -48,8 +47,7 @@ extern void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pix
 
 // DepthEffectSky
 
-// DoWobbleCamera
-
+extern void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera);
 // DoDrugWobbleCamera
 
 // DoSubaquaCam
@@ -95,5 +93,8 @@ extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
 extern tDepth_effect_type gSwap_depth_effect_type;
 
 extern br_pixelmap* gSwap_sky_texture;
+
+
+extern void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour);
 
 #endif // GUARD_33_DEPTH_H

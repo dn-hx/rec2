@@ -21,12 +21,10 @@ extern int gTrack_version;
 
 // CarArrowColour
 
-// ToggleTargetLock
-
+extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
 extern void C2_HOOK_FASTCALL CycleTargetLock(void);
 
-// CycleMapOptions
-
+extern void C2_HOOK_FASTCALL CycleMapOptions(void);
 extern void C2_HOOK_FASTCALL ToggleMapTransparency(void);
 
 extern void C2_HOOK_FASTCALL InitTargetLock(void);
@@ -34,14 +32,11 @@ extern void C2_HOOK_FASTCALL InitTargetLock(void);
 extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 // OppositeColour
 
-// DrawArrow
-
-// DrawMapBlip
-
+extern void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, const br_vector3* pPos, br_uint_32 pColour);
+extern void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pTime, br_matrix34* pTrans, const br_vector3* pPos, br_uint_32 pColour);
 // DrawSmashBlip
 
-// DrawMapSmallBlip
-
+extern void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const br_vector3 *pPos, int pColour);
 // CopyMapToScreen
 
 // DrawCarArrow
@@ -52,8 +47,7 @@ extern void C2_HOOK_FASTCALL CalcMapCheckpoint(br_pixelmap* pMap, int pCheckpoin
 extern void C2_HOOK_FASTCALL CalcMapCheckpoint2(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 extern void C2_HOOK_FASTCALL DrawCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 extern void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
-// DoMapOverlays
-
+extern void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen);
 // StartMap
 
 // FinishMap
@@ -66,16 +60,14 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 extern void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void);
 
-// AllocateOppoBarActor
-
+extern void C2_HOOK_FASTCALL AllocateOppoBarActor(int pX, int pY);
 // DoNearestOpponentRelativeHeightMarkerStuff
 
 extern void C2_HOOK_FASTCALL MapOverlay(void);
 
 // InitNearestCar
 
-// MapStuffBeforeRender
-
+extern void C2_HOOK_FASTCALL MapStuffBeforeRender(void);
 // MapStuffAfterRender
 
 // static void C2_HOOK_FASTCALL ReadMoodMessages(void);
@@ -95,5 +87,9 @@ extern void C2_HOOK_FASTCALL InitSmashTargets(void);
 extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
 
 extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
+
+
+extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern int C2_HOOK_FASTCALL GetOpponentStatus(tCar_spec* pCar);
 
 #endif // GUARD_62_GRAPHICS3_H

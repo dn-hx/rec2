@@ -174,4 +174,7 @@ extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* p
 
 // MapperNotifier
 
+
+extern void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer);
+
 #endif // GUARD_46_WIN95SYS_H

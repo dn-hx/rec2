@@ -54,4 +54,9 @@ extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
 
 extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
 
+
+extern int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile);
+extern int C2_HOOK_FASTCALL DRfsetpos(FILE* pF, fpos_t* pos);
+extern void C2_HOOK_FASTCALL PackfileNoOp(void);
+
 #endif // GUARD_70_PACKFILE_H

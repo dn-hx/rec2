@@ -33,8 +33,7 @@ extern void C2_HOOK_FASTCALL DisposeCurrentJoinPollGame(void);
 extern void C2_HOOK_FASTCALL DoNextJoinPoll(void);
 
 extern void C2_HOOK_FASTCALL NetStartProducingJoinList(tAddToJoinListProc *pAdd_proc);
-// NetEndJoinList
-
+extern void C2_HOOK_FASTCALL NetEndJoinList(void);
 extern void C2_HOOK_FASTCALL NetDisposePIDGameInfo(tNet_game_details* pDetails);
 
 extern void C2_HOOK_FASTCALL NetDisposeGameDetails(tNet_game_details* pDetails);
@@ -47,18 +46,15 @@ extern void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game);
 
 // NetSetPlayerSystemInfo
 
-// FillInThisPlayer
-
+extern void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost);
 // LoadCarN
 
-// DisposeCarN
-
+extern void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index);
 // PlayerHasLeft
 
 // RemoveReferencesToCar
 
-// NetPlayersChanged
-
+extern void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers);
 // NetHostGame
 
 extern int C2_HOOK_FASTCALL NetJoinGameLowLevel(tNet_game_details* pGame_details, const char* pName);
@@ -74,14 +70,11 @@ extern void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_lengt
 extern int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
 
 extern int C2_HOOK_FASTCALL NetReallySendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
-// NetSendMessageToPlayer
-
+extern int C2_HOOK_FASTCALL NetSendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
 extern int C2_HOOK_FASTCALL NetSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage);
 
-// NetSendMessageToAllPlayers
-
-// NetGetContentsSize
-
+extern int C2_HOOK_FASTCALL NetSendMessageToAllPlayers(tNet_game_details* pNet_game, tNet_message* pMessage);
+extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
 // NetGetMessageSize
 
 extern tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2);
@@ -94,8 +87,7 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message
 
 // NetGetToHostContents
 
-// NetStartBroadcastContents
-
+extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 // NetBroadcastContents
 
 extern void C2_HOOK_FASTCALL NetSendMessageStacks(void);
@@ -200,12 +192,10 @@ extern tPlayer_status C2_HOOK_FASTCALL NetGetPlayerStatus(void);
 
 extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
 
-// AddToGuaranteeList
-
+extern void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress, int pArg3, void* pNotifyFail);
 // NetGuaranteedSendMessageToPlayer
 
-// NetGuaranteedSendMessageToAddress
-
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress, void* pNotifyFail);
 extern void C2_HOOK_FASTCALL ResendGuaranteedMessages(void);
 
 // NetWaitForGuaranteeReplies
@@ -223,5 +213,12 @@ extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar)
 // StatReceivePacket
 
 // StatSendPacket
+
+
+extern void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pNet_player, int pSize);
+extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar);
+extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
+extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
 
 #endif // GUARD_01_NETWORK_H

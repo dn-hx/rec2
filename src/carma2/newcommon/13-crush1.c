@@ -4002,35 +4002,6 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // UnBendWheels
 
-// Inferred layout of the bend data stored at tCar_crush_spec::field_0x154
-// (the record is not modelled in rec2_types.h yet).
-typedef struct tBend_data_local {
-    br_scalar field_0x0;
-    br_scalar field_0x4;
-    undefined field_0x8[4];
-    br_scalar field_0xc;
-    br_scalar field_0x10;
-    undefined field_0x14[4];
-    br_vector3 field_0x18;
-    br_vector3 field_0x24;
-    br_vector3 field_0x30;
-    br_angle field_0x3c;
-    br_angle field_0x3e;
-    br_angle field_0x40;
-    undefined field_0x42[2];
-    br_vector3 field_0x44;
-    br_vector3 field_0x50;
-    br_vector3 field_0x5c;
-    br_vector3 field_0x68;
-    int field_0x74;
-    tCar_crush_vertex_data* field_0x78;
-} tBend_data_local;
-
-typedef struct tBend_point_context_local {
-    tCar_spec* car;
-    br_matrix34 matrix;
-    tBend_data_local* bend;
-} tBend_point_context_local;
 
 extern void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext);
@@ -5583,12 +5554,6 @@ tWorld_callbacks gWorld_callbacks = {
     NULL,
 };
 
-typedef struct {
-    undefined field_0x0[0x2c];
-    br_vector3 normal;
-    undefined field_0x38[0x28];
-} tSensible_place_contact;
-
 extern tPhysics_object* gUNK_0079ecbc;
 extern int gSensible_place_collect_active;
 extern int C2_HOOK_FASTCALL FUN_004228b0(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg);
@@ -5810,7 +5775,7 @@ void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern int gINT_00692dc8;
 
 // FUNCTION: CARMA2_HW 0x004b9750

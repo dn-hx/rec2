@@ -10,14 +10,11 @@ extern int gAR_camera_type;
 extern void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard);
 
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
-// DoZappyActionReplayHeadups
-
+extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
 extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
-// PreProcess
-
-// PostProcess
-
+extern void C2_HOOK_FASTCALL PreProcess(int pFrame_period);
+extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
 // DoActionReplay
 
 // MoveToEndOfReplay
@@ -26,21 +23,15 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // PollActionReplayControls
 
-// CheckReplayTurnOn
-
-// InitializeActionReplayPix
-
+extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
+extern void C2_HOOK_FASTCALL InitializeActionReplayPix(void);
 // FreeActionReplayPix
 
-// SynchronizeActionReplay
-
-// TurnOnActionReplay
-
-// TurnOffActionReplay
-
+extern void C2_HOOK_FASTCALL SynchronizeActionReplay(void);
+extern void C2_HOOK_FASTCALL TurnOnActionReplay(void);
+extern void C2_HOOK_FASTCALL TurnOffActionReplay(void);
 extern void C2_HOOK_FASTCALL AfterActionReplay(void);
-// ToggleReplay
-
+extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
 // DisplayMovieStatusPanel
 
 extern void C2_HOOK_FASTCALL ApplyTime(tU32 pTime);
@@ -138,5 +129,18 @@ extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_ac
 extern void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector);
 
 extern void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine);
+
+
+extern void C2_HOOK_FASTCALL ServiceGameInRace(void);
+extern void C2_HOOK_FASTCALL ComparePedStuff(void);
+extern tU32 C2_HOOK_FASTCALL ARGetStartTime(void);
+extern br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b);
+extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
+extern tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
+extern void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
+extern void C2_HOOK_FASTCALL CreateSmashedGlassFragments(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
+extern void C2_HOOK_FASTCALL FUN_004c8940(uintptr_t pOwner);
+extern void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
+extern void C2_HOOK_FASTCALL DrawStatusMessage(int pReplay_only);
 
 #endif // GUARD_22_REPLAY_H

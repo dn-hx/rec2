@@ -225,12 +225,8 @@ void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-typedef struct {
-    tCar_spec* car;
-    float step;
-    float* total_displacement;
-    float displacement;
-} tCrush_displacement_context_local;
+/* tCrush_displacement_context_local is declared in 58-crush2.h so the
+   prototypes of FUN_0043b2e0/FUN_0043b400 can name it. */
 // FUN_0043b2e0 - body (GPL-3.0). It was kept
 // here as a PARTIAL at 85.42% (the remaining diff then was the x87 tail idiom); the final tree, with
 // the block-scope `delta` temp in the axis accumulation and the tail statement

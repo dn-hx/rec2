@@ -844,7 +844,7 @@ void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
 
 // MatricesAreIdentical
 
-extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 extern void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_bounds3* pBox);
 
@@ -1245,7 +1245,7 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-extern void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 extern double gDOUBLE_0058a798;
 
@@ -1821,7 +1821,7 @@ void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_call
 // RotateObjectSecondOrder
 
 // FUNCTION: CARMA2_HW 0x004c1f10
-void C2_HOOK_FAKE_THISCALL RotateObjectFirstOrder(tPhysics_object* pObject, undefined4 pUnused, br_scalar pTime) {
+void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, undefined4 pUnused, br_scalar pTime) {
     br_matrix34 rotation;
     br_vector3 axis;
     br_vector3 momentum;
@@ -1885,7 +1885,7 @@ void C2_HOOK_FASTCALL GetMatrixFromOrientation(br_matrix34* pMatrix, const tU16*
 
 // and ApexWorm 6afd11ad1
 // FUNCTION: CARMA2_HW 0x004c1be0
-void C2_HOOK_FAKE_THISCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time) {
+void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time) {
     br_matrix34 rotation;
     br_vector3 axis;
     br_vector3 momentum;
@@ -2098,7 +2098,7 @@ void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects) {
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004c2670
-void C2_HOOK_FAKE_THISCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt) {
+void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt) {
     br_vector3 temp;
     br_vector3 axis;
     br_scalar length;
@@ -2128,7 +2128,7 @@ void C2_HOOK_FAKE_THISCALL InterpolateSingleObject(tPhysics_object* pObject, br_
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004c27c0
-void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, float pDt) {
+void C2_HOOK_FASTCALL InterpolateObjects(tPhysics_object* pObject, float pDt) {
     br_vector3 omega_world;
 
     pObject->rotate_omega.v[0] = pObject->omega.v[0];
@@ -2818,7 +2818,7 @@ br_scalar C2_HOOK_FASTCALL FUN_004b7290(tPhysics_object* pObject) {
 #pragma inline_depth(0)
 #endif
 // FUNCTION: CARMA2_HW 0x004b7510
-void C2_HOOK_FAKE_THISCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
+void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
     br_scalar energy;
     br_scalar total;
     tPhysics_joint_force* records[40];

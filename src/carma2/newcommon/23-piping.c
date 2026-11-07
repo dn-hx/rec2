@@ -796,7 +796,6 @@ extern tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession);
 extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
 extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
 extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time);
-typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
 
 // FUNCTION: CARMA2_HW 0x00403260
 void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {

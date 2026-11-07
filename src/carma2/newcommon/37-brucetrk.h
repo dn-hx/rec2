@@ -31,14 +31,12 @@ extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_sca
 
 // ExtractColumns
 
-// RenderTrack
-
+extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
 extern br_scalar C2_HOOK_STDCALL GetYonFactor(void);
 
 extern void C2_HOOK_STDCALL SetYonFactor(br_scalar pNew);
 
 extern intptr_t C2_HOOK_CDECL FoundAnActor(br_actor* pActor, void* pContext);
 
-// ProcessNearbyActors
-
+extern intptr_t C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, int pIdentifier_value, int pIdentifier_index, int pMatch_flags, tNearbyActors_cbfn* pCallback, void* pContext);
 #endif // GUARD_37_BRUCETRK_H

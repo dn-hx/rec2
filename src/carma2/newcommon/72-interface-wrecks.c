@@ -131,7 +131,7 @@ extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
 extern int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixelmap* viewport, int pick_x, int pick_y, dr_pick2d_cbfn* callback, void* arg);
 extern int C2_HOOK_CDECL WreckPick(br_actor* world, br_model* model, br_material* material, br_vector3* pos, br_vector3* dir, br_scalar pNear, br_scalar pFar, void* arg);
 
-static int C2_HOOK_FASTCALL KeepInRange(int pIndex, int pRange) {
+static int C2_HOOK_FASTCALL KeepInRangeWrecks(int pIndex, int pRange) {
 
     while (pIndex < 0) {
         pIndex += pRange;
@@ -311,13 +311,13 @@ int C2_HOOK_FASTCALL WrecksUpdateFunc(tFrontend_spec* pFrontend) {
                 } else if (!gPrev_frontend_mouse_down) {
                     DRS3StartSound(gEffects_outlet, eSoundId_LeftButton);
 
-                    if (gFrontend_wrecks_current == KeepInRange(selected_car + 2, gFrontend_wrecks_car_count) && gFrontend_wrecks_car_count > 3) {
+                    if (gFrontend_wrecks_current == KeepInRangeWrecks(selected_car + 2, gFrontend_wrecks_car_count) && gFrontend_wrecks_car_count > 3) {
                         gFrontend_wrecks_pending_hscroll += 60;
-                    } else if (gFrontend_wrecks_current == KeepInRange(selected_car + 1, gFrontend_wrecks_car_count)) {
+                    } else if (gFrontend_wrecks_current == KeepInRangeWrecks(selected_car + 1, gFrontend_wrecks_car_count)) {
                         gFrontend_wrecks_pending_hscroll += 30;
-                    } else if (gFrontend_wrecks_current == KeepInRange(selected_car - 2, gFrontend_wrecks_car_count) && gFrontend_wrecks_car_count > 3) {
+                    } else if (gFrontend_wrecks_current == KeepInRangeWrecks(selected_car - 2, gFrontend_wrecks_car_count) && gFrontend_wrecks_car_count > 3) {
                         gFrontend_wrecks_pending_hscroll -= 60;
-                    } else if (gFrontend_wrecks_current == KeepInRange(selected_car - 1, gFrontend_wrecks_car_count)) {
+                    } else if (gFrontend_wrecks_current == KeepInRangeWrecks(selected_car - 1, gFrontend_wrecks_car_count)) {
                         gFrontend_wrecks_pending_hscroll -= 30;
                     }
                 }

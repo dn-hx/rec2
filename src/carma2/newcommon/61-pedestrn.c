@@ -624,7 +624,7 @@ extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashabl
 extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
 extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
-extern void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
+extern void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2477,7 +2477,7 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 // DRVector3SafeCrossXZ
 
 // FUNCTION: CARMA2_HW 0x004042f0
-void C2_HOOK_FAKE_THISCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
+void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
     int i;
     br_vertex* v;
 
@@ -2911,7 +2911,7 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacte
 // Moved down here from the top of the file: at its original position this TU compiles it as
 // `fld vertex; fmul pX` (reccmp 94.12); at this position it is 100%. Measured with reccmp.
 // FUNCTION: CARMA2_HW 0x00404290
-void C2_HOOK_FAKE_THISCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
+void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
     int i;
     br_vertex* v;
 
@@ -7036,7 +7036,7 @@ void C2_HOOK_FASTCALL FUN_004d3600(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004d6c10
-void C2_HOOK_FAKE_THISCALL FUN_004d6c10(tPed_character_instance* pCharacter, undefined4 pArg2, char* pX, char* pY, char* pZ) {
+void C2_HOOK_FASTCALL FUN_004d6c10(tPed_character_instance* pCharacter, undefined4 pArg2, char* pX, char* pY, char* pZ) {
     char r;
 
     (void)pArg2;

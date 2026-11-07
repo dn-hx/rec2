@@ -1961,7 +1961,7 @@ void C2_HOOK_FASTCALL MoveAndCollideCar(tCar_spec* pCar, br_scalar pDt) {
 // the control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
 // 0x20000 right, 0x40000 acc, 0x80000 dec; 7.0 acc, +-0.125 turn step, 25.0 time steps, 0.05/(5+speed) sqrt term).
 // FUNCTION: CARMA2_HW 0x00417180
-void C2_HOOK_FAKE_THISCALL ControlCar2(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
+void C2_HOOK_FASTCALL ControlCar2(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
     br_scalar speed;
 
     (void)pUnused;
@@ -2008,7 +2008,7 @@ void C2_HOOK_FAKE_THISCALL ControlCar2(tCar_spec* pCar, void* pUnused, br_scalar
 
 // FUNCTION: CARMA2_HW 0x004173b0
 // FUNCTION: CARMA2_SW 0x004173e0
-void C2_HOOK_FAKE_THISCALL ControlCar3(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
+void C2_HOOK_FASTCALL ControlCar3(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
     br_scalar time_steps;
 
     (void)pUnused;
@@ -2052,7 +2052,7 @@ void C2_HOOK_FAKE_THISCALL ControlCar3(tCar_spec* pCar, void* pUnused, br_scalar
 // the control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
 // 0x20000 right, 0x40000 acc, 0x80000 dec, 0x800000 holdw; 7.0 acc, +-0.0625 turn step, 25.0 time steps).
 // FUNCTION: CARMA2_HW 0x00417a20
-void C2_HOOK_FAKE_THISCALL ControlCar5(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
+void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
     br_scalar speed;
 
     (void)pUnused;
@@ -4065,7 +4065,7 @@ extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 extern int C2_HOOK_FASTCALL GetOilSpillCount(void);
 extern void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scalar* pSize);
 extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
-extern float C2_HOOK_FAKE_THISCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
+extern float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
 extern float gYon_squared;
 extern int gIt_or_fox;
 extern float gFloat_sine_table[91];
@@ -7301,12 +7301,6 @@ int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
     return count_or_points * 6 + 1;
 }
 
-typedef struct {
-    tNet_message_chunk_header header;
-    undefined field_0x2[2];
-    tPlayer_ID player_id;
-    tU32 field_0x8;
-} tNet_message_chunk_crush_reattach_bit;
 
 // FUNCTION: CARMA2_HW 0x0043ce60
 void C2_HOOK_FASTCALL ReceivedCrushReattachBit(tNet_message_chunk_crush_reattach_bit* pContents) {

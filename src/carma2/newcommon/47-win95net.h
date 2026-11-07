@@ -16,4 +16,7 @@ extern tU32 C2_HOOK_FASTCALL PDNetExtractGameID(tNet_game_details* pDetails);
 
 extern void C2_HOOK_FASTCALL PDNetSetPlayerSystemInfo(tNet_game_player_info* pPlayer, void* pSender_address);
 
+
+extern void C2_HOOK_FASTCALL PDNetDisposeGameDetails(void);
+
 #endif // GUARD_47_WIN95NET_H

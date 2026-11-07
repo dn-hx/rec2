@@ -51,4 +51,8 @@ extern void C2_HOOK_FASTCALL ConfigureZombiePedTexturePath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTexturePath(void);
 
+
+extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmapAllow(const char* pPath_name);
+extern void C2_HOOK_FASTCALL DRLoadPixelmaps(const char* pPath_name);
+
 #endif // GUARD_63_LOADING3_H

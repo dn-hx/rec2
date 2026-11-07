@@ -47,33 +47,10 @@ int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
 #pragma auto_inline(on)
 #endif
 
-/* DirectInput 5 type subset, declared locally: the DirectX SDK include directory
-   is only visible to the platform target, not to newcommon.  Layouts match the
-   SDK headers (DIEFFECT is 0x34 bytes, matching tJoystick_force_effect in
+/* DirectInput 5 type subset: tDIEFFECT, tGUID and tJoystick_effect_spec live in
+   joystick.h so its prototypes can name them; their layouts match the SDK
+   headers (DIEFFECT is 0x34 bytes, matching tJoystick_force_effect in
    win32_types.h, whose name field sits at 0x68). */
-typedef struct {
-    tU32 dwSize;
-    tU32 dwFlags;
-    tU32 dwDuration;
-    tU32 dwSamplePeriod;
-    tU32 dwGain;
-    tU32 dwTriggerButton;
-    tU32 dwTriggerRepeatInterval;
-    tU32 cAxes;
-    tU32* rgdwAxes;
-    tS32* rglDirection;
-    void* lpEnvelope;
-    tU32 cbTypeSpecificParams;
-    void* lpvTypeSpecificParams;
-} tDIEFFECT;
-
-typedef struct {
-    tU32 Data1;
-    tU16 Data2;
-    tU16 Data3;
-    tU8 Data4[8];
-} tGUID;
-
 typedef struct {
     tDIEFFECT di_effect;
     tU8 type_specific_params[24];
@@ -82,11 +59,6 @@ typedef struct {
     tU32 field_0x64;
     char name[128];
 } tJoystickForceEffect;
-
-typedef struct tJoystick_effect_spec {
-    tGUID guid;
-    const tDIEFFECT* effect;
-} tJoystick_effect_spec;
 
 typedef struct tDirectInputEffect tDirectInputEffect;
 

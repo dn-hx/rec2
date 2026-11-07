@@ -25,8 +25,7 @@ extern void C2_HOOK_FASTCALL IncrementLap(void);
 // RayHitFace
 
 extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
-// CheckCheckpoints
-
+extern void C2_HOOK_FASTCALL CheckCheckpoints(void);
 extern void C2_HOOK_FASTCALL TotalRepair(void);
 
 // DoLogos
@@ -37,8 +36,7 @@ extern void C2_HOOK_FASTCALL TotalRepair(void);
 
 extern int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness);
 
-// SelectOpponents
-
+extern void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race);
 extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
 
 // SwapNetCarsLoad
@@ -53,10 +51,16 @@ extern int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result);
 
 extern void C2_HOOK_FASTCALL DoProgram(void);
 
-// JumpTheStart
+extern void C2_HOOK_FASTCALL JumpTheStart(void);
+extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
+extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
-// GoingToInterfaceFromRace
-
-// GoingBackToRaceFromInterface
+extern void C2_HOOK_FASTCALL ResetCrushSystems(void);
+extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
+extern void C2_HOOK_FASTCALL ResetPowerups(void);
+extern void C2_HOOK_FASTCALL InitPlayers(void);
+extern void C2_HOOK_FASTCALL InitRace(void);
+extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
+extern void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);
 
 #endif // GUARD_07_STRUCTUR_H

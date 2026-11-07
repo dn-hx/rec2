@@ -52,4 +52,7 @@ extern void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0,
 
 extern int C2_HOOK_FASTCALL TintedPolyIsOn(int pIndex);
 
+
+extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pIndex);
+
 #endif // GUARD_66_TINTEDPOLY_H

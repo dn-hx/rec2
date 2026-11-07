@@ -93,10 +93,8 @@ extern void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_dat
 
 // FoundSoundSource
 
-// MungeSoundGenerators
-
-// MungeEnvironmentalSound
-
+extern void C2_HOOK_FASTCALL MungeSoundGenerators(void);
+extern void C2_HOOK_FASTCALL MungeEnvironmentalSound(void);
 extern void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pName, int pIndex);
 
 extern void C2_HOOK_FASTCALL ReadSoundGenerators(tTrack_spec* pTrack_spec, FILE* pF);
@@ -112,5 +110,8 @@ extern void C2_HOOK_FASTCALL ConfigureBloodPedSoundPath(void);
 extern void C2_HOOK_FASTCALL ConfigureZombiePedSoundPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedSoundPath(void);
+
+
+extern int C2_HOOK_FASTCALL DRS3SetVolume(int pVolume);
 
 #endif // GUARD_69_SOUND_H

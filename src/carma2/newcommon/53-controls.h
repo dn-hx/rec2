@@ -73,12 +73,10 @@ extern void C2_HOOK_FASTCALL LookRight(void);
 
 extern void C2_HOOK_FASTCALL DamageTest(void);
 
-// ToggleMiniMap
-
+extern void C2_HOOK_FASTCALL ToggleMiniMap(void);
 // CheckToggles
 
-// CarWorldOffFallenCheckThingy
-
+extern int C2_HOOK_FASTCALL CarWorldOffFallenCheckThingy(tCar_spec* pCar, int pCheck_around);
 extern int C2_HOOK_FASTCALL HasCarFallenOffWorld(tCar_spec* pCar);
 
 // CheckForBeingOutOfThisWorld
@@ -99,29 +97,23 @@ extern void C2_HOOK_FASTCALL SetRecovery(void);
 
 // ExplodeCar
 
-// CheckRecoveryOfCars
-
+extern void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime);
 // TradeInAPO
 
-// CheckOtherRacingKeys
-
+extern void C2_HOOK_FASTCALL CheckOtherRacingKeys(void);
 extern int C2_HOOK_FASTCALL CheckRecoverCost(void);
 
 // SortOutRecover
 
-// SetFlipUpCar
-
+extern void C2_HOOK_FASTCALL SetFlipUpCar(tCar_spec* pCar);
 // AlignChildren
 
-// FlipUpCar
-
+extern void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL GetPowerup(int pNum);
 
-// CheckSystemKeys
-
+extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
 extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
-// CheckKevKeys
-
+extern void C2_HOOK_FASTCALL CheckKevKeys(void);
 // BrakeInstantly
 
 extern void C2_HOOK_FASTCALL PollCarControls(void);
@@ -129,8 +121,7 @@ extern void C2_HOOK_FASTCALL PollCarControls(void);
 extern void C2_HOOK_FASTCALL PollCameraControls(tU32 pCamera_period);
 extern void C2_HOOK_FASTCALL SetFlag2(int i);
 extern void C2_HOOK_FASTCALL ToggleFlying(void);
-// CycleInvulnerability
-
+extern void C2_HOOK_FASTCALL CycleInvulnerability(void);
 extern void C2_HOOK_FASTCALL ToggleTimerFreeze(void);
 
 extern void C2_HOOK_FASTCALL EarnDosh(void);
@@ -149,26 +140,43 @@ extern void C2_HOOK_FASTCALL AddVouchers(int amount);
 
 extern void C2_HOOK_FASTCALL ResetRecoveryVouchers(void);
 extern void C2_HOOK_FASTCALL CycleYonFactor(void);
-// CycleSoundDetailLevel
-
-// CycleCarSimplificationLevel
-
+extern void C2_HOOK_FASTCALL CycleSoundDetailLevel(void);
+extern void C2_HOOK_FASTCALL CycleCarSimplificationLevel(void);
 extern void C2_HOOK_FASTCALL ToggleAccessoryRendering(void);
 extern void C2_HOOK_FASTCALL UserSendMessage(void);
 extern void C2_HOOK_FASTCALL EnterUserMessage(void);
 
-// DisplayUserMessage
-
+extern void C2_HOOK_FASTCALL DisplayUserMessage(void);
 extern void C2_HOOK_FASTCALL InitAbuseomatic(void);
 
 extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
-// ChangeCameraTypeInGame
-
+extern void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void);
 // SteelBollock
 
 extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);
 
 extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
+
+
+extern void C2_HOOK_FASTCALL FUN_00511210(void);
+extern void C2_HOOK_FASTCALL FUN_00511200(void);
+extern void C2_HOOK_FASTCALL ToggleJoystickHeadup(void);
+extern void C2_HOOK_FASTCALL F4Key(void);
+extern void C2_HOOK_FASTCALL TDamageEngine(void);
+extern void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
+extern float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection);
+extern void C2_HOOK_FASTCALL LeftInventory(void);
+extern void C2_HOOK_FASTCALL RightInventory(void);
+extern void C2_HOOK_FASTCALL ToggleShellModel(void);
+extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
+extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
+extern void C2_HOOK_FASTCALL FUN_0045c240(void);
+extern int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2);
+extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
+extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
+extern void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount);
 
 #endif // GUARD_53_CONTROLS_H

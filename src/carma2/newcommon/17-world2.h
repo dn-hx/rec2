@@ -58,8 +58,7 @@ extern void C2_HOOK_FASTCALL SetWallTexturingLevel(tWall_texturing_level pLevel)
 
 extern br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pFace);
 
-// DisposeTexturingMaterials
-
+extern void C2_HOOK_FASTCALL DisposeTexturingMaterials(void);
 extern intptr_t C2_HOOK_CDECL SetAccessoryRenderingCB(br_actor* pActor, void* pFlag);
 
 extern void C2_HOOK_FASTCALL SetAccessoryRendering(int pOn);

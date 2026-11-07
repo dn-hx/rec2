@@ -6,8 +6,7 @@
 
 // QuitVerifyStart
 
-// QuitVerifyDone
-
+extern int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out);
 extern int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background);
 
 extern void C2_HOOK_FASTCALL DoMainScreen(void);

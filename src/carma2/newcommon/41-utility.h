@@ -60,8 +60,7 @@ extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithMat(br_actor* pActor, b
 
 extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_matrix34* pMatrix, recurse_with_trans_cbfn* pCall_back, void* pArg);
 
-// DRActorEnumRecurseWithSnart
-
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
 extern int C2_HOOK_FASTCALL sign(int pNumber);
 
 extern FILE* C2_HOOK_FASTCALL OpenUniqueFileB(char* pPrefix, char* pExtension);
@@ -102,7 +101,7 @@ extern void C2_HOOK_FASTCALL PossibleService(void);
 
 extern void C2_HOOK_FASTCALL DRMatrix34TApplyP(br_vector3* pA, const br_vector3* pB, const br_matrix34* pC);
 
-extern void C2_HOOK_FASTCALL DRPixelmapRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DRPixelmapRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h);
 
 extern int C2_HOOK_FASTCALL NormalSideOfPlane(br_vector3* pPoint, br_vector3* pNormal, br_scalar pD);
 
@@ -134,8 +133,7 @@ extern void C2_HOOK_FASTCALL DRModelUpdateAndKevificateMaterials(br_model* pMode
 
 extern int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel, br_uint_16 pFlags);
 
-// DistanceFromFace
-
+extern float C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, tFace_ref* pFace);
 extern void C2_HOOK_FASTCALL DRBoundsCopy(br_bounds3* pDest, const br_bounds3* pSrc);
 
 extern int C2_HOOK_FASTCALL TestForNan(const float* f);
@@ -168,8 +166,7 @@ extern int C2_HOOK_FASTCALL PossibleUnlock(int pValue);
 
 extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
 
-// Colour24BitTo16Bit
-
+extern tU16 C2_HOOK_FASTCALL Colour24BitTo16Bit(br_colour pColour);
 extern br_pixelmap* C2_HOOK_FASTCALL PaletteOf16Bits(br_pixelmap* pSrc);
 
 extern void C2_HOOK_FASTCALL Copy8BitTo16Bit(br_pixelmap* pDst, br_pixelmap* pSrc, br_pixelmap* pPalette);
@@ -212,16 +209,25 @@ extern void C2_HOOK_FASTCALL PixelmapSwapByteOrder(br_pixelmap* pMap);
 
 extern void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2);
 
-// signf
+extern float C2_HOOK_FASTCALL signf(float pValue);
+extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest);
+extern void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource);
+extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
+extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV);
+extern int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV);
 
-// CopyMiscString
-
-// CopyBrMaterial
-
-// GetBlendTableName
-
-// DRVector2TestForNan
-
-// DRVector4TestForNan
+extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
+extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
+extern void C2_HOOK_FASTCALL NobbleNonzeroBlacks(br_pixelmap* pPalette);
+extern int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial);
+extern void C2_HOOK_FASTCALL FUN_005162d0(br_vector4* pDst, const br_vector4* pSrc);
+extern br_actor* C2_HOOK_FASTCALL CreateBoundsActor(br_actor* pParent, const br_bounds* pBounds);
+extern void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor);
+extern void C2_HOOK_FASTCALL FUN_005192a0(br_uint_16* pPixel);
+extern void C2_HOOK_FASTCALL FUN_005192c0(tU16* pPixel);
+extern void C2_HOOK_FASTCALL FUN_00519400(br_pixelmap* pMap);
+extern intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData);
+extern void C2_HOOK_FASTCALL CycleJoystick(void);
 
 #endif // GUARD_41_UTILITY_H

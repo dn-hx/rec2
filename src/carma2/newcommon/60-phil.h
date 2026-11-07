@@ -53,10 +53,8 @@ extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, t
 
 extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
 
-// GetNetworkDataSize
-
-// GetSingleMatrixFromNetworkData
-
+extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
+extern int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix);
 extern int C2_HOOK_FASTCALL PHILInit(void);
 
 extern void C2_HOOK_FASTCALL PHILDisable(void);
@@ -77,39 +75,38 @@ extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const
 
 extern int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject, const br_matrix34* pMatrix);
 
-// PHILAddActiveObject
-
+extern int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
 extern int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject);
 
-// PHILAddActiveObjectImmediately
-
-// PHILSetObjectProperty
-
+extern int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam);
 // FlushQueuedAddsAndRemoves
 
-// ChangedObjectsCallbacks
-
-// ProcessDrag2
-
+extern void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysics_callbacks* pCallbacks, tU32 pPeriod);
+extern void C2_HOOK_FASTCALL ProcessDrag2(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pDrag, int pObject_info_flags, tSpecial_volume* pSpecial_volume);
 // ProcessDrag
 
 extern void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject);
 
 // SetStandardGravity
 
-// ProcessGravity
-
-// LevelOutOnSurface
-
+extern void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pGravity);
+extern void C2_HOOK_FASTCALL LevelOutOnSurface(tPhysics_object* pObject);
 // PHILMungeObjects
 
-// PHILActivatePassive
-
+extern void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator);
 // PHILInterpolateObjects
 
 int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period);
 
 // PHILApplyPHILObject
+
+
+extern void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
+extern int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
+
+extern void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt);
 
 #endif // GUARD_60_PHIL_H

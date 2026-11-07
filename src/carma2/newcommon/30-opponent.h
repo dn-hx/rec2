@@ -15,8 +15,7 @@ extern float gOppo_render_zero;
 
 extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 
-// ProcessCurrentObjective
-
+extern void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 // ReallocExtraPathNodes
 
 // ReallocExtraPathSections
@@ -24,8 +23,7 @@ extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 extern int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* pTo);
 // WeightedFindNearestNodeAndSection
 
-// FindNearestGeneralSection
-
+extern tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance);
 // FindNearestPathSection
 
 // DeadStopCar
@@ -34,22 +32,17 @@ extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOn(tOpponent_spec* pOpponent_spe
 extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec);
 // ApplyOppoRenderage2
 
-// NewObjective
-
-// CalcRaceRoute
-
-// TopUpRandomRoute
-
-// SearchForSection
-
+extern void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_objective_type pObjective_type, ...);
+extern void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL TopUpRandomRoute(tOpponent_spec* pOpponent_spec, int pSections_to_add);
+extern int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_section* pPerm_store, int* pNum_of_perm_store_sections, tS16 pTarget_section, int pDepth, br_scalar pDistance_so_far, tOpponent_spec* pOpponent_spec);
 // UpdatePlayersSection
 
 // AllowForDecel
 
 extern int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces);
 
-// NewCalcGetNearPlayerRoute
-
+extern void C2_HOOK_FASTCALL NewCalcGetNearPlayerRoute(tOpponent_spec* pOpponent_spec, tCar_spec* pPursuee, int pForce);
 // CalcReturnToStartPointRoute
 
 // ClearOpponentsProjectedRoute
@@ -61,26 +54,21 @@ extern int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOppone
 
 // ProcessCompleteRace
 
-// StartRecordingTrail
-
+extern void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee);
 // RecordNextTrailNode
 
 // FindNearestTrailSection
 
 // CalcNextTrailSection
 
-// ProcessPursueAndTwat
-
+extern void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 // ProcessRunAway
 
 extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 
-// ProcessReturnToStart
-
-// ProcessLevitate
-
-// ProcessGetNearPlayer
-
+extern void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
+extern void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
+extern void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 // ProcessFrozen
 
 // HeadOnWithPlayerPossible
@@ -91,20 +79,15 @@ extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOppon
 
 // LastTwatterAPlayer
 
-// ObjectiveComplete
-
-// TeleportOpponentToNearestSafeLocation
-
-// ChooseNewObjective
-
-// ProcessThisOpponent
-
+extern void C2_HOOK_FASTCALL ObjectiveComplete(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMust_choose_one);
+extern void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec);
 // IsNetCarActive
 
 // NoteCarsCurrentlyUsed
 
-// AddIfNotInList
-
+extern void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount);
 extern void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender);
 
 extern void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCount);
@@ -127,14 +110,11 @@ extern void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec
 
 // MassageOpponentPosition
 
-// RematerialiseOpponentOnThisSection
-
+extern int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed);
 extern int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
 
-// RematerialiseOpponent
-
-// CalcPlayerConspicuousness
-
+extern int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
+extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec);
 extern void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOpponent_spec* pOpponent_spec);
 // NumberOfOpponentsStillRunning
 
@@ -142,8 +122,7 @@ extern void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeF
 
 extern void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info);
 
-// LoadInOppoPaths
-
+extern void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF);
 extern void C2_HOOK_FASTCALL DisposeOpponentPaths(void);
 
 // MungeOpponents
@@ -170,10 +149,8 @@ extern int C2_HOOK_FASTCALL GetOpponentsFirstSection(const tOpponent_spec* pOppo
 
 // GetOpponentsNextSection
 
-// GetOpponentsSectionStartNodePoint
-
-// GetOpponentsSectionFinishNodePoint
-
+extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
+extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 extern float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
 extern int C2_HOOK_FASTCALL GetOpponentsSectionMinSpeed(tOpponent_spec* pOpponent_spec, tS16 pSection, int pTowards_finish);
@@ -189,5 +166,11 @@ extern void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* p
 extern void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee);
 
 // GetOpponentMood
+
+
+extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
+extern void C2_HOOK_FASTCALL ProcessOpponentRepair(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist);
+extern void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet);
 
 #endif // GUARD_30_OPPONENT_H

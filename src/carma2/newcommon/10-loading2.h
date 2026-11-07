@@ -54,8 +54,7 @@ extern void C2_HOOK_FASTCALL LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_s
 
 // AddRefOffset
 
-// GetDamageProgram
-
+extern void C2_HOOK_FASTCALL GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location);
 extern intptr_t C2_HOOK_CDECL AllocateCarActorData(br_actor* pActor, void* pData);
 
 extern intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData);
@@ -110,8 +109,7 @@ extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
 
 extern void C2_HOOK_FASTCALL ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions);
 
-// PrintNetOptions
-
+extern int C2_HOOK_FASTCALL PrintNetOptions(FILE* pF, int pIndex);
 extern int C2_HOOK_FASTCALL SaveOptions(void);
 
 extern int C2_HOOK_FASTCALL RestoreOptions(void);
@@ -132,5 +130,11 @@ extern int gExplosion_sound_id;
 extern int gWasted_explosion_chance;
 
 extern void C2_HOOK_FASTCALL ReadPowerupSmashables(FILE* pF);
+
+
+extern int C2_HOOK_FASTCALL LoadCarCrush(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec);
+extern intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData);
+extern void C2_HOOK_FASTCALL LoadCarCrushDataEntry(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage);
+extern void C2_HOOK_FASTCALL LoadingNoOp2(void);
 
 #endif // GUARD_10_LOADING2_H

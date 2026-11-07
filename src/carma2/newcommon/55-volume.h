@@ -27,4 +27,7 @@ extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
 
 extern void C2_HOOK_FASTCALL ReadSpecialVolumes(FILE* pF);
 
+
+extern void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir);
+
 #endif // GUARD_55_VOLUME_H

@@ -46,10 +46,8 @@ extern void C2_HOOK_FASTCALL SetFadedPalette(int pK);
 
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
 
-// FadePaletteUp
-
-// EnsurePaletteUp
-
+extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
 extern void C2_HOOK_FASTCALL EnsureRenderPalette(void);
 
 extern void C2_HOOK_FASTCALL InitTransientBitmaps(void);
@@ -76,8 +74,7 @@ extern void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, i
 
 extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
-// DistanceFromPlane
-
+extern br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD);
 extern void C2_HOOK_FASTCALL KillSplashScreen(void);
 
 // SplashScreenWith
@@ -103,8 +100,7 @@ extern void C2_HOOK_FASTCALL DimRectangleClipped(br_pixelmap* pPixelmap, int pLe
 
 // DR16BitPixelmapRotatedAndFeatheredCopy
 
-// DRPixelmapRotatedAndFeatheredCopy
-
+extern void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans);
 extern void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pMap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, br_pixelmap* pPalette);
 
 // DR8BitFancyDrawLine
@@ -120,5 +116,10 @@ extern void C2_HOOK_FASTCALL DisableLights(void);
 extern void C2_HOOK_FASTCALL EnableLights(void);
 
 extern void C2_HOOK_FASTCALL DRPixelmapBlend75Copy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource);
+
+
+extern void C2_HOOK_FASTCALL DRSetPaletteByName(const char* pPalette_name);
+extern void C2_HOOK_FASTCALL DrawRectangleOutlineWithPalette(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour);
+extern void C2_HOOK_FASTCALL DrawBevelledRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour);
 
 #endif // GUARD_18_GRAPHICS2_H

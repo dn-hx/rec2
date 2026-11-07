@@ -170,15 +170,6 @@ void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position
 }
 
 // (reference only)
-typedef struct {
-    tNet_message_chunk_header header;
-    undefined field_0x2[2];
-    tU32 non_car_id;
-    tU32 player_id;
-    undefined field_0xc[4];
-    tU16 flags;
-    tU8 object_hierarchy[];
-} tNet_message_chunk_non_car;
 
 extern tS8 gNon_car_spec_indices[100];
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
@@ -2275,18 +2266,6 @@ int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* 
 #pragma auto_inline(on)
 #endif
 
-typedef struct {
-    tNet_message_chunk_header header;
-    undefined field_0x2[2];
-    tPlayer_ID player_id;
-    tU8 count;
-    undefined field_0x9[3];
-    struct {
-        tPlayer_ID player;
-        tU16 crush_state;
-        undefined field_0x6[2];
-    } players[1];
-} tNet_message_chunk_car_crush_sync;
 
 // FUNCTION: CARMA2_HW 0x0043d670
 void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk) {
