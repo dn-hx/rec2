@@ -77,7 +77,7 @@ br_scalar C2_HOOK_STDCALL BrFVector3Dot(const br_fvector3* v1, const br_vector3*
 
 void C2_HOOK_CDECL BrFVector3Normalise(br_fvector3* v1, const br_vector3* v2);
 
-void C2_HOOK_CDECL BrFVector3NormaliseLP(br_fvector3* v1, const br_vector3* v2);
+void C2_HOOK_STDCALL BrFVector3NormaliseLP(br_fvector3* v1, const br_vector3* v2);
 
 void C2_HOOK_CDECL BrVector2Normalise(br_vector2* v1, const br_vector2* v2);
 
