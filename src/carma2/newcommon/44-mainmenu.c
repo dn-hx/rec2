@@ -25,6 +25,19 @@ extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
 extern void C2_HOOK_FASTCALL FadePaletteUp(void);
 
+extern int gMouse_started;
+extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
+extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
+extern int C2_HOOK_FASTCALL IRandomBetween(int pA, int pB);
+extern void C2_HOOK_FASTCALL EndMouseCursor(void);
+extern void C2_HOOK_FASTCALL StartMouseCursor(void);
+extern void C2_HOOK_FASTCALL TurnOffPanelFlics(void);
+extern void C2_HOOK_FASTCALL LoadInterfaceStuff(int pWithin_race);
+extern int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice);
+
+// GLOBAL: CARMA2_HW 0x00659270
+tInterface_spec gQuitVerify_spec;
+
 // FUNCTION: CARMA2_HW 0x00494400
 int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out) {
     (void)pCurrent_mode;
@@ -47,9 +60,52 @@ int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int 
     return pCurrent_choice == 0;
 }
 
-// STUB: CARMA2_HW 0x00494450
+// FUNCTION: CARMA2_HW 0x00494450
 int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background) {
-    NOT_IMPLEMENTED();
+    int from_race;
+    int result;
+
+    from_race = 0;
+    if (gAusterity_mode != 0) {
+        return 1;
+    }
+    if (gProgram_state.racing != 0) {
+        FadePaletteDown();
+        ClearEntireScreen();
+        GoingToInterfaceFromRace();
+        from_race = 1;
+        gProgram_state.racing = 0;
+    }
+    switch (IRandomBetween(1, 3)) {
+    case 1:
+        gQuitVerify_spec.first_opening_flic = 0x82;
+        break;
+    case 2:
+        gQuitVerify_spec.first_opening_flic = 0x83;
+        break;
+    case 3:
+        gQuitVerify_spec.first_opening_flic = 0x84;
+        break;
+    }
+    gMouse_was_started__mainmenu = gMouse_started;
+    if (gMouse_started != 0) {
+        RemoveTransientBitmaps(1);
+        EndMouseCursor();
+    }
+    TurnOffPanelFlics();
+    gReplace_background = pReplace_background;
+    DRS3StopOutletSound(gEffects_outlet);
+    LoadInterfaceStuff(from_race);
+    result = DoInterfaceScreen(&gQuitVerify_spec, 0, 0);
+    if (gMouse_was_started__mainmenu != 0) {
+        LoadInterfaceStuff(from_race);
+        StartMouseCursor();
+    }
+    if (from_race) {
+        GoingBackToRaceFromInterface();
+        gProgram_state.racing = 1;
+    }
+    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x00494540
