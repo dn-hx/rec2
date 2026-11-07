@@ -1009,7 +1009,8 @@ void C2_HOOK_FASTCALL WeldCarByNetwork(tCar_spec* pCar) {
     }
     BendCar(pCar, id_a, id_b, id_c, &v, temp, 0);
 }
-// based on REA pseudocode and // FUNCTION: CARMA2_HW 0x0043df10
+// based on REA pseudocode
+// FUNCTION: CARMA2_HW 0x0043df10
 void C2_HOOK_FASTCALL WeldCarPartial(tCar_spec* pCar) {
     extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
     tCar_crush_spec* spec;
