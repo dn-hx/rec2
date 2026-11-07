@@ -141,6 +141,23 @@ extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 
 // StopSkid
 
+typedef struct tCollision_contact {
+    float impulse;
+    tPhysics_object* object1;
+    tPhysics_object* object2;
+    void* field_0xc;
+    float field_0x10;
+    br_vector3 r1;
+    br_vector3 r2;
+    br_vector3 normal;
+    br_vector3 field_0x38;
+    br_vector3 impulse1;
+    br_vector3 impulse2;
+    int type;
+} tCollision_contact;
+
+extern int C2_HOOK_FASTCALL ProcessForcesCallback(tCollision_contact* pContacts, float* pImpulses, int pCount);
+
 extern void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial);
 
 // CrushAndDamageCar
