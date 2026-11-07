@@ -173,6 +173,7 @@ extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_inf
 extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
 extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
 extern void C2_HOOK_FASTCALL FUN_0045c240(void);
+extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
 extern int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2);
 extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
 extern void C2_HOOK_FASTCALL FUN_0045a670(void);
