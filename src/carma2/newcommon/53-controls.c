@@ -2953,13 +2953,58 @@ void C2_HOOK_FASTCALL FUN_0045acf0(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0045a920
+// FUNCTION: CARMA2_HW 0x0045a920
 int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
-    /* inert stub (inserts one text into a headup text buffer's linked list) */
-    (void)pBuffer;
-    (void)pText;
-    (void)pArg3;
-    return 0;
+    tHeadup_text* pNode;
+    tHeadup_text* pCur;
+    int count;
+    int found;
+
+    pCur = pBuffer->texts;
+    found = 0;
+    count = 0;
+    if (pCur == NULL) {
+        pBuffer->texts = pText;
+        pText->next = NULL;
+        pBuffer->count = 1;
+        pBuffer->pos_last_add = 0;
+        pBuffer->text_last_add = pText;
+        return 0;
+    }
+    if (pArg3 == 0) {
+        pNode = pCur->next;
+        while (pNode != NULL) {
+            pCur = pNode;
+            count++;
+            pNode = pCur->next;
+        }
+        pText->next = NULL;
+        pCur->next = pText;
+    } else {
+        if (strcmp(pCur->text, pText->text) > 0) {
+            pBuffer->texts = pText;
+            pText->next = pCur;
+        } else {
+            pArg3 = 0;
+            pNode = pCur->next;
+            while (pNode != NULL && !found) {
+                if (strcmp(pNode->text, pText->text) > 0) {
+                    found = 1;
+                    pArg3 = (int)pNode;
+                } else {
+                    pCur = pNode;
+                }
+                pNode = pCur->next;
+                count++;
+            }
+            pText->next = (tHeadup_text*)pArg3;
+            pCur->next = pText;
+        }
+    }
+    pBuffer->count = pBuffer->count + 1;
+    pBuffer->pos_last_add = count;
+    pBuffer->text_last_add = pCur;
+    return count;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
