@@ -341,6 +341,7 @@ extern void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_
 extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
+extern void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4);
 extern int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex);
 extern int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
 
