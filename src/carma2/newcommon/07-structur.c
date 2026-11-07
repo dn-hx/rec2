@@ -1063,11 +1063,11 @@ int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
     extern int gAPO_pre_race[3];
     extern tRace_group_spec* gRace_groups;
     extern int gCountRaceGroups;
-    int min_count;
-    int min_index;
-    volatile int result;
-    int count;
     int i;
+    int count;
+    volatile int result;
+    int min_index;
+    int min_count;
 
     result = 0;
     if (pRace_result == eRace_completed) {
@@ -1094,12 +1094,18 @@ int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
         }
         count = gCurrent_race_group->count_races;
         min_count = 10000;
-        min_index = result; /* the original rereads the shared zero stack slot here */
-        for (i = 0; i < count; i++) {
-            if (gCurrent_race_group->races[i].count_opponents < min_count) {
-                min_count = gCurrent_race_group->races[i].count_opponents;
-                min_index = i;
-            }
+        if (count > 0) {
+            i = 0;
+            min_index = result; /* the original rereads the shared zero stack slot here */
+            do {
+                if (gCurrent_race_group->races[i].count_opponents < min_count) {
+                    min_count = gCurrent_race_group->races[i].count_opponents;
+                    min_index = i;
+                }
+                i++;
+            } while (i < count);
+        } else {
+            min_index = result;
         }
         if (min_count != 0) {
             gIs_boundary_race = 1;

@@ -45,6 +45,8 @@ extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pN
 
 // SwapNetCarsDispose
 
+extern int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result);
+
 // DoGame
 
 // InitialiseProgramState
