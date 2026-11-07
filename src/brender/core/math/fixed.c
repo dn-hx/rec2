@@ -1399,7 +1399,7 @@ br_angle BR_NAKED C2_HOOK_CDECL BrFixedATan2Fast(br_fixed_ls x, br_fixed_ls y) {
 }
 
 // FUNCTION: CARMA2_HW 0x005378bb
-uint16_t C2_HOOK_CDECL _BrISqrt32(uint32_t a) {
+br_uint_16 C2_HOOK_CDECL _BrISqrt32(br_uint_32 a) {
     // Shifting nth root algorithm
     uint32_t err;
     uint32_t est;
@@ -1468,7 +1468,7 @@ br_uint_32 C2_HOOK_FASTCALL _BrISqrt64(uint64_t a) {
 }
 
 // FUNCTION: CARMA2_HW 0x00537cba
-uint16_t C2_HOOK_CDECL _BrFastSqrt32(uint32_t v) {
+br_uint_16 C2_HOOK_CDECL _BrFastSqrt32(br_uint_32 v) {
     uint32_t exp;
 
     if (v == 0) {
@@ -1485,7 +1485,7 @@ uint16_t C2_HOOK_CDECL _BrFastSqrt32(uint32_t v) {
 }
 
 // FUNCTION: CARMA2_HW 0x00537ce5
-uint32_t C2_HOOK_CDECL _BrFastRSqrt32(uint32_t v) {
+br_uint_32 C2_HOOK_CDECL _BrFastRSqrt32(br_uint_32 v) {
     uint32_t exp;
 
     if (v == 0) {

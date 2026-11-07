@@ -2,6 +2,7 @@
 
 #include "core/fw/object.h"
 #include "device.h"
+#include "driver.h"
 #include "rendfcty.h"
 #include "timestmp.h"
 

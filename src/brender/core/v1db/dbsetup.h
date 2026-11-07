@@ -46,4 +46,7 @@ void C2_HOOK_CDECL BrV1dbBeginWrapper_Float(void);
 void C2_HOOK_CDECL BrV1dbEndWrapper_Float
 (void);
 
+
+extern void C2_HOOK_CDECL BrZbsEnd(void);
+
 #endif // REC2_DBSETUP_H

@@ -23,4 +23,7 @@ br_uint_32 C2_HOOK_CDECL BrResClassCount(char* pattern);
 
 br_uint_32 C2_HOOK_CDECL BrResClassEnum(char* pattern, br_resclass_enum_cbfn* callback, void* arg);
 
+
+extern void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
+
 #endif // REC2_RESREG_H
