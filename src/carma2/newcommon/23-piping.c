@@ -2288,7 +2288,29 @@ void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk) {
 }
 
 
-// ApplySmoke
+// PARTIAL 18.56%: ApplySmoke 0x004c91c0 - logic and callee arguments match (pos = reduced pos * 1/800 + car
+// actor translation; AdjustSmoke(index, type, &pos, radius * 1/1024, strength * 1/256)); residual is MSVC
+// frame/slot assignment (original frame 0x14, pos at [esp+0x14], two int conversion temps, &pos pinned in esi)
+// against ours (frame 0x10, one temp, esp-relative pos) plus x87 scheduling; unchanged by an int-local variant.
+// FUNCTION: CARMA2_HW 0x004c91c0
+void C2_HOOK_FASTCALL ApplySmoke(tPipe_chunk** pChunk) {
+    tPipe_chunk_smoke* chunk = (tPipe_chunk_smoke*)(*pChunk)->data.raw_data;
+    br_vector3 pos;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, pos, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, radius, 0x6);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, strength, 0x8);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, type, 0x9);
+
+    pos.v[0] = chunk->pos.v[0] * 0.00125;
+    pos.v[1] = chunk->pos.v[1] * 0.00125;
+    pos.v[2] = chunk->pos.v[2] * 0.00125;
+    pos.v[0] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[0];
+    pos.v[1] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[1];
+    pos.v[2] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[2];
+
+    AdjustSmoke((*pChunk)->subject_index, chunk->type, &pos, chunk->radius * 0.0009765625f, chunk->strength * 0.00390625f);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9280
 void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
@@ -2381,16 +2403,22 @@ void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk) {
     return ApplyTime(((tPipe_chunk_frame_bound*)*pChunk)->field_0x4);
 }
 
-// PARTIAL 94.65%: ApplyCar 0x004c9490 - logic and every operand/constant match (mat+v copy, TApplyV,
-// direction from -m[2] / normalised v, pos = translate.t + ApplyV(com*0.14492753), speedo = code/468100,
-// revs = (flags&0x7ff)*10, gear, frame_collision_flag, field_0x18cc); residual is a single MSVC regalloc
-// tie-break: the original reuses ecx (collision_info, loaded for the length test) in the BrVector3Normalise
-// branch where we reload [ebx+8] into eax (3 extra bytes, shifting the block-end jmp).
+// PARTIAL 95.63%: ApplyCar 0x004c9490. Logic, operands and constants match (mat+v copy, TApplyV,
+// direction from -m[2] or the normalised v, pos = translate.t + ApplyV(com*0.14492753), speedo = code/468100,
+// revs = (flags&0x7ff)*10, gear, frame_collision_flag, field_0x18cc). The 94.65% baseline reloaded
+// car->collision_info in the normalise branch; holding it in `collision_info` makes MSVC reuse ecx for the
+// length test exactly like the original, but that local also changes the inlined BrVector3Normalise x87
+// pattern, so the three multiplies are expanded with a scalar temp: components 0 and 1 then match the
+// original (fld mem / fmul st(1) / fstp), component 2 is still folded (fmul mem, no trailing fstp st(0),
+// 4 bytes short, which shifts both branch displacements). Remaining post-merge diff: the com_offset
+// `fmul [0x58a914]` and the two `lea` address computations are hoisted earlier than the original
+// (x87/regalloc scheduling tie-break).
 // FUNCTION: CARMA2_HW 0x004c9490
 void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk) {
     tCar_spec* car;
     br_vector3 com_offset_c;
     br_vector3 com_offset_w;
+    tPhysics_object* collision_info;
 
     if (((*pChunk)->subject_index & 0xffffff00) == 0) {
         car = &gProgram_state.current_car;
@@ -2402,12 +2430,32 @@ void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk) {
     car->collision_info->v = ((tPipe_car_chunk*)&(*pChunk)->data)->v;
     BrMatrix34TApplyV(&car->collision_info->velocity_car_space, &car->collision_info->v, &car->car_master_actor->t.t.mat);
 
-    if (BrVector3LengthSquared(&car->collision_info->velocity_car_space) < 0.01) {
+    collision_info = car->collision_info;
+
+    if (BrVector3LengthSquared(&collision_info->velocity_car_space) < 0.01) {
         car->direction.v[0] = -car->car_master_actor->t.t.mat.m[2][0];
         car->direction.v[1] = -car->car_master_actor->t.t.mat.m[2][1];
         car->direction.v[2] = -car->car_master_actor->t.t.mat.m[2][2];
     } else {
-        BrVector3Normalise(&car->direction, &car->collision_info->v);
+        br_scalar _scale;
+        br_scalar component;
+        _scale = BR_LENGTH3(collision_info->v.v[0], collision_info->v.v[1], collision_info->v.v[2]);
+        if (_scale > BR_SCALAR_EPSILON * 2) {
+            _scale = (br_scalar)(1.0 / _scale);
+            component = collision_info->v.v[0];
+            component *= _scale;
+            car->direction.v[0] = component;
+            component = collision_info->v.v[1];
+            component *= _scale;
+            car->direction.v[1] = component;
+            component = collision_info->v.v[2];
+            component *= _scale;
+            car->direction.v[2] = component;
+        } else {
+            car->direction.v[0] = 1.0f;
+            car->direction.v[1] = 0.0f;
+            car->direction.v[2] = 0.0f;
+        }
     }
 
     car->pos = car->car_master_actor->t.t.translate.t;
@@ -2423,24 +2471,6 @@ void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk) {
     car->frame_collision_flag = (((tPipe_car_chunk*)&(*pChunk)->data)->flags >> 11) & 1;
     car->field_0x18cc = ((tPipe_car_chunk*)&(*pChunk)->data)->field_0x40;
 }
-
-// FUNCTION: CARMA2_HW 0x004c96c0
-void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
-    tCar_spec* car;
-    tU32 code = ((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x0;
-
-    if ((code & 0xffffff00u) == 0) {
-        car = &gProgram_state.current_car;
-    } else {
-        car = GetCarSpec(code >> 8, code & 0xffu);
-    }
-
-    *(float*)((tU8*)car + 0x4a8) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x6 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4ac) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x7 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4b0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x8 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4b4) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x9 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4a0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x4 * 0.001831110569);
-
 
 // FUNCTION: CARMA2_HW 0x004c96c0
 void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
