@@ -1677,7 +1677,13 @@ void C2_HOOK_FASTCALL TestAutoSpecialVolume(tPhysics_object* pObject) {
 #define CAR_GEAR(c) (*(int*)&(c)->gear)
 
 // (GPL-3.0), adapted to the 0x415300 disassembly
-// PARTIAL 92.40%: frame 8 vs 0xc (original spills ft to [esp+0x18]); within-block x87/int scheduling in the factor, brake and revs blocks (fld/fmul order, hoisted loads) - non-source classes
+// PARTIAL 92.40%: frame 8 vs 0xc (original spills a tail x87 temp to [esp+0x18] and reuses the pDt arg slot at [esp+0x20]);
+// residual is within-block x87/int scheduling (hoisted keys load, and edi, fmul field_0x4d4) plus the revs-adjust tail,
+// which this body evaluates with fld gear/pDt + fdivp/fmulp while the original keeps torque*pDt on the stack and ends
+// `fst/fstp [esp+0x20]; fdiv [esp+0x20]; fadd [esp+0x14]`. Measured dead ends (2026-11-07, do not repeat): inlining `lt` and
+// writing `pDt*torque*5000.0` / `(gZero/(force_torque_ratio*0.0002))*(float)gear` = 91.49 (loses the matching `fdiv mem` at
+// 0x415780); swapping only those two operand orders = 92.40, byte-identical output (MSVC canonicalises commutative fmul).
+// Best body also in state/partials/CalcEngineForce.c.
 // FUNCTION: CARMA2_HW 0x00415300
 void C2_HOOK_FASTCALL CalcEngineForce(tCar_spec* pCar, br_scalar pDt) {
     br_scalar speed;
