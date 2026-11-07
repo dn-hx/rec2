@@ -76,4 +76,14 @@ extern tS3_error_codes C2_HOOK_FASTCALL PDS3PlayCDAChannel(tS3_channel* pChannel
 
 extern void C2_HOOK_FASTCALL PDS3ServiceCDA(tS32 pDelta_time);
 
+
+extern int C2_HOOK_FASTCALL PDS3Return0(void);
+extern int C2_HOOK_FASTCALL PDS3Return0_B(void);
+extern int C2_HOOK_FASTCALL PDS3PauseMidiChannel(tS3_channel* pChannel);
+extern int C2_HOOK_FASTCALL PDS3ResumeMidiChannel(tS3_channel* pChannel);
+extern int C2_HOOK_FASTCALL PDS3PauseCDA(volatile undefined4 pUnused_arg);
+extern int C2_HOOK_FASTCALL PDS3ResumeCDA(tS3_channel* pChannel);
+extern int C2_HOOK_FASTCALL PDS3StopMidiChannelWrapper(tS3_channel* pChannel, int pArg2, int pArg3, int pArg4, int pArg5, int pArg6);
+extern int C2_HOOK_FASTCALL PDS3Return0_C(tS3_channel* pChannel);
+
 #endif

@@ -198,4 +198,16 @@ extern int C2_HOOK_FASTCALL S3IsMidiEnabled(void);
 
 extern tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed);
 
+extern int C2_HOOK_FASTCALL S3NotifyUnbindChannel(tS3_channel* pChannel);
+
+extern tS3_error_codes C2_HOOK_FASTCALL FUN_00564a56(tS3_sound_tag pChannel_tag, int pPitch);
+
+extern int C2_HOOK_FASTCALL FUN_0056a6cd(int pTag, int pPitch);
+
+extern int C2_HOOK_FASTCALL PDS3UpdateMidiChannelPitch(tS3_channel* pChannel, int pPitch);
+
+extern int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel);
+
+extern int C2_HOOK_FASTCALL PDS3UnmuteMidiChannel(tS3_channel* pChannel);
+
 #endif // S3_AUDIO_H

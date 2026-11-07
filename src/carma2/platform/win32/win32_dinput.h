@@ -39,6 +39,8 @@ extern int C2_HOOK_FASTCALL InitForceFeedback(void);
 
 extern void C2_HOOK_FASTCALL ResetDInputJoystickFFB(int pIndex);
 
+extern BOOL CALLBACK Win32DInputJoystickEnum(const DIDEVICEINSTANCEA* pDeviceInstance, void* pContext);
+
 extern void C2_HOOK_FASTCALL RegisterJoystickFFBForces(void);
 
 extern void C2_HOOK_FASTCALL Win32InitInputDevice(void);
@@ -92,5 +94,18 @@ extern int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void);
 extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
 
 extern void C2_HOOK_FASTCALL DownloadDinputFFBEffectAtIndex(int index);
+
+
+extern tDirectInputJoystickInfo* C2_HOOK_FASTCALL JoystickDInputGetInfo(int pJoystickIndex, tU32* pButtonMask, tU32* pAxisMask);
+extern void C2_HOOK_FASTCALL AttachJoystickButtonInfos(size_t pSize, tWin32_void_voidptr_cbfn pCallback);
+extern size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void);
+extern void C2_HOOK_FASTCALL CollectJoystickButtonInfo(tButtonJoystickInfo* pInfo);
+extern void C2_HOOK_FASTCALL CollectJoystickButtonInfos(void);
+extern int C2_HOOK_FASTCALL CreateDinputEffect(int joystick_index, tJoystick_effect_description* description, const char *name);
+extern int C2_HOOK_FASTCALL ReadIforceEffectsNames(const char *path, char **names, size_t capacity);
+extern int C2_HOOK_FASTCALL UnloadDinputFFBEfectwithName(const char *name);
+extern void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName);
+extern tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickButtonInfos(size_t pSize);
+extern void C2_HOOK_FASTCALL FreeCurrentJoystickButtonInfos(void);
 
 #endif // C2_WIN32_INPUT_H

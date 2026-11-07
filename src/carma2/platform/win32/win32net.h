@@ -28,4 +28,10 @@ tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, 
 
 int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
 
+
+extern int C2_HOOK_FASTCALL PDNetSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer_id);
+extern int C2_HOOK_FASTCALL PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage);
+extern void C2_HOOK_FASTCALL PDNetDisposePlayer(void);
+extern int C2_HOOK_FASTCALL PDNetInitClient(void);
+
 #endif // C2_WIN32_NET_H

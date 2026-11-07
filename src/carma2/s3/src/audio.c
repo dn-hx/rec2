@@ -1531,7 +1531,7 @@ int C2_HOOK_FASTCALL S3SetChannelVolume(int pChannel_tag, int pVolume) {
 }
 
 // FUNCTION: CARMA2_HW 0x00564e9b
-int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, unsigned int pRepeats, int pLeft_volume, int pRight_volume,  tS32 pLeft_pitch, tS32 pRight_pitch) {
+int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, unsigned int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch) {
     tS3_descriptor* descriptor;
     tS3_channel *chan;
     float normalized_delta_volume;
