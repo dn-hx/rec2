@@ -1621,11 +1621,6 @@ int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     NOT_IMPLEMENTED();
     return 0;
 }
-/* temporary placeholder, address not identified yet */
-int C2_HOOK_FASTCALL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel) {
-    NOT_IMPLEMENTED();
-    return 0;
-}
 extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
 extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
