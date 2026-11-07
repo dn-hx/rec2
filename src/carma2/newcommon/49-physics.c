@@ -5325,9 +5325,35 @@ void C2_HOOK_FASTCALL FUN_004bc190(tPhysics_joint_force** pRecords, br_scalar* p
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004bd720
+// PARTIAL 89.17%: x87 schedule only - MSVC 5.0 hoists the omega.v[2] load above the divisor
+// (fld st(2)/fadd st,st) where the original loads it after the fadd; same residual as CapOmega
+// (0x4c1840, 89.80%). Not source-controllable: (2.f*t), t+t, a divisor local, statement order and
+// a pre-loaded joint pointer all compile to the same bytes.
+// FUNCTION: CARMA2_HW 0x004bd720
 int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    extern void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale);
+    tPhysics_object* other;
+    br_scalar t;
+
+    t = BrVector3LengthSquared(&pObject->omega) * 0.0016f;
+    if (t > 2.4649f) {
+        t = (float)sqrt(t) * 1.2738853f;
+        pObject->omega.v[0] = pObject->omega.v[0] / (2.f * t);
+        pObject->omega.v[1] = pObject->omega.v[1] / (2.f * t);
+        pObject->omega.v[2] = pObject->omega.v[2] / (2.f * t);
+        if (*(int*)((tU8*)pObject + 0x1e4) != 0) {
+            other = (tPhysics_object*)*(int*)(*(int*)((tU8*)pObject + 0x1e4) + 4);
+            other->omega.v[0] = other->omega.v[0] / (2.f * t);
+            other->omega.v[1] = other->omega.v[1] / (2.f * t);
+            other->omega.v[2] = other->omega.v[2] / (2.f * t);
+        }
+        FUN_004bc8e0(pObject, t * t);
+        if (*(int*)((tU8*)pObject + 0x198) != 0) {
+            ((int (C2_HOOK_FASTCALL *)(tPhysics_object*))*(int*)((tU8*)pObject + 0x198))(pObject);
+        }
+        return 1;
+    }
+    return 0;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -6302,6 +6328,16 @@ void C2_HOOK_FASTCALL FUN_004b8fe0(tPhysics_object* pObject, float pDelta_time) 
 // STUB: CARMA2_HW 0x004b9230
 void C2_HOOK_FASTCALL FUN_004b9230(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x004bc8e0
+void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
