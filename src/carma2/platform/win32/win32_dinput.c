@@ -397,6 +397,7 @@ void C2_HOOK_FASTCALL ShowCurrentJoystickName(void) {
     NewTextHeadupSlot(4, 0, 3000, -1, buffer);
 }
 
+// STUB: CARMA2_HW 0x00459a70
 // FUNCTION: CARMA2_HW 0x00459fb0
 size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void) {
     return gDirectInputJoystickInfos[gJoystick_index].count_buttons;
