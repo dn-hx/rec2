@@ -2381,7 +2381,66 @@ void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk) {
     return ApplyTime(((tPipe_chunk_frame_bound*)*pChunk)->field_0x4);
 }
 
-// ApplyCar
+// PARTIAL 94.65%: ApplyCar 0x004c9490 - logic and every operand/constant match (mat+v copy, TApplyV,
+// direction from -m[2] / normalised v, pos = translate.t + ApplyV(com*0.14492753), speedo = code/468100,
+// revs = (flags&0x7ff)*10, gear, frame_collision_flag, field_0x18cc); residual is a single MSVC regalloc
+// tie-break: the original reuses ecx (collision_info, loaded for the length test) in the BrVector3Normalise
+// branch where we reload [ebx+8] into eax (3 extra bytes, shifting the block-end jmp).
+// FUNCTION: CARMA2_HW 0x004c9490
+void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk) {
+    tCar_spec* car;
+    br_vector3 com_offset_c;
+    br_vector3 com_offset_w;
+
+    if (((*pChunk)->subject_index & 0xffffff00) == 0) {
+        car = &gProgram_state.current_car;
+    } else {
+        car = GetCarSpec((*pChunk)->subject_index >> 8, (*pChunk)->subject_index & 0xff);
+    }
+
+    car->car_master_actor->t.t.mat = ((tPipe_car_chunk*)&(*pChunk)->data)->mat;
+    car->collision_info->v = ((tPipe_car_chunk*)&(*pChunk)->data)->v;
+    BrMatrix34TApplyV(&car->collision_info->velocity_car_space, &car->collision_info->v, &car->car_master_actor->t.t.mat);
+
+    if (BrVector3LengthSquared(&car->collision_info->velocity_car_space) < 0.01) {
+        car->direction.v[0] = -car->car_master_actor->t.t.mat.m[2][0];
+        car->direction.v[1] = -car->car_master_actor->t.t.mat.m[2][1];
+        car->direction.v[2] = -car->car_master_actor->t.t.mat.m[2][2];
+    } else {
+        BrVector3Normalise(&car->direction, &car->collision_info->v);
+    }
+
+    car->pos = car->car_master_actor->t.t.translate.t;
+    com_offset_c.v[0] = car->centre_of_mass_world_scale.v[0] * 0.14492753f;
+    com_offset_c.v[1] = car->centre_of_mass_world_scale.v[1] * 0.14492753f;
+    com_offset_c.v[2] = car->centre_of_mass_world_scale.v[2] * 0.14492753f;
+    BrMatrix34ApplyV(&com_offset_w, &com_offset_c, &car->car_master_actor->t.t.mat);
+    BrVector3Accumulate(&car->pos, &com_offset_w);
+
+    car->speedo_speed = (float)((double)(int)((tPipe_car_chunk*)&(*pChunk)->data)->speedo_speed * (1.0 / 468100.0));
+    car->revs = (float)((((tPipe_car_chunk*)&(*pChunk)->data)->flags & 0x7ff) * 10);
+    *(tS32*)(void*)&car->gear = (((tPipe_car_chunk*)&(*pChunk)->data)->flags >> 12) - 1;
+    car->frame_collision_flag = (((tPipe_car_chunk*)&(*pChunk)->data)->flags >> 11) & 1;
+    car->field_0x18cc = ((tPipe_car_chunk*)&(*pChunk)->data)->field_0x40;
+}
+
+// FUNCTION: CARMA2_HW 0x004c96c0
+void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
+    tCar_spec* car;
+    tU32 code = ((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x0;
+
+    if ((code & 0xffffff00u) == 0) {
+        car = &gProgram_state.current_car;
+    } else {
+        car = GetCarSpec(code >> 8, code & 0xffu);
+    }
+
+    *(float*)((tU8*)car + 0x4a8) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x6 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4ac) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x7 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4b0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x8 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4b4) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x9 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4a0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x4 * 0.001831110569);
+
 
 // FUNCTION: CARMA2_HW 0x004c96c0
 void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {

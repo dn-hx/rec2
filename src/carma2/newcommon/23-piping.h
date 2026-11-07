@@ -659,7 +659,7 @@ extern void C2_HOOK_FASTCALL ApplyReplayFrameTime(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
-// ApplyCar
+extern void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
