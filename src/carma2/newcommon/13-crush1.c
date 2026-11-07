@@ -3245,13 +3245,12 @@ on_non_car_half:
 
 /* inlined into SplitCheck in the original */
 static void C2_HOOK_FASTCALL QuantizePlane(br_vector4* pPlane) {
-    tCompressed_vector3 compressed;
-    tU16 w;
+    tU16 compressed[4];
 
-    CompressVector3(&compressed, (const br_vector3*)pPlane, -1.f, 1.f);
-    w = DRScalarToU16(pPlane->v[3], -2.5f, 2.5f);
-    ExpandVector3((br_vector3*)pPlane, &compressed, -1.f, 1.f);
-    pPlane->v[3] = DRU16ToScalar(w, -2.5f, 2.5f);
+    CompressVector3((tCompressed_vector3*)compressed, (const br_vector3*)pPlane, -1.f, 1.f);
+    compressed[3] = DRScalarToU16(pPlane->v[3], -2.5f, 2.5f);
+    ExpandVector3((br_vector3*)pPlane, (const tCompressed_vector3*)compressed, -1.f, 1.f);
+    pPlane->v[3] = DRU16ToScalar(compressed[3], -2.5f, 2.5f);
 }
 
 /* inlined into SplitCheck in the original */
@@ -3259,23 +3258,27 @@ static int C2_HOOK_FASTCALL WithinBounds(br_scalar pValue, br_scalar pMin, br_sc
     return pValue >= pMin && !(pValue > pMax);
 }
 
+// PARTIAL 73.16%: SplitCheck - frame 0x44 and prologue match; residual: x87 load scheduling of first/second, param-slot choice for first_z/distance (orig: first_z in pLine slot, distance at esp+0x18) and the n2 register copies in the normalise.
 // FUNCTION: CARMA2_HW 0x004307e0
 int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane) {
     tCar_crush_spec* crush;
     const br_bounds3* bounds;
-    br_vector3 size;
     br_vector3 point;
-    br_scalar min_x;
-    br_scalar max_x;
-    br_scalar min_z;
-    br_scalar max_z;
-    br_scalar first;
+    br_vector3 size;
+    br_vector3 lo;
+    br_vector3 hi;
     br_scalar second;
+    br_scalar first_z;
+    br_scalar second_z;
     br_scalar distance;
     br_scalar length;
-    br_scalar qx;
-    br_scalar qy;
-    br_scalar qz;
+    br_scalar n0;
+    br_scalar plane_x;
+    br_scalar plane_y;
+    br_scalar plane_z;
+    br_scalar plane_d;
+    br_scalar plane_axis;
+    br_scalar min_axis;
     int axis;
     int next_axis;
     int last_axis;
@@ -3298,75 +3301,73 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
     }
 
     bounds = &pCar->collision_info->bb1;
-    size.v[0] = bounds->max.v[0] - bounds->min.v[0];
-    size.v[1] = bounds->max.v[1] - bounds->min.v[1];
-    size.v[2] = bounds->max.v[2] - bounds->min.v[2];
-    qx = size.v[0] * 0.25f;
-    qy = size.v[1] * 0.25f;
-    qz = size.v[2] * 0.25f;
-    (void)qy;
-    min_x = bounds->min.v[0] + qx;
-    max_x = bounds->max.v[0] - qx;
-    min_z = bounds->min.v[2] + qz;
-    max_z = bounds->max.v[2] - qz;
+    BrVector3Sub(&size, &bounds->max, &bounds->min);
+    BrVector3Scale(&point, &size, 0.25f);
+    BrVector3Add(&lo, &bounds->min, &point);
+    BrVector3Sub(&hi, &bounds->max, &point);
 
     switch (pMode) {
     case 0:
-        if (fabs(pLine->v[0]) > 0.001f) {
-            first = (pLine->v[2] - bounds->min.v[1] * pLine->v[1]) / pLine->v[0];
-            second = (pLine->v[2] - bounds->max.v[1] * pLine->v[1]) / pLine->v[0];
-            if (QuantizeWithinBounds(&first, 0.02f, bounds->min.v[0], bounds->max.v[0])
+        if ((float)fabs(pLine->v[0]) > 0.001f) {
+            pHeight = (pLine->v[2] - pLine->v[1] * bounds->min.v[1]) / pLine->v[0];
+            second = (pLine->v[2] - pLine->v[1] * bounds->max.v[1]) / pLine->v[0];
+            if (QuantizeWithinBounds(&pHeight, 0.02f, bounds->min.v[0], bounds->max.v[0])
                     && QuantizeWithinBounds(&second, 0.02f, bounds->min.v[0], bounds->max.v[0])
-                    && WithinBounds(0.5f * (first + second), min_x, max_x)) {
-                pPlane->v[0] = -size.v[1];
-                pPlane->v[2] = second - first;
+                    && WithinBounds((second + pHeight) * gFLOAT_00589a2c, lo.v[0], hi.v[0])) {
+                n0 = -size.v[1];
+                distance = second - pHeight;
+                pPlane->v[0] = n0;
+                pPlane->v[2] = distance;
                 pPlane->v[1] = 0.f;
-                length = (float)sqrt(pPlane->v[0] * pPlane->v[0] + pPlane->v[2] * pPlane->v[2]);
-                if (length <= 2.3841858e-07f) {
+                length = (float)sqrt(pPlane->v[0] * n0 + distance * distance);
+                if (length > 2.3841858e-07f) {
+                    length = (br_scalar)(1.0 / length);
+                    pPlane->v[1] = 0.f;
+                    pPlane->v[0] = length * n0;
+                    pPlane->v[2] = length * distance;
+                } else {
                     pPlane->v[0] = 1.f;
                     pPlane->v[1] = 0.f;
                     pPlane->v[2] = 0.f;
-                } else {
-                    length = 1.0 / length;
-                    pPlane->v[1] = 0.f;
-                    pPlane->v[0] = pPlane->v[0] * length;
-                    pPlane->v[2] = pPlane->v[2] * length;
                 }
-                point.v[0] = first;
                 point.v[1] = 0.f;
+                point.v[0] = pHeight;
                 point.v[2] = bounds->min.v[1];
-                goto set_w;
+                pPlane->v[3] = BrVector3Dot(&point, (br_vector3*)pPlane);
+                break;
             }
         }
-        if (!(fabs(pLine->v[1]) > 0.001f)) {
+        if (!((float)fabs(pLine->v[1]) > 0.001f)) {
             return 0;
-        }
-        first = (pLine->v[2] - bounds->min.v[0] * pLine->v[0]) / pLine->v[1];
-        second = (pLine->v[2] - bounds->max.v[0] * pLine->v[0]) / pLine->v[1];
-        if (!QuantizeWithinBounds(&first, 0.02f, bounds->min.v[2], bounds->max.v[2])
-                || !QuantizeWithinBounds(&second, 0.02f, bounds->min.v[2], bounds->max.v[2])
-                || !WithinBounds(0.5f * (first + second), min_z, max_z)) {
-            return 0;
-        }
-        pPlane->v[0] = second - first;
-        pPlane->v[2] = -size.v[0];
-        pPlane->v[1] = 0.f;
-        length = (float)sqrt(pPlane->v[0] * pPlane->v[0] + pPlane->v[2] * pPlane->v[2]);
-        if (length <= 2.3841858e-07f) {
-            pPlane->v[0] = 1.f;
-            pPlane->v[1] = 0.f;
-            pPlane->v[2] = 0.f;
         } else {
-            length = 1.0 / length;
+            first_z = (pLine->v[2] - bounds->min.v[0] * pLine->v[0]) / pLine->v[1];
+            second_z = (pLine->v[2] - pLine->v[0] * bounds->max.v[0]) / pLine->v[1];
+            if (!QuantizeWithinBounds(&first_z, 0.02f, bounds->min.v[2], bounds->max.v[2])
+                    || !QuantizeWithinBounds(&second_z, 0.02f, bounds->min.v[2], bounds->max.v[2])
+                    || !WithinBounds((second_z + first_z) * gFLOAT_00589a2c, lo.v[2], hi.v[2])) {
+                return 0;
+            }
+            n0 = second_z - first_z;
+            distance = -size.v[0];
+            pPlane->v[0] = n0;
+            pPlane->v[2] = distance;
             pPlane->v[1] = 0.f;
-            pPlane->v[0] = pPlane->v[0] * length;
-            pPlane->v[2] = pPlane->v[2] * length;
+            length = (float)sqrt(pPlane->v[0] * n0 + distance * distance);
+            if (length > 2.3841858e-07f) {
+                length = (br_scalar)(1.0 / length);
+                pPlane->v[1] = 0.f;
+                pPlane->v[0] = length * n0;
+                pPlane->v[2] = length * distance;
+            } else {
+                pPlane->v[0] = 1.f;
+                pPlane->v[1] = 0.f;
+                pPlane->v[2] = 0.f;
+            }
+            point.v[0] = bounds->min.v[0];
+            point.v[1] = 0.f;
+            point.v[2] = first_z;
+            pPlane->v[3] = BrVector3Dot(&point, (br_vector3*)pPlane);
         }
-        point.v[0] = bounds->min.v[0];
-        point.v[1] = 0.f;
-        point.v[2] = first;
-set_w:
-        pPlane->v[3] = pPlane->v[0] * point.v[0] + pPlane->v[1] * point.v[1] + pPlane->v[2] * point.v[2];
         break;
     case 1:
         pPlane->v[0] = 0.f;
@@ -3382,30 +3383,30 @@ set_w:
     }
 
     bounds = &pCar->car_actor->model->bounds;
-    axis = 2;
-    if (fabs(pPlane->v[0]) > 0.707107f) {
+    if ((float)fabs(pPlane->v[0]) > gCrushSqrtHalf) {
         axis = 0;
-    } else if (fabs(pPlane->v[1]) > 0.707107f) {
+    } else if ((float)fabs(pPlane->v[1]) > gCrushSqrtHalf) {
         axis = 1;
+    } else {
+        axis = 2;
     }
+    plane_y = pPlane->v[1];
     next_axis = (axis + 1) % 3;
-    last_axis = (axis + 2) % 3;
+    plane_z = pPlane->v[2];
+    plane_x = pPlane->v[0];
+    plane_d = pPlane->v[3];
+    plane_axis = pPlane->v[axis];
+    min_axis = bounds->min.v[axis] - -0.057971016f;
     point.v[axis] = 0.f;
-    point.v[next_axis] = 0.5f * (bounds->min.v[next_axis] + bounds->max.v[next_axis]);
-    point.v[last_axis] = 0.5f * (bounds->min.v[last_axis] + bounds->max.v[last_axis]);
-    distance = -(((point.v[1] * pPlane->v[1] + point.v[2] * pPlane->v[2])
-            + point.v[0] * pPlane->v[0] - pPlane->v[3]) / pPlane->v[axis]);
-    if (!(distance >= bounds->min.v[axis] - -0.057971016f)) {
-        return 0;
-    }
-    if (distance > bounds->max.v[axis] - 0.057971016f) {
+    last_axis = (axis + 2) % 3;
+    point.v[next_axis] = (bounds->min.v[next_axis] + bounds->max.v[next_axis]) * gFLOAT_00589a2c;
+    point.v[last_axis] = (bounds->min.v[last_axis] + bounds->max.v[last_axis]) * gFLOAT_00589a2c;
+    distance = -(((plane_x * point.v[0] + plane_z * point.v[2] + plane_y * point.v[1]) - plane_d) / plane_axis);
+    if (!WithinBounds(distance, min_axis, bounds->max.v[axis] - 0.057971016f)) {
         return 0;
     }
 
-    distance = (crush->driver_position.v[1] * pPlane->v[1]
-            + crush->driver_position.v[2] * pPlane->v[2])
-            + crush->driver_position.v[0] * pPlane->v[0] - pPlane->v[3];
-    if (distance < 0.f) {
+    if (BrVector3Dot(&crush->driver_position, (br_vector3*)pPlane) - pPlane->v[3] < gCrushZero) {
         pPlane->v[0] = -pPlane->v[0];
         pPlane->v[1] = -pPlane->v[1];
         pPlane->v[2] = -pPlane->v[2];
