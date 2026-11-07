@@ -229,5 +229,6 @@ extern void C2_HOOK_FASTCALL FUN_005192c0(tU16* pPixel);
 extern void C2_HOOK_FASTCALL FUN_00519400(br_pixelmap* pMap);
 extern intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData);
 extern void C2_HOOK_FASTCALL CycleJoystick(void);
+extern void C2_HOOK_FASTCALL FUN_0045c420(void);
 
 #endif // GUARD_41_UTILITY_H
