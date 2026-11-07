@@ -580,6 +580,7 @@ extern br_vector3 gZero_v__car;
 extern float gYon_squared;
 
 // (reference only)
+// PARTIAL 99.99%: one x87 delay-slot residual - the original schedules the flag store (0x4ed67c) between fcomp and fnstsw, our VC5 build places it between fld and fcomp; same instruction set, volatile-store A/B also 99.99, not source-controllable.
 // FUNCTION: CARMA2_HW 0x004ed490
 void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
     int i;
@@ -2744,6 +2745,11 @@ float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhy
     }
     return result;
 }
+// PARTIAL 96.08%: the original VS6 build keeps a third redundant `test eax,eax; je body` owner-null test
+// (0x4f513e) between the flags test and the driver load. MSVC 11 cannot reproduce it: duplicating the check in
+// the same `&&` chain, or as a separate `if (pObject->owner != NULL)` / `if (owner != NULL)` block, is CSE'd
+// with the first test (still 96.08); the local-variable form emits it but then value-range-removes the later
+// 0x4f514a test instead (92.11). The residual is this single 4-byte pair plus the resulting jump targets.
 // FUNCTION: CARMA2_HW 0x004f5110
 void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
     tCar_spec* car;
@@ -3963,6 +3969,10 @@ intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext) {
 #pragma auto_inline(off)
 #endif
 // (reference)
+// PARTIAL 99.99%: instruction-selection identical; only x87 delay-slot placement differs. Our VC5 build hoists
+// two independent integer instructions above an fdivp (the 0.5f push for the third FRandomPosNeg, and
+// `mov [esi+0xec],bl`/`mov edx,0x1f4`); the original keeps them after that fdivp (0x4d9d8a / 0x4d9da5). Same
+// opcodes, same data flow; no dependent instruction moved, so behaviour is unchanged.
 // FUNCTION: CARMA2_HW 0x004d9d00
 void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode) {
     int previous_dismemberfest;
