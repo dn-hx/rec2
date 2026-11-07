@@ -512,7 +512,70 @@ void C2_HOOK_FASTCALL NewCalcGetNearPlayerRoute(tOpponent_spec* pOpponent_spec, 
     pOpponent_spec->players_section_when_last_calced_full_path = pPursuee->field_0x155c;
 }
 
-// CalcReturnToStartPointRoute
+// FUNCTION: CARMA2_HW 0x004abf60
+void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec) {
+    int best_count;
+    br_scalar distance;
+    br_vector3 direction;
+    br_vector3 intersect;
+    tRoute_section route[10];
+    tRoute_section best[10];
+    br_scalar length;
+    tS16 section;
+    int count;
+
+    pOpponent_spec->nnext_sections = 0;
+    section = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction, &intersect, &distance);
+    length = sqrt(direction.v[0] * direction.v[0] + direction.v[1] * direction.v[1] + direction.v[2] * direction.v[2]);
+    if (length > 2.384185791015625e-07f) {
+        direction.v[0] = 1.0 / length * direction.v[0];
+        direction.v[1] = 1.0 / length * direction.v[1];
+        direction.v[2] = 1.0 / length * direction.v[2];
+    } else {
+        direction.v[0] = 1.f;
+        direction.v[1] = 0.f;
+        direction.v[2] = 0.f;
+    }
+    if (pOpponent_spec->car_spec->direction.v[2] * direction.v[2]
+            + pOpponent_spec->car_spec->direction.v[0] * direction.v[0]
+            + pOpponent_spec->car_spec->direction.v[1] * direction.v[1] > gOppo_render_zero) {
+        if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].section_no = section;
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].direction = 1;
+            pOpponent_spec->nnext_sections += 1;
+        }
+    } else {
+        if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].section_no = section;
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].direction = 0;
+            pOpponent_spec->nnext_sections += 1;
+        }
+    }
+    route[0].section_no = pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no;
+    route[0].direction = pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].direction;
+    gSFS_cycles_this_time = 0;
+    gSFS_count = (int)((unsigned int)gSFS_count + 1u);
+    SearchForSection(route, best, &best_count, pOpponent_spec->return_to_start_data.section_no, 1, 0.f, pOpponent_spec);
+    gSFS_total_cycles = (int)((unsigned int)gSFS_total_cycles + (unsigned int)gSFS_cycles_this_time);
+    if (gSFS_cycles_this_time > gSFS_max_cycles) {
+        gSFS_max_cycles = gSFS_cycles_this_time;
+    }
+    DoNotDprintf(">>>SearchForSection() - max %d, avg %.1f", gSFS_max_cycles, (double)gSFS_total_cycles / (double)gSFS_count);
+    if (best_count > 1) {
+        count = best_count - 1;
+        if (count >= 12 - pOpponent_spec->nnext_sections) {
+            count = 12 - pOpponent_spec->nnext_sections;
+        }
+        memcpy(&pOpponent_spec->next_sections[pOpponent_spec->nnext_sections], &best[1], (size_t)count * sizeof(tRoute_section));
+        pOpponent_spec->nnext_sections += count;
+        TopUpRandomRoute(pOpponent_spec, 2);
+        return;
+    }
+    DoNotDprintf("%s: CalcReturnToStartPointRoute() - SearchForSection() produced bugger all", pOpponent_spec->car_spec->driver_name);
+    if (pOpponent_spec->nnext_sections <= 12) {
+        TopUpRandomRoute(pOpponent_spec, 14 - pOpponent_spec->nnext_sections);
+    }
+}
 
 // ClearOpponentsProjectedRoute
 
@@ -580,11 +643,6 @@ void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spe
 tS16 C2_HOOK_FASTCALL FindNearestPathSection(br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance) {
     return 0;
 }
-
-// STUB: not implemented yet
-void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec) {
-}
-
 
 // STUB: not implemented yet
 int C2_HOOK_FASTCALL TeleportCopToStart(tOpponent_spec* pOpponent_spec) {
