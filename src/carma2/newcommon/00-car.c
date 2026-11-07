@@ -2057,9 +2057,12 @@ void C2_HOOK_FASTCALL ControlCar3(tCar_spec* pCar, void* pUnused, br_scalar pDt)
     }
 }
 
-// PARTIAL 97.87%: x87 scheduling in the final ABS/turn_speed block (2 extra fxch: MSVC hoists
-// the turn_speed load above the (pDt+pDt)*curvature multiply) and the commutative operand order
-// of turn_speed*curvature. Logic, constants and layout otherwise match the binary.
+// PARTIAL 97.87%: final ABS/turn_speed block only. The original computes fVar2=(pDt+pDt)*curvature,
+// then loads turn_speed; MSVC 11 hoists that turn_speed fld above the fmul (extra fxch) and canonicalises
+// the second product as "fld curvature; fmul turn_speed" (original: "fld turn_speed; fmul curvature").
+// Verified over 3 attempts: mirroring the compare, swapping the product operands and splitting the &&
+// into nested ifs all emit the same bytes (x87 scheduling / commutative canonicalisation). Logic,
+// constants, frame and every other instruction match the binary.
 // FUNCTION: CARMA2_HW 0x004175e0
 void C2_HOOK_FASTCALL ControlCar4(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
     br_scalar speed;
