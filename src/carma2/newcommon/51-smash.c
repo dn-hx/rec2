@@ -4245,7 +4245,8 @@ extern int gImmortal_peds;
 extern int gGoreLevel;
 extern int gPed_severing_damage;
 extern const int gPow2_array[32];
-extern int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex);
+extern int gPed_dismember_spurting_member_count;
+extern int C2_HOOK_FASTCALL MakeCharacterBonePhysicworthy(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega);
 extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
@@ -4253,10 +4254,64 @@ extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int
 // GLOBAL: CARMA2_HW 0x0069bc0c
 int gPed_severing_chance;
 
-// STUB: CARMA2_HW 0x004cd9e0
-int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
+/* Pipes the dismembered-member indices for one bone. Body not written yet; this
+   stub exists only so FUN_004cd9e0 can link against it. */
+// STUB: CARMA2_HW 0x004c8bf0
+void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
     NOT_IMPLEMENTED();
-    return 0;
+}
+
+// PARTIAL 97.65%: only the actor-chain register choice differs (personality into ecx/edx mirrored, movsx of field_0x4 one slot later) in each branch; the (tS8) casts mirror the original's signed load of field_0x6, which rec2_types.h declares as unsigned `undefined`.
+// FUNCTION: CARMA2_HW 0x004cd9e0
+int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
+    tPed_character_instance* pCharacter;
+    br_vector3 position;
+    br_vector3 omega;
+    br_actor* actor;
+    int physics_index;
+    int i;
+    int count;
+    int result;
+
+    pCharacter = pPed->character;
+    count = 0;
+    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+        if (pCharacter->personality->form->bones[i].indices[0] == pBoneIndex && (pCharacter->field_0xc & gPow2_array[i]) == 0) {
+            count += FUN_004cd9e0(pPed, i);
+        }
+    }
+    pPed->field_0x0c->field_0x23[pBoneIndex] = gPed_dismember_spurting_member_count;
+    if (gExploding_pedestrians != 0) {
+        position.v[0] = SRandomPosNeg(3.f);
+        position.v[1] = SRandomBetween(0.f, 3.f);
+        position.v[2] = SRandomPosNeg(3.f);
+        position.v[0] = pCharacter->field_0xd8.v[0] + position.v[0];
+        position.v[1] = pCharacter->field_0xd8.v[1] + position.v[1];
+        position.v[2] = pCharacter->field_0xd8.v[2] + position.v[2];
+        omega.v[0] = SRandomPosNeg(20.f);
+        omega.v[1] = SRandomPosNeg(20.f);
+        omega.v[2] = SRandomPosNeg(20.f);
+        physics_index = (tS8)pCharacter->field_0x6;
+        result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, &position, &omega);
+        if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
+            FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+            actor = pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBoneIndex];
+            if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
+                BrActorAdd(gNon_track_actor, actor);
+            }
+        }
+        return result + count;
+    }
+    physics_index = (tS8)pCharacter->field_0x6;
+    result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, NULL, NULL);
+    if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
+        FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+        actor = pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBoneIndex];
+        if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
+            BrActorAdd(gNon_track_actor, actor);
+        }
+    }
+    return result + count;
 }
 
 /* Applies falling damage to a pedestrian: turns the impact speed into a move
