@@ -2167,14 +2167,6 @@ void C2_HOOK_FASTCALL FUN_0045c420(void) {
         gINT_00595f9c = info->field_0xd4;
     }
 }
-
-/* Linking stub for the callee of FUN_0045c420. 0x00459a70 belongs to the DirectInput
-   joystick TU (platform/win32/win32_dinput.c); it is only defined here because nothing
-   else in the matching build references it yet. Move it when that body is implemented.
-   Inside the auto_inline(off) region so the empty body is not inlined into the caller. */
-// STUB: CARMA2_HW 0x00459a70
-void C2_HOOK_FASTCALL FUN_00459a70(void) {
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
