@@ -51,4 +51,6 @@ extern void C2_HOOK_FASTCALL LoadOpponentsCars(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 
+extern void C2_HOOK_FASTCALL FUN_00452f40(br_model* pModel, int pFaces, int pVertices);
+
 #endif // GUARD_56_AIWORLD_H
