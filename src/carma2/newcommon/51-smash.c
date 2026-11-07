@@ -4254,11 +4254,13 @@ extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int
 // GLOBAL: CARMA2_HW 0x0069bc0c
 int gPed_severing_chance;
 
-/* Pipes the dismembered-member indices for one bone. Body not written yet; this
-   stub exists only so FUN_004cd9e0 can link against it. */
-// STUB: CARMA2_HW 0x004c8bf0
+/* Pipes the dismembered-member indices for one bone. */
+// FUNCTION: CARMA2_HW 0x004c8bf0
 void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
-    NOT_IMPLEMENTED();
+    ARDoSingleVariedSession(0x2c, (uintptr_t)pPed, 3,
+        2, 0, (int)pBone,
+        1, 2, (int)pArg3,
+        1, 3, (int)pArg4);
 }
 
 // PARTIAL 97.65%: only the actor-chain register choice differs (personality into ecx/edx mirrored, movsx of field_0x4 one slot later) in each branch; the (tS8) casts mirror the original's signed load of field_0x6, which rec2_types.h declares as unsigned `undefined`.
