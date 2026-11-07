@@ -383,9 +383,154 @@ void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004d8d40
+// FUNCTION: CARMA2_HW 0x004d8d40
 void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage, int pSelect_inventory) {
-    NOT_IMPLEMENTED();
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+    int index;
+    int i;
+    int flag;
+    int message_address;
+    int* picked_up_powerup;
+    int* pInventory;
+    tPowerup* powerup;
+    tPowerup* old_powerup;
+    tRace_list_spec* race_spec;
+    tU32 total_time;
+    char buf[256];
+    char* p;
+
+    index = -1;
+    if (pIndex >= gNumber_of_powerups) {
+        return;
+    }
+    powerup = &gPowerup_array[pIndex];
+    if (powerup->initial_value != 0) {
+        race_spec = gCurrent_race.race_spec;
+        if (GetPedCount() < 1 && (powerup->net_type & 0x40) != 0) {
+            goto reset;
+        }
+        if (gNet_mode != 0 && (powerup->net_type & 2) != 0) {
+            goto reset;
+        }
+        if (gNet_mode == 0 && pIndex == 0x61) {
+            goto reset;
+        }
+        if (!IsItOkayToFireHorribleBallsOfNastyNapalmDeathAtPerfectlyInnocentPassersByAndByInnocentIDoMeanInTheBiblicalSense() && pIndex == 0x5b) {
+            goto reset;
+        }
+        if (!IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells() && (pIndex == 0x34 || pIndex == 0x60)) {
+            goto reset;
+        }
+        if (GetHowMuchBloodAndSnotToSmearAbout() > 0 && (pIndex == 4 || pIndex == 0x39)) {
+            goto reset;
+        }
+        for (i = 0; i < race_spec->count_powerup_exclusions; i++) {
+            if (pIndex == race_spec->powerup_exclusions[i]) {
+                goto reset;
+            }
+        }
+        if (pMessage != 0) {
+            p = buf;
+            if (pMessage == 2) {
+                sprintf(buf, "%s %s", GetMiscString(0xbe), powerup->message);
+            } else {
+                strcpy(buf, powerup->message);
+            }
+            if (powerup->got_proc == FreezeTimer) {
+                p = strtok(buf, "/");
+                if (gFreeze_timer != 0) {
+                    p = strtok(NULL, "/");
+                }
+            }
+            NewTextHeadupSlot(4, 0, 3000, -4, p);
+        }
+        i = 0;
+        pInventory = gInventory;
+        do {
+            if (*pInventory == pIndex) {
+                index = i;
+                break;
+            }
+            pInventory++;
+            i++;
+        } while ((int)pInventory < (int)&gFizzle_in);
+        if (index < 0) {
+            i = 0;
+            pInventory = gInventory;
+            do {
+                if (*pInventory < 0) {
+                    powerup->value = 0;
+                    index = i;
+                    break;
+                }
+                pInventory++;
+                i++;
+            } while ((int)pInventory < (int)&gFizzle_in);
+            if (index < 0) {
+                return;
+            }
+        }
+        if (index != gInventory_selected && gInventory_selected >= 0) {
+            old_powerup = &gPowerup_array[gInventory[gInventory_selected]];
+            if (old_powerup->initial_value < 0 || gINT_006a0a6c != 0) {
+                if (old_powerup->got_time != 0 && old_powerup->lose_proc != NULL) {
+                    old_powerup->lose_proc(old_powerup, old_powerup->car);
+                }
+                if (old_powerup->net_type & 0x80) {
+                    ARPowerupLose(old_powerup, old_powerup->car);
+                }
+                if (gNet_mode != 0) {
+                    message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
+                    *(int*)(message_address + 0x28) = 2;
+                    *(tPlayer_ID*)(message_address + 0x1c) = gLocal_net_ID;
+                    *(int*)(message_address + 0x20) = old_powerup - gPowerup_array;
+                    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)message_address, 0);
+                }
+                gProgram_state.current_car.powerups[old_powerup - gPowerup_array] = 0;
+                if (old_powerup->initial_value == 0 && (i = 0, 0 < gNumber_of_icons)) {
+                    picked_up_powerup = (int*)&gPickedup_powerups[0].powerup;
+                    while (i < gNumber_of_icons) {
+                        if (old_powerup == (tPowerup*)*picked_up_powerup) {
+                            gPickedup_powerups[i].fizzle_stage = 3;
+                            gPickedup_powerups[i].fizzle_direction = -1;
+                            total_time = GetTotalTime();
+                            gPickedup_powerups[i].fizzle_start = total_time;
+                            break;
+                        }
+                        i++;
+                        picked_up_powerup += 5;
+                    }
+                }
+                old_powerup->got_time = 0;
+            }
+            gINT_006a0a5c = 1;
+        }
+        if (pSelect_inventory != 0 || gInventory_selected < 0) {
+            gInventory_selected = index;
+        }
+        powerup->value += powerup->initial_value;
+        gInventory[index] = pIndex;
+        return;
+    }
+    if (gNet_mode != 0 && pCar != NULL && pCar->driver == eDriver_local_human) {
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    GotPowerupX(pCar, pIndex, flag, pMessage, 0);
+    return;
+reset:
+    if (gNet_mode != 0 && pCar != NULL && pCar->driver == eDriver_local_human) {
+        flag = 1;
+        GotPowerupX(pCar, 0, flag, pMessage, 0);
+        return;
+    }
+    flag = 0;
+    GotPowerupX(pCar, 0, flag, pMessage, 0);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
