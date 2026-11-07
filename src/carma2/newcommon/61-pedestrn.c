@@ -1505,7 +1505,20 @@ int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float
 int C2_HOOK_FASTCALL GetPedCount(void) {
     return gPed_count;
 }
-// GetPedPosition
+// FUNCTION: CARMA2_HW 0x004d2c50
+int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPosition) {
+    tPedestrian* ped = &gPedestrian_array[pIndex];
+
+    if (ped->hit_points > 0 && ((ped->flags & 1) != 0 || gMap_view == 2)) {
+        if (gCurrent_race.race_spec->race_type != kRaceType_Peds || ((tS16)ped->flags & 0x200) != 0) {
+            pPosition->v[0] = ped->pos.v[0];
+            pPosition->v[1] = ped->pos.v[1];
+            pPosition->v[2] = ped->pos.v[2];
+            return 1;
+        }
+    }
+    return 0;
+
 
 // FUNCTION: CARMA2_HW 0x004d34e0
 void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen) {

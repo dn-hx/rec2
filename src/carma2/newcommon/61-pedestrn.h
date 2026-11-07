@@ -220,7 +220,7 @@ extern int C2_HOOK_FASTCALL CBActiveHalted(undefined4* pArg1, undefined4* pArg2)
 
 extern void C2_HOOK_FASTCALL CBMovedByPhysics(tPed_character_instance* pCharacter, tPhysics_object* pPhysics, undefined4 pArg3);
 extern int C2_HOOK_FASTCALL GetPedCount(void);
-// GetPedPosition
+extern int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPosition);
 
 extern void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen);
 
