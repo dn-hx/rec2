@@ -2854,7 +2854,19 @@ void C2_HOOK_FASTCALL UndoDamage(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
     }
 }
 
-// UndoSpecial
+// PARTIAL 81.25%: original dispatches with test/jne into an inline case-0 body then dec/jne into case 1 (a switch layout MSVC puts case 0 out of line for); residual is the 0x4c9e3a je displacement and dec-vs-cmp at 0x4c9e41.
+// FUNCTION: CARMA2_HW 0x004c9e20
+void C2_HOOK_FASTCALL UndoSpecial(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tU32 type = *(tU32*)*pChunk;
+
+    if (type == 0) {
+        if (fabs(ARGetReplayRate()) <= 1.0) {
+            return FadePaletteDown();
+        }
+    } else if (type == 1) {
+        return WorkerSpecialUndo();
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c9e50
 void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
