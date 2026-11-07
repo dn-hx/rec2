@@ -254,7 +254,71 @@ static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
 
 // LoseKeyboardPowerupN
 
-// KeyboardPowerupFinished
+// PARTIAL 86.12%: big body matches 100%; tail differs only in regalloc/loop shape (pSelect_new spilled to a
+// stack slot instead of ebp, -1 stored as immediates instead of a reused eax, inventory search loop rotated
+// with an extra bottom `cmp [eax],0`). Bound is the original's sentinel symbol &gFizzle_in (0x6a0ac0).
+// FUNCTION: CARMA2_HW 0x004db730
+void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new) {
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    int i;
+    int select_new;
+    int old_selected;
+    int message_address;
+    int* picked_up_powerup;
+    int* pInventory;
+    tU32 total_time;
+
+    select_new = pSelect_new;
+    if (pPowerup->initial_value < 0 || gINT_006a0a6c != 0) {
+        if (pPowerup->got_time != 0 && pPowerup->lose_proc != NULL) {
+            pPowerup->lose_proc(pPowerup, pPowerup->car);
+        }
+        if (pPowerup->net_type & 0x80) {
+            ARPowerupLose(pPowerup, pPowerup->car);
+        }
+        if (gNet_mode != 0) {
+            message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
+            *(int*)(message_address + 0x28) = 2;
+            *(tPlayer_ID*)(message_address + 0x1c) = gLocal_net_ID;
+            *(int*)(message_address + 0x20) = pPowerup - gPowerup_array;
+            NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)message_address, 0);
+        }
+        gProgram_state.current_car.powerups[pPowerup - gPowerup_array] = 0;
+        if (pPowerup->initial_value == 0 && (i = 0, 0 < gNumber_of_icons)) {
+            picked_up_powerup = (int*)&gPickedup_powerups[0].powerup;
+            while (i < gNumber_of_icons) {
+                if (pPowerup == (tPowerup*)*picked_up_powerup) {
+                    gPickedup_powerups[i].fizzle_stage = 3;
+                    gPickedup_powerups[i].fizzle_direction = -1;
+                    total_time = GetTotalTime();
+                    gPickedup_powerups[i].fizzle_start = total_time;
+                    break;
+                }
+                i++;
+                picked_up_powerup += 5;
+            }
+        }
+        pPowerup->got_time = 0;
+    }
+    gINT_006a0a5c = 1;
+    if (select_new) {
+        old_selected = gInventory_selected;
+        gInventory[old_selected] = gInventory_selected = -1;
+        i = 0;
+        pInventory = gInventory;
+        do {
+            if (*pInventory >= 0) {
+                gInventory_selected = i;
+                return;
+            }
+            pInventory++;
+            i++;
+        } while ((int)pInventory < (int)&gFizzle_in);
+    }
+}
 
 // LoseAllSimilarPowerups
 

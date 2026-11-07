@@ -67,7 +67,7 @@ extern void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pH
 
 // LoseKeyboardPowerupN
 
-// KeyboardPowerupFinished
+extern void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new);
 
 // LoseAllSimilarPowerups
 
