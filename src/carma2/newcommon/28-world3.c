@@ -3627,7 +3627,7 @@ static void Flip3DStoBRaxes(br_matrix34* pMat) {
 
 /* inlined in the original */
 // FUNCTION: CARMA2_HW 0x00404840
-static tPed_move* ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
     FILE* f;
     tPed_move* move;
     int i;
