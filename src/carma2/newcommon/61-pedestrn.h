@@ -272,7 +272,7 @@ extern void C2_HOOK_FASTCALL MungePedestrians(void);
 
 // ResetNapalmBolts
 
-// ARResetNapalmBolts
+extern void C2_HOOK_FASTCALL ARResetNapalmBolts(void);
 
 extern void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
