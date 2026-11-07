@@ -826,7 +826,8 @@ int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3* pPos) 
 extern float gDrone_delta_time;
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
-// based on REA pseudocode 0x451ca0 and // FUNCTION: CARMA2_HW 0x00451ca0
+// based on REA pseudocode 0x451ca0
+// FUNCTION: CARMA2_HW 0x00451ca0
 void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex) {
     tDrone_spec* drone;
     float len;

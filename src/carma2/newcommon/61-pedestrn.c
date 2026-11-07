@@ -2676,7 +2676,8 @@ void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight)
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on REA pseudocode 0x4cce70 and // FUNCTION: CARMA2_HW 0x004cce70
+// based on REA pseudocode 0x4cce70
+// FUNCTION: CARMA2_HW 0x004cce70
 void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info) {
     tPed_character_instance* character;
     int head_bone;
@@ -4666,7 +4667,8 @@ void C2_HOOK_FASTCALL DoBloodSpurt(uintptr_t pArg1, int pArg2, int pArg3, br_vec
 
 extern br_vector3 gZero_vector__smash;
 
-// based on REA pseudocode 0x4ccb10 and // FUNCTION: CARMA2_HW 0x004ccb10
+// based on REA pseudocode 0x4ccb10
+// FUNCTION: CARMA2_HW 0x004ccb10
 void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSeed, float pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
     int old_rand;
     int i;
