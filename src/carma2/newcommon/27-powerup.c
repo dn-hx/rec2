@@ -294,9 +294,14 @@ static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
 
 // LoseKeyboardPowerupN
 
-// PARTIAL 86.12%: big body matches 100%; tail differs only in regalloc/loop shape (pSelect_new spilled to a
-// stack slot instead of ebp, -1 stored as immediates instead of a reused eax, inventory search loop rotated
-// with an extra bottom `cmp [eax],0`). Bound is the original's sentinel symbol &gFizzle_in (0x6a0ac0).
+// PARTIAL 86.12%: the big body matches 100%; the residual is the whole inventory tail, three effects:
+// (1) pSelect_new is spilled (push ecx / mov [esp+8],edx / mov eax,[esp+8]) where the original keeps it in
+//     ebp (push ebp; mov ebp,edx; test ebp,ebp), so the prologue, the `je` displacement and the last pop differ;
+// (2) the two -1 stores are imm-to-mem here, the original does `or eax,0xffffffff` once and reuses eax for both
+//     (tried: chained assignment, a temp, a parenthesised assignment expression - all fold to immediates);
+// (3) MSVC peels the inventory walk (extra `mov edx,[gInventory]; test edx,edx` before the loop); while,
+//     do-while, for(;;)+break and for-header forms all canonicalise to the same peeled code.
+// Bound is the original's sentinel symbol &gFizzle_in (0x6a0ac0).
 // FUNCTION: CARMA2_HW 0x004db730
 void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new) {
     extern int gNumber_of_icons;
@@ -304,14 +309,12 @@ void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_ne
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
     int i;
-    int select_new;
     int old_selected;
     int message_address;
     int* picked_up_powerup;
     int* pInventory;
     tU32 total_time;
 
-    select_new = pSelect_new;
     if (pPowerup->initial_value < 0 || gINT_006a0a6c != 0) {
         if (pPowerup->got_time != 0 && pPowerup->lose_proc != NULL) {
             pPowerup->lose_proc(pPowerup, pPowerup->car);
@@ -344,19 +347,22 @@ void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_ne
         pPowerup->got_time = 0;
     }
     gINT_006a0a5c = 1;
-    if (select_new) {
+    if (pSelect_new) {
         old_selected = gInventory_selected;
-        gInventory[old_selected] = gInventory_selected = -1;
+        gInventory[old_selected] = (gInventory_selected = -1);
         i = 0;
         pInventory = gInventory;
-        do {
+        for (;;) {
             if (*pInventory >= 0) {
-                gInventory_selected = i;
-                return;
+                break;
             }
             pInventory++;
             i++;
-        } while ((int)pInventory < (int)&gFizzle_in);
+            if ((int)pInventory >= (int)&gFizzle_in) {
+                return;
+            }
+        }
+        gInventory_selected = i;
     }
 }
 
@@ -4990,7 +4996,13 @@ extern tCar_spec* gRecalc_mass_car;
 extern const char gSolidgrn_material[10];
 extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 
-// PARTIAL 98.21%: 0x4f90ff SIB base/index order ([edi+edx+0x40] vs [edx+edi+0x40], same registers) and 0x4f9138 gSolidgrn_material STRING vs DATA (reccmp per-address operand class, same as 0x4fe360; the literal workaround regresses 36-trig)
+// PARTIAL 98.21%: 2/112 instructions differ, neither reachable from this file. (1) 0x4f90ff SIB
+// base/index order ([edi+edx+0x40] vs [edx+edi+0x40], same registers and same roles, only the SIB
+// encoding): the byte-identical loop in 0x4fe360 gets the original order from the same C, so it is a
+// VC5 encoder/allocator artifact, not source-controllable. (2) 0x4f9138 gSolidgrn_material STRING vs
+// DATA: the address 0x6601b0 is a CSV string and its `// GLOBAL:` marker lives in 32-spark.c, which
+// types the ORIG entity STRING while any recomp symbol for it is DATA (same cap as gAct_file_extension
+// 0x594e9c in 51-smash.c); a literal here would also shift .rdata (36-trig).
 // FUNCTION: CARMA2_HW 0x004f9020
 void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
     int i;
