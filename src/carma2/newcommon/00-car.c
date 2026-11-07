@@ -1780,7 +1780,11 @@ extern void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt);
 extern void C2_HOOK_FASTCALL MungeSpecialVolume(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num);
 
-// PARTIAL 96.45%: gravity block shared vs per-branch 1/6.9 fmul (single-statement form scores 96.31), branch displacements, and eax/ecx swap in the target_revs dot product (SIB/regalloc, both operand orders tried) - non-source
+// PARTIAL 96.64%: the original shares one *FMUL QWORD (1/6.9) at the if-merge and hoists fld v1/fxch into
+// each arm; MSVC duplicates the fmul per arm here, adding 6 bytes and shifting every later branch. Hoisting the
+// subtraction out of the if (with a rewritten dot) measured 94.96; single-statement form 96.31. The target_revs
+// dot load order (v1*m21, v0*m20, v2*m22) and its eax/ecx assignment also differ. Non-source: x87 scheduling,
+// both operand orders tried.
 // FUNCTION: CARMA2_HW 0x004168c0
 void C2_HOOK_FASTCALL MoveAndCollideCar(tCar_spec* pCar, br_scalar pDt) {
     br_scalar wheel_spin_force;
