@@ -409,7 +409,7 @@ extern void C2_HOOK_FASTCALL SetUpTestObjects(void);
 
 // ResetObjectList
 
-// ResetMan
+extern void C2_HOOK_FASTCALL ResetMan(void);
 
 extern void C2_HOOK_FASTCALL InitPhysics(void);
 

@@ -2172,11 +2172,19 @@ void C2_HOOK_FASTCALL InternalPositionChildren(tPhysics_object* pParent, tPhysic
     }
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004c2b10
 void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info) {
 
     InternalPositionChildren(pCollision_info, pCollision_info);
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma auto_inline(on)
+#endif
 
 // ApplyTorque
 
@@ -2708,6 +2716,10 @@ void C2_HOOK_FASTCALL SetUpTestObjects(void) {
 
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004b5c00
 void C2_HOOK_FASTCALL ResetMan2(tPhysics_object* pObject) {
 
@@ -2725,9 +2737,41 @@ void C2_HOOK_FASTCALL ResetMan2(tPhysics_object* pObject) {
     }
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma auto_inline(on)
+#endif
+
 // ResetObjectList
 
-// ResetMan
+// GLOBAL: CARMA2_HW 0x006923d8
+tPhysics_object* gResetMan_object;
+
+// FUNCTION: CARMA2_HW 0x004b5ab0
+void C2_HOOK_FASTCALL ResetMan(void) {
+    tPhysics_object* pObject;
+
+    if (gResetMan_object == NULL) {
+        return;
+    }
+    BrMatrix34Translate(&gResetMan_object->transform_matrix, -54.f, 7.1325f, -155.f);
+    gResetMan_object->disable_move_rotate = 1;
+    BrVector3SetFloat(&gResetMan_object->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->velocity_car_space, 0.f, 0.f, 0.f);
+    for (pObject = gResetMan_object->child; pObject != NULL; pObject = pObject->next) {
+        BrMatrix34Translate(&pObject->transform_matrix, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+        pObject->disable_move_rotate = 1;
+        if (pObject->child != NULL) {
+            ResetMan2(pObject->child);
+        }
+    }
+    PositionChildren(gResetMan_object);
+}
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
