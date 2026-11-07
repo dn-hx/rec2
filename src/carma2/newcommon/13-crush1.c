@@ -3258,7 +3258,7 @@ static int C2_HOOK_FASTCALL WithinBounds(br_scalar pValue, br_scalar pMin, br_sc
     return pValue >= pMin && !(pValue > pMax);
 }
 
-// PARTIAL 73.16%: SplitCheck - frame 0x44 and prologue match; residual: x87 load scheduling of first/second, param-slot choice for first_z/distance (orig: first_z in pLine slot, distance at esp+0x18) and the n2 register copies in the normalise.
+// PARTIAL 69.86%: SplitCheck - frame 0x44 and prologue match; residual: x87 load scheduling of first/second, param-slot choice for first_z/distance (orig: first_z in pLine slot, distance at esp+0x18) and the n2 register copies in the normalise. (Re-measured 69.86 on 2026-11-07; the earlier 73.16 predates the v5 tree's header/type context. A 3-attempt retune on 2026-11-07 (macro expansion, axis-select order, split tail checks) gained nothing; the macro-expansion variant scored 66.36.)
 // FUNCTION: CARMA2_HW 0x004307e0
 int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane) {
     tCar_crush_spec* crush;
