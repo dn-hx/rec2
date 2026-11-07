@@ -1417,27 +1417,18 @@ static void C2_HOOK_FASTCALL PHILMungeObjects(tPhysics_object* pObjects) {
                 MungeSpecialVolume(object);
             }
             if (object_info->field_0x10 != 0.f || (object->last_special_volume != NULL && (object_info->field_0x4 & 0x8))) {
-                float gravity;
-
-                gravity = object_info->field_0x10 != 0.f ? object_info->field_0x10 : 1.0;
-                ProcessGravity(object_info, object, gravity);
+                ProcessGravity(object_info, object, object_info->field_0x10 != 0.f ? object_info->field_0x10 : 1.0);
             }
             if (object_info->field_0xc != 0.f || (object->last_special_volume != NULL && (object_info->field_0x4 & 0x8))) {
-                float drag;
-
-                drag = object_info->field_0xc != 0.f ? object_info->field_0xc : 1.0;
-                ProcessDrag2(object_info, object, drag, object_info->field_0x4, object->last_special_volume);
+                ProcessDrag2(object_info, object, object_info->field_0xc != 0.f ? object_info->field_0xc : 1.0, object_info->field_0x4, object->last_special_volume);
             }
             if (object_info->field_0x4 & 0x8) {
-                if (!(object->last_special_volume != NULL && object->last_special_volume->viscosity_multiplier > 2.0 && object->water_depth_factor == 1.0)
-                        || (original_last_special_volume != NULL && original_last_special_volume->viscosity_multiplier > 2.0 && original_water_depth_factor >= 1.0)) {
-
-                    if (!(object->last_special_volume != NULL && object->last_special_volume->viscosity_multiplier > 2.0)
-                            && (original_last_special_volume != NULL && original_last_special_volume->viscosity_multiplier > 2.0)) {
-                        ProcessDrag2(object_info, object, gFLOAT_0065d00c, object_info->field_0x4, object->last_special_volume);
-                    }
-                } else {
+                if (object->last_special_volume != NULL && object->last_special_volume->viscosity_multiplier > 2.0 && object->water_depth_factor == 1.0
+                        && (original_last_special_volume == NULL || original_last_special_volume->viscosity_multiplier <= 2.0 || original_water_depth_factor < 1.0)) {
                     ProcessDrag2(object_info, object, gFLOAT_0065d008, object_info->field_0x4, object->last_special_volume);
+                } else if (!(object->last_special_volume != NULL && object->last_special_volume->viscosity_multiplier > 2.0)
+                        && original_last_special_volume != NULL && original_last_special_volume->viscosity_multiplier > 2.0) {
+                    ProcessDrag2(object_info, object, gFLOAT_0065d00c, object_info->field_0x4, object->last_special_volume);
                 }
                 if (object_info->field_0x14 != 0.f
                         && object->last_special_volume != NULL
@@ -1458,6 +1449,7 @@ static void C2_HOOK_FASTCALL PHILMungeObjects(tPhysics_object* pObjects) {
 /* inlined into PHILDoPhysics by the original */
 static void C2_HOOK_FASTCALL FlushQueuedAddsAndRemoves(void) {
     int i;
+    tPhysics_object** removal;
 
     for (i = 0; i < gPHIL_count_queued_objects; i++) {
         tPHIL_queued_object_info* queued_object_info;
@@ -1472,12 +1464,10 @@ static void C2_HOOK_FASTCALL FlushQueuedAddsAndRemoves(void) {
             PHILSetPassiveObjectsMatrix(queued_object_info->collision_info, &queued_object_info->field_0x30);
         }
         if (queued_object_info->field_0x8 == 2) {
-            br_vector3* omega;
-            br_vector3* v;
-
-            v = (queued_object_info->flags & 0x1) ? &queued_object_info->field_0x18 : NULL;
-            omega = (queued_object_info->flags & 0x2) ? &queued_object_info->field_0x24 : NULL;
-            PHILMakeObjectActive(queued_object_info->collision_info, v, omega, 0);
+            PHILMakeObjectActive(queued_object_info->collision_info,
+                (queued_object_info->flags & 0x1) ? &queued_object_info->field_0x18 : NULL,
+                (queued_object_info->flags & 0x2) ? &queued_object_info->field_0x24 : NULL,
+                0);
         }
         object_info = queued_object_info->collision_info->field_0x240;
         if (object_info != NULL) {
@@ -1488,12 +1478,9 @@ static void C2_HOOK_FASTCALL FlushQueuedAddsAndRemoves(void) {
             object_info->field_0x14 = queued_object_info->field_0x14;
         }
     }
-    for (i = 0; i < gPHIL_count_queued_objects_for_removal; i++) {
-        tPhysics_object* object;
-
-        object = gPHIL_queued_objects_for_removal[i];
-        if (object != NULL) {
-            PHILRemoveObject(object);
+    for (i = 0, removal = gPHIL_queued_objects_for_removal; i < gPHIL_count_queued_objects_for_removal; i++, removal++) {
+        if (*removal != NULL) {
+            PHILRemoveObject(*removal);
         }
     }
 }
@@ -1518,56 +1505,74 @@ static void C2_HOOK_FASTCALL PHILInterpolateObjects(tPhysics_object* pObjects, t
     }
 }
 
-// PARTIAL 83.67%: PHILDoPhysics 0x004b6630 - code structure and all call sites match; remaining diff is register
-// allocation in the inlined PHILMungeObjects loop and the deferred push esi/edi of the prologue.
 // FUNCTION: CARMA2_HW 0x004b6630
-void C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period) {
+int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period) {
     tU32 now;
     int iteration;
 
     iteration = 0;
-    if (gPHIL_disabled) {
-        return;
-    }
-    now = pLast_tick_time + pFrame_period;
-    gPHIL_callbacks = pCallbacks;
-    gPHIL_original_activate_passive = pCallbacks->world_callbacks->activate_passive;
-    pCallbacks->world_callbacks->activate_passive = (tWorld_callback_active_passive_cbfn*)PHILActivatePassive;
-    if (gPHIL_last_physics_tick < pLast_tick_time) {
-        gPHIL_last_physics_tick = 40 * (pLast_tick_time / 40);
-    }
-    if (now <= gPHIL_last_physics_tick) {
-        ResetObjectList(gPHIL_list_collision_infos);
-        PHILInterpolateObjects(gPHIL_list_collision_infos, now);
-    } else {
-        gCrush_deferred = 1;
-        gPHIL_mechanics_time_sync = now - gPHIL_last_physics_tick;
-        while (gPHIL_last_physics_tick < now && iteration < 5) {
-
-            iteration += 1;
-            if (pCallbacks->pre_collision != NULL) {
-                pCallbacks->pre_collision();
-            }
-            PHILMungeObjects(gPHIL_list_collision_infos);
-            gPHIL_munging_objects = 1;
-            if (gPHIL_list_collision_infos != NULL) {
-                DoCollisions(&gPHIL_list_collision_infos, pCallbacks->world_callbacks);
-            }
-            gPHIL_munging_objects = 0;
-            if (pCallbacks->post_collision != NULL) {
-                pCallbacks->post_collision();
-            }
-            FlushQueuedAddsAndRemoves();
-            gPHIL_last_physics_tick += 40;
-            gPHIL_mechanics_time_sync -= 40;
-            pLast_tick_time = gPHIL_mechanics_time_sync;
+    if (!gPHIL_disabled) {
+        now = pLast_tick_time + pFrame_period;
+        gPHIL_callbacks = pCallbacks;
+        gPHIL_original_activate_passive = pCallbacks->world_callbacks->activate_passive;
+        pCallbacks->world_callbacks->activate_passive = (tWorld_callback_active_passive_cbfn*)PHILActivatePassive;
+        if (gPHIL_last_physics_tick < pLast_tick_time) {
+            gPHIL_last_physics_tick = 40 * (pLast_tick_time / 40);
         }
-        PHILInterpolateObjects(gPHIL_list_collision_infos, now);
-        ChangedObjectsCallbacks(gPHIL_list_collision_infos, pCallbacks, pFrame_period);
-        gPHIL_mechanics_time_sync = 1;
-        gCrush_deferred = 0;
+        if (now <= gPHIL_last_physics_tick) {
+            ResetObjectList(gPHIL_list_collision_infos);
+            PHILInterpolateObjects(gPHIL_list_collision_infos, now);
+            pCallbacks->world_callbacks->activate_passive = gPHIL_original_activate_passive;
+        } else {
+            gCrush_deferred = 1;
+            gPHIL_mechanics_time_sync = now - gPHIL_last_physics_tick;
+            while (gPHIL_last_physics_tick < now && iteration < 5) {
+
+                iteration += 1;
+                if (pCallbacks->pre_collision != NULL) {
+                    pCallbacks->pre_collision();
+                }
+                PHILMungeObjects(gPHIL_list_collision_infos);
+                gPHIL_munging_objects = 1;
+                if (gPHIL_list_collision_infos != NULL) {
+                    DoCollisions(&gPHIL_list_collision_infos, pCallbacks->world_callbacks);
+                }
+                gPHIL_munging_objects = 0;
+                if (pCallbacks->post_collision != NULL) {
+                    pCallbacks->post_collision();
+                }
+                FlushQueuedAddsAndRemoves();
+                gPHIL_last_physics_tick += 40;
+                gPHIL_mechanics_time_sync -= 40;
+                pLast_tick_time = gPHIL_mechanics_time_sync;
+            }
+            {
+                /* PHILInterpolateObjects, written out: VC5 inlines it here too, VC11 hits its inline budget */
+                tPhysics_object* object;
+                float dt;
+
+                object = gPHIL_list_collision_infos;
+                dt = (int)(gPHIL_last_physics_tick - now) * 0.001;
+                if (!(dt <= .04 && dt >= .0f)) {
+                    dt = .0f;
+                }
+                gOver_shoot = dt > .0f;
+                for (; object != NULL; object = object->next) {
+                    tPHIL_queued_object_info* object_info;
+
+                    object_info = object->field_0x240;
+                    if (object_info != NULL && object_info->field_0x8 == 2) {
+                        RepositionObjectGroup(object, -dt);
+                    }
+                }
+            }
+            ChangedObjectsCallbacks(gPHIL_list_collision_infos, pCallbacks, pFrame_period);
+            gPHIL_mechanics_time_sync = 1;
+            gCrush_deferred = 0;
+            pCallbacks->world_callbacks->activate_passive = gPHIL_original_activate_passive;
+        }
     }
-    pCallbacks->world_callbacks->activate_passive = gPHIL_original_activate_passive;
+    return 0;
 }
 
 // PHILApplyPHILObject

@@ -1514,7 +1514,7 @@ extern tCar_spec* gLast_car_to_skid[2];
 extern int gSkid_tag[2];
 extern void C2_HOOK_FASTCALL CalcModifiedLocation(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL DRS3StopSound(tS3_sound_tag pSound_tag);
-extern void C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period);
+extern int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period);
 extern int C2_HOOK_FASTCALL TimeToSendData(void);
 extern void C2_HOOK_FASTCALL CheckForDeAttachmentOfNonCars(tU32 pTime);
 extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
