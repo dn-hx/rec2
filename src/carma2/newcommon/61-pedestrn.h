@@ -462,7 +462,8 @@ extern int C2_HOOK_FASTCALL BonerActiveHalted2(tPed_character_instance* pCharact
 
 // CharacterNoLongerPhysicworthy
 
-// SetCharacterPhysicsLevel
+/* the original HUD call site 0x4d560b passes only 2 arguments; this prototype adds the third for that call */
+extern int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, undefined4 pArg3);
 
 extern void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter);
 

@@ -4335,9 +4335,3 @@ int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-/* temporary placeholder: the original at 0x00409570 is cdecl (2 or 3 stack args); the 61-pedestrn.c placeholder is fastcall */
-int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, ...) {
-    NOT_IMPLEMENTED();
-    return 0;
-}

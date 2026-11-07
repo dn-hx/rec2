@@ -3503,7 +3503,79 @@ int C2_HOOK_FASTCALL BonerActiveHalted2(tPed_character_instance* pCharacter, und
 
 // CharacterNoLongerPhysicworthy
 
-// SetCharacterPhysicsLevel
+// PARTIAL 83.15%: identical body/order except MSVC 11 register allocation - the original keeps obj in esi and child in
+// edi, ours swaps them, which also stops `obj = NULL` sinking after the boned loop (cmp [ebp+0x20],0 vs mov+test)
+// FUNCTION: CARMA2_HW 0x00409570
+int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, undefined4 pArg3) {
+    extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
+    tPhysics_object* child;
+    tPhysics_object* obj;
+    int result;
+
+    result = 0;
+    if (pLevel < 5) {
+        if ((pCharacter->field_0x14 & 4) == 0) {
+            result = 0x1f;
+        } else {
+            BonerActiveHalted2(pCharacter, 1);
+            result = 0;
+        }
+    }
+    if (pLevel < 1) {
+        result = CharacterNoLongerCollideworthy(pCharacter);
+    }
+    if (pLevel != 0) {
+        result = MakeCharacterCollideworthy2(pCharacter, pLevel & 2, pArg3, -1);
+        if (result == 0x17) {
+            result = 0;
+        }
+        if ((pLevel & 4) != 0 && result == 0) {
+            if ((pCharacter->field_0x14 & 4) == 0) {
+                if (pCharacter->field_0x14 == 0) {
+                    return 0x15;
+                }
+                if (pCharacter->field_0x14 & 1) {
+                    obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+                } else {
+                    tPed_form_boned_phys* bp = &pCharacter->personality->form->boned_physicing[pCharacter->field_0x5];
+                    int i;
+
+                    obj = NULL;
+                    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+                        if (bp->collision_infos[i]->shape != NULL) {
+                            obj = bp->collision_infos[i];
+                            break;
+                        }
+                    }
+                }
+                obj->disable_move_rotate = 0;
+                {
+                    br_vector3* field_0xd8 = &pCharacter->field_0xd8;
+
+                    if (field_0xd8 != NULL) {
+                        obj->v.v[0] = field_0xd8->v[0];
+                        obj->v.v[1] = field_0xd8->v[1];
+                        obj->v.v[2] = field_0xd8->v[2];
+                        child = obj->child;
+                        while (child != NULL) {
+                            SetObjectV(child, field_0xd8);
+                            child = child->next;
+                        }
+                    }
+                }
+                PHILMakeObjectActive(obj, NULL, NULL, 1);
+                obj->field_0xed = 1;
+                PHILSetObjectProperty(obj, 0, 1.0);
+                PHILSetObjectProperty(obj, 3, 0);
+                PHILSetObjectProperty(obj, 4, 0);
+                PHILSetObjectProperty(obj, 5, 0);
+                pCharacter->field_0x14 |= 4;
+            }
+            result = 0;
+        }
+    }
+    return result;
+}
 
 // FUNCTION: CARMA2_HW 0x004096f0
 void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter) {
@@ -5530,7 +5602,8 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                     PedFallingForever(ped);
                 }
                 prev_field_0x10 = ped->character->field_0x10;
-                SetCharacterPhysicsLevel(ped->character, 0);
+                /* the original call at 0x4d560b pushes only 2 arguments; the third is unused for level 0 */
+                SetCharacterPhysicsLevel(ped->character, 0, 0);
                 CharacterNoLongerRenderable(ped->character);
                 if (ped->character->field_0x10 != prev_field_0x10) {
                     PipeSingleVanishedDismembered(ped, prev_field_0x10, ped->character->field_0x10);
