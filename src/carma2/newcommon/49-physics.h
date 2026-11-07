@@ -445,6 +445,7 @@ extern void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_
 extern int C2_HOOK_FASTCALL CollectJointLimitsIntoBuffer(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
 extern int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
 extern int C2_HOOK_FASTCALL CopyPhysicsJointData(tPhysics_joint_force* pDestination, int pDestination_index, const tPhysics_joint_force* pSource, int pCount);
+// ClampObjectSpin
 extern int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL FUN_004bd4f0(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2);
 extern tCollision_shape_polyhedron_data* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_points);
