@@ -19,6 +19,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include <stdarg.h>
 #include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0065a3bc
@@ -89,6 +90,14 @@ int gRoute_search_target_count;
 // GLOBAL: CARMA2_SW 0x0068b774
 float gShortest_route_length;
 
+// GLOBAL: CARMA2_HW 0x00691720
+// GLOBAL: CARMA2_SW 0x0068b778
+int gStart_jumped;
+
+// GLOBAL: CARMA2_HW 0x00691750
+// GLOBAL: CARMA2_SW 0x0068b7a8
+int gAcknowledged_start;
+
 // GLOBAL: CARMA2_HW 0x0074c7c0
 // GLOBAL: CARMA2_SW 0x00742e80
 tCar_spec* gActive_car_list[139];
@@ -103,7 +112,19 @@ void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 
 }
 
-// ProcessCurrentObjective
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004aa900
+// STUB: CARMA2_SW 0x004a6a70
+void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ReallocExtraPathNodes
 
@@ -144,7 +165,39 @@ int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* pTo) {
 
 // ApplyOppoRenderage2
 
-// NewObjective
+// FUNCTION: CARMA2_HW 0x004aad70
+// FUNCTION: CARMA2_SW 0x004a6ee0
+void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_objective_type pObjective_type, ...) {
+    va_list marker;
+
+    if (pOpponent_spec->current_objective != eOOT_none) {
+        ProcessCurrentObjective(pOpponent_spec, ePOC_die);
+    }
+    pOpponent_spec->current_objective = pObjective_type;
+    pOpponent_spec->time_this_objective_started = gTime_stamp_for_this_munging;
+    pOpponent_spec->time_for_this_objective_to_finish = gTime_stamp_for_this_munging + IRandomBetween(20, 60) * 1000;
+    if (pObjective_type == eOOT_pursue_and_twat) {
+        pOpponent_spec->time_for_this_objective_to_finish += 90000;
+    }
+    va_start(marker, pObjective_type);
+    switch (pObjective_type) {
+    case eOOT_complete_race:
+        gNum_of_opponents_completing_race++;
+        break;
+    case eOOT_get_near_player:
+        gNum_of_opponents_getting_near++;
+        break;
+    case eOOT_pursue_and_twat:
+        pOpponent_spec->pursue_car_data.pursuee = va_arg(marker, tCar_spec*);
+        gNum_of_opponents_pursuing++;
+        break;
+    default:
+        break;
+    }
+    DoNotDprintf("%s: NewObjective() - type %d", pOpponent_spec->car_spec->driver_name, pObjective_type);
+    ProcessCurrentObjective(pOpponent_spec, ePOC_start);
+    va_end(marker);
+}
 
 // CalcRaceRoute
 
@@ -281,9 +334,18 @@ int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec
     }
 }
 
-// StunTheBugger
+void C2_HOOK_FASTCALL StunTheBugger(tOpponent_spec* pOpponent, int pMilliseconds) {
 
-// UnStunTheBugger
+    pOpponent->car_spec->acc_force = 0.0f;
+    pOpponent->car_spec->brake_force = 0.0f;
+    pOpponent->car_spec->curvature = 0.0f;
+    pOpponent->stun_time_ends = MAX(pOpponent->stun_time_ends, gTime_stamp_for_this_munging + pMilliseconds);
+}
+
+void C2_HOOK_FASTCALL UnStunTheBugger(tOpponent_spec* pOpponent) {
+
+    pOpponent->stun_time_ends = 0;
+}
 
 // ProcessCompleteRace
 
@@ -542,10 +604,24 @@ void C2_HOOK_FASTCALL DisposeOpponents(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004ae620
-// STUB: CARMA2_SW 0x004aa790
+// FUNCTION: CARMA2_HW 0x004ae620
+// FUNCTION: CARMA2_SW 0x004aa790
 void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWhat_the_countdown_was) {
-    NOT_IMPLEMENTED();
+    int i;
+    tOpponent_spec* opponent;
+
+    for (i = 0; i < gProgram_state.AI_vehicles.number_of_opponents; i++) {
+        opponent = &gProgram_state.AI_vehicles.opponents[i];
+        UnStunTheBugger(opponent);
+        StunTheBugger(opponent, MIN(IRandomBetween(1000, 2500), 1000 * pWhat_the_countdown_was));
+    }
+    for (i = 0; i < gProgram_state.AI_vehicles.number_of_cops; i++) {
+        opponent = &gProgram_state.AI_vehicles.cops[i];
+        UnStunTheBugger(opponent);
+        StunTheBugger(opponent, MIN(IRandomBetween(1000, 2500), 1000 * pWhat_the_countdown_was));
+    }
+    gAcknowledged_start = 1;
+    gStart_jumped = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x004ae750
