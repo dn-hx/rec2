@@ -1238,6 +1238,8 @@ float gPissed_flicker_limit;
 float gPissed_hold_time;
 
 // FUNCTION: CARMA2_HW 0x004df220
+// PARTIAL 99.99%: SetPissed 0x004df220 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
+// FUNCTION: CARMA2_HW 0x004df220
 int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
 
     if (car != NULL && car->driver == eDriver_local_human) {
@@ -1245,7 +1247,7 @@ int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
         int k;
 
         DRS3StartSound2(gCar_outlet, 0xe11, 1, 0xff, 0xff, -1, -1);
-        gPissed_next_time = GetTotalTime() + IRandomBetween(0x5dc, 0xbb8);
+        gPissed_next_time = IRandomBetween(0x5dc, 0xbb8) + GetTotalTime();
         gCredit_multiplier = *powerup->integer_params;
         gPissed_hold_time = powerup->float_params[3];
 
