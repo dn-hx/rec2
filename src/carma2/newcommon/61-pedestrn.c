@@ -3944,15 +3944,16 @@ void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
 #endif
 extern void C2_HOOK_FASTCALL DisposePedPersonality(tPed_personality* pPersonality);
 extern void C2_HOOK_FASTCALL DisposePedForm(tPed_form* pForm);
-// PARTIAL 99.99%: DisposeCharacterInstances 0x0040b2e0 - one instruction encodes the frame-axis
-// load as [eax+edi*1+0x30] where the original has [edi+eax*1+0x30] (same address, SIB base/index
-// swapped); every other instruction pairs.
+// The frame walk keeps the byte offset in a char* local, so VC5 uses it as the base of the
+// original's [edi+eax+0x30] SIB (an int index puts the loaded frames pointer in the base slot).
+// Guard + do-while keeps the offset init after the guard and j++ before the offset increment.
 // FUNCTION: CARMA2_HW 0x0040b2e0
 void C2_HOOK_FASTCALL DisposeCharacterInstances(void) {
     tPed_remap* remap;
     tPed_personality* personality;
     tPed_move* move;
     tPed_form* form;
+    char* frame_offset;
     int i;
     int j;
 
@@ -3976,10 +3977,16 @@ void C2_HOOK_FASTCALL DisposeCharacterInstances(void) {
     for (i = 0; i < 250; i++) {
         if (gPed_moves[i] != NULL) {
             move = gPed_moves[i];
-            for (j = 0; j < move->count_frames; j++) {
-                if (move->frames[j].axis != NULL) {
-                    BrMemFree(move->frames[j].axis);
-                }
+            j = 0;
+            if (j < move->count_frames) {
+                frame_offset = NULL;
+                do {
+                    if (*(tPed_move_frame_axis**)(frame_offset + 0x30 + (int)move->frames) != NULL) {
+                        BrMemFree(*(tPed_move_frame_axis**)(frame_offset + 0x30 + (int)move->frames));
+                    }
+                    j++;
+                    frame_offset += sizeof(tPed_move_frame);
+                } while (j < move->count_frames);
             }
             if (move->frames != NULL) {
                 BrMemFree(move->frames);
