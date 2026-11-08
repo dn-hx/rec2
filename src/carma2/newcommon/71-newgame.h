@@ -31,4 +31,6 @@ extern void C2_HOOK_FASTCALL DefaultNetSettings(void);
 extern void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame);
 // FillInRaceDescription
 
+extern tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails);
+
 #endif // GUARD_71_NEWGAME_H
