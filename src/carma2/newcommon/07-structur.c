@@ -2209,9 +2209,51 @@ int gWinner_declared = 0;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004a5710
+extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
+extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
+extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int gINT_0074c6d4;
+
+// Known remaining diff (partial, category=codegen): 0x4a5773 SIB base/index order only
+// (original [esi + ebx + 0x19], ours [ebx + esi + 0x19]); both pointer-first and array
+// spellings compile to the same instruction, so the choice is MSVC's register allocator.
+// FUNCTION: CARMA2_HW 0x004a5710
 void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason) {
-    NOT_IMPLEMENTED();
+    tNet_message* message;
+    tNet_game_details* pGame;
+    int size_leave;
+    int size_guaranteed;
+    int size_leave_again;
+    int full_size;
+    int result;
+    int i;
+
+    gINT_0074c6d4 = 0;
+    size_leave = NetGetContentsSize(0xa, 0);
+    size_guaranteed = NetGetContentsSize(5, 0);
+    size_leave_again = NetGetContentsSize(0xa, 0);
+    full_size = size_leave_again + 0x18 + size_guaranteed;
+    message = NetAllocateMessage(full_size);
+    if (message != NULL) {
+        message->contents.raw.header.size = (tU8)size_leave;
+        message->header.field_0x14 = 0xff;
+        message->header.field_0x16 = (tU16)full_size;
+        message->contents.raw.header.type = 0xa;
+        ((tU8*)message)[0x19 + (tU8)size_leave] = 5;
+        ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
+    }
+    *(tU32*)((tU8*)message + 0x1c) = pReason;
+    result = 0;
+    pGame = gCurrent_net_game;
+    if (gNumber_of_net_players == 1) {
+        message->contents.raw.header.type = 0xff;
+        return;
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            result |= SendGuaranteedMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
+        }
+    }
 }
 // STUB: CARMA2_HW 0x004a0080
 void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there) {
