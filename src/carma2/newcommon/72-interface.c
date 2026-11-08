@@ -3920,6 +3920,7 @@ int C2_HOOK_FASTCALL Controls_SlotActivated(tFrontend_spec* pFrontend) {
     return 0;
 }
 
+// PARTIAL 88.78%: Controls_Ok 0x00472d80 [x87-free regalloc: i-f8+range_starts order, branch layout]
 // FUNCTION: CARMA2_HW 0x00472d80
 int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend) {
     int i;
