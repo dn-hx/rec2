@@ -1654,13 +1654,11 @@ static void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPh
         for (current = pList; current != NULL; current = current->next) {
             if (current->disable_move_rotate) {
                 CheckForObjectHierachyTouchingAnotherObject(pObject, current, pList);
-                child = pObject->child;
-                if (child != NULL && current->disable_move_rotate) {
-                    while (child != NULL) {
+                if (pObject->child != NULL && current->disable_move_rotate) {
+                    for (child = pObject->child; child != NULL; child = child->next) {
                         if (CheckForObjectHierachyTouchingAnotherObject(child, current, pList)) {
                             break;
                         }
-                        child = child->next;
                     }
                 }
                 if (current->child != NULL) {
@@ -1671,23 +1669,20 @@ static void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPh
     }
 }
 
-// PARTIAL 95.24: VC5 keeps a redundant NULL re-test of `child` before the child loop (test edi,edi at
-// 0x4b9987) that VC11 proves dead and removes, so every later branch target is 4 bytes short; the extra
-// reload of gReduced_object_list (writing *gReduced_object_list) compensates 1 of those bytes. Reading
-// gReduced_object_list through a local pointer reproduces the original tail but scores 94.89 (the tail
-// then mis-aligns); #pragma optimize("g", off) drops the whole body to /Od (10.17). Optimizer-version
-// artifact, not source-controllable.
 // FUNCTION: CARMA2_HW 0x004b9770
 void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList) {
+    tPhysics_object** pReduced;
+
     InternalPrepareObject(pObject);
     gPrepared_objects = 1;
     CheckObjectsPostionInList(pObject, pList);
     if (gINT_006940ac) {
         MakeObjectDoSomething(pObject, *pList);
     }
-    if (gReduced_object_list != NULL) {
-        pObject->field_0x234 = *gReduced_object_list;
-        *gReduced_object_list = pObject;
+    pReduced = gReduced_object_list;
+    if (pReduced != NULL) {
+        pObject->field_0x234 = *pReduced;
+        *pReduced = pObject;
     }
 }
 
