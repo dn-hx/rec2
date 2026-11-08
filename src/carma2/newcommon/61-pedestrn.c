@@ -199,9 +199,6 @@ tPed_cache_006944c0 gPed_cache_006944c0[100] = { 0 };
 // GLOBAL: CARMA2_HW 0x0069b9f0
 tNapalm_bolt gNapalm_bolts[5] = { 0 };
 
-// UNCERTAIN: unreferenced 4-byte gap
-int gUNK_0069bc0c = 0;
-
 // GLOBAL: CARMA2_HW 0x0069bc10
 br_material* gPed_slick_material = 0;
 
@@ -506,6 +503,7 @@ br_vector3* C2_HOOK_FASTCALL GetPedPos(tPedestrian* pPed) {
 /* local declarations: defined further down in this file / in other files */
 extern tPed_face_cache_0x34* gPed_face_cache_heads[4];
 extern br_pixelmap* gRender_palette;
+extern int gPed_severing_chance;
 extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
 
 // GLOBAL: CARMA2_HW 0x00694118
@@ -856,10 +854,10 @@ static void C2_HOOK_FASTCALL ReadSettingsFile(void) {
     v = GetAScalar(file);
     gPed_min_dist_avoid_collisions_squared = v * v;
     gPed_buoyancy_factor = GetAScalar(file);
-    GetThreeInts(file, gPed_points, &gPed_points[1], &gPed_points[2]);
+    GetThreeInts(file, &gPed_points[0], &gPed_points[1], &gPed_points[2]);
     GetThreeInts(file, &gPed_times[0], &gPed_times[1], &gPed_times[2]);
     gPed_severing_damage = GetAnInt(file);
-    gUNK_0069bc0c = GetAnInt(file);
+    gPed_severing_chance = GetAnInt(file);
     gPed_max_survivable_impact = GetAScalar(file);
     gPed_damage_per_force = GetAScalar(file);
     ReadPedGiblets(file);
@@ -917,6 +915,7 @@ static void C2_HOOK_FASTCALL InitOtherPedStuff(void) {
     gProx_ray_shade_table = GenerateShadeTable(8, gRender_palette, 0xd7, 0xff, 0xe9, .5f, .75f, .9f);
 }
 
+/* PARTIAL 99.99%: 0x4cadc0 scheduler-only push order in the first GetThreeInts call of the inlined ReadSettingsFile */
 // FUNCTION: CARMA2_HW 0x004cadc0
 void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
 
