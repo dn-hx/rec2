@@ -3478,6 +3478,9 @@ tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner) {
         }
     }
 }
+// PARTIAL 95.35%: residual is an x87 list-scheduler tie in the pVel normalisation only (the raw v[2] spill
+// lands before vs after the v[1] divide); every instruction outside that window is byte-identical, and six
+// source spellings of the divide block compile byte-identically, so it is not steerable from the source.
 // FUNCTION: CARMA2_HW 0x004fda70
 void C2_HOOK_FASTCALL GetVelocitiesFromMatrices(br_vector3* pVel, br_vector3* pRot, br_matrix34* pMat_now, br_matrix34* pMat_prev, tU32 pTime) {
     br_quat quat_now;
