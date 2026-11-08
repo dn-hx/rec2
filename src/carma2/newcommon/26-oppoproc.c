@@ -572,8 +572,20 @@ static float C2_HOOK_FASTCALL MaxCurvatureForCarSpeed(const tCar_spec* pCar, flo
     }
     return result;
 }
-// STUB: StuffDataFromCorner
-void C2_HOOK_FASTCALL StuffDataFromCorner(tFollow_path_data* pFollow_path, tCorner* pCorner) { NOT_IMPLEMENTED(); }
+// PARTIAL (helper, no address): StuffDataFromCorner, inlined into ProcessFollowPath 0x004af960 at 0x004b1349.
+// With this body ProcessFollowPath measures 48.45 (committed 48.75 without it): the not-cornering block lays out
+// inline after the cornering block instead of out of line at 0x4b11d3.
+// Store mapping from the original (esi = pOpponent_spec, follow_path_data at +0xbc):
+//   +0xfc/+0x100 field_0x40 <- corner+0/+4, +0x104 field_0x48 <- corner+8, +0x108 field_0x4c <- corner+0xc,
+//   +0x110 corner_section <- corner+0x14, bit 12 left_not_right <- corner+0x10 & 1, bit 11 cornering = 1.
+static void C2_HOOK_FASTCALL StuffDataFromCorner(tFollow_path_data* pFollow_path, tCorner* pCorner) {
+    pFollow_path->left_not_right = pCorner->left_not_right;
+    pFollow_path->cornering = 1;
+    pFollow_path->field_0x40 = pCorner->field_0x00;
+    pFollow_path->field_0x48 = pCorner->field_0x08;
+    pFollow_path->field_0x4c = pCorner->field_0x0c;
+    pFollow_path->corner_section = pCorner->section;
+}
 static void C2_HOOK_FASTCALL SetCurvature(tCar_spec* pCar_spec, float pCurvature) {
     float delta;
     float step;
