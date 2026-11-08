@@ -1914,6 +1914,10 @@ float gCop_pursuit_speed_percentage_multiplier;
 extern int gFirst_frame;
 extern br_scalar gHead_on_cos_value;
 
+// PARTIAL 99.99%: effective match; the only diff is the x87 schedule of the 3-term dot product at 0x4a9233.
+//   Original loads car_direction.v[2],v[1],v[0] then multiplies direction_v.v[2],v[1],v[0]; MSVC gives
+//   (v[2],v[0],v[1]) for the BrVector3Dot/BR_MAC3 form and an interleaved (left-to-right) schedule for any
+//   hand-written sum, both invariant under every permutation of the term order. Not source-controllable.
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
