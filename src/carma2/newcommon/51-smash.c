@@ -1975,6 +1975,7 @@ extern void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_
 extern br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
+extern void C2_HOOK_FASTCALL FUN_004c89f0(uintptr_t pOwner);
 extern void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* pA, const br_vector2* pB, const br_matrix23* pC);
 extern int gCapacity_track_smashables;
 extern void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial);
@@ -4048,6 +4049,9 @@ const double gDOUBLE_0058afa8 = 0.01;
 // GLOBAL: CARMA2_HW 0x0058afb0
 float gFloat_0058afb0 = 0.25f;
 
+// GLOBAL: CARMA2_HW 0x0058afb4
+float gFloat_0058afb4 = -10.0f;
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -4162,10 +4166,67 @@ void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3
     }
 }
 
-// STUB: CARMA2_HW 0x004f3820
+// Builds a decal actor out of a smashed face's quad: copies the quad into the
+// free/oldest decal model, flips faces that point away from the face normal
+// and fills the poly/vertex index arrays handed back to the caller.
+// FUNCTION: CARMA2_HW 0x004f3820
 br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
-    NOT_IMPLEMENTED();
-    return NULL;
+    br_model* model;
+    tDecal* decal;
+    tDecal* best_decal;
+    tU32 oldest_time;
+    br_uint_16 temp;
+    int i;
+    int swapped;
+
+    swapped = 0;
+    oldest_time = GetTotalTime();
+    best_decal = gDecals;
+    decal = gDecals;
+    for (i = 0; i < 50; i++, decal++) {
+        if (decal->time == 0) {
+            break;
+        }
+        if (decal->time < oldest_time) {
+            oldest_time = decal->time;
+            best_decal = decal;
+        }
+    }
+    if (i >= 50) {
+        decal = best_decal;
+    }
+    model = decal->actor->model;
+    model->faces[0].material = pMaterial;
+    model->faces[1].material = pMaterial;
+    for (i = 0; i < 4; i++) {
+        model->vertices[i] = pQuad[i];
+        model->vertices[i].p.v[1] -= gFloat_0058afb4;
+    }
+    BrModelUpdate(model, BR_MODU_ALL);
+    BrActorAdd(gOther_selfs[0], decal->actor);
+    for (i = 0; i < 2; i++) {
+        if (model->faces[i].n.v[0] * pFace->normal.v[0] + model->faces[i].n.v[1] * pFace->normal.v[1] + model->faces[i].n.v[2] * pFace->normal.v[2] <= gFloat_0058aec0) {
+            temp = model->faces[i].vertices[0];
+            model->faces[i].vertices[0] = model->faces[i].vertices[1];
+            model->faces[i].vertices[1] = temp;
+            swapped = 1;
+        }
+    }
+    if (swapped) {
+        BrModelUpdate(model, BR_MODU_ALL);
+    }
+    decal->time = GetTotalTime();
+    for (i = 0; i < 4; i++) {
+        ((tU16*)pVertex_array)[i] = (tU16)i;
+    }
+    ((tU16*)pPoly_array)[2] = 3;
+    ((tU16*)pPoly_array)[5] = 3;
+    ((tU16*)pPoly_array)[0] = 0;
+    ((tU16*)pPoly_array)[1] = 1;
+    ((tU16*)pPoly_array)[3] = 0;
+    ((tU16*)pPoly_array)[4] = 2;
+    FUN_004c89f0(2);
+    return decal->actor;
 }
 
 // STUB: CARMA2_HW 0x004f39a0
