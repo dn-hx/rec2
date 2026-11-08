@@ -4324,7 +4324,6 @@ void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 
         1, 3, (int)pArg4);
 }
 
-// PARTIAL 97.65%: only the actor-chain register choice differs (personality into ecx/edx mirrored, movsx of field_0x4 one slot later) in each branch; the (tS8) casts mirror the original's signed load of field_0x6, which rec2_types.h declares as unsigned `undefined`.
 // FUNCTION: CARMA2_HW 0x004cd9e0
 int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
     tPed_character_instance* pCharacter;
@@ -4358,7 +4357,7 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
         result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, &position, &omega);
         if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
             FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
-            actor = pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBoneIndex];
+            actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
             if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
                 BrActorAdd(gNon_track_actor, actor);
             }
@@ -4369,7 +4368,7 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
     result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, NULL, NULL);
     if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
         FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
-        actor = pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBoneIndex];
+        actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
         if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
             BrActorAdd(gNon_track_actor, actor);
         }
