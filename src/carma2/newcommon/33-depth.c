@@ -119,6 +119,10 @@ br_scalar C2_HOOK_FASTCALL DepthCueingShiftToDistance(int pDistance) {
     return gCamera_yon * (br_scalar)pow(10.0, 0.1 * (double)pDistance);
 }
 
+// Measured 2026-11-08: effective 100 (not exact). Remaining diff: the x87 conversion store of
+// the inlined DepthCueingShiftToDistance is displaced (pow result vs product) because that
+// helper casts to br_scalar before the gCamera_yon multiply; the field reads below are in the
+// original's emission order (start, end, red, green, blue) -- source order drives the load order.
 // FUNCTION: CARMA2_HW 0x004451a0
 void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     int start;
@@ -127,11 +131,11 @@ void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     int green;
     int blue;
 
+    start = gProgram_state.current_depth_effect.start;
+    end = gProgram_state.current_depth_effect.end;
     red = gProgram_state.current_depth_effect.colour.red;
     green = gProgram_state.current_depth_effect.colour.green;
     blue = gProgram_state.current_depth_effect.colour.blue;
-    start = gProgram_state.current_depth_effect.start;
-    end = gProgram_state.current_depth_effect.end;
 
     switch (gProgram_state.current_depth_effect.type) {
     case eDepth_effect_none:
