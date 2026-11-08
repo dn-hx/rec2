@@ -395,7 +395,6 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
     int flag;
     int message_address;
     int* picked_up_powerup;
-    int* pInventory;
     tPowerup* powerup;
     tPowerup* old_powerup;
     tRace_list_spec* race_spec;
@@ -448,28 +447,20 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
             }
             NewTextHeadupSlot(4, 0, 3000, -4, p);
         }
-        i = 0;
-        pInventory = gInventory;
-        do {
-            if (*pInventory == pIndex) {
+        for (i = 0; i < 20; i++) {
+            if (gInventory[i] == pIndex) {
                 index = i;
                 break;
             }
-            pInventory++;
-            i++;
-        } while ((int)pInventory < (int)&gFizzle_in);
+        }
         if (index < 0) {
-            i = 0;
-            pInventory = gInventory;
-            do {
-                if (*pInventory < 0) {
-                    powerup->value = 0;
+            for (i = 0; i < 20; i++) {
+                if (gInventory[i] < 0) {
                     index = i;
+                    powerup->value = 0;
                     break;
                 }
-                pInventory++;
-                i++;
-            } while ((int)pInventory < (int)&gFizzle_in);
+            }
             if (index < 0) {
                 return;
             }
