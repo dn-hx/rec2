@@ -1237,7 +1237,6 @@ float gPissed_flicker_limit;
 // GLOBAL: CARMA2_HW 0x00705c74
 float gPissed_hold_time;
 
-// FUNCTION: CARMA2_HW 0x004df220
 // PARTIAL 99.99%: SetPissed 0x004df220 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
 // FUNCTION: CARMA2_HW 0x004df220
 int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
