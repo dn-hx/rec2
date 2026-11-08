@@ -807,6 +807,12 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+// PARTIAL 89.80%: x87 schedule only - MSVC 11 hoists the omega.v[2] load above the divisor's
+// fadd st(0),st(0) (fld x, fld y, fld z, fxch st(3), fadd) where the original loads z after the
+// fadd (fld x, fld y, fxch st(2), fadd, fld z). Same instruction multiset, one load displaced
+// across an x87 op with no data dependency. A separate `t += t;` statement keeps the divisor in a
+// register (fdiv st(1), 74.16%); the original divides through the [esp] expression temp, so the
+// divisor must stay a compound expression. Same residual as ClampObjectSpin 0x4bd720 (89.17%).
 // FUNCTION: CARMA2_HW 0x004c1840
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
     br_scalar t;
@@ -949,6 +955,13 @@ differ_done:
 
 // CheckPointVelocities
 
+// PARTIAL 99.73% (2026-11-07 status; 2026-11-08 reccmp: 100% effective match): GetFacesInBox - the only
+// residual is one x87 store position: the original pops the third velocity component (`fstp [esp+0x18]`,
+// 0x4c21b4) before the loop preheader (`lea ecx,[ebx+0x118]` / `xor edx,edx`), while MSVC 11 sinks that
+// store behind those two instructions. The instruction multiset is otherwise identical. BrVector3Scale,
+// three explicit assignments and a source for-loop for the 0.12 scale were all tried: the call and the
+// assignments compile to the same bytes (pure x87 store scheduling), while the loop form is not unrolled
+// by MSVC 11 and drops the function to 91.99, so it is not the original source shape.
 // FUNCTION: CARMA2_HW 0x004c2060
 void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks) {
     extern br_scalar gFLOAT_0058a768;
@@ -3902,9 +3915,115 @@ void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c53b0
+// PARTIAL 42.53%: algorithm matches the disassembly (sparse RQ factorisation of pMatrix +
+// forward/back substitution); residual is MSVC's register allocation. The original spills pMatrix
+// and pOrthogonal to [esp+0x24]/[esp+0x2c] and keeps three induction variables (row pointer,
+// next-row pointer, 4*i), while this source keeps the parameters in ebx/esi. Frame is 0x2d8 here
+// vs 0x2d4 in the original (the named row pointer m adds one slot); without m the frame matches
+// 0x2d4 but scores 40.48%. Three reccmp attempts used.
+// FUNCTION: CARMA2_HW 0x004c53b0
 void C2_HOOK_FASTCALL FUN_004c53b0(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    int count;
+    br_scalar scale;
+    br_scalar sum;
+    br_scalar sigma;
+    br_scalar divisor;
+    br_scalar matrix_sum;
+    br_scalar orthogonal_sum;
+    br_scalar tau;
+    br_scalar tau2;
+    unsigned char columns[40];
+    br_scalar row[40];
+    unsigned short offsets[40];
+    br_scalar solution[100];
+
+    if (pCount >= 10) {
+        for (i = 0; i < pCount; i++) {
+            for (j = 0; j < pCount; j++) {
+                pOrthogonal[i * pCount + j] = 0.f;
+            }
+            pOrthogonal[i * pCount + i] = 1.f;
+        }
+        for (i = 0; i < pCount; i++) {
+            br_scalar* m = &pMatrix[i * pCount];
+
+            row[0] = m[i];
+            scale = fabs(m[i]);
+            offsets[0] = (unsigned short)(i * pCount);
+            columns[0] = (unsigned char)i;
+            count = 1;
+            for (j = i + 1; j < pCount; j++) {
+                if (m[j] != 0.f) {
+                    scale = MAX(scale, fabs(m[j]));
+                    columns[count] = (unsigned char)j;
+                    offsets[count] = (unsigned short)(j * pCount);
+                    row[count] = m[j];
+                    count++;
+                    m[j] = 0.f;
+                }
+            }
+            if (scale != 0.0) {
+                for (k = 0; k < count; k++) {
+                    row[k] /= scale;
+                }
+                sum = 0.f;
+                for (k = 0; k < count; k++) {
+                    sum += row[k] * row[k];
+                }
+                sigma = row[0] > 0.0 ? fabs(sqrt(sum)) : -fabs(sqrt(sum));
+                row[0] += sigma;
+                divisor = row[0] * sigma;
+                for (j = 0; j <= i; j++) {
+                    sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        sum += pOrthogonal[offsets[k] + j] * row[k];
+                    }
+                    tau = sum / divisor;
+                    for (k = 0; k < count; k++) {
+                        pOrthogonal[offsets[k] + j] -= tau * row[k];
+                    }
+                }
+                for (j = i + 1; j < pCount; j++) {
+                    matrix_sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        matrix_sum += pMatrix[j * pCount + columns[k]] * row[k];
+                    }
+                    tau2 = matrix_sum / divisor;
+                    orthogonal_sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        orthogonal_sum += pOrthogonal[offsets[k] + j] * row[k];
+                    }
+                    tau = orthogonal_sum / divisor;
+                    for (k = 0; k < count; k++) {
+                        pMatrix[j * pCount + columns[k]] -= tau2 * row[k];
+                        pOrthogonal[offsets[k] + j] -= tau * row[k];
+                    }
+                }
+                m[i] = -(sigma * scale);
+            }
+        }
+    } else {
+        RQDcmpV(pMatrix, pCount, pOrthogonal);
+    }
+    if (pVelocity != NULL && pImpulses != NULL) {
+        solution[0] = pVelocity[0] / pMatrix[0];
+        for (i = 1; i < pCount; i++) {
+            sum = 0.f;
+            for (k = 0; k < i; k++) {
+                sum += pMatrix[i * pCount + k] * solution[k];
+            }
+            solution[i] = (pVelocity[i] - sum) / pMatrix[i * pCount + i];
+        }
+        for (i = 0; i < pCount; i++) {
+            pImpulses[i] = pOrthogonal[i] * solution[0];
+            for (k = 1; k < pCount; k++) {
+                pImpulses[i] = pOrthogonal[k * pCount + i] * solution[k] + pImpulses[i];
+            }
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -4225,9 +4344,136 @@ void C2_HOOK_FASTCALL FUN_004b8cf0(tPhysics_object* pObject) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004be550
+// PARTIAL 41.55%: semantically complete (both branches recovered from the x87
+// data flow; each hinge/parent-bone-axis * t.x product computed once into a
+// temporary, as in the original). Remaining gap is MSVC 11 register/allocation
+// scheduling: the prologue and the 0x4c-frame FP temp area differ, and the
+// early division still comes out as fld divisor/fdivr instead of fld [I]/fdivr.
+// FUNCTION: CARMA2_HW 0x004be550
 int C2_HOOK_FASTCALL FUN_004be550(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    br_vector3 v;
+    br_vector3 d;
+    br_vector3 t;
+    br_vector3 t2;
+    br_vector3 axis;
+    tU8* pWorkspace;
+    tPhysics_object* pOther;
+    br_scalar f;
+    br_scalar fa;
+    br_scalar fb;
+    br_scalar fc;
+    int i;
+
+    if ((pObject->flags & 0x800) == 0) {
+        pOut1[0] = pDirection->v[0] / pObject->I.v[0];
+        pOut1[1] = pDirection->v[1] / pObject->I.v[1];
+        pOut1[2] = pDirection->v[2] / pObject->I.v[2];
+    } else {
+        pOut1[0] = 0.0f;
+        pOut1[1] = 0.0f;
+        pOut1[2] = 0.0f;
+    }
+    pWorkspace = (tU8*)*(int*)((tU8*)pObject + 0x1e4);
+    if (pWorkspace == NULL) {
+        BrVector3SetFloat((br_vector3*)pOut2, 0.f, 0.f, 0.f);
+        return 0;
+    }
+    pOther = (tPhysics_object*)*(int*)(pWorkspace + 4);
+    if (pOther == pObject->field_0x230) {
+        d.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+        axis.v[0] = -((pOut1[0] * d.v[1] - pOut1[1] * d.v[0]) * pObject->physics_joint1->hinge_axis.v[2]
+            + (pOut1[2] * d.v[0] - pOut1[0] * d.v[2]) * pObject->physics_joint1->hinge_axis.v[1]
+            + (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) * pObject->physics_joint1->hinge_axis.v[0]);
+        axis.v[1] = -(pObject->physics_joint1->hinge_axis2.v[0] * pOut1[0] + pObject->physics_joint1->hinge_axis2.v[1] * pOut1[1] + pObject->physics_joint1->hinge_axis2.v[2] * pOut1[2]);
+        axis.v[2] = -(pObject->physics_joint1->hinge_axis3.v[0] * pOut1[0] + pObject->physics_joint1->hinge_axis3.v[1] * pOut1[1] + pObject->physics_joint1->hinge_axis3.v[2] * pOut1[2]);
+        BrMatrix34ApplyV(&t, &axis, (br_matrix34*)(pWorkspace + 8));
+        f = t.v[0] / pObject->M;
+        pOut2[0] = pObject->physics_joint1->hinge_axis.v[0] * f;
+        pOut2[1] = pObject->physics_joint1->hinge_axis.v[1] * f;
+        pOut2[2] = pObject->physics_joint1->hinge_axis.v[2] * f;
+        f = -(t.v[0] / pOther->M);
+        pOut4[0] = pObject->physics_joint1->parent_bone_axis.v[0] * f;
+        pOut4[1] = pObject->physics_joint1->parent_bone_axis.v[1] * f;
+        pOut4[2] = pObject->physics_joint1->parent_bone_axis.v[2] * f;
+        t2.v[0] = pObject->physics_joint1->hinge_axis2.v[0] * t.v[1] + pObject->physics_joint1->hinge_axis3.v[0] * t.v[2];
+        t2.v[1] = pObject->physics_joint1->hinge_axis2.v[1] * t.v[1] + pObject->physics_joint1->hinge_axis3.v[1] * t.v[2];
+        t2.v[2] = pObject->physics_joint1->hinge_axis2.v[2] * t.v[1] + pObject->physics_joint1->hinge_axis3.v[2] * t.v[2];
+        fa = pObject->physics_joint1->hinge_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->hinge_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->hinge_axis.v[2] * t.v[0];
+        v.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+        v.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+        v.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+        for (i = 0; i < 3; i++) {
+            pOut1[i] += v.v[i] / pObject->I.v[i];
+        }
+        BrMatrix34ApplyV(&v, &t2, &pObject->transform_matrix);
+        BrMatrix34TApplyV((br_vector3*)pOut3, &v, &pOther->transform_matrix);
+        fa = pObject->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+        d.v[0] = pObject->physics_joint1->field_0x14.v[0] - pOther->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x14.v[1] - pOther->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x14.v[2] - pOther->cmpos.v[2];
+        pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+        pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+        pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+        for (i = 0; i < 3; i++) {
+            pOut3[i] = -(pOut3[i] / pOther->I.v[i]);
+        }
+        return (int)pOther;
+    }
+    d.v[0] = pOther->physics_joint1->field_0x14.v[0] - pObject->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x14.v[1] - pObject->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x14.v[2] - pObject->cmpos.v[2];
+    axis.v[0] = (pOut1[0] * d.v[1] - pOut1[1] * d.v[0]) * pOther->physics_joint1->parent_bone_axis.v[2]
+        + (pOut1[2] * d.v[0] - pOut1[0] * d.v[2]) * pOther->physics_joint1->parent_bone_axis.v[1]
+        + (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) * pOther->physics_joint1->parent_bone_axis.v[0];
+    BrMatrix34ApplyV(&t2, (br_vector3*)pOut1, &pObject->transform_matrix);
+    BrMatrix34TApplyV(&v, &t2, &pOther->transform_matrix);
+    axis.v[1] = pOther->physics_joint1->hinge_axis2.v[2] * v.v[2] + pOther->physics_joint1->hinge_axis2.v[0] * v.v[0] + pOther->physics_joint1->hinge_axis2.v[1] * v.v[1];
+    axis.v[2] = pOther->physics_joint1->hinge_axis3.v[1] * v.v[1] + pOther->physics_joint1->hinge_axis3.v[2] * v.v[2] + pOther->physics_joint1->hinge_axis3.v[0] * v.v[0];
+    BrMatrix34ApplyV(&t, &axis, (br_matrix34*)((tU8*)*(int*)((tU8*)pOther + 0x1e4) + 8));
+    f = t.v[0] / pOther->M;
+    pOut4[0] = pOther->physics_joint1->hinge_axis.v[0] * f;
+    pOut4[1] = pOther->physics_joint1->hinge_axis.v[1] * f;
+    pOut4[2] = pOther->physics_joint1->hinge_axis.v[2] * f;
+    f = -(t.v[0] / pObject->M);
+    pOut2[0] = pOther->physics_joint1->parent_bone_axis.v[0] * f;
+    pOut2[1] = pOther->physics_joint1->parent_bone_axis.v[1] * f;
+    pOut2[2] = pOther->physics_joint1->parent_bone_axis.v[2] * f;
+    pOut3[0] = pOther->physics_joint1->hinge_axis2.v[0] * t.v[1];
+    pOut3[1] = pOther->physics_joint1->hinge_axis2.v[1] * t.v[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis2.v[2] * t.v[1];
+    pOut3[0] = pOther->physics_joint1->hinge_axis3.v[0] * t.v[2] + pOut3[0];
+    pOut3[1] = pOther->physics_joint1->hinge_axis3.v[1] * t.v[2] + pOut3[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis3.v[2] * t.v[2] + pOut3[2];
+    BrMatrix34ApplyV(&v, (br_vector3*)pOut3, &pOther->transform_matrix);
+    BrMatrix34TApplyV(&t2, &v, &pObject->transform_matrix);
+    fa = pOther->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+    t2.v[0] = (d.v[1] * fc - d.v[2] * fb) + t2.v[0];
+    t2.v[1] = (d.v[2] * fa - d.v[0] * fc) + t2.v[1];
+    t2.v[2] = (d.v[0] * fb - d.v[1] * fa) + t2.v[2];
+    fa = pOther->physics_joint1->hinge_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->hinge_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->hinge_axis.v[2] * t.v[0];
+    d.v[0] = pOther->physics_joint1->field_0x08.v[0] - pOther->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x08.v[1] - pOther->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x08.v[2] - pOther->cmpos.v[2];
+    pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+    pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+    pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+    for (i = 0; i < 3; i++) {
+        pOut1[i] -= t2.v[i] / pObject->I.v[i];
+    }
+    for (i = 0; i < 3; i++) {
+        pOut3[i] = pOut3[i] / pOther->I.v[i];
+    }
+    return (int)pOther;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -4269,9 +4515,139 @@ void C2_HOOK_FASTCALL FUN_004be4b0(br_scalar* pOut1, br_scalar* pOut2, const br_
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004becf0
+// PARTIAL 40.73%: both branches recovered from the REA pseudocode and the x87
+// data flow (branch 1 uses pObject->physics_joint1->field_0x08 and the object's
+// own workspace matrix; branch 2 mirrors FUN_004be550 with pOther's joint and
+// field_0x14). Remaining gap is MSVC 11 x87 scheduling only: the original keeps
+// the lever vector on the FP stack (no fst/fld round trip) and reserves a
+// 0x48-byte frame, ours spills and uses 0x3c. Reordering the locals to
+// v,d,t2,t,axis and to the pseudo's statement order did not change the codegen.
+// FUNCTION: CARMA2_HW 0x004becf0
 int C2_HOOK_FASTCALL FUN_004becf0(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    br_vector3 v;
+    br_vector3 d;
+    br_vector3 t2;
+    br_vector3 t;
+    br_vector3 axis;
+    tU8* pWorkspace;
+    tPhysics_object* pOther;
+    br_scalar f;
+    br_scalar fa;
+    br_scalar fb;
+    br_scalar fc;
+    int i;
+
+    pWorkspace = (tU8*)*(int*)((tU8*)pObject + 0x1e4);
+    pOther = (tPhysics_object*)*(int*)(pWorkspace + 4);
+    if (pOther == pObject->field_0x230) {
+        d.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+        t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+        t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+        t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+        axis.v[0] = -(pObject->physics_joint1->hinge_axis.v[0] * t2.v[0]
+            + pObject->physics_joint1->hinge_axis.v[1] * t2.v[1]
+            + pObject->physics_joint1->hinge_axis.v[2] * t2.v[2]);
+        axis.v[1] = -(pObject->physics_joint1->hinge_axis2.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis2.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis2.v[2] * pOut1[2]);
+        axis.v[2] = -(pObject->physics_joint1->hinge_axis3.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis3.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis3.v[2] * pOut1[2]);
+        BrMatrix34ApplyV(&t, &axis, (br_matrix34*)(pWorkspace + 8));
+        f = t.v[0] / pObject->M;
+        pOut2[0] = pObject->physics_joint1->hinge_axis.v[0] * f + pOut2[0];
+        pOut2[1] = pObject->physics_joint1->hinge_axis.v[1] * f + pOut2[1];
+        pOut2[2] = pObject->physics_joint1->hinge_axis.v[2] * f + pOut2[2];
+        f = -(t.v[0] / pOther->M);
+        pOut4[0] = pObject->physics_joint1->parent_bone_axis.v[0] * f;
+        pOut4[1] = pObject->physics_joint1->parent_bone_axis.v[1] * f;
+        pOut4[2] = pObject->physics_joint1->parent_bone_axis.v[2] * f;
+        t2.v[0] = pObject->physics_joint1->hinge_axis3.v[0] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[0] * t.v[1];
+        t2.v[1] = pObject->physics_joint1->hinge_axis3.v[1] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[1] * t.v[1];
+        t2.v[2] = pObject->physics_joint1->hinge_axis3.v[2] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[2] * t.v[1];
+        fa = pObject->physics_joint1->hinge_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->hinge_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->hinge_axis.v[2] * t.v[0];
+        v.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+        v.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+        v.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+        for (i = 0; i < 3; i++) {
+            pOut1[i] = v.v[i] / pObject->I.v[i] + pOut1[i];
+        }
+        BrMatrix34ApplyV(&v, &t2, &pObject->transform_matrix);
+        BrMatrix34TApplyV((br_vector3*)pOut3, &v, &pOther->transform_matrix);
+        d.v[0] = pObject->physics_joint1->field_0x14.v[0] - pOther->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x14.v[1] - pOther->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x14.v[2] - pOther->cmpos.v[2];
+        fa = pObject->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+        pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+        pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+        pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+        for (i = 0; i < 3; i++) {
+            pOut3[i] = -(pOut3[i] / pOther->I.v[i]);
+        }
+        return (int)pOther;
+    }
+    d.v[0] = pOther->physics_joint1->field_0x14.v[0] - pObject->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x14.v[1] - pObject->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x14.v[2] - pObject->cmpos.v[2];
+    t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+    t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+    t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+    axis.v[0] = pOther->physics_joint1->parent_bone_axis.v[0] * t2.v[0]
+        + pOther->physics_joint1->parent_bone_axis.v[1] * t2.v[1]
+        + pOther->physics_joint1->parent_bone_axis.v[2] * t2.v[2];
+    BrMatrix34ApplyV(&t2, (br_vector3*)pOut1, &pObject->transform_matrix);
+    BrMatrix34TApplyV(&v, &t2, &pOther->transform_matrix);
+    axis.v[1] = pOther->physics_joint1->hinge_axis2.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis2.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis2.v[2] * v.v[2];
+    axis.v[2] = pOther->physics_joint1->hinge_axis3.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis3.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis3.v[2] * v.v[2];
+    BrMatrix34ApplyV(&t, &axis, (br_matrix34*)((tU8*)*(int*)((tU8*)pOther + 0x1e4) + 8));
+    f = t.v[0] / pOther->M;
+    pOut4[0] = pOther->physics_joint1->hinge_axis.v[0] * f;
+    pOut4[1] = pOther->physics_joint1->hinge_axis.v[1] * f;
+    pOut4[2] = pOther->physics_joint1->hinge_axis.v[2] * f;
+    f = -(t.v[0] / pObject->M);
+    pOut2[0] = pOther->physics_joint1->parent_bone_axis.v[0] * f + pOut2[0];
+    pOut2[1] = pOther->physics_joint1->parent_bone_axis.v[1] * f + pOut2[1];
+    pOut2[2] = pOther->physics_joint1->parent_bone_axis.v[2] * f + pOut2[2];
+    pOut3[0] = pOther->physics_joint1->hinge_axis2.v[0] * t.v[1];
+    pOut3[1] = pOther->physics_joint1->hinge_axis2.v[1] * t.v[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis2.v[2] * t.v[1];
+    pOut3[0] = pOther->physics_joint1->hinge_axis3.v[0] * t.v[2] + pOut3[0];
+    pOut3[1] = pOther->physics_joint1->hinge_axis3.v[1] * t.v[2] + pOut3[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis3.v[2] * t.v[2] + pOut3[2];
+    BrMatrix34ApplyV(&v, (br_vector3*)pOut3, &pOther->transform_matrix);
+    BrMatrix34TApplyV(&t2, &v, &pObject->transform_matrix);
+    fa = pOther->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+    t2.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+    t2.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+    t2.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+    for (i = 0; i < 3; i++) {
+        pOut1[i] -= t2.v[i] / pObject->I.v[i];
+    }
+    d.v[0] = pOther->physics_joint1->field_0x08.v[0] - pOther->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x08.v[1] - pOther->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x08.v[2] - pOther->cmpos.v[2];
+    fa = pOther->physics_joint1->hinge_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->hinge_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->hinge_axis.v[2] * t.v[0];
+    pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+    pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+    pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+    for (i = 0; i < 3; i++) {
+        pOut3[i] = pOut3[i] / pOther->I.v[i];
+    }
+    return (int)pOther;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -5292,9 +5668,146 @@ int C2_HOOK_FASTCALL CopyPhysicsJointData(tPhysics_joint_force* pDestination, in
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c0430
+// FUNCTION: CARMA2_HW 0x004c0430
 int C2_HOOK_FASTCALL FUN_004c0430(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count) {
-    NOT_IMPLEMENTED();
+    int flag;
+    int found;
+    br_vector3 w;
+    br_vector3 q;
+    br_vector3 p;
+    br_vector3 r;
+    br_scalar t;
+    int i;
+
+    flag = 0;
+    if (pCollision_count < pCount) {
+        for (i = pCollision_count; i < pCount; i++) {
+            pRhs[i] = 0.f;
+        }
+    }
+    if (0 < pCollision_count) {
+        for (i = 0; i < pCollision_count; i++) {
+            if (pRecords[i]->type == 11) {
+                pRhs[i] = -BrVector3Dot(&pRecords[i]->object_a->omega, &pRecords[i]->direction_a);
+                if (pRecords[i]->object_b != NULL) {
+                    pRhs[i] = BrVector3Dot(&pRecords[i]->object_b->omega, &pRecords[i]->direction_b) + pRhs[i];
+                }
+                if (pRhs[i] < 0.001) {
+                    pRhs[i] = 0.001f;
+                } else {
+                    flag = 1;
+                }
+            } else {
+                w.v[0] = pRecords[i]->point_a.v[2] * pRecords[i]->object_a->omega.v[1]
+                    - pRecords[i]->point_a.v[1] * pRecords[i]->object_a->omega.v[2];
+                w.v[1] = pRecords[i]->point_a.v[0] * pRecords[i]->object_a->omega.v[2]
+                    - pRecords[i]->point_a.v[2] * pRecords[i]->object_a->omega.v[0];
+                w.v[2] = pRecords[i]->point_a.v[1] * pRecords[i]->object_a->omega.v[0]
+                    - pRecords[i]->point_a.v[0] * pRecords[i]->object_a->omega.v[1];
+                BrVector3Accumulate(&w, &pRecords[i]->object_a->velocity_car_space);
+                pRhs[i] = -BrVector3Dot(&pRecords[i]->direction_a, &w);
+                if (pRecords[i]->object_b != NULL) {
+                    w.v[0] = pRecords[i]->point_b.v[2] * pRecords[i]->object_b->omega.v[1]
+                        - pRecords[i]->point_b.v[1] * pRecords[i]->object_b->omega.v[2];
+                    w.v[1] = pRecords[i]->point_b.v[0] * pRecords[i]->object_b->omega.v[2]
+                        - pRecords[i]->point_b.v[2] * pRecords[i]->object_b->omega.v[0];
+                    w.v[2] = pRecords[i]->point_b.v[1] * pRecords[i]->object_b->omega.v[0]
+                        - pRecords[i]->point_b.v[0] * pRecords[i]->object_b->omega.v[1];
+                    BrVector3Accumulate(&w, &pRecords[i]->object_b->velocity_car_space);
+                    pRhs[i] = BrVector3Dot(&pRecords[i]->direction_b, &w) + pRhs[i];
+                }
+                if (0.01 < pRhs[i]) {
+                    flag = 1;
+                }
+                if (0.1 < pRhs[i]) {
+                    t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                    if (1.0f < t) {
+                        t = 1.0f;
+                    }
+                    if (t < 0.1) {
+                        t = 0.1f;
+                    }
+                    pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                }
+                if (pRhs[i] < 0.0f) {
+                    pRhs[i] = 0.f;
+                }
+                t = 0.01 - pRhs[i] * -1.001;
+                pRhs[i] = t;
+                if ((pRecords[i]->object_b == NULL || pRecords[i]->object_b->field_0x1df != 0) && pRecords[i]->object_a->field_0x1df != 0) {
+                    pRhs[i] = t - 0.0099;
+                }
+            }
+        }
+    }
+    if (flag == 0) {
+        found = 0;
+        if (0 < pCollision_count) {
+            for (i = 0; i < pCollision_count; i++) {
+                if (pRecords[i]->type == 11) {
+                    pRhs[i] = (0.001 - pRecords[i]->field_0x0) * 25.0;
+                    if (pRhs[i] < 0.001) {
+                        pRhs[i] = 0.001f;
+                    } else {
+                        flag = 1;
+                    }
+                } else {
+                    if (pRecords[i]->object_b == NULL) {
+                        BrVector3Add(&p, &pRecords[i]->object_a->cmpos, &pRecords[i]->point_a);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->actor->t.t.mat);
+                        DrMatrix34ApplyLPInverse(&q, &w, &pRecords[i]->object_a->transform_matrix);
+                        BrVector3Sub(&q, &q, &p);
+                        pRhs[i] = 0.01 - BrVector3Dot(&pRecords[i]->direction_a, &q) * 25.f;
+                    } else {
+                        BrVector3Add(&p, &pRecords[i]->object_a->cmpos, &pRecords[i]->point_a);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->transform_matrix);
+                        DrMatrix34ApplyLPInverse(&q, &w, &pRecords[i]->object_b->transform_matrix);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->actor->t.t.mat);
+                        DrMatrix34ApplyLPInverse(&r, &w, &pRecords[i]->object_b->actor->t.t.mat);
+                        BrVector3Sub(&q, &r, &q);
+                        pRhs[i] = -(BrVector3Dot(&pRecords[i]->direction_b, &q) * 25.f);
+                        if (pRecords[i]->type == 5) {
+                            BrMatrix34ApplyV(&w, &pRecords[i]->direction_b, &pRecords[i]->object_b->transform_matrix);
+                            BrMatrix34TApplyV(&r, &w, &pRecords[i]->object_b->actor->t.t.mat);
+                            t = -(BrVector3Dot(&r, &q) * 25.f);
+                            if (pRhs[i] < t) {
+                                pRhs[i] = t;
+                            }
+                        }
+                        if (0.0f < pRecords[i]->field_0x10 && pRhs[i] < pRecords[i]->field_0x10 * 25.f) {
+                            pRhs[i] = pRecords[i]->field_0x10 * 25.f;
+                        }
+                    }
+                    if (pRhs[i] <= 0.1) {
+                        if (pRhs[i] < 0.0f) {
+                            pRhs[i] = 0.f;
+                        }
+                    } else {
+                        t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                        if (1.0f < t) {
+                            t = 1.0f;
+                        }
+                        if (t < 0.1) {
+                            t = 0.1f;
+                        }
+                        pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                    }
+                    if (0.001 < pRhs[i]) {
+                        found = 1;
+                    }
+                    pRhs[i] = 0.01 - pRhs[i] * -1.001;
+                }
+            }
+        }
+        if (found == 0 && 0 < pCollision_count) {
+            for (i = 0; i < pCollision_count; i++) {
+                if (pRecords[i]->type != 11) {
+                    pRhs[i] = 0.1f;
+                }
+            }
+        }
+    }
+    return flag == 0;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -5868,9 +6381,424 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00427870
+extern int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection);
+extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
+extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
+
+// FUNCTION: CARMA2_HW 0x00427870
 int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining) {
-    NOT_IMPLEMENTED();
+    tU8 flags1[64];
+    tU8 flags2[64];
+    tU8 mask2;
+    tU8 mask1;
+    int min_z;
+    int min_x;
+    int min_y;
+    int max_x;
+    int max_y;
+    int max_z;
+    int found;
+    int i;
+    int prev_count;
+    int record_index;
+    br_vector3 direction;
+    br_vector3 center;
+    br_vector3 point;
+    br_vector3 diff;
+    br_scalar fz;
+
+    mask2 = 0xff;
+    mask1 = 0xff;
+    for (i = 0; i < pCount2; i++) {
+        min_x = pVertices2[i * 2].v[0] < pShape1->common.bb.min.v[0] - 0.005f && pVertices2[i * 2 + 1].v[0] < pShape1->common.bb.min.v[0] - 0.005f;
+        min_y = pVertices2[i * 2].v[1] < pShape1->common.bb.min.v[1] - 0.005f && pVertices2[i * 2 + 1].v[1] < pShape1->common.bb.min.v[1] - 0.005f;
+        min_z = pVertices2[i * 2].v[2] < pShape1->common.bb.min.v[2] - 0.005f && pVertices2[i * 2 + 1].v[2] < pShape1->common.bb.min.v[2] - 0.005f;
+        max_x = pVertices2[i * 2].v[0] > pShape1->common.bb.max.v[0] - -0.005f && pVertices2[i * 2 + 1].v[0] > pShape1->common.bb.max.v[0] - -0.005f;
+        max_y = pVertices2[i * 2].v[1] > pShape1->common.bb.max.v[1] - -0.005f && pVertices2[i * 2 + 1].v[1] > pShape1->common.bb.max.v[1] - -0.005f;
+        max_z = pVertices2[i * 2].v[2] > pShape1->common.bb.max.v[2] - -0.005f && pVertices2[i * 2 + 1].v[2] > pShape1->common.bb.max.v[2] - -0.005f;
+        flags2[i] = ((((max_z * 2 + max_y) * 2 + max_x) * 2 + min_z) * 2 + min_y) * 2 + min_x;
+        mask2 = mask2 & flags2[i];
+    }
+    if (mask2 != 0) {
+        return pRecord_count;
+    }
+    for (i = 0; i < pCount1; i++) {
+        min_x = pVertices1[i * 2].v[0] < pShape2->common.bb.min.v[0] - 0.005f && pVertices1[i * 2 + 1].v[0] < pShape2->common.bb.min.v[0] - 0.005f;
+        min_y = pVertices1[i * 2].v[1] < pShape2->common.bb.min.v[1] - 0.005f && pVertices1[i * 2 + 1].v[1] < pShape2->common.bb.min.v[1] - 0.005f;
+        min_z = pVertices1[i * 2].v[2] < pShape2->common.bb.min.v[2] - 0.005f && pVertices1[i * 2 + 1].v[2] < pShape2->common.bb.min.v[2] - 0.005f;
+        max_x = pVertices1[i * 2].v[0] > pShape2->common.bb.max.v[0] - -0.005f && pVertices1[i * 2 + 1].v[0] > pShape2->common.bb.max.v[0] - -0.005f;
+        max_y = pVertices1[i * 2].v[1] > pShape2->common.bb.max.v[1] - -0.005f && pVertices1[i * 2 + 1].v[1] > pShape2->common.bb.max.v[1] - -0.005f;
+        max_z = pVertices1[i * 2].v[2] > pShape2->common.bb.max.v[2] - -0.005f && pVertices1[i * 2 + 1].v[2] > pShape2->common.bb.max.v[2] - -0.005f;
+        flags1[i] = ((((max_z * 2 + max_y) * 2 + max_x) * 2 + min_z) * 2 + min_y) * 2 + min_x;
+        mask1 = mask1 & flags1[i];
+    }
+    if (mask1 != 0) {
+        return pRecord_count;
+    }
+    record_index = pRecord_count;
+    if ((pObject1->flags & 0x100) != 0 || (pObject2->flags & 0x100) != 0) {
+        center.v[0] = (pObject1->bb1.max.v[0] + pObject1->bb1.min.v[0]) * 0.5f;
+        center.v[1] = (pObject1->bb1.max.v[1] + pObject1->bb1.min.v[1]) * 0.5f;
+        center.v[2] = (pObject1->bb1.max.v[2] + pObject1->bb1.min.v[2]) * 0.5f;
+        BrMatrix34ApplyP(&point, &center, &pObject1->transform_matrix);
+        diff.v[0] = point.v[0] - pObject2->transform_matrix.m[3][0];
+        diff.v[1] = point.v[1] - pObject2->transform_matrix.m[3][1];
+        diff.v[2] = point.v[2] - pObject2->transform_matrix.m[3][2];
+        BrMatrix34TApplyV(&center, &diff, &pObject2->transform_matrix);
+        direction.v[0] = center.v[0] - (pObject2->bb1.max.v[0] + pObject2->bb1.min.v[0]) * 0.5f;
+        direction.v[1] = center.v[1] - (pObject2->bb1.max.v[1] + pObject2->bb1.min.v[1]) * 0.5f;
+        fz = center.v[2] - (pObject2->bb1.max.v[2] + pObject2->bb1.min.v[2]) * 0.5f;
+        direction.v[2] = (float)sqrt(fz * fz + direction.v[1] * direction.v[1] + direction.v[0] * direction.v[0]);
+        if (direction.v[2] <= 2.3841858e-07f) {
+            direction.v[0] = 1.0f;
+            direction.v[1] = 0.0f;
+            direction.v[2] = 0.0f;
+        } else {
+            direction.v[2] = (float)(1.0 / direction.v[2]);
+            direction.v[0] = direction.v[2] * direction.v[0];
+            direction.v[1] = direction.v[2] * direction.v[1];
+            direction.v[2] = direction.v[2] * fz;
+        }
+        found = 0;
+        prev_count = FUN_00427fd0(pObject1, pObject2, pShape1, pShape2, pVertices1, pRecords, pRecord_count, pRemaining, flags1, &found, &direction);
+        BrMatrix34ApplyV(&point, &direction, &pObject1->transform_matrix);
+        BrMatrix34TApplyV(&direction, &point, &pObject2->transform_matrix);
+        direction.v[0] = -direction.v[0];
+        direction.v[1] = -direction.v[1];
+        direction.v[2] = -direction.v[2];
+        pRecord_count = FUN_00427fd0(pObject2, pObject1, pShape2, pShape1, pVertices2, pRecords, prev_count, pRemaining, flags2, &found, &direction);
+        if (found != 0) {
+            pObject1->flags = pObject1->flags | 0x200;
+            pObject2->flags = pObject2->flags | 0x200;
+            if (pObject1->parent != NULL && pObject1->parent == pObject2->parent) {
+                return record_index;
+            }
+            return pRecord_count;
+        }
+    }
+    if (pShape2->common.type != kCollisionShapeType_Wireframe) {
+        pRecord_count = FUN_00428530(pObject1, pObject2, pShape1, pShape2, pVertices1, pCount1, pRecords, pRecord_count, pRemaining, flags1);
+    }
+    if (pShape1->common.type != kCollisionShapeType_Wireframe) {
+        pRecord_count = FUN_00428530(pObject2, pObject1, pShape2, pShape1, pVertices2, pCount2, pRecords, pRecord_count, pRemaining, flags2);
+    }
+    if (pRecord_count != 0 && pObject1 != pRecords[record_index].object_a) {
+        return FUN_004287a0(pObject2, pObject1, pShape2, pShape1, pVertices2, pVertices1, pRecords, pRecord_count, pRemaining, flags2, flags1);
+    }
+    return FUN_004287a0(pObject1, pObject2, pShape1, pShape2, pVertices1, pVertices2, pRecords, pRecord_count, pRemaining, flags1, flags2);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00427fd0
+int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection) {
+    tPolyhedron_edge_indexes* edges;
+    br_scalar t;
+    int count;
+    int i;
+    br_scalar t2;
+    br_vector3 point_a;
+    br_vector3 normal_a;
+    br_vector3 normal;
+    br_vector3 point;
+    br_vector3 hit;
+    br_vector3 tmp;
+    br_scalar fDot;
+    int result;
+    int result2;
+
+    switch (pShape1->common.type) {
+    case kCollisionShapeType_Box:
+        edges = gBox_edge_indexes;
+        count = 12;
+        break;
+    case kCollisionShapeType_Wireframe:
+        edges = pShape1->wireframe.wireframe.lines;
+        count = pShape1->wireframe.wireframe.count_lines;
+        break;
+    case kCollisionShapeType_Polyhedron:
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        count = pShape1->polyhedron.polyhedron.count_edges;
+        edges = pShape1->polyhedron.polyhedron.edges;
+        break;
+    default:
+        PhysicsError(ePhysicsError_UnknownShapeType, "");
+        edges = (tPolyhedron_edge_indexes*)pShape2;
+        break;
+    }
+
+    for (i = 0; i < count; i++, edges++) {
+        if ((pFlags[edges->index2] & pFlags[edges->index1]) != 0) {
+            continue;
+        }
+        result = ShapeRayCast(&pVertices[edges->index1 * 2], &pVertices[edges->index2 * 2], pShape2, &hit, &t, &normal);
+        if (result == 0) {
+            continue;
+        }
+        *pFound = 1;
+        if ((result & 0x40) != 0) {
+            result = ShapeRayCast(&pVertices[edges->index2 * 2], &pVertices[edges->index1 * 2], pShape2, &hit, &t, &normal);
+            t = 1.f - t;
+        } else {
+            result2 = ShapeRayCast(&pVertices[edges->index2 * 2], &pVertices[edges->index1 * 2], pShape2, &point_a, &t2, &normal_a);
+            if ((result2 & 0x40) == 0) {
+                continue;
+            }
+        }
+        if ((result & 0x40) != 0) {
+            continue;
+        }
+        normal.v[0] = -normal.v[0];
+        normal.v[1] = -normal.v[1];
+        normal.v[2] = -normal.v[2];
+        if (normal.v[0] * pDirection->v[0] + pDirection->v[1] * normal.v[1] + pDirection->v[2] * normal.v[2] >= 0.2f) {
+            point_a.v[0] = hit.v[0] - pObject2->cmpos.v[0];
+            point_a.v[1] = hit.v[1] - pObject2->cmpos.v[1];
+            point_a.v[2] = hit.v[2] - pObject2->cmpos.v[2];
+            normal_a.v[0] = pObject2->velocity_car_space.v[0] + pObject2->rotate_omega.v[1] * point_a.v[2] - pObject2->rotate_omega.v[2] * point_a.v[1];
+            normal_a.v[1] = pObject2->velocity_car_space.v[1] + pObject2->rotate_omega.v[2] * point_a.v[0] - pObject2->rotate_omega.v[0] * point_a.v[2];
+            normal_a.v[2] = pObject2->velocity_car_space.v[2] + pObject2->rotate_omega.v[0] * point_a.v[1] - pObject2->rotate_omega.v[1] * point_a.v[0];
+            fDot = normal_a.v[0] * normal.v[0] + normal_a.v[1] * normal.v[1] + normal_a.v[2] * normal.v[2];
+            GetShapePoint(&point_a, pShape1, edges->index1);
+            GetShapePoint(&normal_a, pShape1, edges->index2);
+            point.v[0] = point_a.v[0] + t * (normal_a.v[0] - point_a.v[0]);
+            point.v[1] = point_a.v[1] + t * (normal_a.v[1] - point_a.v[1]);
+            point_a.v[0] = point.v[0] - pObject1->cmpos.v[0];
+            point_a.v[1] = point.v[1] - pObject1->cmpos.v[1];
+            point.v[2] = point_a.v[2] + t * (normal_a.v[2] - point_a.v[2]);
+            point_a.v[2] = point.v[2] - pObject1->cmpos.v[2];
+            normal_a.v[0] = pObject1->velocity_car_space.v[0] + (pObject1->rotate_omega.v[1] * point_a.v[2] - pObject1->rotate_omega.v[2] * point_a.v[1]);
+            normal_a.v[1] = pObject1->velocity_car_space.v[1] + (pObject1->rotate_omega.v[2] * point_a.v[0] - pObject1->rotate_omega.v[0] * point_a.v[2]);
+            normal_a.v[2] = pObject1->velocity_car_space.v[2] + (pObject1->rotate_omega.v[0] * point_a.v[1] - pObject1->rotate_omega.v[1] * point_a.v[0]);
+            BrMatrix34ApplyV(&tmp, &normal, &pObject2->transform_matrix);
+            BrMatrix34TApplyV(&point_a, &tmp, &pObject1->transform_matrix);
+            if (fDot - (normal_a.v[0] * point_a.v[0] + normal_a.v[1] * point_a.v[1] + normal_a.v[2] * point_a.v[2]) > 0.0f) {
+                pRecord_count = AddObjectObjectForce(pRecords, &point, 0.f, &hit, &tmp, pRecord_count, pObject1, pObject2, 6, (void*)i, 0.f);
+            }
+        }
+    }
+    return pRecord_count;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00428530
+int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags) {
+    br_vector3 v1;
+    br_vector3 v2;
+    br_vector3 normal;
+    br_vector3 point;
+    br_vector3 shape_point;
+    br_scalar t;
+    br_scalar scale;
+    br_scalar neg_t;
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+    int result;
+    int i;
+
+    if (pShape2->common.type == kCollisionShapeType_Wireframe) {
+        return pRecord_count;
+    }
+    for (i = 0; i < pCount; i++) {
+        if (pFlags[i] != 0) {
+            continue;
+        }
+        result = ShapeRayCastWithSphere((br_vector3*)&pVertices[i * 2], (br_vector3*)&pVertices[i * 2 + 1], pShape1, &point, &normal, &t);
+        if (result == 0) {
+            continue;
+        }
+        if (result == -1) {
+            pFlags[i] = 0xff;
+            pObject1->flags = pObject1->flags | 0x200;
+            pObject2->flags = pObject2->flags | 0x200;
+        } else {
+            GetShapePoint(&shape_point, pShape1, i);
+            if ((result & 0x40) != 0) {
+                t = 1.05f;
+                BrMatrix34ApplyV(&v1, &normal, &pObject2->actor->t.t.mat);
+                v1.v[0] = -v1.v[0];
+                v1.v[1] = -v1.v[1];
+                v1.v[2] = -v1.v[2];
+            } else {
+                BrMatrix34ApplyV(&v1, &normal, &pObject2->actor->t.t.mat);
+                BrMatrix34ApplyV(&v2, &normal, &pObject2->transform_matrix);
+                scale = -(1.0f - t);
+                v2.v[0] = v2.v[0] * scale;
+                v2.v[1] = v2.v[1] * scale;
+                v2.v[2] = v2.v[2] * scale;
+                neg_t = -t;
+                x = v1.v[0] * neg_t + v2.v[0];
+                y = v1.v[1] * neg_t + v2.v[1];
+                z = v1.v[2] * neg_t + v2.v[2];
+                v1.v[2] = (float)sqrt(x * x + y * y + z * z);
+                if (v1.v[2] <= 2.3841858e-07f) {
+                    v1.v[0] = 1.0f;
+                    v1.v[1] = 0.0f;
+                    v1.v[2] = 0.0f;
+                } else {
+                    v1.v[2] = (float)(1.0 / v1.v[2]);
+                    v1.v[0] = v1.v[2] * x;
+                    v1.v[1] = v1.v[2] * y;
+                    v1.v[2] = v1.v[2] * z;
+                }
+            }
+            pRecord_count = AddObjectObjectForce(pRecords, &shape_point, t, &point, &v1, pRecord_count, pObject1, pObject2, 5, NULL, 0.f);
+        }
+    }
+    return pRecord_count;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+extern int C2_HOOK_FASTCALL FUN_00424990(br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004287a0
+int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2) {
+    tPolyhedron_edge_indexes* edges1;
+    int count1;
+    tPolyhedron_edge_indexes* edges2;
+    int record_count;
+    int count2;
+    br_vector3 vertex;
+    int i;
+    br_vector3 diff;
+    br_vector3 delta;
+    br_scalar t2;
+    br_vector3 direction;
+    br_vector3 hit;
+    br_scalar t;
+    br_vector3 points2[3];
+    tU8 edge_ids[64];
+    br_vector3 points[64];
+    br_vector3 diffs[64];
+    int j;
+
+    t = 2.f;
+    switch (pShape1->common.type) {
+    case kCollisionShapeType_Box:
+        edges1 = gBox_edge_indexes;
+        count1 = 12;
+        break;
+    case kCollisionShapeType_Polyhedron:
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        edges1 = pShape1->polyhedron.polyhedron.edges;
+        count1 = pShape1->polyhedron.polyhedron.count_edges;
+        break;
+    case kCollisionShapeType_Wireframe:
+        edges1 = pShape1->wireframe.wireframe.lines;
+        count1 = pShape1->wireframe.wireframe.count_lines;
+        break;
+    default:
+        PhysicsError(ePhysicsError_UnknownShapeType, "");
+        break;
+    }
+    switch (pShape2->common.type) {
+    case kCollisionShapeType_Box:
+        edges2 = gBox_edge_indexes;
+        count2 = 12;
+        break;
+    case kCollisionShapeType_Polyhedron:
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        edges2 = pShape2->polyhedron.polyhedron.edges;
+        count2 = pShape2->polyhedron.polyhedron.count_edges;
+        break;
+    case kCollisionShapeType_Wireframe:
+        edges2 = pShape2->wireframe.wireframe.lines;
+        count2 = pShape2->wireframe.wireframe.count_lines;
+        break;
+    default:
+        PhysicsError(ePhysicsError_UnknownShapeType, "");
+        break;
+    }
+    record_count = 0;
+    for (i = 0; i < count2; i++, edges2++) {
+        if ((pFlags2[edges2->index2] & pFlags2[edges2->index1]) != 0) {
+            continue;
+        }
+        switch (pShape2->common.type) {
+        case kCollisionShapeType_Box:
+            points[i].v[0] = (edges2->index1 & 2) ? pShape2->common.bb.min.v[0] : pShape2->common.bb.max.v[0];
+            points[i].v[1] = (edges2->index1 & 1) ? pShape2->common.bb.min.v[1] : pShape2->common.bb.max.v[1];
+            points[i].v[2] = (edges2->index1 & 4) ? pShape2->common.bb.min.v[2] : pShape2->common.bb.max.v[2];
+            vertex.v[0] = (edges2->index2 & 2) ? pShape2->common.bb.min.v[0] : pShape2->common.bb.max.v[0];
+            vertex.v[1] = (edges2->index2 & 1) ? pShape2->common.bb.min.v[1] : pShape2->common.bb.max.v[1];
+            vertex.v[2] = (edges2->index2 & 4) ? pShape2->common.bb.min.v[2] : pShape2->common.bb.max.v[2];
+            break;
+        case kCollisionShapeType_Polyhedron:
+        case kCollisionShapeType_Wireframe_Polyhedron:
+            points[i].v[0] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[0];
+            points[i].v[1] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[1];
+            points[i].v[2] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[2];
+            vertex.v[0] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[0];
+            vertex.v[1] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[1];
+            vertex.v[2] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[2];
+            break;
+        case kCollisionShapeType_Wireframe:
+            points[i].v[0] = pShape2->wireframe.wireframe.points[edges2->index1].v[0];
+            points[i].v[1] = pShape2->wireframe.wireframe.points[edges2->index1].v[1];
+            points[i].v[2] = pShape2->wireframe.wireframe.points[edges2->index1].v[2];
+            vertex.v[0] = pShape2->wireframe.wireframe.points[edges2->index2].v[0];
+            vertex.v[1] = pShape2->wireframe.wireframe.points[edges2->index2].v[1];
+            vertex.v[2] = pShape2->wireframe.wireframe.points[edges2->index2].v[2];
+            break;
+        default:
+            PhysicsError(ePhysicsError_UnknownShapeType, "");
+            break;
+        }
+        diffs[i].v[0] = vertex.v[0] - points[i].v[0];
+        diffs[i].v[1] = vertex.v[1] - points[i].v[1];
+        edge_ids[record_count] = i;
+        record_count++;
+        diffs[i].v[2] = vertex.v[2] - points[i].v[2];
+    }
+    for (i = 0; i < count1; i++, edges1++) {
+        if ((pFlags1[edges1->index2] & pFlags1[edges1->index1]) != 0) {
+            continue;
+        }
+        if (pFlags1[edges1->index1] == 0xff) {
+            continue;
+        }
+        if (pFlags1[edges1->index2] == 0xff) {
+            continue;
+        }
+        delta.v[0] = pVertices1[edges1->index2 * 2].v[0] - pVertices1[edges1->index1 * 2].v[0];
+        delta.v[1] = pVertices1[edges1->index2 * 2].v[1] - pVertices1[edges1->index1 * 2].v[1];
+        delta.v[2] = pVertices1[edges1->index2 * 2].v[2] - pVertices1[edges1->index1 * 2].v[2];
+        diff.v[0] = pVertices1[edges1->index2 * 2 + 1].v[0] - pVertices1[edges1->index1 * 2 + 1].v[0];
+        diff.v[1] = pVertices1[edges1->index2 * 2 + 1].v[1] - pVertices1[edges1->index1 * 2 + 1].v[1];
+        diff.v[2] = pVertices1[edges1->index2 * 2 + 1].v[2] - pVertices1[edges1->index1 * 2 + 1].v[2];
+        diff.v[0] = diff.v[0] - delta.v[0];
+        diff.v[1] = diff.v[1] - delta.v[1];
+        diff.v[2] = diff.v[2] - delta.v[2];
+        direction.v[0] = pVertices1[edges1->index1 * 2 + 1].v[0] - pVertices1[edges1->index1 * 2].v[0];
+        direction.v[1] = pVertices1[edges1->index1 * 2 + 1].v[1] - pVertices1[edges1->index1 * 2].v[1];
+        direction.v[2] = pVertices1[edges1->index1 * 2 + 1].v[2] - pVertices1[edges1->index1 * 2].v[2];
+        for (j = 0; j < record_count; j++) {
+            if (FUN_00424990(&points[j], &diffs[j], &pVertices1[edges1->index1 * 2], &delta, &direction, &diff, &t, NULL, pObject1, pObject2) != 0) {
+                if (ShapeRayCast(&pVertices1[edges1->index1 * 2], &pVertices1[edges1->index2 * 2], pShape2, &hit, &t2, NULL) == 0) {
+                    if (ShapeRayCast(&pVertices2[edges2[edge_ids[j]].index1 * 2], &pVertices2[edges2[edge_ids[j]].index2 * 2], pShape1, &hit, &t2, NULL) == 0) {
+                        pRecord_count = AddObjectObjectForce(pRecords, &points2[0], t, &points2[1], &points2[2], pRecord_count, pObject1, pObject2, 6, NULL, 0.f);
+                        t = 2.f;
+                    }
+                }
+            }
+        }
+    }
+    return pRecord_count;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -6338,6 +7266,17 @@ void C2_HOOK_FASTCALL FUN_004b9230(tPhysics_object* pObject, tPhysics_object** p
 #endif
 // STUB: CARMA2_HW 0x004bc8e0
 void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00424990
+int C2_HOOK_FASTCALL FUN_00424990(br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2) {
+    NOT_IMPLEMENTED();
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
