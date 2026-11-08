@@ -140,6 +140,7 @@ void C2_HOOK_CDECL Vertex_OS_TransformProjectSurf(br_geometry* self, br_soft_ren
     }
 }
 
+// PARTIAL 87.97%: Vertex_OS_TransformProjectBoundsGeom 0x548470 [x87-schedule] - original keeps X/Y/W on the FP stack (fst W); ours reloads from memory
 // FUNCTION: CARMA2_HW 0x00548470
 void C2_HOOK_CDECL Vertex_OS_TransformProjectBoundsGeom(br_geometry* self, br_soft_renderer* renderer) {
     int v;
