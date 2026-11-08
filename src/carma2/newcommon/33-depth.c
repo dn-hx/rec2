@@ -116,13 +116,14 @@ extern void C2_HOOK_FASTCALL GenerateSmokeShades(void);
 
 br_scalar C2_HOOK_FASTCALL DepthCueingShiftToDistance(int pDistance) {
 
-    return gCamera_yon * (br_scalar)pow(10.0, 0.1 * (double)pDistance);
+    return (br_scalar)(gCamera_yon * pow(10.0, 0.1 * (double)pDistance));
 }
 
-// Measured 2026-11-08: effective 100 (not exact). Remaining diff: the x87 conversion store of
-// the inlined DepthCueingShiftToDistance is displaced (pow result vs product) because that
-// helper casts to br_scalar before the gCamera_yon multiply; the field reads below are in the
-// original's emission order (start, end, red, green, blue) -- source order drives the load order.
+// Measured 2026-11-08: effective 100 (not exact). Casting AFTER the gCamera_yon multiply fixed
+// the x87 conversion-store displacement of the inlined DepthCueingShiftToDistance. Remaining
+// diff: in the eDepth_effect_colour case only, VC5 hoists the pMaterial->flags load one
+// instruction above the final fmul (scheduler, not store order). The field reads below are in
+// the original's emission order (start, end, red, green, blue) -- source order drives load order.
 // FUNCTION: CARMA2_HW 0x004451a0
 void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     int start;
