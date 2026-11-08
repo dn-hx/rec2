@@ -18,6 +18,8 @@
 
 #include <stdlib.h>
 
+extern const float gFLOAT_0058a9c8;
+
 // GLOBAL: CARMA2_HW 0x006a0414
 const char* gPedsFolder;
 
@@ -1152,6 +1154,9 @@ void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_
         &original_pos, new_pos, original_action, pPed->action, &pPed->character->field_0x8c);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004cc660
 void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) {
 
@@ -1163,6 +1168,9 @@ void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) 
         SetPedMove(pPed, pArg3 ? 40 : 41, -1, 0, 0, pTime, ePed_action_running);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // AcceleratePed
 
@@ -1189,7 +1197,124 @@ static void C2_HOOK_FASTCALL SetPedHeadAnim(tPedestrian* pPed, const tPed_anim_s
 
 // SetKnockedOverMove
 
-// CBMoveCompleted
+// PARTIAL 85.71%: residual is prologue register rotation (original keeps the
+// moves[] index in EDX and walks with EAX; ours walks with ECX/EDX and indexes
+// with EAX), the switch's index/jump-table operands (<OFFSET3>/<OFFSET4>, the
+// known call-through-table class reccmp never name-resolves) and a
+// block-layout shift in the case bodies. Logic and callees match.
+// FUNCTION: CARMA2_HW 0x004cbf20
+int C2_HOOK_FASTCALL CBMoveCompleted(tPed_character_instance* pCharacter) {
+    tPedestrian* pPed;
+    tPed_character_instance* character;
+    br_vector3 dir;
+    tU32 time;
+    int move_id;
+    int pose;
+    int bone_index;
+
+    time = GetTotalTime();
+    move_id = pCharacter->personality->form->moves[pCharacter->field_0x7].id;
+    pPed = pCharacter->ped;
+    if (pCharacter->field_0x14 & 4) {
+        EnableRetainRootMode();
+    }
+    switch (move_id) {
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 0xa:
+    case 0xb:
+        if (pPed->field_0x0c != NULL
+                && pPed->field_0x0c->field_0x20[0] != 0
+                && pPed->field_0x0c->field_0x9c != 0
+                && pPed->field_0x0c->field_0xa0 >= 0
+                && DRS3SoundStillPlaying(pPed->field_0x0c->field_0x9c)) {
+            DRS3StopSound(pPed->field_0x0c->field_0x9c);
+        }
+        if (!gPeds_suicidal) {
+            dir.v[0] = pCharacter->field_0xc0.v[0] * gFLOAT_0058a9c8;
+            dir.v[1] = pCharacter->field_0xc0.v[1] * gFLOAT_0058a9c8;
+            dir.v[2] = pCharacter->field_0xc0.v[2] * gFLOAT_0058a9c8;
+            SetPedXZDirection(pPed, &dir, 0.0f, time);
+        }
+        if (!(pPed->character->field_0xc & gPow2_array[3])
+                && !(pPed->character->field_0xc & gPow2_array[5])
+                && pPed->field_0x0c != NULL) {
+            pPed->field_0x0c->field_0x80 = 100;
+            pPed->field_0x0c->field_0xb8 = .09f;
+            SetPedMove(pPed, 0x29, pPed->field_0x0c->field_0x80, 0, 0, time, ePed_action_running);
+        } else {
+            SetPedMove(pPed, 0x29, -1, 0, 0, time, ePed_action_running);
+        }
+        break;
+    case 0xd:
+        if (!(pPed->character->field_0xc & gPow2_array[3])
+                && !(pPed->character->field_0xc & gPow2_array[5])
+                && pPed->field_0x0c != NULL) {
+            pPed->field_0x0c->field_0x80 = 100;
+            pPed->field_0x0c->field_0xb8 = .09f;
+            SetPedMove(pPed, 0x28, pPed->field_0x0c->field_0x80, 0, 0, time, ePed_action_running);
+        } else {
+            SetPedMove(pPed, 0x28, -1, 0, 0, time, ePed_action_running);
+        }
+        break;
+    case 0x5a:
+    case 0x5b:
+    case 0x5c:
+        SetPedMove(pPed, 0x61, -1, 0, 1, time, ePed_action_impacting);
+        break;
+    case 0x60:
+    case 0x61:
+        if (pPed->hit_points > 0) {
+            SetPedMove(pPed, 0x5d, -1, 0, 0, time, ePed_action_impacting);
+            if (pPed->hit_points > 0 && pPed->field_0x0c != NULL) {
+                pPed->field_0x0c->field_0x1c = (const tPed_anim_seq*)gPed_anim_sequence_0065e4e0;
+                pPed->field_0x0c->field_0x78 = time;
+                pPed->field_0x0c->field_0x1a = 0;
+                character = pPed->character;
+                pose = pPed->field_0x0c->field_0x1c->poses[0];
+                bone_index = character->personality->form->index_head_bone;
+                if (character->field_0x4 >= 0) {
+                    if (bone_index < 0) {
+                        PipeSinglePedModelChange(character->ped, bone_index, NULL, -1, GetCharacterModelSet(character), 0);
+                        SetCharacterAllBonesModel(character, pose, 0);
+                    } else {
+                        PipeSinglePedModelChange(character->ped, bone_index, GetCharacterBoneModel(character, bone_index), pose, GetCharacterModelSet(character), 0);
+                        SetCharacterBoneModel(character, bone_index, pose, 0);
+                    }
+                }
+            }
+        } else {
+            SetPedMove(pPed, 0x5e, -1, 0, 0, time, ePed_action_impacting);
+        }
+        break;
+    case 0x71:
+        DoPostElectricution(pPed, time, 1.0f, 1.0f);
+        break;
+    case 0x50:
+    case 0x51:
+    case 0x52:
+    case 0x53:
+    case 0x54:
+    case 0x55:
+        if (!gBlind_pedestrians && !gPed_valium_left) {
+            pPed->action = ePed_action_walking;
+            StartPedRunning(pPed, time, 0);
+            pPed->field_0x28 = time;
+        } else {
+            SetPedMove(pPed, 0x1e, -1, 0, 0, time, ePed_action_walking);
+        }
+        break;
+    }
+    if (pPed->field_0x0c != NULL && pPed->field_0x0c->field_0xb0 != NULL) {
+        pPed->field_0x0c->field_0xb0->field_0x14 = NULL;
+        pPed->field_0x0c->field_0xb0 = NULL;
+    }
+    DisableRetainRootMode();
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x004cc900
 void C2_HOOK_FASTCALL CBLoadForm(tPed_form* pPed_form, FILE* pF) {
@@ -3989,6 +4114,9 @@ void C2_HOOK_FASTCALL EnableOverallMovement(void) {
 
     gPed_overall_movement_disabled = 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0040c620
 void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
 
@@ -4000,6 +4128,9 @@ void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
 
     gPed_retain_root_mode = 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -7623,3 +7754,6 @@ void C2_HOOK_FASTCALL MakeEmBleed(tPedestrian* pPed, tU32 pTime) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x0058a9c8
+const float gFLOAT_0058a9c8 = -1.0f;
