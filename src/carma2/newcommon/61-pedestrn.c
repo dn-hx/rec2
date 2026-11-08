@@ -933,8 +933,6 @@ void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
 
 // DisposePedSpawnSpec
 
-// DisposeCharacterInstances
-
 // FUNCTION: CARMA2_HW 0x004cb8d0
 void C2_HOOK_FASTCALL DisposePedStuff(void) {
     int i;
@@ -1519,7 +1517,7 @@ int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPosition) {
         }
     }
     return 0;
-
+}
 
 // FUNCTION: CARMA2_HW 0x004d34e0
 void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
@@ -2116,8 +2114,6 @@ void C2_HOOK_FASTCALL ARResetNapalmBolts(void) {
     }
 }
 
-
-
 // FUNCTION: CARMA2_HW 0x004d5b40
 void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_vector3* pPositions) {
     int i;
@@ -2242,7 +2238,6 @@ void C2_HOOK_FASTCALL ResetProxRay(void) {
     }
 }
 
-
 // FUNCTION: CARMA2_HW 0x004d6210
 tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
 
@@ -2251,7 +2246,28 @@ tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
     }
     return NULL;
 }
-// NextPedCam
+// PARTIAL 60.32%: NextPedCam 0x004d6240 - instruction sequence matches, but MSVC hoists the constant 0 into ebp (push ebp/xor ebp,ebp/cmp edi,ebp) because the wrap store folds to constant 0, which also swaps count/start between edi and esi (original: count in edi, start in esi, no ebp). Splitting the store out of the if and chained assignment both measured worse (44%). Likely a TU-context allocator effect.
+// FUNCTION: CARMA2_HW 0x004d6240
+void C2_HOOK_FASTCALL NextPedCam(void) {
+    int count;
+    int i;
+    int start;
+
+    count = gPed_count;
+    if (count == 0) {
+        return;
+    }
+    i = gSelected_ped;
+    start = i;
+    do {
+        i += 1;
+        gSelected_ped = i;
+        if (i >= count) {
+            i = 0;
+            gSelected_ped = i;
+        }
+    } while (!(gPedestrian_array[i].flags & 1) && start != i);
+}
 
 // FUNCTION: CARMA2_HW 0x004d6290
 void C2_HOOK_FASTCALL PrevPedCam(void) {
@@ -2301,8 +2317,6 @@ void C2_HOOK_FASTCALL FindNearestPed(void) {
     gPed_nearness = 1;
 }
 
-
-
 // FUNCTION: CARMA2_HW 0x004d6390
 void C2_HOOK_FASTCALL ResetPedNearness(void) {
 
@@ -2311,6 +2325,11 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
 
 extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
 
+// PARTIAL 99.99% (reccmp: "100% effective match"): the FP instruction stream is identical; the only
+// residual is that the original places the fastcall argument setup (`lea edx,[esp+0xc]` / `mov ecx,esi`)
+// between `fxch st(2)` and the final `faddp st(2)`, while MSVC 11 schedules it two slots later (after
+// `fxch st(1)`, before `fsqrt`). Pure x87 scheduler tie-break; not reachable from source (the cast on the
+// v[2] line IS load-bearing: removing it or widening it drops the match to 85.31% / 86.26%).
 // FUNCTION: CARMA2_HW 0x004d6880
 void C2_HOOK_FASTCALL PedPreCollisionStuff(void) {
     tPhysics_object* pObject;
@@ -4026,6 +4045,7 @@ extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow2(br_vector3* pCast_point)
 extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 
 // (GPL-3.0), reworked after the disassembly
+// PARTIAL 73.93%: personality slot at [esp+0x1c] vs [esp+0x20], ebx/edi swap at entry, and fdivr vs fdivp st(1),st in the six morph velocity divisions
 // FUNCTION: CARMA2_HW 0x0040a050
 int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6) {
     tPed_personality* personality;
@@ -4090,10 +4110,10 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int p
     }
     original_speed = pCharacter->field_0x1e;
     speed = (int)((pSpeed >= 0.f) ? pSpeed : -((float)form->moves[pCharacter->field_0x7].move->frametime * pSpeed));
-    if (pArg4 >= 0) {
-        pCharacter->field_0x1e = (undefined2)speed;
-    } else {
+    if (pArg4 < 0) {
         pCharacter->field_0x20 = (undefined2)speed;
+    } else {
+        pCharacter->field_0x1e = (undefined2)speed;
     }
     if (original_field_0x7 >= 0) {
         if ((form->moves[original_field_0x7].id == move_id && move_flag == 0) || move_id < 0 || pArg4 < 0) {
@@ -4111,9 +4131,7 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int p
             sz += original_ped_move->frames[i].mat.m[3][2];
         }
     }
-    if (original_ped_move != NULL) {
-        ped_frame = &original_ped_move->frames[(tS16)pCharacter->field_0x1c];
-    }
+    ped_frame = original_ped_move != NULL ? &original_ped_move->frames[(tS16)pCharacter->field_0x1c] : (tPed_move_frame*)pArg4;
     pCharacter->field_0x1c = 0;
     pCharacter->field_0x24 = 0;
     pCharacter->field_0x18 = 0;
@@ -4183,12 +4201,13 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int p
     if (gPed_retain_root_mode) {
         if (pCharacter->field_0x4 < 0) {
             character_matrix = &pCharacter->field_0x2c;
-        } else if (pCharacter->field_0xe8 != NULL) {
-            character_matrix = pCharacter->field_0xe8;
         } else {
-            character_matrix = &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+            character_matrix = pCharacter->field_0xe8;
+            if (character_matrix == NULL) {
+                character_matrix = &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+            }
         }
-        BrMatrix34LPInverse(&inverse, &pCharacter->personality->form->moves[pCharacter->field_0x7].move->frames[pCharacter->field_0x1c].mat);
+        BrMatrix34LPInverse(&inverse, &pCharacter->personality->form->moves[pCharacter->field_0x7].move->frames[(tS16)pCharacter->field_0x1c].mat);
         BrMatrix34Mul(&pCharacter->field_0x8c, &inverse, character_matrix);
         pCharacter->field_0x8c.m[3][0] = 0.f;
         pCharacter->field_0x8c.m[3][1] = 0.f;
