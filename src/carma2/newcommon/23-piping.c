@@ -2323,7 +2323,7 @@ void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyFlame(tPipe_chunk** pChunk) {
     tU8* chunk = (tU8*)*pChunk;
 
-    return WorkerFlame(*(int*)(chunk + 0), (int)(tS16)*(tU16*)(chunk + 4), *(float*)(chunk + 8), *(float*)(chunk + 0xc), *(float*)(chunk + 0x10), *(float*)(chunk + 0x10));
+    return AdjustFlame(*(int*)(chunk + 0), (int)(tS16)*(tU16*)(chunk + 4), *(float*)(chunk + 8), *(float*)(chunk + 0xc), *(float*)(chunk + 0x10), *(float*)(chunk + 0x10));
 }
 
 // FUNCTION: CARMA2_HW 0x004c92d0
