@@ -51,6 +51,7 @@ br_quat* C2_HOOK_CDECL BrQuatInvert(br_quat* q, const br_quat* qq) {
     return q;
 }
 
+// PARTIAL 45.89%: x87 schedule/branch layout differs
 // FUNCTION: CARMA2_HW 0x005357c0
 br_quat* C2_HOOK_CDECL BrQuatSlerp(br_quat* q, const br_quat* l, const br_quat* r, br_scalar a, br_int_16 spins) {
     int omega;
@@ -63,17 +64,17 @@ br_quat* C2_HOOK_CDECL BrQuatSlerp(br_quat* q, const br_quat* l, const br_quat* 
 
     // Animating rotation with quaternion curves, Ken Shoemake,SIGGRAPH Computer Graphics, 19(3):245–254, 1985. doi:10.1145/325165.325242.
     c_omega = l->x * r->x + l->y * r->y + l->z * r->z + l->w * r->w;
-    if (c_omega >= 0.f) {
-        t.x = r->x;
-        t.y = r->y;
-        t.z = r->z;
-        t.w = r->w;
-    } else {
+    if (c_omega < 0.f) {
         t.x = -r->x;
         t.y = -r->y;
         t.z = -r->z;
         t.w = -r->w;
         c_omega = -c_omega;
+    } else {
+        t.y = r->y;
+        t.z = r->z;
+        t.w = r->w;
+        t.x = r->x;
     }
 
     if ((1.f - c_omega) <= BR_SCALAR_EPSILON) {
