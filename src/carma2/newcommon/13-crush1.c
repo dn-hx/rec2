@@ -8465,8 +8465,174 @@ tSmashable_level* C2_HOOK_FASTCALL FUN_004ee290(tCar_spec* pCar, tPhysics_object
     return NULL;
 }
 
-// STUB: CARMA2_HW 0x00424270
+typedef int (C2_HOOK_FASTCALL * tEdge_face_wall_force_fn)(float* pWalls, const br_vector3* pPoint, float pDistance, const br_vector3* pNormal, tU32 pUnused, int pCount, tPhysics_object* pObject, int pType, tFace_ref* pFace, const float* pVector);
+
+// Sweeps one end point of the edge from the object's transform_matrix frame to its actor frame against pShape
+// and adds a wall contact (type 2) for the hit. Inlined twice into FUN_00424270.
+static __inline int EdgeFaceSweepPoint(float* pPoint, tPhysics_object* pObject, tPhysics_shape* pShape, float* pWalls, int pCount, tFace_ref* pFace) {
+    extern int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd, tPhysics_shape* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
+    br_vector3 tmp_object;
+    br_vector3 tmp_actor;
+    br_vector3 object_point;
+    br_vector3 actor_point;
+    br_vector3 point;
+    br_vector3 normal;
+    br_scalar t;
+    int hit_count;
+    tEdge_face_wall_force_fn add_wall_force;
+
+    add_wall_force = (tEdge_face_wall_force_fn)(void (*)(void))AddObjectWallForce;
+    tmp_object.v[0] = pPoint[0] - pObject->transform_matrix.m[3][0];
+    tmp_object.v[1] = pPoint[1] - pObject->transform_matrix.m[3][1];
+    tmp_object.v[2] = pPoint[2] - pObject->transform_matrix.m[3][2];
+    BrMatrix34TApplyV(&object_point, &tmp_object, &pObject->transform_matrix);
+    tmp_actor.v[0] = pPoint[0] - pObject->actor->t.t.mat.m[3][0];
+    tmp_actor.v[1] = pPoint[1] - pObject->actor->t.t.mat.m[3][1];
+    tmp_actor.v[2] = pPoint[2] - pObject->actor->t.t.mat.m[3][2];
+    BrMatrix34TApplyV(&actor_point, &tmp_actor, &pObject->actor->t.t.mat);
+    hit_count = ShapeRayCastWithSphere(&object_point, &actor_point, pShape, &point, &normal, &t);
+    if (hit_count > 0) {
+        if (hit_count > 0x40) {
+            t = 1.1f;
+        }
+        pCount = add_wall_force(pWalls, &point, t, &normal, 0, pCount, pObject, 2, pFace, NULL);
+    }
+    return pCount;
+}
+
+// PARTIAL 41.05%: 0x00424270 - logic follows the original; frame 0x184 vs 0x170 and register roles (pObject in ebx, axis/edge counters) differ (keep)
+// Edge (pStart -> pEnd) of a car face against the bounds shape: sweeps both end points from the object's
+// transform_matrix frame to the actor frame, then tests the edge against every edge of the swept polyhedron.
+// FUNCTION: CARMA2_HW 0x00424270
 int C2_HOOK_FASTCALL FUN_00424270(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data) {
+    typedef struct {
+        br_scalar t;
+        tPhysics_object* object;
+        br_scalar field_0x8;
+        tFace_ref* face;
+        br_scalar field_0x10;
+        br_vector3 point;
+        br_vector3 vector;
+        br_vector3 normal;
+        br_vector3 field_0x38;
+        undefined field_0x44[0x1c];
+    } tEdge_face_hit;
+    typedef struct {
+        br_vector3 points[128];
+        int point_flags[64];
+        tU16 point_count;
+        tU16 edge_count;
+        tPolyhedron_edge_indexes* edges;
+    } tEdge_face_polyhedron;
+    extern int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal);
+    extern int C2_HOOK_FASTCALL FUN_00424990(br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2);
+    br_matrix34* matrix;
+    tEdge_face_polyhedron* polyhedron;
+    int axis;
+    int start_flag;
+    int end_flag;
+    float start_dot;
+    float end_dot;
+    float low;
+    float high;
+    int i;
+    int cur;
+    int best_edge;
+    int index_a;
+    int index_b;
+    br_vector3 tmp_actor;
+    br_vector3 edge;
+    br_vector3 delta;
+    br_vector3 direction;
+    br_vector3 twist;
+    br_vector3 cast_start;
+    br_vector3 cast_end;
+    br_vector3 cast_pos;
+    float factor;
+    tEdge_face_hit hits[2];
+    tEdge_face_wall_force_fn add_wall_force;
+
+    add_wall_force = (tEdge_face_wall_force_fn)(void (*)(void))AddObjectWallForce;
+    start_flag = 1;
+    end_flag = 1;
+    matrix = &((tPhysics_object*)pObject)->actor->t.t.mat;
+    for (axis = 0; axis < 3; axis++) {
+        start_dot = pStart[1] * matrix->m[axis][1] + pStart[2] * matrix->m[axis][2] + matrix->m[axis][0] * pStart[0];
+        low = ((tPhysics_shape*)pBounds_shape)->common.field_0x1c.min.v[axis] - 0.005;
+        end_dot = pEnd[1] * matrix->m[axis][1] + pEnd[2] * matrix->m[axis][2] + matrix->m[axis][0] * pEnd[0];
+        start_flag |= start_dot < low;
+        end_flag |= end_dot < low;
+        if (start_dot < low && end_dot < low) {
+            return pCollision_count;
+        }
+        high = ((tPhysics_shape*)pBounds_shape)->common.field_0x1c.max.v[axis] - -0.005;
+        start_flag |= start_dot < high;
+        end_flag |= end_dot < high;
+        if (start_dot > high && end_dot > high) {
+            return pCollision_count;
+        }
+    }
+    if (((tPhysics_object*)pObject)->field_0xed == 0) {
+        if (start_flag) {
+            pCollision_count = EdgeFaceSweepPoint(pStart, (tPhysics_object*)pObject, (tPhysics_shape*)pBounds_shape, (float*)pRay_shape, pCollision_count, (tFace_ref*)pFace);
+        }
+        if (end_flag) {
+            pCollision_count = EdgeFaceSweepPoint(pEnd, (tPhysics_object*)pObject, (tPhysics_shape*)pBounds_shape, (float*)pRay_shape, pCollision_count, (tFace_ref*)pFace);
+        }
+    }
+    edge.v[0] = pEnd[0] - pStart[0];
+    edge.v[1] = pEnd[1] - pStart[1];
+    edge.v[2] = pEnd[2] - pStart[2];
+    polyhedron = (tEdge_face_polyhedron*)pPolyhedron_data;
+    cur = 0;
+    hits[0].face = (tFace_ref*)pFace;
+    hits[1].face = (tFace_ref*)pFace;
+    hits[0].t = 2.0f;
+    best_edge = -1;
+    hits[1].t = 2.0f;
+    for (i = 0; i < polyhedron->edge_count; i++) {
+        index_a = polyhedron->edges[i].index1;
+        index_b = polyhedron->edges[i].index2;
+        direction.v[0] = polyhedron->points[index_a + 64].v[0] - polyhedron->points[index_a].v[0];
+        direction.v[1] = polyhedron->points[index_a + 64].v[1] - polyhedron->points[index_a].v[1];
+        direction.v[2] = polyhedron->points[index_a + 64].v[2] - polyhedron->points[index_a].v[2];
+        delta.v[0] = polyhedron->points[index_b].v[0] - polyhedron->points[index_a].v[0];
+        delta.v[1] = polyhedron->points[index_b].v[1] - polyhedron->points[index_a].v[1];
+        delta.v[2] = polyhedron->points[index_b].v[2] - polyhedron->points[index_a].v[2];
+        twist.v[0] = polyhedron->points[index_b + 64].v[0] - polyhedron->points[index_a + 64].v[0];
+        twist.v[1] = polyhedron->points[index_b + 64].v[1] - polyhedron->points[index_a + 64].v[1];
+        twist.v[2] = polyhedron->points[index_b + 64].v[2] - polyhedron->points[index_a + 64].v[2];
+        twist.v[0] = twist.v[0] - delta.v[0];
+        twist.v[1] = twist.v[1] - delta.v[1];
+        twist.v[2] = twist.v[2] - delta.v[2];
+        if (FUN_00424990((br_vector3*)pStart, &edge, &polyhedron->points[index_a], &delta, &direction, &twist, &hits[cur].t, (void*)pCollision_count, (tPhysics_object*)pObject, NULL) != 0) {
+            best_edge = i;
+            if (hits[cur].t < hits[cur == 0].t) {
+                cur = cur == 0;
+            }
+        }
+    }
+    if (hits[0].t >= 2.0f) {
+        return pCollision_count;
+    }
+    if (((tFace_ref*)pFace)->normal.v[0] * hits[0].field_0x38.v[0] + ((tFace_ref*)pFace)->normal.v[1] * hits[0].field_0x38.v[1] + ((tFace_ref*)pFace)->normal.v[2] * hits[0].field_0x38.v[2] < 0.0f) {
+        tmp_actor.v[0] = pStart[0] - ((tPhysics_object*)pObject)->transform_matrix.m[3][0];
+        tmp_actor.v[1] = pStart[1] - ((tPhysics_object*)pObject)->transform_matrix.m[3][1];
+        tmp_actor.v[2] = pStart[2] - ((tPhysics_object*)pObject)->transform_matrix.m[3][2];
+        BrMatrix34TApplyV(&cast_start, &tmp_actor, &((tPhysics_object*)pObject)->transform_matrix);
+        tmp_actor.v[0] = pEnd[0] - ((tPhysics_object*)pObject)->transform_matrix.m[3][0];
+        tmp_actor.v[1] = pEnd[1] - ((tPhysics_object*)pObject)->transform_matrix.m[3][1];
+        tmp_actor.v[2] = pEnd[2] - ((tPhysics_object*)pObject)->transform_matrix.m[3][2];
+        BrMatrix34TApplyV(&cast_end, &tmp_actor, &((tPhysics_object*)pObject)->transform_matrix);
+        if (ShapeRayCast(&cast_start, &cast_end, (tPhysics_shape*)pBounds_shape, &cast_pos, &factor, NULL) != 0) {
+            return pCollision_count;
+        }
+    }
+    gCollision_face_mask__raycast |= 1 << best_edge;
+    pCollision_count = add_wall_force((float*)pRay_shape, &hits[0].point, hits[0].t, &hits[0].normal, 0, pCollision_count, (tPhysics_object*)pObject, 0, (tFace_ref*)pFace, hits[0].vector.v);
+    if (hits[1].t < 2.0f) {
+        pCollision_count = add_wall_force((float*)pRay_shape, &hits[1].point, hits[1].t, &hits[1].normal, 0, pCollision_count, (tPhysics_object*)pObject, 0, (tFace_ref*)pFace, hits[1].vector.v);
+    }
     return pCollision_count;
 }
 #ifdef REC2_MATCHING

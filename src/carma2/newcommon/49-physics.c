@@ -286,134 +286,95 @@ int C2_HOOK_FASTCALL RayCastInBox(br_vector3* pRay_pos, br_vector3* pRay_dir, br
 
 // FaceOnCount
 
+/* tFace_ref.flags bit 7 is written as a bitfield in the original (load, or al,0x80 / and dl,0x7f, store). */
+typedef struct tFace_ref_flag_bits {
+    unsigned int other : 7;
+    unsigned int eliminated : 1;
+} tFace_ref_flag_bits;
+
 // FUNCTION: CARMA2_HW 0x00423320
 int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix) {
-    float* pfVar1;
-    float fVar2;
-    float fVar3;
-    float fVar4;
-    float fVar5;
-    float fVar6;
-    int iVar7;
-    float fVar8;
-    float* pfVar9;
-    tU32 uVar10;
-    int* piVar13;
-    int iVar14;
-    int iVar15;
-    int local_3c;
-    float local_24[9];
-    float local_30[3];
-    float* pfVar11;
-    float* pfVar12;
+    tCollision_shape_common* shape;
+    br_matrix34* mat;
+    br_bounds3* bnds;
+    tFace_ref* f;
+    int i;
+    int j;
+    int count;
+    br_vector3 pos;
+    br_vector3 edges[3];
+    float d;
+    float max;
+    float min;
+    float lo;
+    float hi;
 
-    iVar7 = *(int*)pObject;
-    pfVar1 = (float*)((char*)pCtx + 0x1c);
-    iVar14 = 0;
-    local_3c = 0;
-    GetNewBoundingBox((br_bounds*)pfVar1, (br_bounds*)(pCtx + 1), pMatrix);
-    pfVar9 = (float*)((char*)pCtx + 0x10);
-    iVar15 = 3;
-    pfVar11 = pfVar1;
-    do {
-        if (pfVar9[-3] < *pfVar11) {
-            *pfVar11 = pfVar9[-3];
+    shape = (tCollision_shape_common*)pCtx;
+    mat = &pObject->actor->t.t.mat;
+    bnds = &shape->field_0x1c;
+    i = 0;
+    count = 0;
+    GetNewBoundingBox(bnds, &shape->bb, pMatrix);
+    for (j = 0; j < 3; j++) {
+        if (bnds->min.v[j] > shape->bb.min.v[j]) {
+            bnds->min.v[j] = shape->bb.min.v[j];
         }
-        if (pfVar11[3] < *pfVar9) {
-            pfVar11[3] = *pfVar9;
+        if (bnds->max.v[j] < shape->bb.max.v[j]) {
+            bnds->max.v[j] = shape->bb.max.v[j];
         }
-        pfVar11 = pfVar11 + 1;
-        pfVar9 = pfVar9 + 1;
-        iVar15 = iVar15 + -1;
-    } while (iVar15 != 0);
-    BrMatrix34ApplyV((br_vector3*)local_30, (br_vector3*)pfVar1, (br_matrix34*)(iVar7 + 0x2c));
-    fVar2 = *(float*)(iVar7 + 0x50);
-    pfVar11 = local_24 + 1;
-    pfVar9 = (float*)(iVar7 + 0x34);
-    fVar3 = *(float*)(iVar7 + 0x54);
-    iVar15 = 3;
-    fVar4 = *(float*)(iVar7 + 0x58);
-    pfVar12 = pfVar1;
-    do {
-        fVar8 = pfVar12[3] - *pfVar12;
-        fVar5 = pfVar9[-1];
-        fVar6 = *pfVar9;
-        pfVar11[-1] = pfVar9[-2] * fVar8;
-        *pfVar11 = fVar5 * fVar8;
-        pfVar12 = pfVar12 + 1;
-        pfVar11 = pfVar11 + 3;
-        *(float*)(((int)local_24 - (iVar7 + 0x2c)) + (int)pfVar9) = fVar6 * fVar8;
-        pfVar9 = pfVar9 + 3;
-        iVar15 = iVar15 + -1;
-    } while (iVar15 != 0);
-    uVar10 = (tU32)*(tU16*)((char*)pObject + 0x174);
-    piVar13 = (int*)((char*)gFace_list__car + uVar10 * 0x50);
-    if (*(tU16*)((char*)pObject + 0x176) != uVar10 &&
-        -1 < (int)(*(tU16*)((char*)pObject + 0x176) - uVar10)) {
-        do {
-            pfVar9 = local_24 + 2;
-            iVar15 = 3;
-            fVar5 = ((local_30[1] + fVar3) - (float)piVar13[2]) * (float)piVar13[0xe] +
-                    (float)piVar13[0xf] * ((local_30[2] + fVar4) - (float)piVar13[3]) +
-                    (float)piVar13[0xd] * ((local_30[0] + fVar2) - (float)piVar13[1]);
-            fVar6 = fVar5;
-            do {
-                fVar8 = *pfVar9 * (float)piVar13[0xf] +
-                        (float)piVar13[0xe] * pfVar9[-1] + (float)piVar13[0xd] * pfVar9[-2];
-                if (0.0 <= fVar8) {
-                    fVar5 = fVar8 + fVar5;
-                }
-                else {
-                    fVar6 = fVar6 + fVar8;
-                }
-                pfVar9 = pfVar9 + 3;
-                iVar15 = iVar15 + -1;
-            } while (iVar15 != 0);
-            if ((((0.005 < fVar5) && (0.005 < fVar6)) || ((fVar5 < -0.005 && (fVar6 < -0.005)))) ||
-               ((iVar15 = *piVar13, iVar15 != 0 && (**(char**)(iVar15 + 4) == '!')))) {
-                piVar13[0x10] = piVar13[0x10] | 0x80;
-            }
-            else if (**(char**)(iVar15 + 4) == '>') {
-                piVar13[0x10] = piVar13[0x10] | 0x80;
-            }
-            else {
-                pfVar9 = (float*)(iVar7 + 0x34);
-                iVar15 = 3;
-                pfVar11 = pfVar1;
-                do {
-                    fVar5 = *(float*)(iVar7 + 0x54) * pfVar9[-1] +
-                            *(float*)(iVar7 + 0x50) * pfVar9[-2] + *(float*)(iVar7 + 0x58) * *pfVar9;
-                    fVar8 = (float)piVar13[2] * pfVar9[-1] +
-                            (float)piVar13[1] * pfVar9[-2] + *pfVar9 * (float)piVar13[3];
-                    fVar6 = (*pfVar11 - 0.005) + fVar5;
-                    if (fVar6 <= fVar8) {
-                        fVar5 = (pfVar11[3] + fVar5) - -0.005;
-                        if (((fVar5 < fVar8) &&
-                            (fVar5 < (float)piVar13[6] * *pfVar9 +
-                                     pfVar9[-2] * (float)piVar13[4] + pfVar9[-1] * (float)piVar13[5])) &&
-                           (fVar5 < (float)piVar13[9] * *pfVar9 +
-                                    pfVar9[-2] * (float)piVar13[7] + pfVar9[-1] * (float)piVar13[8]))
-                            goto LAB_00423642;
-                    }
-                    else if (((float)piVar13[6] * *pfVar9 +
-                              pfVar9[-2] * (float)piVar13[4] + pfVar9[-1] * (float)piVar13[5] < fVar6) &&
-                             ((float)piVar13[9] * *pfVar9 +
-                              pfVar9[-2] * (float)piVar13[7] + pfVar9[-1] * (float)piVar13[8] < fVar6)) {
-LAB_00423642:
-                        piVar13[0x10] = piVar13[0x10] | 0x80;
-                    }
-                    pfVar11 = pfVar11 + 1;
-                    pfVar9 = pfVar9 + 3;
-                    iVar15 = iVar15 - 1;
-                } while (iVar15 != 0);
-                local_3c = local_3c + 1;
-                piVar13[0x10] = piVar13[0x10] & 0xffffff7f;
-            }
-            iVar14 = iVar14 + 1;
-            piVar13 = piVar13 + 0x14;
-        } while (iVar14 < (int)((tU32)*(tU16*)((char*)pObject + 0x176) - (tU32)*(tU16*)((char*)pObject + 0x174)));
     }
-    return local_3c;
+    BrMatrix34ApplyV(&pos, &bnds->min, mat);
+    pos.v[0] += mat->m[3][0];
+    pos.v[1] += mat->m[3][1];
+    pos.v[2] += mat->m[3][2];
+    for (j = 0; j < 3; j++) {
+        d = bnds->max.v[j] - bnds->min.v[j];
+        edges[j].v[0] = mat->m[j][0] * d;
+        edges[j].v[1] = mat->m[j][1] * d;
+        edges[j].v[2] = mat->m[j][2] * d;
+    }
+    f = &gFace_list__car[pObject->box_face_start];
+    while (i < pObject->box_face_end - pObject->box_face_start) {
+        max = (pos.v[0] - f->v[0].v[0]) * f->normal.v[0] + (pos.v[2] - f->v[0].v[2]) * f->normal.v[2] + (pos.v[1] - f->v[0].v[1]) * f->normal.v[1];
+        min = max;
+        for (j = 0; j < 3; j++) {
+            d = edges[j].v[0] * f->normal.v[0] + edges[j].v[1] * f->normal.v[1] + edges[j].v[2] * f->normal.v[2];
+            if (d < 0.f) {
+                min += d;
+            } else {
+                max += d;
+            }
+        }
+        if ((max > 0.005f && min > 0.005f) || (max < -0.005f && min < -0.005f) || (f->material != NULL && f->material->identifier[0] == '!')) {
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+        } else if (f->material->identifier[0] == '>') {
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+        } else {
+            for (j = 0; j < 3; j++) {
+                d = mat->m[j][2] * mat->m[3][2] + mat->m[j][0] * mat->m[3][0] + mat->m[j][1] * mat->m[3][1];
+                max = mat->m[j][2] * f->v[0].v[2] + mat->m[j][0] * f->v[0].v[0] + mat->m[j][1] * f->v[0].v[1];
+                lo = bnds->min.v[j] - 0.005f + d;
+                if (max < lo) {
+                    if (f->v[1].v[1] * mat->m[j][1] + f->v[1].v[0] * mat->m[j][0] + f->v[1].v[2] * mat->m[j][2] < lo
+                        && f->v[2].v[1] * mat->m[j][1] + f->v[2].v[0] * mat->m[j][0] + f->v[2].v[2] * mat->m[j][2] < lo) {
+                        ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+                    }
+                } else {
+                    hi = bnds->max.v[j] + d - -0.005f;
+                    if (max > hi
+                        && f->v[1].v[1] * mat->m[j][1] + f->v[1].v[0] * mat->m[j][0] + f->v[1].v[2] * mat->m[j][2] > hi
+                        && f->v[2].v[1] * mat->m[j][1] + f->v[2].v[0] * mat->m[j][0] + f->v[2].v[2] * mat->m[j][2] > hi) {
+                        ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+                    }
+                }
+            }
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 0;
+            count++;
+        }
+        i++;
+        f++;
+    }
+    return count;
 }
 
 // FUNCTION: CARMA2_HW 0x00428480
@@ -526,80 +487,82 @@ int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, i
     return pParam2;
 }
 
+// GLOBAL: CARMA2_HW 0x00679434
+int gINT_00679434;
+
 // FUNCTION: CARMA2_HW 0x00423ed0
 int C2_HOOK_FASTCALL GetCornerToFacePoints(tPhysics_object* pObject, int pEdx, tU32 pParam1, int pParam2, int pParam3, char* pParam4, tU32 pParam5) {
     int local_54;
-    float local_4c;
-    float local_48[3];
-    float local_3c[3];
-    float local_30[3];
-    float local_24[3];
-    float local_18[3];
-    float local_c[3];
-    float fVar1;
-    float fVar2;
-    float fVar3;
-    float fVar4;
+    float dot;
+    float t;
+    float n[3];
+    float dir[3];
+    float normal[3];
+    float rel[3];
+    float point[3];
+    float coll[3];
+    float len;
     float* pfVar5;
-    int* piVar;
-    int iVar4;
-    int start;
-    int count;
+    br_vector3* corner;
+    br_matrix34* mat;
+    tFace_ref* face;
+    tU32 one;
 
-    if (3 < pParam3) {
+    mat = (br_matrix34*)((char*)pObject + 0x8c);
+    if (pParam3 < 4) {
+        return 0;
+    }
+    {
+        gINT_00679434 = 0;
         local_54 = 0;
-        if (*(short*)(pParam4 + 0x700) != 0) {
+        if ((tU32)*(tU16*)(pParam4 + 0x700) > 0) {
             pfVar5 = (float*)(pParam4 + 0x304);
-            piVar = (int*)(pParam4 + 0x600);
+            pParam3 = (int)(pParam4 + 0x600);
             do {
-                if (*piVar == 0) {
-                    local_48[0] = pfVar5[-1] - pfVar5[-0xc1];
-                    local_48[1] = *pfVar5 - pfVar5[-0xc0];
-                    local_48[2] = pfVar5[1] - pfVar5[-0xbf];
-                    fVar4 = (float)sqrt(local_48[2] * local_48[2] + local_48[1] * local_48[1] + local_48[0] * local_48[0]);
-                    if (fVar4 <= 2.3841858e-07f) {
-                        local_3c[0] = 1.0f;
-                        local_3c[1] = 0.0f;
-                        fVar4 = 0.0f;
+                if (*(int*)pParam3 == 0) {
+                    dir[0] = pfVar5[-1] - pfVar5[-0xc1];
+                    dir[1] = *pfVar5 - pfVar5[-0xc0];
+                    dir[2] = pfVar5[1] - pfVar5[-0xbf];
+                    corner = (br_vector3*)&pfVar5[-0xc1];
+                    len = (float)sqrt(dir[2] * dir[2] + dir[1] * dir[1] + dir[0] * dir[0]);
+                    if (len > 2.3841858e-07f) {
+                        len = 1.0 / len;
+                        n[0] = len * dir[0];
+                        n[1] = len * dir[1];
+                        n[2] = len * dir[2];
                     } else {
-                        fVar4 = 1.0f / fVar4;
-                        local_3c[0] = fVar4 * local_48[0];
-                        local_3c[1] = fVar4 * local_48[1];
-                        fVar4 = fVar4 * local_48[2];
+                        n[0] = 1.0f;
+                        n[1] = 0.0f;
+                        n[2] = 0.0f;
                     }
-                    local_3c[2] = fVar4;
-                    local_3c[0] = local_3c[0] * 0.0010434783f;
-                    local_3c[1] = local_3c[1] * 0.0010434783f;
-                    local_3c[2] = local_3c[2] * 0.0010434783f;
-                    local_48[0] = local_3c[0] + local_48[0];
-                    local_48[1] = local_3c[1] + local_48[1];
-                    local_48[2] = local_3c[2] + local_48[2];
-                    start = (int)*(tU16*)((char*)pObject + 0x174);
-                    count = (int)*(tU16*)((char*)pObject + 0x176) - start;
-                    iVar4 = (int)RayCastThruFaceList((br_vector3*)local_48, (br_vector3*)local_3c, (br_vector3*)local_c, (br_scalar*)&local_4c, (br_vector3*)local_30, (tFace_ref*)((char*)gFace_list__car + start * 0x50), (int)count);
-                    if (iVar4 != 0) {
-                        BrMatrix34TApplyV((br_vector3*)local_3c, (br_vector3*)local_30, (br_matrix34*)((char*)pObject + 0x8c));
-                        fVar1 = local_30[0] * local_48[0];
-                        fVar3 = local_30[1] * local_48[1];
-                        fVar2 = local_30[2] * local_48[2];
-                        local_24[0] = pfVar5[-0xc1] - *(float*)((char*)pObject + 0xb0);
-                        local_24[1] = pfVar5[-0xc0] - *(float*)((char*)pObject + 0xb4);
-                        local_24[2] = pfVar5[-0xbf] - *(float*)((char*)pObject + 0xb8);
-                        BrMatrix34TApplyV((br_vector3*)local_18, (br_vector3*)local_24, (br_matrix34*)((char*)pObject + 0x8c));
-                        pParam2 = AddObjectWallForce((float*)pParam4, (br_vector3*)local_18, fVar2 + fVar3 + fVar1, (br_vector3*)local_3c, 0, pParam2, pObject, 1.0f, local_4c, NULL);
+                    n[0] = n[0] * 0.0010434783f;
+                    n[1] = n[1] * 0.0010434783f;
+                    n[2] = n[2] * 0.0010434783f;
+                    dir[0] = n[0] + dir[0];
+                    dir[1] = n[1] + dir[1];
+                    dir[2] = n[2] + dir[2];
+                    face = RayCastThruFaceList(corner, (br_vector3*)dir, (br_vector3*)normal, &t, (br_vector3*)coll, &gFace_list__car[*(tU16*)((char*)pObject + 0x174)], (int)*(tU16*)((char*)pObject + 0x176) - (int)*(tU16*)((char*)pObject + 0x174));
+                    if (face != NULL) {
+                        BrMatrix34TApplyV((br_vector3*)n, (br_vector3*)normal, mat);
+                        dot = normal[0] * dir[0] + normal[1] * dir[1] + normal[2] * dir[2];
+                        rel[0] = corner->v[0] - mat->m[3][0];
+                        rel[1] = pfVar5[-0xc0] - mat->m[3][1];
+                        rel[2] = pfVar5[-0xbf] - mat->m[3][2];
+                        BrMatrix34TApplyV((br_vector3*)point, (br_vector3*)rel, mat);
+                        one = 1;
+                        pParam2 = AddObjectWallForce((float*)pParam1, (br_vector3*)point, t, (br_vector3*)n, *(tU32*)&dot, pParam2, pObject, *(float*)&one, *(float*)&face, NULL);
                     }
                 }
-                piVar = piVar + 1;
+                pParam3 = pParam3 + 4;
                 local_54 = local_54 + 1;
                 pfVar5 = pfVar5 + 3;
-            } while (local_54 < (int)(tU32)*(short*)(pParam4 + 0x700));
+            } while (local_54 < (int)(tU32)*(tU16*)(pParam4 + 0x700));
         }
-        if (3 < pParam2) {
+        if (pParam2 >= 4) {
             pParam2 = 4;
         }
         return pParam2;
     }
-    return 0;
 }
 
 // CylinderCheck
@@ -5807,12 +5770,317 @@ int C2_HOOK_FASTCALL FUN_004c0430(br_scalar* pRhs, tPhysics_joint_force** pRecor
 #pragma auto_inline(on)
 #endif
 
+extern int gINT_006940b8;
+void C2_HOOK_FASTCALL FUN_004c5220(br_scalar* pL, br_scalar* pInv, br_scalar* pMatrix, br_scalar* pB, br_scalar* pRhs, tU8* pOrder, int pCount, tPhysics_joint_force_group** pGroups, int pGroup_count);
+void C2_HOOK_FASTCALL FUN_004c4f40(br_scalar* pL, br_scalar* pMatrix, int pIndex, br_scalar* pInv, tU8* pOrder);
+void C2_HOOK_FASTCALL FUN_004c4850(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder);
+
+/* Inlined in FUN_004c3b60: is the active-set mask (with bit pBit toggled) already in the history? */
+static int C2_HOOK_FASTCALL SolverMaskInHistory(tU32* pMask, int pBit, tU32 (*pHistory)[2], int pCount) {
+    tU32 m[2];
+    int i;
+    int j;
+
+    m[0] = pMask[0];
+    m[1] = pMask[1];
+    if (pBit >= 0) {
+        m[pBit >> 5] ^= 1 << (pBit & 0x1f);
+    }
+    for (i = 0; i < pCount; i++) {
+        for (j = 0; j <= 1; j++) {
+            if (m[j] != pHistory[i][j]) {
+                break;
+            }
+        }
+        if (j > 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Inlined in FUN_004c3b60: forward substitution pY = L^-1 pB */
+static void C2_HOOK_FASTCALL SolverForwardSubstitute(br_scalar* pY, br_scalar* pB, int pN) {
+    int i;
+    int k;
+    br_scalar sum;
+
+    pY[0] = pB[0] / ((br_scalar*)gPhysics_buffer1_ptr)[0];
+    for (i = 1; i < pN; i++) {
+        sum = 0.0f;
+        for (k = 0; k < i; k++) {
+            sum += pY[k] * ((br_scalar*)gPhysics_buffer1_ptr)[i * 100 + k];
+        }
+        pY[i] = (pB[i] - sum) / ((br_scalar*)gPhysics_buffer1_ptr)[i * 101];
+    }
+}
+
+// PARTIAL 38.33%: FUN_004c3b60 0x004c3b60 - LCP pivoting solver; control flow, frame (0x8e4) and every loop
+// follow the disassembly, the two inlined helpers above reproduce the original's inlined history search and
+// forward substitution. Residual is register allocation (orig edi=pOut/esi=last/ebx=pJoint, ours ebp/edi/esi),
+// stack-slot weights (orig array order y,b,tmp,w; ours y,tmp,w,b) and the shared FUN_004c5220 call tail the
+// original cross-jumps. Callees FUN_004c5220/FUN_004c4f40/FUN_004c4850 are NOT_IMPLEMENTED stubs at EOF.
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004c3b60
+// FUNCTION: CARMA2_HW 0x004c3b60
 int C2_HOOK_FASTCALL FUN_004c3b60(br_scalar* pMatrix, br_scalar* pRhs, br_scalar* pX, int pCount, int pStride, tU8* pFlags, int* pOut, int pJoint_count, int pCollision_count, tPhysics_joint_force_group** pGroups, int pGroup_count) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int k;
+    int n;
+    int last;
+    int lim;
+    int iter;
+    int boundary;
+    int leave;
+    int enter;
+    int dropped;
+    int found;
+    int bad;
+    int d;
+    tU8 t;
+    br_scalar sum;
+    br_scalar limit;
+    br_scalar best;
+    br_scalar best2;
+    br_scalar best3;
+    br_scalar minv;
+    br_scalar ratio;
+    br_scalar best_ratio;
+    br_scalar v;
+    tU32* hist;
+    tU32 mask[2];
+    tU8 order[100];
+    br_scalar y[100];
+    br_scalar b[100];
+    br_scalar tmp[100];
+    br_scalar w[100];
+    tU32 history[60][2];
+
+    dropped = -1;
+    *pOut = 0;
+    if (pCount == 1) {
+        if (*pMatrix > 0.0001) {
+            *pX = *pRhs / *pMatrix;
+            return 0;
+        }
+        *pX = 0.0f;
+        return 0;
+    }
+    for (i = 0; i < pCount; i++) {
+        order[i] = i;
+    }
+    *pOut = pCount - pJoint_count - 1;
+    n = pJoint_count + 1;
+    boundary = n;
+    for (i = 0; i < *pOut; i++) {
+        pFlags[i] = pJoint_count + 1 + i;
+    }
+    FUN_004c5220(gPhysics_buffer1_ptr, gPhysics_buffer2_ptr, pMatrix, b, pRhs, order, n, pGroups, pGroup_count);
+    for (i = 0; i < 2; i++) {
+        mask[i] = 0;
+    }
+    mask[0] |= 1;
+    for (iter = 0; ; iter++) {
+        if (iter >= 50 && leave == -1) {
+            PhysicsWarning("Matrix solve loop overflow");
+            return -1;
+        }
+        hist = history[iter];
+        hist[0] = mask[0];
+        hist[1] = mask[1];
+        SolverForwardSubstitute(y, b, n);
+        last = n - 1;
+        limit = (br_scalar)fabs(((br_scalar*)gPhysics_buffer1_ptr)[last * 101] * 100000.0f);
+        for (j = 0; j < last; j++) {
+            if (limit < fabs(((br_scalar*)gPhysics_buffer1_ptr)[last * 100 + j])) {
+                break;
+            }
+        }
+        if (j != last) {
+            best = 0.0f;
+            k = last;
+            for (j = pJoint_count; j < last; j++) {
+                if ((br_scalar)fabs(((br_scalar*)gPhysics_buffer2_ptr)[last * 100 + j]) > best) {
+                    best = (br_scalar)fabs(((br_scalar*)gPhysics_buffer2_ptr)[last * 100 + j]);
+                    k = j;
+                }
+            }
+            dropped = pJoint_count;
+            if (k != last) {
+                if (SolverMaskInHistory(hist, order[k] - pJoint_count, history, iter)) {
+                    best2 = 0.0f;
+                    for (j = pJoint_count; j < last; j++) {
+                        v = (br_scalar)fabs(((br_scalar*)gPhysics_buffer2_ptr)[last * 100 + j]);
+                        if (v > best2 && !SolverMaskInHistory(hist, order[j] - pJoint_count, history, iter)) {
+                            best2 = v;
+                            k = j;
+                        }
+                    }
+                }
+                if (k != last) {
+                    dropped = k;
+                }
+            }
+            pFlags[*pOut] = order[dropped];
+            d = order[dropped] - pJoint_count;
+            mask[d >> 5] &= ~(1 << (d & 0x1f));
+            (*pOut)++;
+            n = last;
+            boundary = n;
+            for (j = dropped; j < last; j++) {
+                order[j] = order[j + 1];
+            }
+            FUN_004c5220(gPhysics_buffer1_ptr, gPhysics_buffer2_ptr, pMatrix, b, pRhs, order, n, pGroups, pGroup_count);
+        } else {
+            for (i = 0; i < n; i++) {
+                w[i] = 0.0f;
+                for (k = 0; k < n; k++) {
+                    w[i] += ((br_scalar*)gPhysics_buffer2_ptr)[k * 100 + i] * y[k];
+                }
+            }
+            leave = -1;
+            minv = -0.0001f;
+            if (dropped >= 0) {
+                dropped = -1;
+                d = pFlags[*pOut - 1];
+                if (pRhs[d] == 0.0f) {
+                    pRhs[d] = -10000.0f;
+                }
+            }
+            for (j = pJoint_count; j < n; j++) {
+                if (w[j] < minv) {
+                    minv = w[j];
+                    leave = j;
+                }
+            }
+            if (leave >= 0) {
+                if (w[n - 1] < 0.0f) {
+                    lim = 0;
+                } else {
+                    for (lim = last; lim >= boundary; lim--) {
+                        if (w[lim] > 0.0f) {
+                            lim--;
+                            break;
+                        }
+                    }
+                    lim++;
+                }
+                if (leave < lim) {
+                    pFlags[*pOut] = order[leave];
+                    d = order[leave] - pJoint_count;
+                    order[leave] = 0xff;
+                    mask[d >> 5] &= ~(1 << (d & 0x1f));
+                    (*pOut)++;
+                } else {
+                    best3 = 0.0f;
+                    leave = pJoint_count;
+                    for (j = pJoint_count; j < n; j++) {
+                        for (i = last; i >= j; i--) {
+                            sum = 0.0f;
+                            for (k = last; k > i; k--) {
+                                sum += tmp[k] * ((br_scalar*)gPhysics_buffer1_ptr)[k * 100 + i];
+                            }
+                            tmp[i] = (((br_scalar*)gPhysics_buffer2_ptr)[i * 100 + j] - sum) / ((br_scalar*)gPhysics_buffer1_ptr)[i * 101];
+                        }
+                        y[j] = tmp[j];
+                    }
+                    for (j = pJoint_count; j < n; j++) {
+                        if (w[j] / y[j] < 0.0f && fabs(y[j]) > best3) {
+                            best3 = (br_scalar)fabs(y[j]);
+                            leave = j;
+                        }
+                    }
+                    pFlags[*pOut] = order[leave];
+                    d = order[leave] - pJoint_count;
+                    order[leave] = 0xff;
+                    mask[d >> 5] &= ~(1 << (d & 0x1f));
+                    (*pOut)++;
+                }
+                boundary = 0;
+                for (j = 0; j < n; j++) {
+                    if (order[j] != 0xff) {
+                        order[boundary] = order[j];
+                        b[boundary] = b[j];
+                        boundary++;
+                    }
+                }
+                n = boundary;
+                FUN_004c5220(gPhysics_buffer1_ptr, gPhysics_buffer2_ptr, pMatrix, b, pRhs, order, n, pGroups, pGroup_count);
+            } else {
+                for (i = 0; i < pCount; i++) {
+                    pX[i] = 0.0f;
+                }
+                for (i = 0; i < n; i++) {
+                    pX[order[i]] = w[i];
+                }
+                found = SolverMaskInHistory(hist, -1, history, iter);
+                enter = -1;
+                best_ratio = 0.0f;
+                for (i = 0; i < *pOut; i++) {
+                    sum = 0.0f;
+                    for (k = 0; k < pCount; k++) {
+                        sum += pMatrix[pFlags[i] * 100 + k] * pX[k];
+                    }
+                    d = pFlags[i];
+                    sum -= pRhs[d];
+                    ratio = sum / pMatrix[d * 101];
+                    if (sum < -0.001 && ratio < best_ratio) {
+                        if (!found || !SolverMaskInHistory(hist, d - pJoint_count, history, iter)) {
+                            best_ratio = ratio;
+                            enter = i;
+                        } else if (enter == -1) {
+                            enter = i;
+                        }
+                    }
+                }
+                if (enter < 0) {
+                    bad = 0;
+                    for (i = 0; i < pCount; i++) {
+                        tmp[i] = 0.0f;
+                        for (k = 0; k < pCount; k++) {
+                            tmp[i] += pMatrix[i * 100 + k] * pX[k];
+                        }
+                        if ((pX[i] != 0.0f && fabs(tmp[i] - pRhs[i]) > 0.01) || tmp[i] - pRhs[i] < -0.01) {
+                            bad = 1;
+                        }
+                    }
+                    if (bad) {
+                        for (i = 0; i < n; i++) {
+                            tmp[i] = -b[i];
+                            for (k = 0; k < n; k++) {
+                                tmp[i] += pMatrix[order[i] * 100 + order[k]] * w[k];
+                            }
+                        }
+                        SolverForwardSubstitute(y, tmp, n);
+                        for (i = 0; i < n; i++) {
+                            for (k = 0; k < n; k++) {
+                                w[i] += ((br_scalar*)gPhysics_buffer2_ptr)[k * 100 + i] * y[k];
+                            }
+                        }
+                    }
+                    return 0;
+                }
+                t = pFlags[enter];
+                for (i = enter + 1; i < *pOut; i++) {
+                    pFlags[i - 1] = pFlags[i];
+                }
+                (*pOut)--;
+                pFlags[*pOut] = t;
+                order[n] = pFlags[*pOut];
+                d = order[n] - pJoint_count;
+                mask[d >> 5] |= 1 << (d & 0x1f);
+                if (gINT_006940b8 != 0) {
+                    FUN_004c4850(gPhysics_buffer1_ptr, pMatrix, n, n + 1, gPhysics_buffer2_ptr, order);
+                } else {
+                    FUN_004c4f40(gPhysics_buffer1_ptr, pMatrix, n, gPhysics_buffer2_ptr, order);
+                }
+                b[n] = pRhs[order[n]];
+                n++;
+            }
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -7247,9 +7515,93 @@ void C2_HOOK_FASTCALL FUN_004b8fe0(tPhysics_object* pObject, float pDelta_time) 
     }
 }
 
-// STUB: CARMA2_HW 0x004b9230
+// PARTIAL 55.66%: FUN_004b9230 0x004b9230 - spill slot of ppChanged_object (orig esp+0x1c, ours 0x28), flags&0x400 branch layout and x87 schedule differ; RotateObject edx arg not reproducible
+// FUNCTION: CARMA2_HW 0x004b9230
 void C2_HOOK_FASTCALL FUN_004b9230(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* parent;
+    tPhysics_object* child;
+    br_vector3 a;
+    br_vector3 b;
+    br_matrix34 inverse;
+    br_matrix34 product;
+    float angle;
+
+    if (pObject->physics_joint1 != NULL && pObject->physics_joint1->type != 0) {
+        parent = pObject->field_0x230;
+        if (parent == NULL) {
+            PhysicsError((tPhysicsError)11, "");
+        }
+        if ((pObject->flags & 0x400) == 0) {
+            switch (pObject->physics_joint1->type) {
+            case eJoint_hinge:
+            case eJoint_quick_hinge:
+                BrMatrix34ApplyV(&a, &parent->rotate_omega, &parent->transform_matrix);
+                BrMatrix34TApplyV(&b, &a, &pObject->transform_matrix);
+                angle = ((pObject->omega.v[0] - b.v[0]) * pObject->physics_joint1->hinge_axis.v[0]
+                       + (pObject->omega.v[1] - b.v[1]) * pObject->physics_joint1->hinge_axis.v[1]
+                       + (pObject->omega.v[2] - b.v[2]) * pObject->physics_joint1->hinge_axis.v[2]) * pDelta_time;
+                BrMatrix34LPInverse(&inverse, &parent->transform_matrix);
+                BrMatrix34Mul(&product, &pObject->transform_matrix, &inverse);
+                BrMatrix34Mul(&pObject->actor->t.t.mat, &product, &parent->actor->t.t.mat);
+                BrMatrix34PreRotate(&pObject->actor->t.t.mat, BrRadianToAngle(angle), &pObject->physics_joint1->hinge_axis);
+                pObject->rotate_omega.v[0] = pObject->omega.v[0];
+                pObject->rotate_omega.v[1] = pObject->omega.v[1];
+                pObject->rotate_omega.v[2] = pObject->omega.v[2];
+                BrMatrix34ApplyV(&a, &pObject->omega, &pObject->transform_matrix);
+                BrMatrix34TApplyV(&pObject->omega, &a, &pObject->actor->t.t.mat);
+                break;
+            case eJoint_universal:
+                RotateObject(pObject, 0, pDelta_time);
+                break;
+            case eJoint_ball_n_socket:
+                RotateObject(pObject, 0, pDelta_time);
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, NULL);
+                break;
+            }
+            BrMatrix34ApplyP(&a, &pObject->physics_joint1->field_0x08, &pObject->actor->t.t.mat);
+            BrMatrix34ApplyP(&b, &pObject->physics_joint1->field_0x14, &parent->actor->t.t.mat);
+            a.v[0] = b.v[0] - a.v[0];
+            a.v[1] = b.v[1] - a.v[1];
+            a.v[2] = b.v[2] - a.v[2];
+            pObject->actor->t.t.mat.m[3][0] += a.v[0];
+            pObject->actor->t.t.mat.m[3][1] += a.v[1];
+            pObject->actor->t.t.mat.m[3][2] += a.v[2];
+        } else {
+            BrMatrix34Mul(&pObject->actor->t.t.mat, &pObject->field_0x1e8, &parent->actor->t.t.mat);
+            BrMatrix34TApplyV(&pObject->omega, &parent->rotate_omega, &pObject->field_0x1e8);
+            pObject->rotate_omega.v[0] = pObject->omega.v[0];
+            pObject->rotate_omega.v[1] = pObject->omega.v[1];
+            pObject->rotate_omega.v[2] = pObject->omega.v[2];
+            DrMatrix34ApplyLPInverse(&a, &parent->cmpos, &pObject->field_0x1e8);
+            a.v[0] = pObject->cmpos.v[0] - a.v[0];
+            a.v[1] = pObject->cmpos.v[1] - a.v[1];
+            a.v[2] = pObject->cmpos.v[2] - a.v[2];
+            b.v[0] = pObject->omega.v[1] * a.v[2] - pObject->omega.v[2] * a.v[1];
+            b.v[1] = pObject->omega.v[2] * a.v[0] - pObject->omega.v[0] * a.v[2];
+            b.v[2] = pObject->omega.v[0] * a.v[1] - pObject->omega.v[1] * a.v[0];
+            BrMatrix34ApplyV(&pObject->v, &b, &pObject->transform_matrix);
+            pObject->v.v[0] = parent->v.v[0] + pObject->v.v[0];
+            pObject->v.v[1] = parent->v.v[1] + pObject->v.v[1];
+            pObject->v.v[2] = parent->v.v[2] + pObject->v.v[2];
+            BrMatrix34TApplyV(&pObject->velocity_car_space, &pObject->v, &pObject->transform_matrix);
+        }
+    } else if (pObject->physics_joint2 != NULL && pObject->physics_joint2->type != 0) {
+        RotateObject(pObject, 0, pDelta_time);
+        FUN_004b8fe0(pObject, pDelta_time);
+    } else {
+        pObject->actor->t.t.mat.m[3][0] = pObject->v.v[0] * pDelta_time + pObject->actor->t.t.mat.m[3][0];
+        pObject->actor->t.t.mat.m[3][1] = pObject->v.v[1] * pDelta_time + pObject->actor->t.t.mat.m[3][1];
+        pObject->actor->t.t.mat.m[3][2] = pObject->v.v[2] * pDelta_time + pObject->actor->t.t.mat.m[3][2];
+        RotateObject(pObject, 0, pDelta_time);
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        FUN_004b9230(child, ppChanged_object, pDelta_time);
+    }
+    if (pObject->physics_joint2 != NULL) {
+        *ppChanged_object = pObject;
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -7268,9 +7620,880 @@ void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00424990
+// Edge-edge sweep test: the line pPoint + u * pDiff against the moving edge whose start point is
+// pVertices + t * pDirection and whose vector is pDelta + t * pNormal. Solves the coplanarity
+// quadratic for t, then the closest-point parameters s (on the moving edge) and u (on the line).
+// On a hit earlier than the record's t it fills the record (t, point, vector, normal) and returns 1;
+// returns 0 when the hit is not earlier; otherwise falls back to FUN_00425630.
+// PARTIAL 45.66%: x87 scheduling/register allocation and frame size (0x68 vs 0x64) differ.
+// FUNCTION: CARMA2_HW 0x00424990
 int C2_HOOK_FASTCALL FUN_00424990(br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2) {
-    NOT_IMPLEMENTED();
+    typedef struct {
+        br_scalar t;
+        undefined field_0x4[0x10];
+        br_vector3 point;
+        br_vector3 vector;
+        br_vector3 normal;
+        br_vector3 field_0x38;
+    } tEdge_edge_hit;
+    extern int C2_HOOK_FASTCALL FUN_00425630(br_vector3* pCross1, br_vector3* pCross2, br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2);
+    extern int gSensible_place_collect_active;
+    tEdge_edge_hit* hit;
+    br_vector3 n;
+    br_vector3 v;
+    br_vector3 c2;
+    br_vector3 c1;
+    br_vector3 tmp;
+    br_vector3 point;
+    br_vector3 edge;
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+    br_scalar bb;
+    br_scalar four_ac;
+    br_scalar disc;
+    br_scalar t;
+    br_scalar dot;
+    br_scalar len2;
+    br_scalar s;
+    br_scalar u;
+    int i;
+    int axis;
+
+    hit = (tEdge_edge_hit*)pT;
+    BrVector3Cross(&c1, pDelta, pDiff);
+    BrVector3Cross(&c2, pNormal, pDiff);
+    BrVector3Sub(&tmp, pVertices, pPoint);
+    a = BrVector3Dot(&c2, pDirection);
+    b = BrVector3Dot(&c1, pDirection) + BrVector3Dot(&c2, pVertices) - (BrVector3Dot(&c1, pDiff) + BrVector3Dot(&c2, pPoint));
+    c = BrVector3Dot(&tmp, &c1);
+    if (a < 0.f) {
+        a = -a;
+        b = -b;
+        c = -c;
+    }
+    bb = b * b;
+    four_ac = c * a * 4.f;
+    if (bb >= (float)fabs(four_ac) * 1000.f) {
+        if (fabs(b) <= 1e-7) {
+            return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+        }
+        t = -(c / b) - c * c * a / (bb * b) * -1.3333334f;
+        if (t < 0.f || t > 1.f || gSensible_place_collect_active != 0) {
+            t = -(b / a) - t;
+        }
+        if (t < 0.f || t > 1.f) {
+            return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+        }
+        n.v[0] = t * c2.v[0] + c1.v[0];
+        n.v[1] = t * c2.v[1] + c1.v[1];
+        n.v[2] = t * c2.v[2] + c1.v[2];
+        if (BrVector3LengthSquared(&n) < 1e-7) {
+            return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+        }
+    } else {
+        disc = bb - four_ac;
+        if (disc < 0.f) {
+            return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+        }
+        disc = (br_scalar)sqrt(disc);
+        t = (-b - disc) / (a + a);
+        if (t > 1.f) {
+            return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+        }
+        if (t >= 0.f) {
+            n.v[0] = t * c2.v[0] + c1.v[0];
+            n.v[1] = t * c2.v[1] + c1.v[1];
+            n.v[2] = t * c2.v[2] + c1.v[2];
+            if (BrVector3LengthSquared(&n) < 1e-7) {
+                return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+            }
+        }
+        if (t < 0.f) {
+            t = (disc - b) / (a + a);
+            if (t < 0.f || t > 1.f) {
+                return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+            }
+            n.v[0] = t * c2.v[0] + c1.v[0];
+            n.v[1] = t * c2.v[1] + c1.v[1];
+            n.v[2] = t * c2.v[2] + c1.v[2];
+            if (BrVector3LengthSquared(&n) < 1e-7) {
+                return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+            }
+        }
+    }
+    if (t >= hit->t) {
+        return 0;
+    }
+    BrVector3Normalise(&n, &n);
+    edge.v[0] = t * pNormal->v[0] + pDelta->v[0];
+    edge.v[1] = pNormal->v[1] * t + pDelta->v[1];
+    edge.v[2] = pNormal->v[2] * t + pDelta->v[2];
+    point.v[0] = t * pDirection->v[0] + pVertices->v[0];
+    point.v[1] = pDirection->v[1] * t + pVertices->v[1];
+    point.v[2] = pDirection->v[2] * t + pVertices->v[2];
+    dot = BrVector3Dot(&edge, pDiff);
+    len2 = -BrVector3LengthSquared(pDiff);
+    BrVector3Scale(&tmp, pDiff, dot);
+    tmp.v[0] = edge.v[0] * len2 + tmp.v[0];
+    tmp.v[1] = edge.v[1] * len2 + tmp.v[1];
+    tmp.v[2] = edge.v[2] * len2 + tmp.v[2];
+    BrVector3Sub(&v, pPoint, &point);
+    s = BrVector3Dot(&v, &tmp) / BrVector3Dot(&edge, &tmp);
+    if (s >= 0.f && s <= 1.f) {
+        i = fabs(pDiff->v[1]) > fabs(pDiff->v[0]);
+        axis = fabs(pDiff->v[2]) > fabs(pDiff->v[i]) ? 2 : i;
+        u = (edge.v[axis] * s + point.v[axis] - pPoint->v[axis]) / pDiff->v[axis];
+        if (u >= 0.f && u <= 1.f) {
+            BrVector3Sub(&tmp, pVertices, pPoint);
+            if (BrVector3Dot(&tmp, &c1) < 0.f) {
+                BrVector3Negate(&n, &n);
+            }
+            if (pObject2 != NULL) {
+                BrMatrix34ApplyV(&hit->normal, &n, &pObject2->transform_matrix);
+                BrMatrix34ApplyV(&v, &n, &pObject2->actor->t.t.mat);
+                BrVector3Scale(&hit->normal, &hit->normal, t);
+                BrVector3Scale(&v, &v, 1.f - t);
+                BrVector3Add(&hit->normal, &v, &hit->normal);
+                BrVector3Normalise(&hit->normal, &hit->normal);
+                BrVector3Scale(&v, pDiff, u);
+                BrVector3Add(&hit->vector, &v, pPoint);
+                BrVector3Scale(&v, pDelta, s);
+                BrVector3Accumulate(&v, pVertices);
+                BrMatrix34ApplyP(&tmp, &v, &pObject2->transform_matrix);
+                BrVector3Sub(&point, &tmp, (br_vector3*)pObject1->transform_matrix.m[3]);
+                BrMatrix34TApplyV(&hit->point, &point, &pObject1->transform_matrix);
+                hit->t = t;
+                return 1;
+            }
+            BrMatrix34TApplyV(&hit->normal, &n, &pObject1->transform_matrix);
+            BrVector3Copy(&hit->field_0x38, &n);
+            BrVector3Scale(&v, pDelta, s);
+            BrVector3Accumulate(&v, pVertices);
+            BrVector3Sub(&point, &v, (br_vector3*)pObject1->transform_matrix.m[3]);
+            BrMatrix34TApplyV(&hit->point, &point, &pObject1->transform_matrix);
+            BrVector3Scale(&hit->vector, pDiff, u);
+            BrVector3Accumulate(&hit->vector, pPoint);
+            hit->t = t;
+            return 1;
+        }
+    }
+    return FUN_00425630(&c1, &c2, pPoint, pDiff, pVertices, pDelta, pDirection, pNormal, pT, pUnused, pObject1, pObject2);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// Parallel-edge fallback of FUN_00424990: with the edge at t = 1 (pVertices + pDirection, vector
+// pDelta + pNormal), tests whether the line pPoint + u * pDiff lies in the plane normal to
+// pCross1 + pCross2; if so finds s on the edge and u on the line and fills the hit record at t = 1.
+// PARTIAL 60.07%: register allocation (pPoint/pDiff/pDelta in ebx/ebp/edi vs edi/ebx/ebp) and x87 scheduling differ.
+// FUNCTION: CARMA2_HW 0x00425630
+int C2_HOOK_FASTCALL FUN_00425630(br_vector3* pCross1, br_vector3* pCross2, br_vector3* pPoint, br_vector3* pDiff, const br_vector3* pVertices, br_vector3* pDelta, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, void* pUnused, tPhysics_object* pObject1, tPhysics_object* pObject2) {
+    typedef struct {
+        br_scalar t;
+        undefined field_0x4[0x10];
+        br_vector3 point;
+        br_vector3 vector;
+        br_vector3 normal;
+        br_vector3 field_0x38;
+    } tEdge_edge_hit;
+    tEdge_edge_hit* hit;
+    br_vector3 n;
+    br_vector3 d;
+    br_vector3 e;
+    br_vector3 m;
+    br_vector3 q;
+    br_vector3 a;
+    br_vector3 b;
+    br_vector3 c;
+    br_scalar len;
+    br_scalar denom;
+    br_scalar s;
+    br_scalar u;
+    br_scalar dot;
+    br_matrix34* mat;
+
+    hit = (tEdge_edge_hit*)pT;
+    if (hit->t > 1.0) {
+        BrVector3Add(&n, pCross1, pCross2);
+        len = BrVector3Length(&n);
+        if (len > 1e-7) {
+            BrVector3Add(&d, pVertices, pDirection);
+            BrVector3Sub(&d, &d, pPoint);
+            if (fabs(BrVector3Dot(&d, &n) / len) < 0.002) {
+                n.v[2] /= len;
+                n.v[0] /= len;
+                n.v[1] /= len;
+                BrVector3Add(&e, pNormal, pDelta);
+                BrVector3Cross(&m, pDiff, &n);
+                denom = BrVector3Dot(&e, &m);
+                if (fabs(denom) > 1e-7) {
+                    s = -(BrVector3Dot(&m, &d) / denom);
+                    if (s >= 0.f && s <= 1.f) {
+                        BrVector3Scale(&q, &e, s);
+                        BrVector3Accumulate(&d, &q);
+                        u = BrVector3Dot(&d, pDiff) / BrVector3LengthSquared(pDiff);
+                        if (u >= 0.f && u <= 1.f) {
+                            hit->t = 1.f;
+                            BrVector3Sub(&d, pVertices, pPoint);
+                            if (BrVector3Dot(&d, pCross1) < 0.f) {
+                                BrVector3Negate(&n, &n);
+                            }
+                            BrVector3Add(&d, pVertices, pDirection);
+                            BrVector3Sub(&d, &d, pPoint);
+                            dot = BrVector3Dot(&d, &n);
+                            if (dot < 0.f) {
+                                BrVector3Negate(&n, &n);
+                            }
+                            if (pObject2 != NULL) {
+                                BrVector3Scale(&a, pDelta, s);
+                                BrVector3Add(&b, &a, pVertices);
+                                mat = &pObject2->transform_matrix;
+                                BrMatrix34ApplyP(&a, &b, mat);
+                                BrVector3Sub(&c, &a, (br_vector3*)pObject1->transform_matrix.m[3]);
+                                BrMatrix34TApplyV(&hit->point, &c, &pObject1->transform_matrix);
+                                BrMatrix34ApplyV(&hit->normal, &n, mat);
+                            } else {
+                                if (fabs(dot) < 0.001) {
+                                    hit->t = 1.1f;
+                                }
+                                BrVector3Scale(&a, pDelta, s);
+                                BrVector3Add(&b, &a, pVertices);
+                                mat = &pObject1->transform_matrix;
+                                BrVector3Sub(&c, &b, (br_vector3*)mat->m[3]);
+                                BrMatrix34TApplyV(&hit->point, &c, mat);
+                                BrMatrix34TApplyV(&hit->normal, &n, mat);
+                                BrVector3Copy(&hit->field_0x38, &n);
+                            }
+                            hit->vector.v[0] = u * pDiff->v[0] + pPoint->v[0];
+                            hit->vector.v[1] = u * pDiff->v[1] + pPoint->v[1];
+                            hit->vector.v[2] = u * pDiff->v[2] + pPoint->v[2];
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// GLOBAL: CARMA2_HW 0x006940b8
+int gINT_006940b8;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL 43.03%: FUN_004c5220 0x004c5220 - body follows REA; regalloc/frame (orig sub esp,0x1c, pGroups kept in [esp+0x48]) differs
+// FUNCTION: CARMA2_HW 0x004c5220
+void C2_HOOK_FASTCALL FUN_004c5220(br_scalar* pL, br_scalar* pInv, br_scalar* pMatrix, br_scalar* pB, br_scalar* pRhs, tU8* pOrder, int pCount, tPhysics_joint_force_group** pGroups, int pGroup_count) {
+    int offset;
+    int n;
+    int rows;
+    int cols;
+    int src;
+    int diff;
+    int k;
+    int groups_left;
+    br_scalar* dst;
+    br_scalar* row;
+    br_scalar* col;
+    br_scalar* p;
+    br_scalar* q;
+
+    offset = 0;
+    if (pGroup_count > 0) {
+        groups_left = pGroup_count;
+        do {
+            n = (*pGroups)->count;
+            if (n > 0) {
+                col = pInv + offset;
+                src = 0;
+                row = pInv + offset * 100;
+                dst = pInv + offset * 101;
+                rows = n;
+                do {
+                    diff = (int)pL - (int)pInv;
+                    cols = n;
+                    k = src;
+                    p = dst;
+                    do {
+                        k += 4;
+                        cols--;
+                        *(br_scalar*)(diff - 4 + (int)(p + 1)) = *(br_scalar*)((int)(*pGroups)->matrix - 4 + k);
+                        *p = *(br_scalar*)((int)(*pGroups)->orthogonal - 4 + k);
+                        p++;
+                    } while (cols != 0);
+                    cols = offset;
+                    p = row;
+                    q = col;
+                    if (cols > 0) {
+                        do {
+                            *(br_scalar*)((int)q + diff) = 0.0f;
+                            *(br_scalar*)((int)p + diff) = 0.0f;
+                            *q = 0.0f;
+                            *p = 0.0f;
+                            cols--;
+                            p++;
+                            q += 100;
+                        } while (cols != 0);
+                    }
+                    col++;
+                    src += n * 4;
+                    dst += 100;
+                    row += 100;
+                    rows--;
+                } while (rows != 0);
+            }
+            offset += n;
+            pGroups++;
+            groups_left--;
+        } while (groups_left != 0);
+    }
+    if (pCount - offset == 1) {
+        FUN_004c4f40(pL, pMatrix, offset, pInv, pOrder);
+    } else if (offset < pCount) {
+        FUN_004c4850(pL, pMatrix, offset, pCount, pInv, pOrder);
+    }
+    k = 0;
+    if (pCount > 0) {
+        do {
+            *pB = pRhs[pOrder[k]];
+            k++;
+            pB++;
+        } while (k < pCount);
+    }
+}
+
+// PARTIAL 26.80%: FUN_004c4f40 0x004c4f40 - body follows REA; frame 0x1b4 vs 0x1c0 and float temporaries round-trip through memory in the original (likely inlined float-by-value helper)
+// FUNCTION: CARMA2_HW 0x004c4f40
+void C2_HOOK_FASTCALL FUN_004c4f40(br_scalar* pL, br_scalar* pMatrix, int pIndex, br_scalar* pInv, tU8* pOrder) {
+    br_scalar vec[100];
+    br_scalar* p;
+    br_scalar* q;
+    br_scalar* r;
+    br_scalar* inv_col;
+    br_scalar* l_row;
+    br_scalar* vp;
+    br_scalar* l_diag;
+    int i;
+    int cnt;
+    int diff;
+    int step;
+    int j;
+    int cnt2;
+    br_scalar sum;
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+    br_scalar d;
+    br_scalar s;
+    br_scalar e;
+    br_scalar f;
+    br_scalar g;
+    br_scalar t;
+
+    i = 0;
+    if (pIndex >= 0) {
+        p = vec;
+        do {
+            *p = pMatrix[pOrder[i] + pOrder[pIndex] * 100];
+            i++;
+            p++;
+        } while (i <= pIndex);
+    }
+    i = 0;
+    q = pInv;
+    if (pIndex > 0) {
+        do {
+            sum = 0.0f;
+            vp = vec;
+            r = q;
+            cnt = pIndex;
+            do {
+                a = *r;
+                b = *vp;
+                r++;
+                vp++;
+                cnt--;
+                sum = a * b + sum;
+            } while (cnt != 0);
+            pL[i + pIndex * 100] = sum;
+            i++;
+            q += 100;
+        } while (i < pIndex);
+    }
+    pInv[pIndex * 101] = 1.0f;
+    if (pIndex > 0) {
+        q = pInv + pIndex;
+        vp = pInv + pIndex * 100;
+        cnt = pIndex;
+        do {
+            *q = 0.0f;
+            *vp = 0.0f;
+            q += 100;
+            vp++;
+            cnt--;
+        } while (cnt != 0);
+        if (pIndex > 0) {
+            inv_col = pInv;
+            diff = (int)(pInv + pIndex * 100) - (int)pInv;
+            l_row = pL + pIndex;
+            p = vec;
+            step = 400;
+            i = 1;
+            l_diag = pL;
+            do {
+                s = (br_scalar)fabs(*p);
+                *l_row = 0.0f;
+                if (s != 0.0) {
+                    a = (br_scalar)fabs(*l_diag);
+                    if (a < s) {
+                        a = s;
+                    }
+                    b = *p / a;
+                    c = *l_diag / a;
+                    *p = b;
+                    d = (br_scalar)fabs(sqrt(c * c + b * b));
+                    if (c <= 0.0) {
+                        d = -d;
+                    }
+                    cnt2 = pIndex + 1;
+                    c = c + d;
+                    e = b / (c * d);
+                    f = c / (c * d);
+                    q = inv_col;
+                    cnt = cnt2;
+                    if (cnt2 > 0) {
+                        do {
+                            g = b * *(br_scalar*)(diff + (int)q) + c * *q;
+                            cnt--;
+                            *(br_scalar*)(diff - 4 + (int)(q + 1)) = *(br_scalar*)(diff + (int)q) - e * g;
+                            *q = *q - f * g;
+                            q++;
+                        } while (cnt != 0);
+                    }
+                    if (i < cnt2) {
+                        cnt2 = cnt2 - i;
+                        r = (br_scalar*)((int)pL + (step - (int)vec) + (int)p);
+                        q = p;
+                        do {
+                            q++;
+                            t = c * *r + b * *q;
+                            cnt2--;
+                            g = *r;
+                            *q = *q - e * t;
+                            *r = g - f * t;
+                            r += 100;
+                        } while (cnt2 != 0);
+                    }
+                    *l_diag = -(d * a);
+                }
+                l_row += 100;
+                diff -= 400;
+                step += 400;
+                p++;
+                inv_col += 100;
+                l_diag += 101;
+                j = i < pIndex;
+                i++;
+            } while (j);
+        }
+    }
+    pL[pIndex * 101] = vec[pIndex];
+}
+
+// PARTIAL 20.28%: FUN_004c4850 0x004c4850 - body follows REA token for token; regalloc/frame and loop scheduling differ throughout
+// FUNCTION: CARMA2_HW 0x004c4850
+void C2_HOOK_FASTCALL FUN_004c4850(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder) {
+    br_scalar vec[100];
+    int row;
+    int off;
+    int i;
+    int cnt;
+    int cnt2;
+    int n;
+    br_scalar* col;
+    br_scalar* dst;
+    br_scalar* p;
+    br_scalar* q;
+    br_scalar* r;
+    br_scalar* s2;
+    br_scalar* diag;
+    br_scalar* inv_diag;
+    br_scalar* inv_row;
+    br_scalar* inv_col;
+    br_scalar* l_col;
+    br_scalar* l_col2;
+    int l_step;
+    br_scalar maxv;
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+    br_scalar d;
+    br_scalar e;
+    br_scalar f;
+    tU8 ord;
+
+    row = pIndex;
+    if (pIndex < pCount) {
+        off = pIndex * 100;
+        col = pL + pIndex;
+        do {
+            ord = pOrder[row];
+            i = 0;
+            if (pIndex > 0) {
+                dst = col;
+                p = vec;
+                do {
+                    a = pMatrix[ord * 100 + pOrder[i]];
+                    i++;
+                    *p = a;
+                    *dst = a;
+                    dst += 100;
+                    p++;
+                } while (i < pIndex);
+            }
+            i = 0;
+            q = pInv;
+            if (pIndex > 0) {
+                do {
+                    a = 0.0f;
+                    p = vec;
+                    r = q;
+                    cnt = pIndex;
+                    do {
+                        b = *p;
+                        c = *r;
+                        r++;
+                        p++;
+                        cnt--;
+                        a = b * c + a;
+                    } while (cnt != 0);
+                    n = off + i;
+                    i++;
+                    pL[n] = a;
+                    q += 100;
+                } while (i < pIndex);
+            }
+            row++;
+            col++;
+            off += 100;
+        } while (row < pCount);
+    }
+    if (pIndex < pCount) {
+        q = pInv + pIndex * 101;
+        inv_col = pInv + pIndex;
+        inv_row = pInv + pIndex * 100;
+        i = pIndex;
+        inv_diag = q;
+        do {
+            ord = pOrder[i];
+            p = q;
+            n = pIndex;
+            do {
+                ord = ord;
+                *(br_scalar*)((int)pL + (-4 - (int)pInv) + (int)(p + 1)) = pMatrix[pOrder[n] + (int)ord * 100];
+                *p = 0.0f;
+                p++;
+                n++;
+            } while (n < pCount);
+            p = inv_row;
+            r = inv_col;
+            n = pIndex;
+            if (n > 0) {
+                do {
+                    *p = 0.0f;
+                    *r = 0.0f;
+                    n--;
+                    p++;
+                    r += 100;
+                } while (n != 0);
+            }
+            *inv_diag = 1.0f;
+            i++;
+            q += 100;
+            inv_row += 100;
+            inv_col++;
+            inv_diag += 101;
+        } while (i < pCount);
+    }
+    i = 0;
+    if (pIndex > 0) {
+        l_col = pL + pIndex + 100;
+        l_step = 100;
+        q = pL;
+        diag = pL;
+        do {
+            a = q[i];
+            maxv = 0.0f;
+            if (pIndex < pCount) {
+                p = q + pIndex;
+                n = pCount - pIndex;
+                do {
+                    b = (br_scalar)fabs(*p);
+                    if (fabs(*p) < maxv) {
+                        b = maxv;
+                    }
+                    p++;
+                    n--;
+                    maxv = b;
+                } while (n != 0);
+            }
+            if (maxv != 0.0) {
+                b = (br_scalar)fabs(a);
+                if (b < maxv) {
+                    b = maxv;
+                }
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q + pIndex;
+                    do {
+                        n--;
+                        *p = *p / b;
+                        p++;
+                    } while (n != 0);
+                }
+                a = a / b;
+                c = 0.0f;
+                if (pIndex < pCount) {
+                    p = q + pIndex;
+                    n = pCount - pIndex;
+                    do {
+                        d = *p;
+                        p++;
+                        n--;
+                        c = d * d + c;
+                    } while (n != 0);
+                }
+                c = (br_scalar)fabs(sqrt(a * a + c));
+                if (a <= 0.0) {
+                    c = -c;
+                }
+                a = a + c;
+                n = 0;
+                if (pCount > 0) {
+                    p = (br_scalar*)(((int)pInv - (int)pL) + (int)q);
+                    do {
+                        d = a * *p;
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            s2 = pInv + n + pIndex * 100;
+                            cnt = pCount - pIndex;
+                            do {
+                                e = *s2;
+                                f = *r;
+                                s2 += 100;
+                                r++;
+                                cnt--;
+                                d = e * f + d;
+                            } while (cnt != 0);
+                        }
+                        d = d / (a * c);
+                        if (pIndex < pCount) {
+                            s2 = q + pIndex;
+                            cnt = pCount - pIndex;
+                            r = pInv + n + pIndex * 100;
+                            do {
+                                e = *s2;
+                                s2++;
+                                cnt--;
+                                *r = *r - d * e;
+                                r += 100;
+                            } while (cnt != 0);
+                        }
+                        n++;
+                        *p = *p - a * d;
+                        p++;
+                    } while (n < pCount);
+                }
+                if (i + 1 < pCount) {
+                    cnt2 = pCount - (i + 1);
+                    p = pL + i + l_step;
+                    s2 = l_col;
+                    do {
+                        d = a * *p;
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            n = pCount - pIndex;
+                            l_col2 = s2;
+                            do {
+                                e = *l_col2;
+                                f = *r;
+                                l_col2++;
+                                r++;
+                                n--;
+                                d = e * f + d;
+                            } while (n != 0);
+                        }
+                        d = d / (a * c);
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            n = pCount - pIndex;
+                            l_col2 = s2;
+                            do {
+                                e = *r;
+                                r++;
+                                n--;
+                                *l_col2 = *l_col2 - d * e;
+                                l_col2++;
+                            } while (n != 0);
+                        }
+                        s2 += 100;
+                        cnt2--;
+                        *p = *p - a * d;
+                        p += 100;
+                    } while (cnt2 != 0);
+                }
+                *diag = -(c * b);
+                if (pIndex < pCount) {
+                    p = q + pIndex;
+                    for (n = pCount - pIndex; n != 0; n--) {
+                        *p = 0.0f;
+                        p++;
+                    }
+                }
+            }
+            i++;
+            q += 100;
+            l_step += 100;
+            l_col += 100;
+            diag += 101;
+        } while (i < pIndex);
+    }
+    if (pIndex < pCount) {
+        off = pIndex * 100;
+        q = pL + pIndex * 101;
+        do {
+            maxv = 0.0f;
+            if (pIndex < pCount) {
+                n = pCount - pIndex;
+                p = q;
+                do {
+                    a = (br_scalar)fabs(*p);
+                    if (fabs(*p) < maxv) {
+                        a = maxv;
+                    }
+                    p++;
+                    n--;
+                    maxv = a;
+                } while (n != 0);
+            }
+            if (maxv != 0.0) {
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q;
+                    do {
+                        n--;
+                        *p = *p / maxv;
+                        p++;
+                    } while (n != 0);
+                }
+                a = 0.0f;
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q;
+                    do {
+                        b = *p;
+                        p++;
+                        n--;
+                        a = b * b + a;
+                    } while (n != 0);
+                }
+                a = (br_scalar)fabs(sqrt(a));
+                if (*q <= 0.0) {
+                    a = -a;
+                }
+                b = a * (a + *q);
+                *q = a + *q;
+                i = 0;
+                if (pCount > 0) {
+                    do {
+                        c = 0.0f;
+                        if (pIndex < pCount) {
+                            r = pInv + off + i;
+                            cnt = pCount - pIndex;
+                            p = q;
+                            do {
+                                d = *p;
+                                e = *r;
+                                p++;
+                                r += 100;
+                                cnt--;
+                                c = d * e + c;
+                            } while (cnt != 0);
+                        }
+                        if (pIndex < pCount) {
+                            cnt = pCount - pIndex;
+                            r = pInv + i + off;
+                            p = q;
+                            do {
+                                d = *p;
+                                p++;
+                                cnt--;
+                                *r = *r - (c / b) * d;
+                                r += 100;
+                            } while (cnt != 0);
+                        }
+                        i++;
+                    } while (i < pCount);
+                }
+                if (pIndex + 1 < pCount) {
+                    r = pL + off + pIndex + 100;
+                    cnt2 = pCount - (pIndex + 1);
+                    do {
+                        c = 0.0f;
+                        if (pIndex < pCount) {
+                            n = pCount - pIndex;
+                            p = q;
+                            s2 = r;
+                            do {
+                                d = *s2;
+                                e = *p;
+                                p++;
+                                s2++;
+                                n--;
+                                c = d * e + c;
+                            } while (n != 0);
+                        }
+                        if (pIndex < pCount) {
+                            n = pCount - pIndex;
+                            p = r;
+                            s2 = q;
+                            do {
+                                d = *s2;
+                                s2++;
+                                n--;
+                                *p = *p - (c / b) * d;
+                                p++;
+                            } while (n != 0);
+                        }
+                        r += 100;
+                        cnt2--;
+                    } while (cnt2 != 0);
+                }
+                n = pIndex + 1;
+                *q = -(a * maxv);
+                if (n < pCount) {
+                    p = pL + off + n;
+                    for (cnt = pCount - n; cnt != 0; cnt--) {
+                        *p = 0.0f;
+                        p++;
+                    }
+                }
+            }
+            pIndex++;
+            q += 101;
+            off += 100;
+        } while (pIndex < pCount);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
