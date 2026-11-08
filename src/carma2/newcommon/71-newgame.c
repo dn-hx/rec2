@@ -4,6 +4,7 @@
 #include "08-loading1.h"
 #include "10-loading2.h"
 #include "41-utility.h"
+#include "47-win95net.h"
 #include "70-packfile.h"
 #include "globvars.h"
 #include "globvrpb.h"
@@ -143,7 +144,6 @@ void C2_HOOK_FASTCALL DefaultNetSettings(void) {
 // DisposeJoinList
 
 extern tJoinable_game gGames_to_join[6];
-extern tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails);
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 // FUNCTION: CARMA2_HW 0x004681d0
 void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame) {
@@ -182,8 +182,10 @@ void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049ee30
-tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails) { NOT_IMPLEMENTED(); return 0; }
+// FUNCTION: CARMA2_HW 0x0049ee30
+tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails) {
+    return PDNetExtractGameID(pDetails);
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
