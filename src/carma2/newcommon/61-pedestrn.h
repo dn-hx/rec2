@@ -285,7 +285,7 @@ extern void C2_HOOK_FASTCALL InitPedsForRace(void);
 extern void C2_HOOK_FASTCALL ResetProxRay(void);
 
 extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
-// NextPedCam
+extern void C2_HOOK_FASTCALL NextPedCam(void);
 
 extern void C2_HOOK_FASTCALL PrevPedCam(void);
 
