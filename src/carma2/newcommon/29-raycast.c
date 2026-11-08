@@ -235,9 +235,11 @@ int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixel
 #pragma auto_inline(off)
 #endif
 
+// PARTIAL 34.01%: DRModelPick2D_raycast 0x004e3d90 - barycentric temporaries are double as in the original (qword spills, 8-byte aligned frame); remaining: frame 0x74 vs 0x7c, fabs(d) float temp, x87 order
 // FUNCTION: CARMA2_HW 0x004e3d90
 // FUNCTION: CARMA2_SW 0x004e0120
 int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* model, br_material* material, br_vector3* ray_pos, br_vector3* ray_dir, br_scalar t_near, br_scalar t_far, dr_modelpick2d_raycast_cbfn* callback, void* arg) {
+    DR_FACE* fp;
     int f;
     int axis_m;
     int axis_0;
@@ -247,17 +249,17 @@ int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* model, br_material* materia
     br_scalar d;
     br_vector3 p;
     float u0;
-    float u1;
-    float u2;
+    double u1;
+    double u2;
     float v0;
-    float v1;
-    float v2;
-    br_scalar v0i1;
-    br_scalar v0i2;
-    float alpha;
-    float beta;
-    float f_d;
-    float f_n;
+    double v1;
+    double v2;
+    double v0i1;
+    double v0i2;
+    double alpha;
+    double beta;
+    double f_d;
+    double f_n;
     br_scalar s_alpha;
     br_scalar s_beta;
     br_vector2 map;
@@ -266,32 +268,26 @@ int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* model, br_material* materia
     int r;
     br_material* this_material;
     br_scalar numerator;
-    v11face* v11f;
-    v11group* v11g;
-    br_vector4* eqn;
 
     t_near -= 0.001f;
     t_far += 0.001f;
     for (group = 0; group < V11MODEL(model)->ngroups; group++) {
-        v11g = &V11MODEL(model)->groups[group];
-        for (f = 0; f < v11g->nfaces; f++) {
-            v11f = &v11g->faces[f];
-            eqn = &v11f->eqn;
-            if (v11g->face_colours.materials[0] != NULL) {
-                this_material = v11g->face_colours.materials[0];
-            } else {
+        fp = V11MODEL(model)->groups[group].faces;
+        for (f = 0; f < V11MODEL(model)->groups[group].nfaces; f++, fp++) {
+            this_material = V11MODEL(model)->groups[group].face_colours.materials[0];
+            if (this_material == NULL) {
                 this_material = material;
             }
-            d = BrVector3Dot(eqn, ray_dir);
-            if ((fabs(d) >= 2.3841858e-7f && this_material != NULL && (this_material->flags & (BR_MATF_TWO_SIDED | BR_MATF_ALWAYS_VISIBLE)) != 0) || d <= 0.0) {
-                numerator = BrVector3Dot(eqn, ray_pos) - eqn->v[3];
+            d = BrVector3Dot(&fp->eqn, ray_dir);
+            if (fabs(d) >= 2.3841858e-7f && ((this_material != NULL && (this_material->flags & (BR_MATF_TWO_SIDED | BR_MATF_ALWAYS_VISIBLE)) != 0) || d <= 0.0f)) {
+                numerator = BrVector3Dot(&fp->eqn, ray_pos) - fp->eqn.v[3];
                 if (!(fabs(d) < 1.0f && fabs(numerator) > fabs(d) * BR_SCALAR_MAX)) {
                     t = -(numerator / d);
                     if (t >= t_near && t <= t_far) {
                         BrVector3Scale(&p, ray_dir, t);
                         BrVector3Accumulate(&p, ray_pos);
-                        axis_m = (fabs(eqn->v[1]) > fabs(eqn->v[0])) ? 1 : 0;
-                        if (fabs(eqn->v[2]) > fabs(eqn->v[axis_m])) {
+                        axis_m = fabs(fp->eqn.v[0]) < fabs(fp->eqn.v[1]);
+                        if (fabs(fp->eqn.v[axis_m]) < fabs(fp->eqn.v[2])) {
                             axis_m = 2;
                         }
                         if (axis_m == 0) {
@@ -305,14 +301,12 @@ int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* model, br_material* materia
                             axis_1 = 1;
                         }
 
-                        v0 = v11g->vertices[v11f->vertices[0]].p.v[axis_0];
-                        u0 = v11g->vertices[v11f->vertices[0]].p.v[axis_1];
-
-                        v1 = v11g->vertices[v11f->vertices[1]].p.v[axis_0] - v0;
-                        u1 = v11g->vertices[v11f->vertices[1]].p.v[axis_1] - u0;
-                        v2 = v11g->vertices[v11f->vertices[2]].p.v[axis_0] - v0;
-                        u2 = v11g->vertices[v11f->vertices[2]].p.v[axis_1] - u0;
-
+                        v0 = V11MODEL(model)->groups[group].vertices[fp->vertices[0]].p.v[axis_0];
+                        u0 = V11MODEL(model)->groups[group].vertices[fp->vertices[0]].p.v[axis_1];
+                        v1 = V11MODEL(model)->groups[group].vertices[fp->vertices[1]].p.v[axis_0] - v0;
+                        u1 = V11MODEL(model)->groups[group].vertices[fp->vertices[1]].p.v[axis_1] - u0;
+                        v2 = V11MODEL(model)->groups[group].vertices[fp->vertices[2]].p.v[axis_0] - v0;
+                        u2 = V11MODEL(model)->groups[group].vertices[fp->vertices[2]].p.v[axis_1] - u0;
                         v0i1 = p.v[axis_0] - v0;
                         v0i2 = p.v[axis_1] - u0;
                         if (fabs(v1) > 2.3841858e-7f) {
@@ -327,36 +321,29 @@ int C2_HOOK_FASTCALL DRModelPick2D_raycast(br_model* model, br_material* materia
                             beta = v0i1 / v2;
                             alpha = (v0i2 - beta * u2) / u1;
                         }
-
                         if (alpha >= 0.0 && beta >= 0.0 && beta + alpha <= 1.0) {
                             s_alpha = alpha;
                             s_beta = beta;
-                            BrVector2Scale(&map, &v11g->vertices[v11f->vertices[1]].map, s_alpha);
-                            {
-                                br_vector2* vm2 = &v11g->vertices[v11f->vertices[2]].map;
-                                map.v[0] = vm2->v[0] * s_beta + map.v[0];
-                                map.v[1] = vm2->v[1] * s_beta + map.v[1];
-                            }
-                            {
-                                br_vector2* vm0 = &v11g->vertices[v11f->vertices[0]].map;
-                                map.v[0] = vm0->v[0] * (1.0f - (s_alpha + s_beta)) + map.v[0];
-                                map.v[1] = vm0->v[1] * (1.0f - (s_alpha + s_beta)) + map.v[1];
-                            }
+                            BrVector2Scale(&map, &V11MODEL(model)->groups[group].vertices[fp->vertices[1]].map, s_alpha);
+                            map.v[0] = V11MODEL(model)->groups[group].vertices[fp->vertices[2]].map.v[0] * s_beta + map.v[0];
+                            map.v[1] = V11MODEL(model)->groups[group].vertices[fp->vertices[2]].map.v[1] * s_beta + map.v[1];
+                            map.v[0] = V11MODEL(model)->groups[group].vertices[fp->vertices[0]].map.v[0] * (1.0f - (s_beta + s_alpha)) + map.v[0];
+                            map.v[1] = V11MODEL(model)->groups[group].vertices[fp->vertices[0]].map.v[1] * (1.0f - (s_beta + s_alpha)) + map.v[1];
                             v = 0;
                             e = 1;
-                            if (s_alpha <= s_beta) {
-                                if (0.5f - s_beta / 2.0f > s_alpha) {
-                                    e = 0;
-                                }
-                                if (1.0f - s_beta * 2.0f < s_alpha) {
-                                    v = 1;
-                                }
-                            } else {
+                            if (s_alpha > s_beta) {
                                 if (1.0f - s_beta * 2.0f > s_alpha) {
                                     e = 2;
                                 }
                                 if (0.5f - s_beta / 2.0f < s_alpha) {
                                     v = 2;
+                                }
+                            } else {
+                                if (0.5f - s_beta / 2.0f > s_alpha) {
+                                    e = 0;
+                                }
+                                if (1.0f - s_beta * 2.0f < s_alpha) {
+                                    v = 1;
                                 }
                             }
                             r = callback(model, this_material, ray_pos, ray_dir, t, f, e, v, &p, &map, arg);
