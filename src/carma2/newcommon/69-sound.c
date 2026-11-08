@@ -1046,7 +1046,7 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
     char identifier[4];
 
     sprintf(identifier, "%c%02d", ')', pIndex);
-    model = BrModelFind(identifier);
+    model = BrModelFind(pName);
     if (model == NULL || model->identifier == NULL) {
 #ifdef REC2_FIX_BUGS
         FatalError(kFatalError_CannotFindModelReferencedInSoundGeneratorList_S, identifier);
@@ -1058,6 +1058,10 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
     }
 }
 
+// PARTIAL (100% effective, not exact): the original looks the model up by the name read from the file (BuggerModelName
+// passes pName), which now matches. The only residual is the point case: the original copies x,y,z with the three loads
+// first and the three stores after, our BrVector3Set macro interleaves load/store pairs. Every 12-byte aggregate form
+// (struct assignment, cast block copy) hoists generator+4 into ebp and re-rolls the whole function's registers.
 // FUNCTION: CARMA2_HW 0x004572f0
 void C2_HOOK_FASTCALL ReadSoundGenerators(tTrack_spec* pTrack_spec, FILE* pF) {
     float x;
