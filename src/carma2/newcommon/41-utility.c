@@ -501,6 +501,7 @@ FILE* C2_HOOK_FASTCALL OpenUniqueFileB(char* pPrefix, char* pExtension) {
     return NULL;
 }
 
+// PARTIAL 93.12%: PrintScreenFile 0x00514ab0 [regalloc: ebx/ecx choice for height*row_bytes; was 100 at c39e288df, TU/header context changed]
 // FUNCTION: CARMA2_HW 0x00514ab0
 void C2_HOOK_FASTCALL PrintScreenFile(FILE* pF) {
     int i;
