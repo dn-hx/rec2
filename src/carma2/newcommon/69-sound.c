@@ -142,6 +142,9 @@ tU32 gNext_sound_generator_munging;
 // GLOBAL: CARMA2_HW 0x0079e18c
 int gCount_environmental_sound_sources;
 
+// GLOBAL: CARMA2_HW 0x0079e140
+undefined4 gUNK_0079e140;
+
 
 // FUNCTION: CARMA2_HW 0x00500060
 void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
@@ -916,8 +919,6 @@ void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpe
 
 // TryToSetEnvironmentalSound
 
-// DoAnEnvironmentalSound
-
 // DoEnvSound
 
 // FoundSoundSource
@@ -938,8 +939,97 @@ static intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pConte
     return 0;
 }
 
+// PARTIAL 83.96%: semantics and the pitch/sound register allocation match. Remaining diffs: the periodic-branch block
+// layout (then/else bodies swapped), the pSpeed `push -1` is scheduled earlier in the original, and the original keeps
+// gXXX_outlet in edi across both play calls (our build reloads it and uses edi for pVolume).
+// FUNCTION: CARMA2_HW 0x00456c60
 void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos) {
-    (void)pSrc_object; (void)pEnv_info; (void)pVolume; (void)pPos;
+    tSpecial_volume_soundfx_data* soundfx;
+    tU32 time;
+    tU32 last_time;
+    int period;
+    int* env_src;
+    int found;
+    int free_slot;
+    int i;
+    int pitch;
+    int sound;
+    int play;
+
+    soundfx = &pEnv_info->soundfx;
+    time = GetTotalTime();
+    found = soundfx->periodicity;
+    play = 0;
+    switch (found) {
+    case kSoundFxPeriodicity_Random:
+        if (time < soundfx->field_0xc) {
+            goto done;
+        }
+        play = 1;
+        found = time + IRandomBetween(soundfx->random.min_gap, soundfx->random.max_gap);
+        break;
+    case kSoundFxPeriodicity_Periodic:
+        last_time = soundfx->field_0xc;
+        if (time < last_time) {
+            goto done;
+        }
+        play = 1;
+        period = soundfx->period;
+        if (time - last_time > (tU32)period) {
+            soundfx->field_0xc = time + period;
+            goto done;
+        }
+        found = last_time + period;
+        break;
+    case kSoundFxPeriodicity_Continuous:
+        free_slot = -1;
+        i = 0;
+        env_src = (int*)&gEnvironment_sound_sources[0];
+        do {
+            if (env_src[4] == 1 && env_src[5] == (int)pSrc_object) {
+                break;
+            }
+            if (env_src[4] == 0) {
+                free_slot = i;
+            }
+            i++;
+            env_src += 7;
+        } while (i < (int)REC2_ASIZE(gEnvironment_sound_sources));
+        if (i == (int)REC2_ASIZE(gEnvironment_sound_sources)) {
+            if (free_slot >= 0) {
+                env_src = (int*)&gEnvironment_sound_sources[free_slot];
+                env_src[4] = 1;
+                env_src[5] = (int)pSrc_object;
+            } else {
+                env_src = NULL;
+            }
+        }
+        if (env_src != NULL) {
+            *(br_vector3*)(env_src + 1) = *pPos;
+            env_src[6] = 1;
+            pitch = IRandomPosNeg(soundfx->max_deviation) + 0x10000;
+            S3UpdateSoundSource(gXXX_outlet, (tU16)soundfx->sound_alternatives[IRandomBetween(0, soundfx->count_sound_alternatives - 1)], (tS3_sound_source*)env_src[0], -1.f, -1, -1, pVolume, pitch, -1);
+        }
+        gUNK_0079e140 = 1;
+        goto done;
+    default:
+        goto done;
+    }
+    soundfx->field_0xc = found;
+done:
+    if (play) {
+        pitch = IRandomPosNeg(soundfx->max_deviation) + 0x10000;
+        sound = (tU16)soundfx->sound_alternatives[IRandomBetween(0, soundfx->count_sound_alternatives - 1)];
+        if (gSound_enabled != 0) {
+            if (pVolume != 0
+                    && sound != eSoundId_pratcam_whirr_noise
+                    && !(sound >= 3000 && sound <= 3007)
+                    && !(sound >= 5300 && sound <= 5320)) {
+                PipeSingleSound(gXXX_outlet, sound, pVolume, 0, pitch, pPos);
+            }
+            S3StartSound3D(gXXX_outlet, sound, pPos, &gZero_v__car, 1, pVolume, pitch, 0x10000);
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00456ea0
