@@ -338,6 +338,7 @@ extern void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode);
 extern int C2_HOOK_FASTCALL FUN_004f4c70(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag);
 extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 extern void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3* pOut);
+extern br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
