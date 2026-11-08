@@ -3043,7 +3043,7 @@ static tPed_personality* FindOrOpenPersonality(const char* pName) {
         if (gPed_personalities[i] == NULL) {
             continue;
         }
-        if (strcmp(gPed_personalities[i]->name, pName) == 0) {
+        if (strcmp(pName, gPed_personalities[i]->name) == 0) {
             return gPed_personalities[i];
         }
     }
