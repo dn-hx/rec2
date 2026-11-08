@@ -201,6 +201,9 @@ tPed_cache_006944c0 gPed_cache_006944c0[100] = { 0 };
 // GLOBAL: CARMA2_HW 0x0069b9f0
 tNapalm_bolt gNapalm_bolts[5] = { 0 };
 
+// UNCERTAIN: unreferenced 4-byte gap
+int gUNK_0069bc0c = 0;
+
 // GLOBAL: CARMA2_HW 0x0069bc10
 br_material* gPed_slick_material = 0;
 
