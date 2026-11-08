@@ -590,7 +590,8 @@ static void C2_HOOK_FASTCALL SetCurvature(tCar_spec* pCar_spec, float pCurvature
     pCar_spec->curvature = pCurvature;
 }
 
-// PARTIAL 47.38%: layout of cornering/not-cornering blocks matches; residual: frame 0x118 vs 0x130, FollowCheatyPath
+// PARTIAL 48.75%: block layout matches (not-cornering block and 80/field else sunk to the end as in the original);
+//   residual: frame 0x118 vs 0x130, rotated section loop (2 GetOpponentsNextSection calls), StuffDataFromCorner stub, FollowCheatyPath
 //   is inlined in the original (inlining it here scored 35.98), car_spec spill in the prologue.
 // FUNCTION: CARMA2_HW 0x004af960
 tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle) {
@@ -627,7 +628,6 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
     br_scalar unk2;
     br_scalar unk3;
     br_scalar curv;
-    double brake_time;
 
     car_spec = pOpponent_spec->car_spec;
     engine_damage = car_spec->damage_units[eDamage_engine].damage_level;
@@ -754,8 +754,7 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
             count_corners = CalcCorners(corners, straight_section_no, width, &start2d, pOpponent_spec);
             nearest_straight_section = NearestSectionInStraight(&oppo_pos2d, &start2d, &finish2d, pOpponent_spec->follow_path_data.section_no, straight_section_no, pOpponent_spec);
             count_socs = CalcSOCs(nearest_straight_section, count_corners, corners, pOpponent_spec, socs, pOpponent_spec->car_spec);
-            brake_time = gFrame_period_for_this_munging * speed * .0005f;
-            if (count_corners != 0 && brake_time > WORLD_SCALE * (BrVector2Length(&oppo_pos_rel_next) - corners[0].field_0x0c)) {
+            if (count_corners != 0 && gFrame_period_for_this_munging * speed * .0005f > WORLD_SCALE * (BrVector2Length(&oppo_pos_rel_next) - corners[0].field_0x0c)) {
 
                 StuffDataFromCorner(data, &corners[0]);
                 pOpponent_spec->follow_path_data.corner_width = GetOpponentsSectionWidth(pOpponent_spec, corners[0].section);
@@ -764,24 +763,7 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
                 SetMaxSpeedFromSOCs(socs, count_socs, &data->desired_speed, speed, &oppo_pos2d, &corners[0], pOpponent_spec);
             }
         }
-        if (data->cornering) {
-            br_vector2 delta;
-
-            BrVector2Sub(&delta, &oppo_pos2d, &data->field_0x40);
-            unk1 = (BrVector2Length(&delta) - data->field_0x48) / data->corner_width;
-            if (speed > BR_SCALAR_EPSILON) {
-                unk2 = BrVector2Dot(&v2d, &delta) / data->field_0x48 * speed;
-            } else {
-                unk2 = 0.f;
-            }
-            unk3 = 1.f / (WORLD_SCALE * data->field_0x48);
-            if (data->left_not_right) {
-                unk2 = -unk2;
-            } else {
-                unk1 = -unk1;
-                unk3 = -unk3;
-            }
-        } else {
+        if (!data->cornering) {
             br_scalar l;
             br_vector2 delta;
             br_vector2 oppo_pos_rel;
@@ -807,6 +789,23 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
             } else {
                 unk2 = 0.f;
                 unk3 = 0.f;
+            }
+        } else {
+            br_vector2 delta;
+
+            BrVector2Sub(&delta, &oppo_pos2d, &data->field_0x40);
+            unk1 = (BrVector2Length(&delta) - data->field_0x48) / data->corner_width;
+            if (speed > BR_SCALAR_EPSILON) {
+                unk2 = BrVector2Dot(&v2d, &delta) / data->field_0x48 * speed;
+            } else {
+                unk2 = 0.f;
+            }
+            unk3 = 1.f / (WORLD_SCALE * data->field_0x48);
+            if (data->left_not_right) {
+                unk2 = -unk2;
+            } else {
+                unk1 = -unk1;
+                unk3 = -unk3;
             }
         }
         if (unk1 <= 1.f) {
