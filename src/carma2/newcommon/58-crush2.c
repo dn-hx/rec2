@@ -889,18 +889,103 @@ unsigned char gSmoke_part_table[12] = {
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pArg2);
-extern int C2_HOOK_FASTCALL FUN_0043b510(br_model* pModel, tModel_mash_context_local* pContext);
 extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
+extern br_scalar gCrushZero;
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+extern void C2_HOOK_CDECL JitModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pOrder_table, br_uint_8 pStyle, int pOn_screen);
+extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
 
-/* 0x0043b510 (the per-detail-level model mash helper) is not implemented in rec2 yet: an inert
-   body keeps this runtime-safe and the TU linkable. */
+/* Relaxes every vertex of one detail-level model back towards its uncrushed position by at most
+   `step` per pass, accumulating the applied movement into the context and piping the per-vertex
+   displacement as a model mash. Returns 1 when nothing moved, 0 otherwise.
+   PARTIAL 54.65% (6 attempts): frame (0x3030), stack slots, both step branches, the mash zero-store
+   block, the total_displacement accumulation and the final displacement store now match exactly
+   (condition is `delta > gCrushZero` with the zero store as the else, which is what the original's
+   block order and `jne` polarity prove). Residual: MSVC 11 homes pModel in ebx, the vertex pointer
+   in edi and -vertex_data in ebp where the original uses esi/ebx/edi (callee-saved rotation) plus
+   the x87 shape of one registered delta (fld/fadd st(1) vs fadd [mem]). Best copy:
+   state/partials/FUN_0043b510.c */
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0043b510
+// FUNCTION: CARMA2_HW 0x0043b510
 int C2_HOOK_FASTCALL FUN_0043b510(br_model* pModel, tModel_mash_context_local* pContext) {
-    (void)pModel;
-    (void)pContext;
+    br_vector3 mash[1024];
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    br_vector3 original_position;
+    br_vector3 vertex_position;
+    br_vertex* vertex;
+    int i;
+    int j;
+    float displacement;
+
+    if (pModel == NULL) {
+        return 0;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return 0;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return 0;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("Dog gone it, there's a lot of vertices on that model.");
+    }
+    displacement = gCrushZero;
+    vertex = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++) {
+        ExpandVector3(&original_position, &vertex_data[i].p, -10.f, 10.f);
+        vertex_position = vertex->p;
+        for (j = 0; j < 3; j++) {
+            float delta;
+
+            delta = original_position.v[j] - vertex_position.v[j];
+            delta = fabs(delta);
+            if (delta > gCrushZero) {
+                *pContext->total_displacement = *pContext->total_displacement + delta;
+                if (original_position.v[j] < vertex_position.v[j]) {
+                    vertex->p.v[j] = vertex->p.v[j] - pContext->step;
+                    if (vertex->p.v[j] < original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement - delta;
+                    mash[i].v[j] = delta;
+                } else {
+                    vertex->p.v[j] = pContext->step + vertex->p.v[j];
+                    if (vertex->p.v[j] > original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement + delta;
+                    mash[i].v[j] = delta;
+                }
+                vertex_data[i].flags &= 0xfb;
+            } else {
+                mash[i].v[j] = 0.f;
+            }
+        }
+        vertex++;
+    }
+    if (displacement == gCrushZero) {
+        return 1;
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
+    } else {
+        pModel->custom = JitModelUpdate;
+        pModel->flags |= BR_MODF_CUSTOM;
+    }
+    AddModelMashToPipingSession(pModel, mash);
+    {
+        float previous_displacement;
+
+        previous_displacement = pContext->displacement;
+        pContext->displacement = previous_displacement + displacement;
+    }
     return 0;
 }
 #ifdef REC2_MATCHING
