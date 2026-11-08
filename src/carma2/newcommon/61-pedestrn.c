@@ -30,9 +30,9 @@ int gGoreLevel = 1;
 // GLOBAL: CARMA2_HW 0x0065d778
 tPedForms_vtable gPed_forms_vtable = {
     NULL,
-    NULL,
-    NULL,
-    NULL,
+    CBActiveHalted,
+    (void (C2_HOOK_FASTCALL *)(undefined4*, undefined4*, undefined4))CBMovedByPhysics,
+    (int (C2_HOOK_FASTCALL *)(undefined4*))CBMoveCompleted,
     CBFillInObject,
     CBLoadForm,
     CBDisposeForm,
