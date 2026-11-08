@@ -508,7 +508,7 @@ void C2_HOOK_FASTCALL PrintScreenFile(FILE* pF) {
     int j;
     int bit_map_size;
     tU8* pixel_ptr;
-
+    bit_map_size = gBack_screen->height * gBack_screen->row_bytes;
     bit_map_size = gBack_screen->height * gBack_screen->row_bytes;
 
     // 1. BMP Header
@@ -1199,6 +1199,7 @@ int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel,
 
 // Parenthesised products: MSVC's x87 schedule for this dot product (5 loads, then
 // fxch st(4)/fmulp/fxch st(2)/fmulp/fxch st(2)) only comes out with them.
+// PARTIAL 71.43%: DistanceFromFace 0x00516090 [x87-schedule: missing fxch st(4) at 0x51609f; was 100 at c39e288df]
 // FUNCTION: CARMA2_HW 0x00516090
 float C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, tFace_ref* pFace) {
 

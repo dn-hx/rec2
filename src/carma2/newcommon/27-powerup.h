@@ -421,6 +421,8 @@ extern void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* 
 extern void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor);
 extern void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
 extern void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode);
+extern void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);
+extern void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode);
 extern int C2_HOOK_FASTCALL ReceivedRepulseOpponents(tNet_message_chunk_powerup* pMessage);
 extern void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor);
 

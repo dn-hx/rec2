@@ -1227,6 +1227,9 @@ int C2_HOOK_FASTCALL TooFarToCrush(const br_model* pModel, int pCount, const br_
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004367a0
 void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, tCar_crush_limits* pLimits, int pFound) {
     int index;
@@ -1244,9 +1247,15 @@ void C2_HOOK_FASTCALL CrushShapeMorphVertex(float* pOut, int pAxis, float pVerte
         *pOut = t;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 extern const br_scalar gFLOAT_00589a54;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00436850
 float C2_HOOK_FASTCALL CrushShapeBendFactor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
     float dist_sq;
@@ -1257,6 +1266,9 @@ float C2_HOOK_FASTCALL CrushShapeBendFactor(br_vector3* pVertexPos, int pCount, 
     }
     return gFLOAT_00589a54 - (float)sqrt(dist_sq / pMaxDistSq);
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 extern br_scalar gCrushSqrtHalf;
 
@@ -1288,7 +1300,124 @@ int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector) {
 
 // SimpleCrushCar
 
-// CrushCar
+// PARTIAL 42.93%: CrushCar - body taken from the disassembly of 0x004363f0; the residual diff is x87
+// scheduling / register allocation and stack-slot assignment (our frame 0x4c vs the original 0x58, the
+// original keeps direction.v[1] and the BendFactor result in memory) plus NearestAxis, which the original
+// inlines before the limits search but calls inside the vertex loop, while MSVC inlines our call at both.
+// FUNCTION: CARMA2_HW 0x004363f0
+void C2_HOOK_FASTCALL CrushCar(tCar_spec* pCar, br_actor* pActor, tCar_crush* pCrush) {
+    struct {
+        tCar_spec* car;
+        tCar_crush* crush;
+        float force;
+    } context;
+    tCar_crush_spec* crush_spec;
+    tCar_crush_limits* limits;
+    tCar_crush_shape_info* shape;
+    tCar_crush_reordered_shape_info* entry;
+    br_vector3* pVertex;
+    br_vector3 direction;
+    float magnitude;
+    float bend;
+    float factor;
+    float force;
+    int count;
+    int axis;
+    int flip;
+    int found;
+    int i;
+    int j;
+
+    crush_spec = pCar->car_crush_spec;
+    if (crush_spec == NULL || pCar->invulnerable_no_crushage != 0 || crush_spec->field_0x4b8 != 0) {
+        return;
+    }
+    context.car = pCar;
+    context.crush = pCrush;
+    context.force = pCrush->field_0x40;
+    if (context.force > gMax_crush_force) {
+        context.force = gMax_crush_force;
+    }
+    context.force = context.force / (float)pCrush->count;
+    if (crush_spec->field_0x144 != 0) {
+        ARStartPipingSession(3);
+        DRActorEnumRecurseWithSnart(pCar->car_model_actor, NULL, CrushCarModelCbfn, &context);
+        AREndPipingSession();
+        return;
+    }
+    if (pActor == pCar->car_master_actor) {
+        direction.v[0] = pCrush->field_0x44.v[0] * context.force;
+        direction.v[1] = pCrush->field_0x44.v[1] * context.force;
+        direction.v[2] = pCrush->field_0x44.v[2] * context.force;
+        direction.v[0] = gCrushZero;
+        if (direction.v[1] > gCrushZero) {
+            direction.v[1] = gCrushZero;
+        }
+        magnitude = (float)sqrt(direction.v[1] * direction.v[1] + direction.v[2] * direction.v[2]);
+        if (magnitude >= 1e-05f) {
+            direction.v[0] = gCrushZero / magnitude;
+            direction.v[1] = direction.v[1] / magnitude;
+            direction.v[2] = direction.v[2] / magnitude;
+            axis = NearestAxis(&direction);
+            flip = (direction.v[axis] > gCrushZero) ? 1 : 0;
+            found = 0;
+            count = crush_spec->field_0xa4.counts[axis][flip];
+            limits = &crush_spec->field_0xbc;
+            if (count > 0) {
+                i = 0;
+                do {
+                    if (flip == 0) {
+                        if (limits->limits[axis][0].values[i] < pCrush->field_0x34.v[axis]) {
+                            found = i;
+                            break;
+                        }
+                    } else {
+                        if (pCrush->field_0x34.v[axis] < limits->limits[axis][1].values[i]) {
+                            found = i;
+                            break;
+                        }
+                    }
+                    i++;
+                } while (i < count);
+            }
+            if (crush_spec->count_shapes > 0) {
+                i = 0;
+                do {
+                    shape = &crush_spec->field_0x4[i];
+                    if (shape->field_0x8 == 0) {
+                        for (j = 0; j < shape->count_points; j++) {
+                            entry = &shape->field_0x18[j];
+                            pVertex = &entry->field_0x18;
+                            bend = entry->field_0x24 * magnitude;
+                            factor = CrushShapeBendFactor(pVertex, pCrush->count, pCrush->vectors, gMax_crush_dist_sq);
+                            force = gForce_to_movement_factor * bend;
+                            if (factor != gCrushZero) {
+                                force *= factor;
+                                axis = NearestAxis(&direction);
+                                CrushShapeMorphVertex(&force, axis, pVertex->v[axis], direction.v[axis], entry->field_0x28, limits, found);
+                                if (force != gCrushZero) {
+                                    pVertex->v[1] = direction.v[1] * force + pVertex->v[1];
+                                    pVertex->v[2] = direction.v[2] * force + pVertex->v[2];
+                                    pVertex->v[0] = direction.v[0] * force + pVertex->v[0];
+                                }
+                            }
+                            if (DRVector3TestForNan(pVertex) != 0) {
+                                PDEnterDebugger("NaN");
+                            }
+                            CrushShapeFinishVertex(pVertex, entry->field_0x28, limits);
+                        }
+                    }
+                    i++;
+                } while (i < crush_spec->count_shapes);
+            }
+            crush_spec->expand_bounding_box = 7;
+        }
+    }
+    ARStartPipingSession(3);
+    DRActorEnumRecurseWithSnart(pActor, NULL, CrushCarActorCbfn, &context);
+    AREndPipingSession();
+    pCar->use_shell_model = 0;
+}
 
 // SendCrush
 
@@ -6083,16 +6212,6 @@ int C2_HOOK_FASTCALL OutsideEdgeLine(const br_vector3* pPoint, const br_vector3*
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: CARMA2_HW 0x0043a5b0
-void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext) {
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // Inferred layout of the context handed to the model-bend callbacks
 // (matrix at 0x0, corner displacements, bend data at 0x60, car at 0x64).
 typedef struct tUnbend_model_context_local {
@@ -6104,6 +6223,120 @@ typedef struct tUnbend_model_context_local {
     tBend_data_local* bend;
     tCar_spec* car;
 } tUnbend_model_context_local;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// Re-applies the bend transform of one detail-level model: every vertex that
+// the bend field covers is moved from its previous bend displacement to the
+// new one, and the per-vertex displacement is piped as a model mash.
+// FUNCTION: CARMA2_HW 0x0043a5b0
+void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext) {
+    br_vector3 mash[1024];
+    tUnbend_model_context_local* context;
+    tBend_data_local* bend;
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    tUser_detail_level_model* user_detail_model;
+    br_vertex* vertex;
+    br_vector3 pos;
+    br_vector3 tmp;
+    br_vector3 offset;
+    br_vector3 d;
+    br_vector3 delta;
+    br_vector3 old_delta;
+    tU16 index;
+    tU16 i;
+    int changed;
+    float a;
+    float b;
+    float c;
+    float ab;
+
+    if (pModel == NULL) {
+        return;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("My Lord! There's a lot of vertices on that model.");
+    }
+    context = (tUnbend_model_context_local*)pContext;
+    bend = context->bend;
+    index = *(tU16*)&detail_model->field_0x8[0];
+    changed = 0;
+    for (i = 0; i < pModel->nvertices; i++) {
+        vertex = &pModel->vertices[i];
+        if ((vertex_data[i].flags & 0x8) == 0) {
+            mash[i].v[0] = 0.f;
+            mash[i].v[1] = 0.f;
+            mash[i].v[2] = 0.f;
+        } else {
+            if ((vertex_data[i].flags & 0x10) != 0) {
+                mash[i].v[0] = -vertex->p.v[0];
+                mash[i].v[1] = -vertex->p.v[1];
+                mash[i].v[2] = -vertex->p.v[2];
+                d.v[0] = vertex->p.v[0] + pTranslation->v[0];
+                d.v[1] = pTranslation->v[1] + vertex->p.v[1];
+                d.v[2] = pTranslation->v[2] + vertex->p.v[2];
+                BrMatrix34ApplyP(&tmp, &d, &context->matrix);
+                vertex->p.v[0] = tmp.v[0] - pTranslation->v[0];
+                vertex->p.v[1] = tmp.v[1] - pTranslation->v[1];
+                vertex->p.v[2] = tmp.v[2] - pTranslation->v[2];
+                mash[i].v[0] += vertex->p.v[0];
+                mash[i].v[1] += vertex->p.v[1];
+            } else {
+                ExpandVector3(&pos, (const tCompressed_vector3*)&bend->field_0x78[index], -10.f, 10.f);
+                offset.v[0] = pos.v[0] - bend->field_0x24.v[0];
+                offset.v[1] = pos.v[1] - bend->field_0x24.v[1];
+                offset.v[2] = pos.v[2] - bend->field_0x24.v[2];
+                a = offset.v[0] / bend->field_0x30.v[0];
+                index++;
+                b = offset.v[1] / bend->field_0x30.v[1];
+                c = offset.v[2] / bend->field_0x30.v[2];
+                ab = a * b;
+                delta.v[0] = (context->field_0x54.v[0] + context->field_0x48.v[0] * b + context->field_0x3c.v[0] * a + context->field_0x30.v[0] * ab) * c;
+                delta.v[1] = (context->field_0x54.v[1] + context->field_0x48.v[1] * b + context->field_0x3c.v[1] * a + context->field_0x30.v[1] * ab) * c;
+                delta.v[2] = (context->field_0x54.v[2] + context->field_0x48.v[2] * b + context->field_0x3c.v[2] * a + context->field_0x30.v[2] * ab) * c;
+                old_delta.v[0] = (bend->field_0x68.v[0] + bend->field_0x5c.v[0] * b + bend->field_0x50.v[0] * a + bend->field_0x44.v[0] * ab) * c;
+                old_delta.v[1] = (bend->field_0x68.v[1] + bend->field_0x5c.v[1] * b + bend->field_0x50.v[1] * a + bend->field_0x44.v[1] * ab) * c;
+                old_delta.v[2] = (bend->field_0x68.v[2] + bend->field_0x5c.v[2] * b + bend->field_0x50.v[2] * a + bend->field_0x44.v[2] * ab) * c;
+                d.v[0] = pos.v[0] - pTranslation->v[0];
+                d.v[1] = pos.v[1] - pTranslation->v[1];
+                d.v[2] = pos.v[2] - pTranslation->v[2];
+                mash[i].v[0] = -vertex->p.v[0];
+                mash[i].v[1] = -vertex->p.v[1];
+                mash[i].v[2] = -vertex->p.v[2];
+                vertex->p.v[0] = (vertex->p.v[0] - d.v[0] - old_delta.v[0]) + (d.v[0] + delta.v[0]);
+                vertex->p.v[1] = (vertex->p.v[1] - d.v[1] - old_delta.v[1]) + (d.v[1] + delta.v[1]);
+                vertex->p.v[2] = (vertex->p.v[2] - d.v[2] - old_delta.v[2]) + (d.v[2] + delta.v[2]);
+                mash[i].v[0] += vertex->p.v[0];
+                mash[i].v[1] += vertex->p.v[1];
+            }
+            changed = 1;
+            mash[i].v[2] += vertex->p.v[2];
+        }
+    }
+    if (changed != 0) {
+        if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+            user_detail_model = pModel->user;
+            user_detail_model->field_0x0 = 1;
+        } else {
+            pModel->custom = JitModelUpdate;
+            pModel->flags |= BR_MODF_CUSTOM;
+        }
+        AddModelMashToPipingSession(pModel, mash);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // Unbends every detail-level model of the actor (callback of UnBendActor).
 // FUNCTION: CARMA2_HW 0x0043a560
@@ -6662,8 +6895,103 @@ tU16 gCrush_vertex_compression_index;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00435960
-void C2_HOOK_FASTCALL FUN_00435960(br_model* pModel, const br_vector3* pOffset, tCar_spec** ppCar, br_actor* pActor) {
+// FUNCTION: CARMA2_HW 0x00435960
+void C2_HOOK_FASTCALL FUN_00435960(br_model* pModel, const br_vector3* pOffset, void* pContext, br_actor* pActor) {
+    br_vector3 mash[1024];
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    tBend_data_local* bend;
+    br_vertex* vertex;
+    br_vector3 pos;
+    br_vector3 tmp;
+    br_vector3 d;
+    br_vector3 delta;
+    float a;
+    float b;
+    float c;
+    float ab;
+    int changed;
+    tU16 i;
+
+    if (pModel == NULL) {
+        return;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("Alas, there's a lot of vertices on that model.");
+    }
+    bend = ((const tBend_point_context_local*)pContext)->bend;
+    *(tU16*)&detail_model->field_0x8[0] = gCrush_vertex_compression_index;
+    changed = 0;
+    for (i = 0; i < pModel->nvertices; i++) {
+        vertex = &pModel->vertices[i];
+        pos.v[0] = vertex->p.v[0] + pOffset->v[0];
+        pos.v[1] = pOffset->v[1] + vertex->p.v[1];
+        pos.v[2] = pOffset->v[2] + vertex->p.v[2];
+        if ((bend->field_0x74 != 0 && pos.v[2] - bend->field_0x18.v[2] <= gCrushZero)
+                || (bend->field_0x74 == 0 && pos.v[2] - bend->field_0x18.v[2] >= gCrushZero)) {
+            BrMatrix34ApplyP(&tmp, &pos, &((const tBend_point_context_local*)pContext)->matrix);
+            mash[i].v[0] = -vertex->p.v[0];
+            mash[i].v[1] = -vertex->p.v[1];
+            mash[i].v[2] = -vertex->p.v[2];
+            vertex->p.v[0] = tmp.v[0] - pOffset->v[0];
+            vertex->p.v[1] = tmp.v[1] - pOffset->v[1];
+            vertex->p.v[2] = tmp.v[2] - pOffset->v[2];
+            mash[i].v[0] += vertex->p.v[0];
+            mash[i].v[1] += vertex->p.v[1];
+            mash[i].v[2] += vertex->p.v[2];
+            vertex_data[i].flags |= 0x18;
+            changed = 1;
+        } else {
+            d.v[0] = pos.v[0] - bend->field_0x24.v[0];
+            d.v[1] = pos.v[1] - bend->field_0x24.v[1];
+            d.v[2] = pos.v[2] - bend->field_0x24.v[2];
+            if ((bend->field_0x74 != 0 && d.v[2] > gCrushZero)
+                    || (bend->field_0x74 == 0 && d.v[2] < gCrushZero)) {
+                mash[i].v[0] = 0.f;
+                mash[i].v[1] = 0.f;
+                mash[i].v[2] = 0.f;
+                vertex_data[i].flags &= ~0x8;
+            } else {
+                vertex_data[i].flags = (vertex_data[i].flags & ~0x10) | 0x8;
+                CompressVector3((tCompressed_vector3*)&bend->field_0x78[gCrush_vertex_compression_index], &pos, -10.f, 10.f);
+                gCrush_vertex_compression_index++;
+                a = d.v[0] / bend->field_0x30.v[0];
+                b = d.v[1] / bend->field_0x30.v[1];
+                c = d.v[2] / bend->field_0x30.v[2];
+                ab = a * b;
+                delta.v[0] = (bend->field_0x68.v[0] + bend->field_0x5c.v[0] * b + bend->field_0x50.v[0] * a + bend->field_0x44.v[0] * ab) * c;
+                delta.v[1] = (bend->field_0x68.v[1] + bend->field_0x5c.v[1] * b + bend->field_0x50.v[1] * a + bend->field_0x44.v[1] * ab) * c;
+                delta.v[2] = (bend->field_0x68.v[2] + bend->field_0x5c.v[2] * b + bend->field_0x50.v[2] * a + bend->field_0x44.v[2] * ab) * c;
+                pos.v[0] += delta.v[0];
+                pos.v[1] += delta.v[1];
+                pos.v[2] += delta.v[2];
+                mash[i].v[0] = delta.v[0];
+                mash[i].v[1] = delta.v[1];
+                mash[i].v[2] = delta.v[2];
+                vertex->p.v[0] = pos.v[0] - pOffset->v[0];
+                vertex->p.v[1] = pos.v[1] - pOffset->v[1];
+                vertex->p.v[2] = pos.v[2] - pOffset->v[2];
+                changed = 1;
+            }
+        }
+    }
+    if (changed != 0) {
+        if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+            detail_model->field_0x0 = 1;
+        } else {
+            pModel->custom = JitModelUpdate;
+            pModel->flags |= BR_MODF_CUSTOM;
+        }
+        AddModelMashToPipingSession(pModel, mash);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -7135,14 +7463,115 @@ br_scalar gCrushSqrtHalf = 0.70710701f;
 // GLOBAL: CARMA2_HW 0x00589acc
 br_scalar gFLOAT_00589acc = 0.0014492754f;
 
+// Minimal stub so FUN_00432b80 links: 0x4c6e40 is the twin of FUN_004c7f40 that
+// pipes the crush directly through ARAddDataToSession (owner file not yet ported).
+// STUB: CARMA2_HW 0x004c6e40
+void C2_HOOK_FASTCALL FUN_004c6e40(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
+}
+
+// The original 0x432b80 inlines CrushShapeBendFactor (0x436850) and
+// CrushShapeMorphVertex (0x4367a0); this TU compiles with auto_inline(off),
+// so equivalent local copies are force-inlined instead.
+#ifdef __GNUC__
+#define FUN_00432b80_INLINE static inline __attribute__((always_inline))
+#else
+#define FUN_00432b80_INLINE static __inline
+#endif
+FUN_00432b80_INLINE float FUN_00432b80_bend_factor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
+    float dist_sq;
+
+    dist_sq = DistSq(pVertexPos, pCount, pVectors);
+    if (dist_sq > gMax_crush_dist_sq) {
+        return gCrushZero;
+    }
+    return gFLOAT_00589a54 - (float)sqrt(dist_sq / pMaxDistSq);
+}
+
+FUN_00432b80_INLINE void FUN_00432b80_morph_vertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
+    int index;
+    float t;
+
+    index = ((pFlags & 0xffff) >> ((pAxis * 2 + (pDirectionComponent > gCrushZero)) * 2)) & 3;
+    if (index > pFound) {
+        *pOut = 0.0f;
+        return;
+    }
+    t = (pLimits->limits[pAxis][pDirectionComponent > gCrushZero].values[index] - pVertexComponent) / pDirectionComponent;
+    if (t < gCrushZero) {
+        *pOut = 0.0f;
+    } else if (t < *pOut) {
+        *pOut = t;
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00432b80
+// FUNCTION: CARMA2_HW 0x00432b80
 void C2_HOOK_FASTCALL FUN_00432b80(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex) {
+    float weights[1024];
+    tModel_detail_vertex_data* pVertex_data;
+    tUser_detail_level_model* pUser;
+    float* pVert;
+    float bend;
+    float force;
+    tU16 v;
+
     *pMax_bend = 0.f;
     *pMax_distance = 0.f;
-    *pMax_vertex = 0;
+    *(tU16*)pMax_vertex = 0;
+    if (pModel == NULL) {
+        return;
+    }
+    pUser = pModel->user;
+    if (pUser == NULL) {
+        return;
+    }
+    pVertex_data = pUser->field_0x4;
+    if (pVertex_data == NULL) {
+        return;
+    }
+    if (pModel->nvertices > 0x400) {
+        PDFatalError("Well stone the crows, there's a lot of vertices on that model.");
+    }
+    v = 0;
+    if (pModel->nvertices > 0) {
+        do {
+            pVert = (float*)((tU8*)pModel->vertices + (tU32)v * 0x28);
+            bend = FUN_00432b80_bend_factor((br_vector3*)pVert, pCount, pPoints, gMax_crush_dist_sq);
+            weights[v] = bend;
+            if (bend > *pMax_bend) {
+                *pMax_bend = bend;
+                *(tU16*)pMax_vertex = v;
+            }
+            v++;
+        } while (v < pModel->nvertices);
+    }
+    if (pForce != gCrushZero && *pMax_bend != gCrushZero) {
+        force = pForce * gForce_to_movement_factor;
+        v = 0;
+        if (pModel->nvertices > 0) {
+            do {
+                pVert = (float*)((tU8*)pModel->vertices + (tU32)v * 0x28);
+                if (weights[v] != gCrushZero) {
+                    weights[v] = weights[v] * force;
+                    FUN_00432b80_morph_vertex(&weights[v], pAxis, pVert[pAxis], pDirection->v[pAxis], (tU32)pVertex_data[v].limit_number & 0xffff, pLimits, pFound);
+                    pVert[0] = pVert[0] + weights[v] * pDirection->v[0];
+                    pVert[1] = pDirection->v[1] * weights[v] + pVert[1];
+                    pVert[2] = pDirection->v[2] * weights[v] + pVert[2];
+                }
+                v++;
+            } while (v < pModel->nvertices);
+        }
+        *pMax_distance = weights[*(tU16*)pMax_vertex];
+        FUN_004c6e40(pModel, pDirection, weights);
+        if ((pModel->flags & 0x20) != 0 && pModel->user != NULL) {
+            *(int*)pModel->user = 1;
+            return;
+        }
+        pModel->custom = JitModelUpdate;
+        pModel->flags = pModel->flags | 0x20;
+    }
 }
 extern int gINT_006a3334;
 extern tSmashable_level* C2_HOOK_FASTCALL FUN_004ee290(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
@@ -7151,11 +7580,216 @@ void C2_HOOK_FASTCALL FUN_004ee250(tCar_spec* pCar, tPhysics_object* pCollision_
     gINT_006a3334 = 0;
     FUN_004ee290(pCar, pCollision_info, pPos, pArg4, pActor, pArg6, pSmashable, pDamage, pArg9, 0);
 }
-// STUB: CARMA2_HW 0x004321d0
+extern void __cdecl srand(unsigned int pSeed);
+
+// FUNCTION: CARMA2_HW 0x004321d0
 void C2_HOOK_FASTCALL FUN_004321d0(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_flap_data* flap;
+    tUser_detail_level_model* detail;
+    tModel_detail_vertex_data* vertex_data;
+    tUser_crush_data* parent_user;
+    br_model* model;
+    br_vertex* vertices;
+    br_vector3* hinge;
+    br_vertex* max_vertex;
+    const br_vector3* parent_point;
+    br_vector3 offset;
+    br_vector3 hinge01;
+    br_vector3 perpendicular;
+    br_vector3 hinge_normal;
+    float weights[1024];
+    br_scalar projection;
+    br_scalar distance;
+    br_scalar offset_value;
+    br_scalar rand_distance;
+    br_scalar temp;
+    br_scalar limit_diff;
+    int reference_angle;
+    int min_angle;
+    int max_angle;
+    int angle;
+    int current_angle;
+    tU16 v;
+    tU8 changed;
+    int index;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return;
+    }
+    model = user->models[0];
+    if (model == NULL) {
+        return;
+    }
+    detail = model->user;
+    if (detail == NULL) {
+        return;
+    }
+    vertex_data = detail->field_0x4;
+    if (vertex_data == NULL) {
+        return;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    flap = crush_data->flap_data;
+    if (flap == NULL) {
+        return;
+    }
+    if (flap->field_0x14 == 0) {
+        return;
+    }
+    if (model->nvertices > 0x400) {
+        PDFatalError("Oh my goodness, there's a lot of vertices on that model.");
+    }
+    vertices = model->vertices;
+    hinge = &vertices[flap->hinge0].p;
+    BrVector3Sub(&hinge01, &vertices[flap->hinge1].p, hinge);
+    BrVector3Normalise(&hinge01, &hinge01);
+    BrVector3Sub(&offset, &vertices[flap->hinge2].p, hinge);
+    BrVector3Normalise(&offset, &offset);
+    BrVector3Cross(&hinge_normal, &hinge01, &offset);
+    BrVector3Normalise(&hinge_normal, &hinge_normal);
+    projection = BrVector3Dot(&offset, &hinge01);
+    BrVector3Scale(&perpendicular, &hinge01, projection);
+    BrVector3Sub(&perpendicular, &perpendicular, &offset);
+    BrVector3Normalise(&perpendicular, &perpendicular);
+    parent_user = pActor->parent->user;
+    parent_point = &parent_user->models[0]->vertices[flap->field_0x12].p;
+    DrMatrix34ApplyLPInverse(&offset, parent_point, &pActor->t.t.mat);
+    BrVector3Sub(&offset, &offset, hinge);
+    projection = -BrVector3Dot(&perpendicular, &offset);
+    if (projection == gCrushZero) {
+        reference_angle = 0;
+    } else {
+        reference_angle = (int)(atan2(BrVector3Dot(&hinge_normal, &offset), projection) * (32768.0 / PI));
+    }
+    max_vertex = &vertices[(tU16)pMax_vertex];
+    BrVector3Sub(&offset, hinge, &max_vertex->p);
+    distance = BrVector3Dot(&perpendicular, &offset) / projection;
+    if (distance <= gCrushZero) {
+        return;
+    }
+    if (pDistance <= gCrushZero) {
+        return;
+    }
+    offset_value = (float)sqrt((distance + pDistance) * (distance + pDistance) - distance * distance) * 0.5f;
+    srand(pField_0x50);
+    if (PercentageChance((int)gChance_of_inverse_buckle) != 0) {
+        offset_value = -offset_value;
+    }
+    flap->field_0x18 = flap->field_0x18 + offset_value;
+    limit_diff = (float)fabs(flap->field_0x18) - flap->field_0x1c;
+    if (limit_diff > gCrushZero) {
+        flap->field_0x14 = 0;
+        if (offset_value > gCrushZero) {
+            offset_value = offset_value - limit_diff;
+        } else {
+            offset_value = limit_diff + offset_value;
+        }
+    }
+    rand_distance = SRandomBetween(0.3f, 0.7f) * distance;
+    min_angle = 0x3ffc;
+    max_angle = 0xc004;
+    for (v = 0; v < model->nvertices; v++) {
+        BrVector3Sub(&offset, &vertices[v].p, &max_vertex->p);
+        distance = BrVector3Dot(pDirection, &offset);
+        if (distance > gCrushZero) {
+            temp = distance - rand_distance;
+            if (temp > gCrushZero) {
+                BrVector3Sub(&offset, hinge, &vertices[v].p);
+                distance = BrVector3Dot(&perpendicular, &offset) / projection;
+                if (distance > gCrushZero) {
+                    if (temp + distance != gCrushZero) {
+                        weights[v] = offset_value * distance / (temp + distance);
+                    } else {
+                        weights[v] = 0.0f;
+                    }
+                } else {
+                    weights[v] = 0.0f;
+                }
+            } else {
+                weights[v] = offset_value * distance / rand_distance;
+            }
+            BrVector3Scale(&offset, &hinge_normal, weights[v]);
+            BrVector3Add(&vertices[v].p, &vertices[v].p, &offset);
+        } else {
+            weights[v] = 0.0f;
+        }
+        if (vertex_data[v].flags & 2) {
+            BrVector3Sub(&offset, &vertices[v].p, hinge);
+            projection = -BrVector3Dot(&perpendicular, &offset);
+            if (projection != gCrushZero) {
+                angle = (int)(atan2(BrVector3Dot(&hinge_normal, &offset), projection) * (32768.0 / PI));
+                if ((tU16)(angle - max_angle) < 0x7ff8) {
+                    max_angle = angle;
+                }
+                if ((tU16)(min_angle - angle) < 0x7ff8) {
+                    min_angle = angle;
+                }
+            }
+        }
+    }
+    current_angle = flap->field_0x4;
+    flap->field_0x2 = (tU16)(current_angle + reference_angle - min_angle);
+    flap->field_0x6 = (tU16)(current_angle + reference_angle + 0x3ffc - max_angle);
+    flap->field_0x8 = (tU16)(flap->field_0x6 - flap->field_0x2);
+    changed = 0;
+    if ((tU16)(current_angle - flap->field_0x2) > flap->field_0x8) {
+        if ((tU16)(current_angle - flap->field_0x6) < 0x7ff8) {
+            PipeSingleFlap(pActor, (tU16)(flap->field_0x6 - current_angle));
+            flap->field_0x4 = flap->field_0x6;
+        } else {
+            PipeSingleFlap(pActor, (tU16)(flap->field_0x2 - current_angle));
+            flap->field_0x4 = flap->field_0x2;
+        }
+        changed = 1;
+    }
+    if (changed) {
+        BrMatrix34Translate(&pActor->t.t.mat, -hinge->v[0], -hinge->v[1], -hinge->v[2]);
+        BrMatrix34PostRotate(&pActor->t.t.mat, flap->field_0x4, &hinge01);
+        parent_user = pActor->parent->user;
+        parent_point = &parent_user->models[0]->vertices[flap->field_0xc].p;
+        BrMatrix34PostTranslate(&pActor->t.t.mat, parent_point->v[0], parent_point->v[1], parent_point->v[2]);
+    }
+    flap->field_0x15 = 1;
+    if (flap->field_0x0 == 0 && gCount_toggled_doors != 16) {
+        for (index = 0; index < gCount_toggled_doors; index++) {
+            if (gToggled_doors[index].actor == pActor) {
+                goto already_toggled;
+            }
+        }
+        gToggled_doors[gCount_toggled_doors].actor = pActor;
+        gToggled_doors[gCount_toggled_doors].car = pCar;
+        gToggled_doors[gCount_toggled_doors].field_0x8 = 1;
+        gToggled_doors[gCount_toggled_doors].field_0xc = 0.f;
+        gCount_toggled_doors += 1;
+    already_toggled:
+        ;
+    }
+    FUN_004c6e40(model, &hinge_normal, weights);
 }
-// STUB: CARMA2_HW 0x0043bca0
+// PARTIAL 75.91%: the CompressVector3 call and the DRScalarToU16 loop match exactly; the residual is
+// the normalise prologue only. The original keeps the three components on the x87 stack and spills
+// v[1]/v[2] with fst (0x43bcaa..0x43bd00), while this source makes MSVC 11 stage them through GP
+// registers into the same spill slots, shifting the whole front block by a few instructions.
+// FUNCTION: CARMA2_HW 0x0043bca0
 void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars) {
+    br_vector3 normalised;
+    float length;
+    tU16 i;
+
+    length = (float)sqrt(pSrc->v[1] * pSrc->v[1] + pSrc->v[2] * pSrc->v[2] + pSrc->v[0] * pSrc->v[0]);
+    normalised.v[0] = pSrc->v[0] / length;
+    normalised.v[1] = pSrc->v[1] / length;
+    normalised.v[2] = pSrc->v[2] / length;
+    CompressVector3((tCompressed_vector3*)pArg1, &normalised, -1.0f, 1.0f);
+    for (i = 0; i < pModel->nvertices; i++) {
+        ((tU16*)pArg2)[i] = DRScalarToU16(pScalars[i] * length, 0.0f, 10.0f);
+    }
 }
 // Global start of the split-polyhedron tables used by the model splitter.
 // GLOBAL: CARMA2_HW 0x0067a3b0

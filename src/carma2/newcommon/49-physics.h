@@ -315,6 +315,8 @@ extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 
 extern int C2_HOOK_FASTCALL RQDcmpV(br_scalar* matrix, int size, br_scalar* orthogonal);
 
+extern void C2_HOOK_FASTCALL FUN_004c53b0(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount);
+
 // MakeIdentity
 
 // SparseRQDcmpV
@@ -431,14 +433,21 @@ extern int C2_HOOK_FASTCALL FUN_004b9650(tPhysics_object* pObject, tPhysics_obje
 extern void* C2_HOOK_FASTCALL FUN_004c5c70(int pSize);
 extern int C2_HOOK_FASTCALL FUN_004b8350(tPhysics_object* pObject, tPhysics_joint_force* pForce);
 extern void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pStride, tPhysics_joint_force** pRecords, int pCount);
+extern int C2_HOOK_FASTCALL FUN_004c0430(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count);
 extern void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
 extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse);
 extern void C2_HOOK_FASTCALL FUN_004b8ee0(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL FUN_004b8cf0(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL FUN_004be4b0(br_scalar* pOut1, br_scalar* pOut2, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL FUN_004be550(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL FUN_004becf0(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject);
 extern tPhysics_object** C2_HOOK_FASTCALL AppendOverlappingObjects(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object** pObjects);
 extern int C2_HOOK_FASTCALL FUN_004bd9e0(tPhysics_object* pObject, tPhysics_object** pOverlapping, tPhysics_joint_force* pContacts, int pCount, tWorld_callbacks* pWorld_callbacks, tPhysics_object* pList);
 extern int C2_HOOK_FASTCALL FUN_00425ca0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount);
+extern int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
+extern int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection);
+extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
+extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
 extern void C2_HOOK_FASTCALL FUN_004bddd0(tPhysics_object* pObject1, tPhysics_object* pObject2);
 extern void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pList);
 extern void C2_HOOK_FASTCALL MergeBoundsIntoParent(tPhysics_object* pObject, br_bounds3* pBox);

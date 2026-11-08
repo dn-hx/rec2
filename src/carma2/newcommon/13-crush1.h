@@ -176,7 +176,7 @@ extern int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector);
 
 // SimpleCrushCar
 
-// CrushCar
+extern void C2_HOOK_FASTCALL CrushCar(tCar_spec* pCar, br_actor* pActor, tCar_crush* pCrush);
 
 // SendCrush
 
@@ -553,7 +553,9 @@ extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float
 extern intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern void C2_HOOK_FASTCALL FUN_004c7f40(br_model* pModel, br_vector3* pSrc, const float* pScalars);
+extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars);
 extern intptr_t C2_HOOK_FASTCALL UnBendActorCB(br_actor* pActor, br_vector3* pDelta, void* pData);
+extern void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext);
 extern void C2_HOOK_FASTCALL FUN_004c86b0(uintptr_t pId, br_actor* pActor);
 extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pValue);
 extern void C2_HOOK_FASTCALL FUN_004c86f0(int pOwner, void* pData, tU32 pArg3);
@@ -563,6 +565,7 @@ extern intptr_t C2_HOOK_FASTCALL FUN_004358a0(br_actor* pActor, br_vector3* pDel
 extern void C2_HOOK_FASTCALL FUN_00435550(tCar_spec* pCar, br_actor* pActor, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg6, float pArg7, tBend_data_local* pBend);
 extern void C2_HOOK_FASTCALL FUN_00435110(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext);
 extern void C2_HOOK_FASTCALL FUN_00435310(tCar_spec* pCar_spec, const tBend_point_context_local* pContext);
+extern void C2_HOOK_FASTCALL FUN_00435960(br_model* pModel, const br_vector3* pOffset, void* pContext, br_actor* pActor);
 extern void C2_HOOK_FASTCALL FUN_004f5a60(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL LoseCarPowerups(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL ApplyRandomDamageToCar(tCar_spec* pCar_spec, int pMin_damage, int pMax_damage);
@@ -575,9 +578,11 @@ extern void C2_HOOK_FASTCALL SplitPolyhedronByPlane(tCollision_shape_polyhedron*
 extern int C2_HOOK_FASTCALL FUN_00424140(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7);
 extern void C2_HOOK_FASTCALL FUN_00430150(tU16 pVertex_a, tU16 pVertex_b, tU16* pOutput_a, tU16* pOutput_b, float* pDistances);
 extern void C2_HOOK_FASTCALL FUN_00433b90(br_model* pModel, const br_vector3* pOffset);
+extern void C2_HOOK_FASTCALL FUN_00432b80(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex);
 extern int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg);
 extern void C2_HOOK_FASTCALL AddToggledDoor(br_actor* pActor, tCar_spec* pCar, int pFlag, float pDelay);
 extern void C2_HOOK_FASTCALL FUN_00439500(void);
+extern void C2_HOOK_FASTCALL FUN_004321d0(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50);
 extern void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates);
 
 #endif // GUARD_13_CRUSH1_H

@@ -1053,13 +1053,14 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
             gDoMouseCursor_last_required_change = time_now;
             gDoMouseCursor_required_cursor = new_required;
         }
+        new_required = pos_y - 7;
         gCurrent_cursor_index = 2;
         if (!gNoTransients) {
             br_pixelmap *map;
             int idx = gTransient_bitmap_index;
 
             gTransient_bitmaps[idx].x_coord = (pos_x - 7) & ~3;
-            gTransient_bitmaps[idx].y_coord = pos_y - 7;
+            gTransient_bitmaps[idx].y_coord = new_required;
             gTransient_bitmaps[idx].in_use = 1;
             gTransient_bitmaps[idx].order_number = gNext_transient;
             gNext_transient += 1;
@@ -1085,10 +1086,10 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
                 pos_x - 9, gCursor_line_width);
             SetTintedPolySize(gCursor_tinted_bottom,
                 pos_x - 1, pos_y + 5 + gCursor_line_width,
-                gCursor_line_width, gCurrent_graf_data->height - gCursor_line_width - pos_y + 9);
+                gCursor_line_width, (gCurrent_graf_data->height - gCursor_line_width) - pos_y + 9);
             SetTintedPolySize(gCursor_tinted_right,
                 pos_x + 5 + gCursor_line_width, pos_y - 1,
-                gCurrent_graf_data->width - gCursor_line_width - pos_x + 9, gCursor_line_width);
+                (gCurrent_graf_data->width - gCursor_line_width) - pos_x + 9, gCursor_line_width);
             SetTintedPolySize(gCursor_tinted_center,
                 pos_x - 7, pos_y - 7,
                 16, 16);
@@ -1112,8 +1113,8 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
         }
     }
     gDoMouseCursor_last_call_time = time_now;
-    gMouse_last_pos.y = pos_y;
     gMouse_last_pos.x = pos_x;
+    gMouse_last_pos.y = pos_y;
     gDoMouseCursor_button_was_down = button_down;
     return mouse_moved;
 }

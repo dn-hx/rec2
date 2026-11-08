@@ -17,6 +17,7 @@ extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(con
 extern int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 extern int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
 extern float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection);
+extern int C2_HOOK_FASTCALL GetOpponentsSectionMaxSpeed(tOpponent_spec* pOpponent_spec, tS16 pSection, int pTowards_finish);
 
 // FUNCTION: CARMA2_HW 0x004b13d0
 int C2_HOOK_FASTCALL GetStraight(br_vector2* pStart, br_vector2* pFinish, float* pWidth, int pSection, tOpponent_spec* pOpponent_spec) {
@@ -104,9 +105,81 @@ void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...) {
 
 // NearestSectionInStraight
 
-// SetMaxSpeedFromSOCs
+// PARTIAL 79.88%: structure, call sequence, SOC writes and return value match; residual is MSVC codegen.
+//   (1) the 2D-length <=/> corner->field_0x0c compares compile to fld [ebp-8] + fcompp + fxch/fstp with the
+//       opposite flag test (test ah,0x1) instead of the original's `fcomp dword ptr [ebp-8]` + test ah,0x41,
+//       in both places; (2) our frame is 0xc where the original reserves 0x24, so every [esp+N] operand and
+//       all relative jump displacements render differently. Both callers (0x4b0131, 0x4b12dd) use the
+//       returned count, and every exit path leaves the count in eax.
+// FUNCTION: CARMA2_HW 0x004b1ab0
+int C2_HOOK_FASTCALL CalcSOCs(int pNext_section, int pCount_corners, tCorner* pCorners, tOpponent_spec* pOpponent_spec, tSOC* pSocs, tCar_spec* pCar) {
+    int count;
+    int i;
+    int section;
+    tCorner* corner;
 
-// CalcSOCs
+    count = 0;
+    section = pNext_section;
+    for (i = 0, corner = pCorners; i < pCount_corners; i++, corner++) {
+        while (section != -1) {
+            const br_vector3* start;
+            const br_vector3* finish;
+            float dx;
+            float dz;
+
+            if (count >= 10) {
+                goto next_corner;
+            }
+            if (section == (int)corner->section) {
+                break;
+            }
+            start = GetOpponentsSectionStartNodePoint(pOpponent_spec, corner->section);
+            finish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+            dx = finish->v[0] - start->v[0];
+            dz = finish->v[2] - start->v[2];
+            if (sqrt(dx * dx + dz * dz) <= corner->field_0x0c) {
+                break;
+            }
+            pSocs[count].field_0x0 |= 1;
+            pSocs[count].field_0x4 = section;
+            count += 1;
+            section = GetOpponentsNextSection(pOpponent_spec, section);
+        }
+        if (count >= 10) {
+            goto next_corner;
+        }
+        pSocs[count].field_0x0 &= ~1;
+        pSocs[count].field_0x4 = i;
+        corner->field_0x18 = (int)sqrt(corner->field_0x08 * 6.9001222f * 7.5f * 1.96f);
+        while (section != (int)corner->section) {
+            if ((int)corner->field_0x18 > GetOpponentsSectionMaxSpeed(pOpponent_spec, section, 1)) {
+                corner->field_0x18 = GetOpponentsSectionMaxSpeed(pOpponent_spec, section, 1);
+            }
+            section = GetOpponentsNextSection(pOpponent_spec, section);
+        }
+        while (section != -1) {
+            const br_vector3* start;
+            const br_vector3* finish;
+            float dx;
+            float dz;
+
+            start = GetOpponentsSectionStartNodePoint(pOpponent_spec, corner->section);
+            finish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+            dx = finish->v[0] - start->v[0];
+            dz = finish->v[2] - start->v[2];
+            if (sqrt(dx * dx + dz * dz) >= corner->field_0x0c) {
+                break;
+            }
+            if ((int)corner->field_0x18 > GetOpponentsSectionMaxSpeed(pOpponent_spec, section, 1)) {
+                corner->field_0x18 = GetOpponentsSectionMaxSpeed(pOpponent_spec, section, 1);
+            }
+            section = GetOpponentsNextSection(pOpponent_spec, section);
+        }
+        count += 1;
+next_corner:;
+    }
+    return count;
+}
 
 // StuffDataFromCorner
 
@@ -115,37 +188,407 @@ void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...) {
 #include "globvars.h"
 #include "56-aiworld.h"
 #include "30-opponent.h"
+#include "41-utility.h"
 #include "rec2_macros.h"
 #include "brender/brender.h"
 
 extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: Vector2Cross
-br_scalar C2_HOOK_FASTCALL Vector2Cross(const br_vector2* pV1, const br_vector2* pV2) { NOT_IMPLEMENTED(); return 0.f; }
-// STUB: FollowCheatyPath
-tFollow_path_result FollowCheatyPath(tOpponent_spec* pOpponent_spec) { NOT_IMPLEMENTED(); return eFPR_OK; }
-// STUB: TimeToBeBrakingWhenStruggling
-int C2_HOOK_FASTCALL TimeToBeBrakingWhenStruggling(tOpponent_spec* pOpponent_spec) { NOT_IMPLEMENTED(); return 0; }
-// STUB: CalcCorners
-int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec) { NOT_IMPLEMENTED(); return 0; }
-// STUB: CalcSOCs
-int C2_HOOK_FASTCALL CalcSOCs(int pNext_section, int pCount_corners, tCorner* pCorners, tOpponent_spec* pOpponent_spec, tSOC* pSocs, tCar_spec* pCar) { NOT_IMPLEMENTED(); return 0; }
-// STUB: SetMaxSpeedFromSOCs
-void C2_HOOK_FASTCALL SetMaxSpeedFromSOCs(tSOC* socs, int count_socs, float* pDesired_speed, float pSpeed, const br_vector2* pPos2d, tCorner* pCorner, tOpponent_spec* pOpponent_spec) { NOT_IMPLEMENTED(); }
-// STUB: NearestSectionInStraight
-int C2_HOOK_FASTCALL NearestSectionInStraight(const br_vector2* pPos2d, const br_vector2* pStart2d, const br_vector2* pFinish2d, tS16 pSection_no, tS16 pEnd_section, const tOpponent_spec* pOpponent_spec) { NOT_IMPLEMENTED(); return 0; }
-// STUB: MaxCurvatureForCarSpeed
-float C2_HOOK_FASTCALL MaxCurvatureForCarSpeed(const tCar_spec* pCar, float pSpeed) { NOT_IMPLEMENTED(); return 0.f; }
-// STUB: StuffDataFromCorner
-void C2_HOOK_FASTCALL StuffDataFromCorner(tFollow_path_data* pFollow_path, tCorner* pCorner) { NOT_IMPLEMENTED(); }
-// STUB: SetCurvature
-void C2_HOOK_FASTCALL SetCurvature(tCar_spec* pCar_spec, float pCurvature) { NOT_IMPLEMENTED(); }
+static tFollow_path_result C2_HOOK_FASTCALL FollowCheatyPath(tOpponent_spec* pOpponent_spec) {
+    tFollow_path_data* data;
+    tCar_spec* car_spec;
+    br_actor* car_master_actor;
+    const br_vector3* pStart;
+    const br_vector3* pFinish;
+    br_vector3 v;
+    br_scalar d;
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    br_scalar len;
+    br_scalar t;
+    br_scalar speed;
+
+    data = &pOpponent_spec->follow_path_data;
+    car_spec = pOpponent_spec->car_spec;
+    car_master_actor = car_spec->car_master_actor;
+    pStart = GetOpponentsSectionStartNodePoint(pOpponent_spec, data->section_no);
+    pFinish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, data->section_no);
+    if (data->cheating != pOpponent_spec->cheating) {
+        data->cheating = pOpponent_spec->cheating;
+        if (pOpponent_spec->cheating) {
+            DoNotDprintf_oppoproc("%s: Dematerialising", car_spec->driver_name);
+            dx = pFinish->v[0] - pStart->v[0];
+            dy = pFinish->v[1] - pStart->v[1];
+            dz = pFinish->v[2] - pStart->v[2];
+            d = ((car_master_actor->t.t.translate.t.v[0] - pStart->v[0]) * dx + (car_master_actor->t.t.translate.t.v[2] - pStart->v[2]) * dz + (car_master_actor->t.t.translate.t.v[1] - pStart->v[1]) * dy) / (dz * dz + dy * dy + dx * dx);
+            if (d < 0.f) {
+                data->cheaty_intersect = *pStart;
+            } else if (d > 1.f) {
+                data->cheaty_intersect = *pFinish;
+            } else {
+                data->cheaty_intersect.v[0] = pStart->v[0] + d * dx;
+                data->cheaty_intersect.v[1] = pStart->v[1] + d * dy;
+                data->cheaty_intersect.v[2] = pStart->v[2] + d * dz;
+            }
+            dx = data->cheaty_intersect.v[0] - car_master_actor->t.t.translate.t.v[0];
+            dy = data->cheaty_intersect.v[1] - car_master_actor->t.t.translate.t.v[1];
+            dz = data->cheaty_intersect.v[2] - car_master_actor->t.t.translate.t.v[2];
+            t = gFrame_period_for_this_munging * 0.001 * 6.0f;
+            TurnOpponentPhysicsOff(pOpponent_spec);
+            len = (br_scalar)sqrt(dz * dz + dy * dy + dx * dx);
+            if (len < t) {
+                data->moving_to_intersect = 0;
+                car_master_actor->t.t.translate.t = data->cheaty_intersect;
+                return eFPR_OK;
+            }
+            data->moving_to_intersect = 1;
+            if (len <= BR_SCALAR_EPSILON * 2.f) {
+                dx = 1.f;
+                dy = 0.f;
+                dz = 0.f;
+            } else {
+                len = 1.0 / len;
+                dx = len * dx;
+                dy = len * dy;
+                dz = len * dz;
+            }
+            car_master_actor->t.t.translate.t.v[0] = t * dx + car_master_actor->t.t.translate.t.v[0];
+            car_master_actor->t.t.translate.t.v[1] = t * dy + car_master_actor->t.t.translate.t.v[1];
+            car_master_actor->t.t.translate.t.v[2] = t * dz + car_master_actor->t.t.translate.t.v[2];
+            return eFPR_OK;
+        }
+        DoNotDprintf_oppoproc("%s: Rematerialising from FollowCheatyPath()...", car_spec->driver_name);
+        if (data->section_no < 0) {
+            PDFatalError("No useful section number in ProcessCheatyPath()");
+        }
+        dx = pFinish->v[0] - car_master_actor->t.t.translate.t.v[0];
+        dy = pFinish->v[1] - car_master_actor->t.t.translate.t.v[1];
+        dz = pFinish->v[2] - car_master_actor->t.t.translate.t.v[2];
+        len = (br_scalar)sqrt(dx * dx + dy * dy + dz * dz);
+        if (GetOpponentsSectionMaxSpeed(pOpponent_spec, data->section_no, 1) < 255) {
+            speed = GetOpponentsSectionMaxSpeed(pOpponent_spec, data->section_no, 1) * (1.0 / 6.9);
+        } else if (GetOpponentsSectionMinSpeed(pOpponent_spec, data->section_no, 1) > 0) {
+            speed = GetOpponentsSectionMinSpeed(pOpponent_spec, data->section_no, 1) * (1.0 / 6.9);
+        } else {
+            speed = MAX(1.f, MIN(7.f, 2.f * len));
+        }
+        if (RematerialiseOpponentOnThisSection(pOpponent_spec, data->section_no, speed)) {
+            car_spec->brake_force = 0.f;
+            car_spec->acc_force = 0.f;
+            return eFPR_OK;
+        }
+        data->cheating = 1;
+    }
+    car_spec = pOpponent_spec->car_spec;
+    car_master_actor = car_spec->car_master_actor;
+    car_spec->collision_info->v.v[0] = 0.f;
+    car_spec->collision_info->v.v[1] = 6.0f * WORLD_SCALE;
+    car_spec->collision_info->v.v[2] = 0.f;
+    t = gFrame_period_for_this_munging * 0.001 * 6.0f;
+    if (data->moving_to_intersect == 0) {
+        while (t > 0.f) {
+            dx = pFinish->v[0] - car_master_actor->t.t.translate.t.v[0];
+            dy = pFinish->v[1] - car_master_actor->t.t.translate.t.v[1];
+            dz = pFinish->v[2] - car_master_actor->t.t.translate.t.v[2];
+            len = (br_scalar)sqrt(dx * dx + dy * dy + dz * dz);
+            if (len >= t) {
+                d = t / len;
+                t = 0.f;
+                car_master_actor->t.t.translate.t.v[0] += d * dx;
+                car_master_actor->t.t.translate.t.v[1] += d * dy;
+                car_master_actor->t.t.translate.t.v[2] += d * dz;
+            } else {
+                car_master_actor->t.t.translate.t = *pFinish;
+                DoNotDprintf_oppoproc("%s: ProcessFollowPath() - current section %d(#%d) (cheating)", car_spec->driver_name, data->section_no, GetOpponentsRealSection(pOpponent_spec, data->section_no));
+                data->section_no = GetOpponentsNextSection(pOpponent_spec, data->section_no);
+                if (data->section_no == -1) {
+                    car_spec->acc_force = 0.f;
+                    car_spec->brake_force = 0.f;
+                    DoNotDprintf_oppoproc("%s: ProcessFollowPath() - reached end of path while cheating", car_spec->driver_name);
+                    return eFPR_end_of_path;
+                }
+                DoNotDprintf_oppoproc("%s: ProcessFollowPath() - next section %d(#%d) (cheating)", car_spec->driver_name, data->section_no, GetOpponentsRealSection(pOpponent_spec, data->section_no));
+                pStart = GetOpponentsSectionStartNodePoint(pOpponent_spec, data->section_no);
+                pFinish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, data->section_no);
+                t -= len;
+            }
+        }
+        v.v[0] = pFinish->v[0] - car_master_actor->t.t.translate.t.v[0];
+        v.v[1] = pFinish->v[1] - car_master_actor->t.t.translate.t.v[1];
+        v.v[2] = pFinish->v[2] - car_master_actor->t.t.translate.t.v[2];
+        PointActorAlongThisBloodyVector(car_master_actor, &v);
+        return eFPR_OK;
+    }
+    dx = data->cheaty_intersect.v[0] - car_master_actor->t.t.translate.t.v[0];
+    dy = data->cheaty_intersect.v[1] - car_master_actor->t.t.translate.t.v[1];
+    dz = data->cheaty_intersect.v[2] - car_master_actor->t.t.translate.t.v[2];
+    len = (br_scalar)sqrt(dz * dz + dy * dy + dx * dx);
+    if (len < t) {
+        data->moving_to_intersect = 0;
+        car_master_actor->t.t.translate.t = data->cheaty_intersect;
+        v.v[0] = pFinish->v[0] - pStart->v[0];
+        v.v[1] = pFinish->v[1] - pStart->v[1];
+        v.v[2] = pFinish->v[2] - pStart->v[2];
+        PointActorAlongThisBloodyVector(car_master_actor, &v);
+        return eFPR_OK;
+    }
+    if (len <= BR_SCALAR_EPSILON * 2.f) {
+        d = 1.f;
+        dx = 0.f;
+        dy = 0.f;
+    } else {
+        len = 1.0 / len;
+        d = dx * len;
+        dx = dy * len;
+        dy = dz * len;
+    }
+    car_master_actor->t.t.translate.t.v[0] = t * d + car_master_actor->t.t.translate.t.v[0];
+    car_master_actor->t.t.translate.t.v[1] = t * dx + car_master_actor->t.t.translate.t.v[1];
+    car_master_actor->t.t.translate.t.v[2] = t * dy + car_master_actor->t.t.translate.t.v[2];
+    v.v[0] = t * d;
+    v.v[1] = t * dx;
+    v.v[2] = t * dy;
+    PointActorAlongThisBloodyVector(car_master_actor, &v);
+    return eFPR_OK;
+}
+// PARTIAL 38.85%: control flow, all constants (-1.0f / -2.0f / 0.001f / 9.0f / 0.33333334f / 2.3841858e-07f /
+//   0.7f), the GetStraight/IRandomBetween calls and every tCorner field write match. Residual is MSVC codegen:
+//   our frame is 0x30 where the original reserves 0x38, so every [esp+N] operand and relative jump differs.
+//   Original slot map (ascending, from the disassembly): width 0x00, d 0x04, -fy 0x08, sqrt() term 0x0c,
+//   fx 0x10, fy 0x14, start 0x18, dx 0x20, dy 0x24, prev 0x28, finish 0x30; len1/len2 live in the dead
+//   pOpponent_spec/pStart argument homes 0x44/0x40. Declaration order alone did not reproduce it.
+// FUNCTION: CARMA2_HW 0x004b1560
+int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec) {
+    float width;
+    float d;
+    float nfy;
+    float sq;
+    float fx;
+    float fy;
+    br_vector2 start;
+    float dx;
+    float dy;
+    br_vector2 prev;
+    br_vector2 finish;
+    float len1;
+    float len2;
+    float len;
+    float dot;
+    float cross;
+    float r;
+    tCorner* corner;
+    int count;
+
+    count = 0;
+    width = pWidth;
+    prev = *pStart;
+    corner = pCorners;
+    while (pSection != -1 && count < 4) {
+        corner->section = pSection;
+        pSection = GetStraight(&start, &finish, &pWidth, pSection, pOpponent_spec);
+        dx = prev.v[0] - start.v[0];
+        dy = prev.v[1] - start.v[1];
+        fx = finish.v[0] - start.v[0];
+        fy = finish.v[1] - start.v[1];
+        len1 = dx * dx + dy * dy;
+        len2 = fx * fx + fy * fy;
+        if (len1 == 0.0f || len2 == 0.0f) {
+            goto simple_corner;
+        }
+        nfy = -fy;
+        dot = fy * dy + fx * dx;
+        cross = fx * dy + dx * nfy;
+        len = sqrt(cross * cross + dot * dot);
+        if (len <= 2.3841858e-07f) {
+            dot = 1.0f;
+            cross = 0.0f;
+        } else {
+            len = 1.0 / len;
+            dot = len * dot;
+            cross = len * cross;
+        }
+        if (cross > 0.0f) {
+            corner->left_not_right = 1;
+        } else {
+            corner->left_not_right = 0;
+            cross = -cross;
+        }
+        if (cross < 0.001f) {
+            goto simple_corner;
+        }
+        d = (dot * pWidth + width) / cross;
+        r = cross / (dot - -1.0f);
+        sq = sqrt(((r * r * pWidth - d * r * -2.0f) - pWidth) * pWidth);
+        corner->field_0x0c = r * pWidth + sq + d;
+        if (corner->field_0x0c * corner->field_0x0c * 9.0f > len1) {
+            corner->field_0x0c = sqrt(len1) * 0.33333334f;
+        }
+        if (corner->field_0x0c * corner->field_0x0c * 9.0f > len2) {
+            corner->field_0x0c = sqrt(len2) * 0.33333334f;
+        }
+        r = r * corner->field_0x0c;
+        corner->field_0x08 = r;
+        if (corner->left_not_right) {
+            corner->field_0x00.v[0] = r * nfy + fx * corner->field_0x0c;
+            corner->field_0x00.v[1] = fy * corner->field_0x0c + fx * corner->field_0x08;
+        } else {
+            corner->field_0x00.v[0] = fx * corner->field_0x0c + fy * r;
+            corner->field_0x00.v[1] = fy * corner->field_0x0c + -corner->field_0x08 * fx;
+        }
+        corner->field_0x00.v[0] = corner->field_0x00.v[0] / sqrt(len2) + start.v[0];
+        corner->field_0x00.v[1] = corner->field_0x00.v[1] / sqrt(len2) + start.v[1];
+        goto next_corner;
+simple_corner:
+        corner->field_0x00.v[0] = start.v[0];
+        corner->field_0x00.v[1] = start.v[1];
+        corner->field_0x08 = MIN(width, pWidth);
+        corner->field_0x0c = corner->field_0x08 * 0.7f;
+        corner->left_not_right = IRandomBetween(0, 1);
+next_corner:
+        count++;
+        corner++;
+        width = pWidth;
+        prev = start;
+    }
+    return count;
+}
+// FUNCTION: CARMA2_HW 0x004b18b0
+void C2_HOOK_FASTCALL SetMaxSpeedFromSOCs(tSOC* socs, int count_socs, float* pDesired_speed, float pSpeed, const br_vector2* pPos2d, tCorner* pCorner, tOpponent_spec* pOpponent_spec) {
+    const br_vector3* point;
+    float dist = 0.f;
+    float last;
+    float threshold;
+    double max_speed;
+    float prev_z;
+    float prev_x;
+    float v2;
+    float v0;
+    float dz;
+    float dx;
+    int i;
+    int bVar8 = 0;
+
+    threshold = (pSpeed * pSpeed * 0.0625f - (float)gFrame_period_for_this_munging * pSpeed * -0.001f) * 0.14492753f;
+    prev_z = pPos2d->v[0];
+    prev_x = pPos2d->v[1];
+    for (i = 0; i < count_socs; i++) {
+        if (dist >= threshold) {
+            return;
+        }
+        if (bVar8) {
+            dist = dist - last;
+        }
+        if ((*(int*)&socs[i] & 1) == 0) {
+            bVar8 = 1;
+            point = GetOpponentsSectionStartNodePoint(pOpponent_spec, pCorner[socs[i].field_0x4].section);
+            max_speed = (double)(int)pCorner[socs[i].field_0x4].field_0x18;
+            last = pCorner[socs[i].field_0x4].field_0x0c;
+            dist = dist - last;
+        } else {
+            bVar8 = 0;
+            point = GetOpponentsSectionFinishNodePoint(pOpponent_spec, (tS16)socs[i].field_0x4);
+            max_speed = (double)GetOpponentsSectionMaxSpeed(pOpponent_spec, (tS16)socs[i].field_0x4, 1);
+        }
+        v2 = point->v[2];
+        v0 = point->v[0];
+        dz = prev_z - v2;
+        dx = prev_x - v0;
+        dist = sqrt(dx * dx + dz * dz) + dist;
+        if (dist < 0.f) {
+            dist = 0.f;
+        }
+        if (dist * 6.9f < (pSpeed * pSpeed - max_speed * max_speed) * 0.0625f - (float)gFrame_period_for_this_munging * pSpeed * -0.001f) {
+            if (max_speed < *pDesired_speed) {
+                *pDesired_speed = max_speed;
+            }
+        }
+        prev_z = v2;
+        prev_x = v0;
+    }
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+static int C2_HOOK_FASTCALL NearestSectionInStraight(const br_vector2* pPos2d, const br_vector2* pStart2d, const br_vector2* pFinish2d, tS16 pSection_no, tS16 pEnd_section, const tOpponent_spec* pOpponent_spec) {
+    float dx;
+    float dz;
+    float dist_along;
+    float total;
+    int section;
+    int next;
+
+    dx = pFinish2d->v[0] - pStart2d->v[0];
+    dz = pFinish2d->v[1] - pStart2d->v[1];
+    dist_along = ((pPos2d->v[1] - pStart2d->v[1]) * dz + (pPos2d->v[0] - pStart2d->v[0]) * dx) / sqrt(dz * dz + dx * dx);
+    total = 0.f;
+    section = pSection_no;
+    for (;;) {
+        const br_vector3* start;
+        const br_vector3* finish;
+
+        next = GetOpponentsNextSection(pOpponent_spec, section);
+        if (next == pEnd_section) {
+            break;
+        }
+        finish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+        start = GetOpponentsSectionStartNodePoint(pOpponent_spec, section);
+        dx = start->v[0] - finish->v[0];
+        dz = start->v[2] - finish->v[2];
+        total = sqrt(dx * dx + dz * dz) + total;
+        if (!(total < dist_along)) {
+            break;
+        }
+        section = next;
+    }
+    return section;
+}
+static int C2_HOOK_FASTCALL TimeToBeBrakingWhenStruggling(tOpponent_spec* pOpponent_spec) {
+
+    if (gTime_stamp_for_this_munging >
+        (float)(750 * (pOpponent_spec->follow_path_data.number_of_struggles - 1))
+            - pOpponent_spec->car_spec->collision_info->M * -15.f
+            + (float)(pOpponent_spec->follow_path_data.struggle_time + 2000)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+static br_scalar C2_HOOK_FASTCALL Vector2Cross(const br_vector2* pV1, const br_vector2* pV2) {
+
+    return pV1->v[0] * pV2->v[1] - pV1->v[1] * pV2->v[0];
+}
+static float C2_HOOK_FASTCALL MaxCurvatureForCarSpeed(const tCar_spec* pCar, float pSpeed) {
+    float result;
+
+    result = pCar->maxcurve;
+    if (pSpeed >= 12.5f) {
+        result = result * 12.5f / pSpeed;
+    }
+    return result;
+}
+// STUB: StuffDataFromCorner
+void C2_HOOK_FASTCALL StuffDataFromCorner(tFollow_path_data* pFollow_path, tCorner* pCorner) { NOT_IMPLEMENTED(); }
+static void C2_HOOK_FASTCALL SetCurvature(tCar_spec* pCar_spec, float pCurvature) {
+    float delta;
+    float step;
+
+    delta = pCurvature - pCar_spec->curvature;
+    step = gFrame_period_for_this_munging * 0.0005;
+    if (delta > step) {
+        pCar_spec->curvature += step;
+        return;
+    }
+    if (delta < -step) {
+        pCurvature = pCar_spec->curvature - step;
+    }
+    pCar_spec->curvature = pCurvature;
+}
 
 // FUNCTION: CARMA2_HW 0x004af960
 tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle) {
@@ -453,9 +896,6 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
         return eFPR_OK;
     }
 }
-
-// FollowCheatyPath
-
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

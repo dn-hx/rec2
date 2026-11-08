@@ -3962,11 +3962,12 @@ int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend) {
     RefreshScrollSet(pFrontend);
     prev_item = gFrontend_selected_item_index;
     if (i < gControls_scroller.field_0x8 || i > gControls_scroller.field_0x8 + gControls_scroller.range_length) {
-        gFrontend_selected_item_index = -1;
+        i = -1;
     } else {
-        gFrontend_selected_item_index = i - gControls_scroller.field_0x8 + gControls_scroller.range_starts[0];
+        i = i - gControls_scroller.field_0x8 + gControls_scroller.range_starts[0];
     }
-    if (gFrontend_selected_item_index == -1) {
+    gFrontend_selected_item_index = i;
+    if (i == -1) {
         PDFatalError("Screwed up in Controls_Ok().");
         return 0;
     }

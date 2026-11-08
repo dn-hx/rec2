@@ -510,6 +510,7 @@ extern void C2_HOOK_FASTCALL PolyFontText(const char* pText, int pX, int pY, int
 #pragma auto_inline(off)
 #endif
 
+// PARTIAL 70.59%: SortNetHeadAscending 0x0049a330 [regalloc: args not hoisted at entry, cause outside TU]
 // FUNCTION: CARMA2_HW 0x0049a330
 int C2_HOOK_CDECL SortNetHeadAscending(const void* pFirst, const void* pSecond) {
     const tNet_score_entry* first;

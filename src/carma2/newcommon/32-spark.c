@@ -3287,6 +3287,7 @@ tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, 
 #pragma auto_inline(off)
 #endif
 
+// PARTIAL 47.72%: AFEModelUpdate 0x004f9180 [regalloc] - pModel lands in EBP and the zero constant is re-spilled; original keeps pModel in ESI and EBP=0
 // FUNCTION: CARMA2_HW 0x004f9180
 void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
     br_vertex* vertex;

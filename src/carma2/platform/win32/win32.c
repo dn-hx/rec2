@@ -720,6 +720,7 @@ int C2_HOOK_FASTCALL PDFileUnlock(const char *pThe_path) {
     return 0;
 }
 
+// PARTIAL: PDEnumPath (strlen(".lnk") folded by MSVC; original computes it at runtime with repnz scas)
 // FUNCTION: CARMA2_HW 0x00486c30
 int C2_HOOK_FASTCALL PDEnumPath(const char *path, tEnumPathCallback pCallback, void *data) {
     HANDLE hFindFile;
@@ -1110,11 +1111,17 @@ void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only) {
     DeleteFileA(pPath);
 }
 
+#if defined(_MSC_VER)
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0047d850
 int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2) {
 
     return strcasecmp(str1, str2);
 }
+#if defined(_MSC_VER)
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0047d860
 int C2_HOOK_FASTCALL PDmemicmp(const char* str1, const char* str2, size_t count) {

@@ -2234,6 +2234,7 @@ void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBon
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 98.36%: DisplayMovieStatusPanel 0x004e7350 [reccmp names ours gFonts[6].images but leaves original operand 0x7679a0 unnamed; body unchanged vs baseline, cause outside this TU]
 // FUNCTION: CARMA2_HW 0x004e7350
 void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only) {
     extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);

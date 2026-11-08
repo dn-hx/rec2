@@ -154,6 +154,8 @@ typedef struct tCollision_contact {
 
 extern int C2_HOOK_FASTCALL ProcessForcesCallback(tCollision_contact* pContacts, float* pImpulses, int pCount);
 
+extern void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint);
+
 extern void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial);
 
 extern void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor);
@@ -256,6 +258,7 @@ extern void C2_HOOK_FASTCALL ApplyNonCarTumble(tPhysics_object* pObject, br_vect
 extern int C2_HOOK_FASTCALL ScaleCollisionImpulses(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse);
 extern int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float* pImpulses, int pCount);
 extern int C2_HOOK_FASTCALL TrySplitCarOnVerticalForce(tCollision_contact* pContacts, float* pImpulses, int pCount);
+extern int C2_HOOK_FASTCALL FUN_00430e30(tCollision_contact* pContacts, float* pImpulses, int pCount);
 extern void C2_HOOK_FASTCALL ActuallySmashCarPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
 extern int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection);
 extern void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time);

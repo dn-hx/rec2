@@ -22,7 +22,7 @@ extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec)
 
 extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
-// CalcCorners
+extern int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec);
 
 // Distance2D
 
@@ -30,9 +30,9 @@ extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
 // NearestSectionInStraight
 
-// SetMaxSpeedFromSOCs
+extern void C2_HOOK_FASTCALL SetMaxSpeedFromSOCs(tSOC* socs, int count_socs, float* pDesired_speed, float pSpeed, const br_vector2* pPos2d, tCorner* pCorner, tOpponent_spec* pOpponent_spec);
 
-// CalcSOCs
+extern int C2_HOOK_FASTCALL CalcSOCs(int pNext_section, int pCount_corners, tCorner* pCorners, tOpponent_spec* pOpponent_spec, tSOC* pSocs, tCar_spec* pCar);
 
 // StuffDataFromCorner
 

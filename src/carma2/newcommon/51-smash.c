@@ -3510,8 +3510,9 @@ void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cub
     } else {
         matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
     }
+    i = 0;
     activation = pActivations->activations;
-    for (i = 0; i < pActivations->count_activations; i++, activation++) {
+    for (; i < pActivations->count_activations; i++, activation++) {
         search.count = 0;
         if (activation->field_0x4 == 1) {
             bounds = activation->bounds;
@@ -3549,22 +3550,19 @@ void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cub
         }
         pActive = &gSmash_explosions[0].active;
         slot_index = 0;
-test_active:
-        if (*pActive == 0) {
-            goto have_free_slot;
+        for (;;) {
+            if (*pActive == 0) {
+                gSmash_explosions[slot_index].type = 0;
+                gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
+                gSmash_explosions[slot_index].what.non_car = delayed;
+                break;
+            }
+            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+            slot_index++;
+            if ((intptr_t)pActive >= (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                break;
+            }
         }
-        pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
-        slot_index++;
-        if ((intptr_t)pActive < (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
-            goto test_active;
-        }
-        goto no_free_slot;
-have_free_slot:
-        gSmash_explosions[slot_index].type = 0;
-        gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
-        gSmash_explosions[slot_index].what.non_car = delayed;
-no_free_slot:
-        ;
     }
 }
 /* the smash record this function builds and copies into gSmash_explosions[].what

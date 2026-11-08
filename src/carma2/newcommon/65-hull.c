@@ -58,6 +58,7 @@ int C2_HOOK_CDECL CompareAngle(const void *pLhs, const void *pRhs) {
 #pragma inline_depth()
 #endif
 
+// PARTIAL 79.41%: Collinear 0x00420ef0 [extra fld [edx+4]; x87 CSE differs at HEAD, source identical to baseline 100%]
 // FUNCTION: CARMA2_HW 0x00420ef0
 int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3) {
 

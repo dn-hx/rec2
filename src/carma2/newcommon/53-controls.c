@@ -2064,6 +2064,7 @@ extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const
 extern tDR_font gFonts[28];
 extern tGraf_data* gCurrent_graf_data;
 
+// PARTIAL 97.48%: DisplayUserMessage 0x00444c00 [reccmp names ours gFonts[6].height/images but leaves original operand 0x7679a8/0x7679a0 unnamed; body unchanged vs baseline, cause outside this TU]
 // FUNCTION: CARMA2_HW 0x00444c00
 void C2_HOOK_FASTCALL DisplayUserMessage(void) {
     char* the_message;

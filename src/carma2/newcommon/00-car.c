@@ -496,6 +496,10 @@ extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, cons
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 68.37%: AddDrag 0x00415ef0 - body complete; remaining diff is x87 scheduling: the original
+// keeps the v/omega components in st registers across the inline BrVector3Length and multiplies them
+// by the spilled coefficient (fmul [esp+4]); this build keeps the coefficient in st and multiplies the
+// components from memory. Also the underwater test value lands in eax instead of edx.
 // FUNCTION: CARMA2_HW 0x00415ef0
 void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scalar pDt) {
     br_scalar drag;
@@ -2304,94 +2308,112 @@ extern void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* p
 
 // FUNCTION: CARMA2_HW 0x004ecfb0
 void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
-    int i;
-    int j;
-    tQueued_smash* q;
-    tPhysics_object* object;
     br_matrix34 local_30;
+    tQueued_smash* q;
+    tCar_crush_smashable_part* part;
+    tSmashable_item_spec* spec;
+    tPhysics_object* object;
+    tSmashable_level* levels;
+    tCar_spec* car;
+    br_actor* actor;
     br_model* model;
     unsigned char* local_70;
     unsigned char* puVar5;
-    tU32 uVar8;
-    int uVar2;
-    int uVar7;
-    int local_50;
-    int iVar4;
-    int iVar9;
-    int iVar10;
-    int iVar12;
-    int iVar17;
+    tU32 time;
+    int level;
+    int max_level;
+    int last_frame;
+    int shrapnel_calls;
+    int xored;
+    int i;
+    int j;
+    int count;
 
-    local_50 = 0;
+    i = 0;
     if (0 < gCount_queued_smashes) {
-    q = gQueued_smashes;
-    do {
-        if (q->actor->model != NULL) {
-            if (q->field_0x40 == 0) {
-                gINT_006a3334 = 0;
-            } else {
-                gShrapnel_shower_matrix = q->field_0x4c;
-                gVector3_006a4688 = q->field_0x7c;
-                gINT_006a3334 = 1;
-            }
-            uVar2 = *(int*)((char*)q + 0x3c);
-            iVar12 = *(int*)((char*)q + 0x38);
-            object = (tPhysics_object*)q->field_0x10;
-            uVar8 = GetTotalTime();
-            iVar9 = *(int*)((char*)object + 0x4c);
-            iVar10 = *(int*)((char*)object + 0x48) - 1;
-            if (iVar9 < iVar10) {
-                if (*(int*)((char*)object + 0x48) <= iVar12) {
-                    iVar12 = iVar10;
+        q = gQueued_smashes;
+        do {
+            actor = q->actor;
+            if (actor->model != NULL) {
+                if (q->field_0x40 != 0) {
+                    gShrapnel_shower_matrix = q->field_0x4c;
+                    gINT_006a3334 = 1;
+                    gVector3_006a4688 = q->field_0x7c;
+                } else {
+                    gINT_006a3334 = 0;
                 }
-                BrActorToActorMatrix34(&local_30, q->actor, gUniverse_actor);
-                ActuallySmashCarPart(q->car, (tCar_crush_smashable_part*)object, iVar12);
-                uVar7 = gCount_shrapnel_shower_calls;
-                iVar4 = *(int*)((char*)object + 0x50);
-                iVar10 = iVar9 + 1;
-                if (iVar10 <= iVar12) {
-                    local_70 = (unsigned char*)(iVar4 + iVar10 * 0x2c4 + 700);
-                    iVar10 = (iVar12 - iVar10) + 1;
-                    do {
-                        if (((*local_70 & 1) == 0) || (iVar12 - iVar9 == 1)) {
-                            SmashItIntoVerySmallPiecesIndeed(object, (void*)(iVar4 + 0x14 + iVar12 * 0x2c4), (int)object ^ (int)uVar8, (char*)q + 0x14, (char*)q + 0x2c, (int)uVar8, (char*)q + 0x2c, (char*)q + 0x2c, q->actor, (int)uVar8, uVar7, &local_30, 0, 0,
-                                    (float)sqrt(*(float*)((char*)q + 0x20) * *(float*)((char*)q + 0x20) +
-                                                *(float*)((char*)q + 0x24) * *(float*)((char*)q + 0x24) +
-                                                *(float*)((char*)q + 0x28) * *(float*)((char*)q + 0x28)),
-                                    (char*)q + 0x20, uVar2);
+                last_frame = q->field_0x3c;
+                max_level = q->field_0x38;
+                spec = (tSmashable_item_spec*)q->field_0x48;
+                object = (tPhysics_object*)q->field_0x4;
+                part = (tCar_crush_smashable_part*)q->field_0x10;
+                car = q->car;
+                time = GetTotalTime();
+                level = part->field_0x4c;
+                if (level < part->count_smashable_levels - 1) {
+                    if (part->count_smashable_levels <= max_level) {
+                        max_level = part->count_smashable_levels - 1;
+                    }
+                    xored = (int)part ^ (int)time;
+                    BrActorToActorMatrix34(&local_30, actor, gUniverse_actor);
+                    ActuallySmashCarPart(car, part, max_level);
+                    shrapnel_calls = gCount_shrapnel_shower_calls;
+                    levels = part->levels;
+                    j = level + 1;
+                    if (j <= max_level) {
+                        local_70 = (unsigned char*)&levels[j].flags;
+                        count = max_level - j + 1;
+                        do {
+                            if ((*local_70 & 1) == 0 || max_level - level == 1) {
+                                SmashItIntoVerySmallPiecesIndeed(object, (void*)spec, (int)part,
+                                        (void*)&levels[max_level].count_sounds, (void*)xored,
+                                        (int)((char*)q + 0x14), (void*)((char*)q + 0x2c), (void*)((char*)q + 0x2c),
+                                        actor, (int)time, shrapnel_calls, (void*)&local_30, 0, 0,
+                                        (float)sqrt((float)q->field_0x20.v[0] * (float)q->field_0x20.v[0]
+                                                + (float)q->field_0x20.v[2] * (float)q->field_0x20.v[2]
+                                                + (float)q->field_0x20.v[1] * (float)q->field_0x20.v[1]),
+                                        (void*)((char*)q + 0x20), last_frame);
+                            }
+                            local_70 = local_70 + 0x2c4;
+                            count = count - 1;
+                        } while (count != 0);
+                    }
+                    if (part->funk_material != NULL
+                            && (puVar5 = (unsigned char*)part->funk_material->identifier) != NULL) {
+                        switch (part->levels[part->field_0x4c].collision_type) {
+                        case kTextureLevelCollisionChange_Solid:
+                            *puVar5 = 0x58;
+                            break;
+                        case kTextureLevelCollisionChange_PassThrough:
+                            *puVar5 = 0x3e;
+                            break;
+                        case kTextureLevelCollisionChange_Edges:
+                            *puVar5 = 0x3f;
+                            break;
                         }
-                        local_70 = local_70 + 0x2c4;
-                        iVar10 = iVar10 - 1;
-                    } while (iVar10 != 0);
-                }
-                if ((*(int*)((char*)object + 0x44) != 0) &&
-                    (puVar5 = *(unsigned char**)(*(int*)((char*)object + 0x44) + 4)) != NULL) {
-                    iVar17 = *(int*)(*(int*)((char*)object + 0x50) + 0x2c0 + *(int*)((char*)object + 0x4c) * 0x2c4);
-                    if (iVar17 == 0) {
-                        *puVar5 = 0x58;
-                    } else if (iVar17 == 1) {
-                        *puVar5 = 0x3e;
-                    } else if (iVar17 == 2) {
-                        *puVar5 = 0x3f;
                     }
                 }
             }
-        }
-        local_50 += 1;
-        q += 1;
-    } while (local_50 < gCount_queued_smashes);
+            i += 1;
+            q += 1;
+        } while (i < gCount_queued_smashes);
     }
-    for (i = 0; i < gCount_queued_smashes; i++) {
-        q = &gQueued_smashes[i];
-        if (q->field_0x44 != 0) {
-            model = q->actor->model;
-            DRModelUpdateAndKevificateMaterials(model, BR_MODU_ALL);
-            for (j = i + 1; j < gCount_queued_smashes; j++) {
-                if (model == gQueued_smashes[j].actor->model) {
-                    q->field_0x44 = 0;
+    if (0 < gCount_queued_smashes) {
+        i = 1;
+        q = gQueued_smashes;
+        do {
+            if (q->field_0x44 != 0) {
+                model = q->actor->model;
+                DRModelUpdateAndKevificateMaterials(model, BR_MODU_ALL);
+                for (j = i; j < gCount_queued_smashes; j++) {
+                    if (model == gQueued_smashes[j].actor->model) {
+                        q->field_0x44 = 0;
+                    }
                 }
             }
-        }
+            i += 1;
+            q += 1;
+        } while (i - 1 < gCount_queued_smashes);
     }
     if (pFlush_powerups == 0) {
         for (i = 0; i < gSize_powerup_queue; i++) {
@@ -3450,9 +3472,154 @@ void C2_HOOK_FASTCALL FUN_0045c910(tCar_spec* pCar, br_vector3* pPoint, br_vecto
     }
     SetJoystickFFBCollisionForce(magnitude, angle_degrees * 100);
 }
-// STUB: CARMA2_HW 0x004d2320
+extern float gMass_mutant_tail_ball;
+extern int gExploding_pedestrians;
+extern int gGoreLevel;
+extern int gPed_severing_damage;
+extern float gPed_damage_per_force;
+extern float gGiblet_scrape_start;
+extern int gPed_recent_points;
+extern tPedestrian* gPed_recent_ped;
+extern int gPed_points[3];
+extern void C2_HOOK_FASTCALL PedProcessContact(tPedestrian* pPed, tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
+extern void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6);
+extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
+
+// FUNCTION: CARMA2_HW 0x004d2320
 void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
-    (void)pObject1; (void)pObject2; (void)pFace; (void)pImpulse; (void)pPoint;
+    tPedestrian* pPed;
+    tPed_cache_006944c0* pCache;
+    double ratio;
+    float length;
+    float vx;
+    float vy;
+    float vz;
+    float dot;
+    int damage;
+
+    if (gAction_replay_mode == 0) {
+        pPed = ((tPed_character_instance*)pObject1->owner)->ped;
+        PedProcessContact(pPed, pObject2);
+        if (((pObject2 != NULL && pObject2->owner != NULL) && pObject2->flags_0x238 == 0x20 && pObject2->M == gMass_mutant_tail_ball)
+                || pObject1->v.v[1] < -1.7) {
+            pImpulse = pImpulse * 10.0f;
+        }
+        if (gExploding_pedestrians != 0) {
+            damage = pPed->character->personality->form->count_bones * gPed_severing_damage;
+        } else {
+            damage = (int)(pImpulse * gPed_damage_per_force * ((pObject2 == NULL) ? 1.5 : 1.0));
+        }
+        if (damage != 0) {
+            FUN_004cd640(pPed, damage, -1, 0x5e, pObject2);
+            if ((pPed->hit_points > 0 && pObject2 != NULL)
+                    && (pObject2->owner != NULL && (pObject2->flags_0x238 == 1 && gProgram_state.current_car.collision_info == pObject2))
+                    && ((pCache = pPed->field_0x0c) != NULL)
+                    && ((*(tU16*)&pCache->field_0x2e & 4) == 0
+                        && gProgram_state.current_car.collision_info->v.v[0] * gProgram_state.current_car.collision_info->v.v[0]
+                                + gProgram_state.current_car.collision_info->v.v[1] * gProgram_state.current_car.collision_info->v.v[1]
+                                + gProgram_state.current_car.collision_info->v.v[2] * gProgram_state.current_car.collision_info->v.v[2] > 0.001)) {
+                pCache->field_0x21 = pCache->field_0x21 + 1;
+                pCache = pPed->field_0x0c;
+                if ((0x50 <= pCache->field_0x21) && (pCache != NULL && pCache->field_0xc0 == &gProgram_state.current_car) && ((*(tU16*)&pCache->field_0x2e & 4) == 0)) {
+                    *(tU16*)&pCache->field_0x2e = *(tU16*)&pCache->field_0x2e | 4;
+                    EarnCredits(gPed_points[gProgram_state.skill_level]);
+                    DoFancyHeadup(4);
+                }
+            }
+            if (0.01 <= pImpulse) {
+                if (pObject2 != NULL) {
+                    *(tU8*)((char*)pPed + 8) |= 4;
+                } else {
+                    if (pFace != NULL && (float)fabs((float)(pFace->normal.v[1] < 0.707)) != 0.0f) {
+                        *(tU8*)((char*)pPed + 8) |= 2;
+                    }
+                }
+                if ((pPed->flags & 4) != 0 && (pPed->flags & 2) != 0 && (pPed->flags & 8) == 0) {
+                    SetPedMove(pPed, 0x60, -1, 0, 1, GetTotalTime(), 5);
+                    *(tU8*)((char*)pPed + 8) |= 8;
+                    if ((gPed_recent_points != 0 && gPed_recent_ped == pPed) && pPed->hit_points <= 0
+                            && (GetTotalTime() - *(tU32*)((char*)pPed + 0x30)) < 0x2ee) {
+                        DoFancyHeadup(1);
+                        PratcamEvent(0x1e);
+                        EarnCredits(gPed_recent_points);
+                        gPed_recent_points = 0;
+                    }
+                }
+            }
+            if ((pObject1->last_special_volume == NULL || pObject1->last_special_volume->gravity_multiplier >= 1.0f) && gGoreLevel > 0) {
+                ratio = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
+                DoGiblets(pPed, pObject1, pObject2, (float)(ratio * ratio * pImpulse), pPoint, (int)gGiblet_scrape_start);
+                if (pObject2 == NULL
+                        && ((pFace->material == NULL || pFace->material->colour_map == NULL)
+                            || pFace->material->colour_map->type != BR_PMT_RGBA_4444)
+                        && pPed->hit_points <= 0) {
+                    if (pFace->material != NULL && pFace->material->identifier != NULL) {
+                        if (strlen(pFace->material->identifier) == 0xb && pFace->material->identifier[5] == '|') {
+                            return;
+                        }
+                    }
+                    pCache = pPed->field_0x0c;
+                    if (pCache == NULL) {
+                        dr_dprintf("Can't smear a ped with no process data");
+                        return;
+                    }
+                    if ((pCache->field_0xc4 & 2) == 0) {
+                        pCache->field_0xc4 = pCache->field_0xc4 | 2;
+                        pCache->field_0xca = 1;
+                        pCache->field_0xe4 = *pPoint;
+                        pCache->field_0xf0 = pFace->normal;
+                        length = (float)sqrt(pObject1->v.v[1] * pObject1->v.v[1]
+                                + pObject1->v.v[2] * pObject1->v.v[2]
+                                + pObject1->v.v[0] * pObject1->v.v[0]);
+                        if (length <= 2.3841858e-07f) {
+                            vx = 1.0f;
+                            vy = 0.0f;
+                            vz = 0.0f;
+                        } else {
+                            length = 1.0 / length;
+                            vx = pObject1->v.v[0] * length;
+                            vy = pObject1->v.v[1] * length;
+                            vz = pObject1->v.v[2] * length;
+                        }
+                        ((br_vector3*)((char*)pCache + 0x114))->v[0] = pFace->normal.v[1] * vz - pFace->normal.v[2] * vy;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[1] = pFace->normal.v[2] * vx - pFace->normal.v[0] * vz;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[2] = pFace->normal.v[0] * vy - pFace->normal.v[1] * vx;
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2];
+                        pCache->field_0x124 = dot;
+                        pCache->field_0x128 = dot;
+                        return;
+                    }
+                    if (pCache->field_0xf0.v[0] * pFace->normal.v[0] + pCache->field_0xf0.v[1] * pFace->normal.v[1]
+                                    + pCache->field_0xf0.v[2] * pFace->normal.v[2] > 0.997f
+                            && (float)fabs((pCache->field_0xf0.v[0] * pCache->field_0xe4.v[0]
+                                        + pCache->field_0xf0.v[1] * pCache->field_0xe4.v[1]
+                                        + pCache->field_0xf0.v[2] * pCache->field_0xe4.v[2]) / (float)pCache->field_0xca
+                                    - (pCache->field_0xf0.v[0] * pPoint->v[0] + pCache->field_0xf0.v[2] * pPoint->v[2]
+                                        + pCache->field_0xf0.v[1] * pPoint->v[1])) < 0.01f) {
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1];
+                        if (pCache->field_0x124 < dot) {
+                            pCache->field_0x124 = dot;
+                        }
+                        if (dot < pCache->field_0x128) {
+                            pCache->field_0x128 = dot;
+                        }
+                        pCache->field_0xe4.v[0] = pPoint->v[0] + pCache->field_0xe4.v[0];
+                        pCache->field_0xe4.v[1] = pCache->field_0xe4.v[1] + pPoint->v[1];
+                        pCache->field_0xca = pCache->field_0xca + 1;
+                        pCache->field_0xe4.v[2] = pCache->field_0xe4.v[2] + pPoint->v[2];
+                    }
+                }
+            }
+        }
+    }
+    return;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -6457,9 +6624,123 @@ void C2_HOOK_FASTCALL ApplyNonCarTumble(tPhysics_object* pObject, br_vector3* pV
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00430e30
+// FUNCTION: CARMA2_HW 0x00430e30
 int C2_HOOK_FASTCALL FUN_00430e30(tCollision_contact* pContacts, float* pImpulses, int pCount) {
-    (void)pContacts; (void)pImpulses; (void)pCount;
+    br_vector4 plane;
+    br_vector3 edge;
+    br_vector3 normal;
+    br_vector3 line;
+    int found_faces[2];
+    int* p_found;
+    int split_index;
+    int found;
+    int face;
+    int i;
+    int j;
+    int k;
+    tPhysics_object* collision_info;
+    tPhysics_object* object;
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+    float threshold;
+    float f_a;
+    float f_b;
+    extern float gMin_force_to_split_XZ_per_tonne;
+    extern br_scalar gCrushSqrtHalf;
+    extern float C2_HOOK_FASTCALL PointEdgeDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB);
+    extern int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane);
+    extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
+
+    if (pCount > 40) {
+        pCount = 40;
+    }
+    for (i = 0; i < pCount; i++) {
+        if (pImpulses[i] >= 0.01f
+                && pContacts[i].object2 == NULL
+                && pContacts[i].type == 0
+                && (object = pContacts[i].object1) != NULL
+                && object->owner != NULL
+                && object->flags_0x238 == 1
+                && (car = (tCar_spec*)object->owner) != NULL
+                && car->driver > 5
+                && (crush_spec = car->car_crush_spec) != NULL
+                && crush_spec->field_0x4b8 == 0
+                && car->invulnerable_no_crushage == 0) {
+            collision_info = car->collision_info;
+            threshold = (collision_info->M * gMin_force_to_split_XZ_per_tonne)
+                / (car->softness_factor * crush_spec->snappability_factor);
+            if (pImpulses[i] >= threshold) {
+                found = 0;
+                face = collision_info->box_face_start;
+                if (face < collision_info->box_face_end) {
+                    p_found = found_faces;
+                    do {
+                        if (found > 1) {
+                            goto do_split;
+                        }
+                        k = 0;
+                        do {
+                            j = k + 1;
+                            if (PointEdgeDistSq(&pContacts[i].r2, &gFace_list__car[face].v[k], &gFace_list__car[face].v[j % 3]) < 1.1920929e-07f) {
+                                found++;
+                                *p_found = face;
+                                p_found++;
+                                j = j % 3;
+                                edge.v[0] = gFace_list__car[face].v[k].v[0] - gFace_list__car[face].v[j].v[0];
+                                edge.v[1] = gFace_list__car[face].v[k].v[1] - gFace_list__car[face].v[j].v[1];
+                                edge.v[2] = gFace_list__car[face].v[k].v[2] - gFace_list__car[face].v[j].v[2];
+                                break;
+                            }
+                            k = j;
+                        } while (j < 3);
+                        face++;
+                    } while (face < collision_info->box_face_end);
+                }
+                if (found > 1) {
+do_split:
+                    if (BrVector3Dot(&gFace_list__car[found_faces[1]].normal, &gFace_list__car[found_faces[0]].normal) <= cos(0.1744903177022934)) {
+                        BrMatrix34TApplyV(&normal, &edge, &car->collision_info->actor->t.t.mat);
+                        plane.v[0] = pContacts[i].normal.v[2] * normal.v[1] - pContacts[i].normal.v[1] * normal.v[2];
+                        plane.v[1] = pContacts[i].normal.v[0] * normal.v[2] - pContacts[i].normal.v[2] * normal.v[0];
+                        f_a = pContacts[i].normal.v[1] * normal.v[0] - pContacts[i].normal.v[0] * normal.v[1];
+                        plane.v[2] = sqrt(f_a * f_a + plane.v[1] * plane.v[1] + plane.v[0] * plane.v[0]);
+                        if (plane.v[2] <= 2.3841858e-07f) {
+                            plane.v[0] = 1.0f;
+                            plane.v[1] = 0.0f;
+                            plane.v[2] = 0.0f;
+                        } else {
+                            plane.v[2] = 1.0 / plane.v[2];
+                            plane.v[0] = plane.v[2] * plane.v[0];
+                            plane.v[1] = plane.v[2] * plane.v[1];
+                            plane.v[2] = plane.v[2] * f_a;
+                        }
+                        if ((float)fabs(plane.v[0]) > gCrushSqrtHalf || (float)fabs(plane.v[2]) > gCrushSqrtHalf) {
+                            f_a = pContacts[i].r1.v[0] + collision_info->cmpos.v[0];
+                            line.v[1] = sqrt(plane.v[2] * plane.v[2] + plane.v[0] * plane.v[0]);
+                            f_b = pContacts[i].r1.v[2] + collision_info->cmpos.v[2];
+                            plane.v[3] = f_b * plane.v[2] + f_a * plane.v[0]
+                                + (pContacts[i].r1.v[1] + collision_info->cmpos.v[1]) * plane.v[1];
+                            if (line.v[1] <= 2.3841858e-07f) {
+                                line.v[0] = 1.0f;
+                                line.v[1] = 0.0f;
+                            } else {
+                                line.v[1] = 1.0 / line.v[1];
+                                line.v[0] = line.v[1] * plane.v[0];
+                                line.v[1] = line.v[1] * plane.v[2];
+                            }
+                            line.v[2] = line.v[1] * f_b + line.v[0] * f_a;
+                            if (SplitCheck(car, 0, &line, 0, &plane) != 0) {
+                                split_index = i;
+                                ScaleCollisionImpulses(pContacts, pImpulses, pCount, &split_index, 1, threshold);
+                                SplitCar(car, &plane, 1);
+                                return 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     return 0;
 }
 #ifdef REC2_MATCHING

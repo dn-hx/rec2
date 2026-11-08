@@ -91,7 +91,7 @@ extern void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironm
 
 // DoEnvSound
 
-// FoundSoundSource
+extern intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext);
 
 extern void C2_HOOK_FASTCALL MungeSoundGenerators(void);
 extern void C2_HOOK_FASTCALL MungeEnvironmentalSound(void);

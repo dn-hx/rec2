@@ -921,8 +921,6 @@ void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpe
 
 // DoEnvSound
 
-// FoundSoundSource
-
 extern int gAmbient_sound;
 extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
@@ -934,8 +932,26 @@ static void C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3
     (void)pIdentifier_index; (void)pMatch_flags; (void)pCallback; (void)pContext;
 }
 
-static intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
-    (void)pActor; (void)pContext;
+// PARTIAL 17.65%: semantics match the disassembly, but MSVC assigns the registers differently (pActor in ebp instead of ebx, src in ebx instead of eax; one extra callee-saved register). The allocation was identical for three different source forms, so it is not driven by the body; in the original TU MungeSoundGenerators (0x00456ea0, ends at 0x00457250) is compiled immediately before this function, while here FoundSoundSource is compiled first.
+// FUNCTION: CARMA2_HW 0x00457260
+intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
+    tEnvironment_sound_generator_vector* found_sources;
+    tEnvironment_sound_generator_info* src;
+    tTrackSoundGenerator* generator;
+
+    found_sources = pContext;
+    if (found_sources->count < 20) {
+        src = &found_sources->sources[found_sources->count++];
+        src->actor = pActor;
+        generator = &gProgram_state.track_sound_generators[(pActor->model->identifier[1] - '0') * 10 + (pActor->model->identifier[2] - '0')];
+        src->generator = generator;
+        if (generator->type == kSoundGeneratorType_noncar && pActor->identifier[3] == '!') {
+            src->soundfx = generator->fx2_noncar;
+        } else {
+            src->soundfx = generator->fx;
+        }
+        src->pos = pActor->t.t.translate.t;
+    }
     return 0;
 }
 
