@@ -1230,6 +1230,7 @@ int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_ve
     return distance <= pRadius_squared;
 }
 
+// PARTIAL 90%: LineBoxCollWithSphere 0x460e10 [x87-schedule] - runtime-faithful; normal normalisation x87 load/store order differs (fst/fxch placement, float temps)
 // FUNCTION: CARMA2_HW 0x00460e10
 int C2_HOOK_FASTCALL LineBoxCollWithSphere(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
     int uVar2;
