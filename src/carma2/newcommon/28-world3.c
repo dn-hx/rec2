@@ -712,6 +712,7 @@ int C2_HOOK_FASTCALL GetFileName(const char *path, tName_list *pList) {
     return 0;
 }
 
+// PARTIAL 93.93%: GetAdditionalFileName 0x00502780 [regalloc: original spills pList (ebx reloaded from [esp+0x10]) because bl is clobbered in inline strcmp; ours keeps ebx]
 // FUNCTION: CARMA2_HW 0x00502780
 int C2_HOOK_FASTCALL GetAdditionalFileName(const char* path, tName_list* pList) {
     tPath_name pathCopy;
