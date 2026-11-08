@@ -340,6 +340,7 @@ int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
     return strcmp(pIdent + len_ident - len_suffix, pSuffix) == 0;
 }
 
+// PARTIAL 87.06%: UnsuffixedMaterial 0x00448d70 [register choice; split-strlen variant reaches 100 but moves neighbours 0x4481d0/0x448390 to 75.86/88.68]
 // FUNCTION: CARMA2_HW 0x00448d70
 br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const char* pSuffix) {
     br_material* result;
