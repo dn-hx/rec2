@@ -28,6 +28,8 @@ extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
 extern void C2_HOOK_FASTCALL CheckCheckpoints(void);
 extern void C2_HOOK_FASTCALL TotalRepair(void);
 
+extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
+
 // DoLogos
 
 // DoProgOpeningAnimation
