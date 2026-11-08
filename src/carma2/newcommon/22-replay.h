@@ -141,6 +141,6 @@ extern void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_
 extern void C2_HOOK_FASTCALL CreateSmashedGlassFragments(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
 extern void C2_HOOK_FASTCALL FUN_004c8940(uintptr_t pOwner);
 extern void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
-extern void C2_HOOK_FASTCALL DrawStatusMessage(int pReplay_only);
+extern void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only);
 
 #endif // GUARD_22_REPLAY_H
