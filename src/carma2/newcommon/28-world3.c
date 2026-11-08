@@ -4245,9 +4245,9 @@ const char* gGroove_nature_names[2] = {
 
 // GLOBAL: CARMA2_HW 0x00655bb8
 const char* gAxis_names[3] = {
-    "z",
-    "y",
     "x",
+    "y",
+    "z",
 };
 
 // GLOBAL: CARMA2_HW 0x00655bc8
