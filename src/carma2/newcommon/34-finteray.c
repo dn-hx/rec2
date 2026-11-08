@@ -830,11 +830,11 @@ void C2_HOOK_FASTCALL MultiRayCheckSingleFace(int pNum_rays, tFace_ref* pFace, b
             return;
         }
         if (d > 0.f) {
-            if (numerator < -0.001 || numerator > 0.003 - d) {
+            if (-numerator < -0.001 || d - -0.003 < -numerator) {
                 t[i] = 100.f;
                 continue;
             }
-        } else if (-numerator < -0.001 || d - -0.003 < -numerator) {
+        } else if (numerator < -0.001 || numerator > 0.003 - d) {
             t[i] = 100.f;
             continue;
         }
