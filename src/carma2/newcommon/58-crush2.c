@@ -885,23 +885,62 @@ unsigned char gSmoke_part_table[12] = {
    FullyDetachSnappedBits 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
    FUN_0043b400 had any stack frame at all; no placement inside that TU avoided it. Like
    FUN_0043b2e0 above, they live in this TU instead. Bodies are unchanged.
-   The typedef below is a file-local copy of the one in 00-car.c (identical definition). */
-typedef struct {
-    tCar_spec* car;
-    float step;
-    float displacement;
-    float* total_displacement;
-} tModel_mash_context_local;
-
+   The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pArg2);
+extern int C2_HOOK_FASTCALL FUN_0043b510(br_model* pModel, tModel_mash_context_local* pContext);
+extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
 
-/* The original walks the model hierarchy with FUN_0043b470 (0x0043b470); that callback is not
-   implemented in rec2 yet, so an inert one keeps this runtime-safe. */
-// STUB: CARMA2_HW 0x0043b470
+/* 0x0043b510 (the per-detail-level model mash helper) is not implemented in rec2 yet: an inert
+   body keeps this runtime-safe and the TU linkable. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0043b510
+int C2_HOOK_FASTCALL FUN_0043b510(br_model* pModel, tModel_mash_context_local* pContext) {
+    (void)pModel;
+    (void)pContext;
+    return 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043b470
 intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local* pContext) {
-    (void)pActor; (void)pContext;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    int model_index;
+    br_model** model_cursor;
+
+    user = pActor->user;
+    if (user == NULL || user->crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user->crush_data;
+    if (FUN_0043b510(user->models[0], pContext) != 0) {
+        RepairSmash(pContext->car, user->crush_data);
+        crush_data->field_0x2c = 0;
+        if (crush_data->flap_data != NULL && crush_data->flap_data->kev_o_flap == 0) {
+            crush_data->flap_data->field_0x15 = 0;
+            crush_data->flap_data->field_0x14 = 1;
+            crush_data->flap_data->field_0x18 = 0.f;
+        }
+        if (crush_data->detach_data != NULL) {
+            crush_data->detach_data->field_0x0 = 0.f;
+        }
+        return 0;
+    }
+    model_index = 1;
+    if (model_index < pContext->car->count_detail_levels) {
+        model_cursor = &user->models[1];
+        do {
+            FUN_0043b510(*model_cursor, pContext);
+            model_index++;
+            model_cursor++;
+        } while (model_index < pContext->car->count_detail_levels);
+    }
     return 0;
 }
 
