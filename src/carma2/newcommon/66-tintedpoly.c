@@ -131,6 +131,9 @@ static void C2_HOOK_FASTCALL GetRangeOfValuesFromPixelmap(br_pixelmap* pMap, int
     }
 }
 
+// PARTIAL 99.13%: residual is a 4-instruction displacement of the range subtraction in the
+// case 4 division preheader (MSVC 5.0 sinks `fild` after the integer sub; the original emits it
+// before) plus a data-symbol naming diff (gTimers vs gBlind_pedestrians at the loop end).
 // FUNCTION: CARMA2_HW 0x004d70c0
 int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int class, int arg1, int arg2, int arg3) {
     tPath_name the_path;
@@ -143,6 +146,7 @@ int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int
     int brightest_colour;
     br_uint_32 colour;
     br_scalar colour_scale;
+    int* pRange;
 
     tintedIndex = -1;
     for (i = 0; i < (int)REC2_ASIZE(gTintedPolys); i++) {
@@ -221,14 +225,23 @@ int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int
             GetRangeOfValuesFromPixelmap(map, &darkest_colour, &brightest_colour);
 
             // Map `coolmapx` colors to [0, arg1]
-            colour_scale = (br_scalar)((double)(br_uint_32)arg1 / (brightest_colour - darkest_colour));
+            brightest_colour -= darkest_colour;
+            /* Read the range back through a pointer: the original keeps it in memory and divides
+               with `fidiv dword ptr [brightest_colour]`. */
+            pRange = &brightest_colour;
+            colour_scale = (br_scalar)((double)(br_uint_32)arg1 / *pRange);
             for (y = 0; y < 64; y++) {
                 for (x = 0; x < 32; x++) {
                     int v;
                     colour = BrPixelmapPixelGet(map, x, y);
-                    /* Preserve x87 multiplication and __ftol's low 32 bits. */
-                    v = (int)(br_int_64)(((int)REC2_RGB555_B(colour) - darkest_colour) * (double)colour_scale);
-                    gTintedPolys[tintedIndex].tints1[y][x] = v < 0 ? 0 : (br_uint_32)v > (br_uint_32)arg1 ? (br_uint_32)arg1 : (br_uint_32)v;
+                    v = (int)(((int)REC2_RGB555_B(colour) - darkest_colour) * colour_scale);
+                    if (v < 0) {
+                        gTintedPolys[tintedIndex].tints1[x][y] = 0;
+                    } else if ((br_uint_32)v > (br_uint_32)arg1) {
+                        gTintedPolys[tintedIndex].tints1[x][y] = arg1;
+                    } else {
+                        gTintedPolys[tintedIndex].tints1[x][y] = v;
+                    }
                 }
             }
             memset(gTintedPolys[tintedIndex].tints2, 0, sizeof(gTintedPolys[tintedIndex].tints2));
