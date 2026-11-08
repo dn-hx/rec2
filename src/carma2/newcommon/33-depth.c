@@ -122,8 +122,14 @@ br_scalar C2_HOOK_FASTCALL DepthCueingShiftToDistance(int pDistance) {
 // Measured 2026-11-08: effective 100 (not exact). Casting AFTER the gCamera_yon multiply fixed
 // the x87 conversion-store displacement of the inlined DepthCueingShiftToDistance. Remaining
 // diff: in the eDepth_effect_colour case only, VC5 hoists the pMaterial->flags load one
-// instruction above the final fmul (scheduler, not store order). The field reads below are in
-// the original's emission order (start, end, red, green, blue) -- source order drives load order.
+// instruction above the final fmul (scheduler tie-break; the darkness and fog cases, which have
+// no RGB chain between load and `or`, match exactly). The field reads below are in the
+// original's emission order (start, end, red, green, blue) -- source order drives load order.
+// Steering attempts 2026-11-08, all measured, all still effective with this same single line:
+// (1) flags |= split into an explicit br_uint_32 local load + store; (2) flags |= moved above the
+// fog_colour assignment (worse: 97.12, whole read-modify-write scheduled ahead of the RGB chain);
+// (3) flags read through a br_material* local assigned after the value stores (folded away).
+// Class: unsteerable MSVC 5 x87/integer scheduling, not source order or statement form.
 // FUNCTION: CARMA2_HW 0x004451a0
 void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     int start;
