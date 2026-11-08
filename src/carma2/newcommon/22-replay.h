@@ -32,7 +32,6 @@ extern void C2_HOOK_FASTCALL TurnOnActionReplay(void);
 extern void C2_HOOK_FASTCALL TurnOffActionReplay(void);
 extern void C2_HOOK_FASTCALL AfterActionReplay(void);
 extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
-// DisplayMovieStatusPanel
 
 extern void C2_HOOK_FASTCALL ApplyTime(tU32 pTime);
 

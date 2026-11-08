@@ -503,8 +503,6 @@ void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2) {
     }
 }
 
-// DisplayMovieStatusPanel
-
 // FUNCTION: CARMA2_HW 0x004022e0
 void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
     gLast_replay_frame_time = pTime;
@@ -2237,7 +2235,7 @@ void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBon
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004e7350
-void C2_HOOK_FASTCALL DrawStatusMessage(int pReplay_only) {
+void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only) {
     extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);
     extern void C2_HOOK_FASTCALL DRPixelmapCentredText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText);
     extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
