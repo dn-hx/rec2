@@ -713,8 +713,6 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
 #pragma auto_inline(on)
 #endif
 
-// ProcessLevitate
-
 // ProcessGetNearPlayer
 
 // ProcessFrozen
@@ -2562,9 +2560,9 @@ void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_o
             } else {
                 pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.f;
                 pOpponent_spec->car_spec->acc_force = 0.f;
-                pOpponent_spec->car_spec->collision_info->omega.v[0] /= pow(2.0, gFrame_period_for_this_munging / 1000.0);
-                pOpponent_spec->car_spec->collision_info->omega.v[1] /= pow(2.0, gFrame_period_for_this_munging / 1000.0);
-                pOpponent_spec->car_spec->collision_info->omega.v[2] /= pow(2.0, gFrame_period_for_this_munging / 1000.0);
+                pOpponent_spec->car_spec->collision_info->omega.v[0] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
+                pOpponent_spec->car_spec->collision_info->omega.v[1] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
+                pOpponent_spec->car_spec->collision_info->omega.v[2] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
             }
         }
         if (!((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate) {
