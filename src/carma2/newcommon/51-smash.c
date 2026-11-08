@@ -4175,7 +4175,7 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     tDecal* decal;
     tDecal* best_decal;
     tU32 oldest_time;
-    br_uint_16 temp;
+    br_uint_32 temp;
     int i;
     int swapped;
 
@@ -4205,7 +4205,9 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     BrModelUpdate(model, BR_MODU_ALL);
     BrActorAdd(gOther_selfs[0], decal->actor);
     for (i = 0; i < 2; i++) {
-        if (model->faces[i].n.v[0] * pFace->normal.v[0] + model->faces[i].n.v[1] * pFace->normal.v[1] + model->faces[i].n.v[2] * pFace->normal.v[2] <= gFloat_0058aec0) {
+        br_face* face = &model->faces[i];
+
+        if (face->n.v[2] * pFace->normal.v[2] + face->n.v[0] * pFace->normal.v[0] + pFace->normal.v[1] * face->n.v[1] <= gFloat_0058aec0) {
             temp = model->faces[i].vertices[0];
             model->faces[i].vertices[0] = model->faces[i].vertices[1];
             model->faces[i].vertices[1] = temp;
