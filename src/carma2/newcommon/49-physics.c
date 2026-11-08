@@ -183,7 +183,6 @@ int C2_HOOK_FASTCALL AddObjectWallForce(float* pWalls, const br_vector3* pPoint,
     return iVar8;
 }
 
-// based on ApexWorm/rec2 1b37e235f (reference only)
 // FUNCTION: CARMA2_HW 0x004268a0
 int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const br_vector3* pPoint_a, br_scalar pT, const br_vector3* pPoint_b, const br_vector3* pNormal, int pCount, tPhysics_object* pObject_a, tPhysics_object* pObject_b, int pType, void* pUnused, br_scalar pValue) {
     int i;
@@ -216,7 +215,6 @@ int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const b
     return pCount;
 }
 
-// (and ApexWorm/rec2 44a06345a)
 // FUNCTION: CARMA2_HW 0x004225f0
 tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount) {
     br_vector3 normal;
@@ -248,7 +246,7 @@ tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector
 
 // RayCastThruFaceList2
 
-/* based on the original disassembly (and ApexWorm c0f29cfd4 as reference) */
+/* based on the original disassembly */
 // FUNCTION: CARMA2_HW 0x0041e480
 int C2_HOOK_FASTCALL RayCastInBox(br_vector3* pRay_pos, br_vector3* pRay_dir, br_vector3* pHit_pos, br_scalar* pT, tPhysics_object* pObject) {
     extern int gUNK_006793d0;
@@ -418,7 +416,6 @@ LAB_00423642:
     return local_3c;
 }
 
-// based on ApexWorm/rec2 968549a84 (reference only)
 // FUNCTION: CARMA2_HW 0x00428480
 void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex) {
     switch (pShape->common.type) {
@@ -1575,7 +1572,7 @@ void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject) {
 // here, while the original (defined after) always calls it - wrapping CapOmega's definition in
 // #pragma auto_inline(off)/(on) removes the inlining but scored lower with reccmp (27.21%) as long
 // as the rest of the body is not aligned, so it was reverted.
-// based on the REA pseudocode for 0x004c0ac0 and ApexWorm/rec2 095fbd102 (GPL-3.0)
+// based on the REA pseudocode for 0x004c0ac0 (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004c0ac0
 void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks) {
     tPhysics_object* pObject_a;
@@ -1896,7 +1893,6 @@ void C2_HOOK_FASTCALL GetMatrixFromOrientation(br_matrix34* pMatrix, const tU16*
 #pragma auto_inline(on)
 #endif
 
-// and ApexWorm 6afd11ad1
 // FUNCTION: CARMA2_HW 0x004c1be0
 void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time) {
     br_matrix34 rotation;
@@ -2070,7 +2066,6 @@ void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 a2bbacecc (reference only)
 // FUNCTION: CARMA2_HW 0x004c25a0
 void C2_HOOK_FASTCALL ResetObjectAndChildren(tPhysics_object* pObject) {
     tPhysics_object* child;
@@ -2221,7 +2216,6 @@ void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info) {
 #pragma auto_inline(off)
 #endif
 
-// based on ApexWorm/rec2 af10f5a01
 // FUNCTION: CARMA2_HW 0x004c5830
 // FUNCTION: CARMA2_SW 0x004c1f60
 int C2_HOOK_FASTCALL RQDcmpV(br_scalar* pMatrix, int pSize, br_scalar* pOrthogonal) {
