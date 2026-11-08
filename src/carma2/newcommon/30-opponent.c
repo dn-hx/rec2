@@ -1921,6 +1921,7 @@ extern br_scalar gHead_on_cos_value;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 97.01%: TeleportOpponentToNearestSafeLocation 0x004a9180 [x87-schedule: inline Dot (section_direction) loads/fxch order differs after 3bd45723f]
 // FUNCTION: CARMA2_HW 0x004a9180
 void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpponent_spec) {
     int found_safe_place;
