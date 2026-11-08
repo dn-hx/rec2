@@ -317,7 +317,7 @@ void C2_HOOK_FASTCALL TopUpRandomRoute(tOpponent_spec* pOpponent_spec, int pSect
 #pragma auto_inline(off)
 #endif
 // based on ApexWorm/rec2 ab1cf4523 and (GPL-3.0)
-// RESIDUAL 99.67%: effective match; only the loop-head reload order differs (original edi then esi, ours reversed) - allocator tie, not source-controllable
+// 100%: the earlier loop-back-edge reload-order tie (0x4ac2d1/0x4ac2d5) is not present in the current TU context.
 // FUNCTION: CARMA2_HW 0x004ac180
 int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_section* pPerm_store, int* pNum_of_perm_store_sections, tS16 pTarget_section, int pDepth, br_scalar pDistance_so_far, tOpponent_spec* pOpponent_spec) {
     char depth_indent[32];
