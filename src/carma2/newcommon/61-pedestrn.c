@@ -2730,6 +2730,7 @@ void C2_HOOK_FASTCALL ClearOutMorphs(void) {
 
 // DRVector3SafeCrossXZ
 
+// PARTIAL 94.12%: ScaleModel 0x4042f0 [x87 operand order fld scale first vs fld v first; same source was 100 at c39e288df]
 // FUNCTION: CARMA2_HW 0x004042f0
 void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
     int i;
