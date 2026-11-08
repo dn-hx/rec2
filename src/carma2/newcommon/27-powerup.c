@@ -383,8 +383,12 @@ void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#endif
 // FUNCTION: CARMA2_HW 0x004d8d40
-void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage, int pSelect_inventory) {
+int C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage, int pSelect_inventory) {
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
@@ -395,6 +399,7 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
     int flag;
     int message_address;
     int* picked_up_powerup;
+    int* pInventory;
     tPowerup* powerup;
     tPowerup* old_powerup;
     tRace_list_spec* race_spec;
@@ -447,22 +452,30 @@ void C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage
             }
             NewTextHeadupSlot(4, 0, 3000, -4, p);
         }
-        for (i = 0; i < 20; i++) {
-            if (gInventory[i] == pIndex) {
+        i = 0;
+        pInventory = gInventory;
+        do {
+            if (*pInventory == pIndex) {
                 index = i;
                 break;
             }
-        }
+            pInventory++;
+            i++;
+        } while ((int)pInventory < (int)&gFizzle_in);
         if (index < 0) {
-            for (i = 0; i < 20; i++) {
-                if (gInventory[i] < 0) {
+            i = 0;
+            pInventory = gInventory;
+            do {
+                if (*pInventory < 0) {
                     index = i;
                     powerup->value = 0;
                     break;
                 }
-            }
+                pInventory++;
+                i++;
+            } while ((int)pInventory < (int)&gFizzle_in);
             if (index < 0) {
-                return;
+                return pIndex;
             }
         }
         if (index != gInventory_selected && gInventory_selected >= 0) {
@@ -523,6 +536,9 @@ reset:
     flag = 0;
     GotPowerupX(pCar, 0, flag, pMessage, 0);
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
