@@ -1834,8 +1834,6 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-// ReAttachBit
-
 // CentreModelOnPoint
 
 // SemiDetachBit
