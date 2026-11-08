@@ -960,8 +960,6 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
 
 // PHILMungeObjects
 
-// PHILActivatePassive
-
 // PHILInterpolateObjects
 
 // GLOBAL: CARMA2_HW 0x006923e8
