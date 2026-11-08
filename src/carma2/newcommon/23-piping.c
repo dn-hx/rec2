@@ -774,8 +774,6 @@ int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime) {
         || gPipe_sound_start_time - pTime < gPipe_sound_time_window;
 }
 
-// ScanAndPlaySoundsToBe
-
 // ARGetStartTime
 
 // ARDisableAdvance
@@ -3499,6 +3497,8 @@ void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_tim
     const tReplay_callback* callbacks;
     tU32 type;
     int more;
+    extern double gDouble_00589338;
+    extern double gDouble_00589340;
 
 #define chunk (*(tU8**)&pEnd_time)
     if (gDisable_piped_sounds != 0) {
@@ -3506,7 +3506,7 @@ void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_tim
     }
     gPipe_sound_start_time = pEnd_time;
     gPipe_UNK_006768b0 = pStart_time;
-    gPipe_sound_time_window = (tU32)(fabs(gReplay_rate) * 1500.0);
+    gPipe_sound_time_window = (tU32)(fabs(gReplay_rate) * gDouble_00589338);
     time = pStart_time;
     do {
         if (gPipe_play_ptr == gPipe_record_ptr) {
@@ -3587,7 +3587,7 @@ void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_tim
                 do {
                     duration = FUN_00564e5e(*(int*)chunk);
                     if (((int*)chunk)[1] > 1) {
-                        duration = (int)((double)duration / ((double)((int*)chunk)[1] * 0.0000152587890625));
+                        duration = (int)((double)duration / ((double)((int*)chunk)[1] * gDouble_00589340));
                     }
                     duration += time;
                     if ((tU32)duration < gPipe_sound_start_time || (tU32)duration >= gPipe_UNK_006768b0) {
@@ -3635,6 +3635,12 @@ tU32 gReplay_saved_average_frame_period = 0;
 
 // GLOBAL: CARMA2_HW 0x006768b0
 tU32 gPipe_UNK_006768b0 = 0;
+
+// GLOBAL: CARMA2_HW 0x00589338
+double gDouble_00589338 = 1500.0;
+
+// GLOBAL: CARMA2_HW 0x00589340
+double gDouble_00589340 = 1.52587890625e-05;
 
 // GLOBAL: CARMA2_HW 0x0058f1e8
 int gPipe_session_search_limit = 1000;
