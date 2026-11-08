@@ -4893,17 +4893,22 @@ extern void C2_HOOK_FASTCALL FUN_004c86f0(int pOwner, void* pData, tU32 pArg3);
 
 // FUNCTION: CARMA2_HW 0x0043b8a0
 void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
-    tCar_crush_spec* car_crush;
     tNon_car_spec* non_car;
     tPhysics_object* object;
     tPhysics_object* next_object;
+    tPhysics_object* collision_info;
     tCar_crush_shape_info* shape_info;
     tCollision_shape_polyhedron* prev_shape;
     br_actor* actor;
+    br_actor** actor_ptr;
     br_model** models;
+    br_model** model_source;
+    br_model** model_slot;
+    tCar_crush_spec* car_crush;
     char text[256];
     int i;
     int j;
+    int offset;
 
     car_crush = pCar_spec->car_crush_spec;
     if (car_crush->field_0x4b8 == 0) {
@@ -4951,18 +4956,36 @@ void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
         FUN_004c86b0((uintptr_t)pCar_spec->car_model_actor, actor);
         BrActorAdd(pCar_spec->car_model_actor, actor);
     }
-    for (i = 0; i < *(int*)((tU8*)car_crush + 0x494); i++) {
-        actor = ((br_actor**)((tU8*)car_crush + 0x498))[i];
-        FUN_004c86b0((uintptr_t)pCar_spec->car_model_actor, actor);
-        BrActorAdd(pCar_spec->car_model_actor, actor);
+    i = 0;
+    if (0 < *(int*)((tU8*)car_crush + 0x494)) {
+        actor_ptr = (br_actor**)((tU8*)car_crush + 0x498);
+        do {
+            FUN_004c86b0((uintptr_t)pCar_spec->car_model_actor, *actor_ptr);
+            BrActorAdd(pCar_spec->car_model_actor, *actor_ptr);
+            i++;
+            actor_ptr++;
+        } while (i < *(int*)((tU8*)car_crush + 0x494));
     }
+    i = 0;
     *(int*)((tU8*)car_crush + 0x494) = 0;
     models = (br_model**)pCar_spec->car_model_actor->user;
-    for (i = 0; i < pCar_spec->count_detail_levels; i++) {
-        if (models[i] != NULL) {
-            BrModelFree(BrModelRemove(models[i]));
-            models[i] = models[0];
+    if (0 < pCar_spec->count_detail_levels) {
+        model_source = (br_model**)((tU8*)car_crush + 0x4c4);
+        /* The original keeps this walked-but-unused cursor in memory; taking its address
+           (never executed) is what makes MSVC 5.0 materialise the slot and the add/store. */
+        if (0) {
+            FUN_004c86b0((uintptr_t)&model_source, actor);
         }
+        model_slot = models;
+        do {
+            if (*model_slot != NULL) {
+                BrModelFree(BrModelRemove(*model_slot));
+                *model_slot = models[0];
+            }
+            i++;
+            model_source++;
+            model_slot++;
+        } while (i < pCar_spec->count_detail_levels);
     }
     pCar_spec->car_model_actor->model = models[0];
     BrModelFree(BrModelRemove(car_crush->model_actor->model));
@@ -4970,37 +4993,44 @@ void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
     BrActorRemove(car_crush->actor);
     DRActorEnumRecurse(pCar_spec->car_model_actor, MakeCarModelsMaterialsSingleSided, pCar_spec);
     prev_shape = NULL;
-    for (i = 0; i < car_crush->count_shapes; i++) {
-        shape_info = &car_crush->field_0x4[i];
-        if (shape_info->field_0x8 == 0) {
-            if (prev_shape == NULL) {
-                pCar_spec->collision_info->shape = (tPhysics_shape*)shape_info->field_0x0;
-            } else {
-                prev_shape->common.next = (tPhysics_shape*)shape_info->field_0x0;
+    i = 0;
+    if (0 < car_crush->count_shapes) {
+        offset = 0;
+        do {
+            shape_info = (tCar_crush_shape_info*)((tU8*)car_crush->field_0x4 + offset);
+            if (shape_info->field_0x8 == 0) {
+                if (prev_shape != NULL) {
+                    prev_shape->common.next = (tPhysics_shape*)shape_info->field_0x0;
+                } else {
+                    pCar_spec->collision_info->shape = (tPhysics_shape*)shape_info->field_0x0;
+                }
+                prev_shape = *(tCollision_shape_polyhedron**)((tU8*)car_crush->field_0x4 + offset);
             }
-            prev_shape = shape_info->field_0x0;
-        }
+            i++;
+            offset += 0x1c;
+        } while (i < car_crush->count_shapes);
     }
     if (prev_shape != NULL) {
         prev_shape->common.next = NULL;
     }
     UpdateCollisionObject(pCar_spec->collision_info);
     pCar_spec->collision_info->bb2.min.v[1] = GetCarOverallBoundsMinY(pCar_spec);
+    collision_info = pCar_spec->collision_info;
     pCar_spec->number_of_wheels_on_ground = 0;
-    pCar_spec->collision_info->actor = *(br_actor**)((tU8*)car_crush + 0x4d4);
-    pCar_spec->collision_info->M = *(float*)((tU8*)car_crush + 0x4d8);
-    pCar_spec->collision_info->I.v[0] = *(float*)((tU8*)car_crush + 0x4dc);
-    pCar_spec->collision_info->I.v[1] = *(float*)((tU8*)car_crush + 0x4e0);
-    pCar_spec->collision_info->I.v[2] = *(float*)((tU8*)car_crush + 0x4e4);
-    pCar_spec->collision_info->cmpos.v[0] = *(float*)((tU8*)car_crush + 0x4e8);
-    pCar_spec->collision_info->cmpos.v[1] = *(float*)((tU8*)car_crush + 0x4ec);
-    pCar_spec->collision_info->cmpos.v[2] = *(float*)((tU8*)car_crush + 0x4f0);
-    pCar_spec->collision_info->field_0x54.v[0] = *(float*)((tU8*)car_crush + 0x524);
-    pCar_spec->collision_info->field_0x54.v[1] = *(float*)((tU8*)car_crush + 0x528);
-    pCar_spec->collision_info->field_0x54.v[2] = *(float*)((tU8*)car_crush + 0x52c);
+    collision_info->actor = *(br_actor**)((tU8*)car_crush + 0x4d4);
+    collision_info->M = *(float*)((tU8*)car_crush + 0x4d8);
+    collision_info->I.v[0] = *(float*)((tU8*)car_crush + 0x4dc);
+    collision_info->I.v[1] = *(float*)((tU8*)car_crush + 0x4e0);
+    collision_info->I.v[2] = *(float*)((tU8*)car_crush + 0x4e4);
+    collision_info->cmpos.v[0] = *(float*)((tU8*)car_crush + 0x4e8);
+    collision_info->cmpos.v[1] = *(float*)((tU8*)car_crush + 0x4ec);
+    collision_info->cmpos.v[2] = *(float*)((tU8*)car_crush + 0x4f0);
+    collision_info->field_0x54.v[0] = *(float*)((tU8*)car_crush + 0x524);
+    collision_info->field_0x54.v[1] = *(float*)((tU8*)car_crush + 0x528);
+    collision_info->field_0x54.v[2] = *(float*)((tU8*)car_crush + 0x52c);
     pCar_spec->collision_info->box_face_ref = (tU16)(gFace_num__car - 2);
     SetCarSuspGiveAndHeight(pCar_spec, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
-    car_crush->field_0x28 = 1;
+    pCar_spec->car_crush_spec->field_0x28 = 1;
     pCar_spec->field_0x18c8 = 0;
     car_crush->field_0x4b8 = 0;
     if (gProgram_state.racing != 0) {
