@@ -3483,6 +3483,7 @@ tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_ty
     }
 }
 
+// PARTIAL 87.38%: entry store order/edi mov, record_ptr ecx caching, a few reg choices
 // FUNCTION: CARMA2_HW 0x00403990
 void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time) {
     tU32 time;
