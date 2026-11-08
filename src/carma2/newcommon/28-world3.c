@@ -2702,6 +2702,10 @@ void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pA
     }
 }
 
+// PARTIAL 100% effective (not exact, 2026-11-08): only residual is a 3-instruction register-role swap in the model
+// comparison - original loads spec->trigger_object.model into ecx and pActor->model into eax (the running base dies
+// there); MSVC 11 reuses eax as the load destination and puts pActor->model in ecx. Operand order (each way), nested
+// ifs and the short-circuit form all compile identically. 94.05 -> effective came from the guard + do/while loop shape.
 // FUNCTION: CARMA2_HW 0x004f5cb0
 void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
     extern int gCount_track_smashable_environment_specs;
@@ -2713,36 +2717,42 @@ void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
     if (pActor->model == NULL || pActor->model->identifier == NULL) {
         return;
     }
-    for (i = 0, spec = gTrack_smashable_environment_specs; i < gCount_track_smashable_environment_specs; i++, spec++) {
-        if (spec->trigger_type == kSmashableTrigger_Model && pActor->model == spec->trigger_object.model) {
-            char s[64];
-            char s2[64];
-            int len;
+    i = 0;
+    if (i < gCount_track_smashable_environment_specs) {
+        spec = gTrack_smashable_environment_specs;
+        do {
+            if (spec->trigger_type == kSmashableTrigger_Model && spec->trigger_object.model == pActor->model) {
+                char s[64];
+                char s2[64];
+                int len;
 
-            strcpy(s, pActor->identifier);
-            len = strlen(s);
-            if (len < 4) {
-                sprintf(s, "Smash material %s has a name that is less than 4 characters long", pActor->identifier);
-                PDFatalError(s);
-            }
-            strcpy(s2, &s[len - 4]);
-            sprintf(&s[len - 4], "        ");
-            sprintf(&s[5], "%cx", '|');
-            s[6] = i + 1;
-            strcat(s, s2);
-            s[11] = '\0';
-            if (strlen(pActor->identifier) < 12) {
-                BrResFree(pActor->identifier);
-                pActor->identifier = BrResStrDup(pActor, s);
-            } else {
-                strcpy(pActor->identifier, s);
-            }
+                strcpy(s, pActor->identifier);
+                len = strlen(s);
+                if (len < 4) {
+                    sprintf(s, "Smash material %s has a name that is less than 4 characters long", pActor->identifier);
+                    PDFatalError(s);
+                }
+                strcpy(s2, &s[len - 4]);
+                sprintf(&s[len - 4], "        ");
+                sprintf(&s[5], "%cx", '|');
+                s[6] = i + 1;
+                strcat(s, s2);
+                s[11] = '\0';
+                if (strlen(pActor->identifier) < 12) {
+                    BrResFree(pActor->identifier);
+                    pActor->identifier = BrResStrDup(pActor, s);
+                } else {
+                    strcpy(pActor->identifier, s);
+                }
 
-            if ((gCurrent_race.race_spec->race_type >= 4 && *(tU16*)((char*)spec + 0x2ac) == gCurrent_race.race_spec->options.cars.count_opponents)
-                    || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_2 && *(tU16*)((char*)spec + 0x2ac) == 1)) {
-                AddSmashTarget(pActor->model, pActor, -1);
+                if ((gCurrent_race.race_spec->race_type >= 4 && *(tU16*)((char*)spec + 0x2ac) == gCurrent_race.race_spec->options.cars.count_opponents)
+                        || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_2 && *(tU16*)((char*)spec + 0x2ac) == 1)) {
+                    AddSmashTarget(pActor->model, pActor, -1);
+                }
             }
-        }
+            i++;
+            spec++;
+        } while (i < gCount_track_smashable_environment_specs);
     }
 }
 
