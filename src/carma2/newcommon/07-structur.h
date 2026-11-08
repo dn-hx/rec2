@@ -32,11 +32,8 @@ extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_ov
 
 extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
-// DoLogos
-
-// DoProgOpeningAnimation
-
-// DoProgramDemo
+/* DoLogos, DoProgOpeningAnimation, DoProgramDemo: inlined into DoProgram by the original compiler, no standalone
+   address (see 07-structur.c) */
 
 extern int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness);
 

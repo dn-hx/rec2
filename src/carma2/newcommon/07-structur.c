@@ -397,11 +397,10 @@ void C2_HOOK_FASTCALL TotalRepair(void) {
     NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_instant_repair));
 }
 
-// DoLogos
-
-// DoProgOpeningAnimation
-
-// DoProgramDemo
+/* DoLogos (inlined into DoProgram by the original compiler: the logo sequence's only call sites are the two
+   DoSCILogo/DoOpeningAnimation/DoStainlessLogo triples at 0x503d00 and 0x503d7c, both inside DoProgram 0x503c50) */
+/* DoProgOpeningAnimation (inlined into DoProgram by the original compiler, same call sites) */
+/* DoProgramDemo (inlined into DoProgram by the original compiler, same call sites) */
 
 // FUNCTION: CARMA2_HW 0x00503b00
 // FUNCTION: CARMA2_SW 0x004ff450
