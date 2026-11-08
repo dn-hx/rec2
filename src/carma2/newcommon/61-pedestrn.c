@@ -566,11 +566,12 @@ tPed_face_cache_0x50* gPed_face_cache;
 // GLOBAL: CARMA2_HW 0x00694458
 br_pixelmap* gProx_ray_shade_table;
 
+/* explicit initializers keep gPed_slick at gProximity_rays + 0xf8 (loop-end compare in DoPedAnnihilator) */
 // GLOBAL: CARMA2_HW 0x0069411c
-float gGiblet_scrape_start;
+float gGiblet_scrape_start = 0.f;
 
 // GLOBAL: CARMA2_HW 0x00694238
-tSlick_spec gPed_slick;
+tSlick_spec gPed_slick = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00694274
 tPed_giblet_size_spec* gGiblet_sizes;
@@ -1416,14 +1417,14 @@ int C2_HOOK_FASTCALL DoPedAnnihilator(tPedestrian* pPed, tCar_spec* pCar, float 
         KillPedestrian(pPed, pCar->collision_info);
         SetPedMove(pPed, 0x71, -1, 0, 1, pArg4, ePed_action_dead);
     }
-    i = 0;
-    while (gProximity_rays[i].start_time != 0) {
-        i++;
-        /* original compares the walk pointer with the address just past the table */
-        if ((tU32*)&gProximity_rays[i].start_time >= (tU32*)&gPed_slick) {
-            return 0;
+    for (i = 0; i < (int)REC2_ASIZE(gProximity_rays); i++) {
+        if (gProximity_rays[i].start_time == 0) {
+            goto found;
         }
     }
+    /* table full: the walk ran off the end of gProximity_rays */
+    return 0;
+found:
     gProximity_rays[i].start_time = GetTotalTime();
     gProximity_rays[i].car = pCar;
     gProximity_rays[i].ped = pPed;
