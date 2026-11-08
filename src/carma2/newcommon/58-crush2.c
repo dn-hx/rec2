@@ -232,6 +232,7 @@ void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity) {
 // the block-scope `delta` temp in the axis accumulation and the tail statement
 // `*total_displacement = displacement + *total_displacement;`, verifies at 100% (re-checked after the
 // FUN_0043fb70 work). The original is at 0x0043b2e0.
+// PARTIAL 85.42%: FUN_0043b2e0 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
 // FUNCTION: CARMA2_HW 0x0043b2e0
 intptr_t C2_HOOK_CDECL FUN_0043b2e0(br_actor* pActor, tCrush_displacement_context_local* pContext) {
     extern br_scalar gCrushZero;
