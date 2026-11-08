@@ -30,6 +30,8 @@ extern void C2_HOOK_FASTCALL TotalRepair(void);
 
 extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
 
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+
 // DoLogos
 
 // DoProgOpeningAnimation
