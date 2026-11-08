@@ -99,7 +99,7 @@ br_error C2_HOOK_CDECL HostSelectorBaseQuery(br_uint_32 *basep, br_uint_16 sel) 
     return 0x1002;
 }
 
-// FUNCTION: CARMA2_HW 0x00053fd80
+// FUNCTION: CARMA2_HW 0x0053fd80
 br_error C2_HOOK_CDECL HostSelectorLimitQuery(br_uint_32 *limitp, br_uint_16 sel) {
     return 0x1002;
 }
