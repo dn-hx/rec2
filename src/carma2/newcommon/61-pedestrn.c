@@ -1189,8 +1189,6 @@ static void C2_HOOK_FASTCALL SetPedHeadAnim(tPedestrian* pPed, const tPed_anim_s
 
 // SetKnockedOverMove
 
-// DoPostElectricution
-
 // CBMoveCompleted
 
 // FUNCTION: CARMA2_HW 0x004cc900
@@ -1725,9 +1723,55 @@ void C2_HOOK_FASTCALL OneLessPed(tPedestrian* pPed) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-/* temporary placeholder, address not identified yet */
+// FUNCTION: CARMA2_HW 0x004cc6e0
 void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2) {
-    NOT_IMPLEMENTED();
+    extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
+    extern tU32 gPHIL_last_physics_tick;
+    tPhysics_object* physics;
+    tPed_character_instance* character;
+    int bone_index;
+    int pose;
+    int index;
+
+    if (pPed->hit_points > 0) {
+        SetPedMove(pPed, 0x5d, -1, 0, 0, pTime, ePed_action_impacting);
+        if (pPed->hit_points > 0 && pPed->field_0x0c != NULL) {
+            pPed->field_0x0c->field_0x1c = (const tPed_anim_seq*)gPed_anim_sequence_0065e4e0;
+            pPed->field_0x0c->field_0x78 = pTime;
+            pPed->field_0x0c->field_0x1a = 0;
+            character = pPed->character;
+            pose = pPed->field_0x0c->field_0x1c->poses[0];
+            bone_index = character->personality->form->index_head_bone;
+            if (character->field_0x4 >= 0) {
+                if (bone_index < 0) {
+                    PipeSinglePedModelChange(character->ped, bone_index, NULL, -1, GetCharacterModelSet(character), 0);
+                    SetCharacterAllBonesModel(character, pose, 0);
+                } else {
+                    PipeSinglePedModelChange(character->ped, bone_index, GetCharacterBoneModel(character, bone_index), pose, GetCharacterModelSet(character), 0);
+                    SetCharacterBoneModel(character, bone_index, pose, 0);
+                }
+            }
+        }
+    } else {
+        SetPedMove(pPed, 0x5e, -1, 0, 0, pTime, ePed_action_impacting);
+    }
+    if ((pPed->character->field_0x14 & 4) == 0) {
+        SetCharacterPhysicsLevelAR(pPed->character, 5);
+    }
+    index = pPed->character->field_0x5;
+    physics = pPed->character->personality->form->simple_physicing[index].collision_info;
+    if (physics != NULL) {
+        pF1 = pF1 * 0.7;
+        physics->v.v[0] = SRandomPosNeg(pF1);
+        physics->v.v[1] = SRandomBetween(0, pF1);
+        physics->v.v[2] = SRandomPosNeg(pF1);
+        pF1 = pF2 * 4.0;
+        physics->omega.v[0] = SRandomPosNeg(pF1);
+        physics->omega.v[1] = SRandomPosNeg(pF1);
+        physics->omega.v[2] = SRandomPosNeg(pF1);
+        physics->disable_move_rotate = 0;
+        physics->field_0x49c = gPHIL_last_physics_tick + 0x28;
+    }
 }
 /* AcceleratePed: no standalone symbol in the original (inlined into MungePedestrians);
    runtime-faithful body at the TU end. A body here flips DisposePedPersonality 0x4077f0. */

@@ -132,7 +132,7 @@ extern void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int 
 
 // SetKnockedOverMove
 
-// DoPostElectricution
+extern void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2);
 
 // CBMoveCompleted
 
