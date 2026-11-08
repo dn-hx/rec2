@@ -31,12 +31,13 @@ extern tU8* gPipe_buffer_oldest;
 extern tU8* gPipe_record_ptr;
 extern tU32 gPipe_sound_start_time;
 extern tU32 gPipe_sound_time_window;
+extern int gDisable_advance;
 
 // ARReplayForwards
 
 extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 
-// ARReplayPauseState
+extern int C2_HOOK_FASTCALL ARReplayPauseState(void);
 
 extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
 
@@ -50,7 +51,7 @@ extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 // ARInitialise
 
-// ARDispose
+extern void C2_HOOK_FASTCALL ARDispose(void);
 
 extern int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType);
 
@@ -62,7 +63,7 @@ extern tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_session* pSession);
 
 // ARPipeSearchForwards
 
-// ARIsActionReplayAvailable
+extern int C2_HOOK_FASTCALL ARIsActionReplayAvailable(void);
 
 extern int C2_HOOK_FASTCALL ARSomeReplayLeft(void);
 
@@ -112,9 +113,9 @@ extern int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime);
 
 extern tU32 C2_HOOK_FASTCALL ARGetStartTime(void);
 
-// ARDisableAdvance
+extern void C2_HOOK_FASTCALL ARDisableAdvance(void);
 
-// AREnableAdvance
+extern void C2_HOOK_FASTCALL AREnableAdvance(void);
 
 // FindNextChunk
 
@@ -196,11 +197,9 @@ extern void C2_HOOK_FASTCALL AddFlapToPipingSession(br_actor* pActor, br_angle p
 
 // AddModelMashToPipingSession
 
-// AddRepulseRayToPipingSession
+extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime);
 
-// AddNapalmBoltToPipingSession
-
-extern void C2_HOOK_FASTCALL AddBurningPedToSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
+extern void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
 // PipeSingleCrush
 
@@ -226,6 +225,8 @@ extern void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType);
 
 extern void C2_HOOK_FASTCALL PipeSingleWallIncident(float pSeverity, br_vector3* pImpact_point);
 
+extern void C2_HOOK_FASTCALL PipeSingleProxRay(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
+
 extern void C2_HOOK_FASTCALL PipeSingleSkidAdjustment(int pSkid_num, br_matrix34* pMatrix, br_material* pMaterial);
 
 extern void C2_HOOK_FASTCALL PipeSingleFlap(br_actor* pActor, br_angle pAngle);
@@ -249,6 +250,8 @@ extern void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_mod
 extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(int pIndex);
 
 extern void C2_HOOK_FASTCALL PipeSingleSmashTextureChange(tCar_spec* pCar_spec, br_material* pMaterial, br_pixelmap* pTexture);
+
+extern void C2_HOOK_FASTCALL PipeSingleRepulseRay(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime);
 
 // PipeSinglePedStatus
 
@@ -284,11 +287,13 @@ extern void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pP
 
 extern void C2_HOOK_FASTCALL PipeSingleDSModel(int pDouble_sided, void* pThing);
 
+extern void C2_HOOK_FASTCALL PipeSinglePedDiagnostic(tPedestrian* pPed);
+
 extern void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pValue);
 
 extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
 
-// PipeSingleDroneCornerPos
+extern void C2_HOOK_FASTCALL PipeSingleDroneCornerPos(tDrone_spec* pDrone, tU16 pField_0x48, tU16 pField_0x74, tU16 pRadius, tCompressed_matrix34* pMat);
 
 extern void C2_HOOK_FASTCALL PipeSingleDroneStraightPos(tDrone_spec* pDrone, tDrone_path_node_section* pSection, tU16 pSpeed, tU16 pDistance);
 
@@ -340,13 +345,13 @@ extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
 // ApplySpecial
 
-// ApplyProxRay
+extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
 // ApplySkidAdjustment
 
-// ApplyFlap
+extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
-// ApplyModelMash
+extern void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk);
 
 // ApplyRelink
 
@@ -374,13 +379,13 @@ extern void C2_HOOK_FASTCALL ApplySmashDecal(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
-// ApplyRepulseRay
+extern void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk);
 
 // ApplyActorTrans
 
 // ApplyPedStatus
 
-// ApplyPedDir
+extern void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk);
 
 // ApplyPedMove
 
@@ -394,7 +399,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 // ApplyPedModelChange
 
-// ApplyPHILObject
+extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
 // ApplyGibShower
 
@@ -402,13 +407,13 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
-// ApplyPowerupGot
+extern void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk);
 
-// ApplyPowerupLose
+extern void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk);
 
-// ApplyFunkEnable
+extern void C2_HOOK_FASTCALL ApplyFunkEnable(tPipe_chunk** pChunk);
 
-// ApplyVanishDismembered
+extern void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk);
 
 // ApplyDSModel
 
@@ -424,13 +429,13 @@ extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk);
 
-// ApplyNapalmBolt
+extern void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk);
 
-// ApplyShitMine
+extern void C2_HOOK_FASTCALL ApplyShitMine(tPipe_chunk** pChunk);
 
-// ApplyEndShitMine
+extern void C2_HOOK_FASTCALL ApplyEndShitMine(tPipe_chunk** pChunk);
 
 // ApplyTransformType
 
@@ -454,7 +459,7 @@ extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoFlap
 
-// UndoModelMash
+extern void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoRelink
 
@@ -496,23 +501,23 @@ extern void C2_HOOK_FASTCALL UndoPedDismember(tPipe_chunk** pChunk, tPipe_chunk*
 
 extern void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoPowerupGot
+extern void C2_HOOK_FASTCALL UndoPowerupGot(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoPowerupLose
+extern void C2_HOOK_FASTCALL UndoPowerupLose(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoFunkEnable
+extern void C2_HOOK_FASTCALL UndoFunkEnable(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoVanishDismembered
+extern void C2_HOOK_FASTCALL UndoVanishDismembered(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoVector3(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoNapalmBolt
+extern void C2_HOOK_FASTCALL UndoNapalmBolt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoPowerupRespawn(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoShitMine
+extern void C2_HOOK_FASTCALL UndoShitMine(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoEndShitMine
+extern void C2_HOOK_FASTCALL UndoEndShitMine(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoTransformType(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
