@@ -6089,9 +6089,144 @@ int C2_HOOK_FASTCALL FUN_004c3b60(br_scalar* pMatrix, br_scalar* pRhs, br_scalar
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004bc190
+// PARTIAL 87.32%: x87 schedule only - MSVC canonicalises the operand order of the dot/cross sums
+// (it follows local declaration order, not source order) and picks different CSE temp slots in the
+// omega/rotate_omega length test. Control flow, frame (0xa0) and integer code match.
+// FUNCTION: CARMA2_HW 0x004bc190
 void C2_HOOK_FASTCALL FUN_004bc190(tPhysics_joint_force** pRecords, br_scalar* pImpulses, int pCount, tWorld_callbacks* pWorld_callbacks) {
-    NOT_IMPLEMENTED();
+    extern void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale);
+    int i;
+    int j;
+    tPhysics_object* obj;
+    tPhysics_joint_force* rec;
+    tPhysics_object* other;
+    br_scalar limit;
+    br_scalar len;
+    br_scalar omega_len;
+    br_vector3 imp;
+    br_vector3 dir;
+    br_vector3 impulse;
+    br_vector3 rotated;
+    br_vector3 axis;
+    br_matrix34 rotation;
+
+    for (i = 0; i < pCount; ) {
+        obj = pRecords[i]->object_a;
+        if (obj->child != NULL) {
+            for (j = i; j < pCount; ) {
+                rec = pRecords[j];
+                if (rec->object_b == obj && BrVector3LengthSquared(&obj->rotate_omega) < BrVector3LengthSquared(&obj->omega)) {
+                    other = rec->object_a;
+                    imp.v[2] = pImpulses[i + 2];
+                    imp.v[1] = pImpulses[i + 1];
+                    imp.v[0] = pImpulses[i];
+                    dir.v[0] = obj->physics_joint1->field_0x08.v[0] - other->physics_joint1->field_0x14.v[0];
+                    dir.v[1] = obj->physics_joint1->field_0x08.v[1] - other->physics_joint1->field_0x14.v[1];
+                    dir.v[2] = obj->physics_joint1->field_0x08.v[2] - other->physics_joint1->field_0x14.v[2];
+                    len = BrVector3Length(&dir);
+                    dir.v[0] = dir.v[0] / len;
+                    dir.v[1] = dir.v[1] / len;
+                    dir.v[2] = dir.v[2] / len;
+                    limit = obj->M * 0.5;
+                    if (imp.v[0] * dir.v[0] + imp.v[1] * dir.v[1] + imp.v[2] * dir.v[2] >= limit
+                        && BrVector3Dot(&pRecords[j]->direction_b, &dir) * pImpulses[j] + BrVector3Dot(&pRecords[j + 1]->direction_b, &dir) * pImpulses[j + 1] + BrVector3Dot(&pRecords[j + 2]->direction_b, &dir) * pImpulses[j + 2] >= limit) {
+                        omega_len = BrVector3Length(&obj->omega);
+                        axis.v[0] = obj->omega.v[0] / omega_len;
+                        axis.v[1] = obj->omega.v[1] / omega_len;
+                        axis.v[2] = obj->omega.v[2] / omega_len;
+                        BrMatrix34Rotate(&rotation, BrRadianToAngle(omega_len * 0.04f), &axis);
+                        BrMatrix34ApplyV(&rotated, &dir, &rotation);
+                        impulse.v[0] = pImpulses[i];
+                        impulse.v[1] = pImpulses[i + 1];
+                        impulse.v[2] = pImpulses[i + 2];
+                        BrVector3Normalise(&impulse, &impulse);
+                        if ((dir.v[1] * impulse.v[2] - dir.v[2] * impulse.v[1]) * (rotated.v[1] * impulse.v[2] - rotated.v[2] * impulse.v[1]) + (dir.v[2] * impulse.v[0] - dir.v[0] * impulse.v[2]) * (rotated.v[2] * impulse.v[0] - rotated.v[0] * impulse.v[2]) + (dir.v[0] * impulse.v[1] - dir.v[1] * impulse.v[0]) * (rotated.v[0] * impulse.v[1] - rotated.v[1] * impulse.v[0]) < gFLOAT_0058a768) {
+                            BrVector3Scale(&obj->omega, &obj->omega, 0.1f);
+                            FUN_004bc8e0(obj, 25.0f);
+                        }
+                    }
+                }
+                rec = pRecords[j];
+                if (rec->object_a->physics_joint1 != NULL) {
+                    switch (rec->object_a->physics_joint1->type) {
+                    case eJoint_hinge:
+                        j += 5;
+                        break;
+                    case eJoint_universal:
+                        j += 4;
+                        break;
+                    case eJoint_ball_n_socket:
+                        j += 3;
+                        break;
+                    case eJoint_quick_hinge:
+                        j += 2;
+                        break;
+                    default:
+                        PhysicsError(ePhysicsError_UnknownHingeType, "");
+                        break;
+                    }
+                }
+                if (rec->object_a->physics_joint2 != NULL) {
+                    switch (rec->object_a->physics_joint2->type) {
+                    case eJoint_hinge:
+                        j += 5;
+                        break;
+                    case eJoint_universal:
+                        j += 4;
+                        break;
+                    case eJoint_ball_n_socket:
+                        j += 3;
+                        break;
+                    case eJoint_translation:
+                        j += 2;
+                        break;
+                    default:
+                        PhysicsError(ePhysicsError_UnknownHingeType, "");
+                        break;
+                    }
+                }
+            }
+        }
+        rec = pRecords[i];
+        if (rec->object_a->physics_joint1 != NULL) {
+            switch (rec->object_a->physics_joint1->type) {
+            case eJoint_hinge:
+                i += 5;
+                break;
+            case eJoint_universal:
+                i += 4;
+                break;
+            case eJoint_ball_n_socket:
+                i += 3;
+                break;
+            case eJoint_quick_hinge:
+                i += 2;
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, "");
+                break;
+            }
+        }
+        if (rec->object_a->physics_joint2 != NULL) {
+            switch (rec->object_a->physics_joint2->type) {
+            case eJoint_hinge:
+                i += 5;
+                break;
+            case eJoint_universal:
+                i += 4;
+                break;
+            case eJoint_ball_n_socket:
+                i += 3;
+                break;
+            case eJoint_translation:
+                i += 2;
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, "");
+                break;
+            }
+        }
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -6942,14 +7077,21 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
     br_scalar t2;
     br_vector3 direction;
     br_vector3 hit;
-    br_scalar t;
-    br_vector3 points2[3];
+    typedef struct {
+        br_scalar t;
+        undefined field_0x4[0x10];
+        br_vector3 point;
+        br_vector3 vector;
+        br_vector3 normal;
+        br_vector3 field_0x38;
+    } tEdge_edge_hit;
+    tEdge_edge_hit hit_rec;
     tU8 edge_ids[64];
     br_vector3 points[64];
     br_vector3 diffs[64];
     int j;
 
-    t = 2.f;
+    hit_rec.t = 2.f;
     switch (pShape1->common.type) {
     case kCollisionShapeType_Box:
         edges1 = gBox_edge_indexes;
@@ -7050,11 +7192,11 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
         direction.v[1] = pVertices1[edges1->index1 * 2 + 1].v[1] - pVertices1[edges1->index1 * 2].v[1];
         direction.v[2] = pVertices1[edges1->index1 * 2 + 1].v[2] - pVertices1[edges1->index1 * 2].v[2];
         for (j = 0; j < record_count; j++) {
-            if (FUN_00424990(&points[j], &diffs[j], &pVertices1[edges1->index1 * 2], &delta, &direction, &diff, &t, NULL, pObject1, pObject2) != 0) {
+            if (FUN_00424990(&points[j], &diffs[j], &pVertices1[edges1->index1 * 2], &delta, &direction, &diff, &hit_rec.t, NULL, pObject1, pObject2) != 0) {
                 if (ShapeRayCast(&pVertices1[edges1->index1 * 2], &pVertices1[edges1->index2 * 2], pShape2, &hit, &t2, NULL) == 0) {
                     if (ShapeRayCast(&pVertices2[edges2[edge_ids[j]].index1 * 2], &pVertices2[edges2[edge_ids[j]].index2 * 2], pShape1, &hit, &t2, NULL) == 0) {
-                        pRecord_count = AddObjectObjectForce(pRecords, &points2[0], t, &points2[1], &points2[2], pRecord_count, pObject1, pObject2, 6, NULL, 0.f);
-                        t = 2.f;
+                        pRecord_count = AddObjectObjectForce(pRecords, &hit_rec.point, hit_rec.t, &hit_rec.vector, &hit_rec.normal, pRecord_count, pObject1, pObject2, 6, NULL, 0.f);
+                        hit_rec.t = 2.f;
                     }
                 }
             }

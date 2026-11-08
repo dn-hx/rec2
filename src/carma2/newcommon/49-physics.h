@@ -436,6 +436,7 @@ extern void C2_HOOK_FASTCALL FUN_004bf490(br_scalar* pMatrix, int pStride, tPhys
 extern int C2_HOOK_FASTCALL FUN_004c0430(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count);
 extern void C2_HOOK_FASTCALL FUN_004b77b0(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
 extern void C2_HOOK_FASTCALL FUN_004b7960(tPhysics_joint_force* pForce, br_scalar pImpulse);
+extern void C2_HOOK_FASTCALL FUN_004bc190(tPhysics_joint_force** pRecords, br_scalar* pImpulses, int pCount, tWorld_callbacks* pWorld_callbacks);
 extern void C2_HOOK_FASTCALL FUN_004b8ee0(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL FUN_004b8cf0(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL FUN_004be4b0(br_scalar* pOut1, br_scalar* pOut2, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
