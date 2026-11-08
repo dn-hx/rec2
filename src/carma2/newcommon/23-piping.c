@@ -1302,13 +1302,14 @@ int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefa
     tU32 i;
     tU32 time;
     tU8* the_chunk;
+    tU8* footer;
     tU16 previous_length;
     const tReplay_callback* callbacks;
     int forwards;
     int result;
 
     time = pDefault_time;
-    for (;;) {
+    do {
         callbacks = gPipe_callbacks;
         if (gPipe_play_ptr == gPipe_record_ptr) {
             forwards = 0;
@@ -1361,8 +1362,9 @@ int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefa
                 *pPtr = gPipe_buffer_working_end;
             }
             *pPtr -= sizeof(tU16);
-            memcpy(&previous_length, *pPtr, sizeof(previous_length));
-            *pPtr -= previous_length;
+            footer = *pPtr;
+            memcpy(&previous_length, footer, sizeof(previous_length));
+            *pPtr = footer - previous_length;
         }
         session = (tU32*)*pPtr;
         total = 0;
@@ -1396,10 +1398,8 @@ int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefa
                 return result;
             }
         }
-        if (pTime_check != NULL && ((tARScanBuffer_time_check*)pTime_check)(time) == 0) {
-            return 0;
-        }
-    }
+    } while (pTime_check == NULL || ((tARScanBuffer_time_check*)pTime_check)(time) != 0);
+    return 0;
 }
 
 #ifdef REC2_MATCHING
