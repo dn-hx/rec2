@@ -782,7 +782,7 @@ intptr_t C2_HOOK_CDECL InitPhysCrushDataCB(br_actor* actor, void* data) {
 
 // CalculateReferencePoints
 
-// PARTIAL 99.99%: InitModelCrushDataCB 0x0042be20 [x87 memory operand register order [ecx+edi] vs [edi+ecx]; effective match]
+// PARTIAL 97.46%: InitModelCrushDataCB 0x0042be20 [x87 memory operand register order [ecx+edi] vs [edi+ecx]; effective match]
 // FUNCTION: CARMA2_HW 0x0042be20
 intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* actor, void* data) {
     tUser_crush_data* user_crush_data;

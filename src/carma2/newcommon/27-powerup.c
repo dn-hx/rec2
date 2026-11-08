@@ -1237,7 +1237,7 @@ float gPissed_flicker_limit;
 // GLOBAL: CARMA2_HW 0x00705c74
 float gPissed_hold_time;
 
-// PARTIAL 99.99%: SetPissed 0x004df220 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
+// PARTIAL 97.18%: SetPissed 0x004df220 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
 // FUNCTION: CARMA2_HW 0x004df220
 int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
 
@@ -1283,7 +1283,7 @@ extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pPr
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern double C2_HOOK_CDECL fmod(double pX, double pY);
 
-// PARTIAL 99.99%: PissedEffect 0x004df3b0 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
+// PARTIAL 98.36%: PissedEffect 0x004df3b0 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
 // FUNCTION: CARMA2_HW 0x004df3b0
 void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
     tU32 now;
