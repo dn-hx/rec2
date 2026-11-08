@@ -1259,8 +1259,6 @@ void C2_HOOK_FASTCALL PipeCarPositions(void) {
 
 // DoOilSpillAR
 
-// CheckCar
-
 // FUNCTION: CARMA2_HW 0x004c6bc0
 int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
 
