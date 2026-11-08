@@ -1539,7 +1539,6 @@ void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
         DRS3StartSound(gEffects_outlet, eSoundId_FlaskGone);
     }
 }
-// CheckKevKeys
 
 // BrakeInstantly
 
@@ -2214,6 +2213,10 @@ extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
 #pragma auto_inline(off)
 #endif
 // (reference only)
+// PARTIAL 99.44%: body and codegen match; the only diff is the memory-indirect call at 0x443e51
+// (call dword ptr [ebx + gKev_keys[0].action_proc]). reccmp never resolves a call-through-table
+// operand to a symbol, so the two binaries' data addresses are compared as raw numbers
+// (documented reccmp limitation). Not source-controllable; keep as partial.
 // FUNCTION: CARMA2_HW 0x00443c90
 void C2_HOOK_FASTCALL CheckKevKeys(void) {
     int i;
