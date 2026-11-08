@@ -4176,6 +4176,8 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     tDecal* best_decal;
     tU32 oldest_time;
     br_uint_32 temp;
+    br_scalar dot;
+    br_scalar ny;
     int i;
     int swapped;
 
@@ -4207,7 +4209,9 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     for (i = 0; i < 2; i++) {
         br_face* face = &model->faces[i];
 
-        if (face->n.v[2] * pFace->normal.v[2] + face->n.v[0] * pFace->normal.v[0] + pFace->normal.v[1] * face->n.v[1] <= gFloat_0058aec0) {
+        dot = pFace->normal.v[1];
+        ny = face->n.v[1];
+        if (dot * ny + face->n.v[0] * pFace->normal.v[0] + face->n.v[2] * pFace->normal.v[2] <= gFloat_0058aec0) {
             temp = model->faces[i].vertices[0];
             model->faces[i].vertices[0] = model->faces[i].vertices[1];
             model->faces[i].vertices[1] = temp;
