@@ -1283,8 +1283,8 @@ extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pPr
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern double C2_HOOK_CDECL fmod(double pX, double pY);
 
-// FUNCTION: CARMA2_HW 0x004df3b0
 // PARTIAL 99.99%: PissedEffect 0x004df3b0 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
+// FUNCTION: CARMA2_HW 0x004df3b0
 void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
     tU32 now;
     float* pOut;
