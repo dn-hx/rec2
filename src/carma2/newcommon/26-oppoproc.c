@@ -590,6 +590,8 @@ static void C2_HOOK_FASTCALL SetCurvature(tCar_spec* pCar_spec, float pCurvature
     pCar_spec->curvature = pCurvature;
 }
 
+// PARTIAL 47.38%: layout of cornering/not-cornering blocks matches; residual: frame 0x118 vs 0x130, FollowCheatyPath
+//   is inlined in the original (inlining it here scored 35.98), car_spec spill in the prologue.
 // FUNCTION: CARMA2_HW 0x004af960
 tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle) {
     tFollow_path_data* data;
@@ -599,7 +601,6 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
     br_vector3 section_dir;
     br_vector3 section_v;
     br_vector3 goal_dir;
-    br_actor* car_master_actor;
     br_scalar stopped_speed;
     br_scalar t;
     br_scalar acc;
@@ -626,12 +627,12 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
     br_scalar unk2;
     br_scalar unk3;
     br_scalar curv;
+    double brake_time;
 
     car_spec = pOpponent_spec->car_spec;
     engine_damage = car_spec->damage_units[eDamage_engine].damage_level;
     trans_damage = car_spec->damage_units[eDamage_transmission].damage_level;
     data = &pOpponent_spec->follow_path_data;
-    car_master_actor = car_spec->car_master_actor;
 
     switch (pCommand) {
     case ePOC_start:
@@ -660,7 +661,7 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
         }
         if (!pIgnore_end && !data->made_it && gTime_stamp_for_this_munging > data->borrowed_time_start + 1000 && gTime_stamp_for_this_munging < data->borrowed_time_start + 10000) {
             BrVector3Sub(&section_dir, GetOpponentsSectionFinishNodePoint(pOpponent_spec, data->section_no), GetOpponentsSectionStartNodePoint(pOpponent_spec, data->section_no));
-            BrVector3Sub(&goal_dir, &car_master_actor->t.t.translate.t, GetOpponentsSectionStartNodePoint(pOpponent_spec, data->section_no));
+            BrVector3Sub(&goal_dir, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, GetOpponentsSectionStartNodePoint(pOpponent_spec, data->section_no));
             dist_along = BrVector3Dot(&section_dir, &goal_dir) / BrVector3LengthSquared(&section_dir);
             BrVector3Scale(&section_v, &section_dir, dist_along);
             BrVector3Sub(&wank, &goal_dir, &section_v);
@@ -729,37 +730,38 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
             car_spec->collision_info->v.v[0]);
         BrVector2Scale(&v2d, &v2d, WORLD_SCALE);
         speed = BrVector2Length(&v2d);
-        if (!data->cornering) {
+        if (data->cornering) {
+            if (BrVector2LengthSquared(&oppo_pos_rel_next) > REC2_SQR(data->field_0x4c)) {
+                data->cornering = 0;
+                data->section_no = data->corner_section;
+                if (data->section_no >= 20000) {
+                    GetStraight(&start2d, &finish2d, &width, data->section_no, pOpponent_spec);
+                }
+            } else {
+
+                count_corners = CalcCorners(corners, straight_section_no, width, &start2d, pOpponent_spec);
+                count_socs = CalcSOCs(corners[0].section, count_corners, corners, pOpponent_spec, socs, pOpponent_spec->car_spec);
+                if (80.f < corners[0].field_0x18) {
+                    data->desired_speed = 80.f;
+                } else {
+                    data->desired_speed = (float)corners[0].field_0x18;
+                }
+                SetMaxSpeedFromSOCs(socs, count_socs, &data->desired_speed, speed, &oppo_pos2d, &corners[0], pOpponent_spec);
+            }
+        } else {
             tS16 nearest_straight_section;
 
             count_corners = CalcCorners(corners, straight_section_no, width, &start2d, pOpponent_spec);
             nearest_straight_section = NearestSectionInStraight(&oppo_pos2d, &start2d, &finish2d, pOpponent_spec->follow_path_data.section_no, straight_section_no, pOpponent_spec);
             count_socs = CalcSOCs(nearest_straight_section, count_corners, corners, pOpponent_spec, socs, pOpponent_spec->car_spec);
-            if (count_corners != 0 && gFrame_period_for_this_munging * speed * .0005f > WORLD_SCALE * (BrVector2Length(&oppo_pos_rel_next) - corners[0].field_0x0c)) {
+            brake_time = gFrame_period_for_this_munging * speed * .0005f;
+            if (count_corners != 0 && brake_time > WORLD_SCALE * (BrVector2Length(&oppo_pos_rel_next) - corners[0].field_0x0c)) {
 
                 StuffDataFromCorner(data, &corners[0]);
                 pOpponent_spec->follow_path_data.corner_width = GetOpponentsSectionWidth(pOpponent_spec, corners[0].section);
             } else {
                 data->desired_speed = 80.f;
                 SetMaxSpeedFromSOCs(socs, count_socs, &data->desired_speed, speed, &oppo_pos2d, &corners[0], pOpponent_spec);
-            }
-        } else {
-            if (BrVector2LengthSquared(&oppo_pos_rel_next) <= REC2_SQR(data->field_0x4c)) {
-
-                count_corners = CalcCorners(corners, straight_section_no, width, &start2d, pOpponent_spec);
-                count_socs = CalcSOCs(corners[0].section, count_corners, corners, pOpponent_spec, socs, pOpponent_spec->car_spec);
-                if (corners[0].field_0x18 > 80.f) {
-                    data->desired_speed = 80.f;
-                } else {
-                    data->desired_speed = (float)corners[0].field_0x18;
-                }
-                SetMaxSpeedFromSOCs(socs, count_socs, &data->desired_speed, speed, &oppo_pos2d, &corners[0], pOpponent_spec);
-            } else {
-                data->cornering = 0;
-                data->section_no = data->corner_section;
-                if (data->section_no >= 20000) {
-                    GetStraight(&start2d, &finish2d, &width, data->section_no, pOpponent_spec);
-                }
             }
         }
         if (data->cornering) {
