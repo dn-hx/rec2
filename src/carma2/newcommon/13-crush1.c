@@ -5044,6 +5044,12 @@ void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
 extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
 extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pValue);
 
+// PARTIAL 96.41%: residual is instruction scheduling only -- in the BrMatrix34Translate
+// argument setup the original emits 'fchs; push ecx; fstp [esp]' where msvc500 emits
+// 'push ecx; fchs' (4 diff lines), and the BrMatrix34PostTranslate setup gets a rotated
+// temp-register assignment (index/vertex/v[k] in eax/ecx/edx vs edx/eax/ecx).
+// Verified with the local msvc500 oracle: fld-based negated pushes never come out as
+// fchs-then-push in this toolchain, so this is a scheduler artifact, not source shape.
 // FUNCTION: CARMA2_HW 0x00434010
 void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
     tUser_crush_data* user_crush_data;
@@ -5136,8 +5142,7 @@ void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor,
         BrMatrix34Translate(&pActor->t.t.mat, -vertex->p.v[0], -vertex->p.v[1], -vertex->p.v[2]);
         parent_user_crush_data = pParent_actor->user;
         parent_model = parent_user_crush_data->models[0];
-        vertex = &parent_model->vertices[flap_data->field_0xc];
-        BrMatrix34PostTranslate(&pActor->t.t.mat, vertex->p.v[0], vertex->p.v[1], vertex->p.v[2]);
+        BrMatrix34PostTranslate(&pActor->t.t.mat, (&parent_model->vertices[flap_data->field_0xc])->p.v[0], (&parent_model->vertices[flap_data->field_0xc])->p.v[1], (&parent_model->vertices[flap_data->field_0xc])->p.v[2]);
         PipeSingleFlap(pActor, -flap_data->field_0x4);
         flap_data->field_0x4 = 0;
         if (gCount_toggled_doors != 16) {
