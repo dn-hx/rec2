@@ -342,6 +342,7 @@ br_scalar C2_HOOK_CDECL BrMatrix34Inverse(br_matrix34* B, const br_matrix34* A) 
     return det;
 }
 
+// PARTIAL 95.59%: residual is 3 x87 operand picks in the A(3,0) row only - VC5 hoists A(1,0) into a register and uses A(2,0) as the fmul memory operand, the original hoists A(2,0) and uses A(1,0); every BR_MAC3 argument permutation compiles byte-identically and all split/temp forms cost 60+ lines, so the schedule is not source-steerable
 // FUNCTION: CARMA2_HW 0x00532eb0
 void C2_HOOK_CDECL BrMatrix34LPInverse(br_matrix34* A, const br_matrix34* B) {
 
