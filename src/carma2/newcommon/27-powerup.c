@@ -1284,6 +1284,7 @@ extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, 
 extern double C2_HOOK_CDECL fmod(double pX, double pY);
 
 // FUNCTION: CARMA2_HW 0x004df3b0
+// PARTIAL 99.99%: PissedEffect 0x004df3b0 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
 void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
     tU32 now;
     float* pOut;
@@ -1328,7 +1329,7 @@ void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
     } while ((int)pOut < (int)&gPissed_flicker_limit);
     if (GetTotalTime() > (tU32)gPissed_next_time) {
         DRS3StartSound2(gCar_outlet, PercentageChance(50) ? 0xe12 : 0xe13, 1, 0xff, 0xff, IRandomBetween(0xc000, 0x14000), -1);
-        gPissed_next_time = GetTotalTime() + IRandomBetween(0x5dc, 0xbb8);
+        gPissed_next_time = IRandomBetween(0x5dc, 0xbb8) + GetTotalTime();
     }
 }
 
