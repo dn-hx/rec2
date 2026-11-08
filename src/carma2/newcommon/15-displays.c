@@ -193,6 +193,10 @@ static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
     PFfclose(f);
 }
 
+// PARTIAL 100% effective match (2026-11-08, reccmp): only residual is the placement of the constant
+// `push 1` (BrModelUpdate flags) at the two BrModelUpdate(gTimer*HUD_model, BR_MODU_VERTEX_POSITIONS)
+// call sites (0x44934f, 0x449480): MSVC 11 hoists it a few bytes later than the original. An explicit
+// (br_uint_16) cast on the flag was measured and changed nothing; no behavioural difference.
 // FUNCTION: CARMA2_HW 0x00449090
 void C2_HOOK_FASTCALL InitHeadups(void) {
     int i;
