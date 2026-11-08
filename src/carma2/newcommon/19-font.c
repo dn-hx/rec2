@@ -341,12 +341,15 @@ void C2_HOOK_FASTCALL TransparentPolyFontTextInABox(int pFont, const char* pText
     }
 }
 
+// PARTIAL 98.68%: residual is three loop-sentinel operands (materials end 0x686480,
+// glyph-actor end = gPower_model 0x74cee0, FONTCOL end 0x7663d4). Each names whichever
+// global the linker happened to place after the array in that image, so the rendered
+// operand differs although the walks, counts and strides are identical.
 // FUNCTION: CARMA2_HW 0x00463d40
 void C2_HOOK_FASTCALL InitPolyFonts(void) {
     int i;
     tPath_name the_path;
     FILE* f;
-    br_actor* actor;
     int red, green, blue;
 
     C2_HOOK_BUG_ON(REC2_ASIZE(gPoly_font_materials) != 80);
@@ -371,18 +374,17 @@ void C2_HOOK_FASTCALL InitPolyFonts(void) {
     C2_HOOK_BUG_ON(REC2_ASIZE(gPolyfont_glyph_actors) != 256);
     for (i = 0; i < (int)REC2_ASIZE(gPolyfont_glyph_actors); i++) {
 
-        actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
-        gPolyfont_glyph_actors[i] = actor;
-        if (actor == NULL) {
+        gPolyfont_glyph_actors[i] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        if (gPolyfont_glyph_actors[i] == NULL) {
 #ifdef REC2_FIX_BUGS
             FatalError(kFatalError_OOM_S, "");
 #else
             FatalError(kFatalError_OOM_S);
 #endif
         }
-        actor->t.type = BR_TRANSFORM_TRANSLATION;
-        actor->identifier = "character_actor";
-        BrVector3Set(&actor->t.t.translate.t, 0.0f, 0.0f, 0.0f);
+        gPolyfont_glyph_actors[i]->t.type = BR_TRANSFORM_TRANSLATION;
+        BrVector3Set(&gPolyfont_glyph_actors[i]->t.t.translate.t, 0.0f, 0.0f, 0.0f);
+        gPolyfont_glyph_actors[i]->identifier = "character_actor";
     }
 
     PathCat(the_path, gApplication_path, "FontCol.TXT");
