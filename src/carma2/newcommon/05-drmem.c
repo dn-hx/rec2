@@ -322,6 +322,26 @@ void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle) {
 
 }
 
+// PARTIAL 28.57%: FUN_0044c860 0x0044c860 - register allocation (ps/ptr regs differ), page-touch loop
+// FUNCTION: CARMA2_HW 0x0044c860
+void C2_HOOK_FASTCALL FUN_0044c860(void* p, br_size_t size) {
+    br_size_t o;
+    br_size_t ps;
+
+    ps = gPage_size;
+    if (ps == 0) {
+        GetSystemInfo(&gSystem_info);
+        ps = gSystem_info.dwPageSize;
+        gPage_size = ps;
+    }
+    for (o = ps * 16; o < size; o += gPage_size) {
+        volatile br_uint_8 *ptr1 = (br_uint_8*)p + (o - 16 * ps);
+        volatile br_uint_8 *ptr2 = (br_uint_8*)p + o;
+        *ptr1 = *ptr1;
+        *ptr2 = *ptr2;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0044c8c0
 void* C2_HOOK_CDECL DRStdlibAllocate(br_size_t size, br_uint_8 type) {
     void* p;
