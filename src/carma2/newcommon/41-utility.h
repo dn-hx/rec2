@@ -221,14 +221,14 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_e
 extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
 extern void C2_HOOK_FASTCALL NobbleNonzeroBlacks(br_pixelmap* pPalette);
 extern int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial);
-extern void C2_HOOK_FASTCALL FUN_005162d0(br_vector4* pDst, const br_vector4* pSrc);
+extern void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc);
 extern br_actor* C2_HOOK_FASTCALL CreateBoundsActor(br_actor* pParent, const br_bounds* pBounds);
 extern void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor);
-extern void C2_HOOK_FASTCALL FUN_005192a0(br_uint_16* pPixel);
-extern void C2_HOOK_FASTCALL FUN_005192c0(tU16* pPixel);
-extern void C2_HOOK_FASTCALL FUN_00519400(br_pixelmap* pMap);
+extern void C2_HOOK_FASTCALL ConvertPixel565To555(br_uint_16* pPixel);
+extern void C2_HOOK_FASTCALL ConvertPixelRGBA4444ToARGB1555(tU16* pPixel);
+extern void C2_HOOK_FASTCALL ConvertPixelmapToARGB1555(br_pixelmap* pMap);
 extern intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData);
 extern void C2_HOOK_FASTCALL CycleJoystick(void);
-extern void C2_HOOK_FASTCALL FUN_0045c420(void);
+extern void C2_HOOK_FASTCALL SelectNextJoystick(void);
 
 #endif // GUARD_41_UTILITY_H
