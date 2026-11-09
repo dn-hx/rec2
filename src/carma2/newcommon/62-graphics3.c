@@ -1398,6 +1398,26 @@ void C2_HOOK_FASTCALL InitSmashTargets(void) {
     gCount_smashable_race_targets = 0;
 }
 
+// PARTIAL 82.19%: FUN_00497860 0x00497860 [expert] - extra pop/push frame offsets and reg for ID compare (eax vs ecx)
+// FUNCTION: CARMA2_HW 0x00497860
+void C2_HOOK_FASTCALL FUN_00497860(int* pA, int* pB) {
+    int i;
+    tNet_game_player_info* p;
+
+    if (gNet_mode != eNet_mode_none) {
+        p = gNet_players;
+        for (i = 0; i < gNumber_of_net_players; i++, p++) {
+            if (p->ID == (tPlayer_ID)pB[2]) {
+                *(int*)&gNet_players[i].field_0xd0 = pA[1];
+                if (gNet_players[i].ID == (tPlayer_ID)pA[1]) {
+                    *(int*)&gNet_players[i].car->collision_info->field_0x49c += 0x28;
+                }
+                return;
+            }
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004977f0
 void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown) {
     int index;
