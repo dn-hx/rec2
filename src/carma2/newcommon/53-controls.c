@@ -821,7 +821,7 @@ void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
         pCar_spec->oldd[i] = pCar_spec->ride_height;
     }
     pCar_spec->revs = 0.f;
-    pCar_spec->gear = 0.f;
+    pCar_spec->gear = 0;
     pCar_spec->collision_info->auto_special_volume = NULL;
     if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human) {
         InitialiseExternalCamera();
