@@ -2,7 +2,11 @@
 
 #include "rec2_types.h"
 #include "globvars.h"
+#include "globvrpb.h"
+#include "72-interface.h"
 #include "41-utility.h"
+#include "01-network.h"
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x006a0c74
 int gOur_starting_position;
@@ -40,4 +44,25 @@ int C2_HOOK_FASTCALL SortOpponents(void) {
 // DoGridPosition
 
 // ReceivedViewCar
+
+// FUNCTION: CARMA2_HW 0x004e2c30
+void C2_HOOK_CDECL FUN_004e2c30(void) {
+    int i;
+    tU32 total_time;
+
+    total_time = PDGetTotalTime();
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            tNet_game_player_info* player = &gNet_players[i];
+            if ((total_time - player->last_heard_from_him) > 20000) {
+                player->player_status = ePlayer_status_not_responding;
+            }
+        }
+    }
+    if ((gNet_mode == 3) && (gLast_host_query == 0)) {
+        tNet_message* msg = NetBuildGuaranteedMessage(0xe, 0);
+        NetGuaranteedSendMessageToHost(gCurrent_net_game, msg, (void*)0);
+        gLast_host_query = total_time;
+    }
+}
 
