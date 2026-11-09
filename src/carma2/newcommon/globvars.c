@@ -396,6 +396,9 @@ float gOpponent_speed_factor;
 br_vector3* gOur_pos;
 //float gCar_crush_max_fold;
 
+// GLOBAL: CARMA2_HW 0x00688b1c
+int gNet_storage_space_initialized;
+
 // GLOBAL: CARMA2_HW 0x00761f00
 tBrender_storage gNet_cars_storage_space;
 //float gNet_softness[7];

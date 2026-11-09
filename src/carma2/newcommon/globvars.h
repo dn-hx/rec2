@@ -159,6 +159,7 @@ extern float gOpponent_speed_factor;
 //extern float gCar_crush_softness;
 extern br_vector3* gOur_pos;
 //extern float gCar_crush_max_fold;
+extern int gNet_storage_space_initialized;
 extern tBrender_storage gNet_cars_storage_space;
 //extern float gNet_softness[7];
 //extern tS32 gJoystick_deadzone;

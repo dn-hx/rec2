@@ -15,6 +15,7 @@ extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
 #include "02-init.h"
 #include "10-loading2.h"
 #include "24-loadsave.h"
+#include "28-world3.h"
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
@@ -75,6 +76,17 @@ int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend) {
 // STUB: CARMA2_HW 0x00469320
 int C2_HOOK_FASTCALL FRONTEND_NetworkJoinMenuHandler(tFrontend_spec* pFrontend) {
     NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x00468750
+void C2_HOOK_FASTCALL InitNetStorageSpace(void) {
+    int i;
+
+    for (i = 0; i < kMax_netplayers; i++) {
+        gCurrent_race.opponent_list[i].car_spec = NULL;
+    }
+    gNet_storage_space_initialized = 1;
+    InitialiseStorageSpace(0, &gNet_cars_storage_space, 2000, 50, 2000, 2000, 50);
 }
 
 // SetOptions / ReadNetGameChoices / UpdateNetTrackScroller / UpdateNetGameTypeScroller
