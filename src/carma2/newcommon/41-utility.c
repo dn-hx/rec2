@@ -1921,7 +1921,7 @@ int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV) {
 
 
 // FUNCTION: CARMA2_HW 0x005162d0
-void C2_HOOK_FASTCALL FUN_005162d0(br_vector4* pDst, const br_vector4* pSrc) {
+void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc) {
     pDst->v[0] = -pSrc->v[0];
     pDst->v[1] = -pSrc->v[1];
     pDst->v[2] = -pSrc->v[2];
@@ -1963,18 +1963,18 @@ void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor) {
 }
 
 // FUNCTION: CARMA2_HW 0x005192a0
-void C2_HOOK_FASTCALL FUN_005192a0(br_uint_16* pPixel) {
+void C2_HOOK_FASTCALL ConvertPixel565To555(br_uint_16* pPixel) {
 
     *pPixel = ((*pPixel >> 1) & 0x7fe0) + (*pPixel & 0x1f);
 }
 
-// PARTIAL 65.00%: FUN_005192c0 - value is correct; the remaining diff is MSVC register allocation only:
+// PARTIAL 65.00%: ConvertPixelRGBA4444ToARGB1555 - value is correct; the remaining diff is MSVC register allocation only:
 // the original keeps (pixel & 0xf00) in edx and uses ebx for the byte-mask copy, ours keeps the
 // (pixel & 0xf0) term in edx and puts (pixel & 0xf00) in esi (push/pop esi). No C form found that
 // flips the allocator (single expression, swapped operands, explicit tU32 temp, two statements all
 // give the same allocation or worse).
 // FUNCTION: CARMA2_HW 0x005192c0
-void C2_HOOK_FASTCALL FUN_005192c0(tU16* pPixel) {
+void C2_HOOK_FASTCALL ConvertPixelRGBA4444ToARGB1555(tU16* pPixel) {
     tU16 pixel;
     tU16 converted;
 
@@ -1987,7 +1987,7 @@ void C2_HOOK_FASTCALL FUN_005192c0(tU16* pPixel) {
 }
 
 // FUNCTION: CARMA2_HW 0x00519400
-void C2_HOOK_FASTCALL FUN_00519400(br_pixelmap* pMap) {
+void C2_HOOK_FASTCALL ConvertPixelmapToARGB1555(br_pixelmap* pMap) {
     void (C2_HOOK_FASTCALL *convert_pixel)(br_uint_16*);
     br_uint_16* row;
     br_uint_16* pixel;
@@ -2001,7 +2001,7 @@ void C2_HOOK_FASTCALL FUN_00519400(br_pixelmap* pMap) {
     case 5:
         convert_pixel = NULL;
         if (pMap->type == 5) {
-            convert_pixel = FUN_005192a0;
+            convert_pixel = ConvertPixel565To555;
         }
         if (convert_pixel != NULL) {
             row = (br_uint_16*)pMap->pixels;
@@ -2148,16 +2148,16 @@ intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData) {
 // FUNCTION: CARMA2_HW 0x00511270
 void C2_HOOK_FASTCALL CycleJoystick(void) {
     extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
-    extern void C2_HOOK_FASTCALL FUN_0045c420(void);
+    extern void C2_HOOK_FASTCALL SelectNextJoystick(void);
     extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
 
     SaveJoystickPreferences();
-    FUN_0045c420();
+    SelectNextJoystick();
     LoadJoystickPreferences();
 }
 
 // FUNCTION: CARMA2_HW 0x0045c420
-void C2_HOOK_FASTCALL FUN_0045c420(void) {
+void C2_HOOK_FASTCALL SelectNextJoystick(void) {
     extern void C2_HOOK_FASTCALL FUN_00459a70(void);
     tButtonJoystickInfo* info;
 
