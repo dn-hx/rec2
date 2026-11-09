@@ -12,4 +12,6 @@ extern int C2_HOOK_FASTCALL SortOpponents(void);
 
 // ReceivedViewCar
 
+extern void C2_HOOK_CDECL FUN_004e2c30(void);
+
 #endif // GUARD_03_RACESTRT_H
