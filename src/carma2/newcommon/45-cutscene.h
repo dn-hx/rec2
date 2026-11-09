@@ -27,8 +27,8 @@ extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
 extern void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name);
 
 
-extern void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time);
-extern void C2_HOOK_FASTCALL FUN_004835d0(void);
+extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
+extern void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void);
 extern void C2_HOOK_FASTCALL DustRotate(void);
 extern void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void);
 
