@@ -2481,6 +2481,7 @@ void C2_HOOK_FASTCALL PhysicsObjectApplyTorque(tPhysics_object* pObject, const b
 static br_scalar stop_timer;
 static br_scalar slide_dist;
 
+// PARTIAL 33.58%: frame 0x1e4 matches (rt block-scoped), ts3 int; local offsets/x87 order differ
 // FUNCTION: CARMA2_HW 0x00418850
 void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     int i;
@@ -2494,14 +2495,13 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_scalar d[4];
     tFace_ref* collected[4];
     br_scalar dd[4];
-    br_scalar rt[4];
     br_scalar val[4];
     br_scalar best;
     br_scalar wheelratio;
     br_scalar k;
     br_scalar ts;
     br_scalar ts2;
-    br_scalar ts3;
+    int ts3;
     br_scalar ts4;
     br_scalar maxfl;
     br_scalar maxfr;
@@ -2528,14 +2528,12 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_vector3 b;
     br_vector3 f;
     br_vector3 B;
-    br_vector3 road_normal;
     br_vector3 v;
     br_vector3 tv;
     br_vector3 tmp;
     br_vector3 ray_dir;
     br_vector3 normal;
     br_vector3 nor2;
-    br_vector3 vplane;
     br_vector3 rightplane;
     br_vector3 a;
     br_vector3 v103;
@@ -2553,9 +2551,9 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     tFace_ref* pFace;
     br_matrix34* mat;
     tSpecial_volume* vol;
-    tMaterial_modifiers* mat_list;
     br_scalar* pd;
 
+#define road_normal (*(br_vector3*)(pCar->field_0x1348))
     B.v[0] = 0.f;
     B.v[1] = 0.f;
     B.v[2] = 0.f;
@@ -2600,6 +2598,8 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         BrVector3InvScale(&ray_pos[i], &wheel_pos[i], WORLD_SCALE);
     }
     BrVector3InvScale(&ray_dir, &tmp, WORLD_SCALE);
+    {
+    br_scalar rt[4];
     for (i = pCar->collision_info->box_face_start, pFace = &gFace_list__car[i];
             i < pCar->collision_info->box_face_end;
             i++, pFace++) {
@@ -2614,6 +2614,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
                 BrVector3Copy(&pCar->nor[j], &normal);
             }
         }
+    }
     }
     bounds.max = ray_pos[0];
     bounds.min = ray_pos[0];
@@ -2668,7 +2669,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         && pCar->collision_info->last_special_volume->material_modifier_index != 0) {
         vol_mod = pCar->collision_info->last_special_volume->material_modifier_index;
     }
-    mat_list = gFriction_materials;
     for (i = 0, j = 0; j < 0x30; i++, j += 0xc) {
         pd = &d[i];
         *pd = *pd * k;
@@ -2690,7 +2690,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
             pCar->material_index[i] = 0;
         }
         BrMatrix34TApplyV(&norm[i], &pCar->nor[i], mat);
-        if (mat_list[pCar->material_index[i]].bumpiness != 0.f) {
+        if (gFriction_materials[pCar->material_index[i]].bumpiness != 0.f) {
             br_scalar tv0 = pCar->nor[i].v[0] * *pd;
             br_scalar tv2 = pCar->nor[i].v[2] * *pd;
             {
@@ -2714,7 +2714,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
                     delta = 0;
                 }
             }
-            d[i] = delta * mat_list[pCar->material_index[i]].bumpiness / 42400.f
+            d[i] = delta * gFriction_materials[pCar->material_index[i]].bumpiness / 42400.f
                 * norm[i].v[1] + *pd;
         }
         if (*pd < -0.5f
@@ -2889,18 +2889,19 @@ steer_centre:
         }
         FlushSmashQueue(1);
         BrVector3NormaliseQuick(&road_normal, &road_normal);
-        friction_number = road_normal.v[1] * mat->m[1][1]
+        BrVector3Scale(&ray_dir, &pCar->collision_info->velocity_car_space, WORLD_SCALE);
+        friction_number = road_normal.v[0] * mat->m[0][1]
             + road_normal.v[2] * mat->m[2][1]
-            + road_normal.v[0] * mat->m[0][1];
-        if (pCar->driver > 5 && pCar->wall_climber_mode != 0) {
+            + road_normal.v[1] * mat->m[1][1];
+        if (pCar != NULL && pCar->driver > 5 && pCar->wall_climber_mode != 0) {
             friction_number = 1.f;
         }
-        friction_number = mat_list[pCar->material_index[0]].down_force * friction_number;
+        friction_number = gFriction_materials[pCar->material_index[0]].down_force * friction_number;
         if (friction_number > 0.f) {
-            friction_number = fabs(pCar->collision_info->velocity_car_space.v[2])
-                * pCar->collision_info->M * 10.0 * friction_number / pCar->downforce_to_weight;
-            if (pCar->collision_info->M * 10.0 < friction_number) {
-                friction_number = pCar->collision_info->M * 10.0;
+            friction_number = fabs(ray_dir.v[2])
+                * pCar->collision_info->M * 10.f * friction_number / pCar->downforce_to_weight;
+            if (pCar->collision_info->M * 10.f < friction_number) {
+                friction_number = pCar->collision_info->M * 10.f;
             }
             if (pCar->number_of_wheels_on_ground == 4
                 && pCar->oldd[2] == pCar->susp_height[1]
@@ -2933,29 +2934,29 @@ steer_centre:
             }
             B.v[1] = B.v[1] - friction_number;
         }
-        ts2 = BrVector3Dot(&pCar->collision_info->velocity_car_space, &road_normal);
-        vplane.v[0] = pCar->collision_info->velocity_car_space.v[0] - ts2 * road_normal.v[0];
-        vplane.v[1] = pCar->collision_info->velocity_car_space.v[1] - ts2 * road_normal.v[1];
-        vplane.v[2] = pCar->collision_info->velocity_car_space.v[2] - ts2 * road_normal.v[2];
-        if (vplane.v[2] < 0.f) {
+        ts2 = BrVector3Dot(&road_normal, &ray_dir);
+        v.v[0] = ray_dir.v[0] - ts2 * road_normal.v[0];
+        v.v[1] = ray_dir.v[1] - ts2 * road_normal.v[1];
+        v.v[2] = ray_dir.v[2] - ts2 * road_normal.v[2];
+        if (v.v[2] < 0.f) {
             ts = 1.f;
         } else {
             ts = -1.f;
         }
-        ts2 = BrVector3Length(&vplane);
+        ts2 = BrVector3Length(&v);
         deltaomega = ts2 * pCar->curvature * ts;
         deltaomega = deltaomega - BrVector3Dot(&pCar->collision_info->omega, &road_normal);
         BrVector3Set(&v103, road_normal.v[1], -road_normal.v[0], 0.f);
         BrVector3Normalise(&v103, &v103);
-        friction_number = pCar->collision_info->I.v[1] / pDt * deltaomega;
+        friction_number = pCar->collision_info->I.v[1] * 47.61f / pDt * deltaomega;
         ts = friction_number / (pCar->wpos[2].v[2] - pCar->wpos[0].v[2]);
         v108 = ts;
         v109 = -ts;
         BrVector3Set(&rightplane, 0.f, road_normal.v[2], -road_normal.v[1]);
         BrVector3Normalise(&rightplane, &rightplane);
         v99 = pCar->acc_force;
-        friction_number = BrVector3Dot(&rightplane, &vplane);
-        v108 = BrVector3Dot(&v103, &vplane);
+        friction_number = BrVector3Dot(&rightplane, &v);
+        v108 = BrVector3Dot(&v103, &v);
         ts2 = fabs(v108);
         friction_number = (pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) * friction_number * fabs(pCar->curvature);
         if (pCar->curvature <= 0.f) {
@@ -2966,7 +2967,7 @@ steer_centre:
         friction_number = -(pCar->collision_info->M / pDt * friction_number);
         friction_number = friction_number - BrVector3Dot(&B, &v103);
         friction_number = friction_number / (1.0 - wheelratio);
-        v108 = friction_number + v108;
+        v108 = friction_number + ts;
         v109 = -wheelratio * friction_number + v109;
         friction_number = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * v108;
         v98 = friction_number * pCar->curvature;
@@ -3033,8 +3034,8 @@ steer_centre:
             }
             friction_number = (pCar->mu.v[2] - pCar->mu.v[0]) * ts2 + friction_number;
         }
-        maxfl = sqrt(force[0]) * friction_number * (rl_oil_factor * v116) * mat_list[pCar->material_index[0]].tyre_road_friction;
-        maxfr = sqrt(force[1]) * friction_number * (rr_oil_factor * v116) * mat_list[pCar->material_index[1]].tyre_road_friction;
+        maxfl = sqrt(force[0]) * friction_number * (rl_oil_factor * v116) * gFriction_materials[pCar->material_index[0]].tyre_road_friction;
+        maxfr = sqrt(force[1]) * friction_number * (rr_oil_factor * v116) * gFriction_materials[pCar->material_index[1]].tyre_road_friction;
         pCar->max_force_rear = maxfr + maxfl;
         if (rl_oil_factor == 1.f && rr_oil_factor == 1.f && pCar->traction_control
                 && v135 * 2.f > pCar->max_force_rear && pCar->acc_force > 0.f
@@ -3050,7 +3051,7 @@ steer_centre:
                 pCar->torque = -(pCar->revs * pCar->revs / 100000000.f) - 0.1f;
             } else {
                 float v177 = sqrt(pCar->max_force_rear * pCar->max_force_rear - v87 * v87);
-                ts3 = ts2 < 0.f ? -1.f : 1.f;
+                ts3 = ts2 < 0.f ? -1 : 1;
                 ts4 = (ts2 - ts3 * v177) * 0.99f;
                 if (fabs(ts2) > fabs(ts4)) {
                     ts2 = ts4;
@@ -3167,8 +3168,8 @@ steer_centre:
             v108 = v108 / (v135 * 2.0);
             v98 = v98 / (v135 * 2.0);
         }
-        maxfl = sqrt(force[2]) * pCar->mu.v[1] * (fl_oil_factor * v116) * mat_list[pCar->material_index[2]].tyre_road_friction;
-        maxfr = sqrt(force[3]) * pCar->mu.v[1] * (fr_oil_factor * v116) * mat_list[pCar->material_index[3]].tyre_road_friction;
+        maxfl = sqrt(force[2]) * pCar->mu.v[1] * (fl_oil_factor * v116) * gFriction_materials[pCar->material_index[2]].tyre_road_friction;
+        maxfr = sqrt(force[3]) * pCar->mu.v[1] * (fr_oil_factor * v116) * gFriction_materials[pCar->material_index[3]].tyre_road_friction;
         if (pCar != NULL && pCar->driver == eDriver_local_human) {
             SetJoystickFFBForce((int)(225.0f * (maxfl * force[2] + maxfr * force[3]) / (1.0f + 750.0f * pCar->speed)));
         }
@@ -3315,6 +3316,7 @@ steer_centre:
     }
     pCar->curvature = pCar->curvature - pCar->field_0x1260;
 }
+#undef road_normal
 
 
 // DoRevs
