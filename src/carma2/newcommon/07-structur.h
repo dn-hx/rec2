@@ -60,6 +60,8 @@ extern void C2_HOOK_FASTCALL ResetCrushSystems(void);
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 extern void C2_HOOK_FASTCALL ResetPowerups(void);
 extern void C2_HOOK_FASTCALL InitPlayers(void);
+
+extern void C2_HOOK_FASTCALL FUN_0049b7e0(tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL InitRace(void);
 extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
 extern void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);

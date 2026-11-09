@@ -831,6 +831,44 @@ void C2_HOOK_FASTCALL InitPlayers(void) {
     gNot_shown_race_type_headup = 1;
 }
 
+extern int gINT_0068d920;
+extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
+extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+
+// FUNCTION: CARMA2_HW 0x0049b7e0
+void C2_HOOK_FASTCALL FUN_0049b7e0(tPlayer_ID pPlayer_id) {
+    int i;
+
+    switch (gCurrent_net_game->type) {
+    case eNet_game_type_2:
+        gINT_0068d920 = pPlayer_id;
+        break;
+    case eNet_game_type_6:
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].field_0x80 == 0 && (pPlayer_id & (1 << i)) != 0) {
+                PlayerIsInfected(&gNet_players[i]);
+            }
+        }
+        break;
+    case eNet_game_type_foxy:
+        if (gNet_players[gIt_or_fox].ID != pPlayer_id) {
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                StopCarBeingIt(gNet_players[i].car);
+            }
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                if (gNet_players[i].ID == pPlayer_id) {
+                    DisposeKevStuffCar(gNet_players[i].car);
+                    gIt_or_fox = i;
+                }
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
