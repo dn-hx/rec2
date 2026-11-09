@@ -226,15 +226,15 @@ void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity) {
 #pragma auto_inline(off)
 #endif
 /* tCrush_displacement_context_local is declared in 58-crush2.h so the
-   prototypes of FUN_0043b2e0/FUN_0043b400 can name it. */
-// FUN_0043b2e0 - body (GPL-3.0). It was kept
+   prototypes of AddTotalDeflectionOfModel/RepairObject can name it. */
+// AddTotalDeflectionOfModel - body (GPL-3.0). It was kept
 // here as a PARTIAL at 85.42% (the remaining diff then was the x87 tail idiom); the final tree, with
 // the block-scope `delta` temp in the axis accumulation and the tail statement
 // `*total_displacement = displacement + *total_displacement;`, verifies at 100% (re-checked after the
 // FUN_0043fb70 work). The original is at 0x0043b2e0.
-// PARTIAL 85.42%: FUN_0043b2e0 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
+// PARTIAL 85.42%: AddTotalDeflectionOfModel 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
 // FUNCTION: CARMA2_HW 0x0043b2e0
-intptr_t C2_HOOK_CDECL FUN_0043b2e0(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+intptr_t C2_HOOK_CDECL AddTotalDeflectionOfModel(br_actor* pActor, tCrush_displacement_context_local* pContext) {
     extern br_scalar gCrushZero;
     tUser_crush_data* user;
     br_vector3 original_position;
@@ -884,8 +884,8 @@ unsigned char gSmoke_part_table[12] = {
 
 /* Moved here from 00-car.c (2026-11-02): the same two blocks at the end of 00-car.c cost
    FullyDetachSnappedBits 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
-   FUN_0043b400 had any stack frame at all; no placement inside that TU avoided it. Like
-   FUN_0043b2e0 above, they live in this TU instead. Bodies are unchanged.
+   RepairObject had any stack frame at all; no placement inside that TU avoided it. Like
+   AddTotalDeflectionOfModel above, they live in this TU instead. Bodies are unchanged.
    The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
@@ -910,7 +910,7 @@ extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_ve
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0043b510
-int C2_HOOK_FASTCALL FUN_0043b510(br_model* pModel, tModel_mash_context_local* pContext) {
+int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext) {
     br_vector3 mash[1024];
     tUser_detail_level_model* detail_model;
     tModel_detail_vertex_data* vertex_data;
@@ -1005,7 +1005,7 @@ intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local*
         return 0;
     }
     crush_data = user->crush_data;
-    if (FUN_0043b510(user->models[0], pContext) != 0) {
+    if (RepairModel(user->models[0], pContext) != 0) {
         RepairSmash(pContext->car, user->crush_data);
         crush_data->field_0x2c = 0;
         if (crush_data->flap_data != NULL && crush_data->flap_data->kev_o_flap == 0) {
@@ -1022,7 +1022,7 @@ intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local*
     if (model_index < pContext->car->count_detail_levels) {
         model_cursor = &user->models[1];
         do {
-            FUN_0043b510(*model_cursor, pContext);
+            RepairModel(*model_cursor, pContext);
             model_index++;
             model_cursor++;
         } while (model_index < pContext->car->count_detail_levels);
@@ -1031,7 +1031,7 @@ intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local*
 }
 
 // FUNCTION: CARMA2_HW 0x0043b400
-int C2_HOOK_FASTCALL FUN_0043b400(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
+int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
     tCrush_displacement_context_local* context;
     tModel_mash_context_local model_context;
 
