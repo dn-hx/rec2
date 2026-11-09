@@ -305,7 +305,7 @@ extern void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash);
 
 extern void C2_HOOK_FASTCALL UpdateCrushTimers(void);
 
-// ReceivedSmashEnvironment
+extern void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash);
 
 // DoQueuedNetSmashes
 
@@ -339,11 +339,32 @@ extern int C2_HOOK_FASTCALL FUN_004f4c70(tFace_ref* pFace, br_vector3* pPoint, t
 extern void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 extern void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3* pOut);
 extern br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
+extern int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
 extern void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4);
 extern int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex);
 extern int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
+
+/* Payload of the net message chunk that reproduces a non-car shrapnel smash on
+   the other players' machines (chunk type 0x22). Used by 51-smash.c only. */
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tU32 seed;
+    tU16 field_0x8;
+    tS8 field_0xa;
+    tS8 field_0xb;
+    br_vector3 v;
+    br_vector3 omega;
+    br_matrix34 mat;
+    int probability_fire;
+    int count_fire_columns;
+    int min_smokiness;
+    int max_smokiness;
+} tNet_message_chunk_non_car_shrapnel;
+
+extern void C2_HOOK_FASTCALL FUN_004f6320(tNet_message_chunk_non_car_shrapnel* pSpec);
 
 #endif // GUARD_51_SMASH_H
