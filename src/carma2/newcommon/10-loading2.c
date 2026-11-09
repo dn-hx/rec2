@@ -1530,9 +1530,9 @@ void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec*
         &pCar_spec->collision_info->cmpos.v[2]);
     pCar_spec->collision_info->M = GetAScalar(f);
     GetThreeFloats(f, &ixp, &iyp, &izp);
-    pCar_spec->collision_info->I.v[2] = (ixp * ixp + izp * izp) * pCar_spec->collision_info->M * (1.f / 12.f);
-    pCar_spec->collision_info->I.v[1] = (iyp * iyp + izp * izp) * pCar_spec->collision_info->M * (1.f / 12.f);
-    pCar_spec->collision_info->I.v[0] = (iyp * iyp + ixp * ixp) * pCar_spec->collision_info->M * (1.f / 12.f);
+    pCar_spec->collision_info->I.v[0] = (iyp * iyp + izp * izp) * pCar_spec->collision_info->M * (1.f / 12.f);
+    pCar_spec->collision_info->I.v[1] = (ixp * ixp + izp * izp) * pCar_spec->collision_info->M * (1.f / 12.f);
+    pCar_spec->collision_info->I.v[2] = (ixp * ixp + iyp * iyp) * pCar_spec->collision_info->M * (1.f / 12.f);
     pCar_spec->downforce_to_weight = GetAScalar(f);
     count_wheels = GetAnInt(f);
     if (count_wheels != 4) {
