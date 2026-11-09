@@ -125,6 +125,7 @@ extern void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int 
 // ClearPedHeadAnim
 
 // ScarePedestrian
+extern void C2_HOOK_FASTCALL ScarePedestrian(tPedestrian* pPed, tU32 pTime, int pArg3, int pArg4);
 
 // PedAnimCausesMovement
 
@@ -552,5 +553,6 @@ extern void C2_HOOK_FASTCALL PedProcessContact(tPedestrian* pPed, tPhysics_objec
 extern void C2_HOOK_FASTCALL FUN_004d3600(void);
 extern void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
 extern void C2_HOOK_FASTCALL FUN_004d6c10(tPed_character_instance* pCharacter, undefined4 pArg2, char* pX, char* pY, char* pZ);
+extern void C2_HOOK_CDECL FUN_004d6cc0(void);
 
 #endif // GUARD_61_PEDESTRN_H
