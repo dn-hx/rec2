@@ -33,6 +33,21 @@ typedef struct {
     tNet_message_chunk_header header;
     undefined field_0x2[2];
     tPlayer_ID player_id;
+    tU8 uid;
+    tCompressed_vector3 bounds_min;
+    tCompressed_vector3 bounds_max;
+    undefined field_0x16[2];
+    tU32 time;
+    undefined field_0x1c[4];
+    tU8 flags;
+    undefined field_0x21;
+    tU8 object_hierarchy[];
+} tNet_message_chunk_detached_non_car;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
     tU8 count;
     undefined field_0x9[3];
     struct {
@@ -48,6 +63,7 @@ extern tU32 gTime_for_punishment;
 extern int gNet_cash_headup;
 extern int gINT_0068d920;
 extern int gNet_ped_headup;
+extern int gNet_fullscreen_active;
 
 // SendShapeNumbers
 
@@ -166,5 +182,10 @@ extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk);
 extern void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents);
+extern void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents);
+extern void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
+
+// FUNCTION: CARMA2_HW 0x0049bad0
+extern void C2_HOOK_FAKE_THISCALL FUN_0049bad0(void* pThis);
 
 #endif // GUARD_04_NETGAME_H
