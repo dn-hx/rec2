@@ -1494,3 +1494,26 @@ void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
 // FUNCTION: CARMA2_HW 0x004e1c30
 void C2_HOOK_FASTCALL NoOp_004e1c30(void) {
 }
+
+#ifdef _MSC_VER
+#pragma auto_inline(off)
+// FUNCTION: CARMA2_HW 0x0056e760
+// QuickTime dispatcher trampoline (selector 0x1d0008).
+__declspec(naked) void C2_HOOK_CDECL FUN_0056e760(void) {
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_e760
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_e760:
+        mov     eax, 0x1d0008
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+}
+// Force reference to prevent linker from removing unreferenced COMDAT
+volatile void *gForceRef_56e760 = (void*)FUN_0056e760;
+#pragma auto_inline(on)
+#else
+void C2_HOOK_CDECL FUN_0056e760(void) {
+}
+#endif
