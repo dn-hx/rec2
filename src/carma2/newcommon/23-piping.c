@@ -3784,3 +3784,24 @@ void C2_HOOK_FASTCALL FUN_004c89f0(uintptr_t pOwner) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// FUNCTION: CARMA2_HW 0x004c65f0
+void C2_HOOK_CDECL FUN_004c65f0(void) {
+    int category;
+    int car_count;
+    int car_index;
+
+    for (category = eVehicle_self; category <= eVehicle_drone; category++) {
+        if (category == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(category);
+        }
+        for (car_index = 0; car_index < car_count; car_index++) {
+            tCar_spec* car;
+
+            car = category == eVehicle_self ? &gProgram_state.current_car : GetCarSpec(category, car_index);
+            car->active = 0;
+        }
+    }
+}

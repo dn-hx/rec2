@@ -474,6 +474,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 
 extern int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext);
 extern void C2_HOOK_FASTCALL PipeCarPositions(void);
+extern void C2_HOOK_CDECL FUN_004c65f0(void);
 // DoSmudge
 
 // DoOilSpillAR
