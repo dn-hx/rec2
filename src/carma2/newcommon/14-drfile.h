@@ -5,6 +5,8 @@
 
 #include "brender/brender.h"
 
+extern int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index);
+
 extern int C2_HOOK_CDECL DRStdioEOF(void* f);
 
 extern int C2_HOOK_CDECL DRStdioGetChr(void* f);

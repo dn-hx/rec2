@@ -96,3 +96,12 @@ void C2_HOOK_FASTCALL InstallDRFileCalls(void) {
     BrMemFree(temp_system);
 }
 
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+
+// FUNCTION: CARMA2_HW 0x0044c690
+int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index) {
+
+    NetFullScreenMessage(pStr_index, 0);
+    return 0;
+}
+
