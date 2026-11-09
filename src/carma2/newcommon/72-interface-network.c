@@ -32,6 +32,22 @@ extern int gNet_grid_starts[10];
 extern int C2_HOOK_FASTCALL DRStricmp(const char* p1, const char* p2);
 extern void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum);
 
+/* local declarations for the join-go-ahead body (no extern added to a header) */
+extern void C2_HOOK_FASTCALL ClearAlwaysTyping(void);
+extern void C2_HOOK_FASTCALL SolidPolyFontText(const char* pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
+extern int C2_HOOK_FASTCALL NetJoinGame(tNet_game_details* pGame_details, char* pPlayer_name, int pCar_index);
+extern tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index);
+extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
+extern void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame);
+extern void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions);
+extern int C2_HOOK_FASTCALL PickARandomCar(void);
+extern tNet_game_details* gGame_to_join;
+extern int gFrontend_net_car_index;
+extern char gFrontend_host_join_buffer[256];
+extern int gNet_join_host_result;
+extern tNet_game_options* gChosen_net_game_options;
+extern tNet_mode gFrontend_net_mode;
+
 // GLOBAL: CARMA2_HW 0x00763920
 tNet_game_type gFrontend_game_type;
 
@@ -406,3 +422,131 @@ int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend) {
     }
     return 0;
 }
+
+// GLOBAL: CARMA2_HW 0x00763714
+tNet_game_details* gGame_to_join;
+
+// GLOBAL: CARMA2_HW 0x007638e0
+int gFrontend_net_car_index;
+
+// GLOBAL: CARMA2_HW 0x00763600
+char gFrontend_host_join_buffer[256];
+
+// GLOBAL: CARMA2_HW 0x007638a8
+const char* gNet_has_joined_text;
+
+// FUNCTION: CARMA2_HW 0x00468460
+int C2_HOOK_CDECL NetworkJoinGoAhead(void) {
+    int i;
+    int selected;
+    tNet_game_details* game;
+
+    ClearAlwaysTyping();
+    if (gLast_graph_sel >= 0) {
+        NetEndJoinList();
+        selected = gLast_graph_sel;
+        for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+            if (i != selected && gGames_to_join[i].game != NULL) {
+                NetDisposeGameDetails(gGames_to_join[i].game);
+                gGames_to_join[i].game = NULL;
+            }
+        }
+        SaveOptions();
+        gGame_to_join = gGames_to_join[gLast_graph_sel].game;
+        if (gFrontend_net_mode == eNet_mode_thinking_about_it) {
+            if (gGame_to_join != NULL) {
+                SolidPolyFontText("Joining a game", 200, 100, kPolyfont_hand_green_15pt_lit, eJust_left, 1);
+                gFrontend_net_car_index = -1;
+                do {
+                    gNet_join_host_result = 0;
+                    for (i = 0; i < kMax_netplayers; i++) {
+                        gCurrent_race.opponent_list[i].car_spec = NULL;
+                    }
+                    gNet_storage_space_initialized = 1;
+                    InitialiseStorageSpace(0, &gNet_cars_storage_space, 2000, 50, 2000, 2000, 50);
+                    gNet_join_host_result = NetJoinGame(gGame_to_join, gProgram_state.player_name, gFrontend_net_car_index);
+                    if (gNet_join_host_result == 0) {
+                        LoadRaces(gRace_list, &gNumber_of_races, gCurrent_net_game->type);
+                        game = gGame_to_join;
+                        gProgram_state.skill_level = 1;
+                        InitGame(game->start_race);
+                        ReenableNetService();
+                        gNet_has_joined_text = GetMiscString(eMiscString_has_joined_the_game);
+                        strcpy(gFrontend_host_join_buffer, gProgram_state.player_name);
+                        strcat(gFrontend_host_join_buffer, " ");
+                        strcat(gFrontend_host_join_buffer, gNet_has_joined_text);
+                        NetSendHeadupToAllPlayers(gFrontend_host_join_buffer);
+                        gNet_join_host_result = 1;
+                    } else {
+                        if (gNet_storage_space_initialized != 0) {
+                            DisposeStorageSpace(&gNet_cars_storage_space);
+                        }
+                        gNet_storage_space_initialized = 0;
+                    }
+                } while (gNet_join_host_result == -4);
+                if (gNet_join_host_result > 0) {
+                    goto joined;
+                }
+                NetDisposeGameDetails(gGame_to_join);
+            }
+        } else {
+            gFrontend_net_car_index = -1;
+            gRace_index = gProgram_state.current_race_index;
+            gChosen_net_game_options = &gFrontend_net_options;
+            SetNetAvailability(&gFrontend_net_options);
+            gFrontend_net_car_index = PickARandomCar();
+            if (gFrontend_net_car_index >= 0) {
+                gCar_details[gFrontend_net_car_index].ownership = eCar_owner_someone;
+            }
+            InitNetStorageSpace();
+            if (NetHostGame(gFrontend_game_type, &gFrontend_net_options, gRace_index, gProgram_state.player_name, gFrontend_net_car_index) != 0) {
+                game = gCurrent_net_game;
+                gProgram_state.skill_level = 1;
+                InitGame(game->start_race);
+                ReenableNetService();
+            joined:
+                return 1;
+            }
+            if (gNet_storage_space_initialized != 0) {
+                DisposeStorageSpace(&gNet_cars_storage_space);
+            }
+            gNet_storage_space_initialized = 0;
+            ReenableNetService();
+            NetLeaveGame(gCurrent_net_game);
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+            gGames_to_join[i].game = NULL;
+        }
+        gLast_graph_sel = -1;
+        NetStartProducingJoinList(AddToJoinList);
+    }
+    return 0;
+}
+
+/* NetJoinGame / NetHostGame live only in the dead src/carma2/common tree (not built);
+   inert stubs so the caller links, guarded so they are not inlined away. */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x0049e970
+int C2_HOOK_FASTCALL NetJoinGame(tNet_game_details* pGame_details, char* pPlayer_name, int pCar_index) {
+
+    (void)pGame_details;
+    (void)pPlayer_name;
+    (void)pCar_index;
+    return -1;
+}
+
+// STUB: CARMA2_HW 0x0049e210
+tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index) {
+
+    (void)pNet_type;
+    (void)pOptions;
+    (void)pRace_index;
+    (void)pHost_name;
+    (void)pCar_index;
+    return NULL;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif

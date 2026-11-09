@@ -15,5 +15,6 @@ extern int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetToggleMode(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
+extern int C2_HOOK_CDECL NetworkJoinGoAhead(void);
 
 #endif /* GUARD_72_NETWORK_H */
