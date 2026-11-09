@@ -937,3 +937,169 @@ int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spe
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+#include "18-graphics2.h"
+#include "25-grafdata.h"
+#include "38-flicplay.h"
+#include "69-sound.h"
+
+// GLOBAL: CARMA2_HW 0x0065bd78
+tFlic_cycle_spec gFlic_cycle_specs[2];
+
+// PARTIAL 75%: current load CSE vs original reload
+// FUNCTION: CARMA2_HW 0x004b2430
+int C2_HOOK_FASTCALL FUN_004b2430(int* pIndex) {
+    int prev;
+    int cur;
+    int n;
+    int m;
+    int idx;
+
+    DRS3StartSound(gEffects_outlet, 3000);
+    idx = *pIndex;
+    n = idx - 2;
+    prev = gFlic_cycle_specs[n].current - 1;
+    if (prev < 0) {
+        prev = gFlic_cycle_specs[n].count - 1;
+    }
+    m = n;
+    cur = ((int*)&gFlic_cycle_specs[0])[m * 8 + 2];
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    RunFlicAt(287, gFlic_cycle_specs[m].x[cur], gFlic_cycle_specs[m].y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    RunFlicAt(288, gFlic_cycle_specs[m].x[prev], gFlic_cycle_specs[m].y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    gFlic_cycle_specs[m].current = prev;
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004b24f0
+int C2_HOOK_FASTCALL FUN_004b24f0(int* pIndex) {
+    int n;
+    int current;
+    int count;
+    int new_current;
+    int y;
+    int x;
+
+    DRS3StartSound(gEffects_outlet, 3000);
+    n = *pIndex - 2;
+    current = gFlic_cycle_specs[n].current;
+    count = gFlic_cycle_specs[n].count;
+    new_current = current + 1;
+    if (new_current == count) {
+        new_current = 0;
+    }
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[current];
+    RunFlicAt(287, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[new_current];
+    RunFlicAt(288, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    gFlic_cycle_specs[n].current = new_current;
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004b2740
+int C2_HOOK_FASTCALL FUN_004b2740(int* pIndex) {
+    int n;
+    int current;
+    int count;
+    int new_current;
+    int y;
+    int x;
+
+    DRS3StartSound(gEffects_outlet, 3000);
+    n = *pIndex - 2;
+    current = gFlic_cycle_specs[n].current;
+    count = gFlic_cycle_specs[n].count;
+    new_current = current + 1;
+    if (new_current == count) {
+        new_current = 0;
+    }
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[current];
+    RunFlicAt(287, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[new_current];
+    RunFlicAt(288, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    gFlic_cycle_specs[n].current = new_current;
+    return 0;
+}
+
+// GLOBAL: CARMA2_HW 0x006918cc
+const tInterface_spec* gInterface_spec;
+
+// FUNCTION: CARMA2_HW 0x004b2640
+int C2_HOOK_FASTCALL FUN_004b2640(int* pNew_choice, int* pNew_mode, int pX, int pY) {
+    int i;
+    int n;
+    int current;
+    int x;
+    int y;
+
+    i = gFlic_cycle_specs[*pNew_choice - 2].count - 1;
+    if (i >= 0) {
+        int limit = gInterface_spec->mouse_areas[2].left[gReal_graf_data_index] + 3 + pX;
+        int* px = &gFlic_cycle_specs[*pNew_choice - 2].x[i];
+
+        while (1) {
+            if (limit >= *px) {
+                break;
+            }
+            i--;
+            px--;
+            if (i < 0) {
+                return 0;
+            }
+        }
+        DRS3StartSound(gEffects_outlet, 3000);
+        n = *pNew_choice - 2;
+        current = gFlic_cycle_specs[n].current;
+        RemoveTransientBitmaps(1);
+        DontLetFlicFuckWithPalettes();
+        TurnFlicTransparencyOn();
+        y = gFlic_cycle_specs[n].y;
+        x = gFlic_cycle_specs[n].x[current];
+        RunFlicAt(287, x, y);
+        TurnFlicTransparencyOff();
+        LetFlicFuckWithPalettes();
+        RemoveTransientBitmaps(1);
+        DontLetFlicFuckWithPalettes();
+        TurnFlicTransparencyOn();
+        y = gFlic_cycle_specs[n].y;
+        x = gFlic_cycle_specs[n].x[i];
+        RunFlicAt(288, x, y);
+        TurnFlicTransparencyOff();
+        LetFlicFuckWithPalettes();
+        gFlic_cycle_specs[n].current = i;
+    }
+    return 0;
+}
