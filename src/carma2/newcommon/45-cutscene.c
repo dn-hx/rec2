@@ -477,7 +477,7 @@ void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00461980
-void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time) {
+void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
     extern int gSound_ID;
     extern tU32 gSound_time;
 
@@ -488,7 +488,7 @@ void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-static int C2_HOOK_FASTCALL FUN_004835d0_ScanKeys(void) {
+static int C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_ScanKeys(void) {
     int i;
 
     for (i = 142; i >= 0; --i) {
@@ -512,7 +512,7 @@ static int C2_HOOK_FASTCALL FUN_004835d0_ScanKeys(void) {
     return -1;
 }
 
-static int C2_HOOK_FASTCALL FUN_004835d0_Mouse(void) {
+static int C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouse(void) {
     int pos_x;
     int pos_y;
     int click_x;
@@ -536,7 +536,7 @@ static int C2_HOOK_FASTCALL FUN_004835d0_Mouse(void) {
     return 0;
 }
 
-static void C2_HOOK_FASTCALL FUN_004835d0_Mouldy(void) {
+static void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouldy(void) {
     int i;
 
     if (PDGetTotalTime() - gLast_poll_keys > 500) {
@@ -555,7 +555,7 @@ static void C2_HOOK_FASTCALL FUN_004835d0_Mouldy(void) {
 // wait for any key or mouse press, then wait for everything to be released
 // (AnyKeyDown / EitherMouseButtonDown / CheckKeysForMouldiness / PollKeys inlined)
 // FUNCTION: CARMA2_HW 0x004835d0
-void C2_HOOK_FASTCALL FUN_004835d0(void) {
+void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void) {
     extern void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark);
     int i;
     int the_key;
@@ -576,14 +576,14 @@ void C2_HOOK_FASTCALL FUN_004835d0(void) {
             PDSetKeysFromJoystick(gKey_array);
             gLast_poll_keys = PDGetTotalTime();
         }
-        the_key = FUN_004835d0_ScanKeys();
-    } while (!((the_key != -1 && the_key != 4) || FUN_004835d0_Mouse()) && !FUN_004835d0_Mouse());
+        the_key = WaitForAnyKeyOrMouse_ScanKeys();
+    } while (!((the_key != -1 && the_key != 4) || WaitForAnyKeyOrMouse_Mouse()) && !WaitForAnyKeyOrMouse_Mouse());
     CheckQuit();
     do {
         CheckQuit();
-        FUN_004835d0_Mouldy();
-        the_key = FUN_004835d0_ScanKeys();
-    } while (((the_key != -1 && the_key != 4) || FUN_004835d0_Mouse()) || FUN_004835d0_Mouse());
+        WaitForAnyKeyOrMouse_Mouldy();
+        the_key = WaitForAnyKeyOrMouse_ScanKeys();
+    } while (((the_key != -1 && the_key != 4) || WaitForAnyKeyOrMouse_Mouse()) || WaitForAnyKeyOrMouse_Mouse());
     CheckQuit();
 }
 #ifdef REC2_MATCHING
@@ -613,11 +613,11 @@ void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     extern float gFlic_sound_delay_not_in_demo;
     extern tS3_error_codes C2_HOOK_FASTCALL DRS3LoadSound(tS3_sound_id pThe_sound);
     extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-    extern void C2_HOOK_FASTCALL FUN_00461980(int pSound_ID, tU32 pSound_time);
+    extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
     extern void C2_HOOK_FASTCALL SetNonFatalAllocationErrors(void);
     extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
     extern void C2_HOOK_FASTCALL ResetNonFatalAllocationErrors(void);
-    extern void C2_HOOK_FASTCALL FUN_004835d0(void);
+    extern void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void);
     extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
     extern int C2_HOOK_FASTCALL DRS3ReleaseSound(int pSound_id);
     float sound_delay;
@@ -628,15 +628,15 @@ void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     sound_delay = gFlic_sound_delay_not_in_demo;
     gProgram_state.cut_scene = 1;
     DRS3LoadSound(0x2136);
-    FUN_00461980(0x2136, PDGetTotalTime() - (int)(sound_delay * -1000.0f));
+    SetFlicSound(0x2136, PDGetTotalTime() - (int)(sound_delay * -1000.0f));
     SetNonFatalAllocationErrors();
     RunFlic(7);
     ResetNonFatalAllocationErrors();
-    FUN_004835d0();
+    WaitForAnyKeyOrMouse();
     FadePaletteDown();
     ClearEntireScreen();
     DRS3ReleaseSound(0x2136);
-    FUN_00461980(0, 0);
+    SetFlicSound(0, 0);
     gProgram_state.cut_scene = 0;
     FadePaletteDown();
     PrintMemoryDump(0, "AFTER DEMO-ONLY SCREEN");
