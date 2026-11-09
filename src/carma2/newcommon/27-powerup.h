@@ -119,6 +119,8 @@ extern void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL ResetRepulseRay(void);
 
+extern void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar);
+
 extern int C2_HOOK_FASTCALL DrawSinglePowerupIcon(int pDraw, int pTime, tPowerup* pPowerup, tHeadup_icon* pIcon, int pX, int pY, int pUpdate_x);
 // DrawPowerupIcons2
 
@@ -246,7 +248,7 @@ extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
 // MineSound
 
-// ReceivedMine
+extern void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk);
 
 extern int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar);
 // MineExplode
