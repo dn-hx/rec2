@@ -44,4 +44,21 @@ extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pO
 
 extern int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
+typedef struct {
+    int count;
+    int y;
+    int current;
+    int x[5];
+} tFlic_cycle_spec;
+
+extern tFlic_cycle_spec gFlic_cycle_specs[2];
+
+extern int C2_HOOK_FASTCALL FUN_004b2430(int* pIndex);
+
+extern int C2_HOOK_FASTCALL FUN_004b24f0(int* pIndex);
+
+extern int C2_HOOK_FASTCALL FUN_004b2740(int* pIndex);
+
+extern int C2_HOOK_FASTCALL FUN_004b2640(int* pNew_choice, int* pNew_mode, int pX, int pY);
+
 #endif // GUARD_26_OPPOPROC_H
