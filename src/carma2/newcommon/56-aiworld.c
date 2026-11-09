@@ -1967,7 +1967,7 @@ extern br_material* gMat_md_grn;
 extern br_material* gMat_dk_turq;
 extern br_material* gMat_lt_turq;
 extern void C2_HOOK_FASTCALL WriteOutDronePaths(void);
-extern void C2_HOOK_FASTCALL FUN_00452f40(br_model* pModel, int pFaces, int pVertices);
+extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices);
 extern void C2_HOOK_FASTCALL BuildDronePathNodeMesh(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
 // FUNCTION: CARMA2_HW 0x00452ba0
@@ -2016,7 +2016,7 @@ int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
     gDrone_path_model_actor->type = BR_ACTOR_MODEL;
     gDrone_path_model_actor->render_style = gDrone_paths_elasticating != 0 ? BR_RSTYLE_FACES : BR_RSTYLE_NONE;
 
-    FUN_00452f40(gElasticatey_drone_path_model, 2, 4);
+    ReallocModelFacesAndVertices(gElasticatey_drone_path_model, 2, 4);
 
     vertex_count = gCount_drone_path_nodes * 8;
     face_count = gCount_drone_path_nodes * 0xc;
@@ -2034,7 +2034,7 @@ int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
         } while (i != 0);
     }
     if (vertex_count > gStatic_drone_path_model_vertex_capacity || face_count > gStatic_drone_path_model_face_capacity) {
-        FUN_00452f40(gStatic_drone_path_model, face_count, vertex_count);
+        ReallocModelFacesAndVertices(gStatic_drone_path_model, face_count, vertex_count);
         gStatic_drone_path_model_vertex_capacity = vertex_count;
         gStatic_drone_path_model_face_capacity = face_count;
     } else {
@@ -2528,7 +2528,7 @@ br_material* gMat_lt_turq;
 extern void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
 
 // FUNCTION: CARMA2_HW 0x00452f40
-void C2_HOOK_FASTCALL FUN_00452f40(br_model* pModel, int pFaces, int pVertices) {
+void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices) {
     br_vertex* new_vertices;
     br_face* new_faces;
     int vertex_size;
