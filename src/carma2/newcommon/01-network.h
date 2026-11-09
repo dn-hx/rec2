@@ -220,5 +220,19 @@ extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDe
 extern void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar);
 extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
 extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
+extern void C2_HOOK_FASTCALL FUN_004ddde0(tCar_spec* pCar);
+
+/* Payload of the player-info net message (sent by RemoveNetPlayer); the receive
+   handler is given a pointer to the message contents (tNet_message + 0x18). */
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    int num_players;
+    int player_index;
+    int field_0xc;
+    tNet_game_player_info player;
+} tNet_message_chunk_player_info;
+
+extern void C2_HOOK_FASTCALL FUN_004a48d0(tNet_message_chunk_player_info* pContents, tNet_message* pMessage);
 
 #endif // GUARD_01_NETWORK_H
