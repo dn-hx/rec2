@@ -3,6 +3,7 @@
 #include "51-smash.h"
 
 #include <math.h>
+#include <stdlib.h>
 
 #include "08-loading1.h"
 #include "41-utility.h"
@@ -3163,7 +3164,37 @@ void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
     }
 }
 
-// ReceivedSmashEnvironment
+// FUNCTION: CARMA2_HW 0x004f60b0
+void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
+    tQueued_net_smash* smash;
+    tNet_stored_smash* stored;
+    int is_host;
+    int i;
+
+    if (gPHIL_last_physics_tick == 0 || gPHIL_last_physics_tick >= pSmash->field_0x4) {
+        DoNetSmash(pSmash);
+    } else {
+        i = 0;
+        smash = gQueued_net_smashes;
+        while (1) {
+            if (smash->field_0x4 == 0) {
+                break;
+            }
+            i++;
+            smash++;
+            if (i >= 50) {
+                return;
+            }
+        }
+        is_host = gNet_mode == eNet_mode_host;
+        *smash = *pSmash;
+        if (is_host && gCount_host_smashes < 1000) {
+            stored = &gNet_host_smashes[gCount_host_smashes];
+            gCount_host_smashes++;
+            *(tQueued_net_smash*)stored = *pSmash;
+        }
+    }
+}
 
 // DoQueuedNetSmashes
 
@@ -4233,10 +4264,339 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     return decal->actor;
 }
 
-// STUB: CARMA2_HW 0x004f39a0
+// FUNCTION: CARMA2_HW 0x004f39a0
 int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
-    NOT_IMPLEMENTED();
-    return 0;
+    int max_faces;
+    float u_center;
+    float v_center;
+    struct { br_vertex* corner[4]; br_vertex* level_vertex[4]; br_vertex* edge_vertex[4]; } a;
+    br_vertex vertex;
+    tSmash_uv_map* map;
+    br_model* model;
+    br_face* face_a;
+    br_face* face_b;
+    br_material* old_material;
+    int max_vertices;
+    int cls;
+    int i;
+    map = (tSmash_uv_map*)pMap;
+    model = pActor->model;
+    ((tU16*)pPoly_array)[0] = 0;
+    ((tU16*)pPoly_array)[1] = 1;
+    ((tU16*)pPoly_array)[2] = 3;
+    ((tU16*)pPoly_array)[3] = 0;
+    ((tU16*)pPoly_array)[4] = 3;
+    ((tU16*)pPoly_array)[5] = 2;
+    for (i = 0; i < 12; i++) {
+        ((br_vertex**)a.corner)[i] = NULL;
+    }
+    max_vertices = BrResSize(model->vertices) / sizeof(br_vertex);
+    max_faces = BrResSize(model->faces) / sizeof(br_face);
+    u_center = ((((br_vertex*)pCorner[3])->map.v[0] + ((br_vertex*)pCorner[1])->map.v[0]) + ((br_vertex*)pCorner[2])->map.v[0]) + ((br_vertex*)pCorner[0])->map.v[0];
+    u_center = u_center * gFloat_0058afb0;
+    v_center = ((((br_vertex*)pCorner[3])->map.v[1] + ((br_vertex*)pCorner[2])->map.v[1]) + ((br_vertex*)pCorner[1])->map.v[1]) + ((br_vertex*)pCorner[0])->map.v[1];
+    v_center = v_center * gFloat_0058afb0;
+    for (i = 0; i < 4; i++) {
+        if (((br_vertex*)pCorner[i])->map.v[0] < u_center) {
+            cls = 0;
+        } else {
+            cls = 1;
+        }
+        if (v_center < ((br_vertex*)pCorner[i])->map.v[1]) {
+            cls |= 2;
+        }
+        a.corner[cls] = (br_vertex*)pCorner[i];
+    }
+    for (i = 0; i < 4; i++) {
+        if (a.corner[i] == NULL) {
+            return 0;
+        }
+    }
+    if ((pEdge_at_bounds[1] & pEdge_at_bounds[3] & pEdge_at_bounds[2] & pEdge_at_bounds[0]) != 0) {
+        for (i = 0; i < 4; i++) {
+            *(br_vector3*)&gShrapnel_shower_matrix.m[i][0] = a.corner[i]->p;
+        }
+        gVector3_006a4688.v[0] = map->plane[0];
+        gVector3_006a4688.v[1] = map->plane[1];
+        gINT_006a3334 = 1;
+        gVector3_006a4688.v[2] = map->plane[2];
+        for (i = 0; i < 4; i++) {
+            ((tU16*)pVertex_array)[i] = (tU16)(a.corner[i] - model->vertices);
+        }
+        map->tri[0].face->material = pMaterial;
+        map->tri[0].face->flags = 0;
+        map->tri[0].face->vertices[0] = (tU16)(a.corner[0] - model->vertices);
+        map->tri[0].face->vertices[1] = (tU16)(a.corner[1] - model->vertices);
+        map->tri[0].face->vertices[2] = (tU16)(a.corner[3] - model->vertices);
+        map->tri[1].face->material = pMaterial;
+        map->tri[1].face->flags = 0;
+        map->tri[1].face->vertices[0] = (tU16)(a.corner[0] - model->vertices);
+        map->tri[1].face->vertices[1] = (tU16)(a.corner[3] - model->vertices);
+        map->tri[1].face->vertices[2] = (tU16)(a.corner[2] - model->vertices);
+        map->tri[0].face->flags = 4;
+        map->tri[1].face->flags = 1;
+        return 1;
+    }
+    if (pEdge_at_bounds[0] != 0 && pEdge_at_bounds[1] != 0) {
+        a.level_vertex[0] = a.corner[0];
+    } else {
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.level_vertex[0] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.level_vertex[0] = pQuad[0];
+    }
+    if (pEdge_at_bounds[2] != 0 && pEdge_at_bounds[1] != 0) {
+        a.level_vertex[1] = a.corner[1];
+    } else {
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.level_vertex[1] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.level_vertex[1] = pQuad[1];
+    }
+    if (pEdge_at_bounds[3] != 0 && pEdge_at_bounds[0] != 0) {
+        a.level_vertex[2] = a.corner[2];
+    } else {
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.level_vertex[2] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.level_vertex[2] = pQuad[2];
+    }
+    if (pEdge_at_bounds[2] != 0 && pEdge_at_bounds[3] != 0) {
+        a.level_vertex[3] = a.corner[3];
+    } else {
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.level_vertex[3] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.level_vertex[3] = pQuad[3];
+    }
+    if (pEdge_at_bounds[1] != 0) {
+        a.edge_vertex[0] = a.level_vertex[1];
+    } else {
+        vertex = *a.level_vertex[1];
+        vertex.map.v[1] = (vertex.map.v[0] - a.corner[0]->map.v[0]) / (a.corner[1]->map.v[0] - a.corner[0]->map.v[0]) * (a.corner[1]->map.v[1] - a.corner[0]->map.v[1]) + a.corner[0]->map.v[1];
+        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.edge_vertex[0] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.edge_vertex[0] = vertex;
+    }
+    if (pEdge_at_bounds[2] != 0) {
+        a.edge_vertex[1] = a.level_vertex[3];
+    } else {
+        vertex = *a.level_vertex[3];
+        vertex.map.v[0] = (vertex.map.v[1] - a.corner[1]->map.v[1]) / (a.corner[3]->map.v[1] - a.corner[1]->map.v[1]) * (a.corner[3]->map.v[0] - a.corner[1]->map.v[0]) + a.corner[1]->map.v[0];
+        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.edge_vertex[1] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.edge_vertex[1] = vertex;
+    }
+    if (pEdge_at_bounds[3] != 0) {
+        a.edge_vertex[2] = a.level_vertex[2];
+    } else {
+        vertex = *a.level_vertex[2];
+        vertex.map.v[1] = (vertex.map.v[0] - a.corner[3]->map.v[0]) / (a.corner[2]->map.v[0] - a.corner[3]->map.v[0]) * (a.corner[2]->map.v[1] - a.corner[3]->map.v[1]) + a.corner[3]->map.v[1];
+        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.edge_vertex[2] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.edge_vertex[2] = vertex;
+    }
+    if (pEdge_at_bounds[0] != 0) {
+        a.edge_vertex[3] = a.level_vertex[0];
+    } else {
+        vertex = *a.level_vertex[0];
+        vertex.map.v[0] = (vertex.map.v[1] - a.corner[2]->map.v[1]) / (a.corner[0]->map.v[1] - a.corner[2]->map.v[1]) * (a.corner[0]->map.v[0] - a.corner[2]->map.v[0]) + a.corner[2]->map.v[0];
+        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        if (model->nvertices >= max_vertices) {
+            return 0;
+        }
+        a.edge_vertex[3] = &model->vertices[model->nvertices];
+        model->nvertices++;
+        *a.edge_vertex[3] = vertex;
+    }
+    old_material = map->tri[0].face->material;
+    map->tri[0].face->material = pMaterial;
+    map->tri[0].face->flags = 0;
+    map->tri[0].face->vertices[0] = (tU16)(a.level_vertex[0] - model->vertices);
+    map->tri[0].face->vertices[1] = (tU16)(a.level_vertex[1] - model->vertices);
+    map->tri[0].face->vertices[2] = (tU16)(a.level_vertex[3] - model->vertices);
+    map->tri[1].face->material = pMaterial;
+    map->tri[1].face->flags = 0;
+    map->tri[1].face->vertices[0] = (tU16)(a.level_vertex[0] - model->vertices);
+    map->tri[1].face->vertices[1] = (tU16)(a.level_vertex[3] - model->vertices);
+    map->tri[1].face->vertices[2] = (tU16)(a.level_vertex[2] - model->vertices);
+    map->tri[0].face->flags = 4;
+    map->tri[1].face->flags = 1;
+    for (i = 0; i < 4; i++) {
+        *(br_vector3*)&gShrapnel_shower_matrix.m[i][0] = a.level_vertex[i]->p;
+    }
+    gVector3_006a4688.v[0] = map->plane[0];
+    gVector3_006a4688.v[1] = map->plane[1];
+    gINT_006a3334 = 1;
+    gVector3_006a4688.v[2] = map->plane[2];
+    if (pEdge_at_bounds[0] == 0) {
+        if (model->nfaces + 1 >= max_faces) {
+            return 0;
+        }
+        face_a = &model->faces[model->nfaces];
+        face_b = &model->faces[model->nfaces + 1];
+        model->nfaces += 2;
+        *face_a = *model->faces;
+        *face_b = *model->faces;
+        face_a->flags = 0;
+        face_a->material = old_material;
+        if ((a.edge_vertex[3]->p.v[0] - a.edge_vertex[2]->p.v[0]) * (a.edge_vertex[3]->p.v[0] - a.edge_vertex[2]->p.v[0])
+                + (a.edge_vertex[3]->p.v[2] - a.edge_vertex[2]->p.v[2]) * (a.edge_vertex[3]->p.v[2] - a.edge_vertex[2]->p.v[2])
+                + (a.edge_vertex[3]->p.v[1] - a.edge_vertex[2]->p.v[1]) * (a.edge_vertex[3]->p.v[1] - a.edge_vertex[2]->p.v[1])
+                > (a.level_vertex[0]->p.v[0] - a.corner[2]->p.v[0]) * (a.level_vertex[0]->p.v[0] - a.corner[2]->p.v[0])
+                + (a.level_vertex[0]->p.v[2] - a.corner[2]->p.v[2]) * (a.level_vertex[0]->p.v[2] - a.corner[2]->p.v[2])
+                + (a.level_vertex[0]->p.v[1] - a.corner[2]->p.v[1]) * (a.level_vertex[0]->p.v[1] - a.corner[2]->p.v[1])) {
+            face_a->vertices[0] = (tU16)(a.edge_vertex[3] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.level_vertex[0] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.edge_vertex[2] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.edge_vertex[3] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.edge_vertex[2] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.corner[2] - model->vertices);
+        } else {
+            face_a->vertices[0] = (tU16)(a.level_vertex[0] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.edge_vertex[2] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.corner[2] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.level_vertex[0] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.corner[2] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.edge_vertex[3] - model->vertices);
+        }
+    }
+    if (pEdge_at_bounds[1] == 0) {
+        if (model->nfaces + 1 >= max_faces) {
+            return 0;
+        }
+        face_a = &model->faces[model->nfaces];
+        face_b = &model->faces[model->nfaces + 1];
+        model->nfaces += 2;
+        *face_a = *model->faces;
+        *face_b = *model->faces;
+        face_a->flags = 0;
+        face_a->material = old_material;
+        if ((a.corner[0]->p.v[0] - a.level_vertex[1]->p.v[0]) * (a.corner[0]->p.v[0] - a.level_vertex[1]->p.v[0])
+                + (a.corner[0]->p.v[2] - a.level_vertex[1]->p.v[2]) * (a.corner[0]->p.v[2] - a.level_vertex[1]->p.v[2])
+                + (a.corner[0]->p.v[1] - a.level_vertex[1]->p.v[1]) * (a.corner[0]->p.v[1] - a.level_vertex[1]->p.v[1])
+                > (a.edge_vertex[0]->p.v[0] - a.edge_vertex[3]->p.v[0]) * (a.edge_vertex[0]->p.v[0] - a.edge_vertex[3]->p.v[0])
+                + (a.edge_vertex[0]->p.v[2] - a.edge_vertex[3]->p.v[2]) * (a.edge_vertex[0]->p.v[2] - a.edge_vertex[3]->p.v[2])
+                + (a.edge_vertex[0]->p.v[1] - a.edge_vertex[3]->p.v[1]) * (a.edge_vertex[0]->p.v[1] - a.edge_vertex[3]->p.v[1])) {
+            face_a->vertices[0] = (tU16)(a.corner[0] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.edge_vertex[0] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.level_vertex[1] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.corner[0] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.level_vertex[1] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.edge_vertex[3] - model->vertices);
+        } else {
+            face_a->vertices[0] = (tU16)(a.edge_vertex[0] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.level_vertex[1] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.edge_vertex[3] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.edge_vertex[0] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.edge_vertex[3] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.corner[0] - model->vertices);
+        }
+    }
+    if (pEdge_at_bounds[2] == 0) {
+        if (model->nfaces + 1 >= max_faces) {
+            return 0;
+        }
+        face_a = &model->faces[model->nfaces];
+        face_b = &model->faces[model->nfaces + 1];
+        model->nfaces += 2;
+        *face_a = *model->faces;
+        *face_b = *model->faces;
+        face_a->flags = 0;
+        face_a->material = old_material;
+        if ((a.edge_vertex[0]->p.v[0] - a.edge_vertex[1]->p.v[0]) * (a.edge_vertex[0]->p.v[0] - a.edge_vertex[1]->p.v[0])
+                + (a.edge_vertex[0]->p.v[2] - a.edge_vertex[1]->p.v[2]) * (a.edge_vertex[0]->p.v[2] - a.edge_vertex[1]->p.v[2])
+                + (a.edge_vertex[0]->p.v[1] - a.edge_vertex[1]->p.v[1]) * (a.edge_vertex[0]->p.v[1] - a.edge_vertex[1]->p.v[1])
+                > (a.corner[1]->p.v[0] - a.level_vertex[3]->p.v[0]) * (a.corner[1]->p.v[0] - a.level_vertex[3]->p.v[0])
+                + (a.corner[1]->p.v[2] - a.level_vertex[3]->p.v[2]) * (a.corner[1]->p.v[2] - a.level_vertex[3]->p.v[2])
+                + (a.corner[1]->p.v[1] - a.level_vertex[3]->p.v[1]) * (a.corner[1]->p.v[1] - a.level_vertex[3]->p.v[1])) {
+            face_a->vertices[0] = (tU16)(a.edge_vertex[0] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.corner[1] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.edge_vertex[0] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.level_vertex[3] - model->vertices);
+        } else {
+            face_a->vertices[0] = (tU16)(a.corner[1] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.level_vertex[3] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.corner[1] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.level_vertex[3] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.edge_vertex[0] - model->vertices);
+        }
+    }
+    if (pEdge_at_bounds[3] == 0) {
+        if (model->nfaces + 1 >= max_faces) {
+            return 0;
+        }
+        face_a = &model->faces[model->nfaces];
+        face_b = &model->faces[model->nfaces + 1];
+        model->nfaces += 2;
+        *face_a = *model->faces;
+        *face_b = *model->faces;
+        face_a->flags = 0;
+        face_a->material = old_material;
+        if ((a.level_vertex[2]->p.v[0] - a.corner[3]->p.v[0]) * (a.level_vertex[2]->p.v[0] - a.corner[3]->p.v[0])
+                + (a.level_vertex[2]->p.v[2] - a.corner[3]->p.v[2]) * (a.level_vertex[2]->p.v[2] - a.corner[3]->p.v[2])
+                + (a.level_vertex[2]->p.v[1] - a.corner[3]->p.v[1]) * (a.level_vertex[2]->p.v[1] - a.corner[3]->p.v[1])
+                > (a.edge_vertex[1]->p.v[0] - a.edge_vertex[2]->p.v[0]) * (a.edge_vertex[1]->p.v[0] - a.edge_vertex[2]->p.v[0])
+                + (a.edge_vertex[1]->p.v[2] - a.edge_vertex[2]->p.v[2]) * (a.edge_vertex[1]->p.v[2] - a.edge_vertex[2]->p.v[2])
+                + (a.edge_vertex[1]->p.v[1] - a.edge_vertex[2]->p.v[1]) * (a.edge_vertex[1]->p.v[1] - a.edge_vertex[2]->p.v[1])) {
+            face_a->vertices[0] = (tU16)(a.level_vertex[2] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.corner[3] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.level_vertex[2] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.corner[3] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.edge_vertex[2] - model->vertices);
+        } else {
+            face_a->vertices[0] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_a->vertices[1] = (tU16)(a.corner[3] - model->vertices);
+            face_a->vertices[2] = (tU16)(a.edge_vertex[2] - model->vertices);
+            face_b->material = old_material;
+            face_b->flags = 0;
+            face_b->vertices[0] = (tU16)(a.edge_vertex[1] - model->vertices);
+            face_b->vertices[1] = (tU16)(a.edge_vertex[2] - model->vertices);
+            face_b->vertices[2] = (tU16)(a.level_vertex[2] - model->vertices);
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        ((tU16*)pVertex_array)[i] = (tU16)(a.level_vertex[i] - model->vertices);
+    }
+    return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x004f3560
@@ -4466,3 +4826,61 @@ int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
+
+// FUNCTION: CARMA2_HW 0x004f6320
+void C2_HOOK_FASTCALL FUN_004f6320(tNet_message_chunk_non_car_shrapnel* pSpec) {
+    br_actor* actor;
+    br_actor* clone;
+    br_actor** p;
+    tNon_car_spec* non_car;
+    int i;
+
+    i = 0;
+    if (i < gCount_smashable_noncar_shrapnel_actors) {
+        p = gSmashable_noncar_shrapnel_actors;
+        do {
+            if ((*p)->identifier[1] == pSpec->field_0xa && (*p)->identifier[2] == pSpec->field_0xb) {
+                actor = gSmashable_noncar_shrapnel_actors[i];
+                goto found;
+            }
+            i++;
+            p++;
+        } while (i < gCount_smashable_noncar_shrapnel_actors);
+    }
+    actor = NULL;
+found:
+    if (actor == NULL || gProgram_state.track_spec.non_car_list[pSpec->field_0x8] != NULL) {
+        return;
+    }
+    clone = CloneActor(actor);
+    sprintf(clone->identifier + 4, "%04d.ACT", pSpec->field_0x8);
+    gProgram_state.track_spec.non_car_list[pSpec->field_0x8] = clone;
+    BrActorAdd(gDont_render_actor, clone);
+    BrMatrix34Copy(&clone->t.t.mat, &pSpec->mat);
+    if (clone->type_data == NULL && (non_car = DoPullActorFromWorld(clone)) != NULL) {
+        non_car->collision_info->v.v[0] = pSpec->v.v[0];
+        non_car->collision_info->v.v[1] = pSpec->v.v[1];
+        non_car->collision_info->v.v[2] = pSpec->v.v[2];
+        non_car->collision_info->omega.v[0] = pSpec->omega.v[0];
+        non_car->collision_info->omega.v[1] = pSpec->omega.v[1];
+        non_car->collision_info->omega.v[2] = pSpec->omega.v[2];
+        srand(pSpec->seed);
+        if (PercentageChance(pSpec->probability_fire)) {
+            for (i = 0; i < pSpec->count_fire_columns; i++) {
+                CreateSmokeColumn2(2, clone, (tCar_spec*)non_car, NULL,
+                        IRandomBetween(pSpec->min_smokiness, pSpec->max_smokiness),
+                        IRandomBetween(0, clone->model->prepared->groups->nvertices),
+                        10000000);
+            }
+        }
+        if (gProgram_state.track_spec.count_non_cars < pSpec->field_0x8 + 1) {
+            gProgram_state.track_spec.count_non_cars = pSpec->field_0x8 + 1;
+        }
+        return;
+    }
+    BrActorRemove(clone);
+    BrActorFree(clone);
+    gProgram_state.track_spec.non_car_list[pSpec->field_0x8] = NULL;
+}
