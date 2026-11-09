@@ -29,6 +29,8 @@ extern void C2_HOOK_FASTCALL ToggleMapTransparency(void);
 
 extern void C2_HOOK_FASTCALL InitTargetLock(void);
 
+extern void C2_HOOK_FASTCALL FUN_00497860(int* pA, int* pB);
+
 extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 // OppositeColour
 
