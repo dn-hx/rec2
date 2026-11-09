@@ -483,6 +483,9 @@ tU32 gNet_score_last_flash;
 // GLOBAL: CARMA2_HW 0x0068d950
 int gNet_score_flash_state;
 
+// GLOBAL: CARMA2_HW 0x0068d954
+int gNet_fullscreen_active;
+
 // GLOBAL: CARMA2_HW 0x0074a71c
 br_actor* gNet_score_root;
 
@@ -1353,6 +1356,82 @@ select_wasted_it:
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// FUNCTION: CARMA2_HW 0x0049bad0
+void C2_HOOK_FAKE_THISCALL FUN_0049bad0(void* pThis) {
+    extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+    extern int C2_HOOK_FASTCALL PermitNetServiceReentrancy(void);
+    extern void C2_HOOK_FASTCALL NetService(int pIn_race);
+    extern int C2_HOOK_FASTCALL CheckQuit(void);
+    extern void C2_HOOK_FASTCALL HaltNetServiceReentrancy(void);
+    extern void C2_HOOK_FASTCALL FadePaletteDown(void);
+    extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+    extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+    extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
+    extern void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar);
+    extern void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound);
+    extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
+    extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
+    extern void C2_HOOK_FASTCALL ChangeAmbientPratcam(int pIndex);
+    extern tProgram_state gProgram_state;
+    extern tRace_over_reason gRace_over_reason;
+    int iVar1;
+    int iVar2;
+    int in_ECX;
+
+    in_ECX = (int)pThis;
+    iVar1 = *(int*)(in_ECX + 4);
+    if (iVar1 == 4) {
+        if (gNet_fullscreen_active == 0) {
+            gNet_fullscreen_active = 1;
+            NetFullScreenMessage(0xe4, 1);
+            iVar1 = PermitNetServiceReentrancy();
+            do {
+                NetService(0);
+                iVar2 = CheckQuit();
+                if (iVar2 != 0) {
+                    NetFullScreenMessage(0xe4, 1);
+                }
+            } while ((gWaiting_for_unpause != 0 && *(int*)((char*)&gProgram_state + 164) != 2) &&
+                (gRace_finished == 0 || gRace_over_reason != 4));
+            if (iVar1 != 0) {
+                HaltNetServiceReentrancy();
+            }
+            gWaiting_for_unpause = 1;
+            FadePaletteDown();
+            ClearEntireScreen();
+            FadePaletteUp();
+            gNet_fullscreen_active = 0;
+            return;
+        }
+    } else {
+        if (iVar1 == 5) {
+            gWaiting_for_unpause = 0;
+            return;
+        }
+        if (iVar1 == 3) {
+            KnackerThisCar(NetCarFromPlayerID(*(tPlayer_ID*)(in_ECX + 8)));
+            return;
+        }
+        if ((2 < *(int*)((char*)gCurrent_net_game + 0x74)) && (*(int*)((char*)gCurrent_net_game + 0x74) < 6)) {
+            if (iVar1 == 0) {
+                Checkpoint(*(int*)(in_ECX + 8), 1);
+            } else {
+                if (iVar1 == 1) {
+                    WrongCheckpoint(*(int*)(in_ECX + 8));
+                    return;
+                }
+                if (iVar1 == 2) {
+                    DoFancyHeadup(0x1a);
+                    ChangeAmbientPratcam(0x24);
+                    gRace_finished = 1;
+                    return;
+                }
+            }
+        }
+    }
+    return;
+}
 
 // SendPlayerScores
 
@@ -2258,10 +2337,176 @@ int gScore_winner = 20;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049c630
+extern br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq);
+extern br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q);
+
+// FUNCTION: CARMA2_HW 0x0049cb00
+// PARTIAL 55%: x87 scheduling/frame size (orig frame 0x24, keeps differences in memory temporaries)
+void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat) {
+    tPhysics_joint* joint;
+    tPhysics_object* parent;
+    br_vector3 tmp;
+    br_vector3 tmp2;
+    br_vector3 d;
+    float dx;
+    float dy;
+
+    joint = pObj->physics_joint1;
+    d.v[0] = joint->field_0x08.v[0] - pObj->cmpos.v[0];
+    d.v[1] = joint->field_0x08.v[1] - pObj->cmpos.v[1];
+    dx = joint->field_0x08.v[2] - pObj->cmpos.v[2];
+    tmp.v[0] = pObj->omega.v[2] * d.v[1] - pObj->omega.v[1] * dx;
+    tmp.v[1] = pObj->omega.v[0] * dx - pObj->omega.v[2] * d.v[0];
+    tmp.v[2] = pObj->omega.v[1] * d.v[0] - pObj->omega.v[0] * d.v[1];
+    BrMatrix34ApplyV(&pObj->v, &tmp, pMat);
+    joint = pObj->physics_joint1;
+    if (pParent_mat != NULL) {
+        parent = pObj->parent;
+        dy = joint->field_0x14.v[1] - parent->cmpos.v[1];
+        dx = joint->field_0x14.v[2] - parent->cmpos.v[2];
+        d.v[0] = joint->field_0x14.v[0] - parent->cmpos.v[0];
+        tmp.v[0] = parent->omega.v[1] * dx - parent->omega.v[2] * dy;
+        tmp.v[1] = parent->omega.v[2] * d.v[0] - parent->omega.v[0] * dx;
+        tmp.v[2] = parent->omega.v[0] * dy - parent->omega.v[1] * d.v[0];
+        BrMatrix34ApplyV(&tmp2, &tmp, pMat);
+        parent = pObj->parent;
+        tmp2.v[0] = parent->v.v[0] + tmp2.v[0];
+        tmp2.v[1] = parent->v.v[1] + tmp2.v[1];
+        tmp2.v[2] = parent->v.v[2] + tmp2.v[2];
+        pObj->v.v[0] = tmp2.v[0] + pObj->v.v[0];
+        pObj->v.v[1] = tmp2.v[1] + pObj->v.v[1];
+        pObj->v.v[2] = tmp2.v[2] + pObj->v.v[2];
+        BrMatrix34ApplyV(&tmp, &pObj->physics_joint1->field_0x08, pMat);
+        BrMatrix34ApplyP(&tmp2, &pObj->physics_joint1->field_0x14, pParent_mat);
+        pMat->m[3][0] = tmp2.v[0] - tmp.v[0];
+        pMat->m[3][1] = tmp2.v[1] - tmp.v[1];
+        pMat->m[3][2] = tmp2.v[2] - tmp.v[2];
+        return;
+    }
+    BrMatrix34ApplyV(&tmp, &joint->field_0x08, pMat);
+    pMat->m[3][0] = pObj->field_0x17c.v[0] - tmp.v[0];
+    pMat->m[3][1] = pObj->field_0x17c.v[1] - tmp.v[1];
+    pMat->m[3][2] = pObj->field_0x17c.v[2] - tmp.v[2];
+}
+
+// FUNCTION: CARMA2_HW 0x0049c630
+// PARTIAL 21%: register allocation/frame differ (orig keeps NULL in ebp, frame 0x2c)
 int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
-    NOT_IMPLEMENTED();
-    return 0;
+    tU16* field;
+    br_matrix34* mat;
+    br_matrix34* parent_mat;
+    br_scalar* pf;
+    tU16* pu;
+    int i;
+    int size;
+    br_quat q;
+    br_vector3 vec;
+    tPhysics_joint* joint;
+    float t;
+
+    field = (tU16*)pField;
+    if (pObj == NULL) {
+        switch (((tU8*)field)[0] & 0xf) {
+        case 0:
+            return 0x28;
+        case 1:
+        case 4:
+            return 0xc;
+        case 2:
+        case 3:
+            return 0x10;
+        default:
+            PhysicsError((tPhysicsError)9, "netphys got messed up");
+            return 0;
+        }
+    }
+    if (pMode == 1) {
+        mat = &pObj->actor->t.t.mat;
+        if (pObj->parent != NULL) {
+            parent_mat = &pObj->parent->actor->t.t.mat;
+        } else {
+            parent_mat = NULL;
+        }
+    } else {
+        mat = &pObj->transform_matrix;
+        if (pObj->parent != NULL) {
+            parent_mat = &pObj->parent->transform_matrix;
+        } else {
+            parent_mat = NULL;
+        }
+    }
+    switch (((tU8*)field)[0] & 0xf) {
+    case 0:
+        pf = pObj->omega.v;
+        pu = field;
+        for (i = 3; i != 0; i--) {
+            pu++;
+            *pf = (float)*pu * 1.5259255e-05 * 78.53982 - 39.26991;
+            pf++;
+        }
+        *(undefined4*)&pObj->v.v[0] = pField[2];
+        *(undefined4*)&pObj->v.v[1] = pField[3];
+        *(undefined4*)&pObj->v.v[2] = pField[4];
+        q.x = ((float)field[10] * 1.5259255e-05 + (float)field[10] * 1.5259255e-05) - 1.0;
+        q.y = ((float)field[11] * 1.5259255e-05 + (float)field[11] * 1.5259255e-05) - 1.0;
+        q.z = ((float)field[12] * 1.5259255e-05 + (float)field[12] * 1.5259255e-05) - 1.0;
+        q.w = ((float)field[13] * 1.5259255e-05 + (float)field[13] * 1.5259255e-05) - 1.0;
+        BrQuatNormalise(&q, &q);
+        BrQuatToMatrix34(mat, &q);
+        *(undefined4*)&mat->m[3][0] = pField[7];
+        *(undefined4*)&mat->m[3][1] = pField[8];
+        *(undefined4*)&mat->m[3][2] = pField[9];
+        size = 0x28;
+        break;
+    case 1:
+    case 4:
+        q.x = ((float)field[2] * 1.5259255e-05 + (float)field[2] * 1.5259255e-05) - 1.0;
+        q.y = ((float)field[3] * 1.5259255e-05 + (float)field[3] * 1.5259255e-05) - 1.0;
+        q.z = ((float)field[4] * 1.5259255e-05 + (float)field[4] * 1.5259255e-05) - 1.0;
+        q.w = ((float)field[5] * 1.5259255e-05 + (float)field[5] * 1.5259255e-05) - 1.0;
+        BrQuatNormalise(&q, &q);
+        BrQuatToMatrix34(mat, &q);
+        BrMatrix34ApplyV(&vec, &pObj->parent->omega, parent_mat);
+        pf = pObj->omega.v;
+        BrMatrix34TApplyV(&pObj->omega, &vec, mat);
+        joint = pObj->physics_joint1;
+        t = ((float)field[1] * 1.5259255e-05 * 78.53982 - 39.26991) - (joint->hinge_axis.v[0] * pf[0] + pf[2] * joint->hinge_axis.v[2] + pf[1] * joint->hinge_axis.v[1]);
+        vec.v[0] = joint->hinge_axis.v[0] * t;
+        vec.v[1] = joint->hinge_axis.v[1] * t;
+        t = joint->hinge_axis.v[2] * t;
+        pf[0] = vec.v[0] + pf[0];
+        pf[1] = vec.v[1] + pf[1];
+        pf[2] = t + pf[2];
+        FUN_0049cb00(pObj, mat, parent_mat);
+        size = 0xc;
+        break;
+    case 2:
+    case 3:
+        pf = pObj->omega.v;
+        pu = field;
+        for (i = 3; i != 0; i--) {
+            pu++;
+            *pf = (float)*pu * 1.5259255e-05 * 78.53982 - 39.26991;
+            pf++;
+        }
+        q.x = ((float)field[4] * 1.5259255e-05 + (float)field[4] * 1.5259255e-05) - 1.0;
+        q.y = ((float)field[5] * 1.5259255e-05 + (float)field[5] * 1.5259255e-05) - 1.0;
+        q.z = ((float)field[6] * 1.5259255e-05 + (float)field[6] * 1.5259255e-05) - 1.0;
+        q.w = ((float)field[7] * 1.5259255e-05 + (float)field[7] * 1.5259255e-05) - 1.0;
+        BrQuatNormalise(&q, &q);
+        BrQuatToMatrix34(mat, &q);
+        FUN_0049cb00(pObj, mat, parent_mat);
+        size = 0x10;
+        break;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        size = pMode;
+        break;
+    }
+    if (pMode == 2) {
+        BrMatrix34Copy(&pObj->actor->t.t.mat, mat);
+    }
+    return size;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2319,4 +2564,120 @@ next_crush_state:
             pCrush_state += 4;
         } while (i < pContents->count);
     }
+}
+
+/* Detached non-car data chunk (net message type 0x27). Layout as produced by
+   SendDetachedNonCarData: player id, crush entry id, compressed bb1 min/max,
+   time, flags and the object hierarchy; see tNet_message_chunk_detached_non_car
+   in 04-netgame.h. */
+typedef struct {
+    tU8 id;
+    undefined field_0x1[3];
+    br_actor* actor;
+} tDetached_non_car_find_arg;
+
+// FUNCTION: CARMA2_HW 0x0043d340
+void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents) {
+    extern int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg);
+    extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
+    extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
+    extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
+    extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+    tDetached_non_car_find_arg find;
+    br_bounds3 bounds;
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+    tCrush_info* crush_info;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_detach_data* detach_data;
+    tPhysics_object* object;
+    br_actor* actor;
+    int i;
+    int changed;
+
+    car = NetCarFromPlayerID(pContents->player_id);
+    if (car == NULL) {
+        return;
+    }
+    crush_spec = car->car_crush_spec;
+    if (crush_spec != NULL) {
+        for (i = 0; i < crush_spec->field_0x2b0; i++) {
+            if (crush_spec->field_0x2b4[i].field_0x8->uid == pContents->uid) {
+                actor = crush_spec->field_0x2b4[i].field_0x0;
+                goto have_actor;
+            }
+        }
+    }
+    actor = NULL;
+have_actor:
+    if (actor == NULL) {
+        object = NULL;
+        if (crush_spec != NULL) {
+            for (i = 0; i < crush_spec->field_0x270; i++) {
+                object = crush_spec->field_0x274[i].field_0x8;
+                if (object->uid == pContents->uid) {
+                    break;
+                }
+                object = NULL;
+            }
+        }
+        if (object != NULL) {
+            FullyDetachBit(car, object);
+            MungeDetachLists(car->car_crush_spec);
+            actor = object->actor;
+        } else {
+            find.id = pContents->uid;
+            find.actor = NULL;
+            actor = (br_actor*)((DRActorEnumRecurse(car->car_model_actor, FindActorByCrushEntryID, &find) != 0 ? 0xffffffff : 0) & (tU32)find.actor);
+            if (actor == NULL) {
+                return;
+            }
+            ExpandVector3(&bounds.min, &pContents->bounds_min, -10.0f, 10.0f);
+            ExpandVector3(&bounds.max, &pContents->bounds_max, -10.0f, 10.0f);
+            if (DetachBit(car, actor, &bounds) == NULL) {
+                return;
+            }
+        }
+    }
+    crush_info = actor->type_data;
+    if (crush_info == NULL) {
+        return;
+    }
+    object = crush_info->collision_object;
+    user = actor->user;
+    if (user == NULL) {
+        return;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    detach_data = crush_data->detach_data;
+    if (detach_data == NULL) {
+        return;
+    }
+    changed = 0;
+    for (i = 0x10; i < 0x1c; i += 4) {
+        if (*(tU16*)((tU8*)pContents + i - 6) != *(tU16*)((tU8*)detach_data + i + 0x6c)) {
+            changed = 1;
+            *(float*)((tU8*)object->shape - 0xc + i) = DRU16ToScalar(*(tU16*)((tU8*)pContents + i - 6), -10.0f, 10.0f);
+        }
+        if (*(tU16*)((tU8*)pContents + i) != *(tU16*)((tU8*)detach_data + i + 0x72)) {
+            changed = 1;
+            *(float*)((tU8*)object->shape + i) = DRU16ToScalar(*(tU16*)((tU8*)pContents + i), -10.0f, 10.0f);
+        }
+    }
+    if (changed) {
+        UpdateCollisionObject(object);
+    }
+    if ((pContents->flags & 2) == 0 && pContents->time != (tU32)-1) {
+        memcpy((tU8*)crush_info->collision_object + 0x294, pContents->object_hierarchy, GetNetworkDataSize(pContents->object_hierarchy));
+        crush_info->collision_object->message_time = pContents->time;
+        crush_info->collision_object->field_0x261 = 0x27;
+        crush_info->collision_object->disable_move_rotate = 0;
+        return;
+    }
+    SelectCrushNetwork((undefined4*)pContents->object_hierarchy, crush_info->collision_object, 2);
+    crush_info->collision_object->disable_move_rotate = 1;
 }
