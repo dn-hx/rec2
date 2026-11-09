@@ -793,8 +793,8 @@ extern int C2_HOOK_FASTCALL BattenDownTheObjects(tPhysics_object* pCollision_inf
 extern void C2_HOOK_FASTCALL PDEnterDebugger(const char* pStr);
 extern void C2_HOOK_FASTCALL FUN_0043b250(tCar_spec* pCar, tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL FUN_0043b2a0(tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL FUN_0043b400(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
-extern intptr_t C2_HOOK_CDECL FUN_0043b2e0(br_actor* pActor, tCrush_displacement_context_local* pContext);
+extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
+extern intptr_t C2_HOOK_CDECL AddTotalDeflectionOfModel(br_actor* pActor, tCrush_displacement_context_local* pContext);
 extern void C2_HOOK_FASTCALL SmoothCarCrushShapePoints(tCar_spec* pCar, float pStep);
 extern br_scalar gCrushReattachDistanceSquared;
 extern float gFLOAT_00589b48;
@@ -879,10 +879,10 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
         ctx.step = (float)delta * gFLOAT_00589b48;
         ctx.total_displacement = pOut;
         ctx.displacement = 0.f;
-        PhysicsObjectRecurse(pCar->collision_info, (tEnumCollision_cbfn*)FUN_0043b400, &ctx);
+        PhysicsObjectRecurse(pCar->collision_info, (tEnumCollision_cbfn*)RepairObject, &ctx);
         SmoothCarCrushShapePoints(pCar, ctx.step);
         for (i = 0; i < crush->field_0x2b0; i++) {
-            DRActorEnumRecurse(crush->field_0x2b4[i].field_0x0, (br_actor_enum_cbfn*)FUN_0043b2e0, &ctx);
+            DRActorEnumRecurse(crush->field_0x2b4[i].field_0x0, (br_actor_enum_cbfn*)AddTotalDeflectionOfModel, &ctx);
         }
         repaired = ctx.displacement;
         if (ctx.displacement == gCrushZero) {
@@ -5498,7 +5498,7 @@ void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag) 
     for (j = 0; j < 4; j++) {
         pCar->oldd[j] = pCar->ride_height;
     }
-    pCar->gear = 0.f;
+    pCar->gear = 0;
     pCar->revs = 0.f;
     pCar->traction_control = 1;
     BrVector3Negate(&pCar->direction, (br_vector3*)pCar->car_master_actor->t.t.mat.m[2]);
