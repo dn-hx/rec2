@@ -13,6 +13,7 @@ extern int C2_HOOK_FASTCALL AllocationErrorsAreFatal(void);
 extern void C2_HOOK_FASTCALL MAMSInitMem(void);
 
 extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
+extern void C2_HOOK_FASTCALL FUN_0044c860(void* p, br_size_t size);
 
 extern void* C2_HOOK_CDECL DRStdlibAllocate(br_size_t size, br_uint_8 type);
 
