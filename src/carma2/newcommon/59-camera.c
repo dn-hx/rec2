@@ -1322,6 +1322,7 @@ void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matr
 
 // (reference)
 extern int gCamera_has_collided;
+// PARTIAL 21.9%: CollideCamera2 0x4122b0 [sonnet] - register allocation/stack layout and x87 schedule; final collision_info loop now exits unless result < 0 (fixes reverse-into-wall freeze)
 // FUNCTION: CARMA2_HW 0x004122b0
 int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info) {
     int i;
@@ -1607,6 +1608,10 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
                     BrMatrix34ApplyP(cam_pos, &new_cam_pos, &collision_info->actor->t.t.mat);
                 }
                 BrVector3Accumulate(cam_pos, &delta);
+                /* original (0x413550): loops back only while the ray starts inside the shape (result < 0) */
+                if (num_collisions >= 0) {
+                    break;
+                }
             }
         }
     }
