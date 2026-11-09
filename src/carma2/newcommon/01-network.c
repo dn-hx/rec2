@@ -88,7 +88,7 @@ int gNext_guarantee;
 // GLOBAL: CARMA2_HW 0x0068d990
 tGuaranteed_message gGuarantee_list[200];
 
-// GLOBAL: CARMA2_HW 0x00705560
+// (gShit_mines is defined in 27-powerup.c)
 extern tShit_mine gShit_mines[20];
 
 // FUNCTION: CARMA2_HW 0x0049d210
