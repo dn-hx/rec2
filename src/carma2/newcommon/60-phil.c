@@ -1085,6 +1085,27 @@ void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt)
         RepositionObjectGroup(pChild, pDt);
     }
 }
+
+// PARTIAL 72.73%: RepositionObjectSiblings 0x004c28a0 [sonnet] - extra stack temp (push ecx) and xor edx,edx from fake thiscall; x87 order differs
+// FUNCTION: CARMA2_HW 0x004c28a0
+void C2_HOOK_FAKE_THISCALL RepositionObjectSiblings(tPhysics_object* pObject, undefined4 arg2, float pDt) {
+    float t0;
+    float t1;
+    float t2;
+
+    for (; pObject != NULL; pObject = pObject->next) {
+        t0 = pObject->v.v[0] * pDt;
+        t1 = pObject->v.v[1] * pDt;
+        t2 = pObject->v.v[2] * pDt;
+        pObject->actor->t.t.mat.m[3][0] += t0;
+        pObject->actor->t.t.mat.m[3][1] += t1;
+        pObject->actor->t.t.mat.m[3][2] += t2;
+        InterpolateSingleObject(pObject, pDt);
+        if (pObject->child != NULL) {
+            RepositionObjectSiblings(pObject->child REC2_THISCALL_EDX, pDt);
+        }
+    }
+}
 // GLOBAL: CARMA2_HW 0x00692dd0
 float gFLOAT_00692dd0;
 
