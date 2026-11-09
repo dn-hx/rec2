@@ -8195,7 +8195,7 @@ tCrush_info* C2_HOOK_FASTCALL FUN_0042f170(tCrush_info_buffer* pInfo_buffer, br_
 #ifdef REC2_MATCHING
 #pragma inline_depth()
 #endif
-// GLOBAL: CARMA2_HW 0x00589a54
+// alias: same value as gFLOAT_1_0_00589a54 at 0x00589a54 (kept as a separate name for the 0x4236a0 code)
 const br_scalar gFLOAT_00589a54 = 1.0f;
 // GLOBAL: CARMA2_HW 0x00589a98
 const br_scalar gFLOAT_00589a98 = 0.0001f;
