@@ -112,7 +112,7 @@ void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
     car->acc_force = 0.f;
     car->brake_force = 0.f;
     car->curvature = 0.f;
-    car->gear = 0.f;
+    car->gear = 0;
     car->revs = 0.f;
     BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
     BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
@@ -1945,7 +1945,7 @@ void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpp
     car->acc_force = 0.f;
     car->brake_force = 0.f;
     car->curvature = 0.f;
-    car->gear = 0.f;
+    car->gear = 0;
     car->revs = 0.f;
     BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
     BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
@@ -2576,7 +2576,7 @@ void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_o
             car->acc_force = 0.f;
             car->brake_force = 0.f;
             car->curvature = 0.f;
-            car->gear = 0.f;
+            car->gear = 0;
             car->revs = 0.f;
             BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
             BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
@@ -3076,7 +3076,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_sc
         for (j = 0; j < 4; j++) {
             pOpponent_spec->car_spec->oldd[j] = pOpponent_spec->car_spec->ride_height;
         }
-        pOpponent_spec->car_spec->gear = 0.f;
+        pOpponent_spec->car_spec->gear = 0;
         pOpponent_spec->car_spec->revs = 0.f;
         pOpponent_spec->car_spec->traction_control = 1;
         BrMatrix34ApplyP(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->centre_of_mass_world_scale, mat);
@@ -3110,7 +3110,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_sc
         pOpponent_spec->car_spec->acc_force = 0.f;
         pOpponent_spec->car_spec->brake_force = 0.f;
         pOpponent_spec->car_spec->curvature = 0.f;
-        pOpponent_spec->car_spec->gear = 0.f;
+        pOpponent_spec->car_spec->gear = 0;
         pOpponent_spec->car_spec->revs = 0.f;
         BrVector3Set(&pOpponent_spec->car_spec->collision_info->omega, 0.f, 0.f, 0.f);
         BrVector3Set(&pOpponent_spec->car_spec->collision_info->v, 0.f, 0.f, 0.f);
