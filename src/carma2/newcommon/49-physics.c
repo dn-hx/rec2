@@ -12,6 +12,8 @@
 #include "rec2_macros.h"
 #include "c2_string.h"
 #include "c2_stdlib.h"
+#include "c2_math.h"
+#include "brender/brender.h"
 
 #include <stddef.h>
 
@@ -2346,6 +2348,26 @@ tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType) {
 
     result = BrMemAllocate(sizeof(tCollision_shape_sphere), (br_uint_8)pType);
     result->common.type = kCollisionShapeType_Sphere;
+    return result;
+}
+
+// PARTIAL 99.99% (effective): type store scheduled before the 0x4c/0x3c/0x40 stores
+// FUNCTION: CARMA2_HW 0x004c5d30
+tCollision_shape_polyhedron* C2_HOOK_FASTCALL FUN_004c5d30(int pCount_points, int pType) {
+    tCollision_shape_polyhedron* result;
+    tU8* raw_memory;
+
+    result = BrMemAllocate(pCount_points * 30 + 0x70, (br_uint_8)pType);
+    raw_memory = (tU8*)result + 0x50;
+    result->polyhedron.points = (br_vector3*)raw_memory;
+    result->polyhedron.count_points = pCount_points;
+    raw_memory += pCount_points * sizeof(br_vector3);
+    result->polyhedron.edges = (tPolyhedron_edge_indexes*)raw_memory;
+    raw_memory += pCount_points * 2;
+    result->polyhedron.planes = (br_vector4*)raw_memory;
+    result->polyhedron.count_edges = 0;
+    result->polyhedron.count_planes = 0;
+    result->common.type = kCollisionShapeType_Wireframe_Polyhedron;
     return result;
 }
 
@@ -4823,7 +4845,6 @@ int C2_HOOK_FASTCALL FUN_004bd9e0(tPhysics_object* pObject, tPhysics_object** pO
     return pCount;
 }
 
-extern int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 extern int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 extern void C2_HOOK_FASTCALL FUN_0045d5e0(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor);
 
@@ -6764,13 +6785,34 @@ int C2_HOOK_FASTCALL SetUpQuickHingeData(tPhysics_object** pObject_list, tPhysic
 #pragma inline_depth()
 #endif
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004269c0
-int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining) {
-    NOT_IMPLEMENTED();
+
+// FUNCTION: CARMA2_HW 0x0045e4e0
+void C2_HOOK_FASTCALL FUN_0045e4e0(float* pParam1, float* pParam2, float* pParam3, int pParam4, float* pParam5) {
+    (void)pParam1;
+    (void)pParam2;
+    (void)pParam3;
+    (void)pParam4;
+    (void)pParam5;
+    *pParam5 = 100.0f;
 }
+
+// FUNCTION: CARMA2_HW 0x0045e200
+void C2_HOOK_FASTCALL FUN_0045e200(float* pParam1, float* pParam2, float* pParam3, void* pParam4, float* pParam5) {
+    (void)pParam1;
+    (void)pParam2;
+    (void)pParam3;
+    (void)pParam4;
+    (void)pParam5;
+    *pParam5 = 100.0f;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -6778,9 +6820,419 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection);
-extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
-extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
+
+// FUNCTION: CARMA2_HW 0x004269c0
+int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pObject2, const float* pBounds, int* pType, float* pParam3, const float* pVertices, int pParam5, int pCount, int pParam7, int pResult) {
+    int i;
+    int iVar15;
+    int iVar17;
+    unsigned int uVar14;
+    int* piVar1;
+    int* piVar10;
+    int* piVar11;
+    int* piVar18;
+    int* piVar23;
+    int* local_1a4;
+    int* local_190;
+    tU8* local_194;
+    tU8* local_180;
+    tU8* local_170;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    float fVar7;
+    float fVar8;
+    float fVar9;
+    float local_1c4;
+    float local_1c0;
+    float local_1bc;
+    float local_1b8;
+    float local_1b0;
+    float local_1ac;
+    float local_1a8;
+    float local_1a0;
+    float local_19c;
+    float local_198;
+    float local_18c;
+    float local_188;
+    float local_184;
+    float local_17c;
+    float local_178;
+    float local_174;
+    float local_16c;
+    float local_168;
+    float local_164;
+    float local_154;
+    float local_150;
+    float local_14c;
+    float local_148;
+    float local_144;
+    float local_140;
+    float local_13c;
+    float local_138;
+    float local_134;
+    float local_130;
+    float local_12c;
+    float local_128;
+    float local_124;
+    float local_120;
+    float local_11c;
+    float local_118;
+    float local_114;
+    float local_110;
+    float local_10c;
+    float local_108;
+    float local_104;
+    float local_100;
+    float local_fc;
+    float local_f8;
+    float local_f4;
+    float local_f0;
+    float local_ec;
+    float local_e8;
+    float local_e4;
+    float local_e0;
+    tU8 local_1b1;
+    tU8 abStack_d0[64];
+    char cVar12;
+    char cVar19;
+    char cVar20;
+    tU8 bVar13;
+    tU8 bVar2;
+    tU8 bVar3;
+    unsigned int uVar16;
+    float local_160[3];
+    float local_dc[3];
+    float local_90[3];
+    float local_84[3];
+    float local_78[3];
+    float local_6c[3];
+    float local_60[3];
+    int local_5c[23];
+
+    iVar17 = 0;
+    local_1b1 = 0xff;
+    if (0 < pCount) {
+        fVar4 = pBounds[1] - 0.005f;
+        fVar5 = pBounds[2] - 0.005f;
+        fVar6 = pBounds[3] - 0.005f;
+        fVar7 = pBounds[4] - -0.005f;
+        fVar8 = pBounds[5] - -0.005f;
+        fVar9 = pBounds[6] - -0.005f;
+        pVertices = pVertices + 1;
+        do {
+            if ((fVar4 <= pVertices[-1]) || (fVar4 <= pVertices[2])) {
+                local_180 = (tU8*)0;
+            } else {
+                local_180 = (tU8*)1;
+            }
+            if ((fVar5 <= pVertices[0]) || (local_1c4 = 1.4013e-45f, fVar5 <= pVertices[3])) {
+                local_1c4 = 0.0f;
+            }
+            if ((fVar6 <= pVertices[1]) || (local_194 = (tU8*)1, fVar6 <= pVertices[4])) {
+                local_194 = (tU8*)0;
+            }
+            if ((pVertices[-1] <= fVar7) || (pVertices[2] <= fVar7)) {
+                cVar20 = 0;
+            } else {
+                cVar20 = 1;
+            }
+            if ((pVertices[0] <= fVar8) || (pVertices[3] <= fVar8)) {
+                cVar19 = 0;
+            } else {
+                cVar19 = 1;
+            }
+            if ((pVertices[1] <= fVar9) || (pVertices[4] <= fVar9)) {
+                cVar12 = 0;
+            } else {
+                cVar12 = 1;
+            }
+            bVar13 = ((((cVar12 * 2 + cVar19) * 2 + cVar20) * 2 + (char)local_194) * 2 + (char)local_1c4) * 2 + (char)local_180;
+            pVertices = pVertices + 6;
+            abStack_d0[iVar17] = bVar13;
+            local_1b1 = local_1b1 & bVar13;
+            iVar17 = iVar17 + 1;
+        } while (iVar17 < pCount);
+    }
+    if (local_1b1 == 0) {
+        switch (*pType) {
+        case 0:
+            local_194 = (tU8*)local_60;
+            uVar14 = 0;
+            piVar18 = local_5c;
+            do {
+                if ((uVar14 & 2) == 0) {
+                    iVar17 = pType[4];
+                } else {
+                    iVar17 = pType[1];
+                }
+                piVar18[-1] = iVar17;
+                if ((uVar14 & 1) == 0) {
+                    iVar17 = pType[5];
+                } else {
+                    iVar17 = pType[2];
+                }
+                *piVar18 = iVar17;
+                if ((uVar14 & 4) == 0) {
+                    iVar17 = pType[6];
+                } else {
+                    iVar17 = pType[3];
+                }
+                piVar18[1] = iVar17;
+                uVar14 = uVar14 + 1;
+                piVar18 = piVar18 + 3;
+            } while ((int)uVar14 < 8);
+            break;
+        case 1:
+        case 3:
+            local_194 = (tU8*)pType[0x11];
+            break;
+        case 2:
+            local_194 = (tU8*)pType[0x10];
+            break;
+        }
+        iVar17 = 0;
+        local_180 = local_194;
+        local_1a4 = (int*)pObject1;
+        local_190 = (int*)pObject2;
+        if (0 < pCount) {
+            do {
+                if ((abStack_d0[iVar17] == 0) && (iVar15 = LineSphereCollWithSphere((br_vector3*)(pBounds + 0xe), (br_vector3*)local_160, (tCollision_shape_sphere_data*)(pBounds + 0xe), (br_vector3*)&local_17c, (br_vector3*)&local_17c, (br_scalar*)&local_1c4), iVar15 != 0)) {
+                    if (iVar15 == -1) {
+                        abStack_d0[iVar17] = 0xff;
+                    } else {
+                        BrMatrix34ApplyV((br_vector3*)&local_1b0, (br_vector3*)&local_17c, (br_matrix34*)(*local_1a4 + 0x2c));
+                        BrMatrix34ApplyV((br_vector3*)&local_1c0, (br_vector3*)&local_17c, (br_matrix34*)(local_1a4 + 0x23));
+                        fVar4 = 1.0f - local_1c4;
+                        local_1c0 = local_1c0 * fVar4;
+                        local_1bc = local_1bc * fVar4;
+                        local_1b8 = local_1b8 * fVar4;
+                        local_1b0 = local_1c4 * local_1b0 + local_1c0;
+                        local_1ac = local_1c4 * local_1ac + local_1bc;
+                        fVar4 = local_1c4 * local_1a8 + local_1b8;
+                        local_1a8 = sqrt(fVar4 * fVar4 + local_1ac * local_1ac + local_1b0 * local_1b0);
+                        if (local_1a8 <= 2.3841858e-07f) {
+                            local_1b0 = 1.0f;
+                            local_1ac = 0.0f;
+                            local_1a8 = 0.0f;
+                        } else {
+                            local_1a8 = 1.0f / local_1a8;
+                            local_1b0 = local_1a8 * local_1b0;
+                            local_1ac = local_1a8 * local_1ac;
+                            local_1a8 = local_1a8 * fVar4;
+                        }
+                        pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)local_180, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)local_1a4, (tPhysics_object*)local_190, 5, NULL, 0.0f);
+                    }
+                }
+                iVar17 = iVar17 + 1;
+                local_180 = local_180 + 0xc;
+            } while (iVar17 < pCount);
+        }
+        iVar17 = *pType;
+        if (iVar17 == 0) {
+            FUN_0045e4e0(pParam3, pParam3 + 3, (float*)local_160, (int)&local_17c, &local_1c4);
+        } else if ((iVar17 == 1) || (iVar17 == 3)) {
+            FUN_0045e200(pParam3, pParam3 + 3, (float*)local_160, (void*)&local_17c, &local_1c4);
+        } else {
+            local_1c4 = 100.0f;
+        }
+        if (local_1c4 <= 1.0f) {
+            BrMatrix34ApplyV((br_vector3*)&local_1b0, (br_vector3*)&local_17c, (br_matrix34*)(*local_190 + 0x2c));
+            piVar23 = local_190;
+            piVar18 = local_190 + 0x23;
+            BrMatrix34ApplyV((br_vector3*)&local_1c0, (br_vector3*)&local_17c, (br_matrix34*)piVar18);
+            piVar10 = local_1a4;
+            fVar4 = 1.0f - local_1c4;
+            local_1c0 = local_1c0 * fVar4;
+            local_1bc = local_1bc * fVar4;
+            local_1b8 = local_1b8 * fVar4;
+            local_1b0 = local_1c4 * local_1b0 + local_1c0;
+            local_1ac = local_1c4 * local_1ac + local_1bc;
+            fVar4 = local_1c4 * local_1a8 + local_1b8;
+            local_1a8 = sqrt(fVar4 * fVar4 + local_1ac * local_1ac + local_1b0 * local_1b0);
+            if (local_1a8 <= 2.3841858e-07f) {
+                local_1b0 = 1.0f;
+                local_1ac = 0.0f;
+                local_1a8 = 0.0f;
+            } else {
+                local_1a8 = 1.0f / local_1a8;
+                local_1b0 = local_1a8 * local_1b0;
+                local_1ac = local_1a8 * local_1ac;
+                local_1a8 = local_1a8 * fVar4;
+            }
+            BrMatrix34TApplyV((br_vector3*)&local_1c0, (br_vector3*)&local_1b0, (br_matrix34*)(local_1a4 + 0x23));
+            BrMatrix34TApplyV((br_vector3*)&local_1a0, (br_vector3*)&local_1b0, (br_matrix34*)(*piVar10 + 0x2c));
+            fVar4 = 1.0f - local_1c4;
+            local_1c0 = local_1c0 * fVar4;
+            local_1bc = local_1bc * fVar4;
+            local_1b8 = local_1b8 * fVar4;
+            fVar6 = local_1c4 * local_1a0 + local_1c0;
+            fVar4 = local_1c4 * local_19c + local_1bc;
+            fVar7 = local_1c4 * local_198 + local_1b8;
+            fVar5 = sqrt(fVar7 * fVar7 + fVar4 * fVar4 + fVar6 * fVar6);
+            if (fVar5 <= 2.3841858e-07f) {
+                fVar6 = 1.0f;
+                fVar4 = 0.0f;
+                fVar5 = 0.0f;
+            } else {
+                fVar5 = 1.0f / fVar5;
+                fVar6 = fVar5 * fVar6;
+                fVar4 = fVar5 * fVar4;
+                fVar5 = fVar5 * fVar7;
+            }
+            pVertices = (float*)(pBounds + 0xf);
+            local_1a0 = pBounds[0xe] * fVar6 + *pVertices;
+            local_19c = pBounds[0x10] + pBounds[0xe] * fVar4;
+            local_198 = pBounds[0x11] + pBounds[0xe] * fVar5;
+            BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)pVertices, (br_matrix34*)(piVar10 + 0x23));
+            local_16c = local_1c0 - (float)piVar23[0x2c];
+            local_168 = local_1bc - (float)piVar23[0x2d];
+            local_164 = local_1b8 - (float)piVar23[0x2e];
+            BrMatrix34TApplyV((br_vector3*)&local_154, (br_vector3*)&local_16c, (br_matrix34*)piVar18);
+            BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)pVertices, (br_matrix34*)(*piVar10 + 0x2c));
+            piVar18 = local_190;
+            iVar17 = *local_190;
+            local_16c = local_1c0 - *(float*)(iVar17 + 0x50);
+            local_168 = local_1bc - *(float*)(iVar17 + 0x54);
+            local_164 = local_1b8 - *(float*)(iVar17 + 0x58);
+            BrMatrix34TApplyV((br_vector3*)&local_18c, (br_vector3*)&local_16c, (br_matrix34*)(iVar17 + 0x2c));
+            local_18c = local_18c - local_154;
+            local_188 = local_188 - local_150;
+            local_184 = local_184 - local_14c;
+            pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)piVar10, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
+        }
+        switch (*pType) {
+        case 0:
+            local_180 = (tU8*)&gBox_edge_indexes;
+            local_170 = (tU8*)12;
+            break;
+        case 1:
+        case 3:
+            local_180 = (tU8*)pType[0x12];
+            local_170 = (tU8*)pType[0xf];
+            break;
+        case 2:
+            local_180 = (tU8*)pType[0x11];
+            local_170 = (tU8*)pType[0xf];
+            break;
+        default:
+            PhysicsError(ePhysicsError_UnknownShapeType, "");
+            local_180 = local_170;
+        }
+        if (0 < (int)local_170) {
+            do {
+                bVar13 = *local_180;
+                bVar2 = local_180[1];
+                uVar16 = (unsigned int)local_180 >> 8;
+                if ((abStack_d0[bVar13] & abStack_d0[bVar2] & 0x3f) == 0) {
+                    abStack_d0[bVar13] = abStack_d0[bVar13] | 0x80;
+                    bVar3 = abStack_d0[bVar2];
+                    abStack_d0[bVar2] = bVar3 | 0x80;
+                    pVertices = (float*)(pBounds + 0xe);
+                    SphereEdgeCollide((br_vector3*)pParam3, (br_vector3*)(pParam3 + 3), (br_vector3*)pVertices, (br_vector3*)local_160, (tCollision_shape_sphere_data*)(pBounds + 0xe), (br_vector3*)&local_17c, (br_vector3*)&local_17c, (br_scalar*)&local_1c4, (tU32)bVar13, (tU8)(bVar3 | 0x80));
+                    piVar18 = local_190;
+                    if (local_1c4 <= 1.0f) {
+                        BrMatrix34ApplyV((br_vector3*)&local_1b0, (br_vector3*)&local_17c, (br_matrix34*)(*local_190 + 0x2c));
+                        piVar23 = piVar18 + 0x23;
+                        BrMatrix34ApplyV((br_vector3*)&local_1c0, (br_vector3*)&local_17c, (br_matrix34*)piVar23);
+                        piVar10 = local_1a4;
+                        fVar4 = 1.0f - local_1c4;
+                        local_1c0 = local_1c0 * fVar4;
+                        local_1bc = local_1bc * fVar4;
+                        local_1b8 = local_1b8 * fVar4;
+                        local_1b0 = local_1c4 * local_1b0 + local_1c0;
+                        local_1ac = local_1c4 * local_1ac + local_1bc;
+                        fVar4 = local_1c4 * local_1a8 + local_1b8;
+                        local_1a8 = sqrt(fVar4 * fVar4 + local_1ac * local_1ac + local_1b0 * local_1b0);
+                        if (local_1a8 <= 2.3841858e-07f) {
+                            local_1b0 = 1.0f;
+                            local_1ac = 0.0f;
+                            local_1a8 = 0.0f;
+                        } else {
+                            local_1a8 = 1.0f / local_1a8;
+                            local_1b0 = local_1a8 * local_1b0;
+                            local_1ac = local_1a8 * local_1ac;
+                            local_1a8 = local_1a8 * fVar4;
+                        }
+                        piVar1 = local_1a4 + 0x23;
+                        BrMatrix34TApplyV((br_vector3*)&local_1c0, (br_vector3*)&local_1b0, (br_matrix34*)piVar1);
+                        BrMatrix34TApplyV((br_vector3*)&local_1a0, (br_vector3*)&local_1b0, (br_matrix34*)(*local_1a4 + 0x2c));
+                        fVar4 = 1.0f - local_1c4;
+                        local_1c0 = local_1c0 * fVar4;
+                        local_1bc = local_1bc * fVar4;
+                        local_1b8 = local_1b8 * fVar4;
+                        fVar6 = local_1c4 * local_1a0 + local_1c0;
+                        fVar4 = local_1c4 * local_19c + local_1bc;
+                        fVar7 = local_1c4 * local_198 + local_1b8;
+                        fVar5 = sqrt(fVar7 * fVar7 + fVar4 * fVar4 + fVar6 * fVar6);
+                        if (fVar5 <= 2.3841858e-07f) {
+                            fVar6 = 1.0f;
+                            fVar4 = 0.0f;
+                            fVar5 = 0.0f;
+                        } else {
+                            fVar5 = 1.0f / fVar5;
+                            fVar6 = fVar5 * fVar6;
+                            fVar4 = fVar5 * fVar4;
+                            fVar5 = fVar5 * fVar7;
+                        }
+                        local_1a0 = *pVertices * fVar6 + *(float*)(pBounds + 0xf);
+                        local_19c = *(float*)(pBounds + 0x10) + *pVertices * fVar4;
+                        local_198 = *(float*)(pBounds + 0x11) + *pVertices * fVar5;
+                        BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)(pBounds + 0xf), (br_matrix34*)piVar1);
+                        local_16c = local_1c0 - (float)piVar18[0x2c];
+                        local_168 = local_1bc - (float)piVar18[0x2d];
+                        local_164 = local_1b8 - (float)piVar18[0x2e];
+                        BrMatrix34TApplyV((br_vector3*)&local_154, (br_vector3*)&local_16c, (br_matrix34*)piVar23);
+                        BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)(pBounds + 0xf), (br_matrix34*)(*local_1a4 + 0x2c));
+                        piVar18 = local_190;
+                        iVar17 = *local_190;
+                        local_148 = local_1c0 - *(float*)(iVar17 + 0x50);
+                        local_144 = local_1bc - *(float*)(iVar17 + 0x54);
+                        local_140 = local_1b8 - *(float*)(iVar17 + 0x58);
+                        BrMatrix34TApplyV((br_vector3*)&local_18c, (br_vector3*)&local_148, (br_matrix34*)(iVar17 + 0x2c));
+                        local_18c = local_18c - local_154;
+                        local_188 = local_188 - local_150;
+                        local_184 = local_184 - local_14c;
+                        pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)local_1a4, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
+                        if (pResult == 500) {
+                            BrMatrix34ApplyP((br_vector3*)&local_130, (br_vector3*)local_160, (br_matrix34*)piVar23);
+                            BrMatrix34ApplyP((br_vector3*)&local_f4, (br_vector3*)local_160, (br_matrix34*)(*piVar11 + 0x2c));
+                            BrMatrix34ApplyP((br_vector3*)&local_124, (br_vector3*)&local_1a0, (br_matrix34*)piVar1);
+                            BrMatrix34ApplyP((br_vector3*)&local_100, (br_vector3*)&local_1a0, (br_matrix34*)(*local_1a4 + 0x2c));
+                            local_e8 = local_130 - (float)piVar10[0x2c];
+                            local_e4 = local_12c - (float)piVar10[0x2d];
+                            local_e0 = local_128 - (float)piVar10[0x2e];
+                            BrMatrix34TApplyV((br_vector3*)local_6c, (br_vector3*)&local_e8, (br_matrix34*)piVar1);
+                            iVar17 = *local_1a4;
+                            local_10c = local_f4 - *(float*)(iVar17 + 0x50);
+                            local_108 = local_f0 - *(float*)(iVar17 + 0x54);
+                            local_104 = local_ec - *(float*)(iVar17 + 0x58);
+                            BrMatrix34TApplyV((br_vector3*)local_78, (br_vector3*)&local_10c, (br_matrix34*)(iVar17 + 0x2c));
+                            BrMatrix34TApplyV((br_vector3*)local_dc, (br_vector3*)&local_1b0, (br_matrix34*)piVar1);
+                            local_118 = local_124 - (float)piVar18[0x2c];
+                            local_114 = local_120 - (float)piVar18[0x2d];
+                            local_110 = local_11c - (float)piVar18[0x2e];
+                            BrMatrix34TApplyV((br_vector3*)local_90, (br_vector3*)&local_118, (br_matrix34*)piVar23);
+                            iVar17 = *piVar11;
+                            local_13c = local_100 - *(float*)(iVar17 + 0x50);
+                            local_138 = local_fc - *(float*)(iVar17 + 0x54);
+                            local_134 = local_f8 - *(float*)(iVar17 + 0x58);
+                            BrMatrix34TApplyV((br_vector3*)local_84, (br_vector3*)&local_13c, (br_matrix34*)(iVar17 + 0x2c));
+                            BrMatrix34TApplyV((br_vector3*)local_dc, (br_vector3*)&local_1b0, (br_matrix34*)piVar23);
+                        }
+                    }
+                }
+                local_180 = local_180 + 2;
+                local_170 = local_170 - 1;
+            } while (local_170 != (tU8*)0);
+        }
+        return pResult;
+    }
+    return pResult;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00427870
 int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining) {
@@ -7211,9 +7663,64 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0045d5e0
-void C2_HOOK_FASTCALL FUN_0045d5e0(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x0045d5e0
+void C2_HOOK_FASTCALL FUN_0045d5e0(const float* ray_end, const float* ray_start, const br_vector3* sphere1_center, const br_vector3* sphere2_center, float* factor_out, br_vector3* normal_out) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    float fVar7;
+    float fVar8;
+    float fVar9;
+    float fVar10;
+    const float* in_ECX;
+    const float* in_EDX;
+
+    in_ECX = ray_end;
+    in_EDX = ray_start;
+    *factor_out = 100.0f;
+    fVar3 = sphere2_center->v[0] - sphere1_center->v[0];
+    fVar1 = sphere2_center->v[1] - sphere1_center->v[1];
+    fVar4 = sphere2_center->v[2] - sphere1_center->v[2];
+    fVar2 = fVar4 * fVar4 + fVar1 * fVar1 + fVar3 * fVar3;
+    fVar6 = sphere1_center->v[1] - in_ECX[2];
+    fVar7 = sphere1_center->v[2] - in_ECX[3];
+    fVar8 = in_ECX[0] + in_EDX[0];
+    fVar5 = sphere1_center->v[0] - in_ECX[1];
+    if (1e-06f <= fVar2) {
+        fVar9 = -((fVar7 * fVar4 + fVar6 * fVar1 + fVar5 * fVar3) / fVar2);
+        fVar10 = (fVar7 * fVar7 + fVar6 * fVar6 + fVar5 * fVar5) - fVar9 * fVar9 * fVar2;
+        if ((fVar8 - -0.002f) * (fVar8 - -0.002f) < fVar10) {
+            return;
+        }
+        if ((fVar10 <= fVar8 * fVar8) &&
+            (fVar9 = fVar9 - (float)sqrt((fVar8 * fVar8 - fVar10) / fVar2), 0.0f <= fVar9) && (fVar9 <= 1.0f)) {
+            fVar2 = -fVar9;
+            fVar6 = fVar1 * fVar2 - fVar6;
+            fVar7 = fVar4 * fVar2 - fVar7;
+            fVar5 = fVar3 * fVar2 - fVar5;
+            fVar1 = (float)sqrt(fVar5 * fVar5 + fVar7 * fVar7 + fVar6 * fVar6);
+            *factor_out = fVar9;
+            normal_out->v[0] = fVar5;
+            normal_out->v[1] = fVar6;
+            normal_out->v[2] = fVar7;
+            if (2.3841858e-07f < fVar1) {
+                fVar1 = 1.0f / fVar1;
+                normal_out->v[0] = fVar1 * fVar5;
+                normal_out->v[1] = fVar1 * fVar6;
+                normal_out->v[2] = fVar1 * fVar7;
+                return;
+            }
+            normal_out->v[0] = 1.0f;
+            normal_out->v[1] = 0.0f;
+            normal_out->v[2] = 0.0f;
+            return;
+        }
+    }
+    PointSphereCollision((br_vector3*)(in_ECX + 1), sphere2_center, normal_out->v[0], (br_vector3*)factor_out, &normal_out->v[0]);
+    return;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -7752,8 +8259,57 @@ void C2_HOOK_FASTCALL FUN_004b9230(tPhysics_object* pObject, tPhysics_object** p
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x004bc8e0
+// PARTIAL 63.04%: FUN_004bc8e0 x87 schedule and while-loop regalloc differ
+// FUNCTION: CARMA2_HW 0x004bc8e0
 void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
+    tU8* obj;
+    tU8* other;
+    int* joint;
+    int* records[40];
+    int i;
+    int offset;
+    float x, y, z, w;
+
+    obj = (tU8*)pObject;
+    x = *(float*)(obj + 0x8);
+    y = *(float*)(obj + 0xc);
+    z = *(float*)(obj + 0x10);
+    w = *(float*)(obj + 0x21c);
+    *(float*)(obj + 0x8) = x * pScale;
+    *(float*)(obj + 0xc) = y * pScale;
+    *(float*)(obj + 0x10) = z * pScale;
+    *(float*)(obj + 0x21c) = pScale * w;
+    if (*(int*)(obj + 0x1e4) != 0) {
+        other = (tU8*)*(int*)(*(int*)(obj + 0x1e4) + 4);
+        x = *(float*)(other + 0x8);
+        y = *(float*)(other + 0xc);
+        z = *(float*)(other + 0x10);
+        w = *(float*)(other + 0x21c);
+        *(float*)(other + 0x8) = x * pScale;
+        *(float*)(other + 0xc) = y * pScale;
+        *(float*)(other + 0x10) = z * pScale;
+        *(float*)(other + 0x21c) = pScale * w;
+        FUN_004b8cf0((tPhysics_object*)other);
+    }
+    i = *(int*)(obj + 0x218);
+    while (i == 0 && *(int*)(obj + 0x228) != 0) {
+        obj = (tU8*)*(int*)(obj + 0x228);
+        i = *(int*)(obj + 0x218);
+    }
+    joint = *(int**)(obj + 0x218);
+    if (joint != NULL) {
+        i = 0;
+        if (0 < joint[0]) {
+            offset = 0;
+            do {
+                records[i] = (int*)(offset + joint[1]);
+                i++;
+                offset += 0x60;
+            } while (i < joint[0]);
+        }
+        FUN_004bf490((br_scalar*)joint[6], joint[0], (tPhysics_joint_force**)records, joint[0]);
+        MatrixProcess((br_scalar*)joint[6], (br_scalar*)joint[5], joint[0]);
+    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
