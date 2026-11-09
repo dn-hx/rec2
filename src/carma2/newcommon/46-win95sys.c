@@ -4,6 +4,10 @@
 #include "platform.h"
 #include "08-loading1.h"
 
+#ifdef REC2_MATCHING
+#include <windows.h>
+#endif
+
 // FUN_100bf5a4
 
 // AsmDoDeltaX
@@ -222,4 +226,28 @@ void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer) {
 // PDNetInitialise
 
 // MapperNotifier
+
+#ifdef REC2_MATCHING
+extern int gPerformanceCounterInitialized;
+extern LARGE_INTEGER gPerformanceCounterStart;
+extern LARGE_INTEGER gPerformanceCounterFrequency_ms;
+
+#ifdef _MSC_VER
+#pragma optimize("y", off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0051d900
+tU32 C2_HOOK_FASTCALL PDGetElapsedMilliseconds(void) {
+    if (gPerformanceCounterInitialized) {
+        LARGE_INTEGER perfCountValue;
+        QueryPerformanceCounter(&perfCountValue);
+        return (tU32)((((LONGLONG)perfCountValue.HighPart << 32) + perfCountValue.LowPart - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_ms.QuadPart);
+    }
+    return 0;
+}
+
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
+#endif
 
