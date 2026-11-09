@@ -98,6 +98,13 @@ extern intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pCo
 
 extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
 
+typedef struct {
+    char pad[0x10];
+    br_actor* actor;
+} tFUN_0044bf20_this;
+
+extern void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis);
+
 extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);

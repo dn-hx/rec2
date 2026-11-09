@@ -1038,6 +1038,13 @@ void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0044bf20
+void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis) {
+
+    BrActorRemove(pThis->actor);
+    BrActorFree(pThis->actor);
+}
+
 // FUNCTION: CARMA2_HW 0x0044bf70
 void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info) {
 
