@@ -2246,7 +2246,8 @@ extern void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance
 void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
     MungeCharacterAnimationBody(pCharacter, pTime, pArg3);
 }
-/* temporary placeholder, address not identified yet */
+/* temporary placeholder, address not identified yet (StillifyCorpse is inlined in the original,
+   see partials/StillifyCorpse.c for the inline evidence; no standalone address) */
 void C2_HOOK_FASTCALL StillifyCorpse(tPedestrian* pPed, tU32 pTime, undefined4 pArg3) {
     NOT_IMPLEMENTED();
 }
@@ -2254,9 +2255,19 @@ void C2_HOOK_FASTCALL StillifyCorpse(tPedestrian* pPed, tU32 pTime, undefined4 p
 void C2_HOOK_FASTCALL MungePedHeadAnim(tPedestrian* pPed, tU32 pTime) {
     NOT_IMPLEMENTED();
 }
-/* temporary placeholder, address not identified yet */
+/* UNVERIFIED TEST BODY (uncommitted): no address; logic copied from src/carma2/common/pedestrn.c.
+   The original scare logic is in the PipeSinglePedStatus (0x4c8a90) session 0x28 handler; not matched yet. */
 void C2_HOOK_FASTCALL ScarePedestrian(tPedestrian* pPed, tU32 pTime, int pArg3, int pArg4) {
-    NOT_IMPLEMENTED();
+    if (((pPed->action != ePed_action_running && pPed->action != ePed_action_panicking) || pArg4) && pPed->action != ePed_action_getting_up) {
+        if (pArg3) {
+            SetPedMove(pPed, gPed_move_fsm[114][IRandomBetween(0, 7)], -1, 0, 1, pTime, ePed_action_panicking);
+            MakePedNoise(pPed, 6, 0, NULL);
+            SetPedHeadAnim(pPed, (const tPed_anim_seq*)gScare_ped_anim_sequence, pTime);
+        } else {
+            StartPedRunning(pPed, pTime, 0);
+        }
+    }
+    pPed->field_0x28 = pTime;
 }
 
 #define MUNGE_PED_COLLISION_OBJECT(PED) ( ((PED)->character->field_0x14 & 1) ? (PED)->character->personality->form->simple_physicing[(PED)->character->field_0x5].collision_info : GetRootObject((PED)->character))
@@ -7761,3 +7772,32 @@ void C2_HOOK_FASTCALL MakeEmBleed(tPedestrian* pPed, tU32 pTime) {
 
 // GLOBAL: CARMA2_HW 0x0058a9c8
 const float gFLOAT_0058a9c8 = -1.0f;
+
+// FUNCTION: CARMA2_HW 0x004d6cc0
+void C2_HOOK_CDECL FUN_004d6cc0(void) {
+    tU32 time;
+    tPedestrian* ped;
+    tPed_character_instance* character;
+    int bone_index;
+    int pose;
+
+    time = GetTotalTime();
+    ped = &gPedestrian_array[gSelected_ped];
+    if (ped->hit_points > 0 && ped->field_0x0c != NULL) {
+        ped->field_0x0c->field_0x1c = (const tPed_anim_seq*)gScare_ped_anim_sequence;
+        ped->field_0x0c->field_0x78 = time;
+        ped->field_0x0c->field_0x1a = 0;
+        pose = ped->field_0x0c->field_0x1c->poses[0];
+        character = ped->character;
+        bone_index = character->personality->form->index_head_bone;
+        if (character->field_0x4 >= 0) {
+            if (bone_index < 0) {
+                PipeSinglePedModelChange(character->ped, bone_index, NULL, -1, GetCharacterModelSet(character), 0);
+                SetCharacterAllBonesModel(character, pose, 0);
+                return;
+            }
+            PipeSinglePedModelChange(character->ped, bone_index, GetCharacterBoneModel(character, bone_index), pose, GetCharacterModelSet(character), 0);
+            SetCharacterBoneModel(character, bone_index, pose, 0);
+        }
+    }
+}
