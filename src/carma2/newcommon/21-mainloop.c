@@ -1822,6 +1822,27 @@ int gINT_00596308 = -1;
 // GLOBAL: CARMA2_HW 0x0079d8a0
 tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
 
+// FUNCTION: CARMA2_HW 0x0045b790
+void C2_HOOK_FASTCALL FUN_0045b790(tHeadup_text_buffer* pBuffer) {
+    extern const char* gJoystick_headup_texts[];
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    extern char* C2_HOOK_CDECL strncpy(char* pDest, const char* pSrc, unsigned int pCount);
+    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    const char** entry;
+    tHeadup_text* mem;
+
+    entry = gJoystick_headup_texts;
+    do {
+        mem = malloc(sizeof(tHeadup_text));
+        if (mem != NULL) {
+            mem->next = NULL;
+            strncpy(mem->text, *entry, 0x28);
+            FUN_0045a920(pBuffer, mem, 0);
+        }
+        entry += 2;
+    } while ((int)entry < (int)(gJoystick_headup_texts + 42));
+}
+
 // The original calls this every frame from MungeJoystickHeadups; the body only refreshes
 // the headup text buffer, so an inert stub keeps the race running until it is implemented.
 #ifdef REC2_MATCHING
