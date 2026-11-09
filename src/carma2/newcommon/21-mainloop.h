@@ -49,5 +49,6 @@ extern void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32*
 extern void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime);
 extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
 extern void C2_HOOK_FASTCALL FUN_0045b790(tHeadup_text_buffer* pBuffer);
+extern void C2_HOOK_FASTCALL FUN_00492840(volatile tU8* pBase, tU32 pSize);
 
 #endif // GUARD_21_MAINLOOP_H
