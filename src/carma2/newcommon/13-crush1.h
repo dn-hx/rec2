@@ -57,6 +57,14 @@ extern int gCount_crush_detach_list;
 extern tCrush_detach_list_item gCrush_detach_list[16];
 extern tU32 gINT_0067be84;
 
+// Constants used by FUN_00437480 (SetUpSemiDetachedBitJoint / similar)
+extern br_scalar gFLT_EPSILON_00589a5c;        // 0x589a5c = 2.3841858e-07
+extern br_scalar gFLT_EPSILON_RECIP_00589a60;  // 0x589a60 = 1.0 / 2.3841858e-07
+extern br_scalar gFLOAT_1_0_00589a54;          // 0x589a54 = 1.0f
+extern br_scalar gFLOAT_NEG1_0_00589b2c;       // 0x589b2c = -1.0f
+extern br_scalar gFLOAT_0_01_00589a58;         // 0x589a58 = 0.01f
+extern br_scalar gFLOAT_0_015_00589b30;        // 0x589b30 = 0.015f
+
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 
 // ClearCrushLists
@@ -112,6 +120,7 @@ extern tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_mode
 // FindNearestParentVertex
 
 extern void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds);
+extern void C2_HOOK_FASTCALL InitDetachedBitPhysicsObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info);
 
 extern intptr_t C2_HOOK_CDECL InitPhysCrushDataCB(br_actor* actor, void* data);
 // InitPhysCrushData
@@ -227,6 +236,9 @@ extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pC
 // SetUpDetachedBitObject
 
 // SetUpSemiDetachedBitJoint
+
+// FUNCTION: CARMA2_HW 0x00437480
+extern void C2_HOOK_FASTCALL FUN_00437480(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
 
 // BitIsInBentPartOfCar
 
@@ -553,6 +565,7 @@ extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float
 extern intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern void C2_HOOK_FASTCALL FUN_004c7f40(br_model* pModel, br_vector3* pSrc, const float* pScalars);
+extern void C2_HOOK_FASTCALL FUN_004c6e40(br_model* pModel, br_vector3* pSrc, const float* pScalars);
 extern void C2_HOOK_FASTCALL FUN_0043bca0(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars);
 extern intptr_t C2_HOOK_FASTCALL UnBendActorCB(br_actor* pActor, br_vector3* pDelta, void* pData);
 extern void C2_HOOK_FASTCALL FUN_0043a5b0(br_model* pModel, br_vector3* pTranslation, void* pContext);
@@ -575,11 +588,13 @@ extern void C2_HOOK_FASTCALL FUN_0042f5d0(br_model* pSource_model, br_model** pM
 extern tCrush_info* C2_HOOK_FASTCALL FUN_0042f170(tCrush_info_buffer* pInfo_buffer, br_actor* pActor, tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL ComputeSplitEdgeIntersections(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance);
 extern void C2_HOOK_FASTCALL SplitPolyhedronByPlane(tCollision_shape_polyhedron* pSource, tCollision_shape_polyhedron* pPositive_output, tPhysics_shape* pNegative_output, br_scalar* pPlane);
+extern int C2_HOOK_FASTCALL FUN_004236a0(tPhysics_object* pObject, tPhysics_shape* pShape, tSensible_place_contact* pContacts, int pCount, int pMax, br_vector3* pPoints, br_matrix34* pScratch, int* pHas_collision);
 extern int C2_HOOK_FASTCALL FUN_00424140(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7);
 extern void C2_HOOK_FASTCALL FUN_00430150(tU16 pVertex_a, tU16 pVertex_b, tU16* pOutput_a, tU16* pOutput_b, float* pDistances);
 extern void C2_HOOK_FASTCALL FUN_00433b90(br_model* pModel, const br_vector3* pOffset);
 extern void C2_HOOK_FASTCALL FUN_00432b80(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex);
 extern int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg);
+extern void C2_HOOK_FASTCALL FUN_0043caf0(void* pMsg);
 extern void C2_HOOK_FASTCALL AddToggledDoor(br_actor* pActor, tCar_spec* pCar, int pFlag, float pDelay);
 extern void C2_HOOK_FASTCALL FUN_00439500(void);
 extern void C2_HOOK_FASTCALL FUN_004321d0(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50);
