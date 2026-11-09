@@ -3071,13 +3071,18 @@ static int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1
 #pragma auto_inline(on)
 #endif
 
-/* inlined in the original */
-static void AssertRootObjectsMatrix(tPed_character_instance* pPed) {
+// FUNCTION: CARMA2_HW 0x004d57c0
+// PARTIAL 93.33%: load order of [ecx] vs movsx differs
+void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
     tPhysics_object* collision_info;
     int i;
+    int idx;
+    tPed_form* form;
 
     if (pPed->field_0x14 & 0x1) {
-        collision_info = pPed->personality->form->simple_physicing[pPed->field_0x5].collision_info;
+        form = pPed->personality->form;
+        idx = pPed->field_0x5;
+        collision_info = form->simple_physicing[idx].collision_info;
     } else {
         collision_info = GetRootObject(pPed);
     }
