@@ -106,6 +106,8 @@ void C2_HOOK_FASTCALL PDSetFileVariables(void);
 
 // PDGetMicroseconds
 
+extern tU32 C2_HOOK_FASTCALL PDGetElapsedMilliseconds(void);
+
 // PDServiceSystem
 
 // PDEnterDebugger
