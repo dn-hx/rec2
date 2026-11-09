@@ -31,6 +31,13 @@ extern int gMap_render_height_i;
 extern int gMap_render_width_i;
 extern tU32 last_flash;
 extern int flash_state;
+extern int gBack_original_base_x;
+extern int gBack_original_base_y;
+extern int gBack_original_origin_x;
+extern int gBack_original_origin_y;
+#ifdef REC2_HW
+extern br_actor* gLit_op_stat_actor;
+#endif
 
 // CarArrowColour
 
@@ -70,11 +77,11 @@ extern void C2_HOOK_FASTCALL CalcMapCheckpoint2(br_pixelmap* pMap, int pCheckpoi
 
 extern void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 
-// DoMapOverlays
+extern void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen);
 
 // StartMap
 
-// FinishMap
+extern void C2_HOOK_FASTCALL FinishMap(void);
 
 extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget);
 
@@ -84,17 +91,19 @@ extern void C2_HOOK_FASTCALL CheckpointLine(br_pixelmap* pMap, int pCheckpoint, 
 
 // DoOpponentStatusHeadup
 
-// AllocateOppoBarActor
+#ifdef REC2_HW
+extern void C2_HOOK_FASTCALL AllocateOppoBarActor(int pX, int pY);
+#endif
 
 // DoNearestOpponentRelativeHeightMarkerStuff
 
-// MapOverlay
+extern void C2_HOOK_FASTCALL MapOverlay(void);
 
 // InitNearestCar
 
 // MapStuffBeforeRender
 
-// MapStuffAfterRender
+extern void C2_HOOK_FASTCALL MapStuffAfterRender(void);
 
 // static void C2_HOOK_FASTCALL ReadMoodMessages(void);
 
@@ -113,5 +122,7 @@ extern void C2_HOOK_FASTCALL InitSmashTargets(void);
 extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
 
 extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
+
+extern br_actor* gLit_op_stat_actor;
 
 #endif // GUARD_62_GRAPHICS3_H
