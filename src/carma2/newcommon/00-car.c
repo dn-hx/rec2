@@ -266,7 +266,7 @@ tControl_car_fn ControlCar[6] = {
     NULL,
     NULL,
     NULL,
-    (tControl_car_fn)ControlCar3,
+    (tControl_car_fn)ControlCar4,
     NULL,
     NULL,
 };
