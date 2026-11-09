@@ -3069,7 +3069,64 @@ void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
 
 // MineSound
 
-// ReceivedMine
+extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
+
+// FUNCTION: CARMA2_HW 0x004dd210
+void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk) {
+    tShit_mine* mine;
+    tPowerup* powerup;
+    tCar_spec* car;
+    int player_index;
+    tU32 length;
+
+    player_index = pChunk->mine_explode.field_0x5;
+    mine = &gShit_mines[(tU8)pChunk->mine_explode.mine_index];
+    powerup = &gPowerup_array[pChunk->mine_explode.field_0x4];
+    if (player_index >= 0 && player_index < gNumber_of_net_players) {
+        car = gNet_players[player_index].car;
+    } else {
+        car = gNet_players[0].car;
+    }
+    if (pChunk->mine_explode.field_0x8 == -1) {
+        if (mine->field_0x35 == pChunk->mine_explode.field_0x3 || ((mine->flags & 2) == 0 && (mine->flags & 1) != 0)) {
+            if ((mine->flags & 1) == 0) {
+                ConfigureShitMine(mine, powerup, car);
+            }
+            SelectCrushNetwork((undefined4*)pChunk->mine_explode.object_hierarchy, mine->collision_info, 2);
+            MineExplode(mine);
+            return;
+        }
+    } else {
+        if ((mine->flags & 1) == 0 || mine->field_0x35 != pChunk->mine_explode.field_0x3) {
+            if ((mine->flags & 1) == 0) {
+                ConfigureShitMine(mine, powerup, car);
+            }
+            if (player_index >= 0 && player_index < gNumber_of_net_players) {
+                InitializeMineMotion(mine, mine->field_0x30);
+            } else {
+                BrMatrix34Translate(&mine->collision_info->transform_matrix, 1000.0f, 1000.0f, 1000.0f);
+                BrMatrix34Copy(&mine->collision_info->actor->t.t.mat, &mine->collision_info->transform_matrix);
+            }
+            if ((mine->flags & 0x40) != 0) {
+                DRS3StartSound3D(gCar_outlet, 0x151d, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+            } else {
+                DRS3StartSound3D(gCar_outlet, 0x151c, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+            }
+            if (mine->field_0x30 != NULL && mine->field_0x30->driver == eDriver_local_human) {
+                PlayExclusiveFFBEffect("Mine_Shit", 0);
+            }
+            mine->field_0x35 = pChunk->mine_explode.field_0x3;
+        }
+        mine->collision_info->message_time = pChunk->mine_explode.field_0x8;
+        mine->collision_info->field_0x261 = pChunk->mine_explode.header.type;
+        mine->collision_info->disable_move_rotate = 0;
+        length = pChunk->mine_explode.header.size - 0xc;
+        if (length > 0x48) {
+            length = 0x48;
+        }
+        memcpy((char*)mine->collision_info + 0x294, pChunk->mine_explode.object_hierarchy, length);
+    }
+}
 
 // ShitMine
 
@@ -5801,3 +5858,21 @@ void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
 
 // GLOBAL: CARMA2_HW 0x0058ac88
 const float gConst_0p025 = 0.025f;
+
+// FUNCTION: CARMA2_HW 0x004da910
+void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar) {
+    tRepulse_link* link;
+    br_actor* actor;
+
+    link = gRepulse_links;
+    do {
+        if (link->time != 0 && (link->car == pCar || (tCar_spec*)link->field_0x24 == pCar)) {
+            link->time = 0;
+            actor = link->actor;
+            if (actor->parent == gNon_track_actor) {
+                BrActorRemove(actor);
+            }
+        }
+        link++;
+    } while ((int)link < (int)&gRepulse_links[6]);
+}
