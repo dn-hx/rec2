@@ -2491,22 +2491,23 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     int count;
     int best_index;
     int ffb_force;
-    br_scalar force[4];
+    br_scalar ts2;
     br_scalar d[4];
     tFace_ref* collected[4];
     br_scalar dd[4];
+    br_scalar friction_number;
     br_scalar val[4];
+    br_vector3 norm[4];
     br_scalar best;
     br_scalar wheelratio;
-    br_scalar k;
+    br_scalar fr_oil_factor;
     br_scalar ts;
-    br_scalar ts2;
+    br_scalar force[4];
     int ts3;
     br_scalar ts4;
     br_scalar maxfl;
-    br_scalar maxfr;
-    br_scalar friction_number;
-    br_scalar deltaomega;
+    br_scalar v135;
+    br_vector3 v;
     br_scalar v98;
     br_scalar v99;
     br_scalar v87;
@@ -2517,37 +2518,39 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_scalar v128;
     br_scalar v129;
     br_scalar v134;
-    br_scalar v135;
+    br_scalar maxfr;
     br_scalar pV;
     br_scalar fl_oil_factor;
-    br_scalar fr_oil_factor;
+    br_scalar k;
     br_scalar rl_oil_factor;
-    br_scalar rr_oil_factor;
+    br_matrix34* mat;
     int delta;
     br_vector3 b;
     br_vector3 f;
     br_vector3 B;
-    br_vector3 v;
-    br_vector3 tv;
+    br_scalar deltaomega;
     br_vector3 tmp;
     br_vector3 ray_dir;
     br_vector3 normal;
     br_vector3 rightplane;
+    br_scalar rr_oil_factor;
     br_vector3 a;
     br_vector3 v103;
     br_vector3 v136;
     br_vector3 v123;
-    br_vector3 norm[4];
     br_vector3 ray_pos[4];
     br_vector3 contact[4];
     br_vector3 wheel_pos[4];
     br_bounds bounds;
+    br_vector3 tv;
     tFace_ref* faces[4];
     tPhysics_object* objs[4];
+    tPhysics_shape* shape;
+    br_vector3 end;
+    br_vector3 hit;
     tPhysics_object* pObj;
     tPhysics_object** pList;
     tFace_ref* pFace;
-    br_matrix34* mat;
     tSpecial_volume* vol;
     br_scalar* pd;
 
@@ -2638,30 +2641,28 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         if (!BoundsOverlapTest__finteray(&bounds, &pObj->field_0xf4)) {
             continue;
         }
-        BrMatrix34TApplyV(&ray_dir, &ray_dir, &pObj->transform_matrix);
-        if (pObj->shape == NULL) {
+        shape = pObj->shape;
+        BrMatrix34TApplyV(&tv, &ray_dir, &pObj->transform_matrix);
+        if (shape == NULL) {
             continue;
         }
-        for (;;) {
-            BrMatrix34ApplyP(&pObj->cmpos, &pObj->cmpos, &pObj->transform_matrix);
+        do {
             for (j = 0; j < 4; j++) {
                 DrMatrix34ApplyLPInverse(&tmp, &ray_pos[j], &pObj->transform_matrix);
-                ShapeRayCast(&tmp, &ray_dir, (const tPhysics_shape*)pObj->shape, &pObj->cmpos, &ts, &normal);
+                BrVector3Add(&end, &tmp, &tv);
+                ShapeRayCast(&tmp, &end, shape, &hit, &ts, &normal);
                 if (ts < d[j]) {
                     normal.v[0] = -normal.v[0];
                     normal.v[1] = -normal.v[1];
                     normal.v[2] = -normal.v[2];
-                    BrMatrix34ApplyV(&normal, &normal, &pObj->transform_matrix);
+                    BrMatrix34ApplyV(&pCar->nor[j], &normal, &pObj->transform_matrix);
                     d[j] = ts;
                     faces[j] = NULL;
                     objs[j] = pObj;
                 }
             }
-            if (pObj->next == NULL) {
-                break;
-            }
-            pObj = (tPhysics_object*)pObj->next;
-        }
+            shape = shape->common.next;
+        } while (shape != NULL);
     }
     if (pCar->collision_info->last_special_volume != NULL
         && pCar->collision_info->last_special_volume->material_modifier_index != 0) {
@@ -3103,8 +3104,33 @@ steer_centre:
         force[1] = v135;
         pCar->wheel_slip = 0;
         switch ((force[0] > maxfl) + 2 * (force[1] > maxfr)) {
-        case 0:
-            slide_dist = 0.f;
+        case 3:
+            force[0] = pCar->friction_slipping_reduction * maxfl;
+            force[1] = pCar->friction_slipping_reduction * maxfr;
+            pCar->wheel_slip |= 2;
+            pV = (v135 * 2.0 - maxfl - maxfr) / (maxfr + maxfl);
+            if (&gProgram_state.current_car == pCar) {
+                ts2 = 20.f;
+            } else {
+                ts2 = 60.f;
+            }
+            if (ts2 <= pV) {
+                if (maxfl > 0.1f) {
+                    ConditionallyNoteSkid(pCar, faces, 0);
+                }
+                if (maxfr > 0.1f) {
+                    ConditionallyNoteSkid(pCar, faces, 1);
+                }
+            }
+            if (IRandomBetween(0, 1)) {
+                if (maxfl > 0.1f) {
+                    SkidNoise(pCar, 0, pV, pCar->material_index[0]);
+                }
+            } else {
+                if (maxfr > 0.1f) {
+                    SkidNoise(pCar, 1, pV, pCar->material_index[1]);
+                }
+            }
             break;
         case 1:
             force[0] = pCar->friction_slipping_reduction * maxfl;
@@ -3150,33 +3176,8 @@ steer_centre:
                 pCar->wheel_slip |= 2;
             }
             break;
-        case 3:
-            force[0] = pCar->friction_slipping_reduction * maxfl;
-            force[1] = pCar->friction_slipping_reduction * maxfr;
-            pCar->wheel_slip |= 2;
-            pV = (v135 * 2.0 - maxfl - maxfr) / (maxfr + maxfl);
-            if (&gProgram_state.current_car == pCar) {
-                ts2 = 20.f;
-            } else {
-                ts2 = 60.f;
-            }
-            if (ts2 <= pV) {
-                if (maxfl > 0.1f) {
-                    ConditionallyNoteSkid(pCar, faces, 0);
-                }
-                if (maxfr > 0.1f) {
-                    ConditionallyNoteSkid(pCar, faces, 1);
-                }
-            }
-            if (IRandomBetween(0, 1)) {
-                if (maxfl > 0.1f) {
-                    SkidNoise(pCar, 0, pV, pCar->material_index[0]);
-                }
-            } else {
-                if (maxfr > 0.1f) {
-                    SkidNoise(pCar, 1, pV, pCar->material_index[1]);
-                }
-            }
+        case 0:
+            slide_dist = 0.f;
             break;
         }
         v135 = sqrt(v108 * v108 + v98 * v98) / 2.0;
