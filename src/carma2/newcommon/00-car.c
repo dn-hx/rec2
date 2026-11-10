@@ -2621,22 +2621,18 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     bounds.min = ray_pos[0];
     for (i = 1; i < 4; i++) {
         for (j = 0; j < 3; j++) {
-            if (ray_pos[i].v[j] < bounds.min.v[j]) {
-                bounds.min.v[j] = ray_pos[i].v[j];
-            }
-            if (bounds.max.v[j] < ray_pos[i].v[j]) {
-                bounds.max.v[j] = ray_pos[i].v[j];
-            }
+            bounds.min.v[j] = bounds.min.v[j] < ray_pos[i].v[j] ? bounds.min.v[j] : ray_pos[i].v[j];
+            bounds.max.v[j] = bounds.max.v[j] > ray_pos[i].v[j] ? bounds.max.v[j] : ray_pos[i].v[j];
         }
     }
     for (j = 0; j < 3; j++) {
-        if (ray_dir.v[j] < 0.f) {
-            bounds.min.v[j] = bounds.min.v[j] + ray_dir.v[j];
-        } else {
+        if (ray_dir.v[j] > 0.f) {
             bounds.max.v[j] = bounds.max.v[j] + ray_dir.v[j];
+        } else {
+            bounds.min.v[j] = bounds.min.v[j] + ray_dir.v[j];
         }
     }
-    for (i = 0, pList = gDrivable_on_list; i < (int)gDrivable_on_count; i++, pList++) {
+    for (i = 0, pList = gDrivable_on_list; i < gDrivable_on_count; i++, pList++) {
         pObj = *pList;
         if (!BoundsOverlapTest__finteray(&bounds, &pObj->field_0xf4)) {
             continue;
@@ -2766,9 +2762,12 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         if ((objs[i]->flags & 0x800) == 0) {
             br_vector3 rt;
             BrMatrix34ApplyP(&rt, &objs[i]->cmpos, &objs[i]->transform_matrix);
-            rt.v[0] = wheel_pos[i].v[0] * 0.14492753623188406 - rt.v[0];
-            rt.v[1] = wheel_pos[i].v[1] * 0.14492753623188406 - rt.v[1];
-            rt.v[2] = wheel_pos[i].v[2] * 0.14492753623188406 - rt.v[2];
+            tv.v[0] = wheel_pos[i].v[0] * 0.14492753623188406;
+            tv.v[1] = wheel_pos[i].v[1] * 0.14492753623188406;
+            tv.v[2] = wheel_pos[i].v[2] * 0.14492753623188406;
+            rt.v[0] = tv.v[0] - rt.v[0];
+            rt.v[1] = tv.v[1] - rt.v[1];
+            rt.v[2] = tv.v[2] - rt.v[2];
             tmp.v[0] = (rt.v[1] * b.v[2] - rt.v[2] * b.v[1]) * ts;
             tmp.v[1] = (rt.v[2] * b.v[0] - rt.v[0] * b.v[2]) * ts;
             tmp.v[2] = (rt.v[0] * b.v[1] - rt.v[1] * b.v[0]) * ts;
