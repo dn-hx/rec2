@@ -2790,7 +2790,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
             && (((tNon_car_spec*)objs[0]->owner)->flags & 0xff00) == 0
             && *(int*)((tNon_car_spec*)objs[0]->owner)->field_0xf8 == 0
             && gUNK_006793d0 != 3) {
-        ((tNon_car_spec*)objs[0]->owner)->flags = (((tNon_car_spec*)objs[0]->owner)->flags & 1) | 1;
+        ((tNon_car_spec*)objs[0]->owner)->flags = (((tNon_car_spec*)objs[0]->owner)->flags & ~0xfe) | 1;
     }
     if (pCar->collision_info->disable_move_rotate != 0 && normnum == 0) {
         goto steer_centre;
