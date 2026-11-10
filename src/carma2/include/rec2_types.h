@@ -2588,10 +2588,7 @@ typedef struct tCar_spec {
     br_vector3 mu;
     float traction_multiplier;
     float downforce_to_weight;
-    undefined field_0x12a8;
-    undefined field_0x12a9;
-    undefined field_0x12aa;
-    undefined field_0x12ab;
+    int field_0x12a8;
     float initial_brake;
     float brake_increase;
     float friction_slipping_reduction;

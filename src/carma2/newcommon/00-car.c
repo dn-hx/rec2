@@ -3037,7 +3037,7 @@ steer_centre:
             pCar->gear = 0;
         }
         v99 = v99 / pCar->traction_multiplier;
-        v135 = sqrt(v99 * v99 + v109 * v109) / 2.0;
+        v135 = (float)sqrt(v99 * v99 + v109 * v109) * 0.5f;
         GetOilFrictionFactors(pCar, &fl_oil_factor, &fr_oil_factor, &rl_oil_factor, &rr_oil_factor);
         for (i = 0; i < 4; i++) {
             if (pCar->oil_remaining[i] != 0.f) {
@@ -3089,7 +3089,7 @@ steer_centre:
                 }
             }
             v99 = v99 - ts2;
-            v135 = sqrt(v99 * v99 + v109 * v109) / 2.f;
+            v135 = (float)sqrt(v99 * v99 + v109 * v109) * 0.5f;
         } else if (pCar != NULL && pCar->driver >= eDriver_net_human && pCar->gear > 0
                 && pCar->revs > pCar->target_revs && !pCar->traction_control) {
             if (!pCar->keys.change_down) {
@@ -3196,7 +3196,7 @@ steer_centre:
             slide_dist = 0.f;
             break;
         }
-        v135 = sqrt(v108 * v108 + v98 * v98) / 2.0;
+        v135 = (float)sqrt(v108 * v108 + v98 * v98) * 0.5f;
         if (v135 > 0.0001f) {
             v108 = v108 / (v135 * 2.0);
             v98 = v98 / (v135 * 2.0);
