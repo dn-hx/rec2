@@ -2805,7 +2805,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         if (vol != NULL) {
             friction_number = (1.f - vol->gravity_multiplier) * pCar->collision_info->water_depth_factor;
             if (pCar->underwater_ability != 0) {
-                friction_number = friction_number * 0.6f;
+                friction_number = friction_number * 0.6;
             }
             friction_number = (1.f - friction_number) * pCar->collision_info->M;
         } else {
@@ -3079,7 +3079,7 @@ steer_centre:
                 v87 = 0.f;
             }
             if (pCar->max_force_rear <= v87) {
-                pCar->torque = -(pCar->revs * pCar->revs / 100000000.f) - 0.1f;
+                pCar->torque = -(pCar->revs * pCar->revs / 100000000.f) - 0.1;
             } else {
                 float v177 = sqrt(pCar->max_force_rear * pCar->max_force_rear - v87 * v87);
                 ts3 = ts2 < 0.f ? -1 : 1;
