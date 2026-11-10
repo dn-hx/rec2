@@ -2481,7 +2481,7 @@ void C2_HOOK_FASTCALL PhysicsObjectApplyTorque(tPhysics_object* pObject, const b
 static br_scalar stop_timer;
 static br_scalar slide_dist;
 
-// PARTIAL 33.90%: frame 0x1e4 matches (rt block-scoped), ts3 int; k is the shared scalar temp (orig esp+0x1c); local offsets/x87 order differ
+// PARTIAL 34.80%: block 0x419338..0x41948e implemented (ts = force[i]*0.14492753623188406*pDt, tmp = ts/objs[i]->M*b, net-mode store gPHIL_last_physics_tick+40, and the block-scoped `rt` angular-impulse block with BrMatrix34ApplyP/BrMatrix34TApplyV). Frame is 0x1ec vs the original 0x1e4 (+8); removing the dead out-parameter `nor2` (its only writer fed no reader, so ActorFindFace now writes `normal`, which is dead past the rescale block) took the old 0x1f8 down by 12 bytes. The remaining 8 are not a liveness question: a runtime slot oracle measured peak simultaneously-live slots at 53 of 83 touched, and VC5 statically allocates with no interval steering. The rescale block 0x41aaaa-0x41ab97 is still missing (partials/CalcForce.rescale-block.c). k is the shared scalar temp (orig esp+0x1c); local offsets/x87 order differ. See state/findings/CalcForce.md.
 // FUNCTION: CARMA2_HW 0x00418850
 void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     int i;
@@ -2511,6 +2511,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_scalar v99;
     br_scalar v87;
     br_scalar v106;
+    br_scalar clamp_ratio;
     br_scalar v108;
     br_scalar v109;
     br_scalar v128;
@@ -2531,7 +2532,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_vector3 tmp;
     br_vector3 ray_dir;
     br_vector3 normal;
-    br_vector3 nor2;
     br_vector3 rightplane;
     br_vector3 a;
     br_vector3 v103;
@@ -2752,15 +2752,29 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
             continue;
         }
         objs[i]->disable_move_rotate = 0;
-        ts = pCar->collision_info->M * pDt / (force[i] / 6.9);
-        tmp.v[0] = ts * b.v[0];
-        tmp.v[1] = ts * b.v[1];
-        tmp.v[2] = ts * b.v[2];
+        ts = force[i] * 0.14492753623188406 * pDt;
+        tmp.v[0] = ts / objs[i]->M * b.v[0];
+        tmp.v[1] = ts / objs[i]->M * b.v[1];
+        tmp.v[2] = ts / objs[i]->M * b.v[2];
         objs[i]->v.v[0] = tmp.v[0] + objs[i]->v.v[0];
         objs[i]->v.v[1] = tmp.v[1] + objs[i]->v.v[1];
         objs[i]->v.v[2] = tmp.v[2] + objs[i]->v.v[2];
-        if (gUNK_006793d0 == 2) {
-            pCar->collision_info->field_0x49c = (int)&gZero_v__car;
+        if (gNet_mode == eNet_mode_host) {
+            pCar->collision_info->field_0x49c = gPHIL_last_physics_tick + 40;
+        }
+        if ((objs[i]->flags & 0x800) == 0) {
+            br_vector3 rt;
+            BrMatrix34ApplyP(&rt, &objs[i]->cmpos, &objs[i]->transform_matrix);
+            rt.v[0] = wheel_pos[i].v[0] * 0.14492753623188406 - rt.v[0];
+            rt.v[1] = wheel_pos[i].v[1] * 0.14492753623188406 - rt.v[1];
+            rt.v[2] = wheel_pos[i].v[2] * 0.14492753623188406 - rt.v[2];
+            tmp.v[0] = (rt.v[1] * b.v[2] - rt.v[2] * b.v[1]) * ts;
+            tmp.v[1] = (rt.v[2] * b.v[0] - rt.v[0] * b.v[2]) * ts;
+            tmp.v[2] = (rt.v[0] * b.v[1] - rt.v[1] * b.v[0]) * ts;
+            BrMatrix34TApplyV(&rt, &tmp, &objs[i]->transform_matrix);
+            for (j = 0; j < 3; j++) {
+                objs[i]->omega.v[j] = rt.v[j] / objs[i]->I.v[j] + objs[i]->omega.v[j];
+            }
         }
     }
     if (objs[0] != NULL
@@ -2916,7 +2930,7 @@ steer_centre:
                 delta.v[0] = b.v[0] * (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * (1.f / WORLD_SCALE);
                 delta.v[1] = b.v[1] * (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * (1.f / WORLD_SCALE);
                 delta.v[2] = b.v[2] * (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * (1.f / WORLD_SCALE);
-                ActorFindFace(&pos, &delta, gTrack_actor, &nor2, &ts, &material, NULL);
+                ActorFindFace(&pos, &delta, gTrack_actor, &normal, &ts, &material, NULL);
                 if (ts > 1.f) {
                     pCar->field_0x12a8 = 1;
                 }
@@ -3020,7 +3034,7 @@ steer_centre:
         }
         BrVector3Sub(&a, &pCar->wpos[0], &pCar->centre_of_mass_world_scale);
         BrVector3Cross(&a, &pCar->collision_info->omega, &a);
-        BrVector3Accumulate(&a, &pCar->collision_info->velocity_car_space);
+        BrVector3Accumulate(&a, &ray_dir);
         if (pCar != NULL && pCar->driver >= eDriver_net_human
             && (((pCar->keys.left || pCar->joystick.left > 0x8000) && pCar->curvature > 0.f && deltaomega > 0.1 && a.v[0] > 0.f)
                 || ((pCar->keys.right || pCar->joystick.right > 0x8000) && pCar->curvature < 0.f && deltaomega < 0.1 && a.v[0] < 0.f))
@@ -3072,9 +3086,11 @@ steer_centre:
             maxfr = friction_number * maxfr;
         }
         if (fabs(v109) > maxfr + maxfl && maxfr + maxfl > 0.1f) {
-            v106 = (maxfr + maxfl) / fabs(v109) * pDt;
-            v109 = v106 * v109;
-            v99 = pCar->traction_multiplier * v106 * v99;
+            clamp_ratio = (maxfr + maxfl) / fabs(v109) * pDt;
+            v109 = v109 * clamp_ratio;
+            v99 = v99 * clamp_ratio * pCar->traction_multiplier;
+            v109 = v109 / clamp_ratio;
+            v99 = v99 / (clamp_ratio * pCar->traction_multiplier);
         }
         v98 = v98 - v106;
         v108 = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * pCar->curvature * v106 + v108;
