@@ -2957,8 +2957,8 @@ steer_centre:
         } else {
             ts = -1.f;
         }
-        ts2 = BrVector3Length(&v);
-        deltaomega = ts2 * pCar->curvature * ts;
+        ts2 = BrVector3Length(&v) * pCar->curvature;
+        deltaomega = ts * ts2;
         deltaomega = deltaomega - BrVector3Dot(&pCar->collision_info->omega, &road_normal);
         BrVector3Set(&v103, road_normal.v[1], -road_normal.v[0], 0.f);
         BrVector3Normalise(&v103, &v103);
