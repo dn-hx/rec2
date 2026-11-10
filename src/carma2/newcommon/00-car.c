@@ -2560,7 +2560,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     B.v[2] = 0.f;
     pCar->curvature = pCar->curvature + pCar->field_0x1260;
     pCar->field_0x195c = 0;
-    vol = pCar->collision_info->last_special_volume;
     wheelratio = (pCar->wpos[2].v[2] - pCar->centre_of_mass_world_scale.v[2])
         / (pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]);
     faces[0] = NULL;
@@ -2568,6 +2567,8 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     faces[2] = NULL;
     faces[3] = NULL;
     normnum = 0;
+    vol = pCar->collision_info->last_special_volume;
+    mat = &pCar->car_master_actor->t.t.mat;
     objs[0] = NULL;
     objs[1] = NULL;
     objs[2] = NULL;
@@ -2576,7 +2577,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     f.v[0] = 0.f;
     f.v[1] = 0.f;
     f.v[2] = 0.f;
-    mat = &pCar->car_master_actor->t.t.mat;
     b.v[0] = -mat->m[1][0];
     b.v[1] = -mat->m[1][1];
     b.v[2] = -mat->m[1][2];
