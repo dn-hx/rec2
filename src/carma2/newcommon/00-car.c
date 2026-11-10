@@ -2816,9 +2816,26 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
         B.v[1] = B.v[1] - mat->m[1][1] * friction_number;
         B.v[2] = B.v[2] - mat->m[2][1] * friction_number;
     } else {
-        BrVector3Normalise(&tmp, &road_normal);
+        br_scalar nx;
+        br_scalar ny;
+        br_scalar nz;
+        br_scalar len;
+
+        len = BR_LENGTH3(road_normal.v[0], road_normal.v[1], road_normal.v[2]);
+        if (len > BR_SCALAR_EPSILON * 2) {
+            len = 1.0 / len;
+            nx = road_normal.v[0] * len;
+            ny = road_normal.v[1] * len;
+            nz = road_normal.v[2] * len;
+        } else {
+            nx = 1.f;
+            ny = 0.f;
+            nz = 0.f;
+        }
         k = -(pCar->collision_info->M * 10.0f);
-        BrVector3Scale(&tmp, &tmp, k);
+        tmp.v[0] = nx * k;
+        tmp.v[1] = ny * k;
+        tmp.v[2] = nz * k;
         BrVector3Accumulate(&B, &tmp);
     }
 steer_centre:
