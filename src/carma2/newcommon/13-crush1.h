@@ -59,7 +59,7 @@ extern tU32 gINT_0067be84;
 
 // Constants used by FUN_00437480 (SetUpSemiDetachedBitJoint / similar)
 extern br_scalar gFLT_EPSILON_00589a5c;        // 0x589a5c = 2.3841858e-07
-extern br_scalar gFLT_EPSILON_RECIP_00589a60;  // 0x589a60 = 1.0 / 2.3841858e-07
+extern double gDouble_00589a60;                // 0x589a60 = 1.0 (double)
 extern br_scalar gFLOAT_1_0_00589a54;          // 0x589a54 = 1.0f
 extern br_scalar gFLOAT_NEG1_0_00589b2c;       // 0x589b2c = -1.0f
 extern br_scalar gFLOAT_0_01_00589a58;         // 0x589a58 = 0.01f
@@ -266,6 +266,7 @@ extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pA
 extern void C2_HOOK_FASTCALL DoDetaching(void);
 
 extern intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern int C2_HOOK_FASTCALL FUN_00424270(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data);
 // FlapBits
 
 // StartFlapping
