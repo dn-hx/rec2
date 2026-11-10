@@ -2519,6 +2519,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_scalar v128;
     br_scalar v129;
     br_scalar v134;
+    br_scalar vdot;
     br_scalar maxfr;
     br_scalar pV;
     br_scalar fl_oil_factor;
@@ -2963,25 +2964,24 @@ steer_centre:
         BrVector3Set(&v103, road_normal.v[1], -road_normal.v[0], 0.f);
         BrVector3Normalise(&v103, &v103);
         friction_number = pCar->collision_info->I.v[1] * 47.61f / pDt * deltaomega;
-        ts = friction_number / (pCar->wpos[2].v[2] - pCar->wpos[0].v[2]);
-        v108 = ts;
-        v109 = -ts;
+        v108 = friction_number / (pCar->wpos[2].v[2] - pCar->wpos[0].v[2]);
+        v109 = -v108;
         BrVector3Set(&rightplane, 0.f, road_normal.v[2], -road_normal.v[1]);
         BrVector3Normalise(&rightplane, &rightplane);
         v99 = pCar->acc_force;
         friction_number = BrVector3Dot(&rightplane, &v);
-        v108 = BrVector3Dot(&v103, &v);
-        ts2 = fabs(v108);
+        vdot = BrVector3Dot(&v103, &v);
+        ts2 = fabs(vdot);
         friction_number = (pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) * friction_number * fabs(pCar->curvature);
         if (pCar->curvature <= 0.f) {
-            friction_number = v108 - friction_number;
+            friction_number = vdot - friction_number;
         } else {
-            friction_number = v108 + friction_number;
+            friction_number = vdot + friction_number;
         }
         friction_number = -(pCar->collision_info->M / pDt * friction_number);
         friction_number = friction_number - BrVector3Dot(&B, &v103);
         friction_number = friction_number / (1.0 - wheelratio);
-        v108 = friction_number + ts;
+        v108 = friction_number + v108;
         v109 = -wheelratio * friction_number + v109;
         friction_number = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * v108;
         v98 = friction_number * pCar->curvature;
@@ -2989,13 +2989,13 @@ steer_centre:
         v129 = BrVector3Dot(&rightplane, &B) + friction_number;
         v128 = pCar->mu.v[0] * pCar->brake_force / (pCar->mu.v[1] / pCar->traction_multiplier + pCar->mu.v[0]);
         k = pCar->brake_force - v128;
-        ts = (pCar->damage_units[7].damage_level + pCar->damage_units[6].damage_level) / 2;
-        if (ts > 20.f) {
-            v128 = (1.f - (ts - 20.f) / 80.f) * (1.f - (ts - 20.f) / 80.f) * v128;
+        ts3 = (pCar->damage_units[7].damage_level + pCar->damage_units[6].damage_level) / 2;
+        if (ts3 > 20) {
+            v128 = (1.f - (ts3 - 20) / 80.f) * (1.f - (ts3 - 20) / 80.f) * v128;
         }
-        ts = (pCar->damage_units[5].damage_level + pCar->damage_units[4].damage_level) / 2;
-        if (ts > 20.f) {
-            k = (1.f - (ts - 20.f) / 80.f) * (1.f - (ts - 20.f) / 80.f) * k;
+        ts3 = (pCar->damage_units[5].damage_level + pCar->damage_units[4].damage_level) / 2;
+        if (ts3 > 20) {
+            k = (1.f - (ts3 - 20) / 80.f) * (1.f - (ts3 - 20) / 80.f) * k;
         }
         ts2 = (force[1] + force[0]) * pCar->rolling_resistance + v128;
         v106 = (force[2] + force[3]) * pCar->steerable_rolling_resistance + k;
