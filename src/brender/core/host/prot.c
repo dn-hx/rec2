@@ -146,7 +146,7 @@ __declspec(naked) br_error C2_HOOK_CDECL HostInterruptCall(br_uint_32 vector, un
         mov         dword ptr [esp + 0x8],edi
         mov         dword ptr [esp + 0xc],ebp
         lea         eax, [esp]
-        push        return_here
+        push        OFFSET return_here
         push        eax
         mov         es, word ptr [edi + 0x24]
         push        es
