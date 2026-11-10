@@ -179,7 +179,7 @@ int gPDActionReplayBufferSize;
 HPALETTE gPDPalette;
 
 
-// GLOBAL: CARMA2_HW 0x0079ea84
+// gSystem_info is annotated at its true base, 0x0079ea80, in newcommon/05-drmem.c
 SYSTEM_INFO gSystem_info;
 
 // GLOBAL: CARMA2_HW 0x0068c830

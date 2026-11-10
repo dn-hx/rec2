@@ -516,7 +516,6 @@ static int MungeRaceFinished(void) {
     return PDKeyDown(51) || PDKeyDown(52);
 }
 
-// PARTIAL 96.67%: FUN_00492840 0x492840 - only diff: reload of dwPageSize named gSystem_info+4 vs gSystem_info (win32.c annotates gSystem_info at 0x79ea84 while 05-drmem.c puts the struct at 0x79ea80); code is identical
 // FUNCTION: CARMA2_HW 0x00492840
 void C2_HOOK_FASTCALL FUN_00492840(volatile tU8* pBase, tU32 pSize) {
     tU32 current;
