@@ -160,7 +160,7 @@ br_int_32 C2_HOOK_CDECL BrVSprintfN(char* buf, br_size_t buf_size, const char* f
 
     n = vsprintf(tmp, fmt, args);
 
-    if (buf_size - 1 < n) {
+    if (n > buf_size - 1) {
         n = buf_size - 1;
     }
 
