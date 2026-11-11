@@ -148,8 +148,24 @@ const char* member_type_names[32] = {
 };
 
 
+// In the original binary these two objects sit immediately before DatafileStack in .bss:
+// _diag_scratch (diag.c, 128 bytes) spans 0x6ad928..0x6ad9a8, four more bytes follow,
+// then last_begin_screen (devsetup.c) at 0x6ad9ac..0x6ad9b0. DfTop reads the
+// out-of-range DatafileStack[-1].type at 0x6ad9a4 (= _diag_scratch + 124) and
+// DatafileStack[-1].count at 0x6ad9ac (= last_begin_screen); defining the same objects
+// here, zero initialized, reproduces that layout (the 132-byte scratch also covers
+// the four unaccounted bytes at 0x6ad9a8).
+#if defined(__GNUC__)
+#define DF_LAYOUT_WEAK __attribute__((weak))
+#else
+#define DF_LAYOUT_WEAK
+#endif
+
+DF_LAYOUT_WEAK char _diag_scratch[132] = { 0 };
+DF_LAYOUT_WEAK void* last_begin_screen = 0;
+
 // GLOBAL: CARMA2_HW 0x006ad9b0
-datafile_stack_t DatafileStack[1024];
+datafile_stack_t DatafileStack[1024] = { { 0, 0, 0 } };
 
 #if defined(BRENDER_FIX_BUGS)
 #define CHUNKNAMES_NB 62
