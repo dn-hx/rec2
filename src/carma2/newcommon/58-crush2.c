@@ -13,37 +13,6 @@
 
 #include "rec2_macros.h"
 
-extern int gExplosion_sound_id;
-extern br_vector3 gZero_v__car;
-extern tS3_outlet* gCar_outlet;
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
-
-extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
-
-// GLOBAL: CARMA2_HW 0x0074d3b0
-int gCredits_wasting_car[3];
-
-// GLOBAL: CARMA2_HW 0x0075b930
-float gCredits_per_unit_car_damage[3];
-
-// GLOBAL: CARMA2_HW 0x0075b9b0
-int gTime_rolling_car[3];
-
-// GLOBAL: CARMA2_HW 0x00761a50
-int gCredits_rolling_car[3];
-
-// GLOBAL: CARMA2_HW 0x00761ed0
-float gSeconds_per_unit_car_damage[3];
-
-// GLOBAL: CARMA2_HW 0x00763520
-int gTime_wasting_car[3];
-
-// GLOBAL: CARMA2_HW 0x00763530
-int gTime_per_ped_kill[3];
-
-// based on ApexWorm/rec2 1e0d5a8ab (reference only)
 // FUNCTION: CARMA2_HW 0x00441350
 int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
     int engine;
@@ -83,6 +52,36 @@ int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
     }
     return 100 - wheels;
 }
+
+extern int gExplosion_sound_id;
+extern br_vector3 gZero_v__car;
+extern tS3_outlet* gCar_outlet;
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
+
+// GLOBAL: CARMA2_HW 0x0074d3b0
+int gCredits_wasting_car[3];
+
+// GLOBAL: CARMA2_HW 0x0075b930
+float gCredits_per_unit_car_damage[3];
+
+// GLOBAL: CARMA2_HW 0x0075b9b0
+int gTime_rolling_car[3];
+
+// GLOBAL: CARMA2_HW 0x00761a50
+int gCredits_rolling_car[3];
+
+// GLOBAL: CARMA2_HW 0x00761ed0
+float gSeconds_per_unit_car_damage[3];
+
+// GLOBAL: CARMA2_HW 0x00763520
+int gTime_wasting_car[3];
+
+// GLOBAL: CARMA2_HW 0x00763530
+int gTime_per_ped_kill[3];
 
 // CheckLastCar
 
