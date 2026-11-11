@@ -757,10 +757,10 @@ br_error C2_HOOK_CDECL BrTokenValueSetMany(void* mem, br_int_32* pcount, br_uint
     br_error r;
     br_uint_32 cm;
 
+    cm = 0;
     if (template->n_map_entries == 0) {
         templateMakeMap(template);
     }
-    cm = 0;
     n = 0;
     for (; tv->t != 0; tv++) {
         o = tv->t - template->map_base;
