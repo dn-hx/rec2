@@ -1740,10 +1740,23 @@ extern int gCount_changed_points;
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
 extern void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pPed, undefined4 pArg2, undefined4 pArg3);
-/* temporary placeholder, address not identified yet */
+/* PedFallingForever: no standalone symbol in the original; the body is inlined into
+   MungePedestrians 0x4d3740 at 0x4d5596-0x4d5602, guarded by `character->field_0x14 & 4` and
+   `!(ped->flags & 0x80)`; the vanish block is MakePedVanish, then the drop distance is scored. */
+extern void C2_HOOK_FASTCALL MakePedVanish(tPedestrian* pPed);
+extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition);
+extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
+extern int gPipe_halted_ped_status;
+extern br_vector3 gZero_v__car;
 int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
-    NOT_IMPLEMENTED();
-    return 0;
+    if (pPed->flags & 0x80) {
+        return 0;
+    }
+    MakePedVanish(pPed);
+    if (pPed->hit_points > 0) {
+        ScoreForKilledPedestrian(pPed, pPed->pos.v[1] - FindYVerticallyBelow(&pPed->pos));
+    }
+    return 1;
 }
 extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
 extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
@@ -1755,13 +1768,30 @@ extern tPedestrian* gPed_recent_ped;
 extern int gPed_score_multiplier;
 extern int gPed_recent_points;
 extern void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject);
-/* temporary placeholder, address not identified yet */
+/* MakePedVanish: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
+   at 0x4d56b3-0x4d56f0 and 0x4d415c-0x4d419c, both guarded by `!(ped->flags & 0x80)`
+   (PipeSinglePedPos, flags |= 0x80, halt status around physics level + renderable, OneLessPed). */
 void C2_HOOK_FASTCALL MakePedVanish(tPedestrian* pPed) {
-    NOT_IMPLEMENTED();
+    if (pPed->flags & 0x80) {
+        return;
+    }
+    PipeSinglePedPos(pPed, &pPed->pos, &gZero_v__car);
+    pPed->flags |= 0x80;
+    gPipe_halted_ped_status = 1;
+    SetCharacterPhysicsLevelAR(pPed->character, 0);
+    CharacterNoLongerRenderable(pPed->character);
+    gPipe_halted_ped_status = 0;
+    OneLessPed(pPed);
 }
-/* temporary placeholder, address not identified yet */
+/* KillNapalmBolt: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
+   at 0x4d565e-0x4d5681 and 0x4d3d5c-0x4d3d8a (7 actors set to BR_RSTYLE_NONE, slot's ped cleared). */
 void C2_HOOK_FASTCALL KillNapalmBolt(tNapalm_bolt* pBolt) {
-    NOT_IMPLEMENTED();
+    size_t i;
+
+    for (i = 0; i < REC2_ASIZE(pBolt->actors); i++) {
+        pBolt->actors[i]->render_style = BR_RSTYLE_NONE;
+    }
+    pBolt->ped = NULL;
 }
 /* no standalone symbol in the original: inlined at the only call site (MungePedestrians);
    runtime-faithful body at the TU end */
@@ -2236,9 +2266,29 @@ extern void C2_HOOK_FASTCALL CheckForAvoidingAction(tPedestrian* pPed, tU32 pTim
    inlined at 0x4d4c69/0x4d4c76/0x4d4c83, storing to omega (+0x74/+0x78/+0x7c), followed by
    the length/scale code (2.0f constant at 0x0058aaa4). Body at the TU end; no `// FUNCTION:`. */
 extern void C2_HOOK_FASTCALL SetRandomOmega(tPhysics_object* pObject, float pMax);
-/* temporary placeholder, address not identified yet */
+/* CheckPowerupMoveSubstitution: no standalone symbol in the original; inlined into
+   MungePedestrians 0x4d3740 at 0x4d4d52-0x4d4de9 (drunk/dancing/panicking move-lut substitution
+   through gPed_move_fsm, else 112/31/111 -> 30). */
 void C2_HOOK_FASTCALL CheckPowerupMoveSubstitution(tPedestrian* pPed, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    int cur_move;
+    int lut_id;
+
+    cur_move = pPed->character->personality->form->moves[pPed->character->field_0x7].id;
+    if (gDrunk_pedestrians) {
+        lut_id = 4;
+    } else if (gDancing_peds) {
+        lut_id = 3;
+    } else if (gPanicking_peds) {
+        lut_id = 5;
+    } else {
+        if (cur_move == 112 || cur_move == 31 || cur_move == 111) {
+            SetPedMove(pPed, 30, -1, 0, 0, pTime, -1);
+        }
+        return;
+    }
+    if (cur_move != gPed_move_fsm[cur_move][lut_id + 1]) {
+        SetPedMove(pPed, gPed_move_fsm[cur_move][lut_id + 1], -1, 0, 0, pTime, -1);
+    }
 }
 /* Forwarder kept at the old stub slot (a real body here flips 0x4091e0/0x40b770); the real
    MungeCharacterAnimation (0x409ca0) is MungeCharacterAnimationBody at the end of the TU. */
@@ -2246,14 +2296,50 @@ extern void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance
 void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
     MungeCharacterAnimationBody(pCharacter, pTime, pArg3);
 }
-/* temporary placeholder, address not identified yet (StillifyCorpse is inlined in the original,
-   see partials/StillifyCorpse.c for the inline evidence; no standalone address) */
+/* StillifyCorpse: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
+   at 0x4d4e95-0x4d4ec0 and into ActiveHalted 0x4d1030 at 0x4d174d-0x4d178c / 0x4d1a9e-0x4d1acb
+   (gMutant_speed against the shared 0.0f constant 0x0058a988, then SetCharacterMoveAR 0x4d1c60). */
 void C2_HOOK_FASTCALL StillifyCorpse(tPedestrian* pPed, tU32 pTime, undefined4 pArg3) {
-    NOT_IMPLEMENTED();
+    if (gMutant_speed == 0.f) {
+        SetCharacterMoveAR(pPed->character, -1, 0.f, pArg3, 0, pTime);
+    } else {
+        SetCharacterMoveAR(pPed->character, -1, -gMutant_speed, pArg3, 0, pTime);
+    }
 }
-/* temporary placeholder, address not identified yet */
+/* MungePedHeadAnim: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
+   at 0x4d4ee8-0x4d4fdd (head anim sequence advances every 125 ms, 'c' pose clears the sequence). */
 void C2_HOOK_FASTCALL MungePedHeadAnim(tPedestrian* pPed, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    if (pPed->field_0x0c != NULL
+            && pPed->field_0x0c->field_0x1c != NULL
+            && pTime > pPed->field_0x0c->field_0x78 + 125) {
+        tPed_character_instance* head_character;
+        int head_pose;
+        int head_bone;
+        int head_hit;
+
+        pPed->field_0x0c->field_0x1a += 1;
+        if (pPed->field_0x0c->field_0x1a >= pPed->field_0x0c->field_0x1c->count) {
+            pPed->field_0x0c->field_0x1a = 1;
+        }
+        if (pPed->field_0x0c->field_0x1c->poses[pPed->field_0x0c->field_0x1a] == 'c') {
+            pPed->field_0x0c->field_0x1c = NULL;
+        } else {
+            pPed->field_0x0c->field_0x78 = pTime;
+            head_hit = pPed->hit_points <= 0;
+            head_character = pPed->character;
+            head_pose = pPed->field_0x0c->field_0x1c->poses[pPed->field_0x0c->field_0x1a];
+            head_bone = head_character->personality->form->index_head_bone;
+            if (head_character->field_0x4 >= 0) {
+                if (head_bone < 0) {
+                    PipeSinglePedModelChange(head_character->ped, head_bone, NULL, -1, GetCharacterModelSet(head_character), head_hit);
+                    SetCharacterAllBonesModel(head_character, head_pose, head_hit);
+                } else {
+                    PipeSinglePedModelChange(head_character->ped, head_bone, GetCharacterBoneModel(head_character, head_bone), head_pose, GetCharacterModelSet(head_character), head_hit);
+                    SetCharacterBoneModel(head_character, head_bone, head_pose, head_hit);
+                }
+            }
+        }
+    }
 }
 /* UNVERIFIED TEST BODY (uncommitted): no address; logic copied from src/carma2/common/pedestrn.c.
    The original scare logic is in the PipeSinglePedStatus (0x4c8a90) session 0x28 handler; not matched yet. */

@@ -8287,7 +8287,7 @@ tCrush_info* C2_HOOK_FASTCALL FUN_0042f170(tCrush_info_buffer* pInfo_buffer, br_
 #ifdef REC2_MATCHING
 #pragma inline_depth()
 #endif
-// alias: same value as gFLOAT_1_0_00589a54 at 0x00589a54 (kept as a separate name for the 0x4236a0 code)
+// GLOBAL: CARMA2_HW 0x00589a54
 const br_scalar gFLOAT_00589a54 = 1.0f;
 // GLOBAL: CARMA2_HW 0x00589a98
 const br_scalar gFLOAT_00589a98 = 0.0001f;
@@ -8426,11 +8426,11 @@ void C2_HOOK_FASTCALL SplitPolyhedronByPlane(tCollision_shape_polyhedron* pSourc
     }
     FillInShape(pNegative_output);
 }
-// FUNCTION: CARMA2_HW 0x004236a0
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
+// FUNCTION: CARMA2_HW 0x004236a0
 int C2_HOOK_FASTCALL FUN_004236a0(tPhysics_object* pObject, tPhysics_shape* pShape, tSensible_place_contact* pContacts, int pCount, int pMax, br_vector3* pPoints, br_matrix34* pScratch, int* pHas_collision) {
     float local_90;
     float local_8c;
@@ -8900,7 +8900,7 @@ LAB_0043752a:
               pJoint->limits[0].child.v[1] * pJoint->limits[0].child.v[1] +
               pJoint->limits[0].child.v[0] * pJoint->limits[0].child.v[0]);
         if (fVar3 <= gFLT_EPSILON_00589a5c) {
-            pJoint->limits[0].child.v[0] = gFLOAT_1_0_00589a54;
+            pJoint->limits[0].child.v[0] = gFLOAT_00589a54;
             pJoint->limits[0].child.v[1] = 0;
             pJoint->limits[0].child.v[2] = 0;
         } else {
@@ -8918,7 +8918,7 @@ LAB_0043752a:
               pJoint->limits[1].child.v[1] * pJoint->limits[1].child.v[1] +
               pJoint->limits[1].child.v[0] * pJoint->limits[1].child.v[0]);
         if (fVar3 <= gFLT_EPSILON_00589a5c) {
-            pJoint->limits[1].child.v[0] = gFLOAT_1_0_00589a54;
+            pJoint->limits[1].child.v[0] = gFLOAT_00589a54;
             pJoint->limits[1].child.v[1] = 0;
             pJoint->limits[1].child.v[2] = 0;
         } else {
@@ -8942,7 +8942,7 @@ LAB_0043752a:
         pJoint->limits[0].parent.v[2] = fVar5;
         fVar5 = sqrt(fVar5 * fVar5 + fVar3 * fVar3 + fVar4 * fVar4);
         if (fVar5 <= gFLT_EPSILON_00589a5c) {
-            pJoint->limits[0].parent.v[0] = gFLOAT_1_0_00589a54;
+            pJoint->limits[0].parent.v[0] = gFLOAT_00589a54;
             pJoint->limits[0].parent.v[1] = 0;
             pJoint->limits[0].parent.v[2] = 0;
         } else {
@@ -8965,7 +8965,7 @@ LAB_0043752a:
     if ((bVar1 & 1) == 0) {
         uVar7 = gFLOAT_NEG1_0_00589b2c;
     } else {
-        uVar7 = gFLOAT_1_0_00589a54;
+        uVar7 = gFLOAT_00589a54;
     }
     (&pJoint->limits[0].parent.v[0])[iVar8] = uVar7;
     pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
@@ -8973,7 +8973,7 @@ LAB_0043752a:
     pJoint->limits[1].parent.v[0] = pJoint->limits[0].parent.v[0];
     uVar9 = (iVar8 + 1) % 3;
     if ((((int)(tU32)bVar2 >> (char)uVar9) & 1) == 0) {
-        uVar7 = gFLOAT_1_0_00589a54;
+        uVar7 = gFLOAT_00589a54;
     } else {
         uVar7 = gFLOAT_NEG1_0_00589b2c;
     }
@@ -8990,7 +8990,7 @@ LAB_0043752a:
           pJoint->limits[0].child.v[1] * pJoint->limits[0].child.v[1] +
           pJoint->limits[0].child.v[0] * pJoint->limits[0].child.v[0]);
     if (fVar3 <= gFLT_EPSILON_00589a5c) {
-        pJoint->limits[0].child.v[0] = gFLOAT_1_0_00589a54;
+        pJoint->limits[0].child.v[0] = gFLOAT_00589a54;
         pJoint->limits[0].child.v[1] = 0;
         pJoint->limits[0].child.v[2] = 0;
     } else {
@@ -9001,7 +9001,7 @@ LAB_0043752a:
     }
     (&pJoint->limits[1].child.v[0])[uVar9] = 0;
     if ((((int)(tU32)bVar2 >> (char)uVar10) & 1) == 0) {
-        uVar7 = gFLOAT_1_0_00589a54;
+        uVar7 = gFLOAT_00589a54;
     } else {
         uVar7 = gFLOAT_NEG1_0_00589b2c;
     }
@@ -9022,7 +9022,7 @@ LAB_0043752a:
         pJoint->limits[1].child.v[2] = pJoint->limits[1].child.v[2] * fVar3;
         return;
     }
-    pJoint->limits[1].child.v[0] = gFLOAT_1_0_00589a54;
+    pJoint->limits[1].child.v[0] = gFLOAT_00589a54;
     pJoint->limits[1].child.v[1] = 0;
     pJoint->limits[1].child.v[2] = 0;
     return;

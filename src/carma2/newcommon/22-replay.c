@@ -1174,7 +1174,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
         basis.m[0][1] = gShrapnel_shower_matrix.m[1][1] - gShrapnel_shower_matrix.m[0][1];
         fVar1 = gShrapnel_shower_matrix.m[1][2] - gShrapnel_shower_matrix.m[0][2];
         basis.m[0][2] = (float)sqrt(fVar1 * fVar1 + basis.m[0][1] * basis.m[0][1] + basis.m[0][0] * basis.m[0][0]);
-        if (basis.m[0][2] <= 2.3841858e-07f) {
+        if (basis.m[0][2] <= gFLT_EPSILON_00589a5c) {
             basis.m[0][0] = 1.0f;
             basis.m[0][1] = 0.0f;
             basis.m[0][2] = 0.0f;
@@ -1188,7 +1188,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
         basis.m[1][1] = gShrapnel_shower_matrix.m[2][1] - gShrapnel_shower_matrix.m[0][1];
         fVar1 = gShrapnel_shower_matrix.m[2][2] - gShrapnel_shower_matrix.m[0][2];
         basis.m[1][2] = (float)sqrt(fVar1 * fVar1 + basis.m[1][1] * basis.m[1][1] + basis.m[1][0] * basis.m[1][0]);
-        if (basis.m[1][2] <= 2.3841858e-07f) {
+        if (basis.m[1][2] <= gFLT_EPSILON_00589a5c) {
             basis.m[1][0] = 1.0f;
             basis.m[1][1] = 0.0f;
             basis.m[1][2] = 0.0f;
@@ -1201,7 +1201,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
         basis.m[2][2] = (float)sqrt(gVector3_006a4688.v[2] * gVector3_006a4688.v[2]
                 + gVector3_006a4688.v[1] * gVector3_006a4688.v[1]
                 + gVector3_006a4688.v[0] * gVector3_006a4688.v[0]);
-        if (basis.m[2][2] <= 2.3841858e-07f) {
+        if (basis.m[2][2] <= gFLT_EPSILON_00589a5c) {
             basis.m[2][0] = 1.0f;
             basis.m[2][1] = 0.0f;
             basis.m[2][2] = 0.0f;

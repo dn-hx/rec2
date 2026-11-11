@@ -3934,9 +3934,13 @@ void C2_HOOK_FASTCALL PrintPowerupIconIn3D(int pX, int pY, tHeadup_icon* pIcon, 
     br_fixed_ls prev_opacity;
 
     if (pIcon == NULL) {
+        /* TEMP FIX (uncommitted): pIcon is NULL here, so use the powerup's own actor and skip when it has none */
+        if (pPowerup->icon_actor == NULL) {
+            return;
+        }
         pPowerup->icon_actor->render_style = BR_RSTYLE_FACES;
-        BrVector3Set(&pIcon->icon_actor->t.t.translate.t, (float)pX + 16.0f, (float)-(pY + 16), 0.0f);
-        RenderThisHeadup(pIcon->icon_actor);
+        BrVector3Set(&pPowerup->icon_actor->t.t.translate.t, (float)pX + 16.0f, (float)-(pY + 16), 0.0f);
+        RenderThisHeadup(pPowerup->icon_actor);
         return;
     }
     if (pIcon->icon_actor != NULL) {

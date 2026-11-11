@@ -152,6 +152,7 @@ extern void C2_HOOK_FASTCALL InitAbuseomatic(void);
 extern void C2_HOOK_FASTCALL DisposeAbuseomatic(void);
 
 extern void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void);
+extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
 // SteelBollock
 
 extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);

@@ -1270,9 +1270,66 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// Action proc of gToggle_array, not implemented yet (stub)
+// ViewNetPlayer - action proc of gToggle_array (key 0x46)
+// FUNCTION: CARMA2_HW 0x0040e430
 void C2_HOOK_FASTCALL ViewNetPlayer(void) {
-    NOT_IMPLEMENTED();
+    extern int gOpponent_viewing_mode;
+    extern int gNet_player_to_view_index;
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    tCar_spec* car;
+    tNet_game_player_info* player;
+    int* p;
+    int best;
+    int index;
+    int i;
+
+    if (gOpponent_viewing_mode == 0) {
+        return;
+    }
+    gNet_player_to_view_index++;
+    if (gNet_player_to_view_index >= gNumber_of_net_players) {
+        gNet_player_to_view_index = -1;
+    }
+    index = gNet_player_to_view_index;
+    if (index < 0) {
+        best = *(int*)gNet_players[0].field_0x94;
+        car = gNet_players[0].car;
+        if (gCurrent_net_game->type != eNet_game_type_foxy || gIt_or_fox < 0 || gNumber_of_net_players <= gIt_or_fox) {
+            if (gNumber_of_net_players > 1) {
+                p = (int*)gNet_players[1].field_0x94;
+                i = gNumber_of_net_players - 1;
+                do {
+                    if (*p < best) {
+                        car = (tCar_spec*)p[0xd];
+                        best = *p;
+                    }
+                    p += 0x35;
+                    i--;
+                } while (i != 0);
+            }
+            goto have_car;
+        }
+        index = gIt_or_fox;
+    }
+    car = gNet_players[index].car;
+have_car:
+    player = NetPlayerFromCar(car);
+    if (gNet_mode == eNet_mode_host) {
+        gCar_to_view = car;
+        gCamera_yaw = 0;
+        InitialiseExternalCamera();
+        PositionExternalCamera(gCar_to_view, 200);
+        return;
+    }
+    if (gNet_mode == eNet_mode_client && gCar_to_view_id != player->ID) {
+        tNet_message* message;
+
+        gCar_to_view_id = player->ID;
+        message = NetBuildGuaranteedMessage(0x2f, 0);
+        *(tPlayer_ID*)((tU8*)message + 0x1c) = gCar_to_view_id;
+        NetGuaranteedSendMessageToHost(gCurrent_net_game, message, NULL);
+    }
 }
 // PARTIAL 80.51%: loop-tail and regalloc differ (orig shares one bottom compare, zero-reg ebp, delayed pushes)
 // FUNCTION: CARMA2_HW 0x004dab80

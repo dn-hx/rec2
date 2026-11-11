@@ -6909,7 +6909,10 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
     float local_6c[3];
     float local_60[3];
     int local_5c[23];
+    tPhysics_joint_force joint_records[4];
 
+    /* own record buffer: the records must not overlay the float/pointer locals above (stale contact data) */
+    memset(joint_records, 0, sizeof(joint_records));
     iVar17 = 0;
     local_1b1 = 0xff;
     if (0 < pCount) {
@@ -7021,7 +7024,7 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
                             local_1ac = local_1a8 * local_1ac;
                             local_1a8 = local_1a8 * fVar4;
                         }
-                        pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)local_180, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)local_1a4, (tPhysics_object*)local_190, 5, NULL, 0.0f);
+                        pResult = AddObjectObjectForce(joint_records, (br_vector3*)local_180, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)local_1a4, (tPhysics_object*)local_190, 5, NULL, 0.0f);
                     }
                 }
                 iVar17 = iVar17 + 1;
@@ -7099,7 +7102,7 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
             local_18c = local_18c - local_154;
             local_188 = local_188 - local_150;
             local_184 = local_184 - local_14c;
-            pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)piVar10, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
+            pResult = AddObjectObjectForce(joint_records, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)piVar10, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
         }
         switch (*pType) {
         case 0:
@@ -7193,7 +7196,7 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
                         local_18c = local_18c - local_154;
                         local_188 = local_188 - local_150;
                         local_184 = local_184 - local_14c;
-                        pResult = AddObjectObjectForce((tPhysics_joint_force*)&local_1c4, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)local_1a4, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
+                        pResult = AddObjectObjectForce(joint_records, (br_vector3*)&local_1a0, local_1c4, (br_vector3*)&local_17c, (br_vector3*)&local_1b0, pResult, (tPhysics_object*)piVar18, (tPhysics_object*)local_1a4, 8, NULL, local_184 * local_174 + local_188 * local_178 + local_18c * local_17c);
                         if (pResult == 500) {
                             BrMatrix34ApplyP((br_vector3*)&local_130, (br_vector3*)local_160, (br_matrix34*)piVar23);
                             BrMatrix34ApplyP((br_vector3*)&local_f4, (br_vector3*)local_160, (br_matrix34*)(*piVar11 + 0x2c));
