@@ -120,9 +120,21 @@ void C2_HOOK_CDECL V1Face_CullOneSided(br_geometry* self, br_soft_renderer* rend
     case BRT_PARALLEL:
         V1Face_CullOneSidedParallel(self, renderer);
         break;
-    default:
-        V1Face_CullNone(self, renderer);
+    default: {
+        int f;
+        v11face* fp;
+        temp_face_soft* tfp;
+
+        for (f = 0, fp = rend.faces, tfp = rend.temp_faces; f < rend.nfaces; f++, fp++, tfp++) {
+            tfp->flag = TFF_VISIBLE;
+
+            rend.vertex_counts[fp->vertices[0]] += 1;
+            rend.vertex_counts[fp->vertices[1]] += 1;
+            rend.vertex_counts[fp->vertices[2]] += 1;
+        }
+        rend.nvisible_faces = rend.nfaces;
         break;
+    }
     }
 }
 
