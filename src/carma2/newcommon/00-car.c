@@ -6861,7 +6861,9 @@ int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float
                 && user->crush_data->flap_data->kev_o_flap != 0) {
             snap_torque = object1->M * gTorque_to_snap_per_tonne;
             if (pImpulses[i] > snap_torque) {
-                if (BrVector3Dot(&pContacts[i].normal, &object1->physics_joint1->hinge_axis) < gCrushZero) {
+                if ((((&pContacts[i].normal)->v[0]) * ((&object1->physics_joint1->hinge_axis)->v[0])
+                        + ((&pContacts[i].normal)->v[2]) * ((&object1->physics_joint1->hinge_axis)->v[2]))
+                        + ((&pContacts[i].normal)->v[1]) * ((&object1->physics_joint1->hinge_axis)->v[1]) < gCrushZero) {
                     if (gNet_mode == eNet_mode_none) {
                         index = i;
                         ScaleCollisionImpulses(pContacts, pImpulses, pCount, &index, 1, snap_torque);
