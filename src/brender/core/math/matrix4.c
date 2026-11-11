@@ -76,16 +76,16 @@ void C2_HOOK_CDECL BrMatrix4Identity(br_matrix4* mat) {
 void C2_HOOK_CDECL BrMatrix4Scale(br_matrix4* mat, br_scalar sx, br_scalar sy, br_scalar sz) {
 
     M(0, 0) = sx;
-    M(1, 1) = sy;
-    M(2, 2) = sz;
     M(0, 1) = BR_SCALAR(0.f);
     M(0, 2) = BR_SCALAR(0.f);
     M(0, 3) = BR_SCALAR(0.f);
     M(1, 0) = BR_SCALAR(0.f);
+    M(1, 1) = sy;
     M(1, 2) = BR_SCALAR(0.f);
     M(1, 3) = BR_SCALAR(0.f);
     M(2, 0) = BR_SCALAR(0.f);
     M(2, 1) = BR_SCALAR(0.f);
+    M(2, 2) = sz;
     M(2, 3) = BR_SCALAR(0.f);
     M(3, 0) = BR_SCALAR(0.f);
     M(3, 1) = BR_SCALAR(0.f);
