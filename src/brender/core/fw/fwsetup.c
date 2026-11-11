@@ -62,6 +62,13 @@ br_resource_class fw_resourceClasses[25] = {
     { 0u, "TOKEN_TEMPLATE", BR_MEMORY_TOKEN_TEMPLATE, NULL, 0u },
 };
 
+// The 4 bytes at 0x66570c are alignment padding after fw_resourceClasses, not a
+// declared object, but BrFwBegin's loop compares the walker against exactly this
+// address, so reccmp needs a symbol there to name the operand. A zero value would
+// land in .bss and lose the position, hence the unused nonzero sentinel.
+// GLOBAL: CARMA2_HW 0x0066570c
+br_uint_32 fw_resourceClassesPadding = 0xFFFFFFFFu;
+
 // GLOBAL: CARMA2_HW 0x00665b70
 void* functionPointers_BRCORE1[185] = {
     BrAbort,
