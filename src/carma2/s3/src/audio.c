@@ -478,6 +478,9 @@ int C2_HOOK_FASTCALL S3DisableSound(void) {
     tS3_outlet* outlet;
     tS3_descriptor* next_descriptor;
     tS3_outlet* next_outlet;
+    int status;
+
+    (void) status;
 
     S3StopAllOutletSounds();
     S3StopMidi();
