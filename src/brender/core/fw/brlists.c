@@ -100,7 +100,12 @@ br_simple_node* C2_HOOK_CDECL BrSimpleRemHead(br_simple_list* list) {
 
     node = list->head;
     if (node != NULL) {
-        BrSimpleRemove(node);
+        *node->prev = node->next;
+        if (node->next != NULL) {
+            node->next->prev = node->prev;
+        }
+        node->prev = NULL;
+        node->next = NULL;
     }
     return node;
 }
