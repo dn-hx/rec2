@@ -45,6 +45,8 @@ extern HINSTANCE gHInstance;
 extern char gFatalErrorMessage[512];
 extern int gIsFatalError;
 
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+
 extern LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern int C2_HOOK_FASTCALL PDFileUnlock(const char* pThe_path);
