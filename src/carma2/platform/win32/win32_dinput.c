@@ -779,44 +779,50 @@ void C2_HOOK_FASTCALL ResetDInputJoystickFFB(int pIndex) {
 
 // FUNCTION: CARMA2_HW 0x00458520
 void C2_HOOK_FASTCALL RegisterJoystickFFBForces(void) {
-    tJoystick_effect_description description;
+    // The original reserves 0x60 bytes for this local and initialises only
+    // its first 0x50 bytes, so the source local is 0x10 bytes larger than
+    // our tJoystick_effect_description.
+    struct {
+        tJoystick_effect_description description;
+        undefined field_0x50[0x10];
+    } params;
 
 #ifdef REC2_FIX_BUGS
-    memset(&description, 0, sizeof(description));
+    memset(&params.description, 0, sizeof(params.description));
 #endif
-    description.type = eJoystick_effect_Friction;
-    description.type_specific_params.friction.field_0x0 = 0;
-    description.type_specific_params.friction.field_0x4 = 10000;
-    description.type_specific_params.friction.field_0x8 = 10000;
-    description.time_ms = 5000000;
-    description.field_0x3c = 5000;
-    description.field_0x44 = -1;
-    description.field_0x4c = 0x5a;
-    gBasic_friction_joystick_effect_index = CreateDinputEffect(gJoystick_index, &description, "Basic Friction");
+    params.description.type = eJoystick_effect_Friction;
+    params.description.type_specific_params.friction.field_0x0 = 0;
+    params.description.type_specific_params.friction.field_0x4 = 10000;
+    params.description.type_specific_params.friction.field_0x8 = 10000;
+    params.description.time_ms = 5000000;
+    params.description.field_0x3c = 5000;
+    params.description.field_0x44 = -1;
+    params.description.field_0x4c = 0x5a;
+    gBasic_friction_joystick_effect_index = CreateDinputEffect(gJoystick_index, &params.description, "Basic Friction");
 
 #ifdef REC2_FIX_BUGS
-    memset(&description, 0, sizeof(description));
+    memset(&params.description, 0, sizeof(params.description));
 #endif
-    description.type = eJoystick_effect_ConstantForce;
-    description.type_specific_params.constant.field_0x0 = 0;
-    description.time_ms = 5000000;
-    description.field_0x38 = 1000;
-    description.field_0x3c = 5000;
-    description.field_0x44 = -1;
-    description.field_0x4c = 0x5a;
-    gBasic_force_joystick_effect_index = CreateDinputEffect(gJoystick_index, &description, "Basic Force");
+    params.description.type = eJoystick_effect_ConstantForce;
+    params.description.type_specific_params.constant.field_0x0 = 0;
+    params.description.time_ms = 5000000;
+    params.description.field_0x38 = 1000;
+    params.description.field_0x3c = 5000;
+    params.description.field_0x44 = -1;
+    params.description.field_0x4c = 0x5a;
+    gBasic_force_joystick_effect_index = CreateDinputEffect(gJoystick_index, &params.description, "Basic Force");
 
 #ifdef REC2_FIX_BUGS
-    memset(&description, 0, sizeof(description));
+    memset(&params.description, 0, sizeof(params.description));
 #endif
-    description.type = eJoystick_effect_ConstantForce;
-    description.type_specific_params.constant.field_0x0 = 0;
-    description.time_ms = 1000000;
-    description.field_0x38 = 1000;
-    description.field_0x3c = 5000;
-    description.field_0x44 = -1;
-    description.field_0x4c = 0x5a;
-    gCollision_force_joystick_effect_index = CreateDinputEffect(gJoystick_index, &description, "Collision Force");
+    params.description.type = eJoystick_effect_ConstantForce;
+    params.description.type_specific_params.constant.field_0x0 = 0;
+    params.description.time_ms = 1000000;
+    params.description.field_0x38 = 1000;
+    params.description.field_0x3c = 5000;
+    params.description.field_0x44 = -1;
+    params.description.field_0x4c = 0x5a;
+    gCollision_force_joystick_effect_index = CreateDinputEffect(gJoystick_index, &params.description, "Collision Force");
 }
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
