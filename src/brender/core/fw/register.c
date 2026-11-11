@@ -108,7 +108,7 @@ int C2_HOOK_STDCALL BrRegistryFindMany(br_registry* reg, const char* pattern, vo
     e = (br_registry_entry*)reg->list.head;
     while ((e->node.next != NULL) && (n < max)) {
         if (BrNamePatternMatch(pattern, e->item[1]) != 0) {
-            items[n] = e->item;
+            *items++ = e->item;
             n++;
         }
         e = (br_registry_entry*)e->node.next;
