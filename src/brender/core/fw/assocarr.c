@@ -92,7 +92,7 @@ br_error C2_HOOK_STDCALL BrAssociativeArrayRemoveEntry(br_associative_array* pAr
         BrResFree(pArray->tv[i].v.str);
     }
     for (; i < pArray->num_elements - 1; i++) {
-        BrMemCpy(&pArray->tv[i], &pArray->tv[i + 1], sizeof(br_token_value));
+        BrMemCpy(&pArray->tv[i], &pArray[i + 1], sizeof(br_token_value));
     }
     pArray->num_elements -= 1;
     return 0; // BRE_OK
