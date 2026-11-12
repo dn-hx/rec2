@@ -33,7 +33,6 @@ void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount) {
 
 /* local declaration instead of including globvrpb.h here */
 extern tNet_mode gNet_mode;
-extern void C2_HOOK_FASTCALL MakeSavedGame(tSave_game* pSave_game);
 
 // based on ApexWorm/rec2 ea07b3121
 // FUNCTION: CARMA2_HW 0x00491ac0
