@@ -1872,7 +1872,11 @@ tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar) {
     return NULL;
 }
 
-// GetCheckSum
+// FUNCTION: CARMA2_HW 0x004a69f0
+// FUNCTION: CARMA2_SW 0x004a2b70
+void C2_HOOK_FASTCALL GetCheckSum(tNet_message* pMessage) {
+    (void)pMessage;
+}
 
 // CheckCheckSum
 
