@@ -1259,6 +1259,15 @@ void C2_HOOK_FASTCALL DRScaleModel(br_model* pModel, float pScale) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x005162f0
+// FUNCTION: CARMA2_SW 0x00511760
+void C2_HOOK_FASTCALL DRVector4Set(br_vector4* pDst, float pX, float pY, float pZ, float pU) {
+    pDst->v[0] = pX;
+    pDst->v[1] = pY;
+    pDst->v[2] = pZ;
+    pDst->v[3] = pU;
+}
+
 // FUNCTION: CARMA2_HW 0x00516350
 int C2_HOOK_FASTCALL DRVector3NonZero(const br_vector3* pV) {
     if (pV->v[0] == 0.f && pV->v[1] == 0.f && pV->v[2] == 0.f) {
