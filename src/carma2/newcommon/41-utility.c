@@ -1268,6 +1268,16 @@ void C2_HOOK_FASTCALL DRVector4Set(br_vector4* pDst, float pX, float pY, float p
     pDst->v[3] = pU;
 }
 
+// FUNCTION: CARMA2_HW 0x00516310
+// FUNCTION: CARMA2_SW 0x00511780
+void C2_HOOK_FASTCALL DRPlaneEquation(br_vector4* pDst, const br_vector3* pN, const br_vector3* pP) {
+    pDst->v[0] = pN->v[0];
+    pDst->v[1] = pN->v[1];
+    pDst->v[2] = pN->v[2];
+    /* FIXME: this should be negative... */
+    pDst->v[3] = BrVector3Dot(pP, pN);
+}
+
 // FUNCTION: CARMA2_HW 0x00516350
 int C2_HOOK_FASTCALL DRVector3NonZero(const br_vector3* pV) {
     if (pV->v[0] == 0.f && pV->v[1] == 0.f && pV->v[2] == 0.f) {
