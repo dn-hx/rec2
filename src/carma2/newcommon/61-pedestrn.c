@@ -5714,16 +5714,17 @@ void C2_HOOK_FASTCALL MakeCharacterPhysicsSetup(tPhysics_object* pObject, br_bou
    SetCharacterDirectionAR 0x004d3360). */
 extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 extern void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA);
-extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 
 #define SCD_NORMALISE_D(v1, v2)                                  \
     do {                                                         \
-        len = BR_LENGTH3((v2)->v[0], (v2)->v[1], (v2)->v[2]);    \
-        if (len > BR_SCALAR_EPSILON * 2) {                       \
-            scale = 1.0 / len;                                   \
-            (v1)->v[0] = (v2)->v[0] * scale;                     \
-            (v1)->v[1] = (v2)->v[1] * scale;                     \
-            (v1)->v[2] = (v2)->v[2] * scale;                     \
+        double _scale;                                           \
+        br_scalar _len;                                          \
+        _len = BR_LENGTH3((v2)->v[0], (v2)->v[1], (v2)->v[2]);   \
+        if (_len > BR_SCALAR_EPSILON * 2) {                      \
+            _scale = 1.0 / _len;                                 \
+            (v1)->v[0] = (v2)->v[0] * _scale;                    \
+            (v1)->v[1] = (v2)->v[1] * _scale;                    \
+            (v1)->v[2] = (v2)->v[2] * _scale;                    \
         } else {                                                 \
             (v1)->v[0] = 1.0f;                                   \
             (v1)->v[1] = 0.0f;                                   \
@@ -5733,8 +5734,6 @@ extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vect
 
 // FUNCTION: CARMA2_HW 0x0040a730
 void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp) {
-    double scale;
-    br_scalar len;
     int keep_direction;
     tPed_move* move;
     br_matrix34* character_matrix;
