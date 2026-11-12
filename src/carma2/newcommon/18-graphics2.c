@@ -276,50 +276,13 @@ void C2_HOOK_FASTCALL SetFadedPalette(int pK) {
 void C2_HOOK_FASTCALL FadePaletteDown(void) {
 }
 
-// PARTIAL: EnsurePaletteUp - prologue (ebx zero reg) and imul operand regalloc differ
+extern void C2_HOOK_FASTCALL FadePaletteUp(void);
 // FUNCTION: CARMA2_HW 0x004b55f0
+// FUNCTION: CARMA2_SW 0x004b1d20
 void C2_HOOK_FASTCALL EnsurePaletteUp(void) {
-    int i;
-    int j;
-    int the_time;
-    int start_time;
-    unsigned char* p;
 
     if (gFaded_palette) {
-        gFaded_palette = 0;
-        start_time = PDGetTotalTime();
-        the_time = PDGetTotalTime() - start_time;
-        while (the_time < 500) {
-            the_time = (the_time << 8) / 500;
-            memcpy(gScratch_pixels, gCurrent_palette->pixels, 0x400);
-            i = 0;
-            do {
-                j = i + 4;
-                p = (unsigned char*)gScratch_pixels;
-                p[i] = (unsigned char)((the_time * (unsigned int)p[i]) >> 8);
-                p = (unsigned char*)gScratch_pixels;
-                p[i + 1] = (unsigned char)((the_time * (unsigned int)p[i + 1]) >> 8);
-                p = (unsigned char*)gScratch_pixels;
-                p[i + 2] = (unsigned char)((the_time * (unsigned int)p[i + 2]) >> 8);
-                p = (unsigned char*)gScratch_pixels;
-                p[i + 3] = (unsigned char)((the_time * (unsigned int)p[i + 3]) >> 8);
-                i = j;
-            } while (i < 0x400);
-            *(int*)gScratch_palette->pixels = 0;
-            gPalette_changed = 0;
-            if (!gFaded_palette) {
-                PDSetPalette(gScratch_palette);
-            }
-            gPalette_munged = gPalette_munged | (gScratch_palette != gRender_palette);
-            the_time = PDGetTotalTime() - start_time;
-        }
-        *(int*)gCurrent_palette->pixels = 0;
-        memcpy(gCurrent_palette_pixels, gCurrent_palette->pixels, 0x400);
-        gPalette_changed = 0;
-        if (!gFaded_palette) {
-            PDSetPalette(gCurrent_palette);
-        }
-        gPalette_munged = gPalette_munged | (gCurrent_palette != gRender_palette);
+        FadePaletteUp();
     }
 }
 
