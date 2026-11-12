@@ -2335,6 +2335,7 @@ void C2_HOOK_FASTCALL RqBackSub(const br_scalar* pR, const br_scalar* pQ, const 
 
 // GetPhysicsScratchPointer
 
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 // FUNCTION: CARMA2_HW 0x004c5cb0
 void C2_HOOK_FASTCALL IncreasePhysicsScratchPointer(int pSize) {
 
