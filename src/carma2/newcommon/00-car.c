@@ -864,6 +864,19 @@ extern void C2_HOOK_FASTCALL SmoothCarCrushShapePoints(tCar_spec* pCar, float pS
 extern br_scalar gCrushReattachDistanceSquared;
 extern float gFLOAT_00589b48;
 
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+// FUNCTION: CARMA2_HW 0x0041f450
+// FUNCTION: CARMA2_SW 0x0041f4d0
+void C2_HOOK_FASTCALL FreezeMechanics(void) {
+
+    gFreeze_mechanics = !gFreeze_mechanics;
+    if (gFreeze_mechanics) {
+        NewTextHeadupSlot(4, 0, 3000, -4, "Mechanics Frozen");
+    } else {
+        NewTextHeadupSlot(4, 0, 3000, -4, "Thawed Mechanics");
+    }
+}
+
 // based on the REA pseudocode of the original at 0x0043ace0 (verify with state/dis.sh)
 // FUNCTION: CARMA2_HW 0x0043ace0
 float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOut) {
