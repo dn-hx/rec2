@@ -326,6 +326,22 @@ int C2_HOOK_FASTCALL PFfwrite(const void* buf, br_size_t size, unsigned int n, v
     FatalError(kFatalError_WriteAttemptToPackedFile_S, "unknown");
 }
 
+// FUNCTION: CARMA2_HW 0x004b4ac0
+// FUNCTION: CARMA2_SW 0x004b0c30
+int C2_HOOK_FASTCALL PFfgetpos(FILE* pF, fpos_t* pPos) {
+
+    if ((uintptr_t)pF >= REC2_ASIZE(gTwatVfsFiles)) {
+        return fgetpos(pF, pPos);
+    }
+#ifdef REC2_MATCHING
+    *(br_uint_64*)pPos = (br_uint_64)gTwatVfsFiles[(uintptr_t)pF].pos;
+#else
+    *pPos = (fpos_t)(uintptr_t)gTwatVfsFiles[(uintptr_t)pF].pos;
+#endif
+    gTwatVfsFiles[(uintptr_t)pF].error = 0;
+    return 0;
+}
+
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x004b4b00
 C2_NAKED int C2_HOOK_FASTCALL PFftell(FILE* pF) {
