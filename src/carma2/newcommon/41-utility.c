@@ -1036,7 +1036,10 @@ br_actor* C2_HOOK_FASTCALL CloneActor(br_actor* pActor) {
     return clone;
 }
 
+extern void C2_HOOK_CDECL BrMatrix34ApplyP(br_vector3* A, const br_vector3* B, const br_matrix34* C);
+extern br_actor* gNon_track_actor;
 // FUNCTION: CARMA2_HW 0x00515b80
+// FUNCTION: CARMA2_SW 0x00510ff0
 void C2_HOOK_FASTCALL CalcActorGlobalPos(br_vector3* pResult, br_actor* pActor) {
     br_vector3 tv;
 
