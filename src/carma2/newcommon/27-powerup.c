@@ -1179,6 +1179,7 @@ void C2_HOOK_FASTCALL DoBouncey(tPowerup* pPowerup, tU32 pTime) {
     gProgram_state.current_car.collision_info->disable_move_rotate = 0;
 }
 
+// PARTIAL 99.99% (EFFECTIVE): HitMine 0x004dea40 - only `test esi, esi` placement differs by one x87 slot
 // FUNCTION: CARMA2_HW 0x004dea40
 int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     float d;
@@ -1193,8 +1194,8 @@ int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
             if (pCar != NULL && pCar->driver > 5) {
                 d = pCar->softness_factor * gConst_10_over_7;
                 if (pCar->invulnerable_no_damage == 0) {
-                    max_damage = (int)(d * gConst_25);
                     j = 0;
+                    max_damage = (int)(d * gConst_25);
                     while (j < 12) {
                         DamageUnit(pCar, j, IRandomBetween(0, max_damage));
                         j++;
