@@ -120,6 +120,24 @@ const int gMini_map_glowing_line_animation_indices[5] = { 0, 1, 2, 1, 0 };
 // GLOBAL: CARMA2_HW 0x0068be20
 br_pixelmap* gCurrent_splash;
 
+extern void C2_HOOK_CDECL BrPixelmapLine(br_pixelmap* dst, br_int_32 x1, br_int_32 y1, br_int_32 x2, br_int_32 y2, br_uint_32 colour);
+extern void C2_HOOK_CDECL BrPixelmapRectangleFill(br_pixelmap* dst, br_int_32 x, br_int_32 y, br_int_32 w, br_int_32 h, br_uint_32 colour);
+extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
+extern br_pixelmap* gBack_screen;
+// FUNCTION: CARMA2_HW 0x0047d510
+// FUNCTION: CARMA2_SW 0x0047d810
+void C2_HOOK_FASTCALL RectangleFill_LeftRightLine(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_colour pColour) {
+
+#ifdef REC2_HW
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    }
+#endif
+    BrPixelmapRectangleFill(pMap, pX + 1, pY, pWidth - 2, pHeight, pColour);
+    BrPixelmapLine(pMap, pX, pY, pX, pY + pHeight - 1, pColour + 2);
+    BrPixelmapLine(pMap, pX + pWidth - 1, pY, pX + pWidth - 1, pY + pHeight - 1, pColour - 2);
+}
+
 // FUNCTION: CARMA2_HW 0x004b4fd0
 void C2_HOOK_FASTCALL DRSetPaletteEntries(br_pixelmap* pThe_palette, int pFirst_colour, int pCount) {
 
