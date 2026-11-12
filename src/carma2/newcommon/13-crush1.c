@@ -6244,6 +6244,7 @@ intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat,
     }
     return 0;
 }
+// PARTIAL 99.99% effective: CrushCarModelCbfn 0x433260 - only fld [esi+8] scheduled before 'mov edx,crush_data' instead of after
 // FUNCTION: CARMA2_HW 0x00433260
 intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext) {
     struct {
@@ -6267,7 +6268,8 @@ intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat,
                 DrMatrix34ApplyLPInverse(&points[i], &context->crush->vectors[i], pMat);
             }
             BrMatrix34TApplyV(&direction, &context->crush->field_0x44, pMat);
-            scale = context->force * crush_data->softness_factor;
+            scale = context->force;
+            scale *= crush_data->softness_factor;
             direction.v[0] = direction.v[0] * scale;
             direction.v[1] = direction.v[1] * scale;
             direction.v[2] = direction.v[2] * scale;
