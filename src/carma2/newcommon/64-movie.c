@@ -396,6 +396,12 @@ void C2_HOOK_FASTCALL FUN_004e1c50(void) {
     /* Unused */
 }
 
+// FUNCTION: CARMA2_HW 0x004e1c60
+// FUNCTION: CARMA2_SW 0x004ddf60
+void C2_HOOK_FASTCALL FUN_004e1c60(undefined4 pArg1, undefined4 pArg2, undefined4 pArg3) {
+    /* Unused */
+}
+
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004e1da0
 int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
