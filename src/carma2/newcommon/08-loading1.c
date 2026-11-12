@@ -72,6 +72,14 @@ const tU8 gOther_long_key[16] = {
 // GLOBAL: CARMA2_HW 0x00763540
 int gFunk_groove_flags[30];
 
+extern void C2_HOOK_CDECL BrPixelmapFree(br_pixelmap* src);
+// FUNCTION: CARMA2_HW 0x0044bf90
+// FUNCTION: CARMA2_SW 0x0044bd40
+void C2_HOOK_FASTCALL FUN_0044bf90(br_pixelmap* pMap) {
+    /* Unused */
+    BrPixelmapFree(pMap);
+}
+
 // FUNCTION: CARMA2_HW 0x0048f830
 tU32 C2_HOOK_FASTCALL ReadU32(FILE* pF) {
     tU32 raw_long;
