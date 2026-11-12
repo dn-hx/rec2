@@ -700,7 +700,12 @@ int C2_HOOK_FASTCALL ResetForceFeedback(void) {
     return result;
 }
 
+extern int C2_HOOK_FASTCALL JoystickDInputBegin(void);
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+extern void C2_HOOK_FASTCALL PathCat(char* pDestn_str, const char* pStr_1, const char* pStr_2);
+extern tPath_name gApplication_path;
 // FUNCTION: CARMA2_HW 0x00457760
+// FUNCTION: CARMA2_SW 0x004574f0
 int C2_HOOK_FASTCALL InitForceFeedback(void) {
     tPath_name path;
     int count_effects;
