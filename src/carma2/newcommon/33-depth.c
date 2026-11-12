@@ -701,6 +701,19 @@ void C2_HOOK_FASTCALL ReduceDepthEnd(void) {
     gProgram_state.default_depth_effect.end = gProgram_state.current_depth_effect.end;
 }
 
+// FUNCTION: CARMA2_HW 0x004469b0
+// FUNCTION: CARMA2_SW 0x00446a30
+void C2_HOOK_FASTCALL IncreaseDepthEnd(void) {
+    char s[256];
+
+    if (gProgram_state.current_depth_effect.end > 0) {
+        gProgram_state.current_depth_effect.end--;
+    }
+    sprintf(s, "Depth end increased to %d", gProgram_state.current_depth_effect.end);
+    NewTextHeadupSlot(4, 0, 500, -1, s);
+    gProgram_state.default_depth_effect.end = gProgram_state.current_depth_effect.end;
+}
+
 // FUNCTION: CARMA2_HW 0x00446a10
 // FUNCTION: CARMA2_SW 0x00446a90
 void C2_HOOK_FASTCALL AssertYons(void) {
