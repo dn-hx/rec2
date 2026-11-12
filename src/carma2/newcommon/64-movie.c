@@ -364,8 +364,8 @@ extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern int gQuicktime_max_compression_size;
 extern void* gQuicktime_compressed_frame_pixels;
 extern br_uint_16* gQuicktime_frame_pixel_conversion_table;
-extern void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor);
-extern void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor);
+extern void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight);
+extern void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pWidth, void* pHeight, int pVolume);
 extern int C2_HOOK_CDECL FUN_0056a920(void);
 extern void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality);
 extern int C2_HOOK_CDECL FUN_0056b340(void* pMedia);
@@ -676,7 +676,7 @@ short C2_HOOK_FASTCALL CreateMovie(void) {
 
     height = (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height);
     width = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width);
-    gQuicktime_track = FUN_0056c640(gQuicktime_movie, FUN_0056fde0(width * 2, 1, FUN_0056fde0(height * 2, 1, (void*)0x100)));
+    gQuicktime_track = FUN_0056c640(gQuicktime_movie, FUN_0056fde0(width * 2, 1), FUN_0056fde0(height * 2, 1), 0x100);
     result = FUN_0056a920();
     if ((short)result == 0) {
         gQuicktime_media = FUN_0056c6e0(gQuicktime_track, 0x76696465, 1000, 0, 0);
@@ -972,7 +972,7 @@ br_uint_16 gQuickTime_pixel_depth = 0x10;
 // QuickTime dispatcher trampoline (selector 0x100001).
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056fde0
-__declspec(naked) void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor) {
+__declspec(naked) void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -984,7 +984,7 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void
     }
 }
 #else
-void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor) {
+void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight) {
     return NULL;
 }
 #endif
@@ -998,7 +998,7 @@ void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor) {
 // QuickTime dispatcher trampoline (selector 0x20188).
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0056c640
-__declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor) {
+__declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -1010,7 +1010,7 @@ __declspec(naked) void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompress
     }
 }
 #else
-void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor) {
+void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
     return NULL;
 }
 #endif

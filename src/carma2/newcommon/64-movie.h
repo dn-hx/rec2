@@ -63,8 +63,8 @@ extern void C2_HOOK_FASTCALL FUN_004e1400(void* pFrame_pixmap_handle, br_pixelma
 extern short C2_HOOK_CDECL FUN_0056d8c0(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8);
 extern short C2_HOOK_CDECL FUN_0056b440(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time);
 extern int C2_HOOK_CDECL FUN_00575340(char* pString);
-extern void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight, void* pCompressor);
-extern void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pCompressor);
+extern void* C2_HOOK_CDECL FUN_0056fde0(int pWidth, int pHeight);
+extern void* C2_HOOK_CDECL FUN_0056c640(void* pMovie, void* pWidth, void* pHeight, int pVolume);
 extern int C2_HOOK_CDECL FUN_0056a920(void);
 extern void* C2_HOOK_CDECL FUN_0056c6e0(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality);
 extern int C2_HOOK_CDECL FUN_0056b340(void* pMedia);
