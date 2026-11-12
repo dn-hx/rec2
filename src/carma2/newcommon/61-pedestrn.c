@@ -2593,6 +2593,16 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
 
 extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
 
+extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
+// FUNCTION: CARMA2_HW 0x004d6820
+// FUNCTION: CARMA2_SW 0x004d2e20
+void C2_HOOK_FASTCALL ShowActivePedCount(void) {
+    char text[256];
+
+    sprintf(text, "%d out of %d peds are active", gCount_active_peds, gPed_count);
+    NewTextHeadupSlot2(4, 0, 1000, -4, text, 0);
+}
+
 // PARTIAL 99.99% (reccmp: "100% effective match"): the FP instruction stream is identical; the only
 // residual is that the original places the fastcall argument setup (`lea edx,[esp+0xc]` / `mov ecx,esi`)
 // between `fxch st(2)` and the final `faddp st(2)`, while MSVC 11 schedules it two slots later (after
