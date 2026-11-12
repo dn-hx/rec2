@@ -1329,18 +1329,15 @@ void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* 
 // FillInTrialWorkspace
 
 // FUNCTION: CARMA2_HW 0x004ba4f0
-int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2) {
-    int not_go;
+// FUNCTION: CARMA2_SW 0x004b6c10
+int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_object* pCollision_2) {
+    int blocked;
 
-    if ((pObj2->field_0x1a4 & pObj1->field_0x1a0)
-        || (pObj1->field_0x1a4 & pObj2->field_0x1a0)
-        || (pObj1->flags & 4)
-        || (pObj2->flags & 4)) {
-        not_go = 1;
-    } else {
-        not_go = 0;
-    }
-    return not_go == 0;
+    blocked = (pCollision_1->field_0x1a0 & pCollision_2->field_0x1a4)
+        || (pCollision_2->field_0x1a0 & pCollision_1->field_0x1a4)
+        || (pCollision_1->flags & 4)
+        || (pCollision_2->flags & 4);
+    return !blocked;
 }
 
 // CollideObjectWithReducedObjectList
