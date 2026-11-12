@@ -36,6 +36,19 @@ float gTrack_drone_min_y;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+extern void C2_HOOK_CDECL BrTransformToTransform(br_transform* dest, br_transform* src);
+// FUNCTION: CARMA2_HW 0x00401430
+// FUNCTION: CARMA2_SW 0x00401430
+void C2_HOOK_FASTCALL PointActorAlongVectorWithUp(br_actor* pThe_actor, br_vector3* pLook, br_vector3* pUp) {
+    br_transform trans;
+
+    trans.type = BR_TRANSFORM_LOOK_UP;
+    BrVector3Copy(&trans.t.look_up.t, &pThe_actor->t.t.translate.t);
+    BrVector3Copy(&trans.t.look_up.look, pLook);
+    BrVector3Copy(&trans.t.look_up.up, pUp);
+    BrTransformToTransform(&pThe_actor->t, &trans);
+}
+
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
 void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {
