@@ -960,7 +960,12 @@ void C2_HOOK_FASTCALL PolyFontText(const char *pText, int pX, int pY, int pFont,
     }
 }
 
+extern br_pixelmap* gBack_screen;
+extern br_pixelmap* gDepth_buffer;
+extern br_actor* gHUD_camera;
+extern br_actor* gHUD_root;
 // FUNCTION: CARMA2_HW 0x00465380
+// FUNCTION: CARMA2_SW 0x00464ee0
 void C2_HOOK_FASTCALL TransparentPolyFontText(const char *pText, int pX, int pY, int pFont, tJustification pJust, int pRender, double pOpacity_factor) {
     int text_len;
     int i;
