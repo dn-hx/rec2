@@ -153,6 +153,15 @@ int gTesting_car_for_sensible_place;
 extern int gCrush_deferred;
 
 
+extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
+extern tProgram_state gProgram_state;
+// FUNCTION: CARMA2_HW 0x00413d30
+// FUNCTION: CARMA2_SW 0x00413d60
+void C2_HOOK_FASTCALL DamageTrans(int pAmount) {
+    DamageUnit(&gProgram_state.current_car, eDamage_transmission, pAmount);
+    SortOutSmoke(&gProgram_state.current_car);
+}
+
 // FUNCTION: CARMA2_HW 0x00413f10
 intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData) {
 
