@@ -24,48 +24,39 @@ tU8 gUNK_006a32e0[0x50] = { 0 };
 // GLOBAL: CARMA2_HW 0x006a27e8
 int gCurrent_skid;
 
+extern void C2_HOOK_CDECL BrMatrix34Scale(br_matrix34* mat, br_scalar sx, br_scalar sy, br_scalar sz);
+extern void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags);
 // FUNCTION: CARMA2_HW 0x004ea2c0
+// FUNCTION: CARMA2_SW 0x004e6060
 void C2_HOOK_FASTCALL StretchMark(tSkid* pMark, br_vector3* pFrom, br_vector3* pTo, br_scalar pTexture_start, br_scalar pTexture_step) {
     br_vector3 temp;
     br_vector3* rows;
     br_scalar len;
-    br_scalar step_over_len;
-    br_scalar unit;
+    br_scalar delta;
     br_model* model;
 
-    temp.v[0] = pTo->v[0] - pFrom->v[0];
-    temp.v[1] = pTo->v[1] - pFrom->v[1];
-    temp.v[2] = pTo->v[2] - pFrom->v[2];
-    len = sqrt(temp.v[2] * temp.v[2] + temp.v[1] * temp.v[1] + temp.v[0] * temp.v[0]);
+    rows = (br_vector3*)&pMark->actor->t.t.mat.m;
+    BrVector3Sub(&temp, pTo, pFrom);
+    len = BrVector3Length(&temp);
     if (len < 0.001f) {
         BrMatrix34Scale(&pMark->actor->t.t.mat, 0.001f, 1.0f, 0.001f);
-        return;
+    } else {
+        delta = pTexture_step / len;
+        BrVector3Copy(&rows[1], &pMark->normal);
+        BrVector3Cross(&rows[2], &temp, &pMark->normal);
+        BrVector3Scale(&rows[2], &rows[2], delta);
+        BrVector3Scale(&rows[0], &temp, len / len);
+        BrVector3Add(&pMark->pos, pFrom, pTo);
+        BrVector3Scale(&pMark->pos, &pMark->pos, 0.5f);
+        rows[3] = pMark->pos;
+
+        model = pMark->actor->model;
+        model->vertices[1].map.v[0] = pTexture_start / pTexture_step;
+        model->vertices[0].map.v[0] = model->vertices[1].map.v[0];
+        model->vertices[3].map.v[0] = (pTexture_start + len) / pTexture_step;
+        model->vertices[2].map.v[0] = model->vertices[3].map.v[0];
+        BrModelUpdate(model, BR_MODU_VERTEX_MAPPING);
     }
-    step_over_len = pTexture_step / len;
-    rows = (br_vector3*)&pMark->actor->t.t.mat.m;
-    rows[1].v[0] = pMark->normal.v[0];
-    rows[1].v[1] = pMark->normal.v[1];
-    rows[1].v[2] = pMark->normal.v[2];
-    rows[2].v[0] = pMark->normal.v[2] * temp.v[1] - pMark->normal.v[1] * temp.v[2];
-    rows[2].v[1] = pMark->normal.v[0] * temp.v[2] - pMark->normal.v[2] * temp.v[0];
-    rows[2].v[2] = pMark->normal.v[1] * temp.v[0] - pMark->normal.v[0] * temp.v[1];
-    rows[2].v[0] = rows[2].v[0] * step_over_len;
-    rows[2].v[1] = rows[2].v[1] * step_over_len;
-    rows[2].v[2] = rows[2].v[2] * step_over_len;
-    unit = len / len;
-    rows[0].v[0] = temp.v[0] * unit;
-    rows[0].v[1] = temp.v[1] * unit;
-    rows[0].v[2] = temp.v[2] * unit;
-    pMark->pos.v[0] = (pFrom->v[0] + pTo->v[0]) * 0.5f;
-    pMark->pos.v[1] = (pFrom->v[1] + pTo->v[1]) * 0.5f;
-    pMark->pos.v[2] = (pFrom->v[2] + pTo->v[2]) * 0.5f;
-    rows[3].v[0] = pMark->pos.v[0];
-    rows[3].v[1] = pMark->pos.v[1];
-    rows[3].v[2] = pMark->pos.v[2];
-    model = pMark->actor->model;
-    model->vertices[0].map.v[0] = model->vertices[1].map.v[0] = pTexture_start / pTexture_step;
-    model->vertices[2].map.v[0] = model->vertices[3].map.v[0] = (pTexture_start + len) / pTexture_step;
-    BrModelUpdate(model, 4);
 }
 
 // MaterialFromIndex
