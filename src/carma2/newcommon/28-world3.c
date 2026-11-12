@@ -1100,6 +1100,8 @@ extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data);
 
 // FUNCTION: CARMA2_HW 0x0040cf10
 intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
+    int area1;
+    int area2;
     unsigned int x;
     unsigned int z;
     br_model* model;
@@ -1129,8 +1131,6 @@ intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
         }
         BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
         if (gMr_blendy != NULL) {
-            int area2;
-            int area1;
             int nverts;
             int nfaces;
             br_vertex* new_vertices;
