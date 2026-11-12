@@ -2908,6 +2908,7 @@ intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data) {
 #pragma auto_inline(on)
 #endif
 
+extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
 // FUNCTION: CARMA2_HW 0x004f54d0
 // FUNCTION: CARMA2_SW 0x004f1130
 void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal) {
