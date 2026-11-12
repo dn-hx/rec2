@@ -218,11 +218,12 @@ void C2_HOOK_FASTCALL S3CopyS3Vector3(tS3_vector3* pDest, tS3_vector3* pSrc) {
 }
 
 // FUNCTION: CARMA2_HW 0x00565faa
-void C2_HOOK_FASTCALL S3BindListenerPositionBRender(br_vector3* pos) {
+// FUNCTION: CARMA2_SW 0x0056164a
+void C2_HOOK_FASTCALL S3BindListenerPositionBRender(br_vector3* pPos) {
 
+    gS3_listener_pos_ptr = pPos;
     gS3_listener_pos_is_brender = 1;
-    gS3_listener_pos_ptr = pos;
-    S3CopyBrVector3(&gS3_listener_position_old, pos);
+    S3CopyBrVector3(&gS3_listener_position_old, pPos);
 }
 
 // FUNCTION: CARMA2_HW 0x00565ff1
