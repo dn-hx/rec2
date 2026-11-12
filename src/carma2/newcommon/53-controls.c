@@ -103,6 +103,18 @@ void C2_HOOK_FASTCALL AbortRace(void) {
 #pragma auto_inline(off)
 #endif
 
+extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
+extern tProgram_state gProgram_state;
+// FUNCTION: CARMA2_HW 0x00441ff0
+// FUNCTION: CARMA2_SW 0x004420d0
+void C2_HOOK_FASTCALL TDamageDriver(void) {
+    if (gProgram_state.current_car.damage_units[eDamage_driver].damage_level < 80) {
+        DamageUnit(&gProgram_state.current_car, eDamage_driver, 80 - gProgram_state.current_car.damage_units[eDamage_driver].damage_level);
+    } else {
+        DamageUnit(&gProgram_state.current_car, eDamage_driver, 2);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00511210
 void C2_HOOK_FASTCALL FUN_00511210(void) {
     extern void C2_HOOK_FASTCALL FUN_0045a670(void);
