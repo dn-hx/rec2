@@ -572,6 +572,7 @@ void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
     pCamera->t.t.mat.m[2][0] += FastScalarSin((int)fmod(f_time / period20 * 360.f, 360.f)) * mag20;
     pCamera->t.t.mat.m[2][1] += FastScalarSin((int)fmod(f_time / period21 * 360.f, 360.f)) * mag21;
     pCamera->t.t.mat.m[2][2] += FastScalarSin((int)fmod(f_time / period22 * 360.f, 360.f)) * mag22;
+    // PARTIAL 96.77%: last FPU schedule of m12/m22 statements (extra fld of f_time)
 }
 
 // DoDrugWobbleCamera
