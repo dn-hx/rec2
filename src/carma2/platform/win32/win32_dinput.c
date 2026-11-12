@@ -1117,7 +1117,12 @@ void C2_HOOK_FASTCALL KeyBegin(void) {
     gScan_code[118] = DIK_SPACE;
 }
 
+extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
+extern LPDIRECTINPUTDEVICEA gDirectInputDevice;
+extern HINSTANCE gHInstance;
+extern void* gHWnd;
 // FUNCTION: CARMA2_HW 0x0051cbf0
+// FUNCTION: CARMA2_SW 0x00518200
 void C2_HOOK_FASTCALL Win32InitInputDevice(void) {
     HRESULT hRes;
     GUID guid_sysKeyboard;
