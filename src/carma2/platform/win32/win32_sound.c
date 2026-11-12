@@ -365,11 +365,15 @@ int C2_HOOK_FASTCALL PDS3ResumeMidiChannel(tS3_channel* pChannel) {
 }
 
 // FUNCTION: CARMA2_HW 0x00569f1b
+// FUNCTION: CARMA2_SW 0x005655bb
 int C2_HOOK_FASTCALL PDS3IsMIDIStopped(tS3_channel *pChannel) {
 
     gPDS3_mci_midi_status_parms.dwItem = MCI_STATUS_MODE;
     mciSendCommandA(pChannel->mciDevice, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD_PTR)&gPDS3_mci_midi_status_parms);
-    return gPDS3_mci_midi_status_parms.dwReturn != MCI_MODE_PLAY;
+    if (gPDS3_mci_midi_status_parms.dwReturn == MCI_MODE_PLAY) {
+        return 0;
+    }
+    return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0056a1af
