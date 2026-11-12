@@ -554,6 +554,9 @@ int C2_HOOK_FASTCALL S3CreateOutletChannels(tS3_outlet* outlet, int pChannel_cou
     return 0;
 }
 
+extern void C2_HOOK_FASTCALL PDExtractFilename(char* pDest, const char* pPath);
+extern tS3_error_codes gS3_last_error;
+extern int gS3_low_memory_mode;
 // FUNCTION: CARMA2_HW 0x00568c2c
 void* C2_HOOK_FASTCALL S3LoadSoundBankFile(const char* pPath) {
     char path[512];
