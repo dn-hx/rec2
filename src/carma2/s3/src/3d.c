@@ -52,6 +52,15 @@ br_vector3* gS3_listener_left_ptr;
 int gS3_listener_left_is_brender;
 
 
+// FUNCTION: CARMA2_HW 0x00565f26
+// FUNCTION: CARMA2_SW 0x005615c6
+void C2_HOOK_FASTCALL S3SetListenerVelocityNow(const br_vector3* pSrc) {
+
+    gS3_listener_vel_now.v[0] = pSrc->v[0];
+    gS3_listener_vel_now.v[1] = pSrc->v[1];
+    gS3_listener_vel_now.v[2] = pSrc->v[2];
+}
+
 // FUNCTION: CARMA2_HW 0x00567ab8
 void C2_HOOK_FASTCALL S3StopSoundSource(tS3_sound_source* src) {
 
