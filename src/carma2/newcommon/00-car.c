@@ -197,6 +197,13 @@ void C2_HOOK_FASTCALL DamageRFWheel(int pDamage_amount) {
     SortOutSmoke(&gProgram_state.current_car);
 }
 
+// FUNCTION: CARMA2_HW 0x00413e80
+// FUNCTION: CARMA2_SW 0x00413eb0
+void C2_HOOK_FASTCALL DamageRFBrake(int pDamage_amount) {
+    DamageUnit(&gProgram_state.current_car, eDamage_rf_brake, pDamage_amount);
+    SortOutSmoke(&gProgram_state.current_car);
+}
+
 // FUNCTION: CARMA2_HW 0x00413f10
 intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData) {
 
