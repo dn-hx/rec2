@@ -1921,7 +1921,7 @@ extern br_scalar gHead_on_cos_value;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 97.01%: TeleportOpponentToNearestSafeLocation 0x004a9180 [x87-schedule: inline Dot (section_direction) loads/fxch order differs after 3bd45723f]
+// PARTIAL 99.99%: TeleportOpponentToNearestSafeLocation 0x004a9180 [x87-schedule: effective match; fld/fxch order of the inline direction dot differs]
 // FUNCTION: CARMA2_HW 0x004a9180
 void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpponent_spec) {
     int found_safe_place;
@@ -1934,6 +1934,9 @@ void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpp
     int i;
     int pPlaces;
     tCar_spec* car;
+    br_scalar car_direction_x;
+    br_scalar car_direction_y;
+    br_scalar car_direction_z;
 
     found_safe_place = 0;
     section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
@@ -1955,7 +1958,10 @@ void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpp
         PipeSingleOppoRenderage(pOpponent_spec, 0);
         gActive_car_list_rebuild_required = 1;
     }
-    section_direction = BrVector3Dot(&pOpponent_spec->car_spec->direction, &direction_v) < gOppo_render_zero;
+    car_direction_z = pOpponent_spec->car_spec->direction.v[2];
+    car_direction_y = pOpponent_spec->car_spec->direction.v[1];
+    car_direction_x = pOpponent_spec->car_spec->direction.v[0];
+    section_direction = car_direction_x * direction_v.v[0] + car_direction_y * direction_v.v[1] + car_direction_z * direction_v.v[2] < gOppo_render_zero;
     pOpponent_spec->nnext_sections = 0;
     pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].section_no = section_no;
     pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].direction = section_direction;
