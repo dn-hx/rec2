@@ -384,6 +384,12 @@ extern int gRecording_paused;
 extern tU32 gRecording_time;
 extern int gRecording_mouse_disabled;
 
+// FUNCTION: CARMA2_HW 0x004e1c40
+// FUNCTION: CARMA2_SW 0x004ddf40
+void C2_HOOK_FASTCALL FUN_004e1c40(void) {
+    /* Unused */
+}
+
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004e1da0
 int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
