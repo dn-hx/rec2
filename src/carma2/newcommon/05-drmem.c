@@ -322,24 +322,24 @@ void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle) {
 
 }
 
-// PARTIAL 28.57%: FUN_0044c860 0x0044c860 - register allocation (ps/ptr regs differ), page-touch loop
 // FUNCTION: CARMA2_HW 0x0044c860
-void C2_HOOK_FASTCALL FUN_0044c860(void* p, br_size_t size) {
-    br_size_t o;
-    br_size_t ps;
+// FUNCTION: CARMA2_SW 0x0044c610
+void C2_HOOK_FASTCALL TouchMemoryPages(void* pMemory, br_size_t pSize) {
+#ifdef REC2_MATCHING
+    br_size_t offset;
 
-    ps = gPage_size;
-    if (ps == 0) {
+    if (gPage_size == 0) {
         GetSystemInfo(&gSystem_info);
-        ps = gSystem_info.dwPageSize;
-        gPage_size = ps;
+        gPage_size = gSystem_info.dwPageSize;
     }
-    for (o = ps * 16; o < size; o += gPage_size) {
-        volatile br_uint_8 *ptr1 = (br_uint_8*)p + (o - 16 * ps);
-        volatile br_uint_8 *ptr2 = (br_uint_8*)p + o;
-        *ptr1 = *ptr1;
-        *ptr2 = *ptr2;
+    for (offset = gPage_size * 16; offset < pSize; offset += gPage_size) {
+        *((volatile br_uint_8*)pMemory + (offset - 16 * gPage_size)) = *((volatile br_uint_8*)pMemory + (offset - 16 * gPage_size));
+        *((volatile br_uint_8*)pMemory + offset) = *((volatile br_uint_8*)pMemory + offset);
     }
+#else
+    (void)pMemory;
+    (void)pSize;
+#endif
 }
 
 // FUNCTION: CARMA2_HW 0x0044c8c0
