@@ -3288,7 +3288,8 @@ int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend) {
         }
     }
     scroller = &pFrontend->scrollers[0];
-    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    text_idx = scroller->indexTopItem;
+    text_idx -= scroller->indexFirstScrollableItem;
     for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
         int text_num;
 
