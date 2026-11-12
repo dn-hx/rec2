@@ -2514,27 +2514,20 @@ tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void) {
     }
     return NULL;
 }
-// PARTIAL 60.32%: NextPedCam 0x004d6240 - instruction sequence matches, but MSVC hoists the constant 0 into ebp (push ebp/xor ebp,ebp/cmp edi,ebp) because the wrap store folds to constant 0, which also swaps count/start between edi and esi (original: count in edi, start in esi, no ebp). Splitting the store out of the if and chained assignment both measured worse (44%). Likely a TU-context allocator effect.
 // FUNCTION: CARMA2_HW 0x004d6240
+// FUNCTION: CARMA2_SW 0x004d2840
 void C2_HOOK_FASTCALL NextPedCam(void) {
-    int count;
-    int i;
-    int start;
+    int original_ped;
 
-    count = gPed_count;
-    if (count == 0) {
-        return;
+    if (gPed_count != 0) {
+        original_ped = gSelected_ped;
+        do {
+            gSelected_ped++;
+            if (gSelected_ped >= gPed_count) {
+                gSelected_ped = 0;
+            }
+        } while (!(gPedestrian_array[gSelected_ped].flags & 0x1) && original_ped != gSelected_ped);
     }
-    i = gSelected_ped;
-    start = i;
-    do {
-        i += 1;
-        gSelected_ped = i;
-        if (i >= count) {
-            i = 0;
-            gSelected_ped = i;
-        }
-    } while (!(gPedestrian_array[i].flags & 1) && start != i);
 }
 
 // FUNCTION: CARMA2_HW 0x004d6290
