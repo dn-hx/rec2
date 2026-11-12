@@ -1632,37 +1632,34 @@ tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distanc
 #pragma auto_inline(off)
 #endif
 
-// PARTIAL 88.46%: PipeDroneMatrix 0x44cfd0 - radius clamp copied via mov instead of fld/fstp, arg eval order/regs differ
+extern void C2_HOOK_FASTCALL PipeSingleDroneCornerPos(tDrone_spec* pDrone, tU16 pField_0x48, tU16 pField_0x74, tU16 pField_0x70, tCompressed_matrix34* pMatrix);
 // FUNCTION: CARMA2_HW 0x0044cfd0
+// FUNCTION: CARMA2_SW 0x0044cd80
 void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone) {
-    tCompressed_matrix34 matrix;
-    float l_radius;
-    float l_48;
-    extern void C2_HOOK_FASTCALL PipeSingleDroneCornerPos(tDrone_spec* pDrone, tU16 pField_0x48, tU16 pField_0x74, tU16 pField_0x70, tCompressed_matrix34* pMatrix);
+    tCompressed_matrix34 compressed_mat;
+    br_scalar radius;
+    br_scalar speed;
 
-    matrix.m[0].v[0] = DRScalarToU16(pDrone->actor->t.t.mat.m[0][0], -1.f, 1.f);
-    matrix.m[0].v[1] = DRScalarToU16(pDrone->actor->t.t.mat.m[0][1], -1.f, 1.f);
-    matrix.m[0].v[2] = DRScalarToU16(pDrone->actor->t.t.mat.m[0][2], -1.f, 1.f);
-    matrix.m[1].v[0] = DRScalarToU16(pDrone->actor->t.t.mat.m[1][0], -1.f, 1.f);
-    matrix.m[1].v[1] = DRScalarToU16(pDrone->actor->t.t.mat.m[1][1], -1.f, 1.f);
-    matrix.m[1].v[2] = DRScalarToU16(pDrone->actor->t.t.mat.m[1][2], -1.f, 1.f);
-    matrix.m[2].v[0] = DRScalarToU16(pDrone->actor->t.t.mat.m[2][0], -1.f, 1.f);
-    matrix.m[2].v[1] = DRScalarToU16(pDrone->actor->t.t.mat.m[2][1], -1.f, 1.f);
-    matrix.m[2].v[2] = DRScalarToU16(pDrone->actor->t.t.mat.m[2][2], -1.f, 1.f);
-    matrix.m[3].v[0] = DRScalarToU16(pDrone->actor->t.t.mat.m[3][0], -1000.f, 1000.f);
-    matrix.m[3].v[1] = DRScalarToU16(pDrone->actor->t.t.mat.m[3][1], -1000.f, 1000.f);
-    matrix.m[3].v[2] = DRScalarToU16(pDrone->actor->t.t.mat.m[3][2], -1000.f, 1000.f);
-    l_radius = (pDrone->h_radius < 100.f) ? pDrone->h_radius : 100.f;
-    if (pDrone->left_turn) {
-        l_48 = pDrone->field_0x48;
-    } else {
-        l_48 = -pDrone->field_0x48;
-    }
-    PipeSingleDroneCornerPos(pDrone,
-        DRScalarToU16(l_48, -500.f, 500.f),
-        DRScalarToU16(pDrone->field_0x74, 0.f, 1.f),
-        DRScalarToU16(l_radius, 0.f, 100.f),
-        &matrix);
+    BrVector3Set(&compressed_mat.m[0],
+        DRScalarToU16(pDrone->actor->t.t.mat.m[0][0], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[0][1], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[0][2], -1.f, 1.f));
+    BrVector3Set(&compressed_mat.m[1],
+        DRScalarToU16(pDrone->actor->t.t.mat.m[1][0], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[1][1], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[1][2], -1.f, 1.f));
+    BrVector3Set(&compressed_mat.m[2],
+        DRScalarToU16(pDrone->actor->t.t.mat.m[2][0], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[2][1], -1.f, 1.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[2][2], -1.f, 1.f));
+    BrVector3Set(&compressed_mat.m[3],
+        DRScalarToU16(pDrone->actor->t.t.mat.m[3][0], -1000.f, 1000.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[3][1], -1000.f, 1000.f),
+        DRScalarToU16(pDrone->actor->t.t.mat.m[3][2], -1000.f, 1000.f));
+
+    radius = MIN(pDrone->h_radius, 100.f);
+    speed = pDrone->left_turn ? pDrone->field_0x48 : -pDrone->field_0x48;
+    PipeSingleDroneCornerPos(pDrone, DRScalarToU16(speed, -500.f, 500.f), DRScalarToU16(pDrone->field_0x74, 0.f, 1.f), DRScalarToU16(radius, 0.f, 100.f), &compressed_mat);
 }
 
 extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
