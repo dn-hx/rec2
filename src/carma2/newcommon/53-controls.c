@@ -2133,42 +2133,42 @@ extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const
 extern tDR_font gFonts[28];
 extern tGraf_data* gCurrent_graf_data;
 
-// PARTIAL 97.48%: DisplayUserMessage 0x00444c00 [reccmp names ours gFonts[6].height/images but leaves original operand 0x7679a8/0x7679a0 unnamed; body unchanged vs baseline, cause outside this TU]
+extern br_pixelmap* gBack_screen;
+extern tNet_mode gNet_mode;
 // FUNCTION: CARMA2_HW 0x00444c00
+// FUNCTION: CARMA2_SW 0x00444ce0
 void C2_HOOK_FASTCALL DisplayUserMessage(void) {
-    char* the_message;
     int len;
-    tDR_font* font;
 
-    font = &gFonts[6];
-    the_message = &gString[20];
     if (!gEntering_message || gNet_mode == eNet_mode_none) {
         return;
     }
-
-    len = strlen(the_message);
+    len = strlen(&gString[20]);
     if (len < 63 && (PDGetTotalTime() & 0x200)) {
-        the_message[len] = '_';
-        the_message[len + 1] = '\0';
+        gString[20 + len] = '_';
+        gString[21 + len] = '\0';
     }
     DimRectangle(gBack_screen,
         15 * gBack_screen->width / 100,
-        gCurrent_graf_data->net_message_enter_y - font->height,
+        gCurrent_graf_data->net_message_enter_y - gFonts[6].height,
         85 * gBack_screen->width / 100,
-        gCurrent_graf_data->net_message_enter_y + 6 * font->height,
+        gCurrent_graf_data->net_message_enter_y + 6 * gFonts[6].height,
         1);
-
-    DRPixelmapText(gBack_screen, 20 * gBack_screen->width / 100, gCurrent_graf_data->net_message_enter_y, font, GetMiscString(227), 100);
-    OoerrIveGotTextInMeBoxMissus(
-        6,
-        the_message,
+    DRPixelmapText(gBack_screen,
+        20 * gBack_screen->width / 100,
+        gCurrent_graf_data->net_message_enter_y,
+        &gFonts[6],
+        GetMiscString(eMiscString_enter_message),
+        100);
+    OoerrIveGotTextInMeBoxMissus(6,
+        &gString[20],
         gBack_screen,
         20 * gBack_screen->width / 100,
-        gCurrent_graf_data->net_message_enter_y + 2 * font->height,
+        gCurrent_graf_data->net_message_enter_y + 2 * gFonts[6].height,
         80 * gBack_screen->width / 100,
-        gCurrent_graf_data->net_message_enter_y + 6 * font->height,
+        gCurrent_graf_data->net_message_enter_y + 6 * gFonts[6].height,
         0);
-    the_message[len] = '\0';
+    gString[20 + len] = '\0';
 }
 
 // FUNCTION: CARMA2_HW 0x00444d70
