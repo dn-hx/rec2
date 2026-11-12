@@ -3132,7 +3132,12 @@ void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk) {
 
 // MineExplode
 
-// TiggerMineToExplode
+// FUNCTION: CARMA2_HW 0x004ddc10
+// FUNCTION: CARMA2_SW 0x004da110
+void C2_HOOK_FASTCALL TiggerMineToExplode(tCar_spec* pCar) {
+
+    pCar->index |= 0x20;
+}
 
 // HitAShatOutMine
 
