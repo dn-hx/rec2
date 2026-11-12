@@ -1655,7 +1655,7 @@ void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pCh
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 94.59%: DrawTranslations 0x00462860 [regalloc: temp edx vs eax in right-justify add; caused outside TU]
+// PARTIAL 97.30%: DrawTranslations 0x00462860 [regalloc: ecx/edx swap for y_offset+trans[1] add and right-justify temp; TU-context, source permutations all identical locally]
 // FUNCTION: CARMA2_HW 0x00462860
 void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info) {
     int* trans;
