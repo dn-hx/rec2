@@ -596,6 +596,7 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
     const br_vector3* hinge;
     br_vector3 axis;
     br_scalar nx, ny, nz;
+    br_scalar scale;
 
     actor = (br_actor*)field_0x4;
     user = actor->user;
@@ -609,7 +610,17 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
     flap->field_0x4 = (tU16)(flap->field_0x4 + field_0x8);
     hinge = &user->models[0]->vertices[flap->hinge0].p;
     BrVector3Sub(&axis, &user->models[0]->vertices[flap->hinge1].p, hinge);
-    BrVector3Normalise(&axis, &axis);
+    scale = BR_LENGTH3(axis.v[0], axis.v[1], axis.v[2]);
+    if (scale > gFLT_EPSILON_00589a5c) {
+        scale = (br_scalar)(gDouble_00589a60 / scale);
+        axis.v[0] = axis.v[0] * scale;
+        axis.v[1] = axis.v[1] * scale;
+        axis.v[2] = axis.v[2] * scale;
+    } else {
+        axis.v[0] = 1.0f;
+        axis.v[1] = 0.0f;
+        axis.v[2] = 0.0f;
+    }
     nx = -hinge->v[0];
     ny = -hinge->v[1];
     nz = -hinge->v[2];
