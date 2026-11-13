@@ -294,6 +294,9 @@ void C2_HOOK_STDCALL lightingColourSpotAttnSpecular(br_soft_renderer* self, br_v
         return;
     }
     dot = BrVector3Dot(&dirn, n);
+    if (dot <= 0.f) {
+        return;
+    }
     dist2 = (dist < 180.f) ? dist * dist : 32767.f;
 
     l = self->state.surface.kd * dot;
