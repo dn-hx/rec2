@@ -207,6 +207,22 @@ void C2_HOOK_STDCALL ActiveLightsFind(br_soft_renderer* self) {
     }
 }
 
+#define ALU_NORM(v1, v2)                                         \
+    do {                                                         \
+        double _scale;                                           \
+        _scale = BR_LENGTH3((v2)->v[0], (v2)->v[1], (v2)->v[2]); \
+        if (_scale > BR_SCALAR_EPSILON * 2) {                    \
+            _scale = 1.0 / _scale;                               \
+            (v1)->v[0] = (v2)->v[0] * _scale;                    \
+            (v1)->v[1] = (v2)->v[1] * _scale;                    \
+            (v1)->v[2] = (v2)->v[2] * _scale;                    \
+        } else {                                                 \
+            (v1)->v[0] = 1.0f;                                   \
+            (v1)->v[1] = 0.0f;                                   \
+            (v1)->v[2] = 0.0f;                                   \
+        }                                                        \
+    } while (0)
+
 // FUNCTION: CARMA2_HW 0x00544060
 void C2_HOOK_STDCALL ActiveLightsUpdate(br_soft_renderer* self) {
     active_light* alp;
@@ -217,15 +233,15 @@ void C2_HOOK_STDCALL ActiveLightsUpdate(br_soft_renderer* self) {
         switch (alp->type) {
         case BRT_DIRECT:
             BrMatrix34TApplyV(&alp->direction, &alp->s->direction, &self->state.matrix.model_to_view);
-            BrVector3Normalise(&alp->direction, &alp->direction);
+            ALU_NORM(&alp->direction, &alp->direction);
 
             BrVector3Add(&alp->half, &alp->direction, &scache.eye_m_normalised);
-            BrVector3Normalise(&alp->half, &alp->half);
+            ALU_NORM(&alp->half, &alp->half);
             BrVector3Scale(&alp->direction, &alp->direction, alp->intensity);
             break;
         case BRT_SPOT:
             BrMatrix34TApplyV(&alp->direction, &alp->s->direction, &self->state.matrix.model_to_view);
-            BrVector3Normalise(&alp->direction, &alp->direction);
+            ALU_NORM(&alp->direction, &alp->direction);
             break;
         case BRT_POINT:
         case BRT_POINT_LOCAL_1:
@@ -242,7 +258,7 @@ void C2_HOOK_STDCALL ActiveLightsUpdate(br_soft_renderer* self) {
         case BRT_DIRECT:
             BrVector3Copy(&alp->half, &alp->s->direction);
             alp->half.v[2] += 1.f;
-            BrVector3Normalise(&alp->half, &alp->half);
+            ALU_NORM(&alp->half, &alp->half);
             break;
         default:
             break;
