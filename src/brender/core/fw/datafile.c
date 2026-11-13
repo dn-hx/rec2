@@ -1360,12 +1360,12 @@ void* C2_HOOK_STDCALL DfBlockReadBinary(br_datafile* df, void* base, int* count,
     if (s != size) {
         BrFailure("block size mismatch");
     }
-    if (base != NULL) {
-        if (l > *count) {
+    if (base == NULL) {
+        base = BrResAllocate(df->res != NULL ? df->res : fw.res, size * l, mtype);
+    } else {
+        if (*count < l) {
             BrFailure("DfBlockReadBinary: block too long: %d", l);
         }
-    } else {
-        base = BrResAllocate(df->res != NULL ? df->res : fw.res, size * l, mtype);
     }
     *count = l;
     BrFileRead(base, l, size, df->h);
