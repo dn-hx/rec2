@@ -993,6 +993,7 @@ extern int gMouse_in_use;
 extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
 extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
 
+// PARTIAL 99.99% (EFFECTIVE): sub edx,ecx order differs in 2 SetTintedPolySize arg exprs
 // FUNCTION: CARMA2_HW 0x0043e0a0
 int C2_HOOK_FASTCALL DoMouseCursor(void) {
     int delta_time;
@@ -1001,6 +1002,7 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
     int new_required;
     tU32 time_now;
     int pos_x, pos_y;
+    int x_pos;
 
     do {
         time_now = PDGetTotalTime();
@@ -1035,12 +1037,13 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
             gDoMouseCursor_required_cursor = new_required;
         }
         new_required = pos_y - 7;
+        x_pos = pos_x - 7;
         gCurrent_cursor_index = 2;
         if (!gNoTransients) {
             br_pixelmap *map;
             int idx = gTransient_bitmap_index;
 
-            gTransient_bitmaps[idx].x_coord = (pos_x - 7) & ~3;
+            gTransient_bitmaps[idx].x_coord = x_pos & ~3;
             gTransient_bitmaps[idx].y_coord = new_required;
             gTransient_bitmaps[idx].in_use = 1;
             gTransient_bitmaps[idx].order_number = gNext_transient;
