@@ -9391,3 +9391,83 @@ void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_c
         ARDoSingleSession(ePipe_chunk_smudge, pCar_ID, gSmudge_space, copy_size + 8);
     }
 }
+
+// PARTIAL 38.81%: ReceivedFullDetachBit 0x0043cbd0 [regalloc] - pContents/car register roles swapped (ebp/ebx), frame 0x4c with spill, neg/sbb found-test not reproduced
+// FUNCTION: CARMA2_HW 0x0043cbd0
+void C2_HOOK_FASTCALL ReceivedFullDetachBit(tU8* pContents) {
+    /* frame: +0x0 keep int, +0x4 {u8 id; pad[3]; br_actor* actor} (DRActorEnumRecurse arg),
+       +0xc/+0x18/+0x24 vectors, +0x2c vector (ExpandVector3 dst), +0x30 bounds3 (min +0x30, max +0x3c). */
+    extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
+    tU8 frame[0x48];
+    tCar_spec* car;
+    tCar_crush_spec* crush;
+    tPhysics_object* bit;
+    tPhysics_object** slot;
+    br_actor* actor;
+    intptr_t hit;
+    tCrush_net_full_detach_bit_list_item* item;
+    int count;
+    int i;
+    int n;
+
+    if (gCount_net_crush_full_detach_bit_list == 8) {
+        return;
+    }
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car == NULL) {
+        return;
+    }
+    bit = NULL;
+    crush = car->car_crush_spec;
+    if (crush != NULL) {
+        count = crush->field_0x270;
+        if (count > 0) {
+            slot = (tPhysics_object**)((char*)crush + 0x27c);
+            i = 0;
+            do {
+                if (*(tU8*)((char*)*slot + 0x190) == pContents[8]) {
+                    bit = *slot;
+                    break;
+                }
+                i++;
+                slot += 5;
+            } while (i < count);
+        }
+    }
+    if (bit == NULL) {
+        frame[4] = pContents[8];
+        *(tU32*)(frame + 8) = 0;
+        hit = DRActorEnumRecurse(car->car_model_actor, FindActorByCrushEntryID, frame + 4);
+        actor = (br_actor*)(-(tU32)(hit != 0) & (tU32)((tFind_crush_actor_arg*)(frame + 4))->actor);
+        if (actor == NULL) {
+            return;
+        }
+        ExpandVector3((br_vector3*)(frame + 0x2c), (tCompressed_vector3*)(pContents + 0x10), -10.0f, 10.0f);
+        ExpandVector3((br_vector3*)(frame + 0x18), (tCompressed_vector3*)(pContents + 0x16), -10.0f, 10.0f);
+        ExpandVector3((br_vector3*)(frame + 0xc), (tCompressed_vector3*)(pContents + 0x1c), -10.0f, 10.0f);
+        ExpandVector3((br_vector3*)(frame + 0x30), (tCompressed_vector3*)(pContents + 0x22), -10.0f, 10.0f);
+        ExpandVector3((br_vector3*)(frame + 0x3c), (tCompressed_vector3*)(pContents + 0x28), -10.0f, 10.0f);
+        bit = SemiDetachBit(car, actor, 0.0f, (int*)frame, (br_vector3*)(frame + 0x24), (br_bounds3*)(frame + 0x30),
+                            (br_vector3*)(frame + 0x18), (br_vector3*)(frame + 0xc));
+        if (bit == NULL) {
+            return;
+        }
+    }
+    count = gCount_net_crush_full_detach_bit_list;
+    if (count > 0) {
+        item = gNet_crush_full_detach_bit_list;
+        i = 0;
+        do {
+            if (item->object == bit) {
+                return;
+            }
+            i++;
+            item++;
+        } while (i < count);
+    }
+    n = gCount_net_crush_full_detach_bit_list;
+    gNet_crush_full_detach_bit_list[n].car = car;
+    gNet_crush_full_detach_bit_list[n].object = bit;
+    gCount_net_crush_full_detach_bit_list = n + 1;
+    *(tU32*)(gNet_crush_full_detach_bit_list[n].field_0x8) = *(tU32*)(pContents + 0xc);
+}
