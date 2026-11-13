@@ -249,20 +249,25 @@ tS3_outlet* C2_HOOK_FASTCALL S3CreateOutlet(int pCount_channels_1, int pCount_ch
     return outlet;
 }
 
+// PARTIAL 83.72%: S3ReleaseOutlet 0x005654e2 [attempt 3] - frame slot for pOutlet at ebp-0x14 in original, ebp-0xc here
 // FUNCTION: CARMA2_HW 0x005654e2
 tS3_error_codes C2_HOOK_FASTCALL S3ReleaseOutlet(tS3_outlet* pOutlet) {
+    tS3_outlet* prev;
+    tS3_outlet* next;
 
     if (pOutlet == NULL) {
         return eS3_error_bad_id;
     }
     S3UnbindChannels(pOutlet);
-    if (pOutlet->prev != NULL) {
-        pOutlet->prev->next = pOutlet->next;
+    prev = pOutlet->prev;
+    next = pOutlet->next;
+    if (prev != NULL) {
+        prev->next = next;
     } else {
-        gS3_state.outlets = pOutlet->next;
+        gS3_state.outlets = next;
     }
-    if (pOutlet->next != NULL) {
-        pOutlet->next->prev = pOutlet->prev;
+    if (next != NULL) {
+        next->prev = prev;
     }
     if (gS3_state.count_outlets != 0) {
         gS3_state.count_outlets -= 1;

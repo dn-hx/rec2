@@ -121,18 +121,19 @@ br_error C2_HOOK_CDECL _M_br_object_container_findMany(br_object_container* self
     object_list_entry* he;
     void* tvarg;
     int n;
+    br_object** op;
 
+    n = 0;
     hl = self->dispatch->_listQuery(self);
     if (hl == NULL) {
         return 0x1002;
     }
-    tvarg = NULL;
     if (tv != NULL) {
         tvarg = self->dispatch->_tokensMatchBegin(self, type, tv);
     }
-    n = 0;
+    op = objects;
     for (he = (object_list_entry*)hl->l.head; he != NULL; he = (object_list_entry*)he->n.next) {
-        if (type != BR_NULL_TOKEN && he->h->dispatch->_type(he->h) != type) {
+        if (type != BR_NULL_TOKEN && type != he->h->dispatch->_type(he->h)) {
             continue;
         }
         if (!BrNamePatternMatch(pattern, he->h->dispatch->_identifier(he->h))) {
@@ -142,7 +143,7 @@ br_error C2_HOOK_CDECL _M_br_object_container_findMany(br_object_container* self
             continue;
         }
         if (n < max_objects) {
-            objects[n] = he->h;
+            *op++ = he->h;
         }
         n++;
     }
@@ -150,10 +151,7 @@ br_error C2_HOOK_CDECL _M_br_object_container_findMany(br_object_container* self
         self->dispatch->_tokensMatchEnd(self, tvarg);
     }
     *num_objects = n;
-    if (n > max_objects) {
-        return 0x1004;
-    }
-    return 0;
+    return (n > max_objects) ? 0x1004 : 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0052d490
