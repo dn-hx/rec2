@@ -296,26 +296,31 @@ int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStruc
     pPalette = data->pPalette;
     loadFlags = data->loadFlags;
     errorCode = data->errorCode;
-    texture = NULL;
-    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
-        texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 1);
+    if ((loadFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
+        goto load_palette;
     }
-    if (texture == NULL) {
-        texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 0);
-    }
+    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 1);
     if (texture != NULL) {
-        texture->identifier = BrResStrDup(texture, textureName);
-        if (texture->identifier == NULL) {
-            BrPixelmapFree(texture);
-            *errorCode = 2;
-            texture = NULL;
-        }
+        goto identifier;
     }
+load_palette:
+    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 0);
+    if (texture == NULL) {
+        goto done_load;
+    }
+identifier:
+    texture->identifier = BrResStrDup(texture, textureName);
+    if (texture->identifier == NULL) {
+        BrPixelmapFree(texture);
+        *errorCode = 2;
+        texture = NULL;
+    }
+done_load:
     if (texture != NULL) {
         BrPixelmapFree(texture);
     }
-    if (*errorCode != 0) {
-        return *errorCode;
+    if (*data->errorCode != 0) {
+        return *data->errorCode;
     }
     if (!data->isTiffx) {
         return 0;
