@@ -2306,3 +2306,53 @@ int C2_HOOK_FASTCALL FUN_005667af(tS3_sound_id pSound, tS3_sound_source* pSource
     }
     return 0;
 }
+
+// FUNCTION: CARMA2_HW 0x00568a97 // PARTIAL 67%: local slot order differs
+void C2_HOOK_FASTCALL S3UpdateSampleList(int* pSound_ids, int pSound_count, int* pSample_ids, int pSample_count) {
+    int sound_id;
+    int j;
+    int found;
+    int i;
+    int sample_id;
+
+    if (gS3_enabled != 0) {
+        i = pSound_count;
+        sound_id = pSound_ids[i - 1];
+        while (i != 0) {
+            j = pSample_count;
+            sample_id = pSample_ids[j - 1];
+            found = 0;
+            while (j != 0 && found == 0) {
+                if (sound_id == sample_id) {
+                    found = 1;
+                }
+                j = j - 1;
+                sample_id = pSample_ids[j - 1];
+            }
+            if (found == 0) {
+                S3ReleaseSound(pSound_ids[i - 1]);
+            }
+            i = i - 1;
+            sound_id = pSound_ids[i - 1];
+        }
+        j = pSample_count;
+        sample_id = pSample_ids[j - 1];
+        while (j != 0) {
+            i = pSound_count;
+            sound_id = pSound_ids[i - 1];
+            found = 0;
+            while (i != 0 && found == 0) {
+                if (sample_id == sound_id) {
+                    found = 1;
+                }
+                i = i - 1;
+                sound_id = pSound_ids[i - 1];
+            }
+            if (found == 0) {
+                S3LoadSample(pSample_ids[j - 1]);
+            }
+            j = j - 1;
+            sample_id = pSample_ids[j - 1];
+        }
+    }
+}

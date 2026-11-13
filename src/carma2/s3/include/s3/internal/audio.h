@@ -187,6 +187,7 @@ extern int C2_HOOK_FASTCALL S3SetSoundSourceBinding(tS3_sound_source* pSource, v
 extern void C2_HOOK_FASTCALL S3LoadSampleList(int* pSample_ids, int pCount);
 
 extern void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_count);
+extern void C2_HOOK_FASTCALL S3UpdateSampleList(int* pSound_ids, int pSound_count, int* pSample_ids, int pSample_count);
 
 extern int C2_HOOK_FASTCALL S3ChangePitchSpeed(tS3_sound_tag pTag, int pPitch);
 
