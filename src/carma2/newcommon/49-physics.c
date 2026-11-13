@@ -2159,14 +2159,14 @@ void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info) {
 // FUNCTION: CARMA2_HW 0x004c2c30
 // FUNCTION: CARMA2_SW 0x004bf360
 void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vector3* pTorque) {
-    br_vector3 torque;
-    br_vector3 inertia;
+    br_vector3 t;
 
-    BrVector3Scale(&torque, pTorque, 1.0f / REC2_SQR(WORLD_SCALE));
-    BrVector3Copy(&inertia, &pObject->I);
-    pObject->omega.v[0] += torque.v[0] / inertia.v[0];
-    pObject->omega.v[1] += torque.v[1] / inertia.v[1];
-    pObject->omega.v[2] += torque.v[2] / inertia.v[2];
+    t.v[1] = pTorque->v[1] * 0.0210039914f;
+    t.v[2] = pTorque->v[2] * 0.0210039914f;
+    t.v[0] = pTorque->v[0] * 0.0210039914f;
+    pObject->omega.v[1] += t.v[1] / pObject->I.v[1];
+    pObject->omega.v[2] += t.v[2] / pObject->I.v[2];
+    pObject->omega.v[0] += t.v[0] / pObject->I.v[0];
 }
 
 // ApplyDiminishingTorque

@@ -2540,18 +2540,6 @@ void C2_HOOK_FASTCALL ConditionallyNoteSkid(tCar_spec* pCar, tFace_ref** faces, 
     pCar->special_start[pIndex].v[1] = faces[pIndex]->normal.v[1] * d + pCar->special_start[pIndex].v[1];
     pCar->special_start[pIndex].v[2] = faces[pIndex]->normal.v[2] * d + pCar->special_start[pIndex].v[2];
 }
-// (GPL-3.0); the original at 0x004c2c30
-// FUNCTION: CARMA2_HW 0x004c2c30
-void C2_HOOK_FASTCALL PhysicsObjectApplyTorque(tPhysics_object* pObject, const br_vector3* pTorque) {
-    br_vector3 t;
-
-    t.v[1] = pTorque->v[1] * 0.0210039914f;
-    t.v[2] = pTorque->v[2] * 0.0210039914f;
-    t.v[0] = pTorque->v[0] * 0.0210039914f;
-    pObject->omega.v[1] += t.v[1] / pObject->I.v[1];
-    pObject->omega.v[2] += t.v[2] / pObject->I.v[2];
-    pObject->omega.v[0] += t.v[0] / pObject->I.v[0];
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -3389,7 +3377,7 @@ steer_centre:
     pCar->number_of_wheels_on_ground = normnum;
     BrMatrix34ApplyV(&b, &B, mat);
     BrVector3Scale(&rightplane, &f, pDt);
-    PhysicsObjectApplyTorque(pCar->collision_info, &rightplane);
+    ApplyTorque(pCar->collision_info, &rightplane);
     BrVector3Scale(&rightplane, &b, pDt / (pCar->collision_info->M * WORLD_SCALE));
     BrVector3Accumulate(&pCar->collision_info->v, &rightplane);
     if (pCar->speed < 0.0001f
