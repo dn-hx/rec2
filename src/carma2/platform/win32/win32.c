@@ -858,14 +858,14 @@ void C2_HOOK_FASTCALL PDGetCurrentTime(char *pTimeStr) {
 
 // FUNCTION: CARMA2_HW 0x0051db00
 int C2_HOOK_FASTCALL PDGetMouseClickPosition(int *pX_coord, int *pY_coord) {
-    if (!gCursorPos_LastClick_Valid) {
+    if (gCursorPos_LastClick_Valid != 0) {
+        *pX_coord = gCursorPos_LastClick.x;
+        *pY_coord = gCursorPos_LastClick.y;
         gCursorPos_LastClick_Valid = 0;
-        return 0;
+        return 1;
     }
-    *pX_coord = gCursorPos_LastClick.x;
-    *pY_coord = gCursorPos_LastClick.y;
     gCursorPos_LastClick_Valid = 0;
-    return 1;
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0051c5f0
