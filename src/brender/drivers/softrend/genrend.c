@@ -249,6 +249,7 @@ void C2_HOOK_CDECL Vertex_SurfaceComponentsTwoSidedSurf(br_geometry* self, br_so
     }
 }
 
+// PARTIAL 94.64%: Vertex_SurfaceComponentsGeom 0x00548a00 - running tvp/vp pointers fix the loop shape; residual is edx/esi increment regalloc at 0x548a78 (47.15 -> 94.64)
 // FUNCTION: CARMA2_HW 0x00548a00
 void C2_HOOK_CDECL Vertex_SurfaceComponentsGeom(br_geometry* self, br_soft_renderer* renderer) {
     brp_vertex* tvp;
@@ -256,10 +257,9 @@ void C2_HOOK_CDECL Vertex_SurfaceComponentsGeom(br_geometry* self, br_soft_rende
     int v;
     int i;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
-        vp = &rend.vertices[v];
-
+    tvp = rend.temp_vertices;
+    vp = rend.vertices;
+    for (v = 0; v < rend.nvertices; v++, tvp++, vp++) {
         if (rend.vertex_counts[v] == 0) {
             continue;
         }
