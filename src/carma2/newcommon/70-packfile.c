@@ -262,10 +262,11 @@ char* C2_HOOK_FASTCALL PFfgets(char* buffer, br_size_t size, FILE* pFile) {
             return NULL;
         }
         *writePtr++ = c;
-        if (c == '\n') {
+        if ((char)c == '\n') {
             break;
         }
-        if (twtFile->pos >= twtFile->end) {
+        pFile = (FILE*)(twtFile->pos >= twtFile->end);
+        if (pFile) {
             break;
         }
     }
