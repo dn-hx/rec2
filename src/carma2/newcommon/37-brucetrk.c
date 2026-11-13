@@ -352,7 +352,7 @@ intptr_t C2_HOOK_CDECL FoundAnActor(br_actor* pActor, void* pContext) {
 // FUNCTION: CARMA2_HW 0x0040e000
 intptr_t C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, int pIdentifier_value, int pIdentifier_index, int pMatch_flags, tNearbyActors_cbfn* pCallback, void* pContext) {
     tFoundAnActor_context found_an_actor_context;
-    float p;
+    float p, q;
     unsigned int result;
     int x, xmin, xmax;
     int z, zmin, zmax;
@@ -365,19 +365,20 @@ intptr_t C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* p
     found_an_actor_context.callback_context = pContext;
     found_an_actor_context.callback = pCallback;
     found_an_actor_context.max_dist_axis = pMax_dist;
-    found_an_actor_context.max_dist_squared = pMax_dist * pMax_dist;
 
     x = (int)((pPos->v[0] - pTrack->origin_x) / pTrack->column_size_x);
-    p = pTrack->origin_x + (float)x * pTrack->column_size_x;
+    found_an_actor_context.max_dist_squared = pMax_dist * pMax_dist;
+    q = (float)x * pTrack->column_size_x + pTrack->origin_x;
+    p = q;
     xmin = x;
-    while (pPos->v[0] < p + pMax_dist) {
+    while (p + pMax_dist > pPos->v[0]) {
         if (xmin == 0) {
             break;
         }
         p -= pTrack->column_size_x;
         xmin--;
     }
-    p = pTrack->origin_x + (float)x * pTrack->column_size_x + pTrack->column_size_x;
+    p = q + pTrack->column_size_x;
     xmax = x;
     while (p < pPos->v[0] + pMax_dist) {
         if (xmax + 1 >= pTrack->ncolumns_x) {
@@ -388,16 +389,17 @@ intptr_t C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* p
     }
 
     z = (int)((pPos->v[2] - pTrack->origin_z) / pTrack->column_size_z);
-    p = pTrack->origin_z + (float)z * pTrack->column_size_z;
+    q = (float)z * pTrack->column_size_z + pTrack->origin_z;
+    p = q;
     zmin = z;
-    while (pPos->v[2] < p + pMax_dist) {
+    while (p + pMax_dist > pPos->v[2]) {
         if (zmin == 0) {
             break;
         }
         p -= pTrack->column_size_z;
         zmin--;
     }
-    p = pTrack->origin_z + (float)z * pTrack->column_size_z + pTrack->column_size_z;
+    p = q + pTrack->column_size_z;
     zmax = z;
     while (p < pPos->v[2] + pMax_dist) {
         if (zmax + 1 >= pTrack->ncolumns_z) {
