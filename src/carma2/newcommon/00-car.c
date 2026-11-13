@@ -2550,7 +2550,7 @@ void C2_HOOK_FASTCALL ConditionallyNoteSkid(tCar_spec* pCar, tFace_ref** faces, 
 static br_scalar stop_timer;
 static br_scalar slide_dist;
 
-// PARTIAL 34.80%: block 0x419338..0x41948e implemented (ts = force[i]*0.14492753623188406*pDt, tmp = ts/objs[i]->M*b, net-mode store gPHIL_last_physics_tick+40, and the block-scoped `rt` angular-impulse block with BrMatrix34ApplyP/BrMatrix34TApplyV). Frame is 0x1ec vs the original 0x1e4 (+8); removing the dead out-parameter `nor2` (its only writer fed no reader, so ActorFindFace now writes `normal`, which is dead past the rescale block) took the old 0x1f8 down by 12 bytes. The remaining 8 are not a liveness question: a runtime slot oracle measured peak simultaneously-live slots at 53 of 83 touched, and VC5 statically allocates with no interval steering. The rescale block 0x41aaaa-0x41ab97 is still missing (partials/CalcForce.rescale-block.c). k is the shared scalar temp (orig esp+0x1c); local offsets/x87 order differ. See state/findings/CalcForce.md.
+// PARTIAL 39.47%: block 0x419338..0x41948e implemented (ts = force[i]*0.14492753623188406*pDt, tmp = ts/objs[i]->M*b, net-mode store gPHIL_last_physics_tick+40, and the block-scoped `rt` angular-impulse block with BrMatrix34ApplyP/BrMatrix34TApplyV). Frame is 0x1ec vs the original 0x1e4 (+8); removing the dead out-parameter `nor2` (its only writer fed no reader, so ActorFindFace now writes `normal`, which is dead past the rescale block) took the old 0x1f8 down by 12 bytes. The remaining 8 are not a liveness question: a runtime slot oracle measured peak simultaneously-live slots at 53 of 83 touched, and VC5 statically allocates with no interval steering. The rescale block 0x41aaaa-0x41ab97 is still missing (partials/CalcForce.rescale-block.c). k is the shared scalar temp (orig esp+0x1c); local offsets/x87 order differ. See state/findings/CalcForce.md.
 // FUNCTION: CARMA2_HW 0x00418850
 void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     int i;
@@ -7759,6 +7759,9 @@ void C2_HOOK_FASTCALL PutOpponentsInNeutral(void) {
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0043d960
 int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
     tU8 count_or_points;
@@ -7781,6 +7784,9 @@ int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
     }
     return count_or_points * 6 + 1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 
 // FUNCTION: CARMA2_HW 0x0043ce60
@@ -7804,5 +7810,52 @@ void C2_HOOK_FASTCALL ReceivedCrushReattachBit(tNet_message_chunk_crush_reattach
             gCount_net_crush_reattach_bit_list = count;
             *(tU32*)((tU8*)&gNet_crush_reattach_bit_list[0].time + item_offset) = bit_index;
         }
+    }
+}
+
+// PARTIAL 75%: flag byte reload/regalloc differs from original
+// FUNCTION: CARMA2_HW 0x00498ab0
+void C2_HOOK_FASTCALL FUN_00498ab0(tCar_spec* pCar, tU8* pContents) {
+    extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
+    tU8* cursor;
+    int size;
+    int offset;
+    tU8 flags;
+    tU8* base;
+
+    memcpy((tU8*)pCar->collision_info + 0x260, pContents, 0xd * 4);
+    cursor = pContents + 0x34;
+    size = GetNetworkDataSize(cursor);
+    memcpy((tU8*)pCar->collision_info + 0x294, cursor, size);
+    cursor += size;
+    flags = *((tU8*)pCar->collision_info + 0x292);
+    offset = 0x48c;
+    if (flags & 8) {
+        do {
+            *(tU32*)((tU8*)pCar->collision_info + offset) = *(tU32*)cursor;
+            cursor += 4;
+            offset += 4;
+        } while (offset < 0x49c);
+    } else {
+        do {
+            offset += 4;
+            *(tU32*)((tU8*)pCar->collision_info + offset - 4) = 0;
+        } while (offset < 0x49c);
+    }
+    if (*((tU8*)pCar->collision_info + 0x292) & 1) {
+        size = GetCompressedCrushVertexDataSize(cursor);
+        memcpy((tU8*)pCar->collision_info + 0x2fc, cursor, size);
+        cursor += size;
+    }
+    if (*((tU8*)pCar->collision_info + 0x292) & 2) {
+        *((tU8*)pCar->collision_info + 0x481) = *cursor;
+        cursor += 1;
+        *(tU16*)((tU8*)pCar->collision_info + 0x482) = *(tU16*)cursor;
+        cursor += 2;
+    }
+    base = (tU8*)pCar->collision_info;
+    if (base[0x292] & 4) {
+        *(tU32*)(base + 0x484) = *(tU32*)cursor;
+        *(tU32*)(base + 0x488) = *(tU32*)(cursor + 4);
     }
 }
