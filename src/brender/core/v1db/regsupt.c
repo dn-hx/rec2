@@ -60,11 +60,14 @@ br_uint_32 C2_HOOK_CDECL BrModelAddMany(br_model** items, int n) {
 br_uint_32 C2_HOOK_CDECL BrModelRemoveMany(br_model** items, int n) {
     int i;
     int r;
+    br_model* model;
 
     r = 0;
     for (i = 0; i < n; i++) {
-        BrModelClear(items[n]);
-        if (BrRegistryRemove(&v1db.reg_models, items[n]) != NULL) {
+        model = *items;
+        items++;
+        BrModelClear(model);
+        if (BrRegistryRemove(&v1db.reg_models, model) != NULL) {
             r++;
         }
     }
