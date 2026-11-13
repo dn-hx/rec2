@@ -6609,19 +6609,21 @@ void C2_HOOK_FASTCALL UnBendWheels(tCar_spec* pCar_spec, const tBend_point_conte
         pCar_spec->field_0x1260 = angle * 0.03f;
     }
 }
+// PARTIAL 46.03%: BendPoint 0x00434f60 [x87] - frame 0xc vs 0x18 (a,b,c spilled in original), x87 order, final store/call order
 // FUNCTION: CARMA2_HW 0x00434f60
 void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_local* pContext) {
     tBend_data_local* bend;
     br_vector3 tmp;
     br_vector3 d;
+    float z;
     float a;
     float b;
     float c;
     float ab;
 
     bend = pContext->bend;
-    if ((bend->field_0x74 != 0 && pPoint->v[2] - bend->field_0x18.v[2] <= 0.f)
-            || (bend->field_0x74 == 0 && pPoint->v[2] - bend->field_0x18.v[2] >= 0.f)) {
+    z = pPoint->v[2] - bend->field_0x18.v[2];
+    if ((bend->field_0x74 != 0 && z <= 0.f) || (bend->field_0x74 == 0 && z >= 0.f)) {
         BrMatrix34ApplyP(&tmp, pPoint, &pContext->matrix);
         pPoint->v[0] = tmp.v[0];
         pPoint->v[1] = tmp.v[1];
