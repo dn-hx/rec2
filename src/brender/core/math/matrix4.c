@@ -93,23 +93,22 @@ void C2_HOOK_CDECL BrMatrix4Scale(br_matrix4* mat, br_scalar sx, br_scalar sy, b
     M(3, 3) = BR_SCALAR(1.f);
 }
 
+// PARTIAL 92.31%: BrMatrix4Inverse 0x00536080 - fcomp emits qword where the original compares dword; 1.0/det form differs (87.18 -> 92.31)
 // FUNCTION: CARMA2_HW 0x00536080
 br_scalar C2_HOOK_CDECL BrMatrix4Inverse(br_matrix4* A, const br_matrix4* B) {
     int i;
     int j;
-    br_scalar det;
-    br_scalar idet;
+    double det;
 
     BrMatrix4Adjoint(A, B);
     det = BrMatrix4Determinant(B);
 
-    if (fabs(det) < BR_SCALAR_EPSILON * 2)
+    if (fabs(det) < (float)(BR_SCALAR_EPSILON * 2))
         return 0;
 
-    idet = 1.0f / det;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            A(i, j) = A(i, j) * idet;
+            A(i, j) = A(i, j) * (1.0 / det);
         }
     }
 
