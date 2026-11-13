@@ -1550,26 +1550,20 @@ void C2_HOOK_FASTCALL WriteOutDronePaths(void) {
         fprintf(file, "\n%-3d   // version\n", 2);
         fprintf(file, "%-3d   // n_nodes\n", gCount_drone_path_nodes);
         for (node_index = 0; node_index < gCount_drone_path_nodes; node_index++) {
-            tDrone_path_node* node;
-
-            node = &gDrone_path_nodes[node_index];
             fprintf(file, "\t\n// %d:\n", node_index);
             fprintf(file, "\t%.3f, %.3f, %.3f\n",
-                (double)node->position.v[0],
-                (double)node->position.v[1],
-                (double)node->position.v[2]);
-            fprintf(file, "\t%s\n", node->type >= 0 ? gDrone_forms[node->type].name : "NONE");
-            fprintf(file, "\t%d\n", node->field_0x12e);
-            fprintf(file, "\t%d\n", node->count_sections);
-            for (section_index = 0; section_index < node->count_sections; section_index++) {
-                tDrone_path_node_section* section;
-
-                section = &node->sections[section_index];
+                (double)gDrone_path_nodes[node_index].position.v[0],
+                (double)gDrone_path_nodes[node_index].position.v[1],
+                (double)gDrone_path_nodes[node_index].position.v[2]);
+            fprintf(file, "\t%s\n", gDrone_path_nodes[node_index].type >= 0 ? gDrone_forms[gDrone_path_nodes[node_index].type].name : "NONE");
+            fprintf(file, "\t%d\n", gDrone_path_nodes[node_index].field_0x12e);
+            fprintf(file, "\t%d\n", gDrone_path_nodes[node_index].count_sections);
+            for (section_index = 0; section_index < gDrone_path_nodes[node_index].count_sections; section_index++) {
                 fprintf(file, "\t\t%d, %d, %d, %d\n",
-                    section->node1,
-                    (tU16)section->node2,
-                    section->type,
-                    section->field_0x21);
+                    gDrone_path_nodes[node_index].sections[section_index].node1,
+                    (tU16)gDrone_path_nodes[node_index].sections[section_index].node2,
+                    gDrone_path_nodes[node_index].sections[section_index].type,
+                    gDrone_path_nodes[node_index].sections[section_index].field_0x21);
             }
         }
         fprintf(file, "\n%s\n", "END OF DRONE PATHS");
