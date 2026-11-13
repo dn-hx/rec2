@@ -2848,7 +2848,7 @@ typedef struct tPhysics_joint_force_group {
 // GLOBAL: CARMA2_HW 0x0058a768
 br_scalar gFLOAT_0058a768 = 0.0f;
 
-// PARTIAL 49.06%: PhysicsObjectWeightedSquareSum 0x004b7250 - body is carpa's 1.000 source token for token; residual is the x87 schedule of the 3-iteration loop (VC5 here squares omega first and materialises the omega copy through esi/mov instead of the original's fld+fst, so the frame is 8 vs 4 and ~15 of 26 instructions differ); reordering the terms or adding a br_scalar temp for omega is canonicalised or scores lower (45.28)
+// PARTIAL 49.06%: PhysicsObjectWeightedSquareSum 0x004b7250 - body matches the original term for term; residual is the x87 schedule of the 3-iteration loop (VC5 here squares omega first and materialises the omega copy through esi/mov instead of the original's fld+fst, so the frame is 8 vs 4 and ~15 of 26 instructions differ); reordering the terms or adding a br_scalar temp for omega is canonicalised or scores lower (45.28)
 // FUNCTION: CARMA2_HW 0x004b7250
 br_scalar C2_HOOK_FASTCALL PhysicsObjectWeightedSquareSum(tPhysics_object* pObject) {
     br_scalar sum;
