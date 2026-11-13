@@ -35,13 +35,14 @@ void C2_HOOK_CDECL Vertex_TransformProjectOutcodeBounds(br_geometry* self, br_so
     }
 }
 
+// PARTIAL 80.31%: Vertex_TransformProjectOutcode 0x547ae0 [x87-schedule] - MAC3 fld/fmul order and clip-plane dot order differ
 // FUNCTION: CARMA2_HW 0x00547ae0
 void C2_HOOK_CDECL Vertex_TransformProjectOutcode(br_geometry *self, br_soft_renderer* renderer) {
     int v;
     brp_vertex* tvp;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
+    tvp = rend.temp_vertices;
+    for (v = 0; v < rend.nvertices; v++, tvp++) {
 
         if (rend.vertex_counts[v] == 0) {
             continue;
