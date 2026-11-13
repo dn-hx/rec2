@@ -1001,12 +1001,9 @@ int C2_HOOK_STDCALL FopRead_TRANSFORM(br_datafile* df, br_uint_32 id, br_uint_32
     br_transform* tp;
 
     for (t = 0; t < BR_ASIZE(TransformTypes); t++) {
-        if (id == TransformTypes[t].id) {
+        if (TransformTypes[t].id == id) {
             break;
         }
-    }
-    if (t >= BR_ASIZE(TransformTypes)) {
-        abort(); // FIXME: LOG_PANIC("transform type not found!");
     }
     tp = (br_transform*)BrResAllocate(v1db.res, sizeof(br_transform), BR_MEMORY_TRANSFORM);
     tp->type = t;
