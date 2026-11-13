@@ -639,37 +639,68 @@ int C2_HOOK_FASTCALL CreateDinputEffect(int joystick_index, tJoystick_effect_des
 
 // FUNCTION: CARMA2_HW 0x0045a390
 int C2_HOOK_FASTCALL ReadIforceEffectsNames(const char *path, char **names, size_t capacity) {
-    /* Implementation differs */
-
     FILE *f;
-    tU32 count;
-    size_t i;
+    int i;
+    int len;
+    int peek;
+    int eof;
+    char **slot;
     char buffer[128];
+    char tmp[6];
 
+    i = 0;
     f = fopen(path, "rb");
     if (f == NULL) {
         return -1;
     }
     rewind(f);
-    fread(buffer, 1, 4, f);
-    if (memcmp(buffer, "ifpr", 4) != 0) {
+    fread(buffer, 1, 5, f);
+    if (strncmp(buffer, "ifpr", 4) != 0) {
         return 0;
     }
-    fread(&count, 1, sizeof(count), f);
-    for (i = 0; i < count && i < capacity && !feof(f); i++) {
-        tU32 chunk_size;
-        size_t len_name = 0;
-        char c;
-        fread(&chunk_size, 1, sizeof(tU32), f);
-
-        while ((c = fgetc(f)) != '\0' && len_name < REC2_ASIZE(buffer) && !feof(f)) {
-            buffer[len_name] = c;
-            len_name += 1;
+    fseek(f, 7, SEEK_CUR);
+    slot = names;
+    while (!feof(f) && i < (int)capacity) {
+        strcpy(buffer, "");
+        tmp[5] = 0;
+        len = 0;
+        tmp[4] = fgetc(f);
+        while (tmp[4] != 0 && len < 128 && !feof(f)) {
+            strcat(buffer, tmp + 4);
+            len++;
+            tmp[4] = fgetc(f);
         }
-        names[i] = malloc(len_name + 1);
-        strncpy(names[i], buffer, len_name);
-        names[i][len_name] = '\0';
-        fseek(f, chunk_size - len_name - 1 - 4, SEEK_CUR);
+        *slot = malloc(strlen(buffer) + 1);
+        strcpy(*slot, buffer);
+        tmp[3] = 0;
+        strcpy(buffer, "");
+        len = 0;
+        tmp[2] = fgetc(f);
+        while (tmp[2] != 0 && len < 128 && !feof(f)) {
+            strcat(buffer, tmp + 2);
+            len++;
+            tmp[2] = fgetc(f);
+        }
+        fseek(f, 0x2f, SEEK_CUR);
+        tmp[1] = 0;
+        do {
+            strcpy(buffer, "");
+            len = 0;
+            tmp[0] = fgetc(f);
+            while (tmp[0] != 0 && len < 128 && !feof(f)) {
+                strcat(buffer, tmp);
+                len++;
+                tmp[0] = fgetc(f);
+            }
+        } while (strlen(buffer) != 0 && !feof(f));
+        eof = feof(f) >> 4;
+        peek = ungetc((char)fgetc(f), f);
+        while (peek == 0 && eof == 0) {
+            fseek(f, 1, SEEK_CUR);
+            peek = ungetc((char)fgetc(f), f);
+        }
+        slot++;
+        i++;
     }
     return i;
 }
