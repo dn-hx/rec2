@@ -239,7 +239,6 @@ int C2_HOOK_FASTCALL NetHostChooseThisRace(tFrontend_spec* pFrontend) {
 // ScrollDn and RefreshNetRacesScroller are inlined in the original.
 // FUNCTION: CARMA2_HW 0x00466da0
 int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend) {
-    tFrontend_scroller_spec* scroller;
     int i;
     int race_idx;
 
@@ -250,13 +249,12 @@ int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend) {
     gFrontend_net_last_roll = gFrontend_net_current_roll;
     /* ScrollDn(pFrontend, 1), inlined in the original; the volatile read keeps MSVC
        from reusing the comparison's copy of indexFirstScrollableItem (it re-loads it) */
-    scroller = &pFrontend->scrollers[1];
-    if (scroller->indexTopItem + scroller->nbDisplayedAtOnce < *(volatile int*)&scroller->indexFirstScrollableItem + scroller->count) {
-        scroller->indexTopItem += 1;
+    if (pFrontend->scrollers[1].indexTopItem + pFrontend->scrollers[1].nbDisplayedAtOnce < *(volatile int*)&pFrontend->scrollers[1].indexFirstScrollableItem + pFrontend->scrollers[1].count) {
+        pFrontend->scrollers[1].indexTopItem += 1;
     }
     /* RefreshNetRacesScroller(pFrontend), inlined in the original */
-    race_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
-    for (i = scroller->indexFirstScrollableItem; i <= scroller->indexLastScrollableItem; race_idx++, i++) {
+    race_idx = pFrontend->scrollers[1].indexTopItem - pFrontend->scrollers[1].indexFirstScrollableItem;
+    for (i = pFrontend->scrollers[1].indexFirstScrollableItem; i <= pFrontend->scrollers[1].indexLastScrollableItem; race_idx++, i++) {
         strcpy(pFrontend->items[i].text, gRace_list[race_idx].name);
     }
     FuckWithWidths(pFrontend);
