@@ -31,22 +31,26 @@ void C2_HOOK_STDCALL BrDevLastBeginSet(br_pixelmap* pm) {
 
 // FUNCTION: CARMA2_HW 0x00528d70
 br_error C2_HOOK_CDECL BrDevBeginVar(br_pixelmap** ppm, const char* setup_string, ...) {
-    va_list vl;
     br_uint_32 i;
     br_token_value tv[64];
+    br_uint_32* p;
+    br_token t;
 
-    va_start(vl, setup_string);
-    for (i = 0; ; i++) {
+    p = (br_uint_32*)&setup_string + 1;
+    i = 0;
+    while (1) {
         if (i == BR_ASIZE(tv)) {
             BrFailure("Too many token value pairs");
         }
-        tv[i].t = va_arg(vl, br_token);
-        if (tv[i].t == BR_NULL_TOKEN) {
+        t = *p++;
+        if (t == BR_NULL_TOKEN) {
             break;
         }
-        tv[i].v = va_arg(vl, br_value);
+        p++;
+        tv[i].t = t;
+        i++;
+        tv[i - 1].v.u32 = p[-1];
     }
-    va_end(vl);
     tv[i].t = BR_NULL_TOKEN;
     tv[i].v.p = NULL;
     return BrDevBeginTV(ppm, setup_string, tv);
