@@ -146,7 +146,7 @@ extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* p
 
 // PDFileUnlock
 
-// PDCheckDriveExists2
+int C2_HOOK_FASTCALL PDCheckDriveExists2(const char *pThe_path, const char *pFile_name, tU32 pMin_size);
 
 // PDDoWeLeadAnAustereExistance
 
