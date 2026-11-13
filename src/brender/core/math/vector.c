@@ -178,10 +178,14 @@ br_scalar C2_HOOK_CDECL BrVector3Dot(br_vector3* v1, const br_vector3* v2) {
 
 // FUNCTION: CARMA2_HW 0x005346f0
 void C2_HOOK_CDECL BrVector3Cross(br_vector3* v1, const br_vector3* v2, const br_vector3* v3) {
+    br_scalar t;
 
-    v1->v[0] = v2->v[1] * v3->v[2] - v2->v[2] * v3->v[1];
-    v1->v[1] = v2->v[2] * v3->v[0] - v2->v[0] * v3->v[2];
-    v1->v[2] = v2->v[0] * v3->v[1] - v2->v[1] * v3->v[0];
+    t = v3->v[2];
+    v1->v[0] = t * v2->v[1] - v2->v[2] * v3->v[1];
+    t = v3->v[2];
+    v1->v[1] = v2->v[2] * v3->v[0] - t * v2->v[0];
+    t = v2->v[1];
+    v1->v[2] = v3->v[1] * v2->v[0] - t * v3->v[0];
 }
 
 // FUNCTION: CARMA2_HW 0x00534740
