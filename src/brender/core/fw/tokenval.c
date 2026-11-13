@@ -705,21 +705,25 @@ br_error C2_HOOK_CDECL BrTokenValueQueryAllSize(br_size_t* psize, void* block, b
     int n;
     br_size_t extra_size;
 
-    if (!template->names_resolved) {
-        templateResolveNames(template);
-    }
-    extra_size = 0;
     n = 1;
+    e = 0;
+    extra_size = 0;
+    if (!template->names_resolved) {
+        tp = template->entries;
+        for (; e < template->n_entries; e++) {
+            if (tp->name != NULL) {
+                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
+            }
+            tp++;
+        }
+    }
+    tp = template->entries;
     for (e = 0; e < template->n_entries; e++) {
-        tp = &template->entries[e];
-        if (tp->token == BR_NULL_TOKEN) {
-            continue;
+        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
+            n++;
+            extra_size += ValueExtraSize(block, tp);
         }
-        if ((tp->flags & 4) == 0) {
-            continue;
-        }
-        n++;
-        extra_size += ValueExtraSize(block, tp);
+        tp++;
     }
     *psize = extra_size + sizeof(br_token_value) * n;
     return 0;
