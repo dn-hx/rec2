@@ -1320,9 +1320,9 @@ tS3_channel* C2_HOOK_FASTCALL S3AllocateChannel(tS3_outlet* pOutlet, int pPriori
     int this_priority;
     tS3_channel* lowest_priority_chan;
 
-    lowest_priority_chan = pOutlet->channel_list;
     c = pOutlet->channel_list;
-    if (lowest_priority_chan == NULL) {
+    lowest_priority_chan = c;
+    if (c == NULL) {
         return NULL;
     }
     while (c != NULL) {
@@ -1339,13 +1339,11 @@ tS3_channel* C2_HOOK_FASTCALL S3AllocateChannel(tS3_outlet* pOutlet, int pPriori
                 lowest_priority = 0;
             }
             if (c->descriptor != NULL) {
-                this_priority = S3CalculatePriority(c->descriptor->priority, c->volume_multiplier);;
+                this_priority = S3CalculatePriority(c->descriptor->priority, c->volume_multiplier);
             } else {
                 this_priority = 0;
             }
-            if (this_priority <= lowest_priority) {
-                lowest_priority_chan = c;
-            }
+            lowest_priority_chan = (lowest_priority < this_priority) ? lowest_priority_chan : c;
         }
         c = c->next;
     }
