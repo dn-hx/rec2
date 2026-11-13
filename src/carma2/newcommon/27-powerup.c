@@ -912,10 +912,10 @@ int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     br_vector3 mine_pos;
     br_vector3 out2;
 
+    mine = NULL;
     if (gNet_mode == eNet_mode_client) {
         return pPowerup - gPowerup_array;
     }
-    mine = NULL;
     for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
         if (!(gShit_mines[i].flags & 0x1)) {
             mine = &gShit_mines[i];
