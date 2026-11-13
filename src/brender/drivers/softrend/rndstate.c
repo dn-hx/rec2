@@ -55,15 +55,18 @@ br_error C2_HOOK_CDECL _M_br_soft_renderer_partSet(br_soft_renderer* self, br_to
     return r;
 }
 
+// PARTIAL 80.90%: _M_br_soft_renderer_partSetMany 0x005418f0 - sp/m move from the sibling gained 12 points; stack slots and push order still differ (68.51 -> 80.90)
 // FUNCTION: CARMA2_HW 0x005418f0
 br_error C2_HOOK_CDECL _M_br_soft_renderer_partSetMany(br_soft_renderer* self, br_token part, br_int_32 index, br_token_value* tv, br_int_32* pcount) {
     br_error r;
-    soft_state_all* sp = &self->state;
+    soft_state_all* sp;
     br_tv_template* tp;
-    br_uint_32 m = 0;
+    br_uint_32 m;
     br_int_32 c;
 
+    sp = &self->state;
     tp = FindStateTemplate(self, &sp, part, index);
+    m = 0;
 
     if (tp != NULL) {
         r = BrTokenValueSetMany(sp, pcount, &m, tv, tp);
