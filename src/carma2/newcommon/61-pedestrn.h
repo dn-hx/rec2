@@ -178,7 +178,7 @@ extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* 
 
 // MungeProxRay
 
-extern int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius);
+extern int C2_HOOK_FAKE_THISCALL FindPedestrianNearCar(tCar_spec* pCar, tCar_spec* pUnused, br_scalar pRadius);
 
 extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
 

@@ -1473,7 +1473,7 @@ extern void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmasha
 // MungeProxRay
 
 // FUNCTION: CARMA2_HW 0x004ce030
-int C2_HOOK_FASTCALL FindPedestrianNearCar(tCar_spec* pCar, br_scalar pRadius) {
+int C2_HOOK_FAKE_THISCALL FindPedestrianNearCar(tCar_spec* pCar, tCar_spec* pUnused, br_scalar pRadius) {
 
     return DoToPeds(pCar, 1, pRadius, 1, NULL, (tForEachPedestrian_cbfn*)DoPedAnnihilator);
 }

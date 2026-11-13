@@ -1027,7 +1027,7 @@ int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar) {
 int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
     int result;
 
-    if (FindPedestrianNearCar(pCar, pPowerup->float_params[0]) != 0) {
+    if (FindPedestrianNearCar(pCar, pCar, pPowerup->float_params[0]) != 0) {
         result = pPowerup - gPowerup_array;
     } else {
         result = -1;
