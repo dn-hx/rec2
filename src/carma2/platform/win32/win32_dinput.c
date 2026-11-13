@@ -1177,15 +1177,17 @@ tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void) {
     }
     res = IDirectInputDevice2_Poll(device);
     if (FAILED(res)) {
-        switch (res) {
-        case DIERR_INPUTLOST:
-        case DIERR_NOTACQUIRED:
+        if (res == DIERR_INPUTLOST) {
             if (AcquireDInputJoystickDevice(gJoystick_index) == 0) {
                 dr_dprintf("couldn't reacquire joystick %d ", gJoystick_index);
                 return 0;
             }
-            break;
-        default:
+        } else if (res == DIERR_NOTACQUIRED) {
+            if (AcquireDInputJoystickDevice(gJoystick_index) == 0) {
+                dr_dprintf("couldn't reacquire joystick %d ", gJoystick_index);
+                return 0;
+            }
+        } else {
             dr_dprintf("Can't poll, unknown error\n");
             return 0;
         }
@@ -1195,8 +1197,9 @@ tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void) {
         int i;
 
         C2_HOOK_BUG_ON(sizeof(device_state) != 0x50);
-        res = IDirectInputDevice2_GetDeviceState(device, sizeof(device_state), &device_state);
+        res = IDirectInputDevice2_GetDeviceState(gDirectInputJoystickDevices[gJoystick_index], sizeof(device_state), &device_state);
         if (FAILED(res)) {
+            dr_dprintf("attempting to reacquire");
             if (res == DIERR_INPUTLOST) {
                 AcquireDInputJoystickDevice(gJoystick_index);
             }
