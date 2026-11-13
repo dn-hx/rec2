@@ -445,7 +445,6 @@ br_int_32 C2_HOOK_CDECL BrParseVectorFixed(br_lexer* l, br_fixed_ls* v, br_int_3
 }
 
 // PARTIAL 97.89%: BrParseVectorFloat 0x0052fc90 [x87-schedule] - real token load is mov, original does fld/fstp through a temp
-PARTIAL 97.89%: BrParseVectorFloat 0x0052fc90 - inlined token loop and branch layout match; the real-token path still lacks the fld/fstp temporary (27.59 -> 97.89)
 // FUNCTION: CARMA2_HW 0x0052fc90
 br_int_32 C2_HOOK_CDECL BrParseVectorFloat(br_lexer* l, br_float* v, br_int_32 max) {
     int n;
