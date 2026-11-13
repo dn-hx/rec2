@@ -381,10 +381,10 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_gen_text(br_device_pixelmap* self, 
     return 0;
 }
 
+// PARTIAL 63.37%: _M_br_device_pixelmap_gen_textBounds 0x0053d810 - pointer-walk loop, br_int_8 subscript cast; residual je target (39.62 -> 63.37)
 // FUNCTION: CARMA2_HW 0x0053d810
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_gen_textBounds(br_device_pixelmap* self, br_rectangle* rect, br_font* font, const char* text) {
-    int i;
-    int j;
+    int n;
 
     rect->x = 0;
     rect->y = 0;
@@ -397,9 +397,11 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_gen_textBounds(br_device_pixelmap* 
         rect->w = BrStrLen(text) * (font->glyph_x + 1) - 1;
         return 0;
     }
-    j = BrStrLen(text);
-    for (i = 0; i < j; i++) {
-        rect->w += font->width[(br_uint_8)text[i]] + 1;
+    n = BrStrLen(text);
+    while (n > 0) {
+        rect->w += font->width[(br_int_8)*text] + 1;
+        text++;
+        n--;
     }
     rect->w -= 1;
     return 0;
