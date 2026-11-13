@@ -29,6 +29,7 @@ br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r)
     return q;
 }
 
+// PARTIAL 39.08%: x87 schedule - sum order and temp spill differ (original loads y,z,w first, reloads x)
 // FUNCTION: CARMA2_HW 0x00535710
 br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq) {
     br_scalar s;

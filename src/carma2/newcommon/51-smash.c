@@ -3077,6 +3077,7 @@ extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefin
 extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 extern int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
 
+// PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
