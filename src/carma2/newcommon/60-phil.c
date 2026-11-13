@@ -137,9 +137,9 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
             }
             pBuffer[0] = (tU8)pObject->physics_joint1->type;
             pBuffer[1] = pObject->uid;
-            value = pObject->omega.v[0] * pObject->physics_joint1->hinge_axis.v[0]
-                + pObject->omega.v[1] * pObject->physics_joint1->hinge_axis.v[1]
-                + pObject->omega.v[2] * pObject->physics_joint1->hinge_axis.v[2];
+            value = pObject->physics_joint1->hinge_axis.v[0] * pObject->omega.v[0]
+                + pObject->physics_joint1->hinge_axis.v[1] * pObject->omega.v[1]
+                + pObject->physics_joint1->hinge_axis.v[2] * pObject->omega.v[2];
             if (value > 39.269909f) {
                 value = 39.269909f;
             }
