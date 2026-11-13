@@ -976,11 +976,12 @@ int C2_HOOK_FASTCALL S3StopCDAInternal(void) {
 
 // FUNCTION: CARMA2_HW 0x00565bfe
 int C2_HOOK_FASTCALL S3StopCDAChannel(tS3_channel* pChannel) {
+    int result;
 
-    if (!gS3_CDA_enabled) {
-        return 0;
+    if (gS3_CDA_enabled) {
+        result = PDS3StopCDAChannel(pChannel);
     }
-    return PDS3StopCDAChannel(pChannel);
+    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x0056991f
