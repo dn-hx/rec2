@@ -444,41 +444,59 @@ br_int_32 C2_HOOK_CDECL BrParseVectorFixed(br_lexer* l, br_fixed_ls* v, br_int_3
     return n;
 }
 
+// PARTIAL 97.89%: BrParseVectorFloat 0x0052fc90 [x87-schedule] - real token load is mov, original does fld/fstp through a temp
+PARTIAL 97.89%: BrParseVectorFloat 0x0052fc90 - inlined token loop and branch layout match; the real-token path still lacks the fld/fstp temporary (27.59 -> 97.89)
 // FUNCTION: CARMA2_HW 0x0052fc90
 br_int_32 C2_HOOK_CDECL BrParseVectorFloat(br_lexer* l, br_float* v, br_int_32 max) {
     int n;
+    int neg;
+    br_float f;
 
-    if (l->current.id == T_LSQUARE) {
-        l->advance(l);
-    } else {
+    if (l->current.id != T_LSQUARE) {
         BrLexerTokenError(l, T_LSQUARE);
+    } else {
+        l->advance(l);
     }
     for (n = 0; n < max; n++) {
-#ifdef BRENDER_FIX_BUGS
-        if (l->current.id == T_RSQUARE) {
-            break;
+        neg = 0;
+        if (l->current.id == T_PLUS) {
+            l->advance(l);
         }
-#endif
-        *v = BrParseFloat(l);
+        if (l->current.id == T_DASH) {
+            neg = 1;
+            l->advance(l);
+        }
+        if (l->current.id == T_REAL) {
+            f = l->current.v.real;
+            l->advance(l);
+        } else if (l->current.id == T_INTEGER) {
+            f = (float)l->current.v.integer;
+            l->advance(l);
+        } else {
+            l->error(l, "expecting a float");
+            l->advance(l);
+            f = 0.0f;
+        }
+        if (neg) {
+            f = -f;
+        }
+        *v = f;
         v++;
         if (l->current.id == T_RSQUARE) {
-            n++;
             break;
         }
-        if (n != max - 1) {
-            if (l->current.id == T_COMMA) {
-                l->advance(l);
-            } else {
-                BrLexerTokenError(l, T_COMMA);
-            }
+        if (l->current.id != T_COMMA) {
+            BrLexerTokenError(l, T_COMMA);
+        } else {
+            l->advance(l);
         }
     }
-    if (l->current.id == T_RSQUARE) {
-        l->advance(l);
-    } else {
+    if (l->current.id != T_RSQUARE) {
         BrLexerTokenError(l, T_RSQUARE);
+    } else {
+        l->advance(l);
     }
-    return n;
+    return n + 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0052fd80

@@ -1031,6 +1031,7 @@ int PDGetRegisterSourceLocation(char *buffer, int *buffer_size) {
     return 0;
 }
 
+// PARTIAL 98.73%: PDGetMousePosition 0x0051c900 - scaled-mouse path restored; original has an unconditional jmp over the dead block where we emit je (29.33 -> 98.73)
 // FUNCTION: CARMA2_HW 0x0051c900
 void C2_HOOK_FASTCALL PDGetMousePosition(int *pX, int *pY) {
     POINT pnt;
@@ -1041,9 +1042,14 @@ void C2_HOOK_FASTCALL PDGetMousePosition(int *pX, int *pY) {
         return;
     }
     GetCursorPos(&pnt);
-    ScreenToClient(gHWnd, &pnt);
-    *pX = pnt.x;
-    *pY = pnt.y;
+    if (gScaleMouse != 0 && strcmp(gRenderer, "D3D") != 0) {
+        *pX = (int)((double)pnt.x / ((double)gScreenWidth * 0.0015625));
+        *pY = (int)((double)pnt.y / ((double)gScreenHeight * 0.0020833333333333333));
+    } else {
+        ScreenToClient(gHWnd, &pnt);
+        *pX = pnt.x;
+        *pY = pnt.y;
+    }
     gPD_mouse_position.x = *pX;
     gPD_mouse_position.y = *pY;
 }
