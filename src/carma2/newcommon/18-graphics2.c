@@ -246,30 +246,30 @@ void C2_HOOK_FASTCALL ResetPalette(void) {
 // Darken
 
 // SetFadedPalette
+static void Darken(tU8* pPtr, tU32 pDegree) {
+
+    *pPtr = (tU8)((*pPtr * pDegree) >> 8);
+}
+
 // FUNCTION: CARMA2_HW 0x004b5390
 void C2_HOOK_FASTCALL SetFadedPalette(int pK) {
     int i;
-    unsigned char* p;
+    br_pixelmap* palette;
 
-    memcpy(gScratch_pixels, gCurrent_palette->pixels, 0x400);
-    i = 0;
-    do {
-        p = (unsigned char*)gScratch_pixels;
-        i += 4;
-        p[i - 4] = (unsigned char)((p[i - 4] * pK) >> 8);
-        p = (unsigned char*)gScratch_pixels;
-        p[i - 3] = (unsigned char)((p[i - 3] * pK) >> 8);
-        p = (unsigned char*)gScratch_pixels;
-        p[i - 2] = (unsigned char)((p[i - 2] * pK) >> 8);
-        p = (unsigned char*)gScratch_pixels;
-        p[i - 1] = (unsigned char)((p[i - 1] * pK) >> 8);
-    } while (i < 0x400);
-    *(int*)gScratch_palette->pixels = 0;
+    memcpy(gScratch_pixels, gCurrent_palette->pixels, 256 * sizeof(br_colour));
+    for (i = 0; i < 256; i++) {
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 0], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 1], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 2], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 3], (tU32)pK);
+    }
+    palette = gScratch_palette;
+    ((br_int_32*)gScratch_palette->pixels)[0] = 0;
     gPalette_changed = 0;
     if (!gFaded_palette) {
-        PDSetPalette(gScratch_palette);
+        PDSetPalette(palette);
     }
-    gPalette_munged = gPalette_munged | (gScratch_palette != gRender_palette);
+    gPalette_munged |= palette != gRender_palette;
 }
 
 // FUNCTION: CARMA2_HW 0x004b5460
