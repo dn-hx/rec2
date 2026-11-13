@@ -672,70 +672,81 @@ void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVel
     }
 }
 
-// (reference only)
+// PARTIAL 63.95%: frame/x87 order differ (sub esp 0x1c vs 0x28)
 // FUNCTION: CARMA2_HW 0x004f8290
 void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelocity, br_vector3* pForce, tNon_car_spec* pOwner1, tNon_car_spec* pOwner2) {
     br_vector3 normal;
     br_vector3 tv;
-    br_vector3 tv2;
     br_scalar force_length;
-    br_scalar force_length_squared;
     br_scalar projection;
+    br_scalar tmp_y;
+    br_scalar tmp_z;
     tNon_car_spec* selected_owner;
     int spark_count;
+    int spark_index;
 
     force_length = BrVector3Length(pForce);
-    if (pOwner1 != NULL && pOwner1->driver == eDriver_local_human) {
-        selected_owner = pOwner1;
-    } else {
+    if (pOwner1 == NULL || pOwner1->driver != eDriver_local_human) {
         selected_owner = pOwner2;
+    } else {
+        selected_owner = pOwner1;
     }
     normal.v[0] = pForce->v[0] / force_length;
     normal.v[1] = pForce->v[1] / force_length;
     normal.v[2] = pForce->v[2] / force_length;
     if (force_length >= 10.0f) {
         CreateShrapnelShower(pPosition, pVelocity, &normal, force_length, (tCar_spec*)pOwner1, (tCar_spec*)pOwner2, 0, NULL);
-        if (!((pOwner1 != NULL && pOwner1->driver > 5)
-                || (pOwner1->flags & 0x200000) != 0
-                || (pOwner2 != NULL && pOwner2->driver > 5)
-                || (pOwner2->flags & 0x200000) != 0)) {
-            return;
-        }
-        force_length_squared = force_length * force_length;
-        projection = BrVector3Dot(pForce, pVelocity) / force_length_squared;
-        tv.v[0] = pVelocity->v[0] - pForce->v[0] * projection;
-        tv.v[1] = pVelocity->v[1] - pForce->v[1] * projection;
-        tv.v[2] = pVelocity->v[2] - pForce->v[2] * projection;
-        BrMatrix34TApplyV(pVelocity, &tv, &pOwner1->actor->t.t.mat);
-        BrVector3Sub(&tv, pPosition, (br_vector3*)selected_owner->actor->t.t.mat.m[3]);
-        BrMatrix34TApplyV(pPosition, &tv, &selected_owner->actor->t.t.mat);
-        BrMatrix34TApplyV(&tv, pForce, &selected_owner->actor->t.t.mat);
-        BrVector3Copy(pForce, &tv);
-        spark_count = 3 - (int)(force_length * -0.1f);
-        if (spark_count > 20) {
-            spark_count = 20;
-        }
-        while (spark_count > 0) {
-            int spark_index;
-
-            spark_index = gSpark_next;
-            BrVector3Copy(&gSparks[spark_index].pos, pPosition);
-            BrVector3SetFloat(&gSparks[spark_index].normal, 0.0f, 0.0f, 0.0f);
-            BrVector3SetFloat(&tv, FRandomBetween(-1.0f, 1.0f), FRandomBetween(-0.2f, 1.0f), FRandomBetween(-1.0f, 1.0f));
-            projection = BrVector3Dot(pForce, &tv) / force_length_squared;
-            BrVector3Scale(&tv2, pForce, projection);
-            BrVector3Sub(&gSparks[spark_index].v, &tv, &tv2);
-            BrVector3Accumulate(&gSparks[spark_index].v, pVelocity);
-            gSparks[spark_index].count = 1000;
-            gSparks[spark_index].car = (tCar_spec*)selected_owner;
-            gSpark_flags |= 1 << spark_index;
-            gSparks[spark_index].time_sync = gPHIL_mechanics_time_sync;
-            gSparks[spark_index].colour = 0;
-            gSpark_next = spark_index + 1;
-            if (gSpark_next >= (int)REC2_ASIZE(gSparks)) {
-                gSpark_next = 0;
+        if ((pOwner1 != NULL && pOwner1->driver > 5)
+            || (pOwner1->flags & 0x200000) != 0
+            || (pOwner2 != NULL && pOwner2->driver > 5)
+            || (pOwner2->flags & 0x200000) != 0) {
+            projection = BrVector3Dot(pForce, pVelocity) / (force_length * force_length);
+            tv.v[0] = pVelocity->v[0] - pForce->v[0] * projection;
+            tv.v[1] = pVelocity->v[1] - pForce->v[1] * projection;
+            tv.v[2] = pVelocity->v[2] - pForce->v[2] * projection;
+            BrMatrix34TApplyV(pVelocity, &tv, &pOwner1->actor->t.t.mat);
+            tv.v[0] = pPosition->v[0] - selected_owner->actor->t.t.mat.m[3][0];
+            tv.v[1] = pPosition->v[1] - selected_owner->actor->t.t.mat.m[3][1];
+            tv.v[2] = pPosition->v[2] - selected_owner->actor->t.t.mat.m[3][2];
+            BrMatrix34TApplyV(pPosition, &tv, &selected_owner->actor->t.t.mat);
+            BrMatrix34TApplyV(&tv, pForce, &selected_owner->actor->t.t.mat);
+            pForce->v[0] = tv.v[0];
+            pForce->v[1] = tv.v[1];
+            pForce->v[2] = tv.v[2];
+            spark_count = 3 - (int)(force_length * -0.1f);
+            if (spark_count > 20) {
+                spark_count = 20;
             }
-            spark_count--;
+            if (spark_count > 0) {
+                do {
+                    spark_index = gSpark_next;
+                    gSparks[spark_index].pos.v[0] = pPosition->v[0];
+                    gSparks[spark_index].pos.v[1] = pPosition->v[1];
+                    gSparks[spark_index].pos.v[2] = pPosition->v[2];
+                    BrVector3SetFloat(&gSparks[spark_index].normal, 0.0f, 0.0f, 0.0f);
+                    BrVector3SetFloat(&tv, FRandomBetween(-1.0f, 1.0f), FRandomBetween(-0.2f, 1.0f), FRandomBetween(-1.0f, 1.0f));
+                    projection = (pForce->v[0] * tv.v[0] + pForce->v[1] * tv.v[1] + pForce->v[2] * tv.v[2]) / (force_length * force_length);
+                    tmp_y = pForce->v[1] * projection;
+                    tmp_z = pForce->v[2] * projection;
+                    gSparks[gSpark_next].v.v[0] = tv.v[0] - pForce->v[0] * projection;
+                    gSparks[gSpark_next].v.v[1] = tv.v[1] - tmp_y;
+                    gSparks[gSpark_next].v.v[2] = tv.v[2] - tmp_z;
+                    gSparks[gSpark_next].v.v[0] = pVelocity->v[0] + gSparks[gSpark_next].v.v[0];
+                    gSparks[gSpark_next].v.v[1] = gSparks[gSpark_next].v.v[1] + pVelocity->v[1];
+                    gSparks[gSpark_next].v.v[2] = gSparks[gSpark_next].v.v[2] + pVelocity->v[2];
+                    gSparks[gSpark_next].count = 1000;
+                    gSparks[gSpark_next].car = (tCar_spec*)selected_owner;
+                    gSpark_flags |= 1 << (gSpark_next & 0x1f);
+                    spark_index = gSpark_next + 1;
+                    gSparks[gSpark_next].time_sync = gPHIL_mechanics_time_sync;
+                    gSparks[gSpark_next].colour = 0;
+                    gSpark_next = spark_index;
+                    if (spark_index >= (int)REC2_ASIZE(gSparks)) {
+                        gSpark_next = 0;
+                    }
+                    spark_count--;
+                } while (spark_count != 0);
+            }
         }
     }
 }
