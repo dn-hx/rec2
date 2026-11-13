@@ -475,10 +475,14 @@ void C2_HOOK_STDCALL BrMatrix34TApplyFV(br_vector3* A, const br_fvector3* B, con
     A->v[2] = BR_MAC3(B->v[0], C(2, 0), B->v[1], C(2, 1), B->v[2], C(2, 2));
 }
 
+// PARTIAL: row 0's last product loads B->v[0] instead of C->m[0][0]
+// as the x87 multiplicand; every other instruction matches the original.
 // FUNCTION: CARMA2_HW 0x00533410
 void C2_HOOK_CDECL BrMatrix34Apply(br_vector3* A, const br_vector4* B, const br_matrix34* C) {
+    br_scalar e;
 
-    A->v[0] = BR_MAC4(B->v[0], C(0, 0), B->v[1], C(1, 0), B->v[2], C(2, 0), B->v[3], C(3, 0));
+    e = B->v[1];
+    A->v[0] = BR_MAC4(B->v[0], C(0, 0), e, C(1, 0), B->v[2], C(2, 0), B->v[3], C(3, 0));
     A->v[1] = BR_MAC4(B->v[0], C(0, 1), B->v[1], C(1, 1), B->v[2], C(2, 1), B->v[3], C(3, 1));
     A->v[2] = BR_MAC4(B->v[0], C(0, 2), B->v[1], C(1, 2), B->v[2], C(2, 2), B->v[3], C(3, 2));
 }
