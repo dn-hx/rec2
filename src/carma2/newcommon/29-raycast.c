@@ -458,7 +458,7 @@ br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition) {
                 world = track_spec->columns[z][x].actor_0x0;
                 camera = gY_picking_camera;
                 camera_data = (br_camera*)camera->type_data;
-                if (camera == world) {
+                if (gY_picking_camera == world) {
                     BrMatrix34Identity(&camera_tfm);
                 } else {
                     BrTransformToMatrix34(&camera_tfm, &camera->t);
