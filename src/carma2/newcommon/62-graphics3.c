@@ -536,8 +536,6 @@ void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pT
 // FUNCTION: CARMA2_HW 0x004967c0
 void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const br_vector3 *pPos, int pColour) {
     br_vector3 map_pos;
-    tU16 colour16;
-
     if (pTime & 0x100) {
         pColour = 0;
     }
@@ -547,8 +545,7 @@ void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const b
             PossibleLock(1);
         }
         if (gBack_screen->type != BR_PMT_INDEX_8) {
-            colour16 = PaletteEntry16Bit(gRender_palette, pColour);
-            *(tU16*)((tU8*)pScreen->pixels + (int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0] * 2) = colour16;
+            *(tU16*)((int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0] * 2 + (int)pScreen->pixels) = PaletteEntry16Bit(gRender_palette, pColour);
         } else {
             ((tU8*)pScreen->pixels)[(int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0]] = (tU8)pColour;
         }
