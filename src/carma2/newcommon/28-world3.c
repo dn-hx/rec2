@@ -193,6 +193,7 @@ void C2_HOOK_FASTCALL DisposeStorageSpace(tBrender_storage* pStorage) {
     BrMemFree(pStorage->materialProps);
 }
 
+// PARTIAL 73.62%: ClearMatertrialSetFromStorageSpace 0x00500e60 [regalloc] - pStart spilled to stack, extra push ecx frame slot
 // FUNCTION: CARMA2_HW 0x00500e60
 void C2_HOOK_FASTCALL ClearMatertrialSetFromStorageSpace(tBrender_storage* pStorage_space, int pStart, int pEnd) {
     int i;
@@ -209,10 +210,9 @@ void C2_HOOK_FASTCALL ClearMatertrialSetFromStorageSpace(tBrender_storage* pStor
     pStorage_space->materials_count = move_to;
     if (pStorage_space == &gNet_cars_storage_space) {
         for (i = 0; i < gNumber_of_net_players; i++) {
-            tCar_spec* car = gNet_players[i].car;
-            if (car != NULL && car->old_material_count >= pEnd) {
-                car->old_material_count += pStart - pEnd;
-                car->new_material_count += pStart - pEnd;
+            if (gNet_players[i].car != NULL && gNet_players[i].car->old_material_count >= pEnd) {
+                gNet_players[i].car->old_material_count += pStart - pEnd;
+                gNet_players[i].car->new_material_count += pStart - pEnd;
             }
         }
     }
