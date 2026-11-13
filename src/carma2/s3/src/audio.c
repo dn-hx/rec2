@@ -1041,16 +1041,16 @@ tS3_channel* C2_HOOK_FASTCALL S3GetChannelForTag(int pTag) {
 
 // FUNCTION: CARMA2_HW 0x0056a818
 tS3_error_codes C2_HOOK_FASTCALL S3ClearBufferOfMidiChannel(int pTag) {
+    tS3_channel* channel;
+    extern int C2_HOOK_FASTCALL PDS3Return0_C(tS3_channel* pChannel);
 
     if (gS3_enable_midi) {
-        tS3_channel* channel;
-
         channel = S3GetChannelForTag(pTag);
         if (channel == NULL) {
             return eS3_error_bad_stag;
         }
         if (channel->type == 1) {
-            /* nop0_FUN_00569f85(); */
+            PDS3Return0_C(channel);
             channel->descriptor->buffer_description = NULL;
         }
     }
