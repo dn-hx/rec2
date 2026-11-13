@@ -423,7 +423,7 @@ void C2_HOOK_CDECL BrZbSceneRenderEnd(void) {
     v1db.render_root = NULL;
 }
 
-PARTIAL 83.33%: BrZbSceneRender 0x005226d0 - Begin/World/End inlined by hand; residual is MSVC fild/fidiv and push scheduling (55.89 -> 83.33)
+// PARTIAL 83.33%: BrZbSceneRender 0x005226d0 - Begin/World/End inlined by hand; residual is MSVC fild/fidiv and push scheduling (55.89 -> 83.33)
 // FUNCTION: CARMA2_HW 0x005226d0
 void C2_HOOK_CDECL BrZbSceneRender(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
     br_model* model;
