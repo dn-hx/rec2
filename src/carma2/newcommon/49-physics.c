@@ -2169,7 +2169,28 @@ void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vector3* pT
     pObject->omega.v[0] += t.v[0] / pObject->I.v[0];
 }
 
-// ApplyDiminishingTorque
+// FUNCTION: CARMA2_HW 0x004c2c90
+void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV) {
+    br_vector3 original_omega;
+    br_vector3 tv;
+    br_vector3 inertia;
+
+    original_omega = pObject->omega;
+    BrVector3Scale(&tv, pV, (br_scalar)(1.0 / REC2_SQR(6.9)));
+    BrVector3Copy(&inertia, &pObject->I);
+    pObject->omega.v[0] -= tv.v[0] / inertia.v[0];
+    pObject->omega.v[1] -= tv.v[1] / inertia.v[1];
+    pObject->omega.v[2] -= tv.v[2] / inertia.v[2];
+    if (original_omega.v[0] * pObject->omega.v[0] <= 0.0f) {
+        pObject->omega.v[0] = 0.0f;
+    }
+    if (original_omega.v[1] * pObject->omega.v[1] <= 0.0f) {
+        pObject->omega.v[1] = 0.0f;
+    }
+    if (original_omega.v[2] * pObject->omega.v[2] <= 0.0f) {
+        pObject->omega.v[2] = 0.0f;
+    }
+}
 
 // OrderObjectListOnX
 

@@ -1062,7 +1062,7 @@ extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, b
 extern void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse);
 extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DRVector3Diminish(br_vector3* pV1, const br_vector3* pV2);
-extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
+extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 extern float gGravity_multiplier;
 
 // PARTIAL 88.61%: RepositionObjectGroup 0x004c2830 - body complete; remaining diff is x87 scheduling of the
@@ -1350,7 +1350,7 @@ void C2_HOOK_FASTCALL ProcessDrag2(tPHIL_queued_header* pObject_info, tPhysics_o
     v.v[0] = pObject->omega.v[0] * (s * drag);
     v.v[1] = pObject->omega.v[1] * (s * drag);
     v.v[2] = pObject->omega.v[2] * (s * drag);
-    ApplyWaterOmegaBrake(pObject, &v);
+    ApplyDiminishingTorque(pObject, &v);
 
     for (pObject = pObject->child; pObject != NULL; pObject = pObject->next) {
         ProcessDrag2(pObject_info, pObject, pDrag, pObject_info_flags, pSpecial_volume);

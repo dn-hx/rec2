@@ -556,7 +556,7 @@ void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
 
 // MungeCarsMass
 
-extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
+extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -591,7 +591,7 @@ void C2_HOOK_FASTCALL AddDrag(tCar_spec* pCar, tPhysics_object* pObject, br_scal
     v.v[0] = pObject->omega.v[0] * k;
     v.v[1] = pObject->omega.v[1] * k;
     v.v[2] = pObject->omega.v[2] * k;
-    ApplyWaterOmegaBrake(pObject, &v);
+    ApplyDiminishingTorque(pObject, &v);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -6268,29 +6268,6 @@ int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2) {
 #endif
 // (GPL-3.0); the original at 0x004c2c90
 // FUNCTION: CARMA2_HW 0x004c2c90
-void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV) {
-    br_scalar b0;
-    br_scalar b1;
-    br_scalar b2;
-    br_vector3 om;
-
-    b0 = (pV->v[0] * 0.0210039914f) / pObject->I.v[0];
-    om = pObject->omega;
-    b1 = (pV->v[1] * 0.0210039914f) / pObject->I.v[1];
-    b2 = (pV->v[2] * 0.0210039914f) / pObject->I.v[2];
-    pObject->omega.v[0] -= b0;
-    pObject->omega.v[1] -= b1;
-    pObject->omega.v[2] -= b2;
-    if (om.v[0] * pObject->omega.v[0] <= 0.0f) {
-        pObject->omega.v[0] = 0.0f;
-    }
-    if (om.v[1] * pObject->omega.v[1] <= 0.0f) {
-        pObject->omega.v[1] = 0.0f;
-    }
-    if (om.v[2] * pObject->omega.v[2] <= 0.0f) {
-        pObject->omega.v[2] = 0.0f;
-    }
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -6482,7 +6459,7 @@ void C2_HOOK_FASTCALL MoveNonCar(tNon_car_spec* pNon_car, br_scalar pDt) {
     drag_vector.v[0] = pNon_car->collision_info->omega.v[0] * k;
     drag_vector.v[1] = pNon_car->collision_info->omega.v[1] * k;
     drag_vector.v[2] = pNon_car->collision_info->omega.v[2] * k;
-    ApplyWaterOmegaBrake(pNon_car->collision_info, &drag_vector);
+    ApplyDiminishingTorque(pNon_car->collision_info, &drag_vector);
     if (pNon_car->tumble_factor != 0.f) {
         ApplyNonCarTumble(pNon_car->collision_info, &pNon_car->collision_info->v, pNon_car->tumble_factor, pNon_car->tumble_threshold);
     }

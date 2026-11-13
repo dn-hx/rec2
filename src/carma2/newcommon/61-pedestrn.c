@@ -2584,7 +2584,7 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
     gPed_nearness = 1;
 }
 
-extern void C2_HOOK_FASTCALL ApplyWaterOmegaBrake(tPhysics_object* pObject, const br_vector3* pV);
+extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 // FUNCTION: CARMA2_HW 0x004d6820
@@ -2611,7 +2611,7 @@ void C2_HOOK_FASTCALL PedPreCollisionStuff(void) {
             v.v[0] = pObject->omega.v[0] * (BrVector3Length(&pObject->omega) * 4e-06);
             v.v[1] = pObject->omega.v[1] * (BrVector3Length(&pObject->omega) * 4e-06);
             v.v[2] = (float)(BrVector3Length(&pObject->omega) * 4e-06) * pObject->omega.v[2];
-            ApplyWaterOmegaBrake(pObject, &v);
+            ApplyDiminishingTorque(pObject, &v);
         }
     }
 }
