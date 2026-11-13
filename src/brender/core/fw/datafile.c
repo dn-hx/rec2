@@ -1574,19 +1574,13 @@ br_datafile* C2_HOOK_STDCALL DfOpen(const char* name, int write, br_token scalar
 
 // FUNCTION: CARMA2_HW 0x0052cb80
 void C2_HOOK_STDCALL DfClose(br_datafile* df) {
-    br_datafile* dfp;
 
-    while (1) {
-        if (DatafileStackTop > 0) {
-            if (DatafileStack[DatafileStackTop - 1].type == BR_MEMORY_FILE) {
-                break;
-            }
-            DfPop(DatafileStack[DatafileStackTop - 1].type, NULL);
-        }
+    while (DfTopType() != BR_MEMORY_FILE) {
+        DfPop(DfTopType(), NULL);
     }
-    dfp = DfPop(BR_MEMORY_FILE, NULL);
-    BrFileClose(dfp->h);
-    BrResFree(dfp);
+    DfPop(BR_MEMORY_FILE, NULL);
+    BrFileClose(df->h);
+    BrResFree(df);
 }
 
 // FUNCTION: CARMA2_HW 0x0052cc50
