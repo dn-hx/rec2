@@ -146,20 +146,22 @@ void C2_HOOK_CDECL V1Face_CullOneSidedPerspective(br_geometry* self, br_soft_ren
 
     rend.nvisible_faces = 0;
 
-    for (f = 0, fp = rend.faces, tfp = rend.temp_faces; f < rend.nfaces; f++, fp++, tfp++) {
-        {
-            if (BrVector3Dot(&fp->eqn, &scache.eye_m) < fp->eqn.v[3]) {
-                tfp->flag = 0;
-            } else {
-                tfp->flag = TFF_VISIBLE;
+    for (f = 0; f < rend.nfaces; f++) {
+        tfp = &rend.temp_faces[f];
+        fp = &rend.faces[f];
 
-                rend.vertex_counts[fp->vertices[0]] += 1;
-                rend.vertex_counts[fp->vertices[1]] += 1;
-                rend.vertex_counts[fp->vertices[2]] += 1;
-
-                rend.nvisible_faces++;
-            }
+        if (BrVector3Dot(&fp->eqn, &scache.eye_m) < fp->eqn.v[3]) {
+            tfp->flag = 0;
+            continue;
         }
+
+        tfp->flag = TFF_VISIBLE;
+
+        rend.vertex_counts[fp->vertices[0]] += 1;
+        rend.vertex_counts[fp->vertices[1]] += 1;
+        rend.vertex_counts[fp->vertices[2]] += 1;
+
+        rend.nvisible_faces++;
     }
 }
 
