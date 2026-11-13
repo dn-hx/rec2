@@ -28,10 +28,10 @@ void C2_HOOK_STDCALL BrBufferUpdate(br_pixelmap* pm, br_token use, br_uint_16 fl
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(br_renderer_dispatch, _bufferStoredNew, 0x78);
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(br_buffer_stored_dispatch , _update, 0x44);
 
-    if (pm->stored == NULL) {
-        v1db.renderer->dispatch->_bufferStoredNew(v1db.renderer, &pm->stored, use, (br_device_pixelmap*)pm, tv);
-    } else {
+    if (pm->stored != NULL) {
         ((br_buffer_stored*)pm->stored)->dispatch->_update((br_buffer_stored*)pm->stored, (br_device_pixelmap*)pm, tv);
+    } else {
+        v1db.renderer->dispatch->_bufferStoredNew(v1db.renderer, &pm->stored, use, (br_device_pixelmap*)pm, tv);
     }
 }
 
