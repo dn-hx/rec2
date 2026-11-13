@@ -83,6 +83,7 @@ extern tU32 C2_HOOK_FASTCALL GetLastTickCount(void);
 extern int C2_HOOK_CDECL PDMissingMaterial(const char* pName);
 extern void C2_HOOK_FASTCALL PDRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h);
 extern void C2_HOOK_FASTCALL PDConvertMousePosition(LPPOINT pPoint, LONG* pX, LONG* pY);
+extern int C2_HOOK_FASTCALL PDCheckDriveExists2(const char* pThe_path, const char* pFile_name, tU32 pMin_size);
 
 extern int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd);
 
