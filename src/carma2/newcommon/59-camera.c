@@ -2230,6 +2230,8 @@ static int C2_HOOK_FASTCALL CheckPipeCarState(tPipe_chunk* pChunk, int pChunk_co
     gPipe_car_state_chunk = (tU8*)pChunk;
     return 1;
 }
+extern float gFLOAT_00589440;
+
 // FUNCTION: CARMA2_HW 0x004121b0
 void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat) {
     br_camera* camera;
@@ -2249,8 +2251,8 @@ void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat) {
         nx = dx * d;
         nz = dz * d;
     } else {
-        nx = 1.0f;
-        nz = 0.0f;
+        nx = gFLOAT_00589440;
+        nz = gFLOAT_00589418;
     }
     pMat->m[0][0] = -nz;
     pMat->m[0][1] = 0.0f;
