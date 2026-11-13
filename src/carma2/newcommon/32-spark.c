@@ -1579,6 +1579,7 @@ void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void) {
 // symbol in the original: they were inlined into RenderSmoke.
 static __inline void C2_HOOK_FASTCALL RecordSmokeCircle(br_vector3* pCent, br_scalar pR, br_scalar pStrength, br_colour pShade, br_scalar pAspect) {
     br_matrix34* mat;
+    tBRender_smoke* smoke;
 
     if (gRendering_mirror) {
         mat = &gRearview_camera_to_world;
@@ -1590,13 +1591,14 @@ static __inline void C2_HOOK_FASTCALL RecordSmokeCircle(br_vector3* pCent, br_sc
     gBR_smoke_structs[gN_BR_smoke_structs].strength = pStrength;
     gBR_smoke_structs[gN_BR_smoke_structs].col = pShade;
     gBR_smoke_structs[gN_BR_smoke_structs].aspect = pAspect;
-    gBR_smoke_pointers[gN_BR_smoke_structs] = &gBR_smoke_structs[gN_BR_smoke_structs];
+    smoke = &gBR_smoke_structs[gN_BR_smoke_structs];
+    gBR_smoke_pointers[gN_BR_smoke_structs] = smoke;
     if (pShade == gShade_list[7]) {
-        gBR_smoke_structs[gN_BR_smoke_structs].model = gBlend_model2;
+        smoke->model = gBlend_model2;
     } else {
-        gBR_smoke_structs[gN_BR_smoke_structs].model = gBlend_model;
+        smoke->model = gBlend_model;
     }
-    gN_BR_smoke_structs += 1;
+    gN_BR_smoke_structs++;
 }
 
 static __inline void C2_HOOK_FASTCALL SmokeCircle3D(br_vector3* pPos, br_scalar pRadius, br_scalar pStrength, br_scalar pAspect, br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_colour pShade, br_actor* pCamera) {
