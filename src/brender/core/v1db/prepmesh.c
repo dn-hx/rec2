@@ -621,31 +621,17 @@ int C2_HOOK_STDCALL IsMaterialTransparent(const br_material* material) {
     if (material == NULL) {
         return 0;
     }
-    if (material->colour_map != NULL) {
-        br_uint_8 type = material->colour_map->type;
-
-        switch (type) {
-        case BR_PMT_ALPHA_8:
-        case BR_PMT_INDEXA_88:
-        case BR_PMT_RGBA_4444:
-        case BR_PMT_ALPHA_4:
-        case BR_PMT_INDEXA_44:
-        case BR_PMT_DEPTH_15:
-        case BR_PMT_ARGB_1555:
-            return 1;
-        }
-        if (material->index_blend != NULL) {
-            return 1;
-        }
+    if ((material->colour_map != NULL && (material->colour_map->type == BR_PMT_ALPHA_8 || material->colour_map->type == BR_PMT_INDEXA_88 || material->colour_map->type == BR_PMT_RGBA_4444 || material->colour_map->type == BR_PMT_ALPHA_4 || material->colour_map->type == BR_PMT_INDEXA_44 || material->colour_map->type == BR_PMT_DEPTH_15 || material->colour_map->type == BR_PMT_ARGB_1555)) || material->index_blend != NULL) {
+        return 1;
     }
 
     tvp = material->extra_prim;
     if (tvp != NULL) {
-        while (tvp->t != BR_NULL_TOKEN) {
-            if (tvp->t == BRT_OPACITY_X || tvp->t == BRT_OPACITY_F) {
-                return 1;
-            }
+        while (tvp->t != BR_NULL_TOKEN && tvp->t != BRT_OPACITY_X && tvp->t != BRT_OPACITY_F) {
             tvp++;
+        }
+        if (tvp->t != BR_NULL_TOKEN) {
+            return 1;
         }
     }
     return 0;
