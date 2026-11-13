@@ -287,8 +287,8 @@ char* C2_HOOK_CDECL BrResClassIdentifier(br_uint_8 res_class) {
     br_resource_class* rclass;
 
     rclass = fw.resource_class_index[res_class];
-    if (rclass == NULL) {
-        return "<NULL>";
+    if (rclass != NULL) {
+        return rclass->identifier;
     }
-    return rclass->identifier;
+    return "<NULL>";
 }
