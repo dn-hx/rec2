@@ -348,6 +348,7 @@ br_fixed_ls C2_HOOK_CDECL BrParseFixed(br_lexer* l) {
 // FUNCTION: CARMA2_SW 0x0052b1e0
 br_float C2_HOOK_CDECL BrParseFloat(br_lexer* l) {
     br_boolean neg;
+    double d;
     br_float f;
 
     neg = 0;
@@ -359,7 +360,7 @@ br_float C2_HOOK_CDECL BrParseFloat(br_lexer* l) {
         l->advance(l);
     }
     if (l->current.id == T_REAL) {
-        f = l->current.v.real;
+        f = (br_float)(d = l->current.v.real);
         l->advance(l);
     } else if (l->current.id == T_INTEGER) {
         f = (float)l->current.v.integer;
