@@ -446,6 +446,8 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     PAINTSTRUCT paint;
     POINT point;
     char buffer[256];
+    LARGE_INTEGER current_count;
+    DWORDLONG shifted;
 
     switch (uMsg) {
 #if !defined(KEEP_ACTIVE_IN_BACKGROUND)
@@ -453,10 +455,26 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         case WM_SIZE:
             if (IsIconic(hWnd)) {
                 dr_dprintf("WM_SIZE/WM_MOVE: Window is iconic");
-                DeActivateApp();
+                dr_dprintf("DeActivateApp() - START");
+                if (!gWindowMovingResizing && gWindowActiveState == 2) {
+                    dr_dprintf("DeActivateApp() - deactivating app");
+                    gWindowMovingResizing = 1;
+                    if (gDirectInputDevice != NULL) {
+                        IDirectInputDevice_Unacquire(gDirectInputDevice);
+                    }
+                    if (gHWnd != NULL) {
+                        SetWindowPos(gHWnd, NULL, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
+                    }
+                    gWindowActiveState = (strcmp(gRenderer, "D3D") == 0) ? 0 : 1;
+                    gWindowMovingResizing = 0;
+                }
+                dr_dprintf("DeActivateApp() - END; active state now %d", gWindowActiveState);
             }
             break;
 #endif
+        case WM_DESTROY:
+            dr_dprintf("WM_DESTROY received - doing nothing.");
+            break;
         case WM_PAINT:
             BeginPaint(hWnd, &paint);
             EndPaint(hWnd, &paint);
@@ -476,8 +494,16 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                         SetWindowPos(gHWnd, NULL, 0, 0, gScreenWidth, gScreenHeight,
                                      SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
                     }
+                    if (gPerformanceCounterInitialized) {
+                        QueryPerformanceCounter(&current_count);
+                        shifted = Int64ShllMod32((LONGLONG) current_count.HighPart, 16);
+                        shifted = Int64ShllMod32(shifted, 16);
+                        gTime_app_activated = (tU32) ((((DWORDLONG) current_count.LowPart + shifted)
+                                  - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_ms.QuadPart);
+                    } else {
+                        gTime_app_activated = 0;
+                    }
                     gWindowActiveState = 2;
-                    gTime_app_activated = PDGetTotalTime();
                 } else {
                     if (gBack_screen != NULL && gBack_screen->pixels != NULL) {
                         return 1;
@@ -487,16 +513,36 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             }
             break;
 #endif
-        case WM_DESTROY:
-            dr_dprintf("WM_DESTROY received - doing nothing.");
-            break;
-        case WM_SYSCOMMAND:
-            if (GET_SC_WPARAM(wParam) == SC_CLOSE) {
-                DestroyWindow(gHWnd);
-                gHWnd = NULL;
-                PDShutdownSystem();
-                return 0;
+        case WM_CHAR:
+            if (0x1f < (unsigned char) wParam && (unsigned char) wParam != 0x7f) {
+                if (gKeyboardBufferLength >= (int) REC2_ASIZE(gKeyboardBuffer)) {
+                    memmove(gKeyboardBuffer, &gKeyboardBuffer[1], REC2_ASIZE(gKeyboardBuffer) - 1);
+                    gKeyboardBufferLength = REC2_ASIZE(gKeyboardBuffer) - 1;
+                }
+                gKeyboardBuffer[gKeyboardBufferLength] = (unsigned char) wParam;
+                gKeyboardBufferLength++;
+                strncpy(buffer, (char *) gKeyboardBuffer, gKeyboardBufferLength);
+                buffer[gKeyboardBufferLength] = '\0';
+                dr_dprintf("KEY PRESSED, BUFFER NOW IS: '%s'", buffer);
             }
+            break;
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDBLCLK:
+            if (gWindowActiveState != 2) {
+                gCursorPos_LastClick = gPD_mouse_position;
+                gCursorPos_LastClick_Valid = 1;
+                break;
+            }
+            GetCursorPos(&point);
+            if (!gScaleMouse || strcmp(gRenderer, "D3D") == 0) {
+                ScreenToClient(gHWnd, &point);
+                gCursorPos_LastClick = point;
+            } else {
+                gCursorPos_LastClick.x = (int) ((double) point.x / (gScreenWidth / 640.));
+                gCursorPos_LastClick.y = (int) ((double) point.y / (gScreenHeight / 480.));
+            }
+            gPD_mouse_position = gCursorPos_LastClick;
+            gCursorPos_LastClick_Valid = 1;
             break;
         case WM_LBUTTONDOWN:
             gMouseLButtonDown = gWindowActiveState == 2 ? 1 : 0;
@@ -512,23 +558,6 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                 gMouseCaptured = 0;
             }
             break;
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDBLCLK:
-            if (gWindowActiveState != 2) {
-                gCursorPos_LastClick = gPD_mouse_position;
-                gCursorPos_LastClick_Valid = 1;
-                break;
-            }
-            GetCursorPos(&point);
-            if (!gScaleMouse || strcmp(gRenderer, "D3D") == 0) {
-                ScreenToClient(gHWnd, &point);
-                gPD_mouse_position = gCursorPos_LastClick = point;
-            } else {
-                gPD_mouse_position.x = gCursorPos_LastClick.x = (int) ((double) point.x / (gScreenWidth / 640.));
-                gPD_mouse_position.y = gCursorPos_LastClick.y = (int) ((double) point.y / (gScreenHeight / 480.));
-            }
-            gCursorPos_LastClick_Valid = 1;
-            break;
         case WM_RBUTTONDOWN:
             gMouseRButtonDown = gWindowActiveState == 2 ? 1 : 0;
             if (!gMouseCaptured && gWindowActiveState == 2) {
@@ -543,17 +572,12 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                 gMouseCaptured = 0;
             }
             break;
-        case WM_CHAR:
-            if (0x1f < (char) wParam && (char) wParam != 0x7f) {
-                if (gKeyboardBufferLength >= REC2_ASIZE(gKeyboardBuffer)) {
-                    memmove(gKeyboardBuffer, &gKeyboardBuffer[1], REC2_ASIZE(gKeyboardBuffer) - 1);
-                    gKeyboardBufferLength = REC2_ASIZE(gKeyboardBuffer) - 1;
-                }
-                gKeyboardBuffer[gKeyboardBufferLength] = (unsigned char) wParam;
-                gKeyboardBufferLength++;
-                strncpy(buffer, (char *) gKeyboardBuffer, gKeyboardBufferLength);
-                buffer[gKeyboardBufferLength] = '\0';
-                dr_dprintf("KEY PRESSED, BUFFER NOW IS: '%s'", buffer);
+        case WM_SYSCOMMAND:
+            if (GET_SC_WPARAM(wParam) == SC_CLOSE) {
+                DestroyWindow(gHWnd);
+                gHWnd = NULL;
+                PDShutdownSystem();
+                return 0;
             }
             break;
         default:
