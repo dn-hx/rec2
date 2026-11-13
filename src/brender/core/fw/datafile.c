@@ -1394,13 +1394,12 @@ char* C2_HOOK_STDCALL DfNameReadText(br_datafile* df, char* name) {
     if (BrStrCmp(id, "name") != 0) {
         BrFailure("no name");
     }
-    if ((data != NULL) && (*data == '\"')) {
-        BrStrNCpy(name, data + 1, 0xff);
-        name[0xff] = '\0';
-        return data;
+    if ((data == NULL) || (*data != '\"')) {
+        BrFailure("no name string");
     }
-    BrFailure("no name string");
-    return NULL;
+    BrStrNCpy(name, data + 1, 0xff);
+    name[0xff] = '\0';
+    return name;
 }
 
 // FUNCTION: CARMA2_HW 0x0052c840
