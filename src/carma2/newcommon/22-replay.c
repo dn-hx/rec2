@@ -820,10 +820,10 @@ void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x
     ped = (tPedestrian*)field_0x0;
     if (field_0x5 != 0xff) {
         if (field_0x5 != 0) {
-            *(tU8*)&ped->flags |= 1;
+            ((tS16*)ped)[4] |= 1;
             MakeCharacterRenderable2(ped->character, (int)(tS8)field_0x9);
         } else {
-            *(tU8*)&ped->flags &= 0xfe;
+            ((tS16*)ped)[4] &= ~1;
             CharacterNoLongerRenderable(ped->character);
         }
     }
