@@ -839,6 +839,7 @@ void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x
 // Flag byte of the pedestrian (offset 8) is written through a signed-short view: that is the only
 // form the original compiler lowers to the direct `or/and BYTE PTR [esi+8]` (an unsigned byte or
 // word view gives a load/or/store pair). Block 2 keeps the original's early return and shared tail.
+// PARTIAL 95.12%: WorkerPedStatusUndo 0x004ca6e0 - shared bit-4 test: original one test al,al;je for both paths, ours an extra test/je (89.03 -> 95.12)
 // FUNCTION: CARMA2_HW 0x004ca6e0
 void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x8, tU8 field_0xa, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
     extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
@@ -846,6 +847,7 @@ void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 fiel
     extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
     extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
     tPedestrian* ped;
+    tU8 bit4;
 
     ped = (tPedestrian*)field_0x0;
     if (field_0x4 != 0xff) {
@@ -860,26 +862,22 @@ void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 fiel
     if (field_0x6 == 0xff) {
         return;
     }
-    if ((field_0x6 & 4) == 0) {
-        if ((field_0x7 & 4) != 0) {
-            ped->character->field_0x14 = (int)(tS8)field_0x6;
-            ped->character->field_0x5 = field_0xa;
-            SetCharacterDirection(ped->character, p0xc, p0x18);
-            BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)p0x24);
-            SetCharacterBonePositions(ped->character, 0, 0);
-            return;
-        }
-    } else if ((field_0x7 & 4) != 0) {
-        goto update_state;
+    bit4 = field_0x6 & 4;
+    if (bit4 == 0 && (field_0x7 & 4) != 0) {
+        ped->character->field_0x14 = (int)(tS8)field_0x6;
+        ped->character->field_0x5 = field_0xa;
+        SetCharacterDirection(ped->character, p0xc, p0x18);
+        BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)p0x24);
+        SetCharacterBonePositions(ped->character, 0, 0);
+        return;
     }
-    if ((field_0x6 & 4) != 0) {
+    if (bit4 != 0 && (field_0x7 & 4) == 0) {
         BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)p0x24);
         SetCharacterBonePositions(ped->character, 0, 0);
         ped->character->field_0x14 = (int)(tS8)field_0x6;
         ped->character->field_0x5 = field_0xa;
         return;
     }
-update_state:
     ped->character->field_0x14 = (int)(tS8)field_0x6;
     ped->character->field_0x5 = field_0xa;
 }
