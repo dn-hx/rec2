@@ -2292,7 +2292,6 @@ void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reas
         }
     }
 }
-// GLOBAL: CARMA2_HW 0x00767268
 int gINT_00767268;
 
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
