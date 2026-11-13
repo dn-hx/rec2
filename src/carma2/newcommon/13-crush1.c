@@ -3491,7 +3491,7 @@ static int C2_HOOK_FASTCALL WithinBounds(br_scalar pValue, br_scalar pMin, br_sc
     return pValue >= pMin && !(pValue > pMax);
 }
 
-// PARTIAL 69.86%: SplitCheck - frame 0x44 and prologue match; residual: x87 load scheduling of first/second, param-slot choice for first_z/distance (orig: first_z in pLine slot, distance at esp+0x18) and the n2 register copies in the normalise. (Re-measured 69.86 on 2026-11-07; the earlier 73.16 predates the v5 tree's header/type context. A 3-attempt retune on 2026-11-07 (macro expansion, axis-select order, split tail checks) gained nothing; the macro-expansion variant scored 66.36.)
+// PARTIAL 73.66%: SplitCheck - frame 0x44 and prologue match; residual: x87 load scheduling of first/second, param-slot choice for first_z/distance (orig: first_z in pLine slot, distance at esp+0x18) and the n2 register copies in the normalise. (Re-measured 69.86 on 2026-11-07; the earlier 73.16 predates the v5 tree's header/type context. A 3-attempt retune on 2026-11-07 (macro expansion, axis-select order, split tail checks) gained nothing; the macro-expansion variant scored 66.36.)
 // FUNCTION: CARMA2_HW 0x004307e0
 int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane) {
     tCar_crush_spec* crush;
@@ -3519,7 +3519,7 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
     if (pCar->invulnerable_no_crushage != 0 && pCar->knackered == 0) {
         return 0;
     }
-    if (pCar->field_0x4c8 != 1.0) {
+    if (pCar->field_0x4c8 != gDouble_00589a60) {
         return 0;
     }
     crush = pCar->car_crush_spec;
@@ -3552,9 +3552,9 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
                 pPlane->v[0] = n0;
                 pPlane->v[2] = distance;
                 pPlane->v[1] = 0.f;
-                length = (float)sqrt(pPlane->v[0] * n0 + distance * distance);
-                if (length > 2.3841858e-07f) {
-                    length = (br_scalar)(1.0 / length);
+                length = (float)sqrt(n0 * n0 + distance * distance);
+                if (length > gFLT_EPSILON_00589a5c) {
+                    length = (br_scalar)(gDouble_00589a60 / length);
                     pPlane->v[1] = 0.f;
                     pPlane->v[0] = length * n0;
                     pPlane->v[2] = length * distance;
@@ -3585,9 +3585,9 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
             pPlane->v[0] = n0;
             pPlane->v[2] = distance;
             pPlane->v[1] = 0.f;
-            length = (float)sqrt(pPlane->v[0] * n0 + distance * distance);
-            if (length > 2.3841858e-07f) {
-                length = (br_scalar)(1.0 / length);
+            length = (float)sqrt(n0 * n0 + distance * distance);
+            if (length > gFLT_EPSILON_00589a5c) {
+                length = (br_scalar)(gDouble_00589a60 / length);
                 pPlane->v[1] = 0.f;
                 pPlane->v[0] = length * n0;
                 pPlane->v[2] = length * distance;
@@ -3635,18 +3635,17 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
     point.v[next_axis] = (bounds->min.v[next_axis] + bounds->max.v[next_axis]) * gFLOAT_00589a2c;
     point.v[last_axis] = (bounds->min.v[last_axis] + bounds->max.v[last_axis]) * gFLOAT_00589a2c;
     distance = -(((plane_x * point.v[0] + plane_z * point.v[2] + plane_y * point.v[1]) - plane_d) / plane_axis);
-    if (!WithinBounds(distance, min_axis, bounds->max.v[axis] - 0.057971016f)) {
-        return 0;
+    if (WithinBounds(distance, min_axis, bounds->max.v[axis] - 0.057971016f)) {
+        if (BrVector3Dot(&crush->driver_position, (br_vector3*)pPlane) - pPlane->v[3] < gCrushZero) {
+            pPlane->v[0] = -pPlane->v[0];
+            pPlane->v[1] = -pPlane->v[1];
+            pPlane->v[2] = -pPlane->v[2];
+            pPlane->v[3] = -pPlane->v[3];
+        }
+        QuantizePlane(pPlane);
+        return 1;
     }
-
-    if (BrVector3Dot(&crush->driver_position, (br_vector3*)pPlane) - pPlane->v[3] < gCrushZero) {
-        pPlane->v[0] = -pPlane->v[0];
-        pPlane->v[1] = -pPlane->v[1];
-        pPlane->v[2] = -pPlane->v[2];
-        pPlane->v[3] = -pPlane->v[3];
-    }
-    QuantizePlane(pPlane);
-    return 1;
+    return 0;
 }
 
 // FindForceEdge
