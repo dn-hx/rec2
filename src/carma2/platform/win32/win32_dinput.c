@@ -443,6 +443,10 @@ int C2_HOOK_FASTCALL PDIsJoystickAvailable(int pIndex) {
     return gDirectInputJoystickDevices[pIndex] != NULL;
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0045c370
 void C2_HOOK_FASTCALL CollectJoystickButtonInfo(tButtonJoystickInfo* pInfo) {
     unsigned int i;
@@ -458,13 +462,13 @@ void C2_HOOK_FASTCALL CollectJoystickButtonInfo(tButtonJoystickInfo* pInfo) {
         } else {
             pInfo->buttons[i] = -1;
         }
-        pInfo->field_0xd4 = 1;
-        pInfo->field_0xd8 = 1.0f;
-        pInfo->field_0xdc = 1.0f;
-        pInfo->field_0xe0 = 0; /* or 0.f */
-        pInfo->field_0xe4 = 50;
-        pInfo->field_0xe8 = 0; /* or 0.f */
     }
+    pInfo->field_0xd4 = 1;
+    pInfo->field_0xd8 = 1.0f;
+    pInfo->field_0xdc = 1.0f;
+    pInfo->field_0xe0 = 0; /* or 0.f */
+    pInfo->field_0xe4 = 50;
+    pInfo->field_0xe8 = 0; /* or 0.f */
 }
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
