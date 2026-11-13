@@ -471,10 +471,16 @@ void C2_HOOK_STDCALL ClippedRenderLine(br_soft_renderer* renderer, brp_block* bl
     int i;
     brp_vertex* tvp;
 
-    for (i = 0, tvp = cp_in; i < 2; i++, tvp++) {
-        PROJECT_VERTEX(tvp, tvp->comp[C_X], tvp->comp[C_Y], tvp->comp[C_Z], tvp->comp[C_W]);
+    i = 2;
+    tvp = cp_in;
+    do {
+        tvp->comp[C_SX] = tvp->comp[C_X] * renderer->state.cache.comp_scales[C_SX] / tvp->comp[C_W] + renderer->state.cache.comp_offsets[C_SX];
+        tvp->comp[C_SY] = tvp->comp[C_Y] * renderer->state.cache.comp_scales[C_SY] / tvp->comp[C_W] + renderer->state.cache.comp_offsets[C_SY];
+        tvp->comp[C_SZ] = tvp->comp[C_Z] * renderer->state.cache.comp_scales[C_SZ] / tvp->comp[C_W] + gScreenZOffset + renderer->state.cache.comp_offsets[C_SZ];
         UPDATE_BOUNDS(tvp);
-    }
+        tvp++;
+        i--;
+    } while (i != 0);
 
     block->render(block, &cp_in[0], &cp_in[1]);
 }
