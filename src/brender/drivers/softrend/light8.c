@@ -125,6 +125,7 @@ void C2_HOOK_STDCALL lightingIndexPoint(br_soft_renderer* self, br_vector3* p, b
     comp[C_I] += alp->intensity * l;
 }
 
+// PARTIAL 86.00%: lightingIndexLocal1 0x0054a9f0 - block-scope kd/q temporaries; original uses the fmulp st2/fdivp st1 register form (85.11 -> 86.00)
 // FUNCTION: CARMA2_HW 0x0054a9f0
 void C2_HOOK_STDCALL lightingIndexLocal1(br_soft_renderer* self, br_vector3* p, br_vector3* n, active_light* alp, br_scalar* comp) {
     br_vector3 pos_l;
@@ -133,7 +134,12 @@ void C2_HOOK_STDCALL lightingIndexLocal1(br_soft_renderer* self, br_vector3* p, 
     BrVector3Sub(&pos_l, &alp->position, p);
     len2 = BrVector3LengthSquared(&pos_l);
     if (len2 <= alp->s->attenuation_q && len2 >= BR_SCALAR_EPSILON) {
-        comp[C_I] += self->state.surface.kd * (alp->s->attenuation_q - len2) / alp->s->attenuation_q * alp->s->attenuation_c;
+        br_scalar kd;
+        br_scalar q;
+
+        kd = self->state.surface.kd;
+        q = alp->s->attenuation_q;
+        comp[C_I] += (q - len2) * kd / q * alp->s->attenuation_c;
     }
 }
 
