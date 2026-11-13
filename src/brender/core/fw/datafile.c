@@ -1514,15 +1514,13 @@ void C2_HOOK_STDCALL BrNullOther(void) {
     BrFatal("datafile.c", 1825, "Invald file primitive call");
 }
 
+// PARTIAL 95.45%: DfFileIdentify 0x0052cb40 - binary magic compared against an unnamed .rdata block (0x667510) in the original; literals match the text path (81.82 -> 95.45)
 // FUNCTION: CARMA2_HW 0x0052cb40
 int C2_HOOK_CDECL DfFileIdentify(const br_uint_8* magics, br_size_t n_magics) {
-    static char text_magics[8] = { '*', 'F', 'I', 'L', 'E', '_', 'I', 'N' };
-    static char binary_magics[8] = { '\0', '\0', '\0', '\x12', '\0', '\0', '\0', '\b' };
-
-    if (BrMemCmp(magics, text_magics, sizeof(magics)) == 0) {
+    if (BrMemCmp(magics, "*FILE_IN", 8) == 0) {
         return BR_FS_MODE_TEXT;
     }
-    if (BrMemCmp(magics, binary_magics, sizeof(magics)) == 0) {
+    if (BrMemCmp(magics, "\0\0\0\x12\0\0\0\b", 8) == 0) {
         return BR_FS_MODE_BINARY;
     }
     // file does not match magics
