@@ -155,14 +155,68 @@ br_error C2_HOOK_CDECL BrSystemConfigBegin(void) {
 
 // FUNCTION: CARMA2_HW 0x00530a90
 br_error C2_HOOK_CDECL BrSystemConfigLoad(br_token t, char* Param1, void* Param2) {
+    char temp[255];
+    br_uint_16 size;
+    br_value v;
 
     switch (t) {
     case BRT_REGISTRY_STR:
-        return LoadRegistryConfig(Param1, Param2);
-        break;
+        if (HostRegistryQuery(Param2, Param1, "BRENDER_PATH", temp, sizeof(temp), &size) != 0) {
+            return 0x1002;
+        }
+        v.cstr = temp;
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_PATH_STR, v);
+        if (HostRegistryQuery(Param2, Param1, "BRENDER_DRIVERS", temp, sizeof(temp), &size) != 0) {
+            return 0x1002;
+        }
+        v.cstr = temp;
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_DRIVERS_STR, v);
+        if (HostRegistryQuery(Param2, Param1, "BRENDER_DEVICES", temp, sizeof(temp), &size) != 0) {
+            return 0x1002;
+        }
+        v.cstr = temp;
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_DEVICES_STR, v);
+        if (HostRegistryQuery(Param2, Param1, "BRENDER_DOS_GFX", temp, sizeof(temp), &size) != 0) {
+            return 0x1002;
+        }
+        v.cstr = temp;
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
+        if (HostRegistryQuery(Param2, Param1, "BR_DEFAULT_DEVICE", temp, sizeof(temp), &size) != 0) {
+            return 0x1002;
+        }
+        v.cstr = temp;
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
+        return 0;
     case BRT_INI_STR:
-        return LoadIniConfig(Param1, Param2);
-        break;
+        if (!HostIniSectionExists(Param1, Param2)) {
+            return 0x1002;
+        }
+        HostIniQuery(Param1, Param2, "BRENDER_PATH", temp, sizeof(temp), &size);
+        if (size != 0) {
+            v.cstr = temp;
+            BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_PATH_STR, v);
+        }
+        HostIniQuery(Param1, Param2, "BRENDER_DRIVERS", temp, sizeof(temp), &size);
+        if (size != 0) {
+            v.cstr = temp;
+            BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_DRIVERS_STR, v);
+        }
+        HostIniQuery(Param1, Param2, "BRENDER_DEVICES", temp, sizeof(temp), &size);
+        if (size != 0) {
+            v.cstr = temp;
+            BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_DEVICES_STR, v);
+        }
+        HostIniQuery(Param1, Param2, "BRENDER_DOS_GFX", temp, sizeof(temp), &size);
+        if (size != 0) {
+            v.cstr = temp;
+            BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
+        }
+        HostIniQuery(Param1, Param2, "BR_DEFAULT_DEVICE", temp, sizeof(temp), &size);
+        if (size != 0) {
+            v.cstr = temp;
+            BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
+        }
+        return 0;
     default:
         BrFailure("Invalid system config load token. Must be REGISTRY or INI");
         return 0x1002;
