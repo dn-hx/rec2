@@ -3986,7 +3986,6 @@ br_actor* C2_HOOK_FASTCALL CreateBillBoard(br_pixelmap* pTexture) {
     br_scalar left;
     br_scalar right;
     br_scalar top;
-    br_scalar bottom;
 
     width = pTexture->width;
     height = pTexture->height;
