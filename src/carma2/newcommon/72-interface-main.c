@@ -357,7 +357,6 @@ extern tFrontend_spec gFrontend_QUIT;
 
 // FUNCTION: CARMA2_HW 0x0046c0d0
 int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
-    tFrontend_spec* cur;
     int original_selected_index;
     int the_key;
     int item_under_mouse;
@@ -366,7 +365,7 @@ int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
     int y;
     int i;
     int next;
-    tFrontend_item_spec* item;
+    tFrontend_spec* cur;
 
     original_selected_index = gFrontend_selected_item_index;
     gTyping_slot = -1;
@@ -404,11 +403,12 @@ int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
             cur = gCurrent_frontend_spec;
             for (; next >= 0; next--) {
                 if (cur->items[next].enabled > 0 && cur->items[next].visible) {
-                    goto found_prev;
+                    break;
                 }
             }
-            next = FindPrevActiveItem(cur, cur->count_items);
-        found_prev:
+            if (next < 0) {
+                next = FindPrevActiveItem(cur, cur->count_items);
+            }
             gFrontend_selected_item_index = next;
             if (!gMouse_in_use
                     && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
@@ -421,27 +421,19 @@ int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
         }
 
         if (PDKeyDown(73) || PDKeyDown(83)) {
-            if (gFrontend_selected_item_index < pFrontend->count_items - 1) {
-                cur = gCurrent_frontend_spec;
-                next = gFrontend_selected_item_index + 1;
-                for (; next <= cur->count_items - 1; next++) {
-                    if (cur->items[next].enabled > 0 && cur->items[next].visible) {
-                        goto found_next;
-                    }
-                }
-                next = 0;
-            } else {
+            if (gFrontend_selected_item_index >= pFrontend->count_items - 1) {
                 gFrontend_selected_item_index = -1;
-                cur = gCurrent_frontend_spec;
-                for (i = 0; i <= cur->count_items - 1; i++) {
-                    if (cur->items[i].enabled > 0 && cur->items[i].visible) {
-                        next = i;
-                        goto found_next;
-                    }
+            }
+            cur = gCurrent_frontend_spec;
+            next = gFrontend_selected_item_index + 1;
+            for (; next <= cur->count_items - 1; next++) {
+                if (cur->items[next].enabled > 0 && cur->items[next].visible) {
+                    break;
                 }
+            }
+            if (next > cur->count_items - 1) {
                 next = 0;
             }
-        found_next:
             gFrontend_selected_item_index = next;
             if (!gMouse_in_use
                     && gFrontend_selected_item_index >= cur->scrollers[0].indexFirstScrollableItem
@@ -472,15 +464,14 @@ int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
 
         if (PDKeyDown(51) || PDKeyDown(52) || (mouse_button == 1 && item_under_mouse != -1)) {
             ToggleSelection(pFrontend);
-            item = &pFrontend->items[gFrontend_selected_item_index];
-            if (item->field_0xc == 2) {
-                return item->field_0xc;
+            if (pFrontend->items[gFrontend_selected_item_index].field_0xc == 2) {
+                return pFrontend->items[gFrontend_selected_item_index].field_0xc;
             }
-            if (item->field_0xc == 1) {
+            if (pFrontend->items[gFrontend_selected_item_index].field_0xc == 1) {
                 gFrontend_leave_current_menu = 1;
             }
-            if (item->action != NULL) {
-                item->action(pFrontend);
+            if (pFrontend->items[gFrontend_selected_item_index].action != NULL) {
+                pFrontend->items[gFrontend_selected_item_index].action(pFrontend);
             }
             if (pFrontend->items[gFrontend_selected_item_index].menuInfo != NULL) {
                 gCurrent_frontend_spec->default_item = gFrontend_selected_item_index;
