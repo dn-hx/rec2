@@ -199,7 +199,11 @@ static __inline void C2_HOOK_FASTCALL ClearTwattageOccurrenceVariables_Impl(tOpp
 void C2_HOOK_FASTCALL MungeOpponents(void) {
     int i;
     int un_stun_flag;
+    int pursuing;
+    int near_player;
+    int completing;
 
+    un_stun_flag = 0;
     if (gProgram_state.AI_vehicles.number_of_opponents == 0 && gNumber_of_cops_before_faffage == 0) {
         return;
     }
@@ -209,7 +213,6 @@ void C2_HOOK_FASTCALL MungeOpponents(void) {
     if (gProgram_state.AI_vehicles.number_of_path_sections == 0) {
         return;
     }
-    un_stun_flag = 0;
     gAcme_frame_count += 1;
     if (!gAcknowledged_start && gCountdown == 0) {
         gAcknowledged_start = 1;
@@ -265,6 +268,9 @@ void C2_HOOK_FASTCALL MungeOpponents(void) {
             }
         }
     }
+    pursuing = 0;
+    near_player = 0;
+    completing = 0;
     gNum_of_opponents_pursuing = 0;
     gNum_of_opponents_getting_near = 0;
     gNum_of_opponents_completing_race = 0;
@@ -272,20 +278,17 @@ void C2_HOOK_FASTCALL MungeOpponents(void) {
         tOpponent_spec* oppo = &gProgram_state.AI_vehicles.opponents[i];
 
         if (!oppo->finished_for_this_race) {
-            switch (oppo->current_objective) {
-            case eOOT_pursue_and_twat:
-                gNum_of_opponents_pursuing += 1;
-                break;
-            case eOOT_get_near_player:
-                gNum_of_opponents_getting_near += 1;
-                break;
-            case eOOT_complete_race:
-                gNum_of_opponents_completing_race += 1;
-                break;
-            default:
-                break;
+            if (oppo->current_objective == eOOT_pursue_and_twat) {
+                pursuing += 1;
+            } else if (oppo->current_objective == eOOT_get_near_player) {
+                near_player += 1;
+            } else if (oppo->current_objective == eOOT_complete_race) {
+                completing += 1;
             }
         }
+        gNum_of_opponents_pursuing = pursuing;
+        gNum_of_opponents_getting_near = near_player;
+        gNum_of_opponents_completing_race = completing;
     }
     for (i = 0; i < gProgram_state.AI_vehicles.number_of_opponents; i++) {
         tOpponent_spec* oppo = &gProgram_state.AI_vehicles.opponents[i];
