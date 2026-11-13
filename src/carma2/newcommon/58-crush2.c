@@ -794,6 +794,7 @@ void C2_HOOK_FASTCALL DoWheelDamage(void) {
     extern tCar_spec* gActive_car_list[139];
     extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
     extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
+    extern br_scalar gFloat_00589b64;
     int i;
 
     if (gAction_replay_mode && ARReplayIsReallyPaused()) {
@@ -826,11 +827,11 @@ void C2_HOOK_FASTCALL DoWheelDamage(void) {
                 }
                 y_amount = (damage - 30) * gWobble_spam_y[damage & 7];
                 z_amount = (damage - 30) * gWobble_spam_z[damage & 7];
-                BrMatrix34PreRotateY(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(y_amount < 0 ? y_amount + 360.f : y_amount));
-                BrMatrix34PreRotateZ(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(z_amount < 0 ? z_amount + 360.f : z_amount));
+                BrMatrix34PreRotateY(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
+                BrMatrix34PreRotateZ(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
                 if (j < 2 && car->wheel_actors[4 + j] != NULL) {
-                    BrMatrix34PreRotateY(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(y_amount < 0 ? y_amount + 360.f : y_amount));
-                    BrMatrix34PreRotateZ(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(z_amount < 0 ? z_amount + 360.f : z_amount));
+                    BrMatrix34PreRotateY(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
+                    BrMatrix34PreRotateZ(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
                 }
                 switch (j) {
                 case 0:
@@ -866,7 +867,9 @@ void C2_HOOK_FASTCALL DoWheelDamage(void) {
                     br_vector3 temp_vector;
                     br_vector3 wonky_vector;
 
-                    BrVector3Set(&temp_vector, wheel_circum * gWheel_circ_to_width, 0.f, 0.f);
+                    temp_vector.v[1] = 0.f;
+                    temp_vector.v[2] = 0.f;
+                    temp_vector.v[0] = wheel_circum * gWheel_circ_to_width;
                     BrMatrix34ApplyV(&wonky_vector, &temp_vector, &car->wheel_actors[j]->t.t.mat);
                     car->wheel_dam_offset[j] = fabs(wonky_vector.v[1]);
                 }
