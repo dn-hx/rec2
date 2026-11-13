@@ -1310,7 +1310,14 @@ int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend) {
         }
     }
     if (PDKeyDown(72) || PDKeyDown(89)) {
-        gFrontend_selected_item_index = FindPrevActiveItem(gCurrent_frontend_spec, gFrontend_selected_item_index);
+        for (i = gFrontend_selected_item_index - 1; i >= 0; i--) {
+            if (gCurrent_frontend_spec->items[i].enabled > 0 && gCurrent_frontend_spec->items[i].visible) {
+                goto found_prev_item;
+            }
+        }
+        i = FindPrevActiveItem(gCurrent_frontend_spec, gCurrent_frontend_spec->count_items);
+found_prev_item:
+        gFrontend_selected_item_index = i;
         if (!gMouse_in_use
                 && gFrontend_selected_item_index >= gCurrent_frontend_spec->scrollers[0].indexFirstScrollableItem
                 && gFrontend_selected_item_index <= gCurrent_frontend_spec->scrollers[0].indexLastScrollableItem) {
