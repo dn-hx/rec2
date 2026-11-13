@@ -55,23 +55,23 @@ br_model* gSmackerModel = NULL;
 // FUNCTION: CARMA2_HW 0x0043e770
 // FUNCTION: CARMA2_SW 0x0043e880
 void C2_HOOK_FASTCALL PlaySmackerFile(char* pSmack_name) {
+    int smackBlitFlags;
+    int currentFrame;
+    HSMACK smackHandle;
+    int smackBufferFlags;
+    int frameCount;
+    int paletteChangeCount;
+    HSMACKBLIT smackBlitHandle;
+    char* palette_pixels;
     int mati;
     int i;
     int j;
     int k;
-    int currentFrame;
     tU32 timeStart, timeEnd;
-    int paletteChangeCount;
-    int frameCount;
     tU32 frameStart;
-    char* palette_pixels;
     int vertex_start;
     int face_start;
-    int smackBufferFlags;
-    int smackBlitFlags;
     tPath_name the_path;
-    HSMACK smackHandle;
-    HSMACKBLIT smackBlitHandle;
     int paletteChanged;
     br_pixelmap* tmpPalette;
     br_scalar l, r;
@@ -93,17 +93,20 @@ void C2_HOOK_FASTCALL PlaySmackerFile(char* pSmack_name) {
     if (gNoCutscenes) {
         return;
     }
-    palette_pixels = NULL;
-    if (gBack_screen->type == BR_PMT_INDEX_8) {
-        smackBufferFlags = 0;
-        palette_pixels = gCurrent_palette->pixels;
-    } else if (gBack_screen->type == BR_PMT_RGB_555) {
-        smackBufferFlags = SMACKBUFFER555;
-        smackBlitFlags = SMACKBUFFER555 | SMACKBLIT2X;
-    } else if (gBack_screen->type == BR_PMT_RGB_565) {
+    switch (gBack_screen->type) {
+    case BR_PMT_RGB_565:
         smackBufferFlags = SMACKBUFFER565;
         smackBlitFlags = SMACKBUFFER565 | SMACKBLIT2X;
-    } else {
+        break;
+    case BR_PMT_RGB_555:
+        smackBufferFlags = SMACKBUFFER555;
+        smackBlitFlags = SMACKBUFFER555 | SMACKBLIT2X;
+        break;
+    case BR_PMT_INDEX_8:
+        smackBufferFlags = 0;
+        palette_pixels = gCurrent_palette->pixels;
+        break;
+    default:
         PDEnterDebugger("Unexpected backscreen format for Smacker player");
         return;
     }
