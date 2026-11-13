@@ -200,6 +200,8 @@ extern tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSoun
 
 extern int C2_HOOK_FASTCALL FUN_00566a54(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_volume pVolume, tS3_pitch pPitch_min, tS3_pitch pPitch_max);
 
+extern int C2_HOOK_FASTCALL FUN_005667af(tS3_sound_id pSound, tS3_sound_source* pSource);
+
 extern int C2_HOOK_FASTCALL S3NotifyUnbindChannel(tS3_channel* pChannel);
 
 extern tS3_error_codes C2_HOOK_FASTCALL FUN_00564a56(tS3_sound_tag pChannel_tag, int pPitch);
