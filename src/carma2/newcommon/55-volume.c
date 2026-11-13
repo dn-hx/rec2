@@ -47,7 +47,7 @@ tSpecial_volume* C2_HOOK_FASTCALL GetDefaultSpecialVolumeForWater(void) {
 #endif
 extern void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos);
 
-// PARTIAL 78.03%: DoEnvSound 0x456af0 - x87 schedule of inlined normalise differs
+// PARTIAL 82.10%: DoEnvSound 0x456af0 - x87 schedule of inlined normalise differs
 // FUNCTION: CARMA2_HW 0x00456af0
 void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir) {
     br_vector3 pos;
