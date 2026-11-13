@@ -328,18 +328,17 @@ void C2_HOOK_CDECL V1Face_Outcode(br_geometry* self, br_soft_renderer* renderer)
     C2_HOOK_BUG_ON(OUTCODES_ALL != 0xfff);
 
     rend.faces_clipped = 0;
+    fp = rend.faces;
+    tfp = rend.temp_faces;
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
-
+    for (f = 0; f < rend.nfaces; f++, fp++, tfp++) {
         if (!tfp->flag) {
             continue;
         }
 
-        combined_codes = rend.temp_vertices[fp->vertices[0]].flags |
-            rend.temp_vertices[fp->vertices[1]].flags |
-            rend.temp_vertices[fp->vertices[2]].flags;
+        combined_codes = rend.temp_vertices[fp->vertices[2]].flags;
+        combined_codes |= rend.temp_vertices[fp->vertices[1]].flags;
+        combined_codes |= rend.temp_vertices[fp->vertices[0]].flags;
 
         if ((combined_codes & OUTCODES_NOT) != OUTCODES_NOT) {
             rend.nvisible_faces -= 1;
