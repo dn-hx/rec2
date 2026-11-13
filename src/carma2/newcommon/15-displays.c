@@ -1269,14 +1269,14 @@ extern int gCredit_multiplier;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
+// PARTIAL 85.86%: regalloc only - prefix/the_time swap ebx/ebp
 // based on ApexWorm/rec2 24233b73a
 // FUNCTION: CARMA2_HW 0x0044b300
 // FUNCTION: CARMA2_SW 0x0044b490
 void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
-    char s[256];
-    int original_amount;
     tU32 the_time;
+    int original_amount;
+    char s[256];
 
     if (gRace_finished) {
         return;
