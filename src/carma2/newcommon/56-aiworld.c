@@ -387,7 +387,7 @@ static void C2_HOOK_FASTCALL UpdateEditModels_Impl(void) {
 static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
 
     if (gTrack_drone_min_y - 50 > pDrone->actor->t.t.translate.t.v[1]) {
-        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 5);
+        DoNotDprintf_drone("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 5);
         if (pDrone->current_state != 5) {
             if (gDrone_state_functions[pDrone->current_state] != NULL) {
                 gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
@@ -401,7 +401,7 @@ static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
             }
         }
     } else {
-        br_uint_8 process_drone;
+        int process_drone;
 
         CalcRenderBoundsCentre();
         process_drone = gDrone_form_within_rendering_distance_functions[pDrone->form->type](&pDrone->actor->t.t.translate.t);
@@ -420,7 +420,7 @@ static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
                     gCount_active_drones += 1;
                 }
                 DoDefaultDroneStateAction(pDrone);
-                DoNotDprintf("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+                DoNotDprintf_drone("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
                 CrappyLittleVector3DPrintf("    Pos", &pDrone->actor->t.t.translate.t);
             }
         }
@@ -445,7 +445,7 @@ void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
             if (gDrone_specs[i].current_state != 5) {
                 ProcessThisDrone(i);
             }
-            DoNotDprintf("FINISHED processing Drone %d, state %d", gDrone_specs[i].id, gDrone_specs[i].current_state);
+            DoNotDprintf_drone("FINISHED processing Drone %d, state %d", gDrone_specs[i].id, gDrone_specs[i].current_state);
         }
     }
 }
