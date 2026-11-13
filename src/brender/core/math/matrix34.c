@@ -417,18 +417,15 @@ void C2_HOOK_CDECL BrMatrix34RollingBall(br_matrix34* mat, int dx, int dy, int r
     M(3, 2) = BR_SCALAR(0.f);
 }
 
-// PARTIAL 82.14%: BrBoundsToMatrix34 0x00533290 [regalloc/x87] - centre loop x87 order (fmul-fxch-fmul vs fadd) differs
 // FUNCTION: CARMA2_HW 0x00533290
 br_matrix34* C2_HOOK_CDECL BrBoundsToMatrix34(br_matrix34* mat, const br_bounds* bounds) {
     int i;
-    br_vector3 sc;
     br_vector3 tr;
+    br_vector3 sc;
 
     for (i = 0; i < 3; ++i) {
         tr.v[i] = 0.5f * bounds->min.v[i] + 0.5f * bounds->max.v[i];
-    }
-    for (i = 0; i < 3; ++i) {
-        if (bounds->max.v[i] == bounds->min.v[i]) {
+        if (bounds->min.v[i] == bounds->max.v[i]) {
             sc.v[i] = 1.f;
         } else {
             sc.v[i] = 0.5f * bounds->max.v[i] - 0.5f * bounds->min.v[i];
