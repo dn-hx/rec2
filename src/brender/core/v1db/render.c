@@ -423,13 +423,52 @@ void C2_HOOK_CDECL BrZbSceneRenderEnd(void) {
     v1db.render_root = NULL;
 }
 
+PARTIAL 83.33%: BrZbSceneRender 0x005226d0 - Begin/World/End inlined by hand; residual is MSVC fild/fidiv and push scheduling (55.89 -> 83.33)
 // FUNCTION: CARMA2_HW 0x005226d0
 void C2_HOOK_CDECL BrZbSceneRender(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
+    br_model* model;
+    br_material* material;
+    void* render_data;
+    br_uint_8 style;
+    br_actor* a;
 
     if (v1db.renderer != NULL) {
-        BrZbSceneRenderBegin(world, camera, colour_buffer, depth_buffer);
-        sceneRenderWorld(world);
-        BrZbSceneRenderEnd();
+        v1db.rendering = BR_ZB_RENDERING;
+        v1db.render_root = world;
+        v1db.colour_buffer = colour_buffer;
+        v1db.origin.v[0] = (br_scalar)(colour_buffer->origin_x - colour_buffer->width / 2) / (colour_buffer->width / 2);
+        v1db.origin.v[1] = -((br_scalar)(colour_buffer->origin_y - colour_buffer->height / 2) / (colour_buffer->height / 2));
+        v1db.vp_ox = (br_scalar)(colour_buffer->base_x + colour_buffer->width / 2) + 0.5f;
+        v1db.vp_width = (br_scalar)(colour_buffer->width / 2);
+        v1db.vp_oy = (br_scalar)(colour_buffer->height / 2) + 0.5f;
+        v1db.vp_height = -(br_scalar)(colour_buffer->height / 2);
+        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)colour_buffer);
+        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)depth_buffer);
+        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_HIDDEN_SURFACE, 0, BRT_TYPE_T, 1);
+        v1db.default_render_data = NULL;
+        BrDbSceneRenderBegin(world, camera);
+        model = v1db.default_model;
+        material = v1db.default_material;
+        render_data = v1db.default_render_data;
+        style = BR_RSTYLE_DEFAULT;
+        if (world->model != NULL) {
+            model = world->model;
+        }
+        if (world->material != NULL) {
+            material = world->material;
+        }
+        if (world->render_data != NULL) {
+            render_data = world->render_data;
+        }
+        if (world->render_style != BR_RSTYLE_DEFAULT) {
+            style = world->render_style;
+        }
+        for (a = world->children; a != NULL; a = a->next) {
+            actorRender(a, model, material, render_data, style, v1db.ttype);
+        }
+        v1db.renderer->dispatch->_flush(v1db.renderer, 0);
+        v1db.rendering = 0;
+        v1db.render_root = NULL;
     }
 }
 

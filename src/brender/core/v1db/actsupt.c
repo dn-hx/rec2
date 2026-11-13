@@ -247,28 +247,32 @@ br_boolean C2_HOOK_STDCALL ActorToRootTyped(br_actor* a, br_actor* world, br_mat
 	return a == world;
 }
 
+// PARTIAL 88.89%: Matrix4PerspectiveNew 0x0051e450 - inlined double cos/sin, float-cast quotient; residual is x87 fld/fstp schedule (68.75 -> 88.89)
 // FUNCTION: CARMA2_HW 0x0051e450
 void C2_HOOK_STDCALL Matrix4PerspectiveNew(br_matrix4* mat, br_angle field_of_view, br_scalar aspect, br_scalar hither, br_scalar yon, br_scalar origin_x, br_scalar origin_y) {
+    double angle;
     br_scalar scale;
 
-    scale = BR_COS(field_of_view / 2) / BR_SIN(field_of_view / 2);
-
-    mat->m[0][0] = scale / aspect;
     mat->m[0][1] = 0.f;
     mat->m[0][2] = 0.f;
     mat->m[0][3] = 0.f;
     mat->m[1][0] = 0.f;
-    mat->m[1][1] = scale;
     mat->m[1][2] = 0.f;
     mat->m[1][3] = 0.f;
-    mat->m[2][0] = -origin_x;
-    mat->m[2][1] = -origin_y;
-    mat->m[2][2] = (yon + hither) / (yon - hither);
     mat->m[2][3] = -1.f;
     mat->m[3][0] = 0.f;
     mat->m[3][1] = 0.f;
-    mat->m[3][2] = -2.f * (yon * hither) / (yon - hither);
     mat->m[3][3] = 0.f;
+
+    angle = (double)((br_uint_16)field_of_view >> 1) * (PI / 32768.0);
+    scale = (br_scalar)cos(angle) / (br_scalar)sin(angle);
+
+    mat->m[0][0] = scale / aspect;
+    mat->m[1][1] = scale;
+    mat->m[2][0] = -origin_x;
+    mat->m[2][1] = -origin_y;
+    mat->m[2][2] = (yon + hither) / (yon - hither);
+    mat->m[3][2] = (yon * hither) / (yon - hither) * -2.f;
 }
 
 // FUNCTION: CARMA2_HW 0x0051e520
