@@ -118,12 +118,12 @@ static int FopWrite_PIXELS(br_datafile* df, br_pixelmap* pixelmap) {
     int bytes = pmTypeInfo[pixelmap->type].bits >> 3;
     int block_count = (pixelmap->width * bytes) / size;
     char* pixels;
+    int mipSize;
+    int currentMipSize;
 
-    pixels = (char*)pixelmap->pixels + pixelmap->base_y * pixelmap->row_bytes + pixelmap->base_x * pixelmap->width;
+    pixels = (char*)pixelmap->pixels + pixelmap->base_y * pixelmap->row_bytes + pixelmap->base_x * bytes;
     if (pixelmap->mip_offset != 0) {
-        int mipSize = 0;
-        int currentMipSize;
-
+        mipSize = 0;
         for (currentMipSize = pixelmap->width; currentMipSize != 0; currentMipSize >>= 1) {
             mipSize += currentMipSize * currentMipSize * bytes;
         }
