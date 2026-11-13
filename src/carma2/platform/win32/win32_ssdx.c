@@ -290,16 +290,18 @@ void C2_HOOK_FASTCALL SSDXRelease(void) {
 // FUNCTION: CARMA2_HW 0x00500760
 void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, int* pPitch) {
     HRESULT result;
+    DDSURFACEDESC surfaceDesc;
+    PALETTEENTRY palette[256];
+    int enum_counter;
 
     if (gUse_DirectDraw) {
         LocalWindowedDDSetup(pWidth, pHeight, pPitch);
+        return;
     }
     dr_dprintf("SSDXDirectDrawSetup(): Calling SetDisplayMode( %dx%dx%d )...", pWidth, pHeight, pBits);
-    result = IDirectDraw2_SetDisplayMode(gDirectDraw2, pWidth, pHeight, pBits, 0, !gEnumerate_DirectX_surfaces && pWidth == 320 ? DDSDM_STANDARDVGAMODE : 0);
+    result = IDirectDraw2_SetDisplayMode(gDirectDraw2, pWidth, pHeight, pBits, 0, (!gEnumerate_DirectX_surfaces && pWidth == 320) ? DDSDM_STANDARDVGAMODE : 0);
     SetRect(&gSSDXWindowPos, 0, 0, pWidth, pHeight);
     if (result == DD_OK) {
-        DDSURFACEDESC surfaceDesc;
-
         C2_HOOK_BUG_ON(sizeof(surfaceDesc) != 0x6c);
         memset(&surfaceDesc, 0, sizeof(surfaceDesc));
         surfaceDesc.dwSize = sizeof(surfaceDesc);
@@ -309,15 +311,11 @@ void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, in
         dr_dprintf("SSDXDirectDrawSetup(): Calling CreateSurface()...");
         result = IDirectDraw_CreateSurface(gDirectDraw, &surfaceDesc, &gPrimary_surface, NULL);
         if (result == DD_OK) {
-
             if (gEnumerate_DirectX_surfaces) {
-                int enum_counter;
-
                 dr_dprintf("SSDXDirectDrawSetup(): Calling EnumAttachedSurfaces()...");
                 result = IDirectDrawSurface_EnumAttachedSurfaces(gPrimary_surface, &enum_counter, LocalEnumAttachedSurfacesCallback);
                 dr_dprintf("SSDXDirectDrawSetup(): enum_counter is %d", enum_counter);
             } else {
-
                 C2_HOOK_BUG_ON(sizeof(surfaceDesc) != 0x6c);
                 SetRect(&gSSDXRect, 0, 0, pWidth, pHeight);
                 memset(&surfaceDesc, 0, sizeof(surfaceDesc));
@@ -326,13 +324,10 @@ void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, in
                 surfaceDesc.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY | DDSCAPS_OFFSCREENPLAIN;
                 surfaceDesc.dwHeight = pHeight;
                 surfaceDesc.dwWidth = pWidth;
-
                 dr_dprintf("SSDXDirectDrawSetup(): Calling CreateSurface() for attached surface...");
                 result = IDirectDraw_CreateSurface(gDirectDraw, &surfaceDesc, &gAttached_surface, NULL);
             }
             if (result == DD_OK) {
-                PALETTEENTRY palette[256];
-
                 memset(palette, 0, sizeof(palette));
                 result = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, palette, &gDirectDrawPalette, NULL);
                 if (result == DD_OK) {
@@ -343,10 +338,18 @@ void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, in
         }
     }
     SSDXLockAttachedSurface();
-    SSDXUnlockAttachedSurface();
+    if (gAttached_surface_locked) {
+        result = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedRect);
+        if (result == DD_OK) {
+            gAttached_surface_locked = 0;
+        } else {
+            dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
+            SSDXLogError(result);
+        }
+    }
     *pPitch = gSSDXPitch;
     if (result == DD_OK) {
-        dr_dprintf("SSDXDirectDrawSetup(): Directdraw initialised: surface pith %d", gSSDXPitch);
+        dr_dprintf("SSDXDirectDrawSetup(): Directdraw initialised: surface pitch %d", gSSDXPitch);
     } else {
         dr_dprintf("WARNING: Problems during SSDXDirectDrawSetup()");
         SSDXLogError(result);
