@@ -43,7 +43,6 @@ br_node* C2_HOOK_CDECL BrRemHead(br_list* list) {
         return NULL;
     }
     list->head = n->next;
-    n->next->prev = (br_node*)&list->head;
     return n;
 }
 
