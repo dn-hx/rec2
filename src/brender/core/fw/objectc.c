@@ -252,12 +252,14 @@ br_error C2_HOOK_CDECL BrObjectContainerFree(br_object_container* self, br_token
     if (r != 0) {
         return r;
     }
-    handles = BrMemAllocate(count * sizeof(br_object*), BR_MEMORY_DRIVER);
-    self->dispatch->_findMany(self, handles, count, &n, type, pattern, tv);
-    for (i = 0; i < n; i++) {
-        self->dispatch->_remove(self, handles[i]);
-        handles[i]->dispatch->_free(handles[i]);
+    if (count != 0) {
+        handles = BrMemAllocate(count * sizeof(br_object*), BR_MEMORY_DRIVER);
+        self->dispatch->_findMany(self, handles, count, &n, type, pattern, tv);
+        for (i = 0; i < n; i++) {
+            self->dispatch->_remove(self, handles[i]);
+            handles[i]->dispatch->_free(handles[i]);
+        }
+        BrMemFree(handles);
     }
-    BrMemFree(handles);
     return 0;
 }
