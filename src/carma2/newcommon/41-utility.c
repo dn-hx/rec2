@@ -785,12 +785,12 @@ void C2_HOOK_FASTCALL BuildShadeTablePath(char* pThe_path, int pR, int pG, int p
 
     s[0] = 's';
     s[1] = 't';
-    s[2] = 'A' + ((pR >> 4) % 0x10);
-    s[3] = 'A' + ((pR >> 0) % 0x10);
-    s[4] = 'A' + ((pG >> 4) % 0x10);
-    s[5] = 'A' + ((pG >> 0) % 0x10);
-    s[6] = 'A' + ((pB >> 4) % 0x10);
-    s[7] = 'A' + ((pB >> 0) % 0x10);
+    s[2] = 'A' + (pR / 16);
+    s[3] = 'A' + (pR % 16);
+    s[4] = 'A' + (pG / 16);
+    s[5] = 'A' + (pG % 16);
+    s[6] = 'A' + (pB / 16);
+    s[7] = 'A' + (pB % 16);
     s[8] = '\0';
     strcat(s, ".TAB");
     PathCat(pThe_path, gApplication_path, "SHADETAB");
