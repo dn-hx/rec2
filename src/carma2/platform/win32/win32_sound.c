@@ -61,6 +61,7 @@ MCI_STATUS_PARMS gPDS3_mci_midi_status_parms;
 // GLOBAL: CARMA2_HW 0x006b2dc4
 tU32 gPDS3_last_cda_status_update;
 
+// PARTIAL 92.86%: PDS3Init 0x0056992f - restore the PDS3Return0() call; residual is the "\\" and "SOUND" string pool addresses (80.77 -> 92.86)
 // FUNCTION: CARMA2_HW 0x0056992f
 int C2_HOOK_FASTCALL PDS3Init(void) {
 
@@ -73,7 +74,7 @@ int C2_HOOK_FASTCALL PDS3Init(void) {
         return 0;
     }
     PDS3InitCDA();
-    // nop_FUN_005699a3();
+    PDS3Return0();
     gPD_S3_config.field_0x04 = 0;
     gPD_S3_config.free_direct_sound = 1;
     gPD_S3_config.independent_pitch = 0;
