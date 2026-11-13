@@ -940,8 +940,8 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
     static int old_time;
 
     car = GetCarSpec(eVehicle_self, 0);
-    old_y = gMap_render_y;
     old_x = gMap_render_x;
+    old_y = gMap_render_y;
     if (gMap_view == 2) {
         amt = (int)(gFrame_period * 0.1);
         KeyIsDown(8);
@@ -1012,46 +1012,44 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
     if (gProgram_state.current_car.disabled) {
         gRecover_timer = 0;
     } else {
-        do {
-            if (gRecover_timer != 0) {
-                if ((!gProgram_state.current_car.frame_collision_flag && gProgram_state.current_car.number_of_wheels_on_ground == 0) || IsCarInTheSea()) {
-                    gRecover_timer -= gFrame_period;
-                    if (gRecover_timer <= 0 || IsCarInTheSea() == 2) {
-                        gRecover_timer = 0;
-                        if (gNet_mode == eNet_mode_none) {
-                            gRecover_car = 1;
-                            gProgram_state.current_car.time_to_recover = 0;
-                        } else {
-                            if (gProgram_state.current_car.time_to_recover == 0 && !CheckRecoverCost()) {
-                                NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_cant_afford_to_recover));
-                                DoFancyHeadup(27);
-                                KnackerThisCar(&gProgram_state.current_car);
-                                SendGameplayToHost(3, 0, 0, 0, 0);
-                                gHad_auto_recover = 1;
-                                break;
-                            }
-                            if (gProgram_state.current_car.time_to_recover == 0 || GetRaceTime() + 500 < gProgram_state.current_car.time_to_recover) {
-                                gProgram_state.current_car.time_to_recover = GetRaceTime() + 500;
-                                gCancel_recover = 0;
-                            }
-                        }
-                        gHad_auto_recover = 1;
-                    }
-                    break;
+        if (gRecover_timer != 0) {
+            if ((!gProgram_state.current_car.frame_collision_flag && gProgram_state.current_car.number_of_wheels_on_ground == 0) || IsCarInTheSea()) {
+                gRecover_timer -= gFrame_period;
+                if (gRecover_timer > 0 && IsCarInTheSea() != 2) {
+                    /* fall through to other checks */
                 } else {
                     gRecover_timer = 0;
+                    if (gNet_mode == eNet_mode_none) {
+                        gRecover_car = 1;
+                        gProgram_state.current_car.time_to_recover = 0;
+                    } else {
+                        if (gProgram_state.current_car.time_to_recover == 0 && !CheckRecoverCost()) {
+                            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_cant_afford_to_recover));
+                            DoFancyHeadup(27);
+                            KnackerThisCar(&gProgram_state.current_car);
+                            SendGameplayToHost(3, 0, 0, 0, 0);
+                            gHad_auto_recover = 1;
+                        }
+                        if (gProgram_state.current_car.time_to_recover == 0 || GetRaceTime() + 500 < gProgram_state.current_car.time_to_recover) {
+                            gProgram_state.current_car.time_to_recover = GetRaceTime() + 500;
+                            gCancel_recover = 0;
+                        }
+                    }
+                    gHad_auto_recover = 1;
                 }
+            } else {
+                gRecover_timer = 0;
             }
-            if (the_time - sLast_check > 200) {
-                sLast_check = the_time;
-                if (HasCarFallenOffWorld(&gProgram_state.current_car)) {
-                    gRecover_timer = 3000;
-                }
-            }
-            if (IsCarInTheSea() && gRecover_timer == 0) {
+        }
+        if (the_time - sLast_check > 200) {
+            sLast_check = the_time;
+            if (HasCarFallenOffWorld(&gProgram_state.current_car)) {
                 gRecover_timer = 3000;
             }
-        } while (0);
+        }
+        if (IsCarInTheSea() && gRecover_timer == 0) {
+            gRecover_timer = 3000;
+        }
     }
 
     if (gPalette_fade_time != 0) {
