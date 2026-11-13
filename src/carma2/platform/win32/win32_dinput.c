@@ -1211,16 +1211,18 @@ tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void) {
 
 // FUNCTION: CARMA2_HW 0x0045b360
 void C2_HOOK_FASTCALL PDSetKeysFromJoystick(int *keys) {
-    if (gJoystick_index != 1) {
+    if (gJoystick_index != -1) {
         tU32 button_mask;
 
         button_mask = PDGetJoystickButtonStates();
         if (PDGetCurrentJoystickData() != NULL) {
             int i;
 
-            for (i = 0; i < 32; i++) {
-                keys[107 + i] = !!(button_mask & (i << i));
-            }
+            i = 0;
+            do {
+                keys[107 + i] = !!(button_mask & (1 << i));
+                i++;
+            } while (i < 32);
         }
     }
 }
