@@ -30,16 +30,18 @@ br_error C2_HOOK_STDCALL CheckPrimitiveState(br_soft_renderer* self) {
 // FUNCTION: CARMA2_HW 0x00541830
 br_error C2_HOOK_CDECL _M_br_soft_renderer_partSet(br_soft_renderer* self, br_token part, br_int_32 index, br_token t, br_uint_32 value) {
     br_error r;
-    soft_state_all *sp = &self->state;
+    soft_state_all* sp;
     struct br_tv_template *tp;
-    br_uint_32 m = 0;
+    br_uint_32 m;
 
+    sp = &self->state;
     tp = FindStateTemplate(self, &sp, part, index);
+    m = 0;
 
     if (tp != NULL) {
         r = BrTokenValueSet(sp, &m, t, value, tp);
         if (m != 0) {
-            TemplateActions(sp, part, index, m);
+            TemplateActions(&self->state, part, index, m);
         }
     } else {
         r = CheckPrimitiveState(self);
