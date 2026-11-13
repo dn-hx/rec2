@@ -194,28 +194,47 @@ void C2_HOOK_STDCALL SetOrderTableBounds(br_bounds* bounds, br_order_table* orde
     br_scalar max_z;
     br_vector3* min;
     br_vector3* max;
+    br_scalar range;
+    br_scalar scaled_range;
+    br_scalar hi;
+    br_scalar lo;
 
     if((order_table->flags & 0x1) || ((order_table->flags & 0x2) && order_table->visits==1)) {
         min = &bounds->min;
         max = &bounds->max;
         BrModelToScreenQuery(&v1db.model_to_screen);
-        min_z = v1db.model_to_screen.m[3][3];
         max_z = v1db.model_to_screen.m[3][3];
+        min_z = max_z;
 
         for (i = 0; i < 3; i++) {
             element = v1db.model_to_screen.m[i][3];
             if (element > 0.0f) {
-                max_z += element * max->v[i];
-                min_z += element * min->v[i];
+                lo = min->v[i];
+                hi = max->v[i];
             } else {
-                max_z += element * min->v[i];
-                min_z += element * max->v[i];
+                lo = max->v[i];
+                hi = min->v[i];
             }
+            max_z += element * hi;
+            min_z += element * lo;
         }
         order_table->min_z = min_z;
         order_table->max_z = max_z;
     }
-    SetOrderTableRange(order_table);
+    range = order_table->max_z - order_table->min_z;
+    if (range > 0.001f) {
+        order_table->scale = ((float) order_table->size) / range;
+    } else {
+        order_table->scale = 1000.0f;
+    }
+    if ((order_table->flags & 0x8) != 0) {
+        order_table->sort_z = order_table->min_z;
+    } else if ((order_table->flags & 0x10) != 0) {
+        order_table->sort_z = order_table->max_z;
+    } else if ((order_table->flags & 0x20) != 0) {
+        scaled_range = 0.5f * range;
+        order_table->sort_z = order_table->min_z + scaled_range;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x005266f0
