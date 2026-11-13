@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* ApplyTorque lives in 49-physics.c; local extern, not a shared-header declaration */
+extern void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vector3* pTorque);
+
 extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
 extern int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude);
 extern int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude);
