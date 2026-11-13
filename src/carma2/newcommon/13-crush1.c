@@ -3912,6 +3912,9 @@ int C2_HOOK_FASTCALL BattenDownTheObjects(tPhysics_object* pCollision_info, void
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00439fd0
 // FUNCTION: CARMA2_SW 0x0043a010
 void C2_HOOK_FASTCALL CompletelyUnBendCollisionShape(tCar_crush_shape_info* pShape) {
@@ -3922,6 +3925,9 @@ void C2_HOOK_FASTCALL CompletelyUnBendCollisionShape(tCar_crush_shape_info* pSha
         BrVector3Copy(&pShape->field_0x18[i].field_0x18, &pShape->field_0x18[i].field_0x2c);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 void C2_HOOK_FASTCALL CompletelyUnBendCollisionShapes(tCar_spec* pCar_spec) {
     int i;
@@ -4376,6 +4382,9 @@ detach:
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0043ac90
 // FUNCTION: CARMA2_SW 0x0043ace0
 br_scalar C2_HOOK_FASTCALL NormalizedAngle(br_angle pAngle) {
@@ -4385,6 +4394,9 @@ br_scalar C2_HOOK_FASTCALL NormalizedAngle(br_angle pAngle) {
         return (br_scalar)((br_angle)-pAngle / (double)BR_ONE_LS);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // based on ApexWorm/rec2 14c53892 src/carma2/newcommon/13-crush1.c (reference only)
 br_scalar C2_HOOK_FASTCALL CalculateAmountRepairedFraction(br_angle pOriginal_x, br_angle pOriginal_y, br_angle pOriginal_z, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, br_scalar* pOriginal_amount) {
@@ -4395,7 +4407,18 @@ br_scalar C2_HOOK_FASTCALL CalculateAmountRepairedFraction(br_angle pOriginal_x,
     return repaired_amount;
 }
 
+// Angle conversion inlined 4x by the original (NormalizedAngle body); NormalizedAngle itself stays a call for the
+// 5th and 6th sites -- keep both helpers so the inliner reproduces that split.
+static br_scalar UnBendCarAngle(br_angle pAngle) {
+    if (pAngle < BR_ANGLE_DEG(180)) {
+        return (br_scalar)(pAngle / (double)BR_ONE_LS);
+    } else {
+        return (br_scalar)((br_angle)-pAngle / (double)BR_ONE_LS);
+    }
+}
+
 // based on ApexWorm/rec2 14c53892 src/carma2/newcommon/13-crush1.c (reference only)
+// PARTIAL 82.09%: UnBendCar 0x00439c30 [x87-schedule] - local slots ([esp+0x10]/[esp+0x14] swapped), original sums (fxch/faddp order, repair_x kept in eax) not reproduced
 // FUNCTION: CARMA2_HW 0x00439c30
 br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_scalar* pOriginal_amount) {
     tCar_crush_spec* car_crush;
@@ -4409,9 +4432,8 @@ br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_
     int i;
 
     car_crush = pCar_spec->car_crush_spec;
-    bend = (tBend_data_local*)car_crush->field_0x154;
     angle_step = (br_angle)(pDelta_time * 8u);
-    original_x = bend->field_0x3c;
+    original_x = *(br_angle*)((char*)car_crush + 0x190);
     if (original_x < BR_ANGLE_DEG(90)) {
         if (original_x < angle_step) {
             repair_x = (br_angle)-original_x;
@@ -4424,7 +4446,7 @@ br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_
             repair_x = angle_step;
         }
     }
-    original_y = bend->field_0x3e;
+    original_y = *(br_angle*)((char*)car_crush + 0x192);
     if (original_y < BR_ANGLE_DEG(90)) {
         if (original_y < angle_step) {
             repair_y = (br_angle)-original_y;
@@ -4437,7 +4459,7 @@ br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_
             repair_y = angle_step;
         }
     }
-    original_z = bend->field_0x40;
+    original_z = *(br_angle*)((char*)car_crush + 0x194);
     if (original_z < BR_ANGLE_DEG(90)) {
         if (original_z < angle_step) {
             repair_z = (br_angle)-original_z;
@@ -4451,11 +4473,15 @@ br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_
         }
     }
 
-    original_amount = NormalizedAngle(original_x) + NormalizedAngle(original_y) + NormalizedAngle(original_z);
-    repaired_amount = NormalizedAngle(repair_x) + NormalizedAngle(repair_y) + NormalizedAngle(repair_z);
-    *pOriginal_amount = 2.0f * original_amount;
-    UnBendActor(pCar_spec->car_master_actor, bend,
-        repair_x, repair_y, repair_z, pCar_spec);
+    original_amount = UnBendCarAngle(original_x);
+    original_amount += UnBendCarAngle(original_y);
+    original_amount += UnBendCarAngle(original_z);
+    repaired_amount = UnBendCarAngle(repair_x);
+    repaired_amount += NormalizedAngle(repair_y);
+    repaired_amount += NormalizedAngle(repair_z);
+    *pOriginal_amount = original_amount + original_amount;
+    bend = (tBend_data_local*)car_crush->field_0x154;
+    UnBendActor(pCar_spec->car_master_actor, bend, repair_x, repair_y, repair_z, pCar_spec);
 
     context.car = pCar_spec;
     context.bend = bend;
@@ -4472,24 +4498,29 @@ br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_
     }
     BrMatrix34PostTranslate(&context.matrix,
         bend->field_0x18.v[0], bend->field_0x18.v[1], bend->field_0x18.v[2]);
-    for (i = 0; i < car_crush->count_shapes; i++) {
-        UnBendCollisionShape(&car_crush->field_0x4[i], &context);
+    for (i = 0; i < pCar_spec->car_crush_spec->count_shapes; i++) {
+        UnBendCollisionShape(&pCar_spec->car_crush_spec->field_0x4[i], &context);
     }
-    car_crush->expand_bounding_box = 3;
+    pCar_spec->car_crush_spec->expand_bounding_box = 3;
     UnBendWheels(pCar_spec, &context);
-    memcpy(&pCar_spec->collision_info->cmpos, &car_crush->field_0x264, sizeof(pCar_spec->collision_info->cmpos));
+    pCar_spec->collision_info->cmpos.v[0] = pCar_spec->car_crush_spec->field_0x264.v[0];
+    pCar_spec->collision_info->cmpos.v[1] = pCar_spec->car_crush_spec->field_0x264.v[1];
+    pCar_spec->collision_info->cmpos.v[2] = pCar_spec->car_crush_spec->field_0x264.v[2];
     BendPoint(&pCar_spec->collision_info->cmpos, &context);
 
-    if (bend->field_0x3c == 0
-        && bend->field_0x3e == 0
-        && bend->field_0x40 == 0) {
-        car_crush->field_0x144 = 0;
-        for (i = 0; i < car_crush->count_shapes; i++) {
-            CompletelyUnBendCollisionShape(&car_crush->field_0x4[i]);
+    if (*(br_angle*)((char*)car_crush + 0x190) == 0
+        && *(br_angle*)((char*)car_crush + 0x192) == 0
+        && *(br_angle*)((char*)car_crush + 0x194) == 0) {
+        i = 0;
+        pCar_spec->car_crush_spec->field_0x144 = 0;
+        for (; i < pCar_spec->car_crush_spec->count_shapes; i++) {
+            CompletelyUnBendCollisionShape(&pCar_spec->car_crush_spec->field_0x4[i]);
         }
-        car_crush->expand_bounding_box = 3;
+        pCar_spec->car_crush_spec->expand_bounding_box = 3;
         CompletelyUnBendWheels(pCar_spec);
-        memcpy(&pCar_spec->collision_info->cmpos, &car_crush->field_0x264, sizeof(pCar_spec->collision_info->cmpos));
+        pCar_spec->collision_info->cmpos.v[0] = pCar_spec->car_crush_spec->field_0x264.v[0];
+        pCar_spec->collision_info->cmpos.v[1] = pCar_spec->car_crush_spec->field_0x264.v[1];
+        pCar_spec->collision_info->cmpos.v[2] = pCar_spec->car_crush_spec->field_0x264.v[2];
         DRActorEnumRecurse(pCar_spec->car_model_actor, EnableGroovers, NULL);
     }
     return repaired_amount;
@@ -6542,6 +6573,9 @@ void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_
     pBend->field_0x5c = context.field_0x48;
     pBend->field_0x68 = context.field_0x54;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0043aa20
 void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
     int i;
@@ -6553,6 +6587,9 @@ void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const 
         BendPoint(&pShape->field_0x18[i].field_0x18, pContext);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // PARTIAL 96.73%: wpos loop addressing differs (original pointer-offset form)
 // FUNCTION: CARMA2_HW 0x0043aa80
 void C2_HOOK_FASTCALL UnBendWheels(tCar_spec* pCar_spec, const tBend_point_context_local* pContext) {
@@ -8723,7 +8760,8 @@ void C2_HOOK_FASTCALL FUN_00430150(tU16 pVertex_a, tU16 pVertex_b, tU16* pOutput
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// FUNCTION: CARMA2_HW 0x004336f0 // PARTIAL 61.24%: float operand order, arg reload, x87 schedule
+// PARTIAL 61.24%: InitDetachedBitPhysicsObject 0x004336f0 - float operand order, arg reload, x87 schedule
+// FUNCTION: CARMA2_HW 0x004336f0
 void C2_HOOK_FASTCALL InitDetachedBitPhysicsObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info) {
     br_vector3* parent_bb[2];
     br_vector3 half_min;
