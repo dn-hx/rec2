@@ -1182,18 +1182,26 @@ void C2_HOOK_FASTCALL DRModelUpdateAndKevificateMaterials(br_model* pModel, br_u
     }
 }
 
+// PARTIAL 99.99%: DRModelUpdateDeluxTurbo 0x00516010 - loop regalloc (ecx/eax roles swapped in group walk)
 // FUNCTION: CARMA2_HW 0x00516010
 int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel, br_uint_16 pFlags) {
+    int i;
+    v11group* v11g;
 
-    if (pModel->nfaces == 0 || pModel->nvertices == 0) {
+    if (pModel->nfaces != 0 && pModel->nvertices != 0) {
+
+        BrModelUpdate(pModel, pFlags);
+        for (i = 0; i < V11MODEL(pModel)->ngroups; i++) {
+
+            v11g = &V11MODEL(pModel)->groups[i];
+            *v11g->face_colours.materials = pModel->faces[*v11g->face_user].material;
+        }
+        return 1;
+    } else {
 
         pActor->type = BR_ACTOR_NONE;
         pActor->model = NULL;
         return 0;
-    } else {
-
-        DRModelUpdateAndKevificateMaterials(pModel,pFlags);
-        return 1;
     }
 }
 
