@@ -285,6 +285,10 @@ void C2_HOOK_STDCALL SubdivideSetThreshold(br_int_32 subdivide_tolerance) {
     rend.subdivide_threshold = 1.0 / ((float)subdivide_tolerance * -0.002f - -1.25f);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0054c766
 br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vertex* v2) {
     br_scalar z0,z1,z2,zt;
@@ -317,6 +321,10 @@ br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vert
 
     return 1;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00545de0
 void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
