@@ -362,28 +362,23 @@ void C2_HOOK_CDECL V1Face_Render(br_geometry* self, br_soft_renderer* renderer) 
     brp_block* unclipped = renderer->state.cache.face_blocks_onscreen[renderer->state.cache.nface_blocks_onscreen].chain;
     brp_block* clipped = renderer->state.cache.face_blocks[renderer->state.cache.nface_blocks].chain;
 
-    for (f = 0; f < rend.nfaces; f++) {
-        tfp = &rend.temp_faces[f];
-        fp = &rend.faces[f];
-
-        if (!(tfp->flag & TFF_VISIBLE)) {
-            continue;
-        }
-
-        if (tfp->flag & TFF_CLIPPED) {
-            clipped->render(clipped,
-                &rend.temp_vertices[fp->vertices[0]],
-                &rend.temp_vertices[fp->vertices[1]],
-                &rend.temp_vertices[fp->vertices[2]],
-                fp,
-                tfp);
-        } else {
-            unclipped->render(unclipped,
-                &rend.temp_vertices[fp->vertices[0]],
-                &rend.temp_vertices[fp->vertices[1]],
-                &rend.temp_vertices[fp->vertices[2]],
-                fp,
-                tfp);
+    for (f = 0, tfp = rend.temp_faces, fp = rend.faces; f < rend.nfaces; f++, fp++, tfp++) {
+        if (tfp->flag & TFF_VISIBLE) {
+            if (tfp->flag & TFF_CLIPPED) {
+                clipped->render(clipped,
+                    &rend.temp_vertices[fp->vertices[0]],
+                    &rend.temp_vertices[fp->vertices[1]],
+                    &rend.temp_vertices[fp->vertices[2]],
+                    fp,
+                    tfp);
+            } else {
+                unclipped->render(unclipped,
+                    &rend.temp_vertices[fp->vertices[0]],
+                    &rend.temp_vertices[fp->vertices[1]],
+                    &rend.temp_vertices[fp->vertices[2]],
+                    fp,
+                    tfp);
+            }
         }
     }
 }
