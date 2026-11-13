@@ -873,6 +873,7 @@ extern int gCount_extra_renders;
 extern tExtra_render gExtra_renders[6];
 extern int gRendering_mirror;
 
+// PARTIAL 97.44%: only the width/row_bytes compare load order (xor/movsx/mov cx) differs
 // FUNCTION: CARMA2_HW 0x004e54f0
 void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
 
@@ -896,7 +897,7 @@ void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to
                 gRear_pixelmap->origin_y = pExtra->material->colour_map->height / 2;
                 gRear_pixelmap->width = pExtra->material->colour_map->width;
                 gRear_pixelmap->height = pExtra->material->colour_map->height;
-                if (gRear_pixelmap->width != gRear_pixelmap->row_bytes) {
+                if (gRear_pixelmap->row_bytes != gRear_pixelmap->width) {
                     gRear_pixelmap->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
                 } else {
                     gRear_pixelmap->flags |= BR_PMF_ROW_WHOLEPIXELS;
