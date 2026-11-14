@@ -9942,6 +9942,10 @@ void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec) {
 #pragma auto_inline(off)
 #endif
 extern int gINT_006a3334;
+extern tQueued_smash gQueued_smashes[20];
+extern int gCount_queued_smashes;
+extern br_matrix34 gShrapnel_shower_matrix;
+extern br_vector3 gVector3_006a4688;
 extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
 // FUNCTION: CARMA2_HW 0x004ee250
 void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9) {
@@ -9949,8 +9953,82 @@ void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* p
     QueueSmashIfNecessary3(pCar, pCollision_info, pPos, pArg4, pActor, pArg6, pSmashable, pDamage, pArg9, 0);
 }
 
-// STUB: CARMA2_HW 0x004ee290
+// PARTIAL 61.05%: QueueSmashIfNecessary3 0x004ee290 - the pSmashable parameter lands in EDX and
+// gCount_queued_smashes in EBP, the original has them the other way round (EBP / EDX). Pure
+// global-register-allocator role swap: mnemonic stream, field offsets, statement order, loop forms
+// and the x87 6.9 product are identical. Tried: local alias, decl order, initialisers, local count,
+// pointer search loop, dword field_0x3c store (all in), a symbol pad - the swap does not move.
+// FUNCTION: CARMA2_HW 0x004ee290
 tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10) {
+    tSmashable_level* result;
+    tQueued_smash* q;
+    int level;
+    int current_level;
+    int i;
+
+    result = NULL;
+    level = pSmashable->count_smashable_levels - 1;
+    current_level = pSmashable->field_0x4c;
+    if (current_level >= level) {
+        return NULL;
+    }
+    if (gCount_queued_smashes >= 20) {
+        return NULL;
+    }
+    if (pActor->model == NULL) {
+        return NULL;
+    }
+    while (level > current_level) {
+        if (pDamage >= pSmashable->levels[level].trigger_threshold) {
+            q = gQueued_smashes;
+            for (i = 0; i < gCount_queued_smashes; i++, q++) {
+                if (q->field_0x10 == (undefined4)(uintptr_t)pSmashable) {
+                    if (level <= *(int*)&q->field_0x38) {
+                        return NULL;
+                    }
+                    *(int*)&q->field_0x38 = level;
+                    result = &pSmashable->levels[level];
+                    break;
+                }
+            }
+            if (result == NULL) {
+                gQueued_smashes[gCount_queued_smashes].car = pCar;
+                gQueued_smashes[gCount_queued_smashes].field_0x4 = (undefined4)(uintptr_t)pCollision_info;
+                gQueued_smashes[gCount_queued_smashes].actor = pActor;
+                gQueued_smashes[gCount_queued_smashes].field_0x10 = (undefined4)(uintptr_t)pSmashable;
+                gQueued_smashes[gCount_queued_smashes].field_0x48 = pArg6;
+                *(int*)&gQueued_smashes[gCount_queued_smashes].field_0x38 = level;
+                *(br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x2c = *pPos;
+                *(undefined4*)&gQueued_smashes[gCount_queued_smashes].field_0x3c = pArg10;
+                if (gINT_006a3334 != 0) {
+                    gQueued_smashes[gCount_queued_smashes].field_0x40 = 1;
+                    gQueued_smashes[gCount_queued_smashes].field_0x4c = gShrapnel_shower_matrix;
+                    gQueued_smashes[gCount_queued_smashes].field_0x7c = gVector3_006a4688;
+                } else {
+                    gQueued_smashes[gCount_queued_smashes].field_0x40 = 0;
+                }
+                if (pOptional_position != NULL) {
+                    gQueued_smashes[gCount_queued_smashes].field_0x20 = *pOptional_position;
+                } else {
+                    gQueued_smashes[gCount_queued_smashes].field_0x20 = gZero_vector__smash;
+                }
+                gQueued_smashes[gCount_queued_smashes].field_0x44 = pArg9;
+                if (pCollision_info != NULL && pCollision_info->owner != NULL && pCollision_info->flags_0x238 == 1) {
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[0] = ((float*)pCollision_info->field_0x1b4)[0] * 6.9;
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[1] = ((float*)pCollision_info->field_0x1b4)[1] * 6.9;
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[2] = ((float*)pCollision_info->field_0x1b4)[2] * 6.9;
+                } else {
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[0] = 0.f;
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[1] = 0.f;
+                    ((br_vector3*)&gQueued_smashes[gCount_queued_smashes].field_0x14)->v[2] = 0.f;
+                }
+                gCount_queued_smashes++;
+                result = &pSmashable->levels[level];
+            }
+            return result;
+        }
+        level--;
+    }
     return NULL;
 }
 
@@ -10022,7 +10100,29 @@ void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec) {
 #pragma auto_inline(on)
 #endif
 // Per-actor crush pass callback (calls QueueSmashIfNecessary3 for each smashable part).
-// STUB: CARMA2_HW 0x004f5a70
+// PARTIAL 70.45%: SmashEverythingCB 0x004f5a70 - the original sinks the gINT_006a3334 = 0 store
+// below the argument pushes (as if QueueSmashIfNecessary2, which is exactly "gINT = 0; Q3(...)",
+// had been inlined there); MSVC keeps it in source order here, and reloads count_smashables into
+// EAX where the original uses EDX. Everything else (loads, pushes, loop, epilogue) matches.
+// FUNCTION: CARMA2_HW 0x004f5a70
 intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext) {
+    tUser_crush_data* user_crush_data;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_spec* car;
+    int i;
+
+    car = pContext;
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user_crush_data->crush_data;
+    if (crush_data == NULL) {
+        return 0;
+    }
+    for (i = 0; i < crush_data->count_smashables; i++) {
+        gINT_006a3334 = 0;
+        QueueSmashIfNecessary3(car, car->collision_info, &car->pos, NULL, pActor, 0, &crush_data->smashables[i], 1000.0f, 0, 0);
+    }
     return 0;
 }

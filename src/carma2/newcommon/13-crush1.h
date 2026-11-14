@@ -592,6 +592,7 @@ extern void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL ChristmasLights(tCar_spec* pCar_spec, int pMin_damage, int pMax_damage);
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToHostContents(tU8 pType, int pSize_decider);
 extern void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9);
+extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
 extern void C2_HOOK_FASTCALL SplitModel(br_model* pSource_model, br_model** pModels, br_model** pModel_out, br_scalar* pPlane, int pFlag);
 extern tCrush_info* C2_HOOK_FASTCALL GetNonCar(tCrush_info_buffer* pInfo_buffer, br_actor* pActor, tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL CreateSplitPoints(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance);
