@@ -43,7 +43,6 @@ extern void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* 
 
 extern void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
-extern void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8);
 
 extern void C2_HOOK_FASTCALL ARUndoModelMash(int field_0x4, tU8* pField_0x8);
 
@@ -112,9 +111,7 @@ extern void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, 
 
 extern void C2_HOOK_FASTCALL AdjustShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14);
 
-extern void C2_HOOK_FASTCALL WorkerSmokeColumn(int column_flags, br_vector3* pPos, int vertex, int pFlags_hi);
 
-extern void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float f3, float f4);
 
 extern void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 

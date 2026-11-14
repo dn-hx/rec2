@@ -326,14 +326,6 @@ void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_
     pModel->flags |= BR_MODF_CUSTOM;
 }
 
-/* 0x0043bf80 is ARApplyModelMash (13-crush1.c) */
-void C2_HOOK_FASTCALL WorkerModelMash(int field_0x4, tU8* pField_0x8) {
-
-    NOT_IMPLEMENTED();
-}
-
-
-// based on ApexWorm/rec2 85077822b
 // FUNCTION: CARMA2_HW 0x0043c030
 void C2_HOOK_FASTCALL ARUndoModelMash(int field_0x4, tU8* pField_0x8) {
     br_model* model;
@@ -355,7 +347,6 @@ void C2_HOOK_FASTCALL ARUndoModelMash(int field_0x4, tU8* pField_0x8) {
     }
 }
 
-// based on ApexWorm/rec2 15c72a550
 // FUNCTION: CARMA2_HW 0x0043c0e0
 void C2_HOOK_FASTCALL ARApplyFlap(int field_0x4, tU16 field_0x8) {
     br_actor* actor;
@@ -588,7 +579,6 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 97b666b11
 // RESIDUAL effective 100% (raw ~99): one x87 scheduler slot - the actor load [edi+0xec] for component 2 is emitted before fld here, after fadd in the original; macro/3-statement/pointer-temp forms all fail
 // FUNCTION: CARMA2_HW 0x00452880
 void C2_HOOK_FASTCALL ApplyDroneStraightPos2(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
@@ -611,7 +601,6 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos2(int field_0x0, int field_0x4, tU16 
     DoDroneFunkyGroovyThings(drone);
 }
 
-// based on ApexWorm/rec2 1e59f1e54
 // FUNCTION: CARMA2_HW 0x004529d0
 void C2_HOOK_FASTCALL ApplyDroneCornerPos2(int field_0x0, tU16 field_0x4, tU16 field_0x6, tU16 field_0x8, tU16* pField_0xa) {
     tDrone_spec* drone;
@@ -713,7 +702,6 @@ void C2_HOOK_FASTCALL ServiceGameInRace(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 36e8ff344
 // FUNCTION: CARMA2_HW 0x004b7220
 void C2_HOOK_FASTCALL PHILApplyPHILObject(int field_0x0, br_matrix34* pField_0x4) {
     tPhysics_object* object;
@@ -1022,7 +1010,6 @@ void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc
     }
 }
 
-// based on ApexWorm/rec2 612dc29dc (reference only)
 // FUNCTION: CARMA2_HW 0x004d6180
 void C2_HOOK_FASTCALL AdjustProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8) {
     extern tProximity_ray gProximity_rays[20];
@@ -1043,7 +1030,6 @@ void C2_HOOK_FASTCALL AdjustProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x
 #pragma auto_inline(off)
 #endif
 // Original is a bare ret (no body to implement).
-// based on ApexWorm/rec2 b674ae1d3 (reference only)
 // FUNCTION: CARMA2_HW 0x004d6da0
 void C2_HOOK_FASTCALL ComparePedStuff(void) {
 }
@@ -1063,7 +1049,6 @@ void C2_HOOK_FASTCALL AdjustRepulseRay(int field_0x0, int field_0x4, int field_0
     gRepulse_links[field_0x0].time = (tU32)field_0xc;
 }
 
-// based on ApexWorm/rec2 5b75cde93
 // FUNCTION: CARMA2_HW 0x004de000
 void C2_HOOK_FASTCALL ARDoShitMine(int field_0x0, br_vector3* pPos) {
     br_actor* actor;
@@ -1075,7 +1060,6 @@ void C2_HOOK_FASTCALL ARDoShitMine(int field_0x0, br_vector3* pPos) {
     actor->render_style = BR_RSTYLE_FACES;
 }
 
-// based on ApexWorm/rec2 fdf25dcef
 // FUNCTION: CARMA2_HW 0x004de020
 void C2_HOOK_FASTCALL ARUndoShitMine(int field_0x0, br_vector3* pPos) {
     br_actor* actor;
@@ -1111,7 +1095,6 @@ void C2_HOOK_FASTCALL ARPowerupLose(int field_0x0, int field_0x4) {
     }
 }
 
-// based on ApexWorm/rec2 b70251db0
 // FUNCTION: CARMA2_HW 0x004e0710
 void C2_HOOK_FASTCALL DoInitialTail(void) {
     tPhysics_object* collision_info;
@@ -1121,7 +1104,6 @@ void C2_HOOK_FASTCALL DoInitialTail(void) {
     }
 }
 
-// based on ApexWorm/rec2 8a2f3d992
 // FUNCTION: CARMA2_HW 0x004e0730
 void C2_HOOK_FASTCALL UndoInitialTail(void) {
     tPhysics_object* collision_info;
@@ -1131,22 +1113,14 @@ void C2_HOOK_FASTCALL UndoInitialTail(void) {
     }
 }
 
-void C2_HOOK_FASTCALL ARDoPowerupRespawnHelper(br_actor* pActor) {
-    pActor->render_style = BR_RSTYLE_FACES;
-}
-
 // FUNCTION: CARMA2_HW 0x004e07d0
 void C2_HOOK_FASTCALL ARDoPowerupRespawn(int field_0x0, int field_0x4) {
-    ARDoPowerupRespawnHelper((br_actor*)(uintptr_t)field_0x0);
-}
-
-void C2_HOOK_FASTCALL ARUndoPowerupRespawnHelper(br_actor* pActor) {
-    pActor->render_style = BR_RSTYLE_NONE;
+    ((br_actor*)(uintptr_t)field_0x0)->render_style = BR_RSTYLE_FACES;
 }
 
 // FUNCTION: CARMA2_HW 0x004e07e0
 void C2_HOOK_FASTCALL ARUndoPowerupRespawn(int field_0x0, int field_0x4) {
-    ARUndoPowerupRespawnHelper((br_actor*)(uintptr_t)field_0x0);
+    ((br_actor*)(uintptr_t)field_0x0)->render_style = BR_RSTYLE_NONE;
 }
 
 // FUNCTION: CARMA2_HW 0x004e6260
@@ -2061,41 +2035,6 @@ void C2_HOOK_FASTCALL AdjustShrapnel(int field_0x0, void* pField_0x4, tU16 field
         gShrapnel[i].age = field_0x10;
         gShrapnel[i].actor->material = (br_material*)field_0x14;
     }
-}
-
-// based on ApexWorm/rec2 715455cdd
-void C2_HOOK_FASTCALL WorkerSmokeColumn(int pIndex, br_vector3* pCore, int pVertex, int pColour) {
-    tU32 bit;
-
-    bit = 1 << pIndex;
-    gColumn_flags ^= bit;
-    gSmoke_column[pIndex].core = *(const tSmoke_column_core*)pCore;
-    gSmoke_column[pIndex].vertex_index = pVertex;
-    gSmoke_column[pIndex].colour = pColour;
-    gSmoke_column[pIndex].frame_count[0] = 100;
-    gSmoke_column[pIndex].frame_count[1] = 100;
-    gSmoke_column[pIndex].frame_count[2] = 100;
-    if (pColour == 0) {
-        if ((gColumn_flags & bit) != 0) {
-            BrActorAdd(gNon_track_actor, gSmoke_column[pIndex].flame_actor);
-        } else if (gSmoke_column[pIndex].flame_actor->depth != 0) {
-            BrActorRemove(gSmoke_column[pIndex].flame_actor);
-        }
-    }
-}
-
-// based on ApexWorm/rec2 64e1bed48
-void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float f3, float f4) {
-    int i;
-    tSmoke_column* col;
-
-    i = index & 0xf;
-    col = &gSmoke_column[(index & ~0xf) >> 4];
-    col->frame_count[i] = flag;
-    col->scale_x[i] = f1;
-    col->scale_y[i] = f2;
-    col->offset_x[i] = f3;
-    col->offset_z[i] = f4;
 }
 
 // PARTIAL 65.69%: reg roles (free_slot/i/ptr) and found-path offset hoist differ
