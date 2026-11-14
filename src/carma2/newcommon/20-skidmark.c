@@ -173,7 +173,7 @@ void C2_HOOK_FASTCALL HideSkids(void) {
 
 // FUNCTION: CARMA2_HW 0x004e9f20
 // FUNCTION: CARMA2_SW 0x004e5cc0
-int C2_HOOK_FASTCALL SkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
+int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
     tU16 idx;
     br_scalar fVar1;
     br_scalar fVar2;
@@ -266,7 +266,7 @@ void C2_HOOK_FASTCALL SkidMark(tCar_spec* pCar_spec, int pWheel_num) {
             if (dist < 0.05f) {
                 return;
             }
-            if (SkidSection(&pCar_spec->old_skid[pWheel_num],
+            if (WheelSkidSection(&pCar_spec->old_skid[pWheel_num],
                     &pCar_spec->field_0x160c[pWheel_num],
                     &pCar_spec->field_0x163c[pWheel_num],
                     material,

@@ -59,7 +59,7 @@ tU8* gBit_per_node;
 float gOppo_render_zero = 0.0f;
 
 // FUNCTION: CARMA2_HW 0x004a8160
-void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
+void C2_HOOK_CDECL DoNotDprintf_opponent(const char* pMessage, ...) {
 
 }
 
@@ -145,11 +145,11 @@ void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
     tS16 i;
 
     if (pOpponent_spec->nnext_sections >= (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
-        DoNotDprintf("%s: CalcRaceRoute() - Pissing off 'cos projected route full up", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: CalcRaceRoute() - Pissing off 'cos projected route full up", pOpponent_spec->car_spec->driver_name);
         return;
     }
     if (pOpponent_spec->nnext_sections == 0) {
-        DoNotDprintf("%s: CalcRaceRoute() - Projected route empty; starting from nearest section", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: CalcRaceRoute() - Projected route empty; starting from nearest section", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->complete_race_data.finished_calcing_race_route = 0;
         pOpponent_spec->complete_race_data.found_race_section = 0;
         section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
@@ -329,40 +329,40 @@ int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_sectio
     int direction;
     br_scalar length;
 
-    DoNotDprintf("%sSearchForSection() - START: depth %d", depth_indent, pDepth);
+    DoNotDprintf_opponent("%sSearchForSection() - START: depth %d", depth_indent, pDepth);
     gSFS_cycles_this_time = gSFS_cycles_this_time + 1;
     if (pDepth == 1) {
-        DoNotDprintf("%sSearchForSection() - First time called", depth_indent);
+        DoNotDprintf_opponent("%sSearchForSection() - First time called", depth_indent);
         memset(gBit_per_node, 0, (gProgram_state.AI_vehicles.number_of_path_nodes + 7) / 8);
         gSFS_shortest_dist = BR_SCALAR_MAX;
         gSFS_routes_found = 0;
         *pNum_of_perm_store_sections = 0;
     }
     if (pDepth >= 10) {
-        DoNotDprintf("%sSearchForSection() - *** Reached max depth ***", depth_indent);
+        DoNotDprintf_opponent("%sSearchForSection() - *** Reached max depth ***", depth_indent);
         return 0;
     }
     node = gProgram_state.AI_vehicles.path_sections[pTemp_store[pDepth - 1].section_no].node_indices[pTemp_store[pDepth - 1].direction];
     path_node = &gProgram_state.AI_vehicles.path_nodes[node];
     gBit_per_node[node / 8] |= 1 << (node % 8);
-    DoNotDprintf("%sSearchForSection() - node #%d has %d sections", depth_indent, node, path_node->number_of_sections);
+    DoNotDprintf_opponent("%sSearchForSection() - node #%d has %d sections", depth_indent, node, path_node->number_of_sections);
     for (i = 0; i < path_node->number_of_sections; i++) {
         section = path_node->sections[i];
         direction = node != gProgram_state.AI_vehicles.path_sections[section].node_indices[1];
-        DoNotDprintf("%sSearchForSection() - node's section #%d is #%d", depth_indent, i, section);
+        DoNotDprintf_opponent("%sSearchForSection() - node's section #%d is #%d", depth_indent, i, section);
         next_node = gProgram_state.AI_vehicles.path_sections[section].node_indices[direction];
         if (gBit_per_node[next_node / 8] & (1 << (next_node % 8))) {
-            DoNotDprintf("%sSearchForSection() - *** node #%d already visited ***", depth_indent, next_node);
+            DoNotDprintf_opponent("%sSearchForSection() - *** node #%d already visited ***", depth_indent, next_node);
             continue;
         }
         if (gProgram_state.AI_vehicles.path_sections[section].one_way && node == gProgram_state.AI_vehicles.path_sections[section].node_indices[1]) {
-            DoNotDprintf("%sSearchForSection() - *** no entry ***", depth_indent);
+            DoNotDprintf_opponent("%sSearchForSection() - *** no entry ***", depth_indent);
             continue;
         }
         if (!pOpponent_spec->cheating && gProgram_state.AI_vehicles.path_sections[section].type == ePST_cheat_only) {
             continue;
         }
-        DoNotDprintf("%sSearchForSection() - adding section #%d to list", depth_indent, section);
+        DoNotDprintf_opponent("%sSearchForSection() - adding section #%d to list", depth_indent, section);
         pTemp_store[pDepth].section_no = section;
         pTemp_store[pDepth].direction = direction;
         length = gProgram_state.AI_vehicles.path_sections[section].length + pDistance_so_far;
@@ -373,11 +373,11 @@ int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_sectio
             gSFS_routes_found_copy = gSFS_routes_found + 1;
             gSFS_routes_found = gSFS_routes_found + 1;
             if (gSFS_routes_found >= 2) {
-                DoNotDprintf("%sSearchForSection() - Found final target", depth_indent);
+                DoNotDprintf_opponent("%sSearchForSection() - Found final target", depth_indent);
                 return 1;
             }
-            DoNotDprintf("%sSearchForSection() - Found a target", depth_indent);
-            DoNotDprintf("%sSearchForSection() - Returning to depth %d", depth_indent, pDepth - 1);
+            DoNotDprintf_opponent("%sSearchForSection() - Found a target", depth_indent);
+            DoNotDprintf_opponent("%sSearchForSection() - Returning to depth %d", depth_indent, pDepth - 1);
             gBit_per_node[node / 8] &= ~(1 << (node % 8));
             return 0;
         }
@@ -386,7 +386,7 @@ int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_sectio
         }
     }
     gBit_per_node[node / 8] &= ~(1 << (node % 8));
-    DoNotDprintf("%sSearchForSection() - Returning to depth %d", depth_indent, pDepth - 1);
+    DoNotDprintf_opponent("%sSearchForSection() - Returning to depth %d", depth_indent, pDepth - 1);
     return 0;
 }
 #ifdef REC2_MATCHING
@@ -560,7 +560,7 @@ void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec
     if (gSFS_cycles_this_time > gSFS_max_cycles) {
         gSFS_max_cycles = gSFS_cycles_this_time;
     }
-    DoNotDprintf(">>>SearchForSection() - max %d, avg %.1f", gSFS_max_cycles, (double)gSFS_total_cycles / (double)gSFS_count);
+    DoNotDprintf_opponent(">>>SearchForSection() - max %d, avg %.1f", gSFS_max_cycles, (double)gSFS_total_cycles / (double)gSFS_count);
     if (best_count > 1) {
         count = best_count - 1;
         if (count >= 12 - pOpponent_spec->nnext_sections) {
@@ -571,7 +571,7 @@ void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec
         TopUpRandomRoute(pOpponent_spec, 2);
         return;
     }
-    DoNotDprintf("%s: CalcReturnToStartPointRoute() - SearchForSection() produced bugger all", pOpponent_spec->car_spec->driver_name);
+    DoNotDprintf_opponent("%s: CalcReturnToStartPointRoute() - SearchForSection() produced bugger all", pOpponent_spec->car_spec->driver_name);
     if (pOpponent_spec->nnext_sections <= 12) {
         TopUpRandomRoute(pOpponent_spec, 14 - pOpponent_spec->nnext_sections);
     }
@@ -663,7 +663,7 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
 
     switch (pCommand) {
     case ePOC_start:
-        DoNotDprintf("%s: ProcessReturnToStart() - new objective started", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: ProcessReturnToStart() - new objective started", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->return_to_start_data.waiting_near_start = 0;
         pOpponent_spec->return_to_start_data.section_no = FindNearestPathSection(&pOpponent_spec->start_pos, &section_v, &pOpponent_spec->return_to_start_data.nearest_path_point, &distance);
         pOpponent_spec->return_to_start_data.nearest_path_point.v[1] = 0.0;
@@ -691,9 +691,9 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
                 res = ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0);
                 if (res == eFPR_given_up || res == eFPR_end_of_path) {
                     if (res == eFPR_given_up) {
-                        DoNotDprintf("%s: Restarting return_to_start route because ProcessFollowPath() gave up.", pOpponent_spec->car_spec->driver_name);
+                        DoNotDprintf_opponent("%s: Restarting return_to_start route because ProcessFollowPath() gave up.", pOpponent_spec->car_spec->driver_name);
                     } else {
-                        DoNotDprintf("%s: Restarting return_to_start route because ran out of path!", pOpponent_spec->car_spec->driver_name);
+                        DoNotDprintf_opponent("%s: Restarting return_to_start route because ran out of path!", pOpponent_spec->car_spec->driver_name);
                     }
                     ClearOpponentsProjectedRoute(pOpponent_spec);
                     CalcReturnToStartPointRoute(pOpponent_spec);
@@ -741,7 +741,7 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
 // AddIfNotInList
 
 // FUNCTION: CARMA2_HW 0x004a7a20
-void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender) {
+void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender) {
     if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
         pRender = (pRender == 0);
     }
@@ -918,7 +918,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponen
     br_scalar new_z;
 
     if (pOpponent_spec->physics_me) {
-        DoNotDprintf("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
         return 1;
     }
     if (pSection_no < 20000 || pOpponent_spec->nnext_sections <= (int)pSection_no - 20000) {
@@ -926,7 +926,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponen
             if (pSection_no == 10000) {
                 start = (const br_vector3*)((char*)pOpponent_spec + 0x12c);
             } else {
-                DoNotDprintf("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
                 PDEnterDebugger("BIG ERROR - GetOpponentsSectionStartNodePoint()");
                 start = NULL;
             }
@@ -986,7 +986,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOppo
     tS16 section_no;
 
     if (pOpponent_spec->physics_me) {
-        DoNotDprintf("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
         return 1;
     }
     section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
@@ -1297,7 +1297,7 @@ const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOppo
     if (pSection == 10000) {
         return &pOpponent_spec->pursue_car_data.direct_line_nodes[0].pos;
     }
-    DoNotDprintf("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+    DoNotDprintf_opponent("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
     PDEnterDebugger("BIG ERROR - GetOpponentsSectionStartNodePoint()");
     return NULL;
 }
@@ -1323,7 +1323,7 @@ void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec) 
         }
     } else {
         pOpponent_spec->next_player_visibility_check = gTime_stamp_for_this_munging + IRandomBetween(0, 900) + 4000;
-        DoNotDprintf("%s: Time now: %9.2f; next vis check at %9.2f", pOpponent_spec->car_spec->driver_name, gTime_stamp_for_this_munging * 0.001, pOpponent_spec->next_player_visibility_check * 0.001);
+        DoNotDprintf_opponent("%s: Time now: %9.2f; next vis check at %9.2f", pOpponent_spec->car_spec->driver_name, gTime_stamp_for_this_munging * 0.001, pOpponent_spec->next_player_visibility_check * 0.001);
         if (pOpponent_spec->player_to_oppo_d < 50.f && PointVisibleFromHere(&gProgram_state.current_car.car_master_actor->t.t.translate.t, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t)) {
             pOpponent_spec->player_in_view_now = 1;
             pOpponent_spec->acknowledged_piv = 0;
@@ -1350,7 +1350,7 @@ void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object**
 void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
 
     if (pPursuee->no_of_processes_recording_my_trail == 0) {
-        DoNotDprintf("StartRecordingTrail - starting from scratch");
+        DoNotDprintf_opponent("StartRecordingTrail - starting from scratch");
         pPursuee->no_of_processes_recording_my_trail = 1;
         pPursuee->my_trail.nodes_shifted_this_frame = 0;
         pPursuee->my_trail.has_deviated_recently = 0;
@@ -1361,7 +1361,7 @@ void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
         BrVector3Copy(&pPursuee->my_trail.trail_nodes[1], &pPursuee->car_master_actor->t.t.translate.t);
         pPursuee->my_trail.trail_nodes[0].v[2] += 0.2f;
     } else {
-        DoNotDprintf("StartRecordingTrail - another pursuer attaching");
+        DoNotDprintf_opponent("StartRecordingTrail - another pursuer attaching");
         pPursuee->no_of_processes_recording_my_trail += 1;
     }
 }
@@ -1387,7 +1387,7 @@ const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpp
     if (pSection == 10000) {
         return &pOpponent_spec->pursue_car_data.direct_line_nodes[1].pos;
     }
-    DoNotDprintf("BIG ERROR - GetOpponentsSectionFinishNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+    DoNotDprintf_opponent("BIG ERROR - GetOpponentsSectionFinishNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
     PDEnterDebugger("BIG ERROR - GetOpponentsSectionFinishNodePoint()");
     return NULL;
 }
@@ -1453,7 +1453,7 @@ void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar
         bangness = (int)((100.0 < sqrt(damage * 300000.0)) ? 100.0 : sqrt(damage * 300000.0));
         grudginess_caused_by_damage = bangness / 10;
         grudginess_caused_by_damage += 50 * ((pTwattee->car_ID & 0xff00) == 0x300);
-        DoNotDprintf("Frame %0.6d: %s hit %s, damage %f, bangness %d, gBig_bang %d, grudginess %d",
+        DoNotDprintf_opponent("Frame %0.6d: %s hit %s, damage %f, bangness %d, gBig_bang %d, grudginess %d",
             gAcme_frame_count,
             pTwatter->driver_name,
             pTwattee->driver_name,
@@ -1607,7 +1607,7 @@ void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
     int i;
     int j;
 
-    DoNotDprintf("Start of LoadInOppoPaths()...");
+    DoNotDprintf_opponent("Start of LoadInOppoPaths()...");
     gProgram_state.AI_vehicles.number_of_path_nodes = 0;
     gProgram_state.AI_vehicles.number_of_path_sections = 0;
     gProgram_state.AI_vehicles.path_nodes = NULL;
@@ -1640,7 +1640,7 @@ void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
         gProgram_state.AI_vehicles.path_nodes = nodes;
         gProgram_state.AI_vehicles.number_of_path_nodes += count;
     }
-    DoNotDprintf("ReallocExtraPathNodes(): Allocated %d bytes for %d path nodes", (count + gProgram_state.AI_vehicles.number_of_path_nodes) * sizeof(tPath_node), count);
+    DoNotDprintf_opponent("ReallocExtraPathNodes(): Allocated %d bytes for %d path nodes", (count + gProgram_state.AI_vehicles.number_of_path_nodes) * sizeof(tPath_node), count);
 
     if (gProgram_state.AI_vehicles.number_of_path_nodes != 0) {
         for (i = 0; i < gProgram_state.AI_vehicles.number_of_path_nodes; i++) {
@@ -1665,7 +1665,7 @@ void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
         gProgram_state.AI_vehicles.path_sections = sections;
         gProgram_state.AI_vehicles.number_of_path_sections += count;
     }
-    DoNotDprintf("ReallocExtraPathSections(): Allocated %d bytes for %d path sections", (count + gProgram_state.AI_vehicles.number_of_path_sections) * sizeof(tPath_section), count);
+    DoNotDprintf_opponent("ReallocExtraPathSections(): Allocated %d bytes for %d path sections", (count + gProgram_state.AI_vehicles.number_of_path_sections) * sizeof(tPath_section), count);
 
     if (gProgram_state.AI_vehicles.number_of_path_sections != 0) {
         for (i = 0; i < gProgram_state.AI_vehicles.number_of_path_sections; i++) {
@@ -1701,7 +1701,7 @@ void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
                     node->sections[node->number_of_sections] = (tU16)i;
                     node->number_of_sections += 1;
                 } else {
-                    DoNotDprintf("ERROR: Too many sections (including section #%d) attached to node #%d", i, gProgram_state.AI_vehicles.path_sections[i].node_indices[j]);
+                    DoNotDprintf_opponent("ERROR: Too many sections (including section #%d) attached to node #%d", i, gProgram_state.AI_vehicles.path_sections[i].node_indices[j]);
                 }
             }
         }
@@ -1754,9 +1754,9 @@ void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF) {
     } else {
         gBit_per_node = NULL;
     }
-    DoNotDprintf("End of LoadInOppoPaths(), totals:");
-    DoNotDprintf("Nodes: %d", gProgram_state.AI_vehicles.number_of_path_nodes);
-    DoNotDprintf("Sections: %d", gProgram_state.AI_vehicles.number_of_path_sections);
+    DoNotDprintf_opponent("End of LoadInOppoPaths(), totals:");
+    DoNotDprintf_opponent("Nodes: %d", gProgram_state.AI_vehicles.number_of_path_nodes);
+    DoNotDprintf_opponent("Sections: %d", gProgram_state.AI_vehicles.number_of_path_sections);
 }
 
 #ifdef REC2_MATCHING
@@ -2022,7 +2022,7 @@ void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_object
     default:
         break;
     }
-    DoNotDprintf("%s: NewObjective() - type %d", pOpponent_spec->car_spec->driver_name, pObjective_type);
+    DoNotDprintf_opponent("%s: NewObjective() - type %d", pOpponent_spec->car_spec->driver_name, pObjective_type);
     ProcessCurrentObjective(pOpponent_spec, ePOC_start);
 }
 #ifdef REC2_MATCHING
@@ -2050,7 +2050,7 @@ static int C2_HOOK_FASTCALL ChooseNewObjective_HeadOnWithPlayerPossible(tOpponen
     BrVector3Normalise(&oppo_to_player_norm, &oppo_to_player_norm);
     if (BrVector3Dot(&pOpponent_spec->car_spec->direction, &oppo_to_player_norm) > gHead_on_cos_value
             && BrVector3Dot(&gProgram_state.current_car.direction, &oppo_to_player_norm) < -gHead_on_cos_value) {
-        DoNotDprintf("HOORAY! Head-on imminent");
+        DoNotDprintf_opponent("HOORAY! Head-on imminent");
         return 1;
     }
     return 0;
@@ -2078,7 +2078,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
     }
     if (pOpponent_spec->car_spec->knackered && !pOpponent_spec->knackeredness_detected) {
         pOpponent_spec->knackeredness_detected = 1;
-        DoNotDprintf("%s: Knackered - dealing with appropriately", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Knackered - dealing with appropriately", pOpponent_spec->car_spec->driver_name);
         if (pOpponent_spec->car_spec->has_been_stolen) {
             NewObjective(pOpponent_spec, eOOT_levitate);
         } else {
@@ -2090,7 +2090,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
         if ((((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300 ? gCop_speed_factor : gOpponent_speed_factor) == gOppo_render_zero) {
             return;
         }
-        DoNotDprintf("%s: Time to unfreeze", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Time to unfreeze", pOpponent_spec->car_spec->driver_name);
         if (pOpponent_spec->pursuing_player_before_freeze) {
             NewObjective(pOpponent_spec, eOOT_pursue_and_twat, &gProgram_state.current_car);
         } else {
@@ -2099,7 +2099,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
         return;
     }
     if ((((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300 ? gCop_speed_factor : gOpponent_speed_factor) == gOppo_render_zero) {
-        DoNotDprintf("%s: Decided to freeze", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Decided to freeze", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->pursuing_player_before_freeze = ChooseNewObjective_AlreadyPursuingCar(pOpponent_spec, &gProgram_state.current_car);
         NewObjective(pOpponent_spec, eOOT_frozen);
         return;
@@ -2109,13 +2109,13 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
         if (pOpponent_spec->car_spec->scary_bang && pOpponent_spec->player_to_oppo_d < 10.f) {
             if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
                 if (PercentageChance(20)) {
-                    DoNotDprintf("%s: Decided to run away", pOpponent_spec->car_spec->driver_name);
+                    DoNotDprintf_opponent("%s: Decided to run away", pOpponent_spec->car_spec->driver_name);
                     NewObjective(pOpponent_spec, eOOT_run_away);
                     return;
                 }
             } else if (gOpponents[pOpponent_spec->index].strength_rating < 5) {
                 if (PercentageChance((int)((pOpponent_spec->current_objective == eOOT_pursue_and_twat ? 100 : 60) - 50.f * pOpponent_spec->nastiness))) {
-                    DoNotDprintf("%s: Decided to run away", pOpponent_spec->car_spec->driver_name);
+                    DoNotDprintf_opponent("%s: Decided to run away", pOpponent_spec->car_spec->driver_name);
                     NewObjective(pOpponent_spec, eOOT_run_away);
                     return;
                 }
@@ -2128,7 +2128,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
                     && !ChooseNewObjective_AlreadyPursuingCar(pOpponent_spec, &gProgram_state.current_car)) {
                 gOpponents[pOpponent_spec->index].psyche.grudge_against_player = MIN(100, MAX(20, gOpponents[pOpponent_spec->index].psyche.grudge_against_player) + general_grudge_increase);
                 sprintf(str, "%s: Furderous melon!", pOpponent_spec->car_spec->driver_name);
-                DoNotDprintf("%s: Decided to pursue after MURDER", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Decided to pursue after MURDER", pOpponent_spec->car_spec->driver_name);
                 NewObjective(pOpponent_spec, eOOT_pursue_and_twat, &gProgram_state.current_car);
                 return;
             }
@@ -2137,7 +2137,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
                     && !ChooseNewObjective_AlreadyPursuingCar(pOpponent_spec, pOpponent_spec->car_spec->last_person_to_hit_us)) {
                 gOpponents[pOpponent_spec->index].psyche.grudge_against_player = MIN(100, MAX(20, gOpponents[pOpponent_spec->index].psyche.grudge_against_player) + general_grudge_increase);
                 sprintf(str, "%s: Christ! What was that?", pOpponent_spec->car_spec->driver_name);
-                DoNotDprintf("%s: Decided to pursue after big bang; last person to twat us was %s",
+                DoNotDprintf_opponent("%s: Decided to pursue after big bang; last person to twat us was %s",
                     pOpponent_spec->car_spec->driver_name,
                     pOpponent_spec->car_spec->last_person_to_hit_us->driver_name);
                 NewObjective(pOpponent_spec, eOOT_pursue_and_twat, pOpponent_spec->car_spec->last_person_to_hit_us);
@@ -2147,7 +2147,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
                     && !ChooseNewObjective_AlreadyPursuingCar(pOpponent_spec, pOpponent_spec->car_spec->last_person_we_hit)) {
                 gOpponents[pOpponent_spec->index].psyche.grudge_against_player = MIN(100, MAX(20, gOpponents[pOpponent_spec->index].psyche.grudge_against_player) + general_grudge_increase);
                 sprintf(str, "%s: Ha! Bet you weren't expecting that!", pOpponent_spec->car_spec->driver_name);
-                DoNotDprintf("%s: Decided to pursue %s after accidentally hitting them",
+                DoNotDprintf_opponent("%s: Decided to pursue %s after accidentally hitting them",
                     pOpponent_spec->car_spec->driver_name,
                     pOpponent_spec->car_spec->last_person_we_hit->driver_name);
                 NewObjective(pOpponent_spec, eOOT_pursue_and_twat, &gProgram_state.current_car);
@@ -2161,7 +2161,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
                     if (grudge > 20) {
                         gOpponents[pOpponent_spec->index].psyche.grudge_against_player = MIN(100, grudge + general_grudge_increase);
                         sprintf(str, "%s: Right! That's enough, %s!", pOpponent_spec->car_spec->driver_name, gProgram_state.current_car.driver_name);
-                        DoNotDprintf("%s: Decided to pursue after grudginess raised; last person to twat us was %s",
+                        DoNotDprintf_opponent("%s: Decided to pursue after grudginess raised; last person to twat us was %s",
                             pOpponent_spec->car_spec->driver_name, pOpponent_spec->car_spec->last_person_to_hit_us->driver_name);
                         NewObjective(pOpponent_spec, eOOT_pursue_and_twat, &gProgram_state.current_car);
                         return;
@@ -2178,7 +2178,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
                     }
                     pursuit_percentage += ChooseNewObjective_HeadOnWithPlayerPossible(pOpponent_spec) ? 50 : 0;
                     do_it = PercentageChance(pursuit_percentage);
-                    DoNotDprintf("%s: Spotted player; chance of pursuing %d%%: %s", pOpponent_spec->car_spec->driver_name, pursuit_percentage, do_it ? "YES, Decided to pursue" : "NO, Decided NOT to pursue");
+                    DoNotDprintf_opponent("%s: Spotted player; chance of pursuing %d%%: %s", pOpponent_spec->car_spec->driver_name, pursuit_percentage, do_it ? "YES, Decided to pursue" : "NO, Decided NOT to pursue");
                     if (do_it) {
                         gOpponents[pOpponent_spec->index].psyche.grudge_against_player = MIN(100, MAX(20, gOpponents[pOpponent_spec->index].psyche.grudge_against_player) + general_grudge_increase);
                         sprintf(str, "%s: I've decided to kill you for the fun of it", pOpponent_spec->car_spec->driver_name);
@@ -2190,7 +2190,7 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
         }
     }
     if (pMust_choose_one) {
-        DoNotDprintf("%s: Choosing new objective because we have to...", pOpponent_spec->car_spec->driver_name, pOpponent_spec->car_spec->last_person_to_hit_us);
+        DoNotDprintf_opponent("%s: Choosing new objective because we have to...", pOpponent_spec->car_spec->driver_name, pOpponent_spec->car_spec->last_person_to_hit_us);
         if (pOpponent_spec->has_moved_at_some_point) {
             if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
                 NewObjective(pOpponent_spec, eOOT_return_to_start);
@@ -2209,10 +2209,10 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
             default:
                 pursuit_percentage = (int)pOpponent_spec->player_to_oppo_d - 15;
                 if (PercentageChance(pursuit_percentage)) {
-                    DoNotDprintf("%s: Choosing to get_near because chance dictated it (%d%%)", pOpponent_spec->car_spec->driver_name, pursuit_percentage);
+                    DoNotDprintf_opponent("%s: Choosing to get_near because chance dictated it (%d%%)", pOpponent_spec->car_spec->driver_name, pursuit_percentage);
                     NewObjective(pOpponent_spec, eOOT_get_near_player);
                 } else {
-                    DoNotDprintf("%s: Choosing to complete_race because chance dictated it (%d%%)", pOpponent_spec->car_spec->driver_name, pursuit_percentage);
+                    DoNotDprintf_opponent("%s: Choosing to complete_race because chance dictated it (%d%%)", pOpponent_spec->car_spec->driver_name, pursuit_percentage);
                     NewObjective(pOpponent_spec, eOOT_complete_race);
                 }
                 return;
@@ -2251,7 +2251,7 @@ void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProc
     switch (pCommand) {
     case ePOC_run:
         if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300 && pOpponent_spec->distance_from_home > 75.f) {
-            DoNotDprintf("%s: Completing pursuit objective because I'm out of my precinct", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: Completing pursuit objective because I'm out of my precinct", pOpponent_spec->car_spec->driver_name);
             NewObjective(pOpponent_spec, eOOT_return_to_start);
             return;
         }
@@ -2260,8 +2260,8 @@ void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProc
             pOpponent_spec->pursue_car_data.time_last_away_from_pursuee = gTime_stamp_for_this_munging;
         }
         if (pOpponent_spec->field_0xb4 != 3 && gOpponents[pOpponent_spec->index].psyche.grudge_against_player < 15) {
-            DoNotDprintf("%s: Completing pursuit objective because I'm happy now", pOpponent_spec->car_spec->driver_name);
-            DoNotDprintf("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: Completing pursuit objective because I'm happy now", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
             pOpponent_spec->new_objective_required = 1;
             switch (pOpponent_spec->current_objective) {
             case eOOT_complete_race:
@@ -2282,13 +2282,13 @@ void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProc
             if ((pOpponent_spec->pursue_car_data.time_last_twatted_em + 1000 < gTime_stamp_for_this_munging
                         && gTime_stamp_for_this_munging < pOpponent_spec->pursue_car_data.time_last_twatted_em + 3000)
                     && BrVector3Length(&pOpponent_spec->pursue_car_data.pursuee->collision_info->v) < 0.043478261f) {
-                DoNotDprintf("%s: Backing up because we're 'stationary' after colliding with pursuee", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Backing up because we're 'stationary' after colliding with pursuee", pOpponent_spec->car_spec->driver_name);
                 pOpponent_spec->pursue_car_data.start_backup_time = gTime_stamp_for_this_munging;
                 pOpponent_spec->pursue_car_data.state = ePCS_backing_up;
             } else if (pOpponent_spec->pursue_car_data.time_last_away_from_pursuee + 7000 < gTime_stamp_for_this_munging
                     && pOpponent_spec->pursue_car_data.time_last_twatted_em + 7000 < gTime_stamp_for_this_munging
                     && pOpponent_spec->pursue_car_data.start_backup_time + 10000 < gTime_stamp_for_this_munging) {
-                DoNotDprintf("%s: Backing up because we're too close to pursuee without having twatted him", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Backing up because we're too close to pursuee without having twatted him", pOpponent_spec->car_spec->driver_name);
                 pOpponent_spec->pursue_car_data.start_backup_time = gTime_stamp_for_this_munging;
                 pOpponent_spec->pursue_car_data.state = ePCS_backing_up;
             } else if (pOpponent_spec->cheating) {
@@ -2331,14 +2331,14 @@ visible_done:
         }
         if (gTime_stamp_for_this_munging < pOpponent_spec->pursue_car_data.time_pursuee_last_visible + 3000) {
             if (pOpponent_spec->pursue_car_data.state != ePCS_following_line_of_sight) {
-                DoNotDprintf("%s: Commencing ePCS_following_line_of_sight state", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Commencing ePCS_following_line_of_sight state", pOpponent_spec->car_spec->driver_name);
                 pOpponent_spec->pursue_car_data.state = ePCS_following_line_of_sight;
                 sprintf(str, "%s: I've spotted you!", pOpponent_spec->car_spec->driver_name);
                 ProcessFollowPath(pOpponent_spec, ePOC_start, 1, 1, 0);
             }
         } else {
             if (pOpponent_spec->pursue_car_data.pursuee->my_trail.number_of_nodes < 2) {
-                DoNotDprintf("%s: Giving up pursuit - not visible & no trail yet", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Giving up pursuit - not visible & no trail yet", pOpponent_spec->car_spec->driver_name);
                 NewObjective(pOpponent_spec, eOOT_get_near_player);
                 return;
             }
@@ -2346,11 +2346,11 @@ visible_done:
                 new_section = FindNearestGeneralSection(pOpponent_spec->pursue_car_data.pursuee, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction, &intersect, &distance);
                 pOpponent_spec->pursue_car_data.state = ePCS_following_trail;
                 if (distance > 20.f || new_section == -1) {
-                    DoNotDprintf("%s: Giving up pursuit - not visible & trail ain't close enough (%f)", pOpponent_spec->car_spec->driver_name, distance);
+                    DoNotDprintf_opponent("%s: Giving up pursuit - not visible & trail ain't close enough (%f)", pOpponent_spec->car_spec->driver_name, distance);
                     NewObjective(pOpponent_spec, eOOT_get_near_player);
                     return;
                 }
-                DoNotDprintf("%s: Commencing ePCS_following_trail state", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Commencing ePCS_following_trail state", pOpponent_spec->car_spec->driver_name);
                 pOpponent_spec->follow_path_data.section_no = new_section;
                 ProcessFollowPath(pOpponent_spec, ePOC_start, 1, 0, 0);
             }
@@ -2363,7 +2363,7 @@ visible_done:
                 if (pOpponent_spec->pursue_car_data.start_backup_time + 3000 < gTime_stamp_for_this_munging) {
                     pOpponent_spec->car_spec->brake_force = 0.f;
                     pOpponent_spec->pursue_car_data.state = ePCS_what_now;
-                    DoNotDprintf("%s: Finished backing up.", pOpponent_spec->car_spec->driver_name);
+                    DoNotDprintf_opponent("%s: Finished backing up.", pOpponent_spec->car_spec->driver_name);
                 }
                 return;
             }
@@ -2401,9 +2401,9 @@ visible_done:
                 if (pOpponent_spec->follow_path_data.section_no <= 15000) {
                     new_section = FindNearestGeneralSection(pOpponent_spec->pursue_car_data.pursuee, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction, &intersect, &distance);
                     pOpponent_spec->pursue_car_data.state = ePCS_following_trail;
-                    DoNotDprintf("%s: Trail got away; found new trail section %d", pOpponent_spec->car_spec->driver_name, new_section);
+                    DoNotDprintf_opponent("%s: Trail got away; found new trail section %d", pOpponent_spec->car_spec->driver_name, new_section);
                     if (new_section == -1 || distance > 20.f) {
-                        DoNotDprintf("%s: ...which unfortunately is too far away (%fBRU) or not visible - end of pursuit", pOpponent_spec->car_spec->driver_name, distance);
+                        DoNotDprintf_opponent("%s: ...which unfortunately is too far away (%fBRU) or not visible - end of pursuit", pOpponent_spec->car_spec->driver_name, distance);
                         NewObjective(pOpponent_spec, eOOT_get_near_player);
                         return;
                     }
@@ -2419,13 +2419,13 @@ visible_done:
                         ProcessFollowPath(pOpponent_spec, ePOC_start, 1, 0, 0);
                         goto rejoined;
                     }
-                    DoNotDprintf("%s: ...which unfortunately is too far away (%fBRU) or not visible - end of pursuit", pOpponent_spec->car_spec->driver_name, distance);
+                    DoNotDprintf_opponent("%s: ...which unfortunately is too far away (%fBRU) or not visible - end of pursuit", pOpponent_spec->car_spec->driver_name, distance);
                     NewObjective(pOpponent_spec, eOOT_get_near_player);
                     return;
                 }
                 pOpponent_spec->follow_path_data.section_no -= 1;
 rejoined:
-                DoNotDprintf("%s: Following re-jobbied section %d/%d", pOpponent_spec->car_spec->driver_name, pOpponent_spec->follow_path_data.section_no, pOpponent_spec->pursue_car_data.pursuee->my_trail.number_of_nodes - 1);
+                DoNotDprintf_opponent("%s: Following re-jobbied section %d/%d", pOpponent_spec->car_spec->driver_name, pOpponent_spec->follow_path_data.section_no, pOpponent_spec->pursue_car_data.pursuee->my_trail.number_of_nodes - 1);
             }
             sprintf(str, "%s: Trail section %d/%d", pOpponent_spec->car_spec->driver_name, pOpponent_spec->follow_path_data.section_no, pOpponent_spec->pursue_car_data.pursuee->my_trail.number_of_nodes - 1);
             res = ProcessFollowPath(pOpponent_spec, ePOC_run, 1, 0, 0);
@@ -2446,7 +2446,7 @@ rejoined:
         }
         break;
     case ePOC_start:
-        DoNotDprintf("%s: ProcessPursueAndTwat() - new objective started", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: ProcessPursueAndTwat() - new objective started", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->pursue_car_data.direct_line_nodes[0].number_of_sections = 1;
         pOpponent_spec->pursue_car_data.direct_line_nodes[0].sections[0] = 10000;
         pOpponent_spec->pursue_car_data.direct_line_nodes[1].sections[0] = 10000;
@@ -2473,7 +2473,7 @@ rejoined:
 // FUNCTION: CARMA2_HW 0x004ace20
 void C2_HOOK_FASTCALL ObjectiveComplete(tOpponent_spec* pOpponent_spec) {
 
-    DoNotDprintf("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
+    DoNotDprintf_opponent("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
     pOpponent_spec->new_objective_required = 1;
     switch (pOpponent_spec->current_objective) {
     case eOOT_complete_race:
@@ -2496,11 +2496,11 @@ void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProc
 
     switch (pCommand) {
     case ePOC_start:
-        DoNotDprintf("%s: ProcessGetNearPlayer() - new objective started", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: ProcessGetNearPlayer() - new objective started", pOpponent_spec->car_spec->driver_name);
         break;
     case ePOC_run:
         if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300 && pOpponent_spec->distance_from_home > 75.f) {
-            DoNotDprintf("%s: Completing get_near objective because I'm out of my precinct", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: Completing get_near objective because I'm out of my precinct", pOpponent_spec->car_spec->driver_name);
             NewObjective(pOpponent_spec, eOOT_return_to_start);
             return;
         }
@@ -2526,7 +2526,7 @@ void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProc
                 NewObjective(pOpponent_spec, eOOT_pursue_and_twat, &gProgram_state.current_car);
                 return;
             }
-            DoNotDprintf("%s: Restarting get_near_player route because ran out of path!", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: Restarting get_near_player route because ran out of path!", pOpponent_spec->car_spec->driver_name);
             break;
         }
         return;
@@ -2551,7 +2551,7 @@ void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_o
 
     switch (pCommand) {
     case ePOC_start:
-        DoNotDprintf("%s: ProcessLevitate() - new objective started", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: ProcessLevitate() - new objective started", pOpponent_spec->car_spec->driver_name);
         ((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate = 1;
         pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.f;
         pOpponent_spec->car_spec->acc_force = 0.f;
@@ -2616,7 +2616,7 @@ void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_o
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004ad910
-void C2_HOOK_FASTCALL ProcessOpponentRepair(tOpponent_spec* pOpponent_spec) {
+void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec) {
     extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
     int i;
     tDamage_unit* damage;
@@ -2635,13 +2635,13 @@ void C2_HOOK_FASTCALL ProcessOpponentRepair(tOpponent_spec* pOpponent_spec) {
     if (gTime_stamp_for_this_munging > pOpponent_spec->car_spec->last_time_we_touched_a_player + pOpponent_spec->repair_interval) {
         for (i = 0, damage = pOpponent_spec->car_spec->damage_units; i < (int)REC2_ASIZE(pOpponent_spec->car_spec->damage_units); i++, damage++) {
             if (i != eDamage_driver && damage != NULL) {
-                DoNotDprintf("*** Opponent %d, REPAIRING, timestamp %d", pOpponent_spec->car_spec->driver_name, gTime_stamp_for_this_munging);
+                DoNotDprintf_opponent("*** Opponent %d, REPAIRING, timestamp %d", pOpponent_spec->car_spec->driver_name, gTime_stamp_for_this_munging);
                 TotallyRepairACar(pOpponent_spec->car_spec);
                 sprintf(message, "%s %s", pOpponent_spec->car_spec->driver_name, GetMiscString(273));
                 strcpy(headup, message);
                 pOpponent_spec->repair_interval = IRandomBetween(gMinTimeOpponentRepair, gMaxTimeOpponentRepair) * 60000;
                 pOpponent_spec->last_repair_time = gTime_stamp_for_this_munging;
-                DoNotDprintf("*** Opponent %s, repair_interval is %d", pOpponent_spec->car_spec->driver_name, pOpponent_spec->repair_interval);
+                DoNotDprintf_opponent("*** Opponent %s, repair_interval is %d", pOpponent_spec->car_spec->driver_name, pOpponent_spec->repair_interval);
                 return;
             }
         }
@@ -2680,7 +2680,7 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
     case eOOT_complete_race:
         switch (pCommand) {
         case ePOC_start:
-            DoNotDprintf("%s: ProcessCompleteRace() - new objective started", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: ProcessCompleteRace() - new objective started", pOpponent_spec->car_spec->driver_name);
             pOpponent_spec->nnext_sections = 0;
             CalcRaceRoute(pOpponent_spec);
             ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
@@ -2694,7 +2694,7 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
                 CalcRaceRoute(pOpponent_spec);
             }
             if (pOpponent_spec->nnext_sections == 0 || (result = ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0)) == eFPR_end_of_path) {
-                DoNotDprintf("%s: Giving up following race path because ran out of race path", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Giving up following race path because ran out of race path", pOpponent_spec->car_spec->driver_name);
                 NewObjective(pOpponent_spec, eOOT_get_near_player);
             }
             if (result != eFPR_OK) {
@@ -2704,7 +2704,7 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
                     ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
                     return;
                 }
-                DoNotDprintf("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
+                DoNotDprintf_opponent("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
                 pOpponent_spec->new_objective_required = 1;
                 switch (pOpponent_spec->current_objective) {
                 case eOOT_complete_race:
@@ -2731,7 +2731,7 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
     case eOOT_run_away:
         switch (pCommand) {
         case ePOC_start:
-            DoNotDprintf("%s: ProcessRunAway() - new objective started", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: ProcessRunAway() - new objective started", pOpponent_spec->car_spec->driver_name);
             pOpponent_spec->run_away_data.time_to_stop = gTime_stamp_for_this_munging + 1000 * IRandomBetween(30, 90);
             pOpponent_spec->nnext_sections = 0;
             section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
@@ -2787,8 +2787,8 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
     case eOOT_frozen:
         switch (pCommand) {
         case ePOC_start:
-            DoNotDprintf("%d ProcessFrozen() - new task started", pOpponent_spec->index);
-            DoNotDprintf("%s: Rematerialising from ePOC_start in ProcessFrozen()...", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%d ProcessFrozen() - new task started", pOpponent_spec->index);
+            DoNotDprintf_opponent("%s: Rematerialising from ePOC_start in ProcessFrozen()...", pOpponent_spec->car_spec->driver_name);
             RematerialiseOpponentOnNearestSection(pOpponent_spec, 0.f);
             pOpponent_spec->car_spec->acc_force = 0.f;
             pOpponent_spec->car_spec->brake_force = 15.f * pOpponent_spec->car_spec->collision_info->M;
@@ -2815,7 +2815,7 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
 // ,1206,1269 (reference only)
 // FUNCTION: CARMA2_HW 0x004aa570
 void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
-    extern void C2_HOOK_FASTCALL ProcessOpponentRepair(tOpponent_spec* pOpponent_spec);
+    extern void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec);
     extern void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMust_choose_one);
     extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
     extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec);
@@ -2831,11 +2831,11 @@ void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
     }
     if (!pOpponent_spec->cheating) {
         if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
-            DoNotDprintf("%s: StartToCheat() - Turning physics OFF", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: StartToCheat() - Turning physics OFF", pOpponent_spec->car_spec->driver_name);
             TurnOpponentPhysicsOff(pOpponent_spec);
             RebuildActiveCarList();
         } else {
-            DoNotDprintf("%s: StartToCheat() - Starting to cheat", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: StartToCheat() - Starting to cheat", pOpponent_spec->car_spec->driver_name);
             pOpponent_spec->cheating = 1;
             switch (pOpponent_spec->current_objective) {
             case eOOT_levitate:
@@ -2896,10 +2896,10 @@ void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
     goto after_cheat_check;
 in_view:
     if (pOpponent_spec->cheating) {
-        DoNotDprintf("%s: OiStopCheating() - End of cheating sesh", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: OiStopCheating() - End of cheating sesh", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->cheating = 0;
         if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
-            DoNotDprintf("%s: OiStopCheating() - Turning physics ON", pOpponent_spec->car_spec->driver_name);
+            DoNotDprintf_opponent("%s: OiStopCheating() - Turning physics ON", pOpponent_spec->car_spec->driver_name);
             pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_DEFAULT;
             PipeSingleOppoRenderage(pOpponent_spec, 1);
             if (!pOpponent_spec->physics_me) {
@@ -2910,7 +2910,7 @@ in_view:
         }
     }
 after_cheat_check:
-    ProcessOpponentRepair(pOpponent_spec);
+    PossiblyRepairOpponent(pOpponent_spec);
     ChooseNewObjective(pOpponent_spec, pOpponent_spec->new_objective_required != 0 || gTime_stamp_for_this_munging > pOpponent_spec->time_for_this_objective_to_finish);
     pOpponent_spec->new_objective_required = 0;
     if (gCountdown != 0 || gRace_finished) {
@@ -3016,7 +3016,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_sc
     massage_count = 0;
     theta = 0x3ffc - (long)(atan2(mat->m[2][2], mat->m[2][0]) * (32768.0 / PI));
     if (pOpponent_spec->physics_me) {
-        DoNotDprintf("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
         return 1;
     }
     gRematerialisation_count++;
@@ -3099,7 +3099,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_sc
     gRematerialisation_extra_attempts--;
     this_total--;
     if (sensible_place) {
-        DoNotDprintf("%s: Rematerialised (took %d attempts, orig. pos. (%7.3f,%7.3f,%7.3f), actual pos. (%7.3f,%7.3f,%7.3f))",
+        DoNotDprintf_opponent("%s: Rematerialised (took %d attempts, orig. pos. (%7.3f,%7.3f,%7.3f), actual pos. (%7.3f,%7.3f,%7.3f))",
             pOpponent_spec->car_spec->driver_name,
             this_total + 1,
             original_mat.m[3][0], original_mat.m[3][1], original_mat.m[3][2],
@@ -3109,7 +3109,7 @@ int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_sc
         gRematerialisation_max_extra_attempts = this_total;
     }
     if (gRematerialisation_extra_attempts != 0) {
-        DoNotDprintf("MassageOpponentPosition() called an avg of %.1f times (max %d) per ReMaterialisation",
+        DoNotDprintf_opponent("MassageOpponentPosition() called an avg of %.1f times (max %d) per ReMaterialisation",
             (double)gRematerialisation_extra_attempts / gRematerialisation_count, gRematerialisation_max_extra_attempts);
     }
     if (!sensible_place) {
@@ -3170,7 +3170,7 @@ int C2_HOOK_FASTCALL GetOpponentsSectionMinSpeed(tOpponent_spec* pOpponent_spec,
     if (pSection == 10000) {
         return pOpponent_spec->pursue_car_data.direct_line_section.min_speed[pTowards_finish];
     }
-    DoNotDprintf("WARNING - GetOpponentsSectionMinSpeed() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+    DoNotDprintf_opponent("WARNING - GetOpponentsSectionMinSpeed() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
     PDEnterDebugger("WARNING - GetOpponentsSectionMinSpeed()");
     return 0;
 }
@@ -3190,7 +3190,7 @@ int C2_HOOK_FASTCALL GetOpponentsSectionMaxSpeed(tOpponent_spec* pOpponent_spec,
         if (pSection == 10000) {
             return pOpponent_spec->pursue_car_data.direct_line_section.max_speed[pTowards_finish];
         }
-        DoNotDprintf("WARNING - GetOpponentsSectionMaxSpeed() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+        DoNotDprintf_opponent("WARNING - GetOpponentsSectionMaxSpeed() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
         PDEnterDebugger("WARNING - GetOpponentsSectionMaxSpeed()");
     }
     return 0xff;

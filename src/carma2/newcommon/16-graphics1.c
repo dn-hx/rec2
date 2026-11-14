@@ -439,7 +439,7 @@ tShadow_level C2_HOOK_FASTCALL GetShadowLevel(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e9960
-void C2_HOOK_FASTCALL ToggleShadow(void) {
+void C2_HOOK_FASTCALL ShadowMode(void) {
 
     if (gShadow_level++ == eShadow_everyone) {
         gShadow_level = eShadow_none;
@@ -522,7 +522,7 @@ void C2_HOOK_FASTCALL DisposeSavedShadeTables(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004e9b90
-void C2_HOOK_FASTCALL ShadowMode(void) {
+void C2_HOOK_FASTCALL ToggleShadowMode(void) {
 
     gFancy_shadow = !gFancy_shadow;
     if (gFancy_shadow) {
@@ -902,7 +902,7 @@ void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to
                 } else {
                     gRear_pixelmap->flags |= BR_PMF_ROW_WHOLEPIXELS;
                 }
-                BrActorToActorMatrix34(&mat, pExtra->actor, gUniverse_actor);
+                BrActorToActorMatrix34_2(&mat, pExtra->actor, gUniverse_actor);
                 DoARenderPass(&mat, pExtra->actor, gRear_pixelmap, gDepth_buffer, 1.f, 0, 0, 0);
                 DRPixelmapCopyMapBlack(pExtra->material->colour_map, gRear_pixelmap);
                 BrMaterialUpdate(pExtra->material, 8);

@@ -102,11 +102,11 @@ br_angle C2_HOOK_CDECL BrFixedATan2(br_fixed_ls x, br_fixed_ls y);
 
 br_angle C2_HOOK_CDECL BrFixedATan2Fast(br_fixed_ls x, br_fixed_ls y);
 
-br_uint_16 C2_HOOK_CDECL _BrISqrt32(br_uint_32 a);
+br_uint_16 C2_HOOK_CDECL _BrSqrtI32(br_uint_32 a);
 
-br_uint_32 C2_HOOK_FASTCALL _BrISqrt64(uint64_t a);
+br_uint_32 C2_HOOK_FASTCALL _BrSqrtI64(uint64_t a);
 
-br_uint_16 C2_HOOK_CDECL _BrFastSqrt32(br_uint_32 v);
+br_uint_16 C2_HOOK_CDECL _BrFastSqrt(br_uint_32 v);
 
 br_uint_32 C2_HOOK_CDECL _BrFastRSqrt32(br_uint_32 v);
 

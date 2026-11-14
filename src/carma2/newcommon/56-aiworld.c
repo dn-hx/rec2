@@ -133,7 +133,7 @@ extern int gTimers_stack_size;
 extern tTimer gTimers[19];
 extern void C2_HOOK_FASTCALL MungeOpponents(void);
 extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
-extern void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime);
+extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
 
 static void TimersPush(int pType) {
     int prev_type;
@@ -390,7 +390,7 @@ static void C2_HOOK_FASTCALL UpdateEditModels_Impl(void) {
 static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
 
     if (gTrack_drone_min_y - 50 > pDrone->actor->t.t.translate.t.v[1]) {
-        DoNotDprintf_drone("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 5);
+        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 5);
         if (pDrone->current_state != 5) {
             if (gDrone_state_functions[pDrone->current_state] != NULL) {
                 gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
@@ -423,7 +423,7 @@ static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
                     gCount_active_drones += 1;
                 }
                 DoDefaultDroneStateAction(pDrone);
-                DoNotDprintf_drone("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+                DoNotDprintf("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
                 CrappyLittleVector3DPrintf("    Pos", &pDrone->actor->t.t.translate.t);
             }
         }
@@ -448,7 +448,7 @@ void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
             if (gDrone_specs[i].current_state != 5) {
                 ProcessThisDrone(i);
             }
-            DoNotDprintf_drone("FINISHED processing Drone %d, state %d", gDrone_specs[i].id, gDrone_specs[i].current_state);
+            DoNotDprintf("FINISHED processing Drone %d, state %d", gDrone_specs[i].id, gDrone_specs[i].current_state);
         }
     }
 }
@@ -456,11 +456,11 @@ void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
 #pragma auto_inline(on)
 #endif
 
-/* local declarations for ProcessShitMines (no new includes/externs in headers) */
+/* local declarations for MungeShatMines (no new includes/externs in headers) */
 extern tShit_mine gShit_mines[20];
 extern tU32 gPHIL_last_physics_tick;
-extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
-extern void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
+extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
@@ -484,7 +484,7 @@ static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004dde20
-void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime) {
+void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime) {
     int i;
     int play_effect;
 
@@ -501,7 +501,7 @@ void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime) {
             mine->flags &= ~0x80;
             car_vulnerable = CarVulnerableByMine_Impl(car);
             if (car_vulnerable) {
-                TotallySpamTheModel(car, 0.1f * mine->max_damage);
+                TotallySpamTheCar(car, 0.1f * mine->max_damage);
             }
             if (car_vulnerable && (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host)) {
                 car->collision_info->v.v[1] += FRandomBetween(mine->field3_0xc, mine->initial_y_speed_factor) / (car->collision_info->M * 6.9);
@@ -511,7 +511,7 @@ void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime) {
                 car->collision_info->field_0x49c = gPHIL_last_physics_tick + 40;
                 if (!car->invulnerable_no_damage) {
                     for (i = 0; i < 12; i++) {
-                        DoDamage(car, i, IRandomBetween(0, (int)(25.f * mine->max_damage)));
+                        DamageUnit2(car, i, IRandomBetween(0, (int)(25.f * mine->max_damage)));
                     }
                     if (car != mine->field_0x30) {
                         car->last_hit_by = mine->field_0x30;
@@ -560,7 +560,7 @@ void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period) {
     MungeOpponents();
     TimersPop(TIMER_OPP);
     gFirst_drone_processing = 0;
-    ProcessShitMines(gTime_stamp_for_this_munging);
+    MungeShatMines(gTime_stamp_for_this_munging);
 }
 
 // FUNCTION: CARMA2_HW 0x004013d0
@@ -660,7 +660,7 @@ void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
         drone = &gDrone_specs[i];
         form = drone->form;
 
-        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", drone->id, drone->current_state, 1);
+        DoNotDprintf_opponent("NewDroneState() Drone %d, Current state %d, New state %d", drone->id, drone->current_state, 1);
         if (drone->current_state != 1) {
             if (gDrone_state_functions[drone->current_state] != NULL) {
                 gDrone_state_functions[drone->current_state](drone, eDrone_state_STOP);
@@ -683,8 +683,8 @@ void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
                 if (gDrone_state_functions[drone->current_state] != NULL) {
                     gDrone_state_functions[drone->current_state](drone, eDrone_state_DEFAULT);
                 }
-                DoNotDprintf("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, drone->id, drone->current_state);
-                DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, "    Pos", drone->actor->t.t.translate.t.v[0], drone->actor->t.t.translate.t.v[1], drone->actor->t.t.translate.t.v[2]);
+                DoNotDprintf_opponent("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, drone->id, drone->current_state);
+                DoNotDprintf_opponent("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, "    Pos", drone->actor->t.t.translate.t.v[0], drone->actor->t.t.translate.t.v[1], drone->actor->t.t.translate.t.v[2]);
             }
         }
     }
@@ -815,13 +815,13 @@ void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
         }
         gProgram_state.AI_vehicles.opponents[i].car_spec = pRace_info->opponent_list[opponent_number].car_spec;
         gProgram_state.AI_vehicles.opponents[i].car_spec->car_ID = i + 0x200;
-        DoNotDprintf("Car '%s', car_ID %x", gProgram_state.AI_vehicles.opponents[i].car_spec->driver_name, (tU16)gProgram_state.AI_vehicles.opponents[i].car_spec->car_ID);
+        DoNotDprintf_opponent("Car '%s', car_ID %x", gProgram_state.AI_vehicles.opponents[i].car_spec->driver_name, (tU16)gProgram_state.AI_vehicles.opponents[i].car_spec->car_ID);
         gProgram_state.AI_vehicles.opponents[i].index = pRace_info->opponent_list[opponent_number].index;
         gProgram_state.AI_vehicles.opponents[i].time_last_processed = gTime_stamp_for_this_munging;
         gProgram_state.AI_vehicles.opponents[i].next_repair_check = 0;
         gProgram_state.AI_vehicles.opponents[i].repair_interval = 60000 * IRandomBetween(gMinTimeOpponentRepair, gMaxTimeOpponentRepair);
         gProgram_state.AI_vehicles.opponents[i].last_repair_time = gTime_stamp_for_this_munging;
-        DoNotDprintf("*** Opponent %s, repair_interval is %d", gProgram_state.AI_vehicles.opponents[i].car_spec->driver_name, gProgram_state.AI_vehicles.opponents[i].repair_interval);
+        DoNotDprintf_opponent("*** Opponent %s, repair_interval is %d", gProgram_state.AI_vehicles.opponents[i].car_spec->driver_name, gProgram_state.AI_vehicles.opponents[i].repair_interval);
         gProgram_state.AI_vehicles.opponents[i].time_this_objective_started = gTime_stamp_for_this_munging;
         gProgram_state.AI_vehicles.opponents[i].last_moved_ok = gTime_stamp_for_this_munging;
         gProgram_state.AI_vehicles.opponents[i].last_in_view = 0;
@@ -862,7 +862,7 @@ void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
         if (opponent_spec != NULL) {
             opponent_spec->pursue_from_start = 1;
         } else {
-            DoNotDprintf("ERROR - can't record dare - no opponent_spec for car_spec");
+            DoNotDprintf_opponent("ERROR - can't record dare - no opponent_spec for car_spec");
         }
         gChallenger_index__opponent = -1;
     }
@@ -926,7 +926,7 @@ extern int gCount_drone_forms;
 extern int gCount_drone_path_nodes;
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
-extern void C2_HOOK_FASTCALL FreeShape(void* pData);
+extern void C2_HOOK_FASTCALL FreeFormThing(void* pData);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -944,7 +944,7 @@ void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
             BrActorFree(gDrone_specs[i].actor);
             PHILRemoveObject(&gDrone_specs[i].collision_info);
             if (gDrone_specs[i].field_0x46 != 0) {
-                FreeShape(gDrone_specs[i].collision_info.shape);
+                FreeFormThing(gDrone_specs[i].collision_info.shape);
                 gDrone_specs[i].field_0x46 = 0;
             }
             if (gDrone_specs[i].funk_grooves != NULL) {
@@ -1047,8 +1047,8 @@ void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
         while (PFfeof(f) == 0) {
             GetALineAndDontArgue(f, s);
             if (strcmp(s, "START OF BOUNDING SHAPES") == 0) {
-                DoNotDprintf("ReadPastBoundsShapesHeader() returning TRUE");
-                DoNotDprintf("DRONE.C: Reading mechanics data for drone of type %s", drone->form->name);
+                DoNotDprintf_opponent("ReadPastBoundsShapesHeader() returning TRUE");
+                DoNotDprintf_opponent("DRONE.C: Reading mechanics data for drone of type %s", drone->form->name);
                 ReadMechanicsShapes(&drone->collision_info.shape, f);
                 if (drone->collision_info.shape != NULL) {
                     drone->field_0x46 = 1;
@@ -1098,7 +1098,7 @@ extern void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStor
 extern void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage* pStorage, const char* pPath);
 
 /* callees of the functions below that live in other translation units */
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateShapeBox(int pType);
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
 extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
 extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
@@ -1109,13 +1109,13 @@ extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pA
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
-extern int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
-extern void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext);
-extern void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
+extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
+extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
-extern intptr_t C2_HOOK_CDECL PredicateSpamPanel(br_actor* pActor, void* pArg);
-extern intptr_t C2_HOOK_FASTCALL CrushCarActorCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
-extern intptr_t C2_HOOK_FASTCALL CrushCarModelCbfn(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
+extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern int gCrush_panel_ids[10];
 
 extern int gCrush_deferred;
@@ -1133,7 +1133,7 @@ extern const char* gFunk_speed_control_names[2];
 extern const char* gReverseness_type_names[2];
 extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
 extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2);
-extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
+extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 
 /* helpers that the original inlines into LoadFunksAndGrooves */
 static int ReadPastThisLine(FILE* pF, const char* pLine) {
@@ -1324,7 +1324,7 @@ void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
         pPhysics->shape = original_shape;
     }
     else {
-        pPhysics->shape = (tPhysics_shape*)AllocateShapeBox(kMem_drone_collision_stuff);
+        pPhysics->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_drone_collision_stuff);
         pPhysics->shape->box.common.bb = bnds;
         pPhysics->shape->box.common.field_0x1c = bnds;
         pPhysics->shape->box.common.next = NULL;
@@ -1375,7 +1375,7 @@ int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_objec
 
     shape1 = pObject1->shape;
     shape2 = pObject2->shape;
-    if (FlagsAreGo(pObject1, pObject2) && BoundsOverlapTest__finteray(&pObject1->field_0xf4, &pObject2->field_0xf4)) {
+    if (FlagsAreGo(pObject1, pObject2) && BoundsOverlapTest(&pObject1->field_0xf4, &pObject2->field_0xf4)) {
         while (shape1 != NULL) {
             while (shape2 != NULL) {
                 if (TestShapeEdgeIntersection(pObject1, pObject2, shape1, shape2)) {
@@ -1412,7 +1412,7 @@ int gINT_006844fc;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00431610
-void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
+void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage) {
     tCar_crush_spec* spec;
     tPhysics_object* collision_info;
     tPhysics_object* panel_actor;
@@ -1492,7 +1492,7 @@ void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage) {
     node = model_actor->children;
     while (node != NULL) {
         next_node = node->next;
-        if (DRActorRecurseWithPredicate(node, PredicateSpamPanel, pCar_spec) != 0) {
+        if (DRActorEnumRecurseUltraPlus(node, FireOffBitsCB, pCar_spec) != 0) {
             goto paint;
         }
         node = next_node;
@@ -1590,12 +1590,12 @@ paint:
             context.rate = context.rate / (float)pCount;
             if (spec->field_0x144 != 0) {
                 ARStartPipingSession((tPipe_chunk_type)3);
-                DRActorEnumRecurseWithSnart(pCar_spec->car_model_actor, NULL, CrushCarModelCbfn, &context);
+                DRActorEnumRecurseWithSnart(pCar_spec->car_model_actor, NULL, SimpleCrushCarModelsCB, &context);
                 AREndPipingSession();
             } else {
-                InitialiseSpamCrush(pCar_spec, &context);
+                CrushCollisionShapes(pCar_spec, &context);
                 ARStartPipingSession((tPipe_chunk_type)3);
-                DRActorEnumRecurseWithSnart(pCar_spec->car_master_actor, NULL, CrushCarActorCbfn, &context);
+                DRActorEnumRecurseWithSnart(pCar_spec->car_master_actor, NULL, CrushModels, &context);
                 AREndPipingSession();
                 pCar_spec->use_shell_model = 0;
             }
@@ -1610,7 +1610,7 @@ paint:
         return;
     }
     if (PercentageChance((int)(pCar_spec->car_crush_spec->snappability_factor * 25.0f)) != 0) {
-        DeleteFarCrushes(pCar_spec);
+        RandomlyXZSplitCar(pCar_spec);
         return;
     }
     if (pCar_spec->car_crush_spec->bendability_factor == 0.0f) {
@@ -1661,7 +1661,7 @@ paint:
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0043f930
-void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
+void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
     tDamage_unit* damage_unit;
     int old_level;
     int new_level;
@@ -1877,9 +1877,9 @@ extern br_material* gMat_lt_yel;
 extern br_material* gMat_md_grn;
 extern br_material* gMat_dk_turq;
 extern br_material* gMat_lt_turq;
-extern void C2_HOOK_FASTCALL WriteOutDronePaths(void);
+extern void C2_HOOK_FASTCALL SaveDronePaths(void);
 extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices);
-extern void C2_HOOK_FASTCALL BuildDronePathNodeMesh(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
+extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
 // FUNCTION: CARMA2_HW 0x00452ba0
 int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
@@ -1973,7 +1973,7 @@ int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
                 pMaterial2 = gMat_md_grn;
                 pMaterial3 = gMat_lt_grn;
             }
-            BuildDronePathNodeMesh(gStatic_drone_path_model, vertex_index, face_index, &pPath_node->position, pMaterial1, pMaterial2, pMaterial3);
+            MakeAIEditCubeHere(gStatic_drone_path_model, vertex_index, face_index, &pPath_node->position, pMaterial1, pMaterial2, pMaterial3);
             face_index += 0xc;
             vertex_index += 8;
             node_index++;
@@ -2016,11 +2016,11 @@ int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
 
     if (vertex_index != 0) {
         BrModelUpdate(gStatic_drone_path_model, BR_MODU_ALL);
-        WriteOutDronePaths();
+        SaveDronePaths();
         return 1;
     }
     gStatic_drone_path_model_actor->render_style = BR_RSTYLE_NONE;
-    WriteOutDronePaths();
+    SaveDronePaths();
     return 1;
 }
 #ifdef REC2_MATCHING
@@ -2050,7 +2050,7 @@ extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0044cfc0
-void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...) {
+void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2058,7 +2058,7 @@ void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...) {
 
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
 static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
-    DoNotDprintf_drone("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
+    DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
 }
 
 #ifdef REC2_MATCHING
@@ -2072,7 +2072,7 @@ void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
             pDrone->field_0x44 = 0;
             gCount_active_drones -= 1;
             if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
-                DoNotDprintf_drone("STOP RENDERING: %d", pDrone->id);
+                DoNotDprintf("STOP RENDERING: %d", pDrone->id);
                 gCount_rendered_drones -= 1;
                 pDrone->actor->render_style = BR_RSTYLE_NONE;
                 PipeSingleDroneRender(pDrone, 0);
@@ -2081,7 +2081,7 @@ void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
             if (gDrone_state_functions[pDrone->current_state] != NULL) {
                 gDrone_state_functions[pDrone->current_state](pDrone, (tDroneStateFuncState)2);
             }
-            DoNotDprintf_drone("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+            DoNotDprintf("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
             DroneCrappyLittleVector3DPrintf("     Pos", &pDrone->actor->t.t.translate.t);
         }
     }
@@ -2114,7 +2114,7 @@ void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStar
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00435e10
-intptr_t C2_HOOK_CDECL PredicateSpamPanel(br_actor* pActor, void* pArg) {
+intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
     tCar_spec* pCar;
     tUser_crush_data* user;
     tCar_crush_buffer_entry* crush_data;
@@ -2191,7 +2191,7 @@ fail:
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00435dd0
-int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg) {
+int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg) {
     int result;
     br_actor* actor;
     br_actor* next;
@@ -2199,7 +2199,7 @@ int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum
     actor = pActor;
     for (pActor = pActor->children; pActor != NULL; pActor = next) {
         next = pActor->next;
-        result = DRActorRecurseWithPredicate(pActor, pCallback, pArg);
+        result = DRActorEnumRecurseUltraPlus(pActor, pCallback, pArg);
         if (result != 0) {
             return result;
         }
@@ -2209,7 +2209,7 @@ int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// Helpers of InitialiseSpamCrush: the original build inlined these four (they also exist as
+// Helpers of CrushCollisionShapes: the original build inlined these four (they also exist as
 // out-of-line functions in 13-crush1.c); keep local copies so the inlining is reproduced.
 // UNCERTAIN: pContext points to the caller's anonymous struct { tCar_spec* car; int* pCount; float rate; };
 // the original reads a variable-length point list and vector data through the second field, so
@@ -2279,7 +2279,7 @@ static __inline void SpamCrushFinishVertex(br_vector3* pVertexPos, tU16 pFlags, 
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00432e70
-void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext) {
+void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext) {
     float fVar2;
     float fVar6;
     float fVar7;
@@ -2372,7 +2372,7 @@ void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00435d40
-void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar) {
     extern int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane);
     extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
     const br_bounds3* bounds;
@@ -2436,7 +2436,7 @@ br_material* gMat_lt_turq;
 #pragma auto_inline(off)
 #endif
 /* file-local declaration: the definition lives in src/brender/core/fw/resreg.c */
-extern void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
+extern void C2_HOOK_CDECL BrBlockFill(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
 
 // FUNCTION: CARMA2_HW 0x00452f40
 void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices) {
@@ -2449,7 +2449,7 @@ void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces,
 
     vertex_size = pVertices * sizeof(br_vertex);
     new_vertices = BrResAllocate(pModel, vertex_size, BR_MEMORY_VERTICES);
-    FUN_00528130((br_uint_32*)new_vertices, 0, vertex_size / sizeof(br_uint_32));
+    BrBlockFill((br_uint_32*)new_vertices, 0, vertex_size / sizeof(br_uint_32));
     if (pModel->nvertices != 0) {
         i = 0;
         offset = 0;
@@ -2466,7 +2466,7 @@ void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces,
 
     face_size = pFaces * sizeof(br_face);
     new_faces = BrResAllocate(pModel, face_size, BR_MEMORY_FACES);
-    FUN_00528130((br_uint_32*)new_faces, 0, face_size / sizeof(br_uint_32));
+    BrBlockFill((br_uint_32*)new_faces, 0, face_size / sizeof(br_uint_32));
     if (pModel->nfaces != 0) {
         i = 0;
         offset = 0;
@@ -2489,7 +2489,7 @@ void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces,
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00401aa0
-void C2_HOOK_FASTCALL BuildDronePathNodeMesh(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3) {
+void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3) {
     int vertex1;
     int vertex2;
     int vertex3;

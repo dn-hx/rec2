@@ -283,7 +283,7 @@ extern void C2_HOOK_FASTCALL S3BindListenerLeftBRender(br_vector3* left);
 
 extern int C2_HOOK_FASTCALL S3StartSound3D(tS3_outlet *pOutlet, int pSound, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 
-extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
+extern tS3_sound_source* C2_HOOK_FASTCALL RealS3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
 
 extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceBR(br_vector3* pPosition, br_vector3* pVelocity, tS3_outlet* pBound_outlet);
 

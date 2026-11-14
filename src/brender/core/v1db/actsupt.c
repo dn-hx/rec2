@@ -123,14 +123,14 @@ br_actor* C2_HOOK_CDECL BrActorRemove(br_actor* a) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051e0d0
-void C2_HOOK_CDECL BrActorRelink(br_actor* parent, br_actor* a) {
+void C2_HOOK_CDECL BrActorRelink_2(br_actor* parent, br_actor* a) {
     br_matrix34 mat;
 
     if (a->parent == parent) {
         return;
     }
 
-    BrActorToActorMatrix34(&mat, a, parent);
+    BrActorToActorMatrix34_2(&mat, a, parent);
     BrMatrix34ToTransform(&a->t, &mat);
     BrActorAdd(parent, BrActorRemove(a));
 }
@@ -343,7 +343,7 @@ br_token C2_HOOK_STDCALL CameraToScreenMatrix4(br_matrix4* mat, br_actor* camera
 }
 
 // FUNCTION: CARMA2_HW 0x0051e7d0
-br_uint_16 C2_HOOK_CDECL BrActorToActorMatrix34(br_matrix34* m, br_actor* a, br_actor* b) {
+br_uint_16 C2_HOOK_CDECL BrActorToActorMatrix34_2(br_matrix34* m, br_actor* a, br_actor* b) {
     br_matrix34 mata;
     br_matrix34 matb;
     br_matrix34 matc;
@@ -440,7 +440,7 @@ void C2_HOOK_CDECL BrActorToScreenMatrix4(br_matrix4* m, br_actor* a, br_actor* 
 
     CameraToScreenMatrix4(m, camera);
     if (a != camera) {
-        BrActorToActorMatrix34(&a2c, a, camera);
+        BrActorToActorMatrix34_2(&a2c, a, camera);
         BrMatrix4Pre34(m, &a2c);
     }
 }

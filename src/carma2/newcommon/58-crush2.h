@@ -38,9 +38,9 @@ extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
 
 // RecordLastDamage
 
-// DoDamage
+// DamageUnit2
 
-extern void C2_HOOK_FASTCALL CalcModifiedLocation(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RecordLastDamage(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity);
 
@@ -61,9 +61,9 @@ extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 
 // ChristmasLights
 
-extern intptr_t C2_HOOK_CDECL AddTotalDeflectionOfModel(br_actor* pActor, tCrush_displacement_context_local* pContext);
+extern intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext);
 extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
-extern intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local* pContext);
+extern intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext);
 extern int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext);
 
 #endif // GUARD_58_CRUSH2_H

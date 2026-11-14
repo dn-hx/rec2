@@ -550,7 +550,7 @@ extern void C2_HOOK_FASTCALL DisablePlingMaterials(void);
 extern void C2_HOOK_FASTCALL EnablePlingMaterials(void);
 
 // FUNCTION: CARMA2_HW 0x004d8350
-void C2_HOOK_FASTCALL SetTintedPolyRefMaterial(int pTintedIndex, br_vector3* pPosition) {
+void C2_HOOK_FASTCALL SetTintedFromSpecialVolume(int pTintedIndex, br_vector3* pPosition) {
     tSpecial_volume* volume;
     br_vector3 dir;
     br_vector3 nor;

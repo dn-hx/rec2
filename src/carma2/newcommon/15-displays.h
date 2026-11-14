@@ -55,7 +55,7 @@ extern void C2_HOOK_FASTCALL DimAFewBits(void);
 
 // KillOldestQueuedHeadup
 
-extern void C2_HOOK_FASTCALL DoTestPowerHeadup(int pLevel, const char* pAPO_str);
+extern void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str);
 
 extern void C2_HOOK_FASTCALL DoPSPowerupHeadups(void);
 
@@ -105,7 +105,7 @@ extern int C2_HOOK_FASTCALL HighResHeadupHeight(int pHeight);
 extern void C2_HOOK_FASTCALL DrawThisCarIconNow(int pCar_index, int pX, int pY);
 
 
-extern void C2_HOOK_FASTCALL TimerStringGlobalTimer(char* pStr, undefined4 pArg3);
+extern void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3);
 extern void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index);
 extern void C2_HOOK_FASTCALL DisplayTimedMessage(char* pText);
 

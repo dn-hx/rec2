@@ -28,7 +28,7 @@ extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
 extern void C2_HOOK_FASTCALL CheckCheckpoints(void);
 extern void C2_HOOK_FASTCALL TotalRepair(void);
 
-extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
 
 extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
@@ -61,7 +61,7 @@ extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFro
 extern void C2_HOOK_FASTCALL ResetPowerups(void);
 extern void C2_HOOK_FASTCALL InitPlayers(void);
 
-extern void C2_HOOK_FASTCALL FUN_0049b7e0(tPlayer_ID pPlayer_id);
+extern void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL InitRace(void);
 extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
 extern void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);

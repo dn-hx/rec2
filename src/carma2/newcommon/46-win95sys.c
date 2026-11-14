@@ -90,7 +90,7 @@ void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_len
 
 // PDInitialiseSystem
 
-// PDShutdownSystem
+// PDShutDownSystem
 
 // PDSaveOriginalPalette
 
@@ -163,7 +163,7 @@ void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051b9d0
-void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer) {
+void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
 
 }
 
@@ -237,7 +237,7 @@ extern LARGE_INTEGER gPerformanceCounterFrequency_ms;
 #endif
 
 // FUNCTION: CARMA2_HW 0x0051d900
-tU32 C2_HOOK_FASTCALL PDGetElapsedMilliseconds(void) {
+tU32 C2_HOOK_FASTCALL PDGetTotalTime2(void) {
     if (gPerformanceCounterInitialized) {
         LARGE_INTEGER perfCountValue;
         QueryPerformanceCounter(&perfCountValue);

@@ -121,7 +121,7 @@ void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag,
         if (channel != NULL && channel->descriptor != NULL && channel->descriptor->type == 0) {
             C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_channel, source_rate, 0x54);
 
-            channel->source_rate = S3IRandomBetweenLog(channel->descriptor->min_pitch, channel->descriptor->max_pitch, channel->descriptor->buffer_description->sample_rate);
+            channel->source_rate = S3IRandomBetweenLog_1(channel->descriptor->min_pitch, channel->descriptor->max_pitch, channel->descriptor->buffer_description->sample_rate);
             channel->source_rate = (int)((double)channel->source_rate * ldexp((double)src->pitch, -16));
         }
     }
@@ -273,7 +273,7 @@ int C2_HOOK_FASTCALL S3StartSound3D(tS3_outlet *pOutlet, int pSound, const br_ve
         gS3_channel_template.max_distance_squared = 150.0f;
         gS3_channel_template.volume_multiplier = pVolume;
         gS3_channel_template.source_volume = pVolume;
-        gS3_channel_template.rate = S3IRandomBetweenLog(descriptor->min_pitch,descriptor->max_pitch,
+        gS3_channel_template.rate = S3IRandomBetweenLog_1(descriptor->min_pitch,descriptor->max_pitch,
         descriptor->buffer_description->sample_rate);
         if (pPitch == -1) {
             pPitch = BR_FIXED_INT(1);
@@ -438,7 +438,7 @@ int C2_HOOK_FASTCALL S3UpdateSourcePosition(tS3_sound_source *pSource) {
         }
         memset(&gS3_channel_template, 0, sizeof(tS3_channel));
         gS3_channel_template.source_volume = pSource->volume;
-        gS3_channel_template.rate = S3IRandomBetweenLog(descriptor->min_pitch,
+        gS3_channel_template.rate = S3IRandomBetweenLog_1(descriptor->min_pitch,
                 descriptor->max_pitch,
                 descriptor->buffer_description->sample_rate);
         if (pSource->pitch < 0) {

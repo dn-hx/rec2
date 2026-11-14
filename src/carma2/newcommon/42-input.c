@@ -119,7 +119,7 @@ REC2_INLINE void C2_HOOK_FASTCALL SetJoystickArrays(int* pKeys, int pMark) {
     for (i = 0; i < 44; i++) {
         pKeys[107 + i] = 0;
     }
-    PDReadJoysticks();
+    PDReadJoySticks();
     for (i = 0; i < 8; i++) {
         gJoy_array[i] = -1;
     }

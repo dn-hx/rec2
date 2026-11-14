@@ -130,8 +130,8 @@ extern void C2_HOOK_FASTCALL SkipBytes(FILE* pF, int pBytes_to_skip);
 extern tS32 C2_HOOK_FASTCALL MemReadS32(char** pPtr);
 extern void C2_HOOK_FASTCALL DisposeKevStuff(void);
 extern void C2_HOOK_FASTCALL LoadingNoOp(void);
-extern tU32 C2_HOOK_FASTCALL DecimalDigitsToBitmask(tU32 pValue);
-extern void C2_HOOK_FASTCALL DecodeLine(char* pS);
+extern tU32 C2_HOOK_FASTCALL BinIntegerToInteger(tU32 pValue);
+extern void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS);
 extern void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path);
 extern void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path);
 

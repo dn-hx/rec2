@@ -255,10 +255,10 @@ void C2_HOOK_FASTCALL SetGraphicsSettingsData(tFrontend_spec* pFrontend) {
 
     switch (WhichItemIsSelectedIn(pFrontend, 9)) {
     case 36:
-        SetTrafficOn(1);
+        SetDronesOn(1);
         break;
     case 37:
-        SetTrafficOn(0);
+        SetDronesOn(0);
         break;
     }
 

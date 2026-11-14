@@ -297,7 +297,7 @@ void C2_HOOK_CDECL BrV1dbBeginWrapper_Float(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00525f60
-void C2_HOOK_CDECL BrV1dbEndWrapper_Float(void) {
+void C2_HOOK_CDECL BrV1dbEndWrapper(void) {
     BrV1dbEnd();
     BrEnd();
 }

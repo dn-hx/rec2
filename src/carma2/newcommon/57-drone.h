@@ -22,7 +22,7 @@ extern tDrone_crush_data gDrone_crush_data;
 
 extern void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition);
 
-extern void C2_HOOK_FASTCALL DroneNoOp(void);
+extern void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void);
 
 extern void C2_HOOK_FASTCALL SelectNextDrone(void);
 // CrappyLittleDrivingStateInfoDprintf
@@ -131,7 +131,7 @@ extern void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tD
 extern void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state);
 // GetNewCrushyModelForDrone
 
-extern void C2_HOOK_FASTCALL SetTrafficOn(int pTraffic_on);
+extern void C2_HOOK_FASTCALL SetDronesOn(int pTraffic_on);
 
 extern int C2_HOOK_FASTCALL OtherPerambulatoryInstasificationIsEnablificated(void);
 
@@ -177,7 +177,7 @@ extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 
 // UpdateEditModels
 
-extern void C2_HOOK_FASTCALL WriteOutDronePaths(void);
+extern void C2_HOOK_FASTCALL SaveDronePaths(void);
 
 extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
 

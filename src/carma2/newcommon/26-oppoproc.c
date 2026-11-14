@@ -1058,7 +1058,7 @@ int C2_HOOK_FASTCALL FUN_004b2740(int* pIndex) {
 const tInterface_spec* gInterface_spec;
 
 // FUNCTION: CARMA2_HW 0x004b2640
-int C2_HOOK_FASTCALL FUN_004b2640(int* pNew_choice, int* pNew_mode, int pX, int pY) {
+int C2_HOOK_FASTCALL RadioClick(int* pNew_choice, int* pNew_mode, int pX, int pY) {
     int i;
     int n;
     int current;

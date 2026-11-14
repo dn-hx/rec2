@@ -392,7 +392,7 @@ void C2_HOOK_FASTCALL DoNewGameAnimation(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0043f360
-void C2_HOOK_FASTCALL DoGoToRaceAnimation(void) {
+void C2_HOOK_FASTCALL DoGoToTrackAnimation(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0043f370
@@ -558,7 +558,7 @@ static void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouldy(void) {
 // wait for any key or mouse press, then wait for everything to be released
 // (AnyKeyDown / EitherMouseButtonDown / CheckKeysForMouldiness / PollKeys inlined)
 // FUNCTION: CARMA2_HW 0x004835d0
-void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void) {
+void C2_HOOK_FASTCALL WaitForAKey(void) {
     extern void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark);
     int i;
     int the_key;
@@ -620,7 +620,7 @@ void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     extern void C2_HOOK_FASTCALL SetNonFatalAllocationErrors(void);
     extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
     extern void C2_HOOK_FASTCALL ResetNonFatalAllocationErrors(void);
-    extern void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void);
+    extern void C2_HOOK_FASTCALL WaitForAKey(void);
     extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
     extern int C2_HOOK_FASTCALL DRS3ReleaseSound(int pSound_id);
     float sound_delay;
@@ -635,7 +635,7 @@ void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     SetNonFatalAllocationErrors();
     RunFlic(7);
     ResetNonFatalAllocationErrors();
-    WaitForAnyKeyOrMouse();
+    WaitForAKey();
     FadePaletteDown();
     ClearEntireScreen();
     DRS3ReleaseSound(0x2136);

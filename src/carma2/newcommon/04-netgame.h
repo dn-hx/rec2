@@ -180,28 +180,28 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
-extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
+extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
 
 extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id);
-extern void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient);
-extern void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient);
-extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
-extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient);
+extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
-extern void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk);
-extern void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents);
-extern void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents);
+extern void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pChunk);
+extern void C2_HOOK_FASTCALL ReceivedShapeNumbers(tNet_message_chunk_car_crush_sync* pContents);
+extern void C2_HOOK_FASTCALL ReceivedDBNonCar(tNet_message_chunk_detached_non_car* pContents);
 #ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
-extern void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents);
-extern void C2_HOOK_FASTCALL FUN_0043d5f0(tNet_message_chunk_bit_position* pContents);
+extern void C2_HOOK_FASTCALL ReceivedSHNonCar(tU8* pContents);
+extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents);
 #endif
-extern void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
+extern void C2_HOOK_FASTCALL GetVelocityAndPosition(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
 
 // FUNCTION: CARMA2_HW 0x0049bad0
 extern void C2_HOOK_FAKE_THISCALL FUN_0049bad0(void* pThis);

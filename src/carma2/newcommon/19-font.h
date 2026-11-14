@@ -15,7 +15,7 @@ extern br_actor* gString_root_actor;
 
 extern int C2_HOOK_FASTCALL PolyFontHeight(int pFont_index);
 
-extern int C2_HOOK_FASTCALL FindCharacterWidth(br_pixelmap* pMap);
+extern int C2_HOOK_FASTCALL CalculatePolyFontMapWidth(br_pixelmap* pMap);
 
 extern int C2_HOOK_FASTCALL CharacterWidth(int pFont_index, tU8 pCharacter);
 
@@ -41,7 +41,7 @@ extern void C2_HOOK_FASTCALL DisposeInterfaceFonts(void);
 
 extern void C2_HOOK_FASTCALL RemovePolyFont(int pFont);
 
-extern void C2_HOOK_FASTCALL LoadInterfaceFonts(void);
+extern void C2_HOOK_FASTCALL LoadInterfacePolyFonts(void);
 
 extern void C2_HOOK_FASTCALL LoadPolyFont(const char* pName, int pSize, int pIndex);
 

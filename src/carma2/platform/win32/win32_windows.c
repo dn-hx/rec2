@@ -38,7 +38,7 @@ void C2_HOOK_CDECL SDL3ServiceMessages(void) {
                 dr_dprintf("QuitGame being called...");
                 QuitGame();
             }
-            PDShutdownSystem();
+            PDShutDownSystem();
         }
         TranslateMessage(&msg);
         dr_dprintf("Win32ServiceMessages() - dispatching message...");
@@ -55,7 +55,7 @@ void C2_HOOK_CDECL SDL3ServiceMessages(void) {
 #pragma optimize("gty", on)
 #endif
 // FUNCTION: CARMA2_HW 0x0044c830
-void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void) {
+void C2_HOOK_FASTCALL PDCloseReplayFile(void) {
     if (gActionReplayBufferFile != NULL) {
         PFfclose(gActionReplayBufferFile);
         gActionReplayBufferFile = NULL;

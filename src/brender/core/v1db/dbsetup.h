@@ -43,7 +43,7 @@ void C2_HOOK_CDECL BrZsEnd(void);
 
 void C2_HOOK_CDECL BrV1dbBeginWrapper_Float(void);
 
-void C2_HOOK_CDECL BrV1dbEndWrapper_Float
+void C2_HOOK_CDECL BrV1dbEndWrapper
 (void);
 
 

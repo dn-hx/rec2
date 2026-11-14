@@ -62,9 +62,9 @@ extern int C2_HOOK_FASTCALL HasCurrentJoystick(void);
 
 extern int C2_HOOK_FASTCALL ReadUntilCharacter(FILE* pF, char* pBuffer, int pBuffer_size, char pLimit_char);
 
-extern int C2_HOOK_FASTCALL PeekChar(FILE* pFile);
+extern int C2_HOOK_FASTCALL PeekCharacter(FILE* pFile);
 
-extern unsigned int C2_HOOK_FASTCALL GetJoystickButtonIndexForKey(int pKey);
+extern unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey);
 
 extern int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo);
 
@@ -76,9 +76,9 @@ extern void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue);
 
 extern void C2_HOOK_FASTCALL SetJoystickYAxis(float pValue);
 
-extern void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled);
+extern void C2_HOOK_FASTCALL SetJoystickDPadEnable(int pEnabled);
 
-extern int C2_HOOK_FASTCALL CycleJoystickFFBGain(void);
+extern int C2_HOOK_FASTCALL JoystickAddFFBGain(void);
 
 extern void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue);
 

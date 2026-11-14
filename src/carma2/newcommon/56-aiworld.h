@@ -54,23 +54,23 @@ extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int 
 
 extern void C2_HOOK_FASTCALL MungeOpponents(void);
 extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
-extern void C2_HOOK_FASTCALL ProcessShitMines(tU32 pTime);
+extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
 extern void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone);
 extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
 extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
 extern int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2);
-extern void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
+extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
 extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
-extern void C2_HOOK_CDECL DoNotDprintf_drone(const char* pMessage, ...);
+extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
-extern intptr_t C2_HOOK_CDECL PredicateSpamPanel(br_actor* pActor, void* pArg);
-extern int C2_HOOK_FASTCALL DRActorRecurseWithPredicate(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
-extern void C2_HOOK_FASTCALL InitialiseSpamCrush(tCar_spec* pCar, void* pContext);
-extern void C2_HOOK_FASTCALL DeleteFarCrushes(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL BuildDronePathNodeMesh(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
+extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
+extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
+extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
+extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
-extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
 
 #endif // GUARD_56_AIWORLD_H

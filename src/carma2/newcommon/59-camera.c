@@ -557,13 +557,13 @@ void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime) {
 
 // PutNonCarBackInWorld
 
-extern int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
-extern void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat);
+extern int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
+extern void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat);
 extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
 extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
 extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
-extern int C2_HOOK_FASTCALL ARReplayPlaying(void);
+extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 extern int gCamera_incident_flag;
 extern int gCamera_incident_mode;
 extern int gCamera_incident_direction;
@@ -579,7 +579,7 @@ extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pInde
 extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
 extern tU32 gOldest_time;
 extern tU32 gTrigger_time;
-static int C2_HOOK_FASTCALL CheckPipeCarState(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime);
+static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -621,14 +621,14 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
     gPed_actor = NULL;
     scan_index = 0;
     if (gCamera_incident_mode == 3) {
-        if (GetPipeCarStateAtTime(-1, &gCamera_incident_mode, &gIncident_towards, gIncident_car_data, &gIncident_time) == 0) {
+        if (GetNextIncident(-1, &gCamera_incident_mode, &gIncident_towards, gIncident_car_data, &gIncident_time) == 0) {
             gCamera_incident_mode = 3;
         } else if (gIncident_time < 0 && ARGetReplayDirection() >= 0) {
             gCamera_incident_mode = 3;
         } else if (abs(gIncident_time) > 2500) {
             gCamera_incident_mode = 3;
         } else {
-            if (GetPipeCarStateAtTime(abs(gIncident_time), &mode2, &towards2, scan_data, &time2) != 0) {
+            if (GetNextIncident(abs(gIncident_time), &mode2, &towards2, scan_data, &time2) != 0) {
                 do {
                     if (++scan_index > 10) {
                         break;
@@ -645,7 +645,7 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
                         gIncident_towards = towards2;
                         gIncident_time = time2;
                     }
-                } while (GetPipeCarStateAtTime(abs(time2), &mode2, &towards2, scan_data, &time2) != 0);
+                } while (GetNextIncident(abs(time2), &mode2, &towards2, scan_data, &time2) != 0);
             }
             if (abs(gIncident_time) > 2500) {
                 gCamera_incident_mode = 3;
@@ -703,13 +703,13 @@ lab_fc76:
             BrVector3Add(&gCamera->t.t.translate.t, &car2->pos, &tv);
             gCamera->t.t.translate.t.v[1] = gCamera->t.t.translate.t.v[1] - -1.0f;
             CollideCamera2(&car2->pos, &gCamera->t.t.translate.t, NULL, 1, NULL);
-            PangToCamera(&car2->pos, m2);
+            PointCamera(&car2->pos, m2);
             BrVector3Sub(&tv, &gCamera->t.t.translate.t, &pCar->pos);
             ts = BrVector3LengthSquared(&tv);
             if ((float)fabs((float)((tS32)GetTotalTime() - gIncident_time)) > 2500.f) {
                 gCamera_incident_mode = 3;
             }
-            if (ARReplayPlaying() ? (tU32)gIncident_time < GetTotalTime() : GetTotalTime() < (tU32)gIncident_time) {
+            if (PipeSearchForwards() ? (tU32)gIncident_time < GetTotalTime() : GetTotalTime() < (tU32)gIncident_time) {
                 if (ts >= 25.f) {
                     gCamera_incident_mode = 3;
                 } else {
@@ -721,13 +721,13 @@ lab_fc76:
                 }
             }
         } else if (gCamera_incident_mode == 2) {
-            PangToCamera(&pCar->pos, m2);
+            PointCamera(&pCar->pos, m2);
             BrVector3Sub(&tv, &gCamera->t.t.translate.t, &pCar->pos);
             ts = BrVector3LengthSquared(&tv);
             if ((float)fabs((float)((tS32)GetTotalTime() - gIncident_time)) > 2500.f) {
                 gCamera_incident_mode = 3;
             }
-            if (ARReplayPlaying() ? (tU32)gIncident_time < GetTotalTime() : GetTotalTime() < (tU32)gIncident_time) {
+            if (PipeSearchForwards() ? (tU32)gIncident_time < GetTotalTime() : GetTotalTime() < (tU32)gIncident_time) {
                 if (ts >= 25.f) {
                     gCamera_incident_mode = 3;
                 } else {
@@ -774,20 +774,20 @@ lab_fc76:
             if (gCamera_incident_direction != 0) {
                 BrVector3Negate(&perp, &perp);
             }
-            if (ARReplayPlaying()) {
+            if (PipeSearchForwards()) {
                 BrVector3Accumulate(&perp, &tv);
             }
             BrVector3Add(&gCamera->t.t.translate.t, &cam1, &perp);
             gCamera->t.t.translate.t.v[1] = gCamera->t.t.translate.t.v[1] - -0.25f;
             CollideCamera2(&cam1, &gCamera->t.t.translate.t, NULL, 1, NULL);
         }
-        PangToCamera(&cam1, m2);
+        PointCamera(&cam1, m2);
         BrVector3Sub(&tv, &gCamera->t.t.translate.t, &((br_actor*)gIncident_car_data[1])->t.t.translate.t);
         ts = BrVector3LengthSquared(&tv);
         if (abs((tS32)GetTotalTime() - gIncident_time) > 2500) {
             gCamera_incident_mode = 3;
         }
-        if (ARReplayPlaying() ? (tU32)(gIncident_time + 300) < GetTotalTime() : GetTotalTime() < (tU32)(gIncident_time - 600)) {
+        if (PipeSearchForwards() ? (tU32)(gIncident_time + 300) < GetTotalTime() : GetTotalTime() < (tU32)(gIncident_time - 600)) {
             if (ts >= 25.f) {
                 gCamera_incident_mode = 3;
             } else {
@@ -1971,7 +1971,7 @@ void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) {
     }
     CollideCamera2(&pCar->pos, &gCamera->t.t.translate.t, NULL, 0, NULL);
 }
-extern int C2_HOOK_FASTCALL ARReplayPlaying(void);
+extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
 
 // GLOBAL: CARMA2_HW 0x006792c0
@@ -1996,7 +1996,7 @@ void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) {
         if (gSwitch_time != 0) {
             int passed;
 
-            if (ARReplayPlaying()) {
+            if (PipeSearchForwards()) {
                 passed = GetTotalTime() < gSwitch_time;
             } else {
                 passed = gSwitch_time < GetTotalTime();
@@ -2158,7 +2158,7 @@ tU8* gPipe_car_state_chunk;
 #endif
 
 // FUNCTION: CARMA2_HW 0x004c6c90
-int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
+int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
     tU8* temp_ptr;
 
     temp_ptr = ARGetPipePlayPtr();
@@ -2168,7 +2168,7 @@ int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar*
     } else {
         gOldest_time = GetTotalTime() - pOffset;
     }
-    ARScanBuffer(&temp_ptr, ePipe_chunk_ped_incident, GetTotalTime(), CheckPipeCarState, NULL);
+    ARScanBuffer(&temp_ptr, ePipe_chunk_ped_incident, GetTotalTime(), CheckIncident, NULL);
     if (gTrigger_time != 0) {
         *pTime = gTrigger_time - GetTotalTime();
         *pMode = *(tS32*)gPipe_car_state_chunk;
@@ -2215,7 +2215,7 @@ int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar*
 }
 
 // FUNCTION: CARMA2_HW 0x004c6e00
-static int C2_HOOK_FASTCALL CheckPipeCarState(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime) {
+static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime) {
 
     if (ARReplayForwards()) {
         if (pTime <= gOldest_time) {
@@ -2233,7 +2233,7 @@ static int C2_HOOK_FASTCALL CheckPipeCarState(tPipe_chunk* pChunk, int pChunk_co
 extern float gFLOAT_00589440;
 
 // FUNCTION: CARMA2_HW 0x004121b0
-void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat) {
+void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat) {
     br_camera* camera;
     br_scalar dx;
     br_scalar dz;

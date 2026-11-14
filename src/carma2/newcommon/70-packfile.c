@@ -88,7 +88,7 @@ tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path) {
 }
 
 // FUNCTION: CARMA2_HW 0x004b4730
-void C2_HOOK_FASTCALL ClosePackFile(tTWTVFS twt) {
+void C2_HOOK_FASTCALL TWT_Unmount(tTWTVFS twt) {
 
     if (twt >= 0) {
         BrMemFree(gTwatVfsMountPoints[twt].header);
@@ -192,7 +192,7 @@ int C2_HOOK_FASTCALL PFfgetc(FILE* pFile) {
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x004b48c0
-C2_NAKED int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile) {
+C2_NAKED int C2_HOOK_FASTCALL PFgetc(FILE* pFile) {
     __asm {
         cmp ecx, 0x33
         jb drfgetc2_small
@@ -221,7 +221,7 @@ C2_NAKED int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile) {
     }
 }
 #else
-int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile) {
+int C2_HOOK_FASTCALL PFgetc(FILE* pFile) {
     tTwatVfsFile* twtFile;
     int result;
 
@@ -379,7 +379,7 @@ int C2_HOOK_FASTCALL PFftell(FILE* pF) {
 
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x004b4b30
-C2_NAKED int C2_HOOK_FASTCALL DRfsetpos(FILE* pF, fpos_t* pos) {
+C2_NAKED int C2_HOOK_FASTCALL PFfsetpos(FILE* pF, fpos_t* pos) {
     __asm {
         cmp ecx, 0x33
         jb drfsetpos_small
@@ -409,7 +409,7 @@ C2_NAKED int C2_HOOK_FASTCALL DRfsetpos(FILE* pF, fpos_t* pos) {
     }
 }
 #else
-int C2_HOOK_FASTCALL DRfsetpos(FILE* pF, fpos_t* pos) {
+int C2_HOOK_FASTCALL PFfsetpos(FILE* pF, fpos_t* pos) {
     tTwatVfsFile* twtFile;
 
     if ((intptr_t)pF >= REC2_ASIZE(gTwatVfsFiles)) {
@@ -593,7 +593,7 @@ int C2_HOOK_FASTCALL DRferror(FILE* pFile) {
 }
 
 // FUNCTION: CARMA2_HW 0x004b4c60
-void C2_HOOK_FASTCALL PFclearerr(FILE* pFile) {
+void C2_HOOK_FASTCALL DRclearerr(FILE* pFile) {
     tTwatVfsFile* twtFile;
 
     if ((int)pFile >= REC2_ASIZE(gTwatVfsFiles)) {
@@ -663,7 +663,7 @@ void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt) {
     if (twt >= 0) {
         gDisableTiffConversionStackPos -= 1;
         gDisableTiffConversion = gDisableTiffConversionStack[gDisableTiffConversionStackPos];
-        ClosePackFile(twt);
+        TWT_Unmount(twt);
     }
 }
 
@@ -687,5 +687,5 @@ void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004b4eb0
-void C2_HOOK_FASTCALL PackfileNoOp(void) {
+void C2_HOOK_FASTCALL TurnOnPaletteConversion(void) {
 }

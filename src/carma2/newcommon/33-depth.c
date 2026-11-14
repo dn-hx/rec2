@@ -649,7 +649,7 @@ void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCam
             }
         }
     }
-    SetTintedPolyRefMaterial(gHud_tinted1, (br_vector3*)pCamera_to_world->m[3]);
+    SetTintedFromSpecialVolume(gHud_tinted1, (br_vector3*)pCamera_to_world->m[3]);
     r = 0;
     if (InWater(gHud_tinted1)) {
         TurnTintedPolyOn(gHud_tinted1);

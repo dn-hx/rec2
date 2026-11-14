@@ -95,7 +95,7 @@ void SDL3ServiceMessages(void) {
             SDL_DestroyWindow(g_SDL_Window);
             g_SDL_Window = NULL;
             gHWnd = NULL;
-            PDShutdownSystem();
+            PDShutDownSystem();
             abort();
         } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
             bool doubleclicked = false;
@@ -198,7 +198,7 @@ void PDFatalError(const char *pThe_str) {
     if (gBr_initialized) {
         DRBrEnd();
     }
-    PDShutdownSystem();
+    PDShutDownSystem();
 }
 
 void PDNonFatalError(const char *pThe_str) {
@@ -240,12 +240,12 @@ void PDClearKeyboardBuffer(void) {
     gKeyboardBufferLength = 0;
 }
 
-C2_NORETURN void PDShutdownSystem(void) {
+C2_NORETURN void PDShutDownSystem(void) {
     static bool been_here = false;
 
     gBack_screen = NULL;
     if (been_here) {
-        PDDisposeActionReplayBuffer();
+        PDCloseReplayFile();
         exit(127);
     } else {
         been_here = 1;
@@ -274,7 +274,7 @@ C2_NORETURN void PDShutdownSystem(void) {
         }
         dr_dprintf("End of PDShutdownSystem()");
         CloseDiagnostics();
-        PDDisposeActionReplayBuffer();
+        PDCloseReplayFile();
         SDL_Quit();
         exit(gExit_code);
     }
@@ -551,7 +551,7 @@ static void OnErrorCallback(char* text) {
     if (gBr_initialized) {
         DRBrEnd();
     }
-    PDShutdownSystem();
+    PDShutDownSystem();
 }
 
 void PDInstallErrorHandlers(void) {
@@ -711,10 +711,10 @@ void PDFileDelete(const char *pPath, int pIgnore_read_only) {
     SDL_RemovePath(pPath);
 }
 
-void PDDisposeActionReplayBuffer(void) {
+void PDCloseReplayFile(void) {
 }
 
-int PDstrcmpi(const char* str1, const char* str2) {
+int DRstrcmpi(const char* str1, const char* str2) {
 
     return SDL_strcasecmp(str1, str2);
 }

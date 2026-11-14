@@ -34,7 +34,7 @@ extern void C2_HOOK_FASTCALL SetShadowLevel(tShadow_level pLevel);
 
 extern tShadow_level C2_HOOK_FASTCALL GetShadowLevel(void);
 
-extern void C2_HOOK_FASTCALL ToggleShadow(void);
+extern void C2_HOOK_FASTCALL ShadowMode(void);
 
 extern void C2_HOOK_FASTCALL InitShadow(void);
 
@@ -44,7 +44,7 @@ extern void C2_HOOK_FASTCALL SaveShadeTables(void);
 
 extern void C2_HOOK_FASTCALL DisposeSavedShadeTables(void);
 
-extern void C2_HOOK_FASTCALL ShadowMode(void);
+extern void C2_HOOK_FASTCALL ToggleShadowMode(void);
 // LollipopizeActor
 
 extern void C2_HOOK_FASTCALL ResetLollipopQueue(void);

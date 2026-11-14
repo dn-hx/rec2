@@ -419,7 +419,7 @@ void C2_HOOK_FASTCALL PDSetKeyArray(int *pKeys, int pMark) {
     }
 }
 
-void C2_HOOK_FASTCALL PDReadJoysticks(void) {
+void C2_HOOK_FASTCALL PDReadJoySticks(void) {
     int i;
 
     SDL_UpdateGamepads();
@@ -545,7 +545,7 @@ void C2_HOOK_FASTCALL PDInitJoysticks(void) {
     for (i = 0; i < g_Count_Joystick_infos; i++) {
         SDL3OpenGamepadHaptic(&g_Joystick_infos[i]);
     }
-    PDReadJoysticks();
+    PDReadJoySticks();
 }
 
 void C2_HOOK_FASTCALL PDPlayFFBEffect(const char* effectName) {

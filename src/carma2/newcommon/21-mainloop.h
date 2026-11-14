@@ -42,13 +42,13 @@ extern void C2_HOOK_FASTCALL MungeJoystickHeadups(void);
 extern void C2_HOOK_FASTCALL LastChanceForPedEffects(void);
 extern void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 extern void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period);
-extern void C2_HOOK_FASTCALL PickActionReplayManualCameraTarget(int pCursor_x, int pCursor_y, int pArg3);
-extern void C2_HOOK_FASTCALL FUN_00403c70(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
-extern void C2_HOOK_FASTCALL FUN_00403210(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
+extern void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3);
+extern void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
+extern void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost);
 extern void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAverage_frame_period);
 extern void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime);
 extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
-extern void C2_HOOK_FASTCALL FUN_0045b790(tHeadup_text_buffer* pBuffer);
-extern void C2_HOOK_FASTCALL FUN_00492840(volatile tU8* pBase, tU32 pSize);
+extern void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer);
+extern void C2_HOOK_FASTCALL PrecacheData(volatile tU8* pBase, tU32 pSize);
 
 #endif // GUARD_21_MAINLOOP_H

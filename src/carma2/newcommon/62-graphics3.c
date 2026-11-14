@@ -268,7 +268,7 @@ void C2_HOOK_FASTCALL CycleTargetLock(void) {
 
 // FUNCTION: CARMA2_HW 0x00494880
 // FUNCTION: CARMA2_SW 0x00491b80
-void C2_HOOK_FASTCALL ToggleMapTransparency(void) {
+void C2_HOOK_FASTCALL ToggleMapTrans(void) {
 
     gMap_trans = !gMap_trans;
     SaveOptions();
@@ -850,7 +850,7 @@ void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
     extern int gOppo_stat_flash_state_1;
     extern int gOppo_stat_flash_state_2;
     extern void C2_HOOK_FASTCALL AllocateOppoBarActor(int pX, int pY);
-    extern int C2_HOOK_FASTCALL GetOpponentStatus(tCar_spec* pCar);
+    extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL RenderThisHeadup(br_actor* pActor);
     extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
     char s[256];
@@ -911,7 +911,7 @@ void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
                 RenderThisHeadup(gLit_op_stat_actor);
             }
             if (gTarget_lock_car_2 != NULL && gTarget_lock_car_2->driver == eDriver_oppo) {
-                status = GetOpponentStatus(gTarget_lock_car_2);
+                status = GetOpponentMood(gTarget_lock_car_2);
                 if (gTarget_lock_car_1 == gTarget_lock_car_2 && gPrevious_opponent_status == status) {
                     message_index = gOppo_stat_message_index;
                 } else {
@@ -1395,9 +1395,9 @@ void C2_HOOK_FASTCALL InitSmashTargets(void) {
     gCount_smashable_race_targets = 0;
 }
 
-// PARTIAL 82.19%: FUN_00497860 0x00497860 [expert] - extra pop/push frame offsets and reg for ID compare (eax vs ecx)
+// PARTIAL 82.19%: ReceivedViewCar 0x00497860 [expert] - extra pop/push frame offsets and reg for ID compare (eax vs ecx)
 // FUNCTION: CARMA2_HW 0x00497860
-void C2_HOOK_FASTCALL FUN_00497860(int* pA, int* pB) {
+void C2_HOOK_FASTCALL ReceivedViewCar(int* pA, int* pB) {
     int i;
     tNet_game_player_info* p;
 
@@ -1456,9 +1456,9 @@ int gOppo_stat_flash_state_1;
 
 // GLOBAL: CARMA2_HW 0x0068d90c
 int gOppo_stat_flash_state_2;
-// PARTIAL 57.97%: GetOpponentStatus 0x004af640 [expert-sonnet] - inlined GetOpponentSpecFromCarSpec assumed; loop rotation (bottom vs top test) and found-block layout differ
+// PARTIAL 57.97%: GetOpponentMood 0x004af640 [expert-sonnet] - inlined GetOpponentSpecFromCarSpec assumed; loop rotation (bottom vs top test) and found-block layout differ
 // FUNCTION: CARMA2_HW 0x004af640
-int C2_HOOK_FASTCALL GetOpponentStatus(tCar_spec* pCar) {
+int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar) {
     tOpponent_spec* opponent;
     int i;
     int type;

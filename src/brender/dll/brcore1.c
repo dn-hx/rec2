@@ -168,7 +168,7 @@ void __cdecl _BrExceptionResource() {}
 void __cdecl _BrExceptionThrow() {}
 void __cdecl _BrExceptionValueFetch() {}
 void __cdecl _BrUAssert() {}
-void __cdecl _EPI() {}
+void __cdecl Brender_EPI_PRO() {}
 void __cdecl _M_br_object_container_addFront() {}
 void __cdecl _M_br_object_container_count() {}
 void __cdecl _M_br_object_container_find() {}

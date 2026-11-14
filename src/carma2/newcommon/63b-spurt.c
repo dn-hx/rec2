@@ -14,7 +14,7 @@ extern int gPed_spurty_lumps_count;
 extern int gPed_spurt_min_max_time[2];
 extern tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 extern tSmashable_initial_position_spec gPed_spurt_initial_position;
-extern float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
+extern float C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
 extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
 
 // (stub only; body from REA 0x004d5820)
@@ -46,8 +46,8 @@ void C2_HOOK_FASTCALL DoSpurt(br_matrix34* pTransform, br_vector3* pPosition, br
         if (fragment == NULL) {
             break;
         }
-        scale = PositionFragment(fragment->actor, &gPed_spurt_initial_position, 0, (int)&position, (int)&position, 0, NULL, 0);
-        InitFragmentSpeed(fragment, &gPed_spurt_initial_speed, &vec, scale, gPed_spurt_min_max_time, time, &direction, 0, 0);
+        scale = SetInitPosition(fragment->actor, &gPed_spurt_initial_position, 0, (int)&position, (int)&position, 0, NULL, 0);
+        SetShrapnelFragment(fragment, &gPed_spurt_initial_speed, &vec, scale, gPed_spurt_min_max_time, time, &direction, 0, 0);
     }
     srand(saved_random_seed);
     PipeSingleBloodSpurt(gUNK_0065d7a0[0], time, seed, &position, &vec, &direction);

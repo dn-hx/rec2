@@ -509,7 +509,7 @@ tS3_error_codes C2_HOOK_FASTCALL PDS3StartMidiChannel(tS3_channel* pChannel) {
 }
 
 // FUNCTION: CARMA2_HW 0x00569f69
-int C2_HOOK_FASTCALL PDS3StopMidiChannelWrapper(tS3_channel* pChannel, int pArg2, int pArg3, int pArg4, int pArg5, int pArg6) {
+int C2_HOOK_FASTCALL PDS3StopMidiChannel2(tS3_channel* pChannel, int pArg2, int pArg3, int pArg4, int pArg5, int pArg6) {
 
     PDS3StopMidiChannel(pChannel);
     return 0;
@@ -553,7 +553,7 @@ tS3_error_codes C2_HOOK_FASTCALL PDS3PlayCDAChannel(tS3_channel* pChannel) {
 }
 
 // FUNCTION: CARMA2_HW 0x0056a28d
-void C2_HOOK_FASTCALL PDS3ServiceCDA(tS32 pDelta_time) {
+void C2_HOOK_FASTCALL S3ServiceChannels(tS32 pDelta_time) {
     tU32 now;
     tS3_outlet* o;
     tS3_channel* c;

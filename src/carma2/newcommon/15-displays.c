@@ -367,7 +367,7 @@ void C2_HOOK_FASTCALL DimAFewBits(void) {
 
 // based on ApexWorm/rec2 824b76655
 // FUNCTION: CARMA2_HW 0x00449830
-void C2_HOOK_FASTCALL DoTestPowerHeadup(int pLevel, const char* pAPO_str) {
+void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str) {
     int changed;
     br_pixelmap* dest_pm;
     br_pixelmap* icon;
@@ -472,9 +472,9 @@ void C2_HOOK_FASTCALL DoTestPowerHeadup(int pLevel, const char* pAPO_str) {
 
 // FUNCTION: CARMA2_HW 0x00449800
 void C2_HOOK_FASTCALL DoPSPowerupHeadups(void) {
-    DoTestPowerHeadup(gProgram_state.current_car.power_up_levels[0], "A");
-    DoTestPowerHeadup(gProgram_state.current_car.power_up_levels[1], "P");
-    DoTestPowerHeadup(gProgram_state.current_car.power_up_levels[2], "O");
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[0], "A");
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[1], "P");
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[2], "O");
 }
 
 extern void C2_HOOK_FASTCALL DoNetScores(void);
@@ -1514,7 +1514,7 @@ extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
 
 // FUNCTION: CARMA2_HW 0x00449070
-void C2_HOOK_FASTCALL TimerStringGlobalTimer(char* pStr, undefined4 pArg3) {
+void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3) {
     TimerString(gTimer, pStr, pArg3, 0, 0);
 }
 

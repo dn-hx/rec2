@@ -239,7 +239,7 @@ void* functionPointers_BRCORE1[185] = {
     _BrExceptionThrow,
     _BrExceptionValueFetch,
     _BrUAssert,
-    _EPI,
+    Brender_EPI_PRO,
     _M_br_object_container_addFront,
     _M_br_object_container_count,
     _M_br_object_container_find,

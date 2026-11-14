@@ -180,7 +180,7 @@ extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 extern int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix);
 extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
 extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
-extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 
 // FUNCTION: CARMA2_HW 0x00498c00
 void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
@@ -258,7 +258,7 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
         non_car->flags &= ~0xff00;
     }
     if ((pContents->flags & 2) != 0) {
-        SelectCrushNetwork((undefined4*)pContents->object_hierarchy, non_car->collision_info, 2);
+        WriteHierarchyNetworkStuff((undefined4*)pContents->object_hierarchy, non_car->collision_info, 2);
         non_car->collision_info->disable_move_rotate = 1;
     } else {
         memcpy((tU8*)non_car->collision_info + 0x294, pContents->object_hierarchy, GetNetworkDataSize(pContents->object_hierarchy));
@@ -338,7 +338,7 @@ void C2_HOOK_FASTCALL SignalToStartRace(void) {
 // SetUpNetCarPositions
 
 extern void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL EmptyInventory(void);
@@ -347,7 +347,7 @@ extern void C2_HOOK_FASTCALL EmptyInventory(void);
 void C2_HOOK_FASTCALL ReinitialiseCar(tCar_spec* pCar) {
 
     StopCarSmokingInstantly(pCar);
-    CloseDownPowerUpsForCar(pCar);
+    LoseAllLocalPowerups(pCar);
     InitialiseCar(pCar);
     TotallyRepairACar(pCar);
     if (pCar != NULL && pCar->driver == eDriver_local_human) {
@@ -945,7 +945,7 @@ void C2_HOOK_FASTCALL DisposeNetHeadups(void) {
 
 // CheckForVampireWinner
 
-extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
 
@@ -959,7 +959,7 @@ void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer) {
     char message[256];
 
     if (pPlayer->field_0x80 == 0) {
-        DisposeKevStuffCar(pPlayer->car);
+        MakeCarIt(pPlayer->car);
         *(int*)((tU8*)pPlayer->car + 0x1bc) = 1;
         *(int*)((tU8*)pPlayer->car + 0x1b4) = 1;
         *(int*)((tU8*)pPlayer->car + 0x1b8) = 1;
@@ -1067,7 +1067,7 @@ typedef struct {
 void C2_HOOK_FASTCALL CalcPlayerScores(void) {
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
-    extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
     int i;
     int j;
     int knock_out_bit;
@@ -1152,7 +1152,7 @@ select_initial_it:
                 break;
             }
             StopCarSmokingInstantly(car);
-            CloseDownPowerUpsForCar(car);
+            LoseAllLocalPowerups(car);
             InitialiseCar(car);
             TotallyRepairACar(car);
             if (car != NULL && car->driver == eDriver_local_human) {
@@ -1213,7 +1213,7 @@ select_initial_it:
                         gNet_players[j].field_0x7c++;
                         message = NetBuildGuaranteedMessage(0xa, 0);
                         *(int*)((tU8*)message + 0x1c) = 9;
-                        SendGuaranteedMessageToPlayer(gCurrent_net_game, message, gNet_players[j].ID, 0);
+                        NetGuaranteedSendMessageToPlayer(gCurrent_net_game, message, gNet_players[j].ID, 0);
                     }
                 }
                 break;
@@ -1339,7 +1339,7 @@ select_wasted_it:
                     gNet_players[i].field_0x7c++;
                     message = NetBuildGuaranteedMessage(0xa, 0);
                     *(int*)((tU8*)message + 0x1c) = 9;
-                    SendGuaranteedMessageToPlayer(gCurrent_net_game, message, gNet_players[i].ID, 0);
+                    NetGuaranteedSendMessageToPlayer(gCurrent_net_game, message, gNet_players[i].ID, 0);
                 }
             } else if (player_left >= 0) {
                 DeclareWinner(player_left);
@@ -1350,7 +1350,7 @@ select_wasted_it:
                 *(int*)((tU8*)message + 0x24) = 0;
                 *(int*)((tU8*)message + 0x28) = 0;
                 *(int*)((tU8*)message + 0x2c) = 0;
-                SendGuaranteedMessageToPlayer(gCurrent_net_game, message, lowest_score_player->ID, 0);
+                NetGuaranteedSendMessageToPlayer(gCurrent_net_game, message, lowest_score_player->ID, 0);
                 sprintf(s, "%s %s", lowest_score_player->player_name, GetMiscString(0xb8));
                 NetSendHeadupToEverybody(s);
             }
@@ -1518,14 +1518,14 @@ void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer) {
 // UseGeneralScore
 
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id);
-extern void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
-extern void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient);
-extern void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient);
+extern void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient);
 
 // FUNCTION: CARMA2_HW 0x0049b8d0
 void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient) {
@@ -1555,10 +1555,10 @@ void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipien
             message->flags = (*non_car_list)->identifier[3] == exclamation;
         }
     }
-    SendDetachedNonCarDataToPlayer(pRecipient);
-    FUN_43d7d0(pRecipient);
-    FUN_42da20((undefined4*)pRecipient);
-    FUN_4f0f80(pRecipient);
+    SendAllDBNonCars(pRecipient);
+    SendAllSHNonCars(pRecipient);
+    SendAllSemiDetachedBits((undefined4*)pRecipient);
+    SendAllSmashes(pRecipient);
     NetSendMessageStacks();
 }
 
@@ -1597,10 +1597,10 @@ void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
                         message->flags = (*non_car_list)->identifier[3] == '!';
                     }
                 }
-                SendDetachedNonCarDataToPlayer(player);
-                FUN_43d7d0(player);
-                FUN_42da20((undefined4*)player);
-                FUN_4f0f80(player);
+                SendAllDBNonCars(player);
+                SendAllSHNonCars(player);
+                SendAllSemiDetachedBits((undefined4*)player);
+                SendAllSmashes(player);
                 NetSendMessageStacks();
                 *needy = 0;
                 NetSendMessageStacks();
@@ -1615,7 +1615,7 @@ void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
 
 // FUNCTION: CARMA2_HW 0x0049bc20
 void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
-    extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
     tNet_message* the_message;
 
     the_message = NetBuildGuaranteedMessage(0x1b, 0);
@@ -1624,7 +1624,7 @@ void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess,
     *(int*)((tU8*)the_message + 0x1c) = pMess;
     *(int*)((tU8*)the_message + 0x28) = pParam_3;
     *(int*)((tU8*)the_message + 0x2c) = pParam_4;
-    SendGuaranteedMessageToPlayer(gCurrent_net_game, the_message, pPlayer, 0);
+    NetGuaranteedSendMessageToPlayer(gCurrent_net_game, the_message, pPlayer, 0);
 }
 
 extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
@@ -1677,7 +1677,7 @@ void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tN
 }
 
 // FUNCTION: CARMA2_HW 0x0049be40
-void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers) {
+void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers) {
     tCar_crush_network_shapes* shapes;
     int j;
 
@@ -1697,7 +1697,7 @@ void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, in
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 
 // FUNCTION: CARMA2_HW 0x004a5b50
 int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
@@ -1711,7 +1711,7 @@ int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDe
     }
     for (i = 0; i < gNumber_of_net_players; i++) {
         if (i != gThis_net_player_index) {
-            result |= SendGuaranteedMessageToPlayer(pDetails, pMessage, gNet_players[i].ID, pNotifyFail);
+            result |= NetGuaranteedSendMessageToPlayer(pDetails, pMessage, gNet_players[i].ID, pNotifyFail);
         }
     }
     return result;
@@ -1728,10 +1728,10 @@ extern int gNumber_of_powerups;
 extern tHeadup_icon gPickedup_powerups[20];
 extern int gNumber_of_icons;
 extern tPlayer_ID gLocal_net_ID;
-extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x004def00
-void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar) {
     int powerup_address;
     int message_address;
     tU32 total_time;
@@ -1750,7 +1750,7 @@ void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
                     ((tPowerup*)powerup_address)->lose_proc((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (((tPowerup*)powerup_address)->net_type & 0x80) {
-                    ARPowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
+                    PipeSinglePowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (gNet_mode != 0) {
                     message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -1790,7 +1790,7 @@ void C2_HOOK_FASTCALL CloseDownPowerUpsForCar(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
 
 // FUNCTION: CARMA2_HW 0x0049a9e0
@@ -1807,7 +1807,7 @@ void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer) {
     if (gCurrent_net_game->type == eNet_game_type_foxy) {
         pPlayer->car->power_up_levels[1] = 0;
     }
-    DisposeKevStuffCar(pPlayer->car);
+    MakeCarIt(pPlayer->car);
     gIt_or_fox = pPlayer - gNet_players;
     sprintf(s, "%s", GetMiscString(0xbc));
     NetSendHeadupToPlayer(s, pPlayer->ID);
@@ -1971,7 +1971,7 @@ clear_message:
 }
 
 // FUNCTION: CARMA2_HW 0x0043d5b0
-void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRecipient) {
+void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient) {
     int i;
     tNon_car_spec** pNon_car;
 
@@ -1980,7 +1980,7 @@ void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRec
         pNon_car = gActive_non_car_list;
         do {
             if ((*pNon_car)->driver == 2) {
-                SendDetachedNonCarData(*pNon_car, -1, pRecipient);
+                SendDBNonCar(*pNon_car, -1, pRecipient);
             }
             i++;
             pNon_car++;
@@ -1989,7 +1989,7 @@ void C2_HOOK_FASTCALL SendDetachedNonCarDataToPlayer(tNet_game_player_info* pRec
 }
 
 // FUNCTION: CARMA2_HW 0x0043d7d0
-void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient) {
+void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient) {
     int i;
     tNon_car_spec** pNon_car;
 
@@ -1998,7 +1998,7 @@ void C2_HOOK_FASTCALL FUN_43d7d0(tNet_game_player_info* pRecipient) {
         pNon_car = gActive_non_car_list;
         do {
             if ((*pNon_car)->driver == 3) {
-                SendSplitHalfNonCarData(*pNon_car, -1, pRecipient);
+                SendSHNonCar(*pNon_car, -1, pRecipient);
             }
             i++;
             pNon_car++;
@@ -2012,7 +2012,7 @@ extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor
 
 // based on ApexWorm/rec2 bf0127d92 src/carma2/newcommon/13-crush1.c
 // FUNCTION: CARMA2_HW 0x0042da20
-void C2_HOOK_FASTCALL FUN_42da20(undefined4* pRecipient) {
+void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient) {
     int i;
     int j;
     tCar_spec* car;
@@ -2036,7 +2036,7 @@ extern tU8* gNet_host_smashes;
 extern int C2_HOOK_FASTCALL NetSendMessageToPlayer(tNet_game_details* pNet_game, tNet_message* pMessage, tPlayer_ID pPlayer_id);
 
 // FUNCTION: CARMA2_HW 0x004f0f80
-void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
+void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
     tNet_message* message;
     tU8 field_0x18;
     tU8 field_0x19;
@@ -2067,7 +2067,7 @@ void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern int C2_HOOK_FASTCALL WriteObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
 static __inline tPhysics_object* C2_HOOK_FASTCALL FindChildByUID(tPhysics_object* pObj, tU8 uid) {
@@ -2084,7 +2084,7 @@ static __inline tPhysics_object* C2_HOOK_FASTCALL FindChildByUID(tPhysics_object
 }
 
 // FUNCTION: CARMA2_HW 0x0049cd90
-int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode) {
+int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
     int total_size;
     tU8* current_data;
     tPhysics_object* matching_child;
@@ -2092,12 +2092,12 @@ int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pOb
     if (pObj != NULL && ((tU8*)pField)[1] != pObj->uid) {
         PhysicsError((tPhysicsError)9, "netphys got messed up");
     }
-    total_size = SetObjectNetworkStuff(pField, pObj, pMode);
+    total_size = WriteObjectNetworkStuff(pField, pObj, pMode);
     if ((((tU8*)pField)[0] & 0x80) != 0) {
         do {
             current_data = (tU8*)pField + total_size;
             matching_child = FindChildByUID(pObj, current_data[1]);
-            total_size += SelectCrushNetwork((undefined4*)current_data, FindChildByUID(pObj, current_data[1]), pMode);
+            total_size += WriteHierarchyNetworkStuff((undefined4*)current_data, FindChildByUID(pObj, current_data[1]), pMode);
             if (matching_child != NULL) {
                 matching_child->field_0xf0 = pObj->field_0xf0;
             }
@@ -2116,7 +2116,7 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message
 extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
 
 // FUNCTION: CARMA2_HW 0x0043d1d0
-void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
     int hierarchy_size;
     int contents_size;
     int message;
@@ -2175,7 +2175,7 @@ void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0043d690
-void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
     tU8* message;
     int hierarchy_size;
     int contents_size;
@@ -2229,7 +2229,7 @@ void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
+extern intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext);
 extern int C2_HOOK_FASTCALL ResetFoxModelCallback(br_model* pModel);
 extern int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial);
 extern void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves);
@@ -2254,7 +2254,7 @@ void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {
         model->flags &= ~BR_MODF_CUSTOM;
         model->custom = NULL;
     }
-    DRActorEnumRecurse(pCar->car_model_actor, ForEveryActorModelNoGrooves, (void*)ResetFoxModelCallback);
+    DRActorEnumRecurse(pCar->car_model_actor, RunCallbackOnAllModels, (void*)ResetFoxModelCallback);
     for (i = 0; i < crush_spec->field_0x270; i++) {
         model = crush_spec->field_0x274[i].field_0x0->model;
         model->flags &= ~BR_MODF_CUSTOM;
@@ -2274,7 +2274,7 @@ void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 
 // Known remaining diff (partial, category=other): 0x49db88 SIB base/index order only
 // (original [edx + ebx + 0x19], ours [ebx + edx + 0x19]); no C spelling changes MSVC's choice.
@@ -2307,7 +2307,7 @@ void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPl
                 ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
             }
             strcpy((char*)message + 0x1a, pMessage);
-            SendGuaranteedMessageToPlayer(gCurrent_net_game, message, pPlayer_id, 0);
+            NetGuaranteedSendMessageToPlayer(gCurrent_net_game, message, pPlayer_id, 0);
         }
     }
 }
@@ -2340,7 +2340,7 @@ extern br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_qu
 
 // FUNCTION: CARMA2_HW 0x0049cb00
 // PARTIAL 55%: x87 scheduling/frame size (orig frame 0x24, keeps differences in memory temporaries)
-void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat) {
+void C2_HOOK_FASTCALL GetVelocityAndPosition(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat) {
     tPhysics_joint* joint;
     tPhysics_object* parent;
     br_vector3 tmp;
@@ -2391,7 +2391,7 @@ void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_
 // with the annotation order fixed: the old "21%" was a reccmp symbol-name artifact (this line sat below the
 // FUNCTION line, so reccmp named the function after the comment text).
 // FUNCTION: CARMA2_HW 0x0049c630
-int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
+int C2_HOOK_FASTCALL WriteObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
     tU16* field;
     br_matrix34* mat;
     br_matrix34* parent_mat;
@@ -2477,7 +2477,7 @@ int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* 
         pf[0] = vec.v[0] + pf[0];
         pf[1] = vec.v[1] + pf[1];
         pf[2] = t + pf[2];
-        FUN_0049cb00(pObj, mat, parent_mat);
+        GetVelocityAndPosition(pObj, mat, parent_mat);
         size = 0xc;
         break;
     case 2:
@@ -2495,7 +2495,7 @@ int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* 
         q.w = ((float)field[7] * 1.5259255e-05 + (float)field[7] * 1.5259255e-05) - 1.0;
         BrQuatNormalise(&q, &q);
         BrQuatToMatrix34(mat, &q);
-        FUN_0049cb00(pObj, mat, parent_mat);
+        GetVelocityAndPosition(pObj, mat, parent_mat);
         size = 0x10;
         break;
     default:
@@ -2514,7 +2514,7 @@ int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* 
 
 
 // FUNCTION: CARMA2_HW 0x0043d670
-void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk) {
+void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pChunk) {
     extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data);
     extern int C2_HOOK_FASTCALL PhysicsObjectRecurse(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
     tCar_spec* car;
@@ -2526,7 +2526,7 @@ void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk) {
 }
 
 // FUNCTION: CARMA2_HW 0x004983f0
-void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents) {
+void C2_HOOK_FASTCALL ReceivedShapeNumbers(tNet_message_chunk_car_crush_sync* pContents) {
     int i;
     int j;
     int player_id;
@@ -2567,7 +2567,7 @@ next_crush_state:
 }
 
 /* Detached non-car data chunk (net message type 0x27). Layout as produced by
-   SendDetachedNonCarData: player id, crush entry id, compressed bb1 min/max,
+   SendDBNonCar: player id, crush entry id, compressed bb1 min/max,
    time, flags and the object hierarchy; see tNet_message_chunk_detached_non_car
    in 04-netgame.h. */
 typedef struct {
@@ -2577,8 +2577,8 @@ typedef struct {
 } tDetached_non_car_find_arg;
 
 // FUNCTION: CARMA2_HW 0x0043d340
-void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents) {
-    extern int C2_HOOK_CDECL FindActorByCrushEntryID(br_actor* pActor, void* pArg);
+void C2_HOOK_FASTCALL ReceivedDBNonCar(tNet_message_chunk_detached_non_car* pContents) {
+    extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
     extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
     extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
     extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
@@ -2629,7 +2629,7 @@ have_actor:
         } else {
             find.id = pContents->uid;
             find.actor = NULL;
-            actor = (br_actor*)((DRActorEnumRecurse(car->car_model_actor, FindActorByCrushEntryID, &find) != 0 ? 0xffffffff : 0) & (tU32)find.actor);
+            actor = (br_actor*)((DRActorEnumRecurse(car->car_model_actor, FindBitWithID, &find) != 0 ? 0xffffffff : 0) & (tU32)find.actor);
             if (actor == NULL) {
                 return;
             }
@@ -2678,7 +2678,7 @@ have_actor:
         crush_info->collision_object->disable_move_rotate = 0;
         return;
     }
-    SelectCrushNetwork((undefined4*)pContents->object_hierarchy, crush_info->collision_object, 2);
+    WriteHierarchyNetworkStuff((undefined4*)pContents->object_hierarchy, crush_info->collision_object, 2);
     crush_info->collision_object->disable_move_rotate = 1;
 }
 
@@ -2693,11 +2693,11 @@ typedef struct {
     undefined field_0x9[3];
     br_matrix34 mat;
 } tNet_message_chunk_bit_position;
-extern void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents);
-extern void C2_HOOK_FASTCALL FUN_0043d5f0(tNet_message_chunk_bit_position* pContents);
+extern void C2_HOOK_FASTCALL ReceivedSHNonCar(tU8* pContents);
+extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents);
 
 // FUNCTION: CARMA2_HW 0x0043d810
-void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents) {
+void C2_HOOK_FASTCALL ReceivedSHNonCar(tU8* pContents) {
     extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
     br_vector4 plane;
     tCompressed_vector3* src;
@@ -2723,14 +2723,14 @@ void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents) {
                 crush_info->collision_object->disable_move_rotate = 0;
                 return;
             }
-            SelectCrushNetwork((undefined4*)(pContents + 0x16), crush_info->collision_object, 2);
+            WriteHierarchyNetworkStuff((undefined4*)(pContents + 0x16), crush_info->collision_object, 2);
             crush_info->collision_object->disable_move_rotate = 1;
         }
     }
 }
 
 // FUNCTION: CARMA2_HW 0x0043d5f0
-void C2_HOOK_FASTCALL FUN_0043d5f0(tNet_message_chunk_bit_position* pContents) {
+void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents) {
     tCar_spec* car;
     tCar_crush_spec* crush_spec;
     br_actor* actor;

@@ -50,7 +50,7 @@ extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pCh
 
 // PDInitialiseSystem
 
-// PDShutdownSystem
+// PDShutDownSystem
 
 // PDSaveOriginalPalette
 
@@ -106,7 +106,7 @@ void C2_HOOK_FASTCALL PDSetFileVariables(void);
 
 // PDGetMicroseconds
 
-extern tU32 C2_HOOK_FASTCALL PDGetElapsedMilliseconds(void);
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime2(void);
 
 // PDServiceSystem
 
@@ -114,7 +114,7 @@ extern tU32 C2_HOOK_FASTCALL PDGetElapsedMilliseconds(void);
 
 extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize);
 
-// PDDisposeActionReplayBuffer
+// PDCloseReplayFile
 
 // PDInitJoysticks
 
@@ -177,6 +177,6 @@ extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* p
 // MapperNotifier
 
 
-extern void C2_HOOK_FASTCALL FUN_DisposeReplayBuffer(void* pBuffer);
+extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
 
 #endif // GUARD_46_WIN95SYS_H

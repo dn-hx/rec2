@@ -46,7 +46,7 @@ int C2_HOOK_FASTCALL SortOpponents(void) {
 // ReceivedViewCar
 
 // FUNCTION: CARMA2_HW 0x004e2c30
-void C2_HOOK_CDECL FUN_004e2c30(void) {
+void C2_HOOK_CDECL CheckPlayersAreResponding(void) {
     int i;
     tU32 total_time;
 

@@ -19,7 +19,7 @@
 // (keeps this TU's codegen at its pre-583638a7f state)
 extern float C2_HOOK_FASTCALL signf(float pValue);
 extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest);
-extern void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource);
+extern void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource);
 extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
 extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV);
 extern int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV);
@@ -599,7 +599,7 @@ void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDe
 // CreateSingleSpark
 
 extern int gPHIL_mechanics_time_sync;
-extern void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004f7d60
@@ -685,7 +685,7 @@ void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVel
             }
             spark_count--;
         }
-        CreateShrapnelShower(pPosition, pVelocity, &force_normal, force_length, pCar, pCar, 0, NULL);
+        CreateShrapnelShower2(pPosition, pVelocity, &force_normal, force_length, pCar, pCar, 0, NULL);
     }
 }
 
@@ -712,7 +712,7 @@ void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelo
     normal.v[1] = pForce->v[1] / force_length;
     normal.v[2] = pForce->v[2] / force_length;
     if (force_length >= 10.0f) {
-        CreateShrapnelShower(pPosition, pVelocity, &normal, force_length, (tCar_spec*)pOwner1, (tCar_spec*)pOwner2, 0, NULL);
+        CreateShrapnelShower2(pPosition, pVelocity, &normal, force_length, (tCar_spec*)pOwner1, (tCar_spec*)pOwner2, 0, NULL);
         if ((pOwner1 != NULL && pOwner1->driver > 5)
             || (pOwner1->flags & 0x200000) != 0
             || (pOwner2 != NULL && pOwner2->driver > 5)
@@ -800,7 +800,7 @@ void C2_HOOK_FASTCALL ResetShrapnel(void) {
 extern int gPHIL_mechanics_time_sync;
 
 // FUNCTION: CARMA2_HW 0x004f8800
-void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
+void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
     float fVar1;
     float fVar2;
     float fVar3;
@@ -1032,7 +1032,7 @@ void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar) {
 }
 
 extern tCar_spec* gRecalc_mass_car;
-extern tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
+extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
 extern tFace_ref gFace_list__car[300];
 
 // FUNCTION: CARMA2_HW 0x004f8ff0
@@ -1062,7 +1062,7 @@ void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
     dir.v[2] = 0.0f;
     dist = 10.0f;
     BrMatrix34ApplyP(&pos, &pCar->collision_info->cmpos, &pCar->collision_info->transform_matrix);
-    face = FindFloorInBoxM(&pos, &dir, &out1, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
+    face = RayCastThruFaceList2(&pos, &dir, &out1, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
     if (face != NULL && face->material != NULL && face->material->colour_map != NULL && face->material->colour_map != pCar->field_0x1960) {
         pCar->field_0x1960 = face->material->colour_map;
         gRecalc_mass_car = pCar;
@@ -2314,7 +2314,7 @@ void C2_HOOK_FASTCALL InitFlame(void) {
     gLollipop_model = BrModelAllocate("Lollipop", 4, 2);
     strcpy(the_path, "FLAMES.PIX");
     strcpy(gCurrent_load_directory, "COMMON");
-    num = DRLoadMultiplePix(the_path, gFlame_map, REC2_ASIZE(gFlame_map));
+    num = LoadTextureTryAllLocations(the_path, gFlame_map, REC2_ASIZE(gFlame_map));
     if (num != (int)REC2_ASIZE(gFlame_map)) {
         FatalError(kFatalError_CantLoadPixelmapFile_S, the_path);
     }
@@ -2388,7 +2388,7 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
             GetAString(pF, s);
             PathCat(the_path, the_path, s);
             strcpy(the_path, s);
-            num_files = DRLoadMultiplePix(the_path, &splash_maps[gNum_splash_types], 20 - gNum_splash_types);
+            num_files = LoadTextureTryAllLocations(the_path, &splash_maps[gNum_splash_types], 20 - gNum_splash_types);
             if (!num_files) {
                 FatalError(kFatalError_CantLoadPixelmapFile_S, the_path);
             }
@@ -2396,7 +2396,7 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
         }
     } else {
         strcpy(the_path, "SPLSHBLU.PIX");
-        gNum_splash_types = DRLoadMultiplePix(the_path, splash_maps, 20);
+        gNum_splash_types = LoadTextureTryAllLocations(the_path, splash_maps, 20);
     }
     BrMapAddMany(splash_maps, gNum_splash_types);
     for (i = 0; i < gNum_splash_types; i++) {
@@ -2974,13 +2974,13 @@ const char gSolidgrn_material[10] = "solidgrn";
 
 extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
-extern void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
-extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
-extern int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel);
+extern void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
+extern intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext);
+extern int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel);
 
 // RESIDUAL 99.38%: pushed gSolidgrn_material renders (DATA) vs original (STRING); the literal form fixes this function but costs neighbours 0x512030/0x511440
 // FUNCTION: CARMA2_HW 0x004fe360
-void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar) {
     int i;
     int j;
     tCar_crush_spec* spec;
@@ -3043,21 +3043,21 @@ void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
     ForEveryCarMaterial(pCar, SetMaterialPrelitCB, 1);
     spec = pCar->car_crush_spec;
     model = pCar->shell_model;
-    model->custom = AFEModelUpdate;
+    model->custom = DoTrueColModelThing;
     model->flags |= BR_MODF_CUSTOM;
     model = ((tUser_crush_data*)pCar->car_model_actor->user)->models[1];
     if (model != NULL) {
         model->flags |= BR_MODF_CUSTOM;
-        model->custom = AFEModelUpdate;
+        model->custom = DoTrueColModelThing;
     }
-    DRActorEnumRecurse(pCar->car_model_actor, ForEveryActorModelNoGrooves, (void*)SetModelAFEUpdateCB);
+    DRActorEnumRecurse(pCar->car_model_actor, RunCallbackOnAllModels, (void*)SetFoxModelCallback);
     i = 0;
     if (0 < spec->field_0x270) {
         bit = spec->field_0x274;
         do {
             model = bit->field_0x0->model;
             model->flags |= BR_MODF_CUSTOM;
-            model->custom = AFEModelUpdate;
+            model->custom = DoTrueColModelThing;
             i++;
             bit++;
         } while (i < spec->field_0x270);
@@ -3068,7 +3068,7 @@ void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
         do {
             model = bit->field_0x0->model;
             model->flags |= BR_MODF_CUSTOM;
-            model->custom = AFEModelUpdate;
+            model->custom = DoTrueColModelThing;
             i++;
             bit++;
         } while (i < spec->field_0x2b0);
@@ -3147,13 +3147,13 @@ void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUp
 
 // MightBlendifyMaterial
 
-extern int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial);
+extern int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial);
 
 // FUNCTION: CARMA2_HW 0x004fed00
 // STUB: CARMA2_SW 0x004fa5e0
 int C2_HOOK_FASTCALL BlendifyMaterialCB(br_material* pMaterial) {
 
-    if (GetBlendificatiousnessOfMaterial(pMaterial) != 25) {
+    if (GetBlenficatiousnessOfMaterial(pMaterial) != 25) {
         BlendifyMaterial(pMaterial, 25);
         BrMaterialUpdate(pMaterial, BR_MATU_ALL);
         return 1;
@@ -3171,7 +3171,7 @@ void C2_HOOK_FASTCALL BlendifyCar(tCar_spec* pCar) {
 // STUB: CARMA2_SW 0x004fa630
 int C2_HOOK_FASTCALL UnBlendifyMaterialCB(br_material* pMaterial) {
 
-    if (GetBlendificatiousnessOfMaterial(pMaterial) != 100) {
+    if (GetBlenficatiousnessOfMaterial(pMaterial) != 100) {
         BlendifyMaterial(pMaterial, 100);
         BrMaterialUpdate(pMaterial, BR_MATU_ALL);
         return 1;
@@ -3263,7 +3263,7 @@ void C2_HOOK_FASTCALL InitReplaySplashes(void) {
                     splash_type = object->flags_0x238;
                 }
                 if (replay_object != NULL) {
-                    WorkerExtendedSplash((int)replay_object, splash_type, *(int*)&object->water_d, (br_vector3*)&object->water_normal, (br_vector3*)&object->bb1);
+                    AdjustSplashReplay((int)replay_object, splash_type, *(int*)&object->water_d, (br_vector3*)&object->water_normal, (br_vector3*)&object->bb1);
                 }
             }
             object = object->next;
@@ -3279,7 +3279,7 @@ tCar_spec* gRecalc_mass_car = NULL;
 #endif
 
 // FUNCTION: CARMA2_HW 0x004226d0
-tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount) {
+tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount) {
     br_vector3 normal;
     br_vector3 coll_pos;
     br_scalar dist;
@@ -3311,9 +3311,9 @@ tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, 
 #pragma auto_inline(off)
 #endif
 
-// PARTIAL 47.72%: AFEModelUpdate 0x004f9180 [regalloc] - pModel lands in EBP and the zero constant is re-spilled; original keeps pModel in ESI and EBP=0
+// PARTIAL 47.72%: DoTrueColModelThing 0x004f9180 [regalloc] - pModel lands in EBP and the zero constant is re-spilled; original keeps pModel in ESI and EBP=0
 // FUNCTION: CARMA2_HW 0x004f9180
-void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
     br_vertex* vertex;
     int fade;
     int fade2;
@@ -3348,9 +3348,9 @@ void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_materia
 }
 
 // FUNCTION: CARMA2_HW 0x004f95e0
-int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel) {
+int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel) {
     pModel->flags |= BR_MODF_CUSTOM;
-    pModel->custom = AFEModelUpdate;
+    pModel->custom = DoTrueColModelThing;
     return 1;
 }
 
@@ -3365,7 +3365,7 @@ int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial) {
 }
 
 // FUNCTION: CARMA2_HW 0x004fec30
-intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext) {
+intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext) {
     tUser_crush_data* user_crush_data;
     int (C2_HOOK_FASTCALL* callback)(br_model*);
 

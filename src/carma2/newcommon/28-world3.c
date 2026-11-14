@@ -685,7 +685,7 @@ void C2_HOOK_FASTCALL LoadIfItsAPixelmap(const char* pPath) {
 }
 
 // FUNCTION: CARMA2_HW 0x00502490
-void C2_HOOK_FASTCALL LoadAllPixelmapsInDirectory(tBrender_storage* pStorage, const char* pPath) {
+void C2_HOOK_FASTCALL LoadSomePixelmaps(tBrender_storage* pStorage, const char* pPath) {
 
     gStorage_for_callbacks = pStorage;
     PFForEveryFile(pPath, LoadIfItsAPixelmap);
@@ -846,7 +846,7 @@ void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, 
 void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading) {
 
     LoadAllShadeTablesInDirectory(pStorage, pPath);
-    LoadAllPixelmapsInDirectory(pStorage, pPath);
+    LoadSomePixelmaps(pStorage, pPath);
     LoadAllImagesInDirectory(pStorage, pPath);
     LoadAllMaterialsInDirectory(pStorage, pPath, pShading);
     LoadAllModelsInDirectory(pStorage, pPath);
@@ -951,7 +951,7 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
     extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
     extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
     extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
-    extern void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
+    extern void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
     int i;
     tSmashable_item_spec* spec;
     int d1, d2;
@@ -1031,7 +1031,7 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
             spec->mode_data.texture_change.field_0x60 = 1.f;
             spec->mode_data.texture_change.field_0x64 = 0.f;
             spec->mode_data.texture_change.field_0x68 = 0.f;
-            LoadSmashableLevels(pF, &spec->mode_data.texture_change.levels, &spec->mode_data.texture_change.count_levels, spec->mode == kSmashableMode_TextureChange, &gTrack_storage_space);
+            ReadSmashLevels(pF, &spec->mode_data.texture_change.levels, &spec->mode_data.texture_change.count_levels, spec->mode == kSmashableMode_TextureChange, &gTrack_storage_space);
         } else {
             spec->mode_data.shrapnel.removal_threshold = GetAScalar(pF);
             spec->mode_data.shrapnel.connotations.count_sounds = GetAnInt(pF);
@@ -1091,10 +1091,10 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
 extern br_actor* gMr_blendy;
 extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);
 extern int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial);
-extern void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor);
+extern void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor);
 extern br_material* gDefault_track_material;
 extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
-extern void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2);
+extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);
 extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
 extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data);
 
@@ -1113,7 +1113,7 @@ intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
         BrActorAdd(pActor->parent, pTrack_spec->columns[z][x].actor_0x0);
         pTrack_spec->columns[z][x].actor_0x4 = pActor;
         pTrack_spec->columns[z][x].actor_0x8 = NULL;
-        RelinkActorKeepWorldTransform(pTrack_spec->columns[z][x].actor_0x0, pActor);
+        ActorRelink(pTrack_spec->columns[z][x].actor_0x0, pActor);
         gMr_blendy = NULL;
         if (pActor->model != NULL && !gAusterity_mode) {
             MungeFaces(pActor, pActor->model);
@@ -1140,7 +1140,7 @@ intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
             BrActorAdd(pTrack_spec->columns[z][x].actor_0x0, gMr_blendy);
             gMr_blendy->model->flags |= BR_MODU_FACES;
             BrModelAdd(gMr_blendy->model);
-            GetModelTextureArea(gMr_blendy->model, &area1, &area2);
+            DetermineTilitudinality(gMr_blendy->model, &area1, &area2);
 
             nverts = model->nvertices + area2;
             nfaces = model->nfaces + area1;
@@ -2650,7 +2650,7 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
 }
 
 // FUNCTION: CARMA2_HW 0x004f5ae0
-void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2) {
+void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2) {
     int i;
 
     *pArea1 = 0;
@@ -3099,8 +3099,8 @@ void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
 extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
 extern tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType);
 extern tCollision_shape_polyhedron* C2_HOOK_FASTCALL AllocateShapePolyhedron(int pCount_points, int pType);
-extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateShapeWireFrame(int pCount_points, int pCount_lines, int pType);
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateShapeBox(int pType);
+extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateWireFrameCollisionShape(int pCount_points, int pCount_lines, int pType);
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -3121,7 +3121,7 @@ void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
             float a1, a2, a3;
             float b1, b2, b3;
 
-            shape = (tPhysics_shape*)AllocateShapeBox(kMem_collision_shape);
+            shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
             GetThreeFloats(pF, &a1, &a2, &a3);
             shape->box.common.bb.min.v[0] = a1;
             shape->box.common.bb.min.v[1] = a2;
@@ -3180,7 +3180,7 @@ void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
                 points[j].v[2] = w3;
             }
             count_lines = GetAnInt(pF);
-            shape = (tPhysics_shape*)AllocateShapeWireFrame(count_points, count_lines, kMem_collision_shape);
+            shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(count_points, count_lines, kMem_collision_shape);
 
             dst_points = shape->wireframe.wireframe.points;
             for (j = 0; j < count_points; j++) {
@@ -3261,7 +3261,7 @@ extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* 
 #endif
 
 /* inlined in the original */
-static tPed_form* FindOrOpenForm(const char* pName) {
+static tPed_form* GetPedForm(const char* pName) {
     int i;
 
     for (i = 0; i < 20; i++) {
@@ -3414,7 +3414,7 @@ tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
     }
 
     GetALineAndDontArgue(f, s);
-    personality->form = FindOrOpenForm(s);
+    personality->form = GetPedForm(s);
     if (personality->form == NULL) {
         FatalError(kFatalError_BonerError_UnableToLinkForm_to_personality_S, s);
     }
@@ -3935,10 +3935,10 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
                 coll_info->M = mass;
                 switch (collision_type) {
                 case ePed_form_collision_type_box:
-                    coll_info->shape = (tPhysics_shape*)AllocateShapeBox(kMem_collision_shape);
+                    coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
                     break;
                 case ePed_form_collision_type_line:
-                    coll_info->shape = (tPhysics_shape*)AllocateShapeWireFrame(2, 1, kMem_collision_shape);
+                    coll_info->shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(2, 1, kMem_collision_shape);
                     coll_info->shape->wireframe.wireframe.lines[0].index1 = 0;
                     coll_info->shape->wireframe.wireframe.lines[0].index2 = 1;
                     break;
@@ -3968,7 +3968,7 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
         form->simple_physicing[i].collision_info = BrMemAllocate(sizeof(tPhysics_object), kBoner_mem_type_simple_coll_obj);
         coll_info = form->simple_physicing[i].collision_info;
         coll_info->M = total_mass;
-        coll_info->shape = (tPhysics_shape*)AllocateShapeBox(kMem_collision_shape);
+        coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
         *(tU8*)&form->simple_physicing[i].type = ePed_form_collision_type_box;
     }
     for (i = 0; i < max_rendering_at_once; i++) {

@@ -69,9 +69,9 @@ extern void C2_HOOK_FASTCALL PDGetCurrentDate(char* pStr);
 
 extern void C2_HOOK_FASTCALL PDFileDelete(const char* pPath, int pIgnore_read_only);
 
-extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void);
+extern void C2_HOOK_FASTCALL PDCloseReplayFile(void);
 
-extern int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2);
+extern int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2);
 
 extern int C2_HOOK_FASTCALL PDmemicmp(const char* str1, const char* str2, size_t count);
 
@@ -81,7 +81,7 @@ extern void C2_HOOK_FASTCALL PDLockRealBackScreen(void);
 extern int C2_HOOK_FASTCALL PDGetASCIIFromKey(int pKey);
 extern tU32 C2_HOOK_FASTCALL GetLastTickCount(void);
 extern int C2_HOOK_CDECL PDMissingMaterial(const char* pName);
-extern void C2_HOOK_FASTCALL PDRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h);
+extern void C2_HOOK_FASTCALL PDPixelmapToScreenRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h);
 extern void C2_HOOK_FASTCALL PDConvertMousePosition(LPPOINT pPoint, LONG* pX, LONG* pY);
 extern int C2_HOOK_FASTCALL PDCheckDriveExists2(const char* pThe_path, const char* pFile_name, tU32 pMin_size);
 

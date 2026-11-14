@@ -89,7 +89,7 @@ int C2_HOOK_FASTCALL CreateDinputEffectFromSpec(int pJoystickIndex, const tJoyst
 }
 
 // FUNCTION: CARMA2_HW 0x0045a2e0
-int C2_HOOK_FASTCALL PeekChar(FILE* pFile) {
+int C2_HOOK_FASTCALL PeekCharacter(FILE* pFile) {
     char c;
 
     c = fgetc(pFile);
@@ -499,7 +499,7 @@ void C2_HOOK_FASTCALL SetJoystickYAxis(float pValue) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0045c570
-void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
+void C2_HOOK_FASTCALL SetJoystickDPadEnable(int pEnabled) {
     tButtonJoystickInfo* info;
 
     info = PDGetCurrentJoystickData();
@@ -519,7 +519,7 @@ typedef struct {
 extern tJoystick_headup_text gJoystick_headup_texts[21];
 
 // FUNCTION: CARMA2_HW 0x0045c590
-unsigned int C2_HOOK_FASTCALL GetJoystickButtonIndexForKey(int pKey) {
+unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey) {
     tButtonJoystickInfo* joystick_info;
     unsigned int i;
 
@@ -538,7 +538,7 @@ unsigned int C2_HOOK_FASTCALL GetJoystickButtonIndexForKey(int pKey) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0045c780
-int C2_HOOK_FASTCALL CycleJoystickFFBGain(void) {
+int C2_HOOK_FASTCALL JoystickAddFFBGain(void) {
 
     gINT_00596310 += 25;
     if (gINT_00596310 > 100) {
@@ -667,10 +667,10 @@ void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
     char buffer[256];
 
     if (PDIsJoystickDPadEnabled()) {
-        SetJoystickDPadEnabled(0);
+        SetJoystickDPadEnable(0);
         sprintf(buffer, "D-Pad Mode Disabled");
     } else {
-        SetJoystickDPadEnabled(1);
+        SetJoystickDPadEnable(1);
         sprintf(buffer, "D-Pad Mode Enabled");
     }
     NewTextHeadupSlot(4, 0, 3000, -4, buffer);
@@ -680,6 +680,6 @@ void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
 void C2_HOOK_FASTCALL IncreaseJoystickFFB(void) {
     char buffer[256];
 
-    sprintf(buffer, "FFB Gain Set to %d%%", CycleJoystickFFBGain());
+    sprintf(buffer, "FFB Gain Set to %d%%", JoystickAddFFBGain());
     NewTextHeadupSlot(4, 0, 3000, -4, buffer);
 }

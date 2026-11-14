@@ -99,7 +99,7 @@ void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch)
     dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for primary surface...");
     res = IDirectDraw2_CreateSurface(gDirectDraw, &desc, &gPrimary_surface, NULL);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 
@@ -112,19 +112,19 @@ void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch)
     dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for attached surface...");
     res = IDirectDraw_CreateSurface(gDirectDraw, &desc, &gAttached_surface, NULL);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 
     res = IDirectDraw_CreateClipper(gDirectDraw, 0, &gDirectDrawClipper, NULL);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 
     res = IDirectDrawClipper_SetHWnd(gDirectDrawClipper, 0, gHWnd_SSDX);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 
@@ -141,14 +141,14 @@ void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch)
     dr_dprintf("LocalWindowedDDSetup(): Calling CreatePalette()...");
     res = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, gSSDX_system_palette, &gDirectDrawPalette, NULL);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 
     dr_dprintf("LocalWindowedDDSetup(): Calling SetPalette()...");
     res = IDirectDrawSurface_SetPalette(gPrimary_surface, gDirectDrawPalette);
     if (res != DD_OK) {
-        SSDXLogError(res);
+        SSDXLogDirectDrawError(res);
         goto post_creation;
     }
 post_creation:
@@ -159,14 +159,14 @@ post_creation:
             gAttached_surface_locked = 0;
         } else {
             dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
-            SSDXLogError(res);
+            SSDXLogDirectDrawError(res);
         }
     }
     *pPitch = gSSDXPitch;
 }
 
 // FUNCTION: CARMA2_HW 0x005002d0
-void C2_HOOK_FASTCALL SSDXLogError(HRESULT hRes) {
+void C2_HOOK_FASTCALL SSDXLogDirectDrawError(HRESULT hRes) {
 
 #define LOG_CASE_DDERR(V) case V: dr_dprintf("%s (%x)", #V, hRes); return
     switch (hRes) {
@@ -217,7 +217,7 @@ int C2_HOOK_FASTCALL SSDXStart(void *p_hWnd, int p_DirectDraw, int p_EnumerateDD
 #endif
     }
     if (hRes != DS_OK) {
-        SSDXLogError(hRes);
+        SSDXLogDirectDrawError(hRes);
     }
     dr_dprintf("SSDXStart(): END.");
     return (int)hRes;
@@ -344,7 +344,7 @@ void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, in
             gAttached_surface_locked = 0;
         } else {
             dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
-            SSDXLogError(result);
+            SSDXLogDirectDrawError(result);
         }
     }
     *pPitch = gSSDXPitch;
@@ -352,7 +352,7 @@ void C2_HOOK_FASTCALL SSDXDirectDrawSetup(int pWidth, int pHeight, int pBits, in
         dr_dprintf("SSDXDirectDrawSetup(): Directdraw initialised: surface pitch %d", gSSDXPitch);
     } else {
         dr_dprintf("WARNING: Problems during SSDXDirectDrawSetup()");
-        SSDXLogError(result);
+        SSDXLogDirectDrawError(result);
     }
 }
 
@@ -386,7 +386,7 @@ void* C2_HOOK_FASTCALL SSDXLockAttachedSurface(void) {
                     }
                 }
             }
-            SSDXLogError(result);
+            SSDXLogDirectDrawError(result);
         }
     }
     if (gAttached_surface_locked) {
@@ -407,7 +407,7 @@ void C2_HOOK_FASTCALL SSDXUnlockAttachedSurface(void) {
             gAttached_surface_locked = 0;
         } else {
             dr_dprintf("SSDXUnlockAttachedSurface(): Problem while unlocking attached surface...");
-            SSDXLogError(result);
+            SSDXLogDirectDrawError(result);
         }
     }
 }

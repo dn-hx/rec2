@@ -317,7 +317,7 @@ void C2_HOOK_FASTCALL NetLeaveGameLowLevel(void) {
 extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
-extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
@@ -329,7 +329,7 @@ extern int gINT_00659d34;
 extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 extern void C2_HOOK_FASTCALL SignalToStartRace(void);
 extern void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress, int pArg3, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL RemoveNetPlayer(tPlayer_ID pPlayer_id);
+extern void C2_HOOK_FASTCALL KickPlayerOut(tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
@@ -388,7 +388,7 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
                 result = 0;
                 for (i = 0; i < gNumber_of_net_players; i++) {
                     if (i != gThis_net_player_index) {
-                        result |= SendGuaranteedMessageToPlayer(pNet_game, message, gNet_players[i].ID, NULL);
+                        result |= NetGuaranteedSendMessageToPlayer(pNet_game, message, gNet_players[i].ID, NULL);
                     }
                 }
             }
@@ -411,7 +411,7 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
                 ((tU8*)message)[0x19 + (tU8)size_leave] = 5;
                 ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
             }
-            SendGuaranteedMessageToPlayer(pNet_game, message, gNet_players[0].ID, NULL);
+            NetGuaranteedSendMessageToPlayer(pNet_game, message, gNet_players[0].ID, NULL);
             strcpy(buffer, gProgram_state.player_name);
             strcat(buffer, " ");
             strcat(buffer, GetMiscString(0x4a));
@@ -505,7 +505,7 @@ void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_playe
 // LoadCarN
 
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
 extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
@@ -527,7 +527,7 @@ void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
         }
         PHILRemoveObject(gNet_players[pPlayer_index].car->collision_info);
         if (gProgram_state.racing != 0) {
-            RemoveCarFromEffects(gNet_players[pPlayer_index].car);
+            DisposeKevStuffCar(gNet_players[pPlayer_index].car);
         }
         DisposeCar(gNet_players[pPlayer_index].car, gNet_players[pPlayer_index].car_index);
         if (pPlayer_index != gThis_net_player_index) {
@@ -546,9 +546,9 @@ void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
 // RemoveReferencesToCar
 
 extern int gInitialised_grid;
-extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusLists(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
-extern void C2_HOOK_FASTCALL FUN_004ddde0(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
+extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
 extern int gIt_or_fox;
 extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
@@ -671,8 +671,8 @@ void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info
                 PHILRemoveObject(car->collision_info);
                 RemoveCarsOilSlicks(car);
                 RemoveExplosions(car);
-                FUN_004ddde0(car);
-                RemoveRepulseLinksForCar(car);
+                ClearMineReferencesToCar(car);
+                RemoveRepulsiveReferences(car);
             }
             if (gCurrent_net_game->options.car_choice == eNet_car_all || gCurrent_net_game->options.car_choice == eNet_car_novelty) {
                 if (gNet_players[i].car_index >= 0) {
@@ -689,7 +689,7 @@ void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info
                 }
             }
             if (gNet_mode == 2) {
-                RemovePlayerFromShapeStatusLists(pPlayers[i].ID, pPlayer_count, pPlayers);
+                RemovePlayerFromShapeStatusList(pPlayers[i].ID, pPlayer_count, pPlayers);
             }
         }
     }
@@ -1400,7 +1400,7 @@ void C2_HOOK_FASTCALL CheckForDisappearees(void) {
                 strcat(buffer, " ");
                 strcat(buffer, misc);
                 NetSendHeadupToAllPlayersHelper(buffer);
-                RemoveNetPlayer(gNet_players[i].ID);
+                KickPlayerOut(gNet_players[i].ID);
                 if (gProgram_state.racing != 0) {
                     NewTextHeadupSlot(4, 0, 3000, -4, buffer);
                 }
@@ -1466,7 +1466,7 @@ void C2_HOOK_FASTCALL NetService(int pIn_race) {
     gIn_net_service = 0;
 }
 
-// NetFinishRace
+// NetFinishrace
 
 // FUNCTION: CARMA2_HW 0x004a57e0
 void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status) {
@@ -1555,7 +1555,7 @@ tPlayer_status C2_HOOK_FASTCALL NetGetPlayerStatus(void) {
 #endif
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004a5e20
-int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail) {
+int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail) {
     int i;
     int idx;
     int total;
@@ -1637,7 +1637,7 @@ found:
 // FUNCTION: CARMA2_SW 0x004a1e00
 void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail) {
 
-    SendGuaranteedMessageToPlayer(pDetails, pMessage, gNet_players[0].ID, pNotifyFail);
+    NetGuaranteedSendMessageToPlayer(pDetails, pMessage, gNet_players[0].ID, pNotifyFail);
 }
 
 #ifdef REC2_MATCHING
@@ -1858,7 +1858,7 @@ void C2_HOOK_FASTCALL GetCheckSum(tNet_message* pMessage) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004fe2c0
-void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
     int i;
     extern tCar_spec* gCar_to_view;
     extern br_angle gCamera_yaw;
@@ -2080,7 +2080,7 @@ tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004ddde0
-void C2_HOOK_FASTCALL FUN_004ddde0(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar) {
     int i;
     tShit_mine* mine;
 
@@ -2101,7 +2101,7 @@ void C2_HOOK_FASTCALL FUN_004ddde0(tCar_spec* pCar) {
 #pragma auto_inline(on)
 #endif
 
-// RemoveRepulseLinksForCar (defined in 27-powerup.c)
+// RemoveRepulsiveReferences (defined in 27-powerup.c)
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2167,7 +2167,7 @@ int gINT_00690c40;
 #endif
 // PARTIAL 54.73%: regalloc/search-loop form differs
 // FUNCTION: CARMA2_HW 0x004a4660
-void C2_HOOK_FASTCALL RemoveNetPlayer(tPlayer_ID pPlayer_id) {
+void C2_HOOK_FASTCALL KickPlayerOut(tPlayer_ID pPlayer_id) {
     int count;
     int i;
     int j;
@@ -2237,7 +2237,7 @@ void C2_HOOK_FASTCALL RemoveNetPlayer(tPlayer_ID pPlayer_id) {
             } else {
                 for (i = 0; i < gNumber_of_net_players; i++) {
                     if (i != gThis_net_player_index) {
-                        result |= SendGuaranteedMessageToPlayer(gCurrent_net_game, message, gNet_players[i].ID, NULL);
+                        result |= NetGuaranteedSendMessageToPlayer(gCurrent_net_game, message, gNet_players[i].ID, NULL);
                     }
                 }
             }
@@ -2280,7 +2280,7 @@ tNet_game_player_info gNet_received_players[12];
 
 // PARTIAL 85.07%: loop rotated by the compiler; gThis_net_player_index store keeps the constant
 // FUNCTION: CARMA2_HW 0x004a48d0
-void C2_HOOK_FASTCALL FUN_004a48d0(tNet_message_chunk_player_info* pContents, tNet_message* pMessage) {
+void C2_HOOK_FASTCALL ReceivedNewPlayerList(tNet_message_chunk_player_info* pContents, tNet_message* pMessage) {
     int i;
     int j;
     int seq;

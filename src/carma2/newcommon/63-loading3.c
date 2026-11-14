@@ -111,7 +111,7 @@ br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name) {
 }
 
 // FUNCTION: CARMA2_HW 0x0048ee00
-br_pixelmap* C2_HOOK_FASTCALL LoadPixelmapAllow(const char* pPath_name) {
+br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap2(const char* pPath_name) {
     br_pixelmap *pm;
 
     pm = RealLoadPixelmap(pPath_name);
@@ -119,7 +119,7 @@ br_pixelmap* C2_HOOK_FASTCALL LoadPixelmapAllow(const char* pPath_name) {
     return pm;
 }
 
-extern int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, int pCapacity);
+extern int C2_HOOK_FASTCALL LoadTextureTryAllLocations(char* pName, br_pixelmap** pMaps, int pCapacity);
 extern char gCurrent_load_directory[256];
 // FUNCTION: CARMA2_HW 0x0048eec0
 // FUNCTION: CARMA2_SW 0x0048c160
@@ -129,7 +129,7 @@ int C2_HOOK_FASTCALL LoadInterfacePixelmaps(const char *pPath_name, br_pixelmap*
 
     strcpy(path, pPath_name);
     strcpy(gCurrent_load_directory, "INTRFACE");
-    count = DRLoadMultiplePix(path, pMaps, pCapacity);
+    count = LoadTextureTryAllLocations(path, pMaps, pCapacity);
     DoNotAllowOpenToFail();
     return count;
 }

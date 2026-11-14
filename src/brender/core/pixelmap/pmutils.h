@@ -5,6 +5,6 @@
 
 #include "brender/br_types.h"
 
-br_uint_16 C2_HOOK_CDECL GetSysQual(void);
+br_uint_16 C2_HOOK_CDECL _GetSysQual(void);
 
 #endif // REC2_PMUTILS_H

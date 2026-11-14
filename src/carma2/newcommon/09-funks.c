@@ -1183,7 +1183,7 @@ void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* re
     br_matrix34 subject_to_world;
     br_matrix34 mat;
 
-    BrActorToActorMatrix34(&subject_to_world, pSubject_actor, gNon_track_actor);
+    BrActorToActorMatrix34_2(&subject_to_world, pSubject_actor, gNon_track_actor);
     BrVector3Sub(&ref_to_subject, (br_vector3*)ref_to_world->m[3], (br_vector3*)subject_to_world.m[3]);
     switch (pWhich_axis) {
     case eLollipop_x_match:

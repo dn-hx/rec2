@@ -119,7 +119,7 @@ extern void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL ResetRepulseRay(void);
 
-extern void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL DrawSinglePowerupIcon(int pDraw, int pTime, tPowerup* pPowerup, tHeadup_icon* pIcon, int pX, int pY, int pUpdate_x);
 // DrawPowerupIcons2
@@ -347,9 +347,9 @@ extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 extern int C2_HOOK_FASTCALL GetPowerupCount(void);
 
 extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition);
-extern void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSinglePowerupGot(tPowerup* pPowerup, tCar_spec* pCar);
 
-extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car);
 extern void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car);
@@ -405,27 +405,27 @@ extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_i
 extern tPhysics_object* C2_HOOK_FASTCALL MungeSphereObject(br_model* pModel, float pWeight);
 
 
-extern tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shape_polyhedron_data* pPolyhedron);
-extern tPhysicsError C2_HOOK_FASTCALL ProcessTetrahedronPolyhedronCollisionShape(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges);
-extern int C2_HOOK_FASTCALL PolyhedronCollisionShape_AddPoint(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices);
+extern tPhysicsError C2_HOOK_FASTCALL ConvexHull2D(tCollision_shape_polyhedron_data* pPolyhedron);
+extern tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges);
+extern int C2_HOOK_FASTCALL AddPointToPolyhedron(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices);
 extern tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron);
 extern void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale);
-extern void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c);
-extern void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale);
+extern void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c);
+extern void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale);
 extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
 extern void C2_HOOK_FASTCALL FUN_0045c760(void);
 extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 extern int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL MakePedsEthereal(void);
-extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor);
-extern void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
-extern void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode);
-extern void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);
-extern void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode);
-extern int C2_HOOK_FASTCALL ReceivedRepulseOpponents(tNet_message_chunk_powerup* pMessage);
+extern void C2_HOOK_FASTCALL TurnOnGhostPeds(void);
+extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor);
+extern void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
+extern void C2_HOOK_FASTCALL ScaleBone(int pMorph_or_personality, br_scalar* pScale, int pMode);
+extern void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);
+extern void C2_HOOK_FASTCALL ScaleFormBone(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode);
+extern int C2_HOOK_FASTCALL ReceivedRepulse(tNet_message_chunk_powerup* pMessage);
 extern void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor);
 
 #endif // GUARD_27_POWERUP_H

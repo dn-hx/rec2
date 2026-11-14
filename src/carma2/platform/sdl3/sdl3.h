@@ -40,7 +40,7 @@ extern int PDGetKeyboardCharacter(void);
 
 extern void PDClearKeyboardBuffer(void);
 
-C2_NORETURN void PDShutdownSystem(void);
+C2_NORETURN void PDShutDownSystem(void);
 
 extern void PDLockRealBackScreen(void);
 
@@ -116,7 +116,7 @@ extern void PDExtractDirectory(char *pDest, const char *pPath);
 
 extern void PDPageInProcessMemory(void);
 
-extern void PDDisposeActionReplayBuffer(void);
+extern void PDCloseReplayFile(void);
 
 extern void SDL3ServiceMessages(void);
 extern void C2_HOOK_FASTCALL SDL3AddGamepad(SDL_JoystickID which);

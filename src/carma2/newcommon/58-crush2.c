@@ -161,10 +161,10 @@ int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar) {
 
 // RecordLastDamage
 
-// DoDamage
+// DamageUnit2
 
 // FUNCTION: CARMA2_HW 0x0043f9f0
-void C2_HOOK_FASTCALL CalcModifiedLocation(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL RecordLastDamage(tCar_spec* pCar) {
     int i;
 
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_spec, last_impact_location, 0x6f4);
@@ -219,21 +219,21 @@ void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity) {
 }
 
 /* Moved out of 00-car.c: keeping this body in that TU perturbed the x87 scheduling of
-   FullyDetachSnappedBits 0x431310 (97.69). Must stay immediately after DoPratcamHit here: at
+   DoJointSnapping 0x431310 (97.69). Must stay immediately after DoPratcamHit here: at
    the end of this file the same body scores 85.42% (tail emits fld [edx]; fadd st(1); fstp). */
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 /* tCrush_displacement_context_local is declared in 58-crush2.h so the
-   prototypes of AddTotalDeflectionOfModel/RepairObject can name it. */
-// AddTotalDeflectionOfModel - body (GPL-3.0). It was kept
+   prototypes of AddTotalDeflection/RepairObject can name it. */
+// AddTotalDeflection - body (GPL-3.0). It was kept
 // here as a PARTIAL at 85.42% (the remaining diff then was the x87 tail idiom); the final tree, with
 // the block-scope `delta` temp in the axis accumulation and the tail statement
 // `*total_displacement = displacement + *total_displacement;`, verifies at 100% (re-checked after the
-// FUN_0043fb70 work). The original is at 0x0043b2e0.
-// PARTIAL 85.42%: AddTotalDeflectionOfModel 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
+// DamageSystems work). The original is at 0x0043b2e0.
+// PARTIAL 85.42%: AddTotalDeflection 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
 // FUNCTION: CARMA2_HW 0x0043b2e0
-intptr_t C2_HOOK_CDECL AddTotalDeflectionOfModel(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
     extern br_scalar gCrushZero;
     tUser_crush_data* user;
     br_vector3 original_position;
@@ -885,13 +885,13 @@ unsigned char gSmoke_part_table[12] = {
 
 
 /* Moved here from 00-car.c (2026-11-02): the same two blocks at the end of 00-car.c cost
-   FullyDetachSnappedBits 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
+   DoJointSnapping 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
    RepairObject had any stack frame at all; no placement inside that TU avoided it. Like
-   AddTotalDeflectionOfModel above, they live in this TU instead. Bodies are unchanged.
+   AddTotalDeflection above, they live in this TU instead. Bodies are unchanged.
    The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern intptr_t C2_HOOK_CDECL FUN_00434320(br_actor* pActor, int pArg2);
+extern intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pArg2);
 extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
 extern br_scalar gCrushZero;
 extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
@@ -996,7 +996,7 @@ int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pC
 #endif
 
 // FUNCTION: CARMA2_HW 0x0043b470
-intptr_t C2_HOOK_CDECL FUN_0043b470(br_actor* pActor, tModel_mash_context_local* pContext) {
+intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
     tUser_crush_data* user;
     tCar_crush_buffer_entry* crush_data;
     int model_index;
@@ -1044,9 +1044,9 @@ int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_
     model_context.total_displacement = context->total_displacement;
 
     ARStartPipingSession(0x18);
-    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)FUN_0043b470, &model_context);
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)RepairModels_2, &model_context);
     AREndPipingSession();
-    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)FUN_00434320, NULL);
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)CheckFlapAngles, NULL);
 
     context->displacement += model_context.displacement;
     return 0;

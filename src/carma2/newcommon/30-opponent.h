@@ -13,7 +13,7 @@ extern br_scalar gIn_view_distance;
 extern tU8* gBit_per_node;
 extern float gOppo_render_zero;
 
-extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
+extern void C2_HOOK_CDECL DoNotDprintf_opponent(const char* pMessage, ...);
 
 extern void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 // ReallocExtraPathNodes
@@ -88,7 +88,7 @@ extern void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec)
 // NoteCarsCurrentlyUsed
 
 extern void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount);
-extern void C2_HOOK_FASTCALL SetOppoRender(tOpponent_spec* pOpponent_spec, int pRender);
+extern void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender);
 
 extern void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCount);
 
@@ -169,7 +169,7 @@ extern void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatte
 
 
 extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
-extern void C2_HOOK_FASTCALL ProcessOpponentRepair(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec);
 extern void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist);
 extern void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet);
 

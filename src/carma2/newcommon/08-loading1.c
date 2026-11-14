@@ -956,7 +956,7 @@ intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pContext) 
             tUser_detail_level_model* model_data = model->user;
 
             if (model_data->field_0x4 != NULL) {
-                DisposeVertexData(model_data->field_0x4);
+                FreeGroovidelic(model_data->field_0x4);
                 model_data->field_0x4 = NULL;
             }
             BrMemFree(model_data);
@@ -964,7 +964,7 @@ intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pContext) 
         }
     }
     if (crush_data->crush_data != NULL) {
-        DisposeCrushData(crush_data->crush_data);
+        FreeCrushData(crush_data->crush_data);
         crush_data->crush_data = NULL;
     }
     BrMemFree(crush_data);
@@ -1347,7 +1347,7 @@ void C2_HOOK_FASTCALL LoadingNoOp(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0048fb50
-tU32 C2_HOOK_FASTCALL DecimalDigitsToBitmask(tU32 pValue) {
+tU32 C2_HOOK_FASTCALL BinIntegerToInteger(tU32 pValue) {
     tU32 result;
     tU32 v;
 
@@ -1359,7 +1359,7 @@ tU32 C2_HOOK_FASTCALL DecimalDigitsToBitmask(tU32 pValue) {
 }
 
 // FUNCTION: CARMA2_HW 0x004907b0
-void C2_HOOK_FASTCALL DecodeLine(char* pS) {
+void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS) {
     int len;
     int seed;
     int i;

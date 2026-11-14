@@ -320,7 +320,7 @@ void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char *pThe_str) {
     if (gBr_initialized) {
         DRBrEnd();
     }
-    PDShutdownSystem();
+    PDShutDownSystem();
 }
 
 // FUNCTION: CARMA2_HW 0x0051afb0
@@ -373,13 +373,13 @@ void C2_HOOK_FASTCALL PDClearKeyboardBuffer(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051c110
-C2_NORETURN void C2_HOOK_FASTCALL PDShutdownSystem(void) {
+C2_NORETURN void C2_HOOK_FASTCALL PDShutDownSystem(void) {
     // GLOBAL: CARMA2_HW 0x006ad4d8
     static int been_here;
 
     gBack_screen = NULL;
     if (been_here) {
-        PDDisposeActionReplayBuffer();
+        PDCloseReplayFile();
         ExitProcess(702);
     } else {
         been_here = 1;
@@ -407,7 +407,7 @@ C2_NORETURN void C2_HOOK_FASTCALL PDShutdownSystem(void) {
         }
         dr_dprintf("End of PDShutdownSystem()");
         CloseDiagnostics();
-        PDDisposeActionReplayBuffer();
+        PDCloseReplayFile();
         ExitProcess(gExit_code);
     }
 }
@@ -576,7 +576,7 @@ LRESULT CALLBACK Carma2MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             if (GET_SC_WPARAM(wParam) == SC_CLOSE) {
                 DestroyWindow(gHWnd);
                 gHWnd = NULL;
-                PDShutdownSystem();
+                PDShutDownSystem();
                 return 0;
             }
             break;
@@ -764,7 +764,7 @@ int C2_HOOK_FASTCALL PDEnumPath(const char *path, tEnumPathCallback pCallback, v
                 if ((findFileData.dwFileAttributes & 0x16) == 0) {
                     lenFilename = strlen(findFileData.cFileName);
                     lenLnk = strlen(".lnk");
-                    if (lenFilename < lenLnk || PDstrcmpi(&findFileData.cFileName[lenFilename - lenLnk], ".lnk") != 0) {
+                    if (lenFilename < lenLnk || DRstrcmpi(&findFileData.cFileName[lenFilename - lenLnk], ".lnk") != 0) {
                         memmove(filePath, findFileData.cFileName, lenFilename + 1);
                     } else {
                         memmove(filePath, findFileData.cFileName, lenFilename - lenLnk);
@@ -924,7 +924,7 @@ static void C2_HOOK_CDECL OnErrorCallback(char *text) {
     if (gBr_initialized) {
         DRBrEnd();
     }
-    PDShutdownSystem();
+    PDShutDownSystem();
 }
 
 // FUNCTION: CARMA2_HW 0x0051c6c0
@@ -1145,7 +1145,7 @@ void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0047d850
-int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2) {
+int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2) {
 
     return strcasecmp(str1, str2);
 }
@@ -1174,7 +1174,7 @@ int C2_HOOK_CDECL PDMissingMaterial(const char* pName) {
 }
 
 // FUNCTION: CARMA2_HW 0x0051c540
-void C2_HOOK_FASTCALL PDRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h) {
+void C2_HOOK_FASTCALL PDPixelmapToScreenRectangleCopy(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_uint_16 w, br_uint_16 h) {
     if (src != dst) {
         BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
     }

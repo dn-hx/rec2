@@ -23,9 +23,9 @@ typedef struct {
     tU16 v[4];
 } tFixed_quat;
 
-extern void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const br_matrix34* pMatrix);
+extern void C2_HOOK_FASTCALL LPMatrixToFixedQuat(tFixed_quat* pOrientation, const br_matrix34* pMatrix);
 
-// GetMatrixFromOrientation
+// FixedQuatFractionToLPMatrix
 
 // OmegaCompScalarTo16
 
@@ -37,7 +37,7 @@ extern void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation,
 
 extern int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, tU32 pSize);
 
-extern int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax);
+extern int C2_HOOK_STDCALL FloatToFixedFraction(float pVal, float pMin, float pMax);
 
 // GetVelocityAndPosition
 

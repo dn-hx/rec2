@@ -102,7 +102,7 @@ int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
 }
 
 extern void C2_HOOK_FASTCALL ToggleMap(void);
-extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
 extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
 // FUNCTION: CARMA2_HW 0x005030b0
@@ -113,7 +113,7 @@ void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason) {
         return;
     }
     if (gNet_mode == eNet_mode_host && pReason < eRace_over_8) {
-        NetFinishRace(gCurrent_net_game, pReason);
+        NetFinishrace(gCurrent_net_game, pReason);
     }
     if (pReason == eRace_over_out_of_time || pReason == eRace_over_7) {
         ChangeAmbientPratcam(35);
@@ -834,10 +834,10 @@ void C2_HOOK_FASTCALL InitPlayers(void) {
 extern int gINT_0068d920;
 extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
 extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x0049b7e0
-void C2_HOOK_FASTCALL FUN_0049b7e0(tPlayer_ID pPlayer_id) {
+void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id) {
     int i;
 
     switch (gCurrent_net_game->type) {
@@ -858,7 +858,7 @@ void C2_HOOK_FASTCALL FUN_0049b7e0(tPlayer_ID pPlayer_id) {
             }
             for (i = 0; i < gNumber_of_net_players; i++) {
                 if (gNet_players[i].ID == pPlayer_id) {
-                    DisposeKevStuffCar(gNet_players[i].car);
+                    MakeCarIt(gNet_players[i].car);
                     gIt_or_fox = i;
                 }
             }
@@ -1420,7 +1420,7 @@ extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 extern br_model* C2_HOOK_FASTCALL LoadModel(const char* pName);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path);
-extern void C2_HOOK_FASTCALL ClosePackFile(tTWTVFS twt);
+extern void C2_HOOK_FASTCALL TWT_Unmount(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
 extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
@@ -1460,7 +1460,7 @@ extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info,
 extern void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF);
 extern void C2_HOOK_FASTCALL GetSmokeShadeTables(FILE* pF);
 extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
-extern void C2_HOOK_FASTCALL DisposeSmashEnvNonCars(void);
+extern void C2_HOOK_FASTCALL FreeSmashableNonCarNames(void);
 extern void C2_HOOK_FASTCALL SmoothificateWorldMaterial(br_material* pMaterial);
 extern void C2_HOOK_FASTCALL LoadStaticLightingForRace(const char* pRace_lighting_path);
 extern intptr_t C2_HOOK_CDECL SetAccessoryRenderingCB(br_actor* pActor, void* pFlag);
@@ -1845,7 +1845,7 @@ void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec
     PathCat(race_desc_path, race_desc_path, s);
     twt2 = OpenPackFile(race_desc_path);
     LoadAllImagesInDirectory(&gTrack_storage_space, race_desc_path);
-    ClosePackFile(twt2);
+    TWT_Unmount(twt2);
     PossibleService();
     LoadAllImagesInDirectory(&gTrack_storage_space, gRace_path);
     PossibleService();
@@ -2164,7 +2164,7 @@ void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec
         gNon_car_spec_indices[non_car->index] = i + 1;
         PFfclose(g);
     }
-    DisposeSmashEnvNonCars();
+    FreeSmashableNonCarNames();
 
     CheckNonCarModelBounds();
 
@@ -2248,14 +2248,14 @@ int gWinner_declared = 0;
 #endif
 extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
 extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
-extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 extern int gINT_0074c6d4;
 
 // Known remaining diff (partial, category=codegen): 0x4a5773 SIB base/index order only
 // (original [esi + ebx + 0x19], ours [ebx + esi + 0x19]); both pointer-first and array
 // spellings compile to the same instruction, so the choice is MSVC's register allocator.
 // FUNCTION: CARMA2_HW 0x004a5710
-void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason) {
+void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason) {
     tNet_message* message;
     tNet_game_details* pGame;
     int size_leave;
@@ -2288,7 +2288,7 @@ void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reas
     }
     for (i = 0; i < gNumber_of_net_players; i++) {
         if (i != gThis_net_player_index) {
-            result |= SendGuaranteedMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
+            result |= NetGuaranteedSendMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
         }
     }
 }

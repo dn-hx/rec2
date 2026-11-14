@@ -52,7 +52,7 @@ C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
     if (gBr_initialized) {
         DRBrEnd();
     }
-    PDShutdownSystem();
+    PDShutDownSystem();
     CloseDiagnostics();
     exit(0);
 }
@@ -126,7 +126,7 @@ void C2_HOOK_FASTCALL ServiceGame(void) {
         if (gBr_initialized) {
             DRBrEnd();
         }
-        PDShutdownSystem();
+        PDShutDownSystem();
         CloseDiagnostics();
         exit(0);
     }

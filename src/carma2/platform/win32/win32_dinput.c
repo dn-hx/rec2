@@ -505,7 +505,7 @@ void C2_HOOK_FASTCALL PDSetJoystickFFBGain(int pGain) {
         property.dwData = 100 * pGain;
     }
     for (i = 0; i < gCount_joystick_effects; i++) {
-        UnloadDinputFFBEffectAtIndex(i);
+        UnloadDInputFFBEffectAtIndex(i);
     }
     IDirectInputDevice_SetProperty(gDirectInputJoystickDevices[gJoystick_index], DIPROP_FFGAIN, &property.diph);
     for (i = 0; i < gCount_joystick_effects; i++) {
@@ -530,7 +530,7 @@ void C2_HOOK_FASTCALL DownloadDinputFFBEffectAtIndex(int index) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00458040
-void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index) {
+void C2_HOOK_FASTCALL UnloadDInputFFBEffectAtIndex(int index) {
     IDirectInputEffect* effect = gDirectInputEffects[index];
     if (effect != NULL) {
         IDirectInputEffect_Unload(effect);
@@ -711,7 +711,7 @@ int C2_HOOK_FASTCALL UnloadDinputFFBEfectwithName(const char *name) {
 
     for (i = 0; i < gCount_joystick_effects; i++) {
         if (strcmp(gJoystick_effects[i].name, name) == 0) {
-            UnloadDinputFFBEffectAtIndex(i);
+            UnloadDInputFFBEffectAtIndex(i);
             return 1;
         }
     }
@@ -818,7 +818,7 @@ void C2_HOOK_FASTCALL ResetDInputJoystickFFB(int pIndex) {
 #endif
 
 // FUNCTION: CARMA2_HW 0x00458520
-void C2_HOOK_FASTCALL RegisterJoystickFFBForces(void) {
+void C2_HOOK_FASTCALL RegisterBasicJoystickFFBEffects(void) {
     // The original reserves 0x60 bytes for this local and initialises only
     // its first 0x50 bytes, so the source local is 0x10 bytes larger than
     // our tJoystick_effect_description.
@@ -954,7 +954,7 @@ int C2_HOOK_FASTCALL JoystickDInputBegin(void) {
         }
         if (InitForceFeedback()) {
             ResetDInputJoystickFFB(gJoystick_index);
-            RegisterJoystickFFBForces();
+            RegisterBasicJoystickFFBEffects();
         }
     }
     return gCountEnumeratedJoystickDinputDevices;
@@ -1359,7 +1359,7 @@ zero_keys:
 }
 
 // FUNCTION: CARMA2_HW 0x0051d1d0
-void C2_HOOK_FASTCALL PDReadJoysticks(void) {
+void C2_HOOK_FASTCALL PDReadJoySticks(void) {
 
     if (gJoystick_index != -1) {
         gJoy1_valid = 1;
@@ -1706,7 +1706,7 @@ int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00459ed0
-tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickButtonInfos(size_t pSize) {
+tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickInfoData(size_t pSize) {
     tButtonJoystickInfo* data;
 
     if (pSize != 0 && gJoystick_index != -1 && gDirectInputJoystickInfos[gJoystick_index].data == NULL) {
@@ -1721,7 +1721,7 @@ tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickButtonInfos(size_t 
 }
 
 // FUNCTION: CARMA2_HW 0x00459f30
-void C2_HOOK_FASTCALL FreeCurrentJoystickButtonInfos(void) {
+void C2_HOOK_FASTCALL DisposeCurrentJoystickData(void) {
 
     if (gJoystick_index != -1 && gDirectInputJoystickInfos[gJoystick_index].data != NULL) {
         BrMemFree(gDirectInputJoystickInfos[gJoystick_index].data);

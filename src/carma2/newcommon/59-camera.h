@@ -87,7 +87,7 @@ extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
 // MouseClickInActionReplay
 
 
-extern int C2_HOOK_FASTCALL GetPipeCarStateAtTime(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
-extern void C2_HOOK_FASTCALL PangToCamera(br_vector3* pPos, br_matrix34* pMat);
+extern int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
+extern void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat);
 
 #endif // GUARD_59_CAMERA_H

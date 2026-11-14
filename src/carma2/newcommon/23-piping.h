@@ -387,9 +387,9 @@ extern void C2_HOOK_FASTCALL ARResetPiping(void);
 extern void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks);
 // ARDispose
 
-extern void C2_HOOK_FASTCALL SetPipeUndoFlag(void);
+extern void C2_HOOK_FASTCALL ARDisableAdvance(void);
 
-extern void C2_HOOK_FASTCALL ClearPipeUndoFlag(void);
+extern void C2_HOOK_FASTCALL AREnableAdvance(void);
 
 extern int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType);
 
@@ -400,7 +400,7 @@ extern void C2_HOOK_FASTCALL ARAdvanceChunkPtr(tPipe_chunk** pChunk_ptr, tPipe_c
 
 // ARPipeSearchForwards
 
-extern int C2_HOOK_FASTCALL ARReplayPlaying(void);
+extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 
 extern int C2_HOOK_FASTCALL ARIsActionReplayAvailable(void);
 extern int C2_HOOK_FASTCALL ARSomeReplayLeft(void);
@@ -457,7 +457,7 @@ extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pSt
 
 // ARMoveToStartOfReplay
 
-extern void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 extern void C2_HOOK_FASTCALL ReverseSound(tS3_effect_tag pEffect, tS3_sound_tag pTag);
 extern int C2_HOOK_FASTCALL ARGoBackwards(void);
 extern int C2_HOOK_FASTCALL ARGoForwards(void);
@@ -474,7 +474,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 
 extern int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext);
 extern void C2_HOOK_FASTCALL PipeCarPositions(void);
-extern void C2_HOOK_CDECL FUN_004c65f0(void);
+extern void C2_HOOK_CDECL ResetCars(void);
 // DoSmudge
 
 // DoOilSpillAR
@@ -526,7 +526,7 @@ extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3
 
 // PipeSingleCrush
 
-extern void C2_HOOK_FASTCALL AddBurningPedToSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
+extern void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
 extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
 
@@ -548,7 +548,7 @@ extern void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* 
 extern void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor);
 // PipeSingleWallIncident
 
-extern void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pForce);
+extern void C2_HOOK_FASTCALL PipeSingleWallIncident(br_vector3* pPosition, float pForce);
 
 extern void C2_HOOK_FASTCALL PipeSingleProxRay(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
 
@@ -566,7 +566,7 @@ extern void C2_HOOK_FASTCALL PipeSingleIdentity(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
 
-// PipeSingleNonCarCreation
+// AddCarActorTransformationToSession
 
 extern void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_model* pOld_model, br_model* pNew_model);
 
@@ -609,7 +609,7 @@ extern void C2_HOOK_FASTCALL PipeSingleFunkEnable(int pIndex, tU16 pFlags);
 // PipeSingleVanishedDismembered (defined in 23-piping.c; no extern here: an extra declaration shifts codegen of BitObjectIsSufficientlyOutsideCarObjectToDetach 0x00434910 in 13-crush1.c)
 
 extern void C2_HOOK_FASTCALL PipeSingleDSModel(int pKind, void* pThing);
-extern void C2_HOOK_FASTCALL PipeSinglePedestrian(tPedestrian* pPed);
+extern void C2_HOOK_FASTCALL PipeSinglePedDiagnostic(tPedestrian* pPed);
 
 extern void C2_HOOK_FASTCALL PipeSingleVector3(br_vector3* pDest, br_vector3* pValue);
 
@@ -854,19 +854,19 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcRemoveFacesLength(tPipe_chunk* pChunk);
-extern void C2_HOOK_FASTCALL DisposePiping(void);
+extern void C2_HOOK_FASTCALL ARDispose(void);
 
 
 extern void C2_HOOK_FASTCALL S3ReverseSample(tS3_effect_tag pEffect, tS3_sound_tag pTag);
-extern int C2_HOOK_FASTCALL S3SetSampleFilterCallbacks(tS3_sample_filter pFunc1, tS3_sample_filter pFunc2);
+extern int C2_HOOK_FASTCALL S3SetEffects(tS3_sample_filter pFunc1, tS3_sample_filter pFunc2);
 extern void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pPed, undefined4 pArg2, undefined4 pArg3);
 extern void C2_HOOK_FASTCALL PipeSingleDroneCornerPos(tDrone_spec* pDrone, tU16 pField_0x48, tU16 pField_0x74, tU16 pField_0x70, tCompressed_matrix34* pMatrix);
 extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
 extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
-extern void C2_HOOK_FASTCALL DisposeReplayPixelmaps(void);
-extern void C2_HOOK_FASTCALL DoBloodSpurtUndo(int pCurrent_time, uintptr_t pOwner, int pSpurt_time, tU32 pSeed, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction);
-extern void C2_HOOK_FASTCALL FUN_004c7500(uintptr_t pOwner, void* pData, tU32 pArg3);
+extern void C2_HOOK_FASTCALL FreeActionReplayPix(void);
+extern void C2_HOOK_FASTCALL PedUndoBloodSpurt(int pCurrent_time, uintptr_t pOwner, int pSpurt_time, tU32 pSeed, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction);
+extern void C2_HOOK_FASTCALL PipeSingleSkidAdjustment__2(uintptr_t pOwner, void* pData, tU32 pArg3);
 extern void C2_HOOK_FASTCALL FUN_004c8500(uintptr_t pOwner, const br_vector3* pVector);
-extern void C2_HOOK_FASTCALL FUN_004c89f0(uintptr_t pOwner);
+extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(uintptr_t pOwner);
 
 #endif // GUARD_23_PIPING_H

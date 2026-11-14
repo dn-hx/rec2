@@ -29,7 +29,7 @@
 
 extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 extern float gPed_head_scale;
-extern void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode);
+extern void C2_HOOK_FASTCALL ScaleBone(int pMorph_or_personality, br_scalar* pScale, int pMode);
 extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 extern br_vector3 gPed_scale;
 extern float gAverage_ped_scale;
@@ -37,7 +37,7 @@ extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, in
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 extern tS3_outlet* gCar_outlet;
-extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
 extern const float gConst_0p1;
 extern const double gConst_10_over_7;
 extern const double gConst_inverse_world_scale;
@@ -264,7 +264,7 @@ void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2) {
         pPowerup->lose_proc(pPowerup, pPowerup->car);
     }
     if (pPowerup->net_type & 0x80) {
-        ARPowerupLose(pPowerup, pPowerup->car);
+        PipeSinglePowerupLose(pPowerup, pPowerup->car);
     }
     if (gNet_mode != 0) {
         message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -309,7 +309,7 @@ __inline static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
         pPowerup->lose_proc(pPowerup, pPowerup->car);
     }
     if (pPowerup->net_type & 0x80) {
-        ARPowerupLose(pPowerup, pPowerup->car);
+        PipeSinglePowerupLose(pPowerup, pPowerup->car);
     }
     if (gNet_mode != 0) {
         message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -367,7 +367,7 @@ void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_ne
             pPowerup->lose_proc(pPowerup, pPowerup->car);
         }
         if (pPowerup->net_type & 0x80) {
-            ARPowerupLose(pPowerup, pPowerup->car);
+            PipeSinglePowerupLose(pPowerup, pPowerup->car);
         }
         if (gNet_mode != 0) {
             message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -535,7 +535,7 @@ int C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage,
                     old_powerup->lose_proc(old_powerup, old_powerup->car);
                 }
                 if (old_powerup->net_type & 0x80) {
-                    ARPowerupLose(old_powerup, old_powerup->car);
+                    PipeSinglePowerupLose(old_powerup, old_powerup->car);
                 }
                 if (gNet_mode != 0) {
                     message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -689,7 +689,7 @@ int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar) {
 }
 
 extern int C2_HOOK_FASTCALL GotPowerupX(tCar_spec* pCar, int pIndex, int pArg3, int pMessage, tU32 pTime);
-extern void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale);
+extern void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale);
 extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 
 // FUNCTION: CARMA2_HW 0x004dc470
@@ -813,7 +813,7 @@ int C2_HOOK_FASTCALL SetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
     br_scalar head_scale;
 
     head_scale = pPowerup->float_params[0];
-    ScalePedHeads(head_scale);
+    ChangeHeadScaling(head_scale);
     return pPowerup - gPowerup_array;
 }
 
@@ -849,7 +849,7 @@ void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
 // FUNCTION: CARMA2_HW 0x004dca00
 void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
 
-    ScalePedHeads(1.0f);
+    ChangeHeadScaling(1.0f);
 }
 
 // FUNCTION: CARMA2_HW 0x004dca30
@@ -872,7 +872,7 @@ int C2_HOOK_FASTCALL SetEngineFactor(tPowerup* pPowerup, tCar_spec* pCar) {
 // FUNCTION: CARMA2_HW 0x004dcae0
 int C2_HOOK_FASTCALL TrashBodywork(tPowerup* pPowerup, tCar_spec* pCar) {
 
-    TotallySpamTheModel(pCar, pCar->softness_factor * gConst_0p1 * gConst_10_over_7);
+    TotallySpamTheCar(pCar, pCar->softness_factor * gConst_0p1 * gConst_10_over_7);
     if (pCar != NULL && pCar->driver == eDriver_local_human) {
         DRS3StartSound2(gCar_outlet, 0x1388, 1, 0xff, 0xff, -1, -1);
         DRS3StartSound2(gCar_outlet, 0x1389, 1, 0xff, 0xff, -1, -1);
@@ -946,15 +946,15 @@ extern tWorld_callbacks gWorld_callbacks;
 extern br_vector3 gZero_v__car;
 extern tFace_ref gFace_list__car[300];
 extern tPhysics_object* gUNK_0079ecbc;
-extern void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor);
-extern void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
+extern void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor);
+extern void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
 extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, br_vector3* pVec3, tWorld_callbacks* pCar_callbacks);
-extern tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
+extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
 extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 
-// based on the original disassembly (ConfigureShitMine/InitializeMineMotion hold the ShitMine body)
+// based on the original disassembly (ActivateMine/PositionMine hold the ShitMine body)
 // FUNCTION: CARMA2_HW 0x004dd700
 int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     int i;
@@ -1000,12 +1000,12 @@ int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
         }
         mine = &gShit_mines[best_index];
     }
-    ConfigureShitMine(mine, pPowerup, pCar);
+    ActivateMine(mine, pPowerup, pCar);
     mine->field_0x30 = pCar;
     mine->field_0x35++;
-    InitializeMineMotion(mine, pCar);
+    PositionMine(mine, pCar);
     if (gNet_mode == eNet_mode_none) {
-        PipeSingleMatrix34Type66(mine->collision_info->actor);
+        PipeSingleShitMine(mine->collision_info->actor);
     }
     if ((mine->flags & 0x40) != 0) {
         DRS3StartSound3D(gCar_outlet, 0x151d, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
@@ -1023,11 +1023,11 @@ int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     d.v[1] = d.v[1] + dir.v[1] * 0.15;
     d.v[2] = d.v[2] + dir.v[2] * 0.15;
     if (!TestForObjectInSensiblePlace(mine->collision_info, gPHIL_list_collision_infos, &d, &gWorld_callbacks)) {
-        CollideShitMine(mine->collision_info, gUNK_0079ecbc, 1.0f);
+        HitAShatOutMine(mine->collision_info, gUNK_0079ecbc, 1.0f);
     } else {
-        face = FindFloorInBoxM(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
+        face = RayCastThruFaceList2(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
         if (face == NULL) {
-            face = FindFloorInBoxM(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[mine->collision_info->box_face_start], mine->collision_info->box_face_end - mine->collision_info->box_face_start);
+            face = RayCastThruFaceList2(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[mine->collision_info->box_face_start], mine->collision_info->box_face_end - mine->collision_info->box_face_start);
             if (face == NULL) {
                 return pPowerup - gPowerup_array;
             }
@@ -1036,7 +1036,7 @@ int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
         mine->collision_info->transform_matrix.m[3][0] += d.v[0];
         mine->collision_info->transform_matrix.m[3][1] += d.v[1];
         mine->collision_info->transform_matrix.m[3][2] += d.v[2];
-        CollideShitMine(pCar->collision_info, mine->collision_info, 1.0f);
+        HitAShatOutMine(pCar->collision_info, mine->collision_info, 1.0f);
     }
     return pPowerup - gPowerup_array;
 }
@@ -1058,7 +1058,7 @@ int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar) {
 extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
 extern int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3);
 extern int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL MakePedsEthereal(void);
+extern void C2_HOOK_FASTCALL TurnOnGhostPeds(void);
 extern void C2_HOOK_FASTCALL FUN_0045c760(void);
 extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
 extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
@@ -1085,7 +1085,7 @@ int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar) {
 int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar) {
     int result;
 
-    if (FindPedestrianNearCar(pCar, pPowerup->float_params[0]) != 0) {
+    if (DoPedAnnihilator(pCar, pPowerup->float_params[0]) != 0) {
         result = pPowerup - gPowerup_array;
     } else {
         result = -1;
@@ -1212,14 +1212,14 @@ int C2_HOOK_FASTCALL PickAtRandom(tPowerup* pPowerup, tCar_spec* pCar) {
 // FUNCTION: CARMA2_HW 0x004de930
 int C2_HOOK_FASTCALL SetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
-    MakePedsEthereal();
+    TurnOnGhostPeds();
     return pPowerup - gPowerup_array;
 }
 
 // FUNCTION: CARMA2_HW 0x004de9a0
 void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
-    MakePedsNotEthereal();
+    TurnOffGhostPeds();
 }
 
 // FUNCTION: CARMA2_HW 0x004de9b0
@@ -1260,7 +1260,7 @@ int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
                     }
                 }
                 if (pCar->invulnerable_no_crushage == 0) {
-                    TotallySpamTheModel(pCar, d * gConst_0p1);
+                    TotallySpamTheCar(pCar, d * gConst_0p1);
                 }
             }
             pCar->collision_info->disable_move_rotate = 0;
@@ -1270,14 +1270,14 @@ int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-extern void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x004debb0
 int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car) {
 
     car->field_0x4c8 = powerup->float_params[0];
     if (gNet_mode) {
-        RecalculateCarMassMomentOfInertia(car);
+        DoSolidGraniteThing(car);
     }
     return powerup - gPowerup_array;
 }
@@ -1414,7 +1414,7 @@ int C2_HOOK_FASTCALL PowerupCancel(tPowerup* pPowerup, tCar_spec* pCar) {
                 powerup->lose_proc(powerup, powerup->car);
             }
             if (powerup->net_type & 0x80) {
-                ARPowerupLose(powerup, powerup->car);
+                PipeSinglePowerupLose(powerup, powerup->car);
             }
             if (gNet_mode != 0) {
                 message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -1448,7 +1448,7 @@ int C2_HOOK_FASTCALL PowerupCancel(tPowerup* pPowerup, tCar_spec* pCar) {
                 gInventory[i] = -1;
             }
         }
-        PHILRemoveFromParentChain(gMutant_tail_first_collision_info);
+        PhysicsRemoveObject(gMutant_tail_first_collision_info);
         gMutant_tail_first_collision_info->physics_joint1 = NULL;
         PHILAddActiveObject(gMutant_tail_first_collision_info, NULL, NULL, NULL);
         PHILSetObjectProperty(gMutant_tail_first_collision_info, 0, 1.0);
@@ -1460,7 +1460,7 @@ int C2_HOOK_FASTCALL PowerupCancel(tPowerup* pPowerup, tCar_spec* pCar) {
             tailp->lose_proc(tailp, tailp->car);
         }
         if (tailp->net_type & 0x80) {
-            ARPowerupLose(tailp, tailp->car);
+            PipeSinglePowerupLose(tailp, tailp->car);
         }
         if (gNet_mode != 0) {
             message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -1547,7 +1547,7 @@ int C2_HOOK_FASTCALL CutOffTail(tPowerup* pPowerup, tCar_spec* pCar) {
     tPowerup* tailp;
 
     if (gMutant_tail_state == 2) {
-        PHILRemoveFromParentChain(gMutant_tail_first_collision_info);
+        PhysicsRemoveObject(gMutant_tail_first_collision_info);
         gMutant_tail_first_collision_info->physics_joint1 = NULL;
         PHILAddActiveObject(gMutant_tail_first_collision_info, NULL, NULL, NULL);
         PHILSetObjectProperty(gMutant_tail_first_collision_info, 0, 1.0);
@@ -1559,7 +1559,7 @@ int C2_HOOK_FASTCALL CutOffTail(tPowerup* pPowerup, tCar_spec* pCar) {
             tailp->lose_proc(tailp, tailp->car);
         }
         if (tailp->net_type & 0x80) {
-            ARPowerupLose(tailp, tailp->car);
+            PipeSinglePowerupLose(tailp, tailp->car);
         }
         if (gNet_mode != 0) {
             message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -2025,7 +2025,7 @@ tPhysics_object* C2_HOOK_FASTCALL MungeBoxObject(br_model* pModel, undefined4 pA
     C2_HOOK_BUG_ON(sizeof(tPhysics_object) != 0x4d8);
 
     box = BrMemAllocate(sizeof(tPhysics_object), kMem_collision_object);
-    box->shape = (tPhysics_shape*)AllocateShapeBox(kMem_collision_shape);
+    box->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
     box->shape->box.common.bb = pModel->bounds;
     FillInShape(box->shape);
     box->uid = gCollision_info_uid_counter;
@@ -2240,7 +2240,7 @@ void C2_HOOK_FASTCALL CloseDownPowerUps(void) {
                     ((tPowerup*)powerup_address)->lose_proc((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (((tPowerup*)powerup_address)->net_type & 0x80) {
-                    ARPowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
+                    PipeSinglePowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (gNet_mode != 0) {
                     message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -3173,7 +3173,7 @@ int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
 // SendMines
 
 extern tU32 gPHIL_last_physics_tick;
-extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 
 // FUNCTION: CARMA2_HW 0x004dd1b0
 void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
@@ -3189,7 +3189,7 @@ void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
             continue;
         }
         obj->field_0xf0 = 1;
-        SelectCrushNetwork((undefined4*)((char*)obj + 0x294), obj, 2);
+        WriteHierarchyNetworkStuff((undefined4*)((char*)obj + 0x294), obj, 2);
         obj->field_0x261 = 0;
     }
 }
@@ -3221,19 +3221,19 @@ void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk) {
     if (pChunk->mine_explode.field_0x8 == -1) {
         if (mine->field_0x35 == pChunk->mine_explode.field_0x3 || ((mine->flags & 2) == 0 && (mine->flags & 1) != 0)) {
             if ((mine->flags & 1) == 0) {
-                ConfigureShitMine(mine, powerup, car);
+                ActivateMine(mine, powerup, car);
             }
-            SelectCrushNetwork((undefined4*)pChunk->mine_explode.object_hierarchy, mine->collision_info, 2);
+            WriteHierarchyNetworkStuff((undefined4*)pChunk->mine_explode.object_hierarchy, mine->collision_info, 2);
             MineExplode(mine);
             return;
         }
     } else {
         if ((mine->flags & 1) == 0 || mine->field_0x35 != pChunk->mine_explode.field_0x3) {
             if ((mine->flags & 1) == 0) {
-                ConfigureShitMine(mine, powerup, car);
+                ActivateMine(mine, powerup, car);
             }
             if (player_index >= 0 && player_index < gNumber_of_net_players) {
-                InitializeMineMotion(mine, mine->field_0x30);
+                PositionMine(mine, mine->field_0x30);
             } else {
                 BrMatrix34Translate(&mine->collision_info->transform_matrix, 1000.0f, 1000.0f, 1000.0f);
                 BrMatrix34Copy(&mine->collision_info->actor->t.t.mat, &mine->collision_info->transform_matrix);
@@ -3298,7 +3298,7 @@ extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_detai
 extern tU32 gPHIL_last_physics_tick;
 extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
 extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
-extern void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c);
+extern void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c);
 
 // FUNCTION: CARMA2_HW 0x004de1f0
 int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pTell_net) {
@@ -3370,7 +3370,7 @@ int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int 
                     car->time_last_hit = PDGetTotalTime();
                     car->last_hit_by = pCar;
                 }
-                AddRepulseLink(time, pCar, car, &pCar->pos, &car->pos, 0.06f, 0.12f);
+                NewRepulseRay(time, pCar, car, &pCar->pos, &car->pos, 0.06f, 0.12f);
             }
         }
     }
@@ -3757,7 +3757,7 @@ void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition) {
 
 }
 // FUNCTION: CARMA2_HW 0x004c8da0
-void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
+void C2_HOOK_FASTCALL PipeSinglePowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
 
     ARDoSingleVariedSession(0x34, (uintptr_t)pPowerup, 1, 4, 0, (uintptr_t)pCar);
 }
@@ -3766,7 +3766,7 @@ void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004c8dc0
-void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar) {
+void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar) {
 
     ARDoSingleVariedSession(0x35, (uintptr_t)pPowerup, 1, 4, 0, (uintptr_t)pCar);
 }
@@ -4030,7 +4030,7 @@ void C2_HOOK_FASTCALL RemoveTail(void) {
             }
         }
         if (gMutant_tail_state == 2) {
-            PHILRemoveFromParentChain(gMutant_tail_first_collision_info);
+            PhysicsRemoveObject(gMutant_tail_first_collision_info);
         } else {
             PHILRemoveObject(gMutant_tail_first_collision_info);
         }
@@ -4260,7 +4260,7 @@ extern br_vector3 gPhysics_reference_normal_comparison;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00420910
-tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shape_polyhedron_data* pPolyhedron) {
+tPhysicsError C2_HOOK_FASTCALL ConvexHull2D(tCollision_shape_polyhedron_data* pPolyhedron) {
     int new_count_points;
     br_vector4 tv1;
     volatile int read_idx;
@@ -4348,7 +4348,7 @@ tPhysicsError C2_HOOK_FASTCALL AddPolyhedronCollisionShapePlanes(tCollision_shap
 extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3);
 
 // FUNCTION: CARMA2_HW 0x004211f0
-tPhysicsError C2_HOOK_FASTCALL ProcessTetrahedronPolyhedronCollisionShape(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges) {
+tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges) {
     int first_non_colinear;
     int i;
     br_vector3 tv2;
@@ -4491,7 +4491,7 @@ typedef enum {
 } tPlane_side;
 
 // FUNCTION: CARMA2_HW 0x00421790
-int C2_HOOK_FASTCALL PolyhedronCollisionShape_AddPoint(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices) {
+int C2_HOOK_FASTCALL AddPointToPolyhedron(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices) {
     tPolyhedron_edge_indexes new_edges[894];
     tPolyhedron_edge_indexes new_edge_to_plane_indices[894];
     tPlane_side plane_side_buffer[596];
@@ -4675,14 +4675,14 @@ tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pP
 
     original_count_points = pPolyhedron->count_points;
     memcpy(original_points, pPolyhedron->points, original_count_points * sizeof(br_vector3));
-    error = ProcessTetrahedronPolyhedronCollisionShape(pPolyhedron, indices);
+    error = ConstructTetrahedron(pPolyhedron, indices);
     if (error != ePhysicsError_Ok) {
         if (error == ePhysicsError_UnknownShapeType) {
             return error;
         }
         pPolyhedron->count_points = original_count_points;
         memcpy(pPolyhedron->points, original_points, original_count_points * sizeof(br_vector3));
-        error = AddPolyhedronCollisionShapePlanes(pPolyhedron);
+        error = ConvexHull2D(pPolyhedron);
         if (error == ePhysicsError_Ok) {
             return ePhysicsError_WireFrameHasNoPoints;
         }
@@ -4691,7 +4691,7 @@ tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pP
     {
         new_count_points = 4;
         for (i = 0; i < original_count_points; i++) {
-            if (PolyhedronCollisionShape_AddPoint(pPolyhedron, &original_points[i], new_count_points, indices)) {
+            if (AddPointToPolyhedron(pPolyhedron, &original_points[i], new_count_points, indices)) {
                 if (new_count_points != i) {
                     BrVector3Copy(&pPolyhedron->points[new_count_points], &original_points[i]);
                 }
@@ -4765,7 +4765,7 @@ void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape) {
             FILLINSHAPE_ERROR(4);
             return;
         }
-        AddPolyhedronCollisionShapePlanes(&pShape->polyhedron.polyhedron);
+        ConvexHull2D(&pShape->polyhedron.polyhedron);
         GetBoundsFromPointList(pShape->polyhedron.polyhedron.points, pShape->polyhedron.polyhedron.count_points, &pShape->common.bb);
         return;
     case kCollisionShapeType_Sphere:
@@ -4871,7 +4871,7 @@ void C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
     if (s[0] == 1.0 && s[1] == 1.0 && s[2] == 1.0) {
         return;
     }
-    ScaleAllPeds(-1, s, 1);
+    ScaleBone(-1, s, 1);
     gPed_scale.v[0] = pScale->v[0];
     gPed_scale.v[1] = pScale->v[1];
     gPed_scale.v[2] = pScale->v[2];
@@ -4969,7 +4969,7 @@ after_reset:
                     ((tPowerup*)powerup_address)->lose_proc((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (((tPowerup*)powerup_address)->net_type & 0x80) {
-                    ARPowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
+                    PipeSinglePowerupLose((tPowerup*)powerup_address, ((tPowerup*)powerup_address)->car);
                 }
                 if (gNet_mode != 0) {
                     message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
@@ -5018,7 +5018,7 @@ after_reset:
         NewTextHeadupSlot(4, 0, 3000, -4, p);
     }
     if ((newpowerup->net_type & 0x80) != 0 && gProgram_state.current_car.powerups[index] == 0) {
-        ARPowerupGot(newpowerup, car);
+        PipeSinglePowerupGot(newpowerup, car);
     }
     switch (newpowerup->type) {
     case ePowerup_instantaneous:
@@ -5090,7 +5090,7 @@ already:
 /* `best` is initialised from pOrigin on purpose: the original loads ebp from the pOrigin stack slot
    (mov ebp, [esp+0x14]); initialising it with 0 breaks the match. */
 // FUNCTION: CARMA2_HW 0x004da870
-void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c) {
+void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spec* pCar2, br_vector3* pOrigin, br_vector3* pVictim, float pField_0x18, float pField_0x1c) {
     tRepulse_link* link;
     tU32 link_time;
     tU32 min_time;
@@ -5136,7 +5136,7 @@ void C2_HOOK_FASTCALL AddRepulseLink(tU32 pTime, tCar_spec* pCar, tCar_spec* pCa
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004d6ab0
-void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
+void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale) {
     br_scalar s[3];
     int i;
     tPedestrian* ped;
@@ -5144,7 +5144,7 @@ void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
     s[0] = pHead_scale / gPed_head_scale;
     s[1] = s[0];
     s[2] = s[0];
-    ScaleAllPeds(-2, s, 0);
+    ScaleBone(-2, s, 0);
     gPed_head_scale = pHead_scale;
     if (gAction_replay_mode != 0) {
         if (ARGetReplayRate() < 0.0f) {
@@ -5167,7 +5167,7 @@ void C2_HOOK_STDCALL ScalePedHeads(float pHead_scale) {
 extern int gForceFeedbackAvailable;
 extern int gCurrent_ffb_effect_index;
 extern void C2_HOOK_FASTCALL StopDinputEffect(int pIndex);
-extern void C2_HOOK_FASTCALL UnloadDinputFFBEffectAtIndex(int index);
+extern void C2_HOOK_FASTCALL UnloadDInputFFBEffectAtIndex(int index);
 extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 extern void C2_HOOK_FASTCALL StartDinputEffect(int pIndex);
 // FUNCTION: CARMA2_HW 0x0045c6b0
@@ -5184,7 +5184,7 @@ void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2
     }
     if (gCurrent_ffb_effect_index != -1 && gCurrent_ffb_effect_index != index) {
         StopDinputEffect(gCurrent_ffb_effect_index);
-        UnloadDinputFFBEffectAtIndex(gCurrent_ffb_effect_index);
+        UnloadDInputFFBEffectAtIndex(gCurrent_ffb_effect_index);
         gCurrent_ffb_effect_index = -1;
     }
     if (gCurrent_ffb_effect_index != -1) {
@@ -5248,8 +5248,8 @@ typedef struct {
 
 #define GET_PED_COLLISION_OBJECT(PED) (((PED)->character->field_0x14 & 1) ? (PED)->character->personality->form->simple_physicing[(PED)->character->field_0x5].collision_info : GetRootObject((PED)->character))
 
-static int C2_HOOK_FASTCALL NapalmPedDistanceCallback(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pNow, tPedestrian_distances* pDistances);
-static int C2_HOOK_CDECL NapalmPedDistanceCompare(const void* pValue1, const void* pValue2);
+static int C2_HOOK_FASTCALL StoreFlammablePedDistance(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pNow, tPedestrian_distances* pDistances);
+static int C2_HOOK_CDECL ComparePedestrianDistance(const void* pValue1, const void* pValue2);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -5279,8 +5279,8 @@ int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
         goto fail;
     }
     data.count = 0;
-    if (DoToPeds(pCar, 1, 0.f, 1, &data, (tForEachPedestrian_cbfn*)NapalmPedDistanceCallback) != 0) {
-        qsort(&data.peds[0], data.count, sizeof(tNapalm_ped_distance), NapalmPedDistanceCompare);
+    if (DoToPeds(pCar, 1, 0.f, 1, &data, (tForEachPedestrian_cbfn*)StoreFlammablePedDistance) != 0) {
+        qsort(&data.peds[0], data.count, sizeof(tNapalm_ped_distance), ComparePedestrianDistance);
         for (i = 0; i < data.count; i++) {
             object = GET_PED_COLLISION_OBJECT(data.peds[i].ped);
             if (object->last_special_volume == NULL) {
@@ -5328,11 +5328,11 @@ fail:
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004d6b40
-void C2_HOOK_FASTCALL MakePedsEthereal(void) {
+void C2_HOOK_FASTCALL TurnOnGhostPeds(void) {
 
-    MungeAllCharacterMaterials(EtherealiseMaterial1);
-    MungeAllCharacterObjects(EtherealiseCharacter1);
-    MungeAllCharacterModels(EtherealiseMaterial2);
+    MungeAllCharacterMaterials(MakeMaterialBlendy);
+    MungeAllCharacterObjects(TurnOffCollisions);
+    MungeAllCharacterModels(UpdateModels);
     gEthereal_pedestrians = 1;
 }
 #ifdef REC2_MATCHING
@@ -5355,7 +5355,7 @@ extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 // types the ORIG entity STRING while any recomp symbol for it is DATA (same cap as gAct_file_extension
 // 0x594e9c in 51-smash.c); a literal here would also shift .rdata (36-trig).
 // FUNCTION: CARMA2_HW 0x004f9020
-void C2_HOOK_FASTCALL RecalculateCarMassMomentOfInertia(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
     int i;
     int j;
     tCar_crush_spec* spec;
@@ -5436,7 +5436,7 @@ const float gConst_25 = 25.0f;
 #endif
 // , verified against the original disassembly
 // FUNCTION: CARMA2_HW 0x004dd3f0
-void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar) {
+void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar) {
 
     pMine->flags = 5;
     pMine->flags = 5 + (pPowerup->integer_params[0] != 0 ? 0x40 : 0);
@@ -5477,7 +5477,7 @@ void C2_HOOK_FASTCALL ConfigureShitMine(tShit_mine* pMine, tPowerup* pPowerup, t
 #endif
 // , verified against the original disassembly
 // FUNCTION: CARMA2_HW 0x004dd590
-void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
+void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar) {
     extern const double gConst_minus_0p15;
     br_matrix34 car_transform;
     br_vector3 impulse;
@@ -5522,7 +5522,7 @@ void C2_HOOK_FASTCALL InitializeMineMotion(tShit_mine* pMine, tCar_spec* pCar) {
 #endif
 // , verified against the original disassembly
 // FUNCTION: CARMA2_HW 0x004c8fb0
-void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
+void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor) {
     extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
 
     ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
@@ -5537,8 +5537,8 @@ void C2_HOOK_FASTCALL PipeSingleMatrix34Type66(br_actor* pActor) {
 #endif
 // , verified against the original disassembly
 // FUNCTION: CARMA2_HW 0x004ddc20
-void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed) {
-    extern void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode);
+void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed) {
+    extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
     extern float gPinball_factor;
     extern const float gConst_0p0;
     extern const float gConst_0p025;
@@ -5583,7 +5583,7 @@ void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object
                     || ((((tCar_spec*)other_owner)->driver != 0
                             && (((tCar_spec*)other_owner)->driver == 2 || ((tCar_spec*)other_owner)->driver == 3))
                         || ((tCar_spec*)other_owner)->driver <= 5)) {
-                FUN_004d9d00(other_object, 0);
+                ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(other_object, 0);
                 mine->flags |= 0x20;
                 return;
             }
@@ -5649,7 +5649,7 @@ extern tPed_form* gPed_forms[20];
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0040bb20
-void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode) {
+void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode) {
     br_scalar scales[3];
     tPed_personality_bone* pBone;
     tPed_remap_bone* pRemap;
@@ -5753,7 +5753,7 @@ void C2_HOOK_FASTCALL ScalePedPersonality(tPed_personality* pPersonality, int pI
     }
 }
 // FUNCTION: CARMA2_HW 0x0040bee0
-void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
+void C2_HOOK_FASTCALL ScaleFormBone(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
     br_scalar scales[3];
     tPed_remap_bone* pRemap;
     tPhysics_joint* pHinge;
@@ -5848,7 +5848,7 @@ void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pSca
                 pObject->cmpos.v[0] = pObject->cmpos.v[0] * scales[0];
                 pObject->cmpos.v[1] = scales[1] * pObject->cmpos.v[1];
                 pObject->cmpos.v[2] = scales[2] * pObject->cmpos.v[2];
-                MakeCharacterPhysicsSetup(pObject, &((tPed_character_instance*)pObject->owner)->personality->bones[start].models[0].models[0]->bounds, 0, 0, 0);
+                CalcCollisionObjectThings(pObject, &((tPed_character_instance*)pObject->owner)->personality->bones[start].models[0].models[0]->bounds, 0, 0, 0);
             } else {
                 pObject->M = pScale[1] * pScale[2] * pScale[0] * pObject->M;
             }
@@ -5873,7 +5873,7 @@ void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pSca
                 pObject->cmpos.v[0] = pObject->cmpos.v[0] * scales[0];
                 pObject->cmpos.v[1] = scales[1] * pObject->cmpos.v[1];
                 pObject->cmpos.v[2] = scales[2] * pObject->cmpos.v[2];
-                MakeCharacterPhysicsSetup(pObject, &((tPed_character_instance*)pObject->owner)->personality->bb, 0, 0, 0);
+                CalcCollisionObjectThings(pObject, &((tPed_character_instance*)pObject->owner)->personality->bb, 0, 0, 0);
             } else {
                 pObject->M = pScale[1] * pScale[2] * pScale[0] * pObject->M;
             }
@@ -5894,7 +5894,7 @@ void C2_HOOK_FASTCALL ScalePedForm(tPed_form* pForm, int pIndex, br_scalar* pSca
     }
 }
 // FUNCTION: CARMA2_HW 0x0040c420
-void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale, int pMode) {
+void C2_HOOK_FASTCALL ScaleBone(int pMorph_or_personality, br_scalar* pScale, int pMode) {
     int i;
 
     for (i = 0; i < 50; i++) {
@@ -5908,7 +5908,7 @@ void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale,
         } else {
             index = gPed_personalities[i]->form->index_head_bone;
         }
-        ScalePedPersonality(gPed_personalities[i], index, pScale, pMode);
+        ScaleCharacterBone(gPed_personalities[i], index, pScale, pMode);
     }
     for (i = 0; i < 20; i++) {
         int index;
@@ -5921,7 +5921,7 @@ void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale,
         } else {
             index = gPed_forms[i]->index_head_bone;
         }
-        ScalePedForm(gPed_forms[i], index, pScale, pMode);
+        ScaleFormBone(gPed_forms[i], index, pScale, pMode);
     }
 }
 #ifdef REC2_MATCHING
@@ -5932,7 +5932,7 @@ void C2_HOOK_FASTCALL ScaleAllPeds(int pMorph_or_personality, br_scalar* pScale,
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004ce770
-static int C2_HOOK_FASTCALL NapalmPedDistanceCallback(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pNow, tPedestrian_distances* pDistances) {
+static int C2_HOOK_FASTCALL StoreFlammablePedDistance(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pNow, tPedestrian_distances* pDistances) {
     tNapalm_ped_distances* data = (tNapalm_ped_distances*)pDistances;
     int result;
 
@@ -5950,7 +5950,7 @@ static int C2_HOOK_FASTCALL NapalmPedDistanceCallback(tPedestrian* pPed, tCar_sp
 #endif
 
 // FUNCTION: CARMA2_HW 0x004ce7b0
-static int C2_HOOK_CDECL NapalmPedDistanceCompare(const void* pValue1, const void* pValue2) {
+static int C2_HOOK_CDECL ComparePedestrianDistance(const void* pValue1, const void* pValue2) {
     return (int)(((const tNapalm_ped_distance*)pValue1)->distance - ((const tNapalm_ped_distance*)pValue2)->distance);
 }
 
@@ -5961,7 +5961,7 @@ const double gConst_minus_0p15 = -0.15;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004de5a0
-int C2_HOOK_FASTCALL ReceivedRepulseOpponents(tNet_message_chunk_powerup* pMessage) {
+int C2_HOOK_FASTCALL ReceivedRepulse(tNet_message_chunk_powerup* pMessage) {
     extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 
     return RepulseOpponents2(&gPowerup_array[pMessage->powerup_index], NetCarFromPlayerID(pMessage->player_id), 0);
@@ -5999,7 +5999,7 @@ void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
 const float gConst_0p025 = 0.025f;
 
 // FUNCTION: CARMA2_HW 0x004da910
-void C2_HOOK_FASTCALL RemoveRepulseLinksForCar(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar) {
     tRepulse_link* link;
     br_actor* actor;
 

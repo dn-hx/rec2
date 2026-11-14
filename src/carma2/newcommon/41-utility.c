@@ -301,7 +301,7 @@ void C2_HOOK_FASTCALL SepDirAndFilename(const char* path, char* dirPath, char* s
 }
 
 // FUNCTION: CARMA2_HW 0x00513a30
-int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, int pCapacity) {
+int C2_HOOK_FASTCALL LoadTextureTryAllLocations(char* pName, br_pixelmap** pMaps, int pCapacity) {
     extern tGraf_spec gGraf_specs[2];
     extern char gCurrent_load_name[256];
     tPath_name path1;
@@ -1765,7 +1765,7 @@ void C2_HOOK_FASTCALL PrintScreen(void) {
 // GetBlenficatiousnessOfMaterialPrimitively
 
 // FUNCTION: CARMA2_HW 0x00518e70
-int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial) {
+int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial) {
     br_token_value* prims;
 
     if (gScreen->type == BR_PMT_INDEX_8) {
@@ -1934,7 +1934,7 @@ void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest) {
 }
 
 // FUNCTION: CARMA2_HW 0x00514de0
-void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource) {
+void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource) {
     pDestination->flags = pSource->flags;
     pDestination->ka = pSource->ka;
     pDestination->kd = pSource->kd;
@@ -1986,7 +1986,7 @@ void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc) 
 }
 
 // FUNCTION: CARMA2_HW 0x00518590
-br_actor* C2_HOOK_FASTCALL CreateBoundsActor(br_actor* pParent, const br_bounds* pBounds) {
+br_actor* C2_HOOK_FASTCALL CreateBoundsModelActor(br_actor* pParent, const br_bounds* pBounds) {
     br_actor* actor;
 
     actor = BrActorAllocate(1, NULL);
@@ -2011,7 +2011,7 @@ br_actor* C2_HOOK_FASTCALL CreateBoundsActor(br_actor* pParent, const br_bounds*
 }
 
 // FUNCTION: CARMA2_HW 0x00518660
-void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor) {
+void C2_HOOK_FASTCALL FreeModelActor(br_actor* pActor) {
 
     BrModelRemove(pActor->model);
     BrModelFree(pActor->model);
@@ -2020,18 +2020,18 @@ void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor) {
 }
 
 // FUNCTION: CARMA2_HW 0x005192a0
-void C2_HOOK_FASTCALL ConvertPixel565To555(br_uint_16* pPixel) {
+void C2_HOOK_FASTCALL ConvertRGB565ToRGB555(br_uint_16* pPixel) {
 
     *pPixel = ((*pPixel >> 1) & 0x7fe0) + (*pPixel & 0x1f);
 }
 
-// PARTIAL 65.00%: ConvertPixelRGBA4444ToARGB1555 - value is correct; the remaining diff is MSVC register allocation only:
+// PARTIAL 65.00%: ConvertARGB4444ToARGB1555 - value is correct; the remaining diff is MSVC register allocation only:
 // the original keeps (pixel & 0xf00) in edx and uses ebx for the byte-mask copy, ours keeps the
 // (pixel & 0xf0) term in edx and puts (pixel & 0xf00) in esi (push/pop esi). No C form found that
 // flips the allocator (single expression, swapped operands, explicit tU32 temp, two statements all
 // give the same allocation or worse).
 // FUNCTION: CARMA2_HW 0x005192c0
-void C2_HOOK_FASTCALL ConvertPixelRGBA4444ToARGB1555(tU16* pPixel) {
+void C2_HOOK_FASTCALL ConvertARGB4444ToARGB1555(tU16* pPixel) {
     tU16 pixel;
     tU16 converted;
 
@@ -2044,7 +2044,7 @@ void C2_HOOK_FASTCALL ConvertPixelRGBA4444ToARGB1555(tU16* pPixel) {
 }
 
 // FUNCTION: CARMA2_HW 0x00519400
-void C2_HOOK_FASTCALL ConvertPixelmapToARGB1555(br_pixelmap* pMap) {
+void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap) {
     void (C2_HOOK_FASTCALL *convert_pixel)(br_uint_16*);
     br_uint_16* row;
     br_uint_16* pixel;
@@ -2058,7 +2058,7 @@ void C2_HOOK_FASTCALL ConvertPixelmapToARGB1555(br_pixelmap* pMap) {
     case 5:
         convert_pixel = NULL;
         if (pMap->type == 5) {
-            convert_pixel = ConvertPixel565To555;
+            convert_pixel = ConvertRGB565ToRGB555;
         }
         if (convert_pixel != NULL) {
             row = (br_uint_16*)pMap->pixels;

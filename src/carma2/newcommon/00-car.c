@@ -24,7 +24,7 @@
 /* ApplyTorque lives in 49-physics.c; local extern, not a shared-header declaration */
 extern void C2_HOOK_FASTCALL ApplyTorque(tPhysics_object* pObject, const br_vector3* pTorque);
 
-extern int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2);
+extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 extern int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude);
 extern int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude);
 extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
@@ -288,7 +288,7 @@ void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race) {
     }
     InitialiseExternalCamera();
     if (gUnknown_car_collision_info != NULL && gProgram_state.current_car.collision_info != gUnknown_car_collision_info->parent) {
-        AddCollisionInfoChild(gProgram_state.current_car.collision_info, gUnknown_car_collision_info);
+        PhysicsAddObjectList(gProgram_state.current_car.collision_info, gUnknown_car_collision_info);
     }
 }
 
@@ -627,7 +627,7 @@ void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pChild) {
 #define PO_U32(o, off) (*(tU32*)((char*)(o) + (off)))
 #define PO_F32(o, off) (*(float*)((char*)(o) + (off)))
 
-extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
+extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
@@ -635,22 +635,22 @@ extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
 extern tWorld_callbacks gWorld_callbacks;
-extern void C2_HOOK_FASTCALL UpdateCrushTimers(void);
+extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
-extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
+extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pCollision_info, tU32 pDisable);
 extern tPhysics_object* gPHIL_list_collision_infos;
 extern tU32 gPalette_fade_time;
 extern tU32 gPHIL_last_physics_tick;
 extern tNon_car_spec* gActive_non_car_list[99];
 extern tU32 C2_HOOK_FASTCALL GetRaceTime(void);
-extern void C2_HOOK_FASTCALL GetFacesInBox(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL GetFacesNearObject(tPhysics_object* pCollision, tWorld_callbacks* pWorld_callbacks);
 extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 extern void C2_HOOK_FASTCALL PedPreCollisionStuff(void);
 extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 extern tPhysics_object* gDrivable_on_list[50];
 extern tU32 gDrivable_on_count;
 extern void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pDt);
-extern void C2_HOOK_FASTCALL MoveNonCar(tNon_car_spec* pNon_car, br_scalar pDt);
+extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar pDt);
 extern void C2_HOOK_FASTCALL TestAutoSpecialVolume(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL MungeSpecialVolume(tPhysics_object* pObject);
 typedef struct {
@@ -742,7 +742,7 @@ void C2_HOOK_FASTCALL APTCPreCollision(void) {
                     if (gNet_mode == eNet_mode_host) {
                         car->collision_info->field_0xf0 = 1;
                     }
-                    SetCollisionFlagsAndStuff(car);
+                    GetNetPos(car);
                 }
                 if (car->disabled == 0) {
                     if (!(car->collision_info->disable_move_rotate != 0
@@ -752,13 +752,13 @@ void C2_HOOK_FASTCALL APTCPreCollision(void) {
                         if (car->collision_info->box_face_ref != gFace_num__car
                                 && (car->collision_info->box_face_ref != gFace_num__car - 1
                                     || car->collision_info->box_face_start <= gFace_count)) {
-                            GetFacesInBox(car->collision_info, &gWorld_callbacks);
+                            GetFacesNearObject(car->collision_info, &gWorld_callbacks);
                         }
                         if (car->dt != 0.f) {
                             MoveAndCollideCar(car, 0.04f);
                         }
                         if (car->collision_info->child != NULL) {
-                            PhysicsObjectMoveVelocityList(car->collision_info->child);
+                            ApplyGravity(car->collision_info->child);
                             for (node = car->collision_info->child; node != NULL; node = node->next) {
                                 AddDrag(car, node, 0.04f);
                                 if (node->child != NULL) {
@@ -782,7 +782,7 @@ void C2_HOOK_FASTCALL APTCPreCollision(void) {
             non_car = (tNon_car_spec*)*wp;
             if (PO_U8(non_car->collision_info, 0x261) != 0
                     && non_car->collision_info->message_time == gPHIL_last_physics_tick) {
-                SetCollisionFlagsAndStuff((tCar_spec*)non_car);
+                GetNetPos((tCar_spec*)non_car);
             }
             if (non_car->flags & 0x10000) {
                 if (PO_U32(non_car, 0xf8) != 0 && PO_U32(non_car, 0xf8) < GetRaceTime()) {
@@ -799,7 +799,7 @@ void C2_HOOK_FASTCALL APTCPreCollision(void) {
                     MoveAndCollideNonCar(non_car, 0.04f);
                 }
                 if (non_car->collision_info->child != NULL) {
-                    PhysicsObjectMoveVelocityList(non_car->collision_info->child);
+                    ApplyGravity(non_car->collision_info->child);
                     PositionChildren(non_car->collision_info);
                 }
             }
@@ -831,7 +831,7 @@ void C2_HOOK_FASTCALL APTCPreCollision(void) {
         c->collision_info->transform_matrix.m[3][1] -= gFneg1000;
         BrMatrix34Copy(&c->car_master_actor->t.t.mat, &c->collision_info->transform_matrix);
         PositionChildren(c->collision_info);
-        SetCollisionInfoChildsDoNothing(c->collision_info, 1);
+        SetHierarchyDoingNothingFlag(c->collision_info, 1);
     }
     MinePreCollisionStuff();
     PedPreCollisionStuff();
@@ -859,11 +859,11 @@ extern void C2_HOOK_FASTCALL PipeSingleDSModel(int pKind, void* pThing);
 extern intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void* pArg);
 extern int C2_HOOK_FASTCALL BattenDownTheObjects(tPhysics_object* pCollision_info, void* pUser_data);
 extern void C2_HOOK_FASTCALL PDEnterDebugger(const char* pStr);
-extern void C2_HOOK_FASTCALL FUN_0043b250(tCar_spec* pCar, tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL FUN_0043b2a0(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL SendReAttachAllBits(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
-extern intptr_t C2_HOOK_CDECL AddTotalDeflectionOfModel(br_actor* pActor, tCrush_displacement_context_local* pContext);
-extern void C2_HOOK_FASTCALL SmoothCarCrushShapePoints(tCar_spec* pCar, float pStep);
+extern intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext);
+extern void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep);
 extern br_scalar gCrushReattachDistanceSquared;
 extern float gFLOAT_00589b48;
 
@@ -882,7 +882,7 @@ void C2_HOOK_FASTCALL FreezeMechanics(void) {
 
 // based on the REA pseudocode of the original at 0x0043ace0 (verify with state/dis.sh)
 // FUNCTION: CARMA2_HW 0x0043ace0
-float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOut) {
+float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
     tCar_crush_spec* crush;
     tCrush_displacement_context_local ctx;
     tCar_bit_spec* bit;
@@ -927,7 +927,7 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
                                 }
                             }
                             if (!found) {
-                                FUN_0043b250(pCar, bit->field_0x8);
+                                SendReAttachBit(pCar, bit->field_0x8);
                             }
                         } else {
                             ReAttachBit(pCar, bit->field_0x4, bit->field_0x0, NULL);
@@ -946,7 +946,7 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
                     if (Vector3DistanceSquared(&vertices[detach->min_vertex].p, (br_vector3*)&detach->field_0xc) < gCrushReattachDistanceSquared
                             && Vector3DistanceSquared(&vertices[detach->max_vertex].p, (br_vector3*)(detach->field_0xc + 12)) < gCrushReattachDistanceSquared) {
                         if (gNet_mode != eNet_mode_none) {
-                            FUN_0043b250(pCar, bit->field_0x8);
+                            SendReAttachBit(pCar, bit->field_0x8);
                         } else {
                             ReAttachBit(pCar, bit->field_0x4, bit->field_0x0, bit->field_0x8);
                         }
@@ -961,9 +961,9 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
         ctx.total_displacement = pOut;
         ctx.displacement = 0.f;
         PhysicsObjectRecurse(pCar->collision_info, (tEnumCollision_cbfn*)RepairObject, &ctx);
-        SmoothCarCrushShapePoints(pCar, ctx.step);
+        RepairCarCollisionShapes(pCar, ctx.step);
         for (i = 0; i < crush->field_0x2b0; i++) {
-            DRActorEnumRecurse(crush->field_0x2b4[i].field_0x0, (br_actor_enum_cbfn*)AddTotalDeflectionOfModel, &ctx);
+            DRActorEnumRecurse(crush->field_0x2b4[i].field_0x0, (br_actor_enum_cbfn*)AddTotalDeflection, &ctx);
         }
         repaired = ctx.displacement;
         if (ctx.displacement == gCrushZero) {
@@ -980,7 +980,7 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
                 }
                 crush->field_0x270 = 0;
             } else if (gNet_mode == eNet_mode_host) {
-                FUN_0043b2a0(pCar);
+                SendReAttachAllBits(pCar);
             }
             DRActorEnumRecurse(pCar->car_model_actor, MakeCarModelsMaterialsSingleSided, pCar);
             PipeSingleDSModel(0, pCar);
@@ -1009,19 +1009,19 @@ float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOu
 // PLACEMENT NOTE (2026-11-02, revised for the FUN_0045c910 body): this TU is
 // placement-sensitive, MSVC 5.0 flips x87 operand order in unrelated functions when the
 // block layout changes. Working arrangement (all four verified 100 together):
-//   - WeldCarByNetwork/WeldCarPartial stay here at their address-ordered slot; moving
+//   - CopyBendInMessage/CopySplitInMessage stay here at their address-ordered slot; moving
 //     them to the end of the TU swaps fld/fadd in CalcGraphicalWheelStuff 0x4157e0 and
 //     in the weld bodies themselves (100 -> EFFECTIVE).
 //   - the joystick force-feedback constants and the SetJoystickFFBCollisionForce stub
-//     stay at the very end of the file (after FullyDetachSnappedBits 0x431310); moving
+//     stay at the very end of the file (after DoJointSnapping 0x431310); moving
 //     them before 0x431310 swaps two fld operands in that function (100 -> 97.69).
-//   - ActuallySmashCarPart 0x4ed2b0 also stays at the very end of the TU (its own slot
+//   - ActuallySmashPart 0x4ed2b0 also stays at the very end of the TU (its own slot
 //     before FlushSmashQueue, i.e. before CalcGraphicalWheelStuff, floors that function
 //     at 99.99: fld [ecx+0x1254]/fadd [ecx+0x1260] instead of the original order; the
 //     source operand order cannot fix it, only this placement does).
 // Re-measure 0x4157e0, 0x43dce0, 0x43df10, 0x431310 and 0x4ba550 after any edit here.
 // FUNCTION: CARMA2_HW 0x0043dce0
-void C2_HOOK_FASTCALL WeldCarByNetwork(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar) {
     extern br_scalar gFLOAT_00589a2c;
     extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg5, float pArg6, int pArg7);
     tCar_crush_spec* spec;
@@ -1096,7 +1096,7 @@ void C2_HOOK_FASTCALL WeldCarByNetwork(tCar_spec* pCar) {
 }
 // based on REA pseudocode
 // FUNCTION: CARMA2_HW 0x0043df10
-void C2_HOOK_FASTCALL WeldCarPartial(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar) {
     extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
     tCar_crush_spec* spec;
     const tU16* pData;
@@ -1117,11 +1117,11 @@ void C2_HOOK_FASTCALL WeldCarPartial(tCar_spec* pCar) {
     }
     SplitCar(pCar, &plane, 0);
 }
-extern void C2_HOOK_FASTCALL WeldCarByNetwork(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL WeldCarPartial(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar);
 // based on REA pseudocode of the original
 // FUNCTION: CARMA2_HW 0x0043db00
-void C2_HOOK_FASTCALL UpdateCrushVertices(tCar_spec* pCar, tU8* pData) {
+void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
     extern float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec);
     extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
     extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
@@ -1171,7 +1171,7 @@ void C2_HOOK_FASTCALL UpdateCrushVertices(tCar_spec* pCar, tU8* pData) {
 }
 // based on REA pseudocode of the original; list layout from the disassembly
 // FUNCTION: CARMA2_HW 0x0043ceb0
-void C2_HOOK_FASTCALL UpdateCrushPainList(void) {
+void C2_HOOK_FASTCALL DoQueuedNetDetaching(void) {
     tCar_crush_spec* car_crush;
     tCar_spec* car;
     br_actor* bit;
@@ -1282,7 +1282,7 @@ void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pD
     if (((tCar_spec*)pNon_car)->dt >= 0.f) {
         pDt = ((tCar_spec*)pNon_car)->dt;
     }
-    MoveNonCar(pNon_car, pDt);
+    NonCarCalcForce(pNon_car, pDt);
     BrMatrix34ApplyP(&((tCar_spec*)pNon_car)->pos, &((tCar_spec*)pNon_car)->centre_of_mass_world_scale, &pNon_car->actor->t.t.mat);
     ((tCar_spec*)pNon_car)->pos.v[0] = ((tCar_spec*)pNon_car)->pos.v[0] * 0.14492753f;
     ((tCar_spec*)pNon_car)->pos.v[1] = ((tCar_spec*)pNon_car)->pos.v[1] * 0.14492753f;
@@ -1290,7 +1290,7 @@ void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pD
 }
 
 // FUNCTION: CARMA2_HW 0x00415c40
-void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
     float temp;
     int i;
 
@@ -1303,13 +1303,13 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar) {
 
     switch (pCar->collision_info->field_0xf0) {
     case 0:
-        SelectCrushNetwork((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 2);
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 2);
         break;
     case 1:
-        SelectCrushNetwork((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
         break;
     case 2:
-        SelectCrushNetwork((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
         break;
     }
 
@@ -1329,7 +1329,7 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar) {
                 TotallyRepairACar(pCar);
                 pCar->repair_time = PO_U32(pCar->collision_info, 0x27c);
             } else {
-                ComputeCarImpact(pCar, PO_U32(pCar->collision_info, 0x27c) - pCar->repair_time, &temp);
+                RepairCar2(pCar, PO_U32(pCar->collision_info, 0x27c) - pCar->repair_time, &temp);
             }
             for (i = 0; i < 12; i++) {
                 pCar->damage_units[i].damage_level = PO_U8(pCar->collision_info, 0x280 + i);
@@ -1354,18 +1354,18 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar) {
                 && (PO_U16(pCar->collision_info, 0x290) != pCar->car_crush_spec->field_0x24
                         || pCar->driver == eDriver_local_human)) {
             if ((PO_U8(pCar->collision_info, 0x292) & 2) != 0) {
-                WeldCarByNetwork(pCar);
+                CopyBendInMessage(pCar);
             } else if (pCar->car_crush_spec->field_0x144 != 0) {
                 CompletelyUnBendCar(pCar);
             }
 
             if ((PO_U8(pCar->collision_info, 0x292) & 4) != 0) {
-                WeldCarPartial(pCar);
+                CopySplitInMessage(pCar);
             } else if (pCar->car_crush_spec->field_0x4b8 != 0) {
                 WeldCar(pCar);
             }
 
-            UpdateCrushVertices(pCar, &PO_U8(pCar->collision_info, 0x2fc));
+            DecodeNetShapeData(pCar, &PO_U8(pCar->collision_info, 0x2fc));
         }
 
         if (pCar->driver != eDriver_local_human) {
@@ -1374,7 +1374,7 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tCar_spec* pCar) {
             }
         }
 
-        GetFacesInBox(pCar->collision_info, &gWorld_callbacks);
+        GetFacesNearObject(pCar->collision_info, &gWorld_callbacks);
     }
 
     PO_U8(pCar->collision_info, 0x261) = 0;
@@ -1427,7 +1427,7 @@ void C2_HOOK_FASTCALL APTCPostCollision(void) {
         c->collision_info->transform_matrix.m[3][1] -= gF1000;
         BrMatrix34Copy(&c->car_master_actor->t.t.mat, &c->collision_info->transform_matrix);
         PositionChildren(c->collision_info);
-        SetCollisionInfoChildsDoNothing(c->collision_info, 0);
+        SetHierarchyDoingNothingFlag(c->collision_info, 0);
     }
 
     i = 0;
@@ -1448,7 +1448,7 @@ void C2_HOOK_FASTCALL APTCPostCollision(void) {
                 f = car->collision_info->I.v[2]; f *= fac; car->collision_info->I.v[2] = f;
             }
             if (((tCar_spec*)*wp)->number_of_wheels_on_ground != 0) {
-                SetCollisionInfoChildsDoNothing(((tCar_spec*)*wp)->collision_info, 0);
+                SetHierarchyDoingNothingFlag(((tCar_spec*)*wp)->collision_info, 0);
             }
             i++;
             wp++;
@@ -1466,15 +1466,15 @@ void C2_HOOK_FASTCALL APTCPostCollision(void) {
         } while (i < gNum_cars_and_non_cars);
     }
 
-    UpdateCrushTimers();
+    DoQueuedNetSmashes();
     if (gNet_mode) {
-        UpdateCrushPainList();
+        DoQueuedNetDetaching();
     }
     APTCPostCollisionTree(gPHIL_list_collision_infos);
 }
 
 // FUNCTION: CARMA2_HW 0x00414910
-void C2_HOOK_FASTCALL NewFacesListCallback(tPhysics_object* pCollision, undefined4* arg2) {
+void C2_HOOK_FASTCALL NewFaceListCallBack(tPhysics_object* pCollision, undefined4* arg2) {
     tFace_ref* pFace;
     br_bounds3 current_bounds;
     br_scalar old_d;
@@ -1598,19 +1598,19 @@ extern int gStop_opponents_moving;
 extern tNon_car_spec* gActive_non_car_list[99];
 extern tCar_spec* gLast_car_to_skid[2];
 extern int gSkid_tag[2];
-extern void C2_HOOK_FASTCALL CalcModifiedLocation(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RecordLastDamage(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL DRS3StopSound(tS3_sound_tag pSound_tag);
 extern int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period);
 extern int C2_HOOK_FASTCALL TimeToSendData(void);
 extern void C2_HOOK_FASTCALL CheckForDeAttachmentOfNonCars(tU32 pTime);
 extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
-extern int C2_HOOK_FASTCALL RayCastInBox(br_vector3* pRay_pos, br_vector3* pRay_dir, br_vector3* pHit_pos, br_scalar* pT, tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL FindFloorInBoxBU(br_vector3* pRay_pos, br_vector3* pRay_dir, br_vector3* pHit_pos, br_scalar* pT, tPhysics_object* pObject);
 extern tSpecial_volume* gDefault_water_spec_vol_real;
 extern void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time);
 extern void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time);
 
 /* SendCarData 0x497900, SendMines 0x4dcfb0 and their stubs are implemented at the very
-   end of this file: as with FullyDetachSnappedBits, their TU position decides the x87
+   end of this file: as with DoJointSnapping, their TU position decides the x87
    operand order of other functions (0x431310 was 97.69% while they sat here). */
 
 // PARTIAL 90.16%: list copy emits memcpy rep movsb tail instead of rep movsd; minor register allocation
@@ -1635,7 +1635,7 @@ void C2_HOOK_FASTCALL ApplyPhysicsToCars(tU32 pLast_tick_time, tU32 pFrame_perio
         car = gActive_car_list[i];
         car->frame_collision_flag = gOver_shoot && car->collision_info->collision_flag;
         if (car != NULL && car->driver > 5) {
-            CalcModifiedLocation(car);
+            RecordLastDamage(car);
             if (car->driver == eDriver_oppo && gStop_opponents_moving) {
                 car->acc_force = 0.f;
                 car->brake_force = 0.f;
@@ -1747,9 +1747,9 @@ void C2_HOOK_FASTCALL TestAutoSpecialVolume(tPhysics_object* pObject) {
         dir.v[1] = low.v[1] - high.v[1];
         dir.v[2] = low.v[2] - high.v[2];
         DisablePlingMaterials();
-        RayCastInBox(&high, &dir, &edge, &t1, pObject);
+        FindFloorInBoxBU(&high, &dir, &edge, &t1, pObject);
         EnablePlingMaterials();
-        RayCastInBox(&high, &dir, &edge, &t2, pObject);
+        FindFloorInBoxBU(&high, &dir, &edge, &t2, pObject);
         if (t1 < t2) {
             pObject->auto_special_volume = def_vol;
             return;
@@ -2347,7 +2347,7 @@ void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car) {
 
 // SmashFacesWithWheels
 
-// ConditionallyNoteSkid
+// NewSkidding
 
 // NudgeObject
 
@@ -2372,7 +2372,7 @@ tU32 gDrivable_on_count;
 
 #define gFriction_materials gCurrent_race.material_modifiers
 
-extern void C2_HOOK_FASTCALL ActuallySmashCarPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
+extern void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
 
 // GLOBAL: CARMA2_HW 0x006a4688
 br_vector3 gVector3_006a4688;
@@ -2385,7 +2385,7 @@ extern int gINT_006a3334;
 extern int gCount_shrapnel_shower_calls;
 extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
 extern void C2_HOOK_FASTCALL MayQueuePowerupRespawn(int pPowerup_index, br_actor* actor);
-extern void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject, void* pArg2, int pArg3, void* pArg4, void* pArg5, int pArg6, void* pArg7, void* pArg8, br_actor* pActor, int pArg10, int pArg11, void* pArg12, int pArg13, int pArg14, float pArg15, void* pArg16, int pArg17);
+extern void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, void* pArg2, int pArg3, void* pArg4, void* pArg5, int pArg6, void* pArg7, void* pArg8, br_actor* pActor, int pArg10, int pArg11, void* pArg12, int pArg13, int pArg14, float pArg15, void* pArg16, int pArg17);
 
 // FUNCTION: CARMA2_HW 0x004ecfb0
 void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
@@ -2436,8 +2436,8 @@ void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
                         max_level = part->count_smashable_levels - 1;
                     }
                     xored = (int)part ^ (int)time;
-                    BrActorToActorMatrix34(&local_30, actor, gUniverse_actor);
-                    ActuallySmashCarPart(car, part, max_level);
+                    BrActorToActorMatrix34_2(&local_30, actor, gUniverse_actor);
+                    ActuallySmashPart(car, part, max_level);
                     shrapnel_calls = gCount_shrapnel_shower_calls;
                     levels = part->levels;
                     j = level + 1;
@@ -2446,7 +2446,7 @@ void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
                         count = max_level - j + 1;
                         do {
                             if ((*local_70 & 1) == 0 || max_level - level == 1) {
-                                SmashItIntoVerySmallPiecesIndeed(object, (void*)spec, (int)part,
+                                DoConnotations(object, (void*)spec, (int)part,
                                         (void*)&levels[max_level].count_sounds, (void*)xored,
                                         (int)((char*)q + 0x14), (void*)((char*)q + 0x2c), (void*)((char*)q + 0x2c),
                                         actor, (int)time, shrapnel_calls, (void*)&local_30, 0, 0,
@@ -2506,7 +2506,7 @@ void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
     gCount_queued_smashes = 0;
 }
 // FUNCTION: CARMA2_HW 0x0041bd40
-void C2_HOOK_FASTCALL ConditionallyNoteSkid(tCar_spec* pCar, tFace_ref** faces, int pIndex) {
+void C2_HOOK_FASTCALL NewSkidding(tCar_spec* pCar, tFace_ref** faces, int pIndex) {
     br_vector3 skid_pos;
     br_scalar d;
 
@@ -2704,7 +2704,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     }
     for (i = 0, pList = gDrivable_on_list; i < gDrivable_on_count; i++, pList++) {
         pObj = *pList;
-        if (!BoundsOverlapTest__finteray(&bounds, &pObj->field_0xf4)) {
+        if (!BoundsOverlapTest(&bounds, &pObj->field_0xf4)) {
             continue;
         }
         shape = pObj->shape;
@@ -3110,7 +3110,7 @@ steer_centre:
         GetOilFrictionFactors(pCar, &fl_oil_factor, &fr_oil_factor, &rl_oil_factor, &rr_oil_factor);
         for (i = 0; i < 4; i++) {
             if (pCar->oil_remaining[i] != 0.f) {
-                ConditionallyNoteSkid(pCar, faces, i);
+                NewSkidding(pCar, faces, i);
             }
         }
         if (pCar->driver <= 5) {
@@ -3201,10 +3201,10 @@ steer_centre:
             }
             if (ts2 <= pV) {
                 if (maxfl > 0.1) {
-                    ConditionallyNoteSkid(pCar, faces, 0);
+                    NewSkidding(pCar, faces, 0);
                 }
                 if (maxfr > 0.1) {
-                    ConditionallyNoteSkid(pCar, faces, 1);
+                    NewSkidding(pCar, faces, 1);
                 }
             }
             if (IRandomBetween(0, 1)) {
@@ -3231,7 +3231,7 @@ steer_centre:
                         ts2 = 60.f;
                     }
                     if (ts2 <= pV) {
-                        ConditionallyNoteSkid(pCar, faces, 1);
+                        NewSkidding(pCar, faces, 1);
                     }
                     SkidNoise(pCar, 1, pV, pCar->material_index[1]);
                 }
@@ -3253,7 +3253,7 @@ steer_centre:
                         ts2 = 60.f;
                     }
                     if (ts2 <= pV) {
-                        ConditionallyNoteSkid(pCar, faces, 0);
+                        NewSkidding(pCar, faces, 0);
                     }
                     SkidNoise(pCar, 0, pV, pCar->material_index[0]);
                 }
@@ -3291,7 +3291,7 @@ steer_centre:
                         ts2 = 60.f;
                     }
                     if (ts2 <= pV) {
-                        ConditionallyNoteSkid(pCar, faces, 3);
+                        NewSkidding(pCar, faces, 3);
                     }
                     SkidNoise(pCar, 3, pV, pCar->material_index[3]);
                 }
@@ -3311,7 +3311,7 @@ steer_centre:
                         ts2 = 60.f;
                     }
                     if (ts2 <= pV) {
-                        ConditionallyNoteSkid(pCar, faces, 2);
+                        NewSkidding(pCar, faces, 2);
                     }
                     SkidNoise(pCar, 2, pV, pCar->material_index[2]);
                 }
@@ -3331,10 +3331,10 @@ steer_centre:
             }
             if (ts2 <= pV) {
                 if (maxfl > 0.1) {
-                    ConditionallyNoteSkid(pCar, faces, 2);
+                    NewSkidding(pCar, faces, 2);
                 }
                 if (maxfr > 0.1) {
-                    ConditionallyNoteSkid(pCar, faces, 3);
+                    NewSkidding(pCar, faces, 3);
                 }
             }
             if (IRandomBetween(0, 1)) {
@@ -3508,7 +3508,7 @@ void C2_HOOK_FASTCALL SkidNoise(tCar_spec* pCar, int pSide, br_scalar pV, int pM
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-/* FullyDetachSnappedBits 0x00431310 is implemented at the end of this file: its TU
+/* DoJointSnapping 0x00431310 is implemented at the end of this file: its TU
    position decides the x87 evaluation order of the dot product, and only the file-end
    position reproduces the original. */
 /* Force feedback: turns the collision point into a direction and hands the impulse to
@@ -3585,15 +3585,15 @@ extern float gGiblet_scrape_start;
 extern int gPed_recent_points;
 extern tPedestrian* gPed_recent_ped;
 extern int gPed_points[3];
-extern void C2_HOOK_FASTCALL PedProcessContact(tPedestrian* pPed, tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
 extern void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6);
 extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
+extern int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
 
 // FUNCTION: CARMA2_HW 0x004d2320
-void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
+void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
     tPedestrian* pPed;
     tPed_cache_006944c0* pCache;
     double ratio;
@@ -3606,7 +3606,7 @@ void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* p
 
     if (gAction_replay_mode == 0) {
         pPed = ((tPed_character_instance*)pObject1->owner)->ped;
-        PedProcessContact(pPed, pObject2);
+        SetLastHitter(pPed, pObject2);
         if (((pObject2 != NULL && pObject2->owner != NULL) && pObject2->flags_0x238 == 0x20 && pObject2->M == gMass_mutant_tail_ball)
                 || pObject1->v.v[1] < -1.7) {
             pImpulse = pImpulse * 10.0f;
@@ -3617,7 +3617,7 @@ void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* p
             damage = (int)(pImpulse * gPed_damage_per_force * ((pObject2 == NULL) ? 1.5 : 1.0));
         }
         if (damage != 0) {
-            FUN_004cd640(pPed, damage, -1, 0x5e, pObject2);
+            DamagePedestrian(pPed, damage, -1, 0x5e, pObject2);
             if ((pPed->hit_points > 0 && pObject2 != NULL)
                     && (pObject2->owner != NULL && (pObject2->flags_0x238 == 1 && gProgram_state.current_car.collision_info == pObject2))
                     && ((pCache = pPed->field_0x0c) != NULL)
@@ -3848,15 +3848,15 @@ int C2_HOOK_FASTCALL ProcessForcesCallback(tCollision_contact* pContacts, float*
     extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
     extern float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
     extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
-    extern int C2_HOOK_FASTCALL ScaleCollisionImpulses(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse);
-    extern int C2_HOOK_FASTCALL TrySplitCarOnVerticalForce(tCollision_contact* pContacts, float* pImpulses, int pCount);
-    extern int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float* pImpulses, int pCount);
+    extern int C2_HOOK_FASTCALL ReduceEffectOfForces(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse);
+    extern int C2_HOOK_FASTCALL DoSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount);
+    extern int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float* pImpulses, int pCount);
     extern void C2_HOOK_FASTCALL FUN_0045c910(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, float pImpulse);
-    extern void C2_HOOK_FASTCALL FUN_004d2320(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint);
+    extern void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint);
     extern void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelocity, br_vector3* pForce, tNon_car_spec* pOwner1, tNon_car_spec* pOwner2);
     extern void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVelocity, const br_vector3* pForce, br_scalar pStrength, tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
-    extern void C2_HOOK_FASTCALL CollideShitMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
+    extern void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
     extern void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor);
     extern void C2_HOOK_FASTCALL QueueDroneCrush(tPhysics_object* pObject, int pChain_count, br_vector3* pChain, br_vector3* pForce);
     extern int C2_HOOK_FASTCALL DRS3SoundStillPlaying(int pTag);
@@ -3995,13 +3995,13 @@ pair_path:
     }
     FlushSmashQueue(1);
     if (num_impacts != 0) {
-        ScaleCollisionImpulses(pContacts, pImpulses, pCount, smash_buffer.smash_indices, num_impacts, max_impulse);
+        ReduceEffectOfForces(pContacts, pImpulses, pCount, smash_buffer.smash_indices, num_impacts, max_impulse);
         return 0;
     }
-    if (TrySplitCarOnVerticalForce((void*)pContacts, pImpulses, pCount) != 0) {
+    if (DoSplitting((void*)pContacts, pImpulses, pCount) != 0) {
         return 0;
     }
-    if (FullyDetachSnappedBits(pContacts, pImpulses, pCount) != 0) {
+    if (DoJointSnapping(pContacts, pImpulses, pCount) != 0) {
         return 0;
     }
     if (pCount > 0) {
@@ -4155,11 +4155,11 @@ pair_path:
             if (pContacts[k].object1 != NULL && pContacts[k].object1->owner != NULL && pContacts[k].object1->flags_0x238 >= 2 && pContacts[k].object1->flags_0x238 <= 4
                     && (pContacts[k].object2 == NULL || pContacts[k].object2->owner == NULL || pContacts[k].object2->flags_0x238 < 2 || pContacts[k].object2->flags_0x238 > 4)) {
                 BrMatrix34ApplyP(&world_point, &point1, &pContacts[k].object1->transform_matrix);
-                FUN_004d2320(pContacts[k].object1, pContacts[k].object2, (tFace_ref*)pContacts[k].field_0xc, pImpulses[k], &world_point);
+                PedProcessForces(pContacts[k].object1, pContacts[k].object2, (tFace_ref*)pContacts[k].field_0xc, pImpulses[k], &world_point);
             } else if (pContacts[k].object2 != NULL && pContacts[k].object2->owner != NULL && pContacts[k].object2->flags_0x238 >= 2 && pContacts[k].object2->flags_0x238 <= 4
                     && (pContacts[k].object1 == NULL || pContacts[k].object1->owner == NULL || pContacts[k].object1->flags_0x238 < 2 || pContacts[k].object1->flags_0x238 > 4)) {
                 BrMatrix34ApplyP(&world_point, &point2, &pContacts[k].object2->transform_matrix);
-                FUN_004d2320(pContacts[k].object2, pContacts[k].object1, (tFace_ref*)pContacts[k].field_0xc, pImpulses[k], &world_point);
+                PedProcessForces(pContacts[k].object2, pContacts[k].object1, (tFace_ref*)pContacts[k].field_0xc, pImpulses[k], &world_point);
             }
         }
         if (impulse > 0.06f) {
@@ -4183,7 +4183,7 @@ pair_path:
         if (impulse > 0.001f) {
             if ((pContacts[k].object1 != NULL && pContacts[k].object1->flags_0x238 == 0x40)
                     || (pContacts[k].object2 != NULL && pContacts[k].object2->flags_0x238 == 0x40)) {
-                CollideShitMine(pContacts[k].object1, pContacts[k].object2, impulse);
+                HitAShatOutMine(pContacts[k].object1, pContacts[k].object2, impulse);
             }
         }
         if (gPinball_factor != 0.f && pContacts[k].object2 == NULL && impulse > 0.0002f) {
@@ -4256,14 +4256,14 @@ void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int 
 // FUNCTION: CARMA2_HW 0x0041deb0
 void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor) {
     extern int gIt_or_fox;
-    extern void C2_HOOK_FASTCALL FUN_0043fb70(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch);
-    extern void C2_HOOK_FASTCALL FUN_0042d400(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick);
+    extern void C2_HOOK_FASTCALL DamageSystems(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch);
+    extern void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick);
     extern void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity);
     extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
     extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer);
     extern void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPosition, float pForce);
-    extern void C2_HOOK_FASTCALL PipeSingleLocalCarIncident(br_vector3* pPosition, float pForce);
+    extern void C2_HOOK_FASTCALL PipeSingleWallIncident(br_vector3* pPosition, float pForce);
     br_vector3 vForce;
     br_vector3 vOther;
     br_vector3 vWorld;
@@ -4370,9 +4370,9 @@ void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br
         }
     }
     if (gNet_mode != eNet_mode_client || pCar2 == NULL) {
-        FUN_0043fb70(pCar1, pPoint, &vForce, pCar2 != NULL);
+        DamageSystems(pCar1, pPoint, &vForce, pCar2 != NULL);
     }
-    FUN_0042d400(pCar1, pChain_count, pChain, &vOther, gPHIL_last_physics_tick);
+    QueueCarCrush(pCar1, pChain_count, pChain, &vOther, gPHIL_last_physics_tick);
     if (pCar2 != NULL && pCar2->driver == eDriver_local_human && power > 0.003) {
         PipeSingleCarIncident(pCar1, pPoint, power);
     }
@@ -4382,7 +4382,7 @@ void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br
         mat.m[3][1] = mat.m[3][1] * 0.14492753f;
         mat.m[3][2] = mat.m[3][2] * 0.14492753f;
         BrMatrix34ApplyP(&vWorld, pPoint, &mat);
-        PipeSingleLocalCarIncident(&vWorld, power);
+        PipeSingleWallIncident(&vWorld, power);
     }
 }
 
@@ -4941,7 +4941,7 @@ extern int gFlyCarKeyTimer0;
 extern int gFlyCarKeyTimer1;
 extern int gFlyCarKeyTimer2;
 extern int gFlyCarKeyTimer3;
-extern void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix34* pParent_matrix);
+extern void C2_HOOK_FASTCALL RepositionAndOrientateChildren(tPhysics_object* pObject, br_matrix34* pParent_matrix);
 extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
 
 #ifdef REC2_MATCHING
@@ -5110,7 +5110,7 @@ void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt) {
     c->direction.v[1] = -mat->m[2][1];
     c->direction.v[2] = -mat->m[2][2];
     BrMatrix34ApplyP(&c->pos, &c->collision_info->cmpos, mat);
-    UpdateChildTransforms(c->collision_info, NULL);
+    RepositionAndOrientateChildren(c->collision_info, NULL);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -5128,8 +5128,8 @@ extern br_actor* gAdditional_actors;
 extern void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL PipeSingleNonCar(uintptr_t pId, br_actor* pActor);
 extern int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
-extern int C2_HOOK_FASTCALL FUN_00420310(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL FUN_00420360(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL NonCarSnapOff(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL TestNonCarSnapOff(tPhysics_object* pObject);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -5225,8 +5225,8 @@ tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor) {
         *(float*)((tU8*)non_car + 0x14) = non_car->min_torque_squared;
         non_car->collision_info->field_0xed = 0;
         non_car->collision_info->physics_joint2 = non_car->field_0xf0;
-        *(int*)((tU8*)non_car->collision_info + 0x194) = (int)FUN_00420360;
-        *(int*)((tU8*)non_car->collision_info + 0x198) = (int)FUN_00420310;
+        *(int*)((tU8*)non_car->collision_info + 0x194) = (int)TestNonCarSnapOff;
+        *(int*)((tU8*)non_car->collision_info + 0x198) = (int)NonCarSnapOff;
         BrMatrix34ApplyP(&non_car->collision_info->field_0x17c, (br_vector3*)((tU8*)non_car->collision_info->physics_joint2 + 8), &non_car->collision_info->transform_matrix);
     }
     non_car->collision_info->I.v[0] = non_car->I_over_M.v[0] * non_car->collision_info->M;
@@ -5875,7 +5875,7 @@ void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004c6ff0
-void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pId, br_actor* pActor) {
+void C2_HOOK_FASTCALL AddCarActorTransformationToSession(uintptr_t pId, br_actor* pActor) {
     extern void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCount, ...);
 
     ARAddVariedDataToSession(ePipe_chunk_non_car, pId, 2, 4, 0, pActor, 0x30, 4, &pActor->t.t.mat);
@@ -5885,7 +5885,7 @@ void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pId, br_actor* pActor) 
 int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data) {
 
     if (!pCollision_info->disable_move_rotate && pCollision_info->actor != NULL && pCollision_info->actor->type_data != NULL) {
-        PipeSingleNonCarCreation((tU16)((tNon_car_spec*)pCollision_info->actor->type_data)->car_ID, pCollision_info->actor);
+        AddCarActorTransformationToSession((tU16)((tNon_car_spec*)pCollision_info->actor->type_data)->car_ID, pCollision_info->actor);
     }
     ((tNon_car_spec*)pCollision_info->owner)->field_0xfc = pCollision_info->disable_move_rotate;
     return 0;
@@ -5933,14 +5933,14 @@ void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 57.86%: FUN_0043fb70 (DamageCarInDirection) - logic from the REA pseudocode of 0x0043fb70 and
+// PARTIAL 57.86%: DamageSystems (DamageCarInDirection) - logic from the REA pseudocode of 0x0043fb70 and
 // (GPL-3.0). Remaining diff is x87 scheduling and register
 // allocation only: the original keeps the three pForce components in x87 (fld/fst copies) for the
 // magnitude, ours copies them through integer registers (mov esi) and reloads, which also moves the
 // esi/edi pushes; the impact_location and condition-loop registers differ likewise.
 // FUNCTION: CARMA2_HW 0x0043fb70
-void C2_HOOK_FASTCALL FUN_0043fb70(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch) {
-    extern void C2_HOOK_FASTCALL DoDamage(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
+void C2_HOOK_FASTCALL DamageSystems(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch) {
+    extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
     extern void C2_HOOK_STDCALL NewScreenWobble(double pAmplitude_x, double pAmplitude_y, double pPeriod);
     extern br_scalar gFloat_00589b64;
     extern double gDouble_00589b68;
@@ -6076,15 +6076,15 @@ void C2_HOOK_FASTCALL FUN_0043fb70(tCar_spec* pCar, br_vector3* pPoint, br_vecto
                     damage_amount *= (float)(gDouble_00589b80
                         - ((gDouble_00589b80 - (double)gCurrent_race.index / gNumber_of_races)
                             * gDouble_00589b88 * gDouble_00589b90));
-                    DoDamage(pCar, effect->type, (int)damage_amount);
+                    DamageUnit2(pCar, effect->type, (int)damage_amount);
                 } else if (gNet_mode != eNet_mode_none) {
                     damage_amount = effect->weakness_factor * impact_strength;
                     damage_amount *= gFloat_00589b74;
-                    DoDamage(pCar, effect->type, (int)damage_amount);
+                    DamageUnit2(pCar, effect->type, (int)damage_amount);
                 } else {
                     damage_amount = effect->weakness_factor * impact_strength;
                     if (PercentageChance((int)(damage_amount * gFloat_00589b78))) {
-                        DoDamage(pCar, effect->type, (int)(damage_amount * gFloat_00589b7c));
+                        DamageUnit2(pCar, effect->type, (int)(damage_amount * gFloat_00589b7c));
                     }
                 }
             }
@@ -6132,10 +6132,10 @@ extern tCrush_list_item gCrush_lists[8];
 extern br_scalar gMin_crush_force;
 extern void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue);
 
-// PARTIAL 49.06%: FUN_0042d400 - body complete (crush force accumulation); remaining diff:
+// PARTIAL 49.06%: QueueCarCrush - body complete (crush force accumulation); remaining diff:
 // force components spilled through integer registers instead of fld, x87 scheduling.
 // FUNCTION: CARMA2_HW 0x0042d400
-void C2_HOOK_FASTCALL FUN_0042d400(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick) {
+void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick) {
     int point_count;
     int unique_count;
     int point_i;
@@ -6241,7 +6241,7 @@ static int notfinite(const float* f) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00425ba0
-int C2_HOOK_FASTCALL BoundsOverlapTest__finteray(br_bounds* b1, br_bounds* b2) {
+int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2) {
     int i;
 
     if (b1->min.v[2] > b2->max.v[2]
@@ -6300,7 +6300,7 @@ int gFlyCarKeyTimer3;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004c62e0
-void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix34* pParent_matrix) {
+void C2_HOOK_FASTCALL RepositionAndOrientateChildren(tPhysics_object* pObject, br_matrix34* pParent_matrix) {
     br_matrix34 inverse;
     br_matrix34 tmp_matrix;
     br_matrix34 tmp_matrix2;
@@ -6319,7 +6319,7 @@ void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix3
         BrMatrix34LPInverse(&inverse, &pObject->transform_matrix);
         BrMatrix34Mul(&tmp_matrix, &inverse, &pObject->actor->t.t.mat);
         do {
-            UpdateChildTransforms(child, pParent_matrix);
+            RepositionAndOrientateChildren(child, pParent_matrix);
             child = child->next;
         } while (child != NULL);
     }
@@ -6333,7 +6333,7 @@ void C2_HOOK_FASTCALL UpdateChildTransforms(tPhysics_object* pObject, br_matrix3
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00420310
-int C2_HOOK_FASTCALL FUN_00420310(tPhysics_object* pObject) {
+int C2_HOOK_FASTCALL NonCarSnapOff(tPhysics_object* pObject) {
     tNon_car_spec* non_car;
 
     non_car = (tNon_car_spec*)pObject->owner;
@@ -6351,7 +6351,7 @@ int C2_HOOK_FASTCALL FUN_00420310(tPhysics_object* pObject) {
 }
 
 // FUNCTION: CARMA2_HW 0x00420360
-int C2_HOOK_FASTCALL FUN_00420360(tPhysics_object* pObject) {
+int C2_HOOK_FASTCALL TestNonCarSnapOff(tPhysics_object* pObject) {
     tNon_car_spec* non_car;
 
     non_car = (tNon_car_spec*)pObject->owner;
@@ -6378,11 +6378,11 @@ int C2_HOOK_FASTCALL FUN_00420360(tPhysics_object* pObject) {
 #endif
 extern void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce);
 extern br_vector3 gVector3_00661678;
-extern void C2_HOOK_FASTCALL ApplyNonCarTumble(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold);
+extern void C2_HOOK_FASTCALL TumbleObjectWithV(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold);
 
 // (GPL-3.0) and the original at 0x00418250
 // FUNCTION: CARMA2_HW 0x00418250
-void C2_HOOK_FASTCALL MoveNonCar(tNon_car_spec* pNon_car, br_scalar pDt) {
+void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar pDt) {
     tSpecial_volume* last_special_volume;
     tJoint_translation_params* translation_parameters;
     br_vector3 drag_vector;
@@ -6464,7 +6464,7 @@ void C2_HOOK_FASTCALL MoveNonCar(tNon_car_spec* pNon_car, br_scalar pDt) {
     drag_vector.v[2] = pNon_car->collision_info->omega.v[2] * k;
     ApplyDiminishingTorque(pNon_car->collision_info, &drag_vector);
     if (pNon_car->tumble_factor != 0.f) {
-        ApplyNonCarTumble(pNon_car->collision_info, &pNon_car->collision_info->v, pNon_car->tumble_factor, pNon_car->tumble_threshold);
+        TumbleObjectWithV(pNon_car->collision_info, &pNon_car->collision_info->v, pNon_car->tumble_factor, pNon_car->tumble_threshold);
     }
     if ((pNon_car->flags & 0x10000) == 0) {
         return;
@@ -6560,7 +6560,7 @@ float gFLOAT_00589b48 = 4.999999873689376e-05f;
 #endif
 // (GPL-3.0) and the original at 0x0043b740
 // FUNCTION: CARMA2_HW 0x0043b740
-void C2_HOOK_FASTCALL SmoothCarCrushShapePoints(tCar_spec* pCar, float pStep) {
+void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
     tCar_crush_shape_info* shape_info;
     br_vector3* pCurrent;
     float* pTarget;
@@ -6601,7 +6601,7 @@ void C2_HOOK_FASTCALL SmoothCarCrushShapePoints(tCar_spec* pCar, float pStep) {
 /* Networking: broadcasts a "re-attach this bit" message for pObject's uid on pCar.
    */
 // FUNCTION: CARMA2_HW 0x0043b250
-void C2_HOOK_FASTCALL FUN_0043b250(tCar_spec* pCar, tPhysics_object* pObject) {
+void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject) {
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
@@ -6618,7 +6618,7 @@ void C2_HOOK_FASTCALL FUN_0043b250(tCar_spec* pCar, tPhysics_object* pObject) {
 /* Networking: broadcasts a "re-attach all bits" message for pCar.
    */
 // FUNCTION: CARMA2_HW 0x0043b2a0
-void C2_HOOK_FASTCALL FUN_0043b2a0(tCar_spec* pCar) {
+void C2_HOOK_FASTCALL SendReAttachAllBits(tCar_spec* pCar) {
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
@@ -6631,11 +6631,11 @@ void C2_HOOK_FASTCALL FUN_0043b2a0(tCar_spec* pCar) {
     NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, 0);
 }
 
-// PARTIAL 57.81%: ApplyNonCarTumble - logic complete (replaces the inert stub); remaining diff:
+// PARTIAL 57.81%: TumbleObjectWithV - logic complete (replaces the inert stub); remaining diff:
 // MSVC 11 shapes the len2/cross sums with integer moves instead of the original fxch chain, and
 // 1.0/scale is an unnamed constant here (original uses gZero), x87 scheduling.
 // FUNCTION: CARMA2_HW 0x00417fb0
-void C2_HOOK_FASTCALL ApplyNonCarTumble(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold) {
+void C2_HOOK_FASTCALL TumbleObjectWithV(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold) {
     extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
     br_vector3 cross;
     br_vector3 out;
@@ -6702,7 +6702,7 @@ void C2_HOOK_FASTCALL ApplyNonCarTumble(tPhysics_object* pObject, br_vector3* pV
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00430e30
-int C2_HOOK_FASTCALL FUN_00430e30(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+int C2_HOOK_FASTCALL DoXZSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount) {
     br_vector4 plane;
     br_vector3 edge;
     br_vector3 normal;
@@ -6808,7 +6808,7 @@ do_split:
                             line.v[2] = line.v[1] * f_b + line.v[0] * f_a;
                             if (SplitCheck(car, 0, &line, 0, &plane) != 0) {
                                 split_index = i;
-                                ScaleCollisionImpulses(pContacts, pImpulses, pCount, &split_index, 1, threshold);
+                                ReduceEffectOfForces(pContacts, pImpulses, pCount, &split_index, 1, threshold);
                                 SplitCar(car, &plane, 1);
                                 return 1;
                             }
@@ -6825,7 +6825,7 @@ do_split:
 #endif
 
 // FUNCTION: CARMA2_HW 0x004ba550
-int C2_HOOK_FASTCALL ScaleCollisionImpulses(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse) {
+int C2_HOOK_FASTCALL ReduceEffectOfForces(tCollision_contact* pContacts, float* pImpulses, int pCount, int* pSmash_indices, int pNum_impacts, float pMax_impulse) {
     extern int gINT_00692dc8;
     extern br_scalar gFLOAT_0058a768;
     int i;
@@ -6875,7 +6875,7 @@ int C2_HOOK_FASTCALL ScaleCollisionImpulses(tCollision_contact* pContacts, float
 }
 
 // FUNCTION: CARMA2_HW 0x00431310
-int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float* pImpulses, int pCount) {
     extern br_scalar gTorque_to_snap_per_tonne;
     extern void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
     tPhysics_object* object1;
@@ -6908,7 +6908,7 @@ int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float
                         + ((&pContacts[i].normal)->v[1]) * ((&object1->physics_joint1->hinge_axis)->v[1]) < gCrushZero) {
                     if (gNet_mode == eNet_mode_none) {
                         index = i;
-                        ScaleCollisionImpulses(pContacts, pImpulses, pCount, &index, 1, snap_torque);
+                        ReduceEffectOfForces(pContacts, pImpulses, pCount, &index, 1, snap_torque);
                         FullyDetachBit(car, object1);
                         MungeDetachLists(car->car_crush_spec);
                         return 1;
@@ -6929,7 +6929,7 @@ int C2_HOOK_FASTCALL FullyDetachSnappedBits(tCollision_contact* pContacts, float
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0042dfd0
-int C2_HOOK_FASTCALL TrySplitCarOnVerticalForce(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+int C2_HOOK_FASTCALL DoSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount) {
     int flags[40];
     int split_indices[40];
     br_vector4 split_plane;
@@ -6943,12 +6943,12 @@ int C2_HOOK_FASTCALL TrySplitCarOnVerticalForce(tCollision_contact* pContacts, f
     float threshold;
     tPhysics_object* object;
     tCar_spec* car;
-    extern int C2_HOOK_FASTCALL FUN_00430e30(tCollision_contact* pContacts, float* pImpulses, int pCount);
+    extern int C2_HOOK_FASTCALL DoXZSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount);
     extern int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane);
     extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
     extern float gMin_force_to_split_Y_per_tonne;
 
-    if (FUN_00430e30(pContacts, pImpulses, pCount) != 0) {
+    if (DoXZSplitting(pContacts, pImpulses, pCount) != 0) {
         return 1;
     }
     count = pCount;
@@ -7004,7 +7004,7 @@ int C2_HOOK_FASTCALL TrySplitCarOnVerticalForce(tCollision_contact* pContacts, f
                     / (car->softness_factor * car->car_crush_spec->snappability_factor);
                 if (total_force > threshold
                         && SplitCheck(car, 1, NULL, car->car_crush_spec->split_y_pos, &split_plane) != 0) {
-                    ScaleCollisionImpulses(pContacts, pImpulses, count, split_indices, split_count, threshold);
+                    ReduceEffectOfForces(pContacts, pImpulses, count, split_indices, split_count, threshold);
                     SplitCar(car, &split_plane, 1);
                     return 1;
                 }
@@ -7023,11 +7023,11 @@ extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_ca
 extern void C2_HOOK_FASTCALL DisableFunkotronic(int pIndex);
 extern const float gFLOAT_0058af20;
 
-// PARTIAL 83.07%: ActuallySmashCarPart - body complete and runtime-safe; remaining diff: pixelmap
+// PARTIAL 83.07%: ActuallySmashPart - body complete and runtime-safe; remaining diff: pixelmap
 // index computation (original keeps 177*level+i in a scaled load), funk_material reload register,
 // -1.0f literal is an unnamed data offset here, case-block ordering.
 // FUNCTION: CARMA2_HW 0x004ed2b0
-void C2_HOOK_FASTCALL ActuallySmashCarPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
+void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
     br_pixelmap* texture;
     br_pixelmap** pixelmaps;
     int i;
@@ -7197,7 +7197,7 @@ int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection
 
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetAllocateMessageChunk(tU8 pType, int pSize_decider);
+extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToHostContents(tU8 pType, int pSize_decider);
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id);
 extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, int pSize);
@@ -7207,12 +7207,12 @@ extern void C2_HOOK_FASTCALL CompressPlane(tU16* pDest, const br_vector4* pSrc);
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 extern void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, int pPlayer_id);
 extern int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shapes* pShapes, int pPlayer_id);
-extern void C2_HOOK_FASTCALL SendDetachedNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL SendSplitHalfNonCarData(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+extern void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 extern void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id);
-extern void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time);
-extern void C2_HOOK_FASTCALL CompressCarDataChunk(tNet_message_chunk* pMessage, int pPlayer_index);
-extern int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time);
+extern void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index);
+extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar);
 extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 extern tShit_mine gShit_mines[20];
 
@@ -7278,7 +7278,7 @@ void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
             NetBroadcastContents(chunk);
         }
     } else {
-        chunk = NetAllocateMessageChunk(0x12, 0);
+        chunk = NetGetToHostContents(0x12, 0);
         *(tU32*)((tU8*)chunk + 4) = gRace_start;
     }
     if (gNet_mode == eNet_mode_host) {
@@ -7354,7 +7354,7 @@ void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
                     dz = pCar->car_master_actor->t.t.translate.t.v[2] - pOther_car->car_master_actor->t.t.translate.t.v[2];
                     if (sqrt(dx * dx + dy * dy + dz * dz) >= 40.0f) {
                         chunk = NetGetToPlayerContents(0x2d, 0, target_id);
-                        CompressCarDataChunk(chunk, i);
+                        FillInSimpleCarPos(chunk, i);
                         continue;
                     }
                 }
@@ -7368,7 +7368,7 @@ void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
                         pCar->car_crush_spec->field_0x28 = 0;
                     }
                     if (CarShapeNeedsSendingToPlayer(pCar->car_crush_spec->network_stuff, gNet_players[check_idx].ID) != 0) {
-                        crush_size = FUN_0043d900(pCar);
+                        crush_size = GetNetShapeDataLengthFromShape(pCar);
                         extra_size = 1;
                         message_size = (tU8)crush_size;
                         if (pCar->car_crush_spec->field_0x144 != 0) {
@@ -7428,16 +7428,16 @@ void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
             pNon_car = gActive_non_car_list[i];
             if ((pNon_car->flags & 0x100000) != 0) {
                 if (pNon_car->driver == 2) {
-                    SendDetachedNonCarData(pNon_car, pNext_frame_time, NULL);
+                    SendDBNonCar(pNon_car, pNext_frame_time, NULL);
                 } else if (pNon_car->driver == 3) {
-                    SendSplitHalfNonCarData(pNon_car, pNext_frame_time, NULL);
+                    SendSHNonCar(pNon_car, pNext_frame_time, NULL);
                 } else {
                     SendNonCar(pNon_car, pNext_frame_time);
                 }
             }
         }
     } else if (gNet_mode == eNet_mode_client) {
-        SendLocalCarData(pNext_frame_time);
+        ClientSendCarData(pNext_frame_time);
     }
 }
 
@@ -7514,7 +7514,7 @@ void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x00498460
-void C2_HOOK_FASTCALL CompressCarDataChunk(tNet_message_chunk* pMessage, int pPlayer_index) {
+void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index) {
     tU8* chunk;
     tCar_spec* car;
     br_actor* actor;
@@ -7528,7 +7528,7 @@ void C2_HOOK_FASTCALL CompressCarDataChunk(tNet_message_chunk* pMessage, int pPl
     *(int*)(chunk + 0x10) = *(int*)((tU8*)car + 0x18a4);
 }
 // FUNCTION: CARMA2_HW 0x0043d900
-int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {
+int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar) {
     tCar_crush_spec* crush;
     int* node;
     int i;
@@ -7557,7 +7557,7 @@ int C2_HOOK_FASTCALL FUN_0043d900(tCar_spec* pCar) {
 }
 // PARTIAL 84.45%: car_crush_spec CSE'd into one register vs the original's reload after each store; field_0x24 formula sub/add vs neg/sbb; controls chain reloads [esi+0x10]; store scheduling
 // FUNCTION: CARMA2_HW 0x00497fc0
-void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time) {
+void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time) {
     tNet_message_chunk_car_data* message;
     tNet_message_chunk* chunk;
     tU8* pData;
@@ -7588,7 +7588,7 @@ void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time) {
             gProgram_state.current_car.car_crush_spec->field_0x28 = 0;
         }
         if (gProgram_state.current_car.car_crush_spec->field_0x24 != gProgram_state.current_car.car_crush_spec->field_0x26) {
-            crush_size = FUN_0043d900(&gProgram_state.current_car);
+            crush_size = GetNetShapeDataLengthFromShape(&gProgram_state.current_car);
             message_size += crush_size;
             flags |= 1;
             if (gProgram_state.current_car.car_crush_spec->field_0x144 != 0) {
@@ -7601,7 +7601,7 @@ void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time) {
             }
         }
     }
-    message = (tNet_message_chunk_car_data*)NetAllocateMessageChunk(0x10, message_size);
+    message = (tNet_message_chunk_car_data*)NetGetToHostContents(0x10, message_size);
     message->next_frame_time = pNext_frame_time;
     message->player_id = gNet_players[gThis_net_player_index].ID;
     message->curvature = (tU16)(gProgram_state.current_car.curvature / gProgram_state.current_car.maxcurve * 32767.0f);
@@ -7661,11 +7661,11 @@ void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time) {
         CompressPlane((tU16*)pData, (const br_vector4*)&gProgram_state.current_car.car_crush_spec->field_0x548);
     }
     if (gProgram_state.current_car.time_to_recover != 0 && gProgram_state.current_car.time_to_recover - 500 < pNext_frame_time) {
-        chunk = NetAllocateMessageChunk(0x17, 0);
+        chunk = NetGetToHostContents(0x17, 0);
         *(tU32*)((tU8*)chunk + 4) = gNet_players[gThis_net_player_index].ID;
         *(tU32*)((tU8*)chunk + 8) = gProgram_state.current_car.time_to_recover;
     }
-    chunk = NetAllocateMessageChunk(0x2a, gNumber_of_net_players * 8 + 4);
+    chunk = NetGetToHostContents(0x2a, gNumber_of_net_players * 8 + 4);
     *(tU32*)((tU8*)chunk + 4) = gNet_players[gThis_net_player_index].ID;
     *(tU8*)((tU8*)chunk + 8) = (tU8)(gNumber_of_net_players - 1);
     for (i = 0; i < gNumber_of_net_players; i++) {
@@ -7679,7 +7679,7 @@ void C2_HOOK_FASTCALL SendLocalCarData(tU32 pNext_frame_time) {
 #pragma auto_inline(on)
 #endif
 
-// Crush/damage tuning constants used by FUN_0043fb70 (DamageCarInDirection). Values and address
+// Crush/damage tuning constants used by DamageSystems (DamageCarInDirection). Values and address
 // order taken from the original data segment
 // GLOBAL: CARMA2_HW 0x00589b64
 br_scalar gFloat_00589b64 = 0.0f;
@@ -7763,7 +7763,7 @@ void C2_HOOK_FASTCALL PutOpponentsInNeutral(void) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0043d960
-int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
+int C2_HOOK_FASTCALL GetNetShapeDataLengthFromData(tU8* pData) {
     tU8 count_or_points;
     int count;
     int size;
@@ -7790,7 +7790,7 @@ int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData) {
 
 
 // FUNCTION: CARMA2_HW 0x0043ce60
-void C2_HOOK_FASTCALL ReceivedCrushReattachBit(tNet_message_chunk_crush_reattach_bit* pContents) {
+void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk_crush_reattach_bit* pContents) {
     extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
     tCar_spec* car;
     int item_offset;
@@ -7815,7 +7815,7 @@ void C2_HOOK_FASTCALL ReceivedCrushReattachBit(tNet_message_chunk_crush_reattach
 
 // PARTIAL 75%: flag byte reload/regalloc differs from original
 // FUNCTION: CARMA2_HW 0x00498ab0
-void C2_HOOK_FASTCALL FUN_00498ab0(tCar_spec* pCar, tU8* pContents) {
+void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
     extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
     tU8* cursor;
     int size;
@@ -7843,7 +7843,7 @@ void C2_HOOK_FASTCALL FUN_00498ab0(tCar_spec* pCar, tU8* pContents) {
         } while (offset < 0x49c);
     }
     if (*((tU8*)pCar->collision_info + 0x292) & 1) {
-        size = GetCompressedCrushVertexDataSize(cursor);
+        size = GetNetShapeDataLengthFromData(cursor);
         memcpy((tU8*)pCar->collision_info + 0x2fc, cursor, size);
         cursor += size;
     }
@@ -7860,12 +7860,12 @@ void C2_HOOK_FASTCALL FUN_00498ab0(tCar_spec* pCar, tU8* pContents) {
     }
 }
 
-// PARTIAL 69.45%: gNet_players ID scan emits cmp [abs] before loop; crush-entry scan loop form; see state/findings/ReceivedCarData.md
+// PARTIAL 69.45%: gNet_players ID scan emits cmp [abs] before loop; crush-entry scan loop form; see state/findings/ReceivedMechanics.md
 // FUNCTION: CARMA2_HW 0x004985f0
-void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
+void C2_HOOK_FASTCALL ReceivedMechanics(tU8* pContents) {
     extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL DisableCar(tCar_spec* pCar);
-    extern int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode);
+    extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
     extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
     extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
     extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
@@ -7908,7 +7908,7 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
     }
     if (car->disabled != 0) {
         EnableCar(car);
-        SelectCrushNetwork((undefined4*)(pContents + 0x34), car->collision_info, 2);
+        WriteHierarchyNetworkStuff((undefined4*)(pContents + 0x34), car->collision_info, 2);
         *(tU16*)((tU8*)car->collision_info + 0x178) = (tU16)(gFace_num__car - 2);
         *(tU32*)((tU8*)car->collision_info + 0x268) = *(tU32*)(pContents + 8);
         *((tU8*)car->collision_info + 0x261) = 0xff;
@@ -7926,7 +7926,7 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
             return;
         }
         if (*(tU32*)((tU8*)car->collision_info + 0x49c) <= *(tU32*)(pContents + 0x14)) {
-            FUN_00498ab0(car, pContents);
+            CopyMechanics(car, pContents);
             if (*(tS16*)(pContents + 0x30) != *(tS16*)((tU8*)car->car_crush_spec + 0x24)) {
                 SetAllShapeStatusFlags(*(tCar_crush_network_shapes**)((tU8*)car->car_crush_spec + 0x20));
                 id = *(tU32*)(pContents + 4);
@@ -7994,11 +7994,11 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
     if (i == gThis_net_player_index) {
         *(tU16*)((tU8*)car->car_crush_spec + 0x26) = *(tU16*)(pContents + 0x30);
         if (*(tU32*)((tU8*)car->collision_info + 0x49c) < *(tU32*)(pContents + 0x14)) {
-            FUN_00498ab0(car, pContents);
+            CopyMechanics(car, pContents);
         }
         return;
     }
-    FUN_00498ab0(car, pContents);
+    CopyMechanics(car, pContents);
     *(tU32*)((tU8*)car + 0x18a8) = pContents[0x2c];
     *(tU32*)((tU8*)car + 0x18ac) = pContents[0x2d];
     *(tU32*)((tU8*)car + 0x18b0) = pContents[0x2e];
@@ -8018,7 +8018,7 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
     if (*(int*)((tU8*)car + 0x1d0) != 0) {
         return;
     }
-    SelectCrushNetwork((undefined4*)(pContents + 0x34), car->collision_info, 2);
+    WriteHierarchyNetworkStuff((undefined4*)(pContents + 0x34), car->collision_info, 2);
     actor = (tU8*)car->collision_info;
     *(tU32*)((tU8*)car + 0x4c) = *(tU32*)(actor + 0xb0);
     *(tU32*)((tU8*)car + 0x50) = *(tU32*)(actor + 0xb4);
@@ -8030,7 +8030,7 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
         && *(tU32*)((tU8*)car->collision_info + 0x27c) > *(tU32*)((tU8*)car + 0x18a4)) {
         tick = *(tU32*)((tU8*)car->collision_info + 0x27c);
         if (tick - *(tU32*)((tU8*)car + 0x18a4) < 100000) {
-            ComputeCarImpact(car, tick - *(tU32*)((tU8*)car + 0x18a4), &impact);
+            RepairCar2(car, tick - *(tU32*)((tU8*)car + 0x18a4), &impact);
         } else {
             TotallyRepairACar(car);
             *(tU32*)((tU8*)car + 0x18a4) = *(tU32*)((tU8*)car->collision_info + 0x27c);
@@ -8050,22 +8050,22 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
     value = *((tU8*)car->collision_info + 0x292);
     if ((value & 1) && *(tS16*)((tU8*)car->collision_info + 0x290) != *(tS16*)((tU8*)car->car_crush_spec + 0x24)) {
         if (value & 2) {
-            WeldCarByNetwork(car);
+            CopyBendInMessage(car);
         } else if (*((tU8*)car->car_crush_spec + 0x144) != 0) {
             CompletelyUnBendCar(car);
         }
         if (*((tU8*)car->collision_info + 0x292) & 4) {
-            WeldCarPartial(car);
+            CopySplitInMessage(car);
         } else if (*((tU8*)car->car_crush_spec + 0x4b8) != 0) {
             WeldCar(car);
         }
-        UpdateCrushVertices(car, (tU8*)car->collision_info + 0x2fc);
+        DecodeNetShapeData(car, (tU8*)car->collision_info + 0x2fc);
     }
 }
 
 // PARTIAL 70.10%: player-search loop shape, collision_info reloads
 // FUNCTION: CARMA2_HW 0x004984c0
-void C2_HOOK_FASTCALL FUN_004984c0(tU8* pContents) {
+void C2_HOOK_FASTCALL ReceivedSimpleCarPos(tU8* pContents) {
     tCar_spec* car;
     int i;
     tU32* p;
@@ -8106,7 +8106,7 @@ void C2_HOOK_FASTCALL FUN_004984c0(tU8* pContents) {
                     *(tU32*)((tU8*)car + 0x18a4) = *(tU32*)((tU8*)car->collision_info + 0x27c);
                     return;
                 }
-                ComputeCarImpact(car, *(tU32*)(pContents + 0x10) - *(tU32*)((tU8*)car + 0x18a4), &delta_out);
+                RepairCar2(car, *(tU32*)(pContents + 0x10) - *(tU32*)((tU8*)car + 0x18a4), &delta_out);
             }
         }
     }

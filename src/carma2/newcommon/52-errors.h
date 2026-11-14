@@ -16,6 +16,6 @@ extern void C2_HOOK_FASTCALL OpenDiagnostics(void);
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 
 
-extern void C2_HOOK_FASTCALL DumpVector3Diagnostic(const char* pName, const br_vector3* pVec);
+extern void C2_HOOK_FASTCALL TraceVector3(const char* pName, const br_vector3* pVec);
 
 #endif // GUARD_52_ERRORS_H

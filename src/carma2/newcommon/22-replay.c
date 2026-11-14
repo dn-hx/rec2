@@ -1,5 +1,5 @@
 /* The crush scale constants live only in 13-crush1.c; their shared-header externs
- * shift MSVC 5 register allocation here (WorkerPedDismember 0x4ca900). */
+ * shift MSVC 5 register allocation here (PedApplyDismember 0x4ca900). */
 #define REC2_NO_CRUSH_SCALE_GLOBALS
 
 #include "22-replay.h"
@@ -21,10 +21,10 @@
 #include "57-drone.h"
 
 // 583638a7f removed these six prototypes from 41-utility.h; declaring them here keeps this TU's
-// codegen at the state it had while they were in the header (WorkerPedDismember 0x4ca900).
+// codegen at the state it had while they were in the header (PedApplyDismember 0x4ca900).
 extern float C2_HOOK_FASTCALL signf(float pValue);
 extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest);
-extern void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource);
+extern void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource);
 extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
 extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV);
 extern int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV);
@@ -306,7 +306,7 @@ br_pixelmap* gReplay_pixelmaps[11];
 extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
 
 // FUNCTION: CARMA2_HW 0x004e7090
-void C2_HOOK_FASTCALL InitializeActionReplayPix(void) {
+void C2_HOOK_FASTCALL InitializeActionReplay(void) {
     int i;
 
     for (i = 0; i < 11; i++) {
@@ -344,7 +344,7 @@ extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 extern void C2_HOOK_FASTCALL PDRevertPalette(void);
 extern void C2_HOOK_FASTCALL StopMusic(void);
 extern br_error C2_HOOK_FASTCALL DRBrEnd(void);
-extern void C2_HOOK_FASTCALL PDShutdownSystem(void);
+extern void C2_HOOK_FASTCALL PDShutDownSystem(void);
 extern void C2_HOOK_FASTCALL CloseDiagnostics(void);
 extern void C2_HOOK_FASTCALL NetService(int pIn_race);
 extern void C2_HOOK_FASTCALL CheckKevKeys(void);
@@ -398,7 +398,7 @@ void C2_HOOK_FASTCALL ServiceGameInRace(void) {
         if (gBr_initialized) {
             DRBrEnd();
         }
-        PDShutdownSystem();
+        PDShutDownSystem();
         CloseDiagnostics();
         exit(0);
     }
@@ -513,7 +513,7 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
 }
 
 // FUNCTION: CARMA2_HW 0x004022f0
-void C2_HOOK_FASTCALL ARSetPause(int pPause) {
+void C2_HOOK_FASTCALL SetReplayPaused(int pPause) {
     gReplay_pause_state = pPause;
 }
 
@@ -521,7 +521,7 @@ void C2_HOOK_FASTCALL ARSetPause(int pPause) {
 // the Apply/Undo wrappers in 23-piping.c tail-call them instead of inlining.
 
 // FUNCTION: CARMA2_HW 0x0043bd70
-void C2_HOOK_FASTCALL WorkerCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
+void C2_HOOK_FASTCALL ARApplyCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
     br_model* pModel;
     br_vector3 offset;
     br_vector3 scaled_offset;
@@ -569,7 +569,7 @@ extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
 // based on ApexWorm/rec2 85077822b
 // FUNCTION: CARMA2_HW 0x0043c030
-void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8) {
+void C2_HOOK_FASTCALL ARUndoModelMash(int field_0x4, tU8* pField_0x8) {
     br_model* model;
     tCompressed_vector3* src;
     tU16 i;
@@ -591,7 +591,7 @@ void C2_HOOK_FASTCALL WorkerModelMashUndo(int field_0x4, tU8* pField_0x8) {
 
 // based on ApexWorm/rec2 15c72a550
 // FUNCTION: CARMA2_HW 0x0043c0e0
-void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
+void C2_HOOK_FASTCALL ARApplyFlap(int field_0x4, tU16 field_0x8) {
     br_actor* actor;
     tUser_crush_data* user;
     tUser_crush_data* parent_user;
@@ -638,7 +638,7 @@ void C2_HOOK_FASTCALL WorkerFlap(int field_0x4, tU16 field_0x8) {
 // based on ApexWorm/rec2 97b666b11
 // RESIDUAL effective 100% (raw ~99): one x87 scheduler slot - the actor load [edi+0xec] for component 2 is emitted before fld here, after fadd in the original; macro/3-statement/pointer-temp forms all fail
 // FUNCTION: CARMA2_HW 0x00452880
-void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
+void C2_HOOK_FASTCALL ApplyDroneStraightPos2(int field_0x0, int field_0x4, tU16 field_0x8, tU16 field_0xa) {
     tDrone_spec* drone;
     tDrone_path_node_section* section;
     br_vector3 direction;
@@ -660,7 +660,7 @@ void C2_HOOK_FASTCALL WorkerDroneStraightPos(int field_0x0, int field_0x4, tU16 
 
 // based on ApexWorm/rec2 1e59f1e54
 // FUNCTION: CARMA2_HW 0x004529d0
-void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 field_0x6, tU16 field_0x8, tU16* pField_0xa) {
+void C2_HOOK_FASTCALL ApplyDroneCornerPos2(int field_0x0, tU16 field_0x4, tU16 field_0x6, tU16 field_0x8, tU16* pField_0xa) {
     tDrone_spec* drone;
 
     drone = &gDrone_specs[field_0x0];
@@ -684,7 +684,7 @@ void C2_HOOK_FASTCALL WorkerDroneCornerPos(int field_0x0, tU16 field_0x4, tU16 f
 
 // based on ApexWorm/rec2 36e8ff344
 // FUNCTION: CARMA2_HW 0x004b7220
-void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
+void C2_HOOK_FASTCALL PHILApplyPHILObject(int field_0x0, br_matrix34* pField_0x4) {
     tPhysics_object* object;
 
     object = (tPhysics_object*)field_0x0;
@@ -693,7 +693,7 @@ void C2_HOOK_FASTCALL WorkerPHILObject(int field_0x0, br_matrix34* pField_0x4) {
 }
 
 // FUNCTION: CARMA2_HW 0x004c9070
-void C2_HOOK_FASTCALL WorkerSmudge(tPipe_chunk** pChunk, int pScale) {
+void C2_HOOK_FASTCALL DoSmudge(tPipe_chunk** pChunk, int pScale) {
     tCar_spec* car;
     tU8* a;
     tU32 code;
@@ -736,7 +736,7 @@ void C2_HOOK_FASTCALL WorkerSmudge(tPipe_chunk** pChunk, int pScale) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ca4d0
-void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
+void C2_HOOK_FASTCALL PedApplyPedDir(int field_0x0, br_vector3* pDir) {
     extern int gBOOL_00744804;
     extern tPedestrian* gPedestrian_array;
     extern br_vector3 gY_unit_vector;
@@ -748,7 +748,7 @@ void C2_HOOK_FASTCALL WorkerPedDir(int field_0x0, br_vector3* pDir) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ca500
-void C2_HOOK_FASTCALL WorkerPedMove(tPedestrian* pPed, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38) {
+void C2_HOOK_FASTCALL PedApplyPedMove(tPedestrian* pPed, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38) {
     extern int gBOOL_00744804;
     extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
     extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
@@ -775,7 +775,7 @@ void C2_HOOK_FASTCALL WorkerPedMove(tPedestrian* pPed, int field_0x4, int field_
 }
 
 // FUNCTION: CARMA2_HW 0x004ca5a0
-void C2_HOOK_FASTCALL WorkerPedMoveUndo(tPedestrian* pPed, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38) {
+void C2_HOOK_FASTCALL PedUndoPedMove(tPedestrian* pPed, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38) {
     extern int gBOOL_00744804;
     extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
     extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
@@ -805,7 +805,7 @@ void C2_HOOK_FASTCALL WorkerPedMoveUndo(tPedestrian* pPed, int field_0x6, int fi
 
 // adapted from the disassembly
 // FUNCTION: CARMA2_HW 0x004ca650
-void C2_HOOK_FASTCALL WorkerPedFPChange(int field_0x0, tPipe_stack_word field_0x4) {
+void C2_HOOK_FASTCALL PedApplyPedFPChange(int field_0x0, tPipe_stack_word field_0x4) {
     extern int gBOOL_00744804;
     extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
 
@@ -815,7 +815,7 @@ void C2_HOOK_FASTCALL WorkerPedFPChange(int field_0x0, tPipe_stack_word field_0x
 }
 
 // FUNCTION: CARMA2_HW 0x004ca680
-void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x9, tU8 field_0xb, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
+void C2_HOOK_FASTCALL PedApplyStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x9, tU8 field_0xb, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
     extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
     extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
     extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
@@ -843,9 +843,9 @@ void C2_HOOK_FASTCALL WorkerPedStatus(int field_0x0, tU8 field_0x4, tU8 field_0x
 // Flag byte of the pedestrian (offset 8) is written through a signed-short view: that is the only
 // form the original compiler lowers to the direct `or/and BYTE PTR [esi+8]` (an unsigned byte or
 // word view gives a load/or/store pair). Block 2 keeps the original's early return and shared tail.
-// PARTIAL 95.12%: WorkerPedStatusUndo 0x004ca6e0 - shared bit-4 test: original one test al,al;je for both paths, ours an extra test/je (89.03 -> 95.12)
+// PARTIAL 95.12%: PedUndoStatus 0x004ca6e0 - shared bit-4 test: original one test al,al;je for both paths, ours an extra test/je (89.03 -> 95.12)
 // FUNCTION: CARMA2_HW 0x004ca6e0
-void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x8, tU8 field_0xa, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
+void C2_HOOK_FASTCALL PedUndoStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x8, tU8 field_0xa, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
     extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
     extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
     extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
@@ -887,7 +887,7 @@ void C2_HOOK_FASTCALL WorkerPedStatusUndo(int field_0x0, tU8 field_0x4, tU8 fiel
 }
 
 // FUNCTION: CARMA2_HW 0x004ca7d0
-void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
+void C2_HOOK_FASTCALL PedApplyPedPhysics(int field_0x0, br_matrix34* pMatrix) {
     extern tPedestrian* gPedestrian_array;
     extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
     extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
@@ -904,7 +904,7 @@ void C2_HOOK_FASTCALL WorkerPedPhysics(int field_0x0, br_matrix34* pMatrix) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ca830
-void C2_HOOK_FASTCALL WorkerPedPos(int field_0x0, br_vector3* pVec) {
+void C2_HOOK_FASTCALL PedApplyPedPos(int field_0x0, br_vector3* pVec) {
     extern int gBOOL_00744804;
     extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
     tPedestrian* ped;
@@ -924,26 +924,26 @@ void C2_HOOK_FASTCALL WorkerPedPos(int field_0x0, br_vector3* pVec) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ca890
-void C2_HOOK_FASTCALL DoVanishDismembered(uintptr_t pOwner, tS32 value) {
+void C2_HOOK_FASTCALL PedApplyVanishDismembered(uintptr_t pOwner, tS32 value) {
     *((tS32*)(*(undefined4**)pOwner) + 4) = value;
 }
 
 // FUNCTION: CARMA2_HW 0x004ca8a0
-void C2_HOOK_FASTCALL WorkerPedModelChangeUndo(int field_0x0, int field_0x4, int field_0xc, int field_0xa) {
+void C2_HOOK_FASTCALL PedApplyPedModelChangeP(int field_0x0, int field_0x4, int field_0xc, int field_0xa) {
     extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
-    extern void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
+    extern void C2_HOOK_FASTCALL SetCharacterBoneModelP(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
     tPedestrian* ped;
 
     ped = (tPedestrian*)field_0x0;
     if (field_0x4 < 0) {
         SetCharacterAllBonesModel(ped->character, -1, field_0xa);
     } else {
-        FUN_0040b500(ped->character, field_0x4, field_0xc, field_0xa);
+        SetCharacterBoneModelP(ped->character, field_0x4, field_0xc, field_0xa);
     }
 }
 
 // FUNCTION: CARMA2_HW 0x004ca8d0
-void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
+void C2_HOOK_FASTCALL PedApplyPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8) {
     extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
     extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
     tPedestrian* ped;
@@ -957,7 +957,7 @@ void C2_HOOK_FASTCALL WorkerPedModelChange(int field_0x0, int field_0x4, int fie
 }
 
 // FUNCTION: CARMA2_HW 0x004ca980
-void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4, int field_0x6) {
+void C2_HOOK_FASTCALL PedUndoDismember(int field_0x0, int field_0x4, int field_0x6) {
     extern const int gPow2_array[32];
     extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
     tPedestrian* ped;
@@ -979,9 +979,9 @@ void C2_HOOK_FASTCALL WorkerPedDismemberUndo(int field_0x0, int field_0x4, int f
 }
 
 // FUNCTION: CARMA2_HW 0x004ca900
-void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field_0x7) {
+void C2_HOOK_FASTCALL PedApplyDismember(int field_0x0, int field_0x4, int field_0x7) {
     extern const int gPow2_array[32];
-    extern tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
+    extern tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
     tPedestrian* ped;
     tPed_character_instance* character;
     br_actor* actor;
@@ -989,7 +989,7 @@ void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field
     ped = (tPedestrian*)field_0x0;
     ped->character->field_0xc |= gPow2_array[field_0x4];
     ped->character->field_0x6 = *(tS8*)&field_0x7;
-    MakeCharacterPhysicsForBone(ped->character, field_0x4, 1, 0);
+    SetSeveredLimbObject(ped->character, field_0x4, 1, 0);
     character = ped->character;
     actor = character->personality->form->actor_sets[(tS8)character->field_0x4].actors[field_0x4];
     if (actor->parent == NULL && (field_0x4 == 0 || (gPow2_array[field_0x4] & character->field_0xc) != 0)) {
@@ -1000,7 +1000,7 @@ void C2_HOOK_FASTCALL WorkerPedDismember(int field_0x0, int field_0x4, int field
 extern void C2_HOOK_FASTCALL DoGibShower(int pId, int pTime, int pSeed, int pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 
 // FUNCTION: CARMA2_HW 0x004ccae0
-void C2_HOOK_FASTCALL WorkerGibShower(int field_0x0, int field_0xc, int field_0x8, int field_0x10, int field_0x4, br_vector3* pField_0x14, br_vector3* pField_0x20, br_vector3* pField_0x2c) {
+void C2_HOOK_FASTCALL PedApplyGibShower(int field_0x0, int field_0xc, int field_0x8, int field_0x10, int field_0x4, br_vector3* pField_0x14, br_vector3* pField_0x20, br_vector3* pField_0x2c) {
 
     DoGibShower(field_0x0, field_0xc, field_0x8, field_0x10, field_0x4, pField_0x14, pField_0x20, pField_0x2c);
 }
@@ -1009,7 +1009,7 @@ extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime
 extern tSmash_vertex gSmash_glass_fragments[200];
 
 // FUNCTION: CARMA2_HW 0x004ccc40
-void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
+void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
     int i;
     tSmash_vertex* fragment;
     float delta_time;
@@ -1027,7 +1027,7 @@ void C2_HOOK_FASTCALL WorkerGibShowerUndo(int field_0xc, int prev_0x0, int prev_
 
 // based on ApexWorm/rec2 612dc29dc (reference only)
 // FUNCTION: CARMA2_HW 0x004d6180
-void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8) {
+void C2_HOOK_FASTCALL AdjustProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x4, int field_0x8) {
     extern tProximity_ray gProximity_rays[20];
     extern tPedestrian* gPedestrian_array;
     tCar_spec* car;
@@ -1043,11 +1043,11 @@ void C2_HOOK_FASTCALL WorkerProxRay(int field_0x0, tU16 field_0x6, tU16 field_0x
 }
 
 // FUNCTION: CARMA2_HW 0x004d6db0
-void C2_HOOK_FASTCALL WorkerPedDiagnostics(void* pOpponent, void* pField_0x4, void* pField_0x58, void* pField_0x144) {
+void C2_HOOK_FASTCALL AdjustPedDiagnostics(void* pOpponent, void* pField_0x4, void* pField_0x58, void* pField_0x144) {
 }
 
 // FUNCTION: CARMA2_HW 0x004da960
-void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
+void C2_HOOK_FASTCALL AdjustRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
     extern tRepulse_link gRepulse_links[6];
 
     gRepulse_links[field_0x0].pos_origin = (br_vector3*)field_0x4;
@@ -1057,7 +1057,7 @@ void C2_HOOK_FASTCALL WorkerRepulseRay(int field_0x0, int field_0x4, int field_0
 
 // based on ApexWorm/rec2 5b75cde93
 // FUNCTION: CARMA2_HW 0x004de000
-void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos) {
+void C2_HOOK_FASTCALL ARDoShitMine(int field_0x0, br_vector3* pPos) {
     br_actor* actor;
 
     actor = (br_actor*)field_0x0;
@@ -1069,7 +1069,7 @@ void C2_HOOK_FASTCALL WorkerShitMine(int field_0x0, br_vector3* pPos) {
 
 // based on ApexWorm/rec2 fdf25dcef
 // FUNCTION: CARMA2_HW 0x004de020
-void C2_HOOK_FASTCALL WorkerEndShitMine(int field_0x0, br_vector3* pPos) {
+void C2_HOOK_FASTCALL ARUndoShitMine(int field_0x0, br_vector3* pPos) {
     br_actor* actor;
 
     actor = (br_actor*)field_0x0;
@@ -1105,7 +1105,7 @@ void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4) {
 
 // based on ApexWorm/rec2 b70251db0
 // FUNCTION: CARMA2_HW 0x004e0710
-void C2_HOOK_FASTCALL WorkerSpecial(void) {
+void C2_HOOK_FASTCALL DoInitialTail(void) {
     tPhysics_object* collision_info;
 
     for (collision_info = gMutant_tail_first_collision_info; collision_info != NULL; collision_info = collision_info->child) {
@@ -1132,7 +1132,7 @@ void C2_HOOK_FASTCALL WorkerPowerupRespawnUndo(int field_0x0, int field_0x4) {
 }
 
 // FUNCTION: CARMA2_HW 0x004eb8f0
-void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, tU32 pActor, tU32 pTime, tU32 pArg9, br_vector3* pTransform, br_vector3* pFragment_owner, br_vector3* pPosition, tU32 pDistance, br_vector3* pArg14, tU32 pArg15) {
+void C2_HOOK_FASTCALL DoShrapnel(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, tU32 pActor, tU32 pTime, tU32 pArg9, br_vector3* pTransform, br_vector3* pFragment_owner, br_vector3* pPosition, tU32 pDistance, br_vector3* pArg14, tU32 pArg15) {
     extern int gINT_006a3334;
     extern br_matrix34 gShrapnel_shower_matrix;
     extern br_vector3 gVector3_006a4688;
@@ -1143,15 +1143,15 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
     extern int gCount_shrapnel_shower_calls;
     extern int gMax_count_non_cars;
     extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
-    extern float C2_HOOK_FASTCALL PositionFragment(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
+    extern float C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
     extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
     extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
     extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    extern void C2_HOOK_FASTCALL CreateSmashedGlassFragments(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
-    extern void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
-    extern void C2_HOOK_FASTCALL FUN_004c8940(uintptr_t pOwner);
+    extern void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
+    extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
+    extern void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pOwner);
     extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
     extern void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15);
     float fVar1;
@@ -1234,7 +1234,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
             if (pPosition == NULL) {
                 pPosition = &gVector3_00661678;
             }
-            FUN_004f8b50(pArg6, &gZero_vector__smash, pPosition, (float)sqrt(*(float*)&pDistance) * 10.0f, pShrapnel_spec[0xe], (br_material**)(pShrapnel_spec + 0xf));
+            CreateShrapnelShowerWorld(pArg6, &gZero_vector__smash, pPosition, (float)sqrt(*(float*)&pDistance) * 10.0f, pShrapnel_spec[0xe], (br_material**)(pShrapnel_spec + 0xf));
         }
         break;
     case 1:
@@ -1250,7 +1250,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
                 uVar10 = *(undefined4*)(pOwner + 0x78);
                 uVar2 = *(undefined4*)(pOwner + 0x74);
             }
-            CreateSmashedGlassFragments(pSeed, pArg4, (br_actor*)pActor, pTime, (int)uVar2, (const tU16*)uVar10, (int)uVar11, (const tU16*)uVar9, pShrapnel_spec[0xe], pShrapnel_spec[0x10], *(float*)(pShrapnel_spec + 0xf), (tSmashable_initial_speed_spec*)(pShrapnel_spec + 1), (const int*)(pShrapnel_spec + 8), pArg9, (br_matrix34*)pTransform);
+            ShatterObject(pSeed, pArg4, (br_actor*)pActor, pTime, (int)uVar2, (const tU16*)uVar10, (int)uVar11, (const tU16*)uVar9, pShrapnel_spec[0xe], pShrapnel_spec[0x10], *(float*)(pShrapnel_spec + 0xf), (tSmashable_initial_speed_spec*)(pShrapnel_spec + 1), (const int*)(pShrapnel_spec + 8), pArg9, (br_matrix34*)pTransform);
         }
         break;
     case 2:
@@ -1291,7 +1291,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
                     if (iVar7 == 0) {
                         break;
                     }
-                    fVar1 = PositionFragment(((tSmash_vertex*)iVar7)->actor, (tSmashable_initial_position_spec*)(pShrapnel_spec + 10), local_c4, (int)pArg5, (int)pArg6, (br_vector3*)pActor, (br_vector3*)pFragment_owner, (int)local_c8);
+                    fVar1 = SetInitPosition(((tSmash_vertex*)iVar7)->actor, (tSmashable_initial_position_spec*)(pShrapnel_spec + 10), local_c4, (int)pArg5, (int)pArg6, (br_vector3*)pActor, (br_vector3*)pFragment_owner, (int)local_c8);
                     ApplyInitialMovement((undefined4*)(pShrapnel_spec + 1), pArg4, &((tSmash_vertex*)iVar7)->v, &((tSmash_vertex*)iVar7)->omega, fVar1, &gZero_vector__smash, pArg14, &((tSmash_vertex*)iVar7)->actor->t.t.translate.t);
                     ((tSmash_vertex*)iVar7)->field_0xc = pTime;
                     ((tSmash_vertex*)iVar7)->time_last_move = pTime;
@@ -1341,7 +1341,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
                     gProgram_state.track_spec.non_car_list[gProgram_state.track_spec.count_non_cars] = (br_actor*)iVar6;
                     gProgram_state.track_spec.count_non_cars++;
                     BrActorAdd(gDont_render_actor, (br_actor*)iVar6);
-                    fVar1 = PositionFragment((br_actor*)iVar6, (tSmashable_initial_position_spec*)(pShrapnel_spec + 10), iVar6, (int)pArg5, (int)pArg6, (br_vector3*)pActor, (br_vector3*)pFragment_owner, local_a4);
+                    fVar1 = SetInitPosition((br_actor*)iVar6, (tSmashable_initial_position_spec*)(pShrapnel_spec + 10), iVar6, (int)pArg5, (int)pArg6, (br_vector3*)pActor, (br_vector3*)pFragment_owner, local_a4);
                     if (*(int*)(iVar6 + 0x5c) != 0 || (iVar7 = (int)DoPullActorFromWorld((br_actor*)iVar6)) == 0) {
                         BrActorRemove((br_actor*)iVar6);
                         BrActorFree((br_actor*)iVar6);
@@ -1380,7 +1380,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShower(tU32 pOwner, tU32 pShrapnel, tU32 pSe
                         *(int*)(local_c0 + 0x74) = pShrapnel_spec[0x14];
                         *(int*)(local_c0 + 0x78) = pShrapnel_spec[0x15];
                     }
-                    FUN_004c8940(gProgram_state.track_spec.count_non_cars - 1);
+                    PipeSingleNonCarCreation(gProgram_state.track_spec.count_non_cars - 1);
                     if (gNet_mode == 2) {
                         NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)local_c0, NULL);
                     }
@@ -1404,12 +1404,12 @@ extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime
 extern tSmash_vertex gSmash_glass_fragments[200];
 
 // FUNCTION: CARMA2_HW 0x004f0380
-void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
+void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
     int i;
     tSmash_vertex* fragment;
     float delta_time;
 
-    WorkerShrapnelShower(prev_0x4, prev_0x84, prev_0x44, prev_0x8, prev_0x20, prev_0x2c, prev_0x50, prev_0x48, prev_0x0, prev_0x54, prev_0x88, prev_0x14, prev_0xa0, prev_0x38, 0);
+    DoShrapnel(prev_0x4, prev_0x84, prev_0x44, prev_0x8, prev_0x20, prev_0x2c, prev_0x50, prev_0x48, prev_0x0, prev_0x54, prev_0x88, prev_0x14, prev_0xa0, prev_0x38, 0);
     delta_time = (float)(chunk_0x48 - prev_0x48);
     for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
         if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
@@ -1422,7 +1422,7 @@ void C2_HOOK_FASTCALL WorkerShrapnelShowerUndo(tU32 chunk_0x48, tU32 prev_0x4, t
 
 // based on ApexWorm/rec2 832cae840
 // FUNCTION: CARMA2_HW 0x004f5fa0
-void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
     br_model* pModel;
     br_material* pMaterial;
     const br_uint_16* source;
@@ -1448,7 +1448,7 @@ void C2_HOOK_FASTCALL WorkerUndoSmashRemoveFaces(int field_0x0, int field_0x8, v
 }
 
 // FUNCTION: CARMA2_HW 0x004f8630
-void C2_HOOK_FASTCALL WorkerSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
+void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
     br_vector3* pPos;
     br_vector3* pLength;
     int i;
@@ -1480,7 +1480,7 @@ extern int gShrapnel_flags;
 extern tShrapnel gShrapnel[30];
 
 // FUNCTION: CARMA2_HW 0x004f86f0
-void C2_HOOK_FASTCALL WorkerShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14) {
+void C2_HOOK_FASTCALL AdjustShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14) {
     int i;
 
     i = field_0x0 & 0x7fff;
@@ -1534,7 +1534,7 @@ void C2_HOOK_FASTCALL WorkerFlame(int index, int flag, float f1, float f2, float
 
 // PARTIAL 65.69%: reg roles (free_slot/i/ptr) and found-path offset hoist differ
 // FUNCTION: CARMA2_HW 0x004fef40
-void C2_HOOK_FASTCALL WorkerExtendedSplash(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
+void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
     int i;
     int free_slot;
     tReplay_splash* p;
@@ -1578,7 +1578,7 @@ found:
 
 // based on ApexWorm/rec2 8a2f3d992
 // FUNCTION: CARMA2_HW 0x004e0730
-void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
+void C2_HOOK_FASTCALL UndoInitialTail(void) {
     tPhysics_object* collision_info;
 
     for (collision_info = gMutant_tail_first_collision_info; collision_info != NULL; collision_info = collision_info->child) {
@@ -1587,24 +1587,24 @@ void C2_HOOK_FASTCALL WorkerSpecialUndo(void) {
 }
 
 extern void C2_HOOK_CDECL BrMatrix34ToTransform(br_transform* xform, const br_matrix34* mat);
-extern br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b);
+extern br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34(br_matrix34* m, br_actor* a, br_actor* b);
 
 // FUNCTION: CARMA2_HW 0x0040ca40
-void C2_HOOK_CDECL RelinkActorKeepWorldTransform(br_actor* pParent, br_actor* pActor) {
+void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor) {
     br_matrix34 mat;
 
     if (pActor->parent != pParent) {
-        ActorToActorMatrix34Local(&mat, pActor, pParent);
+        ActorToActorMatrix34(&mat, pActor, pParent);
         BrMatrix34ToTransform(&pActor->t, &mat);
         BrActorAdd(pParent, BrActorRemove(pActor));
     }
 }
 
-extern void C2_HOOK_FASTCALL FUN_0042f5d0(br_model* pModel, br_model** pModels, br_model** pModel_out, br_scalar* pPlane, int pFlag);
+extern void C2_HOOK_FASTCALL SplitModel(br_model* pModel, br_model** pModels, br_model** pModel_out, br_scalar* pPlane, int pFlag);
 
-// PARTIAL 36.22%: WorkerSplitWeldApply 0x0043c240 - logic complete (inlined MakeModelMaterialsDoubleSided loop); residual: original copies the 4 plane floats via fld/fstp (x87 hoisted), MSVC emits integer movs; frame/regalloc follow.
+// PARTIAL 36.22%: ARApplySplitWeld 0x0043c240 - logic complete (inlined MakeModelMaterialsDoubleSided loop); residual: original copies the 4 plane floats via fld/fstp (x87 hoisted), MSVC emits integer movs; frame/regalloc follow.
 // FUNCTION: CARMA2_HW 0x0043c240
-void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVector) {
+void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector) {
     tCar_spec* car;
     tCar_crush_spec* crush;
     tUser_crush_data* user;
@@ -1621,12 +1621,12 @@ void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVecto
     crush = car->car_crush_spec;
     user = car->car_model_actor->user;
     split_plane.v[3] = ((float*)pVector)[3] - (car->car_model_actor->t.t.translate.t.v[1] * split_plane.v[1] + car->car_model_actor->t.t.translate.t.v[0] * split_plane.v[0] + car->car_model_actor->t.t.translate.t.v[2] * split_plane.v[2]);
-    FUN_0042f5d0(user->models[0], (br_model**)crush->field_0x4c4, &crush->model_actor->model, split_plane.v, 0);
+    SplitModel(user->models[0], (br_model**)crush->field_0x4c4, &crush->model_actor->model, split_plane.v, 0);
     i = 1;
     if (1 < car->count_detail_levels) {
         do {
             if (user->models[i] != NULL) {
-                FUN_0042f5d0(user->models[i], (br_model**)crush->field_0x4c4 + i, &model, split_plane.v, 1);
+                SplitModel(user->models[i], (br_model**)crush->field_0x4c4 + i, &model, split_plane.v, 1);
             }
             i++;
         } while (i < car->count_detail_levels);
@@ -1660,7 +1660,7 @@ void C2_HOOK_FASTCALL WorkerSplitWeldApply(void* roadMachine, br_vector3* pVecto
 }
 
 // FUNCTION: CARMA2_HW 0x0043c3d0
-void C2_HOOK_FASTCALL WorkerSplitWeldUndo(void* roadMachine) {
+void C2_HOOK_FASTCALL ARUndoSplitWeld(void* roadMachine) {
     tCar_spec* car;
     tCar_crush_spec* spec;
     tUser_crush_data* user;
@@ -1758,9 +1758,9 @@ tU32 gUnk_006a23c8;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// Game-local copy of BrActorToActorMatrix34, with its own transform-combine table.
+// Game-local copy of BrActorToActorMatrix34_2, with its own transform-combine table.
 // FUNCTION: CARMA2_HW 0x0040c660
-br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34Local(br_matrix34* m, br_actor* a, br_actor* b) {
+br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34(br_matrix34* m, br_actor* a, br_actor* b) {
     br_uint_8 transform_type_combine[7][7] = {
         { 0, 0, 0, 0, 0, 0, 0 },
         { 0, 1, 1, 1, 1, 1, 1 },
@@ -1944,7 +1944,7 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
                 groove->actor->t.t.mat.m[2][2] = 1.f;
                 BrMatrix34PreRotateY(&groove->actor->t.t.mat, (br_angle)(angle * 65536.f));
                 if (pDrone->field_0xdc == 2) {
-                    DoNotDprintf("STEERING GROOVE: rot %f, h_radius %f, reverse %d, left_turn %d", angle, pDrone->h_radius, groove->steering.reverse, pDrone->left_turn);
+                    DoNotDprintf_opponent("STEERING GROOVE: rot %f, h_radius %f, reverse %d, left_turn %d", angle, pDrone->h_radius, groove->steering.reverse, pDrone->left_turn);
                 }
             }
             break;
@@ -1960,8 +1960,8 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #endif
 // RESIDUAL 97.44% (reccmp: effective 100): one symmetric SIB encoding differs at 0x4085c5 ([eax+esi] vs [esi+eax]); operand swap in the source flips the return-path load too, so it is the allocator's choice
 // FUNCTION: CARMA2_HW 0x00408580
-tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
-    extern int C2_HOOK_FASTCALL MakeCharacterPhysics(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
+tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
+    extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
     tPed_form* form;
     int iVar1;
     int iVar2;
@@ -1971,7 +1971,7 @@ tPhysics_object* C2_HOOK_FASTCALL MakeCharacterPhysicsForBone(tPed_character_ins
     pBone_index *= 4;
     iVar2 = *(int*)((int)form->actor_sets + 4 + (tS8)pCharacter->field_0x4 * 8);
     iVar2 = *(int*)(iVar2 + pBone_index);
-    iVar2 = MakeCharacterPhysics(pCharacter, (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index), (br_actor*)iVar2, (void*)(*(int*)(iVar2 + 0x18) + 0x34), NULL, 3, pArg3, pArg4, 0, NULL, NULL);
+    iVar2 = SetCollisionObject(pCharacter, (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index), (br_actor*)iVar2, (void*)(*(int*)(iVar2 + 0x18) + 0x34), NULL, 3, pArg3, pArg4, 0, NULL, NULL);
     if (iVar2 != 0) {
         return (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index);
     }
@@ -1994,9 +1994,9 @@ br_vector3 gVector3_00661678 = { { 0.0f, 1.0f, 0.0f } };
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004f8b50
-void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
-    extern void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
-    CreateShrapnelShower(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
+void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
+    extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+    CreateShrapnelShower2(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -2006,7 +2006,7 @@ void C2_HOOK_FASTCALL FUN_004f8b50(const br_vector3* pPosition, const br_vector3
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004ec370
-void C2_HOOK_FASTCALL CreateSmashedGlassFragments(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform) {
+void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform) {
     extern int gSplit_triangle_vertex_orders[6][3];
     extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
     extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
@@ -2209,7 +2209,7 @@ void C2_HOOK_FASTCALL CreateSmashedGlassFragments(tU32 pSeed, br_vector3* pDirec
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004c8940
-void C2_HOOK_FASTCALL FUN_004c8940(uintptr_t pOwner) {
+void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pOwner) {
     extern void C2_HOOK_FASTCALL ARDoSingleSession(int pType, uintptr_t pOwner, void* pData, tU32 pSize);
     extern br_vector3 gZero_vector__smash;
     ARDoSingleSession(32, pOwner, &gZero_vector__smash, 4);
@@ -2233,7 +2233,7 @@ int gSplit_triangle_vertex_orders[6][3] = {
 #endif
 
 // FUNCTION: CARMA2_HW 0x0040b500
-void C2_HOOK_FASTCALL FUN_0040b500(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4) {
+void C2_HOOK_FASTCALL SetCharacterBoneModelP(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4) {
     if (pCharacter->field_0x4 >= 0) {
         pCharacter->field_0xa = (tS8)pArg4;
         pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBone_index]->model = (br_model*)pArg3;
@@ -2283,7 +2283,7 @@ void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only) {
 #endif
 
 // FUNCTION: CARMA2_HW 0x0043be50
-void C2_HOOK_FASTCALL WorkerCrushUndo(int field_0x4, void* pField_0x8, void* pField_0xe) {
+void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
     br_model* pModel;
     br_vector3 offset;
     br_vector3 scaled_offset;

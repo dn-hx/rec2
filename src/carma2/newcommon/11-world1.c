@@ -312,7 +312,7 @@ void C2_HOOK_FASTCALL LoadAdditionalStuff(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00508e50
-intptr_t C2_HOOK_CDECL MoveModelVertices(br_actor* pActor, br_vector3* pOffset) {
+intptr_t C2_HOOK_CDECL OffsetModel(br_actor* pActor, br_vector3* pOffset) {
     int i;
 
     if (pActor->model != NULL) {

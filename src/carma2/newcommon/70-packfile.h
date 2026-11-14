@@ -12,7 +12,7 @@ extern void C2_HOOK_FASTCALL InitPackFiles(void);
 
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path);
 
-extern void C2_HOOK_FASTCALL ClosePackFile(tTWTVFS twt);
+extern void C2_HOOK_FASTCALL TWT_Unmount(tTWTVFS twt);
 
 extern int C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 
@@ -40,7 +40,7 @@ extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 
 extern int C2_HOOK_FASTCALL DRferror(FILE* pFile);
 
-extern void C2_HOOK_FASTCALL PFclearerr(FILE* pFile);
+extern void C2_HOOK_FASTCALL DRclearerr(FILE* pFile);
 
 extern void C2_HOOK_FASTCALL PFForEveryFile(const char* pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine);
 
@@ -55,8 +55,8 @@ extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
 extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
 
 
-extern int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile);
-extern int C2_HOOK_FASTCALL DRfsetpos(FILE* pF, fpos_t* pos);
-extern void C2_HOOK_FASTCALL PackfileNoOp(void);
+extern int C2_HOOK_FASTCALL PFgetc(FILE* pFile);
+extern int C2_HOOK_FASTCALL PFfsetpos(FILE* pF, fpos_t* pos);
+extern void C2_HOOK_FASTCALL TurnOnPaletteConversion(void);
 
 #endif // GUARD_70_PACKFILE_H

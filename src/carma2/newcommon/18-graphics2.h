@@ -62,7 +62,7 @@ extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them
 
 extern int C2_HOOK_FASTCALL DoMouseCursor(void);
 
-extern void C2_HOOK_FASTCALL AllocateCursorTransient(void);
+extern void C2_HOOK_FASTCALL InitMouseTargetLines(void);
 
 // InitMouseTargetLines
 
@@ -115,11 +115,11 @@ extern void C2_HOOK_FASTCALL DisableLights(void);
 
 extern void C2_HOOK_FASTCALL EnableLights(void);
 
-extern void C2_HOOK_FASTCALL DRPixelmapBlend75Copy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource);
+extern void C2_HOOK_FASTCALL DRPixelmapBlendyCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource);
 
 
-extern void C2_HOOK_FASTCALL DRSetPaletteByName(const char* pPalette_name);
-extern void C2_HOOK_FASTCALL DrawRectangleOutlineWithPalette(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour);
-extern void C2_HOOK_FASTCALL DrawBevelledRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour);
+extern void C2_HOOK_FASTCALL SwitchToPalette(const char* pPalette_name);
+extern void C2_HOOK_FASTCALL DrawRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour);
+extern void C2_HOOK_FASTCALL DRPixelmapShadedHRectFill(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour);
 
 #endif // GUARD_18_GRAPHICS2_H

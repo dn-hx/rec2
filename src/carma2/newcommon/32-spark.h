@@ -57,7 +57,7 @@ extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
 // CreateShrapnelShowerWorld
 
-extern void C2_HOOK_FASTCALL CreateShrapnelShower(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 // random
 
 // InitShrapnel
@@ -181,7 +181,7 @@ extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
 extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
 // DisposeKevStuff
 
-extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 
 // MakeCarIt
 
@@ -219,11 +219,11 @@ extern void C2_HOOK_FASTCALL InitReplaySplashes(void);
 
 
 extern int C2_HOOK_FASTCALL IsOnNonCarHalf(tCar_spec* pCar, br_vector3* pPos);
-extern tFace_ref* C2_HOOK_FASTCALL FindFloorInBoxM(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
-extern void C2_HOOK_CDECL AFEModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
-extern int C2_HOOK_FASTCALL SetModelAFEUpdateCB(br_model* pModel);
+extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
+extern void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
+extern int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel);
 extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
-extern intptr_t C2_HOOK_CDECL ForEveryActorModelNoGrooves(br_actor* pActor, void* pContext);
+extern intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext);
 extern tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner);
 
 #endif // GUARD_32_SPARK_H

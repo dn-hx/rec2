@@ -14,7 +14,7 @@ extern void C2_HOOK_FASTCALL CloseDirectInput(void);
 
 extern void PDSetKeyArray(int *pKeys, int pMark);
 
-extern void PDReadJoysticks(void);
+extern void PDReadJoySticks(void);
 
 extern int GetDirectInputJoy1X(void);
 

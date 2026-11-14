@@ -55,7 +55,7 @@ int gPHIL_count_queued_objects = 0;
 
 // FUNCTION: CARMA2_HW 0x0049be90
 // FUNCTION: CARMA2_SW 0x00498010
-void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const br_matrix34* pMatrix) {
+void C2_HOOK_FASTCALL LPMatrixToFixedQuat(tFixed_quat* pOrientation, const br_matrix34* pMatrix) {
     br_quat quaternion;
     br_scalar value;
 
@@ -102,7 +102,7 @@ void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const 
     pOrientation->v[3] = (tU16)(value + .5f);
 }
 
-// GetMatrixFromOrientation
+// FixedQuatFractionToLPMatrix
 
 // OmegaCompScalarTo16
 
@@ -174,8 +174,8 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
             value *= 65534.f;
             pBuffer16[1] = (tU16)(value + .5f);
 
-            pBuffer16[2] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
-            pBuffer16[3] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+            pBuffer16[2] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+            pBuffer16[3] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
             return 0xc;
         case eJoint_universal:
         case eJoint_ball_n_socket:
@@ -221,8 +221,8 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
             value *= 65534.f;
             ((tU16*)pBuffer)[5] = (tU16)(value + .5f);
 
-            ((tU16*)pBuffer)[6] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
-            ((tU16*)pBuffer)[7] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+            ((tU16*)pBuffer)[6] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+            ((tU16*)pBuffer)[7] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
             return 0x10;
         case eJoint_none:
             break;
@@ -279,13 +279,13 @@ int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffe
     value *= 65534.f;
     ((tU16*)(pBuffer + 0x14))[1] = (tU16)(value + .5f);
 
-    ((tU16*)(pBuffer + 0x14))[2] = (tU16)QuantizeFloatToInt(quat.z, -1.f, 1.f);
-    ((tU16*)(pBuffer + 0x14))[3] = (tU16)QuantizeFloatToInt(quat.w, -1.f, 1.f);
+    ((tU16*)(pBuffer + 0x14))[2] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+    ((tU16*)(pBuffer + 0x14))[3] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
     return 0x28;
 }
 
 // FUNCTION: CARMA2_HW 0x0049c5e0
-int C2_HOOK_STDCALL QuantizeFloatToInt(float pVal, float pMin, float pMax) {
+int C2_HOOK_STDCALL FloatToFixedFraction(float pVal, float pMin, float pMax) {
 
     if (pVal > pMax) {
         pVal = pMax;
@@ -1058,9 +1058,9 @@ void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysic
         }
     }
 }
-extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, br_scalar pDt);
-extern void C2_HOOK_FASTCALL PhysicsObjectSetImpulse(tPhysics_object* pObject, br_vector3* pImpulse);
-extern void C2_HOOK_FASTCALL PhysicsObjectMoveVelocity(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
+extern void C2_HOOK_FASTCALL SetGravityDeltaV(tPhysics_object* pObject, br_vector3* pImpulse);
+extern void C2_HOOK_FASTCALL ApplyGravitySingleObject(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DRVector3Diminish(br_vector3* pV1, const br_vector3* pV2);
 extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 extern float gGravity_multiplier;
@@ -1080,7 +1080,7 @@ void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt)
     pObject->actor->t.t.mat.m[3][0] += t0;
     pObject->actor->t.t.mat.m[3][1] += t1;
     pObject->actor->t.t.mat.m[3][2] += t2;
-    InterpolateSingleObject(pObject, pDt);
+    SimpleRotate(pObject, pDt);
     for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
         RepositionObjectGroup(pChild, pDt);
     }
@@ -1100,7 +1100,7 @@ void C2_HOOK_FAKE_THISCALL RepositionObjectSiblings(tPhysics_object* pObject, un
         pObject->actor->t.t.mat.m[3][0] += t0;
         pObject->actor->t.t.mat.m[3][1] += t1;
         pObject->actor->t.t.mat.m[3][2] += t2;
-        InterpolateSingleObject(pObject, pDt);
+        SimpleRotate(pObject, pDt);
         if (pObject->child != NULL) {
             RepositionObjectSiblings(pObject->child REC2_THISCALL_EDX, pDt);
         }
@@ -1121,12 +1121,12 @@ extern int gINT_00692ddc;
 extern tPhysics_joint_force gCollision_contacts[50];
 extern void C2_HOOK_FASTCALL ClearPhysicsScratchSpace(void);
 extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL DRMatrix33Inverse(tPhysics_object* pObject, int pFlag);
-extern int C2_HOOK_FASTCALL SetUpQuickHingeData(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL SetGroup(tPhysics_object* pObject, int pFlag);
+extern int C2_HOOK_FASTCALL DoInterGroupCollisions(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
 extern void C2_HOOK_FASTCALL PhysicsWarning(const char* pMessage);
-extern int C2_HOOK_FASTCALL AddDoubleTorqueToMatrix(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
-extern void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks);
 
 
@@ -1215,14 +1215,14 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
                 obj->field_0x1dc = (tU8)marker;
                 for (sibling = obj->child; sibling != NULL; sibling = sibling->next) {
                     if (sibling->physics_joint1 != NULL && sibling->physics_joint1->type != 0) {
-                        DRMatrix33Inverse(sibling, marker);
+                        SetGroup(sibling, marker);
                     }
                 }
                 gINT_006940a0++;
             }
             loops = 0;
             gINT_006940a4 = 0;
-            r = SetUpQuickHingeData(pObject_list, obj, pBuf1, pBuf2, 0, pWorld_callbacks);
+            r = DoInterGroupCollisions(pObject_list, obj, pBuf1, pBuf2, 0, pWorld_callbacks);
             while (r != 0) {
                 loops++;
                 tmp = pBuf1;
@@ -1234,7 +1234,7 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
                 if (gINT_006940a4 >= 3) {
                     break;
                 }
-                r = SetUpQuickHingeData(pObject_list, obj, pBuf1, pBuf2, r, pWorld_callbacks);
+                r = DoInterGroupCollisions(pObject_list, obj, pBuf1, pBuf2, r, pWorld_callbacks);
             }
             if (loops >= 0x1e) {
                 PhysicsWarning("Too many loops in DoCollisions");
@@ -1246,7 +1246,7 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
         NewAddFriction(contact, pWorld_callbacks);
     }
 
-    AddDoubleTorqueToMatrix(*pObject_list);
+    WriteNewPositions(*pObject_list);
 
     for (obj = *pObject_list; obj != NULL; obj = obj->next) {
         if (obj->disable_move_rotate != 0) {
@@ -1284,7 +1284,7 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
 
     for (obj = *pObject_list; obj != NULL; obj = obj->next) {
         if (obj->disable_move_rotate == 0) {
-            TranslateObject(obj);
+            DoJointFriction(obj);
         }
     }
 }
@@ -1315,8 +1315,8 @@ void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics
         gravity.v[2] = 0.0f;
         gravity.v[1] = pGravity * gGravity_multiplier * -0.05681159420289855;
     }
-    PhysicsObjectSetImpulse(pObject, &gravity);
-    PhysicsObjectMoveVelocity(pObject);
+    SetGravityDeltaV(pObject, &gravity);
+    ApplyGravitySingleObject(pObject);
 }
 // PARTIAL 79.86%: ProcessDrag2 0x004b6ce0 - body complete; remaining diff is x87 scheduling in the drag
 // coefficient and the two length/scale blocks plus one commutative operand swap.

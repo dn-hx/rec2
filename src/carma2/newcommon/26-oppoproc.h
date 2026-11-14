@@ -59,6 +59,6 @@ extern int C2_HOOK_FASTCALL FUN_004b24f0(int* pIndex);
 
 extern int C2_HOOK_FASTCALL FUN_004b2740(int* pIndex);
 
-extern int C2_HOOK_FASTCALL FUN_004b2640(int* pNew_choice, int* pNew_mode, int pX, int pY);
+extern int C2_HOOK_FASTCALL RadioClick(int* pNew_choice, int* pNew_mode, int pX, int pY);
 
 #endif // GUARD_26_OPPOPROC_H

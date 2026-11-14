@@ -25,11 +25,11 @@ extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
 extern void C2_HOOK_FASTCALL CycleTargetLock(void);
 
 extern void C2_HOOK_FASTCALL CycleMapOptions(void);
-extern void C2_HOOK_FASTCALL ToggleMapTransparency(void);
+extern void C2_HOOK_FASTCALL ToggleMapTrans(void);
 
 extern void C2_HOOK_FASTCALL InitTargetLock(void);
 
-extern void C2_HOOK_FASTCALL FUN_00497860(int* pA, int* pB);
+extern void C2_HOOK_FASTCALL ReceivedViewCar(int* pA, int* pB);
 
 extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 // OppositeColour
@@ -92,6 +92,6 @@ extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
 
 
 extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
-extern int C2_HOOK_FASTCALL GetOpponentStatus(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
 
 #endif // GUARD_62_GRAPHICS3_H

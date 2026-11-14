@@ -356,7 +356,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedMac4(br_fixed_ls a, br_fixed_ls b, br_
 // FUNCTION: CARMA2_HW 0x005371b8
 br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength2(br_fixed_ls a, br_fixed_ls b) {
 #ifndef REC2_MATCHING
-    return _BrISqrt64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b);
+    return _BrSqrtI64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b);
 #else
     __asm {
         push ebp
@@ -373,7 +373,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength2(br_fixed_ls a, br_fixed_ls b) 
         imul eax
         add ebx, eax
         adc ecx, edx
-        call _BrISqrt64
+        call _BrSqrtI64
         pop esi
         pop edx
         pop ecx
@@ -387,7 +387,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength2(br_fixed_ls a, br_fixed_ls b) 
 // FUNCTION: CARMA2_HW 0x005371dc
 br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength3(br_fixed_ls a, br_fixed_ls b, br_fixed_ls c) {
 #ifndef REC2_MATCHING
-    return _BrISqrt64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b + (br_int_64)c * (br_int_64)c);
+    return _BrSqrtI64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b + (br_int_64)c * (br_int_64)c);
 #else
     __asm {
         push ebp
@@ -408,7 +408,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength3(br_fixed_ls a, br_fixed_ls b, 
         imul eax
         add ebx, eax
         adc ecx, edx
-        call _BrISqrt64
+        call _BrSqrtI64
         pop esi
         pop edx
         pop ecx
@@ -422,7 +422,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength3(br_fixed_ls a, br_fixed_ls b, 
 // FUNCTION: CARMA2_HW 0x00537209
 br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength4(br_fixed_ls a, br_fixed_ls b, br_fixed_ls c, br_fixed_ls d) {
 #ifndef REC2_MATCHING
-    return _BrISqrt64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b + (br_int_64)c * (br_int_64)c + (br_int_64)d * (br_int_64)d);
+    return _BrSqrtI64((br_int_64)a * (br_int_64)a + (br_int_64)b * (br_int_64)b + (br_int_64)c * (br_int_64)c + (br_int_64)d * (br_int_64)d);
 #else
     __asm {
         push ebp
@@ -447,7 +447,7 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedLength4(br_fixed_ls a, br_fixed_ls b, 
         imul eax
         add ebx, eax
         adc ecx, edx
-        call _BrISqrt64
+        call _BrSqrtI64
         pop esi
         pop edx
         pop ecx
@@ -1668,7 +1668,7 @@ br_angle BR_NAKED C2_HOOK_CDECL BrFixedATan2Fast(br_fixed_ls x, br_fixed_ls y) {
 }
 
 // FUNCTION: CARMA2_HW 0x005378bb
-br_uint_16 C2_HOOK_CDECL _BrISqrt32(br_uint_32 a) {
+br_uint_16 C2_HOOK_CDECL _BrSqrtI32(br_uint_32 a) {
     // Shifting nth root algorithm
     uint32_t err;
     uint32_t est;
@@ -1710,7 +1710,7 @@ br_uint_16 C2_HOOK_CDECL _BrISqrt32(br_uint_32 a) {
 }
 
 // FUNCTION: CARMA2_HW 0x00537a13
-br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrISqrt64(uint64_t a) {
+br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrSqrtI64(uint64_t a) {
 #ifndef REC2_MATCHING
     // Shifting nth root algorithm
     uint64_t err;
@@ -2067,7 +2067,7 @@ br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrISqrt64(uint64_t a) {
 
 // PARTIAL 94.74%: .data layout - original packs fixed_atan_table/fast_sqrt_table at 2-byte offsets (sqrt at atan+514); MSVC 5.0 8-aligns every global array (sqrt at atan+520), so the operand renders fixed_atan_table[196] vs [193]. Body is instruction-identical otherwise.
 // FUNCTION: CARMA2_HW 0x00537cba
-br_uint_16 BR_NAKED C2_HOOK_CDECL _BrFastSqrt32(br_uint_32 v) {
+br_uint_16 BR_NAKED C2_HOOK_CDECL _BrFastSqrt(br_uint_32 v) {
 #ifndef REC2_MATCHING
     uint32_t exp;
 

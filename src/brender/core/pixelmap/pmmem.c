@@ -130,7 +130,7 @@ br_device_pixelmap* C2_HOOK_STDCALL DevicePixelmapMemAllocate(br_uint_8 type, br
         }
     }
 
-     pm->pm_pixels_qualifier = GetSysQual();
+     pm->pm_pixels_qualifier = _GetSysQual();
 
     if (flags & BR_PMAF_INVERTED) {
         pm->pm_pixels = (char*)pm->pm_pixels + (pm->pm_height - 1) * pm->pm_row_bytes;
@@ -245,7 +245,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_resize(br_device_pixelmap* self
         self->pm_flags |= BR_PMF_ROW_WHOLEPIXELS;
     }
     self->pm_pixels = BrResAllocate(self, self->pm_row_bytes * self->pm_height, BR_MEMORY_PIXELS);
-    self->pm_pixels_qualifier = GetSysQual();
+    self->pm_pixels_qualifier = _GetSysQual();
     if (old_row_bytes < 0) {
         self->pm_pixels = (char *)self->pm_pixels + (self->pm_height - 1) * self->pm_row_bytes;
         self->pm_row_bytes = -self->pm_row_bytes;

@@ -162,8 +162,8 @@ void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
 
     gOur_pos = &gPlayer_car_master_actor->t.t.translate.t;
     PositionExternalCamera(&gProgram_state.current_car, pCamera_period);
-    BrActorToActorMatrix34(&gCamera_to_world, gCamera, gUniverse_actor);
-    BrActorToActorMatrix34(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
+    BrActorToActorMatrix34_2(&gCamera_to_world, gCamera, gUniverse_actor);
+    BrActorToActorMatrix34_2(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
     gCamera_to_horiz_angle = FastScalarArcTan2(gCamera_to_world.m[2][1], gCamera_to_world.m[1][1]);
     gYon_squared = gYon_multiplier * gYon_multiplier * ((br_camera*)gCamera->type_data)->yon_z * ((br_camera*)gCamera->type_data)->yon_z;
     if ((REC2_SQR(gCamera_to_world.m[3][0] - gPrev_camera_position.v[0]) + REC2_SQR(gCamera_to_world.m[3][1] - gPrev_camera_position.v[1])) + REC2_SQR(gCamera_to_world.m[3][2] - gPrev_camera_position.v[2]) > 400.0) {
@@ -325,7 +325,7 @@ extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
 extern void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void);
 extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
 extern void C2_HOOK_FASTCALL ResetCarScreens(void);
-extern void C2_HOOK_FASTCALL NetFinishRace(tNet_game_details* pDetails, tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
 extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 
 #ifdef REC2_MATCHING
@@ -384,7 +384,7 @@ static void MLPageInProcessMemory(void) {
 }
 #else
 /* Non-matching builds only: windows.h is included under REC2_MATCHING at the top of
- * this file, and with it the two externs above (inside the same guard). FUN_00492840
+ * this file, and with it the two externs above (inside the same guard). PrecacheData
  * below uses all three in every build, so mirror them here. Nothing inside the
  * REC2_MATCHING branch changes, which keeps the matching token stream identical. */
 #include <windows.h>
@@ -524,7 +524,7 @@ static int MungeRaceFinished(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00492840
-void C2_HOOK_FASTCALL FUN_00492840(volatile tU8* pBase, tU32 pSize) {
+void C2_HOOK_FASTCALL PrecacheData(volatile tU8* pBase, tU32 pSize) {
     tU32 current;
 
     if (gPage_size == 0) {
@@ -981,7 +981,7 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
         ResetCarScreens();
     }
     if (gAbandon_game && gNet_mode == eNet_mode_host && gRace_over_reason < 8) {
-        NetFinishRace(gCurrent_net_game, eRace_over_abandoned);
+        NetFinishrace(gCurrent_net_game, eRace_over_abandoned);
     }
     if (gAction_replay_mode) {
         ToggleReplay(NULL, NULL);
@@ -1276,7 +1276,7 @@ munge:
 void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
     extern tPedestrian* gPedestrian_array;
     extern br_material* gPed_smear_material;
-    extern int C2_HOOK_FASTCALL SkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step);
+    extern int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step);
     tPedestrian* ped;
     int i;
 
@@ -1298,7 +1298,7 @@ void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
                 if (!(smear_info->field_0xc4 & 0x1)) {
                     smear_info->field_0xc4 |= 0x1;
                     smear_info->field_0xc8 = -1;
-                } else if (SkidSection(
+                } else if (WheelSkidSection(
                         &smear_info->field_0xc8,
                         &smear_info->field_0xcc,
                         &smear_info->field_0xd8,
@@ -1324,10 +1324,10 @@ void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
 void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
     extern float gReplay_rate;
-    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 
     if (gReplay_rate != 0.0f) {
-        ARDoActionReplay((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
+        MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
     }
 }
 
@@ -1362,7 +1362,7 @@ int gUnk_006a23cc;
 tU32 gUnk_006a23d0;
 
 // FUNCTION: CARMA2_HW 0x00413860
-void C2_HOOK_FASTCALL PickActionReplayManualCameraTarget(int pCursor_x, int pCursor_y, int pArg3) {
+void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3) {
     extern tActionReplayCameraMode gAction_replay_camera_mode;
     extern br_vector3 gAction_replay_manual_camera_target_position;
     extern int gAction_replay_manual_camera_target_type;
@@ -1510,33 +1510,33 @@ void C2_HOOK_FASTCALL PickActionReplayManualCameraTarget(int pCursor_x, int pCur
 }
 
 // FUNCTION: CARMA2_HW 0x00403c70
-void C2_HOOK_FASTCALL FUN_00403c70(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
+void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
     extern float gReplay_rate;
     extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
     float saved_replay_rate;
 
     gDisable_piped_sounds = 1;
     saved_replay_rate = gReplay_rate;
     gReplay_rate = -100.0f;
-    ARDoActionReplay(-2147483647, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
+    MoveReplayBuffer(-2147483647, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
     gDisable_piped_sounds = 0;
     gReplay_rate = saved_replay_rate;
 }
 
 // FUNCTION: CARMA2_HW 0x00403210
-void C2_HOOK_FASTCALL FUN_00403210(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
+void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
     extern float gReplay_rate;
     extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
     float saved_replay_rate;
 
     gDisable_piped_sounds = 1;
     saved_replay_rate = gReplay_rate;
     gReplay_rate = 100.0f;
-    ARDoActionReplay(0x7fffffff, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
+    MoveReplayBuffer(0x7fffffff, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
     gDisable_piped_sounds = 0;
     gReplay_rate = saved_replay_rate;
 }
@@ -1558,7 +1558,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
     extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
     extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
     extern int C2_HOOK_FASTCALL ARReplayPauseState(void);
-    extern void C2_HOOK_FASTCALL ARSetPause(int pPause);
+    extern void C2_HOOK_FASTCALL SetReplayPaused(int pPause);
     extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
     extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
     extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
@@ -1614,7 +1614,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
                 }
             }
             if (i == 9 && !gUnk_006a23cc) {
-                PickActionReplayManualCameraTarget(mouse_x, mouse_y, 0);
+                MouseClickInActionReplay(mouse_x, mouse_y, 0);
             }
             gUnk_006a23cc = 1;
         } else {
@@ -1633,11 +1633,11 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
         gReplay_show_controls = 0;
     }
     if ((gKey_down == 0x56 || gKey_down == 0x6a) && (prev_key == -1 || prev_key == 4)) {
-        ARSetPause(!ARReplayPauseState());
+        SetReplayPaused(!ARReplayPauseState());
     } else if ((gKey_down == 0x51 || gKey_down == 0x32) && (prev_key == -1 || prev_key == 4)) {
         ARSetReplayDirection((float)-ARGetReplayDirection());
         if (ARReplayPauseState()) {
-            ARSetPause(0);
+            SetReplayPaused(0);
         }
     }
     if (gKey_down == 0x52 && (prev_key == -1 || prev_key == 4)) {
@@ -1671,11 +1671,11 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
     } else if (gKey_down == 0x3b) {
         ARSetReplayRate(-1.0f);
         ARSetReplayDirection(-1.0f);
-        ARSetPause(0);
+        SetReplayPaused(0);
     } else if (gKey_down == 0x3a) {
         ARSetReplayRate(1.0f);
         ARSetReplayDirection(1.0f);
-        ARSetPause(0);
+        SetReplayPaused(0);
     } else {
         if (ARReplayPauseState()) {
             ARSetReplayRate(0.0f);
@@ -1690,7 +1690,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
         }
         RenderAFrame(1);
         RenderAFrame(1);
-        FUN_00403c70((tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess);
+        ARMoveToStartOfReplay((tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess);
         if (gNoTransients) {
             gRecording_mouse_disabled = 0;
         }
@@ -1699,7 +1699,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
         GrooveThoseDelics();
         ARSetReplayRate(0.0f);
         ARSetReplayDirection(1.0f);
-        ARSetPause(1);
+        SetReplayPaused(1);
     } else if ((gKey_down == 0x5a || gKey_down == 0x43) && (prev_key == -1 || prev_key == 4)) {
         gTime_of_last_zappy_headups = 0;
         if (gNoTransients) {
@@ -1707,7 +1707,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
         }
         RenderAFrame(1);
         RenderAFrame(1);
-        FUN_00403210((tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess);
+        ARMoveToEndOfReplay((tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess);
         if (gNoTransients && !MovieRecording()) {
             gRecording_mouse_disabled = 0;
         }
@@ -1716,7 +1716,7 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
         GrooveThoseDelics();
         ARSetReplayRate(0.0f);
         ARSetReplayDirection(-1.0f);
-        ARSetPause(1);
+        SetReplayPaused(1);
     }
     if (*(float*)&gUnk_006a2378 != 0.0f) {
         ARSetReplayRate(*(float*)&gUnk_006a2378);
@@ -1844,11 +1844,11 @@ int gINT_00596308 = -1;
 tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
 
 // FUNCTION: CARMA2_HW 0x0045b790
-void C2_HOOK_FASTCALL FUN_0045b790(tHeadup_text_buffer* pBuffer) {
+void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer) {
     extern const char* gJoystick_headup_texts[];
     extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
     extern char* C2_HOOK_CDECL strncpy(char* pDest, const char* pSrc, unsigned int pCount);
-    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
     const char** entry;
     tHeadup_text* mem;
 
@@ -1858,7 +1858,7 @@ void C2_HOOK_FASTCALL FUN_0045b790(tHeadup_text_buffer* pBuffer) {
         if (mem != NULL) {
             mem->next = NULL;
             strncpy(mem->text, *entry, 0x28);
-            FUN_0045a920(pBuffer, mem, 0);
+            StoreTextHeadup(pBuffer, mem, 0);
         }
         entry += 2;
     } while ((int)entry < (int)(gJoystick_headup_texts + 42));

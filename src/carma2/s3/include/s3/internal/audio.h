@@ -96,13 +96,13 @@ extern tS3_error_codes C2_HOOK_FASTCALL S3ClearBufferOfMidiChannel(int pTag);
 
 extern int C2_HOOK_FASTCALL S3ReleaseSound(int pSound_id);
 
-extern double C2_HOOK_STDCALL S3FRandomBetween(double pMin, double pMax);
+extern double C2_HOOK_STDCALL S3FRandomBetween_1(double pMin, double pMax);
 
 extern int C2_HOOK_FASTCALL S3IRandomBetween(int pMin, int pMax, int pDefault);
 
 extern int C2_HOOK_FASTCALL S3IRandomBetween__dup(int pMin, int pMax, int pDefault);
 
-extern int C2_HOOK_FASTCALL S3IRandomBetweenLog(int pMin, int pMax, int pDefault);
+extern int C2_HOOK_FASTCALL S3IRandomBetweenLog_1(int pMin, int pMax, int pDefault);
 
 extern int C2_HOOK_FASTCALL S3FreeUnboundChannels(void);
 
@@ -114,7 +114,7 @@ extern int C2_HOOK_FASTCALL S3ServiceChannel(tS3_channel *pChannel);
 
 extern int C2_HOOK_FASTCALL S3ServiceSpatialSound(tS3_channel* pChannel);
 
-extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceInternal(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
+extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet);
 
 extern tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSourceBR(br_vector3* pPosition, br_vector3* pVelocity, tS3_outlet* pBound_outlet);
 
@@ -156,19 +156,19 @@ extern int C2_HOOK_FASTCALL S3IsCDAPlaying(void);
 
 extern int C2_HOOK_FASTCALL S3UpdateCDAVolume(tS3_channel* pChannel, int pVolume);
 
-extern double C2_HOOK_STDCALL S3FRandomBetween2(double pMin, double pMax);
+extern double C2_HOOK_STDCALL S3FRandomBetween_2(double pMin, double pMax);
 
-extern int C2_HOOK_FASTCALL S3IRandomBetweenLog__dup(int pMin, int pMax, int pDefault);
+extern int C2_HOOK_FASTCALL S3IRandomBetweenLog_2(int pMin, int pMax, int pDefault);
 
 extern tS3_error_codes C2_HOOK_FASTCALL S3SetChannelPitch(tS3_sound_tag pChannel_tag, int pPitch);
 
-extern void C2_HOOK_FASTCALL S3ToggleEnabled(void);
+extern void C2_HOOK_FASTCALL S3Toggle(void);
 
 extern int C2_HOOK_FASTCALL S3GetTerminationReason(tS3_channel* pChannel);
 
 extern int C2_HOOK_FASTCALL S3GetRepetitions(tS3_channel* pChannel);
 
-extern int C2_HOOK_FASTCALL S3CountActiveChannels(tS3_outlet* pOutlet);
+extern int C2_HOOK_FASTCALL S3GetChannelCount(tS3_outlet* pOutlet);
 
 extern int C2_HOOK_FASTCALL S3GetLastError(void);
 
@@ -186,13 +186,13 @@ extern int C2_HOOK_FASTCALL S3SetSoundSourceBinding(tS3_sound_source* pSource, v
 
 extern void C2_HOOK_FASTCALL S3LoadSampleList(int* pSample_ids, int pCount);
 
-extern void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_count);
+extern void C2_HOOK_FASTCALL S3ReleaseSounds(int* pSound_ids, int pSound_count);
 extern void C2_HOOK_FASTCALL S3UpdateSampleList(int* pSound_ids, int pSound_count, int* pSample_ids, int pSample_count);
 
 extern int C2_HOOK_FASTCALL FUN_0056a71f(int pTag, int pArg2, int pArg3, int pArg4, int pArg5);
 extern int C2_HOOK_FASTCALL FUN_00565c82(int pTag);
 
-extern int C2_HOOK_FASTCALL S3ChangePitchSpeed(tS3_sound_tag pTag, int pPitch);
+extern int C2_HOOK_FASTCALL S3UpdateFrequencyChannel(tS3_sound_tag pTag, int pPitch);
 
 extern void C2_HOOK_FASTCALL S3EnableMidi(void);
 
@@ -208,11 +208,11 @@ extern int C2_HOOK_FASTCALL FUN_005667af(tS3_sound_id pSound, tS3_sound_source* 
 
 extern int C2_HOOK_FASTCALL S3NotifyUnbindChannel(tS3_channel* pChannel);
 
-extern tS3_error_codes C2_HOOK_FASTCALL FUN_00564a56(tS3_sound_tag pChannel_tag, int pPitch);
+extern tS3_error_codes C2_HOOK_FASTCALL S3UpdateFrequencySampleChannel(tS3_sound_tag pChannel_tag, int pPitch);
 
-extern int C2_HOOK_FASTCALL FUN_0056a6cd(int pTag, int pPitch);
+extern int C2_HOOK_FASTCALL S3UpdateFrequencyMidiChannel(int pTag, int pPitch);
 
-extern int C2_HOOK_FASTCALL PDS3UpdateMidiChannelPitch(tS3_channel* pChannel, int pPitch);
+extern int C2_HOOK_FASTCALL PDApplyFrequencyMidi(tS3_channel* pChannel, int pPitch);
 
 extern int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel);
 
@@ -223,15 +223,15 @@ extern int C2_HOOK_FASTCALL FUN_0056a5c4(int pTag);
 extern int C2_HOOK_FASTCALL FUN_0056a605(int pTag);
 extern int C2_HOOK_FASTCALL FUN_0056a646(int pTag);
 
-extern int C2_HOOK_FASTCALL FUN_00569d01(tS3_channel* pChannel);
+extern int C2_HOOK_FASTCALL PDS3CloseMidiChannel(tS3_channel* pChannel);
 
 extern int C2_HOOK_FASTCALL FUN_0056a548(int pVolume);
 
-extern void C2_HOOK_FASTCALL FUN_0056a8a0(tS3_callbacks* pCallbacks);
+extern void C2_HOOK_FASTCALL S3SetCallbacks(tS3_callbacks* pCallbacks);
 
-extern int C2_HOOK_FASTCALL FUN_00564a21(tS3_sound_tag pTag, int pPitch);
+extern int C2_HOOK_FASTCALL S3SetFrequency(tS3_sound_tag pTag, int pPitch);
 
-extern int C2_HOOK_FASTCALL FUN_00564d33(void);
+extern int C2_HOOK_FASTCALL S3IsEnabled(void);
 
 extern int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2);
 

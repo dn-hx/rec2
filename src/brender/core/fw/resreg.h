@@ -24,10 +24,10 @@ br_uint_32 C2_HOOK_CDECL BrResClassCount(char* pattern);
 br_uint_32 C2_HOOK_CDECL BrResClassEnum(char* pattern, br_resclass_enum_cbfn* callback, void* arg);
 
 
-extern void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
+extern void C2_HOOK_CDECL BrBlockFill(br_uint_32* pDestination, br_uint_32 pValue, int pCount);
 
-extern void C2_HOOK_CDECL FUN_0052814e(br_uint_32* pDestination, br_uint_32* pSource, int pCount);
+extern void C2_HOOK_CDECL BrBlockCopy(br_uint_32* pDestination, br_uint_32* pSource, int pCount);
 
-extern void C2_HOOK_CDECL FUN_0052816c(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount);
+extern void C2_HOOK_CDECL BrFarBlockCopy(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount);
 
 #endif // REC2_RESREG_H

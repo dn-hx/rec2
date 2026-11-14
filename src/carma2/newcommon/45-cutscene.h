@@ -14,7 +14,7 @@ extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoNewGameAnimation(void);
 
-extern void C2_HOOK_FASTCALL DoGoToRaceAnimation(void);
+extern void C2_HOOK_FASTCALL DoGoToTrackAnimation(void);
 
 extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
 
@@ -28,7 +28,7 @@ extern void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name);
 
 
 extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
-extern void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse(void);
+extern void C2_HOOK_FASTCALL WaitForAKey(void);
 extern void C2_HOOK_FASTCALL DustRotate(void);
 extern void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void);
 

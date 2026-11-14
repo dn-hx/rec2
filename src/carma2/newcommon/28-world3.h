@@ -81,7 +81,7 @@ extern void C2_HOOK_FASTCALL DodgyModelUpdate(br_model* pM);
 
 extern void C2_HOOK_FASTCALL LoadIfItsAPixelmap(const char* pPath);
 
-extern void C2_HOOK_FASTCALL LoadAllPixelmapsInDirectory(tBrender_storage* pStorage, const char* pPath);
+extern void C2_HOOK_FASTCALL LoadSomePixelmaps(tBrender_storage* pStorage, const char* pPath);
 
 extern int C2_HOOK_FASTCALL GetFileName(const char *path, tName_list *pList);
 
@@ -119,7 +119,7 @@ extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pPa
 extern void C2_HOOK_FASTCALL MungeSmashMaterialNames(void);
 extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
-extern void C2_HOOK_FASTCALL GetModelTextureArea(br_model* pModel, int* pArea1, int* pArea2);
+extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);
 extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
 extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData);
 extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);

@@ -131,7 +131,7 @@ int C2_HOOK_FASTCALL PolyFontHeight(int pFont_index) {
 }
 
 // FUNCTION: CARMA2_HW 0x00463760
-int C2_HOOK_FASTCALL FindCharacterWidth(br_pixelmap* pMap) {
+int C2_HOOK_FASTCALL CalculatePolyFontMapWidth(br_pixelmap* pMap) {
     int y;
     int x;
     tU16* pixel;
@@ -547,7 +547,7 @@ void C2_HOOK_FASTCALL KillThePixies(void) {
 void C2_HOOK_FASTCALL CheckAvailabilityOfThisFont(int pFont) {
 
     if (!gPoly_fonts[pFont].available) {
-        LoadInterfaceFonts();
+        LoadInterfacePolyFonts();
     }
 }
 
@@ -604,7 +604,7 @@ void C2_HOOK_FASTCALL RemovePolyFont(int pFont) {
 }
 
 // FUNCTION: CARMA2_HW 0x004642d0
-void C2_HOOK_FASTCALL LoadInterfaceFonts(void) {
+void C2_HOOK_FASTCALL LoadInterfacePolyFonts(void) {
 
     if (!gInterface_fonts_loaded) {
         gSize_font_texture_pages = gInitial_count_font_texture_pages;
@@ -718,7 +718,7 @@ void C2_HOOK_FASTCALL LoadPolyFont(const char* pName, int pSize, int pIndex) {
                 gPoly_fonts[pIndex].glyphs[ascii].index = gSize_font_texture_pages;
                 gPoly_fonts[pIndex].glyphs[ascii].used = 1;
                 BrVector2Set(&gPoly_fonts[pIndex].glyphs[ascii].texCoord, (float) tex_x / 64.0f, (float)tex_y  / 64.0f);
-                gPoly_fonts[pIndex].glyphs[ascii].glyph_width = FindCharacterWidth(map);
+                gPoly_fonts[pIndex].glyphs[ascii].glyph_width = CalculatePolyFontMapWidth(map);
                 gPoly_fonts[pIndex].glyphs[ascii].material = NULL;
                 gPoly_fonts[pIndex].glyphs[ascii].model = CreateFontCharacterModel(pIndex, ascii, pSize, pSize, pName);
                 tex_x += pSize;

@@ -723,7 +723,7 @@ extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
 extern void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
 extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL SetCollisionInfoChildsDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
+extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pCollision_info, tU32 pDisable);
 extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
 extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info);
@@ -782,7 +782,7 @@ void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
     if (pCar_spec->car_crush_spec != NULL && pCar_spec->car_crush_spec->field_0x4b8) {
         WeldCar(pCar_spec);
     }
-    SetCollisionInfoChildsDoNothing(pCar_spec->collision_info, 0);
+    SetHierarchyDoingNothingFlag(pCar_spec->collision_info, 0);
     EnableCar(pCar_spec);
 
     new_pos = 1;
@@ -871,10 +871,10 @@ void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1,
 
 // FUNCTION: CARMA2_HW 0x0043b840
 float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
-    extern float C2_HOOK_FASTCALL ComputeCarImpact(tCar_spec* pCar, tU32 pDelta, float* pOut);
+    extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
     extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 
-    return ComputeCarImpact(
+    return RepairCar2(
         VEHICLE_TYPE_FROM_ID(pCar_ID) == eVehicle_self
             ? &gProgram_state.current_car
             : GetCarSpec(VEHICLE_TYPE_FROM_ID(pCar_ID), pCar_ID & 0xff),
@@ -1070,9 +1070,9 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
                 the_race_time = 256;
                 gPalette_fade_time = 0;
                 old_time = 0;
-                SetCollisionInfoChildsDoNothing(car->collision_info, 0);
+                SetHierarchyDoingNothingFlag(car->collision_info, 0);
             } else if (!car->collision_info->disable_move_rotate) {
-                SetCollisionInfoChildsDoNothing(car->collision_info, 1);
+                SetHierarchyDoingNothingFlag(car->collision_info, 1);
             }
         }
         if (the_race_time <= 0) {
@@ -1354,7 +1354,7 @@ void C2_HOOK_FASTCALL LeftInventory(void) {
     extern tHeadup_icon gPickedup_powerups[20];
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
     int old_index;
@@ -1384,7 +1384,7 @@ void C2_HOOK_FASTCALL LeftInventory(void) {
                 powerup->lose_proc(powerup, powerup->car);
             }
             if (powerup->net_type & 0x80) {
-                ARPowerupLose(powerup, powerup->car);
+                PipeSinglePowerupLose(powerup, powerup->car);
             }
             if (gNet_mode != eNet_mode_none) {
                 msg = NetBuildGuaranteedMessage(0x16, 0);
@@ -1424,7 +1424,7 @@ void C2_HOOK_FASTCALL RightInventory(void) {
     extern tHeadup_icon gPickedup_powerups[20];
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
     int old_index;
@@ -1454,7 +1454,7 @@ void C2_HOOK_FASTCALL RightInventory(void) {
                 powerup->lose_proc(powerup, powerup->car);
             }
             if (powerup->net_type & 0x80) {
-                ARPowerupLose(powerup, powerup->car);
+                PipeSinglePowerupLose(powerup, powerup->car);
             }
             if (gNet_mode != eNet_mode_none) {
                 msg = NetBuildGuaranteedMessage(0x16, 0);
@@ -1508,7 +1508,7 @@ tToggle_element gToggle_array[44] = {
     { 0x39, -2, 1, 1, 0, ToggleMap },
     { 0x39, 8, 1, 1, 0, (void (C2_HOOK_FASTCALL *)(void))ToggleHeadupMap },
     { 0x39, 7, 1, 1, 0, CycleMapOptions },
-    { 0x39, 9, 1, 1, 0, ToggleMapTransparency },
+    { 0x39, 9, 1, 1, 0, ToggleMapTrans },
     { 0x3c, -2, 1, 1, 0, SetRecovery },
     { 0x04, 7, 1, 0, 0, AbortRace },
     { 0x25, -2, 0, 1, 0, ToggleSoundEnable },
@@ -2262,7 +2262,7 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x00444fa0
-void C2_HOOK_FASTCALL ToggleShellModel(void) {
+void C2_HOOK_FASTCALL SwitchModelComplexity(void) {
 
     gCar_to_view->use_shell_model = !gCar_to_view->use_shell_model;
     if (gCar_to_view->use_shell_model) {
@@ -2788,7 +2788,7 @@ int gRender_acc_poly_actor;
 // FUNCTION: CARMA2_HW 0x0045c240
 void C2_HOOK_FASTCALL FUN_0045c240(void) {
     extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
-    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
     extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
     extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
     tJoystick_headup_text* entry;
@@ -2825,7 +2825,7 @@ void C2_HOOK_FASTCALL FUN_0045c240(void) {
                 if (text != NULL) {
                     text->next = NULL;
                     strncpy(text->text, entry->text, 0x28);
-                    FUN_0045a920(&gJoystick_headup_buffer_0079d8a0, text, 0);
+                    StoreTextHeadup(&gJoystick_headup_buffer_0079d8a0, text, 0);
                 }
                 entry++;
             } while ((int)entry < (int)gAccent_poly_prims);
@@ -2840,11 +2840,11 @@ void C2_HOOK_FASTCALL FUN_0045c240(void) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0045a7f0
-int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2) {
+int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2) {
     extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
     extern int C2_HOOK_CDECL toupper(int pChar);
     extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
-    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
     char local_100[256];
     char* substr;
     void* this_ptr;
@@ -2866,7 +2866,7 @@ int C2_HOOK_FASTCALL FUN_0045a7f0(char* pFilename, int* pArg2) {
             strncpy(mem->text, local_100, 0x28);
             StringTransformToLower(mem->text);
             mem->text[0] = (char)toupper((int)mem->text[0]);
-            FUN_0045a920(this_ptr, mem, 1);
+            StoreTextHeadup(this_ptr, mem, 1);
         }
     }
     return 0;
@@ -2962,7 +2962,7 @@ void C2_HOOK_FASTCALL FUN_0045a670(void) {
             l.args[0] = &gHeadup_text_buffer_0079d860;
             DRstrlwr((char*)l.ext);
             l.args[1] = l.ext;
-            PDEnumPath(the_path, (tEnumPathCallback)FUN_0045a7f0, l.args);
+            PDEnumPath(the_path, (tEnumPathCallback)AddToTextBufferCallback, l.args);
             gHeadup_text_buffer_0079d860.pos_last_add = 0;
             gHeadup_text_buffer_0079d860.text_last_add = gHeadup_text_buffer_0079d860.texts;
         }
@@ -2977,7 +2977,7 @@ void C2_HOOK_FASTCALL FUN_0045a670(void) {
 #endif
 // FUNCTION: CARMA2_HW 0x0045acf0
 void C2_HOOK_FASTCALL FUN_0045acf0(void) {
-    extern int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
     extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
     tHeadup_text* text;
     int i;
@@ -3011,7 +3011,7 @@ void C2_HOOK_FASTCALL FUN_0045acf0(void) {
                 if (text != NULL) {
                     *(int*)text = 0;
                     sprintf(text->text, "WANKER  %02d", i);
-                    FUN_0045a920(&gHeadup_text_buffer_0079d880, text, 0);
+                    StoreTextHeadup(&gHeadup_text_buffer_0079d880, text, 0);
                 }
             }
         }
@@ -3025,7 +3025,7 @@ void C2_HOOK_FASTCALL FUN_0045acf0(void) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0045a920
-int C2_HOOK_FASTCALL FUN_0045a920(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
+int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
     tHeadup_text* pNode;
     tHeadup_text* pCur;
     int count;

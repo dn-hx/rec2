@@ -276,14 +276,14 @@ int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStruc
     if (stemLength <= 0) {
         return 0;
     }
-    if (PDstrcmpi(filePath + stemLength, ".TIF") != 0) {
+    if (DRstrcmpi(filePath + stemLength, ".TIF") != 0) {
         return 0;
     }
     sprintf(textureName, "%.*s", stemLength, filePath);
     if (!data->isTiffx && data->results != NULL) {
         itemResult = data->results;
         while (itemResult != NULL) {
-            if (PDstrcmpi(textureName, itemResult->name) == 0) {
+            if (DRstrcmpi(textureName, itemResult->name) == 0) {
                 break;
             }
             itemResult = itemResult->next;

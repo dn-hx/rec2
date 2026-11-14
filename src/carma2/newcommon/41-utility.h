@@ -46,7 +46,7 @@ extern br_pixelmap* C2_HOOK_FASTCALL DRPixelmapLoad(char* pFile_name);
 
 extern void C2_HOOK_FASTCALL SepDirAndFilename(const char* path, char* dirPath, char* stemPath);
 
-extern int C2_HOOK_FASTCALL DRLoadMultiplePix(char* pName, br_pixelmap** pMaps, int pCapacity);
+extern int C2_HOOK_FASTCALL LoadTextureTryAllLocations(char* pName, br_pixelmap** pMaps, int pCapacity);
 
 extern int C2_HOOK_FASTCALL DRPixelmapLoadMany(const char* texturePathNoExt, br_pixelmap** pixelmaps, size_t capacity);
 
@@ -211,7 +211,7 @@ extern void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4
 
 extern float C2_HOOK_FASTCALL signf(float pValue);
 extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest);
-extern void C2_HOOK_FASTCALL CopyBrMaterial(br_material* pDestination, const br_material* pSource);
+extern void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource);
 extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
 extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV);
 extern int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV);
@@ -220,13 +220,13 @@ extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
 extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
 extern void C2_HOOK_FASTCALL NobbleNonzeroBlacks(br_pixelmap* pPalette);
-extern int C2_HOOK_FASTCALL GetBlendificatiousnessOfMaterial(br_material* pMaterial);
+extern int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial);
 extern void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc);
-extern br_actor* C2_HOOK_FASTCALL CreateBoundsActor(br_actor* pParent, const br_bounds* pBounds);
-extern void C2_HOOK_FASTCALL DisposeActorAndModel(br_actor* pActor);
-extern void C2_HOOK_FASTCALL ConvertPixel565To555(br_uint_16* pPixel);
-extern void C2_HOOK_FASTCALL ConvertPixelRGBA4444ToARGB1555(tU16* pPixel);
-extern void C2_HOOK_FASTCALL ConvertPixelmapToARGB1555(br_pixelmap* pMap);
+extern br_actor* C2_HOOK_FASTCALL CreateBoundsModelActor(br_actor* pParent, const br_bounds* pBounds);
+extern void C2_HOOK_FASTCALL FreeModelActor(br_actor* pActor);
+extern void C2_HOOK_FASTCALL ConvertRGB565ToRGB555(br_uint_16* pPixel);
+extern void C2_HOOK_FASTCALL ConvertARGB4444ToARGB1555(tU16* pPixel);
+extern void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap);
 extern intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData);
 extern void C2_HOOK_FASTCALL CycleJoystick(void);
 extern void C2_HOOK_FASTCALL SelectNextJoystick(void);

@@ -89,7 +89,7 @@ br_uint_32 C2_HOOK_CDECL BrResClassEnum(char* pattern, br_resclass_enum_cbfn* ca
 C2_NAKED
 #endif
 // FUNCTION: CARMA2_HW 0x00528130
-void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int pCount) {
+void C2_HOOK_CDECL BrBlockFill(br_uint_32* pDestination, br_uint_32 pValue, int pCount) {
 #if defined(_MSC_VER) && defined(_M_IX86)
     __asm {
         push ebp
@@ -124,7 +124,7 @@ void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pValue, int
 C2_NAKED
 #endif
 // FUNCTION: CARMA2_HW 0x0052814e
-void C2_HOOK_CDECL FUN_0052814e(br_uint_32* pDestination, br_uint_32* pSource, int pCount) {
+void C2_HOOK_CDECL BrBlockCopy(br_uint_32* pDestination, br_uint_32* pSource, int pCount) {
 #if defined(_MSC_VER) && defined(_M_IX86)
     __asm {
         push ebp
@@ -159,7 +159,7 @@ void C2_HOOK_CDECL FUN_0052814e(br_uint_32* pDestination, br_uint_32* pSource, i
 C2_NAKED
 #endif
 // FUNCTION: CARMA2_HW 0x0052816c
-void C2_HOOK_CDECL FUN_0052816c(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount) {
+void C2_HOOK_CDECL BrFarBlockCopy(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount) {
 #if defined(_MSC_VER) && defined(_M_IX86)
     __asm {
         push ebp

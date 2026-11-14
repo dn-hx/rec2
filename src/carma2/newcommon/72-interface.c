@@ -3016,9 +3016,9 @@ int C2_HOOK_FASTCALL Controls_JoystickToggle(tFrontend_spec* pFrontend) {
 int C2_HOOK_FASTCALL Controls_JoystickDpadToggle(tFrontend_spec* pFrontend) {
 
     if (gFrontend_selected_item_index == 36) {
-        SetJoystickDPadEnabled(1);
+        SetJoystickDPadEnable(1);
     } else {
-        SetJoystickDPadEnabled(0);
+        SetJoystickDPadEnable(0);
     }
     DisplayJoystickSettings(pFrontend);
     return 0;

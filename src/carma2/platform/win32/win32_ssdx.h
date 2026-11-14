@@ -11,7 +11,7 @@ HRESULT CALLBACK LocalEnumAttachedSurfacesCallback(LPDIRECTDRAWSURFACE lpSurface
 
 void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch);
 
-void C2_HOOK_FASTCALL SSDXLogError(HRESULT hRes);
+void C2_HOOK_FASTCALL SSDXLogDirectDrawError(HRESULT hRes);
 
 int C2_HOOK_FASTCALL SSDXStart(void *p_hWnd, int p_DirectDraw, int p_EnumerateDDX, int p_flags);
 

@@ -33,7 +33,7 @@ extern int C2_HOOK_FASTCALL PDGetKeyboardCharacter(void);
 extern void C2_HOOK_FASTCALL PDClearKeyboardBuffer(void);
 extern void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark);
 extern void C2_HOOK_FASTCALL PDSetFileVariables(void);
-extern C2_NORETURN void C2_HOOK_FASTCALL PDShutdownSystem(void);
+extern C2_NORETURN void C2_HOOK_FASTCALL PDShutDownSystem(void);
 extern void C2_HOOK_FASTCALL PDUnlockRealBackScreen(void);
 
 extern int C2_HOOK_FASTCALL PDCheckDriveExists2(const char* pThe_path, const char* pFile_name, tU32 pMin_size);
@@ -120,7 +120,7 @@ extern tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void);
 
 extern void C2_HOOK_FASTCALL PDSetKeysFromJoystick(int *keys);
 
-extern void C2_HOOK_FASTCALL PDReadJoysticks(void);
+extern void C2_HOOK_FASTCALL PDReadJoySticks(void);
 
 extern void C2_HOOK_FASTCALL PDInitJoysticks(void);
 
@@ -197,7 +197,7 @@ extern int C2_HOOK_FASTCALL PDS3IsCDAPlaying(void);
 
 extern void C2_HOOK_FASTCALL PDS3UpdateCDAVolume(tS3_channel* pChannel, int pVolume);
 
-extern void C2_HOOK_FASTCALL PDS3ServiceCDA(tS32 pDelta_time);
+extern void C2_HOOK_FASTCALL S3ServiceChannels(tS32 pDelta_time);
 
 extern int C2_HOOK_FASTCALL PDS3IsSamplePlaying(tS3_channel* pChannel);
 
@@ -207,7 +207,7 @@ extern int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void);
 
 extern void C2_HOOK_FASTCALL PDReallyAllocateActionReplayBuffer(void);
 
-extern int C2_HOOK_FASTCALL PDstrcmpi(const char* str1, const char* str2);
+extern int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2);
 
 extern int C2_HOOK_FASTCALL PDmemicmp(const char* str1, const char* str2, size_t count);
 

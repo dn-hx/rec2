@@ -126,7 +126,7 @@ extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
 extern br_pixelmap* gBack_screen;
 // FUNCTION: CARMA2_HW 0x0047d510
 // FUNCTION: CARMA2_SW 0x0047d810
-void C2_HOOK_FASTCALL RectangleFill_LeftRightLine(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_colour pColour) {
+void C2_HOOK_FASTCALL DRPixelmapShadedVRectFill(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_colour pColour) {
 
 #ifdef REC2_HW
     if (gBack_screen->type != BR_PMT_INDEX_8) {
@@ -339,7 +339,7 @@ void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
 // SaveTransient
 
 // FUNCTION: CARMA2_HW 0x0043e3f0
-void C2_HOOK_FASTCALL AllocateCursorTransient(void) {
+void C2_HOOK_FASTCALL InitMouseTargetLines(void) {
     br_pixelmap* cross;
     br_pixelmap* line;
 
@@ -888,7 +888,7 @@ void C2_HOOK_FASTCALL EnableLights(void) {
 
 // based on ApexWorm/rec2 44cc42008 (reference only)
 // FUNCTION: CARMA2_HW 0x0047d7b0
-void C2_HOOK_FASTCALL DRPixelmapBlend75Copy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
+void C2_HOOK_FASTCALL DRPixelmapBlendyCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
     int x;
     int y;
     tU8* dest_ptr;
@@ -960,7 +960,7 @@ tMouse_coord gMouse_last_pos;
 // FUNCTION: CARMA2_HW 0x0043e6c0
 void C2_HOOK_FASTCALL StartMouseCursor(void) {
     if (gCursor_tinted_top == -1) {
-        AllocateCursorTransient();
+        InitMouseTargetLines();
     }
     gNext_transient = 0;
     gTransient_bitmap_index = 0;
@@ -1123,7 +1123,7 @@ br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_
 }
 
 // FUNCTION: CARMA2_HW 0x004b5230
-void C2_HOOK_FASTCALL DRSetPaletteByName(const char* pPalette_name) {
+void C2_HOOK_FASTCALL SwitchToPalette(const char* pPalette_name) {
     br_pixelmap* palette;
 
     palette = BrTableFind(pPalette_name);
@@ -1139,7 +1139,7 @@ void C2_HOOK_FASTCALL DRSetPaletteByName(const char* pPalette_name) {
 }
 
 // FUNCTION: CARMA2_HW 0x0047c9c0
-void C2_HOOK_FASTCALL DrawRectangleOutlineWithPalette(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
+void C2_HOOK_FASTCALL DrawRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
 
     if (gBack_screen->type != BR_PMT_INDEX_8) {
         pColour = PaletteEntry16Bit(gRender_palette, pColour);
@@ -1151,7 +1151,7 @@ void C2_HOOK_FASTCALL DrawRectangleOutlineWithPalette(br_pixelmap* pMap, int pLe
 }
 
 // FUNCTION: CARMA2_HW 0x0047d470
-void C2_HOOK_FASTCALL DrawBevelledRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour) {
+void C2_HOOK_FASTCALL DRPixelmapShadedHRectFill(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour) {
 
     if (gBack_screen->type != BR_PMT_INDEX_8) {
         pColour = PaletteEntry16Bit(gRender_palette, pColour);

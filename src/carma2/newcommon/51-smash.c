@@ -21,7 +21,7 @@ extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 extern int C2_HOOK_FASTCALL IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells(void);
 void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
-int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
+int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
 extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 extern int gCrush_deferred;
 extern int gPed_dismemberfest;
@@ -323,7 +323,7 @@ void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec) {
 // CalcRandomPointBetween
 
 // FUNCTION: CARMA2_HW 0x004eb120
-void C2_HOOK_FASTCALL InitFragmentSpeed(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9) {
+void C2_HOOK_FASTCALL SetShrapnelFragment(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9) {
 
     ApplyInitialMovement((undefined4*)pSpeed, pArg3, &pFragment->v, &pFragment->omega, pArg4, pArg7, (br_vector3*)(uintptr_t)pArg8, (br_vector3*)(uintptr_t)pArg9);
     pFragment->field_0xc = pArg6;
@@ -617,10 +617,10 @@ extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
 extern int C2_HOOK_FASTCALL ToggleRuntimeVariable(int pAddress);
 extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
 extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext);
-extern void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance);
-extern void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor);
-extern void C2_HOOK_FASTCALL WorkerShrapnelShower(int pArg3, tShrapnel_spec* pShrapnel, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, const br_vector3* pOffset, int pFlag);
+extern void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext);
+extern void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance);
+extern void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor);
+extern void C2_HOOK_FASTCALL DoShrapnel(int pArg3, tShrapnel_spec* pShrapnel, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, const br_vector3* pOffset, int pFlag);
 extern tS3_outlet* gCar_outlet;
 extern br_vector3 gZero_v__car;
 extern float gYon_squared;
@@ -628,7 +628,7 @@ extern float gYon_squared;
 // (reference only)
 // PARTIAL 99.99%: one x87 delay-slot residual - the original schedules the flag store (0x4ed67c) between fcomp and fnstsw, our VC5 build places it between fld and fcomp; same instruction set, volatile-store A/B also 99.99, not source-controllable.
 // FUNCTION: CARMA2_HW 0x004ed490
-void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
+void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
     int i;
     tCar_spec* owner;
     tSide_effects* side_effects;
@@ -643,10 +643,10 @@ void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject,
     if (pFlag == 0) {
         side_effects = &pConnotations->side_effects;
         if (side_effects->activations.count_activations != 0) {
-            QueueNonCarCuboidActivation(pActor, &side_effects->activations, pObject);
+            ActivateNonCarSideEffects(pActor, &side_effects->activations, pObject);
         }
         if (side_effects->side_effects.count_side_effects != 0) {
-            FUN_004edbe0(pSpec, pObject, &side_effects->side_effects, pArg16, pDistance);
+            ActivateSmashSideEffects(pSpec, pObject, &side_effects->side_effects, pArg16, pDistance);
         }
         if (side_effects->room_turn_on_code != 0
                 && pObject != NULL
@@ -654,12 +654,12 @@ void C2_HOOK_FASTCALL SmashItIntoVerySmallPiecesIndeed(tPhysics_object* pObject,
                 && pObject->flags_0x238 == 1
                 && ((tCar_spec*)pObject->owner)->driver == eDriver_local_human) {
             if (BR_SQR3(pObject->actor->t.t.translate.t.v[0] - pPoint->v[0], pObject->actor->t.t.translate.t.v[1] - pPoint->v[1], pObject->actor->t.t.translate.t.v[2] - pPoint->v[2]) < 2.0) {
-                FUN_004f1030(pObject, side_effects->room_turn_on_code, NULL);
+                HitPowerup(pObject, side_effects->room_turn_on_code, NULL);
             }
         }
     }
     for (i = 0; i < pConnotations->count_shrapnel; i++) {
-        WorkerShrapnelShower(pArg3, &pConnotations->shrapnel[i], pSeed, pArg6, pPoint, pSound_position, pActor, pTime, pArg11, pTransform, pBounds, pPosition, pDistance, (br_vector3*)&pObject->transform_matrix.m[3], pFlag);
+        DoShrapnel(pArg3, &pConnotations->shrapnel[i], pSeed, pArg6, pPoint, pSound_position, pActor, pTime, pArg11, pTransform, pBounds, pPosition, pDistance, (br_vector3*)&pObject->transform_matrix.m[3], pFlag);
     }
     if (pFlag == 0) {
         owner = (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) ? (tCar_spec*)pObject->owner : NULL;
@@ -913,7 +913,7 @@ void C2_HOOK_FASTCALL FreeExplosionAnimation(tExplosion_animation* pAnimation) {
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004eea20
-void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage) {
+void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage) {
     extern const char* gSmashable_collision_type_names[3];
     extern const char* gPosition_type_names[2];
     extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
@@ -960,7 +960,7 @@ void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, 
                 level->noncar_activations[j].time_0x2 = (tS16)(i2 * 1000);
                 level->noncar_activations[j].location_type = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
                 level->noncar_activations[j].field_0x8 = (tS8)GetAnInt(pF);
-                LoadMinMax(pF, &level->noncar_activations[j].bounds);
+                ReadBounds(pF, &level->noncar_activations[j].bounds);
                 ReadSmashableInitialSpeed(pF, &level->noncar_activations[j].speed_info);
             }
         }
@@ -998,7 +998,7 @@ void C2_HOOK_FASTCALL LoadSmashableLevels(FILE* pF, tSmashable_level** pLevels, 
 #endif
 
 // FUNCTION: CARMA2_HW 0x004ee990
-void C2_HOOK_FASTCALL LoadCarCrushSmashDataEntries(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
+void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
     int i;
     tCar_crush_smashable_part* part;
 
@@ -1007,7 +1007,7 @@ void C2_HOOK_FASTCALL LoadCarCrushSmashDataEntries(FILE* pF, tCar_crush_buffer_e
     for (i = 0; i < pCar_crush_buffer_entry->count_smashables; i++, part++) {
         GetAString(pF, part->material_name);
         part->funk = -1;
-        LoadSmashableLevels(pF, &part->levels, &part->count_smashable_levels, 0, pBrender_storage);
+        ReadSmashLevels(pF, &part->levels, &part->count_smashable_levels, 0, pBrender_storage);
     }
 }
 
@@ -1100,7 +1100,7 @@ void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry*
 }
 
 // FUNCTION: CARMA2_HW 0x004ef440
-intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
+intptr_t C2_HOOK_CDECL NoteChildren(br_actor* pActor, void* data) {
     br_actor** pActorBuffer = data;
 
     pActorBuffer[gShrapnel_ghost_actor_count] = pActor;
@@ -1109,7 +1109,7 @@ intptr_t C2_HOOK_CDECL AddGhostActorToBuffer(br_actor* pActor, void* data) {
 }
 
 // FUNCTION: CARMA2_HW 0x004ef460
-void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
+void C2_HOOK_FASTCALL ReadBounds(FILE* pF, br_bounds3* pBounds) {
     float x1, x2;
     float y1, y2;
     float z1, z2;
@@ -1261,7 +1261,7 @@ void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs
                 spec[0].type_info.ghost.bounds_dx = bounds.max.v[0] - bounds.min.v[0];
                 spec[0].type_info.ghost.bounds_dy = bounds.max.v[1] - bounds.min.v[1];
 
-                BrActorEnum(actor, AddGhostActorToBuffer, actor_buffer);
+                BrActorEnum(actor, NoteChildren, actor_buffer);
                 spec[0].type_info.ghost.count_actors = gShrapnel_ghost_actor_count;
                 spec[0].type_info.ghost.actors = BrMemAllocate(gShrapnel_ghost_actor_count * sizeof(br_actor*), kMem_smashable_env_info);
                 for (k = 0; k < spec[0].type_info.ghost.count_actors; k++) {
@@ -1422,7 +1422,7 @@ void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activ
             pNon_car_cuboid_activations->activations[i].field_0x2 = (tS16)(i2 * 1000);
             pNon_car_cuboid_activations->activations[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
             pNon_car_cuboid_activations->activations[i].field_0x8 = (tS8)GetAnInt(pF);
-            LoadMinMax(pF, &pNon_car_cuboid_activations->activations[i].bounds);
+            ReadBounds(pF, &pNon_car_cuboid_activations->activations[i].bounds);
             p = &pNon_car_cuboid_activations->activations[i].field_0x24;
             GetPairOfFloats(pF, &p[0], &p[1]);
             p[2] = GetAScalar(pF);
@@ -1473,7 +1473,7 @@ void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* 
                 pShrapnel_side_effects->side_effects[i].field_0x28 = 0;
             }
             pShrapnel_side_effects->side_effects[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
-            LoadMinMax(pF, &pShrapnel_side_effects->side_effects[i].bounds);
+            ReadBounds(pF, &pShrapnel_side_effects->side_effects[i].bounds);
             pShrapnel_side_effects->side_effects[i].field_0x44 = GetALineAndInterpretCommand(pF, gSmash_side_effect_direction_names, REC2_ASIZE(gSmash_side_effect_direction_names));
             pShrapnel_side_effects->side_effects[i].field_0x48 = GetAScalar(pF);
         }
@@ -1623,7 +1623,7 @@ void C2_HOOK_FASTCALL CleanUpSmashStuff(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x004f0310
-void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_data) {
+void C2_HOOK_FASTCALL FreeSmashableParts(tCar_crush_buffer_entry* pCrush_data) {
     int i;
 
     if (pCrush_data->smashables != NULL) {
@@ -1665,7 +1665,7 @@ void C2_HOOK_FASTCALL InitRepairAnimations(void) {
 // ReadSmashableEnvironment
 
 // FUNCTION: CARMA2_HW 0x004f0940
-void C2_HOOK_FASTCALL DisposeSmashEnvNonCars(void) {
+void C2_HOOK_FASTCALL FreeSmashableNonCarNames(void) {
 
     BrMemFree(gSmashable_noncars);
 }
@@ -1799,8 +1799,8 @@ void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
 
 // HitPowerup
 
-extern float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork);
-extern void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7);
+extern float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork);
+extern void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -1825,9 +1825,9 @@ float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, fl
                         || (pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 4) && identifier[3] == '!')
                         || (pSnap != 0 && (trigger->trigger_object.number.field_0x1 & 2))) {
                     gINT_006a3334 = 0;
-                    result = ApplySmashTriggerEffect(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                    result = BashModel(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
                     if (flag != 0 && pNetwork == 0) {
-                        ApplySmashTriggerNumber(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
+                        SendNetSmash(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
                     }
                 }
             }
@@ -1858,7 +1858,7 @@ extern int gFace_num__car;
 extern int gCount_shrapnel_shower_calls;
 extern void C2_HOOK_FASTCALL PipeSingleSmashRemoveFaces(br_model* pModel, int pCount, const void* pFaces, br_material* pMaterial);
 extern int gINT_006a8290;
-extern float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork);
+extern float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork);
 
 // FUNCTION: CARMA2_HW 0x004f1140
 float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
@@ -1895,16 +1895,16 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
     if (pFace->a != NULL && pFace->a->identifier != NULL && (tU8)pFace->a->identifier[1] == 0xa3) {
         if (pFace->a->render_style != 1) {
             index = 10 * (pFace->a->identifier[2] - '0') + (pFace->a->identifier[3] - '0');
-            FUN_004f1030(object, index, pFace->a);
+            HitPowerup(object, index, pFace->a);
             if (index == 0xe) {
                 Explode(&gExplosion_pix_animation_groups, pFace->a, &pFace->a->model->bounds, NULL);
-                ApplySmashTriggerEffect(&gUnknown_smashable_006a3660, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                BashModel(&gUnknown_smashable_006a3660, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
                 DRS3StartSound3D(gCar_outlet, 0x1518, pPosition, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
             } else {
-                ApplySmashTriggerEffect(&gPowerup_pickup_smashable, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                BashModel(&gPowerup_pickup_smashable, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
             }
             if (flag != 0 && pNetwork == 0) {
-                ApplySmashTriggerNumber(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
             }
         }
         object->box_face_ref = gFace_num__car - 2;
@@ -1916,9 +1916,9 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
     if (pFace->a != NULL && pFace->a->identifier != NULL && pFace->a->identifier[0] == '&' && pFace->a->identifier[1] >= '0' && pFace->a->identifier[1] <= '9') {
         trigger = gSmashable_track_indexable_triggers[10 * (pFace->a->identifier[1] - '0') + (pFace->a->identifier[2] - '0')];
         if (trigger != NULL && (((trigger->trigger_object.number.field_0x1 & 1) && pFace->a->identifier[3] != '!') || ((trigger->trigger_object.number.field_0x1 & 4) && pFace->a->identifier[3] == '!'))) {
-            result = ApplySmashTriggerEffect(trigger, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+            result = BashModel(trigger, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
             if (flag != 0 && pNetwork == 0) {
-                ApplySmashTriggerNumber(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
             }
             return result;
         }
@@ -1934,9 +1934,9 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
             return -1.f;
         }
         if (pSpec->mode == kSmashableMode_Decal || pSpec->mode == kSmashableMode_TextureChange) {
-            result = FUN_004f18d0(object, (br_material*)identifier, pFace->a, pSpec, pSpec, pFace, pMagnitude, pPosition, pNormal, pForce, -1, pSpec->field_0x2dc == 0, &flag, pNetwork);
+            result = ProcessTexture(object, (br_material*)identifier, pFace->a, pSpec, pSpec, pFace, pMagnitude, pPosition, pNormal, pForce, -1, pSpec->field_0x2dc == 0, &flag, pNetwork);
             if (flag != 0 && pNetwork == 0) {
-                ApplySmashTriggerNumber(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
             }
             return result;
         }
@@ -1991,10 +1991,10 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
             return result;
         }
         result = pSpec->mode_data.shrapnel.removal_threshold;
-        BrActorToActorMatrix34(&matrix, pFace->a, gUniverse_actor);
-        SmashItIntoVerySmallPiecesIndeed(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, pPosition, pPosition, pFace->a, time, gCount_shrapnel_shower_calls, &matrix, NULL, &pFace->normal, pMagnitude, (undefined4)pForce, pNetwork);
+        BrActorToActorMatrix34_2(&matrix, pFace->a, gUniverse_actor);
+        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, pPosition, pPosition, pFace->a, time, gCount_shrapnel_shower_calls, &matrix, NULL, &pFace->normal, pMagnitude, (undefined4)pForce, pNetwork);
         if (pNetwork == 0) {
-            ApplySmashTriggerNumber(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+            SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
         }
         return result;
     }
@@ -2008,20 +2008,20 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
         if (pMagnitude < gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1].mode_data.shrapnel.removal_threshold) {
             return -1.f;
         }
-        result = ApplySmashTriggerEffect(&gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1], object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+        result = BashModel(&gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1], object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
         if (flag != 0 && pNetwork == 0) {
-            ApplySmashTriggerNumber(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+            SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
         }
     }
     return result;
 }
 
-extern int C2_HOOK_FASTCALL FUN_004f4c70(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag);
-extern void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3* pOut);
-extern br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
-extern int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
+extern int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag);
+extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector2* pUV, br_vector3* pOut);
+extern br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
+extern int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
-extern void C2_HOOK_FASTCALL FUN_004c89f0(uintptr_t pOwner);
+extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(uintptr_t pOwner);
 extern void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* pA, const br_vector2* pB, const br_matrix23* pC);
 extern int gCapacity_track_smashables;
 extern void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial);
@@ -2033,9 +2033,9 @@ extern const double gDOUBLE_0058afa8;
 extern float gFloat_0058afb0;
 extern br_matrix34 gShrapnel_shower_matrix;
 extern br_vector3 gVector3_006a4688;
-extern tSmashable_level* C2_HOOK_FASTCALL FUN_004ee290(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
+extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
 
-/* Per-triangle uv -> position mapping (size 0x30), as used by FUN_004f36c0. */
+/* Per-triangle uv -> position mapping (size 0x30), as used by ExtrapolateGeometryCoordinates. */
 typedef struct {
     float p0[3];
     float uv0[2];
@@ -2180,7 +2180,7 @@ static int SmashFindTriangleApex(const br_uint_16* pVertices, int pIndex0, int p
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004f18d0
-float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork) {
+float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork) {
     int tri_verts[8] = { 0, 0, 1, 2, 2, 1, 3, 3 };
     tSmash_uv_map mapinfo;
     tFace_ref replacement_face_ref;
@@ -2280,7 +2280,7 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
     contact.v[2] = face_ref->normal.v[2] * -dist + pPosition->v[2];
 
     if (pArg11 < 0 && pSpec->field_0x2d8 != 0 && pSpec->mode == kSmashableMode_TextureChange) {
-        if (!FUN_004f4c70(face_ref, &contact, &replacement_face_ref, 1)) {
+        if (!FindFaceWithPoint(face_ref, &contact, &replacement_face_ref, 1)) {
             return gFLOAT_0058af20;
         }
         pMaterial = replacement_face_ref.material;
@@ -2552,7 +2552,7 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
         quad[k].blu = 0xff;
     }
     for (k = 0; k < 4; k++) {
-        FUN_004f36c0(&mapinfo, &quad[k].map, &quad[k].p);
+        ExtrapolateGeometryCoordinates(&mapinfo, &quad[k].map, &quad[k].p);
     }
 
     u_center = (quad[3].map.v[0] + quad[2].map.v[0] + quad[1].map.v[0] + quad[0].map.v[0]) * gFloat_0058afb0;
@@ -2629,10 +2629,10 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
             FogAccordingToGPSCDE(clone->trigger_object.material);
 
             if (clone->mode == kSmashableMode_Decal) {
-                level_actor = FUN_004f3820(face_ref, quad, clone->trigger_object.material, clone->mode_data.texture_change.field_0x78, clone->mode_data.texture_change.field_0x70);
+                level_actor = AddDecal(face_ref, quad, clone->trigger_object.material, clone->mode_data.texture_change.field_0x78, clone->mode_data.texture_change.field_0x70);
                 clone->field_0x2d4 = (undefined4)(uintptr_t)level_actor;
             } else {
-                if (!FUN_004f39a0(&mapinfo, face_ref->a, quad, edge_at_bounds, (tU8**)corner, clone->trigger_object.material, clone->mode_data.texture_change.field_0x78, clone->mode_data.texture_change.field_0x70)) {
+                if (!InsertQuad(&mapinfo, face_ref->a, quad, edge_at_bounds, (tU8**)corner, clone->trigger_object.material, clone->mode_data.texture_change.field_0x78, clone->mode_data.texture_change.field_0x70)) {
                     FreeEnvSmash(clone);
                     gCount_track_smashable_environment_specs--;
                     return gFLOAT_0058af20;
@@ -2647,7 +2647,7 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
         }
     }
 
-    level = FUN_004ee290(NULL, pObject, &contact, pForce, level_actor, (undefined4)(uintptr_t)pSpec,
+    level = QueueSmashIfNecessary3(NULL, pObject, &contact, pForce, level_actor, (undefined4)(uintptr_t)pSpec,
         (void*)&spec->mode_data, pMagnitude, spec->mode != kSmashableMode_Decal, pNetwork);
     already_marked = (level != NULL && level->collision_type == kTextureLevelCollisionChange_Edges);
     if (level != NULL && (level->collision_type == kTextureLevelCollisionChange_PassThrough
@@ -2683,7 +2683,7 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
         nudged.v[1] = (float)((mid.v[1] - opposite.v[1]) * gDouble_0058aee8 + mid.v[1]);
         nudged.v[2] = (float)((mid.v[2] - opposite.v[2]) * gDouble_0058aee8 + mid.v[2]);
 
-        if (!FUN_004f4c70(face_ref, &nudged, &neighbour_face_ref, 0)) {
+        if (!FindFaceWithPoint(face_ref, &nudged, &neighbour_face_ref, 0)) {
             continue;
         }
         if (already_marked) {
@@ -2704,13 +2704,13 @@ float C2_HOOK_FASTCALL FUN_004f18d0(tPhysics_object* pObject, br_material* pMate
                 }
             }
         }
-        FUN_004f18d0(pObject, pMaterial, pActor, pSpec, pSpec2, &neighbour_face_ref, pMagnitude, &nudged, pNormal, pForce, opposite_edge, pArg12, &dummy_flag, pNetwork);
+        ProcessTexture(pObject, pMaterial, pActor, pSpec, pSpec2, &neighbour_face_ref, pMagnitude, &nudged, pNormal, pForce, opposite_edge, pArg12, &dummy_flag, pNetwork);
     }
     return result;
 }
 
 // FUNCTION: CARMA2_HW 0x004f4e20
-float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
+float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
     br_matrix34 matrix;
     br_bounds3 bounds;
     br_vector3 v;
@@ -2787,8 +2787,8 @@ float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhy
     if (changed) {
         result = pSpec->mode_data.shrapnel.removal_threshold;
         *pFlag = 1;
-        BrActorToActorMatrix34(&matrix, pActor, gUniverse_actor);
-        SmashItIntoVerySmallPiecesIndeed(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
+        BrActorToActorMatrix34_2(&matrix, pActor, gUniverse_actor);
+        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
     }
     return result;
 }
@@ -2798,7 +2798,7 @@ float C2_HOOK_FASTCALL ApplySmashTriggerEffect(tSmashable_item_spec* pSpec, tPhy
 // with the first test (still 96.08); the local-variable form emits it but then value-range-removes the later
 // 0x4f514a test instead (92.11). The residual is this single 4-byte pair plus the resulting jump targets.
 // FUNCTION: CARMA2_HW 0x004f5110
-void C2_HOOK_FASTCALL ApplySmashTriggerNumber(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
+void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
     tCar_spec* car;
     void* owner;
     int driver;
@@ -3012,11 +3012,11 @@ void C2_HOOK_FASTCALL ReinitSmashing(void) {
 
 // FUNCTION: CARMA2_HW 0x004f5a00
 intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec) {
-    return DRActorEnumRecurse(pCar_spec->car_master_actor, RepairModels, pCar_spec);
+    return DRActorEnumRecurse(pCar_spec->car_master_actor, RepairModels_1, pCar_spec);
 }
 
 // FUNCTION: CARMA2_HW 0x004f5a10
-intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser) {
+intptr_t C2_HOOK_CDECL RepairModels_1(br_actor* pActor, void* pUser) {
     tUser_crush_data* user_crush = pActor->user;
     tCar_crush_buffer_entry* crush_data;
 
@@ -3120,7 +3120,7 @@ extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_li
 extern tWorld_callbacks gWorld_callbacks;
 extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8);
 extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
-extern int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
+extern int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
 
 // PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
 #ifdef REC2_MATCHING
@@ -3166,7 +3166,7 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
         FillInBounds(&bounds);
         count = FindFacesInBox(&bounds, faces, 20, &gWorld_callbacks);
         for (i = 0; i < count; i++) {
-            if (FUN_004f0d50((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
+            if (PointInFace((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
                 break;
             }
         }
@@ -3190,10 +3190,10 @@ extern int gCount_shrapnel_shower_calls;
 extern int gNext_explosion_slot;
 extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
 extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
-extern intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext);
+extern intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext);
 
 // FUNCTION: CARMA2_HW 0x004f62e0
-void C2_HOOK_FASTCALL UpdateCrushTimers(void) {
+void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
     tQueued_net_smash* smash;
     int count;
 
@@ -3549,7 +3549,7 @@ void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_act
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-/* context filled by the DRActorEnumRecurse callback FUN_004edb20 */
+/* context filled by the DRActorEnumRecurse callback GiveNonCarsAShove */
 typedef struct {
     br_bounds3* bounds;
     tU8 field_0x4;
@@ -3559,7 +3559,7 @@ typedef struct {
 } tNon_car_search_context;
 
 // FUNCTION: CARMA2_HW 0x004ed860
-void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
     tNon_car_search_context search;
     tDelayed_non_car delayed;
     br_bounds3 bounds;
@@ -3609,7 +3609,7 @@ void C2_HOOK_FASTCALL QueueNonCarCuboidActivation(br_actor* pActor, tNon_car_cub
         for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
             for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
                 if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
-                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, FUN_004edb20, &search) != 0) {
+                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, GiveNonCarsAShove, &search) != 0) {
                     break;
                 }
             }
@@ -3660,7 +3660,7 @@ extern float gFloat_0058af38;
 extern int gUnknown_006b9c60[];
 
 // FUNCTION: CARMA2_HW 0x004edbe0
-void C2_HOOK_FASTCALL FUN_004edbe0(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
+void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
     tSmash_record record;
     tBounds bounds;
     tFace_ref face_list[400];
@@ -3871,10 +3871,10 @@ next_face:
 }
 extern int gMutant_tail_state;
 extern tU32 gINT_00705b70;
-extern void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode);
+extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
 
 // FUNCTION: CARMA2_HW 0x004f1030
-void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
     void* info;
     int type;
 
@@ -3892,7 +3892,7 @@ void C2_HOOK_FASTCALL FUN_004f1030(tPhysics_object* pObject, int pMode, br_actor
                 return;
             }
         }
-        FUN_004d9d00(pObject, 0xe);
+        ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(pObject, 0xe);
         return;
     }
     if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
@@ -3915,7 +3915,7 @@ enqueue:
     gSize_powerup_queue = gSize_powerup_queue + 1;
 }
 // FUNCTION: CARMA2_HW 0x004f0d50
-int C2_HOOK_FASTCALL FUN_004f0d50(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
+int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
     float local_c[3];
     float a, b, c, d, e, f, g, h, denom, u, v;
     int axis;
@@ -3991,7 +3991,7 @@ int gNext_explosion_slot = 0;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004edb20
-intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext) {
+intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
     tNon_car_search_context* context;
     char* identifier;
     char first_digit;
@@ -4047,7 +4047,7 @@ intptr_t C2_HOOK_CDECL FUN_004edb20(br_actor* pActor, void* pContext) {
 // `mov [esi+0xec],bl`/`mov edx,0x1f4`); the original keeps them after that fdivp (0x4d9d8a / 0x4d9da5). Same
 // opcodes, same data flow; no dependent instruction moved, so behaviour is unchanged.
 // FUNCTION: CARMA2_HW 0x004d9d00
-void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode) {
+void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode) {
     int previous_dismemberfest;
 
     if ((pObject->field_0x1a0 & 0xf0000) != 0) {
@@ -4068,7 +4068,7 @@ void C2_HOOK_FASTCALL FUN_004d9d00(tPhysics_object* pObject, int pMode) {
         pObject->disable_move_rotate = 0;
         previous_dismemberfest = gPed_dismemberfest;
         gPed_dismemberfest = 1;
-        FUN_004cd640(((tPed_character_instance*)pObject->owner)->ped, 500, 0x61, 0x61, gProgram_state.current_car.collision_info);
+        DamagePedestrian(((tPed_character_instance*)pObject->owner)->ped, 500, 0x61, 0x61, gProgram_state.current_car.collision_info);
         gPed_dismemberfest = previous_dismemberfest;
         return;
     }
@@ -4131,7 +4131,7 @@ float gFloat_0058afb4 = -10.0f;
 // contains pPoint; the matching triangle's material is written to pOut.
 // pFlag != 0 allows re-selecting the current edge, otherwise it is skipped.
 // FUNCTION: CARMA2_HW 0x004f4c70
-int C2_HOOK_FASTCALL FUN_004f4c70(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
+int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
     tU8* p1;
     tU8* yNode;
     tU8* zNode;
@@ -4154,7 +4154,7 @@ int C2_HOOK_FASTCALL FUN_004f4c70(tFace_ref* pFace, br_vector3* pPoint, tFace_re
             if (pFlag == 0 && iVar5 == *(tU16*)(p1 + 0x4e)) {
                 continue;
             }
-            if (FUN_004f0d50((const float*)pPoint, (const float*)((tU8*)puVar7 + 0x18), *(br_scalar*)((tU8*)puVar7 + 0x24),
+            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0x18), *(br_scalar*)((tU8*)puVar7 + 0x24),
                              (const float*)(iVar2 + (tU32)puVar7[0] * 0x28),
                              (const float*)(iVar2 + (tU32)puVar7[1] * 0x28),
                              (const float*)(iVar2 + (tU32)puVar7[2] * 0x28)) != 0) {
@@ -4179,7 +4179,7 @@ found_triangle:
             if (iVar9 == *(tU16*)(p1 + 0x4e)) {
                 continue;
             }
-            if (FUN_004f0d50((const float*)pPoint, (const float*)((tU8*)puVar7 + 0xc), *(br_scalar*)((tU8*)puVar7 + 0x18),
+            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0xc), *(br_scalar*)((tU8*)puVar7 + 0x18),
                              (const float*)((tU32)puVar7[0] * 0x20 + iVar2),
                              (const float*)((tU32)puVar7[1] * 0x20 + iVar2),
                              (const float*)((tU32)puVar7[2] * 0x20 + iVar2)) != 0) {
@@ -4198,7 +4198,7 @@ found_polygon:
 
 // PARTIAL 60.47%: only x87 scheduling/fld order of the first two statements differs
 // FUNCTION: CARMA2_HW 0x004f3740
-void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
+void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
     const float* pData = (const float*)pIndices;
 
     pResult[pIndices[0]] = ((pTransform[7] * pTransform[pIndices[0]] + (pPoint[0] - pTransform[3])) * pTransform[10]
@@ -4213,9 +4213,9 @@ void C2_HOOK_FASTCALL FUN_004f3740(const int* pIndices, const float* pTransform,
 }
 
 // Picks the uv triangle of a smash mapping that is nearest (in uv space) to
-// the given texture coordinate and lets FUN_004f3740 map it back to a position.
+// the given texture coordinate and lets ExtrapolateGeometryCoordinates2 map it back to a position.
 // FUNCTION: CARMA2_HW 0x004f36c0
-void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3* pOut) {
+void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector2* pUV, br_vector3* pOut) {
     const float* pData;
     float dy1;
     float dx1;
@@ -4232,9 +4232,9 @@ void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3
     distance1 = dy1 * dy1 + dx1 * dx1;
     distance0 = dy0 * dy0 + dx0 * dx0;
     if (distance1 < distance0) {
-        FUN_004f3740(pMap, (const float*)((const tU8*)pMap + 0x54), (const float*)pUV, (float*)pOut);
+        ExtrapolateGeometryCoordinates2(pMap, (const float*)((const tU8*)pMap + 0x54), (const float*)pUV, (float*)pOut);
     } else {
-        FUN_004f3740(pMap, (const float*)((const tU8*)pMap + 0x24), (const float*)pUV, (float*)pOut);
+        ExtrapolateGeometryCoordinates2(pMap, (const float*)((const tU8*)pMap + 0x24), (const float*)pUV, (float*)pOut);
     }
 }
 
@@ -4242,7 +4242,7 @@ void C2_HOOK_FASTCALL FUN_004f36c0(const void* pMap, br_vector2* pUV, br_vector3
 // free/oldest decal model, flips faces that point away from the face normal
 // and fills the poly/vertex index arrays handed back to the caller.
 // FUNCTION: CARMA2_HW 0x004f3820
-br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
+br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
     br_model* model;
     tDecal* decal;
     tDecal* best_decal;
@@ -4303,12 +4303,12 @@ br_actor* C2_HOOK_FASTCALL FUN_004f3820(tFace_ref* pFace, br_vertex* pQuad, br_m
     ((tU16*)pPoly_array)[1] = 1;
     ((tU16*)pPoly_array)[3] = 0;
     ((tU16*)pPoly_array)[4] = 2;
-    FUN_004c89f0(2);
+    PipeSingleSmashDecal(2);
     return decal->actor;
 }
 
 // FUNCTION: CARMA2_HW 0x004f39a0
-int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
+int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
     int max_faces;
     float u_center;
     float v_center;
@@ -4425,7 +4425,7 @@ int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex*
     } else {
         vertex = *a.level_vertex[1];
         vertex.map.v[1] = (vertex.map.v[0] - a.corner[0]->map.v[0]) / (a.corner[1]->map.v[0] - a.corner[0]->map.v[0]) * (a.corner[1]->map.v[1] - a.corner[0]->map.v[1]) + a.corner[0]->map.v[1];
-        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        ExtrapolateGeometryCoordinates(pMap, &vertex.map, &vertex.p);
         if (model->nvertices >= max_vertices) {
             return 0;
         }
@@ -4438,7 +4438,7 @@ int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex*
     } else {
         vertex = *a.level_vertex[3];
         vertex.map.v[0] = (vertex.map.v[1] - a.corner[1]->map.v[1]) / (a.corner[3]->map.v[1] - a.corner[1]->map.v[1]) * (a.corner[3]->map.v[0] - a.corner[1]->map.v[0]) + a.corner[1]->map.v[0];
-        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        ExtrapolateGeometryCoordinates(pMap, &vertex.map, &vertex.p);
         if (model->nvertices >= max_vertices) {
             return 0;
         }
@@ -4451,7 +4451,7 @@ int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex*
     } else {
         vertex = *a.level_vertex[2];
         vertex.map.v[1] = (vertex.map.v[0] - a.corner[3]->map.v[0]) / (a.corner[2]->map.v[0] - a.corner[3]->map.v[0]) * (a.corner[2]->map.v[1] - a.corner[3]->map.v[1]) + a.corner[3]->map.v[1];
-        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        ExtrapolateGeometryCoordinates(pMap, &vertex.map, &vertex.p);
         if (model->nvertices >= max_vertices) {
             return 0;
         }
@@ -4464,7 +4464,7 @@ int C2_HOOK_FASTCALL FUN_004f39a0(const void* pMap, br_actor* pActor, br_vertex*
     } else {
         vertex = *a.level_vertex[0];
         vertex.map.v[0] = (vertex.map.v[1] - a.corner[2]->map.v[1]) / (a.corner[0]->map.v[1] - a.corner[2]->map.v[1]) * (a.corner[0]->map.v[0] - a.corner[2]->map.v[0]) + a.corner[2]->map.v[0];
-        FUN_004f36c0(pMap, &vertex.map, &vertex.p);
+        ExtrapolateGeometryCoordinates(pMap, &vertex.map, &vertex.p);
         if (model->nvertices >= max_vertices) {
             return 0;
         }
@@ -4714,7 +4714,7 @@ extern int gGoreLevel;
 extern int gPed_severing_damage;
 extern const int gPow2_array[32];
 extern int gPed_dismember_spurting_member_count;
-extern int C2_HOOK_FASTCALL MakeCharacterBonePhysicworthy(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega);
+extern int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega);
 extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
@@ -4724,7 +4724,7 @@ int gPed_severing_chance;
 
 /* Pipes the dismembered-member indices for one bone. */
 // FUNCTION: CARMA2_HW 0x004c8bf0
-void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
+void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
     ARDoSingleVariedSession(0x2c, (uintptr_t)pPed, 3,
         2, 0, (int)pBone,
         1, 2, (int)pArg3,
@@ -4732,7 +4732,7 @@ void C2_HOOK_FASTCALL FUN_004c8bf0(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 
 }
 
 // FUNCTION: CARMA2_HW 0x004cd9e0
-int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
+int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBoneIndex) {
     tPed_character_instance* pCharacter;
     br_vector3 position;
     br_vector3 omega;
@@ -4746,7 +4746,7 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
     count = 0;
     for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
         if (pCharacter->personality->form->bones[i].indices[0] == pBoneIndex && (pCharacter->field_0xc & gPow2_array[i]) == 0) {
-            count += FUN_004cd9e0(pPed, i);
+            count += DismemberPed(pPed, i);
         }
     }
     pPed->field_0x0c->field_0x23[pBoneIndex] = gPed_dismember_spurting_member_count;
@@ -4761,9 +4761,9 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
         omega.v[1] = SRandomPosNeg(20.f);
         omega.v[2] = SRandomPosNeg(20.f);
         physics_index = (tS8)pCharacter->field_0x6;
-        result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, &position, &omega);
+        result = DismemberCharacter(pCharacter, pBoneIndex, &position, &omega);
         if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
-            FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+            PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
             actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
             if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
                 BrActorAdd(gNon_track_actor, actor);
@@ -4772,9 +4772,9 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
         return result + count;
     }
     physics_index = (tS8)pCharacter->field_0x6;
-    result = MakeCharacterBonePhysicworthy(pCharacter, pBoneIndex, NULL, NULL);
+    result = DismemberCharacter(pCharacter, pBoneIndex, NULL, NULL);
     if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
-        FUN_004c8bf0(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+        PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
         actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
         if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
             BrActorAdd(gNon_track_actor, actor);
@@ -4788,7 +4788,7 @@ int C2_HOOK_FASTCALL FUN_004cd9e0(tPedestrian* pPed, int pBoneIndex) {
    updates hit points and plays the matching ped move and noise.
    Returns 1 when the ped is dead. */
 // FUNCTION: CARMA2_HW 0x004cd640
-int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) {
+int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) {
     int limit;
     double a;
     int move_time;
@@ -4823,7 +4823,7 @@ int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int
                     continue;
                 }
             }
-            count += FUN_004cd9e0(pPed, IRandomBetween(1, pPed->character->personality->form->count_bones - 1));
+            count += DismemberPed(pPed, IRandomBetween(1, pPed->character->personality->form->count_bones - 1));
         }
     }
     if (count > 4) {
@@ -4873,7 +4873,7 @@ int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 
 // FUNCTION: CARMA2_HW 0x004f6320
-void C2_HOOK_FASTCALL FUN_004f6320(tNet_message_chunk_non_car_shrapnel* pSpec) {
+void C2_HOOK_FASTCALL ReceivedSmashShraps(tNet_message_chunk_non_car_shrapnel* pSpec) {
     br_actor* actor;
     br_actor* clone;
     br_actor** p;

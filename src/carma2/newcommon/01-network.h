@@ -180,7 +180,7 @@ extern void C2_HOOK_FASTCALL CheckForPendingStartRace(void);
 
 extern void C2_HOOK_FASTCALL NetService(int pIn_race);
 
-// NetFinishRace
+// NetFinishrace
 
 extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
 
@@ -216,13 +216,13 @@ extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar)
 
 
 extern void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pNet_player, int pSize);
-extern int C2_HOOK_FASTCALL SendGuaranteedMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL RemoveCarFromEffects(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
 extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
 extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
-extern void C2_HOOK_FASTCALL FUN_004ddde0(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
 
-/* Payload of the player-info net message (sent by RemoveNetPlayer); the receive
+/* Payload of the player-info net message (sent by KickPlayerOut); the receive
    handler is given a pointer to the message contents (tNet_message + 0x18). */
 typedef struct {
     tNet_message_chunk_header header;
@@ -233,6 +233,6 @@ typedef struct {
     tNet_game_player_info player;
 } tNet_message_chunk_player_info;
 
-extern void C2_HOOK_FASTCALL FUN_004a48d0(tNet_message_chunk_player_info* pContents, tNet_message* pMessage);
+extern void C2_HOOK_FASTCALL ReceivedNewPlayerList(tNet_message_chunk_player_info* pContents, tNet_message* pMessage);
 
 #endif // GUARD_01_NETWORK_H

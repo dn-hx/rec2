@@ -17,7 +17,7 @@ br_actor* C2_HOOK_CDECL BrActorAdd(br_actor* parent, br_actor* a);
 
 br_actor* C2_HOOK_CDECL BrActorRemove(br_actor* a);
 
-void C2_HOOK_CDECL BrActorRelink(br_actor* parent, br_actor* a);
+void C2_HOOK_CDECL BrActorRelink_2(br_actor* parent, br_actor* a);
 
 br_actor* C2_HOOK_CDECL BrActorAllocate(br_uint_8 type, void* type_data);
 
@@ -33,7 +33,7 @@ void C2_HOOK_STDCALL Matrix4PerspectiveNew(br_matrix4* mat, br_angle field_of_vi
 
 br_token C2_HOOK_STDCALL CameraToScreenMatrix4(br_matrix4* mat, br_actor* camera);
 
-br_uint_16 C2_HOOK_CDECL BrActorToActorMatrix34(br_matrix34* m, br_actor* a, br_actor* b);
+br_uint_16 C2_HOOK_CDECL BrActorToActorMatrix34_2(br_matrix34* m, br_actor* a, br_actor* b);
 
 void C2_HOOK_CDECL BrActorToScreenMatrix4(br_matrix4* m, br_actor* a, br_actor* camera);
 
