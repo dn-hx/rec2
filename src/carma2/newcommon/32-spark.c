@@ -1137,9 +1137,12 @@ int gAFE_color_cycle;
 // GLOBAL: CARMA2_HW 0x006b7884
 tU32 gNext_AFE_color_cycle;
 
-// based on ApexWorm/rec2 e98e29390 and (reference only)
+// PARTIAL 63.95%: frame 0x48 vs 0x34 (int->float and double-sqrt temporaries), replay-splash induction
+// base +0x18 vs array base, and register allocation (ped/matrix edi<->ebp, pTime edi/ebx); 3 vs 2 calls
+// to GetVelocitiesFromMatrices. Body rebuilt from the listing only (no external source).
 // FUNCTION: CARMA2_HW 0x004f9790
 void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
+    extern const br_scalar gFLOAT_0058b008;
     tPhysics_object* object;
     tCar_spec* car;
     tPedestrian* ped;
@@ -1161,11 +1164,10 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
     tU32 owner;
     int type;
     int i;
-    int j;
 
     MungeSmokeColumn(pTime);
     if (gNum_splash_types != 0) {
-        if (gAction_replay_mode && ARGetReplayRate() != 0.0f) {
+        if (gAction_replay_mode && ARGetReplayRate() != gFLOAT_0058b008) {
             for (type = 1; type <= 3; type++) {
                 for (i = 0; ; i++) {
                     if (i >= (type == 0 ? 1 : GetCarCount((tVehicle_type)type))) {
@@ -1184,7 +1186,7 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
             if (*(tU32*)&object->water_d != 0x461c4000u) {
                 CreateSplash(object, pTime);
             }
-            for (i = 0; i < REC2_ASIZE(gReplay_splashes); i++) {
+            for (i = 0; i < (int)REC2_ASIZE(gReplay_splashes); i++) {
                 bit = 1u << i;
                 if (!(gReplay_splash_flags & bit)) {
                     continue;
@@ -1192,7 +1194,8 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
                 replay_splash = &gReplay_splashes[i];
                 matrix = NULL;
                 chunk = NULL;
-                if (replay_splash->type == 1) {
+                switch (replay_splash->type) {
+                case 1:
                     actor = replay_splash->object.actor;
                     identifier = actor->identifier;
                     owner = (tU32)((((tS8)identifier[4] * 10 + (tS8)identifier[5]) * 10
@@ -1201,8 +1204,12 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
                     if (chunk != NULL) {
                         matrix = &actor->t.t.mat;
                         chunk += 8;
+                        GetVelocitiesFromMatrices(&velocity, &omega, matrix, (br_matrix34*)chunk, pTime);
+                        GeneralCreateSplash(NULL, &velocity, &omega, &replay_splash->normal,
+                            replay_splash->water_density, &replay_splash->bb, matrix, pTime);
                     }
-                } else if (replay_splash->type == 2) {
+                    break;
+                case 2:
                     character = (tPed_character_instance*)replay_splash->object.actor;
                     ped = character->ped;
                     actor = GetCharacterActorPtr(character);
@@ -1212,57 +1219,63 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
                     chunk = (tU8*)FindNextChunk(ePipe_chunk_ped_physics, owner);
                     if (chunk != NULL) {
                         chunk += 4;
+                        GetVelocitiesFromMatrices(&velocity, &omega, matrix, (br_matrix34*)chunk, pTime);
+                        GeneralCreateSplash(NULL, &velocity, &omega, &replay_splash->normal,
+                            replay_splash->water_density, &replay_splash->bb, matrix, pTime);
                     }
-                } else if (replay_splash->type == 0xff) {
+                    break;
+                case 0xff:
                     actor = replay_splash->object.phil_object->actor;
-                    matrix = &actor->t.t.mat;
                     chunk = (tU8*)FindNextChunk(ePipe_chunk_phil_object, (uintptr_t)replay_splash->object.phil_object);
                     if (chunk != NULL) {
+                        matrix = &actor->t.t.mat;
                         chunk += 4;
+                        GetVelocitiesFromMatrices(&velocity, &omega, matrix, (br_matrix34*)chunk, pTime);
+                        GeneralCreateSplash(NULL, &velocity, &omega, &replay_splash->normal,
+                            replay_splash->water_density, &replay_splash->bb, matrix, pTime);
                     }
-                }
-                if (chunk != NULL) {
-                    GetVelocitiesFromMatrices(&velocity, &omega, matrix, (br_matrix34*)chunk, pTime);
-                    GeneralCreateSplash(NULL, &velocity, &omega, &replay_splash->normal,
-                        replay_splash->water_density, &replay_splash->bb, matrix, pTime);
+                    break;
                 }
             }
         } else if (!gAction_replay_mode) {
             for (object = PHILGetFirstObject(); object != NULL; object = PHILGetNextObject(object)) {
                 if (*(tU32*)&object->water_d != 0x461c4000u && object->last_special_volume != NULL
                         && !(object->last_special_volume->gravity_multiplier >= 1.f)) {
-                    time = pTime;
-                    if (object->owner != NULL && object->flags_0x238 == 1
-                            && ((tCar_spec*)object->owner)->driver == eDriver_local_human) {
+                    if (object != NULL && object->owner != NULL && object->flags_0x238 == 1) {
                         time = 100;
+                        if (((tCar_spec*)object->owner)->driver != eDriver_local_human) {
+                            time = pTime;
+                        }
+                    } else {
+                        time = pTime;
                     }
                     CreateSplash(object, time);
                 }
             }
         }
         if (gSplash_flags != 0) {
-            for (i = 0; i < REC2_ASIZE(gSplash); i++) {
+            for (i = 0; i < (int)REC2_ASIZE(gSplash); i++) {
                 bit = 1u << i;
                 if (!(gSplash_flags & bit)) {
                     continue;
                 }
                 splash = &gSplash[i];
-                if (splash->just_done == 0 && (!gAction_replay_mode || ARGetReplayRate() != 0.0f)) {
+                if (splash->just_done == 0 && (!gAction_replay_mode || ARGetReplayRate() != gFLOAT_0058b008)) {
                     gSplash_flags &= ~bit;
                     if (splash->actor->parent != NULL) {
                         BrActorRemove(splash->actor);
                     }
                 } else {
                     scale = splash->scale_x * splash->size;
-                    for (j = 0; j < 3; j++) {
-                        splash->actor->t.t.mat.m[0][j] = scale * gCamera_to_world.m[0][j];
-                    }
-                    for (j = 0; j < 3; j++) {
-                        splash->actor->t.t.mat.m[1][j] = splash->size * gCamera_to_world.m[1][j];
-                    }
-                    for (j = 0; j < 3; j++) {
-                        splash->actor->t.t.mat.m[2][j] = splash->size * gCamera_to_world.m[2][j];
-                    }
+                    splash->actor->t.t.mat.m[0][0] = scale * gCamera_to_world.m[0][0];
+                    splash->actor->t.t.mat.m[0][1] = scale * gCamera_to_world.m[0][1];
+                    splash->actor->t.t.mat.m[0][2] = scale * gCamera_to_world.m[0][2];
+                    splash->actor->t.t.mat.m[1][0] = splash->size * gCamera_to_world.m[1][0];
+                    splash->actor->t.t.mat.m[1][1] = splash->size * gCamera_to_world.m[1][1];
+                    splash->actor->t.t.mat.m[1][2] = splash->size * gCamera_to_world.m[1][2];
+                    splash->actor->t.t.mat.m[2][0] = splash->size * gCamera_to_world.m[2][0];
+                    splash->actor->t.t.mat.m[2][1] = splash->size * gCamera_to_world.m[2][1];
+                    splash->actor->t.t.mat.m[2][2] = splash->size * gCamera_to_world.m[2][2];
                     if (gProgram_state.cockpit_on) {
                         length = sqrt(gCamera_to_world.m[0][2] * gCamera_to_world.m[0][2]
                             + gCamera_to_world.m[0][0] * gCamera_to_world.m[0][0]);
@@ -1276,20 +1289,20 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
     }
     if (gAFE) {
         time = GetTotalTime();
-        if (time - gNext_AFE_color_cycle <= 100u) {
-            gAFE_color_cycle = 0;
-        } else {
+        if (time - gNext_AFE_color_cycle > 100u) {
             gAFE_color_cycle = 1;
             gNext_AFE_color_cycle = time;
+        } else {
+            gAFE_color_cycle = 0;
         }
     }
     if (gAction_replay_mode) {
-        for (i = 0; i < REC2_ASIZE(gShrapnel); i++) {
+        for (i = 0; i < (int)REC2_ASIZE(gShrapnel); i++) {
             shrapnel = &gShrapnel[i];
             actor = shrapnel->actor;
             matrix = &actor->t.t.mat;
             if ((tU32)gShrapnel_flags & (1u << i)) {
-                shrapnel->age = (tU32)((tS32)ARGetReplayRate() * (tS32)pTime + (tS32)shrapnel->age);
+                shrapnel->age = (tU32)(tS32)(ARGetReplayRate() * (tS32)pTime + (tS32)shrapnel->age);
                 DrMatrix34Rotate(matrix, (br_angle)((tU16)shrapnel->age * 182), &shrapnel->axis);
                 BrMatrix34PreShearX(matrix, shrapnel->shear1, shrapnel->shear2);
             }
@@ -1297,7 +1310,7 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
         return;
     }
     ARStartPipingSession(ePipe_chunk_shrapnel);
-    for (i = 0; i < REC2_ASIZE(gShrapnel); i++) {
+    for (i = 0; i < (int)REC2_ASIZE(gShrapnel); i++) {
         shrapnel = &gShrapnel[i];
         actor = shrapnel->actor;
         matrix = &actor->t.t.mat;
@@ -1319,23 +1332,23 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
             scale = (br_scalar)pTime * 0.001f;
             shrapnel->age += pTime;
         }
-        for (j = 0; j < 3; j++) {
-            matrix->m[3][j] += shrapnel->v.v[j] * scale;
-        }
+        matrix->m[3][0] += shrapnel->v.v[0] * scale;
+        matrix->m[3][1] += shrapnel->v.v[1] * scale;
+        matrix->m[3][2] += shrapnel->v.v[2] * scale;
         shrapnel->v.v[1] = shrapnel->v.v[1] - (br_scalar)(pTime * 10) * 0.00014492753f;
         DrMatrix34Rotate(matrix, (br_angle)((tU16)shrapnel->age * 182), &shrapnel->axis);
         BrMatrix34PreShearX(matrix, shrapnel->shear1, shrapnel->shear2);
         damping = 1.0f - (br_scalar)pTime
-            * sqrt(shrapnel->v.v[0] * shrapnel->v.v[0]
+            * ((br_scalar)sqrt((double)(shrapnel->v.v[0] * shrapnel->v.v[0]
                 + shrapnel->v.v[1] * shrapnel->v.v[1]
-                + shrapnel->v.v[2] * shrapnel->v.v[2]) * 0.71428573f * 0.001f;
+                + shrapnel->v.v[2] * shrapnel->v.v[2])) * 0.71428573f) * 0.001f;
         if (damping < 0.1f) {
             damping = 0.1f;
         }
-        for (j = 0; j < 3; j++) {
-            shrapnel->v.v[j] = shrapnel->v.v[j] * damping;
-        }
-        owner = (tU32)i + ((shrapnel->age > 1000u || shrapnel->age < pTime) ? 0x8000u : 0u);
+        shrapnel->v.v[0] = shrapnel->v.v[0] * damping;
+        shrapnel->v.v[1] = shrapnel->v.v[1] * damping;
+        shrapnel->v.v[2] = shrapnel->v.v[2] * damping;
+        owner = ((shrapnel->age > 1000u || shrapnel->age < pTime) ? 1u : 0u) * 0x8000u + (tU32)i;
         AddShrapnelToPipingSession((int)owner, (const br_vector3*)matrix->m[3],
             (tU16)(shrapnel->age - pTime), shrapnel->actor->material);
         if (shrapnel->age > 1000u) {
@@ -2007,7 +2020,9 @@ void C2_HOOK_FASTCALL AdjustFlame(int pIndex, int pFrame_count, br_scalar pScale
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// and ApexWorm/rec2 fea35c2b6
+// PARTIAL 59.96%: frame 0x14 vs 0xc (VC5 emits two unnamed float temps in the dot product where the
+// original reuses the `direction` slot with fst/fmul duplicates) plus regalloc (pPos ebp vs edi, column
+// spilled/reloaded). 246 vs 259 instructions. Body re-verified statement by statement against the listing.
 // FUNCTION: CARMA2_HW 0x004fbdd0
 void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTime) {
     tSmoke_column* column;
@@ -2024,17 +2039,12 @@ void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTi
     actor->t.t.mat.m[3][2] = pPos->v[2];
     if (gAction_replay_mode) {
         for (i = 0; i < 3; i++) {
-            int width;
-            int height;
-
             column->frame_count[i] = (int)(ARGetReplayRate() + column->frame_count[i]);
             if (column->frame_count[i] >= 0 && column->frame_count[i] < 20) {
                 flame->type = 1;
                 flame->material->colour_map = gFlame_map[column->frame_count[i]];
                 BrMaterialUpdate(flame->material, 0x7fff);
-                height = gFlame_map[column->frame_count[i]]->height;
-                width = gFlame_map[column->frame_count[i]]->width;
-                BrMatrix34Scale(&flame->t.t.mat, (br_scalar)width * column->scale_x[i], (br_scalar)height * column->scale_y[i], 1.0f);
+                BrMatrix34Scale(&flame->t.t.mat, (br_scalar)gFlame_map[column->frame_count[i]]->width * column->scale_x[i], (br_scalar)gFlame_map[column->frame_count[i]]->height * column->scale_y[i], 1.0f);
                 flame->t.t.mat.m[3][0] = column->offset_x[i];
                 flame->t.t.mat.m[3][2] = column->offset_z[i];
             } else {
@@ -2078,14 +2088,9 @@ void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTi
             }
         }
         if (column->frame_count[i] >= 0) {
-            int width;
-            int height;
-
             flame->material->colour_map = gFlame_map[column->frame_count[i]];
             BrMaterialUpdate(flame->material, 0x7fff);
-            height = gFlame_frame_size[column->frame_count[i]][1];
-            width = gFlame_frame_size[column->frame_count[i]][0];
-            BrMatrix34Scale(&flame->t.t.mat, (br_scalar)width * column->scale_x[i], (br_scalar)height * column->scale_y[i], 1.0f);
+            BrMatrix34Scale(&flame->t.t.mat, (br_scalar)gFlame_frame_size[column->frame_count[i]][0] * column->scale_x[i], (br_scalar)gFlame_frame_size[column->frame_count[i]][1] * column->scale_y[i], 1.0f);
             flame->t.t.mat.m[3][0] = column->offset_x[i];
             flame->t.t.mat.m[3][2] = column->offset_z[i];
         }
@@ -2865,11 +2870,17 @@ void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vec
 #pragma auto_inline(on)
 #endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004fda40
 void C2_HOOK_FASTCALL CreateSplash(tPhysics_object* pObject, tU32 pTime) {
     GeneralCreateSplash(pObject, &pObject->v, &pObject->omega, &pObject->water_normal,
         pObject->water_d, &pObject->bb1, &pObject->actor->t.t.mat, pTime);
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetVelocitiesFromMatrices
 
