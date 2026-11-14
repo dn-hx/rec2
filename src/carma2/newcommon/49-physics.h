@@ -450,8 +450,8 @@ extern int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_obj
 extern int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 extern int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection);
 extern void C2_HOOK_FASTCALL FUN_0045d5e0(const float* ray_end, const float* ray_start, const br_vector3* sphere1_center, const br_vector3* sphere2_center, float* factor_out, br_vector3* normal_out);
-extern void C2_HOOK_FASTCALL FUN_0045e4e0(float* pParam1, float* pParam2, float* pParam3, int pParam4, float* pParam5);
-extern void C2_HOOK_FASTCALL FUN_0045e200(float* pParam1, float* pParam2, float* pParam3, void* pParam4, float* pParam5);
+extern void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pShape, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5);
+extern void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_data* pPolyhedron, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5);
 extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
 extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
 extern void C2_HOOK_FASTCALL FUN_004bddd0(tPhysics_object* pObject1, tPhysics_object* pObject2);

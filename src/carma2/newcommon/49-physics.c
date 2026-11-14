@@ -6823,24 +6823,228 @@ int C2_HOOK_FASTCALL SetUpQuickHingeData(tPhysics_object** pObject_list, tPhysic
 #pragma auto_inline(off)
 #endif
 
+// PARTIAL 26.88%: x87 FPU scheduling and stack-slot allocation (frame 0x18 vs original 0x1c)
 // FUNCTION: CARMA2_HW 0x0045e4e0
-void C2_HOOK_FASTCALL FUN_0045e4e0(float* pParam1, float* pParam2, float* pParam3, int pParam4, float* pParam5) {
-    (void)pParam1;
-    (void)pParam2;
-    (void)pParam3;
-    (void)pParam4;
-    (void)pParam5;
+void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pShape, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float* pfVar5;
+    float* pfVar7;
+    float* pfVar10;
+    float* pfVar11;
+    float* local_18;
+    int iVar6;
+    int iVar8;
+    int iVar9;
+
     *pParam5 = 100.0f;
+    fVar3 = *pOffset;
+    iVar8 = 0;
+    pfVar5 = pParam2;
+    pfVar10 = (float*)pShape;
+    iVar6 = (int)pParam1 - (int)pParam2;
+    do {
+        fVar1 = (pfVar10[4] + fVar3) - -0.002;
+        if ((fVar1 < *(float*)(iVar6 + (int)pfVar5)) && (fVar1 < *pfVar5)) {
+            return;
+        }
+        fVar1 = (pfVar10[1] - fVar3) - 0.002;
+        if ((*(float*)(iVar6 + (int)pfVar5) < fVar1) && (*pfVar5 < fVar1)) {
+            return;
+        }
+        iVar8 = iVar8 + 1;
+        pfVar5 = pfVar5 + 1;
+        pfVar10 = pfVar10 + 1;
+    } while (iVar8 < 3);
+    iVar9 = 0;
+    pfVar5 = (float*)((tU8*)pShape + 0x10);
+    iVar8 = (int)pParam2 - (int)pParam1;
+    pfVar10 = pParam1;
+    local_18 = pfVar5;
+    do {
+        fVar1 = local_18[-3] - fVar3;
+        if ((*pfVar10 < fVar1) && (fVar1 - 0.002 < *(float*)(iVar8 + (int)pfVar10))) {
+            if (fVar1 < *(float*)(iVar8 + (int)pfVar10)) {
+                fVar4 = (fVar1 - *pfVar10) / (*(float*)(iVar8 + (int)pfVar10) - *pfVar10);
+                fVar1 = 1.0f - fVar4;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar4 + pParam3[1];
+                pParam3[2] = fVar1 * fVar4 + pParam3[2];
+                *pParam3 = fVar2 * fVar4 + *pParam3;
+                pParam3[iVar9] = fVar3 + pParam3[iVar9];
+            } else {
+                fVar4 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar6 = 0;
+            pfVar7 = pfVar5;
+            pfVar11 = pParam3;
+            do {
+                if ((iVar6 != iVar9) && ((*pfVar11 < pfVar7[-3]) || (*pfVar7 < *pfVar11))) {
+                    break;
+                }
+                iVar6 = iVar6 + 1;
+                pfVar11 = pfVar11 + 1;
+                pfVar7 = pfVar7 + 1;
+            } while (iVar6 < 3);
+            if (iVar6 == 3) {
+                *pParam5 = fVar4;
+                BrVector3SetFloat((br_vector3*)pParam4, 0.0f, 0.0f, 0.0f);
+                pParam4[iVar9] = 1.0f;
+                return;
+            }
+        }
+        fVar1 = fVar3 + *local_18;
+        if ((fVar1 < *pfVar10) && (*(float*)(iVar8 + (int)pfVar10) < fVar1 - -0.002)) {
+            if (*(float*)(iVar8 + (int)pfVar10) < fVar1) {
+                fVar4 = (fVar1 - *pfVar10) / (*(float*)(iVar8 + (int)pfVar10) - *pfVar10);
+                fVar1 = 1.0f - fVar4;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar4 + pParam3[1];
+                pParam3[2] = fVar1 * fVar4 + pParam3[2];
+                *pParam3 = fVar2 * fVar4 + *pParam3;
+                pParam3[iVar9] = pParam3[iVar9] - fVar3;
+            } else {
+                fVar4 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar6 = 0;
+            pfVar7 = pfVar5;
+            pfVar11 = pParam3;
+            do {
+                if ((iVar6 != iVar9) && ((*pfVar11 < pfVar7[-3]) || (*pfVar7 < *pfVar11))) {
+                    break;
+                }
+                iVar6 = iVar6 + 1;
+                pfVar11 = pfVar11 + 1;
+                pfVar7 = pfVar7 + 1;
+            } while (iVar6 < 3);
+            if (iVar6 == 3) {
+                *pParam5 = fVar4;
+                BrVector3SetFloat((br_vector3*)pParam4, 0.0f, 0.0f, 0.0f);
+                pParam4[iVar9] = -1.0f;
+                return;
+            }
+        }
+        iVar9 = iVar9 + 1;
+        local_18 = local_18 + 1;
+        pfVar10 = pfVar10 + 1;
+        if (2 < iVar9) {
+            return;
+        }
+    } while (1);
 }
 
+// PARTIAL 44.26%: x87 FPU scheduling and register allocation in both loops (x87/regalloc residual)
 // FUNCTION: CARMA2_HW 0x0045e200
-void C2_HOOK_FASTCALL FUN_0045e200(float* pParam1, float* pParam2, float* pParam3, void* pParam4, float* pParam5) {
-    (void)pParam1;
-    (void)pParam2;
-    (void)pParam3;
-    (void)pParam4;
-    (void)pParam5;
+void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_data* pPolyhedron, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar7;
+    float* pfVar8;
+    int iVar9;
+    int iVar10;
+    int iVar11;
+    int local_400;
+    int local_3f4;
+    float afStack_3e0[124];
+    float afStack_1f0[124];
+
+    iVar9 = 0;
     *pParam5 = 100.0f;
+    iVar11 = pPolyhedron->count_planes;
+    if (0 < iVar11) {
+        pfVar8 = pPolyhedron->planes->v;
+        do {
+            fVar7 = pParam1[2] * pfVar8[2] + pParam1[1] * pfVar8[1] + *pfVar8 * *pParam1 + *pOffset + pfVar8[3];
+            fVar1 = pParam2[2] * pfVar8[2] + pParam2[1] * pfVar8[1] + *pfVar8 * *pParam2 + *pOffset + pfVar8[3];
+            afStack_1f0[iVar9] = fVar7;
+            afStack_3e0[iVar9] = fVar1;
+            if ((fVar7 < -0.002) && (fVar1 < -0.002)) {
+                return;
+            }
+            iVar9 = iVar9 + 1;
+            pfVar8 = pfVar8 + 4;
+        } while (iVar9 < iVar11);
+    }
+    local_400 = 0;
+    if (iVar11 < 1) {
+        return;
+    }
+    local_3f4 = 0;
+    do {
+        if ((-0.002 < afStack_3e0[local_400]) && (afStack_1f0[local_400] < 0.0f)) {
+            if (0.0f <= afStack_3e0[local_400]) {
+                fVar3 = -afStack_1f0[local_400] / (afStack_3e0[local_400] - afStack_1f0[local_400]);
+                fVar1 = 1.0f - fVar3;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar3 + pParam3[1];
+                pParam3[2] = fVar1 * fVar3 + pParam3[2];
+                *pParam3 = fVar2 * fVar3 + *pParam3;
+            } else {
+                fVar3 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar9 = 0;
+            pfVar8 = (float*)((tU8*)pPolyhedron->planes + local_3f4);
+            fVar1 = *pfVar8;
+            fVar5 = pfVar8[1] * *pOffset + pParam3[1];
+            fVar4 = pfVar8[2] * *pOffset + pParam3[2];
+            fVar2 = *pOffset;
+            pParam3[1] = fVar5;
+            *pParam3 = fVar1 * fVar2 + *pParam3;
+            pParam3[2] = fVar4;
+            iVar11 = pPolyhedron->count_planes;
+            if (0 < iVar11) {
+                iVar10 = 0;
+                do {
+                    if ((iVar9 != local_400) &&
+                        (pfVar8 = (float*)((tU8*)pPolyhedron->planes + iVar10),
+                         pfVar8[2] * fVar4 + pfVar8[1] * fVar5 + *pfVar8 * *pParam3 + pfVar8[3] <= 0.0f)) {
+                        break;
+                    }
+                    iVar9 = iVar9 + 1;
+                    iVar10 = iVar10 + 0x10;
+                } while (iVar9 < iVar11);
+            }
+            if (iVar9 == iVar11) {
+                *pParam5 = fVar3;
+                local_400 = local_400 * 0x10;
+                *pParam4 = *(float*)((tU8*)pPolyhedron->planes + local_400);
+                pParam4[1] = *(float*)((tU8*)pPolyhedron->planes + local_400 + 4);
+                pParam4[2] = *(float*)((tU8*)pPolyhedron->planes + local_400 + 8);
+                return;
+            }
+        }
+        local_400 = local_400 + 1;
+        local_3f4 = local_3f4 + 0x10;
+        if (iVar11 <= local_400) {
+            return;
+        }
+    } while (1);
 }
 
 #ifdef REC2_MATCHING
@@ -7063,9 +7267,9 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
         }
         iVar17 = *pType;
         if (iVar17 == 0) {
-            FUN_0045e4e0(pParam3, pParam3 + 3, (float*)local_160, (int)&local_17c, &local_1c4);
+            FUN_0045e4e0((float*)((tU8*)pBounds + 0x38), (tCollision_shape_common*)((tU8*)pType), pBounds, (float*)pBounds + 3, (float*)local_160, (float*)&local_17c, &local_1c4);
         } else if ((iVar17 == 1) || (iVar17 == 3)) {
-            FUN_0045e200(pParam3, pParam3 + 3, (float*)local_160, (void*)&local_17c, &local_1c4);
+            FUN_0045e200((float*)((tU8*)pBounds + 0x38), (tCollision_shape_polyhedron_data*)((tU8*)pType + 0x38), pParam3, pParam3 + 3, (float*)local_160, (float*)&local_17c, &local_1c4);
         } else {
             local_1c4 = 100.0f;
         }
