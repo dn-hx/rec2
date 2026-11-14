@@ -2739,6 +2739,14 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     if (pModel == NULL) {
         return;
     }
+#ifndef REC2_MATCHING
+    /* WeldCar frees each model and leaves models[0] - already freed - in the array, which the
+       original also does; there the freed block keeps its contents, while our allocator can hand
+       back zeroed memory and pModel->prepared reads 0 (race crash reproduced 2026-11-14). */
+    if (pModel->prepared == NULL) {
+        return;
+    }
+#endif
     for (g = 0; g < pModel->prepared->ngroups; g++) {
         br_material* mat = pModel->faces[*pModel->prepared->groups[g].face_user].material;
 
@@ -7171,7 +7179,7 @@ bit_found:
     SetUpDetachedBitObject(bit_object, pActor, user->models[0], detach_data, pCar->car_crush_spec, pArg6, pCar->collision_info);
     flap_data = crush_data->flap_data;
     if (flap_data == NULL) {
-        SetUpSemiDetachedBitJoint(bit_object->physics_joint1, detach_data, 0, 0, &bit_object, pArg5);
+        SetUpSemiDetachedBitJoint(bit_object->physics_joint1, detach_data, 0, (int)bit_object, (tPhysics_object**)pActor, pArg5);
     } else {
         SetUpFlapJoint(bit_object->physics_joint1, flap_data, user->models[0], bit_object, pArg5, pArg7, pArg8);
         *(tPhysics_object**)((tU8*)flap_data + 0x24) = bit_object;
