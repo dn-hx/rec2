@@ -2739,14 +2739,12 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     if (pModel == NULL) {
         return;
     }
-#ifndef REC2_MATCHING
     /* WeldCar frees each model and leaves models[0] - already freed - in the array, which the
-       original also does; there the freed block keeps its contents, while our allocator can hand
+       original also does; there the freed block keeps its contents, but our allocator can hand
        back zeroed memory and pModel->prepared reads 0 (race crash reproduced 2026-11-14). */
     if (pModel->prepared == NULL) {
         return;
     }
-#endif
     for (g = 0; g < pModel->prepared->ngroups; g++) {
         br_material* mat = pModel->faces[*pModel->prepared->groups[g].face_user].material;
 
