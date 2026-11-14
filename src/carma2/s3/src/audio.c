@@ -2544,3 +2544,11 @@ int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2) {
     (void)local;
     return 0xc;
 }
+
+extern int C2_HOOK_FASTCALL PDS3Return0_B(void);
+
+// FUNCTION: CARMA2_HW 0x00565aed
+void C2_HOOK_FASTCALL FUN_00565aed(void) {
+
+    PDS3Return0_B();
+}

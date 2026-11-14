@@ -235,4 +235,6 @@ extern int C2_HOOK_FASTCALL FUN_00564d33(void);
 
 extern int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2);
 
+extern void C2_HOOK_FASTCALL FUN_00565aed(void);
+
 #endif // S3_AUDIO_H
