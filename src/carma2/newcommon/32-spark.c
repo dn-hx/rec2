@@ -2551,125 +2551,96 @@ static br_scalar C2_HOOK_CDECL SmokeScalarRound(double pValue) {
     return result.scalar;
 }
 
-static double C2_HOOK_CDECL SplashSubtractFromScalar(double pValue, const br_scalar* pScalar) {
-    double result;
-
-#if defined(_MSC_VER) && defined(_M_IX86)
-    __asm {
-        mov ecx, pScalar
-        fld pValue
-        fsubr dword ptr [ecx]
-        fstp result
-    }
-#elif defined(__GNUC__) && defined(__i386__)
-    __asm__ volatile (
-        "fldl %[value]\n\t"
-        "fsubrs %[scalar]\n\t"
-        "fstpl %[result]\n\t"
-        : [result] "=m" (result)
-        : [value] "m" (pValue), [scalar] "m" (*pScalar)
-        : "st", "memory");
-#else
-    result = (double)*pScalar - pValue;
-#endif
-    return result;
-}
-
+// PARTIAL 67.58%: x87 scheduling/fxch placement with identical ops (S01/S02/S05/S07); structure, frame 0x20, constants, unrolling and branch layout all match
 // FUNCTION: CARMA2_HW 0x004fd530
 void C2_HOOK_FASTCALL SingleSplash(tPhysics_object* pObject, const br_matrix34* pMatrix, const br_vector3* pVelocity, const br_vector3* pNormal_velocity, const br_vector3* pOmega, const br_vector3* pPoint, const br_vector3* pNormal, tU32 pTime) {
     br_vector3 cross;
     br_vector3 velocity;
-    br_vector3 recoil;
-    br_scalar scaled;
     br_scalar speed;
     br_scalar size;
     br_scalar range;
-    double dot;
-    double random;
-    double wide;
+    br_scalar dot;
     tCar_spec* car;
-    int index;
-    int i;
 
     BrMatrix34ApplyP((br_vector3*)gSplash[gSplash_next].actor->t.t.mat.m[3], pPoint, pMatrix);
-    cross.v[0] = SmokeScalarRound((double)pOmega->v[1] * pPoint->v[2] - (double)pOmega->v[2] * pPoint->v[1]);
-    cross.v[1] = SmokeScalarRound((double)pOmega->v[2] * pPoint->v[0] - (double)pOmega->v[0] * pPoint->v[2]);
-    cross.v[2] = SmokeScalarRound((double)pOmega->v[0] * pPoint->v[1] - (double)pOmega->v[1] * pPoint->v[0]);
+    cross.v[0] = pOmega->v[1] * pPoint->v[2] - pOmega->v[2] * pPoint->v[1];
+    cross.v[1] = pOmega->v[2] * pPoint->v[0] - pOmega->v[0] * pPoint->v[2];
+    cross.v[2] = pOmega->v[0] * pPoint->v[1] - pOmega->v[1] * pPoint->v[0];
     BrMatrix34ApplyV(&velocity, &cross, pMatrix);
-    for (i = 0; i < 3; i++) {
-        scaled = SmokeScalarRound((double)pVelocity->v[i] * 6.9);
-        velocity.v[i] = SmokeScalarRound((double)velocity.v[i] + scaled);
-    }
-    speed = SmokeScalarRound(sqrt(((double)velocity.v[0] * velocity.v[0]
-        + (double)velocity.v[1] * velocity.v[1]) + (double)velocity.v[2] * velocity.v[2]));
-    dot = ((double)pNormal->v[1] * velocity.v[1] + (double)pNormal->v[2] * velocity.v[2])
-        + (double)pNormal->v[0] * velocity.v[0];
-    wide = SplashSubtractFromScalar(fabs(dot) * -5.f, &speed) * .006666666828095913f - -.04782608523964882f;
-    size = SmokeScalarRound(wide);
-    if (wide > .5f) {
+    cross.v[0] = pVelocity->v[0] * 6.9;
+    cross.v[1] = pVelocity->v[1] * 6.9;
+    velocity.v[0] = velocity.v[0] + cross.v[0];
+    velocity.v[1] = velocity.v[1] + cross.v[1];
+    cross.v[2] = pVelocity->v[2] * 6.9;
+    velocity.v[2] = velocity.v[2] + cross.v[2];
+    speed = sqrt(velocity.v[0] * velocity.v[0] + velocity.v[1] * velocity.v[1] + velocity.v[2] * velocity.v[2]);
+    dot = pNormal->v[1] * velocity.v[1] + pNormal->v[2] * velocity.v[2] + pNormal->v[0] * velocity.v[0];
+    size = (speed - (float)fabs(dot) * -5.f) * .006666666828095913f - -.04782608523964882f;
+    if (size > .5f) {
         size = .5f;
     }
-    dot = ((double)pNormal_velocity->v[2] * pPoint->v[2] + (double)pNormal_velocity->v[1] * pPoint->v[1])
-        + (double)pNormal_velocity->v[0] * pPoint->v[0];
-    if (!(dot >= 0.0)) {
-        size = SmokeScalarRound((double)size * .5f);
+    dot = pNormal_velocity->v[0] * pPoint->v[0] + pNormal_velocity->v[1] * pPoint->v[1] + pNormal_velocity->v[2] * pPoint->v[2];
+    if (dot < 0.f) {
+        size = size * .5f;
     }
-    index = gSplash_next;
-    gSplash[index].size = SmokeScalarRound(SRandomBetween(SmokeScalarRound((double)size * .5f), size));
-    if (!((tU32)gSplash_flags & (1u << (gSplash_next & 31)))) {
-        BrActorAdd(gNon_track_actor, gSplash[index].actor);
+    gSplash[gSplash_next].size = SRandomBetween(size * .5f, size);
+    if (!(gSplash_flags & (1 << gSplash_next))) {
+        BrActorAdd(gNon_track_actor, gSplash[gSplash_next].actor);
     }
-    gSplash_flags = (int)((tU32)gSplash_flags | (1u << (gSplash_next & 31)));
+    gSplash_flags |= 1 << gSplash_next;
     gSplash[gSplash_next].just_done = 1;
-    if (pObject != NULL && !gAction_replay_mode) {
-        car = pObject->flags_0x238 == 1 ? (tCar_spec*)pObject->owner : NULL;
+    if (pObject != NULL && gAction_replay_mode == 0) {
+        car = pObject->owner;
+        if (car == NULL || pObject->flags_0x238 != 1) {
+            car = NULL;
+        }
         if (car != NULL) {
-            random = SRandomBetween(0.f, 1.f);
-            if (random < (double)pTime * .003f) {
-                range = SmokeScalarRound(sqrt((double)speed * .014285714365541935f) * 15.f);
-                for (i = 0; i < 3; i++) {
-                    wide = (double)velocity.v[i] * .14492753148078918f;
-                    velocity.v[i] = SmokeScalarRound(wide);
-                    recoil.v[i] = SmokeScalarRound(wide * -.1f);
-                }
+            if (SRandomBetween(0.f, 1.f) < pTime * .003f) {
+                range = sqrt(speed * .014285714365541935f) * 15.f;
+                velocity.v[0] = velocity.v[0] * .14492753148078918f;
+                velocity.v[1] = velocity.v[1] * .14492753148078918f;
+                velocity.v[2] = velocity.v[2] * .14492753148078918f;
+                cross.v[0] = velocity.v[0] * -.1f;
+                cross.v[1] = velocity.v[1] * -.1f;
+                cross.v[2] = velocity.v[2] * -.1f;
                 if (range > 15.f) {
                     range = 15.f;
                 }
-                random = SRandomBetween(5.f, range);
-                recoil.v[1] = SmokeScalarRound((double)recoil.v[1] - random * -.14492753623188406);
-                BrMatrix34TApplyV(&velocity, &recoil, &pObject->actor->t.t.mat);
-                cross.v[0] = SmokeScalarRound(((double)pObject->water_normal.v[2] * velocity.v[1]
-                    - (double)pObject->water_normal.v[1] * velocity.v[2]) * .5f);
-                cross.v[1] = SmokeScalarRound(((double)pObject->water_normal.v[0] * velocity.v[2]
-                    - (double)pObject->water_normal.v[2] * velocity.v[0]) * .5f);
-                cross.v[2] = SmokeScalarRound(((double)pObject->water_normal.v[1] * velocity.v[0]
-                    - (double)pObject->water_normal.v[0] * velocity.v[1]) * .5f);
-                dot = ((double)pPoint->v[1] * cross.v[1] + (double)pPoint->v[2] * cross.v[2])
-                    + (double)pPoint->v[0] * cross.v[0];
-                for (i = 0; i < 3; i++) {
-                    velocity.v[i] = SmokeScalarRound(dot > 0.0 ? (double)velocity.v[i] + cross.v[i]
-                        : (double)velocity.v[i] - cross.v[i]);
+                cross.v[1] = cross.v[1] - SRandomBetween(5.f, range) * -.14492753623188406;
+                BrMatrix34TApplyV(&velocity, &cross, &pObject->actor->t.t.mat);
+                cross.v[0] = (pObject->water_normal.v[2] * velocity.v[1] - pObject->water_normal.v[1] * velocity.v[2]) * .5f;
+                cross.v[1] = (pObject->water_normal.v[0] * velocity.v[2] - pObject->water_normal.v[2] * velocity.v[0]) * .5f;
+                cross.v[2] = (pObject->water_normal.v[1] * velocity.v[0] - pObject->water_normal.v[0] * velocity.v[1]) * .5f;
+                dot = pPoint->v[0] * cross.v[0] + pPoint->v[1] * cross.v[1] + pPoint->v[2] * cross.v[2];
+                if (dot > 0.f) {
+                    velocity.v[0] = velocity.v[0] + cross.v[0];
+                    velocity.v[1] = velocity.v[1] + cross.v[1];
+                    velocity.v[2] = velocity.v[2] + cross.v[2];
+                } else {
+                    velocity.v[0] = velocity.v[0] - cross.v[0];
+                    velocity.v[1] = velocity.v[1] - cross.v[1];
+                    velocity.v[2] = velocity.v[2] - cross.v[2];
                 }
-                index = gSpark_next;
-                gSparks[index].pos.v[0] = pPoint->v[0];
-                gSparks[index].pos.v[1] = pPoint->v[1];
-                gSparks[index].pos.v[2] = pPoint->v[2];
-                BrVector3SetFloat(&gSparks[index].normal, 0.f, 0.f, 0.f);
-                index = gSpark_next;
-                memcpy(&gSparks[index].v, &velocity, sizeof(velocity));
-                gSparks[index].count = 500;
-                gSparks[index].car = car;
-                gSparks[index].time_sync = 1;
-                gSparks[index].colour = 1;
-                gSpark_flags = (int)((tU32)gSpark_flags | (1u << (index & 31)));
-                gSpark_next = (int)((tU32)index + 1u);
+                gSparks[gSpark_next].pos.v[0] = pPoint->v[0];
+                gSparks[gSpark_next].pos.v[1] = pPoint->v[1];
+                gSparks[gSpark_next].pos.v[2] = pPoint->v[2];
+                BrVector3SetFloat(&gSparks[gSpark_next].normal, 0.f, 0.f, 0.f);
+                gSparks[gSpark_next].v.v[0] = velocity.v[0];
+                gSparks[gSpark_next].v.v[1] = velocity.v[1];
+                gSparks[gSpark_next].v.v[2] = velocity.v[2];
+                gSparks[gSpark_next].count = 500;
+                gSparks[gSpark_next].car = car;
+                gSparks[gSpark_next].time_sync = 1;
+                gSparks[gSpark_next].colour = 1;
+                gSpark_flags |= 1 << gSpark_next;
+                gSpark_next++;
                 if (gSpark_next >= 32) {
                     gSpark_next = 0;
                 }
             }
         }
     }
-    gSplash_next = (int)((tU32)gSplash_next + 1u);
+    gSplash_next++;
     if ((tU32)gSplash_next >= 32u) {
         gSplash_next = 0;
     }
