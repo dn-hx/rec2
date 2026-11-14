@@ -97,6 +97,12 @@ void* C2_HOOK_CDECL BrResAllocate(void* vparent, br_size_t size, br_uint_8 res_c
     return ResToUser(res);
 }
 
+// FUNCTION: CARMA2_HW 0x005277c0
+void C2_HOOK_CDECL BrResFree(void* vres) {
+
+    BrResInternalFree(UserToRes(vres), 1);
+}
+
 // FUNCTION: CARMA2_HW 0x005277f0
 void C2_HOOK_STDCALL BrResInternalFree(resource_header* res, br_boolean callback) {
     void* r;
@@ -124,12 +130,6 @@ void C2_HOOK_STDCALL BrResInternalFree(resource_header* res, br_boolean callback
     res->magic_num = 1;
     res->magic_ptr = NULL;
     BrMemFree(res);
-}
-
-// FUNCTION: CARMA2_HW 0x005277c0
-void C2_HOOK_CDECL BrResFree(void* vres) {
-
-    BrResInternalFree(UserToRes(vres), 1);
 }
 
 // FUNCTION: CARMA2_HW 0x005278b0
@@ -197,14 +197,6 @@ br_uint_32 C2_HOOK_CDECL BrResSize(void* vres) {
     return RESOURCE_SIZE(res) - sizeof(resource_header);
 }
 
-// FUNCTION: CARMA2_HW 0x00527ad0
-br_uint_32 C2_HOOK_CDECL ResSizeTotal(void* vres, br_uint_32* ptotal) {
-
-    *ptotal += BrResSize(vres);
-    BrResChildEnum(vres, (br_resenum_cbfn*)ResSizeTotal, ptotal);
-    return 0;
-}
-
 // FUNCTION: CARMA2_HW 0x00527a30
 br_uint_32 C2_HOOK_CDECL BrResSizeTotal(void* vres) {
     br_uint_32 total;
@@ -212,6 +204,14 @@ br_uint_32 C2_HOOK_CDECL BrResSizeTotal(void* vres) {
     total = 0;
     ResSizeTotal(vres, &total);
     return total;
+}
+
+// FUNCTION: CARMA2_HW 0x00527ad0
+br_uint_32 C2_HOOK_CDECL ResSizeTotal(void* vres, br_uint_32* ptotal) {
+
+    *ptotal += BrResSize(vres);
+    BrResChildEnum(vres, (br_resenum_cbfn*)ResSizeTotal, ptotal);
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00527b60

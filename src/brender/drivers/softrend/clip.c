@@ -76,6 +76,99 @@ int ClipFaceToPlane(brp_vertex* vp, brp_vertex* verts_out, int num_in, br_vector
     return num_out;
 }
 
+
+#define CLIP_TOGGLE do {                \
+        toggle = !toggle;               \
+        if (toggle) {                   \
+            cp_in = clip_poly_2;   \
+            cp_out = clip_poly_1;  \
+        } else {                        \
+            cp_in = clip_poly_1;   \
+            cp_out = clip_poly_2;  \
+        }                               \
+    } while (0)
+
+// FUNCTION: CARMA2_HW 0x0054b730
+brp_vertex* C2_HOOK_STDCALL FaceClip(br_soft_renderer* self, brp_vertex* clip_in, br_uint_32 mask, br_uint_32 codes, int n, int* n_out) {
+    // GLOBAL: CARMA2_HW 0x006b0a60
+    static  brp_vertex clip_poly_1[16];
+    // GLOBAL: CARMA2_HW 0x006b0e60
+    static  brp_vertex clip_poly_2[16];
+    brp_vertex* cp_in = clip_in;
+    brp_vertex* cp_out = clip_poly_1;
+    int c;
+    br_boolean toggle = 1;
+
+    if (codes & OUTCODE_HITHER) {
+        n = ClipFaceToPlus1(cp_in, cp_out, n, C_Z, mask & ~(1 << C_Z));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (codes & OUTCODE_YON) {
+        n = ClipFaceToMinus1(cp_in, cp_out, n, C_Z, mask & ~(1 << C_Z));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (codes & OUTCODE_RIGHT) {
+        n = ClipFaceToPlus1(cp_in, cp_out, n, C_X, mask & ~(1 << C_X));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (codes & OUTCODE_LEFT) {
+        n = ClipFaceToMinus1(cp_in, cp_out, n, C_X,mask & ~(1 << C_X));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (codes & OUTCODE_TOP) {
+        n = ClipFaceToPlus1(cp_in, cp_out, n, C_Y, mask & ~(1 << C_Y));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (codes & OUTCODE_BOTTOM) {
+        n = ClipFaceToMinus1(cp_in, cp_out, n, C_Y,mask & ~(1 << C_Y));
+        if (n < 3) {
+            return NULL;
+        }
+        CLIP_TOGGLE;
+    }
+
+    if (scache.user_clip_active) {
+        for (c = 0; c < MAX_STATE_CLIP_PLANES; c++) {
+
+            if (self->state.clip[c].type != BRT_PLANE) {
+                continue;
+            }
+
+            if (!(codes & (OUTCODE_USER << c))) {
+                continue;
+            }
+
+            n = ClipFaceToPlane(cp_in, cp_out, n, &self->state.clip[c].plane, mask);
+            if (n < 3) {
+                return NULL;
+            }
+            CLIP_TOGGLE;
+        }
+    }
+
+    *n_out = n;
+    return cp_in;
+}
 // FUNCTION: CARMA2_HW 0x0054bb70
 int C2_HOOK_STDCALL ClipFaceToPlus1(brp_vertex* vp, brp_vertex* verts_out, int num_in, int axis, int cmask) {
     brp_vertex* wp = verts_out;
@@ -212,99 +305,6 @@ int C2_HOOK_STDCALL ClipFaceToMinus1(brp_vertex* vp, brp_vertex* verts_out, int 
     }
 
     return num_out;
-}
-
-#define CLIP_TOGGLE do {                \
-        toggle = !toggle;               \
-        if (toggle) {                   \
-            cp_in = clip_poly_2;   \
-            cp_out = clip_poly_1;  \
-        } else {                        \
-            cp_in = clip_poly_1;   \
-            cp_out = clip_poly_2;  \
-        }                               \
-    } while (0)
-
-// FUNCTION: CARMA2_HW 0x0054b730
-brp_vertex* C2_HOOK_STDCALL FaceClip(br_soft_renderer* self, brp_vertex* clip_in, br_uint_32 mask, br_uint_32 codes, int n, int* n_out) {
-    // GLOBAL: CARMA2_HW 0x006b0a60
-    static  brp_vertex clip_poly_1[16];
-    // GLOBAL: CARMA2_HW 0x006b0e60
-    static  brp_vertex clip_poly_2[16];
-    brp_vertex* cp_in = clip_in;
-    brp_vertex* cp_out = clip_poly_1;
-    int c;
-    br_boolean toggle = 1;
-
-    if (codes & OUTCODE_HITHER) {
-        n = ClipFaceToPlus1(cp_in, cp_out, n, C_Z, mask & ~(1 << C_Z));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (codes & OUTCODE_YON) {
-        n = ClipFaceToMinus1(cp_in, cp_out, n, C_Z, mask & ~(1 << C_Z));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (codes & OUTCODE_RIGHT) {
-        n = ClipFaceToPlus1(cp_in, cp_out, n, C_X, mask & ~(1 << C_X));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (codes & OUTCODE_LEFT) {
-        n = ClipFaceToMinus1(cp_in, cp_out, n, C_X,mask & ~(1 << C_X));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (codes & OUTCODE_TOP) {
-        n = ClipFaceToPlus1(cp_in, cp_out, n, C_Y, mask & ~(1 << C_Y));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (codes & OUTCODE_BOTTOM) {
-        n = ClipFaceToMinus1(cp_in, cp_out, n, C_Y,mask & ~(1 << C_Y));
-        if (n < 3) {
-            return NULL;
-        }
-        CLIP_TOGGLE;
-    }
-
-    if (scache.user_clip_active) {
-        for (c = 0; c < MAX_STATE_CLIP_PLANES; c++) {
-
-            if (self->state.clip[c].type != BRT_PLANE) {
-                continue;
-            }
-
-            if (!(codes & (OUTCODE_USER << c))) {
-                continue;
-            }
-
-            n = ClipFaceToPlane(cp_in, cp_out, n, &self->state.clip[c].plane, mask);
-            if (n < 3) {
-                return NULL;
-            }
-            CLIP_TOGGLE;
-        }
-    }
-
-    *n_out = n;
-    return cp_in;
 }
 
 // FUNCTION: CARMA2_HW 0x0054bea0

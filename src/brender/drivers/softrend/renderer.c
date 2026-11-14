@@ -106,6 +106,57 @@ const br_token RendererPartsTokens[] = {
     0,
 };
 
+
+// FUNCTION: CARMA2_HW 0x00540940
+br_error C2_HOOK_CDECL softrend_renderer_customPartsQuery(br_uint_32* pvalue, void** pextra, br_size_t* pextra_size, void* block, br_tv_template_entry* tep) {
+    br_soft_renderer *self = block;
+    int i;
+    br_uint_32 dummy;
+    br_error r;
+    br_token **ppt = (br_token **) pextra;
+
+    if (pextra == NULL || *pextra == NULL || pextra_size == NULL) {
+        return 0x1002;
+    }
+
+    *((void **) pvalue) = *pextra;
+
+    if (((BR_ASIZE(RendererPartsTokens) - 1) * sizeof(br_token)) > *pextra_size) {
+        return 0x1002;
+    }
+
+    for (i = 0; i < BR_ASIZE(RendererPartsTokens) - 1; i++) {
+        *(*ppt)++ = RendererPartsTokens[i];
+        *pextra_size -= sizeof(br_token);
+    }
+
+    r = self->plib->dispatch->_queryBuffer((br_object*)self->plib, &dummy, *ppt, *pextra_size, BRT_PARTS_TL);
+
+    if (r != 0) {
+        return r;
+    }
+
+    for (i = 0; (*ppt)[i] != 0 ; i++) {
+        *pextra_size -= sizeof(br_token);
+    }
+    *pextra_size -= sizeof(br_token);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x005409f0
+br_size_t C2_HOOK_CDECL softrend_renderer_customPartsExtra(void* block, br_tv_template_entry* tep) {
+    br_soft_renderer* self = block;
+    br_size_t s;
+    br_token_value tv[2] = {
+        { BRT_PARTS_TL, { 0 } },
+        { 0, { 0 } }
+    };
+
+    if (self->plib->dispatch->_queryManySize((br_object*)self->plib, &s, tv) != 0) {
+        return 0;
+    }
+    return s + (BR_ASIZE(RendererPartsTokens) - 1) * sizeof(br_token);
+}
 // FUNCTION: CARMA2_HW 0x00540a40
 br_renderer* C2_HOOK_STDCALL RendererSoftAllocate(br_device *dev, br_soft_renderer_facility *type, br_primitive_library *prims) {
     br_soft_renderer* self;
@@ -175,57 +226,6 @@ br_tv_template* C2_HOOK_CDECL _M_br_soft_renderer_templateQuery(br_soft_renderer
     return self->device->templates.rendererTemplate;
 }
 
-// FUNCTION: CARMA2_HW 0x00540940
-br_error C2_HOOK_CDECL softrend_renderer_customPartsQuery(br_uint_32* pvalue, void** pextra, br_size_t* pextra_size, void* block, br_tv_template_entry* tep) {
-    br_soft_renderer *self = block;
-    int i;
-    br_uint_32 dummy;
-    br_error r;
-    br_token **ppt = (br_token **) pextra;
-
-    if (pextra == NULL || *pextra == NULL || pextra_size == NULL) {
-        return 0x1002;
-    }
-
-    *((void **) pvalue) = *pextra;
-
-    if (((BR_ASIZE(RendererPartsTokens) - 1) * sizeof(br_token)) > *pextra_size) {
-        return 0x1002;
-    }
-
-    for (i = 0; i < BR_ASIZE(RendererPartsTokens) - 1; i++) {
-        *(*ppt)++ = RendererPartsTokens[i];
-        *pextra_size -= sizeof(br_token);
-    }
-
-    r = self->plib->dispatch->_queryBuffer((br_object*)self->plib, &dummy, *ppt, *pextra_size, BRT_PARTS_TL);
-
-    if (r != 0) {
-        return r;
-    }
-
-    for (i = 0; (*ppt)[i] != 0 ; i++) {
-        *pextra_size -= sizeof(br_token);
-    }
-    *pextra_size -= sizeof(br_token);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x005409f0
-br_size_t C2_HOOK_CDECL softrend_renderer_customPartsExtra(void* block, br_tv_template_entry* tep) {
-    br_soft_renderer* self = block;
-    br_size_t s;
-    br_token_value tv[2] = {
-        { BRT_PARTS_TL, { 0 } },
-        { 0, { 0 } }
-    };
-
-    if (self->plib->dispatch->_queryManySize((br_object*)self->plib, &s, tv) != 0) {
-        return 0;
-    }
-    return s + (BR_ASIZE(RendererPartsTokens) - 1) * sizeof(br_token);
-}
-
 // FUNCTION: CARMA2_HW 0x00540bb0
 void* C2_HOOK_CDECL _M_br_soft_renderer_listQuery(br_soft_renderer* self) {
 
@@ -271,6 +271,18 @@ br_error C2_HOOK_CDECL _M_br_soft_renderer_bufferStoredAvail(br_soft_renderer* s
     return self->plib->dispatch->_bufferStoredAvail(self->plib, space, use, tv);
 }
 
+// FUNCTION: CARMA2_HW 0x00540c70
+br_error C2_HOOK_CDECL _M_br_soft_renderer_flush(br_soft_renderer* self, br_boolean wait) {
+
+    return self->plib->dispatch->_flush(self->plib, wait);
+}
+
+// FUNCTION: CARMA2_HW 0x00540c90
+br_error C2_HOOK_CDECL _M_br_soft_renderer_synchronise(br_soft_renderer* self, br_token sync_type, br_boolean block) {
+
+    return self->plib->dispatch->_synchronise(self->plib, sync_type, block);
+}
+
 // FUNCTION: CARMA2_HW 0x00540cb0
 br_error C2_HOOK_CDECL _M_br_soft_renderer_commandModeSet(br_soft_renderer* self, br_token mode) {
 
@@ -299,18 +311,6 @@ br_error C2_HOOK_CDECL _M_br_soft_renderer_commandModePush(br_soft_renderer* sel
 br_error C2_HOOK_CDECL _M_br_soft_renderer_commandModePop(br_soft_renderer* self) {
 
     return 0x1002;
-}
-
-// FUNCTION: CARMA2_HW 0x00540c70
-br_error C2_HOOK_CDECL _M_br_soft_renderer_flush(br_soft_renderer* self, br_boolean wait) {
-
-    return self->plib->dispatch->_flush(self->plib, wait);
-}
-
-// FUNCTION: CARMA2_HW 0x00540c90
-br_error C2_HOOK_CDECL _M_br_soft_renderer_synchronise(br_soft_renderer* self, br_token sync_type, br_boolean block) {
-
-    return self->plib->dispatch->_synchronise(self->plib, sync_type, block);
 }
 
 // FUNCTION: CARMA2_HW 0x00541d90

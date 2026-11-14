@@ -302,54 +302,6 @@ int C2_HOOK_STDCALL DfTopType(void) {
     return DatafileStack[DatafileStackTop - 1].type;
 }
 
-// FUNCTION: CARMA2_HW 0x0052b630
-int C2_HOOK_STDCALL TextReadLine(br_datafile* df, char** ident, char** data) {
-    char* cp;
-
-    BrFileGetLine(BrScratchString(), 256, df->h);
-    if (BrFileEof(df->h) != 0) {
-        return 0;
-    }
-    for (;;) {
-        for (cp = BrScratchString(); (*cp == ' ') || (*cp == '\t'); cp++) {
-        }
-        if (*cp != '\0') {
-            break;
-        }
-        BrFileGetLine(BrScratchString(), 256, df->h);
-        if (BrFileEof(df->h) == 0) {
-            continue;
-        }
-        return 0;
-    }
-    *ident = cp;
-    while ((*cp != ' ') && (*cp != '\t') && (*cp != '\0')) {
-        cp++;
-    }
-    *cp = '\0';
-    do {
-        cp++;
-    } while ((*cp == ' ') || (*cp == '\t'));
-    *data = cp;
-    if (*cp == '\"') {
-        cp++;
-        if (*cp != '\"') {
-            while (*cp != '\0') {
-                cp++;
-                if (*cp == '\"') {
-                    break;
-                }
-            }
-        }
-    } else {
-        while ((*cp != ' ') && (*cp != '\t') && (*cp != '\0')) {
-            cp++;
-        }
-    }
-    *cp = '\0';
-    return 1;
-}
-
 br_uint_16 C2_HOOK_STDCALL scalarTypeConvert(br_datafile* df, br_uint_16 t) {
 
     if (df->scalar_type == BRT_FIXED) {
@@ -907,6 +859,54 @@ br_uint_32 C2_HOOK_STDCALL DfStructReadText(br_datafile* df, br_file_struct* str
         BrFailure("Incorrect structure name \"%s\"", data);
     }
     StructReadTextSub(df, str, base);
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x0052b630
+int C2_HOOK_STDCALL TextReadLine(br_datafile* df, char** ident, char** data) {
+    char* cp;
+
+    BrFileGetLine(BrScratchString(), 256, df->h);
+    if (BrFileEof(df->h) != 0) {
+        return 0;
+    }
+    for (;;) {
+        for (cp = BrScratchString(); (*cp == ' ') || (*cp == '\t'); cp++) {
+        }
+        if (*cp != '\0') {
+            break;
+        }
+        BrFileGetLine(BrScratchString(), 256, df->h);
+        if (BrFileEof(df->h) == 0) {
+            continue;
+        }
+        return 0;
+    }
+    *ident = cp;
+    while ((*cp != ' ') && (*cp != '\t') && (*cp != '\0')) {
+        cp++;
+    }
+    *cp = '\0';
+    do {
+        cp++;
+    } while ((*cp == ' ') || (*cp == '\t'));
+    *data = cp;
+    if (*cp == '\"') {
+        cp++;
+        if (*cp != '\"') {
+            while (*cp != '\0') {
+                cp++;
+                if (*cp == '\"') {
+                    break;
+                }
+            }
+        }
+    } else {
+        while ((*cp != ' ') && (*cp != '\t') && (*cp != '\0')) {
+            cp++;
+        }
+    }
+    *cp = '\0';
     return 1;
 }
 
@@ -1534,19 +1534,6 @@ void C2_HOOK_STDCALL BrNullOther(void) {
     BrFatal("datafile.c", 1825, "Invald file primitive call");
 }
 
-// PARTIAL 95.45%: DfFileIdentify 0x0052cb40 - binary magic compared against an unnamed .rdata block (0x667510) in the original; literals match the text path (81.82 -> 95.45)
-// FUNCTION: CARMA2_HW 0x0052cb40
-int C2_HOOK_CDECL DfFileIdentify(const br_uint_8* magics, br_size_t n_magics) {
-    if (BrMemCmp(magics, "*FILE_IN", 8) == 0) {
-        return BR_FS_MODE_TEXT;
-    }
-    if (BrMemCmp(magics, "\0\0\0\x12\0\0\0\b", 8) == 0) {
-        return BR_FS_MODE_BINARY;
-    }
-    // file does not match magics
-    return BR_FS_MODE_UNKNOWN;
-}
-
 // FUNCTION: CARMA2_HW 0x0052ca50
 br_datafile* C2_HOOK_STDCALL DfOpen(const char* name, int write, br_token scalar_type) {
     int mode;
@@ -1590,6 +1577,19 @@ br_datafile* C2_HOOK_STDCALL DfOpen(const char* name, int write, br_token scalar
     DatafileStack[DatafileStackTop].count = 1;
     DatafileStackTop++;
     return df;
+}
+
+// PARTIAL 95.45%: DfFileIdentify 0x0052cb40 - binary magic compared against an unnamed .rdata block (0x667510) in the original; literals match the text path (81.82 -> 95.45)
+// FUNCTION: CARMA2_HW 0x0052cb40
+int C2_HOOK_CDECL DfFileIdentify(const br_uint_8* magics, br_size_t n_magics) {
+    if (BrMemCmp(magics, "*FILE_IN", 8) == 0) {
+        return BR_FS_MODE_TEXT;
+    }
+    if (BrMemCmp(magics, "\0\0\0\x12\0\0\0\b", 8) == 0) {
+        return BR_FS_MODE_BINARY;
+    }
+    // file does not match magics
+    return BR_FS_MODE_UNKNOWN;
 }
 
 // FUNCTION: CARMA2_HW 0x0052cb80

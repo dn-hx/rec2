@@ -82,18 +82,6 @@ br_actor* C2_HOOK_CDECL BrActorSearch(br_actor* root, char* pattern) {
     return NULL;
 }
 
-// FUNCTION: CARMA2_HW 0x0051e040
-void C2_HOOK_STDCALL RenumberActor(br_actor* a, int d) {
-    br_actor* ac;
-
-    a->depth = d;
-    ac = a->children;
-    while (ac != NULL) {
-        RenumberActor(ac, d + 1);
-        ac = ac->next;
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x0051dfe0
 br_actor* C2_HOOK_CDECL BrActorAdd(br_actor* parent, br_actor* a) {
     br_actor* ac;
@@ -106,6 +94,18 @@ br_actor* C2_HOOK_CDECL BrActorAdd(br_actor* parent, br_actor* a) {
         RenumberActor(ac, a->depth + 1);
     }
     return a;
+}
+
+// FUNCTION: CARMA2_HW 0x0051e040
+void C2_HOOK_STDCALL RenumberActor(br_actor* a, int d) {
+    br_actor* ac;
+
+    a->depth = d;
+    ac = a->children;
+    while (ac != NULL) {
+        RenumberActor(ac, d + 1);
+        ac = ac->next;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0051e070
@@ -194,6 +194,12 @@ br_actor* C2_HOOK_CDECL BrActorAllocate(br_uint_8 type, void* type_data) {
     return a;
 }
 
+// FUNCTION: CARMA2_HW 0x0051e2c0
+void C2_HOOK_CDECL BrActorFree(br_actor* a) {
+
+    InternalActorFree(a);
+}
+
 // FUNCTION: CARMA2_HW 0x0051e300
 void C2_HOOK_STDCALL InternalActorFree(br_actor* a) {
 
@@ -202,12 +208,6 @@ void C2_HOOK_STDCALL InternalActorFree(br_actor* a) {
     }
     BrActorEnableCheck(a);
     BrResFree(a);
-}
-
-// FUNCTION: CARMA2_HW 0x0051e2c0
-void C2_HOOK_CDECL BrActorFree(br_actor* a) {
-
-    InternalActorFree(a);
 }
 
 // FUNCTION: CARMA2_HW 0x0051e340
@@ -445,6 +445,37 @@ void C2_HOOK_CDECL BrActorToScreenMatrix4(br_matrix4* m, br_actor* a, br_actor* 
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0051eb20
+br_bounds* C2_HOOK_CDECL BrActorToBounds(br_bounds* b, br_actor* ap) {
+    br_matrix34 m2v;
+    br_model* model;
+    br_actor* a;
+
+    m2v = v1db.model_to_view;
+
+    if (ap->model == NULL) {
+        model = v1db.default_model;
+    } else {
+        model = ap->model;
+    }
+
+    BrMatrix34Identity(&v1db.model_to_view);
+
+    if (ap->type == BR_ACTOR_MODEL) {
+        *b = model->bounds;
+    } else {
+        b->min.v[0] = b->min.v[1] = b->min.v[2] = BR_SCALAR_MAX;
+        b->max.v[0] = b->max.v[1] = b->max.v[2] = BR_SCALAR_MIN;
+    }
+
+    for (a = ap->children; a != NULL; a = a->next) {
+        ActorToBounds(b, a, model);
+    }
+
+    v1db.model_to_view = m2v;
+    return b;
+}
+
 void C2_HOOK_CDECL BrMatrix34ApplyBounds(br_bounds* A, br_bounds* B, br_matrix34* C) {
     int i;
     int j;
@@ -503,35 +534,4 @@ void C2_HOOK_STDCALL ActorToBounds(br_bounds* dest, br_actor* ap, br_model* mode
     }
 
     v1db.model_to_view = m2v;
-}
-
-// FUNCTION: CARMA2_HW 0x0051eb20
-br_bounds* C2_HOOK_CDECL BrActorToBounds(br_bounds* b, br_actor* ap) {
-    br_matrix34 m2v;
-    br_model* model;
-    br_actor* a;
-
-    m2v = v1db.model_to_view;
-
-    if (ap->model == NULL) {
-        model = v1db.default_model;
-    } else {
-        model = ap->model;
-    }
-
-    BrMatrix34Identity(&v1db.model_to_view);
-
-    if (ap->type == BR_ACTOR_MODEL) {
-        *b = model->bounds;
-    } else {
-        b->min.v[0] = b->min.v[1] = b->min.v[2] = BR_SCALAR_MAX;
-        b->max.v[0] = b->max.v[1] = b->max.v[2] = BR_SCALAR_MIN;
-    }
-
-    for (a = ap->children; a != NULL; a = a->next) {
-        ActorToBounds(b, a, model);
-    }
-
-    v1db.model_to_view = m2v;
-    return b;
 }

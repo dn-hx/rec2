@@ -123,6 +123,12 @@ void C2_HOOK_STDCALL nullRender(br_actor* actor, br_model* model, br_material* m
 
 }
 
+// FUNCTION: CARMA2_HW 0x005260f0
+void C2_HOOK_STDCALL boundingBoxRenderPoints(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
+
+    renderPoints(actor, makeMeshFromBounds(&model->bounds), material, render_data, style, on_screen);
+}
+
 // FUNCTION: CARMA2_HW 0x00526150
 br_model* C2_HOOK_STDCALL makeMeshFromBounds(br_bounds* b) {
     int i;
@@ -172,12 +178,6 @@ br_model* C2_HOOK_STDCALL makeMeshFromBounds(br_bounds* b) {
     bounds_model.bounds = *b;
 
     return &bounds_model;
-}
-
-// FUNCTION: CARMA2_HW 0x005260f0
-void C2_HOOK_STDCALL boundingBoxRenderPoints(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
-
-    renderPoints(actor, makeMeshFromBounds(&model->bounds), material, render_data, style, on_screen);
 }
 
 // FUNCTION: CARMA2_HW 0x00526270

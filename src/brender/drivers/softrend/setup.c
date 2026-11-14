@@ -60,19 +60,6 @@ static void eyeInModel(br_soft_renderer* self) {
     scache.eye_m.v[3] = s2m.m[2][3];
 }
 
-// FUNCTION: CARMA2_HW 0x00543ec0
-void C2_HOOK_STDCALL ViewToModelUpdate(br_soft_renderer* self) {
-
-    BrMatrix34Inverse(&scache.view_to_model, &self->state.matrix.model_to_view);
-}
-
-// FUNCTION: CARMA2_HW 0x00543ee0
-void C2_HOOK_STDCALL ModelToScreenUpdate(br_soft_renderer* self) {
-
-    BrMatrix4Mul34(&scache.model_to_screen,
-        &self->state.matrix.model_to_view,
-        &self->state.matrix.view_to_screen);
-}
 
 // FUNCTION: CARMA2_HW 0x00543a40
 void C2_HOOK_STDCALL StaticCacheUpdate_PerScene(br_soft_renderer* self) {
@@ -146,6 +133,19 @@ br_error C2_HOOK_STDCALL CacheUpdate(br_soft_renderer* self) {
     self->state.cache.nconstant_fns = GenerateSurfaceFunctions(self, self->state.cache.constant_fns, rend.block->constant_components);
 
     return 0;
+}
+// FUNCTION: CARMA2_HW 0x00543ec0
+void C2_HOOK_STDCALL ViewToModelUpdate(br_soft_renderer* self) {
+
+    BrMatrix34Inverse(&scache.view_to_model, &self->state.matrix.model_to_view);
+}
+
+// FUNCTION: CARMA2_HW 0x00543ee0
+void C2_HOOK_STDCALL ModelToScreenUpdate(br_soft_renderer* self) {
+
+    BrMatrix4Mul34(&scache.model_to_screen,
+        &self->state.matrix.model_to_view,
+        &self->state.matrix.view_to_screen);
 }
 
 // FUNCTION: CARMA2_HW 0x00543f10

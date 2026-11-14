@@ -98,61 +98,6 @@ br_error C2_HOOK_CDECL BrV1dbEnd(void) {
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x00525b20
-br_uint_32 C2_HOOK_CDECL updateTable(br_pixelmap* item, void* arg) {
-
-    BrTableUpdate(item, BR_TABU_ALL);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525b40
-br_uint_32 C2_HOOK_CDECL updateMap(br_pixelmap* item, void* arg) {
-
-    BrMapUpdate(item, BR_MAPU_ALL);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525b60
-br_uint_32 C2_HOOK_CDECL updateMaterial(br_material* item, void* arg) {
-
-    BrMaterialUpdate(item, BR_MATU_ALL);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525b80
-br_uint_32 C2_HOOK_CDECL updateModel(br_model* item, void* arg) {
-
-    BrModelUpdate(item, BR_MODU_ALL);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525c50
-br_uint_32 C2_HOOK_CDECL clearTable(br_pixelmap* item, void* arg) {
-    BrBufferClear(item);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525c60
-br_uint_32 C2_HOOK_CDECL clearMap(br_pixelmap* item, void* arg) {
-
-    BrBufferClear(item);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525c70
-br_uint_32 C2_HOOK_CDECL clearMaterial(br_material* item, void* arg) {
-
-    BrMaterialClear(item);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00525c80
-br_uint_32 C2_HOOK_CDECL clearModel(br_model* item, void* arg) {
-
-    BrModelClear(item);
-    return 0;
-}
-
 // FUNCTION: CARMA2_HW 0x005259b0
 br_error C2_HOOK_CDECL BrV1dbRendererBegin(br_device_pixelmap* destination, br_renderer* renderer) {
     br_renderer_facility* renderer_facility = NULL;
@@ -201,6 +146,34 @@ br_error C2_HOOK_CDECL BrV1dbRendererBegin(br_device_pixelmap* destination, br_r
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00525b20
+br_uint_32 C2_HOOK_CDECL updateTable(br_pixelmap* item, void* arg) {
+
+    BrTableUpdate(item, BR_TABU_ALL);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525b40
+br_uint_32 C2_HOOK_CDECL updateMap(br_pixelmap* item, void* arg) {
+
+    BrMapUpdate(item, BR_MAPU_ALL);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525b60
+br_uint_32 C2_HOOK_CDECL updateMaterial(br_material* item, void* arg) {
+
+    BrMaterialUpdate(item, BR_MATU_ALL);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525b80
+br_uint_32 C2_HOOK_CDECL updateModel(br_model* item, void* arg) {
+
+    BrModelUpdate(item, BR_MODU_ALL);
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x00525ba0
 br_renderer* C2_HOOK_CDECL BrV1dbRendererQuery(void) {
 
@@ -225,6 +198,33 @@ br_error C2_HOOK_CDECL BrV1dbRendererEnd(void) {
     v1db.format_model = NULL;
     v1db.renderer->dispatch->_free((br_object*)v1db.renderer);
     v1db.renderer = NULL;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525c50
+br_uint_32 C2_HOOK_CDECL clearTable(br_pixelmap* item, void* arg) {
+    BrBufferClear(item);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525c60
+br_uint_32 C2_HOOK_CDECL clearMap(br_pixelmap* item, void* arg) {
+
+    BrBufferClear(item);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525c70
+br_uint_32 C2_HOOK_CDECL clearMaterial(br_material* item, void* arg) {
+
+    BrMaterialClear(item);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00525c80
+br_uint_32 C2_HOOK_CDECL clearModel(br_model* item, void* arg) {
+
+    BrModelClear(item);
     return 0;
 }
 

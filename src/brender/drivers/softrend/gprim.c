@@ -103,14 +103,14 @@ br_tv_template* C2_HOOK_CDECL _M_br_geometry_primitives_soft_templateQuery(br_ge
     return self->device->templates.geometryPrimitivesTemplate;
 }
 
-// FUNCTION: CARMA2_HW 0x00541250
-br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_render(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
+// FUNCTION: CARMA2_HW 0x00541240
+br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_storedAvail(br_geometry_primitives_soft* self, br_int_32* psize, br_token_value* tv) {
 
     return 0x1002;
 }
 
-// FUNCTION: CARMA2_HW 0x00541280
-br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_renderFixedToFloat(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
+// FUNCTION: CARMA2_HW 0x00541250
+br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_render(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
 
     return 0x1002;
 }
@@ -121,26 +121,26 @@ br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_renderOnScreen(br_geometry
     return 0x1002;
 }
 
-// FUNCTION: CARMA2_HW 0x00541290
-br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_renderOnScreenFixedToFloat(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
-
-    return 0x1002;
-}
-
 // FUNCTION: CARMA2_HW 0x00541270
 br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_storedNew(br_geometry_primitives_soft* self, br_renderer *renderer, br_geometry_stored** psg, fmt_vertex* vertices, int nvertices, br_token type, br_token_value* tv) {
 
     return 0x1002;
 }
 
-// FUNCTION: CARMA2_HW 0x005412a0
-br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_storedNewFixedToFloat(br_geometry_primitives_soft* self, struct br_renderer *renderer, br_geometry_stored** psg, fmt_vertex* vertices, int nvertices, br_token type, br_token_value* tv) {
+// FUNCTION: CARMA2_HW 0x00541280
+br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_renderFixedToFloat(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
 
     return 0x1002;
 }
 
-// FUNCTION: CARMA2_HW 0x00541240
-br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_storedAvail(br_geometry_primitives_soft* self, br_int_32* psize, br_token_value* tv) {
+// FUNCTION: CARMA2_HW 0x00541290
+br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_renderOnScreenFixedToFloat(br_geometry_primitives_soft* self, br_renderer* renderer, fmt_vertex* vertices, int nvertices, br_token type) {
+
+    return 0x1002;
+}
+
+// FUNCTION: CARMA2_HW 0x005412a0
+br_error C2_HOOK_CDECL _M_br_geometry_primitives_soft_storedNewFixedToFloat(br_geometry_primitives_soft* self, struct br_renderer *renderer, br_geometry_stored** psg, fmt_vertex* vertices, int nvertices, br_token type, br_token_value* tv) {
 
     return 0x1002;
 }

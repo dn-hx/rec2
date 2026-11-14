@@ -67,6 +67,39 @@ void C2_HOOK_CDECL SurfaceColourLit(br_soft_renderer* self, br_vector3* p, br_ve
     CLAMP_SCALE(C_B);
 }
 
+// FUNCTION: CARMA2_HW 0x00548fe0
+void C2_HOOK_STDCALL ActiveLightAccumulateColourSet(active_light* alp) {
+
+    switch (alp->type) {
+    case BRT_DIRECT:
+        alp->accumulate_colour = lightingColourDirectSpecular;
+        break;
+    case BRT_POINT:
+        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
+            alp->accumulate_colour = lightingColourPointSpecular;
+        } else {
+            alp->accumulate_colour = lightingColourPointAttnSpecular;
+        }
+        break;
+    case BRT_SPOT:
+        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
+            alp->accumulate_colour = lightingColourSpotSpecular;
+        } else {
+            alp->accumulate_colour = lightingColourSpotAttnSpecular;
+        }
+        break;
+    case BRT_POINT_LOCAL_1:
+        alp->accumulate_colour = lightingColourLocal1;
+        break;
+    case BRT_POINT_LOCAL_2:
+        alp->accumulate_colour = lightingColourLocal2;
+        break;
+    default:
+        alp->accumulate_colour = lightingColourNull;
+        break;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x005491a0
 void C2_HOOK_STDCALL lightingColourNull(br_soft_renderer* self, br_vector3* p, br_vector3* n, undefined4 param_4, active_light* alp, br_scalar* comp) {
 
@@ -326,37 +359,4 @@ void C2_HOOK_STDCALL lightingColourSpotAttnSpecular(br_soft_renderer* self, br_v
     comp[C_R] += red * attn * BrFixedToFloat(BR_RED(alp->s->colour) << 8);
     comp[C_G] += grn * attn * BrFixedToFloat(BR_GRN(alp->s->colour) << 8);
     comp[C_B] += blu * attn * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
-}
-
-// FUNCTION: CARMA2_HW 0x00548fe0
-void C2_HOOK_STDCALL ActiveLightAccumulateColourSet(active_light* alp) {
-
-    switch (alp->type) {
-    case BRT_DIRECT:
-        alp->accumulate_colour = lightingColourDirectSpecular;
-        break;
-    case BRT_POINT:
-        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
-            alp->accumulate_colour = lightingColourPointSpecular;
-        } else {
-            alp->accumulate_colour = lightingColourPointAttnSpecular;
-        }
-        break;
-    case BRT_SPOT:
-        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
-            alp->accumulate_colour = lightingColourSpotSpecular;
-        } else {
-            alp->accumulate_colour = lightingColourSpotAttnSpecular;
-        }
-        break;
-    case BRT_POINT_LOCAL_1:
-        alp->accumulate_colour = lightingColourLocal1;
-        break;
-    case BRT_POINT_LOCAL_2:
-        alp->accumulate_colour = lightingColourLocal2;
-        break;
-    default:
-        alp->accumulate_colour = lightingColourNull;
-        break;
-    }
 }

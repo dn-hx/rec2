@@ -116,14 +116,6 @@ br_scalar C2_HOOK_CDECL BrMatrix4Inverse(br_matrix4* A, const br_matrix4* B) {
     return det;
 }
 
-// FUNCTION: CARMA2_HW 0x005367b0
-br_scalar C2_HOOK_STDCALL Determinant3(br_scalar a1, br_scalar a2, br_scalar a3, br_scalar b1, br_scalar b2, br_scalar b3, br_scalar c1, br_scalar c2, br_scalar c3) {
-
-    return BR_MAC3(a1, BR_MAC2(b2, c3, -b3, c2),
-        -b1, BR_MAC2(a2, c3, -a3, c2),
-        c1, BR_MAC2(a2, b3, -a3, b2));
-}
-
 // FUNCTION: CARMA2_HW 0x005360f0
 br_scalar C2_HOOK_CDECL BrMatrix4Determinant(const br_matrix4* mat) {
     br_scalar a1;
@@ -229,6 +221,14 @@ void C2_HOOK_CDECL BrMatrix4Adjoint(br_matrix4* A, const br_matrix4* B) {
     A(1, 3) = Determinant3(a1, a2, a3, c1, c2, c3, d1, d2, d3);
     A(2, 3) = -Determinant3(a1, a2, a3, b1, b2, b3, d1, d2, d3);
     A(3, 3) = Determinant3(a1, a2, a3, b1, b2, b3, c1, c2, c3);
+}
+
+// FUNCTION: CARMA2_HW 0x005367b0
+br_scalar C2_HOOK_STDCALL Determinant3(br_scalar a1, br_scalar a2, br_scalar a3, br_scalar b1, br_scalar b2, br_scalar b3, br_scalar c1, br_scalar c2, br_scalar c3) {
+
+    return BR_MAC3(a1, BR_MAC2(b2, c3, -b3, c2),
+        -b1, BR_MAC2(a2, c3, -a3, c2),
+        c1, BR_MAC2(a2, b3, -a3, b2));
 }
 
 // FUNCTION: CARMA2_HW 0x00536820

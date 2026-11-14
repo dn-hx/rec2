@@ -68,203 +68,6 @@ int C2_HOOK_STDCALL addEdge(br_uint_16 first, br_uint_16 last) {
     return num_edges++;
 }
 
-// FUNCTION: CARMA2_HW 0x00520560
-void C2_HOOK_STDCALL prepareEdges(v11group* group, br_model* model) {
-    br_size_t scratch_size;
-    br_face* mfp;
-    v11face* fp;
-    int f;
-
-    C2_HOOK_BUG_ON(sizeof(*pm_edge_table) != 12);
-    C2_HOOK_BUG_ON(sizeof(*pm_edge_hash) != 4);
-
-    scratch_size = (group->nfaces * 9 + group->nvertices) * sizeof(*pm_edge_hash);
-
-    pm_edge_scratch = BrScratchAllocate(scratch_size);
-    pm_edge_hash = (struct pm_temp_edge**)pm_edge_scratch;
-    pm_edge_table = (struct pm_temp_edge*)(pm_edge_scratch + group->nvertices * sizeof(*pm_edge_hash));
-
-    BrMemSet(pm_edge_hash, 0, group->nvertices * sizeof(*pm_edge_hash));
-
-    num_edges = 0;
-	fp = group->faces;
-
-    for (f = 0; f < group->nfaces; f++, fp++) {
-        mfp = &model->faces[group->face_user[f]];
-
-        if (!(mfp->flags & BR_FACEF_COPLANAR_0)) {
-            fp->edges[0] = addEdge(fp->vertices[0], fp->vertices[1]) + 1;
-        } else {
-            fp->edges[0] = 0;
-        }
-
-        if (!(mfp->flags & BR_FACEF_COPLANAR_1)) {
-            fp->edges[1] = addEdge(fp->vertices[1], fp->vertices[2]) + 1;
-        } else {
-            fp->edges[1] = 0;
-        }
-
-        if (!(mfp->flags & BR_FACEF_COPLANAR_2)) {
-            fp->edges[2] = addEdge(fp->vertices[2], fp->vertices[0]) + 1;
-        } else {
-            fp->edges[2] = 0;
-        }
-    }
-
-    group->nedges = num_edges + 1;
-
-    BrScratchFree(pm_edge_scratch);
-}
-
-void C2_HOOK_STDCALL BrPrepareEdges(br_model* model) {
-    int g;
-    struct v11model *v11m;
-
-    v11m = model->prepared;
-
-    if (v11m == NULL) {
-        return;
-    }
-
-    for (g = 0; g < v11m->ngroups; g++) {
-        prepareEdges(&v11m->groups[g], model);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00520840
-int C2_HOOK_CDECL FacesCompare(const void* p1, const void* p2) {
-    br_face* f1;
-    br_face* f2;
-
-    f1 = *(br_face**)p1;
-    f2 = *(br_face**)p2;
-
-    if (f1->material > f2->material) {
-        return 1;
-    }
-    if (f1->material < f2->material) {
-        return -1;
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00520860
-int C2_HOOK_CDECL TVCompare_XYZ(const void* p1, const void* p2) {
-    prep_vertex* tv1;
-    prep_vertex* tv2;
-    br_vertex* v1;
-    br_vertex* v2;
-    int i;
-
-    tv1 = *(prep_vertex**)p1;
-    tv2 = *(prep_vertex**)p2;
-
-    assert(compareModel != NULL);
-
-    if (tv1->v == tv2->v) {
-        return 0;
-    }
-
-    v1 = &compareModel->vertices[tv1->v];
-    v2 = &compareModel->vertices[tv2->v];
-
-    for (i = 0; i < 3; i++) {
-        if (v1->p.v[i] > v2->p.v[i]) {
-            return 1;
-        }
-        if (v1->p.v[i] < v2->p.v[i]) {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x005208e0
-int C2_HOOK_CDECL TVCompare_MXYZUVN(const void* p1, const void* p2) {
-    prep_vertex* tv1;
-    prep_vertex* tv2;
-    br_vertex* v1;
-    br_vertex* v2;
-    int i;
-
-    tv1 = *(struct prep_vertex**)p1;
-    tv2 = *(struct prep_vertex**)p2;
-
-    assert(compareModel != NULL);
-
-    if (compareModel->faces[tv1->f].material > compareModel->faces[tv2->f].material) {
-        return 1;
-    }
-    if (compareModel->faces[tv1->f].material < compareModel->faces[tv2->f].material) {
-        return -1;
-    }
-
-    if (tv1->v != tv2->v) {
-        v1 = &compareModel->vertices[tv1->v];
-        v2 = &compareModel->vertices[tv2->v];
-
-        for (i = 0; i < 3; i++) {
-            if (v1->p.v[i] > v2->p.v[i]) {
-                return 1;
-            }
-            if (v1->p.v[i] < v2->p.v[i]) {
-                return -1;
-            }
-        }
-
-        for (i = 0; i < 2; i++) {
-            if (v1->map.v[i] > v2->map.v[i]) {
-                return 1;
-            }
-            if (v1->map.v[i] < v2->map.v[i]) {
-                return -1;
-            }
-        }
-    }
-
-    for (i = 0; i < 3; i++) {
-        if (tv1->n.v[i] > tv2->n.v[i]) {
-            return 1;
-        }
-        if (tv1->n.v[i] < tv2->n.v[i]) {
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x005209f0
-int C2_HOOK_CDECL TVCompare_MVN(const void* p1, const void* p2) {
-    prep_vertex* tv1;
-    prep_vertex* tv2;
-    int i;
-
-    tv1 = *(prep_vertex**)p1;
-    tv2 = *(prep_vertex**)p2;
-
-    // if (compareModel->faces[tv1->f].material != NULL) {
-    //     LOG_DEBUG("%s, %s", compareModel->faces[tv1->f].material->identifier, compareModel->faces[tv2->f].material->identifier);
-    // }
-    if (compareModel->faces[tv1->f].material > compareModel->faces[tv2->f].material)
-        return 1;
-    if (compareModel->faces[tv1->f].material < compareModel->faces[tv2->f].material)
-        return -1;
-
-    if (tv1->v > tv2->v)
-        return 1;
-    if (tv1->v < tv2->v)
-        return -1;
-
-    for (i = 0; i < 3; i++) {
-        if (tv1->n.v[i] > tv2->n.v[i])
-            return 1;
-        if (tv1->n.v[i] < tv2->n.v[i])
-            return -1;
-    }
-    return 0;
-}
 
 // FUNCTION: CARMA2_HW 0x0051f5f0
 br_fraction C2_HOOK_STDCALL BrScalarToFractionClamp(br_scalar s) {
@@ -275,88 +78,6 @@ br_fraction C2_HOOK_STDCALL BrScalarToFractionClamp(br_scalar s) {
         return 1.0f;
     }
     return s;
-}
-
-void C2_HOOK_STDCALL PrepareFaceNormals(br_model* model) {
-    br_vector4 v4;
-    br_face* fp;
-    int f;
-
-    for (f = 0; f < model->nfaces; f++) {
-        fp = &model->faces[f];
-        BrPlaneEquation(&v4, &model->vertices[fp->vertices[0]].p, &model->vertices[fp->vertices[1]].p, &model->vertices[fp->vertices[2]].p);
-        fp->n.v[0] = BrScalarToFractionClamp(v4.v[0]);
-        fp->n.v[1] = BrScalarToFractionClamp(v4.v[1]);
-        fp->n.v[2] = BrScalarToFractionClamp(v4.v[2]);
-        fp->d = v4.v[3];
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00520a90
-void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
-    prep_vertex** outer;
-    prep_vertex** inner;
-
-    for (outer = start; outer < end; outer++) {
-        for (inner = start; inner < end; inner++) {
-            if (inner == outer || (model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) != 0) {
-                (*outer)->n.v[0] = model->faces[(*inner)->f].n.v[0] + (*outer)->n.v[0];
-                (*outer)->n.v[1] = model->faces[(*inner)->f].n.v[1] + (*outer)->n.v[1];
-                (*outer)->n.v[2] = model->faces[(*inner)->f].n.v[2] + (*outer)->n.v[2];
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00520b50
-void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
-    br_vector3 o_n;
-    prep_vertex** outer;
-    prep_vertex** inner;
-
-    for (outer = start; outer < end; outer++) {
-        o_n.v[0] = model->faces[(*outer)->f].n.v[0];
-        o_n.v[1] = model->faces[(*outer)->f].n.v[1];
-        o_n.v[2] = model->faces[(*outer)->f].n.v[2];
-        for (inner = start; inner < end; inner++) {
-            if ((inner == outer) || ((model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) && (BrVector3Dot((br_vector3*)&model->faces[(*inner)->f].n, &o_n) > crease_limit))) {
-                BrVector3Accumulate(&(*outer)->n, (br_vector3*)&model->faces[(*inner)->f].n);
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00520c60
-void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_model* model) {
-    br_vertex* srcv;
-
-    srcv = &model->vertices[src->v];
-
-    group->vertices[v].p.v[0] = srcv->p.v[0] - model->pivot.v[0];
-    group->vertices[v].p.v[1] = srcv->p.v[1] - model->pivot.v[1];
-    group->vertices[v].p.v[2] = srcv->p.v[2] - model->pivot.v[2];
-
-    group->vertices[v].map = srcv->map;
-
-    /* FIXME: use inlined function */
-    BrVector3Normalise(&group->vertices[v].n, &src->n);
-
-    group->vertex_colours[v] = BR_COLOUR_RGBA(srcv->red, srcv->grn, srcv->blu, srcv->index);
-    group->vertex_user[v] = src->v;
-}
-
-// FUNCTION: CARMA2_HW 0x00520d80
-void C2_HOOK_STDCALL CopyFace(v11group* group, int f, br_face* src, br_model* model) {
-
-    group->faces[f].vertices[0] = src->vertices[0];
-    group->faces[f].vertices[1] = src->vertices[1];
-    group->faces[f].vertices[2] = src->vertices[2];
-    group->face_colours.colours[f] = BR_COLOUR_RGBA(src->red, src->grn, src->blu, src->index);
-    group->faces[f].eqn.v[0] = src->n.v[0];
-    group->faces[f].eqn.v[1] = src->n.v[1];
-    group->faces[f].eqn.v[2] = src->n.v[2];
-    group->faces[f].eqn.v[3] = src->d;
-    group->face_user[f] = src - model->faces;
 }
 
 void C2_HOOK_STDCALL PrepareGroups(br_model* model) {
@@ -845,6 +566,285 @@ void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
             }
         }
     }
+}
+// FUNCTION: CARMA2_HW 0x00520560
+void C2_HOOK_STDCALL prepareEdges(v11group* group, br_model* model) {
+    br_size_t scratch_size;
+    br_face* mfp;
+    v11face* fp;
+    int f;
+
+    C2_HOOK_BUG_ON(sizeof(*pm_edge_table) != 12);
+    C2_HOOK_BUG_ON(sizeof(*pm_edge_hash) != 4);
+
+    scratch_size = (group->nfaces * 9 + group->nvertices) * sizeof(*pm_edge_hash);
+
+    pm_edge_scratch = BrScratchAllocate(scratch_size);
+    pm_edge_hash = (struct pm_temp_edge**)pm_edge_scratch;
+    pm_edge_table = (struct pm_temp_edge*)(pm_edge_scratch + group->nvertices * sizeof(*pm_edge_hash));
+
+    BrMemSet(pm_edge_hash, 0, group->nvertices * sizeof(*pm_edge_hash));
+
+    num_edges = 0;
+	fp = group->faces;
+
+    for (f = 0; f < group->nfaces; f++, fp++) {
+        mfp = &model->faces[group->face_user[f]];
+
+        if (!(mfp->flags & BR_FACEF_COPLANAR_0)) {
+            fp->edges[0] = addEdge(fp->vertices[0], fp->vertices[1]) + 1;
+        } else {
+            fp->edges[0] = 0;
+        }
+
+        if (!(mfp->flags & BR_FACEF_COPLANAR_1)) {
+            fp->edges[1] = addEdge(fp->vertices[1], fp->vertices[2]) + 1;
+        } else {
+            fp->edges[1] = 0;
+        }
+
+        if (!(mfp->flags & BR_FACEF_COPLANAR_2)) {
+            fp->edges[2] = addEdge(fp->vertices[2], fp->vertices[0]) + 1;
+        } else {
+            fp->edges[2] = 0;
+        }
+    }
+
+    group->nedges = num_edges + 1;
+
+    BrScratchFree(pm_edge_scratch);
+}
+
+void C2_HOOK_STDCALL BrPrepareEdges(br_model* model) {
+    int g;
+    struct v11model *v11m;
+
+    v11m = model->prepared;
+
+    if (v11m == NULL) {
+        return;
+    }
+
+    for (g = 0; g < v11m->ngroups; g++) {
+        prepareEdges(&v11m->groups[g], model);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00520840
+int C2_HOOK_CDECL FacesCompare(const void* p1, const void* p2) {
+    br_face* f1;
+    br_face* f2;
+
+    f1 = *(br_face**)p1;
+    f2 = *(br_face**)p2;
+
+    if (f1->material > f2->material) {
+        return 1;
+    }
+    if (f1->material < f2->material) {
+        return -1;
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00520860
+int C2_HOOK_CDECL TVCompare_XYZ(const void* p1, const void* p2) {
+    prep_vertex* tv1;
+    prep_vertex* tv2;
+    br_vertex* v1;
+    br_vertex* v2;
+    int i;
+
+    tv1 = *(prep_vertex**)p1;
+    tv2 = *(prep_vertex**)p2;
+
+    assert(compareModel != NULL);
+
+    if (tv1->v == tv2->v) {
+        return 0;
+    }
+
+    v1 = &compareModel->vertices[tv1->v];
+    v2 = &compareModel->vertices[tv2->v];
+
+    for (i = 0; i < 3; i++) {
+        if (v1->p.v[i] > v2->p.v[i]) {
+            return 1;
+        }
+        if (v1->p.v[i] < v2->p.v[i]) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x005208e0
+int C2_HOOK_CDECL TVCompare_MXYZUVN(const void* p1, const void* p2) {
+    prep_vertex* tv1;
+    prep_vertex* tv2;
+    br_vertex* v1;
+    br_vertex* v2;
+    int i;
+
+    tv1 = *(struct prep_vertex**)p1;
+    tv2 = *(struct prep_vertex**)p2;
+
+    assert(compareModel != NULL);
+
+    if (compareModel->faces[tv1->f].material > compareModel->faces[tv2->f].material) {
+        return 1;
+    }
+    if (compareModel->faces[tv1->f].material < compareModel->faces[tv2->f].material) {
+        return -1;
+    }
+
+    if (tv1->v != tv2->v) {
+        v1 = &compareModel->vertices[tv1->v];
+        v2 = &compareModel->vertices[tv2->v];
+
+        for (i = 0; i < 3; i++) {
+            if (v1->p.v[i] > v2->p.v[i]) {
+                return 1;
+            }
+            if (v1->p.v[i] < v2->p.v[i]) {
+                return -1;
+            }
+        }
+
+        for (i = 0; i < 2; i++) {
+            if (v1->map.v[i] > v2->map.v[i]) {
+                return 1;
+            }
+            if (v1->map.v[i] < v2->map.v[i]) {
+                return -1;
+            }
+        }
+    }
+
+    for (i = 0; i < 3; i++) {
+        if (tv1->n.v[i] > tv2->n.v[i]) {
+            return 1;
+        }
+        if (tv1->n.v[i] < tv2->n.v[i]) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x005209f0
+int C2_HOOK_CDECL TVCompare_MVN(const void* p1, const void* p2) {
+    prep_vertex* tv1;
+    prep_vertex* tv2;
+    int i;
+
+    tv1 = *(prep_vertex**)p1;
+    tv2 = *(prep_vertex**)p2;
+
+    // if (compareModel->faces[tv1->f].material != NULL) {
+    //     LOG_DEBUG("%s, %s", compareModel->faces[tv1->f].material->identifier, compareModel->faces[tv2->f].material->identifier);
+    // }
+    if (compareModel->faces[tv1->f].material > compareModel->faces[tv2->f].material)
+        return 1;
+    if (compareModel->faces[tv1->f].material < compareModel->faces[tv2->f].material)
+        return -1;
+
+    if (tv1->v > tv2->v)
+        return 1;
+    if (tv1->v < tv2->v)
+        return -1;
+
+    for (i = 0; i < 3; i++) {
+        if (tv1->n.v[i] > tv2->n.v[i])
+            return 1;
+        if (tv1->n.v[i] < tv2->n.v[i])
+            return -1;
+    }
+    return 0;
+}
+
+void C2_HOOK_STDCALL PrepareFaceNormals(br_model* model) {
+    br_vector4 v4;
+    br_face* fp;
+    int f;
+
+    for (f = 0; f < model->nfaces; f++) {
+        fp = &model->faces[f];
+        BrPlaneEquation(&v4, &model->vertices[fp->vertices[0]].p, &model->vertices[fp->vertices[1]].p, &model->vertices[fp->vertices[2]].p);
+        fp->n.v[0] = BrScalarToFractionClamp(v4.v[0]);
+        fp->n.v[1] = BrScalarToFractionClamp(v4.v[1]);
+        fp->n.v[2] = BrScalarToFractionClamp(v4.v[2]);
+        fp->d = v4.v[3];
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00520a90
+void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
+    prep_vertex** outer;
+    prep_vertex** inner;
+
+    for (outer = start; outer < end; outer++) {
+        for (inner = start; inner < end; inner++) {
+            if (inner == outer || (model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) != 0) {
+                (*outer)->n.v[0] = model->faces[(*inner)->f].n.v[0] + (*outer)->n.v[0];
+                (*outer)->n.v[1] = model->faces[(*inner)->f].n.v[1] + (*outer)->n.v[1];
+                (*outer)->n.v[2] = model->faces[(*inner)->f].n.v[2] + (*outer)->n.v[2];
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00520b50
+void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
+    br_vector3 o_n;
+    prep_vertex** outer;
+    prep_vertex** inner;
+
+    for (outer = start; outer < end; outer++) {
+        o_n.v[0] = model->faces[(*outer)->f].n.v[0];
+        o_n.v[1] = model->faces[(*outer)->f].n.v[1];
+        o_n.v[2] = model->faces[(*outer)->f].n.v[2];
+        for (inner = start; inner < end; inner++) {
+            if ((inner == outer) || ((model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) && (BrVector3Dot((br_vector3*)&model->faces[(*inner)->f].n, &o_n) > crease_limit))) {
+                BrVector3Accumulate(&(*outer)->n, (br_vector3*)&model->faces[(*inner)->f].n);
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00520c60
+void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_model* model) {
+    br_vertex* srcv;
+
+    srcv = &model->vertices[src->v];
+
+    group->vertices[v].p.v[0] = srcv->p.v[0] - model->pivot.v[0];
+    group->vertices[v].p.v[1] = srcv->p.v[1] - model->pivot.v[1];
+    group->vertices[v].p.v[2] = srcv->p.v[2] - model->pivot.v[2];
+
+    group->vertices[v].map = srcv->map;
+
+    /* FIXME: use inlined function */
+    BrVector3Normalise(&group->vertices[v].n, &src->n);
+
+    group->vertex_colours[v] = BR_COLOUR_RGBA(srcv->red, srcv->grn, srcv->blu, srcv->index);
+    group->vertex_user[v] = src->v;
+}
+
+// FUNCTION: CARMA2_HW 0x00520d80
+void C2_HOOK_STDCALL CopyFace(v11group* group, int f, br_face* src, br_model* model) {
+
+    group->faces[f].vertices[0] = src->vertices[0];
+    group->faces[f].vertices[1] = src->vertices[1];
+    group->faces[f].vertices[2] = src->vertices[2];
+    group->face_colours.colours[f] = BR_COLOUR_RGBA(src->red, src->grn, src->blu, src->index);
+    group->faces[f].eqn.v[0] = src->n.v[0];
+    group->faces[f].eqn.v[1] = src->n.v[1];
+    group->faces[f].eqn.v[2] = src->n.v[2];
+    group->faces[f].eqn.v[3] = src->d;
+    group->face_user[f] = src - model->faces;
 }
 
 // FUNCTION: CARMA2_HW 0x00520e30

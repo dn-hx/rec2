@@ -9,6 +9,21 @@
 
 #include <windows.h>
 
+
+
+/* The platform library is built without optimizations (see platform/CMakeLists.txt),
+   so re-enable them for this original game function only: the original code is the
+   frameless /O2 shape mov ecx,[file]; test ecx,ecx; je; call PFfclose; mov [file],0; ret. */
+#ifdef _MSC_VER
+#pragma optimize("gty", on)
+#endif
+// FUNCTION: CARMA2_HW 0x0044c830
+void C2_HOOK_FASTCALL PDCloseReplayFile(void) {
+    if (gActionReplayBufferFile != NULL) {
+        PFfclose(gActionReplayBufferFile);
+        gActionReplayBufferFile = NULL;
+    }
+}
 // FUNCTION: CARMA2_HW 0x0051cad0
 void C2_HOOK_CDECL Win32ServiceMessages(void) {
     MSG msg;
@@ -45,21 +60,6 @@ void C2_HOOK_CDECL Win32ServiceMessages(void) {
         DispatchMessageA(&msg);
     }
     dr_dprintf("Win32ServiceMessages() - END");
-}
-
-
-/* The platform library is built without optimizations (see platform/CMakeLists.txt),
-   so re-enable them for this original game function only: the original code is the
-   frameless /O2 shape mov ecx,[file]; test ecx,ecx; je; call PFfclose; mov [file],0; ret. */
-#ifdef _MSC_VER
-#pragma optimize("gty", on)
-#endif
-// FUNCTION: CARMA2_HW 0x0044c830
-void C2_HOOK_FASTCALL PDCloseReplayFile(void) {
-    if (gActionReplayBufferFile != NULL) {
-        PFfclose(gActionReplayBufferFile);
-        gActionReplayBufferFile = NULL;
-    }
 }
 #ifdef _MSC_VER
 #pragma optimize("", off)

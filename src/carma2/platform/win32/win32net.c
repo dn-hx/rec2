@@ -82,41 +82,6 @@ int gNumber_of_hosts;
 // GLOBAL: CARMA2_HW 0x006ac574
 tPD_net_game_info* gJoinable_games;
 
-// FUNCTION: CARMA2_HW 0x0051a190
-void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
-    char buffer[16];
-    DWORD size = sizeof(buffer);
-    char *p;
-
-    dr_dprintf("PDNetObtainSystemUserName()");
-
-    if (GetComputerNameA(buffer, &size) && size != 0) {
-        strncpy(pName, buffer, pMax_length - 1);
-        pName[pMax_length - 1] = '\0';
-        while ((p = strpbrk(pName, "_=(){}[]<>!$%^&*/:@~;'#,?\\|`\"")) != NULL) {
-            *p = '-';
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0051a010
-void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr* pSock_addr) {
-
-    sprintf(pString,
-        "%2.2x%2.2x%2.2x%2.2x:%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x,%2.2x%2.2x",
-        pSock_addr->sa_data[0],
-        pSock_addr->sa_data[1],
-        pSock_addr->sa_data[2],
-        pSock_addr->sa_data[3],
-        pSock_addr->sa_data[4],
-        pSock_addr->sa_data[5],
-        pSock_addr->sa_data[6],
-        pSock_addr->sa_data[7],
-        pSock_addr->sa_data[8],
-        pSock_addr->sa_data[9],
-        pSock_addr->sa_data[10],
-        pSock_addr->sa_data[11]);
-}
 
 // FUNCTION: CARMA2_HW 0x00519560
 int C2_HOOK_FASTCALL PDNetInitialise(void) {
@@ -433,10 +398,23 @@ int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex) 
     return 1;
 }
 
-// FUNCTION: CARMA2_HW 0x0051a6a0
-int C2_HOOK_FASTCALL PDNetGetHeaderSize(void) {
+// FUNCTION: CARMA2_HW 0x0051a010
+void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr* pSock_addr) {
 
-    return 0;
+    sprintf(pString,
+        "%2.2x%2.2x%2.2x%2.2x:%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x,%2.2x%2.2x",
+        pSock_addr->sa_data[0],
+        pSock_addr->sa_data[1],
+        pSock_addr->sa_data[2],
+        pSock_addr->sa_data[3],
+        pSock_addr->sa_data[4],
+        pSock_addr->sa_data[5],
+        pSock_addr->sa_data[6],
+        pSock_addr->sa_data[7],
+        pSock_addr->sa_data[8],
+        pSock_addr->sa_data[9],
+        pSock_addr->sa_data[10],
+        pSock_addr->sa_data[11]);
 }
 
 // FUNCTION: CARMA2_HW 0x0051a0a0
@@ -446,82 +424,32 @@ int C2_HOOK_FASTCALL PDNetJoinGame(tNet_game_details* pGame_details, const char*
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x0051a0c0
-void C2_HOOK_FASTCALL PDNetHostFinishGame(void) {
-
-    dr_dprintf("PDNetHostFinishGame()");
-}
-
 // FUNCTION: CARMA2_HW 0x0051a0b0
 void C2_HOOK_FASTCALL PDNetLeaveGame(void) {
 
     dr_dprintf("PDNetLeaveGame()");
 }
 
-// FUNCTION: CARMA2_HW 0x0051a380
-tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, void** pSender_address) {
-    char addr_str[32];
-    int sa_len;
-    int res;
-    tNet_message* msg;
-    char* receive_buffer;
+// FUNCTION: CARMA2_HW 0x0051a0c0
+void C2_HOOK_FASTCALL PDNetHostFinishGame(void) {
 
-    sa_len = 14;  /* FIXME: sizeof(gListen_address) == 16 */
-    msg = NetAllocateMessage(512);
-    receive_buffer = (char*)msg;
-    res = recvfrom(gSocket, receive_buffer, 512, 0, &gListen_address, &sa_len) != SOCKET_ERROR;
-    if (res == SOCKET_ERROR) {
-        WSAGetLastError();
-    } else {
-        NetNowIPXLocalTarget2String(addr_str, gPtr_listen_address);
-        if (!SameEthernetAddress(gPtr_local_address, gPtr_listen_address)) {
-            int msg_type;
+    dr_dprintf("PDNetHostFinishGame()");
+}
+// FUNCTION: CARMA2_HW 0x0051a190
+void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
+    char buffer[16];
+    DWORD size = sizeof(buffer);
+    char *p;
 
-            msg_type = GetMessageTypeFromMessage(receive_buffer);
-            switch (msg_type) {
-            case 1:
-                if (gNet_mode == eNet_mode_host) {
-                    dr_dprintf("PDNetGetNextMessage(): Received '%s' from '%s', replying to joiner", receive_buffer, addr_str);
-                    MakeMessageToSend(2);
-                    if (sendto(gSocket, gSend_buffer, strlen(gSend_buffer) + 1, 0, &gListen_address, sizeof(gListen_address)) == SOCKET_ERROR) {
-                        dr_dprintf("PDNetGetNextMessage(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
-                    }
-                }
-                break;
-            case 2:
-                // no-op
-                break;
-            default:
-                dr_dprintf("PDNetGetNextMessage(): res is %d, received message type %d from '%s', passing up", res, msg->contents.raw.header.type, addr_str);
-                memcpy(&gLast_received_addr, gPtr_listen_address, sizeof(gLast_received_addr));
-                *pSender_address = &gLast_received_addr;
-                return msg;
-            }
+    dr_dprintf("PDNetObtainSystemUserName()");
+
+    if (GetComputerNameA(buffer, &size) && size != 0) {
+        strncpy(pName, buffer, pMax_length - 1);
+        pName[pMax_length - 1] = '\0';
+        while ((p = strpbrk(pName, "_=(){}[]<>!$%^&*/:@~;'#,?\\|`\"")) != NULL) {
+            *p = '-';
         }
     }
-    msg->header.field_0x14 = 0;
-    NetDisposeMessage(pDetails, msg);
-    return NULL;
-}
-
-// LIBRARY: CARMA2_HW 0x0051deca
-// _sendto@24
-
-// LIBRARY: CARMA2_HW 0x0051deb2
-// _WSAGetLastError@0
-
-// FUNCTION: CARMA2_HW 0x0051a630
-int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress) {
-
-    /* FIXME: sizeof(struct sockaddr) == 16 */
-
-    if (sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, pAddress, 14) == SOCKET_ERROR) {
-        dr_dprintf("PDNetSendMessageToAddress(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
-        NetDisposeMessage(pDetails, pMessage);
-        return 1;
-    }
-    NetDisposeMessage(pDetails,(tNet_message *)pMessage);
-    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0051a210
@@ -570,15 +498,87 @@ int C2_HOOK_FASTCALL PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, t
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0051a380
+tNet_message* C2_HOOK_FASTCALL PDNetGetNextMessage(tNet_game_details* pDetails, void** pSender_address) {
+    char addr_str[32];
+    int sa_len;
+    int res;
+    tNet_message* msg;
+    char* receive_buffer;
+
+    sa_len = 14;  /* FIXME: sizeof(gListen_address) == 16 */
+    msg = NetAllocateMessage(512);
+    receive_buffer = (char*)msg;
+    res = recvfrom(gSocket, receive_buffer, 512, 0, &gListen_address, &sa_len) != SOCKET_ERROR;
+    if (res == SOCKET_ERROR) {
+        WSAGetLastError();
+    } else {
+        NetNowIPXLocalTarget2String(addr_str, gPtr_listen_address);
+        if (!SameEthernetAddress(gPtr_local_address, gPtr_listen_address)) {
+            int msg_type;
+
+            msg_type = GetMessageTypeFromMessage(receive_buffer);
+            switch (msg_type) {
+            case 1:
+                if (gNet_mode == eNet_mode_host) {
+                    dr_dprintf("PDNetGetNextMessage(): Received '%s' from '%s', replying to joiner", receive_buffer, addr_str);
+                    MakeMessageToSend(2);
+                    if (sendto(gSocket, gSend_buffer, strlen(gSend_buffer) + 1, 0, &gListen_address, sizeof(gListen_address)) == SOCKET_ERROR) {
+                        dr_dprintf("PDNetGetNextMessage(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+                    }
+                }
+                break;
+            case 2:
+                // no-op
+                break;
+            default:
+                dr_dprintf("PDNetGetNextMessage(): res is %d, received message type %d from '%s', passing up", res, msg->contents.raw.header.type, addr_str);
+                memcpy(&gLast_received_addr, gPtr_listen_address, sizeof(gLast_received_addr));
+                *pSender_address = &gLast_received_addr;
+                return msg;
+            }
+        }
+    }
+    msg->header.field_0x14 = 0;
+    NetDisposeMessage(pDetails, msg);
+    return NULL;
+}
+
 // FUNCTION: CARMA2_HW 0x0051a620
 void C2_HOOK_FASTCALL PDNetDisposePlayer(void) {
 
     dr_dprintf("PDNetDisposePlayer()");
 }
 
+// LIBRARY: CARMA2_HW 0x0051deca
+// _sendto@24
+
+// LIBRARY: CARMA2_HW 0x0051deb2
+// _WSAGetLastError@0
+
+// FUNCTION: CARMA2_HW 0x0051a630
+int C2_HOOK_FASTCALL PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress) {
+
+    /* FIXME: sizeof(struct sockaddr) == 16 */
+
+    if (sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, pAddress, 14) == SOCKET_ERROR) {
+        dr_dprintf("PDNetSendMessageToAddress(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+        NetDisposeMessage(pDetails, pMessage);
+        return 1;
+    }
+    NetDisposeMessage(pDetails,(tNet_message *)pMessage);
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0051a690
 int C2_HOOK_FASTCALL PDNetInitClient(void) {
 
     dr_dprintf("PDNetInitClient()");
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0051a6a0
+int C2_HOOK_FASTCALL PDNetGetHeaderSize(void) {
+
     return 0;
 }

@@ -10,9 +10,6 @@
 
 #include "c2_stdlib.h"
 
-// FUNCTION: CARMA2_HW 0x0052f3f0
-void C2_HOOK_CDECL lexerError(br_lexer* l, const char* string) {
-}
 
 // FUNCTION: CARMA2_HW 0x0052f390
 br_lexer* C2_HOOK_CDECL BrLexerAllocate(br_lexer_keyword* keywords, int nkeywords) {
@@ -30,6 +27,9 @@ br_lexer* C2_HOOK_CDECL BrLexerAllocate(br_lexer_keyword* keywords, int nkeyword
     l->string_buffer_size = 256;
     l->error = lexerError;
     return l;
+}
+// FUNCTION: CARMA2_HW 0x0052f3f0
+void C2_HOOK_CDECL lexerError(br_lexer* l, const char* string) {
 }
 
 // FUNCTION: CARMA2_HW 0x0052f400
@@ -60,12 +60,6 @@ void C2_HOOK_CDECL BrLexerFree(br_lexer* l) {
     BrResFree(l);
 }
 
-// FUNCTION: CARMA2_HW 0x0052f4f0
-void C2_HOOK_CDECL fileGetchar(br_lexer_source* source) {
-
-    source->next = BrFileGetChar(source->ptr);
-}
-
 // FUNCTION: CARMA2_HW 0x0052f460
 br_error C2_HOOK_CDECL BrLexerPushFile(br_lexer* l, char* file) {
     br_lexer_source* s;
@@ -92,17 +86,10 @@ br_error C2_HOOK_CDECL BrLexerPushFile(br_lexer* l, char* file) {
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x0052f570
-void C2_HOOK_CDECL stringGetchar(br_lexer_source* source) {
-    char* cp;
+// FUNCTION: CARMA2_HW 0x0052f4f0
+void C2_HOOK_CDECL fileGetchar(br_lexer_source* source) {
 
-    cp = source->ptr;
-    if (cp != NULL && *cp != '\0') {
-        source->next = *cp;
-        source->ptr = cp + 1;
-    } else {
-        source->next = -1;
-    }
+    source->next = BrFileGetChar(source->ptr);
 }
 
 // FUNCTION: CARMA2_HW 0x0052f510
@@ -121,6 +108,19 @@ br_error C2_HOOK_CDECL BrLexerPushString(br_lexer* l, char* string, char* name) 
     s->prev = l->source;
     l->source = s;
     return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0052f570
+void C2_HOOK_CDECL stringGetchar(br_lexer_source* source) {
+    char* cp;
+
+    cp = source->ptr;
+    if (cp != NULL && *cp != '\0') {
+        source->next = *cp;
+        source->ptr = cp + 1;
+    } else {
+        source->next = -1;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0052f5a0

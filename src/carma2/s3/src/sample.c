@@ -21,6 +21,45 @@ tS3_error_codes gS3_last_error;
 // GLOBAL: CARMA2_HW 0x007a05c0
 char gS3_sound_dirname[256];
 
+
+// FUNCTION: CARMA2_HW 0x00565a3d
+tS3_descriptor* C2_HOOK_FASTCALL S3GetDescriptorByID(int pSample_id) {
+    tS3_descriptor *desc;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, sample_id, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, next, 0x2c);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, low_memory_alternative, 0x3c);
+
+    for (desc = gS3_state.descriptors; desc != NULL; desc = desc->next) {
+        if (desc->sample_id == pSample_id) {
+            if (desc->low_memory_alternative >= 0) {
+                return S3GetDescriptorByID(desc->low_memory_alternative);
+            }
+            return desc;
+        }
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x00565b34
+void C2_HOOK_CDECL s3_debug_disable_sound(void) {
+
+}
+
+// FUNCTION: CARMA2_HW 0x00565b39
+void C2_HOOK_CDECL s3_debug_init(void) {
+    tPath_name path;
+    int result;
+
+    (void) path;
+    (void) result;
+
+}
+
+// FUNCTION: CARMA2_HW 0x00565b46
+void C2_HOOK_CDECL s3_dprintf(const char* pFormat, ...) {
+
+}
 // PARTIAL 91.89%: S3GetBufferDescription 0x005687ff - MSVC emits an extra NULL store for descriptor and the je target is +6 (best of 3 attempts)
 // FUNCTION: CARMA2_HW 0x005687ff
 tS3_buffer_desc* C2_HOOK_FASTCALL S3GetBufferDescription(int pSample_id) {
@@ -74,45 +113,6 @@ tS3_error_codes C2_HOOK_FASTCALL S3LoadSample(int pSample_id) {
         }
     }
     return eS3_error_none;
-}
-
-// FUNCTION: CARMA2_HW 0x00565a3d
-tS3_descriptor* C2_HOOK_FASTCALL S3GetDescriptorByID(int pSample_id) {
-    tS3_descriptor *desc;
-
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, sample_id, 0x0);
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, next, 0x2c);
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, low_memory_alternative, 0x3c);
-
-    for (desc = gS3_state.descriptors; desc != NULL; desc = desc->next) {
-        if (desc->sample_id == pSample_id) {
-            if (desc->low_memory_alternative >= 0) {
-                return S3GetDescriptorByID(desc->low_memory_alternative);
-            }
-            return desc;
-        }
-    }
-    return NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x00565b34
-void C2_HOOK_CDECL s3_debug_disable_sound(void) {
-
-}
-
-// FUNCTION: CARMA2_HW 0x00565b39
-void C2_HOOK_CDECL s3_debug_init(void) {
-    tPath_name path;
-    int result;
-
-    (void) path;
-    (void) result;
-
-}
-
-// FUNCTION: CARMA2_HW 0x00565b46
-void C2_HOOK_CDECL s3_dprintf(const char* pFormat, ...) {
-
 }
 
 // FUNCTION: CARMA2_HW 0x00568ee0

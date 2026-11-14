@@ -73,6 +73,38 @@ void C2_HOOK_CDECL SurfaceIndexLit(br_soft_renderer* self, br_vector3* p, br_vec
     CLAMP_SCALE(C_I);
 }
 
+// FUNCTION: CARMA2_HW 0x0054a5f0
+void C2_HOOK_STDCALL ActiveLightAccumulateIndexSet(active_light* alp) {
+    switch (alp->type) {
+    case BRT_DIRECT:
+        alp->accumulate_index = lightingIndexDirect;
+        break;
+    case BRT_POINT:
+        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
+            alp->accumulate_index = lightingIndexPoint;
+        } else {
+            alp->accumulate_index = lightingIndexPointAttn;
+        }
+        break;
+    case BRT_SPOT:
+        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
+            alp->accumulate_index = lightingIndexSpot;
+        } else {
+            alp->accumulate_index = lightingIndexSpotAttn;
+        }
+        break;
+    case BRT_POINT_LOCAL_1:
+        alp->accumulate_index = lightingIndexLocal1;
+        break;
+    case BRT_POINT_LOCAL_2:
+        alp->accumulate_index = lightingIndexLocal2;
+        break;
+    default:
+        alp->accumulate_index = lightingIndexNull;
+        break;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x0054a7b0
 void C2_HOOK_STDCALL lightingIndexNull(br_soft_renderer* self, br_vector3* p, br_vector3* n, active_light* alp, br_scalar* comp) {
 
@@ -259,36 +291,4 @@ void C2_HOOK_STDCALL lightingIndexSpotAttn(br_soft_renderer* self, br_vector3* p
         }
     }
     comp[C_I] += attn * l;
-}
-
-// FUNCTION: CARMA2_HW 0x0054a5f0
-void C2_HOOK_STDCALL ActiveLightAccumulateIndexSet(active_light* alp) {
-    switch (alp->type) {
-    case BRT_DIRECT:
-        alp->accumulate_index = lightingIndexDirect;
-        break;
-    case BRT_POINT:
-        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
-            alp->accumulate_index = lightingIndexPoint;
-        } else {
-            alp->accumulate_index = lightingIndexPointAttn;
-        }
-        break;
-    case BRT_SPOT:
-        if (alp->s->attenuation_l == 0.f && alp->s->attenuation_q == 0.f) {
-            alp->accumulate_index = lightingIndexSpot;
-        } else {
-            alp->accumulate_index = lightingIndexSpotAttn;
-        }
-        break;
-    case BRT_POINT_LOCAL_1:
-        alp->accumulate_index = lightingIndexLocal1;
-        break;
-    case BRT_POINT_LOCAL_2:
-        alp->accumulate_index = lightingIndexLocal2;
-        break;
-    default:
-        alp->accumulate_index = lightingIndexNull;
-        break;
-    }
 }

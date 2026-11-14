@@ -22,6 +22,23 @@ br_error C2_HOOK_CDECL AddRequestedDrivers(void) {
     return 0;
 }
 
+
+// FUNCTION: CARMA2_HW 0x00528430
+br_error C2_HOOK_CDECL BrDevAdd(br_device** pdev, const char* image, const char* args) {
+    br_image* dev_image;
+    br_device_begin_fn* dev_begin;
+
+    dev_image = BrImageReference(image);
+    if (dev_image == NULL) {
+        return 0x1002;
+    }
+    dev_begin = BrImageLookupName(dev_image, "BrDrv1Begin", 0);
+    if (dev_begin == NULL) {
+        BrImageDereference(dev_image);
+        return 0x1002;
+    }
+    return devAdd(pdev, dev_begin, args, dev_image);
+}
 // FUNCTION: CARMA2_HW 0x00528490
 br_error C2_HOOK_STDCALL devAdd(br_device** pdev, br_device_begin_fn* dev_begin, const char* args, br_image* image) {
     int i;
@@ -60,23 +77,6 @@ br_error C2_HOOK_STDCALL devAdd(br_device** pdev, br_device_begin_fn* dev_begin,
         *pdev = dev;
     }
     return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00528430
-br_error C2_HOOK_CDECL BrDevAdd(br_device** pdev, const char* image, const char* args) {
-    br_image* dev_image;
-    br_device_begin_fn* dev_begin;
-
-    dev_image = BrImageReference(image);
-    if (dev_image == NULL) {
-        return 0x1002;
-    }
-    dev_begin = BrImageLookupName(dev_image, "BrDrv1Begin", 0);
-    if (dev_begin == NULL) {
-        BrImageDereference(dev_image);
-        return 0x1002;
-    }
-    return devAdd(pdev, dev_begin, args, dev_image);
 }
 
 // FUNCTION: CARMA2_HW 0x005285a0

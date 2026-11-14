@@ -114,6 +114,169 @@ br_uint_32 C2_HOOK_CDECL BrOnScreenCheck(br_bounds3* bounds) {
     return r;
 }
 
+// FUNCTION: CARMA2_HW 0x00521c10
+void C2_HOOK_CDECL BrDbSceneRenderBegin(br_actor* world, br_actor* camera) {
+    br_matrix34 tfm;
+    br_matrix4 vtos;
+    br_actor* a;
+    int i;
+    br_token vtos_type;
+    br_uint_32 dummy;
+
+    vtos_type = CameraToScreenMatrix4(&vtos, camera);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_VIEW_TO_SCREEN_M4_F, (uintptr_t)&vtos);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_VIEW_TO_SCREEN_HINT_T, vtos_type);
+    for (i = 0; i < (int)BR_ASIZE(v1db.camera_path); i++) {
+        v1db.camera_path[i].a = NULL;
+    }
+    i = camera->depth;
+    BrMatrix34Identity(&v1db.camera_path[i].m);
+    v1db.camera_path[i].transform_type = BR_TRANSFORM_IDENTITY;
+    for (a = camera; i > 0 && a != world; i--, a = a->parent) {
+        BrTransformToMatrix34(&tfm, &a->t);
+        BrMatrix34Mul(&v1db.camera_path[i - 1].m, &v1db.camera_path[i].m, &tfm);
+        v1db.camera_path[i - 1].transform_type = _CombineTransforms[v1db.camera_path[i].transform_type][a->t.type];
+        v1db.camera_path[i].a = a;
+    }
+    if (world != a) {
+        BrFailure("camera is not in world hierachy");
+    }
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_M34_F, (uintptr_t)&v1db.camera_path[i].m);
+    v1db.ttype = v1db.camera_path[i].transform_type;
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_HINT_T, v1db.ttype != BR_TRANSFORM_MATRIX34 ? BRT_LENGTH_PRESERVING : BRT_NONE);
+    v1db.renderer->dispatch->_modelInvert(v1db.renderer);
+    v1db.renderer->dispatch->_partQueryBuffer(v1db.renderer, BRT_MATRIX, 0, &dummy, (br_uint_32*)&tfm, sizeof(tfm), BRT_MODEL_TO_VIEW_M34_F);
+    BrSetupLights(world, &tfm, v1db.ttype);
+    BrSetupClipPlanes(world, &tfm, v1db.ttype, &vtos);
+    BrSetupEnvironment(world, &tfm, v1db.ttype);
+    BrSetupHorizons(world,&tfm, v1db.ttype);
+}
+
+// FUNCTION: CARMA2_HW 0x00521e10
+br_renderbounds_cbfn* C2_HOOK_CDECL BrDbSetRenderBoundsCallback(br_renderbounds_cbfn* new_cbfn) {
+    br_renderbounds_cbfn* old_cbfn;
+
+    old_cbfn = v1db.bounds_call;
+    v1db.bounds_call = new_cbfn;
+    if (v1db.renderer != NULL) {
+        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_ENABLE, 0, BRT_BOUNDS_B, new_cbfn != NULL);
+    }
+    return old_cbfn;
+}
+
+void C2_HOOK_STDCALL SetOrigin(br_pixelmap* buffer) {
+
+    v1db.origin.v[0] = (br_scalar)(buffer->origin_x - buffer->width / 2) / (buffer->width / 2);
+    v1db.origin.v[1] = -((br_scalar)(buffer->origin_y - buffer->height / 2) / (buffer->height / 2));
+}
+
+void C2_HOOK_STDCALL SetViewport(br_pixelmap* buffer) {
+
+    v1db.vp_ox = (br_scalar)(buffer->base_x + buffer->width / 2) + 0.5f;
+    v1db.vp_width = (br_scalar)(buffer->width / 2);
+    v1db.vp_oy = (br_scalar)(buffer->height / 2) + 0.5f;
+    v1db.vp_height = -(br_scalar)(buffer->height / 2);
+}
+
+// FUNCTION: CARMA2_HW 0x00521e50
+void C2_HOOK_CDECL BrZbSceneRenderBegin(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
+
+    v1db.rendering = BR_ZB_RENDERING;
+    v1db.render_root = world;
+    v1db.colour_buffer = colour_buffer;
+    SetOrigin(colour_buffer);
+    SetViewport(colour_buffer);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)colour_buffer);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)depth_buffer);
+    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_HIDDEN_SURFACE, 0, BRT_TYPE_T, 1);
+    v1db.default_render_data = NULL;
+    BrDbSceneRenderBegin(world, camera);
+}
+
+// FUNCTION: CARMA2_HW 0x00521fd0
+void C2_HOOK_CDECL BrZbSceneRenderAdd(br_actor* tree) {
+
+    sceneRenderAdd(tree);
+}
+
+void C2_HOOK_STDCALL sceneRenderWorld(br_actor* world) {
+    br_model* model;
+    br_material* material;
+    void* render_data;
+    br_uint_8 style;
+    br_actor* a;
+
+    model = world->model != NULL ? world->model : v1db.default_model;
+    material = world->material != NULL ? world->material : v1db.default_material;
+    render_data = world->render_data != NULL ? world->render_data : v1db.default_render_data;
+    style = world->render_style != BR_RSTYLE_DEFAULT ? world->render_style : BR_RSTYLE_DEFAULT;
+    for (a = world->children; a != NULL; a = a->next) {
+        actorRender(a, model, material, render_data, style, v1db.ttype);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00521fe0
+void C2_HOOK_STDCALL sceneRenderAdd(br_actor* tree) {
+    br_material* material;
+    br_model* model;
+    void* render_data;
+    br_uint_8 style;
+    br_actor* a;
+    br_int_32 t;
+    br_matrix34 m;
+
+    material = NULL;
+    model = NULL;
+    render_data = NULL;
+    style = BR_RSTYLE_DEFAULT;
+    if (tree->parent == NULL) {
+        actorRender(tree, v1db.default_model, v1db.default_material, v1db.default_render_data, BR_RSTYLE_DEFAULT, v1db.ttype);
+        return;
+    }
+    t = BR_TRANSFORM_IDENTITY;
+    BrMatrix34Identity(&m);
+    for (a = tree->parent; a != NULL; a = a->parent) {
+        if (material == NULL && a->material != NULL) {
+            material = a->material;
+        }
+        if (model == NULL && a->model != NULL) {
+            model = a->model;
+        }
+        if (render_data == NULL && a->render_data != NULL) {
+            render_data = a->render_data;
+        }
+        if (a->render_style != BR_RSTYLE_DEFAULT) {
+            style = a->render_style;
+        }
+        if (a == v1db.render_root) {
+            break;
+        }
+        if (a->t.type != BR_TRANSFORM_IDENTITY) {
+            BrMatrix34PostTransform(&m, &a->t);
+            t = _CombineTransforms[t][a->t.type];
+        }
+    }
+    if (material == NULL) {
+        material = v1db.default_material;
+    }
+    if (model == NULL) {
+        model = v1db.default_model;
+    }
+    if (render_data == NULL) {
+        render_data = v1db.default_render_data;
+    }
+    if (t == BR_TRANSFORM_IDENTITY) {
+        actorRender(tree, model, material, render_data, style, v1db.ttype);
+    } else {
+        v1db.renderer->dispatch->_statePush(v1db.renderer, 0x2);
+        v1db.renderer->dispatch->_modelMulF(v1db.renderer, (br_matrix34_f*)&m);
+        t = _CombineTransforms[(br_uint_16)v1db.ttype][(br_uint_16)t];
+        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_HINT_T, (t == BR_TRANSFORM_MATRIX34_LP) ? BRT_LENGTH_PRESERVING : BRT_NONE);
+        actorRender(tree, model, material, render_data, style, t);
+        v1db.renderer->dispatch->_statePop(v1db.renderer, 0x2);
+    }
+}
+
 br_uint_16 C2_HOOK_STDCALL prependActorTransform(br_actor* ap, br_uint_16 t) {
     br_matrix34 mt;
 
@@ -250,169 +413,6 @@ void C2_HOOK_STDCALL actorRenderOnScreen(br_actor* ap, br_model* model, br_mater
         }
         v1db.renderer->dispatch->_statePop(v1db.renderer, 0x2);
     }
-}
-
-void C2_HOOK_STDCALL sceneRenderWorld(br_actor* world) {
-    br_model* model;
-    br_material* material;
-    void* render_data;
-    br_uint_8 style;
-    br_actor* a;
-
-    model = world->model != NULL ? world->model : v1db.default_model;
-    material = world->material != NULL ? world->material : v1db.default_material;
-    render_data = world->render_data != NULL ? world->render_data : v1db.default_render_data;
-    style = world->render_style != BR_RSTYLE_DEFAULT ? world->render_style : BR_RSTYLE_DEFAULT;
-    for (a = world->children; a != NULL; a = a->next) {
-        actorRender(a, model, material, render_data, style, v1db.ttype);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00521fe0
-void C2_HOOK_STDCALL sceneRenderAdd(br_actor* tree) {
-    br_material* material;
-    br_model* model;
-    void* render_data;
-    br_uint_8 style;
-    br_actor* a;
-    br_int_32 t;
-    br_matrix34 m;
-
-    material = NULL;
-    model = NULL;
-    render_data = NULL;
-    style = BR_RSTYLE_DEFAULT;
-    if (tree->parent == NULL) {
-        actorRender(tree, v1db.default_model, v1db.default_material, v1db.default_render_data, BR_RSTYLE_DEFAULT, v1db.ttype);
-        return;
-    }
-    t = BR_TRANSFORM_IDENTITY;
-    BrMatrix34Identity(&m);
-    for (a = tree->parent; a != NULL; a = a->parent) {
-        if (material == NULL && a->material != NULL) {
-            material = a->material;
-        }
-        if (model == NULL && a->model != NULL) {
-            model = a->model;
-        }
-        if (render_data == NULL && a->render_data != NULL) {
-            render_data = a->render_data;
-        }
-        if (a->render_style != BR_RSTYLE_DEFAULT) {
-            style = a->render_style;
-        }
-        if (a == v1db.render_root) {
-            break;
-        }
-        if (a->t.type != BR_TRANSFORM_IDENTITY) {
-            BrMatrix34PostTransform(&m, &a->t);
-            t = _CombineTransforms[t][a->t.type];
-        }
-    }
-    if (material == NULL) {
-        material = v1db.default_material;
-    }
-    if (model == NULL) {
-        model = v1db.default_model;
-    }
-    if (render_data == NULL) {
-        render_data = v1db.default_render_data;
-    }
-    if (t == BR_TRANSFORM_IDENTITY) {
-        actorRender(tree, model, material, render_data, style, v1db.ttype);
-    } else {
-        v1db.renderer->dispatch->_statePush(v1db.renderer, 0x2);
-        v1db.renderer->dispatch->_modelMulF(v1db.renderer, (br_matrix34_f*)&m);
-        t = _CombineTransforms[(br_uint_16)v1db.ttype][(br_uint_16)t];
-        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_HINT_T, (t == BR_TRANSFORM_MATRIX34_LP) ? BRT_LENGTH_PRESERVING : BRT_NONE);
-        actorRender(tree, model, material, render_data, style, t);
-        v1db.renderer->dispatch->_statePop(v1db.renderer, 0x2);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00521c10
-void C2_HOOK_CDECL BrDbSceneRenderBegin(br_actor* world, br_actor* camera) {
-    br_matrix34 tfm;
-    br_matrix4 vtos;
-    br_actor* a;
-    int i;
-    br_token vtos_type;
-    br_uint_32 dummy;
-
-    vtos_type = CameraToScreenMatrix4(&vtos, camera);
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_VIEW_TO_SCREEN_M4_F, (uintptr_t)&vtos);
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_VIEW_TO_SCREEN_HINT_T, vtos_type);
-    for (i = 0; i < (int)BR_ASIZE(v1db.camera_path); i++) {
-        v1db.camera_path[i].a = NULL;
-    }
-    i = camera->depth;
-    BrMatrix34Identity(&v1db.camera_path[i].m);
-    v1db.camera_path[i].transform_type = BR_TRANSFORM_IDENTITY;
-    for (a = camera; i > 0 && a != world; i--, a = a->parent) {
-        BrTransformToMatrix34(&tfm, &a->t);
-        BrMatrix34Mul(&v1db.camera_path[i - 1].m, &v1db.camera_path[i].m, &tfm);
-        v1db.camera_path[i - 1].transform_type = _CombineTransforms[v1db.camera_path[i].transform_type][a->t.type];
-        v1db.camera_path[i].a = a;
-    }
-    if (world != a) {
-        BrFailure("camera is not in world hierachy");
-    }
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_M34_F, (uintptr_t)&v1db.camera_path[i].m);
-    v1db.ttype = v1db.camera_path[i].transform_type;
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_MATRIX, 0, BRT_MODEL_TO_VIEW_HINT_T, v1db.ttype != BR_TRANSFORM_MATRIX34 ? BRT_LENGTH_PRESERVING : BRT_NONE);
-    v1db.renderer->dispatch->_modelInvert(v1db.renderer);
-    v1db.renderer->dispatch->_partQueryBuffer(v1db.renderer, BRT_MATRIX, 0, &dummy, (br_uint_32*)&tfm, sizeof(tfm), BRT_MODEL_TO_VIEW_M34_F);
-    BrSetupLights(world, &tfm, v1db.ttype);
-    BrSetupClipPlanes(world, &tfm, v1db.ttype, &vtos);
-    BrSetupEnvironment(world, &tfm, v1db.ttype);
-    BrSetupHorizons(world,&tfm, v1db.ttype);
-}
-
-// FUNCTION: CARMA2_HW 0x00521e10
-br_renderbounds_cbfn* C2_HOOK_CDECL BrDbSetRenderBoundsCallback(br_renderbounds_cbfn* new_cbfn) {
-    br_renderbounds_cbfn* old_cbfn;
-
-    old_cbfn = v1db.bounds_call;
-    v1db.bounds_call = new_cbfn;
-    if (v1db.renderer != NULL) {
-        v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_ENABLE, 0, BRT_BOUNDS_B, new_cbfn != NULL);
-    }
-    return old_cbfn;
-}
-
-void C2_HOOK_STDCALL SetOrigin(br_pixelmap* buffer) {
-
-    v1db.origin.v[0] = (br_scalar)(buffer->origin_x - buffer->width / 2) / (buffer->width / 2);
-    v1db.origin.v[1] = -((br_scalar)(buffer->origin_y - buffer->height / 2) / (buffer->height / 2));
-}
-
-void C2_HOOK_STDCALL SetViewport(br_pixelmap* buffer) {
-
-    v1db.vp_ox = (br_scalar)(buffer->base_x + buffer->width / 2) + 0.5f;
-    v1db.vp_width = (br_scalar)(buffer->width / 2);
-    v1db.vp_oy = (br_scalar)(buffer->height / 2) + 0.5f;
-    v1db.vp_height = -(br_scalar)(buffer->height / 2);
-}
-
-// FUNCTION: CARMA2_HW 0x00521e50
-void C2_HOOK_CDECL BrZbSceneRenderBegin(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer, br_pixelmap* depth_buffer) {
-
-    v1db.rendering = BR_ZB_RENDERING;
-    v1db.render_root = world;
-    v1db.colour_buffer = colour_buffer;
-    SetOrigin(colour_buffer);
-    SetViewport(colour_buffer);
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)colour_buffer);
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)depth_buffer);
-    v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_HIDDEN_SURFACE, 0, BRT_TYPE_T, 1);
-    v1db.default_render_data = NULL;
-    BrDbSceneRenderBegin(world, camera);
-}
-
-// FUNCTION: CARMA2_HW 0x00521fd0
-void C2_HOOK_CDECL BrZbSceneRenderAdd(br_actor* tree) {
-
-    sceneRenderAdd(tree);
 }
 
 // FUNCTION: CARMA2_HW 0x005226a0

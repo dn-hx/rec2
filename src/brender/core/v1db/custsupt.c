@@ -21,17 +21,6 @@ const float gScreenZOffsetPresetChoices[7] = {
     -9.0f,
 };
 
-// FUNCTION: CARMA2_HW 0x00540560
-void C2_HOOK_CDECL BrSetScreenZOffset(br_uint_32 pOffset) {
-
-    C2_HOOK_BUG_ON(BR_ASIZE(gScreenZOffsetPresetChoices) != 7);
-
-    if (pOffset < BR_ASIZE(gScreenZOffsetPresetChoices)) {
-        gScreenZOffset = gScreenZOffsetPresetChoices[pOffset];
-    } else {
-        gScreenZOffset = 0.f;
-    }
-}
 
 static br_uint_32 calculate_outcode(const br_vector4* v) {
     br_uint_32 outcode;
@@ -306,5 +295,16 @@ void C2_HOOK_CDECL BrScreenXYZToCamera(br_vector3* point, br_actor* camera, br_p
         break;
     default:
         break;
+    }
+}
+// FUNCTION: CARMA2_HW 0x00540560
+void C2_HOOK_CDECL BrSetScreenZOffset(br_uint_32 pOffset) {
+
+    C2_HOOK_BUG_ON(BR_ASIZE(gScreenZOffsetPresetChoices) != 7);
+
+    if (pOffset < BR_ASIZE(gScreenZOffsetPresetChoices)) {
+        gScreenZOffset = gScreenZOffsetPresetChoices[pOffset];
+    } else {
+        gScreenZOffset = 0.f;
     }
 }

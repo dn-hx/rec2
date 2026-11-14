@@ -44,6 +44,27 @@ br_tv_template_entry deviceTemplateEntries[] = {
     { BRT_IDENTIFIER_CSTR, NULL, offsetof(br_soft_device, identifier), 5, 3, 0, 0 },
 };
 
+
+// FUNCTION: CARMA2_HW 0x00540810
+br_device* C2_HOOK_STDCALL DeviceSoftAllocate(const char* identifier) {
+    br_soft_device *self;
+
+    C2_HOOK_BUG_ON(sizeof(*self) != 88);
+
+    self = BrResAllocate(NULL, sizeof(*self), BR_MEMORY_OBJECT_DATA);
+    self->res = BrResAllocate(self, 0, BR_MEMORY_DRIVER);
+
+    self->dispatch = (struct br_device_dispatch*)&softrendr_deviceDispatch;
+    self->identifier = identifier;
+    self->device = self;
+
+   	self->object_list = BrObjectListAllocate(self);
+
+	BrTokenCreate("RECALC_BITS_U32",	BRT_UINT_32);
+	BrTokenCreate("PRIMITIVE_STATE_O",	BRT_OBJECT);
+
+	return (br_device*)self;
+}
 // FUNCTION: CARMA2_HW 0x00540880
 void C2_HOOK_CDECL _M_br_softrend_device_free(br_soft_device* self) {
 
@@ -86,25 +107,4 @@ br_tv_template* C2_HOOK_CDECL _M_br_soft_device_templateQuery(br_soft_device* se
 void* C2_HOOK_CDECL _M_br_softrend_device_listQuery(br_soft_device* self) {
 
     return self->object_list;
-}
-
-// FUNCTION: CARMA2_HW 0x00540810
-br_device* C2_HOOK_STDCALL DeviceSoftAllocate(const char* identifier) {
-    br_soft_device *self;
-
-    C2_HOOK_BUG_ON(sizeof(*self) != 88);
-
-    self = BrResAllocate(NULL, sizeof(*self), BR_MEMORY_OBJECT_DATA);
-    self->res = BrResAllocate(self, 0, BR_MEMORY_DRIVER);
-
-    self->dispatch = (struct br_device_dispatch*)&softrendr_deviceDispatch;
-    self->identifier = identifier;
-    self->device = self;
-
-   	self->object_list = BrObjectListAllocate(self);
-
-	BrTokenCreate("RECALC_BITS_U32",	BRT_UINT_32);
-	BrTokenCreate("PRIMITIVE_STATE_O",	BRT_OBJECT);
-
-	return (br_device*)self;
 }

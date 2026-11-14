@@ -298,10 +298,91 @@ void C2_HOOK_STDCALL SubdivideSetThreshold(br_int_32 subdivide_tolerance) {
     rend.subdivide_threshold = 1.0 / ((float)subdivide_tolerance * -0.002f - -1.25f);
 }
 
+static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+    brp_vertex mid0, mid1, mid2;
+
+    if (depth > 0 && subdivideCheck(v0, v1, v2)) {
+
+        averageVertices(rend.renderer, &mid1, &mid2, &mid0, v0, v1, v2);
+        triangleSubdivide(depth - 1, block, &mid0, &mid1, &mid2, fp_vertices, fp_edges);
+        triangleSubdivide(depth - 1, block, v0,    &mid0, &mid2, fp_vertices, fp_edges);
+        triangleSubdivide(depth - 1, block, v1,    &mid1, &mid0, fp_vertices, fp_edges);
+        triangleSubdivide(depth - 1, block, v2,    &mid2, &mid1, fp_vertices, fp_edges);
+    } else {
+        block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
+    }
+}
+
+#ifdef REC2_MATCHING
+/* Compensates the three pads above for the function inlined here (symbol numbering again). */
+static void symbol_pad_3(void);
+#endif
+
+// FUNCTION: CARMA2_HW 0x00545c60
+void C2_HOOK_CDECL OpTriangleSubdivide(brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+
+    triangleSubdivide(6, block, v0, v1, v2, fp_vertices, fp_edges);
+}
+
+
+#ifdef REC2_MATCHING
+/* MSVC 5 numbers symbols per translation unit and that numbering decides the register
+   allocation of every later function in the file.  This TU has three symbols fewer
+   before triangleSubdivide than the retail build had, which puts its v0/v1/v2
+   parameters in ebx/ebp/edi instead of ebx/edi/ebp.  The declarations below restore
+   the original count at each point (see state/cheatsheet.md). */
+static void symbol_pad_0(void);
+static void symbol_pad_1(void);
+static void symbol_pad_2(void);
+#endif
+
+/* No standalone body in the original: MSVC 5 inlined it into triangleSubdivide and
+   OpTriangleSubdivide.  Kept static so the inliner always expands it. */
+static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges);
+
+// FUNCTION: CARMA2_HW 0x00545de0
+void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+    br_uint_32 combined_codes;
+
+    combined_codes = v0->flags | v1->flags | v2->flags;
+
+    if ((combined_codes & OUTCODES_NOT) != OUTCODES_NOT) {
+        return;
+    }
+
+    if (combined_codes & OUTCODES_ALL) {
+        triangleSubdivideCheck(depth, block, v0,v1,v2, fp_vertices, fp_edges);
+    } else{
+        triangleSubdivideOnScreen(depth, block, v0, v1, v2, fp_vertices, fp_edges);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00545f70
+void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+    brp_vertex mid0, mid1, mid2;
+
+    if (depth > 0 && subdivideCheck(v0, v1, v2)) {
+
+        averageVerticesOnScreen(rend.renderer, &mid1, &mid2, &mid0, v0, v1, v2);
+        triangleSubdivideOnScreen(depth - 1, block, &mid0, &mid1, &mid2, fp_vertices, fp_edges);
+        triangleSubdivideOnScreen(depth - 1, block, v0,    &mid0, &mid2, fp_vertices, fp_edges);
+        triangleSubdivideOnScreen(depth - 1, block, v1,    &mid1, &mid0, fp_vertices, fp_edges);
+        triangleSubdivideOnScreen(depth - 1, block, v2,    &mid2, &mid1, fp_vertices, fp_edges);
+    } else {
+        block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005460b0
+void C2_HOOK_CDECL OpTriangleSubdivideOnScreen(brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+
+    triangleSubdivideOnScreen(6, block, v0, v1, v2, fp_vertices, fp_edges);
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 /* Byte offsets into the three pointer arguments, indexed by the z-order code:
    subdivideOrderMin = index of the vertex with the smallest |z|,
    subdivideOrderMax = index of the vertex with the largest |z|. */
@@ -422,88 +503,4 @@ br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vert
 #else
     abort();
 #endif
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-/* MSVC 5 numbers symbols per translation unit and that numbering decides the register
-   allocation of every later function in the file.  This TU has three symbols fewer
-   before triangleSubdivide than the retail build had, which puts its v0/v1/v2
-   parameters in ebx/ebp/edi instead of ebx/edi/ebp.  The declarations below restore
-   the original count at each point (see state/cheatsheet.md). */
-static void symbol_pad_0(void);
-static void symbol_pad_1(void);
-static void symbol_pad_2(void);
-#endif
-
-/* No standalone body in the original: MSVC 5 inlined it into triangleSubdivide and
-   OpTriangleSubdivide.  Kept static so the inliner always expands it. */
-static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges);
-
-// FUNCTION: CARMA2_HW 0x00545de0
-void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
-    br_uint_32 combined_codes;
-
-    combined_codes = v0->flags | v1->flags | v2->flags;
-
-    if ((combined_codes & OUTCODES_NOT) != OUTCODES_NOT) {
-        return;
-    }
-
-    if (combined_codes & OUTCODES_ALL) {
-        triangleSubdivideCheck(depth, block, v0,v1,v2, fp_vertices, fp_edges);
-    } else{
-        triangleSubdivideOnScreen(depth, block, v0, v1, v2, fp_vertices, fp_edges);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00545f70
-void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
-    brp_vertex mid0, mid1, mid2;
-
-    if (depth > 0 && subdivideCheck(v0, v1, v2)) {
-
-        averageVerticesOnScreen(rend.renderer, &mid1, &mid2, &mid0, v0, v1, v2);
-        triangleSubdivideOnScreen(depth - 1, block, &mid0, &mid1, &mid2, fp_vertices, fp_edges);
-        triangleSubdivideOnScreen(depth - 1, block, v0,    &mid0, &mid2, fp_vertices, fp_edges);
-        triangleSubdivideOnScreen(depth - 1, block, v1,    &mid1, &mid0, fp_vertices, fp_edges);
-        triangleSubdivideOnScreen(depth - 1, block, v2,    &mid2, &mid1, fp_vertices, fp_edges);
-    } else {
-        block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
-    }
-}
-
-static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
-    brp_vertex mid0, mid1, mid2;
-
-    if (depth > 0 && subdivideCheck(v0, v1, v2)) {
-
-        averageVertices(rend.renderer, &mid1, &mid2, &mid0, v0, v1, v2);
-        triangleSubdivide(depth - 1, block, &mid0, &mid1, &mid2, fp_vertices, fp_edges);
-        triangleSubdivide(depth - 1, block, v0,    &mid0, &mid2, fp_vertices, fp_edges);
-        triangleSubdivide(depth - 1, block, v1,    &mid1, &mid0, fp_vertices, fp_edges);
-        triangleSubdivide(depth - 1, block, v2,    &mid2, &mid1, fp_vertices, fp_edges);
-    } else {
-        block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
-    }
-}
-
-#ifdef REC2_MATCHING
-/* Compensates the three pads above for the function inlined here (symbol numbering again). */
-static void symbol_pad_3(void);
-#endif
-
-// FUNCTION: CARMA2_HW 0x00545c60
-void C2_HOOK_CDECL OpTriangleSubdivide(brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
-
-    triangleSubdivide(6, block, v0, v1, v2, fp_vertices, fp_edges);
-}
-
-// FUNCTION: CARMA2_HW 0x005460b0
-void C2_HOOK_CDECL OpTriangleSubdivideOnScreen(brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
-
-    triangleSubdivideOnScreen(6, block, v0, v1, v2, fp_vertices, fp_edges);
 }

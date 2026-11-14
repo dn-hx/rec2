@@ -42,29 +42,6 @@ br_tv_template_entry rendererStateStoredTemplateEntries[] = {
     { BR_NULL_TOKEN,        "PRIMITIVE_STATE_O",    offsetof(br_renderer_state_stored_soft, pstate),       5,  3,  0,  0 },
 };
 
-// FUNCTION: CARMA2_HW 0x00542740
-br_renderer_state_stored_soft* C2_HOOK_STDCALL RendererStateStoredSoftAllocate(br_soft_renderer* renderer, soft_state_all* base_state, br_uint_32 m, br_token_value* tv) {
-
-    br_renderer_state_stored_soft* self;
-
-    self = BrResAllocate(renderer->device, sizeof(br_renderer_state_stored_soft), BR_MEMORY_OBJECT_DATA);
-    C2_HOOK_BUG_ON(sizeof (br_renderer_state_stored_soft) != 0x260);
-
-    if (self == NULL) {
-        return NULL;
-    }
-
-    self->dispatch = &rendererStateStoredDispatch;
-    self->identifier = "Renderer-State-Stored";
-    self->device = renderer->device;
-    self->renderer = renderer;
-
-    StateCopyToStored(self, base_state, m, self);
-
-    renderer->dispatch->_addFront((br_object_container*)renderer, (br_object*)self);
-
-    return (br_renderer_state_stored_soft*)self;
-}
 
 // FUNCTION: CARMA2_HW 0x00542520
 br_error C2_HOOK_STDCALL StateCopyToStored(br_renderer_state_stored_soft* dest, soft_state_all* src, br_uint_32 copy_mask, void* res) {
@@ -176,6 +153,29 @@ br_error C2_HOOK_STDCALL StateCopyFromStored(soft_state_all* dest, br_renderer_s
         dest->cache.valid = 0;
     }
     return 0;
+}
+// FUNCTION: CARMA2_HW 0x00542740
+br_renderer_state_stored_soft* C2_HOOK_STDCALL RendererStateStoredSoftAllocate(br_soft_renderer* renderer, soft_state_all* base_state, br_uint_32 m, br_token_value* tv) {
+
+    br_renderer_state_stored_soft* self;
+
+    self = BrResAllocate(renderer->device, sizeof(br_renderer_state_stored_soft), BR_MEMORY_OBJECT_DATA);
+    C2_HOOK_BUG_ON(sizeof (br_renderer_state_stored_soft) != 0x260);
+
+    if (self == NULL) {
+        return NULL;
+    }
+
+    self->dispatch = &rendererStateStoredDispatch;
+    self->identifier = "Renderer-State-Stored";
+    self->device = renderer->device;
+    self->renderer = renderer;
+
+    StateCopyToStored(self, base_state, m, self);
+
+    renderer->dispatch->_addFront((br_object_container*)renderer, (br_object*)self);
+
+    return (br_renderer_state_stored_soft*)self;
 }
 
 // FUNCTION: CARMA2_HW 0x005427a0

@@ -114,6 +114,30 @@ br_image* C2_HOOK_CDECL BrImageReference(const char* name) {
     return img;
 }
 
+// FUNCTION: CARMA2_HW 0x005301e0
+void* C2_HOOK_CDECL BrImageLookupName(br_image* img, const char* name, br_uint_32 hint) {
+    char* scratch;
+    void* p;
+
+    scratch = BrScratchString();
+    if (img->type == 3) {
+        return HostImageLookupName(img->type_pointer, name, hint);
+    }
+    p = imageLookupName(img, name, hint);
+    if (p != NULL) {
+        return p;
+    }
+    if (*name == '_') {
+        p = imageLookupName(img, &name[1], hint);
+        if (p != NULL) {
+            return p;
+        }
+    }
+    scratch[0] = '_';
+    BrStrCpy(&scratch[1], name);
+    return imageLookupName(img, scratch, hint);
+}
+
 // FUNCTION: CARMA2_HW 0x00530260
 void* C2_HOOK_STDCALL imageLookupName(br_image* img, const char* name, br_uint_32 hint) {
     int c;
@@ -137,30 +161,6 @@ void* C2_HOOK_STDCALL imageLookupName(br_image* img, const char* name, br_uint_3
         }
     }
     return NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x005301e0
-void* C2_HOOK_CDECL BrImageLookupName(br_image* img, const char* name, br_uint_32 hint) {
-    char* scratch;
-    void* p;
-
-    scratch = BrScratchString();
-    if (img->type == 3) {
-        return HostImageLookupName(img->type_pointer, name, hint);
-    }
-    p = imageLookupName(img, name, hint);
-    if (p != NULL) {
-        return p;
-    }
-    if (*name == '_') {
-        p = imageLookupName(img, &name[1], hint);
-        if (p != NULL) {
-            return p;
-        }
-    }
-    scratch[0] = '_';
-    BrStrCpy(&scratch[1], name);
-    return imageLookupName(img, scratch, hint);
 }
 
 // FUNCTION: CARMA2_HW 0x00530320

@@ -31,6 +31,37 @@ br_boolean C2_HOOK_STDCALL Is_Valid_Sys_Config_Token(br_token t) {
     return found;
 }
 
+
+// FUNCTION: CARMA2_HW 0x00530460
+br_error C2_HOOK_CDECL BrSystemConfigBegin(void) {
+    char temp[255];
+    br_value v;
+
+    fw.sys_config = BrAssociativeArrayAllocate();
+    if (fw.sys_config == NULL) {
+        BrFailure("System config associative array allocate failed.\n");
+        return 0x1002;
+    }
+    BrSetDefaultConfig(BRT_BRENDER_PATH_STR, "BRENDER_PATH");
+    BrSetDefaultConfig(BRT_BRENDER_DRIVERS_STR, "BRENDER_DRIVERS");
+    BrSetDefaultConfig(BRT_BRENDER_DRIVERS_STR, "BR_DRIVERS");
+    BrSetDefaultConfig(BRT_BRENDER_DEVICES_STR, "BRENDER_DEVICES");
+    BrSetDefaultConfig(BRT_BRENDER_DEVICES_STR, "BR_DEVICES");
+    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BRENDER_DOS_GFX");
+    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BRENDER_DEFAULT_DEVICE");
+    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BR_DEFAULT_DEVICE");
+    BrSystemConfigQueryString(BRT_DEFAULT_DEVICE_STR, temp, sizeof(temp));
+    if (temp[0] == '\0') {
+        v.cstr = HostDefaultDevice();
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
+    }
+    BrSystemConfigQueryString(BRT_BRENDER_PATH_STR, temp, sizeof(temp));
+    if (temp[0] == '\0') {
+        v.cstr = "dat;../dat;../../dat;../../../dat;../../../../dat";
+        BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_PATH_STR, v);
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x005308b0
 br_boolean C2_HOOK_STDCALL LoadIniEntry(char* ini_file, char* section_name, br_token t, char* Entry) {
     br_uint_16 size;
@@ -118,37 +149,6 @@ br_error C2_HOOK_STDCALL BrSetDefaultConfig(br_token t, char* Entry) {
     v.cstr = BrGetEnv(Entry);
     if (v.cstr != NULL) {
         BrAssociativeArraySetEntry(fw.sys_config, t, v);
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00530460
-br_error C2_HOOK_CDECL BrSystemConfigBegin(void) {
-    char temp[255];
-    br_value v;
-
-    fw.sys_config = BrAssociativeArrayAllocate();
-    if (fw.sys_config == NULL) {
-        BrFailure("System config associative array allocate failed.\n");
-        return 0x1002;
-    }
-    BrSetDefaultConfig(BRT_BRENDER_PATH_STR, "BRENDER_PATH");
-    BrSetDefaultConfig(BRT_BRENDER_DRIVERS_STR, "BRENDER_DRIVERS");
-    BrSetDefaultConfig(BRT_BRENDER_DRIVERS_STR, "BR_DRIVERS");
-    BrSetDefaultConfig(BRT_BRENDER_DEVICES_STR, "BRENDER_DEVICES");
-    BrSetDefaultConfig(BRT_BRENDER_DEVICES_STR, "BR_DEVICES");
-    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BRENDER_DOS_GFX");
-    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BRENDER_DEFAULT_DEVICE");
-    BrSetDefaultConfig(BRT_DEFAULT_DEVICE_STR, "BR_DEFAULT_DEVICE");
-    BrSystemConfigQueryString(BRT_DEFAULT_DEVICE_STR, temp, sizeof(temp));
-    if (temp[0] == '\0') {
-        v.cstr = HostDefaultDevice();
-        BrAssociativeArraySetEntry(fw.sys_config, BRT_DEFAULT_DEVICE_STR, v);
-    }
-    BrSystemConfigQueryString(BRT_BRENDER_PATH_STR, temp, sizeof(temp));
-    if (temp[0] == '\0') {
-        v.cstr = "dat;../dat;../../dat;../../../dat;../../../../dat";
-        BrAssociativeArraySetEntry(fw.sys_config, BRT_BRENDER_PATH_STR, v);
     }
     return 0;
 }

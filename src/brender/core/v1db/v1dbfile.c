@@ -1114,13 +1114,28 @@ br_uint_32 C2_HOOK_CDECL BrModelLoadMany(char* filename, br_model** models, br_u
     return count;
 }
 
-// FUNCTION: CARMA2_HW 0x00524310
-int C2_HOOK_CDECL PtrCompare(void* a, void* b) {
+// FUNCTION: CARMA2_HW 0x00523e50
+br_uint_32 C2_HOOK_CDECL BrModelSaveMany(char* filename, br_model** models, br_uint_16 num) {
+    br_datafile* df;
+    int i;
+    int m;
 
-    if (*(uintptr_t*)a > *(uintptr_t*)b) {
-        return -1;
+    df = DfOpen(filename, 1, BRT_FLOAT);
+    if (df == NULL) {
+        return 0;
     }
-    return *(uintptr_t*)a < *(uintptr_t*)b;
+    FopWrite_FILE_INFO(df, FILE_TYPE_MODEL);
+    if (models != NULL) {
+        for (i = 0; i < num; i++) {
+            WriteModel(models[i], df);
+        }
+        m = num;
+    } else {
+        BrModelEnum(NULL, (br_model_enum_cbfn*)&WriteModel, df);
+        m = BrModelCount(NULL);
+    }
+    DfClose(df);
+    return m;
 }
 
 // FUNCTION: CARMA2_HW 0x00523ee0
@@ -1181,28 +1196,13 @@ br_uint_32 C2_HOOK_CDECL WriteModel(br_model* mp, br_datafile* df) {
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x00523e50
-br_uint_32 C2_HOOK_CDECL BrModelSaveMany(char* filename, br_model** models, br_uint_16 num) {
-    br_datafile* df;
-    int i;
-    int m;
+// FUNCTION: CARMA2_HW 0x00524310
+int C2_HOOK_CDECL PtrCompare(void* a, void* b) {
 
-    df = DfOpen(filename, 1, BRT_FLOAT);
-    if (df == NULL) {
-        return 0;
+    if (*(uintptr_t*)a > *(uintptr_t*)b) {
+        return -1;
     }
-    FopWrite_FILE_INFO(df, FILE_TYPE_MODEL);
-    if (models != NULL) {
-        for (i = 0; i < num; i++) {
-            WriteModel(models[i], df);
-        }
-        m = num;
-    } else {
-        BrModelEnum(NULL, (br_model_enum_cbfn*)&WriteModel, df);
-        m = BrModelCount(NULL);
-    }
-    DfClose(df);
-    return m;
+    return *(uintptr_t*)a < *(uintptr_t*)b;
 }
 
 // FUNCTION: CARMA2_HW 0x00524330
@@ -1229,6 +1229,24 @@ br_uint_32 C2_HOOK_CDECL BrActorLoadMany(char* filename, br_actor** actors, br_u
     } while (r != 0);
     DfClose(df);
     return count;
+}
+
+// FUNCTION: CARMA2_HW 0x005243a0
+br_uint_32 C2_HOOK_CDECL BrActorSaveMany(char* filename, br_actor** actors, br_uint_16 num) {
+    br_datafile* df;
+    int i;
+
+    df = DfOpen(filename, 1, BRT_FLOAT);
+    if (df == NULL) {
+        return 0;
+    }
+    FopWrite_FILE_INFO(df, FILE_TYPE_ACTORS);
+    for (i = 0; i < num; i++) {
+        WriteActor(actors[i], df);
+        FopWrite_END(df);
+    }
+    DfClose(df);
+    return num;
 }
 
 // FUNCTION: CARMA2_HW 0x00524400
@@ -1285,24 +1303,6 @@ int C2_HOOK_STDCALL WriteActor(br_actor* a, br_datafile* df) {
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x005243a0
-br_uint_32 C2_HOOK_CDECL BrActorSaveMany(char* filename, br_actor** actors, br_uint_16 num) {
-    br_datafile* df;
-    int i;
-
-    df = DfOpen(filename, 1, BRT_FLOAT);
-    if (df == NULL) {
-        return 0;
-    }
-    FopWrite_FILE_INFO(df, FILE_TYPE_ACTORS);
-    for (i = 0; i < num; i++) {
-        WriteActor(actors[i], df);
-        FopWrite_END(df);
-    }
-    DfClose(df);
-    return num;
-}
-
 // FUNCTION: CARMA2_HW 0x00524600
 br_uint_32 C2_HOOK_CDECL BrMaterialLoadMany(char* filename, br_material** materials, br_uint_16 num) {
     br_datafile* df;
@@ -1326,29 +1326,6 @@ br_uint_32 C2_HOOK_CDECL BrMaterialLoadMany(char* filename, br_material** materi
     } while (r != 0);
     DfClose(df);
     return count;
-}
-
-// FUNCTION: CARMA2_HW 0x005247f0
-br_uint_32 C2_HOOK_CDECL WriteMaterial(br_material* mp, void* df) {
-
-    FopWrite_MATERIAL(df, mp);
-    if (mp->colour_map != NULL) {
-        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_COLOUR_MAP, mp->colour_map);
-    }
-    if (mp->index_shade != NULL) {
-        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_SHADE, mp->index_shade);
-    }
-    if (mp->index_blend != NULL) {
-        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_BLEND, mp->index_blend);
-    }
-    if (mp->screendoor != NULL) {
-        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_SCREENDOOR, mp->screendoor);
-    }
-    if (mp->index_fog != NULL) {
-        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_FOG, mp->index_fog);
-    }
-    FopWrite_END(df);
-    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00524670
@@ -1377,6 +1354,29 @@ br_uint_32 C2_HOOK_CDECL BrMaterialSaveMany(char* filename, br_material** materi
     }
     DfClose(df);
     return count;
+}
+
+// FUNCTION: CARMA2_HW 0x005247f0
+br_uint_32 C2_HOOK_CDECL WriteMaterial(br_material* mp, void* df) {
+
+    FopWrite_MATERIAL(df, mp);
+    if (mp->colour_map != NULL) {
+        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_COLOUR_MAP, mp->colour_map);
+    }
+    if (mp->index_shade != NULL) {
+        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_SHADE, mp->index_shade);
+    }
+    if (mp->index_blend != NULL) {
+        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_BLEND, mp->index_blend);
+    }
+    if (mp->screendoor != NULL) {
+        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_SCREENDOOR, mp->screendoor);
+    }
+    if (mp->index_fog != NULL) {
+        FopWrite_PIXELMAP_REF(df, CHUNKID_MATERIAL_INDEX_FOG, mp->index_fog);
+    }
+    FopWrite_END(df);
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x005248e0

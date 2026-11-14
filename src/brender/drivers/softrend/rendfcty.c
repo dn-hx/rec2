@@ -101,14 +101,6 @@ br_tv_template* C2_HOOK_CDECL _M_br_renderer_facility_soft_templateQuery(br_soft
     return self->device->templates.rendererFacilityTemplate;
 }
 
-// FUNCTION: CARMA2_HW 0x00540800
-void* C2_HOOK_CDECL _M_br_renderer_facility_soft_listQuery(br_soft_renderer_facility* self) {
-
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(br_soft_renderer_facility, object_list, 0xc);
-
-    return self->object_list;
-}
-
 // FUNCTION: CARMA2_HW 0x00540720
 int C2_HOOK_CDECL _M_br_renderer_facility_soft_validDestination(br_soft_renderer_facility* self, br_boolean* bp, br_object* h) {
 
@@ -150,6 +142,14 @@ int C2_HOOK_CDECL _M_br_renderer_facility_soft_rendererNew(br_soft_renderer_faci
     }
     *prenderer = renderer;
     return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00540800
+void* C2_HOOK_CDECL _M_br_renderer_facility_soft_listQuery(br_soft_renderer_facility* self) {
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(br_soft_renderer_facility, object_list, 0xc);
+
+    return self->object_list;
 }
 
 // GLOBAL: CARMA2_HW 0x0058bc20
