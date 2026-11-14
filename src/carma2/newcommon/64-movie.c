@@ -1606,3 +1606,53 @@ void* C2_HOOK_CDECL FUN_005757d0(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// GLOBAL: CARMA2_HW 0x00673cf8
+void* PTR_FUN_00673cf8;
+
+// GLOBAL: CARMA2_HW 0x00673cfc
+void* PTR_FUN_00673cfc;
+
+// Defined here under the name the original's own annotation uses
+// (carma2_hw-mslibc.h names 0x00673d00 __fptrap).
+void* __fptrap;
+
+// GLOBAL: CARMA2_HW 0x00673d04
+void* PTR_FUN_00673d04;
+
+// GLOBAL: CARMA2_HW 0x00673d08
+void* PTR_FUN_00673d08;
+
+// GLOBAL: CARMA2_HW 0x00673d0c
+void* PTR_FUN_00673d0c;
+
+// Placeholders for the six handler addresses the original stores in the
+// __fpmath dispatch table above.  The original has no symbols for them, so
+// they are named here so that both images resolve the immediates identically.
+// GLOBAL: CARMA2_HW 0x0057a370
+void* gUNK_0057a370;
+
+// GLOBAL: CARMA2_HW 0x0057a3d0
+void* gUNK_0057a3d0;
+
+// GLOBAL: CARMA2_HW 0x0057a440
+void* gUNK_0057a440;
+
+// GLOBAL: CARMA2_HW 0x0057a460
+void* gUNK_0057a460;
+
+// GLOBAL: CARMA2_HW 0x0057a810
+void* gUNK_0057a810;
+
+// FUNCTION: CARMA2_HW 0x00575b30
+void C2_HOOK_CDECL FUN_00575b30(void) {
+    void* p;
+
+    p = (void*)&gUNK_0057a810;
+    PTR_FUN_00673cfc = (void*)&gUNK_0057a3d0;
+    PTR_FUN_00673cf8 = p;
+    __fptrap = (void*)&gUNK_0057a460;
+    PTR_FUN_00673d04 = (void*)&gUNK_0057a370;
+    PTR_FUN_00673d08 = (void*)&gUNK_0057a440;
+    PTR_FUN_00673d0c = p;
+}
