@@ -2356,3 +2356,28 @@ void C2_HOOK_FASTCALL S3UpdateSampleList(int* pSound_ids, int pSound_count, int*
         }
     }
 }
+
+extern int C2_HOOK_FASTCALL PDS3StopMidiChannelWrapper(tS3_channel* pChannel, int pArg2, int pArg3, int pArg4, int pArg5, int pArg6);
+
+// FUNCTION: CARMA2_HW 0x0056a71f
+int C2_HOOK_FASTCALL FUN_0056a71f(int pTag, int pArg2, int pArg3, int pArg4, int pArg5) {
+    tS3_channel* channel;
+    int pArg6 = 0x14;
+
+    if (gS3_enable_midi) {
+        channel = S3GetChannelForTag(pTag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (pArg2 == 2) {
+            channel->needs_service = 1;
+            if (channel->type == 1 && (channel->descriptor->flags & 2) != 0) {
+                return S3StopMIDIChannel(channel);
+            }
+        }
+        if (channel->type == 1 && PDS3StopMidiChannelWrapper(channel, pArg2, pArg3, pArg4, pArg5, pArg6) == 0) {
+            return eS3_error_function_failed;
+        }
+    }
+    return eS3_error_none;
+}
