@@ -7258,7 +7258,7 @@ void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_cru
         pJoint->field_0x08.v[1] = *(br_scalar*)&pos[1];
         uVar7 = *(br_scalar*)&pos[2];
     } else {
-        int* crush_data_ptr = *(int**)(pDetach_data + 8);
+        int* crush_data_ptr = *(int**)((tU8*)pVertex_index2 + 8);
         tU32 idx;
         if (pVertex_index1 != 0) {
             tU32 idx = (tU32)*(tU16*)(pVertex_index1 + 10);
@@ -7267,7 +7267,7 @@ void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_cru
             pJoint->field_0x08.v[2] = *(br_scalar*)(crush_data_ptr + idx * 0xa + 2);
             goto LAB_0043752a;
         }
-        idx = (tU32)*(tU16*)(pVertex_index2 + 0x30);
+        idx = (tU32)*(tU16*)((tU8*)pDetach_data + 0x30);
         pJoint->field_0x08.v[0] = *(br_scalar*)(crush_data_ptr + idx * 0xa);
         pJoint->field_0x08.v[1] = *(br_scalar*)(crush_data_ptr + idx * 0xa + 1);
         uVar7 = *(br_scalar*)(crush_data_ptr + idx * 0xa + 2);
@@ -7286,7 +7286,7 @@ LAB_0043752a:
         puVar6 = puVar6 + 8;
     } while (iVar8 < pJoint->count_limits);
     if (pVertex_index1 != 0) {
-        int* crush_data_ptr = *(int**)(pDetach_data + 8);
+        int* crush_data_ptr = *(int**)((tU8*)pVertex_index2 + 8);
         tU32 idx1 = (tU32)*(tU16*)(pVertex_index1 + 0xe);
         tU32 idx2 = (tU32)*(tU16*)(pVertex_index1 + 10);
         tU32 idx3;
