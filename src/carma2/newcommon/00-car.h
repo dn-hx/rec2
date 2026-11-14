@@ -272,5 +272,6 @@ extern int C2_HOOK_FASTCALL GetCompressedCrushVertexDataSize(tU8* pData);
 extern void C2_HOOK_FASTCALL ReceivedCrushReattachBit(tNet_message_chunk_crush_reattach_bit* pContents);
 extern void C2_HOOK_FASTCALL FUN_00498ab0(tCar_spec* pCar, tU8* pContents);
 extern void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents);
+extern void C2_HOOK_FASTCALL FUN_004984c0(tU8* pContents);
 
 #endif // GUARD_00_CAR_H

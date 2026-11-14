@@ -8062,3 +8062,52 @@ void C2_HOOK_FASTCALL ReceivedCarData(tU8* pContents) {
         UpdateCrushVertices(car, (tU8*)car->collision_info + 0x2fc);
     }
 }
+
+// PARTIAL 70.10%: player-search loop shape, collision_info reloads
+// FUNCTION: CARMA2_HW 0x004984c0
+void C2_HOOK_FASTCALL FUN_004984c0(tU8* pContents) {
+    tCar_spec* car;
+    int i;
+    tU32* p;
+    tU32 id;
+    br_matrix34* mat;
+    float delta_out;
+
+    car = NULL;
+    i = 0;
+    if (gNumber_of_net_players > 0) {
+        id = *(tU32*)(pContents + 4);
+        p = (tU32*)((tU8*)gNet_players + 0x24);
+        do {
+            if (*p == id) {
+                car = *(tCar_spec**)((tU8*)gNet_players + i * 0xd4 + 0xc8);
+                break;
+            }
+            i++;
+            p += 0x35;
+        } while (i < gNumber_of_net_players);
+    }
+    if (car != NULL) {
+        *(int*)((tU8*)car + 0x1d0) = 0;
+        mat = (br_matrix34*)((tU8*)car->car_master_actor + 0x2c);
+        BrMatrix34RotateY(mat, *(tU16*)(pContents + 2));
+        ExpandVector3((br_vector3*)&mat->m[3][0], (const tCompressed_vector3*)(pContents + 8), -500.0f, 500.0f);
+        BrMatrix34Copy((br_matrix34*)((tU8*)car->collision_info + 0x8c), mat);
+        *(int*)((tU8*)car + 0x4c) = *(int*)((tU8*)car->collision_info + 0xb0);
+        *(int*)((tU8*)car + 0x50) = *(int*)((tU8*)car->collision_info + 0xb4);
+        *(int*)((tU8*)car + 0x54) = *(int*)((tU8*)car->collision_info + 0xb8);
+        *(int*)((tU8*)car->collision_info + 0x80) = *(int*)((tU8*)car->collision_info + 0xb0);
+        *(int*)((tU8*)car->collision_info + 0x84) = *(int*)((tU8*)car->collision_info + 0xb4);
+        *(int*)((tU8*)car->collision_info + 0x88) = *(int*)((tU8*)car->collision_info + 0xb8);
+        if (*(int*)((tU8*)car + 0xc) >= 7) {
+            if (*(tU32*)(pContents + 0x10) > *(tU32*)((tU8*)car + 0x18a4)) {
+                if (*(tU32*)(pContents + 0x10) - *(tU32*)((tU8*)car + 0x18a4) >= 100000) {
+                    TotallyRepairACar(car);
+                    *(tU32*)((tU8*)car + 0x18a4) = *(tU32*)((tU8*)car->collision_info + 0x27c);
+                    return;
+                }
+                ComputeCarImpact(car, *(tU32*)(pContents + 0x10) - *(tU32*)((tU8*)car + 0x18a4), &delta_out);
+            }
+        }
+    }
+}
