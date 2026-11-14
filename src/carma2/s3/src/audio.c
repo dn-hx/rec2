@@ -2526,3 +2526,13 @@ int C2_HOOK_FASTCALL FUN_00564a21(tS3_sound_tag pTag, int pPitch) {
     }
     return 0;
 }
+
+// FUNCTION: CARMA2_HW 0x00564d33
+int C2_HOOK_FASTCALL FUN_00564d33(void) {
+
+    if (gS3_enabled) {
+        return 1;
+    } else {
+        return 0;
+    }
+}

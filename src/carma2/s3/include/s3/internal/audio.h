@@ -231,4 +231,6 @@ extern void C2_HOOK_FASTCALL FUN_0056a8a0(tS3_callbacks* pCallbacks);
 
 extern int C2_HOOK_FASTCALL FUN_00564a21(tS3_sound_tag pTag, int pPitch);
 
+extern int C2_HOOK_FASTCALL FUN_00564d33(void);
+
 #endif // S3_AUDIO_H
