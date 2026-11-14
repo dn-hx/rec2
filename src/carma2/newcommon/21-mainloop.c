@@ -383,6 +383,13 @@ static void MLPageInProcessMemory(void) {
     Sleep(1500);
 }
 #else
+/* Non-matching builds only: windows.h is included under REC2_MATCHING at the top of
+ * this file, and with it the two externs above (inside the same guard). FUN_00492840
+ * below uses all three in every build, so mirror them here. Nothing inside the
+ * REC2_MATCHING branch changes, which keeps the matching token stream identical. */
+#include <windows.h>
+extern SYSTEM_INFO gSystem_info;
+extern DWORD gPage_size;
 #define MLPageInProcessMemory PDPageInProcessMemory
 #endif
 

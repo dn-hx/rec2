@@ -1,5 +1,17 @@
 #include "pmmemops.h"
 
+#if !defined(_MSC_VER)
+/* GCC's PE targets prepend an underscore to C identifiers, but the text of an
+ * __asm__ template is emitted verbatim, so the fragments below would name
+ * symbols that do not exist. Expand each name to the assembler's spelling.
+ * The MSVC branch does not use this and the preprocessor drops it there. */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define C2_ASM_SYM(sym) "_" sym
+#else
+#define C2_ASM_SYM(sym) sym
+#endif
+#endif
+
 #include "brender/br_defs.h"
 
 #include "c2_stdlib.h"
@@ -601,8 +613,8 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
         "        mov eax, ecx\n"
         "        shr ecx, 0x3\n"
         "        and eax, 0x7\n"
-        "        mov dl, byte ptr [edx+g_startMasks]\n"
-        "        mov dh, byte ptr [eax+g_endMasks]\n"
+        "        mov dl, byte ptr [edx+" C2_ASM_SYM("g_startMasks") "]\n"
+        "        mov dh, byte ptr [eax+" C2_ASM_SYM("g_endMasks") "]\n"
         "        mov ebx, dword ptr [ebp+0x2c]\n"
         "        mov eax, dword ptr [ebp+0x28]\n"
         "        push ds\n"
@@ -1363,7 +1375,7 @@ void C2_HOOK_CDECL pm_mem_copy_colour(br_uint_8* dst, br_uint_32 dst_qual, br_ui
         "        push ds\n"
         "        push es\n"
         "        fnstcw word ptr [ebp-0x2]\n"
-        "        fldcw word ptr g_fpuControlWord\n"
+        "        fldcw word ptr " C2_ASM_SYM("g_fpuControlWord") "\n"
         "        mov ds, word ptr [ebp+0x14]\n"
         "        mov es, word ptr [ebp+0xc]\n"
         "        mov esi, dword ptr [ebp+0x10]\n"
@@ -1599,7 +1611,7 @@ void C2_HOOK_CDECL pm_mem_copy_colour_rowbyrow(br_uint_8* dest, br_uint_32 dest_
         "        push ds\n"
         "        push es\n"
         "        fnstcw word ptr [ebp-0x2]\n"
-        "        fldcw word ptr g_fpuControlWord\n"
+        "        fldcw word ptr " C2_ASM_SYM("g_fpuControlWord") "\n"
         "        mov ds, word ptr [ebp+0x14]\n"
         "        mov es, word ptr [ebp+0xc]\n"
         "        mov esi, dword ptr [ebp+0x10]\n"

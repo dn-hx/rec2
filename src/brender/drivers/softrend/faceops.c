@@ -1,5 +1,17 @@
 #include "faceops.h"
 
+#if !defined(_MSC_VER)
+/* GCC's PE targets prepend an underscore to C identifiers, but the text of an
+ * __asm__ template is emitted verbatim, so the fragments below would name
+ * symbols that do not exist. Expand each name to the assembler's spelling.
+ * The MSVC branch does not use this and the preprocessor drops it there. */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define C2_ASM_SYM(sym) "_" sym
+#else
+#define C2_ASM_SYM(sym) sym
+#endif
+#endif
+
 #include "clip.h"
 #include "setup.h"
 #include "subdiv.h"
@@ -379,14 +391,14 @@ br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vert
         "        rcl edx, 1\n"
         "        cmp ecx, ebx\n"
         "        rcl edx, 1\n"
-        "        fld dword ptr [rend+0x60]\n"
-        "        mov eax, dword ptr [edx*4+subdivideOrderMax]\n"
-        "        mov ebx, dword ptr [edx*4+subdivideOrderMin]\n"
+        "        fld dword ptr [" C2_ASM_SYM("rend") "+0x60]\n"
+        "        mov eax, dword ptr [edx*4+" C2_ASM_SYM("subdivideOrderMax") "]\n"
+        "        mov ebx, dword ptr [edx*4+" C2_ASM_SYM("subdivideOrderMin") "]\n"
         "        mov eax, dword ptr ss:[eax+ebp+0x8]\n"
         "        mov ebx, dword ptr ss:[ebx+ebp+0x8]\n"
         "        fmul dword ptr [eax+0xc]\n"
-        "        fstp dword ptr [subdivideScalar]\n"
-        "        mov eax, dword ptr [subdivideScalar]\n"
+        "        fstp dword ptr [" C2_ASM_SYM("subdivideScalar") "]\n"
+        "        mov eax, dword ptr [" C2_ASM_SYM("subdivideScalar") "]\n"
         "        mov ebx, dword ptr [ebx+0xc]\n"
         "        and eax, 0x7fffffff\n"
         "        and ebx, 0x7fffffff\n"
