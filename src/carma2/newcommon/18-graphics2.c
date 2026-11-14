@@ -424,22 +424,24 @@ void C2_HOOK_FASTCALL KillSplashScreen(void) {
 
 // SplashScreenWith
 
+// PARTIAL 7.52%: residual register allocation + stack slot (frame orig 8, ours 16; VC5 emits one fixed allocation for every C spelling tried). Open regions 0x47ba80-0x47bb17, 0x47bb52-0x47bbf9. See state/findings/DRPixelmapRectangleMaskedCopy.md
 // FUNCTION: CARMA2_HW 0x0047ba80
 void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, const br_pixelmap* pSource, br_int_16 pSource_x, br_int_16 pSource_y, br_int_16 pWidth, br_int_16 pHeight) {
     int y;
     int x;
+    int overflow;
     int dest_row_wrap;
     int source_row_wrap;
     tU16 the_byte;
     tU16* source_ptr;
     tU16* dest_ptr;
-    int dest_x;
-    int dest_y;
+    br_int_16 dest_x;
+    br_int_16 dest_y;
 
-    source_ptr = (tU16*)pSource->pixels + pSource->row_bytes * pSource_y / sizeof(tU16) + pSource_x;
+    source_ptr = (tU16*)pSource->pixels + pSource_y * pSource->row_bytes / sizeof(tU16) + pSource_x;
     dest_x = pDest_x;
     dest_y = pDest_y;
-    dest_ptr = (tU16*)pDest->pixels + dest_y * pDest->row_bytes / sizeof(tU16) + pDest->base_x / sizeof(tU16) + dest_x;
+    dest_ptr = (tU16*)pDest->pixels + pDest->base_x / sizeof(tU16) + dest_x + dest_y * pDest->row_bytes / sizeof(tU16);
     source_row_wrap = pSource->row_bytes / sizeof(tU16) - pWidth;
     dest_row_wrap = pDest->row_bytes / sizeof(tU16) - pWidth;
 
@@ -448,12 +450,12 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_1
         if (pHeight <= 0) {
             return;
         }
-        source_ptr -= dest_y * pSource->row_bytes / sizeof(tU16);
-        dest_ptr -= dest_y * pDest->row_bytes / sizeof(tU16);
         dest_y = 0;
+        source_ptr -= pDest_y * pSource->row_bytes / sizeof(tU16);
+        dest_ptr -= pDest_y * pDest->row_bytes / sizeof(tU16);
     }
     if (dest_y < pDest->height) {
-        if (pDest->height < dest_y + pHeight) {
+        if (pHeight + dest_y > pDest->height) {
             pHeight = pDest->height - dest_y;
         }
         if (dest_x < 0) {
@@ -462,28 +464,34 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_1
                 return;
             }
             dest_x = 0;
-            source_ptr -= dest_x;
-            dest_ptr -= dest_x;
-            source_row_wrap -= dest_x;
-            dest_row_wrap -= dest_x;
+            source_ptr -= pDest_x;
+            dest_ptr -= pDest_x;
+            source_row_wrap -= pDest_x;
+            dest_row_wrap -= pDest_x;
         }
         if (dest_x < pDest->width) {
-            if (dest_x + pWidth > pDest->width) {
-                pWidth -= pWidth + dest_x - pDest->width;
-                source_row_wrap += pWidth + dest_x - pDest->width;
-                dest_row_wrap += pWidth + dest_x - pDest->width;
+            if (pWidth + dest_x > pDest->width) {
+                overflow = pWidth + dest_x - pDest->width;
+                pWidth -= overflow;
+                source_row_wrap += overflow;
+                dest_row_wrap += overflow;
             }
-            for (y = 0; y < pHeight; y++) {
-                for (x = 0; x < pWidth; x++) {
-                    the_byte = *source_ptr;
-                    if (the_byte != 0) {
-                        *dest_ptr = the_byte;
+            if (pHeight > 0) {
+                y = pHeight;
+                do {
+                    if (pWidth > 0) {
+                        x = pWidth;
+                        do {
+                            the_byte = *source_ptr++;
+                            if (the_byte != 0) {
+                                *dest_ptr = the_byte;
+                            }
+                            dest_ptr++;
+                        } while (--x);
                     }
-                    source_ptr++;
-                    dest_ptr++;
-                }
-                source_ptr += source_row_wrap;
-                dest_ptr += dest_row_wrap;
+                    dest_ptr += dest_row_wrap;
+                    source_ptr += source_row_wrap;
+                } while (--y);
             }
         }
     }
