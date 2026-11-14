@@ -1,3 +1,7 @@
+/* The crush scale constants live only in 13-crush1.c; their shared-header externs
+ * shift MSVC 5 register allocation here (WorkerPedDismember 0x4ca900). */
+#define REC2_NO_CRUSH_SCALE_GLOBALS
+
 #include "22-replay.h"
 
 #include <stdlib.h>
