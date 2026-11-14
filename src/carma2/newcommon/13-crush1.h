@@ -507,7 +507,7 @@ extern void C2_HOOK_FASTCALL ReceivedFullDetachBit(tU8* pContents);
 
 // SemiDetachedBitFromID
 
-// ReceivedReAttachBit
+extern void C2_HOOK_FASTCALL ReceivedReAttachBit(tU8* pContents);
 
 // ReceivedReAttachAllBits
 

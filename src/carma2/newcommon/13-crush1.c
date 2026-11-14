@@ -4728,8 +4728,6 @@ void C2_HOOK_FASTCALL ReceivedCrush(tU8* pContents) {
 
 // SemiDetachedBitFromID
 
-// ReceivedReAttachBit
-
 // ReceivedReAttachAllBits
 
 // DoQueuedNetDetaching
@@ -9520,4 +9518,68 @@ void C2_HOOK_FASTCALL ReceivedSemiDetachBit(tU8* pContents)
     count = gCount_net_crush_semi_detach_bit_list;
     gCount_net_crush_semi_detach_bit_list = count + 1;
     *(br_scalar*)&gNet_crush_semi_detach_bit_list[count].field_0x8[0x40] = scale;
+}
+
+static __inline tCar_spec* AttachedBitFromID(tCar_crush_spec* pCar_crush, tU8 pId) {
+    int i;
+
+    if (pCar_crush != NULL) {
+        for (i = 0; i < pCar_crush->field_0x2b0; i++) {
+            if (*(tU8*)((char*)pCar_crush->field_0x2b4[i].field_0x8 + 0x190) == pId) {
+                return (tCar_spec*)pCar_crush->field_0x2b4[i].field_0x0;
+            }
+        }
+    }
+    return NULL;
+}
+
+static __inline tCar_spec* SemiDetachedBitFromID(tCar_crush_spec* pCar_crush, tU8 pId) {
+    int i;
+
+    if (pCar_crush != NULL) {
+        for (i = 0; i < pCar_crush->field_0x270; i++) {
+            if (*(tU8*)((char*)pCar_crush->field_0x274[i].field_0x8 + 0x190) == pId) {
+                return (tCar_spec*)pCar_crush->field_0x274[i].field_0x0;
+            }
+        }
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x0043cd60
+void C2_HOOK_FASTCALL ReceivedReAttachBit(tU8* pContents) {
+    extern int gCount_net_crush_reattach_bit_list;
+    tCar_spec* car;
+    tCar_crush_spec* crush;
+    tCar_spec* bit;
+    int count;
+    int i;
+    int n;
+
+    if (gCount_net_crush_reattach_bit_list == 8) {
+        return;
+    }
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car == NULL) {
+        return;
+    }
+    crush = car->car_crush_spec;
+    bit = AttachedBitFromID(crush, pContents[8]);
+    if (bit == NULL) {
+        bit = SemiDetachedBitFromID(crush, pContents[8]);
+        if (bit == NULL) {
+            return;
+        }
+    }
+    count = gCount_net_crush_reattach_bit_list;
+    for (i = 0; i < count; i++) {
+        if (gNet_crush_reattach_bit_list[i].actor == bit) {
+            return;
+        }
+    }
+    n = gCount_net_crush_reattach_bit_list;
+    gNet_crush_reattach_bit_list[n].car = car;
+    gNet_crush_reattach_bit_list[n].actor = bit;
+    gNet_crush_reattach_bit_list[n].field_0x8 = *(tU32*)(pContents + 0xc);
+    gCount_net_crush_reattach_bit_list = n + 1;
 }
