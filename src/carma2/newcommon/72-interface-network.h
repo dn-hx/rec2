@@ -7,6 +7,9 @@ extern tFrontend_spec gFrontend_NETWORK;
 
 
 extern int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL NetworkStartJoin(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL NetworkStartHost(tFrontend_spec* pFrontend);
 extern void C2_HOOK_FASTCALL InitNetStorageSpace(void);
 extern int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend);
