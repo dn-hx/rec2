@@ -1003,6 +1003,7 @@ LAB_00441239:
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// PARTIAL 95.35%: PercentageCarHealth 0x00441350 [regalloc: the 4-term int sum is scheduled D,C,A,B instead of A,B,C,D; body identical]
 // FUNCTION: CARMA2_HW 0x00441350
 int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
     int engine;

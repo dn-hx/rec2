@@ -1521,6 +1521,10 @@ void C2_HOOK_FASTCALL Win32InitInputDevice(void) {
     gJoystick_deadzone = 8000;
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // FUNCTION: CARMA2_HW 0x0051cef0
 void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark) {
     BYTE diKeys[256];
@@ -1613,6 +1617,10 @@ void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark) {
 zero_keys:
     *pKeys = 0;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0051d1d0
 void C2_HOOK_FASTCALL PDReadJoySticks(void) {

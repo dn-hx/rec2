@@ -1709,6 +1709,9 @@ int C2_HOOK_FASTCALL CheckCar(tPipe_chunk* pChunk_ptr, int pChunk_count, tU32 pT
 }
 
 #ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
+#ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
 // DoSmudge

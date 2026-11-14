@@ -1264,7 +1264,8 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 70.59%: SortNetHeadAscending 0x0049a330 [regalloc: args not hoisted at entry, cause outside TU]
+// 100% at HEAD+f47 while 04-netgame.c's TU symbol count sits one above HEAD (53-controls.h extern);
+// the twin SortNetHeadDescending takes the other regalloc variant, so the two swap if that count moves.
 // FUNCTION: CARMA2_HW 0x0049a330
 int C2_HOOK_CDECL SortNetHeadAscending(const void* pFirst, const void* pSecond) {
     const tNet_score_entry* first;

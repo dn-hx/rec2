@@ -579,6 +579,11 @@ int gINT_00596308 = -1;
 // GLOBAL: CARMA2_HW 0x0079d8a0
 tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
 
+/* Declared here instead of in 53-controls.h: one more declaration visible in every TU that
+   includes that header flips SortNetHeadDescending 0x49a3a0 and PedApplyDismember 0x4ca900
+   away from 100% (measured 2026-11-14). The original loop bound names this symbol. */
+extern br_token_value gAccent_poly_prims[3];
+
 // FUNCTION: CARMA2_HW 0x0045b790
 void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer) {
     extern const char* gJoystick_headup_texts[];
@@ -596,7 +601,7 @@ void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer
             StoreTextHeadup(pBuffer, mem, 0);
         }
         entry += 2;
-    } while ((int)entry < (int)(gJoystick_headup_texts + 42));
+    } while ((int)entry < (int)gAccent_poly_prims);
 }
 // FUNCTION: CARMA2_HW 0x00492620
 // FUNCTION: CARMA2_SW 0x0048f840

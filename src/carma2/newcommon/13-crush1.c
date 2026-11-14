@@ -3879,6 +3879,7 @@ void C2_HOOK_FASTCALL SplitModel(br_model* pSource_model, br_model** pModels, br
 tU16 gNext_crush_actor_id = 10000;
 
 // PARTIAL 47.48%: 0x00430150 - clamp chain, copy block and store order match; residual x87 scheduling and 0xc vs 0x20 frame (keep)
+// GLOBAL: CARMA2_HW 0x00589a54
 const br_scalar gFLOAT_00589a54 = 1.0f;
 // GLOBAL: CARMA2_HW 0x00589a98
 const br_scalar gFLOAT_00589a98 = 0.0001f;
@@ -4041,7 +4042,6 @@ void C2_HOOK_FASTCALL SplitCollisionShape(tCollision_shape_polyhedron* pSource, 
 #ifdef REC2_MATCHING
 #pragma inline_depth()
 #endif
-// GLOBAL: CARMA2_HW 0x00589a54
 // PARTIAL 31.37%: 0x00430600 - value flow/store order match; frame is 0xc/2 pushes vs original 0x18/4 pushes, x87 spills differ (keep)
 // FUNCTION: CARMA2_HW 0x00430600
 void C2_HOOK_FASTCALL CreateSplitPoints(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance) {

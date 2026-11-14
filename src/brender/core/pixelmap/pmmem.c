@@ -800,6 +800,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_line(br_device_pixelmap* self, 
     return 0;
 }
 
+// PARTIAL 96.10%: _M_br_device_pixelmap_mem_copyBits 0x0053be40 [BLOCKED-BY-PADDING: one extra ebp reload + add order in the stride arithmetic; the REC2_PMMEM_C symbol-count trick above (pmmem.c:5-9) is tuned to the old function order]
 // FUNCTION: CARMA2_HW 0x0053be40
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyBits(br_device_pixelmap* self, br_point* point, br_uint_8* src, br_uint_16 s_stride, br_rectangle* bit_rect, br_uint_32 colour) {
     int bytes;

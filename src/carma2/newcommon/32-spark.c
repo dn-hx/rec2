@@ -2639,9 +2639,12 @@ void C2_HOOK_FASTCALL InitFlame(void) {
     BrModelAdd(gLollipop_model);
 }
 
+// GLOBAL: CARMA2_HW 0x006a8758
 br_model* gSplash_model;
 
+// GLOBAL: CARMA2_HW 0x006a9130
 br_material* gSplash_material[20];
+
 // FUNCTION: CARMA2_HW 0x004fc680
 void C2_HOOK_FASTCALL DisposeSplash(void) {
     int i;
@@ -3266,9 +3269,6 @@ void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF) {
 
 // GLOBAL: CARMA2_HW 0x006aa570
 int gSplash_flags;
-
-// GLOBAL: CARMA2_HW 0x006a8758
-// GLOBAL: CARMA2_HW 0x006a9130
 
 // GLOBAL: CARMA2_HW 0x006aa5a4
 int gNum_splash_types;

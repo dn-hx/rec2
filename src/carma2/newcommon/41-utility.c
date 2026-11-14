@@ -1380,6 +1380,7 @@ void C2_HOOK_FASTCALL DRScaleModel(br_model* pModel, float pScale) {
     }
 }
 
+// PARTIAL 93.33%: DistanceFromFaceND 0x005162a0 [x87-schedule: original has an extra fxch st(2) between the two fmulp; body identical, TU position/context changed today]
 // defined out of address order: MSVC's x87 codegen for this dot product depends on the TU position
 // FUNCTION: CARMA2_HW 0x005162a0
 float C2_HOOK_FASTCALL DistanceFromFaceND(const br_vector3* pP, const br_vector3* pN, br_scalar pF) {

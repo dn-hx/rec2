@@ -340,6 +340,7 @@ static void symbol_pad_2(void);
    OpTriangleSubdivide.  Kept static so the inliner always expands it. */
 static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges);
 
+// PARTIAL 93.18%: triangleSubdivide 0x00545de0 [BLOCKED-BY-PADDING: v0/v1/v2 take the registers of v2/v1/v0; only the symbol-count padding above can fix it, which is not allowed]
 // FUNCTION: CARMA2_HW 0x00545de0
 void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
     br_uint_32 combined_codes;

@@ -25,12 +25,17 @@
 #include "32-spark.h"
 #include "34-finteray.h"
 #include "43-pratcam.h"
-#include "49-physics.h"
 #include "54-runtime.h"
 #include "57-drone.h"
 #include "51-smash.h"
 
 extern int gBOOL_00744804;
+/* Declared here instead of including 49-physics.h: pulling that header into this TU flips
+   0x40b770, 0x4091e0, 0x4d1c60 and 0x4cd880 away from 100% (measured 2026-11-14). */
+extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
+extern void C2_HOOK_FASTCALL FreeFormThing(void* pData);
+extern void C2_HOOK_FASTCALL FreePhysicsJoint(tPhysics_joint* pJoint);
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
 extern float gFloat_0058aec0;
 extern double gPed_face_cache_margin;
 extern double gPed_face_normal_threshold;
@@ -3969,6 +3974,9 @@ FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName) {
     PathCat(path, path, pName);
     return DRfopen(path, "rb");
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x004cbbb0
 FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name) {
     tPath_name path;
@@ -3978,6 +3986,10 @@ FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name) {
     PathCat(path, path, pFile_name);
     return DRfopen(path, "rb");
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004cbc10
 void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName) {

@@ -443,6 +443,7 @@ void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// GLOBAL: CARMA2_HW 0x0068d8c0
 br_actor* gLit_op_stat_actor;
 
 // FUNCTION: CARMA2_HW 0x00494f40
@@ -1501,7 +1502,6 @@ void C2_HOOK_FASTCALL ReceivedViewCar(int* pA, int* pB) {
 }
 
 
-// GLOBAL: CARMA2_HW 0x0068d8c0
 // GLOBAL: CARMA2_HW 0x0068d900
 tU32 gOppo_stat_flash_last_1;
 

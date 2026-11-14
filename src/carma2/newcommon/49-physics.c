@@ -4233,6 +4233,7 @@ void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* 
 
 // FillInTrialWorkspace
 
+// PARTIAL 93.75%: FlagsAreGo 0x004ba4f0 [regalloc: the first AND's operands land in eax/esi the other way round; body and short-circuit layout identical]
 // FUNCTION: CARMA2_HW 0x004ba4f0
 // FUNCTION: CARMA2_SW 0x004b6c10
 int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_object* pCollision_2) {

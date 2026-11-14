@@ -780,6 +780,7 @@ void C2_HOOK_STDCALL PrepareFaceNormals(br_model* model) {
     }
 }
 
+// PARTIAL 96.92%: Smoothing 0x00520a90 [regalloc: *inner/*outer land in ebx/ebp the other way round; body identical]
 // FUNCTION: CARMA2_HW 0x00520a90
 void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
     prep_vertex** outer;
