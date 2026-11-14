@@ -329,18 +329,21 @@ void C2_HOOK_CDECL OpTriangleSubdivide(brp_block* block, brp_vertex* v0, brp_ver
 /* MSVC 5 numbers symbols per translation unit and that numbering decides the register
    allocation of every later function in the file.  This TU has three symbols fewer
    before triangleSubdivide than the retail build had, which puts its v0/v1/v2
-   parameters in ebx/ebp/edi instead of ebx/edi/ebp.  The declarations below restore
-   the original count at each point (see state/cheatsheet.md). */
+   parameters in ebp/edi/ebx instead of ebx/edi/ebp.  The declarations below restore
+   the original count at each point (see state/cheatsheet.md).
+   Since the 2026-11-14 address sort pulled symbol_pad_3 and OpTriangleSubdivide above
+   triangleSubdivide, symbol_pad_3 now counts for it as well: three pads before it
+   measured 100, the four of pads 0-3 measured 93.18 and a fifth 91.67, so pads 0, 1
+   and 3 are what stays (triangleSubdivideOnScreen, OpTriangleSubdivide,
+   OpTriangleSubdivideOnScreen and subdivideCheck all still 100). */
 static void symbol_pad_0(void);
 static void symbol_pad_1(void);
-static void symbol_pad_2(void);
 #endif
 
 /* No standalone body in the original: MSVC 5 inlined it into triangleSubdivide and
    OpTriangleSubdivide.  Kept static so the inliner always expands it. */
 static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges);
 
-// PARTIAL 93.18%: triangleSubdivide 0x00545de0 [BLOCKED-BY-PADDING: v0/v1/v2 take the registers of v2/v1/v0; only the symbol-count padding above can fix it, which is not allowed]
 // FUNCTION: CARMA2_HW 0x00545de0
 void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
     br_uint_32 combined_codes;

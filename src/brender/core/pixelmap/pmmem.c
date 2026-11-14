@@ -5,6 +5,10 @@
 // Keep pmmemops.h's private FUN_* prototypes out of this translation unit: they
 // shift MSVC 5's symbol numbering and break the register allocation of the copy
 // and convert functions below. See the comment in pmmemops.h.
+// Re-measured 2026-11-14 after the address sort moved copyBits below the other copy
+// functions: copyBits 0x53be40 is 96.10 both with the guard and without it (and with
+// the body's add order swapped), so the moved position, not this count, is what it
+// reacts to; keeping the pre-sort setting.
 #define REC2_PMMEM_C
 #include "pmmemops.h"
 #include "pmsetup.h"
@@ -800,7 +804,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_line(br_device_pixelmap* self, 
     return 0;
 }
 
-// PARTIAL 96.10%: _M_br_device_pixelmap_mem_copyBits 0x0053be40 [BLOCKED-BY-PADDING: one extra ebp reload + add order in the stride arithmetic; the REC2_PMMEM_C symbol-count trick above (pmmem.c:5-9) is tuned to the old function order]
+// PARTIAL 96.10%: _M_br_device_pixelmap_mem_copyBits 0x0053be40 [BLOCKED-BY-ORDER: one extra ebp reload + add order in the stride arithmetic since the 2026-11-14 sort moved it below the other copy functions; the REC2_PMMEM_C symbol-count guard (pmmem.c:5-13) and the body's add order both measure the same 96.10]
 // FUNCTION: CARMA2_HW 0x0053be40
 br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyBits(br_device_pixelmap* self, br_point* point, br_uint_8* src, br_uint_16 s_stride, br_rectangle* bit_rect, br_uint_32 colour) {
     int bytes;
