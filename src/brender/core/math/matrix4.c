@@ -223,6 +223,12 @@ void C2_HOOK_CDECL BrMatrix4Adjoint(br_matrix4* A, const br_matrix4* B) {
     A(3, 3) = Determinant3(a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
+// PARTIAL 63.53%: x87 schedule (fld/fxch order) flipped by the 2026-11-14 sort, which moved this function
+// below BrMatrix4Determinant 0x5360f0 and BrMatrix4Adjoint 0x5362c0. Everything below is measured with the
+// period compiler (cl 11.00.7022, project flags): 0 or 2 extra TU symbols above it reproduce the old
+// (wrong) schedule, 1 extra symbol gives the original byte-for-byte, but it also reprices
+// BrMatrix4TApplyP 0x536b70 and BrMatrix4TApplyV 0x536c10 (both at 100) - no single count gives all three.
+// A new declaration that only names already-visible symbols does not move the count at all.
 // FUNCTION: CARMA2_HW 0x005367b0
 br_scalar C2_HOOK_STDCALL Determinant3(br_scalar a1, br_scalar a2, br_scalar a3, br_scalar b1, br_scalar b2, br_scalar b3, br_scalar c1, br_scalar c2, br_scalar c3) {
 
