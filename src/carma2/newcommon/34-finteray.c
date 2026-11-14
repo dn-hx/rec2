@@ -471,8 +471,6 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(br_vector3* pPoint, br_vecto
     }
 }
 
-extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
-extern void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 // FUNCTION: CARMA2_HW 0x0045d920
 void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b) {
@@ -1078,7 +1076,6 @@ void C2_HOOK_FASTCALL FillInBounds(tBounds* bnds) {
 }
 
 extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
-extern int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat);
 extern int gActorBoxPick_StopGroovidelics;
 
 // (BoundsTransformTest inlined, as in the original)
@@ -1842,8 +1839,6 @@ int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd
 // LinePolyCollWithSphere
 
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
-extern int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron_data* pPoly, br_vector3* pPoint, br_scalar pRadius, br_scalar* pT);
-extern int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 // FUNCTION: CARMA2_HW 0x00461740
 int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal) {
@@ -1880,8 +1875,6 @@ int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, co
     }
 }
 
-extern int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
-extern int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 // FUNCTION: CARMA2_HW 0x00461850
 int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd, tPhysics_shape* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {

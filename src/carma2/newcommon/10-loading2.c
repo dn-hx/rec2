@@ -48,37 +48,21 @@ extern void C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 extern tCar_spec* gCurrent_car_spec;
 extern char gCurrent_load_name[256];
-extern char gCurrent_load_directory[256];
 extern tGraf_spec gGraf_specs[2];
 extern int gGraf_spec_index;
 extern tGraf_data* gCurrent_graf_data;
-extern void C2_HOOK_FASTCALL AdjustRenderScreenSize(void);
-extern void C2_HOOK_FASTCALL ReinitialiseRearviewCamera(void);
 extern void C2_HOOK_FASTCALL LoadCarMaterials(tBrender_storage* pStorage, const char* pPath, tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL AutoFogificateMaterials(tRendererShadingType pShading_type);
-extern void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas);
-extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
-extern void C2_HOOK_FASTCALL AttachCrushDataToActorModels(br_actor* pActor, tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL LinkCarCrushDatas(br_actor* pActor, tCar_crush_buffer* pBuffer);
-extern void C2_HOOK_FASTCALL GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location);
-extern int C2_HOOK_FASTCALL LoadCrushDataFile(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec);
-extern void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec);
-extern intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData);
 extern const char* gWheel_actor_names[6];
 extern const char* gPivot_actor_names[6];
-extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
 extern const char* gDamage_names[12];
 extern tU8 gCrush_data_entry_counter;
-extern void C2_HOOK_FASTCALL ReadCrushData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage);
 extern const char* gSoftness_names[6];
 extern const char* gCrush_type_names[3];
 extern const char* gEase_of_detachment_names[5];
 extern const char* gDetach_type_names[4];
 extern const char* gCar_crush_shape_names[2];
 extern br_scalar gNormal_force_to_detach;
-extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
-extern void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage);
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 FILE* gTempFile;

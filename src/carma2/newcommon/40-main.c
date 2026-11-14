@@ -86,7 +86,6 @@ void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
 extern void C2_HOOK_FASTCALL CheckMemory(void);
 extern void C2_HOOK_FASTCALL CyclePollKeys(void);
 extern void C2_HOOK_FASTCALL PollKeys(void);
-extern int gSound_available;
 
 extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
 

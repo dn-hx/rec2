@@ -23,8 +23,6 @@
 #include <ctype.h>
 #include <float.h>
 
-extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
-extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
 
 
 // GLOBAL: CARMA2_HW 0x006abef8
@@ -73,9 +71,6 @@ void C2_HOOK_FASTCALL SelectNextJoystick(void) {
 
 // FUNCTION: CARMA2_HW 0x00511270
 void C2_HOOK_FASTCALL CycleJoystick(void) {
-    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
-    extern void C2_HOOK_FASTCALL SelectNextJoystick(void);
-    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
 
     SaveJoystickPreferences();
     SelectNextJoystick();
@@ -333,7 +328,6 @@ void C2_HOOK_FASTCALL SepDirAndFilename(const char* path, char* dirPath, char* s
 
 // FUNCTION: CARMA2_HW 0x00513a30
 int C2_HOOK_FASTCALL LoadTextureTryAllLocations(char* pName, br_pixelmap** pMaps, int pCapacity) {
-    extern tGraf_spec gGraf_specs[2];
     extern char gCurrent_load_name[256];
     tPath_name path1;
     tPath_name path2;

@@ -22,7 +22,6 @@
 
 #define SHADOW_D_IGNORE_FLAG 10000.f
 
-br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD);
 
 #include <string.h>
 
@@ -323,10 +322,6 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
 extern int gHud_tinted1;
 extern int gHud_tinted2;
 extern int gHud_tinted4;
-extern int gMap_render_x_i;
-extern int gMap_render_y_i;
-extern int gMap_render_width_i;
-extern int gMap_render_height_i;
 extern void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int width, int height);
 
 // FUNCTION: CARMA2_HW 0x004e4b40
@@ -448,17 +443,10 @@ extern tU32 gPalette_fade_time;
 extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
 extern tGraf_data* gCurrent_graf_data;
-extern void C2_HOOK_FASTCALL DoHeadups(tU32 pThe_time);
-extern void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time);
 extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
-extern void C2_HOOK_FASTCALL DoTestHeadup(void);
 extern void C2_HOOK_FASTCALL DisplayUserMessage(void);
 extern int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period);
 extern void C2_HOOK_FASTCALL SynchronizeActionReplay(void);
-extern void C2_HOOK_FASTCALL MapStuffBeforeRender(void);
-extern void C2_HOOK_FASTCALL DoMapOverlays(br_pixelmap* pScreen);
-extern void C2_HOOK_FASTCALL MapOverlay(void);
-extern br_vector2 gOrigin_headup_map;
 extern int gBack_original_origin_x;
 extern int gBack_original_origin_y;
 extern int gBack_original_base_x;
@@ -698,22 +686,15 @@ extern int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int heig
 extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
 extern void C2_HOOK_FASTCALL ProcessTintedPoly(int pTintedIndex);
 extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
-extern void C2_HOOK_FASTCALL SetSkyColour(br_colour c);
 extern int C2_HOOK_FASTCALL IsCarCloaked(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
 extern void C2_HOOK_FASTCALL RenderLimbs(void);
-extern br_pixelmap* gRender_palette;
 extern int gIt_or_fox;
 extern tSpecial_volume* gLast_camera_special_volume;
 extern tNet_game_player_info gNet_players[12];
 extern int gNumber_of_net_players;
-extern tDepth_effect_type gSwap_depth_effect_type;
-extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
-extern void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world);
-extern void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
 extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
-extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 // FUNCTION: CARMA2_HW 0x004e5680
 void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {

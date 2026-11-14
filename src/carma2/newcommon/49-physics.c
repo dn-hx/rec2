@@ -51,7 +51,6 @@ extern int gINT_00692dc8;
 
 typedef int C2_HOOK_FASTCALL tQuickHinge_moved_cbfn(tPhysics_object* pObject);
 
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 extern float gFLOAT_00692dd0;
 extern float gFLOAT_00692dd4;
 
@@ -636,7 +635,6 @@ int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, i
 
 // GetSphereToFacePoints
 
-void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b);
 
 // FUNCTION: CARMA2_HW 0x00423ce0
 int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace) {
@@ -1026,7 +1024,6 @@ int C2_HOOK_FASTCALL FUN_00425630(br_vector3* pCross1, br_vector3* pCross2, br_v
     return 0;
 }
 
-extern int C2_HOOK_FASTCALL GetNonSphereNonSphereForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 
 /* based on the REA pseudocode for 0x00425ca0 and the original disassembly */
 // FUNCTION: CARMA2_HW 0x00425ca0
@@ -2724,22 +2721,7 @@ void C2_HOOK_FASTCALL InitPhysics(void) {
 
 // GetCollObjFromID
 
-extern int C2_HOOK_FASTCALL CountJointForces(tPhysics_object* pObject, tPhysics_object* pObject2);
-extern void* C2_HOOK_FASTCALL GetPhysicsScratchPointer(int pSize);
-extern int C2_HOOK_FASTCALL GetJointForces(tPhysics_object* pObject, tPhysics_joint_force* pForce);
-extern void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL SetUpTorqueHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL SetUpForce(br_scalar* pOut1, br_scalar* pOut2, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL MakeMatrix(br_scalar* pMatrix, int pCount, tPhysics_joint_force** pRecords, int pCount2);
-extern void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
-extern void C2_HOOK_FASTCALL RQMatrixSolveWithNegatives(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount);
-extern br_scalar C2_HOOK_FASTCALL HierarchyCalcEnergy(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse);
-extern void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time);
-extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL TranslateAndRotatePartialObject(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time);
-extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 
 // GLOBAL: CARMA2_HW 0x0058a768
 br_scalar gFLOAT_0058a768 = 0.0f;
@@ -3888,9 +3870,7 @@ int C2_HOOK_FASTCALL CountJointForces(tPhysics_object* pObject, tPhysics_object*
 
 // MatricesAreIdentical
 
-extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
-extern void C2_HOOK_FASTCALL GetWorldBoundingBoxForObject(tPhysics_object* pObject, br_bounds3* pBox);
 
 extern br_scalar gFLOAT_0058a768;
 
@@ -4146,7 +4126,6 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 extern double gDOUBLE_0058a798;
 
@@ -5084,7 +5063,6 @@ void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
 // dropped EarnCredits, ReadUntilCharacter, InitShadow, ShapeRayCast, LoadMenuSettings and others).
 // The previous gEmpty_string_00676920 definition was removed for that reason.
 
-extern void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -5554,9 +5532,6 @@ extern tPhysics_object** gReduced_object_list;
 extern int gINT_006940ac;
 // 0x4228b0 (stubbed in 13-crush1.c), 0x425ca0, 0x4bddd0 and 0x4be0e0 are still unimplemented.
 extern int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount);
-extern int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount);
-extern void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject, tPhysics_object* pPartner);
-extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList);
 
 typedef void (C2_HOOK_FASTCALL *tActivatePassive_cbfn)(tPhysics_object* pObject, tPhysics_object* pActivator);
 
@@ -8937,7 +8912,6 @@ void* C2_HOOK_FASTCALL GetPhysicsScratchPointer(int pSize) {
 #endif
 // GetPhysicsScratchPointer
 
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 // FUNCTION: CARMA2_HW 0x004c5cb0
 void C2_HOOK_FASTCALL Physics_AllocBuffer(int pSize) {
 

@@ -410,8 +410,6 @@ int gDancing_peds;
 // SetCharacterPositionAR
 
 /* local declarations: the callees are defined further down in this file */
-extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
-extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
 
 
 // FUNCTION: CARMA2_HW 0x00403eb0
@@ -555,7 +553,6 @@ extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashabl
 extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
 extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
 extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
-extern void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -749,7 +746,6 @@ void C2_HOOK_FASTCALL DisposeAllLoadedRemaps(void) {
     }
 }
 
-extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
 
 // FUNCTION: CARMA2_HW 0x00404740
 tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
@@ -894,7 +890,6 @@ void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharact
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
 
 // FUNCTION: CARMA2_HW 0x00406a40
 tPed_form* C2_HOOK_FASTCALL GetPedForm(const char* pName) {
@@ -985,7 +980,6 @@ void C2_HOOK_FASTCALL DisposeAllPedPersonalities(void) {
 
 // DisposeAllLoadedPersonalities
 
-extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
 
 // FUNCTION: CARMA2_HW 0x00407930
 tPed_personality* C2_HOOK_FASTCALL FindOrOpenPersonality(const char* pName) {
@@ -1201,7 +1195,6 @@ void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 p
 }
 // SetCharacterBonePositions
 
-extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -1287,7 +1280,6 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
     return MakeCharacterRenderable2(pCharacter, i);
 }
 
-extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
 
 // GLOBAL: CARMA2_HW 0x00589358
 const br_scalar gFloat_00589358 = 0.f;
@@ -1351,7 +1343,6 @@ int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pChara
 // RESIDUAL 97.44% (reccmp: effective 100): one symmetric SIB encoding differs at 0x4085c5 ([eax+esi] vs [esi+eax]); operand swap in the source flips the return-path load too, so it is the allocator's choice
 // FUNCTION: CARMA2_HW 0x00408580
 tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
-    extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
     tPed_form* form;
     int iVar1;
     int iVar2;
@@ -1370,7 +1361,6 @@ tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* 
 
 // FUNCTION: CARMA2_HW 0x004085f0
 int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr) {
-    extern void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
     BrMatrix34Copy(&pObject->transform_matrix, &pActor->t.t.mat);
     pObject->actor = pActor;
@@ -1548,8 +1538,6 @@ void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bou
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
 // FUNCTION: CARMA2_HW 0x00408c30
 int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pCharacter, int pArg2, undefined4 pArg3, int pArg4) {
@@ -1836,7 +1824,6 @@ static void C2_HOOK_FASTCALL RandomWander(tPedestrian* pPed, tU32 pTime) {
 /* SmoothTurnPedestrian body: `field_0x6c` is the turn start time, `field_0x70` the end time, and
    `field_0x60`/`field_0x54` the source/target XZ directions (block at 0x4d45xx). */
 static void C2_HOOK_FASTCALL SmoothTurnPedestrian(tPedestrian* pPed, tU32 pTime) {
-    extern void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp);
     tPed_cache_006944c0* ped_cache;
     float t;
     float invt;
@@ -1986,7 +1973,6 @@ void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, br_vector3* pV) {
 
 // TurnPhysicsOn
 
-extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
 
 // Inline copy of PedGetRootObjectInline for the MakeCharacterPhysicworthy call site: the original
 // inlines the root-object search there, so keep a local static copy above the caller.
@@ -2111,7 +2097,6 @@ int C2_HOOK_FASTCALL BonerActiveHalted2(tPed_character_instance* pCharacter, und
 // edi, ours swaps them, which also stops `obj = NULL` sinking after the boned loop (cmp [ebp+0x20],0 vs mov+test)
 // FUNCTION: CARMA2_HW 0x00409570
 int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, undefined4 pArg3) {
-    extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
     tPhysics_object* child;
     tPhysics_object* obj;
     int result;
@@ -2219,7 +2204,6 @@ void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter)
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9);
 
 // PARTIAL 41.51%: regalloc/frame-size differences (register swap ebx/edx, locals layout)
 // FUNCTION: CARMA2_HW 0x004097b0
@@ -2336,7 +2320,6 @@ int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, 
    0x0069413c (gPed_reach_squared) are referenced at exactly one site in the binary, 0x4d479b /
    0x4d47b0, inside MungePedestrians. No `// FUNCTION:` annotation: there is no address to claim. */
 void C2_HOOK_FASTCALL CheckForAvoidingAction(tPedestrian* pPed, tU32 pTime) {
-    extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
     br_vector3* ped_pos;
     float dist_squared;
 
@@ -2411,14 +2394,11 @@ void C2_HOOK_FASTCALL CheckForAvoidingAction(tPedestrian* pPed, tU32 pTime) {
    the length/scale code (2.0f constant at 0x0058aaa4). There is no standalone copy anywhere
    in the binary (all 0x513650 call sites checked). No `// FUNCTION:` annotation. */
 void C2_HOOK_FASTCALL SetRandomOmega(tPhysics_object* pObject, float pMax) {
-    extern br_scalar C2_HOOK_STDCALL SRandomPosNeg(br_scalar pN);
 
     BrVector3Set(&pObject->omega, SRandomPosNeg(1.f), SRandomPosNeg(1.f), SRandomPosNeg(1.f));
     BrVector3Scale(&pObject->omega, &pObject->omega, pMax / BrVector3Length(&pObject->omega));
 }
 
-extern int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2);
-extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 // PARTIAL 42.01%: MungeCharacterAnimation 0x409ca0 - regalloc (original keeps 0 in ebx, pTime in ebp), frame 0x24 vs 0x28, tail x87 order
 // FUNCTION: CARMA2_HW 0x00409ca0
 void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
@@ -2546,7 +2526,6 @@ void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacte
 #pragma auto_inline(off)
 #endif
 extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow2(br_vector3* pCast_point);
-extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 
 // (GPL-3.0), reworked after the disassembly
 // PARTIAL 73.93%: personality slot at [esp+0x1c] vs [esp+0x20], ebx/edi swap at entry, and fdivr vs fdivp st(1),st in the six morph velocity divisions
@@ -2732,8 +2711,6 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int p
 /* based on upstream madebr/rec2 a373d899a src/carma2/common/pedestrn.c
    (moved here from 28-world3.c: new external symbols in that file re-roll
    SetCharacterDirectionAR 0x004d3360). */
-extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
-extern void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA);
 
 #define SCD_NORMALISE_D(v1, v2)                                  \
     do {                                                         \
@@ -3012,8 +2989,6 @@ void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar, br_ve
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL DisposePersonality(tPed_personality* pPersonality);
-extern void C2_HOOK_FASTCALL DisposeCharacterForm(tPed_form* pForm);
 // The frame walk keeps the byte offset in a char* local, so VC5 uses it as the base of the
 // original's [edi+eax+0x30] SIB (an int index puts the loaded frames pointer in the base slot).
 // Guard + do-while keeps the offset init after the guard and j++ before the offset increment.
@@ -3198,8 +3173,6 @@ int C2_HOOK_FASTCALL GetCharacterBoneIndexByName(tPed_character_instance* pChara
     return -1;
 }
 
-extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
 // FUNCTION: CARMA2_HW 0x0040b620
 int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2) {
@@ -3265,7 +3238,6 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
     return BonerActiveHalted2(pCharacter, 0);
 }
 
-extern tPed_face_cache_0x34* C2_HOOK_FASTCALL RecacheAndSetFace(tPedestrian* pPed, int* pArg2, int* pArg3, br_vector3* pArg4, int pArg5, tU32 pTime);
 
 // FUNCTION: CARMA2_HW 0x0040b770
 void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter, undefined4 pArg2) {
@@ -3304,11 +3276,9 @@ void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter
 }
 
 
-void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, br_vector3* pOmega);
 
 // FUNCTION: CARMA2_HW 0x0040b860
 int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega) {
-    extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
     tPed_form* form;
     tPed_form_boned_phys* boned_physicing;
     tPed_form_actor_set* actor_set;
@@ -4067,8 +4037,6 @@ int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor) {
 
 // StopPedNoise
 
-extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, int pArg4, int pArg5, int pArg6);
-extern void C2_HOOK_FASTCALL PipeSinglePedMove(tPedestrian* pPed, tS16 pArg2, tS16 pOriginal_move_id, tS16 pMove_id, float pArg5, float pArg6, int pArg7, int pArg8, br_vector3* pOriginal_pos, br_vector3* pPos, int pOriginal_action, int pAction, br_matrix34* pArg13);
 
 // SetPedMove: (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x004cbcd0
@@ -4691,9 +4659,6 @@ tU32 gLast_scare_time;
 tPed_cache_006944c0 gPed_cache_00694328;
 
 extern int gCount_changed_points;
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
-extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
-extern void C2_HOOK_FASTCALL PipeSingleVanishedDismembered(const tPedestrian* pPed, undefined4 pArg2, undefined4 pArg3);
 /* PedFallingForever: no standalone symbol in the original; the body is inlined into
    MungePedestrians 0x4d3740 at 0x4d5596-0x4d5602, guarded by `character->field_0x14 & 4` and
    `!(ped->flags & 0x80)`; the vanish block is MakePedVanish, then the drop distance is scored. */
@@ -4701,7 +4666,6 @@ extern void C2_HOOK_FASTCALL MakePedVanish(tPedestrian* pPed);
 extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern int gPipe_halted_ped_status;
-extern br_vector3 gZero_v__car;
 int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     if (pPed->flags & 0x80) {
         return 0;
@@ -4712,7 +4676,6 @@ int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     }
     return 1;
 }
-extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
 extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
 extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
@@ -4750,13 +4713,10 @@ void C2_HOOK_FASTCALL KillNapalmBolt(tNapalm_bolt* pBolt) {
 /* no standalone symbol in the original: inlined at the only call site (MungePedestrians);
    runtime-faithful body at the TU end */
 extern void C2_HOOK_FASTCALL InitProcessData(tPedestrian* pPed, tU32 pTime);
-extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam);
 /* not inlined: BastardIt must keep its call 0x004cce70 */
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
-extern void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSeed, float pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
@@ -5075,7 +5035,6 @@ void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollisi
 
 // DoGiblets
 
-extern float C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
 
 // DoSpurt
 
@@ -5111,8 +5070,6 @@ int C2_HOOK_FASTCALL DoPedAnnihilator(tCar_spec* pCar, br_scalar pRadius) {
 
 // FUNCTION: CARMA2_HW 0x004ce050
 int C2_HOOK_FASTCALL BastardIt(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pArg4, tPedestrian_distances* pDistances) {
-    extern void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor);
-    extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
     extern tS3_outlet* gCar_outlet;
     int i;
 
@@ -5239,10 +5196,8 @@ void C2_HOOK_FASTCALL RepulsePedestrian(tPedestrian* pPed, tCar_spec* pCar, floa
     SetPedFall(pPed, speed, 0x5b, 0x5b, NULL);
 }
 
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
 extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
-extern void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor);
 
 // GLOBAL: CARMA2_HW 0x0065e5b8
 const float gFlamed_ped_flame_scales[7] = {
@@ -5414,7 +5369,6 @@ static void C2_HOOK_FASTCALL StopSmoothTurning(tPedestrian* pPed) {
 /* SetPedXZDirection: the original has a standalone symbol at 0x004cc2c0, but a body at
    this slot flips DisposePersonality 0x4077f0, BonerPedMovedByPhysics 0x40b770 and
    FUN_00404290 0x404290, so the body lives at the TU end. */
-extern void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime);
 /* SetThisPedPhysicingStatic: no standalone symbol in the original; inlined into MungePedestrians
    0x4d3740 (two sites: the falling branch and the low-gravity branch). The original expands
    to `field_0x6c = 0` followed by SetCharacterPhysicsLevelAR(character, 5). */
@@ -5426,7 +5380,6 @@ static void C2_HOOK_FASTCALL SetThisPedPhysicingStatic(tPedestrian* pPed) {
 }
 /* RescanPedProximity: the original has a standalone symbol at 0x004cfab0 (0x004a01f0 is the
    fork's recompiled address); body at the TU end. */
-extern float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2);
 /* PedAnimCausesMovement: no standalone symbol in the original; it is inlined into
    MungePedestrians (0x004d4323). static so MSVC expands it at the call site.
    Placement is load-bearing: at this slot BonerPedMovedByPhysics 0x40b770 stays 100;
@@ -6204,7 +6157,6 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
 
 // FUNCTION: CARMA2_HW 0x004d1020
 int C2_HOOK_FASTCALL CBActiveHalted(undefined4* pArg1, undefined4* pArg2) {
-    extern int C2_HOOK_FASTCALL ActiveHalted(tPedestrian* pPed, undefined4* pArg2, int pArg3);
 
     return ActiveHalted((tPedestrian*)pArg1, pArg2, 0);
 }
@@ -6215,7 +6167,6 @@ int C2_HOOK_FASTCALL CBActiveHalted(undefined4* pArg1, undefined4* pArg2) {
 // PARTIAL: only the replay-mode and halted-ped-status early returns are implemented
 // FUNCTION: CARMA2_HW 0x004d1030
 int C2_HOOK_FASTCALL ActiveHalted(tPedestrian* pPed, undefined4* pArg2, int pArg3) {
-    extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
     tPed_character_instance* character = (tPed_character_instance*)pPed;
 
     if (gAction_replay_mode != 0) {
@@ -6700,7 +6651,6 @@ void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_objec
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL TumbleObjectWithV(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold);
 
 // FUNCTION: CARMA2_HW 0x004d2930
 void C2_HOOK_FASTCALL CBMovedByPhysics(tPed_character_instance* pCharacter, tPhysics_object* pPhysics, undefined4 pArg3) {
@@ -7236,7 +7186,6 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                         && ((gMutant_speed != 0.f && ped->character->field_0x1e == 0)
                                 || (gMutant_speed == .0f && ped->character->field_0x1e != 0))) {
                     float still_speed;
-                    extern void C2_HOOK_FASTCALL SetCharacterMoveAR(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, undefined4 pArg4, undefined4 pArg5, tU32 pTime);
 
                     if (gMutant_speed == 0.f) {
                         still_speed = 0.f;
@@ -7340,7 +7289,6 @@ void C2_HOOK_FASTCALL CheckPowerupMoveSubstitution(tPedestrian* pPed, tU32 pTime
 }
 /* Forwarder kept at the old stub slot (a real body here flips 0x4091e0/0x40b770); the real
    MungeCharacterAnimation (0x409ca0) is the definition at the end of the TU. */
-extern void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
 void C2_HOOK_FASTCALL MungeCharacterAnimationFwd(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
     MungeCharacterAnimation(pCharacter, pTime, pArg3);
 }
@@ -7631,7 +7579,6 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
     gPed_nearness = 1;
 }
 
-extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 // FUNCTION: CARMA2_HW 0x004d6820
@@ -7784,7 +7731,6 @@ void C2_HOOK_FASTCALL MakeEmBleed(tPedestrian* pPed, tU32 pTime) {
     /* MakeEmBleed, inlined in the original */
     {
         extern tU32 gLast_bleed_giblet_time;
-        extern void C2_HOOK_FASTCALL DoSpurt(br_matrix34* pTransform, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction);
         extern const br_vector3 gPed_bone_look_vecs[9];
 
         if (!(MUNGE_PED_COLLISION_OBJECT(pPed)->last_special_volume != NULL && MUNGE_PED_COLLISION_OBJECT(pPed)->last_special_volume->gravity_multiplier < 1.f)

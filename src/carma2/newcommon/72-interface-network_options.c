@@ -22,8 +22,6 @@ extern int C2_HOOK_FASTCALL WhichItemIsSelectedIn(tFrontend_spec* pFrontend, int
 extern int C2_HOOK_FASTCALL SaveOptions(void);
 extern int gNet_last_game_type;
 extern tNet_game_options gNet_settings[9];
-extern void C2_HOOK_FASTCALL LoadMenuSettings(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL FuckWithWidths(tFrontend_spec* pFrontend);
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
 extern void C2_HOOK_FASTCALL WaitForNoKeys(void);

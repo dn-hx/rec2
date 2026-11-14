@@ -121,10 +121,6 @@ const int gMini_map_glowing_line_animation_indices[5] = { 0, 1, 2, 1, 0 };
 // GLOBAL: CARMA2_HW 0x0068be20
 br_pixelmap* gCurrent_splash;
 
-extern void C2_HOOK_CDECL BrPixelmapLine(br_pixelmap* dst, br_int_32 x1, br_int_32 y1, br_int_32 x2, br_int_32 y2, br_uint_32 colour);
-extern void C2_HOOK_CDECL BrPixelmapRectangleFill(br_pixelmap* dst, br_int_32 x, br_int_32 y, br_int_32 w, br_int_32 h, br_uint_32 colour);
-extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
-extern br_pixelmap* gBack_screen;
 
 // FUNCTION: CARMA2_HW 0x0043dff0
 void C2_HOOK_FASTCALL InitTransientBitmaps(void) {
@@ -436,7 +432,6 @@ void C2_HOOK_FASTCALL KillSplashScreen(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
 // FUNCTION: CARMA2_HW 0x0047b990
 void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
@@ -1187,7 +1182,6 @@ void C2_HOOK_FASTCALL FadePaletteUp(void) {
     }
 }
 
-extern void C2_HOOK_FASTCALL FadePaletteUp(void);
 // FUNCTION: CARMA2_HW 0x004b55f0
 // FUNCTION: CARMA2_SW 0x004b1d20
 void C2_HOOK_FASTCALL EnsurePaletteUp(void) {

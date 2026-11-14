@@ -335,8 +335,6 @@ void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
     extern tU32 gOppo_stat_flash_last_2;
     extern int gOppo_stat_flash_state_1;
     extern int gOppo_stat_flash_state_2;
-    extern void C2_HOOK_FASTCALL AllocateOppoBarActor(int pX, int pY);
-    extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
     extern void C2_HOOK_FASTCALL RenderThisHeadup(br_actor* pActor);
     extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
     char s[256];
@@ -513,7 +511,6 @@ static br_uint_32 C2_HOOK_FASTCALL CarArrowColour(tCar_spec* pCar, tVehicle_type
     return 0;
 }
 
-extern void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans);
 
 // GLOBAL: CARMA2_HW 0x0068c858
 int gINT_0068c858;
@@ -653,7 +650,6 @@ const int gArrows[2][4][60] = {
 };
 
 // (reference only)
-extern tU16 C2_HOOK_FASTCALL Colour24BitTo16Bit(br_colour pColour);
 
 // FUNCTION: CARMA2_HW 0x00495a00
 // STUB: CARMA2_SW 0x00492400
@@ -912,7 +908,6 @@ void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pT
     int arrow_index;
     int size;
     extern float gFLOAT_0074ab90;
-    extern int gIt_or_fox;
     extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
 
     time_diff = pTime - gMap_time;

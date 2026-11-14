@@ -803,10 +803,6 @@ void C2_HOOK_FASTCALL AREnableAdvance(void) {
 
 extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
 extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
-extern tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession);
-extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
-extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
-extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time);
 
 // FUNCTION: CARMA2_HW 0x00403260
 void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
@@ -1438,12 +1434,8 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
     gLast_replay_frame_time = PDGetTotalTime();
 }
 
-extern void C2_HOOK_FASTCALL InitializeActionReplay(void);
 extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
-extern void C2_HOOK_FASTCALL FreeActionReplayPix(void);
 extern br_pixelmap* gReplay_pixelmaps[11];
-extern br_pixelmap* C2_HOOK_CDECL BrMapRemove(br_pixelmap* pixelmap);
-extern void C2_HOOK_CDECL BrPixelmapFree(br_pixelmap* src);
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern int gUNK_006a23b4;
 
@@ -1518,12 +1510,7 @@ void C2_HOOK_CDECL ResetCars(void) {
     }
 }
 
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL ARAddDataToSession(int pType, uintptr_t pOwner, void* pData, int pSize);
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
 extern int C2_HOOK_FASTCALL PhysicsObjectRecurseChildren(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
-extern int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004c6640
@@ -1831,7 +1818,6 @@ void C2_HOOK_FASTCALL AddShrapnelToPipingSession(int pShrapnel_index, const br_v
 #endif
 // FUNCTION: CARMA2_HW 0x004c6ff0
 void C2_HOOK_FASTCALL AddCarActorTransformationToSession(uintptr_t pId, br_actor* pActor) {
-    extern void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCount, ...);
 
     ARAddVariedDataToSession(ePipe_chunk_non_car, pId, 2, 4, 0, pActor, 0x30, 4, &pActor->t.t.mat);
 }
@@ -2528,7 +2514,6 @@ void C2_HOOK_FASTCALL PipeSinglePowerupRespawn(br_actor* pActor, int pPowerup_id
 // , verified against the original disassembly
 // FUNCTION: CARMA2_HW 0x004c8fb0
 void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor) {
-    extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
 
     ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
         0x30, 0, (uintptr_t)&pActor->t.t.mat);
@@ -3590,7 +3575,6 @@ void C2_HOOK_FASTCALL UndoGibShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chu
 void C2_HOOK_FASTCALL UndoBloodSpurt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 
     if (pPrev_chunk != NULL) {
-        extern void C2_HOOK_FASTCALL PedUndoBloodSpurt(int pCurrent_time, uintptr_t pOwner, int pSpurt_time, tU32 pSeed, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction);
         tPipe_chunk_blood_spurt* chunk = (tPipe_chunk_blood_spurt*)*pChunk;
         tPipe_chunk_blood_spurt* prev = (tPipe_chunk_blood_spurt*)pPrev_chunk;
 
@@ -3733,8 +3717,6 @@ extern int gPed_spurty_lumps_count;
 extern int gPed_spurt_min_max_time[2];
 extern tSmashable_initial_speed_spec gPed_spurt_initial_speed;
 extern tSmashable_initial_position_spec gPed_spurt_initial_position;
-extern float C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
-extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
 
 // FUNCTION: CARMA2_HW 0x004ccd70
 void C2_HOOK_FASTCALL PedUndoBloodSpurt(int pCurrent_time, uintptr_t pOwner, int pSpurt_time, tU32 pSeed, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction) {

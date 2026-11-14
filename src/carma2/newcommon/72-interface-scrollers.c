@@ -4,8 +4,6 @@
 #include "globvars.h"
 #include "c2_string.h"
 
-extern tFrontend_spec* gCurrent_frontend_spec;
-extern tFrontend_brender_item gFrontend_brender_items[100];
 // FUNCTION: CARMA2_HW 0x004677d0
 // FUNCTION: CARMA2_SW 0x00467550
 int C2_HOOK_FASTCALL GetItemAtMousePos(tFrontend_spec *pFrontend, int pX, int pY) {

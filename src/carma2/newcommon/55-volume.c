@@ -45,7 +45,6 @@ tSpecial_volume* C2_HOOK_FASTCALL GetDefaultSpecialVolumeForWater(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

@@ -503,7 +503,6 @@ int C2_HOOK_FASTCALL GetStraight(br_vector2* pStart, br_vector2* pFinish, float*
 // SetCurvature
 
 
-extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
 extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 

@@ -1100,9 +1100,6 @@ int C2_HOOK_FASTCALL ChangeCarOK(tFrontend_spec* pFrontend) {
     gProgram_state.current_car_index = gProgram_state.cars_available[gFrontend_change_car_selected_car];
     return 0;
 }
-void C2_HOOK_FASTCALL UpdateCarInfo(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_index);
-extern void C2_HOOK_FASTCALL MenuSetCarImage(int pCar_index, int pBrender_index);
 
 // FUNCTION: CARMA2_HW 0x0046b640
 int C2_HOOK_FASTCALL CarClickPrev(tFrontend_spec* pFrontend) {
@@ -2641,8 +2638,6 @@ int C2_HOOK_FASTCALL Generic_Outfunc(tFrontend_spec* pFrontend) {
 // Generic_UnMungeActiveItems
 
 extern int gINT_00688444;
-extern int C2_HOOK_FASTCALL Generic_FindNextActiveItem(tFrontend_spec* pFrontend, int pItem);
-extern int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend);
 extern tFrontend_spec gFrontend_CONTROLS;
 
 static tStruct_00686508* GetUpdown(int pItem) {
@@ -3771,8 +3766,6 @@ int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend) {
 
 extern int gINT_00688748;
 
-extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
-extern void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend);
 
 static int DetermineKeyArrayIndex(void) {
     int index;

@@ -238,18 +238,7 @@ void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scal
     br_scalar cos_angle;
     br_scalar sin_angle;
     br_scalar scale;
-    extern br_actor* gY_picking_camera;
-    extern br_scalar gLowest_y_above;
-    extern br_scalar gHighest_y_below;
-    extern br_scalar gCurrent_y;
-    extern br_matrix34 gPick_model_to_view__raycast;
-    extern br_model* gAbove_model;
-    extern br_model* gBelow_model;
-    extern int gAbove_face_index;
-    extern int gBelow_face_index;
     extern br_material* gBlack_material;
-    extern int C2_HOOK_FASTCALL ActorPick2D(br_actor* pActor, br_model* pModel, br_material* pMaterial, dr_pick2d_cbfn* pCallback, void* pArg);
-    extern int C2_HOOK_CDECL FindHighestCallBack__raycast(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg);
 
     gLowest_y_above = 30000.0f;
     gHighest_y_below = -30000.0f;

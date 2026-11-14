@@ -8,7 +8,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
 
 // GLOBAL: CARMA2_HW 0x0065d004
 int gPHIL_disabled = 1;
@@ -1387,7 +1386,6 @@ void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_obj
 extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 extern int gPrepared_objects;
 extern tPhysics_object** gReduced_object_list;

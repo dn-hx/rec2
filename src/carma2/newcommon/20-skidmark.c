@@ -24,8 +24,6 @@ tU8 gUNK_006a32e0[0x50] = { 0 };
 // GLOBAL: CARMA2_HW 0x006a27e8
 int gCurrent_skid;
 
-extern void C2_HOOK_CDECL BrMatrix34Scale(br_matrix34* mat, br_scalar sx, br_scalar sy, br_scalar sz);
-extern void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags);
 
 // MaterialFromIndex
 

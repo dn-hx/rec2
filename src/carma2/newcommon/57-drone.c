@@ -16,7 +16,6 @@ extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
-extern void C2_HOOK_FASTCALL PreprocessDronePaths(void);
 
 // GLOBAL: CARMA2_SW 0x0067c800
 br_vector3 gRender_bounds_centre;
@@ -78,14 +77,10 @@ br_vector3 gDefault_drone_direction = {{ 0.f, 0.f, -1.f }};
 // GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
 
-extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 extern int gCount_active_drones;
 extern tDrone_state_function* gDrone_state_functions[6];
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
-extern void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL MoveThisDronePlane(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone);
 
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
 static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
@@ -275,7 +270,6 @@ tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distanc
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL PipeSingleDroneCornerPos(tDrone_spec* pDrone, tU16 pField_0x48, tU16 pField_0x74, tU16 pField_0x70, tCompressed_matrix34* pMatrix);
 // FUNCTION: CARMA2_HW 0x0044cfd0
 // FUNCTION: CARMA2_SW 0x0044cd80
 void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone) {
@@ -354,9 +348,6 @@ void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDro
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
-extern void C2_HOOK_FASTCALL CalculateDrivingInfo(tDrone_spec* pDrone);
 
 #define DRONE_SEC(p) ((tDrone_path_node_section*)(p)->field_0x10)
 #define DRONE_SEC2(p) ((tDrone_path_node_section*)(p)->field_0x14)
@@ -1007,7 +998,6 @@ void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone) {
 extern tDrone_state_function* gDrone_state_functions[6];
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
-extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 
 // FUNCTION: CARMA2_HW 0x0044eb70
 void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
@@ -1725,7 +1715,6 @@ extern br_material* gMat_dk_grn;
 extern br_material* gMat_lt_grn;
 extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
 extern tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4];
-extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
 extern int gShow_drone_paths;
 extern int gCount_active_drones;
 extern int gDrones_unmodified;
@@ -1936,9 +1925,7 @@ void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone) {
     }
 }
 
-extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
 extern tPhysics_object* gPHIL_list_collision_infos;
-extern int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2);
 
 /* inlined into its callers in the original (no standalone copy) */
 static int C2_HOOK_FASTCALL DroneHasCollided(tDrone_spec* pDrone_spec) {
@@ -1971,7 +1958,6 @@ int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingT
 
 // DoDroneFunkyGroovyThings
 
-extern float gDrone_delta_time;
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
 // based on REA pseudocode 0x451ca0

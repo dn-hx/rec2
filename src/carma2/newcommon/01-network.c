@@ -246,23 +246,16 @@ void C2_HOOK_FASTCALL NetLeaveGameLowLevel(void) {
     }
 }
 
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
 extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
-extern void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index);
 extern int gINT_0068d968;
 extern int gINT_0075bc24;
 extern int gINT_0074c6d4;
 extern int gINT_00659d34;
 extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
-extern void C2_HOOK_FASTCALL SignalToStartRace(void);
-extern void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress, int pArg3, void* pNotifyFail);
 extern void C2_HOOK_FASTCALL KickPlayerOut(tPlayer_ID pPlayer_id);
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
@@ -403,7 +396,6 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 // LoadCarN
 
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
 extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
@@ -441,8 +433,6 @@ void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
 
 // NetSetPlayerSystemInfo
 
-extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
-extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x0049e3a0
@@ -478,10 +468,7 @@ void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_playe
 // RemoveReferencesToCar
 
 extern int gInitialised_grid;
-extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
-extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
 extern int gIt_or_fox;
 extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
 extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
@@ -492,8 +479,6 @@ extern void C2_HOOK_FASTCALL RemoveFromCloakingList(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
-extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 
 
 // FUNCTION: CARMA2_HW 0x0049e450
@@ -671,11 +656,6 @@ void C2_HOOK_FASTCALL DisposeCurrentJoinPollGame(void) {
     }
 }
 
-extern tNet_game_details* C2_HOOK_FASTCALL NetAllocatePIDGameDetails(void);
-extern tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2);
-extern int C2_HOOK_FASTCALL NetJoinGameLowLevel(tNet_game_details* pGame_details, const char* pName);
-extern int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress);
-extern int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex);
 // FUNCTION: CARMA2_HW 0x0049ec70
 // FUNCTION: CARMA2_SW 0x0049adf0
 void C2_HOOK_FASTCALL DoNextJoinPoll(void) {
@@ -840,9 +820,6 @@ int C2_HOOK_FASTCALL NetSendMessageToHost(tNet_game_details* pDetails, tNet_mess
     }
 }
 
-extern int C2_HOOK_FASTCALL NetDisposeMessage(tNet_game_details* pDetails, tNet_message* pMessage);
-extern void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* pNet_player, int pSize);
-extern int gThis_net_player_index;
 // FUNCTION: CARMA2_HW 0x0049f2c0
 // FUNCTION: CARMA2_SW 0x0049b440
 int C2_HOOK_FASTCALL NetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage) {

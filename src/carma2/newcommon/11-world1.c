@@ -26,7 +26,6 @@ static __inline void C2_HOOK_FASTCALL PutAdditionalNonCarsOnToAdditionalActors(v
     extern tNon_car_spec* gActive_non_car_list[99];
     extern int gNum_active_non_cars;
     extern br_actor* gNon_track_actor;
-    extern br_actor* gAdditional_actors;
     int i;
 
     for (i = 0; i < gNum_active_non_cars; i++) {
@@ -45,7 +44,6 @@ static __inline void C2_HOOK_FASTCALL PutAdditionalNonCarsOnToNonTrackActor(void
     extern tNon_car_spec* gActive_non_car_list[99];
     extern int gNum_active_non_cars;
     extern br_actor* gNon_track_actor;
-    extern br_actor* gAdditional_actors;
     int i;
 
     for (i = 0; i < gNum_active_non_cars; i++) {
@@ -74,7 +72,6 @@ void C2_HOOK_FASTCALL SaveAdditionalActors(void) {
     extern br_model* gAdditional_models[1000];
     extern int gNumber_of_additional_models;
     extern br_actor* gLast_actor;
-    extern br_actor* gAdditional_actors;
     extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_matrix34* pMatrix, recurse_with_trans_cbfn* pCall_back, void* pArg);
     extern void* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
     extern int C2_HOOK_FASTCALL PFfclose(void* pFile);
@@ -158,9 +155,6 @@ br_uint_32 C2_HOOK_FASTCALL DeleteBastards(br_actor* pActor, br_matrix34* pMatri
 
 // inlined into SaveAdditionalActors (no standalone address in the original)
 static __inline void C2_HOOK_FASTCALL DeleteAnyZeroBastardsInline(void) {
-    extern int gDelete_count;
-    extern br_actor* gDelete_list[500];
-    extern br_actor* gAdditional_actors;
     extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_matrix34* pMatrix, recurse_with_trans_cbfn* pCall_back, void* pArg);
     br_actor** pp;
     int count;
@@ -230,7 +224,6 @@ void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void) {
     extern int gSpec_vol_mode;
     extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
     extern void C2_HOOK_FASTCALL SaveSpecialVolumes(void);
-    extern void C2_HOOK_FASTCALL SaveAdditionalActors(void);
     extern void C2_HOOK_FASTCALL FlushAllPedCaches(void);
     int len1;
     int len2;

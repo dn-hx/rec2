@@ -119,8 +119,6 @@ br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap2(const char* pPath_name) {
     return pm;
 }
 
-extern int C2_HOOK_FASTCALL LoadTextureTryAllLocations(char* pName, br_pixelmap** pMaps, int pCapacity);
-extern char gCurrent_load_directory[256];
 // FUNCTION: CARMA2_HW 0x0048eec0
 // FUNCTION: CARMA2_SW 0x0048c160
 int C2_HOOK_FASTCALL LoadInterfacePixelmaps(const char *pPath_name, br_pixelmap** pMaps, int pCapacity) {

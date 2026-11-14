@@ -8,8 +8,6 @@
 extern tFrontend_spec gFrontend_MAIN;
 extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
 extern tFrontend_spec gFrontend_OPTIONS;
-extern int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
 
 #include "01-network.h"
 #include "02-init.h"
@@ -22,16 +20,11 @@ extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
 #include "41-utility.h"
 
 /* local declarations (no extern added to a header, see PROGRESS: header-count sensitivity) */
-extern void C2_HOOK_FASTCALL NetEndJoinList(void);
 extern int gValid_stashed_save_game;
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
-extern void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, char pChar);
 extern tNet_game_options gNet_settings[9];
 extern int gNet_grid_starts[10];
-extern int C2_HOOK_FASTCALL DRStricmp(const char* p1, const char* p2);
-extern void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum);
 
 /* local declarations for the join-go-ahead body (no extern added to a header) */
 extern void C2_HOOK_FASTCALL ClearAlwaysTyping(void);
@@ -193,7 +186,6 @@ static void NetJoinUpdateSelectedGameInfo(tFrontend_spec* pFrontend) {
 // FUNCTION: CARMA2_HW 0x004682a0
 int C2_HOOK_FASTCALL NetToggleMode(tFrontend_spec* pFrontend) {
     extern tNet_mode gFrontend_net_mode;
-    extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 
     (void)pFrontend;
     if (gFrontend_net_mode == eNet_mode_thinking_about_it) {

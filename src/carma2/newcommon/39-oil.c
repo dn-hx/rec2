@@ -197,8 +197,6 @@ void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
 }
 
 /* local externs (the shared 23-piping.h declares the scrap global volatile) */
-extern volatile undefined4 gUNK_0069410c;
-extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
 
 extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
 extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);

@@ -6,9 +6,6 @@ extern tFrontend_spec gFrontend_OPTIONS;
 extern tFrontend_spec gFrontend_NETWORK;
 extern tFrontend_spec gFrontend_NEWGAME;
 extern tFrontend_spec gFrontend_CHANGE_CAR;
-int C2_HOOK_FASTCALL MainMenuInfunc(tFrontend_spec* pFrontend);
-int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend);
-int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005a80f0
 tFrontend_spec gFrontend_MAIN = {
@@ -93,7 +90,6 @@ extern br_pixelmap* gFrontend_images[100];
 extern tFrontend_model gFrontend_A_models[13];
 extern tFrontend_model gFrontend_B_models[11];
 extern tFrontend_model gFrontend_C_models[6];
-extern br_actor* gFrontend_backdrop_actors[3];
 extern br_actor* gFrontend_billboard_actors[8];
 extern int gFrontend_remove_current_backdrop;
 extern int gFrontend_leave_current_menu;
@@ -113,17 +109,11 @@ extern int gFrontend_backdrop1_opacity_mode;
 extern int gFrontend_backdrop2_opacity_mode;
 extern br_pixelmap* gFrontend_wrecks_pixelmap;
 extern tFrontendMenuType gFrontend_next_menu;
-extern tS3_outlet* gEffects_outlet;
 extern tU32 gFrontend_time_last_input;
 extern br_uint_32 gFrontend_APO_Colour_1;
 extern br_uint_32 gFrontend_APO_Colour_2;
 extern br_uint_32 gFrontend_APO_Colour_3;
-extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
-extern int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL LoadGameScrollDown(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL CarClickPrev(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL CarClickNext(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005ed5a0
 tFrontend_spec gFrontend_LOAD_GAME = {
@@ -201,14 +191,8 @@ static int back_screen_origin_y;
    Corrected against the original disassembly. */
 
 extern int gFrontend_scrollbars_updated;
-extern int gFrontend_car_image_outdated;
-extern int gTyping;
-extern tFrontend_brender_item gFrontend_brender_items[100];
 extern tFrontend_spec gFrontend_CHANGE_CAR;
 extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
-extern tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(br_pixelmap* pm, tU32 red, tU32 grn, tU32 blu, tU32 alp);
-extern int C2_HOOK_FASTCALL GetItemAtMousePos(tFrontend_spec* pFrontend, int pX, int pY);
-extern void C2_HOOK_FASTCALL UpdateScrollPositions(tFrontend_spec* pFrontend);
 extern int gTyping_slot;
 extern int gMouse_in_use;
 extern void C2_HOOK_FASTCALL ServiceGame(void);
@@ -693,7 +677,6 @@ int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend) {
 int gCount_connected_items_indices;
 // GLOBAL: CARMA2_HW 0x00687018
 int gConnected_items_indices[6];
-extern int C2_HOOK_FASTCALL SaveOptions(void);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 
@@ -1236,8 +1219,3 @@ extern int gFrontend_scroll_time_left;
 extern int gFrontend_scroll_time_increment;
 extern tU32 gFrontend_scroll_last_update;
 extern int C2_HOOK_FASTCALL StartSavedGamesList(void);
-extern br_actor* C2_HOOK_FASTCALL CreateAPOactor(void);
-extern void C2_HOOK_FASTCALL LoadMenuSettings(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL FuckWithWidths(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);

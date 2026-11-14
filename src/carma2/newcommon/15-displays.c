@@ -198,7 +198,6 @@ static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
 // GLOBAL: CARMA2_HW 0x0067f890
 tQueued_headup gQueued_headups[4];
 
-extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
 
 // FUNCTION: CARMA2_HW 0x00449070

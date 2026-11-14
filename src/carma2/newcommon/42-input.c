@@ -568,7 +568,6 @@ static void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouldy(void) {
 // (AnyKeyDown / EitherMouseButtonDown / CheckKeysForMouldiness / PollKeys inlined)
 // FUNCTION: CARMA2_HW 0x004835d0
 void C2_HOOK_FASTCALL WaitForAKey(void) {
-    extern void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark);
     int i;
     int the_key;
 

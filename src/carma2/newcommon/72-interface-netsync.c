@@ -5,10 +5,7 @@
 #include "72-interface.h"
 
 extern tFrontend_spec gFrontend_MAIN;
-extern int C2_HOOK_FASTCALL NetSync_Start(tFrontend_spec* pFrontend);
 
-extern void C2_HOOK_FASTCALL LoadMenuSettings(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL FuckWithWidths(tFrontend_spec* pFrontend);
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
 extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
@@ -23,7 +20,6 @@ extern int gThis_net_player_index;
 extern tNet_game_player_info gNet_players[12];
 extern int gNo_races_yet;
 extern tNet_game_details* gCurrent_net_game;
-extern tU32 gLast_host_query;
 extern tU32 gNet_synch_start;
 extern int gFrontend_scrollbars_updated;
 extern tFrontend_slider* gCurrent_frontend_scrollbars;
@@ -36,12 +32,9 @@ extern int C2_HOOK_FASTCALL PDAnyKeyDown(void);
 extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
 extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
 extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
-extern void C2_HOOK_FASTCALL ToggleSelection(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL FindPrevActiveItem(tFrontend_spec* pFrontend, int pStart_index);
 extern void C2_HOOK_FASTCALL ServiceGame(void);
 extern void C2_HOOK_FASTCALL SignalToStartRace(void);
 extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
-extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 extern void C2_HOOK_FASTCALL DrawThisCarIconNow(int pCar_index, int pX, int pY);
 extern void C2_HOOK_FASTCALL SolidPolyFontText(const char* pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
 extern tFrontend_spec gFrontend_QUIT;
@@ -50,8 +43,6 @@ extern int gMouse_in_use;
 extern tU32 gFrontend_time_last_input;
 extern int gFrontend_leave_current_menu;
 extern int gStart_race_sent;
-extern tFrontend_spec* gCurrent_frontend_spec;
-extern int gFrontend_selected_item_index;
 extern tProgram_state gProgram_state;
 
 static int C2_HOOK_FASTCALL FindNextActiveItemFrontend(tFrontend_spec* pFrontend, int pStart_index) {

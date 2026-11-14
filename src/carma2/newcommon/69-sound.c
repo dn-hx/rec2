@@ -1067,8 +1067,6 @@ void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
     }
 }
 
-extern int gAmbient_sound;
-extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
 
 static tEnvironment_sound_generator_info sEnv_sound_sources_buffer[2][64];

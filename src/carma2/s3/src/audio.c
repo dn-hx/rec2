@@ -2012,9 +2012,6 @@ void C2_HOOK_FASTCALL S3ReleaseSounds(int* pSound_ids, int pSound_count) {
     }
 }
 
-extern void C2_HOOK_FASTCALL PDExtractFilename(char* pDest, const char* pPath);
-extern tS3_error_codes gS3_last_error;
-extern int gS3_low_memory_mode;
 // FUNCTION: CARMA2_HW 0x00568c2c
 void* C2_HOOK_FASTCALL S3LoadSoundBankFile(const char* pPath) {
     char path[512];
@@ -2098,9 +2095,6 @@ void* C2_HOOK_FASTCALL S3LoadSoundBankFile(const char* pPath) {
     return buffer;
 }
 
-extern tS3_error_codes C2_HOOK_FASTCALL S3UpdateFrequencySampleChannel(tS3_sound_tag pChannel_tag, int pPitch);
-extern int C2_HOOK_FASTCALL S3UpdateFrequencyMidiChannel(int pTag, int pPitch);
-extern int C2_HOOK_FASTCALL PDApplyFrequencyMidi(tS3_channel* pChannel, int pPitch);
 
 // FUNCTION: CARMA2_HW 0x005696f9
 int C2_HOOK_FASTCALL S3UpdateFrequencyChannel(tS3_sound_tag pTag, int pPitch) {

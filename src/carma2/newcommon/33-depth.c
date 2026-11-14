@@ -425,7 +425,6 @@ void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPo
 
 extern br_angle gSky_image_height;
 extern br_angle gSky_image_underground;
-extern void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour);
 
 
 // FUNCTION: CARMA2_HW 0x004459e0
@@ -788,7 +787,6 @@ void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCam
 
 // DepthEffectSky
 
-extern br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees);
 
 // FUNCTION: CARMA2_HW 0x00446680
 void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
@@ -857,7 +855,6 @@ void C2_HOOK_FASTCALL ReduceDepthStart(void) {
     gProgram_state.default_depth_effect.start = gProgram_state.current_depth_effect.start;
 }
 
-extern tProgram_state gProgram_state;
 // FUNCTION: CARMA2_HW 0x004468f0
 // FUNCTION: CARMA2_SW 0x00446970
 void C2_HOOK_FASTCALL IncreaseDepthStart(void) {

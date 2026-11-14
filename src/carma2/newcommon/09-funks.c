@@ -14,7 +14,6 @@
 #include "70-packfile.h"
 #include <string.h>
 
-extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
 
 static float MapSawToTriangle(float pNumber);
 static br_scalar NormaliseDegreeAngle(br_scalar pAngle);
@@ -1685,12 +1684,6 @@ void C2_HOOK_FASTCALL GrooveThoseDelics(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int gAction_replay_mode;
-extern br_matrix34 gCamera_to_world;
-extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
-extern void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
-extern void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it);
-extern void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis);
 
 // based on ApexWorm/rec2 8d0df7422
 // FUNCTION: CARMA2_HW 0x00478c80

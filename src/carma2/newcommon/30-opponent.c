@@ -15,7 +15,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-extern tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance);
 extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle);
 
 // GLOBAL: CARMA2_HW 0x0065a3c4
@@ -32,7 +31,6 @@ extern tNon_car_spec* gActive_non_car_list[99];
 
 static int C2_HOOK_FASTCALL NetCarIsActive(const tCar_spec* pCar);
 
-extern void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount);
 
 // GLOBAL: CARMA2_HW 0x0065a3cc
 float gOpponent_nastyness_frigger = 1.0f;
@@ -283,7 +281,6 @@ void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4);
 
 // FUNCTION: CARMA2_HW 0x004a7ea0
 void C2_HOOK_FASTCALL AddIfNotInList(tPhysics_object* pObject, tPhysics_object** pList, int pCount) {
@@ -312,8 +309,6 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
 
 // MassageOpponentPosition
 
-extern int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
-extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
 
 // FUNCTION: CARMA2_HW 0x004a7f20
@@ -540,7 +535,6 @@ tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, br_vector3* pAc
 }
 extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
 extern void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spec* pOpponent_spec);
 
 static __inline int C2_HOOK_FASTCALL MassageOpponentPosition_inl(tOpponent_spec* pOpponent_spec, int pMassage_count) {
     br_matrix34* mat;
@@ -1154,7 +1148,6 @@ void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
 }
 
 /* local declarations for MungeOpponents (no new includes/externs in headers) */
-extern int gNumber_of_cops_before_faffage;
 extern int gAcknowledged_start;
 extern int gStart_jumped;
 extern int gNum_of_opponents_pursuing;
@@ -1164,13 +1157,8 @@ extern tU32 gNext_grudge_reduction;
 extern int gGrudge_reduction_per_period;
 extern int gFirst_frame;
 extern tU32 gAcme_frame_count;
-extern tOpponent* gOpponents;
-extern void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee);
 extern br_scalar C2_HOOK_FASTCALL FastScalarCos(int pAngle_in_degrees);
 extern void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth);
-extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec);
-extern void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec);
-extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
 
 /* inlined copy of UnStunTheBugger (0x4a????) at this call site in the original */
 static __inline void C2_HOOK_FASTCALL UnStunTheBugger_Impl(tOpponent_spec* pOpponent_spec) {
@@ -1372,11 +1360,7 @@ void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
 // ,1206,1269 (reference only)
 // FUNCTION: CARMA2_HW 0x004aa570
 void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
-    extern void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec);
-    extern void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMust_choose_one);
-    extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
     extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec);
-    extern int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces);
     extern int gStop_opponents_moving;
     br_scalar distance;
     br_vector3 intersect;
@@ -1484,18 +1468,6 @@ after_cheat_check:
 // ,2756,2809,2828 (reference only)
 // FUNCTION: CARMA2_HW 0x004aa900
 void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
-    extern void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec);
-    extern int C2_HOOK_FASTCALL ShiftOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, int pPlaces);
-    extern int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec, tS16 pSection_no, int pDirection);
-    extern void C2_HOOK_FASTCALL TopUpRandomRoute(tOpponent_spec* pOpponent_spec, int pSections_to_add);
-    extern void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_objective_type pObjective_type, ...);
-    extern void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
-    extern void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
-    extern void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
-    extern void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
-    extern void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
-    extern int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
-    extern void C2_HOOK_FASTCALL ObjectiveComplete(tOpponent_spec* pOpponent_spec);
     extern int gNum_of_opponents_pursuing;
     extern int gNum_of_opponents_getting_near;
     extern int gNum_of_opponents_completing_race;
@@ -1647,7 +1619,6 @@ void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tP
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004aad70
 void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_objective_type pObjective_type, ...) {
-    extern void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
     va_list ap;
 
     if (pOpponent_spec->current_objective != eOOT_none) {
@@ -2852,7 +2823,6 @@ void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec) 
 
 extern int gBig_bang;
 extern br_scalar gMinimum_yness_before_knackerisation;
-extern void C2_HOOK_FASTCALL RebuildActiveCarList(void);
 extern tU32 gNext_grudge_reduction;
 extern int gFirst_frame;
 extern int gGrudge_reduction_per_period;

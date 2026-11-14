@@ -114,7 +114,6 @@ int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend) {
 }
 
 
-extern int gPicked_wreck;
 extern int gFrontend_mouse_down;
 extern int gPrev_frontend_mouse_down;
 extern int gFrontend_leave_current_menu;
@@ -122,14 +121,12 @@ extern int gMouse_in_use;
 extern tU32 gFrontend_time_last_input;
 extern tFrontend_spec gFrontend_QUIT;
 extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
-extern void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_index);
 extern char* C2_HOOK_FASTCALL MungeCommas(int pValue);
 extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, char pChar);
 extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
 extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
 extern int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixelmap* viewport, int pick_x, int pick_y, dr_pick2d_cbfn* callback, void* arg);
-extern int C2_HOOK_CDECL WreckPick(br_actor* world, br_model* model, br_material* material, br_vector3* pos, br_vector3* dir, br_scalar pNear, br_scalar pFar, void* arg);
 
 static int C2_HOOK_FASTCALL KeepInRangeWrecks(int pIndex, int pRange) {
 

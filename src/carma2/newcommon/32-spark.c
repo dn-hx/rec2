@@ -17,22 +17,9 @@
 
 // local copies of the six prototypes 583638a7f removed from 41-utility.h
 // (keeps this TU's codegen at its pre-583638a7f state)
-extern float C2_HOOK_FASTCALL signf(float pValue);
-extern void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest);
-extern void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource);
-extern void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest);
-extern int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV);
-extern int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV);
 
-extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern void C2_HOOK_FASTCALL AddSparkToPipingSession(int pSpark_index, const br_vector3* pPos, const br_vector3* pV);
-extern void C2_HOOK_FASTCALL AddSmokeColumnToPipingSession(int pIndex, const tSmoke_column_core* pCore, int pVertex, int pColour);
-extern void C2_HOOK_FASTCALL AddSmokeToPipingSession(int pIndex, tU8 pType, br_vector3* pPos, br_scalar pRadius, br_scalar pStrength);
 extern br_scalar C2_HOOK_FASTCALL FastScalarSinAngle(br_angle pBR_angle);
 extern br_scalar C2_HOOK_FASTCALL FastScalarCosAngle(br_angle pBR_angle);
-extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
 extern br_scalar gCrushZero;
 extern br_pixelmap* gFog_shade_table;
@@ -166,11 +153,6 @@ br_token_value* gDAT_00660148;
 #endif
 // FUNCTION: CARMA2_HW 0x004030f0
 tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner) {
-    extern tU8* gPipe_play_ptr;
-    extern tU8* gPipe_record_ptr;
-    extern tU8* gPipe_buffer_working_end;
-    extern tU8* gPipe_buffer_start;
-    extern const tReplay_callback* gPipe_callbacks;
     tU8* cur;
     tU8* chunk;
     tU32 i;
@@ -703,8 +685,6 @@ void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol) {
 #endif
 // CreateSingleSpark
 
-extern int gPHIL_mechanics_time_sync;
-extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004f7d60
@@ -902,7 +882,6 @@ void C2_HOOK_FASTCALL ResetShrapnel(void) {
 // CreateShrapnelShowerWorld
 
 // (reference only)
-extern int gPHIL_mechanics_time_sync;
 
 // FUNCTION: CARMA2_HW 0x004f8800
 void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
@@ -988,7 +967,6 @@ void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const b
 #endif
 // FUNCTION: CARMA2_HW 0x004f8b50
 void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
-    extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
     CreateShrapnelShower2(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
 }
 
@@ -1173,7 +1151,6 @@ void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
 }
 
 extern tCar_spec* gRecalc_mass_car;
-extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPos, br_vector3* pDir, br_vector3* pOut1, br_scalar* pDist, br_vector3* pOut2, tFace_ref* pFaces, int pCount);
 
 // FUNCTION: CARMA2_HW 0x004f8ff0
 int C2_HOOK_FASTCALL SetPixelmap(br_material* pMaterial) {
@@ -1421,21 +1398,13 @@ int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial) {
 }
 
 extern int gNum_splash_types;
-extern int gAFE;
 extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
 extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
 extern tPedestrian* gPedestrian_array;
 extern int gSplash_flags;
 extern void C2_HOOK_FASTCALL DRMatrix34PreRotateZ(br_matrix34* mat, br_angle rz);
-extern void C2_HOOK_FASTCALL AddShrapnelToPipingSession(int pShrapnel_index, const br_vector3* pPos, tU16 pAge, br_material* pMaterial);
 extern br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX);
-extern tPhysics_object* C2_HOOK_FASTCALL PHILGetFirstObject(void);
-extern tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pObject);
 extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner);
-extern void C2_HOOK_FASTCALL GetVelocitiesFromMatrices(br_vector3* pVel, br_vector3* pRot, br_matrix34* pMat_now, br_matrix34* pMat_prev, tU32 pTime);
 
 // GLOBAL: CARMA2_HW 0x006aa5b0
 
@@ -2201,7 +2170,6 @@ void C2_HOOK_FASTCALL AdjustSmokeColumn(int pIndex, const tSmoke_column_core* pC
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL AddFlameToPipingSession(int pIndex, int pFrame, br_scalar pScale_x, br_scalar pScale_y, br_scalar pOffset_x, br_scalar pOffset_z);
 extern void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry);
 
 // FUNCTION: CARMA2_HW 0x004fb630
@@ -3387,10 +3355,6 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 const char gSolidgrn_material[10] = "solidgrn";
 
 extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
-extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
-extern void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
-extern intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext);
-extern int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel);
 
 // RESIDUAL 99.38%: pushed gSolidgrn_material renders (DATA) vs original (STRING); the literal form fixes this function but costs neighbours 0x512030/0x511440
 // FUNCTION: CARMA2_HW 0x004fe360
@@ -3518,8 +3482,6 @@ static void C2_HOOK_FASTCALL ForEveryModelMaterial(br_model* pModel, tMaterialMa
     }
 }
 
-extern intptr_t C2_HOOK_CDECL ForEveryActorMaterial(br_actor* pActor, void* pContext);
-extern intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pContext);
 
 
 #ifdef REC2_MATCHING
@@ -3638,7 +3600,6 @@ void C2_HOOK_FASTCALL BlendifyCar(tCar_spec* pCar) {
 
 // MightBlendifyMaterial
 
-extern int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial);
 
 // FUNCTION: CARMA2_HW 0x004fed00
 // STUB: CARMA2_SW 0x004fa5e0
@@ -3699,7 +3660,6 @@ void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject) {
     gReplay_splash_flags = flags;
 }
 
-extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pCollision_info, int pParam);
 
 // FUNCTION: CARMA2_HW 0x004fee10
 void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {

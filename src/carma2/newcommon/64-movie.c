@@ -104,9 +104,7 @@ extern Track gQuicktime_track;
 extern int gQuicktime_movie_counter;
 extern int gStatus_message_1;
 extern int gStatus_message_2;
-extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
 extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
-extern void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only);
 extern int gQuickTime_compressor_code;
 extern br_uint_16 gQuickTime_pixel_depth;
 extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
@@ -477,7 +475,6 @@ extern int gRecording_paused;
 extern int gQuickTime_quality_code;
 extern short gQuicktime_movie_file;
 extern FSSpec gQt_file_spec;
-extern int C2_HOOK_CDECL FUN_00575340(char* pString);
 
 #pragma pack(push, 1)
 typedef struct {
@@ -645,23 +642,6 @@ void C2_HOOK_FASTCALL NoOp_004e1c30(void) {
 
 // GenerateOneMovieFrame
 
-extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
-extern short C2_HOOK_FASTCALL CreateMovie(void);
-extern short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
-extern void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen);
-extern void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight);
-extern void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume);
-extern int C2_HOOK_CDECL GetMoviesError(void);
-extern void* C2_HOOK_CDECL NewTrackMedia(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality);
-extern int C2_HOOK_CDECL BeginMediaEdits(void* pMedia);
-extern void* C2_HOOK_CDECL NewHandle(int pSize);
-extern int C2_HOOK_CDECL MemError(void);
-extern int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size);
-extern void C2_HOOK_CDECL MoveHHi(void* pHandle);
-extern void C2_HOOK_CDECL HLock(void* pHandle);
-extern int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle);
-extern short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8);
-extern short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time);
 extern FSSpec gQt_file_spec;
 extern struct Rect gQuicktime_rect;
 extern int gRecording_paused;

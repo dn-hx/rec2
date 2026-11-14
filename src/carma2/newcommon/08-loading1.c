@@ -72,7 +72,6 @@ const tU8 gOther_long_key[16] = {
 // GLOBAL: CARMA2_HW 0x00763540
 int gFunk_groove_flags[30];
 
-extern void C2_HOOK_CDECL BrPixelmapFree(br_pixelmap* src);
 
 // FUNCTION: CARMA2_HW 0x0044bb80
 void C2_HOOK_FASTCALL UnlockInterfaceStuff(void) {
@@ -1001,7 +1000,6 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     rename(new_file, pThe_path);
 }
 
-void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path);
 
 // FUNCTION: CARMA2_HW 0x00490b90
 void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path) {
@@ -1340,9 +1338,7 @@ void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
     int i;
     int driver_type;
     tNon_car_spec* non_car;
-    extern void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void);
     extern void C2_HOOK_FASTCALL DisposeTexturingMaterials(void);
-    extern void C2_HOOK_FASTCALL DisposeKevStuff(void);
     extern void C2_HOOK_FASTCALL DisposeColumns(tTrack_spec* pTrack_spec);
     extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
     extern tU8* gTrack_flic_buffer;

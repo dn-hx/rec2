@@ -420,17 +420,10 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
 void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
     extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
-    extern void C2_HOOK_FASTCALL FadePaletteDown(void);
     extern float gFlic_sound_delay_not_in_demo;
-    extern tS3_error_codes C2_HOOK_FASTCALL DRS3LoadSound(tS3_sound_id pThe_sound);
-    extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-    extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
     extern void C2_HOOK_FASTCALL SetNonFatalAllocationErrors(void);
     extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
     extern void C2_HOOK_FASTCALL ResetNonFatalAllocationErrors(void);
-    extern void C2_HOOK_FASTCALL WaitForAKey(void);
-    extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-    extern int C2_HOOK_FASTCALL DRS3ReleaseSound(int pSound_id);
     float sound_delay;
 
     PrintMemoryDump(0, "BEFORE DEMO-ONLY SCREEN");

@@ -20,10 +20,6 @@ extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_so
 extern tS3_outlet* gEffects_outlet;
 extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
 extern void C2_HOOK_FASTCALL DRSetPaletteEntries(br_pixelmap* pThe_palette, int pFirst_colour, int pCount);
-extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
-extern void C2_HOOK_FASTCALL DoDifferenceX(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
-extern void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
-extern void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info);
 
 // GLOBAL: CARMA2_HW 0x00686300
 int gSound_ID;

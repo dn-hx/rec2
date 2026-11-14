@@ -36,7 +36,6 @@ float gTrack_drone_min_y;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_CDECL BrTransformToTransform(br_transform* dest, br_transform* src);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
@@ -51,8 +50,6 @@ void C2_HOOK_FASTCALL InitPanGameAIWorld(void) {
     PrintMemoryDump(0, "AFTER LoadPanGameDroneInfo()");
 }
 
-extern void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF);
-extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
 
 // FUNCTION: CARMA2_HW 0x00401030
 void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF) {
@@ -451,18 +448,13 @@ extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
-extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
 extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
-extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
-extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
 extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern int gCrush_panel_ids[10];
 
 extern int gCrush_deferred;
-extern int gArrow_mode;
 extern br_scalar gMax_crush_force;
 extern br_scalar gCrushZero;
 extern int gFace_num__car;
@@ -691,8 +683,6 @@ extern int gINT_006820d4;
 extern int gINT_006844fc;
 extern tPhysics_object* gPHIL_list_collision_infos;
 extern tDrone_state_function* gDrone_state_functions[6];
-extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
-extern int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2);
 extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
 extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
@@ -922,8 +912,6 @@ extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
-extern void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
 
 // FUNCTION: CARMA2_HW 0x0044fda0
 void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
@@ -1229,9 +1217,6 @@ extern br_material* gMat_lt_yel;
 extern br_material* gMat_md_grn;
 extern br_material* gMat_dk_turq;
 extern br_material* gMat_lt_turq;
-extern void C2_HOOK_FASTCALL SaveDronePaths(void);
-extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices);
-extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
 // FUNCTION: CARMA2_HW 0x00452ba0
 int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
@@ -1521,9 +1506,6 @@ extern int gTimers_stack[8];
 extern int gTimers_max_index;
 extern int gTimers_stack_size;
 extern tTimer gTimers[19];
-extern void C2_HOOK_FASTCALL MungeOpponents(void);
-extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
-extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
 
 static void TimersPush(int pType) {
     int prev_type;
@@ -1565,14 +1547,6 @@ extern br_material* gMat_dk_grn;
 extern br_material* gMat_lt_grn;
 extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
 extern tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4];
-extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
-extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
-extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
-extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
-extern void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone);
-extern int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone);
-extern int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex);
 extern int gShow_drone_paths;
 extern int gCount_active_drones;
 extern int gDrones_unmodified;
@@ -1585,8 +1559,6 @@ extern tDrone_state_function* gDrone_state_functions[6];
 /* local declarations for MungeShatMines (no new includes/externs in headers) */
 extern tU32 gPHIL_last_physics_tick;
 extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
-extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
-extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
 static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {

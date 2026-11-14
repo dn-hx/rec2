@@ -25,7 +25,6 @@
 
 extern tNon_car_spec* gActive_non_car_list[99];
 
-int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal);
 
 // GLOBAL: CARMA2_HW 0x00679278
 int gAction_replay_manual_camera_target_type;
@@ -158,7 +157,6 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 extern int gAR_camera_type;
 extern int gCamera_type;
 extern int gPed_count;
@@ -167,20 +165,11 @@ extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 
 extern float gCamera_angle;
 extern tRace_over_reason gRace_over_reason;
-extern int C2_HOOK_FASTCALL TestForNan(const float* f);
-extern void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matrix34* pMat, br_vector3* pPos, float pSpeed, float pSpeedo_speed, br_vector3* pDirection, br_vector3* pOmega, tU32 pTime_difference);
-extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
-extern tU32 C2_HOOK_FASTCALL GetRaceTime(void);
 extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
 extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
 extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
 extern br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void);
 extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
-extern void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime);
-extern void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime);
-extern void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime);
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 int gNet_player_to_view_index = -1;
@@ -575,7 +564,6 @@ int gUNK_006792f8;
 extern tCamera_key_flags gCamera_key_flags;
 extern int gCamera_mode;
 extern int gCamera_has_collided;
-extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
 extern int C2_HOOK_FASTCALL ARReplayForwards(void);
 extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t) {
@@ -847,11 +835,7 @@ void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime) {
 
 // PutNonCarBackInWorld
 
-extern int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime);
-extern void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat);
 extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
-extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
-extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 extern int gCamera_incident_flag;
@@ -1116,7 +1100,6 @@ lab_fc76:
     return 0;
 }
 extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
-extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
 
 // GLOBAL: CARMA2_HW 0x006792c0
 tU32 gSwitch_time;

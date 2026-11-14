@@ -628,7 +628,6 @@ void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
 #pragma auto_inline(off)
 #endif
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
 #define DCE_I(p, o) (*(int*)((char*)(p) + (o)))
 #define DCE_U(p, o) (*(tU32*)((char*)(p) + (o)))
 #define DCE_F(p, o) (*(float*)((char*)(p) + (o)))
