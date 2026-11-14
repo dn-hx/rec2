@@ -88,7 +88,7 @@ extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message
 // NetGetToHostContents
 
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
-// NetBroadcastContents
+extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 
 extern void C2_HOOK_FASTCALL NetSendMessageStacks(void);
 
@@ -102,7 +102,7 @@ extern int C2_HOOK_FASTCALL NetDisposeMessage(tNet_game_details* pDetails, tNet_
 
 // NetReallyDisposeMessage
 
-// NetGetNextMessage
+extern tNet_message* C2_HOOK_FASTCALL NetGetNextMessage(tNet_game_details* pDetails, void** pSender_address);
 
 // ReceivedSendMeDetails
 

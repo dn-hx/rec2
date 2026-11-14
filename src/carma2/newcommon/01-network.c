@@ -1113,9 +1113,57 @@ int gINT_00659d34 = -1;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049fb70
+// FUNCTION: CARMA2_HW 0x0049fb70
 void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int size;
+    int offset;
+    tNet_message* message;
+    tNet_game_player_info* player;
+    tU8* contents;
+
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index && i != gINT_00659d34) {
+            player = &gNet_players[i];
+            size = pMessage->raw.header.size;
+            if (player == &gNet_players[gThis_net_player_index]) {
+                PDFatalError("Trying to send network message to self");
+            }
+            message = player->field_0xcc;
+            if (message != NULL && size + message->header.field_0x16 > 0x200) {
+                tPlayer_ID player_id = player->ID;
+                tNet_game_details* game = gCurrent_net_game;
+
+                if (gNet_mode != eNet_mode_none) {
+                    message->header.field_0x8 = gLocal_net_ID;
+                    message->header.field_0x10 = PDGetTotalTime();
+                    for (j = 0; j < gNumber_of_net_players; j++) {
+                        if (gNet_players[j].ID == player_id) {
+                            goto send_message;
+                        }
+                    }
+                    goto clear_message;
+
+send_message:
+                    PDNetSendMessageToAddress(game, message, &gNet_players[j].pd_net_info);
+                }
+clear_message:
+                player->field_0xcc = message = NULL;
+            }
+            if (message == NULL) {
+                message = player->field_0xcc = NetAllocateMessage(0x200);
+                message->header.field_0x16 = (tU16)sizeof(tNet_message_header);
+                message->header.field_0x14 = 0;
+            }
+            offset = message->header.field_0x16;
+            contents = (tU8*)message + offset;
+            message->header.field_0x16 += (tU16)size;
+            message->header.field_0x14 += 1;
+            memcpy(contents, pMessage, pMessage->raw.header.size);
+        }
+    }
+    gINT_00659d34 = -1;
 }
 
 #ifdef REC2_MATCHING
@@ -1263,13 +1311,46 @@ int C2_HOOK_FASTCALL NetDisposeMessage(tNet_game_details* pDetails, tNet_message
 
 // RemoveRepulsiveReferences (defined in 27-powerup.c)
 
+extern int gTimers_stack[8];
+extern int gTimers_max_index;
+extern int gTimers_stack_size;
+extern tTimer gTimers[19];
+
+// inlined timer helpers (same form as the ones 21-mainloop.c inlines into DoRace)
+static void NetTimersPush(int pType) {
+
+    gTimers_stack[gTimers_stack_size] = pType;
+    if (gTimers_stack_size != 0) {
+        gTimers[gTimers_stack[gTimers_stack_size - 1]].durations[gTimers[gTimers_stack[gTimers_stack_size - 1]].index] += PDGetMicroseconds() - gTimers[gTimers_stack[gTimers_stack_size - 1]].start_time;
+    } else {
+        gTimers[gTimers_max_index].durations[gTimers[gTimers_max_index].index] += PDGetMicroseconds() - gTimers[gTimers_max_index].start_time;
+    }
+    gTimers[pType].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+}
+
+static void NetTimersPop(int pType) {
+
+    gTimers[pType].durations[gTimers[pType].index] += PDGetMicroseconds() - gTimers[pType].start_time;
+    if (gTimers_stack_size > 1) {
+        gTimers[gTimers_stack[gTimers_stack_size - 1]].start_time = PDGetMicroseconds();
+    } else {
+        gTimers[gTimers_max_index].start_time = PDGetMicroseconds();
+    }
+    gTimers_stack_size -= 1;
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x0049ff70
+// FUNCTION: CARMA2_HW 0x0049ff70
 tNet_message* C2_HOOK_FASTCALL NetGetNextMessage(tNet_game_details* pDetails, void** pSender_address) {
-    NOT_IMPLEMENTED();
-    return NULL;
+    tNet_message* message;
+
+    NetTimersPush(9);
+    message = PDNetGetNextMessage(pDetails, pSender_address);
+    NetTimersPop(9);
+    return message;
 }
 
 #ifdef REC2_MATCHING
@@ -1840,7 +1921,10 @@ void C2_HOOK_FASTCALL CheckForPendingStartRace(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004a5280
+// PARTIAL 50.51%: NetService 0x004a5280 - the inlined copies of BroadcastStatus (the host/client status
+// broadcast, a different compact body from the standalone 0x4a4ac0 function) and of NetSendMessageStacks
+// are called instead of inlined; residual is register allocation (ebx=1 vs bl=0xff) and stack slots.
+// FUNCTION: CARMA2_HW 0x004a5280
 void C2_HOOK_FASTCALL NetService(int pIn_race) {
     tU32 time;
 
