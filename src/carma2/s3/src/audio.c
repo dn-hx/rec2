@@ -2419,3 +2419,19 @@ int C2_HOOK_FASTCALL FUN_0056a583(int pTag) {
     }
     return eS3_error_none;
 }
+
+// FUNCTION: CARMA2_HW 0x0056a5c4
+int C2_HOOK_FASTCALL FUN_0056a5c4(int pTag) {
+    tS3_channel* channel;
+
+    if (gS3_enable_midi) {
+        channel = S3GetChannelForTag(pTag);
+        if (channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (channel->type == 1) {
+            PDS3UnmuteMidiChannel(channel);
+        }
+    }
+    return eS3_error_none;
+}
