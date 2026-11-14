@@ -4876,7 +4876,6 @@ int C2_HOOK_FASTCALL FUN_004bd9e0(tPhysics_object* pObject, tPhysics_object** pO
 }
 
 extern int C2_HOOK_FASTCALL FUN_00427870(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
-extern void C2_HOOK_FASTCALL FUN_0045d5e0(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor);
 
 /* based on the REA pseudocode for 0x00425ca0 and the original disassembly */
 // FUNCTION: CARMA2_HW 0x00425ca0
@@ -7056,14 +7055,19 @@ void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_d
 #endif
 
 // FUNCTION: CARMA2_HW 0x004269c0
-int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pObject2, const float* pBounds, int* pType, float* pParam3, const float* pVertices, int pParam5, int pCount, int pParam7, int pResult) {
-    int i;
+int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, br_vector3* pVertices1, br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining) {
+    float* pBounds;
+    int* pType;
+    float* pParam3;
+    const float* pVertices;
+    int pCount;
+    int pResult;
     int iVar15;
     int iVar17;
     unsigned int uVar14;
     int* piVar1;
     int* piVar10;
-    int* piVar11;
+    int* piVar11 = NULL;
     int* piVar18;
     int* piVar23;
     int* local_1a4;
@@ -7085,47 +7089,27 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
     float local_1ac;
     float local_1a8;
     float local_1a0;
-    float local_19c;
-    float local_198;
+    float local_19c = 0.0f;
+    float local_198 = 0.0f;
     float local_18c;
-    float local_188;
-    float local_184;
+    float local_188 = 0.0f;
+    float local_184 = 0.0f;
     float local_17c;
-    float local_178;
-    float local_174;
+    float local_178 = 0.0f;
+    float local_174 = 0.0f;
     float local_16c;
-    float local_168;
-    float local_164;
     float local_154;
-    float local_150;
-    float local_14c;
+    float local_150 = 0.0f;
+    float local_14c = 0.0f;
     float local_148;
-    float local_144;
-    float local_140;
     float local_13c;
-    float local_138;
-    float local_134;
     float local_130;
-    float local_12c;
-    float local_128;
     float local_124;
-    float local_120;
-    float local_11c;
     float local_118;
-    float local_114;
-    float local_110;
     float local_10c;
-    float local_108;
-    float local_104;
     float local_100;
-    float local_fc;
-    float local_f8;
     float local_f4;
-    float local_f0;
-    float local_ec;
     float local_e8;
-    float local_e4;
-    float local_e0;
     tU8 local_1b1;
     tU8 abStack_d0[64];
     char cVar12;
@@ -7134,7 +7118,6 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
     tU8 bVar13;
     tU8 bVar2;
     tU8 bVar3;
-    unsigned int uVar16;
     float local_160[3];
     float local_dc[3];
     float local_90[3];
@@ -7145,6 +7128,12 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
     int local_5c[23];
     tPhysics_joint_force joint_records[4];
 
+    pBounds = (float*)pShape1;
+    pType = (int*)pShape2;
+    pParam3 = (float*)pVertices1;
+    pVertices = (const float*)pVertices2;
+    pCount = pCount2;
+    pResult = pRecord_count;
     /* own record buffer: the records must not overlay the float/pointer locals above (stale contact data) */
     memset(joint_records, 0, sizeof(joint_records));
     iVar17 = 0;
@@ -7184,7 +7173,7 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
             } else {
                 cVar12 = 1;
             }
-            bVar13 = ((((cVar12 * 2 + cVar19) * 2 + cVar20) * 2 + (char)local_194) * 2 + (char)local_1c4) * 2 + (char)local_180;
+            bVar13 = ((((cVar12 * 2 + cVar19) * 2 + cVar20) * 2 + (char)(int)local_194) * 2 + (char)local_1c4) * 2 + (char)(int)local_180;
             pVertices = pVertices + 6;
             abStack_d0[iVar17] = bVar13;
             local_1b1 = local_1b1 & bVar13;
@@ -7323,15 +7312,11 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
             local_198 = pBounds[0x11] + pBounds[0xe] * fVar5;
             BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)pVertices, (br_matrix34*)(piVar10 + 0x23));
             local_16c = local_1c0 - (float)piVar23[0x2c];
-            local_168 = local_1bc - (float)piVar23[0x2d];
-            local_164 = local_1b8 - (float)piVar23[0x2e];
             BrMatrix34TApplyV((br_vector3*)&local_154, (br_vector3*)&local_16c, (br_matrix34*)piVar18);
             BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)pVertices, (br_matrix34*)(*piVar10 + 0x2c));
             piVar18 = local_190;
             iVar17 = *local_190;
             local_16c = local_1c0 - *(float*)(iVar17 + 0x50);
-            local_168 = local_1bc - *(float*)(iVar17 + 0x54);
-            local_164 = local_1b8 - *(float*)(iVar17 + 0x58);
             BrMatrix34TApplyV((br_vector3*)&local_18c, (br_vector3*)&local_16c, (br_matrix34*)(iVar17 + 0x2c));
             local_18c = local_18c - local_154;
             local_188 = local_188 - local_150;
@@ -7360,7 +7345,6 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
             do {
                 bVar13 = *local_180;
                 bVar2 = local_180[1];
-                uVar16 = (unsigned int)local_180 >> 8;
                 if ((abStack_d0[bVar13] & abStack_d0[bVar2] & 0x3f) == 0) {
                     abStack_d0[bVar13] = abStack_d0[bVar13] | 0x80;
                     bVar3 = abStack_d0[bVar2];
@@ -7417,15 +7401,11 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
                         local_198 = *(float*)(pBounds + 0x11) + *pVertices * fVar5;
                         BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)(pBounds + 0xf), (br_matrix34*)piVar1);
                         local_16c = local_1c0 - (float)piVar18[0x2c];
-                        local_168 = local_1bc - (float)piVar18[0x2d];
-                        local_164 = local_1b8 - (float)piVar18[0x2e];
                         BrMatrix34TApplyV((br_vector3*)&local_154, (br_vector3*)&local_16c, (br_matrix34*)piVar23);
                         BrMatrix34ApplyP((br_vector3*)&local_1c0, (br_vector3*)(pBounds + 0xf), (br_matrix34*)(*local_1a4 + 0x2c));
                         piVar18 = local_190;
                         iVar17 = *local_190;
                         local_148 = local_1c0 - *(float*)(iVar17 + 0x50);
-                        local_144 = local_1bc - *(float*)(iVar17 + 0x54);
-                        local_140 = local_1b8 - *(float*)(iVar17 + 0x58);
                         BrMatrix34TApplyV((br_vector3*)&local_18c, (br_vector3*)&local_148, (br_matrix34*)(iVar17 + 0x2c));
                         local_18c = local_18c - local_154;
                         local_188 = local_188 - local_150;
@@ -7437,23 +7417,15 @@ int C2_HOOK_FASTCALL FUN_004269c0(tPhysics_object* pObject1, tPhysics_object* pO
                             BrMatrix34ApplyP((br_vector3*)&local_124, (br_vector3*)&local_1a0, (br_matrix34*)piVar1);
                             BrMatrix34ApplyP((br_vector3*)&local_100, (br_vector3*)&local_1a0, (br_matrix34*)(*local_1a4 + 0x2c));
                             local_e8 = local_130 - (float)piVar10[0x2c];
-                            local_e4 = local_12c - (float)piVar10[0x2d];
-                            local_e0 = local_128 - (float)piVar10[0x2e];
                             BrMatrix34TApplyV((br_vector3*)local_6c, (br_vector3*)&local_e8, (br_matrix34*)piVar1);
                             iVar17 = *local_1a4;
                             local_10c = local_f4 - *(float*)(iVar17 + 0x50);
-                            local_108 = local_f0 - *(float*)(iVar17 + 0x54);
-                            local_104 = local_ec - *(float*)(iVar17 + 0x58);
                             BrMatrix34TApplyV((br_vector3*)local_78, (br_vector3*)&local_10c, (br_matrix34*)(iVar17 + 0x2c));
                             BrMatrix34TApplyV((br_vector3*)local_dc, (br_vector3*)&local_1b0, (br_matrix34*)piVar1);
                             local_118 = local_124 - (float)piVar18[0x2c];
-                            local_114 = local_120 - (float)piVar18[0x2d];
-                            local_110 = local_11c - (float)piVar18[0x2e];
                             BrMatrix34TApplyV((br_vector3*)local_90, (br_vector3*)&local_118, (br_matrix34*)piVar23);
                             iVar17 = *piVar11;
                             local_13c = local_100 - *(float*)(iVar17 + 0x50);
-                            local_138 = local_fc - *(float*)(iVar17 + 0x54);
-                            local_134 = local_f8 - *(float*)(iVar17 + 0x58);
                             BrMatrix34TApplyV((br_vector3*)local_84, (br_vector3*)&local_13c, (br_matrix34*)(iVar17 + 0x2c));
                             BrMatrix34TApplyV((br_vector3*)local_dc, (br_vector3*)&local_1b0, (br_matrix34*)piVar23);
                         }
@@ -7901,7 +7873,7 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0045d5e0
-void C2_HOOK_FASTCALL FUN_0045d5e0(const float* ray_end, const float* ray_start, const br_vector3* sphere1_center, const br_vector3* sphere2_center, float* factor_out, br_vector3* normal_out) {
+void C2_HOOK_FASTCALL FUN_0045d5e0(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor) {
     float fVar1;
     float fVar2;
     float fVar3;
@@ -7915,17 +7887,17 @@ void C2_HOOK_FASTCALL FUN_0045d5e0(const float* ray_end, const float* ray_start,
     const float* in_ECX;
     const float* in_EDX;
 
-    in_ECX = ray_end;
-    in_EDX = ray_start;
-    *factor_out = 100.0f;
-    fVar3 = sphere2_center->v[0] - sphere1_center->v[0];
-    fVar1 = sphere2_center->v[1] - sphere1_center->v[1];
-    fVar4 = sphere2_center->v[2] - sphere1_center->v[2];
+    in_ECX = (const float*)pSphere1;
+    in_EDX = (const float*)pSphere2;
+    *pFactor = 100.0f;
+    fVar3 = pEnd->v[0] - pStart->v[0];
+    fVar1 = pEnd->v[1] - pStart->v[1];
+    fVar4 = pEnd->v[2] - pStart->v[2];
     fVar2 = fVar4 * fVar4 + fVar1 * fVar1 + fVar3 * fVar3;
-    fVar6 = sphere1_center->v[1] - in_ECX[2];
-    fVar7 = sphere1_center->v[2] - in_ECX[3];
+    fVar6 = pStart->v[1] - in_ECX[2];
+    fVar7 = pStart->v[2] - in_ECX[3];
     fVar8 = in_ECX[0] + in_EDX[0];
-    fVar5 = sphere1_center->v[0] - in_ECX[1];
+    fVar5 = pStart->v[0] - in_ECX[1];
     if (1e-06f <= fVar2) {
         fVar9 = -((fVar7 * fVar4 + fVar6 * fVar1 + fVar5 * fVar3) / fVar2);
         fVar10 = (fVar7 * fVar7 + fVar6 * fVar6 + fVar5 * fVar5) - fVar9 * fVar9 * fVar2;
@@ -7939,24 +7911,24 @@ void C2_HOOK_FASTCALL FUN_0045d5e0(const float* ray_end, const float* ray_start,
             fVar7 = fVar4 * fVar2 - fVar7;
             fVar5 = fVar3 * fVar2 - fVar5;
             fVar1 = (float)sqrt(fVar5 * fVar5 + fVar7 * fVar7 + fVar6 * fVar6);
-            *factor_out = fVar9;
-            normal_out->v[0] = fVar5;
-            normal_out->v[1] = fVar6;
-            normal_out->v[2] = fVar7;
+            *pFactor = fVar9;
+            pNormal->v[0] = fVar5;
+            pNormal->v[1] = fVar6;
+            pNormal->v[2] = fVar7;
             if (2.3841858e-07f < fVar1) {
                 fVar1 = 1.0f / fVar1;
-                normal_out->v[0] = fVar1 * fVar5;
-                normal_out->v[1] = fVar1 * fVar6;
-                normal_out->v[2] = fVar1 * fVar7;
+                pNormal->v[0] = fVar1 * fVar5;
+                pNormal->v[1] = fVar1 * fVar6;
+                pNormal->v[2] = fVar1 * fVar7;
                 return;
             }
-            normal_out->v[0] = 1.0f;
-            normal_out->v[1] = 0.0f;
-            normal_out->v[2] = 0.0f;
+            pNormal->v[0] = 1.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
             return;
         }
     }
-    PointSphereCollision((br_vector3*)(in_ECX + 1), sphere2_center, normal_out->v[0], (br_vector3*)factor_out, &normal_out->v[0]);
+    PointSphereCollision((br_vector3*)(in_ECX + 1), pEnd, fVar8, pNormal, pFactor);
     return;
 }
 #ifdef REC2_MATCHING
