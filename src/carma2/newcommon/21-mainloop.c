@@ -1321,7 +1321,7 @@ void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
 }
 
 // FUNCTION: CARMA2_HW 0x00403cc0
-void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
+void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
     extern float gReplay_rate;
     extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
@@ -1337,10 +1337,10 @@ void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
     extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
     extern tPreprocess_AR_callback PreProcess;
     extern tPostProcess_AR_callback PostProcess;
-    extern void C2_HOOK_FASTCALL FUN_00403cc0(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 
     gTime_of_last_zappy_headups = 0;
-    FUN_00403cc0(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
+    ARDoActionReplay(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
 }
 
 // GLOBAL: CARMA2_HW 0x0065fbf8

@@ -107,7 +107,7 @@ extern void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld
 extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
 extern int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 
-extern void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt);
-extern void C2_HOOK_FAKE_THISCALL RepositionObjectSiblings(tPhysics_object* pObject, undefined4 arg2, float pDt);
+extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt);
+extern void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, undefined4 arg2, float pDt);
 
 #endif // GUARD_60_PHIL_H

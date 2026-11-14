@@ -2261,7 +2261,7 @@ have_groove:
 }
 
 /* (inlined into MungeSmashMaterialNames in the original) */
-static __inline void SplondificatalizeIdentifier(br_material* pMaterial, char** ppIdentifier, int pIndex) {
+static __inline void SplondificatalizeIdentifierInline(br_material* pMaterial, char** ppIdentifier, int pIndex) {
     int len;
     char original_suffix[64];
     char new_identifier[64];
@@ -2300,7 +2300,7 @@ void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
         item_spec = gTrack_smashable_environment_specs;
         do {
             if (item_spec->trigger_type == kSmashableTrigger_Material) {
-                SplondificatalizeIdentifier(
+                SplondificatalizeIdentifierInline(
                     item_spec->trigger_object.material,
                     &item_spec->trigger_object.material->identifier,
                     i);

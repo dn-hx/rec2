@@ -1065,10 +1065,10 @@ extern void C2_HOOK_FASTCALL DRVector3Diminish(br_vector3* pV1, const br_vector3
 extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 extern float gGravity_multiplier;
 
-// PARTIAL 88.61%: RepositionObjectGroup 0x004c2830 - body complete; remaining diff is x87 scheduling of the
+// PARTIAL 88.61%: InterpolateSingleObject 0x004c2830 - body complete; remaining diff is x87 scheduling of the
 // three v*dt products (the original keeps them in st registers, this build spills/reorders by two instructions).
 // FUNCTION: CARMA2_HW 0x004c2830
-void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt) {
+void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt) {
     tPhysics_object* pChild;
     float t0;
     float t1;
@@ -1082,13 +1082,13 @@ void C2_HOOK_FASTCALL RepositionObjectGroup(tPhysics_object* pObject, float pDt)
     pObject->actor->t.t.mat.m[3][2] += t2;
     SimpleRotate(pObject, pDt);
     for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
-        RepositionObjectGroup(pChild, pDt);
+        InterpolateSingleObject(pChild, pDt);
     }
 }
 
-// PARTIAL 72.73%: RepositionObjectSiblings 0x004c28a0 [sonnet] - extra stack temp (push ecx) and xor edx,edx from fake thiscall; x87 order differs
+// PARTIAL 72.73%: InterpolateObjects 0x004c28a0 [sonnet] - extra stack temp (push ecx) and xor edx,edx from fake thiscall; x87 order differs
 // FUNCTION: CARMA2_HW 0x004c28a0
-void C2_HOOK_FAKE_THISCALL RepositionObjectSiblings(tPhysics_object* pObject, undefined4 arg2, float pDt) {
+void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, undefined4 arg2, float pDt) {
     float t0;
     float t1;
     float t2;
@@ -1102,7 +1102,7 @@ void C2_HOOK_FAKE_THISCALL RepositionObjectSiblings(tPhysics_object* pObject, un
         pObject->actor->t.t.mat.m[3][2] += t2;
         SimpleRotate(pObject, pDt);
         if (pObject->child != NULL) {
-            RepositionObjectSiblings(pObject->child REC2_THISCALL_EDX, pDt);
+            InterpolateObjects(pObject->child REC2_THISCALL_EDX, pDt);
         }
     }
 }
@@ -1519,7 +1519,7 @@ static void C2_HOOK_FASTCALL PHILInterpolateObjects(tPhysics_object* pObjects, t
 
         object_info = object->field_0x240;
         if (object_info != NULL && object_info->field_0x8 == 2) {
-            RepositionObjectGroup(object, -dt);
+            InterpolateSingleObject(object, -dt);
         }
     }
 }
@@ -1581,7 +1581,7 @@ int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_ti
 
                     object_info = object->field_0x240;
                     if (object_info != NULL && object_info->field_0x8 == 2) {
-                        RepositionObjectGroup(object, -dt);
+                        InterpolateSingleObject(object, -dt);
                     }
                 }
             }
@@ -1648,7 +1648,7 @@ static void C2_HOOK_FASTCALL CheckObjectsPostionInList(tPhysics_object* pObject,
     }
 }
 
-static void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList) {
+static void C2_HOOK_FASTCALL MakeObjectDoSomethingStatic(tPhysics_object* pObject, tPhysics_object* pList) {
     tPhysics_object* child;
     tPhysics_object* current;
 
@@ -1698,7 +1698,7 @@ void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** 
     gPrepared_objects = 1;
     CheckObjectsPostionInList(pObject, pList);
     if (gINT_006940ac) {
-        MakeObjectDoSomething(pObject, *pList);
+        MakeObjectDoSomethingStatic(pObject, *pList);
     }
     pReduced = gReduced_object_list;
     if (pReduced != NULL) {

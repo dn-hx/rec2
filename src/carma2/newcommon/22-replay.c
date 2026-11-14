@@ -1080,7 +1080,7 @@ void C2_HOOK_FASTCALL ARUndoShitMine(int field_0x0, br_vector3* pPos) {
 }
 
 // FUNCTION: CARMA2_HW 0x004df200
-void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4) {
+void C2_HOOK_FASTCALL ARPowerupGot(int field_0x0, int field_0x4) {
     tPowerup* powerup;
     tCar_spec* car;
 
@@ -1092,7 +1092,7 @@ void C2_HOOK_FASTCALL WorkerPowerupGot(int field_0x0, int field_0x4) {
 }
 
 // FUNCTION: CARMA2_HW 0x004df210
-void C2_HOOK_FASTCALL WorkerPowerupLose(int field_0x0, int field_0x4) {
+void C2_HOOK_FASTCALL ARPowerupLose(int field_0x0, int field_0x4) {
     tPowerup* powerup;
     tCar_spec* car;
 
@@ -1113,22 +1113,22 @@ void C2_HOOK_FASTCALL DoInitialTail(void) {
     }
 }
 
-void C2_HOOK_FASTCALL ARDoPowerupRespawn(br_actor* pActor) {
+void C2_HOOK_FASTCALL ARDoPowerupRespawnHelper(br_actor* pActor) {
     pActor->render_style = BR_RSTYLE_FACES;
 }
 
 // FUNCTION: CARMA2_HW 0x004e07d0
-void C2_HOOK_FASTCALL WorkerPowerupRespawn(int field_0x0, int field_0x4) {
-    ARDoPowerupRespawn((br_actor*)(uintptr_t)field_0x0);
+void C2_HOOK_FASTCALL ARDoPowerupRespawn(int field_0x0, int field_0x4) {
+    ARDoPowerupRespawnHelper((br_actor*)(uintptr_t)field_0x0);
 }
 
-void C2_HOOK_FASTCALL ARUndoPowerupRespawn(br_actor* pActor) {
+void C2_HOOK_FASTCALL ARUndoPowerupRespawnHelper(br_actor* pActor) {
     pActor->render_style = BR_RSTYLE_NONE;
 }
 
 // FUNCTION: CARMA2_HW 0x004e07e0
-void C2_HOOK_FASTCALL WorkerPowerupRespawnUndo(int field_0x0, int field_0x4) {
-    ARUndoPowerupRespawn((br_actor*)(uintptr_t)field_0x0);
+void C2_HOOK_FASTCALL ARUndoPowerupRespawn(int field_0x0, int field_0x4) {
+    ARUndoPowerupRespawnHelper((br_actor*)(uintptr_t)field_0x0);
 }
 
 // FUNCTION: CARMA2_HW 0x004eb8f0

@@ -1275,7 +1275,7 @@ void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark) {
     DWORDLONG shifted;
 
     gKeys_pressed = 0;
-    SDL3ServiceMessages();
+    Win32ServiceMessages();
     if (gWindowActiveState == 2) {
         if (gTime_app_activated != 0) {
             /* PDGetTotalTime (0x51d410) is inlined here in the original */

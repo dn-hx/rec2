@@ -421,7 +421,7 @@ void C2_HOOK_FASTCALL ToggleMiniMap(void) {
     } else {
         NewTextHeadupSlot(4, 0, 500, -4, GetMiscString(eMiscString_minimap_off));
     }
-    UpdateMapAndSaveOptions();
+    MapChanged();
 }
 
 // CheckToggles
@@ -726,13 +726,13 @@ extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
 extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pCollision_info, tU32 pDisable);
 extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
-extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 
-static void AlignChildren(tPhysics_object* pCollision_info) {
+static void AlignChildrenStatic(tPhysics_object* pCollision_info) {
     tPhysics_object* child;
     int i;
     int j;
@@ -745,7 +745,7 @@ static void AlignChildren(tPhysics_object* pCollision_info) {
         }
         BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
         BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
-        FlipUpCollisionInfo(child);
+        AlignChildren(child);
     }
 }
 
@@ -816,7 +816,7 @@ void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
                 BrMatrix34Copy(&pCar_spec->last_safe_positions[k], &pCar_spec->last_safe_positions[k + 1]);
             }
         }
-        AlignChildren(pCar_spec->collision_info);
+        AlignChildrenStatic(pCar_spec->collision_info);
         PositionChildren(pCar_spec->collision_info);
         for (j = 0; !TestForCarInSensiblePlace(pCar_spec, &p) && j < 10; j++) {
             BrVector3InvScale(&p, &p, 2.f * WORLD_SCALE);
@@ -2331,7 +2331,7 @@ void C2_HOOK_FASTCALL CheckKevKeys(void) {
 #endif
 // (reference only)
 // FUNCTION: CARMA2_HW 0x00442e10
-void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info) {
+void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info) {
     tPhysics_object* child;
 
     for (child = pCollision_info->child; child != NULL; child = child->next) {
@@ -2345,7 +2345,7 @@ void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info) {
         }
         BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
         BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
-        FlipUpCollisionInfo(child);
+        AlignChildren(child);
     }
 }
 #ifdef REC2_MATCHING
@@ -2803,9 +2803,9 @@ void C2_HOOK_FASTCALL FUN_0045c240(void) {
         }
     } else {
         gINT_0068b8e8 = 1;
-        MoveHeadupTo(gProgram_state.frame_rate_headup, 10, 350);
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
         for (i = 0; i < 22; i++) {
-            MoveHeadupTo(gRace_head_ups[i], 10, 120 + i * 10);
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
             ChangeHeadupFont(gRace_head_ups[i], -2);
         }
         CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
@@ -2941,9 +2941,9 @@ void C2_HOOK_FASTCALL FUN_0045a670(void) {
         }
     } else {
         gINT_0068b8e4 = 1;
-        MoveHeadupTo(gProgram_state.frame_rate_headup, 10, 350);
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
         for (i = 0; i < 22; i++) {
-            MoveHeadupTo(gRace_head_ups[i], 10, 120 + i * 10);
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
             ChangeHeadupFont(gRace_head_ups[i], -2);
         }
         CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
@@ -2990,9 +2990,9 @@ void C2_HOOK_FASTCALL FUN_0045acf0(void) {
         }
     } else {
         gINT_0068b8e4 = 2;
-        MoveHeadupTo(gProgram_state.frame_rate_headup, 10, 350);
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
         for (i = 0; i < 22; i++) {
-            MoveHeadupTo(gRace_head_ups[i], 10, 120 + i * 10);
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
             ChangeHeadupFont(gRace_head_ups[i], -2);
         }
         CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);

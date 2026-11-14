@@ -170,7 +170,7 @@ extern float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_sca
 extern void C2_HOOK_FASTCALL LeftInventory(void);
 extern void C2_HOOK_FASTCALL RightInventory(void);
 extern void C2_HOOK_FASTCALL SwitchModelComplexity(void);
-extern void C2_HOOK_FASTCALL FlipUpCollisionInfo(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
 extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
 extern void C2_HOOK_FASTCALL FUN_0045c240(void);

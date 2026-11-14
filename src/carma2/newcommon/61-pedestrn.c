@@ -1940,7 +1940,7 @@ extern void C2_HOOK_FASTCALL AcceleratePed(tPedestrian* pPed, tU32 pTime);
 extern void C2_HOOK_FASTCALL SetCharacterPositionAR(tPed_character_instance* pCharacter, br_vector3* pPos, int pArg3);
 
 /* StopSmoothTurning: no standalone symbol in the original; inlined into MungePedestrians
-   0x4d3740 (two sites) and into SetThisPedPhysicing/SmoothTurnPedestrian. static so MSVC
+   0x4d3740 (two sites) and into SetThisPedPhysicingStatic/SmoothTurnPedestrian. static so MSVC
    expands it at the call sites; no // FUNCTION: annotation because it has no address. */
 static void C2_HOOK_FASTCALL StopSmoothTurning(tPedestrian* pPed) {
     pPed->field_0x0c->field_0x6c = 0;
@@ -1949,10 +1949,10 @@ static void C2_HOOK_FASTCALL StopSmoothTurning(tPedestrian* pPed) {
    this slot flips DisposePersonality 0x4077f0, BonerPedMovedByPhysics 0x40b770 and
    FUN_00404290 0x404290, so the body lives at the TU end. */
 extern void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime);
-/* SetThisPedPhysicing: no standalone symbol in the original; inlined into MungePedestrians
+/* SetThisPedPhysicingStatic: no standalone symbol in the original; inlined into MungePedestrians
    0x4d3740 (two sites: the falling branch and the low-gravity branch). The original expands
    to `field_0x6c = 0` followed by SetCharacterPhysicsLevelAR(character, 5). */
-static void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed) {
+static void C2_HOOK_FASTCALL SetThisPedPhysicingStatic(tPedestrian* pPed) {
     extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 
     StopSmoothTurning(pPed);
@@ -2291,10 +2291,10 @@ void C2_HOOK_FASTCALL CheckPowerupMoveSubstitution(tPedestrian* pPed, tU32 pTime
     }
 }
 /* Forwarder kept at the old stub slot (a real body here flips 0x4091e0/0x40b770); the real
-   MungeCharacterAnimation (0x409ca0) is MungeCharacterAnimationBody at the end of the TU. */
-extern void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
-void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
-    MungeCharacterAnimationBody(pCharacter, pTime, pArg3);
+   MungeCharacterAnimation (0x409ca0) is the definition at the end of the TU. */
+extern void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
+void C2_HOOK_FASTCALL MungeCharacterAnimationFwd(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
+    MungeCharacterAnimation(pCharacter, pTime, pArg3);
 }
 /* StillifyCorpse: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
    at 0x4d4e95-0x4d4ec0 and into ActiveHalted 0x4d1030 at 0x4d174d-0x4d178c / 0x4d1a9e-0x4d1acb
@@ -6097,7 +6097,7 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                         continue;
                     }
                     face_cache->field_0x30 = NULL;
-                    SetThisPedPhysicing(ped);
+                    SetThisPedPhysicingStatic(ped);
                     SetPedMove(ped, 72, -1, 0, 0, the_time, ePed_action_falling);
                     ped->action = ePed_action_falling;
                 }
@@ -6133,7 +6133,7 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                     && MUNGE_PED_COLLISION_OBJECT(ped)->last_special_volume->gravity_multiplier < 1.f
                     && gGravity_multiplier == 1.f
                     && MUNGE_PED_COLLISION_OBJECT(ped)->water_depth_factor == 1.f) {
-                SetThisPedPhysicing(ped);
+                SetThisPedPhysicingStatic(ped);
                 SetRandomOmega(MUNGE_PED_COLLISION_OBJECT(ped), 2.f);
             }
         }
@@ -6158,7 +6158,7 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
                 SetPedMove(ped, 30, -1, 0, 0, the_time, -1);
             }
         }
-        MungeCharacterAnimation(ped->character, the_time, 0);
+        MungeCharacterAnimationFwd(ped->character, the_time, 0);
         if (!(ped->character->field_0x14 & 0x4)) {
             tPhysics_object* simple_coll_info = ped->character->personality->form->simple_physicing[ped->character->field_0x5].collision_info;
             if (simple_coll_info != NULL) {
@@ -7594,7 +7594,7 @@ extern int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance*
 extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
 // PARTIAL 42.01%: MungeCharacterAnimation 0x409ca0 - regalloc (original keeps 0 in ebx, pTime in ebp), frame 0x24 vs 0x28, tail x87 order
 // FUNCTION: CARMA2_HW 0x00409ca0
-void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
+void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
     tPed_move* model;
     br_matrix34* work;
     float kx;

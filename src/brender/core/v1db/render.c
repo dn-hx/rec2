@@ -692,7 +692,7 @@ br_renderbounds_cbfn* C2_HOOK_CDECL BrZbRenderBoundsCallbackSet(br_renderbounds_
 }
 
 // FUNCTION: CARMA2_HW 0x00523100
-br_renderbounds_cbfn* C2_HOOK_CDECL BrZsRenderBoundsCallbackSet(br_renderbounds_cbfn* new_cbfn) {
+br_renderbounds_cbfn* C2_HOOK_CDECL BrZsSetRenderBoundsCallback(br_renderbounds_cbfn* new_cbfn) {
 
     if ((v1db.zx_active & BR_ZX_ZS_ACTIVE_MASK) == 0) {
         BrFailure("BrZsSetRenderBoundsCallback called before BrZsBegin");

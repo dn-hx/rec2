@@ -57,7 +57,7 @@ extern int gCount_crush_detach_list;
 extern tCrush_detach_list_item gCrush_detach_list[16];
 extern tU32 gINT_0067be84;
 
-// Constants used by FUN_00437480 (SetUpSemiDetachedBitJoint / similar)
+// Constants used by SetUpSemiDetachedBitJoint (SetUpSemiDetachedBitJoint / similar)
 extern br_scalar gFLT_EPSILON_00589a5c;        // 0x589a5c = 2.3841858e-07
 extern double gDouble_00589a60;                // 0x589a60 = 1.0 (double)
 /* CrushBendFlapRend scales, used by 13-crush1.c only. Declared here adds 3 symbols
@@ -246,7 +246,7 @@ extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pC
 // SetUpSemiDetachedBitJoint
 
 // FUNCTION: CARMA2_HW 0x00437480
-extern void C2_HOOK_FASTCALL FUN_00437480(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
+extern void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
 
 // BitIsInBentPartOfCar
 

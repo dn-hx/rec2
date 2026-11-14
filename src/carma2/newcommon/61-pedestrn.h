@@ -551,7 +551,7 @@ extern int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharact
 extern void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, br_vector3* pOmega);
 extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL FUN_004d3600(void);
-extern void C2_HOOK_FASTCALL MungeCharacterAnimationBody(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
+extern void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3);
 extern void C2_HOOK_FASTCALL MutatePed(tPed_character_instance* pCharacter, undefined4 pArg2, char* pX, char* pY, char* pZ);
 extern void C2_HOOK_CDECL FUN_004d6cc0(void);
 

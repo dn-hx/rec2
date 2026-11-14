@@ -955,7 +955,7 @@ void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044a860
-void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY) {
+void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pX, int pY) {
     tHeadup* the_headup;
     int delta_x;
 
@@ -969,7 +969,7 @@ void C2_HOOK_FASTCALL MoveHeadupKeepOffset(int pHeadup_index, int pX, int pY) {
 }
 
 // FUNCTION: CARMA2_HW 0x0044a8a0
-void C2_HOOK_FASTCALL MoveHeadupTo(int pHeadup_index, int pNew_x, int pNew_y) {
+void C2_HOOK_FASTCALL FUN_0044a8a0(int pHeadup_index, int pNew_x, int pNew_y) {
     tHeadup* the_headup;
 
     if (pHeadup_index >= 0) {

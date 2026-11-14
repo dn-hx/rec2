@@ -1847,7 +1847,7 @@ void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum) 
     MungeMetaCharacters(pText, pMeta, text);
 }
 
-void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h) {
+void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLockDup(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h) {
 
     if (gLock_often) {
         PossibleUnlock(0);

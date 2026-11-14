@@ -1095,7 +1095,7 @@ int gBack_original_base_x;
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x005191b0
-void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
+void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
 
     BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
 }
@@ -1136,7 +1136,7 @@ void C2_HOOK_FASTCALL MapStuffBeforeRender(void) {
         if (gCurrent_race.map_image != NULL) {
             if (gGraf_data_index != 0) {
                 PossibleUnlock(1);
-                FRONTEND_Redraw(gBack_screen, -gBack_screen->origin_x, -gBack_screen->origin_y, gCurrent_race.map_image, gCurrent_race.map_image->origin_x, gCurrent_race.map_image->origin_y, 640, 480);
+                DrPixelmapRectangleCopyPossibleLock(gBack_screen, -gBack_screen->origin_x, -gBack_screen->origin_y, gCurrent_race.map_image, gCurrent_race.map_image->origin_x, gCurrent_race.map_image->origin_y, 640, 480);
             } else {
                 DRPixelmapCopy(gBack_screen, gCurrent_race.map_image);
             }
@@ -1347,14 +1347,14 @@ void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap) {
     BrMaterialAdd(gCar_icons_model_actor->material);
 }
 
-static void C2_HOOK_FASTCALL MapChanged(void) {
+static void C2_HOOK_FASTCALL MapChangedStatic(void) {
 
     InitMap();
     SaveOptions();
 }
 
 // FUNCTION: CARMA2_HW 0x00497610
-void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void) {
+void C2_HOOK_FASTCALL MapChanged(void) {
     InitMap();
     SaveOptions();
 }
@@ -1367,26 +1367,26 @@ void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0, int pKey1) {
         if (gHeadup_map_y_float < 0.0f) {
             gHeadup_map_y_float = 0.0f;
         }
-        MapChanged();
+        MapChangedStatic();
     } else if (KeyIsDown(32) && pKey0) {
         gHeadup_map_y_float = (float)((double)gHeadup_map_y_float + (double)gFrame_period / 20.0);
         if (gHeadup_map_y_float + gHeadup_map_h_float > (float)gBack_screen->height) {
             gHeadup_map_y_float = (float)(gBack_screen->height - gHeadup_map_h);
         }
-        MapChanged();
+        MapChangedStatic();
     }
     if (KeyIsDown(33) && pKey0) {
         gHeadup_map_x_float = (float)((double)gHeadup_map_x_float - (double)gFrame_period / 20.0);
         if (gHeadup_map_x_float < 0.0f) {
             gHeadup_map_x_float = 0.0f;
         }
-        MapChanged();
+        MapChangedStatic();
     } else if (KeyIsDown(34) && pKey0) {
         gHeadup_map_x_float = (float)((double)gHeadup_map_x_float + (double)gFrame_period / 20.0);
         if (gHeadup_map_x_float + gHeadup_map_w_float + 8.0f > (float)gBack_screen->width) {
             gHeadup_map_x_float = (float)(gBack_screen->width - gHeadup_map_w - 8);
         }
-        MapChanged();
+        MapChangedStatic();
     }
 }
 

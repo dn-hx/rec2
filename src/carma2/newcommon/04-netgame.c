@@ -451,18 +451,18 @@ void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits) {
     switch (gHeadup_detail_level) {
     case 0:
     case 3:
-        MoveHeadupKeepOffset(gNet_cash_headup, 0x50, 0x19);
-        MoveHeadupKeepOffset(gNet_ped_headup, 0x50, 0);
+        MoveHeadupTo(gNet_cash_headup, 0x50, 0x19);
+        MoveHeadupTo(gNet_ped_headup, 0x50, 0);
         break;
     case 1:
     case 4:
-        MoveHeadupKeepOffset(gNet_cash_headup, 0x1e0, 0x19);
-        MoveHeadupKeepOffset(gNet_ped_headup, 0x1e0, 0);
+        MoveHeadupTo(gNet_cash_headup, 0x1e0, 0x19);
+        MoveHeadupTo(gNet_ped_headup, 0x1e0, 0);
         break;
     case 2:
     case 5:
-        MoveHeadupKeepOffset(gNet_cash_headup, 0x1ae, 0x3c);
-        MoveHeadupKeepOffset(gNet_ped_headup, 0x1ae, 0x14);
+        MoveHeadupTo(gNet_cash_headup, 0x1ae, 0x3c);
+        MoveHeadupTo(gNet_ped_headup, 0x1ae, 0x14);
         break;
     default:
         break;
@@ -1362,7 +1362,7 @@ select_wasted_it:
 #endif
 
 // FUNCTION: CARMA2_HW 0x0049bad0
-void C2_HOOK_FAKE_THISCALL FUN_0049bad0(void* pThis) {
+void C2_HOOK_FAKE_THISCALL ReceivedGameplay(void* pThis) {
     extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
     extern int C2_HOOK_FASTCALL PermitNetServiceReentrancy(void);
     extern void C2_HOOK_FASTCALL NetService(int pIn_race);

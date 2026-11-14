@@ -11,7 +11,7 @@
 #include "c2_string.h"
 
 /* BuyCurrentCar and its globals live here, not in 72-interface.c: 72-interface.c must not include 30-opponent.h
-   (that include changes MSVC's codegen of SortScores 0x004743c0 from 100% to 68.97%) */
+   (that include changes MSVC's codegen of SortScores_1 0x004743c0 from 100% to 68.97%) */
 
 // GLOBAL: CARMA2_HW 0x00763720
 tWreck_gallery_sell_info gWreck_gallery_sell_infos[32];

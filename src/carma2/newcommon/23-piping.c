@@ -2787,14 +2787,14 @@ void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyPowerupGot(tPipe_chunk** pChunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
+    return ARPowerupGot(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9c10
 void C2_HOOK_FASTCALL ApplyPowerupLose(tPipe_chunk** pChunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupLose(chunk->field_0x0, chunk->field_0x4);
+    return ARPowerupLose(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9c20
@@ -2872,7 +2872,7 @@ void C2_HOOK_FASTCALL ApplyNapalmBolt(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplyPowerupRespawn(tPipe_chunk** pChunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupRespawn(chunk->field_0x0, chunk->field_0x4);
+    return ARDoPowerupRespawn(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9d50
@@ -3228,14 +3228,14 @@ void C2_HOOK_FASTCALL UndoGrooveOnOff(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
 void C2_HOOK_FASTCALL UndoPowerupGot(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupLose(chunk->field_0x0, chunk->field_0x4);
+    return ARPowerupLose(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004ca300
 void C2_HOOK_FASTCALL UndoPowerupLose(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupGot(chunk->field_0x0, chunk->field_0x4);
+    return ARPowerupGot(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004ca310
@@ -3276,7 +3276,7 @@ void C2_HOOK_FASTCALL UndoNapalmBolt(tPipe_chunk** pChunk, tPipe_chunk* pPrev_ch
 void C2_HOOK_FASTCALL UndoPowerupRespawn(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
     tPipe_chunk_powerup* chunk = (tPipe_chunk_powerup*)*pChunk;
 
-    return WorkerPowerupRespawnUndo(chunk->field_0x0, chunk->field_0x4);
+    return ARUndoPowerupRespawn(chunk->field_0x0, chunk->field_0x4);
 }
 
 // FUNCTION: CARMA2_HW 0x004ca3c0

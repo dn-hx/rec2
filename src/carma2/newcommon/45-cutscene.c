@@ -436,7 +436,7 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
 // FUNCTION: CARMA2_HW 0x0047b990
 void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
@@ -465,7 +465,7 @@ void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
     gPixelFlags = pixelFlags;
     if (gCurrent_splash != NULL) {
         PixelmapSwapByteOrder(gCurrent_splash);
-        FRONTEND_Redraw(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
+        DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
         PDScreenBufferSwap(0);
         BrMapRemove(gCurrent_splash);
         BrPixelmapFree(gCurrent_splash);

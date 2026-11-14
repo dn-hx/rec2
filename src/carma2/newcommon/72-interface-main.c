@@ -61,7 +61,7 @@ tFrontend_spec gFrontend_MAIN = {
 
 
 /* FRONTEND_Main (, FrontEndProcessMenus) lives here, not in 72-interface.c:
-   additions to 72-interface.c shift MSVC's codegen of SortScores 0x004743c0 */
+   additions to 72-interface.c shift MSVC's codegen of SortScores_1 0x004743c0 */
 
 #include "02-init.h"
 #include "07-structur.h"
@@ -118,10 +118,10 @@ extern tU32 gFrontend_time_last_input;
 extern br_uint_32 gFrontend_APO_Colour_1;
 extern br_uint_32 gFrontend_APO_Colour_2;
 extern br_uint_32 gFrontend_APO_Colour_3;
-extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 
 extern int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL LoadGameScrollDownLoadGameScrollDown(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL LoadGameScrollDown(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL CarClickPrev(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL CarClickNext(tFrontend_spec* pFrontend);
 
@@ -159,7 +159,7 @@ tFrontend_spec gFrontend_LOAD_GAME = {
         { 0x401, temp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
         { 8, temp, &gFrontend_OPTIONS, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
         { 0x401, LoadGameScrollUp, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
-        { 0x401, LoadGameScrollDownLoadGameScrollDown, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
+        { 0x401, LoadGameScrollDown, NULL, 0, 0, 0, 0, 0, 0, 0, 1, 1, },
     }
 };
 
@@ -680,7 +680,7 @@ int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type) {
         gBack_screen->origin_x = 0;
         gBack_screen->origin_y = 0;
         if (gFrontend_backdrop != NULL) {
-            FRONTEND_Redraw(gBack_screen, 0, 0, gFrontend_backdrop, 0, 0, gFrontend_backdrop->width, gFrontend_backdrop->height);
+            DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gFrontend_backdrop, 0, 0, gFrontend_backdrop->width, gFrontend_backdrop->height);
         }
         if (gCurrent_frontend_spec != &gFrontend_LOAD_GAME
                 && gCurrent_frontend_spec != &gFrontend_NETSYNC

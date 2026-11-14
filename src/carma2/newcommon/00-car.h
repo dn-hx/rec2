@@ -230,7 +230,7 @@ extern void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData);
 extern void C2_HOOK_FASTCALL DoQueuedNetDetaching(void);
-extern void C2_HOOK_FASTCALL APTCPostCollisionTree(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL NewFaceListCallBack(tPhysics_object* pCollision, undefined4* arg2);
 extern void C2_HOOK_FASTCALL TestAutoSpecialVolume(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);

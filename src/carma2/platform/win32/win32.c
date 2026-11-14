@@ -352,7 +352,7 @@ char C2_HOOK_FASTCALL PDConvertToASCIILessThan128(char pChar) {
 int C2_HOOK_FASTCALL PDGetKeyboardCharacter(void) {
     unsigned int key;
 
-    SDL3ServiceMessages();
+    Win32ServiceMessages();
     if (gKeyboardBufferLength != 0) {
         key = gKeyboardBuffer[0];
         if (gKeyboardBufferLength > 1) {
@@ -393,7 +393,7 @@ C2_NORETURN void C2_HOOK_FASTCALL PDShutDownSystem(void) {
             SetWindowPos(gHWnd, NULL, -100, -100, 64, 64, SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
         }
         dr_dprintf("Servicing messages...");
-        SDL3ServiceMessages();
+        Win32ServiceMessages();
         dr_dprintf("Sending WM_SHOWWINDOW broadcast message...");
         SendMessageA(HWND_BROADCAST, WM_SHOWWINDOW, TRUE, 0);
         if (gIsFatalError) {
@@ -672,7 +672,7 @@ void C2_HOOK_FASTCALL PDSetPalette(br_pixelmap *pixelmap) {
 
 // FUNCTION: CARMA2_HW 0x0051cbe0
 int C2_HOOK_FASTCALL PDServiceSystem(tU32 pTime_since_last_call) {
-    SDL3ServiceMessages();
+    Win32ServiceMessages();
     return 0;
 }
 

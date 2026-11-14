@@ -78,9 +78,9 @@ extern void C2_HOOK_FASTCALL InitMap(void);
 
 extern void C2_HOOK_FASTCALL ConvertCarIcons(br_pixelmap* pMap);
 
-// static void C2_HOOK_FASTCALL MapChanged(void);
+// static void C2_HOOK_FASTCALL MapChangedStatic(void);
 
-extern void C2_HOOK_FASTCALL UpdateMapAndSaveOptions(void);
+extern void C2_HOOK_FASTCALL MapChanged(void);
 
 extern void C2_HOOK_FASTCALL CheckMapMoveKeys(int pKey0, int pKey1);
 
@@ -91,7 +91,7 @@ extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, 
 extern int C2_HOOK_FASTCALL NearestPowerOfTwo(int pValue);
 
 
-extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
 
 #endif // GUARD_62_GRAPHICS3_H

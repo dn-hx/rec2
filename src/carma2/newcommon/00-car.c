@@ -1389,7 +1389,7 @@ void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
 // FUNCTION: CARMA2_HW 0x004161a0
-void C2_HOOK_FASTCALL APTCPostCollisionTree(tPhysics_object* pObject) {
+void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject) {
     tPhysics_object* child;
     tCar_spec* car;
     int collided;
@@ -1411,7 +1411,7 @@ void C2_HOOK_FASTCALL APTCPostCollisionTree(tPhysics_object* pObject) {
             }
         }
         pObject->disable_move_rotate &= ~0x2;
-        APTCPostCollisionTree(pObject->child);
+        SetCollisionFlagsAndStuff(pObject->child);
     }
 }
 
@@ -1470,7 +1470,7 @@ void C2_HOOK_FASTCALL APTCPostCollision(void) {
     if (gNet_mode) {
         DoQueuedNetDetaching();
     }
-    APTCPostCollisionTree(gPHIL_list_collision_infos);
+    SetCollisionFlagsAndStuff(gPHIL_list_collision_infos);
 }
 
 // FUNCTION: CARMA2_HW 0x00414910

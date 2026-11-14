@@ -59,6 +59,6 @@ void C2_HOOK_CDECL BrZsModelRender(br_actor* actor, br_model* model, br_material
 
 br_renderbounds_cbfn* C2_HOOK_CDECL BrZbRenderBoundsCallbackSet(br_renderbounds_cbfn* new_cbfn);
 
-br_renderbounds_cbfn* C2_HOOK_CDECL BrZsRenderBoundsCallbackSet(br_renderbounds_cbfn* new_cbfn);
+br_renderbounds_cbfn* C2_HOOK_CDECL BrZsSetRenderBoundsCallback(br_renderbounds_cbfn* new_cbfn);
 
 #endif

@@ -2170,7 +2170,7 @@ tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActo
     extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
     extern void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor);
     extern void C2_HOOK_FASTCALL SetUpDetachedBitObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info);
-    extern void C2_HOOK_FASTCALL FUN_00437480(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
+    extern void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
     extern void C2_HOOK_FASTCALL LazyMoveModel(br_model* pModel, const br_vector3* pOffset);
     extern void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pActor_arg2, br_actor* pActor_arg3, tPhysics_object* pObject);
     extern int gCrush_deferred;
@@ -2369,7 +2369,7 @@ bit_found:
     SetUpDetachedBitObject(bit_object, pActor, user->models[0], detach_data, pCar->car_crush_spec, pArg6, pCar->collision_info);
     flap_data = crush_data->flap_data;
     if (flap_data == NULL) {
-        FUN_00437480(bit_object->physics_joint1, detach_data, 0, 0, &bit_object, pArg5);
+        SetUpSemiDetachedBitJoint(bit_object->physics_joint1, detach_data, 0, 0, &bit_object, pArg5);
     } else {
         SetUpFlapJoint(bit_object->physics_joint1, flap_data, user->models[0], bit_object, pArg5, pArg7, pArg8);
         *(tPhysics_object**)((tU8*)flap_data + 0x24) = bit_object;
@@ -8968,7 +8968,7 @@ LAB_004337fa:
 }
 
 // FUNCTION: CARMA2_HW 0x00437480
-void C2_HOOK_FASTCALL FUN_00437480(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos) {
+void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos) {
     br_vector3 local_c;
     br_scalar fVar3;
     br_scalar fVar4;

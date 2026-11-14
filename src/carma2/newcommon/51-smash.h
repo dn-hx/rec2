@@ -340,9 +340,9 @@ extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices
 extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector2* pUV, br_vector3* pOut);
 extern br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
-extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
+extern void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_material* pMaterial, char** pIdentifier, char pIndex);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
-extern void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
+extern void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed);
 extern void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4);
 extern int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBoneIndex);
 extern int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);

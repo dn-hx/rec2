@@ -1610,7 +1610,7 @@ extern int C2_HOOK_FASTCALL SetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL SetImmortalPeds(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL SetStupidPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetSuicidalPedestriansDup(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL GotVouchers(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL SetInstantHandbrake(tPowerup* pPowerup, tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL ShowPedestrians(tPowerup* pPowerup, tCar_spec* pCar);
@@ -1679,7 +1679,7 @@ tGot_proc* gGot_procs[56] = {
     SetDamageMultiplier,
     SetImmortalPeds,
     SetStupidPedestrians,
-    SetSuicidalPedestrians,
+    SetSuicidalPedestriansDup,
     GotVouchers,
     SetMassMultiplier,
     SetInstantHandbrake,
@@ -3141,13 +3141,13 @@ void C2_HOOK_FASTCALL ResetImmortalPeds(tPowerup* powerup, tCar_spec* car) {
 
 // FUNCTION: CARMA2_HW 0x004dcf40
 // FUNCTION: CARMA2_SW 0x004d9440
-int C2_HOOK_FASTCALL SetSuicidalPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* pPowerup, tCar_spec* pCar) {
 
     gPeds_suicidal = 1;
     return pPowerup - gPowerup_array;
 }
 
-int C2_HOOK_FASTCALL SetSuicidalPedestrians(tPowerup* powerup, tCar_spec* car) {
+int C2_HOOK_FASTCALL SetSuicidalPedestriansDup(tPowerup* powerup, tCar_spec* car) {
 
     gPeds_suicidal = 1;
     return powerup - gPowerup_array;

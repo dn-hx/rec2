@@ -839,7 +839,7 @@ int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
 
 // UpdateNetGameTypeScroller
 
-// NetGameTypeUp: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
+// NetGameTypeUp: defined after SortScores_1 (codegen of SortScores_1 0x004743c0 depends on what precedes it)
 
 // NetGameTypeDn
 
@@ -1893,7 +1893,7 @@ int C2_HOOK_FASTCALL LoadGameScrollUp(tFrontend_spec* pFrontend) {
 }
 
 // FUNCTION: CARMA2_HW 0x0046fb80
-int C2_HOOK_FASTCALL LoadGameScrollDownLoadGameScrollDown(tFrontend_spec* pFrontend) {
+int C2_HOOK_FASTCALL LoadGameScrollDown(tFrontend_spec* pFrontend) {
 
     if (gFrontend_load_game_index_top + 8 < gFrontend_count_saved_games && gFrontend_scroll_time_left == 0) {
         gFrontend_load_game_index_top += 1;
@@ -2408,7 +2408,7 @@ int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pConnected
     return pConnected->field_0x8 + offset;
 }
 
-// Generic_FindNextActiveItem: defined after SortScores (codegen of SortScores 0x004743c0 depends on what precedes it)
+// Generic_FindNextActiveItem: defined after SortScores_1 (codegen of SortScores_1 0x004743c0 depends on what precedes it)
 
 // Generic_FindPrevActiveItem
 
@@ -3121,7 +3121,7 @@ void C2_HOOK_FASTCALL DisplayJoystickSettings(tFrontend_spec *pFrontend) {
 }
 // SaveAllJoystickData
 
-// Controls_SwitchKeymapSet: defined after SortScores
+// Controls_SwitchKeymapSet: defined after SortScores_1
 
 // FUNCTION: CARMA2_HW 0x004725a0
 int C2_HOOK_FASTCALL Controls_KeyUp(tFrontend_spec* pFrontend) {
@@ -3141,13 +3141,13 @@ int C2_HOOK_FASTCALL Controls_KeyDown(tFrontend_spec* pFrontend) {
     }
     return 0;
 }
-// Controls_Infunc: defined after SortScores
+// Controls_Infunc: defined after SortScores_1
 
-// Controls_Outfunc: defined after SortScores
+// Controls_Outfunc: defined after SortScores_1
 
 // Controls_SlotActivated
 
-// Controls_Ok: defined after SortScores
+// Controls_Ok: defined after SortScores_1
 
 // DisplayNetworkOptions
 
@@ -3231,7 +3231,7 @@ int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend) {
 
 /* not static: nothing references it until SortGameScores is implemented, and an unreferenced static would be dropped */
 // FUNCTION: CARMA2_HW 0x004743c0
-int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2) {
+int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2) {
 
     return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
 }
@@ -3828,7 +3828,7 @@ int C2_HOOK_FASTCALL Generic_FindNextActiveItem(tFrontend_spec* pFrontend, int p
 
 extern int gINT_00688748;
 
-extern void C2_HOOK_FASTCALL FRONTEND_Redraw(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
 extern void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend);
 
 static int DetermineKeyArrayIndex(void) {
@@ -3867,7 +3867,7 @@ int C2_HOOK_FASTCALL Controls_SlotActivated(tFrontend_spec* pFrontend) {
         gBack_screen->origin_x = 0;
         gBack_screen->origin_y = 0;
         if (gFrontend_backdrop != NULL) {
-            FRONTEND_Redraw(gBack_screen, 0, 0, gFrontend_backdrop, 0, 0, gFrontend_backdrop->width, gFrontend_backdrop->height);
+            DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gFrontend_backdrop, 0, 0, gFrontend_backdrop->width, gFrontend_backdrop->height);
         }
         BrPixelmapFill(gDepth_buffer, 0xffffffff);
         for (i = 0; i < gFrontend_count_brender_items; i++) {

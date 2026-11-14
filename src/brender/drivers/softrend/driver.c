@@ -22,7 +22,7 @@
 br_uint_32 DriverTimestamp;
 
 // FUNCTION: CARMA2_HW 0x00540590
-br_device* C2_HOOK_CDECL BrDrv1Begin(const char* arguments) {
+br_device* C2_HOOK_CDECL BrDrv1SoftRendBegin(const char* arguments) {
     br_device *device;
 
     if (DriverTimestamp == 0) {

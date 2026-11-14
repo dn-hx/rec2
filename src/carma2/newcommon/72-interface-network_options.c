@@ -7,7 +7,7 @@
 
 extern tFrontend_spec gFrontend_MAIN;
 
-/* NetOptions_Cancel and its data live here, not in 72-interface.c: additions to 72-interface.c shift MSVC's codegen of SortScores 0x004743c0 */
+/* NetOptions_Cancel and its data live here, not in 72-interface.c: additions to 72-interface.c shift MSVC's codegen of SortScores_1 0x004743c0 */
 
 // GLOBAL: CARMA2_HW 0x006864a0
 tNet_game_options gFrontend_backup_net_options;

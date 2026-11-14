@@ -2098,7 +2098,7 @@ void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt) {
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004c27c0
-void C2_HOOK_FASTCALL InterpolateObjects(tPhysics_object* pObject, float pDt) {
+void C2_HOOK_FASTCALL FUN_004c27c0(tPhysics_object* pObject, float pDt) {
     br_vector3 omega_world;
 
     pObject->rotate_omega.v[0] = pObject->omega.v[0];
@@ -2835,7 +2835,7 @@ extern void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_s
 extern void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, float pDelta_time);
 extern void C2_HOOK_FASTCALL TranslateAndRotatePartialObject(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time);
-extern void C2_HOOK_FASTCALL FUN_004be350(float* pDestination, const float* pSource);
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 
 typedef struct tPhysics_joint_force_group {
     int count;
@@ -4332,7 +4332,7 @@ void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject) {
     *(int*)&pObject->field_0x1e0[4] = 0;
     *(int*)&pObject2->field_0x1e0[4] = 0;
     MakeMatrix(&local_15c[3], 3, (tPhysics_joint_force**)local_174, 3);
-    FUN_004be350((float*)(uVar2 + 8), &local_15c[3]);
+    DRMatrix33Inverse((float*)(uVar2 + 8), &local_15c[3]);
     MakeJointVelocitiesVector((br_scalar*)&local_174[3], (tPhysics_joint_force**)local_174, 3);
     BrMatrix34ApplyV((br_vector3*)&local_15c[0], (br_vector3*)&local_174[3], (br_matrix34*)(uVar2 + 8));
     i = 0;
@@ -4756,7 +4756,7 @@ extern int gINT_006940ac;
 extern int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount);
 extern int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount);
 extern void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject, tPhysics_object* pPartner);
-extern void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pList);
+extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList);
 
 typedef void (C2_HOOK_FASTCALL *tActivatePassive_cbfn)(tPhysics_object* pObject, tPhysics_object* pActivator);
 
@@ -4847,7 +4847,7 @@ int C2_HOOK_FASTCALL ReducedFindObjectCollisions(tPhysics_object* pObject, tPhys
             }
         }
         if (partner->disable_move_rotate != 0) {
-            FUN_004be0e0(partner, pList);
+            MakeObjectDoSomething(partner, pList);
         }
         GroupTogether(pObject, partner);
         pCount += added;
@@ -5236,7 +5236,7 @@ void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject1, tPhysics_object* 
 }
 
 // FUNCTION: CARMA2_HW 0x004be0e0
-void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pList) {
+void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList) {
     tPhysics_object* child;
     tPhysics_object* item;
 
@@ -5272,7 +5272,7 @@ void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pL
                 && item->field_0xf4.min.v[0] - pObject->field_0xf4.max.v[0] <= gDOUBLE_0058a798
                 && item->field_0xf4.min.v[1] - pObject->field_0xf4.max.v[1] <= gDOUBLE_0058a798
                 && item->field_0xf4.min.v[2] - pObject->field_0xf4.max.v[2] <= gDOUBLE_0058a798) {
-            FUN_004be0e0(item, pList);
+            MakeObjectDoSomething(item, pList);
         }
         if (pObject->child != NULL && item->disable_move_rotate != 0) {
             child = pObject->child;
@@ -5284,7 +5284,7 @@ void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pL
                         && item->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] <= gDOUBLE_0058a798
                         && item->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] <= gDOUBLE_0058a798
                         && item->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] <= gDOUBLE_0058a798) {
-                        FUN_004be0e0(item, pList);
+                        MakeObjectDoSomething(item, pList);
                         break;
                     }
                     child = child->next;
@@ -8011,7 +8011,7 @@ tCollision_shape_polyhedron_data* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_point
 
 extern tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron);
 
-// PARTIAL 79.65%: GetPointSample 0x00422030 - helper pulled in by NPointConvexHullUsingSample; the original starts both distance sums from the float 0.0f global at 0x00589954 (fld ds:0x589954). A gFLOAT_00589954 global was measured twice: neutral for this function (79.65 either way) but it moved data layout and cost FUN_004be350 0.81% (32.26->31.45), so it was reverted. Residual is register/x87 allocation (distances in ecx vs edi) and the inner distance loop's expression ordering (original loads all six components then does three fsubp; ours interleaves fsub with the loads).
+// PARTIAL 79.65%: GetPointSample 0x00422030 - helper pulled in by NPointConvexHullUsingSample; the original starts both distance sums from the float 0.0f global at 0x00589954 (fld ds:0x589954). A gFLOAT_00589954 global was measured twice: neutral for this function (79.65 either way) but it moved data layout and cost DRMatrix33Inverse 0.81% (32.26->31.45), so it was reverted. Residual is register/x87 allocation (distances in ecx vs edi) and the inner distance loop's expression ordering (original loads all six components then does three fsubp; ours interleaves fsub with the loads).
 // FUNCTION: CARMA2_HW 0x00422030
 int C2_HOOK_FASTCALL GetPointSample(br_model* pModel, int pCount_vertices, int* pVertex_indices) {
     float* distances;
@@ -8281,9 +8281,9 @@ void C2_HOOK_FASTCALL FUN_004b7310(tPhysics_object* pObject) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 32.00%: FUN_004be350 0x004be350 - helper pulled in by RedoQuickHingeVelocities; the original divides by the double 1.0 global at 0x0058a780 (fdivr QWORD PTR ds:0x58a780). A gDOUBLE_0058a780 global was measured (32.26 with it, 32.26 without — this score drifts 0.2-0.3 between runs) but it moved data layout and cost SetUpForce 1.53% (83.97->82.44), so it was reverted. Residual is the x87 schedule (our body multiplies components by the reciprocal in a different order).
+// PARTIAL 32.00%: DRMatrix33Inverse 0x004be350 - helper pulled in by RedoQuickHingeVelocities; the original divides by the double 1.0 global at 0x0058a780 (fdivr QWORD PTR ds:0x58a780). A gDOUBLE_0058a780 global was measured (32.26 with it, 32.26 without — this score drifts 0.2-0.3 between runs) but it moved data layout and cost SetUpForce 1.53% (83.97->82.44), so it was reverted. Residual is the x87 schedule (our body multiplies components by the reciprocal in a different order).
 // FUNCTION: CARMA2_HW 0x004be350
-void C2_HOOK_FASTCALL FUN_004be350(float* pDestination, const float* pSource) {
+void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource) {
     float fVar1;
     float fVar2;
     float fVar3;

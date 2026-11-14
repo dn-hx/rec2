@@ -350,7 +350,7 @@ extern int C2_HOOK_FASTCALL Controls_Infunc(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL Controls_SlotActivated(tFrontend_spec* pFrontend);
-// Controls_Ok: defined after SortScores
+// Controls_Ok: defined after SortScores_1
 
 // DisplayNetworkOptions
 
@@ -383,7 +383,7 @@ extern int C2_HOOK_FASTCALL NetSync_Abort(tFrontend_spec* pFrontend);
 
 // NetSummary_Draw
 
-extern int C2_HOOK_CDECL SortScores(const void* pArg1, const void* pArg2);
+extern int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2);
 // SortGameScores
 
 // NetworkSummarySetup
@@ -428,7 +428,7 @@ extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
 
 extern int C2_HOOK_FASTCALL GameMenuInfunc(tFrontend_spec* pFrontend);
-extern int C2_HOOK_FASTCALL LoadGameScrollDownLoadGameScrollDown(tFrontend_spec* pFrontend);
+extern int C2_HOOK_FASTCALL LoadGameScrollDown(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL InterfaceMenuInfunc(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL InterfaceReturnTrue(void);

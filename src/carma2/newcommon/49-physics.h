@@ -281,7 +281,7 @@ extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 
 extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
 
-extern void C2_HOOK_FASTCALL InterpolateObjects(tPhysics_object* pObject, float pDt);
+extern void C2_HOOK_FASTCALL FUN_004c27c0(tPhysics_object* pObject, float pDt);
 
 // ApplyGravitySingleObject
 
@@ -455,7 +455,7 @@ extern void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyh
 extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
 extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
 extern void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject1, tPhysics_object* pObject2);
-extern void C2_HOOK_FASTCALL FUN_004be0e0(tPhysics_object* pObject, tPhysics_object* pList);
+extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList);
 extern void C2_HOOK_FASTCALL GetWorldBoundingBoxForObject(tPhysics_object* pObject, br_bounds3* pBox);
 extern int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
 extern int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
@@ -469,7 +469,7 @@ extern tPhysicsError C2_HOOK_FASTCALL SampledConvexHull(tCollision_shape_polyhed
 extern int C2_HOOK_FASTCALL NPointConvexHullUsingSample(tCollision_shape_polyhedron_data* pPolyhedron, br_model* pModel, int pMin_point_count, int pMax_point_count, int* pVertex_indices);
 extern void C2_HOOK_FASTCALL FUN_004b73a0(tPhysics_object* pObject, const br_matrix34* pParent_matrix, const br_matrix34* pRoot_matrix);
 extern void C2_HOOK_FASTCALL FUN_004b7310(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL FUN_004be350(float* pDestination, const float* pSource);
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 #endif // GUARD_49_PHYSICS_H

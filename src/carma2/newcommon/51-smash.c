@@ -20,7 +20,7 @@ extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 extern int C2_HOOK_FASTCALL IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells(void);
-void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
+void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed);
 int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
 extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 extern int gCrush_deferred;
@@ -2020,7 +2020,7 @@ extern int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoi
 extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector2* pUV, br_vector3* pOut);
 extern br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
 extern int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* pQuad, tU8* pEdge_at_bounds, tU8** pCorner, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array);
-extern void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex);
+extern void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_material* pMaterial, char** pIdentifier, char pIndex);
 extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(uintptr_t pOwner);
 extern void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* pA, const br_vector2* pB, const br_matrix23* pC);
 extern int gCapacity_track_smashables;
@@ -2615,7 +2615,7 @@ float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMa
                 clone->trigger_object.material->identifier = BrResStrDup(clone->trigger_object.material, spec->trigger_object.material->identifier);
                 clone->mode_data.texture_change.trigger.material = clone->trigger_object.material;
                 clone->flags |= 0x80000000;
-                MungeSmashMaterialName(clone->trigger_object.material, &clone->trigger_object.material->identifier, (int)(clone - gTrack_smashable_environment_specs));
+                SplondificatalizeIdentifier(clone->trigger_object.material, &clone->trigger_object.material->identifier, (int)(clone - gTrack_smashable_environment_specs));
             }
 
             gCount_track_smashable_environment_specs++;
@@ -4055,7 +4055,7 @@ void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhy
             return;
         }
         if ((((tU8*)((tPed_character_instance*)pObject->owner)->ped->character)[0x14] & 4) == 0 && gCrush_deferred == 0) {
-            FUN_004d35e0(((tPed_character_instance*)pObject->owner)->ped);
+            SetThisPedPhysicing(((tPed_character_instance*)pObject->owner)->ped);
         }
         if (pMode != 0xe) {
             pObject->v.v[0] = 0.0f;
@@ -4643,7 +4643,7 @@ int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* p
 }
 
 // FUNCTION: CARMA2_HW 0x004f3560
-void C2_HOOK_FASTCALL MungeSmashMaterialName(br_material* pMaterial, char** pIdentifier, char pIndex) {
+void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_material* pMaterial, char** pIdentifier, char pIndex) {
     char name[64];
     char suffix[64];
     int name_length;
@@ -4703,7 +4703,7 @@ void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacte
 // Clears the pedestrian's smooth-turn cache entry and raises its character
 // physics level to 5 (called when a ped becomes "physicing").
 // FUNCTION: CARMA2_HW 0x004d35e0
-void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed) {
+void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed) {
     pPed->field_0x0c->field_0x6c = 0;
     SetCharacterPhysicsLevelAR(pPed->character, 5);
 }
