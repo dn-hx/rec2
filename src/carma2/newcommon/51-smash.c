@@ -3083,6 +3083,33 @@ void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
     DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
 }
 
+// based on ApexWorm/rec2 832cae840
+// FUNCTION: CARMA2_HW 0x004f5fa0
+void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+    br_model* pModel;
+    br_material* pMaterial;
+    const br_uint_16* source;
+    br_face* face;
+    int i;
+
+    pModel = (br_model*)field_0x0;
+    source = pField_0xc;
+    pMaterial = (br_material*)field_0x4;
+    face = pModel->faces + pModel->nfaces;
+    for (i = 0; i < field_0x8; i++) {
+        face->material = pMaterial;
+        face->vertices[0] = source[0];
+        face->vertices[1] = source[1];
+        face->vertices[2] = source[2];
+        face->smoothing = source[3];
+        face->flags = 0;
+        face++;
+        source += 4;
+    }
+    pModel->nfaces += field_0x8;
+    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
+}
+
 // SmashRestoreSomeFaces
 
 // FUNCTION: CARMA2_HW 0x004f6020
@@ -4033,56 +4060,6 @@ intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
         context->count++;
     }
     return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// (reference)
-// PARTIAL 99.99%: instruction-selection identical; only x87 delay-slot placement differs. Our VC5 build hoists
-// two independent integer instructions above an fdivp (the 0.5f push for the third FRandomPosNeg, and
-// `mov [esi+0xec],bl`/`mov edx,0x1f4`); the original keeps them after that fdivp (0x4d9d8a / 0x4d9da5). Same
-// opcodes, same data flow; no dependent instruction moved, so behaviour is unchanged.
-// FUNCTION: CARMA2_HW 0x004d9d00
-void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode) {
-    int previous_dismemberfest;
-
-    if ((pObject->field_0x1a0 & 0xf0000) != 0) {
-        if (!IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells()) {
-            return;
-        }
-        if ((((tU8*)((tPed_character_instance*)pObject->owner)->ped->character)[0x14] & 4) == 0 && gCrush_deferred == 0) {
-            SetThisPedPhysicing(((tPed_character_instance*)pObject->owner)->ped);
-        }
-        if (pMode != 0xe) {
-            pObject->v.v[0] = 0.0f;
-            pObject->v.v[1] = 0.0f;
-            pObject->v.v[2] = 0.0f;
-        }
-        pObject->v.v[1] = (float)((double)FRandomBetween(0.7f, 1.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
-        pObject->omega.v[2] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
-        pObject->omega.v[0] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
-        pObject->disable_move_rotate = 0;
-        previous_dismemberfest = gPed_dismemberfest;
-        gPed_dismemberfest = 1;
-        DamagePedestrian(((tPed_character_instance*)pObject->owner)->ped, 500, 0x61, 0x61, gProgram_state.current_car.collision_info);
-        gPed_dismemberfest = previous_dismemberfest;
-        return;
-    }
-    if (pObject != NULL && pObject->flags_0x238 == 0x10) {
-        pObject->v.v[1] = (float)((double)FRandomBetween(3.0f, 4.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
-        pObject->omega.v[2] = (float)((double)FRandomPosNeg(1.75f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
-        pObject->omega.v[0] = (float)((double)FRandomPosNeg(1.75f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
-        pObject->disable_move_rotate = 0;
-    } else {
-        pObject->v.v[1] = (float)((double)FRandomBetween(1.0f, 2.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
-        pObject->omega.v[2] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
-        pObject->omega.v[0] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
-        pObject->disable_move_rotate = 0;
-    }
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

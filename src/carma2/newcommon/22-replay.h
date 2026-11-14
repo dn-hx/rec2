@@ -15,7 +15,7 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 extern void C2_HOOK_FASTCALL PreProcess(int pFrame_period);
 extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
-// DoActionReplay
+extern void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period);
 
 // MoveToEndOfReplay
 
@@ -109,7 +109,6 @@ extern void C2_HOOK_FASTCALL DoShrapnel(tU32 field_0x4, tU32 field_0x84, tU32 fi
 
 extern void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38);
 
-extern void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4);
 
 extern void C2_HOOK_FASTCALL AdjustShrapnel(int field_0x0, void* pField_0x4, tU16 field_0x10, int field_0x14);
 
@@ -133,8 +132,6 @@ extern void C2_HOOK_FASTCALL ComparePedStuff(void);
 extern tU32 C2_HOOK_FASTCALL ARGetStartTime(void);
 extern br_uint_8 C2_HOOK_CDECL ActorToActorMatrix34(br_matrix34* m, br_actor* a, br_actor* b);
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
-extern tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
-extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
 extern void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
 extern void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pOwner);
 extern void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only);

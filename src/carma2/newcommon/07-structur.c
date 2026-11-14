@@ -9,6 +9,7 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "27-powerup.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -728,56 +729,6 @@ extern br_actor* gNon_track_actor;
 extern int gNumber_of_icons;
 extern undefined4 gDAT_006a0958;
 extern tU32 gNext_goody_time;
-
-// FUNCTION: CARMA2_HW 0x004da630
-void C2_HOOK_FASTCALL ResetPowerups(void) {
-    int i;
-    char* pp;
-    tPowerup* the_powerup;
-    tRepulse_link* link;
-
-    gRace_powerup_respawn_bools = gPowerup_respawn_specs[gNet_mode == eNet_mode_none ? 0 : 1].bools;
-    i = 0;
-    if (0 < gNumber_of_powerups) {
-        pp = (char*)gPowerup_array + 0x28;
-        do {
-            the_powerup = (tPowerup*)(pp - 0x28);
-            the_powerup->got_time = 0;
-            the_powerup->current_value = -1;
-            i++;
-            pp += sizeof(tPowerup);
-        } while (i < gNumber_of_powerups);
-    }
-    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
-        gRespawn_powerups[i].actor = NULL;
-    }
-    for (i = 0; i < (int)REC2_ASIZE(gPickedup_powerups); i++) {
-        if (gPickedup_powerups[i].icon_actor != NULL) {
-            gPickedup_powerups[i].icon_actor->render_style = BR_RSTYLE_NONE;
-        }
-    }
-    for (i = 0; i < (int)REC2_ASIZE(gInventory); i++) {
-        gInventory[i] = -1;
-    }
-    gInventory_selected = -1;
-    gINT_006a0a6c = 0;
-    gINT_006a0a5c = 0;
-    gNumber_of_icons = 0;
-    gDAT_006a0958 = 0;
-    gInventory_cycling = 0;
-    gInventory_timeout = 0;
-    gCount_cloaked_cars = 0;
-    i = 0;
-    do {
-        link = &gRepulse_links[i];
-        link->time = 0;
-        if (link->actor->parent == gNon_track_actor) {
-            BrActorRemove(link->actor);
-        }
-        i++;
-    } while ((int)&gRepulse_links[i].actor < (int)&gINT_006a0a5c);
-    gNext_goody_time = 0;
-}
 
 extern int gIt_or_fox;
 extern tU32 gTime_for_punishment;
@@ -2304,65 +2255,6 @@ extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const
 extern char* gCurrent_palette_pixels;
 extern int gINT_00767268;
 
-// FUNCTION: CARMA2_HW 0x004a0080
-void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there) {
-    int size;
-    tU8* saved_screen;
-    tU8* saved_palette;
-    int saved;
-    const char* text;
-    tU32 start_time;
-    tU32 now_time;
-    tU32 elapsed_time;
-
-    if (pLeave_it_up_there == 0 && (gProgram_state.racing == 0 || gInterface_within_race_mode != 0)) {
-        size = gBack_screen->height;
-        size = size * gBack_screen->row_bytes;
-        saved_screen = BrMemAllocate(size, kMem_quit_vfy_pixels);
-        saved_palette = BrMemAllocate(0x400, kMem_quit_vfy_pal);
-        memcpy(saved_screen, gBack_screen->pixels, size);
-        saved = 1;
-        memcpy(saved_palette, gCurrent_palette_pixels, 0x400);
-    } else {
-        saved = 0;
-    }
-    FadePaletteDown();
-    LoadFont(4);
-    ClearEntireScreen();
-    text = GetMiscString(pStr_index);
-    OoerrIveGotTextInMeBoxMissus(4, text, gBack_screen,
-        gGraf_specs[gGraf_spec_index].total_width / 10,
-        gGraf_specs[gGraf_spec_index].total_height / 2 - gINT_00767268,
-        (gGraf_specs[gGraf_spec_index].total_width * 9) / 10,
-        gGraf_specs[gGraf_spec_index].total_height - 0x40, 1);
-    PDScreenBufferSwap(0);
-    EnsureRenderPalette();
-    EnsurePaletteUp();
-    if (pLeave_it_up_there == 0) {
-        start_time = PDGetTotalTime();
-        now_time = PDGetTotalTime();
-        elapsed_time = now_time - start_time;
-        while (elapsed_time < 3000) {
-            now_time = PDGetTotalTime();
-            elapsed_time = now_time - start_time;
-        }
-        FadePaletteDown();
-        if (saved) {
-            memcpy(gBack_screen->pixels, saved_screen, size);
-            memcpy(gCurrent_palette_pixels, saved_palette, 0x400);
-            if (saved_screen != NULL) {
-                BrMemFree(saved_screen);
-            }
-            if (saved_palette != NULL) {
-                BrMemFree(saved_palette);
-            }
-            PDScreenBufferSwap(0);
-            FadePaletteUp();
-            return;
-        }
-        ClearEntireScreen();
-    }
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

@@ -878,6 +878,18 @@ void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const b
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004f8b50
+void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
+    extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+    CreateShrapnelShower2(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // random
 
 // InitShrapnel
@@ -1046,6 +1058,77 @@ int C2_HOOK_FASTCALL SetPixelmap(br_material* pMaterial) {
         return 0;
     }
 }
+
+extern const char gSolidgrn_material[10];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL 98.21%: 2/112 instructions differ, neither reachable from this file. (1) 0x4f90ff SIB
+// base/index order ([edi+edx+0x40] vs [edx+edi+0x40], same registers and same roles, only the SIB
+// encoding): the byte-identical loop in 0x4fe360 gets the original order from the same C, so it is a
+// VC5 encoder/allocator artifact, not source-controllable. (2) 0x4f9138 gSolidgrn_material STRING vs
+// DATA: the address 0x6601b0 is a CSV string and its `// GLOBAL:` marker lives in 32-spark.c, which
+// types the ORIG entity STRING while any recomp symbol for it is DATA (same cap as gAct_file_extension
+// 0x594e9c in 51-smash.c); a literal here would also shift .rdata (36-trig).
+// FUNCTION: CARMA2_HW 0x004f9020
+void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
+    int i;
+    int j;
+    tCar_crush_spec* spec;
+    tCar_bit_spec* bit;
+    br_actor* actor;
+    tCar_crush_buffer_entry* crush;
+    br_material* solid_mat;
+
+    spec = pCar->car_crush_spec;
+    DRActorEnumRecurse(pCar->car_model_actor, ActorFunks, (void*)MasterDisableFunkotronic);
+    i = 0;
+    if (0 < spec->field_0x270) {
+        bit = spec->field_0x274;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterDisableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x270);
+    }
+    i = 0;
+    if (0 < spec->field_0x2b0) {
+        bit = spec->field_0x2b4;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterDisableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x2b0);
+    }
+    solid_mat = BrMaterialFind(gSolidgrn_material);
+    if (solid_mat != NULL && solid_mat->colour_map != NULL) {
+        gRecalc_mass_car = pCar;
+        pCar->field_0x1960 = solid_mat->colour_map;
+        ForEveryCarMaterial(pCar, SetPixelmap, 1);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // (reconstructed from the disassembly)
 // FUNCTION: CARMA2_HW 0x004f8f30
@@ -2458,6 +2541,87 @@ void C2_HOOK_FASTCALL DisposeSplash(void) {
     BrModelRemove(gSplash_model);
     BrModelFree(gSplash_model);
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on upstream rec2 0ff1a1cff src/carma2/common/spark.c:775
+// FUNCTION: CARMA2_HW 0x004fc740
+void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec) {
+    br_model* model;
+    br_model* b_model;
+    br_actor* actor;
+    br_actor* bonny;
+    int j;
+    int n;
+    int v;
+    int group;
+    tSmudged_vertex data[1000];
+
+    if (gAction_replay_mode != 0) {
+        return;
+    }
+    actor = pCar_spec->car_actor;
+    model = actor->model;
+    bonny = pCar_spec->car_actor;
+    n = 0;
+    if ((model->flags & BR_MODF_KEEP_ORIGINAL) || (model->flags & BR_MODF_UPDATEABLE)) {
+        ARStartPipingSession(ePipe_chunk_smudge);
+        j = 0;
+        for (group = 0; group < model->prepared->ngroups; group++) {
+            for (v = 0; v < model->prepared->groups[group].nvertices; v++) {
+                if ((model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
+                    data[n].vertex_index = j;
+                    data[n].light_index = -((tS32)(model->prepared->groups[group].vertex_colours[v] >> 24));
+                    n += 1;
+                    model->prepared->groups[group].vertex_colours[v] = 0;
+                    if (model->flags & BR_MODF_UPDATEABLE) {
+                        model->vertices[model->prepared->groups[group].vertex_user[v]].index = 0;
+                    }
+                    if (n >= REC2_ASIZE(data)) {
+                        group = model->prepared->ngroups;
+                        break;
+                    }
+                }
+                j += 1;
+            }
+        }
+        if (n != 0) {
+            AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
+        }
+        if (bonny != actor) {
+            /* This branch is never taken */
+            b_model = bonny->model;
+            n = 0;
+            j = 0;
+            for (group = 0; group < b_model->prepared->ngroups; group++) {
+                for (v = 0; v < b_model->prepared->groups[group].nvertices; v++) {
+                    if ((b_model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
+                        data[n].vertex_index = j;
+                        data[n].light_index = -b_model->prepared->groups[group].nvertices;
+                        n += 1;
+                        b_model->prepared->groups[group].vertex_colours[v] = 0;
+                        if (b_model->flags & BR_MODF_UPDATEABLE) {
+                            b_model->vertices[b_model->prepared->groups[group].vertex_user[v]].index = 0;
+                        }
+                        if (n >= REC2_ASIZE(data)) {
+                            group = b_model->prepared->groups[group].nvertices;
+                            break;
+                        }
+                    }
+                    j += 1;
+                }
+            }
+            if (n != 0) {
+                AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
+            }
+        }
+        AREndPipingSession();
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DrawTheGlow
 

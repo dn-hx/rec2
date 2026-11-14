@@ -108,5 +108,6 @@ extern void C2_HOOK_FASTCALL DrawThisCarIconNow(int pCar_index, int pX, int pY);
 extern void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3);
 extern void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index);
 extern void C2_HOOK_FASTCALL DisplayTimedMessage(char* pText);
+extern void C2_HOOK_FASTCALL ClearQueuedHeadups(void);
 
 #endif // GUARD_15_DISPLAYS_H

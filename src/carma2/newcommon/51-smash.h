@@ -293,7 +293,7 @@ extern void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount);
 
-// SmashRestoreSomeFaces
+extern void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4);
 
 extern void C2_HOOK_FASTCALL TurnOnSmashDecal(int pIndex);
 
@@ -334,7 +334,6 @@ extern void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpe
 extern void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor);
 extern int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
 extern intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext);
-extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
 extern int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag);
 extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector2* pUV, br_vector3* pOut);

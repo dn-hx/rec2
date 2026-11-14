@@ -19,6 +19,7 @@ extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "41-utility.h"
 
 /* local declarations (no extern added to a header, see PROGRESS: header-count sensitivity) */
 extern void C2_HOOK_FASTCALL NetEndJoinList(void);
@@ -175,6 +176,66 @@ int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend) {
     FuckWithWidths(pFrontend);
     return 0;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x00468d70
+int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off) {
+    int cars[120];
+    int i;
+    int array_size;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(cars) != 120);
+
+    if (!pIm_the_host_so_fuck_off) {
+        return 1;
+    }
+    gChosen_net_game_options = pOptions;
+    for (i = 0; i < gNumber_of_racers; i++) {
+        switch (gOpponents[i].network_availability) {
+        case eNet_avail_never:
+            gCar_details[i].ownership = eCar_owner_not_allowed;
+            break;
+        case eNet_avail_eagle:
+            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_eagle) {
+                gCar_details[i].ownership = eCar_owner_none;
+            } else {
+                gCar_details[i].ownership = eCar_owner_not_allowed;
+            }
+            break;
+        case eNet_avail_all:
+            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_novelty) {
+                gCar_details[i].ownership = eCar_owner_none;
+            } else {
+                gCar_details[i].ownership = eCar_owner_not_allowed;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    array_size = 0;
+    for (i = 0; i < gNumber_of_racers; i++) {
+        if (gCar_details[i].ownership == eCar_owner_none) {
+            cars[array_size] = i;
+            array_size++;
+            if (gOpponents[i].network_availability == eNet_avail_all) {
+                cars[array_size] = i;
+                array_size++;
+            }
+        }
+    }
+    i = cars[IRandomBetween(0, array_size - 1)];
+    *pCar_index = i;
+    if (i >= 0) {
+        gCar_details[i].ownership = eCar_owner_someone;
+    }
+    return 1;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // ScrollUp and RefreshNetRacesScroller are inlined in the original.
 // FUNCTION: CARMA2_HW 0x00466c00

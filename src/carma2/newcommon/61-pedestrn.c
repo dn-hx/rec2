@@ -3370,6 +3370,32 @@ int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pChara
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// RESIDUAL 97.44% (reccmp: effective 100): one symmetric SIB encoding differs at 0x4085c5 ([eax+esi] vs [esi+eax]); operand swap in the source flips the return-path load too, so it is the allocator's choice
+// FUNCTION: CARMA2_HW 0x00408580
+tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
+    extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
+    tPed_form* form;
+    int iVar1;
+    int iVar2;
+
+    form = pCharacter->personality->form;
+    iVar1 = (int)form->boned_physicing + (tS8)pCharacter->field_0x6 * 8;
+    pBone_index *= 4;
+    iVar2 = *(int*)((int)form->actor_sets + 4 + (tS8)pCharacter->field_0x4 * 8);
+    iVar2 = *(int*)(iVar2 + pBone_index);
+    iVar2 = SetCollisionObject(pCharacter, (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index), (br_actor*)iVar2, (void*)(*(int*)(iVar2 + 0x18) + 0x34), NULL, 3, pArg3, pArg4, 0, NULL, NULL);
+    if (iVar2 != 0) {
+        return (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index);
+    }
+    return NULL;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // CalcCollisionObjectThings
 
 // SetCollisionObject
@@ -5845,6 +5871,52 @@ void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const
 #pragma auto_inline(on)
 #endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0040aed0
+void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
+    float sinA;
+    float mc;
+    float mcx;
+    float mcxz;
+    float mcxy;
+    float sz;
+    float sy;
+    float sx;
+    float mcyz;
+
+    if (pCosA < -1.f) {
+        pCosA = -1.f;
+    } else if (pCosA > 1.f) {
+        pCosA = 1.f;
+    }
+    sinA = (float)sqrt(1.f - pCosA * pCosA);
+    mc = 1.f - pCosA;
+    mcx = pAxis->v[0] * mc;
+    mcxy = pAxis->v[1] * mcx;
+    mcxz = pAxis->v[2] * mcx;
+    mcyz = pAxis->v[2] * pAxis->v[1] * mc;
+    sx = pAxis->v[0] * sinA;
+    sy = pAxis->v[1] * sinA;
+    sz = pAxis->v[2] * sinA;
+    pDest->m[0][0] = pAxis->v[0] * pAxis->v[0] * mc + pCosA;
+    pDest->m[0][1] = sz + mcxy;
+    pDest->m[0][2] = mcxz - sy;
+    pDest->m[1][0] = mcxy - sz;
+    pDest->m[1][1] = pAxis->v[1] * pAxis->v[1] * mc + pCosA;
+    pDest->m[1][2] = sx + mcyz;
+    pDest->m[2][0] = sy + mcxz;
+    pDest->m[2][1] = mcyz - sx;
+    pDest->m[2][2] = pAxis->v[2] * pAxis->v[2] * mc + pCosA;
+    pDest->m[3][0] = 0.f;
+    pDest->m[3][1] = 0.f;
+    pDest->m[3][2] = 0.f;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // GLOBAL: CARMA2_HW 0x006a0418
 tU32 gPed_last_score_time;
 
@@ -6576,6 +6648,143 @@ void C2_HOOK_FASTCALL RecachePedestrian(tPedestrian* pPed, br_vector3* pHit_pos,
                 face_cache->field_0x4, GetClearanceFromCharacterInstance(pPed->character, 0), pHit_pos);
     }
 }
+
+extern int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
+
+// FUNCTION: CARMA2_HW 0x004d2320
+void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
+    tPedestrian* pPed;
+    tPed_cache_006944c0* pCache;
+    double ratio;
+    float length;
+    float vx;
+    float vy;
+    float vz;
+    float dot;
+    int damage;
+
+    if (gAction_replay_mode == 0) {
+        pPed = ((tPed_character_instance*)pObject1->owner)->ped;
+        SetLastHitter(pPed, pObject2);
+        if (((pObject2 != NULL && pObject2->owner != NULL) && pObject2->flags_0x238 == 0x20 && pObject2->M == gMass_mutant_tail_ball)
+                || pObject1->v.v[1] < -1.7) {
+            pImpulse = pImpulse * 10.0f;
+        }
+        if (gExploding_pedestrians != 0) {
+            damage = pPed->character->personality->form->count_bones * gPed_severing_damage;
+        } else {
+            damage = (int)(pImpulse * gPed_damage_per_force * ((pObject2 == NULL) ? 1.5 : 1.0));
+        }
+        if (damage != 0) {
+            DamagePedestrian(pPed, damage, -1, 0x5e, pObject2);
+            if ((pPed->hit_points > 0 && pObject2 != NULL)
+                    && (pObject2->owner != NULL && (pObject2->flags_0x238 == 1 && gProgram_state.current_car.collision_info == pObject2))
+                    && ((pCache = pPed->field_0x0c) != NULL)
+                    && ((*(tU16*)&pCache->field_0x2e & 4) == 0
+                        && gProgram_state.current_car.collision_info->v.v[0] * gProgram_state.current_car.collision_info->v.v[0]
+                                + gProgram_state.current_car.collision_info->v.v[1] * gProgram_state.current_car.collision_info->v.v[1]
+                                + gProgram_state.current_car.collision_info->v.v[2] * gProgram_state.current_car.collision_info->v.v[2] > 0.001)) {
+                pCache->field_0x21 = pCache->field_0x21 + 1;
+                pCache = pPed->field_0x0c;
+                if ((0x50 <= pCache->field_0x21) && (pCache != NULL && pCache->field_0xc0 == &gProgram_state.current_car) && ((*(tU16*)&pCache->field_0x2e & 4) == 0)) {
+                    *(tU16*)&pCache->field_0x2e = *(tU16*)&pCache->field_0x2e | 4;
+                    EarnCredits(gPed_points[gProgram_state.skill_level]);
+                    DoFancyHeadup(4);
+                }
+            }
+            if (0.01 <= pImpulse) {
+                if (pObject2 != NULL) {
+                    *(tU8*)((char*)pPed + 8) |= 4;
+                } else {
+                    if (pFace != NULL && (float)fabs((float)(pFace->normal.v[1] < 0.707)) != 0.0f) {
+                        *(tU8*)((char*)pPed + 8) |= 2;
+                    }
+                }
+                if ((pPed->flags & 4) != 0 && (pPed->flags & 2) != 0 && (pPed->flags & 8) == 0) {
+                    SetPedMove(pPed, 0x60, -1, 0, 1, GetTotalTime(), 5);
+                    *(tU8*)((char*)pPed + 8) |= 8;
+                    if ((gPed_recent_points != 0 && gPed_recent_ped == pPed) && pPed->hit_points <= 0
+                            && (GetTotalTime() - *(tU32*)((char*)pPed + 0x30)) < 0x2ee) {
+                        DoFancyHeadup(1);
+                        PratcamEvent(0x1e);
+                        EarnCredits(gPed_recent_points);
+                        gPed_recent_points = 0;
+                    }
+                }
+            }
+            if ((pObject1->last_special_volume == NULL || pObject1->last_special_volume->gravity_multiplier >= 1.0f) && gGoreLevel > 0) {
+                ratio = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
+                DoGiblets(pPed, pObject1, pObject2, (float)(ratio * ratio * pImpulse), pPoint, (int)gGiblet_scrape_start);
+                if (pObject2 == NULL
+                        && ((pFace->material == NULL || pFace->material->colour_map == NULL)
+                            || pFace->material->colour_map->type != BR_PMT_RGBA_4444)
+                        && pPed->hit_points <= 0) {
+                    if (pFace->material != NULL && pFace->material->identifier != NULL) {
+                        if (strlen(pFace->material->identifier) == 0xb && pFace->material->identifier[5] == '|') {
+                            return;
+                        }
+                    }
+                    pCache = pPed->field_0x0c;
+                    if (pCache == NULL) {
+                        dr_dprintf("Can't smear a ped with no process data");
+                        return;
+                    }
+                    if ((pCache->field_0xc4 & 2) == 0) {
+                        pCache->field_0xc4 = pCache->field_0xc4 | 2;
+                        pCache->field_0xca = 1;
+                        pCache->field_0xe4 = *pPoint;
+                        pCache->field_0xf0 = pFace->normal;
+                        length = (float)sqrt(pObject1->v.v[1] * pObject1->v.v[1]
+                                + pObject1->v.v[2] * pObject1->v.v[2]
+                                + pObject1->v.v[0] * pObject1->v.v[0]);
+                        if (length <= 2.3841858e-07f) {
+                            vx = 1.0f;
+                            vy = 0.0f;
+                            vz = 0.0f;
+                        } else {
+                            length = 1.0 / length;
+                            vx = pObject1->v.v[0] * length;
+                            vy = pObject1->v.v[1] * length;
+                            vz = pObject1->v.v[2] * length;
+                        }
+                        ((br_vector3*)((char*)pCache + 0x114))->v[0] = pFace->normal.v[1] * vz - pFace->normal.v[2] * vy;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[1] = pFace->normal.v[2] * vx - pFace->normal.v[0] * vz;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[2] = pFace->normal.v[0] * vy - pFace->normal.v[1] * vx;
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2];
+                        pCache->field_0x124 = dot;
+                        pCache->field_0x128 = dot;
+                        return;
+                    }
+                    if (pCache->field_0xf0.v[0] * pFace->normal.v[0] + pCache->field_0xf0.v[1] * pFace->normal.v[1]
+                                    + pCache->field_0xf0.v[2] * pFace->normal.v[2] > 0.997f
+                            && (float)fabs((pCache->field_0xf0.v[0] * pCache->field_0xe4.v[0]
+                                        + pCache->field_0xf0.v[1] * pCache->field_0xe4.v[1]
+                                        + pCache->field_0xf0.v[2] * pCache->field_0xe4.v[2]) / (float)pCache->field_0xca
+                                    - (pCache->field_0xf0.v[0] * pPoint->v[0] + pCache->field_0xf0.v[2] * pPoint->v[2]
+                                        + pCache->field_0xf0.v[1] * pPoint->v[1])) < 0.01f) {
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1];
+                        if (pCache->field_0x124 < dot) {
+                            pCache->field_0x124 = dot;
+                        }
+                        if (dot < pCache->field_0x128) {
+                            pCache->field_0x128 = dot;
+                        }
+                        pCache->field_0xe4.v[0] = pPoint->v[0] + pCache->field_0xe4.v[0];
+                        pCache->field_0xe4.v[1] = pCache->field_0xe4.v[1] + pPoint->v[1];
+                        pCache->field_0xca = pCache->field_0xca + 1;
+                        pCache->field_0xe4.v[2] = pCache->field_0xe4.v[2] + pPoint->v[2];
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
 // FUNCTION: CARMA2_HW 0x004d1d70
 tPed_face_cache_0x34* C2_HOOK_FASTCALL RecacheAndSetFace(tPedestrian* pPed, int* pArg2, int* pArg3, br_vector3* pArg4, int pArg5, tU32 pTime) {
     br_matrix34* mat;
@@ -7242,6 +7451,67 @@ void C2_HOOK_FASTCALL FreePedSequences(void) {
     }
 }
 
+extern const char* gPed_remap_axis_choices[6];
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00404410
+tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name) {
+    FILE* f;
+    tPed_remap* remap;
+    char s[256];
+    int i;
+    int j;
+
+    if (strcmp(pFile_name, "NONE") == 0) {
+        return NULL;
+    }
+    f = BonerOpenRemaps(pFile_name);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pFile_name);
+    }
+    remap = BrMemAllocate(sizeof(tPed_remap), kBoner_mem_type_remap);
+    if (remap == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    remap->count_bones = 0;
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF BONES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
+    }
+    while (!PFfeof(f)) {
+        GetALineAndDontArgue(f, s);
+        if ((remap->count_bones == 0 && strcmp("END OF BONES", s) != 0) || strcmp("NEXT BONE", s) == 0) {
+            remap->count_bones++;
+        }
+    }
+    remap->bones = BrMemAllocate(sizeof(tPed_remap_bone) * remap->count_bones, kBoner_mem_type_remap);
+    PFrewind(f);
+    GetALineAndDontArgue(f, s);
+    for (i = 0; i < remap->count_bones; i++) {
+        GetALineAndDontArgue(f, remap->bones[i].name);
+        for (j = 0; j < 3; j++) {
+            remap->bones[i].general_remap[j] = GetALineAndInterpretCommand(f, gPed_remap_axis_choices, REC2_ASIZE(gPed_remap_axis_choices));
+        }
+        for (j = 0; j < 3; j++) {
+            remap->bones[i].powerup_axis[j] = GetALineAndInterpretCommand(f, gPed_remap_axis_choices, REC2_ASIZE(gPed_remap_axis_choices));
+        }
+        GetALineAndDontArgue(f, s);
+    }
+    strcpy(remap->name, pFile_name);
+    for (i = 0; i < (int)REC2_ASIZE(gPed_remaps); i++) {
+        if (gPed_remaps[i] == NULL) {
+            gPed_remaps[i] = remap;
+            return remap;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyRemapsLoaded, 0);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00404700
 void C2_HOOK_FASTCALL DisposeAllLoadedRemaps(void) {
     tPed_remap** remap;
@@ -7283,12 +7553,6 @@ void C2_HOOK_FASTCALL DisposeAllPedPersonalities(void) {
         }
         p++;
     } while ((int)p < (int)&gPed_personalities[REC2_ASIZE(gPed_personalities)]);
-}
-
-// FUNCTION: CARMA2_HW 0x00402dd0
-void C2_HOOK_FASTCALL FUN_00402dd0(void) {
-
-    gPipe_play_ptr = gPipe_record_ptr;
 }
 
 // FUNCTION: CARMA2_HW 0x004093e0

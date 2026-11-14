@@ -16,5 +16,6 @@ extern int C2_HOOK_FASTCALL NetToggleMode(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend);
 extern int C2_HOOK_CDECL NetworkJoinGoAhead(void);
+extern int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off);
 
 #endif /* GUARD_72_NETWORK_H */

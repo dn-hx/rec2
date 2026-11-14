@@ -621,7 +621,7 @@ extern void C2_HOOK_FASTCALL PipeSingleDroneStraightPos(tDrone_spec* pDrone, und
 
 extern void C2_HOOK_FASTCALL PipeSinglePowerupRespawn(br_actor* pActor, int pPowerup_id);
 
-// PipeSingleShitMine
+extern void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor);
 
@@ -868,5 +868,6 @@ extern void C2_HOOK_FASTCALL PedUndoBloodSpurt(int pCurrent_time, uintptr_t pOwn
 extern void C2_HOOK_FASTCALL PipeSingleSkidAdjustment__2(uintptr_t pOwner, void* pData, tU32 pArg3);
 extern void C2_HOOK_FASTCALL FUN_004c8500(uintptr_t pOwner, const br_vector3* pVector);
 extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(uintptr_t pOwner);
+extern void C2_HOOK_FASTCALL FUN_00402dd0(void);
 
 #endif // GUARD_23_PIPING_H

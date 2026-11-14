@@ -118,5 +118,6 @@ extern void C2_HOOK_FASTCALL ResumePendingFlic(void);
 extern void C2_HOOK_STDCALL PlayFlicsInDarkness(void);
 extern int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate);
 extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
+extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
 
 #endif // GUARD_38_FLICPLAY_H

@@ -109,5 +109,7 @@ extern int C2_HOOK_FASTCALL UnloadDinputFFBEfectwithName(const char *name);
 extern void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName);
 extern tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickInfoData(size_t pSize);
 extern void C2_HOOK_FASTCALL DisposeCurrentJoystickData(void);
+extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
+extern int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection);
 
 #endif // C2_WIN32_INPUT_H

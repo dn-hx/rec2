@@ -1215,40 +1215,6 @@ extern br_angle gOld_fov;
 extern br_scalar gOld_yon;
 extern br_angle gSky_image_width;
 
-// FUNCTION: CARMA2_HW 0x00445cb0
-void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    br_angle yaw;
-    br_actor* actor;
-
-    yaw = BrRadianToAngle(atan2(pCamera_to_world->m[2][0], pCamera_to_world->m[2][2]));
-    if (gProgram_state.cockpit_on || ((gAction_replay_camera_mode * gAction_replay_mode) != 0)
-            || gAction_replay_camera_mode == kActionReplayCameraMode_Internal || gAdapt_sky_model_for_cockpit) {
-
-        if (gRendering_mirror) {
-            actor = gRearview_sky_actor;
-        } else {
-            actor = gForward_sky_actor;
-            if (gOld_fov != ((br_camera*)gCamera->type_data)->field_of_view || gOld_yon != ((br_camera*)gCamera->type_data)->yon_z) {
-                gOld_fov = ((br_camera*)gCamera->type_data)->field_of_view;
-                gOld_yon = ((br_camera*)gCamera->type_data)->yon_z;
-                MungeSkyModel(gCamera, gForward_sky_model);
-            }
-        }
-        BrMatrix34RotateY(&actor->t.t.mat, yaw);
-        BrVector3Copy(&actor->t.t.translate.t, (br_vector3*)pCamera_to_world->m[3]);
-        gHorizon_material->map_transform.m[0][0] = 1.f;
-        gHorizon_material->map_transform.m[0][1] = 0.f;
-        gHorizon_material->map_transform.m[1][0] = 0.f;
-        gHorizon_material->map_transform.m[1][1] = 1.f;
-        gHorizon_material->map_transform.m[2][0] = -((yaw * 1.52587890625e-05) / (gSky_image_width * 1.52587890625e-05));
-        gHorizon_material->map_transform.m[2][1] = 0.f;
-        BrMaterialUpdate(gHorizon_material, BR_MATU_ALL);
-        actor->render_style = BR_RSTYLE_FACES;
-        BrZbsSceneRenderAdd(actor);
-        actor->render_style = BR_RSTYLE_NONE;
-    }
-}
-
 extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
 extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 

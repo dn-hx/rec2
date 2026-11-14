@@ -30,7 +30,6 @@ extern void C2_HOOK_FASTCALL TotalRepair(void);
 
 extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
 
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
 /* DoLogos, DoProgOpeningAnimation, DoProgramDemo: inlined into DoProgram by the original compiler, no standalone
    address (see 07-structur.c) */
@@ -58,7 +57,6 @@ extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 
 extern void C2_HOOK_FASTCALL ResetCrushSystems(void);
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
-extern void C2_HOOK_FASTCALL ResetPowerups(void);
 extern void C2_HOOK_FASTCALL InitPlayers(void);
 
 extern void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id);

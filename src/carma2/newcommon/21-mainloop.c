@@ -1046,59 +1046,6 @@ float gCamera_to_horiz_angle;
 extern int gQueued_headup_count;
 extern tQueued_headup gQueued_headups[4];
 
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x004497b0
-void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
-    __asm {
-        mov eax, dword ptr [gQueued_headup_count]
-        push ebx
-        mov ecx, eax
-        push esi
-        shl ecx, 5
-        add ecx, eax
-        push edi
-        lea edx, [eax + ecx*2]
-        shl edx, 2
-        test eax, eax
-        je clear_queued_headups_done
-
-    clear_queued_headups_loop:
-        sub edx, 0x10c
-        mov esi, offset gQueued_headups + 0x10c
-        mov ecx, edx
-        mov edi, offset gQueued_headups
-        mov ebx, ecx
-        dec eax
-        shr ecx, 2
-        rep movsd
-        mov ecx, ebx
-        and ecx, 3
-        test eax, eax
-        rep movsb
-        jne clear_queued_headups_loop
-
-    clear_queued_headups_done:
-        pop edi
-        pop esi
-        mov dword ptr [gQueued_headup_count], eax
-        pop ebx
-        ret
-    }
-}
-#else
-void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
-    int size = gQueued_headup_count * sizeof(tQueued_headup);
-
-    C2_HOOK_BUG_ON(sizeof(tQueued_headup) != 0x10c);
-
-    while (gQueued_headup_count != 0) {
-        size -= sizeof(tQueued_headup);
-        gQueued_headup_count -= 1;
-        memcpy(&gQueued_headups[0], &gQueued_headups[1], size);
-    }
-}
-#endif
-
 // FUNCTION: CARMA2_HW 0x0045b3b0
 void C2_HOOK_FASTCALL MungeJoystickHeadups(void) {
     extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
@@ -1304,18 +1251,6 @@ void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBe
     if (gReplay_rate != 0.0f) {
         MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
     }
-}
-
-// FUNCTION: CARMA2_HW 0x004e68e0
-void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
-    extern tU32 gTime_of_last_zappy_headups;
-    extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
-    extern tPreprocess_AR_callback PreProcess;
-    extern tPostProcess_AR_callback PostProcess;
-    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
-
-    gTime_of_last_zappy_headups = 0;
-    ARDoActionReplay(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
 }
 
 // GLOBAL: CARMA2_HW 0x0065fbf8

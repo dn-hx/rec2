@@ -154,7 +154,6 @@ typedef struct tCollision_contact {
 
 extern int C2_HOOK_FASTCALL ProcessForcesCallback(tCollision_contact* pContacts, float* pImpulses, int pCount);
 
-extern void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint);
 
 extern void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial);
 
@@ -242,7 +241,6 @@ extern void C2_HOOK_FASTCALL SwapCar(void);
 extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
 extern void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DamageSystems(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch);
-extern void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick);
 extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
 extern int C2_HOOK_FASTCALL NonCarSnapOff(tPhysics_object* pObject);
@@ -257,9 +255,7 @@ extern int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float
 extern int C2_HOOK_FASTCALL DoSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount);
 extern int C2_HOOK_FASTCALL DoXZSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount);
 extern void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
-extern int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection);
 extern void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time);
-extern void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time);
 extern void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index);
 extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time);

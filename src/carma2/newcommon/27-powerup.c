@@ -26,6 +26,8 @@
 #include "08-loading1.h"
 #include "63-loading3.h"
 #include "platform.h"
+#include "60-phil.h"
+#include "04-netgame.h"
 
 extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 extern float gPed_head_scale;
@@ -2016,6 +2018,58 @@ void C2_HOOK_FASTCALL LoadPowerups(void) {
     PFfclose(f);
 }
 
+extern int gCrush_deferred;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// (reference)
+// PARTIAL 99.99%: instruction-selection identical; only x87 delay-slot placement differs. Our VC5 build hoists
+// two independent integer instructions above an fdivp (the 0.5f push for the third FRandomPosNeg, and
+// `mov [esi+0xec],bl`/`mov edx,0x1f4`); the original keeps them after that fdivp (0x4d9d8a / 0x4d9da5). Same
+// opcodes, same data flow; no dependent instruction moved, so behaviour is unchanged.
+// FUNCTION: CARMA2_HW 0x004d9d00
+void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode) {
+    int previous_dismemberfest;
+
+    if ((pObject->field_0x1a0 & 0xf0000) != 0) {
+        if (!IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells()) {
+            return;
+        }
+        if ((((tU8*)((tPed_character_instance*)pObject->owner)->ped->character)[0x14] & 4) == 0 && gCrush_deferred == 0) {
+            SetThisPedPhysicing(((tPed_character_instance*)pObject->owner)->ped);
+        }
+        if (pMode != 0xe) {
+            pObject->v.v[0] = 0.0f;
+            pObject->v.v[1] = 0.0f;
+            pObject->v.v[2] = 0.0f;
+        }
+        pObject->v.v[1] = (float)((double)FRandomBetween(0.7f, 1.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
+        pObject->omega.v[2] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
+        pObject->omega.v[0] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
+        pObject->disable_move_rotate = 0;
+        previous_dismemberfest = gPed_dismemberfest;
+        gPed_dismemberfest = 1;
+        DamagePedestrian(((tPed_character_instance*)pObject->owner)->ped, 500, 0x61, 0x61, gProgram_state.current_car.collision_info);
+        gPed_dismemberfest = previous_dismemberfest;
+        return;
+    }
+    if (pObject != NULL && pObject->flags_0x238 == 0x10) {
+        pObject->v.v[1] = (float)((double)FRandomBetween(3.0f, 4.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
+        pObject->omega.v[2] = (float)((double)FRandomPosNeg(1.75f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
+        pObject->omega.v[0] = (float)((double)FRandomPosNeg(1.75f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
+        pObject->disable_move_rotate = 0;
+    } else {
+        pObject->v.v[1] = (float)((double)FRandomBetween(1.0f, 2.0f) / ((double)pObject->M * gConst_world_scale) + pObject->v.v[1]);
+        pObject->omega.v[2] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[2]);
+        pObject->omega.v[0] = (float)((double)FRandomPosNeg(0.5f) * gConst_2pi / pObject->M + pObject->omega.v[0]);
+        pObject->disable_move_rotate = 0;
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // InitRepulseEffects
 
 // FUNCTION: CARMA2_HW 0x004da290
@@ -2219,6 +2273,66 @@ void C2_HOOK_FASTCALL EmptyInventory(void) {
     gINT_006a0a6c = 0;
     gINT_006a0a5c = 0;
 }
+
+extern undefined4 gDAT_006a0958;
+extern tU32 gNext_goody_time;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004da630
+void C2_HOOK_FASTCALL ResetPowerups(void) {
+    int i;
+    char* pp;
+    tPowerup* the_powerup;
+    tRepulse_link* link;
+
+    gRace_powerup_respawn_bools = gPowerup_respawn_specs[gNet_mode == eNet_mode_none ? 0 : 1].bools;
+    i = 0;
+    if (0 < gNumber_of_powerups) {
+        pp = (char*)gPowerup_array + 0x28;
+        do {
+            the_powerup = (tPowerup*)(pp - 0x28);
+            the_powerup->got_time = 0;
+            the_powerup->current_value = -1;
+            i++;
+            pp += sizeof(tPowerup);
+        } while (i < gNumber_of_powerups);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
+        gRespawn_powerups[i].actor = NULL;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gPickedup_powerups); i++) {
+        if (gPickedup_powerups[i].icon_actor != NULL) {
+            gPickedup_powerups[i].icon_actor->render_style = BR_RSTYLE_NONE;
+        }
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gInventory); i++) {
+        gInventory[i] = -1;
+    }
+    gInventory_selected = -1;
+    gINT_006a0a6c = 0;
+    gINT_006a0a5c = 0;
+    gNumber_of_icons = 0;
+    gDAT_006a0958 = 0;
+    gInventory_cycling = 0;
+    gInventory_timeout = 0;
+    gCount_cloaked_cars = 0;
+    i = 0;
+    do {
+        link = &gRepulse_links[i];
+        link->time = 0;
+        if (link->actor->parent == gNon_track_actor) {
+            BrActorRemove(link->actor);
+        }
+        i++;
+    } while ((int)&gRepulse_links[i].actor < (int)&gINT_006a0a5c);
+    gNext_goody_time = 0;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // ResetPowerups
 
 // FUNCTION: CARMA2_HW 0x004da730
@@ -3167,6 +3281,81 @@ int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
     pCar->damage_multiplier = pPowerup->float_params[0];
     return pPowerup - gPowerup_array;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004dcfb0
+void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time) {
+    int j;
+    int k;
+    int hierarchy_size;
+    int chunk_size;
+    tShit_mine* mine;
+    tU8 tmp_buf[0x23c];
+    tNet_message_chunk_mine_explode* tmp;
+    tNet_message_chunk* chunk;
+    tPlayer_ID target_id;
+    tPlayer_ID proxy_id;
+    int check_idx;
+    float dx;
+    float dy;
+    float dz;
+
+    if (gNet_mode != eNet_mode_host) {
+        return;
+    }
+    if (gNumber_of_net_players == 1) {
+        return;
+    }
+    tmp = (tNet_message_chunk_mine_explode*)tmp_buf;
+    for (mine = gShit_mines; mine < &gShit_mines[REC2_ASIZE(gShit_mines)]; mine++) {
+        if (!(mine->flags & 1)) {
+            continue;
+        }
+        tmp->mine_index = (tS8)(mine - gShit_mines);
+        tmp->field_0x3 = mine->field_0x35;
+        tmp->field_0x4 = mine->field_0x34;
+        tmp->field_0x5 = (tU8)(NetPlayerFromCar(mine->field_0x30) - gNet_players);
+        tmp->field_0x8 = (tS32)pNext_frame_time;
+        GetHierarchyNetworkStuff(mine->collision_info, tmp->object_hierarchy, 0x48);
+        hierarchy_size = GetHierarchyNetworkSize(mine->collision_info);
+        chunk_size = (int)((float)hierarchy_size - (-12.0f));
+        tmp->header.size = (tU8)chunk_size;
+        tmp->header.type = 0x31;
+        for (j = 1; j < gNumber_of_net_players; j++) {
+            target_id = gNet_players[j].ID;
+            proxy_id = *(tPlayer_ID*)&gNet_players[j].field_0xd0;
+            if (proxy_id == 0) {
+                check_idx = j;
+            } else {
+                check_idx = 0;
+                if (gNumber_of_net_players - 1 > 0) {
+                    for (k = 0; k < gNumber_of_net_players - 1; k++) {
+                        if (gNet_players[k].ID == proxy_id) {
+                            break;
+                        }
+                    }
+                    check_idx = k;
+                }
+            }
+            dx = mine->collision_info->transform_matrix.m[3][0] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][0];
+            dy = mine->collision_info->transform_matrix.m[3][1] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][1];
+            dz = mine->collision_info->transform_matrix.m[3][2] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][2];
+            if (dx * dx + dy * dy + dz * dz >= 400.0f) {
+                continue;
+            }
+            chunk = NetGetToPlayerContents(0x31, chunk_size, target_id);
+            if (chunk == NULL) {
+                continue;
+            }
+            memcpy(chunk, tmp, chunk_size);
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FillInMine
 
@@ -5224,14 +5413,6 @@ int gCurrent_ffb_effect_index = -1;
 #endif
 extern char gJoystick_effects[];
 extern int gCount_joystick_effects;
-// FUNCTION: CARMA2_HW 0x00458430
-int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
-
-    if (index < 0 || index > gCount_joystick_effects) {
-        return NULL;
-    }
-    return (int*)&gJoystick_effects[index * 232];
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -5347,68 +5528,6 @@ extern tCar_spec* gRecalc_mass_car;
 extern const char gSolidgrn_material[10];
 extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 
-// PARTIAL 98.21%: 2/112 instructions differ, neither reachable from this file. (1) 0x4f90ff SIB
-// base/index order ([edi+edx+0x40] vs [edx+edi+0x40], same registers and same roles, only the SIB
-// encoding): the byte-identical loop in 0x4fe360 gets the original order from the same C, so it is a
-// VC5 encoder/allocator artifact, not source-controllable. (2) 0x4f9138 gSolidgrn_material STRING vs
-// DATA: the address 0x6601b0 is a CSV string and its `// GLOBAL:` marker lives in 32-spark.c, which
-// types the ORIG entity STRING while any recomp symbol for it is DATA (same cap as gAct_file_extension
-// 0x594e9c in 51-smash.c); a literal here would also shift .rdata (36-trig).
-// FUNCTION: CARMA2_HW 0x004f9020
-void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
-    int i;
-    int j;
-    tCar_crush_spec* spec;
-    tCar_bit_spec* bit;
-    br_actor* actor;
-    tCar_crush_buffer_entry* crush;
-    br_material* solid_mat;
-
-    spec = pCar->car_crush_spec;
-    DRActorEnumRecurse(pCar->car_model_actor, ActorFunks, (void*)MasterDisableFunkotronic);
-    i = 0;
-    if (0 < spec->field_0x270) {
-        bit = spec->field_0x274;
-        do {
-            actor = bit->field_0x0;
-            if (actor->user != NULL
-                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
-                    && crush->smashables != NULL) {
-                for (j = 0; j < crush->count_smashables; j++) {
-                    if (crush->smashables[j].funk >= 0) {
-                        MasterDisableFunkotronic(crush->smashables[j].funk);
-                    }
-                }
-            }
-            i++;
-            bit++;
-        } while (i < spec->field_0x270);
-    }
-    i = 0;
-    if (0 < spec->field_0x2b0) {
-        bit = spec->field_0x2b4;
-        do {
-            actor = bit->field_0x0;
-            if (actor->user != NULL
-                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
-                    && crush->smashables != NULL) {
-                for (j = 0; j < crush->count_smashables; j++) {
-                    if (crush->smashables[j].funk >= 0) {
-                        MasterDisableFunkotronic(crush->smashables[j].funk);
-                    }
-                }
-            }
-            i++;
-            bit++;
-        } while (i < spec->field_0x2b0);
-    }
-    solid_mat = BrMaterialFind(gSolidgrn_material);
-    if (solid_mat != NULL && solid_mat->colour_map != NULL) {
-        gRecalc_mass_car = pCar;
-        pCar->field_0x1960 = solid_mat->colour_map;
-        ForEveryCarMaterial(pCar, SetPixelmap, 1);
-    }
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -5512,21 +5631,6 @@ void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar) {
     pMine->collision_info->omega.v[0] = 0.f;
     pMine->collision_info->omega.v[1] = 0.f;
     pMine->collision_info->omega.v[2] = 0.f;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// , verified against the original disassembly
-// FUNCTION: CARMA2_HW 0x004c8fb0
-void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor) {
-    extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
-
-    ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
-        0x30, 0, (uintptr_t)&pActor->t.t.mat);
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)

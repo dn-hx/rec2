@@ -125,7 +125,6 @@ extern int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend);
 
 // NetJoinChooseThisGame
 
-extern int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off);
 // InitNetStorageSpace
 
 // DisposeNetStorageSpace
@@ -181,7 +180,7 @@ extern int C2_HOOK_FASTCALL FRONTEND_StartGameMenuHandler(tFrontend_spec* pFront
 extern int C2_HOOK_FASTCALL CreditsScreenInfunc(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL CreditsScreenOutfunc(tFrontend_spec* pFrontend);
-// FRONTEND_GenericMenuHandler
+extern int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL FRONTEND_CreateMenuButton(tFrontend_brender_item* pFrontend_brender_item, tS16 pX, tS16 pY, tS16 pWidth, tS16 pHeight, br_colour pColour, br_pixelmap* pMap, const char* pText);
 
@@ -235,7 +234,7 @@ extern void C2_HOOK_FASTCALL MorphBlob(br_model* pModel_from, br_model* pModel_t
 
 extern void C2_HOOK_FASTCALL ScrollCredits(void);
 
-// LoadGameInFunc
+extern int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend);
 
 extern br_actor* C2_HOOK_FASTCALL CreateAPOactor(void);
 

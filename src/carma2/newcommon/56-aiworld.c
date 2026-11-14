@@ -1798,16 +1798,6 @@ void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void) {
 /* local declarations for StopProcessingThisDrone (no new includes/externs in headers) */
 extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0044cfc0
-void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
 static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
     DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);

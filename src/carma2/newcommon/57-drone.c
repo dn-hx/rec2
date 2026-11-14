@@ -175,6 +175,16 @@ void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncSt
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0044cfc0
+void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // based on REA pseudocode 0x44d1d0 and and :1293
 // FUNCTION: CARMA2_HW 0x0044d1d0
 void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state) {

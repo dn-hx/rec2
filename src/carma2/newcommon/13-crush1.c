@@ -1662,6 +1662,109 @@ void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_v
     }
 }
 
+extern tCrush_list_item gCrush_lists[8];
+extern void C2_HOOK_FASTCALL SetCrush(tCar_crush* pCrush, int pCount_vectors, br_vector3* pVectors, br_vector3* pVector1, br_vector3* pVector2, float pScalar, tU32 pValue);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL 49.06%: QueueCarCrush - body complete (crush force accumulation); remaining diff:
+// force components spilled through integer registers instead of fld, x87 scheduling.
+// FUNCTION: CARMA2_HW 0x0042d400
+void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick) {
+    int point_count;
+    int unique_count;
+    int point_i;
+    int list_i;
+    int crush_i;
+    int i;
+    int is_unique;
+    float force_length;
+    float force_magnitude;
+    float scale;
+    br_vector3 unique_points[4];
+    br_vector3 average;
+    br_vector3 scaled_force;
+
+    if (pCar->car_crush_spec == NULL || *(int*)((tU8*)pCar + 0x1b4) != 0 || pCar->car_crush_spec->field_0x4b8 != 0) {
+        return;
+    }
+    force_length = (float)sqrt((double)(pForce->v[0] * pForce->v[0] + pForce->v[2] * pForce->v[2] + pForce->v[1] * pForce->v[1]));
+    force_magnitude = pCar->softness_factor * force_length;
+    if (!(force_magnitude > gMin_crush_force)) {
+        return;
+    }
+    if (force_magnitude > 10.0f) {
+        force_magnitude = 10.0f;
+    }
+    scale = (float)(1.0 / force_length);
+    scaled_force.v[0] = pForce->v[0] * scale;
+    scaled_force.v[1] = pForce->v[1] * scale;
+    scaled_force.v[2] = pForce->v[2] * scale;
+    unique_count = 1;
+    unique_points[0] = pChain[0];
+    average = pChain[0];
+    point_count = pChain_count;
+    if (point_count > 4) {
+        point_count = 4;
+    }
+    for (point_i = 1; point_i < point_count; point_i++) {
+        is_unique = 1;
+        for (i = 0; i < unique_count; i++) {
+            if (fabs((double)pChain[point_i].v[0] - (double)unique_points[i].v[0]) < 0.005
+                    && fabs((double)pChain[point_i].v[1] - (double)unique_points[i].v[1]) < 0.005
+                    && fabs((double)pChain[point_i].v[2] - (double)unique_points[i].v[2]) < 0.005) {
+                is_unique = 0;
+                break;
+            }
+        }
+        if (is_unique) {
+            unique_points[unique_count] = pChain[point_i];
+            average.v[0] += pChain[point_i].v[0];
+            average.v[1] += pChain[point_i].v[1];
+            average.v[2] += pChain[point_i].v[2];
+            unique_count++;
+        }
+    }
+    average.v[0] /= (float)unique_count;
+    average.v[1] /= (float)unique_count;
+    average.v[2] /= (float)unique_count;
+    for (list_i = 0; list_i < 8; list_i++) {
+        if (gCrush_lists[list_i].car_spec == pCar || gCrush_lists[list_i].car_spec == NULL) {
+            break;
+        }
+    }
+    if (list_i >= 8) {
+        return;
+    }
+    if (gCrush_lists[list_i].car_spec == NULL) {
+        gCrush_lists[list_i].car_spec = pCar;
+        gCrush_lists[list_i].count = 1;
+        crush_i = 0;
+    } else if (gCrush_lists[list_i].count < 4) {
+        crush_i = gCrush_lists[list_i].count;
+        gCrush_lists[list_i].count++;
+    } else {
+        float weakest_force;
+
+        weakest_force = gCrush_lists[list_i].items[0].field_0x40;
+        crush_i = 0;
+        for (i = 1; i < gCrush_lists[list_i].count; i++) {
+            if (gCrush_lists[list_i].items[i].field_0x40 < weakest_force) {
+                weakest_force = gCrush_lists[list_i].items[i].field_0x40;
+                crush_i = i;
+            }
+        }
+        if (!(weakest_force < force_magnitude)) {
+            return;
+        }
+    }
+    SetCrush(&gCrush_lists[list_i].items[crush_i], unique_count, unique_points, &average, &scaled_force, force_magnitude, pTick);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 extern int gCount_queued_drone_crushes;
 extern tQueued_drone_crush gQueued_drone_crushes[4];
 
@@ -5440,80 +5543,6 @@ extern int gAction_replay_mode;
 extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
 extern void C2_HOOK_FASTCALL AddSmudgeToPipingSession(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates);
 
-// based on upstream rec2 0ff1a1cff src/carma2/common/spark.c:775
-// FUNCTION: CARMA2_HW 0x004fc740
-void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec) {
-    br_model* model;
-    br_model* b_model;
-    br_actor* actor;
-    br_actor* bonny;
-    int j;
-    int n;
-    int v;
-    int group;
-    tSmudged_vertex data[1000];
-
-    if (gAction_replay_mode != 0) {
-        return;
-    }
-    actor = pCar_spec->car_actor;
-    model = actor->model;
-    bonny = pCar_spec->car_actor;
-    n = 0;
-    if ((model->flags & BR_MODF_KEEP_ORIGINAL) || (model->flags & BR_MODF_UPDATEABLE)) {
-        ARStartPipingSession(ePipe_chunk_smudge);
-        j = 0;
-        for (group = 0; group < model->prepared->ngroups; group++) {
-            for (v = 0; v < model->prepared->groups[group].nvertices; v++) {
-                if ((model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
-                    data[n].vertex_index = j;
-                    data[n].light_index = -((tS32)(model->prepared->groups[group].vertex_colours[v] >> 24));
-                    n += 1;
-                    model->prepared->groups[group].vertex_colours[v] = 0;
-                    if (model->flags & BR_MODF_UPDATEABLE) {
-                        model->vertices[model->prepared->groups[group].vertex_user[v]].index = 0;
-                    }
-                    if (n >= REC2_ASIZE(data)) {
-                        group = model->prepared->ngroups;
-                        break;
-                    }
-                }
-                j += 1;
-            }
-        }
-        if (n != 0) {
-            AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
-        }
-        if (bonny != actor) {
-            /* This branch is never taken */
-            b_model = bonny->model;
-            n = 0;
-            j = 0;
-            for (group = 0; group < b_model->prepared->ngroups; group++) {
-                for (v = 0; v < b_model->prepared->groups[group].nvertices; v++) {
-                    if ((b_model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
-                        data[n].vertex_index = j;
-                        data[n].light_index = -b_model->prepared->groups[group].nvertices;
-                        n += 1;
-                        b_model->prepared->groups[group].vertex_colours[v] = 0;
-                        if (b_model->flags & BR_MODF_UPDATEABLE) {
-                            b_model->vertices[b_model->prepared->groups[group].vertex_user[v]].index = 0;
-                        }
-                        if (n >= REC2_ASIZE(data)) {
-                            group = b_model->prepared->groups[group].nvertices;
-                            break;
-                        }
-                    }
-                    j += 1;
-                }
-            }
-            if (n != 0) {
-                AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
-            }
-        }
-        AREndPipingSession();
-    }
-}
 extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);

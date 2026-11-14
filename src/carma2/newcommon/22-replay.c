@@ -176,6 +176,24 @@ void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
 #pragma auto_inline(on)
 #endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004e68e0
+void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
+    extern tU32 gTime_of_last_zappy_headups;
+    extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
+    extern tPreprocess_AR_callback PreProcess;
+    extern tPostProcess_AR_callback PostProcess;
+    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+
+    gTime_of_last_zappy_headups = 0;
+    ARDoActionReplay(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004e6260
 void C2_HOOK_FASTCALL DoActionReplayPostSwap(void) {
 
@@ -1377,33 +1395,6 @@ void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 pr
     }
 }
 
-// based on ApexWorm/rec2 832cae840
-// FUNCTION: CARMA2_HW 0x004f5fa0
-void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
-    br_model* pModel;
-    br_material* pMaterial;
-    const br_uint_16* source;
-    br_face* face;
-    int i;
-
-    pModel = (br_model*)field_0x0;
-    source = pField_0xc;
-    pMaterial = (br_material*)field_0x4;
-    face = pModel->faces + pModel->nfaces;
-    for (i = 0; i < field_0x8; i++) {
-        face->material = pMaterial;
-        face->vertices[0] = source[0];
-        face->vertices[1] = source[1];
-        face->vertices[2] = source[2];
-        face->smoothing = source[3];
-        face->flags = 0;
-        face++;
-        source += 4;
-    }
-    pModel->nfaces += field_0x8;
-    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
-}
-
 // FUNCTION: CARMA2_HW 0x004f8630
 void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
     br_vector3* pPos;
@@ -1912,32 +1903,6 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #pragma auto_inline(on)
 #endif
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// RESIDUAL 97.44% (reccmp: effective 100): one symmetric SIB encoding differs at 0x4085c5 ([eax+esi] vs [esi+eax]); operand swap in the source flips the return-path load too, so it is the allocator's choice
-// FUNCTION: CARMA2_HW 0x00408580
-tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
-    extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
-    tPed_form* form;
-    int iVar1;
-    int iVar2;
-
-    form = pCharacter->personality->form;
-    iVar1 = (int)form->boned_physicing + (tS8)pCharacter->field_0x6 * 8;
-    pBone_index *= 4;
-    iVar2 = *(int*)((int)form->actor_sets + 4 + (tS8)pCharacter->field_0x4 * 8);
-    iVar2 = *(int*)(iVar2 + pBone_index);
-    iVar2 = SetCollisionObject(pCharacter, (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index), (br_actor*)iVar2, (void*)(*(int*)(iVar2 + 0x18) + 0x34), NULL, 3, pArg3, pArg4, 0, NULL, NULL);
-    if (iVar2 != 0) {
-        return (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index);
-    }
-    return NULL;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // GLOBAL: CARMA2_HW 0x006a2380
 tU32 gTime_of_last_zappy_headups;
 
@@ -1946,18 +1911,6 @@ tU32 gCamera_period;
 
 // GLOBAL: CARMA2_HW 0x00661678
 br_vector3 gVector3_00661678 = { { 0.0f, 1.0f, 0.0f } };
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004f8b50
-void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials) {
-    extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
-    CreateShrapnelShower2(pPosition, pVelocity, pDirection, pStrength, NULL, NULL, pMaterialCount, pMaterials);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

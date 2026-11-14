@@ -94,7 +94,7 @@ extern tPhysics_object* C2_HOOK_FASTCALL MungeBoxObject(br_model* pModel, undefi
 
 // InitTail
 
-// ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings
+extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
 
 extern void C2_HOOK_FASTCALL InitMineShit(void);
 
@@ -105,7 +105,7 @@ extern void C2_HOOK_FASTCALL InitPowerups(void);
 // ResetRepulseEffects
 
 extern void C2_HOOK_FASTCALL EmptyInventory(void);
-// ResetPowerups
+extern void C2_HOOK_FASTCALL ResetPowerups(void);
 
 extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
 
@@ -238,7 +238,7 @@ extern int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* p
 
 // FillInMine
 
-// SendMines
+extern void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time);
 
 extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
@@ -414,13 +414,10 @@ extern void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spe
 extern void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale);
 extern void C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2);
 extern void C2_HOOK_FASTCALL FUN_0045c760(void);
-extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 extern int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL TurnOnGhostPeds(void);
-extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor);
 extern void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
 extern void C2_HOOK_FASTCALL ScaleBone(int pMorph_or_personality, br_scalar* pScale, int pMode);
 extern void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);

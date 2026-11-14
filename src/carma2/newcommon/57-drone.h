@@ -180,5 +180,6 @@ extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 extern void C2_HOOK_FASTCALL SaveDronePaths(void);
 
 extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
+extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 
 #endif // GUARD_57_DRONE_H

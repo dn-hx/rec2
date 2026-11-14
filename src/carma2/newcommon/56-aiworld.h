@@ -63,7 +63,6 @@ extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_t
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
 extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
-extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
 extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
 extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);

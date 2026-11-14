@@ -116,7 +116,7 @@ extern int C2_HOOK_FASTCALL NetDisposeMessage(tNet_game_details* pDetails, tNet_
 
 // ReceivedLeave
 
-// NetFullScreenMessage
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
 // HostHasBittenTheDust
 

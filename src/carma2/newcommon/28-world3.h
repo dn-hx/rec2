@@ -114,8 +114,6 @@ extern void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPat
 extern intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data);
 extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
 extern void C2_HOOK_FASTCALL FinishUpLoadingPeds(void);
-extern void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas);
-extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
 extern void C2_HOOK_FASTCALL MungeSmashMaterialNames(void);
 extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
@@ -128,11 +126,9 @@ extern tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const ch
 extern void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp);
 extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
 extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
-extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
 extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 extern float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees);
 extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
-extern void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA);
 extern void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_count);
 extern void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed);
 

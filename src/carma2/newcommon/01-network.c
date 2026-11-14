@@ -8,6 +8,8 @@
 #include "globvrpb.h"
 
 #include "rec2_macros.h"
+#include "18-graphics2.h"
+#include "19-font.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1151,6 +1153,75 @@ int C2_HOOK_FASTCALL NetDisposeMessage(tNet_game_details* pDetails, tNet_message
     pMessage->contents.raw.header.type = eNetMsg_none;
     return 0;
 }
+
+extern char* gCurrent_palette_pixels;
+extern int gINT_00767268;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004a0080
+void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there) {
+    int size;
+    tU8* saved_screen;
+    tU8* saved_palette;
+    int saved;
+    const char* text;
+    tU32 start_time;
+    tU32 now_time;
+    tU32 elapsed_time;
+
+    if (pLeave_it_up_there == 0 && (gProgram_state.racing == 0 || gInterface_within_race_mode != 0)) {
+        size = gBack_screen->height;
+        size = size * gBack_screen->row_bytes;
+        saved_screen = BrMemAllocate(size, kMem_quit_vfy_pixels);
+        saved_palette = BrMemAllocate(0x400, kMem_quit_vfy_pal);
+        memcpy(saved_screen, gBack_screen->pixels, size);
+        saved = 1;
+        memcpy(saved_palette, gCurrent_palette_pixels, 0x400);
+    } else {
+        saved = 0;
+    }
+    FadePaletteDown();
+    LoadFont(4);
+    ClearEntireScreen();
+    text = GetMiscString(pStr_index);
+    OoerrIveGotTextInMeBoxMissus(4, text, gBack_screen,
+        gGraf_specs[gGraf_spec_index].total_width / 10,
+        gGraf_specs[gGraf_spec_index].total_height / 2 - gINT_00767268,
+        (gGraf_specs[gGraf_spec_index].total_width * 9) / 10,
+        gGraf_specs[gGraf_spec_index].total_height - 0x40, 1);
+    PDScreenBufferSwap(0);
+    EnsureRenderPalette();
+    EnsurePaletteUp();
+    if (pLeave_it_up_there == 0) {
+        start_time = PDGetTotalTime();
+        now_time = PDGetTotalTime();
+        elapsed_time = now_time - start_time;
+        while (elapsed_time < 3000) {
+            now_time = PDGetTotalTime();
+            elapsed_time = now_time - start_time;
+        }
+        FadePaletteDown();
+        if (saved) {
+            memcpy(gBack_screen->pixels, saved_screen, size);
+            memcpy(gCurrent_palette_pixels, saved_palette, 0x400);
+            if (saved_screen != NULL) {
+                BrMemFree(saved_screen);
+            }
+            if (saved_palette != NULL) {
+                BrMemFree(saved_palette);
+            }
+            PDScreenBufferSwap(0);
+            FadePaletteUp();
+            return;
+        }
+        ClearEntireScreen();
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // NetReallyDisposeMessage
 

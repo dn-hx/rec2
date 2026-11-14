@@ -55,7 +55,7 @@ extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
 // CreateShrapnelShower2
 
-// CreateShrapnelShowerWorld
+extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
 
 extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 // random
@@ -78,7 +78,7 @@ extern void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar_spec);
 extern int C2_HOOK_FASTCALL SetPixelmap(br_material* pMaterial);
 extern void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar);
 
-// DoSolidGraniteThing
+extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 
 // DoTrueColModelThing
 
@@ -150,7 +150,7 @@ extern void C2_HOOK_FASTCALL DisposeSplash(void);
 
 // DrawTheGlow
 
-// PipeInstantUnSmudge
+extern void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point);
 

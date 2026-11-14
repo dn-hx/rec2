@@ -12,7 +12,6 @@
 
 // FUN_100bf768
 
-extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_length);
 
 // main
 

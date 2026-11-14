@@ -647,6 +647,12 @@ void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCou
     EndPipingSession2(1);
 }
 
+// FUNCTION: CARMA2_HW 0x00402dd0
+void C2_HOOK_FASTCALL FUN_00402dd0(void) {
+
+    gPipe_play_ptr = gPipe_record_ptr;
+}
+
 // ARResetPipePlayToEnd
 
 #ifdef REC2_MATCHING
@@ -2223,6 +2229,21 @@ void C2_HOOK_FASTCALL PipeSinglePowerupRespawn(br_actor* pActor, int pPowerup_id
     ARDoSingleVariedSession(ePipe_chunk_powerup_respawn, (uintptr_t)pActor, 1,
         SIZE_OFFSET_PIPING(tPipe_chunk_powerup_respawn, index), pPowerup_id);
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// , verified against the original disassembly
+// FUNCTION: CARMA2_HW 0x004c8fb0
+void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor) {
+    extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
+
+    ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
+        0x30, 0, (uintptr_t)&pActor->t.t.mat);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // PipeSingleShitMine
 
