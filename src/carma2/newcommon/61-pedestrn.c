@@ -3668,6 +3668,30 @@ static tPhysics_object* C2_HOOK_FASTCALL PedGetRootObjectInlineMW(tPed_character
     return NULL;
 }
 
+// FUNCTION: CARMA2_HW 0x00409340
+void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed) {
+    br_matrix34* character_matrix;
+    tPed_form* form;
+    br_matrix34 inverse;
+
+    form = pPed->personality->form;
+    if (pPed->field_0x4 < 0) {
+        character_matrix = &pPed->field_0x2c;
+    } else if (pPed->field_0xe8 != NULL) {
+        character_matrix = pPed->field_0xe8;
+    } else {
+        character_matrix = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+    }
+    BrMatrix34LPInverse(&inverse, &form->moves[pPed->field_0x7].move->frames[(short)pPed->field_0x1c].mat);
+    BrMatrix34Mul(&pPed->field_0x8c, &inverse, character_matrix);
+    pPed->field_0x8c.m[3][0] = 0.f;
+    pPed->field_0x8c.m[3][1] = 0.f;
+    pPed->field_0x8c.m[3][2] = 0.f;
+}
+
+/* Placed after RecalculateOrientationOfRoot on purpose: MSVC 5 rotates this body's
+   register allocation with its position in the TU, and only this position reproduces
+   0x4091e0 exactly (the body is unchanged). */
 // FUNCTION: CARMA2_HW 0x004091e0
 int C2_HOOK_FASTCALL MakeCharacterPhysicworthy(tPed_character_instance* pCharacter) {
     tPhysics_object* obj;
@@ -3705,27 +3729,6 @@ int C2_HOOK_FASTCALL MakeCharacterPhysicworthy(tPed_character_instance* pCharact
     PHILSetObjectProperty(obj, 5, 0);
     pCharacter->field_0x14 |= 4;
     return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00409340
-void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed) {
-    br_matrix34* character_matrix;
-    tPed_form* form;
-    br_matrix34 inverse;
-
-    form = pPed->personality->form;
-    if (pPed->field_0x4 < 0) {
-        character_matrix = &pPed->field_0x2c;
-    } else if (pPed->field_0xe8 != NULL) {
-        character_matrix = pPed->field_0xe8;
-    } else {
-        character_matrix = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
-    }
-    BrMatrix34LPInverse(&inverse, &form->moves[pPed->field_0x7].move->frames[(short)pPed->field_0x1c].mat);
-    BrMatrix34Mul(&pPed->field_0x8c, &inverse, character_matrix);
-    pPed->field_0x8c.m[3][0] = 0.f;
-    pPed->field_0x8c.m[3][1] = 0.f;
-    pPed->field_0x8c.m[3][2] = 0.f;
 }
 
 static tPhysics_object* C2_HOOK_FASTCALL PedGetRootObjectInline(tPed_character_instance *pPed) {
