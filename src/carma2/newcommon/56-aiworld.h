@@ -39,7 +39,6 @@ extern void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3
 extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
 extern void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info);
 
-extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
 
@@ -52,8 +51,6 @@ extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces, int pVertices);
 
 
-extern void C2_HOOK_FASTCALL MungeOpponents(void);
-extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
 extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
 extern void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone);
 extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
@@ -66,7 +63,6 @@ extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
 extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
 extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
 extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
-extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
 extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 

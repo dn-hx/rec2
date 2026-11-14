@@ -125,9 +125,9 @@ extern void C2_HOOK_FASTCALL LoadCopCars(tRace_info* pRace_info);
 extern void C2_HOOK_FASTCALL LoadInOppoPaths(FILE* pF);
 extern void C2_HOOK_FASTCALL DisposeOpponentPaths(void);
 
-// MungeOpponents
+extern void C2_HOOK_FASTCALL MungeOpponents(void);
 
-// InitOpponents
+extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeOpponents(void);
 

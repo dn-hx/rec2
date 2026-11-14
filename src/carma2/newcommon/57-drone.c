@@ -1,4 +1,5 @@
 #include "57-drone.h"
+#include "56-aiworld.h"
 #include "globvars.h"
 #include "52-errors.h"
 #include "08-loading1.h"
@@ -1352,6 +1353,117 @@ void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
 
     gFrame += 1;
     gINT_00681fb0 = 0;
+}
+
+/* local declarations for DoDronePerGameFrameStuff (no new includes/externs in headers) */
+extern br_model* gElasticatey_drone_path_model;
+extern br_actor* gDrone_path_model_actor;
+extern int gDrone_paths_elasticating;
+extern int gSelected_drone_path_node_index;
+extern int gSelected_edit_drone_path;
+extern int gSelected_drone_path_index;
+extern tU32 gNext_drone_edit_path_munge;
+extern br_material* gMat_dk_grn;
+extern br_material* gMat_lt_grn;
+extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
+extern tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4];
+extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
+extern int gShow_drone_paths;
+extern int gCount_active_drones;
+extern int gDrones_unmodified;
+extern int gCount_drones;
+extern int gINT_006844fc;
+extern int gINT_006820d4;
+extern tDrone_state_function* gDrone_state_functions[6];
+
+/* inlined copy of UpdateEditModels (0x4512ba0) at this call site in the original */
+static void C2_HOOK_FASTCALL UpdateEditModels_Impl(void) {
+
+    if (gDrone_path_model_actor != NULL && gElasticatey_drone_path_model != NULL && gDrone_paths_elasticating && gSelected_drone_path_node_index >= 0) {
+        MakeAISimpleEditSectionHere(gElasticatey_drone_path_model, 0, 0,
+            &gDrone_path_nodes[gSelected_drone_path_node_index],
+            &gProgram_state.current_car.car_master_actor->t.t.translate.t,
+            gMat_dk_grn, gMat_lt_grn);
+        BrModelUpdate(gElasticatey_drone_path_model, BR_MATU_ALL);
+    }
+    if (gSelected_edit_drone_path >= 0 && gTime_stamp_for_this_munging > gNext_drone_edit_path_munge) {
+        gSelected_edit_drone_path = -1;
+        InitialiseEditModelsEtc();
+    }
+    if (gSelected_drone_path_index >= 0) {
+        if (gTime_stamp_for_this_munging % 1000 > 700) {
+            gDrone_specs[gSelected_drone_path_index].actor->render_style = BR_RSTYLE_BOUNDING_FACES;
+        } else {
+            gDrone_specs[gSelected_drone_path_index].actor->render_style = BR_RSTYLE_FACES;
+        }
+    }
+}
+
+/* inlined copy of DoDroneDistanceChecks (0x4514??) at this call site in the original */
+static void C2_HOOK_FASTCALL DoDroneDistanceChecks_Impl(tDrone_spec* pDrone) {
+
+    if (gTrack_drone_min_y - 50 > pDrone->actor->t.t.translate.t.v[1]) {
+        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 5);
+        if (pDrone->current_state != 5) {
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+            }
+            pDrone->time_last_munge = gTime_stamp_for_this_munging;
+            pDrone->prev_states[1] = pDrone->prev_states[0];
+            pDrone->prev_states[0] = pDrone->current_state;
+            pDrone->current_state = 5;
+            if (gDrone_state_functions[5] != NULL) {
+                gDrone_state_functions[5](pDrone, eDrone_state_START);
+            }
+        }
+    } else {
+        int process_drone;
+
+        CalcRenderBoundsCentre();
+        process_drone = gDrone_form_within_rendering_distance_functions[pDrone->form->type](&pDrone->actor->t.t.translate.t);
+        pDrone->field_0x45 = process_drone;
+        if (!process_drone) {
+            process_drone = (pDrone->form->flags & 0x4) != 0 || gDrone_form_within_processing_distance_functions[pDrone->form->type](&pDrone->actor->t.t.translate.t);
+        }
+        if (!process_drone) {
+            StopProcessingThisDrone(pDrone, 0);
+        } else if ((!pDrone->field_0x45 || gFirst_drone_processing) && !gShow_drone_paths && pDrone->field_0x44 == 0
+                && ((pDrone->form->flags & 0x4) != 0 || gCount_active_drones < 12)) {
+            if (CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(pDrone) && ReallyAddDroneToPHIL(pDrone)) {
+                BrMatrix34Copy(&pDrone->collision_info.transform_matrix, &pDrone->actor->t.t.mat);
+                pDrone->field_0x44 = 1;
+                if ((pDrone->form->flags & 0x4) == 0) {
+                    gCount_active_drones += 1;
+                }
+                DoDefaultDroneStateAction(pDrone);
+                DoNotDprintf("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+                CrappyLittleVector3DPrintf("    Pos", &pDrone->actor->t.t.translate.t);
+            }
+        }
+        if (pDrone->field_0x45) {
+            StartRenderingThisDrone(pDrone);
+        } else {
+            StopRenderingThisDrone(pDrone);
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004512f0
+void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
+    int i;
+
+    UpdateEditModels_Impl();
+    gINT_006844fc = 0;
+    gINT_006820d4 = 0;
+    if (gDrones_unmodified) {
+        for (i = 0; i < gCount_drones; i++) {
+            DoDroneDistanceChecks_Impl(&gDrone_specs[i]);
+            if (gDrone_specs[i].current_state != 5) {
+                ProcessThisDrone(i);
+            }
+            DoNotDprintf("FINISHED processing Drone %d, state %d", gDrone_specs[i].id, gDrone_specs[i].current_state);
+        }
+    }
 }
 
 // DoDronePerGameFrameStuff

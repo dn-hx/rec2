@@ -500,6 +500,105 @@ void C2_HOOK_FASTCALL WaitForNoKeys(void) {
     CheckQuit();
 }
 
+static int C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_ScanKeys(void) {
+    int i;
+
+    for (i = 142; i >= 0; --i) {
+        if (gKey_array[i] && i != 4) {
+            if (!gEdge_trigger_mode) {
+                return i;
+            }
+            switch (EdgeTriggeryKey(i, 0)) {
+                case tKey_down_no:
+                case tKey_down_still:
+                    return -1;
+                case tKey_down_yes:
+                case tKey_down_repeat:
+                    return i;
+            }
+        }
+    }
+    if (gEdge_trigger_mode) {
+        EdgeTriggeryKey(0, 1);
+    }
+    return -1;
+}
+
+static int C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouse(void) {
+    int pos_x;
+    int pos_y;
+    int click_x;
+    int click_y;
+    int buttons[2];
+    int prev_x;
+    int prev_y;
+
+    prev_x = gCurrent_mouse_position.x;
+    prev_y = gCurrent_mouse_position.y;
+    GetMousePosition(&pos_x, &pos_y);
+    if (prev_x == pos_x && prev_y == pos_y) {
+        if (PDGetMouseClickPosition(&click_x, &click_y) && pos_x == click_x && pos_y == click_y) {
+            return 2;
+        }
+    }
+    PDMouseButtons(&buttons[0], &buttons[1]);
+    if (buttons[0] || buttons[1]) {
+        return 1;
+    }
+    return 0;
+}
+
+static void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouldy(void) {
+    int i;
+
+    if (PDGetTotalTime() - gLast_poll_keys > 500) {
+        for (i = 0; i < 151; i++) {
+            gKey_array[i] = 0;
+        }
+        for (i = 0; i < 8; i++) {
+            gJoy_array[i] = -1;
+        }
+        CyclePollKeys();
+        PollKeys();
+    }
+}
+
+// PARTIAL 85.71%: local stack-slot order of the inlined mouse sites and AnyKeyDown nesting (site3 returns 2) differ
+// wait for any key or mouse press, then wait for everything to be released
+// (AnyKeyDown / EitherMouseButtonDown / CheckKeysForMouldiness / PollKeys inlined)
+// FUNCTION: CARMA2_HW 0x004835d0
+void C2_HOOK_FASTCALL WaitForAKey(void) {
+    extern void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark);
+    int i;
+    int the_key;
+
+    do {
+        CheckQuit();
+        if (PDGetTotalTime() - gLast_poll_keys > 500) {
+            for (i = 0; i < 151; i++) {
+                gKey_array[i] = 0;
+            }
+            for (i = 0; i < 8; i++) {
+                gJoy_array[i] = -1;
+            }
+            CyclePollKeys();
+            gKey_poll_counter += 1;
+            PDSetKeyArray(gKey_array, gKey_poll_counter);
+            SetJoystickArrays(gKey_array, gKey_poll_counter);
+            PDSetKeysFromJoystick(gKey_array);
+            gLast_poll_keys = PDGetTotalTime();
+        }
+        the_key = WaitForAnyKeyOrMouse_ScanKeys();
+    } while (!((the_key != -1 && the_key != 4) || WaitForAnyKeyOrMouse_Mouse()) && !WaitForAnyKeyOrMouse_Mouse());
+    CheckQuit();
+    do {
+        CheckQuit();
+        WaitForAnyKeyOrMouse_Mouldy();
+        the_key = WaitForAnyKeyOrMouse_ScanKeys();
+    } while (((the_key != -1 && the_key != 4) || WaitForAnyKeyOrMouse_Mouse()) || WaitForAnyKeyOrMouse_Mouse());
+    CheckQuit();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif

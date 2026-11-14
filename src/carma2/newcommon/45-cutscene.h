@@ -26,7 +26,6 @@ extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
 
 
 extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
-extern void C2_HOOK_FASTCALL WaitForAKey(void);
 extern void C2_HOOK_FASTCALL DustRotate(void);
 extern void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void);
 

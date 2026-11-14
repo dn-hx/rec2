@@ -150,7 +150,7 @@ extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pO
 extern void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF);
 extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
-// DoDronePerGameFrameStuff
+extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
 
 extern int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther);
 extern int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject);

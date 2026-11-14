@@ -65,6 +65,7 @@ extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
 extern int C2_HOOK_FASTCALL KeyIsDownNoMouldiness(int pKey_index);
 
 extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
+extern void C2_HOOK_FASTCALL WaitForAKey(void);
 
 extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
 
