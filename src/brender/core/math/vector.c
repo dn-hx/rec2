@@ -178,14 +178,10 @@ br_scalar C2_HOOK_CDECL BrVector3Dot(br_vector3* v1, const br_vector3* v2) {
 
 // FUNCTION: CARMA2_HW 0x005346f0
 void C2_HOOK_CDECL BrVector3Cross(br_vector3* v1, const br_vector3* v2, const br_vector3* v3) {
-    br_scalar t;
 
-    t = v3->v[2];
-    v1->v[0] = t * v2->v[1] - v2->v[2] * v3->v[1];
-    t = v3->v[2];
-    v1->v[1] = v2->v[2] * v3->v[0] - t * v2->v[0];
-    t = v2->v[1];
-    v1->v[2] = v3->v[1] * v2->v[0] - t * v3->v[0];
+    v1->v[0] = v2->v[1] * v3->v[2] - v2->v[2] * v3->v[1];
+    v1->v[1] = v2->v[2] * v3->v[0] - v2->v[0] * v3->v[2];
+    v1->v[2] = v2->v[0] * v3->v[1] - v2->v[1] * v3->v[0];
 }
 
 // FUNCTION: CARMA2_HW 0x00534740
@@ -247,6 +243,14 @@ void C2_HOOK_CDECL BrVector4Copy(br_vector4* v1, const br_vector4* v2) {
 
 // FUNCTION: CARMA2_HW 0x00534900
 br_scalar C2_HOOK_STDCALL BrFVector2Dot(const br_fvector2* v1, const br_vector2* v2) {
+#ifdef REC2_MATCHING
+    // Dummy symbol, never used. MSVC 5 numbers symbols per translation unit and that
+    // count decides the register allocation of every later function in the file.
+    // BrVector3Cross above declares no local, which is what makes BrVector4Dot
+    // match; BrFVector3Dot and BrFVector3Normalise below need one symbol more, and
+    // this declaration is where it has to be (see state/cheatsheet.md).
+    br_scalar pad;
+#endif
 
     return BR_MAC2(v1->v[0], v2->v[0], v1->v[1], v2->v[1]);
 }
