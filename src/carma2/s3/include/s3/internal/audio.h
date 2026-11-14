@@ -225,4 +225,6 @@ extern int C2_HOOK_FASTCALL FUN_0056a646(int pTag);
 
 extern int C2_HOOK_FASTCALL FUN_00569d01(tS3_channel* pChannel);
 
+extern int C2_HOOK_FASTCALL FUN_0056a548(int pVolume);
+
 #endif // S3_AUDIO_H

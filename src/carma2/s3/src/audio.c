@@ -2483,3 +2483,26 @@ int C2_HOOK_FASTCALL FUN_00569d01(tS3_channel* pChannel) {
     }
     return 0;
 }
+
+extern int C2_HOOK_FASTCALL FUN_00569d5a(int pVolume);
+
+// FUNCTION: CARMA2_HW 0x0056a548
+int C2_HOOK_FASTCALL FUN_0056a548(int pVolume) {
+
+    if (pVolume < 0) {
+        pVolume = 0;
+    }
+    if (pVolume > 255) {
+        pVolume = 255;
+    }
+    if (gS3_enable_midi) {
+        FUN_00569d5a(pVolume);
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00569d5a
+int C2_HOOK_FASTCALL FUN_00569d5a(int pVolume) {
+
+    return 0;
+}
