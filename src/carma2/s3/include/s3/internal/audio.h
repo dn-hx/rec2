@@ -218,4 +218,6 @@ extern int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel);
 
 extern int C2_HOOK_FASTCALL PDS3UnmuteMidiChannel(tS3_channel* pChannel);
 
+extern int C2_HOOK_FASTCALL FUN_0056a583(int pTag);
+
 #endif // S3_AUDIO_H
