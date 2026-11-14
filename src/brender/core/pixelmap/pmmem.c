@@ -1,6 +1,11 @@
 #include "pmmem.h"
 
 #include "genclip.h"
+
+// Keep pmmemops.h's private FUN_* prototypes out of this translation unit: they
+// shift MSVC 5's symbol numbering and break the register allocation of the copy
+// and convert functions below. See the comment in pmmemops.h.
+#define REC2_PMMEM_C
 #include "pmmemops.h"
 #include "pmsetup.h"
 #include "pmutils.h"

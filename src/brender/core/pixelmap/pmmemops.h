@@ -18,6 +18,13 @@ void C2_HOOK_CDECL pm_mem_copy_colour_rowbyrow(br_uint_8* dst, br_uint_32 dst_qu
 void C2_HOOK_CDECL pm_mem_set_colour(br_uint_8* dest, br_uint_32 dest_qual, br_uint_32 bpp, br_uint_32 colour);
 
 br_uint_32 C2_HOOK_CDECL pm_mem_read_colour(void* src, br_uint_32 src_qual, br_uint_32 bpp);
+
+/* Declarations for functions that nobody outside pmmemops.c calls yet.
+ * pmmem.c defines REC2_PMMEM_C and does not see them: adding prototypes to a
+ * header shifts MSVC 5's TU-wide symbol numbering and flips the register
+ * allocation of pmmem.c's copy/convert functions (see state/cheatsheet.md,
+ * "new header prototype can break unrelated TUs"). Keep this guard. */
+#ifndef REC2_PMMEM_C
 void C2_HOOK_CDECL FUN_0053e3fe(br_uint_8* dest, br_uint_32 qual, br_uint_32 width, br_uint_32 height, br_uint_32 stride, br_uint_32 bpp, br_uint_32 colour);
 
 void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour);
@@ -25,5 +32,6 @@ void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbp
 void C2_HOOK_CDECL FUN_0053e527(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height, br_uint_32 dest_stride, br_uint_32 src_stride, br_uint_32 bpp);
 
 void C2_HOOK_CDECL FUN_0053e584(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height);
+#endif // REC2_PMMEM_C
 
 #endif //REC2_PMMEMOPS_H
