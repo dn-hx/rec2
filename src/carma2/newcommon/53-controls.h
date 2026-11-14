@@ -165,7 +165,6 @@ extern void C2_HOOK_FASTCALL FUN_00511200(void);
 extern void C2_HOOK_FASTCALL ToggleJoystickHeadup(void);
 extern void C2_HOOK_FASTCALL F4Key(void);
 extern void C2_HOOK_FASTCALL TDamageEngine(void);
-extern void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 extern float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection);
 extern void C2_HOOK_FASTCALL LeftInventory(void);
 extern void C2_HOOK_FASTCALL RightInventory(void);

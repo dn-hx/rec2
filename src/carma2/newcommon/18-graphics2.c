@@ -4,6 +4,7 @@
 #include "33-depth.h"
 #include "41-utility.h"
 #include "52-errors.h"
+#include "63-loading3.h"
 #include "66-tintedpoly.h"
 #include "globvars.h"
 #include "platform.h"
@@ -421,6 +422,49 @@ void C2_HOOK_FASTCALL KillSplashScreen(void) {
         gCurrent_splash = NULL;
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+
+// FUNCTION: CARMA2_HW 0x0047b990
+void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
+    br_pixelmap* the_map;
+    tPixelFlags pixelFlags;
+
+    the_map = BrMapFind(pPixmap_name);
+    if (gCurrent_splash != NULL) {
+        if (the_map == gCurrent_splash) {
+            return;
+        }
+    }
+    if (gCurrent_splash != NULL) {
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+    }
+    pixelFlags = gPixelFlags;
+    gCurrent_splash = the_map;
+    if (the_map == NULL) {
+        gCurrent_splash = LoadPixelmap(pPixmap_name);
+        BRPM_convert(gCurrent_splash, gBack_screen->type);
+        if (gCurrent_splash != NULL) {
+            BrMapAdd(gCurrent_splash);
+        }
+    }
+    gPixelFlags = pixelFlags;
+    if (gCurrent_splash != NULL) {
+        PixelmapSwapByteOrder(gCurrent_splash);
+        DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
+        PDScreenBufferSwap(0);
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+        gCurrent_splash = NULL;
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SplashScreenWith
 

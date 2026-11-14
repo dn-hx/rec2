@@ -910,34 +910,6 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
     }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004aea30
-int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
-    if (pSection >= 20000) {
-        if (pOpponent_spec->nnext_sections > pSection - 19999
-                && (pOpponent_spec->cheating || gProgram_state.AI_vehicles.path_sections[pSection - 19999].type != ePST_cheat_only)) {
-            return pSection + 1;
-        }
-        return -1;
-    }
-    if (pSection >= 15000) {
-        int trail_section = pSection - 15000;
-
-        if (trail_section >= pOpponent_spec->pursue_car_data.pursuee->my_trail.number_of_nodes - 2) {
-            trail_section = -1;
-        } else {
-            trail_section += 15001;
-        }
-        return (tS16)trail_section;
-    }
-    return -1;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 #include "18-graphics2.h"
 #include "25-grafdata.h"
 #include "38-flicplay.h"

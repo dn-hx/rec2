@@ -95,6 +95,4 @@ extern tDepth_effect_type gSwap_depth_effect_type;
 extern br_pixelmap* gSwap_sky_texture;
 
 
-extern void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour);
-
 #endif // GUARD_33_DEPTH_H

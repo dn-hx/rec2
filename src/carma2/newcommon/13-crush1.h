@@ -266,7 +266,7 @@ extern int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3*
 extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4);
 // SendDetachBit
 
-// SendAllSemiDetachedBits
+extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient);
 
 // AddNonCar
 
@@ -395,7 +395,7 @@ extern void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel);
 
 // RandomlyBendCar
 
-// TotallySpamTheCar
+extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
 
 // DRActorEnumRecurseUltraPlus
 

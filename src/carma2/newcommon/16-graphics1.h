@@ -92,7 +92,6 @@ extern void C2_HOOK_FASTCALL CleanPolyFontDanglers(void);
 extern void C2_HOOK_FASTCALL ClearWobbles(void);
 
 
-extern void C2_HOOK_FASTCALL MapStuffAfterRender(void);
 extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 extern int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex);

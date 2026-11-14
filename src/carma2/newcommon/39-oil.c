@@ -3,6 +3,7 @@
 #include "01-network.h"
 #include "41-utility.h"
 #include "63-loading3.h"
+#include "23-piping.h"
 #include "globvars.h"
 #include "rec2_macros.h"
 
@@ -214,21 +215,6 @@ void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel
 /* local externs (the shared 23-piping.h declares the scrap global volatile) */
 extern volatile undefined4 gUNK_0069410c;
 extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
-
-// FUNCTION: CARMA2_HW 0x004c82e0
-void C2_HOOK_FASTCALL PipeSingleOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap) {
-    (void)pGrow_rate;
-    *(volatile float*)&gUNK_0069410c = pFull_size;
-    ARDoSingleVariedSession(0x10, pIndex, 8,
-        0x30, 0, pMat,
-        4, 0x30, *(tU32*)&gUNK_0069410c,
-        4, 0x34, *(tU32*)&gUNK_0069410c,
-        4, 0x38, pSpill_time,
-        4, 0x3c, pStop_time,
-        4, 0x40, pCar,
-        0xc, 0x44, pOriginal_pos,
-        4, 0x50, pPixelmap);
-}
 
 extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
 extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);

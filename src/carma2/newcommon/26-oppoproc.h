@@ -42,8 +42,6 @@ extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pO
 // FollowCheatyPath
 
 
-extern int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spec, tS16 pSection);
-
 typedef struct {
     int count;
     int y;

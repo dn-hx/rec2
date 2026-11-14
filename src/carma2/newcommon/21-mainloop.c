@@ -1043,31 +1043,6 @@ float gCamera_to_horiz_angle;
 #pragma auto_inline(off)
 #endif
 
-// FUNCTION: CARMA2_HW 0x0041f300
-void C2_HOOK_FASTCALL ResetCarScreens(void) {
-    int i;
-    int j;
-    int count;
-    tCar_spec* car;
-
-    for (i = 0; i <= 3; i++) {
-        if (i == 0) {
-            count = 1;
-        } else {
-            count = GetCarCount(i);
-        }
-        for (j = 0; j < count; j++) {
-            if (i == 0) {
-                car = &gProgram_state.current_car;
-            } else {
-                car = GetCarSpec(i, j);
-            }
-            car->collision_info->last_special_volume = NULL;
-        }
-    }
-    MungeCarGraphics(gFrame_period);
-}
-
 extern int gQueued_headup_count;
 extern tQueued_headup gQueued_headups[4];
 

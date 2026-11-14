@@ -24,8 +24,6 @@ extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
 extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
 
-extern void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name);
-
 
 extern void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time);
 extern void C2_HOOK_FASTCALL WaitForAKey(void);

@@ -77,7 +77,7 @@ extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 extern br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD);
 extern void C2_HOOK_FASTCALL KillSplashScreen(void);
 
-// SplashScreenWith
+extern void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name);
 
 extern void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, const br_pixelmap* pSource, br_int_16 pSource_x, br_int_16 pSource_y, br_int_16 pWidth, br_int_16 pHeight);
 

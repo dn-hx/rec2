@@ -219,7 +219,6 @@ extern void* C2_HOOK_FASTCALL NetGetToPlayerContentsSize(tNet_game_player_info* 
 extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 extern void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar);
 extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
-extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
 extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
 
 /* Payload of the player-info net message (sent by KickPlayerOut); the receive

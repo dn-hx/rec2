@@ -1441,39 +1441,3 @@ int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend) {
     DRS3StartSound(gEffects_outlet, 0xbbe);
     return 0;
 }
-
-// FUNCTION: CARMA2_HW 0x0046b820
-void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_index) {
-    char* pos_dot;
-    char* abbrev_name;
-    tPath_name pack_path;
-    char pack_filename[40];
-    char pm_name[20];
-    tTWTVFS twt;
-
-    abbrev_name = gOpponents[pOpponent_index].abbrev_name;
-    pos_dot = strrchr(abbrev_name, '.');
-    PathCat(pack_path, gApplication_path, "INTRFACE");
-    PathCat(pack_path, pack_path, "CARIMAGE");
-    strcpy(pack_filename, gOpponents[pOpponent_index].car_file_name);
-    pack_filename[strlen(pack_filename) - 4] = '\0';
-    strcat(pack_filename, "CI");
-    PathCat(pack_path, pack_path, pack_filename);
-    twt = OpenPackFileAndSetTiffLoading(pack_path);
-    sprintf(pm_name, "%.*s%c%c.TIF", (int)(pos_dot - abbrev_name), abbrev_name, '6', '4');
-    BrMapRemove(gFrontend_images[7]);
-    BrPixelmapFree(gFrontend_images[7]);
-    gFrontend_images[7] = GetThisFuckingPixelmapPleaseMrTwatter(pack_path, pm_name);
-    if (gFrontend_images[7] == NULL) {
-        gFrontend_images[7] = LoadPixelmap("64by64.tif");
-    }
-    BrPixelmapCopy(gFrontend_brender_items[pFrontend_index].field_0xc, gFrontend_images[7]);
-    BrPixelmapCopy(gFrontend_brender_items[pFrontend_index].field_0x10, gFrontend_brender_items[pFrontend_index].field_0xc);
-    BrMapUpdate(gFrontend_brender_items[pFrontend_index].field_0xc, BR_MAPU_ALL);
-    ClosePackFileAndSetTiffLoading(twt);
-    gFrontend_brender_items[pFrontend_index].model->vertices[0].p.v[2] = -1.f;
-    gFrontend_brender_items[pFrontend_index].model->vertices[1].p.v[2] = -1.f;
-    gFrontend_brender_items[pFrontend_index].model->vertices[2].p.v[2] = -1.f;
-    gFrontend_brender_items[pFrontend_index].model->vertices[3].p.v[2] = -1.f;
-    BrModelUpdate(gFrontend_brender_items[pFrontend_index].model, BR_MODU_VERTEX_POSITIONS);
-}

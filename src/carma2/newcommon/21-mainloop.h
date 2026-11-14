@@ -37,7 +37,6 @@ extern tRace_result C2_HOOK_FASTCALL MainGameLoop(void);
 extern tRace_result C2_HOOK_FASTCALL DoRace(void);
 
 
-extern void C2_HOOK_FASTCALL ResetCarScreens(void);
 extern void C2_HOOK_FASTCALL MungeJoystickHeadups(void);
 extern void C2_HOOK_FASTCALL LastChanceForPedEffects(void);
 extern void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);

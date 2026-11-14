@@ -192,7 +192,7 @@ extern void C2_HOOK_FASTCALL MungeCarGraphics(tU32 pFrame_period);
 extern intptr_t C2_HOOK_CDECL TurnOffNonGroovers(br_actor* pActor, void* pData);
 extern void C2_HOOK_FASTCALL DoLODCarModels(void);
 extern void C2_HOOK_FASTCALL DoComplexCarModels(void);
-// ResetCarScreens
+extern void C2_HOOK_FASTCALL ResetCarScreens(void);
 
 extern void C2_HOOK_FASTCALL AdjustDownForce(void);
 
@@ -239,15 +239,12 @@ extern void C2_HOOK_FASTCALL FUN_0045c910(tCar_spec* pCar, br_vector3* pPoint, b
 extern br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees);
 extern void C2_HOOK_FASTCALL MungeSpecialVolume(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL SwapCar(void);
-extern void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index);
 extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
-extern void C2_HOOK_FASTCALL AddCarActorTransformationToSession(uintptr_t pId, br_actor* pActor);
 extern void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL DamageSystems(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, int pCars_touch);
 extern void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick);
 extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
-extern void C2_HOOK_FASTCALL RepositionAndOrientateChildren(tPhysics_object* pObject, br_matrix34* pParent_matrix);
 extern int C2_HOOK_FASTCALL NonCarSnapOff(tPhysics_object* pObject);
 extern int C2_HOOK_FASTCALL TestNonCarSnapOff(tPhysics_object* pObject);
 extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar pDt);

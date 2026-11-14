@@ -147,7 +147,7 @@ extern void C2_HOOK_FASTCALL DisposeNetHeadups(void);
 // DeclareWinner
 
 extern void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer);
-// CheckForVampireWinner
+extern void C2_HOOK_FASTCALL CheckForVampireWinner(void);
 
 extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
 // FarEnoughAway
@@ -172,7 +172,7 @@ extern void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void);
 
 extern void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
-// SendGameplayToHost
+extern void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 
 extern void C2_HOOK_FASTCALL InitNetGameplayStuff(void);
 
@@ -187,7 +187,6 @@ extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 extern tNet_message_chunk* C2_HOOK_FASTCALL NetGetToPlayerContents(tU8 pType, int pSize_decider, tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient);
 extern void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient);
-extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient);
 extern void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient);
 extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);

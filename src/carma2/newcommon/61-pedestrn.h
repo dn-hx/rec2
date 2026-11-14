@@ -489,7 +489,7 @@ extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar
 // DisposeAllBonerData
 
 extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pModel_index, int pModel_set);
-// SetCharacterBoneModelP
+extern void C2_HOOK_FASTCALL SetCharacterBoneModelP(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
 
 extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
 

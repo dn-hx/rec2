@@ -1,6 +1,7 @@
 #include "53-controls.h"
 #include "06-apo.h"
 #include "62-graphics3.h"
+#include "04-netgame.h"
 
 #include "15-displays.h"
 #include "17-world2.h"
@@ -852,22 +853,6 @@ void C2_HOOK_FASTCALL GetPowerup(int pNum) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// FUNCTION: CARMA2_HW 0x0049bcb0
-void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    tNet_message* the_message;
-
-    if (gNet_mode == eNet_mode_client) {
-        the_message = NetBuildGuaranteedMessage(0x1b, 0);
-        *(int*)((tU8*)the_message + 0x24) = pParam_2;
-        *(int*)((tU8*)the_message + 0x1c) = pMess;
-        *(int*)((tU8*)the_message + 0x20) = pParam_1;
-        *(int*)((tU8*)the_message + 0x28) = pParam_3;
-        *(int*)((tU8*)the_message + 0x2c) = pParam_4;
-        NetGuaranteedSendMessageToHost(gCurrent_net_game, the_message, NULL);
-    }
-}
 
 // FUNCTION: CARMA2_HW 0x0043b840
 float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {

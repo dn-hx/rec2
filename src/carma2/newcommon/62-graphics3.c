@@ -4,6 +4,7 @@
 #include "10-loading2.h"
 #include "18-graphics2.h"
 #include "19-font.h"
+#include "06-apo.h"
 #include "25-grafdata.h"
 #include "41-utility.h"
 #include "42-input.h"
@@ -1091,17 +1092,6 @@ int gBack_original_base_y;
 // GLOBAL: CARMA2_HW 0x0068d88c
 int gBack_original_base_x;
 
-#if defined(REC2_MATCHING)
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x005191b0
-void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
-
-    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
-}
-#if defined(REC2_MATCHING)
-#pragma auto_inline(on)
-#endif
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 
 // FUNCTION: CARMA2_HW 0x00496be0
@@ -1144,6 +1134,29 @@ void C2_HOOK_FASTCALL MapStuffBeforeRender(void) {
         DimRectangleClipped(gBack_screen, gMap_render_x_i - gCurrent_graf_data->map_render_x_marg, gMap_render_y_i - gCurrent_graf_data->map_render_y_marg, gMap_render_width_i + gMap_render_x_i + gCurrent_graf_data->map_render_x_marg, gMap_render_height_i + gMap_render_y_i + gCurrent_graf_data->map_render_y_marg, 1);
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00496d80
+void C2_HOOK_FASTCALL MapStuffAfterRender(void) {
+    if (gCurrent_race.map_image != NULL) {
+        if (gMap_view == 2) {
+            gOrigin_headup_map.v[0] = 0.f;
+            gOrigin_headup_map.v[1] = 0.f;
+            DoMapOverlays(gBack_screen);
+            gBack_screen->origin_x = gBack_original_origin_x;
+            gBack_screen->origin_y = gBack_original_origin_y;
+            gBack_screen->base_x = gBack_original_base_x;
+            gBack_screen->base_y = gBack_original_base_y;
+        } else if (gMap_view == 1 && !gAction_replay_mode && !(gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox)) {
+            MapOverlay();
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // MapStuffAfterRender
 

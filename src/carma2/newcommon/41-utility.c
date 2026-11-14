@@ -931,6 +931,18 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleCopy(br_pixelmap* dst, br_int_16 dx, br
     BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x005156d0
+void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_int_16 y, br_uint_16 w, br_uint_16 h, br_uint_32 colour) {
+
+    BrPixelmapRectangleFill(dst, x, y, w, h, colour);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00515700
 int C2_HOOK_FASTCALL NormalSideOfPlane(br_vector3* pPoint, br_vector3* pNormal, br_scalar pD) {
 
@@ -1846,6 +1858,18 @@ void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum) 
     sprintf(text, "%d", pNum);
     MungeMetaCharacters(pText, pMeta, text);
 }
+
+#if defined(REC2_MATCHING)
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x005191b0
+void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
+
+    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
+}
+#if defined(REC2_MATCHING)
+#pragma auto_inline(on)
+#endif
 
 void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLockDup(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h) {
 

@@ -1568,6 +1568,19 @@ void C2_HOOK_FASTCALL AddShrapnelToPipingSession(int pShrapnel_index, const br_v
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004c6ff0
+void C2_HOOK_FASTCALL AddCarActorTransformationToSession(uintptr_t pId, br_actor* pActor) {
+    extern void C2_HOOK_CDECL ARAddVariedDataToSession(int pType, uintptr_t pOwner, int pCount, ...);
+
+    ARAddVariedDataToSession(ePipe_chunk_non_car, pId, 2, 4, 0, pActor, 0x30, 4, &pActor->t.t.mat);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // AddNonCarToPipingSession
 
 static void SaveReducedPos(tReduced_pos* p, br_vector3* v) {
@@ -1795,6 +1808,21 @@ void C2_HOOK_FASTCALL PipeSingleNonCar(uintptr_t pId, br_actor* pActor) {
     ARDoSingleVariedSession(ePipe_chunk_non_car, pId, 2,
         SIZE_OFFSET_PIPING(tPipe_chunk_non_car, actor), pActor,
         SIZE_OFFSET_PIPING(tPipe_chunk_non_car, matrix), &pActor->t.t.mat);
+}
+
+// FUNCTION: CARMA2_HW 0x004c82e0
+void C2_HOOK_FASTCALL PipeSingleOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap) {
+    (void)pGrow_rate;
+    *(volatile float*)&gUNK_0069410c = pFull_size;
+    ARDoSingleVariedSession(0x10, pIndex, 8,
+        0x30, 0, pMat,
+        4, 0x30, *(tU32*)&gUNK_0069410c,
+        4, 0x34, *(tU32*)&gUNK_0069410c,
+        4, 0x38, pSpill_time,
+        4, 0x3c, pStop_time,
+        4, 0x40, pCar,
+        0xc, 0x44, pOriginal_pos,
+        4, 0x50, pPixelmap);
 }
 
 // PipeSingleOilSpill
@@ -2238,6 +2266,49 @@ void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk) {
 void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk) {
 
     return DoSmudge(pChunk, 1);
+}
+
+// FUNCTION: CARMA2_HW 0x004c9070
+void C2_HOOK_FASTCALL DoSmudge(tPipe_chunk** pChunk, int pScale) {
+    tCar_spec* car;
+    tU8* a;
+    tU32 code;
+    int i;
+    tU8* esi;
+
+    code = *(tU32*)*pChunk;
+    if ((code & 0xffffff00) == 0) {
+        car = &gProgram_state.current_car;
+    } else {
+        car = GetCarSpec(code >> 8, code & 0xff);
+    }
+    a = *(tU8**)((tU8*)car + 0xe10);
+    i = 0;
+    if (*(tU16*)((tU8*)*pChunk + 4) <= 0) {
+        return;
+    }
+    esi = *(tU8**)(a + 0x18);
+    do {
+        tU32* colors = *(tU32**)(*(tU8**)(*(tU8**)(esi + 0x4c) + 0x18) + 0x14);
+        tU16 idx = *(tU16*)((tU8*)*pChunk + i * 4 + 0xc);
+        tS8 bright = (tS8)((tS8)*(tU8*)((tU8*)*pChunk + i * 4 + 0xe) * (tS8)pScale);
+        tU32 alpha24 = ((tU32)(tU8)bright) << 24;
+        tU32 c = colors[idx];
+
+        colors[idx] = ((c & 0xff000000) + alpha24) & 0xff000000;
+        if (*(tU8*)(esi + 0x20) & 0x80) {
+            tU8* q = *(tU8**)(esi + 0x4c);
+            tU8* w = *(tU8**)(q + 0x18);
+            tU32* colors2 = (tU32*)(*(tU8**)(w + 0x14));
+            tU16* idx2 = (tU16*)(*(tU8**)(w + 0x18));
+            tU8 dl = (tU8)(colors2[idx] >> 24) + (tU8)bright;
+            tU8* arr = *(tU8**)(esi + 8);
+            tU16 ix = idx2[idx];
+
+            arr[(tU32)ix * 40 + 0x14] = dl;
+        }
+        i++;
+    } while (i < *(tU16*)((tU8*)*pChunk + 4));
 }
 
 // FUNCTION: CARMA2_HW 0x004c9180

@@ -949,6 +949,33 @@ extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer_ID pPlayer_id);
 extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0049a940
+void C2_HOOK_FASTCALL CheckForVampireWinner(void) {
+    int i;
+    int players_left;
+    int winner_index;
+
+    players_left = 0;
+    winner_index = 0;
+    if (gProgram_state.racing && gNet_mode == eNet_mode_host) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (!gNet_players[i].field_0x80) {
+                players_left++;
+                winner_index = i;
+            }
+        }
+        if (players_left <= 1) {
+            DeclareWinner(winner_index);
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0049b540
 void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer) {
     int i;
@@ -1643,6 +1670,29 @@ void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pPa
     NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, the_message, NULL);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0049bcb0
+void C2_HOOK_FASTCALL SendGameplayToHost(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    tNet_message* the_message;
+
+    if (gNet_mode == eNet_mode_client) {
+        the_message = NetBuildGuaranteedMessage(0x1b, 0);
+        *(int*)((tU8*)the_message + 0x24) = pParam_2;
+        *(int*)((tU8*)the_message + 0x1c) = pMess;
+        *(int*)((tU8*)the_message + 0x20) = pParam_1;
+        *(int*)((tU8*)the_message + 0x28) = pParam_3;
+        *(int*)((tU8*)the_message + 0x2c) = pParam_4;
+        NetGuaranteedSendMessageToHost(gCurrent_net_game, the_message, NULL);
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // SendGameplayToHost
 
 // FUNCTION: CARMA2_HW 0x0049bd00
@@ -2009,27 +2059,6 @@ void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient) {
 extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
 extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4);
-
-// based on ApexWorm/rec2 bf0127d92 src/carma2/newcommon/13-crush1.c
-// FUNCTION: CARMA2_HW 0x0042da20
-void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient) {
-    int i;
-    int j;
-    tCar_spec* car;
-    tCar_crush_spec* crush_spec;
-
-    for (i = 0; i < gNum_active_cars; i++) {
-        car = gActive_car_list[i];
-        if (car != NULL && car->driver > eDriver_oppo - 1) {
-            crush_spec = car->car_crush_spec;
-            if (crush_spec != NULL) {
-                for (j = 0; j < crush_spec->field_0x270; j++) {
-                    SendSemiDetachBit(gActive_car_list[i], crush_spec->field_0x274[j].field_0x0, 0.f, pRecipient);
-                }
-            }
-        }
-    }
-}
 
 extern int gCount_host_smashes;
 extern tU8* gNet_host_smashes;

@@ -18,6 +18,7 @@
 #include "39-oil.h"
 #include "49-physics.h"
 #include "67-lighting.h"
+#include "62-graphics3.h"
 
 #define SHADOW_D_IGNORE_FLAG 10000.f
 
@@ -939,29 +940,6 @@ extern int gBack_original_origin_y;
 extern int gBack_original_base_x;
 extern int gBack_original_base_y;
 extern int gThis_net_player_index;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00496d80
-void C2_HOOK_FASTCALL MapStuffAfterRender(void) {
-    if (gCurrent_race.map_image != NULL) {
-        if (gMap_view == 2) {
-            gOrigin_headup_map.v[0] = 0.f;
-            gOrigin_headup_map.v[1] = 0.f;
-            DoMapOverlays(gBack_screen);
-            gBack_screen->origin_x = gBack_original_origin_x;
-            gBack_screen->origin_y = gBack_original_origin_y;
-            gBack_screen->base_x = gBack_original_base_x;
-            gBack_screen->base_y = gBack_original_base_y;
-        } else if (gMap_view == 1 && !gAction_replay_mode && !(gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy && gThis_net_player_index == gIt_or_fox)) {
-            MapOverlay();
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x004e4e40
 void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {

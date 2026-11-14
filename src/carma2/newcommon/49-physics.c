@@ -2542,6 +2542,39 @@ void C2_HOOK_FASTCALL SetPhysicsErrorCallback(tPhysicsError_cbfn* pError_cbfn) {
     gPhysics_error_cb = pError_cbfn;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004c62e0
+void C2_HOOK_FASTCALL RepositionAndOrientateChildren(tPhysics_object* pObject, br_matrix34* pParent_matrix) {
+    br_matrix34 inverse;
+    br_matrix34 tmp_matrix;
+    br_matrix34 tmp_matrix2;
+    tPhysics_object* child;
+
+    child = pObject->child;
+    if (pParent_matrix != NULL) {
+        BrMatrix34Mul(&pObject->actor->t.t.mat, &pObject->transform_matrix, pParent_matrix);
+    } else {
+        BrMatrix34LPInverse(&inverse, &pObject->transform_matrix);
+        BrMatrix34Mul(&tmp_matrix2, &inverse, &pObject->actor->t.t.mat);
+        BrMatrix34LPNormalise(&tmp_matrix, &tmp_matrix2);
+        pParent_matrix = &tmp_matrix;
+    }
+    if (child != NULL) {
+        BrMatrix34LPInverse(&inverse, &pObject->transform_matrix);
+        BrMatrix34Mul(&tmp_matrix, &inverse, &pObject->actor->t.t.mat);
+        do {
+            RepositionAndOrientateChildren(child, pParent_matrix);
+            child = child->next;
+        } while (child != NULL);
+    }
+    BrMatrix34Copy(&pObject->transform_matrix, &pObject->actor->t.t.mat);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // RepositionAndOrientateChildren
 
 // FUNCTION: CARMA2_HW 0x004c63b0

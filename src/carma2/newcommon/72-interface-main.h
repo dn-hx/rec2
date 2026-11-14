@@ -16,6 +16,5 @@ extern int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend);
 extern int C2_HOOK_FASTCALL LoadGameInFunc(tFrontend_spec* pFrontend);
-extern void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_index);
 
 #endif /* GUARD_72_MAIN_H */

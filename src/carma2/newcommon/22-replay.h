@@ -39,8 +39,6 @@ extern void C2_HOOK_FASTCALL SetReplayPaused(int pPause);
 
 extern void C2_HOOK_FASTCALL ARApplyCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
-extern void C2_HOOK_FASTCALL DoSmudge(tPipe_chunk** pChunk, int pScale);
-
 extern void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10);
 
 extern void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
@@ -139,7 +137,6 @@ extern tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_ins
 extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
 extern void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform);
 extern void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pOwner);
-extern void C2_HOOK_FASTCALL SetCharacterBoneModelP(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
 extern void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only);
 
 #endif // GUARD_22_REPLAY_H

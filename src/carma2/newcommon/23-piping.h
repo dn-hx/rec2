@@ -475,7 +475,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 extern int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext);
 extern void C2_HOOK_FASTCALL PipeCarPositions(void);
 extern void C2_HOOK_CDECL ResetCars(void);
-// DoSmudge
+extern void C2_HOOK_FASTCALL DoSmudge(tPipe_chunk** pChunk, int pScale);
 
 // DoOilSpillAR
 
@@ -534,7 +534,7 @@ extern void C2_HOOK_FASTCALL PipeSingleGrooveStop(int pGroove_index, br_matrix34
 
 extern void C2_HOOK_FASTCALL PipeSingleNonCar(uintptr_t pId, br_actor* pActor);
 
-// PipeSingleOilSpill
+extern void C2_HOOK_FASTCALL PipeSingleOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap);
 
 extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
 
@@ -566,7 +566,7 @@ extern void C2_HOOK_FASTCALL PipeSingleIdentity(br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
 
-// AddCarActorTransformationToSession
+extern void C2_HOOK_FASTCALL AddCarActorTransformationToSession(uintptr_t pId, br_actor* pActor);
 
 extern void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_model* pOld_model, br_model* pNew_model);
 
