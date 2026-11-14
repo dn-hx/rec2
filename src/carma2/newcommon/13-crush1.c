@@ -4718,8 +4718,6 @@ void C2_HOOK_FASTCALL ReceivedCrush(tU8* pContents) {
 
 // AttachedBitFromID
 
-// ReceivedSemiDetachBit
-
 // ReceivedDetachBit
 
 // SemiDetachedBitObjectFromID
@@ -9470,4 +9468,56 @@ void C2_HOOK_FASTCALL ReceivedFullDetachBit(tU8* pContents) {
     gNet_crush_full_detach_bit_list[n].object = bit;
     gCount_net_crush_full_detach_bit_list = n + 1;
     *(tU32*)(gNet_crush_full_detach_bit_list[n].field_0x8) = *(tU32*)(pContents + 0xc);
+}
+
+// PARTIAL 68.37%: ReceivedSemiDetachBit 0x0043c940 [regalloc/frame] - id kept in edi (orig eax), count in eax (orig ecx), desc slot 4 B off; state/findings/FUN_0043c940.md
+// FUNCTION: CARMA2_HW 0x0043c940
+void C2_HOOK_FASTCALL ReceivedSemiDetachBit(tU8* pContents)
+{
+    extern int gCount_net_crush_semi_detach_bit_list;
+    struct {
+        tU8 id;
+        tU32 found;
+    } desc;
+    tCar_spec* car;
+    intptr_t found;
+    tU32 id;
+    int count;
+    int i;
+    tCrush_net_semi_detach_bit_list_item* item;
+    br_scalar scale;
+
+    if (gCount_net_crush_semi_detach_bit_list == 8) {
+        return;
+    }
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car == NULL) {
+        return;
+    }
+    desc.id = pContents[8];
+    desc.found = 0;
+    found = DRActorEnumRecurse(car->car_model_actor, FindActorByCrushEntryID, &desc);
+    id = (found != 0) ? desc.found : 0;
+    if (id == 0) {
+        return;
+    }
+    count = gCount_net_crush_semi_detach_bit_list;
+    item = gNet_crush_semi_detach_bit_list;
+    for (i = 0; i < count; i++, item++) {
+        if (*(tU32*)&item->actor == id) {
+            return;
+        }
+    }
+    gNet_crush_semi_detach_bit_list[count].car = car;
+    *(tU32*)&gNet_crush_semi_detach_bit_list[count].actor = id;
+    *(tU32*)&gNet_crush_semi_detach_bit_list[count].field_0x8[0] = *(tU32*)(pContents + 0xc);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[count].field_0x8[4], (tCompressed_vector3*)(pContents + 0x10), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x28], (tCompressed_vector3*)(pContents + 0x22), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x34], (tCompressed_vector3*)(pContents + 0x28), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x10], (tCompressed_vector3*)(pContents + 0x16), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x1c], (tCompressed_vector3*)(pContents + 0x1c), -10.0f, 10.0f);
+    scale = DRU16ToScalar(*(tU16*)(pContents + 0x2e), 0.0f, 40.0f);
+    count = gCount_net_crush_semi_detach_bit_list;
+    gCount_net_crush_semi_detach_bit_list = count + 1;
+    *(br_scalar*)&gNet_crush_semi_detach_bit_list[count].field_0x8[0x40] = scale;
 }
