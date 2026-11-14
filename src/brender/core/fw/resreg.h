@@ -28,4 +28,6 @@ extern void C2_HOOK_CDECL FUN_00528130(br_uint_32* pDestination, br_uint_32 pVal
 
 extern void C2_HOOK_CDECL FUN_0052814e(br_uint_32* pDestination, br_uint_32* pSource, int pCount);
 
+extern void C2_HOOK_CDECL FUN_0052816c(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount);
+
 #endif // REC2_RESREG_H

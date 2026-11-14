@@ -154,3 +154,36 @@ void C2_HOOK_CDECL FUN_0052814e(br_uint_32* pDestination, br_uint_32* pSource, i
     }
 #endif
 }
+
+#if defined(_MSC_VER) && defined(_M_IX86)
+C2_NAKED
+#endif
+// FUNCTION: CARMA2_HW 0x0052816c
+void C2_HOOK_CDECL FUN_0052816c(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount) {
+#if defined(_MSC_VER) && defined(_M_IX86)
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ecx
+        push esi
+        push edi
+        push es
+        mov ecx, dword ptr [ebp+0x14]
+        mov esi, dword ptr [ebp+0x10]
+        les edi, fword ptr [ebp+0x8]
+        rep movsd
+        pop es
+        pop edi
+        pop esi
+        pop ecx
+        leave
+        ret
+    }
+#else
+    int i;
+
+    for (i = 0; i < pCount; i++) {
+        pDestination[i] = pSource[i];
+    }
+#endif
+}
