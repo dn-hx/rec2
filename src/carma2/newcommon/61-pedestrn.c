@@ -1815,11 +1815,13 @@ extern int gTotal_count_smash_peds;
 // GLOBAL: CARMA2_HW 0x0065d79c
 int gGib_shower_id = -1;
 
+// PARTIAL 85.23%: residual x87 vec batching + seed __ftol order (source-shape insensitive); see state/findings/DoGiblets.md
 // FUNCTION: CARMA2_HW 0x004ccff0
 void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
     tU32 time;
     int seed;
     br_vector3 vec;
+    tPhysics_object* object;
 
     if (gGoreLevel <= 0) {
         return;
@@ -1833,12 +1835,10 @@ void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPh
         Explode(&gPed_explosion_small_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
     }
     seed = (int)pArg5->v[2] ^ (int)pArg5->v[1] ^ time ^ (int)pOpt_speed_object ^ (int)pPed ^ (int)pArg5->v[0];
-    if (pOpt_speed_object == NULL) {
-        pOpt_speed_object = pObject;
-    }
-    vec.v[0] = pOpt_speed_object->v.v[0] * 6.9;
-    vec.v[1] = pOpt_speed_object->v.v[1] * 6.9;
-    vec.v[2] = pOpt_speed_object->v.v[2] * 6.9;
+    object = (pOpt_speed_object == NULL) ? pObject : pOpt_speed_object;
+    vec.v[0] = object->v.v[0] * 6.9;
+    vec.v[1] = object->v.v[1] * 6.9;
+    vec.v[2] = object->v.v[2] * 6.9;
     DoGibShower(gGib_shower_id, time, seed, pArg4, pArg6, &pPed->pos, pArg5, &vec);
     PipeSingleGibShower(gGib_shower_id, time, seed, *(int*)&pArg4, pArg6, &pPed->pos, pArg5, &vec);
     gGib_shower_id--;
@@ -3190,6 +3190,11 @@ br_matrix34* C2_HOOK_FASTCALL GetBoneMatrixPtr(tPed_character_instance* pCharact
     }
     return &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[pBone_index]->t.t.mat;
 }
+/* not inlined: the original CALLs 0x00407b10 at every call site (0x413bbf, 0x4c6dc9,
+   0x4cd030, 0x4cd05b, 0x4cd086, 0x4ceba6) */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00407b10
 br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter) {
 
@@ -3198,6 +3203,9 @@ br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharac
     }
     return pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0];
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // SetCharacterBonePositions
 
 extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
