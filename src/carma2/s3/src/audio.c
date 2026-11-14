@@ -2536,3 +2536,11 @@ int C2_HOOK_FASTCALL FUN_00564d33(void) {
         return 0;
     }
 }
+
+// FUNCTION: CARMA2_HW 0x005648ac
+int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2) {
+    int local;
+
+    (void)local;
+    return 0xc;
+}
