@@ -1823,7 +1823,6 @@ void C2_HOOK_FASTCALL AdjustSmokeColumn(int pIndex, const tSmoke_column_core* pC
 extern void C2_HOOK_FASTCALL AddFlameToPipingSession(int pIndex, int pFrame, br_scalar pScale_x, br_scalar pScale_y, br_scalar pOffset_x, br_scalar pOffset_z);
 extern void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry);
 
-// and ApexWorm/rec2 c5f339671
 // FUNCTION: CARMA2_HW 0x004fb630
 void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime) {
     tSmoke_column* old_column;
@@ -1831,6 +1830,7 @@ void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec*
     br_actor* flame;
     int i;
 
+    /* The original takes the slot pointer before the object default is resolved. */
     old_column = &gSmoke_column[gColumn_next];
     if (pObject == NULL) {
         pObject = (pCar != NULL) ? pCar->collision_info : NULL;
@@ -1843,6 +1843,7 @@ void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec*
         return;
     }
     if ((gColumn_flags & (1 << gColumn_next)) != 0) {
+        /* Replay the slot that is about to be overwritten. */
         ARStartPipingSession(ePipe_chunk_smoke_column);
         AddSmokeColumnToPipingSession(gColumn_next, &gSmoke_column[gColumn_next].core, gSmoke_column[gColumn_next].vertex_index, gSmoke_column[gColumn_next].colour);
         AREndPipingSession();
