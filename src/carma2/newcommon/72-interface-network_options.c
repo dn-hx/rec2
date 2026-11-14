@@ -4,8 +4,14 @@
 #include <string.h>
 
 #include "72-interface.h"
+#include "10-loading2.h"
+#include "35-intrface.h"
+#include "42-input.h"
+#include "71-newgame.h"
+#include "72-interface-main.h"
+#include "globvars.h"
+#include "platform.h"
 
-extern tFrontend_spec gFrontend_MAIN;
 
 /* NetOptions_Cancel and its data live here, not in 72-interface.c: additions to 72-interface.c shift MSVC's codegen of SortScores_1 0x004743c0 */
 
@@ -18,15 +24,6 @@ static void C2_HOOK_FASTCALL RestoreNetworkOptions(void) {
     gFrontend_net_options = gFrontend_backup_net_options;
 }
 
-extern int C2_HOOK_FASTCALL WhichItemIsSelectedIn(tFrontend_spec* pFrontend, int pGroup);
-extern int C2_HOOK_FASTCALL SaveOptions(void);
-extern int gNet_last_game_type;
-extern tNet_game_options gNet_settings[9];
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
-extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
-extern void C2_HOOK_FASTCALL SelectThisItemIn(tFrontend_spec* pFrontend, int pGroup, int pValue);
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tNet_game_type gFrontend_game_type;
 extern int gFrontend_scrollbars_updated;
 extern tFrontend_slider* gCurrent_frontend_scrollbars;

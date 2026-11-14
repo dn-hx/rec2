@@ -22,6 +22,16 @@
 #include "41-utility.h"
 
 #include "c2_string.h"
+#include "02-init.h"
+#include "06-apo.h"
+#include "07-structur.h"
+#include "10-loading2.h"
+#include "30-opponent.h"
+#include "42-input.h"
+#include "53-controls.h"
+#include "54-runtime.h"
+#include "57-drone.h"
+#include "61-pedestrn.h"
 
 extern tNon_car_spec* gActive_non_car_list[99];
 
@@ -52,7 +62,6 @@ br_scalar gCamera_zoom = 0.2f;
 
 // CheckCameraHither
 
-extern int gIt_or_fox;
 
 
 // AmIGettingBoredWatchingCameraSpin
@@ -158,18 +167,7 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
 #pragma auto_inline(on)
 #endif
 extern int gAR_camera_type;
-extern int gCamera_type;
-extern int gPed_count;
-extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
-extern int C2_HOOK_FASTCALL OKToViewDrones(void);
 
-extern float gCamera_angle;
-extern tRace_over_reason gRace_over_reason;
-extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
-extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
-extern br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void);
-extern br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void);
-extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 int gNet_player_to_view_index = -1;
@@ -561,7 +559,6 @@ undefined2 gUNK_006792f4;
 // GLOBAL: CARMA2_HW 0x006792f8
 int gUNK_006792f8;
 
-extern tCamera_key_flags gCamera_key_flags;
 extern int gCamera_mode;
 extern int gCamera_has_collided;
 extern int C2_HOOK_FASTCALL ARReplayForwards(void);
@@ -849,8 +846,6 @@ extern tS32 gIncident_camera_stack;
 extern tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void);
 extern int C2_HOOK_FASTCALL ARReplayForwards(void);
 extern void C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, tARScanBuffer_callback* pCallback, tARScanBuffer_time_check* pTime_check);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
 extern tU32 gOldest_time;
 extern tU32 gTrigger_time;
 static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime);
@@ -1283,7 +1278,6 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int i) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
 
 // inlined into GeneralisedPositionExternalCamera 0x00410c60; no address of its own
 static void C2_HOOK_FASTCALL DoCameraControls(tCamera_key_flags* pCamera_controls, tU32 pTime_difference) {

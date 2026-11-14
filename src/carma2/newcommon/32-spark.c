@@ -14,18 +14,23 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include "00-car.h"
+#include "09-funks.h"
+#include "13-crush1.h"
+#include "30-opponent.h"
+#include "34-finteray.h"
+#include "36-trig.h"
+#include "61-pedestrn.h"
+#include "63-loading3.h"
+#include "70-packfile.h"
+#include "globvrkm.h"
+#include "globvrpb.h"
 
 // local copies of the six prototypes 583638a7f removed from 41-utility.h
 // (keeps this TU's codegen at its pre-583638a7f state)
 
-extern br_scalar C2_HOOK_FASTCALL FastScalarSinAngle(br_angle pBR_angle);
-extern br_scalar C2_HOOK_FASTCALL FastScalarCosAngle(br_angle pBR_angle);
-extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
-extern br_scalar gCrushZero;
 extern br_pixelmap* gFog_shade_table;
 extern br_pixelmap* gAcid_shade_table;
-extern int gRendering_mirror;
-extern tCar_spec* gCar_to_view;
 
 // GLOBAL: CARMA2_HW 0x00660110
 int gSmoke_on = 1;
@@ -977,7 +982,6 @@ void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, con
 
 // InitShrapnel
 
-extern br_model* C2_HOOK_FASTCALL LoadModel(const char* pName);
 
 // FUNCTION: CARMA2_HW 0x004f8b90
 void C2_HOOK_FASTCALL LoadInShrapnel(void) {
@@ -991,8 +995,6 @@ void C2_HOOK_FASTCALL LoadInShrapnel(void) {
     gNon_track_actor->material = gBlack_material;
 }
 
-extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
-extern void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex);
 
 // RESIDUAL effective 100% (raw ~99): SIB base/index swap at 0x4f8d75 ([edi+edx+0x40] vs [edx+edi+0x40]); 9 source forms tried, MSVC always puts the pointer in the base slot
 // FUNCTION: CARMA2_HW 0x004f8ca0
@@ -1127,7 +1129,6 @@ void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar) {
 }
 
 // (reconstructed from the disassembly)
-extern tFace_ref gFace_list__car[300];
 // FUNCTION: CARMA2_HW 0x004f8f30
 void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
     br_scalar dist;
@@ -1324,7 +1325,6 @@ int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial) {
 #endif
 // FUNCTION: CARMA2_HW 0x004f9620
 void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar_spec) {
-    extern void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex);
     tCar_crush_spec* spec;
     int i;
     int j;
@@ -1398,13 +1398,7 @@ int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial) {
 }
 
 extern int gNum_splash_types;
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
-extern tPedestrian* gPedestrian_array;
 extern int gSplash_flags;
-extern void C2_HOOK_FASTCALL DRMatrix34PreRotateZ(br_matrix34* mat, br_angle rz);
-extern br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 
 // GLOBAL: CARMA2_HW 0x006aa5b0
 
@@ -2170,7 +2164,6 @@ void C2_HOOK_FASTCALL AdjustSmokeColumn(int pIndex, const tSmoke_column_core* pC
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry);
 
 // FUNCTION: CARMA2_HW 0x004fb630
 void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime) {
@@ -3220,9 +3213,6 @@ void C2_HOOK_FASTCALL FreeSmokeShadeTables(void) {
 }
 
 /* (LoadInShrapnel and InitShrapnel inlined) */
-extern br_model* C2_HOOK_FASTCALL LoadModel(const char* pName);
-extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
-extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
 
 // FUNCTION: CARMA2_HW 0x004fdc10
 void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF) {
@@ -3354,7 +3344,6 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 // GLOBAL: CARMA2_HW 0x006601b0
 const char gSolidgrn_material[10] = "solidgrn";
 
-extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 
 // RESIDUAL 99.38%: pushed gSolidgrn_material renders (DATA) vs original (STRING); the literal form fixes this function but costs neighbours 0x512030/0x511440
 // FUNCTION: CARMA2_HW 0x004fe360

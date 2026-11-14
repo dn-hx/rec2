@@ -20,6 +20,9 @@
 #include "18-graphics2.h"
 
 #include <string.h>
+#include "05-drmem.h"
+#include "42-input.h"
+#include "53-controls.h"
 
 // FUNCTION: CARMA2_HW 0x00491f70
 C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
@@ -57,10 +60,6 @@ C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
     exit(0);
 }
 
-extern void C2_HOOK_FASTCALL CheckMemory(void);
-extern void C2_HOOK_FASTCALL CyclePollKeys(void);
-extern void C2_HOOK_FASTCALL PollKeys(void);
-extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
 
 // FUNCTION: CARMA2_HW 0x00492050
 void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
@@ -83,11 +82,7 @@ void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
     NetService(pRacing);
 }
 
-extern void C2_HOOK_FASTCALL CheckMemory(void);
-extern void C2_HOOK_FASTCALL CyclePollKeys(void);
-extern void C2_HOOK_FASTCALL PollKeys(void);
 
-extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
 
 // FUNCTION: CARMA2_HW 0x00492180
 void C2_HOOK_FASTCALL ServiceGame(void) {

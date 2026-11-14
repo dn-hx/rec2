@@ -12,6 +12,9 @@
 #include "rec2_types.h"
 
 #include <string.h>
+#include "35-intrface.h"
+#include "42-input.h"
+#include "globvrbm.h"
 
 // GLOBAL: CARMA2_HW 0x0058fdc8
 int gCursor_tinted_top = -1;
@@ -190,9 +193,6 @@ extern int gDoMouseCursor_button_was_down;
 extern int gTransient_bitmap_index;
 extern int gCurrent_cursor_index;
 extern tMouse_coord gMouse_last_pos;
-extern int gMouse_in_use;
-extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
-extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
 
 // PARTIAL 99.99% (EFFECTIVE): sub edx,ecx order differs in 2 SetTintedPolySize arg exprs
 // FUNCTION: CARMA2_HW 0x0043e0a0
@@ -338,8 +338,6 @@ void C2_HOOK_FASTCALL InitMouseTargetLines(void) {
     }
 }
 
-extern int gMouse_in_use;
-extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
 
 // GLOBAL: CARMA2_HW 0x0067c390
 int gMouse_started;
@@ -614,9 +612,6 @@ void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop
 #pragma auto_inline(off)
 #endif
 /* local declarations (globvrbm.h is not included in this file) */
-extern br_model* gDim_model;
-extern br_actor* gDim_actor;
-extern br_actor* g2d_camera;
 
 // FUNCTION: CARMA2_HW 0x0047cad0
 void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {

@@ -15,14 +15,28 @@
 #include "c2_string.h"
 #include "28-world3.h"
 #include "globvrpb.h"
+#include "00-car.h"
+#include "01-network.h"
+#include "07-structur.h"
+#include "09-funks.h"
+#include "17-world2.h"
+#include "23-piping.h"
+#include "27-powerup.h"
+#include "30-opponent.h"
+#include "32-spark.h"
+#include "33-depth.h"
+#include "34-finteray.h"
+#include "37-brucetrk.h"
+#include "39-oil.h"
+#include "49-physics.h"
+#include "50-fog.h"
+#include "54-runtime.h"
+#include "59-camera.h"
+#include "60-phil.h"
+#include "69-sound.h"
+#include "platform.h"
 
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
-extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 extern int C2_HOOK_FASTCALL IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells(void);
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
-extern int gCrush_deferred;
-extern int gPed_dismemberfest;
 extern const double gConst_world_scale;
 extern const double gConst_2pi;
 
@@ -121,9 +135,6 @@ const char* gSmashable_track_environment_path;
 // GLOBAL: CARMA2_HW 0x006b788c
 int gCount_smashable_noncars;
 
-extern intptr_t C2_HOOK_CDECL ProcessMaterials(br_actor* pActor, void* pContext);
-extern void C2_HOOK_FASTCALL AddFogificateMaterial(br_material* pMaterial);
-extern br_material* gMaterials_to_adapt[200];
 
 // GLOBAL: CARMA2_HW 0x0065fed0
 const char* gInitial_smashable_position_type_names[3] = {
@@ -169,7 +180,6 @@ int gSize_powerup_queue;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
 // FUNCTION: CARMA2_HW 0x004c8870
 void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15) {
 
@@ -191,7 +201,6 @@ void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, 
 }
 
 extern int gExploding_pedestrians;
-extern int gImmortal_peds;
 extern int gGoreLevel;
 extern int gPed_severing_damage;
 extern const int gPow2_array[32];
@@ -228,7 +237,6 @@ void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, unde
 // FUNCTION: CARMA2_HW 0x004cc860
 void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel) {
     extern int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, ...);
-    extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
     tU32 old_flags;
     tU32 old_bit;
     tS8 old_4;
@@ -459,7 +467,6 @@ void C2_HOOK_FASTCALL ResetExplosions(void) {
 
 // RemoveAllExplosionettes
 
-extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004eaaf0
@@ -532,7 +539,6 @@ void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosion) {
 #endif
 // GLOBAL: CARMA2_HW 0x006a82a0
 int gNext_explosion_slot = 0;
-extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
 // FUNCTION: CARMA2_HW 0x004ead00
 void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
     tExplosion_animation_group* group;
@@ -806,7 +812,6 @@ void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2,
 
 // DoAward
 
-extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
 
 // FUNCTION: CARMA2_HW 0x004ecc40
 void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
@@ -912,10 +917,7 @@ void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
 
 // DoConnotations
 
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
-extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
 extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
 extern float gYon_squared;
 
 #ifdef REC2_MATCHING
@@ -964,20 +966,14 @@ void C2_HOOK_FASTCALL InitSmashQueue(void) {
 
 // DoConnotationsMultiLevel
 
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 extern void C2_HOOK_FASTCALL EarnCredits100(int pAmount);
 extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 extern void C2_HOOK_FASTCALL AwardTime5(tU32 pTime);
 extern void C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
-extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
-extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
-extern int C2_HOOK_FASTCALL ToggleRuntimeVariable(int pAddress);
-extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
 extern void C2_HOOK_FASTCALL DoShrapnel(int pArg3, tShrapnel_spec* pShrapnel, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, const br_vector3* pOffset, int pFlag);
 extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
 extern float gYon_squared;
 
 // (reference only)
@@ -1090,7 +1086,6 @@ typedef struct {
     br_actor* actors[20];
 } tNon_car_search_context;
 
-extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
 // FUNCTION: CARMA2_HW 0x004ed860
 void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
     tNon_car_search_context search;
@@ -1249,7 +1244,6 @@ extern double gDouble_0058aec8;
 extern float gFloat_0058af38;
 extern int gUnknown_006b9c60[];
 
-extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
 // FUNCTION: CARMA2_HW 0x004edbe0
 void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
     tSmash_record record;
@@ -2101,12 +2095,7 @@ void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* 
 #pragma auto_inline(on)
 #endif
 /* local declarations instead of including 23-piping.h / 09-funks.h / 69-sound.h here */
-extern void C2_HOOK_FASTCALL PipeSingleSmashTextureChange(tCar_spec* pCar_spec, br_material* pMaterial, br_pixelmap* pTexture);
-extern void C2_HOOK_FASTCALL EnableFunkotronic(int pIndex);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
 extern tS3_outlet* gCar_outlet;
-extern tActionReplayCameraMode gAction_replay_camera_mode;
-extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004ef830
@@ -2426,8 +2415,6 @@ void C2_HOOK_FASTCALL MungeGlassFragments(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
-extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 
 // based on ApexWorm/rec2 4375aec8e
 // FUNCTION: CARMA2_HW 0x004f0150
@@ -2715,7 +2702,6 @@ int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, floa
 }
 extern int gMutant_tail_state;
 extern tU32 gINT_00705b70;
-extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
 
 // FUNCTION: CARMA2_HW 0x004f1030
 void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
@@ -2769,16 +2755,10 @@ struct tNet_stored_smash {
     undefined4 field_0x34;
 };
 
-extern void C2_HOOK_FASTCALL PipeSingleSmashModelChange(br_actor* pActor, br_model* pOld_model, br_model* pNew_model);
-extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
 extern void C2_HOOK_FASTCALL AddChangedPoint(const br_vector3* pPoint);
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
 extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, undefined4* pArg3);
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 extern tU32 gPHIL_last_physics_tick;
-extern int gFace_num__car;
 extern int gCount_shrapnel_shower_calls;
-extern void C2_HOOK_FASTCALL PipeSingleSmashRemoveFaces(br_model* pModel, int pCount, const void* pFaces, br_material* pMaterial);
 extern int gINT_006a8290;
 
 // FUNCTION: CARMA2_HW 0x004f1140
@@ -2937,10 +2917,8 @@ float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pA
     return result;
 }
 
-extern void C2_HOOK_FASTCALL PipeSingleSmashDecal(uintptr_t pOwner);
 extern void C2_HOOK_CDECL BrMatrix23ApplyP(br_vector2* pA, const br_vector2* pB, const br_matrix23* pC);
 extern int gCapacity_track_smashables;
-extern void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial);
 extern const double gDouble_0058aee8;
 extern const double gDOUBLE_0058aef8;
 extern const float gFLOAT_0058af20;
@@ -4691,8 +4669,6 @@ void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex) {
 }
 
 /* local declarations instead of including 59-camera.h here */
-extern tActionReplayCameraMode gAction_replay_camera_mode;
-extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
 
 // based on ApexWorm/rec2 c5b907296
 // FUNCTION: CARMA2_HW 0x004f6060
@@ -4741,10 +4717,7 @@ void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
     }
 }
 
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
 extern tWorld_callbacks gWorld_callbacks;
-extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 
 // PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
 #ifdef REC2_MATCHING
@@ -4809,7 +4782,6 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
 #endif
 /* local declaration instead of including 04-netgame.h here */
 extern tU32 gPHIL_last_physics_tick;
-extern int gFace_num__car;
 extern int gCount_shrapnel_shower_calls;
 extern int gNext_explosion_slot;
 
@@ -4832,7 +4804,6 @@ void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
     }
 }
 
-extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 
 // FUNCTION: CARMA2_HW 0x004f6320
 void C2_HOOK_FASTCALL ReceivedSmashShraps(tNet_message_chunk_non_car_shrapnel* pSpec) {

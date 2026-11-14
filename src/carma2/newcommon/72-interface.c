@@ -30,6 +30,9 @@
 #include "c2_string.h"
 #include <ctype.h>
 #include "joystick.h"
+#include "04-netgame.h"
+#include "12-menuoptions.h"
+#include "72-interface-options.h"
 
 // GLOBAL: CARMA2_HW 0x00764eec
 tFrontendMenuType gFrontend_next_menu;
@@ -3966,7 +3969,6 @@ int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
 // MungePlayers
 
-extern void C2_HOOK_FASTCALL SetUpNetCarPositions(void);
 extern tU32 gNet_synch_start;
 
 // (reference only)
@@ -3983,7 +3985,6 @@ int C2_HOOK_FASTCALL NetSynchRaceStart2(tNet_synch_mode pMode) {
     return eSO_continue;
 }
 
-void C2_HOOK_FASTCALL SignalToStartRace(void);
 
 // FUNCTION: CARMA2_HW 0x004735a0
 int C2_HOOK_FASTCALL NetSync_Start(tFrontend_spec* pFrontend) {
@@ -4200,7 +4201,6 @@ int C2_HOOK_FASTCALL Options_Quit(tFrontend_spec* pFrontend) {
     return 2;
 }
 
-extern void C2_HOOK_FASTCALL GetGraphicsSettingsData(tFrontend_spec* pFrontend);
 
 // FUNCTION: CARMA2_HW 0x004747e0
 int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend) {
@@ -4223,7 +4223,6 @@ int C2_HOOK_FASTCALL Graphics_Infunc(tFrontend_spec* pFrontend) {
     return 1;
 }
 
-extern void C2_HOOK_FASTCALL SetGraphicsSettingsData(tFrontend_spec* pFrontend);
 
 // FUNCTION: CARMA2_HW 0x00474850
 int C2_HOOK_FASTCALL Graphics_Outfunc(tFrontend_spec* pFrontend) {
@@ -4269,7 +4268,6 @@ void C2_HOOK_FASTCALL StripControls(char* pStr) {
 // GLOBAL: CARMA2_HW 0x00688444
 int gINT_00688444;
 
-extern tFrontend_spec gFrontend_OPTIONS;
 
 // GLOBAL: CARMA2_HW 0x00604940
 tFrontend_spec gFrontend_CONTROLS = {

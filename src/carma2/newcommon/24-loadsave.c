@@ -10,6 +10,7 @@
 #include "70-packfile.h"
 #include "41-utility.h"
 #include "69-sound.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0068b8ec
 int gSave_game_out_of_sync;
@@ -32,7 +33,6 @@ void C2_HOOK_FASTCALL Encryptificate(tSave_game* pSave_games, int pCount) {
 // MakeSavedGame
 
 /* local declaration instead of including globvrpb.h here */
-extern tNet_mode gNet_mode;
 
 
 

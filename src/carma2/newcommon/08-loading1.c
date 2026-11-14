@@ -30,6 +30,9 @@
 #include "c2_string.h"
 #include "10-loading2.h"
 #include "01-network.h"
+#include "17-world2.h"
+#include "32-spark.h"
+#include "37-brucetrk.h"
 
 #ifdef REC2_MATCHING
 #include <windows.h>
@@ -1290,7 +1293,6 @@ void C2_HOOK_FASTCALL DisposeKevStuff(void) {
     extern tShrapnel gShrapnel[30];
     extern int gShrapnel_flags;
     extern br_model* gShrapnel_model[2];
-    extern void C2_HOOK_FASTCALL DisposeFlame(void);
     extern int gNum_splash_types;
     extern br_material* gSplash_material[20];
     extern int gSplash_flags;
@@ -1338,9 +1340,6 @@ void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
     int i;
     int driver_type;
     tNon_car_spec* non_car;
-    extern void C2_HOOK_FASTCALL DisposeTexturingMaterials(void);
-    extern void C2_HOOK_FASTCALL DisposeColumns(tTrack_spec* pTrack_spec);
-    extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
     extern tU8* gTrack_flic_buffer;
     extern tFlic_descriptor gTrack_flic_descriptor;
 

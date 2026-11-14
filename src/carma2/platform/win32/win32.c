@@ -30,6 +30,7 @@
 #include <direct.h>
 #include <windows.h>
 #include <dinput.h>
+#include "21-mainloop.h"
 
 #ifndef GET_SC_WPARAM
 #endif
@@ -267,7 +268,6 @@ int C2_HOOK_FASTCALL PDEnumPath(const char *path, tEnumPathCallback pCallback, v
 
 // FUNCTION: CARMA2_HW 0x00492830
 tU32 C2_HOOK_FASTCALL GetLastTickCount(void) {
-    extern tU32 gLast_tick_count;
 
     return gLast_tick_count;
 }

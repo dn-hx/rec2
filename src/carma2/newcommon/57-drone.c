@@ -11,6 +11,11 @@
 #include "rec2_macros.h"
 
 #include <math.h>
+#include "05-drmem.h"
+#include "15-displays.h"
+#include "22-replay.h"
+#include "28-world3.h"
+#include "60-phil.h"
 
 extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
@@ -79,7 +84,6 @@ float gDrone_render_zero = 0.0f;
 
 extern int gCount_active_drones;
 extern tDrone_state_function* gDrone_state_functions[6];
-extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
 extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
 
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
@@ -996,8 +1000,6 @@ void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone) {
 #pragma auto_inline(on)
 #endif
 extern tDrone_state_function* gDrone_state_functions[6];
-extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
 // FUNCTION: CARMA2_HW 0x0044eb70
 void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state) {
@@ -1321,11 +1323,6 @@ FILE* C2_HOOK_FASTCALL OpenDroneFile(const char* pDrone_name) {
 // LinkDroneActorsToModelsAndSetRenderStyle
 
 extern char gCurrent_load_name[256];
-extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
-extern void C2_HOOK_FASTCALL LoadAllImagesInDirectory(tBrender_storage* pStorage_space, const char* path);
-extern void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, const char* pPath);
-extern void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading);
-extern void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage* pStorage, const char* pPath);
 
 /* inlined copy of LinkDroneActorsToModelsAndSetRenderStyle (0x4505a0) at this call site */
 static void C2_HOOK_FASTCALL LinkDroneActorsToModelsAndSetRenderStyle_Impl(tDrone_spec* pDrone, int pModel_start, int pModel_end) {
@@ -1835,8 +1832,6 @@ void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector
 // RemoveDroneFromPHIL
 
 /* local declarations (no new includes/externs; 60-phil.h is not included here) */
-extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
 // FUNCTION: CARMA2_HW 0x00451650
 int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone) {
@@ -1925,7 +1920,6 @@ void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone) {
     }
 }
 
-extern tPhysics_object* gPHIL_list_collision_infos;
 
 /* inlined into its callers in the original (no standalone copy) */
 static int C2_HOOK_FASTCALL DroneHasCollided(tDrone_spec* pDrone_spec) {
@@ -1958,7 +1952,6 @@ int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingT
 
 // DoDroneFunkyGroovyThings
 
-extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
 // based on REA pseudocode 0x451ca0
 // FUNCTION: CARMA2_HW 0x00451ca0
@@ -1990,7 +1983,6 @@ void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex) {
 // GLOBAL: CARMA2_HW 0x00705b70
 tU32 gINT_00705b70;
 
-extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
 extern int gMutant_tail_state;
 
 // FUNCTION: CARMA2_HW 0x00452230
@@ -2074,7 +2066,6 @@ void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void) {
 // FUNCTION: CARMA2_HW 0x004525d0
 void C2_HOOK_FASTCALL SelectNextDrone(void) {
     char text[64];
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 
     gCurrent_selected_drone++;
     if (gCurrent_selected_drone >= gCount_drones) {

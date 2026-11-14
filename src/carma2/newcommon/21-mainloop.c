@@ -11,6 +11,48 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include "00-car.h"
+#include "01-network.h"
+#include "04-netgame.h"
+#include "05-drmem.h"
+#include "06-apo.h"
+#include "07-structur.h"
+#include "09-funks.h"
+#include "11-world1.h"
+#include "13-crush1.h"
+#include "15-displays.h"
+#include "16-graphics1.h"
+#include "17-world2.h"
+#include "18-graphics2.h"
+#include "20-skidmark.h"
+#include "22-replay.h"
+#include "23-piping.h"
+#include "25-grafdata.h"
+#include "27-powerup.h"
+#include "28-world3.h"
+#include "30-opponent.h"
+#include "31-racesumm.h"
+#include "32-spark.h"
+#include "33-depth.h"
+#include "34-finteray.h"
+#include "35-intrface.h"
+#include "36-trig.h"
+#include "38-flicplay.h"
+#include "39-oil.h"
+#include "42-input.h"
+#include "44-mainmenu.h"
+#include "49-physics.h"
+#include "51-smash.h"
+#include "53-controls.h"
+#include "54-runtime.h"
+#include "56-aiworld.h"
+#include "58-crush2.h"
+#include "59-camera.h"
+#include "60-phil.h"
+#include "61-pedestrn.h"
+#include "64-movie.h"
+#include "67-lighting.h"
+#include "globvrkm.h"
 #ifdef REC2_MATCHING
 #include <windows.h>
 #endif
@@ -59,9 +101,7 @@ int gCompletion_bonus_post_race = 0;
 // FUNCTION: CARMA2_HW 0x00403210
 void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
     extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
     float saved_replay_rate;
 
     gDisable_piped_sounds = 1;
@@ -75,9 +115,7 @@ void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreproces
 // FUNCTION: CARMA2_HW 0x00403c70
 void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
     extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
     float saved_replay_rate;
 
     gDisable_piped_sounds = 1;
@@ -91,8 +129,6 @@ void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreproc
 // FUNCTION: CARMA2_HW 0x00403cc0
 void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
     typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 
     if (gReplay_rate != 0.0f) {
         MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
@@ -119,22 +155,13 @@ tU32 gUnk_006a23d0;
 
 // FUNCTION: CARMA2_HW 0x00413860
 void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3) {
-    extern tActionReplayCameraMode gAction_replay_camera_mode;
     extern br_vector3 gAction_replay_manual_camera_target_position;
     extern int gAction_replay_manual_camera_target_type;
     extern tCar_spec* gAction_replay_manual_camera_target_car;
     extern tPedestrian* gAction_replay_manual_camera_target_pedestrian;
     extern br_actor* gAction_replay_manual_camera_target_character_actor;
-    extern tPedestrian* gPedestrian_array;
-    extern int gPed_count;
     extern double gDouble_005895a8;
     extern double gDouble_00589508;
-    extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-    extern void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
-    extern int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT);
-    extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
-    extern void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor);
     br_actor* camera_actor;
     br_camera* camera_data;
     br_vector3 ray_direction;
@@ -335,18 +362,12 @@ float gCamera_to_horiz_angle;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int gQueued_headup_count;
 extern tQueued_headup gQueued_headups[4];
 
-extern void C2_HOOK_FASTCALL ChangeHeadupText(int pHeadup_index, char* pNew_text);
-extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
 // FUNCTION: CARMA2_HW 0x0045b3b0
 void C2_HOOK_FASTCALL MungeJoystickHeadups(void) {
     extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
     extern int gINT_00596308;
-    extern int gINT_0068b8e4;
-    extern int gINT_0068b8e8;
-    extern void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont);
     tButtonJoystickInfo* joystick_info;
     tHeadup_text* headup_text;
     tHeadup_text* text;
@@ -563,7 +584,6 @@ void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer
     extern const char* gJoystick_headup_texts[];
     extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
     extern char* C2_HOOK_CDECL strncpy(char* pDest, const char* pSrc, unsigned int pCount);
-    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
     const char** entry;
     tHeadup_text* mem;
 
@@ -675,16 +695,10 @@ void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period) {
 
 /* MainGameLoop: externs for the callees and globals it needs (local, no header changes) */
 /* owned by 23-piping.c; do NOT redefine them here (duplicate 0x403d00/0x403d20 cost both 100%) */
-extern int C2_HOOK_FASTCALL ARGoForwards(void);
-extern int C2_HOOK_FASTCALL ARGoBackwards(void);
-extern tCar_spec* gCar_to_view;
-extern tU32 gCar_to_view_id;
 extern tU32 gCamera_period;
 extern br_vector3 gPrev_camera_position;
-extern int gHeadup_detail_level;
 extern char gHeadup_oppo_ped_text[64];
 extern int gCount_killed_peds;
-extern int gPed_count;
 extern int gTotal_count_smash_peds;
 extern int gCredits_won_headup;
 extern int gPed_kill_count_headup;
@@ -692,14 +706,8 @@ extern int gCar_kill_count_headup;
 extern int gTimer_headup;
 extern int gLaps_headup;
 extern tU32 gPalette_fade_time;
-extern int gEntering_message;
-extern br_actor* gAdditional_actors;
 extern int gInitialised_grid;
-extern int gIt_or_fox;
-extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
-extern int gReceived_game_scores;
-extern tRace_over_reason gRace_over_reason;
 extern int gTimers_stack[8];
 extern int gTimers_max_index;
 extern int gTimers_stack_size;
@@ -723,101 +731,14 @@ extern tU32 gLast_rattle_time;
 extern int gLast_time_in_seconds;
 extern tU32 gPrev_task_switched_message;
 extern int gWindow_inactive;
-extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
-extern void C2_HOOK_FASTCALL RevertPalette(void);
-extern void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void);
-extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
-extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
-extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
-extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-extern void C2_HOOK_FASTCALL ResetPalette(void);
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
-extern void C2_HOOK_FASTCALL CyclePollKeys(void);
-extern void C2_HOOK_FASTCALL InitSmashQueue(void);
-extern void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing);
-extern void C2_HOOK_FASTCALL InitialiseExtraRenders(void);
-extern void C2_HOOK_FASTCALL NetReceiveAndProcessMessages(void);
-extern void C2_HOOK_FASTCALL ToggleMap(void);
-extern void C2_HOOK_FASTCALL ResetGrooveFlags(void);
-extern void C2_HOOK_FASTCALL ServiceGameInRace(void);
-extern void C2_HOOK_FASTCALL EnterUserMessage(void);
-extern void C2_HOOK_FASTCALL ARService(void);
-extern void C2_HOOK_FASTCALL ResetLollipopQueue(void);
-extern void C2_HOOK_FASTCALL MungePalette(void);
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-extern int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pImage_index);
-extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
-extern void C2_HOOK_FASTCALL ClearQueuedHeadups(void);
-extern void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period);
 /* the original passes gFrame_period in ecx to PollCarControls and DoWheelDamage (rec2 defines them with no parameter) */
-extern void C2_HOOK_FASTCALL PollCarControls(void);
 #ifdef REC2_MATCHING
 typedef void (C2_HOOK_FASTCALL *tML_frame_period_proc)(tU32 pFrame_period);
 #define ML_CALL_WITH_FRAME_PERIOD(F) ((tML_frame_period_proc)(F))(gFrame_period)
 #else
 #define ML_CALL_WITH_FRAME_PERIOD(F) (F)()
 #endif
-extern void C2_HOOK_FASTCALL MungePedestrians(void);
-extern void C2_HOOK_FASTCALL ControlOurCar(tU32 pTime_difference);
-extern void C2_HOOK_FASTCALL ApplyPhysicsToCars(tU32 last_frame_time, tU32 pTime_difference);
 /* the original passes gFrame_period in ecx (rec2 defines it with no parameter) */
-extern void C2_HOOK_FASTCALL MungeSomeOtherCarGraphics(void);
-extern void C2_HOOK_FASTCALL PipeCarPositions(void);
-extern void C2_HOOK_FASTCALL CrushBendFlapRend(void);
-extern void C2_HOOK_FASTCALL DoNetGameManagement(void);
-extern void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime);
-extern void C2_HOOK_FASTCALL NetSendMessageStacks(void);
-extern void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period);
-extern void C2_HOOK_FASTCALL PollCameraControls(tU32 pCamera_period);
-extern void C2_HOOK_FASTCALL MungeNapalm(void);
-extern void C2_HOOK_FASTCALL DoPowerupPeriodics(tU32 pFrame_period);
-extern void C2_HOOK_FASTCALL CheckCheckpoints(void);
-extern void C2_HOOK_FASTCALL ChangingView(void);
-extern void C2_HOOK_FASTCALL MungeCarGraphics(tU32 pFrame_period);
-extern void C2_HOOK_FASTCALL FunkThoseTronics(void);
-extern void C2_HOOK_FASTCALL GrooveThoseDelics(void);
-extern void C2_HOOK_FASTCALL DoWheelDamage(void);
-extern void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime);
-extern void C2_HOOK_FASTCALL MakeFlagWavingBastardWaveHisFlagWhichIsTheProbablyTheLastThingHeWillEverDo(void);
-extern void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits);
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
-extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
-extern void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period);
-extern void C2_HOOK_FASTCALL MungeDelayedSideEffects(void);
-extern void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime);
-extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
-extern void C2_HOOK_FASTCALL ChangeDepthEffect(void);
-extern void C2_HOOK_FASTCALL SkidsPerFrame(void);
-extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
-extern void C2_HOOK_FASTCALL MungeGlassFragments(void);
-extern void C2_HOOK_FASTCALL AnimateSky(void);
-extern void C2_HOOK_FASTCALL MungeExplosions(void);
-extern void C2_HOOK_FASTCALL DoLODCarModels(void);
-extern void C2_HOOK_FASTCALL MungeLightingEffects(void);
-extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
-extern void C2_HOOK_FASTCALL DoComplexCarModels(void);
-extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
-extern void C2_HOOK_FASTCALL EnsureRenderPalette(void);
-extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
-extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
-extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
-extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
-extern void C2_HOOK_FASTCALL FadePaletteDown(void);
-extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
-extern void C2_HOOK_FASTCALL DoOptionsMenu(void);
-extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
-extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
-extern void C2_HOOK_FASTCALL InitialiseActionReplay(void);
-extern void C2_HOOK_FASTCALL PHILDisable(void);
-extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
-extern void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void);
-extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
-extern void C2_HOOK_FASTCALL ResetCarScreens(void);
-extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
-extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 
 #ifdef REC2_MATCHING
 /* PDPageInMemory (0x004928a0) is inlined here by the original */
@@ -1529,9 +1450,6 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
 
 // FUNCTION: CARMA2_HW 0x004940e0
 void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
-    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
-    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
-    extern void C2_HOOK_FASTCALL ResetPedNearness(void);
     extern br_vector3 gPrev_camera_position;
     extern float gCamera_to_horiz_angle;
     extern float gYon_squared;
@@ -1553,9 +1471,7 @@ void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
 #endif
 // FUNCTION: CARMA2_HW 0x004d5970
 void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
-    extern tPedestrian* gPedestrian_array;
     extern br_material* gPed_smear_material;
-    extern int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step);
     tPedestrian* ped;
     int i;
 
@@ -1603,31 +1519,9 @@ void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
 // PARTIAL 98.17%: PollActionReplayControls - regalloc: hit-test loop i/mouse_x in ecx/esi swapped
 // FUNCTION: CARMA2_HW 0x004e69b0
 void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAverage_frame_period) {
-    extern void C2_HOOK_FASTCALL TurnOnActionReplay(void);
-    extern void C2_HOOK_FASTCALL TurnOffActionReplay(void);
-    extern void C2_HOOK_FASTCALL AfterActionReplay(void);
-    extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number);
-    extern void C2_HOOK_FASTCALL PreProcess(int pFrame_period);
-    extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
-    extern int C2_HOOK_FASTCALL PDAnyKeyDown(void);
-    extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
-    extern void C2_HOOK_FASTCALL ARSetReplayRate(float pRate);
-    extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
-    extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
-    extern int C2_HOOK_FASTCALL ARReplayPauseState(void);
-    extern void C2_HOOK_FASTCALL SetReplayPaused(int pPause);
-    extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
-    extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
-    extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
-    extern int C2_HOOK_FASTCALL MovieRecording(void);
-    extern void C2_HOOK_FASTCALL MovieRecordButtonPressed(void);
-    extern void C2_HOOK_FASTCALL ChangeCameraType(void);
-    extern int gMouse_in_use;
-    extern int gReal_graf_data_index;
     extern int gSingle_frame_mode;
     extern tU32 gTime_of_last_zappy_headups;
     extern int gRecording_mouse_disabled;
-    extern int gNoTransients;
     extern tU32 gUnk_006a23c8;
     extern int gUnk_006a2378;
     extern int gKey_down;
@@ -1801,7 +1695,6 @@ void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAvera
     }
 }
 
-extern tU32 gPHIL_last_physics_tick;
 extern tU32 gLast_munge_smash_edge_triggers;
 extern tSmashable_item_spec* gTrack_smashable_environment_specs;
 extern int gCount_track_smashable_environment_specs;

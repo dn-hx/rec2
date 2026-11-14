@@ -16,6 +16,8 @@
 #include "brender/brender.h"
 
 #include <stddef.h>
+#include "27-powerup.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0058f7f0
 tPolyhedron_edge_indexes gBox_edge_indexes[12] = {
@@ -152,7 +154,6 @@ tCollision_shape_polyhedron_data* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_point
     return result;
 }
 
-extern tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron);
 
 // PARTIAL 79.65%: GetPointSample 0x00422030 - helper pulled in by NPointConvexHullUsingSample; the original starts both distance sums from the float 0.0f global at 0x00589954 (fld ds:0x589954). A gFLOAT_00589954 global was measured twice: neutral for this function (79.65 either way) but it moved data layout and cost DRMatrix33Inverse 0.81% (32.26->31.45), so it was reverted. Residual is register/x87 allocation (distances in ecx vs edi) and the inner distance loop's expression ordering (original loads all six components then does three fsubp; ours interleaves fsub with the loads).
 // FUNCTION: CARMA2_HW 0x00422030
@@ -2517,7 +2518,6 @@ void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pSha
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern tNet_mode gNet_mode;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

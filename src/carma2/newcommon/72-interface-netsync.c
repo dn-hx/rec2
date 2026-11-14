@@ -3,47 +3,31 @@
 #include <string.h>
 
 #include "72-interface.h"
+#include "01-network.h"
+#include "04-netgame.h"
+#include "15-displays.h"
+#include "18-graphics2.h"
+#include "19-font.h"
+#include "35-intrface.h"
+#include "40-main.h"
+#include "41-utility.h"
+#include "42-input.h"
+#include "72-interface-main.h"
+#include "72-interface-quit.h"
+#include "globvars.h"
+#include "globvrpb.h"
+#include "platform.h"
 
-extern tFrontend_spec gFrontend_MAIN;
 
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
-extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
-extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL SetUpNetCarPositions(void);
-extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
-extern tNet_mode gNet_mode;
-extern int gNumber_of_net_players;
-extern int gThis_net_player_index;
-extern tNet_game_player_info gNet_players[12];
-extern int gNo_races_yet;
-extern tNet_game_details* gCurrent_net_game;
 extern tU32 gNet_synch_start;
 extern int gFrontend_scrollbars_updated;
 extern tFrontend_slider* gCurrent_frontend_scrollbars;
 extern tConnected_items* gConnected_items;
 extern tStruct_00686508* gPTR_00686508;
 extern tNet_mode gFrontend_net_mode;
-extern void C2_HOOK_FASTCALL KillSplashScreen(void);
-extern void C2_HOOK_FASTCALL PollKeys(void);
-extern int C2_HOOK_FASTCALL PDAnyKeyDown(void);
-extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
-extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
-extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
-extern void C2_HOOK_FASTCALL ServiceGame(void);
-extern void C2_HOOK_FASTCALL SignalToStartRace(void);
-extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
-extern void C2_HOOK_FASTCALL DrawThisCarIconNow(int pCar_index, int pX, int pY);
-extern void C2_HOOK_FASTCALL SolidPolyFontText(const char* pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
-extern tFrontend_spec gFrontend_QUIT;
 extern int gTyping_slot;
-extern int gMouse_in_use;
 extern tU32 gFrontend_time_last_input;
 extern int gFrontend_leave_current_menu;
-extern int gStart_race_sent;
-extern tProgram_state gProgram_state;
 
 static int C2_HOOK_FASTCALL FindNextActiveItemFrontend(tFrontend_spec* pFrontend, int pStart_index) {
     int i;

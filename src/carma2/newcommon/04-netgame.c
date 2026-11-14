@@ -17,6 +17,24 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "00-car.h"
+#include "03-racestrt.h"
+#include "06-apo.h"
+#include "07-structur.h"
+#include "18-graphics2.h"
+#include "19-font.h"
+#include "27-powerup.h"
+#include "32-spark.h"
+#include "37-brucetrk.h"
+#include "43-pratcam.h"
+#include "49-physics.h"
+#include "52-errors.h"
+#include "53-controls.h"
+#include "54-runtime.h"
+#include "58-crush2.h"
+#include "60-phil.h"
+#include "62-graphics3.h"
+#include "71-newgame.h"
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 br_pixelmap* gDigits_pix;
@@ -47,9 +65,6 @@ int gNet_ped_headup;
 #endif
 extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
 
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, int pSize);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 // FUNCTION: CARMA2_HW 0x0043d1d0
 void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
@@ -118,17 +133,12 @@ typedef struct {
 } tDetached_non_car_find_arg;
 
 extern tS8 gNon_car_spec_indices[100];
-extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
-extern int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix);
-extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
-extern int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data);
 // FUNCTION: CARMA2_HW 0x0043d340
 void C2_HOOK_FASTCALL ReceivedDBNonCar(tNet_message_chunk_detached_non_car* pContents) {
     extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
     extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
     extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
     extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
-    extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
     tDetached_non_car_find_arg find;
     br_bounds3 bounds;
     tCar_spec* car;
@@ -231,7 +241,6 @@ have_actor:
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
 // FUNCTION: CARMA2_HW 0x0043d5b0
 void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient) {
@@ -295,7 +304,6 @@ have_actor:
 // FUNCTION: CARMA2_HW 0x0043d670
 void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pChunk) {
     extern int C2_HOOK_FASTCALL ToggleFlapsCB(tPhysics_object* pCollision_info, void* data);
-    extern int C2_HOOK_FASTCALL PhysicsObjectRecurse(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
     tCar_spec* car;
 
     car = NetCarFromPlayerID(pChunk->toggle_doors.id);
@@ -670,9 +678,6 @@ void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
 }
 
 extern int gINT_0074c6d4;
-extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
-extern int C2_HOOK_FASTCALL PickARandomCar(void);
-extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 
 // Local image of the start-race chunk (type 0xc) of a net message: the layout lives in the
 // HW-only message union upstream, so it is declared here to keep rec2_types.h untouched.
@@ -739,11 +744,8 @@ tU32 gNet_synch_start;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_one);
-extern void C2_HOOK_FASTCALL InitialiseCar2(tCar_spec* pCar, int pClear_disabled_flag);
 extern int gInitialised_grid;
 
-extern void C2_HOOK_FASTCALL SetInitialPosition(tRace_info* pThe_race, int pCar_index, int pGrid_index);
 // FUNCTION: CARMA2_HW 0x00499000
 void C2_HOOK_FASTCALL SetUpNetCarPositions(void) {
     int i;
@@ -819,10 +821,7 @@ void C2_HOOK_FASTCALL SetUpNetCarPositions(void) {
 
 // SetUpNetCarPositions
 
-extern void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL EmptyInventory(void);
 
 // FUNCTION: CARMA2_HW 0x00499220
 void C2_HOOK_FASTCALL ReinitialiseCar(tCar_spec* pCar) {
@@ -997,13 +996,6 @@ br_model* gNet_score_model;
 // GLOBAL: CARMA2_HW 0x0074a740
 br_actor* gNet_score_actors[12];
 
-extern int gIt_or_fox;
-extern tDR_font gFonts[28];
-extern br_pixelmap* gTexture_maps[1024];
-extern tCar_icon gCar_icons[128];
-extern br_actor* gCar_icons_model_actor;
-extern int C2_HOOK_FASTCALL DRTextWidth(const tDR_font* pFont, const char* pText);
-extern void C2_HOOK_FASTCALL PolyFontText(const char* pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
 // FUNCTION: CARMA2_HW 0x00499a00
 void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
     int i;
@@ -1443,7 +1435,6 @@ void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
 
 // CheckForVampireWinner
 
-extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
 
 #ifdef REC2_MATCHING
@@ -1477,7 +1468,6 @@ void C2_HOOK_FASTCALL CheckForVampireWinner(void) {
 
 extern tU32 gLast_it_change;
 extern tNet_game_player_info* gLast_lepper;
-extern int gIt_or_fox;
 
 // FUNCTION: CARMA2_HW 0x0049a990
 void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer) {
@@ -1496,7 +1486,6 @@ void C2_HOOK_FASTCALL CarInContactWithFox(tNet_game_player_info* pPlayer) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x0049a9e0
 void C2_HOOK_FASTCALL PlayerIsIt(tNet_game_player_info* pPlayer) {
@@ -1579,27 +1568,14 @@ void C2_HOOK_FASTCALL DoNetGameManagement(void) {
 #endif
 // SelectRandomFox
 
-extern int gIt_or_fox;
 
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tRace_over_reason gRace_over_reason;
-extern int gCount_smashable_race_targets;
 extern int gINT_0074c6d4;
 extern int gScore_winner;
-extern void C2_HOOK_FASTCALL SetFlipUpCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
-extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
-extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
-extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
-extern void C2_HOOK_FASTCALL StopCarSmokingInstantly(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
 extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL EmptyInventory(void);
-extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 
 /* The race board is a view over each net player starting at field_0x94. */
 typedef struct {
@@ -2083,14 +2059,6 @@ void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
 
 // FUNCTION: CARMA2_HW 0x0049bad0
 void C2_HOOK_FAKE_THISCALL ReceivedGameplay(void* pThis) {
-    extern void C2_HOOK_FASTCALL FadePaletteDown(void);
-    extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-    extern void C2_HOOK_FASTCALL FadePaletteUp(void);
-    extern void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar);
-    extern void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound);
-    extern void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index);
-    extern void C2_HOOK_FASTCALL ChangeAmbientPratcam(int pIndex);
-    extern tRace_over_reason gRace_over_reason;
     int iVar1;
     int iVar2;
     int in_ECX;
@@ -2257,7 +2225,6 @@ void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int
 // PARTIAL 16.67%: register allocation/frame differ (orig keeps NULL in ebp, frame 0x2c). Measured 2026-11-14
 // with the annotation order fixed: the old "21%" was a reccmp symbol-name artifact (this line sat below the
 // FUNCTION line, so reccmp named the function after the comment text).
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 extern br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq);
 extern br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q);
 // FUNCTION: CARMA2_HW 0x0049c630
@@ -2601,9 +2568,7 @@ int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDe
 
 extern tPowerup* gPowerup_array;
 extern int gNumber_of_powerups;
-extern tHeadup_icon gPickedup_powerups[20];
 extern int gNumber_of_icons;
-extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x004def00
 void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar) {
@@ -2658,7 +2623,6 @@ void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar) {
     }
 }
 
-extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
 extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4);
 
@@ -2691,10 +2655,6 @@ void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
     }
 }
 
-extern intptr_t C2_HOOK_CDECL RunCallbackOnAllModels(br_actor* pActor, void* pContext);
-extern int C2_HOOK_FASTCALL ResetFoxModelCallback(br_model* pModel);
-extern int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial);
-extern void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves);
 
 // FUNCTION: CARMA2_HW 0x004fe570
 void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar) {

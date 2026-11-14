@@ -19,6 +19,11 @@
 #include "globvrpb.h"
 
 #include <stdlib.h>
+#include "04-netgame.h"
+#include "10-loading2.h"
+#include "27-powerup.h"
+#include "53-controls.h"
+#include "platform.h"
 
 extern float gCosine_array[65];
 
@@ -198,7 +203,6 @@ static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
 // GLOBAL: CARMA2_HW 0x0067f890
 tQueued_headup gQueued_headups[4];
 
-extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
 
 // FUNCTION: CARMA2_HW 0x00449070
 void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3) {
@@ -550,8 +554,6 @@ void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL DoNetScores(void);
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tQueued_headup gQueued_headups[4];
 extern int gTimer_headup;
 extern int gCredits_won_headup;
@@ -739,7 +741,6 @@ int C2_HOOK_FASTCALL FindAHeadupHoleWoofBarkSoundsABitRude(int pSlot_index) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tQueued_headup gQueued_headups[4];
 
 // FUNCTION: CARMA2_HW 0x00449fd0
@@ -1077,7 +1078,6 @@ void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont) {
 
 // FUNCTION: CARMA2_HW 0x0044a950
 void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index) {
-    extern br_pixelmap* gHeadup_images[45];
     tHeadup* headup;
     br_pixelmap* image;
     int justification;
@@ -1302,9 +1302,6 @@ void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
         gProgram_state.current_car.speedo_needle_colour[cockpit]);
 }
 
-extern void C2_HOOK_FASTCALL LookLeft(void);
-extern void C2_HOOK_FASTCALL LookForward(void);
-extern void C2_HOOK_FASTCALL LookRight(void);
 
 // based on ApexWorm/rec2 a2a0ce53d (reference only), REA pseudocode checked against 0x0044b170
 // FUNCTION: CARMA2_HW 0x0044b170
@@ -1365,7 +1362,6 @@ void C2_HOOK_FASTCALL ChangingView(void) {
     }
 }
 
-extern int gCredit_multiplier;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

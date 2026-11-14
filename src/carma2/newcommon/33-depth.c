@@ -18,6 +18,10 @@
 
 #include "c2_stdio.h"
 #include "c2_math.h"
+#include "20-skidmark.h"
+#include "32-spark.h"
+#include "59-camera.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 int gSky_on = 1;
@@ -44,7 +48,6 @@ br_scalar gSky_x_multiplier;
 br_scalar gSky_y_multiplier;
 
 /* defined in globvrbm.c (0x0074cee8), directly before gHUDsquare_actor as in the original layout */
-extern br_material* gMaterial[2];
 
 // GLOBAL: CARMA2_HW 0x0059118c
 int gDepth_cueing_on = 1;
@@ -108,7 +111,6 @@ br_actor* gRearview_sky_actor;
 
 static void C2_HOOK_FASTCALL FrobFog(void);
 
-extern void C2_HOOK_FASTCALL GenerateSmokeShades(void);
 
 // Log2
 
@@ -516,8 +518,6 @@ void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth
 void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
 }
 
-extern tActionReplayCameraMode gAction_replay_camera_mode;
-extern int gRendering_mirror;
 extern br_angle gSky_image_width;
 
 #ifdef REC2_MATCHING

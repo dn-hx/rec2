@@ -7,6 +7,11 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include "00-car.h"
+#include "23-piping.h"
+#include "41-utility.h"
+#include "49-physics.h"
+#include "globvars.h"
 
 
 // GLOBAL: CARMA2_HW 0x0065d004
@@ -111,7 +116,6 @@ void C2_HOOK_FASTCALL LPMatrixToFixedQuat(tFixed_quat* pOrientation, const br_ma
 
 // GetOmegaFromOmega16
 
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
 
 #ifdef REC2_MATCHING
@@ -810,8 +814,6 @@ int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pInfo, br_m
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int gFace_num__car;
-extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 
 // FUNCTION: CARMA2_HW 0x004b63b0
 int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...) {
@@ -904,7 +906,6 @@ tPhysics_object* gPHIL_queued_objects_for_removal[1];
 // GLOBAL: CARMA2_HW 0x0074a5f4
 int gOver_shoot;
 
-extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 // FUNCTION: CARMA2_HW 0x004b6530
 float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, int pParam) {
     tCollision_info_owner* owner;
@@ -941,8 +942,6 @@ float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object *pCollision_info, i
     return 0.f;
 }
 
-extern void C2_HOOK_FASTCALL TestAutoSpecialVolume(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL MungeSpecialVolume(tPhysics_object* pObject);
 
 /* inlined into PHILDoPhysics by the original (both bodies appear inside it) */
 static void C2_HOOK_FASTCALL PHILMungeObjects(tPhysics_object* pObjects) {
@@ -1124,7 +1123,6 @@ int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_ti
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
 // FUNCTION: CARMA2_HW 0x004b6be0
 void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysics_callbacks* pCallbacks, tU32 pPeriod) {
@@ -1191,11 +1189,6 @@ void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysic
 }
 // PARTIAL 79.86%: ProcessDrag2 0x004b6ce0 - body complete; remaining diff is x87 scheduling in the drag
 // coefficient and the two length/scale blocks plus one commutative operand swap.
-extern void C2_HOOK_FASTCALL SetGravityDeltaV(tPhysics_object* pObject, br_vector3* pImpulse);
-extern void C2_HOOK_FASTCALL ApplyGravitySingleObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL DRVector3Diminish(br_vector3* pV1, const br_vector3* pV2);
-extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_vector3* pV);
-extern float gGravity_multiplier;
 // FUNCTION: CARMA2_HW 0x004b6ce0
 void C2_HOOK_FASTCALL ProcessDrag2(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pDrag, int pObject_info_flags, tSpecial_volume* pSpecial_volume) {
     br_scalar drag;
@@ -1383,10 +1376,6 @@ void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_obj
 // PHILApplyPHILObject
 
 
-extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
-extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 extern int gPrepared_objects;
 extern tPhysics_object** gReduced_object_list;
 extern int gINT_006940ac;
@@ -1572,15 +1561,6 @@ extern int gPrepared_objects;
 extern int gINT_006940a4;
 extern int gINT_00692ddc;
 extern tPhysics_joint_force gCollision_contacts[50];
-extern void C2_HOOK_FASTCALL ClearPhysicsScratchSpace(void);
-extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL SetGroup(tPhysics_object* pObject, int pFlag);
-extern int C2_HOOK_FASTCALL DoInterGroupCollisions(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
-extern void C2_HOOK_FASTCALL PhysicsWarning(const char* pMessage);
-extern int C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL SetCollisionInfoDoNothing(tPhysics_object* pCollision_info, tU32 pDisable);
-extern void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks);
 
 
 // PARTIAL 73.82%: DoCollisions 0x004ba6b0 - structure, call sites and globals match; this build keeps
@@ -1741,7 +1721,6 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
         }
     }
 }
-extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
 
 // PARTIAL 88.61%: InterpolateSingleObject 0x004c2830 - body complete; remaining diff is x87 scheduling of the
 // three v*dt products (the original keeps them in st registers, this build spills/reorders by two instructions).

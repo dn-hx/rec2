@@ -10,6 +10,7 @@
 #include "globvrpb.h"
 
 #include "rec2_macros.h"
+#include "platform.h"
 
 /* explicit initializers keep gFrontend_billboard_actors and gNet_settings adjacent (loop-end compare) */
 // GLOBAL: CARMA2_HW 0x00763940
@@ -144,7 +145,6 @@ void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* p
 // DisposeJoinList
 
 extern tJoinable_game gGames_to_join[6];
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 // FUNCTION: CARMA2_HW 0x004681d0
 void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame) {
     int i;

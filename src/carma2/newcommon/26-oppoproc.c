@@ -26,6 +26,7 @@ extern int C2_HOOK_FASTCALL GetOpponentsSectionMaxSpeed(tOpponent_spec* pOpponen
 #include "41-utility.h"
 #include "rec2_macros.h"
 #include "brender/brender.h"
+#include "platform.h"
 // FUNCTION: CARMA2_HW 0x004af8d0
 int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec) {
 
@@ -504,7 +505,6 @@ int C2_HOOK_FASTCALL GetStraight(br_vector2* pStart, br_vector2* pFinish, float*
 
 
 
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

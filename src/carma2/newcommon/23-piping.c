@@ -21,6 +21,14 @@
 #include "20-skidmark.h"
 #include "32-spark.h"
 #include "61-pedestrn.h"
+#include "42-input.h"
+#include "46-win95sys.h"
+#include "49-physics.h"
+#include "52-errors.h"
+#include "57-drone.h"
+#include "60-phil.h"
+#include "64-movie.h"
+#include "globvrpb.h"
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 #define CRUSH_SPACE_SIZE 0x4000
@@ -180,7 +188,6 @@ tU8* gMr_chunky = NULL;
 // GLOBAL: CARMA2_HW 0x00676910
 int gPipe_count_callbacks = 0;
 
-extern void C2_HOOK_FASTCALL PDAllocateActionReplayBuffer(tU8** pBuffer, tU32* pSize);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -201,7 +208,6 @@ void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tRep
     ARResetPiping();
 }
 
-void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
 
 // FUNCTION: CARMA2_HW 0x004024a0
 void C2_HOOK_FASTCALL ARDispose(void) {
@@ -328,7 +334,6 @@ void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType) {
 }
 
 
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 
 
 // FUNCTION: CARMA2_HW 0x00402660
@@ -801,8 +806,6 @@ void C2_HOOK_FASTCALL AREnableAdvance(void) {
 
 // ARMoveToStartOfReplay
 
-extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
-extern void C2_HOOK_FASTCALL WaitForNoKeys(void);
 
 // FUNCTION: CARMA2_HW 0x00403260
 void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
@@ -1434,9 +1437,7 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
     gLast_replay_frame_time = PDGetTotalTime();
 }
 
-extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
 extern br_pixelmap* gReplay_pixelmaps[11];
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern int gUNK_006a23b4;
 
 // FUNCTION: CARMA2_HW 0x00403d60
@@ -1510,7 +1511,6 @@ void C2_HOOK_CDECL ResetCars(void) {
     }
 }
 
-extern int C2_HOOK_FASTCALL PhysicsObjectRecurseChildren(tPhysics_object* pObject, tEnumCollision_cbfn* pCallback, void* pContext);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004c6640
@@ -1734,7 +1734,6 @@ int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
 void C2_HOOK_FASTCALL InitialiseActionReplay(void) {
     extern const tReplay_callback gReplay_callbacks[70];
     extern tPipe_smudge_data* gSmudge_space;
-    extern tNet_mode gNet_mode;
 
     ARInitialise(!gAusterity_mode && gNet_mode == eNet_mode_none, 70, gReplay_callbacks);
     if (!gAusterity_mode && gNet_mode == eNet_mode_none) {
@@ -1893,7 +1892,6 @@ void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pCollision) {
         0xc, 4, &pCollision->water_normal);
 }
 
-extern float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pCollision_info, int pParam);
 
 // FUNCTION: CARMA2_HW 0x004c7160
 void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollision, void* pArg2) {
@@ -3207,7 +3205,6 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // FUNCTION: CARMA2_HW 0x004c9cc0
 void C2_HOOK_FASTCALL ApplyDroneRender(tPipe_chunk** pChunk) {
-    extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 
     return ApplyDroneRender2(*(tU32*)*pChunk, *(tU16*)((tU8*)*pChunk + 4));
 }

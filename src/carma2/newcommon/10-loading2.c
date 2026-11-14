@@ -43,16 +43,15 @@
 #include "51-smash.h"
 
 #include <ctype.h>
+#include "25-grafdata.h"
+#include "50-fog.h"
+#include "67-lighting.h"
+#include "platform.h"
 
 extern void C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 extern tCar_spec* gCurrent_car_spec;
 extern char gCurrent_load_name[256];
-extern tGraf_spec gGraf_specs[2];
-extern int gGraf_spec_index;
-extern tGraf_data* gCurrent_graf_data;
-extern void C2_HOOK_FASTCALL LoadCarMaterials(tBrender_storage* pStorage, const char* pPath, tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL AutoFogificateMaterials(tRendererShadingType pShading_type);
 extern const char* gWheel_actor_names[6];
 extern const char* gPivot_actor_names[6];
 extern const char* gDamage_names[12];
@@ -2646,7 +2645,6 @@ void C2_HOOK_FASTCALL ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions)
     pOptions->starting_target = GetAnInt(pF);
 }
 
-extern int C2_HOOK_FASTCALL PDFileUnlock(const char* pThe_path);
 
 #define SAVE_OPTIONS_CHECK(X) if ((X) < 0) { goto fail; }
 

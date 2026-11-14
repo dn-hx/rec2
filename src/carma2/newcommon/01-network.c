@@ -14,6 +14,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "00-car.h"
+#include "06-apo.h"
+#include "08-loading1.h"
+#include "10-loading2.h"
+#include "15-displays.h"
+#include "17-world2.h"
+#include "22-replay.h"
+#include "23-piping.h"
+#include "27-powerup.h"
+#include "28-world3.h"
+#include "30-opponent.h"
+#include "39-oil.h"
+#include "41-utility.h"
+#include "51-smash.h"
+#include "52-errors.h"
+#include "56-aiworld.h"
+#include "59-camera.h"
+#include "60-phil.h"
+#include "globvrkm.h"
 
 // GLOBAL: CARMA2_HW 0x0068d95c
 int gJoin_poll_index;
@@ -91,7 +110,6 @@ int gNext_guarantee;
 tGuaranteed_message gGuarantee_list[200];
 
 // (gShit_mines is defined in 27-powerup.c)
-extern tShit_mine gShit_mines[20];
 
 // FUNCTION: CARMA2_HW 0x0049d210
 int C2_HOOK_FASTCALL NetInitialise(void) {
@@ -247,17 +265,11 @@ void C2_HOOK_FASTCALL NetLeaveGameLowLevel(void) {
 }
 
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
-extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
 extern int gINT_0068d968;
 extern int gINT_0075bc24;
 extern int gINT_0074c6d4;
 extern int gINT_00659d34;
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 extern void C2_HOOK_FASTCALL KickPlayerOut(tPlayer_ID pPlayer_id);
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 extern void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index);
 
 // FUNCTION: CARMA2_HW 0x0049dc90
@@ -395,10 +407,6 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // LoadCarN
 
-extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
-extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
-extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x0049e100
@@ -468,17 +476,6 @@ void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_playe
 // RemoveReferencesToCar
 
 extern int gInitialised_grid;
-extern void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar);
-extern int gIt_or_fox;
-extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
-extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL SetCarStorageTexturingLevel(tBrender_storage* pStorage, tCar_texturing_level pNew, tCar_texturing_level pOld);
-extern tCar_texturing_level C2_HOOK_FASTCALL GetCarTexturingLevel(void);
-extern int C2_HOOK_FASTCALL IRandomBetween(int pA, int pB);
-extern void C2_HOOK_FASTCALL RemoveFromCloakingList(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
 
 
 // FUNCTION: CARMA2_HW 0x0049e450
@@ -1615,7 +1612,6 @@ void C2_HOOK_FASTCALL ReceivedNewPlayerList(tNet_message_chunk_player_info* pCon
 
 extern tNet_message* C2_HOOK_FASTCALL NetGetNextMessage(tNet_game_details* pDetails, void** pSender_address);
 extern void C2_HOOK_FASTCALL ReceivedMessage(tNet_message* pMessage, void* pSender_address, tU32 pReceive_time);
-extern tU32 C2_HOOK_FASTCALL GetRaceTime(void);
 
 // FUNCTION: CARMA2_HW 0x004a4a40
 void C2_HOOK_FASTCALL NetReceiveAndProcessMessages(void) {
@@ -2303,10 +2299,6 @@ void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar) {
 // FUNCTION: CARMA2_HW 0x004fe2c0
 void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
     int i;
-    extern tCar_spec* gCar_to_view;
-    extern br_angle gCamera_yaw;
-    extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
-    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 
     for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
         if (gSmoke_column[i].core.car == pCar) {

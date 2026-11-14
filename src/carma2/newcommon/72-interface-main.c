@@ -1,9 +1,15 @@
 #include "72-interface-main.h"
 
 #include "72-interface.h"
+#include "24-loadsave.h"
+#include "35-intrface.h"
+#include "40-main.h"
+#include "53-controls.h"
+#include "70-packfile.h"
+#include "72-interface-network.h"
+#include "72-interface-quit.h"
 
 extern tFrontend_spec gFrontend_OPTIONS;
-extern tFrontend_spec gFrontend_NETWORK;
 extern tFrontend_spec gFrontend_NEWGAME;
 extern tFrontend_spec gFrontend_CHANGE_CAR;
 
@@ -192,11 +198,7 @@ static int back_screen_origin_y;
 
 extern int gFrontend_scrollbars_updated;
 extern tFrontend_spec gFrontend_CHANGE_CAR;
-extern void C2_HOOK_FASTCALL CheckForCheatingGits(void);
 extern int gTyping_slot;
-extern int gMouse_in_use;
-extern void C2_HOOK_FASTCALL ServiceGame(void);
-extern tFrontend_spec gFrontend_QUIT;
 static int C2_HOOK_FASTCALL MainMenuFindNextActiveItem(tFrontend_spec* pFrontend, int pStart_index);
 static void C2_HOOK_FASTCALL MainMenuRestoreScrollers(void);
 // FUNCTION: CARMA2_HW 0x00467280
@@ -677,8 +679,6 @@ int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend) {
 int gCount_connected_items_indices;
 // GLOBAL: CARMA2_HW 0x00687018
 int gConnected_items_indices[6];
-extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
-extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 
 // GLOBAL: CARMA2_HW 0x005d6410
 tFrontend_spec gFrontend_CHANGE_CAR = {
@@ -1218,4 +1218,3 @@ extern int gFrontend_load_game_index_top;
 extern int gFrontend_scroll_time_left;
 extern int gFrontend_scroll_time_increment;
 extern tU32 gFrontend_scroll_last_update;
-extern int C2_HOOK_FASTCALL StartSavedGamesList(void);

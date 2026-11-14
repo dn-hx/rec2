@@ -19,6 +19,32 @@
 #include "32-spark.h"
 #include "56-aiworld.h"
 #include "57-drone.h"
+#include "00-car.h"
+#include "01-network.h"
+#include "02-init.h"
+#include "04-netgame.h"
+#include "05-drmem.h"
+#include "11-world1.h"
+#include "15-displays.h"
+#include "16-graphics1.h"
+#include "17-world2.h"
+#include "19-font.h"
+#include "21-mainloop.h"
+#include "24-loadsave.h"
+#include "25-grafdata.h"
+#include "27-powerup.h"
+#include "28-world3.h"
+#include "39-oil.h"
+#include "42-input.h"
+#include "51-smash.h"
+#include "52-errors.h"
+#include "53-controls.h"
+#include "60-phil.h"
+#include "63-loading3.h"
+#include "64-movie.h"
+#include "69-sound.h"
+#include "globvrpb.h"
+#include "platform.h"
 
 // 583638a7f removed these six prototypes from 41-utility.h; declaring them here keeps this TU's
 // codegen at the state it had while they were in the header (PedApplyDismember 0x4ca900).
@@ -615,34 +641,13 @@ extern int gTimers_stack[8];
 extern int gTimers_max_index;
 extern int gTimers_stack_size;
 extern tTimer gTimers[19];
-extern int gSave_game_out_of_sync;
-extern int gBr_initialized;
-extern br_actor* gAdditional_actors;
 extern tPhysics_object* gMutant_tail_first_collision_info;
-extern int C2_HOOK_FASTCALL PDGetMicroseconds(void);
-extern int C2_HOOK_FASTCALL PDServiceSystem(tU32 pTime_since_last_call);
-extern void C2_HOOK_FASTCALL CheckMemory(void);
-extern void C2_HOOK_FASTCALL PollKeys(void);
-extern void C2_HOOK_FASTCALL DoSaveGame(void);
-extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
-extern void C2_HOOK_FASTCALL PHILDisable(void);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
-extern void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game);
-extern void C2_HOOK_FASTCALL ShutdownNetIfRequired(void);
-extern void C2_HOOK_FASTCALL DRS3ShutDown(void);
-extern void C2_HOOK_FASTCALL PDRevertPalette(void);
-extern void C2_HOOK_FASTCALL StopMusic(void);
 extern void C2_HOOK_FASTCALL PDShutDownSystem(void);
-extern void C2_HOOK_FASTCALL CloseDiagnostics(void);
-extern void C2_HOOK_FASTCALL NetService(int pIn_race);
-extern void C2_HOOK_FASTCALL CheckKevKeys(void);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 // (GPL-3.0), follows the disassembly (ServiceTheGame(1) and Timers_Push/Pop inlined)
-extern tNet_mode gNet_mode;
 // FUNCTION: CARMA2_HW 0x004922a0
 void C2_HOOK_FASTCALL ServiceGameInRace(void) {
     int prev_type;
@@ -723,7 +728,6 @@ void C2_HOOK_FASTCALL PHILApplyPHILObject(int field_0x0, br_matrix34* pField_0x4
 #endif
 // FUNCTION: CARMA2_HW 0x004c8940
 void C2_HOOK_FASTCALL PipeSingleNonCarCreation(uintptr_t pOwner) {
-    extern br_vector3 gZero_vector__smash;
     ARDoSingleSession(32, pOwner, &gZero_vector__smash, 4);
 }
 
@@ -1000,8 +1004,6 @@ void C2_HOOK_FASTCALL PedApplyGibShower(int field_0x0, int field_0xc, int field_
     DoGibShower(field_0x0, field_0xc, field_0x8, field_0x10, field_0x4, pField_0x14, pField_0x20, pField_0x2c);
 }
 
-extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
-extern tSmash_vertex gSmash_glass_fragments[200];
 
 // FUNCTION: CARMA2_HW 0x004ccc40
 void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
@@ -1055,7 +1057,6 @@ void C2_HOOK_FASTCALL AdjustPedDiagnostics(void* pOpponent, void* pField_0x4, vo
 
 // FUNCTION: CARMA2_HW 0x004da960
 void C2_HOOK_FASTCALL AdjustRepulseRay(int field_0x0, int field_0x4, int field_0x8, int field_0xc) {
-    extern tRepulse_link gRepulse_links[6];
 
     gRepulse_links[field_0x0].pos_origin = (br_vector3*)field_0x4;
     gRepulse_links[field_0x0].pos_victim = (br_vector3*)field_0x8;
@@ -1164,21 +1165,11 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 #endif
 // FUNCTION: CARMA2_HW 0x004e6280
 void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
-    extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-    extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
-    extern int C2_HOOK_FASTCALL MovieRecording(void);
-    extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);
-    extern void C2_HOOK_FASTCALL DRPixelmapCentredText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText);
-    extern tGraf_data* gCurrent_graf_data;
-    extern int gReal_graf_data_index;
     extern br_pixelmap* gReplay_pixelmaps[11];
     extern tU32 gUnk_006a2360;
     extern tU32 gUnk_006a2364;
     extern tU32 gUnk_006a23c8;
-    extern tDR_font gFonts[28];
     extern int gReplay_show_controls;
-    extern int gShow_status_message;
-    extern int gNext_replay_record_state;
     extern int gStatus_message_1;
     extern int gStatus_message_2;
     extern int gRecording_mouse_disabled;
@@ -1291,7 +1282,6 @@ void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
     extern tU32 gTime_of_last_zappy_headups;
     extern tPreprocess_AR_callback PreProcess;
     extern tPostProcess_AR_callback PostProcess;
-    extern void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
 
     gTime_of_last_zappy_headups = 0;
     ARDoActionReplay(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
@@ -1302,8 +1292,6 @@ void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
 // FUNCTION: CARMA2_HW 0x004e6900
 void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number) {
     extern tU32 gTime_of_last_zappy_headups;
-    extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-    extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
     tU32 time;
 
     time = PDGetTotalTime();
@@ -1325,7 +1313,6 @@ void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pFrame_number) {
 // FUNCTION: CARMA2_HW 0x004e6950
 void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
     extern tU32 gCamera_period;
-    extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
     extern void C2_HOOK_FASTCALL MungePedestrians(void);
 
     UpdateFramePeriod(&gCamera_period);
@@ -1334,9 +1321,7 @@ void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
     }
 }
 
-extern void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period);
 extern void C2_HOOK_FASTCALL MungePedestrians(void);
-extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
 // FUNCTION: CARMA2_HW 0x004e6980
 void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
@@ -1355,13 +1340,7 @@ void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
 
 // PollActionReplayControls
 
-extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
-extern int gEntering_message;
-extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 extern void C2_HOOK_FASTCALL SavePedStuff(void);
-extern void C2_HOOK_FASTCALL ToggleMap(void);
 extern tU32 gUnk_006a2360;
 extern tU32 gUnk_006a2364;
 extern int gUnk_006a2378;
@@ -1406,7 +1385,6 @@ const char* gReplay_pixie_names[11] = {
 br_pixelmap* gReplay_pixelmaps[11];
 
 // (reference only)
-extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
 
 // FUNCTION: CARMA2_HW 0x004e7090
 void C2_HOOK_FASTCALL InitializeActionReplay(void) {
@@ -1425,7 +1403,6 @@ int gSingle_frame_mode;
 // GLOBAL: CARMA2_HW 0x006a23d4
 tU32 gLast_synch_time;
 
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 
 // FUNCTION: CARMA2_HW 0x004e7110
 void C2_HOOK_FASTCALL SynchronizeActionReplay(void) {
@@ -1523,12 +1500,6 @@ int gSplit_triangle_vertex_orders[6][3] = {
 #endif
 // FUNCTION: CARMA2_HW 0x004e7350
 void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only) {
-    extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);
-    extern void C2_HOOK_FASTCALL DRPixelmapCentredText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText);
-    extern tGraf_data* gCurrent_graf_data;
-    extern tDR_font gFonts[28];
-    extern int gShow_status_message;
-    extern int gNext_replay_record_state;
     extern int gStatus_message_1;
     extern int gStatus_message_2;
     int x;
@@ -1561,19 +1532,12 @@ void C2_HOOK_FASTCALL DoShrapnel(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vec
     extern br_matrix34 gShrapnel_shower_matrix;
     extern br_vector3 gVector3_006a4688;
     extern br_vector3 gVector3_00661678;
-    extern br_vector3 gZero_vector__smash;
     extern float gYon_squared;
     extern int gINT_006a8294;
     extern int gCount_shrapnel_shower_calls;
     extern int gMax_count_non_cars;
     extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
     extern float C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pPosition, int pArg3, int pArg4, int pArg5, br_vector3* pArg6, br_vector3* pArg7, int pArg8);
-    extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
-    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
-    extern void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15);
     float fVar1;
     undefined4 uVar2;
     int iVar3;
@@ -1836,7 +1800,6 @@ br_vector3 gVector3_00661678 = { { 0.0f, 1.0f, 0.0f } };
 void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor* pSource_actor, tU32 pTime, int pFace_count, const tU16* pSource_faces, int pVertex_count, const tU16* pSource_vertices, tU32 pOwner, tU32 pFlags, float pLongest_edge_squared, tSmashable_initial_speed_spec* pInitial_speed, const int* pLifetime_range, tU32 pFragment_owner, br_matrix34* pSource_transform) {
     extern int gSplit_triangle_vertex_orders[6][3];
     extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
-    extern void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2, br_vector3* pArg3, br_vector3* pArg4, float pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
     float vertex_data[2000];
     tU16 face_data[4000];
     int saved_seed;
@@ -2032,8 +1995,6 @@ void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
-extern tSmash_vertex gSmash_glass_fragments[200];
 
 // FUNCTION: CARMA2_HW 0x004f0380
 void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {

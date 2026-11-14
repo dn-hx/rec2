@@ -6,6 +6,7 @@
 #include "globvars.h"
 #include "rec2_macros.h"
 #include "c2_string.h"
+#include "23-piping.h"
 
 
 // GLOBAL: CARMA2_HW 0x0065fe08
@@ -144,7 +145,6 @@ int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, b
     br_scalar fVar1;
     br_scalar fVar2;
 
-    extern void C2_HOOK_FASTCALL PipeSingleSkidAdjustment(int pSkid_num, br_matrix34* pMatrix, br_material* pMaterial);
 
     if (((pNorm->v[0] * pPrev_norm->v[0] + pNorm->v[2] * pPrev_norm->v[2] + pNorm->v[1] * pPrev_norm->v[1]) < 0.997f) ||
         (0.01f < fabs((pNorm->v[0] * pPos->v[0] + pNorm->v[2] * pPos->v[2] + pNorm->v[1] * pPos->v[1]) -

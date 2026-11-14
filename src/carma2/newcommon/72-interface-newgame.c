@@ -1,9 +1,8 @@
 #include "72-interface-newgame.h"
 
 #include "72-interface.h"
+#include "72-interface-main.h"
 
-extern tFrontend_spec gFrontend_MAIN;
-int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend);
 
 // GLOBAL: CARMA2_HW 0x005bf280
 tFrontend_spec gFrontend_NEWGAME = {

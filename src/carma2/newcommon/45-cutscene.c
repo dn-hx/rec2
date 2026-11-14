@@ -15,6 +15,10 @@
 #endif
 #include "smack.h"
 #include "63-loading3.h"
+#include "05-drmem.h"
+#include "15-displays.h"
+#include "32-spark.h"
+#include "38-flicplay.h"
 #ifdef _MSC_VER
 #undef __stdcall
 #endif
@@ -418,12 +422,6 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
 #endif
 // FUNCTION: CARMA2_HW 0x0043f3a0
 void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
-    extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
-    extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
-    extern float gFlic_sound_delay_not_in_demo;
-    extern void C2_HOOK_FASTCALL SetNonFatalAllocationErrors(void);
-    extern void C2_HOOK_FASTCALL RunFlic(int pIndex);
-    extern void C2_HOOK_FASTCALL ResetNonFatalAllocationErrors(void);
     float sound_delay;
 
     PrintMemoryDump(0, "BEFORE DEMO-ONLY SCREEN");
@@ -480,9 +478,7 @@ void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
 // 36-trig.c shifts gFloat_sine_table and drops FastFloatCos 0x511440 to 97.22.
 // FUNCTION: CARMA2_HW 0x004fa8d0
 void C2_HOOK_FASTCALL DustRotate(void) {
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
     extern int gDust_rotate;
-    extern int gNum_dust_tables;
 
     gDust_rotate++;
     if (gDust_rotate >= gNum_dust_tables) {

@@ -5,9 +5,6 @@
 #include "c2_string.h"
 #include <stdio.h>
 
-extern tFrontend_spec gFrontend_MAIN;
-extern tFrontend_spec gFrontend_NETWORK_OPTIONS;
-extern tFrontend_spec gFrontend_OPTIONS;
 
 #include "01-network.h"
 #include "02-init.h"
@@ -18,23 +15,22 @@ extern tFrontend_spec gFrontend_OPTIONS;
 #include "globvrpb.h"
 #include "rec2_macros.h"
 #include "41-utility.h"
+#include "07-structur.h"
+#include "19-font.h"
+#include "35-intrface.h"
+#include "53-controls.h"
+#include "71-newgame.h"
+#include "72-interface-main.h"
+#include "72-interface-network_options.h"
+#include "72-interface-options.h"
+#include "platform.h"
 
 /* local declarations (no extern added to a header, see PROGRESS: header-count sensitivity) */
 extern int gValid_stashed_save_game;
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
-extern tNet_game_options gNet_settings[9];
-extern int gNet_grid_starts[10];
 
 /* local declarations for the join-go-ahead body (no extern added to a header) */
-extern void C2_HOOK_FASTCALL ClearAlwaysTyping(void);
-extern void C2_HOOK_FASTCALL SolidPolyFontText(const char* pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
 extern int C2_HOOK_FASTCALL NetJoinGame(tNet_game_details* pGame_details, char* pPlayer_name, int pCar_index);
 extern tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index);
-extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
-extern void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame);
-extern void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions);
-extern int C2_HOOK_FASTCALL PickARandomCar(void);
 extern tNet_game_details* gGame_to_join;
 extern int gFrontend_net_car_index;
 extern char gFrontend_host_join_buffer[256];

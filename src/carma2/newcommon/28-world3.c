@@ -14,6 +14,19 @@
 #include <math.h>
 #include <string.h>
 #include "platform.h"
+#include "09-funks.h"
+#include "10-loading2.h"
+#include "22-replay.h"
+#include "23-piping.h"
+#include "27-powerup.h"
+#include "33-depth.h"
+#include "36-trig.h"
+#include "37-brucetrk.h"
+#include "38-flicplay.h"
+#include "49-physics.h"
+#include "51-smash.h"
+#include "62-graphics3.h"
+#include "67-lighting.h"
 
 extern const br_vector3 g_Ped_x_unit_vector;
 extern const br_vector3 g_Ped_x_unit_vector;
@@ -25,12 +38,8 @@ extern const br_vector3 g_Ped_z_unit_vector;
 extern tPed_move* gPed_moves[250];
 extern tPed_form* gPed_forms[20];
 extern tPedForms_vtable* gPed_vtable;
-extern tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType);
-extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateWireFrameCollisionShape(int pCount_points, int pCount_lines, int pType);
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
 extern tPed_personality* gPed_personalities[50];
 extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
-extern void C2_HOOK_FASTCALL PipeSinglePedDir(int pId, const br_vector3* pDir);
 extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
 extern tPedestrian* gPedestrian_array;
 extern int gBOOL_00744804;
@@ -185,9 +194,7 @@ extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
 extern tPed_remap* gPed_remaps[10];
 extern const char* gPed_remap_axis_choices[6];
-extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
 extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
-extern float gFloat_sine_table[91];
 extern const char* gPed_form_collision_type_names[9];
 extern const char* gPed_form_bone_joint_type_names[10];
 extern const char* gPed_form_joint_limit_type_names[2];
@@ -612,7 +619,6 @@ extern const char* gPed_personality_grounding_type_names[1];
 extern void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenPersonality(const char* pName);
 extern FILE* C2_HOOK_FASTCALL BonerOpenDefaultMoves(const char* pName);
-extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
 
 
 #ifdef REC2_MATCHING
@@ -958,7 +964,6 @@ tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pNa
 // FUNCTION: CARMA2_HW 0x0040cc50
 void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
     extern int gMax_count_non_cars;
-    extern int gCount_track_non_cars;
     const char* identifier;
     char s[256];
     br_bounds bounds;
@@ -1051,9 +1056,6 @@ void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
 }
 
 extern br_actor* gMr_blendy;
-extern int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial);
-extern void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor);
-extern br_material* gDefault_track_material;
 
 // FUNCTION: CARMA2_HW 0x0040cf10
 intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
@@ -1123,9 +1125,6 @@ intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
 
 // FUNCTION: CARMA2_HW 0x0040d1f0
 intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
-    extern void C2_HOOK_FASTCALL SmoothificatePowerups(br_actor* pActor);
-    extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
-    extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
     char s[256];
     tTrack_spec* pTrack_spec;
     br_scalar n0;
@@ -1257,9 +1256,6 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
 /* (ReadNonCarMechanicsData) */
 // FUNCTION: CARMA2_HW 0x00487ec0
 void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec) {
-    extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
-    extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
-    extern br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingType pShading_type);
     int index_version;
     int extra_point_num;
     int i;
@@ -1529,8 +1525,6 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
-extern tCollision_shape_polyhedron* C2_HOOK_FASTCALL AllocateShapePolyhedron(int pCount_points, int pType);
 
 
 #ifdef REC2_MATCHING
@@ -1713,7 +1707,6 @@ void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel) {
     extern char gPed_animal_names[50][32];
     extern int gAnimalsOn;
     extern int gTotal_count_smash_peds;
-    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
     br_material* material;
     tRace_ped_spec* ped_spec;
     int i;
@@ -1984,7 +1977,6 @@ tS8 gNon_car_spec_indices[100];
 void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
     extern int gCount_smashable_noncars;
     extern int gCount_smashable_noncar_shrapnel_actors;
-    extern tSmashable_environment_name* gSmashable_noncars;
     extern int gCount_track_smashable_environment_specs;
     extern int gCount_track_smashable_environment_specs_2;
     extern int gCapacity_track_smashables;
@@ -1993,12 +1985,6 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
     extern tSmashable_item_spec* gSmashable_track_indexable_triggers[100];
     extern const char* gSmashable_item_mode_names[6];
     extern const char* gRepeatability_names[4];
-    extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
-    extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
-    extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
-    extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
-    extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
-    extern void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
     int i;
     tSmashable_item_spec* spec;
     int d1, d2;
@@ -2138,23 +2124,13 @@ void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
 extern tFunk_temp_buffer* gFunk_temp_vertices;
 extern float gFunk_scalar;
 extern tCar_spec* gCurrent_car_spec;
-extern tFunkotronic_spec* gFunkotronics_array;
-extern int gFunkotronics_array_size;
-extern tGroove_funk_binding gGroove_funk_bindings[1440];
 extern const char* gFunk_nature_names[4];
 extern const char* gFunk_type_names[5];
 extern const char* gFunk_move_names[7];
 extern const char* gFunk_anim_names[4];
 extern const char* gTime_mode_names[2];
 extern const char* gCamera_animation_names[2];
-extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
-extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
-extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
-extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
-extern int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length);
 
-extern tGroovidelic_spec* gGroovidelics_array;
-extern int gGroovidelics_array_size;
 extern br_actor* gGroove_by_proxy_actor;
 extern const char* gLollipop_names[3];
 extern const char* gGroove_nature_names[2];
@@ -2315,7 +2291,6 @@ br_actor* gGroove_by_proxy_actor;
 #endif
 // FUNCTION: CARMA2_HW 0x004f5c70
 void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_count) {
-    extern tSmash_vertex gSmash_glass_fragments[200];
     tU32 now;
     tSmash_vertex* fragment;
     int i;
@@ -2343,7 +2318,6 @@ void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_c
 void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
     extern int gCount_track_smashable_environment_specs;
     extern tSmashable_item_spec* gTrack_smashable_environment_specs;
-    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
     int i;
     tSmashable_item_spec* spec;
 
@@ -3177,7 +3151,6 @@ intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
 // FreeTrack
 
-extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
 // FUNCTION: CARMA2_HW 0x00506e50
 void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
@@ -3200,11 +3173,6 @@ tFlic_descriptor gTrack_flic_descriptor;
 // GLOBAL: CARMA2_HW 0x006aafc0
 static tU32 prev_sky_animation;
 
-extern int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info);
-extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
-extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
-extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
-extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
 
 // FUNCTION: CARMA2_HW 0x00506e80
 void C2_HOOK_FASTCALL AnimateSky(void) {

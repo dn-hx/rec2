@@ -9,6 +9,8 @@
 #include "platform.h"
 #include "rec2_macros.h"
 #include "c2_string.h"
+#include "00-car.h"
+#include "34-finteray.h"
 
 /* explicit initializers keep gTintedPolys and gEthereal_pedestrians adjacent (loop-end compare); costs ~250 KB of .data */
 // GLOBAL: CARMA2_HW 0x00705c80
@@ -569,9 +571,6 @@ void C2_HOOK_FASTCALL SetTintedPolyColour(int pTintedIndex, int pRed, int pGreen
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
-extern void C2_HOOK_FASTCALL DisablePlingMaterials(void);
-extern void C2_HOOK_FASTCALL EnablePlingMaterials(void);
 
 // FUNCTION: CARMA2_HW 0x004d8350
 void C2_HOOK_FASTCALL SetTintedFromSpecialVolume(int pTintedIndex, br_vector3* pPosition) {

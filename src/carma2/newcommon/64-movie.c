@@ -14,6 +14,11 @@
 #endif
 
 #include "c2_string.h"
+#include "16-graphics1.h"
+#include "18-graphics2.h"
+#include "52-errors.h"
+#include "63-loading3.h"
+#include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x006a0c24
 int gQuickTime_initialized;
@@ -104,15 +109,11 @@ extern Track gQuicktime_track;
 extern int gQuicktime_movie_counter;
 extern int gStatus_message_1;
 extern int gStatus_message_2;
-extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 extern int gQuickTime_compressor_code;
 extern br_uint_16 gQuickTime_pixel_depth;
-extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 extern int gQuicktime_max_compression_size;
 extern void* gQuicktime_compressed_frame_pixels;
 extern br_uint_16* gQuicktime_frame_pixel_conversion_table;
-extern br_pixelmap* gRender_palette;
 extern br_uint_16* gQuicktime_frame_pixels;
 extern void* gQuickTime_dispatcher;
 extern void* gQuickTime_dispatch;
@@ -469,8 +470,6 @@ typedef struct {
     unsigned int code;
 } tQuickTime_name_code;
 
-extern tS3_outlet* gEffects_outlet;
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
 extern int gRecording_paused;
 extern int gQuickTime_quality_code;
 extern short gQuicktime_movie_file;

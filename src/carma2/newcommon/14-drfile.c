@@ -4,6 +4,7 @@
 #include "08-loading1.h"
 
 #include <string.h>
+#include "01-network.h"
 
 // GLOBAL: CARMA2_HW 0x005933a8
 br_filesystem gFile_system = {
@@ -26,7 +27,6 @@ br_filesystem gFile_system = {
 br_filesystem* gOld_file_system;
 
 
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
 // FUNCTION: CARMA2_HW 0x0044c690
 int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index) {

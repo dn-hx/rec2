@@ -17,13 +17,21 @@
 #include "60-phil.h"
 
 #include <stdlib.h>
+#include "04-netgame.h"
+#include "07-structur.h"
+#include "15-displays.h"
+#include "18-graphics2.h"
+#include "29-raycast.h"
+#include "32-spark.h"
+#include "34-finteray.h"
+#include "43-pratcam.h"
+#include "49-physics.h"
+#include "54-runtime.h"
+#include "57-drone.h"
 
-extern void C2_HOOK_FASTCALL FreeFormThing(void* pData);
-extern void C2_HOOK_FASTCALL FreePhysicsJoint(tPhysics_joint* pJoint);
 extern int gBOOL_00744804;
 extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
 extern void C2_HOOK_FASTCALL SetShrapnelFragment(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9);
-extern tFace_ref* C2_HOOK_FASTCALL CastRayDownThruFaces(br_vector3* pPosition, tFace_ref* pFaces, int pCount, br_scalar pOffset, br_vector3* pCollision_position);
 extern float gFloat_0058aec0;
 extern double gPed_face_cache_margin;
 extern double gPed_face_normal_threshold;
@@ -432,7 +440,6 @@ void C2_HOOK_FASTCALL ClearOutMorphs(void) {
 /* the helpers below are inlined into InitPolyPedSystem in the original */
 /* local declarations: defined further down in this file / in other files */
 extern tPed_face_cache_0x34* gPed_face_cache_heads[4];
-extern br_pixelmap* gRender_palette;
 extern int gPed_severing_chance;
 extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
 
@@ -1538,7 +1545,6 @@ void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bou
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
 // FUNCTION: CARMA2_HW 0x00408c30
 int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pCharacter, int pArg2, undefined4 pArg3, int pArg4) {
     tPed_personality* personality;
@@ -2525,7 +2531,6 @@ void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacte
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow2(br_vector3* pCast_point);
 
 // (GPL-3.0), reworked after the disassembly
 // PARTIAL 73.93%: personality slot at [esp+0x1c] vs [esp+0x20], ebx/edi swap at entry, and fdivr vs fdivp st(1),st in the six morph velocity divisions
@@ -2897,7 +2902,6 @@ void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vect
 void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar, br_vector3* pPosition, int pMode) {
     register tPed_character_instance* pCharacter = pChar;
     register br_vector3* pPos = pPosition;
-    extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow2(br_vector3* pCast_point);
     tPed_personality* personality;
     tPed_move* move;
     br_matrix34* mat;
@@ -4400,7 +4404,6 @@ void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) 
 // FUNCTION: CARMA2_HW 0x004cc6e0
 void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2) {
     extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
-    extern tU32 gPHIL_last_physics_tick;
     tPhysics_object* physics;
     tPed_character_instance* character;
     int bone_index;
@@ -4663,7 +4666,6 @@ extern int gCount_changed_points;
    MungePedestrians 0x4d3740 at 0x4d5596-0x4d5602, guarded by `character->field_0x14 & 4` and
    `!(ped->flags & 0x80)`; the vanish block is MakePedVanish, then the drop distance is scored. */
 extern void C2_HOOK_FASTCALL MakePedVanish(tPedestrian* pPed);
-extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition);
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern int gPipe_halted_ped_status;
 int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
@@ -4676,15 +4678,10 @@ int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     }
     return 1;
 }
-extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
-extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
-extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
-extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 extern tU32 gPed_last_score_time;
 extern tPedestrian* gPed_recent_ped;
 extern int gPed_score_multiplier;
 extern int gPed_recent_points;
-extern void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject);
 /* MakePedVanish: no standalone symbol in the original; inlined into MungePedestrians 0x4d3740
    at 0x4d56b3-0x4d56f0 and 0x4d415c-0x4d419c, both guarded by `!(ped->flags & 0x80)`
    (PipeSinglePedPos, flags |= 0x80, halt status around physics level + renderable, OneLessPed). */
@@ -4718,10 +4715,6 @@ extern void C2_HOOK_FASTCALL InitProcessData(tPedestrian* pPed, tU32 pTime);
 #pragma auto_inline(off)
 #endif
 extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
-extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
-extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
 extern int gCount_killed_peds;
 extern int gTotal_count_smash_peds;
 
@@ -5197,7 +5190,6 @@ void C2_HOOK_FASTCALL RepulsePedestrian(tPedestrian* pPed, tCar_spec* pCar, floa
 }
 
 extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern void C2_HOOK_FASTCALL CreateSmokeColumn2(int pType, br_actor* pActor, tCar_spec* pCar, tPhysics_object* pObject, int pColour, int pVertex, tU32 pLifetime);
 
 // GLOBAL: CARMA2_HW 0x0065e5b8
 const float gFlamed_ped_flame_scales[7] = {
@@ -5402,7 +5394,6 @@ static void C2_HOOK_FASTCALL RandomWander(tPedestrian* pPed, tU32 pTime);
 // FUNCTION: CARMA2_HW 0x004cef80
 void C2_HOOK_FASTCALL PedScanForObjects(tPedestrian* pPed, tU32 pTime) {
     extern br_vector3 gY_unit_vector;
-    extern void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void);
     tPed_cache_006944c0* ped_cache;
     tPhysics_object* object;
     tPhysics_object* best_object;
@@ -6403,8 +6394,6 @@ typedef struct {
     tBounds bounds;
 } tPed_face_bounds_context;
 
-extern void C2_HOOK_FASTCALL FillInBounds(tBounds* bnds);
-extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
 extern tWorld_callbacks gWorld_callbacks;
 
 #ifdef REC2_MATCHING
@@ -7580,7 +7569,6 @@ void C2_HOOK_FASTCALL ResetPedNearness(void) {
 }
 
 
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 // FUNCTION: CARMA2_HW 0x004d6820
 // FUNCTION: CARMA2_SW 0x004d2e20
 void C2_HOOK_FASTCALL ShowActivePedCount(void) {

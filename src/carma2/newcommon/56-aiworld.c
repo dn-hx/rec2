@@ -18,6 +18,19 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include "00-car.h"
+#include "01-network.h"
+#include "04-netgame.h"
+#include "23-piping.h"
+#include "27-powerup.h"
+#include "28-world3.h"
+#include "34-finteray.h"
+#include "39-oil.h"
+#include "49-physics.h"
+#include "51-smash.h"
+#include "58-crush2.h"
+#include "60-phil.h"
+#include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x0058f038
 int gFirst_drone_processing = 1;
@@ -438,26 +451,15 @@ void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_in
 }
 
 /* callees of the functions below that live in other translation units */
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
-extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
-extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
-extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
-extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
 extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL AREndPipingSession(void);
 extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
 extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
 extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern int gCrush_panel_ids[10];
 
-extern int gCrush_deferred;
 extern br_scalar gMax_crush_force;
 extern br_scalar gCrushZero;
-extern int gFace_num__car;
 extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
 extern int gCount_car_damage_crush_list;
 
@@ -466,9 +468,6 @@ extern const char* gGroove_funk_type_names[4];
 extern const char* gDrone_axis_names[4];
 extern const char* gFunk_speed_control_names[2];
 extern const char* gReverseness_type_names[2];
-extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
-extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2);
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 // FUNCTION: CARMA2_HW 0x00428d40
 int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2) {
     tPhysics_shape* shape1;
@@ -681,10 +680,7 @@ extern int gCount_active_drones;
 extern int gDrones_unmodified;
 extern int gINT_006820d4;
 extern int gINT_006844fc;
-extern tPhysics_object* gPHIL_list_collision_infos;
 extern tDrone_state_function* gDrone_state_functions[6];
-extern int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject);
-extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
 
 static int C2_HOOK_FASTCALL DroneInSensiblePlace_Impl(tDrone_spec* pDrone) {
     tPhysics_object* collision;
@@ -846,9 +842,6 @@ void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
 /* local declarations for DisposeDronesRaceStuff (no new includes/externs in headers) */
 extern int gCount_drone_forms;
 extern int gCount_drone_path_nodes;
-extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
-extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
-extern void C2_HOOK_FASTCALL FreeFormThing(void* pData);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -911,7 +904,6 @@ extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
-extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
 
 // FUNCTION: CARMA2_HW 0x0044fda0
 void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
@@ -1006,10 +998,6 @@ void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
 }
 
 extern char gCurrent_load_name[256];
-extern void C2_HOOK_FASTCALL LoadAllImagesInDirectory(tBrender_storage* pStorage_space, const char* path);
-extern void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, const char* pPath);
-extern void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading);
-extern void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage* pStorage, const char* pPath);
 
 
 /* helpers that the original inlines into LoadFunksAndGrooves */
@@ -1163,7 +1151,6 @@ void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF) {
 #pragma auto_inline(on)
 #endif
 /* local declarations for StopProcessingThisDrone (no new includes/externs in headers) */
-extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
 
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
 static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
@@ -1450,21 +1437,11 @@ void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces,
 #pragma auto_inline(on)
 #endif
 /* local declarations for MineExplode (no new includes/externs in headers) */
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, int pSize);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
-extern void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor);
 extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tShit_mine gShit_mines[20];
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 // FUNCTION: CARMA2_HW 0x004ddab0
 int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine) {
     tNet_message* message;
@@ -1557,9 +1534,7 @@ extern tDrone_state_function* gDrone_state_functions[6];
 
 
 /* local declarations for MungeShatMines (no new includes/externs in headers) */
-extern tU32 gPHIL_last_physics_tick;
 extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
-extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
 
 static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
     if (pCar->field_0x4c8 > 1.0) {

@@ -4,6 +4,8 @@
 
 #include <math.h>
 #include <string.h>
+#include "00-car.h"
+#include "49-physics.h"
 
 // GLOBAL: CARMA2_HW 0x005964c0
 int gPling_materials = 1;
@@ -1075,8 +1077,6 @@ void C2_HOOK_FASTCALL FillInBounds(tBounds* bnds) {
     }
 }
 
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
-extern int gActorBoxPick_StopGroovidelics;
 
 // (BoundsTransformTest inlined, as in the original)
 // FUNCTION: CARMA2_HW 0x0045f8c0
@@ -1231,7 +1231,6 @@ int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, 
 #pragma auto_inline(on)
 #endif
 // extern so 49-physics.c keeps ownership of the global
-extern tFace_ref* gPling_face;
 
 static __inline int C2_HOOK_FASTCALL ModelPickBox_Clip(br_vector3* polygon, int count, int axis, br_scalar limit, int upper) {
     br_vector3 clipped[12];
@@ -1838,7 +1837,6 @@ int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd
 
 // LinePolyCollWithSphere
 
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
 // FUNCTION: CARMA2_HW 0x00461740
 int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal) {
@@ -1893,7 +1891,6 @@ int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd
     }
 }
 
-extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
 
 // FUNCTION: CARMA2_HW 0x004618e0
 tFace_ref* C2_HOOK_FASTCALL CastRayDownThruFaces(br_vector3* pPosition, tFace_ref* pFaces, int pCount, br_scalar pOffset, br_vector3* pCollision_position) {

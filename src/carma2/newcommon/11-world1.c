@@ -5,6 +5,12 @@
 #include "rec2_macros.h"
 
 #include <string.h>
+#include "00-car.h"
+#include "15-displays.h"
+#include "41-utility.h"
+#include "55-volume.h"
+#include "61-pedestrn.h"
+#include "globvars.h"
 
 // GLOBAL: CARMA2_HW 0x006ab7a8
 // GLOBAL: CARMA2_SW 0x006a51f8
@@ -24,8 +30,6 @@ br_actor* gDelete_list[500];
 // inlined into SaveAdditionalActors (no standalone address in the original)
 static __inline void C2_HOOK_FASTCALL PutAdditionalNonCarsOnToAdditionalActors(void) {
     extern tNon_car_spec* gActive_non_car_list[99];
-    extern int gNum_active_non_cars;
-    extern br_actor* gNon_track_actor;
     int i;
 
     for (i = 0; i < gNum_active_non_cars; i++) {
@@ -42,8 +46,6 @@ static __inline void C2_HOOK_FASTCALL PutAdditionalNonCarsOnToAdditionalActors(v
 // inlined into SaveAdditionalActors (no standalone address in the original)
 static __inline void C2_HOOK_FASTCALL PutAdditionalNonCarsOnToNonTrackActor(void) {
     extern tNon_car_spec* gActive_non_car_list[99];
-    extern int gNum_active_non_cars;
-    extern br_actor* gNon_track_actor;
     int i;
 
     for (i = 0; i < gNum_active_non_cars; i++) {
@@ -65,14 +67,11 @@ static __inline void C2_HOOK_FASTCALL DeleteAnyZeroBastardsInline(void);
 // FUNCTION: CARMA2_HW 0x00506f40
 void C2_HOOK_FASTCALL SaveAdditionalActors(void) {
     extern tNon_car_spec* gActive_non_car_list[99];
-    extern int gNum_active_non_cars;
-    extern br_actor* gNon_track_actor;
     extern char gAdditional_actor_path[256];
     extern char gAdditional_model_path[256];
     extern br_model* gAdditional_models[1000];
     extern int gNumber_of_additional_models;
     extern br_actor* gLast_actor;
-    extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_matrix34* pMatrix, recurse_with_trans_cbfn* pCall_back, void* pArg);
     extern void* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
     extern int C2_HOOK_FASTCALL PFfclose(void* pFile);
     extern int sprintf(char* buffer, const char* format, ...);
@@ -155,7 +154,6 @@ br_uint_32 C2_HOOK_FASTCALL DeleteBastards(br_actor* pActor, br_matrix34* pMatri
 
 // inlined into SaveAdditionalActors (no standalone address in the original)
 static __inline void C2_HOOK_FASTCALL DeleteAnyZeroBastardsInline(void) {
-    extern br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_matrix34* pMatrix, recurse_with_trans_cbfn* pCall_back, void* pArg);
     br_actor** pp;
     int count;
     int i;
@@ -199,7 +197,6 @@ br_uint_32 C2_HOOK_FASTCALL ApplyTransToModels(br_actor* pActor, br_matrix34* pM
 
 // DoSaveAdditionalStuff
 
-extern tProgram_state gProgram_state;
 extern br_actor* gSpec_vol_actors[100];
 
 static int FindSpecVolIndexInline(br_actor* pActor) {
@@ -222,9 +219,6 @@ void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void) {
     extern char gAdditional_model_path[256];
     extern br_actor* gLast_actor;
     extern int gSpec_vol_mode;
-    extern void C2_HOOK_FASTCALL FindInverseAndWorldBox(tSpecial_volume* pSpec);
-    extern void C2_HOOK_FASTCALL SaveSpecialVolumes(void);
-    extern void C2_HOOK_FASTCALL FlushAllPedCaches(void);
     int len1;
     int len2;
 
@@ -277,14 +271,11 @@ int gSpec_vol_mode;
 
 // FUNCTION: CARMA2_HW 0x00507580
 void C2_HOOK_FASTCALL LoadAdditionalStuff(void) {
-    extern int gNum_active_non_cars;
     extern int gNumber_of_additional_models;
     extern br_model* gAdditional_models[1000];
     extern char gAdditional_model_path[256];
     extern char gAdditional_actor_path[256];
     extern br_actor* gLast_actor;
-    extern br_actor* gUniverse_actor;
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
     int i;
 
     if (gNum_active_non_cars != 0) {

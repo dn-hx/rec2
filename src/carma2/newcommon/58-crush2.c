@@ -12,6 +12,14 @@
 #include "globvrpb.h"
 
 #include "rec2_macros.h"
+#include "00-car.h"
+#include "13-crush1.h"
+#include "17-world2.h"
+#include "23-piping.h"
+#include "32-spark.h"
+#include "51-smash.h"
+#include "69-sound.h"
+#include "platform.h"
 
 
 /* Moved out of 00-car.c: keeping this body in that TU perturbed the x87 scheduling of
@@ -30,7 +38,6 @@
 // PARTIAL 85.42%: AddTotalDeflection 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
 // FUNCTION: CARMA2_HW 0x0043b2e0
 intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
-    extern br_scalar gCrushZero;
     tUser_crush_data* user;
     br_vector3 original_position;
     float displacement;
@@ -79,9 +86,6 @@ intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pArg2);
 // FUNCTION: CARMA2_HW 0x0043b400
 int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
     tCrush_displacement_context_local* context;
@@ -102,7 +106,6 @@ int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_
     return 0;
 }
 
-extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
 // FUNCTION: CARMA2_HW 0x0043b470
 intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
     tUser_crush_data* user;
@@ -151,10 +154,6 @@ unsigned char gSmoke_part_table[12] = {
    RepairObject had any stack frame at all; no placement inside that TU avoided it. Like
    AddTotalDeflection above, they live in this TU instead. Bodies are unchanged.
    The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
-extern br_scalar gCrushZero;
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
-extern void C2_HOOK_CDECL JitModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pOrder_table, br_uint_8 pStyle, int pOn_screen);
-extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
 
 /* Relaxes every vertex of one detail-level model back towards its uncrushed position by at most
    `step` per pass, accumulating the applied movement into the context and piping the per-vertex
@@ -253,14 +252,8 @@ int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pC
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int gExplosion_sound_id;
-extern br_vector3 gZero_v__car;
 extern tS3_outlet* gCar_outlet;
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 
-extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
 
 // GLOBAL: CARMA2_HW 0x0074d3b0
 int gCredits_wasting_car[3];
@@ -330,7 +323,6 @@ void C2_HOOK_FASTCALL ExplodeMeCarUpMeOldMatey(tCar_spec* pCar) {
     }
 }
 
-extern void C2_HOOK_FASTCALL CreateSmokeColumn(tCar_spec* pCar, int pType, int pRandom, int pLifetime);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x0043f730
@@ -451,8 +443,6 @@ void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 extern unsigned char gSmoke_part_table[12];
-extern void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pLevel);
-extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x00440230
 void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar) {
@@ -512,10 +502,7 @@ float gWheel_circ_to_width = 0.16f;
 
 // FUNCTION: CARMA2_HW 0x00440350
 void C2_HOOK_FASTCALL DoWheelDamage(void) {
-    extern int gNum_active_cars;
     extern tCar_spec* gActive_car_list[139];
-    extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
-    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
     extern br_scalar gFloat_00589b64;
     int i;
 
@@ -627,7 +614,6 @@ void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 #define DCE_I(p, o) (*(int*)((char*)(p) + (o)))
 #define DCE_U(p, o) (*(tU32*)((char*)(p) + (o)))
 #define DCE_F(p, o) (*(float*)((char*)(p) + (o)))

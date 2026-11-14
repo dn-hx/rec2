@@ -14,18 +14,24 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include "13-crush1.h"
+#include "15-displays.h"
+#include "26-oppoproc.h"
+#include "34-finteray.h"
+#include "36-trig.h"
+#include "53-controls.h"
+#include "55-volume.h"
+#include "56-aiworld.h"
+#include "globvrkm.h"
+#include "platform.h"
 
-extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand, int pPursuit_mode, int pIgnore_end, int pNever_struggle);
 
 // GLOBAL: CARMA2_HW 0x0065a3c4
 // GLOBAL: CARMA2_SW 0x00654cdc
 int gBIG_APC_index = -1;
 
-extern void C2_HOOK_FASTCALL PDEnterDebugger(const char* pStr);
 
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
-extern tCar_spec* gCar_to_view;
 
 extern tNon_car_spec* gActive_non_car_list[99];
 
@@ -70,7 +76,6 @@ int gRematerialisation_extra_attempts;
 // GLOBAL: CARMA2_HW 0x00691784
 int gRematerialisation_max_extra_attempts;
 
-extern void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor);
 
 // FUNCTION: CARMA2_HW 0x0041e360
 void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist) {
@@ -309,7 +314,6 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
 
 // MassageOpponentPosition
 
-extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
 
 // FUNCTION: CARMA2_HW 0x004a7f20
 int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed) {
@@ -533,8 +537,6 @@ tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, br_vector3* pAc
     }
     return nearest_node_section_no;
 }
-extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
-extern void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject);
 
 static __inline int C2_HOOK_FASTCALL MassageOpponentPosition_inl(tOpponent_spec* pOpponent_spec, int pMassage_count) {
     br_matrix34* mat;
@@ -1157,8 +1159,6 @@ extern tU32 gNext_grudge_reduction;
 extern int gGrudge_reduction_per_period;
 extern int gFirst_frame;
 extern tU32 gAcme_frame_count;
-extern br_scalar C2_HOOK_FASTCALL FastScalarCos(int pAngle_in_degrees);
-extern void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth);
 
 /* inlined copy of UnStunTheBugger (0x4a????) at this call site in the original */
 static __inline void C2_HOOK_FASTCALL UnStunTheBugger_Impl(tOpponent_spec* pOpponent_spec) {
@@ -1360,7 +1360,6 @@ void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
 // ,1206,1269 (reference only)
 // FUNCTION: CARMA2_HW 0x004aa570
 void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
-    extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec);
     extern int gStop_opponents_moving;
     br_scalar distance;
     br_vector3 intersect;
@@ -2272,8 +2271,6 @@ typedef struct {
 
 // FUNCTION: CARMA2_HW 0x004ac540
 void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-    extern tU32 gFrame_period_for_this_munging;
     float t;
     float y;
 
@@ -2565,7 +2562,6 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
     int general_grudge_increase;
     int pursuit_percentage;
     int do_it;
-    extern int C2_HOOK_FASTCALL HasCarFallenOffWorld(tCar_spec* pCar);
 
     if (pOpponent_spec->current_objective == eOOT_knackered_and_freewheeling || pOpponent_spec->knackeredness_detected) {
         return;
@@ -2737,7 +2733,6 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
 #endif
 // FUNCTION: CARMA2_HW 0x004ad910
 void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec) {
-    extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
     int i;
     tDamage_unit* damage;
     char message[256];

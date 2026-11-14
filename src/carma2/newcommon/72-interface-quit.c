@@ -1,8 +1,8 @@
 #include "72-interface-quit.h"
 
 #include "72-interface.h"
+#include "72-interface-main.h"
 
-extern tFrontend_spec gFrontend_MAIN;
 
 // GLOBAL: CARMA2_HW 0x00649df0
 tFrontend_spec gFrontend_QUIT = {

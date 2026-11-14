@@ -28,15 +28,24 @@
 #include "platform.h"
 #include "60-phil.h"
 #include "04-netgame.h"
+#include "01-network.h"
+#include "02-init.h"
+#include "07-structur.h"
+#include "09-funks.h"
+#include "13-crush1.h"
+#include "15-displays.h"
+#include "30-opponent.h"
+#include "39-oil.h"
+#include "43-pratcam.h"
+#include "52-errors.h"
+#include "56-aiworld.h"
+#include "65-hull.h"
+#include "69-sound.h"
 
-extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
 extern float gPed_head_scale;
 extern br_vector3 gPed_scale;
 extern float gAverage_ped_scale;
-extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 extern tS3_outlet* gCar_outlet;
-extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
 extern const float gConst_0p1;
 extern const double gConst_10_over_7;
 extern const double gConst_inverse_world_scale;
@@ -545,11 +554,8 @@ void C2_HOOK_FASTCALL ScaleBone(int pMorph_or_personality, br_scalar* pScale, in
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int C2_HOOK_CDECL CompareAngle(const void *pLhs, const void *pRhs);
 
-extern br_scalar C2_HOOK_FASTCALL SignedTwiceAreaOf3DTriangle(const br_vector3* pV1, const br_vector3* pV2);
 
-extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3);
 
 extern tCollision_shape_polyhedron_data* gPolyhedron_to_sort;
 
@@ -709,7 +715,6 @@ tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pP
     }
 }
 
-extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, const br_vector3* pV3);
 
 // FUNCTION: CARMA2_HW 0x004211f0
 tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges) {
@@ -1207,14 +1212,8 @@ static int C2_HOOK_CDECL ComparePedestrianDistance(const void* pValue1, const vo
 #pragma auto_inline(off)
 #endif
 // PARTIAL 96.30%: 0x4ce5a3 folded end-address named gUNK_0069bc0c vs gPed_severing_chance (duplicate GLOBAL at 0x69bc0c) and five VC5-scheduler instruction reorders (arg setup, post-call load/xor/lea/cmp)
-extern void C2_HOOK_FASTCALL PratcamEvent(int pIndex);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
 extern tS3_outlet* gCar_outlet;
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet *pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 extern tPlayer_ID gLocal_net_ID;
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
 extern int gNumber_of_icons;
 // FUNCTION: CARMA2_HW 0x004ce560
 int C2_HOOK_FASTCALL NapalmPedestrianNearCar(tCar_spec* pCar) {
@@ -1397,8 +1396,6 @@ void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex) {
 int C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage, int pSelect_inventory) {
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
     int index;
     int i;
     int flag;
@@ -1956,7 +1953,6 @@ static br_pixelmap* DRMapFindMeAPixie(const char* name) {
     return NULL;
 }
 
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int, ...);
 
 // FUNCTION: CARMA2_HW 0x004d96c0
 void C2_HOOK_FASTCALL LoadPowerups(void) {
@@ -2161,7 +2157,6 @@ void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhy
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
 
 typedef struct {
     br_actor* actor;
@@ -2889,7 +2884,6 @@ void C2_HOOK_FASTCALL DoPowerupPeriodics(tU32 pFrame_period) {
 void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2) {
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     int i;
     int message_address;
     int* picked_up_powerup;
@@ -2933,7 +2927,6 @@ void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2) {
 __inline static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     int i;
     int message_address;
     int* picked_up_powerup;
@@ -2987,7 +2980,6 @@ __inline static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
 void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new) {
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     int i;
     int old_selected;
     int message_address;
@@ -3404,7 +3396,6 @@ static void C2_HOOK_FASTCALL AutoGoody(tU32 pTime) {
 
 // GotPowerup
 
-extern void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -3514,7 +3505,6 @@ int C2_HOOK_FASTCALL GainAPO2(tCar_spec* pCar, int pIndex, int pAmount) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
 
 // FUNCTION: CARMA2_HW 0x004dc470
 int C2_HOOK_FASTCALL GotTimeOrPower(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -3640,7 +3630,6 @@ int C2_HOOK_FASTCALL SetPedSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 
 // based on ApexWorm/rec2 271189c68
 // FUNCTION: CARMA2_HW 0x004dc750
@@ -3761,7 +3750,6 @@ void C2_HOOK_FASTCALL UnfreezeTimer(tPowerup* pPowerup, tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
 
 // FUNCTION: CARMA2_HW 0x004dc990
 int C2_HOOK_FASTCALL DoInstantRepair(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -3984,7 +3972,6 @@ int C2_HOOK_FASTCALL SetBouncey(tPowerup* powerup, tCar_spec* car) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 
 // FUNCTION: CARMA2_HW 0x004dce80
 int C2_HOOK_FASTCALL SetSuspension(tPowerup* pPowerup, tCar_spec* pCar) {
@@ -4160,7 +4147,6 @@ void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
 
 // MineSound
 
-extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 
 // FUNCTION: CARMA2_HW 0x004dd210
 void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk) {
@@ -4224,7 +4210,6 @@ void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk) {
 #endif
 extern tCar_spec* gRecalc_mass_car;
 extern const char gSolidgrn_material[10];
-extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
 
 
 #ifdef REC2_MATCHING
@@ -4327,7 +4312,6 @@ void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar) {
 
 extern tWorld_callbacks gWorld_callbacks;
 extern tPhysics_object* gUNK_0079ecbc;
-extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_info_1, tPhysics_object* pCollision_info_2, br_vector3* pVec3, tWorld_callbacks* pCar_callbacks);
 
 // based on the original disassembly (ActivateMine/PositionMine hold the ShitMine body)
 // FUNCTION: CARMA2_HW 0x004dd700
@@ -4505,8 +4489,6 @@ void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object
     mine->flags |= 0x20;
 }
 
-extern void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50);
-extern br_material* oily_material;
 
 // (QueueOilSpill inlined as QueueOilSpill2)
 // FUNCTION: CARMA2_HW 0x004de040
@@ -4594,11 +4576,7 @@ int C2_HOOK_FASTCALL RepulseOpponents(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // NapalmPeds
 
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 extern tS3_outlet* gCar_outlet;
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet *pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
 
 // FUNCTION: CARMA2_HW 0x004de1f0
 int C2_HOOK_FASTCALL RepulseOpponents2(tPowerup* pPowerup, tCar_spec* pCar, int pTell_net) {
@@ -4722,7 +4700,6 @@ const double gConst_minus_0p15 = -0.15;
 #endif
 // FUNCTION: CARMA2_HW 0x004de5a0
 int C2_HOOK_FASTCALL ReceivedRepulse(tNet_message_chunk_powerup* pMessage) {
-    extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 
     return RepulseOpponents2(&gPowerup_array[pMessage->powerup_index], NetCarFromPlayerID(pMessage->player_id), 0);
 }
@@ -5134,7 +5111,6 @@ void C2_HOOK_FASTCALL ResetMutantCorpses(tPowerup* powerup, tCar_spec* car) {
 
 
 extern tPlayer_ID gLocal_net_ID;
-extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 
 // FUNCTION: CARMA2_HW 0x004dece0
 void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
@@ -5177,9 +5153,6 @@ void C2_HOOK_FASTCALL ReceivedPowerup(tNet_message_chunk_powerup* pMessage) {
     }
 }
 
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 
 #ifdef __GNUC__
@@ -5274,7 +5247,6 @@ void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition) {
 #pragma auto_inline(off)
 #endif
 extern tS3_outlet* gCar_outlet;
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet *pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 
 // GLOBAL: CARMA2_HW 0x006a0a68
 int gPissed_next_time;
@@ -5350,14 +5322,12 @@ void C2_HOOK_FASTCALL ResetPissed(tPowerup* powerup, tCar_spec* car) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern float gCamera_angle;
 extern tS3_outlet* gXXX_outlet;
 extern float gCosine_array[65];
 extern int gNumber_of_powerups;
 extern int gNumber_of_icons;
 extern tPlayer_ID gLocal_net_ID;
 extern tU32 gINT_00705b70;
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
 extern double C2_HOOK_CDECL fmod(double pX, double pY);
 
 // PARTIAL 98.36%: PissedEffect 0x004df3b0 [call order GetTotalTime/IRandomBetween at gPissed_next_time]
@@ -5609,10 +5579,7 @@ void C2_HOOK_CDECL RenderChangingPowerup(br_actor* actor, br_model* model, br_ma
     BrZsModelRender(actor, model, material, order_table, style, on_screen, 0);
 }
 
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 extern tS3_outlet* gCar_outlet;
-extern int C2_HOOK_FASTCALL DRS3StartSound2(tS3_outlet *pOutlet, tS3_sound_id pSound, int pRepeats, int pLeft_volume, int pRight_volume, int pLeft_pitch, int pRight_pitch);
 
 // FUNCTION: CARMA2_HW 0x004dfec0
 int C2_HOOK_FASTCALL PedValium(tPowerup* powerup, tCar_spec* car) {

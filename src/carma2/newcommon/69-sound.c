@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "55-volume.h"
 
 // GLOBAL: CARMA2_HW 0x00684550
 const char* gPed_sound_path;
@@ -1039,7 +1040,6 @@ done:
 }
 
 extern int gFaded_palette;
-extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
 
 // FUNCTION: CARMA2_HW 0x00456e20
 void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {

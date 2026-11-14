@@ -24,6 +24,19 @@
 
 
 #include <string.h>
+#include "06-apo.h"
+#include "07-structur.h"
+#include "25-grafdata.h"
+#include "27-powerup.h"
+#include "28-world3.h"
+#include "30-opponent.h"
+#include "32-spark.h"
+#include "53-controls.h"
+#include "59-camera.h"
+#include "61-pedestrn.h"
+#include "64-movie.h"
+#include "66-tintedpoly.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x00703e24
 int gWidth;
@@ -133,12 +146,10 @@ int gNumber_of_lollipops;
 // FUNCTION: CARMA2_HW 0x004d5d60
 void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
     extern tProximity_ray gProximity_rays[20];
-    extern tPedestrian* gPedestrian_array;
     extern br_pixelmap* gProx_ray_shade_table;
     extern void C2_HOOK_FASTCALL ARStartPipingSession(int pType);
     extern void C2_HOOK_FASTCALL AREndPipingSession(void);
     extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
-    extern int C2_HOOK_FASTCALL DrawLine3D(const br_vector3* pStart, const br_vector3* pEnd, br_pixelmap* pScreen, br_pixelmap* pDepth, br_pixelmap* pShade);
     tU32 the_time;
     int i;
     float seed;
@@ -319,10 +330,7 @@ void C2_HOOK_FASTCALL SetBRenderScreenAndBuffers(int pX_offset, int pY_offset, i
 }
 
 
-extern int gHud_tinted1;
-extern int gHud_tinted2;
 extern int gHud_tinted4;
-extern void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int width, int height);
 
 // FUNCTION: CARMA2_HW 0x004e4b40
 // FUNCTION: CARMA2_SW 0x004e0ed0
@@ -442,20 +450,12 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 extern tU32 gPalette_fade_time;
 extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
 extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
-extern tGraf_data* gCurrent_graf_data;
-extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
-extern void C2_HOOK_FASTCALL DisplayUserMessage(void);
-extern int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period);
 extern void C2_HOOK_FASTCALL SynchronizeActionReplay(void);
 extern int gBack_original_origin_x;
 extern int gBack_original_origin_y;
 extern int gBack_original_base_x;
 extern int gBack_original_base_y;
-extern int gThis_net_player_index;
 
-extern int gRendering_mirror;
-extern void C2_HOOK_FASTCALL RenderTintedPolys(void);
-extern tNet_mode gNet_mode;
 // FUNCTION: CARMA2_HW 0x004e4e40
 void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {
     int i;
@@ -682,19 +682,7 @@ void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to
 
 // FoxyStuff
 
-extern int C2_HOOK_FASTCALL CreateTintedPoly(int x0, int y0, int width, int height, int class, int arg1, int arg2, int arg3);
-extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
-extern void C2_HOOK_FASTCALL ProcessTintedPoly(int pTintedIndex);
-extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
-extern int C2_HOOK_FASTCALL IsCarCloaked(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform);
-extern void C2_HOOK_FASTCALL RenderLimbs(void);
-extern int gIt_or_fox;
 extern tSpecial_volume* gLast_camera_special_volume;
-extern tNet_game_player_info gNet_players[12];
-extern int gNumber_of_net_players;
-extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
-extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 // FUNCTION: CARMA2_HW 0x004e5680
 void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
@@ -907,8 +895,6 @@ int gShadow_clip_plane_count;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern int gRendering_mirror;
-extern tActionReplayCameraMode gAction_replay_camera_mode;
 extern br_actor* gRearview_sky_actor;
 extern br_actor* gForward_sky_actor;
 extern br_model* gForward_sky_model;
@@ -917,8 +903,6 @@ extern br_angle gOld_fov;
 extern br_scalar gOld_yon;
 extern br_angle gSky_image_width;
 
-extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 
 // FUNCTION: CARMA2_HW 0x004e74d0
 void C2_HOOK_FASTCALL RenderShadows(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {

@@ -24,6 +24,23 @@
 #include "43-pratcam.h"
 #include "37-brucetrk.h"
 #include "07-structur.h"
+#include "00-car.h"
+#include "01-network.h"
+#include "13-crush1.h"
+#include "18-graphics2.h"
+#include "19-font.h"
+#include "23-piping.h"
+#include "25-grafdata.h"
+#include "27-powerup.h"
+#include "29-raycast.h"
+#include "30-opponent.h"
+#include "32-spark.h"
+#include "49-physics.h"
+#include "52-errors.h"
+#include "58-crush2.h"
+#include "59-camera.h"
+#include "globvrbm.h"
+#include "joystick.h"
 
 // GLOBAL: CARMA2_HW 0x00659b2c
 float gMap_render_x = 80.f;
@@ -96,15 +113,10 @@ tCamera_key_flags gCamera_key_flags;
 #pragma auto_inline(off)
 #endif
 // ViewNetPlayer - action proc of gToggle_array (key 0x46)
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
-extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 // FUNCTION: CARMA2_HW 0x0040e430
 void C2_HOOK_FASTCALL ViewNetPlayer(void) {
     extern int gOpponent_viewing_mode;
     extern int gNet_player_to_view_index;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
     tCar_spec* car;
     tNet_game_player_info* player;
     int* p;
@@ -169,7 +181,6 @@ have_car:
 #endif
 // FUNCTION: CARMA2_HW 0x00413d00
 void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount) {
-    extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
     tDamage_unit* the_damage;
 
     if (pDamage_amount > 0) {
@@ -185,8 +196,6 @@ void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount) {
 
 // FUNCTION: CARMA2_HW 0x0043b840
 float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
-    extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
-    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
 
     return RepairCar2(
         VEHICLE_TYPE_FROM_ID(pCar_ID) == eVehicle_self
@@ -471,7 +480,6 @@ void C2_HOOK_FASTCALL TDamageEngine(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
 // FUNCTION: CARMA2_HW 0x00441ff0
 // FUNCTION: CARMA2_SW 0x004420d0
 void C2_HOOK_FASTCALL TDamageDriver(void) {
@@ -502,9 +510,6 @@ void C2_HOOK_FASTCALL ToggleMiniMap(void) {
 
 // CheckToggles
 
-extern br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow2(br_vector3* pCast_point);
-extern tFace_ref gFace_list__car[300];
-extern br_material* gMaterial_below;
 
 // FUNCTION: CARMA2_HW 0x00442130
 int C2_HOOK_FASTCALL HasCarFallenOffWorld(tCar_spec* pCar) {
@@ -646,8 +651,6 @@ void C2_HOOK_FASTCALL SetRecovery(void) {
 void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime) {
     extern int gToo_late;
     extern int gCancel_recover;
-    extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
-    extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 
     if (gProgram_state.current_car.time_to_recover != 0) {
         if (gProgram_state.current_car.knackered) {
@@ -708,7 +711,6 @@ void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime) {
 
 // CheckOtherRacingKeys
 
-extern tSlot_info gTrade_in_value_APO;
 
 // FUNCTION: CARMA2_HW 0x00442750
 int C2_HOOK_FASTCALL CheckRecoverCost(void) {
@@ -759,13 +761,6 @@ int C2_HOOK_FASTCALL CheckRecoverCost(void) {
 // SortOutRecover
 
 // and upstream controls.c (reference only)
-extern void C2_HOOK_FASTCALL NetPlayerStatusChanged(tPlayer_status pNew_status);
-extern void C2_HOOK_FASTCALL FadePaletteDown(void);
-extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pCollision_info, tU32 pDisable);
-extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
-extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
-extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
 
 static void AlignChildrenStatic(tPhysics_object* pCollision_info) {
     tPhysics_object* child;
@@ -903,7 +898,6 @@ void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
 
 // FUNCTION: CARMA2_HW 0x00442e80
 void C2_HOOK_FASTCALL GetPowerup(int pNum) {
@@ -911,9 +905,6 @@ void C2_HOOK_FASTCALL GetPowerup(int pNum) {
     GotPowerup(&gProgram_state.current_car, pNum);
 }
 
-extern void C2_HOOK_FASTCALL ToggleCockpit(void);
-extern void C2_HOOK_FASTCALL ToggleInventory(void);
-extern void C2_HOOK_FASTCALL ToggleFlaps(void);
 
 // GLOBAL: CARMA2_HW 0x005900a0
 tToggle_element gToggle_array[44] = {
@@ -1021,16 +1012,6 @@ tU32 gLast_repair_time;
 // PARTIAL 73.86%: block layout of recover-timer section and SortOutRecover clamp differ
 // FUNCTION: CARMA2_HW 0x00442f90
 void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
-    extern tGraf_data* gCurrent_graf_data;
-    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-    extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
-    extern void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar);
-    extern void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType);
-    extern void C2_HOOK_FASTCALL SetFadedPalette(int pK);
-    extern tPlayer_status C2_HOOK_FASTCALL NetGetPlayerStatus(void);
-    extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
-    extern void C2_HOOK_FASTCALL CancelPendingCunningStunt(void);
-    extern int gGraf_data_index;
     extern tS3_outlet* gCar_outlet;
     extern int gAuto_repair;
     extern int gCancel_recover;
@@ -1501,9 +1482,6 @@ void C2_HOOK_FASTCALL CheckKevKeys(void) {
 // BrakeInstantly
 
 extern tS3_outlet* gCar_outlet;
-extern int gInstant_handbrake;
-extern int gCredit_multiplier;
-extern int C2_HOOK_FASTCALL HasCurrentJoystick(void);
 
 // (reference only)
 // FUNCTION: CARMA2_HW 0x00443e80
@@ -1892,8 +1870,6 @@ void C2_HOOK_FASTCALL UserSendMessage(void) {
         gEntering_message = 1;
     }
 }
-extern tDR_font gFonts[28];
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 // FUNCTION: CARMA2_HW 0x00444910
 void C2_HOOK_FASTCALL EnterUserMessage(void) {
     // GLOBAL: CARMA2_HW 0x00590f64
@@ -2012,11 +1988,6 @@ void C2_HOOK_FASTCALL EnterUserMessage(void) {
     }
 }
 
-extern void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners);
-extern void C2_HOOK_FASTCALL DRPixelmapText(br_pixelmap* pPixelmap, int pX, int pY, const tDR_font* pFont, const char* pText, int pRight_edge);
-extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const char* pText, br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pCentred);
-extern tDR_font gFonts[28];
-extern tGraf_data* gCurrent_graf_data;
 
 // FUNCTION: CARMA2_HW 0x00444c00
 // FUNCTION: CARMA2_SW 0x00444ce0
@@ -2102,8 +2073,6 @@ void C2_HOOK_FASTCALL DisposeAbuseomatic(void) {
 }
 
 /* local declarations (no new includes in this file) */
-extern void C2_HOOK_FASTCALL ChangeCameraType(void);
-extern tActionReplayCameraMode gAction_replay_camera_mode;
 
 // FUNCTION: CARMA2_HW 0x00444ed0
 void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void) {
@@ -2116,8 +2085,6 @@ void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void) {
 
 // SteelBollock
 
-extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x00444f10
 void C2_HOOK_FASTCALL RichardsSphere(int pNum) {
@@ -2317,7 +2284,6 @@ int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text*
 
 // FUNCTION: CARMA2_HW 0x0045aa60
 void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
-    extern br_actor* g2d_camera;
 
     if (gAcc_poly_material == NULL) {
         gAcc_poly_material = BrMaterialAllocate("Acc Poly Mat");
@@ -2591,8 +2557,6 @@ int gCancel_recover = 1;
 
 extern int gINT_00659d34;
 extern tPlayer_ID gLocal_net_ID;
-extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
 
 // inlined helpers of NetSendHeadupToAllPlayers/NetSendHeadupToEverybody (see NetStartBroadcastContents/NetBroadcastContents)
 static inline tNet_message_chunk* C2_HOOK_FASTCALL NetHeadupStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider) {
@@ -2854,17 +2818,8 @@ have_chunk:
 // FUNCTION: CARMA2_HW 0x004daa00
 void C2_HOOK_FASTCALL RightInventory(void) {
     extern tPowerup* gPowerup_array;
-    extern int gInventory[20];
-    extern int gInventory_selected;
-    extern int gInventory_cycling;
-    extern tU32 gInventory_timeout;
-    extern int gINT_006a0a6c;
-    extern int gINT_006a0a5c;
-    extern tHeadup_icon gPickedup_powerups[20];
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     int old_index;
     int new_index;
     tPowerup* powerup;
@@ -2923,17 +2878,8 @@ select_new:
 // FUNCTION: CARMA2_HW 0x004dab80
 void C2_HOOK_FASTCALL LeftInventory(void) {
     extern tPowerup* gPowerup_array;
-    extern int gInventory[20];
-    extern int gInventory_selected;
-    extern int gInventory_cycling;
-    extern tU32 gInventory_timeout;
-    extern int gINT_006a0a6c;
-    extern int gINT_006a0a5c;
-    extern tHeadup_icon gPickedup_powerups[20];
     extern int gNumber_of_icons;
     extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     int old_index;
     int new_index;
     tPowerup* powerup;
@@ -3003,8 +2949,6 @@ void C2_HOOK_FASTCALL FUN_00511210(void) {
 
 // FUNCTION: CARMA2_HW 0x00511240
 void C2_HOOK_FASTCALL ToggleJoystickHeadup(void) {
-    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
-    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
 
     if (gINT_0068b8e8 != 0) {
         SaveJoystickPreferences();

@@ -12,28 +12,21 @@
 #include "72-interface.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "07-structur.h"
+#include "10-loading2.h"
+#include "18-graphics2.h"
+#include "35-intrface.h"
+#include "38-flicplay.h"
+#include "41-utility.h"
+#include "platform.h"
 
 // QuitVerifyStart
 
 extern int gMouse_was_started__mainmenu;
 extern int gReplace_background;
 
-extern void C2_HOOK_FASTCALL FadePaletteDown(void);
-extern void C2_HOOK_FASTCALL TurnOnPanelFlics(void);
-extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
-extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
-extern void C2_HOOK_FASTCALL FadePaletteUp(void);
 
 extern int gMouse_started;
-extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
-extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
-extern int C2_HOOK_FASTCALL IRandomBetween(int pA, int pB);
-extern void C2_HOOK_FASTCALL EndMouseCursor(void);
-extern void C2_HOOK_FASTCALL StartMouseCursor(void);
-extern void C2_HOOK_FASTCALL TurnOffPanelFlics(void);
-extern void C2_HOOK_FASTCALL LoadInterfaceStuff(int pWithin_race);
-extern int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOptions, int pCurrent_choice);
 
 // GLOBAL: CARMA2_HW 0x00659270
 tInterface_spec gQuitVerify_spec;

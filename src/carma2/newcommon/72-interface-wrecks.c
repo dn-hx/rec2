@@ -9,6 +9,11 @@
 #include "globvrpb.h"
 #include "platform.h"
 #include "c2_string.h"
+#include "29-raycast.h"
+#include "35-intrface.h"
+#include "41-utility.h"
+#include "42-input.h"
+#include "72-interface-quit.h"
 
 /* BuyCurrentCar and its globals live here, not in 72-interface.c: 72-interface.c must not include 30-opponent.h
    (that include changes MSVC's codegen of SortScores_1 0x004743c0 from 100% to 68.97%) */
@@ -117,16 +122,7 @@ int C2_HOOK_FASTCALL WrecksInFunc(tFrontend_spec* pFrontend) {
 extern int gFrontend_mouse_down;
 extern int gPrev_frontend_mouse_down;
 extern int gFrontend_leave_current_menu;
-extern int gMouse_in_use;
 extern tU32 gFrontend_time_last_input;
-extern tFrontend_spec gFrontend_QUIT;
-extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
-extern char* C2_HOOK_FASTCALL MungeCommas(int pValue);
-extern const char* C2_HOOK_FASTCALL GetMiscString(int pIndex);
-extern void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, char pChar);
-extern void C2_HOOK_FASTCALL GetMousePosition(int* pX, int* pY);
-extern int C2_HOOK_FASTCALL EitherMouseButtonDown(void);
-extern int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixelmap* viewport, int pick_x, int pick_y, dr_pick2d_cbfn* callback, void* arg);
 
 static int C2_HOOK_FASTCALL KeepInRangeWrecks(int pIndex, int pRange) {
 

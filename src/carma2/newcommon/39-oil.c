@@ -6,6 +6,10 @@
 #include "23-piping.h"
 #include "globvars.h"
 #include "rec2_macros.h"
+#include "04-netgame.h"
+#include "34-finteray.h"
+#include "49-physics.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0065a398
 const char* gOil_pixie_names[1] = {
@@ -198,14 +202,10 @@ void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
 
 /* local externs (the shared 23-piping.h declares the scrap global volatile) */
 
-extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
-extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
 
 // PARTIAL 38.98%: loop regalloc (esi/edi swapped), frame 4 bytes larger
 // FUNCTION: CARMA2_HW 0x004a6e50
 void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
-    extern tNet_mode gNet_mode;
     int i;
     tU32 time;
     br_scalar this_size;

@@ -14,6 +14,46 @@
 #include <ctype.h>
 #include <math.h>
 #include <string.h>
+#include "00-car.h"
+#include "01-network.h"
+#include "02-init.h"
+#include "03-racestrt.h"
+#include "06-apo.h"
+#include "08-loading1.h"
+#include "09-funks.h"
+#include "10-loading2.h"
+#include "16-graphics1.h"
+#include "17-world2.h"
+#include "18-graphics2.h"
+#include "19-font.h"
+#include "20-skidmark.h"
+#include "21-mainloop.h"
+#include "24-loadsave.h"
+#include "28-world3.h"
+#include "31-racesumm.h"
+#include "32-spark.h"
+#include "38-flicplay.h"
+#include "39-oil.h"
+#include "44-mainmenu.h"
+#include "45-cutscene.h"
+#include "49-physics.h"
+#include "50-fog.h"
+#include "51-smash.h"
+#include "52-errors.h"
+#include "53-controls.h"
+#include "54-runtime.h"
+#include "55-volume.h"
+#include "56-aiworld.h"
+#include "59-camera.h"
+#include "60-phil.h"
+#include "61-pedestrn.h"
+#include "62-graphics3.h"
+#include "63-loading3.h"
+#include "66-tintedpoly.h"
+#include "67-lighting.h"
+#include "72-interface.h"
+#include "globvrkm.h"
+#include "platform.h"
 
 /* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
@@ -127,47 +167,15 @@ void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give
     collision_info->bb2.min.v[1] = min_value;
 }
 
-extern FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
-extern char* C2_HOOK_FASTCALL GetALineAndDontArgue(FILE* pF, char* pS);
 extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
-extern void C2_HOOK_FASTCALL InitFogificateMaterials(void);
-extern void C2_HOOK_FASTCALL InitSmashTargets(void);
-extern void C2_HOOK_FASTCALL ClearAllRuntimeVariables(void);
-extern int C2_HOOK_FASTCALL PHILInit(void);
-extern void C2_HOOK_FASTCALL SetUpTestObjects(void);
-extern void C2_HOOK_FASTCALL InitTargetLock(void);
-extern void C2_HOOK_FASTCALL ReinitSmashing(void);
-extern void C2_HOOK_FASTCALL InitRepairAnimations(void);
-extern void C2_HOOK_FASTCALL ResetExplosions(void);
-extern void C2_HOOK_FASTCALL ClearWobbles(void);
-extern void C2_HOOK_FASTCALL ResetOilSpills(void);
-extern void C2_HOOK_FASTCALL HideSkids(void);
-extern void C2_HOOK_FASTCALL ResetPedNearness(void);
-extern void C2_HOOK_FASTCALL SetIntegerMapRenders(void);
 extern int C2_HOOK_FASTCALL GetSkyTextureOn(void);
 extern void C2_HOOK_FASTCALL ToggleSkyQuietly(void);
 extern int C2_HOOK_FASTCALL GetDepthCueingOn(void);
 extern void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void);
-extern void C2_HOOK_FASTCALL SaveShadeTables(void);
-extern void C2_HOOK_FASTCALL ResetSparks(void);
-extern void C2_HOOK_FASTCALL InitPedsForRace(void);
-extern void C2_HOOK_FASTCALL BuildColourTable(br_pixelmap* pPalette);
-extern void C2_HOOK_FASTCALL LoadFont(int pFont_ID);
-extern int C2_HOOK_FASTCALL TranslationMode(void);
-extern void C2_HOOK_FASTCALL ResetRecoveryVouchers(void);
-extern void C2_HOOK_FASTCALL AdjustRenderScreenSize(void);
-extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
 extern void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8);
 extern void C2_HOOK_FASTCALL InitNetGameplayStuff(void);
-extern void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos);
-extern tDR_font gFonts[28];
-extern br_pixelmap* gLit_up_stat;
-extern tSlot_info gMax_APO[3];
-extern tSlot_info gInitial_APO_potential[3];
-extern int gInitial_powerup_slots[3];
 extern int gSwap_depth_effect_type;
 extern br_pixelmap* gSwap_sky_texture;
-extern br_pixelmap* gRender_palette;
 extern int gCredits_won_headup;
 extern int gPed_kill_count_headup;
 extern int gCar_kill_count_headup;
@@ -176,7 +184,6 @@ extern int gTime_awarded_headup;
 extern int gLaps_headup;
 extern int gNet_cash_headup;
 extern int gNet_ped_headup;
-extern tActionReplayCameraMode gAction_replay_camera_mode;
 extern tCrush_list_item gCrush_lists[8];
 extern int gCount_queued_drone_crushes;
 extern int gINT_0067bdfc;
@@ -424,7 +431,6 @@ extern int gNumber_of_icons;
 extern undefined4 gDAT_006a0958;
 extern tU32 gNext_goody_time;
 
-extern int gIt_or_fox;
 extern tU32 gTime_for_punishment;
 extern int gNot_shown_race_type_headup;
 extern tU32 gLast_it_change;
@@ -479,7 +485,6 @@ void C2_HOOK_FASTCALL InitPlayers(void) {
 extern int gINT_0068d920;
 extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
 extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x0049b7e0
 void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id) {
@@ -572,9 +577,6 @@ int gWinner_declared = 0;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
-extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 extern int gINT_0074c6d4;
 
 // Known remaining diff (partial, category=codegen): 0x4a5773 SIB base/index order only
@@ -648,12 +650,8 @@ void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
     }
 }
 
-extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
 // FUNCTION: CARMA2_HW 0x004e3440
 int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
-    extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
-    extern int gMoney_pre_race;
-    extern int gAPO_pre_race[3];
     extern tRace_group_spec* gRace_groups;
     extern int gCountRaceGroups;
     int i;
@@ -738,8 +736,6 @@ int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
     return result;
 }
 
-extern void C2_HOOK_FASTCALL ToggleMap(void);
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
 
 // FUNCTION: CARMA2_HW 0x005030b0
 // FUNCTION: CARMA2_SW 0x004fea00
@@ -919,7 +915,6 @@ void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
         gLast_wrong_checkpoint = pCheckpoint_index;
     }
 }
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 
 static int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vector3* pV2, br_vector3* pNormal, br_vector3* pStart, br_vector3* pDir) {
     (void)pV0; (void)pV1; (void)pV2; (void)pNormal; (void)pStart; (void)pDir;
@@ -1037,45 +1032,6 @@ void C2_HOOK_FASTCALL TotalRepair(void) {
 
 // SwapNetCarsDispose
 
-extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
-extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-extern void C2_HOOK_FASTCALL DoSCILogo(void);
-extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
-extern void C2_HOOK_STDCALL DoStainlessLogo(void);
-extern void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
-extern void C2_HOOK_FASTCALL InitGame(int pStart_race);
-extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
-extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
-extern void C2_HOOK_FASTCALL DoMainScreen(void);
-extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
-extern void C2_HOOK_FASTCALL LoadRaceInfo(int pRace_index, tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL DisableNetService(void);
-extern void C2_HOOK_FASTCALL ReenableNetService(void);
-extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
-extern int C2_HOOK_FASTCALL SortOpponents(void);
-extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL DisposeRace(void);
-extern void C2_HOOK_FASTCALL DisposeTrack(void);
-extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL FogificateMaterials(tRendererShadingType pShading_type);
-extern void C2_HOOK_FASTCALL EnableAutoFogification(void);
-extern void C2_HOOK_FASTCALL DisableAutoFogification(void);
-extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
-extern tRace_result C2_HOOK_FASTCALL DoRace(void);
-extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
-extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
-extern void C2_HOOK_FASTCALL DoSaveGame(void);
-extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
-extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
-extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
-extern tCar_spec* gCar_to_view;
-extern int gSave_game_out_of_sync;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -1389,9 +1345,6 @@ void C2_HOOK_FASTCALL JumpTheStart(void) {
     }
 }
 
-extern int C2_HOOK_FASTCALL TintedPolyIsOn(int pIndex);
-extern void C2_HOOK_FASTCALL TurnTintedPolyOff(int pTintedIndex);
-extern void C2_HOOK_FASTCALL PlayFlicsFromDisk(void);
 extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 
 // FUNCTION: CARMA2_HW 0x00504230
@@ -1408,8 +1361,6 @@ void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void) {
     }
 }
 
-extern void C2_HOOK_FASTCALL TurnTintedPolyOn(int pTintedIndex);
-extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
 
 // FUNCTION: CARMA2_HW 0x005042a0
 void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
@@ -1429,52 +1380,18 @@ void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
 
 
 /* LoadTrack support: globals defined in 28-world3.c, callees without a shared prototype */
-extern void C2_NORETURN C2_HOOK_CDECL FatalError(int pStr_index, ...);
-extern br_model* C2_HOOK_FASTCALL LoadModel(const char* pName);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
 extern tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path);
 extern void C2_HOOK_FASTCALL TWT_Unmount(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
 extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
-extern void C2_HOOK_FASTCALL LoadAllImagesInDirectory(tBrender_storage* pStorage_space, const char* path);
-extern void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, const char* pPath);
-extern void C2_HOOK_FASTCALL DodgyModelUpdate(br_model* pM);
-extern br_pixelmap* C2_HOOK_FASTCALL LoadSinglePixelmap(tBrender_storage* pStorage, const char* pName);
-extern br_material* C2_HOOK_FASTCALL LoadSingleMaterial(tBrender_storage* pStorage_space, const char* pName);
-extern int C2_HOOK_FASTCALL GetAnInt(FILE* pF);
-extern float C2_HOOK_FASTCALL GetAFloat(FILE* pF);
-extern void C2_HOOK_FASTCALL GetThreeInts(FILE* pF, int* pF1, int* pF2, int* pF3);
-extern void C2_HOOK_FASTCALL GetThreeScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3);
-extern void C2_HOOK_FASTCALL GetFourScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3, br_scalar* pS4);
-extern void C2_HOOK_FASTCALL GetPairOfInts(FILE* pF, int* pF1, int* pF2);
-extern void C2_HOOK_FASTCALL GetAString(FILE* pF, char* pString);
-extern int C2_HOOK_FASTCALL GetALineAndInterpretCommand(FILE* pF, const char** pString_list, int pCount);
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
-extern int gTrack_version;
 extern tMaterial_exception* gMaterial_exceptions;
 extern int gRendering_accessories;
 extern int gCount_smashable_noncars;
-extern tSmashable_environment_name* gSmashable_noncars;
-extern tSpecial_volume* gDefault_water_spec_vol_real;
 extern tU8* gTrack_flic_buffer;
 extern tU32 gTrack_flic_buffer_size;
 extern tFlic_descriptor gTrack_flic_descriptor;
-extern void C2_HOOK_FASTCALL LoadTrackMaterials(tBrender_storage* pStorage, const char* pPath);
-extern void C2_HOOK_FASTCALL LoadTrackModels(tBrender_storage* pStorage, const char* pPath);
-extern void C2_HOOK_FASTCALL ReadGlobalLightingInfo(FILE* pF);
-extern void C2_HOOK_FASTCALL ReadPedSpecs(FILE* pF);
-extern void C2_HOOK_FASTCALL ReadSpecialVolumes(FILE* pF);
-extern int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length);
-extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
-extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
-extern void C2_HOOK_FASTCALL LoadAIWorldTrackInfo(FILE* pF);
-extern void C2_HOOK_FASTCALL GetSmokeShadeTables(FILE* pF);
-extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
-extern void C2_HOOK_FASTCALL FreeSmashableNonCarNames(void);
-extern void C2_HOOK_FASTCALL SmoothificateWorldMaterial(br_material* pMaterial);
-extern void C2_HOOK_FASTCALL LoadStaticLightingForRace(const char* pRace_lighting_path);
-extern intptr_t C2_HOOK_CDECL SetAccessoryRenderingCB(br_actor* pActor, void* pFlag);
 extern void C2_HOOK_FASTCALL ChangeDepthEffect(void);
 extern void C2_HOOK_FASTCALL MungeForwardSky(void);
 extern void C2_HOOK_FASTCALL MungeRearviewSky(void);
@@ -1484,9 +1401,6 @@ extern char gAdditional_actor_path[256];
 extern br_model* gAdditional_models[1000];
 extern int gNumber_of_additional_models;
 extern br_actor* gLast_actor;
-extern br_actor* gAdditional_actors;
-extern tGraf_spec gGraf_specs[2];
-extern int gGraf_spec_index;
 extern br_angle gSky_image_width;
 extern br_angle gSky_image_height;
 extern br_angle gSky_image_underground;
@@ -1495,13 +1409,6 @@ extern int gTrack_depth_colour_green;
 extern int gTrack_depth_colour_blue;
 extern tS8 gNon_car_spec_indices[100];
 extern const char* gDepth_effect_names[3];
-extern void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath);
-extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
-extern void C2_HOOK_FASTCALL FinishUpLoadingPeds(void);
-extern void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas);
-extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
-extern void C2_HOOK_FASTCALL MungeSmashMaterialNames(void);
-extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 
 /* GetFaceFlag: inlined by the original into LoadTrack (MungeTrackModel part) */
 static int GetFaceFlag(int pIndex) {
@@ -2200,13 +2107,6 @@ void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec
 }
 int gINT_00767268;
 
-extern void C2_HOOK_FASTCALL FadePaletteDown(void);
-extern void C2_HOOK_FASTCALL FadePaletteUp(void);
-extern void C2_HOOK_FASTCALL EnsureRenderPalette(void);
-extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
-extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const char* pText, br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pCentred);
 extern char* gCurrent_palette_pixels;
 extern int gINT_00767268;
 

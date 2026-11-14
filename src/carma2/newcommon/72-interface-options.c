@@ -2,8 +2,8 @@
 
 #include "72-interface.h"
 #include "72-interface-quit.h"
+#include "72-interface-main.h"
 
-extern tFrontend_spec gFrontend_MAIN;
 extern tFrontend_spec gFrontend_CONTROLS;
 extern tFrontend_spec gFrontend_GRAPHICS;
 extern tFrontend_spec gFrontend_LOAD_GAME;

@@ -18,6 +18,13 @@
 
 #include <limits.h>
 #include <string.h>
+#include "02-init.h"
+#include "15-displays.h"
+#include "16-graphics1.h"
+#include "27-powerup.h"
+#include "36-trig.h"
+#include "58-crush2.h"
+#include "platform.h"
 
 // GLOBAL: CARMA2_HW 0x00655dfc
 int gMini_map_visible = 2;
@@ -170,7 +177,6 @@ int gTrack_version;
 #include "30-opponent.h"
 #include <stdio.h>
 #include <stdlib.h>
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // FUNCTION: CARMA2_HW 0x004945f0
 void C2_HOOK_FASTCALL ToggleTargetLock(void) {
@@ -271,7 +277,6 @@ void C2_HOOK_FASTCALL CycleTargetLock(void) {
 int gCheckpoint_finder_enabled = 1;
 
 /* local declaration (15-displays.h is not included in this file) */
-extern int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
 
 // FUNCTION: CARMA2_HW 0x00494840
 void C2_HOOK_FASTCALL CycleMapOptions(void) {
@@ -323,10 +328,8 @@ void C2_HOOK_FASTCALL SetIntegerMapRenders(void) {
 #pragma auto_inline(off)
 #endif
 // PARTIAL 92.84%: DoOpponentStatusHeadup 0x494900 - first text call not tail-merged; is_girl ternary becomes setne instead of branches
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 // FUNCTION: CARMA2_HW 0x00494900
 void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
-    extern br_pixelmap* gLit_up_stat;
     extern int gPrevious_opponent_status;
     extern tU32 gTime_oppobar_target_wasted;
     extern br_actor* gLit_op_stat_actor;
@@ -335,8 +338,6 @@ void C2_HOOK_FASTCALL DoOpponentStatusHeadup(void) {
     extern tU32 gOppo_stat_flash_last_2;
     extern int gOppo_stat_flash_state_1;
     extern int gOppo_stat_flash_state_2;
-    extern void C2_HOOK_FASTCALL RenderThisHeadup(br_actor* pActor);
-    extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
     char s[256];
     char t[256];
     int pct;
@@ -534,7 +535,6 @@ float gFLOAT_0068d6e0;
 int gINT_0068d890;
 // FUNCTION: CARMA2_HW 0x004950b0
 void C2_HOOK_FASTCALL MapOverlay(void) {
-    extern int gHeadup_detail_level;
     tU32 the_time;
     br_uint_16 original_base_x;
     br_matrix23 mat23;
@@ -788,8 +788,6 @@ void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, t
     }
 }
 extern int C2_HOOK_FASTCALL GetPedCount(void);
-extern int C2_HOOK_FASTCALL GetPowerupCount(void);
-extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition);
 extern tPedestrian* gPedestrian_array;
 
 static int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPos) {
@@ -908,7 +906,6 @@ void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pT
     int arrow_index;
     int size;
     extern float gFLOAT_0074ab90;
-    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
 
     time_diff = pTime - gMap_time;
     BrMatrix34ApplyP(&map_pos, pPos, &gCurrent_race.map_transformation);
@@ -1148,7 +1145,6 @@ int gBack_original_base_y;
 // GLOBAL: CARMA2_HW 0x0068d88c
 int gBack_original_base_x;
 
-extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 
 // FUNCTION: CARMA2_HW 0x00496be0
 void C2_HOOK_FASTCALL MapStuffBeforeRender(void) {

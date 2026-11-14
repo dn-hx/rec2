@@ -1,8 +1,8 @@
 #include "72-interface-networksummary.h"
 
 #include "72-interface.h"
+#include "72-interface-main.h"
 
-extern tFrontend_spec gFrontend_MAIN;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

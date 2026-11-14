@@ -11,15 +11,11 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "18-graphics2.h"
+#include "40-main.h"
+#include "42-input.h"
+#include "69-sound.h"
 
-extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
-extern int C2_HOOK_FASTCALL DoMouseCursor(void);
-extern void C2_HOOK_FASTCALL ServiceGame(void);
-extern int C2_HOOK_FASTCALL AnyKeyDown(void);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
-extern tS3_outlet* gEffects_outlet;
-extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
-extern void C2_HOOK_FASTCALL DRSetPaletteEntries(br_pixelmap* pThe_palette, int pFirst_colour, int pCount);
 
 // GLOBAL: CARMA2_HW 0x00686300
 int gSound_ID;

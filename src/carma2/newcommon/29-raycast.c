@@ -3,6 +3,8 @@
 #include "globvars.h"
 
 #include "rec2_macros.h"
+#include "32-spark.h"
+#include "37-brucetrk.h"
 
 // GLOBAL: CARMA2_HW 0x006a20d0
 br_actor* gY_picking_camera;
@@ -72,7 +74,6 @@ int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixel
     br_camera* camera_data;
     br_angle view_over_2;
     br_actor* a;
-    extern br_material* gBlack_material;
 
     camera_data = camera->type_data;
     if (camera == world) {
@@ -238,7 +239,6 @@ void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scal
     br_scalar cos_angle;
     br_scalar sin_angle;
     br_scalar scale;
-    extern br_material* gBlack_material;
 
     gLowest_y_above = 30000.0f;
     gHighest_y_below = -30000.0f;
@@ -456,8 +456,6 @@ br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition) {
     tTrack_spec* track_spec;
     br_actor* world;
     br_actor* camera;
-    extern br_material* gBlack_material;
-    extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
     br_matrix34 camera_tfm;
     br_camera* camera_data;
     br_angle view_over_2;
