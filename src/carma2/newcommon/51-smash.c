@@ -17,8 +17,8 @@
 #include "globvrpb.h"
 
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car);
-void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash);
+extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
+extern void C2_HOOK_FASTCALL MakeLiftGoUp(tNon_car_spec* pNon_car);
 extern int C2_HOOK_FASTCALL IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells(void);
 void C2_HOOK_FASTCALL FUN_004d35e0(tPedestrian* pPed);
 int C2_HOOK_FASTCALL FUN_004cd640(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
@@ -467,20 +467,66 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // QueueDelayedSideEffect
 
-// DoDelayedNonCar
+static __inline void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car) {
+    tDelayed_non_car_actor_item* src;
+    tDelayed_non_car_actor_item* dst;
+    tNon_car_spec* non_car;
+    br_vector3 velocity;
+    br_vector3 omega;
+    int count_removed;
+    int i;
 
-// DoDelayedSmash
+    count_removed = 0;
+    dst = pNon_car->actor_time_actions;
+    for (i = 0, src = dst; i < pNon_car->count_actions; i++, src++) {
+        if (pTime >= src->time) {
+            if (src->actor->type_data == NULL && (non_car = DoPullActorFromWorld(src->actor)) != NULL) {
+                if ((non_car->flags & 0x10000) != 0) {
+                    MakeLiftGoUp(non_car);
+                } else {
+                    ApplyInitialMovement(pNon_car->field_0x18, &pNon_car->field_0x0, &velocity, &omega,
+                        1.f, &gZero_vector__smash, &pNon_car->field_0xc, &src->actor->t.t.translate.t);
+                    non_car->collision_info->v.v[0] = velocity.v[0] * 0.14492753623188406;
+                    non_car->collision_info->v.v[1] = velocity.v[1] * 0.14492753623188406;
+                    non_car->collision_info->v.v[2] = velocity.v[2] * 0.14492753623188406;
+                    non_car->collision_info->omega.v[0] = omega.v[0] * 0.09587379924285257;
+                    non_car->collision_info->omega.v[1] = omega.v[1] * 0.09587379924285257;
+                    non_car->collision_info->omega.v[2] = omega.v[2] * 0.09587379924285257;
+                }
+                non_car->collision_info->disable_move_rotate = 0;
+            }
+            count_removed++;
+        } else {
+            *dst = *src;
+            dst++;
+        }
+    }
+    pNon_car->count_actions -= count_removed;
+}
 
-// (reference)
+static __inline void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) {
+    char c;
+
+    if (pSmash->field_0x88 == 1 && pSmash->field_0x80->identifier[0] == '&'
+            && (c = pSmash->field_0x80->identifier[1]) >= '0' && c <= '9') {
+        DoPullActorFromWorld(pSmash->field_0x80);
+        pSmash->field_0x80->identifier[3] = '!';
+        BashObject(pSmash->field_0x90, pSmash->field_0x80, pSmash->field_0x8c, &pSmash->field_0xc, &pSmash->field_0x0,
+            &pSmash->field_0x1c, 1, 0);
+    } else {
+        SmashEnvironment(pSmash->field_0x90, &pSmash->field_0x38, pSmash->field_0x8c, &pSmash->field_0xc, &pSmash->field_0x0,
+            &pSmash->field_0x1c, 1, 0);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004ecc80
 void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
-    int i;
     tU32 the_time;
+    int i;
 
-    the_time = PDGetTotalTime();
-    for (i = 0; i < REC2_ASIZE(gSmash_explosions); i++) {
+    the_time = GetTotalTime();
+    for (i = 0; i < (int)REC2_ASIZE(gSmash_explosions); i++) {
         tSmash_explosion* delayed_effect = &gSmash_explosions[i];
-
         if (delayed_effect->active) {
             switch (delayed_effect->type) {
             case 0:
@@ -497,7 +543,6 @@ void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
                 break;
             }
         }
-
     }
 }
 
@@ -3497,10 +3542,6 @@ void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_act
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: DoDelayedNonCar
-void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car) { NOT_IMPLEMENTED(); }
-// STUB: DoDelayedSmash
-void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) { NOT_IMPLEMENTED(); }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

@@ -81,9 +81,9 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // QueueDelayedSideEffect
 
-// DoDelayedNonCar
+// DoDelayedNonCar (static __inline in 51-smash.c; only exists inlined into MungeDelayedSideEffects)
 
-// DoDelayedSmash
+// DoDelayedSmash (static __inline in 51-smash.c; only exists inlined into MungeDelayedSideEffects)
 
 extern void C2_HOOK_FASTCALL MungeDelayedSideEffects(void);
 // ActivateNonCarSideEffects
