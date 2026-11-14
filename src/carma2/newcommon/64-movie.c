@@ -1598,10 +1598,49 @@ void C2_HOOK_CDECL FUN_00575730(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x005757d0
+// PARTIAL 49.81%: MSVC5 register allocation. Our body keeps the result in ebx, caches the
+// LoadLibraryA IAT in ebp and the GetModuleFileNameA IAT in esi, so the prologue pushes 4
+// callee-saved registers instead of 2 (esi/edi) and every [esp+N] operand is +8; the inlined
+// strcat therefore keeps the length in ebx instead of edx. Source spelling does not move it
+// (~15 variants measured); see state/findings/FUN_005757d0.md.
+// FUNCTION: CARMA2_HW 0x005757d0
 void* C2_HOOK_CDECL FUN_005757d0(void) {
-    NOT_IMPLEMENTED();
-    return NULL;
+    char path[0x104];
+    char* p;
+    HMODULE hModule;
+    DWORD len;
+
+    hModule = GetModuleHandleA("QuickTime.qts");
+    if (hModule != NULL) {
+        len = GetModuleFileNameA(hModule, path, 0x104);
+        if (len != 0) {
+            hModule = LoadLibraryA(path);
+            return hModule;
+        }
+    }
+    len = GetModuleFileNameA(NULL, path, 0x104);
+    if (len != 0) {
+        for (p = path + strlen(path) - 1; p >= path; p--) {
+            if (*p == '\\' || *p == '/') {
+                break;
+            }
+        }
+        if (p >= path) {
+            p[1] = '\0';
+            strcat(path, "QuickTime.qts");
+            hModule = LoadLibraryA(path);
+            if (hModule != NULL) {
+                return hModule;
+            }
+        }
+    }
+    hModule = NULL;
+    if (GetSystemDirectoryA(path, 0x104) != 0) {
+        strcat(path, "\\");
+        strcat(path, "QuickTime.qts");
+        hModule = LoadLibraryA(path);
+    }
+    return hModule;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
