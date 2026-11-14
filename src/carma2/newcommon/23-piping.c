@@ -2284,14 +2284,12 @@ void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk) {
 }
 
 
-// PARTIAL 18.56%: ApplySmoke 0x004c91c0 - logic and callee arguments match (pos = reduced pos * 1/800 + car
-// actor translation; AdjustSmoke(index, type, &pos, radius * 1/1024, strength * 1/256)); residual is MSVC
-// frame/slot assignment (original frame 0x14, pos at [esp+0x14], two int conversion temps, &pos pinned in esi)
-// against ours (frame 0x10, one temp, esp-relative pos) plus x87 scheduling; unchanged by an int-local variant.
 // FUNCTION: CARMA2_HW 0x004c91c0
 void C2_HOOK_FASTCALL ApplySmoke(tPipe_chunk** pChunk) {
     tPipe_chunk_smoke* chunk = (tPipe_chunk_smoke*)(*pChunk)->data.raw_data;
     br_vector3 pos;
+    br_scalar radius;
+    br_scalar strength;
 
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, pos, 0x0);
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, radius, 0x6);
@@ -2305,7 +2303,9 @@ void C2_HOOK_FASTCALL ApplySmoke(tPipe_chunk** pChunk) {
     pos.v[1] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[1];
     pos.v[2] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[2];
 
-    AdjustSmoke((*pChunk)->subject_index, chunk->type, &pos, chunk->radius * 0.0009765625f, chunk->strength * 0.00390625f);
+    radius = chunk->radius * 0.0009765625f;
+    strength = chunk->strength * 0.00390625f;
+    AdjustSmoke((*pChunk)->subject_index, chunk->type, &pos, radius, strength);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9280
