@@ -1452,6 +1452,9 @@ void C2_HOOK_FASTCALL CrushShapeFinishVertex(br_vector3* pVertexPos, tU16 pFlags
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00436940
 void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_crush* pSrc) {
     int i;
@@ -1464,6 +1467,9 @@ void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_cru
     CompressVector3(&pDest->field_0x1c, &pSrc->field_0x44, -1.0f, 1.0f);
     pDest->field_0x24 = pSrc->field_0x50;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004369c0
 void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc) {
@@ -1614,6 +1620,9 @@ void C2_HOOK_FASTCALL SimpleCrushModel(br_model* pModel, int pCount, float* pPoi
 
 // CrushDrone
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x0042d180
 void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale) {
     tDrone_crush_data* crush_data;
@@ -1627,6 +1636,9 @@ void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, flo
         SimpleCrushModel(crush_data->model, pCount, pPoints, scaled.v, (float*)&crush_data->bounds);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DoDroneCrushing
 
@@ -3769,25 +3781,104 @@ void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel) {
 
 // DoSpams
 
-static void C2_HOOK_FASTCALL DoSpams(void) { }
-static void C2_HOOK_FASTCALL DoCrushing(void) { }
-static void C2_HOOK_FASTCALL DoDroneCrushing(void) { }
-static void C2_HOOK_FASTCALL DoShapeSwapping(void) { }
-static void C2_HOOK_FASTCALL ClearCrushLists(void) { }
+/* DoSpams/DoCrushing/DoDroneCrushing/DoShapeSwapping/ClearCrushLists are
+   inlined into their only caller CrushBendFlapRend (0x436170). */
+extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
+extern int gCount_car_damage_crush_list;
+extern void C2_HOOK_FASTCALL TotallySpamTheModel(tCar_spec* pCar_spec, float pDamage);
+extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
+extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 
+// PARTIAL 80.51%: CrushBendFlapRend 0x00436170 - register roles in the crush-list loops (original: list in ebp, item pointer in esi spilled to [esp+0x14]; ours: list in esi spilled, item pointer in ebp) and the drone-scale x87 schedule (original loads the scalar once, then v2/v0/v1 with fxch/fmulp; ours reloads the scalar per component)
 // FUNCTION: CARMA2_HW 0x00436170
 void C2_HOOK_FASTCALL CrushBendFlapRend(void) {
+    tCompressed_car_crush compressed;
+    br_vector3 tv;
+    double factor;
+    tCrush_list_item* crush_list;
 
-    DoSpams();
-    DoCrushing();
-    DoDroneCrushing();
-    DoShapeSwapping();
+    tQueued_drone_crush* queued_crush;
+    tQueued_drone_crush_item* drone_item;
+    float force;
+    int i;
+    int drone_i;
+    int drone_j;
+
+    for (i = 0; i < gCount_car_damage_crush_list; i++) {
+        TotallySpamTheModel(gCar_damage_crush_list[i].car, gCar_damage_crush_list[i].damage);
+    }
+    gCount_car_damage_crush_list = 0;
+
+    for (crush_list = gCrush_lists; crush_list->car_spec != NULL; crush_list++) {
+        for (i = 0; i < crush_list->count; i++) {
+            force = crush_list->car_spec->car_crush_spec->bendability_factor * crush_list->items[i].field_0x40;
+            if (crush_list->car_spec == NULL || crush_list->car_spec->driver != eDriver_local_human) {
+                factor = (gDouble_00589a60 - (float)gCurrent_race.index / gNumber_of_races) * gDouble_00589b18;
+                force = force * (gDouble_00589a60 - factor * gDouble_00589b20);
+            }
+            if (force > gMin_bend_force) {
+                if (PercentageChance((int)gChance_of_bending)) {
+                    crush_list->items[i].field_0x40 = -crush_list->items[i].field_0x40;
+                }
+            } else {
+                tNet_message_chunk* message;
+
+                if (gNet_mode != eNet_mode_none) {
+                    CompressCrush(&compressed, &crush_list->items[i]);
+                    message = NetStartBroadcastContents(0x20, 0);
+                    if (message != NULL) {
+                        message->car_crush.car_id = NetPlayerFromCar(crush_list->car_spec)->ID;
+                        memcpy(&message->car_crush.car_crush, &compressed, sizeof(tCompressed_car_crush));
+                        NetBroadcastContents(message);
+                    }
+                    ExpandCrush(&crush_list->items[i], &compressed);
+                }
+                CrushCar(crush_list->car_spec, crush_list->car_spec->car_master_actor, &crush_list->items[i]);
+            }
+        }
+    }
+
+    for (drone_i = 0; drone_i < gCount_queued_drone_crushes; drone_i++) {
+        queued_crush = &gQueued_drone_crushes[drone_i];
+        for (drone_j = 0; drone_j < queued_crush->count; drone_j++) {
+            drone_item = &queued_crush->items[drone_j];
+            if (drone_item->field_0x34 > gFloat_00589b28) {
+                drone_item->field_0x34 = 5.f;
+            }
+            BrVector3Scale(&tv, &drone_item->field_0x38, drone_item->field_0x34);
+            CrushDroneObject((tPhysics_object*)queued_crush->field_0x0, drone_item->count, (float*)drone_item->field_0x4, &tv);
+        }
+    }
+    gCount_queued_drone_crushes = 0;
+
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car = gActive_car_list[i];
+
+        if (car != NULL && car->driver > 5 && car->car_crush_spec != NULL
+                && (car->car_crush_spec->expand_bounding_box & 1)) {
+            SwapShapesIfPossible(car);
+        }
+    }
+
     DoFlapping();
     DoDetaching();
     DoFullyDetaching();
     DoBending();
-    ClearCrushLists();
+
+    for (crush_list = gCrush_lists; crush_list->car_spec != NULL; crush_list++) {
+        crush_list->car_spec = NULL;
+    }
 }
+
+/* The crush scale constants are defined after CrushBendFlapRend so that their
+   values are not constant-propagated into the body (the original loads them
+   from memory: fmul QWORD PTR ds:0x589b18 / ds:0x589b20). */
+// GLOBAL: CARMA2_HW 0x00589b18
+double gDouble_00589b18 = 99.0;
+// GLOBAL: CARMA2_HW 0x00589b20
+double gDouble_00589b20 = -0.05;
+// GLOBAL: CARMA2_HW 0x00589b28
+br_scalar gFloat_00589b28 = 5.0f;
 
 // SphericizeModel
 

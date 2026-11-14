@@ -60,6 +60,9 @@ extern tU32 gINT_0067be84;
 // Constants used by FUN_00437480 (SetUpSemiDetachedBitJoint / similar)
 extern br_scalar gFLT_EPSILON_00589a5c;        // 0x589a5c = 2.3841858e-07
 extern double gDouble_00589a60;                // 0x589a60 = 1.0 (double)
+extern double gDouble_00589b18;                // 0x589b18 = 99.0 (double)
+extern double gDouble_00589b20;                // 0x589b20 = -0.05 (double)
+extern br_scalar gFloat_00589b28;              // 0x589b28 = 5.0f
 extern br_scalar gFLOAT_1_0_00589a54;          // 0x589a54 = 1.0f
 extern br_scalar gFLOAT_NEG1_0_00589b2c;       // 0x589b2c = -1.0f
 extern br_scalar gFLOAT_0_01_00589a58;         // 0x589a58 = 0.01f
