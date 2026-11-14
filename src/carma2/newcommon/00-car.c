@@ -6266,14 +6266,6 @@ int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2) {
 #pragma auto_inline(on)
 #endif
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// (GPL-3.0); the original at 0x004c2c90
-// FUNCTION: CARMA2_HW 0x004c2c90
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // GLOBAL: CARMA2_HW 0x0058f704
 int gFlyCarMode = 2;
