@@ -193,6 +193,18 @@ static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
     PFfclose(f);
 }
 
+
+
+// GLOBAL: CARMA2_HW 0x0067f890
+tQueued_headup gQueued_headups[4];
+
+extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
+extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
+
+// FUNCTION: CARMA2_HW 0x00449070
+void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3) {
+    TimerString(gTimer, pStr, pArg3, 0, 0);
+}
 // PARTIAL 100% effective match (2026-11-08, reccmp): only residual is the placement of the constant
 // `push 1` (BrModelUpdate flags) at the two BrModelUpdate(gTimer*HUD_model, BR_MODU_VERTEX_POSITIONS)
 // call sites (0x44934f, 0x449480): MSVC 11 hoists it a few bytes later than the original. An explicit
@@ -365,8 +377,11 @@ extern tQueued_headup gQueued_headups[4];
 #pragma auto_inline(off)
 #endif
 #ifdef REC2_MATCHING
+C2_NAKED
+#endif
 // FUNCTION: CARMA2_HW 0x004497b0
-void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
+void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
+#ifdef REC2_MATCHING
     __asm {
         mov eax, dword ptr [gQueued_headup_count]
         push ebx
@@ -402,9 +417,7 @@ void C2_NAKED C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
         pop ebx
         ret
     }
-}
 #else
-void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
     int size = gQueued_headup_count * sizeof(tQueued_headup);
 
     C2_HOOK_BUG_ON(sizeof(tQueued_headup) != 0x10c);
@@ -414,18 +427,26 @@ void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
         gQueued_headup_count -= 1;
         memcpy(&gQueued_headups[0], &gQueued_headups[1], size);
     }
-}
 #endif
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x00449800
+void C2_HOOK_FASTCALL DoPSPowerupHeadups(void) {
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[0], "A");
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[1], "P");
+    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[2], "O");
+}
 
 // KillOldestQueuedHeadup
+
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // based on ApexWorm/rec2 824b76655
 // FUNCTION: CARMA2_HW 0x00449830
 void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str) {
@@ -530,14 +551,6 @@ void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// FUNCTION: CARMA2_HW 0x00449800
-void C2_HOOK_FASTCALL DoPSPowerupHeadups(void) {
-    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[0], "A");
-    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[1], "P");
-    DoPSPowerHeadup(gProgram_state.current_car.power_up_levels[2], "O");
-}
-
 extern void C2_HOOK_FASTCALL DoNetScores(void);
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tQueued_headup gQueued_headups[4];
@@ -722,87 +735,11 @@ int C2_HOOK_FASTCALL FindAHeadupHoleWoofBarkSoundsABitRude(int pSlot_index) {
     return empty_one;
 }
 
-// IsHeadupTextClever
 
-static int HeadupTextIsClever(const char* pText) {
-    char c;
-
-    c = *pText;
-    while (c != '\0') {
-        pText++;
-        if (c < 0) {
-            return 1;
-        }
-        c = *pText;
-    }
-    return 0;
-}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
-// FUNCTION: CARMA2_HW 0x0044a220
-int C2_HOOK_FASTCALL MungeHeadupWidth(tHeadup* pHeadup) {
-    int width;
-
-    width = 0;
-    if (pHeadup->type == eHeadup_box_text) {
-        return 0;
-    } else if (pHeadup->type == eHeadup_coloured_text) {
-        pHeadup->clever = HeadupTextIsClever(pHeadup->data.text_info.text);
-        switch (pHeadup->justification) {
-        case eJust_left:
-            pHeadup->x = pHeadup->original_x;
-            break;
-        case eJust_right:
-            if (pHeadup->clever) {
-                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
-                pHeadup->x = pHeadup->original_x - width;
-            } else {
-                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
-                pHeadup->x = pHeadup->original_x - width;
-            }
-            break;
-        case eJust_centre:
-            if (pHeadup->clever) {
-                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
-                pHeadup->x = pHeadup->original_x - width / 2;
-            } else {
-                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
-                pHeadup->x = pHeadup->original_x - width / 2;
-            }
-            break;
-        }
-    } else if (pHeadup->type == eHeadup_fancy) {
-        return 0;
-    } else {
-        pHeadup->clever = 0;
-        switch (pHeadup->justification) {
-        case eJust_left:
-            pHeadup->x = pHeadup->original_x;
-            break;
-        case eJust_right:
-            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
-            pHeadup->x = pHeadup->original_x - width;
-            break;
-        case eJust_centre:
-            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
-            pHeadup->x = pHeadup->original_x - width / 2;
-            break;
-        }
-    }
-    return width;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern tQueued_headup gQueued_headups[4];
 
@@ -876,16 +813,92 @@ int C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pL
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// IsHeadupTextClever
 
+static int HeadupTextIsClever(const char* pText) {
+    char c;
+
+    c = *pText;
+    while (c != '\0') {
+        pText++;
+        if (c < 0) {
+            return 1;
+        }
+        c = *pText;
+    }
+    return 0;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0044a220
+int C2_HOOK_FASTCALL MungeHeadupWidth(tHeadup* pHeadup) {
+    int width;
+
+    width = 0;
+    if (pHeadup->type == eHeadup_box_text) {
+        return 0;
+    } else if (pHeadup->type == eHeadup_coloured_text) {
+        pHeadup->clever = HeadupTextIsClever(pHeadup->data.text_info.text);
+        switch (pHeadup->justification) {
+        case eJust_left:
+            pHeadup->x = pHeadup->original_x;
+            break;
+        case eJust_right:
+            if (pHeadup->clever) {
+                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width;
+            } else {
+                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width;
+            }
+            break;
+        case eJust_centre:
+            if (pHeadup->clever) {
+                width = DRTextCleverWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width / 2;
+            } else {
+                width = DRTextWidth(pHeadup->data.coloured_text_info.coloured_font, pHeadup->data.text_info.text);
+                pHeadup->x = pHeadup->original_x - width / 2;
+            }
+            break;
+        }
+    } else if (pHeadup->type == eHeadup_fancy) {
+        return 0;
+    } else {
+        pHeadup->clever = 0;
+        switch (pHeadup->justification) {
+        case eJust_left:
+            pHeadup->x = pHeadup->original_x;
+            break;
+        case eJust_right:
+            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
+            pHeadup->x = pHeadup->original_x - width;
+            break;
+        case eJust_centre:
+            width = BrPixelmapTextWidth(gBack_screen, pHeadup->data.text_info.font, pHeadup->data.text_info.text);
+            pHeadup->x = pHeadup->original_x - width / 2;
+            break;
+        }
+    }
+    return width;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x0044a380
 int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText) {
     return NewTextHeadupSlot2(pSlot_index, pFlash_rate, pLifetime, pFont_index, pText, 1);
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // based on ApexWorm/rec2 677697708
 // FUNCTION: CARMA2_HW 0x0044a3a0
 int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pImage_index) {
@@ -964,10 +977,10 @@ int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate, int pL
     return index;
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0044a600
 void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex) {
     tU32 the_time;
@@ -1060,6 +1073,34 @@ void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont) {
 
     if (pHeadup_index >= 0) {
         gHeadups[pHeadup_index].data.image_info.font = &gFonts[-pFont];
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0044a950
+void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index) {
+    extern br_pixelmap* gHeadup_images[45];
+    tHeadup* headup;
+    br_pixelmap* image;
+    int justification;
+
+    if (pHeadup_index >= 0) {
+        image = gHeadup_images[pImage_index];
+        headup = &gHeadups[pHeadup_index];
+        justification = headup->justification;
+        *(br_pixelmap**)headup->data.image_info.text = image;
+        switch (justification) {
+        case eJust_left:
+            headup->x = headup->original_x;
+            break;
+        case eJust_right:
+            headup->x = headup->original_x - image->width;
+            return;
+        case eJust_centre:
+            headup->x = headup->original_x - (image->width >> 1);
+            return;
+        default:
+            return;
+        }
     }
 }
 
@@ -1368,19 +1409,16 @@ void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
     gLast_earn_time = the_time;
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0044b440
 // FUNCTION: CARMA2_SW 0x0044b5d0
 void C2_HOOK_FASTCALL EarnCredits(int pAmount) {
     EarnCredits2(pAmount, "");
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x0044b450
 void C2_HOOK_FASTCALL EarnCredits100(int pAmount) {
@@ -1528,6 +1566,15 @@ void C2_HOOK_FASTCALL DoTestHeadup(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0044ba10
+void C2_HOOK_FASTCALL DisplayTimedMessage(char* pText) {
+    LoadFont(1);
+    ClearEntireScreen();
+    DRPixelmapText(gBack_screen, 20, 50, &gFonts[1], pText, 600);
+    PDScreenBufferSwap(0);
+    WaitFor(500);
+}
+
 // FUNCTION: CARMA2_HW 0x0044ba60
 int C2_HOOK_FASTCALL HighResHeadupWidth(int pWidth) {
     int width;
@@ -1565,53 +1612,4 @@ void C2_HOOK_FASTCALL DrawThisCarIconNow(int pCar_index, int pX, int pY) {
     BrActorAdd(g2d_camera, gCar_icons_model_actor);
     BrZbsSceneRender(g2d_camera, g2d_camera, gBack_screen, gDepth_buffer);
     BrActorRemove(gCar_icons_model_actor);
-}
-
-
-// GLOBAL: CARMA2_HW 0x0067f890
-tQueued_headup gQueued_headups[4];
-
-extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
-extern void C2_HOOK_FASTCALL PDScreenBufferSwap(int pRendering_area_only);
-
-// FUNCTION: CARMA2_HW 0x00449070
-void C2_HOOK_FASTCALL GetTimerString(char* pStr, undefined4 pArg3) {
-    TimerString(gTimer, pStr, pArg3, 0, 0);
-}
-
-// FUNCTION: CARMA2_HW 0x0044a950
-void C2_HOOK_FASTCALL ChangeHeadupImage(int pHeadup_index, int pImage_index) {
-    extern br_pixelmap* gHeadup_images[45];
-    tHeadup* headup;
-    br_pixelmap* image;
-    int justification;
-
-    if (pHeadup_index >= 0) {
-        image = gHeadup_images[pImage_index];
-        headup = &gHeadups[pHeadup_index];
-        justification = headup->justification;
-        *(br_pixelmap**)headup->data.image_info.text = image;
-        switch (justification) {
-        case eJust_left:
-            headup->x = headup->original_x;
-            break;
-        case eJust_right:
-            headup->x = headup->original_x - image->width;
-            return;
-        case eJust_centre:
-            headup->x = headup->original_x - (image->width >> 1);
-            return;
-        default:
-            return;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0044ba10
-void C2_HOOK_FASTCALL DisplayTimedMessage(char* pText) {
-    LoadFont(1);
-    ClearEntireScreen();
-    DRPixelmapText(gBack_screen, 20, 50, &gFonts[1], pText, 600);
-    PDScreenBufferSwap(0);
-    WaitFor(500);
 }

@@ -6,8 +6,11 @@
 
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x005403a0
-__declspec(naked) void C2_HOOK_CDECL HostFarBlockWrite(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
+void C2_HOOK_CDECL HostFarBlockWrite(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -27,16 +30,49 @@ __declspec(naked) void C2_HOOK_CDECL HostFarBlockWrite(br_uint_32 offset, br_uin
         leave
         ret
     }
-}
 #else
-void C2_HOOK_CDECL HostFarBlockWrite(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
     abort();
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x005403bd
+void C2_HOOK_CDECL HostFarBlockFill(br_uint_32 offset, br_uint_16 sel, br_uint_8 value, br_uint_32 count) {
+#ifdef REC2_MATCHING
+    __asm {
+        push ebp
+        mov ebp, esp
+        push es
+        push esi
+        push edi
+        les edi, fword ptr [ebp+8]
+        mov al, [ebp+0x10]
+        mov ecx, [ebp+0x14]
+        mov ah, al
+        shr ecx, 1
+        rep stosw
+        adc ecx, ecx
+        rep stosb
+        pop edi
+        pop esi
+        pop es
+        leave
+        ret
+    }
+#else
+
+    NOT_IMPLEMENTED();
+#endif
+}
+
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x005403dc
-__declspec(naked) void C2_HOOK_CDECL HostFarBlockRead(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
+void C2_HOOK_CDECL HostFarBlockRead(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -56,16 +92,17 @@ __declspec(naked) void C2_HOOK_CDECL HostFarBlockRead(br_uint_32 offset, br_uint
         leave
         ret
     }
-}
 #else
-void C2_HOOK_CDECL HostFarBlockRead(br_uint_32 offset, br_uint_16 sel, void *block, br_uint_32 count) {
     abort();
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x005403f9
-__declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarStringWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
+br_uint_32 C2_HOOK_CDECL HostFarStringWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -96,17 +133,18 @@ __declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarStringWrite(br_uint_32 offset,
         leave
         ret
     }
-}
 #else
-br_uint_32 C2_HOOK_CDECL HostFarStringWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
     abort();
     return 0;
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x00540427
-__declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarStringRead(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
+br_uint_32 C2_HOOK_CDECL HostFarStringRead(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -137,48 +175,18 @@ __declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarStringRead(br_uint_32 offset, 
         leave
         ret
     }
-}
 #else
-br_uint_32 C2_HOOK_CDECL HostFarStringRead(br_uint_32 offset, br_uint_16 sel, br_uint_8 *string, br_uint_32 max) {
     abort();
     return 0;
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x005403bd
-__declspec(naked) void C2_HOOK_CDECL HostFarBlockFill(br_uint_32 offset, br_uint_16 sel, br_uint_8 value, br_uint_32 count) {
-    __asm {
-        push ebp
-        mov ebp, esp
-        push es
-        push esi
-        push edi
-        les edi, fword ptr [ebp+8]
-        mov al, [ebp+0x10]
-        mov ecx, [ebp+0x14]
-        mov ah, al
-        shr ecx, 1
-        rep stosw
-        adc ecx, ecx
-        rep stosb
-        pop edi
-        pop esi
-        pop es
-        leave
-        ret
-    }
-}
-#else
-void C2_HOOK_CDECL HostFarBlockFill(br_uint_32 offset, br_uint_16 sel, br_uint_8 value, br_uint_32 count) {
-
-    NOT_IMPLEMENTED();
-}
+__declspec(naked)
 #endif
-
-#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00540454
-__declspec(naked) void C2_HOOK_CDECL HostFarByteWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 value) {
+void C2_HOOK_CDECL HostFarByteWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 value) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -190,16 +198,39 @@ __declspec(naked) void C2_HOOK_CDECL HostFarByteWrite(br_uint_32 offset, br_uint
         leave
         ret
     }
-}
 #else
-void C2_HOOK_CDECL HostFarByteWrite(br_uint_32 offset, br_uint_16 sel, br_uint_8 value) {
     abort();
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x00540463
+br_uint_8 C2_HOOK_CDECL HostFarByteRead(br_uint_32 offset, br_uint_16 sel) {
+#ifdef REC2_MATCHING
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ds
+        lds eax, fword ptr [ebp+8]
+        mov al, [eax]
+        pop ds
+        leave
+        ret
+    }
+#else
+    abort();
+    return 0;
+#endif
+}
+
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x0054046f
-__declspec(naked) void C2_HOOK_CDECL HostFarWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_16 value) {
+void C2_HOOK_CDECL HostFarWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_16 value) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -211,16 +242,39 @@ __declspec(naked) void C2_HOOK_CDECL HostFarWordWrite(br_uint_32 offset, br_uint
         leave
         ret
     }
-}
 #else
-void C2_HOOK_CDECL HostFarWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_16 value) {
     abort();
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x00540480
+br_uint_16 C2_HOOK_CDECL HostFarWordRead(br_uint_32 offset, br_uint_16 sel) {
+#ifdef REC2_MATCHING
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ds
+        lds eax, fword ptr [ebp+8]
+        mov ax, [eax]
+        pop ds
+        leave
+        ret
+    }
+#else
+    abort();
+    return 0;
+#endif
+}
+
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x0054048d
-__declspec(naked) void C2_HOOK_CDECL HostFarDWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_32 value) {
+void C2_HOOK_CDECL HostFarDWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_32 value) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -232,58 +286,17 @@ __declspec(naked) void C2_HOOK_CDECL HostFarDWordWrite(br_uint_32 offset, br_uin
         leave
         ret
     }
-}
 #else
-void C2_HOOK_CDECL HostFarDWordWrite(br_uint_32 offset, br_uint_16 sel, br_uint_32 value) {
     abort();
-}
 #endif
+}
 
 #ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x00540463
-__declspec(naked) br_uint_8 C2_HOOK_CDECL HostFarByteRead(br_uint_32 offset, br_uint_16 sel) {
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ds
-        lds eax, fword ptr [ebp+8]
-        mov al, [eax]
-        pop ds
-        leave
-        ret
-    }
-}
-#else
-br_uint_8 C2_HOOK_CDECL HostFarByteRead(br_uint_32 offset, br_uint_16 sel) {
-    abort();
-    return 0;
-}
+__declspec(naked)
 #endif
-
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x00540480
-__declspec(naked) br_uint_16 C2_HOOK_CDECL HostFarWordRead(br_uint_32 offset, br_uint_16 sel) {
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ds
-        lds eax, fword ptr [ebp+8]
-        mov ax, [eax]
-        pop ds
-        leave
-        ret
-    }
-}
-#else
-br_uint_16 C2_HOOK_CDECL HostFarWordRead(br_uint_32 offset, br_uint_16 sel) {
-    abort();
-    return 0;
-}
-#endif
-
-#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x0054049c
-__declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarDWordRead(br_uint_32 offset, br_uint_16 sel) {
+br_uint_32 C2_HOOK_CDECL HostFarDWordRead(br_uint_32 offset, br_uint_16 sel) {
+#ifdef REC2_MATCHING
     __asm {
         push ebp
         mov ebp, esp
@@ -294,10 +307,8 @@ __declspec(naked) br_uint_32 C2_HOOK_CDECL HostFarDWordRead(br_uint_32 offset, b
         leave
         ret
     }
-}
 #else
-br_uint_32 C2_HOOK_CDECL HostFarDWordRead(br_uint_32 offset, br_uint_16 sel) {
     abort();
     return 0;
-}
 #endif
+}

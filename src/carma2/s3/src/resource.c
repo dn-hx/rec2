@@ -1,5 +1,20 @@
 #include "../include/s3/internal/resource.h"
 
+
+#ifdef REC2_MATCHING
+C2_NAKED
+#endif
+// FUNCTION: CARMA2_HW 0x005186f0
+FILE* C2_HOOK_FASTCALL S3_low_memory_fopen(const char* pPath, const char* pMode) {
+#ifdef REC2_MATCHING
+    __asm {
+        xor eax, eax
+        ret
+    }
+#else
+    return NULL;
+#endif
+}
 // FUNCTION: CARMA2_HW 0x00565af7
 void* C2_HOOK_FASTCALL S3MemAllocate(br_size_t size, br_uint_8 type) {
     void *result;
@@ -13,20 +28,6 @@ void C2_HOOK_FASTCALL S3MemFree(void* p) {
 
     BrMemFree(p);
 }
-
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x005186f0
-C2_NAKED FILE* C2_HOOK_FASTCALL S3_low_memory_fopen(const char* pPath, const char* pMode) {
-    __asm {
-        xor eax, eax
-        ret
-    }
-}
-#else
-FILE* C2_HOOK_FASTCALL S3_low_memory_fopen(const char* pPath, const char* pMode) {
-    return NULL;
-}
-#endif
 
 // FUNCTION: CARMA2_HW 0x00568bdc
 int C2_HOOK_FASTCALL S3GetFileSize(FILE *pF) {

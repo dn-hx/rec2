@@ -15,6 +15,30 @@
 #include <string.h>
 #include "platform.h"
 
+extern const br_vector3 g_Ped_x_unit_vector;
+extern const br_vector3 g_Ped_x_unit_vector;
+
+extern const br_vector3 g_Ped_y_unit_vector;
+extern const br_vector3 g_Ped_y_unit_vector;
+extern const br_vector3 g_Ped_z_unit_vector;
+extern const br_vector3 g_Ped_z_unit_vector;
+extern tPed_move* gPed_moves[250];
+extern tPed_form* gPed_forms[20];
+extern tPedForms_vtable* gPed_vtable;
+extern tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType);
+extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateWireFrameCollisionShape(int pCount_points, int pCount_lines, int pType);
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
+extern tPed_personality* gPed_personalities[50];
+extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
+extern void C2_HOOK_FASTCALL PipeSinglePedDir(int pId, const br_vector3* pDir);
+extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
+extern tPedestrian* gPedestrian_array;
+extern int gBOOL_00744804;
+
+static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags);
+static void RemapVector(br_vector3* pV, const tPed_remap_bone* pRemap);
+static tPed_personality* FindOrOpenPersonality(const char* pName);
+static int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle);
 // GLOBAL: CARMA2_HW 0x006b75c0
 br_actor* gAdditional_actors;
 
@@ -35,1133 +59,903 @@ br_model* gDuplicate_model;
 // GLOBAL: CARMA2_HW 0x00660cb8
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
 
-// FUNCTION: CARMA2_HW 0x00504b30
-void C2_HOOK_FASTCALL InitTreeSurgery(void) {
-    tPath_name the_path;
-    FILE* file;
-    int i;
-
-    PathCat(the_path, gApplication_path, "TreeSurgery.TXT");
-    file = PFfopen(the_path, "rt");
-    if (file != NULL) {
-        gTree_surgery_pass1_count = GetAnInt(file);
-        for (i = 0; i < gTree_surgery_pass1_count; i++) {
-            GetAString(file, gTree_surgery_pass1[i].name);
-        }
-        gTree_surgery_pass2_count = GetAnInt(file);
-        for (i = 0; i < gTree_surgery_pass2_count; i++) {
-            GetAString(file, gTree_surgery_pass2[i].original);
-            GetAString(file, gTree_surgery_pass2[i].replacement);
-        }
-#ifdef REC2_FIX_BUGS
-        PFfclose(file);
-#endif
-    } else {
-        gTree_surgery_pass1_count = 0;
-        gTree_surgery_pass2_count = 0;
-    }
-}
-
-// ModelIsATree
-
-// PerformTreeSurgery
-
-// PossibleTreeSurgery
-
-// AddExceptionToList
-
-// LoadExceptionsFile
-
-// LoadExceptionsFileForTrack
-
-// FreeExceptions
-
-// GetFaceFlag
-
-// MungeTrackModel
-
-
-// LoadTrack
-
-// FUNCTION: CARMA2_HW 0x00506e20
-intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
-
-    if (pActor->type == BR_ACTOR_BOUNDS || pActor->type == BR_ACTOR_BOUNDS_CORRECT) {
-        BrResFree(pActor->type_data);
-        pActor->type_data = NULL;
-    }
-    return 0;
-}
-// RemoveBoundsStructures
-
-// FreeTrack
-
-extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
-
-// FUNCTION: CARMA2_HW 0x00506e50
-void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
-
-    RenderTrack(pWorld, pTrack_spec, pCamera, pCamera_to_world_transform);
-    if (gAdditional_actors) {
-        BrZbsSceneRenderAdd(gAdditional_actors);
-    }
-}
-
-// GLOBAL: CARMA2_HW 0x006aaf40
-tU8* gTrack_flic_buffer;
-
-// GLOBAL: CARMA2_HW 0x006aaf48
-tU32 gTrack_flic_buffer_size;
-
-// GLOBAL: CARMA2_HW 0x006aaf50
-tFlic_descriptor gTrack_flic_descriptor;
-
-// GLOBAL: CARMA2_HW 0x006aafc0
-static tU32 prev_sky_animation;
-
-extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
-extern int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info);
-extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
-extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
-extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
-extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
-
-// FUNCTION: CARMA2_HW 0x00506e80
-void C2_HOOK_FASTCALL AnimateSky(void) {
-    int now;
-    int now2;
-    int frame_increment;
-
-    now2 = GetTotalTime();
-    if (gTrack_flic_buffer == NULL) {
-        return;
-    }
-    now = now2;
-    if (now < (int)prev_sky_animation) {
-        now2 = 2 * prev_sky_animation - now;
-    }
-    if (prev_sky_animation != 0) {
-        frame_increment = ((now2 - prev_sky_animation) / gTrack_flic_descriptor.frame_period) % (gTrack_flic_descriptor.frames_left + gTrack_flic_descriptor.current_frame);
-    } else {
-        frame_increment = 1;
-    }
-    for (; frame_increment > 0; frame_increment--) {
-        if (PlayNextFlicFrame(&gTrack_flic_descriptor)) {
-            EndFlic(&gTrack_flic_descriptor);
-            StartFlic(gTrack_flic_descriptor.file_name, -1, &gTrack_flic_descriptor, gTrack_flic_buffer_size, (tS8*)gTrack_flic_buffer, NULL, 0, 0, 0);
-            AssertFlicPixelmap(&gTrack_flic_descriptor, gProgram_state.default_depth_effect.sky_texture);
-        }
-        prev_sky_animation = now;
-        SkyTextureChanged();
-    }
-}
-
-// CombineBounds
-
-// CheckNonCarModelBounds
-
-// FUNCTION: CARMA2_HW 0x00500d50
-void C2_HOOK_FASTCALL InitialiseStorageSpace(int pUnknown, tBrender_storage* pStorage_space, int pMax_pixelmaps, int pMax_shade_tables, int pMax_materials, int pMax_models, int pMax_sounds) {
-
-    pStorage_space->pixelmaps_count = 0;
-    pStorage_space->shade_tables_count = 0;
-    pStorage_space->materials_count = 0;
-    pStorage_space->models_count = 0;
-    pStorage_space->sounds_count = 0;
-    pStorage_space->flags = pUnknown;
-    pStorage_space->max_pixelmaps = pMax_pixelmaps;
-    pStorage_space->max_shade_tables = pMax_shade_tables;
-    pStorage_space->max_materials = pMax_materials;
-    pStorage_space->max_models = pMax_models;
-    pStorage_space->max_sounds = pMax_sounds;
-    pStorage_space->pixelmaps = BrMemCalloc(pMax_pixelmaps, sizeof(br_pixelmap*), kMem_stor_space_table);
-    pStorage_space->shade_tables = BrMemCalloc(pMax_shade_tables, sizeof(br_pixelmap*), kMem_stor_space_table);
-    pStorage_space->materials = BrMemCalloc(pMax_materials, sizeof(br_material*), kMem_stor_space_table);
-    pStorage_space->models = BrMemCalloc(pMax_models, sizeof(br_model*), kMem_stor_space_table);
-    pStorage_space->sounds = BrMemCalloc(pMax_sounds, sizeof(int), kMem_stor_space_table);
-    pStorage_space->materialProps = BrMemCalloc(pMax_materials, sizeof(br_material*), kMem_stor_space_table);
-}
-
-// FUNCTION: CARMA2_HW 0x00500e10
-void C2_HOOK_FASTCALL DisposeStorageSpace(tBrender_storage* pStorage) {
-
-    BrMemFree(pStorage->pixelmaps);
-    BrMemFree(pStorage->shade_tables);
-    BrMemFree(pStorage->materials);
-    BrMemFree(pStorage->models);
-    BrMemFree(pStorage->sounds);
-    BrMemFree(pStorage->materialProps);
-}
-
-// PARTIAL 73.62%: ClearMatertrialSetFromStorageSpace 0x00500e60 [regalloc] - pStart spilled to stack, extra push ecx frame slot
-// FUNCTION: CARMA2_HW 0x00500e60
-void C2_HOOK_FASTCALL ClearMatertrialSetFromStorageSpace(tBrender_storage* pStorage_space, int pStart, int pEnd) {
-    int i;
-    int move_to;
-
-    for (i = pStart; i < pEnd && i < pStorage_space->materials_count; i++) {
-        BrMaterialRemove(pStorage_space->materials[i]);
-        BrMaterialFree(pStorage_space->materials[i]);
-        RemoveMaterialFromFogification(pStorage_space->materials[i]);
-    }
-    for (move_to = pStart, i = pEnd; i < pStorage_space->materials_count; ) {
-        pStorage_space->materials[move_to++] = pStorage_space->materials[i++];
-    }
-    pStorage_space->materials_count = move_to;
-    if (pStorage_space == &gNet_cars_storage_space) {
-        for (i = 0; i < gNumber_of_net_players; i++) {
-            if (gNet_players[i].car != NULL && gNet_players[i].car->old_material_count >= pEnd) {
-                gNet_players[i].car->old_material_count += pStart - pEnd;
-                gNet_players[i].car->new_material_count += pStart - pEnd;
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00500f30
-void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space) {
-    int i;
-
-    DRS3StopAllOutletSoundsExceptCDA();
-    for (i = 0; i < pStorage_space->pixelmaps_count; i++) {
-        if (pStorage_space->pixelmaps[i] != NULL) {
-            BrMapRemove(pStorage_space->pixelmaps[i]);
-            BrPixelmapFree(pStorage_space->pixelmaps[i]);
-        }
-    }
-    pStorage_space->pixelmaps_count = 0;
-    for (i = 0; i < pStorage_space->shade_tables_count; i++) {
-        if (pStorage_space->shade_tables[i] != NULL) {
-            BrTableRemove(pStorage_space->shade_tables[i]);
-            BrPixelmapFree(pStorage_space->shade_tables[i]);
-        }
-    }
-    pStorage_space->shade_tables_count = 0;
-    for (i = 0; i < pStorage_space->materials_count; i++) {
-        if (pStorage_space->materials[i] != NULL) {
-            BrMaterialRemove(pStorage_space->materials[i]);
-            BrMaterialFree(pStorage_space->materials[i]);
-        }
-    }
-    pStorage_space->materials_count = 0;
-    for (i = 0; i < pStorage_space->models_count; i++) {
-        if (pStorage_space->models[i] != NULL) {
-            BrModelRemove(pStorage_space->models[i]);
-            BrModelFree(pStorage_space->models[i]);
-        }
-    }
-    pStorage_space->models_count = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00501020
-tAdd_to_storage_result C2_HOOK_FASTCALL AddPixelmapToStorage(tBrender_storage* pStorage_space, br_pixelmap* pThe_pm) {
-    int i;
-
-    gDuplicate_pixelmap = NULL;
-    if (pStorage_space->pixelmaps_count < pStorage_space->max_pixelmaps) {
-        for (i = 0; i < pStorage_space->pixelmaps_count; i++) {
-            if (pStorage_space->pixelmaps[i]->identifier != NULL
-                    && pThe_pm->identifier != NULL
-                    && strcmp(pStorage_space->pixelmaps[i]->identifier, pThe_pm->identifier) == 0) {
-                gDuplicate_pixelmap = pStorage_space->pixelmaps[i];
-                return eStorage_duplicate;
-            }
-        }
-        pStorage_space->pixelmaps[pStorage_space->pixelmaps_count] = pThe_pm;
-        pStorage_space->pixelmaps_count += 1;
-        return eStorage_allocated;
-    } else {
-        return eStorage_not_enough_room;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x005010e0
-tAdd_to_storage_result C2_HOOK_FASTCALL AddShadeTableToStorage(tBrender_storage* pStorage_space, br_pixelmap* pThe_st) {
-    int i;
-
-    if (pStorage_space->shade_tables_count < pStorage_space->max_shade_tables) {
-        for (i = 0; i < pStorage_space->shade_tables_count; i++) {
-            if (pStorage_space->shade_tables[i]->identifier != NULL
-                && pThe_st->identifier != NULL
-                && strcmp(pStorage_space->shade_tables[i]->identifier, pThe_st->identifier) == 0) {
-                return eStorage_duplicate;
-            }
-        }
-        pStorage_space->shade_tables[pStorage_space->shade_tables_count] = pThe_st;
-        pStorage_space->shade_tables_count += 1;
-        return eStorage_allocated;
-    } else {
-        return eStorage_not_enough_room;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00501190
-__inline tAdd_to_storage_result C2_HOOK_FASTCALL AddMaterialToStorage(tBrender_storage* pStorage_space, br_material* pThe_mat) {
-    int i;
-
-    gDuplicate_material = NULL;
-    if (pStorage_space->materials_count < pStorage_space->max_materials) {
-        for (i = 0; i < pStorage_space->materials_count; i++) {
-            if (pStorage_space->materials[i]->identifier != NULL
-                    && pThe_mat->identifier != NULL
-                    && strcmp(pStorage_space->materials[i]->identifier, pThe_mat->identifier) == 0) {
-                gDuplicate_material = pStorage_space->materials[i];
-                return eStorage_duplicate;
-            }
-        }
-        pStorage_space->materialProps[pStorage_space->materials_count] = 0; /* FIXME */
-        pStorage_space->materials[pStorage_space->materials_count] = pThe_mat;
-        pStorage_space->materials_count += 1;
-        return eStorage_allocated;
-    } else {
-        return eStorage_not_enough_room;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00501260
-tAdd_to_storage_result C2_HOOK_FASTCALL AddModelToStorage(tBrender_storage* pStorage_space, br_model* pThe_mod) {
-    int i;
-
-    gDuplicate_model = NULL;
-    if (pStorage_space->models_count < pStorage_space->max_models) {
-        if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
-            for (i = 0; i < pStorage_space->models_count; i++) {
-                if (pStorage_space->models[i] != NULL
-                    && pStorage_space->models[i]->identifier != NULL
-                        && pThe_mod->identifier != NULL
-                        && strcmp(pStorage_space->models[i]->identifier, pThe_mod->identifier) == 0) {
-                    gDuplicate_model = pStorage_space->models[i];
-                    return eStorage_duplicate;
-                }
-            }
-        }
-        pStorage_space->models[pStorage_space->models_count] = pThe_mod;
-        pStorage_space->models_count += 1;
-        return eStorage_allocated;
-    } else {
-        return eStorage_not_enough_room;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00501330
-tAdd_to_storage_result C2_HOOK_FASTCALL AddSoundToStorage(tBrender_storage* pStorage_space, int pSound_id) {
-    int i;
-
-    if (pStorage_space->sounds_count < pStorage_space->max_sounds) {
-        for (i = 0; i < pStorage_space->sounds_count; i++) {
-            if (pStorage_space->sounds[i] != 0 && pStorage_space->sounds[i] == pSound_id) {
-                return eStorage_duplicate;
-            }
-        }
-        pStorage_space->sounds[pStorage_space->sounds_count] = pSound_id;
-        pStorage_space->sounds_count++;
-        return eStorage_allocated;
-    } else {
-        return eStorage_not_enough_room;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x005024f0
-int C2_HOOK_FASTCALL AddPixelmaps(tBrender_storage* pStorage_space, const char* path) {
-    int i;
-    int new_ones;
-    int total;
-    tPath_name path_dirname;
-    char path_stem[32];
-    br_pixelmap* temp_array[500];
-
-    total = 0;
-    if (gDisableTiffConversion) {
-        SepDirAndFilename(path, path_dirname, path_stem);
-        new_ones = LoadBunchOfPixies(path_dirname, path_stem, temp_array, REC2_ASIZE(temp_array));
-    } else {
-        new_ones = DRPixelmapLoadMany(path, temp_array, REC2_ASIZE(temp_array));
-    }
-    if (new_ones == 0) {
-        FatalError(kFatalError_CantLoadPixelmapFile_S, path);
-    }
-    for (i = 0; i < new_ones; i++) {
-        if (temp_array[i] != NULL) {
-            EnsurePixelmapAllowed(temp_array[i], 1);
-            switch (AddPixelmapToStorage(pStorage_space, temp_array[i])) {
-            case eStorage_allocated:
-                BrMapAdd(temp_array[i]);
-                total += 1;
-                break;
-            case eStorage_duplicate:
-                if (gDisallow_duplicates) {
-                    FatalError(kFatalError_DuplicatePixelmap_S, temp_array[i]->identifier);
-                } else {
-                    BrPixelmapFree(temp_array[i]);
-                }
-                break;
-            case eStorage_not_enough_room:
-                FatalError(kFatalError_InsufficientPixelmapSlots);
-                break;
-            }
-        }
-    }
-    return total;
-}
-
-// FUNCTION: CARMA2_HW 0x00501560
-br_pixelmap* C2_HOOK_FASTCALL LoadSinglePixelmap(tBrender_storage* pStorage, const char* pName) {
-    br_pixelmap* map;
-    tAdd_to_storage_result addResult;
-
-    map = LoadPixelmap(pName);
-    if (map == NULL) {
-        return BrMapFind(pName);
-    }
-
-    addResult = AddPixelmapToStorage(pStorage, map);
-    switch (addResult) {
-    case eStorage_allocated:
-        BrMapAdd(map);
-        return map;
-    case eStorage_duplicate:
-        if (gDisallow_duplicates) {
-            FatalError(kFatalError_DuplicatePixelmap_S, map->identifier);
-        } else {
-            BrPixelmapFree(map);
-        }
-        return gDuplicate_pixelmap;
-    case eStorage_not_enough_room:
-        FatalError(kFatalError_InsufficientPixelmapSlots);
-        break;
-    }
-    return NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x005016a0
-br_pixelmap* C2_HOOK_FASTCALL LoadSingleShadeTable(tBrender_storage* pStorage_space, const char* pName) {
-    br_pixelmap* temp;
-
-    temp = LoadShadeTable(pName);
-    if (temp == NULL) {
-        return BrTableFind(pName);
-    }
-
-    switch (AddShadeTableToStorage(pStorage_space, temp)) {
-    case eStorage_allocated:
-        BrTableAdd(temp);
-        return temp;
-    case eStorage_duplicate:
-        if (gDisallow_duplicates) {
-            FatalError(kFatalError_DuplicatePixelmap_S, temp->identifier);
-        } else {
-            BrPixelmapFree(temp);
-        }
-        return BrTableFind(pName);
-    case eStorage_not_enough_room:
-        FatalError(kFatalError_InsufficientShadeTableSlots);
-        break;
-    }
-
-    return NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x005017e0
-br_material* C2_HOOK_FASTCALL LoadSingleMaterial(tBrender_storage* pStorage_space, const char* pName) {
-    br_material* material;
-    tAdd_to_storage_result add_result;
-    int i;
-
-    material = LoadMaterial(pName);
-    if (material == NULL) {
-        return BrMaterialFind(pName);
-    }
-
-    gDuplicate_material = NULL;
-    if (pStorage_space->materials_count < pStorage_space->max_materials) {
-        for (i = 0; i < pStorage_space->materials_count; i++) {
-            if (pStorage_space->materials[i]->identifier != NULL
-                    && material->identifier != NULL
-                    && strcmp(pStorage_space->materials[i]->identifier, material->identifier) == 0) {
-                gDuplicate_material = pStorage_space->materials[i];
-                add_result = eStorage_duplicate;
-                goto dispatch;
-            }
-        }
-        pStorage_space->materialProps[pStorage_space->materials_count] = 0;
-        pStorage_space->materials[pStorage_space->materials_count] = material;
-        pStorage_space->materials_count += 1;
-        add_result = eStorage_allocated;
-    } else {
-        add_result = eStorage_not_enough_room;
-    }
-
-dispatch:
-    switch (add_result) {
-    case eStorage_allocated:
-        BrMaterialAdd(material);
-        return material;
-    case eStorage_duplicate:
-        if (gDisallow_duplicates) {
-            FatalError(kFatalError_DuplicateMaterial_S, material->identifier);
-        } else {
-            BrMaterialFree(material);
-        }
-        return gDuplicate_material;
-    case eStorage_not_enough_room:
-        FatalError(kFatalError_InsufficientMaterialSlots);
-        break;
-    }
-    return NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x00501930
-tAdd_to_storage_result C2_HOOK_FASTCALL LoadSingleSound(tBrender_storage* pStorage_space, int pSound_id) {
-
-    if (S3GetBufferDescription(pSound_id) != NULL) {
-        return pSound_id;
-    }
-
-    switch (AddSoundToStorage(pStorage_space, pSound_id)) {
-
-    case eStorage_duplicate:
-        return pSound_id;
-
-    case eStorage_allocated:
-        S3LoadSample(pSound_id);
-        return pSound_id;
-    case eStorage_not_enough_room:
-        FatalError(kFatalError_InsufficientSoundSlotsInStorageArea);
-        break;
-    }
-    return 0;
-}
-
-int C2_HOOK_FASTCALL AddShadeTables(tBrender_storage* pStorage_space, const char* pPath) {
-    br_pixelmap* temp_array[50];
-    int total;
-    int i;
-
-    total = BrPixelmapLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
-    if (total == 0) {
-        FatalError(kFatalError_CannotLoadShadeTableFileOrItIsEmpty_S, pPath);
-    }
-    for (i = 0; i < total; i++) {
-        if (temp_array[i] == NULL) {
-            continue;
-        }
-        switch (AddShadeTableToStorage(pStorage_space, temp_array[i])) {
-        case eStorage_allocated:
-            BrTableAdd(temp_array[i]);
-            break;
-        case eStorage_duplicate:
-            if (gDisallow_duplicates) {
-                FatalError(kFatalError_DuplicatePixelmap_S, temp_array[i]->identifier);
-            } else {
-                BrPixelmapFree(temp_array[i]);
-            }
-            break;
-        case eStorage_not_enough_room:
-            FatalError(kFatalError_InsufficientShadeTableSlots);
-            break;
-        }
-    }
-    return total;
-}
-
-// FUNCTION: CARMA2_HW 0x00501e40
-int C2_HOOK_FASTCALL AddModels(tBrender_storage* pStorage_space, const char* pPath) {
-    int i;
-    int new_ones;
-    int total;
-    tAdd_to_storage_result add_result;
-    br_model* temp_array[2000];
-
-    new_ones = 0;
-    total = BrModelLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
-    WhitenVertexRGB(temp_array, total);
-    if (total == 0) {
-        FatalError(kFatalError_CannotLoadModelFileOrItIsEmpty_S, pPath);
-    }
-    for (i = 0; i < total; i++) {
-        if (temp_array[i] == NULL) {
-            continue;
-        }
-        gDuplicate_model = NULL;
-        if (pStorage_space->models_count < pStorage_space->max_models) {
-            if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
-                int j;
-
-                for (j = 0; j < pStorage_space->models_count; j++) {
-                    if (pStorage_space->models[j] != NULL
-                        && pStorage_space->models[j]->identifier != NULL
-                            && temp_array[i]->identifier != NULL
-                            && strcmp(pStorage_space->models[j]->identifier, temp_array[i]->identifier) == 0) {
-                        gDuplicate_model = pStorage_space->models[j];
-                        add_result = eStorage_duplicate;
-                        goto dispatch;
-                    }
-                }
-            }
-            pStorage_space->models[pStorage_space->models_count] = temp_array[i];
-            pStorage_space->models_count += 1;
-            add_result = eStorage_allocated;
-        } else {
-            add_result = eStorage_not_enough_room;
-        }
-    dispatch:
-        switch (add_result) {
-        case eStorage_allocated:
-            temp_array[i]->flags |= BR_MODF_UPDATEABLE;
-            temp_array[i]->flags &= ~BR_MODF_DONT_WELD;
-            BrModelAdd(temp_array[i]);
-            new_ones++;
-            break;
-        case eStorage_duplicate:
-            if (gDisallow_duplicates) {
-                FatalError(kFatalError_DuplicateModel_S, temp_array[i]->identifier);
-            } else {
-                BrModelFree(temp_array[i]);
-            }
-            break;
-        case eStorage_not_enough_room:
-            FatalError(kFatalError_InsufficientModelSlots);
-            break;
-        }
-    }
-    return new_ones;
-}
-
-// FUNCTION: CARMA2_HW 0x00502060
-int C2_HOOK_FASTCALL AddMaterials(tBrender_storage* pStorage_space, const char* pPath, tRendererShadingType pShading) {
-    int i;
-    int new_ones;
-    int total;
-    br_material* temp_array[500];
-
-    new_ones = 0;
-    total = BrMaterialLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
-    if (total == 0) {
-        FatalError(kFatalError_CannotLoadMaterialFileOrItIsEmpty_S, pPath);
-    }
-    GlorifyMaterial(temp_array, total, pShading);
-    for (i = 0; i < total; ++i) {
-        if (temp_array[i] != NULL) {
-            switch (AddMaterialToStorage(pStorage_space, temp_array[i])) {
-            case eStorage_allocated:
-                BrMaterialAdd(temp_array[i]);
-                new_ones += 1;
-                break;
-            case eStorage_duplicate:
-                if (gDisallow_duplicates) {
-                    FatalError(kFatalError_DuplicateMaterial_S, temp_array[i]->identifier);
-                } else {
-                    BrMaterialFree(temp_array[i]);
-                }
-                break;
-            case eStorage_not_enough_room:
-                FatalError(kFatalError_InsufficientMaterialSlots);
-                break;
-            }
-        }
-    }
-    return new_ones;
-}
-
-// FUNCTION: CARMA2_HW 0x00502210
-void C2_HOOK_FASTCALL DodgyModelUpdate(br_model* pM) {
-
-    BrResFree(pM->faces);
-    BrResFree(pM->vertices);
-    pM->nfaces = 0;
-    pM->nvertices = 0;
-    pM->faces = NULL;
-    pM->vertices = NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x005024b0
-void C2_HOOK_FASTCALL LoadIfItsAPixelmap(const char* pPath) {
-    char s[256];
-
-    Uppercaseificate(s, pPath);
-    if (strstr(s, ".PIX") != NULL) {
-        AddPixelmaps(gStorage_for_callbacks, pPath);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00502490
-void C2_HOOK_FASTCALL LoadSomePixelmaps(tBrender_storage* pStorage, const char* pPath) {
-
-    gStorage_for_callbacks = pStorage;
-    PFForEveryFile(pPath, LoadIfItsAPixelmap);
-}
-
-// FUNCTION: CARMA2_HW 0x005026b0
-int C2_HOOK_FASTCALL GetFileName(const char *path, tName_list *pList) {
-    tPath_name pathCopy;
-    tPath_name pathUpper;
-    tPath_name dir_path;
-    tPath_name stem_path;
-
-    strcpy(pathCopy, path);
-    Uppercaseificate(pathUpper, pathCopy);
-    if (strstr(pathUpper, ".PIX") == NULL
-            && strstr(pathUpper, ".TIF") == NULL) {
-        return 0;
-    }
-    SepDirAndFilename(pathUpper, dir_path, stem_path);
-    strcpy(pList->items[pList->size], stem_path);
-    if (pList->size < (int)REC2_ASIZE(pList->items)) {
-        pList->size += 1;
-    }
-    return 0;
-}
-
-// PARTIAL 93.93%: GetAdditionalFileName 0x00502780 [regalloc: original spills pList (ebx reloaded from [esp+0x10]) because bl is clobbered in inline strcmp; ours keeps ebx]
-// FUNCTION: CARMA2_HW 0x00502780
-int C2_HOOK_FASTCALL GetAdditionalFileName(const char* path, tName_list* pList) {
-    tPath_name pathCopy;
-    tPath_name upperPath;
-    tPath_name dir_path;
-    tPath_name stem_path;
-    int alreadyInList;
-    int i;
-
-    strcpy(pathCopy, path);
-    Uppercaseificate(upperPath, pathCopy);
-
-    if (strstr(upperPath, ".PIX") == NULL
-            && strstr(upperPath, ".P16") == NULL
-            && strstr(upperPath, ".P08") == NULL
-            && strstr(upperPath, ".TIF") == NULL) {
-        return 0;
-    }
-    SepDirAndFilename(upperPath, dir_path, stem_path);
-
-    for (i = 0, alreadyInList = 0; i < pList->size; i++) {
-        if (strcmp(pList->items[i], stem_path) == 0) {
-            alreadyInList = 1;
-            break;
-        }
-    }
-    if (!alreadyInList) {
-        strcpy(pList->items[pList->size], stem_path);
-        if (pList->size < (int)REC2_ASIZE(pList->items)) {
-            pList->size += 1;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x005028f0
-void C2_HOOK_FASTCALL LoadAllImagesInDirectory(tBrender_storage* pStorage_space, const char* path) {
-    tPath_name pathCopy;
-    tPath_name pixPath;
-    tPath_name tifPath;
-    tName_list list;
-    int i;
-
-    C2_HOOK_BUG_ON(sizeof(tBrender_storage) != 68);
-
-    gStorage_for_callbacks = pStorage_space;
-    // TwatPIX16(path);
-    list.size = 0;
-    strcpy(pathCopy, path);
-    if (gDisableTiffConversion) {
-        PFForEveryFile2(pathCopy, (tEnumPathCallback)GetAdditionalFileName, &list);
-    }
-    if (!gDisableTiffConversion) {
-        PathCat(tifPath, pathCopy, "TIFFX");
-        PFForEveryFile2(tifPath, (tEnumPathCallback)GetFileName, &list);
-    }
-    PathCat(pixPath, pathCopy, "PIX8");
-    PFForEveryFile2(pixPath, (tEnumPathCallback)GetAdditionalFileName, &list);
-    if (!gDisableTiffConversion) {
-        PathCat(tifPath, pathCopy, "TIFFRGB");
-        PFForEveryFile2(tifPath, (tEnumPathCallback)GetAdditionalFileName, &list);
-    }
-    PathCat(pixPath, pathCopy, "PIX16");
-    PFForEveryFile2(pixPath, (tEnumPathCallback)GetAdditionalFileName, &list);
-    for (i = 0; i < list.size; i++) {
-        PathCat(pathCopy, path, list.items[i]);
-        AddPixelmaps(gStorage_for_callbacks, pathCopy);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00502a70
-void C2_HOOK_FASTCALL LoadIfItsAMaterial(const char* pPath) {
-    char path[256];
-    tRendererShadingType shading;
-
-    if (gMaterial_shading_for_callback == kRendererShadingType_Undefined) {
-        shading = kRendererShadingType_Default;
-    } else {
-        shading = gMaterial_shading_for_callback;
-    }
-    Uppercaseificate(path, pPath);
-    if (strstr(path, ".MAT") != NULL) {
-        AddMaterials(gStorage_for_callbacks, pPath, shading);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00502ad0
-void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading) {
-
-    gMaterial_shading_for_callback = pShading;
-    gStorage_for_callbacks = pStorage;
-    PFForEveryFile(pPath, LoadIfItsAMaterial);
-    gMaterial_shading_for_callback = kRendererShadingType_Undefined;
-}
-
-// FUNCTION: CARMA2_HW 0x00502b20
-void C2_HOOK_FASTCALL LoadIfItsAModel(const char* pPath) {
-    char s[256];
-
-    Uppercaseificate(s, pPath);
-    if (strstr(s, ".DAT") != NULL) {
-        AddModels(gStorage_for_callbacks, pPath);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00502b00
-void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage *pStorage, const char* pPath) {
-
-    gStorage_for_callbacks = pStorage;
-    PFForEveryFile(pPath, LoadIfItsAModel);
-}
-
-// FUNCTION: CARMA2_HW 0x00502b80
-void C2_HOOK_FASTCALL LoadIfItsAShadeTable(const char* pPath) {
-    char path[256];
-
-    Uppercaseificate(path, pPath);
-    if (strstr(path, ".TAB") != NULL) {
-        AddShadeTables(gStorage_for_callbacks, pPath);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00502b60
-void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, const char* pPath) {
-
-    gStorage_for_callbacks = pStorage;
-    PFForEveryFile(pPath, LoadIfItsAShadeTable);
-}
-
-// FUNCTION: CARMA2_HW 0x00502cf0
-void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading) {
-
-    LoadAllShadeTablesInDirectory(pStorage, pPath);
-    LoadSomePixelmaps(pStorage, pPath);
-    LoadAllImagesInDirectory(pStorage, pPath);
-    LoadAllMaterialsInDirectory(pStorage, pPath, pShading);
-    LoadAllModelsInDirectory(pStorage, pPath);
-}
-
-// FUNCTION: CARMA2_HW 0x00502d60
-void C2_HOOK_FASTCALL DisallowDuplicates(void) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00502d70
-void C2_HOOK_FASTCALL AllowDuplicates(void) {
-
-    gDisallow_duplicates = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00502d80
-br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
-    int i;
-
-    for (i = 0; i < pStorage->pixelmaps_count; i++) {
-        if (pOriginal == pStorage->pixelmaps[i]) {
-            BrMapRemove(pOriginal);
-            BrPixelmapFree(pOriginal);
-            pStorage->pixelmaps[i] = pNew;
-            BrMapAdd(pNew);
-            return pNew;
-        }
-    }
-    PDFatalError("Can't swap in pixelmap");
-    return NULL;
-}
-
-// GLOBAL: CARMA2_HW 0x00660e90
-const char* gDepth_effect_names[3] = {
-    "dark",
-    "fog",
-    "colour",
-};
-
-// GLOBAL: CARMA2_HW 0x00761a80
-char gCurrent_load_name[256];
-
-// GLOBAL: CARMA2_HW 0x006b6400
-char gAdditional_model_path[256];
-
-// GLOBAL: CARMA2_HW 0x006b6500
-char gAdditional_actor_path[256];
-
-// GLOBAL: CARMA2_HW 0x006b6620
-br_model* gAdditional_models[1000];
-
-// GLOBAL: CARMA2_HW 0x006ab948
-int gNumber_of_additional_models;
-
-// GLOBAL: CARMA2_HW 0x006b6600
-br_actor* gLast_actor;
-
-// GLOBAL: CARMA2_HW 0x0079ec2e
-br_angle gSky_image_width;
-
-// GLOBAL: CARMA2_HW 0x0079ec2c
-br_angle gSky_image_height;
-
-// GLOBAL: CARMA2_HW 0x0079ec30
-br_angle gSky_image_underground;
-
-// GLOBAL: CARMA2_HW 0x0074caa8
-int gTrack_depth_colour_red;
-
-// GLOBAL: CARMA2_HW 0x0074cf2c
-int gTrack_depth_colour_green;
-
-// GLOBAL: CARMA2_HW 0x0074cad0
-int gTrack_depth_colour_blue;
-
-// GLOBAL: CARMA2_HW 0x0079ef40
-tS8 gNon_car_spec_indices[100];
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x00403f90
+void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    float z;
 
-// FUNCTION: CARMA2_HW 0x004f0450
-void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
-    extern int gCount_smashable_noncars;
-    extern int gCount_smashable_noncar_shrapnel_actors;
-    extern tSmashable_environment_name* gSmashable_noncars;
-    extern int gCount_track_smashable_environment_specs;
-    extern int gCount_track_smashable_environment_specs_2;
-    extern int gCapacity_track_smashables;
-    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
-    extern const char* gSmashable_track_environment_path;
-    extern tSmashable_item_spec* gSmashable_track_indexable_triggers[100];
-    extern const char* gSmashable_item_mode_names[6];
-    extern const char* gRepeatability_names[4];
-    extern int C2_HOOK_FASTCALL GetALineAndInterpretCommand(FILE* pF, const char** pString_list, int pCount);
-    extern void C2_HOOK_FASTCALL GetPairOfInts(FILE* pF, int* pF1, int* pF2);
-    extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
-    extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
-    extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
-    extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
-    extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
-    extern void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
-    int i;
-    tSmashable_item_spec* spec;
-    int d1, d2;
-    int j;
-    int* snd;
-    tSmash_run_time_variable_change* chg;
-    char s[256];
-    char s2[256];
-
-    gCount_smashable_noncars = 0;
-    gCount_smashable_noncar_shrapnel_actors = 0;
-    gSmashable_noncars = BrMemAllocate(100 * sizeof(tSmashable_environment_name), kMem_smashable_env_info);
-
-    gCount_track_smashable_environment_specs = GetAnInt(pF);
-    gCount_track_smashable_environment_specs_2 = gCount_track_smashable_environment_specs;
-    gCapacity_track_smashables = 5 * (gCount_track_smashable_environment_specs + 30);
-    gTrack_smashable_environment_specs = BrMemAllocate(gCapacity_track_smashables * sizeof(tSmashable_item_spec), kMem_smashable_env_info);
-    gSmashable_track_environment_path = pPath;
-    memset(gSmashable_track_indexable_triggers, 0, sizeof(gSmashable_track_indexable_triggers));
-
-    spec = gTrack_smashable_environment_specs;
-    for (i = 0; i < gCount_track_smashable_environment_specs; i++, spec++) {
-
-        spec->flags = GetAnInt(pF);
-        spec->field_0x10 = 0;
-
-        GetAString(pF, s);
-        if (s[0] == '&') {
-            if (s[1] >= '0' && s[1] <= '9' && s[3] == '\0') {
-                spec->trigger_type = kSmashableTrigger_Number;
-            } else {
-                spec->trigger_type = kSmashableTrigger_Model;
-            }
+    pDest->v[0] = pA->v[1] * pB->v[2] - pA->v[2] * pB->v[1];
+    pDest->v[1] = pA->v[2] * pB->v[0] - pA->v[0] * pB->v[2];
+    pDest->v[2] = z = pA->v[0] * pB->v[1] - pA->v[1] * pB->v[0];
+    if ((float)fabs(pDest->v[0]) < 2.384186e-6f && (float)fabs(pDest->v[1]) < 2.384186e-6f && (float)fabs(z) < 2.384186e-6f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[1]) && (float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
+        } else if ((float)fabs(pA->v[1]) <= (float)fabs(pA->v[0]) && (float)fabs(pA->v[1]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_y_unit_vector);
         } else {
-            if (strstr(s, ".DAT") != NULL || strstr(s, ".dat") != NULL || strstr(s, ".ACT") != NULL || strstr(s, ".act") != NULL) {
-                spec->trigger_type = kSmashableTrigger_Model;
-            } else {
-                spec->trigger_type = kSmashableTrigger_Material;
-            }
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
         }
-
-        switch (spec->trigger_type) {
-        case kSmashableTrigger_Material:
-            spec->trigger_object.material = BrMaterialFind(s);
-            if (spec->trigger_object.material == NULL) {
-                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
-            }
-            break;
-        case kSmashableTrigger_Model:
-            spec->trigger_object.model = BrModelFind(s);
-            if (spec->trigger_object.model == NULL) {
-                FatalError(kFatalError_CannotFindSmashModel_S, s);
-            }
-            break;
-        case kSmashableTrigger_Number:
-            spec->trigger_object.number.field_0x0 = (s[1] + 24) * 10 + s[2];
-            spec->trigger_object.number.field_0x1 = GetAnInt(pF);
-            gSmashable_track_indexable_triggers[spec->trigger_object.number.field_0x0] = spec;
-            break;
-        }
-
-        spec->mode = GetALineAndInterpretCommand(pF, gSmashable_item_mode_names, REC2_ASIZE(gSmashable_item_mode_names));
-        if (spec->mode == kSmashableMode_Decal || spec->mode == kSmashableMode_TextureChange) {
-            spec->mode_data.texture_change.levels = NULL;
-            strcpy(spec->mode_data.texture_change.undefined_0x0, s2);
-            spec->mode_data.texture_change.field_0x40 = -1;
-            spec->mode_data.texture_change.trigger = spec->trigger_object;
-            spec->mode_data.texture_change.field_0x4c = 0;
-            spec->mode_data.texture_change.field_0x40 = -1;
-            spec->mode_data.texture_change.field_0x6c = 0;
-            spec->mode_data.texture_change.field_0x70 = 0;
-            spec->mode_data.texture_change.field_0x74 = 0;
-            spec->mode_data.texture_change.field_0x78 = 0;
-            spec->mode_data.texture_change.field_0x54 = 0.f;
-            spec->mode_data.texture_change.field_0x58 = 0.f;
-            spec->mode_data.texture_change.field_0x5c = 0.f;
-            spec->mode_data.texture_change.field_0x60 = 1.f;
-            spec->mode_data.texture_change.field_0x64 = 0.f;
-            spec->mode_data.texture_change.field_0x68 = 0.f;
-            ReadSmashLevels(pF, &spec->mode_data.texture_change.levels, &spec->mode_data.texture_change.count_levels, spec->mode == kSmashableMode_TextureChange, &gTrack_storage_space);
-        } else {
-            spec->mode_data.shrapnel.removal_threshold = GetAScalar(pF);
-            spec->mode_data.shrapnel.connotations.count_sounds = GetAnInt(pF);
-            for (j = 0, snd = spec->mode_data.shrapnel.connotations.sounds; j < spec->mode_data.shrapnel.connotations.count_sounds; j++, snd++) {
-                *snd = LoadSingleSound(&gTrack_storage_space, GetAnInt(pF));
-            }
-            ReadShrapnelSpec(pF, spec->mode_data.shrapnel.connotations.shrapnel, &spec->mode_data.shrapnel.connotations.count_shrapnel);
-            ReadExplosion(pF, &spec->mode_data.shrapnel.connotations.special_effects.explosion_animation);
-            ReadSpillData(pF, &spec->mode_data.shrapnel.connotations.special_effects.slick);
-            ReadNonCarCuboidActivation(pF, &spec->mode_data.shrapnel.connotations.side_effects.activations);
-            ReadShrapnelSideEffects(pF, &spec->mode_data.shrapnel.connotations.side_effects.side_effects);
-            spec->mode_data.shrapnel.connotations.side_effects.extension_flags = GetAnInt(pF);
-            if (spec->mode_data.shrapnel.connotations.side_effects.extension_flags & 0x1) {
-                spec->mode_data.shrapnel.connotations.side_effects.extension_arg = GetAnInt(pF);
-            }
-            spec->mode_data.shrapnel.connotations.side_effects.room_turn_on_code = GetAnInt(pF);
-            spec->mode_data.shrapnel.connotations.award.frequency = GetALineAndInterpretCommand(pF, gRepeatability_names, REC2_ASIZE(gRepeatability_names));
-            if (spec->mode_data.shrapnel.connotations.award.frequency != kRepeatability_None) {
-                spec->mode_data.shrapnel.connotations.award.field_0x4 = GetAScalar(pF);
-                spec->mode_data.shrapnel.connotations.award.field_0x8 = GetAScalar(pF);
-                spec->mode_data.shrapnel.connotations.award.field_0xc = GetAnInt(pF);
-                spec->mode_data.shrapnel.connotations.award.field_0x10 = GetAnInt(pF);
-            }
-            spec->mode_data.shrapnel.connotations.variable_changes.count = GetAnInt(pF);
-            for (j = 0, chg = spec->mode_data.shrapnel.connotations.variable_changes.runtime_changes; j < spec->mode_data.shrapnel.connotations.variable_changes.count; j++, chg++) {
-                GetPairOfInts(pF, &d1, &d2);
-                chg->field_0x2 = d1;
-                chg->field_0x0 = d2;
-            }
-        }
-        if (spec->mode == kSmashableMode_ReplaceModel) {
-            GetAString(pF, s2);
-            spec->replace.model = BrModelFind(s2);
-            if (spec->replace.model == NULL) {
-                FatalError(kFatalError_CannotFindSmashActorModel_S, s2);
-            }
-            spec->replace.smoke_fire_chance.chance_fire = GetAnInt(pF);
-            if (spec->replace.smoke_fire_chance.chance_fire != 0) {
-                spec->replace.smoke_fire_chance.model_1_int = GetAnInt(pF);
-                GetPairOfInts(pF, &spec->replace.smoke_fire_chance.model_2_int, &spec->replace.smoke_fire_chance.model_3_int);
-            }
-        }
-        GetAnInt(pF);
-        GetAnInt(pF);
-        GetAnInt(pF);
-        GetAnInt(pF);
-
-        spec->field_0x2d4 = 0;
-        spec->field_0x2d8 = 0;
-        spec->field_0x2dc = 0;
-    }
-    for (i = gCount_track_smashable_environment_specs; i < gCapacity_track_smashables; i++) {
-        gTrack_smashable_environment_specs[i].trigger_type = -1;
     }
 }
 
-extern br_actor* gMr_blendy;
-extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);
-extern int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial);
-extern void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor);
-extern br_material* gDefault_track_material;
-extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
-extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);
-extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
-extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data);
 
-// FUNCTION: CARMA2_HW 0x0040cf10
-intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
-    int area1;
-    int area2;
-    unsigned int x;
-    unsigned int z;
-    br_model* model;
-    tTrack_spec* pTrack_spec = data;
 
-    if (sscanf(pActor->identifier, "%u%u", &x, &z) == 2 && x < pTrack_spec->ncolumns_x && z < pTrack_spec->ncolumns_z) {
-        pActor->material = gDefault_track_material;
-        pTrack_spec->columns[z][x].actor_0x0 = BrActorAllocate(BR_ACTOR_NONE, NULL);
-        BrActorAdd(pActor->parent, pTrack_spec->columns[z][x].actor_0x0);
-        pTrack_spec->columns[z][x].actor_0x4 = pActor;
-        pTrack_spec->columns[z][x].actor_0x8 = NULL;
-        ActorRelink(pTrack_spec->columns[z][x].actor_0x0, pActor);
-        gMr_blendy = NULL;
-        if (pActor->model != NULL && !gAusterity_mode) {
-            MungeFaces(pActor, pActor->model);
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// GLOBAL: CARMA2_HW 0x0058f230
+const char* gPed_form_collision_type_names[9] = {
+    "BOX",
+    "POLYHEDRON",
+    "LINE",
+    "POLYGON",
+    "SPHERE",
+    "",
+    "",
+    "",
+    "NONE",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f258
+const char* gPed_form_bone_joint_type_names[10] = {
+    "NONE",
+    "HINGE",
+    "UNIVERSAL",
+    "BALLNSOCKET",
+    "QUICKHINGE",
+    "",
+    "",
+    "",
+    "PHANTOM",
+    "FALSE",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f280
+const char* gPed_form_joint_limit_type_names[2] = {
+    "PLANE",
+    "UNIVERSAL",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f288
+const char* gPed_personality_grounding_type_names[1] = {
+    "GROUND",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f290
+const char* gPed_remap_axis_choices[6] = {
+    "+X",
+    "+Y",
+    "+Z",
+    "-X",
+    "-Y",
+    "-Z",
+};
+
+// GLOBAL: CARMA2_HW 0x0058f2a8
+const br_vector3 g_Ped_x_unit_vector = { { 1.f, 0.f, 0.f } };
+
+// GLOBAL: CARMA2_HW 0x0058f2b8
+const br_vector3 g_Ped_y_unit_vector = { { 0.f, 1.f, 0.f } };
+
+// GLOBAL: CARMA2_HW 0x0058f2c8
+const br_vector3 g_Ped_z_unit_vector = { { 0.f, 0.f, 1.f } };
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00404150
+void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+
+    BrVector3Cross(pDest, pA, pB);
+    if ((float)fabs(pDest->v[0]) < 2.384186e-06f && (float)fabs(pDest->v[1]) < 2.384186e-06f && (float)fabs(pDest->v[2]) < 2.384186e-06f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
         } else {
-            br_actor* child;
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
+        }
+    }
+}
 
-            for (child = pActor->children; child != NULL; child = child->next) {
-                if (child->identifier[0] != '&') {
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* not inlined in the original, 0x4047b0 */
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004047b0
+static tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    int i;
+
+    for (i = 0; i < 250; i++) {
+        if (gPed_moves[i] != NULL && strcmp(pName, gPed_moves[i]->name) == 0) {
+            return gPed_moves[i];
+        }
+    }
+    return ReadMove(pName, pForm, pLooping_reset_flags, pMovement_direction, pFlags);
+}
+
+extern FILE* C2_HOOK_FASTCALL BonerOpenCharacterForm(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
+extern tPed_remap* gPed_remaps[10];
+extern const char* gPed_remap_axis_choices[6];
+extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
+extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
+extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
+extern float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees);
+extern float gFloat_sine_table[91];
+extern const char* gPed_form_collision_type_names[9];
+extern const char* gPed_form_bone_joint_type_names[10];
+extern const char* gPed_form_joint_limit_type_names[2];
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* BrVector3Cross as an inlined helper (operand order of the original) */
+static void PedVector3Cross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    BrVector3Cross(pDest, pA, pB);
+}
+
+/* inlined in the original */
+static tPed_remap* FindOrOpenRemap(const char* pName) {
+    int i;
+
+    for (i = 0; i < 10; i++) {
+        if (gPed_remaps[i] != NULL && strcmp(pName, gPed_remaps[i]->name) == 0) {
+            return gPed_remaps[i];
+        }
+    }
+    return ReadRemap(pName);
+}
+
+/* inlined in the original */
+static void Flip3DStoBRaxes(br_matrix34* pMat) {
+    br_vector3 tv;
+    float f;
+
+    BrVector3Copy(&tv, (br_vector3*)pMat->m[1]);
+    BrVector3Copy((br_vector3*)pMat->m[1], (br_vector3*)pMat->m[2]);
+    BrVector3Negate((br_vector3*)pMat->m[2], &tv);
+
+    f = pMat->m[0][1];
+    pMat->m[0][1] = pMat->m[0][2];
+    pMat->m[0][2] = f * -1.f;
+
+    f = pMat->m[1][1];
+    pMat->m[1][1] = pMat->m[1][2];
+    pMat->m[1][2] = f * -1.f;
+
+    f = pMat->m[2][1];
+    pMat->m[2][1] = pMat->m[2][2];
+    pMat->m[2][2] = f * -1.f;
+
+    f = pMat->m[3][1];
+    pMat->m[3][1] = pMat->m[3][2];
+    pMat->m[3][2] = f * -1.f;
+}
+
+/* inlined in the original */
+// FUNCTION: CARMA2_HW 0x00404840
+static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    FILE* f;
+    tPed_move* move;
+    int i;
+    int j;
+    int k;
+    int l;
+    char bone_names[50][36];
+    tS32 count_bones_in_anim_file;
+    br_vector3 rot_pos;
+    br_vector3 move_pos;
+    br_matrix34 mat;
+    br_matrix34 mat_lp;
+    br_euler e;
+    tPed_move_frame* frame;
+
+    f = BonerOpenMoves(pName);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
+    }
+    move = BrMemAllocate(sizeof(tPed_move), kBoner_mem_type_sequence);
+    if (move == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    count_bones_in_anim_file = ReadS32(f);
+    move->count_frames = (tS16)ReadS32(f);
+    for (i = 0; i < count_bones_in_anim_file; i++) {
+        PFfread(bone_names[i], 1, 33, f);
+        PFfseek(f, sizeof(tU32) * ReadS32(f), SEEK_CUR);
+    }
+    BrVector3Set(&move_pos, 0.f, 0.f, 0.f);
+    move->frames = BrMemAllocate(move->count_frames * sizeof(tPed_move_frame), kMem_boner_type_frames);
+    frame = move->frames;
+    for (i = 0; i < move->count_frames; i++, frame++) {
+        frame->axis = BrMemAllocate(pForm->count_bones * sizeof(tPed_move_frame_axis), kBoner_mem_type_frame_2);
+        for (j = 0; j < count_bones_in_anim_file; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 3; l++) {
+                    mat.m[k][l] = ReadF32(f);
+                }
+            }
+            for (k = 0; k < pForm->count_bones; k++) {
+                if (strcmp(bone_names[j], pForm->bones[k].name) == 0) {
+                    Flip3DStoBRaxes(&mat);
+                    BrMatrix34LPNormalise(&mat_lp, &mat);
+                    if (pForm->bones[k].indices[0] == -1) {
+                        memcpy(&frame->mat, &mat_lp, 9 * sizeof(float));
+                        if (i != 0) {
+                            BrVector3Sub((br_vector3*)frame->mat.m[3], (br_vector3*)mat_lp.m[3], &rot_pos);
+                            BrVector3Accumulate(&move_pos, (br_vector3*)frame->mat.m[3]);
+                        }
+                        rot_pos = *(br_vector3*)mat_lp.m[3];
+                    }
+                    e.order = 0;
+                    BrMatrix34ToEuler(&e, &mat_lp);
+                    frame->axis[k].euler1 = e.a / 256;
+                    frame->axis[k].euler2 = e.b / 256;
+                    frame->axis[k].euler3 = e.c / 256;
                     break;
                 }
             }
-            if (child != NULL) {
-                MungeFaces(child, child->model);
-            }
         }
-        BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
-        if (gMr_blendy != NULL) {
-            int nverts;
-            int nfaces;
-            br_vertex* new_vertices;
-            br_face* new_faces;
+    }
+    if (strchr(pLooping_reset_flags, 'X') != NULL) {
+        move->frames[0].mat.m[3][0] = -move_pos.v[0];
+        move_pos.v[0] = 0.f;
+        move->looping_reset_flags |= 0x1;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][0] = move->frames[1].mat.m[3][0];
+        move_pos.v[0] += move->frames[0].mat.m[3][0];
+    } else {
+        move->frames[0].mat.m[3][0] = 0.f;
+    }
+    if (strchr(pLooping_reset_flags, 'Y') != NULL) {
+        move->frames[0].mat.m[3][1] = -move_pos.v[1];
+        move_pos.v[1] = 0.f;
+        move->looping_reset_flags |= 0x2;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][1] = move->frames[1].mat.m[3][1];
+        move_pos.v[1] += move->frames[0].mat.m[3][1];
+    } else {
+        move->frames[0].mat.m[3][1] = 0.f;
+    }
+    if (strchr(pLooping_reset_flags, 'Z') != NULL) {
+        move->frames[0].mat.m[3][2] = -move_pos.v[2];
+        move_pos.v[2] = 0.f;
+        move->looping_reset_flags |= 0x4;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][2] = move->frames[1].mat.m[3][2];
+        move_pos.v[2] += move->frames[0].mat.m[3][2];
+    } else {
+        move->frames[0].mat.m[3][2] = 0.f;
+    }
 
-            model = gMr_blendy->model;
-            BrActorAdd(pTrack_spec->columns[z][x].actor_0x0, gMr_blendy);
-            gMr_blendy->model->flags |= BR_MODU_FACES;
-            BrModelAdd(gMr_blendy->model);
-            DetermineTilitudinality(gMr_blendy->model, &area1, &area2);
-
-            nverts = model->nvertices + area2;
-            nfaces = model->nfaces + area1;
-            new_vertices = BrResAllocate(gMr_blendy->model, nverts * sizeof(br_vertex), BR_MEMORY_VERTICES);
-            memcpy(new_vertices, gMr_blendy->model->vertices, gMr_blendy->model->nvertices * sizeof(br_vertex));
-            BrResFree(gMr_blendy->model->vertices);
-            gMr_blendy->model->vertices = new_vertices;
-
-            new_faces = BrResAllocate(gMr_blendy->model, nfaces * sizeof(br_face), BR_MEMORY_FACES);
-            memcpy(new_faces, gMr_blendy->model->faces, gMr_blendy->model->nfaces * sizeof(br_face));
-            BrResFree(gMr_blendy->model->faces);
-            gMr_blendy->model->faces = new_faces;
-
-            DRModelUpdateAndKevificateMaterials(gMr_blendy->model, BR_MODU_ALL);
-            pTrack_spec->columns[z][x].actor_0x8 = gMr_blendy;
+    if (BrVector3LengthSquared(&move_pos) != 0.f && !(move->looping_reset_flags & 0x1)) {
+        BrVector3Normalise(&move->field_0x34, &move_pos);
+        move->field_0x2a = 0;
+        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
+            move->field_0x40 = move->field_0x34;
+        } else {
+            BrVector3Copy(&move->field_0x40, pMovement_direction);
         }
     } else {
-        BrActorEnum(pActor, ProcessModelsCB, pTrack_spec);
+        move->field_0x2a = 1;
+        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
+            BrVector3Set(&move->field_0x40, 0.f, 0.f, 1.f);
+        } else {
+            BrVector3Copy(&move->field_0x40, pMovement_direction);
+        }
+        BrVector3Set(&move->field_0x34, 0.f, 0.f, 0.f);
     }
-    SetSmashableModel(pActor);
-    return 0;
+    move->move_flags = pFlags;
+    PFfclose(f);
+    strcpy(move->name, pName);
+    for (i = 0; i < 250; i++) {
+        if (gPed_moves[i] == NULL) {
+            gPed_moves[i] = move;
+            return move;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyMovesLoaded, 0);
+}
+
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* control flow follows the original */
+// FUNCTION: CARMA2_HW 0x00404f60
+tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
+    FILE* f;
+    tPed_form* form;
+    int max_simple_physicing_at_once;
+    int max_boned_physicing_at_once;
+    int max_rendering_at_once;
+    tPed_form_move_buffer_item form_moves[100];
+    char s[256];
+    int i;
+    int j;
+    int done;
+    float total_mass;
+    float mass;
+    int collision_type;
+    int joint_type;
+    tPhysics_joint* joint;
+    int count_limits;
+    int is_rotate;
+    br_scalar angle;
+    br_matrix34 mat;
+    tPhysics_object* coll_info;
+    char* str;
+
+    total_mass = 0.f;
+    f = BonerOpenCharacterForm(pName);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
+    }
+    form = BrMemAllocate(sizeof(tPed_form), kBoner_mem_type_form);
+    if (form == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    max_simple_physicing_at_once = GetAnInt(f);
+    max_boned_physicing_at_once = GetAnInt(f);
+    max_rendering_at_once = GetAnInt(f);
+    form->max_stored_dismembered_characters = GetAnInt(f);
+    GetALineAndDontArgue(f, s);
+    form->remap = FindOrOpenRemap(s);
+
+    done = 0;
+    while (!PFfeof(f) && !done) {
+        GetALineAndDontArgue(f, s);
+        if (strcmp(s, "NEXT BONE") == 0) {
+            form->count_bones++;
+        } else {
+            done = strcmp(s, "END OF BONES") == 0;
+            if (done) {
+                form->count_bones++;
+            }
+        }
+    }
+    form->max_boned_physicing_at_once = max_boned_physicing_at_once;
+    form->max_simple_physicing_at_once = max_simple_physicing_at_once;
+    form->max_rendering_at_once = max_rendering_at_once;
+    form->actor_sets = BrMemAllocate(max_rendering_at_once * sizeof(tPed_form_actor_set), kBoner_mem_type_actor_sets);
+    form->simple_physicing = BrMemAllocate(max_simple_physicing_at_once * sizeof(tPed_form_simple_phys), kBoner_mem_type_simple_phys);
+    form->boned_physicing = BrMemAllocate(max_boned_physicing_at_once * sizeof(tPed_form_boned_phys), kBoner_mem_type_boned_phys);
+    form->bones = BrMemAllocate(form->count_bones * sizeof(tPed_form_bone), kBoner_mem_type_bone_info);
+    PFrewind(f);
+    for (i = 0; i < 5; i++) {
+        GetALineAndDontArgue(f, s);
+    }
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF BONES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
+    }
+    for (i = 0; i < max_boned_physicing_at_once; i++) {
+        form->boned_physicing[i].collision_infos = BrMemAllocate(form->count_bones * sizeof(tPhysics_object*), kBoner_mem_type_boned_coll);
+    }
+    for (i = 0; i < form->count_bones; i++) {
+        GetALineAndDontArgue(f, form->bones[i].name);
+        form->bones[i].remapped_bone = NULL;
+        if (form->remap != NULL) {
+            for (j = 0; j < form->remap->count_bones; j++) {
+                if (strcmp(form->remap->bones[j].name, form->bones[i].name) == 0) {
+                    form->bones[i].remapped_bone = &form->remap->bones[j];
+                    break;
+                }
+            }
+        }
+        mass = GetAScalar(f) * .001;
+        total_mass += mass;
+        if (mass != 0.f) {
+            collision_type = GetALineAndInterpretCommand(f, gPed_form_collision_type_names, 9);
+            joint_type = GetALineAndInterpretCommand(f, gPed_form_bone_joint_type_names, 10);
+            if (joint_type > 0) {
+                form->bones[i].indices[0] = GetAnInt(f);
+            } else {
+                form->bones[i].indices[0] = -1;
+            }
+            if (joint_type > 0 && joint_type < 8) {
+                count_limits = GetAnInt(f);
+                joint = AllocatePhysicsJoint(count_limits, kMem_physics_joint);
+                joint->type = joint_type;
+                joint->count_limits = count_limits;
+                is_rotate = 0;
+                for (j = 0; j < count_limits; j++) {
+                    if (is_rotate) {
+                        is_rotate = 0;
+                        angle = GetAScalar(f);
+                        DRVector3SafeCross(&joint->limits[j].child, &joint->limits[j - 1].child, &joint->limits[j - 1].parent);
+                        BrMatrix34Rotate(&mat, BR_ANGLE_DEG(angle), &joint->limits[j - 1].parent);
+                        BrMatrix34ApplyV(&joint->limits[j].parent, &joint->limits[j].child, &mat);
+                    } else {
+                        joint->limits[j].type = GetALineAndInterpretCommand(f, gPed_form_joint_limit_type_names, 2);
+                        GetAVector3(f, &joint->limits[j].child);
+                        GetAVector3(f, &joint->limits[j].parent);
+                        RemapVector(&joint->limits[j].child, form->bones[i].remapped_bone);
+                        RemapVector(&joint->limits[j].parent, form->bones[form->bones[i].indices[0]].remapped_bone);
+                        is_rotate = joint->limits[j].type == eJoint_limit_universal;
+                        joint->limits[j].value = FastFloatCos((int)GetAScalar(f));
+                    }
+                    BrVector3Normalise(&joint->limits[j].child, &joint->limits[j].child);
+                    BrVector3Normalise(&joint->limits[j].parent, &joint->limits[j].parent);
+                }
+                if (joint_type == eJoint_hinge || joint_type == eJoint_quick_hinge) {
+                    GetAVector3(f, &joint->hinge_axis);
+                    joint->parent_bone_axis = joint->hinge_axis;
+                    RemapVector(&joint->hinge_axis, form->bones[i].remapped_bone);
+                    RemapVector(&joint->parent_bone_axis, form->bones[form->bones[i].indices[0]].remapped_bone);
+                    if ((float)fabs(joint->hinge_axis.v[0]) > (float)fabs(joint->hinge_axis.v[1]) && (float)fabs(joint->hinge_axis.v[0]) > (float)fabs(joint->hinge_axis.v[2])) {
+                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_y_unit_vector);
+                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_z_unit_vector);
+                    } else if ((float)fabs(joint->hinge_axis.v[1]) > (float)fabs(joint->hinge_axis.v[0]) && (float)fabs(joint->hinge_axis.v[1]) > (float)fabs(joint->hinge_axis.v[2])) {
+                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_x_unit_vector);
+                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_z_unit_vector);
+                    } else {
+                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_x_unit_vector);
+                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_y_unit_vector);
+                    }
+                }
+            } else {
+                joint = NULL;
+            }
+            form->bones[i].hinge = joint;
+            for (j = 0; j < max_boned_physicing_at_once; j++) {
+                form->boned_physicing[j].collision_infos[i] = BrMemAllocate(sizeof(tPhysics_object), kBoner_mem_type_boned_coll_obj);
+                coll_info = form->boned_physicing[j].collision_infos[i];
+                coll_info->uid = i;
+                coll_info->M = mass;
+                switch (collision_type) {
+                case ePed_form_collision_type_box:
+                    coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
+                    break;
+                case ePed_form_collision_type_line:
+                    coll_info->shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(2, 1, kMem_collision_shape);
+                    coll_info->shape->wireframe.wireframe.lines[0].index1 = 0;
+                    coll_info->shape->wireframe.wireframe.lines[0].index2 = 1;
+                    break;
+                case ePed_form_collision_type_sphere:
+                    coll_info->shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
+                    break;
+                case ePed_form_collision_type_polyhedron:
+                case ePed_form_collision_type_polygon:
+                case ePed_form_collision_type_none:
+                    coll_info->shape = NULL;
+                    break;
+                }
+                form->boned_physicing[j].field_0x0 = 0;
+            }
+        } else {
+            for (j = 0; j < max_boned_physicing_at_once; j++) {
+                form->boned_physicing[j].collision_infos[i] = NULL;
+                form->boned_physicing[j].field_0x0 = 0;
+            }
+        }
+        GetALineAndDontArgue(f, s);
+        if (strcmp("NEXT BONE", s) != 0 && strcmp("END OF BONES", s) != 0) {
+            FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "NEXT BONE");
+        }
+    }
+    for (i = 0; i < max_simple_physicing_at_once; i++) {
+        form->simple_physicing[i].collision_info = BrMemAllocate(sizeof(tPhysics_object), kBoner_mem_type_simple_coll_obj);
+        coll_info = form->simple_physicing[i].collision_info;
+        coll_info->M = total_mass;
+        coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
+        *(tU8*)&form->simple_physicing[i].type = ePed_form_collision_type_box;
+    }
+    for (i = 0; i < max_rendering_at_once; i++) {
+        form->actor_sets[i].actors = BrMemAllocate(form->count_bones * sizeof(br_actor*), kBoner_mem_type_actor_ptrs);
+        for (j = 0; j < form->count_bones; j++) {
+            form->actor_sets[i].actors[j] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+            form->actor_sets[i].actors[j]->render_style = BR_RSTYLE_FACES;
+        }
+        form->actor_sets[i].field_0x0 = 0;
+    }
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF MOVES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
+    }
+    form->count_moves = 0;
+    do {
+        GetALineAndDontArgue(f, s);
+        done = strcmp(s, "END OF MOVES") == 0;
+        if (!done) {
+            str = strtok(s, "\t ,/");
+            sscanf(str, "%d", &form_moves[form->count_moves].id);
+            form_moves[form->count_moves].frametime = 1000 / GetAnInt(f);
+            GetAString(f, form_moves[form->count_moves].looping_reset_flags);
+            GetAVector3(f, &form_moves[form->count_moves].movement_direction);
+            if (DRVector3NonZero(&form_moves[form->count_moves].movement_direction)) {
+                BrVector3Normalise(&form_moves[form->count_moves].movement_direction, &form_moves[form->count_moves].movement_direction);
+            }
+            GetAString(f, form_moves[form->count_moves].biped_export_filename);
+            form_moves[form->count_moves].flags = GetAnInt(f);
+            form->count_moves++;
+        }
+    } while (!PFfeof(f) && !done);
+    if (!done) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "END OF MOVES");
+    }
+    if (gPed_vtable->load_form != NULL) {
+        gPed_vtable->load_form(form, f);
+    }
+    PFfclose(f);
+    form->moves = BrMemAllocate(form->count_moves * sizeof(tPed_form_move), kBoner_mem_type_moves);
+    for (i = 0; i < form->count_moves; i++) {
+        form->moves[i].id = form_moves[i].id;
+        form->moves[i].move = FindOrOpenMove(form_moves[i].biped_export_filename, form, form_moves[i].looping_reset_flags, &form_moves[i].movement_direction, form_moves[i].flags);
+        form->moves[i].move->frametime = form_moves[i].frametime;
+    }
+    form->stored_dismembered_characters = BrMemAllocate(form->max_stored_dismembered_characters * sizeof(tPed_form_dismembered_character*), kBoner_mem_type_stored_ptrs);
+    for (i = 0; i < form->max_stored_dismembered_characters; i++) {
+        form->stored_dismembered_characters[i] = BrMemAllocate(form->count_bones * sizeof(tPed_form_dismembered_character), kBoner_mem_type_stored);
+    }
+    strcpy(form->name, pName);
+    for (i = 0; i < 20; i++) {
+        if (gPed_forms[i] == NULL) {
+            gPed_forms[i] = form;
+            return form;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyFormsLoaded, 0);
+}
+
+extern br_material* gPedestrian_character_cloned_materials[50];
+extern int gCount_pedestrian_personality_cloned_materials;
+extern const char* gPed_personality_grounding_type_names[1];
+extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
+extern void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenPersonality(const char* pName);
+extern FILE* C2_HOOK_FASTCALL BonerOpenDefaultMoves(const char* pName);
+extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* inlined in the original */
+static tPed_form* GetPedForm(const char* pName) {
+    int i;
+
+    for (i = 0; i < 20; i++) {
+        if (gPed_forms[i] != NULL && strcmp(pName, gPed_forms[i]->name) == 0) {
+            return gPed_forms[i];
+        }
+    }
+    return SetUpCharacterForm(pName);
+}
+
+/* inlined in the original */
+static void RemapVector(br_vector3* pV, const tPed_remap_bone* pRemap) {
+    int i;
+    br_vector3 original;
+
+    if (pRemap == NULL) {
+        return;
+    }
+    original = *pV;
+    for (i = 0; i < 3; i++) {
+        pV->v[i] = original.v[pRemap->general_remap[i] % 3];
+        if (pRemap->general_remap[i] >= 3) {
+            pV->v[i] = -pV->v[i];
+        }
+    }
+}
+
+/* inlined in the original */
+static void RemapModelAxis(br_model* pModel, const tPed_remap_bone* pRemap) {
+    int i;
+
+    if (pRemap != NULL) {
+        for (i = 0; i < pModel->nvertices; i++) {
+            RemapVector(&pModel->vertices[i].p, pRemap);
+        }
+    }
+    BrModelUpdate(pModel, BR_MODU_ALL);
+}
+
+/* inlined in the original; faces of the clone get the cloned material */
+static br_model* BonerCloneModel(br_model* pModel, int pIndex, int pUpdateable) {
+    char identifier[40];
+    char* str;
+    br_model* clone;
+    br_material* original_material;
+    br_material* cloned_material;
+    br_material* material;
+    int i;
+
+    strcpy(identifier, pModel->identifier);
+    str = strtok(identifier, ".");
+    sprintf(str + strlen(str), "%d.DAT", pIndex);
+    clone = BrModelAllocate(str, pModel->nvertices, pModel->nfaces);
+    memcpy(clone->vertices, pModel->vertices, pModel->nvertices * sizeof(br_vertex));
+    memcpy(clone->faces, pModel->faces, pModel->nfaces * sizeof(br_face));
+    strcpy(identifier, pModel->faces->material->identifier);
+    str = strtok(identifier, ".");
+    sprintf(str + strlen(str), "%d.MAT", pIndex);
+    original_material = pModel->faces[0].material;
+    cloned_material = BrMaterialFind(str);
+    if (cloned_material == NULL && gCount_pedestrian_personality_cloned_materials < 50) {
+        cloned_material = DRMaterialClone(original_material, 0);
+        cloned_material->identifier = BrResStrDup(cloned_material, str);
+        BrMaterialUpdate(cloned_material, BR_MATU_ALL);
+        gPedestrian_character_cloned_materials[gCount_pedestrian_personality_cloned_materials] = cloned_material;
+        gCount_pedestrian_personality_cloned_materials++;
+    }
+    for (i = 0; i < clone->nfaces; i++) {
+        material = pModel->faces[i].material;
+        if (material == original_material) {
+            clone->faces[i].material = cloned_material;
+        } else {
+            clone->faces[i].material = material;
+        }
+    }
+    if (pUpdateable) {
+        clone->flags |= BR_MODF_UPDATEABLE;
+    } else {
+        clone->flags &= ~BR_MODF_UPDATEABLE;
+    }
+    BrModelAdd(clone);
+    return clone;
+}
+
+/* inlined in the original */
+static float CalcBoundsRadius(const br_bounds3* pBounds) {
+    float v;
+    float r;
+
+    r = 0.f;
+    v = (float)fabs(pBounds->min.v[0]);
+    if (v > r) {
+        r = v;
+    }
+    v = (float)fabs(pBounds->min.v[1]);
+    if (v > r) {
+        r = v;
+    }
+    v = (float)fabs(pBounds->min.v[2]);
+    if (v > r) {
+        r = v;
+    }
+    v = (float)fabs(pBounds->max.v[0]);
+    if (v > r) {
+        r = v;
+    }
+    v = (float)fabs(pBounds->max.v[1]);
+    if (v > r) {
+        r = v;
+    }
+    v = (float)fabs(pBounds->max.v[2]);
+    if (v > r) {
+        r = v;
+    }
+    return r;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* control flow follows the original */
+// FUNCTION: CARMA2_HW 0x00406ab0
+tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
+    FILE* f;
+    FILE* move_f;
+    tPed_personality* personality;
+    char s[256];
+    char default_moves_file[40];
+    char bone_name[40];
+    int i;
+    int bone_index;
+    int model_i;
+    int j;
+    int k;
+    int m;
+    int done;
+    int move_id;
+    char* str;
+    char* next_str;
+    tPhysics_joint* hinge_copy;
+
+    f = BonerOpenPersonality(pName);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
+    }
+    personality = BrMemAllocate(sizeof(tPed_personality), kBoner_mem_type_person);
+    if (personality == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+
+    GetALineAndDontArgue(f, s);
+    personality->form = GetPedForm(s);
+    if (personality->form == NULL) {
+        FatalError(kFatalError_BonerError_UnableToLinkForm_to_personality_S, s);
+    }
+
+    GetALineAndDontArgue(f, default_moves_file);
+    BonerReadPersonalityModels(pName);
+
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF BONES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
+    }
+
+    personality->bones = BrMemAllocate(personality->form->count_bones * sizeof(tPed_personality_bone), kBoner_mem_type_person_parts);
+    for (i = 0; i < personality->form->count_bones; i++) {
+        GetALineAndDontArgue(f, bone_name);
+        for (bone_index = 0; bone_index < personality->form->count_bones; bone_index++) {
+            if (strcmp(bone_name, personality->form->bones[bone_index].name) == 0) {
+                break;
+            }
+        }
+        GetALineAndDontArgue(f, s);
+        if (DRStricmp(s, "NULL") != 0 && bone_index >= personality->form->count_bones) {
+            FatalError(kFatalError_BonerError_UnableToFindBone_S, bone_name);
+        }
+        str = s;
+        model_i = 0;
+        do {
+            next_str = strchr(str, ',');
+            if (next_str != NULL) {
+                *next_str = '\0';
+                next_str++;
+            } else {
+                next_str = NULL;
+            }
+            if (DRStricmp(str, "NULL") != 0) {
+                personality->bones[bone_index].models[model_i].models[0] = BrModelFind(str);
+                if (personality->bones[bone_index].models[model_i++].models[0] == NULL) {
+                    FatalError(kFatalError_BonerError_UnableToFindModel_S, str);
+                }
+                RemapModelAxis(personality->bones[bone_index].models[model_i - 1].models[0], personality->form->bones[bone_index].remapped_bone);
+            }
+            str = next_str;
+        } while (str != NULL);
+        for (j = 0; j < 4; j++) {
+            if (personality->bones[bone_index].models[j].models[0] == NULL) {
+                break;
+            }
+            for (k = 1; k < 2; k++) {
+                personality->bones[bone_index].models[j].models[k] = BonerCloneModel(personality->bones[bone_index].models[j].models[0], k, 1);
+            }
+            personality->bones[bone_index].models[j].models[0]->flags |= BR_MODF_UPDATEABLE;
+            BrModelUpdate(personality->bones[bone_index].models[j].models[0], BR_MODU_ALL);
+        }
+        if (personality->form->bones[bone_index].indices[0] >= 0) {
+            GetAVector3(f, &personality->bones[bone_index].field_0x20);
+            RemapVector(&personality->bones[bone_index].field_0x20, personality->form->bones[bone_index].remapped_bone);
+            GetAVector3(f, &personality->bones[bone_index].field_0x2c);
+            RemapVector(&personality->bones[bone_index].field_0x2c, personality->form->bones[personality->form->bones[bone_index].indices[0]].remapped_bone);
+            if (personality->form->bones[bone_index].hinge != NULL) {
+                hinge_copy = ClonePhysicsJoint(personality->form->bones[bone_index].hinge, kMem_physics_joint);
+                BrVector3Copy(&hinge_copy->field_0x08, &personality->bones[bone_index].field_0x20);
+                BrVector3Copy(&hinge_copy->field_0x14, &personality->bones[bone_index].field_0x2c);
+                personality->bones[bone_index].hinge = hinge_copy;
+            }
+        }
+    }
+    personality->M = personality->form->simple_physicing[0].collision_info->M;
+    GetALineAndDontArgue(f, s);
+    if (strcmp("END OF BONES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "END OF BONES");
+    }
+    GetALineAndDontArgue(f, s);
+    if (strcmp("START OF MOVES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
+    }
+
+    personality->moves = BrMemAllocate(personality->form->count_moves * sizeof(tPed_personality_move), kBoner_mem_type_person_moves);
+    for (k = 0; k < personality->form->count_moves; k++) {
+        personality->moves[k].scale_factor = 1.f;
+        personality->moves[k].grounding_mode = ePed_personality_floating;
+    }
+    move_f = BonerOpenDefaultMoves(default_moves_file);
+    if (move_f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, default_moves_file);
+    }
+    GetALineAndDontArgue(move_f, s);
+    if (strcmp("START OF MOVES", s) != 0) {
+        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
+    }
+    do {
+        GetALineAndDontArgue(move_f, s);
+        done = strcmp(s, "END OF MOVES") == 0;
+        if (!done) {
+            str = strtok(s, "\t ,/");
+            sscanf(str, "%d", &move_id);
+            for (m = 0; m < personality->form->count_moves; m++) {
+                if (personality->form->moves[m].id == move_id) {
+                    personality->moves[m].scale_factor = GetAScalar(move_f);
+                    personality->moves[m].grounding_mode = GetALineAndInterpretCommand(move_f, gPed_personality_grounding_type_names, 1);
+                    personality->moves[m].grounding_offset = GetAScalar(move_f);
+                    break;
+                }
+            }
+            if (m == personality->form->count_moves) {
+                sprintf(s, "%s/%d", personality->name, move_id);
+                FatalError(kFatalError_BonerError_IllegalMoveID_S, s);
+            }
+        }
+        if (PFfeof(move_f) || done) {
+            if (move_f != f) {
+                PFfclose(move_f);
+                move_f = f;
+            } else {
+                move_f = NULL;
+            }
+        }
+    } while (move_f != NULL);
+
+    GetAVector3(f, &personality->bb.min);
+    GetAVector3(f, &personality->bb.max);
+    RemapVector(&personality->bb.min, personality->form->bones[0].remapped_bone);
+    RemapVector(&personality->bb.max, personality->form->bones[0].remapped_bone);
+    if (personality->bb.min.v[0] > personality->bb.max.v[0]) {
+        float tv;
+        tv = personality->bb.min.v[0];
+        personality->bb.min.v[0] = personality->bb.max.v[0];
+        personality->bb.max.v[0] = tv;
+    }
+    if (personality->bb.min.v[1] > personality->bb.max.v[1]) {
+        float tv;
+        tv = personality->bb.min.v[1];
+        personality->bb.min.v[1] = personality->bb.max.v[1];
+        personality->bb.max.v[1] = tv;
+    }
+    if (personality->bb.min.v[2] > personality->bb.max.v[2]) {
+        float tv;
+        tv = personality->bb.min.v[2];
+        personality->bb.min.v[2] = personality->bb.max.v[2];
+        personality->bb.max.v[2] = tv;
+    }
+    GetAVector3(f, &personality->centre_of_mass);
+    RemapVector(&personality->centre_of_mass, personality->form->bones[0].remapped_bone);
+    personality->radius = CalcBoundsRadius(&personality->bb);
+
+    if (gPed_vtable->load_personality != NULL) {
+        gPed_vtable->load_personality(personality, f);
+    }
+    PFfclose(f);
+    strcpy(personality->name, pName);
+    for (i = 0; i < 50; i++) {
+        if (gPed_personalities[i] == NULL) {
+            gPed_personalities[i] = personality;
+            return personality;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyPersonalitiesLoaded, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x004079a0
+tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
+    tPed_character_instance* instance;
+
+    instance = BrMemAllocate(sizeof(tPed_character_instance), kBoner_mem_type_char_instance);
+    if (instance == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    instance->personality = FindOrOpenPersonality(pName);
+    instance->field_0x4 = 0xff;
+    instance->field_0x7 = 0xff;
+    instance->field_0x6 = 0xff;
+    instance->field_0x28 = 0;
+    instance->field_0x2c = *pMat;
+    instance->field_0x8 = 0xff;
+    instance->field_0x9 = 0;
+    instance->field_0xa = 0;
+    instance->field_0x14 = 0;
+    instance->field_0xc = 0;
+    BrMatrix34Identity(&instance->field_0x5c);
+    BrMatrix34Identity(&instance->field_0x8c);
+    return instance;
 }
 
 // FUNCTION: CARMA2_HW 0x0040cc50
@@ -1259,100 +1053,213 @@ void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x004d3520
-void C2_HOOK_FASTCALL FinishUpLoadingPeds(void) {
-    extern int gPed_count;
-    extern tPedestrian* gPedestrian_array;
-    tPedestrian* new_pedestrians;
-    int i;
+extern br_actor* gMr_blendy;
+extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);
+extern int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial);
+extern void C2_HOOK_CDECL ActorRelink(br_actor* pParent, br_actor* pActor);
+extern br_material* gDefault_track_material;
+extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
+extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);
+extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
+extern intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* data);
 
-    dr_dprintf("%d pedestrians, %d bytes each, total = %d bytes\n", gPed_count, sizeof(tRace_pedestrian), gPed_count * sizeof(tRace_pedestrian));
-    new_pedestrians = BrMemAllocate(gPed_count * sizeof(tPedestrian), kMem_ped_array);
-    memcpy(new_pedestrians, gPedestrian_array, gPed_count * sizeof(tPedestrian));
-    BrMemFree(gPedestrian_array);
-    gPedestrian_array = new_pedestrians;
-    for (i = 0; i < gPed_count; i++) {
-        gPedestrian_array[i].character->ped = &gPedestrian_array[i];
-    }
-}
+// FUNCTION: CARMA2_HW 0x0040cf10
+intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
+    int area1;
+    int area2;
+    unsigned int x;
+    unsigned int z;
+    br_model* model;
+    tTrack_spec* pTrack_spec = data;
 
-extern tFunk_temp_buffer* gFunk_temp_vertices;
-extern float gFunk_scalar;
-extern tCar_spec* gCurrent_car_spec;
-extern tFunkotronic_spec* gFunkotronics_array;
-extern int gFunkotronics_array_size;
-extern tGroove_funk_binding gGroove_funk_bindings[1440];
-extern const char* gFunk_nature_names[4];
-extern const char* gFunk_type_names[5];
-extern const char* gFunk_move_names[7];
-extern const char* gFunk_anim_names[4];
-extern const char* gTime_mode_names[2];
-extern const char* gCamera_animation_names[2];
-extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
-extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
-extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
-extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
-extern int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length);
+    if (sscanf(pActor->identifier, "%u%u", &x, &z) == 2 && x < pTrack_spec->ncolumns_x && z < pTrack_spec->ncolumns_z) {
+        pActor->material = gDefault_track_material;
+        pTrack_spec->columns[z][x].actor_0x0 = BrActorAllocate(BR_ACTOR_NONE, NULL);
+        BrActorAdd(pActor->parent, pTrack_spec->columns[z][x].actor_0x0);
+        pTrack_spec->columns[z][x].actor_0x4 = pActor;
+        pTrack_spec->columns[z][x].actor_0x8 = NULL;
+        ActorRelink(pTrack_spec->columns[z][x].actor_0x0, pActor);
+        gMr_blendy = NULL;
+        if (pActor->model != NULL && !gAusterity_mode) {
+            MungeFaces(pActor, pActor->model);
+        } else {
+            br_actor* child;
 
-extern tGroovidelic_spec* gGroovidelics_array;
-extern int gGroovidelics_array_size;
-extern br_actor* gGroove_by_proxy_actor;
-extern const char* gLollipop_names[3];
-extern const char* gGroove_nature_names[2];
-extern const char* gGroove_path_names[2];
-extern const char* gGroove_object_names[4];
-extern const char* gAxis_names[3];
-
-/* based on the REA pseudocode for 0x476470 (inlines AddNewGroovidelic) */
-
-/* (inlined into MungeSmashMaterialNames in the original) */
-static __inline void SplondificatalizeIdentifierInline(br_material* pMaterial, char** ppIdentifier, int pIndex) {
-    int len;
-    char original_suffix[64];
-    char new_identifier[64];
-    char* suffix_ptr;
-
-    strcpy(new_identifier, *ppIdentifier);
-    len = strlen(new_identifier);
-    if (len < 4) {
-        sprintf(new_identifier, "Smash material %s has a name that is less than 4 characters long", *ppIdentifier);
-        PDFatalError(new_identifier);
-    }
-    suffix_ptr = new_identifier + len - 4;
-    strcpy(original_suffix, suffix_ptr);
-    sprintf(suffix_ptr, "        ");
-    sprintf(&new_identifier[5], "%cx", '|');
-    new_identifier[6] = (char)(pIndex + 1);
-    strcat(new_identifier, original_suffix);
-    new_identifier[11] = '\0';
-    if (strlen(*ppIdentifier) < 12) {
-        BrResFree(*ppIdentifier);
-        *ppIdentifier = BrResStrDup(pMaterial, new_identifier);
-    } else {
-        strcpy(*ppIdentifier, new_identifier);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004f0bc0
-void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
-    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
-    extern int gCount_track_smashable_environment_specs;
-    int i;
-    tSmashable_item_spec* item_spec;
-
-    i = 0;
-    if (i < gCount_track_smashable_environment_specs) {
-        item_spec = gTrack_smashable_environment_specs;
-        do {
-            if (item_spec->trigger_type == kSmashableTrigger_Material) {
-                SplondificatalizeIdentifierInline(
-                    item_spec->trigger_object.material,
-                    &item_spec->trigger_object.material->identifier,
-                    i);
+            for (child = pActor->children; child != NULL; child = child->next) {
+                if (child->identifier[0] != '&') {
+                    break;
+                }
             }
-            i++;
-            item_spec++;
-        } while (i < gCount_track_smashable_environment_specs);
+            if (child != NULL) {
+                MungeFaces(child, child->model);
+            }
+        }
+        BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
+        if (gMr_blendy != NULL) {
+            int nverts;
+            int nfaces;
+            br_vertex* new_vertices;
+            br_face* new_faces;
+
+            model = gMr_blendy->model;
+            BrActorAdd(pTrack_spec->columns[z][x].actor_0x0, gMr_blendy);
+            gMr_blendy->model->flags |= BR_MODU_FACES;
+            BrModelAdd(gMr_blendy->model);
+            DetermineTilitudinality(gMr_blendy->model, &area1, &area2);
+
+            nverts = model->nvertices + area2;
+            nfaces = model->nfaces + area1;
+            new_vertices = BrResAllocate(gMr_blendy->model, nverts * sizeof(br_vertex), BR_MEMORY_VERTICES);
+            memcpy(new_vertices, gMr_blendy->model->vertices, gMr_blendy->model->nvertices * sizeof(br_vertex));
+            BrResFree(gMr_blendy->model->vertices);
+            gMr_blendy->model->vertices = new_vertices;
+
+            new_faces = BrResAllocate(gMr_blendy->model, nfaces * sizeof(br_face), BR_MEMORY_FACES);
+            memcpy(new_faces, gMr_blendy->model->faces, gMr_blendy->model->nfaces * sizeof(br_face));
+            BrResFree(gMr_blendy->model->faces);
+            gMr_blendy->model->faces = new_faces;
+
+            DRModelUpdateAndKevificateMaterials(gMr_blendy->model, BR_MODU_ALL);
+            pTrack_spec->columns[z][x].actor_0x8 = gMr_blendy;
+        }
+    } else {
+        BrActorEnum(pActor, ProcessModelsCB, pTrack_spec);
+    }
+    SetSmashableModel(pActor);
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0040d1f0
+intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
+    extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+    extern void C2_HOOK_FASTCALL SmoothificatePowerups(br_actor* pActor);
+    extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
+    extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
+    char s[256];
+    tTrack_spec* pTrack_spec;
+    br_scalar n0;
+    br_scalar n1;
+    br_scalar n2;
+    br_scalar m0;
+    br_scalar m1;
+    br_scalar m2;
+
+    pTrack_spec = pData;
+    SetSmashableModel(pActor);
+    if (pActor->identifier[0] == '&' && pActor->model == NULL) {
+        sprintf(s, "Accessory %s has no model. Well how does it pose? Awful!", pActor->identifier);
+        PDFatalError(s);
+    }
+    if (pActor->identifier[0] == '&' && '0' <= pActor->identifier[1] && pActor->identifier[1] <= '9') {
+        int id;
+
+        id = pActor->identifier[7] + 10 * (pActor->identifier[6] + 10 * (pActor->identifier[5] + 10 * pActor->identifier[4])) - 53328;
+        if (id < 0 || id >= pTrack_spec->count_non_cars) {
+            return 1;
+        }
+        n0 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[0]);
+        n1 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[1]);
+        n2 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[2]);
+        if (n0 < 0.999 || n1 < 0.999 || n2 < 0.999) {
+            dr_dprintf("non car was scaled down %s", pActor->identifier);
+            pActor->t.t.translate.t.v[0] -= -2000.f;
+        }
+        if (n0 > 1.001 || n1 > 1.001 || n2 > 1.001) {
+            m0 = 1.0 / sqrt(n0);
+            m1 = 1.0 / sqrt(n1);
+            m2 = 1.0 / sqrt(n2);
+            pActor->t.t.mat.m[0][0] *= m0;
+            pActor->t.t.mat.m[0][1] *= m0;
+            pActor->t.t.mat.m[0][2] *= m0;
+            pActor->t.t.mat.m[1][0] *= m1;
+            pActor->t.t.mat.m[1][1] *= m1;
+            pActor->t.t.mat.m[1][2] *= m1;
+            pActor->t.t.mat.m[2][0] *= m2;
+            pActor->t.t.mat.m[2][1] *= m2;
+            pActor->t.t.mat.m[2][2] *= m2;
+            dr_dprintf("non car was scaled up %s", pActor->identifier);
+        }
+        pTrack_spec->non_car_list[id] = pActor;
+        pActor->type_data = NULL;
+        return 0;
+    }
+    if (pActor != NULL && pActor->identifier != NULL && pActor->identifier[1] == '\xa3') {
+        int id;
+
+        SmoothificatePowerups(pActor);
+        id = TEXT_TO_NUMBER_2(&pActor->identifier[2]);
+        if (66 <= id && id < 86) {
+            SetSpinningPowerup(pActor, 0);
+        } else if (86 <= id && id < 88) {
+            SetChangingPowerup(pActor);
+        }
+    }
+    return BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
+}
+
+// FUNCTION: CARMA2_HW 0x0040d530
+void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
+    int i;
+    int j;
+    int k;
+    br_face* face;
+    br_face* blendy_face;
+    br_vertex* bv;
+    int changed_one;
+
+    changed_one = 0;
+
+    for (i = 0, face = pModel->faces; i < pModel->nfaces; i++, face++) {
+        SpawnPedsOnFace(face, pModel);
+#ifdef REC2_MATCHING
+        if (((int (C2_HOOK_FASTCALL *)(br_material*, br_model*))SmashFaceMustBeUpdateable)(face->material, pModel))
+#else
+        if (SmashFaceMustBeUpdateable(face->material))
+#endif
+        {
+            if (gMr_blendy == NULL) {
+                gMr_blendy = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+                gMr_blendy->render_style = BR_RSTYLE_FACES;
+                gMr_blendy->model = BrModelAllocate(NULL, 2000, 2000);
+                gMr_blendy->model->nfaces = 0;
+                gMr_blendy->model->nvertices = 0;
+                gMr_blendy->model->flags |= BR_MODF_UPDATEABLE;
+            }
+            blendy_face = &gMr_blendy->model->faces[gMr_blendy->model->nfaces];
+            gMr_blendy->model->nfaces += 1;
+            memcpy(blendy_face, face, sizeof(br_face));
+            for (j = 0; j < 3; j++) {
+                br_vertex* vertex_j = &pModel->vertices[face->vertices[j]];
+                for (k = 0, bv = gMr_blendy->model->vertices; k < gMr_blendy->model->nvertices; k++, bv++) {
+                    if (Vector3Equals(&bv->p, &vertex_j->p)
+                            && Vector2Equals(&bv->map, &vertex_j->map)) {
+                        blendy_face->vertices[j] = k;
+                        vertex_j = NULL;
+                        break;
+                    }
+                }
+                if (vertex_j != NULL) {
+                    blendy_face->vertices[j] = gMr_blendy->model->nvertices;
+                    memcpy(&gMr_blendy->model->vertices[gMr_blendy->model->nvertices], vertex_j, sizeof(br_vertex));
+                    gMr_blendy->model->nvertices += 1;
+                }
+            }
+            if (i < pModel->nfaces - 1) {
+                memmove(&pModel->faces[i], &pModel->faces[i + 1], (pModel->nfaces - (i + 1)) * sizeof(br_vertex));
+            }
+            pModel->nfaces -= 1;
+            i -= 1;
+            face = &pModel->faces[i];
+            changed_one = 1;
+        }
+    }
+    if (changed_one) {
+        if (pModel->nfaces != 0) {
+            BrModelUpdate(pModel, BR_MODU_ALL);
+        } else {
+            pActor->model = NULL;
+            pActor->render_style = BR_RSTYLE_NONE;
+        }
     }
 }
 
@@ -1629,245 +1536,109 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
     }
 }
 
-// FUNCTION: CARMA2_HW 0x0040d530
-void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
-    int i;
-    int j;
-    int k;
-    br_face* face;
-    br_face* blendy_face;
-    br_vertex* bv;
-    int changed_one;
-
-    changed_one = 0;
-
-    for (i = 0, face = pModel->faces; i < pModel->nfaces; i++, face++) {
-        SpawnPedsOnFace(face, pModel);
 #ifdef REC2_MATCHING
-        if (((int (C2_HOOK_FASTCALL *)(br_material*, br_model*))SmashFaceMustBeUpdateable)(face->material, pModel)) {
-#else
-        if (SmashFaceMustBeUpdateable(face->material)) {
+#pragma auto_inline(on)
 #endif
-            if (gMr_blendy == NULL) {
-                gMr_blendy = BrActorAllocate(BR_ACTOR_MODEL, NULL);
-                gMr_blendy->render_style = BR_RSTYLE_FACES;
-                gMr_blendy->model = BrModelAllocate(NULL, 2000, 2000);
-                gMr_blendy->model->nfaces = 0;
-                gMr_blendy->model->nvertices = 0;
-                gMr_blendy->model->flags |= BR_MODF_UPDATEABLE;
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+extern tCollision_shape_polyhedron* C2_HOOK_FASTCALL AllocateShapePolyhedron(int pCount_points, int pType);
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00488b00
+void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
+    int count;
+
+    count = GetAnInt(pF);
+
+    for (; count > 0; count--) {
+        char s[256];
+        tPhysics_shape* shape;
+
+        GetAString(pF, s);
+        if (DRStricmp(s, "box") == 0) {
+            float a1, a2, a3;
+            float b1, b2, b3;
+
+            shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
+            GetThreeFloats(pF, &a1, &a2, &a3);
+            shape->box.common.bb.min.v[0] = a1;
+            shape->box.common.bb.min.v[1] = a2;
+            shape->box.common.bb.min.v[2] = a3;
+            GetThreeFloats(pF, &b1, &b2, &b3);
+            shape->box.common.bb.max.v[0] = b1;
+            shape->box.common.bb.max.v[1] = b2;
+            shape->box.common.bb.max.v[2] = b3;
+        } else if (DRStricmp(s, "polyhedron") == 0) {
+            int count_points;
+            int j;
+            float p1, p2, p3;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 32) {
+                sprintf(s, "Ow! Physics shape is mad (having %d points is silly)", count_points);
+                PDFatalError(s);
             }
-            blendy_face = &gMr_blendy->model->faces[gMr_blendy->model->nfaces];
-            gMr_blendy->model->nfaces += 1;
-            memcpy(blendy_face, face, sizeof(br_face));
-            for (j = 0; j < 3; j++) {
-                br_vertex* vertex_j = &pModel->vertices[face->vertices[j]];
-                for (k = 0, bv = gMr_blendy->model->vertices; k < gMr_blendy->model->nvertices; k++, bv++) {
-                    if (Vector3Equals(&bv->p, &vertex_j->p)
-                            && Vector2Equals(&bv->map, &vertex_j->map)) {
-                        blendy_face->vertices[j] = k;
-                        vertex_j = NULL;
-                        break;
-                    }
-                }
-                if (vertex_j != NULL) {
-                    blendy_face->vertices[j] = gMr_blendy->model->nvertices;
-                    memcpy(&gMr_blendy->model->vertices[gMr_blendy->model->nvertices], vertex_j, sizeof(br_vertex));
-                    gMr_blendy->model->nvertices += 1;
-                }
+            shape = (tPhysics_shape*)AllocateShapePolyhedron(count_points, kMem_collision_shape);
+
+            shape->polyhedron.polyhedron.count_points = count_points;
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &p1, &p2, &p3);
+                shape->polyhedron.polyhedron.points[j].v[0] = p1;
+                shape->polyhedron.polyhedron.points[j].v[1] = p2;
+                shape->polyhedron.polyhedron.points[j].v[2] = p3;
             }
-            if (i < pModel->nfaces - 1) {
-                memmove(&pModel->faces[i], &pModel->faces[i + 1], (pModel->nfaces - (i + 1)) * sizeof(br_vertex));
+        } else if (DRStricmp(s, "sphere") == 0) {
+            float c1, c2, c3;
+
+            shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
+
+            shape->sphere.sphere.radius = GetAScalar(pF);
+            GetThreeFloats(pF, &c1, &c2, &c3);
+            shape->sphere.sphere.center.v[0] = c1;
+            shape->sphere.sphere.center.v[1] = c2;
+            shape->sphere.sphere.center.v[2] = c3;
+        } else if (DRStricmp(s, "wire") == 0) {
+            br_vector3 points[64];
+            int count_points;
+            int count_lines;
+            int j;
+            float w1, w2, w3;
+            int index1, index2;
+            br_vector3* dst_points;
+            tPolyhedron_edge_indexes* dst_lines;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 64) {
+                FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, " Too many points in wire frame shape ");
             }
-            pModel->nfaces -= 1;
-            i -= 1;
-            face = &pModel->faces[i];
-            changed_one = 1;
-        }
-    }
-    if (changed_one) {
-        if (pModel->nfaces != 0) {
-            BrModelUpdate(pModel, BR_MODU_ALL);
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &w1, &w2, &w3);
+                points[j].v[0] = w1;
+                points[j].v[1] = w2;
+                points[j].v[2] = w3;
+            }
+            count_lines = GetAnInt(pF);
+            shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(count_points, count_lines, kMem_collision_shape);
+
+            dst_points = shape->wireframe.wireframe.points;
+            for (j = 0; j < count_points; j++) {
+                dst_points[j] = points[j];
+            }
+            dst_lines = shape->wireframe.wireframe.lines;
+            for (j = 0; j < count_lines; j++) {
+                GetPairOfInts(pF, &index1, &index2);
+                dst_lines[j].index1 = index1;
+                dst_lines[j].index2 = index2;
+            }
         } else {
-            pActor->model = NULL;
-            pActor->render_style = BR_RSTYLE_NONE;
+            FatalError(kFatalError_ShapeDataIsWrong);
         }
+        FillInShape(shape);
+        *pShape = shape;
+        pShape = &shape->common.next;
     }
-}
-
-// FUNCTION: CARMA2_HW 0x004f5ae0
-void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2) {
-    int i;
-
-    *pArea1 = 0;
-    *pArea2 = 0;
-
-    for (i = 0; i < V11MODEL(pModel)->ngroups; i++) {
-        int j;
-        fmt_vertex* vertices = V11MODEL(pModel)->groups[i].vertices;
-        v11face* v11f = V11MODEL(pModel)->groups[i].faces;
-
-        for (j = V11MODEL(pModel)->groups[i].nfaces; j > 0; j--, v11f++) {
-            int k;
-            br_vector2 min = {{ 10000.f, 10000.f }};
-            br_vector2 max = {{ -10000.f, -10000.f }};
-            int dx;
-            int dy;
-            int area;
-
-            for (k = 0; k < 3; k++) {
-                fmt_vertex* vertex = vertices + v11f->vertices[k];
-
-                if (vertex->map.v[0] < min.v[0]) {
-                    min.v[0] = vertex->map.v[0];
-                }
-                if (vertex->map.v[0] > max.v[0]) {
-                    max.v[0] = vertex->map.v[0];
-                }
-                if (vertex->map.v[1] < min.v[1]) {
-                    min.v[1] = vertex->map.v[1];
-                }
-                if (vertex->map.v[1] > max.v[1]) {
-                    max.v[1] = vertex->map.v[1];
-                }
-            }
-            /* The originals subtract a negative double-precision constant. */
-            dy = (int)(max.v[1] - min.v[1] - -0.9);
-            dx = (int)(max.v[0] - min.v[0] - -0.9);
-            area = dx * dy;
-            *pArea1 += area;
-            *pArea2 += area;
-        }
-    }
-    *pArea1 += 50;
-    *pArea2 += 50;
-    if (*pArea1 > 250) {
-        *pArea1 = 250;
-    }
-    if (*pArea2 > 250) {
-        *pArea2 = 250;
-    }
-}
-
-// PARTIAL 100% effective (not exact, 2026-11-08): only residual is a 3-instruction register-role swap in the model
-// comparison - original loads spec->trigger_object.model into ecx and pActor->model into eax (the running base dies
-// there); MSVC 11 reuses eax as the load destination and puts pActor->model in ecx. Operand order (each way), nested
-// ifs and the short-circuit form all compile identically. 94.05 -> effective came from the guard + do/while loop shape.
-// FUNCTION: CARMA2_HW 0x004f5cb0
-void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
-    extern int gCount_track_smashable_environment_specs;
-    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
-    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
-    int i;
-    tSmashable_item_spec* spec;
-
-    if (pActor->model == NULL || pActor->model->identifier == NULL) {
-        return;
-    }
-    i = 0;
-    if (i < gCount_track_smashable_environment_specs) {
-        spec = gTrack_smashable_environment_specs;
-        do {
-            if (spec->trigger_type == kSmashableTrigger_Model && spec->trigger_object.model == pActor->model) {
-                char s[64];
-                char s2[64];
-                int len;
-
-                strcpy(s, pActor->identifier);
-                len = strlen(s);
-                if (len < 4) {
-                    sprintf(s, "Smash material %s has a name that is less than 4 characters long", pActor->identifier);
-                    PDFatalError(s);
-                }
-                strcpy(s2, &s[len - 4]);
-                sprintf(&s[len - 4], "        ");
-                sprintf(&s[5], "%cx", '|');
-                s[6] = i + 1;
-                strcat(s, s2);
-                s[11] = '\0';
-                if (strlen(pActor->identifier) < 12) {
-                    BrResFree(pActor->identifier);
-                    pActor->identifier = BrResStrDup(pActor, s);
-                } else {
-                    strcpy(pActor->identifier, s);
-                }
-
-                if ((gCurrent_race.race_spec->race_type >= 4 && *(tU16*)((char*)spec + 0x2ac) == gCurrent_race.race_spec->options.cars.count_opponents)
-                        || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_2 && *(tU16*)((char*)spec + 0x2ac) == 1)) {
-                    AddSmashTarget(pActor->model, pActor, -1);
-                }
-            }
-            i++;
-            spec++;
-        } while (i < gCount_track_smashable_environment_specs);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0040d1f0
-intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
-    extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-    extern void C2_HOOK_FASTCALL SmoothificatePowerups(br_actor* pActor);
-    extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
-    extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
-    char s[256];
-    tTrack_spec* pTrack_spec;
-    br_scalar n0;
-    br_scalar n1;
-    br_scalar n2;
-    br_scalar m0;
-    br_scalar m1;
-    br_scalar m2;
-
-    pTrack_spec = pData;
-    SetSmashableModel(pActor);
-    if (pActor->identifier[0] == '&' && pActor->model == NULL) {
-        sprintf(s, "Accessory %s has no model. Well how does it pose? Awful!", pActor->identifier);
-        PDFatalError(s);
-    }
-    if (pActor->identifier[0] == '&' && '0' <= pActor->identifier[1] && pActor->identifier[1] <= '9') {
-        int id;
-
-        id = pActor->identifier[7] + 10 * (pActor->identifier[6] + 10 * (pActor->identifier[5] + 10 * pActor->identifier[4])) - 53328;
-        if (id < 0 || id >= pTrack_spec->count_non_cars) {
-            return 1;
-        }
-        n0 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[0]);
-        n1 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[1]);
-        n2 = BrVector3LengthSquared((br_vector3*)pActor->t.t.mat.m[2]);
-        if (n0 < 0.999 || n1 < 0.999 || n2 < 0.999) {
-            dr_dprintf("non car was scaled down %s", pActor->identifier);
-            pActor->t.t.translate.t.v[0] -= -2000.f;
-        }
-        if (n0 > 1.001 || n1 > 1.001 || n2 > 1.001) {
-            m0 = 1.0 / sqrt(n0);
-            m1 = 1.0 / sqrt(n1);
-            m2 = 1.0 / sqrt(n2);
-            pActor->t.t.mat.m[0][0] *= m0;
-            pActor->t.t.mat.m[0][1] *= m0;
-            pActor->t.t.mat.m[0][2] *= m0;
-            pActor->t.t.mat.m[1][0] *= m1;
-            pActor->t.t.mat.m[1][1] *= m1;
-            pActor->t.t.mat.m[1][2] *= m1;
-            pActor->t.t.mat.m[2][0] *= m2;
-            pActor->t.t.mat.m[2][1] *= m2;
-            pActor->t.t.mat.m[2][2] *= m2;
-            dr_dprintf("non car was scaled up %s", pActor->identifier);
-        }
-        pTrack_spec->non_car_list[id] = pActor;
-        pActor->type_data = NULL;
-        return 0;
-    }
-    if (pActor != NULL && pActor->identifier != NULL && pActor->identifier[1] == '\xa3') {
-        int id;
-
-        SmoothificatePowerups(pActor);
-        id = TEXT_TO_NUMBER_2(&pActor->identifier[2]);
-        if (66 <= id && id < 86) {
-            SetSpinningPowerup(pActor, 0);
-        } else if (86 <= id && id < 88) {
-            SetChangingPowerup(pActor);
-        }
-    }
-    return BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
 }
 
 /* (inlined into SpawnPedsOnFace in the original) */
@@ -2055,10 +1826,47 @@ found:
     ped_spec->field_0x10 = fNew_ped_count - new_ped_count;
 }
 
+// FUNCTION: CARMA2_HW 0x004d3360
+void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+    tPhysics_object* collision_info;
+
+    if (pCharacter->field_0x14 & 0x1) {
+        collision_info = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+    } else {
+        collision_info = GetRootObject(pCharacter);
+    }
+    if (!gAction_replay_mode || gBOOL_00744804) {
+        if (!(pCharacter->field_0x14 & 0x4) && gProgram_state.racing) {
+            PipeSinglePedDir((((short)pCharacter->ped->field_0x06) << 16) | (pCharacter->ped - gPedestrian_array), pDir);
+        }
+        SetCharacterDirection(pCharacter, pDir, pUp);
+        if (gProgram_state.racing && OrientationChanged(&collision_info->transform_matrix, &collision_info->actor->t.t.mat, .7f)) {
+            AssertRootObjectsMatrix(pCharacter);
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004d3520
+void C2_HOOK_FASTCALL FinishUpLoadingPeds(void) {
+    extern int gPed_count;
+    extern tPedestrian* gPedestrian_array;
+    tPedestrian* new_pedestrians;
+    int i;
+
+    dr_dprintf("%d pedestrians, %d bytes each, total = %d bytes\n", gPed_count, sizeof(tRace_pedestrian), gPed_count * sizeof(tRace_pedestrian));
+    new_pedestrians = BrMemAllocate(gPed_count * sizeof(tPedestrian), kMem_ped_array);
+    memcpy(new_pedestrians, gPedestrian_array, gPed_count * sizeof(tPedestrian));
+    BrMemFree(gPedestrian_array);
+    gPedestrian_array = new_pedestrians;
+    for (i = 0; i < gPed_count; i++) {
+        gPedestrian_array[i].character->ped = &gPedestrian_array[i];
+    }
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // GLOBAL: CARMA2_HW 0x0065fe88
 const char* gSmashable_item_mode_names[6] = {
     "nochange",
@@ -2079,7 +1887,6 @@ int gMax_count_non_cars;
 // GLOBAL: CARMA2_HW 0x00655df0
 br_vector3 gY_unit_vector = { { 0.f, 1.f, 0.f } };
 
-extern tPed_personality* gPed_personalities[50];
 extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
 
 static tPed_personality* FindOrOpenPersonality(const char* pName) {
@@ -2096,11 +1903,6 @@ static tPed_personality* FindOrOpenPersonality(const char* pName) {
     return ReadPersonality(pName);
 }
 
-extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
-extern void C2_HOOK_FASTCALL PipeSinglePedDir(int pId, const br_vector3* pDir);
-extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
-extern tPedestrian* gPedestrian_array;
-extern int gBOOL_00744804;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2112,10 +1914,10 @@ static int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1
         || BrVector3Dot((br_vector3*)pOrientation_1->m[1], (br_vector3*)pOrientation_2->m[1]) < pCos_angle
         || BrVector3Dot((br_vector3*)pOrientation_1->m[2], (br_vector3*)pOrientation_2->m[2]) < pCos_angle;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004d57c0
 // PARTIAL 93.33%: load order of [ecx] vs movsx differs
 void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
@@ -2141,1059 +1943,351 @@ void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
     collision_info->flags |= 0x100;
 }
 
-extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
-extern tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType);
-extern tCollision_shape_polyhedron* C2_HOOK_FASTCALL AllocateShapePolyhedron(int pCount_points, int pType);
-extern tCollision_shape_wireframe* C2_HOOK_FASTCALL AllocateWireFrameCollisionShape(int pCount_points, int pCount_lines, int pType);
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
+// GLOBAL: CARMA2_HW 0x00660e90
+const char* gDepth_effect_names[3] = {
+    "dark",
+    "fog",
+    "colour",
+};
+
+// GLOBAL: CARMA2_HW 0x00761a80
+char gCurrent_load_name[256];
+
+// GLOBAL: CARMA2_HW 0x006b6400
+char gAdditional_model_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6500
+char gAdditional_actor_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6620
+br_model* gAdditional_models[1000];
+
+// GLOBAL: CARMA2_HW 0x006ab948
+int gNumber_of_additional_models;
+
+// GLOBAL: CARMA2_HW 0x006b6600
+br_actor* gLast_actor;
+
+// GLOBAL: CARMA2_HW 0x0079ec2e
+br_angle gSky_image_width;
+
+// GLOBAL: CARMA2_HW 0x0079ec2c
+br_angle gSky_image_height;
+
+// GLOBAL: CARMA2_HW 0x0079ec30
+br_angle gSky_image_underground;
+
+// GLOBAL: CARMA2_HW 0x0074caa8
+int gTrack_depth_colour_red;
+
+// GLOBAL: CARMA2_HW 0x0074cf2c
+int gTrack_depth_colour_green;
+
+// GLOBAL: CARMA2_HW 0x0074cad0
+int gTrack_depth_colour_blue;
+
+// GLOBAL: CARMA2_HW 0x0079ef40
+tS8 gNon_car_spec_indices[100];
+
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x004f0450
+void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
+    extern int gCount_smashable_noncars;
+    extern int gCount_smashable_noncar_shrapnel_actors;
+    extern tSmashable_environment_name* gSmashable_noncars;
+    extern int gCount_track_smashable_environment_specs;
+    extern int gCount_track_smashable_environment_specs_2;
+    extern int gCapacity_track_smashables;
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern const char* gSmashable_track_environment_path;
+    extern tSmashable_item_spec* gSmashable_track_indexable_triggers[100];
+    extern const char* gSmashable_item_mode_names[6];
+    extern const char* gRepeatability_names[4];
+    extern int C2_HOOK_FASTCALL GetALineAndInterpretCommand(FILE* pF, const char** pString_list, int pCount);
+    extern void C2_HOOK_FASTCALL GetPairOfInts(FILE* pF, int* pF1, int* pF2);
+    extern void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs, int* pShrapnel_count);
+    extern void C2_HOOK_FASTCALL ReadExplosion(FILE* pF, tExplosion_animation* pAnimation);
+    extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
+    extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
+    extern void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects);
+    extern void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int* pCount, int pIs_texture_change, tBrender_storage* pStorage);
+    int i;
+    tSmashable_item_spec* spec;
+    int d1, d2;
+    int j;
+    int* snd;
+    tSmash_run_time_variable_change* chg;
+    char s[256];
+    char s2[256];
 
-// FUNCTION: CARMA2_HW 0x00488b00
-void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
-    int count;
+    gCount_smashable_noncars = 0;
+    gCount_smashable_noncar_shrapnel_actors = 0;
+    gSmashable_noncars = BrMemAllocate(100 * sizeof(tSmashable_environment_name), kMem_smashable_env_info);
 
-    count = GetAnInt(pF);
+    gCount_track_smashable_environment_specs = GetAnInt(pF);
+    gCount_track_smashable_environment_specs_2 = gCount_track_smashable_environment_specs;
+    gCapacity_track_smashables = 5 * (gCount_track_smashable_environment_specs + 30);
+    gTrack_smashable_environment_specs = BrMemAllocate(gCapacity_track_smashables * sizeof(tSmashable_item_spec), kMem_smashable_env_info);
+    gSmashable_track_environment_path = pPath;
+    memset(gSmashable_track_indexable_triggers, 0, sizeof(gSmashable_track_indexable_triggers));
 
-    for (; count > 0; count--) {
-        char s[256];
-        tPhysics_shape* shape;
+    spec = gTrack_smashable_environment_specs;
+    for (i = 0; i < gCount_track_smashable_environment_specs; i++, spec++) {
+
+        spec->flags = GetAnInt(pF);
+        spec->field_0x10 = 0;
 
         GetAString(pF, s);
-        if (DRStricmp(s, "box") == 0) {
-            float a1, a2, a3;
-            float b1, b2, b3;
-
-            shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
-            GetThreeFloats(pF, &a1, &a2, &a3);
-            shape->box.common.bb.min.v[0] = a1;
-            shape->box.common.bb.min.v[1] = a2;
-            shape->box.common.bb.min.v[2] = a3;
-            GetThreeFloats(pF, &b1, &b2, &b3);
-            shape->box.common.bb.max.v[0] = b1;
-            shape->box.common.bb.max.v[1] = b2;
-            shape->box.common.bb.max.v[2] = b3;
-        } else if (DRStricmp(s, "polyhedron") == 0) {
-            int count_points;
-            int j;
-            float p1, p2, p3;
-
-            count_points = GetAnInt(pF);
-            if (count_points > 32) {
-                sprintf(s, "Ow! Physics shape is mad (having %d points is silly)", count_points);
-                PDFatalError(s);
-            }
-            shape = (tPhysics_shape*)AllocateShapePolyhedron(count_points, kMem_collision_shape);
-
-            shape->polyhedron.polyhedron.count_points = count_points;
-            for (j = 0; j < count_points; j++) {
-                GetThreeFloats(pF, &p1, &p2, &p3);
-                shape->polyhedron.polyhedron.points[j].v[0] = p1;
-                shape->polyhedron.polyhedron.points[j].v[1] = p2;
-                shape->polyhedron.polyhedron.points[j].v[2] = p3;
-            }
-        } else if (DRStricmp(s, "sphere") == 0) {
-            float c1, c2, c3;
-
-            shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
-
-            shape->sphere.sphere.radius = GetAScalar(pF);
-            GetThreeFloats(pF, &c1, &c2, &c3);
-            shape->sphere.sphere.center.v[0] = c1;
-            shape->sphere.sphere.center.v[1] = c2;
-            shape->sphere.sphere.center.v[2] = c3;
-        } else if (DRStricmp(s, "wire") == 0) {
-            br_vector3 points[64];
-            int count_points;
-            int count_lines;
-            int j;
-            float w1, w2, w3;
-            int index1, index2;
-            br_vector3* dst_points;
-            tPolyhedron_edge_indexes* dst_lines;
-
-            count_points = GetAnInt(pF);
-            if (count_points > 64) {
-                FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, " Too many points in wire frame shape ");
-            }
-            for (j = 0; j < count_points; j++) {
-                GetThreeFloats(pF, &w1, &w2, &w3);
-                points[j].v[0] = w1;
-                points[j].v[1] = w2;
-                points[j].v[2] = w3;
-            }
-            count_lines = GetAnInt(pF);
-            shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(count_points, count_lines, kMem_collision_shape);
-
-            dst_points = shape->wireframe.wireframe.points;
-            for (j = 0; j < count_points; j++) {
-                dst_points[j] = points[j];
-            }
-            dst_lines = shape->wireframe.wireframe.lines;
-            for (j = 0; j < count_lines; j++) {
-                GetPairOfInts(pF, &index1, &index2);
-                dst_lines[j].index1 = index1;
-                dst_lines[j].index2 = index2;
+        if (s[0] == '&') {
+            if (s[1] >= '0' && s[1] <= '9' && s[3] == '\0') {
+                spec->trigger_type = kSmashableTrigger_Number;
+            } else {
+                spec->trigger_type = kSmashableTrigger_Model;
             }
         } else {
-            FatalError(kFatalError_ShapeDataIsWrong);
-        }
-        FillInShape(shape);
-        *pShape = shape;
-        pShape = &shape->common.next;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004079a0
-tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
-    tPed_character_instance* instance;
-
-    instance = BrMemAllocate(sizeof(tPed_character_instance), kBoner_mem_type_char_instance);
-    if (instance == NULL) {
-        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
-    }
-    instance->personality = FindOrOpenPersonality(pName);
-    instance->field_0x4 = 0xff;
-    instance->field_0x7 = 0xff;
-    instance->field_0x6 = 0xff;
-    instance->field_0x28 = 0;
-    instance->field_0x2c = *pMat;
-    instance->field_0x8 = 0xff;
-    instance->field_0x9 = 0;
-    instance->field_0xa = 0;
-    instance->field_0x14 = 0;
-    instance->field_0xc = 0;
-    BrMatrix34Identity(&instance->field_0x5c);
-    BrMatrix34Identity(&instance->field_0x8c);
-    return instance;
-}
-
-// FUNCTION: CARMA2_HW 0x004d3360
-void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
-    tPhysics_object* collision_info;
-
-    if (pCharacter->field_0x14 & 0x1) {
-        collision_info = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
-    } else {
-        collision_info = GetRootObject(pCharacter);
-    }
-    if (!gAction_replay_mode || gBOOL_00744804) {
-        if (!(pCharacter->field_0x14 & 0x4) && gProgram_state.racing) {
-            PipeSinglePedDir((((short)pCharacter->ped->field_0x06) << 16) | (pCharacter->ped - gPedestrian_array), pDir);
-        }
-        SetCharacterDirection(pCharacter, pDir, pUp);
-        if (gProgram_state.racing && OrientationChanged(&collision_info->transform_matrix, &collision_info->actor->t.t.mat, .7f)) {
-            AssertRootObjectsMatrix(pCharacter);
-        }
-    }
-}
-
-extern tPed_form* gPed_forms[20];
-extern tPedForms_vtable* gPed_vtable;
-extern br_material* gPedestrian_character_cloned_materials[50];
-extern int gCount_pedestrian_personality_cloned_materials;
-extern const char* gPed_personality_grounding_type_names[1];
-extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
-extern void C2_HOOK_FASTCALL BonerReadPersonalityModels(const char* pName);
-extern FILE* C2_HOOK_FASTCALL BonerOpenPersonality(const char* pName);
-extern FILE* C2_HOOK_FASTCALL BonerOpenDefaultMoves(const char* pName);
-extern tPhysics_joint* C2_HOOK_FASTCALL ClonePhysicsJoint(const tPhysics_joint* pJoint, int pType);
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* inlined in the original */
-static tPed_form* GetPedForm(const char* pName) {
-    int i;
-
-    for (i = 0; i < 20; i++) {
-        if (gPed_forms[i] != NULL && strcmp(pName, gPed_forms[i]->name) == 0) {
-            return gPed_forms[i];
-        }
-    }
-    return SetUpCharacterForm(pName);
-}
-
-/* inlined in the original */
-static void RemapVector(br_vector3* pV, const tPed_remap_bone* pRemap) {
-    int i;
-    br_vector3 original;
-
-    if (pRemap == NULL) {
-        return;
-    }
-    original = *pV;
-    for (i = 0; i < 3; i++) {
-        pV->v[i] = original.v[pRemap->general_remap[i] % 3];
-        if (pRemap->general_remap[i] >= 3) {
-            pV->v[i] = -pV->v[i];
-        }
-    }
-}
-
-/* inlined in the original */
-static void RemapModelAxis(br_model* pModel, const tPed_remap_bone* pRemap) {
-    int i;
-
-    if (pRemap != NULL) {
-        for (i = 0; i < pModel->nvertices; i++) {
-            RemapVector(&pModel->vertices[i].p, pRemap);
-        }
-    }
-    BrModelUpdate(pModel, BR_MODU_ALL);
-}
-
-/* inlined in the original; faces of the clone get the cloned material */
-static br_model* BonerCloneModel(br_model* pModel, int pIndex, int pUpdateable) {
-    char identifier[40];
-    char* str;
-    br_model* clone;
-    br_material* original_material;
-    br_material* cloned_material;
-    br_material* material;
-    int i;
-
-    strcpy(identifier, pModel->identifier);
-    str = strtok(identifier, ".");
-    sprintf(str + strlen(str), "%d.DAT", pIndex);
-    clone = BrModelAllocate(str, pModel->nvertices, pModel->nfaces);
-    memcpy(clone->vertices, pModel->vertices, pModel->nvertices * sizeof(br_vertex));
-    memcpy(clone->faces, pModel->faces, pModel->nfaces * sizeof(br_face));
-    strcpy(identifier, pModel->faces->material->identifier);
-    str = strtok(identifier, ".");
-    sprintf(str + strlen(str), "%d.MAT", pIndex);
-    original_material = pModel->faces[0].material;
-    cloned_material = BrMaterialFind(str);
-    if (cloned_material == NULL && gCount_pedestrian_personality_cloned_materials < 50) {
-        cloned_material = DRMaterialClone(original_material, 0);
-        cloned_material->identifier = BrResStrDup(cloned_material, str);
-        BrMaterialUpdate(cloned_material, BR_MATU_ALL);
-        gPedestrian_character_cloned_materials[gCount_pedestrian_personality_cloned_materials] = cloned_material;
-        gCount_pedestrian_personality_cloned_materials++;
-    }
-    for (i = 0; i < clone->nfaces; i++) {
-        material = pModel->faces[i].material;
-        if (material == original_material) {
-            clone->faces[i].material = cloned_material;
-        } else {
-            clone->faces[i].material = material;
-        }
-    }
-    if (pUpdateable) {
-        clone->flags |= BR_MODF_UPDATEABLE;
-    } else {
-        clone->flags &= ~BR_MODF_UPDATEABLE;
-    }
-    BrModelAdd(clone);
-    return clone;
-}
-
-/* inlined in the original */
-static float CalcBoundsRadius(const br_bounds3* pBounds) {
-    float v;
-    float r;
-
-    r = 0.f;
-    v = (float)fabs(pBounds->min.v[0]);
-    if (v > r) {
-        r = v;
-    }
-    v = (float)fabs(pBounds->min.v[1]);
-    if (v > r) {
-        r = v;
-    }
-    v = (float)fabs(pBounds->min.v[2]);
-    if (v > r) {
-        r = v;
-    }
-    v = (float)fabs(pBounds->max.v[0]);
-    if (v > r) {
-        r = v;
-    }
-    v = (float)fabs(pBounds->max.v[1]);
-    if (v > r) {
-        r = v;
-    }
-    v = (float)fabs(pBounds->max.v[2]);
-    if (v > r) {
-        r = v;
-    }
-    return r;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-/* control flow follows the original */
-// FUNCTION: CARMA2_HW 0x00406ab0
-tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
-    FILE* f;
-    FILE* move_f;
-    tPed_personality* personality;
-    char s[256];
-    char default_moves_file[40];
-    char bone_name[40];
-    int i;
-    int bone_index;
-    int model_i;
-    int j;
-    int k;
-    int m;
-    int done;
-    int move_id;
-    char* str;
-    char* next_str;
-    tPhysics_joint* hinge_copy;
-
-    f = BonerOpenPersonality(pName);
-    if (f == NULL) {
-        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
-    }
-    personality = BrMemAllocate(sizeof(tPed_personality), kBoner_mem_type_person);
-    if (personality == NULL) {
-        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
-    }
-
-    GetALineAndDontArgue(f, s);
-    personality->form = GetPedForm(s);
-    if (personality->form == NULL) {
-        FatalError(kFatalError_BonerError_UnableToLinkForm_to_personality_S, s);
-    }
-
-    GetALineAndDontArgue(f, default_moves_file);
-    BonerReadPersonalityModels(pName);
-
-    GetALineAndDontArgue(f, s);
-    if (strcmp("START OF BONES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
-    }
-
-    personality->bones = BrMemAllocate(personality->form->count_bones * sizeof(tPed_personality_bone), kBoner_mem_type_person_parts);
-    for (i = 0; i < personality->form->count_bones; i++) {
-        GetALineAndDontArgue(f, bone_name);
-        for (bone_index = 0; bone_index < personality->form->count_bones; bone_index++) {
-            if (strcmp(bone_name, personality->form->bones[bone_index].name) == 0) {
-                break;
+            if (strstr(s, ".DAT") != NULL || strstr(s, ".dat") != NULL || strstr(s, ".ACT") != NULL || strstr(s, ".act") != NULL) {
+                spec->trigger_type = kSmashableTrigger_Model;
+            } else {
+                spec->trigger_type = kSmashableTrigger_Material;
             }
         }
-        GetALineAndDontArgue(f, s);
-        if (DRStricmp(s, "NULL") != 0 && bone_index >= personality->form->count_bones) {
-            FatalError(kFatalError_BonerError_UnableToFindBone_S, bone_name);
+
+        switch (spec->trigger_type) {
+        case kSmashableTrigger_Material:
+            spec->trigger_object.material = BrMaterialFind(s);
+            if (spec->trigger_object.material == NULL) {
+                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+            }
+            break;
+        case kSmashableTrigger_Model:
+            spec->trigger_object.model = BrModelFind(s);
+            if (spec->trigger_object.model == NULL) {
+                FatalError(kFatalError_CannotFindSmashModel_S, s);
+            }
+            break;
+        case kSmashableTrigger_Number:
+            spec->trigger_object.number.field_0x0 = (s[1] + 24) * 10 + s[2];
+            spec->trigger_object.number.field_0x1 = GetAnInt(pF);
+            gSmashable_track_indexable_triggers[spec->trigger_object.number.field_0x0] = spec;
+            break;
         }
-        str = s;
-        model_i = 0;
+
+        spec->mode = GetALineAndInterpretCommand(pF, gSmashable_item_mode_names, REC2_ASIZE(gSmashable_item_mode_names));
+        if (spec->mode == kSmashableMode_Decal || spec->mode == kSmashableMode_TextureChange) {
+            spec->mode_data.texture_change.levels = NULL;
+            strcpy(spec->mode_data.texture_change.undefined_0x0, s2);
+            spec->mode_data.texture_change.field_0x40 = -1;
+            spec->mode_data.texture_change.trigger = spec->trigger_object;
+            spec->mode_data.texture_change.field_0x4c = 0;
+            spec->mode_data.texture_change.field_0x40 = -1;
+            spec->mode_data.texture_change.field_0x6c = 0;
+            spec->mode_data.texture_change.field_0x70 = 0;
+            spec->mode_data.texture_change.field_0x74 = 0;
+            spec->mode_data.texture_change.field_0x78 = 0;
+            spec->mode_data.texture_change.field_0x54 = 0.f;
+            spec->mode_data.texture_change.field_0x58 = 0.f;
+            spec->mode_data.texture_change.field_0x5c = 0.f;
+            spec->mode_data.texture_change.field_0x60 = 1.f;
+            spec->mode_data.texture_change.field_0x64 = 0.f;
+            spec->mode_data.texture_change.field_0x68 = 0.f;
+            ReadSmashLevels(pF, &spec->mode_data.texture_change.levels, &spec->mode_data.texture_change.count_levels, spec->mode == kSmashableMode_TextureChange, &gTrack_storage_space);
+        } else {
+            spec->mode_data.shrapnel.removal_threshold = GetAScalar(pF);
+            spec->mode_data.shrapnel.connotations.count_sounds = GetAnInt(pF);
+            for (j = 0, snd = spec->mode_data.shrapnel.connotations.sounds; j < spec->mode_data.shrapnel.connotations.count_sounds; j++, snd++) {
+                *snd = LoadSingleSound(&gTrack_storage_space, GetAnInt(pF));
+            }
+            ReadShrapnelSpec(pF, spec->mode_data.shrapnel.connotations.shrapnel, &spec->mode_data.shrapnel.connotations.count_shrapnel);
+            ReadExplosion(pF, &spec->mode_data.shrapnel.connotations.special_effects.explosion_animation);
+            ReadSpillData(pF, &spec->mode_data.shrapnel.connotations.special_effects.slick);
+            ReadNonCarCuboidActivation(pF, &spec->mode_data.shrapnel.connotations.side_effects.activations);
+            ReadShrapnelSideEffects(pF, &spec->mode_data.shrapnel.connotations.side_effects.side_effects);
+            spec->mode_data.shrapnel.connotations.side_effects.extension_flags = GetAnInt(pF);
+            if (spec->mode_data.shrapnel.connotations.side_effects.extension_flags & 0x1) {
+                spec->mode_data.shrapnel.connotations.side_effects.extension_arg = GetAnInt(pF);
+            }
+            spec->mode_data.shrapnel.connotations.side_effects.room_turn_on_code = GetAnInt(pF);
+            spec->mode_data.shrapnel.connotations.award.frequency = GetALineAndInterpretCommand(pF, gRepeatability_names, REC2_ASIZE(gRepeatability_names));
+            if (spec->mode_data.shrapnel.connotations.award.frequency != kRepeatability_None) {
+                spec->mode_data.shrapnel.connotations.award.field_0x4 = GetAScalar(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0x8 = GetAScalar(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0xc = GetAnInt(pF);
+                spec->mode_data.shrapnel.connotations.award.field_0x10 = GetAnInt(pF);
+            }
+            spec->mode_data.shrapnel.connotations.variable_changes.count = GetAnInt(pF);
+            for (j = 0, chg = spec->mode_data.shrapnel.connotations.variable_changes.runtime_changes; j < spec->mode_data.shrapnel.connotations.variable_changes.count; j++, chg++) {
+                GetPairOfInts(pF, &d1, &d2);
+                chg->field_0x2 = d1;
+                chg->field_0x0 = d2;
+            }
+        }
+        if (spec->mode == kSmashableMode_ReplaceModel) {
+            GetAString(pF, s2);
+            spec->replace.model = BrModelFind(s2);
+            if (spec->replace.model == NULL) {
+                FatalError(kFatalError_CannotFindSmashActorModel_S, s2);
+            }
+            spec->replace.smoke_fire_chance.chance_fire = GetAnInt(pF);
+            if (spec->replace.smoke_fire_chance.chance_fire != 0) {
+                spec->replace.smoke_fire_chance.model_1_int = GetAnInt(pF);
+                GetPairOfInts(pF, &spec->replace.smoke_fire_chance.model_2_int, &spec->replace.smoke_fire_chance.model_3_int);
+            }
+        }
+        GetAnInt(pF);
+        GetAnInt(pF);
+        GetAnInt(pF);
+        GetAnInt(pF);
+
+        spec->field_0x2d4 = 0;
+        spec->field_0x2d8 = 0;
+        spec->field_0x2dc = 0;
+    }
+    for (i = gCount_track_smashable_environment_specs; i < gCapacity_track_smashables; i++) {
+        gTrack_smashable_environment_specs[i].trigger_type = -1;
+    }
+}
+
+extern tFunk_temp_buffer* gFunk_temp_vertices;
+extern float gFunk_scalar;
+extern tCar_spec* gCurrent_car_spec;
+extern tFunkotronic_spec* gFunkotronics_array;
+extern int gFunkotronics_array_size;
+extern tGroove_funk_binding gGroove_funk_bindings[1440];
+extern const char* gFunk_nature_names[4];
+extern const char* gFunk_type_names[5];
+extern const char* gFunk_move_names[7];
+extern const char* gFunk_anim_names[4];
+extern const char* gTime_mode_names[2];
+extern const char* gCamera_animation_names[2];
+extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
+extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
+extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
+extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
+extern int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length);
+
+extern tGroovidelic_spec* gGroovidelics_array;
+extern int gGroovidelics_array_size;
+extern br_actor* gGroove_by_proxy_actor;
+extern const char* gLollipop_names[3];
+extern const char* gGroove_nature_names[2];
+extern const char* gGroove_path_names[2];
+extern const char* gGroove_object_names[4];
+extern const char* gAxis_names[3];
+
+/* based on the REA pseudocode for 0x476470 (inlines AddNewGroovidelic) */
+
+/* (inlined into MungeSmashMaterialNames in the original) */
+static __inline void SplondificatalizeIdentifierInline(br_material* pMaterial, char** ppIdentifier, int pIndex) {
+    int len;
+    char original_suffix[64];
+    char new_identifier[64];
+    char* suffix_ptr;
+
+    strcpy(new_identifier, *ppIdentifier);
+    len = strlen(new_identifier);
+    if (len < 4) {
+        sprintf(new_identifier, "Smash material %s has a name that is less than 4 characters long", *ppIdentifier);
+        PDFatalError(new_identifier);
+    }
+    suffix_ptr = new_identifier + len - 4;
+    strcpy(original_suffix, suffix_ptr);
+    sprintf(suffix_ptr, "        ");
+    sprintf(&new_identifier[5], "%cx", '|');
+    new_identifier[6] = (char)(pIndex + 1);
+    strcat(new_identifier, original_suffix);
+    new_identifier[11] = '\0';
+    if (strlen(*ppIdentifier) < 12) {
+        BrResFree(*ppIdentifier);
+        *ppIdentifier = BrResStrDup(pMaterial, new_identifier);
+    } else {
+        strcpy(*ppIdentifier, new_identifier);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004f0bc0
+void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern int gCount_track_smashable_environment_specs;
+    int i;
+    tSmashable_item_spec* item_spec;
+
+    i = 0;
+    if (i < gCount_track_smashable_environment_specs) {
+        item_spec = gTrack_smashable_environment_specs;
         do {
-            next_str = strchr(str, ',');
-            if (next_str != NULL) {
-                *next_str = '\0';
-                next_str++;
-            } else {
-                next_str = NULL;
+            if (item_spec->trigger_type == kSmashableTrigger_Material) {
+                SplondificatalizeIdentifierInline(
+                    item_spec->trigger_object.material,
+                    &item_spec->trigger_object.material->identifier,
+                    i);
             }
-            if (DRStricmp(str, "NULL") != 0) {
-                personality->bones[bone_index].models[model_i].models[0] = BrModelFind(str);
-                if (personality->bones[bone_index].models[model_i++].models[0] == NULL) {
-                    FatalError(kFatalError_BonerError_UnableToFindModel_S, str);
-                }
-                RemapModelAxis(personality->bones[bone_index].models[model_i - 1].models[0], personality->form->bones[bone_index].remapped_bone);
-            }
-            str = next_str;
-        } while (str != NULL);
-        for (j = 0; j < 4; j++) {
-            if (personality->bones[bone_index].models[j].models[0] == NULL) {
-                break;
-            }
-            for (k = 1; k < 2; k++) {
-                personality->bones[bone_index].models[j].models[k] = BonerCloneModel(personality->bones[bone_index].models[j].models[0], k, 1);
-            }
-            personality->bones[bone_index].models[j].models[0]->flags |= BR_MODF_UPDATEABLE;
-            BrModelUpdate(personality->bones[bone_index].models[j].models[0], BR_MODU_ALL);
-        }
-        if (personality->form->bones[bone_index].indices[0] >= 0) {
-            GetAVector3(f, &personality->bones[bone_index].field_0x20);
-            RemapVector(&personality->bones[bone_index].field_0x20, personality->form->bones[bone_index].remapped_bone);
-            GetAVector3(f, &personality->bones[bone_index].field_0x2c);
-            RemapVector(&personality->bones[bone_index].field_0x2c, personality->form->bones[personality->form->bones[bone_index].indices[0]].remapped_bone);
-            if (personality->form->bones[bone_index].hinge != NULL) {
-                hinge_copy = ClonePhysicsJoint(personality->form->bones[bone_index].hinge, kMem_physics_joint);
-                BrVector3Copy(&hinge_copy->field_0x08, &personality->bones[bone_index].field_0x20);
-                BrVector3Copy(&hinge_copy->field_0x14, &personality->bones[bone_index].field_0x2c);
-                personality->bones[bone_index].hinge = hinge_copy;
-            }
-        }
+            i++;
+            item_spec++;
+        } while (i < gCount_track_smashable_environment_specs);
     }
-    personality->M = personality->form->simple_physicing[0].collision_info->M;
-    GetALineAndDontArgue(f, s);
-    if (strcmp("END OF BONES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "END OF BONES");
-    }
-    GetALineAndDontArgue(f, s);
-    if (strcmp("START OF MOVES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
-    }
-
-    personality->moves = BrMemAllocate(personality->form->count_moves * sizeof(tPed_personality_move), kBoner_mem_type_person_moves);
-    for (k = 0; k < personality->form->count_moves; k++) {
-        personality->moves[k].scale_factor = 1.f;
-        personality->moves[k].grounding_mode = ePed_personality_floating;
-    }
-    move_f = BonerOpenDefaultMoves(default_moves_file);
-    if (move_f == NULL) {
-        FatalError(kFatalError_BonerError_UnableToOpenFile_S, default_moves_file);
-    }
-    GetALineAndDontArgue(move_f, s);
-    if (strcmp("START OF MOVES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
-    }
-    do {
-        GetALineAndDontArgue(move_f, s);
-        done = strcmp(s, "END OF MOVES") == 0;
-        if (!done) {
-            str = strtok(s, "\t ,/");
-            sscanf(str, "%d", &move_id);
-            for (m = 0; m < personality->form->count_moves; m++) {
-                if (personality->form->moves[m].id == move_id) {
-                    personality->moves[m].scale_factor = GetAScalar(move_f);
-                    personality->moves[m].grounding_mode = GetALineAndInterpretCommand(move_f, gPed_personality_grounding_type_names, 1);
-                    personality->moves[m].grounding_offset = GetAScalar(move_f);
-                    break;
-                }
-            }
-            if (m == personality->form->count_moves) {
-                sprintf(s, "%s/%d", personality->name, move_id);
-                FatalError(kFatalError_BonerError_IllegalMoveID_S, s);
-            }
-        }
-        if (PFfeof(move_f) || done) {
-            if (move_f != f) {
-                PFfclose(move_f);
-                move_f = f;
-            } else {
-                move_f = NULL;
-            }
-        }
-    } while (move_f != NULL);
-
-    GetAVector3(f, &personality->bb.min);
-    GetAVector3(f, &personality->bb.max);
-    RemapVector(&personality->bb.min, personality->form->bones[0].remapped_bone);
-    RemapVector(&personality->bb.max, personality->form->bones[0].remapped_bone);
-    if (personality->bb.min.v[0] > personality->bb.max.v[0]) {
-        float tv;
-        tv = personality->bb.min.v[0];
-        personality->bb.min.v[0] = personality->bb.max.v[0];
-        personality->bb.max.v[0] = tv;
-    }
-    if (personality->bb.min.v[1] > personality->bb.max.v[1]) {
-        float tv;
-        tv = personality->bb.min.v[1];
-        personality->bb.min.v[1] = personality->bb.max.v[1];
-        personality->bb.max.v[1] = tv;
-    }
-    if (personality->bb.min.v[2] > personality->bb.max.v[2]) {
-        float tv;
-        tv = personality->bb.min.v[2];
-        personality->bb.min.v[2] = personality->bb.max.v[2];
-        personality->bb.max.v[2] = tv;
-    }
-    GetAVector3(f, &personality->centre_of_mass);
-    RemapVector(&personality->centre_of_mass, personality->form->bones[0].remapped_bone);
-    personality->radius = CalcBoundsRadius(&personality->bb);
-
-    if (gPed_vtable->load_personality != NULL) {
-        gPed_vtable->load_personality(personality, f);
-    }
-    PFfclose(f);
-    strcpy(personality->name, pName);
-    for (i = 0; i < 50; i++) {
-        if (gPed_personalities[i] == NULL) {
-            gPed_personalities[i] = personality;
-            return personality;
-        }
-    }
-    FatalError(kFatalError_BonerError_TooManyPersonalitiesLoaded, 0);
 }
 
-extern FILE* C2_HOOK_FASTCALL BonerOpenCharacterForm(const char* pName);
-extern FILE* C2_HOOK_FASTCALL BonerOpenMoves(const char* pName);
-extern FILE* C2_HOOK_FASTCALL BonerOpenRemaps(const char* pFile_name);
-extern tPed_remap* gPed_remaps[10];
-extern const char* gPed_remap_axis_choices[6];
-extern tPed_move* gPed_moves[250];
-extern tPhysics_joint* C2_HOOK_FASTCALL AllocatePhysicsJoint(int pCount_limits, int pType);
-extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
-extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
-extern float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees);
-extern float gFloat_sine_table[91];
-extern const br_vector3 g_Ped_x_unit_vector;
-extern const br_vector3 g_Ped_y_unit_vector;
-extern const br_vector3 g_Ped_z_unit_vector;
-extern const char* gPed_form_collision_type_names[9];
-extern const char* gPed_form_bone_joint_type_names[10];
-extern const char* gPed_form_joint_limit_type_names[2];
-extern const br_vector3 g_Ped_x_unit_vector;
-extern const br_vector3 g_Ped_y_unit_vector;
-extern const br_vector3 g_Ped_z_unit_vector;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* BrVector3Cross as an inlined helper (operand order of the original) */
-static void PedVector3Cross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    BrVector3Cross(pDest, pA, pB);
-}
-
-/* inlined in the original */
-static tPed_remap* FindOrOpenRemap(const char* pName) {
+// FUNCTION: CARMA2_HW 0x004f5ae0
+void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2) {
     int i;
 
-    for (i = 0; i < 10; i++) {
-        if (gPed_remaps[i] != NULL && strcmp(pName, gPed_remaps[i]->name) == 0) {
-            return gPed_remaps[i];
-        }
-    }
-    return ReadRemap(pName);
-}
+    *pArea1 = 0;
+    *pArea2 = 0;
 
-/* inlined in the original */
-static void Flip3DStoBRaxes(br_matrix34* pMat) {
-    br_vector3 tv;
-    float f;
+    for (i = 0; i < V11MODEL(pModel)->ngroups; i++) {
+        int j;
+        fmt_vertex* vertices = V11MODEL(pModel)->groups[i].vertices;
+        v11face* v11f = V11MODEL(pModel)->groups[i].faces;
 
-    BrVector3Copy(&tv, (br_vector3*)pMat->m[1]);
-    BrVector3Copy((br_vector3*)pMat->m[1], (br_vector3*)pMat->m[2]);
-    BrVector3Negate((br_vector3*)pMat->m[2], &tv);
+        for (j = V11MODEL(pModel)->groups[i].nfaces; j > 0; j--, v11f++) {
+            int k;
+            br_vector2 min = {{ 10000.f, 10000.f }};
+            br_vector2 max = {{ -10000.f, -10000.f }};
+            int dx;
+            int dy;
+            int area;
 
-    f = pMat->m[0][1];
-    pMat->m[0][1] = pMat->m[0][2];
-    pMat->m[0][2] = f * -1.f;
+            for (k = 0; k < 3; k++) {
+                fmt_vertex* vertex = vertices + v11f->vertices[k];
 
-    f = pMat->m[1][1];
-    pMat->m[1][1] = pMat->m[1][2];
-    pMat->m[1][2] = f * -1.f;
-
-    f = pMat->m[2][1];
-    pMat->m[2][1] = pMat->m[2][2];
-    pMat->m[2][2] = f * -1.f;
-
-    f = pMat->m[3][1];
-    pMat->m[3][1] = pMat->m[3][2];
-    pMat->m[3][2] = f * -1.f;
-}
-
-/* inlined in the original */
-// FUNCTION: CARMA2_HW 0x00404840
-static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
-    FILE* f;
-    tPed_move* move;
-    int i;
-    int j;
-    int k;
-    int l;
-    char bone_names[50][36];
-    tS32 count_bones_in_anim_file;
-    br_vector3 rot_pos;
-    br_vector3 move_pos;
-    br_matrix34 mat;
-    br_matrix34 mat_lp;
-    br_euler e;
-    tPed_move_frame* frame;
-
-    f = BonerOpenMoves(pName);
-    if (f == NULL) {
-        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
-    }
-    move = BrMemAllocate(sizeof(tPed_move), kBoner_mem_type_sequence);
-    if (move == NULL) {
-        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
-    }
-    count_bones_in_anim_file = ReadS32(f);
-    move->count_frames = (tS16)ReadS32(f);
-    for (i = 0; i < count_bones_in_anim_file; i++) {
-        PFfread(bone_names[i], 1, 33, f);
-        PFfseek(f, sizeof(tU32) * ReadS32(f), SEEK_CUR);
-    }
-    BrVector3Set(&move_pos, 0.f, 0.f, 0.f);
-    move->frames = BrMemAllocate(move->count_frames * sizeof(tPed_move_frame), kMem_boner_type_frames);
-    frame = move->frames;
-    for (i = 0; i < move->count_frames; i++, frame++) {
-        frame->axis = BrMemAllocate(pForm->count_bones * sizeof(tPed_move_frame_axis), kBoner_mem_type_frame_2);
-        for (j = 0; j < count_bones_in_anim_file; j++) {
-            for (k = 0; k < 4; k++) {
-                for (l = 0; l < 3; l++) {
-                    mat.m[k][l] = ReadF32(f);
+                if (vertex->map.v[0] < min.v[0]) {
+                    min.v[0] = vertex->map.v[0];
+                }
+                if (vertex->map.v[0] > max.v[0]) {
+                    max.v[0] = vertex->map.v[0];
+                }
+                if (vertex->map.v[1] < min.v[1]) {
+                    min.v[1] = vertex->map.v[1];
+                }
+                if (vertex->map.v[1] > max.v[1]) {
+                    max.v[1] = vertex->map.v[1];
                 }
             }
-            for (k = 0; k < pForm->count_bones; k++) {
-                if (strcmp(bone_names[j], pForm->bones[k].name) == 0) {
-                    Flip3DStoBRaxes(&mat);
-                    BrMatrix34LPNormalise(&mat_lp, &mat);
-                    if (pForm->bones[k].indices[0] == -1) {
-                        memcpy(&frame->mat, &mat_lp, 9 * sizeof(float));
-                        if (i != 0) {
-                            BrVector3Sub((br_vector3*)frame->mat.m[3], (br_vector3*)mat_lp.m[3], &rot_pos);
-                            BrVector3Accumulate(&move_pos, (br_vector3*)frame->mat.m[3]);
-                        }
-                        rot_pos = *(br_vector3*)mat_lp.m[3];
-                    }
-                    e.order = 0;
-                    BrMatrix34ToEuler(&e, &mat_lp);
-                    frame->axis[k].euler1 = e.a / 256;
-                    frame->axis[k].euler2 = e.b / 256;
-                    frame->axis[k].euler3 = e.c / 256;
-                    break;
-                }
-            }
+            /* The originals subtract a negative double-precision constant. */
+            dy = (int)(max.v[1] - min.v[1] - -0.9);
+            dx = (int)(max.v[0] - min.v[0] - -0.9);
+            area = dx * dy;
+            *pArea1 += area;
+            *pArea2 += area;
         }
     }
-    if (strchr(pLooping_reset_flags, 'X') != NULL) {
-        move->frames[0].mat.m[3][0] = -move_pos.v[0];
-        move_pos.v[0] = 0.f;
-        move->looping_reset_flags |= 0x1;
-    } else if (move->count_frames > 1) {
-        move->frames[0].mat.m[3][0] = move->frames[1].mat.m[3][0];
-        move_pos.v[0] += move->frames[0].mat.m[3][0];
-    } else {
-        move->frames[0].mat.m[3][0] = 0.f;
+    *pArea1 += 50;
+    *pArea2 += 50;
+    if (*pArea1 > 250) {
+        *pArea1 = 250;
     }
-    if (strchr(pLooping_reset_flags, 'Y') != NULL) {
-        move->frames[0].mat.m[3][1] = -move_pos.v[1];
-        move_pos.v[1] = 0.f;
-        move->looping_reset_flags |= 0x2;
-    } else if (move->count_frames > 1) {
-        move->frames[0].mat.m[3][1] = move->frames[1].mat.m[3][1];
-        move_pos.v[1] += move->frames[0].mat.m[3][1];
-    } else {
-        move->frames[0].mat.m[3][1] = 0.f;
+    if (*pArea2 > 250) {
+        *pArea2 = 250;
     }
-    if (strchr(pLooping_reset_flags, 'Z') != NULL) {
-        move->frames[0].mat.m[3][2] = -move_pos.v[2];
-        move_pos.v[2] = 0.f;
-        move->looping_reset_flags |= 0x4;
-    } else if (move->count_frames > 1) {
-        move->frames[0].mat.m[3][2] = move->frames[1].mat.m[3][2];
-        move_pos.v[2] += move->frames[0].mat.m[3][2];
-    } else {
-        move->frames[0].mat.m[3][2] = 0.f;
-    }
-
-    if (BrVector3LengthSquared(&move_pos) != 0.f && !(move->looping_reset_flags & 0x1)) {
-        BrVector3Normalise(&move->field_0x34, &move_pos);
-        move->field_0x2a = 0;
-        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
-            move->field_0x40 = move->field_0x34;
-        } else {
-            BrVector3Copy(&move->field_0x40, pMovement_direction);
-        }
-    } else {
-        move->field_0x2a = 1;
-        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
-            BrVector3Set(&move->field_0x40, 0.f, 0.f, 1.f);
-        } else {
-            BrVector3Copy(&move->field_0x40, pMovement_direction);
-        }
-        BrVector3Set(&move->field_0x34, 0.f, 0.f, 0.f);
-    }
-    move->move_flags = pFlags;
-    PFfclose(f);
-    strcpy(move->name, pName);
-    for (i = 0; i < 250; i++) {
-        if (gPed_moves[i] == NULL) {
-            gPed_moves[i] = move;
-            return move;
-        }
-    }
-    FatalError(kFatalError_BonerError_TooManyMovesLoaded, 0);
-}
-
-/* not inlined in the original, 0x4047b0 */
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x004047b0
-static tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
-    int i;
-
-    for (i = 0; i < 250; i++) {
-        if (gPed_moves[i] != NULL && strcmp(pName, gPed_moves[i]->name) == 0) {
-            return gPed_moves[i];
-        }
-    }
-    return ReadMove(pName, pForm, pLooping_reset_flags, pMovement_direction, pFlags);
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-/* control flow follows the original */
-// FUNCTION: CARMA2_HW 0x00404f60
-tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
-    FILE* f;
-    tPed_form* form;
-    int max_simple_physicing_at_once;
-    int max_boned_physicing_at_once;
-    int max_rendering_at_once;
-    tPed_form_move_buffer_item form_moves[100];
-    char s[256];
-    int i;
-    int j;
-    int done;
-    float total_mass;
-    float mass;
-    int collision_type;
-    int joint_type;
-    tPhysics_joint* joint;
-    int count_limits;
-    int is_rotate;
-    br_scalar angle;
-    br_matrix34 mat;
-    tPhysics_object* coll_info;
-    char* str;
-
-    total_mass = 0.f;
-    f = BonerOpenCharacterForm(pName);
-    if (f == NULL) {
-        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
-    }
-    form = BrMemAllocate(sizeof(tPed_form), kBoner_mem_type_form);
-    if (form == NULL) {
-        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
-    }
-    max_simple_physicing_at_once = GetAnInt(f);
-    max_boned_physicing_at_once = GetAnInt(f);
-    max_rendering_at_once = GetAnInt(f);
-    form->max_stored_dismembered_characters = GetAnInt(f);
-    GetALineAndDontArgue(f, s);
-    form->remap = FindOrOpenRemap(s);
-
-    done = 0;
-    while (!PFfeof(f) && !done) {
-        GetALineAndDontArgue(f, s);
-        if (strcmp(s, "NEXT BONE") == 0) {
-            form->count_bones++;
-        } else {
-            done = strcmp(s, "END OF BONES") == 0;
-            if (done) {
-                form->count_bones++;
-            }
-        }
-    }
-    form->max_boned_physicing_at_once = max_boned_physicing_at_once;
-    form->max_simple_physicing_at_once = max_simple_physicing_at_once;
-    form->max_rendering_at_once = max_rendering_at_once;
-    form->actor_sets = BrMemAllocate(max_rendering_at_once * sizeof(tPed_form_actor_set), kBoner_mem_type_actor_sets);
-    form->simple_physicing = BrMemAllocate(max_simple_physicing_at_once * sizeof(tPed_form_simple_phys), kBoner_mem_type_simple_phys);
-    form->boned_physicing = BrMemAllocate(max_boned_physicing_at_once * sizeof(tPed_form_boned_phys), kBoner_mem_type_boned_phys);
-    form->bones = BrMemAllocate(form->count_bones * sizeof(tPed_form_bone), kBoner_mem_type_bone_info);
-    PFrewind(f);
-    for (i = 0; i < 5; i++) {
-        GetALineAndDontArgue(f, s);
-    }
-    GetALineAndDontArgue(f, s);
-    if (strcmp("START OF BONES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF BONES");
-    }
-    for (i = 0; i < max_boned_physicing_at_once; i++) {
-        form->boned_physicing[i].collision_infos = BrMemAllocate(form->count_bones * sizeof(tPhysics_object*), kBoner_mem_type_boned_coll);
-    }
-    for (i = 0; i < form->count_bones; i++) {
-        GetALineAndDontArgue(f, form->bones[i].name);
-        form->bones[i].remapped_bone = NULL;
-        if (form->remap != NULL) {
-            for (j = 0; j < form->remap->count_bones; j++) {
-                if (strcmp(form->remap->bones[j].name, form->bones[i].name) == 0) {
-                    form->bones[i].remapped_bone = &form->remap->bones[j];
-                    break;
-                }
-            }
-        }
-        mass = GetAScalar(f) * .001;
-        total_mass += mass;
-        if (mass != 0.f) {
-            collision_type = GetALineAndInterpretCommand(f, gPed_form_collision_type_names, 9);
-            joint_type = GetALineAndInterpretCommand(f, gPed_form_bone_joint_type_names, 10);
-            if (joint_type > 0) {
-                form->bones[i].indices[0] = GetAnInt(f);
-            } else {
-                form->bones[i].indices[0] = -1;
-            }
-            if (joint_type > 0 && joint_type < 8) {
-                count_limits = GetAnInt(f);
-                joint = AllocatePhysicsJoint(count_limits, kMem_physics_joint);
-                joint->type = joint_type;
-                joint->count_limits = count_limits;
-                is_rotate = 0;
-                for (j = 0; j < count_limits; j++) {
-                    if (is_rotate) {
-                        is_rotate = 0;
-                        angle = GetAScalar(f);
-                        DRVector3SafeCross(&joint->limits[j].child, &joint->limits[j - 1].child, &joint->limits[j - 1].parent);
-                        BrMatrix34Rotate(&mat, BR_ANGLE_DEG(angle), &joint->limits[j - 1].parent);
-                        BrMatrix34ApplyV(&joint->limits[j].parent, &joint->limits[j].child, &mat);
-                    } else {
-                        joint->limits[j].type = GetALineAndInterpretCommand(f, gPed_form_joint_limit_type_names, 2);
-                        GetAVector3(f, &joint->limits[j].child);
-                        GetAVector3(f, &joint->limits[j].parent);
-                        RemapVector(&joint->limits[j].child, form->bones[i].remapped_bone);
-                        RemapVector(&joint->limits[j].parent, form->bones[form->bones[i].indices[0]].remapped_bone);
-                        is_rotate = joint->limits[j].type == eJoint_limit_universal;
-                        joint->limits[j].value = FastFloatCos((int)GetAScalar(f));
-                    }
-                    BrVector3Normalise(&joint->limits[j].child, &joint->limits[j].child);
-                    BrVector3Normalise(&joint->limits[j].parent, &joint->limits[j].parent);
-                }
-                if (joint_type == eJoint_hinge || joint_type == eJoint_quick_hinge) {
-                    GetAVector3(f, &joint->hinge_axis);
-                    joint->parent_bone_axis = joint->hinge_axis;
-                    RemapVector(&joint->hinge_axis, form->bones[i].remapped_bone);
-                    RemapVector(&joint->parent_bone_axis, form->bones[form->bones[i].indices[0]].remapped_bone);
-                    if ((float)fabs(joint->hinge_axis.v[0]) > (float)fabs(joint->hinge_axis.v[1]) && (float)fabs(joint->hinge_axis.v[0]) > (float)fabs(joint->hinge_axis.v[2])) {
-                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_y_unit_vector);
-                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_z_unit_vector);
-                    } else if ((float)fabs(joint->hinge_axis.v[1]) > (float)fabs(joint->hinge_axis.v[0]) && (float)fabs(joint->hinge_axis.v[1]) > (float)fabs(joint->hinge_axis.v[2])) {
-                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_x_unit_vector);
-                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_z_unit_vector);
-                    } else {
-                        PedVector3Cross(&joint->hinge_axis2, &joint->hinge_axis, &g_Ped_x_unit_vector);
-                        PedVector3Cross(&joint->hinge_axis3, &joint->hinge_axis, &g_Ped_y_unit_vector);
-                    }
-                }
-            } else {
-                joint = NULL;
-            }
-            form->bones[i].hinge = joint;
-            for (j = 0; j < max_boned_physicing_at_once; j++) {
-                form->boned_physicing[j].collision_infos[i] = BrMemAllocate(sizeof(tPhysics_object), kBoner_mem_type_boned_coll_obj);
-                coll_info = form->boned_physicing[j].collision_infos[i];
-                coll_info->uid = i;
-                coll_info->M = mass;
-                switch (collision_type) {
-                case ePed_form_collision_type_box:
-                    coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
-                    break;
-                case ePed_form_collision_type_line:
-                    coll_info->shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(2, 1, kMem_collision_shape);
-                    coll_info->shape->wireframe.wireframe.lines[0].index1 = 0;
-                    coll_info->shape->wireframe.wireframe.lines[0].index2 = 1;
-                    break;
-                case ePed_form_collision_type_sphere:
-                    coll_info->shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
-                    break;
-                case ePed_form_collision_type_polyhedron:
-                case ePed_form_collision_type_polygon:
-                case ePed_form_collision_type_none:
-                    coll_info->shape = NULL;
-                    break;
-                }
-                form->boned_physicing[j].field_0x0 = 0;
-            }
-        } else {
-            for (j = 0; j < max_boned_physicing_at_once; j++) {
-                form->boned_physicing[j].collision_infos[i] = NULL;
-                form->boned_physicing[j].field_0x0 = 0;
-            }
-        }
-        GetALineAndDontArgue(f, s);
-        if (strcmp("NEXT BONE", s) != 0 && strcmp("END OF BONES", s) != 0) {
-            FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "NEXT BONE");
-        }
-    }
-    for (i = 0; i < max_simple_physicing_at_once; i++) {
-        form->simple_physicing[i].collision_info = BrMemAllocate(sizeof(tPhysics_object), kBoner_mem_type_simple_coll_obj);
-        coll_info = form->simple_physicing[i].collision_info;
-        coll_info->M = total_mass;
-        coll_info->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
-        *(tU8*)&form->simple_physicing[i].type = ePed_form_collision_type_box;
-    }
-    for (i = 0; i < max_rendering_at_once; i++) {
-        form->actor_sets[i].actors = BrMemAllocate(form->count_bones * sizeof(br_actor*), kBoner_mem_type_actor_ptrs);
-        for (j = 0; j < form->count_bones; j++) {
-            form->actor_sets[i].actors[j] = BrActorAllocate(BR_ACTOR_MODEL, NULL);
-            form->actor_sets[i].actors[j]->render_style = BR_RSTYLE_FACES;
-        }
-        form->actor_sets[i].field_0x0 = 0;
-    }
-    GetALineAndDontArgue(f, s);
-    if (strcmp("START OF MOVES", s) != 0) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "START OF MOVES");
-    }
-    form->count_moves = 0;
-    do {
-        GetALineAndDontArgue(f, s);
-        done = strcmp(s, "END OF MOVES") == 0;
-        if (!done) {
-            str = strtok(s, "\t ,/");
-            sscanf(str, "%d", &form_moves[form->count_moves].id);
-            form_moves[form->count_moves].frametime = 1000 / GetAnInt(f);
-            GetAString(f, form_moves[form->count_moves].looping_reset_flags);
-            GetAVector3(f, &form_moves[form->count_moves].movement_direction);
-            if (DRVector3NonZero(&form_moves[form->count_moves].movement_direction)) {
-                BrVector3Normalise(&form_moves[form->count_moves].movement_direction, &form_moves[form->count_moves].movement_direction);
-            }
-            GetAString(f, form_moves[form->count_moves].biped_export_filename);
-            form_moves[form->count_moves].flags = GetAnInt(f);
-            form->count_moves++;
-        }
-    } while (!PFfeof(f) && !done);
-    if (!done) {
-        FatalError(kFatalError_BonerError_SyntaxErrorInFormFileExpected_S, "END OF MOVES");
-    }
-    if (gPed_vtable->load_form != NULL) {
-        gPed_vtable->load_form(form, f);
-    }
-    PFfclose(f);
-    form->moves = BrMemAllocate(form->count_moves * sizeof(tPed_form_move), kBoner_mem_type_moves);
-    for (i = 0; i < form->count_moves; i++) {
-        form->moves[i].id = form_moves[i].id;
-        form->moves[i].move = FindOrOpenMove(form_moves[i].biped_export_filename, form, form_moves[i].looping_reset_flags, &form_moves[i].movement_direction, form_moves[i].flags);
-        form->moves[i].move->frametime = form_moves[i].frametime;
-    }
-    form->stored_dismembered_characters = BrMemAllocate(form->max_stored_dismembered_characters * sizeof(tPed_form_dismembered_character*), kBoner_mem_type_stored_ptrs);
-    for (i = 0; i < form->max_stored_dismembered_characters; i++) {
-        form->stored_dismembered_characters[i] = BrMemAllocate(form->count_bones * sizeof(tPed_form_dismembered_character), kBoner_mem_type_stored);
-    }
-    strcpy(form->name, pName);
-    for (i = 0; i < 20; i++) {
-        if (gPed_forms[i] == NULL) {
-            gPed_forms[i] = form;
-            return form;
-        }
-    }
-    FatalError(kFatalError_BonerError_TooManyFormsLoaded, 0);
-}
-
-// FUNCTION: CARMA2_HW 0x00403f90
-void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    float z;
-
-    pDest->v[0] = pA->v[1] * pB->v[2] - pA->v[2] * pB->v[1];
-    pDest->v[1] = pA->v[2] * pB->v[0] - pA->v[0] * pB->v[2];
-    pDest->v[2] = z = pA->v[0] * pB->v[1] - pA->v[1] * pB->v[0];
-    if ((float)fabs(pDest->v[0]) < 2.384186e-6f && (float)fabs(pDest->v[1]) < 2.384186e-6f && (float)fabs(z) < 2.384186e-6f) {
-        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[1]) && (float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
-            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
-        } else if ((float)fabs(pA->v[1]) <= (float)fabs(pA->v[0]) && (float)fabs(pA->v[1]) <= (float)fabs(pA->v[2])) {
-            BrVector3Cross(pDest, pA, &g_Ped_y_unit_vector);
-        } else {
-            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00511440
-float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
-
-    if (pAngle_in_degrees < 0) {
-        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
-    } else {
-        pAngle_in_degrees = pAngle_in_degrees % 360;
-    }
-    if (pAngle_in_degrees > 270) {
-        return gFloat_sine_table[pAngle_in_degrees - 270];
-    }
-    if (pAngle_in_degrees > 180) {
-        return -*(gFloat_sine_table + 270 - pAngle_in_degrees);
-    }
-    if (pAngle_in_degrees > 90) {
-        return -gFloat_sine_table[pAngle_in_degrees - 90];
-    }
-    return *(gFloat_sine_table + 90 - pAngle_in_degrees);
 }
 
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// GLOBAL: CARMA2_HW 0x0058f230
-const char* gPed_form_collision_type_names[9] = {
-    "BOX",
-    "POLYHEDRON",
-    "LINE",
-    "POLYGON",
-    "SPHERE",
-    "",
-    "",
-    "",
-    "NONE",
-};
-
-// GLOBAL: CARMA2_HW 0x0058f258
-const char* gPed_form_bone_joint_type_names[10] = {
-    "NONE",
-    "HINGE",
-    "UNIVERSAL",
-    "BALLNSOCKET",
-    "QUICKHINGE",
-    "",
-    "",
-    "",
-    "PHANTOM",
-    "FALSE",
-};
-
-// GLOBAL: CARMA2_HW 0x0058f280
-const char* gPed_form_joint_limit_type_names[2] = {
-    "PLANE",
-    "UNIVERSAL",
-};
-
-// GLOBAL: CARMA2_HW 0x0058f288
-const char* gPed_personality_grounding_type_names[1] = {
-    "GROUND",
-};
-
-// GLOBAL: CARMA2_HW 0x0058f290
-const char* gPed_remap_axis_choices[6] = {
-    "+X",
-    "+Y",
-    "+Z",
-    "-X",
-    "-Y",
-    "-Z",
-};
-
-// GLOBAL: CARMA2_HW 0x0058f2a8
-const br_vector3 g_Ped_x_unit_vector = { { 1.f, 0.f, 0.f } };
-
-// GLOBAL: CARMA2_HW 0x0058f2b8
-const br_vector3 g_Ped_y_unit_vector = { { 0.f, 1.f, 0.f } };
-
-// GLOBAL: CARMA2_HW 0x0058f2c8
-const br_vector3 g_Ped_z_unit_vector = { { 0.f, 0.f, 1.f } };
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x00404150
-void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-
-    BrVector3Cross(pDest, pA, pB);
-    if ((float)fabs(pDest->v[0]) < 2.384186e-06f && (float)fabs(pDest->v[1]) < 2.384186e-06f && (float)fabs(pDest->v[2]) < 2.384186e-06f) {
-        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
-            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
-        } else {
-            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
-        }
-    }
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // GLOBAL: CARMA2_HW 0x00655bb0
 const char* gGroove_nature_names[2] = {
     "constant",
@@ -3256,6 +2350,928 @@ void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_c
         fragment++;
     }
 }
+
+// PARTIAL 100% effective (not exact, 2026-11-08): only residual is a 3-instruction register-role swap in the model
+// comparison - original loads spec->trigger_object.model into ecx and pActor->model into eax (the running base dies
+// there); MSVC 11 reuses eax as the load destination and puts pActor->model in ecx. Operand order (each way), nested
+// ifs and the short-circuit form all compile identically. 94.05 -> effective came from the guard + do/while loop shape.
+// FUNCTION: CARMA2_HW 0x004f5cb0
+void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
+    extern int gCount_track_smashable_environment_specs;
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern void C2_HOOK_FASTCALL AddSmashTarget(br_model* pModel, br_actor* pActor, int pUnknown);
+    int i;
+    tSmashable_item_spec* spec;
+
+    if (pActor->model == NULL || pActor->model->identifier == NULL) {
+        return;
+    }
+    i = 0;
+    if (i < gCount_track_smashable_environment_specs) {
+        spec = gTrack_smashable_environment_specs;
+        do {
+            if (spec->trigger_type == kSmashableTrigger_Model && spec->trigger_object.model == pActor->model) {
+                char s[64];
+                char s2[64];
+                int len;
+
+                strcpy(s, pActor->identifier);
+                len = strlen(s);
+                if (len < 4) {
+                    sprintf(s, "Smash material %s has a name that is less than 4 characters long", pActor->identifier);
+                    PDFatalError(s);
+                }
+                strcpy(s2, &s[len - 4]);
+                sprintf(&s[len - 4], "        ");
+                sprintf(&s[5], "%cx", '|');
+                s[6] = i + 1;
+                strcat(s, s2);
+                s[11] = '\0';
+                if (strlen(pActor->identifier) < 12) {
+                    BrResFree(pActor->identifier);
+                    pActor->identifier = BrResStrDup(pActor, s);
+                } else {
+                    strcpy(pActor->identifier, s);
+                }
+
+                if ((gCurrent_race.race_spec->race_type >= 4 && *(tU16*)((char*)spec + 0x2ac) == gCurrent_race.race_spec->options.cars.count_opponents)
+                        || (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_2 && *(tU16*)((char*)spec + 0x2ac) == 1)) {
+                    AddSmashTarget(pActor->model, pActor, -1);
+                }
+            }
+            i++;
+            spec++;
+        } while (i < gCount_track_smashable_environment_specs);
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// CombineBounds
+
+// CheckNonCarModelBounds
+
+// FUNCTION: CARMA2_HW 0x00500d50
+void C2_HOOK_FASTCALL InitialiseStorageSpace(int pUnknown, tBrender_storage* pStorage_space, int pMax_pixelmaps, int pMax_shade_tables, int pMax_materials, int pMax_models, int pMax_sounds) {
+
+    pStorage_space->pixelmaps_count = 0;
+    pStorage_space->shade_tables_count = 0;
+    pStorage_space->materials_count = 0;
+    pStorage_space->models_count = 0;
+    pStorage_space->sounds_count = 0;
+    pStorage_space->flags = pUnknown;
+    pStorage_space->max_pixelmaps = pMax_pixelmaps;
+    pStorage_space->max_shade_tables = pMax_shade_tables;
+    pStorage_space->max_materials = pMax_materials;
+    pStorage_space->max_models = pMax_models;
+    pStorage_space->max_sounds = pMax_sounds;
+    pStorage_space->pixelmaps = BrMemCalloc(pMax_pixelmaps, sizeof(br_pixelmap*), kMem_stor_space_table);
+    pStorage_space->shade_tables = BrMemCalloc(pMax_shade_tables, sizeof(br_pixelmap*), kMem_stor_space_table);
+    pStorage_space->materials = BrMemCalloc(pMax_materials, sizeof(br_material*), kMem_stor_space_table);
+    pStorage_space->models = BrMemCalloc(pMax_models, sizeof(br_model*), kMem_stor_space_table);
+    pStorage_space->sounds = BrMemCalloc(pMax_sounds, sizeof(int), kMem_stor_space_table);
+    pStorage_space->materialProps = BrMemCalloc(pMax_materials, sizeof(br_material*), kMem_stor_space_table);
+}
+
+// FUNCTION: CARMA2_HW 0x00500e10
+void C2_HOOK_FASTCALL DisposeStorageSpace(tBrender_storage* pStorage) {
+
+    BrMemFree(pStorage->pixelmaps);
+    BrMemFree(pStorage->shade_tables);
+    BrMemFree(pStorage->materials);
+    BrMemFree(pStorage->models);
+    BrMemFree(pStorage->sounds);
+    BrMemFree(pStorage->materialProps);
+}
+
+// PARTIAL 73.62%: ClearMatertrialSetFromStorageSpace 0x00500e60 [regalloc] - pStart spilled to stack, extra push ecx frame slot
+// FUNCTION: CARMA2_HW 0x00500e60
+void C2_HOOK_FASTCALL ClearMatertrialSetFromStorageSpace(tBrender_storage* pStorage_space, int pStart, int pEnd) {
+    int i;
+    int move_to;
+
+    for (i = pStart; i < pEnd && i < pStorage_space->materials_count; i++) {
+        BrMaterialRemove(pStorage_space->materials[i]);
+        BrMaterialFree(pStorage_space->materials[i]);
+        RemoveMaterialFromFogification(pStorage_space->materials[i]);
+    }
+    for (move_to = pStart, i = pEnd; i < pStorage_space->materials_count; ) {
+        pStorage_space->materials[move_to++] = pStorage_space->materials[i++];
+    }
+    pStorage_space->materials_count = move_to;
+    if (pStorage_space == &gNet_cars_storage_space) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].car != NULL && gNet_players[i].car->old_material_count >= pEnd) {
+                gNet_players[i].car->old_material_count += pStart - pEnd;
+                gNet_players[i].car->new_material_count += pStart - pEnd;
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00500f30
+void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space) {
+    int i;
+
+    DRS3StopAllOutletSoundsExceptCDA();
+    for (i = 0; i < pStorage_space->pixelmaps_count; i++) {
+        if (pStorage_space->pixelmaps[i] != NULL) {
+            BrMapRemove(pStorage_space->pixelmaps[i]);
+            BrPixelmapFree(pStorage_space->pixelmaps[i]);
+        }
+    }
+    pStorage_space->pixelmaps_count = 0;
+    for (i = 0; i < pStorage_space->shade_tables_count; i++) {
+        if (pStorage_space->shade_tables[i] != NULL) {
+            BrTableRemove(pStorage_space->shade_tables[i]);
+            BrPixelmapFree(pStorage_space->shade_tables[i]);
+        }
+    }
+    pStorage_space->shade_tables_count = 0;
+    for (i = 0; i < pStorage_space->materials_count; i++) {
+        if (pStorage_space->materials[i] != NULL) {
+            BrMaterialRemove(pStorage_space->materials[i]);
+            BrMaterialFree(pStorage_space->materials[i]);
+        }
+    }
+    pStorage_space->materials_count = 0;
+    for (i = 0; i < pStorage_space->models_count; i++) {
+        if (pStorage_space->models[i] != NULL) {
+            BrModelRemove(pStorage_space->models[i]);
+            BrModelFree(pStorage_space->models[i]);
+        }
+    }
+    pStorage_space->models_count = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00501020
+tAdd_to_storage_result C2_HOOK_FASTCALL AddPixelmapToStorage(tBrender_storage* pStorage_space, br_pixelmap* pThe_pm) {
+    int i;
+
+    gDuplicate_pixelmap = NULL;
+    if (pStorage_space->pixelmaps_count < pStorage_space->max_pixelmaps) {
+        for (i = 0; i < pStorage_space->pixelmaps_count; i++) {
+            if (pStorage_space->pixelmaps[i]->identifier != NULL
+                    && pThe_pm->identifier != NULL
+                    && strcmp(pStorage_space->pixelmaps[i]->identifier, pThe_pm->identifier) == 0) {
+                gDuplicate_pixelmap = pStorage_space->pixelmaps[i];
+                return eStorage_duplicate;
+            }
+        }
+        pStorage_space->pixelmaps[pStorage_space->pixelmaps_count] = pThe_pm;
+        pStorage_space->pixelmaps_count += 1;
+        return eStorage_allocated;
+    } else {
+        return eStorage_not_enough_room;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005010e0
+tAdd_to_storage_result C2_HOOK_FASTCALL AddShadeTableToStorage(tBrender_storage* pStorage_space, br_pixelmap* pThe_st) {
+    int i;
+
+    if (pStorage_space->shade_tables_count < pStorage_space->max_shade_tables) {
+        for (i = 0; i < pStorage_space->shade_tables_count; i++) {
+            if (pStorage_space->shade_tables[i]->identifier != NULL
+                && pThe_st->identifier != NULL
+                && strcmp(pStorage_space->shade_tables[i]->identifier, pThe_st->identifier) == 0) {
+                return eStorage_duplicate;
+            }
+        }
+        pStorage_space->shade_tables[pStorage_space->shade_tables_count] = pThe_st;
+        pStorage_space->shade_tables_count += 1;
+        return eStorage_allocated;
+    } else {
+        return eStorage_not_enough_room;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00501190
+__inline tAdd_to_storage_result C2_HOOK_FASTCALL AddMaterialToStorage(tBrender_storage* pStorage_space, br_material* pThe_mat) {
+    int i;
+
+    gDuplicate_material = NULL;
+    if (pStorage_space->materials_count < pStorage_space->max_materials) {
+        for (i = 0; i < pStorage_space->materials_count; i++) {
+            if (pStorage_space->materials[i]->identifier != NULL
+                    && pThe_mat->identifier != NULL
+                    && strcmp(pStorage_space->materials[i]->identifier, pThe_mat->identifier) == 0) {
+                gDuplicate_material = pStorage_space->materials[i];
+                return eStorage_duplicate;
+            }
+        }
+        pStorage_space->materialProps[pStorage_space->materials_count] = 0; /* FIXME */
+        pStorage_space->materials[pStorage_space->materials_count] = pThe_mat;
+        pStorage_space->materials_count += 1;
+        return eStorage_allocated;
+    } else {
+        return eStorage_not_enough_room;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00501260
+tAdd_to_storage_result C2_HOOK_FASTCALL AddModelToStorage(tBrender_storage* pStorage_space, br_model* pThe_mod) {
+    int i;
+
+    gDuplicate_model = NULL;
+    if (pStorage_space->models_count < pStorage_space->max_models) {
+        if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
+            for (i = 0; i < pStorage_space->models_count; i++) {
+                if (pStorage_space->models[i] != NULL
+                    && pStorage_space->models[i]->identifier != NULL
+                        && pThe_mod->identifier != NULL
+                        && strcmp(pStorage_space->models[i]->identifier, pThe_mod->identifier) == 0) {
+                    gDuplicate_model = pStorage_space->models[i];
+                    return eStorage_duplicate;
+                }
+            }
+        }
+        pStorage_space->models[pStorage_space->models_count] = pThe_mod;
+        pStorage_space->models_count += 1;
+        return eStorage_allocated;
+    } else {
+        return eStorage_not_enough_room;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00501330
+tAdd_to_storage_result C2_HOOK_FASTCALL AddSoundToStorage(tBrender_storage* pStorage_space, int pSound_id) {
+    int i;
+
+    if (pStorage_space->sounds_count < pStorage_space->max_sounds) {
+        for (i = 0; i < pStorage_space->sounds_count; i++) {
+            if (pStorage_space->sounds[i] != 0 && pStorage_space->sounds[i] == pSound_id) {
+                return eStorage_duplicate;
+            }
+        }
+        pStorage_space->sounds[pStorage_space->sounds_count] = pSound_id;
+        pStorage_space->sounds_count++;
+        return eStorage_allocated;
+    } else {
+        return eStorage_not_enough_room;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00501560
+br_pixelmap* C2_HOOK_FASTCALL LoadSinglePixelmap(tBrender_storage* pStorage, const char* pName) {
+    br_pixelmap* map;
+    tAdd_to_storage_result addResult;
+
+    map = LoadPixelmap(pName);
+    if (map == NULL) {
+        return BrMapFind(pName);
+    }
+
+    addResult = AddPixelmapToStorage(pStorage, map);
+    switch (addResult) {
+    case eStorage_allocated:
+        BrMapAdd(map);
+        return map;
+    case eStorage_duplicate:
+        if (gDisallow_duplicates) {
+            FatalError(kFatalError_DuplicatePixelmap_S, map->identifier);
+        } else {
+            BrPixelmapFree(map);
+        }
+        return gDuplicate_pixelmap;
+    case eStorage_not_enough_room:
+        FatalError(kFatalError_InsufficientPixelmapSlots);
+        break;
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x005016a0
+br_pixelmap* C2_HOOK_FASTCALL LoadSingleShadeTable(tBrender_storage* pStorage_space, const char* pName) {
+    br_pixelmap* temp;
+
+    temp = LoadShadeTable(pName);
+    if (temp == NULL) {
+        return BrTableFind(pName);
+    }
+
+    switch (AddShadeTableToStorage(pStorage_space, temp)) {
+    case eStorage_allocated:
+        BrTableAdd(temp);
+        return temp;
+    case eStorage_duplicate:
+        if (gDisallow_duplicates) {
+            FatalError(kFatalError_DuplicatePixelmap_S, temp->identifier);
+        } else {
+            BrPixelmapFree(temp);
+        }
+        return BrTableFind(pName);
+    case eStorage_not_enough_room:
+        FatalError(kFatalError_InsufficientShadeTableSlots);
+        break;
+    }
+
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x005017e0
+br_material* C2_HOOK_FASTCALL LoadSingleMaterial(tBrender_storage* pStorage_space, const char* pName) {
+    br_material* material;
+    tAdd_to_storage_result add_result;
+    int i;
+
+    material = LoadMaterial(pName);
+    if (material == NULL) {
+        return BrMaterialFind(pName);
+    }
+
+    gDuplicate_material = NULL;
+    if (pStorage_space->materials_count < pStorage_space->max_materials) {
+        for (i = 0; i < pStorage_space->materials_count; i++) {
+            if (pStorage_space->materials[i]->identifier != NULL
+                    && material->identifier != NULL
+                    && strcmp(pStorage_space->materials[i]->identifier, material->identifier) == 0) {
+                gDuplicate_material = pStorage_space->materials[i];
+                add_result = eStorage_duplicate;
+                goto dispatch;
+            }
+        }
+        pStorage_space->materialProps[pStorage_space->materials_count] = 0;
+        pStorage_space->materials[pStorage_space->materials_count] = material;
+        pStorage_space->materials_count += 1;
+        add_result = eStorage_allocated;
+    } else {
+        add_result = eStorage_not_enough_room;
+    }
+
+dispatch:
+    switch (add_result) {
+    case eStorage_allocated:
+        BrMaterialAdd(material);
+        return material;
+    case eStorage_duplicate:
+        if (gDisallow_duplicates) {
+            FatalError(kFatalError_DuplicateMaterial_S, material->identifier);
+        } else {
+            BrMaterialFree(material);
+        }
+        return gDuplicate_material;
+    case eStorage_not_enough_room:
+        FatalError(kFatalError_InsufficientMaterialSlots);
+        break;
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x00501930
+tAdd_to_storage_result C2_HOOK_FASTCALL LoadSingleSound(tBrender_storage* pStorage_space, int pSound_id) {
+
+    if (S3GetBufferDescription(pSound_id) != NULL) {
+        return pSound_id;
+    }
+
+    switch (AddSoundToStorage(pStorage_space, pSound_id)) {
+
+    case eStorage_duplicate:
+        return pSound_id;
+
+    case eStorage_allocated:
+        S3LoadSample(pSound_id);
+        return pSound_id;
+    case eStorage_not_enough_room:
+        FatalError(kFatalError_InsufficientSoundSlotsInStorageArea);
+        break;
+    }
+    return 0;
+}
+
+int C2_HOOK_FASTCALL AddShadeTables(tBrender_storage* pStorage_space, const char* pPath) {
+    br_pixelmap* temp_array[50];
+    int total;
+    int i;
+
+    total = BrPixelmapLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
+    if (total == 0) {
+        FatalError(kFatalError_CannotLoadShadeTableFileOrItIsEmpty_S, pPath);
+    }
+    for (i = 0; i < total; i++) {
+        if (temp_array[i] == NULL) {
+            continue;
+        }
+        switch (AddShadeTableToStorage(pStorage_space, temp_array[i])) {
+        case eStorage_allocated:
+            BrTableAdd(temp_array[i]);
+            break;
+        case eStorage_duplicate:
+            if (gDisallow_duplicates) {
+                FatalError(kFatalError_DuplicatePixelmap_S, temp_array[i]->identifier);
+            } else {
+                BrPixelmapFree(temp_array[i]);
+            }
+            break;
+        case eStorage_not_enough_room:
+            FatalError(kFatalError_InsufficientShadeTableSlots);
+            break;
+        }
+    }
+    return total;
+}
+
+// FUNCTION: CARMA2_HW 0x00501e40
+int C2_HOOK_FASTCALL AddModels(tBrender_storage* pStorage_space, const char* pPath) {
+    int i;
+    int new_ones;
+    int total;
+    tAdd_to_storage_result add_result;
+    br_model* temp_array[2000];
+
+    new_ones = 0;
+    total = BrModelLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
+    WhitenVertexRGB(temp_array, total);
+    if (total == 0) {
+        FatalError(kFatalError_CannotLoadModelFileOrItIsEmpty_S, pPath);
+    }
+    for (i = 0; i < total; i++) {
+        if (temp_array[i] == NULL) {
+            continue;
+        }
+        gDuplicate_model = NULL;
+        if (pStorage_space->models_count < pStorage_space->max_models) {
+            if (pStorage_space->flags & 0x1) { /* FIXME: add enum (0x1 -> eStorage_space_flags_No_duplicates*/
+                int j;
+
+                for (j = 0; j < pStorage_space->models_count; j++) {
+                    if (pStorage_space->models[j] != NULL
+                        && pStorage_space->models[j]->identifier != NULL
+                            && temp_array[i]->identifier != NULL
+                            && strcmp(pStorage_space->models[j]->identifier, temp_array[i]->identifier) == 0) {
+                        gDuplicate_model = pStorage_space->models[j];
+                        add_result = eStorage_duplicate;
+                        goto dispatch;
+                    }
+                }
+            }
+            pStorage_space->models[pStorage_space->models_count] = temp_array[i];
+            pStorage_space->models_count += 1;
+            add_result = eStorage_allocated;
+        } else {
+            add_result = eStorage_not_enough_room;
+        }
+    dispatch:
+        switch (add_result) {
+        case eStorage_allocated:
+            temp_array[i]->flags |= BR_MODF_UPDATEABLE;
+            temp_array[i]->flags &= ~BR_MODF_DONT_WELD;
+            BrModelAdd(temp_array[i]);
+            new_ones++;
+            break;
+        case eStorage_duplicate:
+            if (gDisallow_duplicates) {
+                FatalError(kFatalError_DuplicateModel_S, temp_array[i]->identifier);
+            } else {
+                BrModelFree(temp_array[i]);
+            }
+            break;
+        case eStorage_not_enough_room:
+            FatalError(kFatalError_InsufficientModelSlots);
+            break;
+        }
+    }
+    return new_ones;
+}
+
+// FUNCTION: CARMA2_HW 0x00502060
+int C2_HOOK_FASTCALL AddMaterials(tBrender_storage* pStorage_space, const char* pPath, tRendererShadingType pShading) {
+    int i;
+    int new_ones;
+    int total;
+    br_material* temp_array[500];
+
+    new_ones = 0;
+    total = BrMaterialLoadMany(pPath, temp_array, REC2_ASIZE(temp_array));
+    if (total == 0) {
+        FatalError(kFatalError_CannotLoadMaterialFileOrItIsEmpty_S, pPath);
+    }
+    GlorifyMaterial(temp_array, total, pShading);
+    for (i = 0; i < total; ++i) {
+        if (temp_array[i] != NULL) {
+            switch (AddMaterialToStorage(pStorage_space, temp_array[i])) {
+            case eStorage_allocated:
+                BrMaterialAdd(temp_array[i]);
+                new_ones += 1;
+                break;
+            case eStorage_duplicate:
+                if (gDisallow_duplicates) {
+                    FatalError(kFatalError_DuplicateMaterial_S, temp_array[i]->identifier);
+                } else {
+                    BrMaterialFree(temp_array[i]);
+                }
+                break;
+            case eStorage_not_enough_room:
+                FatalError(kFatalError_InsufficientMaterialSlots);
+                break;
+            }
+        }
+    }
+    return new_ones;
+}
+
+// FUNCTION: CARMA2_HW 0x00502210
+void C2_HOOK_FASTCALL DodgyModelUpdate(br_model* pM) {
+
+    BrResFree(pM->faces);
+    BrResFree(pM->vertices);
+    pM->nfaces = 0;
+    pM->nvertices = 0;
+    pM->faces = NULL;
+    pM->vertices = NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x00502490
+void C2_HOOK_FASTCALL LoadSomePixelmaps(tBrender_storage* pStorage, const char* pPath) {
+
+    gStorage_for_callbacks = pStorage;
+    PFForEveryFile(pPath, LoadIfItsAPixelmap);
+}
+
+// FUNCTION: CARMA2_HW 0x005024b0
+void C2_HOOK_FASTCALL LoadIfItsAPixelmap(const char* pPath) {
+    char s[256];
+
+    Uppercaseificate(s, pPath);
+    if (strstr(s, ".PIX") != NULL) {
+        AddPixelmaps(gStorage_for_callbacks, pPath);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005024f0
+int C2_HOOK_FASTCALL AddPixelmaps(tBrender_storage* pStorage_space, const char* path) {
+    int i;
+    int new_ones;
+    int total;
+    tPath_name path_dirname;
+    char path_stem[32];
+    br_pixelmap* temp_array[500];
+
+    total = 0;
+    if (gDisableTiffConversion) {
+        SepDirAndFilename(path, path_dirname, path_stem);
+        new_ones = LoadBunchOfPixies(path_dirname, path_stem, temp_array, REC2_ASIZE(temp_array));
+    } else {
+        new_ones = DRPixelmapLoadMany(path, temp_array, REC2_ASIZE(temp_array));
+    }
+    if (new_ones == 0) {
+        FatalError(kFatalError_CantLoadPixelmapFile_S, path);
+    }
+    for (i = 0; i < new_ones; i++) {
+        if (temp_array[i] != NULL) {
+            EnsurePixelmapAllowed(temp_array[i], 1);
+            switch (AddPixelmapToStorage(pStorage_space, temp_array[i])) {
+            case eStorage_allocated:
+                BrMapAdd(temp_array[i]);
+                total += 1;
+                break;
+            case eStorage_duplicate:
+                if (gDisallow_duplicates) {
+                    FatalError(kFatalError_DuplicatePixelmap_S, temp_array[i]->identifier);
+                } else {
+                    BrPixelmapFree(temp_array[i]);
+                }
+                break;
+            case eStorage_not_enough_room:
+                FatalError(kFatalError_InsufficientPixelmapSlots);
+                break;
+            }
+        }
+    }
+    return total;
+}
+
+// FUNCTION: CARMA2_HW 0x005026b0
+int C2_HOOK_FASTCALL GetFileName(const char *path, tName_list *pList) {
+    tPath_name pathCopy;
+    tPath_name pathUpper;
+    tPath_name dir_path;
+    tPath_name stem_path;
+
+    strcpy(pathCopy, path);
+    Uppercaseificate(pathUpper, pathCopy);
+    if (strstr(pathUpper, ".PIX") == NULL
+            && strstr(pathUpper, ".TIF") == NULL) {
+        return 0;
+    }
+    SepDirAndFilename(pathUpper, dir_path, stem_path);
+    strcpy(pList->items[pList->size], stem_path);
+    if (pList->size < (int)REC2_ASIZE(pList->items)) {
+        pList->size += 1;
+    }
+    return 0;
+}
+
+// PARTIAL 93.93%: GetAdditionalFileName 0x00502780 [regalloc: original spills pList (ebx reloaded from [esp+0x10]) because bl is clobbered in inline strcmp; ours keeps ebx]
+// FUNCTION: CARMA2_HW 0x00502780
+int C2_HOOK_FASTCALL GetAdditionalFileName(const char* path, tName_list* pList) {
+    tPath_name pathCopy;
+    tPath_name upperPath;
+    tPath_name dir_path;
+    tPath_name stem_path;
+    int alreadyInList;
+    int i;
+
+    strcpy(pathCopy, path);
+    Uppercaseificate(upperPath, pathCopy);
+
+    if (strstr(upperPath, ".PIX") == NULL
+            && strstr(upperPath, ".P16") == NULL
+            && strstr(upperPath, ".P08") == NULL
+            && strstr(upperPath, ".TIF") == NULL) {
+        return 0;
+    }
+    SepDirAndFilename(upperPath, dir_path, stem_path);
+
+    for (i = 0, alreadyInList = 0; i < pList->size; i++) {
+        if (strcmp(pList->items[i], stem_path) == 0) {
+            alreadyInList = 1;
+            break;
+        }
+    }
+    if (!alreadyInList) {
+        strcpy(pList->items[pList->size], stem_path);
+        if (pList->size < (int)REC2_ASIZE(pList->items)) {
+            pList->size += 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x005028f0
+void C2_HOOK_FASTCALL LoadAllImagesInDirectory(tBrender_storage* pStorage_space, const char* path) {
+    tPath_name pathCopy;
+    tPath_name pixPath;
+    tPath_name tifPath;
+    tName_list list;
+    int i;
+
+    C2_HOOK_BUG_ON(sizeof(tBrender_storage) != 68);
+
+    gStorage_for_callbacks = pStorage_space;
+    // TwatPIX16(path);
+    list.size = 0;
+    strcpy(pathCopy, path);
+    if (gDisableTiffConversion) {
+        PFForEveryFile2(pathCopy, (tEnumPathCallback)GetAdditionalFileName, &list);
+    }
+    if (!gDisableTiffConversion) {
+        PathCat(tifPath, pathCopy, "TIFFX");
+        PFForEveryFile2(tifPath, (tEnumPathCallback)GetFileName, &list);
+    }
+    PathCat(pixPath, pathCopy, "PIX8");
+    PFForEveryFile2(pixPath, (tEnumPathCallback)GetAdditionalFileName, &list);
+    if (!gDisableTiffConversion) {
+        PathCat(tifPath, pathCopy, "TIFFRGB");
+        PFForEveryFile2(tifPath, (tEnumPathCallback)GetAdditionalFileName, &list);
+    }
+    PathCat(pixPath, pathCopy, "PIX16");
+    PFForEveryFile2(pixPath, (tEnumPathCallback)GetAdditionalFileName, &list);
+    for (i = 0; i < list.size; i++) {
+        PathCat(pathCopy, path, list.items[i]);
+        AddPixelmaps(gStorage_for_callbacks, pathCopy);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00502a70
+void C2_HOOK_FASTCALL LoadIfItsAMaterial(const char* pPath) {
+    char path[256];
+    tRendererShadingType shading;
+
+    if (gMaterial_shading_for_callback == kRendererShadingType_Undefined) {
+        shading = kRendererShadingType_Default;
+    } else {
+        shading = gMaterial_shading_for_callback;
+    }
+    Uppercaseificate(path, pPath);
+    if (strstr(path, ".MAT") != NULL) {
+        AddMaterials(gStorage_for_callbacks, pPath, shading);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00502ad0
+void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading) {
+
+    gMaterial_shading_for_callback = pShading;
+    gStorage_for_callbacks = pStorage;
+    PFForEveryFile(pPath, LoadIfItsAMaterial);
+    gMaterial_shading_for_callback = kRendererShadingType_Undefined;
+}
+
+// FUNCTION: CARMA2_HW 0x00502b00
+void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage *pStorage, const char* pPath) {
+
+    gStorage_for_callbacks = pStorage;
+    PFForEveryFile(pPath, LoadIfItsAModel);
+}
+
+// FUNCTION: CARMA2_HW 0x00502b20
+void C2_HOOK_FASTCALL LoadIfItsAModel(const char* pPath) {
+    char s[256];
+
+    Uppercaseificate(s, pPath);
+    if (strstr(s, ".DAT") != NULL) {
+        AddModels(gStorage_for_callbacks, pPath);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00502b60
+void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pStorage, const char* pPath) {
+
+    gStorage_for_callbacks = pStorage;
+    PFForEveryFile(pPath, LoadIfItsAShadeTable);
+}
+
+// FUNCTION: CARMA2_HW 0x00502b80
+void C2_HOOK_FASTCALL LoadIfItsAShadeTable(const char* pPath) {
+    char path[256];
+
+    Uppercaseificate(path, pPath);
+    if (strstr(path, ".TAB") != NULL) {
+        AddShadeTables(gStorage_for_callbacks, pPath);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00502cf0
+void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading) {
+
+    LoadAllShadeTablesInDirectory(pStorage, pPath);
+    LoadSomePixelmaps(pStorage, pPath);
+    LoadAllImagesInDirectory(pStorage, pPath);
+    LoadAllMaterialsInDirectory(pStorage, pPath, pShading);
+    LoadAllModelsInDirectory(pStorage, pPath);
+}
+
+// FUNCTION: CARMA2_HW 0x00502d60
+void C2_HOOK_FASTCALL DisallowDuplicates(void) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00502d70
+void C2_HOOK_FASTCALL AllowDuplicates(void) {
+
+    gDisallow_duplicates = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00502d80
+br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
+    int i;
+
+    for (i = 0; i < pStorage->pixelmaps_count; i++) {
+        if (pOriginal == pStorage->pixelmaps[i]) {
+            BrMapRemove(pOriginal);
+            BrPixelmapFree(pOriginal);
+            pStorage->pixelmaps[i] = pNew;
+            BrMapAdd(pNew);
+            return pNew;
+        }
+    }
+    PDFatalError("Can't swap in pixelmap");
+    return NULL;
+}
+// FUNCTION: CARMA2_HW 0x00504b30
+void C2_HOOK_FASTCALL InitTreeSurgery(void) {
+    tPath_name the_path;
+    FILE* file;
+    int i;
+
+    PathCat(the_path, gApplication_path, "TreeSurgery.TXT");
+    file = PFfopen(the_path, "rt");
+    if (file != NULL) {
+        gTree_surgery_pass1_count = GetAnInt(file);
+        for (i = 0; i < gTree_surgery_pass1_count; i++) {
+            GetAString(file, gTree_surgery_pass1[i].name);
+        }
+        gTree_surgery_pass2_count = GetAnInt(file);
+        for (i = 0; i < gTree_surgery_pass2_count; i++) {
+            GetAString(file, gTree_surgery_pass2[i].original);
+            GetAString(file, gTree_surgery_pass2[i].replacement);
+        }
+#ifdef REC2_FIX_BUGS
+        PFfclose(file);
+#endif
+    } else {
+        gTree_surgery_pass1_count = 0;
+        gTree_surgery_pass2_count = 0;
+    }
+}
+
+// ModelIsATree
+
+// PerformTreeSurgery
+
+// PossibleTreeSurgery
+
+// AddExceptionToList
+
+// LoadExceptionsFile
+
+// LoadExceptionsFileForTrack
+
+// FreeExceptions
+
+// GetFaceFlag
+
+// MungeTrackModel
+
+
+// LoadTrack
+
+// FUNCTION: CARMA2_HW 0x00506e20
+intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
+
+    if (pActor->type == BR_ACTOR_BOUNDS || pActor->type == BR_ACTOR_BOUNDS_CORRECT) {
+        BrResFree(pActor->type_data);
+        pActor->type_data = NULL;
+    }
+    return 0;
+}
+// RemoveBoundsStructures
+
+// FreeTrack
+
+extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
+
+// FUNCTION: CARMA2_HW 0x00506e50
+void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform) {
+
+    RenderTrack(pWorld, pTrack_spec, pCamera, pCamera_to_world_transform);
+    if (gAdditional_actors) {
+        BrZbsSceneRenderAdd(gAdditional_actors);
+    }
+}
+
+// GLOBAL: CARMA2_HW 0x006aaf40
+tU8* gTrack_flic_buffer;
+
+// GLOBAL: CARMA2_HW 0x006aaf48
+tU32 gTrack_flic_buffer_size;
+
+// GLOBAL: CARMA2_HW 0x006aaf50
+tFlic_descriptor gTrack_flic_descriptor;
+
+// GLOBAL: CARMA2_HW 0x006aafc0
+static tU32 prev_sky_animation;
+
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info);
+extern int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info);
+extern int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate);
+extern void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap);
+extern void C2_HOOK_FASTCALL SkyTextureChanged(void);
+
+// FUNCTION: CARMA2_HW 0x00506e80
+void C2_HOOK_FASTCALL AnimateSky(void) {
+    int now;
+    int now2;
+    int frame_increment;
+
+    now2 = GetTotalTime();
+    if (gTrack_flic_buffer == NULL) {
+        return;
+    }
+    now = now2;
+    if (now < (int)prev_sky_animation) {
+        now2 = 2 * prev_sky_animation - now;
+    }
+    if (prev_sky_animation != 0) {
+        frame_increment = ((now2 - prev_sky_animation) / gTrack_flic_descriptor.frame_period) % (gTrack_flic_descriptor.frames_left + gTrack_flic_descriptor.current_frame);
+    } else {
+        frame_increment = 1;
+    }
+    for (; frame_increment > 0; frame_increment--) {
+        if (PlayNextFlicFrame(&gTrack_flic_descriptor)) {
+            EndFlic(&gTrack_flic_descriptor);
+            StartFlic(gTrack_flic_descriptor.file_name, -1, &gTrack_flic_descriptor, gTrack_flic_buffer_size, (tS8*)gTrack_flic_buffer, NULL, 0, 0, 0);
+            AssertFlicPixelmap(&gTrack_flic_descriptor, gProgram_state.default_depth_effect.sky_texture);
+        }
+        prev_sky_animation = now;
+        SkyTextureChanged();
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00511440
+float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
+
+    if (pAngle_in_degrees < 0) {
+        pAngle_in_degrees = 360 - -pAngle_in_degrees % 360;
+    } else {
+        pAngle_in_degrees = pAngle_in_degrees % 360;
+    }
+    if (pAngle_in_degrees > 270) {
+        return gFloat_sine_table[pAngle_in_degrees - 270];
+    }
+    if (pAngle_in_degrees > 180) {
+        return -*(gFloat_sine_table + 270 - pAngle_in_degrees);
+    }
+    if (pAngle_in_degrees > 90) {
+        return -gFloat_sine_table[pAngle_in_degrees - 90];
+    }
+    return *(gFloat_sine_table + 90 - pAngle_in_degrees);
+}

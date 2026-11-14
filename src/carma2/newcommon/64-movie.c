@@ -95,6 +95,29 @@ extern short gQuicktime_movie_file;
 extern Movie gQuicktime_movie;
 extern FSSpec gQt_file_spec;
 extern struct Rect gQuicktime_rect;
+extern Handle gQuicktime_frame_pixmap_handle;
+extern Handle gQuicktime_image_description_handle;
+extern Handle gQuicktime_compressed_frame_handle;
+extern ImageSequence gQuicktime_image_sequence;
+extern Media gQuicktime_media;
+extern Track gQuicktime_track;
+extern int gQuicktime_movie_counter;
+extern int gStatus_message_1;
+extern int gStatus_message_2;
+extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
+extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
+extern void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only);
+extern int gQuickTime_compressor_code;
+extern br_uint_16 gQuickTime_pixel_depth;
+extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern int gQuicktime_max_compression_size;
+extern void* gQuicktime_compressed_frame_pixels;
+extern br_uint_16* gQuicktime_frame_pixel_conversion_table;
+extern br_pixelmap* gRender_palette;
+extern br_uint_16* gQuicktime_frame_pixels;
+extern void* gQuickTime_dispatcher;
+extern void* gQuickTime_dispatch;
 
 // FUNCTION: CARMA2_HW 0x004e0f20
 int C2_HOOK_FASTCALL InitMovie(void) {
@@ -126,6 +149,278 @@ int C2_HOOK_FASTCALL InitMovie(void) {
     return ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie);
 }
 
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004e0fe0
+short C2_HOOK_FASTCALL CreateMovie(void) {
+    int height;
+    int width;
+    int result;
+
+    height = (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height);
+    width = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width);
+    gQuicktime_track = NewMovieTrack(gQuicktime_movie, FixRatio(width * 2, 1), FixRatio(height * 2, 1), 0x100);
+    result = GetMoviesError();
+    if ((short)result == 0) {
+        gQuicktime_media = NewTrackMedia(gQuicktime_track, 0x76696465, 1000, 0, 0);
+        result = GetMoviesError();
+        if ((short)result == 0) {
+            result = BeginMediaEdits(gQuicktime_media);
+            if ((short)result == 0) {
+                gQuicktime_frame_pixmap_handle = NewHandle(0x32);
+                result = MemError();
+                if ((short)result == 0) {
+                    memset(*gQuicktime_frame_pixmap_handle, 0, 0x32);
+                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x1e) = 0x10;
+                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x20) = 0x10;
+                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x22) = 3;
+                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x24) = 5;
+                    result = GetMaxCompressionSize(gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0, 0x200, gQuickTime_compressor_code, 0xfffffffe, &gQuicktime_max_compression_size);
+                    if ((short)result == 0) {
+                        gQuicktime_compressed_frame_handle = NewHandle(gQuicktime_max_compression_size);
+                        result = MemError();
+                        if ((short)result == 0) {
+                            MoveHHi(gQuicktime_compressed_frame_handle);
+                            HLock(gQuicktime_compressed_frame_handle);
+                            gQuicktime_compressed_frame_pixels = *gQuicktime_compressed_frame_handle;
+                            gQuicktime_image_description_handle = NewHandle(4);
+                            result = MemError();
+                            if ((short)result == 0) {
+                                if (gQuicktime_frame_pixels == NULL) {
+                                    gQuicktime_frame_pixels = BrMemAllocate((gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2, 0xfd);
+                                    if (gQuicktime_frame_pixels == NULL) {
+                                        return 1;
+                                    }
+                                }
+                                result = CompressSequenceBegin(&gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, 0, &gQuicktime_rect, &gQuicktime_rect, gQuickTime_pixel_depth, gQuickTime_compressor_code, 0xfffffffe, 0x200, 0x200, 0xf, 0, 0xc0, gQuicktime_image_description_handle);
+                                if ((short)result == 0) {
+                                    result = WriteBannerFrame();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// TrapS3SoundOutput
+
+// FreeS3SoundOutput
+
+// GLOBAL: CARMA2_HW 0x006a0af0
+short gQuicktime_movie_file;
+
+// GLOBAL: CARMA2_HW 0x006a0c30
+Movie gQuicktime_movie;
+
+// GLOBAL: CARMA2_HW 0x006a0c34
+Handle gQuicktime_frame_pixmap_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c40
+Handle gQuicktime_image_description_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c3c
+Handle gQuicktime_compressed_frame_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0af4
+ImageSequence gQuicktime_image_sequence;
+
+// GLOBAL: CARMA2_HW 0x006a0afc
+Media gQuicktime_media;
+
+// GLOBAL: CARMA2_HW 0x006a0c10
+Track gQuicktime_track;
+
+// GLOBAL: CARMA2_HW 0x006a0c2c
+int gQuicktime_movie_counter;
+
+// GLOBAL: CARMA2_HW 0x006a0b08
+FSSpec gQt_file_spec;
+
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
+
+// GLOBAL: CARMA2_HW 0x006a0c28
+int gRecording_paused;
+
+// GLOBAL: CARMA2_HW 0x006a0c54
+tU32 gRecording_time;
+
+// GLOBAL: CARMA2_HW 0x006baa28
+int gRecording_mouse_disabled;
+
+// GLOBAL: CARMA2_HW 0x006a23bc
+int gStatus_message_1;
+
+// GLOBAL: CARMA2_HW 0x006a23c0
+int gStatus_message_2;
+
+// GLOBAL: CARMA2_HW 0x0065ef2c
+int gQuicktime_frame_flags = 1;
+
+// GLOBAL: CARMA2_HW 0x006a0c44
+br_uint_16* gQuicktime_frame_pixels;
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004e1250
+int C2_HOOK_FASTCALL WriteBannerFrame(void) {
+    br_pixelmap* pBanner;
+    int frame_size;
+    char codec_info;
+    short result;
+    int i;
+
+    if (gQuick_time_banner_number != 0) {
+        pBanner = LoadPixelmap(gQuick_time_banner_texture_name);
+        if (pBanner != NULL) {
+            if (pBanner->width != 320 || pBanner->height != 200) {
+                BrFailure("Banner picture must be 320x200");
+            }
+            *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
+            *(short*)(*gQuicktime_frame_pixmap_handle + 4) = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * 2;
+            memset(gQuicktime_frame_pixels, 0, (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2);
+            dr_dprintf("Converting banner. w=%d, h=%d, type=%d", pBanner->width, pBanner->height, pBanner->type);
+            Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pBanner);
+            for (i = 0; i < 0x12; i++) {
+                result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0xc0, *gQuicktime_compressed_frame_handle, &frame_size, &codec_info, 0);
+                if (result != 0) {
+                    return result;
+                }
+                *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
+                result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0, *(int*)(*gQuicktime_image_description_handle + 0x2c), 0x37, gQuicktime_image_description_handle, 1, 0, 0);
+                if (result != 0) {
+                    return result;
+                }
+            }
+            gQuicktime_frame_flags = 1;
+            return 0;
+        }
+    }
+    gQuicktime_frame_flags = 1;
+    return 0;
+}
+
+
+// FUNCTION: CARMA2_HW 0x004e1400
+void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
+    int row;
+    int height;
+    int destination_offset;
+    int col;
+    int width;
+    int i;
+    int pixel_step;
+    int top;
+    int source_x;
+    int source_pixel;
+    int dest;
+
+    (void)pFrame_pixmap_handle;
+    if (gQuicktime_frame_pixel_conversion_table == NULL) {
+        gQuicktime_frame_pixel_conversion_table = BrMemAllocate(0x20000, 0xfd);
+        if (gNbPixelBits == 0x10) {
+            i = 0;
+            do {
+                unsigned int value;
+                br_uint_8 blue;
+
+                value = ((unsigned int)i >> 1) & 0x7fe0;
+                blue = (br_uint_8)i;
+                value |= blue & 0x1f;
+                i++;
+                gQuicktime_frame_pixel_conversion_table[i - 1] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
+            } while (i < 0x10000);
+        } else {
+            for (i = 0; i < 256; i++) {
+                br_uint_32 colour;
+                unsigned int value;
+
+                colour = ((br_uint_32*)gRender_palette->pixels)[i];
+                value = (((colour >> 19) & 0x1f) << 5) | ((colour >> 11) & 0x1f);
+                value = (value << 5) | ((colour >> 3) & 0x1f);
+                gQuicktime_frame_pixel_conversion_table[i] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
+            }
+        }
+    }
+
+    PossibleLock(1);
+    if (gNbPixelBits == 0x10) {
+        width = gCurrent_graf_data->width / 2;
+    } else {
+        width = gCurrent_graf_data->width;
+    }
+    height = gCurrent_graf_data->height;
+    if (gNbPixelBits == 0x10) {
+        height /= 2;
+    }
+
+    if (gNbPixelBits == 0x10) {
+        pixel_step = 2;
+        if (pScreen->height == 200) {
+            top = 20;
+            height = 200;
+            pixel_step = 1;
+        } else {
+            top = 0;
+        }
+        row = 0;
+        if (height > 0) {
+            destination_offset = top * width * 2;
+            do {
+                if (width > 0) {
+                    dest = destination_offset;
+                    source_x = 0;
+                    col = width;
+                    do {
+                        source_pixel = (pixel_step * row * (int)pScreen->row_bytes) / 2 + source_x;
+                        *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_16*)pScreen->pixels)[source_pixel]];
+                        dest += 2;
+                        source_x += pixel_step;
+                        col--;
+                    } while (col != 0);
+                }
+                row++;
+                destination_offset += width * 2;
+            } while (row < height);
+            PossibleUnlock(1);
+            return;
+        }
+    } else {
+        row = 0;
+        destination_offset = 0;
+        do {
+            if (width > 0) {
+                dest = destination_offset;
+                col = 0;
+                do {
+                    source_pixel = row * (int)pScreen->row_bytes + col;
+                    *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_8*)pScreen->pixels)[source_pixel]];
+                    dest += 2;
+                    col++;
+                } while (col < width);
+            }
+            row++;
+            destination_offset += width * 2;
+        } while (row < 200);
+    }
+    PossibleUnlock(1);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // CreateMovie
 
 // MovieStartNewMovie
@@ -178,11 +473,8 @@ typedef struct {
 
 extern tS3_outlet* gEffects_outlet;
 extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
-extern int gStatus_message_1;
-extern int gStatus_message_2;
 extern int gRecording_paused;
 extern int gQuickTime_quality_code;
-extern int gQuickTime_compressor_code;
 extern short gQuicktime_movie_file;
 extern FSSpec gQt_file_spec;
 extern int C2_HOOK_CDECL FUN_00575340(char* pString);
@@ -285,18 +577,8 @@ typedef struct {
 
 extern short gQuicktime_movie_file;
 extern Movie gQuicktime_movie;
-extern Handle gQuicktime_frame_pixmap_handle;
-extern Handle gQuicktime_image_description_handle;
-extern Handle gQuicktime_compressed_frame_handle;
-extern ImageSequence gQuicktime_image_sequence;
-extern Media gQuicktime_media;
-extern Track gQuicktime_track;
-extern int gQuicktime_movie_counter;
 extern int gStatus_message_1;
 extern int gStatus_message_2;
-extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
-extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
-extern void C2_HOOK_FASTCALL PDFileDelete(const char *pPath, int pIgnore_read_only);
 
 // based on the disassembly (inlined MovieStopRecordingAndSave)
 // FUNCTION: CARMA2_HW 0x004e1a20
@@ -356,18 +638,17 @@ void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
     gShow_status_message = 0;
 }
 
+// No-op callback ()
+// FUNCTION: CARMA2_HW 0x004e1c30
+void C2_HOOK_FASTCALL NoOp_004e1c30(void) {
+}
+
 // GenerateOneMovieFrame
 
 extern void C2_HOOK_FASTCALL WaitFor(tU32 pDelay);
 extern short C2_HOOK_FASTCALL CreateMovie(void);
 extern short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
 extern void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen);
-extern br_uint_16 gQuickTime_pixel_depth;
-extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern int gQuicktime_max_compression_size;
-extern void* gQuicktime_compressed_frame_pixels;
-extern br_uint_16* gQuicktime_frame_pixel_conversion_table;
 extern void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight);
 extern void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume);
 extern int C2_HOOK_CDECL GetMoviesError(void);
@@ -379,7 +660,6 @@ extern int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void*
 extern void C2_HOOK_CDECL MoveHHi(void* pHandle);
 extern void C2_HOOK_CDECL HLock(void* pHandle);
 extern int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle);
-extern br_pixelmap* gRender_palette;
 extern short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8);
 extern short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time);
 extern FSSpec gQt_file_spec;
@@ -406,6 +686,54 @@ void C2_HOOK_FASTCALL FUN_004e1c60(undefined4 pArg1, undefined4 pArg2, undefined
     /* Unused */
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004e1c70
+short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
+    int frame_flags;
+    int pixmap_width;
+    int frame_size;
+    char codec_info;
+    short result;
+
+    if (gQuicktime_frame_flags != 0) {
+        frame_flags = 0xc0;
+        gQuicktime_frame_flags = 0;
+    } else {
+        frame_flags = 0x40;
+    }
+    PossibleLock(1);
+    *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
+    if (gNbPixelBits == 16) {
+        pixmap_width = gCurrent_graf_data->width / 2;
+    } else {
+        pixmap_width = gCurrent_graf_data->width;
+    }
+    *(short*)(*gQuicktime_frame_pixmap_handle + 4) = pixmap_width * 2;
+    Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pScreen);
+    result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle,
+            &gQuicktime_rect, frame_flags, *gQuicktime_compressed_frame_handle,
+            &frame_size, &codec_info, 0);
+    if (result != 0) {
+        PossibleUnlock(1);
+        return result;
+    }
+    *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
+    result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0,
+            *(int*)(*gQuicktime_image_description_handle + 0x2c),
+            0x37, gQuicktime_image_description_handle, 1, 0, 0);
+    if (result != 0) {
+        PossibleUnlock(1);
+        return result;
+    }
+    PossibleUnlock(1);
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // (reference only)
 // FUNCTION: CARMA2_HW 0x004e1da0
 int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
@@ -564,346 +892,139 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
     gNext_replay_record_state = state;
 }
 
-// TrapS3SoundOutput
-
-// FreeS3SoundOutput
-
-// GLOBAL: CARMA2_HW 0x006a0af0
-short gQuicktime_movie_file;
-
-// GLOBAL: CARMA2_HW 0x006a0c30
-Movie gQuicktime_movie;
-
-// GLOBAL: CARMA2_HW 0x006a0c34
-Handle gQuicktime_frame_pixmap_handle;
-
-// GLOBAL: CARMA2_HW 0x006a0c40
-Handle gQuicktime_image_description_handle;
-
-// GLOBAL: CARMA2_HW 0x006a0c3c
-Handle gQuicktime_compressed_frame_handle;
-
-// GLOBAL: CARMA2_HW 0x006a0af4
-ImageSequence gQuicktime_image_sequence;
-
-// GLOBAL: CARMA2_HW 0x006a0afc
-Media gQuicktime_media;
-
-// GLOBAL: CARMA2_HW 0x006a0c10
-Track gQuicktime_track;
-
-// GLOBAL: CARMA2_HW 0x006a0c2c
-int gQuicktime_movie_counter;
-
-// GLOBAL: CARMA2_HW 0x006a0b08
-FSSpec gQt_file_spec;
-
-// GLOBAL: CARMA2_HW 0x006a0c18
-struct Rect gQuicktime_rect;
-
-// GLOBAL: CARMA2_HW 0x006a0c28
-int gRecording_paused;
-
-// GLOBAL: CARMA2_HW 0x006a0c54
-tU32 gRecording_time;
-
-// GLOBAL: CARMA2_HW 0x006baa28
-int gRecording_mouse_disabled;
-
-// GLOBAL: CARMA2_HW 0x006a23bc
-int gStatus_message_1;
-
-// GLOBAL: CARMA2_HW 0x006a23c0
-int gStatus_message_2;
-
-// GLOBAL: CARMA2_HW 0x0065ef2c
-int gQuicktime_frame_flags = 1;
-
-// GLOBAL: CARMA2_HW 0x006a0c44
-br_uint_16* gQuicktime_frame_pixels;
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
-// FUNCTION: CARMA2_HW 0x004e1250
-int C2_HOOK_FASTCALL WriteBannerFrame(void) {
-    br_pixelmap* pBanner;
-    int frame_size;
-    char codec_info;
-    short result;
-    int i;
-
-    if (gQuick_time_banner_number != 0) {
-        pBanner = LoadPixelmap(gQuick_time_banner_texture_name);
-        if (pBanner != NULL) {
-            if (pBanner->width != 320 || pBanner->height != 200) {
-                BrFailure("Banner picture must be 320x200");
-            }
-            *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
-            *(short*)(*gQuicktime_frame_pixmap_handle + 4) = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * 2;
-            memset(gQuicktime_frame_pixels, 0, (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2);
-            dr_dprintf("Converting banner. w=%d, h=%d, type=%d", pBanner->width, pBanner->height, pBanner->type);
-            Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pBanner);
-            for (i = 0; i < 0x12; i++) {
-                result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0xc0, *gQuicktime_compressed_frame_handle, &frame_size, &codec_info, 0);
-                if (result != 0) {
-                    return result;
-                }
-                *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
-                result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0, *(int*)(*gQuicktime_image_description_handle + 0x2c), 0x37, gQuicktime_image_description_handle, 1, 0, 0);
-                if (result != 0) {
-                    return result;
-                }
-            }
-            gQuicktime_frame_flags = 1;
-            return 0;
-        }
-    }
-    gQuicktime_frame_flags = 1;
-    return 0;
-}
-
+// QuickTime dispatcher trampoline (selector 0x20002, GetMoviesError).
 #ifdef REC2_MATCHING
-#pragma auto_inline(on)
+__declspec(naked)
 #endif
-
+// FUNCTION: CARMA2_HW 0x0056a900
+int C2_HOOK_CDECL ExitMovies(void) {
 #ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x004e0fe0
-short C2_HOOK_FASTCALL CreateMovie(void) {
-    int height;
-    int width;
-    int result;
-
-    height = (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height);
-    width = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width);
-    gQuicktime_track = NewMovieTrack(gQuicktime_movie, FixRatio(width * 2, 1), FixRatio(height * 2, 1), 0x100);
-    result = GetMoviesError();
-    if ((short)result == 0) {
-        gQuicktime_media = NewTrackMedia(gQuicktime_track, 0x76696465, 1000, 0, 0);
-        result = GetMoviesError();
-        if ((short)result == 0) {
-            result = BeginMediaEdits(gQuicktime_media);
-            if ((short)result == 0) {
-                gQuicktime_frame_pixmap_handle = NewHandle(0x32);
-                result = MemError();
-                if ((short)result == 0) {
-                    memset(*gQuicktime_frame_pixmap_handle, 0, 0x32);
-                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x1e) = 0x10;
-                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x20) = 0x10;
-                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x22) = 3;
-                    *(short*)(*gQuicktime_frame_pixmap_handle + 0x24) = 5;
-                    result = GetMaxCompressionSize(gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0, 0x200, gQuickTime_compressor_code, 0xfffffffe, &gQuicktime_max_compression_size);
-                    if ((short)result == 0) {
-                        gQuicktime_compressed_frame_handle = NewHandle(gQuicktime_max_compression_size);
-                        result = MemError();
-                        if ((short)result == 0) {
-                            MoveHHi(gQuicktime_compressed_frame_handle);
-                            HLock(gQuicktime_compressed_frame_handle);
-                            gQuicktime_compressed_frame_pixels = *gQuicktime_compressed_frame_handle;
-                            gQuicktime_image_description_handle = NewHandle(4);
-                            result = MemError();
-                            if ((short)result == 0) {
-                                if (gQuicktime_frame_pixels == NULL) {
-                                    gQuicktime_frame_pixels = BrMemAllocate((gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2, 0xfd);
-                                    if (gQuicktime_frame_pixels == NULL) {
-                                        return 1;
-                                    }
-                                }
-                                result = CompressSequenceBegin(&gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, 0, &gQuicktime_rect, &gQuicktime_rect, gQuickTime_pixel_depth, gQuickTime_compressor_code, 0xfffffffe, 0x200, 0x200, 0xf, 0, 0xc0, gQuicktime_image_description_handle);
-                                if ((short)result == 0) {
-                                    result = WriteBannerFrame();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return result;
-}
-
-// FUNCTION: CARMA2_HW 0x004e1c70
-short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
-    int frame_flags;
-    int pixmap_width;
-    int frame_size;
-    char codec_info;
-    short result;
-
-    if (gQuicktime_frame_flags != 0) {
-        frame_flags = 0xc0;
-        gQuicktime_frame_flags = 0;
-    } else {
-        frame_flags = 0x40;
-    }
-    PossibleLock(1);
-    *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
-    if (gNbPixelBits == 16) {
-        pixmap_width = gCurrent_graf_data->width / 2;
-    } else {
-        pixmap_width = gCurrent_graf_data->width;
-    }
-    *(short*)(*gQuicktime_frame_pixmap_handle + 4) = pixmap_width * 2;
-    Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pScreen);
-    result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle,
-            &gQuicktime_rect, frame_flags, *gQuicktime_compressed_frame_handle,
-            &frame_size, &codec_info, 0);
-    if (result != 0) {
-        PossibleUnlock(1);
-        return result;
-    }
-    *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
-    result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0,
-            *(int*)(*gQuicktime_image_description_handle + 0x2c),
-            0x37, gQuicktime_image_description_handle, 1, 0, 0);
-    if (result != 0) {
-        PossibleUnlock(1);
-        return result;
-    }
-    PossibleUnlock(1);
-    return 0;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004e1400
-void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
-    int row;
-    int height;
-    int destination_offset;
-    int col;
-    int width;
-    int i;
-    int pixel_step;
-    int top;
-    int source_x;
-    int source_pixel;
-    int dest;
-
-    (void)pFrame_pixmap_handle;
-    if (gQuicktime_frame_pixel_conversion_table == NULL) {
-        gQuicktime_frame_pixel_conversion_table = BrMemAllocate(0x20000, 0xfd);
-        if (gNbPixelBits == 0x10) {
-            i = 0;
-            do {
-                unsigned int value;
-                br_uint_8 blue;
-
-                value = ((unsigned int)i >> 1) & 0x7fe0;
-                blue = (br_uint_8)i;
-                value |= blue & 0x1f;
-                i++;
-                gQuicktime_frame_pixel_conversion_table[i - 1] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
-            } while (i < 0x10000);
-        } else {
-            for (i = 0; i < 256; i++) {
-                br_uint_32 colour;
-                unsigned int value;
-
-                colour = ((br_uint_32*)gRender_palette->pixels)[i];
-                value = (((colour >> 19) & 0x1f) << 5) | ((colour >> 11) & 0x1f);
-                value = (value << 5) | ((colour >> 3) & 0x1f);
-                gQuicktime_frame_pixel_conversion_table[i] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
-            }
-        }
-    }
-
-    PossibleLock(1);
-    if (gNbPixelBits == 0x10) {
-        width = gCurrent_graf_data->width / 2;
-    } else {
-        width = gCurrent_graf_data->width;
-    }
-    height = gCurrent_graf_data->height;
-    if (gNbPixelBits == 0x10) {
-        height /= 2;
-    }
-
-    if (gNbPixelBits == 0x10) {
-        pixel_step = 2;
-        if (pScreen->height == 200) {
-            top = 20;
-            height = 200;
-            pixel_step = 1;
-        } else {
-            top = 0;
-        }
-        row = 0;
-        if (height > 0) {
-            destination_offset = top * width * 2;
-            do {
-                if (width > 0) {
-                    dest = destination_offset;
-                    source_x = 0;
-                    col = width;
-                    do {
-                        source_pixel = (pixel_step * row * (int)pScreen->row_bytes) / 2 + source_x;
-                        *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_16*)pScreen->pixels)[source_pixel]];
-                        dest += 2;
-                        source_x += pixel_step;
-                        col--;
-                    } while (col != 0);
-                }
-                row++;
-                destination_offset += width * 2;
-            } while (row < height);
-            PossibleUnlock(1);
-            return;
-        }
-    } else {
-        row = 0;
-        destination_offset = 0;
-        do {
-            if (width > 0) {
-                dest = destination_offset;
-                col = 0;
-                do {
-                    source_pixel = row * (int)pScreen->row_bytes + col;
-                    *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_8*)pScreen->pixels)[source_pixel]];
-                    dest += 2;
-                    col++;
-                } while (col < width);
-            }
-            row++;
-            destination_offset += width * 2;
-        } while (row < 200);
-    }
-    PossibleUnlock(1);
-}
-extern void* gQuickTime_dispatcher;
-extern void* gQuickTime_dispatch;
-
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056d8c0
-__declspec(naked) short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
-        je      quicktime_trap_d8c0
+        je      quicktime_trap_a900
         call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_d8c0:
-        mov     eax, 0x3000b
+    quicktime_trap_a900:
+        mov     eax, 0x20002
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
     return 1;
-}
 #endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20003).
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056a920
+int C2_HOOK_CDECL GetMoviesError(void) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_a920
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_a920:
+        mov     eax, 0x20003
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 0;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20023, DisposeMovie).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056abe0
+void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_abe0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_abe0:
+        mov     eax, 0x20023
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x2006a, GetMediaDuration).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056b240
+int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_b240
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_b240:
+        mov     eax, 0x2006a
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 0;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20072).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056b340
+int C2_HOOK_CDECL BeginMediaEdits(void* pMedia) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_b340
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_b340:
+        mov     eax, 0x20072
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 0;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20073, EndMediaEdits).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056b360
+short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_b360
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_b360:
+        mov     eax, 0x20073
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 1;
+#endif
+}
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x0056b440
-__declspec(naked) short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -913,45 +1034,242 @@ __declspec(naked) short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompre
         mov     eax, 0x2007c
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
     return 1;
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-// GLOBAL: CARMA2_HW 0x006a0c4c
-int gQuickTime_compressor_code;
-
+// QuickTime dispatcher trampoline (selector 0x200d5, CloseMovieFile).
 #ifdef REC2_MATCHING
-#pragma auto_inline(off)
+__declspec(naked)
 #endif
-// QuickTime dispatcher trampoline (selector 0x280017).
+// FUNCTION: CARMA2_HW 0x0056baa0
+short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
 #ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x00575340
-__declspec(naked) int C2_HOOK_CDECL FUN_00575340(char* pString) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
-        je      quicktime_trap_5340
+        je      quicktime_trap_baa0
         call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_5340:
-        mov     eax, 0x280017
+    quicktime_trap_baa0:
+        mov     eax, 0x200d5
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-int C2_HOOK_CDECL FUN_00575340(char* pString) {
-    return 0;
-}
+    return 1;
 #endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20183, InsertMediaIntoTrack).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056c600
+short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c600
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c600:
+        mov     eax, 0x20183
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 1;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20188).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056c640
+void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c640
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c640:
+        mov     eax, 0x20188
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return NULL;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x2018e).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056c6e0
+void* C2_HOOK_CDECL NewTrackMedia(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c6e0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c6e0:
+        mov     eax, 0x2018e
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return NULL;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x20191, CreateMovieFile).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056c720
+short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c720
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c720:
+        mov     eax, 0x20191
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 1;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x2019c, FlattenMovieData).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056c800
+void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_c800
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_c800:
+        mov     eax, 0x2019c
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return NULL;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x30004).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056d7e0
+int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_d7e0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_d7e0:
+        mov     eax, 0x30004
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 0;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x3000a).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056d8a0
+int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_d8a0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_d8a0:
+        mov     eax, 0x3000a
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 0;
+#endif
+}
+
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056d8c0
+short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_d8c0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_d8c0:
+        mov     eax, 0x3000b
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 1;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x3001b, CDSequenceEnd).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056dac0
+short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
+#ifdef REC2_MATCHING
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_dac0
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_dac0:
+        mov     eax, 0x3001b
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#else
+    return 1;
+#endif
+}
+
+// QuickTime dispatcher trampoline (selector 0x1d0008).
+#ifdef _MSC_VER
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x0056e760
+void C2_HOOK_CDECL QTMLInitInternals(void) {
+#ifdef _MSC_VER
+    __asm {
+        mov     eax, dword ptr [gQuickTime_dispatcher]
+        or      eax, eax
+        je      quicktime_trap_e760
+        call    dword ptr [gQuickTime_dispatcher]
+    quicktime_trap_e760:
+        mov     eax, 0x1d0008
+        jmp     dword ptr [gQuickTime_dispatch]
+    }
+#endif
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // GLOBAL: CARMA2_HW 0x006736a8
 void* gQuickTime_dispatcher;
 
@@ -975,8 +1293,11 @@ br_uint_16 gQuickTime_pixel_depth = 0x10;
 #endif
 // QuickTime dispatcher trampoline (selector 0x100001).
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x0056fde0
-__declspec(naked) void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight) {
+void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -986,153 +1307,18 @@ __declspec(naked) void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight) {
         mov     eax, 0x100001
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight) {
     return NULL;
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20188).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056c640
-__declspec(naked) void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_c640
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_c640:
-        mov     eax, 0x20188
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
-    return NULL;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20003).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056a920
-__declspec(naked) int C2_HOOK_CDECL GetMoviesError(void) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_a920
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_a920:
-        mov     eax, 0x20003
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-int C2_HOOK_CDECL GetMoviesError(void) {
-    return 0;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x2018e).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056c6e0
-__declspec(naked) void* C2_HOOK_CDECL NewTrackMedia(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_c6e0
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_c6e0:
-        mov     eax, 0x2018e
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void* C2_HOOK_CDECL NewTrackMedia(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
-    return NULL;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20072).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056b340
-__declspec(naked) int C2_HOOK_CDECL BeginMediaEdits(void* pMedia) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_b340
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_b340:
-        mov     eax, 0x20072
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-int C2_HOOK_CDECL BeginMediaEdits(void* pMedia) {
-    return 0;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x150008).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x00570600
-__declspec(naked) void* C2_HOOK_CDECL NewHandle(int pSize) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_0600
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_0600:
-        mov     eax, 0x150008
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void* C2_HOOK_CDECL NewHandle(int pSize) {
-    return NULL;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 // QuickTime dispatcher trampoline (selector 0x150006).
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x005705c0
-__declspec(naked) int C2_HOOK_CDECL MemError(void) {
+int C2_HOOK_CDECL MemError(void) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -1142,74 +1328,39 @@ __declspec(naked) int C2_HOOK_CDECL MemError(void) {
         mov     eax, 0x150006
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-int C2_HOOK_CDECL MemError(void) {
     return 0;
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
+// QuickTime dispatcher trampoline (selector 0x150008).
 #ifdef REC2_MATCHING
-#pragma auto_inline(off)
+__declspec(naked)
 #endif
-// QuickTime dispatcher trampoline (selector 0x30004).
+// FUNCTION: CARMA2_HW 0x00570600
+void* C2_HOOK_CDECL NewHandle(int pSize) {
 #ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056d7e0
-__declspec(naked) int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
-        je      quicktime_trap_d7e0
+        je      quicktime_trap_0600
         call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_d7e0:
-        mov     eax, 0x30004
+    quicktime_trap_0600:
+        mov     eax, 0x150008
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
-    return 0;
+    return NULL;
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x15002e).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x00570a40
-__declspec(naked) void C2_HOOK_CDECL MoveHHi(void* pHandle) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_0a40
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_0a40:
-        mov     eax, 0x15002e
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void C2_HOOK_CDECL MoveHHi(void* pHandle) {
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 // QuickTime dispatcher trampoline (selector 0x150019).
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x005707e0
-__declspec(naked) void C2_HOOK_CDECL HLock(void* pHandle) {
+void C2_HOOK_CDECL HLock(void* pHandle) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -1219,281 +1370,37 @@ __declspec(naked) void C2_HOOK_CDECL HLock(void* pHandle) {
         mov     eax, 0x150019
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-void C2_HOOK_CDECL HLock(void* pHandle) {
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
+// QuickTime dispatcher trampoline (selector 0x15002e).
 #ifdef REC2_MATCHING
-#pragma auto_inline(off)
+__declspec(naked)
 #endif
-// QuickTime dispatcher trampoline (selector 0x3000a).
+// FUNCTION: CARMA2_HW 0x00570a40
+void C2_HOOK_CDECL MoveHHi(void* pHandle) {
 #ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056d8a0
-__declspec(naked) int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
-        je      quicktime_trap_d8a0
+        je      quicktime_trap_0a40
         call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_d8a0:
-        mov     eax, 0x3000a
+    quicktime_trap_0a40:
+        mov     eax, 0x15002e
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
-    return 0;
+#endif
 }
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20002, GetMoviesError).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056a900
-__declspec(naked) int C2_HOOK_CDECL ExitMovies(void) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_a900
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_a900:
-        mov     eax, 0x20002
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-int C2_HOOK_CDECL ExitMovies(void) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20023, DisposeMovie).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056abe0
-__declspec(naked) void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_abe0
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_abe0:
-        mov     eax, 0x20023
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x2006a, GetMediaDuration).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056b240
-__declspec(naked) int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_b240
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_b240:
-        mov     eax, 0x2006a
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
-    return 0;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20073, EndMediaEdits).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056b360
-__declspec(naked) short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_b360
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_b360:
-        mov     eax, 0x20073
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x200d5, CloseMovieFile).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056baa0
-__declspec(naked) short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_baa0
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_baa0:
-        mov     eax, 0x200d5
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20183, InsertMediaIntoTrack).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056c600
-__declspec(naked) short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_c600
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_c600:
-        mov     eax, 0x20183
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x20191, CreateMovieFile).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056c720
-__declspec(naked) short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_c720
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_c720:
-        mov     eax, 0x20191
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x2019c, FlattenMovieData).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056c800
-__declspec(naked) void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_c800
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_c800:
-        mov     eax, 0x2019c
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
-    return NULL;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// QuickTime dispatcher trampoline (selector 0x3001b, CDSequenceEnd).
-#ifdef REC2_MATCHING
-// FUNCTION: CARMA2_HW 0x0056dac0
-__declspec(naked) short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
-    __asm {
-        mov     eax, dword ptr [gQuickTime_dispatcher]
-        or      eax, eax
-        je      quicktime_trap_dac0
-        call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_dac0:
-        mov     eax, 0x3001b
-        jmp     dword ptr [gQuickTime_dispatch]
-    }
-}
-#else
-short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
-    return 1;
-}
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 // QuickTime dispatcher trampoline (selector 0x150032, DisposeHandle).
 #ifdef REC2_MATCHING
+__declspec(naked)
+#endif
 // FUNCTION: CARMA2_HW 0x00570ac0
-__declspec(naked) void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
+void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
@@ -1503,43 +1410,47 @@ __declspec(naked) void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
         mov     eax, 0x150032
         jmp     dword ptr [gQuickTime_dispatch]
     }
-}
 #else
-void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
-}
 #endif
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// GLOBAL: CARMA2_HW 0x006a0c4c
+int gQuickTime_compressor_code;
 
-// No-op callback ()
-// FUNCTION: CARMA2_HW 0x004e1c30
-void C2_HOOK_FASTCALL NoOp_004e1c30(void) {
-}
-
-#ifdef _MSC_VER
+#ifdef REC2_MATCHING
 #pragma auto_inline(off)
-// FUNCTION: CARMA2_HW 0x0056e760
-// QuickTime dispatcher trampoline (selector 0x1d0008).
-__declspec(naked) void C2_HOOK_CDECL QTMLInitInternals(void) {
+#endif
+// QuickTime dispatcher trampoline (selector 0x280017).
+#ifdef REC2_MATCHING
+__declspec(naked)
+#endif
+// FUNCTION: CARMA2_HW 0x00575340
+int C2_HOOK_CDECL FUN_00575340(char* pString) {
+#ifdef REC2_MATCHING
     __asm {
         mov     eax, dword ptr [gQuickTime_dispatcher]
         or      eax, eax
-        je      quicktime_trap_e760
+        je      quicktime_trap_5340
         call    dword ptr [gQuickTime_dispatcher]
-    quicktime_trap_e760:
-        mov     eax, 0x1d0008
+    quicktime_trap_5340:
+        mov     eax, 0x280017
         jmp     dword ptr [gQuickTime_dispatch]
     }
+#else
+    return 0;
+#endif
 }
+#ifdef _MSC_VER
 // Force reference to prevent linker from removing unreferenced COMDAT
 volatile void *gForceRef_56e760 = (void*)QTMLInitInternals;
-#pragma auto_inline(on)
-#else
-void C2_HOOK_CDECL QTMLInitInternals(void) {
-}
 #endif
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 #ifndef _WIN32
 static void* GetProcAddress(void* pModule, const char* pProc_name) {
     return NULL;
@@ -1642,10 +1553,10 @@ void* C2_HOOK_CDECL _QTLoadLibrary(void) {
     }
     return hModule;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // GLOBAL: CARMA2_HW 0x00673cf8
 void* PTR_FUN_00673cf8;
 

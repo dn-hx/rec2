@@ -29,6 +29,29 @@ void C2_HOOK_CDECL BrTVTemplateFree(br_tv_template* t) {
     BrResFree(t);
 }
 
+// FUNCTION: CARMA2_HW 0x0052d780
+br_error C2_HOOK_CDECL BrTokenValueQuery(br_uint_32* pvalue, br_uint_32* extra, br_size_t extra_size, br_token t, void* block, br_tv_template* template) {
+    br_int_32 o;
+    br_tv_template_entry* tep;
+    br_token_value tv;
+    br_error r;
+
+    if (template->n_map_entries == 0) {
+        templateMakeMap(template);
+    }
+    o = t - template->map_base;
+    if (o < 0 || o >= template->n_map_entries) {
+        return 0x1001;
+    }
+    tep = template->map_query_entry[o];
+    if (tep != NULL) {
+        r = ValueQuery(&tv, (void**)&extra, &extra_size, block, tep);
+        *pvalue = tv.v.u32;
+        return r;
+    }
+    return 0x1001;
+}
+
 void C2_HOOK_STDCALL templateResolveNames(br_tv_template* template) {
     br_tv_template_entry* tp;
     int n;
@@ -368,6 +391,233 @@ br_error C2_HOOK_STDCALL ValueQuery(br_token_value* tv, void** pextra, br_size_t
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x0052e230
+br_error C2_HOOK_CDECL BrTokenValueQueryMany(br_token_value* tv, void* extra, br_size_t extra_size, br_int_32* pcount, void* block, br_tv_template* template) {
+    br_int_32 o;
+    br_tv_template_entry* tep;
+    br_error r;
+
+    if (template->n_map_entries == 0) {
+        templateMakeMap(template);
+    }
+    *pcount = 0;
+
+    for (; tv->t != BR_NULL_TOKEN; tv++) {
+        o = tv->t - template->map_base;
+        if (o < 0 || o >= template->n_map_entries) {
+            continue;
+        }
+        tep = template->map_query_entry[o];
+        if (tep == NULL) {
+            continue;
+        }
+        r = ValueQuery(tv, &extra, &extra_size, block, tep);
+        if (r == 0) {
+            (*pcount)++;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0052e2a0
+br_error C2_HOOK_CDECL BrTokenValueQueryManySize(br_size_t* psize, br_token_value* tv, void* block, br_tv_template* template) {
+    br_int_32 o;
+    br_size_t extra_size;
+
+    extra_size = 0;
+
+    if (template->n_map_entries == 0) {
+        templateMakeMap(template);
+    }
+
+    for (; tv->t != 0; tv++) {
+        o = tv->t - template->map_base;
+        if (o < 0 || o >= template->n_map_entries) {
+            continue;
+        }
+        if (template->map_query_entry[o]) {
+            extra_size += ValueExtraSize(block, template->map_query_entry[o]);
+        }
+    }
+    *psize = extra_size;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0052e300
+br_size_t C2_HOOK_STDCALL ValueExtraSize(void* block, br_tv_template_entry* tep) {
+    void* mem;
+    br_uint_32* lp;
+    int t;
+    br_tv_custom* custp;
+
+    if (tep->flags & 0x8) {
+        mem = (void*)&tep->offset;
+    } else {
+        mem = (br_uint_8*)block + tep->offset;
+    }
+    switch (tep->conv) {
+    case 2:
+        custp = (br_tv_custom*)tep->conv_arg;
+        if (custp == NULL || custp->extra_size == NULL) {
+            return 0;
+        }
+        return custp->extra_size(block, tep);
+    case 4:
+        return 2 * sizeof(int);
+    case 5:
+        return 3 * sizeof(int);
+    case 6:
+        return 4 * sizeof(int);
+    case 7:
+        return 6 * sizeof(int);
+    case 8:
+        return 12 * sizeof(int);
+    case 9:
+        return 16 * sizeof(int);
+    case 16:
+        return 2 * sizeof(float);
+    case 17:
+        return 2 * sizeof(br_fixed_ls);
+    case 18:
+        return 3 * sizeof(float);
+    case 19:
+        return 3 * sizeof(br_fixed_ls);
+    case 20:
+        return 4 * sizeof(float);
+    case 21:
+        return 4 * sizeof(br_fixed_ls);
+    case 22:
+        return 6 * sizeof(float);
+    case 23:
+        return 6 * sizeof(br_fixed_ls);
+    case 24:
+        return 12 * sizeof(float);
+    case 25:
+        return 12 * sizeof(br_fixed_ls);
+    case 26:
+        return 16 * sizeof(float);
+    case 27:
+        return 16 * sizeof(br_fixed_ls);
+    case 28:
+        return (BrStrLen(*(char**)mem) + 1 + sizeof(int) - 1) / sizeof(int);
+    case 29:
+        t = 1;
+        lp = *(br_uint_32**)mem;
+        if (lp != NULL) {
+            while (*lp++ != 0) {
+                t++;
+            }
+        }
+        return t * sizeof(int);
+    default:
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0052e430
+br_error C2_HOOK_CDECL BrTokenValueQueryAll(br_token_value* buffer, br_size_t buffer_size, void* block, br_tv_template* template) {
+    br_tv_template_entry* tp;
+    int n;
+    int e;
+    char* extra;
+    br_error r;
+
+    if (!template->names_resolved) {
+        tp = template->entries;
+        for (e = 0; e < template->n_entries; e++) {
+            if (tp->name != NULL) {
+                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
+            }
+            tp++;
+        }
+    }
+
+    tp = template->entries;
+    n = 1;
+    for (e = template->n_entries; e > 0; e--) {
+        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
+            n++;
+        }
+        tp++;
+    }
+    extra = (char*)(buffer + n);
+    if (buffer_size < sizeof(*buffer) * n) {
+        return 0x1004;
+    }
+    buffer_size -= sizeof(*buffer) * n;
+    tp = template->entries;
+    for (e = 0; e < template->n_entries; e++) {
+        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
+            buffer->t = tp->token;
+            r = ValueQuery(buffer, (void**)&extra, &buffer_size, block, tp);
+            if (r != 0) {
+                return r;
+            }
+            buffer++;
+        }
+        tp++;
+    }
+    buffer->t = BR_NULL_TOKEN;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0052e510
+br_error C2_HOOK_CDECL BrTokenValueQueryAllSize(br_size_t* psize, void* block, br_tv_template* template) {
+    br_tv_template_entry* tp;
+    int e;
+    int n;
+    br_size_t extra_size;
+
+    n = 1;
+    e = 0;
+    extra_size = 0;
+    if (!template->names_resolved) {
+        tp = template->entries;
+        for (; e < template->n_entries; e++) {
+            if (tp->name != NULL) {
+                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
+            }
+            tp++;
+        }
+    }
+    tp = template->entries;
+    for (e = 0; e < template->n_entries; e++) {
+        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
+            n++;
+            extra_size += ValueExtraSize(block, tp);
+        }
+        tp++;
+    }
+    *psize = extra_size + sizeof(br_token_value) * n;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0052e5b0
+br_error C2_HOOK_CDECL BrTokenValueSet(void* mem, br_uint_32* pcombined_mask, br_token t, br_uint_32 value, br_tv_template* template) {
+    br_int_32 o;
+    br_error r;
+    br_token_value tv;
+
+    tv.t = t;
+    tv.v.u32 = value;
+    if (template->n_map_entries == 0) {
+        templateMakeMap(template);
+    }
+    o = t - template->map_base;
+    if (o < 0 || o >= template->n_map_entries) {
+        return 0x1001;
+    }
+    if (template->map_set_entry[o] == NULL) {
+        return 0x1001;
+    }
+    r = ValueSet(mem, &tv, template->map_set_entry[o]);
+    if (r != 0) {
+        return r;
+    }
+    *pcombined_mask |= template->map_set_entry[o]->mask;
+    return 0;
+}
+
 // FUNCTION: CARMA2_HW 0x0052e630
 br_error C2_HOOK_STDCALL ValueSet(void* block, br_token_value* tv, br_tv_template_entry* tep) {
     void* mem;
@@ -502,256 +752,6 @@ copy_integers:
     default:
         return 0x1001;
     }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e300
-br_size_t C2_HOOK_STDCALL ValueExtraSize(void* block, br_tv_template_entry* tep) {
-    void* mem;
-    br_uint_32* lp;
-    int t;
-    br_tv_custom* custp;
-
-    if (tep->flags & 0x8) {
-        mem = (void*)&tep->offset;
-    } else {
-        mem = (br_uint_8*)block + tep->offset;
-    }
-    switch (tep->conv) {
-    case 2:
-        custp = (br_tv_custom*)tep->conv_arg;
-        if (custp == NULL || custp->extra_size == NULL) {
-            return 0;
-        }
-        return custp->extra_size(block, tep);
-    case 4:
-        return 2 * sizeof(int);
-    case 5:
-        return 3 * sizeof(int);
-    case 6:
-        return 4 * sizeof(int);
-    case 7:
-        return 6 * sizeof(int);
-    case 8:
-        return 12 * sizeof(int);
-    case 9:
-        return 16 * sizeof(int);
-    case 16:
-        return 2 * sizeof(float);
-    case 17:
-        return 2 * sizeof(br_fixed_ls);
-    case 18:
-        return 3 * sizeof(float);
-    case 19:
-        return 3 * sizeof(br_fixed_ls);
-    case 20:
-        return 4 * sizeof(float);
-    case 21:
-        return 4 * sizeof(br_fixed_ls);
-    case 22:
-        return 6 * sizeof(float);
-    case 23:
-        return 6 * sizeof(br_fixed_ls);
-    case 24:
-        return 12 * sizeof(float);
-    case 25:
-        return 12 * sizeof(br_fixed_ls);
-    case 26:
-        return 16 * sizeof(float);
-    case 27:
-        return 16 * sizeof(br_fixed_ls);
-    case 28:
-        return (BrStrLen(*(char**)mem) + 1 + sizeof(int) - 1) / sizeof(int);
-    case 29:
-        t = 1;
-        lp = *(br_uint_32**)mem;
-        if (lp != NULL) {
-            while (*lp++ != 0) {
-                t++;
-            }
-        }
-        return t * sizeof(int);
-    default:
-        return 0;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0052d780
-br_error C2_HOOK_CDECL BrTokenValueQuery(br_uint_32* pvalue, br_uint_32* extra, br_size_t extra_size, br_token t, void* block, br_tv_template* template) {
-    br_int_32 o;
-    br_tv_template_entry* tep;
-    br_token_value tv;
-    br_error r;
-
-    if (template->n_map_entries == 0) {
-        templateMakeMap(template);
-    }
-    o = t - template->map_base;
-    if (o < 0 || o >= template->n_map_entries) {
-        return 0x1001;
-    }
-    tep = template->map_query_entry[o];
-    if (tep != NULL) {
-        r = ValueQuery(&tv, (void**)&extra, &extra_size, block, tep);
-        *pvalue = tv.v.u32;
-        return r;
-    }
-    return 0x1001;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e230
-br_error C2_HOOK_CDECL BrTokenValueQueryMany(br_token_value* tv, void* extra, br_size_t extra_size, br_int_32* pcount, void* block, br_tv_template* template) {
-    br_int_32 o;
-    br_tv_template_entry* tep;
-    br_error r;
-
-    if (template->n_map_entries == 0) {
-        templateMakeMap(template);
-    }
-    *pcount = 0;
-
-    for (; tv->t != BR_NULL_TOKEN; tv++) {
-        o = tv->t - template->map_base;
-        if (o < 0 || o >= template->n_map_entries) {
-            continue;
-        }
-        tep = template->map_query_entry[o];
-        if (tep == NULL) {
-            continue;
-        }
-        r = ValueQuery(tv, &extra, &extra_size, block, tep);
-        if (r == 0) {
-            (*pcount)++;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e2a0
-br_error C2_HOOK_CDECL BrTokenValueQueryManySize(br_size_t* psize, br_token_value* tv, void* block, br_tv_template* template) {
-    br_int_32 o;
-    br_size_t extra_size;
-
-    extra_size = 0;
-
-    if (template->n_map_entries == 0) {
-        templateMakeMap(template);
-    }
-
-    for (; tv->t != 0; tv++) {
-        o = tv->t - template->map_base;
-        if (o < 0 || o >= template->n_map_entries) {
-            continue;
-        }
-        if (template->map_query_entry[o]) {
-            extra_size += ValueExtraSize(block, template->map_query_entry[o]);
-        }
-    }
-    *psize = extra_size;
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e430
-br_error C2_HOOK_CDECL BrTokenValueQueryAll(br_token_value* buffer, br_size_t buffer_size, void* block, br_tv_template* template) {
-    br_tv_template_entry* tp;
-    int n;
-    int e;
-    char* extra;
-    br_error r;
-
-    if (!template->names_resolved) {
-        tp = template->entries;
-        for (e = 0; e < template->n_entries; e++) {
-            if (tp->name != NULL) {
-                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
-            }
-            tp++;
-        }
-    }
-
-    tp = template->entries;
-    n = 1;
-    for (e = template->n_entries; e > 0; e--) {
-        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
-            n++;
-        }
-        tp++;
-    }
-    extra = (char*)(buffer + n);
-    if (buffer_size < sizeof(*buffer) * n) {
-        return 0x1004;
-    }
-    buffer_size -= sizeof(*buffer) * n;
-    tp = template->entries;
-    for (e = 0; e < template->n_entries; e++) {
-        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
-            buffer->t = tp->token;
-            r = ValueQuery(buffer, (void**)&extra, &buffer_size, block, tp);
-            if (r != 0) {
-                return r;
-            }
-            buffer++;
-        }
-        tp++;
-    }
-    buffer->t = BR_NULL_TOKEN;
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e510
-br_error C2_HOOK_CDECL BrTokenValueQueryAllSize(br_size_t* psize, void* block, br_tv_template* template) {
-    br_tv_template_entry* tp;
-    int e;
-    int n;
-    br_size_t extra_size;
-
-    n = 1;
-    e = 0;
-    extra_size = 0;
-    if (!template->names_resolved) {
-        tp = template->entries;
-        for (; e < template->n_entries; e++) {
-            if (tp->name != NULL) {
-                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
-            }
-            tp++;
-        }
-    }
-    tp = template->entries;
-    for (e = 0; e < template->n_entries; e++) {
-        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
-            n++;
-            extra_size += ValueExtraSize(block, tp);
-        }
-        tp++;
-    }
-    *psize = extra_size + sizeof(br_token_value) * n;
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0052e5b0
-br_error C2_HOOK_CDECL BrTokenValueSet(void* mem, br_uint_32* pcombined_mask, br_token t, br_uint_32 value, br_tv_template* template) {
-    br_int_32 o;
-    br_error r;
-    br_token_value tv;
-
-    tv.t = t;
-    tv.v.u32 = value;
-    if (template->n_map_entries == 0) {
-        templateMakeMap(template);
-    }
-    o = t - template->map_base;
-    if (o < 0 || o >= template->n_map_entries) {
-        return 0x1001;
-    }
-    if (template->map_set_entry[o] == NULL) {
-        return 0x1001;
-    }
-    r = ValueSet(mem, &tv, template->map_set_entry[o]);
-    if (r != 0) {
-        return r;
-    }
-    *pcombined_mask |= template->map_set_entry[o]->mask;
     return 0;
 }
 
@@ -1500,11 +1500,7 @@ br_boolean C2_HOOK_CDECL BrTokenValueCompare(br_token_value* tv1, br_token_value
         case BRT_OBJECT_LIST:
         case BRT_POINTER_LIST:
             for (i = 0;; i++) {
-#if 1
                 if (tv1->v.pl[i] != tv2->v.pl[i]) {
-#else
-                if (tv1->v.pl[i] != tv1->v.pl[i]) {
-#endif
                     return 0;
                 }
                 if (tv1->v.pl[i] == NULL) {
@@ -1514,11 +1510,7 @@ br_boolean C2_HOOK_CDECL BrTokenValueCompare(br_token_value* tv1, br_token_value
             break;
         case BRT_TOKEN_LIST:
             for (i = 0;; i++) {
-#if 1
                 if (tv1->v.tl[i] != tv2->v.tl[i]) {
-#else
-                if (tv1->v.tl[i] != tv1->v.tl[i]) {
-#endif
                     return 0;
                 }
                 if (tv1->v.tl[i] == BR_NULL_TOKEN) {

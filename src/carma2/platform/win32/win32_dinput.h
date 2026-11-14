@@ -111,5 +111,6 @@ extern tButtonJoystickInfo* C2_HOOK_FASTCALL AllocateCurrentJoystickInfoData(siz
 extern void C2_HOOK_FASTCALL DisposeCurrentJoystickData(void);
 extern int* C2_HOOK_FASTCALL GetJoystickEffect(int index);
 extern int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection);
+extern int C2_HOOK_FASTCALL ResetForceFeedback(void);
 
 #endif // C2_WIN32_INPUT_H

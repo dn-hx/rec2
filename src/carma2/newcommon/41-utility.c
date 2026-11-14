@@ -53,6 +53,37 @@ tU32 gLast_tick_count;
 // GLOBAL: CARMA2_HW 0x00762180
 char gCurrent_load_directory[256];
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0045c420
+void C2_HOOK_FASTCALL SelectNextJoystick(void) {
+    extern void C2_HOOK_FASTCALL FUN_00459a70(void);
+    tButtonJoystickInfo* info;
+
+    FUN_00459a70();
+    info = PDGetCurrentJoystickData();
+    if (info != NULL) {
+        gJoystick_x_steering = info->field_0xd8;
+        gJoystick_y_throttle = info->field_0xdc;
+        gINT_00595f9c = info->field_0xd4;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00511270
+void C2_HOOK_FASTCALL CycleJoystick(void) {
+    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
+    extern void C2_HOOK_FASTCALL SelectNextJoystick(void);
+    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
+
+    SaveJoystickPreferences();
+    SelectNextJoystick();
+    LoadJoystickPreferences();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x00513400
 br_error C2_HOOK_FASTCALL DRBrEnd(void) {
     br_device *dev;
@@ -410,6 +441,12 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbf
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x00514730
+br_actor* C2_HOOK_FASTCALL DRActorFindRecurse(br_actor* pSearch_root, const char* pName) {
+
+    return (br_actor*)DRActorEnumRecurse(pSearch_root, CompareActorID, (void*)pName);
+}
+
 // FUNCTION: CARMA2_HW 0x005147b0
 intptr_t C2_HOOK_CDECL CompareActorID(br_actor* pActor, void* pArg) {
 
@@ -418,12 +455,6 @@ intptr_t C2_HOOK_CDECL CompareActorID(br_actor* pActor, void* pArg) {
     } else {
         return 0;
     }
-}
-
-// FUNCTION: CARMA2_HW 0x00514730
-br_actor* C2_HOOK_FASTCALL DRActorFindRecurse(br_actor* pSearch_root, const char* pName) {
-
-    return (br_actor*)DRActorEnumRecurse(pSearch_root, CompareActorID, (void*)pName);
 }
 
 // FUNCTION: CARMA2_HW 0x00514800
@@ -469,6 +500,30 @@ br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_mat
     return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x005148c0
+intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext) {
+    br_actor* child;
+    br_matrix34 mat;
+    intptr_t result;
+
+    if (pMat != NULL) {
+        BrMatrix34Mul(&mat, &pActor->t.t.mat, pMat);
+    } else {
+        BrMatrix34Identity(&mat);
+    }
+    result = pCallback(pActor, &mat, pContext);
+    if (result != 0) {
+        return result;
+    }
+    for (child = pActor->children; child != NULL; child = child->next) {
+        result = DRActorEnumRecurseWithSnart(child, &mat, pCallback, pContext);
+        if (result != 0) {
+            return result;
+        }
+    }
+    return 0;
+}
+
 // DRActorEnumRecurseWithSnart
 
 // FUNCTION: CARMA2_HW 0x00514930
@@ -481,6 +536,24 @@ int C2_HOOK_FASTCALL sign(int pNumber) {
     } else {
         return 0;
     }
+}
+
+// Reusing the float argument slot as the integer result reproduces the original's fild [esp+4].
+// FUNCTION: CARMA2_HW 0x00514950
+float C2_HOOK_FASTCALL signf(float pValue) {
+    volatile int* pResult;
+
+    pResult = (volatile int*)&pValue;
+    if (pValue > 0.0f) {
+        *pResult = 1;
+        return (float)*pResult;
+    }
+    if (pValue < 0.0f) {
+        *pResult = -1;
+    } else {
+        *pResult = 0;
+    }
+    return (float)*pResult;
 }
 
 // FUNCTION: CARMA2_HW 0x005149a0
@@ -650,8 +723,11 @@ void C2_HOOK_FASTCALL PrintScreenFile16(FILE* pF) {
 }
 
 #ifdef REC2_MATCHING
+C2_NAKED
+#endif
 // FUNCTION: CARMA2_HW 0x00514c30
-C2_NAKED tU32 C2_HOOK_FASTCALL GetTotalTime(void) {
+tU32 C2_HOOK_FASTCALL GetTotalTime(void) {
+#ifdef REC2_MATCHING
     __asm {
         mov eax, dword ptr [gAction_replay_mode]
         test eax, eax
@@ -676,9 +752,7 @@ C2_NAKED tU32 C2_HOOK_FASTCALL GetTotalTime(void) {
         sub eax, ecx
         ret
     }
-}
 #else
-tU32 C2_HOOK_FASTCALL GetTotalTime(void) {
 
     if (gAction_replay_mode) {
         return gLast_replay_frame_time;
@@ -687,8 +761,8 @@ tU32 C2_HOOK_FASTCALL GetTotalTime(void) {
         return gLast_tick_count + gFrame_period;
     }
     return gLast_tick_count + gFrame_period - gLost_time;
-}
 #endif
+}
 
 // FUNCTION: CARMA2_HW 0x00514c70
 tU32 C2_HOOK_FASTCALL GetRaceTime(void) {
@@ -737,6 +811,12 @@ const char* C2_HOOK_FASTCALL GetMiscString(int pIndex) {
     return gMisc_strings[pIndex];
 }
 
+// FUNCTION: CARMA2_HW 0x00514d80
+void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest) {
+
+    strcpy(pDest, gMisc_strings[pIndex]);
+}
+
 // FUNCTION: CARMA2_HW 0x00514db0
 int C2_HOOK_FASTCALL Flash(tU32 pPeriod, tU32* pLast_change, int* pCurrent_state) {
     tU32 the_time;
@@ -747,6 +827,22 @@ int C2_HOOK_FASTCALL Flash(tU32 pPeriod, tU32* pLast_change, int* pCurrent_state
         *pLast_change = the_time;
     }
     return *pCurrent_state;
+}
+
+// FUNCTION: CARMA2_HW 0x00514de0
+void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource) {
+    pDestination->flags = pSource->flags;
+    pDestination->ka = pSource->ka;
+    pDestination->kd = pSource->kd;
+    pDestination->ks = pSource->ks;
+    pDestination->power = pSource->power;
+    pDestination->colour = pSource->colour;
+    pDestination->index_base = pSource->index_base;
+    pDestination->index_range = pSource->index_range;
+    pDestination->index_shade = pSource->index_shade;
+    pDestination->colour_map = pSource->colour_map;
+    pDestination->map_transform = pSource->map_transform;
+    pDestination->identifier = pSource->identifier;
 }
 
 double C2_HOOK_FASTCALL RGBDifferenceSqr(tRGB_colour* pColour_1, tRGB_colour* pColour_2) {
@@ -939,10 +1035,10 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleFill(br_pixelmap* dst, br_int_16 x, br_
 
     BrPixelmapRectangleFill(dst, x, y, w, h, colour);
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00515700
 int C2_HOOK_FASTCALL NormalSideOfPlane(br_vector3* pPoint, br_vector3* pNormal, br_scalar pD) {
 
@@ -1069,6 +1165,16 @@ float C2_HOOK_STDCALL frac(float pN) {
     return pN - (float)(int)pN;
 }
 
+// FUNCTION: CARMA2_HW 0x00515c40
+br_material* C2_HOOK_FASTCALL FindMaterial(const char* pName, br_actor* pActor, int pRecursive) {
+
+    if (pRecursive) {
+        return (br_material*)DRActorEnumRecurse(pActor, FindMaterialCB, (void*)pName);
+    } else {
+        return (br_material*)FindMaterialCB(pActor, (void*)pName);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00515d90
 intptr_t C2_HOOK_CDECL FindMaterialCB(br_actor* pActor, void* data) {
     const char* name = data;
@@ -1091,14 +1197,10 @@ intptr_t C2_HOOK_CDECL FindMaterialCB(br_actor* pActor, void* data) {
     return (intptr_t)NULL;
 }
 
-// FUNCTION: CARMA2_HW 0x00515c40
-br_material* C2_HOOK_FASTCALL FindMaterial(const char* pName, br_actor* pActor, int pRecursive) {
+// FUNCTION: CARMA2_HW 0x00515e10
+void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest) {
 
-    if (pRecursive) {
-        return (br_material*)DRActorEnumRecurse(pActor, FindMaterialCB, (void*)pName);
-    } else {
-        return (br_material*)FindMaterialCB(pActor, (void*)pName);
-    }
+    sprintf(pDest, "BLEND%d.TAB", 100 - pPercent);
 }
 
 void C2_HOOK_FASTCALL BlendifyMaterialTablishly(br_material* pMaterial, int pPercent) {
@@ -1218,13 +1320,6 @@ float C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, tFace_ref* pFa
     return ((pPoint->v[0]) * (pFace->normal.v[0])) + ((pPoint->v[1]) * (pFace->normal.v[1])) + ((pPoint->v[2]) * (pFace->normal.v[2])) - pFace->d;
 }
 
-// defined out of address order: MSVC's x87 codegen for this dot product depends on the TU position
-// FUNCTION: CARMA2_HW 0x005162a0
-float C2_HOOK_FASTCALL DistanceFromFaceND(const br_vector3* pP, const br_vector3* pN, br_scalar pF) {
-
-    return BrVector3Dot(pP, pN) - pF;
-}
-
 // FUNCTION: CARMA2_HW 0x005160c0
 void C2_HOOK_FASTCALL DRBoundsCopy(br_bounds3* pDest, const br_bounds3* pSrc) {
 
@@ -1246,11 +1341,31 @@ int C2_HOOK_FASTCALL TestForNan(const float* f) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00516110
+int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV) {
+
+    if (pV != NULL) {
+        return TestForNan(&pV->v[0]) || TestForNan(&pV->v[1]);
+    } else {
+        return 0;
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00516160
 int C2_HOOK_FASTCALL DRVector3TestForNan(const br_vector3* pV) {
 
     if (pV != NULL) {
         return TestForNan(&pV->v[0]) || TestForNan(&pV->v[1]) || TestForNan(&pV->v[2]);
+    } else {
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005161c0
+int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV) {
+
+    if (pV != NULL) {
+        return TestForNan(&pV[0]) || TestForNan(&pV[1]) || TestForNan(&pV[2]) || TestForNan(&pV[3]);
     } else {
         return 0;
     }
@@ -1269,6 +1384,23 @@ void C2_HOOK_FASTCALL DRScaleModel(br_model* pModel, float pScale) {
         }
         BrModelUpdate(pModel, BR_MODU_ALL);
     }
+}
+
+// defined out of address order: MSVC's x87 codegen for this dot product depends on the TU position
+// FUNCTION: CARMA2_HW 0x005162a0
+float C2_HOOK_FASTCALL DistanceFromFaceND(const br_vector3* pP, const br_vector3* pN, br_scalar pF) {
+
+    return BrVector3Dot(pP, pN) - pF;
+}
+
+
+
+// FUNCTION: CARMA2_HW 0x005162d0
+void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc) {
+    pDst->v[0] = -pSrc->v[0];
+    pDst->v[1] = -pSrc->v[1];
+    pDst->v[2] = -pSrc->v[2];
+    pDst->v[3] = -pSrc->v[3];
 }
 
 // FUNCTION: CARMA2_HW 0x005162f0
@@ -1658,6 +1790,40 @@ int C2_HOOK_FASTCALL FindBestColourMatch(br_colour pColour) {
     return FindBestMatch(&rgb, gRender_palette);
 }
 
+// FUNCTION: CARMA2_HW 0x00518590
+br_actor* C2_HOOK_FASTCALL CreateBoundsModelActor(br_actor* pParent, const br_bounds* pBounds) {
+    br_actor* actor;
+
+    actor = BrActorAllocate(1, NULL);
+    actor->model = BrModelAllocate("Bounds", 3, 1);
+    actor->model->faces->vertices[0] = 0;
+    actor->model->faces->vertices[1] = 1;
+    actor->model->faces->vertices[2] = 2;
+    actor->model->vertices[0].p.v[0] = 0.f;
+    actor->model->vertices[0].p.v[1] = 0.f;
+    actor->model->vertices[0].p.v[2] = 1.f;
+    actor->model->vertices[1].p.v[0] = 0.f;
+    actor->model->vertices[1].p.v[1] = 1.f;
+    actor->model->vertices[1].p.v[2] = 1.f;
+    actor->model->vertices[2].p.v[0] = 1.f;
+    actor->model->vertices[2].p.v[1] = 0.f;
+    actor->model->vertices[2].p.v[2] = 1.f;
+    BrModelAdd(actor->model);
+    actor->model->bounds = *pBounds;
+    actor->render_style = 6;
+    BrActorAdd(pParent, actor);
+    return actor;
+}
+
+// FUNCTION: CARMA2_HW 0x00518660
+void C2_HOOK_FASTCALL FreeModelActor(br_actor* pActor) {
+
+    BrModelRemove(pActor->model);
+    BrModelFree(pActor->model);
+    BrActorRemove(pActor);
+    BrActorFree(pActor);
+}
+
 // FUNCTION: CARMA2_HW 0x00518690
 void C2_HOOK_FASTCALL WhitenVertexRGB(br_model** pModels, int pCount) {
     int i;
@@ -1682,9 +1848,9 @@ void C2_HOOK_FASTCALL WhitenVertexRGB(br_model** pModels, int pCount) {
     }
 }
 
-#ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x00518700
 void C2_HOOK_FASTCALL BRPM_convert(br_pixelmap* pMap, int pPixel_type) {
+#ifdef REC2_MATCHING
     void* pixel;
     int row_bytes;
     int width;
@@ -1722,9 +1888,7 @@ void C2_HOOK_FASTCALL BRPM_convert(br_pixelmap* pMap, int pPixel_type) {
         }
         pMap->type = BR_PMT_RGB_555;
     }
-}
 #else
-void C2_HOOK_FASTCALL BRPM_convert(br_pixelmap* pMap, int pPixel_type) {
     br_uint_8* row_pointer;
     br_uint_16* pixel;
     br_uint_16 row_stride;
@@ -1752,8 +1916,8 @@ void C2_HOOK_FASTCALL BRPM_convert(br_pixelmap* pMap, int pPixel_type) {
         }
         pMap->type = BR_PMT_RGB_555;
     }
-}
 #endif
+}
 
 // FUNCTION: CARMA2_HW 0x00518780
 void C2_HOOK_FASTCALL PrintScreen(void) {
@@ -1768,364 +1932,6 @@ void C2_HOOK_FASTCALL PrintScreen(void) {
         }
         PFfclose(f);
     }
-}
-
-// FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport
-
-// GetBlenficatiousnessOfMaterialTablishly
-
-// GetBlenficatiousnessOfMaterialPrimitively
-
-// FUNCTION: CARMA2_HW 0x00518e70
-int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial) {
-    br_token_value* prims;
-
-    if (gScreen->type == BR_PMT_INDEX_8) {
-        if (pMaterial->index_blend == BrTableFind("BLEND75.TAB")) {
-            return 25;
-        }
-        if (pMaterial->index_blend == BrTableFind("BLEND50.TAB")) {
-            return 50;
-        }
-        if (pMaterial->index_blend == BrTableFind("BLEND25.TAB")) {
-            return 75;
-        }
-        return 100;
-    }
-    prims = pMaterial->extra_prim;
-    if (prims != NULL && prims[0].t == BRT_BLEND_B && prims[0].v.b == 1 && prims[1].t == BRT_OPACITY_X) {
-        return (100 * (prims[1].v.x >> 16)) / 256;
-    }
-    return 100;
-}
-
-// FUNCTION: CARMA2_HW 0x00518f20
-char* C2_HOOK_FASTCALL MungeCommas(int pValue) {
-    // GLOBAL: CARMA2_HW 0x006b5f20
-    static char result_buffer[32];
-    char buffer[32];
-    int len;
-    int get_pos;
-    int put_pos;
-    int remaining;
-
-    sprintf(buffer, "%i", pValue);
-    len = (int)strlen(buffer);
-    for (get_pos = 0, put_pos = 0, remaining = len; get_pos < len; get_pos++, put_pos++, remaining--) {
-
-        if (remaining % 3 == 0 && get_pos != 0) {
-            result_buffer[put_pos] = gMisc_strings[294][0];
-            put_pos++;
-        }
-        result_buffer[put_pos] = buffer[get_pos];
-    }
-    result_buffer[put_pos] = '\0';
-    return result_buffer;
-}
-
-// FUNCTION: CARMA2_HW 0x00518fa0
-void C2_HOOK_FASTCALL MungeMetaCharacters(char* pText, char pMeta, const char* pRepl) {
-    int len_text;
-    int len_repl;
-    int i;
-
-    len_text = strlen(pText);
-    len_repl = strlen(pRepl);
-
-    for (i = 0; i < len_text; i++) {
-        if (pText[i] == '@' && pText[i + 1] == pMeta) {
-            memmove(&pText[i + len_repl], &pText[i + 2], len_text - i - 1);
-            memcpy(&pText[i], pRepl, len_repl);
-            i += len_repl;
-            len_text += len_repl - 2;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00519040
-void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, char pChar) {
-    char repl[2];
-
-    repl[1] = '\0';
-    repl[0] = pChar;
-    MungeMetaCharacters(pText, pMeta, repl);
-}
-
-// FUNCTION: CARMA2_HW 0x005190f0
-void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum) {
-    char text[16];
-
-    sprintf(text, "%d", pNum);
-    MungeMetaCharacters(pText, pMeta, text);
-}
-
-#if defined(REC2_MATCHING)
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x005191b0
-void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
-
-    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
-}
-#if defined(REC2_MATCHING)
-#pragma auto_inline(on)
-#endif
-
-void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLockDup(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h) {
-
-    if (gLock_often) {
-        PossibleUnlock(0);
-    }
-    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
-    if (gLock_often) {
-        PossibleUnlock(0);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x005191f0
-void C2_HOOK_FASTCALL PixelmapSwapByteOrder(br_pixelmap* pMap) {
-
-#if 0 // FIXME: introduce endian.h-like rec2_endian.h header
-    br_uint_16 y;
-    br_uint_8* row_ptr;
-    br_colour* ptr;
-    int w;
-
-    row_ptr = pMap->pixels;
-    for (y = 0; y < pMap->height; y++) {
-        w = (pMap->width * 2) / sizeof(br_colour);
-        ptr = (br_colour*) row_ptr;
-        while (w) {
-            *ptr = (*ptr >> 0x18) + (*ptr << 0x18) + ((*ptr >> 0x8) & 0xff00) + ((*ptr & 0xff00) <<0x8);
-            ptr++;
-        }
-        row_ptr += pMap->row_bytes;
-    }
-#endif
-}
-
-// FUNCTION: CARMA2_HW 0x005193f0
-void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2) {
-
-}
-
-// FUNCTION: CARMA2_HW 0x005148c0
-intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext) {
-    br_actor* child;
-    br_matrix34 mat;
-    intptr_t result;
-
-    if (pMat != NULL) {
-        BrMatrix34Mul(&mat, &pActor->t.t.mat, pMat);
-    } else {
-        BrMatrix34Identity(&mat);
-    }
-    result = pCallback(pActor, &mat, pContext);
-    if (result != 0) {
-        return result;
-    }
-    for (child = pActor->children; child != NULL; child = child->next) {
-        result = DRActorEnumRecurseWithSnart(child, &mat, pCallback, pContext);
-        if (result != 0) {
-            return result;
-        }
-    }
-    return 0;
-}
-
-// Reusing the float argument slot as the integer result reproduces the original's fild [esp+4].
-// FUNCTION: CARMA2_HW 0x00514950
-float C2_HOOK_FASTCALL signf(float pValue) {
-    volatile int* pResult;
-
-    pResult = (volatile int*)&pValue;
-    if (pValue > 0.0f) {
-        *pResult = 1;
-        return (float)*pResult;
-    }
-    if (pValue < 0.0f) {
-        *pResult = -1;
-    } else {
-        *pResult = 0;
-    }
-    return (float)*pResult;
-}
-
-// FUNCTION: CARMA2_HW 0x00514d80
-void C2_HOOK_FASTCALL CopyMiscString(int pIndex, char* pDest) {
-
-    strcpy(pDest, gMisc_strings[pIndex]);
-}
-
-// FUNCTION: CARMA2_HW 0x00514de0
-void C2_HOOK_FASTCALL MaterialCopy(br_material* pDestination, const br_material* pSource) {
-    pDestination->flags = pSource->flags;
-    pDestination->ka = pSource->ka;
-    pDestination->kd = pSource->kd;
-    pDestination->ks = pSource->ks;
-    pDestination->power = pSource->power;
-    pDestination->colour = pSource->colour;
-    pDestination->index_base = pSource->index_base;
-    pDestination->index_range = pSource->index_range;
-    pDestination->index_shade = pSource->index_shade;
-    pDestination->colour_map = pSource->colour_map;
-    pDestination->map_transform = pSource->map_transform;
-    pDestination->identifier = pSource->identifier;
-}
-
-// FUNCTION: CARMA2_HW 0x00515e10
-void C2_HOOK_FASTCALL GetBlendTableName(int pPercent, char* pDest) {
-
-    sprintf(pDest, "BLEND%d.TAB", 100 - pPercent);
-}
-
-// FUNCTION: CARMA2_HW 0x00516110
-int C2_HOOK_FASTCALL DRVector2TestForNan(const br_vector2* pV) {
-
-    if (pV != NULL) {
-        return TestForNan(&pV->v[0]) || TestForNan(&pV->v[1]);
-    } else {
-        return 0;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x005161c0
-int C2_HOOK_FASTCALL DRVector4TestForNan(const float* pV) {
-
-    if (pV != NULL) {
-        return TestForNan(&pV[0]) || TestForNan(&pV[1]) || TestForNan(&pV[2]) || TestForNan(&pV[3]);
-    } else {
-        return 0;
-    }
-}
-
-
-
-// FUNCTION: CARMA2_HW 0x005162d0
-void C2_HOOK_FASTCALL DRVector4Negate(br_vector4* pDst, const br_vector4* pSrc) {
-    pDst->v[0] = -pSrc->v[0];
-    pDst->v[1] = -pSrc->v[1];
-    pDst->v[2] = -pSrc->v[2];
-    pDst->v[3] = -pSrc->v[3];
-}
-
-// FUNCTION: CARMA2_HW 0x00518590
-br_actor* C2_HOOK_FASTCALL CreateBoundsModelActor(br_actor* pParent, const br_bounds* pBounds) {
-    br_actor* actor;
-
-    actor = BrActorAllocate(1, NULL);
-    actor->model = BrModelAllocate("Bounds", 3, 1);
-    actor->model->faces->vertices[0] = 0;
-    actor->model->faces->vertices[1] = 1;
-    actor->model->faces->vertices[2] = 2;
-    actor->model->vertices[0].p.v[0] = 0.f;
-    actor->model->vertices[0].p.v[1] = 0.f;
-    actor->model->vertices[0].p.v[2] = 1.f;
-    actor->model->vertices[1].p.v[0] = 0.f;
-    actor->model->vertices[1].p.v[1] = 1.f;
-    actor->model->vertices[1].p.v[2] = 1.f;
-    actor->model->vertices[2].p.v[0] = 1.f;
-    actor->model->vertices[2].p.v[1] = 0.f;
-    actor->model->vertices[2].p.v[2] = 1.f;
-    BrModelAdd(actor->model);
-    actor->model->bounds = *pBounds;
-    actor->render_style = 6;
-    BrActorAdd(pParent, actor);
-    return actor;
-}
-
-// FUNCTION: CARMA2_HW 0x00518660
-void C2_HOOK_FASTCALL FreeModelActor(br_actor* pActor) {
-
-    BrModelRemove(pActor->model);
-    BrModelFree(pActor->model);
-    BrActorRemove(pActor);
-    BrActorFree(pActor);
-}
-
-// FUNCTION: CARMA2_HW 0x005192a0
-void C2_HOOK_FASTCALL ConvertRGB565ToRGB555(br_uint_16* pPixel) {
-
-    *pPixel = ((*pPixel >> 1) & 0x7fe0) + (*pPixel & 0x1f);
-}
-
-// PARTIAL 65.00%: ConvertARGB4444ToARGB1555 - value is correct; the remaining diff is MSVC register allocation only:
-// the original keeps (pixel & 0xf00) in edx and uses ebx for the byte-mask copy, ours keeps the
-// (pixel & 0xf0) term in edx and puts (pixel & 0xf00) in esi (push/pop esi). No C form found that
-// flips the allocator (single expression, swapped operands, explicit tU32 temp, two statements all
-// give the same allocation or worse).
-// FUNCTION: CARMA2_HW 0x005192c0
-void C2_HOOK_FASTCALL ConvertARGB4444ToARGB1555(tU16* pPixel) {
-    tU16 pixel;
-    tU16 converted;
-
-    pixel = *pPixel;
-    converted = ((pixel & 0xf) + ((pixel & 0xf0) + (pixel & 0xf00) * 2) * 2) * 2;
-    *pPixel = converted;
-    if ((pixel & 0xf000) != 0) {
-        *pPixel = converted + 0x8000;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00519400
-void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap) {
-    void (C2_HOOK_FASTCALL *convert_pixel)(br_uint_16*);
-    br_uint_16* row;
-    br_uint_16* pixel;
-    int x;
-    int y;
-
-    switch (pMap->type) {
-    case 4:
-    case 0x1f:
-        break;
-    case 5:
-        convert_pixel = NULL;
-        if (pMap->type == 5) {
-            convert_pixel = ConvertRGB565ToRGB555;
-        }
-        if (convert_pixel != NULL) {
-            row = (br_uint_16*)pMap->pixels;
-            y = 0;
-            if (pMap->height > 0) {
-                do {
-                    x = 0;
-                    pixel = row;
-                    if (pMap->width > 0) {
-                        do {
-                            convert_pixel(pixel);
-                            x++;
-                            pixel++;
-                        } while (x < pMap->width);
-                    }
-                    y++;
-                    row += pMap->row_bytes / 2;
-                } while (y < pMap->height);
-            }
-            pMap->type = 4;
-        }
-        break;
-    default:
-        return;
-    }
-    row = (br_uint_16*)pMap->pixels;
-    y = 0;
-    if (pMap->height > 0) {
-        do {
-            x = 0;
-            pixel = row;
-            if (pMap->width > 0) {
-                do {
-                    *pixel = (br_uint_16)((((*pixel & 0x7fff) != 0) << 15) | (*pixel & 0x7fff));
-                    x++;
-                    pixel++;
-                } while (x < pMap->width);
-            }
-            y++;
-            row += pMap->row_bytes / 2;
-        } while (y < pMap->height);
-    }
-    pMap->type = 0x1f;
 }
 
 // FUNCTION: CARMA2_HW 0x00518b00
@@ -2242,33 +2048,226 @@ tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupp
     }
 }
 
+// FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport
+
+// GetBlenficatiousnessOfMaterialTablishly
+
+// GetBlenficatiousnessOfMaterialPrimitively
+
+// FUNCTION: CARMA2_HW 0x00518e70
+int C2_HOOK_FASTCALL GetBlenficatiousnessOfMaterial(br_material* pMaterial) {
+    br_token_value* prims;
+
+    if (gScreen->type == BR_PMT_INDEX_8) {
+        if (pMaterial->index_blend == BrTableFind("BLEND75.TAB")) {
+            return 25;
+        }
+        if (pMaterial->index_blend == BrTableFind("BLEND50.TAB")) {
+            return 50;
+        }
+        if (pMaterial->index_blend == BrTableFind("BLEND25.TAB")) {
+            return 75;
+        }
+        return 100;
+    }
+    prims = pMaterial->extra_prim;
+    if (prims != NULL && prims[0].t == BRT_BLEND_B && prims[0].v.b == 1 && prims[1].t == BRT_OPACITY_X) {
+        return (100 * (prims[1].v.x >> 16)) / 256;
+    }
+    return 100;
+}
+
+// FUNCTION: CARMA2_HW 0x00518f20
+char* C2_HOOK_FASTCALL MungeCommas(int pValue) {
+    // GLOBAL: CARMA2_HW 0x006b5f20
+    static char result_buffer[32];
+    char buffer[32];
+    int len;
+    int get_pos;
+    int put_pos;
+    int remaining;
+
+    sprintf(buffer, "%i", pValue);
+    len = (int)strlen(buffer);
+    for (get_pos = 0, put_pos = 0, remaining = len; get_pos < len; get_pos++, put_pos++, remaining--) {
+
+        if (remaining % 3 == 0 && get_pos != 0) {
+            result_buffer[put_pos] = gMisc_strings[294][0];
+            put_pos++;
+        }
+        result_buffer[put_pos] = buffer[get_pos];
+    }
+    result_buffer[put_pos] = '\0';
+    return result_buffer;
+}
+
+// FUNCTION: CARMA2_HW 0x00518fa0
+void C2_HOOK_FASTCALL MungeMetaCharacters(char* pText, char pMeta, const char* pRepl) {
+    int len_text;
+    int len_repl;
+    int i;
+
+    len_text = strlen(pText);
+    len_repl = strlen(pRepl);
+
+    for (i = 0; i < len_text; i++) {
+        if (pText[i] == '@' && pText[i + 1] == pMeta) {
+            memmove(&pText[i + len_repl], &pText[i + 2], len_text - i - 1);
+            memcpy(&pText[i], pRepl, len_repl);
+            i += len_repl;
+            len_text += len_repl - 2;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00519040
+void C2_HOOK_FASTCALL MungeMetaCharactersChar(char* pText, char pMeta, char pChar) {
+    char repl[2];
+
+    repl[1] = '\0';
+    repl[0] = pChar;
+    MungeMetaCharacters(pText, pMeta, repl);
+}
+
+// FUNCTION: CARMA2_HW 0x005190f0
+void C2_HOOK_FASTCALL MungeMetaCharactersNum(char* pText, char pMeta, int pNum) {
+    char text[16];
+
+    sprintf(text, "%d", pNum);
+    MungeMetaCharacters(pText, pMeta, text);
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// FUNCTION: CARMA2_HW 0x00511270
-void C2_HOOK_FASTCALL CycleJoystick(void) {
-    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
-    extern void C2_HOOK_FASTCALL SelectNextJoystick(void);
-    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
+// FUNCTION: CARMA2_HW 0x005191b0
+void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h) {
 
-    SaveJoystickPreferences();
-    SelectNextJoystick();
-    LoadJoystickPreferences();
+    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
 }
 
-// FUNCTION: CARMA2_HW 0x0045c420
-void C2_HOOK_FASTCALL SelectNextJoystick(void) {
-    extern void C2_HOOK_FASTCALL FUN_00459a70(void);
-    tButtonJoystickInfo* info;
-
-    FUN_00459a70();
-    info = PDGetCurrentJoystickData();
-    if (info != NULL) {
-        gJoystick_x_steering = info->field_0xd8;
-        gJoystick_y_throttle = info->field_0xdc;
-        gINT_00595f9c = info->field_0xd4;
-    }
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLockDup(br_pixelmap* dst, br_int_32 dx, br_int_32 dy, br_pixelmap* src, br_int_32 sx, br_int_32 sy, br_int_32 w, br_int_32 h) {
+
+    if (gLock_often) {
+        PossibleUnlock(0);
+    }
+    BrPixelmapRectangleCopy(dst, dx, dy, src, sx, sy, w, h);
+    if (gLock_often) {
+        PossibleUnlock(0);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005191f0
+void C2_HOOK_FASTCALL PixelmapSwapByteOrder(br_pixelmap* pMap) {
+
+#if 0 // FIXME: introduce endian.h-like rec2_endian.h header
+    br_uint_16 y;
+    br_uint_8* row_ptr;
+    br_colour* ptr;
+    int w;
+
+    row_ptr = pMap->pixels;
+    for (y = 0; y < pMap->height; y++) {
+        w = (pMap->width * 2) / sizeof(br_colour);
+        ptr = (br_colour*) row_ptr;
+        while (w) {
+            *ptr = (*ptr >> 0x18) + (*ptr << 0x18) + ((*ptr >> 0x8) & 0xff00) + ((*ptr & 0xff00) <<0x8);
+            ptr++;
+        }
+        row_ptr += pMap->row_bytes;
+    }
+#endif
+}
+
+// FUNCTION: CARMA2_HW 0x005192a0
+void C2_HOOK_FASTCALL ConvertRGB565ToRGB555(br_uint_16* pPixel) {
+
+    *pPixel = ((*pPixel >> 1) & 0x7fe0) + (*pPixel & 0x1f);
+}
+
+// PARTIAL 65.00%: ConvertARGB4444ToARGB1555 - value is correct; the remaining diff is MSVC register allocation only:
+// the original keeps (pixel & 0xf00) in edx and uses ebx for the byte-mask copy, ours keeps the
+// (pixel & 0xf0) term in edx and puts (pixel & 0xf00) in esi (push/pop esi). No C form found that
+// flips the allocator (single expression, swapped operands, explicit tU32 temp, two statements all
+// give the same allocation or worse).
+// FUNCTION: CARMA2_HW 0x005192c0
+void C2_HOOK_FASTCALL ConvertARGB4444ToARGB1555(tU16* pPixel) {
+    tU16 pixel;
+    tU16 converted;
+
+    pixel = *pPixel;
+    converted = ((pixel & 0xf) + ((pixel & 0xf0) + (pixel & 0xf00) * 2) * 2) * 2;
+    *pPixel = converted;
+    if ((pixel & 0xf000) != 0) {
+        *pPixel = converted + 0x8000;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005193f0
+void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2) {
+
+}
+
+// FUNCTION: CARMA2_HW 0x00519400
+void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap) {
+    void (C2_HOOK_FASTCALL *convert_pixel)(br_uint_16*);
+    br_uint_16* row;
+    br_uint_16* pixel;
+    int x;
+    int y;
+
+    switch (pMap->type) {
+    case 4:
+    case 0x1f:
+        break;
+    case 5:
+        convert_pixel = NULL;
+        if (pMap->type == 5) {
+            convert_pixel = ConvertRGB565ToRGB555;
+        }
+        if (convert_pixel != NULL) {
+            row = (br_uint_16*)pMap->pixels;
+            y = 0;
+            if (pMap->height > 0) {
+                do {
+                    x = 0;
+                    pixel = row;
+                    if (pMap->width > 0) {
+                        do {
+                            convert_pixel(pixel);
+                            x++;
+                            pixel++;
+                        } while (x < pMap->width);
+                    }
+                    y++;
+                    row += pMap->row_bytes / 2;
+                } while (y < pMap->height);
+            }
+            pMap->type = 4;
+        }
+        break;
+    default:
+        return;
+    }
+    row = (br_uint_16*)pMap->pixels;
+    y = 0;
+    if (pMap->height > 0) {
+        do {
+            x = 0;
+            pixel = row;
+            if (pMap->width > 0) {
+                do {
+                    *pixel = (br_uint_16)((((*pixel & 0x7fff) != 0) << 15) | (*pixel & 0x7fff));
+                    x++;
+                    pixel++;
+                } while (x < pMap->width);
+            }
+            y++;
+            row += pMap->row_bytes / 2;
+        } while (y < pMap->height);
+    }
+    pMap->type = 0x1f;
+}
