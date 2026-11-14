@@ -1006,3 +1006,61 @@ void C2_HOOK_CDECL FUN_0053e527(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8
     abort();
 #endif
 }
+
+#if defined(__I86__) || defined(_M_IX86)
+C2_NAKED
+#endif
+// FUNCTION: CARMA2_HW 0x0053e584
+void C2_HOOK_CDECL FUN_0053e584(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height) {
+#if defined(__I86__) || defined(_M_IX86)
+#if defined(_MSC_VER)
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ebx
+        push esi
+        push edi
+        push ds
+        push es
+        mov ds, word ptr [ebp+0x14]
+        mov es, word ptr [ebp+0xc]
+        mov esi, dword ptr [ebp+0x10]
+        mov edi, dword ptr [ebp+0x8]
+        mov eax, dword ptr [ebp+0x1c]
+        mul dword ptr [ebp+0x18]
+        mov ecx, eax
+        mov edx, edi
+        and edx, 3
+        je copy_aligned
+
+    copy_head:
+        mov al, byte ptr [esi]
+        mov byte ptr es:[edi], al
+        inc esi
+        inc edi
+        dec ecx
+        dec edx
+        jne copy_head
+
+    copy_aligned:
+        mov edx, ecx
+        shr ecx, 2
+        rep movsd
+        mov ecx, edx
+        and ecx, 3
+        rep stosb
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+    }
+#else
+    abort();
+#endif
+#else
+    abort();
+#endif
+}
