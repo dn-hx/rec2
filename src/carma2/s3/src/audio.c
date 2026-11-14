@@ -2471,3 +2471,15 @@ int C2_HOOK_FASTCALL FUN_0056a646(int pTag) {
     }
     return eS3_error_none;
 }
+
+// FUNCTION: CARMA2_HW 0x00569d01
+int C2_HOOK_FASTCALL FUN_00569d01(tS3_channel* pChannel) {
+    uintptr_t mciDevice;
+
+    mciDevice = pChannel->mciDevice;
+    if (gPDS3_midi_playing) {
+        gPDS3_midi_playing = 0;
+        mciSendCommandA(mciDevice, MCI_CLOSE, 0, 0);
+    }
+    return 0;
+}
