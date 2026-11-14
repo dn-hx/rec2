@@ -37,32 +37,10 @@ float gTrack_drone_min_y;
 #pragma auto_inline(off)
 #endif
 extern void C2_HOOK_CDECL BrTransformToTransform(br_transform* dest, br_transform* src);
-// FUNCTION: CARMA2_HW 0x00401430
-// FUNCTION: CARMA2_SW 0x00401430
-void C2_HOOK_FASTCALL PointActorAlongVectorWithUp(br_actor* pThe_actor, br_vector3* pLook, br_vector3* pUp) {
-    br_transform trans;
 
-    trans.type = BR_TRANSFORM_LOOK_UP;
-    BrVector3Copy(&trans.t.look_up.t, &pThe_actor->t.t.translate.t);
-    BrVector3Copy(&trans.t.look_up.look, pLook);
-    BrVector3Copy(&trans.t.look_up.up, pUp);
-    BrTransformToTransform(&pThe_actor->t, &trans);
-}
-
-// FUNCTION: CARMA2_HW 0x00401f90
-// FUNCTION: CARMA2_SW 0x00401f90
-void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {
-
-    pModel->faces[pFace_num].vertices[0] = pV0;
-    pModel->faces[pFace_num].vertices[1] = pV1;
-    pModel->faces[pFace_num].vertices[2] = pV2;
-    pModel->faces[pFace_num].smoothing = 0xffff;
-    pModel->faces[pFace_num].material = pMaterial;
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00401000
 void C2_HOOK_FASTCALL InitPanGameAIWorld(void) {
 
@@ -127,162 +105,9 @@ void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void) {
     DisposeDronesRaceStuff();
 }
 
-extern int gTimers_stack[8];
-extern int gTimers_max_index;
-extern int gTimers_stack_size;
-extern tTimer gTimers[19];
-extern void C2_HOOK_FASTCALL MungeOpponents(void);
-extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
-extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
-
-static void TimersPush(int pType) {
-    int prev_type;
-
-    gTimers_stack[gTimers_stack_size] = pType;
-    if (gTimers_stack_size == 0) {
-        prev_type = gTimers_max_index;
-    } else {
-        prev_type = gTimers_stack[gTimers_stack_size - 1];
-    }
-    gTimers[prev_type].durations[gTimers[prev_type].index] += PDGetMicroseconds() - gTimers[prev_type].start_time;
-    gTimers[pType].start_time = PDGetMicroseconds();
-    gTimers_stack_size += 1;
-}
-
-static void TimersPop(int pType) {
-    int prev_type;
-
-    gTimers[pType].durations[gTimers[pType].index] += PDGetMicroseconds() - gTimers[pType].start_time;
-    if (gTimers_stack_size > 1) {
-        prev_type = gTimers_stack_size - 1;
-    } else {
-        prev_type = gTimers_max_index;
-    }
-    gTimers[prev_type].start_time = PDGetMicroseconds();
-    gTimers_stack_size -= 1;
-}
-
-
-/* local declarations for DoDronePerGameFrameStuff (no new includes/externs in headers) */
-extern br_model* gElasticatey_drone_path_model;
-extern br_actor* gDrone_path_model_actor;
-extern int gDrone_paths_elasticating;
-extern int gSelected_drone_path_node_index;
-extern int gSelected_edit_drone_path;
-extern int gSelected_drone_path_index;
-extern tU32 gNext_drone_edit_path_munge;
-extern br_material* gMat_dk_grn;
-extern br_material* gMat_lt_grn;
-extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
-extern tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4];
-extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
-extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
-extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
-extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
-extern void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone);
-extern int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone);
-extern int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone);
-extern void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex);
-extern int gShow_drone_paths;
-extern int gCount_active_drones;
-extern int gDrones_unmodified;
-extern int gCount_drones;
-extern int gINT_006844fc;
-extern int gINT_006820d4;
-extern tDrone_state_function* gDrone_state_functions[6];
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* local declarations for MungeShatMines (no new includes/externs in headers) */
-extern tShit_mine gShit_mines[20];
-extern tU32 gPHIL_last_physics_tick;
-extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
-extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
-extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
-extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
-
-static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
-    if (pCar->field_0x4c8 > 1.0) {
-        return 0;
-    }
-    if (gNet_mode != eNet_mode_none) {
-        if (NetPlayerFromCar(pCar) != NULL && NetPlayerFromCar(pCar)->field_0x80 != 0) {
-            return 0;
-        }
-    }
-    if (pCar->invulnerable_no_crushage) {
-        return 0;
-    }
-    return 1;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004dde20
-void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime) {
-    int i;
-    int play_effect;
-
-    for (i = 0; i < 20; i++) {
-        tShit_mine* mine = &gShit_mines[i];
-
-        if (!(mine->flags & 0x1)) {
-            continue;
-        }
-        if ((mine->flags & 0x80) && mine->car != NULL) {
-            tCar_spec* car = mine->car;
-            int car_vulnerable;
-
-            mine->flags &= ~0x80;
-            car_vulnerable = CarVulnerableByMine_Impl(car);
-            if (car_vulnerable) {
-                TotallySpamTheCar(car, 0.1f * mine->max_damage);
-            }
-            if (car_vulnerable && (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host)) {
-                car->collision_info->v.v[1] += FRandomBetween(mine->field3_0xc, mine->initial_y_speed_factor) / (car->collision_info->M * 6.9);
-                car->collision_info->omega.v[2] = FRandomPosNeg(mine->initial_z_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[2];
-                car->collision_info->omega.v[0] = FRandomPosNeg(mine->initial_x_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[0];
-                car->collision_info->disable_move_rotate = 0;
-                car->collision_info->field_0x49c = gPHIL_last_physics_tick + 40;
-                if (!car->invulnerable_no_damage) {
-                    for (i = 0; i < 12; i++) {
-                        DamageUnit2(car, i, IRandomBetween(0, (int)(25.f * mine->max_damage)));
-                    }
-                    if (car != mine->field_0x30) {
-                        car->last_hit_by = mine->field_0x30;
-                        car->time_last_hit = PDGetTotalTime();
-                        CrashEarnings(car, NULL);
-                    }
-                }
-            }
-        }
-        play_effect = 0;
-        if (mine->flags & 0x20) {
-            mine->flags &= ~0x20;
-            play_effect = 1;
-        } else {
-            if (!(mine->flags & 0x2)) {
-                if ((mine->flags & 0x4) && pTime > mine->next_think_time) {
-                    play_effect = 1;
-                }
-            } else if (pTime > mine->next_think_time) {
-                mine->flags &= ~0x3;
-            }
-        }
-        if (play_effect) {
-            MineExplode(mine);
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // (GPL-3.0), Timers_Push/Pop inlined
+static void TimersPush(int pType);
+static void TimersPop(int pType);
 // FUNCTION: CARMA2_HW 0x00401170
 void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period) {
 
@@ -313,7 +138,24 @@ void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_v
     BrVector3Set(&trans.t.look_up.up, 0.f, 1.f, 0.f);
     BrTransformToTransform(&pThe_actor->t, &trans);
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00401430
+// FUNCTION: CARMA2_SW 0x00401430
+void C2_HOOK_FASTCALL PointActorAlongVectorWithUp(br_actor* pThe_actor, br_vector3* pLook, br_vector3* pUp) {
+    br_transform trans;
 
+    trans.type = BR_TRANSFORM_LOOK_UP;
+    BrVector3Copy(&trans.t.look_up.t, &pThe_actor->t.t.translate.t);
+    BrVector3Copy(&trans.t.look_up.look, pLook);
+    BrVector3Copy(&trans.t.look_up.up, pUp);
+    BrTransformToTransform(&pThe_actor->t, &trans);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x00401760
 // FUNCTION: CARMA2_SW 0x00401760
 br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
@@ -331,6 +173,507 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
     return material;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00401aa0
+void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3) {
+    int vertex1;
+    int vertex2;
+    int vertex3;
+    int vertex4;
+    int vertex5;
+    int vertex6;
+    int vertex7;
+    float fVar0;
+    float fVar1;
+    float fVar2;
+    float* pfVar11;
+
+    fVar0 = pPosition->v[0];
+    fVar2 = pPosition->v[2];
+    fVar1 = pPosition->v[1] - -0.15f;
+    pModel->vertices[pVert_index].p.v[0] = fVar0;
+    pModel->vertices[pVert_index].p.v[1] = fVar1;
+    pModel->vertices[pVert_index].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[pVert_index].p.v[0];
+    *pfVar11 = *pfVar11 - -0.1f;
+    pModel->vertices[pVert_index].p.v[1] = pModel->vertices[pVert_index].p.v[1] - -0.1f;
+    pModel->vertices[pVert_index].p.v[2] = pModel->vertices[pVert_index].p.v[2] - -0.1f;
+
+    vertex1 = pVert_index + 1;
+    pModel->vertices[vertex1].p.v[0] = fVar0;
+    pModel->vertices[vertex1].p.v[1] = fVar1;
+    pModel->vertices[vertex1].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex1].p.v[0];
+    *pfVar11 = *pfVar11 - -0.1f;
+    pModel->vertices[vertex1].p.v[1] = pModel->vertices[vertex1].p.v[1] - 0.1f;
+    pModel->vertices[vertex1].p.v[2] = pModel->vertices[vertex1].p.v[2] - -0.1f;
+
+    vertex2 = pVert_index + 2;
+    pModel->vertices[vertex2].p.v[0] = fVar0;
+    pModel->vertices[vertex2].p.v[1] = fVar1;
+    pModel->vertices[vertex2].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex2].p.v[0];
+    *pfVar11 = *pfVar11 - 0.1f;
+    pModel->vertices[vertex2].p.v[1] = pModel->vertices[vertex2].p.v[1] - 0.1f;
+    pModel->vertices[vertex2].p.v[2] = pModel->vertices[vertex2].p.v[2] - -0.1f;
+
+    vertex3 = pVert_index + 3;
+    pModel->vertices[vertex3].p.v[0] = fVar0;
+    pModel->vertices[vertex3].p.v[1] = fVar1;
+    pModel->vertices[vertex3].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex3].p.v[0];
+    *pfVar11 = *pfVar11 - 0.1f;
+    pModel->vertices[vertex3].p.v[1] = pModel->vertices[vertex3].p.v[1] - -0.1f;
+    pModel->vertices[vertex3].p.v[2] = pModel->vertices[vertex3].p.v[2] - -0.1f;
+
+    vertex4 = pVert_index + 4;
+    pModel->vertices[vertex4].p.v[0] = fVar0;
+    pModel->vertices[vertex4].p.v[1] = fVar1;
+    pModel->vertices[vertex4].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex4].p.v[0];
+    *pfVar11 = *pfVar11 - -0.1f;
+    pModel->vertices[vertex4].p.v[1] = pModel->vertices[vertex4].p.v[1] - -0.1f;
+    pModel->vertices[vertex4].p.v[2] = pModel->vertices[vertex4].p.v[2] - 0.1f;
+
+    vertex5 = pVert_index + 5;
+    pModel->vertices[vertex5].p.v[0] = fVar0;
+    pModel->vertices[vertex5].p.v[1] = fVar1;
+    pModel->vertices[vertex5].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex5].p.v[0];
+    *pfVar11 = *pfVar11 - -0.1f;
+    pModel->vertices[vertex5].p.v[1] = pModel->vertices[vertex5].p.v[1] - 0.1f;
+    pModel->vertices[vertex5].p.v[2] = pModel->vertices[vertex5].p.v[2] - 0.1f;
+
+    vertex6 = pVert_index + 6;
+    pModel->vertices[vertex6].p.v[0] = fVar0;
+    pModel->vertices[vertex6].p.v[1] = fVar1;
+    pModel->vertices[vertex6].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex6].p.v[0];
+    *pfVar11 = *pfVar11 - 0.1f;
+    pModel->vertices[vertex6].p.v[1] = pModel->vertices[vertex6].p.v[1] - 0.1f;
+    pModel->vertices[vertex6].p.v[2] = pModel->vertices[vertex6].p.v[2] - 0.1f;
+
+    vertex7 = pVert_index + 7;
+    pModel->vertices[vertex7].p.v[0] = fVar0;
+    pModel->vertices[vertex7].p.v[1] = fVar1;
+    pModel->vertices[vertex7].p.v[2] = fVar2;
+    pfVar11 = &pModel->vertices[vertex7].p.v[0];
+    *pfVar11 = *pfVar11 - 0.1f;
+    pModel->vertices[vertex7].p.v[1] = pModel->vertices[vertex7].p.v[1] - -0.1f;
+    pModel->vertices[vertex7].p.v[2] = pModel->vertices[vertex7].p.v[2] - 0.1f;
+
+    pModel->faces[pFace_index].vertices[0] = pVert_index + 3;
+    pModel->faces[pFace_index].vertices[1] = pVert_index + 2;
+    pModel->faces[pFace_index].vertices[2] = pVert_index + 1;
+    pModel->faces[pFace_index].smoothing = 0xffff;
+    pModel->faces[pFace_index].material = pMaterial1;
+
+    pModel->faces[pFace_index + 1].vertices[0] = pVert_index;
+    pModel->faces[pFace_index + 1].vertices[1] = pVert_index + 3;
+    pModel->faces[pFace_index + 1].vertices[2] = pVert_index + 1;
+    pModel->faces[pFace_index + 1].smoothing = 0xffff;
+    pModel->faces[pFace_index + 1].material = pMaterial1;
+
+    pModel->faces[pFace_index + 2].vertices[0] = pVert_index + 1;
+    pModel->faces[pFace_index + 2].vertices[1] = pVert_index + 5;
+    pModel->faces[pFace_index + 2].vertices[2] = pVert_index + 4;
+    pModel->faces[pFace_index + 2].smoothing = 0xffff;
+    pModel->faces[pFace_index + 2].material = pMaterial2;
+
+    pModel->faces[pFace_index + 3].vertices[0] = pVert_index + 1;
+    pModel->faces[pFace_index + 3].vertices[1] = pVert_index + 4;
+    pModel->faces[pFace_index + 3].vertices[2] = pVert_index;
+    pModel->faces[pFace_index + 3].smoothing = 0xffff;
+    pModel->faces[pFace_index + 3].material = pMaterial2;
+
+    pModel->faces[pFace_index + 4].vertices[0] = pVert_index;
+    pModel->faces[pFace_index + 4].vertices[1] = pVert_index + 4;
+    pModel->faces[pFace_index + 4].vertices[2] = pVert_index + 3;
+    pModel->faces[pFace_index + 4].smoothing = 0xffff;
+    pModel->faces[pFace_index + 4].material = pMaterial3;
+
+    pModel->faces[pFace_index + 5].vertices[0] = pVert_index + 3;
+    pModel->faces[pFace_index + 5].vertices[1] = pVert_index + 4;
+    pModel->faces[pFace_index + 5].vertices[2] = pVert_index + 7;
+    pModel->faces[pFace_index + 5].smoothing = 0xffff;
+    pModel->faces[pFace_index + 5].material = pMaterial3;
+
+    MakeFaceAndTextureIt(pModel, pFace_index + 6, vertex4, vertex5, vertex7, pMaterial1);
+    MakeFaceAndTextureIt(pModel, pFace_index + 7, vertex5, vertex6, vertex7, pMaterial1);
+    MakeFaceAndTextureIt(pModel, pFace_index + 8, vertex2, vertex7, vertex6, pMaterial2);
+    MakeFaceAndTextureIt(pModel, pFace_index + 9, vertex2, vertex3, vertex7, pMaterial2);
+    MakeFaceAndTextureIt(pModel, pFace_index + 10, vertex1, vertex2, vertex6, pMaterial3);
+    MakeFaceAndTextureIt(pModel, pFace_index + 11, vertex1, vertex6, vertex5, pMaterial3);
+}
+
+// FUNCTION: CARMA2_HW 0x00401f90
+// FUNCTION: CARMA2_SW 0x00401f90
+void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {
+
+    pModel->faces[pFace_num].vertices[0] = pV0;
+    pModel->faces[pFace_num].vertices[1] = pV1;
+    pModel->faces[pFace_num].vertices[2] = pV2;
+    pModel->faces[pFace_num].smoothing = 0xffff;
+    pModel->faces[pFace_num].material = pMaterial;
+}
+
+// FUNCTION: CARMA2_HW 0x00401fe0
+void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth) {
+    br_vector3 positive_y_vector;
+    br_vector3 path_vector;
+
+    BrVector3Sub(&path_vector, pFinish, pStart);
+    BrVector3Set(&positive_y_vector, 0.f, 1.f, 0.f);
+    BrVector3Cross(pResult, &path_vector, &positive_y_vector);
+    BrVector3Normalise(pResult, pResult);
+    BrVector3Scale(pResult, pResult, pWidth);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* data and helpers referenced by DoDronePerGameFrameStuff */
+// GLOBAL: CARMA2_HW 0x00594750
+tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4] = {
+    DroneCarWithinProcessingDistance,
+    DronePlaneWithinProcessingDistance,
+    DroneTrainWithinProcessingDistance,
+    DronePlaneWithinProcessingDistance,
+};
+
+// GLOBAL: CARMA2_HW 0x00594790
+const char* gDrone_axis_names[4] = {
+    "x",
+    "y",
+    "z",
+    NULL,
+};
+
+// GLOBAL: CARMA2_HW 0x005947a0
+const char* gFunk_speed_control_names[2] = {
+    "controller",
+    "dronespeed",
+};
+
+// GLOBAL: CARMA2_HW 0x005947a8
+const char* gReverseness_type_names[2] = {
+    "forward",
+    "reverse",
+};
+
+// GLOBAL: CARMA2_HW 0x005947b0
+int gSelected_drone_path_node_index = -1;
+
+// GLOBAL: CARMA2_HW 0x005947b4
+int gSelected_edit_drone_path = -1;
+
+// GLOBAL: CARMA2_HW 0x005947b8
+int gSelected_drone_path_index = -1;
+
+// GLOBAL: CARMA2_HW 0x006820cc
+tU32 gNext_drone_edit_path_munge;
+
+// GLOBAL: CARMA2_HW 0x00684520
+br_model* gElasticatey_drone_path_model;
+
+// GLOBAL: CARMA2_HW 0x00684528
+br_actor* gDrone_path_model_actor;
+
+// GLOBAL: CARMA2_HW 0x00684530
+int gDrone_paths_elasticating;
+
+// GLOBAL: CARMA2_HW 0x00676870
+br_material* gMat_dk_grn;
+
+// GLOBAL: CARMA2_HW 0x00676878
+br_material* gMat_lt_grn;
+
+// GLOBAL: CARMA2_HW 0x0067baa0
+int gCrush_panel_ids[10];
+
+/* stubs for original helpers that are inlined into DoDronePerGameFrameStuff */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004020e0
+void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2) {
+    br_vector3 p1;
+    br_vector3 p2;
+
+    p1 = pNode->position;
+    p1.v[1] -= -0.15f;
+    p2 = *pPos;
+    p2.v[1] -= -0.15f;
+
+    pModel->vertices[pVert_index].p.v[0] = p1.v[0];
+    pModel->vertices[pVert_index].p.v[1] = p1.v[1];
+    pModel->vertices[pVert_index].p.v[2] = p1.v[2];
+    pModel->vertices[pVert_index].p.v[1] -= -0.1f;
+
+    pModel->vertices[pVert_index + 1].p.v[0] = p2.v[0];
+    pModel->vertices[pVert_index + 1].p.v[1] = p2.v[1];
+    pModel->vertices[pVert_index + 1].p.v[2] = p2.v[2];
+    pModel->vertices[pVert_index + 1].p.v[1] -= -0.1f;
+
+    pModel->vertices[pVert_index + 2].p.v[0] = p1.v[0];
+    pModel->vertices[pVert_index + 2].p.v[1] = p1.v[1];
+    pModel->vertices[pVert_index + 2].p.v[2] = p1.v[2];
+    pModel->vertices[pVert_index + 2].p.v[1] -= 0.1f;
+
+    pModel->vertices[pVert_index + 3].p.v[0] = p2.v[0];
+    pModel->vertices[pVert_index + 3].p.v[1] = p2.v[1];
+    pModel->vertices[pVert_index + 3].p.v[2] = p2.v[2];
+    pModel->vertices[pVert_index + 3].p.v[1] -= 0.1f;
+
+    pModel->faces[pFace_index].vertices[0] = pVert_index + 1;
+    pModel->faces[pFace_index].vertices[1] = pVert_index + 3;
+    pModel->faces[pFace_index].vertices[2] = pVert_index + 2;
+    pModel->faces[pFace_index].smoothing = 0xffff;
+    pModel->faces[pFace_index].material = pMaterial1;
+
+    pModel->faces[pFace_index + 1].vertices[0] = pVert_index;
+    pModel->faces[pFace_index + 1].vertices[1] = pVert_index + 1;
+    pModel->faces[pFace_index + 1].vertices[2] = pVert_index + 2;
+    pModel->faces[pFace_index + 1].smoothing = 0xffff;
+    pModel->faces[pFace_index + 1].material = pMaterial2;
+}
+
+/* callees of the functions below that live in other translation units */
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
+extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
+extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
+extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
+extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
+extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
+extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
+extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
+extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
+extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
+extern int gCrush_panel_ids[10];
+
+extern int gCrush_deferred;
+extern int gArrow_mode;
+extern br_scalar gMax_crush_force;
+extern br_scalar gCrushZero;
+extern int gFace_num__car;
+extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
+extern int gCount_car_damage_crush_list;
+
+extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
+extern const char* gGroove_funk_type_names[4];
+extern const char* gDrone_axis_names[4];
+extern const char* gFunk_speed_control_names[2];
+extern const char* gReverseness_type_names[2];
+extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
+extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2);
+extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
+// FUNCTION: CARMA2_HW 0x00428d40
+int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2) {
+    tPhysics_shape* shape1;
+    tPhysics_shape* shape2;
+
+    shape1 = pObject1->shape;
+    shape2 = pObject2->shape;
+    if (FlagsAreGo(pObject1, pObject2) && BoundsOverlapTest(&pObject1->field_0xf4, &pObject2->field_0xf4)) {
+        while (shape1 != NULL) {
+            while (shape2 != NULL) {
+                if (TestShapeEdgeIntersection(pObject1, pObject2, shape1, shape2)) {
+                    return 1;
+                }
+                if (TestShapeEdgeIntersection(pObject2, pObject1, shape2, shape1)) {
+                    return 1;
+                }
+                shape2 = shape2->common.next;
+            }
+            shape1 = shape1->common.next;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00435d40
+void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar) {
+    extern int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane);
+    extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
+    const br_bounds3* bounds;
+    br_vector3 line;
+    br_vector4 plane;
+    br_scalar angle;
+
+    bounds = &pCar->collision_info->bb1;
+    angle = FRandomBetween(0.0f, 6.2831855f);
+    *(int*)&line.v[2] = 0;
+    line.v[0] = sinf(angle);
+    line.v[1] = cosf(angle);
+    line.v[2] = (bounds->min.v[2] + bounds->max.v[2]) * 0.5f * line.v[1] + (bounds->min.v[0] + bounds->max.v[0]) * 0.5f * line.v[0];
+    if (SplitCheck(pCar, 0, &line, 0.0f, &plane) != 0) {
+        SplitCar(pCar, &plane, 0);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00435dd0
+int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg) {
+    int result;
+    br_actor* actor;
+    br_actor* next;
+
+    actor = pActor;
+    for (pActor = pActor->children; pActor != NULL; pActor = next) {
+        next = pActor->next;
+        result = DRActorEnumRecurseUltraPlus(pActor, pCallback, pArg);
+        if (result != 0) {
+            return result;
+        }
+    }
+    return pCallback(actor, pArg);
+}
+
+
+
+// FUNCTION: CARMA2_HW 0x00435e10
+intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
+    tCar_spec* pCar;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tPhysics_object* panel_actor;
+    br_vector3 tmp1;
+    br_vector3 tmp2;
+    float len;
+    float inv_len;
+    float dx;
+    float dy;
+    float dz;
+    int rnd;
+    int i;
+    int found;
+
+    pCar = pArg;
+    user = (tUser_crush_data*)pActor->user;
+    if (user == NULL) {
+        goto fail;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        goto fail;
+    }
+    if (crush_data->detach_data == NULL) {
+        goto fail;
+    }
+    rnd = crush_data->id;
+    found = 0;
+    for (i = 0; i < 10; i++) {
+        if (gCrush_panel_ids[i] == rnd) {
+            found = 1;
+            break;
+        }
+    }
+    if (found == 0) {
+        goto fail;
+    }
+    panel_actor = DetachBit(pCar, pActor, NULL);
+    if (panel_actor == NULL) {
+        goto fail;
+    }
+    BrMatrix34ApplyP(&tmp1, &pCar->collision_info->cmpos, (br_matrix34*)((tU8*)pCar->collision_info->actor + 0x2c));
+    BrMatrix34ApplyP(&tmp2, &panel_actor->cmpos, (br_matrix34*)((tU8*)panel_actor->actor + 0x2c));
+    dx = tmp2.v[0] - tmp1.v[0];
+    dy = tmp2.v[1] - tmp1.v[1];
+    dz = tmp2.v[2] - tmp1.v[2];
+    len = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    if (len > 2.3841858e-07f) {
+        inv_len = (float)(1.0 / len);
+        dx = inv_len * dx;
+        dy = inv_len * dy;
+        dz = inv_len * dz;
+    } else {
+        dx = 1.0f;
+        dy = 0.0f;
+        dz = 0.0f;
+    }
+    panel_actor->v.v[0] = dx * 1.1594203f + panel_actor->v.v[0];
+    panel_actor->v.v[1] = dy * 1.1594203f + panel_actor->v.v[1];
+    panel_actor->v.v[2] = dz * 1.1594203f + panel_actor->v.v[2];
+    panel_actor->v.v[0] = pCar->collision_info->v.v[0] + panel_actor->v.v[0];
+    panel_actor->v.v[1] = pCar->collision_info->v.v[1] + panel_actor->v.v[1];
+    panel_actor->v.v[2] = pCar->collision_info->v.v[2] + panel_actor->v.v[2];
+    return 0;
+fail:
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// GLOBAL: CARMA2_HW 0x00681fb4
+int gCount_active_drones;
+
+// GLOBAL: CARMA2_HW 0x006820b8
+int gDrones_unmodified;
+
+// GLOBAL: CARMA2_HW 0x006820d4
+int gINT_006820d4;
+
+// GLOBAL: CARMA2_HW 0x006844fc
+int gINT_006844fc;
+
+/* stubs for original helpers that are inlined into the functions above */
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0043f930
+void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
+    tDamage_unit* damage_unit;
+    int old_level;
+    int new_level;
+
+    if (pCar != NULL && pCar->driver >= eDriver_net_human && pDamage_type == eDamage_driver) {
+        return;
+    }
+    if (pCar->invulnerable_no_damage || pMagnitude < 5) {
+        return;
+    }
+    damage_unit = &pCar->damage_units[pDamage_type];
+    old_level = damage_unit->damage_level;
+    new_level = pMagnitude + damage_unit->damage_level;
+    damage_unit->damage_level = new_level;
+    if (new_level >= 99) {
+        if (pMagnitude < 10) {
+            damage_unit->damage_level = old_level;
+        }
+        else {
+            damage_unit->damage_level = 99;
+        }
+    }
+    if (SetKnackeredFlag(pCar)) {
+        return;
+    }
+    if (pCar == NULL || pCar->driver != eDriver_oppo) {
+        if (gNet_mode == eNet_mode_none
+                && ((pCar->damage_units[eDamage_engine].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99)
+                    || (pCar->damage_units[eDamage_transmission].damage_level >= 99
+                        && pCar->damage_units[eDamage_engine].last_level < 99
+                        && pCar->damage_units[eDamage_transmission].last_level < 99))) {
+            QueueOilSpill(pCar);
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // MakeAIEditCubeHere
 
 // CalcNegativeXVector
@@ -429,7 +772,87 @@ void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
     }
 }
 
+// GLOBAL: CARMA2_HW 0x00691754
+tU32 gNext_grudge_reduction;
 
+// GLOBAL: CARMA2_HW 0x00691738
+int gFirst_frame;
+
+// GLOBAL: CARMA2_HW 0x00691724
+int gGrudge_reduction_per_period;
+
+// GLOBAL: CARMA2_HW 0x00691728
+tU32 gAcme_frame_count;
+
+// GLOBAL: CARMA2_HW 0x00691768
+br_scalar gHead_on_cos_value;
+
+// GLOBAL: CARMA2_HW 0x0065a3c8
+int gChallenger_index__opponent = -1;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0044f980
+void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
+    br_bounds3 bnds;
+    tPhysics_object* pPhysics;
+    tPhysics_shape* original_shape;
+    br_scalar size_x;
+
+    pPhysics = &pDrone_spec->collision_info;
+    BrActorToBounds(&bnds, pDrone_spec->actor);
+    bnds.min.v[1] = bnds.min.v[1] - -0.001f;
+    if (pDrone_spec->field_0x46) {
+        original_shape = pPhysics->shape;
+    }
+    memset(pPhysics, 0, sizeof(tPhysics_object));
+    if (pDrone_spec->field_0x46) {
+        pPhysics->shape = original_shape;
+    }
+    else {
+        pPhysics->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_drone_collision_stuff);
+        pPhysics->shape->box.common.bb = bnds;
+        pPhysics->shape->box.common.field_0x1c = bnds;
+        pPhysics->shape->box.common.next = NULL;
+        pDrone_spec->field_0x46 = 1;
+    }
+    pPhysics->flags_0x238 = 16;
+    pPhysics->owner = pDrone_spec;
+    pPhysics->actor = pDrone_spec->actor;
+    pPhysics->M = pDrone_spec->form->M;
+    BrVector3Set(&pPhysics->cmpos, 0.f, .09f, 0.f);
+    BrVector3Set(&pPhysics->field_0x54, 0.f, -.4f / WORLD_SCALE, 0.f);
+    BrMatrix34Copy(&pPhysics->transform_matrix, &pDrone_spec->actor->t.t.mat);
+    pPhysics->box_face_ref = gFace_num__car - 2;
+    pPhysics->field_0x1a0 = 0x100000;
+    FillInShape(pPhysics->shape);
+    UpdateCollisionObject(pPhysics);
+    GetNewBoundingBox(&pPhysics->field_0xf4, &pPhysics->bb1, &pPhysics->transform_matrix);
+    size_x = bnds.max.v[0] - bnds.min.v[0];
+    pPhysics->I.v[0] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + (bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1])) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[1] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[2] = ((bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->cmpos.v[0] = bnds.min.v[0] - pDrone_spec->form->center.v[1] * size_x * -0.01;
+    pPhysics->cmpos.v[1] = bnds.min.v[1] - pDrone_spec->form->center.v[2] * (bnds.max.v[1] - bnds.min.v[1]) * -0.01;
+    pPhysics->cmpos.v[2] = bnds.min.v[2] - pDrone_spec->form->center.v[0] * (bnds.max.v[2] - bnds.min.v[2]) * -0.01;
+    if (pDrone_spec->form->type == kDroneType_train) {
+        pPhysics->world_friction = -.75;
+    }
+    pPhysics->disable_move_rotate = 1;
+    pPhysics->field_0xed = 1;
+    pPhysics->flags |= 0x40;
+    pPhysics->drivable_on = !!(pDrone_spec->form->flags & 0x8);
+    BrVector3SetFloat(&pPhysics->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->velocity_car_space, 0.f, 0.f, 0.f);
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 /* local declarations for DisposeDronesRaceStuff (no new includes/externs in headers) */
 extern int gCount_drone_forms;
 extern int gCount_drone_path_nodes;
@@ -486,17 +909,11 @@ void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
         gCount_drone_path_nodes = 0;
     }
 }
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 extern float gDrone_render_zero;
 extern int gCount_drone_forms;
 extern int gCount_drones;
@@ -606,43 +1023,6 @@ extern void C2_HOOK_FASTCALL LoadAllShadeTablesInDirectory(tBrender_storage* pSt
 extern void C2_HOOK_FASTCALL LoadAllMaterialsInDirectory(tBrender_storage* pStorage, const char* pPath, tRendererShadingType pShading);
 extern void C2_HOOK_FASTCALL LoadAllModelsInDirectory(tBrender_storage* pStorage, const char* pPath);
 
-/* callees of the functions below that live in other translation units */
-extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
-extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
-extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
-extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
-extern void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
-extern int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar);
-extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext);
-extern int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
-extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
-extern void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
-extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
-extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
-extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
-extern int gCrush_panel_ids[10];
-
-extern int gCrush_deferred;
-extern int gArrow_mode;
-extern br_scalar gMax_crush_force;
-extern br_scalar gCrushZero;
-extern int gFace_num__car;
-extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
-extern int gCount_car_damage_crush_list;
-
-extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
-extern const char* gGroove_funk_type_names[4];
-extern const char* gDrone_axis_names[4];
-extern const char* gFunk_speed_control_names[2];
-extern const char* gReverseness_type_names[2];
-extern int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pObj1, tPhysics_object* pObj2);
-extern int C2_HOOK_FASTCALL TestShapeEdgeIntersection(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2);
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 
 /* helpers that the original inlines into LoadFunksAndGrooves */
 static int ReadPastThisLine(FILE* pF, const char* pLine) {
@@ -790,343 +1170,54 @@ void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF) {
         GetALineAndDontArgue(pF, s);
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+/* local declarations for StopProcessingThisDrone (no new includes/externs in headers) */
+extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
 
-// GLOBAL: CARMA2_HW 0x00691754
-tU32 gNext_grudge_reduction;
-
-// GLOBAL: CARMA2_HW 0x00691738
-int gFirst_frame;
-
-// GLOBAL: CARMA2_HW 0x00691724
-int gGrudge_reduction_per_period;
-
-// GLOBAL: CARMA2_HW 0x00691728
-tU32 gAcme_frame_count;
-
-// GLOBAL: CARMA2_HW 0x00691768
-br_scalar gHead_on_cos_value;
-
-// GLOBAL: CARMA2_HW 0x0065a3c8
-int gChallenger_index__opponent = -1;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0044f980
-void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
-    br_bounds3 bnds;
-    tPhysics_object* pPhysics;
-    tPhysics_shape* original_shape;
-    br_scalar size_x;
-
-    pPhysics = &pDrone_spec->collision_info;
-    BrActorToBounds(&bnds, pDrone_spec->actor);
-    bnds.min.v[1] = bnds.min.v[1] - -0.001f;
-    if (pDrone_spec->field_0x46) {
-        original_shape = pPhysics->shape;
-    }
-    memset(pPhysics, 0, sizeof(tPhysics_object));
-    if (pDrone_spec->field_0x46) {
-        pPhysics->shape = original_shape;
-    }
-    else {
-        pPhysics->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_drone_collision_stuff);
-        pPhysics->shape->box.common.bb = bnds;
-        pPhysics->shape->box.common.field_0x1c = bnds;
-        pPhysics->shape->box.common.next = NULL;
-        pDrone_spec->field_0x46 = 1;
-    }
-    pPhysics->flags_0x238 = 16;
-    pPhysics->owner = pDrone_spec;
-    pPhysics->actor = pDrone_spec->actor;
-    pPhysics->M = pDrone_spec->form->M;
-    BrVector3Set(&pPhysics->cmpos, 0.f, .09f, 0.f);
-    BrVector3Set(&pPhysics->field_0x54, 0.f, -.4f / WORLD_SCALE, 0.f);
-    BrMatrix34Copy(&pPhysics->transform_matrix, &pDrone_spec->actor->t.t.mat);
-    pPhysics->box_face_ref = gFace_num__car - 2;
-    pPhysics->field_0x1a0 = 0x100000;
-    FillInShape(pPhysics->shape);
-    UpdateCollisionObject(pPhysics);
-    GetNewBoundingBox(&pPhysics->field_0xf4, &pPhysics->bb1, &pPhysics->transform_matrix);
-    size_x = bnds.max.v[0] - bnds.min.v[0];
-    pPhysics->I.v[0] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + (bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1])) * pPhysics->M * 0.083333336f;
-    pPhysics->I.v[1] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + size_x * size_x) * pPhysics->M * 0.083333336f;
-    pPhysics->I.v[2] = ((bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1]) + size_x * size_x) * pPhysics->M * 0.083333336f;
-    pPhysics->cmpos.v[0] = bnds.min.v[0] - pDrone_spec->form->center.v[1] * size_x * -0.01;
-    pPhysics->cmpos.v[1] = bnds.min.v[1] - pDrone_spec->form->center.v[2] * (bnds.max.v[1] - bnds.min.v[1]) * -0.01;
-    pPhysics->cmpos.v[2] = bnds.min.v[2] - pDrone_spec->form->center.v[0] * (bnds.max.v[2] - bnds.min.v[2]) * -0.01;
-    if (pDrone_spec->form->type == kDroneType_train) {
-        pPhysics->world_friction = -.75;
-    }
-    pPhysics->disable_move_rotate = 1;
-    pPhysics->field_0xed = 1;
-    pPhysics->flags |= 0x40;
-    pPhysics->drivable_on = !!(pDrone_spec->form->flags & 0x8);
-    BrVector3SetFloat(&pPhysics->v, 0.f, 0.f, 0.f);
-    BrVector3SetFloat(&pPhysics->omega, 0.f, 0.f, 0.f);
-    BrVector3SetFloat(&pPhysics->rotate_omega, 0.f, 0.f, 0.f);
-    BrVector3SetFloat(&pPhysics->velocity_car_space, 0.f, 0.f, 0.f);
+/* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
+static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
+    DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// FUNCTION: CARMA2_HW 0x00428d40
-int C2_HOOK_FASTCALL TestObjectOverlap(tPhysics_object* pObject1, tPhysics_object* pObject2) {
-    tPhysics_shape* shape1;
-    tPhysics_shape* shape2;
+// FUNCTION: CARMA2_HW 0x00451710
+void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
 
-    shape1 = pObject1->shape;
-    shape2 = pObject2->shape;
-    if (FlagsAreGo(pObject1, pObject2) && BoundsOverlapTest(&pObject1->field_0xf4, &pObject2->field_0xf4)) {
-        while (shape1 != NULL) {
-            while (shape2 != NULL) {
-                if (TestShapeEdgeIntersection(pObject1, pObject2, shape1, shape2)) {
-                    return 1;
-                }
-                if (TestShapeEdgeIntersection(pObject2, pObject1, shape2, shape1)) {
-                    return 1;
-                }
-                shape2 = shape2->common.next;
+    if (pDrone->field_0x44) {
+        if (pForce || (!(pDrone->form->flags & 0x4) && pDrone->current_state != 3 && gCount_active_drones > 0)) {
+            pDrone->field_0x44 = 0;
+            gCount_active_drones -= 1;
+            if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
+                DoNotDprintf("STOP RENDERING: %d", pDrone->id);
+                gCount_rendered_drones -= 1;
+                pDrone->actor->render_style = BR_RSTYLE_NONE;
+                PipeSingleDroneRender(pDrone, 0);
             }
-            shape1 = shape1->common.next;
-        }
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x00681fb4
-int gCount_active_drones;
-
-// GLOBAL: CARMA2_HW 0x006820b8
-int gDrones_unmodified;
-
-// GLOBAL: CARMA2_HW 0x006820d4
-int gINT_006820d4;
-
-// GLOBAL: CARMA2_HW 0x006844fc
-int gINT_006844fc;
-
-/* stubs for original helpers that are inlined into the functions above */
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0043f930
-void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude) {
-    tDamage_unit* damage_unit;
-    int old_level;
-    int new_level;
-
-    if (pCar != NULL && pCar->driver >= eDriver_net_human && pDamage_type == eDamage_driver) {
-        return;
-    }
-    if (pCar->invulnerable_no_damage || pMagnitude < 5) {
-        return;
-    }
-    damage_unit = &pCar->damage_units[pDamage_type];
-    old_level = damage_unit->damage_level;
-    new_level = pMagnitude + damage_unit->damage_level;
-    damage_unit->damage_level = new_level;
-    if (new_level >= 99) {
-        if (pMagnitude < 10) {
-            damage_unit->damage_level = old_level;
-        }
-        else {
-            damage_unit->damage_level = 99;
-        }
-    }
-    if (SetKnackeredFlag(pCar)) {
-        return;
-    }
-    if (pCar == NULL || pCar->driver != eDriver_oppo) {
-        if (gNet_mode == eNet_mode_none
-                && ((pCar->damage_units[eDamage_engine].damage_level >= 99
-                        && pCar->damage_units[eDamage_engine].last_level < 99
-                        && pCar->damage_units[eDamage_transmission].last_level < 99)
-                    || (pCar->damage_units[eDamage_transmission].damage_level >= 99
-                        && pCar->damage_units[eDamage_engine].last_level < 99
-                        && pCar->damage_units[eDamage_transmission].last_level < 99))) {
-            QueueOilSpill(pCar);
+            PHILRemoveObject(&pDrone->collision_info);
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, (tDroneStateFuncState)2);
+            }
+            DoNotDprintf("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+            DroneCrappyLittleVector3DPrintf("     Pos", &pDrone->actor->t.t.translate.t);
         }
     }
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-/* local declarations for MineExplode (no new includes/externs in headers) */
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
-extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, int pSize);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
-extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
-extern void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor);
-extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
+// FUNCTION: CARMA2_HW 0x00451bd0
+void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void) {
+    br_vector3 tv;
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004ddab0
-int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine) {
-    tNet_message* message;
-    br_vector3 offset;
-    int hierarchy_size;
-
-    if (pMine->flags & 0x2) {
-        return 0;
-    }
-    pMine->flags |= 0x2;
-    if (gNet_mode == eNet_mode_host) {
-        hierarchy_size = GetHierarchyNetworkSize(pMine->collision_info);
-        message = NetBuildGuaranteedMessage(0x31, hierarchy_size + 12);
-        message->contents.mine_explode.mine_index = pMine - gShit_mines;
-        message->contents.mine_explode.field_0x3 = pMine->field_0x35;
-        message->contents.mine_explode.field_0x4 = pMine->field_0x34;
-        message->contents.mine_explode.field_0x5 = NetPlayerFromCar(pMine->field_0x30) - gNet_players;
-        message->contents.mine_explode.field_0x8 = -1;
-        GetHierarchyNetworkStuff(pMine->collision_info, message->contents.mine_explode.object_hierarchy, 0x48);
-        NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
-    }
-    PHILRemoveObject(pMine->collision_info);
-    pMine->next_think_time = GetTotalTime() + 1600;
-    BrVector3Negate(&offset, &gExplosion_pix_animation_groups.groups[0].offset);
-    Explode(&gExplosion_pix_animation_groups, pMine->collision_info->actor, &pMine->collision_info->actor->model->bounds, &offset);
-    DRS3StartSound3D(gCar_outlet, eSoundId_Explosion, &pMine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 255, 0x10000, 0x10000);
-    PipeSingleEndShitMine(pMine->collision_info->actor);
-    if (pMine->collision_info->actor->parent != NULL) {
-        BrActorRemove(pMine->collision_info->actor);
-    }
-    pMine->collision_info->actor->render_style = BR_RSTYLE_NONE;
-    return 1;
+    BrVector3Negate(&tv, (br_vector3*)gCamera_to_world.m[2]);
+    BrVector3Normalise(&tv, &tv);
+    BrVector3Scale(&tv, &tv, 5.f);
+    BrVector3Add(&gRender_bounds_centre, (br_vector3*)gCamera_to_world.m[3], &tv);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
-/* data and helpers referenced by DoDronePerGameFrameStuff */
-// GLOBAL: CARMA2_HW 0x00594750
-tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4] = {
-    DroneCarWithinProcessingDistance,
-    DronePlaneWithinProcessingDistance,
-    DroneTrainWithinProcessingDistance,
-    DronePlaneWithinProcessingDistance,
-};
-
-// GLOBAL: CARMA2_HW 0x00594790
-const char* gDrone_axis_names[4] = {
-    "x",
-    "y",
-    "z",
-    NULL,
-};
-
-// GLOBAL: CARMA2_HW 0x005947a0
-const char* gFunk_speed_control_names[2] = {
-    "controller",
-    "dronespeed",
-};
-
-// GLOBAL: CARMA2_HW 0x005947a8
-const char* gReverseness_type_names[2] = {
-    "forward",
-    "reverse",
-};
-
-// GLOBAL: CARMA2_HW 0x005947b0
-int gSelected_drone_path_node_index = -1;
-
-// GLOBAL: CARMA2_HW 0x005947b4
-int gSelected_edit_drone_path = -1;
-
-// GLOBAL: CARMA2_HW 0x005947b8
-int gSelected_drone_path_index = -1;
-
-// GLOBAL: CARMA2_HW 0x006820cc
-tU32 gNext_drone_edit_path_munge;
-
-// GLOBAL: CARMA2_HW 0x00684520
-br_model* gElasticatey_drone_path_model;
-
-// GLOBAL: CARMA2_HW 0x00684528
-br_actor* gDrone_path_model_actor;
-
-// GLOBAL: CARMA2_HW 0x00684530
-int gDrone_paths_elasticating;
-
-// GLOBAL: CARMA2_HW 0x00676870
-br_material* gMat_dk_grn;
-
-// GLOBAL: CARMA2_HW 0x00676878
-br_material* gMat_lt_grn;
-
-// GLOBAL: CARMA2_HW 0x0067baa0
-int gCrush_panel_ids[10];
-
-/* stubs for original helpers that are inlined into DoDronePerGameFrameStuff */
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004020e0
-void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2) {
-    br_vector3 p1;
-    br_vector3 p2;
-
-    p1 = pNode->position;
-    p1.v[1] -= -0.15f;
-    p2 = *pPos;
-    p2.v[1] -= -0.15f;
-
-    pModel->vertices[pVert_index].p.v[0] = p1.v[0];
-    pModel->vertices[pVert_index].p.v[1] = p1.v[1];
-    pModel->vertices[pVert_index].p.v[2] = p1.v[2];
-    pModel->vertices[pVert_index].p.v[1] -= -0.1f;
-
-    pModel->vertices[pVert_index + 1].p.v[0] = p2.v[0];
-    pModel->vertices[pVert_index + 1].p.v[1] = p2.v[1];
-    pModel->vertices[pVert_index + 1].p.v[2] = p2.v[2];
-    pModel->vertices[pVert_index + 1].p.v[1] -= -0.1f;
-
-    pModel->vertices[pVert_index + 2].p.v[0] = p1.v[0];
-    pModel->vertices[pVert_index + 2].p.v[1] = p1.v[1];
-    pModel->vertices[pVert_index + 2].p.v[2] = p1.v[2];
-    pModel->vertices[pVert_index + 2].p.v[1] -= 0.1f;
-
-    pModel->vertices[pVert_index + 3].p.v[0] = p2.v[0];
-    pModel->vertices[pVert_index + 3].p.v[1] = p2.v[1];
-    pModel->vertices[pVert_index + 3].p.v[2] = p2.v[2];
-    pModel->vertices[pVert_index + 3].p.v[1] -= 0.1f;
-
-    pModel->faces[pFace_index].vertices[0] = pVert_index + 1;
-    pModel->faces[pFace_index].vertices[1] = pVert_index + 3;
-    pModel->faces[pFace_index].vertices[2] = pVert_index + 2;
-    pModel->faces[pFace_index].smoothing = 0xffff;
-    pModel->faces[pFace_index].material = pMaterial1;
-
-    pModel->faces[pFace_index + 1].vertices[0] = pVert_index;
-    pModel->faces[pFace_index + 1].vertices[1] = pVert_index + 1;
-    pModel->faces[pFace_index + 1].vertices[2] = pVert_index + 2;
-    pModel->faces[pFace_index + 1].smoothing = 0xffff;
-    pModel->faces[pFace_index + 1].material = pMaterial2;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 /* local declarations for InitialiseEditModelsEtc (no new includes/externs in headers) */
 extern br_model* gStatic_drone_path_model;
 extern br_actor* gStatic_drone_path_model_actor;
@@ -1284,216 +1375,11 @@ int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void) {
     SaveDronePaths();
     return 1;
 }
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00451bd0
-void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void) {
-    br_vector3 tv;
-
-    BrVector3Negate(&tv, (br_vector3*)gCamera_to_world.m[2]);
-    BrVector3Normalise(&tv, &tv);
-    BrVector3Scale(&tv, &tv, 5.f);
-    BrVector3Add(&gRender_bounds_centre, (br_vector3*)gCamera_to_world.m[3], &tv);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* local declarations for StopProcessingThisDrone (no new includes/externs in headers) */
-extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
-
-/* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
-static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
-    DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00451710
-void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
-
-    if (pDrone->field_0x44) {
-        if (pForce || (!(pDrone->form->flags & 0x4) && pDrone->current_state != 3 && gCount_active_drones > 0)) {
-            pDrone->field_0x44 = 0;
-            gCount_active_drones -= 1;
-            if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
-                DoNotDprintf("STOP RENDERING: %d", pDrone->id);
-                gCount_rendered_drones -= 1;
-                pDrone->actor->render_style = BR_RSTYLE_NONE;
-                PipeSingleDroneRender(pDrone, 0);
-            }
-            PHILRemoveObject(&pDrone->collision_info);
-            if (gDrone_state_functions[pDrone->current_state] != NULL) {
-                gDrone_state_functions[pDrone->current_state](pDrone, (tDroneStateFuncState)2);
-            }
-            DoNotDprintf("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
-            DroneCrappyLittleVector3DPrintf("     Pos", &pDrone->actor->t.t.translate.t);
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00401fe0
-void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth) {
-    br_vector3 positive_y_vector;
-    br_vector3 path_vector;
-
-    BrVector3Sub(&path_vector, pFinish, pStart);
-    BrVector3Set(&positive_y_vector, 0.f, 1.f, 0.f);
-    BrVector3Cross(pResult, &path_vector, &positive_y_vector);
-    BrVector3Normalise(pResult, pResult);
-    BrVector3Scale(pResult, pResult, pWidth);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00435e10
-intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
-    tCar_spec* pCar;
-    tUser_crush_data* user;
-    tCar_crush_buffer_entry* crush_data;
-    tPhysics_object* panel_actor;
-    br_vector3 tmp1;
-    br_vector3 tmp2;
-    float len;
-    float inv_len;
-    float dx;
-    float dy;
-    float dz;
-    int rnd;
-    int i;
-    int found;
-
-    pCar = pArg;
-    user = (tUser_crush_data*)pActor->user;
-    if (user == NULL) {
-        goto fail;
-    }
-    crush_data = user->crush_data;
-    if (crush_data == NULL) {
-        goto fail;
-    }
-    if (crush_data->detach_data == NULL) {
-        goto fail;
-    }
-    rnd = crush_data->id;
-    found = 0;
-    for (i = 0; i < 10; i++) {
-        if (gCrush_panel_ids[i] == rnd) {
-            found = 1;
-            break;
-        }
-    }
-    if (found == 0) {
-        goto fail;
-    }
-    panel_actor = DetachBit(pCar, pActor, NULL);
-    if (panel_actor == NULL) {
-        goto fail;
-    }
-    BrMatrix34ApplyP(&tmp1, &pCar->collision_info->cmpos, (br_matrix34*)((tU8*)pCar->collision_info->actor + 0x2c));
-    BrMatrix34ApplyP(&tmp2, &panel_actor->cmpos, (br_matrix34*)((tU8*)panel_actor->actor + 0x2c));
-    dx = tmp2.v[0] - tmp1.v[0];
-    dy = tmp2.v[1] - tmp1.v[1];
-    dz = tmp2.v[2] - tmp1.v[2];
-    len = (float)sqrt(dx * dx + dy * dy + dz * dz);
-    if (len > 2.3841858e-07f) {
-        inv_len = (float)(1.0 / len);
-        dx = inv_len * dx;
-        dy = inv_len * dy;
-        dz = inv_len * dz;
-    } else {
-        dx = 1.0f;
-        dy = 0.0f;
-        dz = 0.0f;
-    }
-    panel_actor->v.v[0] = dx * 1.1594203f + panel_actor->v.v[0];
-    panel_actor->v.v[1] = dy * 1.1594203f + panel_actor->v.v[1];
-    panel_actor->v.v[2] = dz * 1.1594203f + panel_actor->v.v[2];
-    panel_actor->v.v[0] = pCar->collision_info->v.v[0] + panel_actor->v.v[0];
-    panel_actor->v.v[1] = pCar->collision_info->v.v[1] + panel_actor->v.v[1];
-    panel_actor->v.v[2] = pCar->collision_info->v.v[2] + panel_actor->v.v[2];
-    return 0;
-fail:
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00435dd0
-int C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg) {
-    int result;
-    br_actor* actor;
-    br_actor* next;
-
-    actor = pActor;
-    for (pActor = pActor->children; pActor != NULL; pActor = next) {
-        next = pActor->next;
-        result = DRActorEnumRecurseUltraPlus(pActor, pCallback, pArg);
-        if (result != 0) {
-            return result;
-        }
-    }
-    return pCallback(actor, pArg);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00435d40
-void C2_HOOK_FASTCALL RandomlyXZSplitCar(tCar_spec* pCar) {
-    extern int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pLine, br_scalar pHeight, br_vector4* pPlane);
-    extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
-    const br_bounds3* bounds;
-    br_vector3 line;
-    br_vector4 plane;
-    br_scalar angle;
-
-    bounds = &pCar->collision_info->bb1;
-    angle = FRandomBetween(0.0f, 6.2831855f);
-    *(int*)&line.v[2] = 0;
-    line.v[0] = sinf(angle);
-    line.v[1] = cosf(angle);
-    line.v[2] = (bounds->min.v[2] + bounds->max.v[2]) * 0.5f * line.v[1] + (bounds->min.v[0] + bounds->max.v[0]) * 0.5f * line.v[0];
-    if (SplitCheck(pCar, 0, &line, 0.0f, &plane) != 0) {
-        SplitCar(pCar, &plane, 0);
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 /* globals and stubs used by InitialiseEditModelsEtc */
 // GLOBAL: CARMA2_HW 0x0068451c
 br_model* gStatic_drone_path_model;
@@ -1574,144 +1460,206 @@ void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int pFaces,
     pModel->nfaces = (br_uint_16)pFaces;
     pModel->faces = new_faces;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+/* local declarations for MineExplode (no new includes/externs in headers) */
+extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, int pSize);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+extern void C2_HOOK_FASTCALL PipeSingleEndShitMine(br_actor* pActor);
+extern tS3_outlet* gCar_outlet;
+extern br_vector3 gZero_v__car;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// FUNCTION: CARMA2_HW 0x00401aa0
-void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3) {
-    int vertex1;
-    int vertex2;
-    int vertex3;
-    int vertex4;
-    int vertex5;
-    int vertex6;
-    int vertex7;
-    float fVar0;
-    float fVar1;
-    float fVar2;
-    float* pfVar11;
+extern tShit_mine gShit_mines[20];
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+// FUNCTION: CARMA2_HW 0x004ddab0
+int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine) {
+    tNet_message* message;
+    br_vector3 offset;
+    int hierarchy_size;
 
-    fVar0 = pPosition->v[0];
-    fVar2 = pPosition->v[2];
-    fVar1 = pPosition->v[1] - -0.15f;
-    pModel->vertices[pVert_index].p.v[0] = fVar0;
-    pModel->vertices[pVert_index].p.v[1] = fVar1;
-    pModel->vertices[pVert_index].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[pVert_index].p.v[0];
-    *pfVar11 = *pfVar11 - -0.1f;
-    pModel->vertices[pVert_index].p.v[1] = pModel->vertices[pVert_index].p.v[1] - -0.1f;
-    pModel->vertices[pVert_index].p.v[2] = pModel->vertices[pVert_index].p.v[2] - -0.1f;
-
-    vertex1 = pVert_index + 1;
-    pModel->vertices[vertex1].p.v[0] = fVar0;
-    pModel->vertices[vertex1].p.v[1] = fVar1;
-    pModel->vertices[vertex1].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex1].p.v[0];
-    *pfVar11 = *pfVar11 - -0.1f;
-    pModel->vertices[vertex1].p.v[1] = pModel->vertices[vertex1].p.v[1] - 0.1f;
-    pModel->vertices[vertex1].p.v[2] = pModel->vertices[vertex1].p.v[2] - -0.1f;
-
-    vertex2 = pVert_index + 2;
-    pModel->vertices[vertex2].p.v[0] = fVar0;
-    pModel->vertices[vertex2].p.v[1] = fVar1;
-    pModel->vertices[vertex2].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex2].p.v[0];
-    *pfVar11 = *pfVar11 - 0.1f;
-    pModel->vertices[vertex2].p.v[1] = pModel->vertices[vertex2].p.v[1] - 0.1f;
-    pModel->vertices[vertex2].p.v[2] = pModel->vertices[vertex2].p.v[2] - -0.1f;
-
-    vertex3 = pVert_index + 3;
-    pModel->vertices[vertex3].p.v[0] = fVar0;
-    pModel->vertices[vertex3].p.v[1] = fVar1;
-    pModel->vertices[vertex3].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex3].p.v[0];
-    *pfVar11 = *pfVar11 - 0.1f;
-    pModel->vertices[vertex3].p.v[1] = pModel->vertices[vertex3].p.v[1] - -0.1f;
-    pModel->vertices[vertex3].p.v[2] = pModel->vertices[vertex3].p.v[2] - -0.1f;
-
-    vertex4 = pVert_index + 4;
-    pModel->vertices[vertex4].p.v[0] = fVar0;
-    pModel->vertices[vertex4].p.v[1] = fVar1;
-    pModel->vertices[vertex4].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex4].p.v[0];
-    *pfVar11 = *pfVar11 - -0.1f;
-    pModel->vertices[vertex4].p.v[1] = pModel->vertices[vertex4].p.v[1] - -0.1f;
-    pModel->vertices[vertex4].p.v[2] = pModel->vertices[vertex4].p.v[2] - 0.1f;
-
-    vertex5 = pVert_index + 5;
-    pModel->vertices[vertex5].p.v[0] = fVar0;
-    pModel->vertices[vertex5].p.v[1] = fVar1;
-    pModel->vertices[vertex5].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex5].p.v[0];
-    *pfVar11 = *pfVar11 - -0.1f;
-    pModel->vertices[vertex5].p.v[1] = pModel->vertices[vertex5].p.v[1] - 0.1f;
-    pModel->vertices[vertex5].p.v[2] = pModel->vertices[vertex5].p.v[2] - 0.1f;
-
-    vertex6 = pVert_index + 6;
-    pModel->vertices[vertex6].p.v[0] = fVar0;
-    pModel->vertices[vertex6].p.v[1] = fVar1;
-    pModel->vertices[vertex6].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex6].p.v[0];
-    *pfVar11 = *pfVar11 - 0.1f;
-    pModel->vertices[vertex6].p.v[1] = pModel->vertices[vertex6].p.v[1] - 0.1f;
-    pModel->vertices[vertex6].p.v[2] = pModel->vertices[vertex6].p.v[2] - 0.1f;
-
-    vertex7 = pVert_index + 7;
-    pModel->vertices[vertex7].p.v[0] = fVar0;
-    pModel->vertices[vertex7].p.v[1] = fVar1;
-    pModel->vertices[vertex7].p.v[2] = fVar2;
-    pfVar11 = &pModel->vertices[vertex7].p.v[0];
-    *pfVar11 = *pfVar11 - 0.1f;
-    pModel->vertices[vertex7].p.v[1] = pModel->vertices[vertex7].p.v[1] - -0.1f;
-    pModel->vertices[vertex7].p.v[2] = pModel->vertices[vertex7].p.v[2] - 0.1f;
-
-    pModel->faces[pFace_index].vertices[0] = pVert_index + 3;
-    pModel->faces[pFace_index].vertices[1] = pVert_index + 2;
-    pModel->faces[pFace_index].vertices[2] = pVert_index + 1;
-    pModel->faces[pFace_index].smoothing = 0xffff;
-    pModel->faces[pFace_index].material = pMaterial1;
-
-    pModel->faces[pFace_index + 1].vertices[0] = pVert_index;
-    pModel->faces[pFace_index + 1].vertices[1] = pVert_index + 3;
-    pModel->faces[pFace_index + 1].vertices[2] = pVert_index + 1;
-    pModel->faces[pFace_index + 1].smoothing = 0xffff;
-    pModel->faces[pFace_index + 1].material = pMaterial1;
-
-    pModel->faces[pFace_index + 2].vertices[0] = pVert_index + 1;
-    pModel->faces[pFace_index + 2].vertices[1] = pVert_index + 5;
-    pModel->faces[pFace_index + 2].vertices[2] = pVert_index + 4;
-    pModel->faces[pFace_index + 2].smoothing = 0xffff;
-    pModel->faces[pFace_index + 2].material = pMaterial2;
-
-    pModel->faces[pFace_index + 3].vertices[0] = pVert_index + 1;
-    pModel->faces[pFace_index + 3].vertices[1] = pVert_index + 4;
-    pModel->faces[pFace_index + 3].vertices[2] = pVert_index;
-    pModel->faces[pFace_index + 3].smoothing = 0xffff;
-    pModel->faces[pFace_index + 3].material = pMaterial2;
-
-    pModel->faces[pFace_index + 4].vertices[0] = pVert_index;
-    pModel->faces[pFace_index + 4].vertices[1] = pVert_index + 4;
-    pModel->faces[pFace_index + 4].vertices[2] = pVert_index + 3;
-    pModel->faces[pFace_index + 4].smoothing = 0xffff;
-    pModel->faces[pFace_index + 4].material = pMaterial3;
-
-    pModel->faces[pFace_index + 5].vertices[0] = pVert_index + 3;
-    pModel->faces[pFace_index + 5].vertices[1] = pVert_index + 4;
-    pModel->faces[pFace_index + 5].vertices[2] = pVert_index + 7;
-    pModel->faces[pFace_index + 5].smoothing = 0xffff;
-    pModel->faces[pFace_index + 5].material = pMaterial3;
-
-    MakeFaceAndTextureIt(pModel, pFace_index + 6, vertex4, vertex5, vertex7, pMaterial1);
-    MakeFaceAndTextureIt(pModel, pFace_index + 7, vertex5, vertex6, vertex7, pMaterial1);
-    MakeFaceAndTextureIt(pModel, pFace_index + 8, vertex2, vertex7, vertex6, pMaterial2);
-    MakeFaceAndTextureIt(pModel, pFace_index + 9, vertex2, vertex3, vertex7, pMaterial2);
-    MakeFaceAndTextureIt(pModel, pFace_index + 10, vertex1, vertex2, vertex6, pMaterial3);
-    MakeFaceAndTextureIt(pModel, pFace_index + 11, vertex1, vertex6, vertex5, pMaterial3);
+    if (pMine->flags & 0x2) {
+        return 0;
+    }
+    pMine->flags |= 0x2;
+    if (gNet_mode == eNet_mode_host) {
+        hierarchy_size = GetHierarchyNetworkSize(pMine->collision_info);
+        message = NetBuildGuaranteedMessage(0x31, hierarchy_size + 12);
+        message->contents.mine_explode.mine_index = pMine - gShit_mines;
+        message->contents.mine_explode.field_0x3 = pMine->field_0x35;
+        message->contents.mine_explode.field_0x4 = pMine->field_0x34;
+        message->contents.mine_explode.field_0x5 = NetPlayerFromCar(pMine->field_0x30) - gNet_players;
+        message->contents.mine_explode.field_0x8 = -1;
+        GetHierarchyNetworkStuff(pMine->collision_info, message->contents.mine_explode.object_hierarchy, 0x48);
+        NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
+    }
+    PHILRemoveObject(pMine->collision_info);
+    pMine->next_think_time = GetTotalTime() + 1600;
+    BrVector3Negate(&offset, &gExplosion_pix_animation_groups.groups[0].offset);
+    Explode(&gExplosion_pix_animation_groups, pMine->collision_info->actor, &pMine->collision_info->actor->model->bounds, &offset);
+    DRS3StartSound3D(gCar_outlet, eSoundId_Explosion, &pMine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 255, 0x10000, 0x10000);
+    PipeSingleEndShitMine(pMine->collision_info->actor);
+    if (pMine->collision_info->actor->parent != NULL) {
+        BrActorRemove(pMine->collision_info->actor);
+    }
+    pMine->collision_info->actor->render_style = BR_RSTYLE_NONE;
+    return 1;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+extern int gTimers_stack[8];
+extern int gTimers_max_index;
+extern int gTimers_stack_size;
+extern tTimer gTimers[19];
+extern void C2_HOOK_FASTCALL MungeOpponents(void);
+extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
+extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
+
+static void TimersPush(int pType) {
+    int prev_type;
+
+    gTimers_stack[gTimers_stack_size] = pType;
+    if (gTimers_stack_size == 0) {
+        prev_type = gTimers_max_index;
+    } else {
+        prev_type = gTimers_stack[gTimers_stack_size - 1];
+    }
+    gTimers[prev_type].durations[gTimers[prev_type].index] += PDGetMicroseconds() - gTimers[prev_type].start_time;
+    gTimers[pType].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+}
+
+static void TimersPop(int pType) {
+    int prev_type;
+
+    gTimers[pType].durations[gTimers[pType].index] += PDGetMicroseconds() - gTimers[pType].start_time;
+    if (gTimers_stack_size > 1) {
+        prev_type = gTimers_stack_size - 1;
+    } else {
+        prev_type = gTimers_max_index;
+    }
+    gTimers[prev_type].start_time = PDGetMicroseconds();
+    gTimers_stack_size -= 1;
+}
+
+
+/* local declarations for DoDronePerGameFrameStuff (no new includes/externs in headers) */
+extern br_model* gElasticatey_drone_path_model;
+extern br_actor* gDrone_path_model_actor;
+extern int gDrone_paths_elasticating;
+extern int gSelected_drone_path_node_index;
+extern int gSelected_edit_drone_path;
+extern int gSelected_drone_path_index;
+extern tU32 gNext_drone_edit_path_munge;
+extern br_material* gMat_dk_grn;
+extern br_material* gMat_lt_grn;
+extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
+extern tDrone_form_within_processing_distance_cbfn* gDrone_form_within_processing_distance_functions[4];
+extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
+extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
+extern void C2_HOOK_FASTCALL CalcRenderBoundsCentre(void);
+extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
+extern void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone);
+extern int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone);
+extern int C2_HOOK_FASTCALL ReallyAddDroneToPHIL(tDrone_spec* pDrone);
+extern void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex);
+extern int gShow_drone_paths;
+extern int gCount_active_drones;
+extern int gDrones_unmodified;
+extern int gCount_drones;
+extern int gINT_006844fc;
+extern int gINT_006820d4;
+extern tDrone_state_function* gDrone_state_functions[6];
+
+
+/* local declarations for MungeShatMines (no new includes/externs in headers) */
+extern tU32 gPHIL_last_physics_tick;
+extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
+extern void C2_HOOK_FASTCALL DamageUnit2(tCar_spec* pCar, tDamage_type pDamage_type, int pMagnitude);
+extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
+extern void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2);
+
+static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
+    if (pCar->field_0x4c8 > 1.0) {
+        return 0;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        if (NetPlayerFromCar(pCar) != NULL && NetPlayerFromCar(pCar)->field_0x80 != 0) {
+            return 0;
+        }
+    }
+    if (pCar->invulnerable_no_crushage) {
+        return 0;
+    }
+    return 1;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004dde20
+void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime) {
+    int i;
+    int play_effect;
+
+    for (i = 0; i < 20; i++) {
+        tShit_mine* mine = &gShit_mines[i];
+
+        if (!(mine->flags & 0x1)) {
+            continue;
+        }
+        if ((mine->flags & 0x80) && mine->car != NULL) {
+            tCar_spec* car = mine->car;
+            int car_vulnerable;
+
+            mine->flags &= ~0x80;
+            car_vulnerable = CarVulnerableByMine_Impl(car);
+            if (car_vulnerable) {
+                TotallySpamTheCar(car, 0.1f * mine->max_damage);
+            }
+            if (car_vulnerable && (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host)) {
+                car->collision_info->v.v[1] += FRandomBetween(mine->field3_0xc, mine->initial_y_speed_factor) / (car->collision_info->M * 6.9);
+                car->collision_info->omega.v[2] = FRandomPosNeg(mine->initial_z_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[2];
+                car->collision_info->omega.v[0] = FRandomPosNeg(mine->initial_x_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[0];
+                car->collision_info->disable_move_rotate = 0;
+                car->collision_info->field_0x49c = gPHIL_last_physics_tick + 40;
+                if (!car->invulnerable_no_damage) {
+                    for (i = 0; i < 12; i++) {
+                        DamageUnit2(car, i, IRandomBetween(0, (int)(25.f * mine->max_damage)));
+                    }
+                    if (car != mine->field_0x30) {
+                        car->last_hit_by = mine->field_0x30;
+                        car->time_last_hit = PDGetTotalTime();
+                        CrashEarnings(car, NULL);
+                    }
+                }
+            }
+        }
+        play_effect = 0;
+        if (mine->flags & 0x20) {
+            mine->flags &= ~0x20;
+            play_effect = 1;
+        } else {
+            if (!(mine->flags & 0x2)) {
+                if ((mine->flags & 0x4) && pTime > mine->next_think_time) {
+                    play_effect = 1;
+                }
+            } else if (pTime > mine->next_think_time) {
+                mine->flags &= ~0x3;
+            }
+        }
+        if (play_effect) {
+            MineExplode(mine);
+        }
+    }
+}

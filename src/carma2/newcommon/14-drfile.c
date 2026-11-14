@@ -25,6 +25,15 @@ br_filesystem gFile_system = {
 // GLOBAL: CARMA2_HW 0x006815c4
 br_filesystem* gOld_file_system;
 
+
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+
+// FUNCTION: CARMA2_HW 0x0044c690
+int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index) {
+
+    NetFullScreenMessage(pStr_index, 0);
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0044c6a0
 int C2_HOOK_CDECL DRStdioEOF(void* f) {
 
@@ -94,14 +103,5 @@ void C2_HOOK_FASTCALL InstallDRFileCalls(void) {
     gFile_system.putline = gOld_file_system->putline;
     BrFilesystemSet(&gFile_system);
     BrMemFree(temp_system);
-}
-
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
-
-// FUNCTION: CARMA2_HW 0x0044c690
-int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index) {
-
-    NetFullScreenMessage(pStr_index, 0);
-    return 0;
 }
 

@@ -91,6 +91,113 @@ tCamera_key_flags gCamera_key_flags;
 
 // CompleteRace
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// ViewNetPlayer - action proc of gToggle_array (key 0x46)
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
+extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
+// FUNCTION: CARMA2_HW 0x0040e430
+void C2_HOOK_FASTCALL ViewNetPlayer(void) {
+    extern int gOpponent_viewing_mode;
+    extern int gNet_player_to_view_index;
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    tCar_spec* car;
+    tNet_game_player_info* player;
+    int* p;
+    int best;
+    int index;
+    int i;
+
+    if (gOpponent_viewing_mode == 0) {
+        return;
+    }
+    gNet_player_to_view_index++;
+    if (gNet_player_to_view_index >= gNumber_of_net_players) {
+        gNet_player_to_view_index = -1;
+    }
+    index = gNet_player_to_view_index;
+    if (index < 0) {
+        best = *(int*)gNet_players[0].field_0x94;
+        car = gNet_players[0].car;
+        if (gCurrent_net_game->type != eNet_game_type_foxy || gIt_or_fox < 0 || gNumber_of_net_players <= gIt_or_fox) {
+            if (gNumber_of_net_players > 1) {
+                p = (int*)gNet_players[1].field_0x94;
+                i = gNumber_of_net_players - 1;
+                do {
+                    if (*p < best) {
+                        car = (tCar_spec*)p[0xd];
+                        best = *p;
+                    }
+                    p += 0x35;
+                    i--;
+                } while (i != 0);
+            }
+            goto have_car;
+        }
+        index = gIt_or_fox;
+    }
+    car = gNet_players[index].car;
+have_car:
+    player = NetPlayerFromCar(car);
+    if (gNet_mode == eNet_mode_host) {
+        gCar_to_view = car;
+        gCamera_yaw = 0;
+        InitialiseExternalCamera();
+        PositionExternalCamera(gCar_to_view, 200);
+        return;
+    }
+    if (gNet_mode == eNet_mode_client && gCar_to_view_id != player->ID) {
+        tNet_message* message;
+
+        gCar_to_view_id = player->ID;
+        message = NetBuildGuaranteedMessage(0x2f, 0);
+        *(tPlayer_ID*)((tU8*)message + 0x1c) = gCar_to_view_id;
+        NetGuaranteedSendMessageToHost(gCurrent_net_game, message, NULL);
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// (reference only)
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00413d00
+void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount) {
+    extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
+    tDamage_unit* the_damage;
+
+    if (pDamage_amount > 0) {
+        the_damage = &gProgram_state.current_car.damage_units[eDamage_engine];
+        the_damage->damage_level += pDamage_amount;
+        if (the_damage->damage_level >= 100) {
+            the_damage->damage_level = 99;
+        }
+    }
+    SortOutSmoke(&gProgram_state.current_car);
+}
+
+
+// FUNCTION: CARMA2_HW 0x0043b840
+float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
+    extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
+    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+
+    return RepairCar2(
+        VEHICLE_TYPE_FROM_ID(pCar_ID) == eVehicle_self
+            ? &gProgram_state.current_car
+            : GetCarSpec(VEHICLE_TYPE_FROM_ID(pCar_ID), pCar_ID & 0xff),
+        pFrame_period,
+        pTotal_deflection);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x00441490
 void C2_HOOK_FASTCALL AbortRace(void) {
 
@@ -98,65 +205,15 @@ void C2_HOOK_FASTCALL AbortRace(void) {
         gAbandon_game = 1;
     }
 }
-// F4Key
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
-extern tProgram_state gProgram_state;
-// FUNCTION: CARMA2_HW 0x00441ff0
-// FUNCTION: CARMA2_SW 0x004420d0
-void C2_HOOK_FASTCALL TDamageDriver(void) {
-    if (gProgram_state.current_car.damage_units[eDamage_driver].damage_level < 80) {
-        DamageUnit(&gProgram_state.current_car, eDamage_driver, 80 - gProgram_state.current_car.damage_units[eDamage_driver].damage_level);
-    } else {
-        DamageUnit(&gProgram_state.current_car, eDamage_driver, 2);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00511210
-void C2_HOOK_FASTCALL FUN_00511210(void) {
-    extern void C2_HOOK_FASTCALL FUN_0045a670(void);
-
-    FUN_0045a670();
-}
-
-// FUNCTION: CARMA2_HW 0x00511200
-void C2_HOOK_FASTCALL FUN_00511200(void) {
-    extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
-
-    FUN_0045acf0();
-}
-
-// FUNCTION: CARMA2_HW 0x00511240
-void C2_HOOK_FASTCALL ToggleJoystickHeadup(void) {
-    extern int gINT_0068b8e8;
-    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
-    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
-    extern void C2_HOOK_FASTCALL FUN_0045c240(void);
-
-    if (gINT_0068b8e8 != 0) {
-        SaveJoystickPreferences();
-    }
-    FUN_0045c240();
-    if (gINT_0068b8e8 == 0) {
-        LoadJoystickPreferences();
-    }
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 extern int gWhich_edit_mode;
 extern const char* gUNK_005904c0[12];
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004414b0
 void C2_HOOK_FASTCALL F4Key(void) {
 
@@ -203,10 +260,10 @@ void C2_HOOK_FASTCALL SetFlag(int i) {
     F4Key();
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004415c0
 void C2_HOOK_FASTCALL FinishRace(int i) {
     gRace_over_reason = eRace_over_0;
@@ -409,7 +466,27 @@ void C2_HOOK_FASTCALL TDamageEngine(void) {
 
     DamageEngine(21);
 }
+// F4Key
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
+extern tProgram_state gProgram_state;
+// FUNCTION: CARMA2_HW 0x00441ff0
+// FUNCTION: CARMA2_SW 0x004420d0
+void C2_HOOK_FASTCALL TDamageDriver(void) {
+    if (gProgram_state.current_car.damage_units[eDamage_driver].damage_level < 80) {
+        DamageUnit(&gProgram_state.current_car, eDamage_driver, 80 - gProgram_state.current_car.damage_units[eDamage_driver].damage_level);
+    } else {
+        DamageUnit(&gProgram_state.current_car, eDamage_driver, 2);
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004420e0
 void C2_HOOK_FASTCALL ToggleMiniMap(void) {
 
@@ -498,38 +575,10 @@ int C2_HOOK_FASTCALL CarWorldOffFallenCheckThingy(tCar_spec* pCar, int pCheck_ar
         }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// CheckForBeingOutOfThisWorld
-
-// CheckHornLocal
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00443ba0
-void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar) {
-
-    if (pCar->keys.horn && pCar->horn_sound_tag == 0) {
-        pCar->horn_sound_tag = DRS3StartSound3D(gEffects_outlet, eSoundId_Horn,
-                                                &pCar->car_master_actor->t.t.translate.t, &pCar->vel,
-                                                0, 0xff, ((pCar->car_ID & 0x7) + 0xc) << 12, 0x10000);
-    } else if (!pCar->keys.horn && pCar->horn_sound_tag != 0) {
-        while (S3SoundStillPlaying(pCar->horn_sound_tag) != 0) {
-            DRS3StopSound(pCar->horn_sound_tag);
-            DRS3StopOutletSound(gEffects_outlet);
-        }
-        if (!S3SoundStillPlaying(pCar->horn_sound_tag)) {
-            pCar->horn_sound_tag = 0;
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // CheckHorns
 
 // SetQuickRecovery
@@ -667,7 +716,6 @@ void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime) {
 // CheckOtherRacingKeys
 
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 extern tSlot_info gTrade_in_value_APO;
 
 // FUNCTION: CARMA2_HW 0x00442750
@@ -730,8 +778,6 @@ extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, b
 extern void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
-extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
-extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
 
 static void AlignChildrenStatic(tPhysics_object* pCollision_info) {
     tPhysics_object* child;
@@ -842,6 +888,33 @@ void C2_HOOK_FASTCALL FlipUpCar(tCar_spec* pCar_spec) {
     }
 }
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// (reference only)
+// FUNCTION: CARMA2_HW 0x00442e10
+void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info) {
+    tPhysics_object* child;
+
+    for (child = pCollision_info->child; child != NULL; child = child->next) {
+        int i;
+        int j;
+
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                child->transform_matrix.m[i][j] = pCollision_info->transform_matrix.m[i][j];
+            }
+        }
+        BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
+        AlignChildren(child);
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 extern void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex);
 
 // FUNCTION: CARMA2_HW 0x00442e80
@@ -850,23 +923,119 @@ void C2_HOOK_FASTCALL GetPowerup(int pNum) {
     GotPowerup(&gProgram_state.current_car, pNum);
 }
 
+extern void C2_HOOK_FASTCALL ToggleMiniMap(void);
+extern void C2_HOOK_FASTCALL CycleMapOptions(void);
+extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
+extern void C2_HOOK_FASTCALL SetRecovery(void);
+extern void C2_HOOK_FASTCALL F4Key(void);
+extern void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void);
+extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
+extern void C2_HOOK_FASTCALL ToggleCockpit(void);
+extern void C2_HOOK_FASTCALL BuyArmour(void);
+extern void C2_HOOK_FASTCALL BuyPower(void);
+extern void C2_HOOK_FASTCALL BuyOffense(void);
+extern void C2_HOOK_FASTCALL ToggleInventory(void);
+extern void C2_HOOK_FASTCALL LeftInventory(void);
+extern void C2_HOOK_FASTCALL RightInventory(void);
+extern void C2_HOOK_FASTCALL ToggleFlaps(void);
+
+// GLOBAL: CARMA2_HW 0x005900a0
+tToggle_element gToggle_array[44] = {
+    { 0x23, -2, 1, 1, 0, ToggleMiniMap },
+    { 0x4a, -2, 1, 1, 0, ToggleFlaps },
+    { 0x39, -2, 1, 1, 0, ToggleMap },
+    { 0x39, 8, 1, 1, 0, (void (C2_HOOK_FASTCALL *)(void))ToggleHeadupMap },
+    { 0x39, 7, 1, 1, 0, CycleMapOptions },
+    { 0x39, 9, 1, 1, 0, ToggleMapTrans },
+    { 0x3c, -2, 1, 1, 0, SetRecovery },
+    { 0x04, 7, 1, 0, 0, AbortRace },
+    { 0x25, -2, 0, 1, 0, ToggleSoundEnable },
+    { 0x05, 8, 0, 1, 0, PrintScreen },
+    { 0x4c, -2, 1, 0, 0, ToggleHeadupLevel },
+    { 0x12, -2, 0, 0, 0, F4Key },
+    { 0x13, -2, 1, 0, 0, F5Key },
+    { 0x14, -2, 1, 0, 0, F6Key },
+    { 0x15, -2, 1, 0, 0, F7Key },
+    { 0x16, -2, 1, 0, 0, F8Key },
+    { 0x17, -2, 1, 0, 0, F10Key },
+    { 0x18, -2, 1, 0, 0, F11Key },
+    { 0x19, -2, 1, 0, 0, F12Key },
+    { 0x0f, -2, 1, 0, 0, NumberKey0 },
+    { 0x26, -2, 1, 0, 0, NumberKey1 },
+    { 0x27, -2, 1, 0, 0, NumberKey2 },
+    { 0x28, -2, 1, 0, 0, NumberKey3 },
+    { 0x29, -2, 1, 0, 0, NumberKey4 },
+    { 0x2a, -2, 1, 0, 0, NumberKey5 },
+    { 0x2b, -2, 1, 0, 0, NumberKey6 },
+    { 0x2c, -2, 1, 0, 0, NumberKey7 },
+    { 0x10, -2, 1, 0, 0, NumberKey8 },
+    { 0x11, -2, 1, 0, 0, NumberKey9 },
+    { 0x0b, 7, 1, 1, 0, ToggleFlying },
+    { 0x41, -2, 1, 0, 0, ScreenSmaller },
+    { 0x42, -2, 1, 0, 0, ScreenLarger },
+    { 0x43, -2, 1, 0, 0, BuyArmour },
+    { 0x44, -2, 1, 0, 0, BuyPower },
+    { 0x45, -2, 1, 0, 0, BuyOffense },
+    { 0x46, -2, 1, 0, 0, ViewNetPlayer },
+    { 0x47, -2, 1, 0, 0, UserSendMessage },
+    { 0x48, -2, 1, 0, 0, ToggleTargetLock },
+    { 0x49, -2, 1, 0, 0, CycleTargetLock },
+    { 0x3e, -2, 1, 0, 0, ToggleInventory },
+    { 0x3f, -2, 1, 0, 0, LeftInventory },
+    { 0x40, -2, 1, 0, 0, RightInventory },
+    { 0x48, -2, 1, 0, 0, ChangeCameraTypeInGame },
+    { 0x2e, -2, 1, 0, 0, ToggleCockpit },
+};
+
+// GLOBAL: CARMA2_HW 0x005904c0
+const char* gUNK_005904c0[12] = { 0 };
+
+// FUNCTION: CARMA2_HW 0x00442e90
+void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
+    tU32 start_menu_time;
+    tToggle_element* toggle;
+    int new_state;
+
+    start_menu_time = PDGetTotalTime();
+    CheckQuit();
+    AddLostTime(PDGetTotalTime() - start_menu_time);
+    CheckKeysForMouldiness();
+    for (toggle = gToggle_array; toggle < &gToggle_array[44]; toggle++) {
+        if (toggle->in_game_only && !pRacing) {
+            continue;
+        }
+        if (gTyping || gEntering_message) {
+            if (toggle->key2 == -2) {
+                continue;
+            }
+        }
+        new_state = 0;
+        if (toggle->key1 == -2 || KeyIsDownNoMouldiness(toggle->key1)) {
+            if (toggle->key2 == -2 && toggle->exact_modifiers) {
+                if (!PDKeyDown(0) && !PDKeyDown(1) && !PDKeyDown(2) && !PDKeyDown(3)) {
+                    new_state = 1;
+                }
+            } else {
+                if (KeyIsDown(toggle->key2)) {
+                    new_state = 1;
+                }
+            }
+        }
+        if (toggle->on_last_time != new_state) {
+            toggle->on_last_time = new_state;
+            if (new_state) {
+                toggle->action_proc();
+            }
+        }
+    }
+    if (pRacing && !gAction_replay_mode) {
+        CheckOtherRacingKeys();
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
-// FUNCTION: CARMA2_HW 0x0043b840
-float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
-    extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
-    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-
-    return RepairCar2(
-        VEHICLE_TYPE_FROM_ID(pCar_ID) == eVehicle_self
-            ? &gProgram_state.current_car
-            : GetCarSpec(VEHICLE_TYPE_FROM_ID(pCar_ID), pCar_ID & 0xff),
-        pFrame_period,
-        pTotal_deflection);
-}
-
 // GLOBAL: CARMA2_HW 0x0067c45c
 int gRepair_last_time;
 
@@ -1258,328 +1427,38 @@ void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
     }
     gRecover_car = 0;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// CheckForBeingOutOfThisWorld
+
+// CheckHornLocal
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// ViewNetPlayer - action proc of gToggle_array (key 0x46)
-// FUNCTION: CARMA2_HW 0x0040e430
-void C2_HOOK_FASTCALL ViewNetPlayer(void) {
-    extern int gOpponent_viewing_mode;
-    extern int gNet_player_to_view_index;
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToHost(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    tCar_spec* car;
-    tNet_game_player_info* player;
-    int* p;
-    int best;
-    int index;
-    int i;
+// FUNCTION: CARMA2_HW 0x00443ba0
+void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar) {
 
-    if (gOpponent_viewing_mode == 0) {
-        return;
-    }
-    gNet_player_to_view_index++;
-    if (gNet_player_to_view_index >= gNumber_of_net_players) {
-        gNet_player_to_view_index = -1;
-    }
-    index = gNet_player_to_view_index;
-    if (index < 0) {
-        best = *(int*)gNet_players[0].field_0x94;
-        car = gNet_players[0].car;
-        if (gCurrent_net_game->type != eNet_game_type_foxy || gIt_or_fox < 0 || gNumber_of_net_players <= gIt_or_fox) {
-            if (gNumber_of_net_players > 1) {
-                p = (int*)gNet_players[1].field_0x94;
-                i = gNumber_of_net_players - 1;
-                do {
-                    if (*p < best) {
-                        car = (tCar_spec*)p[0xd];
-                        best = *p;
-                    }
-                    p += 0x35;
-                    i--;
-                } while (i != 0);
-            }
-            goto have_car;
+    if (pCar->keys.horn && pCar->horn_sound_tag == 0) {
+        pCar->horn_sound_tag = DRS3StartSound3D(gEffects_outlet, eSoundId_Horn,
+                                                &pCar->car_master_actor->t.t.translate.t, &pCar->vel,
+                                                0, 0xff, ((pCar->car_ID & 0x7) + 0xc) << 12, 0x10000);
+    } else if (!pCar->keys.horn && pCar->horn_sound_tag != 0) {
+        while (S3SoundStillPlaying(pCar->horn_sound_tag) != 0) {
+            DRS3StopSound(pCar->horn_sound_tag);
+            DRS3StopOutletSound(gEffects_outlet);
         }
-        index = gIt_or_fox;
-    }
-    car = gNet_players[index].car;
-have_car:
-    player = NetPlayerFromCar(car);
-    if (gNet_mode == eNet_mode_host) {
-        gCar_to_view = car;
-        gCamera_yaw = 0;
-        InitialiseExternalCamera();
-        PositionExternalCamera(gCar_to_view, 200);
-        return;
-    }
-    if (gNet_mode == eNet_mode_client && gCar_to_view_id != player->ID) {
-        tNet_message* message;
-
-        gCar_to_view_id = player->ID;
-        message = NetBuildGuaranteedMessage(0x2f, 0);
-        *(tPlayer_ID*)((tU8*)message + 0x1c) = gCar_to_view_id;
-        NetGuaranteedSendMessageToHost(gCurrent_net_game, message, NULL);
+        if (!S3SoundStillPlaying(pCar->horn_sound_tag)) {
+            pCar->horn_sound_tag = 0;
+        }
     }
 }
-// PARTIAL 80.51%: loop-tail and regalloc differ (orig shares one bottom compare, zero-reg ebp, delayed pushes)
-// FUNCTION: CARMA2_HW 0x004dab80
-void C2_HOOK_FASTCALL LeftInventory(void) {
-    extern tPowerup* gPowerup_array;
-    extern int gInventory[20];
-    extern int gInventory_selected;
-    extern int gInventory_cycling;
-    extern tU32 gInventory_timeout;
-    extern int gINT_006a0a6c;
-    extern int gINT_006a0a5c;
-    extern tHeadup_icon gPickedup_powerups[20];
-    extern int gNumber_of_icons;
-    extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    int old_index;
-    int new_index;
-    tPowerup* powerup;
-    tNet_message* msg;
-    int i;
 
-    gInventory_timeout = GetTotalTime() + 3000;
-    old_index = gInventory_selected;
-    gInventory_cycling = 1;
-    if (old_index < 0) {
-        return;
-    }
-    new_index = old_index;
-    do {
-        new_index++;
-        if (new_index >= (int)REC2_ASIZE(gInventory)) {
-            new_index = 0;
-        }
-        if (gInventory[new_index] >= 0) {
-            powerup = &gPowerup_array[gInventory[gInventory_selected]];
-            if (powerup->initial_value >= 0 && gINT_006a0a6c == 0) {
-                goto select_new;
-            }
-            if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
-                powerup->lose_proc(powerup, powerup->car);
-            }
-            if (powerup->net_type & 0x80) {
-                PipeSinglePowerupLose(powerup, powerup->car);
-            }
-            if (gNet_mode != eNet_mode_none) {
-                msg = NetBuildGuaranteedMessage(0x16, 0);
-                *(int*)((tU8*)msg + 0x28) = 2;
-                *(tPlayer_ID*)((tU8*)msg + 0x1c) = gLocal_net_ID;
-                *(int*)((tU8*)msg + 0x20) = powerup - gPowerup_array;
-                NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, msg, NULL);
-            }
-            gProgram_state.current_car.powerups[powerup - gPowerup_array] = 0;
-            if (powerup->initial_value == 0) {
-                for (i = 0; i < gNumber_of_icons; i++) {
-                    if (gPickedup_powerups[i].powerup == powerup) {
-                        gPickedup_powerups[i].fizzle_stage = 3;
-                        gPickedup_powerups[i].fizzle_direction = -1;
-                        gPickedup_powerups[i].fizzle_start = GetTotalTime();
-                        break;
-                    }
-                }
-            }
-            powerup->got_time = 0;
-select_new:
-            gINT_006a0a5c = 1;
-            gInventory_selected = new_index;
-        }
-    } while (new_index != gInventory_selected);
-}
-// Key: ']'
-// FUNCTION: CARMA2_HW 0x004daa00
-void C2_HOOK_FASTCALL RightInventory(void) {
-    extern tPowerup* gPowerup_array;
-    extern int gInventory[20];
-    extern int gInventory_selected;
-    extern int gInventory_cycling;
-    extern tU32 gInventory_timeout;
-    extern int gINT_006a0a6c;
-    extern int gINT_006a0a5c;
-    extern tHeadup_icon gPickedup_powerups[20];
-    extern int gNumber_of_icons;
-    extern tPlayer_ID gLocal_net_ID;
-    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
-    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
-    int old_index;
-    int new_index;
-    tPowerup* powerup;
-    tNet_message* msg;
-    int i;
-
-    gInventory_timeout = GetTotalTime() + 3000;
-    old_index = gInventory_selected;
-    gInventory_cycling = 1;
-    if (old_index < 0) {
-        return;
-    }
-    new_index = old_index;
-    do {
-        new_index--;
-        if (new_index < 0) {
-            new_index = (int)REC2_ASIZE(gInventory) - 1;
-        }
-        if (gInventory[new_index] >= 0) {
-            powerup = &gPowerup_array[gInventory[gInventory_selected]];
-            if (powerup->initial_value >= 0 && gINT_006a0a6c == 0) {
-                goto select_new;
-            }
-            if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
-                powerup->lose_proc(powerup, powerup->car);
-            }
-            if (powerup->net_type & 0x80) {
-                PipeSinglePowerupLose(powerup, powerup->car);
-            }
-            if (gNet_mode != eNet_mode_none) {
-                msg = NetBuildGuaranteedMessage(0x16, 0);
-                *(int*)((tU8*)msg + 0x28) = 2;
-                *(tPlayer_ID*)((tU8*)msg + 0x1c) = gLocal_net_ID;
-                *(int*)((tU8*)msg + 0x20) = powerup - gPowerup_array;
-                NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, msg, NULL);
-            }
-            gProgram_state.current_car.powerups[powerup - gPowerup_array] = 0;
-            if (powerup->initial_value == 0) {
-                for (i = 0; i < gNumber_of_icons; i++) {
-                    if (powerup == gPickedup_powerups[i].powerup) {
-                        gPickedup_powerups[i].fizzle_stage = 3;
-                        gPickedup_powerups[i].fizzle_direction = -1;
-                        gPickedup_powerups[i].fizzle_start = GetTotalTime();
-                        break;
-                    }
-                }
-            }
-            powerup->got_time = 0;
-select_new:
-            gINT_006a0a5c = 1;
-            gInventory_selected = new_index;
-        }
-    } while (new_index != gInventory_selected);
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-extern void C2_HOOK_FASTCALL ToggleMiniMap(void);
-extern void C2_HOOK_FASTCALL CycleMapOptions(void);
-extern void C2_HOOK_FASTCALL ToggleTargetLock(void);
-extern void C2_HOOK_FASTCALL SetRecovery(void);
-extern void C2_HOOK_FASTCALL F4Key(void);
-extern void C2_HOOK_FASTCALL ChangeCameraTypeInGame(void);
-extern void C2_HOOK_FASTCALL ViewNetPlayer(void);
-extern void C2_HOOK_FASTCALL ToggleCockpit(void);
-extern void C2_HOOK_FASTCALL BuyArmour(void);
-extern void C2_HOOK_FASTCALL BuyPower(void);
-extern void C2_HOOK_FASTCALL BuyOffense(void);
-extern void C2_HOOK_FASTCALL ToggleInventory(void);
-extern void C2_HOOK_FASTCALL LeftInventory(void);
-extern void C2_HOOK_FASTCALL RightInventory(void);
-extern void C2_HOOK_FASTCALL ToggleFlaps(void);
-
-// GLOBAL: CARMA2_HW 0x005900a0
-tToggle_element gToggle_array[44] = {
-    { 0x23, -2, 1, 1, 0, ToggleMiniMap },
-    { 0x4a, -2, 1, 1, 0, ToggleFlaps },
-    { 0x39, -2, 1, 1, 0, ToggleMap },
-    { 0x39, 8, 1, 1, 0, (void (C2_HOOK_FASTCALL *)(void))ToggleHeadupMap },
-    { 0x39, 7, 1, 1, 0, CycleMapOptions },
-    { 0x39, 9, 1, 1, 0, ToggleMapTrans },
-    { 0x3c, -2, 1, 1, 0, SetRecovery },
-    { 0x04, 7, 1, 0, 0, AbortRace },
-    { 0x25, -2, 0, 1, 0, ToggleSoundEnable },
-    { 0x05, 8, 0, 1, 0, PrintScreen },
-    { 0x4c, -2, 1, 0, 0, ToggleHeadupLevel },
-    { 0x12, -2, 0, 0, 0, F4Key },
-    { 0x13, -2, 1, 0, 0, F5Key },
-    { 0x14, -2, 1, 0, 0, F6Key },
-    { 0x15, -2, 1, 0, 0, F7Key },
-    { 0x16, -2, 1, 0, 0, F8Key },
-    { 0x17, -2, 1, 0, 0, F10Key },
-    { 0x18, -2, 1, 0, 0, F11Key },
-    { 0x19, -2, 1, 0, 0, F12Key },
-    { 0x0f, -2, 1, 0, 0, NumberKey0 },
-    { 0x26, -2, 1, 0, 0, NumberKey1 },
-    { 0x27, -2, 1, 0, 0, NumberKey2 },
-    { 0x28, -2, 1, 0, 0, NumberKey3 },
-    { 0x29, -2, 1, 0, 0, NumberKey4 },
-    { 0x2a, -2, 1, 0, 0, NumberKey5 },
-    { 0x2b, -2, 1, 0, 0, NumberKey6 },
-    { 0x2c, -2, 1, 0, 0, NumberKey7 },
-    { 0x10, -2, 1, 0, 0, NumberKey8 },
-    { 0x11, -2, 1, 0, 0, NumberKey9 },
-    { 0x0b, 7, 1, 1, 0, ToggleFlying },
-    { 0x41, -2, 1, 0, 0, ScreenSmaller },
-    { 0x42, -2, 1, 0, 0, ScreenLarger },
-    { 0x43, -2, 1, 0, 0, BuyArmour },
-    { 0x44, -2, 1, 0, 0, BuyPower },
-    { 0x45, -2, 1, 0, 0, BuyOffense },
-    { 0x46, -2, 1, 0, 0, ViewNetPlayer },
-    { 0x47, -2, 1, 0, 0, UserSendMessage },
-    { 0x48, -2, 1, 0, 0, ToggleTargetLock },
-    { 0x49, -2, 1, 0, 0, CycleTargetLock },
-    { 0x3e, -2, 1, 0, 0, ToggleInventory },
-    { 0x3f, -2, 1, 0, 0, LeftInventory },
-    { 0x40, -2, 1, 0, 0, RightInventory },
-    { 0x48, -2, 1, 0, 0, ChangeCameraTypeInGame },
-    { 0x2e, -2, 1, 0, 0, ToggleCockpit },
-};
-
-// GLOBAL: CARMA2_HW 0x005904c0
-const char* gUNK_005904c0[12] = { 0 };
-
-// FUNCTION: CARMA2_HW 0x00442e90
-void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
-    tU32 start_menu_time;
-    tToggle_element* toggle;
-    int new_state;
-
-    start_menu_time = PDGetTotalTime();
-    CheckQuit();
-    AddLostTime(PDGetTotalTime() - start_menu_time);
-    CheckKeysForMouldiness();
-    for (toggle = gToggle_array; toggle < &gToggle_array[44]; toggle++) {
-        if (toggle->in_game_only && !pRacing) {
-            continue;
-        }
-        if (gTyping || gEntering_message) {
-            if (toggle->key2 == -2) {
-                continue;
-            }
-        }
-        new_state = 0;
-        if (toggle->key1 == -2 || KeyIsDownNoMouldiness(toggle->key1)) {
-            if (toggle->key2 == -2 && toggle->exact_modifiers) {
-                if (!PDKeyDown(0) && !PDKeyDown(1) && !PDKeyDown(2) && !PDKeyDown(3)) {
-                    new_state = 1;
-                }
-            } else {
-                if (KeyIsDown(toggle->key2)) {
-                    new_state = 1;
-                }
-            }
-        }
-        if (toggle->on_last_time != new_state) {
-            toggle->on_last_time = new_state;
-            if (new_state) {
-                toggle->action_proc();
-            }
-        }
-    }
-    if (pRacing && !gAction_replay_mode) {
-        CheckOtherRacingKeys();
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x00443c50
 void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
     tU32* keys;
@@ -1592,6 +1471,59 @@ void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
     }
 }
 
+
+extern tCheat gKev_keys[];
+extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
+extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// (reference only)
+// PARTIAL 99.44%: body and codegen match; the only diff is the memory-indirect call at 0x443e51
+// (call dword ptr [ebx + gKev_keys[0].action_proc]). reccmp never resolves a call-through-table
+// operand to a symbol, so the two binaries' data addresses are compared as raw numbers
+// (documented reccmp limitation). Not source-controllable; keep as partial.
+// FUNCTION: CARMA2_HW 0x00443c90
+void C2_HOOK_FASTCALL CheckKevKeys(void) {
+    int i;
+    tU32* value;
+    char s[128];
+
+    value = KevKeyService();
+    if (value[0] == 0) {
+        return;
+    }
+
+    for (i = 0; gKev_keys[i].action_proc != NULL; i++) {
+        if (gKev_keys[i].code == value[0] && gKev_keys[i].code2 == value[1]) {
+            break;
+        }
+    }
+
+    if (gKev_keys[i].action_proc != NULL) {
+        if (gNet_mode != eNet_mode_none) {
+            if (gKev_keys[i].num != 0xa11ee75d) {
+                strcpy(s, gNet_players[gThis_net_player_index].player_name);
+                strcat(s, " ");
+                strcat(s, GetMiscString(224));
+                NetSendHeadupToAllPlayers(s);
+            } else {
+                strcpy(s, gNet_players[gThis_net_player_index].player_name);
+                strcat(s, " ");
+                strcat(s, GetMiscString(225));
+                NetSendHeadupToEverybody(s);
+                gKev_keys[i].action_proc(gKev_keys[i].num);
+            }
+            return;
+        }
+        gKev_keys[i].action_proc(gKev_keys[i].num);
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // BrakeInstantly
 
 extern tS3_outlet* gCar_outlet;
@@ -2257,86 +2189,438 @@ void C2_HOOK_FASTCALL SwitchModelComplexity(void) {
     }
 }
 
-
-extern tCheat gKev_keys[];
-extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
-extern void C2_HOOK_FASTCALL NetSendHeadupToEverybody(const char* pMessage);
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// (reference only)
-// PARTIAL 99.44%: body and codegen match; the only diff is the memory-indirect call at 0x443e51
-// (call dword ptr [ebx + gKev_keys[0].action_proc]). reccmp never resolves a call-through-table
-// operand to a symbol, so the two binaries' data addresses are compared as raw numbers
-// (documented reccmp limitation). Not source-controllable; keep as partial.
-// FUNCTION: CARMA2_HW 0x00443c90
-void C2_HOOK_FASTCALL CheckKevKeys(void) {
+// GLOBAL: CARMA2_HW 0x00594e9c
+const char gAct_file_extension[] = ".ACT";
+// GLOBAL: CARMA2_HW 0x005962f8
+br_token_value gAccent_poly_prims[3] = {
+    { BRT_BLEND_B, { 1 } },
+    { BRT_OPACITY_X, { 0x4b0000 } },
+    { BR_NULL_TOKEN, { 0 } },
+};
+
+// GLOBAL: CARMA2_HW 0x0079d860
+tHeadup_text_buffer gHeadup_text_buffer_0079d860;
+
+// GLOBAL: CARMA2_HW 0x0079d880
+tHeadup_text_buffer gHeadup_text_buffer_0079d880;
+
+// GLOBAL: CARMA2_HW 0x00686174
+br_actor* gAcc_poly_actor;
+
+// GLOBAL: CARMA2_HW 0x00686178
+br_material* gAcc_poly_material;
+
+// GLOBAL: CARMA2_HW 0x0068617c
+br_model* gAcc_poly_model;
+
+// GLOBAL: CARMA2_HW 0x00686180
+int gRender_acc_poly_actor;
+// FUNCTION: CARMA2_HW 0x0045a670
+void C2_HOOK_FASTCALL FUN_0045a670(void) {
+    tPath_name the_path;
+    struct {
+        int ext[3];
+        void* args[3];
+    } l;
     int i;
-    tU32* value;
-    char s[128];
 
-    value = KevKeyService();
-    if (value[0] == 0) {
-        return;
-    }
-
-    for (i = 0; gKev_keys[i].action_proc != NULL; i++) {
-        if (gKev_keys[i].code == value[0] && gKev_keys[i].code2 == value[1]) {
-            break;
+    if (gINT_0068b8e4) {
+        gINT_0068b8e4 = 0;
+        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
+            BrActorRemove(gAcc_poly_actor);
+            gRender_acc_poly_actor = 0;
         }
-    }
-
-    if (gKev_keys[i].action_proc != NULL) {
-        if (gNet_mode != eNet_mode_none) {
-            if (gKev_keys[i].num != 0xa11ee75d) {
-                strcpy(s, gNet_players[gThis_net_player_index].player_name);
-                strcat(s, " ");
-                strcat(s, GetMiscString(224));
-                NetSendHeadupToAllPlayers(s);
-            } else {
-                strcpy(s, gNet_players[gThis_net_player_index].player_name);
-                strcat(s, " ");
-                strcat(s, GetMiscString(225));
-                NetSendHeadupToEverybody(s);
-                gKev_keys[i].action_proc(gKev_keys[i].num);
+    } else {
+        gINT_0068b8e4 = 1;
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
+        for (i = 0; i < 22; i++) {
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
+            ChangeHeadupFont(gRace_head_ups[i], -2);
+        }
+        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
+        if (gHeadup_text_buffer_0079d860.count == 0) {
+            PathCat(the_path, gRace_path, "");
+            if (gHeadup_text_buffer_0079d860.field_0x14 < 5) {
+                gHeadup_text_buffer_0079d860.field_0x14 = 10;
             }
-            return;
+            strcpy((char*)l.ext, gAct_file_extension);
+            gHeadup_text_buffer_0079d860.texts = NULL;
+            gHeadup_text_buffer_0079d860.count = 0;
+            gHeadup_text_buffer_0079d860.pos_last_add = 0;
+            gHeadup_text_buffer_0079d860.text_last_add = NULL;
+            gHeadup_text_buffer_0079d860.field_0x4 = NULL;
+            gHeadup_text_buffer_0079d860.field_0x10 = 22;
+            l.args[0] = &gHeadup_text_buffer_0079d860;
+            DRstrlwr((char*)l.ext);
+            l.args[1] = l.ext;
+            PDEnumPath(the_path, (tEnumPathCallback)AddToTextBufferCallback, l.args);
+            gHeadup_text_buffer_0079d860.pos_last_add = 0;
+            gHeadup_text_buffer_0079d860.text_last_add = gHeadup_text_buffer_0079d860.texts;
         }
-        gKev_keys[i].action_proc(gKev_keys[i].num);
     }
 }
+
+// FUNCTION: CARMA2_HW 0x0045a7f0
+int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2) {
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    extern int C2_HOOK_CDECL toupper(int pChar);
+    extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    char local_100[256];
+    char* substr;
+    void* this_ptr;
+    tHeadup_text* mem;
+
+    this_ptr = (void*)pArg2[0];
+    substr = (char*)pArg2[1];
+    strcpy(local_100, pFilename);
+    DRstrlwr(local_100);
+    if (strstr(local_100, "POWERUP") == NULL && strstr(local_100, "CPOINT") == NULL && strstr(local_100, "TRACKX") == NULL) {
+        if (strstr(local_100, substr) == NULL) {
+            if (strcmp(substr, ".*") != 0) {
+                return 0;
+            }
+        }
+        mem = malloc(sizeof(tHeadup_text));
+        if (mem != NULL) {
+            mem->next = NULL;
+            strncpy(mem->text, local_100, 0x28);
+            StringTransformToLower(mem->text);
+            mem->text[0] = (char)toupper((int)mem->text[0]);
+            StoreTextHeadup(this_ptr, mem, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0045a920
+int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
+    tHeadup_text* pNode;
+    tHeadup_text* pCur;
+    int count;
+    int found;
+
+    pCur = pBuffer->texts;
+    found = 0;
+    count = 0;
+    if (pCur == NULL) {
+        pBuffer->texts = pText;
+        pText->next = NULL;
+        pBuffer->count = 1;
+        pBuffer->pos_last_add = 0;
+        pBuffer->text_last_add = pText;
+        return 0;
+    }
+    if (pArg3 == 0) {
+        pNode = pCur->next;
+        while (pNode != NULL) {
+            pCur = pNode;
+            count++;
+            pNode = pCur->next;
+        }
+        pText->next = NULL;
+        pCur->next = pText;
+    } else {
+        if (strcmp(pCur->text, pText->text) > 0) {
+            pBuffer->texts = pText;
+            pText->next = pCur;
+        } else {
+            pArg3 = 0;
+            pNode = pCur->next;
+            while (pNode != NULL && !found) {
+                if (strcmp(pNode->text, pText->text) > 0) {
+                    found = 1;
+                    pArg3 = (int)pNode;
+                } else {
+                    pCur = pNode;
+                }
+                pNode = pCur->next;
+                count++;
+            }
+            pText->next = (tHeadup_text*)pArg3;
+            pCur->next = pText;
+        }
+    }
+    pBuffer->count = pBuffer->count + 1;
+    pBuffer->pos_last_add = count;
+    pBuffer->text_last_add = pCur;
+    return count;
+}
+
+// FUNCTION: CARMA2_HW 0x0045aa60
+void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
+    extern br_actor* g2d_camera;
+
+    if (gAcc_poly_material == NULL) {
+        gAcc_poly_material = BrMaterialAllocate("Acc Poly Mat");
+        gAcc_poly_material->colour = 0x80;
+        gAcc_poly_material->flags = BR_MATF_ALWAYS_VISIBLE;
+        BrMaterialAdd(gAcc_poly_material);
+        gAcc_poly_material->extra_prim = gAccent_poly_prims;
+        gAcc_poly_material->extra_prim[1].v.x = 0x800000;
+        BrMaterialUpdate(gAcc_poly_material, BR_MATU_EXTRA_PRIM);
+    }
+    if (gAcc_poly_actor == NULL) {
+        gAcc_poly_model = BrModelAllocate("Tint Poly", 6, 2);
+        BrVector3Set(&gAcc_poly_model->vertices[0].p, pX, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[1].p, pX + pWidth, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[2].p, pX, -(pY + pHeight), -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[3].p, pX + pWidth, -pY, -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[4].p, pX + pWidth, -(pY + pHeight), -1.01f);
+        BrVector3Set(&gAcc_poly_model->vertices[5].p, pX, -(pY + pHeight), -1.01f);
+        gAcc_poly_model->faces[0].vertices[0] = 0;
+        gAcc_poly_model->faces[0].vertices[1] = 1;
+        gAcc_poly_model->faces[0].vertices[2] = 2;
+        gAcc_poly_model->faces[1].vertices[0] = 3;
+        gAcc_poly_model->faces[1].vertices[1] = 4;
+        gAcc_poly_model->faces[1].vertices[2] = 5;
+        gAcc_poly_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+        gAcc_poly_actor->material = gAcc_poly_material;
+        gAcc_poly_model->faces[0].material = gAcc_poly_material;
+        gAcc_poly_model->faces[1].material = gAcc_poly_material;
+        gAcc_poly_actor->model = gAcc_poly_model;
+        BrModelAdd(gAcc_poly_model);
+    }
+    if (!gRender_acc_poly_actor) {
+        gRender_acc_poly_actor = 1;
+        BrActorAdd(g2d_camera, gAcc_poly_actor);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0045acf0
+void C2_HOOK_FASTCALL FUN_0045acf0(void) {
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    tHeadup_text* text;
+    int i;
+
+    if (gINT_0068b8e4) {
+        gINT_0068b8e4 = 0;
+        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
+            BrActorRemove(gAcc_poly_actor);
+            gRender_acc_poly_actor = 0;
+        }
+    } else {
+        gINT_0068b8e4 = 2;
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
+        for (i = 0; i < 22; i++) {
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
+            ChangeHeadupFont(gRace_head_ups[i], -2);
+        }
+        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
+        if (gHeadup_text_buffer_0079d880.count == 0) {
+            if (gHeadup_text_buffer_0079d880.field_0x14 < 5) {
+                gHeadup_text_buffer_0079d880.field_0x14 = 10;
+            }
+            gHeadup_text_buffer_0079d880.texts = NULL;
+            gHeadup_text_buffer_0079d880.count = 0;
+            gHeadup_text_buffer_0079d880.pos_last_add = 0;
+            gHeadup_text_buffer_0079d880.text_last_add = NULL;
+            gHeadup_text_buffer_0079d880.field_0x4 = NULL;
+            gHeadup_text_buffer_0079d880.field_0x10 = 22;
+            for (i = 0; i < 10; i++) {
+                text = malloc(sizeof(tHeadup_text));
+                if (text != NULL) {
+                    *(int*)text = 0;
+                    sprintf(text->text, "WANKER  %02d", i);
+                    StoreTextHeadup(&gHeadup_text_buffer_0079d880, text, 0);
+                }
+            }
+        }
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// GLOBAL: CARMA2_HW 0x00590970
+tCheat gKev_keys[] = {
+    { 0xa11ee75d, 0xf805eddd, SetFlag      , 0xa11ee75d },
+    { 0x398da28c, 0x44339dd4, SetFlag      , 0x564e78b9 },
+    { 0x7dc510f3, 0x65c61537, SetFlag2     , 0x00000001 },
+    { 0x309e4f55, 0xecc7daaf, FinishRace   , 0x00000000 },
+    { 0x1bcbe148, 0x040161b1, GetPowerup   , 0x00000000 },
+    { 0x1d5e7725, 0x0ed62a70, GetPowerup   , 0x00000001 },
+    { 0x22c65063, 0xe4331bc8, GetPowerup   , 0x00000002 },
+    { 0x1a37d28a, 0x139787e4, GetPowerup   , 0x00000003 },
+    { 0x1dcba360, 0x1e38bfa1, GetPowerup   , 0x00000004 },
+    { 0x24c99afb, 0xd908f952, GetPowerup   , 0x00000005 },
+    { 0x200c1bd4, 0x663de391, GetPowerup   , 0x00000006 },
+    { 0x252a2e6b, 0x3304d647, GetPowerup   , 0x00000007 },
+    { 0x218f555c, 0xe2d3ac58, GetPowerup   , 0x00000008 },
+    { 0x1fc7655b, 0xa12f9258, GetPowerup   , 0x00000009 },
+    { 0x2b2e6891, 0x4bd611c2, GetPowerup   , 0x0000000a },
+    { 0x2db8b34a, 0x4418ac58, GetPowerup   , 0x0000000b },
+    { 0x3001467e, 0xb323f944, GetPowerup   , 0x0000000c },
+    { 0x23968eda, 0x9259246e, GetPowerup   , 0x0000000d },
+    { 0x1f3baa55, 0x56c505a9, GetPowerup   , 0x0000000f },
+    { 0x214a2558, 0x56cbf421, GetPowerup   , 0x00000010 },
+    { 0x373ae69a, 0xef8c998f, GetPowerup   , 0x00000011 },
+    { 0x327ebd75, 0x605a9e3e, GetPowerup   , 0x00000012 },
+    { 0x350c0384, 0x73e576d2, GetPowerup   , 0x00000013 },
+    { 0x17f03c24, 0x0071650c, GetPowerup   , 0x00000014 },
+    { 0x32aeca21, 0x689d3168, GetPowerup   , 0x00000015 },
+    { 0x191841aa, 0x10fbd770, GetPowerup   , 0x00000016 },
+    { 0x26026896, 0x630e5fa9, GetPowerup   , 0x00000017 },
+    { 0x2440ca1b, 0x2e68304c, GetPowerup   , 0x00000018 },
+    { 0x37a11b1b, 0x6820b87d, GetPowerup   , 0x00000019 },
+    { 0x2f2ea509, 0x6bb804b7, GetPowerup   , 0x0000001a },
+    { 0x28f522f1, 0x2f52f8c0, GetPowerup   , 0x0000001b },
+    { 0x26c15553, 0xba19a354, GetPowerup   , 0x00000020 },
+    { 0x3964b52b, 0x40c94648, GetPowerup   , 0x00000021 },
+    { 0x18bf123a, 0x0080c0a9, GetPowerup   , 0x00000022 },
+    { 0x2a439e13, 0x3356c0b0, GetPowerup   , 0x00000023 },
+    { 0x28769902, 0x50a5d8d1, GetPowerup   , 0x00000024 },
+    { 0x2d5aa4e5, 0x427f9d82, GetPowerup   , 0x00000025 },
+    { 0x1e73b354, 0x17741619, GetPowerup   , 0x00000026 },
+    { 0x1cac0a7c, 0x0a461bb1, GetPowerup   , 0x00000027 },
+    { 0x1e3c613a, 0x6b56e92c, GetPowerup   , 0x00000028 },
+    { 0x2f4c3519, 0x082321f8, GetPowerup   , 0x00000029 },
+    { 0x21f0d261, 0xdae090b9, GetPowerup   , 0x0000002a },
+    { 0x1c727344, 0x78f65c91, GetPowerup   , 0x0000002b },
+    { 0x2f574845, 0x75ff1428, GetPowerup   , 0x0000002c },
+    { 0x1f0601e3, 0x9455c4c8, GetPowerup   , 0x0000002d },
+    { 0x26219ff3, 0xfdfd8b46, GetPowerup   , 0x0000002f },
+    { 0x26afbb31, 0xe3275e40, GetPowerup   , 0x00000030 },
+    { 0x25205546, 0xcf86a14c, GetPowerup   , 0x00000031 },
+    { 0x1a0a8e5b, 0x02035340, GetPowerup   , 0x00000033 },
+    { 0x1bdea925, 0x5d98fd0c, GetPowerup   , 0x00000034 },
+    { 0x2d4dd2a9, 0xf01ba696, GetPowerup   , 0x00000035 },
+    { 0x2e7a7505, 0x8920e4f6, GetPowerup   , 0x00000036 },
+    { 0x17290940, 0x00901801, GetPowerup   , 0x00000037 },
+    { 0x1d4e7a9c, 0x030e2650, GetPowerup   , 0x00000038 },
+    { 0x3579d64a, 0x3d2e34c3, GetPowerup   , 0x00000039 },
+    { 0x28f4d49c, 0xb3418148, GetPowerup   , 0x0000003a },
+    { 0x1d6ba9c3, 0x0e017749, GetPowerup   , 0x0000003b },
+    { 0x310971ab, 0xcb973702, GetPowerup   , 0x0000003c },
+    { 0x28451eeb, 0x30ff63cb, GetPowerup   , 0x0000003d },
+    { 0x1ebfa5ba, 0x92e034ec, GetPowerup   , 0x0000003e },
+    { 0x27079773, 0xd1ef511c, GetPowerup   , 0x0000003f },
+    { 0x388de72c, 0x047a8dca, GetPowerup   , 0x00000040 },
+    { 0x1a0da9fc, 0x0180e010, GetPowerup   , 0x00000041 },
+    { 0x2975a10c, 0xefd65f5d, GetPowerup   , 0x00000042 },
+    { 0x1e5cc6ca, 0x17b76391, GetPowerup   , 0x00000043 },
+    { 0x250c6f99, 0xbdda24cc, GetPowerup   , 0x00000044 },
+    { 0x33950e49, 0x2890738c, GetPowerup   , 0x00000045 },
+    { 0x4e5f487a, 0x3dc635b8, GetPowerup   , 0x00000046 },
+    { 0x3815584c, 0x91bbc26e, GetPowerup   , 0x00000047 },
+    { 0x459732b2, 0xb571e010, GetPowerup   , 0x00000048 },
+    { 0x62871003, 0x79b15084, GetPowerup   , 0x00000049 },
+    { 0x2d72ebb4, 0x5fd4d3ca, GetPowerup   , 0x0000004a },
+    { 0x2c3be2aa, 0x90e0eb9c, GetPowerup   , 0x0000004b },
+    { 0x2b2be28b, 0x30e0eb7b, GetPowerup   , 0x0000004c },
+    { 0x29be089d, 0x635ceb96, GetPowerup   , 0x0000004d },
+    { 0x4897982d, 0x06c4fa99, GetPowerup   , 0x0000004e },
+    { 0x44d50f49, 0x010edb42, GetPowerup   , 0x0000004f },
+    { 0x403afae5, 0x0104a7d2, GetPowerup   , 0x00000050 },
+    { 0x45c19e5e, 0x011b2cf9, GetPowerup   , 0x00000051 },
+    { 0x2f790ebd, 0x2fd87f6b, GetPowerup   , 0x00000052 },
+    { 0x244f60c9, 0x31f4fda3, GetPowerup   , 0x00000053 },
+    { 0x2b0794d3, 0x12927dc9, GetPowerup   , 0x00000054 },
+    { 0x2a44b628, 0x0c3e7edb, GetPowerup   , 0x00000055 },
+    { 0x2998e46d, 0x1360a63e, GetPowerup   , 0x00000056 },
+    { 0x23248728, 0xc84d9d51, GetPowerup   , 0x00000057 },
+    { 0x289c1822, 0x136e9fc3, GetPowerup   , 0x00000058 },
+    { 0x35abb7d0, 0xa08da57c, GetPowerup   , 0x0000005a },
+    { 0x1c1fdd92, 0x01dd060c, GetPowerup   , 0x0000005b },
+    { 0x253069c1, 0x4972796a, GetPowerup   , 0x0000005c },
+    { 0x33ca4873, 0x3b005b24, GetPowerup   , 0x0000005d },
+    { 0x1f56cde5, 0x8f213aae, GetPowerup   , 0x0000005e },
+    { 0x1784995b, 0x0163c389, GetPowerup   , 0x00000060 },
+    { 0x3003eccb, 0x1d74f36f, GetPowerup   , 0x00000061 },
+    { 0x4b054b60, 0x6b6736cb, RichardsSphere, 0x00000000 },
+    { 0x00000000, 0x00000000, NULL,        0x00000000 },
+};
+
+
+typedef struct tJoystick_headup_text {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
+
+// GLOBAL: CARMA2_HW 0x00596250
+tJoystick_headup_text gJoystick_headup_texts[21] = {
+    { "Recover", 60 },
+    { "Reapir", 45 },
+    { "Hand Brake", 54 },
+    { "Use Powerup", 61 },
+    { "Next Powerup", 64 },
+    { "Prev Powerup", 63 },
+    { "Wheel Spin", 56 },
+    { "Map", 57 },
+    { "Cockpit View", 46 },
+    { "Buy Armour", 67 },
+    { "Buy Power", 68 },
+    { "Buy Offensive", 69 },
+    { "Target Lock", 72 },
+    { "Cycle Target", 73 },
+    { "Camera Mode", 75 },
+    { "Doors", 74 },
+    { "Horn", 59 },
+    { "Accelerate", 49 },
+    { "Brake", 50 },
+    { "Left", 47 },
+    { "Right", 48 },
+};
 
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// (reference only)
-// FUNCTION: CARMA2_HW 0x00442e10
-void C2_HOOK_FASTCALL AlignChildren(tPhysics_object* pCollision_info) {
-    tPhysics_object* child;
+// FUNCTION: CARMA2_HW 0x0045c240
+void C2_HOOK_FASTCALL FUN_0045c240(void) {
+    extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+    tJoystick_headup_text* entry;
+    tHeadup_text* text;
+    int i;
 
-    for (child = pCollision_info->child; child != NULL; child = child->next) {
-        int i;
-        int j;
-
-        for (i = 0; i < 3; i++) {
-            for (j = 0; j < 3; j++) {
-                child->transform_matrix.m[i][j] = pCollision_info->transform_matrix.m[i][j];
-            }
+    if (gINT_0068b8e8) {
+        gINT_0068b8e8 = 0;
+        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
+            BrActorRemove(gAcc_poly_actor);
+            gRender_acc_poly_actor = 0;
         }
-        BrVector3SetFloat(&child->v, 0.f, 0.f, 0.f);
-        BrVector3SetFloat(&child->omega, 0.f, 0.f, 0.f);
-        AlignChildren(child);
+    } else {
+        gINT_0068b8e8 = 1;
+        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
+        for (i = 0; i < 22; i++) {
+            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
+            ChangeHeadupFont(gRace_head_ups[i], -2);
+        }
+        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
+        if (gJoystick_headup_buffer_0079d8a0.count == 0) {
+            if (gJoystick_headup_buffer_0079d8a0.field_0x14 < 5) {
+                gJoystick_headup_buffer_0079d8a0.field_0x14 = 10;
+            }
+            gJoystick_headup_buffer_0079d8a0.texts = NULL;
+            gJoystick_headup_buffer_0079d8a0.count = 0;
+            gJoystick_headup_buffer_0079d8a0.pos_last_add = 0;
+            gJoystick_headup_buffer_0079d8a0.text_last_add = NULL;
+            gJoystick_headup_buffer_0079d8a0.field_0x4 = NULL;
+            gJoystick_headup_buffer_0079d8a0.field_0x10 = 22;
+            entry = gJoystick_headup_texts;
+            do {
+                text = malloc(sizeof(tHeadup_text));
+                if (text != NULL) {
+                    text->next = NULL;
+                    strncpy(text->text, entry->text, 0x28);
+                    StoreTextHeadup(&gJoystick_headup_buffer_0079d8a0, text, 0);
+                }
+                entry++;
+            } while ((int)entry < (int)gAccent_poly_prims);
+        }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // GLOBAL: CARMA2_HW 0x0067c3b8
 int gToo_late;
 
@@ -2606,484 +2890,173 @@ have_chunk:
     }
     gINT_00659d34 = -1;
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x00590970
-tCheat gKev_keys[] = {
-    { 0xa11ee75d, 0xf805eddd, SetFlag      , 0xa11ee75d },
-    { 0x398da28c, 0x44339dd4, SetFlag      , 0x564e78b9 },
-    { 0x7dc510f3, 0x65c61537, SetFlag2     , 0x00000001 },
-    { 0x309e4f55, 0xecc7daaf, FinishRace   , 0x00000000 },
-    { 0x1bcbe148, 0x040161b1, GetPowerup   , 0x00000000 },
-    { 0x1d5e7725, 0x0ed62a70, GetPowerup   , 0x00000001 },
-    { 0x22c65063, 0xe4331bc8, GetPowerup   , 0x00000002 },
-    { 0x1a37d28a, 0x139787e4, GetPowerup   , 0x00000003 },
-    { 0x1dcba360, 0x1e38bfa1, GetPowerup   , 0x00000004 },
-    { 0x24c99afb, 0xd908f952, GetPowerup   , 0x00000005 },
-    { 0x200c1bd4, 0x663de391, GetPowerup   , 0x00000006 },
-    { 0x252a2e6b, 0x3304d647, GetPowerup   , 0x00000007 },
-    { 0x218f555c, 0xe2d3ac58, GetPowerup   , 0x00000008 },
-    { 0x1fc7655b, 0xa12f9258, GetPowerup   , 0x00000009 },
-    { 0x2b2e6891, 0x4bd611c2, GetPowerup   , 0x0000000a },
-    { 0x2db8b34a, 0x4418ac58, GetPowerup   , 0x0000000b },
-    { 0x3001467e, 0xb323f944, GetPowerup   , 0x0000000c },
-    { 0x23968eda, 0x9259246e, GetPowerup   , 0x0000000d },
-    { 0x1f3baa55, 0x56c505a9, GetPowerup   , 0x0000000f },
-    { 0x214a2558, 0x56cbf421, GetPowerup   , 0x00000010 },
-    { 0x373ae69a, 0xef8c998f, GetPowerup   , 0x00000011 },
-    { 0x327ebd75, 0x605a9e3e, GetPowerup   , 0x00000012 },
-    { 0x350c0384, 0x73e576d2, GetPowerup   , 0x00000013 },
-    { 0x17f03c24, 0x0071650c, GetPowerup   , 0x00000014 },
-    { 0x32aeca21, 0x689d3168, GetPowerup   , 0x00000015 },
-    { 0x191841aa, 0x10fbd770, GetPowerup   , 0x00000016 },
-    { 0x26026896, 0x630e5fa9, GetPowerup   , 0x00000017 },
-    { 0x2440ca1b, 0x2e68304c, GetPowerup   , 0x00000018 },
-    { 0x37a11b1b, 0x6820b87d, GetPowerup   , 0x00000019 },
-    { 0x2f2ea509, 0x6bb804b7, GetPowerup   , 0x0000001a },
-    { 0x28f522f1, 0x2f52f8c0, GetPowerup   , 0x0000001b },
-    { 0x26c15553, 0xba19a354, GetPowerup   , 0x00000020 },
-    { 0x3964b52b, 0x40c94648, GetPowerup   , 0x00000021 },
-    { 0x18bf123a, 0x0080c0a9, GetPowerup   , 0x00000022 },
-    { 0x2a439e13, 0x3356c0b0, GetPowerup   , 0x00000023 },
-    { 0x28769902, 0x50a5d8d1, GetPowerup   , 0x00000024 },
-    { 0x2d5aa4e5, 0x427f9d82, GetPowerup   , 0x00000025 },
-    { 0x1e73b354, 0x17741619, GetPowerup   , 0x00000026 },
-    { 0x1cac0a7c, 0x0a461bb1, GetPowerup   , 0x00000027 },
-    { 0x1e3c613a, 0x6b56e92c, GetPowerup   , 0x00000028 },
-    { 0x2f4c3519, 0x082321f8, GetPowerup   , 0x00000029 },
-    { 0x21f0d261, 0xdae090b9, GetPowerup   , 0x0000002a },
-    { 0x1c727344, 0x78f65c91, GetPowerup   , 0x0000002b },
-    { 0x2f574845, 0x75ff1428, GetPowerup   , 0x0000002c },
-    { 0x1f0601e3, 0x9455c4c8, GetPowerup   , 0x0000002d },
-    { 0x26219ff3, 0xfdfd8b46, GetPowerup   , 0x0000002f },
-    { 0x26afbb31, 0xe3275e40, GetPowerup   , 0x00000030 },
-    { 0x25205546, 0xcf86a14c, GetPowerup   , 0x00000031 },
-    { 0x1a0a8e5b, 0x02035340, GetPowerup   , 0x00000033 },
-    { 0x1bdea925, 0x5d98fd0c, GetPowerup   , 0x00000034 },
-    { 0x2d4dd2a9, 0xf01ba696, GetPowerup   , 0x00000035 },
-    { 0x2e7a7505, 0x8920e4f6, GetPowerup   , 0x00000036 },
-    { 0x17290940, 0x00901801, GetPowerup   , 0x00000037 },
-    { 0x1d4e7a9c, 0x030e2650, GetPowerup   , 0x00000038 },
-    { 0x3579d64a, 0x3d2e34c3, GetPowerup   , 0x00000039 },
-    { 0x28f4d49c, 0xb3418148, GetPowerup   , 0x0000003a },
-    { 0x1d6ba9c3, 0x0e017749, GetPowerup   , 0x0000003b },
-    { 0x310971ab, 0xcb973702, GetPowerup   , 0x0000003c },
-    { 0x28451eeb, 0x30ff63cb, GetPowerup   , 0x0000003d },
-    { 0x1ebfa5ba, 0x92e034ec, GetPowerup   , 0x0000003e },
-    { 0x27079773, 0xd1ef511c, GetPowerup   , 0x0000003f },
-    { 0x388de72c, 0x047a8dca, GetPowerup   , 0x00000040 },
-    { 0x1a0da9fc, 0x0180e010, GetPowerup   , 0x00000041 },
-    { 0x2975a10c, 0xefd65f5d, GetPowerup   , 0x00000042 },
-    { 0x1e5cc6ca, 0x17b76391, GetPowerup   , 0x00000043 },
-    { 0x250c6f99, 0xbdda24cc, GetPowerup   , 0x00000044 },
-    { 0x33950e49, 0x2890738c, GetPowerup   , 0x00000045 },
-    { 0x4e5f487a, 0x3dc635b8, GetPowerup   , 0x00000046 },
-    { 0x3815584c, 0x91bbc26e, GetPowerup   , 0x00000047 },
-    { 0x459732b2, 0xb571e010, GetPowerup   , 0x00000048 },
-    { 0x62871003, 0x79b15084, GetPowerup   , 0x00000049 },
-    { 0x2d72ebb4, 0x5fd4d3ca, GetPowerup   , 0x0000004a },
-    { 0x2c3be2aa, 0x90e0eb9c, GetPowerup   , 0x0000004b },
-    { 0x2b2be28b, 0x30e0eb7b, GetPowerup   , 0x0000004c },
-    { 0x29be089d, 0x635ceb96, GetPowerup   , 0x0000004d },
-    { 0x4897982d, 0x06c4fa99, GetPowerup   , 0x0000004e },
-    { 0x44d50f49, 0x010edb42, GetPowerup   , 0x0000004f },
-    { 0x403afae5, 0x0104a7d2, GetPowerup   , 0x00000050 },
-    { 0x45c19e5e, 0x011b2cf9, GetPowerup   , 0x00000051 },
-    { 0x2f790ebd, 0x2fd87f6b, GetPowerup   , 0x00000052 },
-    { 0x244f60c9, 0x31f4fda3, GetPowerup   , 0x00000053 },
-    { 0x2b0794d3, 0x12927dc9, GetPowerup   , 0x00000054 },
-    { 0x2a44b628, 0x0c3e7edb, GetPowerup   , 0x00000055 },
-    { 0x2998e46d, 0x1360a63e, GetPowerup   , 0x00000056 },
-    { 0x23248728, 0xc84d9d51, GetPowerup   , 0x00000057 },
-    { 0x289c1822, 0x136e9fc3, GetPowerup   , 0x00000058 },
-    { 0x35abb7d0, 0xa08da57c, GetPowerup   , 0x0000005a },
-    { 0x1c1fdd92, 0x01dd060c, GetPowerup   , 0x0000005b },
-    { 0x253069c1, 0x4972796a, GetPowerup   , 0x0000005c },
-    { 0x33ca4873, 0x3b005b24, GetPowerup   , 0x0000005d },
-    { 0x1f56cde5, 0x8f213aae, GetPowerup   , 0x0000005e },
-    { 0x1784995b, 0x0163c389, GetPowerup   , 0x00000060 },
-    { 0x3003eccb, 0x1d74f36f, GetPowerup   , 0x00000061 },
-    { 0x4b054b60, 0x6b6736cb, RichardsSphere, 0x00000000 },
-    { 0x00000000, 0x00000000, NULL,        0x00000000 },
-};
-
-// GLOBAL: CARMA2_HW 0x00594e9c
-const char gAct_file_extension[] = ".ACT";
-
-typedef struct tJoystick_headup_text {
-    const char* text;
-    int key;
-} tJoystick_headup_text;
-
-// GLOBAL: CARMA2_HW 0x00596250
-tJoystick_headup_text gJoystick_headup_texts[21] = {
-    { "Recover", 60 },
-    { "Reapir", 45 },
-    { "Hand Brake", 54 },
-    { "Use Powerup", 61 },
-    { "Next Powerup", 64 },
-    { "Prev Powerup", 63 },
-    { "Wheel Spin", 56 },
-    { "Map", 57 },
-    { "Cockpit View", 46 },
-    { "Buy Armour", 67 },
-    { "Buy Power", 68 },
-    { "Buy Offensive", 69 },
-    { "Target Lock", 72 },
-    { "Cycle Target", 73 },
-    { "Camera Mode", 75 },
-    { "Doors", 74 },
-    { "Horn", 59 },
-    { "Accelerate", 49 },
-    { "Brake", 50 },
-    { "Left", 47 },
-    { "Right", 48 },
-};
-
-// GLOBAL: CARMA2_HW 0x005962f8
-br_token_value gAccent_poly_prims[3] = {
-    { BRT_BLEND_B, { 1 } },
-    { BRT_OPACITY_X, { 0x4b0000 } },
-    { BR_NULL_TOKEN, { 0 } },
-};
-
-// GLOBAL: CARMA2_HW 0x0079d860
-tHeadup_text_buffer gHeadup_text_buffer_0079d860;
-
-// GLOBAL: CARMA2_HW 0x0079d880
-tHeadup_text_buffer gHeadup_text_buffer_0079d880;
-
-// GLOBAL: CARMA2_HW 0x00686174
-br_actor* gAcc_poly_actor;
-
-// GLOBAL: CARMA2_HW 0x00686178
-br_material* gAcc_poly_material;
-
-// GLOBAL: CARMA2_HW 0x0068617c
-br_model* gAcc_poly_model;
-
-// GLOBAL: CARMA2_HW 0x00686180
-int gRender_acc_poly_actor;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045c240
-void C2_HOOK_FASTCALL FUN_0045c240(void) {
-    extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
-    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
-    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
-    extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
-    tJoystick_headup_text* entry;
-    tHeadup_text* text;
+// Key: ']'
+// FUNCTION: CARMA2_HW 0x004daa00
+void C2_HOOK_FASTCALL RightInventory(void) {
+    extern tPowerup* gPowerup_array;
+    extern int gInventory[20];
+    extern int gInventory_selected;
+    extern int gInventory_cycling;
+    extern tU32 gInventory_timeout;
+    extern int gINT_006a0a6c;
+    extern int gINT_006a0a5c;
+    extern tHeadup_icon gPickedup_powerups[20];
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    int old_index;
+    int new_index;
+    tPowerup* powerup;
+    tNet_message* msg;
     int i;
 
-    if (gINT_0068b8e8) {
-        gINT_0068b8e8 = 0;
-        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
-            BrActorRemove(gAcc_poly_actor);
-            gRender_acc_poly_actor = 0;
+    gInventory_timeout = GetTotalTime() + 3000;
+    old_index = gInventory_selected;
+    gInventory_cycling = 1;
+    if (old_index < 0) {
+        return;
+    }
+    new_index = old_index;
+    do {
+        new_index--;
+        if (new_index < 0) {
+            new_index = (int)REC2_ASIZE(gInventory) - 1;
         }
-    } else {
-        gINT_0068b8e8 = 1;
-        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
-        for (i = 0; i < 22; i++) {
-            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
-            ChangeHeadupFont(gRace_head_ups[i], -2);
-        }
-        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
-        if (gJoystick_headup_buffer_0079d8a0.count == 0) {
-            if (gJoystick_headup_buffer_0079d8a0.field_0x14 < 5) {
-                gJoystick_headup_buffer_0079d8a0.field_0x14 = 10;
+        if (gInventory[new_index] >= 0) {
+            powerup = &gPowerup_array[gInventory[gInventory_selected]];
+            if (powerup->initial_value >= 0 && gINT_006a0a6c == 0) {
+                goto select_new;
             }
-            gJoystick_headup_buffer_0079d8a0.texts = NULL;
-            gJoystick_headup_buffer_0079d8a0.count = 0;
-            gJoystick_headup_buffer_0079d8a0.pos_last_add = 0;
-            gJoystick_headup_buffer_0079d8a0.text_last_add = NULL;
-            gJoystick_headup_buffer_0079d8a0.field_0x4 = NULL;
-            gJoystick_headup_buffer_0079d8a0.field_0x10 = 22;
-            entry = gJoystick_headup_texts;
-            do {
-                text = malloc(sizeof(tHeadup_text));
-                if (text != NULL) {
-                    text->next = NULL;
-                    strncpy(text->text, entry->text, 0x28);
-                    StoreTextHeadup(&gJoystick_headup_buffer_0079d8a0, text, 0);
+            if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
+                powerup->lose_proc(powerup, powerup->car);
+            }
+            if (powerup->net_type & 0x80) {
+                PipeSinglePowerupLose(powerup, powerup->car);
+            }
+            if (gNet_mode != eNet_mode_none) {
+                msg = NetBuildGuaranteedMessage(0x16, 0);
+                *(int*)((tU8*)msg + 0x28) = 2;
+                *(tPlayer_ID*)((tU8*)msg + 0x1c) = gLocal_net_ID;
+                *(int*)((tU8*)msg + 0x20) = powerup - gPowerup_array;
+                NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, msg, NULL);
+            }
+            gProgram_state.current_car.powerups[powerup - gPowerup_array] = 0;
+            if (powerup->initial_value == 0) {
+                for (i = 0; i < gNumber_of_icons; i++) {
+                    if (powerup == gPickedup_powerups[i].powerup) {
+                        gPickedup_powerups[i].fizzle_stage = 3;
+                        gPickedup_powerups[i].fizzle_direction = -1;
+                        gPickedup_powerups[i].fizzle_start = GetTotalTime();
+                        break;
+                    }
                 }
-                entry++;
-            } while ((int)entry < (int)gAccent_poly_prims);
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045a7f0
-int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2) {
-    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
-    extern int C2_HOOK_CDECL toupper(int pChar);
-    extern void C2_HOOK_FASTCALL StringTransformToLower(char* pStr);
-    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
-    char local_100[256];
-    char* substr;
-    void* this_ptr;
-    tHeadup_text* mem;
-
-    this_ptr = (void*)pArg2[0];
-    substr = (char*)pArg2[1];
-    strcpy(local_100, pFilename);
-    DRstrlwr(local_100);
-    if (strstr(local_100, "POWERUP") == NULL && strstr(local_100, "CPOINT") == NULL && strstr(local_100, "TRACKX") == NULL) {
-        if (strstr(local_100, substr) == NULL) {
-            if (strcmp(substr, ".*") != 0) {
-                return 0;
             }
+            powerup->got_time = 0;
+select_new:
+            gINT_006a0a5c = 1;
+            gInventory_selected = new_index;
         }
-        mem = malloc(sizeof(tHeadup_text));
-        if (mem != NULL) {
-            mem->next = NULL;
-            strncpy(mem->text, local_100, 0x28);
-            StringTransformToLower(mem->text);
-            mem->text[0] = (char)toupper((int)mem->text[0]);
-            StoreTextHeadup(this_ptr, mem, 1);
-        }
-    }
-    return 0;
+    } while (new_index != gInventory_selected);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045aa60
-void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
-    extern br_actor* g2d_camera;
-
-    if (gAcc_poly_material == NULL) {
-        gAcc_poly_material = BrMaterialAllocate("Acc Poly Mat");
-        gAcc_poly_material->colour = 0x80;
-        gAcc_poly_material->flags = BR_MATF_ALWAYS_VISIBLE;
-        BrMaterialAdd(gAcc_poly_material);
-        gAcc_poly_material->extra_prim = gAccent_poly_prims;
-        gAcc_poly_material->extra_prim[1].v.x = 0x800000;
-        BrMaterialUpdate(gAcc_poly_material, BR_MATU_EXTRA_PRIM);
-    }
-    if (gAcc_poly_actor == NULL) {
-        gAcc_poly_model = BrModelAllocate("Tint Poly", 6, 2);
-        BrVector3Set(&gAcc_poly_model->vertices[0].p, pX, -pY, -1.01f);
-        BrVector3Set(&gAcc_poly_model->vertices[1].p, pX + pWidth, -pY, -1.01f);
-        BrVector3Set(&gAcc_poly_model->vertices[2].p, pX, -(pY + pHeight), -1.01f);
-        BrVector3Set(&gAcc_poly_model->vertices[3].p, pX + pWidth, -pY, -1.01f);
-        BrVector3Set(&gAcc_poly_model->vertices[4].p, pX + pWidth, -(pY + pHeight), -1.01f);
-        BrVector3Set(&gAcc_poly_model->vertices[5].p, pX, -(pY + pHeight), -1.01f);
-        gAcc_poly_model->faces[0].vertices[0] = 0;
-        gAcc_poly_model->faces[0].vertices[1] = 1;
-        gAcc_poly_model->faces[0].vertices[2] = 2;
-        gAcc_poly_model->faces[1].vertices[0] = 3;
-        gAcc_poly_model->faces[1].vertices[1] = 4;
-        gAcc_poly_model->faces[1].vertices[2] = 5;
-        gAcc_poly_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
-        gAcc_poly_actor->material = gAcc_poly_material;
-        gAcc_poly_model->faces[0].material = gAcc_poly_material;
-        gAcc_poly_model->faces[1].material = gAcc_poly_material;
-        gAcc_poly_actor->model = gAcc_poly_model;
-        BrModelAdd(gAcc_poly_model);
-    }
-    if (!gRender_acc_poly_actor) {
-        gRender_acc_poly_actor = 1;
-        BrActorAdd(g2d_camera, gAcc_poly_actor);
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045a670
-void C2_HOOK_FASTCALL FUN_0045a670(void) {
-    tPath_name the_path;
-    struct {
-        int ext[3];
-        void* args[3];
-    } l;
+// PARTIAL 80.51%: loop-tail and regalloc differ (orig shares one bottom compare, zero-reg ebp, delayed pushes)
+// FUNCTION: CARMA2_HW 0x004dab80
+void C2_HOOK_FASTCALL LeftInventory(void) {
+    extern tPowerup* gPowerup_array;
+    extern int gInventory[20];
+    extern int gInventory_selected;
+    extern int gInventory_cycling;
+    extern tU32 gInventory_timeout;
+    extern int gINT_006a0a6c;
+    extern int gINT_006a0a5c;
+    extern tHeadup_icon gPickedup_powerups[20];
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, void* pNotifyFail);
+    int old_index;
+    int new_index;
+    tPowerup* powerup;
+    tNet_message* msg;
     int i;
 
-    if (gINT_0068b8e4) {
-        gINT_0068b8e4 = 0;
-        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
-            BrActorRemove(gAcc_poly_actor);
-            gRender_acc_poly_actor = 0;
-        }
-    } else {
-        gINT_0068b8e4 = 1;
-        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
-        for (i = 0; i < 22; i++) {
-            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
-            ChangeHeadupFont(gRace_head_ups[i], -2);
-        }
-        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
-        if (gHeadup_text_buffer_0079d860.count == 0) {
-            PathCat(the_path, gRace_path, "");
-            if (gHeadup_text_buffer_0079d860.field_0x14 < 5) {
-                gHeadup_text_buffer_0079d860.field_0x14 = 10;
-            }
-            strcpy((char*)l.ext, gAct_file_extension);
-            gHeadup_text_buffer_0079d860.texts = NULL;
-            gHeadup_text_buffer_0079d860.count = 0;
-            gHeadup_text_buffer_0079d860.pos_last_add = 0;
-            gHeadup_text_buffer_0079d860.text_last_add = NULL;
-            gHeadup_text_buffer_0079d860.field_0x4 = NULL;
-            gHeadup_text_buffer_0079d860.field_0x10 = 22;
-            l.args[0] = &gHeadup_text_buffer_0079d860;
-            DRstrlwr((char*)l.ext);
-            l.args[1] = l.ext;
-            PDEnumPath(the_path, (tEnumPathCallback)AddToTextBufferCallback, l.args);
-            gHeadup_text_buffer_0079d860.pos_last_add = 0;
-            gHeadup_text_buffer_0079d860.text_last_add = gHeadup_text_buffer_0079d860.texts;
-        }
+    gInventory_timeout = GetTotalTime() + 3000;
+    old_index = gInventory_selected;
+    gInventory_cycling = 1;
+    if (old_index < 0) {
+        return;
     }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045acf0
-void C2_HOOK_FASTCALL FUN_0045acf0(void) {
-    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
-    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
-    tHeadup_text* text;
-    int i;
-
-    if (gINT_0068b8e4) {
-        gINT_0068b8e4 = 0;
-        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
-            BrActorRemove(gAcc_poly_actor);
-            gRender_acc_poly_actor = 0;
+    new_index = old_index;
+    do {
+        new_index++;
+        if (new_index >= (int)REC2_ASIZE(gInventory)) {
+            new_index = 0;
         }
-    } else {
-        gINT_0068b8e4 = 2;
-        FUN_0044a8a0(gProgram_state.frame_rate_headup, 10, 350);
-        for (i = 0; i < 22; i++) {
-            FUN_0044a8a0(gRace_head_ups[i], 10, 120 + i * 10);
-            ChangeHeadupFont(gRace_head_ups[i], -2);
-        }
-        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
-        if (gHeadup_text_buffer_0079d880.count == 0) {
-            if (gHeadup_text_buffer_0079d880.field_0x14 < 5) {
-                gHeadup_text_buffer_0079d880.field_0x14 = 10;
+        if (gInventory[new_index] >= 0) {
+            powerup = &gPowerup_array[gInventory[gInventory_selected]];
+            if (powerup->initial_value >= 0 && gINT_006a0a6c == 0) {
+                goto select_new;
             }
-            gHeadup_text_buffer_0079d880.texts = NULL;
-            gHeadup_text_buffer_0079d880.count = 0;
-            gHeadup_text_buffer_0079d880.pos_last_add = 0;
-            gHeadup_text_buffer_0079d880.text_last_add = NULL;
-            gHeadup_text_buffer_0079d880.field_0x4 = NULL;
-            gHeadup_text_buffer_0079d880.field_0x10 = 22;
-            for (i = 0; i < 10; i++) {
-                text = malloc(sizeof(tHeadup_text));
-                if (text != NULL) {
-                    *(int*)text = 0;
-                    sprintf(text->text, "WANKER  %02d", i);
-                    StoreTextHeadup(&gHeadup_text_buffer_0079d880, text, 0);
+            if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
+                powerup->lose_proc(powerup, powerup->car);
+            }
+            if (powerup->net_type & 0x80) {
+                PipeSinglePowerupLose(powerup, powerup->car);
+            }
+            if (gNet_mode != eNet_mode_none) {
+                msg = NetBuildGuaranteedMessage(0x16, 0);
+                *(int*)((tU8*)msg + 0x28) = 2;
+                *(tPlayer_ID*)((tU8*)msg + 0x1c) = gLocal_net_ID;
+                *(int*)((tU8*)msg + 0x20) = powerup - gPowerup_array;
+                NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, msg, NULL);
+            }
+            gProgram_state.current_car.powerups[powerup - gPowerup_array] = 0;
+            if (powerup->initial_value == 0) {
+                for (i = 0; i < gNumber_of_icons; i++) {
+                    if (gPickedup_powerups[i].powerup == powerup) {
+                        gPickedup_powerups[i].fizzle_stage = 3;
+                        gPickedup_powerups[i].fizzle_direction = -1;
+                        gPickedup_powerups[i].fizzle_start = GetTotalTime();
+                        break;
+                    }
                 }
             }
+            powerup->got_time = 0;
+select_new:
+            gINT_006a0a5c = 1;
+            gInventory_selected = new_index;
         }
+    } while (new_index != gInventory_selected);
+}
+
+// FUNCTION: CARMA2_HW 0x00511200
+void C2_HOOK_FASTCALL FUN_00511200(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045acf0(void);
+
+    FUN_0045acf0();
+}
+
+// FUNCTION: CARMA2_HW 0x00511210
+void C2_HOOK_FASTCALL FUN_00511210(void) {
+    extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+
+    FUN_0045a670();
+}
+
+// FUNCTION: CARMA2_HW 0x00511240
+void C2_HOOK_FASTCALL ToggleJoystickHeadup(void) {
+    extern int gINT_0068b8e8;
+    extern int C2_HOOK_FASTCALL SaveJoystickPreferences(void);
+    extern int C2_HOOK_FASTCALL LoadJoystickPreferences(void);
+    extern void C2_HOOK_FASTCALL FUN_0045c240(void);
+
+    if (gINT_0068b8e8 != 0) {
+        SaveJoystickPreferences();
+    }
+    FUN_0045c240();
+    if (gINT_0068b8e8 == 0) {
+        LoadJoystickPreferences();
     }
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045a920
-int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
-    tHeadup_text* pNode;
-    tHeadup_text* pCur;
-    int count;
-    int found;
-
-    pCur = pBuffer->texts;
-    found = 0;
-    count = 0;
-    if (pCur == NULL) {
-        pBuffer->texts = pText;
-        pText->next = NULL;
-        pBuffer->count = 1;
-        pBuffer->pos_last_add = 0;
-        pBuffer->text_last_add = pText;
-        return 0;
-    }
-    if (pArg3 == 0) {
-        pNode = pCur->next;
-        while (pNode != NULL) {
-            pCur = pNode;
-            count++;
-            pNode = pCur->next;
-        }
-        pText->next = NULL;
-        pCur->next = pText;
-    } else {
-        if (strcmp(pCur->text, pText->text) > 0) {
-            pBuffer->texts = pText;
-            pText->next = pCur;
-        } else {
-            pArg3 = 0;
-            pNode = pCur->next;
-            while (pNode != NULL && !found) {
-                if (strcmp(pNode->text, pText->text) > 0) {
-                    found = 1;
-                    pArg3 = (int)pNode;
-                } else {
-                    pCur = pNode;
-                }
-                pNode = pCur->next;
-                count++;
-            }
-            pText->next = (tHeadup_text*)pArg3;
-            pCur->next = pText;
-        }
-    }
-    pBuffer->count = pBuffer->count + 1;
-    pBuffer->pos_last_add = count;
-    pBuffer->text_last_add = pCur;
-    return count;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// (reference only)
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00413d00
-void C2_HOOK_FASTCALL DamageEngine(int pDamage_amount) {
-    extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
-    tDamage_unit* the_damage;
-
-    if (pDamage_amount > 0) {
-        the_damage = &gProgram_state.current_car.damage_units[eDamage_engine];
-        the_damage->damage_level += pDamage_amount;
-        if (the_damage->damage_level >= 100) {
-            the_damage->damage_level = 99;
-        }
-    }
-    SortOutSmoke(&gProgram_state.current_car);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

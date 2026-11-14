@@ -73,11 +73,269 @@ const tU8 gOther_long_key[16] = {
 int gFunk_groove_flags[30];
 
 extern void C2_HOOK_CDECL BrPixelmapFree(br_pixelmap* src);
+
+// FUNCTION: CARMA2_HW 0x0044bb80
+void C2_HOOK_FASTCALL UnlockInterfaceStuff(void) {
+
+}
+
+// FUNCTION: CARMA2_HW 0x0044bb90
+void C2_HOOK_FASTCALL DisposePhysicsObject(tPhysics_object* pObject) {
+
+    if (pObject != NULL) {
+        PHILRemoveObject(pObject);
+        if (pObject->shape != (tPhysics_shape *)0x0) {
+            FreeShapeList(pObject->shape);
+        }
+        if (pObject->physics_joint1 != (tPhysics_joint *)0x0) {
+            FreePhysicsJoint(pObject->physics_joint1);
+        }
+        if (pObject->physics_joint2 != (tPhysics_joint *)0x0) {
+            FreePhysicsJoint(pObject->physics_joint2);
+        }
+    }
+    BrMemFree(pObject);
+}
+
+// FUNCTION: CARMA2_HW 0x0044bbe0
+void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner) {
+    int i;
+    tCar_crush_spec* car_crush_spec;
+
+    if (pCar_spec != NULL && pCar_spec->driver_name[0] != '\0') {
+        gFunk_groove_flags[pCar_spec->fg_index] = 0;
+        pCar_spec->driver_name[0] = '\0';
+        if (pCar_spec->driver == eDriver_local_human) {
+            for (i = 0; i < (int)REC2_ASIZE(pCar_spec->cockpit_images); i++) {
+                if (pCar_spec->cockpit_images[i] != NULL) {
+                    BrMemFree(pCar_spec->cockpit_images[i]);
+                }
+            }
+            if (pCar_spec->speedo_image[0] != NULL) {
+                BrPixelmapFree(pCar_spec->speedo_image[0]);
+            }
+            if (pCar_spec->speedo_image[1] != NULL) {
+                BrPixelmapFree(pCar_spec->speedo_image[1]);
+            }
+            if (pCar_spec->tacho_image[0] != NULL) {
+                BrPixelmapFree(pCar_spec->tacho_image[0]);
+            }
+            if (pCar_spec->tacho_image[1] != NULL) {
+                BrPixelmapFree(pCar_spec->tacho_image[1]);
+            }
+            if (pCar_spec->gears_image != NULL) {
+                BrPixelmapFree(pCar_spec->gears_image);
+            }
+            for (i = 0; i < pCar_spec->number_of_hands_images; i++) {
+            if (pCar_spec->lhands_images[i] != NULL) {
+                BrPixelmapFree(pCar_spec->lhands_images[i]);
+            }
+            if (pCar_spec->rhands_images[i] != NULL) {
+                BrPixelmapFree(pCar_spec->rhands_images[i]);
+            }
+            }
+            if (pCar_spec->prat_cam_left != NULL) {
+                BrPixelmapFree(pCar_spec->prat_cam_left);
+            }
+            if (pCar_spec->prat_cam_top != NULL) {
+                BrPixelmapFree(pCar_spec->prat_cam_top);
+            }
+            if (pCar_spec->prat_cam_right != NULL) {
+                BrPixelmapFree(pCar_spec->prat_cam_right);
+            }
+            if (pCar_spec->prat_cam_bottom != NULL) {
+                BrPixelmapFree(pCar_spec->prat_cam_bottom);
+            }
+            for (i = 0; i < (int)REC2_ASIZE(pCar_spec->damage_units); i++) {
+                if (pCar_spec->damage_units[i].images != NULL) {
+                    BrPixelmapFree(pCar_spec->damage_units[i].images);
+                }
+            }
+            if (pCar_spec->damage_background != NULL) {
+                BrPixelmapFree(pCar_spec->damage_background);
+            }
+            gProgram_state.car_name[0] = '\0';
+        }
+        for (i = 0; i < (int)REC2_ASIZE(pCar_spec->damage_programs); i++) {
+            BrMemFree(pCar_spec->damage_programs[i].clauses);
+        }
+        car_crush_spec = pCar_spec->car_crush_spec;
+        if (car_crush_spec != NULL) {
+            TotallyRepairACar(pCar_spec);
+            DisposeMasterCrushData(car_crush_spec, pCar_spec);
+            pCar_spec->car_crush_spec = NULL;
+        }
+        DRActorEnumRecurse(pCar_spec->car_model_actor, DisposeCarActModDataCB, &pCar_spec->index);
+        BrActorFree(pCar_spec->car_actor);
+        pCar_spec->car_actor = NULL;
+        if (pCar_spec->car_master_actor->parent != NULL) {
+            BrActorRemove(pCar_spec->car_master_actor);
+        }
+        BrActorFree(pCar_spec->car_master_actor);
+        pCar_spec->car_master_actor = NULL;
+        pCar_spec->car_model_actor = NULL;
+        DisposeFunkotronics(pOwner);
+        DisposeGroovidelics(pOwner);
+        DisposePhysicsObject(pCar_spec->collision_info);
+        if (gNet_mode != eNet_mode_none) {
+            ClearMatertrialSetFromStorageSpace(&gNet_cars_storage_space,
+                pCar_spec->old_material_count, pCar_spec->new_material_count);
+        }
+        if (gProgram_state.racing && gNet_mode == eNet_mode_none) {
+            ForceRebuildActiveCarList();
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0044be80
+intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pContext) {
+    tUser_crush_data* crush_data = pActor->user;
+    tCar_spec* car = pContext;
+    int i;
+
+    if (crush_data == NULL) {
+        return 0;
+    }
+    for (i = 0; i < car->count_detail_levels; i++) {
+        br_model* model = crush_data->models[i];
+
+        if (model != NULL && model->user != NULL) {
+            tUser_detail_level_model* model_data = model->user;
+
+            if (model_data->field_0x4 != NULL) {
+                FreeGroovidelic(model_data->field_0x4);
+                model_data->field_0x4 = NULL;
+            }
+            BrMemFree(model_data);
+            model->user = NULL;
+        }
+    }
+    if (crush_data->crush_data != NULL) {
+        FreeCrushData(crush_data->crush_data);
+        crush_data->crush_data = NULL;
+    }
+    BrMemFree(crush_data);
+    pActor->user = NULL;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0044bf20
+void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis) {
+
+    BrActorRemove(pThis->actor);
+    BrActorFree(pThis->actor);
+}
+
+// FUNCTION: CARMA2_HW 0x0044bf70
+void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x0044bf80
+void C2_HOOK_FASTCALL LoadingNoOp(void) {
+}
 // FUNCTION: CARMA2_HW 0x0044bf90
 // FUNCTION: CARMA2_SW 0x0044bd40
 void C2_HOOK_FASTCALL FUN_0044bf90(br_pixelmap* pMap) {
     /* Unused */
     BrPixelmapFree(pMap);
+}
+
+// FUNCTION: CARMA2_HW 0x0044bfa0
+void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info) {
+    int i;
+
+    gCurrent_APO_potential_levels[0] = gProgram_state.current_car.power_up_slots[0];
+    gCurrent_APO_potential_levels[1] = gProgram_state.current_car.power_up_slots[1];
+    gCurrent_APO_potential_levels[2] = gProgram_state.current_car.power_up_slots[2];
+    gCurrent_APO_levels[0] = gProgram_state.current_car.power_up_levels[0];
+    gCurrent_APO_levels[1] = gProgram_state.current_car.power_up_levels[1];
+    gCurrent_APO_levels[2] = gProgram_state.current_car.power_up_levels[2];
+    DisposeCar(&gProgram_state.current_car, gProgram_state.current_car.index);
+    for (i = 0; i < pRace_info->number_of_racers; i++) {
+        PossibleService();
+        if (pRace_info->opponent_list[i].index >= 0) {
+            if (pRace_info->opponent_list[i].car_spec != NULL) {
+                DisposeCar(pRace_info->opponent_list[i].car_spec, pRace_info->opponent_list[i].index);
+                BrMemFree(pRace_info->opponent_list[i].car_spec);
+            }
+        }
+    }
+    ClearOutStorageSpace(&gOur_car_storage_space);
+    ClearOutStorageSpace(&gTheir_cars_storage_space);
+    gCurrent_race.number_of_racers = 0;
+    gProgram_state.AI_vehicles.number_of_opponents = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0044c070
+void C2_HOOK_FASTCALL DisposeRace(void) {
+
+    RemoveTail();
+    PossibleService();
+    CleanUpSmashStuff();
+    DisposeActionReplay();
+    PossibleService();
+    CloseDownPowerUps();
+    PossibleService();
+    if (!TranslationMode()) {
+        DisposeFont(1);
+        DisposeFont(2);
+    }
+    PossibleService();
+    DisposeFont(6);
+    DisposeFont(7);
+    DisposeFont(8);
+    DisposeFont(3);
+    DisposeFont(4);
+    DisposeFont(5);
+    PossibleService();
+    DisposeSavedShadeTables();
+    PossibleService();
+    DisposeSoundSources();
+    PossibleService();
+    KillLightingEffects();
+    DisposeAIWorldRaceStuff();
+    PossibleService();
+    DisposePedStuff();
+    PossibleService();
+    DisposePratcam();
+    PossibleService();
+}
+
+// FUNCTION: CARMA2_HW 0x0044c130
+void C2_HOOK_FASTCALL DisposeGameIfNecessary(void) {
+    int i;
+
+    dr_dprintf("DisposeGameIfNecessary() - START");
+    if (gNet_mode != eNet_mode_none) {
+        NetLeaveGame(gCurrent_net_game);
+    }
+    dr_dprintf("DisposeGameIfNecessary() - Point 1");
+    if (gGame_initialized) {
+        gGame_initialized = 0;
+        dr_dprintf("DisposeGameIfNecessary() - Point 2");
+        if (gNet_mode_of_last_game != eNet_mode_none) {
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                DisposeCar(gNet_players[i].car, gNet_players[i].car_index);
+            }
+            dr_dprintf("DisposeGameIfNecessary() - Point 3");
+            PossibleService();
+            LoadRaces(gRace_list, &gNumber_of_races, -1);
+            DisposeStorageSpace(&gNet_cars_storage_space);
+            gNo_current_game = 1;
+            dr_dprintf("DisposeGameIfNecessary() - Point 4");
+        }
+        dr_dprintf("DisposeGameIfNecessary() - Point 5");
+    }
+    ShutdownNetIfRequired();
+    dr_dprintf("DisposeGameIfNecessary() - END");
+}
+
+// FUNCTION: CARMA2_HW 0x0044c220
+void C2_HOOK_FASTCALL DisposeTrack(void) {
+
+    FreeTrack(&gProgram_state.track_spec);
 }
 
 // FUNCTION: CARMA2_HW 0x0048f830
@@ -291,17 +549,22 @@ int C2_HOOK_FASTCALL GetAnInt(FILE* pF) {
     return value;
 }
 
-// FUNCTION: CARMA2_HW 0x004900e0
-float C2_HOOK_FASTCALL GetAFloat(FILE* pF) {
-    char s[256];
-    char *str;
-    float f;
+// FUNCTION: CARMA2_HW 0x0048fb50
+tU32 C2_HOOK_FASTCALL BinIntegerToInteger(tU32 pValue) {
+    tU32 result;
+    tU32 v;
 
-    PossibleService();
-    GetALineWithNoPossibleService(pF, s);
-    str = strtok(s, "\t ,/");
-    sscanf(str, "%f", &f);
-    return f;
+    result = 0;
+    for (v = pValue; v != 0; v /= 10) {
+        result = (v % 10) | (result + result);
+    }
+    return result;
+}
+
+// FUNCTION: CARMA2_HW 0x0048fb80
+br_scalar C2_HOOK_FASTCALL GetAScalar(FILE* pF) {
+
+    return GetAFloat(pF);
 }
 
 // FUNCTION: CARMA2_HW 0x0048fc20
@@ -378,10 +641,17 @@ void C2_HOOK_FASTCALL GetFourInts(FILE* pF, int* pF1, int* pF2, int* pF3, int* p
     sscanf(str, "%d", pF4);
 }
 
-// FUNCTION: CARMA2_HW 0x0048fb80
-br_scalar C2_HOOK_FASTCALL GetAScalar(FILE* pF) {
+// FUNCTION: CARMA2_HW 0x004900e0
+float C2_HOOK_FASTCALL GetAFloat(FILE* pF) {
+    char s[256];
+    char *str;
+    float f;
 
-    return GetAFloat(pF);
+    PossibleService();
+    GetALineWithNoPossibleService(pF, s);
+    str = strtok(s, "\t ,/");
+    sscanf(str, "%f", &f);
+    return f;
 }
 
 // FUNCTION: CARMA2_HW 0x00490130
@@ -518,6 +788,40 @@ void C2_HOOK_CDECL SubsStringJob(char *pFormat, ...) {
         strcat(pFormat, temp);
     }
     va_end(ap);
+}
+
+// FUNCTION: CARMA2_HW 0x004907b0
+void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS) {
+    int len;
+    int seed;
+    int i;
+
+    len = strlen(pS);
+    if (len != 0) {
+        do {
+            if (pS[len - 1] != '\r' && pS[len - 1] != '\n') {
+                break;
+            }
+            pS[len - 1] = '\0';
+            len--;
+        } while (len != 0);
+    }
+    i = 0;
+    seed = len % 16;
+    if (len > 0) {
+        do {
+            if (pS[i] == '\t') {
+                pS[i] = (char)0x9f;
+            }
+            pS[i] = ((gLong_key[seed] ^ (pS[i] - 0x20)) & 0x7f) + 0x20;
+            seed += 7;
+            seed %= 16;
+            if (pS[i] == (char)0x9f) {
+                pS[i] = '\t';
+            }
+            i++;
+        } while (i < len);
+    }
 }
 
 static void StripCRNLPrefix(char *line) {
@@ -695,6 +999,41 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     PDFileUnlock(pThe_path);
     remove(pThe_path);
     rename(new_file, pThe_path);
+}
+
+void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path);
+
+// FUNCTION: CARMA2_HW 0x00490b90
+void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path) {
+    char path[256];
+
+    PathCat(path, gApplication_path, pThe_path);
+    PFForEveryFile(path, (tPDForEveryFileRecurse_cbfn)EncodeFileWrapper);
+}
+
+// FUNCTION: CARMA2_HW 0x00490bc0
+void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path) {
+    int len;
+
+    len = strlen(pThe_path);
+    if (strcmp(&pThe_path[len - 4], ".TXT") != 0) {
+        return;
+    }
+    if (strcmp(&pThe_path[len - 12], "DKEYMAP0.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP1.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP2.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "DKEYMAP3.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_0.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_1.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_2.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYMAP_3.TXT") == 0
+            || strcmp(&pThe_path[len - 11], "OPTIONS.TXT") == 0
+            || strcmp(&pThe_path[len - 12], "KEYNAMES.TXT") == 0
+            || strcmp(&pThe_path[len - 10], "KEYMAP.TXT") == 0
+            || strcmp(&pThe_path[len - 9], "PATHS.TXT") == 0) {
+        return;
+    }
+    EncodeFile(pThe_path);
 }
 
 // FUNCTION: CARMA2_HW 0x00490ec0
@@ -892,285 +1231,6 @@ void C2_HOOK_FASTCALL DoNotAllowOpenToFail(void) {
 
 }
 
-// GetCDPathFromPathsTxtFile
-
-// FUNCTION: CARMA2_HW 0x00491170
-FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode) {
-    FILE *result;
-
-    result = OldDRfopen(pFilename, pMode);
-    if (result == NULL && !gAllow_open_to_fail) {
-        char buffer[256];
-
-        if (GetRegisterSourceLocation(buffer)) {
-            if (!PDCheckDriveExists(buffer)) {
-                if (gMisc_strings[0] != NULL) {
-                    PDFatalError(GetMiscString(eMiscString_could_not_find_carmageddon_cd));
-                } else {
-                    PDFatalError("Could not find the Carmageddon CD");
-                }
-            }
-        }
-        sprintf(buffer, "DRfopen( \"%s\", \"%s\" ) failed", pFilename, pMode);
-        PDFatalError(buffer);
-    }
-    return result;
-}
-
-// FUNCTION: CARMA2_HW 0x0044bb80
-void C2_HOOK_FASTCALL UnlockInterfaceStuff(void) {
-
-}
-
-// FUNCTION: CARMA2_HW 0x0044bb90
-void C2_HOOK_FASTCALL DisposePhysicsObject(tPhysics_object* pObject) {
-
-    if (pObject != NULL) {
-        PHILRemoveObject(pObject);
-        if (pObject->shape != (tPhysics_shape *)0x0) {
-            FreeShapeList(pObject->shape);
-        }
-        if (pObject->physics_joint1 != (tPhysics_joint *)0x0) {
-            FreePhysicsJoint(pObject->physics_joint1);
-        }
-        if (pObject->physics_joint2 != (tPhysics_joint *)0x0) {
-            FreePhysicsJoint(pObject->physics_joint2);
-        }
-    }
-    BrMemFree(pObject);
-}
-
-// FUNCTION: CARMA2_HW 0x0044be80
-intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pContext) {
-    tUser_crush_data* crush_data = pActor->user;
-    tCar_spec* car = pContext;
-    int i;
-
-    if (crush_data == NULL) {
-        return 0;
-    }
-    for (i = 0; i < car->count_detail_levels; i++) {
-        br_model* model = crush_data->models[i];
-
-        if (model != NULL && model->user != NULL) {
-            tUser_detail_level_model* model_data = model->user;
-
-            if (model_data->field_0x4 != NULL) {
-                FreeGroovidelic(model_data->field_0x4);
-                model_data->field_0x4 = NULL;
-            }
-            BrMemFree(model_data);
-            model->user = NULL;
-        }
-    }
-    if (crush_data->crush_data != NULL) {
-        FreeCrushData(crush_data->crush_data);
-        crush_data->crush_data = NULL;
-    }
-    BrMemFree(crush_data);
-    pActor->user = NULL;
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0044bbe0
-void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner) {
-    int i;
-    tCar_crush_spec* car_crush_spec;
-
-    if (pCar_spec != NULL && pCar_spec->driver_name[0] != '\0') {
-        gFunk_groove_flags[pCar_spec->fg_index] = 0;
-        pCar_spec->driver_name[0] = '\0';
-        if (pCar_spec->driver == eDriver_local_human) {
-            for (i = 0; i < (int)REC2_ASIZE(pCar_spec->cockpit_images); i++) {
-                if (pCar_spec->cockpit_images[i] != NULL) {
-                    BrMemFree(pCar_spec->cockpit_images[i]);
-                }
-            }
-            if (pCar_spec->speedo_image[0] != NULL) {
-                BrPixelmapFree(pCar_spec->speedo_image[0]);
-            }
-            if (pCar_spec->speedo_image[1] != NULL) {
-                BrPixelmapFree(pCar_spec->speedo_image[1]);
-            }
-            if (pCar_spec->tacho_image[0] != NULL) {
-                BrPixelmapFree(pCar_spec->tacho_image[0]);
-            }
-            if (pCar_spec->tacho_image[1] != NULL) {
-                BrPixelmapFree(pCar_spec->tacho_image[1]);
-            }
-            if (pCar_spec->gears_image != NULL) {
-                BrPixelmapFree(pCar_spec->gears_image);
-            }
-            for (i = 0; i < pCar_spec->number_of_hands_images; i++) {
-            if (pCar_spec->lhands_images[i] != NULL) {
-                BrPixelmapFree(pCar_spec->lhands_images[i]);
-            }
-            if (pCar_spec->rhands_images[i] != NULL) {
-                BrPixelmapFree(pCar_spec->rhands_images[i]);
-            }
-            }
-            if (pCar_spec->prat_cam_left != NULL) {
-                BrPixelmapFree(pCar_spec->prat_cam_left);
-            }
-            if (pCar_spec->prat_cam_top != NULL) {
-                BrPixelmapFree(pCar_spec->prat_cam_top);
-            }
-            if (pCar_spec->prat_cam_right != NULL) {
-                BrPixelmapFree(pCar_spec->prat_cam_right);
-            }
-            if (pCar_spec->prat_cam_bottom != NULL) {
-                BrPixelmapFree(pCar_spec->prat_cam_bottom);
-            }
-            for (i = 0; i < (int)REC2_ASIZE(pCar_spec->damage_units); i++) {
-                if (pCar_spec->damage_units[i].images != NULL) {
-                    BrPixelmapFree(pCar_spec->damage_units[i].images);
-                }
-            }
-            if (pCar_spec->damage_background != NULL) {
-                BrPixelmapFree(pCar_spec->damage_background);
-            }
-            gProgram_state.car_name[0] = '\0';
-        }
-        for (i = 0; i < (int)REC2_ASIZE(pCar_spec->damage_programs); i++) {
-            BrMemFree(pCar_spec->damage_programs[i].clauses);
-        }
-        car_crush_spec = pCar_spec->car_crush_spec;
-        if (car_crush_spec != NULL) {
-            TotallyRepairACar(pCar_spec);
-            DisposeMasterCrushData(car_crush_spec, pCar_spec);
-            pCar_spec->car_crush_spec = NULL;
-        }
-        DRActorEnumRecurse(pCar_spec->car_model_actor, DisposeCarActModDataCB, &pCar_spec->index);
-        BrActorFree(pCar_spec->car_actor);
-        pCar_spec->car_actor = NULL;
-        if (pCar_spec->car_master_actor->parent != NULL) {
-            BrActorRemove(pCar_spec->car_master_actor);
-        }
-        BrActorFree(pCar_spec->car_master_actor);
-        pCar_spec->car_master_actor = NULL;
-        pCar_spec->car_model_actor = NULL;
-        DisposeFunkotronics(pOwner);
-        DisposeGroovidelics(pOwner);
-        DisposePhysicsObject(pCar_spec->collision_info);
-        if (gNet_mode != eNet_mode_none) {
-            ClearMatertrialSetFromStorageSpace(&gNet_cars_storage_space,
-                pCar_spec->old_material_count, pCar_spec->new_material_count);
-        }
-        if (gProgram_state.racing && gNet_mode == eNet_mode_none) {
-            ForceRebuildActiveCarList();
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0044bf20
-void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis) {
-
-    BrActorRemove(pThis->actor);
-    BrActorFree(pThis->actor);
-}
-
-// FUNCTION: CARMA2_HW 0x0044bf70
-void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x0044bfa0
-void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info) {
-    int i;
-
-    gCurrent_APO_potential_levels[0] = gProgram_state.current_car.power_up_slots[0];
-    gCurrent_APO_potential_levels[1] = gProgram_state.current_car.power_up_slots[1];
-    gCurrent_APO_potential_levels[2] = gProgram_state.current_car.power_up_slots[2];
-    gCurrent_APO_levels[0] = gProgram_state.current_car.power_up_levels[0];
-    gCurrent_APO_levels[1] = gProgram_state.current_car.power_up_levels[1];
-    gCurrent_APO_levels[2] = gProgram_state.current_car.power_up_levels[2];
-    DisposeCar(&gProgram_state.current_car, gProgram_state.current_car.index);
-    for (i = 0; i < pRace_info->number_of_racers; i++) {
-        PossibleService();
-        if (pRace_info->opponent_list[i].index >= 0) {
-            if (pRace_info->opponent_list[i].car_spec != NULL) {
-                DisposeCar(pRace_info->opponent_list[i].car_spec, pRace_info->opponent_list[i].index);
-                BrMemFree(pRace_info->opponent_list[i].car_spec);
-            }
-        }
-    }
-    ClearOutStorageSpace(&gOur_car_storage_space);
-    ClearOutStorageSpace(&gTheir_cars_storage_space);
-    gCurrent_race.number_of_racers = 0;
-    gProgram_state.AI_vehicles.number_of_opponents = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0044c070
-void C2_HOOK_FASTCALL DisposeRace(void) {
-
-    RemoveTail();
-    PossibleService();
-    CleanUpSmashStuff();
-    DisposeActionReplay();
-    PossibleService();
-    CloseDownPowerUps();
-    PossibleService();
-    if (!TranslationMode()) {
-        DisposeFont(1);
-        DisposeFont(2);
-    }
-    PossibleService();
-    DisposeFont(6);
-    DisposeFont(7);
-    DisposeFont(8);
-    DisposeFont(3);
-    DisposeFont(4);
-    DisposeFont(5);
-    PossibleService();
-    DisposeSavedShadeTables();
-    PossibleService();
-    DisposeSoundSources();
-    PossibleService();
-    KillLightingEffects();
-    DisposeAIWorldRaceStuff();
-    PossibleService();
-    DisposePedStuff();
-    PossibleService();
-    DisposePratcam();
-    PossibleService();
-}
-
-// FUNCTION: CARMA2_HW 0x0044c130
-void C2_HOOK_FASTCALL DisposeGameIfNecessary(void) {
-    int i;
-
-    dr_dprintf("DisposeGameIfNecessary() - START");
-    if (gNet_mode != eNet_mode_none) {
-        NetLeaveGame(gCurrent_net_game);
-    }
-    dr_dprintf("DisposeGameIfNecessary() - Point 1");
-    if (gGame_initialized) {
-        gGame_initialized = 0;
-        dr_dprintf("DisposeGameIfNecessary() - Point 2");
-        if (gNet_mode_of_last_game != eNet_mode_none) {
-            for (i = 0; i < gNumber_of_net_players; i++) {
-                DisposeCar(gNet_players[i].car, gNet_players[i].car_index);
-            }
-            dr_dprintf("DisposeGameIfNecessary() - Point 3");
-            PossibleService();
-            LoadRaces(gRace_list, &gNumber_of_races, -1);
-            DisposeStorageSpace(&gNet_cars_storage_space);
-            gNo_current_game = 1;
-            dr_dprintf("DisposeGameIfNecessary() - Point 4");
-        }
-        dr_dprintf("DisposeGameIfNecessary() - Point 5");
-    }
-    ShutdownNetIfRequired();
-    dr_dprintf("DisposeGameIfNecessary() - END");
-}
-
-// FUNCTION: CARMA2_HW 0x0044c220
-void C2_HOOK_FASTCALL DisposeTrack(void) {
-
-    FreeTrack(&gProgram_state.track_spec);
-}
-
 // FUNCTION: CARMA2_HW 0x004910d0
 int C2_HOOK_FASTCALL GetRegisterSourceLocation(char* pSource_location) {
 #ifdef REC2_MATCHING
@@ -1197,9 +1257,84 @@ int C2_HOOK_FASTCALL GetRegisterSourceLocation(char* pSource_location) {
 #endif
 }
 
+// GetCDPathFromPathsTxtFile
+
+// FUNCTION: CARMA2_HW 0x00491170
+FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode) {
+    FILE *result;
+
+    result = OldDRfopen(pFilename, pMode);
+    if (result == NULL && !gAllow_open_to_fail) {
+        char buffer[256];
+
+        if (GetRegisterSourceLocation(buffer)) {
+            if (!PDCheckDriveExists(buffer)) {
+                if (gMisc_strings[0] != NULL) {
+                    PDFatalError(GetMiscString(eMiscString_could_not_find_carmageddon_cd));
+                } else {
+                    PDFatalError("Could not find the Carmageddon CD");
+                }
+            }
+        }
+        sprintf(buffer, "DRfopen( \"%s\", \"%s\" ) failed", pFilename, pMode);
+        PDFatalError(buffer);
+    }
+    return result;
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x004fe180
+void C2_HOOK_FASTCALL DisposeKevStuff(void) {
+    int i;
+    tShrapnel* shrapnel;
+    tSplash* splash;
+    extern tShrapnel gShrapnel[30];
+    extern int gShrapnel_flags;
+    extern br_model* gShrapnel_model[2];
+    extern void C2_HOOK_FASTCALL DisposeFlame(void);
+    extern int gNum_splash_types;
+    extern br_material* gSplash_material[20];
+    extern int gSplash_flags;
+    extern tSplash gSplash[32];
+    extern br_model* gSplash_model;
+
+    i = 0;
+    shrapnel = gShrapnel;
+    do {
+        if ((gShrapnel_flags & (1 << i)) != 0 && shrapnel->actor->parent != NULL) {
+            BrActorRemove(shrapnel->actor);
+        }
+        BrActorFree(shrapnel->actor);
+        shrapnel++;
+        i++;
+    } while ((int)shrapnel < (int)&gShrapnel[REC2_ASIZE(gShrapnel)]);
+    gShrapnel_flags = 0;
+    BrModelRemove(gShrapnel_model[0]);
+    BrModelRemove(gShrapnel_model[1]);
+    BrModelFree(gShrapnel_model[0]);
+    BrModelFree(gShrapnel_model[1]);
+    DisposeFlame();
+    for (i = 0; i < gNum_splash_types; i++) {
+        BrMapRemove(gSplash_material[i]->colour_map);
+        BrPixelmapFree(gSplash_material[i]->colour_map);
+        BrMaterialRemove(gSplash_material[i]);
+        BrMaterialFree(gSplash_material[i]);
+    }
+    i = 0;
+    splash = gSplash;
+    do {
+        if ((gSplash_flags & (1 << i)) != 0 && splash->actor->parent != NULL) {
+            BrActorRemove(splash->actor);
+        }
+        BrActorFree(splash->actor);
+        splash++;
+        i++;
+    } while ((int)splash < (int)&gSplash[REC2_ASIZE(gSplash)]);
+    BrModelRemove(gSplash_model);
+    BrModelFree(gSplash_model);
+}
+
 // FUNCTION: CARMA2_HW 0x00506c20
 void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
     int i;
@@ -1281,148 +1416,4 @@ void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
         BrPixelmapFree(gProgram_state.default_depth_effect.sky_texture);
         gTrack_flic_buffer = NULL;
     }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004fe180
-void C2_HOOK_FASTCALL DisposeKevStuff(void) {
-    int i;
-    tShrapnel* shrapnel;
-    tSplash* splash;
-    extern tShrapnel gShrapnel[30];
-    extern int gShrapnel_flags;
-    extern br_model* gShrapnel_model[2];
-    extern void C2_HOOK_FASTCALL DisposeFlame(void);
-    extern int gNum_splash_types;
-    extern br_material* gSplash_material[20];
-    extern int gSplash_flags;
-    extern tSplash gSplash[32];
-    extern br_model* gSplash_model;
-
-    i = 0;
-    shrapnel = gShrapnel;
-    do {
-        if ((gShrapnel_flags & (1 << i)) != 0 && shrapnel->actor->parent != NULL) {
-            BrActorRemove(shrapnel->actor);
-        }
-        BrActorFree(shrapnel->actor);
-        shrapnel++;
-        i++;
-    } while ((int)shrapnel < (int)&gShrapnel[REC2_ASIZE(gShrapnel)]);
-    gShrapnel_flags = 0;
-    BrModelRemove(gShrapnel_model[0]);
-    BrModelRemove(gShrapnel_model[1]);
-    BrModelFree(gShrapnel_model[0]);
-    BrModelFree(gShrapnel_model[1]);
-    DisposeFlame();
-    for (i = 0; i < gNum_splash_types; i++) {
-        BrMapRemove(gSplash_material[i]->colour_map);
-        BrPixelmapFree(gSplash_material[i]->colour_map);
-        BrMaterialRemove(gSplash_material[i]);
-        BrMaterialFree(gSplash_material[i]);
-    }
-    i = 0;
-    splash = gSplash;
-    do {
-        if ((gSplash_flags & (1 << i)) != 0 && splash->actor->parent != NULL) {
-            BrActorRemove(splash->actor);
-        }
-        BrActorFree(splash->actor);
-        splash++;
-        i++;
-    } while ((int)splash < (int)&gSplash[REC2_ASIZE(gSplash)]);
-    BrModelRemove(gSplash_model);
-    BrModelFree(gSplash_model);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x0044bf80
-void C2_HOOK_FASTCALL LoadingNoOp(void) {
-}
-
-// FUNCTION: CARMA2_HW 0x0048fb50
-tU32 C2_HOOK_FASTCALL BinIntegerToInteger(tU32 pValue) {
-    tU32 result;
-    tU32 v;
-
-    result = 0;
-    for (v = pValue; v != 0; v /= 10) {
-        result = (v % 10) | (result + result);
-    }
-    return result;
-}
-
-// FUNCTION: CARMA2_HW 0x004907b0
-void C2_HOOK_FASTCALL EncodeLine_DEMO(char* pS) {
-    int len;
-    int seed;
-    int i;
-
-    len = strlen(pS);
-    if (len != 0) {
-        do {
-            if (pS[len - 1] != '\r' && pS[len - 1] != '\n') {
-                break;
-            }
-            pS[len - 1] = '\0';
-            len--;
-        } while (len != 0);
-    }
-    i = 0;
-    seed = len % 16;
-    if (len > 0) {
-        do {
-            if (pS[i] == '\t') {
-                pS[i] = (char)0x9f;
-            }
-            pS[i] = ((gLong_key[seed] ^ (pS[i] - 0x20)) & 0x7f) + 0x20;
-            seed += 7;
-            seed %= 16;
-            if (pS[i] == (char)0x9f) {
-                pS[i] = '\t';
-            }
-            i++;
-        } while (i < len);
-    }
-}
-
-void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path);
-
-// FUNCTION: CARMA2_HW 0x00490b90
-void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path) {
-    char path[256];
-
-    PathCat(path, gApplication_path, pThe_path);
-    PFForEveryFile(path, (tPDForEveryFileRecurse_cbfn)EncodeFileWrapper);
-}
-
-// FUNCTION: CARMA2_HW 0x00490bc0
-void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path) {
-    int len;
-
-    len = strlen(pThe_path);
-    if (strcmp(&pThe_path[len - 4], ".TXT") != 0) {
-        return;
-    }
-    if (strcmp(&pThe_path[len - 12], "DKEYMAP0.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "DKEYMAP1.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "DKEYMAP2.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "DKEYMAP3.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "KEYMAP_0.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "KEYMAP_1.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "KEYMAP_2.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "KEYMAP_3.TXT") == 0
-            || strcmp(&pThe_path[len - 11], "OPTIONS.TXT") == 0
-            || strcmp(&pThe_path[len - 12], "KEYNAMES.TXT") == 0
-            || strcmp(&pThe_path[len - 10], "KEYMAP.TXT") == 0
-            || strcmp(&pThe_path[len - 9], "PATHS.TXT") == 0) {
-        return;
-    }
-    EncodeFile(pThe_path);
 }

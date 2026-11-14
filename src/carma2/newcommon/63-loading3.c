@@ -69,6 +69,15 @@ br_pixelmap* C2_HOOK_FASTCALL DRLdImg(const char* texturePathDir, const char* te
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0048ec00
+br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name) {
+    br_pixelmap *pm;
+
+    pm = RealLoadPixelmap(pPath_name);
+    EnsurePixelmapAllowed(pm, 0);
+    return pm;
+}
+
 // FUNCTION: CARMA2_HW 0x0048ec20
 br_pixelmap* C2_HOOK_FASTCALL RealLoadPixelmap(const char* pPath_name) {
     const char* ext;
@@ -98,15 +107,6 @@ br_pixelmap* C2_HOOK_FASTCALL RealLoadPixelmap(const char* pPath_name) {
         PathCat(path, gApplication_path, gPedTexturePath);
         return DRLdImg(path, texture_name, gRender_palette, gPixelFlags, &error);
     }
-    return pm;
-}
-
-// FUNCTION: CARMA2_HW 0x0048ec00
-br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name) {
-    br_pixelmap *pm;
-
-    pm = RealLoadPixelmap(pPath_name);
-    EnsurePixelmapAllowed(pm, 0);
     return pm;
 }
 

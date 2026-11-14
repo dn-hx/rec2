@@ -44,129 +44,49 @@ br_colour gRGB_colours[9] = {
 // GLOBAL: CARMA2_HW 0x0074a620
 br_colour gColours[9];
 
-// FUNCTION: CARMA2_HW 0x004e5cb0
-void C2_HOOK_FASTCALL InitialiseExtraRenders(void) {
 
-    gCount_extra_renders = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x004e5cc0
-void C2_HOOK_FASTCALL AddExtraRender(br_actor* pActor, br_material* pMaterial) {
-
-    gExtra_renders[gCount_extra_renders].actor = pActor;
-    gExtra_renders[gCount_extra_renders].material = pMaterial;
-    gCount_extra_renders += 1;
-}
-
-// FUNCTION: CARMA2_HW 0x004e5ce0
-int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance) {
-    br_vector3 distance_vector;
+void C2_HOOK_FASTCALL RevealStoredTextures(tBrender_storage* pStorage) {
     int i;
+    br_pixelmap* colour_map;
 
-#define CAMERA_MAX_DISTANCE(A) ((pMax_distance != 0.f) ? pMax_distance : REC2_SQR(((br_camera*)(A)->type_data)->yon_z))
+    for (i = 0; i < pStorage->materials_count; i++) {
 
-    if (gMirror_on__graphics) {
-        BrVector3Sub(&distance_vector, pPoint, (br_vector3*)gRearview_camera_to_world.m[3]);
-        if (BrVector3LengthSquared(&distance_vector) < CAMERA_MAX_DISTANCE(gRearview_camera)
-                && BrVector3Dot(&distance_vector, (br_vector3*)gRearview_camera_to_world.m[2]) < 0.f) {
+        colour_map = pStorage->materialProps[i];
 
-            return 0;
-        }
-    }
-
-    for (i = 0; i < gCount_extra_renders; i++) {
-        br_actor* a = gExtra_renders[i].actor;
-
-        BrVector3Sub(&distance_vector, pPoint, &a->t.t.translate.t);
-        if (BrVector3LengthSquared(&distance_vector) < CAMERA_MAX_DISTANCE(a)) {
-
-            return 0;
-        }
-    }
-
-    BrVector3Sub(&distance_vector, pPoint, (br_vector3*)gCamera_to_world.m[3]);
-    if (BrVector3LengthSquared(&distance_vector) >= CAMERA_MAX_DISTANCE(gCamera)) {
-        return 1;
-    }
-    if (BrVector3Dot(&distance_vector, (br_vector3*)gCamera_to_world.m[2]) >= 0.f) {
-
-        return 1;
-    }
-#undef CAMERA_MAX_DISTANCE
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x004e5ef0
-void C2_HOOK_FASTCALL CancelificateClipulatingPlaneyThings(void) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x004e5f00
-void C2_HOOK_FASTCALL FixificateClipulatingPlaneyThings(void) {
-
-    // empty
-}
-
-void C2_HOOK_FASTCALL ProcessModelFaceMaterials(br_model* pModel, tPMFMCB* pCallback) {
-    tU16 f;
-    br_material* possible_mat;
-    br_material* new_mat = NULL;
-
-    for (f = 0; f < pModel->nfaces; f++) {
-
-        if (pModel->faces[f].material == NULL) {
-            continue;
-        }
-        possible_mat = pCallback(pModel, f);
-        if (possible_mat == NULL) {
-            continue;
-        }
-        pModel->faces[f].material = possible_mat;
-        new_mat = possible_mat;
-    }
-    if (new_mat != NULL) {
-        BrModelUpdate(pModel, BR_MODU_ALL);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00448fd0
-void C2_HOOK_FASTCALL ProcessModelFaceMaterials2(br_model* pModel, material_cbfn* pCallback) {
-    tU32 i;
-    tU32 j;
-
-    if (pModel->faces == NULL) {
-        if (pModel->prepared != NULL) {
-            for (i = 0; i < pModel->prepared->ngroups; i++) {
-
-                /* FIXME: can this inner loop be removed? */
-                for (j = 0; j < pModel->prepared->groups[i].nfaces; j++) {
-                    if (*pModel->prepared->groups[i].face_colours.materials != NULL) {
-                        pCallback(*pModel->prepared->groups[i].face_colours.materials);
-                    }
-                }
-            }
-        }
-    } else if (pModel->faces != NULL) {
-        for (i = 0; i < pModel->nfaces; i++) {
-            if (pModel->faces[i].material != NULL) {
-                pCallback(pModel->faces[i].material);
-            }
+        if (colour_map != NULL) {
+            pStorage->materials[i]->colour_map = colour_map;
+            pStorage->materialProps[i] = NULL;
+            pStorage->materials[i]->flags |= BR_MATF_PRELIT;
+            BrMaterialUpdate(pStorage->materials[i], BR_MATU_ALL);
         }
     }
 }
 
-// FUNCTION: CARMA2_HW 0x00448850
-intptr_t C2_HOOK_CDECL ProcessFaceMaterials(br_actor* pActor, void* pData) {
-    tPMFMCB* callback = pData;
+// FUNCTION: CARMA2_HW 0x00447350
+void C2_HOOK_FASTCALL SetCarStorageTexturingLevel(tBrender_storage* pStorage, tCar_texturing_level pNew, tCar_texturing_level pOld) {
 
-    if (pActor->identifier != NULL && pActor->identifier[0] == '&') {
-        return 0;
+    switch (pNew) {
+    case eCTL_full:
+        RevealStoredTextures(pStorage);
+        break;
+    case eCTL_transparent:
+        switch (pOld) {
+        case eCTL_full:
+            HideStoredOpaqueTextures(pStorage);
+            break;
+        case eCTL_none:
+            RevealStoredTransparentTextures(pStorage);
+            break;
+        default:
+            break;
+        }
+        break;
+    case eCTL_none:
+        HideStoredTextures(pStorage);
+        break;
+    default:
+        break;
     }
-    if (pActor->type == BR_ACTOR_MODEL && pActor->model != NULL) {
-        ProcessModelFaceMaterials(pActor->model, callback);
-    }
-    return BrActorEnum(pActor, ProcessFaceMaterials, pData);
 }
 
 // FUNCTION: CARMA2_HW 0x004475c0
@@ -190,6 +110,30 @@ int C2_HOOK_FASTCALL DRPixelmapHasZeros(br_pixelmap* pm) {
         row_ptr += pm->row_bytes;
     }
     return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00447640
+tCar_texturing_level C2_HOOK_FASTCALL GetCarTexturingLevel(void) {
+
+    return gCar_texturing_level;
+}
+
+// FUNCTION: CARMA2_HW 0x00447650
+    void C2_HOOK_FASTCALL SetCarTexturingLevel(tCar_texturing_level pLevel) {
+
+    if (gCar_texturing_level != pLevel) {
+        if (gOur_car_storage_space.models_count != 0) {
+            SetCarStorageTexturingLevel(&gOur_car_storage_space, pLevel, gCar_texturing_level);
+        }
+        if (gTheir_cars_storage_space.models_count != 0) {
+            SetCarStorageTexturingLevel(&gTheir_cars_storage_space, pLevel, gCar_texturing_level);
+        }
+        if (gNet_cars_storage_space.models_count != 0) {
+            // FIXME: wrong BRender storage?
+            SetCarStorageTexturingLevel(&gTheir_cars_storage_space, pLevel, gCar_texturing_level);
+        }
+    }
+    gCar_texturing_level = pLevel;
 }
 
 // FUNCTION: CARMA2_HW 0x004479c0
@@ -254,105 +198,6 @@ void C2_HOOK_FASTCALL HideStoredTextures(tBrender_storage* pStorage) {
             BrMaterialUpdate(pStorage->materials[i], BR_MATU_ALL);
         }
     }
-}
-
-void C2_HOOK_FASTCALL RevealStoredTextures(tBrender_storage* pStorage) {
-    int i;
-    br_pixelmap* colour_map;
-
-    for (i = 0; i < pStorage->materials_count; i++) {
-
-        colour_map = pStorage->materialProps[i];
-
-        if (colour_map != NULL) {
-            pStorage->materials[i]->colour_map = colour_map;
-            pStorage->materialProps[i] = NULL;
-            pStorage->materials[i]->flags |= BR_MATF_PRELIT;
-            BrMaterialUpdate(pStorage->materials[i], BR_MATU_ALL);
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00447350
-void C2_HOOK_FASTCALL SetCarStorageTexturingLevel(tBrender_storage* pStorage, tCar_texturing_level pNew, tCar_texturing_level pOld) {
-
-    switch (pNew) {
-    case eCTL_full:
-        RevealStoredTextures(pStorage);
-        break;
-    case eCTL_transparent:
-        switch (pOld) {
-        case eCTL_full:
-            HideStoredOpaqueTextures(pStorage);
-            break;
-        case eCTL_none:
-            RevealStoredTransparentTextures(pStorage);
-            break;
-        default:
-            break;
-        }
-        break;
-    case eCTL_none:
-        HideStoredTextures(pStorage);
-        break;
-    default:
-        break;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00447640
-tCar_texturing_level C2_HOOK_FASTCALL GetCarTexturingLevel(void) {
-
-    return gCar_texturing_level;
-}
-
-// FUNCTION: CARMA2_HW 0x00447650
-    void C2_HOOK_FASTCALL SetCarTexturingLevel(tCar_texturing_level pLevel) {
-
-    if (gCar_texturing_level != pLevel) {
-        if (gOur_car_storage_space.models_count != 0) {
-            SetCarStorageTexturingLevel(&gOur_car_storage_space, pLevel, gCar_texturing_level);
-        }
-        if (gTheir_cars_storage_space.models_count != 0) {
-            SetCarStorageTexturingLevel(&gTheir_cars_storage_space, pLevel, gCar_texturing_level);
-        }
-        if (gNet_cars_storage_space.models_count != 0) {
-            // FIXME: wrong BRender storage?
-            SetCarStorageTexturingLevel(&gTheir_cars_storage_space, pLevel, gCar_texturing_level);
-        }
-    }
-    gCar_texturing_level = pLevel;
-}
-
-// FUNCTION: CARMA2_HW 0x00448ce0
-int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
-    size_t len_ident;
-    size_t len_suffix;
-
-    len_ident = strlen(pIdent);
-    len_suffix = strlen(pSuffix);
-    if (pIdent == NULL) {
-        return 0;
-    }
-    if (len_ident < len_suffix) {
-        return 0;
-    }
-    return strcmp(pIdent + len_ident - len_suffix, pSuffix) == 0;
-}
-
-// PARTIAL 87.06%: UnsuffixedMaterial 0x00448d70 [register choice; split-strlen variant reaches 100 but moves neighbours 0x4481d0/0x448390 to 75.86/88.68]
-// FUNCTION: CARMA2_HW 0x00448d70
-br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const char* pSuffix) {
-    br_material* result;
-    int unsuffixed_len;
-    char* new_id;
-
-    unsuffixed_len = strlen(pOld_ident) - strlen(pSuffix);
-    new_id = BrMemAllocate(unsuffixed_len + 1, kMem_new_mat_id);
-    sprintf(new_id, "%.*s", unsuffixed_len, pOld_ident);
-    result = BrMaterialFind(new_id);
-    BrMemFree(new_id);
-    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x00447c60
@@ -442,6 +287,19 @@ void C2_HOOK_FASTCALL SetRoadTexturingLevel(tRoad_texturing_level pLevel) {
     gRoad_texturing_level = pLevel;
 }
 
+// FUNCTION: CARMA2_HW 0x00448850
+intptr_t C2_HOOK_CDECL ProcessFaceMaterials(br_actor* pActor, void* pData) {
+    tPMFMCB* callback = pData;
+
+    if (pActor->identifier != NULL && pActor->identifier[0] == '&') {
+        return 0;
+    }
+    if (pActor->type == BR_ACTOR_MODEL && pActor->model != NULL) {
+        ProcessModelFaceMaterials(pActor->model, callback);
+    }
+    return BrActorEnum(pActor, ProcessFaceMaterials, pData);
+}
+
 // FUNCTION: CARMA2_HW 0x004488f0
 tWall_texturing_level C2_HOOK_FASTCALL GetWallTexturingLevel(void) {
 
@@ -452,44 +310,6 @@ tWall_texturing_level C2_HOOK_FASTCALL GetWallTexturingLevel(void) {
 void C2_HOOK_FASTCALL SetWallTexturingLevel(tWall_texturing_level pLevel) {
 
     gWall_texturing_level = pLevel;
-}
-
-// FUNCTION: CARMA2_HW 0x00448dd0
-br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pFace) {
-    size_t max_suffix_len;
-    br_material* mat;
-    br_material* victim;
-    // GLOBAL: CARMA2_HW 0x005913a0
-    static const char* suffixes[3] = {
-        ".road",
-        ".pwall",
-        ".lwall",
-    };
-    int s;
-    char* id;
-
-    mat = pModel->faces[pFace].material;
-    if (mat->identifier != NULL) {
-        max_suffix_len = 0;
-        for (s = 0; s < REC2_ASIZE(suffixes); s++) {
-            if (max_suffix_len < strlen(suffixes[s])) {
-                max_suffix_len = strlen(suffixes[s]);
-            }
-        }
-        id = BrMemAllocate(strlen(mat->identifier) + max_suffix_len + 1, kMem_new_mat_id);
-        for (s = 0; s < REC2_ASIZE(suffixes); s++) {
-            sprintf(id, "%s%s", mat->identifier, suffixes[s]);
-            victim = BrMaterialFind(id);
-            if (victim != NULL) {
-                BrMaterialRemove(victim);
-                BrMaterialFree(victim);
-            }
-        }
-#ifdef REC2_FIX_BUGS
-        BrMemFree(id);
-#endif
-    }
-    return NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x004489d0
@@ -620,6 +440,75 @@ road_pass:
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00448ce0
+int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
+    size_t len_ident;
+    size_t len_suffix;
+
+    len_ident = strlen(pIdent);
+    len_suffix = strlen(pSuffix);
+    if (pIdent == NULL) {
+        return 0;
+    }
+    if (len_ident < len_suffix) {
+        return 0;
+    }
+    return strcmp(pIdent + len_ident - len_suffix, pSuffix) == 0;
+}
+
+// PARTIAL 87.06%: UnsuffixedMaterial 0x00448d70 [register choice; split-strlen variant reaches 100 but moves neighbours 0x4481d0/0x448390 to 75.86/88.68]
+// FUNCTION: CARMA2_HW 0x00448d70
+br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const char* pSuffix) {
+    br_material* result;
+    int unsuffixed_len;
+    char* new_id;
+
+    unsuffixed_len = strlen(pOld_ident) - strlen(pSuffix);
+    new_id = BrMemAllocate(unsuffixed_len + 1, kMem_new_mat_id);
+    sprintf(new_id, "%.*s", unsuffixed_len, pOld_ident);
+    result = BrMaterialFind(new_id);
+    BrMemFree(new_id);
+    return result;
+}
+
+// FUNCTION: CARMA2_HW 0x00448dd0
+br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pFace) {
+    size_t max_suffix_len;
+    br_material* mat;
+    br_material* victim;
+    // GLOBAL: CARMA2_HW 0x005913a0
+    static const char* suffixes[3] = {
+        ".road",
+        ".pwall",
+        ".lwall",
+    };
+    int s;
+    char* id;
+
+    mat = pModel->faces[pFace].material;
+    if (mat->identifier != NULL) {
+        max_suffix_len = 0;
+        for (s = 0; s < REC2_ASIZE(suffixes); s++) {
+            if (max_suffix_len < strlen(suffixes[s])) {
+                max_suffix_len = strlen(suffixes[s]);
+            }
+        }
+        id = BrMemAllocate(strlen(mat->identifier) + max_suffix_len + 1, kMem_new_mat_id);
+        for (s = 0; s < REC2_ASIZE(suffixes); s++) {
+            sprintf(id, "%s%s", mat->identifier, suffixes[s]);
+            victim = BrMaterialFind(id);
+            if (victim != NULL) {
+                BrMaterialRemove(victim);
+                BrMaterialFree(victim);
+            }
+        }
+#ifdef REC2_FIX_BUGS
+        BrMemFree(id);
+#endif
+    }
+    return NULL;
+}
+
 // FUNCTION: CARMA2_HW 0x00448ea0
 intptr_t C2_HOOK_CDECL SetAccessoryRenderingCB(br_actor* pActor, void* pFlag) {
 
@@ -675,6 +564,54 @@ intptr_t C2_HOOK_CDECL ProcessMaterials(br_actor* pActor, void* pContext) {
     return BrActorEnum(pActor, ProcessMaterials, callback);
 }
 
+void C2_HOOK_FASTCALL ProcessModelFaceMaterials(br_model* pModel, tPMFMCB* pCallback) {
+    tU16 f;
+    br_material* possible_mat;
+    br_material* new_mat = NULL;
+
+    for (f = 0; f < pModel->nfaces; f++) {
+
+        if (pModel->faces[f].material == NULL) {
+            continue;
+        }
+        possible_mat = pCallback(pModel, f);
+        if (possible_mat == NULL) {
+            continue;
+        }
+        pModel->faces[f].material = possible_mat;
+        new_mat = possible_mat;
+    }
+    if (new_mat != NULL) {
+        BrModelUpdate(pModel, BR_MODU_ALL);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00448fd0
+void C2_HOOK_FASTCALL ProcessModelFaceMaterials2(br_model* pModel, material_cbfn* pCallback) {
+    tU32 i;
+    tU32 j;
+
+    if (pModel->faces == NULL) {
+        if (pModel->prepared != NULL) {
+            for (i = 0; i < pModel->prepared->ngroups; i++) {
+
+                /* FIXME: can this inner loop be removed? */
+                for (j = 0; j < pModel->prepared->groups[i].nfaces; j++) {
+                    if (*pModel->prepared->groups[i].face_colours.materials != NULL) {
+                        pCallback(*pModel->prepared->groups[i].face_colours.materials);
+                    }
+                }
+            }
+        }
+    } else if (pModel->faces != NULL) {
+        for (i = 0; i < pModel->nfaces; i++) {
+            if (pModel->faces[i].material != NULL) {
+                pCallback(pModel->faces[i].material);
+            }
+        }
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x004b4ed0
 void C2_HOOK_FASTCALL BuildColourTable(br_pixelmap* pPalette) {
     int i;
@@ -705,5 +642,68 @@ void C2_HOOK_FASTCALL BuildColourTable(br_pixelmap* pPalette) {
         }
         gColours[i] = nearest_index;
     }
+}
+// FUNCTION: CARMA2_HW 0x004e5cb0
+void C2_HOOK_FASTCALL InitialiseExtraRenders(void) {
+
+    gCount_extra_renders = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004e5cc0
+void C2_HOOK_FASTCALL AddExtraRender(br_actor* pActor, br_material* pMaterial) {
+
+    gExtra_renders[gCount_extra_renders].actor = pActor;
+    gExtra_renders[gCount_extra_renders].material = pMaterial;
+    gCount_extra_renders += 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004e5ce0
+int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance) {
+    br_vector3 distance_vector;
+    int i;
+
+#define CAMERA_MAX_DISTANCE(A) ((pMax_distance != 0.f) ? pMax_distance : REC2_SQR(((br_camera*)(A)->type_data)->yon_z))
+
+    if (gMirror_on__graphics) {
+        BrVector3Sub(&distance_vector, pPoint, (br_vector3*)gRearview_camera_to_world.m[3]);
+        if (BrVector3LengthSquared(&distance_vector) < CAMERA_MAX_DISTANCE(gRearview_camera)
+                && BrVector3Dot(&distance_vector, (br_vector3*)gRearview_camera_to_world.m[2]) < 0.f) {
+
+            return 0;
+        }
+    }
+
+    for (i = 0; i < gCount_extra_renders; i++) {
+        br_actor* a = gExtra_renders[i].actor;
+
+        BrVector3Sub(&distance_vector, pPoint, &a->t.t.translate.t);
+        if (BrVector3LengthSquared(&distance_vector) < CAMERA_MAX_DISTANCE(a)) {
+
+            return 0;
+        }
+    }
+
+    BrVector3Sub(&distance_vector, pPoint, (br_vector3*)gCamera_to_world.m[3]);
+    if (BrVector3LengthSquared(&distance_vector) >= CAMERA_MAX_DISTANCE(gCamera)) {
+        return 1;
+    }
+    if (BrVector3Dot(&distance_vector, (br_vector3*)gCamera_to_world.m[2]) >= 0.f) {
+
+        return 1;
+    }
+#undef CAMERA_MAX_DISTANCE
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004e5ef0
+void C2_HOOK_FASTCALL CancelificateClipulatingPlaneyThings(void) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x004e5f00
+void C2_HOOK_FASTCALL FixificateClipulatingPlaneyThings(void) {
+
+    // empty
 }
 

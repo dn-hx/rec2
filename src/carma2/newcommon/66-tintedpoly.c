@@ -541,10 +541,34 @@ void C2_HOOK_FASTCALL RenderTintedPolys(void) {
     BrZbsSceneRender(gTintedPolyCamera, gTintedPolyCamera, gBack_screen, gDepth_buffer);
 }
 
+
+// FUNCTION: CARMA2_HW 0x004d82b0
+void C2_HOOK_FASTCALL SetTintedPolyColour(int pTintedIndex, int pRed, int pGreen, int pBlue) {
+    int changed;
+
+    changed = 0;
+    if (gTintedPolys[pTintedIndex].color_red != (br_uint_32)pRed) {
+        gTintedPolys[pTintedIndex].color_red = pRed;
+        changed = 1;
+    }
+    if (gTintedPolys[pTintedIndex].color_grn != (br_uint_32)pGreen) {
+        gTintedPolys[pTintedIndex].color_grn = pGreen;
+        changed = 1;
+    }
+    if (gTintedPolys[pTintedIndex].color_blu != (br_uint_32)pBlue) {
+        gTintedPolys[pTintedIndex].color_blu = pBlue;
+        changed = 1;
+    }
+    if (changed) {
+        (gTintedPolys[pTintedIndex].material)->colour = BR_COLOUR_RGB(gTintedPolys[pTintedIndex].color_red, gTintedPolys[pTintedIndex].color_grn, gTintedPolys[pTintedIndex].color_blu);
+        BrMaterialUpdate(gTintedPolys[pTintedIndex].material ,BR_MATU_LIGHTING);
+    }
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
 extern void C2_HOOK_FASTCALL DisablePlingMaterials(void);
 extern void C2_HOOK_FASTCALL EnablePlingMaterials(void);
@@ -585,30 +609,6 @@ void C2_HOOK_FASTCALL SetTintedFromSpecialVolume(int pTintedIndex, br_vector3* p
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// FUNCTION: CARMA2_HW 0x004d82b0
-void C2_HOOK_FASTCALL SetTintedPolyColour(int pTintedIndex, int pRed, int pGreen, int pBlue) {
-    int changed;
-
-    changed = 0;
-    if (gTintedPolys[pTintedIndex].color_red != (br_uint_32)pRed) {
-        gTintedPolys[pTintedIndex].color_red = pRed;
-        changed = 1;
-    }
-    if (gTintedPolys[pTintedIndex].color_grn != (br_uint_32)pGreen) {
-        gTintedPolys[pTintedIndex].color_grn = pGreen;
-        changed = 1;
-    }
-    if (gTintedPolys[pTintedIndex].color_blu != (br_uint_32)pBlue) {
-        gTintedPolys[pTintedIndex].color_blu = pBlue;
-        changed = 1;
-    }
-    if (changed) {
-        (gTintedPolys[pTintedIndex].material)->colour = BR_COLOUR_RGB(gTintedPolys[pTintedIndex].color_red, gTintedPolys[pTintedIndex].color_grn, gTintedPolys[pTintedIndex].color_blu);
-        BrMaterialUpdate(gTintedPolys[pTintedIndex].material ,BR_MATU_LIGHTING);
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x004d8470
 br_material* C2_HOOK_FASTCALL InWater(int pTintedIndex) {
 
@@ -682,10 +682,10 @@ void C2_HOOK_FASTCALL ProcessTintedPoly(int pIndex) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004d8630
 void C2_HOOK_FASTCALL UpdatePolyVertexColours(int pIndex) {
     int i;
@@ -702,10 +702,10 @@ void C2_HOOK_FASTCALL UpdatePolyVertexColours(int pIndex) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 void C2_HOOK_FASTCALL ClearTheFlame(int pIndex) {
     C2_HOOK_BUG_ON(REC2_ASIZE(gTintedPolys[pIndex].tints2) != FIRE_HEIGHT);
     C2_HOOK_BUG_ON(REC2_ASIZE(gTintedPolys[pIndex].tints2[0]) != FIRE_WIDTH);

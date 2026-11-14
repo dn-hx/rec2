@@ -564,10 +564,10 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
     gPalette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gPalette_pixels, 0);
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // based on ApexWorm/rec2 752e0af1e
 // FUNCTION: CARMA2_HW 0x00461aa0
 void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
@@ -578,10 +578,10 @@ void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pix
     pFlic_info->the_pixelmap = pDest_pixelmap;
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00461ad0
 int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate) {
     tU16 claimed_speed;
@@ -688,191 +688,6 @@ int C2_HOOK_FASTCALL EndFlic(tFlic_descriptor_ptr pFlic_info) {
         pFlic_info->data = NULL;
     }
     return 0;
-}
-
-// DoColourMap
-
-// DoDifferenceX
-
-// FUNCTION: CARMA2_HW 0x00462480
-// FUNCTION: CARMA2_SW 0x00461f10
-void C2_HOOK_FASTCALL DoDifferenceTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
-    int i;
-    int j;
-    int k;
-    int skipped_lines;
-    int number_of_lines;
-    int number_of_packets;
-    int skip_count;
-    int size_count;
-    tU8* pixel_ptr;
-    tU8* line_pixel_ptr;
-    tU8 the_byte;
-    tU32 the_row_bytes;
-
-    (void)pChunk_length;
-    skipped_lines = MemReadU16(&pFlic_info->data);
-    number_of_lines = MemReadU16(&pFlic_info->data);
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    pixel_ptr = pFlic_info->first_pixel + skipped_lines * the_row_bytes;
-    for (i = 0; i < number_of_lines; i++) {
-        line_pixel_ptr = pixel_ptr;
-        number_of_packets = MemReadU8(&pFlic_info->data);
-        for (j = 0; j < number_of_packets; j++) {
-            skip_count = MemReadU8(&pFlic_info->data);
-            size_count = MemReadS8(&pFlic_info->data);
-            line_pixel_ptr += skip_count;
-            if (size_count >= 0) {
-                for (k = 0; k < size_count; k++) {
-                    the_byte = *pFlic_info->data++;
-                    if (the_byte != 0) {
-                        *line_pixel_ptr = the_byte;
-                        line_pixel_ptr++;
-                    } else {
-                        line_pixel_ptr++;
-                    }
-                }
-            } else {
-                the_byte = *pFlic_info->data++;
-                if (the_byte != 0) {
-                    for (k = 0; k < -size_count; k++) {
-                        *line_pixel_ptr = the_byte;
-                        line_pixel_ptr++;
-                    }
-                } else {
-                    line_pixel_ptr += size_count;
-                }
-            }
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-
-// DoColour256
-
-// DoDeltaTrans
-
-// FUNCTION: CARMA2_HW 0x00462580
-// FUNCTION: CARMA2_SW 0x00462010
-void C2_HOOK_FASTCALL DoBlack(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
-    int i;
-    int j;
-    int the_width;
-    tU8* pixel_ptr;
-    tU32 the_row_bytes;
-    tU32* line_pixel_ptr;
-
-    pixel_ptr = pFlic_info->first_pixel;
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    the_width = pFlic_info->width >> 2;
-    for (i = 0; i < pFlic_info->height; i++) {
-        line_pixel_ptr = (tU32*)pixel_ptr;
-        for (j = 0; j < the_width; j++) {
-            *line_pixel_ptr = 0;
-            line_pixel_ptr++;
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004625d0
-// FUNCTION: CARMA2_SW 0x00462060
-void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
-    int i;
-    int j;
-    int k;
-    int number_of_packets;
-    int size_count;
-    int the_row_bytes;
-    tU8* pixel_ptr;
-    tU8* line_pixel_ptr;
-    tU8 the_byte;
-
-    (void)pChunk_length;
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    pixel_ptr = pFlic_info->first_pixel;
-    for (i = 0; i < pFlic_info->height; i++) {
-        line_pixel_ptr = pixel_ptr;
-        number_of_packets = MemReadU8(&pFlic_info->data);
-        for (j = 0; j < number_of_packets; j++) {
-            size_count = MemReadS8(&pFlic_info->data);
-            if (size_count < 0) {
-                for (k = 0; k < -size_count; k++) {
-                    *line_pixel_ptr = MemReadU8(&pFlic_info->data);
-                    line_pixel_ptr++;
-                }
-            } else {
-                the_byte = MemReadU8(&pFlic_info->data);
-                for (k = 0; k < size_count; k++) {
-                    *line_pixel_ptr = the_byte;
-                    line_pixel_ptr++;
-                }
-            }
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004626a0
-void C2_HOOK_FASTCALL DoRunLengthTrans(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
-    int i;
-    int j;
-    int k;
-    int number_of_packets;
-    int size_count;
-    tU8* pixel_ptr;
-    tU8* line_pixel_ptr;
-    tU8 the_byte;
-    tU32 the_row_bytes;
-
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    pixel_ptr = pFlic_info->first_pixel;
-
-    for (i = 0; i < pFlic_info->height; i++) {
-        line_pixel_ptr = pixel_ptr;
-        number_of_packets = MemReadU8(&pFlic_info->data);
-        for (j = 0; j < number_of_packets; j++) {
-            size_count = MemReadS8(&pFlic_info->data);
-            if (size_count < 0) {
-                for (k = 0; k < -size_count; k++) {
-                    the_byte = MemReadU8(&pFlic_info->data);
-                    if (the_byte) {
-                        *line_pixel_ptr = the_byte;
-                        line_pixel_ptr++;
-                    } else {
-                        line_pixel_ptr++;
-                    }
-                }
-            } else {
-                the_byte = MemReadU8(&pFlic_info->data);
-                if (the_byte) {
-                    for (k = 0; k < size_count; k++) {
-                        *line_pixel_ptr = the_byte;
-                        line_pixel_ptr++;
-                    }
-                } else {
-                    line_pixel_ptr += size_count;
-                }
-            }
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-// FUNCTION: CARMA2_HW 0x00462780
-void C2_HOOK_FASTCALL DoUncompressed(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
-    int i = 0;
-    int the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    int width_dwords = pFlic_info->width >> 2;
-    tU8* pixel_ptr = pFlic_info->first_pixel;
-    int j;
-
-    for (i = 0; i < pFlic_info->height; i++) {
-        tU32* dest = (tU32*)pixel_ptr;
-        for (j = 0; j < width_dwords; j++) {
-            *dest++ = MemReadU32(&pFlic_info->data);
-        }
-        pixel_ptr += the_row_bytes;
-    }
 }
 
 // DoUncompressedTrans
@@ -1074,10 +889,10 @@ static void FlicDoDeltaX(tFlic_descriptor* pFlic_info) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00461da0
 int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info) {
     int read_amount;
@@ -1174,22 +989,314 @@ int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info) {
     return finished;
 }
 
+
+// FUNCTION: CARMA2_HW 0x00462390
+void C2_HOOK_FASTCALL DoDifferenceX(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
+    int i;
+    int j;
+    int k;
+    int skipped_lines;
+    int number_of_lines;
+    int number_of_packets;
+    int skip_count;
+    int size_count;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU32 the_row_bytes;
+
+    (void)pChunk_length;
+    skipped_lines = MemReadU16(&pFlic_info->data);
+    number_of_lines = MemReadU16(&pFlic_info->data);
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel + skipped_lines * the_row_bytes;
+    for (i = 0; i < number_of_lines; i++) {
+        line_pixel_ptr = pixel_ptr;
+        number_of_packets = MemReadU8(&pFlic_info->data);
+        for (j = 0; j < number_of_packets; j++) {
+            skip_count = MemReadU8(&pFlic_info->data);
+            size_count = MemReadS8(&pFlic_info->data);
+            line_pixel_ptr += skip_count;
+            if (size_count >= 0) {
+                for (k = 0; k < size_count; k++) {
+                    *line_pixel_ptr++ = *pFlic_info->data;
+                    pFlic_info->data++;
+                }
+            } else {
+                the_byte = *pFlic_info->data;
+                pFlic_info->data++;
+                for (k = 0; k < -size_count; k++) {
+                    *line_pixel_ptr = the_byte;
+                    line_pixel_ptr++;
+                }
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// DoColourMap
 
-// FUNCTION: CARMA2_HW 0x00462a40
-void C2_HOOK_FASTCALL InitFlics(void) {
+// DoDifferenceX
+
+// FUNCTION: CARMA2_HW 0x00462480
+// FUNCTION: CARMA2_SW 0x00461f10
+void C2_HOOK_FASTCALL DoDifferenceTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
     int i;
+    int j;
+    int k;
+    int skipped_lines;
+    int number_of_lines;
+    int number_of_packets;
+    int skip_count;
+    int size_count;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU32 the_row_bytes;
 
-    for (i = 0; i < (int)REC2_ASIZE(gMain_flic_list); i++) {
-        gMain_flic_list[i].data_ptr = NULL;
+    (void)pChunk_length;
+    skipped_lines = MemReadU16(&pFlic_info->data);
+    number_of_lines = MemReadU16(&pFlic_info->data);
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel + skipped_lines * the_row_bytes;
+    for (i = 0; i < number_of_lines; i++) {
+        line_pixel_ptr = pixel_ptr;
+        number_of_packets = MemReadU8(&pFlic_info->data);
+        for (j = 0; j < number_of_packets; j++) {
+            skip_count = MemReadU8(&pFlic_info->data);
+            size_count = MemReadS8(&pFlic_info->data);
+            line_pixel_ptr += skip_count;
+            if (size_count >= 0) {
+                for (k = 0; k < size_count; k++) {
+                    the_byte = *pFlic_info->data++;
+                    if (the_byte != 0) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    } else {
+                        line_pixel_ptr++;
+                    }
+                }
+            } else {
+                the_byte = *pFlic_info->data++;
+                if (the_byte != 0) {
+                    for (k = 0; k < -size_count; k++) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    }
+                } else {
+                    line_pixel_ptr += size_count;
+                }
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+
+// DoColour256
+
+// DoDeltaTrans
+
+// FUNCTION: CARMA2_HW 0x00462580
+// FUNCTION: CARMA2_SW 0x00462010
+void C2_HOOK_FASTCALL DoBlack(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
+    int i;
+    int j;
+    int the_width;
+    tU8* pixel_ptr;
+    tU32 the_row_bytes;
+    tU32* line_pixel_ptr;
+
+    pixel_ptr = pFlic_info->first_pixel;
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    the_width = pFlic_info->width >> 2;
+    for (i = 0; i < pFlic_info->height; i++) {
+        line_pixel_ptr = (tU32*)pixel_ptr;
+        for (j = 0; j < the_width; j++) {
+            *line_pixel_ptr = 0;
+            line_pixel_ptr++;
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004625d0
+// FUNCTION: CARMA2_SW 0x00462060
+void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
+    int i;
+    int j;
+    int k;
+    int number_of_packets;
+    int size_count;
+    int the_row_bytes;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+
+    (void)pChunk_length;
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel;
+    for (i = 0; i < pFlic_info->height; i++) {
+        line_pixel_ptr = pixel_ptr;
+        number_of_packets = MemReadU8(&pFlic_info->data);
+        for (j = 0; j < number_of_packets; j++) {
+            size_count = MemReadS8(&pFlic_info->data);
+            if (size_count < 0) {
+                for (k = 0; k < -size_count; k++) {
+                    *line_pixel_ptr = MemReadU8(&pFlic_info->data);
+                    line_pixel_ptr++;
+                }
+            } else {
+                the_byte = MemReadU8(&pFlic_info->data);
+                for (k = 0; k < size_count; k++) {
+                    *line_pixel_ptr = the_byte;
+                    line_pixel_ptr++;
+                }
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004626a0
+void C2_HOOK_FASTCALL DoRunLengthTrans(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
+    int i;
+    int j;
+    int k;
+    int number_of_packets;
+    int size_count;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU32 the_row_bytes;
+
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel;
+
+    for (i = 0; i < pFlic_info->height; i++) {
+        line_pixel_ptr = pixel_ptr;
+        number_of_packets = MemReadU8(&pFlic_info->data);
+        for (j = 0; j < number_of_packets; j++) {
+            size_count = MemReadS8(&pFlic_info->data);
+            if (size_count < 0) {
+                for (k = 0; k < -size_count; k++) {
+                    the_byte = MemReadU8(&pFlic_info->data);
+                    if (the_byte) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    } else {
+                        line_pixel_ptr++;
+                    }
+                }
+            } else {
+                the_byte = MemReadU8(&pFlic_info->data);
+                if (the_byte) {
+                    for (k = 0; k < size_count; k++) {
+                        *line_pixel_ptr = the_byte;
+                        line_pixel_ptr++;
+                    }
+                } else {
+                    line_pixel_ptr += size_count;
+                }
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+// FUNCTION: CARMA2_HW 0x00462780
+void C2_HOOK_FASTCALL DoUncompressed(tFlic_descriptor* pFlic_info, tU32 chunk_length) {
+    int i = 0;
+    int the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    int width_dwords = pFlic_info->width >> 2;
+    tU8* pixel_ptr = pFlic_info->first_pixel;
+    int j;
+
+    for (i = 0; i < pFlic_info->height; i++) {
+        tU32* dest = (tU32*)pixel_ptr;
+        for (j = 0; j < width_dwords; j++) {
+            *dest++ = MemReadU32(&pFlic_info->data);
+        }
+        pixel_ptr += the_row_bytes;
     }
 }
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x004627f0
+void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
+    int i;
+    int j;
+    int the_width;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU32 the_row_bytes;
+
+    (void)pChunk_length;
+    pixel_ptr = pFlic_info->first_pixel;
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    the_width = pFlic_info->width;
+    for (i = 0; i < pFlic_info->height; i++) {
+        line_pixel_ptr = pixel_ptr;
+        for (j = 0; j < the_width; j++) {
+            the_byte = (tU8)MemReadU32(&pFlic_info->data);
+            if (the_byte != '\0') {
+                *line_pixel_ptr = the_byte;
+                line_pixel_ptr++;
+            } else {
+                line_pixel_ptr++;
+            }
+        }
+        pixel_ptr += the_row_bytes;
+    }
+}
+
+// PARTIAL 97.30%: DrawTranslations 0x00462860 [regalloc: ecx/edx swap for y_offset+trans[1] add and right-justify temp; TU-context, source permutations all identical locally]
+// FUNCTION: CARMA2_HW 0x00462860
+void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info) {
+    int* trans;
+    int i;
+    int x;
+    int width;
+    int right_edge;
+
+    i = 0;
+    if (gTranslation_count > 0) {
+        trans = &gTranslations->x;
+        do {
+            if (trans[-1] == pFlic_info->the_index) {
+                width = DRTextWidth(gTrans_fonts[trans[2]], (char*)trans[4]);
+                switch (trans[3]) {
+                    case eJust_left:
+                        x = pFlic_info->x_offset + trans[0];
+                        right_edge = x + width;
+                        break;
+                    case eJust_right:
+                        right_edge = x = pFlic_info->x_offset - width + trans[0];
+                        break;
+                    case eJust_centre:
+                        x = pFlic_info->x_offset + trans[0] - width / 2;
+                        right_edge = x + width / 2;
+                        break;
+                }
+                DRPixelmapText(
+                        pFlic_info->the_pixelmap,
+                        x,
+                        pFlic_info->y_offset + trans[1],
+                        gTrans_fonts[trans[2]],
+                        (char*)trans[4],
+                        right_edge);
+            }
+            i++;
+            trans += 6;
+        } while (i < gTranslation_count);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00462930
 int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate) {
     int finished_playing;
@@ -1227,9 +1334,19 @@ int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelma
     }
     return 0;
 }
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x00462a40
+void C2_HOOK_FASTCALL InitFlics(void) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gMain_flic_list); i++) {
+        gMain_flic_list[i].data_ptr = NULL;
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -1239,10 +1356,10 @@ int C2_HOOK_FASTCALL LoadFlic(int pIndex) {
 
     return 0;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00462a70
 void C2_HOOK_FASTCALL UnlockFlic(int pIndex) {
     if (pIndex < 0) {
@@ -1282,6 +1399,17 @@ int C2_HOOK_FASTCALL LoadFlicData(char* pName, tU8** pData, tU32* pData_length) 
     }
     return 1;
 }
+
+// FUNCTION: CARMA2_HW 0x00462b80
+// FUNCTION: CARMA2_SW 0x00462610
+void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
+
+    PossibleService();
+    if (gMain_flic_list[pIndex].data_ptr != NULL) {
+        BrMemFree(gMain_flic_list[pIndex].data_ptr);
+        gMain_flic_list[pIndex].data_ptr = NULL;
+    }
+}
 // FUNCTION: CARMA2_HW 0x00462bb0
 void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY) {
 
@@ -1315,23 +1443,6 @@ void C2_HOOK_FASTCALL UnlockBunchOfFlics(int pBunch_index) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x00462b80
-// FUNCTION: CARMA2_SW 0x00462610
-void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
-
-    PossibleService();
-    if (gMain_flic_list[pIndex].data_ptr != NULL) {
-        BrMemFree(gMain_flic_list[pIndex].data_ptr);
-        gMain_flic_list[pIndex].data_ptr = NULL;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00462cc0
-void C2_HOOK_FASTCALL InitFlicQueue(void) {
-
-    gFirst_flic = NULL;
-}
-
 
 // FUNCTION: CARMA2_HW 0x00462c90
 void C2_HOOK_FASTCALL FlushAllFlics(int pBunch_index) {
@@ -1340,6 +1451,12 @@ void C2_HOOK_FASTCALL FlushAllFlics(int pBunch_index) {
     for (i = 0; i < (int)REC2_ASIZE(gMain_flic_list); i++) {
         FreeFlic(i);
     }
+}
+
+// FUNCTION: CARMA2_HW 0x00462cc0
+void C2_HOOK_FASTCALL InitFlicQueue(void) {
+
+    gFirst_flic = NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00462cd0
@@ -1596,144 +1713,3 @@ void C2_HOOK_FASTCALL SuspendPendingFlic(void) {
 void C2_HOOK_FASTCALL ResumePendingFlic(void) {
     gPending_flic = gPending_pending_flic;
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00462390
-void C2_HOOK_FASTCALL DoDifferenceX(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
-    int i;
-    int j;
-    int k;
-    int skipped_lines;
-    int number_of_lines;
-    int number_of_packets;
-    int skip_count;
-    int size_count;
-    tU8* pixel_ptr;
-    tU8* line_pixel_ptr;
-    tU8 the_byte;
-    tU32 the_row_bytes;
-
-    (void)pChunk_length;
-    skipped_lines = MemReadU16(&pFlic_info->data);
-    number_of_lines = MemReadU16(&pFlic_info->data);
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    pixel_ptr = pFlic_info->first_pixel + skipped_lines * the_row_bytes;
-    for (i = 0; i < number_of_lines; i++) {
-        line_pixel_ptr = pixel_ptr;
-        number_of_packets = MemReadU8(&pFlic_info->data);
-        for (j = 0; j < number_of_packets; j++) {
-            skip_count = MemReadU8(&pFlic_info->data);
-            size_count = MemReadS8(&pFlic_info->data);
-            line_pixel_ptr += skip_count;
-            if (size_count >= 0) {
-                for (k = 0; k < size_count; k++) {
-                    *line_pixel_ptr++ = *pFlic_info->data;
-                    pFlic_info->data++;
-                }
-            } else {
-                the_byte = *pFlic_info->data;
-                pFlic_info->data++;
-                for (k = 0; k < -size_count; k++) {
-                    *line_pixel_ptr = the_byte;
-                    line_pixel_ptr++;
-                }
-            }
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004627f0
-void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pChunk_length) {
-    int i;
-    int j;
-    int the_width;
-    tU8* pixel_ptr;
-    tU8* line_pixel_ptr;
-    tU8 the_byte;
-    tU32 the_row_bytes;
-
-    (void)pChunk_length;
-    pixel_ptr = pFlic_info->first_pixel;
-    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
-    the_width = pFlic_info->width;
-    for (i = 0; i < pFlic_info->height; i++) {
-        line_pixel_ptr = pixel_ptr;
-        for (j = 0; j < the_width; j++) {
-            the_byte = (tU8)MemReadU32(&pFlic_info->data);
-            if (the_byte != '\0') {
-                *line_pixel_ptr = the_byte;
-                line_pixel_ptr++;
-            } else {
-                line_pixel_ptr++;
-            }
-        }
-        pixel_ptr += the_row_bytes;
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// PARTIAL 97.30%: DrawTranslations 0x00462860 [regalloc: ecx/edx swap for y_offset+trans[1] add and right-justify temp; TU-context, source permutations all identical locally]
-// FUNCTION: CARMA2_HW 0x00462860
-void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info) {
-    int* trans;
-    int i;
-    int x;
-    int width;
-    int right_edge;
-
-    i = 0;
-    if (gTranslation_count > 0) {
-        trans = &gTranslations->x;
-        do {
-            if (trans[-1] == pFlic_info->the_index) {
-                width = DRTextWidth(gTrans_fonts[trans[2]], (char*)trans[4]);
-                switch (trans[3]) {
-                    case eJust_left:
-                        x = pFlic_info->x_offset + trans[0];
-                        right_edge = x + width;
-                        break;
-                    case eJust_right:
-                        right_edge = x = pFlic_info->x_offset - width + trans[0];
-                        break;
-                    case eJust_centre:
-                        x = pFlic_info->x_offset + trans[0] - width / 2;
-                        right_edge = x + width / 2;
-                        break;
-                }
-                DRPixelmapText(
-                        pFlic_info->the_pixelmap,
-                        x,
-                        pFlic_info->y_offset + trans[1],
-                        gTrans_fonts[trans[2]],
-                        (char*)trans[4],
-                        right_edge);
-            }
-            i++;
-            trans += 6;
-        } while (i < gTranslation_count);
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

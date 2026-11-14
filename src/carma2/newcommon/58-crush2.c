@@ -13,46 +13,246 @@
 
 #include "rec2_macros.h"
 
-// FUNCTION: CARMA2_HW 0x00441350
-int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
-    int engine;
-    int transmission;
-    int driver;
-    int wheels;
-    int health;
 
-    if (pCar->knackered) {
+/* Moved out of 00-car.c: keeping this body in that TU perturbed the x87 scheduling of
+   DoJointSnapping 0x431310 (97.69). Must stay immediately after DoPratcamHit here: at
+   the end of this file the same body scores 85.42% (tail emits fld [edx]; fadd st(1); fstp). */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* tCrush_displacement_context_local is declared in 58-crush2.h so the
+   prototypes of AddTotalDeflection/RepairObject can name it. */
+// AddTotalDeflection - body (GPL-3.0). It was kept
+// here as a PARTIAL at 85.42% (the remaining diff then was the x87 tail idiom); the final tree, with
+// the block-scope `delta` temp in the axis accumulation and the tail statement
+// `*total_displacement = displacement + *total_displacement;`, verifies at 100% (re-checked after the
+// DamageSystems work). The original is at 0x0043b2e0.
+// PARTIAL 85.42%: AddTotalDeflection 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
+// FUNCTION: CARMA2_HW 0x0043b2e0
+intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+    extern br_scalar gCrushZero;
+    tUser_crush_data* user;
+    br_vector3 original_position;
+    float displacement;
+    int model_index;
+    int vertex_index;
+    int axis;
+    br_model** model_cursor;
+
+    user = pActor->user;
+    if (user == NULL || user->crush_data == NULL || user->crush_data->field_0x2c == 0) {
         return 0;
     }
+    model_index = 0;
+    if (model_index < pContext->car->count_detail_levels) {
+        model_cursor = user->models;
+        do {
+            br_model* model;
+            float* total_displacement;
 
-    wheels = pCar->damage_units[eDamage_lr_wheel].damage_level;
-    wheels += pCar->damage_units[eDamage_rr_wheel].damage_level;
-    wheels += pCar->damage_units[eDamage_lf_wheel].damage_level;
-    wheels += pCar->damage_units[eDamage_rf_wheel].damage_level;
-    engine = pCar->damage_units[eDamage_engine].damage_level;
-    transmission = pCar->damage_units[eDamage_transmission].damage_level;
-    driver = pCar->damage_units[eDamage_driver].damage_level;
-    wheels /= 4;
+            total_displacement = pContext->total_displacement;
+            model = *model_cursor;
+            if (model != NULL && model->user != NULL
+                    && ((tUser_detail_level_model*)model->user)->field_0x4 != NULL) {
+                tModel_detail_vertex_data* original_vertices;
 
-    if (engine <= 75 && transmission <= 75 && driver <= 75 && wheels <= 75) {
-        health = 100 - (wheels + driver + transmission + engine) / 4;
-        if (health < 25) {
-            health = 25;
-        }
-        return health;
+                original_vertices = ((tUser_detail_level_model*)model->user)->field_0x4;
+                displacement = gCrushZero;
+                for (vertex_index = 0; vertex_index < model->nvertices; vertex_index++) {
+                    ExpandVector3(&original_position, &original_vertices[vertex_index].p, -10.f, 10.f);
+                    for (axis = 0; axis < 3; axis++) {
+                        float delta;
+                        delta = original_position.v[axis] - model->vertices[vertex_index].p.v[axis];
+                        delta = fabs(delta);
+                        displacement = displacement + delta;
+                    }
+                }
+                *total_displacement = displacement + *total_displacement;
+            }
+            model_index++;
+            model_cursor++;
+        } while (model_index < pContext->car->count_detail_levels);
     }
-    if (engine > transmission && engine > driver && engine > wheels) {
-        return 100 - engine;
-    }
-    if (transmission > driver && transmission > wheels) {
-        return 100 - transmission;
-    }
-    if (driver > wheels) {
-        return 100 - driver;
-    }
-    return 100 - wheels;
+    return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
+extern void C2_HOOK_FASTCALL AREndPipingSession(void);
+extern intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pArg2);
+// FUNCTION: CARMA2_HW 0x0043b400
+int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
+    tCrush_displacement_context_local* context;
+    tModel_mash_context_local model_context;
+
+    context = pContext;
+    model_context.car = context->car;
+    model_context.step = context->step;
+    model_context.displacement = 0.0f;
+    model_context.total_displacement = context->total_displacement;
+
+    ARStartPipingSession(0x18);
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)RepairModels_2, &model_context);
+    AREndPipingSession();
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)CheckFlapAngles, NULL);
+
+    context->displacement += model_context.displacement;
+    return 0;
+}
+
+extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
+// FUNCTION: CARMA2_HW 0x0043b470
+intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    int model_index;
+    br_model** model_cursor;
+
+    user = pActor->user;
+    if (user == NULL || user->crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user->crush_data;
+    if (RepairModel(user->models[0], pContext) != 0) {
+        RepairSmash(pContext->car, user->crush_data);
+        crush_data->field_0x2c = 0;
+        if (crush_data->flap_data != NULL && crush_data->flap_data->kev_o_flap == 0) {
+            crush_data->flap_data->field_0x15 = 0;
+            crush_data->flap_data->field_0x14 = 1;
+            crush_data->flap_data->field_0x18 = 0.f;
+        }
+        if (crush_data->detach_data != NULL) {
+            crush_data->detach_data->field_0x0 = 0.f;
+        }
+        return 0;
+    }
+    model_index = 1;
+    if (model_index < pContext->car->count_detail_levels) {
+        model_cursor = &user->models[1];
+        do {
+            RepairModel(*model_cursor, pContext);
+            model_index++;
+            model_cursor++;
+        } while (model_index < pContext->car->count_detail_levels);
+    }
+    return 0;
+}
+
+// GLOBAL: CARMA2_HW 0x00590068
+unsigned char gSmoke_part_table[12] = {
+    0x14, 0x14, 0x00, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a
+};
+
+
+/* Moved here from 00-car.c (2026-11-02): the same two blocks at the end of 00-car.c cost
+   DoJointSnapping 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
+   RepairObject had any stack frame at all; no placement inside that TU avoided it. Like
+   AddTotalDeflection above, they live in this TU instead. Bodies are unchanged.
+   The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
+extern br_scalar gCrushZero;
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+extern void C2_HOOK_CDECL JitModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pOrder_table, br_uint_8 pStyle, int pOn_screen);
+extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
+
+/* Relaxes every vertex of one detail-level model back towards its uncrushed position by at most
+   `step` per pass, accumulating the applied movement into the context and piping the per-vertex
+   displacement as a model mash. Returns 1 when nothing moved, 0 otherwise.
+   PARTIAL 54.65% (6 attempts): frame (0x3030), stack slots, both step branches, the mash zero-store
+   block, the total_displacement accumulation and the final displacement store now match exactly
+   (condition is `delta > gCrushZero` with the zero store as the else, which is what the original's
+   block order and `jne` polarity prove). Residual: MSVC 11 homes pModel in ebx, the vertex pointer
+   in edi and -vertex_data in ebp where the original uses esi/ebx/edi (callee-saved rotation) plus
+   the x87 shape of one registered delta (fld/fadd st(1) vs fadd [mem]). Best copy:
+   state/partials/FUN_0043b510.c */
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0043b510
+int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext) {
+    br_vector3 mash[1024];
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    br_vector3 original_position;
+    br_vector3 vertex_position;
+    br_vertex* vertex;
+    int i;
+    int j;
+    float displacement;
+
+    if (pModel == NULL) {
+        return 0;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return 0;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return 0;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("Dog gone it, there's a lot of vertices on that model.");
+    }
+    displacement = gCrushZero;
+    vertex = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++) {
+        ExpandVector3(&original_position, &vertex_data[i].p, -10.f, 10.f);
+        vertex_position = vertex->p;
+        for (j = 0; j < 3; j++) {
+            float delta;
+
+            delta = original_position.v[j] - vertex_position.v[j];
+            delta = fabs(delta);
+            if (delta > gCrushZero) {
+                *pContext->total_displacement = *pContext->total_displacement + delta;
+                if (original_position.v[j] < vertex_position.v[j]) {
+                    vertex->p.v[j] = vertex->p.v[j] - pContext->step;
+                    if (vertex->p.v[j] < original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement - delta;
+                    mash[i].v[j] = delta;
+                } else {
+                    vertex->p.v[j] = pContext->step + vertex->p.v[j];
+                    if (vertex->p.v[j] > original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement + delta;
+                    mash[i].v[j] = delta;
+                }
+                vertex_data[i].flags &= 0xfb;
+            } else {
+                mash[i].v[j] = 0.f;
+            }
+        }
+        vertex++;
+    }
+    if (displacement == gCrushZero) {
+        return 1;
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
+    } else {
+        pModel->custom = JitModelUpdate;
+        pModel->flags |= BR_MODF_CUSTOM;
+    }
+    AddModelMashToPipingSession(pModel, mash);
+    {
+        float previous_displacement;
+
+        previous_displacement = pContext->displacement;
+        pContext->displacement = previous_displacement + displacement;
+    }
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 extern int gExplosion_sound_id;
 extern br_vector3 gZero_v__car;
 extern tS3_outlet* gCar_outlet;
@@ -112,6 +312,21 @@ void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar) {
     if (gNet_mode == eNet_mode_none) {
         KillGroovadelic(pCar->index);
         KillFunkotronic(pCar->index);
+    }
+}
+
+// ChristmasLights
+
+
+// (reference only)
+// FUNCTION: CARMA2_HW 0x0043f6c0
+void C2_HOOK_FASTCALL ExplodeMeCarUpMeOldMatey(tCar_spec* pCar) {
+
+    Explode(&gExplosion_pix_animation_groups, pCar->car_master_actor, &pCar->car_actor->model->bounds, NULL);
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound(gCar_outlet, gExplosion_sound_id);
+    } else {
+        DRS3StartSound3D(gCar_outlet, gExplosion_sound_id, &pCar->pos, &gZero_v__car, 1, 255, 0x10000, 0x10000);
     }
 }
 
@@ -218,71 +433,6 @@ void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity) {
     }
 }
 
-/* Moved out of 00-car.c: keeping this body in that TU perturbed the x87 scheduling of
-   DoJointSnapping 0x431310 (97.69). Must stay immediately after DoPratcamHit here: at
-   the end of this file the same body scores 85.42% (tail emits fld [edx]; fadd st(1); fstp). */
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-/* tCrush_displacement_context_local is declared in 58-crush2.h so the
-   prototypes of AddTotalDeflection/RepairObject can name it. */
-// AddTotalDeflection - body (GPL-3.0). It was kept
-// here as a PARTIAL at 85.42% (the remaining diff then was the x87 tail idiom); the final tree, with
-// the block-scope `delta` temp in the axis accumulation and the tail statement
-// `*total_displacement = displacement + *total_displacement;`, verifies at 100% (re-checked after the
-// DamageSystems work). The original is at 0x0043b2e0.
-// PARTIAL 85.42%: AddTotalDeflection 0x0043b2e0 [x87 tail: fld [edx]; fadd st(1); fstp vs original fadd [edx]]
-// FUNCTION: CARMA2_HW 0x0043b2e0
-intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
-    extern br_scalar gCrushZero;
-    tUser_crush_data* user;
-    br_vector3 original_position;
-    float displacement;
-    int model_index;
-    int vertex_index;
-    int axis;
-    br_model** model_cursor;
-
-    user = pActor->user;
-    if (user == NULL || user->crush_data == NULL || user->crush_data->field_0x2c == 0) {
-        return 0;
-    }
-    model_index = 0;
-    if (model_index < pContext->car->count_detail_levels) {
-        model_cursor = user->models;
-        do {
-            br_model* model;
-            float* total_displacement;
-
-            total_displacement = pContext->total_displacement;
-            model = *model_cursor;
-            if (model != NULL && model->user != NULL
-                    && ((tUser_detail_level_model*)model->user)->field_0x4 != NULL) {
-                tModel_detail_vertex_data* original_vertices;
-
-                original_vertices = ((tUser_detail_level_model*)model->user)->field_0x4;
-                displacement = gCrushZero;
-                for (vertex_index = 0; vertex_index < model->nvertices; vertex_index++) {
-                    ExpandVector3(&original_position, &original_vertices[vertex_index].p, -10.f, 10.f);
-                    for (axis = 0; axis < 3; axis++) {
-                        float delta;
-                        delta = original_position.v[axis] - model->vertices[vertex_index].p.v[axis];
-                        delta = fabs(delta);
-                        displacement = displacement + delta;
-                    }
-                }
-                *total_displacement = displacement + *total_displacement;
-            }
-            model_index++;
-            model_cursor++;
-        } while (model_index < pContext->car->count_detail_levels);
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // DamageSystems
 
 // GetDirection
@@ -296,10 +446,10 @@ void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 extern unsigned char gSmoke_part_table[12];
 extern void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pLevel);
 extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
@@ -351,11 +501,132 @@ void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// GLOBAL: CARMA2_HW 0x00590020
+float gWobble_spam_y[8] = { 0.f, -0.15f, 0.4f, 0.15f, -0.4f, 0.25f, 0.f, -0.25f };
+
+// GLOBAL: CARMA2_HW 0x00590040
+float gWobble_spam_z[8] = { 0.4f, -0.25f, 0.f, 0.25f, 0.f, 0.15f, -0.4f, -0.15f };
+
+// GLOBAL: CARMA2_HW 0x00590060
+float gWheel_circ_to_width = 0.16f;
+
+// FUNCTION: CARMA2_HW 0x00440350
+void C2_HOOK_FASTCALL DoWheelDamage(void) {
+    extern int gNum_active_cars;
+    extern tCar_spec* gActive_car_list[139];
+    extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
+    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
+    extern br_scalar gFloat_00589b64;
+    int i;
+
+    if (gAction_replay_mode && ARReplayIsReallyPaused()) {
+        return;
+    }
+
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car;
+
+        car = gActive_car_list[i];
+        if ((car != NULL && car->driver > 5) && !(car->car_crush_spec != NULL && car->car_crush_spec->field_0x144)) {
+            int j;
+
+            for (j = 0; j < 4; j++) {
+                int damage;
+                br_scalar wheel_circum;
+                br_scalar z_amount;
+                br_scalar y_amount;
+
+                if (car->wheel_actors[j] == NULL) {
+                    continue;
+                }
+                damage = car->damage_units[8 + j].damage_level;
+                if (damage <= 30 || gRace_finished) {
+                    car->wheel_dam_offset[j] = 0.f;
+                    continue;
+                }
+                if (PointOutOfSight(&car->pos, 32.f)) {
+                    break;
+                }
+                y_amount = (damage - 30) * gWobble_spam_y[damage & 7];
+                z_amount = (damage - 30) * gWobble_spam_z[damage & 7];
+                BrMatrix34PreRotateY(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
+                BrMatrix34PreRotateZ(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
+                if (j < 2 && car->wheel_actors[4 + j] != NULL) {
+                    BrMatrix34PreRotateY(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
+                    BrMatrix34PreRotateZ(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
+                }
+                switch (j) {
+                case 0:
+                    if (car->driven_wheels_spin_ref_1 >= 0) {
+                        wheel_circum = car->driven_wheels_circum;
+                    } else {
+                        wheel_circum = car->non_driven_wheels_circum;
+                    }
+                    break;
+                case 1:
+                    if (car->driven_wheels_spin_ref_2 >= 0) {
+                        wheel_circum = car->driven_wheels_circum;
+                    } else {
+                        wheel_circum = car->non_driven_wheels_circum;
+                    }
+                    break;
+                case 2:
+                    if (car->driven_wheels_spin_ref_3 >= 0) {
+                        wheel_circum = car->driven_wheels_circum;
+                    } else {
+                        wheel_circum = car->non_driven_wheels_circum;
+                    }
+                    break;
+                case 3:
+                    if (car->driven_wheels_spin_ref_4 >= 0) {
+                        wheel_circum = car->driven_wheels_circum;
+                    } else {
+                        wheel_circum = car->non_driven_wheels_circum;
+                    }
+                    break;
+                }
+                if (gNet_mode == eNet_mode_none || car->driver == eDriver_local_human) {
+                    br_vector3 temp_vector;
+                    br_vector3 wonky_vector;
+
+                    temp_vector.v[1] = 0.f;
+                    temp_vector.v[2] = 0.f;
+                    temp_vector.v[0] = wheel_circum * gWheel_circ_to_width;
+                    BrMatrix34ApplyV(&wonky_vector, &temp_vector, &car->wheel_actors[j]->t.t.mat);
+                    car->wheel_dam_offset[j] = fabs(wonky_vector.v[1]);
+                }
+            }
+        }
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+#undef DCE_I
+#undef DCE_U
+#undef DCE_F
+#undef DCE_P
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x00440640
+// FUNCTION: CARMA2_SW 0x00440720
+void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
+
+    if (DoCrashEarnings(pCar1, pCar2)) {
+        SortOutSmoke(pCar1);
+        SortOutSmoke(pCar2);
+    }
+}
+
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 extern int C2_HOOK_FASTCALL SetKnackeredFlag(tCar_spec* pCar);
 #define DCE_I(p, o) (*(int*)((char*)(p) + (o)))
@@ -744,310 +1015,45 @@ LAB_00441239:
     }
     return 1;
 }
-
-#undef DCE_I
-#undef DCE_U
-#undef DCE_F
-#undef DCE_P
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x00441350
+int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
+    int engine;
+    int transmission;
+    int driver;
+    int wheels;
+    int health;
 
-// FUNCTION: CARMA2_HW 0x00440640
-// FUNCTION: CARMA2_SW 0x00440720
-void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
-
-    if (DoCrashEarnings(pCar1, pCar2)) {
-        SortOutSmoke(pCar1);
-        SortOutSmoke(pCar2);
-    }
-}
-
-// ChristmasLights
-
-
-// (reference only)
-// FUNCTION: CARMA2_HW 0x0043f6c0
-void C2_HOOK_FASTCALL ExplodeMeCarUpMeOldMatey(tCar_spec* pCar) {
-
-    Explode(&gExplosion_pix_animation_groups, pCar->car_master_actor, &pCar->car_actor->model->bounds, NULL);
-    if (pCar != NULL && pCar->driver == eDriver_local_human) {
-        DRS3StartSound(gCar_outlet, gExplosion_sound_id);
-    } else {
-        DRS3StartSound3D(gCar_outlet, gExplosion_sound_id, &pCar->pos, &gZero_v__car, 1, 255, 0x10000, 0x10000);
-    }
-}
-
-// GLOBAL: CARMA2_HW 0x00590020
-float gWobble_spam_y[8] = { 0.f, -0.15f, 0.4f, 0.15f, -0.4f, 0.25f, 0.f, -0.25f };
-
-// GLOBAL: CARMA2_HW 0x00590040
-float gWobble_spam_z[8] = { 0.4f, -0.25f, 0.f, 0.25f, 0.f, 0.15f, -0.4f, -0.15f };
-
-// GLOBAL: CARMA2_HW 0x00590060
-float gWheel_circ_to_width = 0.16f;
-
-// FUNCTION: CARMA2_HW 0x00440350
-void C2_HOOK_FASTCALL DoWheelDamage(void) {
-    extern int gNum_active_cars;
-    extern tCar_spec* gActive_car_list[139];
-    extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
-    extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
-    extern br_scalar gFloat_00589b64;
-    int i;
-
-    if (gAction_replay_mode && ARReplayIsReallyPaused()) {
-        return;
+    if (pCar->knackered) {
+        return 0;
     }
 
-    for (i = 0; i < gNum_active_cars; i++) {
-        tCar_spec* car;
+    wheels = pCar->damage_units[eDamage_lr_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_rr_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_lf_wheel].damage_level;
+    wheels += pCar->damage_units[eDamage_rf_wheel].damage_level;
+    engine = pCar->damage_units[eDamage_engine].damage_level;
+    transmission = pCar->damage_units[eDamage_transmission].damage_level;
+    driver = pCar->damage_units[eDamage_driver].damage_level;
+    wheels /= 4;
 
-        car = gActive_car_list[i];
-        if ((car != NULL && car->driver > 5) && !(car->car_crush_spec != NULL && car->car_crush_spec->field_0x144)) {
-            int j;
-
-            for (j = 0; j < 4; j++) {
-                int damage;
-                br_scalar wheel_circum;
-                br_scalar z_amount;
-                br_scalar y_amount;
-
-                if (car->wheel_actors[j] == NULL) {
-                    continue;
-                }
-                damage = car->damage_units[8 + j].damage_level;
-                if (damage <= 30 || gRace_finished) {
-                    car->wheel_dam_offset[j] = 0.f;
-                    continue;
-                }
-                if (PointOutOfSight(&car->pos, 32.f)) {
-                    break;
-                }
-                y_amount = (damage - 30) * gWobble_spam_y[damage & 7];
-                z_amount = (damage - 30) * gWobble_spam_z[damage & 7];
-                BrMatrix34PreRotateY(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
-                BrMatrix34PreRotateZ(&car->wheel_actors[j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
-                if (j < 2 && car->wheel_actors[4 + j] != NULL) {
-                    BrMatrix34PreRotateY(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(y_amount < gFloat_00589b64 ? y_amount + 360.f : y_amount));
-                    BrMatrix34PreRotateZ(&car->wheel_actors[4 + j]->t.t.mat, BrDegreeToAngle(z_amount < gFloat_00589b64 ? z_amount + 360.f : z_amount));
-                }
-                switch (j) {
-                case 0:
-                    if (car->driven_wheels_spin_ref_1 >= 0) {
-                        wheel_circum = car->driven_wheels_circum;
-                    } else {
-                        wheel_circum = car->non_driven_wheels_circum;
-                    }
-                    break;
-                case 1:
-                    if (car->driven_wheels_spin_ref_2 >= 0) {
-                        wheel_circum = car->driven_wheels_circum;
-                    } else {
-                        wheel_circum = car->non_driven_wheels_circum;
-                    }
-                    break;
-                case 2:
-                    if (car->driven_wheels_spin_ref_3 >= 0) {
-                        wheel_circum = car->driven_wheels_circum;
-                    } else {
-                        wheel_circum = car->non_driven_wheels_circum;
-                    }
-                    break;
-                case 3:
-                    if (car->driven_wheels_spin_ref_4 >= 0) {
-                        wheel_circum = car->driven_wheels_circum;
-                    } else {
-                        wheel_circum = car->non_driven_wheels_circum;
-                    }
-                    break;
-                }
-                if (gNet_mode == eNet_mode_none || car->driver == eDriver_local_human) {
-                    br_vector3 temp_vector;
-                    br_vector3 wonky_vector;
-
-                    temp_vector.v[1] = 0.f;
-                    temp_vector.v[2] = 0.f;
-                    temp_vector.v[0] = wheel_circum * gWheel_circ_to_width;
-                    BrMatrix34ApplyV(&wonky_vector, &temp_vector, &car->wheel_actors[j]->t.t.mat);
-                    car->wheel_dam_offset[j] = fabs(wonky_vector.v[1]);
-                }
-            }
+    if (engine <= 75 && transmission <= 75 && driver <= 75 && wheels <= 75) {
+        health = 100 - (wheels + driver + transmission + engine) / 4;
+        if (health < 25) {
+            health = 25;
         }
+        return health;
     }
-}
-
-// GLOBAL: CARMA2_HW 0x00590068
-unsigned char gSmoke_part_table[12] = {
-    0x14, 0x14, 0x00, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a
-};
-
-
-/* Moved here from 00-car.c (2026-11-02): the same two blocks at the end of 00-car.c cost
-   DoJointSnapping 0x00431310 its 100 (97.69, two fld operands swapped) as soon as
-   RepairObject had any stack frame at all; no placement inside that TU avoided it. Like
-   AddTotalDeflection above, they live in this TU instead. Bodies are unchanged.
-   The context typedef is declared in 58-crush2.h (identical definition to the copy in 00-car.c). */
-extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
-extern void C2_HOOK_FASTCALL AREndPipingSession(void);
-extern intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pArg2);
-extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
-extern br_scalar gCrushZero;
-extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
-extern void C2_HOOK_CDECL JitModelUpdate(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pOrder_table, br_uint_8 pStyle, int pOn_screen);
-extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
-
-/* Relaxes every vertex of one detail-level model back towards its uncrushed position by at most
-   `step` per pass, accumulating the applied movement into the context and piping the per-vertex
-   displacement as a model mash. Returns 1 when nothing moved, 0 otherwise.
-   PARTIAL 54.65% (6 attempts): frame (0x3030), stack slots, both step branches, the mash zero-store
-   block, the total_displacement accumulation and the final displacement store now match exactly
-   (condition is `delta > gCrushZero` with the zero store as the else, which is what the original's
-   block order and `jne` polarity prove). Residual: MSVC 11 homes pModel in ebx, the vertex pointer
-   in edi and -vertex_data in ebp where the original uses esi/ebx/edi (callee-saved rotation) plus
-   the x87 shape of one registered delta (fld/fadd st(1) vs fadd [mem]). Best copy:
-   state/partials/FUN_0043b510.c */
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0043b510
-int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext) {
-    br_vector3 mash[1024];
-    tUser_detail_level_model* detail_model;
-    tModel_detail_vertex_data* vertex_data;
-    br_vector3 original_position;
-    br_vector3 vertex_position;
-    br_vertex* vertex;
-    int i;
-    int j;
-    float displacement;
-
-    if (pModel == NULL) {
-        return 0;
+    if (engine > transmission && engine > driver && engine > wheels) {
+        return 100 - engine;
     }
-    detail_model = pModel->user;
-    if (detail_model == NULL) {
-        return 0;
+    if (transmission > driver && transmission > wheels) {
+        return 100 - transmission;
     }
-    vertex_data = detail_model->field_0x4;
-    if (vertex_data == NULL) {
-        return 0;
+    if (driver > wheels) {
+        return 100 - driver;
     }
-    if (pModel->nvertices > REC2_ASIZE(mash)) {
-        PDFatalError("Dog gone it, there's a lot of vertices on that model.");
-    }
-    displacement = gCrushZero;
-    vertex = pModel->vertices;
-    for (i = 0; i < pModel->nvertices; i++) {
-        ExpandVector3(&original_position, &vertex_data[i].p, -10.f, 10.f);
-        vertex_position = vertex->p;
-        for (j = 0; j < 3; j++) {
-            float delta;
-
-            delta = original_position.v[j] - vertex_position.v[j];
-            delta = fabs(delta);
-            if (delta > gCrushZero) {
-                *pContext->total_displacement = *pContext->total_displacement + delta;
-                if (original_position.v[j] < vertex_position.v[j]) {
-                    vertex->p.v[j] = vertex->p.v[j] - pContext->step;
-                    if (vertex->p.v[j] < original_position.v[j]) {
-                        vertex->p.v[j] = original_position.v[j];
-                    }
-                    delta = vertex->p.v[j] - vertex_position.v[j];
-                    displacement = displacement - delta;
-                    mash[i].v[j] = delta;
-                } else {
-                    vertex->p.v[j] = pContext->step + vertex->p.v[j];
-                    if (vertex->p.v[j] > original_position.v[j]) {
-                        vertex->p.v[j] = original_position.v[j];
-                    }
-                    delta = vertex->p.v[j] - vertex_position.v[j];
-                    displacement = displacement + delta;
-                    mash[i].v[j] = delta;
-                }
-                vertex_data[i].flags &= 0xfb;
-            } else {
-                mash[i].v[j] = 0.f;
-            }
-        }
-        vertex++;
-    }
-    if (displacement == gCrushZero) {
-        return 1;
-    }
-    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
-        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
-    } else {
-        pModel->custom = JitModelUpdate;
-        pModel->flags |= BR_MODF_CUSTOM;
-    }
-    AddModelMashToPipingSession(pModel, mash);
-    {
-        float previous_displacement;
-
-        previous_displacement = pContext->displacement;
-        pContext->displacement = previous_displacement + displacement;
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x0043b470
-intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
-    tUser_crush_data* user;
-    tCar_crush_buffer_entry* crush_data;
-    int model_index;
-    br_model** model_cursor;
-
-    user = pActor->user;
-    if (user == NULL || user->crush_data == NULL) {
-        return 0;
-    }
-    crush_data = user->crush_data;
-    if (RepairModel(user->models[0], pContext) != 0) {
-        RepairSmash(pContext->car, user->crush_data);
-        crush_data->field_0x2c = 0;
-        if (crush_data->flap_data != NULL && crush_data->flap_data->kev_o_flap == 0) {
-            crush_data->flap_data->field_0x15 = 0;
-            crush_data->flap_data->field_0x14 = 1;
-            crush_data->flap_data->field_0x18 = 0.f;
-        }
-        if (crush_data->detach_data != NULL) {
-            crush_data->detach_data->field_0x0 = 0.f;
-        }
-        return 0;
-    }
-    model_index = 1;
-    if (model_index < pContext->car->count_detail_levels) {
-        model_cursor = &user->models[1];
-        do {
-            RepairModel(*model_cursor, pContext);
-            model_index++;
-            model_cursor++;
-        } while (model_index < pContext->car->count_detail_levels);
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0043b400
-int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
-    tCrush_displacement_context_local* context;
-    tModel_mash_context_local model_context;
-
-    context = pContext;
-    model_context.car = context->car;
-    model_context.step = context->step;
-    model_context.displacement = 0.0f;
-    model_context.total_displacement = context->total_displacement;
-
-    ARStartPipingSession(0x18);
-    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)RepairModels_2, &model_context);
-    AREndPipingSession();
-    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)CheckFlapAngles, NULL);
-
-    context->displacement += model_context.displacement;
-    return 0;
+    return 100 - wheels;
 }

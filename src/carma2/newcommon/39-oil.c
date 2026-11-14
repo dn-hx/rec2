@@ -119,10 +119,10 @@ void C2_HOOK_FASTCALL ResetOilSpills(void) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // based on ApexWorm/rec2 afa4cf121
 // FUNCTION: CARMA2_HW 0x004a6c80
 void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50) {
@@ -172,10 +172,10 @@ void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_m
     gOily_spills[free_index].field_0x50 = (undefined4)pField_0x50;
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004a6dd0
 void C2_HOOK_FASTCALL QueueOilSpill(tCar_spec* pCar) {
     QueueOilSpill2(pCar, pCar->car_master_actor, pCar->car_actor->model, 500,
@@ -194,22 +194,6 @@ static void C2_HOOK_FASTCALL MungeOilsHeightAboveGround(tOil_spill_info* pOil) {
 void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
 
     MungeOilsHeightAboveGround(&gOily_spills[pIndex]);
-}
-
-// FUNCTION: CARMA2_HW 0x004a7460
-void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel) {
-    /* Resize the spill in the ground plane without changing vertex heights. */
-    pModel->vertices[0].p.v[0] = -pOil->field_0x20;
-    pModel->vertices[0].p.v[2] = -pOil->field_0x20;
-    pModel->vertices[1].p.v[0] = pOil->field_0x20;
-    pModel->vertices[1].p.v[2] = -pOil->field_0x20;
-    pModel->vertices[2].p.v[0] = pOil->field_0x20;
-    pModel->vertices[2].p.v[2] = pOil->field_0x20;
-    pModel->vertices[3].p.v[0] = -pOil->field_0x20;
-    pModel->vertices[3].p.v[2] = pOil->field_0x20;
-    pOil->actor->render_style = BR_RSTYLE_FACES;
-    BrMaterialUpdate(pOil->actor->material, BR_MATU_ALL);
-    BrModelUpdate(pModel, BR_MODU_ALL);
 }
 
 /* local externs (the shared 23-piping.h declares the scrap global volatile) */
@@ -395,6 +379,22 @@ munge:
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004a7460
+void C2_HOOK_FASTCALL SetInitialOilStuff(tOil_spill_info* pOil, br_model* pModel) {
+    /* Resize the spill in the ground plane without changing vertex heights. */
+    pModel->vertices[0].p.v[0] = -pOil->field_0x20;
+    pModel->vertices[0].p.v[2] = -pOil->field_0x20;
+    pModel->vertices[1].p.v[0] = pOil->field_0x20;
+    pModel->vertices[1].p.v[2] = -pOil->field_0x20;
+    pModel->vertices[2].p.v[0] = pOil->field_0x20;
+    pModel->vertices[2].p.v[2] = pOil->field_0x20;
+    pModel->vertices[3].p.v[0] = -pOil->field_0x20;
+    pModel->vertices[3].p.v[2] = pOil->field_0x20;
+    pOil->actor->render_style = BR_RSTYLE_FACES;
+    BrMaterialUpdate(pOil->actor->material, BR_MATU_ALL);
+    BrModelUpdate(pModel, BR_MODU_ALL);
+}
+
 // FUNCTION: CARMA2_HW 0x004a74e0
 int C2_HOOK_FASTCALL GetOilSpillCount(void) {
     return (int)REC2_ASIZE(gOily_spills);
@@ -409,28 +409,6 @@ void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scala
         *pActor = NULL;
     }
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// based on ApexWorm/rec2 78828de5b
-// FUNCTION: CARMA2_HW 0x004a77d0
-int C2_HOOK_FASTCALL PointInSpill(br_vector3* pPoint, int pIndex) {
-    br_actor* actor;
-    br_scalar delta;
-    br_scalar range_squared;
-
-    actor = gOily_spills[pIndex].actor;
-    delta = pPoint->v[0] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][0];
-    range_squared = gOily_spills[pIndex].current_size * gOily_spills[pIndex].current_size * 0.8f;
-    if (delta * delta < range_squared && (delta = pPoint->v[2] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][2], delta * delta < range_squared) && (float)fabs(pPoint->v[1] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][1]) < 0.1f) {
-        return 1;
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x004a7530
 void C2_HOOK_FASTCALL GetOilFrictionFactors(tCar_spec* pCar, br_scalar* pFl, br_scalar* pFr, br_scalar* pRl, br_scalar* pRr) {
@@ -492,6 +470,28 @@ void C2_HOOK_FASTCALL GetOilFrictionFactors(tCar_spec* pCar, br_scalar* pFl, br_
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on ApexWorm/rec2 78828de5b
+// FUNCTION: CARMA2_HW 0x004a77d0
+int C2_HOOK_FASTCALL PointInSpill(br_vector3* pPoint, int pIndex) {
+    br_actor* actor;
+    br_scalar delta;
+    br_scalar range_squared;
+
+    actor = gOily_spills[pIndex].actor;
+    delta = pPoint->v[0] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][0];
+    range_squared = gOily_spills[pIndex].current_size * gOily_spills[pIndex].current_size * 0.8f;
+    if (delta * delta < range_squared && (delta = pPoint->v[2] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][2], delta * delta < range_squared) && (float)fabs(pPoint->v[1] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][1]) < 0.1f) {
+        return 1;
+    }
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004a7860
 void C2_HOOK_FASTCALL AdjustOilSpill(int pIndex, br_matrix34* pMat, br_scalar pFull_size, br_scalar pGrow_rate, tU32 pSpill_time, tU32 pStop_time, tCar_spec* pCar, br_vector3* pOriginal_pos, br_pixelmap* pPixelmap) {
 

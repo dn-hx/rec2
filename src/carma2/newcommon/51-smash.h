@@ -275,7 +275,7 @@ extern intptr_t C2_HOOK_CDECL RepairModels_1(br_actor* pActor, void* pUser);
 
 extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
-// SmashEverythingCB
+extern intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext);
 
 // SmashEverything
 

@@ -222,11 +222,151 @@ void C2_HOOK_FASTCALL ReinitialiseRenderStuff(void) {
     }
 }
 
-void C2_HOOK_FASTCALL InstallFindFailedHooks(void) {
+// CheckTimedDemo
+
+// void InitialiseApplication(int argc, char **argv);
+#define InitialiseApplication(pArgc, pArgv) \
+    do { \
+        tTWTVFS twt; \
+        \
+        gProgram_state.sausage_eater_mode = gSausage_override; \
+        InitQuickTimeStuff(); \
+        memset(gTexture_maps, 0, sizeof(gTexture_maps)); \
+        InitPackFiles(); \
+        MAMSInitMem(); \
+        if (gAustere_override || PDDoWeLeadAnAustereExistance()) { \
+            gAusterity_mode = 1; \
+        } else { \
+            gAusterity_mode = 0; \
+        } \
+        srand((unsigned int)time(NULL)); \
+        BrV1dbBeginWrapper_Float(); \
+        CreateStainlessClasses(); \
+        PDInstallErrorHandlers(); \
+        InstallFindFailedHooks(); \
+        InstallDRMemCalls(); \
+        InstallDRFileCalls(); \
+        twt = OpenPackFileAndSetTiffLoading(gApplication_path); \
+        gApplicationDataTwtMounted = 1; \
+        InitFogificateMaterials(); \
+        PDInitTimer(); \
+        InitWobbleStuff(); \
+        LoadGeneralParameters(); \
+        PrintMemoryDump(0, "AFTER LOADING GENERAL PARAMETERS"); \
+        DefaultNetName(); \
+        strcpy(gProgram_state.player_name, "MAX DAMAGE"); \
+        RestoreOptions(); \
+        LoadKeyMapping(); \
+        if (!PDInitScreenVars(pArgc, pArgv)) { \
+            FatalError(0); \
+        } \
+        CalcGrafDataIndex(); \
+        PDSaveOriginalPalette(); \
+        PDInitScreen(); \
+        InitializeBRenderEnvironment(); \
+        PrintMemoryDump(0, "AFTER INITIALISING BRENDER"); \
+        CheckTimedDemo(); \
+        InitDRFonts(); \
+        gBig_font = LoadBRFont("BIGFONT.FNT"); \
+        gFont_7 = LoadBRFont("FONT7.FNT"); \
+        gHeadup_font = LoadBRFont("HEADUP.FNT"); \
+        PrintMemoryDump(0, "AFTER LOADING FONTS"); \
+        InitExplosions(); \
+        PrintMemoryDump(0, "AFTER INITIALISING EXPLOSIONS"); \
+        LoadMiscStrings(); \
+        PrintMemoryDump(0, "AFTER LOADING MISC STRING"); \
+        InitialiseStorageSpace(0, &gMisc_storage_space, 1000, 5, 1000, 1000, 10); \
+        LoadInRegistees(); \
+        InitMap(); \
+        PrintMemoryDump(0, "AFTER INITIALISING GENERAL STORAGE AND LOADING IN REG"); \
+        Init2DStuffForPolyFonts(); \
+        InitLineStuff(); \
+        InitSmokeStuff(); \
+        PrintMemoryDump(0, "AFTER INITING LINE AND SMOKE STUFF"); \
+        Init2DStuff(); \
+        InitTintedPolyStuff(); \
+        gHud_tinted1 = CreateTintedPoly(0, 0, 640, 480, 2, 0, 0, 0); \
+        gHud_tinted2 = CreateTintedPoly(0, 0, 640, 480, 3, 2, 0, 0); \
+        PrintMemoryDump(0, "AFTER INITING 2D STUFF"); \
+        InitLightingEffects(); \
+        LoadInterfaceStrings(); \
+        PrintMemoryDump(0, "AFTER INITING INTERFACE STRINGS"); \
+        PrintMemoryDump(0, "AFTER INITING ACTION REPLAY"); \
+        InitPhysics(); \
+        PrintMemoryDump(0, "AFTER INITING PHYSICS"); \
+        InitCrushSystems(); \
+        PrintMemoryDump(0, "AFTER INITING CRUSH SYSTEMS"); \
+        InitTreeSurgery(); \
+        FlicPaletteAllocate(); \
+        InitInterfaceLoadState(); \
+        InitTransientBitmaps(); \
+        PrintMemoryDump(0, "AFTER INITING OTHER INTERFACE STUFF"); \
+        InitSound(); \
+        PrintMemoryDump(0, "AFTER INITING SOUND"); \
+        InitHeadups(); \
+        PrintMemoryDump(0, "AFTER INITING HEADUPS"); \
+        gDefault_track_material = BrMaterialAllocate("gDefault_track_material"); \
+        gDefault_track_material->index_base = 227; \
+        gDefault_track_material->index_range = 1; \
+        gDefault_track_material->colour = ((br_colour*)gRender_palette->pixels)[227]; \
+        gDefault_track_material->ka = 1.0f; \
+        gDefault_track_material->kd = 0.0f; \
+        gDefault_track_material->ks = 0.0f; \
+        BrMaterialAdd(gDefault_track_material); \
+        InitPowerups(); \
+        PrintMemoryDump(0, "AFTER INITING POWERUPS"); \
+        InitShadow(); \
+        PrintMemoryDump(0, "AFTER INITING SHADOW"); \
+        InitFlics(); \
+        AllocateStandardLamp(); \
+        InitPanGameAIWorld(); \
+        PrintMemoryDump(0, "AFTER INITING AI WORLD"); \
+        LoadPowerups(); \
+        PrintMemoryDump(0, "AFTER LOADING POWERUPS"); \
+        LoadRaces(gRace_list, &gNumber_of_races, -1); \
+        PrintMemoryDump(0, "AFTER LOADING RACES"); \
+        InitPaletteAnimate(); \
+        InitRayCasting(); \
+        InitDepthEffects(); \
+        PrintMemoryDump(0, "AFTER INITING DEPTH EFFECTS"); \
+        InitSmashing(); \
+        PrintMemoryDump(0, "AFTER INITING SMASHING"); \
+        InitialiseStorageSpace(0, &gOur_car_storage_space, 200, 2, 200, 200, 10); \
+        InitialiseStorageSpace(0, &gTheir_cars_storage_space, 1500, 50, 1500, 1500, 50); \
+        InitialiseStorageSpace(0, &gDroneStorage, 500, 50, 500, 228, 10); \
+        InitialiseStorageSpace(0, &gPedStorage, 200, 10, 100, 500, 200); \
+        InitialiseStorageSpace(0, &gTrack_storage_space, 1000, 50, 1000, 1000, 50); \
+        FinishLoadingGeneral(); \
+        PrintMemoryDump(0, "AFTER FINISHING LOADING GENERAL"); \
+        InitOilSpills(); \
+        for (;;) { \
+            if (!gAustere_time) { \
+                break; \
+            } \
+            if (PDGetTotalTime() - gAustere_time >= 2000) { \
+                break; \
+            } \
+        } \
+        ClearEntireScreen(); \
+        InitSkids(); \
+        PrintMemoryDump(0, "AFTER INITING SPILLS AND SKIDS"); \
+        InitPolyPedSystem(); \
+        gProgram_state.track_spec.the_actor = NULL; \
+        gCD_is_in_drive = TestForOriginalCarmaCDinDrive(); \
+        LoadHeadupImages(); \
+        InitGame(gDev_initial_race); \
+        BrMatrix34Identity(&gCamera_to_world); \
+        BrMatrix34Identity(&gRearview_camera_to_world); \
+        PrintMemoryDump(0, "AFTER APPLICATION INITIALISATION (JUST INITED PED SYSTEM)"); \
+        memset(gPickedup_powerups, 0, sizeof(gPickedup_powerups)); \
+        memset(gUnknown_00705b80, 0, sizeof(gUnknown_00705b80)); \
+        ClosePackFileAndSetTiffLoading(twt); \
+        gApplicationDataTwtMounted = 0; \
+    } while (0)
+
+void C2_HOOK_FASTCALL DoDevelopmentThings(void) {
 
 }
-
-// AllocateStandardLamp
 
 #define InitializeBRenderEnvironment() \
     do { \
@@ -252,6 +392,21 @@ void C2_HOOK_FASTCALL InstallFindFailedHooks(void) {
         AllocateActors(); \
         AllocateCamera(); \
     } while (0)
+// FUNCTION: CARMA2_HW 0x0047dd20
+void C2_HOOK_FASTCALL InitialiseDeathRace(int pArgc, const char** pArgv) {
+
+    PDInitialiseSystem();
+    DoDevelopmentThings();
+    InitialiseApplication(pArgc, pArgv);
+    gInitialisation_finished = 1;
+}
+
+void C2_HOOK_FASTCALL InstallFindFailedHooks(void) {
+
+}
+
+// AllocateStandardLamp
+
 
 // InitBRFonts
 
@@ -726,161 +881,6 @@ void C2_HOOK_FASTCALL Init2DStuff(void) {
 
     Prepare2DModelToDim(gOffence_model, gOffence_dim_x, gOffence_dim_y, gOffence_dim_w, gOffence_dim_h);
     BrModelUpdate(gOffence_model, BR_MODU_VERTEX_POSITIONS);
-}
-
-// CheckTimedDemo
-
-// void InitialiseApplication(int argc, char **argv);
-#define InitialiseApplication(pArgc, pArgv) \
-    do { \
-        tTWTVFS twt; \
-        \
-        gProgram_state.sausage_eater_mode = gSausage_override; \
-        InitQuickTimeStuff(); \
-        memset(gTexture_maps, 0, sizeof(gTexture_maps)); \
-        InitPackFiles(); \
-        MAMSInitMem(); \
-        if (gAustere_override || PDDoWeLeadAnAustereExistance()) { \
-            gAusterity_mode = 1; \
-        } else { \
-            gAusterity_mode = 0; \
-        } \
-        srand((unsigned int)time(NULL)); \
-        BrV1dbBeginWrapper_Float(); \
-        CreateStainlessClasses(); \
-        PDInstallErrorHandlers(); \
-        InstallFindFailedHooks(); \
-        InstallDRMemCalls(); \
-        InstallDRFileCalls(); \
-        twt = OpenPackFileAndSetTiffLoading(gApplication_path); \
-        gApplicationDataTwtMounted = 1; \
-        InitFogificateMaterials(); \
-        PDInitTimer(); \
-        InitWobbleStuff(); \
-        LoadGeneralParameters(); \
-        PrintMemoryDump(0, "AFTER LOADING GENERAL PARAMETERS"); \
-        DefaultNetName(); \
-        strcpy(gProgram_state.player_name, "MAX DAMAGE"); \
-        RestoreOptions(); \
-        LoadKeyMapping(); \
-        if (!PDInitScreenVars(pArgc, pArgv)) { \
-            FatalError(0); \
-        } \
-        CalcGrafDataIndex(); \
-        PDSaveOriginalPalette(); \
-        PDInitScreen(); \
-        InitializeBRenderEnvironment(); \
-        PrintMemoryDump(0, "AFTER INITIALISING BRENDER"); \
-        CheckTimedDemo(); \
-        InitDRFonts(); \
-        gBig_font = LoadBRFont("BIGFONT.FNT"); \
-        gFont_7 = LoadBRFont("FONT7.FNT"); \
-        gHeadup_font = LoadBRFont("HEADUP.FNT"); \
-        PrintMemoryDump(0, "AFTER LOADING FONTS"); \
-        InitExplosions(); \
-        PrintMemoryDump(0, "AFTER INITIALISING EXPLOSIONS"); \
-        LoadMiscStrings(); \
-        PrintMemoryDump(0, "AFTER LOADING MISC STRING"); \
-        InitialiseStorageSpace(0, &gMisc_storage_space, 1000, 5, 1000, 1000, 10); \
-        LoadInRegistees(); \
-        InitMap(); \
-        PrintMemoryDump(0, "AFTER INITIALISING GENERAL STORAGE AND LOADING IN REG"); \
-        Init2DStuffForPolyFonts(); \
-        InitLineStuff(); \
-        InitSmokeStuff(); \
-        PrintMemoryDump(0, "AFTER INITING LINE AND SMOKE STUFF"); \
-        Init2DStuff(); \
-        InitTintedPolyStuff(); \
-        gHud_tinted1 = CreateTintedPoly(0, 0, 640, 480, 2, 0, 0, 0); \
-        gHud_tinted2 = CreateTintedPoly(0, 0, 640, 480, 3, 2, 0, 0); \
-        PrintMemoryDump(0, "AFTER INITING 2D STUFF"); \
-        InitLightingEffects(); \
-        LoadInterfaceStrings(); \
-        PrintMemoryDump(0, "AFTER INITING INTERFACE STRINGS"); \
-        PrintMemoryDump(0, "AFTER INITING ACTION REPLAY"); \
-        InitPhysics(); \
-        PrintMemoryDump(0, "AFTER INITING PHYSICS"); \
-        InitCrushSystems(); \
-        PrintMemoryDump(0, "AFTER INITING CRUSH SYSTEMS"); \
-        InitTreeSurgery(); \
-        FlicPaletteAllocate(); \
-        InitInterfaceLoadState(); \
-        InitTransientBitmaps(); \
-        PrintMemoryDump(0, "AFTER INITING OTHER INTERFACE STUFF"); \
-        InitSound(); \
-        PrintMemoryDump(0, "AFTER INITING SOUND"); \
-        InitHeadups(); \
-        PrintMemoryDump(0, "AFTER INITING HEADUPS"); \
-        gDefault_track_material = BrMaterialAllocate("gDefault_track_material"); \
-        gDefault_track_material->index_base = 227; \
-        gDefault_track_material->index_range = 1; \
-        gDefault_track_material->colour = ((br_colour*)gRender_palette->pixels)[227]; \
-        gDefault_track_material->ka = 1.0f; \
-        gDefault_track_material->kd = 0.0f; \
-        gDefault_track_material->ks = 0.0f; \
-        BrMaterialAdd(gDefault_track_material); \
-        InitPowerups(); \
-        PrintMemoryDump(0, "AFTER INITING POWERUPS"); \
-        InitShadow(); \
-        PrintMemoryDump(0, "AFTER INITING SHADOW"); \
-        InitFlics(); \
-        AllocateStandardLamp(); \
-        InitPanGameAIWorld(); \
-        PrintMemoryDump(0, "AFTER INITING AI WORLD"); \
-        LoadPowerups(); \
-        PrintMemoryDump(0, "AFTER LOADING POWERUPS"); \
-        LoadRaces(gRace_list, &gNumber_of_races, -1); \
-        PrintMemoryDump(0, "AFTER LOADING RACES"); \
-        InitPaletteAnimate(); \
-        InitRayCasting(); \
-        InitDepthEffects(); \
-        PrintMemoryDump(0, "AFTER INITING DEPTH EFFECTS"); \
-        InitSmashing(); \
-        PrintMemoryDump(0, "AFTER INITING SMASHING"); \
-        InitialiseStorageSpace(0, &gOur_car_storage_space, 200, 2, 200, 200, 10); \
-        InitialiseStorageSpace(0, &gTheir_cars_storage_space, 1500, 50, 1500, 1500, 50); \
-        InitialiseStorageSpace(0, &gDroneStorage, 500, 50, 500, 228, 10); \
-        InitialiseStorageSpace(0, &gPedStorage, 200, 10, 100, 500, 200); \
-        InitialiseStorageSpace(0, &gTrack_storage_space, 1000, 50, 1000, 1000, 50); \
-        FinishLoadingGeneral(); \
-        PrintMemoryDump(0, "AFTER FINISHING LOADING GENERAL"); \
-        InitOilSpills(); \
-        for (;;) { \
-            if (!gAustere_time) { \
-                break; \
-            } \
-            if (PDGetTotalTime() - gAustere_time >= 2000) { \
-                break; \
-            } \
-        } \
-        ClearEntireScreen(); \
-        InitSkids(); \
-        PrintMemoryDump(0, "AFTER INITING SPILLS AND SKIDS"); \
-        InitPolyPedSystem(); \
-        gProgram_state.track_spec.the_actor = NULL; \
-        gCD_is_in_drive = TestForOriginalCarmaCDinDrive(); \
-        LoadHeadupImages(); \
-        InitGame(gDev_initial_race); \
-        BrMatrix34Identity(&gCamera_to_world); \
-        BrMatrix34Identity(&gRearview_camera_to_world); \
-        PrintMemoryDump(0, "AFTER APPLICATION INITIALISATION (JUST INITED PED SYSTEM)"); \
-        memset(gPickedup_powerups, 0, sizeof(gPickedup_powerups)); \
-        memset(gUnknown_00705b80, 0, sizeof(gUnknown_00705b80)); \
-        ClosePackFileAndSetTiffLoading(twt); \
-        gApplicationDataTwtMounted = 0; \
-    } while (0)
-
-void C2_HOOK_FASTCALL DoDevelopmentThings(void) {
-
-}
-
-// FUNCTION: CARMA2_HW 0x0047dd20
-void C2_HOOK_FASTCALL InitialiseDeathRace(int pArgc, const char** pArgv) {
-
-    PDInitialiseSystem();
-    DoDevelopmentThings();
-    InitialiseApplication(pArgc, pArgv);
-    gInitialisation_finished = 1;
 }
 
 // FUNCTION: CARMA2_HW 0x00481620

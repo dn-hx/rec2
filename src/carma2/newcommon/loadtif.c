@@ -63,6 +63,33 @@ br_pixelmap* C2_HOOK_FASTCALL CreatePalettePixelmapFromRGBChannels(br_uint_16* p
     return pm;
 }
 
+// FUNCTION: CARMA2_HW 0x004856c0
+br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex(const char* pDirectory, const char* pFile_stem, br_pixelmap* pPalette, int pFlags, int* pError_code) {
+    br_pixelmap* texture;
+
+    if ((pFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
+        goto load_palette;
+    }
+    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 1);
+    if (texture != NULL) {
+        goto identifier;
+    }
+load_palette:
+    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 0);
+    if (texture == NULL) {
+        goto return_texture;
+    }
+identifier:
+    texture->identifier = BrResStrDup(texture, pFile_stem);
+    if (texture->identifier == NULL) {
+        BrPixelmapFree(texture);
+        *pError_code = 2;
+        return NULL;
+    }
+return_texture:
+    return texture;
+}
+
 br_pixelmap* C2_HOOK_FASTCALL LoadDefaultPalette(const char* pData_dir_path, int pFlags, int *pError_code) {
     int i;
     tPath_name path;
@@ -231,252 +258,6 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex2(const char* pDirectory, const 
     return pm;
 }
 
-// FUNCTION: CARMA2_HW 0x004856c0
-br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex(const char* pDirectory, const char* pFile_stem, br_pixelmap* pPalette, int pFlags, int* pError_code) {
-    br_pixelmap* texture;
-
-    if ((pFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
-        goto load_palette;
-    }
-    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 1);
-    if (texture != NULL) {
-        goto identifier;
-    }
-load_palette:
-    texture = LoadTiffTexture_Ex2(pDirectory, pFile_stem, pPalette, pFlags, pError_code, 0);
-    if (texture == NULL) {
-        goto return_texture;
-    }
-identifier:
-    texture->identifier = BrResStrDup(texture, pFile_stem);
-    if (texture->identifier == NULL) {
-        BrPixelmapFree(texture);
-        *pError_code = 2;
-        return NULL;
-    }
-return_texture:
-    return texture;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00486860
-int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data) {
-    int stemLength;
-    tPath_name textureName;
-    tLoadDirectoryStructureCBResult* itemResult;
-    br_pixelmap* texture;
-    const char* directory;
-    br_pixelmap* pPalette;
-    int loadFlags;
-    int* errorCode;
-
-    stemLength = (int)strlen(filePath) - 4;
-    if (stemLength <= 0) {
-        return 0;
-    }
-    if (DRstrcmpi(filePath + stemLength, ".TIF") != 0) {
-        return 0;
-    }
-    sprintf(textureName, "%.*s", stemLength, filePath);
-    if (!data->isTiffx && data->results != NULL) {
-        itemResult = data->results;
-        while (itemResult != NULL) {
-            if (DRstrcmpi(textureName, itemResult->name) == 0) {
-                break;
-            }
-            itemResult = itemResult->next;
-        }
-        if (itemResult != NULL) {
-            return 0;
-        }
-    }
-    directory = data->directory;
-    pPalette = data->pPalette;
-    loadFlags = data->loadFlags;
-    errorCode = data->errorCode;
-    if ((loadFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
-        goto load_palette;
-    }
-    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 1);
-    if (texture != NULL) {
-        goto identifier;
-    }
-load_palette:
-    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 0);
-    if (texture == NULL) {
-        goto done_load;
-    }
-identifier:
-    texture->identifier = BrResStrDup(texture, textureName);
-    if (texture->identifier == NULL) {
-        BrPixelmapFree(texture);
-        *errorCode = 2;
-        texture = NULL;
-    }
-done_load:
-    if (texture != NULL) {
-        BrPixelmapFree(texture);
-    }
-    if (*data->errorCode != 0) {
-        return *data->errorCode;
-    }
-    if (!data->isTiffx) {
-        return 0;
-    }
-    itemResult = BrMemAllocate(sizeof(*itemResult), BR_MEMORY_APPLICATION);
-    if (itemResult == NULL) {
-        *errorCode = 2;
-        return 2;
-    }
-    itemResult->name = BrMemStrDup(textureName);
-    if (itemResult->name == NULL) {
-        *errorCode = 2;
-        return 2;
-    }
-    itemResult->next = data->results;
-    data->results = itemResult;
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x00486760
-void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode) {
-    tLoadDirectoryStructureCBData data;
-    tLoadDirectoryStructureCBResult* nextItem;
-    tPath_name pathBuffer;
-
-    data.directory = directory;
-    data.pPalette = pPalette;
-    data.loadFlags = loadFlags | kLoadTextureFlags_SaveBrenderTexture;
-    data.errorCode = errorCode;
-    data.results = NULL;
-    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
-        sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFX");
-        data.isTiffx = 0x1;
-        PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
-    }
-    if (*errorCode != 0) {
-        return;
-    }
-    sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFRGB");
-    data.isTiffx = 0x0;
-    PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
-
-    while (data.results != NULL) {
-        nextItem = data.results->next;
-        if (data.results->name != NULL) {
-            BrMemFree(data.results->name);
-        }
-        BrMemFree(data.results);
-        data.results = nextItem;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004869e0
-int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
-    FILE* f;
-    char s1[256];
-    char s2[256];
-    int i;
-    size_t len;
-    char c;
-
-    f = DRfopen(pPath, "rt");
-    if (f == NULL) {
-        return 0;
-    }
-    GetALineAndDontArgue(f, s1);
-    s2[0] = '\0';
-    if (strstr(s1, ".TIF") != NULL) {
-
-        len = strlen(s1);
-        for (i = 0; i < (int)len; i++) {
-            c = s1[i];
-            if (c == '\\') {
-                c = *gDir_separator;
-            }
-            s2[i] = c;
-        }
-        s2[len] = '\0';
-        PathCat(s1, gApplication_path, s2);
-        strcpy(pDest, s1);
-        fclose(f);
-        return 1;
-    } else if (strstr(s1, ".PIX") != NULL) {
-
-        len = strlen(s1);
-        for (i = 0; i < (int)len; i++) {
-            c = s1[i];
-            if (c == '\\') {
-                c = *gDir_separator;
-            }
-            s2[i] = c;
-        }
-        s2[len] = '\0';
-        PathCat(s1, gApplication_path, s2);
-        strcpy(pDest, s1);
-        fclose(f);
-        return 1;
-    } else {
-        fclose(f);
-        return 0;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00486b20
-int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_source) {
-    char *ptr;
-    char c;
-    FILE *f;
-    int i;
-    char rel_dest[256];
-    char s[256];
-
-    i = 0;
-    strcpy(s, pLink_dest);
-    ptr = strstr(s, "DATA") + 5;
-    while (*ptr != '\0') {
-        c = *ptr;
-        if (c == ':' || c == '\\') {
-            rel_dest[i] = '\\';
-        } else {
-            rel_dest[i] = c;
-        }
-        i++;
-        ptr++;
-    }
-    rel_dest[i] = '\0';
-    f = DRfopen(pLink_source, "wt");
-    if (f != NULL) {
-        fputs(rel_dest, f);
-        fclose(f);
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00486be0
-int C2_HOOK_FASTCALL PDGetLastModificationTime(const char* pPath) {
-    struct stat statbuf;
-
-    if (stat(pPath, &statbuf) == -1) {
-        return 0;
-    }
-    return (int)statbuf.st_mtime;
-}
-
-// FUNCTION: CARMA2_HW 0x00486c00
-int C2_HOOK_FASTCALL PDFileExists(const char *pPath) {
-    struct stat statbuf;
-
-    return stat(pPath, &statbuf) == 0;
-}
-
 // PDmkdir
 
 // FUNCTION: CARMA2_HW 0x00485fe0
@@ -554,95 +335,6 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiff8bit(const char *pPath, int pFlags, int *p
         BrResAdd(pm, pm->map);
     }
     TIFFClose(tif);
-    return pm;
-}
-
-// FUNCTION: CARMA2_HW 0x004864a0
-br_pixelmap* C2_HOOK_FASTCALL LoadTiff16bit(const char *pPath, int pFlags, int *pError_code) {
-    TIFF* tif;
-    br_pixelmap* pm;
-    br_uint_8 pixel_type;
-    br_uint_32 height;
-    br_uint_32 width;
-    br_uint_16 samples_per_pixel;
-    br_uint_8* scanline_buffer;
-    br_uint_32 x;
-    br_uint_32 y;
-    br_uint_8 red;
-    br_uint_8 grn;
-    br_uint_8 blu;
-    br_uint_8 alp;
-
-    tif = TIFFOpen(pPath, "r");
-    if (tif == NULL) {
-        *pError_code = 4;
-        return NULL;
-    }
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
-    TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &samples_per_pixel);
-    if (samples_per_pixel == 3) {
-        pixel_type = BR_PMT_RGB_565;
-    } else {
-        if (pFlags & kLoadTextureFlags_UseARGB1555) {
-            pixel_type = BR_PMT_ARGB_1555;
-        } else {
-            pixel_type = BR_PMT_RGBA_4444;
-        }
-    }
-    pm = BrPixelmapAllocate(pixel_type, width, height, NULL, 0);
-    if (pm == NULL) {
-        TIFFClose(tif);
-        *pError_code = 2;
-        return NULL;
-    }
-    scanline_buffer = _TIFFmalloc(TIFFScanlineSize(tif));
-    if (scanline_buffer == NULL) {
-        TIFFClose(tif);
-        BrPixelmapFree(pm);
-        *pError_code = 2;
-        return NULL;
-    }
-
-    for (y = 0; y < height && TIFFReadScanline(tif, scanline_buffer, y, 0) > 0; y++) {
-
-        if (samples_per_pixel == 3) {
-            // RGB888 -> RGB565
-            for (x = 0; x < width; x++) {
-                red = scanline_buffer[3 * x + 0];
-                grn = scanline_buffer[3 * x + 1];
-                blu = scanline_buffer[3 * x + 2];
-
-                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((red >> 3) << 11) | ((grn >> 2) << 5) | (blu >> 3);
-            }
-        }
-        else if (pFlags & kLoadTextureFlags_UseARGB1555) {
-            // RGBA8888 -> ARGB1555
-            for (x = 0; x < width; x++) {
-                red = scanline_buffer[4 * x + 0];
-                grn = scanline_buffer[4 * x + 1];
-                blu = scanline_buffer[4 * x + 2];
-                alp = scanline_buffer[4 * x + 3];
-                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((alp >= 0x80) << 15) | ((red >> 3) << 10) | ((grn >> 3) << 5) | (blu >> 3);
-            }
-        } else {
-            // RGBA8888 -> ARGB4444
-            for (x = 0; x < width; x++) {
-                red = scanline_buffer[4 * x + 0];
-                grn = scanline_buffer[4 * x + 1];
-                blu = scanline_buffer[4 * x + 2];
-                alp = scanline_buffer[4 * x + 3];
-                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((alp >> 4) << 12) | ((red >> 4) << 8) | ((grn >> 4) << 4) | (blu >> 4);
-            }
-        }
-    }
-    _TIFFfree(scanline_buffer);
-    TIFFClose(tif);
-    if (y != height) {
-        BrPixelmapFree(pm);
-        *pError_code = 4;
-        return NULL;
-    }
     return pm;
 }
 
@@ -817,6 +509,314 @@ int C2_HOOK_FASTCALL FindPaletteColour(br_colour pColour, br_pixelmap *pPalette)
     } else {
         return FindPaletteColourXRGB8888(pColour, pPalette);
     }
+}
+
+// FUNCTION: CARMA2_HW 0x004864a0
+br_pixelmap* C2_HOOK_FASTCALL LoadTiff16bit(const char *pPath, int pFlags, int *pError_code) {
+    TIFF* tif;
+    br_pixelmap* pm;
+    br_uint_8 pixel_type;
+    br_uint_32 height;
+    br_uint_32 width;
+    br_uint_16 samples_per_pixel;
+    br_uint_8* scanline_buffer;
+    br_uint_32 x;
+    br_uint_32 y;
+    br_uint_8 red;
+    br_uint_8 grn;
+    br_uint_8 blu;
+    br_uint_8 alp;
+
+    tif = TIFFOpen(pPath, "r");
+    if (tif == NULL) {
+        *pError_code = 4;
+        return NULL;
+    }
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+    TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &samples_per_pixel);
+    if (samples_per_pixel == 3) {
+        pixel_type = BR_PMT_RGB_565;
+    } else {
+        if (pFlags & kLoadTextureFlags_UseARGB1555) {
+            pixel_type = BR_PMT_ARGB_1555;
+        } else {
+            pixel_type = BR_PMT_RGBA_4444;
+        }
+    }
+    pm = BrPixelmapAllocate(pixel_type, width, height, NULL, 0);
+    if (pm == NULL) {
+        TIFFClose(tif);
+        *pError_code = 2;
+        return NULL;
+    }
+    scanline_buffer = _TIFFmalloc(TIFFScanlineSize(tif));
+    if (scanline_buffer == NULL) {
+        TIFFClose(tif);
+        BrPixelmapFree(pm);
+        *pError_code = 2;
+        return NULL;
+    }
+
+    for (y = 0; y < height && TIFFReadScanline(tif, scanline_buffer, y, 0) > 0; y++) {
+
+        if (samples_per_pixel == 3) {
+            // RGB888 -> RGB565
+            for (x = 0; x < width; x++) {
+                red = scanline_buffer[3 * x + 0];
+                grn = scanline_buffer[3 * x + 1];
+                blu = scanline_buffer[3 * x + 2];
+
+                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((red >> 3) << 11) | ((grn >> 2) << 5) | (blu >> 3);
+            }
+        }
+        else if (pFlags & kLoadTextureFlags_UseARGB1555) {
+            // RGBA8888 -> ARGB1555
+            for (x = 0; x < width; x++) {
+                red = scanline_buffer[4 * x + 0];
+                grn = scanline_buffer[4 * x + 1];
+                blu = scanline_buffer[4 * x + 2];
+                alp = scanline_buffer[4 * x + 3];
+                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((alp >= 0x80) << 15) | ((red >> 3) << 10) | ((grn >> 3) << 5) | (blu >> 3);
+            }
+        } else {
+            // RGBA8888 -> ARGB4444
+            for (x = 0; x < width; x++) {
+                red = scanline_buffer[4 * x + 0];
+                grn = scanline_buffer[4 * x + 1];
+                blu = scanline_buffer[4 * x + 2];
+                alp = scanline_buffer[4 * x + 3];
+                *((br_uint_16*)((br_uint_8*)pm->pixels + y * pm->row_bytes + sizeof(br_uint_16) * x)) = ((alp >> 4) << 12) | ((red >> 4) << 8) | ((grn >> 4) << 4) | (blu >> 4);
+            }
+        }
+    }
+    _TIFFfree(scanline_buffer);
+    TIFFClose(tif);
+    if (y != height) {
+        BrPixelmapFree(pm);
+        *pError_code = 4;
+        return NULL;
+    }
+    return pm;
+}
+
+// FUNCTION: CARMA2_HW 0x00486760
+void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode) {
+    tLoadDirectoryStructureCBData data;
+    tLoadDirectoryStructureCBResult* nextItem;
+    tPath_name pathBuffer;
+
+    data.directory = directory;
+    data.pPalette = pPalette;
+    data.loadFlags = loadFlags | kLoadTextureFlags_SaveBrenderTexture;
+    data.errorCode = errorCode;
+    data.results = NULL;
+    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
+        sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFX");
+        data.isTiffx = 0x1;
+        PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+    }
+    if (*errorCode != 0) {
+        return;
+    }
+    sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFRGB");
+    data.isTiffx = 0x0;
+    PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+
+    while (data.results != NULL) {
+        nextItem = data.results->next;
+        if (data.results->name != NULL) {
+            BrMemFree(data.results->name);
+        }
+        BrMemFree(data.results);
+        data.results = nextItem;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00486860
+int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data) {
+    int stemLength;
+    tPath_name textureName;
+    tLoadDirectoryStructureCBResult* itemResult;
+    br_pixelmap* texture;
+    const char* directory;
+    br_pixelmap* pPalette;
+    int loadFlags;
+    int* errorCode;
+
+    stemLength = (int)strlen(filePath) - 4;
+    if (stemLength <= 0) {
+        return 0;
+    }
+    if (DRstrcmpi(filePath + stemLength, ".TIF") != 0) {
+        return 0;
+    }
+    sprintf(textureName, "%.*s", stemLength, filePath);
+    if (!data->isTiffx && data->results != NULL) {
+        itemResult = data->results;
+        while (itemResult != NULL) {
+            if (DRstrcmpi(textureName, itemResult->name) == 0) {
+                break;
+            }
+            itemResult = itemResult->next;
+        }
+        if (itemResult != NULL) {
+            return 0;
+        }
+    }
+    directory = data->directory;
+    pPalette = data->pPalette;
+    loadFlags = data->loadFlags;
+    errorCode = data->errorCode;
+    if ((loadFlags & kLoadTextureFlags_16bbp) == kLoadTextureFlags_16bbp) {
+        goto load_palette;
+    }
+    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 1);
+    if (texture != NULL) {
+        goto identifier;
+    }
+load_palette:
+    texture = LoadTiffTexture_Ex2(directory, textureName, pPalette, loadFlags, errorCode, 0);
+    if (texture == NULL) {
+        goto done_load;
+    }
+identifier:
+    texture->identifier = BrResStrDup(texture, textureName);
+    if (texture->identifier == NULL) {
+        BrPixelmapFree(texture);
+        *errorCode = 2;
+        texture = NULL;
+    }
+done_load:
+    if (texture != NULL) {
+        BrPixelmapFree(texture);
+    }
+    if (*data->errorCode != 0) {
+        return *data->errorCode;
+    }
+    if (!data->isTiffx) {
+        return 0;
+    }
+    itemResult = BrMemAllocate(sizeof(*itemResult), BR_MEMORY_APPLICATION);
+    if (itemResult == NULL) {
+        *errorCode = 2;
+        return 2;
+    }
+    itemResult->name = BrMemStrDup(textureName);
+    if (itemResult->name == NULL) {
+        *errorCode = 2;
+        return 2;
+    }
+    itemResult->next = data->results;
+    data->results = itemResult;
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x004869e0
+int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
+    FILE* f;
+    char s1[256];
+    char s2[256];
+    int i;
+    size_t len;
+    char c;
+
+    f = DRfopen(pPath, "rt");
+    if (f == NULL) {
+        return 0;
+    }
+    GetALineAndDontArgue(f, s1);
+    s2[0] = '\0';
+    if (strstr(s1, ".TIF") != NULL) {
+
+        len = strlen(s1);
+        for (i = 0; i < (int)len; i++) {
+            c = s1[i];
+            if (c == '\\') {
+                c = *gDir_separator;
+            }
+            s2[i] = c;
+        }
+        s2[len] = '\0';
+        PathCat(s1, gApplication_path, s2);
+        strcpy(pDest, s1);
+        fclose(f);
+        return 1;
+    } else if (strstr(s1, ".PIX") != NULL) {
+
+        len = strlen(s1);
+        for (i = 0; i < (int)len; i++) {
+            c = s1[i];
+            if (c == '\\') {
+                c = *gDir_separator;
+            }
+            s2[i] = c;
+        }
+        s2[len] = '\0';
+        PathCat(s1, gApplication_path, s2);
+        strcpy(pDest, s1);
+        fclose(f);
+        return 1;
+    } else {
+        fclose(f);
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00486b20
+int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_source) {
+    char *ptr;
+    char c;
+    FILE *f;
+    int i;
+    char rel_dest[256];
+    char s[256];
+
+    i = 0;
+    strcpy(s, pLink_dest);
+    ptr = strstr(s, "DATA") + 5;
+    while (*ptr != '\0') {
+        c = *ptr;
+        if (c == ':' || c == '\\') {
+            rel_dest[i] = '\\';
+        } else {
+            rel_dest[i] = c;
+        }
+        i++;
+        ptr++;
+    }
+    rel_dest[i] = '\0';
+    f = DRfopen(pLink_source, "wt");
+    if (f != NULL) {
+        fputs(rel_dest, f);
+        fclose(f);
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00486be0
+int C2_HOOK_FASTCALL PDGetLastModificationTime(const char* pPath) {
+    struct stat statbuf;
+
+    if (stat(pPath, &statbuf) == -1) {
+        return 0;
+    }
+    return (int)statbuf.st_mtime;
+}
+
+// FUNCTION: CARMA2_HW 0x00486c00
+int C2_HOOK_FASTCALL PDFileExists(const char *pPath) {
+    struct stat statbuf;
+
+    return stat(pPath, &statbuf) == 0;
 }
 
 /* rec2 runtime fix, no original counterpart: CARMA2_HW's statically linked libtiff never had default

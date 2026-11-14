@@ -28,12 +28,8 @@ int gReceived_game_scores;
 
 // DoNetRaceSummary
 
-// FUNCTION: CARMA2_HW 0x004e33a0
-static int C2_HOOK_CDECL SortScores_2(const void* pArg1, const void* pArg2) {
 
-    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
-}
-
+static int C2_HOOK_CDECL SortScores_2(const void* pArg1, const void* pArg2);
 // FUNCTION: CARMA2_HW 0x004e32b0
 void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed) {
     int start_time;
@@ -72,6 +68,11 @@ void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_comp
             return;
         }
     }
+}
+// FUNCTION: CARMA2_HW 0x004e33a0
+static int C2_HOOK_CDECL SortScores_2(const void* pArg1, const void* pArg2) {
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
 }
 
 // FUNCTION: CARMA2_HW 0x004e33d0

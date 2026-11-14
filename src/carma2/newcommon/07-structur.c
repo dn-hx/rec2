@@ -83,471 +83,48 @@ int gHud_tinted1_visible;
 // GLOBAL: CARMA2_HW 0x006aaa3c
 int gHud_tinted2_visible;
 
-// FUNCTION: CARMA2_HW 0x00503050
-int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
-    int result;
-    int count;
-    int i;
-    tCar_spec* car_spec;
-
-    result = 0;
-    count = GetCarCount(eVehicle_opponent);
-    for (i = 0; i < count; i++) {
-        car_spec = GetCarSpec(eVehicle_opponent, i);
-
-        if (!car_spec->knackered && (gCurrent_race.race_spec->race_type == kRaceType_Carma1 || (gCurrent_race.race_spec->race_type == kRaceType_Cars && car_spec->is_race_goal))) {
-            result += 1;
-        }
-    }
-    return result;
-}
-
-extern void C2_HOOK_FASTCALL ToggleMap(void);
-extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
-extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
-
-// FUNCTION: CARMA2_HW 0x005030b0
-// FUNCTION: CARMA2_SW 0x004fea00
-void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason) {
-
-    if (gRace_finished) {
-        return;
-    }
-    if (gNet_mode == eNet_mode_host && pReason < eRace_over_8) {
-        NetFinishrace(gCurrent_net_game, pReason);
-    }
-    if (pReason == eRace_over_out_of_time || pReason == eRace_over_7) {
-        ChangeAmbientPratcam(35);
-    } else if (pReason < eRace_over_abandoned) {
-        ChangeAmbientPratcam(34);
-    }
-    gRace_over_reason = pReason;
-    if (gMap_view == 2) {
-        ToggleMap();
-    }
-    switch (gRace_over_reason) {
-    case eRace_over_8:
-        ChangeAmbientPratcam(34);
-        DoFancyHeadup(29);
-        break;
-    case eRace_over_9:
-        ChangeAmbientPratcam(36);
-        DoFancyHeadup(26);
-        break;
-    case eRace_over_out_of_time:
-        ChangeAmbientPratcam(35);
-        if (gCurrent_race.race_spec->is_boundary) {
-            DoFancyHeadup(33);
-        } else {
-            DoFancyHeadup(22);
-        }
-        DRS3StartSound(gPedestrians_outlet, eSoundId_OutOfTime2);
-        break;
-    case eRace_over_7:
-        ChangeAmbientPratcam(35);
-        DoFancyHeadup(35);
-        break;
-    case eRace_over_0:
-    case eRace_over_1:
-    case eRace_over_2:
-    case eRace_over_3:
-        ChangeAmbientPratcam(34);
-        if (gCurrent_race.race_spec->is_boundary) {
-            DoFancyHeadup(34);
-        } else {
-            DoFancyHeadup(23);
-        }
-        DRS3StartSound(gPedestrians_outlet, eSoundId_RaceComplete);
-        break;
-    case eRace_over_abandoned:
-        if (gNet_mode == eNet_mode_client) {
-            gHost_abandon_game = 1;
-            NetFullScreenMessage(eMiscString_host_abandoned_race, 0);
-        }
-        break;
-    case eRace_over_6:
-        ChangeAmbientPratcam(36);
-        if (gCurrent_race.race_spec->is_boundary) {
-            DoFancyHeadup(33);
-        } else {
-            DoFancyHeadup(24);
-        }
-        break;
-    default:
-        break;
-    }
-    gRace_finished = gNet_mode == eNet_mode_none ? 10000 : 8000;
-}
-
-// FUNCTION: CARMA2_HW 0x00503270
-void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
-    (void)pCheckpoint_index;
-
-    PratcamEvent(33);
-    DoFancyHeadup(21);
-    if (pDo_sound) {
-        DRS3StartSound(gPedestrians_outlet, eSoundId_Checkpoint);
-    }
-}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x0041fc60
+void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
+    tPhysics_object* collision_info = pCar->collision_info;
+    float ratio;
+    float rear_divisor;
+    float front_give;
+    float rear_give;
+    float damping;
+    float root_stiffness;
+    float front_divisor;
+    float rear_height;
+    float front_height;
+    float rear_min;
+    float front_min;
+    float min_value;
 
-// based on ApexWorm/rec2 b2b9f23b6
-// FUNCTION: CARMA2_HW 0x005032a0
-// FUNCTION: CARMA2_SW 0x004febf0
-void C2_HOOK_FASTCALL IncrementCheckpoint(void) {
-    int done_voice;
-
-    done_voice = 0;
-    if (gRace_finished) {
-        return;
-    }
-    if (gCurrent_race.race_spec->race_type != kRaceType_Carma1
-            && gCurrent_race.race_spec->race_type != kRaceType_Checkpoints) {
-        return;
-    }
-    gLast_checkpoint_time = GetTotalTime();
-    if (gCheckpoint >= gCheckpoint_count) {
-        gCheckpoint = 1;
-        if (gLap++ >= gTotal_laps) {
-            gLap = gTotal_laps;
-            gCheckpoint = gCheckpoint_count;
-            RaceCompleted(eRace_over_0);
-        } else if (gLap == gTotal_laps) {
-            PratcamEvent(33);
-            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_final_lap));
-            DRS3StartSound(gPedestrians_outlet, eSoundId_FinalLap);
-            done_voice = 1;
-        }
-    } else {
-        gCheckpoint += 1;
-    }
-    if (!gRace_finished) {
-        PratcamEvent(33);
-        DoFancyHeadup(21);
-        if (!done_voice) {
-            DRS3StartSound(gPedestrians_outlet, eSoundId_Checkpoint);
-        }
-        if (gCredits_checkpoint[gProgram_state.skill_level] != 0) {
-            EarnCredits(gCredits_checkpoint[gProgram_state.skill_level]);
-        }
-    }
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x005033b0
-// FUNCTION: CARMA2_SW 0x004fed00
-void C2_HOOK_FASTCALL IncrementLap(void) {
-    int i;
-
-    for (i = gCheckpoint; i <= gCheckpoint_count; i++) {
-        IncrementCheckpoint();
-    }
-}
-
-// RayHitFace
-
-// FUNCTION: CARMA2_HW 0x005033e0
-void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
-
-    if (gRace_finished) {
-        return;
-    }
-    if (!(gCurrent_race.race_spec->race_type == kRaceType_Carma1 ||
-        gCurrent_race.race_spec->race_type == kRaceType_Checkpoints)) {
-        return;
-    }
-    if ((gLast_wrong_checkpoint == pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 20000)
-            || (gLast_wrong_checkpoint != pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 2000)) {
-
-        if (gNet_mode == eNet_mode_none) {
-            int next_checkpoint = pCheckpoint_index + 2;
-            if (next_checkpoint > gCurrent_race.check_point_count) {
-                if (gLap == 1) {
-                    next_checkpoint = -1;
-                } else {
-                    next_checkpoint = 1;
-                }
-            }
-            if (next_checkpoint == gCheckpoint) {
-                return;
-            }
-        }
-        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_wrong_checkpoint));
-        DRS3StartSound(gPedestrians_outlet, eSoundId_WrongCheckpoint);
-        gLast_checkpoint_time = GetTotalTime();
-        gLast_wrong_checkpoint = pCheckpoint_index;
-    }
-}
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
-
-static int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vector3* pV2, br_vector3* pNormal, br_vector3* pStart, br_vector3* pDir) {
-    (void)pV0; (void)pV1; (void)pV2; (void)pNormal; (void)pStart; (void)pDir;
-    return 0;
-}
-
-static void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
-    (void)pPlayer; (void)pMess; (void)pParam_1; (void)pParam_2; (void)pParam_3; (void)pParam_4;
-}
-
-static void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
-    (void)pWinner_index;
-}
-
-// FUNCTION: CARMA2_HW 0x005034b0
-void C2_HOOK_FASTCALL CheckCheckpoints(void) {
-    tCar_spec* car;
-    br_vector3 orig;
-    br_vector3 dir;
-    int i;
-    int j;
-    int cat;
-    int car_count;
-    int car_index;
-    tNet_game_player_info* net_player;
-
-    if (gNet_mode == eNet_mode_client) {
-        return;
-    }
-    if (gNet_mode == eNet_mode_host && gCurrent_net_game->type != eNet_game_type_5 && gCurrent_net_game->type != eNet_game_type_checkpoint && gCurrent_net_game->type != eNet_game_type_4) {
-        return;
-    }
-    for (cat = eVehicle_self; cat <= gNet_mode; cat++) {
-        if (cat == eVehicle_self) {
-            car_count = 1;
-        } else {
-            car_count = GetCarCount(cat);
-        }
-        for (car_index = 0; car_index < car_count; car_index++) {
-            if (cat == eVehicle_self) {
-                car = &gProgram_state.current_car;
-            } else {
-                car = GetCarSpec(cat, car_index);
-            }
-            BrVector3Copy(&orig, (br_vector3*)car->old_frame_mat.m[3]);
-            BrVector3Sub(&dir, &car->car_master_actor->t.t.translate.t, &orig);
-            for (i = 0; i < gCurrent_race.check_point_count; i++) {
-                for (j = 0; j < gCurrent_race.checkpoints[i].count_quads; j++) {
-                    if (
-                            RayHitFace(&gCurrent_race.checkpoints[i].quads[j].points[0],
-                                       &gCurrent_race.checkpoints[i].quads[j].points[1],
-                                       &gCurrent_race.checkpoints[i].quads[j].points[2],
-                                       &gCurrent_race.checkpoints[i].normals[j],
-                                       &orig, &dir)
-                            || RayHitFace(&gCurrent_race.checkpoints[i].quads[j].points[0],
-                                          &gCurrent_race.checkpoints[i].quads[j].points[2],
-                                          &gCurrent_race.checkpoints[i].quads[j].points[3],
-                                          &gCurrent_race.checkpoints[i].normals[j],
-                                          &orig,
-                                          &dir)) {
-                        if (gNet_mode == eNet_mode_none) {
-                            if (i + 1 == gCheckpoint) {
-                                IncrementCheckpoint();
-                            } else {
-                                WrongCheckpoint(i);
-                            }
-                        } else {
-                            net_player = NetPlayerFromCar(car);
-                            if (gCurrent_net_game->type == eNet_game_type_checkpoint) {
-                                if (net_player->score2 & (1 << i)) {
-                                    net_player->score2 &= ~(1 << i);
-                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
-                                } else {
-                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
-                                }
-                            } else if (gCurrent_net_game->type == eNet_game_type_5) {
-                                if ((net_player->score2 % gCurrent_race.check_point_count) == i) {
-                                    net_player->score2 += 1;
-                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
-                                    gLast_checkpoint_time = GetTotalTime();
-                                    if (net_player->score2 >= gCurrent_net_game->options.starting_target * gCurrent_race.check_point_count) {
-                                        DeclareWinner(net_player - gNet_players);
-                                    }
-                                } else {
-                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
-                                }
-                            } else {
-                                if ((net_player->score2 % gCurrent_race.check_point_count) == i) {
-                                    net_player->score2 += 1;
-                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
-                                    break;
-                                } else {
-                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            BrMatrix34Copy(&car->old_frame_mat, &car->car_master_actor->t.t.mat);
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x005039b0
-// FUNCTION: CARMA2_SW 0x004ff300
-void C2_HOOK_FASTCALL TotalRepair(void) {
-
-    TotallyRepairCar();
-    NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_instant_repair));
-}
-
-/* DoLogos (inlined into DoProgram by the original compiler: the logo sequence's only call sites are the two
-   DoSCILogo/DoOpeningAnimation/DoStainlessLogo triples at 0x503d00 and 0x503d7c, both inside DoProgram 0x503c50) */
-/* DoProgOpeningAnimation (inlined into DoProgram by the original compiler, same call sites) */
-/* DoProgramDemo (inlined into DoProgram by the original compiler, same call sites) */
-
-// FUNCTION: CARMA2_HW 0x00503b00
-// FUNCTION: CARMA2_SW 0x004ff450
-int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness) {
-    int i;
-    int count;
-    int temp_array[40];
-
-    while (1) {
-        count = 0;
-        for (i = 0; i < gNumber_of_racers; i++) {
-            if ((pNastiness == 0 || gOpponents[i].strength_rating == pNastiness)
-                && gProgram_state.current_car_index != i
-                && !gOpponents[i].picked
-                && gOpponents[i].strength_rating <= 5
-                && gOpponents[i].strength_rating >= 1) {
-                temp_array[count++] = i;
-            }
-        }
-        if (count != 0) {
-            break;
-        }
-        if (pNastiness < 5) {
-            pNastiness++;
-        } else {
-            pNastiness = 0;
-        }
-    }
-    i = temp_array[IRandomBetween(0, count - 1)];
-    gOpponents[i].picked = 1;
-    return i;
-}
-
-// SelectOpponents
-
-// FUNCTION: CARMA2_HW 0x00503ba0
-int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence) {
-    int i;
-    int new_index;
-    int races_count;
-    int most_seldom_seen;
-    int races_to_pick_from[50];
-
-    if (pNet_race_sequence == eNet_sequence_sequential) {
-        pCurrent_race++;
-        if (pCurrent_race >= gNumber_of_races) {
-            pCurrent_race = 0;
-        }
-        return pCurrent_race;
-    } else {
-        most_seldom_seen = 10000;
-        for (i = 0; i < gNumber_of_races; i++) {
-            if (gRace_list[i].count_opponents < most_seldom_seen) {
-                most_seldom_seen = gRace_list[i].count_opponents;
-            }
-        }
-        races_count = 0;
-        for (i = 0; i < gNumber_of_races; i++) {
-            if (gRace_list[i].count_opponents == most_seldom_seen && i != pCurrent_race) {
-                races_to_pick_from[races_count] = i;
-                races_count++;
-            }
-        }
-        new_index = races_to_pick_from[IRandomBetween(0, races_count - 1)];
-        gRace_list[new_index].count_opponents++;
-        return new_index;
-    }
-}
-
-// SwapNetCarsLoad
-
-// SwapNetCarsDispose
-
-extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
-extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
-extern void C2_HOOK_FASTCALL DoSCILogo(void);
-extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
-extern void C2_HOOK_STDCALL DoStainlessLogo(void);
-extern void C2_HOOK_FASTCALL SetSoundVolumes(int pCD_audio);
-extern void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
-extern void C2_HOOK_FASTCALL InitGame(int pStart_race);
-extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
-extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
-extern void C2_HOOK_FASTCALL DoMainScreen(void);
-extern int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet);
-extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, const char* pTitle);
-extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
-extern void C2_HOOK_FASTCALL LoadRaceInfo(int pRace_index, tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL DisableNetService(void);
-extern void C2_HOOK_FASTCALL ReenableNetService(void);
-extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
-extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
-extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
-extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
-extern int C2_HOOK_FASTCALL SortOpponents(void);
-extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL DisposeRace(void);
-extern void C2_HOOK_FASTCALL DisposeTrack(void);
-extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
-extern void C2_HOOK_FASTCALL InitSoundSources(void);
-extern void C2_HOOK_FASTCALL FogificateMaterials(tRendererShadingType pShading_type);
-extern void C2_HOOK_FASTCALL EnableAutoFogification(void);
-extern void C2_HOOK_FASTCALL DisableAutoFogification(void);
-extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
-extern tRace_result C2_HOOK_FASTCALL DoRace(void);
-extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
-extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
-extern void C2_HOOK_FASTCALL DoSaveGame(void);
-extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
-extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
-extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);
-extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
-extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
-extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
-extern tCar_spec* gCar_to_view;
-extern int gSave_game_out_of_sync;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x005039e0
-void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race) {
-    int i;
-
-    if (gNet_mode == eNet_mode_none) {
-        pThe_race->number_of_racers = pThe_race->race_spec->count_explicit_opponents;
-        for (i = 0; i < gNumber_of_racers; i++) {
-            gOpponents[i].picked = 0;
-        }
-        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
-            if (pThe_race->race_spec->explicit_opponents[i] >= 0) {
-                gOpponents[pThe_race->race_spec->explicit_opponents[i]].picked = 1;
-                pThe_race->opponent_list[i].index = pThe_race->race_spec->explicit_opponents[i];
-                pThe_race->opponent_list[i].ranking = -(i + 1);
-            }
-        }
-        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
-            if (pThe_race->race_spec->explicit_opponents[i] < 0) {
-                pThe_race->opponent_list[i].index = ChooseOpponent(-pThe_race->race_spec->explicit_opponents[i]);
-                pThe_race->opponent_list[i].ranking = IRandomBetween(0, 99);
-            }
-        }
-    }
+    ratio = (float)fabs((pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) / (pCar->wpos[2].v[2] - pCar->centre_of_mass_world_scale.v[2]));
+    rear_divisor = ratio - -1.0f;
+    rear_give = pCar->steerable_suspension_give * pRear_give_factor * WORLD_SCALE;
+    pCar->sk[0] = (collision_info->M / rear_divisor) * 5.0f / rear_give;
+    root_stiffness = (float)sqrt(5.0);
+    pCar->sb[0] = (float)((collision_info->M / rear_divisor) * root_stiffness / sqrt(rear_give));
+    front_give = pCar->susp_give * pFront_give_factor * WORLD_SCALE;
+    damping = pCar->damping * pDamping_factor;
+    front_divisor = 1.0 / ratio;
+    pCar->sk[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * 5.0f / front_give);
+    pCar->sb[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * root_stiffness / sqrt(front_give));
+    pCar->sb[0] *= damping;
+    pCar->sb[1] *= damping;
+    rear_height = rear_give + pExtra_rear_height + pCar->ride_height;
+    front_height = front_give + pExtra_front_height + pCar->ride_height;
+    pCar->susp_height[0] = rear_height;
+    pCar->susp_height[1] = front_height;
+    rear_min = (pCar->wpos[0].v[1] - rear_height) * (1.0f / WORLD_SCALE);
+    front_min = (pCar->wpos[2].v[1] - front_height) * (1.0f / WORLD_SCALE);
+    min_value = MIN(rear_min, front_min);
+    min_value = MIN(min_value, collision_info->bb1.min.v[1]);
+    collision_info->bb2.min.v[1] = min_value;
 }
 
 extern FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
@@ -670,160 +247,10 @@ void C2_HOOK_FASTCALL ResetCrushSystems(void) {
     gCount_car_damage_crush_list = 0;
 }
 
-// FUNCTION: CARMA2_HW 0x0041fc60
-void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
-    tPhysics_object* collision_info = pCar->collision_info;
-    float ratio;
-    float rear_divisor;
-    float front_give;
-    float rear_give;
-    float damping;
-    float root_stiffness;
-    float front_divisor;
-    float rear_height;
-    float front_height;
-    float rear_min;
-    float front_min;
-    float min_value;
-
-    ratio = (float)fabs((pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) / (pCar->wpos[2].v[2] - pCar->centre_of_mass_world_scale.v[2]));
-    rear_divisor = ratio - -1.0f;
-    rear_give = pCar->steerable_suspension_give * pRear_give_factor * WORLD_SCALE;
-    pCar->sk[0] = (collision_info->M / rear_divisor) * 5.0f / rear_give;
-    root_stiffness = (float)sqrt(5.0);
-    pCar->sb[0] = (float)((collision_info->M / rear_divisor) * root_stiffness / sqrt(rear_give));
-    front_give = pCar->susp_give * pFront_give_factor * WORLD_SCALE;
-    damping = pCar->damping * pDamping_factor;
-    front_divisor = 1.0 / ratio;
-    pCar->sk[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * 5.0f / front_give);
-    pCar->sb[1] = (float)((collision_info->M / (front_divisor - -1.0f)) * root_stiffness / sqrt(front_give));
-    pCar->sb[0] *= damping;
-    pCar->sb[1] *= damping;
-    rear_height = rear_give + pExtra_rear_height + pCar->ride_height;
-    front_height = front_give + pExtra_front_height + pCar->ride_height;
-    pCar->susp_height[0] = rear_height;
-    pCar->susp_height[1] = front_height;
-    rear_min = (pCar->wpos[0].v[1] - rear_height) * (1.0f / WORLD_SCALE);
-    front_min = (pCar->wpos[2].v[1] - front_height) * (1.0f / WORLD_SCALE);
-    min_value = MIN(rear_min, front_min);
-    min_value = MIN(min_value, collision_info->bb1.min.v[1]);
-    collision_info->bb2.min.v[1] = min_value;
-}
-
-/* powerup/inventory globals defined in 27-powerup.c */
-extern tU8* gRace_powerup_respawn_bools;
-extern tPowerup_respawn_spec* gPowerup_respawn_specs;
-extern tPowerup* gPowerup_array;
-extern int gNumber_of_powerups;
-extern tRespawn_powerup gRespawn_powerups[100];
-extern tHeadup_icon gPickedup_powerups[20];
-extern int gInventory[20];
-extern int gInventory_selected;
-extern int gINT_006a0a6c;
-extern int gINT_006a0a5c;
-extern int gInventory_cycling;
-extern tU32 gInventory_timeout;
-extern int gCount_cloaked_cars;
-extern tRepulse_link gRepulse_links[6];
-extern br_actor* gNon_track_actor;
-extern int gNumber_of_icons;
-extern undefined4 gDAT_006a0958;
-extern tU32 gNext_goody_time;
-
-extern int gIt_or_fox;
-extern tU32 gTime_for_punishment;
-extern int gNot_shown_race_type_headup;
-extern tU32 gLast_it_change;
-extern tNet_game_player_info* gLast_lepper;
-extern int gWinner_declared;
-
-// FUNCTION: CARMA2_HW 0x0049b720
-void C2_HOOK_FASTCALL InitPlayers(void) {
-    tNet_game_player_info* player;
-    int i;
-
-    i = 0;
-    if (0 < gNumber_of_net_players) {
-        player = &gNet_players[0];
-        do {
-            PossibleService();
-            switch (gCurrent_net_game->type) {
-            case eNet_game_type_fight_to_death:
-                player->score2 = 100;
-                break;
-            case eNet_game_type_checkpoint:
-                player->score2 = 0xffff;
-                break;
-            case eNet_game_type_1:
-            case eNet_game_type_2:
-            case eNet_game_type_4:
-            case eNet_game_type_5:
-            case eNet_game_type_6:
-            case eNet_game_type_foxy:
-                player->score2 = 0;
-                break;
-            }
-            player->credits = gCurrent_net_game->options.starting_credits;
-            player->wasted = 0;
-            player->reposition_time = 0;
-            *(int*)player->field_0xd0 = 0;
-            player->field_0x80 = 0;
-            i++;
-            player++;
-        } while (i < gNumber_of_net_players);
-    }
-    gIt_or_fox = -1;
-    if (gNet_mode == eNet_mode_host) {
-        gLast_it_change = 0;
-        gLast_lepper = NULL;
-    }
-    gTime_for_punishment = 0;
-    gWinner_declared = 0;
-    gNot_shown_race_type_headup = 1;
-}
-
-extern int gINT_0068d920;
-extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
-extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
-extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
-
-// FUNCTION: CARMA2_HW 0x0049b7e0
-void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id) {
-    int i;
-
-    switch (gCurrent_net_game->type) {
-    case eNet_game_type_2:
-        gINT_0068d920 = pPlayer_id;
-        break;
-    case eNet_game_type_6:
-        for (i = 0; i < gNumber_of_net_players; i++) {
-            if (gNet_players[i].field_0x80 == 0 && (pPlayer_id & (1 << i)) != 0) {
-                PlayerIsInfected(&gNet_players[i]);
-            }
-        }
-        break;
-    case eNet_game_type_foxy:
-        if (gNet_players[gIt_or_fox].ID != pPlayer_id) {
-            for (i = 0; i < gNumber_of_net_players; i++) {
-                StopCarBeingIt(gNet_players[i].car);
-            }
-            for (i = 0; i < gNumber_of_net_players; i++) {
-                if (gNet_players[i].ID == pPlayer_id) {
-                    MakeCarIt(gNet_players[i].car);
-                    gIt_or_fox = i;
-                }
-            }
-        }
-        break;
-    default:
-        break;
-    }
-}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 /* Modify2DCopyPixelmaps and SetupFFBValues are inlined into InitRace by the original compiler */
 static void InitRace_Modify2DCopyPixelmaps(void) {
     int i;
@@ -851,6 +278,7 @@ static void InitRace_SetupFFBValues(void) {
     PFfclose(f);
 }
 
+extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, const char* pTitle);
 // FUNCTION: CARMA2_HW 0x00481830
 void C2_HOOK_FASTCALL InitRace(void) {
     int i;
@@ -1015,6 +443,221 @@ void C2_HOOK_FASTCALL InitRace(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+/* powerup/inventory globals defined in 27-powerup.c */
+extern tU8* gRace_powerup_respawn_bools;
+extern tPowerup_respawn_spec* gPowerup_respawn_specs;
+extern tPowerup* gPowerup_array;
+extern int gNumber_of_powerups;
+extern tRespawn_powerup gRespawn_powerups[100];
+extern tHeadup_icon gPickedup_powerups[20];
+extern int gInventory[20];
+extern int gInventory_selected;
+extern int gINT_006a0a6c;
+extern int gINT_006a0a5c;
+extern int gInventory_cycling;
+extern tU32 gInventory_timeout;
+extern int gCount_cloaked_cars;
+extern tRepulse_link gRepulse_links[6];
+extern br_actor* gNon_track_actor;
+extern int gNumber_of_icons;
+extern undefined4 gDAT_006a0958;
+extern tU32 gNext_goody_time;
+
+extern int gIt_or_fox;
+extern tU32 gTime_for_punishment;
+extern int gNot_shown_race_type_headup;
+extern tU32 gLast_it_change;
+extern tNet_game_player_info* gLast_lepper;
+extern int gWinner_declared;
+
+// FUNCTION: CARMA2_HW 0x0049b720
+void C2_HOOK_FASTCALL InitPlayers(void) {
+    tNet_game_player_info* player;
+    int i;
+
+    i = 0;
+    if (0 < gNumber_of_net_players) {
+        player = &gNet_players[0];
+        do {
+            PossibleService();
+            switch (gCurrent_net_game->type) {
+            case eNet_game_type_fight_to_death:
+                player->score2 = 100;
+                break;
+            case eNet_game_type_checkpoint:
+                player->score2 = 0xffff;
+                break;
+            case eNet_game_type_1:
+            case eNet_game_type_2:
+            case eNet_game_type_4:
+            case eNet_game_type_5:
+            case eNet_game_type_6:
+            case eNet_game_type_foxy:
+                player->score2 = 0;
+                break;
+            }
+            player->credits = gCurrent_net_game->options.starting_credits;
+            player->wasted = 0;
+            player->reposition_time = 0;
+            *(int*)player->field_0xd0 = 0;
+            player->field_0x80 = 0;
+            i++;
+            player++;
+        } while (i < gNumber_of_net_players);
+    }
+    gIt_or_fox = -1;
+    if (gNet_mode == eNet_mode_host) {
+        gLast_it_change = 0;
+        gLast_lepper = NULL;
+    }
+    gTime_for_punishment = 0;
+    gWinner_declared = 0;
+    gNot_shown_race_type_headup = 1;
+}
+
+extern int gINT_0068d920;
+extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
+extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL MakeCarIt(tCar_spec* pCar);
+
+// FUNCTION: CARMA2_HW 0x0049b7e0
+void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id) {
+    int i;
+
+    switch (gCurrent_net_game->type) {
+    case eNet_game_type_2:
+        gINT_0068d920 = pPlayer_id;
+        break;
+    case eNet_game_type_6:
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (gNet_players[i].field_0x80 == 0 && (pPlayer_id & (1 << i)) != 0) {
+                PlayerIsInfected(&gNet_players[i]);
+            }
+        }
+        break;
+    case eNet_game_type_foxy:
+        if (gNet_players[gIt_or_fox].ID != pPlayer_id) {
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                StopCarBeingIt(gNet_players[i].car);
+            }
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                if (gNet_players[i].ID == pPlayer_id) {
+                    MakeCarIt(gNet_players[i].car);
+                    gIt_or_fox = i;
+                }
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* Crush-list counters and lists cleared by ResetCrushSystems (crush.c globals) */
+// GLOBAL: CARMA2_HW 0x006796bc
+int gCount_queued_drone_crushes;
+
+// GLOBAL: CARMA2_HW 0x006796c8
+tCrush_list_item gCrush_lists[8];
+
+// GLOBAL: CARMA2_HW 0x0067b7c8
+int gCount_net_crush_reattach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067b7cc
+int gCount_car_damage_crush_list;
+
+// GLOBAL: CARMA2_HW 0x0067b838
+int gCount_net_crush_semi_detach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067bd58
+int gCount_toggled_doors;
+
+// GLOBAL: CARMA2_HW 0x0067bd60
+int gCount_net_crush_full_detach_bit_list;
+
+// GLOBAL: CARMA2_HW 0x0067bdf0
+int gCount_net_crush_detach_list;
+
+// GLOBAL: CARMA2_HW 0x0067bdfc
+int gINT_0067bdfc;
+
+// GLOBAL: CARMA2_HW 0x0067be08
+tU8 gCrush_data_entry_counter;
+
+/* powerup globals owned by ResetPowerups */
+// GLOBAL: CARMA2_HW 0x006a0944
+int gNumber_of_icons;
+
+// GLOBAL: CARMA2_HW 0x006a0958
+undefined4 gDAT_006a0958;
+
+// GLOBAL: CARMA2_HW 0x006a0aec
+tU32 gNext_goody_time;
+
+/* netgame globals written by InitPlayers */
+// GLOBAL: CARMA2_HW 0x0068d924
+tNet_game_player_info* gLast_lepper = NULL;
+
+// GLOBAL: CARMA2_HW 0x0068d928
+tU32 gLast_it_change = 0;
+
+// GLOBAL: CARMA2_HW 0x0068d938
+int gWinner_declared = 0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
+extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
+extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+extern int gINT_0074c6d4;
+
+// Known remaining diff (partial, category=codegen): 0x4a5773 SIB base/index order only
+// (original [esi + ebx + 0x19], ours [ebx + esi + 0x19]); both pointer-first and array
+// spellings compile to the same instruction, so the choice is MSVC's register allocator.
+// FUNCTION: CARMA2_HW 0x004a5710
+void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason) {
+    tNet_message* message;
+    tNet_game_details* pGame;
+    int size_leave;
+    int size_guaranteed;
+    int size_leave_again;
+    int full_size;
+    int result;
+    int i;
+
+    gINT_0074c6d4 = 0;
+    size_leave = NetGetContentsSize(0xa, 0);
+    size_guaranteed = NetGetContentsSize(5, 0);
+    size_leave_again = NetGetContentsSize(0xa, 0);
+    full_size = size_leave_again + 0x18 + size_guaranteed;
+    message = NetAllocateMessage(full_size);
+    if (message != NULL) {
+        message->contents.raw.header.size = (tU8)size_leave;
+        message->header.field_0x14 = 0xff;
+        message->header.field_0x16 = (tU16)full_size;
+        message->contents.raw.header.type = 0xa;
+        ((tU8*)message)[0x19 + (tU8)size_leave] = 5;
+        ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
+    }
+    *(tU32*)((tU8*)message + 0x1c) = pReason;
+    result = 0;
+    pGame = gCurrent_net_game;
+    if (gNumber_of_net_players == 1) {
+        message->contents.raw.header.type = 0xff;
+        return;
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            result |= NetGuaranteedSendMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
+        }
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x004c6580
 void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
@@ -1044,6 +687,7 @@ void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
     }
 }
 
+extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
 // FUNCTION: CARMA2_HW 0x004e3440
 int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
     extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
@@ -1114,6 +758,473 @@ int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x00503050
+int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
+    int result;
+    int count;
+    int i;
+    tCar_spec* car_spec;
+
+    result = 0;
+    count = GetCarCount(eVehicle_opponent);
+    for (i = 0; i < count; i++) {
+        car_spec = GetCarSpec(eVehicle_opponent, i);
+
+        if (!car_spec->knackered && (gCurrent_race.race_spec->race_type == kRaceType_Carma1 || (gCurrent_race.race_spec->race_type == kRaceType_Cars && car_spec->is_race_goal))) {
+            result += 1;
+        }
+    }
+    return result;
+}
+
+extern void C2_HOOK_FASTCALL ToggleMap(void);
+extern void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason);
+extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_up_there);
+
+// FUNCTION: CARMA2_HW 0x005030b0
+// FUNCTION: CARMA2_SW 0x004fea00
+void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason) {
+
+    if (gRace_finished) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_host && pReason < eRace_over_8) {
+        NetFinishrace(gCurrent_net_game, pReason);
+    }
+    if (pReason == eRace_over_out_of_time || pReason == eRace_over_7) {
+        ChangeAmbientPratcam(35);
+    } else if (pReason < eRace_over_abandoned) {
+        ChangeAmbientPratcam(34);
+    }
+    gRace_over_reason = pReason;
+    if (gMap_view == 2) {
+        ToggleMap();
+    }
+    switch (gRace_over_reason) {
+    case eRace_over_8:
+        ChangeAmbientPratcam(34);
+        DoFancyHeadup(29);
+        break;
+    case eRace_over_9:
+        ChangeAmbientPratcam(36);
+        DoFancyHeadup(26);
+        break;
+    case eRace_over_out_of_time:
+        ChangeAmbientPratcam(35);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(33);
+        } else {
+            DoFancyHeadup(22);
+        }
+        DRS3StartSound(gPedestrians_outlet, eSoundId_OutOfTime2);
+        break;
+    case eRace_over_7:
+        ChangeAmbientPratcam(35);
+        DoFancyHeadup(35);
+        break;
+    case eRace_over_0:
+    case eRace_over_1:
+    case eRace_over_2:
+    case eRace_over_3:
+        ChangeAmbientPratcam(34);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(34);
+        } else {
+            DoFancyHeadup(23);
+        }
+        DRS3StartSound(gPedestrians_outlet, eSoundId_RaceComplete);
+        break;
+    case eRace_over_abandoned:
+        if (gNet_mode == eNet_mode_client) {
+            gHost_abandon_game = 1;
+            NetFullScreenMessage(eMiscString_host_abandoned_race, 0);
+        }
+        break;
+    case eRace_over_6:
+        ChangeAmbientPratcam(36);
+        if (gCurrent_race.race_spec->is_boundary) {
+            DoFancyHeadup(33);
+        } else {
+            DoFancyHeadup(24);
+        }
+        break;
+    default:
+        break;
+    }
+    gRace_finished = gNet_mode == eNet_mode_none ? 10000 : 8000;
+}
+
+// FUNCTION: CARMA2_HW 0x00503270
+void C2_HOOK_FASTCALL Checkpoint(int pCheckpoint_index, int pDo_sound) {
+    (void)pCheckpoint_index;
+
+    PratcamEvent(33);
+    DoFancyHeadup(21);
+    if (pDo_sound) {
+        DRS3StartSound(gPedestrians_outlet, eSoundId_Checkpoint);
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on ApexWorm/rec2 b2b9f23b6
+// FUNCTION: CARMA2_HW 0x005032a0
+// FUNCTION: CARMA2_SW 0x004febf0
+void C2_HOOK_FASTCALL IncrementCheckpoint(void) {
+    int done_voice;
+
+    done_voice = 0;
+    if (gRace_finished) {
+        return;
+    }
+    if (gCurrent_race.race_spec->race_type != kRaceType_Carma1
+            && gCurrent_race.race_spec->race_type != kRaceType_Checkpoints) {
+        return;
+    }
+    gLast_checkpoint_time = GetTotalTime();
+    if (gCheckpoint >= gCheckpoint_count) {
+        gCheckpoint = 1;
+        if (gLap++ >= gTotal_laps) {
+            gLap = gTotal_laps;
+            gCheckpoint = gCheckpoint_count;
+            RaceCompleted(eRace_over_0);
+        } else if (gLap == gTotal_laps) {
+            PratcamEvent(33);
+            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_final_lap));
+            DRS3StartSound(gPedestrians_outlet, eSoundId_FinalLap);
+            done_voice = 1;
+        }
+    } else {
+        gCheckpoint += 1;
+    }
+    if (!gRace_finished) {
+        PratcamEvent(33);
+        DoFancyHeadup(21);
+        if (!done_voice) {
+            DRS3StartSound(gPedestrians_outlet, eSoundId_Checkpoint);
+        }
+        if (gCredits_checkpoint[gProgram_state.skill_level] != 0) {
+            EarnCredits(gCredits_checkpoint[gProgram_state.skill_level]);
+        }
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x005033b0
+// FUNCTION: CARMA2_SW 0x004fed00
+void C2_HOOK_FASTCALL IncrementLap(void) {
+    int i;
+
+    for (i = gCheckpoint; i <= gCheckpoint_count; i++) {
+        IncrementCheckpoint();
+    }
+}
+
+// RayHitFace
+
+// FUNCTION: CARMA2_HW 0x005033e0
+void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
+
+    if (gRace_finished) {
+        return;
+    }
+    if (!(gCurrent_race.race_spec->race_type == kRaceType_Carma1 ||
+        gCurrent_race.race_spec->race_type == kRaceType_Checkpoints)) {
+        return;
+    }
+    if ((gLast_wrong_checkpoint == pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 20000)
+            || (gLast_wrong_checkpoint != pCheckpoint_index && GetTotalTime() - gLast_checkpoint_time > 2000)) {
+
+        if (gNet_mode == eNet_mode_none) {
+            int next_checkpoint = pCheckpoint_index + 2;
+            if (next_checkpoint > gCurrent_race.check_point_count) {
+                if (gLap == 1) {
+                    next_checkpoint = -1;
+                } else {
+                    next_checkpoint = 1;
+                }
+            }
+            if (next_checkpoint == gCheckpoint) {
+                return;
+            }
+        }
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_wrong_checkpoint));
+        DRS3StartSound(gPedestrians_outlet, eSoundId_WrongCheckpoint);
+        gLast_checkpoint_time = GetTotalTime();
+        gLast_wrong_checkpoint = pCheckpoint_index;
+    }
+}
+extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+
+static int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vector3* pV2, br_vector3* pNormal, br_vector3* pStart, br_vector3* pDir) {
+    (void)pV0; (void)pV1; (void)pV2; (void)pNormal; (void)pStart; (void)pDir;
+    return 0;
+}
+
+static void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
+    (void)pPlayer; (void)pMess; (void)pParam_1; (void)pParam_2; (void)pParam_3; (void)pParam_4;
+}
+
+static void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
+    (void)pWinner_index;
+}
+
+// FUNCTION: CARMA2_HW 0x005034b0
+void C2_HOOK_FASTCALL CheckCheckpoints(void) {
+    tCar_spec* car;
+    br_vector3 orig;
+    br_vector3 dir;
+    int i;
+    int j;
+    int cat;
+    int car_count;
+    int car_index;
+    tNet_game_player_info* net_player;
+
+    if (gNet_mode == eNet_mode_client) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_host && gCurrent_net_game->type != eNet_game_type_5 && gCurrent_net_game->type != eNet_game_type_checkpoint && gCurrent_net_game->type != eNet_game_type_4) {
+        return;
+    }
+    for (cat = eVehicle_self; cat <= gNet_mode; cat++) {
+        if (cat == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(cat);
+        }
+        for (car_index = 0; car_index < car_count; car_index++) {
+            if (cat == eVehicle_self) {
+                car = &gProgram_state.current_car;
+            } else {
+                car = GetCarSpec(cat, car_index);
+            }
+            BrVector3Copy(&orig, (br_vector3*)car->old_frame_mat.m[3]);
+            BrVector3Sub(&dir, &car->car_master_actor->t.t.translate.t, &orig);
+            for (i = 0; i < gCurrent_race.check_point_count; i++) {
+                for (j = 0; j < gCurrent_race.checkpoints[i].count_quads; j++) {
+                    if (
+                            RayHitFace(&gCurrent_race.checkpoints[i].quads[j].points[0],
+                                       &gCurrent_race.checkpoints[i].quads[j].points[1],
+                                       &gCurrent_race.checkpoints[i].quads[j].points[2],
+                                       &gCurrent_race.checkpoints[i].normals[j],
+                                       &orig, &dir)
+                            || RayHitFace(&gCurrent_race.checkpoints[i].quads[j].points[0],
+                                          &gCurrent_race.checkpoints[i].quads[j].points[2],
+                                          &gCurrent_race.checkpoints[i].quads[j].points[3],
+                                          &gCurrent_race.checkpoints[i].normals[j],
+                                          &orig,
+                                          &dir)) {
+                        if (gNet_mode == eNet_mode_none) {
+                            if (i + 1 == gCheckpoint) {
+                                IncrementCheckpoint();
+                            } else {
+                                WrongCheckpoint(i);
+                            }
+                        } else {
+                            net_player = NetPlayerFromCar(car);
+                            if (gCurrent_net_game->type == eNet_game_type_checkpoint) {
+                                if (net_player->score2 & (1 << i)) {
+                                    net_player->score2 &= ~(1 << i);
+                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
+                                } else {
+                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
+                                }
+                            } else if (gCurrent_net_game->type == eNet_game_type_5) {
+                                if ((net_player->score2 % gCurrent_race.check_point_count) == i) {
+                                    net_player->score2 += 1;
+                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
+                                    gLast_checkpoint_time = GetTotalTime();
+                                    if (net_player->score2 >= gCurrent_net_game->options.starting_target * gCurrent_race.check_point_count) {
+                                        DeclareWinner(net_player - gNet_players);
+                                    }
+                                } else {
+                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
+                                }
+                            } else {
+                                if ((net_player->score2 % gCurrent_race.check_point_count) == i) {
+                                    net_player->score2 += 1;
+                                    SendGameplay(net_player->ID, eNet_gameplay_checkpoint, i, 0, 0, 0);
+                                    break;
+                                } else {
+                                    SendGameplay(net_player->ID, eNet_gameplay_wrong_checkpoint, i, 0, 0, 0);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            BrMatrix34Copy(&car->old_frame_mat, &car->car_master_actor->t.t.mat);
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x005039b0
+// FUNCTION: CARMA2_SW 0x004ff300
+void C2_HOOK_FASTCALL TotalRepair(void) {
+
+    TotallyRepairCar();
+    NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_instant_repair));
+}
+
+// SwapNetCarsLoad
+
+// SwapNetCarsDispose
+
+extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
+extern void C2_HOOK_FASTCALL DoSCILogo(void);
+extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
+extern void C2_HOOK_STDCALL DoStainlessLogo(void);
+extern void C2_HOOK_FASTCALL SetSoundVolumes(int pCD_audio);
+extern void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
+extern void C2_HOOK_FASTCALL InitGame(int pStart_race);
+extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
+extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
+extern void C2_HOOK_FASTCALL DoMainScreen(void);
+extern int C2_HOOK_FASTCALL DRS3StopOutletSound(tS3_outlet* pOutlet);
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+extern void C2_HOOK_FASTCALL LoadRaceInfo(int pRace_index, tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisableNetService(void);
+extern void C2_HOOK_FASTCALL ReenableNetService(void);
+extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern int C2_HOOK_FASTCALL SwitchToLoresMode(void);
+extern int C2_HOOK_FASTCALL SortOpponents(void);
+extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL DisposeRace(void);
+extern void C2_HOOK_FASTCALL DisposeTrack(void);
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL InitSoundSources(void);
+extern void C2_HOOK_FASTCALL FogificateMaterials(tRendererShadingType pShading_type);
+extern void C2_HOOK_FASTCALL EnableAutoFogification(void);
+extern void C2_HOOK_FASTCALL DisableAutoFogification(void);
+extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
+extern tRace_result C2_HOOK_FASTCALL DoRace(void);
+extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
+extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
+extern void C2_HOOK_FASTCALL DoSaveGame(void);
+extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
+extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
+extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
+extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
+extern tCar_spec* gCar_to_view;
+extern int gSave_game_out_of_sync;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x005039e0
+void C2_HOOK_FASTCALL SelectOpponents(tRace_info* pThe_race) {
+    int i;
+
+    if (gNet_mode == eNet_mode_none) {
+        pThe_race->number_of_racers = pThe_race->race_spec->count_explicit_opponents;
+        for (i = 0; i < gNumber_of_racers; i++) {
+            gOpponents[i].picked = 0;
+        }
+        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
+            if (pThe_race->race_spec->explicit_opponents[i] >= 0) {
+                gOpponents[pThe_race->race_spec->explicit_opponents[i]].picked = 1;
+                pThe_race->opponent_list[i].index = pThe_race->race_spec->explicit_opponents[i];
+                pThe_race->opponent_list[i].ranking = -(i + 1);
+            }
+        }
+        for (i = 0; i < pThe_race->race_spec->count_explicit_opponents; i++) {
+            if (pThe_race->race_spec->explicit_opponents[i] < 0) {
+                pThe_race->opponent_list[i].index = ChooseOpponent(-pThe_race->race_spec->explicit_opponents[i]);
+                pThe_race->opponent_list[i].ranking = IRandomBetween(0, 99);
+            }
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* DoLogos (inlined into DoProgram by the original compiler: the logo sequence's only call sites are the two
+   DoSCILogo/DoOpeningAnimation/DoStainlessLogo triples at 0x503d00 and 0x503d7c, both inside DoProgram 0x503c50) */
+/* DoProgOpeningAnimation (inlined into DoProgram by the original compiler, same call sites) */
+/* DoProgramDemo (inlined into DoProgram by the original compiler, same call sites) */
+
+// FUNCTION: CARMA2_HW 0x00503b00
+// FUNCTION: CARMA2_SW 0x004ff450
+int C2_HOOK_FASTCALL ChooseOpponent(int pNastiness) {
+    int i;
+    int count;
+    int temp_array[40];
+
+    while (1) {
+        count = 0;
+        for (i = 0; i < gNumber_of_racers; i++) {
+            if ((pNastiness == 0 || gOpponents[i].strength_rating == pNastiness)
+                && gProgram_state.current_car_index != i
+                && !gOpponents[i].picked
+                && gOpponents[i].strength_rating <= 5
+                && gOpponents[i].strength_rating >= 1) {
+                temp_array[count++] = i;
+            }
+        }
+        if (count != 0) {
+            break;
+        }
+        if (pNastiness < 5) {
+            pNastiness++;
+        } else {
+            pNastiness = 0;
+        }
+    }
+    i = temp_array[IRandomBetween(0, count - 1)];
+    gOpponents[i].picked = 1;
+    return i;
+}
+
+// SelectOpponents
+
+// FUNCTION: CARMA2_HW 0x00503ba0
+int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence) {
+    int i;
+    int new_index;
+    int races_count;
+    int most_seldom_seen;
+    int races_to_pick_from[50];
+
+    if (pNet_race_sequence == eNet_sequence_sequential) {
+        pCurrent_race++;
+        if (pCurrent_race >= gNumber_of_races) {
+            pCurrent_race = 0;
+        }
+        return pCurrent_race;
+    } else {
+        most_seldom_seen = 10000;
+        for (i = 0; i < gNumber_of_races; i++) {
+            if (gRace_list[i].count_opponents < most_seldom_seen) {
+                most_seldom_seen = gRace_list[i].count_opponents;
+            }
+        }
+        races_count = 0;
+        for (i = 0; i < gNumber_of_races; i++) {
+            if (gRace_list[i].count_opponents == most_seldom_seen && i != pCurrent_race) {
+                races_to_pick_from[races_count] = i;
+                races_count++;
+            }
+        }
+        new_index = races_to_pick_from[IRandomBetween(0, races_count - 1)];
+        gRace_list[new_index].count_opponents++;
+        return new_index;
+    }
+}
 
 /* DoGame (inlined into DoProgram by the original compiler) */
 static void DoGame(void) {
@@ -1671,10 +1782,10 @@ static void CheckNonCarModelBounds(void) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 /* LoadTrack: (GPL-3.0), rewritten from the disassembly.
  * The original inlines LoadExceptionsFileForTrack/LoadExceptionsFile/AddExceptionToList, GetThreeFloats/GetAFloat,
  * MungeTrackModel, PossibleTreeSurgery (ModelIsATree + PerformTreeSurgery), CheckNonCarModelBounds and FreeExceptions. */
@@ -2138,111 +2249,6 @@ void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec
     LoadStaticLightingForRace(race_lighting_path);
     ClosePackFileAndSetTiffLoading(twt);
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* Crush-list counters and lists cleared by ResetCrushSystems (crush.c globals) */
-// GLOBAL: CARMA2_HW 0x006796bc
-int gCount_queued_drone_crushes;
-
-// GLOBAL: CARMA2_HW 0x006796c8
-tCrush_list_item gCrush_lists[8];
-
-// GLOBAL: CARMA2_HW 0x0067b7c8
-int gCount_net_crush_reattach_bit_list;
-
-// GLOBAL: CARMA2_HW 0x0067b7cc
-int gCount_car_damage_crush_list;
-
-// GLOBAL: CARMA2_HW 0x0067b838
-int gCount_net_crush_semi_detach_bit_list;
-
-// GLOBAL: CARMA2_HW 0x0067bd58
-int gCount_toggled_doors;
-
-// GLOBAL: CARMA2_HW 0x0067bd60
-int gCount_net_crush_full_detach_bit_list;
-
-// GLOBAL: CARMA2_HW 0x0067bdf0
-int gCount_net_crush_detach_list;
-
-// GLOBAL: CARMA2_HW 0x0067bdfc
-int gINT_0067bdfc;
-
-// GLOBAL: CARMA2_HW 0x0067be08
-tU8 gCrush_data_entry_counter;
-
-/* powerup globals owned by ResetPowerups */
-// GLOBAL: CARMA2_HW 0x006a0944
-int gNumber_of_icons;
-
-// GLOBAL: CARMA2_HW 0x006a0958
-undefined4 gDAT_006a0958;
-
-// GLOBAL: CARMA2_HW 0x006a0aec
-tU32 gNext_goody_time;
-
-/* netgame globals written by InitPlayers */
-// GLOBAL: CARMA2_HW 0x0068d924
-tNet_game_player_info* gLast_lepper = NULL;
-
-// GLOBAL: CARMA2_HW 0x0068d928
-tU32 gLast_it_change = 0;
-
-// GLOBAL: CARMA2_HW 0x0068d938
-int gWinner_declared = 0;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
-extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
-extern int gINT_0074c6d4;
-
-// Known remaining diff (partial, category=codegen): 0x4a5773 SIB base/index order only
-// (original [esi + ebx + 0x19], ours [ebx + esi + 0x19]); both pointer-first and array
-// spellings compile to the same instruction, so the choice is MSVC's register allocator.
-// FUNCTION: CARMA2_HW 0x004a5710
-void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason) {
-    tNet_message* message;
-    tNet_game_details* pGame;
-    int size_leave;
-    int size_guaranteed;
-    int size_leave_again;
-    int full_size;
-    int result;
-    int i;
-
-    gINT_0074c6d4 = 0;
-    size_leave = NetGetContentsSize(0xa, 0);
-    size_guaranteed = NetGetContentsSize(5, 0);
-    size_leave_again = NetGetContentsSize(0xa, 0);
-    full_size = size_leave_again + 0x18 + size_guaranteed;
-    message = NetAllocateMessage(full_size);
-    if (message != NULL) {
-        message->contents.raw.header.size = (tU8)size_leave;
-        message->header.field_0x14 = 0xff;
-        message->header.field_0x16 = (tU16)full_size;
-        message->contents.raw.header.type = 0xa;
-        ((tU8*)message)[0x19 + (tU8)size_leave] = 5;
-        ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
-    }
-    *(tU32*)((tU8*)message + 0x1c) = pReason;
-    result = 0;
-    pGame = gCurrent_net_game;
-    if (gNumber_of_net_players == 1) {
-        message->contents.raw.header.type = 0xff;
-        return;
-    }
-    for (i = 0; i < gNumber_of_net_players; i++) {
-        if (i != gThis_net_player_index) {
-            result |= NetGuaranteedSendMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
-        }
-    }
-}
 int gINT_00767268;
 
 extern void C2_HOOK_FASTCALL FadePaletteDown(void);
@@ -2255,6 +2261,3 @@ extern void C2_HOOK_FASTCALL OoerrIveGotTextInMeBoxMissus(int pFont_index, const
 extern char* gCurrent_palette_pixels;
 extern int gINT_00767268;
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

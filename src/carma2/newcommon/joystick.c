@@ -43,10 +43,10 @@ typedef struct tJoystick_preference_node {
 int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 /* DirectInput 5 type subset: tDIEFFECT, tGUID and tJoystick_effect_spec live in
    joystick.h so its prototypes can name them; their layouts match the SDK
    headers (DIEFFECT is 0x34 bytes, matching tJoystick_force_effect in
@@ -114,41 +114,6 @@ int C2_HOOK_FASTCALL ReadUntilCharacter(FILE* pF, char* pBuffer, int pBuffer_siz
     }
 }
 
-// FUNCTION: CARMA2_HW 0x0045b920
-int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo) {
-    char s[256];
-    char joystick_name[256];
-    size_t i;
-
-    strcpy(joystick_name, pInfo->productName);
-    for (i = 0; i < strlen(joystick_name); i++) {
-        if (joystick_name[i] == ' ') {
-            joystick_name[i] = '_';
-        }
-    }
-    sprintf(s, "&%s\n", joystick_name);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "%d\n", 32);
-    fwrite(s, 1, strlen(s), pF);
-    for (i = 0; i < 32; i++) {
-        sprintf(s, "%d\n", pInfo->buttons[i]);
-        fwrite(s, 1, strlen(s), pF);
-    }
-    sprintf(s, "%d\n", pInfo->field_0xd4);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "%.3f, %.3f\n", pInfo->field_0xd8, pInfo->field_0xdc);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "%d\n", pInfo->field_0xe0);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "%d\n", pInfo->field_0xe4);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "%d\n", pInfo->field_0xe8);
-    fwrite(s, 1, strlen(s), pF);
-    sprintf(s, "\n");
-    fwrite(s, 1, strlen(s), pF);
-    return 1;
-}
-
 // FUNCTION: CARMA2_HW 0x0045b7e0
 int C2_HOOK_FASTCALL FindJoystickPreferences(FILE* pF, const char* pJoystick_name) {
     fpos_t position;
@@ -184,6 +149,41 @@ int C2_HOOK_FASTCALL FindJoystickPreferences(FILE* pF, const char* pJoystick_nam
     }
     rewind(pF);
     return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0045b920
+int C2_HOOK_FASTCALL WriteJoystickPreferences(FILE* pF, const tButtonJoystickInfo* pInfo) {
+    char s[256];
+    char joystick_name[256];
+    size_t i;
+
+    strcpy(joystick_name, pInfo->productName);
+    for (i = 0; i < strlen(joystick_name); i++) {
+        if (joystick_name[i] == ' ') {
+            joystick_name[i] = '_';
+        }
+    }
+    sprintf(s, "&%s\n", joystick_name);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "%d\n", 32);
+    fwrite(s, 1, strlen(s), pF);
+    for (i = 0; i < 32; i++) {
+        sprintf(s, "%d\n", pInfo->buttons[i]);
+        fwrite(s, 1, strlen(s), pF);
+    }
+    sprintf(s, "%d\n", pInfo->field_0xd4);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "%.3f, %.3f\n", pInfo->field_0xd8, pInfo->field_0xdc);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "%d\n", pInfo->field_0xe0);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "%d\n", pInfo->field_0xe4);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "%d\n", pInfo->field_0xe8);
+    fwrite(s, 1, strlen(s), pF);
+    sprintf(s, "\n");
+    fwrite(s, 1, strlen(s), pF);
+    return 1;
 }
 
 // FUNCTION: CARMA2_HW 0x0045bbc0
@@ -236,6 +236,28 @@ int C2_HOOK_FASTCALL CountJoystickPreferences(FILE* pF) {
     }
     rewind(pF);
     return count;
+}
+
+// FUNCTION: CARMA2_HW 0x0045bd50
+void C2_HOOK_FASTCALL EnableJoysticks(void) {
+    tButtonJoystickInfo* info;
+
+    PDEnableJoysticks();
+    info = PDGetCurrentJoystickData();
+    if (info != NULL) {
+        info->field_0xe8 = 1;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0045bd70
+void C2_HOOK_FASTCALL DisableJoysticks(void) {
+    tButtonJoystickInfo* info;
+
+    info = PDGetCurrentJoystickData();
+    if (info != NULL) {
+        info->field_0xe8 = 0;
+    }
+    PDDisableJoysticks();
 }
 
 // FUNCTION: CARMA2_HW 0x0045bd90
@@ -356,28 +378,6 @@ int C2_HOOK_FASTCALL SaveJoystickPreferences(void) {
     return result;
 }
 
-// FUNCTION: CARMA2_HW 0x0045bd50
-void C2_HOOK_FASTCALL EnableJoysticks(void) {
-    tButtonJoystickInfo* info;
-
-    PDEnableJoysticks();
-    info = PDGetCurrentJoystickData();
-    if (info != NULL) {
-        info->field_0xe8 = 1;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0045bd70
-void C2_HOOK_FASTCALL DisableJoysticks(void) {
-    tButtonJoystickInfo* info;
-
-    info = PDGetCurrentJoystickData();
-    if (info != NULL) {
-        info->field_0xe8 = 0;
-    }
-    PDDisableJoysticks();
-}
-
 // FUNCTION: CARMA2_HW 0x0045c0b0
 int C2_HOOK_FASTCALL LoadJoystickPreferences(void) {
     tPath_name path;
@@ -455,10 +455,10 @@ int C2_HOOK_FASTCALL ToggleJoystickThrottle(void) {
     }
     return 0;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0045c490
 void C2_HOOK_FASTCALL SetJoystickXAxis(float pValue) {
 
@@ -507,10 +507,10 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnable(int pEnabled) {
         info->field_0xe0 = pEnabled;
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 typedef struct {
     const char* text;
     int key;
@@ -547,10 +547,10 @@ int C2_HOOK_FASTCALL JoystickAddFFBGain(void) {
     PDSetJoystickFFBGain(gINT_00596310);
     return gINT_00596310;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0045c7b0
 void C2_HOOK_FASTCALL SetJoystickFFBGain(int pValue) {
     tButtonJoystickInfo* info;

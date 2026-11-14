@@ -125,176 +125,6 @@ extern void C2_HOOK_CDECL BrPixelmapLine(br_pixelmap* dst, br_int_32 x1, br_int_
 extern void C2_HOOK_CDECL BrPixelmapRectangleFill(br_pixelmap* dst, br_int_32 x, br_int_32 y, br_int_32 w, br_int_32 h, br_uint_32 colour);
 extern tU16 C2_HOOK_FASTCALL PaletteEntry16Bit(br_pixelmap* pPal, int pEntry);
 extern br_pixelmap* gBack_screen;
-// FUNCTION: CARMA2_HW 0x0047d510
-// FUNCTION: CARMA2_SW 0x0047d810
-void C2_HOOK_FASTCALL DRPixelmapShadedVRectFill(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_colour pColour) {
-
-#ifdef REC2_HW
-    if (gBack_screen->type != BR_PMT_INDEX_8) {
-        pColour = PaletteEntry16Bit(gRender_palette, pColour);
-    }
-#endif
-    BrPixelmapRectangleFill(pMap, pX + 1, pY, pWidth - 2, pHeight, pColour);
-    BrPixelmapLine(pMap, pX, pY, pX, pY + pHeight - 1, pColour + 2);
-    BrPixelmapLine(pMap, pX + pWidth - 1, pY, pX + pWidth - 1, pY + pHeight - 1, pColour - 2);
-}
-
-// FUNCTION: CARMA2_HW 0x004b4fd0
-void C2_HOOK_FASTCALL DRSetPaletteEntries(br_pixelmap* pThe_palette, int pFirst_colour, int pCount) {
-
-    if (!pFirst_colour) {
-        ((br_int_32*)pThe_palette->pixels)[0] = 0;
-    }
-    memcpy(gCurrent_palette_pixels + 4 * pFirst_colour, (char*)pThe_palette->pixels + 4 * pFirst_colour, 4 * pCount);
-    gPalette_changed = 0;
-    if (!gFaded_palette) {
-        PDSetPaletteEntries(pThe_palette, pFirst_colour, pCount);
-    }
-    gPalette_munged = 1;
-}
-
-void C2_HOOK_FASTCALL DRSetPalette3(br_pixelmap* pThe_palette, int pSet_current_palette) {
-
-    if (pSet_current_palette) {
-        memcpy(gCurrent_palette_pixels, pThe_palette->pixels, 256 * sizeof(br_colour));
-    }
-    gPalette_changed = 0;
-    if (!gFaded_palette) {
-        PDSetPalette(pThe_palette);
-    }
-    gPalette_munged |= pThe_palette != gRender_palette;
-}
-
-void C2_HOOK_FASTCALL DRSetPalette2(br_pixelmap* pThe_palette, int pSet_current_palette) {
-
-    ((br_int_32*)pThe_palette->pixels)[0] = 0;
-    if (pSet_current_palette) {
-        memcpy(gCurrent_palette_pixels, pThe_palette->pixels, 256 * sizeof(br_colour));
-    }
-    gPalette_changed = 0;
-    if (!gFaded_palette) {
-        PDSetPalette(pThe_palette);
-    }
-    gPalette_munged |= pThe_palette != gRender_palette;
-}
-
-// FUNCTION: CARMA2_HW 0x004b5030
-void C2_HOOK_FASTCALL DRSetPalette(br_pixelmap* pThe_palette) {
-
-    DRSetPalette2(pThe_palette, 1);
-}
-
-// FUNCTION: CARMA2_HW 0x004b5090
-void C2_HOOK_FASTCALL InitializePalettes(void) {
-    br_pixelmap* render_palette;
-
-    gCurrent_palette_pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
-    gPalette_changed = 0;
-    gCurrent_palette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gCurrent_palette_pixels, 0);
-    gRender_palette = BrTableFind("DRRENDER.PAL");
-    if (gRender_palette == NULL) {
-        FatalError(kFatalError_unableToFindRequiredPalette);
-    }
-    NobbleNonzeroBlacks(gRender_palette);
-    gOrig_render_palette = BrPixelmapAllocateSub(gRender_palette, 0, 0, gRender_palette->width, gRender_palette->height);
-    gOrig_render_palette->pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
-    memcpy(gOrig_render_palette->pixels, gRender_palette->pixels, 256 * sizeof(br_uint_32));
-    gFlic_palette = BrTableFind("DRACEFLC.PAL");
-    if (gFlic_palette == NULL) {
-        FatalError(kFatalError_unableToFindRequiredPalette);
-    }
-    render_palette = gRender_palette;
-    ((br_uint_32*)render_palette->pixels)[0] = 0;
-    memcpy(gCurrent_palette_pixels, render_palette->pixels, 256 * sizeof(br_uint_32));
-    gPalette_changed = 0;
-    if (!gFaded_palette) {
-        PDSetPalette(render_palette);
-    }
-    gPalette_munged |= render_palette != gRender_palette;
-    gScratch_pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
-    gScratch_palette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gScratch_pixels, 0);
-    gMini_map_glowing_line_palettes[0] = (br_pixelmap*)(intptr_t)-1; /* FIXME: invalid pointer! */
-    gMini_map_glowing_line_palettes[1] = gPalette_0074a604;
-    gMini_map_glowing_line_palettes[2] = gPalette_0074a600;
-    gPalette_0074a66c = gPalette_0074a5fc;
-    gPalette_0074a670 = NULL;
-}
-
-// FUNCTION: CARMA2_HW 0x004b52a0
-void C2_HOOK_FASTCALL InitPaletteAnimate(void) {
-
-    gLast_palette_change = 0;
-    gPalette_index = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x004b52b0
-void C2_HOOK_FASTCALL RevertPalette(void) {
-
-    memcpy(gRender_palette->pixels, gOrig_render_palette->pixels, 256 * sizeof(br_colour));
-    DRSetPalette3(gRender_palette, 1);
-}
-// FUNCTION: CARMA2_HW 0x004b5320
-void C2_HOOK_FASTCALL MungePalette(void) {
-}
-
-// FUNCTION: CARMA2_HW 0x004b5330
-void C2_HOOK_FASTCALL ResetPalette(void) {
-
-    InitPaletteAnimate();
-    DRSetPalette(gRender_palette);
-}
-
-// Darken
-
-// SetFadedPalette
-static void Darken(tU8* pPtr, tU32 pDegree) {
-
-    *pPtr = (tU8)((*pPtr * pDegree) >> 8);
-}
-
-// FUNCTION: CARMA2_HW 0x004b5390
-void C2_HOOK_FASTCALL SetFadedPalette(int pK) {
-    int i;
-    br_pixelmap* palette;
-
-    memcpy(gScratch_pixels, gCurrent_palette->pixels, 256 * sizeof(br_colour));
-    for (i = 0; i < 256; i++) {
-        Darken(&((tU8*)gScratch_pixels)[4 * i + 0], (tU32)pK);
-        Darken(&((tU8*)gScratch_pixels)[4 * i + 1], (tU32)pK);
-        Darken(&((tU8*)gScratch_pixels)[4 * i + 2], (tU32)pK);
-        Darken(&((tU8*)gScratch_pixels)[4 * i + 3], (tU32)pK);
-    }
-    palette = gScratch_palette;
-    ((br_int_32*)gScratch_palette->pixels)[0] = 0;
-    gPalette_changed = 0;
-    if (!gFaded_palette) {
-        PDSetPalette(palette);
-    }
-    gPalette_munged |= palette != gRender_palette;
-}
-
-// FUNCTION: CARMA2_HW 0x004b5460
-void C2_HOOK_FASTCALL FadePaletteDown(void) {
-}
-
-extern void C2_HOOK_FASTCALL FadePaletteUp(void);
-// FUNCTION: CARMA2_HW 0x004b55f0
-// FUNCTION: CARMA2_SW 0x004b1d20
-void C2_HOOK_FASTCALL EnsurePaletteUp(void) {
-
-    if (gFaded_palette) {
-        FadePaletteUp();
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004b5770
-void C2_HOOK_FASTCALL EnsureRenderPalette(void) {
-
-    if (gPalette_munged) {
-        ResetPalette();
-        gPalette_munged = 0;
-    }
-}
 
 // FUNCTION: CARMA2_HW 0x0043dff0
 void C2_HOOK_FASTCALL InitTransientBitmaps(void) {
@@ -335,683 +165,6 @@ void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
         }
     }
     gNext_transient = 0;
-}
-
-// SaveTransient
-
-// FUNCTION: CARMA2_HW 0x0043e3f0
-void C2_HOOK_FASTCALL InitMouseTargetLines(void) {
-    br_pixelmap* cross;
-    br_pixelmap* line;
-
-    BrMapFind("mse_corn");
-    cross = BrMapFind("mse_cros");
-    line = BrMapFind("mse_line");
-    gCursor_tinted_top = CreateTintedPoly(0, 0, gCursor_line_width, gCurrent_graf_data->height, 1, 127, 192, 0);
-    gCursor_tinted_left = CreateTintedPoly(0, 0, gCurrent_graf_data->width, gCursor_line_width, 1, 127, 192, 0);
-    gCursor_tinted_bottom = CreateTintedPoly(0, 0, gCursor_line_width, gCurrent_graf_data->height, 1, 127, 192, 0);
-    gCursor_tinted_right = CreateTintedPoly(0, 0, gCurrent_graf_data->width, gCursor_line_width, 1, 127, 192, 0);
-    gCursor_tinted_center = CreateTintedPoly(0, 0, 16, 16, 1, 127, 192, 0);
-    if (line != NULL) {
-        gTintedPolys[gCursor_tinted_left].material->colour_map = line;
-        gTintedPolys[gCursor_tinted_left].material->ka = 1.0f;
-        BrMaterialUpdate(gTintedPolys[gCursor_tinted_left].material, BR_MATU_ALL);
-        gTintedPolys[gCursor_tinted_right].material->colour_map = line;
-        BrMaterialUpdate(gTintedPolys[gCursor_tinted_right].material, BR_MATU_ALL);
-        gTintedPolys[gCursor_tinted_top].material->colour_map = line;
-        BrMatrix23Rotate(&gTintedPolys[gCursor_tinted_top].material->map_transform, BR_ANGLE_DEG(90));
-        BrMaterialUpdate(gTintedPolys[gCursor_tinted_top].material, BR_MATU_ALL);
-        gTintedPolys[gCursor_tinted_bottom].material->colour_map = line;
-        BrMatrix23Rotate(&gTintedPolys[gCursor_tinted_bottom].material->map_transform, BR_ANGLE_DEG(90));
-        BrMaterialUpdate(gTintedPolys[gCursor_tinted_bottom].material, BR_MATU_ALL);
-    }
-    if (cross != NULL) {
-        gTintedPolys[gCursor_tinted_center].material->colour_map = cross;
-        BrMaterialUpdate(gTintedPolys[gCursor_tinted_center].material, BR_MATU_ALL);
-    }
-}
-
-// InitMouseTargetLines
-
-extern int gMouse_started;
-
-// FUNCTION: CARMA2_HW 0x0043e710
-void C2_HOOK_FASTCALL EndMouseCursor(void) {
-    int i;
-
-    RemoveTransientBitmaps(1);
-    /* DeallocateAllTransientBitmaps inlined */
-    for (i = 0; i < (int)REC2_ASIZE(gTransient_bitmaps); i++) {
-        if (gTransient_bitmaps[i].pixmap != NULL) {
-            BrPixelmapFree(gTransient_bitmaps[i].pixmap);
-            gTransient_bitmaps[i].pixmap = NULL;
-            gTransient_bitmaps[i].in_use = 0;
-        }
-    }
-    gMouse_started = 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0047b450
-void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, int pX2, int pY2, int pColour) {
-
-    if (gBack_screen->type != BR_PMT_INDEX_8) {
-        pColour = PaletteEntry16Bit(gRender_palette, pColour);
-    }
-    BrPixelmapLine(pDestn, pX1, pY1, pX2, pY2, pColour);
-}
-
-// FUNCTION: CARMA2_HW 0x0047b880
-void C2_HOOK_FASTCALL ClearEntireScreen(void) {
-
-    if (gScreen != NULL) {
-        BrPixelmapFill(gScreen, gGraf_specs[gGraf_spec_index].black_value);
-    }
-    BrPixelmapFill(gBack_screen, gGraf_specs[gGraf_spec_index].black_value);
-    BrPixelmapFill(gDepth_buffer, 0xffffffff);
-    PDScreenBufferSwap(0);
-    BrPixelmapFill(gBack_screen, gGraf_specs[gGraf_spec_index].black_value);
-}
-
-
-// FUNCTION: CARMA2_HW 0x0047b960
-void C2_HOOK_FASTCALL KillSplashScreen(void) {
-
-    if (gCurrent_splash != NULL) {
-        BrMapRemove(gCurrent_splash);
-        BrPixelmapFree(gCurrent_splash);
-        gCurrent_splash = NULL;
-    }
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
-
-// FUNCTION: CARMA2_HW 0x0047b990
-void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
-    br_pixelmap* the_map;
-    tPixelFlags pixelFlags;
-
-    the_map = BrMapFind(pPixmap_name);
-    if (gCurrent_splash != NULL) {
-        if (the_map == gCurrent_splash) {
-            return;
-        }
-    }
-    if (gCurrent_splash != NULL) {
-        BrMapRemove(gCurrent_splash);
-        BrPixelmapFree(gCurrent_splash);
-    }
-    pixelFlags = gPixelFlags;
-    gCurrent_splash = the_map;
-    if (the_map == NULL) {
-        gCurrent_splash = LoadPixelmap(pPixmap_name);
-        BRPM_convert(gCurrent_splash, gBack_screen->type);
-        if (gCurrent_splash != NULL) {
-            BrMapAdd(gCurrent_splash);
-        }
-    }
-    gPixelFlags = pixelFlags;
-    if (gCurrent_splash != NULL) {
-        PixelmapSwapByteOrder(gCurrent_splash);
-        DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
-        PDScreenBufferSwap(0);
-        BrMapRemove(gCurrent_splash);
-        BrPixelmapFree(gCurrent_splash);
-        gCurrent_splash = NULL;
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// SplashScreenWith
-
-// PARTIAL 7.52%: residual register allocation + stack slot (frame orig 8, ours 16; VC5 emits one fixed allocation for every C spelling tried). Open regions 0x47ba80-0x47bb17, 0x47bb52-0x47bbf9. See state/findings/DRPixelmapRectangleMaskedCopy.md
-// FUNCTION: CARMA2_HW 0x0047ba80
-void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, const br_pixelmap* pSource, br_int_16 pSource_x, br_int_16 pSource_y, br_int_16 pWidth, br_int_16 pHeight) {
-    int y;
-    int x;
-    int overflow;
-    int dest_row_wrap;
-    int source_row_wrap;
-    tU16 the_byte;
-    tU16* source_ptr;
-    tU16* dest_ptr;
-    br_int_16 dest_x;
-    br_int_16 dest_y;
-
-    source_ptr = (tU16*)pSource->pixels + pSource_y * pSource->row_bytes / sizeof(tU16) + pSource_x;
-    dest_x = pDest_x;
-    dest_y = pDest_y;
-    dest_ptr = (tU16*)pDest->pixels + pDest->base_x / sizeof(tU16) + dest_x + dest_y * pDest->row_bytes / sizeof(tU16);
-    source_row_wrap = pSource->row_bytes / sizeof(tU16) - pWidth;
-    dest_row_wrap = pDest->row_bytes / sizeof(tU16) - pWidth;
-
-    if (dest_y < 0) {
-        pHeight += dest_y;
-        if (pHeight <= 0) {
-            return;
-        }
-        dest_y = 0;
-        source_ptr -= pDest_y * pSource->row_bytes / sizeof(tU16);
-        dest_ptr -= pDest_y * pDest->row_bytes / sizeof(tU16);
-    }
-    if (dest_y < pDest->height) {
-        if (pHeight + dest_y > pDest->height) {
-            pHeight = pDest->height - dest_y;
-        }
-        if (dest_x < 0) {
-            pWidth += dest_x;
-            if (pWidth <= 0) {
-                return;
-            }
-            dest_x = 0;
-            source_ptr -= pDest_x;
-            dest_ptr -= pDest_x;
-            source_row_wrap -= pDest_x;
-            dest_row_wrap -= pDest_x;
-        }
-        if (dest_x < pDest->width) {
-            if (pWidth + dest_x > pDest->width) {
-                overflow = pWidth + dest_x - pDest->width;
-                pWidth -= overflow;
-                source_row_wrap += overflow;
-                dest_row_wrap += overflow;
-            }
-            if (pHeight > 0) {
-                y = pHeight;
-                do {
-                    if (pWidth > 0) {
-                        x = pWidth;
-                        do {
-                            the_byte = *source_ptr++;
-                            if (the_byte != 0) {
-                                *dest_ptr = the_byte;
-                            }
-                            dest_ptr++;
-                        } while (--x);
-                    }
-                    dest_ptr += dest_row_wrap;
-                    source_ptr += source_row_wrap;
-                } while (--y);
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047bc40
-// FUNCTION: CARMA2_SW 0x0047af60
-void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
-
-    DRPixelmapRectangleMaskedCopy(gBack_screen, pDest_x, pDest_y, pSource, 0, 0, pSource->width, pSource->height);
-}
-
-// FUNCTION: CARMA2_HW 0x0047c650
-int C2_HOOK_FASTCALL SwitchToHiresMode(void) {
-
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0047c660
-int C2_HOOK_FASTCALL SwitchToLoresMode(void) {
-
-    return 0;
-}
-
-// based on ApexWorm/rec2 f63e7a0c1 (reference only)
-// FUNCTION: CARMA2_HW 0x0047ca50
-void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
-
-    BrPixelmapLine(pPixelmap, pLeft + 1, pTop, pRight - 1, pTop, pColour);
-    BrPixelmapLine(pPixelmap, pLeft + 1, pBottom, pRight - 1, pBottom, pColour);
-    BrPixelmapLine(pPixelmap, pLeft, pTop + 1, pLeft, pBottom - 1, pColour);
-    BrPixelmapLine(pPixelmap, pRight, pTop + 1, pRight, pBottom - 1, pColour);
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-/* local declarations (globvrbm.h is not included in this file) */
-extern br_model* gDim_model;
-extern br_actor* gDim_actor;
-extern br_actor* g2d_camera;
-
-// FUNCTION: CARMA2_HW 0x0047cad0
-void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
-
-    gDim_model->vertices[1].p.v[0] = (float)pLeft;
-    gDim_model->vertices[0].p.v[0] = gDim_model->vertices[1].p.v[0];
-    gDim_model->vertices[3].p.v[0] = (float)pRight;
-    gDim_model->vertices[2].p.v[0] = gDim_model->vertices[3].p.v[0];
-    gDim_model->vertices[3].p.v[1] = -(float)pTop;
-    gDim_model->vertices[0].p.v[1] = gDim_model->vertices[3].p.v[1];
-    gDim_model->vertices[2].p.v[1] = -(float)pBottom;
-    gDim_model->vertices[1].p.v[1] = gDim_model->vertices[2].p.v[1];
-    BrModelUpdate(gDim_model, BR_MODU_VERTEX_POSITIONS);
-    gDim_actor->render_style = BR_RSTYLE_FACES;
-    if (gDim_actor->prev == NULL) {
-        BrActorAdd(g2d_camera, gDim_actor);
-    }
-    BrZbsSceneRender(g2d_camera, g2d_camera, gBack_screen, gDepth_buffer);
-    if (gDim_actor->parent != NULL) {
-        BrActorRemove(gDim_actor);
-    }
-    gDim_actor->render_style = BR_RSTYLE_NONE;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x0047cbd0
-void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
-    tU8* ptr;
-    tU8* depth_table_ptr;
-    tU8* right_ptr;
-    int y;
-    int line_skip;
-    int width;
-
-    if (gDevious_2d) {
-        DeviouslyDimRectangle(pPixelmap, pLeft, pTop, pRight, pBottom, pKnock_out_corners);
-        return;
-    }
-    ptr = (tU8*)pPixelmap->pixels + pLeft + pPixelmap->row_bytes * pTop;
-    line_skip = pPixelmap->row_bytes - pRight + pLeft;
-    depth_table_ptr = (tU8*)gDepth_shade_table->pixels + gDepth_shade_table->row_bytes * gDim_amount;
-    width = pRight - pLeft;
-    if (pKnock_out_corners) {
-        ptr++;
-        for (right_ptr = ptr + width - 2; ptr < right_ptr; ptr++) {
-            *ptr = depth_table_ptr[*ptr];
-        }
-        ptr += line_skip + 1;
-        for (y = pTop + 1; y < pBottom - 1; y++, ptr += line_skip) {
-            for (right_ptr = ptr + width; ptr < right_ptr; ptr++) {
-                *ptr = depth_table_ptr[*ptr];
-            }
-        }
-        ptr++;
-        for (right_ptr = ptr + width - 2; ptr < right_ptr; ptr++) {
-            *ptr = depth_table_ptr[*ptr];
-        }
-    } else {
-        for (y = pTop; y < pBottom; y++) {
-            for (right_ptr = ptr + width; ptr < right_ptr; ptr++) {
-                *ptr = depth_table_ptr[*ptr];
-            }
-            ptr += line_skip;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047c740
-void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour) {
-
-    if (pColour >= 0) {
-        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, pColour);
-    } else {
-        if (pAngle >= 0.785 && pAngle <= 5.498 && (pAngle <= 2.356 || pAngle >= 3.926)) {
-            if ((pAngle <= 0.785 || pAngle >= 1.57) && (pAngle <= 3.926 || pAngle >= 4.712)) {
-                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, -pColour - 1);
-                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, 1 - pColour);
-            } else {
-                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, 1 - pColour);
-                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, -pColour - 1);
-            }
-        } else {
-            DRDrawLine(pDestn, pX1, pY1 + 1, pX2, pY2 + 1, -pColour - 1);
-            DRDrawLine(pDestn, pX1, pY1 - 1, pX2, pY2 - 1, 1 - pColour);
-        }
-        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, -pColour);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047cce0
-void C2_HOOK_FASTCALL DimRectangleClipped(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
-
-    if (pLeft < 0) {
-        pLeft = 0;
-    }
-    if (pTop < 0) {
-        pTop = 0;
-    }
-    if (pRight > pPixelmap->width) {
-        pRight = pPixelmap->width;
-    }
-    if (pBottom > pPixelmap->height) {
-        pBottom = pPixelmap->height;
-    }
-    if (pLeft < pRight && pTop < pBottom) {
-        DimRectangle(pPixelmap, pLeft, pTop, pRight, pBottom, pKnock_out_corners);
-    }
-}
-
-// DR8BitPixelmapRotatedAndFeatheredCopy
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0047d0d0
-static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height) {
-    int width_div_2;
-    int height_div_2;
-    int dy;
-    int width;
-    tU16* ptr_write;
-    float src_f_x;
-    float src_f_y;
-
-    width_div_2 = pSrc_width / 2;
-    height_div_2 = pSrc_height / 2;
-    for (dy = -height_div_2; dy < height_div_2; dy++, pDest_y++) {
-        src_f_x = (float)pSrc_x - (pMat->m[0][0] * (float)width_div_2 + pMat->m[0][1] * (float)dy);
-        src_f_y = (float)pSrc_y + (pMat->m[1][0] * (float)width_div_2 + pMat->m[1][1] * (float)dy) + (float)pSrc_height / 2.f;
-        if (-width_div_2 < width_div_2) {
-            width = width_div_2 * 2;
-            ptr_write = (tU16*)((tU8*)pDest->pixels + pDest_y * pDest->row_bytes) + pDest_x;
-            do {
-                *ptr_write++ = *((tU16*)((tU8*)pSrc->pixels + (((int)src_f_y * pSrc->row_bytes) / 2) * 2) + width_div_2 + (int)src_f_x);
-                width--;
-                src_f_x += pMat->m[0][0];
-                src_f_y -= pMat->m[1][0];
-            } while (width != 0);
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x0047cd40
-void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
-    int width_div_2;
-    int height_div_2;
-    int width_near1;
-    int width_near2;
-    int width_near3;
-    int height_near1;
-    int height_near2;
-    int height_near3;
-    int src_y;
-    int src_x;
-    int dx_bit0;
-    int dy_bit1;
-    tU8 src_pix;
-    float src_f_x;
-    float src_f_y;
-    tU8* ptr_write;
-    int dy;
-    int dx;
-
-    if (pDest->type == BR_PMT_INDEX_8) {
-        int width_full = pSrc_width;
-        int height_full = pSrc_height;
-        float height_half;
-        float f_src_x;
-        float f_src_y;
-        float xbase;
-        float ybase;
-
-        width_div_2 = width_full / 2;
-        height_div_2 = height_full / 2;
-        width_near1 = width_div_2 - width_full / 24;
-        width_near2 = width_div_2 - width_full / 12;
-        width_near3 = width_div_2 - width_full * 3 / 24;
-        height_near1 = height_div_2 - height_full / 24;
-        height_near2 = height_div_2 - height_full / 12;
-        height_near3 = height_div_2 - height_full * 3 / 24;
-        f_src_x = (float)pSrc_x;
-        f_src_y = (float)pSrc_y;
-        height_half = (float)height_full * 0.5f;
-        xbase = -(pMat->m[0][0] * (float)width_div_2);
-        ybase = -(pMat->m[1][0] * (float)width_div_2);
-
-        for (dy = -height_div_2; dy < height_div_2; dy++) {
-            ptr_write = (tU8*)pDest->pixels + (pDest_y + dy + height_div_2) * pDest->row_bytes + pDest_x;
-            src_f_x = xbase - pMat->m[0][1] * (float)dy + f_src_x;
-            src_f_y = pMat->m[1][1] * (float)dy - ybase + height_half + f_src_y;
-            for (dx = -width_div_2; dx < width_div_2; dx++, ptr_write++) {
-                src_y = (int)src_f_y;
-                src_x = (int)src_f_x;
-                src_f_x += pMat->m[0][0];
-                src_f_y -= pMat->m[1][0];
-                if (pTrans) {
-                    *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x] * 256];
-                } else {
-                    src_pix = ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x];
-                    dx_bit0 = ((src_pix >> 0) & 0x1) - ((*ptr_write >> 0) & 0x1) + dx;
-                    dy_bit1 = ((src_pix >> 1) & 0x1) - ((*ptr_write >> 1) & 0x1) + dy;
-
-                    if (-width_div_2 <= dx_bit0 && dx_bit0 <= width_div_2
-                            && -height_div_2 <= dy_bit1 && dy_bit1 <= height_div_2) {
-                        if (-width_near1 <= dx_bit0 && dx_bit0 <= width_near1
-                                && -height_near1 <= dy_bit1 && dy_bit1 <= height_near1) {
-                            if (-width_near2 <= dx_bit0 && dx_bit0 <= width_near2
-                                    && -height_near2 <= dy_bit1 && dy_bit1 <= height_near2) {
-                                if (-width_near3 <= dx_bit0 && dx_bit0 <= width_near3
-                                        && -height_near3 <= dy_bit1 && dy_bit1 <= height_near3) {
-                                    *ptr_write = src_pix;
-                                } else {
-                                    *ptr_write = ((tU8*)gPalette_0074a5fc->pixels)[*ptr_write + 256 * src_pix];
-                                }
-                            } else {
-                                *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + 256 * src_pix];
-                            }
-                        } else {
-                            *ptr_write = ((tU8*)gPalette_0074a604->pixels)[*ptr_write + 256 * src_pix];
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        DR16BitPixelmapRotatedAndFeatheredCopy(pMat, pDest, pDest_x, pDest_y, pSrc, pSrc_x, pSrc_y, pSrc_width, pSrc_height);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047d260
-void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pMap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, br_pixelmap* pPalette) {
-    (void)pPalette;
-    DRDrawLine(pMap, pX1, pY1, pX2, pY2, (int)pColour);
-}
-
-// DR8BitFancyDrawLine (no own entry in the original: inlined into FancyDrawLine)
-
-// FUNCTION: CARMA2_HW 0x0047d2b0
-void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, tU32 pTime_period) {
-
-    if (pMap->type == BR_PMT_INDEX_8) {
-        int anim_index;
-        int dx;
-        int dy;
-        float abs_dy;
-
-        dx = pX2 - pX1;
-        dy = pY2 - pY1;
-        anim_index = (PDGetTotalTime() / pTime_period) % BR_ASIZE(gMini_map_glowing_line_animation_indices);
-        DRPixelmapBlendedLine(pMap, pX1, pY1, pX2, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
-        abs_dy = (float)fabs((double)dy);
-        if (abs_dy < (float)fabs((double)dx)) {
-            DRPixelmapBlendedLine(pMap, pX1, pY1 - 1, pX2, pY2 - 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
-            DRPixelmapBlendedLine(pMap, pX1, pY1 + 1, pX2, pY2 + 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
-        } else {
-            DRPixelmapBlendedLine(pMap, pX1 - 1, pY1, pX2 - 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
-            DRPixelmapBlendedLine(pMap, pX1 + 1, pY1, pX2 + 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
-        }
-    } else {
-        BrPixelmapLine(pMap, pX1, pY1, pX2, pY2, PaletteEntry16Bit(gRender_palette, pColour));
-    }
-}
-
-// DRPixelmapCopyMapBlack8Bit (no own entry in the original: inlined into DRPixelmapCopyMapBlack)
-static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDest, br_pixelmap* pSrc) {
-    int y;
-    int dwords_remaining;
-    int src_width_dwords;
-    tU8* dest_pixels;
-    tU8* src_pixels;
-    int src_skip;
-    int dest_skip;
-    tU8 p0;
-    tU8 p1;
-    tU8 p2;
-    tU8 p3;
-
-    dest_pixels = pDest->pixels;
-    src_pixels = pSrc->pixels;
-    src_skip = pSrc->row_bytes - pSrc->width;
-    dest_skip = pDest->row_bytes - pDest->width;
-    src_width_dwords = pSrc->width / sizeof(tU32);
-    for (y = 0; y < pSrc->height; y++) {
-        for (dwords_remaining = src_width_dwords; dwords_remaining > 0; dwords_remaining--) {
-            p0 = *src_pixels++;
-            p1 = *src_pixels++;
-            p2 = *src_pixels++;
-            p3 = *src_pixels++;
-            if (p0 != 0) {
-                *dest_pixels = p0;
-            } else {
-                *dest_pixels = 0xf0;
-            }
-            dest_pixels++;
-            if (p1 != 0) {
-                *dest_pixels = p1;
-            } else {
-                *dest_pixels = 0xf0;
-            }
-            dest_pixels++;
-            if (p2 != 0) {
-                *dest_pixels = p2;
-            } else {
-                *dest_pixels = 0xf0;
-            }
-            dest_pixels++;
-            if (p3 != 0) {
-                *dest_pixels = p3;
-            } else {
-                *dest_pixels = 0xf0;
-            }
-            dest_pixels++;
-        }
-        src_pixels += src_skip;
-        dest_pixels += dest_skip;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047d5b0
-void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc) {
-
-    if (pDest->type == BR_PMT_INDEX_8) {
-        DRPixelmapCopyMapBlack8Bit(pDest, pSrc);
-    } else {
-        BrPixelmapCopy(pDest, pSrc);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047d6a0
-void C2_HOOK_FASTCALL DisableLights(void) {
-    int i;
-
-    for (i = 0; i < gNumber_of_lights; i++) {
-        BrLightDisable(gLight_array[i]);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047d6d0
-void C2_HOOK_FASTCALL EnableLights(void) {
-    int i;
-
-    for (i = 0; i < gNumber_of_lights; i++) {
-        BrLightEnable(gLight_array[i]);
-    }
-}
-
-// based on ApexWorm/rec2 44cc42008 (reference only)
-// FUNCTION: CARMA2_HW 0x0047d7b0
-void C2_HOOK_FASTCALL DRPixelmapBlendyCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
-    int x;
-    int y;
-    tU8* dest_ptr;
-
-    for (y = 0; y < pSource->height; y++) {
-        dest_ptr = (tU8*)pDest->pixels + (pDest_y + y) * pDest->row_bytes + pDest_x;
-        for (x = 0; x < pSource->width; x++, dest_ptr++) {
-            *dest_ptr = ((tU8*)gPalette_0074a5fc->pixels)[*dest_ptr + 256 * ((tU8*)pSource->pixels)[y * pSource->row_bytes + x]];
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004b5470
-void C2_HOOK_FASTCALL FadePaletteUp(void) {
-    int j;
-    int start_time;
-    int the_time;
-    unsigned int scale;
-    br_pixelmap* pal;
-
-    if (gFaded_palette) {
-        gFaded_palette = 0;
-        start_time = PDGetTotalTime();
-        the_time = PDGetTotalTime() - start_time;
-        while (the_time < 500) {
-            scale = (the_time * 256) / 500;
-            memcpy(gScratch_pixels, gCurrent_palette->pixels, 4 * 256);
-            for (j = 0; j < 256; j++) {
-                gScratch_pixels[j * 4] = (gScratch_pixels[j * 4] * scale) >> 8;
-                gScratch_pixels[j * 4 + 1] = (gScratch_pixels[j * 4 + 1] * scale) >> 8;
-                gScratch_pixels[j * 4 + 2] = (gScratch_pixels[j * 4 + 2] * scale) >> 8;
-                gScratch_pixels[j * 4 + 3] = (gScratch_pixels[j * 4 + 3] * scale) >> 8;
-            }
-            pal = gScratch_palette;
-            *((br_int_32*)pal->pixels) = 0;
-            gPalette_changed = 0;
-            if (!gFaded_palette) {
-                PDSetPalette(pal);
-            }
-            gPalette_munged |= (pal != gRender_palette);
-            the_time = PDGetTotalTime() - start_time;
-        }
-        pal = gCurrent_palette;
-        *((br_int_32*)pal->pixels) = 0;
-        memcpy(gCurrent_palette_pixels, pal->pixels, 4 * 256);
-        gPalette_changed = 0;
-        if (!gFaded_palette) {
-            PDSetPalette(pal);
-        }
-        gPalette_munged |= (pal != gRender_palette);
-    }
-}
-
-extern int gMouse_in_use;
-extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
-
-// GLOBAL: CARMA2_HW 0x0067c390
-int gMouse_started;
-
-// GLOBAL: CARMA2_HW 0x0067be94
-int gTransient_bitmap_index;
-
-// GLOBAL: CARMA2_HW 0x0067be90
-int gCurrent_cursor_index;
-
-// GLOBAL: CARMA2_HW 0x0079ecb0
-tMouse_coord gMouse_last_pos;
-
-// FUNCTION: CARMA2_HW 0x0043e6c0
-void C2_HOOK_FASTCALL StartMouseCursor(void) {
-    if (gCursor_tinted_top == -1) {
-        InitMouseTargetLines();
-    }
-    gNext_transient = 0;
-    gTransient_bitmap_index = 0;
-    GetMousePosition(&gMouse_last_pos.x, &gMouse_last_pos.y);
-    gMouse_in_use = 0;
-    gCurrent_cursor_index = 2;
-    gMouse_started = 1;
 }
 
 // GLOBAL: CARMA2_HW 0x0067c398
@@ -1155,6 +308,109 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
     return mouse_moved;
 }
 
+// SaveTransient
+
+// FUNCTION: CARMA2_HW 0x0043e3f0
+void C2_HOOK_FASTCALL InitMouseTargetLines(void) {
+    br_pixelmap* cross;
+    br_pixelmap* line;
+
+    BrMapFind("mse_corn");
+    cross = BrMapFind("mse_cros");
+    line = BrMapFind("mse_line");
+    gCursor_tinted_top = CreateTintedPoly(0, 0, gCursor_line_width, gCurrent_graf_data->height, 1, 127, 192, 0);
+    gCursor_tinted_left = CreateTintedPoly(0, 0, gCurrent_graf_data->width, gCursor_line_width, 1, 127, 192, 0);
+    gCursor_tinted_bottom = CreateTintedPoly(0, 0, gCursor_line_width, gCurrent_graf_data->height, 1, 127, 192, 0);
+    gCursor_tinted_right = CreateTintedPoly(0, 0, gCurrent_graf_data->width, gCursor_line_width, 1, 127, 192, 0);
+    gCursor_tinted_center = CreateTintedPoly(0, 0, 16, 16, 1, 127, 192, 0);
+    if (line != NULL) {
+        gTintedPolys[gCursor_tinted_left].material->colour_map = line;
+        gTintedPolys[gCursor_tinted_left].material->ka = 1.0f;
+        BrMaterialUpdate(gTintedPolys[gCursor_tinted_left].material, BR_MATU_ALL);
+        gTintedPolys[gCursor_tinted_right].material->colour_map = line;
+        BrMaterialUpdate(gTintedPolys[gCursor_tinted_right].material, BR_MATU_ALL);
+        gTintedPolys[gCursor_tinted_top].material->colour_map = line;
+        BrMatrix23Rotate(&gTintedPolys[gCursor_tinted_top].material->map_transform, BR_ANGLE_DEG(90));
+        BrMaterialUpdate(gTintedPolys[gCursor_tinted_top].material, BR_MATU_ALL);
+        gTintedPolys[gCursor_tinted_bottom].material->colour_map = line;
+        BrMatrix23Rotate(&gTintedPolys[gCursor_tinted_bottom].material->map_transform, BR_ANGLE_DEG(90));
+        BrMaterialUpdate(gTintedPolys[gCursor_tinted_bottom].material, BR_MATU_ALL);
+    }
+    if (cross != NULL) {
+        gTintedPolys[gCursor_tinted_center].material->colour_map = cross;
+        BrMaterialUpdate(gTintedPolys[gCursor_tinted_center].material, BR_MATU_ALL);
+    }
+}
+
+extern int gMouse_in_use;
+extern void C2_HOOK_FASTCALL GetMousePosition(int *pX, int *pY);
+
+// GLOBAL: CARMA2_HW 0x0067c390
+int gMouse_started;
+
+// GLOBAL: CARMA2_HW 0x0067be94
+int gTransient_bitmap_index;
+
+// GLOBAL: CARMA2_HW 0x0067be90
+int gCurrent_cursor_index;
+
+// GLOBAL: CARMA2_HW 0x0079ecb0
+tMouse_coord gMouse_last_pos;
+
+// FUNCTION: CARMA2_HW 0x0043e6c0
+void C2_HOOK_FASTCALL StartMouseCursor(void) {
+    if (gCursor_tinted_top == -1) {
+        InitMouseTargetLines();
+    }
+    gNext_transient = 0;
+    gTransient_bitmap_index = 0;
+    GetMousePosition(&gMouse_last_pos.x, &gMouse_last_pos.y);
+    gMouse_in_use = 0;
+    gCurrent_cursor_index = 2;
+    gMouse_started = 1;
+}
+
+// InitMouseTargetLines
+
+extern int gMouse_started;
+
+// FUNCTION: CARMA2_HW 0x0043e710
+void C2_HOOK_FASTCALL EndMouseCursor(void) {
+    int i;
+
+    RemoveTransientBitmaps(1);
+    /* DeallocateAllTransientBitmaps inlined */
+    for (i = 0; i < (int)REC2_ASIZE(gTransient_bitmaps); i++) {
+        if (gTransient_bitmaps[i].pixmap != NULL) {
+            BrPixelmapFree(gTransient_bitmaps[i].pixmap);
+            gTransient_bitmaps[i].pixmap = NULL;
+            gTransient_bitmaps[i].in_use = 0;
+        }
+    }
+    gMouse_started = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0047b450
+void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, int pX2, int pY2, int pColour) {
+
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    }
+    BrPixelmapLine(pDestn, pX1, pY1, pX2, pY2, pColour);
+}
+
+// FUNCTION: CARMA2_HW 0x0047b880
+void C2_HOOK_FASTCALL ClearEntireScreen(void) {
+
+    if (gScreen != NULL) {
+        BrPixelmapFill(gScreen, gGraf_specs[gGraf_spec_index].black_value);
+    }
+    BrPixelmapFill(gBack_screen, gGraf_specs[gGraf_spec_index].black_value);
+    BrPixelmapFill(gDepth_buffer, 0xffffffff);
+    PDScreenBufferSwap(0);
+    BrPixelmapFill(gBack_screen, gGraf_specs[gGraf_spec_index].black_value);
+}
+
 // FUNCTION: CARMA2_HW 0x0047b910
 br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD) {
     br_scalar distance;
@@ -1164,6 +420,657 @@ br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_
     distance += pPos->v[2] * pC;
     distance += pD;
     return (br_scalar)fabs(distance / (pA * pA + pB * pB + pC * pC));
+}
+
+
+// FUNCTION: CARMA2_HW 0x0047b960
+void C2_HOOK_FASTCALL KillSplashScreen(void) {
+
+    if (gCurrent_splash != NULL) {
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+        gCurrent_splash = NULL;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern void C2_HOOK_FASTCALL DrPixelmapRectangleCopyPossibleLock(br_pixelmap* dst, br_int_16 dx, br_int_16 dy, br_pixelmap* src, br_int_16 sx, br_int_16 sy, br_int_16 w, br_int_16 h);
+
+// FUNCTION: CARMA2_HW 0x0047b990
+void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
+    br_pixelmap* the_map;
+    tPixelFlags pixelFlags;
+
+    the_map = BrMapFind(pPixmap_name);
+    if (gCurrent_splash != NULL) {
+        if (the_map == gCurrent_splash) {
+            return;
+        }
+    }
+    if (gCurrent_splash != NULL) {
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+    }
+    pixelFlags = gPixelFlags;
+    gCurrent_splash = the_map;
+    if (the_map == NULL) {
+        gCurrent_splash = LoadPixelmap(pPixmap_name);
+        BRPM_convert(gCurrent_splash, gBack_screen->type);
+        if (gCurrent_splash != NULL) {
+            BrMapAdd(gCurrent_splash);
+        }
+    }
+    gPixelFlags = pixelFlags;
+    if (gCurrent_splash != NULL) {
+        PixelmapSwapByteOrder(gCurrent_splash);
+        DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gCurrent_splash, 0, 0, gCurrent_splash->width, gCurrent_splash->height);
+        PDScreenBufferSwap(0);
+        BrMapRemove(gCurrent_splash);
+        BrPixelmapFree(gCurrent_splash);
+        gCurrent_splash = NULL;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// SplashScreenWith
+
+// PARTIAL 7.52%: residual register allocation + stack slot (frame orig 8, ours 16; VC5 emits one fixed allocation for every C spelling tried). Open regions 0x47ba80-0x47bb17, 0x47bb52-0x47bbf9. See state/findings/DRPixelmapRectangleMaskedCopy.md
+// FUNCTION: CARMA2_HW 0x0047ba80
+void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, const br_pixelmap* pSource, br_int_16 pSource_x, br_int_16 pSource_y, br_int_16 pWidth, br_int_16 pHeight) {
+    int y;
+    int x;
+    int overflow;
+    int dest_row_wrap;
+    int source_row_wrap;
+    tU16 the_byte;
+    tU16* source_ptr;
+    tU16* dest_ptr;
+    br_int_16 dest_x;
+    br_int_16 dest_y;
+
+    source_ptr = (tU16*)pSource->pixels + pSource_y * pSource->row_bytes / sizeof(tU16) + pSource_x;
+    dest_x = pDest_x;
+    dest_y = pDest_y;
+    dest_ptr = (tU16*)pDest->pixels + pDest->base_x / sizeof(tU16) + dest_x + dest_y * pDest->row_bytes / sizeof(tU16);
+    source_row_wrap = pSource->row_bytes / sizeof(tU16) - pWidth;
+    dest_row_wrap = pDest->row_bytes / sizeof(tU16) - pWidth;
+
+    if (dest_y < 0) {
+        pHeight += dest_y;
+        if (pHeight <= 0) {
+            return;
+        }
+        dest_y = 0;
+        source_ptr -= pDest_y * pSource->row_bytes / sizeof(tU16);
+        dest_ptr -= pDest_y * pDest->row_bytes / sizeof(tU16);
+    }
+    if (dest_y < pDest->height) {
+        if (pHeight + dest_y > pDest->height) {
+            pHeight = pDest->height - dest_y;
+        }
+        if (dest_x < 0) {
+            pWidth += dest_x;
+            if (pWidth <= 0) {
+                return;
+            }
+            dest_x = 0;
+            source_ptr -= pDest_x;
+            dest_ptr -= pDest_x;
+            source_row_wrap -= pDest_x;
+            dest_row_wrap -= pDest_x;
+        }
+        if (dest_x < pDest->width) {
+            if (pWidth + dest_x > pDest->width) {
+                overflow = pWidth + dest_x - pDest->width;
+                pWidth -= overflow;
+                source_row_wrap += overflow;
+                dest_row_wrap += overflow;
+            }
+            if (pHeight > 0) {
+                y = pHeight;
+                do {
+                    if (pWidth > 0) {
+                        x = pWidth;
+                        do {
+                            the_byte = *source_ptr++;
+                            if (the_byte != 0) {
+                                *dest_ptr = the_byte;
+                            }
+                            dest_ptr++;
+                        } while (--x);
+                    }
+                    dest_ptr += dest_row_wrap;
+                    source_ptr += source_row_wrap;
+                } while (--y);
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047bc40
+// FUNCTION: CARMA2_SW 0x0047af60
+void C2_HOOK_FASTCALL DRMaskedStamp(br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
+
+    DRPixelmapRectangleMaskedCopy(gBack_screen, pDest_x, pDest_y, pSource, 0, 0, pSource->width, pSource->height);
+}
+
+// FUNCTION: CARMA2_HW 0x0047c650
+int C2_HOOK_FASTCALL SwitchToHiresMode(void) {
+
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0047c660
+int C2_HOOK_FASTCALL SwitchToLoresMode(void) {
+
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0047c740
+void C2_HOOK_FASTCALL PoshDrawLine(br_pixelmap* pDestn, int pX1, float pAngle, int pY1, int pX2, int pY2, int pColour) {
+
+    if (pColour >= 0) {
+        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, pColour);
+    } else {
+        if (pAngle >= 0.785 && pAngle <= 5.498 && (pAngle <= 2.356 || pAngle >= 3.926)) {
+            if ((pAngle <= 0.785 || pAngle >= 1.57) && (pAngle <= 3.926 || pAngle >= 4.712)) {
+                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, -pColour - 1);
+                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, 1 - pColour);
+            } else {
+                DRDrawLine(pDestn, pX1 - 1, pY1, pX2 - 1, pY2, 1 - pColour);
+                DRDrawLine(pDestn, pX1 + 1, pY1, pX2 + 1, pY2, -pColour - 1);
+            }
+        } else {
+            DRDrawLine(pDestn, pX1, pY1 + 1, pX2, pY2 + 1, -pColour - 1);
+            DRDrawLine(pDestn, pX1, pY1 - 1, pX2, pY2 - 1, 1 - pColour);
+        }
+        DRDrawLine(pDestn, pX1, pY1, pX2, pY2, -pColour);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047c9c0
+void C2_HOOK_FASTCALL DrawRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
+
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    }
+    BrPixelmapLine(pMap, pLeft, pTop, pRight, pTop, pColour);
+    BrPixelmapLine(pMap, pLeft, pBottom, pRight, pBottom, pColour);
+    BrPixelmapLine(pMap, pLeft, pTop, pLeft, pBottom, pColour);
+    BrPixelmapLine(pMap, pRight, pTop, pRight, pBottom, pColour);
+}
+
+// based on ApexWorm/rec2 f63e7a0c1 (reference only)
+// FUNCTION: CARMA2_HW 0x0047ca50
+void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
+
+    BrPixelmapLine(pPixelmap, pLeft + 1, pTop, pRight - 1, pTop, pColour);
+    BrPixelmapLine(pPixelmap, pLeft + 1, pBottom, pRight - 1, pBottom, pColour);
+    BrPixelmapLine(pPixelmap, pLeft, pTop + 1, pLeft, pBottom - 1, pColour);
+    BrPixelmapLine(pPixelmap, pRight, pTop + 1, pRight, pBottom - 1, pColour);
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* local declarations (globvrbm.h is not included in this file) */
+extern br_model* gDim_model;
+extern br_actor* gDim_actor;
+extern br_actor* g2d_camera;
+
+// FUNCTION: CARMA2_HW 0x0047cad0
+void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
+
+    gDim_model->vertices[1].p.v[0] = (float)pLeft;
+    gDim_model->vertices[0].p.v[0] = gDim_model->vertices[1].p.v[0];
+    gDim_model->vertices[3].p.v[0] = (float)pRight;
+    gDim_model->vertices[2].p.v[0] = gDim_model->vertices[3].p.v[0];
+    gDim_model->vertices[3].p.v[1] = -(float)pTop;
+    gDim_model->vertices[0].p.v[1] = gDim_model->vertices[3].p.v[1];
+    gDim_model->vertices[2].p.v[1] = -(float)pBottom;
+    gDim_model->vertices[1].p.v[1] = gDim_model->vertices[2].p.v[1];
+    BrModelUpdate(gDim_model, BR_MODU_VERTEX_POSITIONS);
+    gDim_actor->render_style = BR_RSTYLE_FACES;
+    if (gDim_actor->prev == NULL) {
+        BrActorAdd(g2d_camera, gDim_actor);
+    }
+    BrZbsSceneRender(g2d_camera, g2d_camera, gBack_screen, gDepth_buffer);
+    if (gDim_actor->parent != NULL) {
+        BrActorRemove(gDim_actor);
+    }
+    gDim_actor->render_style = BR_RSTYLE_NONE;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x0047cbd0
+void C2_HOOK_CDECL DimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
+    tU8* ptr;
+    tU8* depth_table_ptr;
+    tU8* right_ptr;
+    int y;
+    int line_skip;
+    int width;
+
+    if (gDevious_2d) {
+        DeviouslyDimRectangle(pPixelmap, pLeft, pTop, pRight, pBottom, pKnock_out_corners);
+        return;
+    }
+    ptr = (tU8*)pPixelmap->pixels + pLeft + pPixelmap->row_bytes * pTop;
+    line_skip = pPixelmap->row_bytes - pRight + pLeft;
+    depth_table_ptr = (tU8*)gDepth_shade_table->pixels + gDepth_shade_table->row_bytes * gDim_amount;
+    width = pRight - pLeft;
+    if (pKnock_out_corners) {
+        ptr++;
+        for (right_ptr = ptr + width - 2; ptr < right_ptr; ptr++) {
+            *ptr = depth_table_ptr[*ptr];
+        }
+        ptr += line_skip + 1;
+        for (y = pTop + 1; y < pBottom - 1; y++, ptr += line_skip) {
+            for (right_ptr = ptr + width; ptr < right_ptr; ptr++) {
+                *ptr = depth_table_ptr[*ptr];
+            }
+        }
+        ptr++;
+        for (right_ptr = ptr + width - 2; ptr < right_ptr; ptr++) {
+            *ptr = depth_table_ptr[*ptr];
+        }
+    } else {
+        for (y = pTop; y < pBottom; y++) {
+            for (right_ptr = ptr + width; ptr < right_ptr; ptr++) {
+                *ptr = depth_table_ptr[*ptr];
+            }
+            ptr += line_skip;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047cce0
+void C2_HOOK_FASTCALL DimRectangleClipped(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
+
+    if (pLeft < 0) {
+        pLeft = 0;
+    }
+    if (pTop < 0) {
+        pTop = 0;
+    }
+    if (pRight > pPixelmap->width) {
+        pRight = pPixelmap->width;
+    }
+    if (pBottom > pPixelmap->height) {
+        pBottom = pPixelmap->height;
+    }
+    if (pLeft < pRight && pTop < pBottom) {
+        DimRectangle(pPixelmap, pLeft, pTop, pRight, pBottom, pKnock_out_corners);
+    }
+}
+
+static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height);
+// FUNCTION: CARMA2_HW 0x0047cd40
+void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
+    int width_div_2;
+    int height_div_2;
+    int width_near1;
+    int width_near2;
+    int width_near3;
+    int height_near1;
+    int height_near2;
+    int height_near3;
+    int src_y;
+    int src_x;
+    int dx_bit0;
+    int dy_bit1;
+    tU8 src_pix;
+    float src_f_x;
+    float src_f_y;
+    tU8* ptr_write;
+    int dy;
+    int dx;
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        int width_full = pSrc_width;
+        int height_full = pSrc_height;
+        float height_half;
+        float f_src_x;
+        float f_src_y;
+        float xbase;
+        float ybase;
+
+        width_div_2 = width_full / 2;
+        height_div_2 = height_full / 2;
+        width_near1 = width_div_2 - width_full / 24;
+        width_near2 = width_div_2 - width_full / 12;
+        width_near3 = width_div_2 - width_full * 3 / 24;
+        height_near1 = height_div_2 - height_full / 24;
+        height_near2 = height_div_2 - height_full / 12;
+        height_near3 = height_div_2 - height_full * 3 / 24;
+        f_src_x = (float)pSrc_x;
+        f_src_y = (float)pSrc_y;
+        height_half = (float)height_full * 0.5f;
+        xbase = -(pMat->m[0][0] * (float)width_div_2);
+        ybase = -(pMat->m[1][0] * (float)width_div_2);
+
+        for (dy = -height_div_2; dy < height_div_2; dy++) {
+            ptr_write = (tU8*)pDest->pixels + (pDest_y + dy + height_div_2) * pDest->row_bytes + pDest_x;
+            src_f_x = xbase - pMat->m[0][1] * (float)dy + f_src_x;
+            src_f_y = pMat->m[1][1] * (float)dy - ybase + height_half + f_src_y;
+            for (dx = -width_div_2; dx < width_div_2; dx++, ptr_write++) {
+                src_y = (int)src_f_y;
+                src_x = (int)src_f_x;
+                src_f_x += pMat->m[0][0];
+                src_f_y -= pMat->m[1][0];
+                if (pTrans) {
+                    *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x] * 256];
+                } else {
+                    src_pix = ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x];
+                    dx_bit0 = ((src_pix >> 0) & 0x1) - ((*ptr_write >> 0) & 0x1) + dx;
+                    dy_bit1 = ((src_pix >> 1) & 0x1) - ((*ptr_write >> 1) & 0x1) + dy;
+
+                    if (-width_div_2 <= dx_bit0 && dx_bit0 <= width_div_2
+                            && -height_div_2 <= dy_bit1 && dy_bit1 <= height_div_2) {
+                        if (-width_near1 <= dx_bit0 && dx_bit0 <= width_near1
+                                && -height_near1 <= dy_bit1 && dy_bit1 <= height_near1) {
+                            if (-width_near2 <= dx_bit0 && dx_bit0 <= width_near2
+                                    && -height_near2 <= dy_bit1 && dy_bit1 <= height_near2) {
+                                if (-width_near3 <= dx_bit0 && dx_bit0 <= width_near3
+                                        && -height_near3 <= dy_bit1 && dy_bit1 <= height_near3) {
+                                    *ptr_write = src_pix;
+                                } else {
+                                    *ptr_write = ((tU8*)gPalette_0074a5fc->pixels)[*ptr_write + 256 * src_pix];
+                                }
+                            } else {
+                                *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + 256 * src_pix];
+                            }
+                        } else {
+                            *ptr_write = ((tU8*)gPalette_0074a604->pixels)[*ptr_write + 256 * src_pix];
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        DR16BitPixelmapRotatedAndFeatheredCopy(pMat, pDest, pDest_x, pDest_y, pSrc, pSrc_x, pSrc_y, pSrc_width, pSrc_height);
+    }
+}
+
+// DR8BitPixelmapRotatedAndFeatheredCopy
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0047d0d0
+static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height) {
+    int width_div_2;
+    int height_div_2;
+    int dy;
+    int width;
+    tU16* ptr_write;
+    float src_f_x;
+    float src_f_y;
+
+    width_div_2 = pSrc_width / 2;
+    height_div_2 = pSrc_height / 2;
+    for (dy = -height_div_2; dy < height_div_2; dy++, pDest_y++) {
+        src_f_x = (float)pSrc_x - (pMat->m[0][0] * (float)width_div_2 + pMat->m[0][1] * (float)dy);
+        src_f_y = (float)pSrc_y + (pMat->m[1][0] * (float)width_div_2 + pMat->m[1][1] * (float)dy) + (float)pSrc_height / 2.f;
+        if (-width_div_2 < width_div_2) {
+            width = width_div_2 * 2;
+            ptr_write = (tU16*)((tU8*)pDest->pixels + pDest_y * pDest->row_bytes) + pDest_x;
+            do {
+                *ptr_write++ = *((tU16*)((tU8*)pSrc->pixels + (((int)src_f_y * pSrc->row_bytes) / 2) * 2) + width_div_2 + (int)src_f_x);
+                width--;
+                src_f_x += pMat->m[0][0];
+                src_f_y -= pMat->m[1][0];
+            } while (width != 0);
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x0047d260
+void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pMap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, br_pixelmap* pPalette) {
+    (void)pPalette;
+    DRDrawLine(pMap, pX1, pY1, pX2, pY2, (int)pColour);
+}
+
+// DR8BitFancyDrawLine (no own entry in the original: inlined into FancyDrawLine)
+
+// FUNCTION: CARMA2_HW 0x0047d2b0
+void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, tU32 pTime_period) {
+
+    if (pMap->type == BR_PMT_INDEX_8) {
+        int anim_index;
+        int dx;
+        int dy;
+        float abs_dy;
+
+        dx = pX2 - pX1;
+        dy = pY2 - pY1;
+        anim_index = (PDGetTotalTime() / pTime_period) % BR_ASIZE(gMini_map_glowing_line_animation_indices);
+        DRPixelmapBlendedLine(pMap, pX1, pY1, pX2, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        abs_dy = (float)fabs((double)dy);
+        if (abs_dy < (float)fabs((double)dx)) {
+            DRPixelmapBlendedLine(pMap, pX1, pY1 - 1, pX2, pY2 - 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+            DRPixelmapBlendedLine(pMap, pX1, pY1 + 1, pX2, pY2 + 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        } else {
+            DRPixelmapBlendedLine(pMap, pX1 - 1, pY1, pX2 - 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+            DRPixelmapBlendedLine(pMap, pX1 + 1, pY1, pX2 + 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        }
+    } else {
+        BrPixelmapLine(pMap, pX1, pY1, pX2, pY2, PaletteEntry16Bit(gRender_palette, pColour));
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d470
+void C2_HOOK_FASTCALL DRPixelmapShadedHRectFill(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour) {
+
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    }
+    BrPixelmapRectangleFill(pMap, pLeft, pTop + 1, pWidth, pHeight - 2, pColour);
+    BrPixelmapLine(pMap, pLeft, pTop, pLeft + pWidth - 1, pTop, pColour + 2);
+    BrPixelmapLine(pMap, pLeft, pTop + pHeight - 1, pLeft + pWidth - 1, pTop + pHeight - 1, pColour - 2);
+}
+// FUNCTION: CARMA2_HW 0x0047d510
+// FUNCTION: CARMA2_SW 0x0047d810
+void C2_HOOK_FASTCALL DRPixelmapShadedVRectFill(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_colour pColour) {
+
+#ifdef REC2_HW
+    if (gBack_screen->type != BR_PMT_INDEX_8) {
+        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    }
+#endif
+    BrPixelmapRectangleFill(pMap, pX + 1, pY, pWidth - 2, pHeight, pColour);
+    BrPixelmapLine(pMap, pX, pY, pX, pY + pHeight - 1, pColour + 2);
+    BrPixelmapLine(pMap, pX + pWidth - 1, pY, pX + pWidth - 1, pY + pHeight - 1, pColour - 2);
+}
+
+// DRPixelmapCopyMapBlack8Bit (no own entry in the original: inlined into DRPixelmapCopyMapBlack)
+static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDest, br_pixelmap* pSrc) {
+    int y;
+    int dwords_remaining;
+    int src_width_dwords;
+    tU8* dest_pixels;
+    tU8* src_pixels;
+    int src_skip;
+    int dest_skip;
+    tU8 p0;
+    tU8 p1;
+    tU8 p2;
+    tU8 p3;
+
+    dest_pixels = pDest->pixels;
+    src_pixels = pSrc->pixels;
+    src_skip = pSrc->row_bytes - pSrc->width;
+    dest_skip = pDest->row_bytes - pDest->width;
+    src_width_dwords = pSrc->width / sizeof(tU32);
+    for (y = 0; y < pSrc->height; y++) {
+        for (dwords_remaining = src_width_dwords; dwords_remaining > 0; dwords_remaining--) {
+            p0 = *src_pixels++;
+            p1 = *src_pixels++;
+            p2 = *src_pixels++;
+            p3 = *src_pixels++;
+            if (p0 != 0) {
+                *dest_pixels = p0;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p1 != 0) {
+                *dest_pixels = p1;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p2 != 0) {
+                *dest_pixels = p2;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p3 != 0) {
+                *dest_pixels = p3;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+        }
+        src_pixels += src_skip;
+        dest_pixels += dest_skip;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d5b0
+void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc) {
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        DRPixelmapCopyMapBlack8Bit(pDest, pSrc);
+    } else {
+        BrPixelmapCopy(pDest, pSrc);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d6a0
+void C2_HOOK_FASTCALL DisableLights(void) {
+    int i;
+
+    for (i = 0; i < gNumber_of_lights; i++) {
+        BrLightDisable(gLight_array[i]);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d6d0
+void C2_HOOK_FASTCALL EnableLights(void) {
+    int i;
+
+    for (i = 0; i < gNumber_of_lights; i++) {
+        BrLightEnable(gLight_array[i]);
+    }
+}
+
+// based on ApexWorm/rec2 44cc42008 (reference only)
+// FUNCTION: CARMA2_HW 0x0047d7b0
+void C2_HOOK_FASTCALL DRPixelmapBlendyCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
+    int x;
+    int y;
+    tU8* dest_ptr;
+
+    for (y = 0; y < pSource->height; y++) {
+        dest_ptr = (tU8*)pDest->pixels + (pDest_y + y) * pDest->row_bytes + pDest_x;
+        for (x = 0; x < pSource->width; x++, dest_ptr++) {
+            *dest_ptr = ((tU8*)gPalette_0074a5fc->pixels)[*dest_ptr + 256 * ((tU8*)pSource->pixels)[y * pSource->row_bytes + x]];
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004b4fd0
+void C2_HOOK_FASTCALL DRSetPaletteEntries(br_pixelmap* pThe_palette, int pFirst_colour, int pCount) {
+
+    if (!pFirst_colour) {
+        ((br_int_32*)pThe_palette->pixels)[0] = 0;
+    }
+    memcpy(gCurrent_palette_pixels + 4 * pFirst_colour, (char*)pThe_palette->pixels + 4 * pFirst_colour, 4 * pCount);
+    gPalette_changed = 0;
+    if (!gFaded_palette) {
+        PDSetPaletteEntries(pThe_palette, pFirst_colour, pCount);
+    }
+    gPalette_munged = 1;
+}
+
+void C2_HOOK_FASTCALL DRSetPalette3(br_pixelmap* pThe_palette, int pSet_current_palette) {
+
+    if (pSet_current_palette) {
+        memcpy(gCurrent_palette_pixels, pThe_palette->pixels, 256 * sizeof(br_colour));
+    }
+    gPalette_changed = 0;
+    if (!gFaded_palette) {
+        PDSetPalette(pThe_palette);
+    }
+    gPalette_munged |= pThe_palette != gRender_palette;
+}
+
+void C2_HOOK_FASTCALL DRSetPalette2(br_pixelmap* pThe_palette, int pSet_current_palette) {
+
+    ((br_int_32*)pThe_palette->pixels)[0] = 0;
+    if (pSet_current_palette) {
+        memcpy(gCurrent_palette_pixels, pThe_palette->pixels, 256 * sizeof(br_colour));
+    }
+    gPalette_changed = 0;
+    if (!gFaded_palette) {
+        PDSetPalette(pThe_palette);
+    }
+    gPalette_munged |= pThe_palette != gRender_palette;
+}
+
+// FUNCTION: CARMA2_HW 0x004b5030
+void C2_HOOK_FASTCALL DRSetPalette(br_pixelmap* pThe_palette) {
+
+    DRSetPalette2(pThe_palette, 1);
+}
+
+// FUNCTION: CARMA2_HW 0x004b5090
+void C2_HOOK_FASTCALL InitializePalettes(void) {
+    br_pixelmap* render_palette;
+
+    gCurrent_palette_pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
+    gPalette_changed = 0;
+    gCurrent_palette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gCurrent_palette_pixels, 0);
+    gRender_palette = BrTableFind("DRRENDER.PAL");
+    if (gRender_palette == NULL) {
+        FatalError(kFatalError_unableToFindRequiredPalette);
+    }
+    NobbleNonzeroBlacks(gRender_palette);
+    gOrig_render_palette = BrPixelmapAllocateSub(gRender_palette, 0, 0, gRender_palette->width, gRender_palette->height);
+    gOrig_render_palette->pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
+    memcpy(gOrig_render_palette->pixels, gRender_palette->pixels, 256 * sizeof(br_uint_32));
+    gFlic_palette = BrTableFind("DRACEFLC.PAL");
+    if (gFlic_palette == NULL) {
+        FatalError(kFatalError_unableToFindRequiredPalette);
+    }
+    render_palette = gRender_palette;
+    ((br_uint_32*)render_palette->pixels)[0] = 0;
+    memcpy(gCurrent_palette_pixels, render_palette->pixels, 256 * sizeof(br_uint_32));
+    gPalette_changed = 0;
+    if (!gFaded_palette) {
+        PDSetPalette(render_palette);
+    }
+    gPalette_munged |= render_palette != gRender_palette;
+    gScratch_pixels = BrMemAllocate(256 * sizeof(br_uint_32), kMem_misc);
+    gScratch_palette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gScratch_pixels, 0);
+    gMini_map_glowing_line_palettes[0] = (br_pixelmap*)(intptr_t)-1; /* FIXME: invalid pointer! */
+    gMini_map_glowing_line_palettes[1] = gPalette_0074a604;
+    gMini_map_glowing_line_palettes[2] = gPalette_0074a600;
+    gPalette_0074a66c = gPalette_0074a5fc;
+    gPalette_0074a670 = NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x004b5230
@@ -1182,25 +1089,119 @@ void C2_HOOK_FASTCALL SwitchToPalette(const char* pPalette_name) {
     }
 }
 
-// FUNCTION: CARMA2_HW 0x0047c9c0
-void C2_HOOK_FASTCALL DrawRectangle(br_pixelmap* pMap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
+// FUNCTION: CARMA2_HW 0x004b52a0
+void C2_HOOK_FASTCALL InitPaletteAnimate(void) {
 
-    if (gBack_screen->type != BR_PMT_INDEX_8) {
-        pColour = PaletteEntry16Bit(gRender_palette, pColour);
-    }
-    BrPixelmapLine(pMap, pLeft, pTop, pRight, pTop, pColour);
-    BrPixelmapLine(pMap, pLeft, pBottom, pRight, pBottom, pColour);
-    BrPixelmapLine(pMap, pLeft, pTop, pLeft, pBottom, pColour);
-    BrPixelmapLine(pMap, pRight, pTop, pRight, pBottom, pColour);
+    gLast_palette_change = 0;
+    gPalette_index = 0;
 }
 
-// FUNCTION: CARMA2_HW 0x0047d470
-void C2_HOOK_FASTCALL DRPixelmapShadedHRectFill(br_pixelmap* pMap, int pLeft, int pTop, int pWidth, int pHeight, br_uint_32 pColour) {
+// FUNCTION: CARMA2_HW 0x004b52b0
+void C2_HOOK_FASTCALL RevertPalette(void) {
 
-    if (gBack_screen->type != BR_PMT_INDEX_8) {
-        pColour = PaletteEntry16Bit(gRender_palette, pColour);
+    memcpy(gRender_palette->pixels, gOrig_render_palette->pixels, 256 * sizeof(br_colour));
+    DRSetPalette3(gRender_palette, 1);
+}
+// FUNCTION: CARMA2_HW 0x004b5320
+void C2_HOOK_FASTCALL MungePalette(void) {
+}
+
+// FUNCTION: CARMA2_HW 0x004b5330
+void C2_HOOK_FASTCALL ResetPalette(void) {
+
+    InitPaletteAnimate();
+    DRSetPalette(gRender_palette);
+}
+
+// Darken
+
+// SetFadedPalette
+static void Darken(tU8* pPtr, tU32 pDegree) {
+
+    *pPtr = (tU8)((*pPtr * pDegree) >> 8);
+}
+
+// FUNCTION: CARMA2_HW 0x004b5390
+void C2_HOOK_FASTCALL SetFadedPalette(int pK) {
+    int i;
+    br_pixelmap* palette;
+
+    memcpy(gScratch_pixels, gCurrent_palette->pixels, 256 * sizeof(br_colour));
+    for (i = 0; i < 256; i++) {
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 0], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 1], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 2], (tU32)pK);
+        Darken(&((tU8*)gScratch_pixels)[4 * i + 3], (tU32)pK);
     }
-    BrPixelmapRectangleFill(pMap, pLeft, pTop + 1, pWidth, pHeight - 2, pColour);
-    BrPixelmapLine(pMap, pLeft, pTop, pLeft + pWidth - 1, pTop, pColour + 2);
-    BrPixelmapLine(pMap, pLeft, pTop + pHeight - 1, pLeft + pWidth - 1, pTop + pHeight - 1, pColour - 2);
+    palette = gScratch_palette;
+    ((br_int_32*)gScratch_palette->pixels)[0] = 0;
+    gPalette_changed = 0;
+    if (!gFaded_palette) {
+        PDSetPalette(palette);
+    }
+    gPalette_munged |= palette != gRender_palette;
+}
+
+// FUNCTION: CARMA2_HW 0x004b5460
+void C2_HOOK_FASTCALL FadePaletteDown(void) {
+}
+
+// FUNCTION: CARMA2_HW 0x004b5470
+void C2_HOOK_FASTCALL FadePaletteUp(void) {
+    int j;
+    int start_time;
+    int the_time;
+    unsigned int scale;
+    br_pixelmap* pal;
+
+    if (gFaded_palette) {
+        gFaded_palette = 0;
+        start_time = PDGetTotalTime();
+        the_time = PDGetTotalTime() - start_time;
+        while (the_time < 500) {
+            scale = (the_time * 256) / 500;
+            memcpy(gScratch_pixels, gCurrent_palette->pixels, 4 * 256);
+            for (j = 0; j < 256; j++) {
+                gScratch_pixels[j * 4] = (gScratch_pixels[j * 4] * scale) >> 8;
+                gScratch_pixels[j * 4 + 1] = (gScratch_pixels[j * 4 + 1] * scale) >> 8;
+                gScratch_pixels[j * 4 + 2] = (gScratch_pixels[j * 4 + 2] * scale) >> 8;
+                gScratch_pixels[j * 4 + 3] = (gScratch_pixels[j * 4 + 3] * scale) >> 8;
+            }
+            pal = gScratch_palette;
+            *((br_int_32*)pal->pixels) = 0;
+            gPalette_changed = 0;
+            if (!gFaded_palette) {
+                PDSetPalette(pal);
+            }
+            gPalette_munged |= (pal != gRender_palette);
+            the_time = PDGetTotalTime() - start_time;
+        }
+        pal = gCurrent_palette;
+        *((br_int_32*)pal->pixels) = 0;
+        memcpy(gCurrent_palette_pixels, pal->pixels, 4 * 256);
+        gPalette_changed = 0;
+        if (!gFaded_palette) {
+            PDSetPalette(pal);
+        }
+        gPalette_munged |= (pal != gRender_palette);
+    }
+}
+
+extern void C2_HOOK_FASTCALL FadePaletteUp(void);
+// FUNCTION: CARMA2_HW 0x004b55f0
+// FUNCTION: CARMA2_SW 0x004b1d20
+void C2_HOOK_FASTCALL EnsurePaletteUp(void) {
+
+    if (gFaded_palette) {
+        FadePaletteUp();
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004b5770
+void C2_HOOK_FASTCALL EnsureRenderPalette(void) {
+
+    if (gPalette_munged) {
+        ResetPalette();
+        gPalette_munged = 0;
+    }
 }

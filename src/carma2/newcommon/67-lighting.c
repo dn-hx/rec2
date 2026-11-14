@@ -11,11 +11,43 @@
 
 #include <string.h>
 
+
+// FUNCTION: CARMA2_HW 0x00486d60
+void C2_HOOK_FASTCALL MungeLightingEffects(void) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00486d70
+void C2_HOOK_FASTCALL KillLightingEffects(void) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00486d80
+void C2_HOOK_FASTCALL InitLightingEffects(void) {
+
+    // empty
+}
 // FUNCTION: CARMA2_HW 0x00486d90
 // FUNCTION: CARMA2_SW 0x00483ec0
 void C2_HOOK_FASTCALL FUN_00486d90(br_scalar pArg1, br_scalar pArg2) {
 
     // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00486db0
+void C2_HOOK_FASTCALL LoadStaticLightingForRace(const char* pRace_lighting_path) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00486dc0
+void C2_HOOK_FASTCALL ReadGlobalLightingInfo(FILE* pF) {
+    GetThreeInts(pF, &gLighting_data.directional.red, &gLighting_data.directional.green, &gLighting_data.directional.blue);
+    GetPairOfScalars(pF, &gLighting_data.ambient_0, &gLighting_data.diffuse_0);
+    GetPairOfScalars(pF, &gLighting_data.ambient_1, &gLighting_data.diffuse_1);
+    GetPairOfScalars(pF, &gLighting_data.ambient_else, &gLighting_data.diffuse_else);
 }
 
 // FUNCTION: CARMA2_HW 0x004f6520
@@ -105,10 +137,10 @@ void C2_HOOK_FASTCALL SmoothlySetCarMaterialFlags(tBrender_storage* pStorage, tC
         material->user = material->colour_map;
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004f6820
 void C2_HOOK_FASTCALL SmoothlySetWorldMaterialFlags(tBrender_storage* pStorage) {
     int i;
@@ -198,37 +230,5 @@ void C2_HOOK_FASTCALL SmoothificateCarMaterial(br_material* pMaterial) {
       pMaterial->kd = 0.2f;
       BrMaterialUpdate(pMaterial,BR_MATU_ALL);
   }
-}
-
-// FUNCTION: CARMA2_HW 0x00486d60
-void C2_HOOK_FASTCALL MungeLightingEffects(void) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00486d70
-void C2_HOOK_FASTCALL KillLightingEffects(void) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00486d80
-void C2_HOOK_FASTCALL InitLightingEffects(void) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00486db0
-void C2_HOOK_FASTCALL LoadStaticLightingForRace(const char* pRace_lighting_path) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00486dc0
-void C2_HOOK_FASTCALL ReadGlobalLightingInfo(FILE* pF) {
-    GetThreeInts(pF, &gLighting_data.directional.red, &gLighting_data.directional.green, &gLighting_data.directional.blue);
-    GetPairOfScalars(pF, &gLighting_data.ambient_0, &gLighting_data.diffuse_0);
-    GetPairOfScalars(pF, &gLighting_data.ambient_1, &gLighting_data.diffuse_1);
-    GetPairOfScalars(pF, &gLighting_data.ambient_else, &gLighting_data.diffuse_else);
 }
 

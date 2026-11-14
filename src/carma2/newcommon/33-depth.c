@@ -170,6 +170,45 @@ void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     BrMaterialUpdate(pMaterial, BR_MATU_ALL);
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00445340
+void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8) {
+
+    if (pType == eDepth_effect_none) {
+        pStart = 3;
+        pEnd = 3;
+    }
+    gProgram_state.current_depth_effect.sky_texture = pSky_texture;
+
+    gHorizon_material->colour_map = pSky_texture;
+    BrMaterialUpdate(gHorizon_material, BR_MATU_ALL);
+    MungeSkyVs(gForward_sky_model, gHorizon_material);
+
+    gProgram_state.current_depth_effect.colour.red = pRed;
+    gProgram_state.current_depth_effect.colour.green = pGreen;
+    gProgram_state.current_depth_effect.colour.blue = pBlue;
+
+    gProgram_state.default_depth_effect.colour.red = pRed;
+    gProgram_state.default_depth_effect.colour.green = pGreen;
+    gProgram_state.default_depth_effect.colour.blue = pBlue;
+
+    gProgram_state.current_depth_effect.type = pType;
+    gProgram_state.current_depth_effect.start = pStart;
+    gProgram_state.current_depth_effect.end = pEnd;
+
+    gProgram_state.default_depth_effect.type = pType;
+    gProgram_state.default_depth_effect.start = pStart;
+    gProgram_state.default_depth_effect.end = pEnd;
+    if (gNo_fog && pParam_8) {
+        FrobFog();
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 void C2_HOOK_FASTCALL FogCars(void) {
     int i;
 
@@ -252,106 +291,6 @@ void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
     }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00445340
-void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8) {
-
-    if (pType == eDepth_effect_none) {
-        pStart = 3;
-        pEnd = 3;
-    }
-    gProgram_state.current_depth_effect.sky_texture = pSky_texture;
-
-    gHorizon_material->colour_map = pSky_texture;
-    BrMaterialUpdate(gHorizon_material, BR_MATU_ALL);
-    MungeSkyVs(gForward_sky_model, gHorizon_material);
-
-    gProgram_state.current_depth_effect.colour.red = pRed;
-    gProgram_state.current_depth_effect.colour.green = pGreen;
-    gProgram_state.current_depth_effect.colour.blue = pBlue;
-
-    gProgram_state.default_depth_effect.colour.red = pRed;
-    gProgram_state.default_depth_effect.colour.green = pGreen;
-    gProgram_state.default_depth_effect.colour.blue = pBlue;
-
-    gProgram_state.current_depth_effect.type = pType;
-    gProgram_state.current_depth_effect.start = pStart;
-    gProgram_state.current_depth_effect.end = pEnd;
-
-    gProgram_state.default_depth_effect.type = pType;
-    gProgram_state.default_depth_effect.start = pStart;
-    gProgram_state.default_depth_effect.end = pEnd;
-    if (gNo_fog && pParam_8) {
-        FrobFog();
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// Tan
-
-// EdgeU
-
-// CreateHorizonModel
-
-static int Log2(int pNumber) {
-    int i;
-    int bits[16];
-
-    bits[0] = 1;
-    bits[1] = 2;
-    bits[2] = 4;
-    bits[3] = 8;
-    bits[4] = 16;
-    bits[5] = 32;
-    bits[6] = 64;
-    bits[7] = 128;
-    bits[8] = 256;
-    bits[9] = 512;
-    bits[10] = 1024;
-    bits[11] = 2048;
-    bits[12] = 4096;
-    bits[13] = 0x2000;
-    bits[14] = 0x4000;
-    bits[15] = 0x8000;
-    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
-        if (bits[i] & pNumber) {
-            return i;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00445860
-void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
-    tPath_name the_path;
-    int i;
-    int j;
-    tU8 temp;
-
-#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
-
-    PathCat(the_path, gApplication_path, "SHADETAB");
-    PathCat(the_path, the_path, pName);
-    *pTable = DRPixelmapLoad(the_path);
-    if (*pTable == NULL) {
-        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
-    }
-    *pPower = Log2((*pTable)->height);
-    for (i = 0; i < (*pTable)->width; i++) {
-        for (j = 0; j < (*pTable)->height / 2; j++) {
-            temp = PTABLE_PIXEL_AT(i, j);
-            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
-            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
-        }
-    }
-
-#undef PTABLE_PIXEL_AT
-}
-
 // FUNCTION: CARMA2_HW 0x00445620
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
     br_model* sky_model;
@@ -421,6 +360,67 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
     gForward_sky_actor->material = gHorizon_material;
     gForward_sky_actor->render_style = BR_RSTYLE_NONE;
     BrActorAdd(gUniverse_actor, gForward_sky_actor);
+}
+
+// Tan
+
+// EdgeU
+
+// CreateHorizonModel
+
+static int Log2(int pNumber) {
+    int i;
+    int bits[16];
+
+    bits[0] = 1;
+    bits[1] = 2;
+    bits[2] = 4;
+    bits[3] = 8;
+    bits[4] = 16;
+    bits[5] = 32;
+    bits[6] = 64;
+    bits[7] = 128;
+    bits[8] = 256;
+    bits[9] = 512;
+    bits[10] = 1024;
+    bits[11] = 2048;
+    bits[12] = 4096;
+    bits[13] = 0x2000;
+    bits[14] = 0x4000;
+    bits[15] = 0x8000;
+    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
+        if (bits[i] & pNumber) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    tPath_name the_path;
+    int i;
+    int j;
+    tU8 temp;
+
+#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
+
+    PathCat(the_path, gApplication_path, "SHADETAB");
+    PathCat(the_path, the_path, pName);
+    *pTable = DRPixelmapLoad(the_path);
+    if (*pTable == NULL) {
+        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
+    }
+    *pPower = Log2((*pTable)->height);
+    for (i = 0; i < (*pTable)->width; i++) {
+        for (j = 0; j < (*pTable)->height / 2; j++) {
+            temp = PTABLE_PIXEL_AT(i, j);
+            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
+            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
+        }
+    }
+
+#undef PTABLE_PIXEL_AT
 }
 
 extern br_angle gSky_image_height;
@@ -557,68 +557,148 @@ void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* p
         actor->render_style = BR_RSTYLE_NONE;
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+extern br_angle gSky_image_width;
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_underground;
 
-// DepthEffectSky
+static br_scalar MungeSkyModel_Tan(br_scalar pAngle) {
+    br_scalar radians;
 
-extern br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees);
-
-// FUNCTION: CARMA2_HW 0x00446680
-void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
-    float f_time;
-
-    // GLOBAL: CARMA2_HW 0x00591194
-    static float mag00 = 0.02f;
-    // GLOBAL: CARMA2_HW 0x00591198
-    static float mag01 = 0.02f;
-    // GLOBAL: CARMA2_HW 0x0059119c
-    static float mag02 = 0.02f;
-    // GLOBAL: CARMA2_HW 0x005911a0
-    static float mag10 = 0.15f;
-    // GLOBAL: CARMA2_HW 0x005911a4
-    static float mag11 = 0.05f;
-    // GLOBAL: CARMA2_HW 0x005911a8
-    static float mag12 = 0.02f;
-    // GLOBAL: CARMA2_HW 0x0067c4e4
-    static float mag20;
-    // GLOBAL: CARMA2_HW 0x0067c4e8
-    static float mag21;
-    // GLOBAL: CARMA2_HW 0x0067c4ec
-    static float mag22;
-    // GLOBAL: CARMA2_HW 0x005911ac
-    static float period00 = 3000.f;
-    // GLOBAL: CARMA2_HW 0x005911b0
-    static float period01 = 3000.f;
-    // GLOBAL: CARMA2_HW 0x005911b4
-    static float period02 = 4000.f;
-    // GLOBAL: CARMA2_HW 0x005911b8
-    static float period10 = 2200.f;
-    // GLOBAL: CARMA2_HW 0x005911bc
-    static float period11 = 3300.f;
-    // GLOBAL: CARMA2_HW 0x005911c0
-    static float period12 = 3100.f;
-    // GLOBAL: CARMA2_HW 0x005911c4
-    static float period20 = 2800.f;
-    // GLOBAL: CARMA2_HW 0x005911c8
-    static float period21 = 2500.f;
-    // GLOBAL: CARMA2_HW 0x005911cc
-    static float period22 = 3900.f;
-
-    f_time = (float)GetTotalTime();
-    pCamera->t.t.mat.m[0][0] += FastScalarSin((int)fmod(f_time / period00 * 360.f, 360.f)) * mag00;
-    pCamera->t.t.mat.m[0][1] += FastScalarSin((int)fmod(f_time / period01 * 360.f, 360.f)) * mag01;
-    pCamera->t.t.mat.m[0][2] += FastScalarSin((int)fmod(f_time / period02 * 360.f, 360.f)) * mag02;
-    pCamera->t.t.mat.m[1][0] += FastScalarSin((int)fmod(f_time / period10 * 360.f, 360.f)) * mag10;
-    pCamera->t.t.mat.m[1][1] += FastScalarSin((int)fmod(f_time / period11 * 360.f, 360.f)) * mag11;
-    pCamera->t.t.mat.m[1][2] += FastScalarSin((int)fmod(f_time / period12 * 360.f, 360.f)) * mag12;
-    pCamera->t.t.mat.m[2][0] += FastScalarSin((int)fmod(f_time / period20 * 360.f, 360.f)) * mag20;
-    pCamera->t.t.mat.m[2][1] += FastScalarSin((int)fmod(f_time / period21 * 360.f, 360.f)) * mag21;
-    pCamera->t.t.mat.m[2][2] += FastScalarSin((int)fmod(f_time / period22 * 360.f, 360.f)) * mag22;
-    // PARTIAL 96.77%: last FPU schedule of m12/m22 statements (extra fld of f_time)
+    radians = BrAngleToRadian(pAngle);
+    return sinf(radians) / cosf(radians);
 }
 
+static br_scalar MungeSkyModel_EdgeU(br_angle pSky, br_angle pView, br_angle pPerfect) {
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+
+    a = (br_scalar)cos(BrAngleToRadian(pPerfect));
+    b = (br_scalar)sin(BrAngleToRadian(pView));
+    c = (br_scalar)cos(BrAngleToRadian(pView));
+    return b * a * a / (BrAngleToRadian(pSky) * (1.f + c));
+}
+
+static br_scalar MungeSkyModel_CalculateWrappingMultiplier(br_scalar pValue, br_scalar pYon) {
+    br_scalar k;
+    br_scalar trunc_k;
+    int int_k;
+
+    k = pYon * 1.3f * (br_scalar)REC2_TAU / pValue;
+    int_k = (int)k;
+    trunc_k = (br_scalar)int_k;
+    if (k - trunc_k > .5f) {
+        trunc_k += 1.f;
+    }
+    return trunc_k * (br_scalar)(1.0 / REC2_TAU) * pValue;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00445e20
+void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel) {
+    br_camera* camera_data;
+    br_scalar horizon_half_height;
+    br_scalar horizon_half_width;
+    br_scalar horizon_half_diag;
+    br_scalar tan_half_fov;
+    br_scalar sky_distance;
+    br_angle half_diag_fov;
+    tU8 nbands;
+    tU8 band;
+    tU8 vertex;
+    tU8 stripe;
+    br_scalar edge_u;
+    br_scalar narrow_u;
+    br_angle min_angle;
+    br_angle angle_range;
+    br_angle angle;
+
+    camera_data = pCamera->type_data;
+    tan_half_fov = MungeSkyModel_Tan((br_scalar)(camera_data->field_of_view / 2));
+    sky_distance = camera_data->yon_z - 1.f;
+    horizon_half_width = sky_distance * tan_half_fov;
+    horizon_half_height = horizon_half_width * camera_data->aspect;
+    horizon_half_diag = (br_scalar)sqrt(horizon_half_height * horizon_half_height + horizon_half_width * horizon_half_width);
+    half_diag_fov = BrRadianToAngle(atan2(horizon_half_diag, sky_distance));
+    edge_u = MungeSkyModel_EdgeU(gSky_image_width, (br_angle)(2 * half_diag_fov), BR_ANGLE_DEG(10));
+    narrow_u = edge_u / 2.f;
+    gSky_width = horizon_half_width * 2.f;
+    gSky_height = horizon_half_height * 2.f;
+    gSky_x_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_width, camera_data->yon_z);
+    gSky_y_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_height, camera_data->yon_z);
+
+    for (vertex = 0; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = -edge_u;
+    }
+    for (vertex = 1; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = -narrow_u;
+    }
+    for (vertex = 2; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = narrow_u;
+    }
+    for (vertex = 3; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].map.v[0] = edge_u;
+    }
+    for (vertex = 0; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = -horizon_half_diag;
+    }
+    for (vertex = 1; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = -horizon_half_diag / 2.f;
+    }
+    for (vertex = 2; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = horizon_half_diag / 2.f;
+    }
+    for (vertex = 3; vertex < 88; vertex += 4) {
+        pModel->vertices[vertex].p.v[0] = horizon_half_diag;
+    }
+    PossibleService();
+
+    min_angle = (br_angle)(-BR_ANGLE_DEG(90) - half_diag_fov);
+    angle_range = (br_angle)(-gSky_image_underground - min_angle);
+    for (band = 0; band < 2; ++band) {
+        vertex = 4 * band;
+        angle = (br_angle)(min_angle + angle_range * band / 2);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    min_angle = (br_angle)-gSky_image_underground;
+    angle_range = gSky_image_height;
+    nbands = 18;
+    for (band = 0; band < nbands; ++band) {
+        vertex = 4 * band + 8;
+        angle = (br_angle)(min_angle + angle_range * band / nbands);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    min_angle = (br_angle)(gSky_image_height - gSky_image_underground);
+    angle_range = (br_angle)(half_diag_fov + BR_ANGLE_DEG(90) - min_angle);
+    for (band = 0; band < 2; ++band) {
+        vertex = 4 * band + 80;
+        angle = (br_angle)(min_angle + angle_range * band);
+        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
+        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
+    }
+    PossibleService();
+    for (band = 0; band < 22; ++band) {
+        vertex = 4 * band;
+        for (stripe = 1; stripe < 4; ++stripe) {
+            pModel->vertices[vertex + stripe].p.v[1] = pModel->vertices[vertex].p.v[1];
+            pModel->vertices[vertex + stripe].p.v[2] = pModel->vertices[vertex].p.v[2];
+        }
+    }
+    BrModelUpdate(pModel, BR_MODU_ALL & ~BR_MODU_FACES);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // DoDrugWobbleCamera
 
 // DoSubaquaCam
@@ -704,6 +784,64 @@ void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCam
     if (r) {
         DoWobbleCamera(pCamera);
     }
+}
+
+// DepthEffectSky
+
+extern br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees);
+
+// FUNCTION: CARMA2_HW 0x00446680
+void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
+    float f_time;
+
+    // GLOBAL: CARMA2_HW 0x00591194
+    static float mag00 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x00591198
+    static float mag01 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x0059119c
+    static float mag02 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x005911a0
+    static float mag10 = 0.15f;
+    // GLOBAL: CARMA2_HW 0x005911a4
+    static float mag11 = 0.05f;
+    // GLOBAL: CARMA2_HW 0x005911a8
+    static float mag12 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x0067c4e4
+    static float mag20;
+    // GLOBAL: CARMA2_HW 0x0067c4e8
+    static float mag21;
+    // GLOBAL: CARMA2_HW 0x0067c4ec
+    static float mag22;
+    // GLOBAL: CARMA2_HW 0x005911ac
+    static float period00 = 3000.f;
+    // GLOBAL: CARMA2_HW 0x005911b0
+    static float period01 = 3000.f;
+    // GLOBAL: CARMA2_HW 0x005911b4
+    static float period02 = 4000.f;
+    // GLOBAL: CARMA2_HW 0x005911b8
+    static float period10 = 2200.f;
+    // GLOBAL: CARMA2_HW 0x005911bc
+    static float period11 = 3300.f;
+    // GLOBAL: CARMA2_HW 0x005911c0
+    static float period12 = 3100.f;
+    // GLOBAL: CARMA2_HW 0x005911c4
+    static float period20 = 2800.f;
+    // GLOBAL: CARMA2_HW 0x005911c8
+    static float period21 = 2500.f;
+    // GLOBAL: CARMA2_HW 0x005911cc
+    static float period22 = 3900.f;
+
+    f_time = (float)GetTotalTime();
+    pCamera->t.t.mat.m[0][0] += FastScalarSin((int)fmod(f_time / period00 * 360.f, 360.f)) * mag00;
+    pCamera->t.t.mat.m[0][1] += FastScalarSin((int)fmod(f_time / period01 * 360.f, 360.f)) * mag01;
+    pCamera->t.t.mat.m[0][2] += FastScalarSin((int)fmod(f_time / period02 * 360.f, 360.f)) * mag02;
+    pCamera->t.t.mat.m[1][0] += FastScalarSin((int)fmod(f_time / period10 * 360.f, 360.f)) * mag10;
+    pCamera->t.t.mat.m[1][1] += FastScalarSin((int)fmod(f_time / period11 * 360.f, 360.f)) * mag11;
+    pCamera->t.t.mat.m[1][2] += FastScalarSin((int)fmod(f_time / period12 * 360.f, 360.f)) * mag12;
+    pCamera->t.t.mat.m[2][0] += FastScalarSin((int)fmod(f_time / period20 * 360.f, 360.f)) * mag20;
+    pCamera->t.t.mat.m[2][1] += FastScalarSin((int)fmod(f_time / period21 * 360.f, 360.f)) * mag21;
+    pCamera->t.t.mat.m[2][2] += FastScalarSin((int)fmod(f_time / period22 * 360.f, 360.f)) * mag22;
+    // PARTIAL 96.77%: last FPU schedule of m12/m22 statements (extra fld of f_time)
 }
 
 // FUNCTION: CARMA2_HW 0x00446890
@@ -968,144 +1106,6 @@ void C2_HOOK_FASTCALL ChangeDepthEffect(void) {
     gProgram_state.current_depth_effect.end = gProgram_state.default_depth_effect.end;
 }
 
-extern br_angle gSky_image_width;
-extern br_angle gSky_image_height;
-extern br_angle gSky_image_underground;
-
-static br_scalar MungeSkyModel_Tan(br_scalar pAngle) {
-    br_scalar radians;
-
-    radians = BrAngleToRadian(pAngle);
-    return sinf(radians) / cosf(radians);
-}
-
-static br_scalar MungeSkyModel_EdgeU(br_angle pSky, br_angle pView, br_angle pPerfect) {
-    br_scalar a;
-    br_scalar b;
-    br_scalar c;
-
-    a = (br_scalar)cos(BrAngleToRadian(pPerfect));
-    b = (br_scalar)sin(BrAngleToRadian(pView));
-    c = (br_scalar)cos(BrAngleToRadian(pView));
-    return b * a * a / (BrAngleToRadian(pSky) * (1.f + c));
-}
-
-static br_scalar MungeSkyModel_CalculateWrappingMultiplier(br_scalar pValue, br_scalar pYon) {
-    br_scalar k;
-    br_scalar trunc_k;
-    int int_k;
-
-    k = pYon * 1.3f * (br_scalar)REC2_TAU / pValue;
-    int_k = (int)k;
-    trunc_k = (br_scalar)int_k;
-    if (k - trunc_k > .5f) {
-        trunc_k += 1.f;
-    }
-    return trunc_k * (br_scalar)(1.0 / REC2_TAU) * pValue;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x00445e20
-void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel) {
-    br_camera* camera_data;
-    br_scalar horizon_half_height;
-    br_scalar horizon_half_width;
-    br_scalar horizon_half_diag;
-    br_scalar tan_half_fov;
-    br_scalar sky_distance;
-    br_angle half_diag_fov;
-    tU8 nbands;
-    tU8 band;
-    tU8 vertex;
-    tU8 stripe;
-    br_scalar edge_u;
-    br_scalar narrow_u;
-    br_angle min_angle;
-    br_angle angle_range;
-    br_angle angle;
-
-    camera_data = pCamera->type_data;
-    tan_half_fov = MungeSkyModel_Tan((br_scalar)(camera_data->field_of_view / 2));
-    sky_distance = camera_data->yon_z - 1.f;
-    horizon_half_width = sky_distance * tan_half_fov;
-    horizon_half_height = horizon_half_width * camera_data->aspect;
-    horizon_half_diag = (br_scalar)sqrt(horizon_half_height * horizon_half_height + horizon_half_width * horizon_half_width);
-    half_diag_fov = BrRadianToAngle(atan2(horizon_half_diag, sky_distance));
-    edge_u = MungeSkyModel_EdgeU(gSky_image_width, (br_angle)(2 * half_diag_fov), BR_ANGLE_DEG(10));
-    narrow_u = edge_u / 2.f;
-    gSky_width = horizon_half_width * 2.f;
-    gSky_height = horizon_half_height * 2.f;
-    gSky_x_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_width, camera_data->yon_z);
-    gSky_y_multiplier = MungeSkyModel_CalculateWrappingMultiplier(gSky_height, camera_data->yon_z);
-
-    for (vertex = 0; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].map.v[0] = -edge_u;
-    }
-    for (vertex = 1; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].map.v[0] = -narrow_u;
-    }
-    for (vertex = 2; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].map.v[0] = narrow_u;
-    }
-    for (vertex = 3; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].map.v[0] = edge_u;
-    }
-    for (vertex = 0; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].p.v[0] = -horizon_half_diag;
-    }
-    for (vertex = 1; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].p.v[0] = -horizon_half_diag / 2.f;
-    }
-    for (vertex = 2; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].p.v[0] = horizon_half_diag / 2.f;
-    }
-    for (vertex = 3; vertex < 88; vertex += 4) {
-        pModel->vertices[vertex].p.v[0] = horizon_half_diag;
-    }
-    PossibleService();
-
-    min_angle = (br_angle)(-BR_ANGLE_DEG(90) - half_diag_fov);
-    angle_range = (br_angle)(-gSky_image_underground - min_angle);
-    for (band = 0; band < 2; ++band) {
-        vertex = 4 * band;
-        angle = (br_angle)(min_angle + angle_range * band / 2);
-        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
-        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
-    }
-    min_angle = (br_angle)-gSky_image_underground;
-    angle_range = gSky_image_height;
-    nbands = 18;
-    for (band = 0; band < nbands; ++band) {
-        vertex = 4 * band + 8;
-        angle = (br_angle)(min_angle + angle_range * band / nbands);
-        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
-        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
-    }
-    min_angle = (br_angle)(gSky_image_height - gSky_image_underground);
-    angle_range = (br_angle)(half_diag_fov + BR_ANGLE_DEG(90) - min_angle);
-    for (band = 0; band < 2; ++band) {
-        vertex = 4 * band + 80;
-        angle = (br_angle)(min_angle + angle_range * band);
-        pModel->vertices[vertex].p.v[1] = (br_scalar)(sin(BrAngleToRadian(angle)) * sky_distance);
-        pModel->vertices[vertex].p.v[2] = (br_scalar)(-cos(BrAngleToRadian(angle)) * sky_distance);
-    }
-    PossibleService();
-    for (band = 0; band < 22; ++band) {
-        vertex = 4 * band;
-        for (stripe = 1; stripe < 4; ++stripe) {
-            pModel->vertices[vertex + stripe].p.v[1] = pModel->vertices[vertex].p.v[1];
-            pModel->vertices[vertex + stripe].p.v[2] = pModel->vertices[vertex].p.v[2];
-        }
-    }
-    BrModelUpdate(pModel, BR_MODU_ALL & ~BR_MODU_FACES);
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x00447250
 void C2_HOOK_FASTCALL MungeForwardSky(void) {

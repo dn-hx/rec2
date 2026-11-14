@@ -49,6 +49,16 @@ void C2_HOOK_FASTCALL ClearAlwaysTyping(void) {
     gAlways_typing = 0;
 }
 
+void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec) {
+
+    // empty
+}
+
+// FUNCTION: CARMA2_HW 0x00484640
+void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void) {
+    gStart_time = PDGetTotalTime();
+}
+
 int C2_HOOK_FASTCALL ChoiceDisabled(int pChoice) {
     int i;
 
@@ -77,52 +87,6 @@ void C2_HOOK_FASTCALL DisableChoice(int pChoice) {
     }
     gDisabled_choices[gDisabled_count] = pChoice;
     gDisabled_count++;
-}
-
-// FUNCTION: CARMA2_HW 0x00484dd0
-void C2_HOOK_FASTCALL ChangeSelection(const tInterface_spec* pSpec, int* pOld_selection, int* pNew_selection, int pMode, int pSkip_disabled) {
-
-    if (ChoiceDisabled(*pNew_selection)) {
-        if (pSkip_disabled) {
-            if (*pOld_selection < *pNew_selection) {
-                do {
-                    *pNew_selection += 1;
-                    if (*pNew_selection < pSpec->move_up_min[pMode]) {
-                        *pNew_selection = pSpec->move_up_max[pMode];
-                    }
-                    if (*pNew_selection > pSpec->move_up_max[pMode]) {
-                        *pNew_selection = pSpec->move_up_min[pMode];
-                    }
-                } while (*pNew_selection != *pOld_selection && ChoiceDisabled(*pNew_selection));
-            } else {
-                do {
-                    *pNew_selection -= 1;
-                    if (*pNew_selection < pSpec->move_up_min[pMode]) {
-                        *pNew_selection = pSpec->move_up_max[pMode];
-                    }
-                    if (*pNew_selection > pSpec->move_up_max[pMode]) {
-                        *pNew_selection = pSpec->move_up_min[pMode];
-                    }
-                } while (*pNew_selection != *pOld_selection && ChoiceDisabled(*pNew_selection));
-            }
-        } else {
-            *pNew_selection = *pOld_selection;
-        }
-    }
-
-    if (*pOld_selection != *pNew_selection) {
-        *pOld_selection = *pNew_selection;
-    }
-}
-
-void C2_HOOK_FASTCALL RecopyAreas(const tInterface_spec* pSpec) {
-
-    // empty
-}
-
-// FUNCTION: CARMA2_HW 0x00484640
-void C2_HOOK_FASTCALL OriginalResetInterfaceTimeout(void) {
-    gStart_time = PDGetTotalTime();
 }
 
 // FUNCTION: CARMA2_HW 0x004846e0
@@ -340,6 +304,42 @@ int C2_HOOK_FASTCALL DoInterfaceScreen(const tInterface_spec* pSpec, int pOption
     UnlockInterfaceStuff();
     EdgeTriggerModeOff();
     return result;
+}
+
+// FUNCTION: CARMA2_HW 0x00484dd0
+void C2_HOOK_FASTCALL ChangeSelection(const tInterface_spec* pSpec, int* pOld_selection, int* pNew_selection, int pMode, int pSkip_disabled) {
+
+    if (ChoiceDisabled(*pNew_selection)) {
+        if (pSkip_disabled) {
+            if (*pOld_selection < *pNew_selection) {
+                do {
+                    *pNew_selection += 1;
+                    if (*pNew_selection < pSpec->move_up_min[pMode]) {
+                        *pNew_selection = pSpec->move_up_max[pMode];
+                    }
+                    if (*pNew_selection > pSpec->move_up_max[pMode]) {
+                        *pNew_selection = pSpec->move_up_min[pMode];
+                    }
+                } while (*pNew_selection != *pOld_selection && ChoiceDisabled(*pNew_selection));
+            } else {
+                do {
+                    *pNew_selection -= 1;
+                    if (*pNew_selection < pSpec->move_up_min[pMode]) {
+                        *pNew_selection = pSpec->move_up_max[pMode];
+                    }
+                    if (*pNew_selection > pSpec->move_up_max[pMode]) {
+                        *pNew_selection = pSpec->move_up_min[pMode];
+                    }
+                } while (*pNew_selection != *pOld_selection && ChoiceDisabled(*pNew_selection));
+            }
+        } else {
+            *pNew_selection = *pOld_selection;
+        }
+    }
+
+    if (*pOld_selection != *pNew_selection) {
+        *pOld_selection = *pNew_selection;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00484f10

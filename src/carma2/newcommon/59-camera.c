@@ -55,27 +55,6 @@ br_scalar gCamera_zoom = 0.2f;
 
 extern int gIt_or_fox;
 
-// FUNCTION: CARMA2_HW 0x0040f4a0
-tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void) {
-    int i;
-    int best;
-    tCar_spec* leader;
-
-    leader = gNet_players[0].car;
-    best = *(int*)&gNet_players[0].field_0x94;
-    if (gCurrent_net_game->type == eNet_game_type_foxy && gIt_or_fox >= 0 && gIt_or_fox < gNumber_of_net_players) {
-        return gNet_players[gIt_or_fox].car;
-    }
-    if (gNumber_of_net_players > 1) {
-        for (i = 1; i < gNumber_of_net_players; i++) {
-            if (*(int*)&gNet_players[i].field_0x94 < best) {
-                best = *(int*)&gNet_players[i].field_0x94;
-                leader = gNet_players[i].car;
-            }
-        }
-    }
-    return leader;
-}
 
 // AmIGettingBoredWatchingCameraSpin
 
@@ -175,10 +154,10 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
         }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 extern void C2_HOOK_FASTCALL InitialiseExternalCamera(void);
 extern int gAR_camera_type;
 extern int gCamera_type;
@@ -257,9 +236,6 @@ void C2_HOOK_FASTCALL SetCameraType(tActionReplayCameraMode pCamPos) {
     }
     MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -306,10 +282,10 @@ void C2_HOOK_FASTCALL ChangeCameraType(void) {
     }
     MungeCarMaterials(&gProgram_state.current_car, gAction_replay_camera_mode == kActionReplayCameraMode_Internal);
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0040e900
 void C2_HOOK_FASTCALL ToggleCockpit(void) {
     tActionReplayCameraMode old_camera_mode;
@@ -336,10 +312,10 @@ void C2_HOOK_FASTCALL ToggleCockpit(void) {
 
 // PositionCarMountedCamera
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0040ea30
 // FUNCTION: CARMA2_SW 0x0040ea10
 void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime) {
@@ -540,7 +516,321 @@ positioned:
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FindACar
 
+// FindAPed
+
+// MouseClickInActionReplay
+
+
+// GLOBAL: CARMA2_HW 0x00679294
+int gCamera_mode;
+
+// GLOBAL: CARMA2_HW 0x006792fc
+float gUNK_006792fc;
+
+// GLOBAL: CARMA2_HW 0x006793e0
+int gCamera_has_collided;
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// GLOBAL: CARMA2_HW 0x0067927c
+br_vector3 gAction_replay_manual_camera_target_position;
+
+// GLOBAL: CARMA2_HW 0x00679288
+tCar_spec* gAction_replay_manual_camera_target_car;
+
+// GLOBAL: CARMA2_HW 0x0067928c
+tPedestrian* gAction_replay_manual_camera_target_pedestrian;
+
+// GLOBAL: CARMA2_HW 0x00679290
+br_actor* gAction_replay_manual_camera_target_character_actor;
+
+// GLOBAL: CARMA2_HW 0x00679310
+br_scalar gManual_camera_yaw;
+
+// GLOBAL: CARMA2_HW 0x00679314
+br_scalar gManual_camera_dolly;
+
+// GLOBAL: CARMA2_HW 0x00679318
+br_scalar gManual_camera_vertical;
+
+// GLOBAL: CARMA2_HW 0x006792e0
+br_angle gOld_yaw__car;
+
+// GLOBAL: CARMA2_HW 0x006792e4
+br_angle gOld_zoom;
+
+// GLOBAL: CARMA2_HW 0x006792e8
+br_vector3 gCamera_pos_before_collide;
+
+// GLOBAL: CARMA2_HW 0x006792f4
+undefined2 gUNK_006792f4;
+
+// GLOBAL: CARMA2_HW 0x006792f8
+int gUNK_006792f8;
+
+extern tCamera_key_flags gCamera_key_flags;
+extern int gCamera_mode;
+extern int gCamera_has_collided;
+extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
+extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
+static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t) {
+    br_scalar c;
+    br_scalar s;
+    br_scalar ts;
+
+    c = cosf(BrAngleToRadian(t));
+    s = sinf(BrAngleToRadian(t));
+    ts = v->v[0] * c + v->v[2] * s;
+    v->v[2] = v->v[2] * c - v->v[0] * s;
+    v->v[0] = ts;
+}
+// FUNCTION: CARMA2_HW 0x0040ef90
+void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime) {
+    br_vector3 old_pos;
+    br_vector3 v;
+    float* target;
+    float move;
+    float min_dist;
+    float dist;
+    float z;
+
+    if (gCamera_key_flags.field_0x0_bit3 && gCamera_key_flags.field_0x0_bit4) {
+        InitialiseExternalCamera();
+        GeneralisedPositionExternalCamera(pCar, &pCar->car_master_actor->t.t.mat, &pCar->pos,
+            pCar->speed, pCar->speedo_speed, &pCar->direction, &pCar->collision_info->omega, pTime);
+        gAction_replay_manual_camera_target_type = 0;
+    } else if (gCamera_key_flags.field_0x0_bit3) {
+        gManual_camera_yaw = gManual_camera_yaw - 0.00025f;
+    } else if (gCamera_key_flags.field_0x0_bit4) {
+        gManual_camera_yaw = gManual_camera_yaw - -0.00025f;
+    } else {
+        gManual_camera_yaw = 0.f;
+    }
+    if (!gCamera_key_flags.field_0x0_bit0) {
+        gManual_camera_vertical = 0.f;
+        if (gCamera_key_flags.field_0x0_bit1 || gCamera_key_flags.field_0x0_bit2) {
+            if (gCamera_key_flags.field_0x0_bit1) {
+                gManual_camera_dolly = gManual_camera_dolly - -0.00025f;
+            }
+            if (gCamera_key_flags.field_0x0_bit2) {
+                gManual_camera_dolly = gManual_camera_dolly - 0.00025f;
+            }
+        } else {
+            gManual_camera_dolly = 0.f;
+        }
+    } else {
+        gManual_camera_dolly = 0.f;
+        if (gCamera_key_flags.field_0x0_bit1 || gCamera_key_flags.field_0x0_bit2) {
+            if (gCamera_key_flags.field_0x0_bit1) {
+                gManual_camera_vertical = gManual_camera_vertical - -0.00025f;
+                if (gCamera->t.t.translate.t.v[1] > pCar->collision_info->transform_matrix.m[3][1] - -10.f) {
+                    gManual_camera_vertical = 0.f;
+                }
+            }
+            if (gCamera_key_flags.field_0x0_bit2) {
+                gManual_camera_vertical = gManual_camera_vertical - 0.00025f;
+            }
+        } else {
+            gManual_camera_vertical = 0.f;
+        }
+    }
+    BrVector3Copy(&old_pos, &gCamera->t.t.translate.t);
+    min_dist = 0.2f;
+    gCamera->t.t.translate.t.v[1] = gManual_camera_vertical * (float)pTime + gCamera->t.t.translate.t.v[1];
+    switch (gAction_replay_manual_camera_target_type) {
+    case 0:
+        min_dist = pCar->collision_info->bb1.max.v[2] - pCar->collision_info->bb1.min.v[2];
+        target = (float*)&pCar->pos;
+        break;
+    case 1:
+        target = (float*)&gAction_replay_manual_camera_target_position;
+        break;
+    case 2:
+        target = (float*)&gAction_replay_manual_camera_target_position;
+        BrMatrix34ApplyP((br_vector3*)target, &gAction_replay_manual_camera_target_car->collision_info->cmpos, &gAction_replay_manual_camera_target_car->car_master_actor->t.t.mat);
+        break;
+    case 3:
+        target = (float*)&gAction_replay_manual_camera_target_position;
+        if (gAction_replay_manual_camera_target_pedestrian->flags & 1) {
+            tPed_personality* pers;
+
+            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
+            v.v[0] = pers->bb.min.v[0] + pers->bb.max.v[0];
+            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
+            v.v[1] = pers->bb.min.v[1] + pers->bb.max.v[1];
+            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
+            v.v[2] = pers->bb.min.v[2] + pers->bb.max.v[2];
+            v.v[0] = v.v[0] * 0.5;
+            v.v[1] = v.v[1] * 0.5;
+            v.v[2] = v.v[2] * 0.5;
+            BrMatrix34ApplyP((br_vector3*)target, &v, &gAction_replay_manual_camera_target_character_actor->t.t.mat);
+        }
+        break;
+    }
+    v.v[0] = gCamera->t.t.translate.t.v[0] - target[0];
+    v.v[1] = gCamera->t.t.translate.t.v[1] - target[1];
+    v.v[2] = gCamera->t.t.translate.t.v[2] - target[2];
+    dist = (float)sqrt(v.v[2] * v.v[2] + v.v[0] * v.v[0]);
+    if (gManual_camera_dolly != 0.f) {
+        v.v[0] = gCamera->t.t.mat.m[2][0];
+        v.v[1] = 0.f;
+        v.v[2] = gCamera->t.t.mat.m[2][2];
+        move = gManual_camera_dolly * (float)pTime;
+        z = (float)sqrt(v.v[2] * v.v[2] + v.v[0] * v.v[0]);
+        if (z <= 2.3841858e-07f) {
+            v.v[0] = 1.f;
+            v.v[1] = 0.f;
+            v.v[2] = 0.f;
+        } else {
+            z = 1.0 / z;
+            v.v[0] = z * v.v[0];
+            v.v[1] = z * v.v[1];
+            v.v[2] = z * v.v[2];
+        }
+        if (dist - move < min_dist) {
+            move = dist - min_dist;
+        }
+        move = -move;
+        v.v[0] = v.v[0] * move;
+        v.v[1] = move * 0.f;
+        v.v[2] = v.v[2] * move;
+        gCamera->t.t.translate.t.v[0] = v.v[0] + gCamera->t.t.translate.t.v[0];
+        gCamera->t.t.translate.t.v[1] = v.v[1] + gCamera->t.t.translate.t.v[1];
+        gCamera->t.t.translate.t.v[2] = v.v[2] + gCamera->t.t.translate.t.v[2];
+    }
+    if (gManual_camera_yaw != 0.f) {
+        gCamera->t.t.translate.t.v[0] = gCamera->t.t.translate.t.v[0] - target[0];
+        gCamera->t.t.translate.t.v[1] = gCamera->t.t.translate.t.v[1] - target[1];
+        gCamera->t.t.translate.t.v[2] = gCamera->t.t.translate.t.v[2] - target[2];
+        BrMatrix34PostRotateY(&gCamera->t.t.mat, BrRadianToAngle(gManual_camera_yaw * (float)pTime / dist));
+        gCamera->t.t.translate.t.v[0] = target[0] + gCamera->t.t.translate.t.v[0];
+        gCamera->t.t.translate.t.v[1] = target[1] + gCamera->t.t.translate.t.v[1];
+        gCamera->t.t.translate.t.v[2] = target[2] + gCamera->t.t.translate.t.v[2];
+    }
+    CollideCameraWithOtherCars((br_vector3*)target, &gCamera->t.t.translate.t);
+    CollideCamera2(&old_pos, &gCamera->t.t.translate.t, NULL, 1, pCar->collision_info);
+    if (gCamera_has_collided) {
+        gManual_camera_yaw = 0.f;
+        gManual_camera_dolly = 0.f;
+        gManual_camera_vertical = 0.f;
+        gCamera->t.t.translate.t.v[0] = old_pos.v[0];
+        gCamera->t.t.translate.t.v[1] = old_pos.v[1];
+        gCamera->t.t.translate.t.v[2] = old_pos.v[2];
+    }
+    PointCameraAtCar((br_vector3*)target, &gCamera->t.t.mat, 1.f);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x0040f4a0
+tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void) {
+    int i;
+    int best;
+    tCar_spec* leader;
+
+    leader = gNet_players[0].car;
+    best = *(int*)&gNet_players[0].field_0x94;
+    if (gCurrent_net_game->type == eNet_game_type_foxy && gIt_or_fox >= 0 && gIt_or_fox < gNumber_of_net_players) {
+        return gNet_players[gIt_or_fox].car;
+    }
+    if (gNumber_of_net_players > 1) {
+        for (i = 1; i < gNumber_of_net_players; i++) {
+            if (*(int*)&gNet_players[i].field_0x94 < best) {
+                best = *(int*)&gNet_players[i].field_0x94;
+                leader = gNet_players[i].car;
+            }
+        }
+    }
+    return leader;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// GLOBAL: CARMA2_HW 0x00589418
+const br_scalar gFLOAT_00589418 = 0.0f;
+
+// FUNCTION: CARMA2_HW 0x0040f510
+void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar) {
+    br_matrix34* mat;
+    br_scalar height;
+    int i;
+
+    height = gFLOAT_00589418;
+    if (pCar->collision_info->water_d != 10000.f) {
+        mat = &pCar->car_master_actor->t.t.mat;
+        for (i = 0; i < 3; i++) {
+            if (mat->m[i][1] > gFLOAT_00589418) {
+                height += pCar->collision_info->bb2.max.v[i] * mat->m[i][1];
+            } else {
+                height += mat->m[i][1] * pCar->collision_info->bb2.min.v[i];
+            }
+        }
+        {
+            br_scalar d = mat->m[3][1] / WORLD_SCALE;
+
+            if (d + height < pCar->collision_info->water_d) {
+                DisablePlingMaterials();
+            }
+        }
+    } else {
+        DisablePlingMaterials();
+    }
+}
+// PARTIAL 76.49%: x87 schedule of lerp differs
+// FUNCTION: CARMA2_HW 0x0040f590
+void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) {
+    // GLOBAL: CARMA2_HW 0x00679300
+    static float swing_rate;
+    // GLOBAL: CARMA2_HW 0x0058f624
+    static float swing_frac = 0.f;
+    br_matrix34* mat;
+    float inv;
+    br_matrix34* src;
+    tU8 flags;
+    float x;
+    float y;
+    float z;
+
+    mat = &gCamera->t.t.mat;
+    src = &pCar->car_master_actor->t.t.mat;
+    flags = *(tU8*)&gCamera_key_flags;
+    if ((flags & 2) && !(flags & 1) && swing_rate >= 0.f) {
+        swing_rate = -0.0002f;
+    } else if ((flags & 4) && !(flags & 1) && swing_rate <= 0.f) {
+        swing_rate = 0.0002f;
+    }
+    swing_frac = (float)pTime * swing_rate + swing_frac;
+    if (swing_frac > 1.f) {
+        swing_rate = 0.f;
+        swing_frac = 1.f;
+    } else if (swing_frac < 0.f) {
+        swing_rate = 0.f;
+        swing_frac = 0.f;
+    }
+    inv = 1.f - swing_frac;
+    x = pCar->camera_bumper_position.v[0] * inv + pCar->camera_cockpit_position.v[0] * swing_frac;
+    y = pCar->camera_bumper_position.v[1] * inv + pCar->camera_cockpit_position.v[1] * swing_frac;
+    z = pCar->camera_bumper_position.v[2] * inv + pCar->camera_cockpit_position.v[2] * swing_frac;
+    BrMatrix34Copy(mat, src);
+    BrMatrix34PreTranslate(mat, x, y, z);
+    if (swing_rate < 0.f) {
+        swing_rate = swing_rate - 0.0001;
+    }
+    if (swing_rate > 0.f) {
+        swing_rate = swing_rate - -0.0001;
+    }
+    CollideCamera2(&pCar->pos, &gCamera->t.t.translate.t, NULL, 0, NULL);
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x0040f760
 // FUNCTION: CARMA2_SW 0x0040f740
 void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime) {
@@ -581,10 +871,10 @@ extern tU32 gOldest_time;
 extern tU32 gTrigger_time;
 static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime);
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0040f790
 // FUNCTION: CARMA2_SW 0x0040f770
 int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
@@ -825,6 +1115,163 @@ lab_fc76:
     gIncident_camera_stack--;
     return 0;
 }
+extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+
+// GLOBAL: CARMA2_HW 0x006792c0
+tU32 gSwitch_time;
+
+// GLOBAL: CARMA2_HW 0x0058f5e8
+int gCamera_incident_flag = 1;
+
+// PARTIAL 64%: frame 0x24 vs 0x20, x87 schedule differs
+// FUNCTION: CARMA2_HW 0x004104b0
+void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) {
+    br_vector3 dir;
+    br_vector3 normal;
+    br_scalar t;
+    br_scalar d;
+    br_material* material;
+    br_vector3 delta;
+
+    BrVector3Sub(&delta, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
+    d = BrVector3LengthSquared(&delta);
+    if (d <= 102.91955471539592) {
+        if (gSwitch_time != 0) {
+            int passed;
+
+            if (PipeSearchForwards()) {
+                passed = GetTotalTime() < gSwitch_time;
+            } else {
+                passed = gSwitch_time < GetTotalTime();
+            }
+            if (passed) {
+                goto check_camera;
+            }
+        }
+        gCamera_incident_flag = 1;
+        goto point_camera;
+    }
+check_camera:
+    if (gCamera_incident_flag == 0 && d <= 205.83910943079184) {
+        goto point_camera;
+    }
+    if (d <= 25.f) {
+        BrVector3Sub(&dir, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
+        FindFace(&pCar->pos, &dir, &normal, &t, &material);
+        if (t > 1.f) {
+            goto point_camera;
+        }
+    }
+    SetUpPanningCamera(pCar);
+point_camera:
+    PointCameraAtCar(&pCar->pos, &gCamera->t.t.mat, 1.f);
+}
+extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
+extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+static __inline int C2_HOOK_FASTCALL CheckForWall(br_vector3* start, br_vector3* end) {
+    br_vector3 dir;
+    br_material* material;
+    br_vector3 normal;
+    br_scalar d;
+
+    BrVector3Sub(&dir, end, start);
+    FindFace(start, &dir, &normal, &d, &material);
+    return d <= 1.f;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL 89.04%: logic complete (frame 0x7c, identical slot map, calls and args); residual is x87 scheduling only:
+// perp.z is kept in st (fst) where the original pops and reloads (fstp/fld), and the tv/tv2 length-squared block
+// schedules the last subtraction after SRandomPosNeg with different spill temps (+3 bytes).
+// FUNCTION: CARMA2_HW 0x004105f0
+void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar) {
+    br_vector3 pos;
+    br_vector3 perp;
+    br_vector3 dir;
+    br_vector3 tv;
+    br_vector3 tv2;
+    br_vector3 left;
+    br_vector3 right;
+    br_vector3 car_centre;
+    br_scalar ts;
+    tU32 time;
+    tU32 time_step;
+    tU32 t;
+    tU32 t2;
+    br_matrix34* m1;
+
+    m1 = &pCar->car_master_actor->t.t.mat;
+    gCamera_incident_flag = 0;
+    ScanCarsPositions(pCar, &pCar->pos, 411.67822265625f, 0xffffffff, 5000, &pos, &time);
+    BrVector3Sub(&dir, &pos, &pCar->pos);
+    if (GetTotalTime() < time) {
+        time_step = time - GetTotalTime();
+    } else {
+        time_step = GetTotalTime() - time;
+    }
+    time_step *= SRandomBetween(0.8f, 1.5f);
+    if (BrVector3LengthSquared(&dir) < 0.01 || time == 0) {
+        BrVector3Negate(&dir, (br_vector3*)&m1->m[2][0]);
+        BrVector3Copy(&car_centre, &pCar->pos);
+        time_step = 0;
+    } else {
+        ScanCarsPositions(pCar, &pCar->pos, 102.9195556640625f, 0xffffffff, time_step / 2, &car_centre, &t);
+        if (t == 0) {
+            BrVector3Copy(&car_centre, &pCar->pos);
+        }
+    }
+    BrVector3SetFloat(&tv, 0.f, 1.f, 0.f);
+    BrVector3Cross(&perp, &tv, &dir);
+    ts = BrVector3Length(&perp);
+    if (ts < 0.1f) {
+        return;
+    }
+    ts = 2.f / ts;
+    ts *= SRandomBetween(0.3333333432674408f, 1.f);
+    BrVector3Scale(&perp, &perp, ts);
+    ts = SRandomBetween(0.3333333432674408f, 1.f) * 2.f;
+    BrVector3Set(&tv, 0.f, ts, 0.f);
+    BrVector3Add(&tv, &car_centre, &tv);
+    BrVector3Add(&left, &tv, &perp);
+    BrVector3Sub(&right, &tv, &perp);
+    CollideCamera2(&car_centre, &left, NULL, 1, NULL);
+    CollideCamera2(&car_centre, &right, NULL, 1, NULL);
+    BrVector3Sub(&tv, &left, &car_centre);
+    BrVector3Sub(&tv2, &right, &car_centre);
+    if (BrVector3LengthSquared(&tv) + SRandomPosNeg(0.01f) > BrVector3LengthSquared(&tv2)) {
+        BrVector3Copy(&gCamera->t.t.translate.t, &left);
+    } else {
+        BrVector3Copy(&gCamera->t.t.translate.t, &right);
+    }
+    if (time != 0) {
+        if (CheckForWall(&pCar->pos, &gCamera->t.t.translate.t)) {
+            ScanCarsPositions(pCar, &pCar->pos, 10000.f, 0xffffffff, 1000, &tv, &t2);
+            CollideCamera2(&tv, &gCamera->t.t.translate.t, NULL, 1, NULL);
+        }
+    }
+    if (time != 0) {
+        if (CheckForWall(&pos, &gCamera->t.t.translate.t)) {
+            time_step = time_step / 16;
+            BrVector3Copy(&tv, &car_centre);
+            do {
+                ScanCarsPositions(pCar, &tv, 10000.f, abs((tS32)t - (tS32)GetTotalTime()), time_step, &tv2, &t2);
+                t += ((ARGetReplayDirection() != 0) ? 1 : -1) * time_step;
+                BrVector3Copy(&tv, &tv2);
+            } while (!CheckForWall(&tv, &gCamera->t.t.translate.t) && t < GetTotalTime() + 5000);
+            gSwitch_time = t;
+            return;
+        }
+    }
+    if (time == 0) {
+        time = 5000;
+    }
+    gSwitch_time = time;
+}
 
 // MoveCamToIncident
 
@@ -848,233 +1295,11 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int i) {
         gSave_camera[i].saved = 0;
     }
 }
-// DrVector3RotateY
 
-// GLOBAL: CARMA2_HW 0x006792e0
-br_angle gOld_yaw__car;
 
-// GLOBAL: CARMA2_HW 0x006792e4
-br_angle gOld_zoom;
-
-// GLOBAL: CARMA2_HW 0x006792e8
-br_vector3 gCamera_pos_before_collide;
-
-// GLOBAL: CARMA2_HW 0x006792f4
-undefined2 gUNK_006792f4;
-
-// GLOBAL: CARMA2_HW 0x006792f8
-int gUNK_006792f8;
-
-extern tCamera_key_flags gCamera_key_flags;
-extern int gCamera_mode;
-extern int gCamera_has_collided;
-extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
-extern int C2_HOOK_FASTCALL ARReplayForwards(void);
-extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
-static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t) {
-    br_scalar c;
-    br_scalar s;
-    br_scalar ts;
-
-    c = cosf(BrAngleToRadian(t));
-    s = sinf(BrAngleToRadian(t));
-    ts = v->v[0] * c + v->v[2] * s;
-    v->v[2] = v->v[2] * c - v->v[0] * s;
-    v->v[0] = ts;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// DoCameraControls and MoveWithWheels have NO standalone address in CARMA2_HW.EXE: MSVC inlined
-// both into GeneralisedPositionExternalCamera (0x00410c60), the only place their code exists
-// (gCamera swirl test at 0x410ceb; last_swirl_mode 0x0067930c only at 0x410d40..; move_with_wheels
-// 0x0058f638 only at 0x4111c1..). Scoring work item is 0x00410c60 with these bodies in this TU.
-// GLOBAL: CARMA2_HW 0x0058f63c
-static int elapsed_time = -1;
-
-// GLOBAL: CARMA2_HW 0x00679338
-static br_vector3 old_vn;
-
-// PARTIAL 65.74%: SwingCamera 0x411980 [deepseek] - x87 schedule of the two dots and of the inlined DrVector3RotateY block, stack-slot sharing (manual_swing 0x18 vs 0x1c), float-constant pool offsets, and the original's sqrtf CRT call (sqrtf does not link on MSVC 11, fsqrt emitted)
-// FUNCTION: CARMA2_HW 0x00411980
-void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) {
-    br_angle yaw;
-    br_angle yaw2;
-    br_angle omega;
-    br_angle v8;
-    br_angle v9;
-    br_scalar sign;
-    br_scalar dot;
-    br_scalar v16;
-    br_scalar v17;
-    br_scalar v18;
-    br_scalar abs_v18;
-    br_scalar cos_dtheta;
-    br_scalar c;
-    br_scalar s;
-    br_scalar ts;
-    int manual_swing;
-
-    yaw = gCamera_yaw;
-    manual_swing = gOld_yaw__car != gCamera_yaw;
-    if (elapsed_time > 500) {
-        elapsed_time = -1;
-    }
-    if (elapsed_time >= 0) {
-        elapsed_time += pTime_difference;
-    }
-    sign = -BrVector3Dot((br_vector3*)pM1->m[2], pVn);
-    dot = BrVector3Dot(&old_vn, pVn);
-    if ((sign < 0.f) == gCamera_sign) {
-        elapsed_time = -1;
-    } else if (dot <= 0.f || elapsed_time >= 0) {
-        if (gAction_replay_camera_mode != kActionReplayCameraMode_Standard || gCamera_sign != 0) {
-            if (elapsed_time < 0) {
-                elapsed_time = 0;
-            }
-            if (elapsed_time >= 500 || sign > 0.f) {
-                elapsed_time = 500;
-                if ((sign > 0.f ? 0.0001 : 0.0006) < fabs(pSpeedo_speed) && gCar_flying == 0) {
-                    gCamera_sign = !gCamera_sign;
-                    gUNK_006792f4 = BrDegreeToAngle(200.0 * (gUNK_006792f8 ? 0.06 : 0.04));
-                    yaw2 = gCamera_yaw;
-                    if (gCamera_yaw > BR_ANGLE_DEG(180)) {
-                        yaw2 = gCamera_yaw - BR_ANGLE_DEG(180);
-                    }
-                    if ((br_angle)(gCamera_yaw + BR_ANGLE_DEG(90)) <= BR_ANGLE_DEG(180)) {
-                        if (yaw2 > BR_ANGLE_DEG(45) && yaw2 < BR_ANGLE_DEG(135)) {
-                            gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
-                            yaw = gCamera_yaw;
-                        }
-                    } else {
-                        gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
-                        yaw = gCamera_yaw;
-                    }
-                    goto camera_positioned;
-                }
-            }
-        }
-        BrVector3Negate(pVn, pVn);
-        yaw = gCamera_yaw;
-    } else {
-        gCamera_sign = !gCamera_sign;
-        yaw2 = gCamera_yaw;
-        if (gCamera_yaw > BR_ANGLE_DEG(180)) {
-            yaw2 = gCamera_yaw - BR_ANGLE_DEG(180);
-        }
-        if (yaw2 > BR_ANGLE_DEG(45) && yaw2 < BR_ANGLE_DEG(135)) {
-            gCamera_yaw = -gCamera_yaw;
-            yaw = gCamera_yaw;
-        }
-    }
-camera_positioned:
-    BrVector3Copy(&old_vn, pVn);
-    if (gCamera_sign != 0) {
-        yaw = -gCamera_yaw;
-    } else {
-        yaw = gCamera_yaw;
-    }
-    if (gCar_flying == 0) {
-        c = cosf(BrAngleToRadian(yaw));
-        s = sinf(BrAngleToRadian(yaw));
-        ts = pVn->v[0] * c + pVn->v[2] * s;
-        pVn->v[2] = pVn->v[2] * c - pVn->v[0] * s;
-        pVn->v[0] = ts;
-    }
-    v16 = pVn->v[0] * gView_direction.v[0] + pVn->v[2] * gView_direction.v[2];
-    v17 = pVn->v[0] * gView_direction.v[2] - pVn->v[2] * gView_direction.v[0];
-    if (v16 < 0.5 && gCamera_yaw == 0) {
-        gUNK_006792f8 = 1;
-    }
-    v18 = pOmega->v[0] * pM1->m[0][1] + pOmega->v[1] * pM1->m[1][1] + pOmega->v[2] * pM1->m[2][1];
-    abs_v18 = fabs(v18);
-    v8 = BrRadianToAngle(pTime_difference * (abs_v18 - -0.08726646f) * 0.001f);
-    if (gUNK_006792f4 == 0 && v16 > 0.f) {
-        v9 = BrRadianToAngle(sqrt(fabs(v17)));
-        if (v9 < v8) {
-            goto camera_reset;
-        }
-    }
-    if (gCar_flying == 0 && manual_swing != 0) {
-        if (gUNK_006792f4 == 0) {
-            gUNK_006792f4 = BrDegreeToAngle(50.0 * (gUNK_006792f8 ? 0.06 : 0.04));
-        }
-        omega = pTime_difference * gUNK_006792f4 / 100;
-        if (omega < v8) {
-            omega = v8;
-        }
-        cos_dtheta = BR_COS(omega);
-        if (cos_dtheta > v16) {
-            if (v16 < -0.7 && abs_v18 > 0.8 && v18 * v17 > 0.f) {
-                omega = -omega;
-            }
-            ts = BrAngleToRadian(omega);
-            if (v17 > 0.f) {
-                pVn->v[0] = cosf(ts) * gView_direction.v[0] + sinf(ts) * gView_direction.v[2];
-                pVn->v[2] = cosf(ts) * gView_direction.v[2] - sinf(ts) * gView_direction.v[0];
-            } else {
-                pVn->v[0] = cosf(ts) * gView_direction.v[0] - sinf(ts) * gView_direction.v[2];
-                pVn->v[2] = cosf(ts) * gView_direction.v[2] + sinf(ts) * gView_direction.v[0];
-            }
-            gUNK_006792f4 += BrDegreeToAngle(pTime_difference * (gUNK_006792f8 ? 0.06 : 0.04));
-            if (gUNK_006792f4 > BrDegreeToAngle(gUNK_006792f8 ? 40.0 : 10.0)) {
-                gUNK_006792f4 = BrDegreeToAngle(gUNK_006792f8 ? 40.0 : 10.0);
-            }
-            return;
-        }
-    }
-camera_reset:
-    gUNK_006792f4 = 0;
-    gCamera_mode = 0;
-    gUNK_006792f8 = 0;
-}
-// FUNCTION: CARMA2_HW 0x00411fc0
-void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) {
-    br_vector3 vn;
-    br_vector3 tv;
-    br_vector3 tv2;
-    br_scalar dist;
-    br_scalar frac;
-    br_angle theta;
-    br_vector3* pos;
-    br_camera* camera_ptr;
-    int swoop;
-
-    camera_ptr = gCamera->type_data;
-    theta = (br_angle)(pFov_factor * 0.2f * camera_ptr->field_of_view);
-    swoop = gCountdown && gCamera_height > pPos->v[1] - -0.01f;
-    if (swoop) {
-        BrVector3Sub(&tv, &gAverage_grid_position, pPos);
-        frac = (gCamera_height - pPos->v[1]) * 0.1f;
-        BrVector3Scale(&tv, &tv, frac);
-        BrVector3Add(&tv, pPos, &tv);
-        pos = &tv;
-        theta = (br_angle)((1.0f - frac) * theta);
-    } else {
-        pos = pPos;
-    }
-    BrVector3Sub(&vn, pPos, (br_vector3*)pMat->m[3]);
-    vn.v[1] = 0.f;
-    BrVector3Normalise(&vn, &vn);
-    pMat->m[0][0] = -vn.v[2];
-    pMat->m[0][1] = 0.0f;
-    pMat->m[1][0] = 0.0f;
-    pMat->m[0][2] = vn.v[0];
-    pMat->m[2][0] = -vn.v[0];
-    pMat->m[1][1] = 1.0f;
-    pMat->m[1][2] = 0.0f;
-    pMat->m[2][2] = -vn.v[2];
-    pMat->m[2][1] = 0.0f;
-    BrVector3Sub(&tv2, pos, (br_vector3*)pMat->m[3]);
-    dist = BrVector3Dot(&tv2, &vn);
-    BrMatrix34PreRotateX(pMat, theta - BR_ATAN2(pMat->m[3][1] - pos->v[1], dist));
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-
 extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
 
 // inlined into GeneralisedPositionExternalCamera 0x00410c60; no address of its own
@@ -1324,7 +1549,237 @@ void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matr
     gOld_yaw__car = gCamera_yaw;
     gOld_zoom = (int)gCamera_zoom;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// DrVector3RotateY
 
+
+// DoCameraControls and MoveWithWheels have NO standalone address in CARMA2_HW.EXE: MSVC inlined
+// both into GeneralisedPositionExternalCamera (0x00410c60), the only place their code exists
+// (gCamera swirl test at 0x410ceb; last_swirl_mode 0x0067930c only at 0x410d40..; move_with_wheels
+// 0x0058f638 only at 0x4111c1..). Scoring work item is 0x00410c60 with these bodies in this TU.
+// GLOBAL: CARMA2_HW 0x0058f63c
+static int elapsed_time = -1;
+
+// GLOBAL: CARMA2_HW 0x00679338
+static br_vector3 old_vn;
+
+// PARTIAL 65.74%: SwingCamera 0x411980 [deepseek] - x87 schedule of the two dots and of the inlined DrVector3RotateY block, stack-slot sharing (manual_swing 0x18 vs 0x1c), float-constant pool offsets, and the original's sqrtf CRT call (sqrtf does not link on MSVC 11, fsqrt emitted)
+// FUNCTION: CARMA2_HW 0x00411980
+void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) {
+    br_angle yaw;
+    br_angle yaw2;
+    br_angle omega;
+    br_angle v8;
+    br_angle v9;
+    br_scalar sign;
+    br_scalar dot;
+    br_scalar v16;
+    br_scalar v17;
+    br_scalar v18;
+    br_scalar abs_v18;
+    br_scalar cos_dtheta;
+    br_scalar c;
+    br_scalar s;
+    br_scalar ts;
+    int manual_swing;
+
+    yaw = gCamera_yaw;
+    manual_swing = gOld_yaw__car != gCamera_yaw;
+    if (elapsed_time > 500) {
+        elapsed_time = -1;
+    }
+    if (elapsed_time >= 0) {
+        elapsed_time += pTime_difference;
+    }
+    sign = -BrVector3Dot((br_vector3*)pM1->m[2], pVn);
+    dot = BrVector3Dot(&old_vn, pVn);
+    if ((sign < 0.f) == gCamera_sign) {
+        elapsed_time = -1;
+    } else if (dot <= 0.f || elapsed_time >= 0) {
+        if (gAction_replay_camera_mode != kActionReplayCameraMode_Standard || gCamera_sign != 0) {
+            if (elapsed_time < 0) {
+                elapsed_time = 0;
+            }
+            if (elapsed_time >= 500 || sign > 0.f) {
+                elapsed_time = 500;
+                if ((sign > 0.f ? 0.0001 : 0.0006) < fabs(pSpeedo_speed) && gCar_flying == 0) {
+                    gCamera_sign = !gCamera_sign;
+                    gUNK_006792f4 = BrDegreeToAngle(200.0 * (gUNK_006792f8 ? 0.06 : 0.04));
+                    yaw2 = gCamera_yaw;
+                    if (gCamera_yaw > BR_ANGLE_DEG(180)) {
+                        yaw2 = gCamera_yaw - BR_ANGLE_DEG(180);
+                    }
+                    if ((br_angle)(gCamera_yaw + BR_ANGLE_DEG(90)) <= BR_ANGLE_DEG(180)) {
+                        if (yaw2 > BR_ANGLE_DEG(45) && yaw2 < BR_ANGLE_DEG(135)) {
+                            gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
+                            yaw = gCamera_yaw;
+                        }
+                    } else {
+                        gCamera_yaw = BR_ANGLE_DEG(180) - gCamera_yaw;
+                        yaw = gCamera_yaw;
+                    }
+                    goto camera_positioned;
+                }
+            }
+        }
+        BrVector3Negate(pVn, pVn);
+        yaw = gCamera_yaw;
+    } else {
+        gCamera_sign = !gCamera_sign;
+        yaw2 = gCamera_yaw;
+        if (gCamera_yaw > BR_ANGLE_DEG(180)) {
+            yaw2 = gCamera_yaw - BR_ANGLE_DEG(180);
+        }
+        if (yaw2 > BR_ANGLE_DEG(45) && yaw2 < BR_ANGLE_DEG(135)) {
+            gCamera_yaw = -gCamera_yaw;
+            yaw = gCamera_yaw;
+        }
+    }
+camera_positioned:
+    BrVector3Copy(&old_vn, pVn);
+    if (gCamera_sign != 0) {
+        yaw = -gCamera_yaw;
+    } else {
+        yaw = gCamera_yaw;
+    }
+    if (gCar_flying == 0) {
+        c = cosf(BrAngleToRadian(yaw));
+        s = sinf(BrAngleToRadian(yaw));
+        ts = pVn->v[0] * c + pVn->v[2] * s;
+        pVn->v[2] = pVn->v[2] * c - pVn->v[0] * s;
+        pVn->v[0] = ts;
+    }
+    v16 = pVn->v[0] * gView_direction.v[0] + pVn->v[2] * gView_direction.v[2];
+    v17 = pVn->v[0] * gView_direction.v[2] - pVn->v[2] * gView_direction.v[0];
+    if (v16 < 0.5 && gCamera_yaw == 0) {
+        gUNK_006792f8 = 1;
+    }
+    v18 = pOmega->v[0] * pM1->m[0][1] + pOmega->v[1] * pM1->m[1][1] + pOmega->v[2] * pM1->m[2][1];
+    abs_v18 = fabs(v18);
+    v8 = BrRadianToAngle(pTime_difference * (abs_v18 - -0.08726646f) * 0.001f);
+    if (gUNK_006792f4 == 0 && v16 > 0.f) {
+        v9 = BrRadianToAngle(sqrt(fabs(v17)));
+        if (v9 < v8) {
+            goto camera_reset;
+        }
+    }
+    if (gCar_flying == 0 && manual_swing != 0) {
+        if (gUNK_006792f4 == 0) {
+            gUNK_006792f4 = BrDegreeToAngle(50.0 * (gUNK_006792f8 ? 0.06 : 0.04));
+        }
+        omega = pTime_difference * gUNK_006792f4 / 100;
+        if (omega < v8) {
+            omega = v8;
+        }
+        cos_dtheta = BR_COS(omega);
+        if (cos_dtheta > v16) {
+            if (v16 < -0.7 && abs_v18 > 0.8 && v18 * v17 > 0.f) {
+                omega = -omega;
+            }
+            ts = BrAngleToRadian(omega);
+            if (v17 > 0.f) {
+                pVn->v[0] = cosf(ts) * gView_direction.v[0] + sinf(ts) * gView_direction.v[2];
+                pVn->v[2] = cosf(ts) * gView_direction.v[2] - sinf(ts) * gView_direction.v[0];
+            } else {
+                pVn->v[0] = cosf(ts) * gView_direction.v[0] - sinf(ts) * gView_direction.v[2];
+                pVn->v[2] = cosf(ts) * gView_direction.v[2] + sinf(ts) * gView_direction.v[0];
+            }
+            gUNK_006792f4 += BrDegreeToAngle(pTime_difference * (gUNK_006792f8 ? 0.06 : 0.04));
+            if (gUNK_006792f4 > BrDegreeToAngle(gUNK_006792f8 ? 40.0 : 10.0)) {
+                gUNK_006792f4 = BrDegreeToAngle(gUNK_006792f8 ? 40.0 : 10.0);
+            }
+            return;
+        }
+    }
+camera_reset:
+    gUNK_006792f4 = 0;
+    gCamera_mode = 0;
+    gUNK_006792f8 = 0;
+}
+// FUNCTION: CARMA2_HW 0x00411fc0
+void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) {
+    br_vector3 vn;
+    br_vector3 tv;
+    br_vector3 tv2;
+    br_scalar dist;
+    br_scalar frac;
+    br_angle theta;
+    br_vector3* pos;
+    br_camera* camera_ptr;
+    int swoop;
+
+    camera_ptr = gCamera->type_data;
+    theta = (br_angle)(pFov_factor * 0.2f * camera_ptr->field_of_view);
+    swoop = gCountdown && gCamera_height > pPos->v[1] - -0.01f;
+    if (swoop) {
+        BrVector3Sub(&tv, &gAverage_grid_position, pPos);
+        frac = (gCamera_height - pPos->v[1]) * 0.1f;
+        BrVector3Scale(&tv, &tv, frac);
+        BrVector3Add(&tv, pPos, &tv);
+        pos = &tv;
+        theta = (br_angle)((1.0f - frac) * theta);
+    } else {
+        pos = pPos;
+    }
+    BrVector3Sub(&vn, pPos, (br_vector3*)pMat->m[3]);
+    vn.v[1] = 0.f;
+    BrVector3Normalise(&vn, &vn);
+    pMat->m[0][0] = -vn.v[2];
+    pMat->m[0][1] = 0.0f;
+    pMat->m[1][0] = 0.0f;
+    pMat->m[0][2] = vn.v[0];
+    pMat->m[2][0] = -vn.v[0];
+    pMat->m[1][1] = 1.0f;
+    pMat->m[1][2] = 0.0f;
+    pMat->m[2][2] = -vn.v[2];
+    pMat->m[2][1] = 0.0f;
+    BrVector3Sub(&tv2, pos, (br_vector3*)pMat->m[3]);
+    dist = BrVector3Dot(&tv2, &vn);
+    BrMatrix34PreRotateX(pMat, theta - BR_ATAN2(pMat->m[3][1] - pos->v[1], dist));
+}
+extern float gFLOAT_00589440;
+
+// FUNCTION: CARMA2_HW 0x004121b0
+void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat) {
+    br_camera* camera;
+    br_scalar dx;
+    br_scalar dz;
+    br_scalar d;
+    br_scalar nx;
+    br_scalar nz;
+    br_angle pitch;
+
+    camera = gCamera->type_data;
+    dx = pPos->v[0] - pMat->m[3][0];
+    dz = pPos->v[2] - pMat->m[3][2];
+    d = sqrt(dx * dx + dz * dz);
+    if (d > BR_SCALAR_EPSILON * 2) {
+        d = 1.0 / d;
+        nx = dx * d;
+        nz = dz * d;
+    } else {
+        nx = gFLOAT_00589440;
+        nz = gFLOAT_00589418;
+    }
+    pMat->m[0][0] = -nz;
+    pMat->m[0][1] = 0.0f;
+    pMat->m[0][2] = nx;
+    pMat->m[1][0] = 0.0f;
+    pMat->m[1][1] = 1.0f;
+    pMat->m[1][2] = 0.0f;
+    pMat->m[2][0] = -nx;
+    pMat->m[2][1] = 0.0f;
+    pMat->m[2][2] = -nz;
+    pitch = BR_ATAN2(pMat->m[3][1] - pPos->v[1],
+        BR_LENGTH2(pMat->m[3][2] - pPos->v[2], pMat->m[3][0] - pPos->v[0]));
+    BrMatrix34PreRotateX(pMat, (br_angle)(camera->field_of_view / 5) - pitch);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // NormalPositionExternalCamera
 
 // PositionPedCam
@@ -1645,10 +2100,10 @@ int C2_HOOK_FASTCALL CollideCameraWithOtherCars(br_vector3* pPos, br_vector3* pC
 extern int gCamera_mode;
 extern float gUNK_006792fc;
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00413580
 // FUNCTION: CARMA2_SW 0x004135b0
 void C2_HOOK_FASTCALL InitialiseExternalCamera(void) {
@@ -1681,10 +2136,10 @@ void C2_HOOK_FASTCALL InitialiseExternalCamera(void) {
     }
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x00413770
 void C2_HOOK_FASTCALL FreezeCamera(void) {
 
@@ -1714,424 +2169,6 @@ void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race) {
     }
 }
 
-// FindACar
-
-// FindAPed
-
-// MouseClickInActionReplay
-
-
-// GLOBAL: CARMA2_HW 0x00679294
-int gCamera_mode;
-
-// GLOBAL: CARMA2_HW 0x006792fc
-float gUNK_006792fc;
-
-// GLOBAL: CARMA2_HW 0x006793e0
-int gCamera_has_collided;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// GLOBAL: CARMA2_HW 0x0067927c
-br_vector3 gAction_replay_manual_camera_target_position;
-
-// GLOBAL: CARMA2_HW 0x00679288
-tCar_spec* gAction_replay_manual_camera_target_car;
-
-// GLOBAL: CARMA2_HW 0x0067928c
-tPedestrian* gAction_replay_manual_camera_target_pedestrian;
-
-// GLOBAL: CARMA2_HW 0x00679290
-br_actor* gAction_replay_manual_camera_target_character_actor;
-
-// GLOBAL: CARMA2_HW 0x00679310
-br_scalar gManual_camera_yaw;
-
-// GLOBAL: CARMA2_HW 0x00679314
-br_scalar gManual_camera_dolly;
-
-// GLOBAL: CARMA2_HW 0x00679318
-br_scalar gManual_camera_vertical;
-
-// FUNCTION: CARMA2_HW 0x0040ef90
-void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime) {
-    br_vector3 old_pos;
-    br_vector3 v;
-    float* target;
-    float move;
-    float min_dist;
-    float dist;
-    float z;
-
-    if (gCamera_key_flags.field_0x0_bit3 && gCamera_key_flags.field_0x0_bit4) {
-        InitialiseExternalCamera();
-        GeneralisedPositionExternalCamera(pCar, &pCar->car_master_actor->t.t.mat, &pCar->pos,
-            pCar->speed, pCar->speedo_speed, &pCar->direction, &pCar->collision_info->omega, pTime);
-        gAction_replay_manual_camera_target_type = 0;
-    } else if (gCamera_key_flags.field_0x0_bit3) {
-        gManual_camera_yaw = gManual_camera_yaw - 0.00025f;
-    } else if (gCamera_key_flags.field_0x0_bit4) {
-        gManual_camera_yaw = gManual_camera_yaw - -0.00025f;
-    } else {
-        gManual_camera_yaw = 0.f;
-    }
-    if (!gCamera_key_flags.field_0x0_bit0) {
-        gManual_camera_vertical = 0.f;
-        if (gCamera_key_flags.field_0x0_bit1 || gCamera_key_flags.field_0x0_bit2) {
-            if (gCamera_key_flags.field_0x0_bit1) {
-                gManual_camera_dolly = gManual_camera_dolly - -0.00025f;
-            }
-            if (gCamera_key_flags.field_0x0_bit2) {
-                gManual_camera_dolly = gManual_camera_dolly - 0.00025f;
-            }
-        } else {
-            gManual_camera_dolly = 0.f;
-        }
-    } else {
-        gManual_camera_dolly = 0.f;
-        if (gCamera_key_flags.field_0x0_bit1 || gCamera_key_flags.field_0x0_bit2) {
-            if (gCamera_key_flags.field_0x0_bit1) {
-                gManual_camera_vertical = gManual_camera_vertical - -0.00025f;
-                if (gCamera->t.t.translate.t.v[1] > pCar->collision_info->transform_matrix.m[3][1] - -10.f) {
-                    gManual_camera_vertical = 0.f;
-                }
-            }
-            if (gCamera_key_flags.field_0x0_bit2) {
-                gManual_camera_vertical = gManual_camera_vertical - 0.00025f;
-            }
-        } else {
-            gManual_camera_vertical = 0.f;
-        }
-    }
-    BrVector3Copy(&old_pos, &gCamera->t.t.translate.t);
-    min_dist = 0.2f;
-    gCamera->t.t.translate.t.v[1] = gManual_camera_vertical * (float)pTime + gCamera->t.t.translate.t.v[1];
-    switch (gAction_replay_manual_camera_target_type) {
-    case 0:
-        min_dist = pCar->collision_info->bb1.max.v[2] - pCar->collision_info->bb1.min.v[2];
-        target = (float*)&pCar->pos;
-        break;
-    case 1:
-        target = (float*)&gAction_replay_manual_camera_target_position;
-        break;
-    case 2:
-        target = (float*)&gAction_replay_manual_camera_target_position;
-        BrMatrix34ApplyP((br_vector3*)target, &gAction_replay_manual_camera_target_car->collision_info->cmpos, &gAction_replay_manual_camera_target_car->car_master_actor->t.t.mat);
-        break;
-    case 3:
-        target = (float*)&gAction_replay_manual_camera_target_position;
-        if (gAction_replay_manual_camera_target_pedestrian->flags & 1) {
-            tPed_personality* pers;
-
-            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
-            v.v[0] = pers->bb.min.v[0] + pers->bb.max.v[0];
-            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
-            v.v[1] = pers->bb.min.v[1] + pers->bb.max.v[1];
-            pers = gAction_replay_manual_camera_target_pedestrian->character->personality;
-            v.v[2] = pers->bb.min.v[2] + pers->bb.max.v[2];
-            v.v[0] = v.v[0] * 0.5;
-            v.v[1] = v.v[1] * 0.5;
-            v.v[2] = v.v[2] * 0.5;
-            BrMatrix34ApplyP((br_vector3*)target, &v, &gAction_replay_manual_camera_target_character_actor->t.t.mat);
-        }
-        break;
-    }
-    v.v[0] = gCamera->t.t.translate.t.v[0] - target[0];
-    v.v[1] = gCamera->t.t.translate.t.v[1] - target[1];
-    v.v[2] = gCamera->t.t.translate.t.v[2] - target[2];
-    dist = (float)sqrt(v.v[2] * v.v[2] + v.v[0] * v.v[0]);
-    if (gManual_camera_dolly != 0.f) {
-        v.v[0] = gCamera->t.t.mat.m[2][0];
-        v.v[1] = 0.f;
-        v.v[2] = gCamera->t.t.mat.m[2][2];
-        move = gManual_camera_dolly * (float)pTime;
-        z = (float)sqrt(v.v[2] * v.v[2] + v.v[0] * v.v[0]);
-        if (z <= 2.3841858e-07f) {
-            v.v[0] = 1.f;
-            v.v[1] = 0.f;
-            v.v[2] = 0.f;
-        } else {
-            z = 1.0 / z;
-            v.v[0] = z * v.v[0];
-            v.v[1] = z * v.v[1];
-            v.v[2] = z * v.v[2];
-        }
-        if (dist - move < min_dist) {
-            move = dist - min_dist;
-        }
-        move = -move;
-        v.v[0] = v.v[0] * move;
-        v.v[1] = move * 0.f;
-        v.v[2] = v.v[2] * move;
-        gCamera->t.t.translate.t.v[0] = v.v[0] + gCamera->t.t.translate.t.v[0];
-        gCamera->t.t.translate.t.v[1] = v.v[1] + gCamera->t.t.translate.t.v[1];
-        gCamera->t.t.translate.t.v[2] = v.v[2] + gCamera->t.t.translate.t.v[2];
-    }
-    if (gManual_camera_yaw != 0.f) {
-        gCamera->t.t.translate.t.v[0] = gCamera->t.t.translate.t.v[0] - target[0];
-        gCamera->t.t.translate.t.v[1] = gCamera->t.t.translate.t.v[1] - target[1];
-        gCamera->t.t.translate.t.v[2] = gCamera->t.t.translate.t.v[2] - target[2];
-        BrMatrix34PostRotateY(&gCamera->t.t.mat, BrRadianToAngle(gManual_camera_yaw * (float)pTime / dist));
-        gCamera->t.t.translate.t.v[0] = target[0] + gCamera->t.t.translate.t.v[0];
-        gCamera->t.t.translate.t.v[1] = target[1] + gCamera->t.t.translate.t.v[1];
-        gCamera->t.t.translate.t.v[2] = target[2] + gCamera->t.t.translate.t.v[2];
-    }
-    CollideCameraWithOtherCars((br_vector3*)target, &gCamera->t.t.translate.t);
-    CollideCamera2(&old_pos, &gCamera->t.t.translate.t, NULL, 1, pCar->collision_info);
-    if (gCamera_has_collided) {
-        gManual_camera_yaw = 0.f;
-        gManual_camera_dolly = 0.f;
-        gManual_camera_vertical = 0.f;
-        gCamera->t.t.translate.t.v[0] = old_pos.v[0];
-        gCamera->t.t.translate.t.v[1] = old_pos.v[1];
-        gCamera->t.t.translate.t.v[2] = old_pos.v[2];
-    }
-    PointCameraAtCar((br_vector3*)target, &gCamera->t.t.mat, 1.f);
-}
-// GLOBAL: CARMA2_HW 0x00589418
-const br_scalar gFLOAT_00589418 = 0.0f;
-
-// FUNCTION: CARMA2_HW 0x0040f510
-void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar) {
-    br_matrix34* mat;
-    br_scalar height;
-    int i;
-
-    height = gFLOAT_00589418;
-    if (pCar->collision_info->water_d != 10000.f) {
-        mat = &pCar->car_master_actor->t.t.mat;
-        for (i = 0; i < 3; i++) {
-            if (mat->m[i][1] > gFLOAT_00589418) {
-                height += pCar->collision_info->bb2.max.v[i] * mat->m[i][1];
-            } else {
-                height += mat->m[i][1] * pCar->collision_info->bb2.min.v[i];
-            }
-        }
-        {
-            br_scalar d = mat->m[3][1] / WORLD_SCALE;
-
-            if (d + height < pCar->collision_info->water_d) {
-                DisablePlingMaterials();
-            }
-        }
-    } else {
-        DisablePlingMaterials();
-    }
-}
-// PARTIAL 76.49%: x87 schedule of lerp differs
-// FUNCTION: CARMA2_HW 0x0040f590
-void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) {
-    // GLOBAL: CARMA2_HW 0x00679300
-    static float swing_rate;
-    // GLOBAL: CARMA2_HW 0x0058f624
-    static float swing_frac = 0.f;
-    br_matrix34* mat;
-    float inv;
-    br_matrix34* src;
-    tU8 flags;
-    float x;
-    float y;
-    float z;
-
-    mat = &gCamera->t.t.mat;
-    src = &pCar->car_master_actor->t.t.mat;
-    flags = *(tU8*)&gCamera_key_flags;
-    if ((flags & 2) && !(flags & 1) && swing_rate >= 0.f) {
-        swing_rate = -0.0002f;
-    } else if ((flags & 4) && !(flags & 1) && swing_rate <= 0.f) {
-        swing_rate = 0.0002f;
-    }
-    swing_frac = (float)pTime * swing_rate + swing_frac;
-    if (swing_frac > 1.f) {
-        swing_rate = 0.f;
-        swing_frac = 1.f;
-    } else if (swing_frac < 0.f) {
-        swing_rate = 0.f;
-        swing_frac = 0.f;
-    }
-    inv = 1.f - swing_frac;
-    x = pCar->camera_bumper_position.v[0] * inv + pCar->camera_cockpit_position.v[0] * swing_frac;
-    y = pCar->camera_bumper_position.v[1] * inv + pCar->camera_cockpit_position.v[1] * swing_frac;
-    z = pCar->camera_bumper_position.v[2] * inv + pCar->camera_cockpit_position.v[2] * swing_frac;
-    BrMatrix34Copy(mat, src);
-    BrMatrix34PreTranslate(mat, x, y, z);
-    if (swing_rate < 0.f) {
-        swing_rate = swing_rate - 0.0001;
-    }
-    if (swing_rate > 0.f) {
-        swing_rate = swing_rate - -0.0001;
-    }
-    CollideCamera2(&pCar->pos, &gCamera->t.t.translate.t, NULL, 0, NULL);
-}
-extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
-extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
-
-// GLOBAL: CARMA2_HW 0x006792c0
-tU32 gSwitch_time;
-
-// GLOBAL: CARMA2_HW 0x0058f5e8
-int gCamera_incident_flag = 1;
-
-// PARTIAL 64%: frame 0x24 vs 0x20, x87 schedule differs
-// FUNCTION: CARMA2_HW 0x004104b0
-void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) {
-    br_vector3 dir;
-    br_vector3 normal;
-    br_scalar t;
-    br_scalar d;
-    br_material* material;
-    br_vector3 delta;
-
-    BrVector3Sub(&delta, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
-    d = BrVector3LengthSquared(&delta);
-    if (d <= 102.91955471539592) {
-        if (gSwitch_time != 0) {
-            int passed;
-
-            if (PipeSearchForwards()) {
-                passed = GetTotalTime() < gSwitch_time;
-            } else {
-                passed = gSwitch_time < GetTotalTime();
-            }
-            if (passed) {
-                goto check_camera;
-            }
-        }
-        gCamera_incident_flag = 1;
-        goto point_camera;
-    }
-check_camera:
-    if (gCamera_incident_flag == 0 && d <= 205.83910943079184) {
-        goto point_camera;
-    }
-    if (d <= 25.f) {
-        BrVector3Sub(&dir, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
-        FindFace(&pCar->pos, &dir, &normal, &t, &material);
-        if (t > 1.f) {
-            goto point_camera;
-        }
-    }
-    SetUpPanningCamera(pCar);
-point_camera:
-    PointCameraAtCar(&pCar->pos, &gCamera->t.t.mat, 1.f);
-}
-extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
-extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-static __inline int C2_HOOK_FASTCALL CheckForWall(br_vector3* start, br_vector3* end) {
-    br_vector3 dir;
-    br_material* material;
-    br_vector3 normal;
-    br_scalar d;
-
-    BrVector3Sub(&dir, end, start);
-    FindFace(start, &dir, &normal, &d, &material);
-    return d <= 1.f;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// PARTIAL 89.04%: logic complete (frame 0x7c, identical slot map, calls and args); residual is x87 scheduling only:
-// perp.z is kept in st (fst) where the original pops and reloads (fstp/fld), and the tv/tv2 length-squared block
-// schedules the last subtraction after SRandomPosNeg with different spill temps (+3 bytes).
-// FUNCTION: CARMA2_HW 0x004105f0
-void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar) {
-    br_vector3 pos;
-    br_vector3 perp;
-    br_vector3 dir;
-    br_vector3 tv;
-    br_vector3 tv2;
-    br_vector3 left;
-    br_vector3 right;
-    br_vector3 car_centre;
-    br_scalar ts;
-    tU32 time;
-    tU32 time_step;
-    tU32 t;
-    tU32 t2;
-    br_matrix34* m1;
-
-    m1 = &pCar->car_master_actor->t.t.mat;
-    gCamera_incident_flag = 0;
-    ScanCarsPositions(pCar, &pCar->pos, 411.67822265625f, 0xffffffff, 5000, &pos, &time);
-    BrVector3Sub(&dir, &pos, &pCar->pos);
-    if (GetTotalTime() < time) {
-        time_step = time - GetTotalTime();
-    } else {
-        time_step = GetTotalTime() - time;
-    }
-    time_step *= SRandomBetween(0.8f, 1.5f);
-    if (BrVector3LengthSquared(&dir) < 0.01 || time == 0) {
-        BrVector3Negate(&dir, (br_vector3*)&m1->m[2][0]);
-        BrVector3Copy(&car_centre, &pCar->pos);
-        time_step = 0;
-    } else {
-        ScanCarsPositions(pCar, &pCar->pos, 102.9195556640625f, 0xffffffff, time_step / 2, &car_centre, &t);
-        if (t == 0) {
-            BrVector3Copy(&car_centre, &pCar->pos);
-        }
-    }
-    BrVector3SetFloat(&tv, 0.f, 1.f, 0.f);
-    BrVector3Cross(&perp, &tv, &dir);
-    ts = BrVector3Length(&perp);
-    if (ts < 0.1f) {
-        return;
-    }
-    ts = 2.f / ts;
-    ts *= SRandomBetween(0.3333333432674408f, 1.f);
-    BrVector3Scale(&perp, &perp, ts);
-    ts = SRandomBetween(0.3333333432674408f, 1.f) * 2.f;
-    BrVector3Set(&tv, 0.f, ts, 0.f);
-    BrVector3Add(&tv, &car_centre, &tv);
-    BrVector3Add(&left, &tv, &perp);
-    BrVector3Sub(&right, &tv, &perp);
-    CollideCamera2(&car_centre, &left, NULL, 1, NULL);
-    CollideCamera2(&car_centre, &right, NULL, 1, NULL);
-    BrVector3Sub(&tv, &left, &car_centre);
-    BrVector3Sub(&tv2, &right, &car_centre);
-    if (BrVector3LengthSquared(&tv) + SRandomPosNeg(0.01f) > BrVector3LengthSquared(&tv2)) {
-        BrVector3Copy(&gCamera->t.t.translate.t, &left);
-    } else {
-        BrVector3Copy(&gCamera->t.t.translate.t, &right);
-    }
-    if (time != 0) {
-        if (CheckForWall(&pCar->pos, &gCamera->t.t.translate.t)) {
-            ScanCarsPositions(pCar, &pCar->pos, 10000.f, 0xffffffff, 1000, &tv, &t2);
-            CollideCamera2(&tv, &gCamera->t.t.translate.t, NULL, 1, NULL);
-        }
-    }
-    if (time != 0) {
-        if (CheckForWall(&pos, &gCamera->t.t.translate.t)) {
-            time_step = time_step / 16;
-            BrVector3Copy(&tv, &car_centre);
-            do {
-                ScanCarsPositions(pCar, &tv, 10000.f, abs((tS32)t - (tS32)GetTotalTime()), time_step, &tv2, &t2);
-                t += ((ARGetReplayDirection() != 0) ? 1 : -1) * time_step;
-                BrVector3Copy(&tv, &tv2);
-            } while (!CheckForWall(&tv, &gCamera->t.t.translate.t) && t < GetTotalTime() + 5000);
-            gSwitch_time = t;
-            return;
-        }
-    }
-    if (time == 0) {
-        time = 5000;
-    }
-    gSwitch_time = time;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // GLOBAL: CARMA2_HW 0x006792a0
 tU32 gIncident_car_data[4];
 
@@ -2153,10 +2190,10 @@ tS32 gIncident_camera_stack;
 // GLOBAL: CARMA2_HW 0x006940fc
 tU8* gPipe_car_state_chunk;
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004c6c90
 int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
     tU8* temp_ptr;
@@ -2230,45 +2267,5 @@ static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count,
     gPipe_car_state_chunk = (tU8*)pChunk;
     return 1;
 }
-extern float gFLOAT_00589440;
-
-// FUNCTION: CARMA2_HW 0x004121b0
-void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat) {
-    br_camera* camera;
-    br_scalar dx;
-    br_scalar dz;
-    br_scalar d;
-    br_scalar nx;
-    br_scalar nz;
-    br_angle pitch;
-
-    camera = gCamera->type_data;
-    dx = pPos->v[0] - pMat->m[3][0];
-    dz = pPos->v[2] - pMat->m[3][2];
-    d = sqrt(dx * dx + dz * dz);
-    if (d > BR_SCALAR_EPSILON * 2) {
-        d = 1.0 / d;
-        nx = dx * d;
-        nz = dz * d;
-    } else {
-        nx = gFLOAT_00589440;
-        nz = gFLOAT_00589418;
-    }
-    pMat->m[0][0] = -nz;
-    pMat->m[0][1] = 0.0f;
-    pMat->m[0][2] = nx;
-    pMat->m[1][0] = 0.0f;
-    pMat->m[1][1] = 1.0f;
-    pMat->m[1][2] = 0.0f;
-    pMat->m[2][0] = -nx;
-    pMat->m[2][1] = 0.0f;
-    pMat->m[2][2] = -nz;
-    pitch = BR_ATAN2(pMat->m[3][1] - pPos->v[1],
-        BR_LENGTH2(pMat->m[3][2] - pPos->v[2], pMat->m[3][0] - pPos->v[0]));
-    BrMatrix34PreRotateX(pMat, (br_angle)(camera->field_of_view / 5) - pitch);
-}
 
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

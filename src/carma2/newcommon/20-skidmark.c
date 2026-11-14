@@ -26,38 +26,6 @@ int gCurrent_skid;
 
 extern void C2_HOOK_CDECL BrMatrix34Scale(br_matrix34* mat, br_scalar sx, br_scalar sy, br_scalar sz);
 extern void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags);
-// FUNCTION: CARMA2_HW 0x004ea2c0
-// FUNCTION: CARMA2_SW 0x004e6060
-void C2_HOOK_FASTCALL StretchMark(tSkid* pMark, br_vector3* pFrom, br_vector3* pTo, br_scalar pTexture_start, br_scalar pTexture_step) {
-    br_vector3 temp;
-    br_vector3* rows;
-    br_scalar len;
-    br_scalar delta;
-    br_model* model;
-
-    rows = (br_vector3*)&pMark->actor->t.t.mat.m;
-    BrVector3Sub(&temp, pTo, pFrom);
-    len = BrVector3Length(&temp);
-    if (len < 0.001f) {
-        BrMatrix34Scale(&pMark->actor->t.t.mat, 0.001f, 1.0f, 0.001f);
-    } else {
-        delta = pTexture_step / len;
-        BrVector3Copy(&rows[1], &pMark->normal);
-        BrVector3Cross(&rows[2], &temp, &pMark->normal);
-        BrVector3Scale(&rows[2], &rows[2], delta);
-        BrVector3Scale(&rows[0], &temp, len / len);
-        BrVector3Add(&pMark->pos, pFrom, pTo);
-        BrVector3Scale(&pMark->pos, &pMark->pos, 0.5f);
-        rows[3] = pMark->pos;
-
-        model = pMark->actor->model;
-        model->vertices[1].map.v[0] = pTexture_start / pTexture_step;
-        model->vertices[0].map.v[0] = model->vertices[1].map.v[0];
-        model->vertices[3].map.v[0] = (pTexture_start + len) / pTexture_step;
-        model->vertices[2].map.v[0] = model->vertices[3].map.v[0];
-        BrModelUpdate(model, BR_MODU_VERTEX_MAPPING);
-    }
-}
 
 // MaterialFromIndex
 
@@ -167,10 +135,10 @@ void C2_HOOK_FASTCALL HideSkids(void) {
 
 // GenericSkidSection
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004e9f20
 // FUNCTION: CARMA2_SW 0x004e5cc0
 int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
@@ -225,10 +193,42 @@ int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, b
     gCurrent_skid = (tU16)(gCurrent_skid + 1) % 100;
     return 0;
 }
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x004ea2c0
+// FUNCTION: CARMA2_SW 0x004e6060
+void C2_HOOK_FASTCALL StretchMark(tSkid* pMark, br_vector3* pFrom, br_vector3* pTo, br_scalar pTexture_start, br_scalar pTexture_step) {
+    br_vector3 temp;
+    br_vector3* rows;
+    br_scalar len;
+    br_scalar delta;
+    br_model* model;
+
+    rows = (br_vector3*)&pMark->actor->t.t.mat.m;
+    BrVector3Sub(&temp, pTo, pFrom);
+    len = BrVector3Length(&temp);
+    if (len < 0.001f) {
+        BrMatrix34Scale(&pMark->actor->t.t.mat, 0.001f, 1.0f, 0.001f);
+    } else {
+        delta = pTexture_step / len;
+        BrVector3Copy(&rows[1], &pMark->normal);
+        BrVector3Cross(&rows[2], &temp, &pMark->normal);
+        BrVector3Scale(&rows[2], &rows[2], delta);
+        BrVector3Scale(&rows[0], &temp, len / len);
+        BrVector3Add(&pMark->pos, pFrom, pTo);
+        BrVector3Scale(&pMark->pos, &pMark->pos, 0.5f);
+        rows[3] = pMark->pos;
+
+        model = pMark->actor->model;
+        model->vertices[1].map.v[0] = pTexture_start / pTexture_step;
+        model->vertices[0].map.v[0] = model->vertices[1].map.v[0];
+        model->vertices[3].map.v[0] = (pTexture_start + len) / pTexture_step;
+        model->vertices[2].map.v[0] = model->vertices[3].map.v[0];
+        BrModelUpdate(model, BR_MODU_VERTEX_MAPPING);
+    }
+}
+
 
 // FUNCTION: CARMA2_HW 0x004ea490
 // FUNCTION: CARMA2_SW 0x004e6230

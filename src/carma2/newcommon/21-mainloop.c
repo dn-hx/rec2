@@ -52,6 +52,535 @@ int gCompletion_bonus_post_race = 0;
 
 // LoseOldestWastedMassage
 
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00403210
+void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
+    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+    extern float gReplay_rate;
+    extern int gDisable_piped_sounds;
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    float saved_replay_rate;
+
+    gDisable_piped_sounds = 1;
+    saved_replay_rate = gReplay_rate;
+    gReplay_rate = 100.0f;
+    MoveReplayBuffer(0x7fffffff, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
+    gDisable_piped_sounds = 0;
+    gReplay_rate = saved_replay_rate;
+}
+
+// FUNCTION: CARMA2_HW 0x00403c70
+void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
+    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+    extern float gReplay_rate;
+    extern int gDisable_piped_sounds;
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+    float saved_replay_rate;
+
+    gDisable_piped_sounds = 1;
+    saved_replay_rate = gReplay_rate;
+    gReplay_rate = -100.0f;
+    MoveReplayBuffer(-2147483647, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
+    gDisable_piped_sounds = 0;
+    gReplay_rate = saved_replay_rate;
+}
+
+// FUNCTION: CARMA2_HW 0x00403cc0
+void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
+    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+    extern float gReplay_rate;
+    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
+
+    if (gReplay_rate != 0.0f) {
+        MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
+    }
+}
+
+// GLOBAL: CARMA2_HW 0x0065fbf8
+int gReplay_button_keys[10] = { 0x58, 0x55, 0x3b, 0x6a, 0x3a, 0x57, 0x5a, 0x4c, 0x4b, 0 };
+
+// GLOBAL: CARMA2_HW 0x0065fc20
+int gReplay_button_rects[2][9][4] = {
+    { { 0x10c, 0x9c, 0x116, 0xae }, { 0x117, 0x96, 0x121, 0xa0 }, { 0x117, 0xaa, 0x121, 0xb4 }, { 0x119, 0xa0, 0x12a, 0xaa }, { 0x122, 0xaa, 0x12c, 0xb4 }, { 0x122, 0x96, 0x12c, 0xa0 }, { 0x12d, 0x9c, 0x137, 0xae }, { 0xef, 0xa8, 0xfb, 0xb4 }, { 0xfe, 0xa8, 0x10a, 0xb4 } },
+    { { 0x207, 0x18b, 0x21f, 0x1a3 }, { 0x21e, 0x174, 0x236, 0x18c }, { 0x221, 0x1a2, 0x239, 0x1ba }, { 0x22b, 0x18b, 0x243, 0x1a3 }, { 0x236, 0x1a2, 0x24e, 0x1ba }, { 0x239, 0x174, 0x251, 0x18c }, { 0x253, 0x18b, 0x26b, 0x1a3 }, { 0x1bf, 0x19f, 0x1d7, 0x1b7 }, { 0x1e1, 0x1a1, 0x1f9, 0x1b9 } },
+};
+
+// GLOBAL: CARMA2_HW 0x006a2368
+int gReplay_show_controls;
+
+// GLOBAL: CARMA2_HW 0x006a23cc
+int gUnk_006a23cc;
+
+// GLOBAL: CARMA2_HW 0x006a23d0
+tU32 gUnk_006a23d0;
+
+// FUNCTION: CARMA2_HW 0x00413860
+void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3) {
+    extern tActionReplayCameraMode gAction_replay_camera_mode;
+    extern br_vector3 gAction_replay_manual_camera_target_position;
+    extern int gAction_replay_manual_camera_target_type;
+    extern tCar_spec* gAction_replay_manual_camera_target_car;
+    extern tPedestrian* gAction_replay_manual_camera_target_pedestrian;
+    extern br_actor* gAction_replay_manual_camera_target_character_actor;
+    extern tPedestrian* gPedestrian_array;
+    extern int gPed_count;
+    extern double gDouble_005895a8;
+    extern double gDouble_00589508;
+    extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
+    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+    extern void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
+    extern void C2_HOOK_CDECL BrMatrix34TApplyV(br_vector3* A, const br_vector3* B, const br_matrix34* C);
+    extern int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT);
+    extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor);
+    br_actor* camera_actor;
+    br_camera* camera_data;
+    br_vector3 ray_direction;
+    br_vector3 face_normal;
+    br_material* face_material;
+    br_actor* face_actor;
+    float t;
+    float horizontal_offset;
+    float vertical_offset;
+    br_vector3* camera_position;
+    br_vector3* pedestrian_camera_position;
+    tCar_spec* nearest_car;
+    tPedestrian* nearest_pedestrian;
+    tPedestrian* pedestrian;
+    int category;
+    int car_count;
+    int car_index;
+    int pedestrian_index;
+
+    camera_actor = gCamera;
+    camera_data = (br_camera*)camera_actor->type_data;
+    if (gAction_replay_camera_mode != kActionReplayCameraMode_Manual || pArg3 != 0) {
+        return;
+    }
+    ray_direction.v[0] = camera_actor->t.t.mat.m[2][0] * -(camera_data->yon_z);
+    ray_direction.v[1] = camera_actor->t.t.mat.m[2][1] * -(camera_data->yon_z);
+    ray_direction.v[2] = camera_actor->t.t.mat.m[2][2] * -(camera_data->yon_z);
+    vertical_offset = (float)((240 - pCursor_y) * gDouble_005895a8
+        * tan((camera_data->field_of_view >> 1) * gDouble_00589508) * camera_data->yon_z);
+    ray_direction.v[0] = camera_actor->t.t.mat.m[1][0] * vertical_offset + ray_direction.v[0];
+    ray_direction.v[1] = camera_actor->t.t.mat.m[1][1] * vertical_offset + ray_direction.v[1];
+    ray_direction.v[2] = camera_actor->t.t.mat.m[1][2] * vertical_offset + ray_direction.v[2];
+    t = (float)(tan((camera_data->field_of_view >> 1) * gDouble_00589508) * camera_data->yon_z);
+    horizontal_offset = (float)((pCursor_x - 320) * gDouble_005895a8 * t);
+    ray_direction.v[0] = camera_actor->t.t.mat.m[0][0] * horizontal_offset + ray_direction.v[0];
+    ray_direction.v[1] = camera_actor->t.t.mat.m[0][1] * horizontal_offset + ray_direction.v[1];
+    ray_direction.v[2] = camera_actor->t.t.mat.m[0][2] * horizontal_offset + ray_direction.v[2];
+
+    ActorFindFace(&camera_actor->t.t.translate.t, &ray_direction, gTrack_actor, &face_normal, &t, &face_material, &face_actor);
+    if (t < 1.0f) {
+        ray_direction.v[0] *= t;
+        ray_direction.v[1] *= t;
+        ray_direction.v[2] *= t;
+    }
+    camera_position = &gCamera->t.t.translate.t;
+    nearest_car = NULL;
+    gAction_replay_manual_camera_target_position.v[0] = gCamera->t.t.translate.t.v[0] + ray_direction.v[0];
+    gAction_replay_manual_camera_target_position.v[1] = gCamera->t.t.translate.t.v[1] + ray_direction.v[1];
+    gAction_replay_manual_camera_target_position.v[2] = gCamera->t.t.translate.t.v[2] + ray_direction.v[2];
+    t = 1.0f;
+    gAction_replay_manual_camera_target_type = 1;
+    category = 0;
+    do {
+        br_vector3 local_origin;
+        br_vector3 local_direction;
+        br_vector3 local_end;
+        br_vector3 hit_point;
+        tCar_spec* car;
+
+        car_count = (category == eVehicle_self) ? 1 : GetCarCount(category);
+        car_index = 0;
+        if (car_count > 0) {
+            do {
+                car = (category == eVehicle_self) ? &gProgram_state.current_car : GetCarSpec(category, car_index);
+                DrMatrix34ApplyLPInverse(&local_origin, camera_position, &car->car_master_actor->t.t.mat);
+                BrMatrix34TApplyV(&local_direction, &ray_direction, &car->car_master_actor->t.t.mat);
+                local_end.v[0] = local_origin.v[0] + local_direction.v[0];
+                local_end.v[1] = local_origin.v[1] + local_direction.v[1];
+                local_end.v[2] = local_origin.v[2] + local_direction.v[2];
+                LineBoxColl(&local_origin, &local_end, &car->collision_info->bb2, &hit_point, &t);
+                if (t < 1.0f) {
+                    ray_direction.v[0] *= t;
+                    ray_direction.v[1] *= t;
+                    ray_direction.v[2] *= t;
+                    t = 1.0f;
+                    nearest_car = car;
+                }
+                car_index++;
+            } while (car_index < car_count);
+        }
+        category++;
+    } while (category < 5);
+    gAction_replay_manual_camera_target_car = nearest_car;
+    if (nearest_car != NULL) {
+        gAction_replay_manual_camera_target_type = 2;
+    }
+
+    pedestrian_camera_position = &gCamera->t.t.translate.t;
+    nearest_pedestrian = NULL;
+    pedestrian = gPedestrian_array;
+    pedestrian_index = 0;
+    if (gPed_count > 0) {
+        do {
+            if ((pedestrian->flags & 1) != 0) {
+                br_vector3 local_origin;
+                br_vector3 local_direction;
+                br_vector3 local_end;
+                br_vector3 hit_point;
+                tPed_character_instance* character;
+                br_actor* character_actor;
+
+                character = pedestrian->character;
+                character_actor = GetCharacterActorPtr(character);
+                DrMatrix34ApplyLPInverse(&local_origin, pedestrian_camera_position, &character_actor->t.t.mat);
+                BrMatrix34TApplyV(&local_direction, &ray_direction, &character_actor->t.t.mat);
+                local_end.v[0] = local_origin.v[0] + local_direction.v[0];
+                local_end.v[1] = local_origin.v[1] + local_direction.v[1];
+                local_end.v[2] = local_origin.v[2] + local_direction.v[2];
+                LineBoxColl(&local_origin, &local_end, &character->personality->bb, &hit_point, &t);
+                if (t < 1.0f) {
+                    ray_direction.v[0] *= t;
+                    ray_direction.v[1] *= t;
+                    ray_direction.v[2] *= t;
+                    t = 1.0f;
+                    nearest_pedestrian = pedestrian;
+                    face_actor = character_actor;
+                }
+            }
+            pedestrian_index++;
+            pedestrian++;
+        } while (pedestrian_index < gPed_count);
+    }
+    gAction_replay_manual_camera_target_pedestrian = nearest_pedestrian;
+    if (nearest_pedestrian != NULL) {
+        gAction_replay_manual_camera_target_type = 3;
+        gAction_replay_manual_camera_target_character_actor = face_actor;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// The original calls this every frame from MungeJoystickHeadups; the body only refreshes
+// the headup text buffer, so an inert stub keeps the race running until it is implemented.
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x0045b0a0
+void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer) {
+    tHeadup_text* node;
+    tHeadup_text* current;
+    int index;
+    int i;
+
+    node = pBuffer->texts;
+    if (node == NULL) {
+        return;
+    }
+    if (pBuffer->field_0x4 == NULL) {
+        pBuffer->field_0x4 = pBuffer->texts;
+        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
+            i = pBuffer->count - pBuffer->field_0x10;
+            node = pBuffer->texts;
+            for (; i > 0; i--) {
+                node = node->next;
+            }
+            pBuffer->field_0x4 = node;
+            return;
+        }
+    }
+    current = pBuffer->field_0x4;
+    index = 0;
+    for (node = pBuffer->texts; node != current; node = node->next) {
+        index++;
+    }
+    if (pBuffer->pos_last_add >= index + pBuffer->field_0x10
+            || pBuffer->pos_last_add <= index) {
+        if (pBuffer->pos_last_add == index + pBuffer->field_0x10) {
+            if (pBuffer->count - index < pBuffer->field_0x10) {
+                return;
+            }
+            pBuffer->field_0x4 = current->next;
+            return;
+        }
+        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
+            node = pBuffer->texts;
+            for (i = pBuffer->count - pBuffer->field_0x10; i > 0; i--) {
+                node = node->next;
+            }
+            pBuffer->field_0x4 = node;
+            return;
+        }
+        pBuffer->field_0x4 = pBuffer->text_last_add;
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// GLOBAL: CARMA2_HW 0x0068c738
+br_vector3 gPrev_camera_position;
+
+// GLOBAL: CARMA2_HW 0x00704e44
+float gCamera_to_horiz_angle;
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern int gQueued_headup_count;
+extern tQueued_headup gQueued_headups[4];
+
+extern void C2_HOOK_FASTCALL ChangeHeadupText(int pHeadup_index, char* pNew_text);
+extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
+// FUNCTION: CARMA2_HW 0x0045b3b0
+void C2_HOOK_FASTCALL MungeJoystickHeadups(void) {
+    extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+    extern int gINT_00596308;
+    extern int gINT_0068b8e4;
+    extern int gINT_0068b8e8;
+    extern int gRace_head_ups[22];
+    extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
+    extern void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont);
+    tButtonJoystickInfo* joystick_info;
+    tHeadup_text* headup_text;
+    tHeadup_text* text;
+    tHeadup_text_buffer* pBuffer;
+    tU32 the_time;
+    int last_index;
+    int i;
+    int n;
+    size_t j;
+    char s[80];
+
+    last_index = -1;
+    joystick_info = NULL;
+    pBuffer = &gJoystick_headup_buffer_0079d8a0;
+    if (gINT_0068b8e8) {
+        the_time = PDGetTotalTime();
+        if (PDKeyDown(65)) {
+            if (gINT_00596308 != -1) {
+                gINT_00596308 = -1;
+            } else {
+                joystick_info = PDGetCurrentJoystickData();
+                if (joystick_info == NULL) {
+                    goto munge;
+                }
+                last_index = -1;
+                i = 0;
+                for (text = pBuffer->texts; text != NULL; text = text->next, i++) {
+                    if (text == pBuffer->text_last_add) {
+                        last_index = i;
+                    }
+                }
+                for (j = 0; j < joystick_info->count_buttons; j++) {
+                    if (joystick_info->buttons[j] == last_index && joystick_info->buttons[j] != -1) {
+                        joystick_info->buttons[j] = -1;
+                    }
+                }
+            }
+            while (PDKeyDown(65)) {
+            }
+        }
+        if (gINT_00596308 != -1) {
+            goto munge;
+        }
+        if (PDKeyDown(64)) {
+            if (gINT_00596308 == -1) {
+                last_index = -1;
+                i = 0;
+                for (text = pBuffer->texts; text != NULL; text = text->next, i++) {
+                    if (text == pBuffer->text_last_add) {
+                        last_index = i;
+                    }
+                }
+                gINT_00596308 = last_index;
+            }
+            while (PDKeyDown(64)) {
+            }
+        }
+        if (PDKeyDown(66)) {
+            if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add != pBuffer->texts) {
+                pBuffer->pos_last_add -= 1;
+                pBuffer->text_last_add = pBuffer->texts;
+                for (i = 0; i < pBuffer->pos_last_add; i++) {
+                    pBuffer->text_last_add = pBuffer->text_last_add->next;
+                }
+            }
+            do {
+            } while (PDGetTotalTime() - the_time < 100);
+        }
+        if (PDKeyDown(67)) {
+            if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add->next != NULL) {
+                pBuffer->text_last_add = pBuffer->text_last_add->next;
+                pBuffer->pos_last_add += 1;
+            }
+            do {
+            } while (PDGetTotalTime() - the_time < 100);
+        }
+        if (PDKeyDown(68)) {
+            for (i = pBuffer->field_0x10 - 1; i > 0; i--) {
+                if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add != pBuffer->texts) {
+                    pBuffer->pos_last_add -= 1;
+                    pBuffer->text_last_add = pBuffer->texts;
+                    for (n = 0; n < pBuffer->pos_last_add; n++) {
+                        pBuffer->text_last_add = pBuffer->text_last_add->next;
+                    }
+                }
+            }
+            while (PDKeyDown(68)) {
+            }
+        }
+        if (PDKeyDown(69)) {
+            for (i = pBuffer->field_0x10 - 1; i > 0; i--) {
+                if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add->next != NULL) {
+                    pBuffer->text_last_add = pBuffer->text_last_add->next;
+                    pBuffer->pos_last_add += 1;
+                }
+            }
+            while (PDKeyDown(69)) {
+            }
+        }
+munge:
+        AdjustHeadupTextBuffer(pBuffer);
+        headup_text = pBuffer->field_0x4;
+        joystick_info = PDGetCurrentJoystickData();
+        if (joystick_info == NULL) {
+            return;
+        }
+    } else if (gINT_0068b8e4) {
+        return;
+    }
+
+    for (i = 0; i < 22; i++) {
+        if (gINT_0068b8e8 && headup_text != NULL) {
+            if (i == gINT_00596308) {
+                ChangeHeadupFont(gRace_head_ups[i], -3);
+            } else if (headup_text == pBuffer->text_last_add) {
+                ChangeHeadupFont(gRace_head_ups[i], -1);
+            } else {
+                ChangeHeadupFont(gRace_head_ups[i], -2);
+            }
+            if (i == gINT_00596308) {
+                sprintf(s, "%s      ???", headup_text->text);
+            } else if (joystick_info == NULL) {
+                sprintf(s, "%s", headup_text->text);
+            } else {
+                sprintf(s, "%s", headup_text->text);
+                for (j = 0; j < joystick_info->count_buttons; j++) {
+                    if (joystick_info->buttons[j] == i) {
+                        sprintf(s, "%s      #%02d", headup_text->text, (int)j);
+                    }
+                }
+            }
+            ChangeHeadupText(gRace_head_ups[i], s);
+            headup_text = headup_text->next;
+        } else {
+            ChangeHeadupText(gRace_head_ups[i], "");
+        }
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* MainGameLoop / MungeHeadups / CalculateFrameRate / CheckTimer state (address order) */
+// GLOBAL: CARMA2_HW 0x0068c730
+tU32 gWasted_last_flash;
+
+// GLOBAL: CARMA2_HW 0x0068c734
+tU32 gFrame_rate_last_time;
+
+// GLOBAL: CARMA2_HW 0x0068c764
+int gLast_credit_headup__mainloop;
+
+// GLOBAL: CARMA2_HW 0x0068c768
+int gWasted_flash_state;
+
+// GLOBAL: CARMA2_HW 0x0068c76c
+int gLast_time_headup;
+
+// GLOBAL: CARMA2_HW 0x0068c770
+tU32 gLast_net_auto_increase_credits;
+
+// GLOBAL: CARMA2_HW 0x0068c774
+int gTotal_bonus_post_race;
+
+// GLOBAL: CARMA2_HW 0x0068c778
+float gFLOAT_0068c778;
+
+// GLOBAL: CARMA2_HW 0x0068c780
+int gTime_bonus;
+
+// GLOBAL: CARMA2_HW 0x0068c784
+tTime_bonus_state gTime_bonus_state;
+
+// GLOBAL: CARMA2_HW 0x0068c788
+tU32 gTime_bonus_start;
+
+/* initialized and adjacent: CalculateFrameRate compares against the end of this array (= gTime_bonus_headup) */
+// GLOBAL: CARMA2_HW 0x0068c790
+int gFrame_rate_last_rates[30] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0068c808
+int gTime_bonus_headup = 0;
+
+// GLOBAL: CARMA2_HW 0x0068c80c
+int gCredits_post_race;
+
+// GLOBAL: CARMA2_HW 0x0068c810
+int gRace_bonus_headup;
+
+// GLOBAL: CARMA2_HW 0x0068c818
+tU32 gLast_rattle_time;
+
+// GLOBAL: CARMA2_HW 0x0068c828
+int gLast_time_in_seconds;
+
+// GLOBAL: CARMA2_HW 0x0068c834
+tU32 gPrev_task_switched_message;
+
+// GLOBAL: CARMA2_HW 0x0068c838
+int gWindow_inactive;
+
+// GLOBAL: CARMA2_HW 0x006a82a4
+tU32 gLast_munge_smash_edge_triggers;
+
+// GLOBAL: CARMA2_HW 0x00596308
+int gINT_00596308 = -1;
+
+// GLOBAL: CARMA2_HW 0x0079d8a0
+tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+
+// FUNCTION: CARMA2_HW 0x0045b790
+void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer) {
+    extern const char* gJoystick_headup_texts[];
+    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
+    extern char* C2_HOOK_CDECL strncpy(char* pDest, const char* pSrc, unsigned int pCount);
+    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
+    const char** entry;
+    tHeadup_text* mem;
+
+    entry = gJoystick_headup_texts;
+    do {
+        mem = malloc(sizeof(tHeadup_text));
+        if (mem != NULL) {
+            mem->next = NULL;
+            strncpy(mem->text, *entry, 0x28);
+            StoreTextHeadup(pBuffer, mem, 0);
+        }
+        entry += 2;
+    } while ((int)entry < (int)(gJoystick_headup_texts + 42));
+}
 // FUNCTION: CARMA2_HW 0x00492620
 // FUNCTION: CARMA2_SW 0x0048f840
 void C2_HOOK_FASTCALL QueueWastedMassage(int pIndex) {
@@ -147,31 +676,6 @@ void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period) {
     }
 }
 
-// CheckTimer
-
-// MungeRaceFinished
-
-// FUNCTION: CARMA2_HW 0x004940e0
-void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
-    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
-    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
-    extern void C2_HOOK_FASTCALL ResetPedNearness(void);
-    extern br_vector3 gPrev_camera_position;
-    extern float gCamera_to_horiz_angle;
-    extern float gYon_squared;
-
-    gOur_pos = &gPlayer_car_master_actor->t.t.translate.t;
-    PositionExternalCamera(&gProgram_state.current_car, pCamera_period);
-    BrActorToActorMatrix34_2(&gCamera_to_world, gCamera, gUniverse_actor);
-    BrActorToActorMatrix34_2(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
-    gCamera_to_horiz_angle = FastScalarArcTan2(gCamera_to_world.m[2][1], gCamera_to_world.m[1][1]);
-    gYon_squared = gYon_multiplier * gYon_multiplier * ((br_camera*)gCamera->type_data)->yon_z * ((br_camera*)gCamera->type_data)->yon_z;
-    if ((REC2_SQR(gCamera_to_world.m[3][0] - gPrev_camera_position.v[0]) + REC2_SQR(gCamera_to_world.m[3][1] - gPrev_camera_position.v[1])) + REC2_SQR(gCamera_to_world.m[3][2] - gPrev_camera_position.v[2]) > 400.0) {
-        ResetPedNearness();
-    }
-    gPrev_camera_position = *(br_vector3*)gCamera_to_world.m[3];
-}
-
 /* MainGameLoop: externs for the callees and globals it needs (local, no header changes) */
 /* owned by 23-piping.c; do NOT redefine them here (duplicate 0x403d00/0x403d20 cost both 100%) */
 extern int C2_HOOK_FASTCALL ARGoForwards(void);
@@ -251,7 +755,6 @@ extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, 
 extern int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pImage_index);
 extern void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index);
 extern void C2_HOOK_FASTCALL ClearQueuedHeadups(void);
-extern void C2_HOOK_FASTCALL ChangeHeadupText(int pHeadup_index, char* pNew_text);
 extern void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period);
 /* the original passes gFrame_period in ecx to PollCarControls and DoWheelDamage (rec2 defines them with no parameter) */
 extern void C2_HOOK_FASTCALL PollCarControls(void);
@@ -319,7 +822,6 @@ extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
 extern void C2_HOOK_FASTCALL RaceCompleted(tRace_over_reason pReason);
 extern void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAverage_frame_period);
 extern void C2_HOOK_FASTCALL InitialiseActionReplay(void);
-extern int C2_HOOK_FASTCALL PDKeyDown(int pKey_index);
 extern void C2_HOOK_FASTCALL PHILDisable(void);
 extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
 extern void C2_HOOK_FASTCALL EnsureSpecialVolumesHidden(void);
@@ -537,10 +1039,26 @@ void C2_HOOK_FASTCALL PrecacheData(volatile tU8* pBase, tU32 pSize) {
     }
 }
 
+
+// FUNCTION: CARMA2_HW 0x00492950
+// FUNCTION: CARMA2_SW 0x0048fbc0
+tRace_result C2_HOOK_FASTCALL DoRace(void) {
+    tRace_result result;
+
+    if (PercentageChance(50)) {
+        StartMusicTrack(9998);
+    } else {
+        StartMusicTrack(9997);
+    }
+    gRace_start = PDGetTotalTime();
+    result = MainGameLoop();
+    return result;
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 /* (GPL-3.0) and the REA pseudocode; MungeHeadups is inlined by the original */
 // PARTIAL 93.23%: MainGameLoop 0x492980 - logic complete (219 calls, same order); residual is MSVC codegen only: the inlined PDPageInMemory loop comes out rotated (next block->flags && mask computed on the back edge, +4 insns) and the exit-path constants are allocated differently (original keeps 2 in esi / 0 in edi / 5 in ebx; ours uses immediates, 0 in ebx, 5 in esi, 1 in ebp). for(;;)+break, while and goto forms all compile to the identical rotated code.
 // FUNCTION: CARMA2_HW 0x00492980
@@ -1016,184 +1534,34 @@ tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// CheckTimer
 
-// FUNCTION: CARMA2_HW 0x00492950
-// FUNCTION: CARMA2_SW 0x0048fbc0
-tRace_result C2_HOOK_FASTCALL DoRace(void) {
-    tRace_result result;
+// MungeRaceFinished
 
-    if (PercentageChance(50)) {
-        StartMusicTrack(9998);
-    } else {
-        StartMusicTrack(9997);
+// FUNCTION: CARMA2_HW 0x004940e0
+void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
+    extern br_scalar C2_HOOK_STDCALL FastScalarArcTan2(br_scalar pY, br_scalar pX);
+    extern void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime);
+    extern void C2_HOOK_FASTCALL ResetPedNearness(void);
+    extern br_vector3 gPrev_camera_position;
+    extern float gCamera_to_horiz_angle;
+    extern float gYon_squared;
+
+    gOur_pos = &gPlayer_car_master_actor->t.t.translate.t;
+    PositionExternalCamera(&gProgram_state.current_car, pCamera_period);
+    BrActorToActorMatrix34_2(&gCamera_to_world, gCamera, gUniverse_actor);
+    BrActorToActorMatrix34_2(&gRearview_camera_to_world, gRearview_camera, gUniverse_actor);
+    gCamera_to_horiz_angle = FastScalarArcTan2(gCamera_to_world.m[2][1], gCamera_to_world.m[1][1]);
+    gYon_squared = gYon_multiplier * gYon_multiplier * ((br_camera*)gCamera->type_data)->yon_z * ((br_camera*)gCamera->type_data)->yon_z;
+    if ((REC2_SQR(gCamera_to_world.m[3][0] - gPrev_camera_position.v[0]) + REC2_SQR(gCamera_to_world.m[3][1] - gPrev_camera_position.v[1])) + REC2_SQR(gCamera_to_world.m[3][2] - gPrev_camera_position.v[2]) > 400.0) {
+        ResetPedNearness();
     }
-    gRace_start = PDGetTotalTime();
-    result = MainGameLoop();
-    return result;
+    gPrev_camera_position = *(br_vector3*)gCamera_to_world.m[3];
 }
-
-
-// GLOBAL: CARMA2_HW 0x0068c738
-br_vector3 gPrev_camera_position;
-
-// GLOBAL: CARMA2_HW 0x00704e44
-float gCamera_to_horiz_angle;
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
-extern int gQueued_headup_count;
-extern tQueued_headup gQueued_headups[4];
-
-// FUNCTION: CARMA2_HW 0x0045b3b0
-void C2_HOOK_FASTCALL MungeJoystickHeadups(void) {
-    extern tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
-    extern int gINT_00596308;
-    extern int gINT_0068b8e4;
-    extern int gINT_0068b8e8;
-    extern int gRace_head_ups[22];
-    extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
-    extern void C2_HOOK_FASTCALL ChangeHeadupFont(int pHeadup_index, int pFont);
-    tButtonJoystickInfo* joystick_info;
-    tHeadup_text* headup_text;
-    tHeadup_text* text;
-    tHeadup_text_buffer* pBuffer;
-    tU32 the_time;
-    int last_index;
-    int i;
-    int n;
-    size_t j;
-    char s[80];
-
-    last_index = -1;
-    joystick_info = NULL;
-    pBuffer = &gJoystick_headup_buffer_0079d8a0;
-    if (gINT_0068b8e8) {
-        the_time = PDGetTotalTime();
-        if (PDKeyDown(65)) {
-            if (gINT_00596308 != -1) {
-                gINT_00596308 = -1;
-            } else {
-                joystick_info = PDGetCurrentJoystickData();
-                if (joystick_info == NULL) {
-                    goto munge;
-                }
-                last_index = -1;
-                i = 0;
-                for (text = pBuffer->texts; text != NULL; text = text->next, i++) {
-                    if (text == pBuffer->text_last_add) {
-                        last_index = i;
-                    }
-                }
-                for (j = 0; j < joystick_info->count_buttons; j++) {
-                    if (joystick_info->buttons[j] == last_index && joystick_info->buttons[j] != -1) {
-                        joystick_info->buttons[j] = -1;
-                    }
-                }
-            }
-            while (PDKeyDown(65)) {
-            }
-        }
-        if (gINT_00596308 != -1) {
-            goto munge;
-        }
-        if (PDKeyDown(64)) {
-            if (gINT_00596308 == -1) {
-                last_index = -1;
-                i = 0;
-                for (text = pBuffer->texts; text != NULL; text = text->next, i++) {
-                    if (text == pBuffer->text_last_add) {
-                        last_index = i;
-                    }
-                }
-                gINT_00596308 = last_index;
-            }
-            while (PDKeyDown(64)) {
-            }
-        }
-        if (PDKeyDown(66)) {
-            if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add != pBuffer->texts) {
-                pBuffer->pos_last_add -= 1;
-                pBuffer->text_last_add = pBuffer->texts;
-                for (i = 0; i < pBuffer->pos_last_add; i++) {
-                    pBuffer->text_last_add = pBuffer->text_last_add->next;
-                }
-            }
-            do {
-            } while (PDGetTotalTime() - the_time < 100);
-        }
-        if (PDKeyDown(67)) {
-            if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add->next != NULL) {
-                pBuffer->text_last_add = pBuffer->text_last_add->next;
-                pBuffer->pos_last_add += 1;
-            }
-            do {
-            } while (PDGetTotalTime() - the_time < 100);
-        }
-        if (PDKeyDown(68)) {
-            for (i = pBuffer->field_0x10 - 1; i > 0; i--) {
-                if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add != pBuffer->texts) {
-                    pBuffer->pos_last_add -= 1;
-                    pBuffer->text_last_add = pBuffer->texts;
-                    for (n = 0; n < pBuffer->pos_last_add; n++) {
-                        pBuffer->text_last_add = pBuffer->text_last_add->next;
-                    }
-                }
-            }
-            while (PDKeyDown(68)) {
-            }
-        }
-        if (PDKeyDown(69)) {
-            for (i = pBuffer->field_0x10 - 1; i > 0; i--) {
-                if (pBuffer != NULL && pBuffer->text_last_add != NULL && pBuffer->text_last_add->next != NULL) {
-                    pBuffer->text_last_add = pBuffer->text_last_add->next;
-                    pBuffer->pos_last_add += 1;
-                }
-            }
-            while (PDKeyDown(69)) {
-            }
-        }
-munge:
-        AdjustHeadupTextBuffer(pBuffer);
-        headup_text = pBuffer->field_0x4;
-        joystick_info = PDGetCurrentJoystickData();
-        if (joystick_info == NULL) {
-            return;
-        }
-    } else if (gINT_0068b8e4) {
-        return;
-    }
-
-    for (i = 0; i < 22; i++) {
-        if (gINT_0068b8e8 && headup_text != NULL) {
-            if (i == gINT_00596308) {
-                ChangeHeadupFont(gRace_head_ups[i], -3);
-            } else if (headup_text == pBuffer->text_last_add) {
-                ChangeHeadupFont(gRace_head_ups[i], -1);
-            } else {
-                ChangeHeadupFont(gRace_head_ups[i], -2);
-            }
-            if (i == gINT_00596308) {
-                sprintf(s, "%s      ???", headup_text->text);
-            } else if (joystick_info == NULL) {
-                sprintf(s, "%s", headup_text->text);
-            } else {
-                sprintf(s, "%s", headup_text->text);
-                for (j = 0; j < joystick_info->count_buttons; j++) {
-                    if (joystick_info->buttons[j] == i) {
-                        sprintf(s, "%s      #%02d", headup_text->text, (int)j);
-                    }
-                }
-            }
-            ChangeHeadupText(gRace_head_ups[i], s);
-            headup_text = headup_text->next;
-        } else {
-            ChangeHeadupText(gRace_head_ups[i], "");
-        }
-    }
-}
-
 // FUNCTION: CARMA2_HW 0x004d5970
 void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
     extern tPedestrian* gPedestrian_array;
@@ -1240,215 +1608,6 @@ void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
             }
         }
     }
-}
-
-// FUNCTION: CARMA2_HW 0x00403cc0
-void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
-    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
-
-    if (gReplay_rate != 0.0f) {
-        MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
-    }
-}
-
-// GLOBAL: CARMA2_HW 0x0065fbf8
-int gReplay_button_keys[10] = { 0x58, 0x55, 0x3b, 0x6a, 0x3a, 0x57, 0x5a, 0x4c, 0x4b, 0 };
-
-// GLOBAL: CARMA2_HW 0x0065fc20
-int gReplay_button_rects[2][9][4] = {
-    { { 0x10c, 0x9c, 0x116, 0xae }, { 0x117, 0x96, 0x121, 0xa0 }, { 0x117, 0xaa, 0x121, 0xb4 }, { 0x119, 0xa0, 0x12a, 0xaa }, { 0x122, 0xaa, 0x12c, 0xb4 }, { 0x122, 0x96, 0x12c, 0xa0 }, { 0x12d, 0x9c, 0x137, 0xae }, { 0xef, 0xa8, 0xfb, 0xb4 }, { 0xfe, 0xa8, 0x10a, 0xb4 } },
-    { { 0x207, 0x18b, 0x21f, 0x1a3 }, { 0x21e, 0x174, 0x236, 0x18c }, { 0x221, 0x1a2, 0x239, 0x1ba }, { 0x22b, 0x18b, 0x243, 0x1a3 }, { 0x236, 0x1a2, 0x24e, 0x1ba }, { 0x239, 0x174, 0x251, 0x18c }, { 0x253, 0x18b, 0x26b, 0x1a3 }, { 0x1bf, 0x19f, 0x1d7, 0x1b7 }, { 0x1e1, 0x1a1, 0x1f9, 0x1b9 } },
-};
-
-// GLOBAL: CARMA2_HW 0x006a2368
-int gReplay_show_controls;
-
-// GLOBAL: CARMA2_HW 0x006a23cc
-int gUnk_006a23cc;
-
-// GLOBAL: CARMA2_HW 0x006a23d0
-tU32 gUnk_006a23d0;
-
-// FUNCTION: CARMA2_HW 0x00413860
-void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3) {
-    extern tActionReplayCameraMode gAction_replay_camera_mode;
-    extern br_vector3 gAction_replay_manual_camera_target_position;
-    extern int gAction_replay_manual_camera_target_type;
-    extern tCar_spec* gAction_replay_manual_camera_target_car;
-    extern tPedestrian* gAction_replay_manual_camera_target_pedestrian;
-    extern br_actor* gAction_replay_manual_camera_target_character_actor;
-    extern tPedestrian* gPedestrian_array;
-    extern int gPed_count;
-    extern double gDouble_005895a8;
-    extern double gDouble_00589508;
-    extern int C2_HOOK_FASTCALL GetCarCount(tVehicle_type pCategory);
-    extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-    extern void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
-    extern void C2_HOOK_CDECL BrMatrix34TApplyV(br_vector3* A, const br_vector3* B, const br_matrix34* C);
-    extern int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT);
-    extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
-    extern void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor);
-    br_actor* camera_actor;
-    br_camera* camera_data;
-    br_vector3 ray_direction;
-    br_vector3 face_normal;
-    br_material* face_material;
-    br_actor* face_actor;
-    float t;
-    float horizontal_offset;
-    float vertical_offset;
-    br_vector3* camera_position;
-    br_vector3* pedestrian_camera_position;
-    tCar_spec* nearest_car;
-    tPedestrian* nearest_pedestrian;
-    tPedestrian* pedestrian;
-    int category;
-    int car_count;
-    int car_index;
-    int pedestrian_index;
-
-    camera_actor = gCamera;
-    camera_data = (br_camera*)camera_actor->type_data;
-    if (gAction_replay_camera_mode != kActionReplayCameraMode_Manual || pArg3 != 0) {
-        return;
-    }
-    ray_direction.v[0] = camera_actor->t.t.mat.m[2][0] * -(camera_data->yon_z);
-    ray_direction.v[1] = camera_actor->t.t.mat.m[2][1] * -(camera_data->yon_z);
-    ray_direction.v[2] = camera_actor->t.t.mat.m[2][2] * -(camera_data->yon_z);
-    vertical_offset = (float)((240 - pCursor_y) * gDouble_005895a8
-        * tan((camera_data->field_of_view >> 1) * gDouble_00589508) * camera_data->yon_z);
-    ray_direction.v[0] = camera_actor->t.t.mat.m[1][0] * vertical_offset + ray_direction.v[0];
-    ray_direction.v[1] = camera_actor->t.t.mat.m[1][1] * vertical_offset + ray_direction.v[1];
-    ray_direction.v[2] = camera_actor->t.t.mat.m[1][2] * vertical_offset + ray_direction.v[2];
-    t = (float)(tan((camera_data->field_of_view >> 1) * gDouble_00589508) * camera_data->yon_z);
-    horizontal_offset = (float)((pCursor_x - 320) * gDouble_005895a8 * t);
-    ray_direction.v[0] = camera_actor->t.t.mat.m[0][0] * horizontal_offset + ray_direction.v[0];
-    ray_direction.v[1] = camera_actor->t.t.mat.m[0][1] * horizontal_offset + ray_direction.v[1];
-    ray_direction.v[2] = camera_actor->t.t.mat.m[0][2] * horizontal_offset + ray_direction.v[2];
-
-    ActorFindFace(&camera_actor->t.t.translate.t, &ray_direction, gTrack_actor, &face_normal, &t, &face_material, &face_actor);
-    if (t < 1.0f) {
-        ray_direction.v[0] *= t;
-        ray_direction.v[1] *= t;
-        ray_direction.v[2] *= t;
-    }
-    camera_position = &gCamera->t.t.translate.t;
-    nearest_car = NULL;
-    gAction_replay_manual_camera_target_position.v[0] = gCamera->t.t.translate.t.v[0] + ray_direction.v[0];
-    gAction_replay_manual_camera_target_position.v[1] = gCamera->t.t.translate.t.v[1] + ray_direction.v[1];
-    gAction_replay_manual_camera_target_position.v[2] = gCamera->t.t.translate.t.v[2] + ray_direction.v[2];
-    t = 1.0f;
-    gAction_replay_manual_camera_target_type = 1;
-    category = 0;
-    do {
-        br_vector3 local_origin;
-        br_vector3 local_direction;
-        br_vector3 local_end;
-        br_vector3 hit_point;
-        tCar_spec* car;
-
-        car_count = (category == eVehicle_self) ? 1 : GetCarCount(category);
-        car_index = 0;
-        if (car_count > 0) {
-            do {
-                car = (category == eVehicle_self) ? &gProgram_state.current_car : GetCarSpec(category, car_index);
-                DrMatrix34ApplyLPInverse(&local_origin, camera_position, &car->car_master_actor->t.t.mat);
-                BrMatrix34TApplyV(&local_direction, &ray_direction, &car->car_master_actor->t.t.mat);
-                local_end.v[0] = local_origin.v[0] + local_direction.v[0];
-                local_end.v[1] = local_origin.v[1] + local_direction.v[1];
-                local_end.v[2] = local_origin.v[2] + local_direction.v[2];
-                LineBoxColl(&local_origin, &local_end, &car->collision_info->bb2, &hit_point, &t);
-                if (t < 1.0f) {
-                    ray_direction.v[0] *= t;
-                    ray_direction.v[1] *= t;
-                    ray_direction.v[2] *= t;
-                    t = 1.0f;
-                    nearest_car = car;
-                }
-                car_index++;
-            } while (car_index < car_count);
-        }
-        category++;
-    } while (category < 5);
-    gAction_replay_manual_camera_target_car = nearest_car;
-    if (nearest_car != NULL) {
-        gAction_replay_manual_camera_target_type = 2;
-    }
-
-    pedestrian_camera_position = &gCamera->t.t.translate.t;
-    nearest_pedestrian = NULL;
-    pedestrian = gPedestrian_array;
-    pedestrian_index = 0;
-    if (gPed_count > 0) {
-        do {
-            if ((pedestrian->flags & 1) != 0) {
-                br_vector3 local_origin;
-                br_vector3 local_direction;
-                br_vector3 local_end;
-                br_vector3 hit_point;
-                tPed_character_instance* character;
-                br_actor* character_actor;
-
-                character = pedestrian->character;
-                character_actor = GetCharacterActorPtr(character);
-                DrMatrix34ApplyLPInverse(&local_origin, pedestrian_camera_position, &character_actor->t.t.mat);
-                BrMatrix34TApplyV(&local_direction, &ray_direction, &character_actor->t.t.mat);
-                local_end.v[0] = local_origin.v[0] + local_direction.v[0];
-                local_end.v[1] = local_origin.v[1] + local_direction.v[1];
-                local_end.v[2] = local_origin.v[2] + local_direction.v[2];
-                LineBoxColl(&local_origin, &local_end, &character->personality->bb, &hit_point, &t);
-                if (t < 1.0f) {
-                    ray_direction.v[0] *= t;
-                    ray_direction.v[1] *= t;
-                    ray_direction.v[2] *= t;
-                    t = 1.0f;
-                    nearest_pedestrian = pedestrian;
-                    face_actor = character_actor;
-                }
-            }
-            pedestrian_index++;
-            pedestrian++;
-        } while (pedestrian_index < gPed_count);
-    }
-    gAction_replay_manual_camera_target_pedestrian = nearest_pedestrian;
-    if (nearest_pedestrian != NULL) {
-        gAction_replay_manual_camera_target_type = 3;
-        gAction_replay_manual_camera_target_character_actor = face_actor;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00403c70
-void C2_HOOK_FASTCALL ARMoveToStartOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
-    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
-    extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
-    float saved_replay_rate;
-
-    gDisable_piped_sounds = 1;
-    saved_replay_rate = gReplay_rate;
-    gReplay_rate = -100.0f;
-    MoveReplayBuffer(-2147483647, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
-    gDisable_piped_sounds = 0;
-    gReplay_rate = saved_replay_rate;
-}
-
-// FUNCTION: CARMA2_HW 0x00403210
-void C2_HOOK_FASTCALL ARMoveToEndOfReplay(tZappy_AR_callback* pZappy, tPreprocess_AR_callback* pPre, tPostProcess_AR_callback* pPost) {
-    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
-    extern float gReplay_rate;
-    extern int gDisable_piped_sounds;
-    extern void C2_HOOK_FASTCALL MoveReplayBuffer(int pFrames, tReplay_between_sessions_callback pBetween_sessions, tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame);
-    float saved_replay_rate;
-
-    gDisable_piped_sounds = 1;
-    saved_replay_rate = gReplay_rate;
-    gReplay_rate = 100.0f;
-    MoveReplayBuffer(0x7fffffff, (tReplay_between_sessions_callback)pZappy, pPre, pPost);
-    gDisable_piped_sounds = 0;
-    gReplay_rate = saved_replay_rate;
 }
 
 
@@ -1684,153 +1843,6 @@ void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-/* MainGameLoop / MungeHeadups / CalculateFrameRate / CheckTimer state (address order) */
-// GLOBAL: CARMA2_HW 0x0068c730
-tU32 gWasted_last_flash;
-
-// GLOBAL: CARMA2_HW 0x0068c734
-tU32 gFrame_rate_last_time;
-
-// GLOBAL: CARMA2_HW 0x0068c764
-int gLast_credit_headup__mainloop;
-
-// GLOBAL: CARMA2_HW 0x0068c768
-int gWasted_flash_state;
-
-// GLOBAL: CARMA2_HW 0x0068c76c
-int gLast_time_headup;
-
-// GLOBAL: CARMA2_HW 0x0068c770
-tU32 gLast_net_auto_increase_credits;
-
-// GLOBAL: CARMA2_HW 0x0068c774
-int gTotal_bonus_post_race;
-
-// GLOBAL: CARMA2_HW 0x0068c778
-float gFLOAT_0068c778;
-
-// GLOBAL: CARMA2_HW 0x0068c780
-int gTime_bonus;
-
-// GLOBAL: CARMA2_HW 0x0068c784
-tTime_bonus_state gTime_bonus_state;
-
-// GLOBAL: CARMA2_HW 0x0068c788
-tU32 gTime_bonus_start;
-
-/* initialized and adjacent: CalculateFrameRate compares against the end of this array (= gTime_bonus_headup) */
-// GLOBAL: CARMA2_HW 0x0068c790
-int gFrame_rate_last_rates[30] = { 0 };
-
-// GLOBAL: CARMA2_HW 0x0068c808
-int gTime_bonus_headup = 0;
-
-// GLOBAL: CARMA2_HW 0x0068c80c
-int gCredits_post_race;
-
-// GLOBAL: CARMA2_HW 0x0068c810
-int gRace_bonus_headup;
-
-// GLOBAL: CARMA2_HW 0x0068c818
-tU32 gLast_rattle_time;
-
-// GLOBAL: CARMA2_HW 0x0068c828
-int gLast_time_in_seconds;
-
-// GLOBAL: CARMA2_HW 0x0068c834
-tU32 gPrev_task_switched_message;
-
-// GLOBAL: CARMA2_HW 0x0068c838
-int gWindow_inactive;
-
-// GLOBAL: CARMA2_HW 0x006a82a4
-tU32 gLast_munge_smash_edge_triggers;
-
-// GLOBAL: CARMA2_HW 0x00596308
-int gINT_00596308 = -1;
-
-// GLOBAL: CARMA2_HW 0x0079d8a0
-tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
-
-// FUNCTION: CARMA2_HW 0x0045b790
-void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer) {
-    extern const char* gJoystick_headup_texts[];
-    extern void* C2_HOOK_CDECL malloc(unsigned int pSize);
-    extern char* C2_HOOK_CDECL strncpy(char* pDest, const char* pSrc, unsigned int pCount);
-    extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
-    const char** entry;
-    tHeadup_text* mem;
-
-    entry = gJoystick_headup_texts;
-    do {
-        mem = malloc(sizeof(tHeadup_text));
-        if (mem != NULL) {
-            mem->next = NULL;
-            strncpy(mem->text, *entry, 0x28);
-            StoreTextHeadup(pBuffer, mem, 0);
-        }
-        entry += 2;
-    } while ((int)entry < (int)(gJoystick_headup_texts + 42));
-}
-
-// The original calls this every frame from MungeJoystickHeadups; the body only refreshes
-// the headup text buffer, so an inert stub keeps the race running until it is implemented.
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x0045b0a0
-void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer) {
-    tHeadup_text* node;
-    tHeadup_text* current;
-    int index;
-    int i;
-
-    node = pBuffer->texts;
-    if (node == NULL) {
-        return;
-    }
-    if (pBuffer->field_0x4 == NULL) {
-        pBuffer->field_0x4 = pBuffer->texts;
-        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
-            i = pBuffer->count - pBuffer->field_0x10;
-            node = pBuffer->texts;
-            for (; i > 0; i--) {
-                node = node->next;
-            }
-            pBuffer->field_0x4 = node;
-            return;
-        }
-    }
-    current = pBuffer->field_0x4;
-    index = 0;
-    for (node = pBuffer->texts; node != current; node = node->next) {
-        index++;
-    }
-    if (pBuffer->pos_last_add >= index + pBuffer->field_0x10
-            || pBuffer->pos_last_add <= index) {
-        if (pBuffer->pos_last_add == index + pBuffer->field_0x10) {
-            if (pBuffer->count - index < pBuffer->field_0x10) {
-                return;
-            }
-            pBuffer->field_0x4 = current->next;
-            return;
-        }
-        if (pBuffer->count - pBuffer->pos_last_add < pBuffer->field_0x10) {
-            node = pBuffer->texts;
-            for (i = pBuffer->count - pBuffer->field_0x10; i > 0; i--) {
-                node = node->next;
-            }
-            pBuffer->field_0x4 = node;
-            return;
-        }
-        pBuffer->field_0x4 = pBuffer->text_last_add;
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
 // GLOBAL: CARMA2_HW 0x00589440
 float gFLOAT_00589440 = 1.0f;
 

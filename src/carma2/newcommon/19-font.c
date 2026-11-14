@@ -463,73 +463,6 @@ void C2_HOOK_FASTCALL CreatePolyFont(int pFont, const char* pName, float pFactor
     }
 }
 
-br_model* C2_HOOK_FASTCALL CreateFontCharacterModel(int pIndex, int pAscii, int pWidth, int pHeight, const char* pName) {
-    br_model* model;
-
-    model = gPoly_fonts[pIndex].model;
-    while (model != NULL) {
-        if (model->bounds.max.v[0] == pWidth && model->bounds.min.v[1] == -pHeight) {
-            return model;
-        }
-        model = model->user;
-    }
-    model = BrModelAllocate("String Model", 4, 2);
-    model->user = gPoly_fonts[pIndex].glyphs[pIndex].model;
-    gPoly_fonts[pIndex].glyphs[pIndex].model = model;
-    if (model == NULL) {
-        FatalError(kFatalError_CouldNotCreateTexturesPages_S, pName);
-    }
-    model->faces[0].vertices[0] = 0;
-    model->faces[0].vertices[1] = 1;
-    model->faces[0].vertices[2] = 2;
-    model->faces[1].vertices[0] = 1;
-    model->faces[1].vertices[1] = 3;
-    model->faces[1].vertices[2] = 2;
-    BrVector3Set(&model->vertices[0].p, 0.0f, 0.0f, -1.2f);
-    BrVector3Set(&model->vertices[1].p, (float) pWidth, 0.0f, -1.2f);
-    BrVector3Set(&model->vertices[2].p, 0.f, (float) -pHeight, -1.2f);
-    BrVector3Set(&model->vertices[3].p, (float) pWidth, (float) -pHeight, -1.2f);
-    BrVector2Set(&model->vertices[0].map, 0.0f, 0.0f);
-    BrVector2Set(&model->vertices[1].map, 1.0f, 0.0f);
-    BrVector2Set(&model->vertices[2].map, 0.0f, 1.0f);
-    BrVector2Set(&model->vertices[3].map, 1.0f, 1.0f);
-    ColourVertices(model, pIndex);
-    model->flags &= ~(BR_MODF_KEEP_ORIGINAL | BR_MODF_UPDATEABLE);
-    BrModelAdd(model);
-    return model;
-}
-
-// FUNCTION: CARMA2_HW 0x00464a70
-br_pixelmap* C2_HOOK_FASTCALL GetThisFuckingPixelmap(const char* path, const char* glyph_name, int loadFromDisk) {
-    tPath_name pathBuffer;
-    FILE* f;
-    char* str;
-    size_t i;
-
-    PathCat(pathBuffer, path, "PIXIES.P16");
-    f = PFfopen(pathBuffer, "rb");
-    if (f != NULL) {
-        PFfclose(f);
-        if (loadFromDisk) {
-            gPixelmap_buffer_size = BrPixelmapLoadMany(pathBuffer, gPixelmap_buffer, REC2_ASIZE(gPixelmap_buffer));
-        }
-        strcpy(pathBuffer, glyph_name);
-
-        str = strchr(pathBuffer, '.');
-        *str = '\0';
-
-        for (i = 0; i < gPixelmap_buffer_size; i++) {
-            if (gPixelmap_buffer[i] != NULL && DRStricmp(gPixelmap_buffer[i]->identifier, pathBuffer) == 0) {
-                return gPixelmap_buffer[i];
-            }
-        }
-        return NULL;
-    } else {
-        PathCat(pathBuffer, path, glyph_name);
-        return DRImageLoad(pathBuffer);
-    }
-}
-
 void C2_HOOK_FASTCALL KillThePixies(void) {
     size_t i;
 
@@ -745,6 +678,73 @@ void C2_HOOK_FASTCALL LoadPolyFont(const char* pName, int pSize, int pIndex) {
     gSize_font_texture_pages += 1;
 }
 
+br_model* C2_HOOK_FASTCALL CreateFontCharacterModel(int pIndex, int pAscii, int pWidth, int pHeight, const char* pName) {
+    br_model* model;
+
+    model = gPoly_fonts[pIndex].model;
+    while (model != NULL) {
+        if (model->bounds.max.v[0] == pWidth && model->bounds.min.v[1] == -pHeight) {
+            return model;
+        }
+        model = model->user;
+    }
+    model = BrModelAllocate("String Model", 4, 2);
+    model->user = gPoly_fonts[pIndex].glyphs[pIndex].model;
+    gPoly_fonts[pIndex].glyphs[pIndex].model = model;
+    if (model == NULL) {
+        FatalError(kFatalError_CouldNotCreateTexturesPages_S, pName);
+    }
+    model->faces[0].vertices[0] = 0;
+    model->faces[0].vertices[1] = 1;
+    model->faces[0].vertices[2] = 2;
+    model->faces[1].vertices[0] = 1;
+    model->faces[1].vertices[1] = 3;
+    model->faces[1].vertices[2] = 2;
+    BrVector3Set(&model->vertices[0].p, 0.0f, 0.0f, -1.2f);
+    BrVector3Set(&model->vertices[1].p, (float) pWidth, 0.0f, -1.2f);
+    BrVector3Set(&model->vertices[2].p, 0.f, (float) -pHeight, -1.2f);
+    BrVector3Set(&model->vertices[3].p, (float) pWidth, (float) -pHeight, -1.2f);
+    BrVector2Set(&model->vertices[0].map, 0.0f, 0.0f);
+    BrVector2Set(&model->vertices[1].map, 1.0f, 0.0f);
+    BrVector2Set(&model->vertices[2].map, 0.0f, 1.0f);
+    BrVector2Set(&model->vertices[3].map, 1.0f, 1.0f);
+    ColourVertices(model, pIndex);
+    model->flags &= ~(BR_MODF_KEEP_ORIGINAL | BR_MODF_UPDATEABLE);
+    BrModelAdd(model);
+    return model;
+}
+
+// FUNCTION: CARMA2_HW 0x00464a70
+br_pixelmap* C2_HOOK_FASTCALL GetThisFuckingPixelmap(const char* path, const char* glyph_name, int loadFromDisk) {
+    tPath_name pathBuffer;
+    FILE* f;
+    char* str;
+    size_t i;
+
+    PathCat(pathBuffer, path, "PIXIES.P16");
+    f = PFfopen(pathBuffer, "rb");
+    if (f != NULL) {
+        PFfclose(f);
+        if (loadFromDisk) {
+            gPixelmap_buffer_size = BrPixelmapLoadMany(pathBuffer, gPixelmap_buffer, REC2_ASIZE(gPixelmap_buffer));
+        }
+        strcpy(pathBuffer, glyph_name);
+
+        str = strchr(pathBuffer, '.');
+        *str = '\0';
+
+        for (i = 0; i < gPixelmap_buffer_size; i++) {
+            if (gPixelmap_buffer[i] != NULL && DRStricmp(gPixelmap_buffer[i]->identifier, pathBuffer) == 0) {
+                return gPixelmap_buffer[i];
+            }
+        }
+        return NULL;
+    } else {
+        PathCat(pathBuffer, path, glyph_name);
+        return DRImageLoad(pathBuffer);
+    }
+}
+
 // FUNCTION: CARMA2_HW 0x00464b80
 br_model* C2_HOOK_FASTCALL CreateCharacterModel(int width, int height, int texture_id_x, int texture_id_y, const char* pageName) {
     br_model* pModel;
@@ -815,59 +815,6 @@ void C2_HOOK_FASTCALL SolidPolyFontText(const char* pText, int pX, int pY, int p
 
     CheckAvailabilityOfThisFont(pFont);
     TransparentPolyFontText(pText, pX, pY, pFont, pJust, pRender, 1.0);
-}
-
-void C2_HOOK_FASTCALL InitPolyFontMaterials(void) {
-    int i;
-
-    for (i = 0; i < (int)REC2_ASIZE(gPoly_font_materials); i++) {
-
-        gPoly_font_materials[i] = CreatePolyMaterial(0);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x00465250
-br_material* C2_HOOK_FASTCALL GetPolyFontMaterial(int pFont_index, char pChar) {
-    tU8 uchar;
-    br_material* material;
-    float f_size;
-    tU32 packed_font_character;
-
-    // GLOBAL: CARMA2 0x00686480
-    static int poly_font_material_index;
-
-    // GLOBAL: CARMA2 0x00686498
-    static tU16 poly_font_material_generation;
-
-    C2_HOOK_BUG_ON(sizeof(tPolyFont) != 0x1c68);
-    C2_HOOK_BUG_ON(sizeof(tPolyFontGlyph) != 0x1c);
-
-    uchar = pChar;
-    material = gPoly_fonts[pFont_index].glyphs[uchar].material;
-    packed_font_character = POLYFONT_FONT_CHARACTER(pFont_index, uchar);
-    if (material != NULL && POLYFONT_MATERIAL_GET_FONT_CHARACTER(material) == packed_font_character) {
-        material->user = POLYFONT_PACK_USER(packed_font_character, poly_font_material_generation);
-        return material;
-    }
-    // Find "oldest" material, and re-use
-    do {
-        poly_font_material_index += 1;
-        poly_font_material_generation += 1;
-        if (poly_font_material_index >= (int)REC2_ASIZE(gPoly_font_materials)) {
-            poly_font_material_index = 0;
-        }
-    } while ((poly_font_material_generation - POLYFONT_MATERIAL_GET_GENERATION(gPoly_font_materials[poly_font_material_index])) < (int)REC2_ASIZE(gPoly_font_materials));
-    material = gPoly_font_materials[poly_font_material_index];
-    gPoly_fonts[pFont_index].glyphs[uchar].material = material;
-    material->colour_map = gTexture_maps[gPoly_fonts[pFont_index].glyphs[uchar].index];
-    material->user = POLYFONT_PACK_USER(packed_font_character, poly_font_material_generation);;
-    f_size = (float)gPoly_fonts[pFont_index].fontSize;
-    BrMatrix23Scale(&material->map_transform, f_size / 64.0f, f_size / 64.0f);
-    material->map_transform.m[2][0] = gPoly_fonts[pFont_index].glyphs[uchar].texCoord.v[0];
-    material->map_transform.m[2][1] = gPoly_fonts[pFont_index].glyphs[uchar].texCoord.v[1];
-    material->extra_prim = NULL;
-    BrMaterialUpdate(material, BR_MATU_ALL);
-    return material;
 }
 
 // FUNCTION: CARMA2_HW 0x00464e40
@@ -952,6 +899,59 @@ void C2_HOOK_FASTCALL PolyFontText(const char *pText, int pX, int pY, int pFont,
             CleanPolyFontDanglers();
         }
     }
+}
+
+void C2_HOOK_FASTCALL InitPolyFontMaterials(void) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gPoly_font_materials); i++) {
+
+        gPoly_font_materials[i] = CreatePolyMaterial(0);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00465250
+br_material* C2_HOOK_FASTCALL GetPolyFontMaterial(int pFont_index, char pChar) {
+    tU8 uchar;
+    br_material* material;
+    float f_size;
+    tU32 packed_font_character;
+
+    // GLOBAL: CARMA2 0x00686480
+    static int poly_font_material_index;
+
+    // GLOBAL: CARMA2 0x00686498
+    static tU16 poly_font_material_generation;
+
+    C2_HOOK_BUG_ON(sizeof(tPolyFont) != 0x1c68);
+    C2_HOOK_BUG_ON(sizeof(tPolyFontGlyph) != 0x1c);
+
+    uchar = pChar;
+    material = gPoly_fonts[pFont_index].glyphs[uchar].material;
+    packed_font_character = POLYFONT_FONT_CHARACTER(pFont_index, uchar);
+    if (material != NULL && POLYFONT_MATERIAL_GET_FONT_CHARACTER(material) == packed_font_character) {
+        material->user = POLYFONT_PACK_USER(packed_font_character, poly_font_material_generation);
+        return material;
+    }
+    // Find "oldest" material, and re-use
+    do {
+        poly_font_material_index += 1;
+        poly_font_material_generation += 1;
+        if (poly_font_material_index >= (int)REC2_ASIZE(gPoly_font_materials)) {
+            poly_font_material_index = 0;
+        }
+    } while ((poly_font_material_generation - POLYFONT_MATERIAL_GET_GENERATION(gPoly_font_materials[poly_font_material_index])) < (int)REC2_ASIZE(gPoly_font_materials));
+    material = gPoly_font_materials[poly_font_material_index];
+    gPoly_fonts[pFont_index].glyphs[uchar].material = material;
+    material->colour_map = gTexture_maps[gPoly_fonts[pFont_index].glyphs[uchar].index];
+    material->user = POLYFONT_PACK_USER(packed_font_character, poly_font_material_generation);;
+    f_size = (float)gPoly_fonts[pFont_index].fontSize;
+    BrMatrix23Scale(&material->map_transform, f_size / 64.0f, f_size / 64.0f);
+    material->map_transform.m[2][0] = gPoly_fonts[pFont_index].glyphs[uchar].texCoord.v[0];
+    material->map_transform.m[2][1] = gPoly_fonts[pFont_index].glyphs[uchar].texCoord.v[1];
+    material->extra_prim = NULL;
+    BrMaterialUpdate(material, BR_MATU_ALL);
+    return material;
 }
 
 extern br_pixelmap* gBack_screen;

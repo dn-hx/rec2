@@ -18,54 +18,6 @@ int gDemo;
 // GLOBAL: CARMA2_HW 0x0074d354
 float gCamera_angle;
 
-// FUNCTION: CARMA2_HW 0x004815d0
-void C2_HOOK_FASTCALL CheckTimedDemo(void) {
-    FILE* f;
-    tPath_name path;
-
-    PathCat(path, gApplication_path, "DEMO.TXT");
-    f = PFfopen(path, "rt");
-    gDemo = f != NULL;
-    if (gDemo) {
-        PFfclose(f);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047e560
-void C2_HOOK_FASTCALL Init2DStuffForPolyFonts(void) {
-    br_camera* camera_data;
-
-    gHUD_root = BrActorAllocate(BR_ACTOR_NONE, NULL);
-    gHUD_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
-    if (gHUD_root == NULL || gHUD_camera == NULL) {
-        FatalError(kFatalError_OOM_S);
-    }
-    gHUD_camera->identifier = "HUD Camera";
-    camera_data = gHUD_camera->type_data;
-    camera_data->type = BR_CAMERA_PARALLEL;
-    camera_data->hither_z = 1.0f;
-    camera_data->yon_z = 3.0f;
-    camera_data->width = gBack_screen->width;
-    camera_data->height = gBack_screen->height;
-    BrActorAdd(gHUD_root, gHUD_camera);
-}
-
-// FUNCTION: CARMA2_HW 0x0047e500
-void C2_HOOK_FASTCALL AllocateStandardLamp(void) {
-    int i;
-
-    for (i = 0; i < gNumber_of_lights; i++) {
-        br_actor *light = gLight_array[i];
-        BrActorAdd(gUniverse_actor, light);
-        if (light->children != NULL) {
-            br_actor *child = light->children;
-            BrActorRemove(child);
-            light->children = NULL;
-            BrActorFree(child);
-        }
-        BrLightEnable(light);
-    }
-}
 
 // FUNCTION: CARMA2_HW 0x0047e320
 void C2_HOOK_FASTCALL AllocateActors(void) {
@@ -137,4 +89,52 @@ void C2_HOOK_FASTCALL AllocateCamera(void) {
         FatalError(kFatalError_CannotAllocateCamera);
     }
     SetSightDistance(camera_ptr->yon_z);
+}
+
+// FUNCTION: CARMA2_HW 0x0047e500
+void C2_HOOK_FASTCALL AllocateStandardLamp(void) {
+    int i;
+
+    for (i = 0; i < gNumber_of_lights; i++) {
+        br_actor *light = gLight_array[i];
+        BrActorAdd(gUniverse_actor, light);
+        if (light->children != NULL) {
+            br_actor *child = light->children;
+            BrActorRemove(child);
+            light->children = NULL;
+            BrActorFree(child);
+        }
+        BrLightEnable(light);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047e560
+void C2_HOOK_FASTCALL Init2DStuffForPolyFonts(void) {
+    br_camera* camera_data;
+
+    gHUD_root = BrActorAllocate(BR_ACTOR_NONE, NULL);
+    gHUD_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    if (gHUD_root == NULL || gHUD_camera == NULL) {
+        FatalError(kFatalError_OOM_S);
+    }
+    gHUD_camera->identifier = "HUD Camera";
+    camera_data = gHUD_camera->type_data;
+    camera_data->type = BR_CAMERA_PARALLEL;
+    camera_data->hither_z = 1.0f;
+    camera_data->yon_z = 3.0f;
+    camera_data->width = gBack_screen->width;
+    camera_data->height = gBack_screen->height;
+    BrActorAdd(gHUD_root, gHUD_camera);
+}
+// FUNCTION: CARMA2_HW 0x004815d0
+void C2_HOOK_FASTCALL CheckTimedDemo(void) {
+    FILE* f;
+    tPath_name path;
+
+    PathCat(path, gApplication_path, "DEMO.TXT");
+    f = PFfopen(path, "rt");
+    gDemo = f != NULL;
+    if (gDemo) {
+        PFfclose(f);
+    }
 }

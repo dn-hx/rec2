@@ -146,11 +146,6 @@ int gCount_environmental_sound_sources;
 undefined4 gUNK_0079e140;
 
 
-// FUNCTION: CARMA2_HW 0x00500060
-void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
-
-    // empty
-}
 
 // FUNCTION: CARMA2_HW 0x00454f40
 void C2_HOOK_FASTCALL UsePathFileToDetermineIfFullInstallation(void) {
@@ -946,48 +941,10 @@ void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpec
         DoAnEnvironmentalSound(pVolume, (tEnvironment_sound_generator_info*)pSound_data, (int)((10.f - pSound_dist) * 255.f * 0.1f), &pos);
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// TryToSetEnvironmentalSound
-
-// DoEnvSound
-
-extern int gAmbient_sound;
-extern int gNum_active_non_cars;
-extern tNon_car_spec* gActive_non_car_list[99];
-
-static tEnvironment_sound_generator_info sEnv_sound_sources_buffer[2][64];
-
-static void C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, int pIdentifier_value, int pIdentifier_index, int pMatch_flags, void* pCallback, void* pContext) {
-    (void)pTrack; (void)pPos; (void)pMax_dist; (void)pMatch_type; (void)pIdentifier_value;
-    (void)pIdentifier_index; (void)pMatch_flags; (void)pCallback; (void)pContext;
-}
-
-// PARTIAL 17.65%: semantics match the disassembly, but MSVC assigns the registers differently (pActor in ebp instead of ebx, src in ebx instead of eax; one extra callee-saved register). The allocation was identical for three different source forms, so it is not driven by the body; in the original TU MungeSoundGenerators (0x00456ea0, ends at 0x00457250) is compiled immediately before this function, while here FoundSoundSource is compiled first.
-// FUNCTION: CARMA2_HW 0x00457260
-intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
-    tEnvironment_sound_generator_vector* found_sources;
-    tEnvironment_sound_generator_info* src;
-    tTrackSoundGenerator* generator;
-
-    found_sources = pContext;
-    if (found_sources->count < 20) {
-        src = &found_sources->sources[found_sources->count++];
-        src->actor = pActor;
-        generator = &gProgram_state.track_sound_generators[(pActor->model->identifier[1] - '0') * 10 + (pActor->model->identifier[2] - '0')];
-        src->generator = generator;
-        if (generator->type == kSoundGeneratorType_noncar && pActor->identifier[3] == '!') {
-            src->soundfx = generator->fx2_noncar;
-        } else {
-            src->soundfx = generator->fx;
-        }
-        src->pos = pActor->t.t.translate.t;
-    }
-    return 0;
-}
-
 // PARTIAL 83.96%: semantics and the pitch/sound register allocation match. Remaining diffs: the periodic-branch block
 // layout (then/else bodies swapped), the pSpeed `push -1` is scheduled earlier in the original, and the original keeps
 // gXXX_outlet in edi across both play calls (our build reloads it and uses edi for pVolume).
@@ -1081,6 +1038,45 @@ done:
     }
 }
 
+extern int gFaded_palette;
+extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
+
+// FUNCTION: CARMA2_HW 0x00456e20
+void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
+    int* puVar1;
+    int* piVar2;
+
+    if (gAmbient_sound != 0) {
+        puVar1 = (int*)&gEnvironment_sound_sources[0].field_0x18;
+        do {
+            *puVar1 = 0;
+            puVar1 = puVar1 + 7;
+        } while ((int)puVar1 < (int)&gXXX_outlet);
+        if (gFaded_palette == 0) {
+            FindSpecialVolume((br_vector3*)&gCamera_to_world.m[3], NULL, 1);
+            MungeSoundGenerators();
+        }
+        piVar2 = (int*)&gEnvironment_sound_sources[0].field_0x10;
+        do {
+            if (piVar2[2] == 0 && piVar2[0] != 0) {
+                S3UpdateSoundSource(gXXX_outlet, -1, (tS3_sound_source*)piVar2[-4], -1.f, -1, -1, 0, -1, -1);
+                piVar2[0] = 0;
+            }
+            piVar2 = piVar2 + 7;
+        } while ((int)piVar2 < (int)&gPedestrians_outlet);
+    }
+}
+
+extern int gAmbient_sound;
+extern int gNum_active_non_cars;
+extern tNon_car_spec* gActive_non_car_list[99];
+
+static tEnvironment_sound_generator_info sEnv_sound_sources_buffer[2][64];
+
+static void C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, int pIdentifier_value, int pIdentifier_index, int pMatch_flags, void* pCallback, void* pContext) {
+    (void)pTrack; (void)pPos; (void)pMax_dist; (void)pMatch_type; (void)pIdentifier_value;
+    (void)pIdentifier_index; (void)pMatch_flags; (void)pCallback; (void)pContext;
+}
 // FUNCTION: CARMA2_HW 0x00456ea0
 void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
     tEnvironment_sound_generator_vector found_sources;
@@ -1151,33 +1147,32 @@ void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
     }
 }
 
-extern int gFaded_palette;
-extern tSpecial_volume* C2_HOOK_FASTCALL FindSpecialVolume(br_vector3* pP, tSpecial_volume* pLast_vol, int pArg3);
+// TryToSetEnvironmentalSound
 
-// FUNCTION: CARMA2_HW 0x00456e20
-void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
-    int* puVar1;
-    int* piVar2;
+// DoEnvSound
 
-    if (gAmbient_sound != 0) {
-        puVar1 = (int*)&gEnvironment_sound_sources[0].field_0x18;
-        do {
-            *puVar1 = 0;
-            puVar1 = puVar1 + 7;
-        } while ((int)puVar1 < (int)&gXXX_outlet);
-        if (gFaded_palette == 0) {
-            FindSpecialVolume((br_vector3*)&gCamera_to_world.m[3], NULL, 1);
-            MungeSoundGenerators();
+
+// PARTIAL 17.65%: semantics match the disassembly, but MSVC assigns the registers differently (pActor in ebp instead of ebx, src in ebx instead of eax; one extra callee-saved register). The allocation was identical for three different source forms, so it is not driven by the body; in the original TU MungeSoundGenerators (0x00456ea0, ends at 0x00457250) is compiled immediately before this function, while here FoundSoundSource is compiled first.
+// FUNCTION: CARMA2_HW 0x00457260
+intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
+    tEnvironment_sound_generator_vector* found_sources;
+    tEnvironment_sound_generator_info* src;
+    tTrackSoundGenerator* generator;
+
+    found_sources = pContext;
+    if (found_sources->count < 20) {
+        src = &found_sources->sources[found_sources->count++];
+        src->actor = pActor;
+        generator = &gProgram_state.track_sound_generators[(pActor->model->identifier[1] - '0') * 10 + (pActor->model->identifier[2] - '0')];
+        src->generator = generator;
+        if (generator->type == kSoundGeneratorType_noncar && pActor->identifier[3] == '!') {
+            src->soundfx = generator->fx2_noncar;
+        } else {
+            src->soundfx = generator->fx;
         }
-        piVar2 = (int*)&gEnvironment_sound_sources[0].field_0x10;
-        do {
-            if (piVar2[2] == 0 && piVar2[0] != 0) {
-                S3UpdateSoundSource(gXXX_outlet, -1, (tS3_sound_source*)piVar2[-4], -1.f, -1, -1, 0, -1, -1);
-                piVar2[0] = 0;
-            }
-            piVar2 = piVar2 + 7;
-        } while ((int)piVar2 < (int)&gPedestrians_outlet);
+        src->pos = pActor->t.t.translate.t;
     }
+    return 0;
 }
 
 void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pName, int pIndex) {
@@ -1292,6 +1287,11 @@ void C2_HOOK_FASTCALL ConfigureZombiePedSoundPath(void) {
 // FUNCTION: CARMA2_HW 0x004575a0
 void C2_HOOK_FASTCALL ConfigureAlienPedSoundPath(void) {
     gPed_sound_path = "ALSOUND";
+}
+// FUNCTION: CARMA2_HW 0x00500060
+void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size) {
+
+    // empty
 }
 
 /* S3StartSoundFromSource3 is implemented in src/carma2/s3/src/audio.c (0x00566dc1) */

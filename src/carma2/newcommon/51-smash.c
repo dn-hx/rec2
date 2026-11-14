@@ -168,6 +168,235 @@ tPowerup_queue_item gPowerup_queue[50] = { 0 };
 int gSize_powerup_queue;
 
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
+// FUNCTION: CARMA2_HW 0x004c8870
+void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15) {
+
+    ARDoSingleVariedSession(0x1e, pId, 14,
+        4, 0x40, pArg3,
+        4, 0, pArg4,
+        0xc, 4, pArg5,
+        0xc, 0x10, pArg6,
+        4, 0x9c, (int)pArg7,
+        0xc, 0x1c, pArg8,
+        0xc, 0x28, pArg9,
+        4, 0x44, pArg2,
+        0x30, 0x50, pArg13,
+        4, 0x4c, pArg12,
+        4, 0x80, pArg10,
+        0x18, 0x84, pArg11,
+        0xc, 0x34, pArg14,
+        0x30, 0xa0, pArg15);
+}
+
+extern int gExploding_pedestrians;
+extern int gImmortal_peds;
+extern int gGoreLevel;
+extern int gPed_severing_damage;
+extern const int gPow2_array[32];
+extern int gPed_dismember_spurting_member_count;
+extern int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega);
+extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
+
+// GLOBAL: CARMA2_HW 0x0069bc0c
+int gPed_severing_chance;
+
+/* Pipes the dismembered-member indices for one bone. */
+// FUNCTION: CARMA2_HW 0x004c8bf0
+void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
+    ARDoSingleVariedSession(0x2c, (uintptr_t)pPed, 3,
+        2, 0, (int)pBone,
+        1, 2, (int)pArg3,
+        1, 3, (int)pArg4);
+}
+// based on ApexWorm/rec2 239956756 src/carma2/newcommon/23-piping.c
+// FUNCTION: CARMA2_HW 0x004c8d40
+void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
+
+    ARDoSingleVariedSession(50, pId, 5,
+        4, 4, (uintptr_t)pArg2,
+        4, 0, (uintptr_t)pArg3,
+        12, 8, (uintptr_t)pArg4,
+        12, 20, (uintptr_t)pArg5,
+        12, 32, (uintptr_t)pArg6);
+}
+
+// PARTIAL 96.72%: only the two calls to 0x409570 (unnamed in the diff; local cdecl placeholder below) differ
+// FUNCTION: CARMA2_HW 0x004cc860
+void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel) {
+    extern int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, ...);
+    extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
+    tU32 old_flags;
+    tU32 old_bit;
+    tS8 old_4;
+    tS8 old_5;
+
+    old_flags = (tU32)pCharacter->field_0x14;
+    old_4 = pCharacter->field_0x4;
+    old_5 = pCharacter->field_0x5;
+    old_bit = (old_flags >> 2) & 1;
+    if (pLevel == 1) {
+        SetCharacterPhysicsLevel(pCharacter, 1, *(undefined4*)(&pLevel + 1));
+    } else {
+        SetCharacterPhysicsLevel(pCharacter, pLevel);
+    }
+    if ((((pLevel >> 2) & 1) ^ old_bit) != 0) {
+        PipeSinglePedStatus(pCharacter->ped, -1, -1, old_flags, pLevel, old_4, pCharacter->field_0x4, old_5, pCharacter->field_0x5, &pCharacter->field_0xc0, &pCharacter->field_0xcc, &pCharacter->field_0x8c);
+        pCharacter->ped->field_0x06++;
+    }
+}
+
+/* Applies falling damage to a pedestrian: turns the impact speed into a move
+   time, optionally severs limbs (dismemberfest / exploding pedestrians),
+   updates hit points and plays the matching ped move and noise.
+   Returns 1 when the ped is dead. */
+// FUNCTION: CARMA2_HW 0x004cd640
+int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) {
+    int limit;
+    double a;
+    int move_time;
+    int count;
+    float time_left;
+
+    count = 0;
+    a = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
+    move_time = (int)(a * a * pSpeed);
+    if (pPed->character->personality->form->non_humanoid != 0 && (gPed_dismemberfest != 0 || gExploding_pedestrians != 0)) {
+        if (move_time < 100) {
+            move_time = 100;
+        }
+    }
+    time_left = (float)move_time;
+    if (pCollision_info != NULL && gImmortal_peds == 0 && gGoreLevel >= 2) {
+        while (1) {
+            if (gPed_dismemberfest != 0) {
+                limit = 5;
+            } else {
+                limit = gPed_severing_damage;
+            }
+            time_left = time_left - (float)limit;
+            if (time_left < 0.0f) {
+                break;
+            }
+            if (count >= 5) {
+                break;
+            }
+            if (gExploding_pedestrians == 0 && gPed_dismemberfest == 0) {
+                if (!PercentageChance(gPed_severing_chance)) {
+                    continue;
+                }
+            }
+            count += DismemberPed(pPed, IRandomBetween(1, pPed->character->personality->form->count_bones - 1));
+        }
+    }
+    if (count > 4) {
+        ((tU8*)pPed->field_0x0c)[0x2e] |= 2;
+    }
+    if (pPed->hit_points <= 0) {
+        if (move_time <= 2) {
+            return 1;
+        }
+        MakePedNoise(pPed, 5, 0, pCollision_info);
+        return 1;
+    }
+    if (pPed->character->personality->form->non_humanoid != 0 && pPed->character->field_0xc != 0) {
+        pPed->hit_points = 0;
+        move_time = 0;
+    }
+    if ((pPed->character->field_0xc & gPow2_array[pPed->character->personality->form->index_head_bone]) != 0) {
+        pPed->hit_points = 0;
+    } else if (move_time >= 100) {
+        pPed->hit_points = 0;
+    } else {
+        pPed->hit_points -= (tS8)move_time;
+    }
+    if (gImmortal_peds != 0) {
+        if (pPed->hit_points <= 0) {
+            pPed->hit_points = 1;
+        }
+    }
+    if (pPed->hit_points > 0) {
+        if (pMove1 >= 0) {
+            SetPedMove(pPed, pMove1, -1, 0, 1, GetTotalTime(), 5);
+        }
+        MakePedNoise(pPed, 4, 0, pCollision_info);
+        return 0;
+    }
+    if (pMove2 >= 0) {
+        SetPedMove(pPed, pMove2, -1, 0, 1, GetTotalTime(), 5);
+    }
+    MakePedNoise(pPed, 1, 0, pCollision_info);
+    KillPedestrian(pPed, pCollision_info);
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004cd9e0
+int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBoneIndex) {
+    tPed_character_instance* pCharacter;
+    br_vector3 position;
+    br_vector3 omega;
+    br_actor* actor;
+    int physics_index;
+    int i;
+    int count;
+    int result;
+
+    pCharacter = pPed->character;
+    count = 0;
+    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+        if (pCharacter->personality->form->bones[i].indices[0] == pBoneIndex && (pCharacter->field_0xc & gPow2_array[i]) == 0) {
+            count += DismemberPed(pPed, i);
+        }
+    }
+    pPed->field_0x0c->field_0x23[pBoneIndex] = gPed_dismember_spurting_member_count;
+    if (gExploding_pedestrians != 0) {
+        position.v[0] = SRandomPosNeg(3.f);
+        position.v[1] = SRandomBetween(0.f, 3.f);
+        position.v[2] = SRandomPosNeg(3.f);
+        position.v[0] = pCharacter->field_0xd8.v[0] + position.v[0];
+        position.v[1] = pCharacter->field_0xd8.v[1] + position.v[1];
+        position.v[2] = pCharacter->field_0xd8.v[2] + position.v[2];
+        omega.v[0] = SRandomPosNeg(20.f);
+        omega.v[1] = SRandomPosNeg(20.f);
+        omega.v[2] = SRandomPosNeg(20.f);
+        physics_index = (tS8)pCharacter->field_0x6;
+        result = DismemberCharacter(pCharacter, pBoneIndex, &position, &omega);
+        if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
+            PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+            actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
+            if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
+                BrActorAdd(gNon_track_actor, actor);
+            }
+        }
+        return result + count;
+    }
+    physics_index = (tS8)pCharacter->field_0x6;
+    result = DismemberCharacter(pCharacter, pBoneIndex, NULL, NULL);
+    if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
+        PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
+        actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
+        if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
+            BrActorAdd(gNon_track_actor, actor);
+        }
+    }
+    return result + count;
+}
+
+// Clears the pedestrian's smooth-turn cache entry and raises its character
+// physics level to 5 (called when a ped becomes "physicing").
+// FUNCTION: CARMA2_HW 0x004d35e0
+void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed) {
+    pPed->field_0x0c->field_0x6c = 0;
+    SetCharacterPhysicsLevelAR(pPed->character, 5);
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004ea880
 void C2_HOOK_FASTCALL InitExplosions(void) {
     int i;
@@ -300,6 +529,135 @@ void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosion) {
     gExplosions[pIndex] = *pExplosion;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// GLOBAL: CARMA2_HW 0x006a82a0
+int gNext_explosion_slot = 0;
+extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
+// FUNCTION: CARMA2_HW 0x004ead00
+void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
+    tExplosion_animation_group* group;
+    tExplosion* slot;
+    tU32 now;
+    int count;
+    int slot_index;
+    int slot_found;
+    int i;
+    int j;
+    int k;
+    int frametime;
+    int start_delay;
+    tU16 angle;
+    float scaling;
+    float sx_min;
+    float sx_max;
+    float sy_min;
+    float sy_max;
+    float sz_min;
+    float sz_max;
+    float px;
+    float py;
+    float pz;
+    float rand_value;
+    int sign;
+
+    now = GetTotalTime();
+    if (pActor == NULL) {
+        return;
+    }
+    for (i = 0; i < pExplosion_animation->count_groups; i++) {
+        group = &pExplosion_animation->groups[i];
+        count = IRandomBetween((tS16)group->min_count, (tS16)group->max_count);
+        sx_min = group->min_xyz_factor.v[0] * pBounds->max.v[0];
+        sx_max = group->max_xyz_factor.v[0] * pBounds->max.v[0];
+        sy_min = group->min_xyz_factor.v[1] * pBounds->max.v[1];
+        sy_max = group->max_xyz_factor.v[1] * pBounds->max.v[1];
+        sz_min = group->min_xyz_factor.v[2] * pBounds->max.v[2];
+        sz_max = group->max_xyz_factor.v[2] * pBounds->max.v[2];
+        if (count <= 0) {
+            continue;
+        }
+        for (j = 0; j < count; j++) {
+            rand_value = FRandomBetween(sx_min, sx_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            px = sign * rand_value;
+            rand_value = FRandomBetween(sy_min, sy_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            py = sign * rand_value;
+            rand_value = FRandomBetween(sz_min, sz_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            pz = sign * rand_value;
+            if (pPos != NULL) {
+                px += pPos->v[0];
+                py += pPos->v[1];
+                pz += pPos->v[2];
+            }
+            px += group->offset.v[0];
+            py += group->offset.v[1];
+            pz += group->offset.v[2];
+            if (group->rotate_modus != kExplosionRotateModus_NoRotate) {
+                angle = (tU16)IRandomBetween(0, 0xffff);
+            } else {
+                angle = 0;
+            }
+            scaling = FRandomBetween(group->min_scaling_factor, group->max_scaling_factor);
+            frametime = IRandomBetween(group->min_frametime_ms, group->max_frametime_ms);
+            start_delay = IRandomBetween(group->min_start_delay_ms, group->max_start_delay_ms);
+            slot_found = 0;
+            slot_index = 0;
+            slot = gExplosions;
+            do {
+                if (slot->start == 0) {
+                    slot_found = 1;
+                    break;
+                }
+                slot_index++;
+                slot++;
+            } while (slot_index < (int)REC2_ASIZE(gExplosions));
+            if (slot_index == (int)REC2_ASIZE(gExplosions)) {
+                slot_index = gNext_explosion_slot;
+                slot = &gExplosions[slot_index];
+                do {
+                    slot_index++;
+                    if (slot_index < (int)REC2_ASIZE(gExplosions)) {
+                        slot++;
+                    } else {
+                        slot_index = 0;
+                        slot = gExplosions;
+                    }
+                    if (slot->finished != 0) {
+                        slot_found = 1;
+                        gNext_explosion_slot = slot_index;
+                        break;
+                    }
+                } while (slot_index != gNext_explosion_slot);
+            }
+            if (!slot_found) {
+                return;
+            }
+            slot->start = now + start_delay;
+            slot->count_frames = (tS8)group->count_frames;
+            slot->period = frametime;
+            slot->field_0x14 = scaling * 0.14492753;
+            slot->collision_actor = pActor;
+            slot->finished = 0;
+            slot->field_0x8 = 0xff;
+            for (k = 0; k < group->count_frames; k++) {
+                *(tExplosion_frame*)&slot->frames[k] = *(tExplosion_frame*)&group->frames[k];
+            }
+            slot->field_0x1c.v[0] = px;
+            slot->field_0x1c.v[1] = py;
+            slot->field_0x1c.v[2] = pz;
+            slot->angle = angle;
+            PipeSingleExplosion(slot_index, slot);
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // DoExplosionette
 
 // Explode
@@ -318,6 +676,50 @@ void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec) {
             explosion->finished = 1;
         }
     }
+}
+
+// ApplyTimeSpec
+
+extern br_actor* gNon_track_actor;
+
+// FUNCTION: CARMA2_HW 0x004eb070
+tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority) {
+    int i;
+    int lowest_priority;
+    tSmash_vertex* fragment;
+    tSmash_vertex* lowest_priority_fragment;
+
+    lowest_priority = 10000;
+    for (i = 0, fragment = gSmash_glass_fragments; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++, fragment++) {
+        if (fragment->end_time == 0) {
+            i = -1;
+            break;
+        }
+        if (fragment->field_0x35[0] < lowest_priority) {
+            lowest_priority = fragment->field_0x35[0];
+            lowest_priority_fragment = fragment;
+        }
+    }
+    if (i >= 0) {
+        if (lowest_priority < pPriority) {
+            fragment = lowest_priority_fragment;
+        } else {
+            return NULL;
+        }
+    }
+    if (pModel != NULL) {
+        fragment->actor->model = pModel;
+    } else {
+        fragment->actor->model = fragment->model;
+    }
+    if (fragment->actor->parent == NULL) {
+        BrActorAdd(gNon_track_actor, fragment->actor);
+    }
+    fragment->field_0x35[0] = (tU8)pPriority;
+    fragment->field_0x18 = pId;
+    fragment->field_0xc = GetTotalTime();
+    fragment->field_0x34 = 1;
+    return fragment;
 }
 
 // CalcRandomPointBetween
@@ -379,54 +781,10 @@ void C2_HOOK_FASTCALL ApplyInitialMovement(undefined4* pArg1, br_vector3* pArg2,
     pArg4->v[1] *= FRandomPosNeg(pArg5 * f[6]);
     pArg4->v[2] *= FRandomPosNeg(pArg5 * f[6]);
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// ApplyTimeSpec
-
-extern br_actor* gNon_track_actor;
-
-// FUNCTION: CARMA2_HW 0x004eb070
-tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority) {
-    int i;
-    int lowest_priority;
-    tSmash_vertex* fragment;
-    tSmash_vertex* lowest_priority_fragment;
-
-    lowest_priority = 10000;
-    for (i = 0, fragment = gSmash_glass_fragments; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++, fragment++) {
-        if (fragment->end_time == 0) {
-            i = -1;
-            break;
-        }
-        if (fragment->field_0x35[0] < lowest_priority) {
-            lowest_priority = fragment->field_0x35[0];
-            lowest_priority_fragment = fragment;
-        }
-    }
-    if (i >= 0) {
-        if (lowest_priority < pPriority) {
-            fragment = lowest_priority_fragment;
-        } else {
-            return NULL;
-        }
-    }
-    if (pModel != NULL) {
-        fragment->actor->model = pModel;
-    } else {
-        fragment->actor->model = fragment->model;
-    }
-    if (fragment->actor->parent == NULL) {
-        BrActorAdd(gNon_track_actor, fragment->actor);
-    }
-    fragment->field_0x35[0] = (tU8)pPriority;
-    fragment->field_0x18 = pId;
-    fragment->field_0xc = GetTotalTime();
-    fragment->field_0x34 = 1;
-    return fragment;
-}
-
 // SetShrapnelFragment
 
 // ShatterObject
@@ -599,9 +957,14 @@ void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor) {
             gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects.slick.material2);
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x004ecfa0
+void C2_HOOK_FASTCALL InitSmashQueue(void) {
+    gCount_queued_smashes = 0;
+}
 
 // DoConnotationsMultiLevel
 
@@ -722,48 +1085,393 @@ void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, tSmashable_item_s
     }
 }
 
-// FUNCTION: CARMA2_HW 0x004ecfa0
-void C2_HOOK_FASTCALL InitSmashQueue(void) {
-    gCount_queued_smashes = 0;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+/* context filled by the DRActorEnumRecurse callback GiveNonCarsAShove */
+typedef struct {
+    br_bounds3* bounds;
+    tU8 field_0x4;
+    tS8 count;
+    undefined field_0x6[2];
+    br_actor* actors[20];
+} tNon_car_search_context;
+
+extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
+// FUNCTION: CARMA2_HW 0x004ed860
+void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+    tNon_car_search_context search;
+    tDelayed_non_car delayed;
+    br_bounds3 bounds;
+    br_matrix34* matrix;
+    tNon_car_cuboid_activation* activation;
+    int* pActive;
+    tU32 time;
+    tU32 min_column_x;
+    tU32 min_column_z;
+    tU32 max_column_x;
+    tU32 max_column_z;
+    int slot_index;
+    int column_x;
+    int column_z;
+    int axis;
+    int i;
+    int j;
+
+    time = GetTotalTime();
+    if (pActor == NULL || pActor->identifier == NULL || pActor->identifier[0] != '&') {
+        matrix = (br_matrix34*)((tU8*)pContext + 0x8c);
+    } else {
+        matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
+    }
+    i = 0;
+    activation = pActivations->activations;
+    for (; i < pActivations->count_activations; i++, activation++) {
+        search.count = 0;
+        if (activation->field_0x4 == 1) {
+            bounds = activation->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.min, &activation->bounds.min, matrix);
+            BrMatrix34ApplyP(&bounds.max, &activation->bounds.max, matrix);
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.min.v[axis] > bounds.max.v[axis]) {
+                    br_scalar value = bounds.min.v[axis];
+
+                    bounds.min.v[axis] = bounds.max.v[axis];
+                    bounds.max.v[axis] = value;
+                }
+            }
+        }
+        search.bounds = &bounds;
+        search.field_0x4 = (tU8)activation->field_0x8;
+        XZToColumnXZ((tU8*)&min_column_x, (tU8*)&min_column_z, bounds.min.v[0], bounds.min.v[2], &gProgram_state.track_spec);
+        XZToColumnXZ((tU8*)&max_column_x, (tU8*)&max_column_z, bounds.max.v[0], bounds.max.v[2], &gProgram_state.track_spec);
+        for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
+            for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
+                if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
+                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, GiveNonCarsAShove, &search) != 0) {
+                    break;
+                }
+            }
+        }
+        delayed.field_0x0 = *(br_vector3*)((tU8*)pContext + 0x68);
+        delayed.field_0xc = *(br_vector3*)((tU8*)matrix + 0x24);
+        delayed.field_0x18 = (undefined4*)&activation->field_0x24;
+        delayed.count_actions = search.count;
+        for (j = 0; j < delayed.count_actions; j++) {
+            delayed.actor_time_actions[j].actor = search.actors[j];
+            delayed.actor_time_actions[j].time = time + IRandomBetween((tU16)activation->field_0x0, (tU16)activation->field_0x2);
+        }
+        pActive = &gSmash_explosions[0].active;
+        slot_index = 0;
+        for (;;) {
+            if (*pActive == 0) {
+                gSmash_explosions[slot_index].type = 0;
+                gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
+                gSmash_explosions[slot_index].what.non_car = delayed;
+                break;
+            }
+            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+            slot_index++;
+            if ((intptr_t)pActive >= (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                break;
+            }
+        }
+    }
 }
 
-// FlushPowerupQueue
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// GLOBAL: CARMA2_HW 0x006a829c
+int gCount_shrapnel_shower_calls = 0;
 
-// FlushSmashQueue
 
-// QueueSmashIfNecessary3
+// DistanceFromFace (defined in 41-utility.c, in address order)
 
-// QueueSmashIfNecessary2
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004edb20
+intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
+    tNon_car_search_context* context;
+    char* identifier;
+    char first_digit;
+    br_vector3* position;
 
-// AllocateSmashLevels
+    context = (tNon_car_search_context*)pContext;
+    identifier = pActor->identifier;
+    if (identifier == NULL || identifier[0] != '&') {
+        return 0;
+    }
+    position = &pActor->t.t.translate.t;
+    if (position->v[0] < context->bounds->min.v[0]) {
+        return 0;
+    }
+    if (position->v[1] < context->bounds->min.v[1]) {
+        return 0;
+    }
+    if (position->v[2] < context->bounds->min.v[2]) {
+        return 0;
+    }
+    if (position->v[0] > context->bounds->max.v[0]) {
+        return 0;
+    }
+    if (position->v[1] > context->bounds->max.v[1]) {
+        return 0;
+    }
+    if (position->v[2] > context->bounds->max.v[2]) {
+        return 0;
+    }
+    first_digit = identifier[1];
+    if (first_digit < '0' || first_digit > '9') {
+        return 0;
+    }
+    if ((tS8)context->field_0x4 < 0 || (tS8)context->field_0x4 == identifier[2] - 0x210 + first_digit * 10) {
+        if (context->count >= 20) {
+            return -1;
+        }
+        context->actors[context->count] = pActor;
+        context->count++;
+    }
+    return 0;
+}
+/* the smash record this function builds and copies into gSmash_explosions[].what
+   (0x94 bytes: the original copies 0x25 dwords, not sizeof(tDelayed_smash)) */
+typedef struct {
+    br_vector3 velocity;
+    br_vector3 position;
+    tU32 time;
+    br_vector3 impulse;
+    tU8 field_0x28[0xc];
+    tSmashable_item_spec* spec;
+    tFace_ref face;
+    undefined4 type;
+    float scale;
+    void* object;
+} tSmash_record;
+extern float gFloat_0058aec0;
+extern float gFloat_0058aec4;
+extern double gDouble_0058aec8;
+extern float gFloat_0058af38;
+extern int gUnknown_006b9c60[];
 
-// ReadSmashSounds
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
+// FUNCTION: CARMA2_HW 0x004edbe0
+void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
+    tSmash_record record;
+    tBounds bounds;
+    tFace_ref face_list[400];
+    tSmash_side_effect* eff;
+    br_vector3 direction;
+    tSmashable_item_spec* volatile spec;
+    br_vector3 centroid;
+    tFace_ref* pFace;
+    br_actor* actor;
+    const char* identifier;
+    int side_effect_index;
+    int face_count;
+    int type;
+    int axis;
+    int slot_index;
+    int* pActive;
+    tU32 time;
+    tU32 random_time;
+    float offset_x;
+    float offset_y;
+    float offset_z;
+    float length;
 
-// ReadShrapnelMovementSpec
+    time = GetTotalTime();
+    eff = pSide_effects->side_effects;
+    for (side_effect_index = 0; side_effect_index < pSide_effects->count_side_effects; side_effect_index++, eff++) {
+        if (eff->field_0x4 == 1) {
+            bounds.original_bounds = eff->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.original_bounds.min, &eff->bounds.min, (br_matrix34*)((tU8*)pObject + 0x8c));
+            BrMatrix34ApplyP(&bounds.original_bounds.max, &eff->bounds.max, (br_matrix34*)((tU8*)pObject + 0x8c));
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.original_bounds.min.v[axis] > bounds.original_bounds.max.v[axis]) {
+                    br_scalar value = bounds.original_bounds.min.v[axis];
 
-// ReadShrapnelInitialPosition
-
-// ReadShrapnelTimeInfo
-
-// NoteChildren
-
-// ReadSmokeFireChance
-
-// LoadActorFromRace
-
-// ReadShrapnelSpec
-
-// FUNCTION: CARMA2_HW 0x004ee5a0
-// FUNCTION: CARMA2_SW 0x004ea270
-void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_time* pTimes) {
-    float min;
-    float max;
-
-    GetPairOfFloats(pFile, &min, &max);
-    pTimes->min_time = (int)(min * 1000.0);
-    pTimes->max_time = (int)(max * 1000.0);
+                    bounds.original_bounds.min.v[axis] = bounds.original_bounds.max.v[axis];
+                    bounds.original_bounds.max.v[axis] = value;
+                }
+            }
+        }
+        bounds.mat = (br_matrix34*)((tU8*)gTrack_actor + 0x2c);
+        face_count = FindFacesInBox(&bounds, face_list, 400, NULL);
+        if (eff->field_0x44 == 0) {
+            direction.v[0] = direction.v[0] / pDistance;
+            direction.v[1] = direction.v[1] / pDistance;
+            direction.v[2] = direction.v[2] / pDistance;
+        }
+        if (face_count > 0) {
+            pFace = face_list;
+            do {
+                type = -1;
+                spec = NULL;
+                actor = NULL;
+                identifier = NULL;
+                if (pFace->material != NULL) {
+                    identifier = pFace->material->identifier;
+                }
+                if (identifier != NULL && strlen(identifier) == 0xb && identifier[5] == '|') {
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 1) {
+                        goto material_centroid;
+                    }
+                    if (eff->field_0x28 != 4) {
+                        goto next_face;
+                    }
+                    if (strcmp(identifier, eff->field_0x8) != 0) {
+                        goto next_face;
+                    }
+material_centroid:
+                    centroid.v[0] = (pFace->v[0].v[0] + pFace->v[1].v[0] + pFace->v[2].v[0]) * gFloat_0058af38;
+                    centroid.v[1] = (pFace->v[0].v[1] + pFace->v[1].v[1] + pFace->v[2].v[1]) * gFloat_0058af38;
+                    centroid.v[2] = (pFace->v[0].v[2] + pFace->v[2].v[2] + pFace->v[1].v[2]) * gFloat_0058af38;
+                    type = 0;
+                    spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
+                    goto check;
+                }
+                actor = pFace->a;
+                if (actor != NULL) {
+                    identifier = actor->identifier;
+                }
+                if (identifier == NULL) {
+                    goto check;
+                }
+                if (!((strlen(identifier) == 0xb && identifier[5] == '|') || ((tU8)identifier[1] == 0xa3))) {
+                    if (*identifier != '&') {
+                        goto check;
+                    }
+                    if (gUnknown_006b9c60[(tS8)identifier[2] + 10 * (tS8)identifier[1]] == 0) {
+                        goto check;
+                    }
+                }
+                if (*identifier == '&' && identifier[1] >= '0' && identifier[1] <= '9') {
+                    if (identifier[3] == '!') {
+                        goto next_face;
+                    }
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 3) {
+                        goto actor_centroid;
+                    }
+                    if (eff->field_0x28 != 6) {
+                        goto next_face;
+                    }
+                    if (identifier[1] != eff->field_0x8[1] || identifier[2] != eff->field_0x8[2]) {
+                        goto next_face;
+                    }
+                } else {
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 2) {
+                        goto actor_centroid;
+                    }
+                    if (eff->field_0x28 != 5) {
+                        goto next_face;
+                    }
+                    if (strcmp(identifier, eff->field_0x8) != 0) {
+                        goto next_face;
+                    }
+                }
+actor_centroid:
+                centroid.v[0] = *(br_scalar*)((tU8*)actor + 0x50);
+                centroid.v[1] = *(br_scalar*)((tU8*)actor + 0x54);
+                centroid.v[2] = *(br_scalar*)((tU8*)actor + 0x58);
+                type = 1;
+                spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
+check:
+                if (type == -1) {
+                    goto next_face;
+                }
+                pActive = (int*)&gSmash_explosions[0].what.smash.field_0x80;
+                do {
+                    if (*(pActive - 0x21) != 0 && *(pActive - 0x22) == 1) {
+                        if (type == 1 && *pActive == (int)(intptr_t)pFace->a) {
+                            spec = NULL;
+                            break;
+                        }
+                        if (type == 0 && *pActive == (int)(intptr_t)pFace->a
+                                && *(tS16*)((tU8*)pActive + 4) == pFace->g
+                                && *(tS16*)((tU8*)pActive + 6) == pFace->f) {
+                            spec = NULL;
+                            break;
+                        }
+                    }
+                    pActive += 0x32;
+                } while ((tU8*)pActive < (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].what.smash.field_0x80);
+                if (spec != NULL && pFace->a != *(br_actor**)pObject) {
+                        record.velocity = *(br_vector3*)((tU8*)pObject + 0x68);
+                        random_time = IRandomBetween((tU16)eff->field_0x0, (tU16)eff->field_0x2);
+                        record.type = type;
+                        record.time = random_time + time;
+                        if (eff->field_0x44 == 1) {
+                            offset_x = *(br_scalar*)((tU8*)pObject + 0xb0) - centroid.v[0];
+                            offset_y = *(br_scalar*)((tU8*)pObject + 0xb4) - centroid.v[1];
+                            offset_z = *(br_scalar*)((tU8*)pObject + 0xb8) - centroid.v[2];
+                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
+                            if (length <= gFloat_0058aec4) {
+                                direction.v[0] = 1.0f;
+                                direction.v[1] = 0.0f;
+                                direction.v[2] = 0.0f;
+                            } else {
+                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
+                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
+                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
+                            }
+                        } else if (eff->field_0x44 == 2) {
+                            offset_x = centroid.v[0] - *(br_scalar*)((tU8*)pObject + 0xb0);
+                            offset_y = centroid.v[1] - *(br_scalar*)((tU8*)pObject + 0xb4);
+                            offset_z = centroid.v[2] - *(br_scalar*)((tU8*)pObject + 0xb8);
+                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
+                            if (length <= gFloat_0058aec4) {
+                                direction.v[0] = 1.0f;
+                                direction.v[1] = 0.0f;
+                                direction.v[2] = 0.0f;
+                            } else {
+                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
+                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
+                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
+                            }
+                        }
+                        if (eff->field_0x48 < gFloat_0058aec0) {
+                            record.scale = -(pDistance * eff->field_0x48);
+                            record.impulse.v[0] = direction.v[0] * record.scale;
+                            record.impulse.v[1] = direction.v[1] * record.scale;
+                            record.impulse.v[2] = direction.v[2] * record.scale;
+                        } else {
+                            record.impulse.v[0] = eff->field_0x48 * direction.v[0];
+                            record.impulse.v[1] = eff->field_0x48 * direction.v[1];
+                            record.impulse.v[2] = eff->field_0x48 * direction.v[2];
+                            record.scale = eff->field_0x48;
+                        }
+                        record.position = centroid;
+                        record.spec = spec;
+                        record.face = *pFace;
+                        record.object = pObject;
+                        pActive = &gSmash_explosions[0].active;
+                        for (slot_index = 0; *pActive != 0; slot_index++) {
+                            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+                            if ((tU8*)pActive >= (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                                break;
+                            }
+                        }
+                        if (slot_index < (int)REC2_ASIZE(gSmash_explosions)) {
+                            gSmash_explosions[slot_index].type = 1;
+                            gSmash_explosions[slot_index].active = (int)(intptr_t)pObject;
+                            *(tSmash_record*)&gSmash_explosions[slot_index].what.smash = record;
+                        }
+                    }
+next_face:
+                pFace++;
+            } while (--face_count != 0);
+        }
+    }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004ee500
 void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed) {
 
@@ -804,6 +1512,96 @@ void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initi
     }
 }
 
+// FlushPowerupQueue
+
+// FlushSmashQueue
+
+// QueueSmashIfNecessary3
+
+// QueueSmashIfNecessary2
+
+// AllocateSmashLevels
+
+// ReadSmashSounds
+
+// ReadShrapnelMovementSpec
+
+// ReadShrapnelInitialPosition
+
+// ReadShrapnelTimeInfo
+
+// NoteChildren
+
+// ReadSmokeFireChance
+
+// LoadActorFromRace
+
+// ReadShrapnelSpec
+
+// FUNCTION: CARMA2_HW 0x004ee5a0
+// FUNCTION: CARMA2_SW 0x004ea270
+void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, tMin_max_time* pTimes) {
+    float min;
+    float max;
+
+    GetPairOfFloats(pFile, &min, &max);
+    pTimes->min_time = (int)(min * 1000.0);
+    pTimes->max_time = (int)(max * 1000.0);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004ee5e0
+void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
+    char s[256];
+    float a;
+    float b;
+    float c;
+
+    GetAString(pF, s);
+    if (strcmp(s, "none") != 0) {
+        pSlick->material = BrMaterialFind(s);
+        if (pSlick->material == NULL) {
+            FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+        }
+        if (gMaterials_to_adapt_count < 200) {
+            gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material;
+            gMaterials_to_adapt_count++;
+        }
+        GetThreeFloats(pF, &b, &a, &c);
+        pSlick->field_0x0 = (int)b;
+        pSlick->field_0xc = a;
+        pSlick->field_0x10 = c;
+        GetThreeFloats(pF, &c, &a, &b);
+        pSlick->field_0x14 = c;
+        pSlick->field_0x4 = a;
+        pSlick->field_0x8 = b;
+        GetPairOfFloats(pF, &c, &b);
+        pSlick->field_0x20 = c;
+        pSlick->field_0x24 = b;
+        if (b != 0.0f) {
+            GetPairOfFloats(pF, &c, &a);
+            pSlick->field_0x18 = c;
+            pSlick->field_0x1c = a;
+            GetAString(pF, s);
+            pSlick->material2 = BrMaterialFind(s);
+            if (pSlick->material2 == NULL) {
+                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
+            }
+            if (gMaterials_to_adapt_count < 200) {
+                gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material2;
+                gMaterials_to_adapt_count++;
+            }
+        }
+    } else {
+        pSlick->material = NULL;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004ee780
 void C2_HOOK_FASTCALL ReadExplosion(FILE *pF, tExplosion_animation* pAnimation) {
     int i;
@@ -884,6 +1682,20 @@ void C2_HOOK_FASTCALL FreeExplosionAnimation(tExplosion_animation* pAnimation) {
             } while (i < pAnimation->count_groups);
         }
         BrMemFree(pAnimation->groups);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004ee990
+void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
+    int i;
+    tCar_crush_smashable_part* part;
+
+    pCar_crush_buffer_entry->count_smashables = GetAnInt(pF);
+    part = pCar_crush_buffer_entry->smashables = BrMemAllocate(pCar_crush_buffer_entry->count_smashables * sizeof(tCar_crush_smashable_part), kMem_smashable_info);
+    for (i = 0; i < pCar_crush_buffer_entry->count_smashables; i++, part++) {
+        GetAString(pF, part->material_name);
+        part->funk = -1;
+        ReadSmashLevels(pF, &part->levels, &part->count_smashable_levels, 0, pBrender_storage);
     }
 }
 
@@ -993,149 +1805,10 @@ void C2_HOOK_FASTCALL ReadSmashLevels(FILE* pF, tSmashable_level** pLevels, int*
         }
     }
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x004ee990
-void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_crush_buffer_entry, tBrender_storage* pBrender_storage) {
-    int i;
-    tCar_crush_smashable_part* part;
-
-    pCar_crush_buffer_entry->count_smashables = GetAnInt(pF);
-    part = pCar_crush_buffer_entry->smashables = BrMemAllocate(pCar_crush_buffer_entry->count_smashables * sizeof(tCar_crush_smashable_part), kMem_smashable_info);
-    for (i = 0; i < pCar_crush_buffer_entry->count_smashables; i++, part++) {
-        GetAString(pF, part->material_name);
-        part->funk = -1;
-        ReadSmashLevels(pF, &part->levels, &part->count_smashable_levels, 0, pBrender_storage);
-    }
-}
-
-/* local declarations instead of including 23-piping.h / 09-funks.h / 69-sound.h here */
-extern void C2_HOOK_FASTCALL PipeSingleSmashTextureChange(tCar_spec* pCar_spec, br_material* pMaterial, br_pixelmap* pTexture);
-extern void C2_HOOK_FASTCALL EnableFunkotronic(int pIndex);
-extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
-extern tS3_outlet* gCar_outlet;
-extern tActionReplayCameraMode gAction_replay_camera_mode;
-extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
-
-// (reference only)
-// FUNCTION: CARMA2_HW 0x004ef830
-void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pUnused, int pLevel) {
-    extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
-
-    ActuallyRepairSmash(pCar_spec, pSmashable, pLevel);
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// based on ApexWorm/rec2 a6a8cc00e
-// FUNCTION: CARMA2_HW 0x004ef840
-void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
-    br_pixelmap* texture;
-
-    pSmashable->field_0x4c = pLevel;
-    texture = pSmashable->levels[pLevel].pixelmaps[IRandomBetween(0, pSmashable->levels[pLevel].count_pixelmaps - 1)];
-    PipeSingleSmashTextureChange(pCar_spec, pSmashable->funk_material, texture);
-    pSmashable->funk_material->user = texture;
-    if (pCar_spec->field_0x1960 == NULL) {
-        pSmashable->funk_material->colour_map = texture;
-    }
-    BrMaterialUpdate(pSmashable->funk_material, BR_MATU_COLOURMAP);
-    if (pCar_spec == &gProgram_state.current_car && gAction_replay_camera_mode == kActionReplayCameraMode_Internal) {
-        MungeCarMaterials(pCar_spec, 1);
-    }
-    if (pLevel == 0 && pSmashable->funk >= 0) {
-        EnableFunkotronic(pSmashable->funk);
-    }
-    if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human && gProgram_state.racing) {
-        DRS3StartSound(gCar_outlet, eSoundId_SmashRepair);
-    }
-}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// KillFragment
-
-// AddRepairAnimationToQueue
-
-// FUNCTION: CARMA2_HW 0x004ef910
-void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
-    tCar_crush_smashable_part* smashable;
-    int index;
-    int i;
-    int j;
-
-    smashable = pSmash_data->smashables;
-    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
-        if (smashable->field_0x4c != 0) {
-            ActuallyRepairSmash(pCar_spec, smashable, smashable->field_0x4c - 1);
-            index = -1;
-            for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++) {
-                if (gRepair_animations[j].field_0x0 == (void*)smashable) {
-                    index = j;
-                    break;
-                }
-            }
-            if (index < 0) {
-                for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++) {
-                    if (gRepair_animations[j].field_0x0 == NULL) {
-                        index = j;
-                        break;
-                    }
-                }
-            }
-            /* j equals index on every path that reaches here; the original indexes the array with it */
-            if (index >= 0) {
-                gRepair_animations[j].field_0x0 = (void*)smashable;
-                gRepair_animations[j].field_0x4 = GetTotalTime();
-                gRepair_animations[j].field_0x8 = (undefined4)(uintptr_t)pCar_spec;
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004ef440
-intptr_t C2_HOOK_CDECL NoteChildren(br_actor* pActor, void* data) {
-    br_actor** pActorBuffer = data;
-
-    pActorBuffer[gShrapnel_ghost_actor_count] = pActor;
-    gShrapnel_ghost_actor_count += 1;
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x004ef460
-void C2_HOOK_FASTCALL ReadBounds(FILE* pF, br_bounds3* pBounds) {
-    float x1, x2;
-    float y1, y2;
-    float z1, z2;
-
-    GetThreeFloats(pF, &x1, &y1, &z1);
-    GetThreeFloats(pF, &x2, &y2, &z2);
-    pBounds->min.v[0] = MIN(x1, x2);
-    pBounds->min.v[1] = MIN(y1, y2);
-    pBounds->min.v[2] = MIN(z1, z2);
-    pBounds->max.v[0] = MAX(x1, x2);
-    pBounds->max.v[1] = MAX(y1, y2);
-    pBounds->max.v[2] = MAX(z1, z2);
-}
-
-// FUNCTION: CARMA2_HW 0x004ef9c0
-void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data) {
-    tCar_crush_smashable_part* smashable = pSmash_data->smashables;
-    int i;
-
-    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
-        if (smashable->field_0x4c != 0) {
-            ActuallyRepairSmash(pCar_Spec, smashable, 0);
-        }
-    }
-}
-
 // InitGlassFragments
 
 // InitDecals
@@ -1346,53 +2019,43 @@ void C2_HOOK_FASTCALL ReadShrapnelSpec(FILE* pF, tShrapnel_spec* pShrapnel_specs
     }
 }
 
-// FUNCTION: CARMA2_HW 0x004ee5e0
-void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
-    char s[256];
-    float a;
-    float b;
-    float c;
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x004ef440
+intptr_t C2_HOOK_CDECL NoteChildren(br_actor* pActor, void* data) {
+    br_actor** pActorBuffer = data;
 
-    GetAString(pF, s);
-    if (strcmp(s, "none") != 0) {
-        pSlick->material = BrMaterialFind(s);
-        if (pSlick->material == NULL) {
-            FatalError(kFatalError_CannotFindSmashMaterial_S, s);
-        }
-        if (gMaterials_to_adapt_count < 200) {
-            gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material;
-            gMaterials_to_adapt_count++;
-        }
-        GetThreeFloats(pF, &b, &a, &c);
-        pSlick->field_0x0 = (int)b;
-        pSlick->field_0xc = a;
-        pSlick->field_0x10 = c;
-        GetThreeFloats(pF, &c, &a, &b);
-        pSlick->field_0x14 = c;
-        pSlick->field_0x4 = a;
-        pSlick->field_0x8 = b;
-        GetPairOfFloats(pF, &c, &b);
-        pSlick->field_0x20 = c;
-        pSlick->field_0x24 = b;
-        if (b != 0.0f) {
-            GetPairOfFloats(pF, &c, &a);
-            pSlick->field_0x18 = c;
-            pSlick->field_0x1c = a;
-            GetAString(pF, s);
-            pSlick->material2 = BrMaterialFind(s);
-            if (pSlick->material2 == NULL) {
-                FatalError(kFatalError_CannotFindSmashMaterial_S, s);
-            }
-            if (gMaterials_to_adapt_count < 200) {
-                gMaterials_to_adapt[gMaterials_to_adapt_count] = pSlick->material2;
-                gMaterials_to_adapt_count++;
-            }
-        }
-    } else {
-        pSlick->material = NULL;
-    }
+    pActorBuffer[gShrapnel_ghost_actor_count] = pActor;
+    gShrapnel_ghost_actor_count += 1;
+    return 0;
 }
 
+// FUNCTION: CARMA2_HW 0x004ef460
+void C2_HOOK_FASTCALL ReadBounds(FILE* pF, br_bounds3* pBounds) {
+    float x1, x2;
+    float y1, y2;
+    float z1, z2;
+
+    GetThreeFloats(pF, &x1, &y1, &z1);
+    GetThreeFloats(pF, &x2, &y2, &z2);
+    pBounds->min.v[0] = MIN(x1, x2);
+    pBounds->min.v[1] = MIN(y1, y2);
+    pBounds->min.v[2] = MIN(z1, z2);
+    pBounds->max.v[0] = MAX(x1, x2);
+    pBounds->max.v[1] = MAX(y1, y2);
+    pBounds->max.v[2] = MAX(z1, z2);
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern const char gAct_file_extension[];
+
+// PARTIAL 99.15%: ReadShrapnelSideEffects - the only residual is the two .ACT operands: the original
+// symbol table types original 0x594e9c as a named STRING (gAct_file_extension) while our reference to
+// the reconstruted const char[] global is typed DATA (a string literal there shows up as ".ACT" (STRING)).
+// Nothing in C can make our side a named STRING entity; both forms score the same.
 // GLOBAL: CARMA2_HW 0x0065fef0
 const char* gSmash_side_effect_direction_names[3] = {
     "parallel",
@@ -1405,41 +2068,6 @@ const char* gPosition_type_names[2] = {
     "relative",
     "absolute",
 };
-
-// FUNCTION: CARMA2_HW 0x004efce0
-void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations) {
-    int i;
-    int i1, i2;
-    float* p;
-
-    /* no. of non car cuboids activated */
-    pNon_car_cuboid_activations->count_activations = GetAnInt(pF);
-    if (pNon_car_cuboid_activations->count_activations != 0) {
-        pNon_car_cuboid_activations->activations = BrMemAllocate(pNon_car_cuboid_activations->count_activations * sizeof(tNon_car_cuboid_activation), kMem_smash_side_effects);
-        for (i = 0; i < pNon_car_cuboid_activations->count_activations; i++) {
-            GetPairOfInts(pF, &i1, &i2);
-            pNon_car_cuboid_activations->activations[i].field_0x0 = (tS16)(i1 * 1000);
-            pNon_car_cuboid_activations->activations[i].field_0x2 = (tS16)(i2 * 1000);
-            pNon_car_cuboid_activations->activations[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
-            pNon_car_cuboid_activations->activations[i].field_0x8 = (tS8)GetAnInt(pF);
-            ReadBounds(pF, &pNon_car_cuboid_activations->activations[i].bounds);
-            p = &pNon_car_cuboid_activations->activations[i].field_0x24;
-            GetPairOfFloats(pF, &p[0], &p[1]);
-            p[2] = GetAScalar(pF);
-            p[3] = GetAScalar(pF);
-            p[4] = GetAScalar(pF);
-            p[5] = GetAScalar(pF);
-            p[6] = GetAScalar(pF) / 10.f;
-        }
-    }
-}
-
-extern const char gAct_file_extension[];
-
-// PARTIAL 99.15%: ReadShrapnelSideEffects - the only residual is the two .ACT operands: the original
-// symbol table types original 0x594e9c as a named STRING (gAct_file_extension) while our reference to
-// the reconstruted const char[] global is typed DATA (a string literal there shows up as ".ACT" (STRING)).
-// Nothing in C can make our side a named STRING entity; both forms score the same.
 // FUNCTION: CARMA2_HW 0x004ef550
 void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects) {
     int i;
@@ -1479,9 +2107,109 @@ void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* 
         }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+/* local declarations instead of including 23-piping.h / 09-funks.h / 69-sound.h here */
+extern void C2_HOOK_FASTCALL PipeSingleSmashTextureChange(tCar_spec* pCar_spec, br_material* pMaterial, br_pixelmap* pTexture);
+extern void C2_HOOK_FASTCALL EnableFunkotronic(int pIndex);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern tS3_outlet* gCar_outlet;
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
+
+// (reference only)
+// FUNCTION: CARMA2_HW 0x004ef830
+void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pUnused, int pLevel) {
+    extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel);
+
+    ActuallyRepairSmash(pCar_spec, pSmashable, pLevel);
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// based on ApexWorm/rec2 a6a8cc00e
+// FUNCTION: CARMA2_HW 0x004ef840
+void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
+    br_pixelmap* texture;
+
+    pSmashable->field_0x4c = pLevel;
+    texture = pSmashable->levels[pLevel].pixelmaps[IRandomBetween(0, pSmashable->levels[pLevel].count_pixelmaps - 1)];
+    PipeSingleSmashTextureChange(pCar_spec, pSmashable->funk_material, texture);
+    pSmashable->funk_material->user = texture;
+    if (pCar_spec->field_0x1960 == NULL) {
+        pSmashable->funk_material->colour_map = texture;
+    }
+    BrMaterialUpdate(pSmashable->funk_material, BR_MATU_COLOURMAP);
+    if (pCar_spec == &gProgram_state.current_car && gAction_replay_camera_mode == kActionReplayCameraMode_Internal) {
+        MungeCarMaterials(pCar_spec, 1);
+    }
+    if (pLevel == 0 && pSmashable->funk >= 0) {
+        EnableFunkotronic(pSmashable->funk);
+    }
+    if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human && gProgram_state.racing) {
+        DRS3StartSound(gCar_outlet, eSoundId_SmashRepair);
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// KillFragment
+
+// AddRepairAnimationToQueue
+
+// FUNCTION: CARMA2_HW 0x004ef910
+void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
+    tCar_crush_smashable_part* smashable;
+    int index;
+    int i;
+    int j;
+
+    smashable = pSmash_data->smashables;
+    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
+        if (smashable->field_0x4c != 0) {
+            ActuallyRepairSmash(pCar_spec, smashable, smashable->field_0x4c - 1);
+            index = -1;
+            for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++) {
+                if (gRepair_animations[j].field_0x0 == (void*)smashable) {
+                    index = j;
+                    break;
+                }
+            }
+            if (index < 0) {
+                for (j = 0; j < (int)REC2_ASIZE(gRepair_animations); j++) {
+                    if (gRepair_animations[j].field_0x0 == NULL) {
+                        index = j;
+                        break;
+                    }
+                }
+            }
+            /* j equals index on every path that reaches here; the original indexes the array with it */
+            if (index >= 0) {
+                gRepair_animations[j].field_0x0 = (void*)smashable;
+                gRepair_animations[j].field_0x4 = GetTotalTime();
+                gRepair_animations[j].field_0x8 = (undefined4)(uintptr_t)pCar_spec;
+            }
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004ef9c0
+void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data) {
+    tCar_crush_smashable_part* smashable = pSmash_data->smashables;
+    int i;
+
+    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
+        if (smashable->field_0x4c != 0) {
+            ActuallyRepairSmash(pCar_Spec, smashable, 0);
+        }
+    }
+}
 
 /* (ReadPowerupSmashable); manually expanded as the original inlines it twice */
 #define READ_POWERUP_SMASHABLE(SPEC, A, B) do { \
@@ -1530,6 +2258,41 @@ void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF) {
     gUnknown_smashable_006a3660.mode = kSmashableMode_Remove;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004efce0
+void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations) {
+    int i;
+    int i1, i2;
+    float* p;
+
+    /* no. of non car cuboids activated */
+    pNon_car_cuboid_activations->count_activations = GetAnInt(pF);
+    if (pNon_car_cuboid_activations->count_activations != 0) {
+        pNon_car_cuboid_activations->activations = BrMemAllocate(pNon_car_cuboid_activations->count_activations * sizeof(tNon_car_cuboid_activation), kMem_smash_side_effects);
+        for (i = 0; i < pNon_car_cuboid_activations->count_activations; i++) {
+            GetPairOfInts(pF, &i1, &i2);
+            pNon_car_cuboid_activations->activations[i].field_0x0 = (tS16)(i1 * 1000);
+            pNon_car_cuboid_activations->activations[i].field_0x2 = (tS16)(i2 * 1000);
+            pNon_car_cuboid_activations->activations[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
+            pNon_car_cuboid_activations->activations[i].field_0x8 = (tS8)GetAnInt(pF);
+            ReadBounds(pF, &pNon_car_cuboid_activations->activations[i].bounds);
+            p = &pNon_car_cuboid_activations->activations[i].field_0x24;
+            GetPairOfFloats(pF, &p[0], &p[1]);
+            p[2] = GetAScalar(pF);
+            p[3] = GetAScalar(pF);
+            p[4] = GetAScalar(pF);
+            p[5] = GetAScalar(pF);
+            p[6] = GetAScalar(pF) / 10.f;
+        }
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004efe00
 void C2_HOOK_FASTCALL InitSmashing(void) {
     int i;
@@ -1570,6 +2333,70 @@ void C2_HOOK_FASTCALL InitSmashing(void) {
     }
 }
 
+// GLOBAL: CARMA2_HW 0x0065fea0
+const char* gSmashable_collision_type_names[3] = {
+    "solid",
+    "passthrough",
+    "edges",
+};
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL: DoFragMovement - frame (0x20), prologue, matrix-pointer tail and branch layout match; the x87 scheduling of
+// the translate/omega block still differs (original keeps f_dt on the x87 stack, spills CSE temps at [esp+0x1c]/[esp+0x18]
+// and finishes the v[1] update before the omega loads). 'pos' doubles as the per-axis delta temporary.
+// (reference only)
+// (reference only)
+// FUNCTION: CARMA2_HW 0x004eff30
+void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
+    extern float gFloat_0058aec0;
+    float f_dt;
+    double angle;
+    float omega;
+    br_vector3 pos;
+    br_vector3 axis;
+    br_matrix34* mat;
+
+    f_dt = pDelta_time * 0.001f;
+    if (f_dt != gFloat_0058aec0 && pFragment->field_0x34 == 0) {
+        pos.v[0] = pFragment->v.v[0] * f_dt;
+        pos.v[1] = pFragment->v.v[1] * f_dt - 4.9 * gGravity_multiplier * f_dt * f_dt;
+        pos.v[2] = pFragment->v.v[2] * f_dt;
+        pFragment->actor->t.t.translate.t.v[0] -= pos.v[0] * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[1] -= pos.v[1] * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[2] -= pos.v[2] * -0.14492753;
+        mat = &pFragment->actor->t.t.mat;
+        pos.v[1] = f_dt * gGravity_multiplier * 9.8;
+        pFragment->v.v[1] -= pos.v[1];
+        omega = BrVector3Length(&pFragment->omega);
+        axis.v[0] = pFragment->omega.v[0] / omega;
+        axis.v[1] = pFragment->omega.v[1] / omega;
+        axis.v[2] = pFragment->omega.v[2] / omega;
+        angle = omega * f_dt;
+        if (fabs(angle) >= 0.0001) {
+            pos.v[0] = mat->m[3][0];
+            pos.v[1] = mat->m[3][1];
+            pos.v[2] = mat->m[3][2];
+            mat->m[3][0] = 0.f;
+            mat->m[3][1] = 0.f;
+            mat->m[3][2] = 0.f;
+            BrMatrix34PostRotate(mat, BrRadianToAngle(angle), &axis);
+            mat->m[3][0] = pos.v[0];
+            mat->m[3][1] = pos.v[1];
+            mat->m[3][2] = pos.v[2];
+        }
+    }
+    if (pTime >= pFragment->field_0x10) {
+        pFragment->actor->render_style = BR_RSTYLE_NONE;
+    } else {
+        pFragment->actor->render_style = BR_RSTYLE_FACES;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // VerySimpleRotate
 
 // DoFragMovement
@@ -1600,6 +2427,81 @@ void C2_HOOK_FASTCALL MungeGlassFragments(void) {
     }
 }
 
+// DoQueuedNetSmashes
+
+// FindTheBastard
+
+// ReceivedSmashShraps
+
+// MungeSmashEdgeTriggers
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
+extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
+extern void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15);
+extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
+extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
+
+// based on ApexWorm/rec2 4375aec8e
+// FUNCTION: CARMA2_HW 0x004f0150
+void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
+    tU32 the_time;
+    float delta_time;
+    tSmash_vertex* fragment;
+    tSmash_vertex* other;
+    tU32 field_0x18;
+    int i;
+    int j;
+
+    the_time = GetTotalTime();
+    if (gPrev_glass_munge != 0) {
+        delta_time = (float)the_time - gPrev_glass_munge;
+        fragment = gSmash_glass_fragments;
+
+        for (i = (int)REC2_ASIZE(gSmash_glass_fragments); i != 0; i--, fragment++) {
+            if (fragment->end_time != 0) {
+                if (!pEnd_race
+                    && (the_time < fragment->end_time
+                        || (gAction_replay_mode && !(ARGetReplayRate() > 0.f)))
+                    && the_time >= fragment->field_0xc) {
+                    DoFragMovement(fragment, the_time, delta_time);
+                    if (fragment->field_0x34) {
+                        fragment->field_0x34 = 0;
+                    }
+                    fragment->time_last_move = the_time;
+                } else {
+                    field_0x18 = fragment->field_0x18;
+                    if (the_time >= fragment->end_time) {
+                        if ((tS32)field_0x18 >= 0) {
+                            PipeSingleShrapnelShower(field_0x18, fragment->time_last_move, 0, 0,
+                                NULL, NULL, 0.f, NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);
+                        } else if (field_0x18 & 0x40000000u) {
+                            PipeSingleGibShower(field_0x18, fragment->time_last_move, 0, 0, 0,
+                                NULL, NULL, NULL);
+                        } else {
+                            PipeSingleBloodSpurt(field_0x18, fragment->time_last_move, 0,
+                                NULL, NULL, NULL);
+                        }
+                    }
+                    for (j = (int)REC2_ASIZE(gSmash_glass_fragments), other = gSmash_glass_fragments; j != 0; j--, other++) {
+                        if (other->end_time != 0
+                            && other->field_0x18 == field_0x18) {
+                            BrActorRemove(other->actor);
+                            other->end_time = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    gPrev_glass_munge = the_time;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // KillAllGlassFragments
 
 // FUNCTION: CARMA2_HW 0x004f02b0
@@ -1669,42 +2571,20 @@ void C2_HOOK_FASTCALL FreeSmashableNonCarNames(void) {
 
     BrMemFree(gSmashable_noncars);
 }
-// CloneMemory
 
-// CloneEnvSmash
-
-// FUNCTION: CARMA2_HW 0x004f0a80
-void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_actors) {
+// FUNCTION: CARMA2_HW 0x004f0960
+void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
     int i;
-    int j;
-    tExplosion_animation_group* group;
+    tSmashable_item_spec* spec;
 
-    for (i = 0; i < pConnotations->count_shrapnel; i++) {
-        if (pConnotations->shrapnel[i].type == kShrapnelType_GhostParts && !pKeep_actors) {
-            for (j = 0; j < pConnotations->shrapnel[i].type_info.ghost.count_actors; j++) {
-                BrActorFree(pConnotations->shrapnel[i].type_info.ghost.actors[j]);
-            }
-            BrMemFree(pConnotations->shrapnel[i].type_info.ghost.actors);
-        } else if (pConnotations->shrapnel[i].type == kShrapnelType_NonCars && !pKeep_actors) {
-            for (j = 0; j < pConnotations->shrapnel[i].type_info.noncar.count_actors; j++) {
-                if (pConnotations->shrapnel[i].type_info.noncar.actors[j]->parent == NULL) {
-                    BrActorFree(pConnotations->shrapnel[i].type_info.noncar.actors[j]);
-                }
-            }
-            BrMemFree(pConnotations->shrapnel[i].type_info.noncar.actors);
-        }
+    for (i = 0, spec = gTrack_smashable_environment_specs; i < gCount_track_smashable_environment_specs; i++, spec++) {
+        FreeEnvSmash(spec);
     }
-    if (pConnotations->special_effects.explosion_animation.count_groups != 0) {
-        for (i = 0, group = pConnotations->special_effects.explosion_animation.groups; i < pConnotations->special_effects.explosion_animation.count_groups; i++, group++) {
-            BrMemFree(group->frames);
-        }
-        BrMemFree(pConnotations->special_effects.explosion_animation.groups);
+    if (gCount_track_smashable_environment_specs != 0) {
+        BrMemFree(gTrack_smashable_environment_specs);
     }
-    if (pConnotations->side_effects.activations.count_activations != 0) {
-        BrMemFree(pConnotations->side_effects.activations.activations);
-    }
-    if (pConnotations->side_effects.side_effects.count_side_effects != 0) {
-        BrMemFree(pConnotations->side_effects.side_effects.side_effects);
+    if (gNet_mode == eNet_mode_host) {
+        BrMemFree(gNet_host_smashes);
     }
 }
 
@@ -1746,94 +2626,152 @@ void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSmash) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// CloneMemory
 
-// FUNCTION: CARMA2_HW 0x004f0960
-void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
+// CloneEnvSmash
+
+// FUNCTION: CARMA2_HW 0x004f0a80
+void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_actors) {
     int i;
-    tSmashable_item_spec* spec;
+    int j;
+    tExplosion_animation_group* group;
 
-    for (i = 0, spec = gTrack_smashable_environment_specs; i < gCount_track_smashable_environment_specs; i++, spec++) {
-        FreeEnvSmash(spec);
+    for (i = 0; i < pConnotations->count_shrapnel; i++) {
+        if (pConnotations->shrapnel[i].type == kShrapnelType_GhostParts && !pKeep_actors) {
+            for (j = 0; j < pConnotations->shrapnel[i].type_info.ghost.count_actors; j++) {
+                BrActorFree(pConnotations->shrapnel[i].type_info.ghost.actors[j]);
+            }
+            BrMemFree(pConnotations->shrapnel[i].type_info.ghost.actors);
+        } else if (pConnotations->shrapnel[i].type == kShrapnelType_NonCars && !pKeep_actors) {
+            for (j = 0; j < pConnotations->shrapnel[i].type_info.noncar.count_actors; j++) {
+                if (pConnotations->shrapnel[i].type_info.noncar.actors[j]->parent == NULL) {
+                    BrActorFree(pConnotations->shrapnel[i].type_info.noncar.actors[j]);
+                }
+            }
+            BrMemFree(pConnotations->shrapnel[i].type_info.noncar.actors);
+        }
     }
-    if (gCount_track_smashable_environment_specs != 0) {
-        BrMemFree(gTrack_smashable_environment_specs);
+    if (pConnotations->special_effects.explosion_animation.count_groups != 0) {
+        for (i = 0, group = pConnotations->special_effects.explosion_animation.groups; i < pConnotations->special_effects.explosion_animation.count_groups; i++, group++) {
+            BrMemFree(group->frames);
+        }
+        BrMemFree(pConnotations->special_effects.explosion_animation.groups);
     }
-    if (gNet_mode == eNet_mode_host) {
-        BrMemFree(gNet_host_smashes);
+    if (pConnotations->side_effects.activations.count_activations != 0) {
+        BrMemFree(pConnotations->side_effects.activations.activations);
+    }
+    if (pConnotations->side_effects.side_effects.count_side_effects != 0) {
+        BrMemFree(pConnotations->side_effects.side_effects.side_effects);
     }
 }
-
-// MungeSmashMaterialNames
-
-// ExtrapolateTextureCoordinates
-
-// ExtrapolateGeometryCoordinates2
-
-// ExtrapolateGeometryCoordinates
-
-// ExtractDeTiledFaces
-
-// AddDecal
-
-// InsertQuad
-
-// SpawnSmashAndMungeFaces
-
-// DistanceFromFaceND
-
-// PointInFace
-
-// FindFaceWithPoint
-
-// ProcessTexture
-
-// ProcessMesh
-
-// ProcessModel
-
-// BashModel
-
-// SendNetSmash
-
-// SendAllSmashes
-
-// HitPowerup
-
-extern float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork);
-extern void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7);
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x004f0d50
+int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
+    float local_c[3];
+    float a, b, c, d, e, f, g, h, denom, u, v;
+    int axis;
+    int i8;
+    int i11;
 
-// FUNCTION: CARMA2_HW 0x004f52f0
-// FUNCTION: CARMA2_SW 0x004f0f50
-float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
-    float result;
-    int flag;
-    char* identifier;
-    tSmashable_item_spec* trigger;
+    f = (pNormal[0] * pPoint[0] + (pNormal[1] * pPoint[1] + pNormal[2] * pPoint[2])) - pPlane_distance;
+    if (fabs(f) > 0.5) {
+        return 0;
+    }
+    f = -f;
+    local_c[0] = pNormal[0] * f + pPoint[0];
+    local_c[1] = pNormal[1] * f + pPoint[1];
+    local_c[2] = pNormal[2] * f + pPoint[2];
+    axis = 0;
+    if (fabs(pNormal[0]) < fabs(pNormal[1])) {
+        axis = 1;
+    }
+    if (fabs(pNormal[axis]) < fabs(pNormal[2])) {
+        axis = 2;
+    }
+    switch (axis) {
+    case 0:
+        i8 = 1;
+        i11 = 2;
+        break;
+    case 1:
+        i8 = 0;
+        i11 = 2;
+        break;
+    case 2:
+        i8 = 0;
+        i11 = 1;
+        break;
+    }
+    a = pVertex0[i8];
+    b = pVertex1[i8] - a;
+    c = pVertex0[i11];
+    d = pVertex1[i11] - c;
+    e = pVertex2[i11] - c;
+    f = pVertex2[i8] - a;
+    g = local_c[i8] - a;
+    h = local_c[i11] - c;
+    if (fabs(b) > 2.3841858e-07) {
+        denom = e * b - d * f;
+        if (denom == 0.0f) {
+            return 0;
+        }
+        u = (h * b - d * g) / denom;
+        v = (g - u * f) / b;
+    } else {
+        u = g / f;
+        v = (h - u * e) / d;
+    }
+    if (v >= -0.0001 && u >= -0.0001 && u + v <= 1.0001) {
+        return 1;
+    }
+    return 0;
+}
+extern int gMutant_tail_state;
+extern tU32 gINT_00705b70;
+extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
 
-    result = -1.f;
-    flag = 0;
-    if (pActor != NULL) {
-        identifier = pActor->identifier;
-        if (identifier != NULL && identifier[0] == '&') {
-            trigger = gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')];
-            if (trigger != NULL) {
-                if ((pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 1) && identifier[3] != '!')
-                        || (pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 4) && identifier[3] == '!')
-                        || (pSnap != 0 && (trigger->trigger_object.number.field_0x1 & 2))) {
-                    gINT_006a3334 = 0;
-                    result = BashModel(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
-                    if (flag != 0 && pNetwork == 0) {
-                        SendNetSmash(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
-                    }
-                }
+// FUNCTION: CARMA2_HW 0x004f1030
+void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+    void* info;
+    int type;
+
+    info = pObject->owner;
+    if (pMode == 0xe) {
+        if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+            type = *(volatile int*)((tU8*)info + 0xc);
+            if ((type == 0 || (type != 2 && type != 3))
+                    && gSize_powerup_queue < 0x32
+                    && *(volatile int*)((tU8*)info + 0xc) > 5) {
+                gPowerup_queue[gSize_powerup_queue].actor = pActor;
+                gPowerup_queue[gSize_powerup_queue].car = pObject->owner;
+                gPowerup_queue[gSize_powerup_queue].powerup_index = 0xe;
+                gSize_powerup_queue = gSize_powerup_queue + 1;
+                return;
             }
         }
+        ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(pObject, 0xe);
+        return;
     }
-    return result;
+    if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+        type = *(volatile int*)((tU8*)info + 0xc);
+        if ((type == 0 || (type != 2 && type != 3))
+                && gSize_powerup_queue < 0x32
+                && *(volatile int*)((tU8*)info + 0xc) == 8) {
+            goto enqueue;
+        }
+    }
+    if (pObject->flags_0x238 == 0x20
+            && (gMutant_tail_state == 2 || GetTotalTime() - gINT_00705b70 < 0x1d4c)) {
+        goto enqueue;
+    }
+    return;
+enqueue:
+    gPowerup_queue[gSize_powerup_queue].actor = pActor;
+    gPowerup_queue[gSize_powerup_queue].car = &gProgram_state.current_car;
+    gPowerup_queue[gSize_powerup_queue].powerup_index = pMode;
+    gSize_powerup_queue = gSize_powerup_queue + 1;
 }
 struct tNet_stored_smash {
     undefined4 field_0x0;
@@ -2176,9 +3114,6 @@ static int SmashFindTriangleApex(const br_uint_16* pVertices, int pIndex0, int p
     return -1;
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 // FUNCTION: CARMA2_HW 0x004f18d0
 float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork) {
     int tri_verts[8] = { 0, 0, 1, 2, 2, 1, 3, 3 };
@@ -2709,1484 +3644,31 @@ float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMa
     return result;
 }
 
-// FUNCTION: CARMA2_HW 0x004f4e20
-float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
-    br_matrix34 matrix;
-    br_bounds3 bounds;
-    br_vector3 v;
-    int seed;
-    tU32 time;
-    float result;
-    tPhysics_object* object;
-    char* identifier;
-    br_actor* child;
-    int changed;
-    int i;
+// FUNCTION: CARMA2_HW 0x004f3560
+void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_material* pMaterial, char** pIdentifier, char pIndex) {
+    char name[64];
+    char suffix[64];
+    int name_length;
 
-    object = pObject;
-    result = -1.f;
-    time = GetTotalTime();
-    gINT_006a3334 = 0;
-    *pFlag = 0;
-    if (pMagnitude < pSpec->mode_data.shrapnel.removal_threshold) {
-        return -1.f;
+    strcpy(name, *pIdentifier);
+    name_length = strlen(name);
+    if (name_length < 4) {
+        sprintf(name, "Smash material %s has a name that is less than 4 characters long", *pIdentifier);
+        PDFatalError(name);
     }
-    v.v[0] = ((float*)object->field_0x1b4)[0] * 6.9;
-    v.v[1] = ((float*)object->field_0x1b4)[1] * 6.9;
-    v.v[2] = ((float*)object->field_0x1b4)[2] * 6.9;
-    seed = (int)pForce->v[1] ^ (int)pForce->v[2] ^ (int)pForce->v[0];
-    bounds = pActor->model->bounds;
-    gINT_006a3334 = 0;
-    changed = 0;
-    switch (pSpec->mode) {
-    case kSmashableMode_NoChange:
-        if (pSpec->field_0x10 == 0) {
-            changed = 1;
-        }
-        pSpec->field_0x10 = GetTotalTime();
-        break;
-    case kSmashableMode_Remove:
-        if (pActor->render_style != 1) {
-            changed = 1;
-            pActor->render_style = 1;
-            PipeSingleSmashModelChange(pActor, pActor->model, NULL);
-            if (pActor != NULL && (identifier = pActor->identifier) != NULL && identifier[0] == '&'
-                    && gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')] != NULL
-                    && pActor == object->actor) {
-                pActor->t.t.translate.t.v[1] = -1000.f;
-                object->transform_matrix.m[3][1] = -1000.f;
-            }
-        }
-        object->box_face_end = 0;
-        object->box_face_start = 0;
-        object->box_face_ref = gFace_num__car - 2;
-        break;
-    case kSmashableMode_ReplaceModel:
-        if (pActor->model != pSpec->replace.model) {
-            changed = 1;
-            PipeSingleSmashModelChange(pActor, pActor->model, pSpec->replace.model);
-            pActor->model = pSpec->replace.model;
-            if (PercentageChance(pSpec->replace.smoke_fire_chance.chance_fire) && pSpec->replace.smoke_fire_chance.model_1_int > 0) {
-                for (i = 0; i < pSpec->replace.smoke_fire_chance.model_1_int; i++) {
-                    CreateSmokeColumn2(0, pActor, NULL, NULL, IRandomBetween(pSpec->replace.smoke_fire_chance.model_2_int, pSpec->replace.smoke_fire_chance.model_3_int), IRandomBetween(0, pActor->model->prepared->groups->nvertices), 10000000);
-                }
-            }
-            for (child = pActor->children; child != NULL; child = child->next) {
-                PipeSingleSmashModelChange(child, child->model, NULL);
-                child->render_style = 1;
-            }
-            AddChangedPoint(&pActor->t.t.translate.t);
-        }
-        object->box_face_ref = gFace_num__car - 2;
-        object->box_face_end = 0;
-        object->box_face_start = 0;
-        break;
-    default:
-        break;
-    }
-    if (changed) {
-        result = pSpec->mode_data.shrapnel.removal_threshold;
-        *pFlag = 1;
-        BrActorToActorMatrix34_2(&matrix, pActor, gUniverse_actor);
-        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
-    }
-    return result;
-}
-// PARTIAL 96.08%: the original VS6 build keeps a third redundant `test eax,eax; je body` owner-null test
-// (0x4f513e) between the flags test and the driver load. MSVC 11 cannot reproduce it: duplicating the check in
-// the same `&&` chain, or as a separate `if (pObject->owner != NULL)` / `if (owner != NULL)` block, is CSE'd
-// with the first test (still 96.08); the local-variable form emits it but then value-range-removes the later
-// 0x4f514a test instead (92.11). The residual is this single 4-byte pair plus the resulting jump targets.
-// FUNCTION: CARMA2_HW 0x004f5110
-void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
-    tCar_spec* car;
-    void* owner;
-    int driver;
-    tNet_message* message;
-    tNet_stored_smash* chunk;
-    tNet_stored_smash* stored;
-    br_vector3 point;
-    float d;
-    int id;
+    strcpy(suffix, name + name_length - 4);
+    sprintf(name + name_length - 4, "        ");
+    sprintf(name + 5, "%cx", '|');
+    name[6] = pIndex + 1;
+    strcat(name, suffix);
+    name[11] = 0;
 
-    if (gNet_mode == eNet_mode_none) {
+    if (strlen(*pIdentifier) < 12) {
+        BrResFree(*pIdentifier);
+        *pIdentifier = BrResStrDup(pMaterial, name);
         return;
     }
-    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
-        owner = pObject->owner;
-        driver = *(int*)((char*)owner + 0xc);
-        if (driver > 5) {
-            if (owner == NULL || driver != eDriver_local_human) {
-                return;
-            }
-        }
-    }
-    if (pFace != NULL) {
-        d = DistanceFromFace(pPosition, pFace);
-        BrVector3Scale(&point, &pFace->normal, -d);
-        BrVector3Add(&point, &point, pPosition);
-    } else {
-        BrVector3Copy(&point, pPosition);
-    }
-    message = NetBuildGuaranteedMessage(0x21, 0);
-    chunk = (tNet_stored_smash*)&message->guaranteed;
-    chunk->field_0x4 = gPHIL_last_physics_tick + 40;
-    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
-        car = (tCar_spec*)pObject->owner;
-        if (car != NULL && car->driver > 5) {
-            if (gNet_mode != eNet_mode_none) {
-                id = (int)(NetPlayerFromCar(car) - gNet_players);
-            } else {
-                id = (tU16)car->car_ID;
-            }
-        } else {
-            id = -1;
-        }
-    } else {
-        id = -1;
-    }
-    chunk->player = id;
-    chunk->field_0xc = pMagnitude;
-    BrVector3Copy(&chunk->field_0x10, &point);
-    chunk->field_0x1c = *pNormal;
-    chunk->field_0x28 = *pForce;
-    if (pArg7 != 0) {
-        chunk->field_0x34 = 2;
-    } else {
-        chunk->field_0x34 = 0;
-    }
-    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
-    if (gNet_mode == eNet_mode_host && gCount_host_smashes < 1000) {
-        stored = &gNet_host_smashes[gCount_host_smashes];
-        gCount_host_smashes++;
-        *stored = *chunk;
-    }
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x004f53e0
-// FUNCTION: CARMA2_SW 0x004f1040
-void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce) {
-
-    BashObject(pObject, pObject->actor, BrVector3Length(pForce), pPosition, pNormal, pForce, 1, 0);
-}
-
-// FUNCTION: CARMA2_HW 0x004f5470
-int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial) {
-    int i;
-
-    for (i = 0; i < gCount_track_smashable_environment_specs; i++) {
-        tSmashable_item_spec* spec = &gTrack_smashable_environment_specs[i];
-
-        if (spec->trigger_type == kSmashableTrigger_Material && spec->trigger_object.material == pMaterial
-                && ((spec->mode_data.texture_change.count_levels > 0 && spec->mode == kSmashableMode_TextureChange)
-                    || spec->mode == kSmashableMode_Remove
-                    || spec->mode == kSmashableMode_ReplaceModel)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x004f55d0
-// FUNCTION: CARMA2_SW 0x004f1230
-intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data) {
-    tMungeMaterialCB_Context* context = data;
-    int face_i;
-    br_face* face;
-
-    if (pActor->model != NULL) {
-        for (face_i = 0, face = pActor->model->faces; face_i < pActor->model->nfaces; face_i++, face++) {
-            if (face->material == context->material_0x0) {
-                face->material = context->material_0x4;
-                if (context->indices != NULL && context->count_indices < context->capacity_indices) {
-                    int i;
-
-                    for (i = 0; i < 3; i++) {
-                        int j;
-                        int found = 0;
-
-                        for (j = 0; j < context->count_indices; j++) {
-                            if (face->vertices[i] == context->indices[j]) {
-                                if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
-                                    context->vertices[context->count_vertices].field_0x0[i] = (tU16)j;
-                                }
-                                found = 1;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            if (context->count_indices != 0) {
-                                BrVector3Accumulate(&context->field_0x20, &face->n);
-                            } else {
-                                BrVector3Copy(&context->field_0x20, &face->n);
-                            }
-                            if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
-                                context->vertices[context->count_vertices].field_0x0[i] = (tU16)context->count_indices;
-                            }
-                            context->indices[context->count_indices] = face->vertices[i];
-                            context->count_indices += 1;
-                        }
-                    }
-                }
-                if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
-                    context->count_vertices += 1;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
-// FUNCTION: CARMA2_HW 0x004f54d0
-// FUNCTION: CARMA2_SW 0x004f1130
-void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal) {
-    tMungeMaterialCB_Context munge_material_cb_ctx;
-
-    munge_material_cb_ctx.material_0x0 = pMaterial_1;
-    munge_material_cb_ctx.material_0x4 = pMaterial_2;
-    munge_material_cb_ctx.capacity_indices = pCapacity_indices;
-    munge_material_cb_ctx.indices = pIndices;
-    munge_material_cb_ctx.count_indices = 0;
-    munge_material_cb_ctx.capacity_vertices = pCapacity_vertices;
-    munge_material_cb_ctx.vertices = pVertices;
-    munge_material_cb_ctx.count_vertices = 0;
-
-    if (pRecursive) {
-        DRActorEnumRecurse(pActor, MungeMaterialCB, &munge_material_cb_ctx);
-    } else {
-        MungeMaterialCB(pActor, &munge_material_cb_ctx);
-    }
-    if (munge_material_cb_ctx.count_indices != 0) {
-        BrVector3Normalise(pNormal, &munge_material_cb_ctx.field_0x20);
-    }
-    *pCount_indices = munge_material_cb_ctx.count_indices;
-    *pCount_vertices = munge_material_cb_ctx.count_vertices;
-}
-
-// FUNCTION: CARMA2_HW 0x004f5750
-void C2_HOOK_FASTCALL ReinitSmashing(void) {
-    int i;
-
-    C2_HOOK_BUG_ON(REC2_ASIZE(gSmash_glass_fragments) != 200);
-    C2_HOOK_BUG_ON(sizeof(gSmash_glass_fragments[0]) != 0x38);
-    C2_HOOK_BUG_ON(REC2_ASIZE(gDecals) != 50);
-    C2_HOOK_BUG_ON(sizeof(gDecals[0]) != 0x8);
-    C2_HOOK_BUG_ON(REC2_ASIZE(gQueued_net_smashes) != 50);
-    C2_HOOK_BUG_ON(sizeof(gQueued_net_smashes[0]) != 0x38);
-    C2_HOOK_BUG_ON(sizeof(tStored_smash) != 0x38);
-
-    for (i = 0; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++) {
-        gSmash_glass_fragments[i].end_time = 0;
-    }
-    for (i = 0; i < (int)REC2_ASIZE(gDecals); i++) {
-        gDecals[i].time = 0;
-    }
-    for (i = 0; i < (int)REC2_ASIZE(gQueued_net_smashes); i++) {
-        gQueued_net_smashes[i].field_0x4 = 0;
-    }
-    gSize_powerup_queue = 0;
-    gCount_host_smashes = 0;
-    if (gNet_mode == eNet_mode_host) {
-        gNet_host_smashes = BrMemAllocate(1000 * sizeof(tStored_smash), kMem_stored_smash);
-    }
-}
-
-// LinkSmashies
-
-// FUNCTION: CARMA2_HW 0x004f5a00
-intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec) {
-    return DRActorEnumRecurse(pCar_spec->car_master_actor, RepairModels_1, pCar_spec);
-}
-
-// FUNCTION: CARMA2_HW 0x004f5a10
-intptr_t C2_HOOK_CDECL RepairModels_1(br_actor* pActor, void* pUser) {
-    tUser_crush_data* user_crush = pActor->user;
-    tCar_crush_buffer_entry* crush_data;
-
-    if (user_crush != NULL) {
-        crush_data = user_crush->crush_data;
-        if (crush_data != NULL) {
-            TotallyRepairSmash(pUser, crush_data);
-        }
-    }
-    return 0;
-}
-
-// SmashEverythingCB
-
-// SmashEverything
-
-// DetermineTilitudinality
-
-// SetSmashableModel
-
-// FUNCTION: CARMA2_HW 0x004f5ec0
-// FUNCTION: CARMA2_SW 0x004f1b20
-void C2_HOOK_FASTCALL LoadWastedExplosion(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
-    tPath_name the_path;
-    char* name;
-    char s[256];
-
-    /* Wasted explosion settings */
-
-    /* Percentage chance of car exploding */
-    *pChance_explosion = GetAnInt(pF);
-    /* Sound ID */
-    *pExplosion_sound_id = GetAnInt(pF);
-
-    PathCat(the_path, gApplication_path, "COMMON");
-    /* Name of pixelmap file */
-    GetALineAndDontArgue(pF, s);
-    name = strtok(s, "\t ,/");
-    name[strlen(name) - 4] = '\0';
-    PathCat(the_path, the_path, name);
-    LoadAllImagesInDirectory(&gMisc_storage_space, the_path);
-    ReadExplosion(pF, pExplosion_groups);
-}
-
-// FUNCTION: CARMA2_HW 0x004f5f60
-void C2_HOOK_FASTCALL ChangeSmashModel(br_actor* pActor, br_model* pOld_model, br_model* pNew_model) {
-    (void)pOld_model;
-    pActor->model = pNew_model;
-}
-
-// FUNCTION: CARMA2_HW 0x004f5f70
-void C2_HOOK_FASTCALL TurnOnSmashModel(br_actor* pActor) {
-    pActor->render_style = BR_RSTYLE_FACES;
-}
-
-// FUNCTION: CARMA2_HW 0x004f5f80
-void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor) {
-    pActor->render_style = BR_RSTYLE_NONE;
-}
-
-// FUNCTION: CARMA2_HW 0x004f5f90
-void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
-    pModel->nfaces -= pCount;
-    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
-}
-
-// based on ApexWorm/rec2 832cae840
-// FUNCTION: CARMA2_HW 0x004f5fa0
-void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
-    br_model* pModel;
-    br_material* pMaterial;
-    const br_uint_16* source;
-    br_face* face;
-    int i;
-
-    pModel = (br_model*)field_0x0;
-    source = pField_0xc;
-    pMaterial = (br_material*)field_0x4;
-    face = pModel->faces + pModel->nfaces;
-    for (i = 0; i < field_0x8; i++) {
-        face->material = pMaterial;
-        face->vertices[0] = source[0];
-        face->vertices[1] = source[1];
-        face->vertices[2] = source[2];
-        face->smoothing = source[3];
-        face->flags = 0;
-        face++;
-        source += 4;
-    }
-    pModel->nfaces += field_0x8;
-    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
-}
-
-// SmashRestoreSomeFaces
-
-// FUNCTION: CARMA2_HW 0x004f6020
-void C2_HOOK_FASTCALL TurnOnSmashDecal(int pIndex) {
-    BrActorAdd(gOther_selfs[0], gDecals[pIndex].actor);
-}
-
-// FUNCTION: CARMA2_HW 0x004f6040
-void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex) {
-    BrActorRemove(gDecals[pIndex].actor);
-}
-
-/* local declarations instead of including 59-camera.h here */
-extern tActionReplayCameraMode gAction_replay_camera_mode;
-extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
-
-// based on ApexWorm/rec2 c5b907296
-// FUNCTION: CARMA2_HW 0x004f6060
-void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar_spec, br_pixelmap* pOld_texture, br_pixelmap* pNew_texture) {
-    (void)pOld_texture;
-    if (pCar_spec != NULL && pCar_spec->field_0x1960 != NULL) {
-        pMaterial->user = pNew_texture;
-    } else {
-        pMaterial->colour_map = pNew_texture;
-    }
-    BrMaterialUpdate(pMaterial, BR_MATU_COLOURMAP);
-    if (pCar_spec == &gProgram_state.current_car && gAction_replay_camera_mode == kActionReplayCameraMode_Internal) {
-        MungeCarMaterials(pCar_spec, 1);
-    }
-}
-
-extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
-extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
-extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
-extern tWorld_callbacks gWorld_callbacks;
-extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8);
-extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
-extern int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
-
-// PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004f6130
-void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
-    tCar_spec* car;
-    tPhysics_object* pCollision;
-    br_vector3* pPoint;
-    tBounds bounds;
-    br_matrix34 matrix;
-    tFace_ref faces[20];
-    int car_id;
-    int count;
-    int i;
-
-    pCollision = NULL;
-    car_id = pSmash->field_0x8[0];
-    if (car_id != -1) {
-        if (gNet_mode == eNet_mode_none) {
-            if ((car_id & 0xffffff00) == 0) {
-                car = &gProgram_state.current_car;
-            } else {
-                car = GetCarSpec(car_id >> 8, car_id & 0xff);
-            }
-        } else if (car_id < gNumber_of_net_players) {
-            car = gNet_players[car_id].car;
-        } else {
-            car = NULL;
-        }
-        if (car != NULL) {
-            pCollision = car->collision_info;
-        }
-    }
-    if (pCollision != NULL) {
-        BrMatrix34Identity(&matrix);
-        bounds.mat = &matrix;
-        pPoint = (br_vector3*)&pSmash->field_0x8[2];
-        *(br_vector3*)matrix.m[3] = *pPoint;
-        BrVector3Set(&bounds.original_bounds.min, -0.05f, -0.05f, -0.05f);
-        BrVector3Set(&bounds.original_bounds.max, 0.05f, 0.05f, 0.05f);
-        FillInBounds(&bounds);
-        count = FindFacesInBox(&bounds, faces, 20, &gWorld_callbacks);
-        for (i = 0; i < count; i++) {
-            if (PointInFace((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
-                break;
-            }
-        }
-        if (i == count) {
-            return;
-        }
-        gINT_006a8294 = pSmash->field_0x8[11] & 1;
-        SmashEnvironment((tPhysics_object*)pPoint, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], (br_vector3*)pSmash, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
-        FlushSmashQueue(0);
-        gINT_006a8294 = 0;
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-/* local declaration instead of including 04-netgame.h here */
-extern tU32 gPHIL_last_physics_tick;
-extern int gFace_num__car;
-extern int gCount_shrapnel_shower_calls;
-extern int gNext_explosion_slot;
-extern void C2_HOOK_FASTCALL PipeSingleExplosion(int pIndex, const tExplosion* pData);
-extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
-extern intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext);
-
-// FUNCTION: CARMA2_HW 0x004f62e0
-void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
-    tQueued_net_smash* smash;
-    int count;
-
-    if (gNet_mode == eNet_mode_none) {
-        return;
-    }
-    smash = gQueued_net_smashes;
-    count = REC2_ASIZE(gQueued_net_smashes);
-    while (count-- != 0) {
-        if (smash->field_0x4 != 0 && gPHIL_last_physics_tick >= smash->field_0x4) {
-            smash->field_0x4 = 0;
-            DoNetSmash(smash);
-        }
-        smash++;
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x004f60b0
-void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
-    tQueued_net_smash* smash;
-    tNet_stored_smash* stored;
-    int is_host;
-    int i;
-
-    if (gPHIL_last_physics_tick == 0 || gPHIL_last_physics_tick >= pSmash->field_0x4) {
-        DoNetSmash(pSmash);
-    } else {
-        i = 0;
-        smash = gQueued_net_smashes;
-        while (1) {
-            if (smash->field_0x4 == 0) {
-                break;
-            }
-            i++;
-            smash++;
-            if (i >= 50) {
-                return;
-            }
-        }
-        is_host = gNet_mode == eNet_mode_host;
-        *smash = *pSmash;
-        if (is_host && gCount_host_smashes < 1000) {
-            stored = &gNet_host_smashes[gCount_host_smashes];
-            gCount_host_smashes++;
-            *(tQueued_net_smash*)stored = *pSmash;
-        }
-    }
-}
-
-// DoQueuedNetSmashes
-
-// FindTheBastard
-
-// ReceivedSmashShraps
-
-// MungeSmashEdgeTriggers
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
-extern void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time);
-extern void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15);
-extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, undefined4 pArg5, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
-extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
-
-// based on ApexWorm/rec2 4375aec8e
-// FUNCTION: CARMA2_HW 0x004f0150
-void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
-    tU32 the_time;
-    float delta_time;
-    tSmash_vertex* fragment;
-    tSmash_vertex* other;
-    tU32 field_0x18;
-    int i;
-    int j;
-
-    the_time = GetTotalTime();
-    if (gPrev_glass_munge != 0) {
-        delta_time = (float)the_time - gPrev_glass_munge;
-        fragment = gSmash_glass_fragments;
-
-        for (i = (int)REC2_ASIZE(gSmash_glass_fragments); i != 0; i--, fragment++) {
-            if (fragment->end_time != 0) {
-                if (!pEnd_race
-                    && (the_time < fragment->end_time
-                        || (gAction_replay_mode && !(ARGetReplayRate() > 0.f)))
-                    && the_time >= fragment->field_0xc) {
-                    DoFragMovement(fragment, the_time, delta_time);
-                    if (fragment->field_0x34) {
-                        fragment->field_0x34 = 0;
-                    }
-                    fragment->time_last_move = the_time;
-                } else {
-                    field_0x18 = fragment->field_0x18;
-                    if (the_time >= fragment->end_time) {
-                        if ((tS32)field_0x18 >= 0) {
-                            PipeSingleShrapnelShower(field_0x18, fragment->time_last_move, 0, 0,
-                                NULL, NULL, 0.f, NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);
-                        } else if (field_0x18 & 0x40000000u) {
-                            PipeSingleGibShower(field_0x18, fragment->time_last_move, 0, 0, 0,
-                                NULL, NULL, NULL);
-                        } else {
-                            PipeSingleBloodSpurt(field_0x18, fragment->time_last_move, 0,
-                                NULL, NULL, NULL);
-                        }
-                    }
-                    for (j = (int)REC2_ASIZE(gSmash_glass_fragments), other = gSmash_glass_fragments; j != 0; j--, other++) {
-                        if (other->end_time != 0
-                            && other->field_0x18 == field_0x18) {
-                            BrActorRemove(other->actor);
-                            other->end_time = 0;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    gPrev_glass_munge = the_time;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x0065fea0
-const char* gSmashable_collision_type_names[3] = {
-    "solid",
-    "passthrough",
-    "edges",
-};
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// PARTIAL: DoFragMovement - frame (0x20), prologue, matrix-pointer tail and branch layout match; the x87 scheduling of
-// the translate/omega block still differs (original keeps f_dt on the x87 stack, spills CSE temps at [esp+0x1c]/[esp+0x18]
-// and finishes the v[1] update before the omega loads). 'pos' doubles as the per-axis delta temporary.
-// (reference only)
-// (reference only)
-// FUNCTION: CARMA2_HW 0x004eff30
-void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
-    extern float gFloat_0058aec0;
-    float f_dt;
-    double angle;
-    float omega;
-    br_vector3 pos;
-    br_vector3 axis;
-    br_matrix34* mat;
-
-    f_dt = pDelta_time * 0.001f;
-    if (f_dt != gFloat_0058aec0 && pFragment->field_0x34 == 0) {
-        pos.v[0] = pFragment->v.v[0] * f_dt;
-        pos.v[1] = pFragment->v.v[1] * f_dt - 4.9 * gGravity_multiplier * f_dt * f_dt;
-        pos.v[2] = pFragment->v.v[2] * f_dt;
-        pFragment->actor->t.t.translate.t.v[0] -= pos.v[0] * -0.14492753;
-        pFragment->actor->t.t.translate.t.v[1] -= pos.v[1] * -0.14492753;
-        pFragment->actor->t.t.translate.t.v[2] -= pos.v[2] * -0.14492753;
-        mat = &pFragment->actor->t.t.mat;
-        pos.v[1] = f_dt * gGravity_multiplier * 9.8;
-        pFragment->v.v[1] -= pos.v[1];
-        omega = BrVector3Length(&pFragment->omega);
-        axis.v[0] = pFragment->omega.v[0] / omega;
-        axis.v[1] = pFragment->omega.v[1] / omega;
-        axis.v[2] = pFragment->omega.v[2] / omega;
-        angle = omega * f_dt;
-        if (fabs(angle) >= 0.0001) {
-            pos.v[0] = mat->m[3][0];
-            pos.v[1] = mat->m[3][1];
-            pos.v[2] = mat->m[3][2];
-            mat->m[3][0] = 0.f;
-            mat->m[3][1] = 0.f;
-            mat->m[3][2] = 0.f;
-            BrMatrix34PostRotate(mat, BrRadianToAngle(angle), &axis);
-            mat->m[3][0] = pos.v[0];
-            mat->m[3][1] = pos.v[1];
-            mat->m[3][2] = pos.v[2];
-        }
-    }
-    if (pTime >= pFragment->field_0x10) {
-        pFragment->actor->render_style = BR_RSTYLE_NONE;
-    } else {
-        pFragment->actor->render_style = BR_RSTYLE_FACES;
-    }
-}
-extern void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...);
-// FUNCTION: CARMA2_HW 0x004c8870
-void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15) {
-
-    ARDoSingleVariedSession(0x1e, pId, 14,
-        4, 0x40, pArg3,
-        4, 0, pArg4,
-        0xc, 4, pArg5,
-        0xc, 0x10, pArg6,
-        4, 0x9c, (int)pArg7,
-        0xc, 0x1c, pArg8,
-        0xc, 0x28, pArg9,
-        4, 0x44, pArg2,
-        0x30, 0x50, pArg13,
-        4, 0x4c, pArg12,
-        4, 0x80, pArg10,
-        0x18, 0x84, pArg11,
-        0xc, 0x34, pArg14,
-        0x30, 0xa0, pArg15);
-}
-// based on ApexWorm/rec2 239956756 src/carma2/newcommon/23-piping.c
-// FUNCTION: CARMA2_HW 0x004c8d40
-void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
-
-    ARDoSingleVariedSession(50, pId, 5,
-        4, 4, (uintptr_t)pArg2,
-        4, 0, (uintptr_t)pArg3,
-        12, 8, (uintptr_t)pArg4,
-        12, 20, (uintptr_t)pArg5,
-        12, 32, (uintptr_t)pArg6);
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004ead00
-void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos) {
-    tExplosion_animation_group* group;
-    tExplosion* slot;
-    tU32 now;
-    int count;
-    int slot_index;
-    int slot_found;
-    int i;
-    int j;
-    int k;
-    int frametime;
-    int start_delay;
-    tU16 angle;
-    float scaling;
-    float sx_min;
-    float sx_max;
-    float sy_min;
-    float sy_max;
-    float sz_min;
-    float sz_max;
-    float px;
-    float py;
-    float pz;
-    float rand_value;
-    int sign;
-
-    now = GetTotalTime();
-    if (pActor == NULL) {
-        return;
-    }
-    for (i = 0; i < pExplosion_animation->count_groups; i++) {
-        group = &pExplosion_animation->groups[i];
-        count = IRandomBetween((tS16)group->min_count, (tS16)group->max_count);
-        sx_min = group->min_xyz_factor.v[0] * pBounds->max.v[0];
-        sx_max = group->max_xyz_factor.v[0] * pBounds->max.v[0];
-        sy_min = group->min_xyz_factor.v[1] * pBounds->max.v[1];
-        sy_max = group->max_xyz_factor.v[1] * pBounds->max.v[1];
-        sz_min = group->min_xyz_factor.v[2] * pBounds->max.v[2];
-        sz_max = group->max_xyz_factor.v[2] * pBounds->max.v[2];
-        if (count <= 0) {
-            continue;
-        }
-        for (j = 0; j < count; j++) {
-            rand_value = FRandomBetween(sx_min, sx_max);
-            sign = PercentageChance(50) ? 1 : -1;
-            px = sign * rand_value;
-            rand_value = FRandomBetween(sy_min, sy_max);
-            sign = PercentageChance(50) ? 1 : -1;
-            py = sign * rand_value;
-            rand_value = FRandomBetween(sz_min, sz_max);
-            sign = PercentageChance(50) ? 1 : -1;
-            pz = sign * rand_value;
-            if (pPos != NULL) {
-                px += pPos->v[0];
-                py += pPos->v[1];
-                pz += pPos->v[2];
-            }
-            px += group->offset.v[0];
-            py += group->offset.v[1];
-            pz += group->offset.v[2];
-            if (group->rotate_modus != kExplosionRotateModus_NoRotate) {
-                angle = (tU16)IRandomBetween(0, 0xffff);
-            } else {
-                angle = 0;
-            }
-            scaling = FRandomBetween(group->min_scaling_factor, group->max_scaling_factor);
-            frametime = IRandomBetween(group->min_frametime_ms, group->max_frametime_ms);
-            start_delay = IRandomBetween(group->min_start_delay_ms, group->max_start_delay_ms);
-            slot_found = 0;
-            slot_index = 0;
-            slot = gExplosions;
-            do {
-                if (slot->start == 0) {
-                    slot_found = 1;
-                    break;
-                }
-                slot_index++;
-                slot++;
-            } while (slot_index < (int)REC2_ASIZE(gExplosions));
-            if (slot_index == (int)REC2_ASIZE(gExplosions)) {
-                slot_index = gNext_explosion_slot;
-                slot = &gExplosions[slot_index];
-                do {
-                    slot_index++;
-                    if (slot_index < (int)REC2_ASIZE(gExplosions)) {
-                        slot++;
-                    } else {
-                        slot_index = 0;
-                        slot = gExplosions;
-                    }
-                    if (slot->finished != 0) {
-                        slot_found = 1;
-                        gNext_explosion_slot = slot_index;
-                        break;
-                    }
-                } while (slot_index != gNext_explosion_slot);
-            }
-            if (!slot_found) {
-                return;
-            }
-            slot->start = now + start_delay;
-            slot->count_frames = (tS8)group->count_frames;
-            slot->period = frametime;
-            slot->field_0x14 = scaling * 0.14492753;
-            slot->collision_actor = pActor;
-            slot->finished = 0;
-            slot->field_0x8 = 0xff;
-            for (k = 0; k < group->count_frames; k++) {
-                *(tExplosion_frame*)&slot->frames[k] = *(tExplosion_frame*)&group->frames[k];
-            }
-            slot->field_0x1c.v[0] = px;
-            slot->field_0x1c.v[1] = py;
-            slot->field_0x1c.v[2] = pz;
-            slot->angle = angle;
-            PipeSingleExplosion(slot_index, slot);
-        }
-    }
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-/* context filled by the DRActorEnumRecurse callback GiveNonCarsAShove */
-typedef struct {
-    br_bounds3* bounds;
-    tU8 field_0x4;
-    tS8 count;
-    undefined field_0x6[2];
-    br_actor* actors[20];
-} tNon_car_search_context;
-
-// FUNCTION: CARMA2_HW 0x004ed860
-void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
-    tNon_car_search_context search;
-    tDelayed_non_car delayed;
-    br_bounds3 bounds;
-    br_matrix34* matrix;
-    tNon_car_cuboid_activation* activation;
-    int* pActive;
-    tU32 time;
-    tU32 min_column_x;
-    tU32 min_column_z;
-    tU32 max_column_x;
-    tU32 max_column_z;
-    int slot_index;
-    int column_x;
-    int column_z;
-    int axis;
-    int i;
-    int j;
-
-    time = GetTotalTime();
-    if (pActor == NULL || pActor->identifier == NULL || pActor->identifier[0] != '&') {
-        matrix = (br_matrix34*)((tU8*)pContext + 0x8c);
-    } else {
-        matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
-    }
-    i = 0;
-    activation = pActivations->activations;
-    for (; i < pActivations->count_activations; i++, activation++) {
-        search.count = 0;
-        if (activation->field_0x4 == 1) {
-            bounds = activation->bounds;
-        } else {
-            BrMatrix34ApplyP(&bounds.min, &activation->bounds.min, matrix);
-            BrMatrix34ApplyP(&bounds.max, &activation->bounds.max, matrix);
-            for (axis = 0; axis < 3; axis++) {
-                if (bounds.min.v[axis] > bounds.max.v[axis]) {
-                    br_scalar value = bounds.min.v[axis];
-
-                    bounds.min.v[axis] = bounds.max.v[axis];
-                    bounds.max.v[axis] = value;
-                }
-            }
-        }
-        search.bounds = &bounds;
-        search.field_0x4 = (tU8)activation->field_0x8;
-        XZToColumnXZ((tU8*)&min_column_x, (tU8*)&min_column_z, bounds.min.v[0], bounds.min.v[2], &gProgram_state.track_spec);
-        XZToColumnXZ((tU8*)&max_column_x, (tU8*)&max_column_z, bounds.max.v[0], bounds.max.v[2], &gProgram_state.track_spec);
-        for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
-            for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
-                if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
-                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, GiveNonCarsAShove, &search) != 0) {
-                    break;
-                }
-            }
-        }
-        delayed.field_0x0 = *(br_vector3*)((tU8*)pContext + 0x68);
-        delayed.field_0xc = *(br_vector3*)((tU8*)matrix + 0x24);
-        delayed.field_0x18 = (undefined4*)&activation->field_0x24;
-        delayed.count_actions = search.count;
-        for (j = 0; j < delayed.count_actions; j++) {
-            delayed.actor_time_actions[j].actor = search.actors[j];
-            delayed.actor_time_actions[j].time = time + IRandomBetween((tU16)activation->field_0x0, (tU16)activation->field_0x2);
-        }
-        pActive = &gSmash_explosions[0].active;
-        slot_index = 0;
-        for (;;) {
-            if (*pActive == 0) {
-                gSmash_explosions[slot_index].type = 0;
-                gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
-                gSmash_explosions[slot_index].what.non_car = delayed;
-                break;
-            }
-            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
-            slot_index++;
-            if ((intptr_t)pActive >= (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
-                break;
-            }
-        }
-    }
-}
-/* the smash record this function builds and copies into gSmash_explosions[].what
-   (0x94 bytes: the original copies 0x25 dwords, not sizeof(tDelayed_smash)) */
-typedef struct {
-    br_vector3 velocity;
-    br_vector3 position;
-    tU32 time;
-    br_vector3 impulse;
-    tU8 field_0x28[0xc];
-    tSmashable_item_spec* spec;
-    tFace_ref face;
-    undefined4 type;
-    float scale;
-    void* object;
-} tSmash_record;
-extern float gFloat_0058aec0;
-extern float gFloat_0058aec4;
-extern double gDouble_0058aec8;
-extern float gFloat_0058af38;
-extern int gUnknown_006b9c60[];
-
-// FUNCTION: CARMA2_HW 0x004edbe0
-void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
-    tSmash_record record;
-    tBounds bounds;
-    tFace_ref face_list[400];
-    tSmash_side_effect* eff;
-    br_vector3 direction;
-    tSmashable_item_spec* volatile spec;
-    br_vector3 centroid;
-    tFace_ref* pFace;
-    br_actor* actor;
-    const char* identifier;
-    int side_effect_index;
-    int face_count;
-    int type;
-    int axis;
-    int slot_index;
-    int* pActive;
-    tU32 time;
-    tU32 random_time;
-    float offset_x;
-    float offset_y;
-    float offset_z;
-    float length;
-
-    time = GetTotalTime();
-    eff = pSide_effects->side_effects;
-    for (side_effect_index = 0; side_effect_index < pSide_effects->count_side_effects; side_effect_index++, eff++) {
-        if (eff->field_0x4 == 1) {
-            bounds.original_bounds = eff->bounds;
-        } else {
-            BrMatrix34ApplyP(&bounds.original_bounds.min, &eff->bounds.min, (br_matrix34*)((tU8*)pObject + 0x8c));
-            BrMatrix34ApplyP(&bounds.original_bounds.max, &eff->bounds.max, (br_matrix34*)((tU8*)pObject + 0x8c));
-            for (axis = 0; axis < 3; axis++) {
-                if (bounds.original_bounds.min.v[axis] > bounds.original_bounds.max.v[axis]) {
-                    br_scalar value = bounds.original_bounds.min.v[axis];
-
-                    bounds.original_bounds.min.v[axis] = bounds.original_bounds.max.v[axis];
-                    bounds.original_bounds.max.v[axis] = value;
-                }
-            }
-        }
-        bounds.mat = (br_matrix34*)((tU8*)gTrack_actor + 0x2c);
-        face_count = FindFacesInBox(&bounds, face_list, 400, NULL);
-        if (eff->field_0x44 == 0) {
-            direction.v[0] = direction.v[0] / pDistance;
-            direction.v[1] = direction.v[1] / pDistance;
-            direction.v[2] = direction.v[2] / pDistance;
-        }
-        if (face_count > 0) {
-            pFace = face_list;
-            do {
-                type = -1;
-                spec = NULL;
-                actor = NULL;
-                identifier = NULL;
-                if (pFace->material != NULL) {
-                    identifier = pFace->material->identifier;
-                }
-                if (identifier != NULL && strlen(identifier) == 0xb && identifier[5] == '|') {
-                    if (eff->field_0x28 == 0 || eff->field_0x28 == 1) {
-                        goto material_centroid;
-                    }
-                    if (eff->field_0x28 != 4) {
-                        goto next_face;
-                    }
-                    if (strcmp(identifier, eff->field_0x8) != 0) {
-                        goto next_face;
-                    }
-material_centroid:
-                    centroid.v[0] = (pFace->v[0].v[0] + pFace->v[1].v[0] + pFace->v[2].v[0]) * gFloat_0058af38;
-                    centroid.v[1] = (pFace->v[0].v[1] + pFace->v[1].v[1] + pFace->v[2].v[1]) * gFloat_0058af38;
-                    centroid.v[2] = (pFace->v[0].v[2] + pFace->v[2].v[2] + pFace->v[1].v[2]) * gFloat_0058af38;
-                    type = 0;
-                    spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
-                    goto check;
-                }
-                actor = pFace->a;
-                if (actor != NULL) {
-                    identifier = actor->identifier;
-                }
-                if (identifier == NULL) {
-                    goto check;
-                }
-                if (!((strlen(identifier) == 0xb && identifier[5] == '|') || ((tU8)identifier[1] == 0xa3))) {
-                    if (*identifier != '&') {
-                        goto check;
-                    }
-                    if (gUnknown_006b9c60[(tS8)identifier[2] + 10 * (tS8)identifier[1]] == 0) {
-                        goto check;
-                    }
-                }
-                if (*identifier == '&' && identifier[1] >= '0' && identifier[1] <= '9') {
-                    if (identifier[3] == '!') {
-                        goto next_face;
-                    }
-                    if (eff->field_0x28 == 0 || eff->field_0x28 == 3) {
-                        goto actor_centroid;
-                    }
-                    if (eff->field_0x28 != 6) {
-                        goto next_face;
-                    }
-                    if (identifier[1] != eff->field_0x8[1] || identifier[2] != eff->field_0x8[2]) {
-                        goto next_face;
-                    }
-                } else {
-                    if (eff->field_0x28 == 0 || eff->field_0x28 == 2) {
-                        goto actor_centroid;
-                    }
-                    if (eff->field_0x28 != 5) {
-                        goto next_face;
-                    }
-                    if (strcmp(identifier, eff->field_0x8) != 0) {
-                        goto next_face;
-                    }
-                }
-actor_centroid:
-                centroid.v[0] = *(br_scalar*)((tU8*)actor + 0x50);
-                centroid.v[1] = *(br_scalar*)((tU8*)actor + 0x54);
-                centroid.v[2] = *(br_scalar*)((tU8*)actor + 0x58);
-                type = 1;
-                spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
-check:
-                if (type == -1) {
-                    goto next_face;
-                }
-                pActive = (int*)&gSmash_explosions[0].what.smash.field_0x80;
-                do {
-                    if (*(pActive - 0x21) != 0 && *(pActive - 0x22) == 1) {
-                        if (type == 1 && *pActive == (int)(intptr_t)pFace->a) {
-                            spec = NULL;
-                            break;
-                        }
-                        if (type == 0 && *pActive == (int)(intptr_t)pFace->a
-                                && *(tS16*)((tU8*)pActive + 4) == pFace->g
-                                && *(tS16*)((tU8*)pActive + 6) == pFace->f) {
-                            spec = NULL;
-                            break;
-                        }
-                    }
-                    pActive += 0x32;
-                } while ((tU8*)pActive < (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].what.smash.field_0x80);
-                if (spec != NULL && pFace->a != *(br_actor**)pObject) {
-                        record.velocity = *(br_vector3*)((tU8*)pObject + 0x68);
-                        random_time = IRandomBetween((tU16)eff->field_0x0, (tU16)eff->field_0x2);
-                        record.type = type;
-                        record.time = random_time + time;
-                        if (eff->field_0x44 == 1) {
-                            offset_x = *(br_scalar*)((tU8*)pObject + 0xb0) - centroid.v[0];
-                            offset_y = *(br_scalar*)((tU8*)pObject + 0xb4) - centroid.v[1];
-                            offset_z = *(br_scalar*)((tU8*)pObject + 0xb8) - centroid.v[2];
-                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
-                            if (length <= gFloat_0058aec4) {
-                                direction.v[0] = 1.0f;
-                                direction.v[1] = 0.0f;
-                                direction.v[2] = 0.0f;
-                            } else {
-                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
-                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
-                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
-                            }
-                        } else if (eff->field_0x44 == 2) {
-                            offset_x = centroid.v[0] - *(br_scalar*)((tU8*)pObject + 0xb0);
-                            offset_y = centroid.v[1] - *(br_scalar*)((tU8*)pObject + 0xb4);
-                            offset_z = centroid.v[2] - *(br_scalar*)((tU8*)pObject + 0xb8);
-                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
-                            if (length <= gFloat_0058aec4) {
-                                direction.v[0] = 1.0f;
-                                direction.v[1] = 0.0f;
-                                direction.v[2] = 0.0f;
-                            } else {
-                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
-                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
-                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
-                            }
-                        }
-                        if (eff->field_0x48 < gFloat_0058aec0) {
-                            record.scale = -(pDistance * eff->field_0x48);
-                            record.impulse.v[0] = direction.v[0] * record.scale;
-                            record.impulse.v[1] = direction.v[1] * record.scale;
-                            record.impulse.v[2] = direction.v[2] * record.scale;
-                        } else {
-                            record.impulse.v[0] = eff->field_0x48 * direction.v[0];
-                            record.impulse.v[1] = eff->field_0x48 * direction.v[1];
-                            record.impulse.v[2] = eff->field_0x48 * direction.v[2];
-                            record.scale = eff->field_0x48;
-                        }
-                        record.position = centroid;
-                        record.spec = spec;
-                        record.face = *pFace;
-                        record.object = pObject;
-                        pActive = &gSmash_explosions[0].active;
-                        for (slot_index = 0; *pActive != 0; slot_index++) {
-                            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
-                            if ((tU8*)pActive >= (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
-                                break;
-                            }
-                        }
-                        if (slot_index < (int)REC2_ASIZE(gSmash_explosions)) {
-                            gSmash_explosions[slot_index].type = 1;
-                            gSmash_explosions[slot_index].active = (int)(intptr_t)pObject;
-                            *(tSmash_record*)&gSmash_explosions[slot_index].what.smash = record;
-                        }
-                    }
-next_face:
-                pFace++;
-            } while (--face_count != 0);
-        }
-    }
-}
-extern int gMutant_tail_state;
-extern tU32 gINT_00705b70;
-extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
-
-// FUNCTION: CARMA2_HW 0x004f1030
-void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
-    void* info;
-    int type;
-
-    info = pObject->owner;
-    if (pMode == 0xe) {
-        if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
-            type = *(volatile int*)((tU8*)info + 0xc);
-            if ((type == 0 || (type != 2 && type != 3))
-                    && gSize_powerup_queue < 0x32
-                    && *(volatile int*)((tU8*)info + 0xc) > 5) {
-                gPowerup_queue[gSize_powerup_queue].actor = pActor;
-                gPowerup_queue[gSize_powerup_queue].car = pObject->owner;
-                gPowerup_queue[gSize_powerup_queue].powerup_index = 0xe;
-                gSize_powerup_queue = gSize_powerup_queue + 1;
-                return;
-            }
-        }
-        ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(pObject, 0xe);
-        return;
-    }
-    if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
-        type = *(volatile int*)((tU8*)info + 0xc);
-        if ((type == 0 || (type != 2 && type != 3))
-                && gSize_powerup_queue < 0x32
-                && *(volatile int*)((tU8*)info + 0xc) == 8) {
-            goto enqueue;
-        }
-    }
-    if (pObject->flags_0x238 == 0x20
-            && (gMutant_tail_state == 2 || GetTotalTime() - gINT_00705b70 < 0x1d4c)) {
-        goto enqueue;
-    }
-    return;
-enqueue:
-    gPowerup_queue[gSize_powerup_queue].actor = pActor;
-    gPowerup_queue[gSize_powerup_queue].car = &gProgram_state.current_car;
-    gPowerup_queue[gSize_powerup_queue].powerup_index = pMode;
-    gSize_powerup_queue = gSize_powerup_queue + 1;
-}
-// FUNCTION: CARMA2_HW 0x004f0d50
-int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
-    float local_c[3];
-    float a, b, c, d, e, f, g, h, denom, u, v;
-    int axis;
-    int i8;
-    int i11;
-
-    f = (pNormal[0] * pPoint[0] + (pNormal[1] * pPoint[1] + pNormal[2] * pPoint[2])) - pPlane_distance;
-    if (fabs(f) > 0.5) {
-        return 0;
-    }
-    f = -f;
-    local_c[0] = pNormal[0] * f + pPoint[0];
-    local_c[1] = pNormal[1] * f + pPoint[1];
-    local_c[2] = pNormal[2] * f + pPoint[2];
-    axis = 0;
-    if (fabs(pNormal[0]) < fabs(pNormal[1])) {
-        axis = 1;
-    }
-    if (fabs(pNormal[axis]) < fabs(pNormal[2])) {
-        axis = 2;
-    }
-    switch (axis) {
-    case 0:
-        i8 = 1;
-        i11 = 2;
-        break;
-    case 1:
-        i8 = 0;
-        i11 = 2;
-        break;
-    case 2:
-        i8 = 0;
-        i11 = 1;
-        break;
-    }
-    a = pVertex0[i8];
-    b = pVertex1[i8] - a;
-    c = pVertex0[i11];
-    d = pVertex1[i11] - c;
-    e = pVertex2[i11] - c;
-    f = pVertex2[i8] - a;
-    g = local_c[i8] - a;
-    h = local_c[i11] - c;
-    if (fabs(b) > 2.3841858e-07) {
-        denom = e * b - d * f;
-        if (denom == 0.0f) {
-            return 0;
-        }
-        u = (h * b - d * g) / denom;
-        v = (g - u * f) / b;
-    } else {
-        u = g / f;
-        v = (h - u * e) / d;
-    }
-    if (v >= -0.0001 && u >= -0.0001 && u + v <= 1.0001) {
-        return 1;
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x006a829c
-int gCount_shrapnel_shower_calls = 0;
-
-// GLOBAL: CARMA2_HW 0x006a82a0
-int gNext_explosion_slot = 0;
-
-// DistanceFromFace (defined in 41-utility.c, in address order)
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x004edb20
-intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
-    tNon_car_search_context* context;
-    char* identifier;
-    char first_digit;
-    br_vector3* position;
-
-    context = (tNon_car_search_context*)pContext;
-    identifier = pActor->identifier;
-    if (identifier == NULL || identifier[0] != '&') {
-        return 0;
-    }
-    position = &pActor->t.t.translate.t;
-    if (position->v[0] < context->bounds->min.v[0]) {
-        return 0;
-    }
-    if (position->v[1] < context->bounds->min.v[1]) {
-        return 0;
-    }
-    if (position->v[2] < context->bounds->min.v[2]) {
-        return 0;
-    }
-    if (position->v[0] > context->bounds->max.v[0]) {
-        return 0;
-    }
-    if (position->v[1] > context->bounds->max.v[1]) {
-        return 0;
-    }
-    if (position->v[2] > context->bounds->max.v[2]) {
-        return 0;
-    }
-    first_digit = identifier[1];
-    if (first_digit < '0' || first_digit > '9') {
-        return 0;
-    }
-    if ((tS8)context->field_0x4 < 0 || (tS8)context->field_0x4 == identifier[2] - 0x210 + first_digit * 10) {
-        if (context->count >= 20) {
-            return -1;
-        }
-        context->actors[context->count] = pActor;
-        context->count++;
-    }
-    return 0;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x0058aec0
-float gFloat_0058aec0 = 0.0f;
-
-// GLOBAL: CARMA2_HW 0x0058aec4
-float gFloat_0058aec4 = 2.3841858e-07f;
-
-// GLOBAL: CARMA2_HW 0x0058aec8
-double gDouble_0058aec8 = 1.0;
-
-// GLOBAL: CARMA2_HW 0x0058af38
-float gFloat_0058af38 = 0.33333334f;
-
-// GLOBAL: CARMA2_HW 0x006b9c60
-int gUnknown_006b9c60[100] = { 0 };
-
-// GLOBAL: CARMA2_HW 0x0058aee8
-const double gDouble_0058aee8 = 0.001;
-
-// GLOBAL: CARMA2_HW 0x0058aef8
-const double gDOUBLE_0058aef8 = 0.1;
-
-// GLOBAL: CARMA2_HW 0x0058af20
-const float gFLOAT_0058af20 = -1.0f;
-
-// GLOBAL: CARMA2_HW 0x0058af88
-const double gDOUBLE_0058af88 = 0.5;
-
-// GLOBAL: CARMA2_HW 0x0058afa8
-const double gDOUBLE_0058afa8 = 0.01;
-
-// GLOBAL: CARMA2_HW 0x0058afb0
-float gFloat_0058afb0 = 0.25f;
-
-// GLOBAL: CARMA2_HW 0x0058afb4
-float gFloat_0058afb4 = -10.0f;
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// Walks the triangles/polygons attached to a face and finds the one that
-// contains pPoint; the matching triangle's material is written to pOut.
-// pFlag != 0 allows re-selecting the current edge, otherwise it is skipped.
-// FUNCTION: CARMA2_HW 0x004f4c70
-int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
-    tU8* p1;
-    tU8* yNode;
-    tU8* zNode;
-    tU8* wNode;
-    tU16* puVar7;
-    int iVar2;
-    int iVar5;
-    int iVar1;
-    int iVar9;
-    int iVar3;
-
-    p1 = (tU8*)pFace;
-    memcpy(pOut, p1, 0x50);
-    yNode = *(tU8**)(*(tU8**)(p1 + 0x48) + 0x18);
-    if (*(tS16*)(p1 + 0x4c) < 0) {
-        iVar2 = *(int*)(yNode + 8);
-        puVar7 = *(tU16**)(yNode + 0xc);
-        iVar1 = *(tU16*)(yNode + 0x12);
-        for (iVar5 = 0; iVar5 < iVar1; iVar5++, puVar7 += 0x14) {
-            if (pFlag == 0 && iVar5 == *(tU16*)(p1 + 0x4e)) {
-                continue;
-            }
-            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0x18), *(br_scalar*)((tU8*)puVar7 + 0x24),
-                             (const float*)(iVar2 + (tU32)puVar7[0] * 0x28),
-                             (const float*)(iVar2 + (tU32)puVar7[1] * 0x28),
-                             (const float*)(iVar2 + (tU32)puVar7[2] * 0x28)) != 0) {
-                goto found_triangle;
-            }
-        }
-        return 0;
-found_triangle:
-        pOut->f = (tS16)iVar5;
-        pOut->normal = *(br_vector3*)((tU8*)puVar7 + 0x18);
-        pOut->d = *(br_scalar*)((tU8*)puVar7 + 0x24);
-        pOut->material = *(br_material**)((tU8*)puVar7 + 8);
-        return 1;
-    } else {
-        zNode = *(tU8**)(yNode + 0x4c);
-        iVar3 = (int)*(tS16*)(p1 + 0x4c);
-        wNode = *(tU8**)(zNode + 0x18);
-        iVar5 = *(tU16*)(wNode + 0x1c + iVar3 * 0x24);
-        iVar2 = *(int*)(wNode + 0x10 + iVar3 * 0x24);
-        puVar7 = *(tU16**)(wNode + 4 + iVar3 * 0x24);
-        for (iVar9 = 0; iVar9 < iVar5; iVar9++, puVar7 += 0xe) {
-            if (iVar9 == *(tU16*)(p1 + 0x4e)) {
-                continue;
-            }
-            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0xc), *(br_scalar*)((tU8*)puVar7 + 0x18),
-                             (const float*)((tU32)puVar7[0] * 0x20 + iVar2),
-                             (const float*)((tU32)puVar7[1] * 0x20 + iVar2),
-                             (const float*)((tU32)puVar7[2] * 0x20 + iVar2)) != 0) {
-                goto found_polygon;
-            }
-        }
-        return 0;
-found_polygon:
-        pOut->f = (tS16)iVar9;
-        pOut->normal = *(br_vector3*)((tU8*)puVar7 + 0xc);
-        pOut->d = *(br_scalar*)((tU8*)puVar7 + 0x18);
-        return 1;
-    }
-    return 0;
-}
-
-// PARTIAL 60.47%: only x87 scheduling/fld order of the first two statements differs
-// FUNCTION: CARMA2_HW 0x004f3740
-void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
-    const float* pData = (const float*)pIndices;
-
-    pResult[pIndices[0]] = ((pTransform[7] * pTransform[pIndices[0]] + (pPoint[0] - pTransform[3])) * pTransform[10]
-        - ((pPoint[1] - pTransform[4]) + pTransform[9] * pTransform[pIndices[0]]) * pTransform[8])
-        / (pTransform[10] * pTransform[7] - pTransform[9] * pTransform[8]);
-    pResult[pIndices[1]] = ((pTransform[pIndices[1]] * pTransform[8] + (pPoint[0] - pTransform[3])) * pTransform[9]
-        - ((pPoint[1] - pTransform[4]) + pTransform[10] * pTransform[pIndices[1]]) * pTransform[7])
-        / (pTransform[9] * pTransform[8] - pTransform[10] * pTransform[7]);
-    pResult[pIndices[2]] = (pData[6] - pResult[pIndices[0]] * pData[pIndices[0] + 3]
-        - pResult[pIndices[1]] * pData[pIndices[1] + 3])
-        / pData[pIndices[2] + 3];
+    strcpy(*pIdentifier, name);
 }
 
 // Picks the uv triangle of a smash mapping that is nearest (in uv space) to
@@ -4215,9 +3697,27 @@ void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(const void* pMap, br_vector
     }
 }
 
+// PARTIAL 60.47%: only x87 scheduling/fld order of the first two statements differs
+// FUNCTION: CARMA2_HW 0x004f3740
+void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
+    const float* pData = (const float*)pIndices;
+
+    pResult[pIndices[0]] = ((pTransform[7] * pTransform[pIndices[0]] + (pPoint[0] - pTransform[3])) * pTransform[10]
+        - ((pPoint[1] - pTransform[4]) + pTransform[9] * pTransform[pIndices[0]]) * pTransform[8])
+        / (pTransform[10] * pTransform[7] - pTransform[9] * pTransform[8]);
+    pResult[pIndices[1]] = ((pTransform[pIndices[1]] * pTransform[8] + (pPoint[0] - pTransform[3])) * pTransform[9]
+        - ((pPoint[1] - pTransform[4]) + pTransform[10] * pTransform[pIndices[1]]) * pTransform[7])
+        / (pTransform[9] * pTransform[8] - pTransform[10] * pTransform[7]);
+    pResult[pIndices[2]] = (pData[6] - pResult[pIndices[0]] * pData[pIndices[0] + 3]
+        - pResult[pIndices[1]] * pData[pIndices[1] + 3])
+        / pData[pIndices[2] + 3];
+}
+
 // Builds a decal actor out of a smashed face's quad: copies the quad into the
 // free/oldest decal model, flips faces that point away from the face normal
 // and fills the poly/vertex index arrays handed back to the caller.
+// GLOBAL: CARMA2_HW 0x0058afb4
+float gFloat_0058afb4 = -10.0f;
 // FUNCTION: CARMA2_HW 0x004f3820
 br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_material* pMaterial, undefined4 pPoly_array, undefined4 pVertex_array) {
     br_model* model;
@@ -4619,233 +4119,745 @@ int C2_HOOK_FASTCALL InsertQuad(const void* pMap, br_actor* pActor, br_vertex* p
     return 1;
 }
 
-// FUNCTION: CARMA2_HW 0x004f3560
-void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_material* pMaterial, char** pIdentifier, char pIndex) {
-    char name[64];
-    char suffix[64];
-    int name_length;
-
-    strcpy(name, *pIdentifier);
-    name_length = strlen(name);
-    if (name_length < 4) {
-        sprintf(name, "Smash material %s has a name that is less than 4 characters long", *pIdentifier);
-        PDFatalError(name);
-    }
-    strcpy(suffix, name + name_length - 4);
-    sprintf(name + name_length - 4, "        ");
-    sprintf(name + 5, "%cx", '|');
-    name[6] = pIndex + 1;
-    strcat(name, suffix);
-    name[11] = 0;
-
-    if (strlen(*pIdentifier) < 12) {
-        BrResFree(*pIdentifier);
-        *pIdentifier = BrResStrDup(pMaterial, name);
-        return;
-    }
-    strcpy(*pIdentifier, name);
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// GLOBAL: CARMA2_HW 0x0058aec0
+float gFloat_0058aec0 = 0.0f;
+
+// GLOBAL: CARMA2_HW 0x0058aec4
+float gFloat_0058aec4 = 2.3841858e-07f;
+
+// GLOBAL: CARMA2_HW 0x0058aec8
+double gDouble_0058aec8 = 1.0;
+
+// GLOBAL: CARMA2_HW 0x0058af38
+float gFloat_0058af38 = 0.33333334f;
+
+// GLOBAL: CARMA2_HW 0x006b9c60
+int gUnknown_006b9c60[100] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058aee8
+const double gDouble_0058aee8 = 0.001;
+
+// GLOBAL: CARMA2_HW 0x0058aef8
+const double gDOUBLE_0058aef8 = 0.1;
+
+// GLOBAL: CARMA2_HW 0x0058af20
+const float gFLOAT_0058af20 = -1.0f;
+
+// GLOBAL: CARMA2_HW 0x0058af88
+const double gDOUBLE_0058af88 = 0.5;
+
+// GLOBAL: CARMA2_HW 0x0058afa8
+const double gDOUBLE_0058afa8 = 0.01;
+
+// GLOBAL: CARMA2_HW 0x0058afb0
+float gFloat_0058afb0 = 0.25f;
+
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 96.72%: only the two calls to 0x409570 (unnamed in the diff; local cdecl placeholder below) differ
-// FUNCTION: CARMA2_HW 0x004cc860
-void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel) {
-    extern int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, ...);
-    extern void C2_HOOK_FASTCALL PipeSinglePedStatus(const tPedestrian* pPed, tS8 pArg2, tS8 pArg3, tS8 pArg4, tS8 pArg5, tS8 pArg6, tS8 pArg7, tS8 pArg8, tS8 pArg9, const br_vector3* pArg10, const br_vector3* pArg11, const br_matrix34* pArg12);
-    tU32 old_flags;
-    tU32 old_bit;
-    tS8 old_4;
-    tS8 old_5;
+// Walks the triangles/polygons attached to a face and finds the one that
+// contains pPoint; the matching triangle's material is written to pOut.
+// pFlag != 0 allows re-selecting the current edge, otherwise it is skipped.
+// FUNCTION: CARMA2_HW 0x004f4c70
+int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
+    tU8* p1;
+    tU8* yNode;
+    tU8* zNode;
+    tU8* wNode;
+    tU16* puVar7;
+    int iVar2;
+    int iVar5;
+    int iVar1;
+    int iVar9;
+    int iVar3;
 
-    old_flags = (tU32)pCharacter->field_0x14;
-    old_4 = pCharacter->field_0x4;
-    old_5 = pCharacter->field_0x5;
-    old_bit = (old_flags >> 2) & 1;
-    if (pLevel == 1) {
-        SetCharacterPhysicsLevel(pCharacter, 1, *(undefined4*)(&pLevel + 1));
+    p1 = (tU8*)pFace;
+    memcpy(pOut, p1, 0x50);
+    yNode = *(tU8**)(*(tU8**)(p1 + 0x48) + 0x18);
+    if (*(tS16*)(p1 + 0x4c) < 0) {
+        iVar2 = *(int*)(yNode + 8);
+        puVar7 = *(tU16**)(yNode + 0xc);
+        iVar1 = *(tU16*)(yNode + 0x12);
+        for (iVar5 = 0; iVar5 < iVar1; iVar5++, puVar7 += 0x14) {
+            if (pFlag == 0 && iVar5 == *(tU16*)(p1 + 0x4e)) {
+                continue;
+            }
+            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0x18), *(br_scalar*)((tU8*)puVar7 + 0x24),
+                             (const float*)(iVar2 + (tU32)puVar7[0] * 0x28),
+                             (const float*)(iVar2 + (tU32)puVar7[1] * 0x28),
+                             (const float*)(iVar2 + (tU32)puVar7[2] * 0x28)) != 0) {
+                goto found_triangle;
+            }
+        }
+        return 0;
+found_triangle:
+        pOut->f = (tS16)iVar5;
+        pOut->normal = *(br_vector3*)((tU8*)puVar7 + 0x18);
+        pOut->d = *(br_scalar*)((tU8*)puVar7 + 0x24);
+        pOut->material = *(br_material**)((tU8*)puVar7 + 8);
+        return 1;
     } else {
-        SetCharacterPhysicsLevel(pCharacter, pLevel);
-    }
-    if ((((pLevel >> 2) & 1) ^ old_bit) != 0) {
-        PipeSinglePedStatus(pCharacter->ped, -1, -1, old_flags, pLevel, old_4, pCharacter->field_0x4, old_5, pCharacter->field_0x5, &pCharacter->field_0xc0, &pCharacter->field_0xcc, &pCharacter->field_0x8c);
-        pCharacter->ped->field_0x06++;
-    }
-}
-
-// Clears the pedestrian's smooth-turn cache entry and raises its character
-// physics level to 5 (called when a ped becomes "physicing").
-// FUNCTION: CARMA2_HW 0x004d35e0
-void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed) {
-    pPed->field_0x0c->field_0x6c = 0;
-    SetCharacterPhysicsLevelAR(pPed->character, 5);
-}
-
-extern int gExploding_pedestrians;
-extern int gImmortal_peds;
-extern int gGoreLevel;
-extern int gPed_severing_damage;
-extern const int gPow2_array[32];
-extern int gPed_dismember_spurting_member_count;
-extern int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pOmega);
-extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
-extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
-extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
-
-// GLOBAL: CARMA2_HW 0x0069bc0c
-int gPed_severing_chance;
-
-/* Pipes the dismembered-member indices for one bone. */
-// FUNCTION: CARMA2_HW 0x004c8bf0
-void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone, tS8 pArg3, tS8 pArg4) {
-    ARDoSingleVariedSession(0x2c, (uintptr_t)pPed, 3,
-        2, 0, (int)pBone,
-        1, 2, (int)pArg3,
-        1, 3, (int)pArg4);
-}
-
-// FUNCTION: CARMA2_HW 0x004cd9e0
-int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBoneIndex) {
-    tPed_character_instance* pCharacter;
-    br_vector3 position;
-    br_vector3 omega;
-    br_actor* actor;
-    int physics_index;
-    int i;
-    int count;
-    int result;
-
-    pCharacter = pPed->character;
-    count = 0;
-    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
-        if (pCharacter->personality->form->bones[i].indices[0] == pBoneIndex && (pCharacter->field_0xc & gPow2_array[i]) == 0) {
-            count += DismemberPed(pPed, i);
-        }
-    }
-    pPed->field_0x0c->field_0x23[pBoneIndex] = gPed_dismember_spurting_member_count;
-    if (gExploding_pedestrians != 0) {
-        position.v[0] = SRandomPosNeg(3.f);
-        position.v[1] = SRandomBetween(0.f, 3.f);
-        position.v[2] = SRandomPosNeg(3.f);
-        position.v[0] = pCharacter->field_0xd8.v[0] + position.v[0];
-        position.v[1] = pCharacter->field_0xd8.v[1] + position.v[1];
-        position.v[2] = pCharacter->field_0xd8.v[2] + position.v[2];
-        omega.v[0] = SRandomPosNeg(20.f);
-        omega.v[1] = SRandomPosNeg(20.f);
-        omega.v[2] = SRandomPosNeg(20.f);
-        physics_index = (tS8)pCharacter->field_0x6;
-        result = DismemberCharacter(pCharacter, pBoneIndex, &position, &omega);
-        if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
-            PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
-            actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
-            if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
-                BrActorAdd(gNon_track_actor, actor);
+        zNode = *(tU8**)(yNode + 0x4c);
+        iVar3 = (int)*(tS16*)(p1 + 0x4c);
+        wNode = *(tU8**)(zNode + 0x18);
+        iVar5 = *(tU16*)(wNode + 0x1c + iVar3 * 0x24);
+        iVar2 = *(int*)(wNode + 0x10 + iVar3 * 0x24);
+        puVar7 = *(tU16**)(wNode + 4 + iVar3 * 0x24);
+        for (iVar9 = 0; iVar9 < iVar5; iVar9++, puVar7 += 0xe) {
+            if (iVar9 == *(tU16*)(p1 + 0x4e)) {
+                continue;
+            }
+            if (PointInFace((const float*)pPoint, (const float*)((tU8*)puVar7 + 0xc), *(br_scalar*)((tU8*)puVar7 + 0x18),
+                             (const float*)((tU32)puVar7[0] * 0x20 + iVar2),
+                             (const float*)((tU32)puVar7[1] * 0x20 + iVar2),
+                             (const float*)((tU32)puVar7[2] * 0x20 + iVar2)) != 0) {
+                goto found_polygon;
             }
         }
-        return result + count;
-    }
-    physics_index = (tS8)pCharacter->field_0x6;
-    result = DismemberCharacter(pCharacter, pBoneIndex, NULL, NULL);
-    if (result != 0 && (tS8)pCharacter->field_0x6 >= 0) {
-        PipeSinglePedDismember(pCharacter->ped, pBoneIndex, physics_index, pCharacter->field_0x6);
-        actor = pCharacter->personality->form->actor_sets[(tS8)pCharacter->field_0x4].actors[pBoneIndex];
-        if (actor->parent == NULL && (pBoneIndex == 0 || (pCharacter->field_0xc & gPow2_array[pBoneIndex]) != 0)) {
-            BrActorAdd(gNon_track_actor, actor);
-        }
-    }
-    return result + count;
-}
-
-/* Applies falling damage to a pedestrian: turns the impact speed into a move
-   time, optionally severs limbs (dismemberfest / exploding pedestrians),
-   updates hit points and plays the matching ped move and noise.
-   Returns 1 when the ped is dead. */
-// FUNCTION: CARMA2_HW 0x004cd640
-int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) {
-    int limit;
-    double a;
-    int move_time;
-    int count;
-    float time_left;
-
-    count = 0;
-    a = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
-    move_time = (int)(a * a * pSpeed);
-    if (pPed->character->personality->form->non_humanoid != 0 && (gPed_dismemberfest != 0 || gExploding_pedestrians != 0)) {
-        if (move_time < 100) {
-            move_time = 100;
-        }
-    }
-    time_left = (float)move_time;
-    if (pCollision_info != NULL && gImmortal_peds == 0 && gGoreLevel >= 2) {
-        while (1) {
-            if (gPed_dismemberfest != 0) {
-                limit = 5;
-            } else {
-                limit = gPed_severing_damage;
-            }
-            time_left = time_left - (float)limit;
-            if (time_left < 0.0f) {
-                break;
-            }
-            if (count >= 5) {
-                break;
-            }
-            if (gExploding_pedestrians == 0 && gPed_dismemberfest == 0) {
-                if (!PercentageChance(gPed_severing_chance)) {
-                    continue;
-                }
-            }
-            count += DismemberPed(pPed, IRandomBetween(1, pPed->character->personality->form->count_bones - 1));
-        }
-    }
-    if (count > 4) {
-        ((tU8*)pPed->field_0x0c)[0x2e] |= 2;
-    }
-    if (pPed->hit_points <= 0) {
-        if (move_time <= 2) {
-            return 1;
-        }
-        MakePedNoise(pPed, 5, 0, pCollision_info);
+        return 0;
+found_polygon:
+        pOut->f = (tS16)iVar9;
+        pOut->normal = *(br_vector3*)((tU8*)puVar7 + 0xc);
+        pOut->d = *(br_scalar*)((tU8*)puVar7 + 0x18);
         return 1;
     }
-    if (pPed->character->personality->form->non_humanoid != 0 && pPed->character->field_0xc != 0) {
-        pPed->hit_points = 0;
-        move_time = 0;
-    }
-    if ((pPed->character->field_0xc & gPow2_array[pPed->character->personality->form->index_head_bone]) != 0) {
-        pPed->hit_points = 0;
-    } else if (move_time >= 100) {
-        pPed->hit_points = 0;
-    } else {
-        pPed->hit_points -= (tS8)move_time;
-    }
-    if (gImmortal_peds != 0) {
-        if (pPed->hit_points <= 0) {
-            pPed->hit_points = 1;
-        }
-    }
-    if (pPed->hit_points > 0) {
-        if (pMove1 >= 0) {
-            SetPedMove(pPed, pMove1, -1, 0, 1, GetTotalTime(), 5);
-        }
-        MakePedNoise(pPed, 4, 0, pCollision_info);
-        return 0;
-    }
-    if (pMove2 >= 0) {
-        SetPedMove(pPed, pMove2, -1, 0, 1, GetTotalTime(), 5);
-    }
-    MakePedNoise(pPed, 1, 0, pCollision_info);
-    KillPedestrian(pPed, pCollision_info);
-    return 1;
+    return 0;
 }
+
+// FUNCTION: CARMA2_HW 0x004f4e20
+float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
+    br_matrix34 matrix;
+    br_bounds3 bounds;
+    br_vector3 v;
+    int seed;
+    tU32 time;
+    float result;
+    tPhysics_object* object;
+    char* identifier;
+    br_actor* child;
+    int changed;
+    int i;
+
+    object = pObject;
+    result = -1.f;
+    time = GetTotalTime();
+    gINT_006a3334 = 0;
+    *pFlag = 0;
+    if (pMagnitude < pSpec->mode_data.shrapnel.removal_threshold) {
+        return -1.f;
+    }
+    v.v[0] = ((float*)object->field_0x1b4)[0] * 6.9;
+    v.v[1] = ((float*)object->field_0x1b4)[1] * 6.9;
+    v.v[2] = ((float*)object->field_0x1b4)[2] * 6.9;
+    seed = (int)pForce->v[1] ^ (int)pForce->v[2] ^ (int)pForce->v[0];
+    bounds = pActor->model->bounds;
+    gINT_006a3334 = 0;
+    changed = 0;
+    switch (pSpec->mode) {
+    case kSmashableMode_NoChange:
+        if (pSpec->field_0x10 == 0) {
+            changed = 1;
+        }
+        pSpec->field_0x10 = GetTotalTime();
+        break;
+    case kSmashableMode_Remove:
+        if (pActor->render_style != 1) {
+            changed = 1;
+            pActor->render_style = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, NULL);
+            if (pActor != NULL && (identifier = pActor->identifier) != NULL && identifier[0] == '&'
+                    && gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')] != NULL
+                    && pActor == object->actor) {
+                pActor->t.t.translate.t.v[1] = -1000.f;
+                object->transform_matrix.m[3][1] = -1000.f;
+            }
+        }
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        object->box_face_ref = gFace_num__car - 2;
+        break;
+    case kSmashableMode_ReplaceModel:
+        if (pActor->model != pSpec->replace.model) {
+            changed = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, pSpec->replace.model);
+            pActor->model = pSpec->replace.model;
+            if (PercentageChance(pSpec->replace.smoke_fire_chance.chance_fire) && pSpec->replace.smoke_fire_chance.model_1_int > 0) {
+                for (i = 0; i < pSpec->replace.smoke_fire_chance.model_1_int; i++) {
+                    CreateSmokeColumn2(0, pActor, NULL, NULL, IRandomBetween(pSpec->replace.smoke_fire_chance.model_2_int, pSpec->replace.smoke_fire_chance.model_3_int), IRandomBetween(0, pActor->model->prepared->groups->nvertices), 10000000);
+                }
+            }
+            for (child = pActor->children; child != NULL; child = child->next) {
+                PipeSingleSmashModelChange(child, child->model, NULL);
+                child->render_style = 1;
+            }
+            AddChangedPoint(&pActor->t.t.translate.t);
+        }
+        object->box_face_ref = gFace_num__car - 2;
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        break;
+    default:
+        break;
+    }
+    if (changed) {
+        result = pSpec->mode_data.shrapnel.removal_threshold;
+        *pFlag = 1;
+        BrActorToActorMatrix34_2(&matrix, pActor, gUniverse_actor);
+        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
+    }
+    return result;
+}
+// PARTIAL 96.08%: the original VS6 build keeps a third redundant `test eax,eax; je body` owner-null test
+// (0x4f513e) between the flags test and the driver load. MSVC 11 cannot reproduce it: duplicating the check in
+// the same `&&` chain, or as a separate `if (pObject->owner != NULL)` / `if (owner != NULL)` block, is CSE'd
+// with the first test (still 96.08); the local-variable form emits it but then value-range-removes the later
+// 0x4f514a test instead (92.11). The residual is this single 4-byte pair plus the resulting jump targets.
+// FUNCTION: CARMA2_HW 0x004f5110
+void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
+    tCar_spec* car;
+    void* owner;
+    int driver;
+    tNet_message* message;
+    tNet_stored_smash* chunk;
+    tNet_stored_smash* stored;
+    br_vector3 point;
+    float d;
+    int id;
+
+    if (gNet_mode == eNet_mode_none) {
+        return;
+    }
+    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
+        owner = pObject->owner;
+        driver = *(int*)((char*)owner + 0xc);
+        if (driver > 5) {
+            if (owner == NULL || driver != eDriver_local_human) {
+                return;
+            }
+        }
+    }
+    if (pFace != NULL) {
+        d = DistanceFromFace(pPosition, pFace);
+        BrVector3Scale(&point, &pFace->normal, -d);
+        BrVector3Add(&point, &point, pPosition);
+    } else {
+        BrVector3Copy(&point, pPosition);
+    }
+    message = NetBuildGuaranteedMessage(0x21, 0);
+    chunk = (tNet_stored_smash*)&message->guaranteed;
+    chunk->field_0x4 = gPHIL_last_physics_tick + 40;
+    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) {
+        car = (tCar_spec*)pObject->owner;
+        if (car != NULL && car->driver > 5) {
+            if (gNet_mode != eNet_mode_none) {
+                id = (int)(NetPlayerFromCar(car) - gNet_players);
+            } else {
+                id = (tU16)car->car_ID;
+            }
+        } else {
+            id = -1;
+        }
+    } else {
+        id = -1;
+    }
+    chunk->player = id;
+    chunk->field_0xc = pMagnitude;
+    BrVector3Copy(&chunk->field_0x10, &point);
+    chunk->field_0x1c = *pNormal;
+    chunk->field_0x28 = *pForce;
+    if (pArg7 != 0) {
+        chunk->field_0x34 = 2;
+    } else {
+        chunk->field_0x34 = 0;
+    }
+    NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, message, NULL);
+    if (gNet_mode == eNet_mode_host && gCount_host_smashes < 1000) {
+        stored = &gNet_host_smashes[gCount_host_smashes];
+        gCount_host_smashes++;
+        *stored = *chunk;
+    }
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// MungeSmashMaterialNames
+
+// ExtrapolateTextureCoordinates
+
+// ExtrapolateGeometryCoordinates2
+
+// ExtrapolateGeometryCoordinates
+
+// ExtractDeTiledFaces
+
+// AddDecal
+
+// InsertQuad
+
+// SpawnSmashAndMungeFaces
+
+// DistanceFromFaceND
+
+// PointInFace
+
+// FindFaceWithPoint
+
+// ProcessTexture
+
+// ProcessMesh
+
+// ProcessModel
+
+// BashModel
+
+// SendNetSmash
+
+// SendAllSmashes
+
+// HitPowerup
+
+extern float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork);
+extern void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7);
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004f52f0
+// FUNCTION: CARMA2_SW 0x004f0f50
+float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
+    float result;
+    int flag;
+    char* identifier;
+    tSmashable_item_spec* trigger;
+
+    result = -1.f;
+    flag = 0;
+    if (pActor != NULL) {
+        identifier = pActor->identifier;
+        if (identifier != NULL && identifier[0] == '&') {
+            trigger = gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')];
+            if (trigger != NULL) {
+                if ((pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 1) && identifier[3] != '!')
+                        || (pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 4) && identifier[3] == '!')
+                        || (pSnap != 0 && (trigger->trigger_object.number.field_0x1 & 2))) {
+                    gINT_006a3334 = 0;
+                    result = BashModel(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                    if (flag != 0 && pNetwork == 0) {
+                        SendNetSmash(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x004f53e0
+// FUNCTION: CARMA2_SW 0x004f1040
+void C2_HOOK_FASTCALL NonCarSnapSmashCallback(tPhysics_object* pObject, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce) {
+
+    BashObject(pObject, pObject->actor, BrVector3Length(pForce), pPosition, pNormal, pForce, 1, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x004f5470
+int C2_HOOK_FASTCALL SmashFaceMustBeUpdateable(br_material* pMaterial) {
+    int i;
+
+    for (i = 0; i < gCount_track_smashable_environment_specs; i++) {
+        tSmashable_item_spec* spec = &gTrack_smashable_environment_specs[i];
+
+        if (spec->trigger_type == kSmashableTrigger_Material && spec->trigger_object.material == pMaterial
+                && ((spec->mode_data.texture_change.count_levels > 0 && spec->mode == kSmashableMode_TextureChange)
+                    || spec->mode == kSmashableMode_Remove
+                    || spec->mode == kSmashableMode_ReplaceModel)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+extern intptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
+// FUNCTION: CARMA2_HW 0x004f54d0
+// FUNCTION: CARMA2_SW 0x004f1130
+void C2_HOOK_FASTCALL MungeMaterial(br_actor* pActor, int pRecursive, br_material* pMaterial_1, br_material* pMaterial_2, int pCapacity_indices, tU16* pIndices, int* pCount_indices, int pCapacity_vertices, tCar_crush_vertex_data* pVertices, int* pCount_vertices, br_vector3* pNormal) {
+    tMungeMaterialCB_Context munge_material_cb_ctx;
+
+    munge_material_cb_ctx.material_0x0 = pMaterial_1;
+    munge_material_cb_ctx.material_0x4 = pMaterial_2;
+    munge_material_cb_ctx.capacity_indices = pCapacity_indices;
+    munge_material_cb_ctx.indices = pIndices;
+    munge_material_cb_ctx.count_indices = 0;
+    munge_material_cb_ctx.capacity_vertices = pCapacity_vertices;
+    munge_material_cb_ctx.vertices = pVertices;
+    munge_material_cb_ctx.count_vertices = 0;
+
+    if (pRecursive) {
+        DRActorEnumRecurse(pActor, MungeMaterialCB, &munge_material_cb_ctx);
+    } else {
+        MungeMaterialCB(pActor, &munge_material_cb_ctx);
+    }
+    if (munge_material_cb_ctx.count_indices != 0) {
+        BrVector3Normalise(pNormal, &munge_material_cb_ctx.field_0x20);
+    }
+    *pCount_indices = munge_material_cb_ctx.count_indices;
+    *pCount_vertices = munge_material_cb_ctx.count_vertices;
+}
+
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004f55d0
+// FUNCTION: CARMA2_SW 0x004f1230
+intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* data) {
+    tMungeMaterialCB_Context* context = data;
+    int face_i;
+    br_face* face;
+
+    if (pActor->model != NULL) {
+        for (face_i = 0, face = pActor->model->faces; face_i < pActor->model->nfaces; face_i++, face++) {
+            if (face->material == context->material_0x0) {
+                face->material = context->material_0x4;
+                if (context->indices != NULL && context->count_indices < context->capacity_indices) {
+                    int i;
+
+                    for (i = 0; i < 3; i++) {
+                        int j;
+                        int found = 0;
+
+                        for (j = 0; j < context->count_indices; j++) {
+                            if (face->vertices[i] == context->indices[j]) {
+                                if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
+                                    context->vertices[context->count_vertices].field_0x0[i] = (tU16)j;
+                                }
+                                found = 1;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            if (context->count_indices != 0) {
+                                BrVector3Accumulate(&context->field_0x20, &face->n);
+                            } else {
+                                BrVector3Copy(&context->field_0x20, &face->n);
+                            }
+                            if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
+                                context->vertices[context->count_vertices].field_0x0[i] = (tU16)context->count_indices;
+                            }
+                            context->indices[context->count_indices] = face->vertices[i];
+                            context->count_indices += 1;
+                        }
+                    }
+                }
+                if (context->vertices != NULL && context->count_vertices < context->capacity_vertices) {
+                    context->count_vertices += 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x004f5750
+void C2_HOOK_FASTCALL ReinitSmashing(void) {
+    int i;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(gSmash_glass_fragments) != 200);
+    C2_HOOK_BUG_ON(sizeof(gSmash_glass_fragments[0]) != 0x38);
+    C2_HOOK_BUG_ON(REC2_ASIZE(gDecals) != 50);
+    C2_HOOK_BUG_ON(sizeof(gDecals[0]) != 0x8);
+    C2_HOOK_BUG_ON(REC2_ASIZE(gQueued_net_smashes) != 50);
+    C2_HOOK_BUG_ON(sizeof(gQueued_net_smashes[0]) != 0x38);
+    C2_HOOK_BUG_ON(sizeof(tStored_smash) != 0x38);
+
+    for (i = 0; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++) {
+        gSmash_glass_fragments[i].end_time = 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gDecals); i++) {
+        gDecals[i].time = 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gQueued_net_smashes); i++) {
+        gQueued_net_smashes[i].field_0x4 = 0;
+    }
+    gSize_powerup_queue = 0;
+    gCount_host_smashes = 0;
+    if (gNet_mode == eNet_mode_host) {
+        gNet_host_smashes = BrMemAllocate(1000 * sizeof(tStored_smash), kMem_stored_smash);
+    }
+}
+
+// LinkSmashies
+
+// FUNCTION: CARMA2_HW 0x004f5a00
+intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec) {
+    return DRActorEnumRecurse(pCar_spec->car_master_actor, RepairModels_1, pCar_spec);
+}
+
+// FUNCTION: CARMA2_HW 0x004f5a10
+intptr_t C2_HOOK_CDECL RepairModels_1(br_actor* pActor, void* pUser) {
+    tUser_crush_data* user_crush = pActor->user;
+    tCar_crush_buffer_entry* crush_data;
+
+    if (user_crush != NULL) {
+        crush_data = user_crush->crush_data;
+        if (crush_data != NULL) {
+            TotallyRepairSmash(pUser, crush_data);
+        }
+    }
+    return 0;
+}
+
+// SmashEverythingCB
+
+// SmashEverything
+
+// DetermineTilitudinality
+
+// SetSmashableModel
+
+// FUNCTION: CARMA2_HW 0x004f5ec0
+// FUNCTION: CARMA2_SW 0x004f1b20
+void C2_HOOK_FASTCALL LoadWastedExplosion(FILE* pF, int* pChance_explosion, int* pExplosion_sound_id, tExplosion_animation* pExplosion_groups) {
+    tPath_name the_path;
+    char* name;
+    char s[256];
+
+    /* Wasted explosion settings */
+
+    /* Percentage chance of car exploding */
+    *pChance_explosion = GetAnInt(pF);
+    /* Sound ID */
+    *pExplosion_sound_id = GetAnInt(pF);
+
+    PathCat(the_path, gApplication_path, "COMMON");
+    /* Name of pixelmap file */
+    GetALineAndDontArgue(pF, s);
+    name = strtok(s, "\t ,/");
+    name[strlen(name) - 4] = '\0';
+    PathCat(the_path, the_path, name);
+    LoadAllImagesInDirectory(&gMisc_storage_space, the_path);
+    ReadExplosion(pF, pExplosion_groups);
+}
+
+// FUNCTION: CARMA2_HW 0x004f5f60
+void C2_HOOK_FASTCALL ChangeSmashModel(br_actor* pActor, br_model* pOld_model, br_model* pNew_model) {
+    (void)pOld_model;
+    pActor->model = pNew_model;
+}
+
+// FUNCTION: CARMA2_HW 0x004f5f70
+void C2_HOOK_FASTCALL TurnOnSmashModel(br_actor* pActor) {
+    pActor->render_style = BR_RSTYLE_FACES;
+}
+
+// FUNCTION: CARMA2_HW 0x004f5f80
+void C2_HOOK_FASTCALL TurnOffSmashModel(br_actor* pActor) {
+    pActor->render_style = BR_RSTYLE_NONE;
+}
+
+// FUNCTION: CARMA2_HW 0x004f5f90
+void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
+    pModel->nfaces -= pCount;
+    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
+}
+
+// based on ApexWorm/rec2 832cae840
+// FUNCTION: CARMA2_HW 0x004f5fa0
+void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
+    br_model* pModel;
+    br_material* pMaterial;
+    const br_uint_16* source;
+    br_face* face;
+    int i;
+
+    pModel = (br_model*)field_0x0;
+    source = pField_0xc;
+    pMaterial = (br_material*)field_0x4;
+    face = pModel->faces + pModel->nfaces;
+    for (i = 0; i < field_0x8; i++) {
+        face->material = pMaterial;
+        face->vertices[0] = source[0];
+        face->vertices[1] = source[1];
+        face->vertices[2] = source[2];
+        face->smoothing = source[3];
+        face->flags = 0;
+        face++;
+        source += 4;
+    }
+    pModel->nfaces += field_0x8;
+    DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
+}
+
+// SmashRestoreSomeFaces
+
+// FUNCTION: CARMA2_HW 0x004f6020
+void C2_HOOK_FASTCALL TurnOnSmashDecal(int pIndex) {
+    BrActorAdd(gOther_selfs[0], gDecals[pIndex].actor);
+}
+
+// FUNCTION: CARMA2_HW 0x004f6040
+void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex) {
+    BrActorRemove(gDecals[pIndex].actor);
+}
+
+/* local declarations instead of including 59-camera.h here */
+extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam);
+
+// based on ApexWorm/rec2 c5b907296
+// FUNCTION: CARMA2_HW 0x004f6060
+void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar_spec, br_pixelmap* pOld_texture, br_pixelmap* pNew_texture) {
+    (void)pOld_texture;
+    if (pCar_spec != NULL && pCar_spec->field_0x1960 != NULL) {
+        pMaterial->user = pNew_texture;
+    } else {
+        pMaterial->colour_map = pNew_texture;
+    }
+    BrMaterialUpdate(pMaterial, BR_MATU_COLOURMAP);
+    if (pCar_spec == &gProgram_state.current_car && gAction_replay_camera_mode == kActionReplayCameraMode_Internal) {
+        MungeCarMaterials(pCar_spec, 1);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004f60b0
+void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
+    tQueued_net_smash* smash;
+    tNet_stored_smash* stored;
+    int is_host;
+    int i;
+
+    if (gPHIL_last_physics_tick == 0 || gPHIL_last_physics_tick >= pSmash->field_0x4) {
+        DoNetSmash(pSmash);
+    } else {
+        i = 0;
+        smash = gQueued_net_smashes;
+        while (1) {
+            if (smash->field_0x4 == 0) {
+                break;
+            }
+            i++;
+            smash++;
+            if (i >= 50) {
+                return;
+            }
+        }
+        is_host = gNet_mode == eNet_mode_host;
+        *smash = *pSmash;
+        if (is_host && gCount_host_smashes < 1000) {
+            stored = &gNet_host_smashes[gCount_host_smashes];
+            gCount_host_smashes++;
+            *(tQueued_net_smash*)stored = *pSmash;
+        }
+    }
+}
+
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
+extern tWorld_callbacks gWorld_callbacks;
+extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, int pArg7, int pArg8);
+extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
+extern int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
+
+// PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004f6130
+void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
+    tCar_spec* car;
+    tPhysics_object* pCollision;
+    br_vector3* pPoint;
+    tBounds bounds;
+    br_matrix34 matrix;
+    tFace_ref faces[20];
+    int car_id;
+    int count;
+    int i;
+
+    pCollision = NULL;
+    car_id = pSmash->field_0x8[0];
+    if (car_id != -1) {
+        if (gNet_mode == eNet_mode_none) {
+            if ((car_id & 0xffffff00) == 0) {
+                car = &gProgram_state.current_car;
+            } else {
+                car = GetCarSpec(car_id >> 8, car_id & 0xff);
+            }
+        } else if (car_id < gNumber_of_net_players) {
+            car = gNet_players[car_id].car;
+        } else {
+            car = NULL;
+        }
+        if (car != NULL) {
+            pCollision = car->collision_info;
+        }
+    }
+    if (pCollision != NULL) {
+        BrMatrix34Identity(&matrix);
+        bounds.mat = &matrix;
+        pPoint = (br_vector3*)&pSmash->field_0x8[2];
+        *(br_vector3*)matrix.m[3] = *pPoint;
+        BrVector3Set(&bounds.original_bounds.min, -0.05f, -0.05f, -0.05f);
+        BrVector3Set(&bounds.original_bounds.max, 0.05f, 0.05f, 0.05f);
+        FillInBounds(&bounds);
+        count = FindFacesInBox(&bounds, faces, 20, &gWorld_callbacks);
+        for (i = 0; i < count; i++) {
+            if (PointInFace((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
+                break;
+            }
+        }
+        if (i == count) {
+            return;
+        }
+        gINT_006a8294 = pSmash->field_0x8[11] & 1;
+        SmashEnvironment((tPhysics_object*)pPoint, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], (br_vector3*)pSmash, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
+        FlushSmashQueue(0);
+        gINT_006a8294 = 0;
+    }
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* local declaration instead of including 04-netgame.h here */
+extern tU32 gPHIL_last_physics_tick;
+extern int gFace_num__car;
+extern int gCount_shrapnel_shower_calls;
+extern int gNext_explosion_slot;
+extern intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext);
+
+// FUNCTION: CARMA2_HW 0x004f62e0
+void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
+    tQueued_net_smash* smash;
+    int count;
+
+    if (gNet_mode == eNet_mode_none) {
+        return;
+    }
+    smash = gQueued_net_smashes;
+    count = REC2_ASIZE(gQueued_net_smashes);
+    while (count-- != 0) {
+        if (smash->field_0x4 != 0 && gPHIL_last_physics_tick >= smash->field_0x4) {
+            smash->field_0x4 = 0;
+            DoNetSmash(smash);
+        }
+        smash++;
+    }
+}
 
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* actor);
 

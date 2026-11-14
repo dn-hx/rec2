@@ -65,178 +65,10 @@ int gINT_00688748 = 0;
 // GLOBAL: CARMA2_HW 0x00688760
 int gLast_graph_sel;
 
-// FUNCTION: CARMA2_HW 0x00468260
-int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
-    int i;
-    int selected;
-
-    NetEndJoinList();
-    selected = gLast_graph_sel;
-    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
-        if (i != selected && gGames_to_join[i].game != NULL) {
-            NetDisposeGameDetails(gGames_to_join[i].game);
-            gGames_to_join[i].game = NULL;
-        }
-    }
-    return 0;
-}
-
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: CARMA2_HW 0x00467ef0
-int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x00469320
-int C2_HOOK_FASTCALL FRONTEND_NetworkJoinMenuHandler(tFrontend_spec* pFrontend) {
-    NOT_IMPLEMENTED();
-}
-
-// FUNCTION: CARMA2_HW 0x00468750
-void C2_HOOK_FASTCALL InitNetStorageSpace(void) {
-    int i;
-
-    for (i = 0; i < kMax_netplayers; i++) {
-        gCurrent_race.opponent_list[i].car_spec = NULL;
-    }
-    gNet_storage_space_initialized = 1;
-    InitialiseStorageSpace(0, &gNet_cars_storage_space, 2000, 50, 2000, 2000, 50);
-}
-
-// SetOptions / ReadNetGameChoices / UpdateNetTrackScroller / UpdateNetGameTypeScroller
-// are all inlined in the original (only plain callees are visible in the disassembly).
-// FUNCTION: CARMA2_HW 0x00468790
-int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend) {
-    tFrontend_scroller_spec* scroller;
-    const tRace_list_spec* race_list_item;
-    int i;
-    int text_idx;
-    tNet_game_type game_type;
-
-    game_type = pFrontend->scrollers[0].indexTopItem - pFrontend->scrollers[0].indexFirstScrollableItem;
-    switch (gFrontend_selected_item_index) {
-    case 3:
-        break;
-    case 4:
-        game_type += 1;
-        break;
-    case 5:
-        game_type += 2;
-        break;
-    case 6:
-        game_type += 3;
-        break;
-    }
-    if (game_type >= 2) {
-        game_type += 1;
-    }
-    gFrontend_game_type = game_type;
-    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
-    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
-    gNet_last_game_type = gFrontend_game_type;
-    SaveOptions();
-    /* SetOptions(&gFrontend_game_type, &gFrontend_net_options), inlined (SetGameTarget is empty) */
-    gFrontend_net_options.show_players_on_map = gNet_settings[0].show_players_on_map;
-    gFrontend_net_options.enable_text_messages = gNet_settings[0].enable_text_messages;
-    gFrontend_net_options.show_powerups_on_map = gNet_settings[0].show_powerups_on_map;
-    gFrontend_net_options.powerup_respawn = gNet_settings[0].powerup_respawn;
-    gFrontend_net_options.open_game = gNet_settings[gFrontend_game_type + 1].open_game;
-    gFrontend_net_options.starting_credits = gNet_settings[0].starting_credits;
-    gFrontend_net_options.grid_start = gNet_settings[gFrontend_game_type + 1].grid_start || gNet_grid_starts[gFrontend_game_type + 1];
-    gFrontend_net_options.waste_to_transfer = gNet_settings[gFrontend_game_type + 1].waste_to_transfer;
-    gFrontend_net_options.random_car_choice = gNet_settings[gFrontend_game_type + 1].random_car_choice;
-    gFrontend_net_options.race_sequence_type = gNet_settings[0].race_sequence_type;
-    gFrontend_net_options.car_choice = gNet_settings[0].car_choice;
-    gFrontend_net_options.starting_target = gNet_settings[gFrontend_game_type + 1].starting_target;
-    /* the PickNetRace call of ReadNetGameChoices (the final inlined part) */
-    gRace_index = PickNetRace(-1, gFrontend_net_options.race_sequence_type);
-    LoadRaces(gRace_list, &gNumber_of_races, gFrontend_game_type);
-    sprintf(pFrontend->items[30].text, "%s", GetMiscString(eMiscString_network_type_description_start + gFrontend_game_type));
-    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
-    scroller = &pFrontend->scrollers[1];
-    scroller->indexTopItem = scroller->indexFirstScrollableItem;
-    scroller->count = gNumber_of_races;
-    /* UpdateNetTrackScroller(pFrontend), inlined */
-    race_list_item = &gRace_list[scroller->indexTopItem - scroller->indexFirstScrollableItem];
-    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; race_list_item++, i++) {
-        strcpy(pFrontend->items[i].text, race_list_item->name);
-    }
-    /* UpdateNetGameTypeScroller(pFrontend), inlined */
-    scroller = &pFrontend->scrollers[0];
-    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
-    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
-        int text_num;
-
-        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
-        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
-    }
-    FuckWithWidths(pFrontend);
-    return 0;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-// FUNCTION: CARMA2_HW 0x00468d70
-int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off) {
-    int cars[120];
-    int i;
-    int array_size;
-
-    C2_HOOK_BUG_ON(REC2_ASIZE(cars) != 120);
-
-    if (!pIm_the_host_so_fuck_off) {
-        return 1;
-    }
-    gChosen_net_game_options = pOptions;
-    for (i = 0; i < gNumber_of_racers; i++) {
-        switch (gOpponents[i].network_availability) {
-        case eNet_avail_never:
-            gCar_details[i].ownership = eCar_owner_not_allowed;
-            break;
-        case eNet_avail_eagle:
-            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_eagle) {
-                gCar_details[i].ownership = eCar_owner_none;
-            } else {
-                gCar_details[i].ownership = eCar_owner_not_allowed;
-            }
-            break;
-        case eNet_avail_all:
-            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_novelty) {
-                gCar_details[i].ownership = eCar_owner_none;
-            } else {
-                gCar_details[i].ownership = eCar_owner_not_allowed;
-            }
-            break;
-        default:
-            break;
-        }
-    }
-    array_size = 0;
-    for (i = 0; i < gNumber_of_racers; i++) {
-        if (gCar_details[i].ownership == eCar_owner_none) {
-            cars[array_size] = i;
-            array_size++;
-            if (gOpponents[i].network_availability == eNet_avail_all) {
-                cars[array_size] = i;
-                array_size++;
-            }
-        }
-    }
-    i = cars[IRandomBetween(0, array_size - 1)];
-    *pCar_index = i;
-    if (i >= 0) {
-        gCar_details[i].ownership = eCar_owner_someone;
-    }
-    return 1;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 // ScrollUp and RefreshNetRacesScroller are inlined in the original.
 // FUNCTION: CARMA2_HW 0x00466c00
 int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend) {
@@ -263,40 +95,9 @@ int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// RaceIndex and FillInRaceDescription are inlined in the original (the inlined loop calls
-// DRStricmp, and the description copy calls the two MungeMetaCharacters helpers).
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-static int NetHostRaceIndex(const char* pName) {
-    int i;
-    int index;
-
-    for (i = 0; i < gNumber_of_races; i++) {
-        if (DRStricmp(pName, gRace_list[i].name) == 0) {
-            index = i;
-            break;
-        }
-    }
-    return index;
-}
-
-// FUNCTION: CARMA2_HW 0x004691a0
-int C2_HOOK_FASTCALL NetHostChooseThisRace(tFrontend_spec* pFrontend) {
-    int race_index;
-
-    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
-    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
-    race_index = NetHostRaceIndex(pFrontend->items[gFrontend_selected_item_index].text);
-    gProgram_state.current_race_index = race_index;
-    strcpy(pFrontend->items[30].text, gRace_list[race_index].description);
-    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
-    MungeMetaCharactersNum(pFrontend->items[30].text, 'O', gRace_list[race_index].count_explicit_opponents);
-    MungeMetaCharactersNum(pFrontend->items[30].text, 'L', gRace_list[race_index].count_laps);
-    FuckWithWidths(pFrontend);
-    return 0;
-}
-
 // ScrollDn and RefreshNetRacesScroller are inlined in the original.
 // FUNCTION: CARMA2_HW 0x00466da0
 int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend) {
@@ -323,9 +124,31 @@ int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x00468e80
-int C2_HOOK_FASTCALL NetworkStartHost(tFrontend_spec* pFrontend) {
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00467ef0
+int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend) {
     NOT_IMPLEMENTED();
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x00468260
+int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
+    int i;
+    int selected;
+
+    NetEndJoinList();
+    selected = gLast_graph_sel;
+    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+        if (i != selected && gGames_to_join[i].game != NULL) {
+            NetDisposeGameDetails(gGames_to_join[i].game);
+            gGames_to_join[i].game = NULL;
+        }
+    }
+    return 0;
 }
 
 // ScrollDn of the join list and NetworkUpdateSelectedGameInfo are inlined in the original:
@@ -394,91 +217,6 @@ int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend) {
     }
     pFrontend->items[17].enabled = kFrontendItemEnabled_disabled;
     NetJoinUpdateSelectedGameInfo(pFrontend);
-    return 0;
-}
-
-// STUB: CARMA2_HW 0x00468a50
-int C2_HOOK_FASTCALL NetworkStartJoin(tFrontend_spec* pFrontend) {
-    NOT_IMPLEMENTED();
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// GLOBAL: CARMA2_HW 0x005b39b8
-tFrontend_spec gFrontend_NETWORK = {
-    "Network",
-    0,
-    31,
-    NetworkJoinMenuInfunc,
-    NetworkJoinMenuOutfunc,
-    FRONTEND_NetworkJoinMenuHandler,
-    &gFrontend_MAIN,
-    0,
-    0,
-    0,
-    3,
-    3,
-    2,
-    {
-        { 0x98, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0xa3, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403, NetGameTypeUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403, NetGameTypeDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xe4, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403, NetRaceUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403, NetRaceDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xe5, temp, &gFrontend_NETWORK_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 8, NetCancel, &gFrontend_MAIN, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x9a, NetworkStartHost, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x97, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0xc, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0x404, NetGameToggleTyping, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x402, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-        { 0xf, temp, &gFrontend_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x99, NetworkStartJoin, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
-        { 0x404, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
-    }
-};
-
-// FUNCTION: CARMA2_HW 0x00469280
-int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend) {
-    int i;
-    int selected;
-
-    NetEndJoinList();
-    selected = gLast_graph_sel;
-    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
-        if (i != selected && gGames_to_join[i].game != NULL) {
-            NetDisposeGameDetails(gGames_to_join[i].game);
-            gGames_to_join[i].game = NULL;
-        }
-    }
-    ShutdownNetIfRequired();
-    gNet_mode = eNet_mode_none;
-    LoadRaces(gRace_list, &gNumber_of_races, -1);
-    InitGame(gDev_initial_race);
-    /* MaybeRestoreSavedGame / RestoreSinglePlayerState, inlined in the original */
-    if (gValid_stashed_save_game) {
-        LoadRaces(gRace_list, &gNumber_of_races, -1);
-        DoLoadGame2(&gStashed_save_game);
-        gValid_stashed_save_game = 0;
-    }
     return 0;
 }
 
@@ -582,6 +320,294 @@ int C2_HOOK_CDECL NetworkJoinGoAhead(void) {
     return 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00468750
+void C2_HOOK_FASTCALL InitNetStorageSpace(void) {
+    int i;
+
+    for (i = 0; i < kMax_netplayers; i++) {
+        gCurrent_race.opponent_list[i].car_spec = NULL;
+    }
+    gNet_storage_space_initialized = 1;
+    InitialiseStorageSpace(0, &gNet_cars_storage_space, 2000, 50, 2000, 2000, 50);
+}
+
+// SetOptions / ReadNetGameChoices / UpdateNetTrackScroller / UpdateNetGameTypeScroller
+// are all inlined in the original (only plain callees are visible in the disassembly).
+// FUNCTION: CARMA2_HW 0x00468790
+int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend) {
+    tFrontend_scroller_spec* scroller;
+    const tRace_list_spec* race_list_item;
+    int i;
+    int text_idx;
+    tNet_game_type game_type;
+
+    game_type = pFrontend->scrollers[0].indexTopItem - pFrontend->scrollers[0].indexFirstScrollableItem;
+    switch (gFrontend_selected_item_index) {
+    case 3:
+        break;
+    case 4:
+        game_type += 1;
+        break;
+    case 5:
+        game_type += 2;
+        break;
+    case 6:
+        game_type += 3;
+        break;
+    }
+    if (game_type >= 2) {
+        game_type += 1;
+    }
+    gFrontend_game_type = game_type;
+    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
+    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
+    gNet_last_game_type = gFrontend_game_type;
+    SaveOptions();
+    /* SetOptions(&gFrontend_game_type, &gFrontend_net_options), inlined (SetGameTarget is empty) */
+    gFrontend_net_options.show_players_on_map = gNet_settings[0].show_players_on_map;
+    gFrontend_net_options.enable_text_messages = gNet_settings[0].enable_text_messages;
+    gFrontend_net_options.show_powerups_on_map = gNet_settings[0].show_powerups_on_map;
+    gFrontend_net_options.powerup_respawn = gNet_settings[0].powerup_respawn;
+    gFrontend_net_options.open_game = gNet_settings[gFrontend_game_type + 1].open_game;
+    gFrontend_net_options.starting_credits = gNet_settings[0].starting_credits;
+    gFrontend_net_options.grid_start = gNet_settings[gFrontend_game_type + 1].grid_start || gNet_grid_starts[gFrontend_game_type + 1];
+    gFrontend_net_options.waste_to_transfer = gNet_settings[gFrontend_game_type + 1].waste_to_transfer;
+    gFrontend_net_options.random_car_choice = gNet_settings[gFrontend_game_type + 1].random_car_choice;
+    gFrontend_net_options.race_sequence_type = gNet_settings[0].race_sequence_type;
+    gFrontend_net_options.car_choice = gNet_settings[0].car_choice;
+    gFrontend_net_options.starting_target = gNet_settings[gFrontend_game_type + 1].starting_target;
+    /* the PickNetRace call of ReadNetGameChoices (the final inlined part) */
+    gRace_index = PickNetRace(-1, gFrontend_net_options.race_sequence_type);
+    LoadRaces(gRace_list, &gNumber_of_races, gFrontend_game_type);
+    sprintf(pFrontend->items[30].text, "%s", GetMiscString(eMiscString_network_type_description_start + gFrontend_game_type));
+    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
+    scroller = &pFrontend->scrollers[1];
+    scroller->indexTopItem = scroller->indexFirstScrollableItem;
+    scroller->count = gNumber_of_races;
+    /* UpdateNetTrackScroller(pFrontend), inlined */
+    race_list_item = &gRace_list[scroller->indexTopItem - scroller->indexFirstScrollableItem];
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; race_list_item++, i++) {
+        strcpy(pFrontend->items[i].text, race_list_item->name);
+    }
+    /* UpdateNetGameTypeScroller(pFrontend), inlined */
+    scroller = &pFrontend->scrollers[0];
+    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
+        int text_num;
+
+        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
+        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
+    }
+    FuckWithWidths(pFrontend);
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// STUB: CARMA2_HW 0x00468a50
+int C2_HOOK_FASTCALL NetworkStartJoin(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x00468d70
+int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off) {
+    int cars[120];
+    int i;
+    int array_size;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(cars) != 120);
+
+    if (!pIm_the_host_so_fuck_off) {
+        return 1;
+    }
+    gChosen_net_game_options = pOptions;
+    for (i = 0; i < gNumber_of_racers; i++) {
+        switch (gOpponents[i].network_availability) {
+        case eNet_avail_never:
+            gCar_details[i].ownership = eCar_owner_not_allowed;
+            break;
+        case eNet_avail_eagle:
+            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_eagle) {
+                gCar_details[i].ownership = eCar_owner_none;
+            } else {
+                gCar_details[i].ownership = eCar_owner_not_allowed;
+            }
+            break;
+        case eNet_avail_all:
+            if (pOptions->car_choice == eNet_car_all || pOptions->car_choice == eNet_car_novelty) {
+                gCar_details[i].ownership = eCar_owner_none;
+            } else {
+                gCar_details[i].ownership = eCar_owner_not_allowed;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    array_size = 0;
+    for (i = 0; i < gNumber_of_racers; i++) {
+        if (gCar_details[i].ownership == eCar_owner_none) {
+            cars[array_size] = i;
+            array_size++;
+            if (gOpponents[i].network_availability == eNet_avail_all) {
+                cars[array_size] = i;
+                array_size++;
+            }
+        }
+    }
+    i = cars[IRandomBetween(0, array_size - 1)];
+    *pCar_index = i;
+    if (i >= 0) {
+        gCar_details[i].ownership = eCar_owner_someone;
+    }
+    return 1;
+}
+
+// STUB: CARMA2_HW 0x00468e80
+int C2_HOOK_FASTCALL NetworkStartHost(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// RaceIndex and FillInRaceDescription are inlined in the original (the inlined loop calls
+// DRStricmp, and the description copy calls the two MungeMetaCharacters helpers).
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+static int NetHostRaceIndex(const char* pName) {
+    int i;
+    int index;
+
+    for (i = 0; i < gNumber_of_races; i++) {
+        if (DRStricmp(pName, gRace_list[i].name) == 0) {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+// FUNCTION: CARMA2_HW 0x004691a0
+int C2_HOOK_FASTCALL NetHostChooseThisRace(tFrontend_spec* pFrontend) {
+    int race_index;
+
+    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
+    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
+    race_index = NetHostRaceIndex(pFrontend->items[gFrontend_selected_item_index].text);
+    gProgram_state.current_race_index = race_index;
+    strcpy(pFrontend->items[30].text, gRace_list[race_index].description);
+    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
+    MungeMetaCharactersNum(pFrontend->items[30].text, 'O', gRace_list[race_index].count_explicit_opponents);
+    MungeMetaCharactersNum(pFrontend->items[30].text, 'L', gRace_list[race_index].count_laps);
+    FuckWithWidths(pFrontend);
+    return 0;
+}
+
+
+// GLOBAL: CARMA2_HW 0x005b39b8
+tFrontend_spec gFrontend_NETWORK = {
+    "Network",
+    0,
+    31,
+    NetworkJoinMenuInfunc,
+    NetworkJoinMenuOutfunc,
+    FRONTEND_NetworkJoinMenuHandler,
+    &gFrontend_MAIN,
+    0,
+    0,
+    0,
+    3,
+    3,
+    2,
+    {
+        { 0x98, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0xa3, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, NetGameTypeUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetSetRaceType, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, NetGameTypeDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xe4, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, NetRaceUp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetHostChooseThisRace, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, NetRaceDn, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xe5, temp, &gFrontend_NETWORK_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 8, NetCancel, &gFrontend_MAIN, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x9a, NetworkStartHost, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x97, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, NetJoinChooseThisGame, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x403, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0xc, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0x404, NetGameToggleTyping, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x402, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+        { 0xf, temp, &gFrontend_OPTIONS, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x99, NetworkStartJoin, NULL, 0, 17, 18, 0, 0, 0, 0, 1, 1, },
+        { 0x404, temp, NULL, 0, 17, 18, 0, 0, 0, 0, 0, 1, },
+    }
+};
+
+// FUNCTION: CARMA2_HW 0x00469280
+int C2_HOOK_FASTCALL NetCancel(tFrontend_spec* pFrontend) {
+    int i;
+    int selected;
+
+    NetEndJoinList();
+    selected = gLast_graph_sel;
+    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+        if (i != selected && gGames_to_join[i].game != NULL) {
+            NetDisposeGameDetails(gGames_to_join[i].game);
+            gGames_to_join[i].game = NULL;
+        }
+    }
+    ShutdownNetIfRequired();
+    gNet_mode = eNet_mode_none;
+    LoadRaces(gRace_list, &gNumber_of_races, -1);
+    InitGame(gDev_initial_race);
+    /* MaybeRestoreSavedGame / RestoreSinglePlayerState, inlined in the original */
+    if (gValid_stashed_save_game) {
+        LoadRaces(gRace_list, &gNumber_of_races, -1);
+        DoLoadGame2(&gStashed_save_game);
+        gValid_stashed_save_game = 0;
+    }
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// STUB: CARMA2_HW 0x00469320
+int C2_HOOK_FASTCALL FRONTEND_NetworkJoinMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049e210
+tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index) {
+
+    (void)pNet_type;
+    (void)pOptions;
+    (void)pRace_index;
+    (void)pHost_name;
+    (void)pCar_index;
+    return NULL;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 /* NetJoinGame / NetHostGame live only in the dead src/carma2/common tree (not built);
    inert stubs so the caller links, guarded so they are not inlined away. */
 #ifdef REC2_MATCHING
@@ -595,17 +621,3 @@ int C2_HOOK_FASTCALL NetJoinGame(tNet_game_details* pGame_details, char* pPlayer
     (void)pCar_index;
     return -1;
 }
-
-// STUB: CARMA2_HW 0x0049e210
-tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index) {
-
-    (void)pNet_type;
-    (void)pOptions;
-    (void)pRace_index;
-    (void)pHost_name;
-    (void)pCar_index;
-    return NULL;
-}
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif

@@ -785,10 +785,10 @@ have_funk:
     }
     BrMemFree(gFunk_temp_vertices);
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x004761e0
 br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData) {
     tFunkotronic_spec* the_funk;
@@ -805,6 +805,34 @@ br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat,
         for (i = 0, the_face = pActor->model->faces; i < pActor->model->nfaces; i++, the_face++) {
             if (the_face->material == the_funk->material) {
                 the_funk->proximity_count++;
+            }
+        }
+    }
+    return 0;
+}
+
+/* ; called through DRActorEnumRecurseWithMat */
+// FUNCTION: CARMA2_HW 0x00476230
+br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData) {
+    tFunkotronic_spec* the_funk;
+    br_face* the_face;
+    int i;
+    int j;
+
+    (void)pMat;
+    the_funk = pData;
+
+    if (pActor->model != NULL) {
+        for (i = 0; i < pActor->model->nfaces; i++) {
+            the_face = &pActor->model->faces[i];
+            if (the_face->material == the_funk->material) {
+                for (j = 0; j < 3; j++) {
+                    BrVector3Copy(&the_funk->proximity_array[the_funk->proximity_count].v[j], &pActor->model->vertices[the_face->vertices[j]].p);
+                    gFunk_temp_vertices[the_funk->proximity_count].vertices[j] = &pActor->model->vertices[the_face->vertices[j]];
+                }
+                BrVector3Normalise(&the_funk->proximity_array[the_funk->proximity_count].n, &the_face->n);
+                the_funk->proximity_array[the_funk->proximity_count].d = -the_face->d;
+                the_funk->proximity_count += 1;
             }
         }
     }
@@ -1208,10 +1236,10 @@ have_groove:
         }
     }
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // AddNewGroovidelic
 
 // FUNCTION: CARMA2_HW 0x00477160
@@ -1630,14 +1658,33 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
     LetFlicFuckWithPalettes();
 }
 
+
+// FUNCTION: CARMA2_HW 0x00478c00
+void C2_HOOK_FASTCALL GrooveThoseDelics(void) {
+    tGroovidelic_spec* the_groove;
+    float f_the_time;
+    int i;
+
+    if (gGroovidelics_array != NULL) {
+        f_the_time = (float)GetTotalTime();
+        gPrevious_groove_times[1] = gPrevious_groove_times[0];
+        gPrevious_groove_times[0] = (tU32)f_the_time;
+        for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
+            if (the_groove->owner != -999 && !the_groove->done_this_frame) {
+                GrooveThisDelic(the_groove, (tU32)f_the_time, 0);
+            }
+        }
+    }
+}
+
 // PathGrooveBastard
 
 // ObjectGrooveBastard
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 extern int gAction_replay_mode;
 extern br_matrix34 gCamera_to_world;
 extern int C2_HOOK_FASTCALL PointOutOfSight(const br_vector3* pPoint, br_scalar pMax_distance);
@@ -1706,192 +1753,6 @@ void C2_HOOK_FASTCALL GrooveThisDelic(tGroovidelic_spec* pGroove, tU32 pTime, in
     }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-// FUNCTION: CARMA2_HW 0x00478c00
-void C2_HOOK_FASTCALL GrooveThoseDelics(void) {
-    tGroovidelic_spec* the_groove;
-    float f_the_time;
-    int i;
-
-    if (gGroovidelics_array != NULL) {
-        f_the_time = (float)GetTotalTime();
-        gPrevious_groove_times[1] = gPrevious_groove_times[0];
-        gPrevious_groove_times[0] = (tU32)f_the_time;
-        for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
-            if (the_groove->owner != -999 && !the_groove->done_this_frame) {
-                GrooveThisDelic(the_groove, (tU32)f_the_time, 0);
-            }
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b0e0
-void C2_HOOK_FASTCALL StopGroovidelic(br_actor* pActor) {
-    tGroovidelic_spec* the_groove;
-    int i;
-
-    for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
-        if (the_groove->actor == pActor) {
-            if (the_groove->path_interrupt_status == eInterrupt_none
-                && the_groove->object_interrupt_status == eInterrupt_none) {
-                GrooveThisDelic(the_groove, gPrevious_groove_times[1], 1);
-            }
-            return;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b130
-void C2_HOOK_FASTCALL DisableGroovidelic(br_actor* pActor, tU32 pBlock_flags) {
-    tGroovidelic_spec* the_groove;
-    int i;
-
-    the_groove = gGroovidelics_array;
-    for (i = 0; i < gGroovidelics_array_size; i++, the_groove++) {
-        if (the_groove->actor == pActor) {
-            the_groove->block_flags |= pBlock_flags;
-            return;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b160
-void C2_HOOK_FASTCALL EnableGroovidelic(br_actor* pActor, tU32 pBlock_flags) {
-    tGroovidelic_spec* the_groove;
-    int i;
-
-    the_groove = gGroovidelics_array;
-    for (i = 0; i < gGroovidelics_array_size; i++, the_groove++) {
-        if (the_groove->actor == pActor) {
-            the_groove->block_flags &= ~pBlock_flags;
-            return;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b1a0
-void C2_HOOK_FASTCALL SetGrooveInterrupt(int pIndex, const br_matrix34* pMatrix, tInterrupt_status pPath_interrupt_status, tInterrupt_status pObject_interrupt_status, float pPath_resumption_value, float pObject_resumption_value) {
-    tGroovidelic_spec* the_groove;
-
-    the_groove = &gGroovidelics_array[pIndex];
-    the_groove->path_interrupt_status = pPath_interrupt_status;
-    the_groove->object_interrupt_status = pObject_interrupt_status;
-    the_groove->path_resumption_value = pPath_resumption_value;
-    the_groove->object_resumption_value = pObject_resumption_value;
-    BrMatrix34Copy(&the_groove->actor->t.t.mat, pMatrix);
-}
-
-// FUNCTION: CARMA2_HW 0x0047b1e0
-void C2_HOOK_FASTCALL ResetGrooveFlags(void) {
-    int i;
-    tGroovidelic_spec* the_groove;
-
-    i = 0;
-    if (gGroovidelics_array_size > 0) {
-        the_groove = gGroovidelics_array;
-        do {
-            the_groove->done_this_frame = 0;
-            i++;
-            the_groove++;
-        } while (i < gGroovidelics_array_size);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b210
-// FUNCTION: CARMA2_SW 0x0047a770
-intptr_t C2_HOOK_CDECL DelGrooveRef(br_actor* pActor, void* pArg) {
-    tGroovidelic_spec* the_groove;
-    int i;
-
-    for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
-        if (pActor == the_groove->actor) {
-            the_groove->owner = -999;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0047b250
-void C2_HOOK_FASTCALL DisableFunkotronic(int pIndex) {
-    gFunkotronics_array[pIndex].flags |= 0x1;
-    PipeSingleFunkEnable(pIndex, 0);
-}
-
-// FUNCTION: CARMA2_HW 0x0047b280
-void C2_HOOK_FASTCALL EnableFunkotronic(int pIndex) {
-    gFunkotronics_array[pIndex].flags &= ~0x1;
-    PipeSingleFunkEnable(pIndex, 1);
-}
-
-// FUNCTION: CARMA2_HW 0x0047b2b0
-void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex) {
-    gFunkotronics_array[pIndex].flags |= 0x2;
-}
-
-// FUNCTION: CARMA2_HW 0x0047b2e0
-void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex) {
-    gFunkotronics_array[pIndex].flags &= ~0x2;
-}
-
-// FUNCTION: CARMA2_HW 0x0047b310
-void C2_HOOK_FASTCALL AdjustFunkEnable(int pIndex, tS16 pFlags) {
-    if (pFlags != 0) {
-        EnableFunkotronic(pIndex);
-    } else {
-        DisableFunkotronic(pIndex);
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0047b360
-tGroovidelic_spec* C2_HOOK_FASTCALL ActorsGroove(br_actor* pActor) {
-    tGroovidelic_spec* groove;
-    int count;
-    int i;
-
-    groove = gGroovidelics_array;
-    count = gGroovidelics_array_size;
-    for (i = 0; i < count; i++, groove++) {
-        if (groove->actor == pActor) {
-            return groove;
-        }
-    }
-    return NULL;
-}
-
-/* ; called through DRActorEnumRecurseWithMat */
-// FUNCTION: CARMA2_HW 0x00476230
-br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData) {
-    tFunkotronic_spec* the_funk;
-    br_face* the_face;
-    int i;
-    int j;
-
-    (void)pMat;
-    the_funk = pData;
-
-    if (pActor->model != NULL) {
-        for (i = 0; i < pActor->model->nfaces; i++) {
-            the_face = &pActor->model->faces[i];
-            if (the_face->material == the_funk->material) {
-                for (j = 0; j < 3; j++) {
-                    BrVector3Copy(&the_funk->proximity_array[the_funk->proximity_count].v[j], &pActor->model->vertices[the_face->vertices[j]].p);
-                    gFunk_temp_vertices[the_funk->proximity_count].vertices[j] = &pActor->model->vertices[the_face->vertices[j]];
-                }
-                BrVector3Normalise(&the_funk->proximity_array[the_funk->proximity_count].n, &the_face->n);
-                the_funk->proximity_array[the_funk->proximity_count].d = -the_face->d;
-                the_funk->proximity_count += 1;
-            }
-        }
-    }
-    return 0;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
 // (reference)
 // FUNCTION: CARMA2_HW 0x00478e30
 void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it) {
@@ -2152,6 +2013,145 @@ void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime
         return;
     }
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x0047b0e0
+void C2_HOOK_FASTCALL StopGroovidelic(br_actor* pActor) {
+    tGroovidelic_spec* the_groove;
+    int i;
+
+    for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
+        if (the_groove->actor == pActor) {
+            if (the_groove->path_interrupt_status == eInterrupt_none
+                && the_groove->object_interrupt_status == eInterrupt_none) {
+                GrooveThisDelic(the_groove, gPrevious_groove_times[1], 1);
+            }
+            return;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047b130
+void C2_HOOK_FASTCALL DisableGroovidelic(br_actor* pActor, tU32 pBlock_flags) {
+    tGroovidelic_spec* the_groove;
+    int i;
+
+    the_groove = gGroovidelics_array;
+    for (i = 0; i < gGroovidelics_array_size; i++, the_groove++) {
+        if (the_groove->actor == pActor) {
+            the_groove->block_flags |= pBlock_flags;
+            return;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047b160
+void C2_HOOK_FASTCALL EnableGroovidelic(br_actor* pActor, tU32 pBlock_flags) {
+    tGroovidelic_spec* the_groove;
+    int i;
+
+    the_groove = gGroovidelics_array;
+    for (i = 0; i < gGroovidelics_array_size; i++, the_groove++) {
+        if (the_groove->actor == pActor) {
+            the_groove->block_flags &= ~pBlock_flags;
+            return;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047b1a0
+void C2_HOOK_FASTCALL SetGrooveInterrupt(int pIndex, const br_matrix34* pMatrix, tInterrupt_status pPath_interrupt_status, tInterrupt_status pObject_interrupt_status, float pPath_resumption_value, float pObject_resumption_value) {
+    tGroovidelic_spec* the_groove;
+
+    the_groove = &gGroovidelics_array[pIndex];
+    the_groove->path_interrupt_status = pPath_interrupt_status;
+    the_groove->object_interrupt_status = pObject_interrupt_status;
+    the_groove->path_resumption_value = pPath_resumption_value;
+    the_groove->object_resumption_value = pObject_resumption_value;
+    BrMatrix34Copy(&the_groove->actor->t.t.mat, pMatrix);
+}
+
+// FUNCTION: CARMA2_HW 0x0047b1e0
+void C2_HOOK_FASTCALL ResetGrooveFlags(void) {
+    int i;
+    tGroovidelic_spec* the_groove;
+
+    i = 0;
+    if (gGroovidelics_array_size > 0) {
+        the_groove = gGroovidelics_array;
+        do {
+            the_groove->done_this_frame = 0;
+            i++;
+            the_groove++;
+        } while (i < gGroovidelics_array_size);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047b210
+// FUNCTION: CARMA2_SW 0x0047a770
+intptr_t C2_HOOK_CDECL DelGrooveRef(br_actor* pActor, void* pArg) {
+    tGroovidelic_spec* the_groove;
+    int i;
+
+    for (i = 0, the_groove = gGroovidelics_array; i < gGroovidelics_array_size; i++, the_groove++) {
+        if (pActor == the_groove->actor) {
+            the_groove->owner = -999;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0047b250
+void C2_HOOK_FASTCALL DisableFunkotronic(int pIndex) {
+    gFunkotronics_array[pIndex].flags |= 0x1;
+    PipeSingleFunkEnable(pIndex, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x0047b280
+void C2_HOOK_FASTCALL EnableFunkotronic(int pIndex) {
+    gFunkotronics_array[pIndex].flags &= ~0x1;
+    PipeSingleFunkEnable(pIndex, 1);
+}
+
+// FUNCTION: CARMA2_HW 0x0047b2b0
+void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex) {
+    gFunkotronics_array[pIndex].flags |= 0x2;
+}
+
+// FUNCTION: CARMA2_HW 0x0047b2e0
+void C2_HOOK_FASTCALL MasterEnableFunkotronic(int pIndex) {
+    gFunkotronics_array[pIndex].flags &= ~0x2;
+}
+
+// FUNCTION: CARMA2_HW 0x0047b310
+void C2_HOOK_FASTCALL AdjustFunkEnable(int pIndex, tS16 pFlags) {
+    if (pFlags != 0) {
+        EnableFunkotronic(pIndex);
+    } else {
+        DisableFunkotronic(pIndex);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047b360
+tGroovidelic_spec* C2_HOOK_FASTCALL ActorsGroove(br_actor* pActor) {
+    tGroovidelic_spec* groove;
+    int count;
+    int i;
+
+    groove = gGroovidelics_array;
+    count = gGroovidelics_array_size;
+    for (i = 0; i < count; i++, groove++) {
+        if (groove->actor == pActor) {
+            return groove;
+        }
+    }
+    return NULL;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // based on ApexWorm/rec2 c4dadf0df
 // FUNCTION: CARMA2_HW 0x004e4650
 void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis) {
@@ -2228,10 +2228,10 @@ void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* re
     }
     BrMatrix34Pre(&pSubject_actor->t.t.mat, &mat);
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 static float MapSawToTriangle(float pNumber) {
 
     if (pNumber >= 0.5) {

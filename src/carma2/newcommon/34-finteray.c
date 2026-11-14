@@ -35,10 +35,28 @@ br_matrix34 gPick_model_to_view__finteray;
 
 // PickBoundsTestRay
 
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// FUNCTION: CARMA2_HW 0x0045ca60
+void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor) {
+    int group;
 
+    gNearest_T = 100.f;
+    BrMatrix34Inverse(&gPick_model_to_view__finteray, &pWorld->t.t.mat);
+    ActorRayPick2D(pWorld, pPosition, pDir, NULL, NULL, FindHighestCallBack__finteray);
+    *pT = gNearest_T;
+    if (gNearest_T < 100.f) {
+        group = gNearest_face_group;
+        BrVector3Copy(pNormal, &V11MODEL(gNearest_model)->groups[group].faces[gNearest_face].eqn);
+        *pMaterial = *V11MODEL(gNearest_model)->groups[group].face_colours.materials;
+        if (pActor != NULL) {
+            *pActor = gNearest_actor;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x0045cb70
 int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* ap, br_vector3* pPosition, br_vector3* pDir, br_model* model, br_material* material, dr_pick2d_cbfn* callback) {
     br_actor* a;
@@ -119,10 +137,62 @@ int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* ap, br_vector3* pPosition, br_vect
     return r;
 }
 
+// FUNCTION: CARMA2_HW 0x0045cd90
+int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far) {
+    int i;
+    float s;
+    float t;
+
+    for (i = 0; i < 3; i++) {
+        if (rd->v[i] < -2.3841858e-7f) {
+            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
+            if (s > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (s > t_near) {
+                t_near = s;
+            }
+            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
+            if (t < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (t < t_far) {
+                t_far = t;
+            }
+        } else if (rd->v[i] > 2.3841858e-7f) {
+            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
+            if (s < BR_SCALAR_MIN) {
+                t_far = BR_SCALAR_MIN;
+            } else if (s < t_far) {
+                t_far = s;
+            }
+            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
+            if (t > BR_SCALAR_MAX) {
+                t_near = BR_SCALAR_MAX;
+            } else if (t > t_near) {
+                t_near = t;
+            }
+        } else if (rp->v[i] > b->max.v[i] || rp->v[i] < b->min.v[i]) {
+            return 0;
+        }
+    }
+    if (t_near <= t_far) {
+        *new_t_near = t_near;
+        *new_t_far = t_far;
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x0045cf20
+int C2_HOOK_CDECL FindHighestCallBack__finteray(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg) {
+
+    DRModelPick2D__finteray(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack__finteray, pArg);
+    return 0;
+}
+
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // DRSceneRayPick2D
 
 #ifdef REC2_MATCHING
@@ -303,76 +373,6 @@ int C2_HOOK_CDECL FindHighestPolyCallBack__finteray(br_model* pModel, br_actor* 
     return 0;
 }
 
-// FUNCTION: CARMA2_HW 0x0045cf20
-int C2_HOOK_CDECL FindHighestCallBack__finteray(br_actor* pActor, br_model* pModel, br_material* pMaterial, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, void* pArg) {
-
-    DRModelPick2D__finteray(pModel, pMaterial, pActor, pRay_pos, pRay_dir, pT_near, pT_far, FindHighestPolyCallBack__finteray, pArg);
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x0045ca60
-void C2_HOOK_FASTCALL ActorFindFace(br_vector3* pPosition, br_vector3* pDir, br_actor* pWorld, br_vector3* pNormal, br_scalar* pT, br_material** pMaterial, br_actor** pActor) {
-    int group;
-
-    gNearest_T = 100.f;
-    BrMatrix34Inverse(&gPick_model_to_view__finteray, &pWorld->t.t.mat);
-    ActorRayPick2D(pWorld, pPosition, pDir, NULL, NULL, FindHighestCallBack__finteray);
-    *pT = gNearest_T;
-    if (gNearest_T < 100.f) {
-        group = gNearest_face_group;
-        BrVector3Copy(pNormal, &V11MODEL(gNearest_model)->groups[group].faces[gNearest_face].eqn);
-        *pMaterial = *V11MODEL(gNearest_model)->groups[group].face_colours.materials;
-        if (pActor != NULL) {
-            *pActor = gNearest_actor;
-        }
-    }
-}
-
-// FUNCTION: CARMA2_HW 0x0045cd90
-int C2_HOOK_FASTCALL PickBoundsTestRay__finteray(br_bounds* b, br_vector3* rp, br_vector3* rd, br_scalar t_near, br_scalar t_far, br_scalar* new_t_near, br_scalar* new_t_far) {
-    int i;
-    float s;
-    float t;
-
-    for (i = 0; i < 3; i++) {
-        if (rd->v[i] < -2.3841858e-7f) {
-            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
-            if (s > BR_SCALAR_MAX) {
-                t_near = BR_SCALAR_MAX;
-            } else if (s > t_near) {
-                t_near = s;
-            }
-            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
-            if (t < BR_SCALAR_MIN) {
-                t_far = BR_SCALAR_MIN;
-            } else if (t < t_far) {
-                t_far = t;
-            }
-        } else if (rd->v[i] > 2.3841858e-7f) {
-            s = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->max.v[i]);
-            if (s < BR_SCALAR_MIN) {
-                t_far = BR_SCALAR_MIN;
-            } else if (s < t_far) {
-                t_far = s;
-            }
-            t = (-1.0f / (rd->v[i] * 1.0f)) * (rp->v[i] - b->min.v[i]);
-            if (t > BR_SCALAR_MAX) {
-                t_near = BR_SCALAR_MAX;
-            } else if (t > t_near) {
-                t_near = t;
-            }
-        } else if (rp->v[i] > b->max.v[i] || rp->v[i] < b->min.v[i]) {
-            return 0;
-        }
-    }
-    if (t_near <= t_far) {
-        *new_t_near = t_near;
-        *new_t_far = t_far;
-        return 1;
-    }
-    return 0;
-}
-
 // FUNCTION: CARMA2_HW 0x0045d5c0
 void C2_HOOK_FASTCALL EnablePlingMaterials(void) {
 
@@ -443,48 +443,6 @@ void C2_HOOK_FASTCALL SphereSphereCollide(tCollision_shape_sphere_data* pSphere1
     }
     StationarySphereSphereCollide((br_vector3*)(in_ECX + 1), pEnd, fVar8, pNormal, pFactor);
     return;
-}
-
-// StationarySphereSphereCollide
-
-// SphereSphereCollide
-
-// FUNCTION: CARMA2_HW 0x0045dea0
-void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    br_scalar fVar1;
-    br_scalar t;
-
-    t = ((pSphere_end->v[2] - pEdge_start->v[2]) * pEdge_direction->v[2] + pEdge_direction->v[1] * (pSphere_end->v[1] - pEdge_start->v[1]) + (pSphere_end->v[0] - pEdge_start->v[0]) * pEdge_direction->v[0]) / pEdge_length_squared;
-    if (0.0f < t) {
-        if (t < 1.0f) {
-            pPoint->v[0] = pEdge_direction->v[0] * t;
-            pPoint->v[1] = pEdge_direction->v[1] * t;
-            pPoint->v[2] = pEdge_direction->v[2] * t;
-            pPoint->v[0] = pPoint->v[0] + pEdge_start->v[0];
-            pPoint->v[1] = pEdge_start->v[1] + pPoint->v[1];
-            pPoint->v[2] = pEdge_start->v[2] + pPoint->v[2];
-        } else {
-            pPoint->v[0] = pEdge_end->v[0];
-            pPoint->v[1] = pEdge_end->v[1];
-            pPoint->v[2] = pEdge_end->v[2];
-        }
-    } else {
-        pPoint->v[0] = pEdge_start->v[0];
-        pPoint->v[1] = pEdge_start->v[1];
-        pPoint->v[2] = pEdge_start->v[2];
-    }
-    pNormal->v[0] = pPoint->v[0] - pSphere_end->v[0];
-    pNormal->v[1] = pPoint->v[1] - pSphere_end->v[1];
-    fVar1 = pPoint->v[2] - pSphere_end->v[2];
-    pNormal->v[2] = fVar1;
-    fVar1 = pNormal->v[0] * pNormal->v[0] + fVar1 * fVar1 + pNormal->v[1] * pNormal->v[1];
-    if ((pSphere->radius_squared < fVar1) && (fVar1 < pSphere->radius_squared - pSphere->radius * 0.002 * -2.0)) {
-        fVar1 = sqrt(fVar1);
-        *pT = 1.0f;
-        pNormal->v[0] = pNormal->v[0] / fVar1;
-        pNormal->v[1] = pNormal->v[1] / fVar1;
-        pNormal->v[2] = pNormal->v[2] / fVar1;
-    }
 }
 
 
@@ -629,6 +587,89 @@ LAB_0045dd10:
     }
 LAB_0045de75:
     StationarySphereEdgeCollide(pEdge_start, pEdge_end, (br_vector3*)&local_48, *(br_scalar*)&pT, pEnd, pSphere, pPoint, pNormal, pT);
+}
+
+// StationarySphereSphereCollide
+
+// SphereSphereCollide
+
+// FUNCTION: CARMA2_HW 0x0045dea0
+void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    br_scalar fVar1;
+    br_scalar t;
+
+    t = ((pSphere_end->v[2] - pEdge_start->v[2]) * pEdge_direction->v[2] + pEdge_direction->v[1] * (pSphere_end->v[1] - pEdge_start->v[1]) + (pSphere_end->v[0] - pEdge_start->v[0]) * pEdge_direction->v[0]) / pEdge_length_squared;
+    if (0.0f < t) {
+        if (t < 1.0f) {
+            pPoint->v[0] = pEdge_direction->v[0] * t;
+            pPoint->v[1] = pEdge_direction->v[1] * t;
+            pPoint->v[2] = pEdge_direction->v[2] * t;
+            pPoint->v[0] = pPoint->v[0] + pEdge_start->v[0];
+            pPoint->v[1] = pEdge_start->v[1] + pPoint->v[1];
+            pPoint->v[2] = pEdge_start->v[2] + pPoint->v[2];
+        } else {
+            pPoint->v[0] = pEdge_end->v[0];
+            pPoint->v[1] = pEdge_end->v[1];
+            pPoint->v[2] = pEdge_end->v[2];
+        }
+    } else {
+        pPoint->v[0] = pEdge_start->v[0];
+        pPoint->v[1] = pEdge_start->v[1];
+        pPoint->v[2] = pEdge_start->v[2];
+    }
+    pNormal->v[0] = pPoint->v[0] - pSphere_end->v[0];
+    pNormal->v[1] = pPoint->v[1] - pSphere_end->v[1];
+    fVar1 = pPoint->v[2] - pSphere_end->v[2];
+    pNormal->v[2] = fVar1;
+    fVar1 = pNormal->v[0] * pNormal->v[0] + fVar1 * fVar1 + pNormal->v[1] * pNormal->v[1];
+    if ((pSphere->radius_squared < fVar1) && (fVar1 < pSphere->radius_squared - pSphere->radius * 0.002 * -2.0)) {
+        fVar1 = sqrt(fVar1);
+        *pT = 1.0f;
+        pNormal->v[0] = pNormal->v[0] / fVar1;
+        pNormal->v[1] = pNormal->v[1] / fVar1;
+        pNormal->v[2] = pNormal->v[2] / fVar1;
+    }
+}
+// PARTIAL 45.58%: SpherePolyFaceCollide 0x45e020 [fastcall] - x87 schedule/frame size (orig 0x10 frame, delta spilled)
+// FUNCTION: CARMA2_HW 0x0045e020
+void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    br_scalar fVar1;
+    br_scalar fVar2;
+    br_scalar fVar3;
+    br_scalar fVar4;
+    br_scalar fVar5;
+    br_vector3 delta;
+
+    delta.v[1] = pEnd->v[1] - pStart->v[1];
+    delta.v[2] = pEnd->v[2] - pStart->v[2];
+    delta.v[0] = pEnd->v[0] - pStart->v[0];
+    fVar1 = pDirection->v[0] * pDirection->v[0] + pDirection->v[2] * pDirection->v[2] + pDirection->v[1] * pDirection->v[1];
+    fVar3 = (pDirection->v[0] * delta.v[0] + pDirection->v[1] * delta.v[1] + pDirection->v[2] * delta.v[2]) / fVar1;
+    fVar2 = (delta.v[2] * delta.v[2] + delta.v[1] * delta.v[1] + delta.v[0] * delta.v[0]) - fVar3 * fVar3 * fVar1;
+    if (fVar2 <= pSphere->radius_squared) {
+        fVar3 = fVar3 - sqrt((pSphere->radius_squared - fVar2) / fVar1);
+        if (0.0f <= fVar3 && fVar3 <= 1.0f) {
+            pPoint->v[0] = pEnd->v[0];
+            pPoint->v[1] = pEnd->v[1];
+            pPoint->v[2] = pEnd->v[2];
+            fVar4 = pPoint->v[0] - (pDirection->v[0] * fVar3 + pStart->v[0]);
+            fVar5 = pPoint->v[1] - (pDirection->v[1] * fVar3 + pStart->v[1]);
+            fVar1 = pPoint->v[2] - (pDirection->v[2] * fVar3 + pStart->v[2]);
+            fVar2 = sqrt(fVar1 * fVar1 + fVar5 * fVar5 + fVar4 * fVar4);
+            if (2.3841858e-07f < fVar2) {
+                fVar2 = 1.0f / fVar2;
+                pNormal->v[0] = fVar2 * fVar4;
+                pNormal->v[1] = fVar2 * fVar5;
+                pNormal->v[2] = fVar2 * fVar1;
+                *pT = fVar3;
+                return;
+            }
+            pNormal->v[0] = 1.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
+            *pT = fVar3;
+        }
+    }
 }
 
 // SpherePolyFaceCollide
@@ -1188,301 +1229,10 @@ int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, 
     return max_face;
 }
 
-// ModelPickBox
-
-// ClipToPlaneGE
-
-// ClipToPlaneLE
-
-// BoundsOverlapTest
-
-// BoundsTransformTest
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// FUNCTION: CARMA2_HW 0x00460bd0
-int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT) {
-    br_vector3 dir;
-    int inside;
-    int quad[3];
-    int i;
-    int which_plane;
-    br_scalar max_t[3];
-    br_scalar cp[3];
-
-    inside = 1;
-    dir.v[0] = pEnd->v[0] - pStart->v[0];
-    dir.v[1] = pEnd->v[1] - pStart->v[1];
-    dir.v[2] = pEnd->v[2] - pStart->v[2];
-    for (i = 0; i < 3; ++i) {
-        if (pStart->v[i] < pBounds->min.v[i]) {
-            quad[i] = 1;
-            cp[i] = pBounds->min.v[i];
-            inside = 0;
-        } else if (pStart->v[i] > pBounds->max.v[i]) {
-            quad[i] = 0;
-            cp[i] = pBounds->max.v[i];
-            inside = 0;
-        } else {
-            quad[i] = 2;
-        }
-    }
-    if (inside) {
-        pPoint->v[0] = pStart->v[0];
-        pPoint->v[1] = pStart->v[1];
-        pPoint->v[2] = pStart->v[2];
-        return -1;
-    }
-    for (i = 0; i < 3; ++i) {
-        if (quad[i] != 2 && dir.v[i] != 0.0f) {
-            max_t[i] = (cp[i] - pStart->v[i]) / dir.v[i];
-        } else {
-            max_t[i] = -1.0f;
-        }
-    }
-    which_plane = 0;
-    for (i = 1; i < 3; ++i) {
-        if (max_t[i] > max_t[which_plane]) {
-            which_plane = i;
-        }
-    }
-    if (max_t[which_plane] < 0.0f || max_t[which_plane] > 1.0f) {
-        return 0;
-    }
-    for (i = 0; i < 3; ++i) {
-        if (which_plane != i) {
-            pPoint->v[i] = dir.v[i] * max_t[which_plane] + pStart->v[i];
-            if (pPoint->v[i] < pBounds->min.v[i] || pBounds->max.v[i] < pPoint->v[i]) {
-                return 0;
-            }
-        } else {
-            pPoint->v[i] = cp[i];
-        }
-    }
-    *pT = max_t[which_plane];
-    return which_plane + 4 * quad[which_plane] + 1;
-}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
-// FUNCTION: CARMA2_HW 0x00460da0
-int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_vector3* pCenter, br_scalar pRadius_squared, br_vector3* pClosest) {
-    int axis;
-    br_scalar closest;
-    br_scalar distance;
-
-    distance = 0.f;
-    for (axis = 0; axis < 3; axis++) {
-        if (pCenter->v[axis] <= pBounds->min.v[axis]) {
-            closest = pBounds->min.v[axis];
-        } else if (pCenter->v[axis] >= pBounds->max.v[axis]) {
-            closest = pBounds->max.v[axis];
-        } else {
-            closest = pCenter->v[axis];
-        }
-        pClosest->v[axis] = closest;
-        distance += (pCenter->v[axis] - closest) * (pCenter->v[axis] - closest);
-    }
-    return distance <= pRadius_squared;
-}
-
-// PARTIAL 90%: LineBoxCollWithSphere 0x460e10 [x87-schedule] - runtime-faithful; normal normalisation x87 load/store order differs (fst/fxch placement, float temps)
-// FUNCTION: CARMA2_HW 0x00460e10
-int C2_HOOK_FASTCALL LineBoxCollWithSphere(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    int uVar2;
-    int uVar4;
-    int i;
-    br_scalar fVar1;
-    br_scalar n1;
-    br_scalar n2;
-
-    uVar2 = LineBoxColl(pStart, pEnd, pBounds, pPoint, pT);
-    if (uVar2 != 0) {
-        pNormal->v[0] = 0.0f;
-        pNormal->v[1] = 0.0f;
-        pNormal->v[2] = 0.0f;
-        uVar4 = (uVar2 - 1) & 3;
-        pNormal->v[uVar4] = (uVar2 & 4) ? 1.0f : -1.0f;
-        return uVar2;
-    }
-    if (SphereBoxIntersection(pBounds, pEnd, 2.49999994e-05f, pPoint) != 0) {
-        *pT = 1.0f;
-        pNormal->v[0] = 0.0f;
-        pNormal->v[1] = 0.0f;
-        pNormal->v[2] = 0.0f;
-        for (i = 0; i < 3; i++) {
-            if (pPoint->v[i] == pBounds->max.v[i]) {
-                pNormal->v[i] = -1.0f;
-            } else if (pPoint->v[i] == pBounds->min.v[i]) {
-                pNormal->v[i] = 1.0f;
-            }
-        }
-        n1 = pNormal->v[1];
-        n2 = pNormal->v[2];
-        fVar1 = sqrt(n1 * n1 + n2 * n2 + pNormal->v[0] * pNormal->v[0]);
-        if (fVar1 > 2.3841858e-07f) {
-            fVar1 = 1.0 / fVar1;
-            pNormal->v[0] = fVar1 * pNormal->v[0];
-            pNormal->v[1] = pNormal->v[1] * fVar1;
-            pNormal->v[2] = pNormal->v[2] * fVar1;
-            return 0x40;
-        }
-        pNormal->v[0] = 1.0f;
-        pNormal->v[1] = 0.0f;
-        pNormal->v[2] = 0.0f;
-        return 0x40;
-    }
-    return 0;
-}
-
-// FUNCTION: CARMA2_HW 0x00460f60
-int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    br_scalar fVar6;
-    br_scalar fVar4;
-    br_scalar fVar3;
-    br_scalar fVar1;
-    br_scalar fVar8;
-    br_scalar fVar5;
-    br_scalar fVar7;
-    br_scalar fVar2;
-
-    fVar1 = pSphere->center.v[0] - pStart->v[0];
-    fVar3 = pSphere->center.v[1] - pStart->v[1];
-    fVar4 = pSphere->center.v[2] - pStart->v[2];
-    fVar2 = fVar1 * fVar1 + fVar3 * fVar3 + fVar4 * fVar4;
-    if (fVar2 < pSphere->radius_squared) {
-        return -1;
-    }
-    fVar7 = pEnd->v[0] - pStart->v[0];
-    fVar5 = pEnd->v[1] - pStart->v[1];
-    fVar8 = pEnd->v[2] - pStart->v[2];
-    fVar6 = fVar7 * fVar7 + fVar5 * fVar5 + fVar8 * fVar8;
-    if (fVar6 >= 1e-06) {
-        fVar1 = (fVar4 * fVar8 + fVar3 * fVar5 + fVar1 * fVar7) / fVar6;
-        fVar2 = fVar2 - fVar1 * fVar1 * fVar6;
-        if (pSphere->radius_squared < fVar2) {
-            return 0;
-        }
-        fVar1 = fVar1 - sqrt((pSphere->radius_squared - fVar2) / fVar6);
-        *pT = fVar1;
-        if ((0.0f <= fVar1) && (fVar1 <= 1.0f)) {
-            pPoint->v[0] = fVar7 * fVar1 + pStart->v[0];
-            pPoint->v[1] = fVar5 * fVar1 + pStart->v[1];
-            pPoint->v[2] = fVar8 * fVar1 + pStart->v[2];
-            if (pNormal != 0) {
-                pNormal->v[0] = pSphere->center.v[0] - pPoint->v[0];
-                pNormal->v[1] = pSphere->center.v[1] - pPoint->v[1];
-                fVar1 = pSphere->center.v[2] - pPoint->v[2];
-                pNormal->v[2] = fVar1;
-                fVar1 = sqrt(pNormal->v[0] * pNormal->v[0] + fVar1 * fVar1 + pNormal->v[1] * pNormal->v[1]);
-                if (fVar1 > 2.3841858e-07f) {
-                    fVar1 = 1.0 / fVar1;
-                    pNormal->v[0] = fVar1 * pNormal->v[0];
-                    pNormal->v[1] = pNormal->v[1] * fVar1;
-                    pNormal->v[2] = pNormal->v[2] * fVar1;
-                    return 1;
-                }
-                pNormal->v[0] = 1.0f;
-                pNormal->v[1] = 0.0f;
-                pNormal->v[2] = 0.0f;
-            }
-            return 1;
-        }
-    }
-    return 0;
-}
-
-// LineSphereCollWithSphere
-
-// LinePolyColl
-
-// SpherePolyIntersection
-
-// LinePolyCollWithSphere
-
-extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
-extern int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron_data* pPoly, br_vector3* pPoint, br_scalar pRadius, br_scalar* pT);
-extern int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
-
-// FUNCTION: CARMA2_HW 0x00461740
-int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal) {
-    int index;
-    int result;
-
-    switch (pShape->common.type) {
-    case kCollisionShapeType_Box:
-        result = LineBoxColl((br_vector3*)p1, (br_vector3*)p2, (br_bounds*)&pShape->box.common.bb, pPos, pFactor);
-        if (pNormal != NULL && result > 0) {
-            index = (result - 1) & 3;
-            pNormal->v[0] = 0.0f;
-            pNormal->v[1] = 0.0f;
-            pNormal->v[2] = 0.0f;
-            pNormal->v[index] = (result & 4) ? 1.0f : -1.0f;
-        }
-        return result;
-    case kCollisionShapeType_Polyhedron:
-    case kCollisionShapeType_Wireframe_Polyhedron:
-        result = LinePolyColl((br_vector3*)p1, (br_vector3*)p2, (tCollision_shape_polyhedron_data*)&pShape->polyhedron.polyhedron, pPos, 0, pFactor);
-        if (pNormal != NULL && result > 0) {
-            index = (result & 0x3f) - 1;
-            pNormal->v[0] = pShape->polyhedron.polyhedron.planes[index].v[0];
-            pNormal->v[1] = pShape->polyhedron.polyhedron.planes[index].v[1];
-            pNormal->v[2] = pShape->polyhedron.polyhedron.planes[index].v[2];
-        }
-        return result;
-    case kCollisionShapeType_Sphere:
-        return LineSphereColl((br_vector3*)p1, (br_vector3*)p2, (tCollision_shape_sphere_data*)&pShape->sphere.sphere, pPos, pNormal, pFactor);
-    default:
-        PhysicsError(ePhysicsError_UnknownShapeType, "");
-    case kCollisionShapeType_Wireframe:
-        return 0;
-    }
-}
-
-extern int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
-extern int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
-
-// FUNCTION: CARMA2_HW 0x00461850
-int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd, tPhysics_shape* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    switch (pShape->common.type) {
-    case kCollisionShapeType_Box:
-        return LineBoxCollWithSphere(pStart, pEnd, &pShape->common.bb, pPoint, pNormal, pT);
-    case kCollisionShapeType_Polyhedron:
-    case kCollisionShapeType_Wireframe_Polyhedron:
-        return LinePolyCollWithSphere(pStart, pEnd, &pShape->polyhedron, pPoint, pNormal, pT);
-    case kCollisionShapeType_Sphere:
-        return LineSphereCollWithSphere(pStart, pEnd, &pShape->sphere.sphere, pPoint, pNormal, pT);
-    default:
-        PhysicsError(ePhysicsError_UnknownShapeType, "");
-    case kCollisionShapeType_Wireframe:
-        return 0;
-    }
-}
-
-extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
-
-// FUNCTION: CARMA2_HW 0x004618e0
-tFace_ref* C2_HOOK_FASTCALL CastRayDownThruFaces(br_vector3* pPosition, tFace_ref* pFaces, int pCount, br_scalar pOffset, br_vector3* pCollision_position) {
-    br_vector3 direction;
-    br_vector3 position;
-    br_vector3 normal;
-    br_scalar t;
-    tFace_ref* face;
-
-    BrVector3Set(&direction, 0.f, -1.f, 0.f);
-    face = RayCastThruFaceList(pPosition, &direction, &normal, &t, pCollision_position, pFaces, pCount);
-    if (face == NULL && pOffset != 0.f) {
-        BrVector3Set(&position, pPosition->v[0], pPosition->v[1] + pOffset, pPosition->v[2]);
-        face = RayCastThruFaceList(&position, &direction, &normal, &t, pCollision_position, pFaces, pCount);
-    }
-    return face;
-}
-
-
 // extern so 49-physics.c keeps ownership of the global
 extern tFace_ref* gPling_face;
 
@@ -1676,6 +1426,214 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// ModelPickBox
+
+// ClipToPlaneGE
+
+// ClipToPlaneLE
+
+// BoundsOverlapTest
+
+// BoundsTransformTest
+
+
+// FUNCTION: CARMA2_HW 0x00460bd0
+int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT) {
+    br_vector3 dir;
+    int inside;
+    int quad[3];
+    int i;
+    int which_plane;
+    br_scalar max_t[3];
+    br_scalar cp[3];
+
+    inside = 1;
+    dir.v[0] = pEnd->v[0] - pStart->v[0];
+    dir.v[1] = pEnd->v[1] - pStart->v[1];
+    dir.v[2] = pEnd->v[2] - pStart->v[2];
+    for (i = 0; i < 3; ++i) {
+        if (pStart->v[i] < pBounds->min.v[i]) {
+            quad[i] = 1;
+            cp[i] = pBounds->min.v[i];
+            inside = 0;
+        } else if (pStart->v[i] > pBounds->max.v[i]) {
+            quad[i] = 0;
+            cp[i] = pBounds->max.v[i];
+            inside = 0;
+        } else {
+            quad[i] = 2;
+        }
+    }
+    if (inside) {
+        pPoint->v[0] = pStart->v[0];
+        pPoint->v[1] = pStart->v[1];
+        pPoint->v[2] = pStart->v[2];
+        return -1;
+    }
+    for (i = 0; i < 3; ++i) {
+        if (quad[i] != 2 && dir.v[i] != 0.0f) {
+            max_t[i] = (cp[i] - pStart->v[i]) / dir.v[i];
+        } else {
+            max_t[i] = -1.0f;
+        }
+    }
+    which_plane = 0;
+    for (i = 1; i < 3; ++i) {
+        if (max_t[i] > max_t[which_plane]) {
+            which_plane = i;
+        }
+    }
+    if (max_t[which_plane] < 0.0f || max_t[which_plane] > 1.0f) {
+        return 0;
+    }
+    for (i = 0; i < 3; ++i) {
+        if (which_plane != i) {
+            pPoint->v[i] = dir.v[i] * max_t[which_plane] + pStart->v[i];
+            if (pPoint->v[i] < pBounds->min.v[i] || pBounds->max.v[i] < pPoint->v[i]) {
+                return 0;
+            }
+        } else {
+            pPoint->v[i] = cp[i];
+        }
+    }
+    *pT = max_t[which_plane];
+    return which_plane + 4 * quad[which_plane] + 1;
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+// FUNCTION: CARMA2_HW 0x00460da0
+int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_vector3* pCenter, br_scalar pRadius_squared, br_vector3* pClosest) {
+    int axis;
+    br_scalar closest;
+    br_scalar distance;
+
+    distance = 0.f;
+    for (axis = 0; axis < 3; axis++) {
+        if (pCenter->v[axis] <= pBounds->min.v[axis]) {
+            closest = pBounds->min.v[axis];
+        } else if (pCenter->v[axis] >= pBounds->max.v[axis]) {
+            closest = pBounds->max.v[axis];
+        } else {
+            closest = pCenter->v[axis];
+        }
+        pClosest->v[axis] = closest;
+        distance += (pCenter->v[axis] - closest) * (pCenter->v[axis] - closest);
+    }
+    return distance <= pRadius_squared;
+}
+
+// PARTIAL 90%: LineBoxCollWithSphere 0x460e10 [x87-schedule] - runtime-faithful; normal normalisation x87 load/store order differs (fst/fxch placement, float temps)
+// FUNCTION: CARMA2_HW 0x00460e10
+int C2_HOOK_FASTCALL LineBoxCollWithSphere(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    int uVar2;
+    int uVar4;
+    int i;
+    br_scalar fVar1;
+    br_scalar n1;
+    br_scalar n2;
+
+    uVar2 = LineBoxColl(pStart, pEnd, pBounds, pPoint, pT);
+    if (uVar2 != 0) {
+        pNormal->v[0] = 0.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        uVar4 = (uVar2 - 1) & 3;
+        pNormal->v[uVar4] = (uVar2 & 4) ? 1.0f : -1.0f;
+        return uVar2;
+    }
+    if (SphereBoxIntersection(pBounds, pEnd, 2.49999994e-05f, pPoint) != 0) {
+        *pT = 1.0f;
+        pNormal->v[0] = 0.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        for (i = 0; i < 3; i++) {
+            if (pPoint->v[i] == pBounds->max.v[i]) {
+                pNormal->v[i] = -1.0f;
+            } else if (pPoint->v[i] == pBounds->min.v[i]) {
+                pNormal->v[i] = 1.0f;
+            }
+        }
+        n1 = pNormal->v[1];
+        n2 = pNormal->v[2];
+        fVar1 = sqrt(n1 * n1 + n2 * n2 + pNormal->v[0] * pNormal->v[0]);
+        if (fVar1 > 2.3841858e-07f) {
+            fVar1 = 1.0 / fVar1;
+            pNormal->v[0] = fVar1 * pNormal->v[0];
+            pNormal->v[1] = pNormal->v[1] * fVar1;
+            pNormal->v[2] = pNormal->v[2] * fVar1;
+            return 0x40;
+        }
+        pNormal->v[0] = 1.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        return 0x40;
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00460f60
+int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    br_scalar fVar6;
+    br_scalar fVar4;
+    br_scalar fVar3;
+    br_scalar fVar1;
+    br_scalar fVar8;
+    br_scalar fVar5;
+    br_scalar fVar7;
+    br_scalar fVar2;
+
+    fVar1 = pSphere->center.v[0] - pStart->v[0];
+    fVar3 = pSphere->center.v[1] - pStart->v[1];
+    fVar4 = pSphere->center.v[2] - pStart->v[2];
+    fVar2 = fVar1 * fVar1 + fVar3 * fVar3 + fVar4 * fVar4;
+    if (fVar2 < pSphere->radius_squared) {
+        return -1;
+    }
+    fVar7 = pEnd->v[0] - pStart->v[0];
+    fVar5 = pEnd->v[1] - pStart->v[1];
+    fVar8 = pEnd->v[2] - pStart->v[2];
+    fVar6 = fVar7 * fVar7 + fVar5 * fVar5 + fVar8 * fVar8;
+    if (fVar6 >= 1e-06) {
+        fVar1 = (fVar4 * fVar8 + fVar3 * fVar5 + fVar1 * fVar7) / fVar6;
+        fVar2 = fVar2 - fVar1 * fVar1 * fVar6;
+        if (pSphere->radius_squared < fVar2) {
+            return 0;
+        }
+        fVar1 = fVar1 - sqrt((pSphere->radius_squared - fVar2) / fVar6);
+        *pT = fVar1;
+        if ((0.0f <= fVar1) && (fVar1 <= 1.0f)) {
+            pPoint->v[0] = fVar7 * fVar1 + pStart->v[0];
+            pPoint->v[1] = fVar5 * fVar1 + pStart->v[1];
+            pPoint->v[2] = fVar8 * fVar1 + pStart->v[2];
+            if (pNormal != 0) {
+                pNormal->v[0] = pSphere->center.v[0] - pPoint->v[0];
+                pNormal->v[1] = pSphere->center.v[1] - pPoint->v[1];
+                fVar1 = pSphere->center.v[2] - pPoint->v[2];
+                pNormal->v[2] = fVar1;
+                fVar1 = sqrt(pNormal->v[0] * pNormal->v[0] + fVar1 * fVar1 + pNormal->v[1] * pNormal->v[1]);
+                if (fVar1 > 2.3841858e-07f) {
+                    fVar1 = 1.0 / fVar1;
+                    pNormal->v[0] = fVar1 * pNormal->v[0];
+                    pNormal->v[1] = pNormal->v[1] * fVar1;
+                    pNormal->v[2] = pNormal->v[2] * fVar1;
+                    return 1;
+                }
+                pNormal->v[0] = 1.0f;
+                pNormal->v[1] = 0.0f;
+                pNormal->v[2] = 0.0f;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 #define LSWS_LOAD(p) (*(const volatile br_scalar*)(p))
 #define LSWS_SC(v) ((br_scalar)(v))
 // FUNCTION: CARMA2_HW 0x004611b0
@@ -1734,70 +1692,6 @@ int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pE
     pPoint->v[2] = LSWS_SC(point_z + LSWS_LOAD(&pSphere->center.v[2]));
     *pT = 1.0f;
     return 2;
-}
-#undef LSWS_LOAD
-#undef LSWS_SC
-// PARTIAL 81.89%: LinePolyCollWithSphere 0x461520 [sonnet] - x87 schedule of plane dot product, normal copy via int moves, normalize branch layout
-// FUNCTION: CARMA2_HW 0x00461520
-int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    int result;
-    int i;
-    int count;
-    float dist[64];
-    br_scalar len;
-    int idx;
-    tCollision_shape_polyhedron_data* poly;
-
-    poly = &pShape->polyhedron;
-    result = LinePolyColl(pStart, pEnd, poly, pPoint, 0.0f, pT);
-    i = 0;
-    if (result != i) {
-        if (result < i) {
-            BrVector3SetFloat(pNormal, 1.0f, 0.0f, 0.0f);
-            return result;
-        }
-        idx = (result & 0x3f) - 1;
-        pNormal->v[0] = pShape->polyhedron.planes[idx].v[0];
-        pNormal->v[1] = pShape->polyhedron.planes[idx].v[1];
-        pNormal->v[2] = pShape->polyhedron.planes[idx].v[2];
-        return result;
-    }
-    for (; i < poly->count_planes; i++) {
-        dist[i] = poly->planes[i].v[0] * pEnd->v[0] + poly->planes[i].v[1] * pEnd->v[1] + poly->planes[i].v[2] * pEnd->v[2] + poly->planes[i].v[3];
-        if (dist[i] < -0.005f) {
-            return 0;
-        }
-    }
-    count = 0;
-    pNormal->v[0] = 0.0f;
-    pNormal->v[1] = 0.0f;
-    pNormal->v[2] = 0.0f;
-    for (i = 0; i < poly->count_planes; i++) {
-        if (dist[i] < 0.0f) {
-            count++;
-            pNormal->v[0] = poly->planes[i].v[0] + pNormal->v[0];
-            pNormal->v[1] = poly->planes[i].v[1] + pNormal->v[1];
-            pNormal->v[2] = poly->planes[i].v[2] + pNormal->v[2];
-        }
-    }
-    if (count > 1) {
-        len = (br_scalar)sqrt(pNormal->v[0] * pNormal->v[0] + pNormal->v[2] * pNormal->v[2] + pNormal->v[1] * pNormal->v[1]);
-        if (len <= 2.3841858e-07f) {
-            pNormal->v[0] = 1.0f;
-            pNormal->v[1] = 0.0f;
-            pNormal->v[2] = 0.0f;
-        } else {
-            len = 1.0f / len;
-            pNormal->v[0] = len * pNormal->v[0];
-            pNormal->v[1] = pNormal->v[1] * len;
-            pNormal->v[2] = pNormal->v[2] * len;
-        }
-    }
-    pPoint->v[0] = pEnd->v[0];
-    pPoint->v[1] = pEnd->v[1];
-    pPoint->v[2] = pEnd->v[2];
-    *pT = 1.0f;
-    return 0x40;
 }
 // PARTIAL 59.26%: stack slot layout of locals and x87 schedule differ
 // FUNCTION: CARMA2_HW 0x00461310
@@ -1871,53 +1765,156 @@ int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollisi
     *pT = best_t;
     return selected + 1;
 }
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// PARTIAL 45.58%: SpherePolyFaceCollide 0x45e020 [fastcall] - x87 schedule/frame size (orig 0x10 frame, delta spilled)
-// FUNCTION: CARMA2_HW 0x0045e020
-void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    br_scalar fVar1;
-    br_scalar fVar2;
-    br_scalar fVar3;
-    br_scalar fVar4;
-    br_scalar fVar5;
-    br_vector3 delta;
+#undef LSWS_LOAD
+#undef LSWS_SC
+// PARTIAL 81.89%: LinePolyCollWithSphere 0x461520 [sonnet] - x87 schedule of plane dot product, normal copy via int moves, normalize branch layout
+// FUNCTION: CARMA2_HW 0x00461520
+int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    int result;
+    int i;
+    int count;
+    float dist[64];
+    br_scalar len;
+    int idx;
+    tCollision_shape_polyhedron_data* poly;
 
-    delta.v[1] = pEnd->v[1] - pStart->v[1];
-    delta.v[2] = pEnd->v[2] - pStart->v[2];
-    delta.v[0] = pEnd->v[0] - pStart->v[0];
-    fVar1 = pDirection->v[0] * pDirection->v[0] + pDirection->v[2] * pDirection->v[2] + pDirection->v[1] * pDirection->v[1];
-    fVar3 = (pDirection->v[0] * delta.v[0] + pDirection->v[1] * delta.v[1] + pDirection->v[2] * delta.v[2]) / fVar1;
-    fVar2 = (delta.v[2] * delta.v[2] + delta.v[1] * delta.v[1] + delta.v[0] * delta.v[0]) - fVar3 * fVar3 * fVar1;
-    if (fVar2 <= pSphere->radius_squared) {
-        fVar3 = fVar3 - sqrt((pSphere->radius_squared - fVar2) / fVar1);
-        if (0.0f <= fVar3 && fVar3 <= 1.0f) {
-            pPoint->v[0] = pEnd->v[0];
-            pPoint->v[1] = pEnd->v[1];
-            pPoint->v[2] = pEnd->v[2];
-            fVar4 = pPoint->v[0] - (pDirection->v[0] * fVar3 + pStart->v[0]);
-            fVar5 = pPoint->v[1] - (pDirection->v[1] * fVar3 + pStart->v[1]);
-            fVar1 = pPoint->v[2] - (pDirection->v[2] * fVar3 + pStart->v[2]);
-            fVar2 = sqrt(fVar1 * fVar1 + fVar5 * fVar5 + fVar4 * fVar4);
-            if (2.3841858e-07f < fVar2) {
-                fVar2 = 1.0f / fVar2;
-                pNormal->v[0] = fVar2 * fVar4;
-                pNormal->v[1] = fVar2 * fVar5;
-                pNormal->v[2] = fVar2 * fVar1;
-                *pT = fVar3;
-                return;
-            }
+    poly = &pShape->polyhedron;
+    result = LinePolyColl(pStart, pEnd, poly, pPoint, 0.0f, pT);
+    i = 0;
+    if (result != i) {
+        if (result < i) {
+            BrVector3SetFloat(pNormal, 1.0f, 0.0f, 0.0f);
+            return result;
+        }
+        idx = (result & 0x3f) - 1;
+        pNormal->v[0] = pShape->polyhedron.planes[idx].v[0];
+        pNormal->v[1] = pShape->polyhedron.planes[idx].v[1];
+        pNormal->v[2] = pShape->polyhedron.planes[idx].v[2];
+        return result;
+    }
+    for (; i < poly->count_planes; i++) {
+        dist[i] = poly->planes[i].v[0] * pEnd->v[0] + poly->planes[i].v[1] * pEnd->v[1] + poly->planes[i].v[2] * pEnd->v[2] + poly->planes[i].v[3];
+        if (dist[i] < -0.005f) {
+            return 0;
+        }
+    }
+    count = 0;
+    pNormal->v[0] = 0.0f;
+    pNormal->v[1] = 0.0f;
+    pNormal->v[2] = 0.0f;
+    for (i = 0; i < poly->count_planes; i++) {
+        if (dist[i] < 0.0f) {
+            count++;
+            pNormal->v[0] = poly->planes[i].v[0] + pNormal->v[0];
+            pNormal->v[1] = poly->planes[i].v[1] + pNormal->v[1];
+            pNormal->v[2] = poly->planes[i].v[2] + pNormal->v[2];
+        }
+    }
+    if (count > 1) {
+        len = (br_scalar)sqrt(pNormal->v[0] * pNormal->v[0] + pNormal->v[2] * pNormal->v[2] + pNormal->v[1] * pNormal->v[1]);
+        if (len <= 2.3841858e-07f) {
             pNormal->v[0] = 1.0f;
             pNormal->v[1] = 0.0f;
             pNormal->v[2] = 0.0f;
-            *pT = fVar3;
+        } else {
+            len = 1.0f / len;
+            pNormal->v[0] = len * pNormal->v[0];
+            pNormal->v[1] = pNormal->v[1] * len;
+            pNormal->v[2] = pNormal->v[2] * len;
         }
     }
+    pPoint->v[0] = pEnd->v[0];
+    pPoint->v[1] = pEnd->v[1];
+    pPoint->v[2] = pEnd->v[2];
+    *pT = 1.0f;
+    return 0x40;
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// LineSphereCollWithSphere
+
+// LinePolyColl
+
+// SpherePolyIntersection
+
+// LinePolyCollWithSphere
+
+extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
+extern int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron_data* pPoly, br_vector3* pPoint, br_scalar pRadius, br_scalar* pT);
+extern int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
+
+// FUNCTION: CARMA2_HW 0x00461740
+int C2_HOOK_FASTCALL ShapeRayCast(const br_vector3* p1, const br_vector3* p2, const tPhysics_shape* pShape, br_vector3* pPos, float* pFactor, br_vector3* pNormal) {
+    int index;
+    int result;
+
+    switch (pShape->common.type) {
+    case kCollisionShapeType_Box:
+        result = LineBoxColl((br_vector3*)p1, (br_vector3*)p2, (br_bounds*)&pShape->box.common.bb, pPos, pFactor);
+        if (pNormal != NULL && result > 0) {
+            index = (result - 1) & 3;
+            pNormal->v[0] = 0.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
+            pNormal->v[index] = (result & 4) ? 1.0f : -1.0f;
+        }
+        return result;
+    case kCollisionShapeType_Polyhedron:
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        result = LinePolyColl((br_vector3*)p1, (br_vector3*)p2, (tCollision_shape_polyhedron_data*)&pShape->polyhedron.polyhedron, pPos, 0, pFactor);
+        if (pNormal != NULL && result > 0) {
+            index = (result & 0x3f) - 1;
+            pNormal->v[0] = pShape->polyhedron.polyhedron.planes[index].v[0];
+            pNormal->v[1] = pShape->polyhedron.polyhedron.planes[index].v[1];
+            pNormal->v[2] = pShape->polyhedron.polyhedron.planes[index].v[2];
+        }
+        return result;
+    case kCollisionShapeType_Sphere:
+        return LineSphereColl((br_vector3*)p1, (br_vector3*)p2, (tCollision_shape_sphere_data*)&pShape->sphere.sphere, pPos, pNormal, pFactor);
+    default:
+        PhysicsError(ePhysicsError_UnknownShapeType, "");
+    case kCollisionShapeType_Wireframe:
+        return 0;
+    }
+}
+
+extern int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
+extern int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
+
+// FUNCTION: CARMA2_HW 0x00461850
+int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd, tPhysics_shape* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    switch (pShape->common.type) {
+    case kCollisionShapeType_Box:
+        return LineBoxCollWithSphere(pStart, pEnd, &pShape->common.bb, pPoint, pNormal, pT);
+    case kCollisionShapeType_Polyhedron:
+    case kCollisionShapeType_Wireframe_Polyhedron:
+        return LinePolyCollWithSphere(pStart, pEnd, &pShape->polyhedron, pPoint, pNormal, pT);
+    case kCollisionShapeType_Sphere:
+        return LineSphereCollWithSphere(pStart, pEnd, &pShape->sphere.sphere, pPoint, pNormal, pT);
+    default:
+        PhysicsError(ePhysicsError_UnknownShapeType, "");
+    case kCollisionShapeType_Wireframe:
+        return 0;
+    }
+}
+
+extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList(br_vector3* pPosition, br_vector3* pDirection, br_vector3* pNormal, br_scalar* pT, br_vector3* pCollision_position, tFace_ref* pFaces, int pCount);
+
+// FUNCTION: CARMA2_HW 0x004618e0
+tFace_ref* C2_HOOK_FASTCALL CastRayDownThruFaces(br_vector3* pPosition, tFace_ref* pFaces, int pCount, br_scalar pOffset, br_vector3* pCollision_position) {
+    br_vector3 direction;
+    br_vector3 position;
+    br_vector3 normal;
+    br_scalar t;
+    tFace_ref* face;
+
+    BrVector3Set(&direction, 0.f, -1.f, 0.f);
+    face = RayCastThruFaceList(pPosition, &direction, &normal, &t, pCollision_position, pFaces, pCount);
+    if (face == NULL && pOffset != 0.f) {
+        BrVector3Set(&position, pPosition->v[0], pPosition->v[1] + pOffset, pPosition->v[2]);
+        face = RayCastThruFaceList(&position, &direction, &normal, &t, pCollision_position, pFaces, pCount);
+    }
+    return face;
+}

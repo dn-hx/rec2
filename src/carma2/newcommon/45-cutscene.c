@@ -48,10 +48,10 @@ br_pixelmap* gSmackerCurrentPalette = NULL;
 // GLOBAL: CARMA2_HW 0x0079ecac
 br_model* gSmackerModel = NULL;
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0043e770
 // FUNCTION: CARMA2_SW 0x0043e880
 void C2_HOOK_FASTCALL PlaySmackerFile(char* pSmack_name) {
@@ -374,10 +374,10 @@ finish:
     PDServiceSystem(0);
 }
 
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-
 // FUNCTION: CARMA2_HW 0x0043f330
 // FUNCTION: CARMA2_SW 0x0043f410
 void C2_HOOK_FASTCALL DoOpeningAnimation(void) {
@@ -413,60 +413,9 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
     WaitForNoKeys();
 }
 
-// FUNCTION: CARMA2_HW 0x0043f5c0
-void C2_HOOK_FASTCALL StartLoadingScreen(void) {
-
-    SwitchToLoresMode();
-    StartMusicTrack(9998);
-    PossibleService();
-    if (gProgram_state.sausage_eater_mode) {
-        SplashScreenWith("LOADSCRN.PIX");
-    } else {
-        SplashScreenWith("LOADSCRN.PIX");
-    }
-}
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// FUNCTION: CARMA2_HW 0x00461980
-void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
-    extern int gSound_ID;
-    extern tU32 gSound_time;
-
-    gSound_ID = pSound_ID;
-    gSound_time = pSound_time;
-}
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
-// Lives here (not in 32-spark.c) on purpose: its string literal in a TU before
-// 36-trig.c shifts gFloat_sine_table and drops FastFloatCos 0x511440 to 97.22.
-// FUNCTION: CARMA2_HW 0x004fa8d0
-void C2_HOOK_FASTCALL DustRotate(void) {
-    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
-    extern int gDust_rotate;
-    extern int gNum_dust_tables;
-
-    gDust_rotate++;
-    if (gDust_rotate >= gNum_dust_tables) {
-        gDust_rotate = 0;
-    }
-    NewTextHeadupSlot(4, 0, 1000, -4, "Dust colour rotated");
-}
-
 // FUNCTION: CARMA2_HW 0x0043f3a0
 void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
@@ -503,6 +452,48 @@ void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
     FadePaletteDown();
     PrintMemoryDump(0, "AFTER DEMO-ONLY SCREEN");
 }
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// FUNCTION: CARMA2_HW 0x0043f5c0
+void C2_HOOK_FASTCALL StartLoadingScreen(void) {
+
+    SwitchToLoresMode();
+    StartMusicTrack(9998);
+    PossibleService();
+    if (gProgram_state.sausage_eater_mode) {
+        SplashScreenWith("LOADSCRN.PIX");
+    } else {
+        SplashScreenWith("LOADSCRN.PIX");
+    }
+}
+
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x00461980
+void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
+    extern int gSound_ID;
+    extern tU32 gSound_time;
+
+    gSound_ID = pSound_ID;
+    gSound_time = pSound_time;
+}
+
+
+// Lives here (not in 32-spark.c) on purpose: its string literal in a TU before
+// 36-trig.c shifts gFloat_sine_table and drops FastFloatCos 0x511440 to 97.22.
+// FUNCTION: CARMA2_HW 0x004fa8d0
+void C2_HOOK_FASTCALL DustRotate(void) {
+    extern int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText);
+    extern int gDust_rotate;
+    extern int gNum_dust_tables;
+
+    gDust_rotate++;
+    if (gDust_rotate >= gNum_dust_tables) {
+        gDust_rotate = 0;
+    }
+    NewTextHeadupSlot(4, 0, 1000, -4, "Dust colour rotated");
+}
