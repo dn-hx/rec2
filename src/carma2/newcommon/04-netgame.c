@@ -2066,13 +2066,24 @@ void C2_HOOK_FASTCALL FUN_4f0f80(tNet_game_player_info* pRecipient) {
 extern int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 extern void C2_NORETURN C2_HOOK_FASTCALL PhysicsError(tPhysicsError pError, const char* pMessage);
 
+static __inline tPhysics_object* C2_HOOK_FASTCALL FindChildByUID(tPhysics_object* pObj, tU8 uid) {
+    tPhysics_object* child;
+
+    if (pObj != NULL) {
+        for (child = pObj->child; child != NULL; child = child->next) {
+            if (child->uid == uid) {
+                return child;
+            }
+        }
+    }
+    return NULL;
+}
+
 // FUNCTION: CARMA2_HW 0x0049cd90
 int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pObj, int pMode) {
     int total_size;
     tU8* current_data;
     tPhysics_object* matching_child;
-    tPhysics_object* child;
-    tPhysics_object* recursive_child;
 
     if (pObj != NULL && ((tU8*)pField)[1] != pObj->uid) {
         PhysicsError((tPhysicsError)9, "netphys got messed up");
@@ -2081,25 +2092,8 @@ int C2_HOOK_FASTCALL SelectCrushNetwork(undefined4* pField, tPhysics_object* pOb
     if ((((tU8*)pField)[0] & 0x80) != 0) {
         do {
             current_data = (tU8*)pField + total_size;
-            if (pObj != NULL) {
-                child = pObj->child;
-                while (child != NULL && child->uid != current_data[1]) {
-                    child = child->next;
-                }
-                matching_child = child;
-            } else {
-                matching_child = NULL;
-            }
-            if (pObj != NULL) {
-                child = pObj->child;
-                while (child != NULL && child->uid != current_data[1]) {
-                    child = child->next;
-                }
-                recursive_child = child;
-            } else {
-                recursive_child = NULL;
-            }
-            total_size += SelectCrushNetwork((undefined4*)current_data, recursive_child, pMode);
+            matching_child = FindChildByUID(pObj, current_data[1]);
+            total_size += SelectCrushNetwork((undefined4*)current_data, FindChildByUID(pObj, current_data[1]), pMode);
             if (matching_child != NULL) {
                 matching_child->field_0xf0 = pObj->field_0xf0;
             }
@@ -2389,8 +2383,10 @@ void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_
     pMat->m[3][2] = pObj->field_0x17c.v[2] - tmp.v[2];
 }
 
+// PARTIAL 16.67%: register allocation/frame differ (orig keeps NULL in ebp, frame 0x2c). Measured 2026-11-14
+// with the annotation order fixed: the old "21%" was a reccmp symbol-name artifact (this line sat below the
+// FUNCTION line, so reccmp named the function after the comment text).
 // FUNCTION: CARMA2_HW 0x0049c630
-// PARTIAL 21%: register allocation/frame differ (orig keeps NULL in ebp, frame 0x2c)
 int C2_HOOK_FASTCALL SetObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
     tU16* field;
     br_matrix34* mat;
