@@ -931,3 +931,78 @@ void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbp
     abort();
 #endif
 }
+
+#if defined(__I86__) || defined(_M_IX86)
+C2_NAKED
+#endif
+// FUNCTION: CARMA2_HW 0x0053e527
+void C2_HOOK_CDECL FUN_0053e527(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height, br_uint_32 dest_stride, br_uint_32 src_stride, br_uint_32 bpp) {
+#if defined(__I86__) || defined(_M_IX86)
+#if defined(_MSC_VER)
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ebx
+        push esi
+        push edi
+        push ds
+        push es
+        mov ds, word ptr [ebp+0x14]
+        mov es, word ptr [ebp+0xc]
+        mov esi, dword ptr [ebp+0x10]
+        mov edi, dword ptr [ebp+0x8]
+        mov eax, dword ptr [ebp+0x28]
+        mul dword ptr [ebp+0x18]
+        mov ecx, eax
+
+    row_loop:
+        push ecx
+        push esi
+        push edi
+        mov edx, edi
+        and edx, 3
+        je row_aligned
+        neg edx
+        add edx, 4
+
+    row_head:
+        mov al, byte ptr [esi]
+        mov byte ptr es:[edi], al
+        inc esi
+        inc edi
+        dec ecx
+        je row_done
+        dec edx
+        jne row_head
+
+    row_aligned:
+        mov edx, ecx
+        shr ecx, 2
+        rep movsd
+        mov ecx, edx
+        and ecx, 3
+        rep movsb
+
+    row_done:
+        pop edi
+        pop esi
+        pop ecx
+        add edi, dword ptr [ebp+0x20]
+        add esi, dword ptr [ebp+0x24]
+        dec dword ptr [ebp+0x1c]
+        jne row_loop
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+    }
+#else
+    abort();
+#endif
+#else
+    abort();
+#endif
+}
