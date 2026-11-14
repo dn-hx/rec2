@@ -4,6 +4,7 @@
 #include "setup.h"
 #include "subdiv.h"
 
+#include "c2_stdlib.h"
 #include "c2_string.h"
 
 // FUNCTION: CARMA2_HW 0x00545120
@@ -289,42 +290,146 @@ void C2_HOOK_STDCALL SubdivideSetThreshold(br_int_32 subdivide_tolerance) {
 #pragma auto_inline(off)
 #endif
 
+/* Byte offsets into the three pointer arguments, indexed by the z-order code:
+   subdivideOrderMin = index of the vertex with the smallest |z|,
+   subdivideOrderMax = index of the vertex with the largest |z|. */
+// GLOBAL: CARMA2_HW 0x006707cc
+br_uint_32 subdivideOrderMin[8] = { 0, 0, 0, 8, 4, 0, 4, 8 };
+// GLOBAL: CARMA2_HW 0x006707d8
+br_uint_32 subdivideOrderMax[8] = { 8, 4, 0, 4, 8, 0, 0, 0 };
+// GLOBAL: CARMA2_HW 0x006707f8
+br_scalar subdivideScalar;
+
+#if defined(__I86__) || defined(_M_IX86)
+C2_NAKED
+#endif
 // FUNCTION: CARMA2_HW 0x0054c766
 br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vertex* v2) {
-    br_scalar z0,z1,z2,zt;
-
-    z0 = (br_scalar)fabs(v0->comp[C_Z]);
-    z1 = (br_scalar)fabs(v1->comp[C_Z]);
-    z2 = (br_scalar)fabs(v2->comp[C_Z]);
-
-    if (z0 > z1) {
-        zt = z0;
-        z0 = z1;
-        z1 = zt;
+#if defined(__I86__) || defined(_M_IX86)
+#if defined(_MSC_VER)
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ebx
+        push edi
+        push esi
+        mov eax, dword ptr [ebp+0x8]
+        mov ebx, dword ptr [ebp+0xc]
+        mov ecx, dword ptr [ebp+0x10]
+        mov eax, dword ptr [eax+0xc]
+        mov ebx, dword ptr [ebx+0xc]
+        mov ecx, dword ptr [ecx+0xc]
+        and eax, 0x7fffffff
+        and ebx, 0x7fffffff
+        and ecx, 0x7fffffff
+        xor edx, edx
+        cmp ebx, eax
+        rcl edx, 1
+        cmp ecx, eax
+        rcl edx, 1
+        cmp ecx, ebx
+        rcl edx, 1
+        fld dword ptr [rend+0x60]
+        mov eax, dword ptr [edx*4+subdivideOrderMax]
+        mov ebx, dword ptr [edx*4+subdivideOrderMin]
+        mov eax, dword ptr ss:[eax+ebp+0x8]
+        mov ebx, dword ptr ss:[ebx+ebp+0x8]
+        fmul dword ptr [eax+0xc]
+        fstp dword ptr [subdivideScalar]
+        mov eax, dword ptr [subdivideScalar]
+        mov ebx, dword ptr [ebx+0xc]
+        and eax, 0x7fffffff
+        and ebx, 0x7fffffff
+        cmp eax, ebx
+        jge L_54c7e5
+        mov eax, 0x0
+        pop esi
+        pop edi
+        pop ebx
+        pop ebp
+        ret
+    L_54c7e5:
+        mov eax, 0x1
+        pop esi
+        pop edi
+        pop ebx
+        pop ebp
+        ret
     }
-
-    if (z0 > z2) {
-        zt = z0;
-        z0 = z2;
-        z2 = zt;
-    }
-
-    if (z1 > z2) {
-        zt = z1;
-        z1 = z2;
-        z2 = zt;
-    }
-
-    if (z0 > (br_scalar)fabs(rend.subdivide_threshold * z2)) {
-        return 0;
-    }
-
-    return 1;
+#else
+    __asm__(".intel_syntax noprefix\n"
+        "        push ebp\n"
+        "        mov ebp, esp\n"
+        "        push ebx\n"
+        "        push edi\n"
+        "        push esi\n"
+        "        mov eax, dword ptr [ebp+0x8]\n"
+        "        mov ebx, dword ptr [ebp+0xc]\n"
+        "        mov ecx, dword ptr [ebp+0x10]\n"
+        "        mov eax, dword ptr [eax+0xc]\n"
+        "        mov ebx, dword ptr [ebx+0xc]\n"
+        "        mov ecx, dword ptr [ecx+0xc]\n"
+        "        and eax, 0x7fffffff\n"
+        "        and ebx, 0x7fffffff\n"
+        "        and ecx, 0x7fffffff\n"
+        "        xor edx, edx\n"
+        "        cmp ebx, eax\n"
+        "        rcl edx, 1\n"
+        "        cmp ecx, eax\n"
+        "        rcl edx, 1\n"
+        "        cmp ecx, ebx\n"
+        "        rcl edx, 1\n"
+        "        fld dword ptr [rend+0x60]\n"
+        "        mov eax, dword ptr [edx*4+subdivideOrderMax]\n"
+        "        mov ebx, dword ptr [edx*4+subdivideOrderMin]\n"
+        "        mov eax, dword ptr ss:[eax+ebp+0x8]\n"
+        "        mov ebx, dword ptr ss:[ebx+ebp+0x8]\n"
+        "        fmul dword ptr [eax+0xc]\n"
+        "        fstp dword ptr [subdivideScalar]\n"
+        "        mov eax, dword ptr [subdivideScalar]\n"
+        "        mov ebx, dword ptr [ebx+0xc]\n"
+        "        and eax, 0x7fffffff\n"
+        "        and ebx, 0x7fffffff\n"
+        "        cmp eax, ebx\n"
+        "        jge L_54c7e5\n"
+        "        mov eax, 0x0\n"
+        "        pop esi\n"
+        "        pop edi\n"
+        "        pop ebx\n"
+        "        pop ebp\n"
+        "        ret\n"
+        "L_54c7e5:\n"
+        "        mov eax, 0x1\n"
+        "        pop esi\n"
+        "        pop edi\n"
+        "        pop ebx\n"
+        "        pop ebp\n"
+        "        ret\n"
+        ".att_syntax prefix\n");
+#endif
+#else
+    abort();
+#endif
 }
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+#ifdef REC2_MATCHING
+/* MSVC 5 numbers symbols per translation unit and that numbering decides the register
+   allocation of every later function in the file.  This TU has three symbols fewer
+   before triangleSubdivide than the retail build had, which puts its v0/v1/v2
+   parameters in ebx/ebp/edi instead of ebx/edi/ebp.  The declarations below restore
+   the original count at each point (see state/cheatsheet.md). */
+static void symbol_pad_0(void);
+static void symbol_pad_1(void);
+static void symbol_pad_2(void);
+#endif
+
+/* No standalone body in the original: MSVC 5 inlined it into triangleSubdivide and
+   OpTriangleSubdivide.  Kept static so the inliner always expands it. */
+static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges);
 
 // FUNCTION: CARMA2_HW 0x00545de0
 void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
@@ -359,7 +464,7 @@ void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_
     }
 }
 
-void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
+static __inline void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
     brp_vertex mid0, mid1, mid2;
 
     if (depth > 0 && subdivideCheck(v0, v1, v2)) {
@@ -373,6 +478,11 @@ void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_ver
         block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
     }
 }
+
+#ifdef REC2_MATCHING
+/* Compensates the three pads above for the function inlined here (symbol numbering again). */
+static void symbol_pad_3(void);
+#endif
 
 // FUNCTION: CARMA2_HW 0x00545c60
 void C2_HOOK_CDECL OpTriangleSubdivide(brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
