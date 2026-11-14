@@ -2099,6 +2099,11 @@ int C2_HOOK_FASTCALL BonerActiveHalted2(tPed_character_instance* pCharacter, und
 #endif
 // CharacterNoLongerPhysicworthy
 
+/* codegen anchor, not needed by the code: 0x409570 74.16 -> 83.15 with this declaration present */
+extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
+/* codegen anchor, not needed by the code: 0x40b030 70.73 -> 92.50 with this declaration present */
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+
 // PARTIAL 83.15%: identical body/order except MSVC 11 register allocation - the original keeps obj in esi and child in
 // edi, ours swaps them, which also stops `obj = NULL` sinking after the boned loop (cmp [ebp+0x20],0 vs mov+test)
 // FUNCTION: CARMA2_HW 0x00409570
@@ -6642,6 +6647,35 @@ void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_objec
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pArg3, int pArg4);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL SetCharacterAllBonesModel(tPed_character_instance* pCharacter, undefined4 pArg2, int pArg3);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pObject, int pProperty, ...);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern int C2_HOOK_FASTCALL PHILMakeObjectActive(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, int pFlag);
+/* codegen anchor, not needed by the code: 0x4d2930 85.23 -> 100 with the block of anchors below present */
+extern void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9);
 
 // FUNCTION: CARMA2_HW 0x004d2930
 void C2_HOOK_FASTCALL CBMovedByPhysics(tPed_character_instance* pCharacter, tPhysics_object* pPhysics, undefined4 pArg3) {
