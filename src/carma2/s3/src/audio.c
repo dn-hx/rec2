@@ -2514,3 +2514,15 @@ void C2_HOOK_FASTCALL FUN_0056a8a0(tS3_callbacks* pCallbacks) {
     gS3_callbacks.on_sample_channel_set_volume = pCallbacks->on_sample_channel_set_volume;
     gS3_callbacks.on_sample_channel_set_pan = pCallbacks->on_sample_channel_set_pan;
 }
+
+// FUNCTION: CARMA2_HW 0x00564a21
+int C2_HOOK_FASTCALL FUN_00564a21(tS3_sound_tag pTag, int pPitch) {
+
+    if (gS3_enabled) {
+        if (pPitch == -1) {
+            pPitch = 0x10000;
+        }
+        return S3ChangePitchSpeed(pTag, pPitch);
+    }
+    return 0;
+}
