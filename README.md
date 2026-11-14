@@ -8,6 +8,16 @@ When enough functions have been replaced, it should become possible to not need 
 
 ## Status
 
+<!-- headline:begin -->
+| Metric | Value |
+|---|---|
+| Functions implemented | 4657 / 5162 (90.22%) |
+| Functions at exactly 100% similar | 3569 |
+| Accuracy | 92.57% |
+| Progress | 83.52% |
+| Run | v6stub1 (2026-11-14 21:40) |
+<!-- headline:end -->
+
 <a href="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_HW.html"><img width="50%" src="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_HW.svg"></a><a href="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_SW.html"><img width="50%" src="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_SW.svg"></a>
 
 ## Requirements
