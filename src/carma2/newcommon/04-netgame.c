@@ -2681,3 +2681,36 @@ have_actor:
     SelectCrushNetwork((undefined4*)pContents->object_hierarchy, crush_info->collision_object, 2);
     crush_info->collision_object->disable_move_rotate = 1;
 }
+
+// FUNCTION: CARMA2_HW 0x0043d810
+void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents) {
+    extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
+    br_vector4 plane;
+    tCompressed_vector3* src;
+    tCar_spec* car;
+    tCrush_info* crush_info;
+    int size;
+
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car != NULL) {
+        if (car->car_crush_spec->field_0x4b8 == 0) {
+            src = (tCompressed_vector3*)(pContents + 0xe);
+            ExpandVector3((br_vector3*)&plane, src, -1.0f, 1.0f);
+            plane.v[3] = DRU16ToScalar(*(tU16*)((tU8*)src + 6), -2.5f, 2.5f);
+            SplitCar(car, &plane, 0);
+        }
+        crush_info = car->car_crush_spec->actor->type_data;
+        if (crush_info != NULL) {
+            if ((pContents[0xc] & 2) == 0 && *(tU32*)(pContents + 8) != (tU32)-1) {
+                size = GetNetworkDataSize(pContents + 0x16);
+                memcpy((tU8*)crush_info->collision_object + 0x294, pContents + 0x16, size);
+                crush_info->collision_object->message_time = *(tU32*)(pContents + 8);
+                crush_info->collision_object->field_0x261 = 0x29;
+                crush_info->collision_object->disable_move_rotate = 0;
+                return;
+            }
+            SelectCrushNetwork((undefined4*)(pContents + 0x16), crush_info->collision_object, 2);
+            crush_info->collision_object->disable_move_rotate = 1;
+        }
+    }
+}

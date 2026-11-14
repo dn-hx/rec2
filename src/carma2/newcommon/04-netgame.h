@@ -183,6 +183,7 @@ extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer
 extern void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk);
 extern void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents);
 extern void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents);
+extern void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents);
 extern void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
 
 // FUNCTION: CARMA2_HW 0x0049bad0
