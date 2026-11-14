@@ -190,6 +190,7 @@ extern void C2_HOOK_FASTCALL S3ReleaseSoundList(int* pSound_ids, int pSound_coun
 extern void C2_HOOK_FASTCALL S3UpdateSampleList(int* pSound_ids, int pSound_count, int* pSample_ids, int pSample_count);
 
 extern int C2_HOOK_FASTCALL FUN_0056a71f(int pTag, int pArg2, int pArg3, int pArg4, int pArg5);
+extern int C2_HOOK_FASTCALL FUN_00565c82(int pTag);
 
 extern int C2_HOOK_FASTCALL S3ChangePitchSpeed(tS3_sound_tag pTag, int pPitch);
 

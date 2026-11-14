@@ -2381,3 +2381,25 @@ int C2_HOOK_FASTCALL FUN_0056a71f(int pTag, int pArg2, int pArg3, int pArg4, int
     }
     return eS3_error_none;
 }
+
+extern int C2_HOOK_FASTCALL PDS3PauseCDA(volatile undefined4 pUnused_arg);
+
+// FUNCTION: CARMA2_HW 0x00565c82
+int C2_HOOK_FASTCALL FUN_00565c82(int pTag) {
+    struct {
+        int result;
+        tS3_channel* channel;
+    } locals;
+
+    locals.result = 0;
+    if (gS3_CDA_enabled) {
+        locals.channel = S3GetChannelForTag(pTag);
+        if (locals.channel == NULL) {
+            return eS3_error_bad_stag;
+        }
+        if (locals.channel->type == 2) {
+            locals.result = PDS3PauseCDA((volatile undefined4)locals.channel);
+        }
+    }
+    return locals.result;
+}
