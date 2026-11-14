@@ -384,27 +384,23 @@ void C2_HOOK_CDECL BrMatrix34RollingBall(br_matrix34* mat, int dx, int dy, int r
     br_scalar sa;
     br_scalar dr;
     br_scalar h;
-    br_scalar fdx;
-    br_scalar fdy;
-    br_scalar frad;
 
     // The rolling ball, Graphics Gems III (1993), pages 51-60, Academic Press
 
-    fdy = (br_scalar)dy;
-    fdx = (br_scalar)dx;
-    dr = (br_scalar)sqrt(fdx * fdx + fdy * fdy);
+    nx = (br_scalar)dx;
+    ny = (br_scalar)dy;
+    dr = (br_scalar)sqrt(nx * nx + ny * ny);
     if (dr == BR_SCALAR(.0f)) {
         BrMatrix34Identity(mat);
         return;
     }
-    frad = (br_scalar)radius;
-    h = (br_scalar)sqrt(dr * dr + frad * frad);
-    ny = fdx / dr;
-    ca = frad / h;
+    ca = (br_scalar)radius;
+    h = (br_scalar)sqrt(dr * dr + ca * ca);
+    sa = nx / dr;
+    nx = -(ny / dr);
+    ny = sa;
     sa = dr / h;
-    nx = -(fdy / dr);
-    // nz = 0;
-
+    ca = ca / h;
     h = (1 - ca);
 
     M(0, 0) = nx * nx * h + ca;
