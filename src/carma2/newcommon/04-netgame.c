@@ -1,3 +1,7 @@
+/* The shared-header copy of the bit-position chunk message rotates this TU's
+ * register allocation (SortNetHeadAscending 0x49a330); keep it local instead. */
+#define REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
+
 #include "04-netgame.h"
 
 #include "01-network.h"
@@ -2677,6 +2681,20 @@ have_actor:
     SelectCrushNetwork((undefined4*)pContents->object_hierarchy, crush_info->collision_object, 2);
     crush_info->collision_object->disable_move_rotate = 1;
 }
+
+/* Used by this TU only; 04-netgame.h hides its copy via
+   REC2_NO_NET_CHUNK_BIT_POSITION_DECLS (a shared-header declaration here
+   perturbs SortNetHeadAscending 0x49a330). */
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU8 uid;
+    undefined field_0x9[3];
+    br_matrix34 mat;
+} tNet_message_chunk_bit_position;
+extern void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents);
+extern void C2_HOOK_FASTCALL FUN_0043d5f0(tNet_message_chunk_bit_position* pContents);
 
 // FUNCTION: CARMA2_HW 0x0043d810
 void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents) {

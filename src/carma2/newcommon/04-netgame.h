@@ -29,6 +29,10 @@ typedef struct {
     tU8 object_hierarchy[];
 } tNet_message_chunk_non_car;
 
+/* Used by 04-netgame.c only. Declaring it here adds symbols to every including TU,
+ * which rotates MSVC 5 register allocation in 04-netgame.c itself
+ * (SortNetHeadAscending 0x49a330); that TU opts out and keeps a local copy. */
+#ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
 typedef struct {
     tNet_message_chunk_header header;
     undefined field_0x2[2];
@@ -37,6 +41,7 @@ typedef struct {
     undefined field_0x9[3];
     br_matrix34 mat;
 } tNet_message_chunk_bit_position;
+#endif
 
 typedef struct {
     tNet_message_chunk_header header;
@@ -192,8 +197,10 @@ extern void C2_HOOK_FASTCALL NetSendHeadupToPlayer(const char* pMessage, tPlayer
 extern void C2_HOOK_FASTCALL ToggleFlapsFromNetwork(tNet_message_chunk* pChunk);
 extern void C2_HOOK_FASTCALL ReceivedCrushSync(tNet_message_chunk_car_crush_sync* pContents);
 extern void C2_HOOK_FASTCALL ReceivedDetachedNonCarData(tNet_message_chunk_detached_non_car* pContents);
+#ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
 extern void C2_HOOK_FASTCALL FUN_0043d810(tU8* pContents);
 extern void C2_HOOK_FASTCALL FUN_0043d5f0(tNet_message_chunk_bit_position* pContents);
+#endif
 extern void C2_HOOK_FASTCALL FUN_0049cb00(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
 
 // FUNCTION: CARMA2_HW 0x0049bad0
