@@ -16,11 +16,8 @@
 #include "22-replay.h"
 #include "28-world3.h"
 #include "60-phil.h"
+#include "70-packfile.h"
 
-extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
-extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
-extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
-extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 
 // GLOBAL: CARMA2_SW 0x0067c800
 br_vector3 gRender_bounds_centre;

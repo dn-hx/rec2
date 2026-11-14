@@ -37,6 +37,8 @@
 #include "64-movie.h"
 #include "66-tintedpoly.h"
 #include "globvrpb.h"
+#include "22-replay.h"
+#include "23-piping.h"
 
 // GLOBAL: CARMA2_HW 0x00703e24
 int gWidth;
@@ -147,7 +149,7 @@ int gNumber_of_lollipops;
 void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
     extern tProximity_ray gProximity_rays[20];
     extern br_pixelmap* gProx_ray_shade_table;
-    extern void C2_HOOK_FASTCALL ARStartPipingSession(int pType);
+    extern void C2_HOOK_FASTCALL ARStartPipingSession(tPipe_chunk_type pType);
     extern void C2_HOOK_FASTCALL AREndPipingSession(void);
     extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime);
     tU32 the_time;
@@ -445,12 +447,7 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 extern int gMirror_on__graphics;
 extern br_matrix34 gSheer_mat;
-extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
-extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 extern tU32 gPalette_fade_time;
-extern void C2_HOOK_FASTCALL PipeSingleFrameFinish(void);
-extern void C2_HOOK_FASTCALL DoActionReplayPostSwap(void);
-extern void C2_HOOK_FASTCALL SynchronizeActionReplay(void);
 extern int gBack_original_origin_x;
 extern int gBack_original_origin_y;
 extern int gBack_original_base_x;

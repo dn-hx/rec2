@@ -35,6 +35,8 @@
 #include "60-phil.h"
 #include "69-sound.h"
 #include "platform.h"
+#include "04-netgame.h"
+#include "15-displays.h"
 
 extern int C2_HOOK_FASTCALL IsItReallyOKThatWeDontMakeAnyEffortToProtectAnySadFuckersOutThereThatDontWishToSeeInnocentPeopleBlownToBitsByHighExplosiveMinesAndShells(void);
 extern const double gConst_world_scale;
@@ -966,12 +968,6 @@ void C2_HOOK_FASTCALL InitSmashQueue(void) {
 
 // DoConnotationsMultiLevel
 
-extern void C2_HOOK_FASTCALL EarnCredits(int pAmount);
-extern void C2_HOOK_FASTCALL EarnCredits100(int pAmount);
-extern void C2_HOOK_FASTCALL AwardTime(tU32 pTime);
-extern void C2_HOOK_FASTCALL AwardTime5(tU32 pTime);
-extern void C2_HOOK_FASTCALL NewTextHeadupSlot2(int pSlot_index, int pFlash_rate, int pLifetime, int pFont_index, const char* pText, int pQueue_it);
-extern void C2_HOOK_FASTCALL DoFancyHeadup(int pIndex);
 extern void C2_HOOK_FASTCALL DoShrapnel(int pArg3, tShrapnel_spec* pShrapnel, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, const br_vector3* pOffset, int pFlag);
 extern tS3_outlet* gCar_outlet;
 extern float gYon_squared;
@@ -2756,8 +2752,6 @@ struct tNet_stored_smash {
 };
 
 extern void C2_HOOK_FASTCALL AddChangedPoint(const br_vector3* pPoint);
-extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage, undefined4* pArg3);
-extern tU32 gPHIL_last_physics_tick;
 extern int gCount_shrapnel_shower_calls;
 extern int gINT_006a8290;
 
@@ -4781,7 +4775,6 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
 #pragma auto_inline(on)
 #endif
 /* local declaration instead of including 04-netgame.h here */
-extern tU32 gPHIL_last_physics_tick;
 extern int gCount_shrapnel_shower_calls;
 extern int gNext_explosion_slot;
 

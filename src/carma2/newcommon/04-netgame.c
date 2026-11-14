@@ -35,6 +35,8 @@
 #include "60-phil.h"
 #include "62-graphics3.h"
 #include "71-newgame.h"
+#include "13-crush1.h"
+#include "51-smash.h"
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 br_pixelmap* gDigits_pix;
@@ -63,7 +65,6 @@ int gNet_ped_headup;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
 
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 // FUNCTION: CARMA2_HW 0x0043d1d0
@@ -821,7 +822,6 @@ void C2_HOOK_FASTCALL SetUpNetCarPositions(void) {
 
 // SetUpNetCarPositions
 
-extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 
 // FUNCTION: CARMA2_HW 0x00499220
 void C2_HOOK_FASTCALL ReinitialiseCar(tCar_spec* pCar) {
@@ -1575,7 +1575,6 @@ void C2_HOOK_FASTCALL DoNetGameManagement(void) {
 #endif
 extern int gINT_0074c6d4;
 extern int gScore_winner;
-extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
 
 /* The race board is a view over each net player starting at field_0x94. */
 typedef struct {
@@ -1589,7 +1588,7 @@ typedef struct {
 
 // FUNCTION: CARMA2_HW 0x0049abf0
 void C2_HOOK_FASTCALL CalcPlayerScores(void) {
-    extern void C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused);
     int i;
     int j;
     int knock_out_bit;
@@ -1971,7 +1970,6 @@ void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer) {
 
 // UseGeneralScore
 
-extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient);
 
 // FUNCTION: CARMA2_HW 0x0049b8d0
 void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient) {
@@ -2624,10 +2622,7 @@ void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar) {
 }
 
 extern tCar_spec* gActive_car_list[139];
-extern void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4);
 
-extern int gCount_host_smashes;
-extern tU8* gNet_host_smashes;
 
 // FUNCTION: CARMA2_HW 0x004f0f80
 void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
@@ -2644,7 +2639,7 @@ void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
     if (0 < gCount_host_smashes) {
         offset = 0;
         do {
-            memcpy((tU8*)message + 0x18, gNet_host_smashes + offset, 0x38);
+            memcpy((tU8*)message + 0x18, (tU8*)gNet_host_smashes + offset, 0x38);
             ((tU8*)message)[0x18] = field_0x18;
             *(tU32*)((tU8*)message + 0x4c) |= 1;
             ((tU8*)message)[0x19] = field_0x19;

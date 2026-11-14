@@ -28,10 +28,9 @@
 #include "49-physics.h"
 #include "54-runtime.h"
 #include "57-drone.h"
+#include "51-smash.h"
 
 extern int gBOOL_00744804;
-extern tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId, int pPriority);
-extern void C2_HOOK_FASTCALL SetShrapnelFragment(tSmash_vertex* pFragment, tSmashable_initial_speed_spec* pSpeed, br_vector3* pArg3, float pArg4, int* pArg5, int pArg6, br_vector3* pArg7, int pArg8, int pArg9);
 extern float gFloat_0058aec0;
 extern double gPed_face_cache_margin;
 extern double gPed_face_normal_threshold;
@@ -556,10 +555,6 @@ tSmashable_initial_position_spec gPed_spurt_initial_position;
 // GLOBAL: CARMA2_HW 0x006a0408
 int gGiblet_min_max_time[2];
 
-extern void C2_HOOK_FASTCALL ReadSmashableInitialPosition(FILE* pFile, tSmashable_initial_position_spec* pInitial_pos);
-extern void C2_HOOK_FASTCALL ReadSmashableInitialSpeed(FILE* pFile, tSmashable_initial_speed_spec* pInitial_speed);
-extern void C2_HOOK_FASTCALL ReadMinMaxTimeInMilliseconds(FILE* pFile, int* pTimes);
-extern void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -3749,7 +3744,7 @@ void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pF) {
     gGiblet_scrape_start = (float)GetAnInt(pF);
     ReadSmashableInitialPosition(pF, &gGiblet_initial_position);
     ReadSmashableInitialSpeed(pF, &gGiblet_initial_speed);
-    ReadMinMaxTimeInMilliseconds(pF, gGiblet_min_max_time);
+    ReadMinMaxTimeInMilliseconds(pF, (tMin_max_time*)gGiblet_min_max_time);
 
     gGiblet_size_count = GetAnInt(pF);
     gGiblet_sizes = BrMemAllocate(gGiblet_size_count * sizeof(tPed_giblet_size_spec), kMem_misc_poly_ped);
@@ -3811,7 +3806,7 @@ void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pF) {
     gPed_dismember_spurting_member_count = GetAnInt(pF);
     ReadSmashableInitialPosition(pF, &gPed_spurt_initial_position);
     ReadSmashableInitialSpeed(pF, &gPed_spurt_initial_speed);
-    ReadMinMaxTimeInMilliseconds(pF, gPed_spurt_min_max_time);
+    ReadMinMaxTimeInMilliseconds(pF, (tMin_max_time*)gPed_spurt_min_max_time);
 
     scale = GetAScalar(pF);
     index = GetAnInt(pF);
@@ -4547,7 +4542,6 @@ void C2_HOOK_FASTCALL CBFillInObject(undefined4* pArg1, undefined4 pArg2) {
     }
 }
 
-extern br_vector3 gZero_vector__smash;
 
 // based on REA pseudocode 0x4ccb10
 // FUNCTION: CARMA2_HW 0x004ccb10
@@ -4666,7 +4660,6 @@ extern int gCount_changed_points;
    MungePedestrians 0x4d3740 at 0x4d5596-0x4d5602, guarded by `character->field_0x14 & 4` and
    `!(ped->flags & 0x80)`; the vanish block is MakePedVanish, then the drop distance is scored. */
 extern void C2_HOOK_FASTCALL MakePedVanish(tPedestrian* pPed);
-extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 extern int gPipe_halted_ped_status;
 int C2_HOOK_FASTCALL PedFallingForever(tPedestrian* pPed) {
     if (pPed->flags & 0x80) {
@@ -4714,7 +4707,6 @@ extern void C2_HOOK_FASTCALL InitProcessData(tPedestrian* pPed, tU32 pTime);
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
 extern int gCount_killed_peds;
 extern int gTotal_count_smash_peds;
 
@@ -5189,7 +5181,6 @@ void C2_HOOK_FASTCALL RepulsePedestrian(tPedestrian* pPed, tCar_spec* pCar, floa
     SetPedFall(pPed, speed, 0x5b, 0x5b, NULL);
 }
 
-extern void C2_HOOK_FASTCALL Explode(tExplosion_animation* pExplosion_animation, br_actor* pActor, br_bounds3* pBounds, br_vector3* pPos);
 
 // GLOBAL: CARMA2_HW 0x0065e5b8
 const float gFlamed_ped_flame_scales[7] = {
@@ -6501,7 +6492,6 @@ void C2_HOOK_FASTCALL RecachePedestrian(tPedestrian* pPed, br_vector3* pHit_pos,
     }
 }
 
-extern int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info);
 
 // FUNCTION: CARMA2_HW 0x004d2320
 void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {

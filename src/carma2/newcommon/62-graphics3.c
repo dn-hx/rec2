@@ -25,6 +25,7 @@
 #include "36-trig.h"
 #include "58-crush2.h"
 #include "platform.h"
+#include "61-pedestrn.h"
 
 // GLOBAL: CARMA2_HW 0x00655dfc
 int gMini_map_visible = 2;
@@ -786,13 +787,6 @@ void C2_HOOK_FASTCALL DrawOffsetCheckpoint(br_pixelmap* pMap, int pCheckpoint, t
                 gCheckpoint_numbers->width, gCheckpoint_digit_height);
         }
     }
-}
-extern int C2_HOOK_FASTCALL GetPedCount(void);
-extern tPedestrian* gPedestrian_array;
-
-static int C2_HOOK_FASTCALL GetPedPosition(int pIndex, br_vector3* pPos) {
-    (void)pIndex; (void)pPos;
-    return 0;
 }
 
 static void C2_HOOK_FASTCALL DrawCarArrow(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pTime, br_vector3* pPos, int pCategory) {

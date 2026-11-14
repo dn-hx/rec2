@@ -31,6 +31,8 @@
 #include "58-crush2.h"
 #include "60-phil.h"
 #include "69-sound.h"
+#include "13-crush1.h"
+#include "70-packfile.h"
 
 // GLOBAL: CARMA2_HW 0x0058f038
 int gFirst_drone_processing = 1;
@@ -451,19 +453,12 @@ void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_in
 }
 
 /* callees of the functions below that live in other translation units */
-extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
-extern void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext);
-extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, tU32 pPanel1, tU32 pPanel2, tU32 pPanel3, br_vector3* pVec, br_scalar pForce, tU32 pArg7);
-extern intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext);
-extern intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* pMat, void* pContext);
 extern int gCrush_panel_ids[10];
 
 extern br_scalar gMax_crush_force;
-extern br_scalar gCrushZero;
 extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
 extern int gCount_car_damage_crush_list;
 
-extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
 extern const char* gGroove_funk_type_names[4];
 extern const char* gDrone_axis_names[4];
 extern const char* gFunk_speed_control_names[2];
@@ -900,10 +895,6 @@ void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void) {
 extern float gDrone_render_zero;
 extern int gCount_drone_forms;
 extern int gCount_drones;
-extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
-extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
-extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
-extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
 
 // FUNCTION: CARMA2_HW 0x0044fda0
 void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
@@ -1534,7 +1525,6 @@ extern tDrone_state_function* gDrone_state_functions[6];
 
 
 /* local declarations for MungeShatMines (no new includes/externs in headers) */
-extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar_spec, float pDamage);
 
 static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
     if (pCar->field_0x4c8 > 1.0) {

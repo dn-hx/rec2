@@ -37,6 +37,8 @@
 #include "34-finteray.h"
 #include "69-sound.h"
 #include "globvrkm.h"
+#include "00-car.h"
+#include "01-network.h"
 
 // GLOBAL: CARMA2_HW 0x00679698
 br_scalar gDistortion_factor;
@@ -215,7 +217,6 @@ int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3*
 int gCollision_face_mask__raycast;
 // GLOBAL: CARMA2_HW 0x00679438
 int gSensible_place_collect_active;
-extern tFace_ref gFace_list__car[300];
 extern tPolyhedron_edge_indexes gBox_edge_indexes[12];
 // FUNCTION: CARMA2_HW 0x004228b0
 int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg) {
@@ -802,14 +803,10 @@ int C2_HOOK_FASTCALL CheckSingleEdgeWithObjectEdges(float* pStart, float* pEnd, 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int C2_HOOK_FASTCALL ProcessForcesCallback(void* pContacts, float* pImpulses, int pCount);
-extern int C2_HOOK_FASTCALL ProcessJointForcesCallback(undefined4 param_1, undefined4 param_2, undefined4 param_3);
-extern void C2_HOOK_FASTCALL NewFaceListCallBack(tPhysics_object* pCollision, undefined4* arg2);
-extern tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* actor);
 
 // GLOBAL: CARMA2_HW 0x0065cf78
 tWorld_callbacks gWorld_callbacks = {
-    ProcessForcesCallback,
+    (int (C2_HOOK_FASTCALL *)(void*, float*, int))ProcessForcesCallback,
     ProcessJointForcesCallback,
     NewFaceListCallBack,
     FindFacesInBox,
@@ -821,7 +818,6 @@ tWorld_callbacks gWorld_callbacks = {
 
 extern tPhysics_object* gUNK_0079ecbc;
 extern int gSensible_place_collect_active;
-extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds* b1, br_bounds* b2);
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -1287,7 +1283,6 @@ void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush) {
 
 // (GPL-3.0); the original inlines CheckWheelPositions,
 // InitModelMasterCrushData, InitModelCrushData, InitPhysCrushData and InitVertexData.
-extern void C2_HOOK_FASTCALL SwitchCarModels(tCar_spec* pCar, int pIndex);
 
 // FUNCTION: CARMA2_HW 0x0042aa20
 void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec) {
@@ -2754,7 +2749,6 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
 
 #ifdef REC2_MATCHING
@@ -2799,7 +2793,7 @@ void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float
         tCompressed_vector3 bounds_max;
         tU16 field_0x2a;
     } tSemi_detach_bit_chunk;
-    extern tU32 C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
+    extern int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
     extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
     extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
     tNet_message* message;
@@ -2891,7 +2885,6 @@ int C2_HOOK_FASTCALL GetSDBJointPosAndBounds(br_vector3* pP1, br_vector3* pP2, b
 // SendToggleFlaps
 
 extern tU32 gToo_poor_for_recovery_timeout;
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x0042dd50
 void C2_HOOK_FASTCALL ToggleFlaps(void) {
@@ -2998,7 +2991,6 @@ intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void*
 // IsOnNonCarHalf
 
 extern tNon_car_spec* gActive_non_car_list[99];
-extern int gNum_active_non_cars;
 
 // PARTIAL 32.73%: SplitCar 0x0042e2e0 - logic complete (all 5 zero-compares, both
 // half-mass paths, shape/wireframe relink, actor moves); residual is MSVC codegen
@@ -3571,7 +3563,6 @@ void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
     pCar_crush->field_0x2b0 = new_count;
 }
 
-extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
 
 // FUNCTION: CARMA2_HW 0x0042f4e0
@@ -4340,7 +4331,6 @@ typedef struct {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
 // FUNCTION: CARMA2_HW 0x004314b0
 void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
     tNet_message* message;
@@ -5377,9 +5367,7 @@ tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, b
 }
 
 // PARTIAL 61.24%: SetUpDetachedBitObject 0x004336f0 - float operand order, arg reload, x87 schedule
-extern int gFace_num__car;
 extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
 // FUNCTION: CARMA2_HW 0x004336f0
 void C2_HOOK_FASTCALL SetUpDetachedBitObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info) {
     br_vector3* parent_bb[2];
@@ -6577,7 +6565,6 @@ void C2_HOOK_FASTCALL BendModel(br_model* pModel, const br_vector3* pOffset, voi
    inlined into their only caller CrushBendFlapRend (0x436170). */
 extern tCar_damge_crush_list_item gCar_damage_crush_list[8];
 extern int gCount_car_damage_crush_list;
-extern tNet_message_chunk* C2_HOOK_FASTCALL NetStartBroadcastContents(tNet_message_type pType, tS32 pSize_decider);
 extern void C2_HOOK_FASTCALL NetBroadcastContents(tNet_message_chunk* pMessage);
 
 // PARTIAL 80.51%: CrushBendFlapRend 0x00436170 - register roles in the crush-list loops (original: list in ebp, item pointer in esi spilled to [esp+0x14]; ours: list in esi spilled, item pointer in ebp) and the drone-scale x87 schedule (original loads the scalar once, then v2/v0/v1 with fxch/fmulp; ours reloads the scalar per component)
@@ -7681,7 +7668,6 @@ static void C2_HOOK_FASTCALL FlapBits(tCar_spec* pCar_spec) {
     }
 }
 
-extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
 extern tToggled_door gToggled_doors[16];
 
@@ -7816,9 +7802,7 @@ intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pCo
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
 extern tS3_outlet* gCar_outlet;
-extern br_vector3 gZero_v__car;
 
 // FUNCTION: CARMA2_HW 0x004387d0
 void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
@@ -7875,7 +7859,6 @@ void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
 
 // SendFullyDetachBit
 
-extern int gNum_active_cars;
 extern tCar_spec* gActive_car_list[139];
 extern tCrush_net_full_detach_bit_list_item gNet_crush_full_detach_bit_list[8];
 extern int gCount_net_crush_full_detach_bit_list;
@@ -8914,7 +8897,6 @@ br_scalar C2_HOOK_FASTCALL NormalizedAngle(br_angle pAngle) {
 #pragma auto_inline(off)
 #endif
 
-extern int gNum_active_non_cars;
 extern tNon_car_spec* gActive_non_car_list[99];
 
 // FUNCTION: CARMA2_HW 0x0043b8a0
@@ -9143,7 +9125,6 @@ void C2_HOOK_FASTCALL ARApplyModelMash(br_model* pModel, tCompressed_vector3* pS
 
 // ARUndoSplitWeld
 
-extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
 extern br_scalar gCrushSqrtHalf;
 extern br_scalar gFLOAT_00589acc;
 
@@ -9702,8 +9683,6 @@ void C2_HOOK_FASTCALL ChristmasLights(tCar_spec* pCar_spec, int pMin_damage, int
     }
 }
 
-extern tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider);
-extern tNet_message* C2_HOOK_FASTCALL NetAllocateMessage(int pSize);
 
 // NetGetToPlayerContents, inlined with gNet_players[0].ID
 extern tPlayer_ID gLocal_net_ID;
@@ -9781,7 +9760,6 @@ tQueued_drone_crush gQueued_drone_crushes[4];
 #pragma auto_inline(off)
 #endif
 extern void C2_HOOK_FASTCALL ReceivedMessage(tNet_message* pMessage, void* pSender_address, tU32 pReceive_time);
-extern tU32 C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail);
 
 // FUNCTION: CARMA2_HW 0x004a5bc0
 int C2_HOOK_FASTCALL NetGuaranteedSendMessageToEverybody(tNet_game_details* pGame, tNet_message* pMessage, int pUnused) {

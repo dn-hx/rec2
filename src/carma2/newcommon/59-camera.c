@@ -32,6 +32,8 @@
 #include "54-runtime.h"
 #include "57-drone.h"
 #include "61-pedestrn.h"
+#include "22-replay.h"
+#include "23-piping.h"
 
 extern tNon_car_spec* gActive_non_car_list[99];
 
@@ -166,7 +168,6 @@ void C2_HOOK_FASTCALL MungeCarMaterials(tCar_spec* pCar, int pInternal_cam) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-extern int gAR_camera_type;
 
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
@@ -561,8 +562,6 @@ int gUNK_006792f8;
 
 extern int gCamera_mode;
 extern int gCamera_has_collided;
-extern int C2_HOOK_FASTCALL ARReplayForwards(void);
-extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
 static void C2_HOOK_FASTCALL DrVector3RotateY(br_vector3* v, br_angle t) {
     br_scalar c;
     br_scalar s;
@@ -832,9 +831,6 @@ void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime) {
 
 // PutNonCarBackInWorld
 
-extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
-extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
-extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 extern int gCamera_incident_flag;
 extern int gCamera_incident_mode;
 extern int gCamera_incident_direction;
@@ -843,9 +839,6 @@ extern br_scalar gIncident_towards;
 extern tS32 gIncident_time;
 extern tS32 gIncident_camera_stack;
 
-extern tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void);
-extern int C2_HOOK_FASTCALL ARReplayForwards(void);
-extern void C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, tARScanBuffer_callback* pCallback, tARScanBuffer_time_check* pTime_check);
 extern tU32 gOldest_time;
 extern tU32 gTrigger_time;
 static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime);
@@ -1094,7 +1087,6 @@ lab_fc76:
     gIncident_camera_stack--;
     return 0;
 }
-extern int C2_HOOK_FASTCALL PipeSearchForwards(void);
 
 // GLOBAL: CARMA2_HW 0x006792c0
 tU32 gSwitch_time;
@@ -1145,8 +1137,6 @@ check_camera:
 point_camera:
     PointCameraAtCar(&pCar->pos, &gCamera->t.t.mat, 1.f);
 }
-extern void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos, br_scalar pMax_distance_sqr, tU32 pOffset_time, tU32 pTime_period, br_vector3* pCar_pos, tU32* pTime_returned);
-extern int C2_HOOK_FASTCALL ARGetReplayDirection(void);
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif

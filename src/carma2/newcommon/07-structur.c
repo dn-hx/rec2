@@ -54,6 +54,9 @@
 #include "72-interface.h"
 #include "globvrkm.h"
 #include "platform.h"
+#include "04-netgame.h"
+#include "33-depth.h"
+#include "70-packfile.h"
 
 /* gRace_over_reason (0x006b781c) is defined in 68-timer.c, adjacent to gTimers as in the original layout */
 
@@ -167,23 +170,12 @@ void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give
     collision_info->bb2.min.v[1] = min_value;
 }
 
-extern void C2_HOOK_FASTCALL PFfclose(FILE* pFile);
-extern int C2_HOOK_FASTCALL GetSkyTextureOn(void);
-extern void C2_HOOK_FASTCALL ToggleSkyQuietly(void);
-extern int C2_HOOK_FASTCALL GetDepthCueingOn(void);
-extern void C2_HOOK_FASTCALL ToggleDepthCueingQuietly(void);
-extern void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* pSky_texture, int pStart, int pEnd, int pRed, int pGreen, int pBlue, int pParam_8);
-extern void C2_HOOK_FASTCALL InitNetGameplayStuff(void);
-extern int gSwap_depth_effect_type;
-extern br_pixelmap* gSwap_sky_texture;
 extern int gCredits_won_headup;
 extern int gPed_kill_count_headup;
 extern int gCar_kill_count_headup;
 extern int gTimer_headup;
 extern int gTime_awarded_headup;
 extern int gLaps_headup;
-extern int gNet_cash_headup;
-extern int gNet_ped_headup;
 extern tCrush_list_item gCrush_lists[8];
 extern int gCount_queued_drone_crushes;
 extern int gINT_0067bdfc;
@@ -431,8 +423,6 @@ extern int gNumber_of_icons;
 extern undefined4 gDAT_006a0958;
 extern tU32 gNext_goody_time;
 
-extern tU32 gTime_for_punishment;
-extern int gNot_shown_race_type_headup;
 extern tU32 gLast_it_change;
 extern tNet_game_player_info* gLast_lepper;
 extern int gWinner_declared;
@@ -482,9 +472,6 @@ void C2_HOOK_FASTCALL InitPlayers(void) {
     gNot_shown_race_type_headup = 1;
 }
 
-extern int gINT_0068d920;
-extern void C2_HOOK_FASTCALL PlayerIsInfected(tNet_game_player_info* pPlayer);
-extern void C2_HOOK_FASTCALL StopCarBeingIt(tCar_spec* pCar);
 
 // FUNCTION: CARMA2_HW 0x0049b7e0
 void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id) {
@@ -921,10 +908,6 @@ static int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vect
     return 0;
 }
 
-static void C2_HOOK_FASTCALL SendGameplay(tPlayer_ID pPlayer, tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4) {
-    (void)pPlayer; (void)pMess; (void)pParam_1; (void)pParam_2; (void)pParam_3; (void)pParam_4;
-}
-
 static void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
     (void)pWinner_index;
 }
@@ -1345,7 +1328,6 @@ void C2_HOOK_FASTCALL JumpTheStart(void) {
     }
 }
 
-extern void C2_HOOK_FASTCALL SendGameplayToAllPlayers(tNet_gameplay_mess pMess, int pParam_1, int pParam_2, int pParam_3, int pParam_4);
 
 // FUNCTION: CARMA2_HW 0x00504230
 void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void) {
@@ -1380,21 +1362,12 @@ void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
 
 
 /* LoadTrack support: globals defined in 28-world3.c, callees without a shared prototype */
-extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
-extern tTWTVFS C2_HOOK_FASTCALL OpenPackFile(const char* path);
-extern void C2_HOOK_FASTCALL TWT_Unmount(tTWTVFS twt);
-extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
-extern void C2_HOOK_FASTCALL PackFileRevertTiffLoading(void);
-extern void C2_HOOK_FASTCALL PackFileRerevertTiffLoading(void);
 extern tMaterial_exception* gMaterial_exceptions;
 extern int gRendering_accessories;
 extern int gCount_smashable_noncars;
 extern tU8* gTrack_flic_buffer;
 extern tU32 gTrack_flic_buffer_size;
 extern tFlic_descriptor gTrack_flic_descriptor;
-extern void C2_HOOK_FASTCALL ChangeDepthEffect(void);
-extern void C2_HOOK_FASTCALL MungeForwardSky(void);
-extern void C2_HOOK_FASTCALL MungeRearviewSky(void);
 extern char gCurrent_load_name[256];
 extern char gAdditional_model_path[256];
 extern char gAdditional_actor_path[256];
