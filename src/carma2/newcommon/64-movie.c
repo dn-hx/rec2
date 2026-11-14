@@ -9,6 +9,10 @@
 #include <Movies.h>
 #include <TextUtils.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "c2_string.h"
 
 // GLOBAL: CARMA2_HW 0x006a0c24
@@ -1534,4 +1538,71 @@ volatile void *gForceRef_56e760 = (void*)FUN_0056e760;
 #else
 void C2_HOOK_CDECL FUN_0056e760(void) {
 }
+#endif
+
+#ifndef _WIN32
+static void* GetProcAddress(void* pModule, const char* pProc_name) {
+    return NULL;
+}
+
+static int FreeLibrary(void* pModule) {
+    return 0;
+}
+#endif
+
+// GLOBAL: CARMA2_HW 0x006736b0
+void* gQuickTime_module;
+
+// GLOBAL: CARMA2_HW 0x006736b8
+void* gQuickTime_call_component;
+
+// GLOBAL: CARMA2_HW 0x006736bc
+void* gQuickTime_call_component_with_storage;
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// PARTIAL 35.71%: residual is MSVC5 register allocation (orig flag=esi / GetProcAddress=edi,
+// ours edi/esi) plus the scheduler choices it drives (test-before-store, late module reload,
+// shared vs split failure blocks). ~100 source variants compile to the same wrong allocation;
+// see state/findings/FUN_00575730.md.
+// FUNCTION: CARMA2_HW 0x00575730
+void C2_HOOK_CDECL FUN_00575730(void) {
+    void* hModule;
+    int loaded;
+
+    loaded = 0;
+    hModule = gQuickTime_module;
+    if (hModule == NULL) {
+        hModule = FUN_005757d0();
+        gQuickTime_module = hModule;
+        if (hModule == NULL) {
+            return;
+        }
+        loaded = 1;
+    }
+    gQuickTime_module = hModule;
+    gQuickTime_call_component_with_storage = (void*)GetProcAddress(hModule, "_CallComponentFunctionWithStorage");
+    if (gQuickTime_call_component_with_storage != NULL) {
+        gQuickTime_call_component = (void*)GetProcAddress(gQuickTime_module, "_CallComponent");
+        if (gQuickTime_call_component != NULL) {
+            gQuickTime_dispatch = (void*)GetProcAddress(gQuickTime_module, "theQuickTimeDispatcher");
+            if (gQuickTime_dispatch != NULL) {
+                gQuickTime_dispatcher = NULL;
+            }
+        }
+    }
+    if (loaded) {
+        FreeLibrary(gQuickTime_module);
+        gQuickTime_module = NULL;
+    }
+}
+
+// STUB: CARMA2_HW 0x005757d0
+void* C2_HOOK_CDECL FUN_005757d0(void) {
+    NOT_IMPLEMENTED();
+    return NULL;
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
 #endif

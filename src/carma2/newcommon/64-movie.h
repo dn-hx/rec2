@@ -86,5 +86,7 @@ extern short C2_HOOK_CDECL FUN_0056dac0(void* pSequence);
 extern void C2_HOOK_CDECL FUN_00570ac0(void* pHandle);
 extern void C2_HOOK_FASTCALL NoOp_004e1c30(void);
 extern void C2_HOOK_CDECL FUN_0056e760(void);
+extern void C2_HOOK_CDECL FUN_00575730(void);
+extern void* C2_HOOK_CDECL FUN_005757d0(void);
 
 #endif // GUARD_64_MOVIE_H
