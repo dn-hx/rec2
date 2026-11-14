@@ -2541,15 +2541,9 @@ void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, i
     CreateSmokeColumn2(1, pCar->car_master_actor, pCar, NULL, pLevel, fire_value, 0x989680);
 }
 
-/* (reference only) */
-static br_scalar C2_HOOK_CDECL SmokeScalarRound(double pValue) {
-    volatile union { br_scalar scalar; tU32 bits; } stored;
-    union { br_scalar scalar; tU32 bits; } result;
-
-    stored.scalar = (br_scalar)pValue;
-    result.bits = stored.bits;
-    return result.scalar;
-}
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // PARTIAL 67.58%: x87 scheduling/fxch placement with identical ops (S01/S02/S05/S07); structure, frame 0x20, constants, unrolling and branch layout all match
 // FUNCTION: CARMA2_HW 0x004fd530
@@ -2647,17 +2641,20 @@ void C2_HOOK_FASTCALL SingleSplash(tPhysics_object* pObject, const br_matrix34* 
 }
 
 #ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// based on ApexWorm/rec2 e98e29390 src/carma2/newcommon/32-spark.c (GPL-3.0), reference only
+// PARTIAL 25.42%: frame 0xa8 vs 0x88 (8 slots of temp-vector/scalar packing) plus x87 scheduling;
+// control flow, call sites/order, constants and float/double widths now follow the original
 // FUNCTION: CARMA2_HW 0x004fcbb0
 void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, const br_vector3* pNormal, br_scalar pWater_distance, const br_bounds3* pBounds, const br_matrix34* pMatrix, tU32 pTime) {
     br_vector3 local_normal;
-    br_vector3 world_min;
     br_vector3 local_velocity;
-    /* Original spills this projection, but passes local_velocity below. */
-    volatile br_vector3 normal_velocity;
+    br_vector3 world_min;
     br_vector3 point;
     br_vector3 minimum_point;
     br_vector3 maximum_point;
@@ -2674,18 +2671,14 @@ void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vec
     br_scalar near_distance;
     br_scalar far_distance;
     br_scalar height;
-    double side_wide[3];
-    double wide_height;
-    double wide_near;
-    double coordinate;
-    double wide_projection;
-    double lower;
-    double upper;
-    double dot;
-    double value;
-    double random;
-    double second_random;
-    double multiplier;
+    br_scalar lower;
+    br_scalar upper;
+    br_scalar value;
+    br_scalar dot;
+    br_scalar random;
+    br_scalar second_random;
+    br_scalar coordinate;
+    br_scalar multiplier;
     int start;
     int axis;
     int a;
@@ -2694,137 +2687,155 @@ void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vec
     int pattern;
     int i;
 
-    value = ((double)pVelocity->v[1] * pVelocity->v[1] + (double)pVelocity->v[2] * pVelocity->v[2]) + (double)pVelocity->v[0] * pVelocity->v[0];
-    if (!(value * 47.61000000000001 >= 1.0)) {
+    minimum_projection = 0.f;
+    maximum_projection = 0.f;
+    value = pVelocity->v[0] * pVelocity->v[0] + pVelocity->v[2] * pVelocity->v[2] + pVelocity->v[1] * pVelocity->v[1];
+    if (!(value * 47.61 >= 1.0)) {
         return;
     }
     BrMatrix34TApplyV(&local_normal, pNormal, pMatrix);
     BrMatrix34ApplyP(&world_min, &pBounds->min, pMatrix);
-    lower = ((double)pNormal->v[1] * world_min.v[1] + (double)pNormal->v[2] * world_min.v[2]) + (double)pNormal->v[0] * world_min.v[0] - pWater_distance;
+    lower = pNormal->v[1] * world_min.v[1] + pNormal->v[2] * world_min.v[2] + pNormal->v[0] * world_min.v[0] - pWater_distance;
     upper = lower;
     for (i = 0; i < 3; i++) {
-        value = ((double)pBounds->max.v[i] - pBounds->min.v[i]) * local_normal.v[i];
-        if (local_normal.v[i] > 0.f) {
-            upper += value;
+        value = local_normal.v[i] * (pBounds->max.v[i] - pBounds->min.v[i]);
+        if (local_normal.v[i] <= 0.f) {
+            upper = value + upper;
         } else {
-            lower += value;
+            lower = value + lower;
         }
     }
-    if (lower * upper > 0.0) {
+    if (lower * upper > 0.f) {
         return;
     }
-    dot = ((double)pVelocity->v[1] * pNormal->v[1] + (double)pVelocity->v[2] * pNormal->v[2]) + (double)pVelocity->v[0] * pNormal->v[0];
-    for (i = 0; i < 3; i++) {
-        normal_velocity.v[i] = SmokeScalarRound(dot * local_normal.v[i]);
-    }
-    (void)&normal_velocity;
-    memcpy(&bounds, pBounds, sizeof(bounds));
+    dot = pVelocity->v[0] * pNormal->v[0] + pVelocity->v[2] * pNormal->v[2] + pNormal->v[1] * pVelocity->v[1];
+    /* The original stores these three products into the world_min slots, which are dead here. */
+    world_min.v[0] = dot * local_normal.v[0];
+    world_min.v[1] = dot * local_normal.v[1];
+    world_min.v[2] = dot * local_normal.v[2];
+    bounds.min.v[0] = pBounds->min.v[0];
+    bounds.min.v[1] = pBounds->min.v[1];
+    bounds.min.v[2] = pBounds->min.v[2];
+    bounds.max.v[0] = pBounds->max.v[0];
+    bounds.max.v[1] = pBounds->max.v[1];
+    bounds.max.v[2] = pBounds->max.v[2];
     bounds.min.v[1] = .01f;
     BrMatrix34TApplyV(&local_velocity, pVelocity, pMatrix);
-    plane_distance = SmokeScalarRound((double)pWater_distance - (((double)pMatrix->m[3][2] * pNormal->v[2] + (double)pMatrix->m[3][1] * pNormal->v[1]) + (double)pMatrix->m[3][0] * pNormal->v[0]));
-    minimum_projection = 0.f;
-    maximum_projection = 0.f;
+    plane_distance = pWater_distance - (pMatrix->m[3][2] * pNormal->v[2] + pMatrix->m[3][1] * pNormal->v[1] + pMatrix->m[3][0] * pNormal->v[0]);
     start = IRandomBetween(0, 3);
     for (axis = 0; axis < 3; axis++) {
-        a = (axis + 1) % 3;
-        b = (axis + 2) % 3;
+        a = axis + 1;
+        if (a > 2) {
+            a = 0;
+        }
+        b = axis + 2;
+        if (b > 2) {
+            b -= 3;
+        }
         for (corner = 0; corner < 4; corner++) {
             pattern = start ^ corner;
-            point.v[a] = SmokeScalarRound((pattern & 1) ? bounds.min.v[a] : bounds.max.v[a]);
-            point.v[b] = SmokeScalarRound((pattern & 2) ? bounds.min.v[b] : bounds.max.v[b]);
-            coordinate = (((double)plane_distance - (double)point.v[a] * local_normal.v[a]) - (double)point.v[b] * local_normal.v[b]) / local_normal.v[axis];
-            value = SmokeScalarRound(coordinate);
-            if (!(coordinate >= bounds.min.v[axis]) || value > bounds.max.v[axis]) {
+            point.v[a] = (pattern & 1) ? bounds.max.v[a] : bounds.min.v[a];
+            point.v[b] = (pattern & 2) ? bounds.max.v[b] : bounds.min.v[b];
+            coordinate = (plane_distance - point.v[a] * local_normal.v[a] - point.v[b] * local_normal.v[b]) / local_normal.v[axis];
+            if (!(bounds.min.v[axis] <= coordinate)) {
                 continue;
             }
-            point.v[axis] = SmokeScalarRound(value);
-            wide_projection = ((double)local_velocity.v[0] * point.v[0] + (double)local_velocity.v[1] * point.v[1]) + (double)local_velocity.v[2] * point.v[2];
-            projection = SmokeScalarRound(wide_projection);
-            if (!(wide_projection >= minimum_projection)) {
-                if (!(maximum_projection >= 0.f)) {
+            if (!(coordinate <= bounds.max.v[axis])) {
+                continue;
+            }
+            point.v[axis] = coordinate;
+            projection = local_velocity.v[0] * point.v[0] + local_velocity.v[1] * point.v[1] + local_velocity.v[2] * point.v[2];
+            if (minimum_projection <= projection) {
+                if (maximum_projection <= projection) {
+                    SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
+                } else {
+                    if (maximum_projection < 0.f) {
+                        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
+                    }
+                    maximum_projection = projection;
+                    maximum_point.v[0] = point.v[0];
+                    maximum_point.v[1] = point.v[1];
+                    maximum_point.v[2] = point.v[2];
+                }
+            } else {
+                if (maximum_projection < 0.f) {
                     SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
                 }
                 maximum_projection = minimum_projection;
                 minimum_projection = projection;
-                memcpy(&maximum_point, &minimum_point, sizeof(maximum_point));
-                memcpy(&minimum_point, &point, sizeof(minimum_point));
-            } else if (!(projection >= maximum_projection)) {
-                if (!(maximum_projection >= 0.f)) {
-                    SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
-                }
-                maximum_projection = projection;
-                memcpy(&maximum_point, &point, sizeof(maximum_point));
-            } else {
-                SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
+                maximum_point.v[0] = minimum_point.v[0];
+                maximum_point.v[1] = minimum_point.v[1];
+                maximum_point.v[2] = minimum_point.v[2];
+                minimum_point.v[0] = point.v[0];
+                minimum_point.v[1] = point.v[1];
+                minimum_point.v[2] = point.v[2];
             }
         }
     }
-    if (!(maximum_projection >= 0.f)) {
-        for (i = 0; i < 3; i++) {
-            span.v[i] = SmokeScalarRound((double)maximum_point.v[i] - minimum_point.v[i]);
-        }
+    if (maximum_projection < 0.f) {
+        span.v[0] = maximum_point.v[0] - minimum_point.v[0];
+        span.v[1] = maximum_point.v[1] - minimum_point.v[1];
+        span.v[2] = maximum_point.v[2] - minimum_point.v[2];
         random = SRandomBetween(.4f, .6f);
-        point.v[0] = SmokeScalarRound((double)minimum_point.v[0] + random * span.v[0]);
-        point.v[1] = SmokeScalarRound((double)minimum_point.v[1] + SmokeScalarRound(random * span.v[1]));
-        point.v[2] = SmokeScalarRound((double)minimum_point.v[2] + SmokeScalarRound(random * span.v[2]));
+        point.v[0] = minimum_point.v[0] + random * span.v[0];
+        point.v[1] = minimum_point.v[1] + random * span.v[1];
+        point.v[2] = minimum_point.v[2] + random * span.v[2];
         random = SRandomBetween(.2f, .3f);
-        for (i = 0; i < 3; i++) {
-            minimum_point.v[i] = SmokeScalarRound(random * span.v[i] + minimum_point.v[i]);
-        }
+        minimum_point.v[0] = random * span.v[0] + minimum_point.v[0];
+        minimum_point.v[1] = random * span.v[1] + minimum_point.v[1];
+        minimum_point.v[2] = random * span.v[2] + minimum_point.v[2];
         second_random = SRandomBetween(.2f, .3f);
-        random = SmokeScalarRound(-second_random);
-        dot = -(((double)local_velocity.v[2] * local_normal.v[2] + (double)local_velocity.v[1] * local_normal.v[1]) + (double)local_velocity.v[0] * local_normal.v[0]);
-        for (i = 0; i < 3; i++) {
-            side_wide[i] = (double)local_velocity.v[i] + SmokeScalarRound((double)local_normal.v[i] * dot);
-            side.v[i] = SmokeScalarRound(side_wide[i]);
-        }
-        length = SmokeScalarRound(sqrt((side_wide[0] * side.v[0] + side_wide[1] * side.v[1]) + (double)side.v[2] * side.v[2]));
-        if (!(length > 2.384185791015625e-7f)) {
-            side.v[0] = 1.f;
-            side.v[1] = 0.f;
-            side.v[2] = 0.f;
-            side_wide[0] = 1.0;
-            side_wide[1] = 0.0;
-            side_wide[2] = 0.0;
+        dot = -(local_velocity.v[2] * local_normal.v[2] + local_velocity.v[1] * local_normal.v[1] + local_velocity.v[0] * local_normal.v[0]);
+        side.v[0] = local_velocity.v[0] + local_normal.v[0] * dot;
+        side.v[1] = local_velocity.v[1] + local_normal.v[1] * dot;
+        side.v[2] = local_velocity.v[2] + local_normal.v[2] * dot;
+        length = sqrt(side.v[2] * side.v[2] + side.v[1] * side.v[1] + side.v[0] * side.v[0]);
+        if (length <= 2.3841858e-07f) {
+            side.v[0] = 1.0;
+            side.v[1] = 0.0;
+            side.v[2] = 0.0;
         } else {
             multiplier = 1.0 / length;
-            for (i = 0; i < 3; i++) {
-                side_wide[i] = multiplier * side.v[i];
-                side.v[i] = SmokeScalarRound(side_wide[i]);
-                if (i == 2) {
-                    side_wide[i] = side.v[i];
-                }
-            }
+            side.v[0] = multiplier * side.v[0];
+            side.v[1] = multiplier * side.v[1];
+            side.v[2] = multiplier * side.v[2];
         }
-        for (i = 0; i < 3; i++) {
-            value = side_wide[i] * -.028985507786273956f;
-            offset.v[i] = SmokeScalarRound(value * .5f);
-            point.v[i] = SmokeScalarRound((double)point.v[i] + SmokeScalarRound(value));
-            minimum_point.v[i] = SmokeScalarRound((double)minimum_point.v[i] + offset.v[i]);
-            maximum_point.v[i] = SmokeScalarRound((double)maximum_point.v[i] + (i == 0 ? -second_random : random) * span.v[i]);
-            maximum_point.v[i] = SmokeScalarRound((double)maximum_point.v[i] + offset.v[i]);
-        }
+        offset.v[0] = side.v[0] * -0.028985508f * .5f;
+        offset.v[1] = side.v[1] * -0.028985508f * .5f;
+        offset.v[2] = side.v[2] * -0.028985508f * .5f;
+        point.v[0] = side.v[0] * -0.028985508f + point.v[0];
+        point.v[1] = side.v[1] * -0.028985508f + point.v[1];
+        point.v[2] = side.v[2] * -0.028985508f + point.v[2];
+        minimum_point.v[0] = minimum_point.v[0] + offset.v[0];
+        minimum_point.v[1] = minimum_point.v[1] + offset.v[1];
+        minimum_point.v[2] = minimum_point.v[2] + offset.v[2];
+        maximum_point.v[0] = -second_random * span.v[0] + maximum_point.v[0] + offset.v[0];
+        maximum_point.v[1] = -second_random * span.v[1] + maximum_point.v[1] + offset.v[1];
+        maximum_point.v[2] = -second_random * span.v[2] + maximum_point.v[2] + offset.v[2];
         SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
         SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &minimum_point, &local_normal, pTime);
         SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
-    } else if (!(minimum_projection >= 0.f)) {
-        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &minimum_point, &local_normal, pTime);
+    } else {
+        if (minimum_projection < 0.f) {
+            SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &minimum_point, &local_normal, pTime);
+        }
     }
-    plane_distance = SmokeScalarRound((double)plane_distance * 6.900000095367432f);
-    if (pObject != NULL && pObject->flags_0x238 == 1 && pObject->owner != NULL) {
+    plane_distance = plane_distance * 6.9;
+    if (pObject != NULL) {
         car = pObject->owner;
-        if (car->driver > 5) {
+        if (car == NULL || pObject->flags_0x238 != 1) {
+            car = NULL;
+        }
+        if (car != NULL && car->driver > 5) {
             for (i = 0; i < 4; i++) {
+                height = pObject->shape->common.bb.max.v[1] * 6.9f;
                 value = (i & 1) ? pObject->shape->common.bb.max.v[0] : pObject->shape->common.bb.min.v[0];
-                wide_height = (double)pObject->shape->common.bb.max.v[1] * 6.9;
-                height = SmokeScalarRound(wide_height);
-                wide_near = (double)plane_distance - (((double)car->wpos[i].v[2] * local_normal.v[2] + wide_height * local_normal.v[1]) + value * 6.9 * local_normal.v[0]);
-                near_distance = SmokeScalarRound(wide_near);
-                far_distance = SmokeScalarRound(((double)pObject->shape->common.bb.max.v[1] - .01f) * local_normal.v[1] * 6.900000095367432f + near_distance);
-                if ((wide_near > 0.f) != (far_distance > 0.f)) {
-                    point.v[0] = SmokeScalarRound(value * 6.9 * .14492753148078918f);
-                    point.v[1] = SmokeScalarRound(((double)height - (wide_height - .01) * ((double)near_distance / ((double)near_distance - far_distance))) * .14492753148078918f);
-                    point.v[2] = SmokeScalarRound((double)car->wpos[i].v[2] * .14492753148078918f);
+                near_distance = plane_distance - (car->wpos[i].v[2] * local_normal.v[2] + height * local_normal.v[1] + value * 6.9 * local_normal.v[0]);
+                far_distance = (pObject->shape->common.bb.max.v[1] - .01f) * local_normal.v[1] * 6.9f + near_distance;
+                if ((near_distance > 0.f) != (far_distance > 0.f)) {
+                    point.v[0] = value * 6.9 * .14492753148078918f;
+                    point.v[1] = (height - (height - .01) * (near_distance / (near_distance - far_distance))) * .14492753148078918f;
+                    point.v[2] = car->wpos[i].v[2] * .14492753148078918f;
                     SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
                 }
             }
