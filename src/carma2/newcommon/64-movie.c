@@ -830,8 +830,6 @@ void C2_HOOK_FASTCALL KillStatusMessage(void) {
     gShow_status_message = 0;
 }
 
-// Body adapted from ApexWorm/rec2 branch match-show-status-message (GPL-3.0).
-
 // FUNCTION: CARMA2_HW 0x004e2120
 void C2_HOOK_FASTCALL ShowStatusMessage(int msg1, int msg2) {
 

@@ -545,7 +545,6 @@ void C2_HOOK_FASTCALL ARDoSingleSession(int pType, uintptr_t pOwner, void* pData
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 017a1a11d
 // FUNCTION: CARMA2_HW 0x00402bd0
 void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCount, ...) {
     tU8 buffer[5000];
@@ -1017,7 +1016,6 @@ int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType) {
     }
 }
 
-// based on ApexWorm/rec2 40095a07a
 // FUNCTION: CARMA2_HW 0x00403750
 tU32 C2_HOOK_FASTCALL LengthOfSession(tPipe_chunk* pSession) {
     tU32 size;

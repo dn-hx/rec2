@@ -150,7 +150,6 @@ float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 p
 
 // AddNewFunkotronic
 
-// based on ApexWorm/rec2 4a25846ee
 // FUNCTION: CARMA2_HW 0x00474950
 void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner) {
     tFunkotronic_spec* the_funk;
@@ -1685,7 +1684,6 @@ void C2_HOOK_FASTCALL GrooveThoseDelics(void) {
 #pragma auto_inline(off)
 #endif
 
-// based on ApexWorm/rec2 8d0df7422
 // FUNCTION: CARMA2_HW 0x00478c80
 void C2_HOOK_FASTCALL GrooveThisDelic(tGroovidelic_spec* pGroove, tU32 pTime, int pInterrupt_it) {
     br_actor* the_actor;
@@ -1904,7 +1902,6 @@ void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, 
     }
 }
 
-// based on ApexWorm/rec2 0af164811 (src/carma2/newcommon/09-funks.c)
 // FUNCTION: CARMA2_HW 0x00479890
 void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it) {
     int rock_it;
@@ -2145,7 +2142,6 @@ tGroovidelic_spec* C2_HOOK_FASTCALL ActorsGroove(br_actor* pActor) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 c4dadf0df
 // FUNCTION: CARMA2_HW 0x004e4650
 void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* ref_to_world, tLollipop_mode pWhich_axis) {
     br_vector3 ref_to_subject;

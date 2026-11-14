@@ -450,7 +450,6 @@ void C2_HOOK_FASTCALL DoPSPowerupHeadups(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 824b76655
 // FUNCTION: CARMA2_HW 0x00449830
 void C2_HOOK_FASTCALL DoPSPowerHeadup(int pLevel, const char* pAPO_str) {
     int changed;
@@ -899,7 +898,6 @@ int C2_HOOK_FASTCALL NewTextHeadupSlot(int pSlot_index, int pFlash_rate, int pLi
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 677697708
 // FUNCTION: CARMA2_HW 0x0044a3a0
 int C2_HOOK_FASTCALL NewImageHeadupSlot(int pSlot_index, int pFlash_rate, int pLifetime, int pImage_index) {
     int index;
@@ -1147,7 +1145,6 @@ void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time) {
     }
 }
 
-// based on ApexWorm/rec2 f01a47551 (GPL-3.0)
 // FUNCTION: CARMA2_HW 0x0044aad0
 void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
     char buffer[8];
@@ -1303,7 +1300,7 @@ void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
 }
 
 
-// based on ApexWorm/rec2 a2a0ce53d (reference only), REA pseudocode checked against 0x0044b170
+// REA pseudocode checked against 0x0044b170
 // FUNCTION: CARMA2_HW 0x0044b170
 void C2_HOOK_FASTCALL ChangingView(void) {
     tU32 the_time;
@@ -1367,7 +1364,6 @@ void C2_HOOK_FASTCALL ChangingView(void) {
 #pragma auto_inline(off)
 #endif
 // PARTIAL 85.86%: regalloc only - prefix/the_time swap ebx/ebp
-// based on ApexWorm/rec2 24233b73a
 // FUNCTION: CARMA2_HW 0x0044b300
 // FUNCTION: CARMA2_SW 0x0044b490
 void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {

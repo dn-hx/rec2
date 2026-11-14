@@ -2190,7 +2190,6 @@ void C2_HOOK_FASTCALL CalcReturnToStartPointRoute(tOpponent_spec* pOpponent_spec
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 ab1cf4523 and (GPL-3.0)
 // 100%: the earlier loop-back-edge reload-order tie (0x4ac2d1/0x4ac2d5) is not present in the current TU context.
 // FUNCTION: CARMA2_HW 0x004ac180
 int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pTemp_store, tRoute_section* pPerm_store, int* pNum_of_perm_store_sections, tS16 pTarget_section, int pDepth, br_scalar pDistance_so_far, tOpponent_spec* pOpponent_spec) {
@@ -2778,7 +2777,6 @@ void C2_HOOK_FASTCALL PossiblyRepairOpponent(tOpponent_spec* pOpponent_spec) {
 
 // TeleportCopToStart
 
-// based on ApexWorm/rec2 77227643f (reference only)
 // FUNCTION: CARMA2_HW 0x004ada90
 void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
     br_vector3 wank;
@@ -3113,7 +3111,6 @@ void C2_HOOK_FASTCALL WakeUpOpponentsToTheFactThatTheStartHasBeenJumped(int pWha
     gStart_jumped = 1;
 }
 
-// based on ApexWorm/rec2 28019627a (reference only)
 // FUNCTION: CARMA2_HW 0x004ae750
 void C2_HOOK_FASTCALL ReportMurderToPoliceDepartment(tCar_spec* pCar_spec) {
     int i;

@@ -223,7 +223,6 @@ void C2_HOOK_FASTCALL PipeSinglePedDismember(tPedestrian* pPed, tU8 pBone, tS8 p
         1, 2, (int)pArg3,
         1, 3, (int)pArg4);
 }
-// based on ApexWorm/rec2 239956756 src/carma2/newcommon/23-piping.c
 // FUNCTION: CARMA2_HW 0x004c8d40
 void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
 
@@ -2104,7 +2103,6 @@ void C2_HOOK_FASTCALL ActuallyRepairSmashThunk(tCar_spec* pCar_spec, tCar_crush_
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 a6a8cc00e
 // FUNCTION: CARMA2_HW 0x004ef840
 void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
     br_pixelmap* texture;
@@ -2412,7 +2410,6 @@ void C2_HOOK_FASTCALL MungeGlassFragments(void) {
 #pragma auto_inline(off)
 #endif
 
-// based on ApexWorm/rec2 4375aec8e
 // FUNCTION: CARMA2_HW 0x004f0150
 void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race) {
     tU32 the_time;
@@ -2559,7 +2556,6 @@ void C2_HOOK_FASTCALL DisposeSmashableEnvironment(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 df6832dbd
 // FUNCTION: CARMA2_HW 0x004f09c0
 void C2_HOOK_FASTCALL FreeEnvSmash(tSmashable_item_spec* pSmash) {
     int i;
@@ -4623,7 +4619,6 @@ void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
     DRModelUpdateAndKevificateMaterials(pModel, BR_MODU_ALL);
 }
 
-// based on ApexWorm/rec2 832cae840
 // FUNCTION: CARMA2_HW 0x004f5fa0
 void C2_HOOK_FASTCALL SmashRestoreSomeFaces(int field_0x0, int field_0x8, void* pField_0xc, int field_0x4) {
     br_model* pModel;
@@ -4664,7 +4659,6 @@ void C2_HOOK_FASTCALL TurnOffSmashDecal(int pIndex) {
 
 /* local declarations instead of including 59-camera.h here */
 
-// based on ApexWorm/rec2 c5b907296
 // FUNCTION: CARMA2_HW 0x004f6060
 void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar_spec, br_pixelmap* pOld_texture, br_pixelmap* pNew_texture) {
     (void)pOld_texture;

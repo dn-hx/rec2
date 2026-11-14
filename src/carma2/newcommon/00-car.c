@@ -1860,8 +1860,7 @@ void C2_HOOK_FASTCALL CycleControlCar(void) {
 
 // MoveAndCollideNonCar
 
-// Body structure and names adapted from ApexWorm/rec2 branch match-control-car2 (GPL-3.0);
-// the control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
+// The control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
 // 0x20000 right, 0x40000 acc, 0x80000 dec; 7.0 acc, +-0.125 turn step, 25.0 time steps, 0.05/(5+speed) sqrt term).
 // FUNCTION: CARMA2_HW 0x00417180
 void C2_HOOK_FASTCALL ControlCar2(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
@@ -2027,8 +2026,7 @@ void C2_HOOK_FASTCALL ControlCar4(tCar_spec* pCar, void* pUnused, br_scalar pDt)
     }
 }
 
-// Body structure and names adapted from ApexWorm/rec2 branch match-control-car5 (GPL-3.0);
-// the control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
+// The control flow and constants re-derived from the CARMA2_HW disassembly (keys bits 0x10000 left,
 // 0x20000 right, 0x40000 acc, 0x80000 dec, 0x800000 holdw; 7.0 acc, +-0.0625 turn step, 25.0 time steps).
 // FUNCTION: CARMA2_HW 0x00417a20
 void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, void* pUnused, br_scalar pDt) {

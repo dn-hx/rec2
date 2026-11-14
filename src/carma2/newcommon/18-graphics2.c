@@ -597,7 +597,6 @@ void C2_HOOK_FASTCALL DrawRectangle(br_pixelmap* pMap, int pLeft, int pTop, int 
     BrPixelmapLine(pMap, pRight, pTop, pRight, pBottom, pColour);
 }
 
-// based on ApexWorm/rec2 f63e7a0c1 (reference only)
 // FUNCTION: CARMA2_HW 0x0047ca50
 void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, br_uint_32 pColour) {
 
@@ -967,7 +966,6 @@ void C2_HOOK_FASTCALL EnableLights(void) {
     }
 }
 
-// based on ApexWorm/rec2 44cc42008 (reference only)
 // FUNCTION: CARMA2_HW 0x0047d7b0
 void C2_HOOK_FASTCALL DRPixelmapBlendyCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, br_pixelmap* pSource) {
     int x;

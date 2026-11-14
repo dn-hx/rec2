@@ -1268,7 +1268,6 @@ static __inline int C2_HOOK_FASTCALL ModelPickBox_Clip(br_vector3* polygon, int 
 }
 
 // PARTIAL 58.18%: ModelPickBox 0x0045ff90 - frame 0x230 vs 0x22c (one scalar slot extra), pushes not shrink-wrapped after the max_face test, x87 schedule of the distance test
-// based on ApexWorm/rec2 6ef908265 (reference only)
 // FUNCTION: CARMA2_HW 0x0045ff90
 int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
     v11model* prepared = ((volatile br_model*)model)->prepared;

@@ -3631,7 +3631,6 @@ int C2_HOOK_FASTCALL SetPedSpeed(tPowerup* pPowerup, tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 
-// based on ApexWorm/rec2 271189c68
 // FUNCTION: CARMA2_HW 0x004dc750
 int C2_HOOK_FASTCALL SetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     br_vector3 scale;
@@ -3683,7 +3682,6 @@ int C2_HOOK_FASTCALL SetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 835aafbad
 // FUNCTION: CARMA2_HW 0x004dc860
 void C2_HOOK_FASTCALL ResetInvulnerability(tPowerup* pPowerup, tCar_spec* pCar) {
 
@@ -4859,7 +4857,6 @@ void C2_HOOK_FASTCALL ResetTyreGrip(tPowerup* pPowerup, tCar_spec* pCar) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 bd962f6c3
 // FUNCTION: CARMA2_HW 0x004de7a0
 int C2_HOOK_FASTCALL PickAtRandom(tPowerup* pPowerup, tCar_spec* pCar) {
     int selected_powerup;

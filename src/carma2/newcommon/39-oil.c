@@ -127,7 +127,6 @@ void C2_HOOK_FASTCALL ResetOilSpills(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 afa4cf121
 // FUNCTION: CARMA2_HW 0x004a6c80
 void C2_HOOK_FASTCALL QueueOilSpill2(tCar_spec* pCar, br_actor* pCar_actor, br_model* pCar_model, tU32 pTime_delay, br_scalar pMin_size, br_scalar pMax_size, br_scalar pMin_grow_rate, br_scalar pMax_grow_rate, br_scalar pInitial_size, br_scalar pField_0x48, br_scalar pField_0x4c, br_scalar pField_0x40, br_scalar pField_0x44, br_material* pMaterial, br_material* pField_0x50) {
     int i;
@@ -471,7 +470,6 @@ void C2_HOOK_FASTCALL GetOilFrictionFactors(tCar_spec* pCar, br_scalar* pFl, br_
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 78828de5b
 // FUNCTION: CARMA2_HW 0x004a77d0
 int C2_HOOK_FASTCALL PointInSpill(br_vector3* pPoint, int pIndex) {
     br_actor* actor;

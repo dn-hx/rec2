@@ -69,7 +69,6 @@ void C2_HOOK_FASTCALL MakeSavedGame(tSave_game* pSave_game) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 ea07b3121
 // FUNCTION: CARMA2_HW 0x00491ac0
 void C2_HOOK_FASTCALL DoSaveGame(void) {
     tPath_name the_path;

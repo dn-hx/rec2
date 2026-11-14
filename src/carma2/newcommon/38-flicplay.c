@@ -507,7 +507,6 @@ void C2_HOOK_FASTCALL LetFlicFuckWithPalettes(void) {
     gPalette_fuck_prevention = 0;
 }
 
-// based on ApexWorm/rec2 e6089773a (reference only)
 // FUNCTION: CARMA2_HW 0x004619c0
 void C2_HOOK_STDCALL PlayFlicsInDarkness(void) {
     gDark_mode = 1;
@@ -560,7 +559,6 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 752e0af1e
 // FUNCTION: CARMA2_HW 0x00461aa0
 void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
     if (pDest_pixelmap != NULL) {
@@ -1505,7 +1503,6 @@ void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval) {
     LetFlicFuckWithPalettes();
 }
 
-// based on ApexWorm/rec2 d1507f047
 // FUNCTION: CARMA2_HW 0x00462dc0
 void C2_HOOK_FASTCALL FlushFlicQueue(void) {
     tFlic_descriptor* the_flic;
