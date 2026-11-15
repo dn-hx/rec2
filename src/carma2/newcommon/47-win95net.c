@@ -59,7 +59,20 @@ tU32 C2_HOOK_FASTCALL PDNetExtractGameID(const tNet_game_details* pDetails) {
     return addr[8] << 24 | addr[9] << 16 | addr[10] << 8 | addr[11];
 }
 
-// PDNetExtractPlayerID
+// FUNCTION: CARMA2_HW 0x0051a130
+tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails) {
+    (void)pDetails;
+    dr_dprintf("PDNetExtractPlayerID()");
+    dr_dprintf("...returning %8.8x",
+        ((gPtr_local_address[8] << 8
+          | gPtr_local_address[9]) << 8
+         | gPtr_local_address[10]) << 8
+        | gPtr_local_address[11]);
+    return ((gPtr_local_address[8] << 8
+          | gPtr_local_address[9]) << 8
+         | gPtr_local_address[10]) << 8
+        | gPtr_local_address[11];
+}
 
 // PDNetObtainSystemUserName
 

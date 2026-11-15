@@ -72,7 +72,7 @@ extern void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game);
 
 // NetSetPlayerSystemInfo
 
-// FillInThisPlayer
+extern void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost);
 
 // LoadCarN
 

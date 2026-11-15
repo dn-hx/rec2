@@ -34,7 +34,7 @@ extern int C2_HOOK_FASTCALL PDNetHostGame(tNet_game_details* pDetails, char* pHo
 
 extern tU32 C2_HOOK_FASTCALL PDNetExtractGameID(const tNet_game_details* pDetails);
 
-// PDNetExtractPlayerID
+extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
 
 // PDNetObtainSystemUserName
 
