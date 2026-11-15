@@ -56,7 +56,7 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // PollActionReplayControls
 
-// CheckReplayTurnOn
+extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
 
 // InitializeActionReplayPix
 
