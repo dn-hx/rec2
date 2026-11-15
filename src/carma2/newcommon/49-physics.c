@@ -750,7 +750,37 @@ int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, br_scal
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+// FUNCTION: CARMA2_HW 0x004be350
+void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+
+    pDestination[0] = -pSource[5] * pSource[7] + pSource[8] * pSource[4];
+    pDestination[1] = -(-pSource[2] * pSource[7] + pSource[1] * pSource[8]);
+    fVar1 = -pSource[2] * pSource[4] + pSource[1] * pSource[5];
+    pDestination[2] = fVar1;
+    fVar5 = 1.0 / (pSource[1] * pDestination[1] + pSource[2] * fVar1 + pSource[0] * pDestination[0]);
+    pDestination[0] = pDestination[0] * fVar5;
+    pDestination[3] = -((-pSource[5] * pSource[6] + pSource[8] * pSource[3]) * fVar5);
+    fVar1 = pSource[4];
+    fVar2 = pSource[3];
+    fVar3 = pSource[7];
+    fVar4 = pSource[6];
+    pDestination[1] = pDestination[1] * fVar5;
+    pDestination[6] = (-fVar1 * fVar4 + fVar3 * fVar2) * fVar5;
+    pDestination[4] = (-pSource[2] * pSource[6] + pSource[8] * pSource[0]) * fVar5;
+    fVar1 = pSource[1];
+    fVar2 = pSource[7];
+    fVar3 = pSource[6];
+    fVar4 = pSource[0];
+    pDestination[2] = pDestination[2] * fVar5;
+    pDestination[7] = -((-fVar1 * fVar3 + fVar2 * fVar4) * fVar5);
+    pDestination[5] = -((-pSource[2] * pSource[3] + pSource[5] * pSource[0]) * fVar5);
+    pDestination[8] = (-pSource[1] * pSource[3] + pSource[4] * pSource[0]) * fVar5;
+}
 
 // SetUpQuickHingeData
 
