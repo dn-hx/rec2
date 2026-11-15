@@ -559,11 +559,16 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 32%: AssertFlicPixelmap 0x00461aa0 - attempt 1 asm-order int temporary (see state/findings/AssertFlicPixelmap.md)
 // FUNCTION: CARMA2_HW 0x00461aa0
 void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
+    int offset;
+
     if (pDest_pixelmap != NULL) {
-        pFlic_info->first_pixel = (tU8*)pDest_pixelmap->pixels
-            + (pFlic_info->x_offset + pFlic_info->y_offset * pDest_pixelmap->row_bytes);
+        offset = pFlic_info->y_offset * (tS16)pDest_pixelmap->row_bytes;
+        offset += pFlic_info->x_offset;
+        offset += (int)pDest_pixelmap->pixels;
+        pFlic_info->first_pixel = (tU8*)offset;
     }
     pFlic_info->the_pixelmap = pDest_pixelmap;
 }
