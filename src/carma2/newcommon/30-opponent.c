@@ -21,6 +21,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "56-aiworld.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -926,7 +927,76 @@ void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
 
 // MassageOpponentPosition
 
-// RematerialiseOpponentOnThisSection
+// FUNCTION: CARMA2_HW 0x004a7f20
+int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed) {
+    const br_vector3* start;
+    const br_vector3* finish;
+    br_vector3 dir;
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    br_scalar len_sq;
+    br_scalar t;
+    br_scalar new_x;
+    br_scalar new_y;
+    br_scalar new_z;
+
+    if (pOpponent_spec->physics_me) {
+        DoNotDprintf("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
+        return 1;
+    }
+    if (pSection_no < 20000 || pOpponent_spec->nnext_sections <= (int)pSection_no - 20000) {
+        if (pSection_no < 15000) {
+            if (pSection_no == 10000) {
+                start = (const br_vector3*)((char*)pOpponent_spec + 0x12c);
+            } else {
+                DoNotDprintf("BIG ERROR - GetOpponentsSectionStartNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+                PDEnterDebugger("BIG ERROR - GetOpponentsSectionStartNodePoint()");
+                start = NULL;
+            }
+        } else {
+            start = (const br_vector3*)(*(int*)((char*)pOpponent_spec + 0x114) + ((int)pSection_no - 0x38ee) * 12);
+        }
+    } else {
+        int node_index_index;
+        node_index_index = pOpponent_spec->next_sections[pSection_no - 20000].direction == 0;
+        start = &gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[pOpponent_spec->next_sections[pSection_no - 20000].section_no].node_indices[node_index_index]].pos;
+    }
+    finish = GetOpponentsSectionFinishNodePoint(pOpponent_spec, pSection_no);
+    dx = finish->v[0] - start->v[0];
+    dy = finish->v[1] - start->v[1];
+    dz = finish->v[2] - start->v[2];
+    len_sq = dz * dz + dy * dy + dx * dx;
+    if (sqrt(len_sq) != gOppo_render_zero) {
+        t = ((pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[0] - start->v[0]) * dx
+            + (pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1] - start->v[1]) * dy
+            + (pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[2] - start->v[2]) * dz) / len_sq;
+        if (t >= gOppo_render_zero) {
+            if (t <= 1.0f) {
+                new_x = t * dx + start->v[0];
+                new_y = t * dy + start->v[1];
+                new_z = t * dz + start->v[2];
+            } else {
+                new_x = finish->v[0];
+                new_y = finish->v[1];
+                new_z = finish->v[2];
+            }
+        } else {
+            new_x = start->v[0];
+            new_y = start->v[1];
+            new_z = start->v[2];
+        }
+        pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[0] = new_x;
+        pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1] = new_y;
+        pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[2] = new_z;
+        dir.v[0] = finish->v[0] - start->v[0];
+        dir.v[1] = finish->v[1] - start->v[1];
+        dir.v[2] = finish->v[2] - start->v[2];
+        PointActorAlongThisBloodyVector(pOpponent_spec->car_spec->car_master_actor, &dir);
+        return RematerialiseOpponent(pOpponent_spec, pSpeed);
+    }
+    return RematerialiseOpponent(pOpponent_spec, pSpeed);
+}
 
 // RematerialiseOpponentOnNearestSection
 
@@ -1195,7 +1265,31 @@ int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spe
 
 // GetOpponentsSectionStartNodePoint
 
-// GetOpponentsSectionFinishNodePoint
+// FUNCTION: CARMA2_HW 0x004aec40
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    tS16 section_no;
+    tS16 node_no;
+    tU8 node_index_index;
+    const tRoute_section* route;
+
+    if (pSection >= 20000 && pOpponent_spec->nnext_sections > pSection - 20000) {
+        route = &pOpponent_spec->next_sections[pSection - 20000];
+        node_index_index = route->direction;
+        section_no = route->section_no;
+        node_no = gProgram_state.AI_vehicles.path_sections[section_no].node_indices[node_index_index != 0];
+        return &gProgram_state.AI_vehicles.path_nodes[node_no].pos;
+    }
+
+    if (pSection >= 15000) {
+        return &pOpponent_spec->pursue_car_data.pursuee->my_trail.trail_nodes[pSection - 15000];
+    }
+    if (pSection == 10000) {
+        return &pOpponent_spec->pursue_car_data.direct_line_nodes[1].pos;
+    }
+    DoNotDprintf("BIG ERROR - GetOpponentsSectionFinishNodePoint() - section not found in next_section array for opponent %s", pOpponent_spec->car_spec->driver_name);
+    PDEnterDebugger("BIG ERROR - GetOpponentsSectionFinishNodePoint()");
+    return NULL;
+}
 
 // GetOpponentsSectionWidth
 
