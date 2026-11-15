@@ -476,7 +476,7 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // RestoreVitalBitsOfObject
 
-// WeldCar
+extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
 
 // ARCompressCrush
 
@@ -556,7 +556,7 @@ extern void C2_HOOK_FASTCALL CompressPlane(tCompressed_vector4* pDest, const br_
 
 extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_vector4* pSrc);
 
-// CopySplitInMessage
+extern void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
