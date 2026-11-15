@@ -116,7 +116,131 @@ tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pP
     NOT_IMPLEMENTED();
 }
 
-// GetPointSample
+// FUNCTION: CARMA2_HW 0x00422030
+int C2_HOOK_FASTCALL GetPointSample(br_model* pModel, int pCount_vertices, int* pVertex_indices) {
+    float* distances;
+    int removed[512];
+    int count_vertices;
+    int distance_offset;
+    int remove_count;
+    int i;
+
+    count_vertices = pModel->nvertices;
+    if (count_vertices > 512) {
+        count_vertices = 512;
+    }
+    if (count_vertices <= pCount_vertices) {
+        return 3;
+    }
+    distances = BrMemAllocate(count_vertices * count_vertices / 2 * sizeof(float), 0x80);
+    if (distances == NULL) {
+        return 4;
+    }
+
+    distance_offset = 0;
+    i = 0;
+    if (count_vertices != 0) {
+        int vertex_offset;
+
+        vertex_offset = 0;
+        do {
+            if (vertex_offset > 0) {
+                float* row;
+                int j;
+                int inner_offset;
+
+                row = distances + distance_offset;
+                distance_offset += i;
+                j = i;
+                inner_offset = 0;
+                do {
+                    row[0] =
+                        (*(float*)((char*)pModel->vertices + vertex_offset + 8) - *(float*)((char*)pModel->vertices + inner_offset + 8)) * (*(float*)((char*)pModel->vertices + vertex_offset + 8) - *(float*)((char*)pModel->vertices + inner_offset + 8))
+                        + (*(float*)((char*)pModel->vertices + vertex_offset + 4) - *(float*)((char*)pModel->vertices + inner_offset + 4)) * (*(float*)((char*)pModel->vertices + vertex_offset + 4) - *(float*)((char*)pModel->vertices + inner_offset + 4))
+                        + (*(float*)((char*)pModel->vertices + vertex_offset) - *(float*)((char*)pModel->vertices + inner_offset)) * (*(float*)((char*)pModel->vertices + vertex_offset) - *(float*)((char*)pModel->vertices + inner_offset));
+                    row++;
+                    inner_offset += 0x28;
+                    j--;
+                } while (j != 0);
+            }
+            i++;
+            vertex_offset += 0x28;
+        } while (i < count_vertices);
+    }
+
+    memset(removed, 0, count_vertices * sizeof(removed[0]));
+    remove_count = count_vertices - pCount_vertices;
+    do {
+        int index1;
+        int index2;
+        float min_distance;
+        float sum1;
+        float sum2;
+
+        min_distance = 3.4028235e+38f;
+        for (i = 0; i < count_vertices; i++) {
+            if (removed[i] == 0) {
+                int j;
+
+                for (j = 0; j < i; j++) {
+                    if (removed[j] == 0) {
+                        int distance_index;
+                        float distance;
+
+                        if (j < i) {
+                            distance_index = ((i - 1) * i >> 1) + j;
+                        } else {
+                            distance_index = ((j - 1) * j >> 1) + i;
+                        }
+                        distance = distances[distance_index];
+                        if (distance < min_distance) {
+                            index1 = i;
+                            index2 = j;
+                            min_distance = distance;
+                        }
+                    }
+                }
+            }
+        }
+
+        sum1 = 0.0f;
+        sum2 = 0.0f;
+        for (i = 0; i < count_vertices; i++) {
+            if (removed[i] == 0 && i != index1 && i != index2) {
+                int distance_index;
+
+                if (i < index1) {
+                    distance_index = ((index1 - 1) * index1 >> 1) + i;
+                } else {
+                    distance_index = ((i - 1) * i >> 1) + index1;
+                }
+                sum1 = (float)sqrt(distances[distance_index]) + sum1;
+
+                if (i < index2) {
+                    distance_index = ((index2 - 1) * index2 >> 1) + i;
+                } else {
+                    distance_index = ((i - 1) * i >> 1) + index2;
+                }
+                sum2 = (float)sqrt(distances[distance_index]) + sum2;
+            }
+        }
+        if (sum1 >= sum2) {
+            removed[index2] = 1;
+        } else {
+            removed[index1] = 1;
+        }
+        remove_count--;
+    } while (remove_count != 0);
+
+    for (i = 0; i < count_vertices; i++) {
+        if (removed[i] == 0) {
+            *pVertex_indices = i;
+            pVertex_indices++;
+        }
+    }
+    BrMemFree(distances);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00422400
 tPhysicsError C2_HOOK_FASTCALL SampledConvexHull(tCollision_shape_polyhedron_data* pPolyhedron, int* pVertex_indices, br_model* pModel, int pCount_vertices) {
