@@ -407,7 +407,7 @@ extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
 // ApplyGibShower
 
-// ApplyBloodSpurt
+extern void C2_HOOK_FASTCALL ApplyBloodSpurt(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
@@ -536,5 +536,14 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    uintptr_t pOwner;
+    undefined4 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+} tPipe_chunk_blood_spurt;
 
 #endif // GUARD_23_PIPING_H
