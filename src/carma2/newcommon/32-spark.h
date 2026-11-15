@@ -60,7 +60,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // ReplaySparks
 
-// RenderSparks
+extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 // CreateSingleSpark
 
