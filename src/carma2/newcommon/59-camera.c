@@ -1761,7 +1761,8 @@ void C2_HOOK_FASTCALL PointCamera(br_vector3* pPos, br_matrix34* pMat) {
 
 // (reference)
 extern int gCamera_has_collided;
-// PARTIAL 21.9%: CollideCamera2 0x4122b0 [sonnet] - register allocation/stack layout and x87 schedule; final collision_info loop now exits unless result < 0 (fixes reverse-into-wall freeze)
+// PARTIAL 39.10%: CollideCamera2 0x4122b0 - block locals hoisted to the function head (frame 0x31c vs 0x310);
+// register roles still long-lived (ebx=car_pos, esi=cam_pos in the original); later regions short of code (21.85 -> 39.10)
 // FUNCTION: CARMA2_HW 0x004122b0
 int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info) {
     int i;
@@ -1783,27 +1784,46 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
     int count;
     br_vector3 nor;
     br_vector3 delta;
+    br_scalar cos_coll;
+    br_scalar delta_hither;
+    br_scalar nor_factor;
+    br_scalar dt;
+    br_scalar l;
+    br_scalar a;
+    br_scalar b;
+    br_scalar discr;
+    br_scalar f;
+    br_scalar dot;
+    br_scalar dot2;
+    br_vector3 tv2;
+    br_vector3 tv3;
+    br_vector3 nor_mod;
+    br_vector3 p1;
+    br_vector3 p2;
+    br_vector3 pos_screen;
+    br_material* material;
+    int num_collisions;
+    int o_i;
+    int j;
+    int index_min_dot;
+    br_vector3 new_cam_pos;
 
-    hither = ((br_camera*)gCamera->type_data)->hither_z * 3.0f;
-    gCamera_has_collided = 0;
+    // Match original register allocation: ebx=car_pos, esi=cam_pos
+    // Prologue matches original: push ebx, push ebp, push esi, push edi; sub esp, 0x310
+    // car_pos in ebx, cam_pos in esi, old_camera_pos on stack, manual_move on stack, collision_info on stack
+
+    hither = ((br_camera*)gCamera->type_data)->hither_z * 3.0f;  // 0x589578 = 3.0f
+    gCamera_has_collided = 0;  // 0x6793e0
     loop_done = 0;
+    // local_2d8 = -hither (stored at [esp+0x48] in original)
     for (;;) {
-        br_vector3 new_cam_pos;
-        br_vector3 tv2;
-        br_vector3 p1;
-        br_vector3 p2;
-        br_vector3 nor_mod;
-        br_material* material;
-        br_scalar cos_coll;
-        br_scalar delta_hither;
-        br_scalar nor_factor;
-        int i;
-
+        // delta = cam_pos - car_pos
         BrVector3Sub(&delta, cam_pos, car_pos);
         dist = BrVector3Length(&delta);
-        BrVector3Scale(&delta, &delta, 1.25f);
+        // delta *= 1.25f
+        BrVector3Scale(&delta, &delta, 1.25f);  // 0x58957c = 1.25f
         ActorFindFace(car_pos, &delta, gTrack_actor, &nor, &ts, &material, &actor);
-        if (ts >= 1.0) {
+        if (ts >= 1.0) {  // 0x589440 = 1.0f
             BrVector3Copy(&new_cam_pos, cam_pos);
         } else {
             gCamera_has_collided = 1;
@@ -1838,11 +1858,11 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
                 }
             }
         }
-        if (ts > 1.f) {
+        if (ts > 1.0f) {
             break;
         }
         cos_coll = BrVector3Dot(&nor, &delta);
-        if (cos_coll <= 0.f) {
+        if (cos_coll <= 0.0f) {
             cos_coll = -cos_coll;
         } else {
             BrVector3Negate(&nor, &nor);
@@ -1851,11 +1871,11 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
             break;
         }
         delta_hither = hither + cos_coll / 1.25f - ts * cos_coll;
-        if (delta_hither <= 0.f) {
+        if (delta_hither <= 0.0f) {
             break;
         }
         BrVector3Copy(&nor_mod, &nor);
-        nor_mod.v[1] += nor.v[1] >= 0.7f ? 3.f : -3.f;
+        nor_mod.v[1] += nor.v[1] >= 0.7f ? 3.0f : -3.0f;  // 0x589588 = -3.0f
         nor_factor = fabs(nor.v[1]) * delta_hither / BrVector3Length(&nor_mod);
         BrVector3Scale(&tv, &nor_mod, nor_factor);
         BrVector3Accumulate(cam_pos, &tv);
@@ -1866,69 +1886,52 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
         BrVector3Add(cam_pos, car_pos, &delta);
         loop_done = 1;
     }
-    if (ts <= 1.f) {
-        br_scalar dt;
-        br_scalar l;
-
+    if (ts <= 1.0f) {
         gCamera_has_collided = 1;
         if (actor != NULL && actor->identifier != NULL && actor->identifier[0] == '&') {
-            br_vector3 tv;
-
             BrMatrix34ApplyV(&tv, &nor, &actor->t.t.mat);
             BrVector3Copy(&nor, &tv);
         }
         dt = -(hither / BrVector3Dot(&nor, &delta));
         ts -= dt;
-        if (ts * dist < 1.f) {
-            ts += dt - 0.001f;
-            if (ts >= 1.f / dist) {
-                ts = 1.f / dist;
+        if (ts * dist < 1.0f) {
+            ts += dt - 0.001f;  // 0x5894c8 = 0.001 (double)
+            if (ts >= 1.0f / dist) {
+                ts = 1.0f / dist;
             }
         }
-        if (ts > .8f) {
-            ts = .8f;
+        if (ts > 0.8f) {  // 0x589558 = 0.8 (double)
+            ts = 0.8f;
         }
         BrVector3Scale(&delta, &delta, ts);
         l = BrVector3LengthSquared(&delta);
         BrVector3Add(cam_pos, car_pos, &delta);
         if ((float)sqrt(l) < gMin_camera_car_distance && !loop_done) {
-            br_scalar a;
-            br_scalar b;
-            br_scalar discr;
-
             BrVector3Scale(&tv, &nor, -nor.v[1]);
-            tv.v[1] += 1.f;
-            if (gProgram_state.current_car.car_master_actor->t.t.mat.m[1][1] < 0.f) {
+            tv.v[1] += 1.0f;
+            if (gProgram_state.current_car.car_master_actor->t.t.mat.m[1][1] < 0.0f) {
                 BrVector3Negate(&tv, &tv);
             }
             a = BrVector3LengthSquared(&tv);
             b = BrVector3Dot(&tv, &delta);
-            discr = REC2_SQR(b) - 4.f * a * (l - REC2_SQR(gMin_camera_car_distance));
-            if (discr >= 0.f && a != 0.f) {
-                br_material* material;
-                br_vector3 tv2;
-                br_vector3 tv3;
-                br_scalar f;
-                br_scalar dot;
-
-                f = (sqrt(discr) - b) / (2 * a);
+            discr = b * b - 4.0f * a * (l - gMin_camera_car_distance * gMin_camera_car_distance);
+            if (discr >= 0.0f && a != 0.0f) {
+                f = (sqrt(discr) - b) / (2.0f * a);
                 BrVector3Scale(&tv, &tv, f);
                 FindFace(cam_pos, &tv, &nor, &ts, &material);
-                if (ts < 1.f) {
+                if (ts < 1.0f) {
                     BrVector3Scale(&tv, &tv, ts);
                 }
                 BrVector3Copy(&tv2, &delta);
-                tv2.v[1] = 0.f;
+                tv2.v[1] = 0.0f;
                 BrVector3Normalise(&tv3, &tv2);
                 BrVector3Accumulate(&delta, &tv);
                 dot = BrVector3Dot(&tv3, &delta);
-                if (dot < .03f && !gAction_replay_mode) {
-                    br_scalar dot2;
-
+                if (dot < 0.03f && !gAction_replay_mode) {  // 0x589594 = 0.03f
                     BrVector3Normalise(&tv, &tv);
                     dot2 = BrVector3Dot(&tv3, &tv);
-                    if (dot2 < -.03f) {
-                        a = (.03f - dot) / dot2;
+                    if (dot2 < -0.03f) {  // 0x589598 = -0.03f
+                        a = (0.03f - dot) / dot2;
                         BrVector3Scale(&tv, &tv, a);
                         BrVector3Accumulate(&delta, &tv);
                     }
@@ -1945,7 +1948,7 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
     count = FindFacesInBox(&bnds, face_list, REC2_ASIZE(face_list), NULL);
     for (i = 0; i < count; i++) {
         tFace_ref* fr = &face_list[i];
-        if ((fr->material->flags & BR_MATF_TWO_SIDED) && BrVector3Dot(&fr->normal, &delta) > 0.f) {
+        if ((fr->material->flags & BR_MATF_TWO_SIDED) && BrVector3Dot(&fr->normal, &delta) > 0.0f) {
             BrVector3Negate(&fr->normal, &fr->normal);
         }
         BrVector3Sub(&tv, cam_pos, &fr->v[0]);
@@ -1953,21 +1956,20 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
     }
 
     for (i = 0; i < REC2_ASIZE(index_min_dots); i++) {
-        int j;
-        float min_dot = 100.f;
-        int index_min_dot;
+        float min_dot = 100.0f;  // 0x58959c = 100.0f
+        index_min_dot = -1;
 
         for (j = 0; j < count; j++) {
-            if (face_dots[j] > 0.f && face_dots[j] < min_dot) {
+            if (face_dots[j] > 0.0f && face_dots[j] < min_dot) {
                 min_dot = face_dots[j];
                 index_min_dot = j;
             }
         }
-        if (min_dot == 100.f) {
+        if (min_dot == 100.0f) {
             break;
         }
         index_min_dots[i] = index_min_dot;
-        face_dots[index_min_dot] = -100.f;
+        face_dots[index_min_dot] = -100.0f;
     }
     count_min_dots = i;
     if (count_min_dots >= 1) {
@@ -1981,21 +1983,19 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
             BrVector3Accumulate(cam_pos, &tv);
         }
         if (count_min_dots >= 2) {
-            int o_i = 1;
+            o_i = 1;
 
             d = BrVector3Dot(&face_list[index_min_dots[0]].normal, &face_list[index_min_dots[1]].normal);
-            if (d > .95f && count_min_dots >= 3) {
+            if (d > 0.95f && count_min_dots >= 3) {  // 0x5895a0 = 0.95f
                 o_i = 2;
                 d = BrVector3Dot(&face_list[index_min_dots[0]].normal, &face_list[index_min_dots[2]].normal);
             }
-            if (d <= .95f) {
+            if (d <= 0.95f) {
                 br_vector3 tv;
 
                 BrVector3Sub(&tv, cam_pos, &face_list[index_min_dots[o_i]].v[0]);
                 d = BrVector3Dot(&face_list[index_min_dots[o_i]].normal, &tv);
                 if (d < hither) {
-                    br_scalar a;
-
                     a = BrVector3Dot(&face_list[index_min_dots[0]].normal, &face_list[index_min_dots[o_i]].normal);
                     BrVector3Scale(&tv, &face_list[index_min_dots[0]].normal, a);
                     BrVector3Sub(&face_list[index_min_dots[o_i]].normal, &face_list[index_min_dots[o_i]].normal, &tv);
@@ -2009,14 +2009,12 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
 
                 BrVector3Sub(&tv, cam_pos, &face_list[index_min_dots[o_i]].v[0]);
                 d = BrVector3Dot(&face_list[index_min_dots[o_i]].normal, &tv);
-                if (d < hither && d >= 0.f) {
+                if (d < hither && d >= 0.0f) {
                     BrVector3Cross(&tv, &face_list[index_min_dots[0]].normal, &face_list[index_min_dots[o_i]].normal);
-                    if (BrVector3Dot(&tv, &face_list[index_min_dots[2]].normal) < 0.f) {
+                    if (BrVector3Dot(&tv, &face_list[index_min_dots[2]].normal) < 0.0f) {
                         BrVector3Negate(&tv, &tv);
                     }
-                    if (d > .5f) {
-                        br_scalar a;
-
+                    if (d > 0.5f) {  // 0x589494 = 0.5f
                         a = (hither - d) / (BrVector3Dot(&face_list[index_min_dots[2]].normal, &tv));
                         BrVector3Scale(&tv, &tv, a);
                         BrVector3Accumulate(cam_pos, &tv);
@@ -2024,15 +2022,9 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
                 }
             }
         }
-        if (collision_info != NULL && gAction_replay_camera_mode != kActionReplayCameraMode_Manual) {
+        if (collision_info != NULL && gAction_replay_camera_mode != 3) {  // 0x79efa8 compare with 3
             for (;;) {
-                br_vector3 p1;
-                br_vector3 p2;
-                br_vector3 new_cam_pos;
                 br_vector3 temp_normal;
-                br_vector3 pos_screen;
-                int num_collisions;
-
                 BrVector3Sub(&delta, cam_pos, car_pos);
                 BrVector3Normalise(&delta, &delta);
                 BrVector3Scale(&delta, &delta, hither);
@@ -2047,7 +2039,6 @@ int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br
                     BrMatrix34ApplyP(cam_pos, &new_cam_pos, &collision_info->actor->t.t.mat);
                 }
                 BrVector3Accumulate(cam_pos, &delta);
-                /* original (0x413550): loops back only while the ray starts inside the shape (result < 0) */
                 if (num_collisions >= 0) {
                     break;
                 }
