@@ -1517,11 +1517,7 @@ br_boolean C2_HOOK_CDECL BrTokenValueCompare(br_token_value* tv1, br_token_value
         case BRT_OBJECT_LIST:
         case BRT_POINTER_LIST:
             for (i = 0;; i++) {
-#if 1
                 if (tv1->v.pl[i] != tv2->v.pl[i]) {
-#else
-                if (tv1->v.pl[i] != tv1->v.pl[i]) {
-#endif
                     return 0;
                 }
                 if (tv1->v.pl[i] == NULL) {
@@ -1531,11 +1527,7 @@ br_boolean C2_HOOK_CDECL BrTokenValueCompare(br_token_value* tv1, br_token_value
             break;
         case BRT_TOKEN_LIST:
             for (i = 0;; i++) {
-#if 1
                 if (tv1->v.tl[i] != tv2->v.tl[i]) {
-#else
-                if (tv1->v.tl[i] != tv1->v.tl[i]) {
-#endif
                     return 0;
                 }
                 if (tv1->v.tl[i] == BR_NULL_TOKEN) {
