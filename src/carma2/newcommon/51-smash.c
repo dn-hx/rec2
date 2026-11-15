@@ -571,7 +571,216 @@ void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboi
     }
 }
 
-// ActivateSmashSideEffects
+// FUNCTION: CARMA2_HW 0x004edbe0
+void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
+    tSmash_record record;
+    tBounds bounds;
+    tFace_ref face_list[400];
+    tSmash_side_effect* eff;
+    br_vector3 direction;
+    tSmashable_item_spec* volatile spec;
+    br_vector3 centroid;
+    tFace_ref* pFace;
+    br_actor* actor;
+    const char* identifier;
+    int side_effect_index;
+    int face_count;
+    int type;
+    int axis;
+    int slot_index;
+    int* pActive;
+    tU32 time;
+    tU32 random_time;
+    float offset_x;
+    float offset_y;
+    float offset_z;
+    float length;
+
+    time = GetTotalTime();
+    eff = pSide_effects->side_effects;
+    for (side_effect_index = 0; side_effect_index < pSide_effects->count_side_effects; side_effect_index++, eff++) {
+        if (eff->field_0x4 == 1) {
+            bounds.original_bounds = eff->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.original_bounds.min, &eff->bounds.min, (br_matrix34*)((tU8*)pObject + 0x8c));
+            BrMatrix34ApplyP(&bounds.original_bounds.max, &eff->bounds.max, (br_matrix34*)((tU8*)pObject + 0x8c));
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.original_bounds.min.v[axis] > bounds.original_bounds.max.v[axis]) {
+                    br_scalar value = bounds.original_bounds.min.v[axis];
+
+                    bounds.original_bounds.min.v[axis] = bounds.original_bounds.max.v[axis];
+                    bounds.original_bounds.max.v[axis] = value;
+                }
+            }
+        }
+        bounds.mat = (br_matrix34*)((tU8*)gTrack_actor + 0x2c);
+        face_count = FindFacesInBox(&bounds, face_list, 400, NULL);
+        if (eff->field_0x44 == 0) {
+            direction.v[0] = direction.v[0] / pDistance;
+            direction.v[1] = direction.v[1] / pDistance;
+            direction.v[2] = direction.v[2] / pDistance;
+        }
+        if (face_count > 0) {
+            pFace = face_list;
+            do {
+                type = -1;
+                spec = NULL;
+                actor = NULL;
+                identifier = NULL;
+                if (pFace->material != NULL) {
+                    identifier = pFace->material->identifier;
+                }
+                if (identifier != NULL && strlen(identifier) == 0xb && identifier[5] == '|') {
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 1) {
+                        goto material_centroid;
+                    }
+                    if (eff->field_0x28 != 4) {
+                        goto next_face;
+                    }
+                    if (strcmp(identifier, eff->field_0x8) != 0) {
+                        goto next_face;
+                    }
+material_centroid:
+                    centroid.v[0] = (pFace->v[0].v[0] + pFace->v[1].v[0] + pFace->v[2].v[0]) * gFloat_0058af38;
+                    centroid.v[1] = (pFace->v[0].v[1] + pFace->v[1].v[1] + pFace->v[2].v[1]) * gFloat_0058af38;
+                    centroid.v[2] = (pFace->v[0].v[2] + pFace->v[2].v[2] + pFace->v[1].v[2]) * gFloat_0058af38;
+                    type = 0;
+                    spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
+                    goto check;
+                }
+                actor = pFace->a;
+                if (actor != NULL) {
+                    identifier = actor->identifier;
+                }
+                if (identifier == NULL) {
+                    goto check;
+                }
+                if (!((strlen(identifier) == 0xb && identifier[5] == '|') || ((tU8)identifier[1] == 0xa3))) {
+                    if (*identifier != '&') {
+                        goto check;
+                    }
+                    if (gUnknown_006b9c60[(tS8)identifier[2] + 10 * (tS8)identifier[1]] == 0) {
+                        goto check;
+                    }
+                }
+                if (*identifier == '&' && identifier[1] >= '0' && identifier[1] <= '9') {
+                    if (identifier[3] == '!') {
+                        goto next_face;
+                    }
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 3) {
+                        goto actor_centroid;
+                    }
+                    if (eff->field_0x28 != 6) {
+                        goto next_face;
+                    }
+                    if (identifier[1] != eff->field_0x8[1] || identifier[2] != eff->field_0x8[2]) {
+                        goto next_face;
+                    }
+                } else {
+                    if (eff->field_0x28 == 0 || eff->field_0x28 == 2) {
+                        goto actor_centroid;
+                    }
+                    if (eff->field_0x28 != 5) {
+                        goto next_face;
+                    }
+                    if (strcmp(identifier, eff->field_0x8) != 0) {
+                        goto next_face;
+                    }
+                }
+actor_centroid:
+                centroid.v[0] = *(br_scalar*)((tU8*)actor + 0x50);
+                centroid.v[1] = *(br_scalar*)((tU8*)actor + 0x54);
+                centroid.v[2] = *(br_scalar*)((tU8*)actor + 0x58);
+                type = 1;
+                spec = &gTrack_smashable_environment_specs[(tU8)identifier[6] - 1];
+check:
+                if (type == -1) {
+                    goto next_face;
+                }
+                pActive = (int*)&gSmash_explosions[0].what.smash.field_0x80;
+                do {
+                    if (*(pActive - 0x21) != 0 && *(pActive - 0x22) == 1) {
+                        if (type == 1 && *pActive == (int)(intptr_t)pFace->a) {
+                            spec = NULL;
+                            break;
+                        }
+                        if (type == 0 && *pActive == (int)(intptr_t)pFace->a
+                                && *(tS16*)((tU8*)pActive + 4) == pFace->g
+                                && *(tS16*)((tU8*)pActive + 6) == pFace->f) {
+                            spec = NULL;
+                            break;
+                        }
+                    }
+                    pActive += 0x32;
+                } while ((tU8*)pActive < (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].what.smash.field_0x80);
+                if (spec != NULL && pFace->a != *(br_actor**)pObject) {
+                        record.velocity = *(br_vector3*)((tU8*)pObject + 0x68);
+                        random_time = IRandomBetween((tU16)eff->field_0x0, (tU16)eff->field_0x2);
+                        record.type = type;
+                        record.time = random_time + time;
+                        if (eff->field_0x44 == 1) {
+                            offset_x = *(br_scalar*)((tU8*)pObject + 0xb0) - centroid.v[0];
+                            offset_y = *(br_scalar*)((tU8*)pObject + 0xb4) - centroid.v[1];
+                            offset_z = *(br_scalar*)((tU8*)pObject + 0xb8) - centroid.v[2];
+                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
+                            if (length <= gFloat_0058aec4) {
+                                direction.v[0] = 1.0f;
+                                direction.v[1] = 0.0f;
+                                direction.v[2] = 0.0f;
+                            } else {
+                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
+                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
+                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
+                            }
+                        } else if (eff->field_0x44 == 2) {
+                            offset_x = centroid.v[0] - *(br_scalar*)((tU8*)pObject + 0xb0);
+                            offset_y = centroid.v[1] - *(br_scalar*)((tU8*)pObject + 0xb4);
+                            offset_z = centroid.v[2] - *(br_scalar*)((tU8*)pObject + 0xb8);
+                            length = sqrt(offset_x * offset_x + offset_y * offset_y + offset_z * offset_z);
+                            if (length <= gFloat_0058aec4) {
+                                direction.v[0] = 1.0f;
+                                direction.v[1] = 0.0f;
+                                direction.v[2] = 0.0f;
+                            } else {
+                                direction.v[0] = offset_x * (gDouble_0058aec8 / length);
+                                direction.v[1] = offset_y * (gDouble_0058aec8 / length);
+                                direction.v[2] = offset_z * (gDouble_0058aec8 / length);
+                            }
+                        }
+                        if (eff->field_0x48 < gFloat_0058aec0) {
+                            record.scale = -(pDistance * eff->field_0x48);
+                            record.impulse.v[0] = direction.v[0] * record.scale;
+                            record.impulse.v[1] = direction.v[1] * record.scale;
+                            record.impulse.v[2] = direction.v[2] * record.scale;
+                        } else {
+                            record.impulse.v[0] = eff->field_0x48 * direction.v[0];
+                            record.impulse.v[1] = eff->field_0x48 * direction.v[1];
+                            record.impulse.v[2] = eff->field_0x48 * direction.v[2];
+                            record.scale = eff->field_0x48;
+                        }
+                        record.position = centroid;
+                        record.spec = spec;
+                        record.face = *pFace;
+                        record.object = pObject;
+                        pActive = &gSmash_explosions[0].active;
+                        for (slot_index = 0; *pActive != 0; slot_index++) {
+                            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+                            if ((tU8*)pActive >= (tU8*)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                                break;
+                            }
+                        }
+                        if (slot_index < (int)REC2_ASIZE(gSmash_explosions)) {
+                            gSmash_explosions[slot_index].type = 1;
+                            gSmash_explosions[slot_index].active = (int)(intptr_t)pObject;
+                            *(tSmash_record*)&gSmash_explosions[slot_index].what.smash = record;
+                        }
+                    }
+next_face:
+                pFace++;
+            } while (--face_count != 0);
+        }
+    }
+}
 
 // DoSideEffects
 
