@@ -46,9 +46,9 @@ extern undefined4* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_points);
 
 extern tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pPolyhedron);
 
-// GetPointSample
+extern int C2_HOOK_FASTCALL GetPointSample(br_model* pModel, int pCount_vertices, int* pVertex_indices);
 
-// SampledConvexHull
+extern tPhysicsError C2_HOOK_FASTCALL SampledConvexHull(tCollision_shape_polyhedron_data* pPolyhedron, int* pVertex_indices, br_model* pModel, int pCount_vertices);
 
 // NPointConvexHullUsingSample
 
