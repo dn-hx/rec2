@@ -246,7 +246,7 @@ extern void C2_HOOK_FASTCALL SetBitForDetachment(br_actor* pActor, tCar_spec* pC
 // SetUpSemiDetachedBitJoint
 
 // FUNCTION: CARMA2_HW 0x00437480
-extern void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos);
+extern void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, br_model* pModel, tPhysics_object* pObject, const br_vector3* pOptional_pos);
 
 // BitIsInBentPartOfCar
 

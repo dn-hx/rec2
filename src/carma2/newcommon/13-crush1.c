@@ -7177,7 +7177,7 @@ bit_found:
     SetUpDetachedBitObject(bit_object, pActor, user->models[0], detach_data, pCar->car_crush_spec, pArg6, pCar->collision_info);
     flap_data = crush_data->flap_data;
     if (flap_data == NULL) {
-        SetUpSemiDetachedBitJoint(bit_object->physics_joint1, detach_data, 0, (int)bit_object, (tPhysics_object**)pActor, pArg5);
+        SetUpSemiDetachedBitJoint(bit_object->physics_joint1, detach_data, 0, user->models[0], bit_object, pArg5);
     } else {
         SetUpFlapJoint(bit_object->physics_joint1, flap_data, user->models[0], bit_object, pArg5, pArg7, pArg8);
         *(tPhysics_object**)((tU8*)flap_data + 0x24) = bit_object;
@@ -7236,7 +7236,7 @@ fail:
 }
 
 // FUNCTION: CARMA2_HW 0x00437480
-void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, int pVertex_index2, tPhysics_object** pPhysics_objects, const br_vector3* pOptional_pos) {
+void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, br_model* pModel, tPhysics_object* pObject, const br_vector3* pOptional_pos) {
     br_vector3 local_c;
     br_scalar fVar3;
     br_scalar fVar4;
@@ -7256,7 +7256,7 @@ void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_cru
         pJoint->field_0x08.v[1] = *(br_scalar*)&pos[1];
         uVar7 = *(br_scalar*)&pos[2];
     } else {
-        int* crush_data_ptr = *(int**)((tU8*)pVertex_index2 + 8);
+        int* crush_data_ptr = (int*)pModel->vertices;
         tU32 idx;
         if (pVertex_index1 != 0) {
             tU32 idx = (tU32)*(tU16*)(pVertex_index1 + 10);
@@ -7272,8 +7272,8 @@ void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_cru
     }
     pJoint->field_0x08.v[2] = uVar7;
 LAB_0043752a:
-    BrMatrix34ApplyP(&local_c, &pJoint->field_0x08, (const br_matrix34*)(pPhysics_objects[0] + 0x2c));
-    DrMatrix34ApplyLPInverse((br_vector3*)(*(int*)pPhysics_objects[0x8a] + 0x2c), &local_c, (br_matrix34*)(pPhysics_objects[0x8a] + 0x2c));
+    BrMatrix34ApplyP(&local_c, &pJoint->field_0x08, &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse(&pJoint->field_0x14, &local_c, &pObject->parent->actor->t.t.mat);
     pJoint->count_limits = 2;
     iVar8 = 0;
     puVar6 = (int*)(&pJoint->limits[0].value);
@@ -7284,7 +7284,7 @@ LAB_0043752a:
         puVar6 = puVar6 + 8;
     } while (iVar8 < pJoint->count_limits);
     if (pVertex_index1 != 0) {
-        int* crush_data_ptr = *(int**)((tU8*)pVertex_index2 + 8);
+        int* crush_data_ptr = (int*)pModel->vertices;
         tU32 idx1 = (tU32)*(tU16*)(pVertex_index1 + 0xe);
         tU32 idx2 = (tU32)*(tU16*)(pVertex_index1 + 10);
         tU32 idx3;
@@ -7352,8 +7352,8 @@ LAB_0043752a:
         pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
         return;
     }
-    bVar1 = *(tU8*)(pVertex_index2 + 0x33);
-    bVar2 = *(tU8*)(pVertex_index2 + 0x32);
+    bVar1 = *(tU8*)((tU8*)pDetach_data + 0x33);
+    bVar2 = *(tU8*)((tU8*)pDetach_data + 0x32);
     iVar8 = (int)(tU32)bVar1 >> 1;
     pJoint->limits[0].parent.v[0] = 0;
     pJoint->limits[0].parent.v[1] = 0;
