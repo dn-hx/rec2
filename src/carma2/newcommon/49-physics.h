@@ -124,7 +124,7 @@ extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pColli
 
 extern void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
 
-// ApplySingleForce
+extern void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse);
 
 // ApplyJointForces
 

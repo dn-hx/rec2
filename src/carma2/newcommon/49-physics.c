@@ -471,7 +471,214 @@ void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_j
     } while (--pCount != 0);
 }
 
-// ApplySingleForce
+// FUNCTION: CARMA2_HW 0x004b7960
+void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse) {
+    /* The seven vectors occupy the whole 0x54-byte frame in this exact order
+       (linear_delta at the lowest address, linear_accel at the highest). */
+    struct {
+        br_vector3 linear_delta;
+        br_vector3 angular_delta;
+        br_vector3 linear_delta_other;
+        br_vector3 angular_delta_other;
+        br_vector3 world_delta;
+        br_vector3 impulse;
+        br_vector3 linear_accel;
+    } delta;
+    tPhysics_object* pObject_a;
+    tPhysics_object* pObject_b;
+    tPhysics_object* pPartner;
+    br_scalar inverse_dt;
+
+    if (pForce->type == 9 || pImpulse == 0.f) {
+        return;
+    }
+    pObject_a = pForce->object_a;
+    pObject_b = pForce->object_b;
+    if (pForce->type == 0xb) {
+        pPartner = (tPhysics_object*)SetUpTorqueHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, &pForce->direction_a, pObject_a);
+        delta.angular_delta.v[0] *= pImpulse;
+        delta.angular_delta.v[1] *= pImpulse;
+        delta.angular_delta.v[2] *= pImpulse;
+        pObject_a->omega.v[0] += delta.angular_delta.v[0];
+        pObject_a->omega.v[1] += delta.angular_delta.v[1];
+        pObject_a->omega.v[2] += delta.angular_delta.v[2];
+        if (pPartner != NULL) {
+            delta.linear_delta.v[0] *= pImpulse;
+            delta.linear_delta.v[1] *= pImpulse;
+            delta.linear_delta.v[2] *= pImpulse;
+            pObject_a->velocity_car_space.v[0] += delta.linear_delta.v[0];
+            pObject_a->velocity_car_space.v[1] += delta.linear_delta.v[1];
+            pObject_a->velocity_car_space.v[2] += delta.linear_delta.v[2];
+            BrMatrix34ApplyV(&pObject_a->v, &pObject_a->velocity_car_space, &pObject_a->transform_matrix);
+            delta.linear_delta_other.v[0] *= pImpulse;
+            delta.linear_delta_other.v[1] *= pImpulse;
+            delta.linear_delta_other.v[2] *= pImpulse;
+            pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+            pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+            pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+            BrMatrix34ApplyV(&pPartner->v, &pPartner->velocity_car_space, &pPartner->transform_matrix);
+            delta.angular_delta_other.v[0] *= pImpulse;
+            delta.angular_delta_other.v[1] *= pImpulse;
+            delta.angular_delta_other.v[2] *= pImpulse;
+            pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+            pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+            pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+        }
+        if (pObject_b != NULL) {
+            pPartner = (tPhysics_object*)SetUpTorqueHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, &pForce->direction_b, pObject_b);
+            pImpulse = -pImpulse;
+            delta.angular_delta.v[0] *= pImpulse;
+            delta.angular_delta.v[1] *= pImpulse;
+            delta.angular_delta.v[2] *= pImpulse;
+            pObject_b->omega.v[0] += delta.angular_delta.v[0];
+            pObject_b->omega.v[1] += delta.angular_delta.v[1];
+            pObject_b->omega.v[2] += delta.angular_delta.v[2];
+            if (pPartner != NULL) {
+                delta.linear_delta.v[0] *= pImpulse;
+                delta.linear_delta.v[1] *= pImpulse;
+                delta.linear_delta.v[2] *= pImpulse;
+                pObject_b->velocity_car_space.v[0] += delta.linear_delta.v[0];
+                pObject_b->velocity_car_space.v[1] += delta.linear_delta.v[1];
+                pObject_b->velocity_car_space.v[2] += delta.linear_delta.v[2];
+                BrMatrix34ApplyV(&pObject_b->v, &pObject_b->velocity_car_space, &pObject_b->transform_matrix);
+                delta.linear_delta_other.v[0] *= pImpulse;
+                delta.linear_delta_other.v[1] *= pImpulse;
+                delta.linear_delta_other.v[2] *= pImpulse;
+                pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+                pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+                pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+                BrMatrix34ApplyV(&pPartner->v, &pPartner->velocity_car_space, &pPartner->transform_matrix);
+                delta.angular_delta_other.v[0] *= pImpulse;
+                delta.angular_delta_other.v[1] *= pImpulse;
+                delta.angular_delta_other.v[2] *= pImpulse;
+                pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+                pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+                pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+            }
+        }
+        return;
+    }
+    if (*(int*)((tU8*)pObject_a + 0x1e4) != 0) {
+        SetUpForce((br_vector3*)delta.angular_delta.v, (br_vector3*)delta.linear_delta.v, &pForce->point_a, &pForce->direction_a, pObject_a);
+        pPartner = (tPhysics_object*)SetUpHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, pObject_a);
+        delta.angular_delta.v[0] *= pImpulse;
+        delta.angular_delta.v[1] *= pImpulse;
+        delta.angular_delta.v[2] *= pImpulse;
+        pObject_a->omega.v[0] += delta.angular_delta.v[0];
+        pObject_a->omega.v[1] += delta.angular_delta.v[1];
+        pObject_a->omega.v[2] += delta.angular_delta.v[2];
+        delta.angular_delta_other.v[0] *= pImpulse;
+        delta.angular_delta_other.v[1] *= pImpulse;
+        delta.angular_delta_other.v[2] *= pImpulse;
+        pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+        pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+        pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+        delta.linear_delta.v[0] *= pImpulse;
+        delta.linear_delta.v[1] *= pImpulse;
+        delta.linear_delta.v[2] *= pImpulse;
+        pObject_a->velocity_car_space.v[0] += delta.linear_delta.v[0];
+        pObject_a->velocity_car_space.v[1] += delta.linear_delta.v[1];
+        pObject_a->velocity_car_space.v[2] += delta.linear_delta.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta, &pObject_a->transform_matrix);
+        pObject_a->v.v[0] += delta.world_delta.v[0];
+        pObject_a->v.v[1] += delta.world_delta.v[1];
+        pObject_a->v.v[2] += delta.world_delta.v[2];
+        delta.linear_delta_other.v[0] *= pImpulse;
+        delta.linear_delta_other.v[1] *= pImpulse;
+        delta.linear_delta_other.v[2] *= pImpulse;
+        pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+        pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+        pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta_other, &pPartner->transform_matrix);
+        pPartner->v.v[0] += delta.world_delta.v[0];
+        pPartner->v.v[1] += delta.world_delta.v[1];
+        pPartner->v.v[2] += delta.world_delta.v[2];
+    } else {
+        delta.impulse.v[0] = pForce->direction_a.v[0] * pImpulse;
+        delta.linear_accel.v[0] = delta.impulse.v[0] / pObject_a->M;
+        delta.impulse.v[1] = pForce->direction_a.v[1] * pImpulse;
+        delta.linear_accel.v[1] = delta.impulse.v[1] / pObject_a->M;
+        delta.impulse.v[2] = pForce->direction_a.v[2] * pImpulse;
+        delta.linear_accel.v[2] = delta.impulse.v[2] / pObject_a->M;
+        pObject_a->velocity_car_space.v[0] += delta.linear_accel.v[0];
+        pObject_a->velocity_car_space.v[1] += delta.linear_accel.v[1];
+        pObject_a->velocity_car_space.v[2] += delta.linear_accel.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_accel, &pObject_a->transform_matrix);
+        pObject_a->v.v[0] += delta.world_delta.v[0];
+        pObject_a->v.v[1] += delta.world_delta.v[1];
+        pObject_a->v.v[2] += delta.world_delta.v[2];
+        if ((pObject_a->flags & 0x800) == 0) {
+            delta.angular_delta.v[0] = delta.impulse.v[2] * pForce->point_a.v[1] - delta.impulse.v[1] * pForce->point_a.v[2];
+            delta.angular_delta.v[1] = delta.impulse.v[0] * pForce->point_a.v[2] - delta.impulse.v[2] * pForce->point_a.v[0];
+            delta.angular_delta.v[2] = delta.impulse.v[1] * pForce->point_a.v[0] - delta.impulse.v[0] * pForce->point_a.v[1];
+            pObject_a->omega.v[0] += delta.angular_delta.v[0] / pObject_a->I.v[0];
+            pObject_a->omega.v[1] += delta.angular_delta.v[1] / pObject_a->I.v[1];
+            pObject_a->omega.v[2] += delta.angular_delta.v[2] / pObject_a->I.v[2];
+        }
+    }
+    if (pObject_b != NULL && pForce->type != 0xe) {
+        if (*(int*)((tU8*)pObject_b + 0x1e4) != 0) {
+            SetUpForce((br_vector3*)delta.angular_delta.v, (br_vector3*)delta.linear_delta.v, &pForce->point_b, &pForce->direction_b, pObject_b);
+            pPartner = (tPhysics_object*)SetUpHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, pObject_b);
+            pImpulse = -pImpulse;
+            delta.angular_delta.v[0] *= pImpulse;
+            delta.angular_delta.v[1] *= pImpulse;
+            delta.angular_delta.v[2] *= pImpulse;
+            pObject_b->omega.v[0] += delta.angular_delta.v[0];
+            pObject_b->omega.v[1] += delta.angular_delta.v[1];
+            pObject_b->omega.v[2] += delta.angular_delta.v[2];
+            delta.angular_delta_other.v[0] *= pImpulse;
+            delta.angular_delta_other.v[1] *= pImpulse;
+            delta.angular_delta_other.v[2] *= pImpulse;
+            pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+            pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+            pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+            delta.linear_delta.v[0] *= pImpulse;
+            delta.linear_delta.v[1] *= pImpulse;
+            delta.linear_delta.v[2] *= pImpulse;
+            pObject_b->velocity_car_space.v[0] += delta.linear_delta.v[0];
+            pObject_b->velocity_car_space.v[1] += delta.linear_delta.v[1];
+            pObject_b->velocity_car_space.v[2] += delta.linear_delta.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta, &pObject_b->transform_matrix);
+            pObject_b->v.v[0] += delta.world_delta.v[0];
+            pObject_b->v.v[1] += delta.world_delta.v[1];
+            pObject_b->v.v[2] += delta.world_delta.v[2];
+            delta.linear_delta_other.v[0] *= pImpulse;
+            delta.linear_delta_other.v[1] *= pImpulse;
+            delta.linear_delta_other.v[2] *= pImpulse;
+            pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+            pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+            pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta_other, &pPartner->transform_matrix);
+            pPartner->v.v[0] += delta.world_delta.v[0];
+            pPartner->v.v[1] += delta.world_delta.v[1];
+            pPartner->v.v[2] += delta.world_delta.v[2];
+        } else {
+            inverse_dt = -pImpulse;
+            delta.impulse.v[0] = pForce->direction_b.v[0] * inverse_dt;
+            delta.linear_accel.v[0] = delta.impulse.v[0] / pObject_b->M;
+            delta.impulse.v[1] = pForce->direction_b.v[1] * inverse_dt;
+            delta.linear_accel.v[1] = delta.impulse.v[1] / pObject_b->M;
+            delta.impulse.v[2] = pForce->direction_b.v[2] * inverse_dt;
+            delta.linear_accel.v[2] = delta.impulse.v[2] / pObject_b->M;
+            pObject_b->velocity_car_space.v[0] += delta.linear_accel.v[0];
+            pObject_b->velocity_car_space.v[1] += delta.linear_accel.v[1];
+            pObject_b->velocity_car_space.v[2] += delta.linear_accel.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_accel, &pObject_b->transform_matrix);
+            pObject_b->v.v[0] += delta.world_delta.v[0];
+            pObject_b->v.v[1] += delta.world_delta.v[1];
+            pObject_b->v.v[2] += delta.world_delta.v[2];
+            if ((pObject_b->flags & 0x800) == 0) {
+                delta.angular_delta.v[0] = delta.impulse.v[2] * pForce->point_b.v[1] - delta.impulse.v[1] * pForce->point_b.v[2];
+                delta.angular_delta.v[1] = delta.impulse.v[0] * pForce->point_b.v[2] - delta.impulse.v[2] * pForce->point_b.v[0];
+                delta.angular_delta.v[2] = delta.impulse.v[1] * pForce->point_b.v[0] - delta.impulse.v[0] * pForce->point_b.v[1];
+                pObject_b->omega.v[0] += delta.angular_delta.v[0] / pObject_b->I.v[0];
+                pObject_b->omega.v[1] += delta.angular_delta.v[1] / pObject_b->I.v[1];
+                pObject_b->omega.v[2] += delta.angular_delta.v[2] / pObject_b->I.v[2];
+            }
+        }
+    }
+}
 
 // ApplyJointForces
 
