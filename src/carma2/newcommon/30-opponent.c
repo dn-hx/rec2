@@ -256,21 +256,17 @@ void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_object
 }
 
 // FUNCTION: CARMA2_HW 0x004aae20
-// FUNCTION: CARMA2_SW 0x004a6f90
 void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
     tS16 section_no;
-    tS16 section_no_index;
     tS16 node_no;
     tS16 race_section_count;
     tS16 normal_section_ok_direction_count;
     tS16 normal_section_wrong_direction_count;
-    tS16 temp_section_array[REC2_ASIZE(gProgram_state.AI_vehicles.path_nodes[0].sections)];
+    tS16 temp_section_array[8];
     br_scalar distance;
     br_vector3 direction_v;
     br_vector3 intersect;
-
-    C2_HOOK_BUG_ON(REC2_ASIZE(pOpponent_spec->next_sections) != 12);
-    C2_HOOK_BUG_ON(REC2_ASIZE(temp_section_array) != 8);
+    tS16 i;
 
     if (pOpponent_spec->nnext_sections >= (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
         DoNotDprintf("%s: CalcRaceRoute() - Pissing off 'cos projected route full up", pOpponent_spec->car_spec->driver_name);
@@ -280,7 +276,7 @@ void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
         DoNotDprintf("%s: CalcRaceRoute() - Projected route empty; starting from nearest section", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->complete_race_data.finished_calcing_race_route = 0;
         pOpponent_spec->complete_race_data.found_race_section = 0;
-        section_no = FindNearestPathSection(&pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
+        section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
         if (section_no < 0) {
             return;
         }
@@ -294,17 +290,17 @@ void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
         race_section_count = 0;
         normal_section_ok_direction_count = 0;
         normal_section_wrong_direction_count = 0;
-        for (section_no_index = 0; section_no_index < gProgram_state.AI_vehicles.path_nodes[node_no].number_of_sections; section_no_index++) {
-            section_no = gProgram_state.AI_vehicles.path_nodes[node_no].sections[section_no_index];
+        for (i = 0; i < gProgram_state.AI_vehicles.path_nodes[node_no].number_of_sections; i++) {
+            section_no = gProgram_state.AI_vehicles.path_nodes[node_no].sections[i];
             if (section_no != pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no) {
-                if (gProgram_state.AI_vehicles.path_sections[section_no].type == ePST_race_path && node_no == (tS16)gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
+                if (gProgram_state.AI_vehicles.path_sections[section_no].type == ePST_race_path && node_no == gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
                     pOpponent_spec->complete_race_data.found_race_section = 1;
                     temp_section_array[race_section_count] = section_no;
-                    race_section_count++;
-                } else if (race_section_count == 0 && node_no == (tS16)gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
+                    race_section_count += 1;
+                } else if (race_section_count == 0 && node_no == gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
                     temp_section_array[normal_section_ok_direction_count] = section_no;
                     normal_section_ok_direction_count++;
-                } else if (race_section_count == 0 && normal_section_ok_direction_count == 0 && (!gProgram_state.AI_vehicles.path_sections[section_no].one_way || node_no != (tS16)gProgram_state.AI_vehicles.path_sections[section_no].node_indices[1])) {
+                } else if (race_section_count == 0 && normal_section_ok_direction_count == 0 && (!gProgram_state.AI_vehicles.path_sections[section_no].one_way || node_no != gProgram_state.AI_vehicles.path_sections[section_no].node_indices[1])) {
                     temp_section_array[normal_section_wrong_direction_count] = section_no;
                     normal_section_wrong_direction_count++;
                 }
@@ -316,10 +312,10 @@ void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
             AddToOpponentsProjectedRoute(pOpponent_spec, temp_section_array[IRandomBetween(0, normal_section_ok_direction_count - 1)], 1);
         } else if (normal_section_wrong_direction_count != 0) {
             AddToOpponentsProjectedRoute(pOpponent_spec, temp_section_array[IRandomBetween(0, normal_section_wrong_direction_count - 1)], 0);
-        } else if (pOpponent_spec->complete_race_data.found_race_section) {
-            pOpponent_spec->complete_race_data.finished_calcing_race_route = 1;
-        } else {
+        } else if (!pOpponent_spec->complete_race_data.found_race_section) {
             AddToOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no, pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].direction == 0);
+        } else {
+            pOpponent_spec->complete_race_data.finished_calcing_race_route = 1;
         }
     }
 }
