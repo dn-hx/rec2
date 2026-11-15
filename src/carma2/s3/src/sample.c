@@ -36,7 +36,11 @@ tS3_buffer_desc* C2_HOOK_FASTCALL S3GetBufferDescription(int pSample_id) {
 
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_descriptor, buffer_description, 0x40);
 
-    if (!gS3_enabled || (descriptor = S3GetDescriptorByID(pSample_id)) == NULL) {
+    descriptor = NULL;
+    if (gS3_enabled != 0) {
+        descriptor = S3GetDescriptorByID(pSample_id);
+    }
+    if (descriptor == NULL) {
         return NULL;
     }
     return descriptor->buffer_description;
