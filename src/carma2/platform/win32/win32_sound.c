@@ -342,23 +342,36 @@ int C2_HOOK_FASTCALL PDS3StopSampleChannel(tS3_channel* pChannel) {
 int C2_HOOK_FASTCALL PDS3UpdateChannelVolume(tS3_channel* pChannel) {
 
     if (pChannel->type == 0) {
+        float mult = (float)pChannel->volume_multiplier;
+        float out_volume = (float)pChannel->owner_outlet->volume;
+
         if (pChannel->descriptor != NULL && pChannel->descriptor->type == pChannel->type) {
             LPDIRECTSOUNDBUFFER buffer = pChannel->descriptor->pd_handle;
 
             if (buffer != NULL) {
-                int volume = (int)(pChannel->owner_outlet->volume / 255.f * pChannel->volume_multiplier * 11.76470588235294f);
-                int ds_volume = volume - 3000;
-                ds_volume = MAX(ds_volume, -9999);
-                ds_volume = MIN(ds_volume, 0);
+                int ds_volume = (int)(mult * (out_volume / 255.0) * 11.764705882352942);
+                int pan;
+
+                ds_volume = ds_volume - 3000;
+                if (ds_volume < -9999) {
+                    ds_volume = -9999;
+                }
+                if (ds_volume > 0) {
+                    ds_volume = 0;
+                }
 
                 if (SUCCEEDED(IDirectSoundBuffer_SetVolume(buffer, ds_volume))) {
                     if (gS3_callbacks.on_sample_channel_set_volume != NULL) {
-                        gS3_callbacks.on_sample_channel_set_volume(pChannel, volume);
+                        gS3_callbacks.on_sample_channel_set_volume(pChannel, (int)mult);
                     }
                     if (ds_volume != 0 && pChannel->spatial_sound) {
-                        int pan = (int)(pChannel->field_0x28 * 9999.f);
-                        pan = MAX(pan, -9999);
-                        pan = MIN(pan,  9999);
+                        pan = (int)(pChannel->field_0x28 * 9999.0);
+                        if (pan < -9999) {
+                            pan = -9999;
+                        }
+                        if (pan > 9999) {
+                            pan = 9999;
+                        }
                         if (gS3_callbacks.on_sample_channel_set_pan != NULL) {
                             gS3_callbacks.on_sample_channel_set_pan(pChannel, pChannel->field_0x28);
                         }
