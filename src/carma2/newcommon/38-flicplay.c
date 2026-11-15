@@ -19,6 +19,8 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "18-graphics2.h"
+#include "46-win95sys.h"
 
 // GLOBAL: CARMA2_HW 0x00599998
 // GLOBAL: CARMA2_SW 0x005948e0
@@ -875,16 +877,339 @@ void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pCh
 
 // DoMini
 
-// DrawTranslations
+// FUNCTION: CARMA2_HW 0x00462860
+void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info) {
+    int* trans;
+    int i;
+    int x;
+    int width;
+    int right_edge;
+
+    i = 0;
+    if (gTranslation_count > 0) {
+        trans = &gTranslations->x;
+        do {
+            if (trans[-1] == pFlic_info->the_index) {
+                width = DRTextWidth(gTrans_fonts[trans[2]], (char*)trans[4]);
+                switch (trans[3]) {
+                    case eJust_left:
+                        x = pFlic_info->x_offset + trans[0];
+                        right_edge = x + width;
+                        break;
+                    case eJust_right:
+                        right_edge = x = pFlic_info->x_offset - width + trans[0];
+                        break;
+                    case eJust_centre:
+                        x = pFlic_info->x_offset + trans[0] - width / 2;
+                        right_edge = x + width / 2;
+                        break;
+                }
+                DRPixelmapText(
+                        pFlic_info->the_pixelmap,
+                        x,
+                        pFlic_info->y_offset + trans[1],
+                        gTrans_fonts[trans[2]],
+                        (char*)trans[4],
+                        right_edge);
+            }
+            i++;
+            trans += 6;
+        } while (i < gTranslation_count);
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00461da0
+static void FlicDoColour256(tFlic_descriptor* pFlic_info) {
+    int current_colour;
+    int packet_count;
+    int skip_count;
+    int change_count;
+    int i;
+    tU8* palette_pixels;
+    tU8 red;
+    tU8 blue;
+    tU8 green;
+
+    current_colour = 0;
+    packet_count = MemReadU16(&pFlic_info->data);
+    while (packet_count > 0) {
+        skip_count = MemReadU8(&pFlic_info->data);
+        change_count = MemReadU8(&pFlic_info->data);
+        if (change_count == 0) {
+            change_count = 256;
+        }
+        current_colour += skip_count;
+        palette_pixels = (tU8*)gPalette_pixels + current_colour * 4;
+        for (i = change_count; i > 0; i--) {
+            red = MemReadU8(&pFlic_info->data);
+            blue = MemReadU8(&pFlic_info->data);
+            green = MemReadU8(&pFlic_info->data);
+            palette_pixels[0] = green;
+            palette_pixels[1] = blue;
+            palette_pixels[2] = red;
+            palette_pixels[3] = 0;
+            palette_pixels += 4;
+        }
+        if (!gPalette_fuck_prevention) {
+            DRSetPaletteEntries(gPalette, current_colour, change_count);
+        }
+        packet_count--;
+    }
+}
+
+static void FlicDoDeltaTrans(tFlic_descriptor* pFlic_info) {
+    int i;
+    int j;
+    int k;
+    int line_count;
+    int number_of_packets;
+    int skip_count;
+    int size_count;
+    tU8* pixel_ptr;
+    tU8* line_pixel_ptr;
+    tU8 the_byte;
+    tU8 the_byte2;
+    tU16 the_word;
+    int the_row_bytes;
+
+    line_count = MemReadU16(&pFlic_info->data);
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel;
+    for (i = 0; i < line_count;) {
+        number_of_packets = MemReadS16(&pFlic_info->data);
+        line_pixel_ptr = pixel_ptr;
+        if (number_of_packets < 0) {
+            pixel_ptr = pixel_ptr - the_row_bytes * number_of_packets;
+        } else {
+            for (j = number_of_packets; j > 0; j--) {
+                skip_count = MemReadU8(&pFlic_info->data);
+                size_count = MemReadS8(&pFlic_info->data);
+                line_pixel_ptr += skip_count / 2;
+                if (size_count < 0) {
+                    the_byte = *pFlic_info->data++;
+                    the_byte2 = *pFlic_info->data++;
+                    if (the_byte && the_byte2) {
+                        the_word = *((tU16*)pFlic_info->data - 1);
+                        for (k = -size_count; k > 0; k--) {
+                            *(tU16*)line_pixel_ptr = the_word;
+                            line_pixel_ptr = (tU8*)((tU16*)line_pixel_ptr + 1);
+                        }
+                    } else {
+                        for (k = -size_count; k > 0; k--) {
+                            if (the_byte) {
+                                *(tU8*)line_pixel_ptr = the_byte;
+                            }
+                            line_pixel_ptr = (tU8*)((tU8*)line_pixel_ptr + 1);
+                            if (the_byte2) {
+                                *(tU8*)line_pixel_ptr = the_byte2;
+                            }
+                            line_pixel_ptr = (tU8*)((tU8*)line_pixel_ptr + 1);
+                        }
+                    }
+                } else if (size_count > 0) {
+                    for (k = size_count; k > 0; k--) {
+                        the_byte = *pFlic_info->data++;
+                        if (the_byte) {
+                            *(tU8*)line_pixel_ptr = the_byte;
+                        }
+                        the_byte = *pFlic_info->data++;
+                        if (the_byte) {
+                            *((tU8*)line_pixel_ptr + 1) = the_byte;
+                        }
+                        line_pixel_ptr = (tU8*)((tU8*)line_pixel_ptr + 2);
+                    }
+                }
+            }
+            pixel_ptr = pixel_ptr + the_row_bytes;
+            i++;
+        }
+    }
+}
+
+static void FlicDoColourMap(tFlic_descriptor* pFlic_info) {
+    int current_colour;
+    int packet_count;
+    int skip_count;
+    int change_count;
+    int i;
+    tU8* palette_pixels;
+    tU8 red;
+    tU8 blue;
+    tU8 green;
+
+    current_colour = 0;
+    packet_count = MemReadU16(&pFlic_info->data);
+    while (packet_count > 0) {
+        skip_count = MemReadU8(&pFlic_info->data);
+        change_count = MemReadU8(&pFlic_info->data);
+        if (change_count == 0) {
+            change_count = 256;
+        }
+        current_colour += skip_count;
+        palette_pixels = (tU8*)gPalette_pixels + current_colour * 4;
+        for (i = change_count; i > 0; i--) {
+            red = MemReadU8(&pFlic_info->data);
+            blue = MemReadU8(&pFlic_info->data);
+            green = MemReadU8(&pFlic_info->data);
+            palette_pixels[0] = green * 4;
+            palette_pixels[1] = blue * 4;
+            palette_pixels[2] = red * 4;
+            palette_pixels[3] = 0;
+            palette_pixels += 4;
+        }
+        if (!gPalette_fuck_prevention) {
+            DRSetPaletteEntries(gPalette, current_colour, change_count);
+        }
+        packet_count--;
+    }
+}
+
+static void FlicDoDeltaX(tFlic_descriptor* pFlic_info) {
+    int i;
+    int j;
+    int k;
+    int line_count;
+    int number_of_packets;
+    int skip_count;
+    int size_count;
+    tU8* pixel_ptr;
+    tU16* line_pixel_ptr;
+    tU16 the_word;
+    int the_row_bytes;
+
+    line_count = MemReadU16(&pFlic_info->data);
+    the_row_bytes = pFlic_info->the_pixelmap->row_bytes;
+    pixel_ptr = pFlic_info->first_pixel;
+    for (i = 0; i < line_count;) {
+        number_of_packets = MemReadS16(&pFlic_info->data);
+        line_pixel_ptr = (tU16*)pixel_ptr;
+        if (number_of_packets < 0) {
+            pixel_ptr = pixel_ptr - the_row_bytes * number_of_packets;
+        } else {
+            for (j = number_of_packets; j > 0; j--) {
+                skip_count = MemReadU8(&pFlic_info->data);
+                size_count = MemReadS8(&pFlic_info->data);
+                line_pixel_ptr += skip_count / 2;
+                if (size_count < 0) {
+                    the_word = *(tU16*)pFlic_info->data;
+                    pFlic_info->data += 2;
+                    for (k = -size_count; k > 0; k--) {
+                        *line_pixel_ptr = the_word;
+                        line_pixel_ptr++;
+                    }
+                } else if (size_count > 0) {
+                    for (k = size_count; k > 0; k--) {
+                        the_word = *(tU16*)pFlic_info->data;
+                        pFlic_info->data += 2;
+                        *line_pixel_ptr = the_word;
+                        line_pixel_ptr++;
+                    }
+                }
+            }
+            pixel_ptr = pixel_ptr + the_row_bytes;
+            i++;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00461da0
 // STUB: CARMA2_SW 0x00461830
 int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info) {
-    NOT_IMPLEMENTED();
+    int read_amount;
+    int data_knocked_off;
+    int finished;
+    tU16 chunk_type;
+    int chunk_counter;
+    tU16 chunk_count;
+    tS16 magic_bytes;
+    tU32 chunk_length;
+    tU32 frame_length;
+
+    PossibleService();
+    frame_length = MemReadU32(&pFlic_info->data);
+    magic_bytes = MemReadU16(&pFlic_info->data);
+    chunk_count = MemReadU16(&pFlic_info->data);
+    MemSkipBytes(&pFlic_info->data, 8);
+    if (magic_bytes == 0xf1fa) {
+        for (chunk_counter = 0; chunk_counter < chunk_count; chunk_counter++) {
+            chunk_length = MemReadU32(&pFlic_info->data);
+            chunk_type = MemReadU16(&pFlic_info->data);
+            switch (chunk_type) {
+            case 4:
+                FlicDoColour256(pFlic_info);
+                break;
+            case 7:
+                if (gTransparency_on) {
+                    FlicDoDeltaTrans(pFlic_info);
+                } else {
+                    FlicDoDeltaX(pFlic_info);
+                }
+                break;
+            case 11:
+                FlicDoColourMap(pFlic_info);
+                break;
+            case 12:
+                if (gTransparency_on) {
+                    DoDifferenceTrans(pFlic_info, chunk_length);
+                } else {
+                    DoDifferenceX(pFlic_info, chunk_length);
+                }
+                break;
+            case 13:
+                DoBlack(pFlic_info, chunk_length);
+                break;
+            case 15:
+                if (gTransparency_on) {
+                    DoRunLengthTrans(pFlic_info, chunk_length);
+                } else {
+                    DoRunLengthX(pFlic_info, chunk_length);
+                }
+                break;
+            case 16:
+                if (gTransparency_on) {
+                    DoUncompressedTrans(pFlic_info, chunk_length);
+                } else {
+                    DoUncompressed(pFlic_info, chunk_length);
+                }
+                break;
+            case 18:
+            default:
+                MemSkipBytes(&pFlic_info->data, chunk_length - 6);
+                break;
+            }
+            pFlic_info->data = (char*)(((tU32)pFlic_info->data + 1) & 0xfffffffe);
+        }
+    } else {
+        MemSkipBytes(&pFlic_info->data, frame_length - 16);
+        pFlic_info->frames_left++;
+        pFlic_info->current_frame--;
+    }
+    pFlic_info->frames_left--;
+    pFlic_info->current_frame++;
+    finished = pFlic_info->frames_left == 0;
+    if (finished && gTranslation_count != 0) {
+        DrawTranslations(pFlic_info);
+    }
+    if (pFlic_info->f != NULL && pFlic_info->bytes_still_to_be_read != 0) {
+        data_knocked_off = pFlic_info->data - pFlic_info->data_start;
+        memmove(pFlic_info->data_start, pFlic_info->data, pFlic_info->bytes_in_buffer - data_knocked_off);
+        pFlic_info->bytes_in_buffer -= data_knocked_off;
+        pFlic_info->data = pFlic_info->data_start;
+        if (data_knocked_off < pFlic_info->bytes_still_to_be_read) {
+            read_amount = data_knocked_off;
+        } else {
+            read_amount = pFlic_info->bytes_still_to_be_read;
+        }
+        if (read_amount != 0) {
+            PFfread(pFlic_info->data_start + pFlic_info->bytes_in_buffer, 1, read_amount, pFlic_info->f);
+        }
+        pFlic_info->bytes_in_buffer += read_amount;
+        pFlic_info->bytes_still_to_be_read -= read_amount;
+    }
+    return finished;
 }
 
 #ifdef REC2_MATCHING
