@@ -492,6 +492,71 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+// FUNCTION: CARMA2_HW 0x004b9650
+int C2_HOOK_FASTCALL CountJointForces(tPhysics_object* pObject, tPhysics_object* pParent_context) {
+    tPhysics_joint* joint;
+    tPhysics_object* child;
+    tPhysics_object* child_parent_context;
+    volatile int pObject_value;
+    int result;
+
+    pObject_value = (int)pObject;
+    result = 0;
+    joint = pObject->physics_joint1;
+    pObject->field_0x230 = pParent_context;
+    *(int*)((tU8*)pObject + 0x1e4) = 0;
+    if (joint != NULL && (pObject->flags & 0x400) == 0) {
+        switch (joint->type) {
+        case eJoint_none:
+            break;
+        case eJoint_universal:
+            result = 4;
+            break;
+        case eJoint_ball_n_socket:
+            result = 3;
+            break;
+        case eJoint_quick_hinge:
+            if (*(int*)((tU8*)pParent_context + 0x1e4) == 0) {
+                result = 2;
+                *(int*)((tU8*)pObject + 0x1e4) = -1;
+                *(int*)((tU8*)pParent_context + 0x1e4) = -1;
+                break;
+            }
+            joint->type = eJoint_hinge;
+            /* fall through */
+        case eJoint_hinge:
+            result = 5;
+            break;
+        default:
+            PhysicsError((tPhysicsError)8, "");
+            result = pObject_value;
+            break;
+        }
+    }
+    if (pObject->physics_joint2 != NULL) {
+        switch (pObject->physics_joint2->type) {
+        case eJoint_universal:
+            result += 4;
+            break;
+        case eJoint_ball_n_socket:
+            result += 3;
+            break;
+        case eJoint_translation:
+            result += 2;
+            break;
+        default:
+            break;
+        }
+    }
+    child_parent_context = pParent_context;
+    if ((pObject->flags & 0x400) == 0) {
+        child_parent_context = pObject;
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        result += CountJointForces(child, child_parent_context);
+    }
+    return result;
+}
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
