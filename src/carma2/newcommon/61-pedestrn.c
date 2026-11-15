@@ -1484,7 +1484,28 @@ int C2_HOOK_FASTCALL ChangePedScaling(br_vector3* pScale) {
     NOT_IMPLEMENTED();
 }
 
-// ChangeHeadScaling
+// FUNCTION: CARMA2_HW 0x004d6ab0
+void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale) {
+    br_scalar s[3];
+    int i;
+    tPedestrian* ped;
+
+    s[0] = pHead_scale / gPed_head_scale;
+    s[1] = s[0];
+    s[2] = s[0];
+    ScaleBone(-2, s, 0);
+    gPed_head_scale = pHead_scale;
+    if (gAction_replay_mode != 0) {
+        if (ARGetReplayRate() < 0.0f) {
+            ped = gPedestrian_array;
+            for (i = 0; i < gPed_count; i++, ped++) {
+                if (ped->flags & 1) {
+                    SetCharacterBonePositions(ped->character, 3, 0);
+                }
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004d6b70
 // FUNCTION: CARMA2_SW 0x004d3170
