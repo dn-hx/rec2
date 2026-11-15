@@ -1105,10 +1105,30 @@ intptr_t C2_HOOK_CDECL ForEveryActorMaterialNoGrooves(br_actor* pActor, void* pC
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004fe640
+// FUNCTION: CARMA2_HW 0x004fe640
 // STUB: CARMA2_SW 0x004f9f20
 void C2_HOOK_FASTCALL ForEveryCarMaterial(tCar_spec* pCar_spec, tMaterialMaybeUpdate_cbfn* pCallback, int pGrooves) {
-    NOT_IMPLEMENTED();
+    int i;
+    tCar_crush_spec* pCrush_spec = pCar_spec->car_crush_spec;
+    tUser_crush_data* user_crush_data;
+
+    if (pCar_spec->car_master_actor->material != NULL) {
+        pCallback(pCar_spec->car_master_actor->material);
+    }
+    ForEveryModelMaterial(pCar_spec->shell_model, pCallback);
+    user_crush_data = pCar_spec->car_model_actor->user;
+    ForEveryModelMaterial(user_crush_data->models[1], pCallback);
+    if (pGrooves) {
+        DRActorEnumRecurse(pCar_spec->car_model_actor, ForEveryActorMaterial, pCallback);
+    } else {
+        DRActorEnumRecurse(pCar_spec->car_model_actor, ForEveryActorMaterialNoGrooves, pCallback);
+    }
+    for (i = 0; i < pCrush_spec->field_0x270; i++) {
+        ForEveryModelMaterial(pCrush_spec->field_0x274[i].field_0x0->model, pCallback);
+    }
+    for (i = 0; i < pCrush_spec->field_0x2b0; i++) {
+        ForEveryModelMaterial(pCrush_spec->field_0x2b4[i].field_0x0->model, pCallback);
+    }
 }
 
 #ifdef REC2_MATCHING
