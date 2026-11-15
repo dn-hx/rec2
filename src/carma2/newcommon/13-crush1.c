@@ -26,6 +26,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "32-spark.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1887,10 +1888,101 @@ void C2_HOOK_FASTCALL SendReAttachAllBits(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00439510
+// FUNCTION: CARMA2_HW 0x00439510
 // STUB: CARMA2_SW 0x00439550
 void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    tCar_crush_spec* car_crush;
+
+    StopCarSmokingInstantly(pCar_spec);
+    if (ARIsActionReplayAvailable()) {
+        PipeInstantUnSmudge(pCar_spec);
+    }
+    pCar_spec->repair_time += 100000;
+    for (i = 0; i < REC2_ASIZE(pCar_spec->damage_units); i++) {
+        pCar_spec->damage_units[i].damage_level = 0;
+        pCar_spec->damage_units[i].last_level = 0;
+        pCar_spec->damage_units[i].smoke_last_level = 0;
+    }
+    if (pCar_spec->use_shell_model) {
+        return;
+    }
+    car_crush = pCar_spec->car_crush_spec;
+    if (car_crush == NULL) {
+        return;
+    }
+    if (car_crush->field_0x4b8 != 0) {
+        WeldCar(pCar_spec);
+    }
+    for (i = 0; i < car_crush->field_0x2b0; i++) {
+        ReAttachBit(pCar_spec, car_crush->field_0x2b4[i].field_0x4, car_crush->field_0x2b4[i].field_0x0, NULL);
+    }
+    car_crush->field_0x2b0 = 0;
+    for (i = 0; i < car_crush->field_0x270; i++) {
+        ReAttachBit(pCar_spec, car_crush->field_0x274[i].field_0x4, car_crush->field_0x274[i].field_0x0, car_crush->field_0x274[i].field_0x8);
+    }
+    car_crush->field_0x270 = 0;
+    DRActorEnumRecurse(pCar_spec->car_model_actor, MakeCarModelsMaterialsSingleSided, pCar_spec);
+    PipeSingleDSModel(0, pCar_spec);
+    if (car_crush->field_0x144) {
+        tCar_crush_shape_info* shape;
+
+        pCar_spec->car_crush_spec->field_0x144 = 0;
+        for (i = 0; i < pCar_spec->car_crush_spec->count_shapes; i++) {
+            shape = &pCar_spec->car_crush_spec->field_0x4[i];
+            shape->count_points = shape->original_count_points;
+            for (j = 0; j < shape->count_points; j++) {
+                BrVector3Copy(&shape->field_0x18[j].field_0x18, &shape->field_0x18[j].field_0x2c);
+            }
+        }
+        pCar_spec->car_crush_spec->expand_bounding_box = 3;
+        for (i = 0; i < (int)REC2_ASIZE(pCar_spec->wheel_actors); i++) {
+            br_actor* actor;
+            tGroovidelic_spec* groove;
+
+            actor = pCar_spec->pivot_actors[i];
+            if (actor == NULL) {
+                actor = pCar_spec->wheel_actors[i];
+                if (actor == NULL) {
+                    continue;
+                }
+            }
+            groove = ActorsGroove(actor);
+            if (groove != NULL && groove->path_type == eGroove_path_straight) {
+                br_vector3 original_centre;
+                br_vector3 delta;
+
+                BrVector3Negate(&original_centre, &groove->path_data.straight_info.centre);
+                BrVector3Copy(&groove->path_data.straight_info.centre, &pCar_spec->car_crush_spec->field_0x1ec[i]);
+                BrVector3Add(&delta, &groove->path_data.straight_info.centre, &original_centre);
+                PipeSingleVector3(&groove->path_data.straight_info.centre, &delta);
+            }
+        }
+        for (i = 0; i < REC2_ASIZE(pCar_spec->wpos); i++) {
+            BrVector3Copy(&pCar_spec->wpos[i], &pCar_spec->car_crush_spec->field_0x234[i]);
+        }
+        SetCarSuspGiveAndHeight(pCar_spec, 1.f, 1.f, 1.f, 0.f, 0.f);
+        pCar_spec->field_0x1260 = 0.f;
+        BrVector3Copy(&pCar_spec->collision_info->cmpos, &pCar_spec->car_crush_spec->field_0x264);
+        DRActorEnumRecurse(pCar_spec->car_model_actor, EnableGroovers, NULL);
+    }
+    ARStartPipingSession(ePipe_model_mash);
+    PhysicsObjectRecurse(pCar_spec->collision_info, TotallyRepairObject, pCar_spec);
+    AREndPipingSession();
+    dr_dprintf("TotallyRepairACar() - Point 7");
+    TotallyRepairCarCollisionShapes(pCar_spec);
+    dr_dprintf("TotallyRepairACar() - Point 8");
+    PhysicsObjectRecurse(pCar_spec->collision_info, BattenDownTheObjects, pCar_spec);
+    dr_dprintf("TotallyRepairACar() - Point 9");
+    if (gProgram_state.prog_status != eProg_idling) {
+        dr_dprintf("TotallyRepairACar() - Point 10");
+        SwapShapesIfPossible(pCar_spec);
+    }
+    dr_dprintf("TotallyRepairACar() - Point 11");
+    pCar_spec->use_shell_model = 1;
+    RemoveCarFromCrushLists(pCar_spec);
+    dr_dprintf("TotallyRepairACar() - Point 12");
 }
 
 #ifdef REC2_MATCHING

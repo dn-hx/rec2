@@ -184,7 +184,7 @@ extern void C2_HOOK_FASTCALL InitFlame(void);
 
 // DrawTheGlow
 
-// PipeInstantUnSmudge
+extern void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point);
 
