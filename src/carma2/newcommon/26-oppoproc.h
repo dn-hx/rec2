@@ -23,7 +23,7 @@
 
 // RoughlyColinear
 
-// GetStraight
+extern int C2_HOOK_FASTCALL GetStraight(br_vector2* pStart, br_vector2* pFinish, float* pWidth, int pSection, tOpponent_spec* pOpponent_spec);
 
 extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec);
 
@@ -31,7 +31,7 @@ extern int C2_HOOK_FASTCALL TimeToStopStruggling(tOpponent_spec* pOpponent_spec)
 
 extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
-// CalcCorners
+extern int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec);
 
 // Distance2D
 
