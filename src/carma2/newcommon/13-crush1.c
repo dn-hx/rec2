@@ -1985,7 +1985,21 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // WeldCar
 
-// ARCompressCrush
+// FUNCTION: CARMA2_HW 0x0043bca0
+void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars) {
+    br_vector3 normalised;
+    float length;
+    tU16 i;
+
+    length = (float)sqrt(pSrc->v[1] * pSrc->v[1] + pSrc->v[2] * pSrc->v[2] + pSrc->v[0] * pSrc->v[0]);
+    normalised.v[0] = pSrc->v[0] / length;
+    normalised.v[1] = pSrc->v[1] / length;
+    normalised.v[2] = pSrc->v[2] / length;
+    CompressVector3((tCompressed_vector3*)pArg1, &normalised, -1.0f, 1.0f);
+    for (i = 0; i < pModel->nvertices; i++) {
+        ((tU16*)pArg2)[i] = DRScalarToU16(pScalars[i] * length, 0.0f, 10.0f);
+    }
+}
 
 // ARApplyCrush
 
