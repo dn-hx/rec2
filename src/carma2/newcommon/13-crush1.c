@@ -1918,7 +1918,83 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // UnBendModels
 
-// UnBendActor
+// FUNCTION: CARMA2_HW 0x0043a150
+void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {
+    tUnbend_model_context_local context;
+    br_vector3 tmp;
+
+    context.bend = pBend;
+    context.car = pCar_spec;
+    pBend->field_0x3c += pRepair_x;
+    pBend->field_0x3e += pRepair_y;
+    pBend->field_0x40 += pRepair_z;
+    BrMatrix34Translate(&context.matrix, -pBend->field_0x18.v[0], -pBend->field_0x18.v[1], -pBend->field_0x18.v[2]);
+    if (pBend->field_0x3e != 0) {
+        BrMatrix34PostRotateY(&context.matrix, pBend->field_0x3e);
+    }
+    if (pBend->field_0x3c != 0) {
+        BrMatrix34PostRotateX(&context.matrix, pBend->field_0x3c);
+    }
+    if (pBend->field_0x40 != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, pBend->field_0x40);
+    }
+    BrMatrix34PostTranslate(&context.matrix, pBend->field_0x18.v[0], pBend->field_0x18.v[1], pBend->field_0x18.v[2]);
+    context.field_0x30.v[0] = pBend->field_0xc;
+    context.field_0x30.v[1] = pBend->field_0x10;
+    context.field_0x30.v[2] = pBend->field_0x18.v[2];
+    context.field_0x3c.v[0] = pBend->field_0xc;
+    context.field_0x3c.v[1] = pBend->field_0x4;
+    context.field_0x3c.v[2] = pBend->field_0x18.v[2];
+    context.field_0x48.v[0] = pBend->field_0x0;
+    context.field_0x48.v[1] = pBend->field_0x10;
+    context.field_0x48.v[2] = pBend->field_0x18.v[2];
+    context.field_0x54.v[0] = pBend->field_0x0;
+    context.field_0x54.v[1] = pBend->field_0x4;
+    context.field_0x54.v[2] = pBend->field_0x18.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x30, &context.matrix);
+    context.field_0x30.v[0] = tmp.v[0] - context.field_0x30.v[0];
+    context.field_0x30.v[1] = tmp.v[1] - context.field_0x30.v[1];
+    context.field_0x30.v[2] = tmp.v[2] - context.field_0x30.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x3c, &context.matrix);
+    context.field_0x3c.v[0] = tmp.v[0] - context.field_0x3c.v[0];
+    context.field_0x3c.v[1] = tmp.v[1] - context.field_0x3c.v[1];
+    context.field_0x3c.v[2] = tmp.v[2] - context.field_0x3c.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x48, &context.matrix);
+    context.field_0x48.v[0] = tmp.v[0] - context.field_0x48.v[0];
+    context.field_0x48.v[1] = tmp.v[1] - context.field_0x48.v[1];
+    context.field_0x48.v[2] = tmp.v[2] - context.field_0x48.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x54, &context.matrix);
+    context.field_0x54.v[0] = tmp.v[0] - context.field_0x54.v[0];
+    context.field_0x54.v[1] = tmp.v[1] - context.field_0x54.v[1];
+    context.field_0x54.v[2] = tmp.v[2] - context.field_0x54.v[2];
+    context.field_0x30.v[0] = ((context.field_0x30.v[0] - context.field_0x3c.v[0]) - context.field_0x48.v[0]) + context.field_0x54.v[0];
+    context.field_0x30.v[1] = ((context.field_0x30.v[1] - context.field_0x3c.v[1]) - context.field_0x48.v[1]) + context.field_0x54.v[1];
+    context.field_0x30.v[2] = ((context.field_0x30.v[2] - context.field_0x3c.v[2]) - context.field_0x48.v[2]) + context.field_0x54.v[2];
+    context.field_0x3c.v[0] = context.field_0x3c.v[0] - context.field_0x54.v[0];
+    context.field_0x3c.v[1] = context.field_0x3c.v[1] - context.field_0x54.v[1];
+    context.field_0x3c.v[2] = context.field_0x3c.v[2] - context.field_0x54.v[2];
+    context.field_0x48.v[0] = context.field_0x48.v[0] - context.field_0x54.v[0];
+    context.field_0x48.v[1] = context.field_0x48.v[1] - context.field_0x54.v[1];
+    context.field_0x48.v[2] = context.field_0x48.v[2] - context.field_0x54.v[2];
+    BrMatrix34Translate(&context.matrix, -pBend->field_0x18.v[0], -pBend->field_0x18.v[1], -pBend->field_0x18.v[2]);
+    if (pRepair_y != 0) {
+        BrMatrix34PostRotateY(&context.matrix, pRepair_y);
+    }
+    if (pRepair_x != 0) {
+        BrMatrix34PostRotateX(&context.matrix, pRepair_x);
+    }
+    if (pRepair_z != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, pRepair_z);
+    }
+    BrMatrix34PostTranslate(&context.matrix, pBend->field_0x18.v[0], pBend->field_0x18.v[1], pBend->field_0x18.v[2]);
+    ARStartPipingSession((tPipe_chunk_type)0x18);
+    DRActorEnumRecurseWithTranslation(pActor, NULL, UnBendModels, &context.matrix);
+    AREndPipingSession();
+    pBend->field_0x44 = context.field_0x30;
+    pBend->field_0x50 = context.field_0x3c;
+    pBend->field_0x5c = context.field_0x48;
+    pBend->field_0x68 = context.field_0x54;
+}
 
 // FUNCTION: CARMA2_HW 0x0043aa20
 // FUNCTION: CARMA2_SW 0x0043aa70
@@ -1953,10 +2029,122 @@ br_scalar C2_HOOK_FASTCALL NormalizedAngle(br_angle pAngle) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00439c30
+// Angle conversion inlined 4x by the original (NormalizedAngle body); NormalizedAngle itself stays a call for the
+// 5th and 6th sites -- keep both helpers so the inliner reproduces that split.
+static br_scalar UnBendCarAngle(br_angle pAngle) {
+    if (pAngle < BR_ANGLE_DEG(180)) {
+        return (br_scalar)(pAngle / (double)BR_ONE_LS);
+    } else {
+        return (br_scalar)((br_angle)-pAngle / (double)BR_ONE_LS);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00439c30
 // STUB: CARMA2_SW 0x00439c70
 br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_scalar* pOriginal_amount) {
-    NOT_IMPLEMENTED();
+    tCar_crush_spec* car_crush;
+    tBend_data_local* bend;
+    tBend_point_context_local context;
+    br_angle original_x, original_y, original_z;
+    br_angle repair_x, repair_y, repair_z;
+    br_angle angle_step;
+    br_scalar original_amount;
+    br_scalar repaired_amount;
+    int i;
+
+    car_crush = pCar_spec->car_crush_spec;
+    angle_step = (br_angle)(pDelta_time * 8u);
+    original_x = *(br_angle*)((char*)car_crush + 0x190);
+    if (original_x < BR_ANGLE_DEG(90)) {
+        if (original_x < angle_step) {
+            repair_x = (br_angle)-original_x;
+        } else {
+            repair_x = (br_angle)-angle_step;
+        }
+    } else {
+        repair_x = (br_angle)-original_x;
+        if (repair_x >= angle_step) {
+            repair_x = angle_step;
+        }
+    }
+    original_y = *(br_angle*)((char*)car_crush + 0x192);
+    if (original_y < BR_ANGLE_DEG(90)) {
+        if (original_y < angle_step) {
+            repair_y = (br_angle)-original_y;
+        } else {
+            repair_y = (br_angle)-angle_step;
+        }
+    } else {
+        repair_y = (br_angle)-original_y;
+        if (repair_y >= angle_step) {
+            repair_y = angle_step;
+        }
+    }
+    original_z = *(br_angle*)((char*)car_crush + 0x194);
+    if (original_z < BR_ANGLE_DEG(90)) {
+        if (original_z < angle_step) {
+            repair_z = (br_angle)-original_z;
+        } else {
+            repair_z = (br_angle)-angle_step;
+        }
+    } else {
+        repair_z = (br_angle)-original_z;
+        if (repair_z >= angle_step) {
+            repair_z = angle_step;
+        }
+    }
+
+    original_amount = UnBendCarAngle(original_x);
+    original_amount += UnBendCarAngle(original_y);
+    original_amount += UnBendCarAngle(original_z);
+    repaired_amount = UnBendCarAngle(repair_x);
+    repaired_amount += NormalizedAngle(repair_y);
+    repaired_amount += NormalizedAngle(repair_z);
+    *pOriginal_amount = original_amount + original_amount;
+    bend = (tBend_data_local*)car_crush->field_0x154;
+    UnBendActor(pCar_spec->car_master_actor, bend, repair_x, repair_y, repair_z, pCar_spec);
+
+    context.car = pCar_spec;
+    context.bend = bend;
+    BrMatrix34Translate(&context.matrix,
+        -bend->field_0x18.v[0], -bend->field_0x18.v[1], -bend->field_0x18.v[2]);
+    if (bend->field_0x3e != 0) {
+        BrMatrix34PostRotateY(&context.matrix, bend->field_0x3e);
+    }
+    if (bend->field_0x3c != 0) {
+        BrMatrix34PostRotateX(&context.matrix, bend->field_0x3c);
+    }
+    if (bend->field_0x40 != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, bend->field_0x40);
+    }
+    BrMatrix34PostTranslate(&context.matrix,
+        bend->field_0x18.v[0], bend->field_0x18.v[1], bend->field_0x18.v[2]);
+    for (i = 0; i < pCar_spec->car_crush_spec->count_shapes; i++) {
+        UnBendCollisionShape(&pCar_spec->car_crush_spec->field_0x4[i], (const*)&context);
+    }
+    pCar_spec->car_crush_spec->expand_bounding_box = 3;
+    UnBendWheels(pCar_spec, &context);
+    pCar_spec->collision_info->cmpos.v[0] = pCar_spec->car_crush_spec->field_0x264.v[0];
+    pCar_spec->collision_info->cmpos.v[1] = pCar_spec->car_crush_spec->field_0x264.v[1];
+    pCar_spec->collision_info->cmpos.v[2] = pCar_spec->car_crush_spec->field_0x264.v[2];
+    BendPoint(&pCar_spec->collision_info->cmpos, &context);
+
+    if (*(br_angle*)((char*)car_crush + 0x190) == 0
+        && *(br_angle*)((char*)car_crush + 0x192) == 0
+        && *(br_angle*)((char*)car_crush + 0x194) == 0) {
+        i = 0;
+        pCar_spec->car_crush_spec->field_0x144 = 0;
+        for (; i < pCar_spec->car_crush_spec->count_shapes; i++) {
+            CompletelyUnBendCollisionShape(&pCar_spec->car_crush_spec->field_0x4[i]);
+        }
+        pCar_spec->car_crush_spec->expand_bounding_box = 3;
+        CompletelyUnBendWheels(pCar_spec);
+        pCar_spec->collision_info->cmpos.v[0] = pCar_spec->car_crush_spec->field_0x264.v[0];
+        pCar_spec->collision_info->cmpos.v[1] = pCar_spec->car_crush_spec->field_0x264.v[1];
+        pCar_spec->collision_info->cmpos.v[2] = pCar_spec->car_crush_spec->field_0x264.v[2];
+        DRActorEnumRecurse(pCar_spec->car_model_actor, EnableGroovers, NULL);
+    }
+    return repaired_amount;
 }
 
 #ifdef REC2_MATCHING
