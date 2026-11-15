@@ -983,7 +983,33 @@ void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpe
 
 // DoAnEnvironmentalSound
 
-// DoEnvSound
+// FUNCTION: CARMA2_HW 0x00456af0
+void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir) {
+    br_vector3 pos;
+    br_vector3 dir;
+    float neg;
+
+    if (gAmbient_sound && pType != -1) {
+        if (pType == 0) {
+            if (pSound_dist != 0.0f) {
+                BrVector3Normalise(&dir, pSound_dir);
+                neg = -pSound_dist;
+                pos.v[0] = dir.v[0] * neg + pP->v[0];
+                pos.v[1] = dir.v[1] * neg + pP->v[1];
+                pos.v[2] = dir.v[2] * neg + pP->v[2];
+            } else {
+                pos.v[0] = pP->v[0];
+                pos.v[1] = pP->v[1];
+                pos.v[2] = pP->v[2];
+            }
+        } else {
+            pos.v[0] = SRandomPosNeg(10.f) + pP->v[0];
+            pos.v[1] = SRandomPosNeg(10.f) + pP->v[1];
+            pos.v[2] = SRandomPosNeg(10.f) + pP->v[2];
+        }
+        DoAnEnvironmentalSound(pVolume, (tEnvironment_sound_generator_info*)pSound_data, (int)((10.f - pSound_dist) * 255.f * 0.1f), &pos);
+    }
+}
 
 // FoundSoundSource
 
