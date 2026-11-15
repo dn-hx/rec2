@@ -355,7 +355,7 @@ extern void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar
 
 // HitMine
 
-// SetMassMultiplier
+extern int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car);
 
 extern void C2_HOOK_FASTCALL ResetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar);
 

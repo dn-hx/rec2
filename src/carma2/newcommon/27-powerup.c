@@ -1257,7 +1257,15 @@ void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // HitMine
 
-// SetMassMultiplier
+// FUNCTION: CARMA2_HW 0x004debb0
+int C2_HOOK_FASTCALL SetMassMultiplier(tPowerup* powerup, tCar_spec* car) {
+
+    car->field_0x4c8 = powerup->float_params[0];
+    if (gNet_mode) {
+        DoSolidGraniteThing(car);
+    }
+    return powerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004debf0
 // FUNCTION: CARMA2_SW 0x004db0f0
