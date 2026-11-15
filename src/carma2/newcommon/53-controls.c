@@ -541,7 +541,48 @@ void C2_HOOK_FASTCALL GetPowerup(int pNum) {
     GotPowerup(&gProgram_state.current_car, pNum);
 }
 
-// CheckSystemKeys
+// FUNCTION: CARMA2_HW 0x00442e90
+void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
+    tU32 start_menu_time;
+    tToggle_element* toggle;
+    int new_state;
+
+    start_menu_time = PDGetTotalTime();
+    CheckQuit();
+    AddLostTime(PDGetTotalTime() - start_menu_time);
+    CheckKeysForMouldiness();
+    for (toggle = gToggle_array; toggle < &gToggle_array[44]; toggle++) {
+        if (toggle->in_game_only && !pRacing) {
+            continue;
+        }
+        if (gTyping || gEntering_message) {
+            if (toggle->key2 == -2) {
+                continue;
+            }
+        }
+        new_state = 0;
+        if (toggle->key1 == -2 || KeyIsDownNoMouldiness(toggle->key1)) {
+            if (toggle->key2 == -2 && toggle->exact_modifiers) {
+                if (!PDKeyDown(0) && !PDKeyDown(1) && !PDKeyDown(2) && !PDKeyDown(3)) {
+                    new_state = 1;
+                }
+            } else {
+                if (KeyIsDown(toggle->key2)) {
+                    new_state = 1;
+                }
+            }
+        }
+        if (toggle->on_last_time != new_state) {
+            toggle->on_last_time = new_state;
+            if (new_state) {
+                toggle->action_proc();
+            }
+        }
+    }
+    if (pRacing && !gAction_replay_mode) {
+        CheckOtherRacingKeys();
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00443c50
 // FUNCTION: CARMA2_SW 0x00443d30
