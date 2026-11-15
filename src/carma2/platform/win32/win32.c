@@ -982,15 +982,17 @@ int C2_HOOK_FASTCALL PDServiceSystem(tU32 pTime_since_last_call) {
     return 0;
 }
 
+// PARTIAL 92.16%: PDGetTotalTime 0x0051d410 [regalloc] - 64-bit sum/sub in eax:edx not ecx:esi, no dead store after call; see state/findings/PDGetTotalTime.md
 // FUNCTION: CARMA2_HW 0x0051d410
 tU32 C2_HOOK_FASTCALL PDGetTotalTime(void) {
-    LARGE_INTEGER perfCountValue;
-    LARGE_INTEGER delta;
+    LARGE_INTEGER current_count;
+    DWORDLONG shifted;
 
     if (gPerformanceCounterInitialized) {
-        QueryPerformanceCounter(&perfCountValue);
-        delta.QuadPart = perfCountValue.QuadPart - gPerformanceCounterStart.QuadPart;
-        return (tU32) (delta.QuadPart / gPerformanceCounterFrequency_ms.QuadPart);
+        QueryPerformanceCounter(&current_count);
+        shifted = Int64ShllMod32((LONGLONG) current_count.HighPart, 16);
+        shifted = Int64ShllMod32((LONGLONG) shifted, 16);
+        return (tU32) ((((DWORDLONG) current_count.LowPart + shifted) - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_ms.QuadPart);
     }
     return 0;
 }
