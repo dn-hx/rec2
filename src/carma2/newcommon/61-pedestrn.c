@@ -302,7 +302,31 @@ void C2_HOOK_FASTCALL PedApplyPedFPChange(tPedestrian* pPed, float pSpeed) {
     }
 }
 
-// PedApplyStatus
+// FUNCTION: CARMA2_HW 0x004ca680
+void C2_HOOK_FASTCALL PedApplyStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x9, tU8 field_0xb, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
+    extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
+    extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
+    tPedestrian* ped;
+
+    ped = (tPedestrian*)field_0x0;
+    if (field_0x5 != 0xff) {
+        if (field_0x5 != 0) {
+            ((tS16*)ped)[4] |= 1;
+            MakeCharacterRenderable2(ped->character, (int)(tS8)field_0x9);
+        } else {
+            ((tS16*)ped)[4] &= ~1;
+            CharacterNoLongerRenderable(ped->character);
+        }
+    }
+    if (field_0x7 != 0xff) {
+        ped->character->field_0x14 = (int)(tS8)field_0x7;
+        ped->character->field_0x5 = field_0xb;
+        if ((field_0x6 & 4) != 0 && (field_0x7 & 4) == 0) {
+            RecalculateOrientationOfRoot(ped->character);
+        }
+    }
+}
 
 // PedUndoStatus
 
