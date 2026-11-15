@@ -232,7 +232,7 @@ extern void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel);
 
 extern void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel);
 
-// ReAttachBit
+extern void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject);
 
 // CentreModelOnPoint
 
