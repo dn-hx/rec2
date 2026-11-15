@@ -561,3 +561,5 @@ extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_ve
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
 #endif // GUARD_13_CRUSH1_H
+
+extern int C2_HOOK_FASTCALL GetEdgeToEdgePoints(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7);

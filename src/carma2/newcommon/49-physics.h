@@ -78,7 +78,7 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // WorldPointCollision
 
-// CheckSingleEdgeWithObjectEdges
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithObjectEdges(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data);
 
 // GetEdgeToEdgePoints
 
