@@ -885,7 +885,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_copyBits(br_device_pixelmap* se
     bit = ar.x & 7;
 
     pm_mem_copy_bits(
-        (br_uint_8*)self->pm_pixels + (self->pm_base_y + ap.y) * self->pm_row_bytes + (self->pm_base_x + ap.x + (ar.x & ~7) - bit) * bytes,
+        (br_uint_8*)self->pm_pixels + (self->pm_base_y + ap.y) * self->pm_row_bytes + (self->pm_base_x + (ar.x & ~7) - bit + ap.x) * bytes,
         self->pm_pixels_qualifier,
         self->pm_row_bytes,
         src + ar.y * s_stride,
