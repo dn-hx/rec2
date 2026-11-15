@@ -439,3 +439,5 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 // GetCollObjFromID
 
 #endif // GUARD_49_PHYSICS_H
+
+extern void C2_HOOK_FASTCALL ResetObjectList_1(tPhysics_object* pObject);
