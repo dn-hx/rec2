@@ -28,6 +28,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "18-graphics2.h"
 
 #include <s3/internal/audio.h>
 
@@ -1570,7 +1571,20 @@ void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
 
 // ApplyDamage
 
-// ApplySpecial
+// FUNCTION: CARMA2_HW 0x004c97c0
+void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk) {
+    tU32 type = *(tU32*)*pChunk;
+
+    switch (type) {
+        case 0:
+            if (fabs(ARGetReplayRate()) <= 1.0) {
+                return FadePaletteDown();
+            }
+            return;
+        case 1:
+            return DoInitialTail();
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c97f0
 // FUNCTION: CARMA2_SW 0x004c5f20
