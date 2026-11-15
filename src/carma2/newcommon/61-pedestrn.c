@@ -1983,11 +1983,73 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
 
 // CalcCollisionObjectThings
 
-// SetCollisionObject
+// FUNCTION: CARMA2_HW 0x004085f0
+int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr) {
+
+    BrMatrix34Copy(&pObject->transform_matrix, &pActor->t.t.mat);
+    pObject->actor = pActor;
+    CalcCollisionObjectThings(pObject, pFrame, pBonePos == NULL, pBoneVec, pBonePtr);
+    pObject->flags_0x238 = (tU8)pKind + 2;
+    pObject->owner = pCharacter;
+    if (pBonePos != NULL) {
+        pObject->cmpos.v[0] = pBonePos->v[0];
+        pObject->cmpos.v[1] = pBonePos->v[1];
+        pObject->cmpos.v[2] = pBonePos->v[2];
+    }
+    pObject->disable_move_rotate = 1;
+    pObject->field_0xed = 1;
+    BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+    pObject->uid = (tU8)pBoneIndex;
+    pObject->world_friction = 1.f;
+    pObject->last_special_volume = NULL;
+    pObject->auto_special_volume = NULL;
+    if (pKind == 1) {
+        pObject->flags |= pKind;
+    } else if (pKind == 2) {
+        pObject->flags |= pKind;
+    }
+    if (pFlag != 0) {
+        if (PHILAddObjectImmediately(pObject) != 0) {
+            return 0;
+        }
+        PHILSetObjectProperty(pObject, 0, 1.0);
+        PHILSetObjectProperty(pObject, 3, pArg3 == 0);
+        PHILSetObjectProperty(pObject, 4, 1);
+        PHILSetObjectProperty(pObject, 5, 1);
+        PHILSetObjectProperty(pObject, 7, 1);
+        PHILSetObjectProperty(pObject, 8, gPed_buoyancy_factor);
+        if (pKind == 3) {
+            PHILSetObjectProperty(pObject, 6, 1);
+        }
+    }
+    if (gPed_vtable->fill_in_object != NULL) {
+        gPed_vtable->fill_in_object((undefined4*)pObject, pKind + 2);
+    }
+    return 1;
+}
 
 // FindAndSetSeveredPhysicsSet
 
-// SetSeveredLimbObject
+// FUNCTION: CARMA2_HW 0x00408580
+tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
+    tPed_form* form;
+    int iVar1;
+    int iVar2;
+
+    form = pCharacter->personality->form;
+    iVar1 = (int)form->boned_physicing + (tS8)pCharacter->field_0x6 * 8;
+    pBone_index *= 4;
+    iVar2 = *(int*)((int)form->actor_sets + 4 + (tS8)pCharacter->field_0x4 * 8);
+    iVar2 = *(int*)(iVar2 + pBone_index);
+    iVar2 = SetCollisionObject(pCharacter, (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index), (br_actor*)iVar2, (void*)(*(int*)(iVar2 + 0x18) + 0x34), NULL, 3, pArg3, pArg4, 0, NULL, NULL);
+    if (iVar2 != 0) {
+        return (tPhysics_object*)*(int*)(*(int*)(iVar1 + 4) + pBone_index);
+    }
+    return NULL;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

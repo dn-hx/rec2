@@ -505,11 +505,11 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCh
 
 // CalcCollisionObjectThings
 
-// SetCollisionObject
+extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
 // FindAndSetSeveredPhysicsSet
 
-// SetSeveredLimbObject
+extern tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4);
 
 extern int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pCharacter, int pArg2, int pArg3, int pArg4);
 
