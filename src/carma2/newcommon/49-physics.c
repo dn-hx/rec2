@@ -1005,7 +1005,35 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
 
 // TranslateAndRotatePartialObject
 
-// TranslateAndRotateJointedObject
+// FUNCTION: CARMA2_HW 0x004b8ee0
+void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time) {
+    tPhysics_object* changed_object;
+    tPhysics_object* child;
+    tPhysics_object* matrix_parent;
+    br_vector3 child_joint_pos;
+    br_vector3 parent_joint_pos;
+
+    changed_object = NULL;
+    TranslateAndRotatePartialObject(pObject, &changed_object, pDelta_time);
+    if (changed_object != NULL && changed_object->field_0x230 != NULL) {
+        child = changed_object;
+        PositionWorldJointedObject(child, pDelta_time);
+        matrix_parent = child->field_0x230;
+        do {
+            BrMatrix34ApplyP(&child_joint_pos, &child->physics_joint1->field_0x08, &child->actor->t.t.mat);
+            BrMatrix34ApplyP(&parent_joint_pos, &child->physics_joint1->field_0x14, &matrix_parent->actor->t.t.mat);
+            child_joint_pos.v[0] -= parent_joint_pos.v[0];
+            child_joint_pos.v[1] -= parent_joint_pos.v[1];
+            child_joint_pos.v[2] -= parent_joint_pos.v[2];
+            child->parent->actor->t.t.mat.m[3][0] += child_joint_pos.v[0];
+            child->parent->actor->t.t.mat.m[3][1] += child_joint_pos.v[1];
+            child->parent->actor->t.t.mat.m[3][2] += child_joint_pos.v[2];
+            child = child->field_0x230;
+            matrix_parent = child->field_0x230;
+        } while (matrix_parent != NULL);
+        WriteNewPositions(pObject);
+    }
+}
 
 // CountJointForces
 

@@ -166,7 +166,7 @@ extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject
 
 // TranslateAndRotatePartialObject
 
-// TranslateAndRotateJointedObject
+extern void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 // CountJointForces
 
