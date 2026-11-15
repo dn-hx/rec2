@@ -137,7 +137,7 @@ extern void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar);
 
 // ExplodeCar
 
-// CheckRecoveryOfCars
+extern void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime);
 
 // TradeInAPO
 
