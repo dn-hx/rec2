@@ -23,6 +23,9 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "platform.h"
+#include "64-movie.h"
+#include "19-font.h"
+#include "25-grafdata.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -251,4 +254,29 @@ void C2_HOOK_FASTCALL ApplyTime(tU32 pTime) {
 // FUNCTION: CARMA2_SW 0x004022f0
 void C2_HOOK_FASTCALL ARSetPause(int pPause) {
     gPaused = pPause;
+}
+
+// FUNCTION: CARMA2_HW 0x004e7350
+void C2_HOOK_FASTCALL DisplayMovieStatusPanel(int pReplay_only) {
+    extern int gStatus_message_1;
+    extern int gStatus_message_2;
+    int x;
+    int y;
+
+    if (gShow_status_message != 0) {
+        if (gNext_replay_record_state == 4) {
+            x = gCurrent_graf_data->field_0x350;
+            y = gCurrent_graf_data->field_0x354;
+            if (pReplay_only == 0) {
+                DRPixelmapText(gBack_screen, x, y, &gFonts[1], GetMiscString(gStatus_message_1), gBack_screen->width);
+            }
+        } else {
+            x = gCurrent_graf_data->width / 2;
+            y = gCurrent_graf_data->height / 2;
+            DRPixelmapCentredText(gBack_screen, x, y - 0x40, &gFonts[4], GetMiscString(gStatus_message_1));
+            if (gStatus_message_2 != 0) {
+                DRPixelmapCentredText(gBack_screen, x, y - 0x20, &gFonts[6], GetMiscString(gStatus_message_2));
+            }
+        }
+    }
 }
