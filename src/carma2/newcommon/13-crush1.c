@@ -26,6 +26,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "57-drone.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1047,6 +1048,19 @@ float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3
 
 // LimitImpactScale
 
+// FUNCTION: CARMA2_HW 0x0042d180
+void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale) {
+    tDrone_crush_data* crush_data;
+    br_vector3 scaled;
+
+    crush_data = GetDroneCrushData(pObject);
+    if (crush_data != NULL && pCount >= 1) {
+        scaled.v[0] = crush_data->crushability * pScale->v[0];
+        scaled.v[1] = crush_data->crushability * pScale->v[1];
+        scaled.v[2] = crush_data->crushability * pScale->v[2];
+        SimpleCrushModel(crush_data->model, pCount, pPoints, scaled.v, (float*)&crush_data->bounds);
+    }
+}
 // FUNCTION: CARMA2_HW 0x00436850
 // FUNCTION: CARMA2_SW 0x00436880
 float C2_HOOK_FASTCALL GetImpactScale(const br_vector3* pP, int pCount, const br_vector3* pVertices, float pMax_dist_sq) {

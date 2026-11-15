@@ -184,7 +184,7 @@ extern void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const t
 
 // CrushDrone
 
-// CrushDroneObject
+extern void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale);
 
 // DoDroneCrushing
 

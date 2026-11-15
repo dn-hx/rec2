@@ -165,7 +165,7 @@ extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
 
 extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 
-// GetDroneCrushData
+extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject);
 
 // AllocateAndInitDrones
 
@@ -210,5 +210,11 @@ extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int 
 // UpdateEditModels
 
 // WriteOutDronePaths
+
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
 
 #endif // GUARD_57_DRONE_H
