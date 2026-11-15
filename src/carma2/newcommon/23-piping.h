@@ -145,7 +145,7 @@ extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
 // SaveReducedPos
 
-// InitLastDamageArrayEtc
+extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
 
 extern void C2_HOOK_FASTCALL ResetCars(void);
 
