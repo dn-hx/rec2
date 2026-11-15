@@ -28,6 +28,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "18-graphics2.h"
 
 #include <s3/internal/audio.h>
 
@@ -1918,7 +1919,18 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoDamage
 
-// UndoSpecial
+// FUNCTION: CARMA2_HW 0x004c9e20
+void C2_HOOK_FASTCALL UndoSpecial(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tU32 type = *(tU32*)*pChunk;
+
+    if (type == 0) {
+        if (fabs(ARGetReplayRate()) <= 1.0) {
+            return FadePaletteDown();
+        }
+    } else if (type == 1) {
+        return UndoInitialTail();
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c9e50
 // FUNCTION: CARMA2_SW 0x004c6580
