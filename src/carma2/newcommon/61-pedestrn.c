@@ -304,7 +304,47 @@ void C2_HOOK_FASTCALL PedApplyPedFPChange(tPedestrian* pPed, float pSpeed) {
 
 // PedApplyStatus
 
-// PedUndoStatus
+// FUNCTION: CARMA2_HW 0x004ca6e0
+void C2_HOOK_FASTCALL PedUndoStatus(int field_0x0, tU8 field_0x4, tU8 field_0x5, tU8 field_0x6, tU8 field_0x7, tU8 field_0x8, tU8 field_0xa, br_vector3* p0xc, br_vector3* p0x18, br_vector3* p0x24) {
+    extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex);
+    extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+    tU8 bit4;
+
+    ped = (tPedestrian*)field_0x0;
+    if (field_0x4 != 0xff) {
+        if (field_0x4 != 0) {
+            ((tS16*)ped)[4] |= 1;
+            MakeCharacterRenderable2(ped->character, (int)(tS8)field_0x8);
+        } else {
+            ((tS16*)ped)[4] &= ~1;
+            CharacterNoLongerRenderable(ped->character);
+        }
+    }
+    if (field_0x6 == 0xff) {
+        return;
+    }
+    bit4 = field_0x6 & 4;
+    if (bit4 == 0 && (field_0x7 & 4) != 0) {
+        ped->character->field_0x14 = (int)(tS8)field_0x6;
+        ped->character->field_0x5 = field_0xa;
+        SetCharacterDirection(ped->character, p0xc, p0x18);
+        BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)p0x24);
+        SetCharacterBonePositions(ped->character, 0, 0);
+        return;
+    }
+    if (bit4 != 0 && (field_0x7 & 4) == 0) {
+        BrMatrix34Copy(&ped->character->field_0x8c, (br_matrix34*)p0x24);
+        SetCharacterBonePositions(ped->character, 0, 0);
+        ped->character->field_0x14 = (int)(tS8)field_0x6;
+        ped->character->field_0x5 = field_0xa;
+        return;
+    }
+    ped->character->field_0x14 = (int)(tS8)field_0x6;
+    ped->character->field_0x5 = field_0xa;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
