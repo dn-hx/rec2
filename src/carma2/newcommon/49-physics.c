@@ -24,6 +24,7 @@
 #include "c2_math.h"
 #include "c2_string.h"
 #include "c2_stdlib.h"
+#include "globvrpb.h"
 
 #include <stddef.h>
 
@@ -492,6 +493,474 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+// FUNCTION: CARMA2_HW 0x004baec0
+int C2_HOOK_FASTCALL DoInterGroupCollisions(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks) {
+    tPhysics_joint_force* records[100];
+    tU8 solver_flags[100];
+    tPhysics_joint_force* group_records[40];
+    br_scalar x[100];
+    br_scalar rhs[100];
+    tPhysics_joint_force* groups[100];
+    br_scalar velocity[100];
+    br_scalar impulses[100];
+    tPhysics_object* obj;
+    tPhysics_object* next;
+    tPhysics_object* head;
+    tPhysics_object* child;
+    tPhysics_object* overlapping;
+    tPhysics_object* old;
+    tPhysics_object* obj_a;
+    tPhysics_object* obj_b;
+    tPhysics_joint_force* c;
+    tPhysics_joint_force* rec;
+    tPhysics_joint_force** records_c;
+    tPhysics_joint_force* group;
+    tPhysics_joint* joint;
+    br_scalar* x_c;
+    br_scalar* rhs_c;
+    br_vector3 w;
+    br_vector3 p;
+    br_vector3 q;
+    br_vector3 r;
+    br_scalar len;
+    br_scalar limit;
+    br_scalar max;
+    br_scalar s;
+    int count;
+    int prev_count;
+    int n;
+    int m;
+    int total;
+    int num_records;
+    int num_groups;
+    int i;
+    int j;
+    int flag;
+    int found;
+    int spin;
+    int sub_spin;
+    int cb_flags;
+    int solver_out;
+
+    count = 0;
+    obj = pObject;
+    do {
+        next = (tPhysics_object*)obj->field183_0x1d8;
+        prev_count = count;
+        head = *pObject_list;
+        GetReducedList(obj, head, &overlapping);
+        count = ReducedFindObjectCollisions(obj, &overlapping, pContacts, count, pWorld_callbacks, head);
+        if (gNet_mode == eNet_mode_host && obj->field_0xf0 == 1 && count > prev_count) {
+            p.v[0] = obj->transform_matrix.m[3][0] - ((br_matrix34*)&obj->field_0xbc)->m[3][0];
+            p.v[1] = obj->transform_matrix.m[3][1] - ((br_matrix34*)&obj->field_0xbc)->m[3][1];
+            p.v[2] = obj->transform_matrix.m[3][2] - ((br_matrix34*)&obj->field_0xbc)->m[3][2];
+            len = BrVector3Length(&obj->v);
+            if (len - -0.5 < BrVector3Length(&p) * 25.f) {
+                obj->flags |= 0x1000;
+                obj->field_0xf0 = 0;
+                cb_flags = 0;
+                obj = pObject;
+                do {
+                    if (!obj->disable_move_rotate) {
+                        if (obj->field_0xf0 == 1) {
+                            BrMatrix34Copy(&obj->actor->t.t.mat, (const br_matrix34*)&obj->field_0xbc);
+                        } else {
+                            BrMatrix34LPNormalise(&obj->actor->t.t.mat, &obj->transform_matrix);
+                        }
+                        for (child = obj->child; child != NULL; child = child->next) {
+                            ResetObjectAndChildren(child);
+                        }
+                        TranslateAndRotateJointedObject(obj, 0.04f);
+                        GetWorldBoundingBoxForObject(obj, NULL);
+                        if (*(tQuickHinge_moved_cbfn**)&obj->field_0x191[3] != NULL) {
+                            cb_flags |= (*(tQuickHinge_moved_cbfn**)&obj->field_0x191[3])(obj);
+                        }
+                    }
+                    obj = (tPhysics_object*)obj->field183_0x1d8;
+                } while (obj != pObject);
+                return -1;
+            }
+        }
+        obj = next;
+    } while (obj != pObject);
+
+    gINT_00692dd8 = 0;
+    m = count;
+    i = 0;
+    obj = pObject;
+    do {
+        i++;
+        if (i > 100) {
+            PhysicsError((tPhysicsError)10, "Corrupt group");
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    obj = pObject;
+    do {
+        if (!(obj->flags & 0x10)) {
+            prev_count = m;
+            m = GetJointLimits(obj, pContacts, m, 40);
+            if (obj->child != NULL) {
+                for (child = obj->child; child != NULL; child = child->next) {
+                    m = GetJointLimits(child, pContacts, m, 40);
+                    if (child->child != NULL) {
+                        m = CollectJointLimitsOfTree(child->child, pContacts, m, 40);
+                    }
+                }
+            }
+            if (prev_count != m && obj->field_0xf0 == 2) {
+                old = obj;
+                while (old->parent != NULL && old->physics_joint1 != NULL && old->physics_joint1->type != 0) {
+                    old = old->parent;
+                }
+                old->field_0xf0 = 0;
+                for (child = old->child; child != NULL; child = child->next) {
+                    SetObjectTrialPositionType(child, 0);
+                }
+                if (pWorld_callbacks != NULL && pWorld_callbacks->activate_passive != NULL) {
+                    ((void (C2_HOOK_FASTCALL*)(tPhysics_object*, int))pWorld_callbacks->activate_passive)(old, 0);
+                }
+                if ((old->child != NULL || old->physics_joint2 != NULL) && old->field_0x218 == 0) {
+                    MoveJointedObject(old, 0.f);
+                }
+            }
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    if (m == 0) {
+        return 0;
+    }
+    for (i = 0; i < m; i++) {
+        c = &pContacts[i];
+        old = c->object_a;
+        while (c->object_a->flags & 0x400) {
+            c->object_a = c->object_a->parent;
+        }
+        if (old != c->object_a) {
+            BrVector3Accumulate(&c->point_a, &old->cmpos);
+            BrMatrix34ApplyP(&w, &c->point_a, &old->transform_matrix);
+            DrMatrix34ApplyLPInverse(&c->point_a, &w, &c->object_a->transform_matrix);
+            BrVector3Sub(&c->point_a, &c->point_a, &c->object_a->cmpos);
+            BrMatrix34ApplyV(&w, &c->direction_a, &old->transform_matrix);
+            BrMatrix34TApplyV(&c->direction_a, &w, &c->object_a->transform_matrix);
+        }
+        old = c->object_b;
+        if (old != NULL) {
+            while (c->object_b->flags & 0x400) {
+                c->object_b = c->object_b->parent;
+            }
+            if (old != c->object_a) {
+                BrVector3Accumulate(&c->point_b, &old->cmpos);
+                BrMatrix34ApplyP(&w, &c->point_b, &old->transform_matrix);
+                DrMatrix34ApplyLPInverse(&c->point_b, &w, &c->object_b->transform_matrix);
+                BrVector3Sub(&c->point_b, &c->point_b, &c->object_b->cmpos);
+                BrMatrix34ApplyV(&w, &c->direction_b, &old->transform_matrix);
+                BrMatrix34TApplyV(&c->direction_b, &w, &c->object_b->transform_matrix);
+            }
+        }
+    }
+    n = m;
+    m = AddOldForces(pContacts, m, pJoint_data, pJoint_count);
+    num_records = 0;
+    num_groups = 0;
+    obj = pObject;
+    do {
+        if (obj->field_0x218 != 0) {
+            groups[num_groups] = (tPhysics_joint_force*)obj->field_0x218;
+            num_groups++;
+            rec = ((tPhysics_joint_force*)obj->field_0x218)->records;
+            for (j = 0; j < ((tPhysics_joint_force*)obj->field_0x218)->count; j++) {
+                records[num_records] = rec;
+                rec++;
+                num_records++;
+            }
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    for (i = 0; i < m; i++) {
+        records[num_records + i] = &pContacts[i];
+    }
+    if (num_records + m > 100) {
+        m = 100 - num_records;
+    }
+    if (n > m) {
+        n = m;
+    }
+    total = num_records + m;
+    x_c = &x[num_records];
+    MakeMatrix(gPhysics_buffer3_ptr, 100, records, total);
+    obj = pObject;
+    do {
+        obj->omega = obj->rotate_omega;
+        for (child = obj->child; child != NULL; child = child->next) {
+            child->omega = child->rotate_omega;
+            if (child->child != NULL) {
+                RestoreListOmega(child->child);
+            }
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    records_c = &records[num_records];
+    rhs_c = &rhs[num_records];
+    flag = 0;
+    if (gINT_0065d014 != 0) {
+        flag = MakeVelocitiesVector2(rhs_c, records_c, m, n);
+    } else {
+        for (i = n; i < m; i++) {
+            rhs_c[i] = 0.f;
+        }
+        for (i = 0; i < n; i++) {
+            c = records_c[i];
+            obj_a = c->object_a;
+            if (c->type == 11) {
+                rhs_c[i] = -BrVector3Dot(&obj_a->omega, &c->direction_a);
+                obj_b = c->object_b;
+                if (obj_b != NULL) {
+                    rhs_c[i] += BrVector3Dot(&obj_b->omega, &c->direction_b);
+                }
+                if (rhs_c[i] < 0.001) {
+                    rhs_c[i] = 0.001f;
+                } else {
+                    flag = 1;
+                }
+            } else {
+                BrVector3Cross(&w, &obj_a->omega, &c->point_a);
+                BrVector3Accumulate(&w, &obj_a->velocity_car_space);
+                rhs_c[i] = -BrVector3Dot(&c->direction_a, &w);
+                obj_b = c->object_b;
+                if (obj_b != NULL) {
+                    BrVector3Cross(&w, &obj_b->omega, &c->point_b);
+                    BrVector3Accumulate(&w, &obj_b->velocity_car_space);
+                    rhs_c[i] += BrVector3Dot(&c->direction_b, &w);
+                }
+                if (rhs_c[i] < 0.f) {
+                    rhs_c[i] = 0.f;
+                } else if (rhs_c[i] > 0.01) {
+                    flag = 1;
+                }
+                rhs_c[i] = 0.01 - rhs_c[i] * -1.001;
+            }
+        }
+        if (flag == 0) {
+            for (i = 0; i < n; i++) {
+                c = records_c[i];
+                if (c->type == 11) {
+                    rhs_c[i] = (0.001 - c->field_0x0) * 25.0;
+                } else if (c->object_b != NULL) {
+                    BrVector3Add(&p, &c->object_a->cmpos, &c->point_a);
+                    BrMatrix34ApplyP(&w, &p, &c->object_a->transform_matrix);
+                    DrMatrix34ApplyLPInverse(&q, &w, &c->object_b->transform_matrix);
+                    BrMatrix34ApplyP(&w, &p, &c->object_a->actor->t.t.mat);
+                    DrMatrix34ApplyLPInverse(&r, &w, &c->object_b->actor->t.t.mat);
+                    BrVector3Sub(&q, &r, &q);
+                    if (c->type == 5) {
+                        BrMatrix34ApplyV(&w, &c->direction_b, &c->object_b->transform_matrix);
+                        BrMatrix34TApplyV(&r, &w, &c->object_b->actor->t.t.mat);
+                        rhs_c[i] = -(BrVector3Dot(&r, &q) * 25.f);
+                    } else {
+                        rhs_c[i] = -(BrVector3Dot(&c->direction_b, &q) * 25.f);
+                    }
+                } else {
+                    BrVector3Add(&p, &c->object_a->cmpos, &c->point_a);
+                    BrMatrix34ApplyP(&w, &p, &c->object_a->actor->t.t.mat);
+                    DrMatrix34ApplyLPInverse(&q, &w, &c->object_a->transform_matrix);
+                    BrVector3Sub(&q, &q, &p);
+                    rhs_c[i] = 0.01 - BrVector3Dot(&c->direction_a, &q) * 25.f;
+                }
+                if (rhs_c[i] < 0.01) {
+                    rhs_c[i] = 0.01f;
+                } else {
+                    flag = 1;
+                }
+            }
+            if (flag == 0) {
+                for (i = 0; i < n; i++) {
+                    if (records_c[i]->type != 11) {
+                        rhs_c[i] = 0.05f;
+                    }
+                }
+            }
+            flag = 1;
+        } else {
+            flag = 0;
+        }
+    }
+    MakeJointVelocitiesVector(rhs, records, num_records);
+    if (RQMatrixSolveNoNegatives(gPhysics_buffer3_ptr, rhs, x, total, 100, solver_flags, &solver_out, num_records, n, groups, num_groups) != 0) {
+        gINT_006940a4++;
+    }
+    if (gINT_00692dd8 != 0) {
+        found = 0;
+        obj = pObject;
+        do {
+            joint = obj->physics_joint2;
+            if (joint != NULL && obj->field_0x1e0[0] != 0) {
+                for (i = 0; i < joint->count_limits; i++) {
+                    if (joint->limits[i].type == eJoint_limit_10) {
+                        break;
+                    }
+                }
+                if (i != joint->count_limits) {
+                    limit = joint->limits[i].value;
+                    BrVector3SetFloat(&q, 0.f, 0.f, 0.f);
+                    for (j = 0; j < m; j++) {
+                        if (pContacts[j].object_a == obj) {
+                            BrVector3Sub(&w, &pContacts[j].point_a, &obj->physics_joint2->field_0x08);
+                            BrVector3Cross(&r, &w, &pContacts[j].direction_a);
+                            BrVector3Scale(&r, &r, x_c[j]);
+                            BrVector3Accumulate(&q, &r);
+                        } else if (pContacts[j].object_b == obj) {
+                            BrVector3Sub(&w, &pContacts[j].point_b, &obj->physics_joint2->field_0x08);
+                            BrVector3Cross(&r, &w, &pContacts[j].direction_b);
+                            s = -x_c[j];
+                            BrVector3Scale(&r, &r, s);
+                            BrVector3Accumulate(&q, &r);
+                        }
+                    }
+                    if (BrVector3LengthSquared(&q) > limit) {
+                        found = 1;
+                        obj->field_0x1e0[0] = 0;
+                        for (j = 0; j < m; j++) {
+                            if (pContacts[j].object_a == obj || pContacts[j].object_b == obj) {
+                                pContacts[j].type = 5;
+                            }
+                        }
+                    } else {
+                        obj->disable_move_rotate = 1;
+                    }
+                }
+            }
+            obj = (tPhysics_object*)obj->field183_0x1d8;
+        } while (obj != pObject);
+        if (found) {
+            MakeMatrix(gPhysics_buffer3_ptr, 100, records, total);
+            RQMatrixSolveNoNegatives(gPhysics_buffer3_ptr, rhs, x, total, 100, solver_flags, &solver_out, num_records, n, groups, num_groups);
+        }
+    }
+    max = 0.f;
+    for (i = 0; i < n; i++) {
+        if (max < x_c[i]) {
+            max = x_c[i];
+        }
+    }
+    (void)max;
+    for (i = 0; i < num_records; i++) {
+        if (x[i] > 100.f) {
+            i++;
+        }
+    }
+    for (i = 0; i < m; i++) {
+        if (x_c[i] == 0.f) {
+            pContacts[i].type = 9;
+        }
+    }
+    gINT_00692dc8 = 0;
+    if (pWorld_callbacks->process_forces != NULL) {
+        pWorld_callbacks->process_forces(pContacts, x_c, m);
+    }
+    if (gINT_00692dc8 == 0) {
+        if (pWorld_callbacks->process_joint_forces != NULL) {
+            ((void (C2_HOOK_FASTCALL*)(tPhysics_joint_force**, br_scalar*, int))pWorld_callbacks->process_joint_forces)(records, x, num_records);
+        }
+        if (gINT_00692dc8 == 0) {
+            for (i = 0; i < num_records; i++) {
+                ApplySingleForce(records[i], x[i]);
+            }
+        }
+    }
+    for (i = 0; i < m; i++) {
+        s = x_c[i];
+        if (s != 0.f && pContacts[i].type != 9) {
+            obj_b = pContacts[i].object_b;
+            obj_a = pContacts[i].object_a;
+            ApplySingleForce(&pContacts[i], s);
+            if (pContacts[i].type != 11) {
+                if (obj_b != NULL) {
+                    if ((obj_a->collision_flag & 2) && (obj_b->collision_flag & 2)) {
+                        continue;
+                    }
+                } else if (obj_a->collision_flag & 1) {
+                    continue;
+                }
+                if (gINT_00692ddc < 50) {
+                    c = &gCollision_contacts[gINT_00692ddc];
+                    *c = pContacts[i];
+                    gINT_00692ddc++;
+                    c->field_0x0 = x_c[i];
+                }
+            }
+        }
+    }
+    if (flag != 0 && gINT_00692dc8 == 0) {
+        FUN_004bc190(records, x, num_records, pWorld_callbacks);
+    }
+    i = 0;
+    obj = pObject;
+    do {
+        i++;
+        if (i > 100) {
+            PhysicsError((tPhysicsError)10, "Corrupt group");
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    spin = 0;
+    obj = pObject;
+    do {
+        spin += ClampObjectSpin(obj);
+        if (obj->child != NULL) {
+            sub_spin = 0;
+            for (child = obj->child; child != NULL; child = child->next) {
+                sub_spin += ClampObjectSpin(child);
+                if (child->child != NULL) {
+                    sub_spin += ClampObjectSpinTree(child->child);
+                }
+            }
+            spin += sub_spin;
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    if (spin != 0) {
+        obj = pObject;
+        do {
+            group = (tPhysics_joint_force*)obj->field_0x218;
+            if (group != NULL) {
+                for (i = 0; i < group->count; i++) {
+                    group_records[i] = &group->records[i];
+                }
+                MakeJointVelocitiesVector(velocity, group_records, group->count);
+                RqBackSub(group->matrix, group->orthogonal, velocity, impulses, group->count);
+                for (i = 0; i < group->count; i++) {
+                    ApplySingleForce(group_records[i], impulses[i]);
+                }
+            }
+            obj = (tPhysics_object*)obj->field183_0x1d8;
+        } while (obj != pObject);
+    }
+    cb_flags = 0;
+    obj = pObject;
+    do {
+        if (!obj->disable_move_rotate) {
+            if (obj->field_0xf0 == 1) {
+                BrMatrix34Copy(&obj->actor->t.t.mat, (const br_matrix34*)&obj->field_0xbc);
+            } else {
+                BrMatrix34LPNormalise(&obj->actor->t.t.mat, &obj->transform_matrix);
+            }
+            for (child = obj->child; child != NULL; child = child->next) {
+                ResetObjectAndChildren(child);
+            }
+            TranslateAndRotateJointedObject(obj, 0.04f);
+            GetWorldBoundingBoxForObject(obj, NULL);
+            if (*(tQuickHinge_moved_cbfn**)&obj->field_0x191[3] != NULL) {
+                cb_flags |= (*(tQuickHinge_moved_cbfn**)&obj->field_0x191[3])(obj);
+            }
+        }
+        obj = (tPhysics_object*)obj->field183_0x1d8;
+    } while (obj != pObject);
+    if ((cb_flags | spin) != 0) {
+        m = -m;
+    }
+    return m;
+}
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
@@ -700,7 +1169,120 @@ int C2_HOOK_FASTCALL FlagsAreGo(tPhysics_object* pCollision_1, tPhysics_object* 
 
 // AddObjectToReducedList
 
-// ReducedFindObjectCollisions
+// FUNCTION: CARMA2_HW 0x004bd9e0
+int C2_HOOK_FASTCALL ReducedFindObjectCollisions(tPhysics_object* pObject, tPhysics_object** pOverlapping, tPhysics_joint_force* pContacts, int pCount, tWorld_callbacks* pWorld_callbacks, tPhysics_object* pList) {
+    tPhysics_object* object;
+    tPhysics_object* partner;
+    tPhysics_object* child;
+    tPhysics_object* moved;
+    tPhysics_object** slot;
+    tPhysics_object** moved_tail;
+    int added;
+
+    gReduced_object_list = pOverlapping;
+    gINT_006940ac = (((float*)pObject->field_0x1b4)[0] * ((float*)pObject->field_0x1b4)[0]
+        + ((float*)pObject->field_0x1b4)[1] * ((float*)pObject->field_0x1b4)[1]
+        + ((float*)pObject->field_0x1b4)[2] * ((float*)pObject->field_0x1b4)[2]) == 0.f;
+    GetFacesNearObject(pObject, pWorld_callbacks);
+    gReduced_object_list = NULL;
+    gINT_006940ac = 0;
+    added = GetObjectWallForceInfo(pObject, pContacts, pCount);
+    if (added != 0) {
+        if (pObject->field_0xf0 == 2) {
+            object = pObject;
+            while (object->parent != NULL && object->physics_joint1 != NULL
+                    && object->physics_joint1->type != eJoint_none) {
+                object = object->parent;
+            }
+            object->field_0xf0 = 0;
+            for (child = object->child; child != NULL; child = child->next) {
+                SetObjectTrialPositionType(child, 0);
+            }
+            if (pWorld_callbacks != NULL && pWorld_callbacks->activate_passive != NULL) {
+                ((tActivatePassive_cbfn)pWorld_callbacks->activate_passive)(object, NULL);
+            }
+            if ((object->child != NULL || object->physics_joint2 != NULL) && object->field_0x218 == 0) {
+                MoveJointedObject(object, 0.f);
+            }
+        }
+        pCount += added;
+    }
+    for (partner = *pOverlapping; partner != NULL; partner = (tPhysics_object*)partner->field_0x234) {
+        if (partner == pObject) {
+            continue;
+        }
+        if (pObject->field_0x1dc != 0 && partner->field_0x1dc == pObject->field_0x1dc && (tU32)partner <= (tU32)pObject) {
+            continue;
+        }
+        if (pObject->parent == partner || partner->parent == pObject) {
+            continue;
+        }
+        if ((pObject->field_0x1a0 & partner->field_0x1a4) != 0
+                || (pObject->field_0x1a4 & partner->field_0x1a0) != 0
+                || (pObject->flags & 4) != 0
+                || (partner->flags & 4) != 0) {
+            continue;
+        }
+        added = GetObjectObjectForceInfo(pObject, partner, pContacts, pCount);
+        if (added == 0) {
+            continue;
+        }
+        if (pObject->field_0xf0 == 2) {
+            object = pObject;
+            while (object->parent != NULL && object->physics_joint1 != NULL
+                    && object->physics_joint1->type != eJoint_none) {
+                object = object->parent;
+            }
+            SetObjectTrialPositionType(object, 0);
+            if (pWorld_callbacks != NULL && pWorld_callbacks->activate_passive != NULL) {
+                ((tActivatePassive_cbfn)pWorld_callbacks->activate_passive)(object, partner);
+            }
+            if ((object->child != NULL || object->physics_joint2 != NULL) && object->field_0x218 == 0) {
+                MoveJointedObject(object, 0.f);
+            }
+        }
+        if (partner->field_0xf0 == 2) {
+            object = partner;
+            while (object->parent != NULL && object->physics_joint1 != NULL
+                    && object->physics_joint1->type != eJoint_none) {
+                object = object->parent;
+            }
+            SetObjectTrialPositionType(object, 0);
+            if (pWorld_callbacks != NULL && pWorld_callbacks->activate_passive != NULL) {
+                ((tActivatePassive_cbfn)pWorld_callbacks->activate_passive)(object, pObject);
+            }
+            if ((object->child != NULL || object->physics_joint2 != NULL) && object->field_0x218 == 0) {
+                MoveJointedObject(object, 0.f);
+            }
+        }
+        if (partner->disable_move_rotate != 0) {
+            MakeObjectDoSomething(partner, pList);
+        }
+        GroupTogether(pObject, partner);
+        pCount += added;
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        if (child->physics_joint1 == NULL || child->physics_joint1->type == eJoint_none) {
+            continue;
+        }
+        moved = NULL;
+        moved_tail = &moved;
+        slot = pOverlapping;
+        for (partner = *slot; partner != NULL; partner = *slot) {
+            if (partner == child || BoundsOverlapTest(&child->field_0x10c, &partner->field_0x10c)) {
+                *slot = (tPhysics_object*)partner->field_0x234;
+                *moved_tail = partner;
+                moved_tail = (tPhysics_object**)&partner->field_0x234;
+            } else {
+                slot = (tPhysics_object**)&partner->field_0x234;
+            }
+        }
+        *moved_tail = NULL;
+        *slot = moved;
+        pCount = ReducedFindObjectCollisions(child, slot, pContacts, pCount, pWorld_callbacks, pList);
+    }
+    return pCount;
+}
 
 // FindObjectCollisions
 
