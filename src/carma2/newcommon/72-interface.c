@@ -3621,7 +3621,18 @@ int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
 // NetOptions_Ok
 
-// NetOptions_Cancel
+/* inlined into NetOptions_Cancel in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL RestoreNetworkOptions(void) {
+
+    gFrontend_net_options = gFrontend_backup_net_options;
+}
+
+// FUNCTION: CARMA2_HW 0x00473550
+int C2_HOOK_FASTCALL NetOptions_Cancel(tFrontend_spec* pFrontend) {
+
+    RestoreNetworkOptions();
+    return 0;
+}
 
 void C2_HOOK_FASTCALL CheckPlayersAreResponding2(tU32 pDeadline) {
     tU32 now;
