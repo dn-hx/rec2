@@ -1118,14 +1118,86 @@ void C2_HOOK_FASTCALL AddToGuaranteeList(tNet_message* pMessage, void* pAddress,
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x004a5e20
-// FUNCTION: CARMA2_SW 0x004a1fa0
+// STUB: CARMA2_SW 0x004a1fa0
 int C2_HOOK_FASTCALL NetGuaranteedSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer, void* pNotifyFail) {
     int i;
-    int j;
-    int size;
-    tNet_message_chunk* contents;
-    tNet_message_chunk* dest;
+    int idx;
+    int total;
+    tNet_message* stack;
+    tU8* src;
+    tU8* p;
+    int k;
+    int old_size;
+    tPlayer_ID tid;
+    tNet_game_details* game;
+
+    if (pMessage->header.field_0x14 != 0xff) {
+        PDFatalError("Guaranteed message not built properly");
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].ID == pPlayer) {
+            goto found;
+        }
+    }
+    return -1;
+
+found:
+    idx = i;
+    if (pPlayer == gLocal_net_ID) {
+        pMessage->header.field_0x8 = gLocal_net_ID;
+        pMessage->header.field_0x10 = PDGetTotalTime();
+        pMessage->header.field_0x14 = 1;
+        ReceivedMessage(pMessage, &gNet_players[idx], GetRaceTime());
+        if (pMessage->header.field_0x14 != 0xff) {
+            ((tU8*)pMessage)[0x19] = 0xff;
+        }
+        return 0;
+    }
+    AddToGuaranteeList(pMessage, NULL, (tPlayer_ID)pPlayer, (void*)pNotifyFail);
+    p = (tU8*)pMessage + sizeof(tNet_message_header);
+    src = p;
+    total = 0;
+    for (k = 2; k != 0; k--) {
+        total += *p;
+        p += *p;
+    }
+    if (&gNet_players[idx] == &gNet_players[gThis_net_player_index]) {
+        PDFatalError("Trying to send network message to self");
+    }
+    stack = gNet_players[idx].field_0xcc;
+    if (stack != NULL && stack->header.field_0x16 + total > 0x200) {
+        tid = gNet_players[idx].ID;
+        game = gCurrent_net_game;
+        if (gNet_mode != eNet_mode_none) {
+            stack->header.field_0x8 = gLocal_net_ID;
+            stack->header.field_0x10 = PDGetTotalTime();
+            for (i = 0; i < gNumber_of_net_players; i++) {
+                if (gNet_players[i].ID == tid) {
+                    PDNetSendMessageToAddress(game, stack, &gNet_players[i].pd_net_info);
+                    break;
+                }
+            }
+        }
+        gNet_players[idx].field_0xcc = stack = NULL;
+    }
+    if (stack == NULL) {
+        stack = NetAllocateMessage(0x200);
+        gNet_players[idx].field_0xcc = stack;
+        stack->header.field_0x16 = (tU16)sizeof(tNet_message_header);
+        stack->header.field_0x14 = 0;
+    }
+    old_size = stack->header.field_0x16;
+    stack->header.field_0x14++;
+    stack->header.field_0x16 = (tU16)(old_size + total);
+    gNet_players[idx].field_0xcc->header.field_0x14++;
+    memcpy((tU8*)stack + old_size, src, total);
+    return 0;
+}
 
     if (pMessage->header.field_0x14 != 0xff) {
         PDFatalError("Guaranteed message not built properly");
