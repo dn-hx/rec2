@@ -217,7 +217,18 @@ void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
 
 // TwatPIX16
 
-// PDGetCurrentTime
+// FUNCTION: CARMA2_HW 0x0051da90
+void C2_HOOK_FASTCALL PDGetCurrentTime(char *pTimeStr) {
+    SYSTEMTIME time;
+    char buffer[256];
+
+    C2_HOOK_BUG_ON(LOCALE_SYSTEM_DEFAULT != 0x800);
+    C2_HOOK_BUG_ON(LOCALE_NOUSEROVERRIDE != 0x80000000);
+
+    GetLocalTime(&time);
+    GetTimeFormatA(LOCALE_SYSTEM_DEFAULT, LOCALE_NOUSEROVERRIDE, &time, NULL, buffer, sizeof(buffer));
+    strcpy(pTimeStr, buffer);
+}
 
 // FUNCTION: CARMA2_HW 0x0051da20
 void C2_HOOK_FASTCALL PDGetCurrentDate(char *pTimeStr) {

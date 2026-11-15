@@ -168,7 +168,7 @@ extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
 
 // TwatPIX16
 
-// PDGetCurrentTime
+extern void C2_HOOK_FASTCALL PDGetCurrentTime(char* pStr);
 
 extern void C2_HOOK_FASTCALL PDGetCurrentDate(char* pStr);
 
