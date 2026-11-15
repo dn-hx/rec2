@@ -26,6 +26,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1764,10 +1765,86 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor
 
 // SphericizePhysics
 
-// STUB: CARMA2_HW 0x004391d0
+// FUNCTION: CARMA2_HW 0x004391d0
 // STUB: CARMA2_SW 0x00439210
 void C2_HOOK_FASTCALL SphericizeCar(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    br_vector3 center;
+    br_scalar radius;
+    br_vector3 vec;
+    br_model* shell_model;
+    tU16 i;
+    br_scalar hx, hy, hz, lx, ly, lz;
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    br_scalar len;
+    br_scalar nx;
+    br_scalar ny;
+    br_scalar nz;
+
+    shell_model = pCar->shell_model;
+    if (shell_model != NULL) {
+        hx = shell_model->bounds.max.v[0] * 0.5f;
+        hy = shell_model->bounds.max.v[1] * 0.5f;
+        lx = shell_model->bounds.min.v[0] * 0.5f;
+        ly = shell_model->bounds.min.v[1] * 0.5f;
+        hz = shell_model->bounds.max.v[2] * 0.5f;
+        lz = shell_model->bounds.min.v[2] * 0.5f;
+        center.v[0] = hx + lx;
+        center.v[1] = hy + ly;
+        center.v[2] = hz + lz;
+        radius = (float)sqrt(Vector3DistanceSquared(&center, &shell_model->bounds.min));
+        for (i = 0; i < shell_model->nvertices; i++) {
+            dx = shell_model->vertices[i].p.v[0] - center.v[0];
+            dy = shell_model->vertices[i].p.v[1] - center.v[1];
+            dz = shell_model->vertices[i].p.v[2] - center.v[2];
+            len = (float)sqrt(dx * dx + dy * dy + dz * dz);
+            if (len > 0.01f) {
+                nx = dx * (1.0 / len);
+                ny = dy * (1.0 / len);
+                nz = dz * (1.0 / len);
+            } else {
+                nx = 1.0f;
+                ny = 0.0f;
+                nz = 0.0f;
+            }
+            shell_model->vertices[i].p.v[0] = nx * radius + center.v[0];
+            shell_model->vertices[i].p.v[1] = ny * radius + center.v[1];
+            shell_model->vertices[i].p.v[2] = nz * radius + center.v[2];
+        }
+        BrModelUpdate(shell_model, 1);
+        pCar->car_model_actor->children = NULL;
+        gGonad_sphere_collision_shape->sphere.sphere.radius = radius;
+        gGonad_sphere_collision_shape->sphere.sphere.center.v[0] = center.v[0];
+        gGonad_sphere_collision_shape->sphere.sphere.center.v[1] = center.v[1];
+        gGonad_sphere_collision_shape->sphere.sphere.center.v[2] = center.v[2];
+        gGonad_sphere_collision_shape->common.next = NULL;
+        FillInShape(gGonad_sphere_collision_shape);
+        pCar->collision_info->shape = gGonad_sphere_collision_shape;
+        UpdateCollisionObject(pCar->collision_info);
+        pCar->collision_info->cmpos.v[0] = center.v[0];
+        pCar->collision_info->cmpos.v[1] = center.v[1];
+        pCar->collision_info->cmpos.v[2] = center.v[2];
+        pCar->collision_info->M = 50.0f;
+        pCar->collision_info->I.v[0] = pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->M * 0.166666672f;
+        pCar->collision_info->I.v[1] = pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->M * 0.166666672f;
+        pCar->collision_info->I.v[2] = pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->shape->sphere.sphere.radius * pCar->collision_info->M * 0.166666672f;
+        pCar->collision_info->world_friction = 16.0f;
+        gGonad_sphere_collision_shape->common.type = 0;
+        while (!TestForCarInSensiblePlace(pCar, &vec)) {
+            vec.v[0] = vec.v[0] * 0.0724637657f;
+            vec.v[1] = vec.v[1] * 0.0724637657f;
+            vec.v[2] = vec.v[2] * 0.0724637657f;
+            pCar->collision_info->transform_matrix.m[3][0] += vec.v[0];
+            pCar->collision_info->transform_matrix.m[3][1] += vec.v[1];
+            pCar->collision_info->transform_matrix.m[3][2] += vec.v[2];
+        }
+        gGonad_sphere_collision_shape->common.type = 4;
+        pCar->invulnerable_no_crushage = 1;
+        pCar->invulnerable_no_damage = 1;
+        pCar->use_shell_model = 1;
+        pCar->field_0x18c8 = 2;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004398d0
