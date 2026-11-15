@@ -832,13 +832,202 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pActor, br
 
 // SoftnessOfNearestPoint
 
-// SetUpShapeLimitingStuff
+static float C2_HOOK_FASTCALL SoftnessOfNearestPoint(tCar_spec* pCar_spec, br_vector3* pPoint) {
+    tSoftnessOfNearestPointCB_Context softcb_data;
+
+    softcb_data.point = pPoint;
+    softcb_data.distance = BR_SCALAR_MAX;
+    softcb_data.softness_factor = 1.f;
+
+    DRActorEnumRecurseWithTranslation(pCar_spec->car_model_actor, NULL, SoftnessOfNearestPointCB, &softcb_data);
+    return softcb_data.softness_factor;
+}
+
+// FUNCTION: CARMA2_HW 0x0042b0e0
+void C2_HOOK_FASTCALL SetUpShapeLimitingStuff(tCar_crush_spec* pCar_crush, tCar_spec* pCar_spec) {
+    br_bounds3 wheel_all_bounds;
+    const double inverse_world_scale = 1.0 / 6.9;
+    int i;
+
+    BrVector3Copy(&wheel_all_bounds.min, &pCar_spec->wpos[0]);
+    BrVector3Copy(&wheel_all_bounds.max, &wheel_all_bounds.min);
+    for (i = 1; i < 4; i++) {
+        int j;
+
+        for (j = 0; j < 3; j++) {
+            if (!(pCar_spec->wpos[i].v[j] >= wheel_all_bounds.min.v[j])) {
+                wheel_all_bounds.min.v[j] = pCar_spec->wpos[i].v[j];
+            } else if (pCar_spec->wpos[i].v[j] > wheel_all_bounds.max.v[j]) {
+                wheel_all_bounds.max.v[j] = pCar_spec->wpos[i].v[j];
+            }
+        }
+    }
+    wheel_all_bounds.min.v[0] = (float)(wheel_all_bounds.min.v[0] * inverse_world_scale);
+    wheel_all_bounds.min.v[1] = (float)(wheel_all_bounds.min.v[1] * inverse_world_scale);
+    wheel_all_bounds.min.v[2] = (float)(wheel_all_bounds.min.v[2] * inverse_world_scale);
+    wheel_all_bounds.max.v[0] = (float)(wheel_all_bounds.max.v[0] * inverse_world_scale);
+    wheel_all_bounds.max.v[1] = (float)(wheel_all_bounds.max.v[1] * inverse_world_scale);
+    wheel_all_bounds.max.v[2] = (float)(wheel_all_bounds.max.v[2] * inverse_world_scale);
+    for (i = 0; i < (int)REC2_ASIZE(pCar_spec->wheel_actors); i++) {
+        br_actor* wheel_actor = pCar_spec->wheel_actors[i];
+        tUser_crush_data* user_crush_data;
+        br_model* wheel_model;
+        br_matrix34 wheel_to_car;
+        br_bounds3 wheel_bounds;
+        int j;
+
+        if (wheel_actor == NULL) {
+            continue;
+        }
+        user_crush_data = wheel_actor->user;
+        if (user_crush_data == NULL) {
+            continue;
+        }
+        wheel_model = user_crush_data->models[0];
+        if (wheel_model == NULL) {
+            continue;
+        }
+        BrActorToActorMatrix34(&wheel_to_car, wheel_actor, pCar_spec->car_model_actor);
+        BrVector3Add(&wheel_bounds.min, &wheel_model->bounds.min, (br_vector3*)wheel_to_car.m[3]);
+        BrVector3Add(&wheel_bounds.max, &wheel_model->bounds.max, (br_vector3*)wheel_to_car.m[3]);
+        for (j = 0; j < 3; j++) {
+            if (!(wheel_bounds.min.v[j] >= wheel_all_bounds.min.v[j])) {
+                wheel_all_bounds.min.v[j] = wheel_bounds.min.v[j];
+            } else if (wheel_bounds.max.v[j] > wheel_all_bounds.max.v[j]) {
+                wheel_all_bounds.max.v[j] = wheel_bounds.max.v[j];
+            }
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        int j;
+
+        for (j = 0; j < pCar_crush->count_limits.counts[i][0]; j++) {
+            pCar_crush->field_0xbc.limits[i][0].values[j] = pCar_crush->limits.limits[i][0].values[j];
+        }
+        pCar_crush->field_0xbc.limits[i][0].values[j] = wheel_all_bounds.max.v[i];
+        pCar_crush->field_0xa4.counts[i][0] = j + 1;
+        for (j = 0; j < pCar_crush->count_limits.counts[i][1]; j++) {
+            pCar_crush->field_0xbc.limits[i][1].values[j] = pCar_crush->limits.limits[i][1].values[j];
+        }
+        pCar_crush->field_0xbc.limits[i][1].values[j] = wheel_all_bounds.min.v[i];
+        pCar_crush->field_0xa4.counts[i][1] = j + 1;
+    }
+    for (i = 0; i < 3; i++) {
+        qsort(pCar_crush->field_0xbc.limits[i][0].values, pCar_crush->field_0xa4.counts[i][0], sizeof(float), DecreasingCompare);
+        qsort(pCar_crush->field_0xbc.limits[i][1].values, pCar_crush->field_0xa4.counts[i][1], sizeof(float), IncreasingCompare);
+    }
+    for (i = 0; i < pCar_crush->count_shapes; i++) {
+        int j;
+        tCar_crush_shape_info* shape_info = &pCar_crush->field_0x4[i];
+
+        for (j = 0; j < shape_info->count_points; j++) {
+            int failed;
+
+            shape_info->field_0x18[j].field_0x28 = CrushLimitNumber(&shape_info->field_0x18[j].field_0x0, &pCar_crush->field_0xbc, &pCar_crush->field_0xa4, &failed);
+            if (failed != 0) {
+                shape_info->field_0x18[j].field_0x24 = 0.0f;
+            } else {
+                shape_info->field_0x18[j].field_0x24 = SoftnessOfNearestPoint(pCar_spec, &shape_info->field_0x18[j].field_0x0);
+            }
+        }
+    }
+}
 
 // CopyShapePolyhedron
 
 // InitShapeStuff
 
-// InitPhysMasterCrushData
+// FUNCTION: CARMA2_HW 0x0042ad10
+void C2_HOOK_FASTCALL InitPhysMasterCrushData(tCar_spec* pCar_spec) {
+    tCar_crush_spec* car_crush;
+    tPhysics_object* collision_info;
+    int i;
+
+    car_crush = pCar_spec->car_crush_spec;
+    collision_info = pCar_spec->collision_info;
+    if (car_crush == NULL || collision_info == NULL) {
+        return;
+    }
+    for (i = 0; i < 3; i++) {
+        car_crush->limits.limits[i][0].values[car_crush->count_limits.counts[i][0]] = collision_info->bb1.min.v[i] - 0.02898551f;
+        car_crush->limits.limits[i][1].values[car_crush->count_limits.counts[i][1]] = collision_info->bb1.max.v[i] + 0.02898551f;
+        car_crush->count_limits.counts[i][0] += 1;
+        car_crush->count_limits.counts[i][1] += 1;
+    }
+    {
+        tPhysics_shape* shape;
+        int j;
+
+        car_crush->count_shapes = 0;
+        for (shape = collision_info->shape; shape != NULL; shape = shape->common.next) {
+            car_crush->count_shapes += 1;
+        }
+        car_crush->field_0x4 = BrMemAllocate(car_crush->count_shapes * sizeof(tCar_crush_shape_info), kMem_crush_data);
+        for (i = 0, shape = collision_info->shape; shape != NULL; shape = shape->common.next, i++) {
+            tCar_crush_shape_info* crush_shape_info = &car_crush->field_0x4[i];
+            tCollision_shape_polyhedron* dest;
+
+            crush_shape_info->count_points = shape->polyhedron.polyhedron.count_points;
+            crush_shape_info->count_points_add_8 = crush_shape_info->count_points + 8;
+            crush_shape_info->field_0x0 = AllocateShapePolyhedron(crush_shape_info->count_points_add_8, kMem_crush_data);
+            dest = crush_shape_info->field_0x0;
+            dest->common.type = kCollisionShapeType_Polyhedron;
+            dest->polyhedron.count_points = shape->polyhedron.polyhedron.count_points;
+            for (j = 0; j < shape->polyhedron.polyhedron.count_points; j++) {
+                BrVector3Copy(&dest->polyhedron.points[j], &shape->polyhedron.polyhedron.points[j]);
+            }
+            FillInShape((tPhysics_shape*)dest);
+            crush_shape_info->field_0x4 = AllocateShapePolyhedron(crush_shape_info->count_points_add_8, kMem_crush_data);
+            crush_shape_info->field_0x18 = BrMemAllocate(crush_shape_info->count_points_add_8 * sizeof(tCar_crush_reordered_shape_info), kMem_crush_data);
+            for (j = 0; j < crush_shape_info->count_points; j++) {
+                BrVector3Copy(&crush_shape_info->field_0x18[j].field_0x0, &shape->polyhedron.polyhedron.points[j]);
+                BrVector3Copy(&crush_shape_info->field_0x18[j].field_0xc, &crush_shape_info->field_0x18[j].field_0x0);
+                BrVector3Copy(&crush_shape_info->field_0x18[j].field_0x18, &crush_shape_info->field_0x18[j].field_0x0);
+            }
+            crush_shape_info->field_0x8 = 0;
+        }
+        car_crush->field_0xc = collision_info->shape;
+        collision_info->shape = (tPhysics_shape*)car_crush->field_0x4->field_0x0;
+        for (i = 0; i < car_crush->count_shapes - 1; i++) {
+            car_crush->field_0x4[i].field_0x0->common.next = (tPhysics_shape*)car_crush->field_0x4[i + 1].field_0x0;
+        }
+        car_crush->field_0x4[car_crush->count_shapes - 1].field_0x0->common.next = NULL;
+        car_crush->expand_bounding_box = 0;
+        SetUpShapeLimitingStuff(car_crush, pCar_spec);
+        if (gNet_mode != eNet_mode_none) {
+            car_crush->field_0x24 = 0;
+            car_crush->field_0x26 = 0;
+            if (gNet_mode == eNet_mode_host) {
+                car_crush->network_stuff = BrMemAllocate(sizeof(tCar_crush_network_shapes), kMem_crush_data);
+                for (i = 1; i < gNumber_of_net_players; i++) {
+                    car_crush->network_stuff->items[i - 1].network_id = gNet_players[i].ID;
+                    car_crush->network_stuff->items[i - 1].field_0x4 = 0;
+                }
+            }
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        car_crush->field_0x564[i] = AllocateShapeWireFrame(2, 1, kMem_crush_data);
+        BrVector3InvScale(&car_crush->field_0x564[i]->wireframe.points[0], &pCar_spec->wpos[i], WORLD_SCALE);
+        BrVector3InvScale(&car_crush->field_0x564[i]->wireframe.points[1], &pCar_spec->wpos[i], WORLD_SCALE);
+        car_crush->field_0x564[i]->wireframe.points[1].v[1] = 0.f;
+        car_crush->field_0x564[i]->wireframe.lines[0].index1 = 0;
+        car_crush->field_0x564[i]->wireframe.lines[0].index2 = 1;
+
+        FillInShape((tPhysics_shape*)car_crush->field_0x564[i]);
+    }
+    car_crush->actor->user = pCar_spec;
+    car_crush->field_0x574 = 0;
+    for (i = 0; ; i++) {
+        int c = tolower(pCar_spec->name[i]);
+        if (c == 0) {
+            break;
+        }
+        car_crush->field_0x574 *= 2;
+        car_crush->field_0x574 += c;
+        car_crush->field_0x574 &= 0xffff;
+    }
+}
 
 // CheckHingePointOrder
 

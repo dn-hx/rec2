@@ -86,13 +86,13 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pAc
 
 // SoftnessOfNearestPoint
 
-// SetUpShapeLimitingStuff
+extern void C2_HOOK_FASTCALL SetUpShapeLimitingStuff(tCar_crush_spec* pCar_crush, tCar_spec* pCar_spec);
 
 // CopyShapePolyhedron
 
 // InitShapeStuff
 
-// InitPhysMasterCrushData
+extern void C2_HOOK_FASTCALL InitPhysMasterCrushData(tCar_spec* pCar_spec);
 
 // CheckHingePointOrder
 
