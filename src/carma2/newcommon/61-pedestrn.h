@@ -83,7 +83,7 @@ extern void C2_HOOK_FASTCALL PedApplyPedDir(tU32 pId, const br_vector3* pDir);
 
 // SetPedStartRun
 
-// PedApplyPedMove
+extern void C2_HOOK_FASTCALL PedApplyPedMove(tPedestrian* pPed, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38);
 
 // PedUndoPedMove
 

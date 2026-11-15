@@ -391,7 +391,7 @@ extern void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk);
 
-// ApplyPedMove
+extern void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk);
 
 // ApplyPedPhysics
 
@@ -536,5 +536,22 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tU8 field_0x8;
+    tU8 field_0x9;
+    tS16 field_0xa;
+    int field_0xc;
+    int field_0x10;
+    int field_0x14;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    int field_0x30;
+    int field_0x34;
+    br_vector3 field_0x38;
+} tPipe_chunk_ped_move;
 
 #endif // GUARD_23_PIPING_H
