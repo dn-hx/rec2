@@ -422,17 +422,17 @@ void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
 
     ReinitialiseRenderStuff();
     if (gMap_view == 2) {
-        gRender_screen->base_x = (br_uint_16)gMap_render_x_i;
-        gRender_screen->base_y = (br_uint_16)gMap_render_y_i;
-        gRender_screen->width = (br_uint_16)gMap_render_width_i;
-        gRender_screen->height = (br_uint_16)gMap_render_height_i;
+        gRender_screen->base_x = gMap_render_x_i;
+        gRender_screen->base_y = gMap_render_y_i;
+        gRender_screen->width = gMap_render_width_i;
+        gRender_screen->height = gMap_render_height_i;
     } else {
-        gRender_screen->base_x = (br_uint_16)gProgram_state.current_render_left;
-        gRender_screen->base_y = (br_uint_16)gProgram_state.current_render_top;
-        gRender_screen->height = (br_uint_16)(gProgram_state.current_render_bottom - gProgram_state.current_render_top);
-        gRender_screen->width = (br_uint_16)(gProgram_state.current_render_right - gProgram_state.current_render_left);
+        gRender_screen->base_x = gProgram_state.current_render_left;
+        gRender_screen->base_y = gProgram_state.current_render_top;
+        gRender_screen->height = gProgram_state.current_render_bottom - gProgram_state.current_render_top;
+        gRender_screen->width = gProgram_state.current_render_right - gProgram_state.current_render_left;
     }
-    if (gRender_screen->row_bytes != gRender_screen->width) {
+    if (gRender_screen->width != gRender_screen->row_bytes) {
         gRender_screen->flags &= ~BR_PMF_ROW_WHOLEPIXELS;
     } else {
         gRender_screen->flags |= BR_PMF_ROW_WHOLEPIXELS;
@@ -442,23 +442,9 @@ void C2_HOOK_FASTCALL AdjustRenderScreenSize(void) {
     gWidth = gRender_screen->width;
     gHeight = gRender_screen->height;
     ReinitialiseForwardCamera();
-#ifdef REC2_HW
-    SetTintedPolySize(gHud_tinted1,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-    SetTintedPolySize(gHud_tinted2,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-    SetTintedPolySize(gHud_tinted4,
-        gRender_screen->base_x,
-        gRender_screen->base_y,
-        gRender_screen->width,
-        gRender_screen->height);
-#endif
+    SetTintedPolySize(gHud_tinted1, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted2, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
+    SetTintedPolySize(gHud_tinted4, gRender_screen->base_x, gRender_screen->base_y, gRender_screen->width, gRender_screen->height);
 }
 
 // FUNCTION: CARMA2_HW 0x004e4cd0
