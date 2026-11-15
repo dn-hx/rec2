@@ -167,6 +167,7 @@ int C2_HOOK_FASTCALL CheckPixOutdated(const char* pDirectory, const char* pStem,
     }
 }
 
+// PARTIAL 10.67%: LoadTiffTexture_Ex2 0x00485750 - high-level wrapper structure differs from original inline implementation (see state/findings/LoadTiffTexture_Ex2.md)
 // FUNCTION: CARMA2_HW 0x00485750
 br_pixelmap* C2_HOOK_FASTCALL LoadTiffTexture_Ex2(const char* pDirectory, const char* pFile_stem, br_pixelmap* pPalette, int pFlags, int* pError_code, int pTiff_palette) {
     tPath_name tif_path;
