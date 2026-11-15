@@ -422,10 +422,9 @@ intptr_t C2_HOOK_CDECL FoundAnActor(br_actor* pActor, void* pContext) {
 // FUNCTION: CARMA2_HW 0x0040e000
 // FUNCTION: CARMA2_SW 0x0040dfe0
 int C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, float pMax_dist, int pMatch_type, char pIdentifier_value, tS8 pIdentifier_index, tU16 pMatch_flags, tNearbyActors_cbfn* pCallback, void* pContext) {
-
     tFoundAnActor_context found_an_actor_context;
-    float p;
-    float column_origin;
+    float p, q;
+    unsigned int result;
     int x, xmin, xmax;
     int z, zmin, zmax;
 
@@ -437,48 +436,50 @@ int C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, 
     found_an_actor_context.callback_context = pContext;
     found_an_actor_context.callback = pCallback;
     found_an_actor_context.max_dist_axis = pMax_dist;
+
     x = (int)((pPos->v[0] - pTrack->origin_x) / pTrack->column_size_x);
     found_an_actor_context.max_dist_squared = pMax_dist * pMax_dist;
-    column_origin = pTrack->origin_x + (float)x * pTrack->column_size_x;
-    p = column_origin;
+    q = (float)x * pTrack->column_size_x + pTrack->origin_x;
+    p = q;
     xmin = x;
     while (p + pMax_dist > pPos->v[0]) {
         if (xmin == 0) {
             break;
         }
         p -= pTrack->column_size_x;
-        xmin -= 1;
+        xmin--;
     }
-    p = pTrack->column_size_x + column_origin;
+    p = q + pTrack->column_size_x;
     xmax = x;
-    while (pPos->v[0] + pMax_dist > p) {
+    while (p < pPos->v[0] + pMax_dist) {
         if (xmax + 1 >= pTrack->ncolumns_x) {
             break;
         }
         p += pTrack->column_size_x;
-        xmax += 1;
+        xmax++;
     }
 
     z = (int)((pPos->v[2] - pTrack->origin_z) / pTrack->column_size_z);
-    column_origin = pTrack->origin_z + (float)z * pTrack->column_size_z;
-    p = column_origin;
+    q = (float)z * pTrack->column_size_z + pTrack->origin_z;
+    p = q;
     zmin = z;
     while (p + pMax_dist > pPos->v[2]) {
         if (zmin == 0) {
             break;
         }
         p -= pTrack->column_size_z;
-        zmin -= 1;
+        zmin--;
     }
-    p = pTrack->column_size_z + column_origin;
+    p = q + pTrack->column_size_z;
     zmax = z;
-    while (pPos->v[2] + pMax_dist > p) {
+    while (p < pPos->v[2] + pMax_dist) {
         if (zmax + 1 >= pTrack->ncolumns_z) {
             break;
         }
         p += pTrack->column_size_z;
-        zmax += 1;
+        zmax++;
     }
+
     if (xmin < 0) {
         xmin = 0;
     } else if (xmin >= pTrack->ncolumns_x) {
@@ -503,9 +504,9 @@ int C2_HOOK_FASTCALL ProcessNearbyActors(tTrack_spec* pTrack, br_vector3* pPos, 
     for (x = xmin; x <= xmax; x++) {
         for (z = zmin; z <= zmax; z++) {
             if (pTrack->columns[z][x].actor_0x0 != NULL) {
-                p = (float)(tU32)DRActorEnumRecurse(pTrack->columns[z][x].actor_0x0, FoundAnActor, &found_an_actor_context);
-                if (p != 0.0f) {
-                    return (int)p;
+                result = DRActorEnumRecurse(pTrack->columns[z][x].actor_0x0, FoundAnActor, &found_an_actor_context);
+                if ((float)result != 0.0f) {
+                    return (intptr_t)(float)result;
                 }
             }
         }
