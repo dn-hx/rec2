@@ -538,3 +538,5 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 // CalcRemoveFacesLength
 
 #endif // GUARD_23_PIPING_H
+
+extern void C2_HOOK_FASTCALL PipeSingleSkidAdjustment__2(uintptr_t pOwner, void* pData, tU32 pArg3);
