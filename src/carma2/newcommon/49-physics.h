@@ -172,7 +172,7 @@ extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject
 
 // MoveJointedObject
 
-// TellPhysicsJointsHaveChanged
+extern void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pObject);
 
 // CombineBounds
 
