@@ -28,6 +28,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "57-drone.h"
 
 #include <s3/internal/audio.h>
 
@@ -1842,7 +1843,12 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+// FUNCTION: CARMA2_HW 0x004c9cd0
+void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_corner_pos* chunk = (tPipe_chunk_drone_corner_pos*)*pChunk;
+
+    return ApplyDroneCornerPos2(chunk->field_0x0, chunk->field_0x4, chunk->field_0x6, chunk->field_0x8, (const tCompressed_matrix34*)&chunk->field_0xa);
+}
 
 // ApplyDroneStraightPos
 
