@@ -18,6 +18,7 @@
 #include "rec2_macros.h"
 
 #include "c2_stdio.h"
+#include "52-errors.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 // GLOBAL: CARMA2_SW 0x0058c180
@@ -249,7 +250,60 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
 
 // CreateHorizonModel
 
-// LoadDepthTable
+static int Log2(int pNumber) {
+    int i;
+    int bits[16];
+
+    bits[0] = 1;
+    bits[1] = 2;
+    bits[2] = 4;
+    bits[3] = 8;
+    bits[4] = 16;
+    bits[5] = 32;
+    bits[6] = 64;
+    bits[7] = 128;
+    bits[8] = 256;
+    bits[9] = 512;
+    bits[10] = 1024;
+    bits[11] = 2048;
+    bits[12] = 4096;
+    bits[13] = 0x2000;
+    bits[14] = 0x4000;
+    bits[15] = 0x8000;
+    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
+        if (bits[i] & pNumber) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    tPath_name the_path;
+    int i;
+    int j;
+    tU8 temp;
+
+#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
+
+    PathCat(the_path, gApplication_path, "SHADETAB");
+    PathCat(the_path, the_path, pName);
+    *pTable = DRPixelmapLoad(the_path);
+    if (*pTable == NULL) {
+        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
+    }
+    *pPower = Log2((*pTable)->height);
+    for (i = 0; i < (*pTable)->width; i++) {
+        for (j = 0; j < (*pTable)->height / 2; j++) {
+            temp = PTABLE_PIXEL_AT(i, j);
+            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
+            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
+        }
+    }
+
+#undef PTABLE_PIXEL_AT
+}
 
 // STUB: CARMA2_HW 0x00445620
 // STUB: CARMA2_SW 0x00445450
