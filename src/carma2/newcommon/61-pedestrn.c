@@ -1059,7 +1059,31 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 
 // RepulseIt
 
-// DoPedestrianRepulsifictor
+// FUNCTION: CARMA2_HW 0x004ce280
+int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
+    struct {
+        float f0;
+        float f1;
+        float f2;
+        float f3;
+    } data;
+    int res;
+
+    data.f0 = pF0;
+    data.f1 = pF1;
+    data.f2 = pF2;
+    data.f3 = pF3;
+    res = DoToPeds(pCar, 1, pF3, 1, &data, (tForEachPedestrian_cbfn*)RepulsePedestrian);
+    if (res != 0) {
+        if (pCar != NULL && pCar->driver == eDriver_local_human) {
+            DRS3StartSound(gCar_outlet, 0x1324);
+            return 1;
+        }
+        DRS3StartSound3D(gCar_outlet, 0x1324, &pCar->pos, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+        return 1;
+    }
+    return 0;
+}
 
 // CompileBurnableList
 
