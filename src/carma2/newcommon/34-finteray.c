@@ -436,10 +436,67 @@ int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollisi
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00461520
+// FUNCTION: CARMA2_HW 0x00461520
 // STUB: CARMA2_SW 0x00460fc0
 int C2_HOOK_FASTCALL LinePolyCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    int result;
+    int i;
+    int count;
+    float dist[64];
+    br_scalar len;
+    int idx;
+    tCollision_shape_polyhedron_data* poly;
+
+    poly = &pShape->polyhedron;
+    result = LinePolyColl(pStart, pEnd, poly, pPoint, 0.0f, pT);
+    i = 0;
+    if (result != i) {
+        if (result < i) {
+            BrVector3SetFloat(pNormal, 1.0f, 0.0f, 0.0f);
+            return result;
+        }
+        idx = (result & 0x3f) - 1;
+        pNormal->v[0] = pShape->polyhedron.planes[idx].v[0];
+        pNormal->v[1] = pShape->polyhedron.planes[idx].v[1];
+        pNormal->v[2] = pShape->polyhedron.planes[idx].v[2];
+        return result;
+    }
+    for (; i < poly->count_planes; i++) {
+        dist[i] = poly->planes[i].v[0] * pEnd->v[0] + poly->planes[i].v[1] * pEnd->v[1] + poly->planes[i].v[2] * pEnd->v[2] + poly->planes[i].v[3];
+        if (dist[i] < -0.005f) {
+            return 0;
+        }
+    }
+    count = 0;
+    pNormal->v[0] = 0.0f;
+    pNormal->v[1] = 0.0f;
+    pNormal->v[2] = 0.0f;
+    for (i = 0; i < poly->count_planes; i++) {
+        if (dist[i] < 0.0f) {
+            count++;
+            pNormal->v[0] = poly->planes[i].v[0] + pNormal->v[0];
+            pNormal->v[1] = poly->planes[i].v[1] + pNormal->v[1];
+            pNormal->v[2] = poly->planes[i].v[2] + pNormal->v[2];
+        }
+    }
+    if (count > 1) {
+        len = (br_scalar)sqrt(pNormal->v[0] * pNormal->v[0] + pNormal->v[2] * pNormal->v[2] + pNormal->v[1] * pNormal->v[1]);
+        if (len <= 2.3841858e-07f) {
+            pNormal->v[0] = 1.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
+        } else {
+            len = 1.0f / len;
+            pNormal->v[0] = len * pNormal->v[0];
+            pNormal->v[1] = pNormal->v[1] * len;
+            pNormal->v[2] = pNormal->v[2] * len;
+        }
+    }
+    pPoint->v[0] = pEnd->v[0];
+    pPoint->v[1] = pEnd->v[1];
+    pPoint->v[2] = pEnd->v[2];
+    *pT = 1.0f;
+    return 0x40;
 }
 
 #ifdef REC2_MATCHING
