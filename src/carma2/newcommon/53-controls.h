@@ -218,3 +218,5 @@ extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);
 extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 
 #endif // GUARD_53_CONTROLS_H
+
+extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
