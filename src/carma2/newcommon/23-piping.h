@@ -537,4 +537,11 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
 
+typedef struct {
+    int field_0x0;
+    tU32 field_0x4;
+} tPipe_chunk_frame_bound;
+
 #endif // GUARD_23_PIPING_H
+
+extern void C2_HOOK_FASTCALL ApplyReplayFrameTime(tPipe_chunk** pChunk);
