@@ -813,7 +813,33 @@ void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4 pType)
 
 // PedUndoGibShower
 
-// DoGiblets
+// FUNCTION: CARMA2_HW 0x004ccff0
+void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
+    tU32 time;
+    int seed;
+    br_vector3 vec;
+    tPhysics_object* object;
+
+    if (gGoreLevel <= 0) {
+        return;
+    }
+    time = GetTotalTime();
+    if (pArg4 > 0.5) {
+        Explode(&gPed_large_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    } else if (pArg4 > 0.25) {
+        Explode(&gPed_medium_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    } else if (pArg4 > 0.05) {
+        Explode(&gPed_explosion_small_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    }
+    seed = (int)pArg5->v[2] ^ (int)pArg5->v[1] ^ time ^ (int)pOpt_speed_object ^ (int)pPed ^ (int)pArg5->v[0];
+    object = (pOpt_speed_object == NULL) ? pObject : pOpt_speed_object;
+    vec.v[0] = object->v.v[0] * 6.9;
+    vec.v[1] = object->v.v[1] * 6.9;
+    vec.v[2] = object->v.v[2] * 6.9;
+    DoGibShower(gGib_shower_id, time, seed, pArg4, pArg6, &pPed->pos, pArg5, &vec);
+    PipeSingleGibShower(gGib_shower_id, time, seed, *(int*)&pArg4, pArg6, &pPed->pos, pArg5, &vec);
+    gGib_shower_id--;
+}
 
 void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_vector3* pPosition, br_vector3* pImpactee_velocity, br_vector3* pNormal) {
     int seed;
@@ -999,7 +1025,43 @@ void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight)
     AwardTime(gPed_times[gProgram_state.skill_level]);
 }
 
-// KillPedestrian
+#define GET_PED_COLLISION_OBJECT(PED) ( ((PED)->character->field_0x14 & 1) ? (PED)->character->personality->form->simple_physicing[(PED)->character->field_0x5].collision_info : GetRootObject((PED)->character))
+
+// FUNCTION: CARMA2_HW 0x004cce70
+void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    tPed_character_instance* character;
+    int head_bone;
+
+    if (GET_PED_COLLISION_OBJECT(pPed)->last_special_volume == NULL
+            || GET_PED_COLLISION_OBJECT(pPed)->last_special_volume->gravity_multiplier >= 1.f) {
+        if (gGoreLevel > 0) {
+            character = pPed->character;
+            if (character->field_0x4 >= 0) {
+                PipeSinglePedModelChange(character->ped, -1, NULL, -1, GetCharacterModelSet(character), 1);
+                SetCharacterAllBonesModel(character, 0, 1);
+            }
+            character = pPed->character;
+            head_bone = character->personality->form->index_head_bone;
+            if (character->field_0x4 >= 0) {
+                if (head_bone < 0) {
+                    PipeSinglePedModelChange(character->ped, head_bone, NULL, -1, GetCharacterModelSet(character), 1);
+                    SetCharacterAllBonesModel(character, 2, 1);
+                } else {
+                    PipeSinglePedModelChange(character->ped, head_bone,
+                        GetCharacterBoneModel(character, head_bone), 2,
+                        GetCharacterModelSet(character), 1);
+                    SetCharacterBoneModel(character, head_bone, 2, 1);
+                }
+            }
+            if (pPed->field_0x0c != NULL) {
+                pPed->field_0x0c->field_0x1c = NULL;
+            }
+            DoGiblets(pPed, GET_PED_COLLISION_OBJECT(pPed), pCollision_info, 0.4f, &pPed->pos, 1);
+        }
+    }
+    OneLessPed(pPed);
+    ScoreForKilledPedestrian(pPed, 0.f);
+}
 
 // FUNCTION: CARMA2_HW 0x004cd9e0
 // FUNCTION: CARMA2_SW 0x004ca0e0
