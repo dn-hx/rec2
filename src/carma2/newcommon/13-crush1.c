@@ -1024,7 +1024,21 @@ void C2_HOOK_FASTCALL DisposeVertexData(tModel_detail_vertex_data* pVertex_data)
 
 // BuckleTheBugger
 
-// OutsideEdgeLine
+// FUNCTION: CARMA2_HW 0x0042cc40
+int C2_HOOK_FASTCALL OutsideEdgeLine(const br_vector3* pPoint, const br_vector3* pA, const br_vector3* pDirection, const br_vector3* pInside) {
+    br_vector3 direction;
+    br_vector3 offset;
+    br_vector3 inside_offset;
+
+    BrVector3Normalise(&direction, pDirection);
+    BrVector3Sub(&offset, pPoint, pA);
+    direction.v[0] *= BrVector3Dot(&offset, &direction);
+    direction.v[1] *= BrVector3Dot(&offset, &direction);
+    direction.v[2] *= BrVector3Dot(&offset, &direction);
+    BrVector3Sub(&offset, &offset, &direction);
+    BrVector3Sub(&inside_offset, pInside, pA);
+    return !(BrVector3Dot(&offset, &inside_offset) >= 0.0f);
+}
 
 // PointTriangleDistSq
 
