@@ -294,6 +294,25 @@ int C2_HOOK_FASTCALL PFungetc(int ch, FILE* pFile) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004b48c0
+int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile) {
+    tTwatVfsFile* twtFile;
+    int result;
+
+    if ((int)pFile < REC2_ASIZE(gTwatVfsFiles)) {
+        twtFile = &gTwatVfsFiles[(uintptr_t)pFile];
+        if (twtFile->pos >= twtFile->end) {
+            twtFile->error = -1;
+            return EOF;
+        }
+        twtFile->error = 0;
+        result = *twtFile->pos;
+        twtFile->pos++;
+        return result;
+    }
+    return fgetc(pFile);
+}
+
 // FUNCTION: CARMA2_HW 0x004b49f0
 br_size_t C2_HOOK_FASTCALL PFfread(void* buf, br_size_t size, unsigned int n, void* f) {
     int read_size;

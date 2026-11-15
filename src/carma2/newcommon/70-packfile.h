@@ -26,6 +26,8 @@ extern char* C2_HOOK_FASTCALL PFfgets(char* buffer, br_size_t size, FILE* pFile)
 
 extern int C2_HOOK_FASTCALL PFungetc(int ch, FILE* file);
 
+extern int C2_HOOK_FASTCALL DRfgetc2(FILE* pFile);
+
 extern br_size_t C2_HOOK_FASTCALL PFfread(void* buf, br_size_t size, unsigned int n, void* f);
 
 extern int C2_HOOK_FASTCALL PFfwrite(const void* buf, br_size_t size, unsigned int n, void* f);
