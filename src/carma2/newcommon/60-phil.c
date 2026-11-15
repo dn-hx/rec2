@@ -462,7 +462,57 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
 
 // ProcessGravity
 
-// LevelOutOnSurface
+// FUNCTION: CARMA2_HW 0x004b6fb0
+void C2_HOOK_FASTCALL LevelOutOnSurface(tPhysics_object* pObject) {
+    br_scalar v0;
+    br_scalar v1;
+    br_scalar v2;
+    br_scalar dot;
+    br_scalar p1;
+    br_scalar tv;
+    br_scalar px;
+    br_scalar py;
+    br_scalar pz;
+    br_vector3 n;
+    br_vector3 u;
+
+    if (pObject->I.v[0] > pObject->I.v[1] && pObject->I.v[0] > pObject->I.v[2]) {
+        v0 = pObject->actor->t.t.mat.m[0][0];
+        v1 = pObject->actor->t.t.mat.m[0][1];
+        v2 = pObject->actor->t.t.mat.m[0][2];
+    } else if (pObject->I.v[1] > pObject->I.v[2] && pObject->I.v[1] > pObject->I.v[0]) {
+        v0 = pObject->actor->t.t.mat.m[1][0];
+        v1 = pObject->actor->t.t.mat.m[1][1];
+        v2 = pObject->actor->t.t.mat.m[1][2];
+    } else {
+        v0 = pObject->actor->t.t.mat.m[2][0];
+        v1 = pObject->actor->t.t.mat.m[2][1];
+        v2 = pObject->actor->t.t.mat.m[2][2];
+    }
+
+    n.v[0] = -1.0f * v0;
+    n.v[1] = -1.0f * v1;
+    n.v[2] = -1.0f * v2;
+
+    dot = pObject->water_normal.v[2] * n.v[2] + pObject->water_normal.v[0] * n.v[0] + pObject->water_normal.v[1] * n.v[1];
+
+    if (dot > -0.99) {
+        px = pObject->water_normal.v[1] * n.v[2] - pObject->water_normal.v[2] * n.v[1];
+        py = pObject->water_normal.v[2] * n.v[0] - pObject->water_normal.v[0] * n.v[2];
+        pz = pObject->water_normal.v[0] * n.v[1] - pObject->water_normal.v[1] * n.v[0];
+        p1 = dot + 1.0f;
+        tv = sqrt(px * px + py * py + pz * pz);
+        u.v[0] = px * (p1 / tv);
+        tv = sqrt(pz * pz + py * py + u.v[0] * u.v[0]);
+        u.v[1] = py * (p1 / tv);
+        tv = sqrt(u.v[1] * u.v[1] + pz * pz + u.v[0] * u.v[0]);
+        u.v[2] = pz * (p1 / tv);
+        BrMatrix34TApplyV(&n, &u, &pObject->actor->t.t.mat);
+        pObject->omega.v[0] += n.v[0];
+        pObject->omega.v[1] += n.v[1];
+        pObject->omega.v[2] += n.v[2];
+    }
+}
 
 // PHILMungeObjects
 
