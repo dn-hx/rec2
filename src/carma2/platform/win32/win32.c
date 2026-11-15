@@ -434,17 +434,13 @@ C2_NORETURN void C2_HOOK_FASTCALL PDShutdownSystem(void) {
     // GLOBAL: CARMA2_HW 0x006ad4d8
     static int been_here;
 
-#ifdef REC2_HW
     gBack_screen = NULL;
-#endif
     if (been_here) {
-#ifdef REC2_HW
         PDCloseReplayFile();
-#endif
         ExitProcess(702);
     } else {
         been_here = 1;
-        dr_dprintf("PDShutdownSystem()...");
+        dr_dprintf("PDShutdownSystem()");
         SSDXStop();
         SSDXRelease();
         CloseDirectInput();
