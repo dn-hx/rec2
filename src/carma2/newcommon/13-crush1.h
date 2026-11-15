@@ -212,7 +212,7 @@ extern void C2_HOOK_FASTCALL SetFlappage(br_actor* pActor, tCar_spec* pCar, int 
 
 // RemoveNonCar
 
-// GetNonCar
+extern tCrush_info* C2_HOOK_FASTCALL GetNonCar(tCrush_info_buffer* pInfo_buffer, br_actor* pActor, tCar_spec* pCar);
 
 // GetNonCarObject
 
