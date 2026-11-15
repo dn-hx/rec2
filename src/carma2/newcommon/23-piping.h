@@ -465,7 +465,7 @@ extern void C2_HOOK_FASTCALL UndoFlap(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
 
 extern void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoRelink
+extern void C2_HOOK_FASTCALL UndoRelink(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoSplitWeld
 
@@ -536,5 +536,12 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    undefined4 field_0x0;
+    br_actor* actor;
+    undefined4 field_0x8;
+    br_actor* field_0xc;
+} tPipe_chunk_relink;
 
 #endif // GUARD_23_PIPING_H
