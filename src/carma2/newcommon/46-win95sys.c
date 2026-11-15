@@ -10,6 +10,7 @@
 
 #include "08-loading1.h"
 #include "platform.h"
+#include "52-errors.h"
 
 // FUN_100bf5a4
 
@@ -73,7 +74,34 @@ void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_len
 
 // BoldDefault1
 
-// PDFatalError
+// FUNCTION: CARMA2_HW 0x0051af20
+void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char *pThe_str) {
+    const char *str1;
+    const char *str2;
+
+    dr_dprintf("FATAL ERROR: %s", pThe_str);
+    str2 = "";
+    str1 = pThe_str;
+    if (str1 == NULL) {
+        str1 = "NULL str1";
+    }
+    if (str2 == NULL) {
+        str2 = "NULL str2";
+    }
+    gIsFatalError = 1;
+    sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
+
+    gExit_code = 700;
+    if (gBack_screen != NULL) {
+        if (gBack_screen->pixels != NULL) {
+            PossibleUnlock(1);
+        }
+    }
+    if (gBr_initialized) {
+        DRBrEnd();
+    }
+    PDShutdownSystem();
+}
 
 // PrefsError
 
