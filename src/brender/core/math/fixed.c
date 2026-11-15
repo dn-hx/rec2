@@ -1464,6 +1464,7 @@ br_uint_32 C2_HOOK_FASTCALL _BrISqrt64(uint64_t a) {
 
 // FUNCTION: CARMA2_HW 0x00537cba
 uint16_t C2_HOOK_CDECL _BrFastSqrt32(uint32_t v) {
+#ifndef REC2_MATCHING
     uint32_t exp;
 
     if (v == 0) {
@@ -1477,6 +1478,30 @@ uint16_t C2_HOOK_CDECL _BrFastSqrt32(uint32_t v) {
     v = (v << (32 - exp)) >> 24;
     v = fast_sqrt_table[v-0x40];
     return (v << 16) >> (32 - (exp >> 1));
+#else
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ebx
+        push ecx
+        mov ebx, dword ptr [ebp + 8]
+        xor eax, eax
+        bsr ecx, ebx
+        je fs32_done
+        or cl, 0x1
+        inc cl
+        ror ebx, cl
+        shr ebx, 0x18
+        mov bx, word ptr [ebx*2 + fast_sqrt_table - 128]
+        shr cl, 1
+        shld ax, bx, cl
+    fs32_done:
+        pop ecx
+        pop ebx
+        leave
+        ret
+    }
+#endif
 }
 
 // FUNCTION: CARMA2_HW 0x00537ce5
