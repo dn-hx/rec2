@@ -195,11 +195,11 @@ extern void C2_HOOK_FASTCALL CBDisposePersonality(tPed_personality* pPersonality
 
 extern void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4 pType);
 
-// DoGibShower
+extern void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSeed, float pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8);
 
 // PedApplyGibShower
 
-// PedUndoGibShower
+extern void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c);
 
 // DoGiblets
 

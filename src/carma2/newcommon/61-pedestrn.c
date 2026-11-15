@@ -807,11 +807,58 @@ void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4 pType)
     }
 }
 
-// DoGibShower
+// FUNCTION: CARMA2_HW 0x004ccb10
+void C2_HOOK_FASTCALL DoGibShower(volatile int pId, volatile int pTime, int pSeed, float pForce, int pSize_index, br_vector3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
+    int old_rand;
+    int i;
+    int j;
+    int max_instances;
+    tPed_giblet_size_spec* spec;
+
+    old_rand = rand();
+    srand(pSeed);
+    spec = &gGiblet_sizes[pSize_index];
+    for (i = pSize_index; i < gGiblet_size_count; i++, spec++) {
+        if (pForce < spec->min_force) {
+            continue;
+        }
+        max_instances = (int)((pForce - spec->min_force) / spec->instance_force - -1.0f);
+        if (max_instances > spec->max_count) {
+            max_instances = spec->max_count;
+        }
+        for (j = 0; j < max_instances; j++) {
+            tSmash_vertex* fragment;
+            float v;
+
+            fragment = FindShrapnelFragment(spec->models[IRandomBetween(0, spec->model_count - 1)], pTime, 2);
+            if (fragment == NULL) {
+                break;
+            }
+            v = SetInitPosition(fragment->actor, &gGiblet_initial_position, 0, (int)pArg6, (int)pArg7, 0, 0, 0);
+            SetShrapnelFragment(fragment, &gGiblet_initial_speed, pArg8, v, gGiblet_min_max_time, pTime, &gZero_vector__smash, 0, 0);
+        }
+    }
+    srand(old_rand);
+}
 
 // PedApplyGibShower
 
-// PedUndoGibShower
+// FUNCTION: CARMA2_HW 0x004ccc40
+void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
+    int i;
+    tSmash_vertex* fragment;
+    float delta_time;
+
+    DoGibShower(prev_0x0, prev_0xc, prev_0x8, prev_0x10, prev_0x4, prev_0x14, prev_0x20, prev_0x2c);
+    delta_time = (float)(field_0xc - prev_0xc);
+    for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
+        if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
+            fragment->field_0x34 = 0;
+            DoFragMovement(fragment, GetTotalTime(), delta_time);
+            fragment->field_0x34 = 1;
+        }
+    }
+}
 
 // DoGiblets
 
