@@ -65,3 +65,5 @@ extern float C2_HOOK_FASTCALL GetJoystickX(void);
 extern float C2_HOOK_FASTCALL GetJoystickY(void);
 
 #endif /* REC2_JOYSTICK_H */
+
+extern void C2_HOOK_FASTCALL ToggleJoystickYAxis(void);
