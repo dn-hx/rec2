@@ -357,7 +357,7 @@ extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk);
 
-// ApplyRelink
+extern void C2_HOOK_FASTCALL ApplyRelink(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk);
 
@@ -536,5 +536,12 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    undefined4 field_0x0;
+    br_actor* actor;
+    undefined4 field_0x8;
+    br_actor* field_0xc;
+} tPipe_chunk_relink;
 
 #endif // GUARD_23_PIPING_H
