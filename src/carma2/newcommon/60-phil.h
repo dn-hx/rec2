@@ -101,7 +101,7 @@ extern void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pOb
 
 // SetStandardGravity
 
-// ProcessGravity
+extern void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pGravity);
 
 // LevelOutOnSurface
 
