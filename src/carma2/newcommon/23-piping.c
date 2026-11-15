@@ -797,10 +797,24 @@ void C2_HOOK_FASTCALL AddSplashToPipingSession(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c7160
+// FUNCTION: CARMA2_HW 0x004c7160
 // STUB: CARMA2_SW 0x004c3890
 void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pObject, void* pSubject) {
-    NOT_IMPLEMENTED();
+    tU8 flag;
+    br_scalar water_d;
+
+    if (PHILGetObjectProperty(pObject, 6) != 0.0f) {
+        flag = 0xff;
+    } else {
+        flag = pObject->flags_0x238;
+    }
+    water_d = pObject->water_d;
+    *(volatile br_scalar*)&gFloat_pipe_union.f = water_d;
+    ARAddVariedDataToSession(0x3b, (uintptr_t)pSubject, 4,
+        1, 0, (*(int*)&flag) & 0xff,
+        4, 4, gFloat_pipe_union.u32,
+        0xc, 8, &pObject->water_normal,
+        0x18, 0x14, &pObject->bb2);
 }
 
 // AddCarToPipingSession
