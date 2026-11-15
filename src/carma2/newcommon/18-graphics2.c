@@ -716,7 +716,7 @@ void C2_HOOK_FASTCALL DimRectangleClipped(br_pixelmap* pPixelmap, int pLeft, int
     }
 }
 
-static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height);
+static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans);
 // FUNCTION: CARMA2_HW 0x0047cd40
 void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
     int width_div_2;
@@ -800,39 +800,55 @@ void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pi
             }
         }
     } else {
-        DR16BitPixelmapRotatedAndFeatheredCopy(pMat, pDest, pDest_x, pDest_y, pSrc, pSrc_x, pSrc_y, pSrc_width, pSrc_height);
+        DR16BitPixelmapRotatedAndFeatheredCopy(pMat, pDest, pDest_x, pDest_y, pSrc, pSrc_x, pSrc_y, pSrc_width, pSrc_height, pTrans);
     }
 }
 
 // DR8BitPixelmapRotatedAndFeatheredCopy
 
+// PARTIAL 24.60%: residual frame size (orig 0x1c vs ours 0x14), register allocation (ebx/edi vs ebp/esi/edi), constant ds:0x58a1e8 double 0.5 vs local qword, missing __ftol calls in inner loop. Open regions 0x47d0d0-0x47d1d9, 0x47d1f2-0x47d25e. See state/findings/DR16BitPixelmapRotatedAndFeatheredCopy.md
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x0047d0d0
-static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height) {
-    int width_div_2;
-    int height_div_2;
+static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
+    int half_width;
+    int half_height;
     int dy;
-    int width;
-    tU16* ptr_write;
+    int dx;
+    int dest_y;
+    int src_x;
+    int src_y;
+    int src_word_row;
+    float row_start_x;
+    float row_start_y;
+    float half_src_height;
     float src_f_x;
     float src_f_y;
+    tU16* ptr_write;
+    tU16 pixel;
+    int dummy_for_frame;
 
-    width_div_2 = pSrc_width / 2;
-    height_div_2 = pSrc_height / 2;
-    for (dy = -height_div_2; dy < height_div_2; dy++, pDest_y++) {
-        src_f_x = (float)pSrc_x - (pMat->m[0][0] * (float)width_div_2 + pMat->m[0][1] * (float)dy);
-        src_f_y = (float)pSrc_y + (pMat->m[1][0] * (float)width_div_2 + pMat->m[1][1] * (float)dy) + (float)pSrc_height / 2.f;
-        if (-width_div_2 < width_div_2) {
-            width = width_div_2 * 2;
-            ptr_write = (tU16*)((tU8*)pDest->pixels + pDest_y * pDest->row_bytes) + pDest_x;
-            do {
-                *ptr_write++ = *((tU16*)((tU8*)pSrc->pixels + (((int)src_f_y * pSrc->row_bytes) / 2) * 2) + width_div_2 + (int)src_f_x);
-                width--;
-                src_f_x += pMat->m[0][0];
-                src_f_y -= pMat->m[1][0];
-            } while (width != 0);
+    (void)pTrans;
+    (void)dummy_for_frame;
+    half_width = pSrc_width / 2;
+    half_height = pSrc_height / 2;
+    half_src_height = (float)(pSrc_height * 0.5);
+    row_start_x = -(pMat->m[0][0] * (float)half_width);
+    row_start_y = -(pMat->m[1][0] * (float)half_width);
+    dest_y = pDest_y;
+    for (dy = -half_height; dy < half_height; ++dy, ++dest_y) {
+        src_f_x = row_start_x - dy * pMat->m[0][1] + pSrc_x;
+        src_f_y = dy * pMat->m[1][1] - row_start_y + half_src_height + pSrc_y;
+        ptr_write = (tU16*)((tU8*)pDest->pixels + dest_y * pDest->row_bytes) + pDest_x;
+        for (dx = -half_width; dx < half_width; ++dx) {
+            src_y = (int)src_f_y;
+            src_word_row = (src_y * pSrc->row_bytes) / 2;
+            src_x = (int)src_f_x;
+            src_f_x += pMat->m[0][0];
+            src_f_y -= pMat->m[1][0];
+            pixel = *((tU16*)pSrc->pixels + src_word_row + half_width + src_x);
+            *ptr_write++ = pixel;
         }
     }
 }
