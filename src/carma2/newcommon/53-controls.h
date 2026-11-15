@@ -218,3 +218,5 @@ extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);
 extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 
 #endif // GUARD_53_CONTROLS_H
+
+extern void C2_HOOK_FASTCALL SwitchModelComplexity(void);
