@@ -125,7 +125,7 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // MungeDelayedSideEffects
 
-// ActivateNonCarSideEffects
+extern void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext);
 
 // ActivateSmashSideEffects
 
@@ -133,7 +133,7 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // DoVariableEffects
 
-// DoConnotations
+extern void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag);
 
 // DoPowerupRespawnSmash
 

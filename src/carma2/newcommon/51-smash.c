@@ -29,6 +29,8 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "69-sound.h"
+#include "00-car.h"
 
 #include <stdio.h>
 
@@ -487,7 +489,87 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // MungeDelayedSideEffects
 
-// ActivateNonCarSideEffects
+// FUNCTION: CARMA2_HW 0x004ed860
+void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+    tNon_car_search_context search;
+    tDelayed_non_car delayed;
+    br_bounds3 bounds;
+    br_matrix34* matrix;
+    tNon_car_cuboid_activation* activation;
+    int* pActive;
+    tU32 time;
+    tU32 min_column_x;
+    tU32 min_column_z;
+    tU32 max_column_x;
+    tU32 max_column_z;
+    int slot_index;
+    int column_x;
+    int column_z;
+    int axis;
+    int i;
+    int j;
+
+    time = GetTotalTime();
+    if (pActor == NULL || pActor->identifier == NULL || pActor->identifier[0] != '&') {
+        matrix = (br_matrix34*)((tU8*)pContext + 0x8c);
+    } else {
+        matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
+    }
+    i = 0;
+    activation = pActivations->activations;
+    for (; i < pActivations->count_activations; i++, activation++) {
+        search.count = 0;
+        if (activation->field_0x4 == 1) {
+            bounds = activation->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.min, &activation->bounds.min, matrix);
+            BrMatrix34ApplyP(&bounds.max, &activation->bounds.max, matrix);
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.min.v[axis] > bounds.max.v[axis]) {
+                    br_scalar value = bounds.min.v[axis];
+
+                    bounds.min.v[axis] = bounds.max.v[axis];
+                    bounds.max.v[axis] = value;
+                }
+            }
+        }
+        search.bounds = &bounds;
+        search.field_0x4 = (tU8)activation->field_0x8;
+        XZToColumnXZ((tU8*)&min_column_x, (tU8*)&min_column_z, bounds.min.v[0], bounds.min.v[2], &gProgram_state.track_spec);
+        XZToColumnXZ((tU8*)&max_column_x, (tU8*)&max_column_z, bounds.max.v[0], bounds.max.v[2], &gProgram_state.track_spec);
+        for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
+            for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
+                if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
+                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, GiveNonCarsAShove, &search) != 0) {
+                    break;
+                }
+            }
+        }
+        delayed.field_0x0 = *(br_vector3*)((tU8*)pContext + 0x68);
+        delayed.field_0xc = *(br_vector3*)((tU8*)matrix + 0x24);
+        delayed.field_0x18 = (undefined4*)&activation->field_0x24;
+        delayed.count_actions = search.count;
+        for (j = 0; j < delayed.count_actions; j++) {
+            delayed.actor_time_actions[j].actor = search.actors[j];
+            delayed.actor_time_actions[j].time = time + IRandomBetween((tU16)activation->field_0x0, (tU16)activation->field_0x2);
+        }
+        pActive = &gSmash_explosions[0].active;
+        slot_index = 0;
+        for (;;) {
+            if (*pActive == 0) {
+                gSmash_explosions[slot_index].type = 0;
+                gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
+                gSmash_explosions[slot_index].what.non_car = delayed;
+                break;
+            }
+            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+            slot_index++;
+            if ((intptr_t)pActive >= (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                break;
+            }
+        }
+    }
+}
 
 // ActivateSmashSideEffects
 
@@ -495,7 +577,100 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // DoVariableEffects
 
-// DoConnotations
+// FUNCTION: CARMA2_HW 0x004ed490
+void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
+    int i;
+    tCar_spec* owner;
+    tSide_effects* side_effects;
+    tSpecial_effects_spec* special_effects;
+    tSmash_run_time_variable_change* variable_change;
+    int value;
+    extern float gFloat_0058aec0;
+
+    if (pConnotations->count_sounds != 0) {
+        DRS3StartSound3D(gCar_outlet, pConnotations->sounds[IRandomBetween(0, pConnotations->count_sounds - 1)], pSound_position, &gZero_v__car, 1, 255, IRandomBetween(0xe000, 0x12000), 0x10000);
+    }
+    if (pFlag == 0) {
+        side_effects = &pConnotations->side_effects;
+        if (side_effects->activations.count_activations != 0) {
+            ActivateNonCarSideEffects(pActor, &side_effects->activations, pObject);
+        }
+        if (side_effects->side_effects.count_side_effects != 0) {
+            ActivateSmashSideEffects(pSpec, pObject, &side_effects->side_effects, pArg16, pDistance);
+        }
+        if (side_effects->room_turn_on_code != 0
+                && pObject != NULL
+                && pObject->owner != NULL
+                && pObject->flags_0x238 == 1
+                && ((tCar_spec*)pObject->owner)->driver == eDriver_local_human) {
+            if (BR_SQR3(pObject->actor->t.t.translate.t.v[0] - pPoint->v[0], pObject->actor->t.t.translate.t.v[1] - pPoint->v[1], pObject->actor->t.t.translate.t.v[2] - pPoint->v[2]) < 2.0) {
+                HitPowerup(pObject, side_effects->room_turn_on_code, NULL);
+            }
+        }
+    }
+    for (i = 0; i < pConnotations->count_shrapnel; i++) {
+        DoShrapnel(pArg3, &pConnotations->shrapnel[i], pSeed, pArg6, pPoint, pSound_position, pActor, pTime, pArg11, pTransform, pBounds, pPosition, pDistance, (br_vector3*)&pObject->transform_matrix.m[3], pFlag);
+    }
+    if (pFlag == 0) {
+        owner = (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 == 1) ? (tCar_spec*)pObject->owner : NULL;
+        if ((owner != NULL
+                    && (pConnotations->award.frequency == kRepeatability_Repeated
+                        || (pConnotations->award.frequency == kRepeatability_SingleShot && *(int*)pConnotations->field_0x28c == 0))
+                    && owner->driver == eDriver_local_human)
+                || pConnotations->award.frequency == kRepeatability_DoItRegardless) {
+            *(int*)pConnotations->field_0x28c = 1;
+            if (pConnotations->award.field_0x4 > gFloat_0058aec0) {
+                EarnCredits((int)pConnotations->award.field_0x4);
+            } else {
+                float credits;
+                credits = -(pDistance * pConnotations->award.field_0x4);
+                if (credits >= 20000.0f) {
+                    credits = 20000.0f;
+                }
+                EarnCredits100((int)credits);
+            }
+            if (pConnotations->award.field_0x8 > gFloat_0058aec0) {
+                AwardTime((int)pConnotations->award.field_0x8);
+            } else {
+                float time;
+                time = -(pDistance * pConnotations->award.field_0x8);
+                if (time >= 60.0f) {
+                    time = 60.0f;
+                }
+                AwardTime5((int)time);
+            }
+            if (pConnotations->award.field_0xc != 0) {
+                NewTextHeadupSlot2(4, 0, 3000, -4, GetMiscString(pConnotations->award.field_0xc), 0);
+            }
+            if (pConnotations->award.field_0x10 != 0) {
+                DoFancyHeadup(pConnotations->award.field_0x10);
+            }
+        }
+    }
+    special_effects = &pConnotations->special_effects;
+    pDistance = gYon_squared;
+    if (gAction_replay_mode != 0 || PointOutOfSight(&pActor->t.t.translate.t, pDistance) == 0) {
+        if (special_effects->explosion_animation.count_groups != 0) {
+            Explode(&special_effects->explosion_animation, pActor, pBounds, NULL);
+        }
+    }
+    if (special_effects->slick.material != NULL) {
+        DoSpillage(&special_effects->slick, pActor);
+    }
+    variable_change = pConnotations->variable_changes.runtime_changes;
+    for (i = 0; i < pConnotations->variable_changes.count; i++, variable_change++) {
+        value = variable_change->field_0x0;
+        if (value != 9999) {
+            AccumulateRuntimeVariable((tU16)variable_change->field_0x2, value);
+        } else {
+            ToggleRuntimeVariable((tU16)variable_change->field_0x2);
+        }
+    }
+    if (gCurrent_race.race_spec->race_type >= kRaceType_Smash
+            && GetRuntimeVariable(gCurrent_race.race_spec->options.smash.var_smash_number) >= gCurrent_race.race_spec->options.smash.var_smash_target) {
+        RaceCompleted(eRace_over_3);
+    }
+}
 
 // DoPowerupRespawnSmash
 
