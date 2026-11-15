@@ -149,10 +149,153 @@ void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004aa900
+// FUNCTION: CARMA2_HW 0x004aa900
 // STUB: CARMA2_SW 0x004a6a70
 void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
-    NOT_IMPLEMENTED();
+    extern int gNum_of_opponents_pursuing;
+    extern int gNum_of_opponents_getting_near;
+    extern int gNum_of_opponents_completing_race;
+    tS16 section_no;
+    br_scalar distance;
+    br_vector3 direction_v;
+    br_vector3 intersect;
+    char str[256];
+    tFollow_path_result result;
+
+    switch (pOpponent_spec->current_objective) {
+    case eOOT_complete_race:
+        switch (pCommand) {
+        case ePOC_start:
+            DoNotDprintf("%s: ProcessCompleteRace() - new objective started", pOpponent_spec->car_spec->driver_name);
+            pOpponent_spec->nnext_sections = 0;
+            CalcRaceRoute(pOpponent_spec);
+            ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+            return;
+        case ePOC_run:
+            if (pOpponent_spec->follow_path_data.section_no > 20000) {
+                ShiftOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->follow_path_data.section_no - 20000);
+                pOpponent_spec->follow_path_data.section_no = 20000;
+            }
+            if (pOpponent_spec->nnext_sections <= (int)REC2_ASIZE(pOpponent_spec->next_sections) - 2 && !pOpponent_spec->complete_race_data.finished_calcing_race_route) {
+                CalcRaceRoute(pOpponent_spec);
+            }
+            if (pOpponent_spec->nnext_sections == 0 || (result = ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0)) == eFPR_end_of_path) {
+                DoNotDprintf("%s: Giving up following race path because ran out of race path", pOpponent_spec->car_spec->driver_name);
+                NewObjective(pOpponent_spec, eOOT_get_near_player);
+            }
+            if (result != eFPR_OK) {
+                if (result == eFPR_given_up) {
+                    pOpponent_spec->nnext_sections = 0;
+                    CalcRaceRoute(pOpponent_spec);
+                    ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+                    return;
+                }
+                DoNotDprintf("%s: Objective Completed", pOpponent_spec->car_spec->driver_name);
+                pOpponent_spec->new_objective_required = 1;
+                switch (pOpponent_spec->current_objective) {
+                case eOOT_complete_race:
+                    gNum_of_opponents_completing_race--;
+                    return;
+                case eOOT_pursue_and_twat:
+                    gNum_of_opponents_pursuing--;
+                    return;
+                case eOOT_get_near_player:
+                    gNum_of_opponents_getting_near--;
+                    return;
+                default:
+                    break;
+                }
+            }
+            return;
+        default:
+            break;
+        }
+        break;
+    case eOOT_pursue_and_twat:
+        ProcessPursueAndTwat(pOpponent_spec, pCommand);
+        return;
+    case eOOT_run_away:
+        switch (pCommand) {
+        case ePOC_start:
+            DoNotDprintf("%s: ProcessRunAway() - new objective started", pOpponent_spec->car_spec->driver_name);
+            pOpponent_spec->run_away_data.time_to_stop = gTime_stamp_for_this_munging + 1000 * IRandomBetween(30, 90);
+            pOpponent_spec->nnext_sections = 0;
+            section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
+            if (BrVector3Dot(&pOpponent_spec->car_spec->direction, &direction_v) >= gOppo_render_zero) {
+                AddToOpponentsProjectedRoute(pOpponent_spec, section_no, 1);
+            } else {
+                AddToOpponentsProjectedRoute(pOpponent_spec, section_no, 0);
+            }
+            TopUpRandomRoute(pOpponent_spec, -1);
+            ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+            sprintf(str, "%s: Shit! I'm out of here...", pOpponent_spec->car_spec->driver_name);
+            return;
+        case ePOC_run:
+            if (gTime_stamp_for_this_munging > pOpponent_spec->run_away_data.time_to_stop) {
+                ObjectiveComplete(pOpponent_spec);
+                return;
+            }
+            if (pOpponent_spec->follow_path_data.section_no > 20000) {
+                ShiftOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->follow_path_data.section_no - 20000);
+                pOpponent_spec->follow_path_data.section_no = 20000;
+            }
+            if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
+                TopUpRandomRoute(pOpponent_spec, (int)REC2_ASIZE(pOpponent_spec->next_sections) - pOpponent_spec->nnext_sections);
+            }
+            if (ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0) == eFPR_given_up) {
+                pOpponent_spec->nnext_sections = 0;
+                section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
+                if (BrVector3Dot(&pOpponent_spec->car_spec->direction, &direction_v) >= gOppo_render_zero) {
+                    AddToOpponentsProjectedRoute(pOpponent_spec, section_no, 1);
+                } else {
+                    AddToOpponentsProjectedRoute(pOpponent_spec, section_no, 0);
+                }
+                TopUpRandomRoute(pOpponent_spec, -1);
+                ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
+            }
+            return;
+        default:
+            break;
+        }
+        break;
+    case eOOT_get_near_player:
+        ProcessGetNearPlayer(pOpponent_spec, pCommand);
+        return;
+    case eOOT_levitate:
+        ProcessLevitate(pOpponent_spec, pCommand);
+        return;
+    case eOOT_knackered_and_freewheeling:
+        memset(&pOpponent_spec->car_spec->keys, 0, sizeof(pOpponent_spec->car_spec->keys));
+        pOpponent_spec->car_spec->acc_force = 0.f;
+        pOpponent_spec->car_spec->brake_force = 0.f;
+        pOpponent_spec->car_spec->curvature = 0.f;
+        return;
+    case eOOT_frozen:
+        switch (pCommand) {
+        case ePOC_start:
+            DoNotDprintf("%d ProcessFrozen() - new task started", pOpponent_spec->index);
+            DoNotDprintf("%s: Rematerialising from ePOC_start in ProcessFrozen()...", pOpponent_spec->car_spec->driver_name);
+            RematerialiseOpponentOnNearestSection(pOpponent_spec, 0.f);
+            pOpponent_spec->car_spec->acc_force = 0.f;
+            pOpponent_spec->car_spec->brake_force = 15.f * pOpponent_spec->car_spec->collision_info->M;
+            return;
+        case ePOC_run:
+            pOpponent_spec->car_spec->brake_force = 15.f * pOpponent_spec->car_spec->collision_info->M;
+            return;
+        case ePOC_die:
+            pOpponent_spec->car_spec->brake_force = 0.f;
+            return;
+        }
+        break;
+    case eOOT_wait_for_some_hapless_sod:
+        ProcessWaitForSomeHaplessSod(pOpponent_spec, pCommand);
+        return;
+    case eOOT_return_to_start:
+        ProcessReturnToStart(pOpponent_spec, pCommand);
+        break;
+    default:
+        break;
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -247,7 +390,70 @@ void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_object
     va_end(marker);
 }
 
-// CalcRaceRoute
+// FUNCTION: CARMA2_HW 0x004aae20
+void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
+    tS16 section_no;
+    tS16 node_no;
+    tS16 race_section_count;
+    tS16 normal_section_ok_direction_count;
+    tS16 normal_section_wrong_direction_count;
+    tS16 temp_section_array[8];
+    br_scalar distance;
+    br_vector3 direction_v;
+    br_vector3 intersect;
+    tS16 i;
+
+    if (pOpponent_spec->nnext_sections >= (int)REC2_ASIZE(pOpponent_spec->next_sections)) {
+        DoNotDprintf("%s: CalcRaceRoute() - Pissing off 'cos projected route full up", pOpponent_spec->car_spec->driver_name);
+        return;
+    }
+    if (pOpponent_spec->nnext_sections == 0) {
+        DoNotDprintf("%s: CalcRaceRoute() - Projected route empty; starting from nearest section", pOpponent_spec->car_spec->driver_name);
+        pOpponent_spec->complete_race_data.finished_calcing_race_route = 0;
+        pOpponent_spec->complete_race_data.found_race_section = 0;
+        section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
+        if (section_no < 0) {
+            return;
+        }
+        AddToOpponentsProjectedRoute(pOpponent_spec, section_no, 1);
+        if (gProgram_state.AI_vehicles.path_sections[section_no].type == ePST_race_path) {
+            pOpponent_spec->complete_race_data.found_race_section = 1;
+        }
+    }
+    while (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections) && !pOpponent_spec->complete_race_data.finished_calcing_race_route) {
+        node_no = gProgram_state.AI_vehicles.path_sections[pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no].node_indices[pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].direction];
+        race_section_count = 0;
+        normal_section_ok_direction_count = 0;
+        normal_section_wrong_direction_count = 0;
+        for (i = 0; i < gProgram_state.AI_vehicles.path_nodes[node_no].number_of_sections; i++) {
+            section_no = gProgram_state.AI_vehicles.path_nodes[node_no].sections[i];
+            if (section_no != pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no) {
+                if (gProgram_state.AI_vehicles.path_sections[section_no].type == ePST_race_path && node_no == gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
+                    pOpponent_spec->complete_race_data.found_race_section = 1;
+                    temp_section_array[race_section_count] = section_no;
+                    race_section_count += 1;
+                } else if (race_section_count == 0 && node_no == gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]) {
+                    temp_section_array[normal_section_ok_direction_count] = section_no;
+                    normal_section_ok_direction_count++;
+                } else if (race_section_count == 0 && normal_section_ok_direction_count == 0 && (!gProgram_state.AI_vehicles.path_sections[section_no].one_way || node_no != gProgram_state.AI_vehicles.path_sections[section_no].node_indices[1])) {
+                    temp_section_array[normal_section_wrong_direction_count] = section_no;
+                    normal_section_wrong_direction_count++;
+                }
+            }
+        }
+        if (race_section_count != 0) {
+            AddToOpponentsProjectedRoute(pOpponent_spec, temp_section_array[IRandomBetween(0, race_section_count - 1)], 1);
+        } else if (normal_section_ok_direction_count != 0) {
+            AddToOpponentsProjectedRoute(pOpponent_spec, temp_section_array[IRandomBetween(0, normal_section_ok_direction_count - 1)], 1);
+        } else if (normal_section_wrong_direction_count != 0) {
+            AddToOpponentsProjectedRoute(pOpponent_spec, temp_section_array[IRandomBetween(0, normal_section_wrong_direction_count - 1)], 0);
+        } else if (!pOpponent_spec->complete_race_data.found_race_section) {
+            AddToOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no, pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].direction == 0);
+        } else {
+            pOpponent_spec->complete_race_data.finished_calcing_race_route = 1;
+        }
+    }
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
