@@ -1949,10 +1949,62 @@ void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, i
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00408200
+// FUNCTION: CARMA2_HW 0x00408200
 // STUB: CARMA2_SW 0x00408200
 int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pCharacter, int pIndex) {
-    NOT_IMPLEMENTED();
+    tPed_personality* personality;
+    tPed_form* form;
+    tPed_form_actor_set* actor_set;
+    br_matrix34* matrix;
+    int i;
+
+    if (pCharacter->field_0x4 >= 0) {
+        return 2;
+    }
+    personality = pCharacter->personality;
+    form = personality->form;
+    actor_set = &form->actor_sets[pIndex];
+    if (gAction_replay_mode == 0) {
+        actor_set->field_0x0 = 1;
+    }
+    pCharacter->field_0x4 = pIndex;
+    if (pCharacter->field_0x4 < 0) {
+        matrix = &pCharacter->field_0x2c;
+    } else if (pCharacter->field_0xe8 != NULL) {
+        matrix = pCharacter->field_0xe8;
+    } else {
+        matrix = &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+    }
+    BrMatrix34Copy(matrix, &pCharacter->field_0x2c);
+
+    if (pCharacter->field_0xc != 0) {
+        if (pCharacter->field_0x28 != 0) {
+            for (i = 1; i < form->count_bones; i++) {
+                if (pCharacter->field_0xc & gPow2_array[i]) {
+                    BrMatrix34Copy(GetBoneMatrixPtr(pCharacter, i), (br_matrix34*)((char*)pCharacter->field_0x28 + i * 0x30));
+                }
+            }
+            *(int*)pCharacter->field_0x28 = 0;
+        } else {
+            pCharacter->field_0x10 = pCharacter->field_0xc;
+        }
+    }
+
+    for (i = 0; i < form->count_bones; i++) {
+        actor_set->actors[i]->type_data = pCharacter;
+        actor_set->actors[i]->render_style = BR_RSTYLE_DEFAULT;
+        actor_set->actors[i]->model = personality->bones[i].models[0].models[(tS8)pCharacter->field_0xa];
+        if (actor_set->actors[i]->model != NULL) {
+            actor_set->actors[i]->type = BR_ACTOR_MODEL;
+        } else {
+            actor_set->actors[i]->type = BR_ACTOR_NONE;
+        }
+        if (!(pCharacter->field_0xc & gPow2_array[i]) || !(pCharacter->field_0x10 & gPow2_array[i])) {
+            MakeActorRenderable(actor_set->actors[i], i, pCharacter);
+        }
+    }
+    SetCharacterBonePositions(pCharacter, 0, 0);
+    return 0;
 }
 
 #ifdef REC2_MATCHING
