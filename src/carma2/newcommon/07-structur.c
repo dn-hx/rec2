@@ -867,8 +867,6 @@ void C2_HOOK_FASTCALL IncrementLap(void) {
     }
 }
 
-// RayHitFace
-
 // FUNCTION: CARMA2_HW 0x005033e0
 void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
 
@@ -902,15 +900,30 @@ void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
     }
 }
 
-static int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vector3* pV2, br_vector3* pNormal, br_vector3* pStart, br_vector3* pDir) {
-    (void)pV0; (void)pV1; (void)pV2; (void)pNormal; (void)pStart; (void)pDir;
-    return 0;
+extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
+
+// RayHitFace (inlined in the original)
+static __inline int C2_HOOK_FASTCALL RayHitFace(br_vector3* pV0, br_vector3* pV1, br_vector3* pV2, br_vector3* pNormal, br_vector3* pStart, br_vector3* pDir) {
+    tFace_ref the_face;
+    br_scalar rt;
+    br_vector3 rp;
+
+    the_face.material = NULL;
+    the_face.v[0] = *pV0;
+    the_face.v[1] = *pV1;
+    the_face.v[2] = *pV2;
+    the_face.normal = *pNormal;
+    CheckSingleFace(&the_face, pStart, pDir, &the_face.normal, &rt, &rp);
+    return rt >= 0.f && rt <= 1.f;
 }
 
 static void C2_HOOK_FASTCALL DeclareWinner(int pWinner_index) {
     (void)pWinner_index;
 }
 
+// PARTIAL 61.35%: CheckCheckpoints 0x005034b0 [regalloc] - RayHitFace is now the real inlined helper and both
+// CheckSingleFace calls match; the residual is callee-saved register roles (i in esi vs ebp, car_index in ebp vs
+// ebx) and the resulting branch layout.
 // FUNCTION: CARMA2_HW 0x005034b0
 void C2_HOOK_FASTCALL CheckCheckpoints(void) {
     tCar_spec* car;
@@ -997,7 +1010,7 @@ void C2_HOOK_FASTCALL CheckCheckpoints(void) {
                     }
                 }
             }
-            BrMatrix34Copy(&car->old_frame_mat, &car->car_master_actor->t.t.mat);
+            car->old_frame_mat = car->car_master_actor->t.t.mat;
         }
     }
 }
