@@ -539,7 +539,7 @@ extern int C2_HOOK_FASTCALL CharacterNoLongerPhysicworthy(tPed_character_instanc
 
 extern void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter);
 
-// MorphCharacterBonePositions
+extern int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2);
 
 // StopCharacterMove
 
