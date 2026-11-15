@@ -123,3 +123,5 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
 #endif // GUARD_28_WORLD3_H
+
+extern br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage);

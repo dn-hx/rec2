@@ -38,7 +38,7 @@ extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pCh
 
 // BoldDefault1
 
-// PDFatalError
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 // PrefsError
 
