@@ -2117,17 +2117,109 @@ void C2_HOOK_FASTCALL FRONTEND_Setup2D(void) {
 // FUNCTION: CARMA2_HW 0x0046d1c0
 // FUNCTION: CARMA2_SW 0x0046cc40
 void C2_HOOK_FASTCALL FRONTEND_Setup(tFrontendMenuType pType) {
+    /* (LoadMenuImages/LoadMenuModels inlined) */
+    char s[256];
+    char s2[256];
+    char s3[256];
+    FILE* f;
+    FILE* f2;
+    int count;
+    int i;
+    br_model* model;
+    br_pixelmap** p;
+    tFrontendMenuType type;
 
+    type = pType;
     PrintMemoryDump(0, "START OF FRONTEND_Setup");
     LoadInterfaceStuff(gProgram_state.racing);
     if (gFrontend_stuff_not_loaded) {
         IString_Load();
         InitPolyFonts();
-        LoadMenuImages();
+        for (i = 1; i < 8; i++) {
+            gFrontend_images[i] = LoadPixelmap("64by64.tif");
+        }
+        PathCat(s, gApplication_path, "INTRFACE");
+        PathCat(s, s, "MENUIMAGES.TXT");
+        f = DRfopen(s, "rt");
+        if (f == NULL) {
+            FatalError(kFatalError_Mysterious_SS);
+        }
+        count = GetAnInt(f);
+        if (count > 0) {
+            p = &gFrontend_images[8];
+            do {
+                GetAString(f, s2);
+                strcpy(s, s2);
+                strcat(s, ".TIF");
+                *p = LoadPixelmap(s);
+                p++;
+            } while (--count != 0);
+        }
         PrintMemoryDump(0, "AFTER LoadMenuImages");
         FRONTEND_Setup2D();
-        LoadMenuModels();
+        PathCat(s2, gApplication_path, "INTRFACE");
+        PathCat(s, s2, "MENUMODELS.TXT");
+        f2 = DRfopen(s, "rt");
+        if (f2 == NULL) {
+            FatalError(kFatalError_Mysterious_SS);
+        }
+        PathCat(s2, gApplication_path, "INTRFACE");
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_A_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[0]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[0]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[0]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[0]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[0]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[0]->render_style = BR_RSTYLE_FACES;
+        }
+    }
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_B_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[1]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[1]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[1]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[1]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[1]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[1]->render_style = BR_RSTYLE_FACES;
+        }
+    }
+    count = GetAnInt(f2);
+    for (i = 0; i < count; i++) {
+        GetAString(f2, s3);
+        PathCat(s, s2, s3);
+        strcat(s, ".DAT");
+        model = BrModelLoad(s);
+        gFrontend_C_models[i].model = model;
+        model->flags |= BR_MODF_KEEP_ORIGINAL;
+        BrModelAdd(model);
+        if (i == 0) {
+            gFrontend_backdrop_actors[2]->model = BrModelLoad(s);
+            gFrontend_backdrop_actors[2]->model->flags |= BR_MODF_KEEP_ORIGINAL;
+            BrModelAdd(gFrontend_backdrop_actors[2]->model);
+            BrMatrix34Translate(&gFrontend_backdrop_actors[2]->t.t.mat, 300.0f, -250.0f, -2.5f);
+            BrMatrix34PreScale(&gFrontend_backdrop_actors[2]->t.t.mat, 1.25f, 1.25f, 1.0f);
+            gFrontend_backdrop_actors[2]->render_style = BR_RSTYLE_FACES;
+        }
+    }
         PrintMemoryDump(0, "AFTER LoadMenuModels");
+        pType = type;
         gFrontend_stuff_not_loaded = 0;
     }
     switch (pType) {
@@ -2161,22 +2253,17 @@ void C2_HOOK_FASTCALL FRONTEND_Setup(tFrontendMenuType pType) {
         break;
     }
     PrintMemoryDump(0, "AFTER FRONTEND_CreateMenu");
-
     gCurrent_frontend_spec->previous = NULL;
-
-#ifdef REC2_HW
     gFrontend_A_model_from = gFrontend_A_models[0].model;
     gFrontend_A_model_to = gFrontend_A_models[gCurrent_frontend_spec->model_A_index].model;
-    gFrontend_backdrop0_opacity_mode = gCurrent_frontend_spec->model_A_index != 0 ? 1 : -2;
     gFrontend_B_model_from = gFrontend_B_models[0].model;
     gFrontend_B_model_to = gFrontend_B_models[gCurrent_frontend_spec->model_B_index].model;
-    gFrontend_backdrop1_opacity_mode = gCurrent_frontend_spec->model_B_index != 0 ? 1 : -2;
     gFrontend_C_model_from = gFrontend_C_models[0].model;
     gFrontend_C_model_to = gFrontend_C_models[gCurrent_frontend_spec->model_C_index].model;
-    gFrontend_backdrop2_opacity_mode = gCurrent_frontend_spec->model_C_index != 0 ? 1 : -2;
+    gFrontend_backdrop0_opacity_mode = gCurrent_frontend_spec->model_A_index != 0 ? 1 : -2;
+    gFrontend_backdrop1_opacity_mode = gCurrent_frontend_spec->model_B_index != 0 ? 1 : -2;
+    gFrontend_backdrop2_opacity_mode = gCurrent_frontend_spec->model_C_index != 0 ? 1 : -1;
     gFrontend_interpolate_steps_left = 16;
-#endif
-
     PrintMemoryDump(0, "END OF FRONTEND_Setup");
 }
 
