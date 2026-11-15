@@ -22,6 +22,7 @@
 #include "platform.h"
 #include "rec2_macros.h"
 #include "36-trig.h"
+#include "56-aiworld.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -933,7 +934,34 @@ void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
 
 // RematerialiseOpponent
 
-// CalcPlayerConspicuousness
+// FUNCTION: CARMA2_HW 0x004adae0
+void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec) {
+    br_vector3 pos_in_cop_space;
+    br_matrix34 inverse_transform;
+
+    if (gTime_stamp_for_this_munging <= pOpponent_spec->next_player_visibility_check) {
+        return;
+    }
+    pOpponent_spec->player_in_view_now = 0;
+    if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
+        pOpponent_spec->next_player_visibility_check = gTime_stamp_for_this_munging + IRandomBetween(0, 900) + 100;
+        if (pOpponent_spec->player_to_oppo_d < 20.f) {
+            BrMatrix34LPInverse(&inverse_transform, &pOpponent_spec->car_spec->car_master_actor->t.t.mat);
+            BrMatrix34ApplyP(&pos_in_cop_space, &gProgram_state.current_car.car_master_actor->t.t.translate.t, &inverse_transform);
+            if (pos_in_cop_space.v[2] < gOppo_render_zero && PointVisibleFromHere(&gProgram_state.current_car.car_master_actor->t.t.translate.t, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t)) {
+                pOpponent_spec->player_in_view_now = 1;
+                pOpponent_spec->acknowledged_piv = 0;
+            }
+        }
+    } else {
+        pOpponent_spec->next_player_visibility_check = gTime_stamp_for_this_munging + IRandomBetween(0, 900) + 4000;
+        DoNotDprintf("%s: Time now: %9.2f; next vis check at %9.2f", pOpponent_spec->car_spec->driver_name, gTime_stamp_for_this_munging * 0.001, pOpponent_spec->next_player_visibility_check * 0.001);
+        if (pOpponent_spec->player_to_oppo_d < 50.f && PointVisibleFromHere(&gProgram_state.current_car.car_master_actor->t.t.translate.t, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t)) {
+            pOpponent_spec->player_in_view_now = 1;
+            pOpponent_spec->acknowledged_piv = 0;
+        }
+    }
+}
 
 // CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck
 
@@ -974,6 +1002,11 @@ void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
     gProgram_state.AI_vehicles.path_nodes = NULL;
     gProgram_state.AI_vehicles.path_sections = NULL;
     gBit_per_node = NULL;
+}
+
+/* inlined copy of UnStunTheBugger (0x4a????) at this call site in the original */
+static __inline void C2_HOOK_FASTCALL UnStunTheBugger_Impl(tOpponent_spec* pOpponent_spec) {
+    pOpponent_spec->stun_time_ends = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004a9e10

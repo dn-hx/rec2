@@ -170,7 +170,7 @@ extern void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec
 
 // RematerialiseOpponent
 
-// CalcPlayerConspicuousness
+extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec);
 
 // CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck
 
