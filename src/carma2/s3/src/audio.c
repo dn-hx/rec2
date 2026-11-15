@@ -222,6 +222,19 @@ int C2_HOOK_FASTCALL S3StopChannel(tS3_channel* pChannel) {
     return eS3_error_none;
 }
 
+// FUNCTION: CARMA2_HW 0x0056654c
+tS3_sound_source* C2_HOOK_FASTCALL RealS3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+    tS3_sound_source* source;
+
+    if (gS3_enabled != 0) {
+        source = S3CreateSoundSource(pPosition, pVelocity, pBound_outlet);
+        if (source != NULL) {
+            source->brender_vector = 0;
+        }
+        return source;
+    }
+    return NULL;
+}
 // FUNCTION: CARMA2_HW 0x005698fc
 // FUNCTION: CARMA2_SW 0x00564f9c
 int C2_HOOK_FASTCALL S3GetCountChannels(int pCount_channels_1, int pCount_channels_2) {
