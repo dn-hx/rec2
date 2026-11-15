@@ -57,7 +57,7 @@ extern int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* pData);
 
 // LinkDroneActorsToModelsAndSetRenderStyle
 
-// LoadDroneActorsModels
+extern void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone);
 
 // ReadPastBoundsShapesHeader
 
