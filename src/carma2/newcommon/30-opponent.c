@@ -21,6 +21,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "globvrkm.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -849,10 +850,121 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a7a80
+static int C2_HOOK_FASTCALL NetCarIsActive(const tCar_spec* pCar) {
+    br_vector3 tv;
+
+    BrVector3Sub(&tv, &gProgram_state.current_car.car_master_actor->t.t.translate.t, &pCar->car_master_actor->t.t.translate.t);
+    if (BrVector3LengthSquared(&tv) < 100.f) {
+        return 1;
+    }
+    if (gCar_to_view != &gProgram_state.current_car) {
+        BrVector3Sub(&tv, &gCar_to_view->car_master_actor->t.t.translate.t, &pCar->car_master_actor->t.t.translate.t);
+        return BrVector3LengthSquared(&tv) < 100.f;
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004a7a80
 // STUB: CARMA2_SW 0x004a3bf0
 void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
-    NOT_IMPLEMENTED();
+    int new_count_active_cars = gNum_active_cars;
+
+    if (gActive_car_list_rebuild_required) {
+        int i;
+        tPhysics_object* used_cars[1000];
+        int count_used_cars;
+        tPhysics_object* info;
+        tPhysics_object* next_info;
+        tCar_spec* car;
+
+        gActive_car_list_rebuild_required = 0;
+
+        count_used_cars = 0;
+        info = PHILGetFirstObject();
+        while (info != NULL) {
+            next_info = PHILGetNextObject(info);
+            if (info != NULL && info->owner != NULL && info->flags_0x238 == 1 && ((tCar_spec*)info->owner)->driver > 5) {
+                used_cars[count_used_cars] = info;
+                count_used_cars += 1;
+            }
+            info = next_info;
+        }
+
+        new_count_active_cars = 0;
+        for (i = 0; i < GetCarCount(eVehicle_self); i++) {
+            if (i > 0) {
+                PDFatalError("mGet_car_count( eVehicle_self ) > 1 - I didn't know this could happen!");
+            }
+            car = &gProgram_state.current_car;
+            if (!car->disabled || gAction_replay_mode) {
+                gActive_car_list[new_count_active_cars] = car;
+                new_count_active_cars += 1;
+                car->active = 1;
+                AddIfNotInList(car->collision_info, used_cars, count_used_cars);
+            }
+        }
+        if (gNet_mode == eNet_mode_host) {
+            for (i = 0; i < GetCarCount(eVehicle_net_player); i++) {
+                if (i < gThis_net_player_index) {
+                    car = gNet_players[i].car;
+                } else {
+                    car = gNet_players[i + 1].car;
+                }
+                if (!car->disabled) {
+                    gActive_car_list[new_count_active_cars] = car;
+                    new_count_active_cars += 1;
+                    car->active = 1;
+                    AddIfNotInList(car->collision_info, used_cars, count_used_cars);
+                } else {
+                    car->active = 0;
+                }
+            }
+        } else if (gNet_mode == eNet_mode_client) {
+            for (i = 0; i < GetCarCount(eVehicle_net_player); i++) {
+                if (i < gThis_net_player_index) {
+                    car = gNet_players[i].car;
+                } else {
+                    car = gNet_players[i + 1].car;
+                }
+                if (!car->disabled && NetCarIsActive(car)) {
+                    gActive_car_list[new_count_active_cars] = car;
+                    new_count_active_cars += 1;
+                    car->active = 1;
+                    AddIfNotInList(car->collision_info, used_cars, count_used_cars);
+                } else {
+                    car->active = 0;
+                }
+            }
+        }
+
+        for (i = 0; i < gProgram_state.AI_vehicles.number_of_opponents; i++) {
+            car = GetCarSpec(eVehicle_opponent, i);
+            if (gProgram_state.AI_vehicles.opponents[i].physics_me || gAction_replay_mode) {
+                gActive_car_list[new_count_active_cars] = car;
+                new_count_active_cars += 1;
+                car->active = 1;
+                AddIfNotInList(car->collision_info, used_cars, count_used_cars);
+            } else {
+                car->active = 0;
+            }
+        }
+
+        for (i = 0; i < gNumber_of_cops_before_faffage; i++) {
+            car = GetCarSpec(eVehicle_rozzer, i);
+            if (gProgram_state.AI_vehicles.cops[i].physics_me || gAction_replay_mode) {
+                gActive_car_list[new_count_active_cars] = car;
+                new_count_active_cars += 1;
+                car->active = 1;
+                AddIfNotInList(car->collision_info, used_cars, count_used_cars);
+            } else {
+                car->active = 0;
+            }
+        }
+        RemoveAnythingStillInList(used_cars, count_used_cars);
+    }
+    if (gNum_active_cars != new_count_active_cars) {
+        gNum_active_cars = new_count_active_cars;
+    }
 }
 
 #ifdef REC2_MATCHING
