@@ -159,7 +159,15 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 
 // PostProcess
 
-// DoActionReplay
+// FUNCTION: CARMA2_HW 0x004e68e0
+void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period) {
+    extern tU32 gLast_replay_zappy_screen;
+    extern tPreprocess_AR_callback PreProcess;
+    extern tPostProcess_AR_callback PostProcess;
+
+    gLast_replay_zappy_screen = 0;
+    ARDoActionReplay(pFrame_period, DoZappyActionReplayHeadups, PreProcess, PostProcess);
+}
 
 // MoveToEndOfReplay
 

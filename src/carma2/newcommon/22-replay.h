@@ -48,7 +48,7 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // PostProcess
 
-// DoActionReplay
+extern void C2_HOOK_FASTCALL DoActionReplay(tU32 pFrame_period);
 
 // MoveToEndOfReplay
 
