@@ -1259,7 +1259,31 @@ int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend) {
 
 // NetGameTypeUp
 
-// NetGameTypeDn
+// FUNCTION: CARMA2_HW 0x00467dc0
+int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend) {
+    tFrontend_scroller_spec* scroller;
+    int i;
+    int text_idx;
+
+    if (PDGetTotalTime() - gFrontend_last_scroll > 400) {
+        gFrontend_last_scroll = PDGetTotalTime();
+        scroller = &pFrontend->scrollers[0];
+        if (scroller->indexTopItem + scroller->nbDisplayedAtOnce < scroller->count + scroller->indexFirstScrollableItem) {
+            scroller->indexTopItem += 1;
+        }
+    }
+    scroller = &pFrontend->scrollers[0];
+    text_idx = scroller->indexTopItem;
+    text_idx -= scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
+        int text_num;
+
+        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
+        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
+    }
+    FuckWithWidths(pFrontend);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00467eb0
 // FUNCTION: CARMA2_SW 0x00467c30
