@@ -104,6 +104,7 @@ br_quat* C2_HOOK_CDECL BrQuatSlerp(br_quat* q, const br_quat* l, const br_quat* 
     return q;
 }
 
+// PARTIAL 24.21%: BrQuatToMatrix34 0x005359a0 [x87 schedule + frame/regalloc] - store order matches; ours frame 0x18 vs orig 0x1c, q in ecx not eax, x87 interleave differs; see state/findings/BrQuatToMatrix34.md
 // FUNCTION: CARMA2_HW 0x005359a0
 br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q) {
     br_scalar xs;
