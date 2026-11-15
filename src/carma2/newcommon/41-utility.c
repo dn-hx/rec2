@@ -499,7 +499,7 @@ void C2_HOOK_FASTCALL PrintScreenFile(FILE* pF) {
     int j;
     int bit_map_size;
     tU8* pixel_ptr;
-
+    bit_map_size = gBack_screen->height * gBack_screen->row_bytes;
     bit_map_size = gBack_screen->height * gBack_screen->row_bytes;
 
     // 1. BMP Header
