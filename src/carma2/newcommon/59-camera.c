@@ -88,35 +88,59 @@ tCar_spec* C2_HOOK_FASTCALL GetRaceLeader(void) {
 // FUNCTION: CARMA2_HW 0x0040e430
 // FUNCTION: CARMA2_SW 0x0040e410
 void C2_HOOK_FASTCALL ViewNetPlayer(void) {
+    extern int gOpponent_viewing_mode;
+    extern int gNet_player_to_view_index;
     tCar_spec* car;
-    tNet_game_player_info* net_player;
-    tNet_message* message;
+    tNet_game_player_info* player;
+    int* p;
+    int best;
+    int index;
+    int i;
 
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tNet_game_player_info, last_score_index, 0x94);
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tNet_message_chunk_view_car, player, 0x4);
-
-    if (!gOpponent_viewing_mode) {
+    if (gOpponent_viewing_mode == 0) {
         return;
     }
     gNet_player_to_view_index++;
     if (gNet_player_to_view_index >= gNumber_of_net_players) {
         gNet_player_to_view_index = -1;
     }
-    if (gNet_player_to_view_index >= 0) {
-        car = gNet_players[gNet_player_to_view_index].car;
-    } else {
-        car = GetRaceLeader();
+    index = gNet_player_to_view_index;
+    if (index < 0) {
+        best = *(int*)gNet_players[0].last_score_index;
+        car = gNet_players[0].car;
+        if (gCurrent_net_game->type != eNet_game_type_foxy || gIt_or_fox < 0 || gNumber_of_net_players <= gIt_or_fox) {
+            if (gNumber_of_net_players > 1) {
+                p = (int*)gNet_players[1].last_score_index;
+                i = gNumber_of_net_players - 1;
+                do {
+                    if (*p < best) {
+                        car = (tCar_spec*)p[0xd];
+                        best = *p;
+                    }
+                    p += 0x35;
+                    i--;
+                } while (i != 0);
+            }
+            goto have_car;
+        }
+        index = gIt_or_fox;
     }
-    net_player = NetPlayerFromCar(car);
+    car = gNet_players[index].car;
+have_car:
+    player = NetPlayerFromCar(car);
     if (gNet_mode == eNet_mode_host) {
         gCar_to_view = car;
         gCamera_yaw = 0;
         InitialiseExternalCamera();
         PositionExternalCamera(gCar_to_view, 200);
-    } else if (gNet_mode == eNet_mode_client && gCar_to_view_id != net_player->ID) {
-        gCar_to_view_id = net_player->ID;
-        message = NetBuildGuaranteedMessage(eNet_message_chunk_type_view_car, 0);
-        message->contents.view_car.player = gCar_to_view_id;
+        return;
+    }
+    if (gNet_mode == eNet_mode_client && gCar_to_view_id != player->ID) {
+        tNet_message* message;
+
+        gCar_to_view_id = player->ID;
+        message = NetBuildGuaranteedMessage(0x2f, 0);
+        *(tPlayer_ID*)((tU8*)message + 0x1c) = gCar_to_view_id;
         NetGuaranteedSendMessageToHost(gCurrent_net_game, message, NULL);
     }
 }
