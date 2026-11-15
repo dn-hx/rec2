@@ -26,6 +26,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -2112,7 +2113,23 @@ void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
 
 // ReceivedDBNonCar
 
-// SendAllDBNonCars
+// FUNCTION: CARMA2_HW 0x0043d5b0
+void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient) {
+    int i;
+    tNon_car_spec** pNon_car;
+
+    i = 0;
+    if (gNum_active_non_cars > 0) {
+        pNon_car = gActive_non_car_list;
+        do {
+            if ((*pNon_car)->driver == 2) {
+                SendDBNonCar(*pNon_car, -1, pRecipient);
+            }
+            i++;
+            pNon_car++;
+        } while (i < gNum_active_non_cars);
+    }
+}
 
 // ReceivedDBNonCarPosition
 

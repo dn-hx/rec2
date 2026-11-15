@@ -120,7 +120,7 @@ extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlaye
 
 // UseGeneralScore
 
-// NetSendEnvironmentChanges
+extern void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient);
 
 extern void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void);
 
@@ -139,5 +139,13 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
 // RemovePlayerFromShapeStatusLists
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[6];
+    tU32 ID;
+    br_matrix34 mat;
+    tU16 flags;
+} tNet_message_chunk_non_car_position;
 
 #endif // GUARD_04_NETGAME_H
