@@ -60,7 +60,7 @@ extern void C2_HOOK_FASTCALL SwitchToPalette(char* pPal_name);
 
 extern void C2_HOOK_FASTCALL InitPaletteAnimate(void);
 
-// RevertPalette
+extern void C2_HOOK_FASTCALL RevertPalette(void);
 
 extern void C2_HOOK_FASTCALL MungePalette(void);
 
