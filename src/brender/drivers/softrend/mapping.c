@@ -23,10 +23,9 @@
 // FUNCTION: CARMA2_SW 0x005467f0
 void C2_HOOK_CDECL SurfaceMapEnvironmentInfinite(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* normal, br_colour colour, br_scalar* comp) {
     br_vector3 r, wr;
-    br_scalar d, cu, cv;
+    br_scalar cu, cv;
 
-    d = 2.f * BrVector3Dot(&scache.eye_m_normalised, normal);
-    BrVector3Scale(&r, normal, d);
+    BrVector3Scale(&r, normal, 2.f * BrVector3Dot(normal, &scache.eye_m_normalised));
     BrVector3Sub(&r, &r, &scache.eye_m_normalised);
 
     if (self->state.matrix.view_to_environment_hint != BRT_DONT_CARE) {
