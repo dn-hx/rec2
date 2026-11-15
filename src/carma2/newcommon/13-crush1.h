@@ -482,7 +482,7 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // ARApplyCrush
 
-// ARUndoCrush
+extern void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 extern void C2_HOOK_FASTCALL ARCompressModelMash(tCompressed_vector3* pDest, br_model* pModel, br_vector3* pSrc);
 
