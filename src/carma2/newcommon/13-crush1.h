@@ -470,9 +470,9 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // RepairCarCollisionShapes
 
-// RepairCar2
+extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
 
-// RepairCar
+extern float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection);
 
 // RestoreVitalBitsOfObject
 
