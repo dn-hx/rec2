@@ -1053,13 +1053,82 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 
 // MungeProxRay
 
-// DoToPeds
+// FUNCTION: CARMA2_HW 0x004ce140
+int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback) {
+    tPedestrian* ped;
+    tU32 now;
+    br_vector3* pos;
+    br_scalar dist_sq;
+    float t;
+    int result = 0;
+
+    if (gGhost_pedestrians) {
+        return 0;
+    }
+    pos = &pCar_spec->pos;
+    now = GetTotalTime();
+
+    for (ped = gPedestrians_in_sight; ped != NULL; ped = ped->next) {
+        dist_sq = (pos->v[0] - ped->pos.v[0]) * (pos->v[0] - ped->pos.v[0])
+                + (pos->v[1] - ped->pos.v[1]) * (pos->v[1] - ped->pos.v[1])
+                + (pos->v[2] - ped->pos.v[2]) * (pos->v[2] - ped->pos.v[2]);
+
+        if (pOnly_alive != 0 && ped->hit_points <= 0) {
+            continue;
+        }
+        if (pMax_distance != 0.f && dist_sq >= pMax_distance) {
+            continue;
+        }
+        if (pParam_4 != 0) {
+            br_material* material;
+            br_vector3 nor;
+            br_vector3 dir;
+
+            dir.v[0] = ped->pos.v[0] - pos->v[0];
+            dir.v[1] = ped->pos.v[1] - pos->v[1];
+            dir.v[2] = ped->pos.v[2] - pos->v[2];
+            FindFace(pos, &dir, &nor, &t, &material);
+        } else {
+            t = 100.f;
+        }
+        if (t < 1.0) {
+            continue;
+        }
+        pCallback(ped, pCar_spec, dist_sq, now, pData);
+        result = 1;
+    }
+    return result;
+}
 
 // DoPedAnnihilator
 
 // RepulseIt
 
-// DoPedestrianRepulsifictor
+// FUNCTION: CARMA2_HW 0x004ce280
+int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
+    struct {
+        float f0;
+        float f1;
+        float f2;
+        float f3;
+    } data;
+    int res;
+
+    data.f0 = pF0;
+    data.f1 = pF1;
+    data.f2 = pF2;
+    data.f3 = pF3;
+    res = DoToPeds(pCar, 1, pF3, 1, &data, (tForEachPedestrian_cbfn*)RepulsePedestrian);
+    if (res != 0) {
+        if (pCar != NULL && pCar->driver == eDriver_local_human) {
+            DRS3StartSound(gCar_outlet, 0x1324);
+            return 1;
+        }
+        DRS3StartSound3D(gCar_outlet, 0x1324, &pCar->pos, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+        return 1;
+    }
+    return 0;
+}
 
 // CompileBurnableList
 
