@@ -76,7 +76,7 @@ extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelm
 
 // CreateSparkShower
 
-extern void C2_HOOK_FASTCALL AdjustSpark(int pSpark_num, br_vector3* pPos, br_vector3* pLength);
+extern void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10);
 
 extern void C2_HOOK_FASTCALL AdjustShrapnel(int pShrapnel_num, br_vector3* pPos, tU16 pAge, br_material* pMaterial);
 

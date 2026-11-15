@@ -297,23 +297,32 @@ void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDe
 // CreateSparkShower
 
 // FUNCTION: CARMA2_HW 0x004f8630
-// FUNCTION: CARMA2_SW 0x004f3cb0
-void C2_HOOK_FASTCALL AdjustSpark(int pSpark_num, br_vector3* pPos, br_vector3* pLength) {
-    br_vector3 tv;
-    br_matrix34* mat;
+void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10) {
+    br_vector3* pPos;
+    br_vector3* pLength;
     int i;
+    br_actor* actor;
+    br_vector3 delta;
 
-    i = pSpark_num & 0xff;
-    gSpark_flags |= 1 << pSpark_num;
+    pPos = (br_vector3*)pField_0x4;
+    pLength = (br_vector3*)pField_0x10;
+    i = field_0x0 & 0xff;
+    gSpark_flags |= 1 << field_0x0;
     if (gSparks[i].car != NULL) {
-        mat = &gSparks[i].car->car_master_actor->t.t.mat;
-        BrVector3Sub(&tv, pPos, (br_vector3*)mat->m[3]);
-        BrMatrix34TApplyV(&gSparks[i].pos, &tv, mat);
+        actor = gSparks[i].car->car_master_actor;
+        delta.v[0] = pPos->v[0] - actor->t.t.translate.t.v[0];
+        delta.v[1] = pPos->v[1] - actor->t.t.translate.t.v[1];
+        delta.v[2] = pPos->v[2] - actor->t.t.translate.t.v[2];
+        BrMatrix34TApplyV(&gSparks[i].pos, &delta, &actor->t.t.mat);
     } else {
-        BrVector3Copy(&gSparks[i].pos, pPos);
+        gSparks[i].pos.v[0] = pPos->v[0];
+        gSparks[i].pos.v[1] = pPos->v[1];
+        gSparks[i].pos.v[2] = pPos->v[2];
     }
-    BrVector3Copy(&gSparks[i].length, pLength);
-    gSparks[i].colour = (tU8)(pSpark_num >> 8);
+    gSparks[i].length.v[0] = pLength->v[0];
+    gSparks[i].length.v[1] = pLength->v[1];
+    gSparks[i].length.v[2] = pLength->v[2];
+    gSparks[i].colour = field_0x0 >> 8;
 }
 
 // FUNCTION: CARMA2_HW 0x004f86f0
