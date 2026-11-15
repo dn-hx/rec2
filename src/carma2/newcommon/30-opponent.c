@@ -253,10 +253,62 @@ void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_object
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a93c0
+// FUNCTION: CARMA2_HW 0x004a93c0
 // STUB: CARMA2_SW 0x004a5530
 void C2_HOOK_FASTCALL TopUpRandomRoute(tOpponent_spec* pOpponent_spec, int pSections_to_add) {
-    NOT_IMPLEMENTED();
+    tS16 previous;
+    tU8 direction;
+    tS16 node;
+    tS16 section;
+    tS16 candidates[8];
+    tPath_node* path_node;
+    int count;
+    int i;
+    int target;
+
+    if (pSections_to_add == 0) {
+        PDEnterDebugger("TopUpRandomRoute() called with no seed (woof, bark, etc.)");
+    }
+    target = pOpponent_spec->nnext_sections + pSections_to_add;
+    if (pSections_to_add < 0 || target >= 12) {
+        target = 12;
+    }
+    while (pOpponent_spec->nnext_sections < target) {
+        previous = pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].section_no;
+        direction = pOpponent_spec->next_sections[pOpponent_spec->nnext_sections - 1].direction;
+        node = gProgram_state.AI_vehicles.path_sections[previous].node_indices[direction];
+        path_node = &gProgram_state.AI_vehicles.path_nodes[node];
+        if (path_node->number_of_sections > 1) {
+            count = 0;
+            for (i = 0; i < path_node->number_of_sections; i++) {
+                section = path_node->sections[i];
+                if (section != previous
+                        && (!gProgram_state.AI_vehicles.path_sections[section].one_way || node != gProgram_state.AI_vehicles.path_sections[section].node_indices[1])
+                        && (pOpponent_spec->cheating || gProgram_state.AI_vehicles.path_sections[section].type != ePST_cheat_only)) {
+                    candidates[count] = section;
+                    count++;
+                }
+            }
+            if (count > 1) {
+                section = candidates[IRandomBetween(0, count - 1)];
+                direction = node != gProgram_state.AI_vehicles.path_sections[section].node_indices[1];
+            } else if (count == 1) {
+                section = candidates[0];
+                direction = node != gProgram_state.AI_vehicles.path_sections[section].node_indices[1];
+            } else {
+                section = previous;
+                direction = direction == 0;
+            }
+        } else {
+            section = previous;
+            direction = direction == 0;
+        }
+        if (pOpponent_spec->nnext_sections < 12) {
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].section_no = section;
+            pOpponent_spec->next_sections[pOpponent_spec->nnext_sections].direction = direction;
+            pOpponent_spec->nnext_sections += 1;
+        }
+    }
 }
 
 #ifdef REC2_MATCHING
