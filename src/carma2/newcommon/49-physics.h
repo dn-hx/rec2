@@ -140,7 +140,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // AllocateObjectWorkspace
 
-// RedoQuickHingeVelocities
+extern void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject);
 
 // GetJointForces
 
@@ -246,7 +246,7 @@ extern int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, 
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 
 // SetUpQuickHingeData
 

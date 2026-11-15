@@ -459,6 +459,53 @@ void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object
     pForce->type = 10;
 }
 
+// FUNCTION: CARMA2_HW 0x004b8cf0
+void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject) {
+    int uVar1;
+    int uVar2;
+    int i;
+    int* piVar4;
+    char* puVar3;
+    int local_174[6];
+    float local_15c[15];
+    tPhysics_joint_force rows[3];
+    tPhysics_object* pObject2;
+    tPhysics_object* pOther;
+
+    pObject2 = pObject->field_0x230;
+    pOther = (tPhysics_object*)*(int*)(*(int*)((tU8*)pObject + 0x1e4) + 4);
+    if (pOther != pObject2) {
+        pObject2 = pObject;
+        pObject = pOther;
+    }
+    CreateJointForce(pObject, pObject2, &rows[0], (br_vector3*)((char*)pObject->physics_joint1 + 0x38));
+    CreateJointTorque(pObject, pObject2, &rows[1], (br_vector3*)((char*)pObject->physics_joint1 + 0x20));
+    CreateJointTorque(pObject, pObject2, &rows[2], (br_vector3*)((char*)pObject->physics_joint1 + 0x2c));
+    piVar4 = local_174;
+    puVar3 = (char*)rows;
+    i = 3;
+    do {
+        *piVar4 = (int)puVar3;
+        puVar3 += 0x60;
+        piVar4++;
+        i--;
+    } while (i != 0);
+    uVar1 = *(int*)&pObject2->field_0x1e0[4];
+    uVar2 = *(int*)&pObject->field_0x1e0[4];
+    *(int*)&pObject->field_0x1e0[4] = 0;
+    *(int*)&pObject2->field_0x1e0[4] = 0;
+    MakeMatrix(&local_15c[3], 3, (tPhysics_joint_force**)local_174, 3);
+    DRMatrix33Inverse((float*)(uVar2 + 8), &local_15c[3]);
+    MakeJointVelocitiesVector((br_scalar*)&local_174[3], (tPhysics_joint_force**)local_174, 3);
+    BrMatrix34ApplyV((br_vector3*)&local_15c[0], (br_vector3*)&local_174[3], (br_matrix34*)(uVar2 + 8));
+    i = 0;
+    do {
+        ApplySingleForce((tPhysics_joint_force*)*(int*)((char*)local_174 + i), *(float*)((char*)local_15c + i));
+        i += 4;
+    } while (i < 0xc);
+    *(int*)&pObject->field_0x1e0[4] = uVar2;
+    *(int*)&pObject2->field_0x1e0[4] = uVar1;
+}
 // FUNCTION: CARMA2_HW 0x004b8e10
 void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
@@ -750,7 +797,37 @@ int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, br_scal
 
 // AddDoubleTorqueToMatrix
 
-// DRMatrix33Inverse
+// FUNCTION: CARMA2_HW 0x004be350
+void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+
+    pDestination[0] = -pSource[5] * pSource[7] + pSource[8] * pSource[4];
+    pDestination[1] = -(-pSource[2] * pSource[7] + pSource[1] * pSource[8]);
+    fVar1 = -pSource[2] * pSource[4] + pSource[1] * pSource[5];
+    pDestination[2] = fVar1;
+    fVar5 = 1.0 / (pSource[1] * pDestination[1] + pSource[2] * fVar1 + pSource[0] * pDestination[0]);
+    pDestination[0] = pDestination[0] * fVar5;
+    pDestination[3] = -((-pSource[5] * pSource[6] + pSource[8] * pSource[3]) * fVar5);
+    fVar1 = pSource[4];
+    fVar2 = pSource[3];
+    fVar3 = pSource[7];
+    fVar4 = pSource[6];
+    pDestination[1] = pDestination[1] * fVar5;
+    pDestination[6] = (-fVar1 * fVar4 + fVar3 * fVar2) * fVar5;
+    pDestination[4] = (-pSource[2] * pSource[6] + pSource[8] * pSource[0]) * fVar5;
+    fVar1 = pSource[1];
+    fVar2 = pSource[7];
+    fVar3 = pSource[6];
+    fVar4 = pSource[0];
+    pDestination[2] = pDestination[2] * fVar5;
+    pDestination[7] = -((-fVar1 * fVar3 + fVar2 * fVar4) * fVar5);
+    pDestination[5] = -((-pSource[2] * pSource[3] + pSource[5] * pSource[0]) * fVar5);
+    pDestination[8] = (-pSource[1] * pSource[3] + pSource[4] * pSource[0]) * fVar5;
+}
 
 // SetUpQuickHingeData
 
