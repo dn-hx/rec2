@@ -106,7 +106,7 @@ extern void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee);
 
 // CalcNextTrailSection
 
-// ProcessPursueAndTwat
+extern void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand);
 
 // ProcessRunAway
 
