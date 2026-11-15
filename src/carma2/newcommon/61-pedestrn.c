@@ -1267,7 +1267,24 @@ void C2_HOOK_FASTCALL RenderLimbs(void) {
 
 // ResetNapalmBolts
 
-// ARResetNapalmBolts
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+// FUNCTION: CARMA2_HW 0x004d5b10
+void C2_HOOK_FASTCALL ARResetNapalmBolts(void) {
+    int i;
+    int j;
+
+    for (i = 0; i < (int)REC2_ASIZE(gNapalm_bolts); i++) {
+        gNapalm_bolts[i].ped = NULL;
+        for (j = 0; j < (int)REC2_ASIZE(gNapalm_bolts[i].actors); j++) {
+            gNapalm_bolts[i].actors[j]->render_style = BR_RSTYLE_NONE;
+        }
+    }
+}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004d5b40
 // FUNCTION: CARMA2_SW 0x004d2230
