@@ -107,7 +107,7 @@ extern void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_dat
 
 // DoEnvSound
 
-// FoundSoundSource
+extern intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext);
 
 // MungeSoundGenerators
 
