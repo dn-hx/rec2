@@ -228,6 +228,6 @@ extern void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* p
 
 // RecordOpponentTwattageOccurrence
 
-// GetOpponentMood
+extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
 
 #endif // GUARD_30_OPPONENT_H
