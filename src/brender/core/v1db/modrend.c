@@ -129,50 +129,85 @@ void C2_HOOK_STDCALL boundingBoxRenderPoints(br_actor* actor, br_model* model, b
     renderPoints(actor, makeMeshFromBounds(&model->bounds), material, render_data, style, on_screen);
 }
 
+// PARTIAL 74.32%: makeMeshFromBounds 0x00526150 [structure] - min.x copies int-mov in orig (v0..v3) but x87 here; loop walks with biased pointer; see state/findings/makeMeshFromBounds.md
 // FUNCTION: CARMA2_HW 0x00526150
 br_model* C2_HOOK_STDCALL makeMeshFromBounds(br_bounds* b) {
-    int i;
+    float* src;
+    float* dst;
+    float fVar1;
+
+    src = (float*)b;
 
     // 1. Modify vertex points
-    bounds_vertices[0].p.v[0] = b->min.v[0];
-    bounds_vertices[0].p.v[1] = b->min.v[1];
-    bounds_vertices[0].p.v[2] = b->min.v[2];
+    fVar1 = src[0];
+    bounds_vertices[0].p.v[0] = fVar1;
+    fVar1 = src[1];
+    bounds_vertices[0].p.v[1] = fVar1;
+    fVar1 = src[2];
+    bounds_vertices[0].p.v[2] = fVar1;
 
-    bounds_vertices[1].p.v[0] = b->min.v[0];
-    bounds_vertices[1].p.v[1] = b->min.v[1];
-    bounds_vertices[1].p.v[2] = b->max.v[2];
+    fVar1 = src[0];
+    bounds_vertices[1].p.v[0] = fVar1;
+    fVar1 = src[1];
+    bounds_vertices[1].p.v[1] = fVar1;
+    fVar1 = src[5];
+    bounds_vertices[1].p.v[2] = fVar1;
 
-    bounds_vertices[2].p.v[0] = b->min.v[0];
-    bounds_vertices[2].p.v[1] = b->max.v[1];
-    bounds_vertices[2].p.v[2] = b->min.v[2];
+    fVar1 = src[0];
+    bounds_vertices[2].p.v[0] = fVar1;
+    fVar1 = src[4];
+    bounds_vertices[2].p.v[1] = fVar1;
+    fVar1 = src[2];
+    bounds_vertices[2].p.v[2] = fVar1;
 
-    bounds_vertices[3].p.v[0] = b->min.v[0];
-    bounds_vertices[3].p.v[1] = b->max.v[1];
-    bounds_vertices[3].p.v[2] = b->max.v[2];
+    fVar1 = src[0];
+    bounds_vertices[3].p.v[0] = fVar1;
+    fVar1 = src[4];
+    bounds_vertices[3].p.v[1] = fVar1;
+    fVar1 = src[5];
+    bounds_vertices[3].p.v[2] = fVar1;
 
-    bounds_vertices[4].p.v[0] = b->max.v[0];
-    bounds_vertices[4].p.v[1] = b->min.v[1];
-    bounds_vertices[4].p.v[2] = b->min.v[2];
+    fVar1 = src[3];
+    bounds_vertices[4].p.v[0] = fVar1;
+    fVar1 = src[1];
+    bounds_vertices[4].p.v[1] = fVar1;
+    fVar1 = src[2];
+    bounds_vertices[4].p.v[2] = fVar1;
 
-    bounds_vertices[5].p.v[0] = b->max.v[0];
-    bounds_vertices[5].p.v[1] = b->min.v[1];
-    bounds_vertices[5].p.v[2] = b->max.v[2];
+    fVar1 = src[3];
+    bounds_vertices[5].p.v[0] = fVar1;
+    fVar1 = src[1];
+    bounds_vertices[5].p.v[1] = fVar1;
+    fVar1 = src[5];
+    bounds_vertices[5].p.v[2] = fVar1;
 
-    bounds_vertices[6].p.v[0] = b->max.v[0];
-    bounds_vertices[6].p.v[1] = b->max.v[1];
-    bounds_vertices[6].p.v[2] = b->min.v[2];
+    fVar1 = src[3];
+    bounds_vertices[6].p.v[0] = fVar1;
+    fVar1 = src[4];
+    bounds_vertices[6].p.v[1] = fVar1;
+    fVar1 = src[2];
+    bounds_vertices[6].p.v[2] = fVar1;
 
-    bounds_vertices[7].p.v[0] = b->max.v[0];
-    bounds_vertices[7].p.v[1] = b->max.v[1];
-    bounds_vertices[7].p.v[2] = b->max.v[2];
+    fVar1 = src[3];
+    bounds_vertices[7].p.v[0] = fVar1;
+    fVar1 = src[4];
+    bounds_vertices[7].p.v[1] = fVar1;
+    fVar1 = src[5];
+    bounds_vertices[7].p.v[2] = fVar1;
 
     // 2. Modify d in the face equation (a*x+b*y+c*y+d=0)
-    for (i = 0; i < BR_ASIZE(bounds_faces) / 4; i++) {
-        bounds_faces[2 * i + 0].eqn.v[3] = b->min.v[i];
-        bounds_faces[2 * i + 1].eqn.v[3] = b->min.v[i];
-        bounds_faces[2 * i + 6].eqn.v[3] = b->max.v[i];
-        bounds_faces[2 * i + 7].eqn.v[3] = b->max.v[i];
-    }
+    src = (float*)b;
+    dst = &bounds_faces[0].eqn.v[3];
+    do {
+        fVar1 = src[3];
+        dst[7] = fVar1;
+        dst[0] = fVar1;
+        fVar1 = src[0];
+        dst[0x31] = -fVar1;
+        dst[0x2a] = -fVar1;
+        dst += 14;
+        src++;
+    } while (dst < &bounds_faces[6].eqn.v[3]);
 
     // 3. Copy bounds
     bounds_model.bounds = *b;
