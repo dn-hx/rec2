@@ -168,7 +168,7 @@ extern int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* p
 
 // RematerialiseOpponentOnNearestSection
 
-// RematerialiseOpponent
+extern int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
 
 // CalcPlayerConspicuousness
 
