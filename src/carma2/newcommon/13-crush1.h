@@ -170,7 +170,7 @@ extern void C2_HOOK_FASTCALL ClipPointToLimits(br_vector3* pPoint, tU16 pLimit_b
 
 // SimpleCrushCar
 
-// CrushCar
+extern void C2_HOOK_FASTCALL CrushCar(tCar_spec* pCar, br_actor* pActor, tCar_crush* pCrush);
 
 // SendCrush
 
