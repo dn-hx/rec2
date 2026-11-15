@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -999,7 +1000,43 @@ void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight)
     AwardTime(gPed_times[gProgram_state.skill_level]);
 }
 
-// KillPedestrian
+#define GET_PED_COLLISION_OBJECT(PED) ( ((PED)->character->field_0x14 & 1) ? (PED)->character->personality->form->simple_physicing[(PED)->character->field_0x5].collision_info : GetRootObject((PED)->character))
+
+// FUNCTION: CARMA2_HW 0x004cce70
+void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    tPed_character_instance* character;
+    int head_bone;
+
+    if (GET_PED_COLLISION_OBJECT(pPed)->last_special_volume == NULL
+            || GET_PED_COLLISION_OBJECT(pPed)->last_special_volume->gravity_multiplier >= 1.f) {
+        if (gGoreLevel > 0) {
+            character = pPed->character;
+            if (character->field_0x4 >= 0) {
+                PipeSinglePedModelChange(character->ped, -1, NULL, -1, GetCharacterModelSet(character), 1);
+                SetCharacterAllBonesModel(character, 0, 1);
+            }
+            character = pPed->character;
+            head_bone = character->personality->form->index_head_bone;
+            if (character->field_0x4 >= 0) {
+                if (head_bone < 0) {
+                    PipeSinglePedModelChange(character->ped, head_bone, NULL, -1, GetCharacterModelSet(character), 1);
+                    SetCharacterAllBonesModel(character, 2, 1);
+                } else {
+                    PipeSinglePedModelChange(character->ped, head_bone,
+                        GetCharacterBoneModel(character, head_bone), 2,
+                        GetCharacterModelSet(character), 1);
+                    SetCharacterBoneModel(character, head_bone, 2, 1);
+                }
+            }
+            if (pPed->field_0x0c != NULL) {
+                pPed->field_0x0c->field_0x1c = NULL;
+            }
+            DoGiblets(pPed, GET_PED_COLLISION_OBJECT(pPed), pCollision_info, 0.4f, &pPed->pos, 1);
+        }
+    }
+    OneLessPed(pPed);
+    ScoreForKilledPedestrian(pPed, 0.f);
+}
 
 // FUNCTION: CARMA2_HW 0x004cd9e0
 // FUNCTION: CARMA2_SW 0x004ca0e0
@@ -1049,7 +1086,37 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 
 // CBPassiveCollision
 
-// BastardIt
+// FUNCTION: CARMA2_HW 0x004ce050
+int C2_HOOK_FASTCALL BastardIt(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pArg4, tPedestrian_distances* pDistances) {
+    extern tS3_outlet* gCar_outlet;
+    int i;
+
+    pPed->field_0x0c->field_0xc0 = pCar;
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        PipeSinglePedIncident(pPed, pCar->collision_info->actor);
+    }
+    if (!gImmortal_peds) {
+        KillPedestrian(pPed, pCar->collision_info);
+        SetPedMove(pPed, 0x71, -1, 0, 1, pArg4, ePed_action_dead);
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gProximity_rays); i++) {
+        if (gProximity_rays[i].start_time == 0) {
+            goto found;
+        }
+    }
+    /* table full: the walk ran off the end of gProximity_rays */
+    return 0;
+found:
+    gProximity_rays[i].start_time = GetTotalTime();
+    gProximity_rays[i].car = pCar;
+    gProximity_rays[i].ped = pPed;
+    if (pCar != NULL && pCar->driver == eDriver_local_human) {
+        DRS3StartSound(gCar_outlet, 0x157c);
+        return 0;
+    }
+    DRS3StartSound3D(gCar_outlet, 0x157c, &pCar->pos, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+    return 0;
+}
 
 // MungeProxRay
 
