@@ -231,9 +231,9 @@ extern void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, in
 
 // MungeProxRay
 
-// DoToPeds
+extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
 
-// DoPedAnnihilator
+extern int C2_HOOK_FASTCALL DoPedAnnihilator(tCar_spec* pCar, br_scalar pRadius);
 
 // RepulseIt
 
