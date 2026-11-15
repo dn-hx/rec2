@@ -492,6 +492,483 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+// FUNCTION: CARMA2_HW 0x004bf490
+void C2_HOOK_FASTCALL MakeMatrix(br_scalar* pMatrix, int pStride, tPhysics_joint_force** pRecords, int pCount) {
+  /* Keep each four-byte stack slot addressable for contiguous vector outputs. */
+  union { int i[60]; float f[60]; } local_storage;
+#define local_e0 local_storage.i[4]
+#define local_dc local_storage.f[5]
+#define local_d8 local_storage.f[6]
+#define local_d4 local_storage.f[7]
+#define local_d0 local_storage.f[8]
+#define local_cc local_storage.f[9]
+#define local_c8 local_storage.f[10]
+#define local_c4 local_storage.f[11]
+#define local_c0 local_storage.f[12]
+#define local_bc local_storage.f[13]
+#define local_b8 local_storage.f[14]
+#define local_b4 local_storage.f[15]
+#define local_b0 local_storage.f[16]
+#define local_ac local_storage.f[17]
+#define local_a8 local_storage.f[18]
+#define local_a4 local_storage.f[19]
+#define local_a0 local_storage.f[20]
+#define local_9c local_storage.f[21]
+#define local_98 local_storage.f[22]
+#define local_94 local_storage.f[23]
+#define local_90 local_storage.f[24]
+#define local_8c local_storage.f[25]
+#define local_88 local_storage.f[26]
+#define local_84 local_storage.f[27]
+#define local_80 local_storage.f[28]
+#define local_7c local_storage.i[29]
+#define local_78 local_storage.i[30]
+#define local_74 local_storage.i[31]
+#define local_70 local_storage.i[32]
+#define local_6c local_storage.i[33]
+#define local_68 local_storage.i[34]
+#define local_64 local_storage.i[35]
+#define local_60 local_storage.f[36]
+#define local_5c local_storage.f[37]
+#define local_58 local_storage.f[38]
+#define local_54 local_storage.f[39]
+#define local_50 local_storage.f[40]
+#define local_4c local_storage.f[41]
+#define local_48 local_storage.f[42]
+#define local_44 local_storage.f[43]
+#define local_40 local_storage.f[44]
+#define local_3c local_storage.f[45]
+#define local_38 local_storage.f[46]
+#define local_34 local_storage.f[47]
+#define local_30 local_storage.f[48]
+#define local_2c local_storage.f[49]
+#define local_28 local_storage.f[50]
+#define local_24 local_storage.f[51]
+#define local_20 local_storage.f[52]
+#define local_1c local_storage.f[53]
+#define local_18 local_storage.f[54]
+#define local_14 local_storage.f[55]
+#define local_10 local_storage.f[56]
+#define local_c local_storage.f[57]
+#define local_8 local_storage.f[58]
+#define local_4 local_storage.f[59]
+  int iVar1;
+  float fVar2;
+  int iVar3;
+  float *pfVar4;
+  int *piVar5;
+  float *pfVar6;
+  int iVar7;
+  int iVar8;
+  int iVar9;
+
+  local_78 = pStride;
+  local_64 = (int)pMatrix;
+  local_74 = 0;
+  if (0 < pCount) {
+    do {
+      iVar7 = local_74;
+      iVar1 = ((int*)pRecords)[local_74];
+      iVar9 = *(int *)(iVar1 + 8);
+      iVar8 = *(int *)(iVar1 + 4);
+      if ((iVar9 != 0) && (*(int *)(iVar1 + 0x5c) == 0xe)) {
+        iVar9 = 0;
+      }
+      local_7c = iVar8;
+      if (*(int *)(iVar1 + 0x5c) == 0xb) {
+        iVar9 = *(int *)(iVar1 + 4);
+        iVar8 = *(int *)(iVar1 + 8);
+        iVar3 = (int)SetUpTorqueHingePartners(&local_c4, &local_48, &local_94, &local_30, (const br_vector3*)(iVar1 + 0x2c), (tPhysics_object*)iVar9);
+        if (iVar8 != 0) {
+          local_6c = (int)SetUpTorqueHingePartners(&local_a0, &local_18, &local_b8, &local_3c, (const br_vector3*)(iVar1 + 0x38), (tPhysics_object*)iVar8);
+        }
+        if (-1 < iVar7) {
+          pfVar6 = (float *)(local_64 + iVar7 * local_78 * 4);
+          pfVar4 = (float *)(local_64 + iVar7 * 4);
+          local_7c = iVar7 + 1;
+          piVar5 = (int*)pRecords;
+          do {
+            iVar1 = *piVar5;
+            if (*(int *)(iVar1 + 0x5c) == 0xb) {
+              if (*(int *)(iVar1 + 4) == iVar9) {
+                *pfVar4 = *(float *)(iVar1 + 0x2c) * local_c4 +
+                          *(float *)(iVar1 + 0x30) * local_c0 + *(float *)(iVar1 + 0x34) * local_bc;
+              }
+              else if (*(int *)(iVar1 + 8) == iVar9) {
+                *pfVar4 = -(*(float *)(iVar1 + 0x40) * local_bc +
+                           *(float *)(iVar1 + 0x38) * local_c4 + *(float *)(iVar1 + 0x3c) * local_c0
+                           );
+              }
+              else {
+                *pfVar4 = 0.0;
+              }
+              if (iVar3 != 0) {
+                iVar1 = *piVar5;
+                if (*(int *)(iVar1 + 4) == iVar3) {
+                  fVar2 = *(float *)(iVar1 + 0x2c) * local_94 +
+                          *(float *)(iVar1 + 0x30) * local_90 + *(float *)(iVar1 + 0x34) * local_8c
+                          + *pfVar4;
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != iVar3) goto LAB_004bf646;
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x40) * local_8c +
+                                    *(float *)(iVar1 + 0x38) * local_94 +
+                                    *(float *)(iVar1 + 0x3c) * local_90);
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004bf646:
+              if (iVar8 != 0) {
+                iVar1 = *piVar5;
+                if (*(int *)(iVar1 + 4) == iVar8) {
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x2c) * local_a0 +
+                                    *(float *)(iVar1 + 0x30) * local_9c +
+                                    *(float *)(iVar1 + 0x34) * local_98);
+LAB_004bf6a6:
+                  *pfVar4 = fVar2;
+                }
+                else if (*(int *)(iVar1 + 8) == iVar8) {
+                  fVar2 = *(float *)(iVar1 + 0x40) * local_98 +
+                          *(float *)(iVar1 + 0x38) * local_a0 + *(float *)(iVar1 + 0x3c) * local_9c
+                          + *pfVar4;
+                  goto LAB_004bf6a6;
+                }
+                if (local_6c != 0) {
+                  iVar1 = *piVar5;
+                  if (*(int *)(iVar1 + 4) == local_6c) {
+                    *pfVar4 = *pfVar4 - (*(float *)(iVar1 + 0x2c) * local_b8 +
+                                        *(float *)(iVar1 + 0x30) * local_b4 +
+                                        *(float *)(iVar1 + 0x34) * local_b0);
+                  }
+                  else if (*(int *)(iVar1 + 8) == local_6c) {
+                    *pfVar4 = *(float *)(iVar1 + 0x40) * local_b0 +
+                              *(float *)(iVar1 + 0x38) * local_b8 +
+                              *(float *)(iVar1 + 0x3c) * local_b4 + *pfVar4;
+                  }
+                }
+              }
+            }
+            else {
+              if (*(int *)(iVar1 + 4) == iVar9) {
+                *pfVar4 = *(float *)(iVar1 + 0x2c) *
+                          ((*(float *)(iVar1 + 0x1c) * local_c0 -
+                           *(float *)(iVar1 + 0x18) * local_bc) + local_48) +
+                          *(float *)(iVar1 + 0x34) *
+                          ((*(float *)(iVar1 + 0x18) * local_c4 -
+                           *(float *)(iVar1 + 0x14) * local_c0) + local_40) +
+                          *(float *)(iVar1 + 0x30) *
+                          ((*(float *)(iVar1 + 0x14) * local_bc -
+                           *(float *)(iVar1 + 0x1c) * local_c4) + local_44);
+              }
+              else if (*(int *)(iVar1 + 8) == iVar9) {
+                *pfVar4 = -(*(float *)(iVar1 + 0x40) *
+                            ((*(float *)(iVar1 + 0x24) * local_c4 -
+                             *(float *)(iVar1 + 0x20) * local_c0) + local_40) +
+                           *(float *)(iVar1 + 0x3c) *
+                           ((*(float *)(iVar1 + 0x20) * local_bc -
+                            *(float *)(iVar1 + 0x28) * local_c4) + local_44) +
+                           *(float *)(iVar1 + 0x38) *
+                           ((*(float *)(iVar1 + 0x28) * local_c0 -
+                            *(float *)(iVar1 + 0x24) * local_bc) + local_48));
+              }
+              else {
+                *pfVar4 = 0.0;
+              }
+              if (iVar3 != 0) {
+                iVar1 = *piVar5;
+                if (*(int *)(iVar1 + 4) == iVar3) {
+                  fVar2 = *(float *)(iVar1 + 0x2c) *
+                          ((*(float *)(iVar1 + 0x1c) * local_90 -
+                           *(float *)(iVar1 + 0x18) * local_8c) + local_30) +
+                          *(float *)(iVar1 + 0x34) *
+                          ((*(float *)(iVar1 + 0x18) * local_94 -
+                           *(float *)(iVar1 + 0x14) * local_90) + local_28) +
+                          *(float *)(iVar1 + 0x30) *
+                          ((*(float *)(iVar1 + 0x14) * local_8c -
+                           *(float *)(iVar1 + 0x1c) * local_94) + local_2c) + *pfVar4;
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != iVar3) goto LAB_004bf981;
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x40) *
+                                     ((*(float *)(iVar1 + 0x24) * local_94 -
+                                      *(float *)(iVar1 + 0x20) * local_90) + local_28) +
+                                    *(float *)(iVar1 + 0x3c) *
+                                    ((*(float *)(iVar1 + 0x20) * local_8c -
+                                     *(float *)(iVar1 + 0x28) * local_94) + local_2c) +
+                                    *(float *)(iVar1 + 0x38) *
+                                    ((*(float *)(iVar1 + 0x28) * local_90 -
+                                     *(float *)(iVar1 + 0x24) * local_8c) + local_30));
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004bf981:
+              if (iVar8 == 0) goto LAB_004bfbea;
+              iVar1 = *piVar5;
+              if (*(int *)(iVar1 + 4) == iVar8) {
+                fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x2c) *
+                                   ((*(float *)(iVar1 + 0x1c) * local_9c -
+                                    *(float *)(iVar1 + 0x18) * local_98) + local_18) +
+                                  *(float *)(iVar1 + 0x34) *
+                                  ((*(float *)(iVar1 + 0x18) * local_a0 -
+                                   *(float *)(iVar1 + 0x14) * local_9c) + local_10) +
+                                  *(float *)(iVar1 + 0x30) *
+                                  ((*(float *)(iVar1 + 0x14) * local_98 -
+                                   *(float *)(iVar1 + 0x1c) * local_a0) + local_14));
+LAB_004bfaae:
+                *pfVar4 = fVar2;
+              }
+              else if (*(int *)(iVar1 + 8) == iVar8) {
+                fVar2 = *(float *)(iVar1 + 0x40) *
+                        ((*(float *)(iVar1 + 0x24) * local_a0 - *(float *)(iVar1 + 0x20) * local_9c)
+                        + local_10) +
+                        *(float *)(iVar1 + 0x3c) *
+                        ((*(float *)(iVar1 + 0x20) * local_98 - *(float *)(iVar1 + 0x28) * local_a0)
+                        + local_14) +
+                        *(float *)(iVar1 + 0x38) *
+                        ((*(float *)(iVar1 + 0x28) * local_9c - *(float *)(iVar1 + 0x24) * local_98)
+                        + local_18) + *pfVar4;
+                goto LAB_004bfaae;
+              }
+              if (local_6c != 0) {
+                iVar1 = *piVar5;
+                if (*(int *)(iVar1 + 4) == local_6c) {
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x2c) *
+                                     ((*(float *)(iVar1 + 0x1c) * local_b4 -
+                                      *(float *)(iVar1 + 0x18) * local_b0) + local_3c) +
+                                    *(float *)(iVar1 + 0x34) *
+                                    ((*(float *)(iVar1 + 0x18) * local_b8 -
+                                     *(float *)(iVar1 + 0x14) * local_b4) + local_34) +
+                                    *(float *)(iVar1 + 0x30) *
+                                    ((*(float *)(iVar1 + 0x14) * local_b0 -
+                                     *(float *)(iVar1 + 0x1c) * local_b8) + local_38));
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != local_6c) goto LAB_004bfbea;
+                  fVar2 = *(float *)(iVar1 + 0x40) *
+                          ((*(float *)(iVar1 + 0x24) * local_b8 -
+                           *(float *)(iVar1 + 0x20) * local_b4) + local_34) +
+                          *(float *)(iVar1 + 0x3c) *
+                          ((*(float *)(iVar1 + 0x20) * local_b0 -
+                           *(float *)(iVar1 + 0x28) * local_b8) + local_38) +
+                          *(float *)(iVar1 + 0x38) *
+                          ((*(float *)(iVar1 + 0x28) * local_b4 -
+                           *(float *)(iVar1 + 0x24) * local_b0) + local_3c) + *pfVar4;
+                }
+                *pfVar4 = fVar2;
+              }
+            }
+LAB_004bfbea:
+            piVar5 = piVar5 + 1;
+            *pfVar6 = *pfVar4;
+            pfVar4 = pfVar4 + local_78;
+            pfVar6 = pfVar6 + 1;
+            local_7c = local_7c + -1;
+            iVar7 = local_74;
+          } while (local_7c != 0);
+        }
+      }
+      else {
+        SetUpForce((br_vector3*)&local_d0, (br_vector3*)&local_60, (const br_vector3*)(iVar1 + 0x14), (const br_vector3*)(iVar1 + 0x2c), (tPhysics_object*)iVar8);
+        if (*(int *)(iVar8 + 0x1e4) == 0) {
+          local_e0 = 0;
+        }
+        else {
+          local_e0 = (int)SetUpHingePartners(&local_d0, &local_60, &local_ac, &local_24, (tPhysics_object*)iVar8);
+        }
+        iVar8 = 0;
+        local_68 = 0;
+        if ((iVar9 != 0) &&
+           (SetUpForce((br_vector3*)&local_dc, (br_vector3*)&local_54, (const br_vector3*)(iVar1 + 0x20), (const br_vector3*)(iVar1 + 0x38), (tPhysics_object*)iVar9), *(int *)(iVar9 + 0x1e4) != 0)) {
+          iVar8 = (int)SetUpHingePartners(&local_dc, &local_54, &local_88, &local_c, (tPhysics_object*)iVar9);
+          local_68 = iVar8;
+        }
+        if (-1 < iVar7) {
+          pfVar6 = (float *)(local_64 + local_74 * local_78 * 4);
+          pfVar4 = (float *)(local_64 + local_74 * 4);
+          local_70 = local_74 + 1;
+          piVar5 = (int*)pRecords;
+          do {
+            *pfVar4 = 0.0;
+            iVar1 = *piVar5;
+            if (*(int *)(iVar1 + 0x5c) == 0xb) {
+              if (*(int *)(iVar1 + 4) == local_7c) {
+                fVar2 = *(float *)(iVar1 + 0x34) * local_c8 +
+                        *(float *)(iVar1 + 0x30) * local_cc + *(float *)(iVar1 + 0x2c) * local_d0;
+LAB_004bfd67:
+                *pfVar4 = fVar2;
+              }
+              else if (*(int *)(iVar1 + 8) == local_7c) {
+                fVar2 = -(*(float *)(iVar1 + 0x3c) * local_cc +
+                         *(float *)(iVar1 + 0x38) * local_d0 + *(float *)(iVar1 + 0x40) * local_c8);
+                goto LAB_004bfd67;
+              }
+              if (iVar9 != 0) {
+                if (*(int *)(iVar1 + 4) == iVar9) {
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x34) * local_d4 +
+                                    *(float *)(iVar1 + 0x30) * local_d8 +
+                                    *(float *)(iVar1 + 0x2c) * local_dc);
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != iVar9) goto LAB_004bfdc5;
+                  fVar2 = *(float *)(iVar1 + 0x3c) * local_d8 +
+                          *(float *)(iVar1 + 0x38) * local_dc + *(float *)(iVar1 + 0x40) * local_d4
+                          + *pfVar4;
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004bfdc5:
+              if (local_e0 != 0) {
+                if (*(int *)(iVar1 + 4) == local_e0) {
+                  fVar2 = *(float *)(iVar1 + 0x34) * local_a4 +
+                          *(float *)(iVar1 + 0x30) * local_a8 + *(float *)(iVar1 + 0x2c) * local_ac
+                          + *pfVar4;
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != local_e0) goto LAB_004bfe25;
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x3c) * local_a8 +
+                                    *(float *)(iVar1 + 0x38) * local_ac +
+                                    *(float *)(iVar1 + 0x40) * local_a4);
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004bfe25:
+              if (iVar8 != 0) {
+                if (*(int *)(iVar1 + 4) == iVar8) {
+                  *pfVar4 = *pfVar4 - (*(float *)(iVar1 + 0x34) * local_80 +
+                                      *(float *)(iVar1 + 0x30) * local_84 +
+                                      *(float *)(iVar1 + 0x2c) * local_88);
+                }
+                else if (*(int *)(iVar1 + 8) == iVar8) {
+                  *pfVar4 = *(float *)(iVar1 + 0x3c) * local_84 +
+                            *(float *)(iVar1 + 0x38) * local_88 +
+                            *(float *)(iVar1 + 0x40) * local_80 + *pfVar4;
+                }
+              }
+            }
+            else {
+              if (*(int *)(iVar1 + 4) == local_7c) {
+                fVar2 = *(float *)(iVar1 + 0x30) *
+                        ((*(float *)(iVar1 + 0x14) * local_c8 - *(float *)(iVar1 + 0x1c) * local_d0)
+                        + local_5c) +
+                        *(float *)(iVar1 + 0x34) *
+                        ((*(float *)(iVar1 + 0x18) * local_d0 - *(float *)(iVar1 + 0x14) * local_cc)
+                        + local_58) +
+                        *(float *)(iVar1 + 0x2c) *
+                        ((*(float *)(iVar1 + 0x1c) * local_cc - *(float *)(iVar1 + 0x18) * local_c8)
+                        + local_60);
+LAB_004bffd0:
+                *pfVar4 = fVar2;
+              }
+              else if ((*(int *)(iVar1 + 8) == local_7c) && (*(int *)(iVar1 + 0x5c) != 0xe)) {
+                fVar2 = -(*(float *)(iVar1 + 0x38) *
+                          ((*(float *)(iVar1 + 0x28) * local_cc -
+                           *(float *)(iVar1 + 0x24) * local_c8) + local_60) +
+                         *(float *)(iVar1 + 0x3c) *
+                         ((*(float *)(iVar1 + 0x20) * local_c8 - *(float *)(iVar1 + 0x28) * local_d0
+                          ) + local_5c) +
+                         *(float *)(iVar1 + 0x40) *
+                         ((*(float *)(iVar1 + 0x24) * local_d0 - *(float *)(iVar1 + 0x20) * local_cc
+                          ) + local_58));
+                goto LAB_004bffd0;
+              }
+              if (iVar9 != 0) {
+                if (*(int *)(iVar1 + 4) == iVar9) {
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x30) *
+                                     ((*(float *)(iVar1 + 0x14) * local_d4 -
+                                      *(float *)(iVar1 + 0x1c) * local_dc) + local_50) +
+                                    *(float *)(iVar1 + 0x34) *
+                                    ((*(float *)(iVar1 + 0x18) * local_dc -
+                                     *(float *)(iVar1 + 0x14) * local_d8) + local_4c) +
+                                    *(float *)(iVar1 + 0x2c) *
+                                    ((*(float *)(iVar1 + 0x1c) * local_d8 -
+                                     *(float *)(iVar1 + 0x18) * local_d4) + local_54));
+                }
+                else {
+                  if ((*(int *)(iVar1 + 8) != iVar9) || (*(int *)(iVar1 + 0x5c) == 0xe))
+                  goto LAB_004c0107;
+                  fVar2 = *(float *)(iVar1 + 0x38) *
+                          ((*(float *)(iVar1 + 0x28) * local_d8 -
+                           *(float *)(iVar1 + 0x24) * local_d4) + local_54) +
+                          *(float *)(iVar1 + 0x3c) *
+                          ((*(float *)(iVar1 + 0x20) * local_d4 -
+                           *(float *)(iVar1 + 0x28) * local_dc) + local_50) +
+                          *(float *)(iVar1 + 0x40) *
+                          ((*(float *)(iVar1 + 0x24) * local_dc -
+                           *(float *)(iVar1 + 0x20) * local_d8) + local_4c) + *pfVar4;
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004c0107:
+              if (local_e0 != 0) {
+                if (*(int *)(iVar1 + 4) == local_e0) {
+                  fVar2 = *(float *)(iVar1 + 0x30) *
+                          ((*(float *)(iVar1 + 0x14) * local_a4 -
+                           *(float *)(iVar1 + 0x1c) * local_ac) + local_20) +
+                          *(float *)(iVar1 + 0x34) *
+                          ((*(float *)(iVar1 + 0x18) * local_ac -
+                           *(float *)(iVar1 + 0x14) * local_a8) + local_1c) +
+                          *(float *)(iVar1 + 0x2c) *
+                          ((*(float *)(iVar1 + 0x1c) * local_a8 -
+                           *(float *)(iVar1 + 0x18) * local_a4) + local_24) + *pfVar4;
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != local_e0) goto LAB_004c0234;
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x38) *
+                                     ((*(float *)(iVar1 + 0x28) * local_a8 -
+                                      *(float *)(iVar1 + 0x24) * local_a4) + local_24) +
+                                    *(float *)(iVar1 + 0x3c) *
+                                    ((*(float *)(iVar1 + 0x20) * local_a4 -
+                                     *(float *)(iVar1 + 0x28) * local_ac) + local_20) +
+                                    *(float *)(iVar1 + 0x40) *
+                                    ((*(float *)(iVar1 + 0x24) * local_ac -
+                                     *(float *)(iVar1 + 0x20) * local_a8) + local_1c));
+                }
+                *pfVar4 = fVar2;
+              }
+LAB_004c0234:
+              iVar8 = local_68;
+              if (local_68 != 0) {
+                if (*(int *)(iVar1 + 4) == local_68) {
+                  fVar2 = *pfVar4 - (*(float *)(iVar1 + 0x30) *
+                                     ((*(float *)(iVar1 + 0x14) * local_80 -
+                                      *(float *)(iVar1 + 0x1c) * local_88) + local_8) +
+                                    *(float *)(iVar1 + 0x34) *
+                                    ((*(float *)(iVar1 + 0x18) * local_88 -
+                                     *(float *)(iVar1 + 0x14) * local_84) + local_4) +
+                                    *(float *)(iVar1 + 0x2c) *
+                                    ((*(float *)(iVar1 + 0x1c) * local_84 -
+                                     *(float *)(iVar1 + 0x18) * local_80) + local_c));
+                }
+                else {
+                  if (*(int *)(iVar1 + 8) != local_68) goto LAB_004c0388;
+                  fVar2 = *(float *)(iVar1 + 0x38) *
+                          ((*(float *)(iVar1 + 0x28) * local_84 -
+                           *(float *)(iVar1 + 0x24) * local_80) + local_c) +
+                          *(float *)(iVar1 + 0x3c) *
+                          ((*(float *)(iVar1 + 0x20) * local_80 -
+                           *(float *)(iVar1 + 0x28) * local_88) + local_8) +
+                          *(float *)(iVar1 + 0x40) *
+                          ((*(float *)(iVar1 + 0x24) * local_88 -
+                           *(float *)(iVar1 + 0x20) * local_84) + local_4) + *pfVar4;
+                }
+                *pfVar4 = fVar2;
+              }
+            }
+LAB_004c0388:
+            *pfVar6 = *pfVar4;
+            piVar5 = piVar5 + 1;
+            pfVar6 = pfVar6 + 1;
+            pfVar4 = pfVar4 + local_78;
+            local_70 = local_70 + -1;
+            iVar7 = local_74;
+          } while (local_70 != 0);
+        }
+      }
+      local_74 = iVar7 + 1;
+    } while (local_74 < pCount);
+  }
+  return;
+}
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
@@ -778,7 +1255,133 @@ void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, cons
 
 // SetUpTorqueHingePartners
 
-// SetUpHingePartners
+// FUNCTION: CARMA2_HW 0x004becf0
+int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject) {
+    br_vector3 v;
+    br_vector3 d;
+    br_vector3 t2;
+    br_vector3 t;
+    br_vector3 axis;
+    tU8* pWorkspace;
+    tPhysics_object* pOther;
+    br_scalar f;
+    br_scalar fa;
+    br_scalar fb;
+    br_scalar fc;
+    int i;
+
+    pWorkspace = (tU8*)*(int*)((tU8*)pObject + 0x1e4);
+    pOther = (tPhysics_object*)*(int*)(pWorkspace + 4);
+    if (pOther == pObject->field_0x230) {
+        d.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+        t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+        t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+        t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+        axis.v[0] = -(pObject->physics_joint1->hinge_axis.v[0] * t2.v[0]
+            + pObject->physics_joint1->hinge_axis.v[1] * t2.v[1]
+            + pObject->physics_joint1->hinge_axis.v[2] * t2.v[2]);
+        axis.v[1] = -(pObject->physics_joint1->hinge_axis2.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis2.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis2.v[2] * pOut1[2]);
+        axis.v[2] = -(pObject->physics_joint1->hinge_axis3.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis3.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis3.v[2] * pOut1[2]);
+        BrMatrix34ApplyV(&t, &axis, (br_matrix34*)(pWorkspace + 8));
+        f = t.v[0] / pObject->M;
+        pOut2[0] = pObject->physics_joint1->hinge_axis.v[0] * f + pOut2[0];
+        pOut2[1] = pObject->physics_joint1->hinge_axis.v[1] * f + pOut2[1];
+        pOut2[2] = pObject->physics_joint1->hinge_axis.v[2] * f + pOut2[2];
+        f = -(t.v[0] / pOther->M);
+        pOut4[0] = pObject->physics_joint1->parent_bone_axis.v[0] * f;
+        pOut4[1] = pObject->physics_joint1->parent_bone_axis.v[1] * f;
+        pOut4[2] = pObject->physics_joint1->parent_bone_axis.v[2] * f;
+        t2.v[0] = pObject->physics_joint1->hinge_axis3.v[0] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[0] * t.v[1];
+        t2.v[1] = pObject->physics_joint1->hinge_axis3.v[1] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[1] * t.v[1];
+        t2.v[2] = pObject->physics_joint1->hinge_axis3.v[2] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[2] * t.v[1];
+        fa = pObject->physics_joint1->hinge_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->hinge_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->hinge_axis.v[2] * t.v[0];
+        v.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+        v.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+        v.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+        for (i = 0; i < 3; i++) {
+            pOut1[i] = v.v[i] / pObject->I.v[i] + pOut1[i];
+        }
+        BrMatrix34ApplyV(&v, &t2, &pObject->transform_matrix);
+        BrMatrix34TApplyV((br_vector3*)pOut3, &v, &pOther->transform_matrix);
+        d.v[0] = pObject->physics_joint1->field_0x14.v[0] - pOther->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x14.v[1] - pOther->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x14.v[2] - pOther->cmpos.v[2];
+        fa = pObject->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+        pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+        pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+        pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+        for (i = 0; i < 3; i++) {
+            pOut3[i] = -(pOut3[i] / pOther->I.v[i]);
+        }
+        return (int)pOther;
+    }
+    d.v[0] = pOther->physics_joint1->field_0x14.v[0] - pObject->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x14.v[1] - pObject->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x14.v[2] - pObject->cmpos.v[2];
+    t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+    t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+    t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+    axis.v[0] = pOther->physics_joint1->parent_bone_axis.v[0] * t2.v[0]
+        + pOther->physics_joint1->parent_bone_axis.v[1] * t2.v[1]
+        + pOther->physics_joint1->parent_bone_axis.v[2] * t2.v[2];
+    BrMatrix34ApplyV(&t2, (br_vector3*)pOut1, &pObject->transform_matrix);
+    BrMatrix34TApplyV(&v, &t2, &pOther->transform_matrix);
+    axis.v[1] = pOther->physics_joint1->hinge_axis2.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis2.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis2.v[2] * v.v[2];
+    axis.v[2] = pOther->physics_joint1->hinge_axis3.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis3.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis3.v[2] * v.v[2];
+    BrMatrix34ApplyV(&t, &axis, (br_matrix34*)((tU8*)*(int*)((tU8*)pOther + 0x1e4) + 8));
+    f = t.v[0] / pOther->M;
+    pOut4[0] = pOther->physics_joint1->hinge_axis.v[0] * f;
+    pOut4[1] = pOther->physics_joint1->hinge_axis.v[1] * f;
+    pOut4[2] = pOther->physics_joint1->hinge_axis.v[2] * f;
+    f = -(t.v[0] / pObject->M);
+    pOut2[0] = pOther->physics_joint1->parent_bone_axis.v[0] * f + pOut2[0];
+    pOut2[1] = pOther->physics_joint1->parent_bone_axis.v[1] * f + pOut2[1];
+    pOut2[2] = pOther->physics_joint1->parent_bone_axis.v[2] * f + pOut2[2];
+    pOut3[0] = pOther->physics_joint1->hinge_axis2.v[0] * t.v[1];
+    pOut3[1] = pOther->physics_joint1->hinge_axis2.v[1] * t.v[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis2.v[2] * t.v[1];
+    pOut3[0] = pOther->physics_joint1->hinge_axis3.v[0] * t.v[2] + pOut3[0];
+    pOut3[1] = pOther->physics_joint1->hinge_axis3.v[1] * t.v[2] + pOut3[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis3.v[2] * t.v[2] + pOut3[2];
+    BrMatrix34ApplyV(&v, (br_vector3*)pOut3, &pOther->transform_matrix);
+    BrMatrix34TApplyV(&t2, &v, &pObject->transform_matrix);
+    fa = pOther->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+    t2.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+    t2.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+    t2.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+    for (i = 0; i < 3; i++) {
+        pOut1[i] -= t2.v[i] / pObject->I.v[i];
+    }
+    d.v[0] = pOther->physics_joint1->field_0x08.v[0] - pOther->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x08.v[1] - pOther->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x08.v[2] - pOther->cmpos.v[2];
+    fa = pOther->physics_joint1->hinge_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->hinge_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->hinge_axis.v[2] * t.v[0];
+    pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+    pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+    pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+    for (i = 0; i < 3; i++) {
+        pOut3[i] = pOut3[i] / pOther->I.v[i];
+    }
+    return (int)pOther;
+}
 
 // MakeMatrix
 
