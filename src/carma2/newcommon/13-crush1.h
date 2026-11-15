@@ -248,7 +248,7 @@ extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPla
 
 // AddNonCar
 
-// DetachBit
+extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
 
 // DoDetaching
 
@@ -390,7 +390,7 @@ extern void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar, br_scalar pDamag
 
 extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor_enum_cbfn* pCallback, void* pArg);
 
-// FireOffBitsCB
+extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
 
 // FireSomeBitsOffCar
 
