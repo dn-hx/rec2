@@ -499,7 +499,7 @@ extern void C2_HOOK_FASTCALL UndoPedPos(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoPedModelChange
 
-// UndoGibShower
+extern void C2_HOOK_FASTCALL UndoGibShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoBloodSpurt
 
@@ -536,5 +536,16 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+    int field_0x10;
+    br_vector3 field_0x14;
+    br_vector3 field_0x20;
+    br_vector3 field_0x2c;
+} tPipe_chunk_gib_shower;
 
 #endif // GUARD_23_PIPING_H
