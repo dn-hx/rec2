@@ -342,12 +342,14 @@ void C2_HOOK_CDECL BrLexerPosition(br_lexer* l, char* buf, br_size_t buf_size) {
 br_fixed_ls C2_HOOK_CDECL BrParseFixed(br_lexer* l) {
     br_boolean neg;
     br_fixed_ls x;
+    br_fixed_ls r;
 
     if (l->current.id == T_PLUS) {
         l->advance(l);
     }
-    neg = l->current.id == T_DASH;
-    if (neg) {
+    neg = 0;
+    if (l->current.id == T_DASH) {
+        neg = 1;
         l->advance(l);
     }
     if (l->current.id == T_REAL) {
@@ -361,10 +363,11 @@ br_fixed_ls C2_HOOK_CDECL BrParseFixed(br_lexer* l) {
         l->advance(l);
         x = 0;
     }
+    r = x;
     if (neg) {
-        x = -x;
+        r = -r;
     }
-    return x;
+    return r;
 }
 
 // FUNCTION: CARMA2_HW 0x0052fb40
