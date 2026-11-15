@@ -585,6 +585,7 @@ int C2_HOOK_FASTCALL CarWorldOffFallenCheckThingy(tCar_spec* pCar, int pCheck_ar
 
 // SetQuickRecovery
 
+// PARTIAL 31.86%: SetRecovery 0x00442300 - MSVC keeps a zero register (esi) for the whole body after 2+ `gToo_late = 0` stores; original uses imm 0 and mov/test; see state/findings/SetRecovery.md
 // FUNCTION: CARMA2_HW 0x00442300
 void C2_HOOK_FASTCALL SetRecovery(void) {
     extern int gCancel_recover;
@@ -607,20 +608,24 @@ void C2_HOOK_FASTCALL SetRecovery(void) {
         if (CheckRecoverCost()) {
             if (gCurrent_net_game->type == eNet_game_type_foxy) {
                 if (gThis_net_player_index == gIt_or_fox) {
+                    int race_time = GetRaceTime() + 5000;
                     gToo_late = 0;
-                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 5000;
+                    gProgram_state.current_car.time_to_recover = race_time;
                 } else {
+                    int race_time = GetRaceTime() + 1000;
                     gToo_late = 0;
-                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 1000;
+                    gProgram_state.current_car.time_to_recover = race_time;
                 }
             } else {
                 if (gCurrent_net_game->type == 6 &&
                     gNet_players[gThis_net_player_index].field_0x80 != 0) {
+                    int race_time = GetRaceTime() + 500;
                     gToo_late = 0;
-                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 500;
+                    gProgram_state.current_car.time_to_recover = race_time;
                 } else {
+                    int race_time = GetRaceTime() + 3000;
                     gToo_late = 0;
-                    gProgram_state.current_car.time_to_recover = GetRaceTime() + 3000;
+                    gProgram_state.current_car.time_to_recover = race_time;
                 }
             }
         }
@@ -629,7 +634,7 @@ void C2_HOOK_FASTCALL SetRecovery(void) {
         if (GetRaceTime() + 600 < gProgram_state.current_car.time_to_recover) {
             gProgram_state.current_car.time_to_recover = 0;
             if (!gINT_0067c470) {
-                float cost = (gNet_mode == eNet_mode_none) ? gRecovery_cost.initial[gProgram_state.skill_level] : gRecovery_cost.initial_network[gCurrent_net_game->type];
+                float cost = (gNet_mode != eNet_mode_none) ? gRecovery_cost.initial_network[gCurrent_net_game->type] : gRecovery_cost.initial[gProgram_state.skill_level];
                 EarnCredits((int)cost);
             }
             NewTextHeadupSlot2(4, 0, 2000, -4, GetMiscString(eMiscString_recovery_cancelled), 0);
