@@ -401,7 +401,7 @@ extern void C2_HOOK_FASTCALL ApplyPedFPChange(tPipe_chunk** pChunk);
 
 // ApplyPedPos
 
-// ApplyPedModelChange
+extern void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
@@ -536,5 +536,14 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tS16 field_0x8;
+    tS16 field_0xa;
+    int field_0xc;
+} tPipe_chunk_ped_model_change;
 
 #endif // GUARD_23_PIPING_H
