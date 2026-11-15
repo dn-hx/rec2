@@ -480,7 +480,7 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // ARCompressCrush
 
-// ARApplyCrush
+extern void C2_HOOK_FASTCALL ARApplyCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 // ARUndoCrush
 
