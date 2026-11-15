@@ -77,6 +77,49 @@ int gFrame;
 
 // DroneStraightestArcForCorner2D
 
+#define DRONE_SEC(p) ((tDrone_path_node_section*)(p)->field_0x10)
+
+// FUNCTION: CARMA2_HW 0x0044e410
+int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone) {
+    tDrone_path_node_section* section;
+    int pick;
+
+    if (pDrone->field_0xc < 0) {
+        if (gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].count_sections != 0) {
+            pick = IRandomBetween(0, MAX(0, gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].count_sections - 1));
+            pDrone->field_0x10 = (undefined4)&gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].sections[pick];
+        } else {
+            pDrone->field_0x14 = 0;
+            pDrone->field_0x10 = 0;
+            pDrone->field_0xc = -1;
+            pDrone->field_0xa_pathnode_id = -1;
+        }
+    } else {
+        pDrone->field_0xa_pathnode_id = pDrone->field_0xc;
+        pDrone->field_0x10 = pDrone->field_0x14;
+    }
+
+    section = DRONE_SEC(pDrone);
+    if (section != NULL) {
+        pDrone->field_0xc = section->node1;
+    } else {
+        pDrone->field_0xc = -1;
+    }
+    if (pDrone->field_0xc < 0) {
+        return 0;
+    }
+
+    if (gDrone_path_nodes[pDrone->field_0xc].count_sections != 0) {
+        pick = IRandomBetween(0, MAX(0, gDrone_path_nodes[pDrone->field_0xc].count_sections - 1));
+        section = &gDrone_path_nodes[pDrone->field_0xc].sections[pick];
+        pDrone->field_0x14 = (undefined4)section;
+        pDrone->field_0xe = section->node1;
+        return 1;
+    }
+    pDrone->field_0x14 = 0;
+    pDrone->field_0xe = -1;
+    return 1;
+}
 // FUNCTION: CARMA2_HW 0x0044f640
 // FUNCTION: CARMA2_SW 0x0044f3e0
 FILE* C2_HOOK_FASTCALL OpenDroneFile(char* pDrone_name) {

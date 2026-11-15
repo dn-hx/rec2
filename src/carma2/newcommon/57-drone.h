@@ -212,3 +212,5 @@ extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int 
 // WriteOutDronePaths
 
 #endif // GUARD_57_DRONE_H
+
+extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
