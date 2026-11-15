@@ -3416,18 +3416,20 @@ int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend) {
     int i;
     int prev_item;
 
-    C2_HOOK_BUG_ON(REC2_ASIZE(gKey_mapping) != 77);
-
     gINT_00688748 = -1;
     WaitForNoKeys();
-    for (i = 28; i <= (int)REC2_ASIZE(gKey_mapping) - 1; i++) {
+
+    for (i = 28; i <= 76; i++) {
+
         if (gKey_mapping[i] == -2) {
             gINT_00688748 = i;
             break;
         }
     }
     if (gJoystick_index == -1) {
-        for (i = 28; i <= (int)REC2_ASIZE(gKey_mapping) - 1; i++) {
+
+        for (i = 28; i <= 76; i++) {
+
             if (gKey_mapping[i] >= 107 && gKey_mapping[i] < 139) {
                 gINT_00688748 = i;
             } else if (gKey_mapping[i] >= 139 && gKey_mapping[i] < 143) {
@@ -3436,22 +3438,32 @@ int C2_HOOK_FASTCALL Controls_Ok(tFrontend_spec* pFrontend) {
         }
     }
     if (gINT_00688748 != -1) {
-        for (i = 0; i < gFrontend_controls_count_keys; i++) {
-            if (gControls_frontend_to_key_mapping_lut[i] == gINT_00688748) {
-                break;
-            }
+    for (i = 0; i < gFrontend_controls_count_keys; i++) {
+        if (gControls_frontend_to_key_mapping_lut[i] == gINT_00688748) {
+            break;
         }
-        ScrollSet_DisplayEntry(&gControls_scroller, i);
-        RefreshScrollSet(pFrontend);
-        prev_item = gFrontend_selected_item_index;
-        gFrontend_selected_item_index = ScrollSet_GetItem(&gControls_scroller, i);
-        if (gFrontend_selected_item_index == -1) {
-            PDFatalError("Screwed up in Controls_Ok().");
-            return 0;
+    }
+    if (i < gControls_scroller.field_0x8 || i >= gControls_scroller.field_0x8 + gControls_scroller.range_length) {
+        gControls_scroller.field_0x8 = i;
+        if (i >= gControls_scroller.field_0x0 - gControls_scroller.range_length) {
+            gControls_scroller.field_0x8 = gControls_scroller.field_0x0 - gControls_scroller.range_length;
         }
-        Controls_SlotActivated(pFrontend);
-        gFrontend_selected_item_index = prev_item;
-        return 4;
+    }
+    RefreshScrollSet(pFrontend);
+    prev_item = gFrontend_selected_item_index;
+    if (i < gControls_scroller.field_0x8 || i > gControls_scroller.field_0x8 + gControls_scroller.range_length) {
+        i = -1;
+    } else {
+        i = i - gControls_scroller.field_0x8 + gControls_scroller.range_starts[0];
+    }
+    gFrontend_selected_item_index = i;
+    if (i == -1) {
+        PDFatalError("Screwed up in Controls_Ok().");
+        return 0;
+    }
+    Controls_SlotActivated(pFrontend);
+    gFrontend_selected_item_index = prev_item;
+    return 4;
     }
     SaveJoystickPreferences();
     return 0;
