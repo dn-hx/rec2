@@ -2062,7 +2062,61 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
         parent_model->vertices[flap->field_0xc].p.v[2]);
 }
 
-// ARApplySplitWeld
+// FUNCTION: CARMA2_HW 0x0043c240
+void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector) {
+    tCar_spec* car;
+    tCar_crush_spec* crush;
+    tUser_crush_data* user;
+    br_model* model;
+    br_model* swap_model;
+    br_vector4 split_plane;
+    int i;
+    int g;
+
+    car = roadMachine;
+    split_plane.v[0] = pVector->v[0];
+    split_plane.v[1] = pVector->v[1];
+    split_plane.v[2] = pVector->v[2];
+    crush = car->car_crush_spec;
+    user = car->car_model_actor->user;
+    split_plane.v[3] = ((float*)pVector)[3] - (car->car_model_actor->t.t.translate.t.v[1] * split_plane.v[1] + car->car_model_actor->t.t.translate.t.v[0] * split_plane.v[0] + car->car_model_actor->t.t.translate.t.v[2] * split_plane.v[2]);
+    SplitModel(user->models[0], (br_model**)crush->field_0x4c4, &crush->model_actor->model, split_plane.v, 0);
+    i = 1;
+    if (1 < car->count_detail_levels) {
+        do {
+            if (user->models[i] != NULL) {
+                SplitModel(user->models[i], (br_model**)crush->field_0x4c4 + i, &model, split_plane.v, 1);
+            }
+            i++;
+        } while (i < car->count_detail_levels);
+    }
+    i = 0;
+    if (0 < car->count_detail_levels) {
+        do {
+            swap_model = user->models[i];
+            user->models[i] = ((br_model**)crush->field_0x4c4)[i];
+            ((br_model**)crush->field_0x4c4)[i] = swap_model;
+            i++;
+        } while (i < car->count_detail_levels);
+    }
+    car->car_model_actor->model = user->models[0];
+    DRActorEnumRecurse(car->car_model_actor, MakeCarModelsMaterialsDoubleSided, car);
+    model = crush->model_actor->model;
+    if (model != NULL) {
+        g = 0;
+        if (model->prepared->ngroups != 0) {
+            do {
+                br_material* material = model->faces[*model->prepared->groups[g].face_user].material;
+
+                if (material != NULL && !(material->flags & BR_MATF_TWO_SIDED)) {
+                    material->flags |= BR_MATF_TWO_SIDED;
+                    BrMaterialUpdate(material, BR_MATU_RENDERING);
+                }
+                g++;
+            } while (g < model->prepared->ngroups);
+        }
+    }
+}
 
 // ARUndoSplitWeld
 
