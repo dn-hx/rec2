@@ -347,7 +347,7 @@ extern void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_
 
 extern void C2_HOOK_FASTCALL AdjustProxRay(int pRay_index, tU16 pCar_ID, tU16 pPed_index, tU32 pTime);
 
-// ResetProxRay
+extern void C2_HOOK_FASTCALL ResetProxRay(void);
 
 extern tPed_character_instance* C2_HOOK_FASTCALL GetTestPed(void);
 
