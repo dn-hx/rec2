@@ -20,6 +20,6 @@ extern int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pS
 
 // DoGridPosition
 
-// ReceivedViewCar
+extern void C2_HOOK_FASTCALL ReceivedViewCar(int* pA, int* pB);
 
 #endif // GUARD_03_RACESTRT_H
