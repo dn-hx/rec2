@@ -548,7 +548,7 @@ extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
 
 // DecodeNetShapeData
 
-// CopyBendInMessage
+extern void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar);
 
 // Vector4Equal
 

@@ -42,6 +42,7 @@
 #include "c2_math.h"
 #include "c2_stdio.h"
 #include "rec2_macros.h"
+#include "32-spark.h"
 
 #include <math.h>
 
