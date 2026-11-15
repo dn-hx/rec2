@@ -552,9 +552,114 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
 
 // MatricesAreIdentical
 
-// InternalPrepareObject
+// FUNCTION: CARMA2_HW 0x004b99e0
+void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject) {
+    tPhysics_object* child;
+    tPhysics_object* parent;
+    int i;
+    int j;
 
-// PrepareObject
+    if (pObject->M == gFLOAT_0058a768) {
+        pObject->M = 0.01f;
+        BrVector3SetFloat(&pObject->I, 0.01f, 0.01f, 0.01f);
+    }
+    {
+        int f = pObject->flags;
+        f &= ~0x1200;
+        pObject->flags = f;
+    }
+    pObject->field_0x1de = 0;
+    pObject->collision_flag = 0;
+    pObject->field_0x1dc = 0;
+    *(int*)&pObject->field_0x1e0[4] = 0;
+    pObject->field_0x21c = 1.f;
+    pObject->field183_0x1d8 = (undefined4)pObject;
+    pObject->field_0x218 = 0;
+    pObject->field_0x1e0[0] = pObject->disable_move_rotate;
+    BrMatrix34TApplyV(&pObject->velocity_car_space, &pObject->v, &pObject->transform_matrix);
+    parent = pObject->parent;
+    ((float*)pObject->field_0x1b4)[0] = pObject->v.v[0];
+    ((float*)pObject->field_0x1b4)[1] = pObject->v.v[1];
+    ((float*)pObject->field_0x1b4)[2] = pObject->v.v[2];
+    ((float*)pObject->field_0x1cc)[0] = pObject->omega.v[0];
+    ((float*)pObject->field_0x1cc)[1] = pObject->omega.v[1];
+    ((float*)pObject->field_0x1cc)[2] = pObject->omega.v[2];
+    if (parent != NULL) {
+        pObject->disable_move_rotate = parent->disable_move_rotate;
+    }
+    if (pObject->disable_move_rotate == 0 && pObject->field_0x1df != 0) {
+        pObject->field_0x21c *= 50.f;
+        pObject->I.v[0] *= 50.f;
+        pObject->I.v[1] *= 50.f;
+        pObject->I.v[2] *= 50.f;
+    }
+    if (pObject->disable_move_rotate & (pObject->field_0xf0 != 2)) {
+        BrMatrix34Copy(&pObject->actor->t.t.mat, &pObject->transform_matrix);
+        for (child = pObject->child; child != NULL; child = child->next) {
+            InternalPrepareObject(child);
+        }
+        if (pObject->parent == NULL) {
+            GetWorldBoundingBoxForObject(pObject, NULL);
+        }
+        return;
+    }
+    if (pObject->field_0xf0 == 2) {
+        br_vector3 d;
+
+        pObject->field_0x230 = parent;
+        d.v[0] = pObject->actor->t.t.mat.m[3][0] - pObject->transform_matrix.m[3][0];
+        d.v[1] = pObject->actor->t.t.mat.m[3][1] - pObject->transform_matrix.m[3][1];
+        d.v[2] = pObject->actor->t.t.mat.m[3][2] - pObject->transform_matrix.m[3][2];
+        if (d.v[0] * d.v[0] + d.v[1] * d.v[1] + d.v[2] * d.v[2] > 1.0) {
+            PhysicsWarning("Stupid trial position");
+            BrMatrix34Copy(&pObject->transform_matrix, &pObject->actor->t.t.mat);
+        }
+        for (j = 3; j >= 0; j--) {
+            for (i = 0; i < 3; i++) {
+                if (pObject->transform_matrix.m[j][i] != pObject->actor->t.t.mat.m[j][i]) {
+                    pObject->disable_move_rotate = 0;
+                    goto differ_done;
+                }
+            }
+        }
+differ_done:
+        for (child = pObject->child; child != NULL; child = child->next) {
+            InternalPrepareObject(child);
+        }
+        GetWorldBoundingBoxForObject(pObject, NULL);
+        return;
+    }
+    if (pObject->field_0xf0 != 1) {
+        BrMatrix34LPNormalise(&pObject->actor->t.t.mat, &pObject->transform_matrix);
+    } else {
+        BrMatrix34Copy((br_matrix34*)pObject->field_0xbc, &pObject->actor->t.t.mat);
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        InternalPrepareObject(child);
+    }
+    if (pObject->parent != NULL) {
+        return;
+    }
+    MoveJointedObject(pObject, 0.04f);
+    GetWorldBoundingBoxForObject(pObject, NULL);
+}
+
+// FUNCTION: CARMA2_HW 0x004b9770
+void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList) {
+    tPhysics_object** pReduced;
+
+    InternalPrepareObject(pObject);
+    gPrepared_objects = 1;
+    CheckObjectsPostionInList(pObject, pList);
+    if (gINT_006940ac) {
+        MakeObjectDoSomethingStatic(pObject, *pList);
+    }
+    pReduced = gReduced_object_list;
+    if (pReduced != NULL) {
+        pObject->field_0x234 = *pReduced;
+        *pReduced = pObject;
+    }
+}
 
 // PrepareForCollisions
 

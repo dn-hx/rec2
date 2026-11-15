@@ -182,9 +182,9 @@ extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject
 
 // MatricesAreIdentical
 
-// InternalPrepareObject
+extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
 
-// PrepareObject
+extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
 
 // PrepareForCollisions
 
