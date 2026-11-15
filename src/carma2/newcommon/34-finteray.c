@@ -274,7 +274,120 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
 
 // PointSphereCollision
 
-// SphereEdgeCollide
+// FUNCTION: CARMA2_HW 0x0045d920
+void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b) {
+    br_scalar fVar5;
+    br_scalar fVar4;
+    br_scalar fVar3;
+    br_scalar fVar2;
+    br_scalar fVar1;
+    br_scalar local_4;
+    br_scalar local_8;
+    br_scalar local_c;
+    br_scalar local_10;
+    br_scalar local_14;
+    br_scalar local_18;
+    br_scalar local_1c;
+    br_scalar local_20;
+    br_scalar local_24;
+    br_scalar local_28;
+    br_scalar local_2c;
+    br_scalar local_30;
+    br_scalar local_34;
+    br_scalar local_38;
+    br_scalar local_3c;
+    br_scalar local_40;
+    br_scalar local_44;
+    br_scalar local_48;
+
+    *pT = 100.0f;
+    local_48 = pEdge_end->v[0] - pEdge_start->v[0];
+    local_44 = pEdge_end->v[1] - pEdge_start->v[1];
+    local_18 = pEnd->v[0] - pStart->v[0];
+    local_14 = pEnd->v[1] - pStart->v[1];
+    local_40 = pEdge_end->v[2] - pEdge_start->v[2];
+    local_10 = pEnd->v[2] - pStart->v[2];
+    fVar2 = local_40 * local_40 + local_44 * local_44 + local_48 * local_48;
+    local_4 = (local_10 * local_40 + local_14 * local_44 + local_18 * local_48) / fVar2;
+    local_c = local_48 * local_4;
+    local_3c = local_18 - local_c;
+    local_8 = local_44 * local_4;
+    local_38 = local_14 - local_8;
+    local_4 = local_40 * local_4;
+    local_24 = pEdge_start->v[0] - pStart->v[0];
+    local_34 = local_10 - local_4;
+    local_20 = pEdge_start->v[1] - pStart->v[1];
+    local_1c = pEdge_start->v[2] - pStart->v[2];
+    fVar3 = local_34 * local_34 + local_38 * local_38 + local_3c * local_3c;
+    fVar1 = -((local_1c * local_40 + local_20 * local_44 + local_24 * local_48) / fVar2);
+    local_30 = local_48 * fVar1 + local_24;
+    local_2c = local_44 * fVar1 + local_20;
+    local_28 = local_40 * fVar1 + local_1c;
+    if (fVar3 < 1e-06) {
+        StationarySphereEdgeCollide(pEdge_start, pEdge_end, (br_vector3*)&local_48, *(br_scalar*)&pT, pEnd, pSphere, pPoint, pNormal, pT);
+        return;
+    }
+    fVar1 = (local_28 * local_34 + local_2c * local_38 + local_30 * local_3c) / fVar3;
+    local_3c = local_3c * fVar1;
+    local_38 = local_38 * fVar1;
+    fVar4 = (local_28 * local_28 + local_2c * local_2c + local_30 * local_30) -
+            (local_34 * fVar1 * local_34 * fVar1 + local_38 * local_38 + local_3c * local_3c);
+    if (pSphere->radius_squared - pSphere->radius * 0.002 * -2.0 < fVar4) {
+        return;
+    }
+    if (pSphere->radius_squared < fVar4) {
+        goto LAB_0045de75;
+    }
+    fVar1 = fVar1 - sqrt((pSphere->radius_squared - fVar4) / fVar3);
+    local_c = (local_c * fVar1 + local_30) - local_24;
+    local_8 = (local_8 * fVar1 + local_2c) - local_20;
+    local_4 = (local_4 * fVar1 + local_28) - local_1c;
+    fVar3 = (local_4 * local_40 + local_8 * local_44 + local_c * local_48) / fVar2;
+    if (0.0 <= fVar3) {
+        if (fVar3 <= 1.0) {
+            if ((0.0 <= fVar1) && (fVar1 <= 1.0)) {
+                pPoint->v[0] = pEdge_start->v[0] + local_c;
+                pPoint->v[1] = local_8 + pEdge_start->v[1];
+                fVar2 = pEdge_start->v[2];
+                pPoint->v[2] = local_4 + fVar2;
+                fVar4 = pPoint->v[0] - (pStart->v[0] + (pEnd->v[0] - pStart->v[0]) * fVar1);
+                fVar3 = pPoint->v[1] - ((pEnd->v[1] - pStart->v[1]) * fVar1 + pStart->v[1]);
+                fVar5 = (local_4 + fVar2) - ((pEnd->v[2] - pStart->v[2]) * fVar1 + pStart->v[2]);
+                fVar2 = sqrt(fVar5 * fVar5 + fVar3 * fVar3 + fVar4 * fVar4);
+                if (fVar2 <= 2.3841858e-07) {
+                    pNormal->v[0] = 1.0f;
+                    pNormal->v[1] = 0.0f;
+                    pNormal->v[2] = 0.0f;
+                    *pT = fVar1;
+                    return;
+                }
+                fVar2 = 1.0 / fVar2;
+                pNormal->v[0] = fVar2 * fVar4;
+                pNormal->v[1] = fVar2 * fVar3;
+                pNormal->v[2] = fVar2 * fVar5;
+                *pT = fVar1;
+                return;
+            }
+            goto LAB_0045de75;
+        }
+        if ((pFlags_b & 0x80) == 0) {
+            SpherePolyFaceCollide(pEnd, pStart, 0, (br_vector3*)&local_18, pSphere, pPoint, pNormal, pT);
+        }
+LAB_0045dd10:
+        fVar1 = *pT;
+    } else {
+        if ((pFlags_a & 0x80) != 0) {
+            goto LAB_0045dd10;
+        }
+        SpherePolyFaceCollide(pEnd, pStart, 0, (br_vector3*)&local_18, pSphere, pPoint, pNormal, pT);
+        fVar1 = *pT;
+    }
+    if (fVar1 < 2.0) {
+        return;
+    }
+LAB_0045de75:
+    StationarySphereEdgeCollide(pEdge_start, pEdge_end, (br_vector3*)&local_48, *(br_scalar*)&pT, pEnd, pSphere, pPoint, pNormal, pT);
+}
 
 // SpherePolyFaceCollide
 

@@ -66,7 +66,7 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // GetSphereToFacePoints
 
-// CheckSingleEdgeWithSphere
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace);
 
 // GetSphereToEdgePoints
 
