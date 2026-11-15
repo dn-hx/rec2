@@ -1307,36 +1307,30 @@ void C2_HOOK_FASTCALL MungeCarGraphics(tU32 pFrame_period) {
 void C2_HOOK_FASTCALL DoLODCarModels(void) {
     int i;
     int j;
+    int variant;
     tCar_spec* car;
+    float tx, ty, tz;
     float level;
-    float factor;
-
-    C2_HOOK_BUG_ON(REC2_ASIZE(gCar_simplification_factor) != 2);
-    C2_HOOK_BUG_ON(REC2_ASIZE(gCar_simplification_factor[0]) != 5);
 
     for (i = 0; i < gNum_active_cars; i++) {
         car = gActive_car_list[i];
-        if (car != NULL && car->driver > eDriver_oppo - 1 && car->car_master_actor->render_style != BR_RSTYLE_NONE) {
-            level = Vector3DistanceSquared(&car->car_master_actor->t.t.translate.t, (br_vector3*)gCamera_to_world.m[3]);
-            factor = gCar_simplification_factor[gGraf_spec_index][gCar_simplification_level];
-            if (!(factor >= 0.001f)) {
-                level = BR_SCALAR_MAX;
+
+        if (car != NULL && car->driver > 5 && car->car_master_actor->render_style != BR_RSTYLE_NONE) {
+            tx = car->car_master_actor->t.t.translate.t.v[0] - gCamera_to_world.m[3][0];
+            ty = car->car_master_actor->t.t.translate.t.v[1] - gCamera_to_world.m[3][1];
+            tz = car->car_master_actor->t.t.translate.t.v[2] - gCamera_to_world.m[3][2];
+            if (gCar_simplification_factor[gGraf_spec_index][gCar_simplification_level] >= 0.001f) {
+                level = (tx * tx + ty * ty + tz * tz) / gCar_simplification_factor[gGraf_spec_index][gCar_simplification_level];
             } else {
-                level /= factor;
+                level = BR_SCALAR_MAX;
             }
-#ifdef REC2_SW
-            if (gNet_mode != eNet_mode_none && (gNet_players[gIt_or_fox].car == car || NetPlayerFromCar(car)->field_0x80 != 0)) {
-                level = 0.0f;
-            }
-#endif
+
             for (j = car->count_detail_levels - 1; j > 0; j--) {
-                if (level > car->detail_levels[j]) {
+                if (car->detail_levels[j] < level) {
                     break;
                 }
             }
             if (j > 0) {
-                int variant;
-
                 variant = j;
                 DRActorEnumRecurse(car->car_model_actor, SwitchCarModel, &variant);
                 car->field_0xe18 = variant;
