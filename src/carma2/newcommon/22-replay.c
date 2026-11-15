@@ -23,6 +23,7 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "platform.h"
+#include "16-graphics1.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -237,7 +238,18 @@ void C2_HOOK_FASTCALL AfterActionReplay(void) {
     ForceRebuildActiveCarList();
 }
 
-// ToggleReplay
+// FUNCTION: CARMA2_HW 0x004e72e0
+void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2) {
+
+    if (gAction_replay_mode) {
+        RenderAFrame(1);
+        RenderAFrame(1);
+    }
+    if (!ARToggleReplay(TurnOnActionReplay, TurnOffActionReplay, AfterActionReplay,
+            (tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess, pArg1, pArg2)) {
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_action_replay_unavailable));
+    }
+}
 
 // DisplayMovieStatusPanel
 
