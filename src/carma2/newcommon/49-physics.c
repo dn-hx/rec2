@@ -5824,37 +5824,24 @@ void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_o
 #pragma inline_depth()
 #endif
 
-// PARTIAL 32.00%: DRMatrix33Inverse 0x004be350 - helper pulled in by RedoQuickHingeVelocities; the original divides by the double 1.0 global at 0x0058a780 (fdivr QWORD PTR ds:0x58a780). A gDOUBLE_0058a780 global was measured (32.26 with it, 32.26 without — this score drifts 0.2-0.3 between runs) but it moved data layout and cost SetUpForce 1.53% (83.97->82.44), so it was reverted. Residual is the x87 schedule (our body multiplies components by the reciprocal in a different order).
+// PARTIAL 39.34%: DRMatrix33Inverse 0x004be350 - x87 schedule residual: original loads pSource[7] before the s8*s4 product and reuses cofactor 2 from the FPU stack for the determinant; inv = 1.0 / det kept as a double local (fdivr QWORD 1.0). Float-temp variant measured 38.52 (worse).
 // FUNCTION: CARMA2_HW 0x004be350
 void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource) {
-    float fVar1;
-    float fVar2;
-    float fVar3;
-    float fVar4;
-    float fVar5;
+    double inv;
 
-    pDestination[0] = -pSource[5] * pSource[7] + pSource[8] * pSource[4];
-    pDestination[1] = -(-pSource[2] * pSource[7] + pSource[1] * pSource[8]);
-    fVar1 = -pSource[2] * pSource[4] + pSource[1] * pSource[5];
-    pDestination[2] = fVar1;
-    fVar5 = 1.0 / (pSource[1] * pDestination[1] + pSource[2] * fVar1 + pSource[0] * pDestination[0]);
-    pDestination[0] = pDestination[0] * fVar5;
-    pDestination[3] = -((-pSource[5] * pSource[6] + pSource[8] * pSource[3]) * fVar5);
-    fVar1 = pSource[4];
-    fVar2 = pSource[3];
-    fVar3 = pSource[7];
-    fVar4 = pSource[6];
-    pDestination[1] = pDestination[1] * fVar5;
-    pDestination[6] = (-fVar1 * fVar4 + fVar3 * fVar2) * fVar5;
-    pDestination[4] = (-pSource[2] * pSource[6] + pSource[8] * pSource[0]) * fVar5;
-    fVar1 = pSource[1];
-    fVar2 = pSource[7];
-    fVar3 = pSource[6];
-    fVar4 = pSource[0];
-    pDestination[2] = pDestination[2] * fVar5;
-    pDestination[7] = -((-fVar1 * fVar3 + fVar2 * fVar4) * fVar5);
-    pDestination[5] = -((-pSource[2] * pSource[3] + pSource[5] * pSource[0]) * fVar5);
-    pDestination[8] = (-pSource[1] * pSource[3] + pSource[4] * pSource[0]) * fVar5;
+    pDestination[0] = (-pSource[5]) * pSource[7] + pSource[8] * pSource[4];
+    pDestination[1] = -((-pSource[2]) * pSource[7] + pSource[1] * pSource[8]);
+    pDestination[2] = (-pSource[2]) * pSource[4] + pSource[1] * pSource[5];
+    inv = 1.0 / (pSource[1] * pDestination[1] + pSource[2] * pDestination[2] + pSource[0] * pDestination[0]);
+    pDestination[0] = pDestination[0] * inv;
+    pDestination[3] = -(((-pSource[5]) * pSource[6] + pSource[8] * pSource[3]) * inv);
+    pDestination[1] = pDestination[1] * inv;
+    pDestination[6] = ((-pSource[4]) * pSource[6] + pSource[7] * pSource[3]) * inv;
+    pDestination[4] = ((-pSource[2]) * pSource[6] + pSource[8] * pSource[0]) * inv;
+    pDestination[2] = pDestination[2] * inv;
+    pDestination[7] = -(((-pSource[1]) * pSource[6] + pSource[7] * pSource[0]) * inv);
+    pDestination[5] = -(((-pSource[2]) * pSource[3] + pSource[5] * pSource[0]) * inv);
+    pDestination[8] = ((-pSource[1]) * pSource[3] + pSource[4] * pSource[0]) * inv;
 }
 
 /*
