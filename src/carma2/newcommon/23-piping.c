@@ -28,6 +28,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "37-brucetrk.h"
 
 #include <s3/internal/audio.h>
 
@@ -1605,7 +1606,23 @@ void C2_HOOK_FASTCALL ApplyModelMash(tPipe_chunk** pChunk) {
     ARApplyModelMash((*pChunk)->data.model_mash.model, (*pChunk)->data.model_mash.vectors);
 }
 
-// ApplyRelink
+// FUNCTION: CARMA2_HW 0x004c9850
+void C2_HOOK_FASTCALL ApplyRelink(tPipe_chunk** pChunk) {
+    tPipe_chunk_relink* chunk = (tPipe_chunk_relink*)*pChunk;
+    br_actor* actor = chunk->actor;
+    br_actor* parent = chunk->field_0xc;
+    if (actor->parent != NULL) {
+        if (parent != NULL) {
+            ActorRelink(parent, actor);
+        } else {
+            BrActorRemove(actor);
+        }
+    } else {
+        if (parent != NULL) {
+            BrActorAdd(parent, actor);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c9890
 // FUNCTION: CARMA2_SW 0x004c5fc0
