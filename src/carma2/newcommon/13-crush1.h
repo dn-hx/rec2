@@ -494,7 +494,7 @@ extern void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle);
 
 extern void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector);
 
-// ARUndoSplitWeld
+extern void C2_HOOK_FASTCALL ARUndoSplitWeld(void* roadMachine);
 
 // ReceivedCrush
 
