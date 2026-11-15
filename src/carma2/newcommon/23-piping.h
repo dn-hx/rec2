@@ -333,7 +333,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 // ApplySplash
 
-// ApplyExtendedSplash
+extern void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk);
 
 // ApplyOilSpill
 
@@ -536,5 +536,13 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+} tPipe_chunk_extended_splash;
 
 #endif // GUARD_23_PIPING_H
