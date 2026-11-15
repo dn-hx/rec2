@@ -170,7 +170,7 @@ extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
 
 // PDGetCurrentTime
 
-// PDGetCurrentDate
+extern void C2_HOOK_FASTCALL PDGetCurrentDate(char* pStr);
 
 // PDPhysicalMemorySize
 

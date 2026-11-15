@@ -219,7 +219,15 @@ void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
 
 // PDGetCurrentTime
 
-// PDGetCurrentDate
+// FUNCTION: CARMA2_HW 0x0051da20
+void C2_HOOK_FASTCALL PDGetCurrentDate(char *pTimeStr) {
+    SYSTEMTIME time;
+    char buffer[256];
+
+    GetLocalTime(&time);
+    GetDateFormatA(LOCALE_SYSTEM_DEFAULT, LOCALE_NOUSEROVERRIDE, &time, NULL, buffer, sizeof(buffer));
+    strcpy(pTimeStr, buffer);
+}
 
 // PDPhysicalMemorySize
 
