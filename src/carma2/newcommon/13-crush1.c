@@ -2773,9 +2773,35 @@ void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient) {
     }
 }
 
-// STUB: not implemented yet
+/* inlined into DoDetaching in the original (no standalone address).
+ * PARTIAL: DoDetaching 0x00436ad0 measures 30.65% - the two inlined helpers are present
+ * and the calls/locals follow the original, residual is MSVC 11 register/stack-slot
+ * allocation and x87 scheduling (BitIsInBentPartOfCar's fcom/fld/fadd sequence). */
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 void C2_HOOK_FASTCALL SendDetachBit(tCar_spec* pCar, br_actor* pActor) {
+    extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
+    extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
+    tNet_message* message;
+    br_vector3 p1;
+    br_vector3 p2;
+    br_vector3 p3;
+    br_bounds3 bnds;
+
+    message = NetBuildGuaranteedMessage(0x33, 0);
+    message->guaranteed.contents.detach_bit.ID = NetPlayerFromCar(pCar)->ID;
+    message->guaranteed.contents.detach_bit.field_0x4 = ((tUser_crush_data*)pActor->user)->crush_data->id;
+    message->guaranteed.contents.detach_bit.field_0x8 = gPHIL_last_physics_tick + 120;
+    if (!GetSDBJointPosAndBounds(&p1, &p2, &p3, &bnds, pActor)) {
+        CompressVector3(&message->guaranteed.contents.detach_bit.bounds_min, &bnds.min, -10.f, 10.f);
+        CompressVector3(&message->guaranteed.contents.detach_bit.bounds_max, &bnds.max, -10.f, 10.f);
+        NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, 0);
+    }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0042dab0
 void C2_HOOK_FASTCALL SendSemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, undefined4* pArg4) {
@@ -5266,10 +5292,38 @@ intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// STUB: not implemented yet
+// GLOBAL: CARMA2_HW 0x00589ae4
+br_scalar gFLOAT_00589ae4 = 0.4f;
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* inlined into DoDetaching in the original (no standalone address); returns 1 when the
+   bit is not proven to lie outside the bent part.
+   PARTIAL: see SendDetachBit above (DoDetaching 0x00436ad0 = 30.65%). */
 int C2_HOOK_FASTCALL BitIsInBentPartOfCar(br_actor* pActor, float pArg2, float pArg3) {
-    return 0;
+    tUser_crush_data* user;
+    float d;
+    float mid;
+
+    mid = pArg3;
+    user = pActor->user;
+    if (user != NULL && user->models[0] != NULL) {
+        d = (pArg2 - mid) * gFLOAT_00589ae4;
+        mid = mid + d;
+        if (d >= gCrushZero) {
+            if (user->models[0]->bounds.max.v[2] > mid) {
+                return 1;
+            }
+        } else if (user->models[0]->bounds.min.v[2] < mid) {
+            return 1;
+        }
+        return 0;
+    }
+    return 1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00433350
 tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
@@ -6905,8 +6959,10 @@ void C2_HOOK_FASTCALL DoDetaching(void) {
     if (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host) {
         int new_count_crush_detach_list;
         int i;
+        tCrush_detach_list_item* dest;
 
         new_count_crush_detach_list = 0;
+        dest = gCrush_detach_list;
         for (i = 0; i < gCount_crush_detach_list; i++) {
             tCrush_detach_list_item* detach_list_item;
             int keep;
@@ -6915,7 +6971,7 @@ void C2_HOOK_FASTCALL DoDetaching(void) {
             detach_list_item = &gCrush_detach_list[i];
             keep = 1;
             synced = 0;
-            if (gPHIL_last_physics_tick >= detach_list_item->time) {
+            if (detach_list_item->time <= gPHIL_last_physics_tick) {
                 keep = 0;
 
                 if (!((detach_list_item->car->car_crush_spec->field_0x144
@@ -6961,7 +7017,8 @@ void C2_HOOK_FASTCALL DoDetaching(void) {
                 }
             }
             if (keep && i != new_count_crush_detach_list) {
-                gCrush_detach_list[new_count_crush_detach_list] = gCrush_detach_list[i];
+                *dest = *detach_list_item;
+                dest++;
                 new_count_crush_detach_list += 1;
             }
         }
@@ -7965,40 +8022,136 @@ void C2_HOOK_FASTCALL DoFullyDetaching(void) {
 
 // QuantizeAngle
 
-/* inlined into DoBending in the original */
+// GLOBAL: CARMA2_HW 0x00589ad0
+double gDouble_00589ad0 = 10430.378350470453;
+/* inlined into DoBending in the original (no standalone address).
+ * PARTIAL: DoBending 0x00438a90 measures 41.51% - the body (spec-limit selection, the
+ * srand/PercentageChance branches, atan2 * gDouble_00589ad0, the +/-70/50 degree clamp
+ * and 20 degree quantize, BendCar and the crunch sound) matches the inlined copy;
+ * residual is x87 scheduling, stack-slot permutation and the pointer-walk loop shape. */
 static int C2_HOOK_FASTCALL BendCarOneForce(tCar_spec* pCar, tCar_crush* pCar_crush) {
-    (void)pCar;
-    (void)pCar_crush;
-    return 0;
+    extern tS3_outlet* gCar_outlet;
+    tPhysics_object* object;
+    tCar_crush_spec* spec;
+    br_vector3 bend;
+    float bound;
+    float force;
+    br_angle angle_x;
+    br_angle angle_y;
+    int flag;
+
+    object = pCar->collision_info;
+    spec = pCar->car_crush_spec;
+    bend.v[0] = gCrushZero;
+    bend.v[1] = gCrushZero;
+    bend.v[2] = gCrushZero;
+    if (pCar_crush->field_0x34.v[2] > spec->bend_z_max) {
+        bend.v[2] = spec->bend_z_max;
+        flag = 1;
+        bound = object->bb1.min.v[2];
+    } else if (pCar_crush->field_0x34.v[2] < spec->bend_z_min) {
+        bend.v[2] = spec->bend_z_min;
+        flag = 0;
+        bound = object->bb1.max.v[2];
+    } else {
+        return 0;
+    }
+    angle_x = 0;
+    angle_y = 0;
+    if ((float)fabs(pCar_crush->field_0x44.v[2]) > gCrushSqrtHalf) {
+        force = pCar_crush->field_0x40 * (float)fabs(pCar_crush->field_0x44.v[2]);
+        srand(pCar_crush->field_0x50);
+        if (PercentageChance(50)) {
+            bend.v[1] = object->bb1.max.v[1];
+            if (!flag) {
+                force = -force;
+            }
+        } else {
+            bend.v[1] = object->bb1.min.v[1];
+            if (flag) {
+                force = -force;
+            }
+        }
+        angle_x = (br_angle)(long)(atan2(force, gMin_bend_force) * gDouble_00589ad0);
+    } else if ((float)fabs(pCar_crush->field_0x44.v[0]) > gCrushSqrtHalf) {
+        force = pCar_crush->field_0x40 * (float)fabs(pCar_crush->field_0x44.v[0]);
+        if (pCar_crush->field_0x44.v[0] >= gCrushZero) {
+            bend.v[0] = object->bb1.min.v[0];
+            if (!flag) {
+                force = -force;
+            }
+        } else {
+            bend.v[0] = object->bb1.max.v[0];
+            if (flag) {
+                force = -force;
+            }
+        }
+        angle_y = (br_angle)(long)(atan2(force, gMin_bend_force) * gDouble_00589ad0);
+    } else {
+        force = pCar_crush->field_0x40 * (float)fabs(pCar_crush->field_0x44.v[1]);
+        if (pCar_crush->field_0x44.v[1] >= gCrushZero) {
+            bend.v[1] = object->bb1.min.v[1];
+            if (flag) {
+                force = -force;
+            }
+        } else {
+            bend.v[1] = object->bb1.max.v[1];
+            if (!flag) {
+                force = -force;
+            }
+        }
+        angle_y = (br_angle)(long)(atan2(force, gMin_bend_force) * gDouble_00589ad0);
+    }
+    if (angle_x < 0x7ff8 && angle_x > 0x31c4) {
+        angle_x = 0x31c4;
+    } else if (angle_x > 0x7ff8 && angle_x < 0xce3c) {
+        angle_x = 0xce3c;
+    } else {
+        angle_x = 0xe38 * (angle_x / 0xe38);
+    }
+    if (angle_y < 0x7ff8 && angle_y > 0x238c) {
+        angle_y = 0x238c;
+    } else if (angle_y > 0x7ff8 && angle_y < 0xdc74) {
+        angle_y = 0xdc74;
+    } else {
+        angle_y = 0xe38 * (angle_y / 0xe38);
+    }
+    BendCar(pCar, angle_x, angle_y, 0, &bend, bound, 1);
+    DRS3StartSound3D(gCar_outlet, 0x13eb, &object->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, IRandomBetween(0xe000, 0x12000), 0x10000);
+    return 1;
 }
 
 extern tCrush_list_item gCrush_lists[8];
 
 // FUNCTION: CARMA2_HW 0x00438a90
 void C2_HOOK_FASTCALL DoBending(void) {
-    int i;
-
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_spec, car_crush_spec, 0x18d4);
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_crush_spec, field_0x4b8, 0x4b8);
     C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_crush_spec, field_0x144, 0x144);
 
-    for (i = 0; gCrush_lists[i].car_spec != NULL; i++) {
-
-        tCar_crush_spec* ptVar2 = gCrush_lists[i].car_spec->car_crush_spec;
-        if (!ptVar2->field_0x4b8 && !ptVar2->field_0x144) {
-            int j;
-
-            for (j = 0; j < gCrush_lists[i].count; j++) {
-                if (gCrush_lists[i].items[j].field_0x40 < 0.f) {
-                    gCrush_lists[i].items[j].field_0x40 = -gCrush_lists[i].items[j].field_0x40;
-                    if (BendCarOneForce(gCrush_lists[i].car_spec, &gCrush_lists[i].items[j])) {
-                        break;
-                    }
+    if (gCrush_lists[0].car_spec != NULL) {
+        tCrush_list_item* list = gCrush_lists;
+        do {
+            tCar_crush_spec* ptVar2 = list->car_spec->car_crush_spec;
+            if (!ptVar2->field_0x4b8 && !ptVar2->field_0x144) {
+                int j = 0;
+                tCar_crush* item = list->items;
+                if (j < list->count) {
+                    do {
+                        if (item->field_0x40 < gCrushZero) {
+                            item->field_0x40 = -item->field_0x40;
+                            if (BendCarOneForce(list->car_spec, item)) {
+                                break;
+                            }
+                        }
+                        j++;
+                        item++;
+                    } while (j < list->count);
                 }
             }
-        }
-        gCrush_lists[i].car_spec = NULL;
-        i = i + 1;
+            list->car_spec = NULL;
+            list++;
+        } while (list->car_spec != NULL);
     }
 }
 
