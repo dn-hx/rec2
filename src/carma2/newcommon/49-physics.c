@@ -572,26 +572,53 @@ void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
 // FUNCTION: CARMA2_HW 0x004b8fe0
 // FUNCTION: CARMA2_SW 0x004b5700
 void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_scalar pDelta_time) {
-    br_vector3 axis;
-    br_vector3 tv;
-    br_scalar ts;
+    br_vector3 joint_axis;
+    br_vector3 joint_position;
+    br_vector3 scaled;
+    float axis_offset;
+    float axis_speed;
 
     if (pObject->physics_joint2->type == eJoint_translation) {
-        BrMatrix34ApplyV(&axis, &pObject->physics_joint2->hinge_axis, &pObject->transform_matrix);
-        ts = BrVector3Dot(&pObject->actor->t.t.translate.t, &axis);
-        BrMatrix34ApplyP(&tv, &pObject->physics_joint2->field_0x08, &pObject->actor->t.t.mat);
-        BrVector3Sub(&tv, &pObject->field_0x17c, &tv);
-        BrVector3Accumulate(&pObject->actor->t.t.translate.t, &tv);
-        ts -= BrVector3Dot(&pObject->actor->t.t.translate.t, &axis);
-        BrVector3Scale(&tv, &axis, ts);
-        BrVector3Accumulate(&pObject->actor->t.t.translate.t, &tv);
-        ts = BrVector3Dot(&pObject->v, &axis);
-        BrVector3Scale(&pObject->v, &axis, ts);
-        TranslateObject(pObject, pDelta_time);
+        BrMatrix34ApplyV(&joint_axis, &pObject->physics_joint2->hinge_axis, &pObject->transform_matrix);
+        axis_offset = pObject->actor->t.t.mat.m[3][0] * joint_axis.v[0]
+                    + pObject->actor->t.t.mat.m[3][1] * joint_axis.v[1]
+                    + pObject->actor->t.t.mat.m[3][2] * joint_axis.v[2];
+        BrMatrix34ApplyP(&joint_position, &pObject->physics_joint2->field_0x08, &pObject->actor->t.t.mat);
+        joint_position.v[0] = pObject->field_0x17c.v[0] - joint_position.v[0];
+        joint_position.v[1] = pObject->field_0x17c.v[1] - joint_position.v[1];
+        joint_position.v[2] = pObject->field_0x17c.v[2] - joint_position.v[2];
+        pObject->actor->t.t.mat.m[3][0] += joint_position.v[0];
+        pObject->actor->t.t.mat.m[3][1] += joint_position.v[1];
+        pObject->actor->t.t.mat.m[3][2] += joint_position.v[2];
+        axis_offset -= pObject->actor->t.t.mat.m[3][0] * joint_axis.v[0]
+                     + pObject->actor->t.t.mat.m[3][1] * joint_axis.v[1]
+                     + pObject->actor->t.t.mat.m[3][2] * joint_axis.v[2];
+        joint_position.v[0] = axis_offset * joint_axis.v[0];
+        joint_position.v[1] = axis_offset * joint_axis.v[1];
+        joint_position.v[2] = axis_offset * joint_axis.v[2];
+        pObject->actor->t.t.mat.m[3][0] += joint_position.v[0];
+        pObject->actor->t.t.mat.m[3][1] += joint_position.v[1];
+        pObject->actor->t.t.mat.m[3][2] += joint_position.v[2];
+        axis_speed = pObject->v.v[0] * joint_axis.v[0]
+                   + pObject->v.v[1] * joint_axis.v[1]
+                   + pObject->v.v[2] * joint_axis.v[2];
+        scaled.v[0] = axis_speed * joint_axis.v[0];
+        scaled.v[1] = axis_speed * joint_axis.v[1];
+        scaled.v[2] = axis_speed * joint_axis.v[2];
+        pObject->v.v[0] = scaled.v[0];
+        pObject->v.v[1] = scaled.v[1];
+        pObject->v.v[2] = scaled.v[2];
+        pObject->actor->t.t.mat.m[3][0] += pDelta_time * scaled.v[0];
+        pObject->actor->t.t.mat.m[3][1] += pDelta_time * scaled.v[1];
+        pObject->actor->t.t.mat.m[3][2] += pDelta_time * scaled.v[2];
     } else {
-        BrMatrix34ApplyP(&tv, &pObject->physics_joint2->field_0x08, &pObject->actor->t.t.mat);
-        BrVector3Sub(&tv, &pObject->field_0x17c, &tv);
-        BrVector3Accumulate(&pObject->actor->t.t.translate.t, &tv);
+        BrMatrix34ApplyP(&joint_position, &pObject->physics_joint2->field_0x08, &pObject->actor->t.t.mat);
+        joint_position.v[0] = pObject->field_0x17c.v[0] - joint_position.v[0];
+        joint_position.v[1] = pObject->field_0x17c.v[1] - joint_position.v[1];
+        joint_position.v[2] = pObject->field_0x17c.v[2] - joint_position.v[2];
+        pObject->actor->t.t.mat.m[3][0] += joint_position.v[0];
+        pObject->actor->t.t.mat.m[3][1] += joint_position.v[1];
+        pObject->actor->t.t.mat.m[3][2] += joint_position.v[2];
     }
 }
 
