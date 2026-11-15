@@ -44,7 +44,7 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 
 // FillInSimpleCarPos
 
-// ReceivedSimpleCarPos
+extern void C2_HOOK_FASTCALL ReceivedSimpleCarPos(tU8* pContents);
 
 // ReceivedMechanics
 
