@@ -397,13 +397,12 @@ br_uint_32 subdivideOrderMax[8] = { 8, 4, 0, 4, 8, 0, 0, 0 };
 // GLOBAL: CARMA2_HW 0x006707f8
 br_scalar subdivideScalar;
 
-#if defined(__I86__) || defined(_M_IX86)
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
 C2_NAKED
 #endif
 // FUNCTION: CARMA2_HW 0x0054c766
 br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vertex* v2) {
-#if defined(__I86__) || defined(_M_IX86)
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
     __asm {
         push ebp
         mov ebp, esp
@@ -454,57 +453,37 @@ br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vert
         ret
     }
 #else
-    __asm__(".intel_syntax noprefix\n"
-        "        push ebp\n"
-        "        mov ebp, esp\n"
-        "        push ebx\n"
-        "        push edi\n"
-        "        push esi\n"
-        "        mov eax, dword ptr [ebp+0x8]\n"
-        "        mov ebx, dword ptr [ebp+0xc]\n"
-        "        mov ecx, dword ptr [ebp+0x10]\n"
-        "        mov eax, dword ptr [eax+0xc]\n"
-        "        mov ebx, dword ptr [ebx+0xc]\n"
-        "        mov ecx, dword ptr [ecx+0xc]\n"
-        "        and eax, 0x7fffffff\n"
-        "        and ebx, 0x7fffffff\n"
-        "        and ecx, 0x7fffffff\n"
-        "        xor edx, edx\n"
-        "        cmp ebx, eax\n"
-        "        rcl edx, 1\n"
-        "        cmp ecx, eax\n"
-        "        rcl edx, 1\n"
-        "        cmp ecx, ebx\n"
-        "        rcl edx, 1\n"
-        "        fld dword ptr [" C2_ASM_SYM("rend") "+0x60]\n"
-        "        mov eax, dword ptr [edx*4+" C2_ASM_SYM("subdivideOrderMax") "]\n"
-        "        mov ebx, dword ptr [edx*4+" C2_ASM_SYM("subdivideOrderMin") "]\n"
-        "        mov eax, dword ptr ss:[eax+ebp+0x8]\n"
-        "        mov ebx, dword ptr ss:[ebx+ebp+0x8]\n"
-        "        fmul dword ptr [eax+0xc]\n"
-        "        fstp dword ptr [" C2_ASM_SYM("subdivideScalar") "]\n"
-        "        mov eax, dword ptr [" C2_ASM_SYM("subdivideScalar") "]\n"
-        "        mov ebx, dword ptr [ebx+0xc]\n"
-        "        and eax, 0x7fffffff\n"
-        "        and ebx, 0x7fffffff\n"
-        "        cmp eax, ebx\n"
-        "        jge L_54c7e5\n"
-        "        mov eax, 0x0\n"
-        "        pop esi\n"
-        "        pop edi\n"
-        "        pop ebx\n"
-        "        pop ebp\n"
-        "        ret\n"
-        "L_54c7e5:\n"
-        "        mov eax, 0x1\n"
-        "        pop esi\n"
-        "        pop edi\n"
-        "        pop ebx\n"
-        "        pop ebp\n"
-        "        ret\n"
-        ".att_syntax prefix\n");
-#endif
-#else
-    abort();
+    brp_vertex* vertices[3];
+    br_uint_32 order;
+    br_uint_32 z0, z1, z2;
+    union {
+        br_scalar f;
+        br_uint_32 u;
+    } scaled, nearest;
+
+    vertices[0] = v0;
+    vertices[1] = v1;
+    vertices[2] = v2;
+
+    /* |z| of each vertex, compared as the original's masked bit patterns. */
+    z0 = (br_uint_32)v0->comp_i[C_Z] & 0x7fffffff;
+    z1 = (br_uint_32)v1->comp_i[C_Z] & 0x7fffffff;
+    z2 = (br_uint_32)v2->comp_i[C_Z] & 0x7fffffff;
+    order = 0;
+    if (z1 < z0) {
+        order |= 4;
+    }
+    if (z2 < z0) {
+        order |= 2;
+    }
+    if (z2 < z1) {
+        order |= 1;
+    }
+
+    subdivideScalar = rend.subdivide_threshold * vertices[subdivideOrderMax[order] >> 2]->comp[C_Z];
+    scaled.f = subdivideScalar;
+    nearest.f = vertices[subdivideOrderMin[order] >> 2]->comp[C_Z];
+
+    return (scaled.u & 0x7fffffff) >= (nearest.u & 0x7fffffff);
 #endif
 }

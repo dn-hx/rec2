@@ -110,19 +110,19 @@ br_scalar gFloat_670800 = 1.0f;
 // GLOBAL: CARMA2_HW 0x00670804
 br_scalar gFloat_670804 = 0.5f;
 
-/* The body below is a direct transcription of the original: MSVC 5.0 schedules
-   the ten midpoint blocks as one three-deep x87 stack (sums first, then all three
-   multiplies, then the stores interleaved with the next block's loads). No C shape
-   of the COMPUTE_COMPONENT_MID_POINT_VALUES statements reproduced that schedule
-   (every ordering tried gave a per-component 13-instruction block instead of the
-   original 17-instruction interleave), so it is written as asm. */
-#if defined(__I86__) || defined(_M_IX86)
+/* The MSVC body below is a direct transcription of the original: MSVC 5.0
+   schedules the ten midpoint blocks as one three-deep x87 stack (sums first, then
+   all three multiplies, then the stores interleaved with the next block's loads).
+   No C shape of the COMPUTE_COMPONENT_MID_POINT_VALUES statements reproduced that
+   schedule (every ordering tried gave a per-component 13-instruction block instead
+   of the original 17-instruction interleave), so the matching build keeps it as
+   asm. Every other build uses the equivalent C below. */
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
 C2_NAKED
 #endif
 // FUNCTION: CARMA2_HW 0x0054c400
 void C2_HOOK_CDECL averageVerticesOnScreen(br_soft_renderer* renderer, brp_vertex* dest1, brp_vertex* dest2, brp_vertex* dest3, brp_vertex* src1, brp_vertex* src2, brp_vertex* src3) {
-#if defined(__I86__) || defined(_M_IX86)
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
     __asm {
         push ebp
         mov ebp, esp
@@ -402,287 +402,43 @@ void C2_HOOK_CDECL averageVerticesOnScreen(br_soft_renderer* renderer, brp_verte
         ret
     }
 #else
-    __asm__(".intel_syntax noprefix\n"
-        "push ebp\n"
-        "mov ebp, esp\n"
-        "push ebx\n"
-        "push edi\n"
-        "push esi\n"
-        "mov edi, dword ptr [ebp+0x1c]\n"
-        "mov esi, dword ptr [ebp+0x20]\n"
-        "mov ecx, dword ptr [ebp+0x14]\n"
-        "mov edx, dword ptr [ebp+0x18]\n"
-        "mov eax, dword ptr [ebp+0xc]\n"
-        "mov ebx, dword ptr [ebp+0x10]\n"
-        "fld dword ptr [edx+0x4]\n"
-        "fadd dword ptr [edi+0x4]\n"
-        "fld dword ptr [edi+0x4]\n"
-        "fadd dword ptr [esi+0x4]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x4]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x4]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x4]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x4]\n"
-        "fstp dword ptr [ebx+0x4]\n"
-        "fld dword ptr [edx+0x8]\n"
-        "fadd dword ptr [edi+0x8]\n"
-        "fld dword ptr [edi+0x8]\n"
-        "fadd dword ptr [esi+0x8]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x8]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x8]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x8]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x8]\n"
-        "fstp dword ptr [ebx+0x8]\n"
-        "fld dword ptr [edx+0xc]\n"
-        "fadd dword ptr [edi+0xc]\n"
-        "fld dword ptr [edi+0xc]\n"
-        "fadd dword ptr [esi+0xc]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0xc]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0xc]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0xc]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0xc]\n"
-        "fstp dword ptr [ebx+0xc]\n"
-        "fld dword ptr [edx+0x10]\n"
-        "fadd dword ptr [edi+0x10]\n"
-        "fld dword ptr [edi+0x10]\n"
-        "fadd dword ptr [esi+0x10]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x10]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x10]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x10]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x10]\n"
-        "fstp dword ptr [ebx+0x10]\n"
-        "fld dword ptr [eax+0x10]\n"
-        "fmul dword ptr [ebx+0x10]\n"
-        "fld dword ptr [ebx+0x10]\n"
-        "fmul dword ptr [ecx+0x10]\n"
-        "fld st(1)\n"
-        "fmul dword ptr [ecx+0x10]\n"
-        "fld dword ptr [eax+0x10]\n"
-        "fmul dword ptr [ecx+0x10]\n"
-        "fxch st(1)\n"
-        "fdivr dword ptr " C2_ASM_SYM("gFloat_670800") "\n"
-        "push ebp\n"
-        "mov ebp, dword ptr [" C2_ASM_SYM("rend") "+0x4c]\n"
-        "mov ebp, dword ptr [ebp+0x20]\n"
-        "and ebp, 0x3800\n"
-        "pop ebp\n"
-        "mov ebp, dword ptr [ebp+0x8]\n"
-        "je L_avos_nocolour\n"
-        "fld dword ptr [edx+0x2c]\n"
-        "fadd dword ptr [edi+0x2c]\n"
-        "fld dword ptr [edi+0x2c]\n"
-        "fadd dword ptr [esi+0x2c]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x2c]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x2c]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x2c]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x2c]\n"
-        "fstp dword ptr [ebx+0x2c]\n"
-        "fld dword ptr [edx+0x30]\n"
-        "fadd dword ptr [edi+0x30]\n"
-        "fld dword ptr [edi+0x30]\n"
-        "fadd dword ptr [esi+0x30]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x30]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x30]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x30]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x30]\n"
-        "fstp dword ptr [ebx+0x30]\n"
-        "fld dword ptr [edx+0x34]\n"
-        "fadd dword ptr [edi+0x34]\n"
-        "fld dword ptr [edi+0x34]\n"
-        "fadd dword ptr [esi+0x34]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x34]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x34]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x34]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x34]\n"
-        "fstp dword ptr [ebx+0x34]\n"
-        "L_avos_nocolour:\n"
-        "fld dword ptr [edx+0x28]\n"
-        "fadd dword ptr [edi+0x28]\n"
-        "fld dword ptr [edi+0x28]\n"
-        "fadd dword ptr [esi+0x28]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x28]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x28]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x28]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x28]\n"
-        "fstp dword ptr [ebx+0x28]\n"
-        "fld dword ptr [edx+0x20]\n"
-        "fadd dword ptr [edi+0x20]\n"
-        "fld dword ptr [edi+0x20]\n"
-        "fadd dword ptr [esi+0x20]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x20]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x20]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x20]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x20]\n"
-        "fstp dword ptr [ebx+0x20]\n"
-        "fld dword ptr [edx+0x24]\n"
-        "fadd dword ptr [edi+0x24]\n"
-        "fld dword ptr [edi+0x24]\n"
-        "fadd dword ptr [esi+0x24]\n"
-        "fxch st(1)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fld dword ptr [edx+0x24]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(2)\n"
-        "fadd dword ptr [esi+0x24]\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ecx+0x24]\n"
-        "fmul dword ptr " C2_ASM_SYM("gFloat_670804") "\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [eax+0x24]\n"
-        "fstp dword ptr [ebx+0x24]\n"
-        "fmul st(2), st\n"
-        "fmul st(1), st\n"
-        "fmulp st(3), st\n"
-        "fld dword ptr [ebp+0x5f8]\n"
-        "fmul dword ptr [eax+0x4]\n"
-        "fld dword ptr [ebp+0x5f8]\n"
-        "fmul dword ptr [ebx+0x4]\n"
-        "fld dword ptr [ebp+0x5f8]\n"
-        "fxch st(2)\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fmul st, st(3)\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5b8]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr [ecx+0x4]\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5b8]\n"
-        "fxch st(2)\n"
-        "fstp dword ptr [eax+0x14]\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ebx+0x14]\n"
-        "fadd dword ptr [ebp+0x5b8]\n"
-        "fstp dword ptr [ecx+0x14]\n"
-        "fld dword ptr [ebp+0x5fc]\n"
-        "fmul dword ptr [eax+0x8]\n"
-        "fld dword ptr [ebp+0x5fc]\n"
-        "fmul dword ptr [ebx+0x8]\n"
-        "fld dword ptr [ebp+0x5fc]\n"
-        "fxch st(2)\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fmul st, st(3)\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5bc]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr [ecx+0x8]\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5bc]\n"
-        "fxch st(2)\n"
-        "fstp dword ptr [eax+0x18]\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ebx+0x18]\n"
-        "fadd dword ptr [ebp+0x5bc]\n"
-        "fstp dword ptr [ecx+0x18]\n"
-        "fld dword ptr [ebp+0x600]\n"
-        "fmul dword ptr [eax+0xc]\n"
-        "fld dword ptr [ebp+0x600]\n"
-        "fmul dword ptr [ebx+0xc]\n"
-        "fld dword ptr [ebp+0x600]\n"
-        "fxch st(2)\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fmul st, st(3)\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5c0]\n"
-        "fxch st(2)\n"
-        "fmul dword ptr [ecx+0xc]\n"
-        "fxch st(1)\n"
-        "fadd dword ptr [ebp+0x5c0]\n"
-        "fxch st(2)\n"
-        "fstp dword ptr [eax+0x1c]\n"
-        "fmul st, st(4)\n"
-        "fxch st(1)\n"
-        "fstp dword ptr [ebx+0x1c]\n"
-        "fadd dword ptr [ebp+0x5c0]\n"
-        "fstp dword ptr [ecx+0x1c]\n"
-        "fstp st(0)\n"
-        "fstp st(0)\n"
-        "fstp st(0)\n"
-        "pop esi\n"
-        "pop edi\n"
-        "pop ebx\n"
-        "pop ebp\n"
-        "ret\n"
-        ".att_syntax prefix\n");
-#endif
-#else
-    abort();
+    br_scalar w1, w2, w3;
+    br_scalar w12, w13, w23;
+    br_scalar inv;
+    br_scalar one_div_w1, one_div_w2, one_div_w3;
+
+    /* Midpoint positions of the three edge midpoints. */
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_X);
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_Y);
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_Z);
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_W);
+
+    /* The original inverts the product of the three w's once and scales by
+       the other two, so each reciprocal is w2*w3*(1/(w1*w2*w3)) etc. */
+    w1 = dest1->comp[C_W];
+    w2 = dest2->comp[C_W];
+    w3 = dest3->comp[C_W];
+    w23 = w2 * w3;
+    w13 = w1 * w3;
+    w12 = w1 * w2;
+    inv = 1.f / (w12 * w3);
+    one_div_w1 = w23 * inv;
+    one_div_w2 = w13 * inv;
+    one_div_w3 = w12 * inv;
+
+    /* Interpolate the colour components only for colour-interpolated blocks. */
+    if ((rend.block->convert_mask_f & 0x3800) != 0) {
+        COMPUTE_COMPONENT_MID_POINT_VALUES(C_R);
+        COMPUTE_COMPONENT_MID_POINT_VALUES(C_G);
+        COMPUTE_COMPONENT_MID_POINT_VALUES(C_B);
+    }
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_I);
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_U);
+    COMPUTE_COMPONENT_MID_POINT_VALUES(C_V);
+
+    PROJECT_COMPONENT(C_X, C_SX);
+    PROJECT_COMPONENT(C_Y, C_SY);
+    PROJECT_COMPONENT(C_Z, C_SZ);
 #endif
 }
 
