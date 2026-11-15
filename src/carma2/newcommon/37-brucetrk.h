@@ -36,9 +36,9 @@ extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_sca
 
 // FindNonCarsCB
 
-// MungeFaces
+extern void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel);
 
-// ProcessModelsCB
+extern intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data);
 
 // ProcessModels
 
