@@ -40,3 +40,5 @@ extern void C2_HOOK_FASTCALL MungeMaterialSV(br_matrix34* pMat, br_material* pMa
 extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
 
 #endif // GUARD_11_WORLD1_H
+
+extern intptr_t C2_HOOK_CDECL OffsetModel(br_actor* pActor, br_vector3* pOffset);
