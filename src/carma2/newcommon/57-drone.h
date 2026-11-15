@@ -179,7 +179,7 @@ extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
 // MyDroneHathCollideth
 
-// MyDroneHathHalteth
+extern int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject);
 
 // MoveMyDroneBaby
 

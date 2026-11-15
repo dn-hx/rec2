@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "30-opponent.h"
 
 #include <math.h>
 
@@ -463,7 +464,31 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 
 // MyDroneHathCollideth
 
-// MyDroneHathHalteth
+// FUNCTION: CARMA2_HW 0x00452360
+int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject) {
+    tDrone_spec* pDrone;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf("MyDroneHathHalteth(): PHIL called a bloody callback. Rejoice!");
+    pDrone->collision_info.field_0x1a0 = 0x100000;
+    PHILSetObjectProperty(&pDrone->collision_info, 3, 1);
+    pDrone->field_0x5d4 = 0;
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 4);
+    if (pDrone->current_state != 4) {
+        if (gDrone_state_functions[pDrone->current_state] != NULL) {
+            gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+        }
+        pDrone->time_last_munge = gTime_stamp_for_this_munging;
+        pDrone->prev_states[1] = pDrone->prev_states[0];
+        pDrone->prev_states[0] = pDrone->current_state;
+        pDrone->current_state = 4;
+        if (gDrone_state_functions[4] != NULL) {
+            gDrone_state_functions[4](pDrone, eDrone_state_START);
+        }
+    }
+    return 1;
+}
 
 // MoveMyDroneBaby
 
