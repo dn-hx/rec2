@@ -553,11 +553,90 @@ int C2_HOOK_FASTCALL GotCredits(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// GainAPO2
+// FUNCTION: CARMA2_HW 0x004dc3e0
+int C2_HOOK_FASTCALL GainAPO2(tCar_spec* pCar, int pIndex, int pAmount) {
+    int old;
+
+    while (pAmount < 0) {
+        if (pCar->power_up_levels[pIndex] >= pCar->power_up_slots[pIndex]) {
+            return 0;
+        }
+        pAmount = pCar->power_up_slots[pIndex] - pCar->power_up_levels[pIndex];
+    }
+    if (pIndex == 1 && gNet_mode != eNet_mode_none
+        && gCurrent_net_game->type == eNet_game_type_foxy
+        && gThis_net_player_index == gIt_or_fox) {
+        return 0;
+    }
+    old = pCar->power_up_levels[pIndex];
+    pCar->power_up_levels[pIndex] = old + pAmount;
+    if (pCar->power_up_levels[pIndex] > pCar->power_up_slots[pIndex]) {
+        pCar->power_up_levels[pIndex] = pCar->power_up_slots[pIndex];
+    }
+    return pCar->power_up_levels[pIndex] - old;
+}
 
 // GainAPOPot2
 
-// GainAPO
+// FUNCTION: CARMA2_HW 0x004dc240
+int C2_HOOK_FASTCALL GainAPO(tPowerup* pPowerup, tCar_spec* pCar) {
+    int powerup_index;
+    int old0, old1, old2;
+    int idx;
+    int amount;
+    int orig_idx;
+    int dir;
+
+    powerup_index = pPowerup - gPowerup_array;
+    old0 = pCar->power_up_levels[0];
+    old1 = pCar->power_up_levels[1];
+    old2 = pCar->power_up_levels[2];
+    if (pPowerup->integer_params[0] != 0 && pPowerup->integer_params[1] != 0 && pPowerup->integer_params[2] != 0) {
+        GainAPO2(pCar, 0, pPowerup->integer_params[0]);
+        GainAPO2(pCar, 1, pPowerup->integer_params[1]);
+        GainAPO2(pCar, 2, pPowerup->integer_params[2]);
+    } else {
+        if (pPowerup->integer_params[0] != 0) {
+            idx = 0;
+            amount = pPowerup->integer_params[0];
+        } else if (pPowerup->integer_params[1] != 0) {
+            idx = 1;
+            amount = pPowerup->integer_params[1];
+        } else {
+            idx = 2;
+            amount = pPowerup->integer_params[2];
+        }
+        if (GainAPO2(pCar, idx, amount) == 0) {
+            orig_idx = idx;
+            dir = PercentageChance(50) ? 1 : -1;
+            idx += dir;
+            if (idx < 0) {
+                idx = 2;
+            } else if (idx > 2) {
+                idx = 0;
+            }
+            if (GainAPO2(pCar, idx, amount) == 0) {
+                idx += dir;
+                if (idx < 0) {
+                    idx = 2;
+                } else if (idx > 2) {
+                    idx = 0;
+                }
+                GainAPO2(pCar, idx, amount);
+            }
+            powerup_index += idx - orig_idx;
+        }
+    }
+    if (old0 == pCar->power_up_levels[0] && old1 == pCar->power_up_levels[1] && old2 == pCar->power_up_levels[2]) {
+        if (gNet_mode != eNet_mode_none) {
+            EarnCredits(gSubstitution_value_APO.initial_network[gCurrent_net_game->type]);
+        } else {
+            EarnCredits(gSubstitution_value_APO.initial[gProgram_state.skill_level]);
+        }
+        return -1;
+    }
+    return powerup_index;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc470
 // FUNCTION: CARMA2_SW 0x004d8970
