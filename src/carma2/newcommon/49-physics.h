@@ -298,9 +298,9 @@ extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 
 // RepositionObjectGroup
 
-// SimpleRotate
+extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
 
-// InterpolateSingleObject
+extern void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt);
 
 // InterpolateObjects
 
