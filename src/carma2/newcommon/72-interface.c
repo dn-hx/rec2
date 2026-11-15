@@ -1965,7 +1965,117 @@ void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void) {
     }
 }
 
-// FRONTEND_DrawMenu
+// FUNCTION: CARMA2_HW 0x0046e020
+void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend) {
+    /* (Generic_MungeActiveItems, FRONTEND_PingPongFlash inlined) */
+    int i;
+
+    if (gFrontend_leave_current_menu || pFrontend->count_items <= 0) {
+        return;
+    }
+    gCount_connected_items_indices = 0;
+    if (gFrontend_selected_item_index != -1) {
+        tConnected_items* connected_items = gConnected_items;
+        int scroll_area_containing_selected_item = 0;
+        for (; connected_items != NULL; connected_items = connected_items->next) {
+            for (i = 0; i < connected_items->count_ranges; i++) {
+                if (gFrontend_selected_item_index >= connected_items->range_starts[i]
+                        && gFrontend_selected_item_index < connected_items->range_starts[i] + connected_items->range_length) {
+                    scroll_area_containing_selected_item = gFrontend_selected_item_index - connected_items->range_starts[i] + 1;
+                    break;
+                }
+            }
+            if (scroll_area_containing_selected_item != 0) {
+                break;
+            }
+        }
+        if (scroll_area_containing_selected_item-- != 0) {
+            for (i = 0; i < connected_items->count_ranges; i++) {
+                gConnected_items_indices[gCount_connected_items_indices] = scroll_area_containing_selected_item + connected_items->range_starts[i];
+                pFrontend->items[scroll_area_containing_selected_item + connected_items->range_starts[i]].flags |= 0x1;
+                gCount_connected_items_indices += 1;
+            }
+        } else {
+            gCount_connected_items_indices = 1;
+            gConnected_items_indices[0] = gFrontend_selected_item_index;
+            pFrontend->items[gFrontend_selected_item_index].flags |= 0x1;
+        }
+    }
+    for (i = 0; i < gFrontend_count_brender_items; i++) {
+        tFrontend_brender_item* brender_item = &gFrontend_brender_items[i];
+        tFrontend_item_spec* item = &pFrontend->items[i];
+        const char* text;
+
+        if (!item->visible) {
+            brender_item->actor->render_style = BR_RSTYLE_NONE;
+            continue;
+        }
+
+        brender_item->actor->render_style = BR_RSTYLE_FACES;
+        text = item->stringId >= 0x400 ? item->text : IString_Get(item->stringId);
+        if (item->flags & 0x1) {
+            if (text != NULL) {
+                TransparentPolyFontTextInABox(item->unlitFont, text,
+                    item->x, item->y, item->x + item->width, item->y + item->height, eJust_left, 1, 0.6);
+            }
+            TransparentPolyFontTextInABox(item->highFont, text,
+                item->x, item->y, item->x + item->width, item->y + item->height, eJust_left, 1,
+                item->radioButton_selected ? 0.3 - 0.7 * gFrontend_throb_factor : 0.6 * gFrontend_throb_factor);
+        } else if (item->enabled >= 0) {
+            if (item->radioButton_selected) {
+                if (text != NULL) {
+                    SolidPolyFontTextInABox(item->highFont, text,
+                        item->x, item->y, item->x + item->width, item->y + item->height, eJust_centre, 1);
+                }
+            } else {
+                if (text != NULL) {
+                    SolidPolyFontTextInABox(item->unlitFont, text,
+                        item->x, item->y, item->x + item->width, item->y + item->height, eJust_left, 1);
+                }
+            }
+            brender_item->prims[1].v.x = 0x800000;
+            BrMaterialUpdate(brender_item->material, BR_MATU_EXTRA_PRIM);
+        } else {
+            if (item->map_index && brender_item->prims[1].v.x != 0x400000) {
+                brender_item->prims[1].v.x = 0x400000;
+                BrMaterialUpdate(brender_item->material, BR_MATU_EXTRA_PRIM);
+            }
+            if (text != NULL) {
+                TransparentPolyFontTextInABox(item->unlitFont, text,
+                    item->x, item->y, item->x + item->width, item->y + item->height, eJust_left, 1, 0.4);
+            }
+        }
+    }
+    {
+    br_fixed_ls blend_x;
+    blend_x = BR_FIXED_INT((int)(255. * (0.3 - 0.7 * gFrontend_throb_factor)));
+    gFrontend_brender_items[gFrontend_selected_item_index].prims[1].v.x = blend_x;
+    BrMaterialUpdate(gFrontend_brender_items[gFrontend_selected_item_index].material, BR_MATU_ALL);
+    if (pFrontend->items[gFrontend_selected_item_index].glowDisabled != 0) {
+        for (i = 0; i < gFrontend_count_brender_items; i++) {
+            if (pFrontend->items[i].glowDisabled == pFrontend->items[gFrontend_selected_item_index].glowDisabled
+                    && gFrontend_brender_items[i].prims[1].v.x != blend_x) {
+                gFrontend_brender_items[i].prims[1].v.x = blend_x;
+                BrMaterialUpdate(gFrontend_brender_items[i].material, BR_MATU_EXTRA_PRIM);
+            }
+        }
+    }
+    }
+    {
+    int time;
+    time = (int)PDGetTotalTime() % 750;
+    if (time < 375) {
+        gFrontend_throb_factor = (double)time / (750.0 / 2.0);
+    } else {
+        gFrontend_throb_factor = (double)(750 - time) / (750.0 / 2.0);
+    }
+    }
+    PossibleService();
+    for (i = 0; i < gCount_connected_items_indices; i++) {
+        pFrontend->items[gConnected_items_indices[i]].flags &= ~0x1;
+    }
+    gCount_connected_items_indices = 0;
+}
 
 // FUNCTION: CARMA2_HW 0x0046cf10
 // FUNCTION: CARMA2_SW 0x0046cbd0
@@ -3400,10 +3510,96 @@ int C2_HOOK_FASTCALL Controls_Outfunc(tFrontend_spec* pFrontend) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00472b00
+static int DetermineKeyArrayIndex(void) {
+    int index;
+
+    index = gFrontend_selected_item_index;
+    return gControls_scroller.field_0x8 + (index >= 53 ? index + -10 : index) - 43;
+}
+
+// FUNCTION: CARMA2_HW 0x00472b00
 // STUB: CARMA2_SW 0x00472090
 int C2_HOOK_FASTCALL Controls_SlotActivated(tFrontend_spec* pFrontend) {
-    NOT_IMPLEMENTED();
+    int key_array_index;
+    float dy;
+    br_model* model;
+    br_vertex** vertices;
+    int match;
+    int key;
+    int i;
+    int j;
+
+    key_array_index = DetermineKeyArrayIndex();
+
+    CyclePollKeys();
+    PollKeys();
+    WaitForNoKeys();
+    pFrontend->items[0].visible = 1;
+    dy = (float)(17 * (key_array_index - gControls_scroller.field_0x8));
+    model = gFrontend_brender_items[0].model;
+    vertices = &model->vertices;
+    (*vertices)[0].p.v[1] = (*vertices)[3].p.v[1] = -(pFrontend->items[0].y + dy);
+    (*vertices)[1].p.v[1] = (*vertices)[2].p.v[1] = -(pFrontend->items[0].y + dy - -20.0f);
+    BrModelUpdate(model, BR_MODU_VERTEX_POSITIONS);
+    match = -1;
+    for (;;) {
+        /* FrontendRedrawMenu inlined */
+        gBack_screen->origin_x = 0;
+        gBack_screen->origin_y = 0;
+        if (gFrontend_backdrop != NULL) {
+            DrPixelmapRectangleCopyPossibleLock(gBack_screen, 0, 0, gFrontend_backdrop, 0, 0, gFrontend_backdrop->width, gFrontend_backdrop->height);
+        }
+        BrPixelmapFill(gDepth_buffer, 0xffffffff);
+        for (i = 0; i < gFrontend_count_brender_items; i++) {
+            if (gCurrent_frontend_spec->items[i].visible) {
+                gFrontend_brender_items[i].actor->render_style = BR_RSTYLE_FACES;
+            } else {
+                gFrontend_brender_items[i].actor->render_style = BR_RSTYLE_NONE;
+            }
+        }
+        BrZbsSceneRender(gFrontend_actor, gFrontend_camera, gBack_screen, gDepth_buffer);
+        FRONTEND_DrawMenu(gCurrent_frontend_spec);
+        if (!gFrontend_suppress_mouse) {
+            PossibleLock(1);
+            DoMouseCursor();
+            PossibleUnlock(1);
+        }
+        PDScreenBufferSwap(0);
+
+        key = PDAnyKeyDown();
+        if (key != -1 && key != 63) {
+            for (i = 28; i <= 76; i++) {
+                if (gKey_mapping[i] == key && i != gControls_frontend_to_key_mapping_lut[key_array_index]) {
+                    for (j = 0; j < gFrontend_controls_count_keys; j++) {
+                        if (gControls_frontend_to_key_mapping_lut[j] == i) {
+                            gKey_mapping[i] = -2;
+                            match = j;
+                            break;
+                        }
+                    }
+                    if (match < 0) {
+                        DRS3StartSound(gEffects_outlet, eSoundId_CantAffordPart);
+                        key = -1;
+                        break;
+                    }
+                }
+            }
+        }
+        CyclePollKeys();
+        PollKeys();
+        ServiceGame();
+        if (key != -1 || EitherMouseButtonDown()) {
+            break;
+        }
+    }
+    pFrontend->items[0].visible = 0;
+    DRS3StartSound(gEffects_outlet, eSoundId_Done);
+    WaitForNoKeys();
+    if (key != 63 && key != -1) {
+        gKey_mapping[gControls_frontend_to_key_mapping_lut[key_array_index]] = key;
+    }
+    RefreshScrollSet(pFrontend);
+    return 0;
 }
 
 #ifdef REC2_MATCHING
