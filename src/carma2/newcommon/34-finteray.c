@@ -280,7 +280,104 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
 
 // SphereBoxFaceCollide
 
-// SphereFaceCollide
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+
+// FUNCTION: CARMA2_HW 0x0045e850
+void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT) {
+    br_scalar fVar1;
+    br_scalar fVar2;
+    char cVar3;
+    br_material* pMat;
+    br_scalar fVar5;
+    br_scalar fVar6;
+    br_scalar fVar7;
+    br_scalar fVar8;
+    br_scalar fVar9;
+    br_scalar fVar11;
+    int uVar10;
+    int iAxis_b;
+    int iAxis_a;
+    br_scalar local_18[6];
+
+    *pT = 100.0f;
+    pMat = pFace->material;
+    if ((pMat == 0) || (pMat->identifier == 0) ||
+        ((cVar3 = *pMat->identifier, cVar3 != '!') && (cVar3 != '>') && (cVar3 != '?'))) {
+        fVar9 = (pStart->v[2] * pFace->normal.v[2] + pStart->v[1] * pFace->normal.v[1] + pFace->normal.v[0] * pStart->v[0]) - pFace->d;
+        if (0.0 <= fVar9) {
+            if (fVar9 < pRadius) {
+                return;
+            }
+            local_18[2] = pFace->normal.v[2];
+            local_18[1] = pFace->normal.v[1];
+            local_18[0] = pFace->normal.v[0];
+            fVar11 = ((pFace->normal.v[0] * pEnd->v[0] + pEnd->v[1] * pFace->normal.v[1]) + pEnd->v[2] * local_18[2]) - pFace->d;
+        } else {
+            if (-pRadius < fVar9) {
+                return;
+            }
+            if (pMat == 0) {
+                return;
+            }
+            if ((pMat->flags & 0x1000) == 0) {
+                return;
+            }
+            local_18[2] = -pFace->normal.v[2];
+            local_18[1] = -pFace->normal.v[1];
+            local_18[0] = -pFace->normal.v[0];
+            fVar11 = -pFace->normal.v[0] * pEnd->v[0] + pEnd->v[1] * -pFace->normal.v[1] + pEnd->v[2] * local_18[2] + pFace->d;
+        }
+        if (fVar11 <= pRadius - -0.002) {
+            pRadius = (pRadius - fVar9) / (fVar11 - fVar9);
+            if (1.0 < pRadius) {
+                pRadius = 1.0;
+            }
+            if (pRadius < 0.0) {
+                pRadius = 0.0;
+            }
+            fVar11 = (pEnd->v[0] - pStart->v[0]) * pRadius + pStart->v[0];
+            fVar9 = (pEnd->v[1] - pStart->v[1]) * pRadius + pStart->v[1];
+            fVar1 = (pEnd->v[2] - pStart->v[2]) * pRadius + pStart->v[2];
+            fVar2 = (pFace->v[0].v[2] - fVar1) * local_18[2] + (pFace->v[0].v[1] - fVar9) * local_18[1] + (pFace->v[0].v[0] - fVar11) * local_18[0];
+            local_18[3] = local_18[0] * fVar2 + fVar11;
+            local_18[4] = local_18[1] * fVar2 + fVar9;
+            local_18[5] = local_18[2] * fVar2 + fVar1;
+            uVar10 = (int)(ABS(local_18[0]) < ABS(local_18[1]));
+            if (ABS(local_18[uVar10]) < ABS(local_18[2])) {
+                uVar10 = 2;
+            }
+            if (uVar10 == 0) {
+                iAxis_b = 1;
+                iAxis_a = 2;
+            } else if (uVar10 == 1) {
+                iAxis_b = 0;
+                iAxis_a = 2;
+            } else {
+                iAxis_b = 0;
+                iAxis_a = 1;
+            }
+            fVar1 = pFace->v[0].v[iAxis_a];
+            fVar2 = pFace->v[0].v[iAxis_b];
+            fVar5 = (pFace->v[2].v[iAxis_a] - fVar1) * (pFace->v[1].v[iAxis_b] - fVar2);
+            fVar8 = (pFace->v[1].v[iAxis_a] - fVar1) * (pFace->v[2].v[iAxis_b] - fVar2);
+            fVar6 = fVar5 - fVar8;
+            fVar7 = (local_18[iAxis_a + 3] - fVar1) * (pFace->v[1].v[iAxis_b] - fVar2) - (pFace->v[1].v[iAxis_a] - fVar1) * (local_18[iAxis_b + 3] - fVar2);
+            if (((ABS(fVar7) <= ABS(fVar6) * 1.001) && (fVar6 != 0.0)) && (fVar7 = fVar7 / fVar6, -0.0001 <= fVar7)) {
+                fVar8 = fVar8 - fVar5;
+                fVar9 = (local_18[iAxis_a + 3] - fVar1) * (pFace->v[2].v[iAxis_b] - fVar2) - (pFace->v[2].v[iAxis_a] - fVar1) * (local_18[iAxis_b + 3] - fVar2);
+                if (((ABS(fVar9) <= ABS(fVar8) * 1.001) && (fVar8 != 0.0)) &&
+                    ((fVar9 = fVar9 / fVar8, -0.0001 <= fVar9) && (fVar7 + fVar9 <= 1.0001))) {
+                    *pT = pRadius;
+                    pNormal->v[1] = local_18[1];
+                    pNormal->v[0] = local_18[0];
+                    pNormal->v[2] = local_18[2];
+                    return;
+                }
+            }
+        }
+    }
+    return;
+}
 
 // STUB: CARMA2_HW 0x0045ecc0
 // STUB: CARMA2_SW 0x0045e730
