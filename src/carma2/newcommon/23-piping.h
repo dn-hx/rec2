@@ -325,7 +325,7 @@ extern void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk);
 
-// ApplySmoke
+extern void C2_HOOK_FASTCALL ApplySmoke(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
