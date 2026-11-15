@@ -195,7 +195,41 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 
 // FindObject
 
-// WriteHierarchyNetworkStuff
+static __inline tPhysics_object* C2_HOOK_FASTCALL FindChildByUID(tPhysics_object* pObj, tU8 uid) {
+    tPhysics_object* child;
+
+    if (pObj != NULL) {
+        for (child = pObj->child; child != NULL; child = child->next) {
+            if (child->uid == uid) {
+                return child;
+            }
+        }
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x0049cd90
+int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    int total_size;
+    tU8* current_data;
+    tPhysics_object* matching_child;
+
+    if (pObj != NULL && ((tU8*)pField)[1] != pObj->uid) {
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+    }
+    total_size = WriteObjectNetworkStuff(pField, pObj, pMode);
+    if ((((tU8*)pField)[0] & 0x80) != 0) {
+        do {
+            current_data = (tU8*)pField + total_size;
+            matching_child = FindChildByUID(pObj, current_data[1]);
+            total_size += WriteHierarchyNetworkStuff((undefined4*)current_data, FindChildByUID(pObj, current_data[1]), pMode);
+            if (matching_child != NULL) {
+                matching_child->field_0xf0 = pObj->field_0xf0;
+            }
+        } while ((current_data[0] & 0x40) != 0);
+    }
+    return total_size;
+}
 
 // FUNCTION: CARMA2_HW 0x0049ce60
 // FUNCTION: CARMA2_SW 0x00498fe0
