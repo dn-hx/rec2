@@ -222,6 +222,19 @@ int C2_HOOK_FASTCALL S3StopChannel(tS3_channel* pChannel) {
     return eS3_error_none;
 }
 
+// FUNCTION: CARMA2_HW 0x00568a54
+void C2_HOOK_FASTCALL S3ReleaseSounds(int* pSound_ids, int pSound_count) {
+    int sound_id;
+
+    if (gS3_enabled != 0) {
+        while (pSound_count != 0) {
+            sound_id = *pSound_ids;
+            S3ReleaseSound(sound_id);
+            pSound_ids++;
+            pSound_count = pSound_count - 1;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x005698fc
 // FUNCTION: CARMA2_SW 0x00564f9c
 int C2_HOOK_FASTCALL S3GetCountChannels(int pCount_channels_1, int pCount_channels_2) {
