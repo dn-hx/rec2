@@ -764,19 +764,23 @@ void C2_HOOK_FASTCALL AddDrag(const tCar_spec* pCar, tPhysics_object* pObject, b
     drag = pDelta_time * 0.0005f;
     if (pObject->last_special_volume != NULL) {
         k = pObject->last_special_volume->viscosity_multiplier;
-        if (pCar->underwater_ability) {
-            k = (br_scalar)(k * 0.6);
+        if (pCar->underwater_ability != 0) {
+            k *= 0.6;
         }
         drag *= k;
         drag *= pObject->water_depth_factor;
     }
 
-    k = (br_scalar)(BrVector3Length(&pObject->v) * drag * WORLD_SCALE_D / pObject->M);
-    BrVector3Scale(&v, &pObject->v, k);
+    k = BrVector3Length(&pObject->v) * drag * 6.9 / pObject->M;
+    v.v[0] = pObject->v.v[0] * k;
+    v.v[1] = pObject->v.v[1] * k;
+    v.v[2] = pObject->v.v[2] * k;
     DRVector3Diminish(&pObject->v, &v);
 
     k = BrVector3Length(&pObject->omega) * drag;
-    BrVector3Scale(&v, &pObject->omega, k);
+    v.v[0] = pObject->omega.v[0] * k;
+    v.v[1] = pObject->omega.v[1] * k;
+    v.v[2] = pObject->omega.v[2] * k;
     ApplyDiminishingTorque(pObject, &v);
 }
 
