@@ -102,7 +102,7 @@ extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds3* pBounds_1, br_bounds3*
 
 // GetNonSphereShapeForceInfo
 
-// GetObjectObjectForceInfo
+extern int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount);
 
 extern void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, tU32 pIndex);
 
