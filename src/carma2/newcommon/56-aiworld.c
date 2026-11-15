@@ -116,7 +116,17 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAIEditCubeHere
 
-// CalcNegativeXVector
+// FUNCTION: CARMA2_HW 0x00401fe0
+void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth) {
+    br_vector3 positive_y_vector;
+    br_vector3 path_vector;
+
+    BrVector3Sub(&path_vector, pFinish, pStart);
+    BrVector3Set(&positive_y_vector, 0.f, 1.f, 0.f);
+    BrVector3Cross(pResult, &path_vector, &positive_y_vector);
+    BrVector3Normalise(pResult, pResult);
+    BrVector3Scale(pResult, pResult, pWidth);
+}
 
 // MakeAISimpleEditSectionHere
 
