@@ -3827,8 +3827,23 @@ void C2_HOOK_FASTCALL CheckPlayersAreResponding2(tU32 pDeadline) {
 // FUNCTION: CARMA2_HW 0x004e2c30
 // FUNCTION: CARMA2_SW 0x004defb0
 void C2_HOOK_FASTCALL CheckPlayersAreResponding(void) {
+    int i;
+    tU32 total_time;
 
-    CheckPlayersAreResponding2(20000);
+    total_time = PDGetTotalTime();
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            tNet_game_player_info* player = &gNet_players[i];
+            if ((total_time - player->last_heard_from_him) > 20000) {
+                player->player_status = ePlayer_status_not_responding;
+            }
+        }
+    }
+    if ((gNet_mode == 3) && (gLast_host_query == 0)) {
+        tNet_message* msg = NetBuildGuaranteedMessage(0xe, 0);
+        NetGuaranteedSendMessageToHost(gCurrent_net_game, msg, (void*)0);
+        gLast_host_query = total_time;
+    }
 }
 
 // MungePlayers
