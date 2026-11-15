@@ -1550,17 +1550,10 @@ void C2_HOOK_STDCALL BrNullOther(void) {
 // FUNCTION: CARMA2_HW 0x0052cb40
 // FUNCTION: CARMA2_SW 0x005276d0
 int C2_HOOK_CDECL DfFileIdentify(const br_uint_8* magics, br_size_t n_magics) {
-    // GLOBAL: CARMA2_HW 0x00667508
-    // GLOBAL: CARMA2_SW 0x00661ae8
-    static const char text_magics[8] = { '*', 'F', 'I', 'L', 'E', '_', 'I', 'N' };
-    // GLOBAL: CARMA2_HW 0x00667510
-    // GLOBAL: CARMA2_SW 0x00661af0
-    static const char binary_magics[8] = { '\0', '\0', '\0', '\x12', '\0', '\0', '\0', '\b' };
-
-    if (BrMemCmp(magics, text_magics, sizeof(text_magics)) == 0) {
+    if (BrMemCmp(magics, "*FILE_IN", 8) == 0) {
         return BR_FS_MODE_TEXT;
     }
-    if (BrMemCmp(magics, binary_magics, sizeof(binary_magics)) == 0) {
+    if (BrMemCmp(magics, "\0\0\0\x12\0\0\0\b", 8) == 0) {
         return BR_FS_MODE_BINARY;
     }
     // file does not match magics
