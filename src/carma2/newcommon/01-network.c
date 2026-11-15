@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "52-errors.h"
 #include <stddef.h>
 
 #include <stdlib.h>
@@ -537,10 +538,135 @@ int C2_HOOK_FASTCALL NetSendMessageToAllPlayers(tNet_game_details* pDetails, tNe
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0049f440
+// FUNCTION: CARMA2_HW 0x0049f440
 // STUB: CARMA2_SW 0x0049b5c0
 tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tU32 pSize_decider) {
-    NOT_IMPLEMENTED();
+    tU32 size;
+    char buf[256];
+
+    switch (pType) {
+    case 0x01:
+        size = 0x7c;
+        break;
+    case 0x02:
+        size = 0xd8;
+        break;
+    case 0x03:
+        size = 0xe4;
+        break;
+    case 0x0c:
+        size = 0xf6;
+        break;
+    case 0x05:
+        size = pSize_decider + 4;
+        break;
+    case 0x0d:
+        size = 0x82;
+        break;
+    case 0x1a:
+        switch (pSize_decider) {
+        case 0:
+            size = 0x18;
+            break;
+        case 1:
+            size = 0x24;
+            break;
+        case 2:
+            size = 0x3c;
+            break;
+        default:
+            size = *(int*)&pType;
+            break;
+        }
+        break;
+    case 0x1b:
+        size = 0x18;
+        break;
+    case 0x1c:
+        size = 0x40;
+        break;
+    case 0x1d:
+        size = 0x68;
+        break;
+    case 0x00:
+    case 0x06:
+    case 0x08:
+    case 0x09:
+    case 0x0e:
+        size = 2;
+        break;
+    case 0x07:
+        size = 0xf8;
+        break;
+    case 0x1e:
+        size = 0x94;
+        break;
+    case 0x18:
+    case 0x21:
+        size = 0x38;
+        break;
+    case 0x22:
+        size = 0x64;
+        break;
+    case 0x33:
+        size = 0x1c;
+        break;
+    case 0x20:
+    case 0x24:
+    case 0x25:
+        size = 0x30;
+        break;
+    case 0x0f:
+    case 0x26:
+        size = 0x10;
+        break;
+    case 0x28:
+        size = 0x3c;
+        break;
+    case 0x17:
+    case 0x19:
+    case 0x23:
+    case 0x2b:
+        size = 0xc;
+        break;
+    case 0x16:
+    case 0x1f:
+    case 0x2d:
+        size = 0x14;
+        break;
+    case 0x2e:
+        size = pSize_decider + 0xc;
+        break;
+    case 0x0a:
+    case 0x12:
+    case 0x13:
+    case 0x14:
+    case 0x15:
+    case 0x2c:
+    case 0x2f:
+        size = 8;
+        break;
+    case 0x10:
+    case 0x11:
+    case 0x27:
+    case 0x29:
+    case 0x2a:
+    case 0x31:
+        size = pSize_decider;
+        break;
+    case 0x32:
+        size = 0x20;
+        break;
+    default:
+        size = 4;
+        break;
+    }
+    size += size & 1;
+    if (size > 0xff) {
+        sprintf(buf, " type %d", pType);
+        FatalError(0x72, buf);
+    }
+    return size;
 }
 
 #ifdef REC2_MATCHING
