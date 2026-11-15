@@ -11,6 +11,7 @@
 #include "08-loading1.h"
 #include "rec2_macros.h"
 #include "41-utility.h"
+#include "30-opponent.h"
 
 // DoNotDprintf
 
