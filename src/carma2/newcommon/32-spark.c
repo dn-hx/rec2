@@ -206,10 +206,187 @@ int C2_HOOK_FASTCALL DrawLine3D(const br_vector3* pStart, const br_vector3* pEnd
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f6de0
+// FUNCTION: CARMA2_HW 0x004f6de0
 // STUB: CARMA2_SW 0x004f2690
 int C2_HOOK_FASTCALL DrawLine2D(br_vector3* pStart, br_vector3* pEnd, br_pixelmap* pScreen, br_pixelmap* pDepth, br_scalar pBrightness, br_pixelmap* pShade) {
-    NOT_IMPLEMENTED();
+    tU8* pixel;
+    tU16* depth;
+    tU8* shade;
+    int x0;
+    int x1;
+    int y0;
+    int y1;
+    int error;
+    int delta_x;
+    int delta_y;
+    int twice_x;
+    int step_x;
+    int twice_y;
+    int step_y;
+    int x;
+    int y;
+    br_scalar z;
+    br_scalar z_step;
+    br_scalar zdot;
+    int shade_step;
+    int shade_count;
+
+    pixel = (tU8*)pScreen->pixels + (tU16)pScreen->base_x + (tU16)pScreen->base_y * pScreen->row_bytes;
+    depth = (tU16*)pDepth->pixels;
+    shade = (tU8*)pShade->pixels + (tU16)pShade->base_y * pShade->row_bytes;
+    x0 = (int)pStart->v[0] + (tU16)pScreen->width / 2;
+    x1 = (int)pEnd->v[0] + (tU16)pScreen->width / 2;
+    y0 = (tU16)pScreen->height / 2 - (int)pStart->v[1];
+    y1 = (tU16)pScreen->height / 2 - (int)pEnd->v[1];
+    if (pBrightness < 0.001f || pBrightness > 1.0f) {
+        return 0;
+    }
+    if (x0 < 0 || x1 < 0) {
+        if (x0 < 0) {
+            if (x1 < 0) {
+                return 0;
+            }
+        }
+        if (x0 < 0) {
+            y0 = y1 - ((y1 - y0) * x1) / (x1 - x0);
+            pStart->v[2] = pEnd->v[2] - ((pEnd->v[2] - pStart->v[2]) * (float)x1) / (float)(x1 - x0);
+            x0 = 0;
+        } else {
+            y1 = y0 - ((y0 - y1) * x0) / (x0 - x1);
+            pEnd->v[2] = pStart->v[2] - ((pStart->v[2] - pEnd->v[2]) * (float)x0) / (float)(x0 - x1);
+            x1 = 0;
+        }
+    }
+    if (x0 >= (tU16)pScreen->width || x1 >= (tU16)pScreen->width) {
+        if (x0 >= (tU16)pScreen->width) {
+            if (x1 >= (tU16)pScreen->width) {
+                return 0;
+            }
+        }
+        if (x0 >= (tU16)pScreen->width) {
+            y0 = y1 - ((y1 - y0) * ((x1 - (tU16)pScreen->width) + 1)) / (x1 - x0);
+            pStart->v[2] = pEnd->v[2] - ((pEnd->v[2] - pStart->v[2]) * (float)((x1 - (tU16)pScreen->width) + 1)) / (float)(x1 - x0);
+            x0 = (tU16)pScreen->width - 1;
+        } else {
+            y1 = y0 - ((y0 - y1) * ((x0 - (tU16)pScreen->width) + 1)) / (x0 - x1);
+            pEnd->v[2] = pStart->v[2] - ((pStart->v[2] - pEnd->v[2]) * (float)((x0 - (tU16)pScreen->width) + 1)) / (float)(x0 - x1);
+            x1 = (tU16)pScreen->width - 1;
+        }
+    }
+    if (y0 < 0 || y1 < 0) {
+        if (y0 < 0) {
+            if (y1 < 0) {
+                return 0;
+            }
+        }
+        if (y0 < 0) {
+            x0 = x1 - ((x1 - x0) * y1) / (y1 - y0);
+            pStart->v[2] = pEnd->v[2] - ((pEnd->v[2] - pStart->v[2]) * (float)y1) / (float)(y1 - y0);
+            y0 = 0;
+        } else {
+            x1 = x0 - ((x0 - x1) * y0) / (y0 - y1);
+            pEnd->v[2] = pStart->v[2] - ((pStart->v[2] - pEnd->v[2]) * (float)y0) / (float)(y0 - y1);
+            y1 = 0;
+        }
+    }
+    if (y0 >= (tU16)pScreen->height || y1 >= (tU16)pScreen->height) {
+        if (y0 >= (tU16)pScreen->height) {
+            if (y1 >= (tU16)pScreen->height) {
+                return 0;
+            }
+        }
+        if (y0 >= (tU16)pScreen->height) {
+            x0 = x1 - ((x1 - x0) * ((y1 - (tU16)pScreen->height) + 1)) / (y1 - y0);
+            pStart->v[2] = pEnd->v[2] - ((pEnd->v[2] - pStart->v[2]) * (float)((y1 - (tU16)pScreen->height) + 1)) / (float)(y1 - y0);
+            y0 = (tU16)pScreen->height - 1;
+        } else {
+            x1 = x0 - ((x0 - x1) * ((y0 - (tU16)pScreen->height) + 1)) / (y0 - y1);
+            pEnd->v[2] = pStart->v[2] - ((pStart->v[2] - pEnd->v[2]) * (float)((y0 - (tU16)pScreen->height) + 1)) / (float)(y0 - y1);
+            y1 = (tU16)pScreen->height - 1;
+        }
+    }
+    z = pStart->v[2];
+    delta_x = x1 - x0;
+    delta_y = y1 - y0;
+    twice_x = 2 * abs(delta_x);
+    if (delta_x < 0) {
+        step_x = -1;
+    } else {
+        step_x = 1;
+    }
+    twice_y = 2 * abs(delta_y);
+    if (delta_y < 0) {
+        step_y = -1;
+    } else {
+        step_y = 1;
+    }
+    x = x0;
+    y = y0;
+    pixel += x + y * pScreen->row_bytes;
+    depth += x + y * (pDepth->row_bytes / 2);
+    shade_step = (pBrightness - 0.001f) * pShade->height;
+    if (twice_x > twice_y) {
+        error = twice_y - twice_x / 2;
+        shade_step = 500 * twice_x / shade_step;
+        shade_count = shade_step;
+        z_step = (pEnd->v[2] - pStart->v[2]) * 2.0f / (float)twice_x;
+        for (;;) {
+            zdot = (1.0f - z) * 32768.0f;
+            if (zdot < *depth) {
+                *depth = zdot;
+                *pixel = shade[*pixel];
+            }
+            if (x == x1) {
+                break;
+            }
+            if (error >= 0) {
+                pixel += step_y * pScreen->row_bytes;
+                depth += step_y * (pDepth->row_bytes / 2);
+                error -= twice_x;
+            }
+            x += step_x;
+            pixel += step_x;
+            depth += step_x;
+            error += twice_y;
+            z = z_step + z;
+            shade_count -= 1000;
+            while (shade_count <= 0) {
+                shade_count += shade_step;
+                shade += pShade->row_bytes;
+            }
+        }
+    } else {
+        error = twice_x - twice_y / 2;
+        shade_step = 500 * twice_y / shade_step;
+        shade_count = shade_step;
+        z_step = (pEnd->v[2] - pStart->v[2]) * 2.0f / (float)twice_y;
+        for (;;) {
+            zdot = (1.0f - z) * 32768.0f;
+            if (zdot < *depth) {
+                *depth = zdot;
+                *pixel = shade[*pixel];
+            }
+            if (y == y1) {
+                break;
+            }
+            if (error >= 0) {
+                pixel += step_x;
+                depth += step_x;
+                error -= twice_y;
+            }
+            y += step_y;
+            error += twice_x;
+            z = z_step + z;
+            pixel += step_y * pScreen->row_bytes;
+            shade_count -= 1000;
+            depth += step_y * (pDepth->row_bytes / 2);
+            while (shade_count <= 0) {
+                shade_count += shade_step;
+                shade += pShade->row_bytes;
+            }
+        }
+    }
+    return 1;
 }
 
 #ifdef REC2_MATCHING
