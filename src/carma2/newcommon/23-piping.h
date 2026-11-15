@@ -429,7 +429,7 @@ extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
 // ApplyDroneCornerPos
 
-// ApplyDroneStraightPos
+extern void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk);
 
@@ -536,5 +536,12 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU16 field_0x8;
+    tU16 field_0xa;
+} tPipe_chunk_drone_straight_pos;
 
 #endif // GUARD_23_PIPING_H
