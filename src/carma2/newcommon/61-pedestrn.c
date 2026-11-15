@@ -2104,11 +2104,234 @@ void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter)
     }
 }
 
-// MorphCharacterBonePositions
+// FUNCTION: CARMA2_HW 0x004097b0
+int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2) {
+    float time;
+    br_matrix34 inverse;
+    tPed_form* form;
+    tPed_personality* personality;
+    br_matrix34* mat;
+    int i;
+    tPed_form_actor_set* actor_set;
+
+    time = (float)pArg2;
+    pPed->field_0xbc->field_0x0 = pPed->field_0xbc->field_0x4 * time + pPed->field_0xbc->field_0x0;
+    if (pPed->field_0xbc->field_0x0 >= 1.0f) {
+        if (pPed->field_0xbc != NULL) {
+            pPed->field_0xbc->field_0x4 = 0.f;
+            if (*(tU8*)&pPed->field_0xbc->field_0x2c != 0) {
+                form = pPed->personality->form;
+                if (pPed->field_0x4 < 0) {
+                    mat = &pPed->field_0x2c;
+                } else {
+                    mat = pPed->field_0xe8;
+                    if (mat == NULL) {
+                        mat = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+                    }
+                }
+                BrMatrix34LPInverse(&inverse, &form->moves[pPed->field_0x7].move->frames[(tS16)pPed->field_0x1c].mat);
+                BrMatrix34Mul(&pPed->field_0x8c, &inverse, mat);
+                pPed->field_0x8c.m[3][0] = 0.f;
+                pPed->field_0x8c.m[3][1] = 0.f;
+                pPed->field_0x8c.m[3][2] = 0.f;
+            }
+            pPed->field_0xbc = NULL;
+            SetCharacterBonePositions(pPed, 0, 0);
+        }
+        return 0;
+    }
+    personality = pPed->personality;
+    form = personality->form;
+    if (pPed->field_0x4 < 0) {
+        actor_set = NULL;
+    } else {
+        actor_set = &form->actor_sets[pPed->field_0x4];
+    }
+    for (i = 0; i < form->count_bones; i++) {
+        int parent_index = form->bones[i].indices[0];
+
+        if (parent_index >= 0) {
+            if (!(gPow2_array[i] & pPed->field_0xc) && !(gPow2_array[parent_index] & pPed->field_0xc) && actor_set != NULL) {
+                br_matrix34* parent_mat;
+                tS8* b = (tS8*)pPed->field_0xbc->field_0x2d[i];
+
+                if (pPed->field_0xe8 != NULL) {
+                    parent_mat = &pPed->field_0xe8[i];
+                } else {
+                    parent_mat = &actor_set->actors[parent_index]->t.t.mat;
+                }
+                if (pPed->field_0xe8 != NULL) {
+                    mat = &pPed->field_0xe8[i];
+                } else {
+                    mat = &actor_set->actors[i]->t.t.mat;
+                }
+                SetBoner(pPed, mat, parent_mat, &pPed->field_0x8c,
+                    (tU8)(int)(b[3] * pPed->field_0xbc->field_0x0 + b[0]),
+                    (int)(b[4] * pPed->field_0xbc->field_0x0 + b[1]),
+                    (int)(b[5] * pPed->field_0xbc->field_0x0 + b[2]),
+                    &personality->bones[i].field_0x20, &personality->bones[i].field_0x2c);
+            }
+        } else {
+            if (!(pPed->field_0x14 & 0x4) && *(tU8*)&pPed->field_0xbc->field_0x2c == 0) {
+                tS8* b = (tS8*)pPed->field_0xbc->field_0x2d[i];
+                br_matrix34 rot;
+                br_vector3 original_pos;
+                br_vector3 vec;
+                br_vector3 delta;
+                float t;
+                tPed_morph* morph;
+
+                if (pPed->field_0x4 < 0) {
+                    mat = &pPed->field_0x2c;
+                } else if (pPed->field_0xe8 == NULL) {
+                    mat = &form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+                } else {
+                    mat = pPed->field_0xe8;
+                }
+                BrVector3Copy(&original_pos, (br_vector3*)mat->m[3]);
+                MakeRotationMatrix(&rot,
+                    (tU8)(int)(b[3] * pPed->field_0xbc->field_0x0 + b[0]),
+                    (int)(b[4] * pPed->field_0xbc->field_0x0 + b[1]),
+                    (int)(b[5] * pPed->field_0xbc->field_0x0 + b[2]));
+                BrMatrix34Mul(mat, &rot, &pPed->field_0x8c);
+                morph = pPed->field_0xbc;
+                t = 1.0f - morph->field_0x0;
+                vec.v[0] = (morph->field_0x14.v[0] * morph->field_0x0 + morph->field_0x8.v[0] * t) * time;
+                vec.v[1] = (morph->field_0x14.v[1] * morph->field_0x0 + morph->field_0x8.v[1] * t) * time;
+                vec.v[2] = (morph->field_0x14.v[2] * morph->field_0x0 + morph->field_0x8.v[2] * t) * time;
+                BrMatrix34ApplyV(&delta, &vec, &pPed->field_0x5c);
+                mat->m[3][0] = delta.v[0] + original_pos.v[0];
+                mat->m[3][1] = delta.v[1] + original_pos.v[1];
+                mat->m[3][2] = delta.v[2] + original_pos.v[2];
+            }
+        }
+    }
+    return 1;
+}
 
 // StopCharacterMove
 
-// MungeCharacterAnimation
+// FUNCTION: CARMA2_HW 0x00409ca0
+void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
+    tPed_move* model;
+    br_matrix34* work;
+    float kx;
+    float ky;
+    float kz;
+    double t;
+    tS32 loop_count = 0;
+    int i;
+
+    if (pCharacter->field_0x7 < 0) {
+        return;
+    }
+    if ((pCharacter->field_0x14 & 0x4) && (pCharacter->field_0x14 & 0x2) && pCharacter->field_0xe8 == NULL) {
+        return;
+    }
+    if (pCharacter->field_0xbc != NULL) {
+        if (MorphCharacterBonePositions(pCharacter, pTime - pCharacter->field_0x24)) {
+            pCharacter->field_0x24 = pTime;
+            return;
+        }
+        pCharacter->field_0x24 = pTime - (tS16)pCharacter->field_0x1e;
+    }
+    model = pCharacter->personality->form->moves[pCharacter->field_0x7].move;
+    if (pCharacter->field_0x4 < 0) {
+        work = &pCharacter->field_0x2c;
+    } else if (pCharacter->field_0xe8 != NULL) {
+        work = pCharacter->field_0xe8;
+    } else {
+        work = &pCharacter->personality->form->actor_sets[pCharacter->field_0x4].actors[0]->t.t.mat;
+    }
+    kx = work->m[3][0];
+    ky = work->m[3][1];
+    kz = work->m[3][2];
+    if ((tS16)pCharacter->field_0x1e != 0) {
+        if (pCharacter->field_0x24 == 0) {
+            SetCharacterBonePositions(pCharacter, 0, 0);
+        } else {
+            float rate;
+
+            rate = (float)(tS32)(pTime - pCharacter->field_0x24) / (tS32)(tS16)pCharacter->field_0x1e;
+            if (rate > 10.0f) {
+                rate = 10.0f;
+            } else if (rate < -10.0f) {
+                rate = -10.0f;
+            }
+            t = rate + (double)*(float*)&pCharacter->field_0x18 + (tS32)(tS16)pCharacter->field_0x1c;
+            *(float*)&pCharacter->field_0x18 = (float)(t - floor(t));
+            loop_count = (tS32)(floor(t) - (double)(tS32)(tS16)pCharacter->field_0x1c);
+            if (loop_count > 0) {
+                for (i = 0; i < loop_count; i++) {
+                    pCharacter->field_0x1c++;
+                    if ((tS16)pCharacter->field_0x1c >= model->count_frames) {
+                        if (gAction_replay_mode == 0) {
+                            pCharacter->field_0x1c = (undefined2)(model->count_frames - 1);
+                            if (pCharacter->field_0x9 & 0x2) {
+                                pCharacter->field_0x9 &= (tU8)~0x2;
+                                gPed_vtable->move_completed((undefined4*)pCharacter);
+                            }
+                            if (pCharacter->field_0x8 >= 0) {
+                                SetCharacterMove(pCharacter, pCharacter->field_0x8, (float)(tS32)(tS16)pCharacter->field_0x20, 0, (pCharacter->field_0x9 & 0x4) >> 2, pTime);
+                                SetCharacterBonePositions(pCharacter, 0, 0);
+                                break;
+                            }
+                            pCharacter->field_0x1c = 0;
+                        } else if (model->move_flags & 0x1) {
+                            pCharacter->field_0x1c--;
+                            i = loop_count - 1;
+                        } else {
+                            pCharacter->field_0x1c = 0;
+                        }
+                    }
+                    SetCharacterBonePositions(pCharacter, i != loop_count - 1 ? 2 : 0, 1);
+                }
+            }
+            if (loop_count == 0) {
+                if ((pCharacter->field_0x14 & 0x4) || gAction_replay_mode != 0) {
+                    SetCharacterBonePositions(pCharacter, 0, 0);
+                }
+            }
+            if (loop_count < 0) {
+                for (i = loop_count; i < 0; i++) {
+                    SetCharacterBonePositions(pCharacter, i < -1 ? 2 : 0, 1);
+                    pCharacter->field_0x1c--;
+                    if ((tS16)pCharacter->field_0x1c < 0) {
+                        if (model->move_flags & 0x1) {
+                            pCharacter->field_0x1c++;
+                            SetCharacterBonePositions(pCharacter, 3, 1);
+                            i = 0;
+                        } else {
+                            pCharacter->field_0x1c = (undefined2)(model->count_frames - 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    pCharacter->field_0x24 = pTime;
+    if (loop_count != 0) {
+        float dx;
+        float dy;
+        float dz;
+        double x;
+
+        dx = work->m[3][0] - kx;
+        dy = work->m[3][1] - ky;
+        dz = work->m[3][2] - kz;
+        pCharacter->field_0xd8.v[0] = dx;
+        pCharacter->field_0xd8.v[1] = dy;
+        pCharacter->field_0xd8.v[2] = dz;
+        x = (double)(tS32)loop_count * 0.001 * (tS16)pCharacter->field_0x1e;
+        pCharacter->field_0xd8.v[0] = (float)(pCharacter->field_0xd8.v[0] / x);
+        pCharacter->field_0xd8.v[1] = (float)(pCharacter->field_0xd8.v[1] / x);
+        pCharacter->field_0xd8.v[2] = (float)(pCharacter->field_0xd8.v[2] / x);
+    } else if ((tS16)pCharacter->field_0x1e == 0) {
+        pCharacter->field_0xd8.v[0] = 0.0f;
+        pCharacter->field_0xd8.v[1] = 0.0f;
+        pCharacter->field_0xd8.v[2] = 0.0f;
+    }
+}
 
 // SetOnGroundVector
 
