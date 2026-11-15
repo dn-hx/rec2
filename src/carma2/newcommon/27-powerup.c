@@ -1259,6 +1259,11 @@ void C2_HOOK_FASTCALL ResetPissedPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // SetMassMultiplier
 
+// FUNCTION: CARMA2_HW 0x004de9a0
+void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    TurnOffGhostPeds();
+}
 // FUNCTION: CARMA2_HW 0x004debf0
 // FUNCTION: CARMA2_SW 0x004db0f0
 void C2_HOOK_FASTCALL ResetMassMultiplier(tPowerup* pPowerup, tCar_spec* pCar) {
