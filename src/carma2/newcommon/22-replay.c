@@ -157,7 +157,16 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 
 // PreProcess
 
-// PostProcess
+#define REPLAY_CALL_MUNGE_PEDESTRIANS(P) ((void (C2_HOOK_FASTCALL *)(int))MungePedestrians)(P)
+
+// FUNCTION: CARMA2_HW 0x004e6980
+void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
+    ProcessOilSpills((tU32)pFrame_period);
+    if (ARGetReplayRate() >= 0.0f) {
+        REPLAY_CALL_MUNGE_PEDESTRIANS(pFrame_period);
+    }
+    MungePowerupStuff(pFrame_period);
+}
 
 // DoActionReplay
 

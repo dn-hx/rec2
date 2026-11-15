@@ -46,7 +46,7 @@ extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
 // PreProcess
 
-// PostProcess
+extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
 
 // DoActionReplay
 
