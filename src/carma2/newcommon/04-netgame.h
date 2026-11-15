@@ -202,7 +202,6 @@ extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_pos
 #endif
 extern void C2_HOOK_FASTCALL GetVelocityAndPosition(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat);
 
-// FUNCTION: CARMA2_HW 0x0049bad0
 extern void C2_HOOK_FAKE_THISCALL ReceivedGameplay(void* pThis);
 
 #endif // GUARD_04_NETGAME_H
