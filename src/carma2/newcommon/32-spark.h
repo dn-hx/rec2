@@ -64,7 +64,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // CreateSingleSpark
 
-// CreateSparks
+extern void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVelocity, const br_vector3* pForce, br_scalar pStrength, tCar_spec* pCar);
 
 // CreateSparkShower
 
@@ -76,7 +76,7 @@ extern void C2_HOOK_FASTCALL ResetSparks(void);
 
 extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
-// CreateShrapnelShower2
+extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 
 // CreateShrapnelShowerWorld
 
