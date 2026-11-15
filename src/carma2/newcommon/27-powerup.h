@@ -257,7 +257,7 @@ extern int C2_HOOK_FASTCALL SetDamageMultiplier(tPowerup* pPowerup, tCar_spec* p
 
 extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
-// ActivateMine
+extern void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
 
 // PositionMine
 
