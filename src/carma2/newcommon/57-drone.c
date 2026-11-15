@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "30-opponent.h"
 
 #include <math.h>
 
@@ -71,7 +72,10 @@ int gFrame;
 
 // DoNotDprintf
 
-// CrappyLittleVector3DPrintf
+// FUNCTION: CARMA2_HW 0x00451620
+void C2_HOOK_FASTCALL CrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
+    DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
+}
 
 // CrappyLittleDrivingStateInfoDprintf
 
