@@ -27,6 +27,7 @@
 
 #include <ctype.h>
 #include <stdarg.h>
+#include <windows.h>
 #include "c2_string.h"
 #include "10-loading2.h"
 #include "01-network.h"
@@ -35,7 +36,6 @@
 #include "37-brucetrk.h"
 
 #ifdef REC2_MATCHING
-#include <windows.h>
 
 extern tU16 C2_HOOK_FASTCALL ReadU16(FILE* pF);
 extern tU8 C2_HOOK_FASTCALL ReadU8(FILE* pF);
@@ -1260,27 +1260,711 @@ int C2_HOOK_FASTCALL GetRegisterSourceLocation(char* pSource_location) {
 
 // GetCDPathFromPathsTxtFile
 
+// PARTIAL 8.57%: DRfopen 0x00491170 [rec2-worker] - frame size mismatch (ours 0x464 vs orig 0x560), missing code in most sections, structure diffs in S01, S06, S14, S16
+
 // FUNCTION: CARMA2_HW 0x00491170
 FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode) {
-    FILE *result;
+    HKEY hKey;
+    HKEY hKey2;
+    LONG regStatus;
+    DWORD regType;
+    DWORD regSize;
+    int driveCheck;
+    int strCompareResult;
+    const char* strPtr;
+    char* strPtr2;
+    char* writePtr;
+    char buffer_A[256];
+    char buffer_B[256];
+    char buffer_C[256];
+    char buffer_D[336];
+    char lastChar;
+    FILE* fp2;
 
-    result = OldDRfopen(pFilename, pMode);
-    if (result == NULL && !gAllow_open_to_fail) {
-        char buffer[256];
-
-        if (GetRegisterSourceLocation(buffer)) {
-            if (!PDCheckDriveExists(buffer)) {
-                if (gMisc_strings[0] != NULL) {
-                    PDFatalError(GetMiscString(eMiscString_could_not_find_carmageddon_cd));
-                } else {
-                    PDFatalError("Could not find the Carmageddon CD");
+    hKey = (HKEY)PFfopen(pFilename, pMode);
+    if (hKey == (HKEY)0x0) {
+        if (gCD_fully_installed != 0) {
+            hKey = (HKEY)0x0;
+            goto LAB_0049186a;
+        }
+        if (g_source_exists == 1) {
+            lastChar = gDir_separator[0];
+            buffer_A[0] = lastChar;
+            *(DWORD*)&buffer_A[1] = *(DWORD*)"DATA";
+            buffer_A[5] = '\0';
+            strPtr = gDir_separator;
+            while (*strPtr != '\0') {
+                strPtr++;
+            }
+            strPtr2 = (char*)&buffer_A[1];
+            while (*strPtr2 != '\0') {
+                strPtr2++;
+            }
+            for (regSize = (DWORD)(strPtr - gDir_separator) >> 2; regSize != 0; regSize--) {
+                *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                strPtr += 4;
+                strPtr2 += 4;
+            }
+            for (regSize = (DWORD)(strPtr - gDir_separator) & 3; regSize != 0; regSize--) {
+                *strPtr2 = *strPtr;
+                strPtr++;
+                strPtr2++;
+            }
+            regSize = 0xffffffff;
+            strPtr = "GENERAL.TXT";
+            while (*strPtr != '\0') {
+                strPtr++;
+                regSize--;
+            }
+            regSize = ~regSize;
+            buffer_A[0] = '\0';
+            strPtr2 = (char*)&buffer_A[1];
+            while (*strPtr2 != '\0') {
+                strPtr2++;
+            }
+            strPtr = strPtr - regSize;
+            strPtr2 = strPtr2 - 1;
+            for (regType = regSize >> 2; regType != 0; regType--) {
+                *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                strPtr += 4;
+                strPtr2 += 4;
+            }
+            for (regSize = regSize & 3; regSize != 0; regSize--) {
+                *strPtr2 = *strPtr;
+                strPtr++;
+                strPtr2++;
+            }
+            regSize = 0xffffffff;
+            strPtr = gApplication_path;
+            while (*strPtr != '\0') {
+                strPtr++;
+                regSize--;
+            }
+            regSize = ~regSize;
+            strPtr = strPtr - regSize;
+            strPtr2 = buffer_B;
+            for (regType = regSize >> 2; regType != 0; regType--) {
+                *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                strPtr += 4;
+                strPtr2 += 4;
+            }
+            for (regSize = regSize & 3; regSize != 0; regSize--) {
+                *strPtr2 = *strPtr;
+                strPtr++;
+                strPtr2++;
+            }
+            regSize = 0xffffffff;
+            strPtr = "PATHS.TXT";
+            while (*strPtr != '\0') {
+                strPtr++;
+                regSize--;
+            }
+            regSize = ~regSize;
+            strPtr = strPtr - regSize;
+            for (regType = regSize >> 2; regType != 0; regType--) {
+                *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                strPtr += 4;
+                strPtr2 += 4;
+            }
+            for (regSize = regSize & 3; regSize != 0; regSize--) {
+                *strPtr2 = *strPtr;
+                strPtr++;
+                strPtr2++;
+            }
+            driveCheck = PDCheckDriveExists(buffer_B);
+            if (driveCheck == 0) {
+                g_source_exists = 0;
+                hKey = (HKEY)0x0;
+                goto LAB_0049186a;
+            }
+            fp2 = PFfopen(buffer_B, "rt");
+            if (fp2 == (FILE*)0x0) {
+                g_source_exists = 0;
+                hKey = (HKEY)0x0;
+                goto LAB_0049186a;
+            }
+            buffer_C[0] = '\0';
+            PossibleService();
+            GetALineWithNoPossibleService(fp2, buffer_C);
+            strPtr = strchr(gDir_separator, (int)buffer_C[strlen(buffer_C) - 1]);
+            if (strPtr == (char*)0x0) {
+                strPtr = gDir_separator;
+                while (*strPtr != '\0') {
+                    strPtr++;
+                }
+                regSize = 0xffffffff;
+                strPtr2 = buffer_C;
+                while (*strPtr2 != '\0') {
+                    strPtr2++;
+                    regSize--;
+                }
+                regSize = ~regSize;
+                strPtr2 = strPtr2 - regSize;
+                writePtr = (char*)(strPtr - 1);
+                for (regType = regSize >> 2; regType != 0; regType--) {
+                    *(DWORD*)writePtr = *(DWORD*)strPtr2;
+                    strPtr2 += 4;
+                    writePtr += 4;
+                }
+                for (regSize = regSize & 3; regSize != 0; regSize--) {
+                    *writePtr = *strPtr2;
+                    strPtr2++;
+                    writePtr++;
                 }
             }
+            regSize = 0xffffffff;
+            strPtr = (char*)&buffer_A[1];
+            while (*strPtr != '\0') {
+                strPtr++;
+                regSize--;
+            }
+            regSize = ~regSize;
+            strPtr2 = buffer_C;
+            while (*strPtr2 != '\0') {
+                strPtr2++;
+            }
+            strPtr = strPtr - regSize;
+            strPtr2 = strPtr2 - 1;
+            for (regType = regSize >> 2; regType != 0; regType--) {
+                *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                strPtr += 4;
+                strPtr2 += 4;
+            }
+            for (regSize = regSize & 3; regSize != 0; regSize--) {
+                *strPtr2 = *strPtr;
+                strPtr++;
+                strPtr2++;
+            }
+            PFfclose(fp2);
+            driveCheck = PDCheckDriveExists(buffer_C);
+            if (driveCheck == 0) {
+                PDFatalError((char*)0x658724);
+                if (gCD_fully_installed != 0) {
+                    g_source_exists = 0;
+                }
+            } else {
+                g_source_exists = g_source_exists + 1;
+            }
         }
-        sprintf(buffer, "DRfopen( \"%s\", \"%s\" ) failed", pFilename, pMode);
-        PDFatalError(buffer);
+        hKey = (HKEY)PFfopen(pFilename, pMode);
+        if (g_source_exists == 0) goto LAB_0049186a;
+        strPtr = strstr(pFilename, "DATA");
+        if (strPtr == (char*)0x0) {
+            hKey = (HKEY)0x0;
+            goto LAB_0049186a;
+        }
+        regSize = 0xff;
+        regStatus = RegOpenKeyExA((HKEY)0x80000002, "SOFTWARE\\SCI\\CARMAGEDDON2", 0, 0xf003f, &hKey2);
+        if (regStatus == 0) {
+            regType = 0;
+            regSize = 0xff;
+            regStatus = RegQueryValueExA(hKey2, "SourceLocation", (LPDWORD)0x0, (LPDWORD)0x0, (LPBYTE)buffer_C, &regSize);
+            if (regStatus == 0) {
+                RegCloseKey(hKey2);
+                regSize = 0xffffffff;
+                strPtr2 = buffer_C;
+                while (*strPtr2 != '\0') {
+                    strPtr2++;
+                    regSize--;
+                }
+                strPtr = strchr(gDir_separator, (int)buffer_C[~regSize - 2]);
+                if (strPtr == (char*)0x0) {
+                    regSize = 0xffffffff;
+                    strPtr = gDir_separator;
+                    while (*strPtr != '\0') {
+                        strPtr++;
+                        regSize--;
+                    }
+                    regSize = ~regSize;
+                    strPtr2 = buffer_C;
+                    while (*strPtr2 != '\0') {
+                        strPtr2++;
+                    }
+                    strPtr = strPtr - regSize;
+                    strPtr2 = strPtr2 - 1;
+                    for (regType = regSize >> 2; regType != 0; regType--) {
+                        *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                        strPtr += 4;
+                        strPtr2 += 4;
+                    }
+                    for (regSize = regSize & 3; regSize != 0; regSize--) {
+                        *strPtr2 = *strPtr;
+                        strPtr++;
+                        strPtr2++;
+                    }
+                }
+                regSize = 0xffffffff;
+                while (*strPtr != '\0') {
+                    strPtr++;
+                    regSize--;
+                }
+                regSize = ~regSize;
+                strPtr2 = buffer_C;
+                while (*strPtr2 != '\0') {
+                    strPtr2++;
+                }
+                strPtr = strPtr - regSize;
+                strPtr2 = strPtr2 - 1;
+                for (regType = regSize >> 2; regType != 0; regType--) {
+                    *(DWORD*)strPtr2 = *(DWORD*)strPtr;
+                    strPtr += 4;
+                    strPtr2 += 4;
+                }
+                for (regSize = regSize & 3; regSize != 0; regSize--) {
+                    *strPtr2 = *strPtr;
+                    strPtr++;
+                    strPtr2++;
+                }
+                driveCheck = PDCheckDriveExists(buffer_C);
+                if (driveCheck == 0) {
+                    hKey = (HKEY)0x0;
+                } else {
+                    hKey2 = (HKEY)PFfopen(pFilename, pMode);
+                    hKey = hKey2;
+                }
+            } else {
+                FormatMessageA(0x1000, (LPCVOID)0x0, regStatus, 0, (LPSTR)&buffer_A[4], regSize, (va_list*)0x0);
+                RegCloseKey(hKey2);
+                hKey = (HKEY)0x0;
+            }
+            goto LAB_0049186a;
+        }
+    } else {
+        regSize = 0xffffffff;
+        strPtr = pFilename;
+        while (*strPtr != '\0') {
+            strPtr++;
+            regSize--;
+        }
+        regSize = ~regSize;
+        regType = regSize - 1;
+        hKey2 = hKey;
+        if (gDecode_thing == 0) goto LAB_0049186a;
+        strPtr2 = "DKEYMAP0.TXT";
+        strPtr = pFilename + (regSize - 5);
+        do {
+            lastChar = *strPtr;
+            if (lastChar < *strPtr2) {
+                strCompareResult = 1;
+                goto LAB_00491546;
+            }
+            if (lastChar != *strPtr2) {
+                strCompareResult = -1;
+                goto LAB_00491546;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr[1];
+            if (lastChar < strPtr2[1]) {
+                strCompareResult = 1;
+                goto LAB_00491546;
+            }
+            if (lastChar != strPtr2[1]) {
+                strCompareResult = -1;
+                goto LAB_00491546;
+            }
+            strPtr += 2;
+            strPtr2 += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_00491546:
+        if (strCompareResult != 0) goto LAB_0049186a;
+        strPtr = "DKEYMAP0.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_00491586;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_00491586;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_00491586;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_00491586;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_00491586:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "DKEYMAP1.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_004915be;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_004915be;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_004915be;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_004915be;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_004915be:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "DKEYMAP2.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_004915f6;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_004915f6;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_004915f6;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_004915f6;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_004915f6:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "DKEYMAP3.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_0049162e;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_0049162e;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_0049162e;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_0049162e;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_0049162e:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYMAP_0.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_00491666;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_00491666;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_00491666;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_00491666;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_00491666:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYMAP_1.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_0049169e;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_0049169e;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_0049169e;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_0049169e;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_0049169e:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYMAP_2.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_004916d6;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_004916d6;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_004916d6;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_004916d6;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_004916d6:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYMAP_3.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xd));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_0049170e;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_0049170e;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_0049170e;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_0049170e;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_0049170e:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "OPTIONS.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xc));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_0049174e;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_0049174e;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_0049174e;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_0049174e;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_0049174e:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYNAMES.TXT";
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_00491786;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_00491786;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_00491786;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_00491786;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_00491786:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "KEYMAP.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 0xb));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_004917c8;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_004917c8;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_004917c8;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_004917c8;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_004917c8:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "PATHS.TXT";
+        strPtr2 = (char*)(pFilename + (regSize - 10));
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_00491806;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_00491806;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_00491806;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_00491806;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_00491806:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        strPtr = "PRATCAM.TXT";
+        do {
+            lastChar = *strPtr2;
+            if (lastChar < *strPtr) {
+                strCompareResult = 1;
+                goto LAB_0049183a;
+            }
+            if (lastChar != *strPtr) {
+                strCompareResult = -1;
+                goto LAB_0049183a;
+            }
+            if (lastChar == 0) break;
+            lastChar = strPtr2[1];
+            if (lastChar < strPtr[1]) {
+                strCompareResult = 1;
+                goto LAB_0049183a;
+            }
+            if (lastChar != strPtr[1]) {
+                strCompareResult = -1;
+                goto LAB_0049183a;
+            }
+            strPtr2 += 2;
+            strPtr += 2;
+        } while (lastChar != 0);
+        strCompareResult = 0;
+    LAB_0049183a:
+        if (strCompareResult == 0) goto LAB_0049186a;
+        lastChar = DRfgetc2((FILE*)hKey2);
+        if (lastChar == gDecode_thing) {
+            PFungetc(lastChar, (FILE*)hKey2);
+            hKey = hKey2;
+            goto LAB_0049186a;
+        }
+        PFfclose((FILE*)hKey2);
     }
-    return result;
+    hKey = (HKEY)0x0;
+LAB_0049186a:
+    if (hKey == (HKEY)0x0 && gAllow_open_to_fail == 0) {
+        regSize = 0xff;
+        regStatus = RegOpenKeyExA((HKEY)0x80000002, "SOFTWARE\\SCI\\CARMAGEDDON2", 0, 0xf003f, &hKey2);
+        if (regStatus == 0) {
+            regType = 0;
+            regSize = 0xff;
+            regStatus = RegQueryValueExA(hKey2, "SourceLocation", (LPDWORD)0x0, (LPDWORD)0x0, (LPBYTE)buffer_C, &regSize);
+            if (regStatus == 0) {
+                RegCloseKey(hKey2);
+                driveCheck = PDCheckDriveExists(buffer_C);
+                if (driveCheck == 0) {
+                    if (gMisc_strings[0] != 0) {
+                        PFungetc((int)GetMiscString(eMiscString_could_not_find_carmageddon_cd), (FILE*)0xf3);
+                    }
+                    PDFatalError((char*)0x6586f4);
+                }
+            } else {
+                FormatMessageA(0x1000, (LPCVOID)0x0, regStatus, 0, (LPSTR)&buffer_A[4], regSize, (va_list*)0x0);
+                RegCloseKey(hKey2);
+            }
+        }
+        sprintf(buffer_D, "DRfopen( \"%s\", \"%s\" ) failed", pFilename, pMode);
+        PDFatalError(buffer_D);
+    }
+    return (FILE*)hKey;
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
