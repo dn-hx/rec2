@@ -1043,7 +1043,62 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
     NOT_IMPLEMENTED();
 }
 
-// SetLastHitter
+// FUNCTION: CARMA2_HW 0x004cdeb0
+void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    tPedestrian* other_ped;
+    tCar_spec* pCar;
+
+    if (pCollision_info == NULL) {
+        return;
+    }
+    if (pPed->field_0x0c == NULL) {
+        return;
+    }
+    if (pCollision_info->owner != NULL
+            && pCollision_info->flags_0x238 >= 2
+            && pCollision_info->flags_0x238 <= 4
+            && pPed->field_0x0c->field_0xc0 == NULL) {
+        other_ped = ((tPed_character_instance*)pCollision_info->owner)->ped;
+        if (other_ped != NULL && other_ped->field_0x0c != NULL) {
+            pPed->field_0x0c->field_0xc0 = other_ped->field_0x0c->field_0xc0;
+        }
+    }
+    if ((pCollision_info->owner == NULL || pCollision_info->flags_0x238 != 1)
+            && (pCollision_info->flags_0x238 != 0x20
+                || (gMutant_tail_state != 2 && GetTotalTime() - gINT_00705b70 >= 7500))
+            && pCollision_info->flags_0x238 != 0x40
+            && pCollision_info->flags_0x238 != 0x10) {
+        return;
+    }
+    if (pCollision_info->flags_0x238 == 0x40) {
+        pCar = ((tShit_mine*)pCollision_info->owner)->field_0x30;
+    } else if (pCollision_info->flags_0x238 == 0x10) {
+        pCar = (tCar_spec*)((tDrone_spec*)pCollision_info->owner)->field_0x5d4;
+    } else {
+        pCar = (tCar_spec*)pCollision_info->owner;
+    }
+    if ((pCar != NULL && pCar->driver > 5) || pCollision_info->parent != NULL) {
+        pPed->field_0x0c->field_0xc0 = pCar;
+        if (pCollision_info->owner != NULL && pCollision_info->flags_0x238 == 0x20) {
+            ((tU8*)pPed->field_0x0c)[0x2e] |= 8;
+        }
+        if (pCollision_info->owner != NULL
+                && pCollision_info->flags_0x238 == 0x20
+                && gMutant_tail_state == 1) {
+            ((tU8*)pPed->field_0x0c)[0x2e] |= 0x10;
+        }
+        if (pCollision_info->flags_0x238 == 0x40) {
+            pPed->field_0x0c->field_0x2e = 0x40;
+        }
+        if (pCollision_info->flags_0x238 == 0x10) {
+            pPed->field_0x0c->field_0x2e = 1;
+            return;
+        }
+    } else if (pCar != NULL && pPed->field_0x0c->field_0xc0 == NULL) {
+        pPed->field_0x0c->field_0xc0 = (tCar_spec*)pCar->field_0xc8;
+        ((tU8*)pPed->field_0x0c)[0x2e] |= 1;
+    }
+}
 
 // MakePedVanish
 
@@ -1111,7 +1166,139 @@ int C2_HOOK_FASTCALL CBActiveHalted(tPed_character_instance* pCharacter, tPhysic
 
 // RecordPedSlide
 
-// PedProcessForces
+// FUNCTION: CARMA2_HW 0x004d2320
+void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
+    tPedestrian* pPed;
+    tPed_cache_006944c0* pCache;
+    double ratio;
+    float length;
+    float vx;
+    float vy;
+    float vz;
+    float dot;
+    int damage;
+
+    if (gAction_replay_mode == 0) {
+        pPed = ((tPed_character_instance*)pObject1->owner)->ped;
+        SetLastHitter(pPed, pObject2);
+        if (((pObject2 != NULL && pObject2->owner != NULL) && pObject2->flags_0x238 == 0x20 && pObject2->M == gMass_mutant_tail_ball)
+                || pObject1->v.v[1] < -1.7) {
+            pImpulse = pImpulse * 10.0f;
+        }
+        if (gExploding_pedestrians != 0) {
+            damage = pPed->character->personality->form->count_bones * gPed_severing_damage;
+        } else {
+            damage = (int)(pImpulse * gPed_damage_per_force * ((pObject2 == NULL) ? 1.5 : 1.0));
+        }
+        if (damage != 0) {
+            DamagePedestrian(pPed, damage, -1, 0x5e, pObject2);
+            if ((pPed->hit_points > 0 && pObject2 != NULL)
+                    && (pObject2->owner != NULL && (pObject2->flags_0x238 == 1 && gProgram_state.current_car.collision_info == pObject2))
+                    && ((pCache = pPed->field_0x0c) != NULL)
+                    && ((*(tU16*)&pCache->field_0x2e & 4) == 0
+                        && gProgram_state.current_car.collision_info->v.v[0] * gProgram_state.current_car.collision_info->v.v[0]
+                                + gProgram_state.current_car.collision_info->v.v[1] * gProgram_state.current_car.collision_info->v.v[1]
+                                + gProgram_state.current_car.collision_info->v.v[2] * gProgram_state.current_car.collision_info->v.v[2] > 0.001)) {
+                pCache->field_0x21 = pCache->field_0x21 + 1;
+                pCache = pPed->field_0x0c;
+                if ((0x50 <= pCache->field_0x21) && (pCache != NULL && pCache->field_0xc0 == &gProgram_state.current_car) && ((*(tU16*)&pCache->field_0x2e & 4) == 0)) {
+                    *(tU16*)&pCache->field_0x2e = *(tU16*)&pCache->field_0x2e | 4;
+                    EarnCredits(gPed_points[gProgram_state.skill_level]);
+                    DoFancyHeadup(4);
+                }
+            }
+            if (0.01 <= pImpulse) {
+                if (pObject2 != NULL) {
+                    *(tU8*)((char*)pPed + 8) |= 4;
+                } else {
+                    if (pFace != NULL && (float)fabs((float)(pFace->normal.v[1] < 0.707)) != 0.0f) {
+                        *(tU8*)((char*)pPed + 8) |= 2;
+                    }
+                }
+                if ((pPed->flags & 4) != 0 && (pPed->flags & 2) != 0 && (pPed->flags & 8) == 0) {
+                    SetPedMove(pPed, 0x60, -1, 0, 1, GetTotalTime(), 5);
+                    *(tU8*)((char*)pPed + 8) |= 8;
+                    if ((gPed_recent_points != 0 && PTR_00694120 == pPed) && pPed->hit_points <= 0
+                            && (GetTotalTime() - *(tU32*)((char*)pPed + 0x30)) < 0x2ee) {
+                        DoFancyHeadup(1);
+                        PratcamEvent(0x1e);
+                        EarnCredits(gPed_recent_points);
+                        gPed_recent_points = 0;
+                    }
+                }
+            }
+            if ((pObject1->last_special_volume == NULL || pObject1->last_special_volume->gravity_multiplier >= 1.0f) && gGoreLevel > 0) {
+                ratio = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
+                DoGiblets(pPed, pObject1, pObject2, (float)(ratio * ratio * pImpulse), pPoint, (int)gGiblet_scrape_start);
+                if (pObject2 == NULL
+                        && ((pFace->material == NULL || pFace->material->colour_map == NULL)
+                            || pFace->material->colour_map->type != BR_PMT_RGBA_4444)
+                        && pPed->hit_points <= 0) {
+                    if (pFace->material != NULL && pFace->material->identifier != NULL) {
+                        if (strlen(pFace->material->identifier) == 0xb && pFace->material->identifier[5] == '|') {
+                            return;
+                        }
+                    }
+                    pCache = pPed->field_0x0c;
+                    if (pCache == NULL) {
+                        dr_dprintf("Can't smear a ped with no process data");
+                        return;
+                    }
+                    if ((pCache->field_0xc4 & 2) == 0) {
+                        pCache->field_0xc4 = pCache->field_0xc4 | 2;
+                        pCache->field_0xca = 1;
+                        pCache->field_0xe4 = *pPoint;
+                        pCache->field_0xf0 = pFace->normal;
+                        length = (float)sqrt(pObject1->v.v[1] * pObject1->v.v[1]
+                                + pObject1->v.v[2] * pObject1->v.v[2]
+                                + pObject1->v.v[0] * pObject1->v.v[0]);
+                        if (length <= 2.3841858e-07f) {
+                            vx = 1.0f;
+                            vy = 0.0f;
+                            vz = 0.0f;
+                        } else {
+                            length = 1.0 / length;
+                            vx = pObject1->v.v[0] * length;
+                            vy = pObject1->v.v[1] * length;
+                            vz = pObject1->v.v[2] * length;
+                        }
+                        ((br_vector3*)((char*)pCache + 0x114))->v[0] = pFace->normal.v[1] * vz - pFace->normal.v[2] * vy;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[1] = pFace->normal.v[2] * vx - pFace->normal.v[0] * vz;
+                        ((br_vector3*)((char*)pCache + 0x114))->v[2] = pFace->normal.v[0] * vy - pFace->normal.v[1] * vx;
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2];
+                        pCache->field_0x124 = dot;
+                        pCache->field_0x128 = dot;
+                        return;
+                    }
+                    if (pCache->field_0xf0.v[0] * pFace->normal.v[0] + pCache->field_0xf0.v[1] * pFace->normal.v[1]
+                                    + pCache->field_0xf0.v[2] * pFace->normal.v[2] > 0.997f
+                            && (float)fabs((pCache->field_0xf0.v[0] * pCache->field_0xe4.v[0]
+                                        + pCache->field_0xf0.v[1] * pCache->field_0xe4.v[1]
+                                        + pCache->field_0xf0.v[2] * pCache->field_0xe4.v[2]) / (float)pCache->field_0xca
+                                    - (pCache->field_0xf0.v[0] * pPoint->v[0] + pCache->field_0xf0.v[2] * pPoint->v[2]
+                                        + pCache->field_0xf0.v[1] * pPoint->v[1])) < 0.01f) {
+                        dot = ((br_vector3*)((char*)pCache + 0x114))->v[0] * pPoint->v[0]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[2] * pPoint->v[2]
+                                + ((br_vector3*)((char*)pCache + 0x114))->v[1] * pPoint->v[1];
+                        if (pCache->field_0x124 < dot) {
+                            pCache->field_0x124 = dot;
+                        }
+                        if (dot < pCache->field_0x128) {
+                            pCache->field_0x128 = dot;
+                        }
+                        pCache->field_0xe4.v[0] = pPoint->v[0] + pCache->field_0xe4.v[0];
+                        pCache->field_0xe4.v[1] = pCache->field_0xe4.v[1] + pPoint->v[1];
+                        pCache->field_0xca = pCache->field_0xca + 1;
+                        pCache->field_0xe4.v[2] = pCache->field_0xe4.v[2] + pPoint->v[2];
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
 
 // CBMovedByPhysics
 
