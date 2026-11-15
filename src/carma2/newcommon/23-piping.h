@@ -315,7 +315,7 @@ extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec* pOpponent_s
 
 extern void C2_HOOK_FASTCALL ApplySmudge(tPipe_chunk** pChunk);
 
-// ApplySpark
+extern void C2_HOOK_FASTCALL ApplySpark(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk);
 
@@ -536,5 +536,10 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[0x10];
+} tPipe_chunk_spark_replay;
 
 #endif // GUARD_23_PIPING_H
