@@ -2447,14 +2447,8 @@ void C2_HOOK_FASTCALL ScrollCredits(void) {
         y += gCredits_heights[i];
         if (y < 430 && y > 30) {
             if (gCredits_throbs[i]) {
-
                 SolidPolyFontText(gCredits_texts[i], 320, y, gCredits_fonts[i] - 1, eJust_centre, 1);
-#ifdef REC2_HW
                 TransparentPolyFontText(gCredits_texts[i], 320, y, gCredits_fonts[i], eJust_centre, 1, gFrontend_throb_factor);
-#endif
-#ifdef REC2_SW
-                PolyFontText(gCredits_texts[i], 320, y, gFrontend_throb_factor <= 0.5 ? gCredits_fonts[i] - 1 : gCredits_fonts[i], eJust_centre, 1);
-#endif
             } else {
                 SolidPolyFontText(gCredits_texts[i], 320, y, gCredits_fonts[i], eJust_centre, 1);
             }
