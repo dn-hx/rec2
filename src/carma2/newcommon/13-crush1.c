@@ -1325,7 +1325,130 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-// ReAttachBit
+// FUNCTION: CARMA2_HW 0x00434010
+void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
+    tUser_crush_data* user_crush_data;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_detach_data* detach_data;
+    tCar_crush_spec* crush_spec;
+    tNon_car_spec* non_car;
+    tCar_crush_flap_data* flap_data;
+    tPhysics_shape* physics_shape;
+    tNon_car_spec** active_non_car;
+    tUser_crush_data* parent_user_crush_data;
+    br_model* model;
+    br_model* parent_model;
+    br_vertex* vertex;
+    int index;
+    int remaining;
+
+    user_crush_data = pActor->user;
+    if (user_crush_data == NULL) {
+        return;
+    }
+    crush_data = user_crush_data->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    detach_data = crush_data->detach_data;
+    if (detach_data == NULL) {
+        return;
+    }
+    if (detach_data->field_0x28 == 0) {
+        return;
+    }
+    crush_spec = pCar_spec->car_crush_spec;
+    non_car = pActor->type_data;
+    if (non_car != NULL) {
+        pActor->type_data = NULL;
+        non_car->driver = 0;
+        if (pObject != NULL) {
+            PhysicsRemoveObject(pObject);
+            if (pObject->physics_joint1 != NULL) {
+                pObject->physics_joint1->type = 0;
+                pObject->physics_joint1 = NULL;
+            }
+            if (detach_data->type == 4) {
+                physics_shape = pObject->shape;
+                pObject->shape = (tPhysics_shape*)crush_spec->field_0x4[*(int*)((tU8*)detach_data + 0x78)].field_0x0;
+                crush_spec->field_0x4[*(int*)((tU8*)detach_data + 0x78)].field_0x0 = (tCollision_shape_polyhedron*)physics_shape;
+                crush_spec->field_0x4[*(int*)((tU8*)detach_data + 0x78)].field_0x8 = 0;
+                crush_spec->expand_bounding_box |= 1;
+            }
+        } else {
+            PipeSingleNonCar(*(tU16*)((tU8*)non_car + 0x80), pActor);
+            index = 0;
+            while (index < gNum_active_non_cars && gActive_non_car_list[index] != non_car) {
+                index++;
+            }
+            if (index != gNum_active_non_cars) {
+                gNum_active_non_cars--;
+                if (index < gNum_active_non_cars) {
+                    active_non_car = &gActive_non_car_list[index];
+                    remaining = gNum_active_non_cars - index;
+                    do {
+                        *active_non_car = active_non_car[1];
+                        active_non_car++;
+                        remaining--;
+                    } while (remaining != 0);
+                }
+            }
+            non_car->driver = 0;
+            non_car->actor->type_data = NULL;
+            PHILRemoveObject(non_car->collision_info);
+        }
+    }
+    PipeSingleRelink((uintptr_t)pParent_actor, pActor);
+    if (pActor->parent != NULL) {
+        ActorRelink(pParent_actor, pActor);
+    } else {
+        BrActorAdd(pParent_actor, pActor);
+    }
+    flap_data = crush_data->flap_data;
+    if (flap_data == NULL || flap_data->kev_o_flap != 0) {
+        BrMatrix34Identity(&pActor->t.t.mat);
+        PipeSingleIdentity(pActor);
+        if (flap_data != NULL) {
+            flap_data->field_0x0 = 0;
+        }
+    } else {
+        model = ((tUser_crush_data*)pActor->user)->models[0];
+        vertex = &model->vertices[flap_data->hinge0];
+        BrMatrix34Translate(&pActor->t.t.mat, -vertex->p.v[0], -vertex->p.v[1], -vertex->p.v[2]);
+        parent_user_crush_data = pParent_actor->user;
+        parent_model = parent_user_crush_data->models[0];
+        BrMatrix34PostTranslate(&pActor->t.t.mat, (&parent_model->vertices[flap_data->field_0xc])->p.v[0], (&parent_model->vertices[flap_data->field_0xc])->p.v[1], (&parent_model->vertices[flap_data->field_0xc])->p.v[2]);
+        PipeSingleFlap(pActor, -flap_data->field_0x4);
+        flap_data->field_0x4 = 0;
+        if (gCount_toggled_doors != 16) {
+            for (index = 0; index < gCount_toggled_doors; index++) {
+                if (gToggled_doors[index].actor == pActor) {
+                    goto already_toggled;
+                }
+            }
+            gToggled_doors[gCount_toggled_doors].actor = pActor;
+            gToggled_doors[gCount_toggled_doors].car = pCar_spec;
+            gToggled_doors[gCount_toggled_doors].field_0x8 = 1;
+            gToggled_doors[gCount_toggled_doors].field_0xc = 0.f;
+            gCount_toggled_doors += 1;
+        already_toggled:
+            ;
+        }
+        CheckFlapAngles(pActor, 0);
+    }
+    PipeSingleDSModel(1, user_crush_data->models[0]);
+    pActor->model = user_crush_data->models[0];
+    if (gProgram_state.racing != 0 && pObject == NULL) {
+        DRS3StartSound3D(gCar_outlet, 0x1483, &pCar_spec->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, IRandomBetween(0xe000, 0x12000), 0x10000);
+    }
+    if (user_crush_data->groove != NULL) {
+        PipeSingleGrooveOnOff(1, pActor, 3);
+        EnableGroovidelic(pActor, 3);
+        PipeSingleTransformType(pActor, 1);
+        pActor->t.type = 1;
+    }
+    detach_data->field_0x28 = 0;
+}
 
 // CentreModelOnPoint
 
