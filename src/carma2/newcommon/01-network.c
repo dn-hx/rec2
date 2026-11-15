@@ -927,24 +927,23 @@ void C2_HOOK_FASTCALL ReceivedMessage(tNet_message* pMessage, void* pSender_addr
 void C2_HOOK_FASTCALL NetReceiveAndProcessMessages(void) {
     tNet_message* message;
     void* sender_address;
-    tU32 receive_time;
     int old_net_service;
+    tU32 receive_time;
 
     if (gNet_mode != eNet_mode_none || gJoin_list_mode) {
         old_net_service = gIn_net_service;
         gIn_net_service = 1;
         do {
             message = NetGetNextMessage(gCurrent_net_game, &sender_address);
-            if (message != NULL) {
-                if (message->header.field_0x14 != 0) {
-                    receive_time = GetRaceTime();
-                    if (message->header.field_0x4 == 0x763a5059) {
-                        CheckCheckSum(message);
-                        StatReceivePacket();
-                        ReceivedMessage(message, sender_address, receive_time);
-                    }
-                    NetReallyDisposeMessage(message);
+            if (message == NULL) {
+                break;
+            }
+            if (message->header.field_0x14 != 0) {
+                receive_time = GetRaceTime();
+                if (message->header.field_0x4 == 0x763a5059) {
+                    ReceivedMessage(message, sender_address, receive_time);
                 }
+                ((tU8*)message)[0x19] = 0xff;
             }
         } while (message != NULL);
         gIn_net_service = old_net_service;
