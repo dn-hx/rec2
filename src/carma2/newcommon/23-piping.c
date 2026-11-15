@@ -2086,7 +2086,12 @@ void C2_HOOK_FASTCALL UndoPedPos(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
     PedApplyPedPos((tPedestrian*)(*pChunk)->subject_index, &(*pChunk)->data.ped_pos.p);
 }
 
-// UndoPedModelChange
+// FUNCTION: CARMA2_HW 0x004ca250
+void C2_HOOK_FASTCALL UndoPedModelChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_ped_model_change* chunk = (tPipe_chunk_ped_model_change*)*pChunk;
+
+    return PedApplyPedModelChangeP(chunk->field_0x0, (int)chunk->field_0x4, chunk->field_0xc, (int)chunk->field_0xa);
+}
 
 // UndoGibShower
 
