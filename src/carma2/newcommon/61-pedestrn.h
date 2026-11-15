@@ -155,7 +155,7 @@ extern void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor);
 
 extern int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor);
 
-// SetPedXZDirection
+extern void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime);
 
 // StopPedNoise
 
@@ -183,7 +183,7 @@ extern void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int 
 
 // DoPostElectricution
 
-// CBMoveCompleted
+extern int C2_HOOK_FASTCALL CBMoveCompleted(tPed_character_instance* pCharacter);
 
 extern void C2_HOOK_FASTCALL CBLoadForm(tPed_form* pPed_form, FILE* pF);
 
