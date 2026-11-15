@@ -26,6 +26,8 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "18-graphics2.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1556,11 +1558,115 @@ int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_ob
     return 0;
 }
 
-// FullyDetachBit
+// FUNCTION: CARMA2_HW 0x0042f4e0
+void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
+    void* bit;
+    void* b2;
+    void* b3;
+    void* state;
+
+    bit = pObject->actor;
+    if (bit == NULL) {
+        return;
+    }
+    b2 = *(void**)((tU8*)bit + 0x60);
+    if (b2 == NULL) {
+        return;
+    }
+    b3 = *(void**)((tU8*)b2 + 0x8);
+    if (b3 == NULL) {
+        return;
+    }
+    state = *(void**)((tU8*)b3 + 0x34);
+    if (state == NULL) {
+        return;
+    }
+    if (*(int*)((tU8*)state + 0x28) != 1) {
+        return;
+    }
+
+    PhysicsRemoveObject(pObject);
+    if (pObject->physics_joint1 != NULL) {
+        *(int*)pObject->physics_joint1 = 0;
+        pObject->physics_joint1 = NULL;
+    }
+    if (gPHIL_doing_physics != 0) {
+        TellPhysicsJointsHaveChanged(pCar->collision_info);
+    }
+    pObject->flags |= 0x100;
+
+    b2 = *(void**)((tU8*)bit + 0x5c);
+    if (gNum_active_non_cars != 0x63) {
+        *(int*)((tU8*)b2 + 0xc) = gDetached_bit_driver;
+        gActive_non_car_list[gNum_active_non_cars] = (tNon_car_spec*)b2;
+        gNum_active_non_cars += 1;
+        PHILAddActiveObjectImmediately(*(void**)((tU8*)b2 + 0x8), NULL, NULL, NULL);
+    }
+    PipeSingleNonCar(*(tU16*)((tU8*)b2 + 0x80), bit);
+    *(tU8*)((tU8*)(*(void**)((tU8*)bit + 0x14)) + 0x3) = 0x21;
+    *(int*)((tU8*)state + 0x28) = 2;
+    pCar->use_shell_model = 0;
+}
 
 // SendFullyDetachBit
 
-// DoFullyDetaching
+// FUNCTION: CARMA2_HW 0x00438900
+void C2_HOOK_FASTCALL DoFullyDetaching(void) {
+    int i;
+
+    if (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host) {
+        for (i = 0; i < gNum_active_cars; i++) {
+            if (gActive_car_list[i] != NULL && gActive_car_list[i]->driver > 5 && gActive_car_list[i]->car_crush_spec != NULL) {
+                tCar_crush_spec* car_crush = gActive_car_list[i]->car_crush_spec;
+                int j;
+
+                for (j = 0; j < car_crush->field_0x270; j++) {
+                    tCar_bit_spec* bit_car = &car_crush->field_0x274[j];
+                    int detach;
+                    int dt;
+
+                    switch (bit_car->field_0xc[9]) {
+                    case 2:
+                    case 4:
+                        detach = 1;
+                        break;
+                    case 0:
+                    case 1:
+                        detach = BitObjectIsSufficientlyOutsideCarObjectToDetach(bit_car->field_0x8);
+                        dt = PDGetTotalTime() - bit_car->field_0x10;
+                        if (dt < gMax_detach_time_ms) {
+                            detach &= PercentageChance((int)((float)(100 * dt) / gMax_detach_time_ms));
+                        }
+                        break;
+                    default:
+                        detach = 0;
+                        break;
+                    }
+                    if (detach) {
+                        if (gNet_mode != eNet_mode_none) {
+                            int bit_synced;
+                            int k;
+
+                            bit_synced = 0;
+                            for (k = 0; k < gCount_net_crush_full_detach_bit_list; k++) {
+                                if (gNet_crush_full_detach_bit_list[k].object == bit_car->field_0x8) {
+                                    bit_synced = 1;
+                                    break;
+                                }
+                            }
+                            if (!bit_synced) {
+                                SendFullyDetachBit(gActive_car_list[i], bit_car->field_0x8);
+                            }
+                        } else {
+                            FullyDetachBit(gActive_car_list[i], bit_car->field_0x8);
+                        }
+                    }
+                }
+                MungeDetachLists(car_crush);
+            }
+        }
+    }
+}
 
 // CalculateCollisionObjectStuffForSplitHalves
 
