@@ -485,7 +485,7 @@ extern void C2_HOOK_FASTCALL UndoSmashDecal(tPipe_chunk** pChunk, tPipe_chunk* p
 
 extern void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoActorTrans
+extern void C2_HOOK_FASTCALL UndoActorTrans(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoPedStatus
 
@@ -536,5 +536,18 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    tU8 pad[0x50];
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+} tReplay_actor_trans_effect;
+
+typedef struct {
+    undefined4 field_0x0;
+    uintptr_t field_0x4;
+    br_vector3 delta;
+} tPipe_chunk_actor_trans;
 
 #endif // GUARD_23_PIPING_H
