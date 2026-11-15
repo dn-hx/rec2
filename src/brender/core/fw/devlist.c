@@ -189,19 +189,21 @@ br_error C2_HOOK_CDECL BrDevFind(br_device** pdev, const char* pattern) {
 br_error C2_HOOK_CDECL BrDevFindMany(br_device** devices, br_int_32* ndevices, br_int_32 max_devices, const char* pattern) {
     int i;
     int c;
+    br_device** d;
 
     AddRequestedDrivers();
 
+    d = devices;
     c = 0;
     for (i = 0; i < fw.ndev_slots; i++) {
         if (fw.dev_slots[i].dev != NULL) {
             if (BrNamePatternMatch(pattern, fw.dev_slots[i].dev->dispatch->_identifier((br_object*)fw.dev_slots[i].dev))) {
+                c++;
+                d++;
                 if (c >= max_devices) {
                     return 0x1004;
                 }
-                /* Order of operations differs from OG */
-                devices[c] = fw.dev_slots[i].dev;
-                c++;
+                *d = fw.dev_slots[i].dev;
             }
         }
     }
