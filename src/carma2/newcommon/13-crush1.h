@@ -248,9 +248,9 @@ extern void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPla
 
 // AddNonCar
 
-// DetachBit
+extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds);
 
-// DoDetaching
+extern void C2_HOOK_FASTCALL DoDetaching(void);
 
 // FlapBit
 
