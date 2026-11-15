@@ -142,3 +142,5 @@ extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
 #endif // GUARD_10_LOADING2_H
+
+extern int C2_HOOK_FASTCALL LoadCrushDataFile(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec);
