@@ -95,7 +95,7 @@ extern void C2_HOOK_FASTCALL PedApplyPedFPChange(tPedestrian* pPed, float pSpeed
 
 extern void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacter, tU32 pLevel);
 
-// PedApplyPedPhysics
+extern void C2_HOOK_FASTCALL PedApplyPedPhysics(int field_0x0, br_matrix34* pMatrix);
 
 extern void C2_HOOK_FASTCALL PedApplyPedPos(tPedestrian* pPedestrian, br_vector3* pPos);
 
