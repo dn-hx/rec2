@@ -561,3 +561,5 @@ extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_ve
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
 #endif // GUARD_13_CRUSH1_H
+
+extern void C2_HOOK_FASTCALL PipeSingleRelink(uintptr_t pId, br_actor* pActor);
