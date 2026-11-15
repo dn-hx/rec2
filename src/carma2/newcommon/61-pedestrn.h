@@ -311,6 +311,8 @@ extern void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed);
 
 #ifdef REC2_MATCHING
 extern void C2_HOOK_FASTCALL FUN_004d3600(void);
+extern int C2_HOOK_FASTCALL GetCharacterBoneIndexByName(tPed_character_instance* pCharacter, const char* pBone_name);
+
 #endif
 
 // InitProcessData
