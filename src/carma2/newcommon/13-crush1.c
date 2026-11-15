@@ -842,13 +842,110 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pActor, br
 
 // CheckHingePointOrder
 
-// FindNearestVertex
+// FUNCTION: CARMA2_HW 0x0042bb00
+tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_model* pModel) {
+    tU16 closest_vertex;
+    br_scalar closest_dist;
+    tU16 i;
+
+    closest_vertex = 0;
+    closest_dist = BR_SCALAR_MAX;
+    for (i = 0; i < pModel->nvertices; i++) {
+        br_scalar d;
+
+        d = Vector3DistanceSquared(pPoint, &pModel->vertices[i].p);
+        if (d >= closest_dist) {
+            goto next_vertex;
+        }
+        closest_dist = d;
+        closest_vertex = i;
+next_vertex:;
+    }
+    return closest_vertex;
+}
 
 // DistanceToBounds
 
 // FindNearestParentVertex
 
-// SetUpSemiDetachJointStuff
+// FUNCTION: CARMA2_HW 0x0042bb90
+void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds) {
+    float closest;
+    const br_vector3* model_bounds[2];
+    br_vector3 corner;
+    br_vector3 closest_corner;
+    tU8 closest_corner_index;
+    tU8 closest_side;
+    int i;
+
+    model_bounds[0] = &pModel->bounds.min;
+    model_bounds[1] = &pModel->bounds.max;
+    if (pDetach_data->type == eDetachType_joint_index) {
+        float dist_bb;
+
+        closest_corner = pModel->vertices[pDetach_data->field_0x30].p;
+        closest = BR_SCALAR_MAX;
+        for (i = 0; i < 8; i++) {
+            BrVector3Set(&corner,
+                model_bounds[i & 1]->v[0],
+                model_bounds[(i >> 1) & 1]->v[1],
+                model_bounds[(i >> 2) & 1]->v[2]);
+            dist_bb = Vector3DistanceSquared(&corner, &closest_corner);
+            if (dist_bb < closest) {
+                closest = dist_bb;
+                closest_corner_index = i;
+            }
+        }
+    } else {
+        closest = BR_SCALAR_MAX;
+        for (i = 0; i < 8; i++) {
+            float dist_closest_side;
+            int j;
+
+            BrVector3Set(&corner,
+                model_bounds[i & 1]->v[0],
+                model_bounds[(i >> 1) & 1]->v[1],
+                model_bounds[(i >> 2) & 1]->v[2]);
+            dist_closest_side = BR_SCALAR_MAX;
+            for (j = 0; j < 3; j++) {
+                float d;
+
+                d = (float)fabs(corner.v[j] - pBounds->min.v[j]);
+                if (d < dist_closest_side) {
+                    dist_closest_side = d;
+                }
+                d = (float)fabs(corner.v[j] - pBounds->max.v[j]);
+                if (d < dist_closest_side) {
+                    dist_closest_side = d;
+                }
+            }
+            if (dist_closest_side < closest) {
+                closest = dist_closest_side;
+                closest_corner = corner;
+                closest_corner_index = i;
+            }
+        }
+        pDetach_data->field_0x30 = FindNearestVertex(&closest_corner, pModel);
+    }
+    pDetach_data->field_0x32 = closest_corner_index;
+    Vector3Average(&corner, &pModel->bounds.min, &pModel->bounds.max);
+    closest = BR_SCALAR_MAX;
+    closest_side = 0;
+    model_bounds[0] = &pBounds->min;
+    model_bounds[1] = &pBounds->max;
+    for (i = 0; i < 6; i++) {
+        if (i != 2) {
+            float d;
+
+            d = (float)fabs(corner.v[i >> 1] - model_bounds[i & 1]->v[i >> 1]);
+            if (d < closest) {
+                closest = d;
+                closest_side = i;
+            }
+        }
+    }
+    pDetach_data->field_0x33 = closest_side;
+}
 
 // InitPhysCrushDataCB
 
