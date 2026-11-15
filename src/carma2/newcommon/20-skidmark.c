@@ -14,6 +14,7 @@
 #include "globvars.h"
 #include "rec2_macros.h"
 #include "c2_string.h"
+#include "23-piping.h"
 
 
 // GLOBAL: CARMA2_HW 0x0065fe08
@@ -203,11 +204,58 @@ void C2_HOOK_FASTCALL HideSkids(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004e9f20
+// FUNCTION: CARMA2_HW 0x004e9f20
 // STUB: CARMA2_SW 0x004e5cc0
 int C2_HOOK_FASTCALL SkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
+    tU16 idx;
+    br_scalar fVar1;
+    br_scalar fVar2;
 
-    NOT_IMPLEMENTED();
+
+    if (((pNorm->v[0] * pPrev_norm->v[0] + pNorm->v[2] * pPrev_norm->v[2] + pNorm->v[1] * pPrev_norm->v[1]) < 0.997f) ||
+        (0.01f < fabs((pNorm->v[0] * pPos->v[0] + pNorm->v[2] * pPos->v[2] + pNorm->v[1] * pPos->v[1]) -
+                      (pNorm->v[0] * pPrev_pos->v[0] + pNorm->v[2] * pPrev_pos->v[2] + pNorm->v[1] * pPrev_pos->v[1])))) {
+        *pSkid_id = -1;
+        return 1;
+    }
+    if ((tU16)*pSkid_id < 100 && pMaterial == gSkids[(tU16)*pSkid_id].actor->material) {
+        idx = (tU16)*pSkid_id;
+        fVar1 = pTexture_step * pTexture_step;
+        fVar2 = gSkids[idx].actor->t.t.mat.m[2][2] * gSkids[idx].actor->t.t.mat.m[2][2] +
+                gSkids[idx].actor->t.t.mat.m[2][1] * gSkids[idx].actor->t.t.mat.m[2][1] +
+                gSkids[idx].actor->t.t.mat.m[2][0] * gSkids[idx].actor->t.t.mat.m[2][0];
+        if (fVar2 <= fVar1 + fVar1 && fVar1 <= fVar2 + fVar2 &&
+            sqrt(gSkids[idx].actor->t.t.mat.m[0][2] * gSkids[idx].actor->t.t.mat.m[0][2] +
+                 gSkids[idx].actor->t.t.mat.m[0][1] * gSkids[idx].actor->t.t.mat.m[0][1] +
+                 gSkids[idx].actor->t.t.mat.m[0][0] * gSkids[idx].actor->t.t.mat.m[0][0]) <= 0.5f) {
+            fVar1 = pSkid_end->v[0] - pSkid_start->v[0];
+            fVar2 = pSkid_end->v[2] - pSkid_start->v[2];
+            if (fabs(-fVar1 * (pPos->v[2] - pSkid_end->v[2]) + (pPos->v[0] - pSkid_end->v[0]) * fVar2) <=
+                    sqrt(fVar2 * fVar2 + fVar1 * fVar1) * 0.05f &&
+                0.0f <= (pPos->v[0] - pPrev_pos->v[0]) * (pPrev_pos->v[0] - pSkid_start->v[0]) +
+                        (pPos->v[2] - pPrev_pos->v[2]) * (pPrev_pos->v[2] - pSkid_start->v[2])) {
+                StretchMark(&gSkids[idx], pSkid_start, pPos, pTexture_start, pTexture_step);
+                PipeSingleSkidAdjustment(idx, &gSkids[idx].actor->t.t.mat, pMaterial);
+                return 0;
+            }
+        }
+    }
+    pSkid_start->v[0] = pPrev_pos->v[0];
+    pSkid_start->v[1] = pPrev_pos->v[1];
+    pSkid_start->v[2] = pPrev_pos->v[2];
+    pSkid_end->v[0] = pPos->v[0];
+    pSkid_end->v[1] = pPos->v[1];
+    pSkid_end->v[2] = pPos->v[2];
+    gSkids[gCurrent_skid].actor->render_style = BR_RSTYLE_DEFAULT;
+    gSkids[gCurrent_skid].actor->material = pMaterial;
+    gSkids[gCurrent_skid].normal.v[0] = pNorm->v[0];
+    gSkids[gCurrent_skid].normal.v[1] = pNorm->v[1];
+    gSkids[gCurrent_skid].normal.v[2] = pNorm->v[2];
+    StretchMark(&gSkids[gCurrent_skid], pPrev_pos, pPos, pTexture_start, pTexture_step);
+    PipeSingleSkidAdjustment(gCurrent_skid, &gSkids[gCurrent_skid].actor->t.t.mat, pMaterial);
+    *pSkid_id = (tS16)gCurrent_skid;
+    gCurrent_skid = (tU16)(gCurrent_skid + 1) % 100;
+    return 0;
 }
 
 #ifdef REC2_MATCHING
