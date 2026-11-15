@@ -19,6 +19,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "09-funks.h"
+#include "30-opponent.h"
 
 #include <string.h>
 
@@ -114,10 +116,83 @@ intptr_t C2_HOOK_CDECL RemoveBounds(br_actor* pActor, void* pArg) {
 
 // RemoveBoundsStructures
 
-// STUB: CARMA2_HW 0x00506c20
+// FUNCTION: CARMA2_HW 0x00506c20
 // STUB: CARMA2_SW 0x00502070
 void C2_HOOK_FASTCALL FreeTrack(tTrack_spec* pTrack_spec) {
-    NOT_IMPLEMENTED();
+    int i;
+    int driver_type;
+    tNon_car_spec* non_car;
+    extern tU8* gTrack_flic_buffer;
+    extern tFlic_descriptor gTrack_flic_descriptor;
+
+    DisposeSmashableEnvironment();
+    if (gAdditional_actors != NULL) {
+        BrActorRemove(gAdditional_actors);
+        BrActorFree(gAdditional_actors);
+    }
+    PossibleService();
+    DisposeTexturingMaterials();
+    PossibleService();
+    DRActorEnumRecurse(pTrack_spec->the_actor, RemoveBounds, NULL);
+    PossibleService();
+    DisposeColumns(pTrack_spec);
+    PossibleService();
+    DisposeFunkotronics(-2);
+    PossibleService();
+    ClearOutStorageSpace(&gTrack_storage_space);
+    gProgram_state.current_depth_effect.sky_texture = NULL;
+    PossibleService();
+    DisposeGroovidelics(-2);
+    PossibleService();
+    DisposeOpponentPaths();
+    PossibleService();
+    DisposeKevStuff();
+    PossibleService();
+    BrActorRemove(pTrack_spec->the_actor);
+    BrActorFree(pTrack_spec->the_actor);
+    pTrack_spec->the_actor = NULL;
+    gTrack_actor = NULL;
+    if (gProgram_state.special_volume_count != 0) {
+        BrMemFree(gProgram_state.special_volumes);
+    }
+    if (gProgram_state.special_screens_count != 0) {
+        BrMemFree(gProgram_state.special_screens);
+    }
+    PossibleService();
+    i = 40;
+    non_car = gProgram_state.non_cars;
+    do {
+        i--;
+        non_car->collision_info->shape = NULL;
+        non_car->collision_info->physics_joint1 = NULL;
+        non_car->collision_info->physics_joint2 = NULL;
+        non_car++;
+    } while (i != 0);
+    driver_type = eDriver_4;
+    for (i = 0; i < gProgram_state.num_non_car_spaces; i++) {
+        non_car = &gProgram_state.non_cars[i];
+        PossibleService();
+        if (non_car->driver == driver_type && non_car->actor != NULL) {
+            if (non_car->actor->parent != NULL) {
+                BrActorRemove(non_car->actor);
+            }
+            BrActorFree(non_car->actor);
+        }
+        DisposePhysicsObject(non_car->collision_info);
+    }
+    if (gProgram_state.non_cars != NULL) {
+        BrMemFree(gProgram_state.non_cars);
+    }
+    FreeSmokeShadeTables();
+    if (gTrack_flic_buffer != NULL) {
+        BrMapRemove(gProgram_state.default_depth_effect.sky_texture);
+        BrMemFree(gTrack_flic_buffer);
+        EndFlic(&gTrack_flic_descriptor);
+        BrMemFree(gProgram_state.default_depth_effect.sky_texture->pixels);
+        gProgram_state.default_depth_effect.sky_texture->pixels = NULL;
+        BrPixelmapFree(gProgram_state.default_depth_effect.sky_texture);
+        gTrack_flic_buffer = NULL;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00506e50
