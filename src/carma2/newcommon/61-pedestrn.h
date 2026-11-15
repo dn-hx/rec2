@@ -481,7 +481,7 @@ extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* p
 
 extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
 
-// DisposePersonality
+extern void C2_HOOK_FASTCALL DisposePersonality(tPed_personality* pPersonality);
 
 // DisposeAllLoadedPersonalities
 
