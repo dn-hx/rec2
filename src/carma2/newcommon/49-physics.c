@@ -534,7 +534,93 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
     }
 }
 
-// TranslateAndRotatePartialObject
+// FUNCTION: CARMA2_HW 0x004b9230
+void C2_HOOK_FASTCALL TranslateAndRotatePartialObject(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time) {
+    tPhysics_object* parent;
+    tPhysics_object* child;
+    br_vector3 a;
+    br_vector3 b;
+    br_matrix34 inverse;
+    br_matrix34 product;
+    float angle;
+
+    if (pObject->physics_joint1 != NULL && pObject->physics_joint1->type != 0) {
+        parent = pObject->field_0x230;
+        if (parent == NULL) {
+            PhysicsError((tPhysicsError)11, "");
+        }
+        if ((pObject->flags & 0x400) == 0) {
+            switch (pObject->physics_joint1->type) {
+            case eJoint_hinge:
+            case eJoint_quick_hinge:
+                BrMatrix34ApplyV(&a, &parent->rotate_omega, &parent->transform_matrix);
+                BrMatrix34TApplyV(&b, &a, &pObject->transform_matrix);
+                angle = ((pObject->omega.v[0] - b.v[0]) * pObject->physics_joint1->hinge_axis.v[0]
+                       + (pObject->omega.v[1] - b.v[1]) * pObject->physics_joint1->hinge_axis.v[1]
+                       + (pObject->omega.v[2] - b.v[2]) * pObject->physics_joint1->hinge_axis.v[2]) * pDelta_time;
+                BrMatrix34LPInverse(&inverse, &parent->transform_matrix);
+                BrMatrix34Mul(&product, &pObject->transform_matrix, &inverse);
+                BrMatrix34Mul(&pObject->actor->t.t.mat, &product, &parent->actor->t.t.mat);
+                BrMatrix34PreRotate(&pObject->actor->t.t.mat, BrRadianToAngle(angle), &pObject->physics_joint1->hinge_axis);
+                pObject->rotate_omega.v[0] = pObject->omega.v[0];
+                pObject->rotate_omega.v[1] = pObject->omega.v[1];
+                pObject->rotate_omega.v[2] = pObject->omega.v[2];
+                BrMatrix34ApplyV(&a, &pObject->omega, &pObject->transform_matrix);
+                BrMatrix34TApplyV(&pObject->omega, &a, &pObject->actor->t.t.mat);
+                break;
+            case eJoint_universal:
+                RotateObject(pObject, 0, pDelta_time);
+                break;
+            case eJoint_ball_n_socket:
+                RotateObject(pObject, 0, pDelta_time);
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, NULL);
+                break;
+            }
+            BrMatrix34ApplyP(&a, &pObject->physics_joint1->field_0x08, &pObject->actor->t.t.mat);
+            BrMatrix34ApplyP(&b, &pObject->physics_joint1->field_0x14, &parent->actor->t.t.mat);
+            a.v[0] = b.v[0] - a.v[0];
+            a.v[1] = b.v[1] - a.v[1];
+            a.v[2] = b.v[2] - a.v[2];
+            pObject->actor->t.t.mat.m[3][0] += a.v[0];
+            pObject->actor->t.t.mat.m[3][1] += a.v[1];
+            pObject->actor->t.t.mat.m[3][2] += a.v[2];
+        } else {
+            BrMatrix34Mul(&pObject->actor->t.t.mat, &pObject->field_0x1e8, &parent->actor->t.t.mat);
+            BrMatrix34TApplyV(&pObject->omega, &parent->rotate_omega, &pObject->field_0x1e8);
+            pObject->rotate_omega.v[0] = pObject->omega.v[0];
+            pObject->rotate_omega.v[1] = pObject->omega.v[1];
+            pObject->rotate_omega.v[2] = pObject->omega.v[2];
+            DrMatrix34ApplyLPInverse(&a, &parent->cmpos, &pObject->field_0x1e8);
+            a.v[0] = pObject->cmpos.v[0] - a.v[0];
+            a.v[1] = pObject->cmpos.v[1] - a.v[1];
+            a.v[2] = pObject->cmpos.v[2] - a.v[2];
+            b.v[0] = pObject->omega.v[1] * a.v[2] - pObject->omega.v[2] * a.v[1];
+            b.v[1] = pObject->omega.v[2] * a.v[0] - pObject->omega.v[0] * a.v[2];
+            b.v[2] = pObject->omega.v[0] * a.v[1] - pObject->omega.v[1] * a.v[0];
+            BrMatrix34ApplyV(&pObject->v, &b, &pObject->transform_matrix);
+            pObject->v.v[0] = parent->v.v[0] + pObject->v.v[0];
+            pObject->v.v[1] = parent->v.v[1] + pObject->v.v[1];
+            pObject->v.v[2] = parent->v.v[2] + pObject->v.v[2];
+            BrMatrix34TApplyV(&pObject->velocity_car_space, &pObject->v, &pObject->transform_matrix);
+        }
+    } else if (pObject->physics_joint2 != NULL && pObject->physics_joint2->type != 0) {
+        RotateObject(pObject, 0, pDelta_time);
+        PositionWorldJointedObject(pObject, pDelta_time);
+    } else {
+        pObject->actor->t.t.mat.m[3][0] = pObject->v.v[0] * pDelta_time + pObject->actor->t.t.mat.m[3][0];
+        pObject->actor->t.t.mat.m[3][1] = pObject->v.v[1] * pDelta_time + pObject->actor->t.t.mat.m[3][1];
+        pObject->actor->t.t.mat.m[3][2] = pObject->v.v[2] * pDelta_time + pObject->actor->t.t.mat.m[3][2];
+        RotateObject(pObject, 0, pDelta_time);
+    }
+    for (child = pObject->child; child != NULL; child = child->next) {
+        TranslateAndRotatePartialObject(child, ppChanged_object, pDelta_time);
+    }
+    if (pObject->physics_joint2 != NULL) {
+        *ppChanged_object = pObject;
+    }
+}
 
 // TranslateAndRotateJointedObject
 
@@ -846,7 +932,73 @@ void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, br_scalar
     pObject->omega.v[2] = rotated.v[2] / pObject->I.v[2];
 }
 
-// RotateObject
+// FUNCTION: CARMA2_HW 0x004c1be0
+void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time) {
+    br_matrix34 rotation;
+    br_vector3 axis;
+    br_vector3 momentum;
+    br_vector3 rotated;
+    tFixed_quat packed_rotation;
+    br_vector3 translation;
+    br_scalar rad_rate;
+    br_scalar rad;
+    br_scalar rad_squared;
+    int steps;
+    int i;
+
+    (void)pUnused;
+    pObject->rotate_omega.v[0] = pObject->omega.v[0];
+    rad_squared = pDelta_time * pDelta_time * BrVector3LengthSquared(&pObject->omega);
+    pObject->rotate_omega.v[1] = pObject->omega.v[1];
+    pObject->rotate_omega.v[2] = pObject->omega.v[2];
+    if (rad_squared < 0.0000001) {
+        return;
+    }
+    if (rad_squared > 0.008f) {
+        steps = (int)sqrt(rad_squared * 31.25f) + 1;
+        pDelta_time /= steps;
+        for (i = 0; i < steps && i < 400; i++) {
+            rad_rate = BrVector3Length(&pObject->omega);
+            axis.v[0] = pObject->omega.v[0] / rad_rate;
+            axis.v[1] = pObject->omega.v[1] / rad_rate;
+            axis.v[2] = pObject->omega.v[2] / rad_rate;
+            momentum.v[0] = pObject->omega.v[0] * pObject->I.v[0];
+            momentum.v[1] = pObject->omega.v[1] * pObject->I.v[1];
+            momentum.v[2] = pObject->omega.v[2] * pObject->I.v[2];
+            rad = rad_rate * pDelta_time;
+            BrMatrix34Rotate(&rotation, (br_angle)(BrRadianToAngle(rad) >> 1), &axis);
+            BrMatrix34TApplyV(&rotated, &momentum, &rotation);
+            axis.v[0] = rotated.v[0] / pObject->I.v[0];
+            axis.v[1] = rotated.v[1] / pObject->I.v[1];
+            axis.v[2] = rotated.v[2] / pObject->I.v[2];
+            rad_rate = BrVector3Length(&axis);
+            axis.v[0] = axis.v[0] / rad_rate;
+            axis.v[1] = axis.v[1] / rad_rate;
+            axis.v[2] = axis.v[2] / rad_rate;
+            rad = rad_rate * pDelta_time;
+            BrMatrix34Rotate(&rotation, BrRadianToAngle(rad), &axis);
+            BrMatrix34PreTranslate(&rotation, -pObject->cmpos.v[0], -pObject->cmpos.v[1], -pObject->cmpos.v[2]);
+            BrMatrix34PostTranslate(&rotation, pObject->cmpos.v[0], pObject->cmpos.v[1], pObject->cmpos.v[2]);
+            BrMatrix34Pre(&pObject->actor->t.t.mat, &rotation);
+            BrMatrix34TApplyV(&rotated, &momentum, &rotation);
+            pObject->omega.v[0] = rotated.v[0] / pObject->I.v[0];
+            pObject->omega.v[1] = rotated.v[1] / pObject->I.v[1];
+            pObject->omega.v[2] = rotated.v[2] / pObject->I.v[2];
+        }
+    } else {
+        RotateObjectFirstOrder(pObject, pDelta_time, pDelta_time);
+    }
+    if (gNet_mode != 0) {
+        GetOrientationFromMatrix(&packed_rotation, &pObject->actor->t.t.mat);
+        translation.v[0] = pObject->actor->t.t.mat.m[3][0];
+        translation.v[1] = pObject->actor->t.t.mat.m[3][1];
+        translation.v[2] = pObject->actor->t.t.mat.m[3][2];
+        FixedQuatFractionToLPMatrix(&pObject->actor->t.t.mat, packed_rotation.v);
+        pObject->actor->t.t.mat.m[3][0] = translation.v[0];
+        pObject->actor->t.t.mat.m[3][1] = translation.v[1];
+        pObject->actor->t.t.mat.m[3][2] = translation.v[2];
+    }
+}
 
 void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject, br_scalar pDelta_time) {
     br_vector3 tv;

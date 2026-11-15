@@ -286,7 +286,7 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL RotateObjectFirstOrder(tPhysics_object* pObject, br_scalar pTime);
 
-// RotateObject
+extern void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time);
 
 extern void C2_HOOK_FASTCALL TranslateObject(tPhysics_object* pObject, br_scalar pDelta_time);
 
