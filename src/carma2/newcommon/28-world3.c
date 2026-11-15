@@ -49,6 +49,100 @@ br_model* gDuplicate_model;
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
 
+// FUNCTION: CARMA2_HW 0x00488b00
+void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
+    int count;
+
+    count = GetAnInt(pF);
+
+    for (; count > 0; count--) {
+        char s[256];
+        tPhysics_shape* shape;
+
+        GetAString(pF, s);
+        if (DRStricmp(s, "box") == 0) {
+            float a1, a2, a3;
+            float b1, b2, b3;
+
+            shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_collision_shape);
+            GetThreeFloats(pF, &a1, &a2, &a3);
+            shape->box.common.bb.min.v[0] = a1;
+            shape->box.common.bb.min.v[1] = a2;
+            shape->box.common.bb.min.v[2] = a3;
+            GetThreeFloats(pF, &b1, &b2, &b3);
+            shape->box.common.bb.max.v[0] = b1;
+            shape->box.common.bb.max.v[1] = b2;
+            shape->box.common.bb.max.v[2] = b3;
+        } else if (DRStricmp(s, "polyhedron") == 0) {
+            int count_points;
+            int j;
+            float p1, p2, p3;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 32) {
+                sprintf(s, "Ow! Physics shape is mad (having %d points is silly)", count_points);
+                PDFatalError(s);
+            }
+            shape = (tPhysics_shape*)AllocateShapePolyhedron(count_points, kMem_collision_shape);
+
+            shape->polyhedron.polyhedron.count_points = count_points;
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &p1, &p2, &p3);
+                shape->polyhedron.polyhedron.points[j].v[0] = p1;
+                shape->polyhedron.polyhedron.points[j].v[1] = p2;
+                shape->polyhedron.polyhedron.points[j].v[2] = p3;
+            }
+        } else if (DRStricmp(s, "sphere") == 0) {
+            float c1, c2, c3;
+
+            shape = (tPhysics_shape*)AllocateShapeSphere(kMem_collision_shape);
+
+            shape->sphere.sphere.radius = GetAScalar(pF);
+            GetThreeFloats(pF, &c1, &c2, &c3);
+            shape->sphere.sphere.center.v[0] = c1;
+            shape->sphere.sphere.center.v[1] = c2;
+            shape->sphere.sphere.center.v[2] = c3;
+        } else if (DRStricmp(s, "wire") == 0) {
+            br_vector3 points[64];
+            int count_points;
+            int count_lines;
+            int j;
+            float w1, w2, w3;
+            int index1, index2;
+            br_vector3* dst_points;
+            tPolyhedron_edge_indexes* dst_lines;
+
+            count_points = GetAnInt(pF);
+            if (count_points > 64) {
+                FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, " Too many points in wire frame shape ");
+            }
+            for (j = 0; j < count_points; j++) {
+                GetThreeFloats(pF, &w1, &w2, &w3);
+                points[j].v[0] = w1;
+                points[j].v[1] = w2;
+                points[j].v[2] = w3;
+            }
+            count_lines = GetAnInt(pF);
+            shape = (tPhysics_shape*)AllocateWireFrameCollisionShape(count_points, count_lines, kMem_collision_shape);
+
+            dst_points = shape->wireframe.wireframe.points;
+            for (j = 0; j < count_points; j++) {
+                dst_points[j] = points[j];
+            }
+            dst_lines = shape->wireframe.wireframe.lines;
+            for (j = 0; j < count_lines; j++) {
+                GetPairOfInts(pF, &index1, &index2);
+                dst_lines[j].index1 = index1;
+                dst_lines[j].index2 = index2;
+            }
+        } else {
+            FatalError(kFatalError_ShapeDataIsWrong);
+        }
+        FillInShape(shape);
+        *pShape = shape;
+        pShape = &shape->common.next;
+    }
+}
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
 void C2_HOOK_FASTCALL InitTreeSurgery(void) {
