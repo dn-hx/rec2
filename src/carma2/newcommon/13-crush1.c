@@ -902,7 +902,26 @@ intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* pActor, void* pData) {
 
 // InitModelCrushData
 
-// PointEdgeDistSq
+// FUNCTION: CARMA2_HW 0x0042c300
+float C2_HOOK_FASTCALL PointEdgeDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB) {
+    br_vector3 pAB;
+    br_vector3 pAP;
+    br_vector3 pProj;
+    float proj;
+
+    BrVector3Sub(&pAP, pP, pA);
+    BrVector3Sub(&pAB, pB, pA);
+    proj = BrVector3Dot(&pAP, &pAB) / BrVector3Dot(&pAB, &pAB);
+    if (!(proj >= gCrushZero)) {
+        proj = gCrushZero;
+    } else if (proj > 1.0f) {
+        proj = 1.0f;
+    }
+    BrVector3Scale(&pProj, &pAB, proj);
+    BrVector3Add(&pProj, &pProj, pA);
+    BrVector3Sub(&pProj, pP, &pProj);
+    return BrVector3LengthSquared(&pProj);
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -1036,9 +1055,37 @@ void C2_HOOK_FASTCALL DisposeVertexData(tModel_detail_vertex_data* pVertex_data)
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0042c8b0
+// FUNCTION: CARMA2_HW 0x0042c8b0
 float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3* pVertices) {
-    NOT_IMPLEMENTED();
+    float closest_distance;
+    int i;
+    int j;
+    int k;
+
+    switch (pCount) {
+    case 0:
+        return gCrushZero;
+    case 1:
+        return Vector3DistanceSquared(pP, &pVertices[0]);
+    case 2:
+        return PointEdgeDistSq(pP, &pVertices[0], &pVertices[1]);
+    case 3:
+        return PointTriangleDistSq(pP, &pVertices[0], &pVertices[1], &pVertices[2]);
+    case 4:
+        return PointRectDistSq(pP, &pVertices[0], &pVertices[1], &pVertices[2]);
+    }
+    closest_distance = BR_SCALAR_MAX;
+    for (i = 0; i < pCount; i++) {
+        for (j = i + 1; j < pCount; j++) {
+            for (k = j + 1; k < pCount; k++) {
+                float distance;
+
+                distance = PointTriangleDistSq(pP, &pVertices[i], &pVertices[j], &pVertices[k]);
+                closest_distance = MIN(distance, closest_distance);
+            }
+        }
+    }
+    return closest_distance;
 }
 
 #ifdef REC2_MATCHING
