@@ -410,7 +410,185 @@ void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spec* pVic
 
 // RemoveRepulsiveReferences
 
-// MungeRepulseRays
+// FUNCTION: CARMA2_HW 0x004db8e0
+void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime) {
+    tRepulse_link* link;
+    br_model* model;
+    int i;
+    int iVar9;
+    int iVar12;
+    int iVar15;
+    unsigned int uVar10;
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    float fVar7;
+    float fVar8;
+    float* pfVar11;
+    float* pfVar16;
+    unsigned char* puVar13;
+    float local_210;
+    br_vector3 dir;
+    br_vector3 orth;
+    tU32 local_1ec;
+    tU32 local_1f4;
+    unsigned char local_1d4[132];
+    float afStack_150[36];
+    br_matrix34 local_c0;
+    float afStack_90[36];
+
+    local_1f4 = pTime;
+    ARStartPipingSession(ePipe_chunk_repulse_ray);
+    i = 0;
+    link = gRepulse_links;
+    do {
+        if (link->time != 0) {
+            local_1ec = local_1f4 - link->time;
+            if (local_1ec < 700) {
+                pfVar16 = (float*)link->pos_victim;
+                pfVar11 = (float*)link->pos_origin;
+                fVar2 = pfVar16[0] - pfVar11[0];
+                fVar1 = pfVar16[1] - pfVar11[1];
+                model = link->actor->model;
+                fVar7 = pfVar16[2] - pfVar11[2];
+                if ((fVar2 != 0.0) || (fVar7 != 0.0)) {
+                    float local_204;
+                    float local_208;
+                    float local_20c;
+                    float local_200;
+                    float local_1fc;
+                    float local_1f8;
+
+                    local_204 = (float)sqrt(fVar7 * fVar7 + fVar1 * fVar1 + fVar2 * fVar2);
+                    local_1f8 = (float)(int)((model->nvertices >> 1) - 1);
+                    local_200 = fVar2 / local_1f8;
+                    local_1fc = fVar1 / local_1f8;
+                    local_1f8 = fVar7 / local_1f8;
+                    if (local_204 <= 2.3841858e-07) {
+                        local_20c = 1.0;
+                        local_208 = 0.0;
+                        local_204 = 0.0;
+                    } else {
+                        local_204 = 1.0 / local_204;
+                        local_20c = local_204 * fVar2;
+                        local_208 = local_204 * fVar1;
+                        local_204 = local_204 * fVar7;
+                    }
+                    dir.v[0] = local_20c;
+                    dir.v[1] = local_208;
+                    dir.v[2] = local_204;
+                    orth.v[0] = fVar1 * 0.0f - fVar7 * 1.0f;
+                    orth.v[1] = fVar7 * 0.0f - fVar2 * 0.0f;
+                    fVar7 = pfVar11[1];
+                    fVar8 = pfVar11[0];
+                    fVar1 = fVar2 * 1.0f - fVar1 * 0.0f;
+                    local_210 = pfVar11[2];
+                    orth.v[2] = (float)sqrt(fVar1 * fVar1 + orth.v[1] * orth.v[1] + orth.v[0] * orth.v[0]);
+                    if (orth.v[2] <= 2.3841858e-07) {
+                        orth.v[0] = 1.0;
+                        orth.v[1] = 0.0;
+                        orth.v[2] = 0.0;
+                    } else {
+                        orth.v[2] = 1.0 / orth.v[2];
+                        orth.v[0] = orth.v[2] * orth.v[0];
+                        orth.v[1] = orth.v[2] * orth.v[1];
+                        orth.v[2] = orth.v[2] * fVar1;
+                    }
+                    iVar15 = 0x10000;
+                    puVar13 = local_1d4;
+                    do {
+                        BrMatrix34Rotate(&local_c0, iVar15 / 5, &dir);
+                        BrMatrix34ApplyV((br_vector3*)puVar13, &orth, &local_c0);
+                        iVar15 = iVar15 + 0x10000;
+                        puVar13 = puVar13 + 0xc;
+                    } while (iVar15 < 0x50000);
+                    iVar15 = 0;
+                    do {
+                        fVar1 = link->field_0x1c;
+                        fVar2 = link->field_0x1c;
+                        fVar3 = link->field_0x1c;
+                        fVar4 = *(float*)((char*)&orth + iVar15);
+                        fVar5 = *(float*)((char*)&orth + iVar15 + 4);
+                        *(float*)((char*)afStack_150 + iVar15) = link->field_0x18 * *(float*)((char*)&orth + iVar15);
+                        fVar6 = *(float*)(local_1d4 + iVar15 + -4);
+                        iVar9 = iVar15 + 0xc;
+                        *(float*)((char*)afStack_150 + iVar15 + 4) = link->field_0x18 * *(float*)((char*)&orth + iVar15 + 4);
+                        *(float*)((char*)afStack_150 + iVar15 + 8) = link->field_0x18 * *(float*)(local_1d4 + iVar15 + -4);
+                        *(float*)((char*)afStack_90 + iVar15) = fVar4 * fVar1;
+                        *(float*)((char*)afStack_90 + iVar15 + 4) = fVar5 * fVar2;
+                        *(float*)((char*)afStack_90 + iVar15 + 8) = fVar6 * fVar3;
+                        iVar15 = iVar9;
+                    } while (iVar9 < 0x3c);
+                    pfVar11 = *(float**)((char*)model + 8);
+                    iVar15 = 0;
+                    uVar10 = (unsigned int)(model->nvertices >> 1);
+                    pfVar16 = pfVar11 + uVar10 * 10;
+                    if (uVar10 != 0) {
+                        do {
+                            fVar8 = fVar8 + local_200;
+                            fVar7 = fVar7 + local_1fc;
+                            local_210 = local_210 + local_1f8;
+                            iVar12 = iVar15 % 5;
+                            iVar15 = iVar15 + 1;
+                            fVar1 = afStack_150[iVar12 * 3 + 1];
+                            fVar2 = afStack_150[iVar12 * 3 + 2];
+                            fVar3 = afStack_90[iVar12 * 3];
+                            fVar4 = afStack_90[iVar12 * 3 + 1];
+                            fVar5 = afStack_90[iVar12 * 3 + 2];
+                            *pfVar11 = afStack_150[iVar12 * 3] + fVar8;
+                            pfVar11[1] = fVar1 + fVar7;
+                            pfVar11[2] = fVar2 + local_210;
+                            *pfVar16 = fVar3 + fVar8;
+                            pfVar16[1] = fVar4 + fVar7;
+                            pfVar16[2] = fVar5 + local_210;
+                            pfVar11 = pfVar11 + 10;
+                            pfVar16 = pfVar16 + 10;
+                        } while (iVar15 < (int)(unsigned int)(model->nvertices >> 1));
+                    }
+                    {
+                        float percentage;
+                        int blend;
+
+                        percentage = (float)local_1ec * 0.0014285714;
+                        if (percentage <= 0.9) {
+                            if (percentage <= 0.8) {
+                                blend = 0x4b;
+                                if (percentage <= 0.7) {
+                                    blend = 100;
+                                }
+                            } else {
+                                blend = 0x32;
+                            }
+                        } else {
+                            blend = 0x19;
+                        }
+                        if (blend != link->field_0x10) {
+                            BlendifyMaterial(link->material, blend);
+                            BrMaterialUpdate(link->material, BR_MATU_ALL);
+                            link->field_0x10 = blend;
+                        }
+                    }
+                    BrModelUpdate(model, BR_MODU_ALL);
+                    if (link->actor->parent != gNon_track_actor) {
+                        BrActorAdd(gNon_track_actor, link->actor);
+                    }
+                    AddRepulseRayToPipingSession(i, link->pos_origin, link->pos_victim, link->time);
+                }
+            } else {
+                link->time = 0;
+                if (link->actor->parent == gNon_track_actor) {
+                    BrActorRemove(link->actor);
+                }
+            }
+        }
+        i = i + 1;
+        link = link + 1;
+    } while (link < gRepulse_links + 6);
+    AREndPipingSession();
+}
 
 // FUNCTION: CARMA2_HW 0x004da960
 // FUNCTION: CARMA2_SW 0x004d6e30
