@@ -416,11 +416,49 @@ int C2_HOOK_FASTCALL PHILSetPassiveObjectsMatrix(tPhysics_object* pObject, const
     }
 }
 
-// STUB: CARMA2_HW 0x004b6210
+#ifdef REC2_MATCHING
+#pragma inline_depth(1)
+#endif
+/* the body after the gPHIL_disabled test; inlined (its edi save appears after that test in the original); name invented */
+static int C2_HOOK_FASTCALL PHILAddActiveObjectInner(tPhysics_object* pInfo, const br_matrix34* pMatrix, const br_vector3* pArg3, const br_vector3* pArg4) {
+    int result;
+
+    result = PHILAddObject(pInfo);
+    if (result != 0) {
+        return result;
+    }
+    if (pMatrix != NULL && !gPHIL_disabled) {
+        if (pInfo->field_0x239 == 2) {
+            tPHIL_queued_object_info* object_info = pInfo->field_0x240;
+            object_info->field_0x30 = *pMatrix;
+            object_info->flags |= 0x4;
+        } else {
+            tPHIL_queued_object_info* object_info = pInfo->field_0x240;
+            if (object_info != NULL) {
+                if (object_info->field_0x8 != 1) {
+                    return 4;
+                }
+                object_info->collision_info->actor->t.t.mat = *pMatrix;
+            } else {
+                return 3;
+            }
+        }
+    }
+    return PHILMakeObjectActive(pInfo, pArg3, pArg4, 0);
+}
+
+// FUNCTION: CARMA2_HW 0x004b6210
 // STUB: CARMA2_SW 0x004b2930
 int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, const br_matrix34* pArg2, const br_vector3* pArg3, const br_vector3* pArg4) {
-    NOT_IMPLEMENTED();
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    return PHILAddActiveObjectInner(pInfo, pArg2, pArg3, pArg4);
 }
+#ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
 
 // PHILAddObjectImmediately
 
