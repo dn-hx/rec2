@@ -1293,7 +1293,7 @@ int C2_HOOK_FASTCALL DRModelUpdateDeluxTurbo(br_actor* pActor, br_model* pModel,
 // FUNCTION: CARMA2_SW 0x00511500
 br_scalar C2_HOOK_FASTCALL DistanceFromFace(const br_vector3* pPoint, const tFace_ref* pFace) {
 
-    return BrVector3Dot(pPoint, &pFace->normal) - pFace->d;
+    return ((pPoint->v[0]) * (pFace->normal.v[0])) + ((pPoint->v[1]) * (pFace->normal.v[1])) + ((pPoint->v[2]) * (pFace->normal.v[2])) - pFace->d;
 }
 
 // FUNCTION: CARMA2_HW 0x005160c0
