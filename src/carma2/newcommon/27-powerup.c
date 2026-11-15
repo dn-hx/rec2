@@ -574,7 +574,96 @@ int C2_HOOK_FASTCALL GotTimeOrPower(tPowerup* pPowerup, tCar_spec* pCar) {
     return pPowerup - gPowerup_array;
 }
 
-// GainAPOPotential
+// FUNCTION: CARMA2_HW 0x004dc4d0
+int C2_HOOK_FASTCALL GainAPOPotential(tPowerup* pPowerup, tCar_spec* pCar) {
+    int powerup_index;
+    volatile int old0, old1, old2;
+    int idx;
+    int amount;
+    int orig_idx;
+    int dir;
+    int old;
+    int nw;
+
+    old0 = pCar->power_up_slots[0];
+    old1 = pCar->power_up_slots[1];
+    old2 = pCar->power_up_slots[2];
+    powerup_index = pPowerup - gPowerup_array;
+    if (pPowerup->integer_params[0] != 0 && pPowerup->integer_params[1] != 0 && pPowerup->integer_params[2] != 0) {
+        nw = pCar->power_up_slots[0] + pPowerup->integer_params[0];
+        pCar->power_up_slots[0] = nw;
+        if (nw > gInitial_powerup_slots[0]) {
+            pCar->power_up_slots[0] = gInitial_powerup_slots[0];
+        }
+        nw = pCar->power_up_slots[1] + pPowerup->integer_params[1];
+        pCar->power_up_slots[1] = nw;
+        if (nw > gInitial_powerup_slots[1]) {
+            pCar->power_up_slots[1] = gInitial_powerup_slots[1];
+        }
+        nw = pCar->power_up_slots[2] + pPowerup->integer_params[2];
+        pCar->power_up_slots[2] = nw;
+        if (nw > gInitial_powerup_slots[2]) {
+            pCar->power_up_slots[2] = gInitial_powerup_slots[2];
+        }
+    } else {
+        if (pPowerup->integer_params[0] != 0) {
+            idx = 0;
+            amount = pPowerup->integer_params[0];
+        } else if (pPowerup->integer_params[1] != 0) {
+            idx = 1;
+            amount = pPowerup->integer_params[1];
+        } else {
+            idx = 2;
+            amount = pPowerup->integer_params[2];
+        }
+        old = pCar->power_up_slots[idx];
+        nw = old + amount;
+        pCar->power_up_slots[idx] = nw;
+        if (nw > gInitial_powerup_slots[idx]) {
+            pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+        }
+        if (pCar->power_up_slots[idx] == old) {
+            orig_idx = idx;
+            dir = PercentageChance(50) ? 1 : -1;
+            idx += dir;
+            if (idx < 0) {
+                idx = 2;
+            } else if (idx > 2) {
+                idx = 0;
+            }
+            old = pCar->power_up_slots[idx];
+            nw = old + amount;
+            pCar->power_up_slots[idx] = nw;
+            if (nw > gInitial_powerup_slots[idx]) {
+                pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+            }
+            if (pCar->power_up_slots[idx] == old) {
+                idx += dir;
+                if (idx < 0) {
+                    idx = 2;
+                } else if (idx > 2) {
+                    idx = 0;
+                }
+                old = pCar->power_up_slots[idx];
+                nw = old + amount;
+                pCar->power_up_slots[idx] = nw;
+                if (nw > gInitial_powerup_slots[idx]) {
+                    pCar->power_up_slots[idx] = gInitial_powerup_slots[idx];
+                }
+            }
+            powerup_index += idx - orig_idx;
+        }
+    }
+    if (old0 == pCar->power_up_slots[0] && old1 == pCar->power_up_slots[1] && old2 == pCar->power_up_slots[2]) {
+        if (gNet_mode != eNet_mode_none) {
+            EarnCredits(gPotential_substitution_value_APO.initial_network[gCurrent_net_game->type]);
+        } else {
+            EarnCredits(gPotential_substitution_value_APO.initial[gProgram_state.skill_level]);
+        }
+        return -1;
+    }
+    return powerup_index;
+}
 
 // FUNCTION: CARMA2_HW 0x004dc720
 // FUNCTION: CARMA2_SW 0x004d8c20
