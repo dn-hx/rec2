@@ -2059,9 +2059,74 @@ void C2_HOOK_CDECL pm_mem_set_colour(br_uint_8* dest, br_uint_32 dest_qual, br_u
 #endif
 }
 
+#if defined(__I86__) || defined(_M_IX86)
+C2_NAKED
+#endif
 // FUNCTION: CARMA2_HW 0x0053e626
 br_uint_32 C2_HOOK_CDECL pm_mem_read_colour(void* src, br_uint_32 src_qual, br_uint_32 bpp) {
-
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
+    __asm {
+        push ebp
+        mov ebp, esp
+        push ebx
+        push esi
+        push edi
+        push es
+        mov ebx, dword ptr [ebp+0x10]
+        mov edi, dword ptr [ebp+0x8]
+        mov es, word ptr [ebp+0xc]
+        xor eax, eax
+        cmp ebx, 0x1
+        je L_53e652
+        cmp ebx, 0x2
+        je L_53e65b
+        cmp ebx, 0x3
+        je L_53e66e
+        cmp ebx, 0x4
+        je L_53e665
+        pop es
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+L_53e652:
+        mov al, byte ptr es:[edi]
+        pop es
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+L_53e65b:
+        mov ax, word ptr es:[edi]
+        pop es
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+L_53e665:
+        mov eax, dword ptr es:[edi]
+        pop es
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+L_53e66e:
+        mov ah, byte ptr es:[edi+0x2]
+        shl eax, 0x8
+        mov ah, byte ptr es:[edi+0x1]
+        mov al, byte ptr es:[edi]
+        pop es
+        pop edi
+        pop esi
+        pop ebx
+        leave
+        ret
+    }
+#else
     switch (bpp) {
     case 1:
         return (br_uint_32)*(br_uint_8*)src;
@@ -2073,9 +2138,9 @@ br_uint_32 C2_HOOK_CDECL pm_mem_read_colour(void* src, br_uint_32 src_qual, br_u
     case 4:
         return (br_uint_32)*(br_uint_32*)src;
     default:
-        abort();
         return 0;
     }
+#endif
 }
 
 // FUNCTION: CARMA2_HW 0x0053e686
