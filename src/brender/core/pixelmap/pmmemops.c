@@ -2644,51 +2644,615 @@ void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_
 #endif
 }
 
+// PARTIAL 57.89%: pm_mem_fill_colour_rect 0x0053e9f3 - structure mismatch; the original is a hand-written
+// assembly routine with segment registers, FPU control word, and jump-table-aligned stores for each BPP.
+// Cases laid out in memory order bpp1, bpp2, bpp3, bpp4 to match original; dispatch checks 4,3,2,1.
+// Compare chains replace jump tables; residual: jump table vs compare chain diff, bpp2/bpp3/bpp4 remainder handling.
+// See state/findings/pm_mem_fill_colour_rect.md
 // FUNCTION: CARMA2_HW 0x0053e9f3
 void C2_HOOK_CDECL pm_mem_fill_colour_rect(br_uint_8* dest, br_uint_32 qual, br_uint_32 width, br_uint_32 height, br_uint_32 stride, br_uint_32 bpp, br_uint_32 colour) {
-    br_uint_32 x;
-    br_uint_32 y;
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
+    __asm {
+        push ebp
+        mov ebp, esp
+        add esp, 0xffffffe4
+        push ebx
+        push ecx
+        push edx
+        push esi
+        push edi
+        push ds
+        push es
+        fnstcw word ptr [ebp-0xa]
+        fldcw word ptr g_fpuControlWord
+        mov ds, word ptr [ebp+0xc]
+        mov es, word ptr [ebp+0xc]
+        mov ebx, dword ptr [ebp+0x1c]
+        cmp ebx, 0x4
+        je L_bpp4
+        cmp ebx, 0x3
+        je L_bpp3
+        cmp ebx, 0x2
+        je L_bpp2
+        cmp ebx, 0x1
+        je L_bpp1
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
 
-    switch (bpp) {
-    case 1:
-        for (y = 0; y < height; y++, dest += stride) {
-            memset(dest, colour, width);
-        }
-        break;
-    case 2:
-        for (y = 0; y < height; y++, dest += stride) {
-            for (x = 0; x < width; x++) {
-                ((br_uint_16*)dest)[x] = colour;
-            }
-        }
-        break;
-    case 3: {
-        br_uint_8 b0, b1, b2;
+    ; ===== BPP = 1 (8-bit) =====  (memory order: first case)
+    L_bpp1:
+        mov eax, dword ptr [ebp+0x20]    ; colour
+        mov edi, dword ptr [ebp+0x8]     ; dest
+        mov ebx, eax
+        mov ah, al
+        shl eax, 0x10
+        mov ecx, 0x8
+        mov al, bl
+        sub ecx, edi
+        mov ah, bl
+        and ecx, 0x7
+        mov dword ptr [ebp-0x10], ecx    ; alignment
+        mov ebx, dword ptr [ebp+0x10]    ; width
+        sub ebx, ecx
+        jle L_bpp1_tail
+        mov ecx, ebx
+        and ebx, 0x7
+        mov dword ptr [ebp-0x1c], ebx    ; tail bytes
+        and ecx, 0xfffffff8              ; aligned width
+        mov ebx, ecx
+        and ecx, 0x38                    ; remainder after 64-byte blocks
+        shr ebx, 0x6                     ; block count (64-byte blocks)
+        mov dword ptr [ebp-0x14], ecx    ; remainder
+        mov dword ptr [ebp-0x18], ebx    ; block count
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        push edi
+        mov ecx, dword ptr [ebp-0x10]    ; alignment
+        rep stosb                        ; head: store alignment bytes
+        mov ecx, dword ptr [ebp-0x14]    ; remainder
+        mov edx, dword ptr [ebp-0x18]    ; block count
+        add edi, ecx                     ; skip remainder
+        shr ecx, 1                       ; remainder / 2 (word count for jump table)
+        ; Jump table for remainder (0, 8, 16, 24, 32, 40, 48, 56 bytes -> 0-7 words)
+        cmp ecx, 0x1c
+        je L_bpp1_case_1c
+        cmp ecx, 0x18
+        je L_bpp1_case_18
+        cmp ecx, 0x14
+        je L_bpp1_case_14
+        cmp ecx, 0x10
+        je L_bpp1_case_10
+        cmp ecx, 0xc
+        je L_bpp1_case_c
+        cmp ecx, 0x8
+        je L_bpp1_case_8
+        cmp ecx, 0x4
+        je L_bpp1_case_4
+        jmp L_bpp1_case_0
+    L_bpp1_case_1c:
+        mov dword ptr es:[edi-0x3c], eax
+    L_bpp1_case_18:
+        mov dword ptr es:[edi-0x38], eax
+    L_bpp1_case_14:
+        mov dword ptr es:[edi-0x34], eax
+    L_bpp1_case_10:
+        mov dword ptr es:[edi-0x30], eax
+    L_bpp1_case_c:
+        mov dword ptr es:[edi-0x2c], eax
+    L_bpp1_case_8:
+        mov dword ptr es:[edi-0x28], eax
+    L_bpp1_case_4:
+        mov dword ptr es:[edi-0x24], eax
+    L_bpp1_case_0:
+        mov esi, edi
+        test edx, edx
+        je L_bpp1_main_done
+    L_bpp1_main_loop:
+        fld st(0)
+        fistp qword ptr es:[esi-0x40]
+        fld st(0)
+        fistp qword ptr es:[esi-0x38]
+        fld st(0)
+        fistp qword ptr es:[esi-0x30]
+        fld st(0)
+        fistp qword ptr es:[esi-0x28]
+        fld st(0)
+        fistp qword ptr es:[esi-0x20]
+        fld st(0)
+        fistp qword ptr es:[esi-0x18]
+        fld st(0)
+        fistp qword ptr es:[esi-0x10]
+        fld st(0)
+        fistp qword ptr es:[esi-0x8]
+        lea esi, [esi+0x40]
+        dec edx
+        jne L_bpp1_main_loop
+    L_bpp1_main_done:
+        mov ecx, dword ptr [ebp-0x1c]    ; tail bytes
+        rep stosb
+        pop edi
+        add edi, dword ptr [ebp+0x14]    ; stride
+        dec dword ptr [ebp+0x18]         ; height--
+        jne L_bpp1
+        fstp st(0)
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
 
-        b0 = (br_uint_8)((colour >>  0) & 0xff);
-        b1 = (br_uint_8)((colour >>  8) & 0xff);
-        b2 = (br_uint_8)((colour >> 16) & 0xff);
+    L_bpp1_tail:
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        mov ecx, dword ptr [ebp+0x10]    ; original width
+        push edi
+    L_bpp1_tail_loop:
+        rep stosb
+        pop edi
+        add edi, ebx
+        dec esi
+        jne L_bpp1_tail_loop
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
 
-        for (y = 0; y < height; y++, dest += stride) {
-            for (x = 0; x < width; x++) {
-                ((br_uint_8*)dest)[3 * x + 0] = b0;
-                ((br_uint_8*)dest)[3 * x + 1] = b1;
-                ((br_uint_8*)dest)[3 * x + 2] = b2;
-            }
-        }
-        break;
+    ; ===== BPP = 2 (16-bit) =====
+    L_bpp2:
+        mov eax, dword ptr [ebp+0x20]    ; colour
+        mov edi, dword ptr [ebp+0x8]     ; dest
+        mov ebx, eax
+        mov ecx, 0x8
+        shl eax, 0x10
+        sub ecx, edi
+        mov al, bl
+        and ecx, 0x6
+        shr ecx, 1
+        mov ah, bh
+        mov ebx, dword ptr [ebp+0x10]    ; width
+        je L_bpp2_aligned
+        sub ebx, ecx
+        jle L_bpp2_tail
+        rep stosw
+    L_bpp2_aligned:
+        mov ecx, ebx
+        and ebx, 0x3
+        and ecx, 0xfffffffc
+        je L_bpp2_main_done
+        mov edx, ecx
+        and ecx, 0x1c
+        shr edx, 0x5
+        mov dword ptr [ebp-0x14], ecx
+        mov dword ptr [ebp-0x18], edx
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        push edi
+        mov ecx, dword ptr [ebp-0x10]
+        ; jump table for remainder (ecx & 0x1c): 4,8,12,16,20,24,28
+        cmp ecx, 0x1c
+        je L_bpp2_case_1c
+        cmp ecx, 0x18
+        je L_bpp2_case_18
+        cmp ecx, 0x14
+        je L_bpp2_case_14
+        cmp ecx, 0x10
+        je L_bpp2_case_10
+        cmp ecx, 0xc
+        je L_bpp2_case_c
+        cmp ecx, 0x8
+        je L_bpp2_case_8
+        cmp ecx, 0x4
+        je L_bpp2_case_4
+        jmp L_bpp2_case_0
+    L_bpp2_case_1c:
+        mov word ptr es:[edi+0x38], ax
+    L_bpp2_case_18:
+        mov word ptr es:[edi+0x30], ax
+    L_bpp2_case_14:
+        mov word ptr es:[edi+0x28], ax
+    L_bpp2_case_10:
+        mov word ptr es:[edi+0x20], ax
+    L_bpp2_case_c:
+        mov word ptr es:[edi+0x18], ax
+    L_bpp2_case_8:
+        mov word ptr es:[edi+0x10], ax
+    L_bpp2_case_4:
+        mov word ptr es:[edi+0x8], ax
+    L_bpp2_case_0:
+        lea edi, [edi+ecx*2]
+        mov edx, dword ptr [ebp-0x18]
+        test edx, edx
+        je L_bpp2_main_done
+    L_bpp2_main_loop:
+        fld st(0)
+        fistp qword ptr es:[edi-0x40]
+        fld st(0)
+        fistp qword ptr es:[edi-0x38]
+        fld st(0)
+        fistp qword ptr es:[edi-0x30]
+        fld st(0)
+        fistp qword ptr es:[edi-0x28]
+        fld st(0)
+        fistp qword ptr es:[edi-0x20]
+        fld st(0)
+        fistp qword ptr es:[edi-0x18]
+        fld st(0)
+        fistp qword ptr es:[edi-0x10]
+        fld st(0)
+        fistp qword ptr es:[edi-0x8]
+        lea edi, [edi+0x40]
+        dec edx
+        jne L_bpp2_main_loop
+    L_bpp2_main_done:
+        mov ecx, dword ptr [ebp-0x1c]
+        rep stosw
+        pop edi
+        add edi, esi
+        dec ebx
+        jne L_bpp2_aligned
+        fstp st(0)
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+
+    L_bpp2_tail:
+        add ecx, ebx
+        mov ebx, dword ptr [ebp+0x14]
+        mov esi, dword ptr [ebp+0x18]
+        mov edx, ecx
+        push edi
+    L_bpp2_tail_loop:
+        rep stosw
+        pop edi
+        add edi, esi
+        mov ecx, edx
+        dec ebx
+        jne L_bpp2_tail_loop
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+
+    ; ===== BPP = 3 (24-bit) =====
+    L_bpp3:
+        mov eax, dword ptr [ebp+0x20]    ; colour
+        mov edi, dword ptr [ebp+0x8]     ; dest
+        mov ebx, eax
+        mov ecx, 0x8
+        ror ebx, 0x10
+        sub ecx, edi
+        cmp al, ah
+        jne L_bpp3_mixed
+        cmp bl, al
+        jne L_bpp3_mixed
+        rol eax, 0x8
+        mov ebx, dword ptr [ebp+0x10]    ; width
+        mov al, ah
+        and ecx, 0x7
+        lea ebx, [ebx+ebx*2]             ; width * 3
+        mov dword ptr [ebp-0x10], ecx
+        jmp L_bpp3_uniform_align
+
+    L_bpp3_mixed:
+        rol eax, 0x8
+        mov bh, ah
+        mov edx, eax
+        mov al, bl
+        rol edx, 0x8
+        mov esi, dword ptr [ebp+0x10]    ; width
+        ror ebx, 0x10
+        and ecx, 0x7
+        mov dh, dl
+        mov dl, bh
+        mov ecx, dword ptr [ecx*4+g_fill3byteSteps]
+        mov dword ptr [ebp-0x10], ecx
+        sub esi, ecx
+        jle L_bpp3_mixed_tail
+        mov ecx, esi
+        and esi, 0xf
+        shr ecx, 0x4
+        mov dword ptr [ebp-0x1c], esi
+        mov dword ptr [ebp-0x18], ecx
+        mov dword ptr [ebp-0x8], edx
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], ebx
+        fild qword ptr [ebp-0x8]
+        mov dword ptr [ebp-0x8], ebx
+        mov dword ptr [ebp-0x4], edx
+        fild qword ptr [ebp-0x8]
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        push edi
+        mov ecx, dword ptr [ebp-0x10]
+        dec ecx
+        js L_bpp3_mixed_skip_head
+    L_bpp3_mixed_head:
+        mov byte ptr es:[edi], ah
+        mov byte ptr es:[edi+0x1], dl
+        mov byte ptr es:[edi+0x2], al
+        add edi, 0x3
+        dec ecx
+        jns L_bpp3_mixed_head
+    L_bpp3_mixed_skip_head:
+        mov ecx, dword ptr [ebp-0x18]
+        test ecx, ecx
+        je L_bpp3_mixed_skip_main
+    L_bpp3_mixed_main:
+        fld st(0)
+        fistp qword ptr es:[edi]
+        fld st(1)
+        fistp qword ptr es:[edi+0x8]
+        fld st(2)
+        fistp qword ptr es:[edi+0x10]
+        fld st(0)
+        fistp qword ptr es:[edi+0x18]
+        fld st(1)
+        fistp qword ptr es:[edi+0x20]
+        fld st(2)
+        fistp qword ptr es:[edi+0x28]
+        lea edi, [edi+0x30]
+        dec ecx
+        jne L_bpp3_mixed_main
+    L_bpp3_mixed_skip_main:
+        mov ecx, dword ptr [ebp-0x1c]
+        dec ecx
+        js L_bpp3_mixed_skip_tail
+    L_bpp3_mixed_tail_loop:
+        mov byte ptr es:[edi], ah
+        mov byte ptr es:[edi+0x1], dl
+        mov byte ptr es:[edi+0x2], al
+        add edi, 0x3
+        dec ecx
+        jns L_bpp3_mixed_tail_loop
+    L_bpp3_mixed_skip_tail:
+        pop edi
+        add edi, esi
+        dec ebx
+        jne L_bpp3_mixed_head
+        fstp st(0)
+        fstp st(0)
+        fstp st(0)
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+
+    L_bpp3_mixed_tail:
+        add ecx, esi
+        je L_bpp3_mixed_cleanup
+        mov ebx, dword ptr [ebp+0x14]
+        mov esi, dword ptr [ebp+0x18]
+        push ecx
+        push edi
+    L_bpp3_mixed_tail_only:
+        mov byte ptr es:[edi], ah
+        mov byte ptr es:[edi+0x1], dl
+        mov byte ptr es:[edi+0x2], al
+        add edi, 0x3
+        dec ecx
+        jne L_bpp3_mixed_tail_only
+        pop edi
+        pop ecx
+        add edi, esi
+        dec ebx
+        jne L_bpp3_mixed_tail_only
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_bpp3_mixed_cleanup:
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+
+    L_bpp3_uniform_align:
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        mov ecx, dword ptr [ebp-0x10]    ; alignment
+        sub ebx, ecx
+        mov edx, ecx
+    L_bpp3_uniform_loop:
+        ; head
+        cmp edx, 0
+        je L_bpp3_uniform_main
+    L_bpp3_uniform_head:
+        mov byte ptr es:[edi], al
+        inc edi
+        dec ecx
+        je L_bpp3_uniform_row_end
+        dec edx
+        jne L_bpp3_uniform_head
+    L_bpp3_uniform_main:
+        mov edx, ecx
+        shr ecx, 2
+        rep stosd
+        mov ecx, edx
+        and ecx, 3
+        rep stosb
+    L_bpp3_uniform_row_end:
+        add edi, ebx
+        dec dword ptr [ebp+0x18]
+        jne L_bpp3_uniform_loop
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+
+    ; ===== BPP = 4 (32-bit) =====  (memory order: last case)
+    L_bpp4:
+        mov eax, dword ptr [ebp+0x20]    ; colour
+        mov edi, dword ptr [ebp+0x8]     ; dest
+        mov ebx, edi
+        mov ecx, dword ptr [ebp+0x10]    ; width
+        test ebx, 0x4
+        je L_bpp4_aligned
+        dec ecx
+    L_bpp4_aligned:
+        mov dword ptr [ebp-0x1c], ecx    ; adjusted width
+        and ecx, 0xfffffffe
+        mov ebx, ecx
+        and ecx, 0xe                     ; ecx = width & 0xe (remainder for switch)
+        shr ebx, 0x4                     ; ebx = width >> 4 (count of 16-byte chunks)
+        mov dword ptr [ebp-0x14], ecx
+        mov dword ptr [ebp-0x18], ebx
+        mov ebx, dword ptr [ebp+0x14]    ; stride
+        mov esi, dword ptr [ebp+0x18]    ; height
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]         ; load colour as 64-bit float
+        push edi
+        test edi, 0x4
+        je L_bpp4_no_head
+        mov dword ptr es:[edi], eax
+        add edi, 0x4
+    L_bpp4_no_head:
+        mov ecx, dword ptr [ebp-0x14]    ; remainder (width & 0xe)
+        mov edx, dword ptr [ebp-0x18]    ; count of 16-byte chunks
+        lea edi, [edi+ecx*4]             ; advance past remainder
+        ; Jump table for remainder (width & 0xe): cases 0,2,4,6,8,10,12,14 bytes -> 0-7 dwords
+        cmp ecx, 0xe
+        je L_bpp4_case_e
+        cmp ecx, 0xc
+        je L_bpp4_case_c
+        cmp ecx, 0xa
+        je L_bpp4_case_a
+        cmp ecx, 0x8
+        je L_bpp4_case_8
+        cmp ecx, 0x6
+        je L_bpp4_case_6
+        cmp ecx, 0x4
+        je L_bpp4_case_4
+        cmp ecx, 0x2
+        je L_bpp4_case_2
+        jmp L_bpp4_case_0
+    L_bpp4_case_e:
+        mov dword ptr es:[edi-0xe], eax
+    L_bpp4_case_c:
+        mov dword ptr es:[edi-0xc], eax
+    L_bpp4_case_a:
+        mov dword ptr es:[edi-0xa], eax
+    L_bpp4_case_8:
+        mov dword ptr es:[edi-0x8], eax
+    L_bpp4_case_6:
+        mov dword ptr es:[edi-0x6], eax
+    L_bpp4_case_4:
+        mov dword ptr es:[edi-0x4], eax
+    L_bpp4_case_2:
+        mov dword ptr es:[edi-0x2], eax
+    L_bpp4_case_0:
+        mov esi, edi
+        test edx, edx
+        je L_bpp4_main_done
+    L_bpp4_main_loop:
+        fld st(0)
+        fistp qword ptr es:[esi-0x40]
+        fld st(0)
+        fistp qword ptr es:[esi-0x38]
+        fld st(0)
+        fistp qword ptr es:[esi-0x30]
+        fld st(0)
+        fistp qword ptr es:[esi-0x28]
+        fld st(0)
+        fistp qword ptr es:[esi-0x20]
+        fld st(0)
+        fistp qword ptr es:[esi-0x18]
+        fld st(0)
+        fistp qword ptr es:[esi-0x10]
+        fld st(0)
+        fistp qword ptr es:[esi-0x8]
+        lea esi, [esi+0x40]
+        dec edx
+        jne L_bpp4_main_loop
+    L_bpp4_main_done:
+        mov ecx, dword ptr [ebp-0x1c]
+        test ecx, 0x1
+        je L_bpp4_no_tail
+        mov dword ptr es:[esi], eax
+    L_bpp4_no_tail:
+        pop edi
+        add edi, dword ptr [ebp+0x14]    ; stride
+        dec dword ptr [ebp+0x18]         ; height--
+        jne L_bpp4_aligned
+        fstp st(0)
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop esi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
     }
-    case 4:
-        for (y = 0; y < height; y++, dest += stride) {
-            for (x = 0; x < width; x++) {
-                ((br_uint_32*)dest)[x] = colour;
-            }
-        }
-        break;
-    default:
-        abort();
-        return;
-    }
+#else
+    abort();
+#endif
 }
 
 
