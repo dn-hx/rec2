@@ -1113,7 +1113,131 @@ void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar pDt) {
 
 // CrashNoise
 
-// CrushAndDamageCar
+// FUNCTION: CARMA2_HW 0x0041deb0
+void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor) {
+    extern void C2_HOOK_FASTCALL QueueCarCrush(tCar_spec* pCar, int pChain_count, br_vector3* pChain, br_vector3* pForce, tU32 pTick);
+    extern void C2_HOOK_FASTCALL DoPratcamHit(br_vector3* pVelocity);
+    br_vector3 vForce;
+    br_vector3 vOther;
+    br_vector3 vWorld;
+    br_matrix34 mat;
+    float power;
+    int driver2;
+
+    if (pCar2 != NULL) {
+        if (pCar2->field_0xc8 == NULL || pCar2->driver > 5) {
+            pCar2->field_0xc8 = (undefined*)pCar1;
+        }
+        if (pCar1->field_0xc8 != NULL) {
+            if (pCar1 == NULL) {
+                return;
+            }
+            if (pCar1->driver > 5) {
+                pCar1->field_0xc8 = (undefined*)pCar2;
+            }
+        } else {
+            pCar1->field_0xc8 = (undefined*)pCar2;
+        }
+    }
+    if (pCar1 == NULL) {
+        return;
+    }
+    if (pCar1->driver <= 5) {
+        return;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        power = gCar_softness.initial_network[gCurrent_net_game->type];
+    } else {
+        power = gCar_softness.initial[gProgram_state.skill_level];
+    }
+    if (pCar1->driver == eDriver_oppo) {
+        vOther.v[0] = pCar1->pos.v[0] - gCamera_to_world.m[3][0];
+        vOther.v[1] = pCar1->pos.v[1] - gCamera_to_world.m[3][1];
+        vOther.v[2] = pCar1->pos.v[2] - gCamera_to_world.m[3][2];
+        if (200.f < vOther.v[0] * vOther.v[0] + vOther.v[1] * vOther.v[1] + vOther.v[2] * vOther.v[2]) {
+            return;
+        }
+    }
+    if (pCar2 != NULL) {
+        if (pCar2->driver > 5) {
+            TwoCarsHitEachOther(pCar1, pCar2);
+        }
+        if (pCar1->driver >= eDriver_net_human) {
+            power = gArmour_starting_value[pCar1->power_up_levels[0]] * 1.2 * power;
+        }
+        driver2 = pCar2->driver;
+        if (driver2 >= eDriver_net_human) {
+            power = power * (gNet_mode != eNet_mode_none
+                    ? gCar_car_damage_multiplier.initial_network[gCurrent_net_game->type]
+                    : gCar_car_damage_multiplier.initial[gProgram_state.skill_level])
+                * gOffensive_starting_value[pCar2->power_up_levels[2]]
+                * pCar2->damage_multiplier * 0.9;
+        }
+        if (pCar1->driver == eDriver_oppo && driver2 == eDriver_oppo) {
+            power = power * 0.2f;
+        }
+        if (driver2 > 5) {
+            power = power / ((pCar2->softness_factor - -0.7) * 1.4285715);
+        } else {
+            pCar2 = NULL;
+        }
+    } else {
+        if (pCar1->driver == eDriver_oppo) {
+            power = pCar1->softness_factor * power;
+            if ((int)(PDGetTotalTime() - pCar1->time_last_hit) > 5000) {
+                power = power * 0.2f;
+            }
+        }
+    }
+    power = power * 0.2f;
+    vForce.v[0] = pForce->v[0] * power;
+    vForce.v[1] = pForce->v[1] * power;
+    vForce.v[2] = pForce->v[2] * power;
+    power = vForce.v[0] * vForce.v[0] + vForce.v[1] * vForce.v[1] + vForce.v[2] * vForce.v[2];
+    if (pCar1->driver <= 5 || pCar1->invulnerable_no_damage == 0) {
+        pCar1->damage_magnitude_accumulator = power + pCar1->damage_magnitude_accumulator;
+    }
+    if (pCar1->driver >= eDriver_net_human) {
+        if (pCar1->field_0x4c8 != 1.0) {
+            vForce.v[0] = vForce.v[0] / pCar1->field_0x4c8;
+            vForce.v[1] = vForce.v[1] / pCar1->field_0x4c8;
+            vForce.v[2] = vForce.v[2] / pCar1->field_0x4c8;
+        }
+        vOther.v[0] = vForce.v[0] * 0.5f;
+        vOther.v[1] = vForce.v[1] * 0.5f;
+        vOther.v[2] = vForce.v[2] * 0.5f;
+        if (pCar1->driver == eDriver_local_human) {
+            DoPratcamHit(&vForce);
+        }
+    } else {
+        vOther.v[0] = vForce.v[0] * 1.5f;
+        vOther.v[1] = vForce.v[1] * 1.5f;
+        vOther.v[2] = vForce.v[2] * 1.5f;
+    }
+    if (gNet_mode == eNet_mode_host && gCurrent_net_game->type == eNet_game_type_foxy && pCar2 != NULL
+            && pCar1->driver >= eDriver_net_human && pCar2->driver >= eDriver_net_human) {
+        if (pCar1 == gNet_players[gIt_or_fox].car && pCar2->knackered == 0) {
+            CarInContactWithFox(NetPlayerFromCar(pCar2));
+        } else if (pCar2 == gNet_players[gIt_or_fox].car && pCar1->knackered == 0) {
+            CarInContactWithFox(NetPlayerFromCar(pCar1));
+        }
+    }
+    if (gNet_mode != eNet_mode_client || pCar2 == NULL) {
+        DamageSystems(pCar1, pPoint, &vForce, pCar2 != NULL);
+    }
+    QueueCarCrush(pCar1, pChain_count, pChain, &vOther, gPHIL_last_physics_tick);
+    if (pCar2 != NULL && pCar2->driver == eDriver_local_human && power > 0.003) {
+        PipeSingleCarIncident(pCar1, pPoint, power);
+    }
+    if (pCar2 == NULL && pCar1->driver == eDriver_local_human && power > 0.003) {
+        BrMatrix34Copy(&mat, &pCar1->car_master_actor->t.t.mat);
+        mat.m[3][0] = mat.m[3][0] * 0.14492753f;
+        mat.m[3][1] = mat.m[3][1] * 0.14492753f;
+        mat.m[3][2] = mat.m[3][2] * 0.14492753f;
+        BrMatrix34ApplyP(&vWorld, pPoint, &mat);
+        PipeSingleWallIncident(&vWorld, power);
+    }
+}
 
 // PointInFaceByQuiteABitActually
 

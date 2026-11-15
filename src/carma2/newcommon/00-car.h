@@ -167,7 +167,7 @@ extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar 
 
 // CrashNoise
 
-// CrushAndDamageCar
+extern void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor);
 
 // PointInFaceByQuiteABitActually
 
