@@ -1245,6 +1245,7 @@ br_uint_8* C2_HOOK_STDCALL BlockWriteSetup(void* base, int block_size, int block
     return NULL;
 }
 
+// PARTIAL 46.37%: DfBlockWriteText 0x0052c250 [structure] - prologue frame/regalloc (orig sub esp,8 spills, ours none); ret 0x18 STDCALL ok
 // FUNCTION: CARMA2_HW 0x0052c250
 int C2_HOOK_STDCALL DfBlockWriteText(br_datafile* df, void* base, int block_size, int block_stride, int block_count, int size) {
     int i;
@@ -1259,23 +1260,23 @@ int C2_HOOK_STDCALL DfBlockWriteText(br_datafile* df, void* base, int block_size
     if ((size != 1) || (block_count != 1)) {
         block = BrScratchAllocate(block_count * block_size * size);
         for (count = 0; count < block_count; count++) {
-            BrMemCpy(block + count * block_size * size, (br_uint_8*)base + count * block_stride * size, block_size * size);
+            BrMemCpy(block + count * block_size * size, (br_uint_8*)base + count * block_stride, block_size * size);
         }
         BrSwapBlock(block, block_count * block_size, size);
     }
     BrFilePrintf(df->h, "  block %d\n", block_count * block_size);
     BrFilePrintf(df->h, "  size %d\n", size);
     for (i = 0; i < block_count * block_size * size; i++) {
-        if ((i & 0x1f) == 0) {
+        if ((i % 32) == 0) {
             BrFilePrintf(df->h, "    %08x: %02x", i, block[i]);
         } else {
             BrFilePrintf(df->h, "%02x", block[i]);
         }
-        if ((i & 0x1f) == 0x1f) {
+        if ((i % 32) == 31) {
             BrFilePutChar('\n', df->h);
         }
     }
-    if ((i & 0x1f) != 0x0) {
+    if ((i % 32) != 0) {
         BrFilePutChar('\n', df->h);
     }
     if (block != base) {
