@@ -339,7 +339,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
-// ApplySound
+extern void C2_HOOK_FASTCALL ApplySound(tPipe_chunk** pChunk);
 
 // ApplyCar
 
@@ -536,5 +536,15 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tS32 field_0x4;
+    float field_0x8;
+    float field_0xc;
+    float field_0x10;
+    tU16 field_0x14;
+    tU16 field_0x16;
+} tPipe_chunk_sound;
 
 #endif // GUARD_23_PIPING_H
