@@ -140,4 +140,12 @@ extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCo
 
 // RemovePlayerFromShapeStatusLists
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[6];
+    tU32 ID;
+    br_matrix34 mat;
+    tU16 flags;
+} tNet_message_chunk_non_car_position;
+
 #endif // GUARD_04_NETGAME_H

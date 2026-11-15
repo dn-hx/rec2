@@ -526,7 +526,7 @@ extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pConten
 
 // ReceivedDBNonCar
 
-// SendAllDBNonCars
+extern void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient);
 
 // ReceivedDBNonCarPosition
 
