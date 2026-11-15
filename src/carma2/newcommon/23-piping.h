@@ -321,7 +321,7 @@ extern void C2_HOOK_FASTCALL ApplyShrapnel(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyScreenWobble(tPipe_chunk** pChunk);
 
-// ApplyGrooveStop
+extern void C2_HOOK_FASTCALL ApplyGrooveStop(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk);
 
@@ -536,5 +536,14 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+    int field_0x10;
+    br_vector3 field_0x14;
+} tPipe_chunk_groove_stop;
 
 #endif // GUARD_23_PIPING_H
