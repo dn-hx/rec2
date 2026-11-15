@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -1156,7 +1157,186 @@ void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* pActor, br_model* pModel, br_mate
 
 // MakeRandomPointInTriangle
 
-// SpawnPedsOnFace
+/* (SetModelCallbacks and BuildPedestrian, inlined in the original) */
+static __inline void BuildPedestrian(tPedestrian* pPed, const char* pGroup_name, br_vector3* pPos, br_vector3* pDir, tPed_movement_spec* pMovement_spec, tRace_ped_exclusion_spec* pExclusion_spec) {
+    extern void C2_HOOK_CDECL TurnLimbsOnAndOff(br_actor* actor, br_model* model, br_material* material, void* render_data, br_uint_8 style, int on_screen);
+    extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
+    extern br_vector3 gY_unit_vector;
+    br_matrix34 mat;
+    char texture_name[32];
+    char material_name[32];
+    br_pixelmap* texture;
+    br_material* material;
+    int i;
+    int j;
+
+    BrMatrix34Identity(&mat);
+    BrVector3Copy((br_vector3*)mat.m[3], pPos);
+    pPed->character = BuildCharacterInstance(pGroup_name, &mat);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 2; j++) {
+            br_model* model;
+
+            model = pPed->character->personality->bones->models[i].models[j];
+            if (model != NULL) {
+                model->flags |= BR_MODF_CUSTOM;
+                model->custom = TurnLimbsOnAndOff;
+            }
+        }
+    }
+    sprintf(texture_name, "%sB", pGroup_name);
+    texture = BrMapFind(texture_name);
+    if (texture == NULL) {
+        FatalError(kFatalError_CantFindPedTexture_S, texture_name);
+    }
+    strcpy(material_name, pGroup_name);
+    sprintf(material_name + strlen(material_name), "%d.MAT", 1);
+    material = BrMaterialFind(material_name);
+    if (material != NULL) {
+        material->colour_map = texture;
+        BrMaterialUpdate(material, BR_MATU_COLOURMAP);
+    }
+    pPed->hit_points = 100;
+    pPed->movement_spec = pMovement_spec;
+    pPed->speed_factor = 1.f;
+    pPed->exclusion_spec = pExclusion_spec;
+    if (pMovement_spec->max_walk_speed_factor != 0) {
+        SetPedMove(pPed, 30, IRandomBetween(pMovement_spec->min_walk_speed_factor, pMovement_spec->max_walk_speed_factor), 0, 0, 0, 0);
+    } else {
+        SetPedMove(pPed, 0, -1, 0, 0, 0, 0);
+    }
+    BrVector3Normalise(pDir, pDir);
+    SetCharacterDirectionAR(pPed->character, pDir, &gY_unit_vector);
+    BrVector3Copy(&pPed->pos, pPos);
+}
+
+/* (inlined into SpawnPedsOnFace in the original) */
+static __inline void MakeRandomPointInTriangle(br_vector3* pDest, br_vector3* pV0, br_vector3* pV1, br_vector3* pV2) {
+    float alpha;
+    float beta;
+
+    alpha = SRandomBetween(0.1f, 0.9f);
+    beta = SRandomBetween(0.1f, 0.9f);
+    if (alpha + beta > 1.f) {
+        alpha = 1.f - alpha;
+        beta = 1.f - beta;
+    }
+    pDest->v[0] = pV0->v[0] * (1.f - alpha - beta) + pV1->v[0] * alpha + pV2->v[0] * beta;
+    pDest->v[1] = pV0->v[1] * (1.f - alpha - beta) + pV1->v[1] * alpha + pV2->v[1] * beta;
+    pDest->v[2] = pV0->v[2] * (1.f - alpha - beta) + pV1->v[2] * alpha + pV2->v[2] * beta;
+}
+
+// FUNCTION: CARMA2_HW 0x004d2cc0
+void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel) {
+    extern int gPed_count;
+    extern tPedestrian* gPedestrian_array;
+    extern int gCount_race_pedestrian_specs;
+    extern tRace_ped_spec* gRace_pedestrian_specs;
+    extern tPed_group_spec* gPed_groups;
+    extern float gPed_cos_max_slope;
+    extern int gPed_animal_count;
+    extern char gPed_animal_names[50][32];
+    extern int gAnimalsOn;
+    extern int gTotal_count_smash_peds;
+    br_material* material;
+    tRace_ped_spec* ped_spec;
+    int i;
+    int j;
+    int n;
+    br_vector3 v0;
+    br_vector3 v1;
+    br_vector3 v2;
+    float fNew_ped_count;
+    int new_ped_count;
+    br_vector3 ped_dir;
+    br_vector3 ped_pos;
+    char group_name[32];
+    int illegal_ped;
+
+    if (gNet_mode != eNet_mode_none) {
+        return;
+    }
+    if (pFace->n.v[1] <= gPed_cos_max_slope) {
+        return;
+    }
+    material = pFace->material;
+    if (material == NULL) {
+        return;
+    }
+    if (material->identifier == NULL || strlen(material->identifier) - 4 <= 7) {
+        return;
+    }
+    if (material->identifier[7] != '?') {
+        return;
+    }
+    if (gPed_count >= 2000) {
+        return;
+    }
+
+    ped_spec = gRace_pedestrian_specs;
+    for (n = 0; n < gCount_race_pedestrian_specs; n++, ped_spec++) {
+        if (ped_spec->spawn_material == material) {
+            goto found;
+        }
+    }
+    return;
+found:
+    v0 = pModel->vertices[pFace->vertices[0]].p;
+    v1 = pModel->vertices[pFace->vertices[1]].p;
+    v2 = pModel->vertices[pFace->vertices[2]].p;
+    if (ped_spec->density >= 0.f) {
+        fNew_ped_count = ped_spec->field_0x10 - (float)fabs(v1.v[2] * v0.v[0] - v1.v[0] * v0.v[2] + v2.v[2] * v1.v[0] - v2.v[0] * v1.v[2] + v2.v[0] * v0.v[2] - v2.v[2] * v0.v[0]) * 0.5f * (6.9 * 6.9) * ped_spec->density * -0.001f;
+    } else {
+        fNew_ped_count = -ped_spec->density;
+    }
+    new_ped_count = (int)floor(fNew_ped_count);
+
+    for (i = 0; i < new_ped_count; i++) {
+        illegal_ped = 0;
+        if (gPed_count >= 2000) {
+            return;
+        }
+        strcpy(group_name, ped_spec->group->members[IRandomBetween(0, ped_spec->group->count - 1)].name);
+        if (!gAnimalsOn) {
+            for (j = 0; j < gPed_animal_count; j++) {
+                if (DRStricmp(group_name, gPed_animal_names[j]) == 0) {
+                    illegal_ped = 1;
+                    break;
+                }
+            }
+        }
+        if (illegal_ped) {
+            continue;
+        }
+        ped_dir.v[0] = SRandomPosNeg(1.f);
+        ped_dir.v[1] = 0.f;
+        ped_dir.v[2] = SRandomPosNeg(1.f);
+        MakeRandomPointInTriangle(&ped_pos, &v0, &v1, &v2);
+        BuildPedestrian(&gPedestrian_array[gPed_count], group_name, &ped_pos, &ped_dir, ped_spec->movement, &ped_spec->exclusion);
+
+        if (gCurrent_race.race_spec->race_type == kRaceType_SmashNPed) {
+            if (gCurrent_race.race_spec->options.smash_and_peds.ped_group_index == ped_spec->group - gPed_groups) {
+                gPedestrian_array[gPed_count].flags |= 0x200;
+                AddSmashTarget(NULL, NULL, gPed_count);
+            }
+        } else if (gCurrent_race.race_spec->race_type == kRaceType_Peds) {
+            if (gCurrent_race.race_spec->options.peds.count_ped_groups < 0) {
+                gTotal_count_smash_peds += 1;
+                gPedestrian_array[gPed_count].flags |= 0x200;
+            } else {
+                for (j = 0; j < gCurrent_race.race_spec->options.peds.count_ped_groups; j++) {
+                    if (ped_spec->group - gPed_groups == gCurrent_race.race_spec->options.peds.ped_groups[j]) {
+                        gTotal_count_smash_peds += 1;
+                        gPedestrian_array[gPed_count].flags |= 0x200;
+                        break;
+                    }
+                }
+            }
+        }
+        gPed_count += 1;
+    }
+    ped_spec->field_0x10 = fNew_ped_count - new_ped_count;
+}
 
 // FUNCTION: CARMA2_HW 0x004d3520
 // FUNCTION: CARMA2_SW 0x004cfc10
