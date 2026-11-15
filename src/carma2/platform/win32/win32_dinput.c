@@ -563,7 +563,6 @@ int C2_HOOK_FASTCALL CreateDinputEffect(int joystick_index, tJoystick_effect_des
     int effect_id = gCount_joystick_effects;
     IDirectInputDevice2A *device = gDirectInputJoystickDevices[joystick_index];
     // GLOBAL: CARMA2_HW 0x00684620
-    // GLOBAL: CARMA2_SW 0x0067ed60
     static DWORD axis[2];
 
     C2_HOOK_BUG_ON(sizeof(tJoystick_effect_description) != 0x50);
