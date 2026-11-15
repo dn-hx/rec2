@@ -108,7 +108,7 @@ extern void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pCh
 
 // PDGetMousePosition
 
-// PDGetTotalTime
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
 
 // PDInitTimers
 

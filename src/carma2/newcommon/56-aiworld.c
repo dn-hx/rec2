@@ -13,9 +13,29 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+#include "41-utility.h"
+#include "08-loading1.h"
 
 // MakeVertexAndOffsetIt
 
+// FUNCTION: CARMA2_HW 0x00401170
+void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period) {
+
+    gTime_stamp_for_this_munging = GetTotalTime();
+    if (gTime_stamp_for_this_munging == 0) {
+        gTime_stamp_for_this_munging = PDGetTotalTime();
+    }
+    gDrone_delta_time = (float)pFrame_period / 1000.f;
+    gFrame_period_for_this_munging = pFrame_period;
+    TimersPush(TIMER_DRN);
+    DoDronePerGameFrameStuff();
+    TimersPop(TIMER_DRN);
+    TimersPush(TIMER_OPP);
+    MungeOpponents();
+    TimersPop(TIMER_OPP);
+    gFirst_drone_processing = 0;
+    MungeShatMines(gTime_stamp_for_this_munging);
+}
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
 void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {

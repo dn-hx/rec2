@@ -143,7 +143,18 @@ void C2_HOOK_FASTCALL DoRunLengthX(tFlic_descriptor* pFlic_info, tU32 pChunk_len
 
 // PDGetMousePosition
 
-// PDGetTotalTime
+// FUNCTION: CARMA2_HW 0x0051d410
+tU32 C2_HOOK_FASTCALL PDGetTotalTime(void) {
+    LARGE_INTEGER perfCountValue;
+    LARGE_INTEGER delta;
+
+    if (gPerformanceCounterInitialized) {
+        QueryPerformanceCounter(&perfCountValue);
+        delta.QuadPart = perfCountValue.QuadPart - gPerformanceCounterStart.QuadPart;
+        return (tU32) (delta.QuadPart / gPerformanceCounterFrequency_ms.QuadPart);
+    }
+    return 0;
+}
 
 // PDInitTimers
 
