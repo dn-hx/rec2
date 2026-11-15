@@ -21,6 +21,10 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+#include "08-loading1.h"
+#include "45-cutscene.h"
+#include "10-loading2.h"
+#include "02-init.h"
 
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
@@ -305,10 +309,76 @@ int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race
 
 // InitialiseProgramState
 
-// STUB: CARMA2_HW 0x00503c50
+// FUNCTION: CARMA2_HW 0x00503c50
 // STUB: CARMA2_SW 0x004ff5a0
 void C2_HOOK_FASTCALL DoProgram(void) {
-    NOT_IMPLEMENTED();
+
+    /* InitialiseProgramState (inlined) */
+    gProgram_state.mirror_on = gMirror_on__structur;
+    gProgram_state.prog_status = eProg_intro;
+    gProgram_state.last_slot = 0;
+    gProgram_state.view_type = 0;
+    gProgram_state.frank_or_anniness = eFrankie;
+    gProgram_state.racing = 0;
+    gProgram_state.cut_scene = 0;
+    gProgram_state.saving = 0;
+    gProgram_state.loading = 0;
+    gProgram_state.dont_save_or_load = 0;
+    gProgram_state.dont_load = 0;
+    gProgram_state.field_0x2c = 0;
+    if (gAusterity_mode) {
+        gPratcam_on = 0;
+        gProgram_state.prat_cam_on = 0;
+    } else {
+        gProgram_state.prat_cam_on = gPratcam_on;
+    }
+    gProgram_state.cockpit_on = gCockpit_on;
+    gProgram_state.car_name[0] = '\0';
+    SetSoundVolumes(0);
+
+    do {
+        switch (gProgram_state.prog_status) {
+        case eProg_intro:
+            DisposeGameIfNecessary();
+            ClearEntireScreen();
+            DoSCILogo();
+            DoOpeningAnimation();
+            DoStainlessLogo();
+            gProgram_state.prog_status = eProg_opening;
+            break;
+        case eProg_opening:
+            DisposeGameIfNecessary();
+            gProgram_state.prog_status = eProg_idling;
+            DRS3StopOutletSound(gEffects_outlet);
+            break;
+        case eProg_idling:
+            DisposeGameIfNecessary();
+            if (gNo_current_game) {
+                LoadRaces(gRace_list, &gNumber_of_races, -1);
+                InitGame(gDev_initial_race);
+                MaybeRestoreSavedGame();
+            }
+            if (gAuto_load && gLoad_last_save_game) {
+                DoLoadMostRecentGame();
+                gLoad_last_save_game = 0;
+            }
+            DoMainScreen();
+            break;
+        case eProg_demo:
+            ClearEntireScreen();
+            DoSCILogo();
+            DoOpeningAnimation();
+            DoStainlessLogo();
+            gProgram_state.prog_status = eProg_idling;
+            DRS3StopOutletSound(gEffects_outlet);
+            break;
+        case eProg_game_starting:
+            DoGame();
+            break;
+        default:
+            break;
+        }
+    } while (gProgram_state.prog_status != eProg_quit);
 }
 
 // FUNCTION: CARMA2_HW 0x00504170
