@@ -2435,16 +2435,23 @@ int C2_HOOK_FASTCALL TooFarToCrush(const br_model* pModel, int pCount, const br_
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 41.56%: CrushDroneObject 0x0042d180 [partial] - scalar-temp x87 shape; residual push edi/lea edi (scaled address hoisted), s2 spill, fld st(1) dup; see state/findings/CrushDroneObject.md
 // FUNCTION: CARMA2_HW 0x0042d180
 void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale) {
     tDrone_crush_data* crush_data;
     br_vector3 scaled;
+    float s0;
+    float s1;
+    float s2;
 
     crush_data = GetDroneCrushData(pObject);
     if (crush_data != NULL && pCount >= 1) {
-        scaled.v[0] = crush_data->crushability * pScale->v[0];
-        scaled.v[1] = crush_data->crushability * pScale->v[1];
-        scaled.v[2] = crush_data->crushability * pScale->v[2];
+        s0 = crush_data->crushability * pScale->v[0];
+        s1 = crush_data->crushability * pScale->v[1];
+        s2 = crush_data->crushability * pScale->v[2];
+        scaled.v[0] = s0;
+        scaled.v[1] = s1;
+        scaled.v[2] = s2;
         SimpleCrushModel(crush_data->model, pCount, pPoints, scaled.v, (float*)&crush_data->bounds);
     }
 }
