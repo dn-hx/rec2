@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "60-phil.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -2228,7 +2229,64 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
     return pCharacter->field_0xa;
 }
 
-// BonerPassiveCollision
+// FUNCTION: CARMA2_HW 0x0040b620
+int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    tPhysics_object* child;
+    tPhysics_object* obj;
+
+    if (pCharacter->field_0x14 == 0) {
+        return 1;
+    }
+    if (pCharacter->field_0x14 & 4) {
+        obj = NULL;
+    } else {
+        if (pCharacter->field_0x14 & 1) {
+            obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+        } else {
+            tPed_form_boned_phys* bp = &pCharacter->personality->form->boned_physicing[pCharacter->field_0x5];
+            int i;
+
+            obj = NULL;
+            for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+                if (bp->collision_infos[i]->shape != NULL) {
+                    obj = bp->collision_infos[i];
+                    break;
+                }
+            }
+        }
+
+        obj->disable_move_rotate = 0;
+        {
+            br_vector3* field_0xd8 = &pCharacter->field_0xd8;
+
+            if (field_0xd8 != NULL) {
+                obj->v.v[0] = field_0xd8->v[0];
+                obj->v.v[1] = field_0xd8->v[1];
+                obj->v.v[2] = field_0xd8->v[2];
+                {
+                    child = obj->child;
+                    while (child != NULL) {
+                        SetObjectV(child, field_0xd8);
+                        child = child->next;
+                    }
+                }
+            }
+        }
+
+        PHILMakeObjectActive(obj, NULL, NULL, 1);
+        obj->field_0xed = 1;
+        PHILSetObjectProperty(obj, 0, 1.0);
+        PHILSetObjectProperty(obj, 3, 0);
+        PHILSetObjectProperty(obj, 4, 0);
+        PHILSetObjectProperty(obj, 5, 0);
+        pCharacter->field_0x14 |= 4;
+    }
+    pCharacter->field_0x14 |= 4;
+    if (gPed_vtable->passive_collision != NULL) {
+        gPed_vtable->passive_collision((undefined4*)pCharacter, (undefined4)obj, (undefined4*)pArg2);
+    }
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x0040b760
 // FUNCTION: CARMA2_SW 0x0040b750

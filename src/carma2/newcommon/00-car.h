@@ -113,7 +113,7 @@ extern void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject)
 
 // APTCActiveHalted
 
-// APTCPassiveActivated
+extern int C2_HOOK_FASTCALL APTCPassiveActivated(tPhysics_object* pObject, undefined4 pArg2);
 
 // APTCChangedObjects
 
