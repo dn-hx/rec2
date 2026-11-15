@@ -26,6 +26,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "52-errors.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1985,7 +1986,21 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // WeldCar
 
-// ARCompressCrush
+// FUNCTION: CARMA2_HW 0x0043bca0
+void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars) {
+    br_vector3 normalised;
+    float length;
+    tU16 i;
+
+    length = (float)sqrt(pSrc->v[1] * pSrc->v[1] + pSrc->v[2] * pSrc->v[2] + pSrc->v[0] * pSrc->v[0]);
+    normalised.v[0] = pSrc->v[0] / length;
+    normalised.v[1] = pSrc->v[1] / length;
+    normalised.v[2] = pSrc->v[2] / length;
+    CompressVector3((tCompressed_vector3*)pArg1, &normalised, -1.0f, 1.0f);
+    for (i = 0; i < pModel->nvertices; i++) {
+        ((tU16*)pArg2)[i] = DRScalarToU16(pScalars[i] * length, 0.0f, 10.0f);
+    }
+}
 
 // ARApplyCrush
 
@@ -2249,4 +2264,22 @@ void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes)
             pShapes->items[i].field_0x4 = 1;
         }
     }
+}
+
+// FUNCTION: CARMA2_HW 0x004c7f40
+void C2_HOOK_FASTCALL PipeSingleCrush(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
+    undefined4* crush_space;
+    tU32 size;
+
+    crush_space = gCrush_space;
+    if (crush_space == NULL) {
+        return;
+    }
+    size = (tU32)pModel->nvertices * 2 + 0xa;
+    if (size > 0x4000) {
+        FatalError(kFatalError_ChunkIsTooLargeToPipe);
+    }
+    *(br_model**)crush_space = pModel;
+    ARCompressCrush(crush_space + 1, (char*)crush_space + 0xa, pModel, pSrc, pScalars);
+    ARDoSingleSession(3, (uintptr_t)-1, crush_space, size);
 }
