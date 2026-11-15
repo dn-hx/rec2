@@ -38,9 +38,10 @@ void C2_HOOK_CDECL BrAddHead(br_list* list, br_node* node) {
 // FUNCTION: CARMA2_HW 0x005299a0
 // FUNCTION: CARMA2_SW 0x00524510
 void C2_HOOK_CDECL BrAddTail(br_list* list, br_node* node) {
-    node->next = (struct br_node *)&(list->_null);
+
+    node->next = (br_node*)&list->_null;
     node->prev = list->tail;
-    node->prev->next = node;
+    list->tail->next = node;
     list->tail = node;
 }
 
