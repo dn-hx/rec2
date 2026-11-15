@@ -288,7 +288,7 @@ extern int C2_HOOK_FASTCALL KeepInRange(int pIndex, int pRange);
 
 extern int C2_HOOK_FASTCALL WrecksOutFunc(tFrontend_spec* pFrontend);
 
-// WrecksUpdateFunc
+extern int C2_HOOK_FASTCALL WrecksUpdateFunc(tFrontend_spec* pFrontend);
 
 // GotItAlready
 
