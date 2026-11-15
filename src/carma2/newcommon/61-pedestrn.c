@@ -320,7 +320,22 @@ void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacte
 #pragma auto_inline(on)
 #endif
 
-// PedApplyPedPhysics
+// FUNCTION: CARMA2_HW 0x004ca7d0
+void C2_HOOK_FASTCALL PedApplyPedPhysics(int field_0x0, br_matrix34* pMatrix) {
+    extern tPedestrian* gPedestrian_array;
+    extern br_matrix34* C2_HOOK_FASTCALL GetCharacterMatrixPtr(tPed_character_instance* pCharacter);
+    extern void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pPed);
+    extern void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, undefined4 pArg2, undefined4 pArg3);
+    tPedestrian* ped;
+
+    ped = &gPedestrian_array[field_0x0 & 0xffff];
+    BrMatrix34Copy(GetCharacterMatrixPtr(ped->character), pMatrix);
+    ped->pos.v[0] = pMatrix->m[3][0];
+    ped->pos.v[1] = pMatrix->m[3][1];
+    ped->pos.v[2] = pMatrix->m[3][2];
+    RecalculateOrientationOfRoot(ped->character);
+    SetCharacterBonePositions(ped->character, 3, 0);
+}
 
 // STUB: CARMA2_HW 0x004ca830
 // STUB: CARMA2_SW 0x004c6f60
