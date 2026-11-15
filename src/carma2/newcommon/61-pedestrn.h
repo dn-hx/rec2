@@ -503,9 +503,9 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCh
 
 // CharacterNoLongerRenderable
 
-// CalcCollisionObjectThings
+extern void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
-// SetCollisionObject
+extern int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
 // FindAndSetSeveredPhysicsSet
 
