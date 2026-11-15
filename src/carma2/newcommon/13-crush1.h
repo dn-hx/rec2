@@ -294,7 +294,7 @@ extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhy
 
 // GetSplitVertex
 
-// SplitModel
+extern void C2_HOOK_FASTCALL SplitModel(br_model* pSource_model, br_model** pModels, br_model** pModel_out, br_scalar* pPlane, int pFlag);
 
 // CreateSplitPoints
 
@@ -492,7 +492,7 @@ extern void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vecto
 
 extern void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle);
 
-// ARApplySplitWeld
+extern void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector);
 
 // ARUndoSplitWeld
 
