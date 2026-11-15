@@ -561,3 +561,5 @@ extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_ve
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 
 #endif // GUARD_13_CRUSH1_H
+
+extern int C2_HOOK_FASTCALL TestPairOverlap(tPhysics_object* pObject, tPhysics_object* pOther);
