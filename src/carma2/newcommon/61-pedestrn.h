@@ -597,7 +597,7 @@ extern void C2_HOOK_FASTCALL MungeAllCharacterMaterials(material_cbfn* pCallback
 
 // MungeAllCharacterObjects
 
-// MungeAllCharacterModels
+extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*));
 
 extern void C2_HOOK_FASTCALL DisableOverallMovement(void);
 
