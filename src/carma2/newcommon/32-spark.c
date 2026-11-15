@@ -1199,7 +1199,48 @@ void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {
 
 // ClearSplashes
 
-// AdjustSplashReplay
+// FUNCTION: CARMA2_HW 0x004fef40
+void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
+    int i;
+    int free_slot;
+    tReplay_splash* p;
+    int* src;
+
+    free_slot = -1;
+    i = 0;
+    p = gReplay_splashes;
+    do {
+        if (!(gReplay_splash_flags & (1 << i))) {
+            if (free_slot < 0) {
+                free_slot = i;
+            }
+        } else if (p->object.actor == (br_actor*)field_0x0) {
+            goto found;
+        }
+        p++;
+        i++;
+    } while (p < &gReplay_splashes[10]);
+    if (free_slot < 0) {
+        free_slot = IRandomBetween(0, 10);
+    }
+    gReplay_splash_flags |= 1 << free_slot;
+    gReplay_splashes[free_slot].object.actor = (br_actor*)field_0x0;
+    gReplay_splashes[free_slot].type = field_0x4;
+    i = free_slot;
+found:
+    *(int*)&gReplay_splashes[i].water_density = field_0x8;
+    src = (int*)pField_0xc;
+    *(int*)&gReplay_splashes[i].normal.v[0] = src[0];
+    *(int*)&gReplay_splashes[i].normal.v[1] = src[1];
+    *(int*)&gReplay_splashes[i].normal.v[2] = src[2];
+    src = (int*)pField_0x18;
+    *(int*)&gReplay_splashes[i].bb.min.v[0] = src[0];
+    *(int*)&gReplay_splashes[i].bb.min.v[1] = src[1];
+    *(int*)&gReplay_splashes[i].bb.min.v[2] = src[2];
+    *(int*)&gReplay_splashes[i].bb.max.v[0] = src[3];
+    *(int*)&gReplay_splashes[i].bb.max.v[1] = src[4];
+    *(int*)&gReplay_splashes[i].bb.max.v[2] = src[5];
+}
 
 // STUB: CARMA2_HW 0x004ff030
 // STUB: CARMA2_SW 0x004fa910

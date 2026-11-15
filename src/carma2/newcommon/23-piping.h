@@ -457,7 +457,7 @@ extern void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk*
 
 // UndoSplash
 
-// UndoExtendedSplash
+extern void C2_HOOK_FASTCALL UndoExtendedSplash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoSkidAdjustment(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
@@ -536,5 +536,13 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+} tPipe_chunk_extended_splash;
 
 #endif // GUARD_23_PIPING_H
