@@ -140,6 +140,128 @@ void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector
 
 // AddObjectWallForce
 
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+
+// FUNCTION: CARMA2_HW 0x00422fe0
+int C2_HOOK_FASTCALL AddObjectWallForce(float* pWalls, const br_vector3* pPoint, float pDistance, const br_vector3* pNormal, tU32 pUnused, int pCount, tPhysics_object* pObject, float pT, float pRadius, const float* pVector) {
+    float* piVar1;
+    float fAccum;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    tPhysics_object* pObj;
+    int iVar6;
+    int iVar8;
+    int iVar9;
+    float* pfVar7;
+    float* pfVar10;
+    float* pfVar11;
+    float* pfVar12;
+    float local_18[6];
+
+    pObj = pObject;
+    if ((*(int*)((char*)pObj + 0x228) == 0) &&
+        (piVar1 = *(float**)((char*)pObj + 0x18c), piVar1 != NULL) && (*(int*)piVar1 != 0)) {
+        iVar8 = 0;
+        local_18[3] = pObj->bb1.max.v[0] - (float)piVar1[2];
+        local_18[4] = pObj->bb1.max.v[1] - (float)piVar1[3];
+        local_18[5] = pObj->bb1.max.v[2] - (float)piVar1[4];
+        local_18[0] = pObj->bb1.min.v[0] - (float)piVar1[2];
+        local_18[1] = pObj->bb1.min.v[1] - (float)piVar1[3];
+        local_18[2] = pObj->bb1.min.v[2] - (float)piVar1[4];
+        fAccum = 0.0;
+        do {
+            fVar2 = ABS(*(float*)((char*)local_18 + iVar8 + 0xc));
+            if (ABS(*(float*)((char*)local_18 + iVar8)) <= fVar2) {
+                fVar2 = ABS(*(float*)((char*)local_18 + iVar8));
+            }
+            if (fAccum < fVar2) {
+                fAccum = fVar2;
+            }
+            iVar8 = iVar8 + 4;
+        } while (iVar8 < 0xc);
+        fAccum = fAccum - -0.01;
+        if (((ABS(pPoint->v[0] - (float)piVar1[2]) < fAccum) &&
+            (fVar2 = ABS(pPoint->v[1] - (float)piVar1[3]), fVar2 < fAccum)) &&
+           ((fVar2 + fVar2 < pObj->bb1.max.v[1] - pObj->bb1.min.v[1]) &&
+            (ABS(pPoint->v[2] - (float)piVar1[4]) < fAccum))) {
+            return pCount;
+        }
+    }
+    iVar8 = 0;
+    if (0 < pCount) {
+        pfVar7 = pWalls + 6;
+        do {
+            fVar4 = pfVar7[-1] - (pPoint->v[0] - pObj->cmpos.v[0]);
+            fVar2 = *pfVar7 - (pPoint->v[1] - pObj->cmpos.v[1]);
+            fVar3 = pfVar7[1] - (pPoint->v[2] - pObj->cmpos.v[2]);
+            fVar2 = fVar3 * fVar3 + fVar2 * fVar2 + fVar4 * fVar4;
+            if (fVar2 < 0.0045) {
+                fVar3 = pfVar7[5] * pNormal->v[0] + pNormal->v[1] * pfVar7[6] + pfVar7[7] * pNormal->v[2];
+                if ((0.95 < fVar3) && (fVar2 < 0.0005)) {
+                    return pCount;
+                }
+                if (fVar3 < -0.95) {
+                    return pCount;
+                }
+            }
+            iVar8 = iVar8 + 1;
+            pfVar7 = pfVar7 + 0x18;
+        } while (iVar8 < pCount);
+    }
+    iVar8 = pCount;
+    if (pCount < 4) {
+        iVar8 = pCount + 1;
+        pWalls[pCount * 0x18] = 2.0;
+    }
+    iVar9 = 0;
+    pfVar7 = pWalls;
+    if (0 < iVar8) {
+        while (*pfVar7 <= pDistance) {
+            iVar9 = iVar9 + 1;
+            pfVar7 = pfVar7 + 0x18;
+            if (iVar8 <= iVar9) {
+                return iVar8;
+            }
+        }
+        iVar6 = 3;
+        if (iVar8 < 4) {
+            iVar6 = iVar8;
+        }
+        if (iVar9 <= iVar6) {
+            pCount = (iVar6 - iVar9) + 1;
+            pfVar11 = pWalls + iVar6 * 0x18;
+            do {
+                pfVar10 = pfVar11 + -0x18;
+                pfVar12 = pfVar11;
+                for (iVar9 = 0x18; iVar9 != 0; iVar9 = iVar9 + -1) {
+                    *pfVar12 = *pfVar10;
+                    pfVar10 = pfVar10 + 1;
+                    pfVar12 = pfVar12 + 1;
+                }
+                pCount = pCount + -1;
+                pfVar11 = pfVar11 + -0x18;
+            } while (pCount != 0);
+        }
+        *pfVar7 = pDistance;
+        *(tPhysics_object**)(pfVar7 + 1) = pObj;
+        pfVar7[2] = 0.0;
+        pfVar7[3] = pRadius;
+        pfVar7[0xb] = pNormal->v[0];
+        pfVar7[0xc] = pNormal->v[1];
+        pfVar7[0xd] = pNormal->v[2];
+        pfVar7[5] = pPoint->v[0] - pObj->cmpos.v[0];
+        pfVar7[6] = pPoint->v[1] - pObj->cmpos.v[1];
+        pfVar7[7] = pPoint->v[2] - pObj->cmpos.v[2];
+        if (pVector != NULL) {
+            pfVar7[8] = pVector[0];
+            pfVar7[9] = pVector[1];
+            pfVar7[10] = pVector[2];
+        }
+        pfVar7[0x17] = pT;
+    }
+    return iVar8;
+}
 // FUNCTION: CARMA2_HW 0x004268a0
 // FUNCTION: CARMA2_SW 0x00426940
 int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const br_vector3* pPoint_a, br_scalar pT, const br_vector3* pPoint_b, const br_vector3* pNormal, int pCount, tPhysics_object* pObject_a, tPhysics_object* pObject_b, int pType, void* pUnused, br_scalar pValue) {
