@@ -80,6 +80,8 @@ extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 
 #ifdef REC2_HW
 extern void C2_HOOK_FASTCALL CreateBoxes(void);
+extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
+
 #endif
 
 // DrawScoreBoxes
