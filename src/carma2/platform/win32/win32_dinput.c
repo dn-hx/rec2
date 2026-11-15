@@ -883,6 +883,16 @@ int C2_HOOK_FASTCALL JoystickDInputBegin(void) {
     return gCountEnumeratedJoystickDinputDevices;
 }
 
+// FUNCTION: CARMA2_HW 0x0045c740
+void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName) {
+
+    if (gForceFeedbackAvailable) {
+        int index = PDFindJoystickEffect(effectName);
+        if (index != -1) {
+            StopDinputEffect(index);
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x0051ba10
 // FUNCTION: CARMA2_SW 0x005157e0
 void C2_HOOK_FASTCALL KeyBegin(void) {
