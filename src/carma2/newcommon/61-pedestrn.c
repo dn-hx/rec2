@@ -809,7 +809,11 @@ void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4 pType)
 
 // DoGibShower
 
-// PedApplyGibShower
+// FUNCTION: CARMA2_HW 0x004ccae0
+void C2_HOOK_FASTCALL PedApplyGibShower(int field_0x0, int field_0xc, int field_0x8, int field_0x10, int field_0x4, br_vector3* pField_0x14, br_vector3* pField_0x20, br_vector3* pField_0x2c) {
+
+    DoGibShower(field_0x0, field_0xc, field_0x8, field_0x10, field_0x4, pField_0x14, pField_0x20, pField_0x2c);
+}
 
 // PedUndoGibShower
 
