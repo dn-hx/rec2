@@ -480,7 +480,45 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // GetJointForces
 
-// GetUniversalRotationAngle
+// FUNCTION: CARMA2_HW 0x004bd4f0
+void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2) {
+    br_vector3 vec[2];
+    float d;
+    float t1;
+    float t2;
+
+    BrMatrix34ApplyV(&vec[0], pChild1, pMatrix1);
+    BrMatrix34TApplyV(&vec[1], &vec[0], pMatrix2);
+    pOut2->v[0] = vec[1].v[0] + pParent1->v[0];
+    pOut2->v[1] = vec[1].v[1] + pParent1->v[1];
+    vec[1].v[2] = vec[1].v[2] + pParent1->v[2];
+    pOut2->v[2] = vec[1].v[2];
+    d = sqrt(pOut2->v[0] * pOut2->v[0] + vec[1].v[2] * vec[1].v[2] + pOut2->v[1] * pOut2->v[1]);
+    if (d <= 2.3841858e-07f) {
+        pOut2->v[0] = 1.0f;
+        pOut2->v[1] = 0.0f;
+        pOut2->v[2] = 0.0f;
+    } else {
+        d = 1.0 / d;
+        pOut2->v[0] = pOut2->v[0] * d;
+        pOut2->v[1] = pOut2->v[1] * d;
+        pOut2->v[2] = pOut2->v[2] * d;
+    }
+    BrMatrix34ApplyV(&vec[0], pChild2, pMatrix1);
+    BrMatrix34TApplyV(pOut1, &vec[0], pMatrix2);
+    d = pOut1->v[1] * pOut2->v[1] + pOut2->v[2] * pOut1->v[2] + pOut1->v[0] * pOut2->v[0];
+    d = d + d;
+    t1 = pOut1->v[1] - pOut2->v[1] * d;
+    t2 = pOut1->v[2] - pOut2->v[2] * d;
+    pOut1->v[0] = pOut1->v[0] - d * pOut2->v[0];
+    pOut1->v[1] = t1;
+    pOut1->v[2] = t2;
+    d = pParent1->v[2] * pOut1->v[2] + pParent1->v[1] * pOut1->v[1] + pOut1->v[0] * pParent1->v[0];
+    d = d + d;
+    pOut1->v[0] = pOut1->v[0] - d * pParent1->v[0];
+    pOut1->v[1] = pOut1->v[1] - pParent1->v[1] * d;
+    pOut1->v[2] = pOut1->v[2] - pParent1->v[2] * d;
+}
 
 // GetObjectsParent
 
@@ -492,6 +530,272 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+// FUNCTION: CARMA2_HW 0x004bca10
+int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count) {
+    tPhysics_object* partner;
+    int i;
+    br_vector3 cross;
+    br_vector3 vec;
+    br_scalar dot;
+    br_scalar dot2;
+    tPhysics_joint_force* rec;
+
+    if (pObject->physics_joint1 != NULL) {
+        partner = pObject->field_0x230;
+        if (partner == NULL) {
+            PhysicsError((tPhysicsError)11, "");
+        }
+        i = 0;
+        if (pObject->physics_joint1->count_limits > 0) {
+            rec = &pContacts[pCount];
+            do {
+                if (pCount >= pMax_count) {
+                    break;
+                }
+                switch (pObject->physics_joint1->limits[i].type) {
+                case eJoint_limit_plane: {
+                    br_vector3 vec2;
+                    br_vector3 vec3;
+
+                    BrMatrix34ApplyV(&vec, &pObject->physics_joint1->limits[i].child, &pObject->actor->t.t.mat);
+                    BrMatrix34TApplyV(&vec2, &vec, &partner->actor->t.t.mat);
+                    dot = pObject->physics_joint1->limits[i].parent.v[0] * vec2.v[0]
+                        + pObject->physics_joint1->limits[i].parent.v[1] * vec2.v[1]
+                        + pObject->physics_joint1->limits[i].parent.v[2] * vec2.v[2];
+                    if (dot < 0.001) {
+                        BrMatrix34ApplyV(&vec, &pObject->physics_joint1->limits[i].child, &pObject->transform_matrix);
+                        BrMatrix34TApplyV(&vec3, &vec, &partner->transform_matrix);
+                        dot2 = pObject->physics_joint1->limits[i].parent.v[0] * vec3.v[0]
+                            + pObject->physics_joint1->limits[i].parent.v[1] * vec3.v[1]
+                            + pObject->physics_joint1->limits[i].parent.v[2] * vec3.v[2];
+                        if (0.0f <= dot2 && (0.001 <= dot2 || pObject->field_0xf0 != 0)) {
+                            rec->field_0x0 = dot - dot2;
+                            rec->type = 11;
+                            rec->object_a = pObject;
+                            rec->object_b = partner;
+                            cross.v[0] = pObject->physics_joint1->limits[i].parent.v[2] * vec3.v[1]
+                                - pObject->physics_joint1->limits[i].parent.v[1] * vec3.v[2];
+                            cross.v[1] = pObject->physics_joint1->limits[i].parent.v[0] * vec3.v[2]
+                                - pObject->physics_joint1->limits[i].parent.v[2] * vec3.v[0];
+                            cross.v[2] = pObject->physics_joint1->limits[i].parent.v[1] * vec3.v[0]
+                                - pObject->physics_joint1->limits[i].parent.v[0] * vec3.v[1];
+                            dot2 = (br_scalar)sqrt(cross.v[0] * cross.v[0] + cross.v[1] * cross.v[1] + cross.v[2] * cross.v[2]);
+                            if (dot2 <= 1e-06) {
+                                BrMatrix34ApplyV(&cross, &pObject->omega, &pObject->transform_matrix);
+                                BrMatrix34TApplyV(&rec->direction_b, &cross, &partner->transform_matrix);
+                                rec->direction_b.v[0] = rec->direction_b.v[0] - partner->omega.v[0];
+                                rec->direction_b.v[1] = rec->direction_b.v[1] - partner->omega.v[1];
+                                rec->direction_b.v[2] = rec->direction_b.v[2] - partner->omega.v[2];
+                                dot2 = (br_scalar)sqrt(rec->direction_b.v[0] * rec->direction_b.v[0]
+                                    + rec->direction_b.v[1] * rec->direction_b.v[1]
+                                    + rec->direction_b.v[2] * rec->direction_b.v[2]);
+                                if (dot2 <= 2.3841858e-07f) {
+                                    rec->direction_b.v[0] = 1.0f;
+                                    rec->direction_b.v[1] = 0.0f;
+                                    rec->direction_b.v[2] = 0.0f;
+                                } else {
+                                    rec->direction_b.v[0] = rec->direction_b.v[0] * (1.0 / dot2);
+                                    rec->direction_b.v[1] = rec->direction_b.v[1] * (1.0 / dot2);
+                                    rec->direction_b.v[2] = rec->direction_b.v[2] * (1.0 / dot2);
+                                }
+                            } else {
+                                rec->direction_b.v[0] = cross.v[0] / dot2;
+                                rec->direction_b.v[1] = cross.v[1] / dot2;
+                                rec->direction_b.v[2] = cross.v[2] / dot2;
+                            }
+                            BrMatrix34ApplyV(&cross, &rec->direction_b, &partner->transform_matrix);
+                            BrMatrix34TApplyV(&rec->direction_a, &cross, &pObject->transform_matrix);
+                            rec->point_a.v[0] = pObject->physics_joint1->field_0x08.v[0];
+                            rec->point_a.v[1] = pObject->physics_joint1->field_0x08.v[1];
+                            rec->point_a.v[2] = pObject->physics_joint1->field_0x08.v[2];
+                            rec->point_b.v[0] = pObject->physics_joint1->field_0x14.v[0];
+                            rec->point_b.v[1] = pObject->physics_joint1->field_0x14.v[1];
+                            rec->point_b.v[2] = pObject->physics_joint1->field_0x14.v[2];
+                            pCount++;
+                            rec++;
+                        }
+                    }
+                    break;
+                }
+                case eJoint_limit_universal: {
+                    br_vector3 out1;
+                    br_vector3 out2;
+
+                    GetUniversalRotationAngle(&pObject->actor->t.t.mat, &partner->actor->t.t.mat,
+                                 &pObject->physics_joint1->limits[i].child, &pObject->physics_joint1->limits[i].parent,
+                                 &pObject->physics_joint1->limits[i + 1].child, &pObject->physics_joint1->limits[i + 1].parent,
+                                 &out1, &cross);
+                    dot = pObject->physics_joint1->limits[i + 1].parent.v[0] * out1.v[0]
+                        + pObject->physics_joint1->limits[i + 1].parent.v[2] * out1.v[2]
+                        + pObject->physics_joint1->limits[i + 1].parent.v[1] * out1.v[1];
+                    if (dot < pObject->physics_joint1->limits[i].value - -0.001) {
+                        GetUniversalRotationAngle(&pObject->transform_matrix, &partner->transform_matrix,
+                                     &pObject->physics_joint1->limits[i].child, &pObject->physics_joint1->limits[i].parent,
+                                     &pObject->physics_joint1->limits[i + 1].child, &pObject->physics_joint1->limits[i + 1].parent,
+                                     &out2, &rec->direction_b);
+                        dot2 = pObject->physics_joint1->limits[i + 1].parent.v[2] * out2.v[2]
+                            + pObject->physics_joint1->limits[i + 1].parent.v[1] * out2.v[1]
+                            + pObject->physics_joint1->limits[i + 1].parent.v[0] * out2.v[0];
+                        if (pObject->physics_joint1->limits[i].value < dot2) {
+                            cross.v[0] = out1.v[1] * out2.v[2] - out1.v[2] * out2.v[1];
+                            cross.v[1] = out1.v[2] * out2.v[0] - out1.v[0] * out2.v[2];
+                            cross.v[2] = out1.v[0] * out2.v[1] - out1.v[1] * out2.v[0];
+                            if (rec->direction_b.v[0] * cross.v[0] + rec->direction_b.v[2] * cross.v[2] + rec->direction_b.v[1] * cross.v[1] < 0.0f) {
+                                rec->direction_b.v[0] = -rec->direction_b.v[0];
+                                rec->direction_b.v[1] = -rec->direction_b.v[1];
+                                rec->direction_b.v[2] = -rec->direction_b.v[2];
+                            }
+                            BrMatrix34ApplyV(&cross, &rec->direction_b, &partner->transform_matrix);
+                            BrMatrix34TApplyV(&rec->direction_a, &cross, &pObject->transform_matrix);
+                            rec->field_0x0 = dot - dot2;
+                            rec->type = 11;
+                            rec->object_a = pObject;
+                            rec->object_b = partner;
+                            pCount++;
+                            rec++;
+                        }
+                    }
+                    i++;
+                    break;
+                }
+                default:
+                    PhysicsError((tPhysicsError)8, "");
+                    break;
+                }
+                i++;
+            } while (i < pObject->physics_joint1->count_limits);
+        }
+    }
+    if (pObject->physics_joint2 == NULL || pObject->physics_joint2->count_limits < 1) {
+        return pCount;
+    }
+    i = 0;
+    do {
+        switch (pObject->physics_joint2->limits[i].type) {
+        case eJoint_limit_plane:
+            BrMatrix34ApplyV(&vec, &pObject->physics_joint2->limits[i].child, &pObject->actor->t.t.mat);
+            dot = pObject->physics_joint2->limits[i].parent.v[0] * vec.v[0]
+                + pObject->physics_joint2->limits[i].parent.v[1] * vec.v[1]
+                + pObject->physics_joint2->limits[i].parent.v[2] * vec.v[2];
+            if (dot < 0.001) {
+                if (pCount == pMax_count) {
+                    return pCount;
+                }
+                pContacts[pCount].field_0x0 = dot;
+                pContacts[pCount].type = 11;
+                pContacts[pCount].object_a = pObject;
+                pContacts[pCount].object_b = NULL;
+                cross.v[0] = pObject->physics_joint2->limits[i].parent.v[2] * vec.v[1]
+                    - pObject->physics_joint2->limits[i].parent.v[1] * vec.v[2];
+                cross.v[1] = pObject->physics_joint2->limits[i].parent.v[0] * vec.v[2]
+                    - pObject->physics_joint2->limits[i].parent.v[2] * vec.v[0];
+                cross.v[2] = pObject->physics_joint2->limits[i].parent.v[1] * vec.v[0]
+                    - pObject->physics_joint2->limits[i].parent.v[0] * vec.v[1];
+                dot2 = (br_scalar)sqrt(cross.v[0] * cross.v[0] + cross.v[1] * cross.v[1] + cross.v[2] * cross.v[2]);
+                if (1e-06 < dot2) {
+                    pContacts[pCount].direction_b.v[0] = cross.v[0] / dot2;
+                    pContacts[pCount].direction_b.v[1] = cross.v[1] / dot2;
+                    pContacts[pCount].direction_b.v[2] = cross.v[2] / dot2;
+                }
+            }
+            break;
+        case eJoint_limit_10: {
+            int n;
+            int m;
+            if (pObject->field_0x1e0[0] != 0) {
+                gINT_00692dd8 = 1;
+                for (n = 0; n < pCount; n++) {
+                    if (pContacts[n].object_a == pObject) {
+                        if (pContacts[n].object_b == NULL) {
+                            if (n < pCount) {
+                                m = pCount - n;
+                                rec = &pContacts[n];
+                                do {
+                                    *rec = rec[1];
+                                    rec++;
+                                } while (--m != 0);
+                            }
+                            pCount--;
+                            n--;
+                        } else {
+                            rec = &pContacts[n];
+                            cross.v[0] = -rec->direction_a.v[0];
+                            cross.v[1] = -rec->direction_a.v[1];
+                            cross.v[2] = -rec->direction_a.v[2];
+                            rec->direction_a.v[0] = -rec->direction_b.v[0];
+                            rec->direction_a.v[1] = -rec->direction_b.v[1];
+                            rec->direction_a.v[2] = -rec->direction_b.v[2];
+                            rec->direction_b.v[0] = cross.v[0];
+                            rec->direction_b.v[1] = cross.v[1];
+                            rec->direction_b.v[2] = cross.v[2];
+                            cross = rec->point_a;
+                            rec->point_a = rec->point_b;
+                            rec->point_b = cross;
+                            rec->object_a = rec->object_b;
+                            rec->object_b = pObject;
+                            rec->type = 14;
+                        }
+                    } else if (pContacts[n].object_b == pObject) {
+                        pContacts[n].type = 14;
+                    }
+                }
+            }
+            break;
+        }
+        case eJoint_limit_11: {
+            br_scalar t0;
+            br_scalar len;
+            br_vector3 vecB;
+            BrMatrix34ApplyV(&vecB, &pObject->physics_joint2->hinge_axis, &pObject->transform_matrix);
+            dot = pObject->field_0x17c.v[0] * vecB.v[0]
+                + pObject->field_0x17c.v[2] * vecB.v[2]
+                + pObject->field_0x17c.v[1] * vecB.v[1];
+            t0 = pObject->physics_joint2->limits[i].value + dot;
+            dot2 = pObject->actor->t.t.mat.m[3][0] * vecB.v[0]
+                + pObject->actor->t.t.mat.m[3][1] * vecB.v[1]
+                + pObject->actor->t.t.mat.m[3][2] * vecB.v[2];
+            len = pObject->transform_matrix.m[3][2] * vecB.v[2]
+                + pObject->transform_matrix.m[3][1] * vecB.v[1]
+                + pObject->transform_matrix.m[3][0] * vecB.v[0];
+            if (dot2 <= t0 || t0 - -0.001 <= len) {
+                if (dot2 < dot - 0.001 && dot - 0.002 < len) {
+                    if (pCount == pMax_count) {
+                        return pCount;
+                    }
+                    pContacts[pCount].field_0x0 = (dot - len) / (dot2 - len);
+                    pContacts[pCount].field_0xc = NULL;
+                    pContacts[pCount].type = 2;
+                    pContacts[pCount].object_a = pObject;
+                    pContacts[pCount].object_b = NULL;
+                    pContacts[pCount].direction_a = pObject->physics_joint2->hinge_axis;
+                    BrVector3SetFloat(&pContacts[pCount].point_a, 0.0f, 0.0f, 0.0f);
+                    pCount++;
+                }
+            } else {
+                if (pCount == pMax_count) {
+                    return pCount;
+                }
+                pContacts[pCount].field_0x0 = (t0 - len) / (dot2 - len);
+                pContacts[pCount].field_0xc = NULL;
+                pContacts[pCount].type = 2;
+                pContacts[pCount].object_a = pObject;
+                pContacts[pCount].object_b = NULL;
+                pContacts[pCount].direction_a.v[0] = -pObject->physics_joint2->hinge_axis.v[0];
+                pContacts[pCount].direction_a.v[1] = -pObject->physics_joint2->hinge_axis.v[1];
+                pContacts[pCount].direction_a.v[2] = -pObject->physics_joint2->hinge_axis.v[2];
+                BrVector3SetFloat(&pContacts[pCount].point_a, 0.0f, 0.0f, 0.0f);
+                pCount++;
+            }
+            break;
+        }
+        default:
+            PhysicsError((tPhysicsError)8, "");
+            break;
+        }
+        i++;
+    } while (i < pObject->physics_joint2->count_limits);
+    return pCount;
+}
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
