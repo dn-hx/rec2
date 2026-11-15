@@ -5176,25 +5176,19 @@ int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float
     return 0;
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-// STUB: SetPedFall
-int C2_HOOK_FASTCALL SetPedFall(tPedestrian* pPed, int pSpeed, int pMove1, int pMove2, tPhysics_object* pCollision_info) { NOT_IMPLEMENTED(); return 0; }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
+// PARTIAL 29.63% (last measured): RepulsePedestrian 0x004ce330 [other] - SetPedFall was a duplicate of
+// DamagePedestrian 0x004cd640 (implemented in 51-smash.c) and is replaced by that call; the tail of this
+// function (distance/sound setup, pData/pNow users) is still unimplemented.
 // (reference)
 // FUNCTION: CARMA2_HW 0x004ce330
 void C2_HOOK_FASTCALL RepulsePedestrian(tPedestrian* pPed, tCar_spec* pCar, float pDist_sq, tU32 pNow, void* pData) {
     int speed;
 
     (void)pDist_sq;
-    (void)pNow;
     (void)pData;
+    pPed->field_0x0c->field_0xc0 = pCar;
     speed = IRandomBetween(0x4b, 0xc8);
-    SetPedFall(pPed, speed, 0x5b, 0x5b, NULL);
+    DamagePedestrian(pPed, speed, 0x5b, 0x5b, NULL);
 }
 
 
