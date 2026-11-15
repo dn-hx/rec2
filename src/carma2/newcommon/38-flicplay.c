@@ -617,6 +617,14 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x00461aa0
+void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
+    if (pDest_pixelmap != NULL) {
+        pFlic_info->first_pixel = (tU8*)pDest_pixelmap->pixels
+            + (pFlic_info->x_offset + pFlic_info->y_offset * pDest_pixelmap->row_bytes);
+    }
+    pFlic_info->the_pixelmap = pDest_pixelmap;
+}
 // STUB: CARMA2_HW 0x00461ad0
 // STUB: CARMA2_SW 0x00461560
 int C2_HOOK_FASTCALL StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, int pFrame_rate) {
