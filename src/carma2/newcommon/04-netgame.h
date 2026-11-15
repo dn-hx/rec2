@@ -38,7 +38,7 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 
 // ReceivedRecover
 
-// CopyMechanics
+extern void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents);
 
 // ReceivedShapeNumbers
 
@@ -46,7 +46,7 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 
 // ReceivedSimpleCarPos
 
-// ReceivedMechanics
+extern void C2_HOOK_FASTCALL ReceivedMechanics(tU8* pContents);
 
 extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 

@@ -116,7 +116,50 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 
 // ReceivedRecover
 
-// CopyMechanics
+// FUNCTION: CARMA2_HW 0x00498ab0
+void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
+    tU8* cursor;
+    int size;
+    int offset;
+    tU8 flags;
+    tU8* base;
+
+    memcpy((tU8*)pCar->collision_info + 0x260, pContents, 0xd * 4);
+    cursor = pContents + 0x34;
+    size = GetNetworkDataSize(cursor);
+    memcpy((tU8*)pCar->collision_info + 0x294, cursor, size);
+    cursor += size;
+    flags = *((tU8*)pCar->collision_info + 0x292);
+    offset = 0x48c;
+    if (flags & 8) {
+        do {
+            *(tU32*)((tU8*)pCar->collision_info + offset) = *(tU32*)cursor;
+            cursor += 4;
+            offset += 4;
+        } while (offset < 0x49c);
+    } else {
+        do {
+            offset += 4;
+            *(tU32*)((tU8*)pCar->collision_info + offset - 4) = 0;
+        } while (offset < 0x49c);
+    }
+    if (*((tU8*)pCar->collision_info + 0x292) & 1) {
+        size = GetNetShapeDataLengthFromData(cursor);
+        memcpy((tU8*)pCar->collision_info + 0x2fc, cursor, size);
+        cursor += size;
+    }
+    if (*((tU8*)pCar->collision_info + 0x292) & 2) {
+        *((tU8*)pCar->collision_info + 0x481) = *cursor;
+        cursor += 1;
+        *(tU16*)((tU8*)pCar->collision_info + 0x482) = *(tU16*)cursor;
+        cursor += 2;
+    }
+    base = (tU8*)pCar->collision_info;
+    if (base[0x292] & 4) {
+        *(tU32*)(base + 0x484) = *(tU32*)cursor;
+        *(tU32*)(base + 0x488) = *(tU32*)(cursor + 4);
+    }
+}
 
 // ReceivedShapeNumbers
 
@@ -124,7 +167,202 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 
 // ReceivedSimpleCarPos
 
-// ReceivedMechanics
+// FUNCTION: CARMA2_HW 0x004985f0
+void C2_HOOK_FASTCALL ReceivedMechanics(tU8* pContents) {
+    extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
+    extern void C2_HOOK_FASTCALL TotallyRepairACar(tCar_spec* pCar_spec);
+    extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
+    extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
+    extern void C2_HOOK_FASTCALL SetSmokeLastDamageLevel(tCar_spec* pCar);
+    extern void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar);
+    tCar_spec* car;
+    int i;
+    int j;
+    tU32 value;
+    tU32* entry;
+    tU32* idp;
+    tU32* p;
+    tU32 id;
+    tU8* actor;
+    tU32 tick;
+    float impact;
+
+    car = NULL;
+    i = 0;
+    if (gNumber_of_net_players > 0) {
+        id = *(tU32*)(pContents + 4);
+        idp = &gNet_players[0].ID;
+        do {
+            if (*idp == id) {
+                car = gNet_players[i].car;
+                break;
+            }
+            i++;
+            idp = (tU32*)((tU8*)idp + 0xd4);
+        } while (i < gNumber_of_net_players);
+    }
+    if (car == NULL) {
+        return;
+    }
+    if (*(tU32*)((tU8*)car->collision_info + 0x268) > *(tU32*)(pContents + 8)) {
+        return;
+    }
+    if (car->disabled != 0) {
+        EnableCar(car);
+        WriteHierarchyNetworkStuff((undefined4*)(pContents + 0x34), car->collision_info, 2);
+        *(tU16*)((tU8*)car->collision_info + 0x178) = (tU16)(gFace_num__car - 2);
+        *(tU32*)((tU8*)car->collision_info + 0x268) = *(tU32*)(pContents + 8);
+        *((tU8*)car->collision_info + 0x261) = 0xff;
+        for (j = 0; j < 4; j++) {
+            *((tU8*)car->collision_info + 0x26c + j) = pContents[0xc + j];
+        }
+        for (j = 0; j < 0xc; j++) {
+            *((tU8*)car->collision_info + 0x280 + j) = pContents[0x20 + j];
+        }
+        DisableCar(car);
+        return;
+    }
+    if (gNet_mode == eNet_mode_host) {
+        if (i == gThis_net_player_index) {
+            return;
+        }
+        if (*(tU32*)((tU8*)car->collision_info + 0x49c) <= *(tU32*)(pContents + 0x14)) {
+            CopyMechanics(car, pContents);
+            if (*(tS16*)(pContents + 0x30) != *(tS16*)((tU8*)car->car_crush_spec + 0x24)) {
+                SetAllShapeStatusFlags(*(tCar_crush_network_shapes**)((tU8*)car->car_crush_spec + 0x20));
+                id = *(tU32*)(pContents + 4);
+                entry = *(tU32**)((tU8*)car->car_crush_spec + 0x20);
+                if (entry != NULL) {
+                    j = 0;
+                    p = entry;
+                    do {
+                        if (*p == id) {
+                            *((tU8*)entry + j * 8 + 4) = 0;
+                            break;
+                        }
+                        j++;
+                        p += 2;
+                    } while (j < 0xc);
+                }
+                *(tU16*)((tU8*)car->car_crush_spec + 0x26) = *(tU16*)(pContents + 0x30);
+            }
+        } else {
+            if (*(tU32*)(pContents + 0x14) == 0) {
+                *(tU32*)((tU8*)car->collision_info + 0x274) = 0;
+                *((tU8*)car->collision_info + 0x261) = 0;
+            }
+            if (*(tS16*)(pContents + 0x30) == *(tS16*)((tU8*)car->car_crush_spec + 0x24)) {
+                id = *(tU32*)(pContents + 4);
+                entry = *(tU32**)((tU8*)car->car_crush_spec + 0x20);
+                if (entry != NULL) {
+                    j = 0;
+                    p = entry;
+                    do {
+                        if (*p == id) {
+                            *((tU8*)entry + j * 8 + 4) = 0;
+                            break;
+                        }
+                        j++;
+                        p += 2;
+                    } while (j < 0xc);
+                }
+            }
+        }
+        *(tU32*)((tU8*)car + 0x18a8) = pContents[0x2c];
+        *(tU32*)((tU8*)car + 0x18ac) = pContents[0x2d];
+        *(tU32*)((tU8*)car + 0x18b0) = pContents[0x2e];
+        *(tU32*)((tU8*)car + 0x12d0) = *(tU32*)(pContents + 0x10);
+        value = *(tU32*)(pContents + 0x10) << 0x18;
+        if ((int)value < 0) {
+            *(tU32*)((tU8*)car + 0x12dc) = 0xffffffff;
+        } else {
+            *(int*)((tU8*)car + 0x12dc) = (int)value >> 0xf;
+        }
+        value = (*(tU32*)(pContents + 0x10) & 0xffffff00) << 0x10;
+        if ((int)value < 0) {
+            *(tU32*)((tU8*)car + 0x12e0) = 0xffffffff;
+        } else {
+            *(int*)((tU8*)car + 0x12e0) = (int)value >> 0xf;
+        }
+        return;
+    }
+    if (gNet_mode != eNet_mode_client) {
+        return;
+    }
+    if (gCar_to_view_id == gNet_players[i].ID) {
+        ReallyViewOpponent();
+    }
+    if (i == gThis_net_player_index) {
+        *(tU16*)((tU8*)car->car_crush_spec + 0x26) = *(tU16*)(pContents + 0x30);
+        if (*(tU32*)((tU8*)car->collision_info + 0x49c) < *(tU32*)(pContents + 0x14)) {
+            CopyMechanics(car, pContents);
+        }
+        return;
+    }
+    CopyMechanics(car, pContents);
+    *(tU32*)((tU8*)car + 0x18a8) = pContents[0x2c];
+    *(tU32*)((tU8*)car + 0x18ac) = pContents[0x2d];
+    *(tU32*)((tU8*)car + 0x18b0) = pContents[0x2e];
+    *(tU32*)((tU8*)car + 0x12d0) = *(tU32*)((tU8*)car->collision_info + 0x270);
+    value = *(tU32*)((tU8*)car->collision_info + 0x270) << 0x18;
+    if ((int)value < 0) {
+        *(tU32*)((tU8*)car + 0x12dc) = 0xffffffff;
+    } else {
+        *(int*)((tU8*)car + 0x12dc) = (int)(*(tU32*)((tU8*)car->collision_info + 0x270) << 0x18) >> 0xf;
+    }
+    value = (*(tU32*)((tU8*)car->collision_info + 0x270) & 0xffffff00) << 0x10;
+    if ((int)value < 0) {
+        *(tU32*)((tU8*)car + 0x12e0) = 0xffffffff;
+    } else {
+        *(int*)((tU8*)car + 0x12e0) = (int)((*(tU32*)((tU8*)car->collision_info + 0x270) & 0xffffff00) << 0x10) >> 0xf;
+    }
+    if (*(int*)((tU8*)car + 0x1d0) != 0) {
+        return;
+    }
+    WriteHierarchyNetworkStuff((undefined4*)(pContents + 0x34), car->collision_info, 2);
+    actor = (tU8*)car->collision_info;
+    *(tU32*)((tU8*)car + 0x4c) = *(tU32*)(actor + 0xb0);
+    *(tU32*)((tU8*)car + 0x50) = *(tU32*)(actor + 0xb4);
+    *(tU32*)((tU8*)car + 0x54) = *(tU32*)(actor + 0xb8);
+    *(tU32*)((tU8*)car->collision_info + 0x80) = *(tU32*)((tU8*)car->collision_info + 0xb0);
+    *(tU32*)((tU8*)car->collision_info + 0x84) = *(tU32*)((tU8*)car->collision_info + 0xb4);
+    *(tU32*)((tU8*)car->collision_info + 0x88) = *(tU32*)((tU8*)car->collision_info + 0xb8);
+    if (*(int*)((tU8*)car + 0xc) >= 7
+        && *(tU32*)((tU8*)car->collision_info + 0x27c) > *(tU32*)((tU8*)car + 0x18a4)) {
+        tick = *(tU32*)((tU8*)car->collision_info + 0x27c);
+        if (tick - *(tU32*)((tU8*)car + 0x18a4) < 100000) {
+            RepairCar2(car, tick - *(tU32*)((tU8*)car + 0x18a4), &impact);
+        } else {
+            TotallyRepairACar(car);
+            *(tU32*)((tU8*)car + 0x18a4) = *(tU32*)((tU8*)car->collision_info + 0x27c);
+        }
+        for (j = 0; j < 0xc; j++) {
+            *(tU32*)((tU8*)car + 0x4e0 + j * 0x2c) = *((tU8*)car->collision_info + 0x280 + j);
+        }
+        SetSmokeLastDamageLevel(car);
+        StopCarSmoking(car);
+    } else {
+        for (j = 0; j < 0xc; j++) {
+            *(tU32*)((tU8*)car + 0x4e0 + j * 0x2c) = *((tU8*)car->collision_info + 0x280 + j);
+        }
+        SortOutSmoke(car);
+    }
+    *(tU16*)((tU8*)car->collision_info + 0x178) = (tU16)(gFace_num__car - 2);
+    value = *((tU8*)car->collision_info + 0x292);
+    if ((value & 1) && *(tS16*)((tU8*)car->collision_info + 0x290) != *(tS16*)((tU8*)car->car_crush_spec + 0x24)) {
+        if (value & 2) {
+            CopyBendInMessage(car);
+        } else if (*((tU8*)car->car_crush_spec + 0x144) != 0) {
+            CompletelyUnBendCar(car);
+        }
+        if (*((tU8*)car->collision_info + 0x292) & 4) {
+            CopySplitInMessage(car);
+        } else if (*((tU8*)car->car_crush_spec + 0x4b8) != 0) {
+            WeldCar(car);
+        }
+        DecodeNetShapeData(car, (tU8*)car->collision_info + 0x2fc);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00498bb0
 // FUNCTION: CARMA2_SW 0x004957e0
