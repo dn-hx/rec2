@@ -14,6 +14,7 @@
 #include "globvrpb.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "49-physics.h"
 #include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x0068c814
@@ -208,4 +209,50 @@ tRace_result C2_HOOK_FASTCALL DoRace(void) {
     gRace_start = PDGetTotalTime();
     result = MainGameLoop();
     return result;
+}
+
+// FUNCTION: CARMA2_HW 0x004d5970
+void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
+    extern br_material* gPed_smear_material;
+    tPedestrian* ped;
+    int i;
+
+    /* PossiblePedSmear inlined by the original */
+    ped = gPedestrian_array;
+    for (i = 0; i < gPed_count; i++, ped++) {
+        tPed_cache_006944c0* smear_info;
+        br_vector3 pos;
+
+        if (ped->flags & 0x1) {
+            smear_info = ped->field_0x0c;
+            if (smear_info == NULL) {
+                continue;
+            }
+            if ((smear_info->field_0xc4 & 0x2) && smear_info->field_0xca >= 2) {
+                pos.v[0] = smear_info->field_0xe4.v[0] * (1.0 / smear_info->field_0xca);
+                pos.v[1] = smear_info->field_0xe4.v[1] * (1.0 / smear_info->field_0xca);
+                pos.v[2] = smear_info->field_0xe4.v[2] * (1.0 / smear_info->field_0xca);
+                if (!(smear_info->field_0xc4 & 0x1)) {
+                    smear_info->field_0xc4 |= 0x1;
+                    smear_info->field_0xc8 = -1;
+                } else if (WheelSkidSection(
+                        &smear_info->field_0xc8,
+                        &smear_info->field_0xcc,
+                        &smear_info->field_0xd8,
+                        gPed_smear_material,
+                        &pos,
+                        &smear_info->field_0xf0,
+                        &smear_info->field_0xfc,
+                        &smear_info->field_0x108,
+                        0.0f,
+                        smear_info->field_0x124 - smear_info->field_0x128 + 0.01f)) {
+                    smear_info->field_0xc4 &= ~0x1;
+                }
+                smear_info->field_0xfc = pos;
+                smear_info->field_0x108 = smear_info->field_0xf0;
+            } else {
+                smear_info->field_0xc4 &= ~0x1;
+            }
+        }
+    }
 }
