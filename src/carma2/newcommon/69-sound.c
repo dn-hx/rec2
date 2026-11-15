@@ -1150,24 +1150,29 @@ void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
 // DoEnvSound
 
 
-// PARTIAL 17.65%: semantics match the disassembly, but MSVC assigns the registers differently (pActor in ebp instead of ebx, src in ebx instead of eax; one extra callee-saved register). The allocation was identical for three different source forms, so it is not driven by the body; in the original TU MungeSoundGenerators (0x00456ea0, ends at 0x00457250) is compiled immediately before this function, while here FoundSoundSource is compiled first.
+// PARTIAL 71.43%: FoundSoundSource 0x00457260 - open: count register (eax vs ecx, pActor copy placed after the count load), index calc order, store/esi load order; see state/findings/FoundSoundSource.md
 // FUNCTION: CARMA2_HW 0x00457260
 intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
     tEnvironment_sound_generator_vector* found_sources;
     tEnvironment_sound_generator_info* src;
     tTrackSoundGenerator* generator;
+    tSpecial_volume_soundfx_data* soundfx;
+    int count;
 
     found_sources = pContext;
-    if (found_sources->count < 20) {
-        src = &found_sources->sources[found_sources->count++];
+    count = found_sources->count;
+    if (count < 20) {
+        found_sources->count = count + 1;
+        src = &found_sources->sources[count];
         src->actor = pActor;
         generator = &gProgram_state.track_sound_generators[(pActor->model->identifier[1] - '0') * 10 + (pActor->model->identifier[2] - '0')];
         src->generator = generator;
         if (generator->type == kSoundGeneratorType_noncar && pActor->identifier[3] == '!') {
-            src->soundfx = generator->fx2_noncar;
+            soundfx = &generator->fx2_noncar;
         } else {
-            src->soundfx = generator->fx;
+            soundfx = &generator->fx;
         }
+        src->soundfx = *soundfx;
         src->pos = pActor->t.t.translate.t;
     }
     return 0;
