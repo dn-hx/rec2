@@ -16,6 +16,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "15-displays.h"
 
 // GLOBAL: CARMA2_HW 0x00595f84
 // GLOBAL: CARMA2_SW 0x00590ee4
@@ -588,4 +589,18 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
         return info->field_0xdc;
     }
     return gJoystick_y_throttle;
+}
+
+// FUNCTION: CARMA2_HW 0x005112d0
+void C2_HOOK_FASTCALL ToggleJoystickEnable(void) {
+    char buffer[256];
+
+    if (HasCurrentJoystick()) {
+        PDDisableJoysticks();
+        sprintf(buffer, "Joystick Disabled");
+    } else {
+        PDEnableJoysticks();
+        sprintf(buffer, "Joystick Enabled");
+    }
+    NewTextHeadupSlot(4, 0, 3000, -4, buffer);
 }
