@@ -212,7 +212,7 @@ extern int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOppon
 
 // GetOpponentsSectionStartNodePoint
 
-// GetOpponentsSectionFinishNodePoint
+extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
 // GetOpponentsSectionWidth
 
