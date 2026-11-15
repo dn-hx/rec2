@@ -41,7 +41,7 @@ extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
 // SetMaxSpeedFromSOCs
 
-// CalcSOCs
+extern int C2_HOOK_FASTCALL CalcSOCs(int pNext_section, int pCount_corners, tCorner* pCorners, tOpponent_spec* pOpponent_spec, tSOC* pSocs, tCar_spec* pCar);
 
 // StuffDataFromCorner
 
