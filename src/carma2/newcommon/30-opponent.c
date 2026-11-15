@@ -2048,18 +2048,42 @@ void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spe
     }
 }
 
-// STUB: not implemented yet
+// No standalone symbol in the original: it is inlined into every caller there
+// (e.g. ProcessReturnToStart 0x004abc40 at 0x004abf28), so the body is written
+// out at each call site and this copy is never called.
 tS16 C2_HOOK_FASTCALL FindNearestPathSection(br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance) {
-    return 0;
+    return FindNearestGeneralSection(NULL, pActor_coords, pPath_direction, pIntersect, pDistance);
 }
 
-// STUB: not implemented yet
+// No standalone symbol in the original: it is inlined into ProcessReturnToStart
+// 0x004abc40 at 0x004abc5c, so the body is written out there and this copy is
+// never called.
 int C2_HOOK_FASTCALL TeleportCopToStart(tOpponent_spec* pOpponent_spec) {
+    br_vector3 cop_to_start;
+
+    if (pOpponent_spec->cheating && ((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
+        BrVector3Sub(&cop_to_start, &gProgram_state.current_car.car_master_actor->t.t.translate.t, &pOpponent_spec->start_pos);
+        if (BrVector3Length(&cop_to_start) > gIn_view_distance) {
+            pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[0] = pOpponent_spec->start_pos.v[0];
+            pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1] = pOpponent_spec->start_pos.v[1];
+            pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[2] = pOpponent_spec->start_pos.v[2];
+            PointActorAlongThisBloodyVector(pOpponent_spec->car_spec->car_master_actor, &pOpponent_spec->start_direction);
+            pOpponent_spec->physics_me = 0;
+            RematerialiseOpponent(pOpponent_spec, 0.f);
+            TurnOpponentPhysicsOff(pOpponent_spec);
+            RebuildActiveCarList();
+            NewObjective(pOpponent_spec, eOOT_wait_for_some_hapless_sod);
+            return 1;
+        }
+    }
     return 0;
 }
 
-// STUB: not implemented yet
+// No standalone symbol in the original: it is inlined into every caller there
+// (e.g. ProcessReturnToStart 0x004abc40 at 0x004abeb8), so this copy is never
+// called.
 void C2_HOOK_FASTCALL ClearOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec) {
+    pOpponent_spec->nnext_sections = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004abc40
@@ -2069,32 +2093,67 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
     br_vector3 cop_to_start;
     br_scalar distance;
     int res;
+    tCar_spec* car;
 
     switch (pCommand) {
     case ePOC_start:
         DoNotDprintf_opponent("%s: ProcessReturnToStart() - new objective started", pOpponent_spec->car_spec->driver_name);
         pOpponent_spec->return_to_start_data.waiting_near_start = 0;
-        pOpponent_spec->return_to_start_data.section_no = FindNearestPathSection(&pOpponent_spec->start_pos, &section_v, &pOpponent_spec->return_to_start_data.nearest_path_point, &distance);
+        pOpponent_spec->return_to_start_data.section_no = FindNearestGeneralSection(NULL, &pOpponent_spec->start_pos, &section_v, &pOpponent_spec->return_to_start_data.nearest_path_point, &distance);
         pOpponent_spec->return_to_start_data.nearest_path_point.v[1] = 0.0;
         CalcReturnToStartPointRoute(pOpponent_spec);
         ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
         break;
     case ePOC_run:
-        if (TeleportCopToStart(pOpponent_spec)) {
-            break;
+        if (pOpponent_spec->cheating && ((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
+            BrVector3Sub(&cop_to_start, &gProgram_state.current_car.car_master_actor->t.t.translate.t, &pOpponent_spec->start_pos);
+            if (BrVector3Length(&cop_to_start) > gIn_view_distance) {
+                pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[0] = pOpponent_spec->start_pos.v[0];
+                pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1] = pOpponent_spec->start_pos.v[1];
+                pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[2] = pOpponent_spec->start_pos.v[2];
+                PointActorAlongThisBloodyVector(pOpponent_spec->car_spec->car_master_actor, &pOpponent_spec->start_direction);
+                pOpponent_spec->physics_me = 0;
+                RematerialiseOpponent(pOpponent_spec, 0.f);
+                car = pOpponent_spec->car_spec;
+                car->acc_force = 0.f;
+                car->brake_force = 0.f;
+                car->curvature = 0.f;
+                car->gear = 0;
+                car->revs = 0.f;
+                BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
+                BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
+                if (pOpponent_spec->physics_me) {
+                    pOpponent_spec->physics_me = 0;
+                    pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_NONE;
+                    PipeSingleOppoRenderage(pOpponent_spec, 0);
+                    gActive_car_list_rebuild_required = 1;
+                }
+                RebuildActiveCarList();
+                NewObjective(pOpponent_spec, eOOT_wait_for_some_hapless_sod);
+                return;
+            }
         }
-        if (pOpponent_spec->return_to_start_data.waiting_near_start) {
-            pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
-        } else {
+        if (!pOpponent_spec->return_to_start_data.waiting_near_start) {
             BrVector3Copy(&our_pos_xz, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t);
             our_pos_xz.v[1] = 0.0f;
             BrVector3Sub(&cop_to_start, &pOpponent_spec->start_pos, &our_pos_xz);
-            if (BrVector3Length(&cop_to_start) >= 10.0) {
+            if (BrVector3Length(&cop_to_start) < 10.0f) {
+                pOpponent_spec->return_to_start_data.waiting_near_start = 1;
+                pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
+            } else {
                 if (pOpponent_spec->follow_path_data.section_no > 20000) {
-                    ShiftOpponentsProjectedRoute(pOpponent_spec, pOpponent_spec->follow_path_data.section_no - 20000);
+                    int places = pOpponent_spec->follow_path_data.section_no - 20000;
+                    if (pOpponent_spec->nnext_sections > places) {
+                        int i;
+                        for (i = 0; i < (int)REC2_ASIZE(pOpponent_spec->next_sections) - places; i++) {
+                            pOpponent_spec->next_sections[i].section_no = pOpponent_spec->next_sections[places + i].section_no;
+                            pOpponent_spec->next_sections[i].direction = pOpponent_spec->next_sections[places + i].direction;
+                        }
+                        pOpponent_spec->nnext_sections -= places;
+                    }
                     pOpponent_spec->follow_path_data.section_no = 20000;
                 }
-                if (pOpponent_spec->nnext_sections < (int)REC2_ASIZE(pOpponent_spec->next_sections) - 1) {
+                if (pOpponent_spec->nnext_sections <= (int)REC2_ASIZE(pOpponent_spec->next_sections) - 2) {
                     CalcReturnToStartPointRoute(pOpponent_spec);
                 }
                 res = ProcessFollowPath(pOpponent_spec, ePOC_run, 0, 0, 0);
@@ -2104,14 +2163,13 @@ void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProc
                     } else {
                         DoNotDprintf_opponent("%s: Restarting return_to_start route because ran out of path!", pOpponent_spec->car_spec->driver_name);
                     }
-                    ClearOpponentsProjectedRoute(pOpponent_spec);
+                    pOpponent_spec->nnext_sections = 0;
                     CalcReturnToStartPointRoute(pOpponent_spec);
                     ProcessFollowPath(pOpponent_spec, ePOC_start, 0, 0, 0);
                 }
-            } else {
-                pOpponent_spec->return_to_start_data.waiting_near_start = 1;
-                pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
             }
+        } else {
+            pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.0f;
         }
         break;
     default:
