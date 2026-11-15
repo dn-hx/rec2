@@ -10,6 +10,7 @@
 
 #include "16-graphics1.h"
 #include "globvars.h"
+#include "32-spark.h"
 
 // GLOBAL: CARMA2_HW 0x006a20d0
 // GLOBAL: CARMA2_SW 0x0069c128
@@ -210,10 +211,50 @@ int C2_HOOK_CDECL FindHighestCallBack__raycast(br_actor* pActor, br_model* pMode
     return 0;
 }
 
-// STUB: CARMA2_HW 0x004e3bc0
+// FUNCTION: CARMA2_HW 0x004e3bc0
 // STUB: CARMA2_SW 0x004dff50
 void C2_HOOK_FASTCALL FindBestY(br_vector3* pPosition, br_actor* pWorld, br_scalar pStarting_height, br_scalar* pNearest_y_above, br_scalar* pNearest_y_below, br_model** pNearest_above_model, br_model** pNearest_below_model, int* pNearest_above_face_index, int* pNearest_below_face_index) {
-    NOT_IMPLEMENTED();
+    br_matrix34 camera_tfm;
+    br_camera* camera_data;
+    br_actor* parent;
+    br_angle view_over_2;
+    br_scalar aspect;
+    br_scalar angle;
+    br_scalar cos_angle;
+    br_scalar sin_angle;
+    br_scalar scale;
+
+    gLowest_y_above = 30000.0f;
+    gHighest_y_below = -30000.0f;
+    gCurrent_y = pPosition->v[1] - -1.192093e-5f;
+    gY_picking_camera->t.t.translate.t = *pPosition;
+    gY_picking_camera->t.t.mat.m[3][1] += pStarting_height;
+    camera_data = (br_camera*)gY_picking_camera->type_data;
+    if (gY_picking_camera == pWorld) {
+        BrMatrix34Identity(&camera_tfm);
+    } else {
+        BrTransformToMatrix34(&camera_tfm, &gY_picking_camera->t);
+        for (parent = gY_picking_camera->parent; parent != NULL && parent != pWorld; parent = parent->parent) {
+            if (parent->t.type != BR_TRANSFORM_IDENTITY) {
+                BrMatrix34PostTransform(&camera_tfm, &parent->t);
+            }
+        }
+    }
+    BrMatrix34Inverse(&gPick_model_to_view__raycast, &camera_tfm);
+    view_over_2 = camera_data->field_of_view / 2;
+    aspect = camera_data->aspect;
+    angle = BrAngleToRadian(view_over_2);
+    cos_angle = cosf(angle);
+    sin_angle = sinf(angle);
+    scale = cos_angle / sin_angle;
+    BrMatrix34PostScale(&gPick_model_to_view__raycast, scale / aspect, scale, 1.0f);
+    ActorPick2D(pWorld, NULL, gBlack_material, FindHighestCallBack__raycast, NULL);
+    *pNearest_y_above = gLowest_y_above;
+    *pNearest_y_below = gHighest_y_below;
+    *pNearest_above_model = gAbove_model;
+    *pNearest_below_model = gBelow_model;
+    *pNearest_above_face_index = gAbove_face_index;
+    *pNearest_below_face_index = gBelow_face_index;
 }
 
 // FUNCTION: CARMA2_HW 0x004e45b0
