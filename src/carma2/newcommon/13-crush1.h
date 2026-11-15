@@ -296,9 +296,9 @@ extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhy
 
 // SplitModel
 
-// CreateSplitPoints
+extern void C2_HOOK_FASTCALL CreateSplitPoints(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance);
 
-// SplitCollisionShape
+extern void C2_HOOK_FASTCALL SplitCollisionShape(tCollision_shape_polyhedron* pSource, tCollision_shape_polyhedron* pPositive_output, tPhysics_shape* pNegative_output, br_scalar* pPlane);
 
 // SplitCarCollisionShapes
 

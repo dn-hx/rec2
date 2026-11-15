@@ -1576,9 +1576,132 @@ int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_ob
 
 // SplitModel
 
-// CreateSplitPoints
+// FUNCTION: CARMA2_HW 0x00430600
+void C2_HOOK_FASTCALL CreateSplitPoints(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance) {
+    float ratio1;
+    float ratio2;
+    float other1;
+    float other2;
+    float zn;
+    float zp;
+    float xn;
+    float xp;
 
-// SplitCollisionShape
+    ratio1 = -((pPositive_distance - gFLOAT_00589aa0) / (pNegative_distance - pPositive_distance));
+    ratio2 = -((pPositive_distance - gFLOAT_00589aa4) / (pNegative_distance - pPositive_distance));
+    other1 = gFLOAT_00589a54 - ratio1;
+    zn = pNegative_point->v[2];
+    zp = pPositive_point->v[2];
+    xp = pPositive_point->v[0];
+    xn = pNegative_point->v[0];
+    pPositive_intersection->v[1] = pNegative_point->v[1] * ratio1 + pPositive_point->v[1] * other1;
+    pPositive_intersection->v[2] = zn * ratio1 + zp * other1;
+    pPositive_intersection->v[0] = ratio1 * xn + xp * other1;
+    other2 = gFLOAT_00589a54 - ratio2;
+    zp = pPositive_point->v[2];
+    zn = pNegative_point->v[2];
+    xp = pPositive_point->v[0];
+    xn = pNegative_point->v[0];
+    pNegative_intersection->v[1] = pNegative_point->v[1] * ratio2 + pPositive_point->v[1] * other2;
+    pNegative_intersection->v[2] = zn * ratio2 + zp * other2;
+    pNegative_intersection->v[0] = ratio2 * xn + xp * other2;
+}
+
+// FUNCTION: CARMA2_HW 0x004303c0
+void C2_HOOK_FASTCALL SplitCollisionShape(tCollision_shape_polyhedron* pSource, tCollision_shape_polyhedron* pPositive_output, tPhysics_shape* pNegative_output, br_scalar* pPlane) {
+    int i;
+    int negative_count;
+    int positive_count;
+    int j;
+    br_scalar distances[16];
+    int sides[16];
+    br_scalar* positive_points;
+    br_scalar* negative_points;
+    tU32 value;
+    br_scalar distance;
+    unsigned int index_a;
+    unsigned int index_b;
+
+    if (pSource->common.type != kCollisionShapeType_Polyhedron) {
+        PDFatalError("Oooh no. I can't split that sort of shape, Mrs Jabberwok.");
+    }
+    positive_points = (br_scalar*)pPositive_output->polyhedron.points;
+    j = 0;
+    negative_points = (br_scalar*)pNegative_output->polyhedron.polyhedron.points;
+    positive_count = 0;
+    negative_count = 0;
+    i = 0;
+    while (i < pSource->polyhedron.count_points) {
+        if (j >= 0xc0) {
+            break;
+        }
+        value = *(tU32*)((tU8*)pSource->polyhedron.points + j);
+        distance = pPlane[1] * *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 4)
+                + pPlane[2] * *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 8)
+                + pPlane[0] * *(br_scalar*)((tU8*)pSource->polyhedron.points + j)
+                - pPlane[3];
+        distances[i] = distance;
+        if (distance > gCrushZero) {
+            *(tU32*)positive_points = value;
+            positive_points[1] = *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 4);
+            positive_points[2] = *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 8);
+            positive_points += 3;
+            positive_count++;
+            sides[i] = 1;
+        } else {
+            *(tU32*)negative_points = value;
+            negative_points[1] = *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 4);
+            negative_points[2] = *(br_scalar*)((tU8*)pSource->polyhedron.points + j + 8);
+            negative_points += 3;
+            negative_count++;
+            sides[i] = 2;
+        }
+        i++;
+        j += 0xc;
+    }
+    i = 0;
+    while (i < pSource->polyhedron.count_edges) {
+        if (positive_count >= 16 || negative_count >= 16) {
+            break;
+        }
+        index_a = pSource->polyhedron.edges[i].index1;
+        index_b = pSource->polyhedron.edges[i].index2;
+        if (sides[index_a] != sides[index_b]) {
+            if (sides[index_a] == 1) {
+                CreateSplitPoints((br_vector3*)positive_points, (br_vector3*)negative_points,
+                        (br_vector3*)((tU8*)pSource->polyhedron.points + index_a * 0xc),
+                        (br_vector3*)((tU8*)pSource->polyhedron.points + index_b * 0xc),
+                        distances[index_a], distances[index_b]);
+            } else {
+                CreateSplitPoints((br_vector3*)positive_points, (br_vector3*)negative_points,
+                        (br_vector3*)((tU8*)pSource->polyhedron.points + index_b * 0xc),
+                        (br_vector3*)((tU8*)pSource->polyhedron.points + index_a * 0xc),
+                        distances[index_b], distances[index_a]);
+            }
+            positive_points += 3;
+            negative_points += 3;
+            positive_count++;
+            negative_count++;
+        }
+        i++;
+    }
+    pPositive_output->polyhedron.count_points = positive_count;
+    pNegative_output->polyhedron.polyhedron.count_points = negative_count;
+    if (positive_count < 4) {
+        pPositive_output->polyhedron.count_points = 0;
+        pPositive_output->polyhedron.count_edges = 0;
+        pPositive_output->polyhedron.count_planes = 0;
+    } else {
+        FillInShape((tPhysics_shape*)pPositive_output);
+    }
+    if (negative_count < 4) {
+        pNegative_output->polyhedron.polyhedron.count_points = 0;
+        pNegative_output->polyhedron.polyhedron.count_edges = 0;
+        pNegative_output->polyhedron.polyhedron.count_planes = 0;
+        return;
+    }
+    FillInShape(pNegative_output);
+}
 
 // SplitCarCollisionShapes
 
