@@ -124,7 +124,7 @@ extern int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pColli
 
 // MakeJointVelocitiesVector
 
-// ApplySingleForce
+extern void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse);
 
 // ApplyJointForces
 
@@ -258,7 +258,7 @@ extern void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinea
 
 // SetUpTorqueHingePartners
 
-// SetUpHingePartners
+extern int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject);
 
 // MakeMatrix
 

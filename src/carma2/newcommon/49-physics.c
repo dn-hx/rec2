@@ -423,7 +423,214 @@ int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_in
 
 // MakeJointVelocitiesVector
 
-// ApplySingleForce
+// FUNCTION: CARMA2_HW 0x004b7960
+void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse) {
+    /* The seven vectors occupy the whole 0x54-byte frame in this exact order
+       (linear_delta at the lowest address, linear_accel at the highest). */
+    struct {
+        br_vector3 linear_delta;
+        br_vector3 angular_delta;
+        br_vector3 linear_delta_other;
+        br_vector3 angular_delta_other;
+        br_vector3 world_delta;
+        br_vector3 impulse;
+        br_vector3 linear_accel;
+    } delta;
+    tPhysics_object* pObject_a;
+    tPhysics_object* pObject_b;
+    tPhysics_object* pPartner;
+    br_scalar inverse_dt;
+
+    if (pForce->type == 9 || pImpulse == 0.f) {
+        return;
+    }
+    pObject_a = pForce->object_a;
+    pObject_b = pForce->object_b;
+    if (pForce->type == 0xb) {
+        pPartner = (tPhysics_object*)SetUpTorqueHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, &pForce->direction_a, pObject_a);
+        delta.angular_delta.v[0] *= pImpulse;
+        delta.angular_delta.v[1] *= pImpulse;
+        delta.angular_delta.v[2] *= pImpulse;
+        pObject_a->omega.v[0] += delta.angular_delta.v[0];
+        pObject_a->omega.v[1] += delta.angular_delta.v[1];
+        pObject_a->omega.v[2] += delta.angular_delta.v[2];
+        if (pPartner != NULL) {
+            delta.linear_delta.v[0] *= pImpulse;
+            delta.linear_delta.v[1] *= pImpulse;
+            delta.linear_delta.v[2] *= pImpulse;
+            pObject_a->velocity_car_space.v[0] += delta.linear_delta.v[0];
+            pObject_a->velocity_car_space.v[1] += delta.linear_delta.v[1];
+            pObject_a->velocity_car_space.v[2] += delta.linear_delta.v[2];
+            BrMatrix34ApplyV(&pObject_a->v, &pObject_a->velocity_car_space, &pObject_a->transform_matrix);
+            delta.linear_delta_other.v[0] *= pImpulse;
+            delta.linear_delta_other.v[1] *= pImpulse;
+            delta.linear_delta_other.v[2] *= pImpulse;
+            pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+            pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+            pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+            BrMatrix34ApplyV(&pPartner->v, &pPartner->velocity_car_space, &pPartner->transform_matrix);
+            delta.angular_delta_other.v[0] *= pImpulse;
+            delta.angular_delta_other.v[1] *= pImpulse;
+            delta.angular_delta_other.v[2] *= pImpulse;
+            pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+            pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+            pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+        }
+        if (pObject_b != NULL) {
+            pPartner = (tPhysics_object*)SetUpTorqueHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, &pForce->direction_b, pObject_b);
+            pImpulse = -pImpulse;
+            delta.angular_delta.v[0] *= pImpulse;
+            delta.angular_delta.v[1] *= pImpulse;
+            delta.angular_delta.v[2] *= pImpulse;
+            pObject_b->omega.v[0] += delta.angular_delta.v[0];
+            pObject_b->omega.v[1] += delta.angular_delta.v[1];
+            pObject_b->omega.v[2] += delta.angular_delta.v[2];
+            if (pPartner != NULL) {
+                delta.linear_delta.v[0] *= pImpulse;
+                delta.linear_delta.v[1] *= pImpulse;
+                delta.linear_delta.v[2] *= pImpulse;
+                pObject_b->velocity_car_space.v[0] += delta.linear_delta.v[0];
+                pObject_b->velocity_car_space.v[1] += delta.linear_delta.v[1];
+                pObject_b->velocity_car_space.v[2] += delta.linear_delta.v[2];
+                BrMatrix34ApplyV(&pObject_b->v, &pObject_b->velocity_car_space, &pObject_b->transform_matrix);
+                delta.linear_delta_other.v[0] *= pImpulse;
+                delta.linear_delta_other.v[1] *= pImpulse;
+                delta.linear_delta_other.v[2] *= pImpulse;
+                pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+                pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+                pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+                BrMatrix34ApplyV(&pPartner->v, &pPartner->velocity_car_space, &pPartner->transform_matrix);
+                delta.angular_delta_other.v[0] *= pImpulse;
+                delta.angular_delta_other.v[1] *= pImpulse;
+                delta.angular_delta_other.v[2] *= pImpulse;
+                pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+                pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+                pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+            }
+        }
+        return;
+    }
+    if (*(int*)((tU8*)pObject_a + 0x1e4) != 0) {
+        SetUpForce((br_vector3*)delta.angular_delta.v, (br_vector3*)delta.linear_delta.v, &pForce->point_a, &pForce->direction_a, pObject_a);
+        pPartner = (tPhysics_object*)SetUpHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, pObject_a);
+        delta.angular_delta.v[0] *= pImpulse;
+        delta.angular_delta.v[1] *= pImpulse;
+        delta.angular_delta.v[2] *= pImpulse;
+        pObject_a->omega.v[0] += delta.angular_delta.v[0];
+        pObject_a->omega.v[1] += delta.angular_delta.v[1];
+        pObject_a->omega.v[2] += delta.angular_delta.v[2];
+        delta.angular_delta_other.v[0] *= pImpulse;
+        delta.angular_delta_other.v[1] *= pImpulse;
+        delta.angular_delta_other.v[2] *= pImpulse;
+        pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+        pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+        pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+        delta.linear_delta.v[0] *= pImpulse;
+        delta.linear_delta.v[1] *= pImpulse;
+        delta.linear_delta.v[2] *= pImpulse;
+        pObject_a->velocity_car_space.v[0] += delta.linear_delta.v[0];
+        pObject_a->velocity_car_space.v[1] += delta.linear_delta.v[1];
+        pObject_a->velocity_car_space.v[2] += delta.linear_delta.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta, &pObject_a->transform_matrix);
+        pObject_a->v.v[0] += delta.world_delta.v[0];
+        pObject_a->v.v[1] += delta.world_delta.v[1];
+        pObject_a->v.v[2] += delta.world_delta.v[2];
+        delta.linear_delta_other.v[0] *= pImpulse;
+        delta.linear_delta_other.v[1] *= pImpulse;
+        delta.linear_delta_other.v[2] *= pImpulse;
+        pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+        pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+        pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta_other, &pPartner->transform_matrix);
+        pPartner->v.v[0] += delta.world_delta.v[0];
+        pPartner->v.v[1] += delta.world_delta.v[1];
+        pPartner->v.v[2] += delta.world_delta.v[2];
+    } else {
+        delta.impulse.v[0] = pForce->direction_a.v[0] * pImpulse;
+        delta.linear_accel.v[0] = delta.impulse.v[0] / pObject_a->M;
+        delta.impulse.v[1] = pForce->direction_a.v[1] * pImpulse;
+        delta.linear_accel.v[1] = delta.impulse.v[1] / pObject_a->M;
+        delta.impulse.v[2] = pForce->direction_a.v[2] * pImpulse;
+        delta.linear_accel.v[2] = delta.impulse.v[2] / pObject_a->M;
+        pObject_a->velocity_car_space.v[0] += delta.linear_accel.v[0];
+        pObject_a->velocity_car_space.v[1] += delta.linear_accel.v[1];
+        pObject_a->velocity_car_space.v[2] += delta.linear_accel.v[2];
+        BrMatrix34ApplyV(&delta.world_delta, &delta.linear_accel, &pObject_a->transform_matrix);
+        pObject_a->v.v[0] += delta.world_delta.v[0];
+        pObject_a->v.v[1] += delta.world_delta.v[1];
+        pObject_a->v.v[2] += delta.world_delta.v[2];
+        if ((pObject_a->flags & 0x800) == 0) {
+            delta.angular_delta.v[0] = delta.impulse.v[2] * pForce->point_a.v[1] - delta.impulse.v[1] * pForce->point_a.v[2];
+            delta.angular_delta.v[1] = delta.impulse.v[0] * pForce->point_a.v[2] - delta.impulse.v[2] * pForce->point_a.v[0];
+            delta.angular_delta.v[2] = delta.impulse.v[1] * pForce->point_a.v[0] - delta.impulse.v[0] * pForce->point_a.v[1];
+            pObject_a->omega.v[0] += delta.angular_delta.v[0] / pObject_a->I.v[0];
+            pObject_a->omega.v[1] += delta.angular_delta.v[1] / pObject_a->I.v[1];
+            pObject_a->omega.v[2] += delta.angular_delta.v[2] / pObject_a->I.v[2];
+        }
+    }
+    if (pObject_b != NULL && pForce->type != 0xe) {
+        if (*(int*)((tU8*)pObject_b + 0x1e4) != 0) {
+            SetUpForce((br_vector3*)delta.angular_delta.v, (br_vector3*)delta.linear_delta.v, &pForce->point_b, &pForce->direction_b, pObject_b);
+            pPartner = (tPhysics_object*)SetUpHingePartners(delta.angular_delta.v, delta.linear_delta.v, delta.angular_delta_other.v, delta.linear_delta_other.v, pObject_b);
+            pImpulse = -pImpulse;
+            delta.angular_delta.v[0] *= pImpulse;
+            delta.angular_delta.v[1] *= pImpulse;
+            delta.angular_delta.v[2] *= pImpulse;
+            pObject_b->omega.v[0] += delta.angular_delta.v[0];
+            pObject_b->omega.v[1] += delta.angular_delta.v[1];
+            pObject_b->omega.v[2] += delta.angular_delta.v[2];
+            delta.angular_delta_other.v[0] *= pImpulse;
+            delta.angular_delta_other.v[1] *= pImpulse;
+            delta.angular_delta_other.v[2] *= pImpulse;
+            pPartner->omega.v[0] += delta.angular_delta_other.v[0];
+            pPartner->omega.v[1] += delta.angular_delta_other.v[1];
+            pPartner->omega.v[2] += delta.angular_delta_other.v[2];
+            delta.linear_delta.v[0] *= pImpulse;
+            delta.linear_delta.v[1] *= pImpulse;
+            delta.linear_delta.v[2] *= pImpulse;
+            pObject_b->velocity_car_space.v[0] += delta.linear_delta.v[0];
+            pObject_b->velocity_car_space.v[1] += delta.linear_delta.v[1];
+            pObject_b->velocity_car_space.v[2] += delta.linear_delta.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta, &pObject_b->transform_matrix);
+            pObject_b->v.v[0] += delta.world_delta.v[0];
+            pObject_b->v.v[1] += delta.world_delta.v[1];
+            pObject_b->v.v[2] += delta.world_delta.v[2];
+            delta.linear_delta_other.v[0] *= pImpulse;
+            delta.linear_delta_other.v[1] *= pImpulse;
+            delta.linear_delta_other.v[2] *= pImpulse;
+            pPartner->velocity_car_space.v[0] += delta.linear_delta_other.v[0];
+            pPartner->velocity_car_space.v[1] += delta.linear_delta_other.v[1];
+            pPartner->velocity_car_space.v[2] += delta.linear_delta_other.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_delta_other, &pPartner->transform_matrix);
+            pPartner->v.v[0] += delta.world_delta.v[0];
+            pPartner->v.v[1] += delta.world_delta.v[1];
+            pPartner->v.v[2] += delta.world_delta.v[2];
+        } else {
+            inverse_dt = -pImpulse;
+            delta.impulse.v[0] = pForce->direction_b.v[0] * inverse_dt;
+            delta.linear_accel.v[0] = delta.impulse.v[0] / pObject_b->M;
+            delta.impulse.v[1] = pForce->direction_b.v[1] * inverse_dt;
+            delta.linear_accel.v[1] = delta.impulse.v[1] / pObject_b->M;
+            delta.impulse.v[2] = pForce->direction_b.v[2] * inverse_dt;
+            delta.linear_accel.v[2] = delta.impulse.v[2] / pObject_b->M;
+            pObject_b->velocity_car_space.v[0] += delta.linear_accel.v[0];
+            pObject_b->velocity_car_space.v[1] += delta.linear_accel.v[1];
+            pObject_b->velocity_car_space.v[2] += delta.linear_accel.v[2];
+            BrMatrix34ApplyV(&delta.world_delta, &delta.linear_accel, &pObject_b->transform_matrix);
+            pObject_b->v.v[0] += delta.world_delta.v[0];
+            pObject_b->v.v[1] += delta.world_delta.v[1];
+            pObject_b->v.v[2] += delta.world_delta.v[2];
+            if ((pObject_b->flags & 0x800) == 0) {
+                delta.angular_delta.v[0] = delta.impulse.v[2] * pForce->point_b.v[1] - delta.impulse.v[1] * pForce->point_b.v[2];
+                delta.angular_delta.v[1] = delta.impulse.v[0] * pForce->point_b.v[2] - delta.impulse.v[2] * pForce->point_b.v[0];
+                delta.angular_delta.v[2] = delta.impulse.v[1] * pForce->point_b.v[0] - delta.impulse.v[0] * pForce->point_b.v[1];
+                pObject_b->omega.v[0] += delta.angular_delta.v[0] / pObject_b->I.v[0];
+                pObject_b->omega.v[1] += delta.angular_delta.v[1] / pObject_b->I.v[1];
+                pObject_b->omega.v[2] += delta.angular_delta.v[2] / pObject_b->I.v[2];
+            }
+        }
+    }
+}
 
 // ApplyJointForces
 
@@ -778,7 +985,133 @@ void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, cons
 
 // SetUpTorqueHingePartners
 
-// SetUpHingePartners
+// FUNCTION: CARMA2_HW 0x004becf0
+int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject) {
+    br_vector3 v;
+    br_vector3 d;
+    br_vector3 t2;
+    br_vector3 t;
+    br_vector3 axis;
+    tU8* pWorkspace;
+    tPhysics_object* pOther;
+    br_scalar f;
+    br_scalar fa;
+    br_scalar fb;
+    br_scalar fc;
+    int i;
+
+    pWorkspace = (tU8*)*(int*)((tU8*)pObject + 0x1e4);
+    pOther = (tPhysics_object*)*(int*)(pWorkspace + 4);
+    if (pOther == pObject->field_0x230) {
+        d.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+        t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+        t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+        t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+        axis.v[0] = -(pObject->physics_joint1->hinge_axis.v[0] * t2.v[0]
+            + pObject->physics_joint1->hinge_axis.v[1] * t2.v[1]
+            + pObject->physics_joint1->hinge_axis.v[2] * t2.v[2]);
+        axis.v[1] = -(pObject->physics_joint1->hinge_axis2.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis2.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis2.v[2] * pOut1[2]);
+        axis.v[2] = -(pObject->physics_joint1->hinge_axis3.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis3.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis3.v[2] * pOut1[2]);
+        BrMatrix34ApplyV(&t, &axis, (br_matrix34*)(pWorkspace + 8));
+        f = t.v[0] / pObject->M;
+        pOut2[0] = pObject->physics_joint1->hinge_axis.v[0] * f + pOut2[0];
+        pOut2[1] = pObject->physics_joint1->hinge_axis.v[1] * f + pOut2[1];
+        pOut2[2] = pObject->physics_joint1->hinge_axis.v[2] * f + pOut2[2];
+        f = -(t.v[0] / pOther->M);
+        pOut4[0] = pObject->physics_joint1->parent_bone_axis.v[0] * f;
+        pOut4[1] = pObject->physics_joint1->parent_bone_axis.v[1] * f;
+        pOut4[2] = pObject->physics_joint1->parent_bone_axis.v[2] * f;
+        t2.v[0] = pObject->physics_joint1->hinge_axis3.v[0] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[0] * t.v[1];
+        t2.v[1] = pObject->physics_joint1->hinge_axis3.v[1] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[1] * t.v[1];
+        t2.v[2] = pObject->physics_joint1->hinge_axis3.v[2] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[2] * t.v[1];
+        fa = pObject->physics_joint1->hinge_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->hinge_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->hinge_axis.v[2] * t.v[0];
+        v.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+        v.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+        v.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+        for (i = 0; i < 3; i++) {
+            pOut1[i] = v.v[i] / pObject->I.v[i] + pOut1[i];
+        }
+        BrMatrix34ApplyV(&v, &t2, &pObject->transform_matrix);
+        BrMatrix34TApplyV((br_vector3*)pOut3, &v, &pOther->transform_matrix);
+        d.v[0] = pObject->physics_joint1->field_0x14.v[0] - pOther->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x14.v[1] - pOther->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x14.v[2] - pOther->cmpos.v[2];
+        fa = pObject->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+        pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+        pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+        pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+        for (i = 0; i < 3; i++) {
+            pOut3[i] = -(pOut3[i] / pOther->I.v[i]);
+        }
+        return (int)pOther;
+    }
+    d.v[0] = pOther->physics_joint1->field_0x14.v[0] - pObject->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x14.v[1] - pObject->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x14.v[2] - pObject->cmpos.v[2];
+    t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+    t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+    t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+    axis.v[0] = pOther->physics_joint1->parent_bone_axis.v[0] * t2.v[0]
+        + pOther->physics_joint1->parent_bone_axis.v[1] * t2.v[1]
+        + pOther->physics_joint1->parent_bone_axis.v[2] * t2.v[2];
+    BrMatrix34ApplyV(&t2, (br_vector3*)pOut1, &pObject->transform_matrix);
+    BrMatrix34TApplyV(&v, &t2, &pOther->transform_matrix);
+    axis.v[1] = pOther->physics_joint1->hinge_axis2.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis2.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis2.v[2] * v.v[2];
+    axis.v[2] = pOther->physics_joint1->hinge_axis3.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis3.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis3.v[2] * v.v[2];
+    BrMatrix34ApplyV(&t, &axis, (br_matrix34*)((tU8*)*(int*)((tU8*)pOther + 0x1e4) + 8));
+    f = t.v[0] / pOther->M;
+    pOut4[0] = pOther->physics_joint1->hinge_axis.v[0] * f;
+    pOut4[1] = pOther->physics_joint1->hinge_axis.v[1] * f;
+    pOut4[2] = pOther->physics_joint1->hinge_axis.v[2] * f;
+    f = -(t.v[0] / pObject->M);
+    pOut2[0] = pOther->physics_joint1->parent_bone_axis.v[0] * f + pOut2[0];
+    pOut2[1] = pOther->physics_joint1->parent_bone_axis.v[1] * f + pOut2[1];
+    pOut2[2] = pOther->physics_joint1->parent_bone_axis.v[2] * f + pOut2[2];
+    pOut3[0] = pOther->physics_joint1->hinge_axis2.v[0] * t.v[1];
+    pOut3[1] = pOther->physics_joint1->hinge_axis2.v[1] * t.v[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis2.v[2] * t.v[1];
+    pOut3[0] = pOther->physics_joint1->hinge_axis3.v[0] * t.v[2] + pOut3[0];
+    pOut3[1] = pOther->physics_joint1->hinge_axis3.v[1] * t.v[2] + pOut3[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis3.v[2] * t.v[2] + pOut3[2];
+    BrMatrix34ApplyV(&v, (br_vector3*)pOut3, &pOther->transform_matrix);
+    BrMatrix34TApplyV(&t2, &v, &pObject->transform_matrix);
+    fa = pOther->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+    t2.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+    t2.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+    t2.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+    for (i = 0; i < 3; i++) {
+        pOut1[i] -= t2.v[i] / pObject->I.v[i];
+    }
+    d.v[0] = pOther->physics_joint1->field_0x08.v[0] - pOther->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x08.v[1] - pOther->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x08.v[2] - pOther->cmpos.v[2];
+    fa = pOther->physics_joint1->hinge_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->hinge_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->hinge_axis.v[2] * t.v[0];
+    pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+    pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+    pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+    for (i = 0; i < 3; i++) {
+        pOut3[i] = pOut3[i] / pOther->I.v[i];
+    }
+    return (int)pOther;
+}
 
 // MakeMatrix
 
