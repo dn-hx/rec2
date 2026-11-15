@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "60-phil.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -2045,7 +2046,61 @@ void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, const br_vector3* pV)
 
 // TurnPhysicsOn
 
-// MakeCharacterPhysicworthy
+// Inline copy of PedGetRootObjectInline for the MakeCharacterPhysicworthy call site: the original
+// inlines the root-object search there, so keep a local static copy above the caller.
+static tPhysics_object* C2_HOOK_FASTCALL PedGetRootObjectInlineMW(tPed_character_instance *pPed) {
+    tPed_form* form;
+    tPed_form_boned_phys* boned_phys;
+    int i;
+
+    form = pPed->personality->form;
+    boned_phys = &form->boned_physicing[pPed->field_0x5];
+    for (i = 0; i < form->count_bones; i++) {
+        if (boned_phys->collision_infos[i]->shape != NULL) {
+            return boned_phys->collision_infos[i];
+        }
+    }
+    return NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x004091e0
+int C2_HOOK_FASTCALL MakeCharacterPhysicworthy(tPed_character_instance* pCharacter) {
+    tPhysics_object* obj;
+    tPhysics_object* child;
+    br_vector3* velocity;
+    tU32 flags;
+
+    flags = pCharacter->field_0x14;
+    if (flags & 4) {
+        return 0x17;
+    }
+    if (flags == 0) {
+        return 0x15;
+    }
+    if (flags & 1) {
+        obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+    } else {
+        obj = PedGetRootObjectInlineMW(pCharacter);
+    }
+    obj->disable_move_rotate = 0;
+    velocity = &pCharacter->field_0xd8;
+    if (velocity != NULL) {
+        obj->v.v[0] = velocity->v[0];
+        obj->v.v[1] = velocity->v[1];
+        obj->v.v[2] = velocity->v[2];
+        for (child = obj->child; child != NULL; child = child->next) {
+            SetObjectV(child, velocity);
+        }
+    }
+    PHILMakeObjectActive(obj, NULL, NULL, 1);
+    obj->field_0xed = 1;
+    PHILSetObjectProperty(obj, 0, 1.0);
+    PHILSetObjectProperty(obj, 3, 0);
+    PHILSetObjectProperty(obj, 4, 0);
+    PHILSetObjectProperty(obj, 5, 0);
+    pCharacter->field_0x14 |= 4;
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00409340
 // FUNCTION: CARMA2_SW 0x00409340
