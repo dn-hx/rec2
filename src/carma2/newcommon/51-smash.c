@@ -1557,7 +1557,89 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
 
 // ProcessModel
 
-// BashModel
+// FUNCTION: CARMA2_HW 0x004f4e20
+float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
+    br_matrix34 matrix;
+    br_bounds3 bounds;
+    br_vector3 v;
+    int seed;
+    tU32 time;
+    float result;
+    tPhysics_object* object;
+    char* identifier;
+    br_actor* child;
+    int changed;
+    int i;
+
+    object = pObject;
+    result = -1.f;
+    time = GetTotalTime();
+    gINT_006a3334 = 0;
+    *pFlag = 0;
+    if (pMagnitude < pSpec->mode_data.shrapnel.removal_threshold) {
+        return -1.f;
+    }
+    v.v[0] = ((float*)object->field_0x1b4)[0] * 6.9;
+    v.v[1] = ((float*)object->field_0x1b4)[1] * 6.9;
+    v.v[2] = ((float*)object->field_0x1b4)[2] * 6.9;
+    seed = (int)pForce->v[1] ^ (int)pForce->v[2] ^ (int)pForce->v[0];
+    bounds = pActor->model->bounds;
+    gINT_006a3334 = 0;
+    changed = 0;
+    switch (pSpec->mode) {
+    case kSmashableMode_NoChange:
+        if (pSpec->field_0x10 == 0) {
+            changed = 1;
+        }
+        pSpec->field_0x10 = GetTotalTime();
+        break;
+    case kSmashableMode_Remove:
+        if (pActor->render_style != 1) {
+            changed = 1;
+            pActor->render_style = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, NULL);
+            if (pActor != NULL && (identifier = pActor->identifier) != NULL && identifier[0] == '&'
+                    && gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')] != NULL
+                    && pActor == object->actor) {
+                pActor->t.t.translate.t.v[1] = -1000.f;
+                object->transform_matrix.m[3][1] = -1000.f;
+            }
+        }
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        object->box_face_ref = gFace_num__car - 2;
+        break;
+    case kSmashableMode_ReplaceModel:
+        if (pActor->model != pSpec->replace.model) {
+            changed = 1;
+            PipeSingleSmashModelChange(pActor, pActor->model, pSpec->replace.model);
+            pActor->model = pSpec->replace.model;
+            if (PercentageChance(pSpec->replace.smoke_fire_chance.chance_fire) && pSpec->replace.smoke_fire_chance.model_1_int > 0) {
+                for (i = 0; i < pSpec->replace.smoke_fire_chance.model_1_int; i++) {
+                    CreateSmokeColumn2(0, pActor, NULL, NULL, IRandomBetween(pSpec->replace.smoke_fire_chance.model_2_int, pSpec->replace.smoke_fire_chance.model_3_int), IRandomBetween(0, pActor->model->prepared->groups->nvertices), 10000000);
+                }
+            }
+            for (child = pActor->children; child != NULL; child = child->next) {
+                PipeSingleSmashModelChange(child, child->model, NULL);
+                child->render_style = 1;
+            }
+            AddChangedPoint(&pActor->t.t.translate.t);
+        }
+        object->box_face_ref = gFace_num__car - 2;
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        break;
+    default:
+        break;
+    }
+    if (changed) {
+        result = pSpec->mode_data.shrapnel.removal_threshold;
+        *pFlag = 1;
+        BrActorToActorMatrix34(&matrix, pActor, gUniverse_actor);
+        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, &pActor->t.t.translate.t, pPosition, pActor, time, gCount_shrapnel_shower_calls, &matrix, &bounds, &gZero_vector__smash, pMagnitude, (undefined4)pForce, pNetwork);
+    }
+    return result;
+}
 
 // SendNetSmash
 
@@ -1571,10 +1653,34 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f52f0
+// FUNCTION: CARMA2_HW 0x004f52f0
 // STUB: CARMA2_SW 0x004f0f50
 float C2_HOOK_FASTCALL BashObject(tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
-    NOT_IMPLEMENTED();
+    float result;
+    int flag;
+    char* identifier;
+    tSmashable_item_spec* trigger;
+
+    result = -1.f;
+    flag = 0;
+    if (pActor != NULL) {
+        identifier = pActor->identifier;
+        if (identifier != NULL && identifier[0] == '&') {
+            trigger = gSmashable_track_indexable_triggers[10 * (identifier[1] - '0') + (identifier[2] - '0')];
+            if (trigger != NULL) {
+                if ((pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 1) && identifier[3] != '!')
+                        || (pSnap == 0 && (trigger->trigger_object.number.field_0x1 & 4) && identifier[3] == '!')
+                        || (pSnap != 0 && (trigger->trigger_object.number.field_0x1 & 2))) {
+                    gINT_006a3334 = 0;
+                    result = BashModel(trigger, pObject, pActor, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                    if (flag != 0 && pNetwork == 0) {
+                        SendNetSmash(pObject, NULL, pMagnitude, pPosition, pNormal, pForce, 1);
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }
 
 #ifdef REC2_MATCHING
