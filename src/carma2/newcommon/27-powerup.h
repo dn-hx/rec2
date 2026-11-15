@@ -143,7 +143,7 @@ extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime);
 
-extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pFrame_period);
+extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
 // GotPowerupN
 
