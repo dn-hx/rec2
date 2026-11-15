@@ -107,7 +107,7 @@ extern void C2_HOOK_FASTCALL PedApplyVanishDismembered(tPedestrian* pPedestrian,
 
 // PedApplyPedModelChangeP
 
-// PedApplyPedModelChange
+extern void C2_HOOK_FASTCALL PedApplyPedModelChange(int field_0x0, int field_0x4, int field_0x6, int field_0x8);
 
 extern int C2_HOOK_FASTCALL DismemberCharacterAR(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pAngular_velocity);
 
