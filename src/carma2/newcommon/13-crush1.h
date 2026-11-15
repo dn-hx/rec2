@@ -546,7 +546,7 @@ extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
 
-// DecodeNetShapeData
+extern void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData);
 
 extern void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar);
 
