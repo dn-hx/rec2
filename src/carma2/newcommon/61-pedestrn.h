@@ -561,7 +561,7 @@ extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed
 
 // DisposeClonedMaterials
 
-// DisposeAllBonerData
+extern void C2_HOOK_FASTCALL DisposeAllBonerData(void);
 
 extern int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pModel_index, int pModel_set);
 
