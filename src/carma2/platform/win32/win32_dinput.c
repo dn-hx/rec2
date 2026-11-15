@@ -225,6 +225,22 @@ static int C2_HOOK_FASTCALL AcquireDInputJoystickDevice(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00458660
+int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude) {
+    if (!gForceFeedbackAvailable) {
+        return 0;
+    }
+    if (pMagnitude < 1) {
+        StopDinputEffect(gBasic_friction_joystick_effect_index);
+        return 1;
+    }
+    if (pMagnitude > 10000) {
+        pMagnitude = 10000;
+    }
+    SetDinputEffectGain(gBasic_friction_joystick_effect_index, pMagnitude);
+    StartDinputEffect(gBasic_friction_joystick_effect_index);
+    return 1;
+}
 // FUNCTION: CARMA2_HW 0x004589d0
 // FUNCTION: CARMA2_SW 0x00458760
 tDirectInputJoystickInfo* C2_HOOK_FASTCALL JoystickDInputGetInfo(int pJoystickIndex, tU32* pButtonMask, tU32* pAxisMask) {
