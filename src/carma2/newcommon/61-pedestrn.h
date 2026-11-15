@@ -249,7 +249,7 @@ extern void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, in
 
 // KillNapalmBolt
 
-// MungeNapalm
+extern void C2_HOOK_FASTCALL MungeNapalm(void);
 
 // PedHeadingTowardsCollisionObject
 
