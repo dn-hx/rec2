@@ -144,7 +144,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // GetJointForces
 
-// GetUniversalRotationAngle
+extern void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2);
 
 // GetObjectsParent
 
