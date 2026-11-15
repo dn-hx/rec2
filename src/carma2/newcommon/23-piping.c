@@ -29,8 +29,7 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
-#include "39-oil.h"
-#include "57-drone.h"
+#include "37-brucetrk.h"
 
 #include <s3/internal/audio.h>
 
@@ -2102,27 +2101,20 @@ void C2_HOOK_FASTCALL UndoModelMash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chu
 }
 
 // FUNCTION: CARMA2_HW 0x004c9f90
-// FUNCTION: CARMA2_SW 0x004c66c0
 void C2_HOOK_FASTCALL UndoRelink(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
-    tPipe_chunk* chunk;
-    br_actor* actor;
-    br_actor* parent;
-
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
-    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_relink, old_parent, 0x4);
-
-    (void)pPrev_chunk;
-    chunk = *pChunk;
-    actor = chunk->data.relink.actor;
-    parent = chunk->data.relink.old_parent;
+    tPipe_chunk_relink* chunk = (tPipe_chunk_relink*)*pChunk;
+    br_actor* actor = chunk->actor;
+    br_actor* parent = (br_actor*)chunk->field_0x8;
     if (actor->parent != NULL) {
         if (parent != NULL) {
             ActorRelink(parent, actor);
         } else {
             BrActorRemove(actor);
         }
-    } else if (parent != NULL) {
-        BrActorAdd(parent, actor);
+    } else {
+        if (parent != NULL) {
+            BrActorAdd(parent, actor);
+        }
     }
 }
 
