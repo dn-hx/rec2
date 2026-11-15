@@ -1918,29 +1918,80 @@ void C2_HOOK_FASTCALL StartRenderingThisDrone(tDrone_spec* pDrone) {
 }
 
 
-/* inlined into its callers in the original (no standalone copy) */
-static int C2_HOOK_FASTCALL DroneHasCollided(tDrone_spec* pDrone_spec) {
-    tPhysics_object* collision;
+/* local declarations for the inlined InitDroneCollisionObject body (no new externs in headers) */
+extern int gFace_num__car;
+extern tCollision_shape_box* C2_HOOK_FASTCALL AllocateBoxCollisionShape(int pType);
+extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
+extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
+extern void C2_HOOK_FASTCALL GetNewBoundingBox(br_bounds* b2, br_bounds* b1, br_matrix34* m);
 
-    for (collision = gPHIL_list_collision_infos; collision != NULL; collision = collision->next) {
-        if (&pDrone_spec->collision_info != collision && TestObjectOverlap(&pDrone_spec->collision_info, collision)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
+/* InitDroneCollisionObject (0x44f980) and DroneHasCollided are inlined at this call site in the original */
+// PARTIAL 80.26%: CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing 0x004518e0 - x87 schedule of the I/cmpos block (same residual as InitDroneCollisionObject 0x44f980, 81.07) and the callee-saved pushes stay in the prologue because of the loop (see state/findings/)
 // FUNCTION: CARMA2_HW 0x004518e0
 int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone) {
+    br_bounds3 bnds;
+    tPhysics_object* pPhysics;
+    tPhysics_shape* original_shape;
+    br_scalar size_x;
+    tPhysics_object* collision;
 
     if (gTime_stamp_for_this_munging > pDrone->last_collide_check + 1000) {
         pDrone->last_collide_check = gTime_stamp_for_this_munging;
-        InitDroneCollisionObject(pDrone);
-
-        return !DroneHasCollided(pDrone);
-    } else {
-        return 0;
+        pPhysics = &pDrone->collision_info;
+        BrActorToBounds(&bnds, pDrone->actor);
+        bnds.min.v[1] = bnds.min.v[1] - -0.001f;
+        if (pDrone->field_0x46) {
+            original_shape = pPhysics->shape;
+        }
+        memset(pPhysics, 0, sizeof(tPhysics_object));
+        if (pDrone->field_0x46) {
+            pPhysics->shape = original_shape;
+        }
+        else {
+            pPhysics->shape = (tPhysics_shape*)AllocateBoxCollisionShape(kMem_drone_collision_stuff);
+            pPhysics->shape->box.common.bb = bnds;
+            pPhysics->shape->box.common.field_0x1c = bnds;
+            pPhysics->shape->box.common.next = NULL;
+            pDrone->field_0x46 = 1;
+        }
+        pPhysics->flags_0x238 = 16;
+        pPhysics->owner = pDrone;
+        pPhysics->actor = pDrone->actor;
+        pPhysics->M = pDrone->form->M;
+        BrVector3Set(&pPhysics->cmpos, 0.f, .09f, 0.f);
+        BrVector3Set(&pPhysics->field_0x54, 0.f, -.4f / WORLD_SCALE, 0.f);
+        BrMatrix34Copy(&pPhysics->transform_matrix, &pDrone->actor->t.t.mat);
+        pPhysics->box_face_ref = gFace_num__car - 2;
+        pPhysics->field_0x1a0 = 0x100000;
+        FillInShape(pPhysics->shape);
+        UpdateCollisionObject(pPhysics);
+        GetNewBoundingBox(&pPhysics->field_0xf4, &pPhysics->bb1, &pPhysics->transform_matrix);
+        size_x = bnds.max.v[0] - bnds.min.v[0];
+        pPhysics->I.v[0] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + (bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1])) * pPhysics->M * 0.083333336f;
+        pPhysics->I.v[1] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+        pPhysics->I.v[2] = ((bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+        pPhysics->cmpos.v[0] = bnds.min.v[0] - pDrone->form->center.v[1] * size_x * -0.01;
+        pPhysics->cmpos.v[1] = bnds.min.v[1] - pDrone->form->center.v[2] * (bnds.max.v[1] - bnds.min.v[1]) * -0.01;
+        pPhysics->cmpos.v[2] = bnds.min.v[2] - pDrone->form->center.v[0] * (bnds.max.v[2] - bnds.min.v[2]) * -0.01;
+        if (pDrone->form->type == kDroneType_train) {
+            pPhysics->world_friction = -.75;
+        }
+        pPhysics->disable_move_rotate = 1;
+        pPhysics->field_0xed = 1;
+        pPhysics->flags |= 0x40;
+        pPhysics->drivable_on = !!(pDrone->form->flags & 0x8);
+        BrVector3SetFloat(&pPhysics->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pPhysics->omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pPhysics->rotate_omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pPhysics->velocity_car_space, 0.f, 0.f, 0.f);
+        for (collision = gPHIL_list_collision_infos; collision != NULL; collision = collision->next) {
+            if (&pDrone->collision_info != collision && TestObjectOverlap(&pDrone->collision_info, collision)) {
+                return 0;
+            }
+        }
+        return 1;
     }
+    return 0;
 }
 
 // CalcRenderBoundsCentre
