@@ -215,138 +215,185 @@ void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX,
 
 // ExtractColumns
 
+// Inlined copy of XZToColumnXZ (0x0040cb90), as the original RenderTrack inlines it.
+static void C2_HOOK_FASTCALL RenderTrackXZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec) {
+    br_scalar x;
+    br_scalar z;
+    br_scalar size_x = pTrack_spec->column_size_x;
+    br_scalar size_z = pTrack_spec->column_size_z;
+
+    x = (pX - pTrack_spec->origin_x) / size_x;
+    z = (pZ - pTrack_spec->origin_z) / size_z;
+    if (x < 0.0f) {
+        x = 0.0f;
+    }
+    if (x >= pTrack_spec->ncolumns_x) {
+        x = pTrack_spec->ncolumns_x - 1.0f;
+    }
+    if (z < 0.0f) {
+        z = 0.0f;
+    }
+    if (z >= pTrack_spec->ncolumns_z) {
+        z = pTrack_spec->ncolumns_z - 1.0f;
+    }
+    *pColumn_x = (tU8)x;
+    *pColumn_z = (tU8)z;
+}
+
 // FUNCTION: CARMA2_HW 0x0040d7c0
 // FUNCTION: CARMA2_SW 0x0040d7b0
 void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    br_camera* camera;
     tU8 column_x;
     tU8 column_z;
     tU8 min_x;
     tU8 max_x;
     tU8 min_z;
     tU8 max_z;
-    br_vector3 edge_before;
-    br_vector3 edge_after;
-    br_camera* camera;
-    br_scalar tan_fov_ish;
-    br_scalar scale;
-    tU8 x;
-    tU8 z;
+    tU32 x_pos;
+    tU32 z_pos;
+    int x_count;
+    int z_count;
     tU8 idx_x;
     tU8 idx_z;
     br_actor* a;
+    br_scalar tan_fov_ish;
+    br_scalar scale;
+    br_vector3 edge_before;
+    br_vector3 edge_after;
 
     camera = (br_camera*)pCamera->type_data;
     if (pTrack_spec->columns == NULL) {
         BrZbsSceneRenderAdd(pWorld);
-    } else {
-        XZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0], pCamera_to_world->m[3][2], pTrack_spec);
-        min_x = column_x;
-        max_x = column_x;
-        min_z = column_z;
-        max_z = column_z;
-        tan_fov_ish = BR_SIN(camera->field_of_view / 2) / BR_COS(camera->field_of_view / 2);
+        return;
+    }
+    RenderTrackXZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0], pCamera_to_world->m[3][2], pTrack_spec);
+    min_x = column_x;
+    max_x = column_x;
+    min_z = column_z;
+    max_z = column_z;
+    tan_fov_ish = BR_SIN(camera->field_of_view / 2) / BR_COS(camera->field_of_view / 2);
 
-        edge_after.v[1] = tan_fov_ish;
-        edge_after.v[0] = tan_fov_ish * camera->aspect;
-        edge_after.v[2] = -1.0;
-        scale = camera->yon_z * gYon_factor;
-        BrVector3Scale(&edge_before, &edge_after, scale);
-        BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
-        XZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
-        if (column_x < min_x) {
-            min_x = column_x;
-        } else if (column_x > max_x) {
-            max_x = column_x;
+    edge_after.v[0] = tan_fov_ish * camera->aspect;
+    edge_after.v[1] = tan_fov_ish;
+    edge_after.v[2] = -1.0;
+    scale = camera->yon_z * gYon_factor;
+    edge_before.v[0] = scale * edge_after.v[0];
+    edge_before.v[1] = scale * edge_after.v[1];
+    edge_before.v[2] = scale * -1.0f;
+    BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
+    RenderTrackXZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
+    if (column_x < min_x) {
+        min_x = column_x;
+    } else if (column_x > max_x) {
+        max_x = column_x;
+    }
+    if (column_z < min_z) {
+        min_z = column_z;
+    } else if (column_z > max_z) {
+        max_z = column_z;
+    }
+    edge_before.v[0] = -edge_before.v[0];
+    BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
+    RenderTrackXZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
+    if (column_x < min_x) {
+        min_x = column_x;
+    } else if (column_x > max_x) {
+        max_x = column_x;
+    }
+    if (column_z < min_z) {
+        min_z = column_z;
+    } else if (column_z > max_z) {
+        max_z = column_z;
+    }
+    edge_before.v[1] = -edge_before.v[1];
+    BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
+    RenderTrackXZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
+    if (column_x < min_x) {
+        min_x = column_x;
+    } else if (column_x > max_x) {
+        max_x = column_x;
+    }
+    if (column_z < min_z) {
+        min_z = column_z;
+    } else if (column_z > max_z) {
+        max_z = column_z;
+    }
+    edge_before.v[0] = -edge_before.v[0];
+    BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
+    RenderTrackXZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
+    if (column_x < min_x) {
+        min_x = column_x;
+    } else if (column_x > max_x) {
+        max_x = column_x;
+    }
+    if (column_z < min_z) {
+        min_z = column_z;
+    } else if (column_z > max_z) {
+        max_z = column_z;
+    }
+    if (min_x != 0) {
+        min_x--;
+    }
+    if ((int)max_x < (int)pTrack_spec->ncolumns_x - 1) {
+        max_x++;
+    }
+    if (min_z != 0) {
+        min_z--;
+    }
+    if ((int)max_z < (int)pTrack_spec->ncolumns_z - 1) {
+        max_z++;
+    }
+    if ((float)fabs(pCamera_to_world->m[2][0]) <= (float)fabs(pCamera_to_world->m[2][2])) {
+        if (min_z <= max_z) {
+            z_pos = min_z;
+            z_count = (int)max_z - (int)z_pos + 1;
+            do {
+                if (min_x <= max_x) {
+                    x_pos = min_x;
+                    x_count = (int)max_x - (int)x_pos + 1;
+                    do {
+                        idx_x = pCamera_to_world->m[2][0] > 0.f ? x_pos : (tU8)(max_x + min_x - x_pos);
+                        idx_z = pCamera_to_world->m[2][2] > 0.f ? z_pos : (tU8)(max_z + min_z - z_pos);
+                        a = pTrack_spec->columns[idx_z][idx_x].actor_0x0;
+                        if (a != NULL) {
+                            if (gRender_alternative_track_actors == 0) {
+                                a = pTrack_spec->columns[idx_z][idx_x].actor_0x4;
+                            }
+                            BrZbsSceneRenderAdd(a);
+                        }
+                        x_pos++;
+                        x_count--;
+                    } while (x_count != 0);
+                }
+                z_pos++;
+                z_count--;
+            } while (z_count != 0);
         }
-        if (column_z < min_z) {
-            min_z = column_z;
-        } else if (column_z > max_z) {
-            max_z = column_z;
-        }
-        edge_before.v[0] = -edge_before.v[0];
-        BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
-        XZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
-        if (column_x < min_x) {
-            min_x = column_x;
-        } else if (column_x > max_x) {
-            max_x = column_x;
-        }
-        if (column_z < min_z) {
-            min_z = column_z;
-        } else {
-            if (column_z > max_z) {
-                max_z = column_z;
-            }
-        }
-        edge_before.v[1] = -edge_before.v[1];
-        BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
-        XZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
-        if (column_x < min_x) {
-            min_x = column_x;
-        } else if (column_x > max_x) {
-            max_x = column_x;
-        }
-        if (column_z < min_z) {
-            min_z = column_z;
-        } else if (column_z > max_z) {
-            max_z = column_z;
-        }
-        edge_before.v[0] = -edge_before.v[0];
-        BrMatrix34ApplyV(&edge_after, &edge_before, pCamera_to_world);
-        XZToColumnXZ(&column_x, &column_z, pCamera_to_world->m[3][0] + edge_after.v[0], pCamera_to_world->m[3][2] + edge_after.v[2], pTrack_spec);
-        if (column_x < min_x) {
-            min_x = column_x;
-        } else if (column_x > max_x) {
-            max_x = column_x;
-        }
-        if (column_z < min_z) {
-            min_z = column_z;
-        } else if (column_z > max_z) {
-            max_z = column_z;
-        }
-        if (min_x > 0) {
-            min_x--;
-        }
-        if (max_x < pTrack_spec->ncolumns_x - 1) {
-            max_x++;
-        }
-        if (min_z > 0) {
-            min_z--;
-        }
-        if (max_z < pTrack_spec->ncolumns_z - 1) {
-            max_z++;
-        }
-        if ((float)fabs(pCamera_to_world->m[2][0]) > (float)fabs(pCamera_to_world->m[2][2])) {
-            for (x = min_x; x <= max_x; x++) {
-                for (z = min_z; z <= max_z; z++) {
-                    idx_x = (tU8)(pCamera_to_world->m[2][0] > 0.f ? x : min_x + max_x - x);
-                    idx_z = (tU8)(pCamera_to_world->m[2][2] > 0.f ? z : min_z + max_z - z);
+    } else if (min_x <= max_x) {
+        x_pos = min_x;
+        x_count = (int)max_x - (int)x_pos + 1;
+        do {
+            if (min_z <= max_z) {
+                z_pos = min_z;
+                z_count = (int)max_z - (int)z_pos + 1;
+                do {
+                    idx_x = pCamera_to_world->m[2][0] > 0.f ? x_pos : (tU8)(max_x + min_x - x_pos);
+                    idx_z = pCamera_to_world->m[2][2] > 0.f ? z_pos : (tU8)(max_z + min_z - z_pos);
                     a = pTrack_spec->columns[idx_z][idx_x].actor_0x0;
                     if (a != NULL) {
-                        if (gRender_alternative_track_actors) {
-                            BrZbsSceneRenderAdd(a);
-                        } else {
-                            BrZbsSceneRenderAdd(pTrack_spec->columns[idx_z][idx_x].actor_0x4);
+                        if (gRender_alternative_track_actors == 0) {
+                            a = pTrack_spec->columns[idx_z][idx_x].actor_0x4;
                         }
+                        BrZbsSceneRenderAdd(a);
                     }
-                }
+                    z_pos++;
+                    z_count--;
+                } while (z_count != 0);
             }
-        } else {
-            for (z = min_z; z <= max_z; z++) {
-                for (x = min_x; x <= max_x; x++) {
-                    idx_x = (tU8)(pCamera_to_world->m[2][0] > 0.f ? x : min_x + max_x - x);
-                    idx_z = (tU8)(pCamera_to_world->m[2][2] > 0.f ? z : min_z + max_z - z);
-                    a = pTrack_spec->columns[idx_z][idx_x].actor_0x0;
-                    if (a != NULL) {
-                        if (gRender_alternative_track_actors) {
-                            BrZbsSceneRenderAdd(a);
-                        } else {
-                            BrZbsSceneRenderAdd(pTrack_spec->columns[idx_z][idx_x].actor_0x4);
-                        }
-                    }
-                }
-            }
-        }
+            x_pos++;
+            x_count--;
+        } while (x_count != 0);
     }
 }
 
