@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "47-win95net.h"
 #include <stddef.h>
 
 #include <stdlib.h>
@@ -442,6 +443,10 @@ void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_length) {
 
 // NetExtractPlayerID
 
+// FUNCTION: CARMA2_HW 0x0049ee30
+tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails) {
+    return PDNetExtractGameID(pDetails);
+}
 // FUNCTION: CARMA2_HW 0x0049ee50
 int C2_HOOK_FASTCALL NetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress) {
 
