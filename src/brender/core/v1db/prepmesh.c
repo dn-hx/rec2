@@ -797,19 +797,27 @@ void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_ver
     }
 }
 
+// PARTIAL 99.99%: SmoothingCreased 0x00520b50 [x87-schedule] - one fld/fmul order in the dot block (0x520bbe-0x520bcb), reccmp EFFECTIVE
 // FUNCTION: CARMA2_HW 0x00520b50
 void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, prep_vertex** start, prep_vertex** end) {
-    br_vector3 o_n;
     prep_vertex** outer;
     prep_vertex** inner;
+    br_scalar o_x;
+    br_scalar o_y;
+    br_scalar o_z;
+    br_scalar i_x;
+    br_scalar i_y;
+    br_scalar i_z;
 
     for (outer = start; outer < end; outer++) {
-        o_n.v[0] = model->faces[(*outer)->f].n.v[0];
-        o_n.v[1] = model->faces[(*outer)->f].n.v[1];
-        o_n.v[2] = model->faces[(*outer)->f].n.v[2];
+        o_x = model->faces[(*outer)->f].n.v[0];
+        o_y = model->faces[(*outer)->f].n.v[1];
+        o_z = model->faces[(*outer)->f].n.v[2];
         for (inner = start; inner < end; inner++) {
-            if ((inner == outer) || ((model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) && (BrVector3Dot((br_vector3*)&model->faces[(*inner)->f].n, &o_n) > crease_limit))) {
-                BrVector3Accumulate(&(*outer)->n, (br_vector3*)&model->faces[(*inner)->f].n);
+            if (inner == outer || ((model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) && ((i_z = model->faces[(*inner)->f].n.v[2]) * o_z + (i_y = model->faces[(*inner)->f].n.v[1]) * o_y + (i_x = model->faces[(*inner)->f].n.v[0]) * o_x > crease_limit))) {
+                (*outer)->n.v[0] = model->faces[(*inner)->f].n.v[0] + (*outer)->n.v[0];
+                (*outer)->n.v[1] = model->faces[(*inner)->f].n.v[1] + (*outer)->n.v[1];
+                (*outer)->n.v[2] = model->faces[(*inner)->f].n.v[2] + (*outer)->n.v[2];
             }
         }
     }
