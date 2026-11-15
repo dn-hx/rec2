@@ -257,6 +257,7 @@ void C2_HOOK_FASTCALL FrobFog(void) {
     FogAccordingToGPSCDE(gDefault_track_material);
 }
 
+// PARTIAL 30.46%: MungeSkyVs 0x00445500 [structure] - prologue and outer-loop constants fixed; frame 8 vs 0xc (orig keeps pMaterial in a slot); first 12-loop and vertex-copy loop shape differ; see state/findings/MungeSkyVs.md
 // FUNCTION: CARMA2_HW 0x00445500
 void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
     int i;
@@ -269,8 +270,9 @@ void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
         return;
     }
     if (pMaterial->flags & BR_MATF_MAP_INTERPOLATION) {
-        height = pMaterial->colour_map->height - 2;
-        tex_y = 1.0f / (float)pMaterial->colour_map->height;
+        height = pMaterial->colour_map->height;
+        tex_y = 1.0 / (float)height;
+        height = height - 2;
     } else {
         height = pMaterial->colour_map->height;
         tex_y = 0.0f;
@@ -286,7 +288,7 @@ void C2_HOOK_FASTCALL MungeSkyVs(br_model* pModel, br_material* pMaterial) {
     for (i = 0; i < 17; vertex_idx+=4, i++) {
         int j;
 
-        pModel->vertices[vertex_idx].map.v[1] = tex_y + (float)(17 - i) * f_height / 18.0f / pMaterial->colour_map->height;
+        pModel->vertices[vertex_idx].map.v[1] = tex_y - ((float)(17 - i) * f_height * -0.0555555559694767f) / (float)pMaterial->colour_map->height;
         for (j = 1; j < 4; j++) {
             pModel->vertices[vertex_idx + j].map.v[1] = pModel->vertices[vertex_idx].map.v[1];
         }
