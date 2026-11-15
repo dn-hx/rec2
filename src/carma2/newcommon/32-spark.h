@@ -126,7 +126,7 @@ extern void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar);
 
 // MungeShrapnel
 
-// DrMatrix34Rotate
+extern void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a);
 
 extern int C2_HOOK_CDECL CmpSmokeZ(const void* p1, const void* p2);
 
