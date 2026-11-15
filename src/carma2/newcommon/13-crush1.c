@@ -167,7 +167,6 @@ static tU32 last_flap_bits;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 d56e70047
 // FUNCTION: CARMA2_HW 0x0041fbe0
 float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
     float rear;
@@ -1523,7 +1522,6 @@ static float C2_HOOK_FASTCALL SoftnessOfNearestPoint(tCar_spec* pCar_spec, br_ve
     return softcb_data.softness_factor;
 }
 
-// and ApexWorm/rec2 747fd912a
 // FUNCTION: CARMA2_HW 0x0042b0e0
 void C2_HOOK_FASTCALL SetUpShapeLimitingStuff(tCar_crush_spec* pCar_crush, tCar_spec* pCar_spec) {
     br_bounds3 wheel_all_bounds;
@@ -2059,7 +2057,6 @@ void C2_HOOK_FASTCALL SetFlapCheckVertices(tCar_crush_flap_data* pFlap_data, con
 
 // InitModelCrushData
 
-// based on ApexWorm/rec2 5ae3d3cb2
 // FUNCTION: CARMA2_HW 0x0042c300
 float C2_HOOK_FASTCALL PointEdgeDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB) {
     br_vector3 pAB;
@@ -2264,7 +2261,6 @@ void C2_HOOK_FASTCALL SimpleCrushModel(br_model* pModel, int pCount, float* pPoi
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 dfac42acd
 // FUNCTION: CARMA2_HW 0x0042c8b0
 float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3* pVertices) {
     float closest_distance;
@@ -2301,7 +2297,6 @@ float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3
 // PointSimplexDistSq
 
 
-// based on ApexWorm/rec2 247ea4cbf
 // FUNCTION: CARMA2_HW 0x0042ca30
 float C2_HOOK_FASTCALL PointTriangleDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB, const br_vector3* pC) {
     br_vector3 ab;
@@ -2372,7 +2367,6 @@ int C2_HOOK_FASTCALL OutsideEdgeLine(const br_vector3* pPoint, const br_vector3*
 
 // FUNCTION: CARMA2_HW 0x0042ce00
 float C2_HOOK_FASTCALL PointRectDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB, const br_vector3* pC) {
-    // based on ApexWorm/rec2 08141eedd
     br_vector3 u;
     br_vector3 v;
     br_vector3 offset;
@@ -2501,7 +2495,6 @@ void C2_HOOK_FASTCALL QueueDroneCrush(tPhysics_object* pObject, int pChain_count
 
 // DoDroneCrushing
 
-// based on ApexWorm/rec2 773b90994 (reference only)
 // FUNCTION: CARMA2_HW 0x0042d390
 // FUNCTION: CARMA2_SW 0x0042d400
 void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_vector3* pVector, float pScale, int pCount, const br_vector3* pPoints) {
@@ -2760,7 +2753,6 @@ extern tCar_spec* gActive_car_list[139];
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 bf0127d92 src/carma2/newcommon/13-crush1.c
 // FUNCTION: CARMA2_HW 0x0042da20
 void C2_HOOK_FASTCALL SendAllSemiDetachedBits(undefined4* pRecipient) {
     int i;
@@ -5560,7 +5552,6 @@ void C2_HOOK_FASTCALL UnBendCollisionShapes(tCar_spec* pCar_spec, const tBend_po
     pCar_spec->car_crush_spec->expand_bounding_box = 3;
 }
 
-// based on ApexWorm/rec2 14c53892 src/carma2/newcommon/13-crush1.c (reference only)
 void C2_HOOK_FASTCALL UnBendOtherThings(tCar_spec* pCar_spec, tBend_data_local* pBend) {
     tBend_point_context_local context;
 
@@ -5816,7 +5807,6 @@ void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor,
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 f71c1323b (CheckFlapAngles) and the REA pseudocode
 // FUNCTION: CARMA2_HW 0x00434320
 intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pValue) {
     tUser_crush_data* user;
@@ -8404,7 +8394,6 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 14c53892 src/carma2/newcommon/13-crush1.c (reference only)
 br_scalar C2_HOOK_FASTCALL CalculateAmountRepairedFraction(br_angle pOriginal_x, br_angle pOriginal_y, br_angle pOriginal_z, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, br_scalar* pOriginal_amount) {
     br_scalar original_amount = NormalizedAngle(pOriginal_x) + NormalizedAngle(pOriginal_y) + NormalizedAngle(pOriginal_z);
     br_scalar repaired_amount = NormalizedAngle(pRepair_x) + NormalizedAngle(pRepair_y) + NormalizedAngle(pRepair_z);
@@ -8423,7 +8412,6 @@ static br_scalar UnBendCarAngle(br_angle pAngle) {
     }
 }
 
-// based on ApexWorm/rec2 14c53892 src/carma2/newcommon/13-crush1.c (reference only)
 // PARTIAL 82.09%: UnBendCar 0x00439c30 [x87-schedule] - local slots ([esp+0x10]/[esp+0x14] swapped), original sums (fxch/faddp order, repair_x kept in eax) not reproduced
 // FUNCTION: CARMA2_HW 0x00439c30
 br_scalar C2_HOOK_FASTCALL UnBendCar(tCar_spec* pCar_spec, tU32 pDelta_time, br_scalar* pOriginal_amount) {

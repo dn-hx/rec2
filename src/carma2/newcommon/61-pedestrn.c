@@ -3080,7 +3080,6 @@ void C2_HOOK_FASTCALL DisposeAllBonerData(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// based on ApexWorm/rec2 1bc72df97
 // FUNCTION: CARMA2_HW 0x0040b420
 int C2_HOOK_FASTCALL SetCharacterBoneModel(tPed_character_instance* pCharacter, int pBone_index, int pModel_index, int pModel_set) {
 

@@ -225,7 +225,6 @@ void C2_HOOK_FASTCALL NetEndJoinList(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
-// based on ApexWorm/rec2 b74fa8df4 (reference only)
 // FUNCTION: CARMA2_HW 0x0049dc70
 // FUNCTION: CARMA2_SW 0x00499df0
 void C2_HOOK_FASTCALL NetDisposePIDGameInfo(tNet_game_details* pDetails) {
@@ -979,7 +978,6 @@ tU32 C2_HOOK_FASTCALL NetGetContentsSize(tU8 pType, tS32 pSize_decider) {
 #endif
 // NetGetMessageSize
 
-// based on ApexWorm/rec2 7e7ab41cc
 // FUNCTION: CARMA2_HW 0x0049f650
 tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2) {
     tNet_message* the_message;
@@ -995,7 +993,6 @@ tNet_message* C2_HOOK_FASTCALL NetBuildMessage(undefined pArg1, undefined4 pArg2
     return the_message;
 }
 
-// based on ApexWorm/rec2 86c692d7f (reference only)
 // PARTIAL 100% effective: the body is upstream origin/master's and differs from the original in one
 // instruction only, a SIB base/index field swap (mov byte ptr [eax+ebx+0x19] vs [ebx+eax+0x19]).
 // That encoding was invariant under four source formulations measured (member form, cast form,
@@ -1177,7 +1174,6 @@ clear_message:
 
 // NetBroadcastContents
 
-// based on ApexWorm/rec2 b994fa681
 // FUNCTION: CARMA2_HW 0x0049fcf0
 void C2_HOOK_FASTCALL NetSendMessageStacks(void) {
     int i;
@@ -2305,7 +2301,6 @@ tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromID(tPlayer_ID pPlayer) {
     return NULL;
 }
 
-// based on ApexWorm/rec2 8e9995ff9 (reference only)
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
