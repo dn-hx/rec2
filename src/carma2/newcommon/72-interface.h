@@ -132,7 +132,7 @@ extern void C2_HOOK_FASTCALL RefreshNetRacesScroller(tFrontend_spec* pFrontend);
 
 // NetRaceUp
 
-// NetRaceDn
+extern int C2_HOOK_FASTCALL NetRaceDn(tFrontend_spec* pFrontend);
 
 // SaveSinglePlayerState
 
