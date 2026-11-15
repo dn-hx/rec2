@@ -1398,7 +1398,194 @@ LAB_004337fa:
     pObject->water_d = pParent_collision_info->water_d;
 }
 
-// SetUpSemiDetachedBitJoint
+// FUNCTION: CARMA2_HW 0x00437480
+void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, br_model* pModel, tPhysics_object* pObject, const br_vector3* pOptional_pos) {
+    br_vector3 local_c;
+    br_scalar fVar3;
+    br_scalar fVar4;
+    br_scalar fVar5;
+    int iVar8;
+    int* puVar6;
+    br_scalar uVar7;
+    tU32 uVar9;
+    tU32 uVar10;
+    tU8 bVar1;
+    tU8 bVar2;
+
+    pJoint->type = 3;
+    if (pOptional_pos != NULL) {
+        const int* pos = (const int*)pOptional_pos;
+        pJoint->field_0x08.v[0] = *(br_scalar*)&pos[0];
+        pJoint->field_0x08.v[1] = *(br_scalar*)&pos[1];
+        uVar7 = *(br_scalar*)&pos[2];
+    } else {
+        int* crush_data_ptr = (int*)pModel->vertices;
+        tU32 idx;
+        if (pVertex_index1 != 0) {
+            tU32 idx = (tU32)*(tU16*)(pVertex_index1 + 10);
+            pJoint->field_0x08.v[0] = *(br_scalar*)(crush_data_ptr + idx * 0xa);
+            pJoint->field_0x08.v[1] = *(br_scalar*)(crush_data_ptr + idx * 0xa + 1);
+            pJoint->field_0x08.v[2] = *(br_scalar*)(crush_data_ptr + idx * 0xa + 2);
+            goto LAB_0043752a;
+        }
+        idx = (tU32)*(tU16*)((tU8*)pDetach_data + 0x30);
+        pJoint->field_0x08.v[0] = *(br_scalar*)(crush_data_ptr + idx * 0xa);
+        pJoint->field_0x08.v[1] = *(br_scalar*)(crush_data_ptr + idx * 0xa + 1);
+        uVar7 = *(br_scalar*)(crush_data_ptr + idx * 0xa + 2);
+    }
+    pJoint->field_0x08.v[2] = uVar7;
+LAB_0043752a:
+    BrMatrix34ApplyP(&local_c, &pJoint->field_0x08, &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse(&pJoint->field_0x14, &local_c, &pObject->parent->actor->t.t.mat);
+    pJoint->count_limits = 2;
+    iVar8 = 0;
+    puVar6 = (int*)(&pJoint->limits[0].value);
+    do {
+        puVar6[-1] = 0;
+        *puVar6 = 0;
+        iVar8 = iVar8 + 1;
+        puVar6 = puVar6 + 8;
+    } while (iVar8 < pJoint->count_limits);
+    if (pVertex_index1 != 0) {
+        int* crush_data_ptr = (int*)pModel->vertices;
+        tU32 idx1 = (tU32)*(tU16*)(pVertex_index1 + 0xe);
+        tU32 idx2 = (tU32)*(tU16*)(pVertex_index1 + 10);
+        tU32 idx3;
+        pJoint->limits[0].child.v[0] = *(br_scalar*)(crush_data_ptr + idx1 * 0xa) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa);
+        pJoint->limits[0].child.v[1] = *(br_scalar*)(crush_data_ptr + idx1 * 0xa + 1) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa + 1);
+        fVar3 = *(br_scalar*)(crush_data_ptr + idx1 * 0xa + 2) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa + 2);
+        pJoint->limits[0].child.v[2] = fVar3;
+        fVar3 = sqrt(fVar3 * fVar3 +
+              pJoint->limits[0].child.v[1] * pJoint->limits[0].child.v[1] +
+              pJoint->limits[0].child.v[0] * pJoint->limits[0].child.v[0]);
+        if (fVar3 <= gFLT_EPSILON_00589a5c) {
+            pJoint->limits[0].child.v[0] = gFLOAT_00589a54;
+            pJoint->limits[0].child.v[1] = 0;
+            pJoint->limits[0].child.v[2] = 0;
+        } else {
+            fVar3 = 1.0f / fVar3;
+            pJoint->limits[0].child.v[0] = pJoint->limits[0].child.v[0] * fVar3;
+            pJoint->limits[0].child.v[1] = pJoint->limits[0].child.v[1] * fVar3;
+            pJoint->limits[0].child.v[2] = pJoint->limits[0].child.v[2] * fVar3;
+        }
+        idx3 = (tU32)*(tU16*)(pVertex_index1 + 0x10);
+        pJoint->limits[1].child.v[0] = *(br_scalar*)(crush_data_ptr + idx3 * 0xa) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa);
+        pJoint->limits[1].child.v[1] = *(br_scalar*)(crush_data_ptr + idx3 * 0xa + 1) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa + 1);
+        fVar3 = *(br_scalar*)(crush_data_ptr + idx3 * 0xa + 2) - *(br_scalar*)(crush_data_ptr + idx2 * 0xa + 2);
+        pJoint->limits[1].child.v[2] = fVar3;
+        fVar3 = sqrt(fVar3 * fVar3 +
+              pJoint->limits[1].child.v[1] * pJoint->limits[1].child.v[1] +
+              pJoint->limits[1].child.v[0] * pJoint->limits[1].child.v[0]);
+        if (fVar3 <= gFLT_EPSILON_00589a5c) {
+            pJoint->limits[1].child.v[0] = gFLOAT_00589a54;
+            pJoint->limits[1].child.v[1] = 0;
+            pJoint->limits[1].child.v[2] = 0;
+        } else {
+            fVar3 = 1.0f / fVar3;
+            pJoint->limits[1].child.v[0] = pJoint->limits[1].child.v[0] * fVar3;
+            pJoint->limits[1].child.v[1] = pJoint->limits[1].child.v[1] * fVar3;
+            pJoint->limits[1].child.v[2] = pJoint->limits[1].child.v[2] * fVar3;
+        }
+        pJoint->limits[0].parent.v[0] = pJoint->limits[1].child.v[2] * pJoint->limits[0].child.v[1] -
+               pJoint->limits[1].child.v[1] * pJoint->limits[0].child.v[2];
+        fVar3 = pJoint->limits[0].child.v[2] * pJoint->limits[1].child.v[0] - pJoint->limits[0].child.v[0] * pJoint->limits[1].child.v[2];
+        pJoint->limits[0].parent.v[1] = fVar3;
+        pJoint->limits[0].parent.v[2] = pJoint->limits[0].child.v[0] * 0.01f +
+               (pJoint->limits[0].child.v[1] * pJoint->limits[1].child.v[1] -
+               pJoint->limits[0].child.v[0] * pJoint->limits[1].child.v[0]);
+        fVar4 = pJoint->limits[1].child.v[0] * 0.01f + pJoint->limits[0].child.v[0] * 0.01f + pJoint->limits[0].parent.v[0];
+        fVar3 = pJoint->limits[1].child.v[1] * 0.01f + pJoint->limits[0].child.v[1] * 0.01f + fVar3;
+        fVar5 = pJoint->limits[1].child.v[2] * 0.01f + pJoint->limits[0].parent.v[2];
+        pJoint->limits[0].parent.v[0] = fVar4;
+        pJoint->limits[0].parent.v[1] = fVar3;
+        pJoint->limits[0].parent.v[2] = fVar5;
+        fVar5 = sqrt(fVar5 * fVar5 + fVar3 * fVar3 + fVar4 * fVar4);
+        if (fVar5 <= gFLT_EPSILON_00589a5c) {
+            pJoint->limits[0].parent.v[0] = gFLOAT_00589a54;
+            pJoint->limits[0].parent.v[1] = 0;
+            pJoint->limits[0].parent.v[2] = 0;
+        } else {
+            fVar5 = 1.0f / fVar5;
+            pJoint->limits[0].parent.v[0] = fVar5 * fVar4;
+            pJoint->limits[0].parent.v[1] = fVar5 * fVar3;
+            pJoint->limits[0].parent.v[2] = pJoint->limits[0].parent.v[2] * fVar5;
+        }
+        pJoint->limits[1].parent.v[0] = pJoint->limits[0].parent.v[0];
+        pJoint->limits[1].parent.v[1] = pJoint->limits[0].parent.v[1];
+        pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
+        return;
+    }
+    bVar1 = *(tU8*)((tU8*)pDetach_data + 0x33);
+    bVar2 = *(tU8*)((tU8*)pDetach_data + 0x32);
+    iVar8 = (int)(tU32)bVar1 >> 1;
+    pJoint->limits[0].parent.v[0] = 0;
+    pJoint->limits[0].parent.v[1] = 0;
+    pJoint->limits[0].parent.v[2] = 0;
+    if ((bVar1 & 1) == 0) {
+        uVar7 = gFLOAT_NEG1_0_00589b2c;
+    } else {
+        uVar7 = gFLOAT_00589a54;
+    }
+    (&pJoint->limits[0].parent.v[0])[iVar8] = uVar7;
+    pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
+    pJoint->limits[1].parent.v[1] = pJoint->limits[0].parent.v[1];
+    pJoint->limits[1].parent.v[0] = pJoint->limits[0].parent.v[0];
+    uVar9 = (iVar8 + 1) % 3;
+    if ((((int)(tU32)bVar2 >> (char)uVar9) & 1) == 0) {
+        uVar7 = gFLOAT_00589a54;
+    } else {
+        uVar7 = gFLOAT_NEG1_0_00589b2c;
+    }
+    (&pJoint->limits[0].child.v[0])[uVar9] = uVar7;
+    uVar10 = (iVar8 + 2) % 3;
+    (&pJoint->limits[0].child.v[0])[uVar10] = 0;
+    if ((bVar1 & 1) == 0) {
+        uVar7 = gFLOAT_0_015_00589b30;
+    } else {
+        uVar7 = -gFLOAT_0_015_00589b30;
+    }
+    (&pJoint->limits[0].child.v[0])[iVar8] = uVar7;
+    fVar3 = sqrt(pJoint->limits[0].child.v[2] * pJoint->limits[0].child.v[2] +
+          pJoint->limits[0].child.v[1] * pJoint->limits[0].child.v[1] +
+          pJoint->limits[0].child.v[0] * pJoint->limits[0].child.v[0]);
+    if (fVar3 <= gFLT_EPSILON_00589a5c) {
+        pJoint->limits[0].child.v[0] = gFLOAT_00589a54;
+        pJoint->limits[0].child.v[1] = 0;
+        pJoint->limits[0].child.v[2] = 0;
+    } else {
+        fVar3 = 1.0f / fVar3;
+        pJoint->limits[0].child.v[0] = pJoint->limits[0].child.v[0] * fVar3;
+        pJoint->limits[0].child.v[1] = pJoint->limits[0].child.v[1] * fVar3;
+        pJoint->limits[0].child.v[2] = pJoint->limits[0].child.v[2] * fVar3;
+    }
+    (&pJoint->limits[1].child.v[0])[uVar9] = 0;
+    if ((((int)(tU32)bVar2 >> (char)uVar10) & 1) == 0) {
+        uVar7 = gFLOAT_00589a54;
+    } else {
+        uVar7 = gFLOAT_NEG1_0_00589b2c;
+    }
+    (&pJoint->limits[1].child.v[0])[uVar10] = uVar7;
+    if ((bVar1 & 1) == 0) {
+        uVar7 = -gFLOAT_0_015_00589b30;
+    } else {
+        uVar7 = gFLOAT_0_015_00589b30;
+    }
+    (&pJoint->limits[1].child.v[0])[iVar8] = uVar7;
+    fVar3 = sqrt(pJoint->limits[1].child.v[2] * pJoint->limits[1].child.v[2] +
+          pJoint->limits[1].child.v[1] * pJoint->limits[1].child.v[1] +
+          pJoint->limits[1].child.v[0] * pJoint->limits[1].child.v[0]);
+    if (gFLT_EPSILON_00589a5c < fVar3) {
+        fVar3 = 1.0f / fVar3;
+        pJoint->limits[1].child.v[0] = pJoint->limits[1].child.v[0] * fVar3;
+        pJoint->limits[1].child.v[1] = pJoint->limits[1].child.v[1] * fVar3;
+        pJoint->limits[1].child.v[2] = pJoint->limits[1].child.v[2] * fVar3;
+        return;
+    }
+    pJoint->limits[1].child.v[0] = gFLOAT_00589a54;
+    pJoint->limits[1].child.v[1] = 0;
+    pJoint->limits[1].child.v[2] = 0;
+    return;
+}
 
 // BitIsInBentPartOfCar
 
