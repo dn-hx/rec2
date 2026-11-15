@@ -42,7 +42,7 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 
 // ReceivedShapeNumbers
 
-// FillInSimpleCarPos
+extern void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index);
 
 // ReceivedSimpleCarPos
 
