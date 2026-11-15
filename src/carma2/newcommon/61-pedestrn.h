@@ -503,7 +503,7 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCh
 
 // CharacterNoLongerRenderable
 
-// CalcCollisionObjectThings
+extern void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr);
 
 // SetCollisionObject
 
@@ -589,7 +589,7 @@ extern float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_i
 
 // ScaleCollisionObject
 
-// ScaleFormBone
+extern void C2_HOOK_FASTCALL ScaleFormBone(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode);
 
 // ScaleBone
 
