@@ -1983,7 +1983,53 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
 
 // CalcCollisionObjectThings
 
-// SetCollisionObject
+// FUNCTION: CARMA2_HW 0x004085f0
+int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr) {
+
+    BrMatrix34Copy(&pObject->transform_matrix, &pActor->t.t.mat);
+    pObject->actor = pActor;
+    CalcCollisionObjectThings(pObject, pFrame, pBonePos == NULL, pBoneVec, pBonePtr);
+    pObject->flags_0x238 = (tU8)pKind + 2;
+    pObject->owner = pCharacter;
+    if (pBonePos != NULL) {
+        pObject->cmpos.v[0] = pBonePos->v[0];
+        pObject->cmpos.v[1] = pBonePos->v[1];
+        pObject->cmpos.v[2] = pBonePos->v[2];
+    }
+    pObject->disable_move_rotate = 1;
+    pObject->field_0xed = 1;
+    BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+    pObject->uid = (tU8)pBoneIndex;
+    pObject->world_friction = 1.f;
+    pObject->last_special_volume = NULL;
+    pObject->auto_special_volume = NULL;
+    if (pKind == 1) {
+        pObject->flags |= pKind;
+    } else if (pKind == 2) {
+        pObject->flags |= pKind;
+    }
+    if (pFlag != 0) {
+        if (PHILAddObjectImmediately(pObject) != 0) {
+            return 0;
+        }
+        PHILSetObjectProperty(pObject, 0, 1.0);
+        PHILSetObjectProperty(pObject, 3, pArg3 == 0);
+        PHILSetObjectProperty(pObject, 4, 1);
+        PHILSetObjectProperty(pObject, 5, 1);
+        PHILSetObjectProperty(pObject, 7, 1);
+        PHILSetObjectProperty(pObject, 8, gPed_buoyancy_factor);
+        if (pKind == 3) {
+            PHILSetObjectProperty(pObject, 6, 1);
+        }
+    }
+    if (gPed_vtable->fill_in_object != NULL) {
+        gPed_vtable->fill_in_object((undefined4*)pObject, pKind + 2);
+    }
+    return 1;
+}
 
 // FindAndSetSeveredPhysicsSet
 
@@ -2243,10 +2289,93 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0040b860
+// FUNCTION: CARMA2_HW 0x0040b860
 // STUB: CARMA2_SW 0x0040b850
 int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pAngular_velocity) {
-    NOT_IMPLEMENTED();
+    tPed_form* form;
+    tPed_form_boned_phys* boned_physicing;
+    tPed_form_actor_set* actor_set;
+    tPhysics_object* obj;
+    tPhysics_object* child;
+    br_actor* actor;
+    br_vector3 omega;
+    int i;
+
+    if ((pCharacter->field_0xc & gPow2_array[pBone_index]) == 0) {
+        if ((tS8)pCharacter->field_0x6 < 0) {
+            form = pCharacter->personality->form;
+            boned_physicing = form->boned_physicing;
+            for (i = 0; i < form->max_boned_physicing_at_once; i++, boned_physicing++) {
+                if (boned_physicing->field_0x0 == 0) {
+                    break;
+                }
+            }
+            if (i == form->max_boned_physicing_at_once) {
+                goto done;
+            }
+            pCharacter->field_0x6 = (tU8)i;
+            boned_physicing->field_0x0 = 1;
+        }
+
+        if (pAngular_velocity == NULL) {
+            omega.v[0] = SRandomPosNeg(1.f);
+            omega.v[1] = SRandomPosNeg(1.f);
+            omega.v[2] = SRandomPosNeg(1.f);
+        } else {
+            omega = *pAngular_velocity;
+        }
+
+        form = pCharacter->personality->form;
+        boned_physicing = &form->boned_physicing[(tS8)pCharacter->field_0x6];
+        actor_set = &form->actor_sets[(tS8)pCharacter->field_0x4];
+        actor = actor_set->actors[pBone_index];
+        if (SetCollisionObject(pCharacter, boned_physicing->collision_infos[pBone_index], actor, (tU8*)actor->model + 0x34, NULL, 3, 1, 1, 0, NULL, NULL) != 0) {
+            obj = boned_physicing->collision_infos[pBone_index];
+        } else {
+            obj = NULL;
+        }
+        if (obj != NULL) {
+            pCharacter->field_0xc |= gPow2_array[pBone_index];
+            if (obj->parent != NULL) {
+                obj->parent->child = NULL;
+                obj->parent = NULL;
+            }
+            obj->child = NULL;
+            obj->physics_joint1 = NULL;
+
+            if (pCharacter->field_0x14 & 4) {
+                if (pVelocity == NULL) {
+                    pVelocity = &pCharacter->field_0xd8;
+                }
+                obj->disable_move_rotate = 0;
+                if (pVelocity != NULL) {
+                    obj->v.v[0] = pVelocity->v[0];
+                    obj->v.v[1] = pVelocity->v[1];
+                    obj->v.v[2] = pVelocity->v[2];
+                    for (child = obj->child; child != NULL; child = child->next) {
+                        SetObjectV(child, pVelocity);
+                    }
+                }
+                if ((int)&omega != 0) {
+                    obj->omega.v[0] = omega.v[0];
+                    obj->omega.v[1] = omega.v[1];
+                    obj->omega.v[2] = omega.v[2];
+                    for (child = obj->child; child != NULL; child = child->next) {
+                        SetPhysicsObjectOmegaRecursive(child, &omega);
+                    }
+                }
+                PHILMakeObjectActive(obj, NULL, NULL, 0);
+                obj->field_0xed = 1;
+                PHILSetObjectProperty(obj, 0, 1.0);
+                PHILSetObjectProperty(obj, 3, 0);
+                PHILSetObjectProperty(obj, 4, 0);
+                PHILSetObjectProperty(obj, 5, 0);
+            }
+            return 1;
+        }
+    }
+done:
+    return 0;
 }
 
 #ifdef REC2_MATCHING
