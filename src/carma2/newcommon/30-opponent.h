@@ -166,9 +166,9 @@ extern void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec
 
 // RematerialiseOpponentOnThisSection
 
-// RematerialiseOpponentOnNearestSection
+extern int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
 
-// RematerialiseOpponent
+extern int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_scalar pSpeed);
 
 // CalcPlayerConspicuousness
 
