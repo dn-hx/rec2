@@ -385,7 +385,7 @@ extern void C2_HOOK_FASTCALL ModelUpdatePrimitiveMaterials(br_model* pModel);
 
 extern void C2_HOOK_FASTCALL TurnOnGhostPeds(void);
 
-// TurnOffGhostPeds
+extern void C2_HOOK_FASTCALL TurnOffGhostPeds(void);
 
 extern void C2_HOOK_FASTCALL MutatePed(tPed_character_instance* pCharacter, void* pUnused, tU8* pAngle_x, tU8* pAngle_y, tU8* pAngle_z);
 
@@ -597,7 +597,7 @@ extern void C2_HOOK_FASTCALL MungeAllCharacterMaterials(material_cbfn* pCallback
 
 // MungeAllCharacterObjects
 
-// MungeAllCharacterModels
+extern void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*));
 
 extern void C2_HOOK_FASTCALL DisableOverallMovement(void);
 
