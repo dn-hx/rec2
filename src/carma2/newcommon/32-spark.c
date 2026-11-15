@@ -1626,17 +1626,15 @@ void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime) {
     AREndPipingSession();
 }
 
+// PARTIAL 32.63%: DrMatrix34Rotate 0x004f9e80 [RESIDUAL slot order] - frame 0x14 matches, t/c/s slot order and x87 interleave differ; see state/findings/DrMatrix34Rotate.md
 // FUNCTION: CARMA2_HW 0x004f9e80
 void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
     br_scalar t;
-    br_scalar s;
     br_scalar c;
+    br_scalar s;
     br_scalar txy;
     br_scalar txz;
     br_scalar tyz;
-    br_scalar sx;
-    br_scalar sy;
-    br_scalar sz;
 
     s = FastScalarSinAngle(r);
     c = FastScalarCosAngle(r);
@@ -1644,17 +1642,14 @@ void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3*
     txy = t * a->v[0] * a->v[1];
     txz = t * a->v[0] * a->v[2];
     tyz = t * a->v[1] * a->v[2];
-    sx = a->v[0] * s;
-    sy = a->v[1] * s;
-    sz = a->v[2] * s;
     mat->m[0][0] = a->v[0] * a->v[0] * t + c;
-    mat->m[0][1] = sz + txy;
-    mat->m[0][2] = txz - sy;
-    mat->m[1][0] = txy - sz;
+    mat->m[0][1] = a->v[2] * s + txy;
+    mat->m[0][2] = txz - a->v[1] * s;
+    mat->m[1][0] = txy - a->v[2] * s;
     mat->m[1][1] = a->v[1] * a->v[1] * t + c;
-    mat->m[1][2] = sx + tyz;
-    mat->m[2][0] = sy + txz;
-    mat->m[2][1] = tyz - sx;
+    mat->m[1][2] = a->v[0] * s + tyz;
+    mat->m[2][0] = a->v[1] * s + txz;
+    mat->m[2][1] = tyz - a->v[0] * s;
     mat->m[2][2] = a->v[2] * a->v[2] * t + c;
 }
 
