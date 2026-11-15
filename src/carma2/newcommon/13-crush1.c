@@ -1987,7 +1987,44 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // ARCompressCrush
 
-// ARApplyCrush
+// FUNCTION: CARMA2_HW 0x0043bd70
+void C2_HOOK_FASTCALL ARApplyCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
+    br_model* pModel;
+    br_vector3 offset;
+    br_vector3 scaled_offset;
+    tU16* pWeights;
+    br_scalar scale;
+    int i;
+    int vertex_offset;
+
+    pModel = (br_model*)field_0x4;
+    ExpandVector3(&offset, (const tCompressed_vector3*)pField_0x8, -1.f, 1.f);
+    i = 0;
+    if (pModel->nvertices > 0) {
+        pWeights = (tU16*)pField_0xe;
+        vertex_offset = 0;
+        do {
+            if (*pWeights != 0) {
+                scale = DRU16ToScalar(*pWeights, 0.f, 10.f);
+                scaled_offset.v[0] = scale * offset.v[0];
+                scaled_offset.v[1] = scale * offset.v[1];
+                scaled_offset.v[2] = scale * offset.v[2];
+                *(br_scalar*)((tU8*)pModel->vertices + vertex_offset) = scaled_offset.v[0] + *(br_scalar*)((tU8*)pModel->vertices + vertex_offset);
+                *(br_scalar*)((tU8*)pModel->vertices + vertex_offset + 4) = scaled_offset.v[1] + *(br_scalar*)((tU8*)pModel->vertices + vertex_offset + 4);
+                *(br_scalar*)((tU8*)pModel->vertices + vertex_offset + 8) = scaled_offset.v[2] + *(br_scalar*)((tU8*)pModel->vertices + vertex_offset + 8);
+            }
+            i++;
+            pWeights++;
+            vertex_offset += sizeof(br_vertex);
+        } while (i < pModel->nvertices);
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
+        return;
+    }
+    pModel->custom = JitModelUpdate;
+    pModel->flags |= BR_MODF_CUSTOM;
+}
 
 // ARUndoCrush
 
