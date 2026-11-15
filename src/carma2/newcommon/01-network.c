@@ -20,6 +20,8 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "globvrkm.h"
+#include "59-camera.h"
 #include <stddef.h>
 
 #include <stdlib.h>
@@ -1234,4 +1236,30 @@ void C2_HOOK_FASTCALL StatReceivePacket(void) {
 }
 
 void C2_HOOK_FASTCALL StatSendPacket(void) {
+}
+
+// FUNCTION: CARMA2_HW 0x004fe2c0
+void C2_HOOK_FASTCALL DisposeKevStuffCar(tCar_spec* pCar) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if (gSmoke_column[i].core.car == pCar) {
+            gSmoke_column[i].lifetime = 0;
+            gSmoke_column[i].core.car = NULL;
+            gSmoke_column[i].core.car_actor = NULL;
+        }
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gSparks); i++) {
+        if ((gSpark_flags & (1 << i)) != 0 && gSparks[i].car == pCar) {
+            gSparks[i].count = 0;
+            gSpark_flags &= ~(1 << i);
+        }
+    }
+    if (pCar == gCar_to_view) {
+        gCamera_yaw = 0;
+        gCar_to_view = &gProgram_state.current_car;
+        InitialiseExternalCamera();
+        PositionExternalCamera(gCar_to_view, 200);
+        gCar_to_view = &gProgram_state.current_car;
+    }
 }
