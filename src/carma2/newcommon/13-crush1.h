@@ -96,15 +96,15 @@ extern intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithTranslation(br_actor* pAc
 
 // CheckHingePointOrder
 
-// FindNearestVertex
+extern tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_model* pModel);
 
 // DistanceToBounds
 
 // FindNearestParentVertex
 
-// SetUpSemiDetachJointStuff
+extern void C2_HOOK_FASTCALL SetUpSemiDetachJointStuff(tCar_crush_detach_data* pDetach_data, const br_model* pModel, const br_bounds3* pBounds);
 
-// InitPhysCrushDataCB
+extern intptr_t C2_HOOK_CDECL InitPhysCrushDataCB(br_actor* actor, void* data);
 
 // InitPhysCrushData
 
