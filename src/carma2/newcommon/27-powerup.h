@@ -113,7 +113,7 @@ extern void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spe
 
 // RemoveRepulsiveReferences
 
-// MungeRepulseRays
+extern void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL AdjustRepulseRay(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime);
 
@@ -139,7 +139,7 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
 // CheckRespawnQueue
 
-// MungePowerupStuff
+extern void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1);
 
 // GotPowerupN
 
