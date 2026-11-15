@@ -1698,7 +1698,40 @@ void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context* p
 
 // BendCarOneForce
 
-// DoBending
+/* inlined into DoBending in the original */
+static int C2_HOOK_FASTCALL BendCarOneForce(tCar_spec* pCar, tCar_crush* pCar_crush) {
+    (void)pCar;
+    (void)pCar_crush;
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00438a90
+void C2_HOOK_FASTCALL DoBending(void) {
+    int i;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_spec, car_crush_spec, 0x18d4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_crush_spec, field_0x4b8, 0x4b8);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tCar_crush_spec, field_0x144, 0x144);
+
+    for (i = 0; gCrush_lists[i].car_spec != NULL; i++) {
+
+        tCar_crush_spec* ptVar2 = gCrush_lists[i].car_spec->car_crush_spec;
+        if (!ptVar2->field_0x4b8 && !ptVar2->field_0x144) {
+            int j;
+
+            for (j = 0; j < gCrush_lists[i].count; j++) {
+                if (gCrush_lists[i].items[j].field_0x40 < 0.f) {
+                    gCrush_lists[i].items[j].field_0x40 = -gCrush_lists[i].items[j].field_0x40;
+                    if (BendCarOneForce(gCrush_lists[i].car_spec, &gCrush_lists[i].items[j])) {
+                        break;
+                    }
+                }
+            }
+        }
+        gCrush_lists[i].car_spec = NULL;
+        i = i + 1;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00431590
 // FUNCTION: CARMA2_SW 0x004315c0
