@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "60-phil.h"
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -2026,7 +2027,59 @@ tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed) {
     return NULL;
 }
 
-// CharacterNoLongerCollideworthy
+// FUNCTION: CARMA2_HW 0x00409090
+int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter) {
+    tPed_form* form;
+    tPhysics_object* obj;
+    tPhysics_object** infos;
+    int i;
+    int count;
+
+    if (pCharacter->field_0x14 == 0) {
+        return 0x1f;
+    }
+    form = pCharacter->personality->form;
+    if (pCharacter->field_0x14 & 1) {
+        obj = form->simple_physicing[pCharacter->field_0x5].collision_info;
+        PHILRemoveObject(obj);
+        obj->field183_0x1d8 = 0;
+        *(int*)((char*)obj + 0x23c) = 0;
+        *(tU8*)&form->simple_physicing[pCharacter->field_0x5].type = 0;
+        if (pCharacter->field_0xc != 0 && *(tS8*)&pCharacter->field_0x6 >= 0) {
+            tPed_form_boned_phys* boned = &form->boned_physicing[*(tS8*)&pCharacter->field_0x6];
+            for (i = 1; i < form->count_bones; i++) {
+                if ((pCharacter->field_0xc & gPow2_array[i]) != 0) {
+                    if (PHILReturnObjectStatus(boned->collision_infos[i]) == 2) {
+                        pCharacter->field_0x10 |= gPow2_array[i];
+                    }
+                    PHILRemoveObject(boned->collision_infos[i]);
+                    boned->collision_infos[i]->field183_0x1d8 = 0;
+                    *(int*)((char*)boned->collision_infos[i] + 0x23c) = 0;
+                }
+            }
+            *(tS8*)&pCharacter->field_0x6 = -1;
+            boned->field_0x0 = 0;
+            pCharacter->field_0x14 = 0;
+            return 0;
+        }
+    } else {
+        count = form->count_bones;
+        infos = form->boned_physicing[pCharacter->field_0x5].collision_infos;
+        for (i = 0; i < count; i++) {
+            if (*(int*)((char*)infos[i] + 0x20) != 0) {
+                obj = infos[i];
+                goto found;
+            }
+        }
+        obj = NULL;
+found:
+        PHILRemoveObject(obj);
+        obj->field183_0x1d8 = 0;
+        form->boned_physicing[pCharacter->field_0x5].field_0x0 = 0;
+    }
+    pCharacter->field_0x14 = 0;
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00409300
 // FUNCTION: CARMA2_SW 0x00409300
@@ -2086,7 +2139,76 @@ int C2_HOOK_FASTCALL CharacterNoLongerPhysicworthy(tPed_character_instance* pCha
     return 0;
 }
 
-// SetCharacterPhysicsLevel
+// FUNCTION: CARMA2_HW 0x00409570
+int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, undefined4 pArg3) {
+    tPhysics_object* child;
+    tPhysics_object* obj;
+    int result;
+
+    result = 0;
+    if (pLevel < 5) {
+        if ((pCharacter->field_0x14 & 4) == 0) {
+            result = 0x1f;
+        } else {
+            BonerActiveHalted2(pCharacter, 1);
+            result = 0;
+        }
+    }
+    if (pLevel < 1) {
+        result = CharacterNoLongerCollideworthy(pCharacter);
+    }
+    if (pLevel != 0) {
+        result = MakeCharacterCollideworthy2(pCharacter, pLevel & 2, pArg3, -1);
+        if (result == 0x17) {
+            result = 0;
+        }
+        if ((pLevel & 4) != 0 && result == 0) {
+            if ((pCharacter->field_0x14 & 4) == 0) {
+                if (pCharacter->field_0x14 == 0) {
+                    return 0x15;
+                }
+                if (pCharacter->field_0x14 & 1) {
+                    obj = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+                } else {
+                    tPed_form_boned_phys* bp = &pCharacter->personality->form->boned_physicing[pCharacter->field_0x5];
+                    int i;
+
+                    obj = NULL;
+                    for (i = 0; i < pCharacter->personality->form->count_bones; i++) {
+                        if (bp->collision_infos[i]->shape != NULL) {
+                            obj = bp->collision_infos[i];
+                            break;
+                        }
+                    }
+                }
+                obj->disable_move_rotate = 0;
+                {
+                    br_vector3* field_0xd8 = &pCharacter->field_0xd8;
+
+                    if (field_0xd8 != NULL) {
+                        obj->v.v[0] = field_0xd8->v[0];
+                        obj->v.v[1] = field_0xd8->v[1];
+                        obj->v.v[2] = field_0xd8->v[2];
+                        child = obj->child;
+                        while (child != NULL) {
+                            SetObjectV(child, field_0xd8);
+                            child = child->next;
+                        }
+                    }
+                }
+                PHILMakeObjectActive(obj, NULL, NULL, 1);
+                obj->field_0xed = 1;
+                PHILSetObjectProperty(obj, 0, 1.0);
+                PHILSetObjectProperty(obj, 3, 0);
+                PHILSetObjectProperty(obj, 4, 0);
+                PHILSetObjectProperty(obj, 5, 0);
+                pCharacter->field_0x14 |= 4;
+            }
+            result = 0;
+        }
+    }
+    return result;
+}
 
 // FUNCTION: CARMA2_HW 0x004096f0
 // FUNCTION: CARMA2_SW 0x004096f0
