@@ -56,7 +56,7 @@ extern void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pix
 
 // DepthEffectSky
 
-// DoWobbleCamera
+extern void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera);
 
 // DoDrugWobbleCamera
 
