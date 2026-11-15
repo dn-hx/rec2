@@ -315,6 +315,7 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
 // MassageOpponentPosition
 
 
+// PARTIAL 36.67%: RematerialiseOpponentOnThisSection 0x004a7f20 - frame/regalloc mismatch (extra ebx/esi pushes, esi used for pOpponent_spec instead of edi), if-chain structure differs (nested vs flat cascade), x87 spill layout differs
 // FUNCTION: CARMA2_HW 0x004a7f20
 int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed) {
     const br_vector3* start;
