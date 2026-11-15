@@ -245,7 +245,83 @@ void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol) {
 
 // CreateSparks
 
-// CreateSparkShower
+// FUNCTION: CARMA2_HW 0x004f8290
+void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelocity, br_vector3* pForce, tNon_car_spec* pOwner1, tNon_car_spec* pOwner2) {
+    br_vector3 normal;
+    br_vector3 tv;
+    br_scalar force_length;
+    br_scalar projection;
+    br_scalar tmp_y;
+    br_scalar tmp_z;
+    tNon_car_spec* selected_owner;
+    int spark_count;
+    int spark_index;
+
+    force_length = BrVector3Length(pForce);
+    if (pOwner1 == NULL || pOwner1->driver != eDriver_local_human) {
+        selected_owner = pOwner2;
+    } else {
+        selected_owner = pOwner1;
+    }
+    normal.v[0] = pForce->v[0] / force_length;
+    normal.v[1] = pForce->v[1] / force_length;
+    normal.v[2] = pForce->v[2] / force_length;
+    if (force_length >= 10.0f) {
+        CreateShrapnelShower2(pPosition, pVelocity, &normal, force_length, (tCar_spec*)pOwner1, (tCar_spec*)pOwner2, 0, NULL);
+        if ((pOwner1 != NULL && pOwner1->driver > 5)
+            || (pOwner1->flags & 0x200000) != 0
+            || (pOwner2 != NULL && pOwner2->driver > 5)
+            || (pOwner2->flags & 0x200000) != 0) {
+            projection = BrVector3Dot(pForce, pVelocity) / (force_length * force_length);
+            tv.v[0] = pVelocity->v[0] - pForce->v[0] * projection;
+            tv.v[1] = pVelocity->v[1] - pForce->v[1] * projection;
+            tv.v[2] = pVelocity->v[2] - pForce->v[2] * projection;
+            BrMatrix34TApplyV(pVelocity, &tv, &pOwner1->actor->t.t.mat);
+            tv.v[0] = pPosition->v[0] - selected_owner->actor->t.t.mat.m[3][0];
+            tv.v[1] = pPosition->v[1] - selected_owner->actor->t.t.mat.m[3][1];
+            tv.v[2] = pPosition->v[2] - selected_owner->actor->t.t.mat.m[3][2];
+            BrMatrix34TApplyV(pPosition, &tv, &selected_owner->actor->t.t.mat);
+            BrMatrix34TApplyV(&tv, pForce, &selected_owner->actor->t.t.mat);
+            pForce->v[0] = tv.v[0];
+            pForce->v[1] = tv.v[1];
+            pForce->v[2] = tv.v[2];
+            spark_count = 3 - (int)(force_length * -0.1f);
+            if (spark_count > 20) {
+                spark_count = 20;
+            }
+            if (spark_count > 0) {
+                do {
+                    spark_index = gSpark_next;
+                    gSparks[spark_index].pos.v[0] = pPosition->v[0];
+                    gSparks[spark_index].pos.v[1] = pPosition->v[1];
+                    gSparks[spark_index].pos.v[2] = pPosition->v[2];
+                    BrVector3SetFloat(&gSparks[spark_index].normal, 0.0f, 0.0f, 0.0f);
+                    BrVector3SetFloat(&tv, FRandomBetween(-1.0f, 1.0f), FRandomBetween(-0.2f, 1.0f), FRandomBetween(-1.0f, 1.0f));
+                    projection = (pForce->v[0] * tv.v[0] + pForce->v[1] * tv.v[1] + pForce->v[2] * tv.v[2]) / (force_length * force_length);
+                    tmp_y = pForce->v[1] * projection;
+                    tmp_z = pForce->v[2] * projection;
+                    gSparks[gSpark_next].v.v[0] = tv.v[0] - pForce->v[0] * projection;
+                    gSparks[gSpark_next].v.v[1] = tv.v[1] - tmp_y;
+                    gSparks[gSpark_next].v.v[2] = tv.v[2] - tmp_z;
+                    gSparks[gSpark_next].v.v[0] = pVelocity->v[0] + gSparks[gSpark_next].v.v[0];
+                    gSparks[gSpark_next].v.v[1] = gSparks[gSpark_next].v.v[1] + pVelocity->v[1];
+                    gSparks[gSpark_next].v.v[2] = gSparks[gSpark_next].v.v[2] + pVelocity->v[2];
+                    gSparks[gSpark_next].count = 1000;
+                    gSparks[gSpark_next].car = (tCar_spec*)selected_owner;
+                    gSpark_flags |= 1 << (gSpark_next & 0x1f);
+                    spark_index = gSpark_next + 1;
+                    gSparks[gSpark_next].time_sync = gPHIL_mechanics_time_sync;
+                    gSparks[gSpark_next].colour = 0;
+                    gSpark_next = spark_index;
+                    if (spark_index >= (int)REC2_ASIZE(gSparks)) {
+                        gSpark_next = 0;
+                    }
+                    spark_count--;
+                } while (spark_count != 0);
+            }
+        }
+    }
+}
 
 // AdjustSpark
 
@@ -288,7 +364,84 @@ void C2_HOOK_FASTCALL ResetShrapnel(void) {
     gShrapnel_flags = 0;
 }
 
-// CreateShrapnelShower2
+// FUNCTION: CARMA2_HW 0x004f8800
+void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar7;
+    float fVar8;
+    float fVar9;
+    float fVar10;
+    int shrapnel_count;
+    int material_index;
+    tCar_spec* selected_car;
+    br_vector3 random_vector;
+    br_vector3 scaled_direction;
+    br_vector3 velocity;
+
+    if (pStrength < 10.0f) {
+        return;
+    }
+    if (pMaterials != NULL) {
+        fVar8 = 0.7f;
+    } else {
+        fVar8 = 0.3f;
+    }
+    if (pVelocity->v[1] < 0.0f) {
+        fVar8 -= pVelocity->v[1];
+    }
+    fVar9 = pDirection->v[1] * fVar8;
+    fVar1 = pDirection->v[2];
+    fVar2 = pDirection->v[0];
+    fVar3 = pVelocity->v[0];
+    fVar4 = pVelocity->v[2];
+    fVar8 = (fVar8 + pVelocity->v[1]) - pDirection->v[1] * fVar9;
+    BrVector3Set(&velocity, fVar3 - fVar2 * fVar9, fVar8, fVar4 - fVar1 * fVar9);
+    shrapnel_count = (int)(pStrength * 0.1f);
+    shrapnel_count *= 12;
+    if (shrapnel_count > 20) {
+        shrapnel_count = 20;
+    }
+    fVar10 = pStrength - -20.0f;
+    fVar10 *= 3.0f;
+    fVar10 *= 0.005f;
+    if (shrapnel_count > 0) {
+        do {
+            if (((1 << gShrapnel_index) & gShrapnel_flags) == 0) {
+                BrActorAdd(gNon_track_actor, gShrapnel[gShrapnel_index].actor);
+            }
+            gShrapnel_flags |= 1 << gShrapnel_index;
+            BrVector3Copy(&gShrapnel[gShrapnel_index].actor->t.t.translate.t, pPosition);
+            BrVector3SetFloat(&random_vector, FRandomBetween(-fVar10, fVar10), FRandomBetween((float)(0.3 - fVar8), fVar10), FRandomBetween(-fVar10, fVar10));
+            fVar7 = BrVector3Dot(pDirection, &random_vector);
+            BrVector3Scale(&scaled_direction, pDirection, fVar7);
+            BrVector3Sub(&gShrapnel[gShrapnel_index].v, &random_vector, &scaled_direction);
+            BrVector3Accumulate(&gShrapnel[gShrapnel_index].v, &velocity);
+            gShrapnel[gShrapnel_index].time_sync = gPHIL_mechanics_time_sync;
+            gShrapnel[gShrapnel_index].age = 0;
+            if (pMaterials != NULL) {
+                material_index = IRandomBetween(0, pMaterialCount - 1);
+                gShrapnel[gShrapnel_index].actor->material = pMaterials[material_index];
+            } else if (IRandomBetween(0, 2) != 0) {
+                selected_car = pCar1;
+                if (IRandomBetween(0, 1) == 0) {
+                    selected_car = pCar2;
+                }
+                material_index = IRandomBetween(0, selected_car->count_shrapnel_materials - 1);
+                gShrapnel[gShrapnel_index].actor->material = selected_car->shrapnel_materials[material_index];
+            } else {
+                gShrapnel[gShrapnel_index].actor->material = gBlack_material;
+            }
+            gShrapnel_index += 1;
+            if (gShrapnel_index >= 30) {
+                gShrapnel_index = 0;
+            }
+            shrapnel_count--;
+        } while (shrapnel_count != 0);
+    }
+}
 
 // CreateShrapnelShowerWorld
 
