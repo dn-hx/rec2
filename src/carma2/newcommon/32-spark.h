@@ -124,7 +124,7 @@ extern int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial);
 
 extern void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar);
 
-// MungeShrapnel
+extern void C2_HOOK_FASTCALL MungeShrapnel(tU32 pTime);
 
 // DrMatrix34Rotate
 
@@ -172,7 +172,7 @@ extern void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, t
 
 // ReplaySmokeColumn
 
-// MungeSmokeColumn
+extern void C2_HOOK_FASTCALL MungeSmokeColumn(tU32 pTime);
 
 // DisposeFlame
 
