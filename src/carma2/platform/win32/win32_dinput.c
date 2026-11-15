@@ -225,6 +225,28 @@ static int C2_HOOK_FASTCALL AcquireDInputJoystickDevice(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004586b0
+int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude) {
+    IDirectInputEffect* effect;
+    int index;
+
+    if (gForceFeedbackAvailable) {
+        if (pMagnitude > 10000) {
+            pMagnitude = 10000;
+        }
+        index = gBasic_force_joystick_effect_index;
+        if (*(LONG*)gJoystick_effects[index].type_specific_params != pMagnitude) {
+            *(LONG*)gJoystick_effects[index].type_specific_params = pMagnitude;
+            effect = gDirectInputEffects[index];
+            if (effect != NULL) {
+                IDirectInputEffect_SetParameters(effect, &gJoystick_effects[index].di_effect, DIEP_TYPESPECIFICPARAMS);
+            }
+            StartDinputEffect(gBasic_force_joystick_effect_index);
+            return 1;
+        }
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004589d0
 // FUNCTION: CARMA2_SW 0x00458760
 tDirectInputJoystickInfo* C2_HOOK_FASTCALL JoystickDInputGetInfo(int pJoystickIndex, tU32* pButtonMask, tU32* pAxisMask) {
