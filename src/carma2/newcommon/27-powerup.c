@@ -466,7 +466,32 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // CheckRespawnQueue
 
-// MungePowerupStuff
+/* inlined into MungePowerupStuff in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {
+    int i;
+
+    for (i = 0; i < (int)REC2_ASIZE(gRespawn_powerups); i++) {
+        tRespawn_powerup* respawn_powerup = &gRespawn_powerups[i];
+        if (respawn_powerup->actor == NULL || (int)pTime < (int)respawn_powerup->respawn_time) {
+            continue;
+        }
+        if (respawn_powerup->actor->render_style != BR_RSTYLE_FACES) {
+            respawn_powerup->actor->render_style = BR_RSTYLE_FACES;
+        }
+        PipeSinglePowerupRespawn(respawn_powerup->actor, respawn_powerup->index);
+        DoPowerupRespawnSmash(respawn_powerup->actor);
+        respawn_powerup->actor = NULL;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004db880
+void C2_HOOK_FASTCALL MungePowerupStuff(tU32 pArg1) {
+    tU32 time;
+
+    time = GetTotalTime();
+    MungeRepulseRays(time);
+    CheckRespawnQueue(time);
+}
 
 void C2_HOOK_FASTCALL GotPowerupN(int pN) {
     int modifiers;
