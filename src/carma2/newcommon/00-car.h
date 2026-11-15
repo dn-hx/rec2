@@ -137,7 +137,7 @@ extern void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, br_scalar pDt);
 
 // NonCarSnapOff
 
-// TestNonCarSnapOff
+extern int C2_HOOK_FASTCALL TestNonCarSnapOff(tPhysics_object* pObject);
 
 // TumbleObjectWithV
 
