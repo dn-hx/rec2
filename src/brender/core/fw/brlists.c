@@ -82,13 +82,16 @@ void C2_HOOK_CDECL BrSimpleNewList(br_simple_list* list) {
     list->head = NULL;
 }
 
+// PARTIAL 99.99%: BrSimpleAddHead 0x00529a50 - register swap only (node/head in ecx/eax), see state/findings/BrSimpleAddHead.md
 // FUNCTION: CARMA2_HW 0x00529a50
 void C2_HOOK_CDECL BrSimpleAddHead(br_simple_list* list, br_simple_node* node) {
+    br_simple_node* head;
 
-    node->next = list->head;
+    head = list->head;
     node->prev = (br_simple_node**)&list->head;
-    if (list->head != NULL) {
-        list->head->prev = &node->next;
+    node->next = head;
+    if (head != NULL) {
+        head->prev = &node->next;
     }
     list->head = node;
 }
