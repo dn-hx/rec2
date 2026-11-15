@@ -116,11 +116,168 @@ void C2_HOOK_FASTCALL GetOrientationFromMatrix(tFixed_quat* pOrientation, const 
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0049c0d0
+// FUNCTION: CARMA2_HW 0x0049c0d0
 // STUB: CARMA2_SW 0x00498250
 int C2_HOOK_FASTCALL GetObjectNetworkStuff(tPhysics_object* pObject, tU8* pBuffer, tU32 pSize) {
+    tU16* pBuffer16;
+    br_quat quat;
+    float value;
+    int i;
 
-    NOT_IMPLEMENTED();
+    if (pObject->physics_joint1 != NULL) {
+        switch (pObject->physics_joint1->type) {
+        case eJoint_hinge:
+        case eJoint_quick_hinge:
+            if (pSize < 0xc) {
+                return -1;
+            }
+            pBuffer[0] = (tU8)pObject->physics_joint1->type;
+            pBuffer[1] = pObject->uid;
+            value = pObject->physics_joint1->hinge_axis.v[0] * pObject->omega.v[0]
+                + pObject->physics_joint1->hinge_axis.v[1] * pObject->omega.v[1]
+                + pObject->physics_joint1->hinge_axis.v[2] * pObject->omega.v[2];
+            if (value > 39.269909f) {
+                value = 39.269909f;
+            }
+            if (value < -39.269909f) {
+                value = -39.269909f;
+            }
+            value = (value + 39.269909f) * 0.012732396f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[1] = (tU16)(value + .5f);
+            pBuffer16 = (tU16*)(pBuffer + 4);
+            BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+
+            value = quat.x;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            pBuffer16[0] = (tU16)(value + .5f);
+
+            value = quat.y;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            pBuffer16[1] = (tU16)(value + .5f);
+
+            pBuffer16[2] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+            pBuffer16[3] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
+            return 0xc;
+        case eJoint_universal:
+        case eJoint_ball_n_socket:
+            if (pSize < 0x10) {
+                return -1;
+            }
+            pBuffer[0] = (tU8)pObject->physics_joint1->type;
+            pBuffer[1] = pObject->uid;
+            pBuffer16 = (tU16*)(pBuffer + 2);
+            for (i = 0; i < 3; i++) {
+                value = pObject->omega.v[i];
+                if (value > 39.269909f) {
+                    value = 39.269909f;
+                }
+                if (value < -39.269909f) {
+                    value = -39.269909f;
+                }
+                value = (value + 39.269909f) * 0.012732396f;
+                value *= 65534.f;
+                pBuffer16[i] = (tU16)(value + .5f);
+            }
+            BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+
+            value = quat.x;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[4] = (tU16)(value + .5f);
+
+            value = quat.y;
+            if (value > 1.f) {
+                value = 1.f;
+            }
+            if (value < -1.f) {
+                value = -1.f;
+            }
+            value = (value + 1.f) * .5f;
+            value *= 65534.f;
+            ((tU16*)pBuffer)[5] = (tU16)(value + .5f);
+
+            ((tU16*)pBuffer)[6] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+            ((tU16*)pBuffer)[7] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
+            return 0x10;
+        case eJoint_none:
+            break;
+        default:
+            PhysicsError((tPhysicsError)9, "netphys got messed up");
+        }
+    }
+
+    if (pSize < 0x28) {
+        return -1;
+    }
+    pBuffer[0] = (tU8)eJoint_none;
+    pBuffer[1] = pObject->uid;
+    pBuffer16 = (tU16*)(pBuffer + 2);
+    for (i = 0; i < 3; i++) {
+        value = pObject->omega.v[i];
+        if (value > 39.269909f) {
+            value = 39.269909f;
+        }
+        if (value < -39.269909f) {
+            value = -39.269909f;
+        }
+        value = (value + 39.269909f) * 0.012732396f;
+        value *= 65534.f;
+        pBuffer16[i] = (tU16)(value + .5f);
+    }
+    ((float*)(pBuffer + 8))[0] = pObject->v.v[0];
+    ((float*)(pBuffer + 8))[1] = pObject->v.v[1];
+    ((float*)(pBuffer + 8))[2] = pObject->v.v[2];
+    ((float*)(pBuffer + 0x1c))[0] = pObject->transform_matrix.m[3][0];
+    ((float*)(pBuffer + 0x1c))[1] = pObject->transform_matrix.m[3][1];
+    ((float*)(pBuffer + 0x1c))[2] = pObject->transform_matrix.m[3][2];
+    BrMatrix34ToQuat(&quat, &pObject->transform_matrix);
+
+    value = quat.x;
+    if (value > 1.f) {
+        value = 1.f;
+    }
+    if (value < -1.f) {
+        value = -1.f;
+    }
+    value = (value + 1.f) * .5f;
+    value *= 65534.f;
+    ((tU16*)(pBuffer + 0x14))[0] = (tU16)(value + .5f);
+
+    value = quat.y;
+    if (value > 1.f) {
+        value = 1.f;
+    }
+    if (value < -1.f) {
+        value = -1.f;
+    }
+    value = (value + 1.f) * .5f;
+    value *= 65534.f;
+    ((tU16*)(pBuffer + 0x14))[1] = (tU16)(value + .5f);
+
+    ((tU16*)(pBuffer + 0x14))[2] = (tU16)FloatToFixedFraction(quat.z, -1.f, 1.f);
+    ((tU16*)(pBuffer + 0x14))[3] = (tU16)FloatToFixedFraction(quat.w, -1.f, 1.f);
+    return 0x28;
 }
 
 #ifdef REC2_MATCHING
