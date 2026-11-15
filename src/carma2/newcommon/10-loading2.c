@@ -515,10 +515,11 @@ void C2_HOOK_FASTCALL LoadGeneralParameters(void) {
     GetALineAndDontArgue(gTempFile, s);
     str = strtok(s, "\t ,/");
 #if defined(REC2_FIX_BUGS)
-    for (i = 0; i < (int)REC2_ASIZE(gNet_starting_money); i++) {
+    for (i = 0; i < (int)REC2_ASIZE(gNet_starting_money); i++)
 #else
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++)
 #endif
+    {
         sscanf(str, "%d", &gNet_starting_money[i]);
         str = strtok(NULL, "\t ,/");
     }
@@ -558,7 +559,7 @@ void C2_HOOK_FASTCALL LoadGeneralParameters(void) {
     /* Number of demo opponents */
     gCount_demo_opponents = GetAnInt(gTempFile);
     /* Demo opponents */
-    for (i = 0; i < gCount_demo_opponents; i++) {
+    for (i = 0; (int)i < gCount_demo_opponents; i++) {
         gDemo_opponents[i] = GetAnInt(gTempFile);
     }
 
