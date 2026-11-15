@@ -3179,6 +3179,11 @@ int C2_HOOK_FASTCALL Generic_MenuHandler(tFrontend_spec* pFrontend) {
 #pragma auto_inline(on)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004743c0
+int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2) {
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
+}
 // FUNCTION: CARMA2_HW 0x004b4020
 void C2_HOOK_FASTCALL StripControls(char* pStr) {
     int i;

@@ -517,3 +517,5 @@ extern void C2_HOOK_FASTCALL IString_Free(void);
 extern const char* C2_HOOK_FASTCALL IString_Get(int pIndex);
 
 #endif // GUARD_72_INTERFACE_H
+
+extern int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2);
