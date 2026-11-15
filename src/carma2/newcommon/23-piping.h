@@ -473,7 +473,7 @@ extern void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_c
 
 extern void C2_HOOK_FASTCALL UndoUnBend(void);
 
-// UndoShrapnelShower
+extern void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoNonCarCreation(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
@@ -536,5 +536,26 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    tU32 field_0x0;
+    tU32 field_0x4;
+    br_vector3 field_0x8;
+    br_vector3 field_0x14;
+    br_vector3 field_0x20;
+    br_vector3 field_0x2c;
+    br_vector3 field_0x38;
+    tU32 field_0x44;
+    tU32 field_0x48;
+    tU32 field_0x4c;
+    tU32 field_0x50;
+    br_vector3 field_0x54;
+    tU8 field_0x60[0x24];
+    tU32 field_0x84;
+    br_vector3 field_0x88;
+    tU8 field_0x94[0xc];
+    tU32 field_0xa0;
+    br_matrix34 field_0xa4;
+} tPipe_chunk_shrapnel_shower;
 
 #endif // GUARD_23_PIPING_H
