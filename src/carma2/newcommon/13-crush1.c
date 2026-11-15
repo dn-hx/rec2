@@ -26,6 +26,8 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "18-graphics2.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1556,7 +1558,55 @@ int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_ob
     return 0;
 }
 
-// FullyDetachBit
+// FUNCTION: CARMA2_HW 0x0042f4e0
+void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) {
+    void* bit;
+    void* b2;
+    void* b3;
+    void* state;
+
+    bit = pObject->actor;
+    if (bit == NULL) {
+        return;
+    }
+    b2 = *(void**)((tU8*)bit + 0x60);
+    if (b2 == NULL) {
+        return;
+    }
+    b3 = *(void**)((tU8*)b2 + 0x8);
+    if (b3 == NULL) {
+        return;
+    }
+    state = *(void**)((tU8*)b3 + 0x34);
+    if (state == NULL) {
+        return;
+    }
+    if (*(int*)((tU8*)state + 0x28) != 1) {
+        return;
+    }
+
+    PhysicsRemoveObject(pObject);
+    if (pObject->physics_joint1 != NULL) {
+        *(int*)pObject->physics_joint1 = 0;
+        pObject->physics_joint1 = NULL;
+    }
+    if (gPHIL_doing_physics != 0) {
+        TellPhysicsJointsHaveChanged(pCar->collision_info);
+    }
+    pObject->flags |= 0x100;
+
+    b2 = *(void**)((tU8*)bit + 0x5c);
+    if (gNum_active_non_cars != 0x63) {
+        *(int*)((tU8*)b2 + 0xc) = gDetached_bit_driver;
+        gActive_non_car_list[gNum_active_non_cars] = (tNon_car_spec*)b2;
+        gNum_active_non_cars += 1;
+        PHILAddActiveObjectImmediately(*(void**)((tU8*)b2 + 0x8), NULL, NULL, NULL);
+    }
+    PipeSingleNonCar(*(tU16*)((tU8*)b2 + 0x80), bit);
+    *(tU8*)((tU8*)(*(void**)((tU8*)bit + 0x14)) + 0x3) = 0x21;
+    *(int*)((tU8*)state + 0x28) = 2;
+    pCar->use_shell_model = 0;
+}
 
 // SendFullyDetachBit
 
@@ -1692,7 +1742,98 @@ void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context* p
 
 // ReAttachOrFullyDetachDifficultBits
 
-// BendCar
+// FUNCTION: CARMA2_HW 0x00433c70
+void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg5, float pArg6, int pArg7) {
+    tCar_crush_spec* car_crush;
+    tBend_data_local* bend;
+    br_bounds3* bb;
+    tPhysics_object* obj;
+    tPhysics_object** user;
+    float limit;
+    float edge;
+    float z;
+    br_vector3 d;
+    tBend_point_context_local context;
+    int i;
+
+    car_crush = pCar->car_crush_spec;
+    /* UNCERTAIN: offset 0x1b4 of tCar_spec has no name in rec2_types.h */
+    if (car_crush != NULL && *(int*)((char*)pCar + 0x1b4) == 0 && car_crush->field_0x144 == 0) {
+        z = pArg5->v[2];
+        for (i = 0; i < car_crush->field_0x270; i++) {
+            user = (tPhysics_object**)car_crush->field_0x274[i].field_0x0->user;
+            if (user != NULL && (obj = *user) != NULL) {
+                limit = (z - pArg6) * 0.4f;
+                edge = limit + pArg6;
+                if (limit >= gCrushZero) {
+                    if (obj->bb2.max.v[0] <= edge) {
+                        goto detach;
+                    }
+                } else if (obj->bb2.min.v[0] < edge) {
+                    goto detach;
+                }
+                continue;
+            }
+detach:
+            if (BitObjectIsSufficientlyOutsideCarObjectToDetach(car_crush->field_0x274[i].field_0x8)) {
+                FullyDetachBit(pCar, car_crush->field_0x274[i].field_0x8);
+            } else {
+                ReAttachBit(pCar, car_crush->field_0x274[i].field_0x4, car_crush->field_0x274[i].field_0x0, car_crush->field_0x274[i].field_0x8);
+            }
+        }
+        MungeDetachLists(car_crush);
+        BendActor(pCar, pCar->car_master_actor, pAngle_x, pAngle_y, pAngle_z, pArg5, pArg6, (tBend_data_local*)pCar->car_crush_spec->field_0x154);
+        bend = (tBend_data_local*)pCar->car_crush_spec->field_0x154;
+        context.car = pCar;
+        context.bend = bend;
+        BrMatrix34Translate(&context.matrix, -bend->field_0x18.v[0], -bend->field_0x18.v[1], -bend->field_0x18.v[2]);
+        if (bend->field_0x3e != 0) {
+            BrMatrix34PostRotateY(&context.matrix, bend->field_0x3e);
+        }
+        if (bend->field_0x3c != 0) {
+            BrMatrix34PostRotateX(&context.matrix, bend->field_0x3c);
+        }
+        if (bend->field_0x40 != 0) {
+            BrMatrix34PostRotateZ(&context.matrix, bend->field_0x40);
+        }
+        BrMatrix34PostTranslate(&context.matrix, bend->field_0x18.v[0], bend->field_0x18.v[1], bend->field_0x18.v[2]);
+        LoseDodgyPowerups(pCar);
+        if (pCar->car_crush_spec->expand_bounding_box != 0) {
+            SwapShapesIfPossible(pCar);
+        }
+        for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
+            BendCollisionShape(&pCar->car_crush_spec->field_0x4[i], &context);
+        }
+        pCar->car_crush_spec->field_0x264.v[0] = pCar->collision_info->cmpos.v[0];
+        pCar->car_crush_spec->field_0x264.v[1] = pCar->collision_info->cmpos.v[1];
+        pCar->car_crush_spec->field_0x264.v[2] = pCar->collision_info->cmpos.v[2];
+        pCar->car_crush_spec->field_0x10.v[0] = pCar->collision_info->cmpos.v[0];
+        pCar->car_crush_spec->field_0x10.v[1] = pCar->collision_info->cmpos.v[1];
+        pCar->car_crush_spec->field_0x10.v[2] = pCar->collision_info->cmpos.v[2];
+        BendPoint(&pCar->car_crush_spec->field_0x10, &context);
+        pCar->car_crush_spec->expand_bounding_box = 11;
+        SwapShapesIfPossible(pCar);
+        BendWheels(pCar, &context);
+        SmashEverything(pCar);
+        if (pArg7 != 0) {
+            ChristmasLights(pCar, gMin_bend_damage, gMax_bend_damage);
+        }
+        bb = &pCar->collision_info->bb1;
+        pCar->use_shell_model = 0;
+        d.v[0] = (bb->max.v[0] - bb->min.v[0]) * 0.15f;
+        d.v[1] = (bb->max.v[1] - bb->min.v[1]) * 0.15f;
+        d.v[2] = (bb->max.v[2] - bb->min.v[2]) * 0.15f;
+        pCar->car_crush_spec->field_0x11c.min.v[0] = d.v[0] + bb->min.v[0];
+        pCar->car_crush_spec->field_0x11c.min.v[1] = bb->min.v[1] + d.v[1];
+        pCar->car_crush_spec->field_0x11c.min.v[2] = bb->min.v[2] + d.v[2];
+        pCar->car_crush_spec->field_0x11c.max.v[0] = bb->max.v[0] - d.v[0];
+        pCar->car_crush_spec->field_0x11c.max.v[1] = bb->max.v[1] - d.v[1];
+        pCar->car_crush_spec->field_0x11c.max.v[2] = bb->max.v[2] - d.v[2];
+        *(int*)((char*)pCar->car_crush_spec + 0x1d0) = pCar->car_crush_spec->field_0x2b0;
+        pCar->car_crush_spec->field_0x144 = 1;
+        CrashEarnings(pCar, NULL);
+    }
+}
 
 // QuantizeAngle
 

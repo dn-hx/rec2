@@ -276,7 +276,7 @@ extern void C2_HOOK_FASTCALL ToggleFlaps(void);
 
 extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_object* pObject);
 
-// FullyDetachBit
+extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
 
 // SendFullyDetachBit
 
@@ -370,7 +370,7 @@ extern void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_con
 
 // ReAttachOrFullyDetachDifficultBits
 
-// BendCar
+extern void C2_HOOK_FASTCALL BendCar(tCar_spec* pCar, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg5, float pArg6, int pArg7);
 
 // QuantizeAngle
 
@@ -559,5 +559,32 @@ extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_ve
 // CopySplitInMessage
 
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
+
+typedef struct tBend_data_local {
+    br_scalar field_0x0;
+    br_scalar field_0x4;
+    undefined field_0x8[4];
+    br_scalar field_0xc;
+    br_scalar field_0x10;
+    undefined field_0x14[4];
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_vector3 field_0x30;
+    br_angle field_0x3c;
+    br_angle field_0x3e;
+    br_angle field_0x40;
+    undefined field_0x42[2];
+    br_vector3 field_0x44;
+    br_vector3 field_0x50;
+    br_vector3 field_0x5c;
+    br_vector3 field_0x68;
+    int field_0x74;
+    tCar_crush_vertex_data* field_0x78;
+} tBend_data_local;
+typedef struct tBend_point_context_local {
+    tCar_spec* car;
+    br_matrix34 matrix;
+    tBend_data_local* bend;
+} tBend_point_context_local;
 
 #endif // GUARD_13_CRUSH1_H
