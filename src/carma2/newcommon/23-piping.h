@@ -351,7 +351,7 @@ extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
-// ApplySkidAdjustment
+extern void C2_HOOK_FASTCALL ApplySkidAdjustment(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyFlap(tPipe_chunk** pChunk);
 
@@ -536,5 +536,11 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    int skid_num;
+    br_matrix34 matrix;
+    br_material* material;
+} tPipe_chunk_skid_adjust;
 
 #endif // GUARD_23_PIPING_H
