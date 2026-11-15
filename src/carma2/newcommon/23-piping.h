@@ -377,7 +377,7 @@ extern void C2_HOOK_FASTCALL ApplyNonCarCreation(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmashModelChange(tPipe_chunk** pChunk);
 
-// ApplySmashRemoveFaces
+extern void C2_HOOK_FASTCALL ApplySmashRemoveFaces(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplySmashDecal(tPipe_chunk** pChunk);
 
@@ -536,5 +536,11 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+typedef struct {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    tU32 count;
+} tPipe_chunk_remove_faces;
 
 #endif // GUARD_23_PIPING_H
