@@ -269,7 +269,7 @@ extern void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int 
 
 // ExtrapolateTextureCoordinates
 
-// ExtrapolateGeometryCoordinates2
+extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 
 extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMapping, br_vector2* pMap, br_vertex* pVertex);
 
