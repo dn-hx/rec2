@@ -68,7 +68,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // CreateSparkShower
 
-// AdjustSpark
+extern void C2_HOOK_FASTCALL AdjustSpark(int field_0x0, void* pField_0x4, void* pField_0x10);
 
 extern void C2_HOOK_FASTCALL AdjustShrapnel(int pShrapnel_num, br_vector3* pPos, tU16 pAge, br_material* pMaterial);
 
