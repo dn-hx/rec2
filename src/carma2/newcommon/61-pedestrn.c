@@ -814,7 +814,33 @@ void C2_HOOK_FASTCALL CBFillInObject(tPhysics_object* pObject, undefined4 pType)
 
 // PedUndoGibShower
 
-// DoGiblets
+// FUNCTION: CARMA2_HW 0x004ccff0
+void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
+    tU32 time;
+    int seed;
+    br_vector3 vec;
+    tPhysics_object* object;
+
+    if (gGoreLevel <= 0) {
+        return;
+    }
+    time = GetTotalTime();
+    if (pArg4 > 0.5) {
+        Explode(&gPed_large_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    } else if (pArg4 > 0.25) {
+        Explode(&gPed_medium_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    } else if (pArg4 > 0.05) {
+        Explode(&gPed_explosion_small_blood_cloud, GetCharacterActorPtr(pPed->character), &pPed->character->personality->bb, &pObject->cmpos);
+    }
+    seed = (int)pArg5->v[2] ^ (int)pArg5->v[1] ^ time ^ (int)pOpt_speed_object ^ (int)pPed ^ (int)pArg5->v[0];
+    object = (pOpt_speed_object == NULL) ? pObject : pOpt_speed_object;
+    vec.v[0] = object->v.v[0] * 6.9;
+    vec.v[1] = object->v.v[1] * 6.9;
+    vec.v[2] = object->v.v[2] * 6.9;
+    DoGibShower(gGib_shower_id, time, seed, pArg4, pArg6, &pPed->pos, pArg5, &vec);
+    PipeSingleGibShower(gGib_shower_id, time, seed, *(int*)&pArg4, pArg6, &pPed->pos, pArg5, &vec);
+    gGib_shower_id--;
+}
 
 void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_vector3* pPosition, br_vector3* pImpactee_velocity, br_vector3* pNormal) {
     int seed;
