@@ -1339,7 +1339,34 @@ void C2_HOOK_FASTCALL InitNetStorageSpace(void) {
 
 // NetworkStartHost
 
-// NetHostChooseThisRace
+static int NetHostRaceIndex(const char* pName) {
+    int i;
+    int index;
+
+    for (i = 0; i < gNumber_of_races; i++) {
+        if (DRStricmp(pName, gRace_list[i].name) == 0) {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+// FUNCTION: CARMA2_HW 0x004691a0
+int C2_HOOK_FASTCALL NetHostChooseThisRace(tFrontend_spec* pFrontend) {
+    int race_index;
+
+    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
+    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
+    race_index = NetHostRaceIndex(pFrontend->items[gFrontend_selected_item_index].text);
+    gProgram_state.current_race_index = race_index;
+    strcpy(pFrontend->items[30].text, gRace_list[race_index].description);
+    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
+    MungeMetaCharactersNum(pFrontend->items[30].text, 'O', gRace_list[race_index].count_explicit_opponents);
+    MungeMetaCharactersNum(pFrontend->items[30].text, 'L', gRace_list[race_index].count_laps);
+    FuckWithWidths(pFrontend);
+    return 0;
+}
 
 // NetCancel
 
