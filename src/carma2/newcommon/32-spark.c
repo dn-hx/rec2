@@ -421,20 +421,25 @@ void C2_HOOK_FASTCALL DisposeShrapnel(void) {
 // ReplayShrapnel
 
 // FUNCTION: CARMA2_HW 0x004f8dc0
-// FUNCTION: CARMA2_SW 0x004f4440
 intptr_t C2_HOOK_CDECL ActorFunks(br_actor* pActor, void* pContext) {
-    tFunk_index_cbfn* funk_index_callback = pContext;
-    tUser_crush_data* user_crush_data = pActor->user;
+    tFunk_index_cbfn* funk_index_callback;
+    tUser_crush_data* user_crush_data;
     tCar_crush_buffer_entry* crush_data;
     int i;
+    int funk_index;
+
+    user_crush_data = pActor->user;
+    funk_index_callback = pContext;
 
     if (user_crush_data != NULL) {
         crush_data = user_crush_data->crush_data;
-        if (crush_data != NULL && crush_data->smashables != NULL) {
-            for (i = 0; i < crush_data->count_smashables; i++) {
-                int funk_index = crush_data->smashables[i].funk;
-                if (funk_index >= 0) {
-                    funk_index_callback(funk_index);
+        if (crush_data != NULL) {
+            if (crush_data->smashables != NULL) {
+                for (i = 0; i < crush_data->count_smashables; i++) {
+                    funk_index = crush_data->smashables[i].funk;
+                    if (funk_index >= 0) {
+                        funk_index_callback(funk_index);
+                    }
                 }
             }
         }
