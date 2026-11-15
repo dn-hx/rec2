@@ -145,12 +145,11 @@ float C2_HOOK_FASTCALL FastFloatCos(int pAngle_degrees) {
     } else {
         pAngle_degrees = pAngle_degrees % 360;
     }
-
     if (pAngle_degrees > 270) {
         return gFloat_sine_table[pAngle_degrees - 270];
     }
     if (pAngle_degrees > 180) {
-        return -gFloat_sine_table[270 - pAngle_degrees];
+        return -*(gFloat_sine_table + 270 - pAngle_degrees);
     }
     if (pAngle_degrees > 90) {
         return -gFloat_sine_table[pAngle_degrees - 90];
