@@ -381,22 +381,27 @@ void C2_HOOK_FASTCALL MungeInternalCarGlass(tCar_spec* pCar_spec) {
 // FUNCTION: CARMA2_HW 0x004ed2b0
 // FUNCTION: CARMA2_SW 0x004e8f80
 void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmash, int pLevel) {
-    int i;
-    int flags;
     br_pixelmap* texture;
-    br_scalar temp;
+    br_pixelmap** pixelmaps;
+    int i;
+    unsigned int flags;
+    float fVar1;
+    tU32 uVar5;
 
     texture = NULL;
     if (pCar_spec != NULL) {
         for (i = 0; i < (int)REC2_ASIZE(gRepair_animations); i++) {
-            if (gRepair_animations[i].field_0x0 == pSmash) {
+            if (gRepair_animations[i].field_0x0 == (void*)pSmash) {
                 gRepair_animations[i].field_0x0 = NULL;
                 break;
             }
         }
     }
-    if (pSmash->levels[pLevel].count_pixelmaps != 0) {
-        texture = pSmash->levels[pLevel].pixelmaps[IRandomBetween(0, pSmash->levels[pLevel].count_pixelmaps - 1)];
+    i = pSmash->levels[pLevel].count_pixelmaps;
+    if (i != 0) {
+        i = IRandomBetween(0, i - 1);
+        pixelmaps = (br_pixelmap**)pSmash->levels;
+        texture = pixelmaps[pLevel * 0xb1 + i];
     }
     PipeSingleSmashTextureChange(pCar_spec, pSmash->funk_material, texture);
     pSmash->funk_material->user = texture;
@@ -405,42 +410,48 @@ void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashab
     }
     pSmash->field_0x4c = pLevel;
     flags = pSmash->levels[pLevel].flags;
-    if (pCar_spec == NULL || (flags & 0x1c)) {
-        if ((flags & 0x4) && PercentageChance(50)) {
+    if (pCar_spec == NULL || (flags & 0x1c) != 0) {
+        if ((flags & 0x4) != 0 && PercentageChance(0x32)) {
             pSmash->funk_material->map_transform.m[0][0] *= -1.0f;
         }
-        if ((flags & 0x8) && PercentageChance(50)) {
+        if ((flags & 0x8) != 0 && PercentageChance(0x32)) {
             pSmash->funk_material->map_transform.m[1][1] *= -1.0f;
         }
-        if (flags & 0x10) {
+        if ((flags & 0x10) != 0) {
             switch (IRandomBetween(0, 3)) {
             case 0:
                 pSmash->funk_material->map_transform.m[0][0] *= -1.0f;
-                pSmash->funk_material->map_transform.m[1][1] *= -1.0f;
+                fVar1 = pSmash->funk_material->map_transform.m[1][1] * -1.0f;
                 break;
             case 1:
-                temp = pSmash->funk_material->map_transform.m[0][0];
-                pSmash->funk_material->map_transform.m[0][0] = pSmash->funk_material->map_transform.m[0][1];
-                pSmash->funk_material->map_transform.m[0][1] = temp;
-                temp = pSmash->funk_material->map_transform.m[1][0];
+                uVar5 = *(tU32*)&pSmash->funk_material->map_transform.m[0][0];
+                *(tU32*)&pSmash->funk_material->map_transform.m[0][0] = *(tU32*)&pSmash->funk_material->map_transform.m[0][1];
+                *(tU32*)&pSmash->funk_material->map_transform.m[0][1] = uVar5;
+                fVar1 = pSmash->funk_material->map_transform.m[1][0];
                 pSmash->funk_material->map_transform.m[1][0] = -pSmash->funk_material->map_transform.m[0][1];
-                pSmash->funk_material->map_transform.m[1][1] = -temp;
+                fVar1 = -fVar1;
                 break;
             case 2:
-                temp = pSmash->funk_material->map_transform.m[0][0];
+                fVar1 = pSmash->funk_material->map_transform.m[0][0];
                 pSmash->funk_material->map_transform.m[0][0] = -pSmash->funk_material->map_transform.m[0][1];
-                pSmash->funk_material->map_transform.m[0][1] = -temp;
-                temp = pSmash->funk_material->map_transform.m[1][0];
-                pSmash->funk_material->map_transform.m[1][0] = pSmash->funk_material->map_transform.m[0][1];
-                pSmash->funk_material->map_transform.m[1][1] = temp;
+                pSmash->funk_material->map_transform.m[0][1] = -fVar1;
+                fVar1 = pSmash->funk_material->map_transform.m[1][0];
+                *(tU32*)&pSmash->funk_material->map_transform.m[1][0] = *(tU32*)&pSmash->funk_material->map_transform.m[0][1];
                 break;
+            default:
+                goto no_transform;
             }
+            pSmash->funk_material->map_transform.m[1][1] = fVar1;
         }
+no_transform:
+        ;
     } else {
         BrMatrix23Identity(&pSmash->funk_material->map_transform);
     }
     BrMaterialUpdate(pSmash->funk_material, BR_MATU_ALL);
-    MungeInternalCarGlass(pCar_spec);
+    if (pCar_spec == &gProgram_state.current_car && gAction_replay_camera_mode == kActionReplayCameraMode_Internal) {
+        MungeCarMaterials(pCar_spec, 1);
+    }
     if (pSmash->funk >= 0) {
         DisableFunkotronic(pSmash->funk);
     }
