@@ -3798,8 +3798,13 @@ int C2_HOOK_FASTCALL NetOptions_CreditsRoller(tFrontend_spec* pFrontend) {
 
 // NetOptions_Ok
 
+/* inlined into NetOptions_Cancel in the original (no standalone copy) */
+static void C2_HOOK_FASTCALL RestoreNetworkOptions(void) {
+
+    gFrontend_net_options = gFrontend_backup_net_options;
+}
+
 // FUNCTION: CARMA2_HW 0x00473550
-// FUNCTION: CARMA2_SW 0x00472ac0
 int C2_HOOK_FASTCALL NetOptions_Cancel(tFrontend_spec* pFrontend) {
 
     RestoreNetworkOptions();
