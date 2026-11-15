@@ -199,7 +199,16 @@ void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
 
 // PDGetJoy2Button4
 
-// PDFileUnlock
+// FUNCTION: CARMA2_HW 0x0051d4b0
+int C2_HOOK_FASTCALL PDFileUnlock(const char *pThe_path) {
+    DWORD dwAttributes;
+
+    dwAttributes = GetFileAttributesA(pThe_path);
+    if (dwAttributes != INVALID_FILE_ATTRIBUTES) {
+        return SetFileAttributesA(pThe_path, dwAttributes & ~FILE_ATTRIBUTE_READONLY);
+    }
+    return 0;
+}
 
 // PDCheckDriveExists2
 

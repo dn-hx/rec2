@@ -150,7 +150,7 @@ extern void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer);
 
 // PDGetJoy2Button4
 
-// PDFileUnlock
+extern int C2_HOOK_FASTCALL PDFileUnlock(const char* pThe_path);
 
 // PDCheckDriveExists2
 
