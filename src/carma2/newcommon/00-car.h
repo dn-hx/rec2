@@ -155,7 +155,7 @@ extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar 
 
 // NudgeObject
 
-// CalcForce
+extern void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt);
 
 // DoRevs
 
