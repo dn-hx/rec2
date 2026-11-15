@@ -18,6 +18,7 @@
 #include "rec2_macros.h"
 
 #include "c2_stdio.h"
+#include "52-errors.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 // GLOBAL: CARMA2_SW 0x0058c180
@@ -249,12 +250,131 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
 
 // CreateHorizonModel
 
-// LoadDepthTable
+static int Log2(int pNumber) {
+    int i;
+    int bits[16];
 
-// STUB: CARMA2_HW 0x00445620
+    bits[0] = 1;
+    bits[1] = 2;
+    bits[2] = 4;
+    bits[3] = 8;
+    bits[4] = 16;
+    bits[5] = 32;
+    bits[6] = 64;
+    bits[7] = 128;
+    bits[8] = 256;
+    bits[9] = 512;
+    bits[10] = 1024;
+    bits[11] = 2048;
+    bits[12] = 4096;
+    bits[13] = 0x2000;
+    bits[14] = 0x4000;
+    bits[15] = 0x8000;
+    for (i = REC2_ASIZE(bits) - 1; i >= 0; --i) {
+        if (bits[i] & pNumber) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    tPath_name the_path;
+    int i;
+    int j;
+    tU8 temp;
+
+#define PTABLE_PIXEL_AT(X, Y) ((tU8*)((*pTable)->pixels))[(X) + (Y) * (*pTable)->row_bytes]
+
+    PathCat(the_path, gApplication_path, "SHADETAB");
+    PathCat(the_path, the_path, pName);
+    *pTable = DRPixelmapLoad(the_path);
+    if (*pTable == NULL) {
+        FatalError(kFatalError_CannotLoadDepthCueShadeTable);
+    }
+    *pPower = Log2((*pTable)->height);
+    for (i = 0; i < (*pTable)->width; i++) {
+        for (j = 0; j < (*pTable)->height / 2; j++) {
+            temp = PTABLE_PIXEL_AT(i, j);
+            PTABLE_PIXEL_AT(i, j) = PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1));
+            PTABLE_PIXEL_AT(i, ((*pTable)->height - j - 1)) = temp;
+        }
+    }
+
+#undef PTABLE_PIXEL_AT
+}
+
+// FUNCTION: CARMA2_HW 0x00445620
 // STUB: CARMA2_SW 0x00445450
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
-    NOT_IMPLEMENTED();
+    br_model* sky_model;
+    int row;
+    int col;
+    int u_base;
+    int v_base;
+    tU8 band;
+    int vtxidx;
+    tU8 stripe;
+
+    LoadDepthTable("DEPTHCUE.TAB", &gDepth_shade_table, &gDepth_shade_table_power);
+    LoadDepthTable("FOG.TAB", &gFog_shade_table, &gFog_shade_table_power);
+    LoadDepthTable("ACIDFOG.TAB", &gAcid_shade_table, &gAcid_shade_table_power);
+    LoadDepthTable("BLUEGIT.TAB", &gWater_shade_table, &gWater_shade_table_power);
+    GenerateSmokeShades();
+
+    gHorizon_material = BrMaterialFind("HORIZON.MAT");
+    if (gHorizon_material == NULL) {
+        FatalError(kFatalError_CannotFindSkyMaterial_S);
+    }
+
+    if (gScreen->type == BR_PMT_INDEX_8 && gNo_fog == 0) {
+        gHorizon_material->index_blend = BrPixelmapAllocate(BR_PMT_INDEX_8, 0x100, 0x100, NULL, 0);
+        BrTableAdd(gHorizon_material->index_blend);
+        for (row = 0; row < 0x10000; row += 0x100) {
+            for (col = 0; col < 0x100; col++) {
+                ((tU8*)gHorizon_material->index_blend->pixels)[row + col] = (tU8)col;
+            }
+        }
+        gHorizon_material->flags |= BR_MATF_PERSPECTIVE;
+    }
+
+    gHorizon_material->flags |= BR_MATF_MAP_INTERPOLATION;
+
+    sky_model = BrModelAllocate(NULL, 0x58, 0x7e);
+    sky_model->flags |= BR_MODF_KEEP_ORIGINAL;
+
+    band = 0;
+    vtxidx = 0;
+    do {
+        u_base = 4 * band;
+        v_base = u_base + 4;
+        stripe = 0;
+        do {
+            *((tU16*)((tU8*)sky_model->faces + vtxidx)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 2)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 4)) = (tU16)(u_base + stripe + 5);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x28)) = (tU16)(u_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2a)) = (tU16)(u_base + stripe + 1);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2c)) = (tU16)(v_base + stripe);
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 6)) = 1;
+            *((tU16*)((tU8*)sky_model->faces + vtxidx + 0x2e)) = 1;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 8)) = 0;
+            *((tU32*)((tU8*)sky_model->faces + vtxidx + 0x30)) = 0;
+            vtxidx += 0x50;
+            stripe++;
+        } while (stripe < 3);
+        band++;
+    } while (band < 0x15);
+
+    gForward_sky_model = sky_model;
+    BrModelAdd(gForward_sky_model);
+
+    gForward_sky_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+    gForward_sky_actor->model = gForward_sky_model;
+    gForward_sky_actor->material = gHorizon_material;
+    gForward_sky_actor->render_style = BR_RSTYLE_NONE;
+    BrActorAdd(gUniverse_actor, gForward_sky_actor);
 }
 
 // DoHorizon
