@@ -406,10 +406,67 @@ int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tColli
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004611b0
+#define LSWS_LOAD(p) (*(const volatile br_scalar*)(p))
+
+#define LSWS_SC(v) ((br_scalar)(v))
+
+// FUNCTION: CARMA2_HW 0x004611b0
 // STUB: CARMA2_SW 0x00460c40
 int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    int result;
+    double z;
+    double squared;
+    float squared_scalar;
+    double length;
+    double scale;
+    double y;
+    double normal_z;
+    double point_y;
+    double point_z;
+    float point_x;
+
+    result = LineSphereColl(pStart, pEnd, pSphere, pPoint, pNormal, pT);
+    if (result != 0) {
+        return result;
+    }
+    pNormal->v[0] = LSWS_SC(LSWS_LOAD(&pSphere->center.v[0]) - pEnd->v[0]);
+    pNormal->v[1] = LSWS_SC(LSWS_LOAD(&pSphere->center.v[1]) - pEnd->v[1]);
+    z = LSWS_LOAD(&pSphere->center.v[2]) - pEnd->v[2];
+    squared = ((double)LSWS_LOAD(&pNormal->v[0]) * LSWS_LOAD(&pNormal->v[0]) + (double)LSWS_LOAD(&pNormal->v[1]) * LSWS_LOAD(&pNormal->v[1])) + z * LSWS_SC(z);
+    pNormal->v[2] = LSWS_SC(z);
+    squared_scalar = LSWS_SC(squared);
+    if (squared > LSWS_LOAD(&pSphere->radius_squared) - (LSWS_LOAD(&pSphere->radius_squared) * 0.002f) * -2.0f) {
+        return 0;
+    }
+    if (!(squared >= LSWS_LOAD(&pSphere->radius_squared))) {
+        return 0;
+    }
+    length = sqrt((double)squared_scalar);
+    if (length > 2.3841858e-7f) {
+        scale = 1.0 / length;
+        y = LSWS_LOAD(&pNormal->v[1]);
+        normal_z = LSWS_LOAD(&pNormal->v[2]);
+        pNormal->v[0] = LSWS_SC(scale * LSWS_LOAD(&pNormal->v[0]));
+        pNormal->v[1] = LSWS_SC(y * scale);
+        pNormal->v[2] = LSWS_SC(normal_z * scale);
+    } else {
+        pNormal->v[0] = 1.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+    }
+    pPoint->v[0] = LSWS_SC(LSWS_LOAD(&pSphere->radius) * LSWS_LOAD(&pNormal->v[0]));
+    point_x = (br_scalar)LSWS_LOAD(&pPoint->v[0]);
+    point_y = (double)LSWS_LOAD(&pNormal->v[1]) * LSWS_LOAD(&pSphere->radius);
+    pPoint->v[1] = LSWS_SC(point_y);
+    point_y = LSWS_LOAD(&pPoint->v[1]);
+    point_z = (double)LSWS_LOAD(&pNormal->v[2]) * LSWS_LOAD(&pSphere->radius);
+    pPoint->v[2] = LSWS_SC(point_z);
+    point_z = LSWS_LOAD(&pPoint->v[2]);
+    pPoint->v[0] = LSWS_SC((double)point_x + LSWS_LOAD(&pSphere->center.v[0]));
+    pPoint->v[1] = LSWS_SC(point_y + LSWS_LOAD(&pSphere->center.v[1]));
+    pPoint->v[2] = LSWS_SC(point_z + LSWS_LOAD(&pSphere->center.v[2]));
+    *pT = 1.0f;
+    return 2;
 }
 
 #ifdef REC2_MATCHING
