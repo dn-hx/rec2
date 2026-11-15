@@ -116,6 +116,7 @@ br_scalar C2_HOOK_CDECL BrMatrix4Inverse(br_matrix4* A, const br_matrix4* B) {
     return det;
 }
 
+// PARTIAL 25.32%: BrMatrix4Determinant 0x005360f0 - calls Determinant3 (original inlines it, no call), 4x4 cofactor order differs; x87 schedule open
 // FUNCTION: CARMA2_HW 0x005360f0
 br_scalar C2_HOOK_CDECL BrMatrix4Determinant(const br_matrix4* mat) {
     br_scalar a1;
