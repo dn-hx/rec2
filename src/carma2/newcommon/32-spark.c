@@ -726,57 +726,76 @@ inline void C2_HOOK_FASTCALL ReplayFlame(tSmoke_column* pColumn, br_actor* pActo
 // FUNCTION: CARMA2_HW 0x004fbdd0
 // FUNCTION: CARMA2_SW 0x004f7330
 void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTime) {
-    tSmoke_column* col;
+    tSmoke_column* column;
     br_actor* actor;
+    br_actor* flame;
     int i;
-    br_scalar scale;
 
-    C2_HOOK_BUG_ON(REC2_ASIZE(gFlame_frame_size) != 20);
-    C2_HOOK_BUG_ON(REC2_ASIZE(gFlame_frame_size[0]) != 2);
-
-    col = &gSmoke_column[pColumn];
-    actor = col->flame_actor;
+    column = &gSmoke_column[pColumn];
+    actor = column->flame_actor;
     DRMatrix34RotateY(&actor->t.t.mat, FastScalarArcTan2Angle(gCamera_to_world.m[2][0], gCamera_to_world.m[2][2]));
-    BrVector3Copy(&actor->t.t.translate.t, pPos);
-    actor = actor->children;
-
+    actor->t.t.mat.m[3][0] = pPos->v[0];
+    actor->t.t.mat.m[3][1] = pPos->v[1];
+    flame = actor->children;
+    actor->t.t.mat.m[3][2] = pPos->v[2];
     if (gAction_replay_mode) {
-        ReplayFlame(col, actor);
+        for (i = 0; i < 3; i++) {
+            column->frame_count[i] = (int)(ARGetReplayRate() + column->frame_count[i]);
+            if (column->frame_count[i] >= 0 && column->frame_count[i] < 20) {
+                flame->type = 1;
+                flame->material->colour_map = gFlame_map[column->frame_count[i]];
+                BrMaterialUpdate(flame->material, 0x7fff);
+                BrMatrix34Scale(&flame->t.t.mat, (br_scalar)gFlame_map[column->frame_count[i]]->width * column->scale_x[i], (br_scalar)gFlame_map[column->frame_count[i]]->height * column->scale_y[i], 1.0f);
+                flame->t.t.mat.m[3][0] = column->offset_x[i];
+                flame->t.t.mat.m[3][2] = column->offset_z[i];
+            } else {
+                flame->type = 0;
+            }
+            flame = flame->next;
+        }
         return;
     }
-    for (i = 0; i < (int)REC2_ASIZE(col->frame_count); i++) {
-        col->frame_count[i]++;
-        if (col->frame_count[i] >= (int)REC2_ASIZE(gFlame_map)) {
-            ARStartPipingSession(ePipe_chunk_flame);
-            AddFlameToPipingSession(i + 16 * pColumn, col->frame_count[i] + 1, col->scale_x[i], col->scale_y[i], col->offset_x[i], col->offset_z[i]);
+    for (i = 0; i < 3; i++) {
+        column->frame_count[i] = column->frame_count[i] + 1;
+        if (column->frame_count[i] >= 20) {
+            br_scalar scale;
+            int direction;
+
+            ARStartPipingSession((tPipe_chunk_type)18);
+            AddFlameToPipingSession((pColumn << 4) + i, column->frame_count[i] + 1, column->scale_x[i], column->scale_y[i], column->offset_x[i], column->offset_z[i]);
             AREndPipingSession();
-            col->frame_count[i] = IRandomBetween(-5, -1);
+            column->frame_count[i] = IRandomBetween(-5, -1);
             scale = SRandomBetween(1.0f, 1.5f) * 0.003f;
-            col->scale_x[i] = (2 * IRandomBetween(0, 1) - 1) * scale;
-            col->scale_y[i] = SRandomBetween(0.5f, 1.0f) * 0.003f;
-            col->offset_x[i] = SRandomPosNeg(0.03f);
-            col->offset_z[i] = SRandomBetween(-0.03f, 0.f);
-            actor->type = BR_ACTOR_NONE;
+            direction = IRandomBetween(0, 1) * 2 - 1;
+            column->scale_x[i] = direction * scale;
+            column->scale_y[i] = SRandomBetween(0.5f, 1.0f) * 0.003f;
+            column->offset_x[i] = SRandomPosNeg(0.03f);
+            column->offset_z[i] = SRandomBetween(-0.03f, 0.0f);
+            flame->type = 0;
         }
-        if (col->frame_count[i] == 0) {
-            if ((col->core.car == NULL || BrVector3LengthSquared(&col->core.car->collision_info->v) < 80.0 / WORLD_SCALE_D)
-                    && col->lifetime > 30 * pTime) {
-                actor->type = BR_ACTOR_MODEL;
-                ARStartPipingSession(ePipe_chunk_flame);
-                AddFlameToPipingSession(i + 16 * pColumn, col->frame_count[i] - 1, col->scale_x[i], col->scale_y[i], col->offset_x[i], col->offset_z[i]);
+        if (column->frame_count[i] == 0) {
+            tPhysics_object* physics;
+
+            if ((column->core.car == NULL
+                        || (physics = column->core.car->collision_info,
+                            physics->v.v[0] * physics->v.v[0] + physics->v.v[1] * physics->v.v[1] + physics->v.v[2] * physics->v.v[2] < 11.594202898550725))
+                    && pTime * 30 < column->lifetime) {
+                flame->type = 1;
+                ARStartPipingSession((tPipe_chunk_type)18);
+                AddFlameToPipingSession((pColumn << 4) + i, column->frame_count[i] - 1, column->scale_x[i], column->scale_y[i], column->offset_x[i], column->offset_z[i]);
                 AREndPipingSession();
             } else {
-                col->frame_count[i] = -5;
+                column->frame_count[i] = -5;
             }
         }
-        if (col->frame_count[i] >= 0) {
-            actor->material->colour_map = gFlame_map[col->frame_count[i]];
-            BrMaterialUpdate(actor->material, BR_MATU_ALL);
-            BrMatrix34Scale(&actor->t.t.mat, gFlame_frame_size[col->frame_count[i]][0] * col->scale_x[i], gFlame_frame_size[col->frame_count[i]][1] * col->scale_y[i], 1.f);
-            actor->t.t.translate.t.v[0] = col->offset_x[i];
-            actor->t.t.translate.t.v[2] = col->offset_z[i];
+        if (column->frame_count[i] >= 0) {
+            flame->material->colour_map = gFlame_map[column->frame_count[i]];
+            BrMaterialUpdate(flame->material, 0x7fff);
+            BrMatrix34Scale(&flame->t.t.mat, (br_scalar)gFlame_frame_size[column->frame_count[i]][0] * column->scale_x[i], (br_scalar)gFlame_frame_size[column->frame_count[i]][1] * column->scale_y[i], 1.0f);
+            flame->t.t.mat.m[3][0] = column->offset_x[i];
+            flame->t.t.mat.m[3][2] = column->offset_z[i];
         }
-        actor = actor->next;
+        flame = flame->next;
     }
 }
 
