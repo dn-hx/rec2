@@ -1011,7 +1011,390 @@ void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_
 
 // RQIterativeImprovement
 
-// RQExpand
+// FUNCTION: CARMA2_HW 0x004c4850
+void C2_HOOK_FASTCALL RQExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder) {
+    br_scalar vec[100];
+    int row;
+    int off;
+    int i;
+    int cnt;
+    int cnt2;
+    int n;
+    br_scalar* col;
+    br_scalar* dst;
+    br_scalar* p;
+    br_scalar* q;
+    br_scalar* r;
+    br_scalar* s2;
+    br_scalar* diag;
+    br_scalar* inv_diag;
+    br_scalar* inv_row;
+    br_scalar* inv_col;
+    br_scalar* l_col;
+    br_scalar* l_col2;
+    int l_step;
+    br_scalar maxv;
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+    br_scalar d;
+    br_scalar e;
+    br_scalar f;
+    tU8 ord;
+
+    row = pIndex;
+    if (pIndex < pCount) {
+        off = pIndex * 100;
+        col = pL + pIndex;
+        do {
+            ord = pOrder[row];
+            i = 0;
+            if (pIndex > 0) {
+                dst = col;
+                p = vec;
+                do {
+                    a = pMatrix[ord * 100 + pOrder[i]];
+                    i++;
+                    *p = a;
+                    *dst = a;
+                    dst += 100;
+                    p++;
+                } while (i < pIndex);
+            }
+            i = 0;
+            q = pInv;
+            if (pIndex > 0) {
+                do {
+                    a = 0.0f;
+                    p = vec;
+                    r = q;
+                    cnt = pIndex;
+                    do {
+                        b = *p;
+                        c = *r;
+                        r++;
+                        p++;
+                        cnt--;
+                        a = b * c + a;
+                    } while (cnt != 0);
+                    n = off + i;
+                    i++;
+                    pL[n] = a;
+                    q += 100;
+                } while (i < pIndex);
+            }
+            row++;
+            col++;
+            off += 100;
+        } while (row < pCount);
+    }
+    if (pIndex < pCount) {
+        q = pInv + pIndex * 101;
+        inv_col = pInv + pIndex;
+        inv_row = pInv + pIndex * 100;
+        i = pIndex;
+        inv_diag = q;
+        do {
+            ord = pOrder[i];
+            p = q;
+            n = pIndex;
+            do {
+                ord = ord;
+                *(br_scalar*)((int)pL + (-4 - (int)pInv) + (int)(p + 1)) = pMatrix[pOrder[n] + (int)ord * 100];
+                *p = 0.0f;
+                p++;
+                n++;
+            } while (n < pCount);
+            p = inv_row;
+            r = inv_col;
+            n = pIndex;
+            if (n > 0) {
+                do {
+                    *p = 0.0f;
+                    *r = 0.0f;
+                    n--;
+                    p++;
+                    r += 100;
+                } while (n != 0);
+            }
+            *inv_diag = 1.0f;
+            i++;
+            q += 100;
+            inv_row += 100;
+            inv_col++;
+            inv_diag += 101;
+        } while (i < pCount);
+    }
+    i = 0;
+    if (pIndex > 0) {
+        l_col = pL + pIndex + 100;
+        l_step = 100;
+        q = pL;
+        diag = pL;
+        do {
+            a = q[i];
+            maxv = 0.0f;
+            if (pIndex < pCount) {
+                p = q + pIndex;
+                n = pCount - pIndex;
+                do {
+                    b = (br_scalar)fabs(*p);
+                    if (fabs(*p) < maxv) {
+                        b = maxv;
+                    }
+                    p++;
+                    n--;
+                    maxv = b;
+                } while (n != 0);
+            }
+            if (maxv != 0.0) {
+                b = (br_scalar)fabs(a);
+                if (b < maxv) {
+                    b = maxv;
+                }
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q + pIndex;
+                    do {
+                        n--;
+                        *p = *p / b;
+                        p++;
+                    } while (n != 0);
+                }
+                a = a / b;
+                c = 0.0f;
+                if (pIndex < pCount) {
+                    p = q + pIndex;
+                    n = pCount - pIndex;
+                    do {
+                        d = *p;
+                        p++;
+                        n--;
+                        c = d * d + c;
+                    } while (n != 0);
+                }
+                c = (br_scalar)fabs(sqrt(a * a + c));
+                if (a <= 0.0) {
+                    c = -c;
+                }
+                a = a + c;
+                n = 0;
+                if (pCount > 0) {
+                    p = (br_scalar*)(((int)pInv - (int)pL) + (int)q);
+                    do {
+                        d = a * *p;
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            s2 = pInv + n + pIndex * 100;
+                            cnt = pCount - pIndex;
+                            do {
+                                e = *s2;
+                                f = *r;
+                                s2 += 100;
+                                r++;
+                                cnt--;
+                                d = e * f + d;
+                            } while (cnt != 0);
+                        }
+                        d = d / (a * c);
+                        if (pIndex < pCount) {
+                            s2 = q + pIndex;
+                            cnt = pCount - pIndex;
+                            r = pInv + n + pIndex * 100;
+                            do {
+                                e = *s2;
+                                s2++;
+                                cnt--;
+                                *r = *r - d * e;
+                                r += 100;
+                            } while (cnt != 0);
+                        }
+                        n++;
+                        *p = *p - a * d;
+                        p++;
+                    } while (n < pCount);
+                }
+                if (i + 1 < pCount) {
+                    cnt2 = pCount - (i + 1);
+                    p = pL + i + l_step;
+                    s2 = l_col;
+                    do {
+                        d = a * *p;
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            n = pCount - pIndex;
+                            l_col2 = s2;
+                            do {
+                                e = *l_col2;
+                                f = *r;
+                                l_col2++;
+                                r++;
+                                n--;
+                                d = e * f + d;
+                            } while (n != 0);
+                        }
+                        d = d / (a * c);
+                        if (pIndex < pCount) {
+                            r = q + pIndex;
+                            n = pCount - pIndex;
+                            l_col2 = s2;
+                            do {
+                                e = *r;
+                                r++;
+                                n--;
+                                *l_col2 = *l_col2 - d * e;
+                                l_col2++;
+                            } while (n != 0);
+                        }
+                        s2 += 100;
+                        cnt2--;
+                        *p = *p - a * d;
+                        p += 100;
+                    } while (cnt2 != 0);
+                }
+                *diag = -(c * b);
+                if (pIndex < pCount) {
+                    p = q + pIndex;
+                    for (n = pCount - pIndex; n != 0; n--) {
+                        *p = 0.0f;
+                        p++;
+                    }
+                }
+            }
+            i++;
+            q += 100;
+            l_step += 100;
+            l_col += 100;
+            diag += 101;
+        } while (i < pIndex);
+    }
+    if (pIndex < pCount) {
+        off = pIndex * 100;
+        q = pL + pIndex * 101;
+        do {
+            maxv = 0.0f;
+            if (pIndex < pCount) {
+                n = pCount - pIndex;
+                p = q;
+                do {
+                    a = (br_scalar)fabs(*p);
+                    if (fabs(*p) < maxv) {
+                        a = maxv;
+                    }
+                    p++;
+                    n--;
+                    maxv = a;
+                } while (n != 0);
+            }
+            if (maxv != 0.0) {
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q;
+                    do {
+                        n--;
+                        *p = *p / maxv;
+                        p++;
+                    } while (n != 0);
+                }
+                a = 0.0f;
+                if (pIndex < pCount) {
+                    n = pCount - pIndex;
+                    p = q;
+                    do {
+                        b = *p;
+                        p++;
+                        n--;
+                        a = b * b + a;
+                    } while (n != 0);
+                }
+                a = (br_scalar)fabs(sqrt(a));
+                if (*q <= 0.0) {
+                    a = -a;
+                }
+                b = a * (a + *q);
+                *q = a + *q;
+                i = 0;
+                if (pCount > 0) {
+                    do {
+                        c = 0.0f;
+                        if (pIndex < pCount) {
+                            r = pInv + off + i;
+                            cnt = pCount - pIndex;
+                            p = q;
+                            do {
+                                d = *p;
+                                e = *r;
+                                p++;
+                                r += 100;
+                                cnt--;
+                                c = d * e + c;
+                            } while (cnt != 0);
+                        }
+                        if (pIndex < pCount) {
+                            cnt = pCount - pIndex;
+                            r = pInv + i + off;
+                            p = q;
+                            do {
+                                d = *p;
+                                p++;
+                                cnt--;
+                                *r = *r - (c / b) * d;
+                                r += 100;
+                            } while (cnt != 0);
+                        }
+                        i++;
+                    } while (i < pCount);
+                }
+                if (pIndex + 1 < pCount) {
+                    r = pL + off + pIndex + 100;
+                    cnt2 = pCount - (pIndex + 1);
+                    do {
+                        c = 0.0f;
+                        if (pIndex < pCount) {
+                            n = pCount - pIndex;
+                            p = q;
+                            s2 = r;
+                            do {
+                                d = *s2;
+                                e = *p;
+                                p++;
+                                s2++;
+                                n--;
+                                c = d * e + c;
+                            } while (n != 0);
+                        }
+                        if (pIndex < pCount) {
+                            n = pCount - pIndex;
+                            p = r;
+                            s2 = q;
+                            do {
+                                d = *s2;
+                                s2++;
+                                n--;
+                                *p = *p - (c / b) * d;
+                                p++;
+                            } while (n != 0);
+                        }
+                        r += 100;
+                        cnt2--;
+                    } while (cnt2 != 0);
+                }
+                n = pIndex + 1;
+                *q = -(a * maxv);
+                if (n < pCount) {
+                    p = pL + off + n;
+                    for (cnt = pCount - n; cnt != 0; cnt--) {
+                        *p = 0.0f;
+                        p++;
+                    }
+                }
+            }
+            pIndex++;
+            q += 101;
+            off += 100;
+        } while (pIndex < pCount);
+    }
+}
 
 // RQSingleExpand
 
