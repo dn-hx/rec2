@@ -29,6 +29,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "00-car.h"
 
 #include <stdio.h>
 
@@ -362,7 +363,7 @@ tSmash_vertex* C2_HOOK_FASTCALL FindShrapnelFragment(br_model* pModel, tU32 pId,
 // FUNCTION: CARMA2_SW 0x004e6e00
 void C2_HOOK_FASTCALL SetShrapnelFragment(tSmash_vertex* pFragment, tMovement_spec* pSpeed_info, br_vector3* pImpactee_velocity, float pScale, tShrapnel_time_info* pTime_spec, tU32 pTime, br_vector3* pNormal, br_vector3* pSource_position, br_vector3* pPosition) {
 
-    ApplyInitialMovement(pSpeed_info, pImpactee_velocity, &pFragment->v, &pFragment->omega, pScale, pNormal, pSource_position, pPosition);
+    ApplyInitialMovement((tMovement_spec*)pSpeed_info, pImpactee_velocity, &pFragment->v, &pFragment->omega, pScale, pNormal, pSource_position, pPosition);
     pFragment->field_0xc = pTime;
     pFragment->time_last_move = pTime;
     pFragment->end_time = pTime + pTime_spec->max_time;
@@ -485,7 +486,84 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // DoDelayedSmash
 
-// MungeDelayedSideEffects
+static __inline void C2_HOOK_FASTCALL DoDelayedNonCar(tU32 pTime, tDelayed_non_car* pNon_car) {
+    tDelayed_non_car_actor_item* src;
+    tDelayed_non_car_actor_item* dst;
+    tNon_car_spec* non_car;
+    br_vector3 velocity;
+    br_vector3 omega;
+    int count_removed;
+    int i;
+
+    count_removed = 0;
+    dst = pNon_car->actor_time_actions;
+    for (i = 0, src = dst; i < pNon_car->count_actions; i++, src++) {
+        if (pTime >= src->time) {
+            if (src->actor->type_data == NULL && (non_car = DoPullActorFromWorld(src->actor)) != NULL) {
+                if ((non_car->flags & 0x10000) != 0) {
+                    MakeLiftGoUp(non_car);
+                } else {
+                    ApplyInitialMovement((tMovement_spec*)pNon_car->field_0x18, &pNon_car->field_0x0, &velocity, &omega,
+                        1.f, &gZero_vector__smash, &pNon_car->field_0xc, &src->actor->t.t.translate.t);
+                    non_car->collision_info->v.v[0] = velocity.v[0] * 0.14492753623188406;
+                    non_car->collision_info->v.v[1] = velocity.v[1] * 0.14492753623188406;
+                    non_car->collision_info->v.v[2] = velocity.v[2] * 0.14492753623188406;
+                    non_car->collision_info->omega.v[0] = omega.v[0] * 0.09587379924285257;
+                    non_car->collision_info->omega.v[1] = omega.v[1] * 0.09587379924285257;
+                    non_car->collision_info->omega.v[2] = omega.v[2] * 0.09587379924285257;
+                }
+                non_car->collision_info->disable_move_rotate = 0;
+            }
+            count_removed++;
+        } else {
+            *dst = *src;
+            dst++;
+        }
+    }
+    pNon_car->count_actions -= count_removed;
+}
+
+static __inline void C2_HOOK_FASTCALL DoDelayedSmash(tDelayed_smash* pSmash) {
+    char c;
+
+    if (pSmash->field_0x88 == 1 && pSmash->field_0x80->identifier[0] == '&'
+            && (c = pSmash->field_0x80->identifier[1]) >= '0' && c <= '9') {
+        DoPullActorFromWorld(pSmash->field_0x80);
+        pSmash->field_0x80->identifier[3] = '!';
+        BashObject(pSmash->field_0x90, pSmash->field_0x80, pSmash->field_0x8c, &pSmash->field_0xc, &pSmash->field_0x0,
+            &pSmash->field_0x1c, 1, 0);
+    } else {
+        SmashEnvironment(pSmash->field_0x90, &pSmash->field_0x38, pSmash->field_0x8c, &pSmash->field_0xc, &pSmash->field_0x0,
+            &pSmash->field_0x1c, 1, 0);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004ecc80
+void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
+    tU32 the_time;
+    int i;
+
+    the_time = GetTotalTime();
+    for (i = 0; i < (int)REC2_ASIZE(gSmash_explosions); i++) {
+        tSmash_explosion* delayed_effect = &gSmash_explosions[i];
+        if (delayed_effect->active) {
+            switch (delayed_effect->type) {
+            case 0:
+                DoDelayedNonCar(the_time, &delayed_effect->what.non_car);
+                if (delayed_effect->what.non_car.count_actions == 0) {
+                    delayed_effect->active = 0;
+                }
+                break;
+            case 1:
+                if (the_time >= delayed_effect->what.smash.field_0x18) {
+                    DoDelayedSmash(&delayed_effect->what.smash);
+                    delayed_effect->active = 0;
+                }
+                break;
+            }
+        }
+    }
+}
 
 // ActivateNonCarSideEffects
 
@@ -1565,7 +1643,161 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
 
 // HitPowerup
 
-// SmashEnvironment
+// FUNCTION: CARMA2_HW 0x004f1140
+float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
+    br_uint_16 buffer[1026];
+    br_matrix34 matrix;
+    br_vector3 v;
+    br_actor* actor;
+    tU32 time;
+    tSmashable_item_spec* pSpec;
+    int seed;
+    tFace_ref* pFace;
+    tPhysics_object* object;
+    br_uint_16* pRemoved;
+    br_uint_16* pRemovedEnd;
+    char* identifier;
+    float result;
+    int index;
+    int flag;
+    br_model* model;
+    br_face* face;
+    int changed;
+    tSmashable_item_spec* trigger;
+
+    pFace = (tFace_ref*)pArg2;
+    result = -1.f;
+    object = pObject;
+    time = GetTotalTime();
+    gINT_006a3334 = 0;
+    flag = 0;
+    seed = (int)pForce->v[2] ^ (int)pForce->v[1] ^ (int)pForce->v[0];
+    v.v[0] = ((float*)object->field_0x1b4)[0] * 6.9;
+    v.v[1] = ((float*)object->field_0x1b4)[1] * 6.9;
+    v.v[2] = ((float*)object->field_0x1b4)[2] * 6.9;
+    if (pFace->a != NULL && pFace->a->identifier != NULL && (tU8)pFace->a->identifier[1] == 0xa3) {
+        if (pFace->a->render_style != 1) {
+            index = 10 * (pFace->a->identifier[2] - '0') + (pFace->a->identifier[3] - '0');
+            HitPowerup(object, index, pFace->a);
+            if (index == 0xe) {
+                Explode(&gExplosion_pix_animation_groups, pFace->a, &pFace->a->model->bounds, NULL);
+                BashModel(&gUnknown_smashable_006a3660, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+                DRS3StartSound3D(gCar_outlet, 0x1518, pPosition, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+            } else {
+                BashModel(&gPowerup_pickup_smashable, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+            }
+            if (flag != 0 && pNetwork == 0) {
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+            }
+        }
+        object->box_face_ref = gFace_num__car - 2;
+        result = 0.f;
+        object->box_face_end = 0;
+        object->box_face_start = 0;
+        return result;
+    }
+    if (pFace->a != NULL && pFace->a->identifier != NULL && pFace->a->identifier[0] == '&' && pFace->a->identifier[1] >= '0' && pFace->a->identifier[1] <= '9') {
+        trigger = gSmashable_track_indexable_triggers[10 * (pFace->a->identifier[1] - '0') + (pFace->a->identifier[2] - '0')];
+        if (trigger != NULL && (((trigger->trigger_object.number.field_0x1 & 1) && pFace->a->identifier[3] != '!') || ((trigger->trigger_object.number.field_0x1 & 4) && pFace->a->identifier[3] == '!'))) {
+            result = BashModel(trigger, object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+            if (flag != 0 && pNetwork == 0) {
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+            }
+            return result;
+        }
+    }
+    if (pFace->material != NULL && (identifier = pFace->material->identifier) != NULL && strlen(identifier) == 0xb && identifier[5] == '|') {
+        gINT_006a8290 = 0;
+        identifier = (char*)pFace->material;
+        pSpec = &gTrack_smashable_environment_specs[(tU8)pFace->material->identifier[6] - 1];
+        if (pSnap != 0 && (pSpec->flags & 2)) {
+            return -1.f;
+        }
+        if (pSnap == 0 && (pSpec->flags & 1)) {
+            return -1.f;
+        }
+        if (pSpec->mode == kSmashableMode_Decal || pSpec->mode == kSmashableMode_TextureChange) {
+            result = ProcessTexture(object, (br_material*)identifier, pFace->a, pSpec, pSpec, pFace, pMagnitude, pPosition, pNormal, pForce, -1, pSpec->field_0x2dc == 0, &flag, pNetwork);
+            if (flag != 0 && pNetwork == 0) {
+                SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+            }
+            return result;
+        }
+        if (pMagnitude < pSpec->mode_data.shrapnel.removal_threshold) {
+            return -1.f;
+        }
+        flag = 0;
+        actor = pFace->a;
+        if (pSpec->mode == kSmashableMode_Remove) {
+            model = actor->model;
+            if (model != NULL && (model->flags & 0x80)) {
+                changed = 0;
+                index = 0;
+                pRemoved = &buffer[0];
+                pRemovedEnd = &buffer[2];
+                for (face = model->faces; index < model->nfaces; index++, face++) {
+                    if (face->material == (br_material*)identifier) {
+                        if (pRemovedEnd < &buffer[1026]) {
+                            *pRemoved = face->vertices[0];
+                            pRemovedEnd[-1] = face->vertices[1];
+                            *pRemovedEnd = face->vertices[2];
+                            pRemovedEnd[1] = face->smoothing;
+                            pRemoved += 4;
+                            pRemovedEnd += 4;
+                        }
+                        memmove(face, face + 1, model->nfaces * sizeof(br_face) - (index + 1) * sizeof(br_face));
+                        model->nfaces--;
+                        index--;
+                        face--;
+                        changed = 1;
+                    }
+                }
+                if (changed) {
+                    flag = 1;
+                    if (model->nfaces == 0) {
+                        actor->render_style = 1;
+                        PipeSingleSmashModelChange(actor, model, NULL);
+                    } else {
+                        DRModelUpdateDeluxTurbo(actor, model, 0x7fff);
+                        PipeSingleSmashRemoveFaces(model, (int)((char*)pRemoved - (char*)&buffer[0]) >> 3, &buffer[0], (br_material*)identifier);
+                    }
+                }
+                object->box_face_ref = gFace_num__car - 2;
+                object->box_face_end = 0;
+                object->box_face_start = 0;
+            }
+        } else if (pSpec->mode == kSmashableMode_NoChange) {
+            flag = pSpec->field_0x10 == 0;
+            pSpec->field_0x10 = GetTotalTime();
+        }
+        if (flag == 0) {
+            return result;
+        }
+        result = pSpec->mode_data.shrapnel.removal_threshold;
+        BrActorToActorMatrix34(&matrix, pFace->a, gUniverse_actor);
+        DoConnotations(object, pSpec, 0, &pSpec->mode_data.shrapnel.connotations, seed, (undefined4)&v, pPosition, pPosition, pFace->a, time, gCount_shrapnel_shower_calls, &matrix, NULL, &pFace->normal, pMagnitude, (undefined4)pForce, pNetwork);
+        if (pNetwork == 0) {
+            SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+        }
+        return result;
+    }
+    if (pFace->a != NULL && pFace->a->identifier != NULL && ((strlen(pFace->a->identifier) == 0xb && pFace->a->identifier[5] == '|') || (tU8)pFace->a->identifier[1] == 0xa3)) {
+        if (pSnap != 0 && (gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1].flags & 2)) {
+            return -1.f;
+        }
+        if (pSnap == 0 && (gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1].flags & 1)) {
+            return -1.f;
+        }
+        if (pMagnitude < gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1].mode_data.shrapnel.removal_threshold) {
+            return -1.f;
+        }
+        result = BashModel(&gTrack_smashable_environment_specs[(tU8)pFace->a->identifier[6] - 1], object, pFace->a, pMagnitude, pPosition, pNormal, pForce, &flag, pNetwork);
+        if (flag != 0 && pNetwork == 0) {
+            SendNetSmash(object, pFace, pMagnitude, pPosition, pNormal, pForce, pSnap);
+        }
+    }
+    return result;
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
