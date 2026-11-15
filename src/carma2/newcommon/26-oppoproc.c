@@ -9,6 +9,7 @@
 #include "26-oppoproc.h"
 
 #include "08-loading1.h"
+#include "30-opponent.h"
 
 // DoNotDprintf
 
