@@ -190,7 +190,7 @@ extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlaye
 
 // InitPlayers
 
-extern void C2_HOOK_FASTCALL UseGeneralScore(int pScore);
+extern void C2_HOOK_FASTCALL UseGeneralScore(tPlayer_ID pPlayer_id);
 
 // NetSendEnvironmentChanges
 
