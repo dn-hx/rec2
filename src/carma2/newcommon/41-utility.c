@@ -1928,10 +1928,24 @@ intptr_t C2_HOOK_CDECL DumpVisibleActorsCB(br_actor* pActor, void* pData) {
     return BrActorEnum(pActor, DumpVisibleActorsCB, pData);
 }
 
-// STUB: CARMA2_HW 0x00518d60
+// FUNCTION: CARMA2_HW 0x00518d60
 // STUB: CARMA2_SW 0x00512820
 tU32 C2_HOOK_FASTCALL FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(br_pixelmap* pm, tU32 red, tU32 grn, tU32 blu, tU32 alp) {
-    NOT_IMPLEMENTED();
+
+    switch (pm->type) {
+    case BR_PMT_RGB_555:
+        return (((((red & 0xf8) << 5) | (grn & 0xf8)) << 2)) | ((blu >> 3) & 0x1f);
+    case BR_PMT_RGB_565:
+        return ((((red & 0xf8) << 5) | (grn & 0xfc)) << 3) | ((blu >> 3) & 0x1f);
+    case BR_PMT_RGBA_8888:
+        return (((((alp << 8) | red) << 8) | grn) << 8) | blu;
+    case BR_PMT_RGBA_4444:
+        return ((((alp & 0xfffffff0u) << 4) | (red & 0xfffffff0u)) << 4) | (blu >> 4) | (grn & 0xfffffff0u);
+    case BR_PMT_ARGB_1555:
+        return (((((((alp & 0xffffff80u) << 1) | (red & 0xf8)) << 5) | (grn & 0xf8)) << 2)) | ((blu >> 3) & 0x1f);
+    default:
+        return (((red << 8) | grn) << 8) | blu;
+    }
 }
 
 // GetBlenficatiousnessOfMaterialTablishly
