@@ -179,13 +179,15 @@ extern void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds);
 
 #ifdef REC2_MATCHING
 extern void C2_HOOK_FASTCALL FUN_004ef830(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, undefined4 pArg3, int pLevel);
+extern void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations);
+
 #endif
 
 // FreeExplosion
 
 // ReadSpecialEffectsSpec
 
-// ReadBounds
+extern void C2_HOOK_FASTCALL ReadBounds(FILE* pF, br_bounds3* pBounds);
 
 // ReadNoncarSideEffects
 

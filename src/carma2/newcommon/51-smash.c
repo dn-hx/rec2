@@ -852,7 +852,21 @@ void C2_HOOK_FASTCALL FUN_004ef830(tCar_spec* pCar_spec, tCar_crush_smashable_pa
 
 // ReadSpecialEffectsSpec
 
-// ReadBounds
+// FUNCTION: CARMA2_HW 0x004ef460
+void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
+    float x1, x2;
+    float y1, y2;
+    float z1, z2;
+
+    GetThreeFloats(pF, &x1, &y1, &z1);
+    GetThreeFloats(pF, &x2, &y2, &z2);
+    pBounds->min.v[0] = MIN(x1, x2);
+    pBounds->min.v[1] = MIN(y1, y2);
+    pBounds->min.v[2] = MIN(z1, z2);
+    pBounds->max.v[0] = MAX(x1, x2);
+    pBounds->max.v[1] = MAX(y1, y2);
+    pBounds->max.v[2] = MAX(z1, z2);
+}
 
 // ReadNoncarSideEffects
 
@@ -990,6 +1004,33 @@ void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x004efce0
+void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations) {
+    int i;
+    int i1, i2;
+    float* p;
+
+    /* no. of non car cuboids activated */
+    pNon_car_cuboid_activations->count_activations = GetAnInt(pF);
+    if (pNon_car_cuboid_activations->count_activations != 0) {
+        pNon_car_cuboid_activations->activations = BrMemAllocate(pNon_car_cuboid_activations->count_activations * sizeof(tNon_car_cuboid_activation), kMem_smash_side_effects);
+        for (i = 0; i < pNon_car_cuboid_activations->count_activations; i++) {
+            GetPairOfInts(pF, &i1, &i2);
+            pNon_car_cuboid_activations->activations[i].field_0x0 = (tS16)(i1 * 1000);
+            pNon_car_cuboid_activations->activations[i].field_0x2 = (tS16)(i2 * 1000);
+            pNon_car_cuboid_activations->activations[i].field_0x4 = GetALineAndInterpretCommand(pF, gPosition_type_names, REC2_ASIZE(gPosition_type_names));
+            pNon_car_cuboid_activations->activations[i].field_0x8 = (tS8)GetAnInt(pF);
+            ReadBounds(pF, &pNon_car_cuboid_activations->activations[i].bounds);
+            p = &pNon_car_cuboid_activations->activations[i].field_0x24;
+            GetPairOfFloats(pF, &p[0], &p[1]);
+            p[2] = GetAScalar(pF);
+            p[3] = GetAScalar(pF);
+            p[4] = GetAScalar(pF);
+            p[5] = GetAScalar(pF);
+            p[6] = GetAScalar(pF) / 10.f;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x004efe00
 // FUNCTION: CARMA2_SW 0x004eba60
 void C2_HOOK_FASTCALL InitSmashing(void) {
