@@ -35,6 +35,11 @@ br_uint_8 g_endMasks[9] = {
 // GLOBAL: CARMA2_HW 0x0066fd1e
 br_uint_16 g_fpuControlWord = 0x1f3f;
 
+// GLOBAL: CARMA2_HW 0x0066fd20
+int g_fill3byteSteps[8] = {
+    0, 3, 6, 1, 4, 7, 2, 5,
+};
+
 
 #if defined(__I86__) || defined(_M_IX86)
 C2_NAKED
@@ -2143,9 +2148,461 @@ L_53e66e:
 #endif
 }
 
+#if defined(__I86__) || defined(_M_IX86)
+C2_NAKED
+#endif
+// PARTIAL 87.57%: pm_mem_fill_colour 0x0053e686 - runtime-faithful; the three inline jump tables (0x53e721, 0x53e7e6, 0x53e98e) are dispatched with equal-length compare chains because inline asm cannot relocate their entries; see state/findings/pm_mem_fill_colour.md
 // FUNCTION: CARMA2_HW 0x0053e686
 void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour) {
-
+#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
+    /* Hand-written BRender assembly: segment-register fill (qual -> ES/DS), an 8-byte
+     * x87 round trip (fild/fistp, g_fpuControlWord) for the wide stores, and three
+     * 64-byte peel blocks entered at one of eight points.
+     * The original dispatches into them with three inline jump tables in .text
+     * (0x53e721, 0x53e7e6, 0x53e98e) holding absolute addresses of the peel entry
+     * points. MSVC's inline assembler cannot emit data with relocations, so each
+     * table is dispatched with a compare chain to the same labels instead. Each
+     * chain plus its two nops is 39 bytes, the size of the original jmp plus its
+     * 32-byte table, so every jump displacement in the body is unchanged. */
+    __asm {
+        push ebp
+        mov ebp, esp
+        add esp, 0xfffffff4
+        push ebx
+        push ecx
+        push edx
+        push edi
+        push ds
+        push es
+        fnstcw word ptr [ebp-0xa]
+        fldcw word ptr g_fpuControlWord
+        mov es, word ptr [ebp+0xc]
+        mov ebx, dword ptr [ebp+0x14]
+        cmp ebx, 0x4
+        je L_53e94c
+        cmp ebx, 0x3
+        je L_53e859
+        cmp ebx, 0x2
+        je L_53e792
+        cmp ebx, 0x1
+        je L_53e6cd
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e6cd:
+        mov eax, dword ptr [ebp+0x18]
+        mov edi, dword ptr [ebp+0x8]
+        mov ebx, eax
+        mov ah, al
+        shl eax, 0x10
+        mov ecx, 0x8
+        mov al, bl
+        sub ecx, edi
+        mov ah, bl
+        and ecx, 0x7
+        mov ebx, dword ptr [ebp+0x10]
+        je L_53e6f3
+    L_53e6ed:
+        sub ebx, ecx
+        jle L_53e741
+        rep stosb
+    L_53e6f3:
+        mov ecx, ebx
+        and ebx, 0x7
+        and ecx, 0xfffffff8
+        je L_53e783
+        mov edx, ecx
+        and ecx, 0x38
+        shr edx, 0x6
+        add edi, ecx
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        shr ecx, 1
+        mov ds, word ptr [ebp+0xc]
+        cmp ecx, 0x1c
+        je L_53e75b
+        cmp ecx, 0x18
+        je L_53e760
+        cmp ecx, 0x14
+        je L_53e765
+        cmp ecx, 0x10
+        je L_53e76a
+        cmp ecx, 0xc
+        je L_53e76f
+        cmp ecx, 0x8
+        je L_53e774
+        cmp ecx, 0x4
+        je L_53e779
+        jmp L_53e750
+        nop
+        nop
+    L_53e741:
+        add ecx, ebx
+        rep stosb
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e750:
+        dec edx
+        jl L_53e781
+    L_53e753:
+        lea edi, [edi+0x40]
+        fld st(0)
+        fistp qword ptr [edi-0x40]
+    L_53e75b:
+        fld st(0)
+        fistp qword ptr [edi-0x38]
+    L_53e760:
+        fld st(0)
+        fistp qword ptr [edi-0x30]
+    L_53e765:
+        fld st(0)
+        fistp qword ptr [edi-0x28]
+    L_53e76a:
+        fld st(0)
+        fistp qword ptr [edi-0x20]
+    L_53e76f:
+        fld st(0)
+        fistp qword ptr [edi-0x18]
+    L_53e774:
+        fld st(0)
+        fistp qword ptr [edi-0x10]
+    L_53e779:
+        fld st(0)
+        fistp qword ptr [edi-0x8]
+        dec edx
+        jge L_53e753
+    L_53e781:
+        fstp st(0)
+    L_53e783:
+        mov ecx, ebx
+        rep stosb
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e792:
+        mov eax, dword ptr [ebp+0x18]
+        mov edi, dword ptr [ebp+0x8]
+        mov ebx, eax
+        mov ecx, 0x8
+        shl eax, 0x10
+        sub ecx, edi
+        mov al, bl
+        and ecx, 0x6
+        shr ecx, 1
+        mov ah, bh
+        mov ebx, dword ptr [ebp+0x10]
+        je L_53e7b9
+        sub ebx, ecx
+        jle L_53e806
+        rep stosw
+    L_53e7b9:
+        mov ecx, ebx
+        and ebx, 0x3
+        and ecx, 0xfffffffc
+        je L_53e849
+        mov edx, ecx
+        and ecx, 0x1c
+        shr edx, 0x5
+        lea edi, [edi+ecx*2]
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        mov ds, word ptr [ebp+0xc]
+        cmp ecx, 0x1c
+        je L_53e821
+        cmp ecx, 0x18
+        je L_53e826
+        cmp ecx, 0x14
+        je L_53e82b
+        cmp ecx, 0x10
+        je L_53e830
+        cmp ecx, 0xc
+        je L_53e835
+        cmp ecx, 0x8
+        je L_53e83a
+        cmp ecx, 0x4
+        je L_53e83f
+        jmp L_53e816
+        nop
+        nop
+    L_53e806:
+        add ecx, ebx
+        rep stosw
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e816:
+        dec edx
+        jl L_53e847
+    L_53e819:
+        lea edi, [edi+0x40]
+        fld st(0)
+        fistp qword ptr [edi-0x40]
+    L_53e821:
+        fld st(0)
+        fistp qword ptr [edi-0x38]
+    L_53e826:
+        fld st(0)
+        fistp qword ptr [edi-0x30]
+    L_53e82b:
+        fld st(0)
+        fistp qword ptr [edi-0x28]
+    L_53e830:
+        fld st(0)
+        fistp qword ptr [edi-0x20]
+    L_53e835:
+        fld st(0)
+        fistp qword ptr [edi-0x18]
+    L_53e83a:
+        fld st(0)
+        fistp qword ptr [edi-0x10]
+    L_53e83f:
+        fld st(0)
+        fistp qword ptr [edi-0x8]
+        dec edx
+        jge L_53e819
+    L_53e847:
+        fstp st(0)
+    L_53e849:
+        mov ecx, ebx
+        rep stosw
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e859:
+        mov eax, dword ptr [ebp+0x18]
+        mov edi, dword ptr [ebp+0x8]
+        mov ebx, eax
+        mov ecx, 0x8
+        ror ebx, 0x10
+        sub ecx, edi
+        cmp al, ah
+        jne L_53e88c
+        cmp bl, al
+        jne L_53e88c
+        rol eax, 0x8
+        mov ebx, dword ptr [ebp+0x10]
+        mov al, ah
+        and ecx, 0x7
+        lea ebx, [ebx+ebx*2]
+        je L_53e6f3
+        jmp L_53e6ed
+    L_53e88c:
+        rol eax, 0x8
+        mov bh, ah
+        mov edx, eax
+        mov al, bl
+        rol edx, 0x8
+        mov esi, dword ptr [ebp+0x10]
+        ror ebx, 0x10
+        and ecx, 0x7
+        mov dh, dl
+        mov dl, bh
+        mov ecx, dword ptr [ecx*4+g_fill3byteSteps]
+        mov ds, word ptr [ebp+0xc]
+        sub esi, ecx
+        jle L_53e92f
+        dec ecx
+        js L_53e8c5
+    L_53e8b7:
+        mov byte ptr [edi], bl
+        mov byte ptr [edi+0x1], dl
+        mov byte ptr [edi+0x2], al
+        add edi, 0x3
+        dec ecx
+        jns L_53e8b7
+    L_53e8c5:
+        mov ecx, esi
+        and esi, 0xf
+        shr ecx, 0x4
+        je L_53e913
+        mov dword ptr [ebp-0x8], edx
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], ebx
+        fild qword ptr [ebp-0x8]
+        mov dword ptr [ebp-0x8], ebx
+        mov dword ptr [ebp-0x4], edx
+        fild qword ptr [ebp-0x8]
+    L_53e8ea:
+        fld st(0)
+        fistp qword ptr [edi]
+        fld st(1)
+        fistp qword ptr [edi+0x8]
+        fld st(2)
+        fistp qword ptr [edi+0x10]
+        fld st(0)
+        fistp qword ptr [edi+0x18]
+        fld st(1)
+        fistp qword ptr [edi+0x20]
+        fld st(2)
+        fistp qword ptr [edi+0x28]
+        lea edi, [edi+0x30]
+        dec ecx
+        jne L_53e8ea
+        fstp st(0)
+        fstp st(0)
+        fstp st(0)
+    L_53e913:
+        dec esi
+        js L_53e924
+    L_53e916:
+        mov byte ptr [edi], bl
+        mov byte ptr [edi+0x1], dl
+        mov byte ptr [edi+0x2], al
+        add edi, 0x3
+        dec esi
+        jns L_53e916
+    L_53e924:
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e92f:
+        add esi, ecx
+        je L_53e924
+    L_53e933:
+        mov byte ptr [edi], bl
+        mov byte ptr [edi+0x1], dl
+        mov byte ptr [edi+0x2], al
+        add edi, 0x3
+        dec esi
+        jne L_53e933
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    L_53e94c:
+        mov eax, dword ptr [ebp+0x18]
+        mov edi, dword ptr [ebp+0x8]
+        mov ebx, dword ptr [ebp+0x10]
+        test edi, 0x4
+        je L_53e964
+        mov dword ptr es:[edi], eax
+        add edi, 0x4
+        dec ebx
+    L_53e964:
+        mov ecx, ebx
+        and ebx, 0x1
+        and ecx, 0xfffffffe
+        je L_53e9e1
+        mov edx, ecx
+        and ecx, 0xe
+        shr edx, 0x4
+        lea edi, [edi+ecx*4]
+        mov dword ptr [ebp-0x8], eax
+        mov dword ptr [ebp-0x4], eax
+        fild qword ptr [ebp-0x8]
+        mov ds, word ptr [ebp+0xc]
+        cmp ecx, 0xe
+        je L_53e9b9
+        cmp ecx, 0xc
+        je L_53e9be
+        cmp ecx, 0xa
+        je L_53e9c3
+        cmp ecx, 0x8
+        je L_53e9c8
+        cmp ecx, 0x6
+        je L_53e9cd
+        cmp ecx, 0x4
+        je L_53e9d2
+        cmp ecx, 0x2
+        je L_53e9d7
+        jmp L_53e9ae
+        nop
+        nop
+        nop
+    L_53e9ae:
+        dec edx
+        jl L_53e9df
+    L_53e9b1:
+        lea edi, [edi+0x40]
+        fld st(0)
+        fistp qword ptr [edi-0x40]
+    L_53e9b9:
+        fld st(0)
+        fistp qword ptr [edi-0x38]
+    L_53e9be:
+        fld st(0)
+        fistp qword ptr [edi-0x30]
+    L_53e9c3:
+        fld st(0)
+        fistp qword ptr [edi-0x28]
+    L_53e9c8:
+        fld st(0)
+        fistp qword ptr [edi-0x20]
+    L_53e9cd:
+        fld st(0)
+        fistp qword ptr [edi-0x18]
+    L_53e9d2:
+        fld st(0)
+        fistp qword ptr [edi-0x10]
+    L_53e9d7:
+        fld st(0)
+        fistp qword ptr [edi-0x8]
+        dec edx
+        jge L_53e9b1
+    L_53e9df:
+        fstp st(0)
+    L_53e9e1:
+        test ebx, ebx
+        je L_53e9e8
+        mov dword ptr es:[edi], eax
+    L_53e9e8:
+        fldcw word ptr [ebp-0xa]
+        pop es
+        pop ds
+        pop edi
+        pop edx
+        pop ecx
+        pop ebx
+        leave
+        ret
+    }
+#else
     switch (bpp) {
     case 1:
         memset(dest, colour, nbpixels);
@@ -2184,6 +2641,7 @@ void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_
         abort();
         return;
     }
+#endif
 }
 
 // FUNCTION: CARMA2_HW 0x0053e9f3
