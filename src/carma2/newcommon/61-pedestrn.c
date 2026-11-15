@@ -253,6 +253,14 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x0040b030
+void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
+    float dot;
+
+    dot = BrVector3Dot(pPlane, pPoint);
+    BrVector3Scale(pDest, pPlane, -dot);
+    BrVector3Accumulate(pDest, pPoint);
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
