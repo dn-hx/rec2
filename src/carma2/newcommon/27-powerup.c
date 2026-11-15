@@ -189,6 +189,11 @@ tU32 gInventory_timeout;
 // GLOBAL: CARMA2_SW 0x007951b0
 int gInstant_handbrake;
 
+// FUNCTION: CARMA2_HW 0x004c8da0
+void C2_HOOK_FASTCALL PipeSinglePowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    ARDoSingleVariedSession(0x34, (uintptr_t)pPowerup, 1, 4, 0, (uintptr_t)pCar);
+}
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
 char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
