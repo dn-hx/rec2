@@ -21,6 +21,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -211,7 +212,13 @@ tS16 C2_HOOK_FASTCALL FindNearestPathSection(const br_vector3* pActor_coords, br
 
 // TurnOpponentPhysicsOff
 
-// ApplyOppoRenderage2
+// FUNCTION: CARMA2_HW 0x004a7a20
+void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender) {
+    if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
+        pRender = (pRender == 0);
+    }
+    pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
+}
 
 // FUNCTION: CARMA2_HW 0x004aad70
 // FUNCTION: CARMA2_SW 0x004a6ee0
