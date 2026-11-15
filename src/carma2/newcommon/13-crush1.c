@@ -26,6 +26,8 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "18-graphics2.h"
+#include "00-car.h"
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1271,7 +1273,110 @@ void C2_HOOK_FASTCALL SetFlappage(br_actor* pActor, tCar_spec* pCar, int pFlags,
 
 // RemoveNonCar
 
-// GetNonCar
+// FUNCTION: CARMA2_HW 0x0042f170
+tCrush_info* C2_HOOK_FASTCALL GetNonCar(tCrush_info_buffer* pInfo_buffer, br_actor* pActor, tCar_spec* pCar) {
+    int i;
+    int count;
+    int start_index;
+    int j;
+    tU16 id;
+    tCrush_info* info;
+    tCrush_info* candidate;
+
+    count = pInfo_buffer->capacity;
+    for (i = 0; i < count; i++) {
+        if (*(tDriver*)((tU8*)&pInfo_buffer->crush_infos[i] + 0xc) == 0) {
+            break;
+        }
+    }
+    if (i == count) {
+        tPhysics_object* object;
+
+        if (gPHIL_doing_physics) {
+            return NULL;
+        }
+        start_index = (int)pInfo_buffer->field_0x8;
+        for (i = 0; i < count; i++) {
+            candidate = &pInfo_buffer->crush_infos[start_index];
+            if (*(tDriver*)((tU8*)candidate + 0xc) != 1) {
+                break;
+            }
+            start_index = (start_index + 1) % count;
+        }
+        if (i == count) {
+            return NULL;
+        }
+        info = &pInfo_buffer->crush_infos[start_index];
+        pInfo_buffer->field_0x8 = ((int)pInfo_buffer->field_0x8 + 1) % count;
+        (*(br_actor**)((tU8*)info + 0x10))->type_data = NULL;
+        PipeSingleNonCar(*(tU16*)((tU8*)info + 0x80), *(br_actor**)((tU8*)info + 0x10));
+        PipeSingleRelink(0, *(br_actor**)((tU8*)info + 0x10));
+        BrActorRemove(*(br_actor**)((tU8*)info + 0x10));
+
+        object = info->collision_object->child;
+        while (object != NULL) {
+            tPhysics_object* next;
+            tCrush_info* child_info;
+            br_actor* child_actor;
+            tCar_spec* child_car;
+
+            next = object->next;
+            child_actor = object->actor;
+            child_info = child_actor->type_data;
+            child_actor->type_data = NULL;
+            child_car = *(tCar_spec**)(*(char**)(*(char**)((char*)child_actor->user + 8) + 0x34) + 0x2c);
+            if (*(int*)((tU8*)child_car->car_crush_spec + 0x494) != 8) {
+                PipeSingleRelink(0, child_actor);
+                BrActorRemove(child_actor);
+                *(br_actor**)((tU8*)child_car->car_crush_spec + 0x498 + *(int*)((tU8*)child_car->car_crush_spec + 0x494) * 4) = child_actor;
+                (*(int*)((tU8*)child_car->car_crush_spec + 0x494))++;
+            }
+            *(tDriver*)((tU8*)child_info + 0xc) = 0;
+            PhysicsRemoveObject(object);
+            object = next;
+        }
+        i = 0;
+        for (i = 0; i < gNum_active_non_cars; i++) {
+            if (gActive_non_car_list[i] == (tNon_car_spec*)info) {
+                break;
+            }
+        }
+        if (i != gNum_active_non_cars) {
+            gNum_active_non_cars--;
+            if (i < gNum_active_non_cars) {
+                for (j = i; j < gNum_active_non_cars; j++) {
+                    gActive_non_car_list[j] = gActive_non_car_list[j + 1];
+                }
+            }
+        }
+        *(tDriver*)((tU8*)info + 0xc) = 0;
+        (*(br_actor**)((tU8*)info + 0x10))->type_data = NULL;
+        PHILRemoveObject(info->collision_object);
+    } else {
+        info = &pInfo_buffer->crush_infos[i];
+    }
+    pActor->type_data = info;
+    *(tDriver*)((tU8*)info + 0xc) = *(tDriver*)((tU8*)pInfo_buffer + 0xc);
+    info->collision_object->actor = pActor;
+    *(br_actor**)((tU8*)info + 0x10) = pActor;
+    *(undefined4*)((tU8*)info + 0x4) = 0;
+    *(float*)((tU8*)info + 0xc4) = -1.0f;
+    if (gNet_mode != eNet_mode_none) {
+        id = pCar->car_ID;
+    } else {
+        if (gNext_crush_actor_id == 20000) {
+            gNext_crush_actor_id = 10000;
+        }
+        id = gNext_crush_actor_id++;
+    }
+    *(tU16*)((tU8*)info + 0x80) = id;
+    *(tCar_spec**)((tU8*)info + 0xc8) = pCar;
+    info->collision_object->owner = info;
+    info->collision_object->flags_0x238 = 1;
+    info->collision_object->field_0x1a0 = 0xffff;
+    info->collision_object->field_0x1a4 = 0;
+    return info;
+}
 
 // GetNonCarObject
 
@@ -1434,7 +1539,98 @@ void C2_HOOK_FASTCALL SendAllSemiDetachedBits(tNet_game_player_info* pPlayer) {
 
 // AddNonCar
 
-// DetachBit
+// FUNCTION: CARMA2_HW 0x00433350
+tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
+    extern void C2_HOOK_FASTCALL PipeSingleRelink(tU32 pArg1, br_actor* pActor);
+    extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
+    extern int gNum_active_non_cars;
+    extern tNon_car_spec* gActive_non_car_list[99];
+
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_detach_data* detach_data;
+    tCrush_info* info;
+    tPhysics_object* bit_object;
+    tCar_bit_spec* bit_car;
+    br_model* model;
+    br_material* material;
+    br_vector3 centre;
+    int flag;
+    int j;
+
+    if (*(int*)((char*)pCar + 0x1b4) != 0
+            || pCar->car_crush_spec == NULL
+            || pCar->car_crush_spec->field_0x4b8 != 0
+            || (user = pActor->user) == NULL
+            || (crush_data = user->crush_data) == NULL
+            || (detach_data = crush_data->detach_data) == NULL
+            || detach_data->field_0x28 != 0
+            || pCar->car_crush_spec->field_0x2b0 == 0x18
+            || (info = GetNonCar(&gDetached_bit_crush_info_buffer, pActor, pCar)) == NULL) {
+        return NULL;
+    }
+    bit_object = info->collision_object;
+    *(float*)((tU8*)detach_data + 0xc) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->min_vertex].p.v[0];
+    *(float*)((tU8*)detach_data + 0x10) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->min_vertex].p.v[1];
+    *(float*)((tU8*)detach_data + 0x14) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->min_vertex].p.v[2];
+    *(float*)((tU8*)detach_data + 0x18) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->max_vertex].p.v[0];
+    *(float*)((tU8*)detach_data + 0x1c) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->max_vertex].p.v[1];
+    detach_data->field_0x28 = 2;
+    *(float*)((tU8*)detach_data + 0x20) = ((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[detach_data->max_vertex].p.v[2];
+    bit_car = &pCar->car_crush_spec->field_0x2b4[pCar->car_crush_spec->field_0x2b0];
+    bit_car->field_0x0 = pActor;
+    bit_car->field_0x4 = pActor->parent;
+    bit_car->field_0x8 = bit_object;
+    bit_car->field_0xc = (undefined4*)detach_data;
+    bit_car->field_0x10 = PDGetTotalTime();
+    pCar->car_crush_spec->field_0x2b0++;
+    PipeSingleIdentity(pActor);
+    PipeSingleRelink((tU32)gNon_track_actor, pActor);
+    ActorRelink(gNon_track_actor, pActor);
+    BrMatrix34Copy(&bit_object->transform_matrix, &pActor->t.t.mat);
+    PipeSingleNonCar((tU16)pCar->car_ID, pActor);
+    pActor->identifier[3] = '!';
+    SetUpDetachedBitObject(bit_object, pActor, user->models[0], detach_data, pCar->car_crush_spec, pBounds, pCar->collision_info);
+    bit_object->flags |= 0x100;
+    if (gNum_active_non_cars != 99) {
+        *(tDriver*)&info->field_0xc = gDetached_bit_driver;
+        gActive_non_car_list[gNum_active_non_cars] = (tNon_car_spec*)info;
+        gNum_active_non_cars++;
+        PHILAddActiveObjectImmediately(info->collision_object, NULL, NULL, NULL);
+    }
+    if (user->groove == NULL) {
+        model = user->models[0];
+        if (model != NULL) {
+            for (j = 0; j < model->prepared->ngroups; j++) {
+                material = model->faces[*model->prepared->groups[j].face_user].material;
+                if (material != NULL && (material->flags & BR_MATF_TWO_SIDED) == 0) {
+                    material->flags |= BR_MATF_TWO_SIDED;
+                    BrMaterialUpdate(material, BR_MATU_RENDERING);
+                }
+            }
+        }
+        PipeSingleDSModel(1, user->models[0]);
+    }
+    flag = 0;
+    SwitchCarModel(pActor, &flag);
+    if (pBounds != NULL) {
+        centre.v[0] = pBounds->max.v[0] + pBounds->min.v[0];
+        centre.v[1] = pBounds->max.v[1] + pBounds->min.v[1];
+        centre.v[2] = pBounds->max.v[2] + pBounds->min.v[2];
+        centre.v[0] *= 0.5f;
+        centre.v[1] *= 0.5f;
+        centre.v[2] *= 0.5f;
+        LazyMoveModel(user->models[0], &centre);
+    }
+    pCar->use_shell_model = 0;
+    if (user->groove != NULL) {
+        DisableGroovidelic(pActor, 3);
+        PipeSingleGrooveOnOff(0, pActor, 3);
+    }
+    CompressVector3((tCompressed_vector3*)((tU8*)detach_data + 0x7c), &bit_object->bb1.min, -10.f, 10.f);
+    CompressVector3((tCompressed_vector3*)((tU8*)detach_data + 0x82), &bit_object->bb1.max, -10.f, 10.f);
+    return bit_object;
+}
 
 // DoDetaching
 
