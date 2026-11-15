@@ -542,7 +542,12 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
 
 // MoveJointedObject
 
-// TellPhysicsJointsHaveChanged
+// FUNCTION: CARMA2_HW 0x004b9750
+void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pObject) {
+    pObject->field_0x218 = 0;
+    MoveJointedObject(pObject, 0.f);
+    gINT_00692dc8 = 1;
+}
 
 // CombineBounds
 
