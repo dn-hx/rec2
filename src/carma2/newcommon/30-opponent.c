@@ -1358,6 +1358,9 @@ void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
 }
 
 // ,1206,1269 (reference only)
+// PARTIAL 50.69%: ProcessThisOpponent 0x004aa570 - view/visibility branch order now matches the
+// original (gMap_view, then gShow_opponents, then the time check); residual is frame/stack layout
+// and several sections still short of the original's code (39.05 -> 50.69)
 // FUNCTION: CARMA2_HW 0x004aa570
 void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
     extern int gStop_opponents_moving;
@@ -1366,7 +1369,11 @@ void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
     br_vector3 direction_v;
     br_vector3 dir;
 
-    if ((gMap_view == 2 && gShow_opponents) || gTime_stamp_for_this_munging <= pOpponent_spec->last_in_view + 3000) {
+    if (gMap_view == 2) {
+        if (gShow_opponents) {
+            goto in_view;
+        }
+    } else if (gTime_stamp_for_this_munging <= pOpponent_spec->last_in_view + 3000) {
         goto in_view;
     }
     if (!pOpponent_spec->cheating) {
