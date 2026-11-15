@@ -79,7 +79,7 @@ extern int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1
 
 extern void C2_HOOK_FASTCALL PedApplyPedDir(tU32 pId, const br_vector3* pDir);
 
-// SetCharacterMoveAR
+extern void C2_HOOK_FASTCALL SetCharacterMoveAR(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, undefined4 pArg4, undefined4 pArg5, tU32 pTime);
 
 // SetPedStartRun
 
@@ -275,7 +275,7 @@ extern int C2_HOOK_FASTCALL CBActiveHalted(tPed_character_instance* pCharacter, 
 
 // PedProcessForces
 
-// CBMovedByPhysics
+extern void C2_HOOK_FASTCALL CBMovedByPhysics(tPed_character_instance* pCharacter, tPhysics_object* pPhysics, undefined4 pArg3);
 
 extern int C2_HOOK_FASTCALL GetPedCount(void);
 
