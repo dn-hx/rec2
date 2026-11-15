@@ -501,7 +501,7 @@ extern int C2_HOOK_FASTCALL MakeCharacterRenderable2(tPed_character_instance* pC
 
 extern int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter);
 
-// CharacterNoLongerRenderable
+extern int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter);
 
 // CalcCollisionObjectThings
 
@@ -517,7 +517,7 @@ extern int C2_HOOK_FASTCALL MakeCharacterCollideworthy(tPed_character_instance* 
 
 extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
 
-// CharacterNoLongerCollideworthy
+extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
 
 extern void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, const br_vector3* pV);
 
