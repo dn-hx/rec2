@@ -102,9 +102,11 @@ void C2_HOOK_CDECL SurfaceMapGeometryMap(br_soft_renderer* self, br_vector3* p, 
 // FUNCTION: CARMA2_HW 0x0054b6a0
 // FUNCTION: CARMA2_SW 0x00546d40
 void C2_HOOK_CDECL SurfaceMapGeometryMapScale(br_soft_renderer* self, br_vector3* p, br_vector2* map, br_vector3* n, br_colour colour, br_scalar* comp) {
+    br_scalar v1;
 
     comp[C_U] = self->state.cache.map_transform.m[0][0] * map->v[0];
-    comp[C_V] = self->state.cache.map_transform.m[1][1] * map->v[1];
+    v1 = map->v[1];
+    comp[C_V] = v1 * self->state.cache.map_transform.m[1][1];
 }
 
 // FUNCTION: CARMA2_HW 0x0054b6d0
