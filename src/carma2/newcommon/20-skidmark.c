@@ -138,6 +138,7 @@ void C2_HOOK_FASTCALL HideSkids(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 27.88%: WheelSkidSection 0x004e9f20 - x87 operand order/scheduling in the match test; frame 4 vs orig 8; see state/findings/WheelSkidSection.md
 // FUNCTION: CARMA2_HW 0x004e9f20
 // FUNCTION: CARMA2_SW 0x004e5cc0
 int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
