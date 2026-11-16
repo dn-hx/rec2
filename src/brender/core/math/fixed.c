@@ -235,23 +235,10 @@ br_fixed_ls C2_HOOK_CDECL BrFixedAbs(br_fixed_ls a) {
     return a;
 }
 
+// PARTIAL 0.00%: BrFixedMul 0x00537120 - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x00537120
-br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedMul(br_fixed_ls a, br_fixed_ls b) {
-#ifndef REC2_MATCHING
+br_fixed_ls C2_HOOK_CDECL BrFixedMul(br_fixed_ls a, br_fixed_ls b) {
     return ((br_int_64)a * (br_int_64)b) >> 16;
-#else
-    __asm {
-        push ebp
-        mov ebp, esp
-        push edx
-        mov eax, dword ptr [ebp + 8]
-        imul dword ptr [ebp + 0xc]
-        shrd eax, edx, 16
-        pop edx
-        leave
-        ret
-    }
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x00537131
@@ -627,28 +614,10 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedDivF(br_fixed_ls a, br_fixed_ls b) {
 #endif
 }
 
+// PARTIAL 17.65%: FUN_00537304 0x00537304 - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x00537304
-br_fixed_ls BR_NAKED C2_HOOK_CDECL FUN_00537304(br_fixed_ls a, br_fixed_ls b) {
-#ifndef REC2_MATCHING
+br_fixed_ls C2_HOOK_CDECL FUN_00537304(br_fixed_ls a, br_fixed_ls b) {
     return (br_fixed_ls)((((br_int_64)a) << 30) / b * -2 - (br_int_64)0x80000000);
-#else
-    __asm {
-        push ebp
-        mov ebp, esp
-        push edx
-        mov edx, dword ptr [ebp + 8]
-        mov eax, edx
-        shl eax, 0x1e
-        sar edx, 0x2
-        idiv dword ptr [ebp + 0xc]
-        neg eax
-        add eax, eax
-        add eax, 0x80000000
-        pop edx
-        leave
-        ret
-    }
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x00537322
@@ -1147,9 +1116,9 @@ br_angle BR_NAKED C2_HOOK_CDECL BrFixedACos(br_fixed_ls a) {
 #endif
 }
 
+// PARTIAL 1.56%: BrFixedATan2 0x005375af - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x005375af
-br_angle BR_NAKED C2_HOOK_CDECL BrFixedATan2(br_fixed_ls x, br_fixed_ls y) {
-#ifndef REC2_MATCHING
+br_angle C2_HOOK_CDECL BrFixedATan2(br_fixed_ls x, br_fixed_ls y) {
 
     if (y > 0) {
         if (x >= 0) {
@@ -1197,250 +1166,6 @@ br_angle BR_NAKED C2_HOOK_CDECL BrFixedATan2(br_fixed_ls x, br_fixed_ls y) {
             return 0x8000;                                                                  // PI
         }
     }
-#else
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ebx
-        push ecx
-        push edx
-        mov ebx, dword ptr [ebp + 0xc]
-        mov ecx, dword ptr [ebp + 8]
-        xor eax, eax
-        cmp ecx, 0
-        jl at2_y_neg
-        je at2_y_zero
-        cmp ebx, 0
-        jl at2_x_neg
-        cmp ebx, ecx
-        jl at2_x_lt_y
-        je at2_x_eq_y
-        mov edx, ecx
-        div ebx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_x_eq_y:
-        mov eax, 0x2000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_x_lt_y:
-        mov edx, ebx
-        div ecx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        neg eax
-        add eax, 0x4000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_x_neg:
-        neg ebx
-        cmp ebx, ecx
-        jg at2_x_gt_y
-        je at2_xn_eq_y
-        mov edx, ebx
-        div ecx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        add eax, 0x4000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_xn_eq_y:
-        mov eax, 0x6000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_x_gt_y:
-        mov edx, ecx
-        div ebx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        neg eax
-        add eax, 0x8000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_y_neg:
-        neg ecx
-        cmp ebx, 0
-        jg at2_yn_x_pos
-        neg ebx
-        cmp ebx, ecx
-        jl at2_xn_lt_y
-        je at2_xn_eq_yn
-        mov edx, ecx
-        div ebx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        add eax, 0x8000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_xn_eq_yn:
-        mov eax, 0xa000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_xn_lt_y:
-        mov edx, ebx
-        div ecx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        neg eax
-        add eax, 0xc000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_yn_x_pos:
-        cmp ebx, ecx
-        jg at2_xn_gt_y
-        je at2_xn_pos_eq
-        mov edx, ebx
-        div ecx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        add eax, 0xc000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_xn_pos_eq:
-        mov eax, 0xe000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_xn_gt_y:
-        mov edx, ecx
-        div ebx
-        shr eax, 0x10
-        xor ebx, ebx
-        xchg bl, ah
-        mov cx, word ptr [ebx*2 + fixed_atan_table]
-        mov dx, word ptr [ebx*2 + fixed_atan_table + 2]
-        sub edx, ecx
-        imul dx
-        mov al, ah
-        mov ah, dl
-        add eax, ecx
-        neg eax
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_y_zero:
-        cmp ebx, 0
-        jl at2_y_zero_x_neg
-        mov eax, 0
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-
-    at2_y_zero_x_neg:
-        mov eax, 0x8000
-        pop edx
-        pop ecx
-        pop ebx
-        leave
-        ret
-    }
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x005377b3
@@ -1709,9 +1434,9 @@ br_uint_16 C2_HOOK_CDECL _BrSqrtI32(br_uint_32 a) {
     return est;
 }
 
+// PARTIAL 1.20%: _BrSqrtI64 0x00537a13 - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x00537a13
-br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrSqrtI64(uint64_t a) {
-#ifndef REC2_MATCHING
+br_uint_32 C2_HOOK_FASTCALL _BrSqrtI64(uint64_t a) {
     // Shifting nth root algorithm
     uint64_t err;
     uint64_t est;
@@ -1735,334 +1460,6 @@ br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrSqrtI64(uint64_t a) {
         }
     }
     return (br_uint_32)est;
-#else
-    __asm {
-        xor esi, esi
-        xor eax, eax
-        xor edx, edx
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_0
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_0:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_1
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_1:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_2
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_2:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_3
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_3:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_4
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_4:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_5
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_5:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_6
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_6:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_7
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_7:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_8
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_8:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_9
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_9:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_10
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_10:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_11
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_11:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_12
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_12:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_13
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_13:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_14
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_14:
-        shld esi, ecx, 0x2
-        shl ecx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_15
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_15:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_16
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_16:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_17
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_17:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_18
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_18:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_19
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_19:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_20
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_20:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_21
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_21:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_22
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_22:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_23
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_23:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_24
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_24:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_25
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_25:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_26
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_26:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_27
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_27:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_28
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_28:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_29
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_29:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_30
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_30:
-        shld esi, ebx, 0x2
-        shl ebx, 0x2
-        add eax, eax
-        add edx, edx
-        cmp edx, esi
-        jae isq_31
-        sbb esi, edx
-        inc eax
-        add edx, 0x2
-    isq_31:
-        ret
-    }
-#endif
 }
 
 // PARTIAL 94.74%: .data layout - original packs fixed_atan_table/fast_sqrt_table at 2-byte offsets (sqrt at atan+514); MSVC 5.0 8-aligns every global array (sqrt at atan+520), so the operand renders fixed_atan_table[196] vs [193]. Body is instruction-identical otherwise.
@@ -2108,9 +1505,9 @@ br_uint_16 BR_NAKED C2_HOOK_CDECL _BrFastSqrt(br_uint_32 v) {
 #endif
 }
 
+// PARTIAL 8.70%: _BrFastRSqrt32 0x00537ce5 - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x00537ce5
-br_uint_32 BR_NAKED C2_HOOK_CDECL _BrFastRSqrt32(br_uint_32 v) {
-#ifndef REC2_MATCHING
+br_uint_32 C2_HOOK_CDECL _BrFastRSqrt32(br_uint_32 v) {
     uint32_t exp;
 
     if (v == 0) {
@@ -2122,35 +1519,11 @@ br_uint_32 BR_NAKED C2_HOOK_CDECL _BrFastRSqrt32(br_uint_32 v) {
     v = (v << (31 - exp)) >> 24;
     v = fast_rsqrt_table[v-0x40];
     return v >> (exp >> 1);
-#else
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ebx
-        push ecx
-        mov ebx, dword ptr [ebp + 8]
-        xor eax, eax
-        bsr ecx, ebx
-        je frs32_done
-        or cl, 0x1
-        ror ebx, cl
-        ror ebx, 1
-        shr ebx, 0x18
-        mov ax, word ptr [ebx*2 + fast_rsqrt_table - 128]
-        shr cl, 1
-        shr eax, cl
-    frs32_done:
-        pop ecx
-        pop ebx
-        leave
-        ret
-    }
-#endif
 }
 
+// PARTIAL 3.81%: _BrFastRSqrt64 0x00537d0e - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x00537d0e
-br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrFastRSqrt64(uint64_t v) {
-#ifndef REC2_MATCHING
+br_uint_32 C2_HOOK_FASTCALL _BrFastRSqrt64(uint64_t v) {
     uint32_t exp;
     uint32_t tmp;
 
@@ -2173,36 +1546,4 @@ br_uint_32 BR_NAKED C2_HOOK_FASTCALL _BrFastRSqrt64(uint64_t v) {
     v = (v << (31 - exp)) >> 24;
     v = fast_rsqrt_table[v-0x40];
     return (br_uint_32)((v << 16) >> (exp >> 1));
-#else
-    __asm {
-        and ecx, ecx
-        jne frs64_hi
-        xor eax, eax
-        bsr ecx, ebx
-        je frs64_low_done
-        or cl, 0x1
-        ror ebx, cl
-        ror ebx, 1
-        shr ebx, 0x18
-        mov ax, word ptr [ebx*2 + fast_rsqrt_table - 128]
-        shr cl, 1
-        shr eax, cl
-    frs64_low_done:
-        ret
-    frs64_hi:
-        mov edx, ecx
-        bsr eax, ecx
-        mov cl, 0x1f
-        sub cl, al
-        and cl, 0xfe
-        shld edx, ebx, cl
-        shr edx, 0x18
-        mov ax, word ptr [edx*2 + fast_rsqrt_table - 128]
-        neg ecx
-        add ecx, 0x1e
-        shr cl, 1
-        shr eax, cl
-        ret
-    }
-#endif
 }
