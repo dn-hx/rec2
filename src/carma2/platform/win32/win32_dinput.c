@@ -1076,35 +1076,138 @@ void C2_HOOK_FASTCALL KeyBegin(void) {
     gScan_code[118] = DIK_SPACE;
 }
 
+// GLOBAL: CARMA2_HW 0x0054e330
+// c_dfDIKeyboard
+
+// GLOBAL: CARMA2_HW 0x0058b488
+// GUID_SysKeyboard
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0051cbf0
 // FUNCTION: CARMA2_SW 0x00518200
-void C2_HOOK_FASTCALL Win32InitInputDevice(void) {
+int C2_HOOK_FASTCALL Win32InitInputDevice(void) {
+    GUID guid_sysKeyboard = GUID_SysKeyboard;
+    const char *str1;
+    const char *str2;
     HRESULT hRes;
-    GUID guid_sysKeyboard;
 
-    hRes = DirectInputCreateA(gHInstance, DIRECTINPUT_VERSION, &gDirectInput, NULL);
-    if (hRes != S_OK) {
-        PDFatalError("Unable to create DirectInput object - please check that DirectX is installed");
+    hRes = DirectInputCreateA(gHInstance, 0x500, &gDirectInput, NULL);
+    if (hRes != 0) {
+        dr_dprintf("FATAL ERROR: %s", "Unable to create DirectInput object - please check that DirectX is installed");
+        str2 = "";
+        str1 = "Unable to create DirectInput object - please check that DirectX is installed";
+        if (str1 == NULL) {
+            str1 = "NULL str1";
+        }
+        if (str2 == NULL) {
+            str2 = "NULL str2";
+        }
+        gIsFatalError = 1;
+        sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
+        gExit_code = 700;
+        if (gBack_screen != NULL) {
+            if (gBack_screen->pixels != NULL) {
+#ifdef REC2_HW
+                PossibleUnlock(1);
+#endif
+            }
+        }
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        return 0;
     }
 
-    guid_sysKeyboard = GUID_SysKeyboard;
     hRes = IDirectInput_CreateDevice(gDirectInput, &guid_sysKeyboard, &gDirectInputDevice, NULL);
-    if (hRes != S_OK) {
-        PDFatalError("Direct Input: Can't create device");
+    if (hRes != 0) {
+        dr_dprintf("FATAL ERROR: %s", "Direct Input: Can't create device");
+        str2 = "";
+        str1 = "Direct Input: Can't create device";
+        if (str1 == NULL) {
+            str1 = "NULL str1";
+        }
+        if (str2 == NULL) {
+            str2 = "NULL str2";
+        }
+        gIsFatalError = 1;
+        sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
+        gExit_code = 700;
+        if (gBack_screen != NULL) {
+            if (gBack_screen->pixels != NULL) {
+#ifdef REC2_HW
+                PossibleUnlock(1);
+#endif
+            }
+        }
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        return 0;
     }
 
     hRes = IDirectInputDevice_SetDataFormat(gDirectInputDevice, &c_dfDIKeyboard);
-    if (hRes != S_OK) {
-        PDFatalError("Direct Input: Can't create device");
+    if (hRes != 0) {
+        dr_dprintf("FATAL ERROR: %s", "Direct Input: Can't set data format");
+        str2 = "";
+        str1 = "Direct Input: Can't set data format";
+        if (str1 == NULL) {
+            str1 = "NULL str1";
+        }
+        if (str2 == NULL) {
+            str2 = "NULL str2";
+        }
+        gIsFatalError = 1;
+        sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
+        gExit_code = 700;
+        if (gBack_screen != NULL) {
+            if (gBack_screen->pixels != NULL) {
+#ifdef REC2_HW
+                PossibleUnlock(1);
+#endif
+            }
+        }
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        return 0;
     }
 
     hRes = IDirectInputDevice_SetCooperativeLevel(gDirectInputDevice, gHWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-    if (hRes != S_OK) {
-        PDFatalError("Direct Input: Can't set keyboard cooperative level");
+    if (hRes != 0) {
+        dr_dprintf("FATAL ERROR: %s", "Direct Input: Can't set keyboard cooperative level");
+        str2 = "";
+        str1 = "Direct Input: Can't set keyboard cooperative level";
+        if (str1 == NULL) {
+            str1 = "NULL str1";
+        }
+        if (str2 == NULL) {
+            str2 = "NULL str2";
+        }
+        gIsFatalError = 1;
+        sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
+        gExit_code = 700;
+        if (gBack_screen != NULL) {
+            if (gBack_screen->pixels != NULL) {
+#ifdef REC2_HW
+                PossibleUnlock(1);
+#endif
+            }
+        }
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        return 0;
     }
 
     hRes = IDirectInputDevice_Acquire(gDirectInputDevice);
-    if (!SUCCEEDED(hRes)) {
+    if (FAILED(hRes)) {
         dr_dprintf("ERROR: Can't aquire keyboard; HRESULT %x", hRes);
     }
     if (JoystickDInputBegin()) {
@@ -1112,7 +1215,12 @@ void C2_HOOK_FASTCALL Win32InitInputDevice(void) {
         LoadJoystickPreferences();
     }
     gJoystick_deadzone = 8000;
+    return 1;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FUNCTION: CARMA2_HW 0x00459690
 tU32 C2_HOOK_FASTCALL PDGetJoystickButtonStates(void) {
