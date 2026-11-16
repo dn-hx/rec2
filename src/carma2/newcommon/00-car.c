@@ -734,10 +734,105 @@ void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00415c40
+#define PO_U16(o, off) (*(tU16*)((char*)(o) + (off)))
+
+#define PO_U32(o, off) (*(tU32*)((char*)(o) + (off)))
+
+#define PO_U8(o, off) (*(tU8*)((char*)(o) + (off)))
+
+// FUNCTION: CARMA2_HW 0x00415c40
 // STUB: CARMA2_SW 0x00415c70
 void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    float temp;
+    int i;
+
+    if (gNet_mode == eNet_mode_host
+            && PO_U32(pCar->collision_info, 0x49c) > PO_U32(pCar->collision_info, 0x274)) {
+        PO_U8(pCar->collision_info, 0x261) = 0;
+        pCar->dt = -1.f;
+        return;
+    }
+
+    switch (pCar->collision_info->field_0xf0) {
+    case 0:
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 2);
+        break;
+    case 1:
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
+        break;
+    case 2:
+        WriteHierarchyNetworkStuff((undefined4*)&PO_U8(pCar->collision_info, 0x294), pCar->collision_info, 1);
+        break;
+    }
+
+    if (pCar != NULL && pCar->driver > 5) {
+        for (i = 0; i < 4; i++) {
+            pCar->oldd[i] = (float)PO_U8(pCar->collision_info, 0x26c + i)
+                    * pCar->susp_height[i >> 1] * (1.f / 255.f);
+        }
+
+        if (pCar->driver == eDriver_net_human) {
+            pCar->revs = (float)PO_U16(pCar->collision_info, 0x27a);
+        }
+
+        if (pCar->driver >= eDriver_net_human
+                && PO_U32(pCar->collision_info, 0x27c) > pCar->repair_time) {
+            if (PO_U32(pCar->collision_info, 0x27c) - pCar->repair_time >= 100000) {
+                TotallyRepairACar(pCar);
+                pCar->repair_time = PO_U32(pCar->collision_info, 0x27c);
+            } else {
+                RepairCar2(pCar, PO_U32(pCar->collision_info, 0x27c) - pCar->repair_time, &temp);
+            }
+            for (i = 0; i < 12; i++) {
+                pCar->damage_units[i].damage_level = PO_U8(pCar->collision_info, 0x280 + i);
+            }
+            SetSmokeLastDamageLevel(pCar);
+            StopCarSmoking(pCar);
+        } else {
+            for (i = 0; i < 12; i++) {
+                pCar->damage_units[i].damage_level = PO_U8(pCar->collision_info, 0x280 + i);
+            }
+            SortOutSmoke(pCar);
+        }
+
+        if (pCar->collision_info->disable_move_rotate != 0) {
+            if (BrVector3LengthSquared(&pCar->collision_info->v) != 0.f) {
+                pCar->collision_info->disable_move_rotate = 0;
+            }
+        }
+
+        if (pCar->driver >= eDriver_net_human
+                && (PO_U8(pCar->collision_info, 0x292) & 1) != 0
+                && (PO_U16(pCar->collision_info, 0x290) != pCar->car_crush_spec->field_0x24
+                        || pCar->driver == eDriver_local_human)) {
+            if ((PO_U8(pCar->collision_info, 0x292) & 2) != 0) {
+                CopyBendInMessage(pCar);
+            } else if (pCar->car_crush_spec->field_0x144 != 0) {
+                CompletelyUnBendCar(pCar);
+            }
+
+            if ((PO_U8(pCar->collision_info, 0x292) & 4) != 0) {
+                CopySplitInMessage(pCar);
+            } else if (pCar->car_crush_spec->field_0x4b8 != 0) {
+                WeldCar(pCar);
+            }
+
+            DecodeNetShapeData(pCar, &PO_U8(pCar->collision_info, 0x2fc));
+        }
+
+        if (pCar->driver != eDriver_local_human) {
+            for (i = 0; i < 4; i++) {
+                *(tU32*)&pCar->wheel_dam_offset[i] = PO_U32(pCar->collision_info, 0x48c + i * 4);
+            }
+        }
+
+        GetFacesNearObject(pCar->collision_info, &gWorld_callbacks);
+    }
+
+    PO_U8(pCar->collision_info, 0x261) = 0;
+    if (gNet_mode == eNet_mode_client) {
+        PO_U32(pCar->collision_info, 0x49c) = PO_U32(pCar->collision_info, 0x274);
+    }
 }
 
 #ifdef REC2_MATCHING
