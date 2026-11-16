@@ -411,6 +411,7 @@ void C2_HOOK_STDCALL RegenerateVertexNormals(v11model* v11m) {
     }
 }
 
+// PARTIAL 26.58%: BrModelUpdate 0x0051f950 [structure] - bounding and face-normal loops inlined; group/edge build still calls PrepareGroups/BrPrepareEdges (orig inlines); frame 0x60 vs 0x40; see state/findings/BrModelUpdate.md
 // FUNCTION: CARMA2_HW 0x0051f950
 void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
     int g, f, v;
@@ -437,8 +438,35 @@ void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
     }
 
     if (!(model->flags & BR_MODF_CUSTOM_BOUNDS) && (flags & (BR_MODU_VERTICES | BR_MODU_VERTEX_POSITIONS))) {
-        PrepareBoundingRadius(model);
-        PrepareBoundingBox(model);
+        float max_sq = 0.0f;
+        float fv;
+        int axis;
+
+        for (v = 0; v < model->nvertices; v++) {
+            vp = &model->vertices[v];
+            fv = vp->p.v[0] * vp->p.v[0] + vp->p.v[2] * vp->p.v[2] + vp->p.v[1] * vp->p.v[1];
+            if (max_sq < fv) {
+                max_sq = fv;
+            }
+        }
+        model->radius = BrFloatSqrt(max_sq);
+
+        for (axis = 0; axis < 3; axis++) {
+            model->bounds.min.v[axis] = model->vertices[0].p.v[axis];
+            model->bounds.max.v[axis] = model->vertices[0].p.v[axis];
+        }
+        for (v = 1; v < model->nvertices; v++) {
+            vp = &model->vertices[v];
+            for (axis = 0; axis < 3; axis++) {
+                fv = vp->p.v[axis];
+                if (model->bounds.max.v[axis] < fv) {
+                    model->bounds.max.v[axis] = fv;
+                }
+                if (fv < model->bounds.min.v[axis]) {
+                    model->bounds.min.v[axis] = fv;
+                }
+            }
+        }
     }
 
     if (model->prepared != NULL && !(flags & ~(MODU_VERTEX_COPY_FLAGS | MODU_FACE_COPY_FLAGS))) {
@@ -502,7 +530,47 @@ void C2_HOOK_CDECL BrModelUpdate(br_model* model, br_uint_16 flags) {
             return;
         }
 
-        PrepareFaceNormals(model);
+        {
+            br_vector4 eqn;
+            float fv;
+
+            for (f = 0; f < model->nfaces; f++) {
+                fp = &model->faces[f];
+                BrPlaneEquation(&eqn, &model->vertices[fp->vertices[0]].p, &model->vertices[fp->vertices[1]].p, &model->vertices[fp->vertices[2]].p);
+
+                if (-1.0f < eqn.v[0]) {
+                    fv = eqn.v[0];
+                    if (1.0f <= eqn.v[0]) {
+                        fv = 1.0f;
+                    }
+                } else {
+                    fv = -0.9999999f;
+                }
+                fp->n.v[0] = fv;
+
+                if (-1.0f < eqn.v[1]) {
+                    fv = eqn.v[1];
+                    if (1.0f <= eqn.v[1]) {
+                        fv = 1.0f;
+                    }
+                } else {
+                    fv = -0.9999999f;
+                }
+                fp->n.v[1] = fv;
+
+                if (-1.0f < eqn.v[2]) {
+                    fv = eqn.v[2];
+                    if (1.0f <= eqn.v[2]) {
+                        fv = 1.0f;
+                    }
+                } else {
+                    fv = -0.9999999f;
+                }
+                fp->n.v[2] = fv;
+
+                fp->d = eqn.v[3];
+            }
+        }
         model->flags &= ~_BR_MODF_RESERVED;
 
         for (f = 0; f < model->nfaces; f++) {
