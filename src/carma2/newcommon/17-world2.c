@@ -312,6 +312,7 @@ void C2_HOOK_FASTCALL SetWallTexturingLevel(tWall_texturing_level pLevel) {
     gWall_texturing_level = pLevel;
 }
 
+// PARTIAL 58.73%: DisposeTexturingMaterials 0x004489d0 - callee inlining fixed, face-count test as unsigned > 0; prologue order and the wall/road loop tails still differ, see state/findings/DisposeTexturingMaterials.md
 // FUNCTION: CARMA2_HW 0x004489d0
 void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
     br_actor* the_actor;
@@ -330,7 +331,7 @@ void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
         if (the_actor->type == BR_ACTOR_MODEL && the_actor->model != NULL) {
             model = the_actor->model;
             local_8 = NULL;
-            if (model->nfaces != 0) {
+            if (model->nfaces > 0) {
                 do {
                     if (model->faces[face_index].material != NULL) {
                         new_mat = NULL;
@@ -359,7 +360,7 @@ void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
             face_index = 0;
             if (model != NULL) {
                 local_8 = NULL;
-                if (model->nfaces != 0) {
+                if (model->nfaces > 0) {
                     do {
                         if (model->faces[face_index].material != NULL) {
                             if (HasThisSuffix(model->faces[face_index].material->identifier, ".lwall")) {
@@ -393,7 +394,7 @@ road_pass:
         if (the_actor->type == BR_ACTOR_MODEL && the_actor->model != NULL) {
             model = the_actor->model;
             local_8 = NULL;
-            if (model->nfaces != 0) {
+            if (model->nfaces > 0) {
                 do {
                     if (model->faces[face_index].material != NULL) {
                         new_mat = NULL;
@@ -420,7 +421,7 @@ road_pass:
             model = the_actor->model;
             face_index = 0;
             local_8 = NULL;
-            if (model->nfaces != 0) {
+            if (model->nfaces > 0) {
                 do {
                     if (model->faces[face_index].material != NULL) {
                         new_mat = DisposeSuffixedMaterials(model, face_index);
@@ -440,6 +441,10 @@ road_pass:
     }
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00448ce0
 int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
     size_t len_ident;
@@ -456,6 +461,14 @@ int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
     return strcmp(pIdent + len_ident - len_suffix, pSuffix) == 0;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // PARTIAL 87.06%: UnsuffixedMaterial 0x00448d70 [register choice; split-strlen variant reaches 100 but moves neighbours 0x4481d0/0x448390 to 75.86/88.68]
 // FUNCTION: CARMA2_HW 0x00448d70
 br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const char* pSuffix) {
@@ -470,6 +483,10 @@ br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const c
     BrMemFree(new_id);
     return result;
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00448dd0
 br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pFace) {
