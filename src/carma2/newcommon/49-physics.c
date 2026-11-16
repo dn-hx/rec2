@@ -1701,7 +1701,40 @@ void C2_HOOK_FASTCALL SetUpTestObjects(void) {
 
 // ResetObjectList
 
-// ResetMan
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b5ab0
+void C2_HOOK_FASTCALL ResetMan(void) {
+    tPhysics_object* pObject;
+
+    if (gResetMan_object == NULL) {
+        return;
+    }
+    BrMatrix34Translate(&gResetMan_object->transform_matrix, -54.f, 7.1325f, -155.f);
+    gResetMan_object->disable_move_rotate = 1;
+    BrVector3SetFloat(&gResetMan_object->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&gResetMan_object->velocity_car_space, 0.f, 0.f, 0.f);
+    for (pObject = gResetMan_object->child; pObject != NULL; pObject = pObject->next) {
+        BrMatrix34Translate(&pObject->transform_matrix, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+        pObject->disable_move_rotate = 1;
+        if (pObject->child != NULL) {
+            ResetObjectList_1(pObject->child);
+        }
+    }
+    PositionChildren(gResetMan_object);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
