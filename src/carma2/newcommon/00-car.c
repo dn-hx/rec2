@@ -1459,6 +1459,15 @@ float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x0041f4a0
+void C2_HOOK_FASTCALL PutOpponentsInNeutral(void) {
+    gStop_opponents_moving = !gStop_opponents_moving;
+    if (gStop_opponents_moving) {
+        NewTextHeadupSlot(4, 0, 3000, -4, "Opponents in neutral");
+    } else {
+        NewTextHeadupSlot(4, 0, 3000, -4, "Back in gear");
+    }
+}
 // STUB: CARMA2_HW 0x0041fc60
 // STUB: CARMA2_SW 0x0041fce0
 void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height) {
