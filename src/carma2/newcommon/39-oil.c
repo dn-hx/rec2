@@ -202,18 +202,19 @@ void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
 /* local externs (the shared 23-piping.h declares the scrap global volatile) */
 
 
-// PARTIAL 38.98%: loop regalloc (esi/edi swapped), frame 4 bytes larger
+// PARTIAL 44.54%: loop regalloc (esi/edi swapped), frame 8 bytes larger, prologue stores missing
 // FUNCTION: CARMA2_HW 0x004a6e50
 void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
     int i;
     tU32 time;
     br_scalar this_size;
     tNet_message* message;
+    tOil_spill_info* oil;
 
     time = GetTotalTime();
-    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++) {
+    oil = gOily_spills;
+    for (i = 0; i < (int)REC2_ASIZE(gOily_spills); i++, oil++) {
         br_model* the_model;
-        tOil_spill_info* oil = &gOily_spills[i];
 
         if (oil->car_actor == NULL) {
             oil->actor->render_style = BR_RSTYLE_NONE;
