@@ -931,6 +931,7 @@ br_material* C2_HOOK_FASTCALL GetSimpleMaterial(char* pName, tRendererShadingTyp
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 73.21%: LoadCar 0x00488f70 - frame 0x970 vs 0x968 (2 extra scalar slots), struct-of-arrays layout matches; callee names renamed since 74.37 body
 // FUNCTION: CARMA2_HW 0x00488f70
 void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space) {
     tBrender_storage* prev_storage;
