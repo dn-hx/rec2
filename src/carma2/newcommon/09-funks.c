@@ -195,6 +195,7 @@ void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 49.86%: AddFunkotronics 0x00474ac0 [stack-slot] - frame 0x244 vs 0x270; per-site float slots and dispatch order open, see state/findings/AddFunkotronics.md
 // FUNCTION: CARMA2_HW 0x00474ac0
 void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas) {
     int first_time;
