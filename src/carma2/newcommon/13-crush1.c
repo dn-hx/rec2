@@ -8805,29 +8805,32 @@ intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, voi
 // Re-applies the bend transform of one detail-level model: every vertex that
 // the bend field covers is moved from its previous bend displacement to the
 // new one, and the per-vertex displacement is piped as a model mash.
-// PARTIAL 22.85%: UnBendModel 0x0043a5b0 - x87 scheduling of the a/b/c delta sums, frame 0x305c vs orig 0x3068 (12 B), spill slots shifted; open regions S02 0x43a5f7-0x43a6b3 (frame), S04 0x43a71a-0x43a9ff (x87, 11 ins short)
+// PARTIAL 35.02%: UnBendModel 0x0043a5b0 - two-phase vertex update matches the original; residuals: frame 0x305c vs 0x3068 (12 B of x87 spill temps the original allocates at 0x5c/0x60/0x64, only mash refs affected), fdiv vs orig fdivr on a spilled offset (the original spills the offset numerators, we keep them in x87) and x87 scheduling of the delta/old_delta sums; open regions S02 0x43a5f7-0x43a6b3, S04 0x43a71a-0x43a9ff
 // FUNCTION: CARMA2_HW 0x0043a5b0
 void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, void* pContext) {
     br_vector3 mash[1024];
+    int changed;
+    float b;
+    float a;
+    br_vector3 d;
+    br_vector3 offset;
+    tU16 index;
+    br_vector3 delta;
+    br_vector3 old_delta;
+    tU16 i;
+    br_vector3 pos;
+    tModel_detail_vertex_data* vertex_data;
+    br_vector3 tmp;
+    float n0;
+    float n1;
+    float n2;
+    float c;
+    float ab;
     tUnbend_model_context_local* context;
     tBend_data_local* bend;
     tUser_detail_level_model* detail_model;
-    tModel_detail_vertex_data* vertex_data;
     tUser_detail_level_model* user_detail_model;
     br_vertex* vertex;
-    br_vector3 pos;
-    br_vector3 tmp;
-    br_vector3 offset;
-    br_vector3 d;
-    br_vector3 delta;
-    br_vector3 old_delta;
-    tU16 index;
-    tU16 i;
-    int changed;
-    float a;
-    float b;
-    float c;
-    float ab;
 
     if (pModel == NULL) {
         return;
@@ -8848,8 +8851,8 @@ void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, vo
     index = *(tU16*)&detail_model->field_0x8[0];
     changed = 0;
     for (i = 0; i < pModel->nvertices; i++) {
-        vertex = &pModel->vertices[i];
         if ((vertex_data[i].flags & 0x8) != 0) {
+            vertex = &pModel->vertices[i];
             if ((vertex_data[i].flags & 0x10) != 0) {
                 mash[i].v[0] = -vertex->p.v[0];
                 mash[i].v[1] = -vertex->p.v[1];
@@ -8885,9 +8888,15 @@ void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, vo
                 mash[i].v[0] = -vertex->p.v[0];
                 mash[i].v[1] = -vertex->p.v[1];
                 mash[i].v[2] = -vertex->p.v[2];
-                vertex->p.v[0] = (vertex->p.v[0] - d.v[0] - old_delta.v[0]) + (d.v[0] + delta.v[0]);
-                vertex->p.v[1] = (vertex->p.v[1] - d.v[1] - old_delta.v[1]) + (d.v[1] + delta.v[1]);
-                vertex->p.v[2] = (vertex->p.v[2] - d.v[2] - old_delta.v[2]) + (d.v[2] + delta.v[2]);
+                n0 = vertex->p.v[0] - d.v[0] - old_delta.v[0];
+                n1 = vertex->p.v[1] - d.v[1] - old_delta.v[1];
+                n2 = vertex->p.v[2] - d.v[2] - old_delta.v[2];
+                vertex->p.v[0] = d.v[0] + delta.v[0];
+                vertex->p.v[1] = d.v[1] + delta.v[1];
+                vertex->p.v[2] = d.v[2] + delta.v[2];
+                vertex->p.v[0] = n0 + vertex->p.v[0];
+                vertex->p.v[1] = n1 + vertex->p.v[1];
+                vertex->p.v[2] = n2 + vertex->p.v[2];
                 mash[i].v[0] += vertex->p.v[0];
                 mash[i].v[1] += vertex->p.v[1];
             }
