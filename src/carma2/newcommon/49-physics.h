@@ -219,7 +219,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 
-// MakeObjectDoSomething
+extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList);
 
 // GetReducedList
 
