@@ -8805,6 +8805,7 @@ intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, voi
 // Re-applies the bend transform of one detail-level model: every vertex that
 // the bend field covers is moved from its previous bend displacement to the
 // new one, and the per-vertex displacement is piped as a model mash.
+// PARTIAL 22.85%: UnBendModel 0x0043a5b0 - x87 scheduling of the a/b/c delta sums, frame 0x305c vs orig 0x3068 (12 B), spill slots shifted; open regions S02 0x43a5f7-0x43a6b3 (frame), S04 0x43a71a-0x43a9ff (x87, 11 ins short)
 // FUNCTION: CARMA2_HW 0x0043a5b0
 void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, void* pContext) {
     br_vector3 mash[1024];
@@ -8848,11 +8849,7 @@ void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, vo
     changed = 0;
     for (i = 0; i < pModel->nvertices; i++) {
         vertex = &pModel->vertices[i];
-        if ((vertex_data[i].flags & 0x8) == 0) {
-            mash[i].v[0] = 0.f;
-            mash[i].v[1] = 0.f;
-            mash[i].v[2] = 0.f;
-        } else {
+        if ((vertex_data[i].flags & 0x8) != 0) {
             if ((vertex_data[i].flags & 0x10) != 0) {
                 mash[i].v[0] = -vertex->p.v[0];
                 mash[i].v[1] = -vertex->p.v[1];
@@ -8896,6 +8893,10 @@ void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, vo
             }
             changed = 1;
             mash[i].v[2] += vertex->p.v[2];
+        } else {
+            mash[i].v[0] = 0.f;
+            mash[i].v[1] = 0.f;
+            mash[i].v[2] = 0.f;
         }
     }
     if (changed != 0) {
