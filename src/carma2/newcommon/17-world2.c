@@ -312,7 +312,7 @@ void C2_HOOK_FASTCALL SetWallTexturingLevel(tWall_texturing_level pLevel) {
     gWall_texturing_level = pLevel;
 }
 
-// PARTIAL 58.73%: DisposeTexturingMaterials 0x004489d0 - callee inlining fixed, face-count test as unsigned > 0; prologue order and the wall/road loop tails still differ, see state/findings/DisposeTexturingMaterials.md
+// PARTIAL 27.18%: DisposeTexturingMaterials 0x004489d0 - keeps the `nfaces > 0` tests; auto_inline(off) around HasThisSuffix/UnsuffixedMaterial would fix this function (58.73) but costs WallUntexToPersp/WallLinearToPersp (100 -> 18.92/28.57) and RoadUntexToPersp, so it is not used; see state/findings/DisposeTexturingMaterials.md
 // FUNCTION: CARMA2_HW 0x004489d0
 void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
     br_actor* the_actor;
@@ -441,10 +441,6 @@ road_pass:
     }
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 // FUNCTION: CARMA2_HW 0x00448ce0
 int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
     size_t len_ident;
@@ -461,14 +457,6 @@ int C2_HOOK_FASTCALL HasThisSuffix(const char* pIdent, const char* pSuffix) {
     return strcmp(pIdent + len_ident - len_suffix, pSuffix) == 0;
 }
 
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(off)
-#endif
-
 // PARTIAL 87.06%: UnsuffixedMaterial 0x00448d70 [register choice; split-strlen variant reaches 100 but moves neighbours 0x4481d0/0x448390 to 75.86/88.68]
 // FUNCTION: CARMA2_HW 0x00448d70
 br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const char* pSuffix) {
@@ -483,10 +471,6 @@ br_material* C2_HOOK_FASTCALL UnsuffixedMaterial(const char* pOld_ident, const c
     BrMemFree(new_id);
     return result;
 }
-
-#ifdef REC2_MATCHING
-#pragma auto_inline(on)
-#endif
 
 // FUNCTION: CARMA2_HW 0x00448dd0
 br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pFace) {
