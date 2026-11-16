@@ -719,6 +719,7 @@ done_load:
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// PARTIAL 99.99%: ReadFileLink 0x004869e0 - terminator store indexes with ecx (len), original uses eax (loop counter); s2[i] and int len variants regress/no gain
 // FUNCTION: CARMA2_HW 0x004869e0
 int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
     FILE* f;
