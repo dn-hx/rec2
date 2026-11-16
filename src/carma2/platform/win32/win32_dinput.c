@@ -450,10 +450,10 @@ size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void) {
 // FUNCTION: CARMA2_HW 0x00459f80
 // FUNCTION: CARMA2_SW 0x00459d10
 tButtonJoystickInfo* C2_HOOK_FASTCALL PDGetCurrentJoystickData(void) {
-    if (gJoystick_index == -1) {
-        return NULL;
+    if (gJoystick_index != -1 && gDirectInputJoystickInfos[gJoystick_index].data != NULL) {
+        return gDirectInputJoystickInfos[gJoystick_index].data;
     }
-    return gDirectInputJoystickInfos[gJoystick_index].data;
+    return NULL;
 }
 
 // FUNCTION: CARMA2_HW 0x00459fd0
