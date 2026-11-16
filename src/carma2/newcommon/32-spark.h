@@ -116,7 +116,7 @@ extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 
 // DoTrueColModelThing
 
-// SetFoxModelCallback
+extern int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel);
 
 extern int C2_HOOK_FASTCALL ResetFoxModelCallback(br_model* pModel);
 
