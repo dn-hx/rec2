@@ -619,324 +619,317 @@ void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
 #define DCE_F(p, o) (*(float*)((char*)(p) + (o)))
 #define DCE_P(p, o) (*(tCar_spec**)((char*)(p) + (o)))
 
-#define DCE_V(p, o) (*(char**)((char*)(p) + (o)))
-#define ABS(a) (((a) < 0) ? -(a) : (a))
-
-extern tNet_message* C2_HOOK_FASTCALL NetBuildGuaranteedMessage(tU8 pNet_message_type, int pOption);
-extern tNet_game_player_info* C2_HOOK_FASTCALL NetPlayerFromCar(tCar_spec* pCar);
-
-// GLOBAL: CARMA2_HW 0x0075bba0
-int gCrash_earnings_index;
-
-// GLOBAL: CARMA2_HW 0x0067c3b4
-int gLast_credit_award_time;
-
-static __inline int DCE_Tier20(tCar_spec* p) {
-    int m;
-    m = DCE_I(p, 0x6f4);
-    if (m == 2 || m == 3 || m == 0 || m == 1) {
-        if (DCE_F(p, 0x13e0) < 0.25) {
-            return 4;
-        }
-        if (DCE_F(p, 0x13e0) <= 0.75) {
-            return m;
-        }
-        return 5;
-    }
-    return m;
-}
-
-static __inline int DCE_Tier13(tCar_spec* p) {
-    float c0;
-    float c4;
-    float c8;
-    c0 = DCE_F(p, 0x13c0);
-    c4 = DCE_F(p, 0x13c4);
-    c8 = DCE_F(p, 0x13c8);
-    if (ABS(c0) > ABS(c4) && ABS(c0) > ABS(c8)) {
-        return (c0 < 0.0f) ? 2 : 3;
-    }
-    if (ABS(c4) > ABS(c0) && ABS(c4) > ABS(c8)) {
-        return (c4 < 0.0f) ? 1 : 0;
-    }
-    return (c8 < 0.0f) ? 4 : 5;
-}
-
-// PARTIAL unmeasured: DoCrashEarnings 0x00440660 [clean-room port; counted budget 0, no reccmp % yet; proxy raw 34.31]
-// STUB: CARMA2_SW 0x00440740
 // FUNCTION: CARMA2_HW 0x00440660
+// STUB: CARMA2_SW 0x00440740
 int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
     tCar_spec* local_5c;
     tCar_spec* local_58;
     tCar_spec* local_54;
-    tCar_spec* partner;
     int local_4c;
     int local_34;
-    int local_3c;
-    int flag3c;
+    float local_3c;
+    int cls3c;
+    int iVar11;
+    tU32 uVar12;
+    int iVar13;
+    int iVar15;
+    int iVar20;
     int bVar5;
+    int bVar6;
+    int bVar7;
     int bVar8;
     int bVar9;
-    int time;
-    int uVar12;
+    int bVar10;
     int uVar18;
-    int iVar20;
-    int iVar13;
-    int cnt;
-    int cond1;
-    int cond2;
-    int sgn;
-    int credits;
-    int c2;
-    int tt;
-    int mn;
-    int k;
-    int diff;
-    int d;
-    int dsum;
-    int dmgv;
-    int* pa;
-    int* pb;
-    int* po;
-    char* mat;
-    double sq;
-    float fdmg;
-    float dot;
-    float cc0;
-    float cc4;
-    float cc8;
-    br_vector3 vec1;
-    br_vector3 vec2;
-    tNet_message* msg;
-    tNet_game_player_info* np;
+    int* piVar17;
+    int* piVar19;
+    int iVar_k;
+    int loop_n;
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar14;
+    br_vector3 local_18;
+    br_vector3 local_c;
+    tCar_spec* tmp_car;
 
-    local_5c = 0;
-    local_58 = 0;
-    local_54 = pCar2;
+    local_5c = NULL;
+    local_58 = NULL;
+    bVar10 = 0;
     local_4c = 1;
     bVar8 = 0;
+    iVar11 = (int)PDGetTotalTime();
     bVar9 = 0;
-    flag3c = 0;
+    uVar12 = (tU32)iVar11;
     bVar5 = 0;
-    local_3c = 0;
-
-    time = (int)PDGetTotalTime();
-    uVar12 = (int)((pCar1 == 0 || DCE_I(pCar1, 0xc) <= 5) ? 0.0f : DCE_F(pCar1, 0x133c));
-    if (pCar2 != 0 && DCE_I(pCar2, 0xc) > 5) {
-        if (DCE_F(pCar2, 0x133c) != 0.0f) {
+    if (pCar2 != NULL) {
+        if (DCE_I(pCar2, 0xc) < 6) {
+            fVar14 = 0.0f;
+        } else {
+            fVar14 = DCE_F(pCar2, 0x133c);
+        }
+        if (fVar14 != 0.0f) {
             bVar5 = 1;
         }
     }
-
-    if (pCar1 == 0 || DCE_I(pCar1, 0xc) <= 5) {
-        if (pCar2 == 0 || DCE_I(pCar2, 0xc) <= 5) {
+    local_54 = NULL;
+    if (pCar1 != NULL) {
+        local_54 = pCar2;
+    }
+    if (pCar1 == NULL || DCE_I(pCar1, 0xc) < 6) {
+        if (pCar2 == NULL) {
             return 0;
         }
-        if (pCar1 != 0) {
+        if (DCE_I(pCar2, 0xc) < 6) {
+            return 0;
+        }
+        if (pCar1 != NULL) {
             iVar13 = DCE_I(pCar1, 0xc);
             if (iVar13 != 0 && (iVar13 == 4 || iVar13 == 2 || iVar13 == 3)) {
-                partner = DCE_P(pCar1, 0xc8);
-                if (partner != 0 && DCE_I(partner, 0xc) > 5 && partner != pCar2) {
-                    DCE_I(pCar2, 0x13e4) = time;
+                tmp_car = DCE_P(pCar1, 0xc8);
+                if (tmp_car != NULL && DCE_I(tmp_car, 0xc) > 5 && tmp_car != pCar2) {
+                    DCE_I(pCar2, 0x13e4) = iVar11;
                     DCE_P(pCar2, 0x13ec) = DCE_P(pCar1, 0xc8);
                 }
             }
         }
-        local_54 = 0;
+        local_54 = NULL;
         pCar1 = pCar2;
     }
-
-    if (local_54 != 0 && DCE_I(local_54, 0xc) <= 5) {
+    if (local_54 != NULL && DCE_I(local_54, 0xc) < 6) {
         iVar13 = DCE_I(local_54, 0xc);
         if (iVar13 != 0 && (iVar13 == 4 || iVar13 == 2 || iVar13 == 3)) {
-            partner = DCE_P(local_54, 0xc8);
-            if (partner != 0 && DCE_I(pCar1, 0xc) > 5 && DCE_I(partner, 0xc) > 5 && partner != pCar1) {
-                DCE_I(pCar1, 0x13e4) = time;
+            tmp_car = DCE_P(local_54, 0xc8);
+            if (tmp_car != NULL && pCar1 != NULL && DCE_I(pCar1, 0xc) > 5 && tmp_car != pCar1) {
+                DCE_I(pCar1, 0x13e4) = iVar11;
                 DCE_P(pCar1, 0x13ec) = DCE_P(local_54, 0xc8);
             }
         }
-        local_54 = 0;
+        local_54 = NULL;
     }
-
-    if (DCE_I(pCar1, 0x1d8) != 0) {
-        goto L_441239;
+    if (DCE_I(pCar1, 0x1d8) != 0
+        || (local_54 != NULL
+            && (DCE_I(local_54, 0x1d8) != 0
+                || (DCE_F(local_54, 0x133c) <= 5e-05f && DCE_F(pCar1, 0x133c) <= 5e-05f)))) {
+        goto LAB_00441239;
     }
-    if (local_54 != 0) {
-        if (DCE_I(local_54, 0x1d8) != 0) {
-            goto L_441239;
-        }
-        if (DCE_F(local_54, 0x133c) <= 5e-05f && DCE_F(pCar1, 0x133c) <= 5e-05f) {
-            goto L_441239;
-        }
-    }
-
-    iVar20 = DCE_Tier20(pCar1);
-    iVar13 = DCE_Tier13(pCar1);
-
-    uVar18 = uVar12;
-    if (local_54 != 0) {
-        local_3c = DCE_Tier20(local_54);
-        uVar18 = (local_3c == DCE_Tier13(local_54));
-    }
-
-    if (pCar1 == 0 || DCE_I(pCar1, 0xc) < 7) {
-        if (local_54 == 0) {
-            goto L_440b7f;
-        }
-        if (DCE_I(local_54, 0xc) >= 7 && uVar18 != 0 && DCE_F(local_54, 0x13c8) != 0.0f) {
-            sgn = (DCE_F(local_54, 0x13c8) > 0.0f);
-            if (((DCE_I(local_54, 0x135c) > 0) ^ sgn) != 0
-                && ((DCE_I(local_54, 0x12d0) & 0x40000) != 0 || DCE_I(local_54, 0x12dc) > 0x8000)) {
-                DCE_P(pCar1, 0x13ec) = local_54;
-                DCE_I(pCar1, 0x13e4) = time;
+    iVar13 = DCE_I(pCar1, 0x6f4);
+    if (iVar13 == 2 || iVar13 == 3 || iVar13 == 0 || iVar13 == 1) {
+        if (0.25f <= DCE_F(pCar1, 0x13e0)) {
+            iVar20 = 5;
+            if (DCE_F(pCar1, 0x13e0) <= 0.75f) {
+                iVar20 = iVar13;
             }
-        }
-        goto L_440b7b;
-    }
-    if (local_54 == 0) {
-        goto L_440b7f;
-    }
-    if (iVar20 == iVar13 && DCE_F(pCar1, 0x13c8) != 0.0f) {
-        sgn = (DCE_F(pCar1, 0x13c8) > 0.0f);
-        if (((DCE_I(pCar1, 0x135c) > 0) ^ sgn) != 0
-            && ((DCE_I(pCar1, 0x12d0) & 0x40000) != 0 || DCE_I(pCar1, 0x12dc) > 0x8000)) {
-            DCE_P(local_54, 0x13ec) = pCar1;
-            DCE_I(local_54, 0x13e4) = time;
-        }
-    }
-
-L_440b7b:
-    if (local_54 != 0) {
-        goto L_440bb7;
-    }
-
-L_440b7f:
-    if (time - DCE_I(pCar1, 0x13e4) > 4999) {
-        return 1;
-    }
-    local_5c = DCE_P(pCar1, 0x13ec);
-    local_4c = 1;
-    bVar9 = 1;
-    local_58 = pCar1;
-    goto L_440d1a;
-
-L_440bb7:
-    cond1 = 0;
-    if (iVar20 == iVar13 && DCE_F(pCar1, 0x13a4) * 5.0f > DCE_F(local_54, 0x13a4)
-        && DCE_F(pCar1, 0x13a4) > 0.0005f) {
-        if (DCE_I(pCar1, 0xc) < 7) {
-            cond1 = 1;
-        } else if (DCE_F(pCar1, 0x13c8) != 0.0f) {
-            sgn = (DCE_F(pCar1, 0x13c8) > 0.0f);
-            if (((DCE_I(pCar1, 0x135c) > 0) ^ sgn) != 0
-                && ((DCE_I(pCar1, 0x12d0) & 0x40000) != 0 || DCE_I(pCar1, 0x12dc) > 0x8000)) {
-                cond1 = 1;
-            }
-        }
-    }
-
-    cond2 = 0;
-    if (uVar18 != 0 && DCE_F(local_54, 0x13a4) * 5.0f > DCE_F(pCar1, 0x13a4)
-        && DCE_F(local_54, 0x13a4) > 0.0005f) {
-        if (DCE_I(local_54, 0xc) < 7) {
-            cond2 = 1;
-        } else if (DCE_F(local_54, 0x13c8) != 0.0f) {
-            sgn = (DCE_F(local_54, 0x13c8) > 0.0f);
-            if (((DCE_I(local_54, 0x135c) > 0) ^ sgn) != 0
-                && ((DCE_I(local_54, 0x12d0) & 0x40000) != 0 || DCE_I(local_54, 0x12dc) > 0x8000)) {
-                cond2 = 1;
-            }
-        }
-    }
-
-    if (gNet_mode == 0 || cond1 == 0) {
-        if (cond2 != 0 && DCE_I(local_54, 0xc) == 8) {
-            cond1 = 0;
+        } else {
+            iVar20 = 4;
         }
     } else {
-        if (cond2 == 0) {
-            goto L_441274;
-        }
-        bVar8 = 1;
-        goto L_440d1a;
+        iVar20 = iVar13;
     }
-
-L_441274:
-    if (cond1 != 0) {
-        local_5c = pCar1;
-        local_58 = local_54;
-    } else if (cond2 != 0) {
-        local_5c = local_54;
+    fVar14 = (float)fabs(DCE_F(pCar1, 0x13c0));
+    local_3c = (float)fabs(DCE_F(pCar1, 0x13c4));
+    if (fVar14 <= local_3c || fVar14 <= (float)fabs(DCE_F(pCar1, 0x13c8))) {
+        if (local_3c <= fVar14 || local_3c <= (float)fabs(DCE_F(pCar1, 0x13c8))) {
+            iVar13 = 4;
+            if (0.0f <= DCE_F(pCar1, 0x13c8)) {
+                iVar13 = 5;
+            }
+        } else if (0.0f <= DCE_F(pCar1, 0x13c4)) {
+            iVar13 = 0;
+        } else {
+            iVar13 = 1;
+        }
+    } else if (0.0f <= DCE_F(pCar1, 0x13c0)) {
+        iVar13 = 3;
+    } else {
+        iVar13 = 2;
+    }
+    uVar18 = (int)uVar12;
+    if (local_54 != NULL) {
+        cls3c = DCE_I(local_54, 0x6f4);
+        if (cls3c == 2 || cls3c == 3 || cls3c == 0 || cls3c == 1) {
+            if (0.25f <= DCE_F(local_54, 0x13e0)) {
+                if (DCE_F(local_54, 0x13e0) > 0.75f) {
+                    cls3c = 5;
+                }
+            } else {
+                cls3c = 4;
+            }
+        }
+        fVar1 = (float)fabs(DCE_F(local_54, 0x13c0));
+        fVar14 = (float)fabs(DCE_F(local_54, 0x13c4));
+        if (fVar1 <= fVar14 || fVar1 <= (float)fabs(DCE_F(local_54, 0x13c8))) {
+            if (fVar14 <= fVar1 || fVar14 <= (float)fabs(DCE_F(local_54, 0x13c8))) {
+                iVar_k = 4;
+                if (0.0f <= DCE_F(local_54, 0x13c8)) {
+                    iVar_k = 5;
+                }
+                uVar18 = (cls3c == iVar_k);
+            } else if (0.0f <= DCE_F(local_54, 0x13c4)) {
+                uVar18 = (cls3c == 0);
+            } else {
+                uVar18 = (cls3c == 1);
+            }
+        } else if (0.0f <= DCE_F(local_54, 0x13c0)) {
+            uVar18 = (cls3c == 3);
+        } else {
+            uVar18 = (cls3c == 2);
+        }
+        local_3c = (float)cls3c;
+    }
+    if (pCar1 == NULL || DCE_I(pCar1, 0xc) < 7) {
+        if (local_54 != NULL) {
+            if (DCE_I(local_54, 0xc) > 6 && uVar18 != 0 && DCE_F(local_54, 0x13c8) != 0.0f
+                && (((0 < DCE_I(local_54, 0x135c)) != (0.0f < DCE_F(local_54, 0x13c8)))
+                && ((DCE_U(local_54, 0x12d0) & 0x40000) != 0 || DCE_I(local_54, 0x12dc) > 0x8000))) {
+                DCE_P(pCar1, 0x13ec) = local_54;
+                DCE_I(pCar1, 0x13e4) = iVar11;
+            }
+            goto LAB_00440b7b;
+        }
+LAB_00440b7f:
+        if (iVar11 - DCE_I(pCar1, 0x13e4) > 4999) {
+            return 1;
+        }
+        local_5c = DCE_P(pCar1, 0x13ec);
+        local_4c = 1;
+        bVar9 = 1;
         local_58 = pCar1;
     } else {
-        goto L_440d1a;
+        if (local_54 == NULL) {
+            goto LAB_00440b7f;
+        }
+        if (iVar20 == iVar13 && DCE_F(pCar1, 0x13c8) != 0.0f
+            && (((0 < DCE_I(pCar1, 0x135c)) != (0.0f < DCE_F(pCar1, 0x13c8)))
+            && ((DCE_U(pCar1, 0x12d0) & 0x40000) != 0 || DCE_I(pCar1, 0x12dc) > 0x8000))) {
+            DCE_P(local_54, 0x13ec) = pCar1;
+            DCE_I(local_54, 0x13e4) = iVar11;
+        }
+LAB_00440b7b:
+        if (local_54 == NULL) {
+            goto LAB_00440b7f;
+        }
+        if (iVar20 != iVar13
+            || DCE_F(pCar1, 0x13a4) * 5.0f <= DCE_F(local_54, 0x13a4)
+            || DCE_F(pCar1, 0x13a4) <= 0.0005f
+            || (pCar1 != NULL && DCE_I(pCar1, 0xc) > 6
+                && (DCE_F(pCar1, 0x13c8) == 0.0f
+                    || ((0 < DCE_I(pCar1, 0x135c)) == (0.0f < DCE_F(pCar1, 0x13c8)))
+                    || ((DCE_U(pCar1, 0x12d0) & 0x40000) == 0 && DCE_I(pCar1, 0x12dc) < 0x8001)))) {
+            bVar6 = 0;
+        } else {
+            bVar6 = 1;
+        }
+        if (uVar18 == 0
+            || DCE_F(local_54, 0x13a4) * 5.0f <= DCE_F(pCar1, 0x13a4)
+            || DCE_F(local_54, 0x13a4) <= 0.0005f
+            || (DCE_I(local_54, 0xc) > 6
+                && (DCE_F(local_54, 0x13c8) == 0.0f
+                    || ((0 < DCE_I(local_54, 0x135c)) == (0.0f < DCE_F(local_54, 0x13c8)))
+                    || ((DCE_U(local_54, 0x12d0) & 0x40000) == 0 && DCE_I(local_54, 0x12dc) < 0x8001)))) {
+            bVar7 = 0;
+        } else {
+            bVar7 = 1;
+        }
+        if (gNet_mode == 0 || !bVar6) {
+            if (bVar7 && DCE_I(local_54, 0xc) == 8) {
+                bVar6 = 0;
+            }
+LAB_00441274:
+            if (bVar6) {
+                fVar14 = DCE_F(local_54, 0x13a8);
+                fVar1 = DCE_F(pCar1, 0x13a8);
+                fVar2 = DCE_F(local_54, 0x13ac);
+                fVar3 = DCE_F(pCar1, 0x13ac);
+                fVar4 = DCE_F(local_54, 0x13b0);
+                local_58 = local_54;
+                local_5c = pCar1;
+            } else {
+                if (!bVar7) {
+                    goto LAB_00440d1a;
+                }
+                fVar14 = DCE_F(local_54, 0x13a8);
+                fVar1 = DCE_F(pCar1, 0x13a8);
+                fVar2 = DCE_F(local_54, 0x13ac);
+                fVar3 = DCE_F(pCar1, 0x13ac);
+                fVar4 = DCE_F(local_54, 0x13b0);
+                local_5c = local_54;
+                local_58 = pCar1;
+            }
+            if (iVar20 != 4 || cls3c != 4 || DCE_F(pCar1, 0x13a4) <= 0.001f
+                || DCE_F(local_54, 0x13a4) <= 0.001f
+                || -0.7f <= fVar4 * DCE_F(pCar1, 0x13b0) + fVar3 * fVar2 + fVar1 * fVar14) {
+                local_4c = 1;
+            } else {
+                bVar10 = 1;
+                local_4c = 2;
+            }
+        } else {
+            if (!bVar7) {
+                goto LAB_00441274;
+            }
+            bVar8 = 1;
+        }
     }
-    cc0 = DCE_F(local_54, 0x13a8) * DCE_F(pCar1, 0x13a8);
-    cc4 = DCE_F(local_54, 0x13ac) * DCE_F(pCar1, 0x13ac);
-    cc8 = DCE_F(local_54, 0x13b0) * DCE_F(pCar1, 0x13b0);
-    dot = (cc0 + cc4) + cc8;
-    local_4c = 1;
-    if (iVar20 == 4 && local_3c == 4 && DCE_F(pCar1, 0x13a4) > 0.001f
-        && DCE_F(local_54, 0x13a4) > 0.001f && dot < -0.7f) {
-        flag3c = 1;
-        local_4c = 2;
-    }
-    goto L_440d1a;
-
-L_440d1a:
-    if (bVar8 != 0) {
-        goto L_440db7;
-    }
-    if (local_58 == 0 || local_5c == 0 || DCE_I(local_5c, 0xc) < 7) {
-        if (local_54 != 0 && DCE_P(local_54, 0x13f0) == pCar1 && time - DCE_I(local_54, 0x13e8) < 750) {
+LAB_00440d1a:
+    if (!bVar8 && (local_58 == NULL || local_5c == NULL || DCE_I(local_5c, 0xc) < 7)) {
+        if (local_54 == NULL || DCE_P(local_54, 0x13f0) != pCar1 || iVar11 - DCE_I(local_54, 0x13e8) > 0x2ed) {
+            if (local_54 == NULL) {
+                if (iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
+                    goto LAB_00440db7;
+                }
+                iVar13 = (int)DCE_P(pCar1, 0x13f0);
+            } else if (DCE_P(pCar1, 0x13f0) != local_54 || iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
+                if (local_54 != NULL) {
+                    goto LAB_00440db7;
+                }
+                if (iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
+                    goto LAB_00440db7;
+                }
+                iVar13 = (int)DCE_P(pCar1, 0x13f0);
+            } else {
+                iVar13 = (int)local_54;
+            }
             bVar9 = 1;
-            local_5c = pCar1;
+            local_5c = (tCar_spec*)iVar13;
+            local_58 = pCar1;
+        } else {
+            bVar9 = 1;
             local_58 = local_54;
-        } else if (local_54 != 0 && DCE_P(pCar1, 0x13f0) == local_54 && time - DCE_I(pCar1, 0x13e8) < 750) {
-            bVar9 = 1;
-            local_5c = local_54;
-            local_58 = pCar1;
-        } else if (local_54 == 0 && time - DCE_I(pCar1, 0x13e8) < 750) {
-            bVar9 = 1;
-            local_5c = DCE_P(pCar1, 0x13f0);
-            local_58 = pCar1;
+            local_5c = pCar1;
         }
     }
-
-L_440db7:
-    if (local_5c != 0 && local_58 != 0) {
-        RecordOpponentTwattageOccurrence(local_5c, local_58);
-        diff = (int)((char*)local_5c - (char*)local_58);
-        pa = (int*)((char*)local_58 + 0x4e0);
-        pb = (int*)((char*)local_5c + 0x4e4);
-        dsum = 0;
-        for (k = 0; k < 12; k++) {
-            po = (int*)((char*)pa + diff);
-            if (pa[1] < pa[0]) {
-                d = pa[0] - pa[1];
-                tt = (int)((double)pa[1] - (double)d * -2.0);
-                pa[0] = tt;
-                if (tt > 0x62) {
-                    pa[0] = 99;
-                }
-                dsum += pa[0] - pa[1];
-            }
-            if (*pb < *po) {
-                d = *po - *pb;
-                tt = (int)((double)*pb - (double)d * -0.1);
-                *po = tt;
-                if (tt < 0) {
-                    *po = 0;
+LAB_00440db7:
+    if (local_5c != NULL && local_58 != NULL) {
+        RecordOpponentTwattageOccurrence(local_58, local_5c);
+        piVar17 = (int*)((char*)local_5c + 0x4e4);
+        piVar19 = (int*)((char*)local_58 + 0x4e0);
+        iVar20 = (int)((char*)local_5c - (char*)local_58);
+        loop_n = 0xc;
+        do {
+            if (piVar19[1] < piVar19[0]) {
+                iVar15 = (int)piVar19[1];
+                piVar19[0] = iVar15;
+                if (iVar15 > 0x62) {
+                    piVar19[0] = 99;
                 }
             }
-            pa += 11;
-            pb += 11;
-        }
+            if (piVar17[0] < *(int*)((char*)piVar19 + iVar20)) {
+                iVar15 = (int)piVar17[0];
+                *(int*)((char*)piVar19 + iVar20) = iVar15;
+                if (iVar15 < 0) {
+                    *(int*)((char*)piVar19 + iVar20) = 0;
+                }
+            }
+            piVar19 = piVar19 + 0xb;
+            piVar17 = piVar17 + 0xb;
+            loop_n = loop_n - 1;
+        } while (loop_n != 0);
     }
-
-    cnt = (bVar8 != 0) + 1;
-    for (local_34 = 0; local_34 < cnt; local_34++) {
-        if (bVar8 != 0) {
+    local_34 = 0;
+    do {
+        if (bVar8) {
             if (local_34 == 0) {
                 local_5c = local_54;
                 local_58 = pCar1;
@@ -945,98 +938,64 @@ L_440db7:
                 local_5c = pCar1;
             }
         }
-        if (local_5c != 0 && (DCE_I(local_5c, 0xc) == 8 || gNet_mode != 0) && local_58 != 0) {
-            SetKnackeredFlag(local_58);
+        if (local_5c != NULL && (DCE_I(local_5c, 0xc) == 8 || gNet_mode != 0) && local_58 != NULL) {
+            SetKnackeredFlag(local_5c);
             if (DCE_I(local_58, 0x1d4) != 0 && DCE_I(local_58, 0x1d8) == 0) {
                 DCE_I(local_58, 0x1d8) = 1;
                 if (gNet_mode == 0) {
-                    PratcamEvent(0x20);
-                    DoFancyHeadup(0x14);
-                    sq = sqr(0.7 / DCE_F(local_58, 0x18d0));
-                    credits = (int)((sq * (double)gCredits_wasting_car[gCrash_earnings_index] - -50.0) * 0.01);
-                    EarnCredits(credits * 100);
-                    AwardTime(gTime_wasting_car[gCrash_earnings_index]);
-                } else {
-                    msg = NetBuildGuaranteedMessage(0x19, 0);
-                    np = NetPlayerFromCar(local_58);
-                    DCE_I(msg, 0x1c) = DCE_I(np, 0x24);
-                    if (NetPlayerFromCar(local_5c) == 0) {
-                        DCE_I(msg, 0x20) = -2;
-                    } else {
-                        np = NetPlayerFromCar(local_5c);
-                        DCE_I(msg, 0x20) = DCE_I(np, 0x24);
-                    }
-                    NetGuaranteedSendMessageToEverybody(gCurrent_net_game, msg, 0);
+                    PratcamEvent(0);
+                    DoFancyHeadup(0);
+                    EarnCredits(0);
+                    AwardTime(0);
                 }
             }
-            DCE_I(local_58, 0x13e4) = time;
+            DCE_I(local_58, 0x13e4) = iVar11;
             DCE_P(local_58, 0x13ec) = local_5c;
-            if (bVar9 == 0) {
-                DCE_I(local_58, 0x13e8) = time;
+            if (!bVar9) {
+                DCE_I(local_58, 0x13e8) = iVar11;
                 DCE_P(local_58, 0x13f0) = local_5c;
             }
-            mat = DCE_V(local_58, 0x8);
-            if (ABS(*(float*)(mat + 0x74)) > 4.0f || ABS(*(float*)(mat + 0x78)) > 6.0f
-                || ABS(*(float*)(mat + 0x7c)) > 4.0f) {
+            iVar13 = DCE_I(local_58, 0x8);
+            if (4.0f < (float)fabs(DCE_F(iVar13, 0x74)) || 6.0f < (float)fabs(DCE_F(iVar13, 0x78))
+                || 4.0f < (float)fabs(DCE_F(iVar13, 0x7c))) {
                 local_4c = local_4c * 2;
             }
             if (DCE_I(pCar1, 0x12e8) == 0) {
-                BrMatrix34ApplyP(&vec1, (br_vector3*)(DCE_V(pCar1, 0x8) + 0x14), (br_matrix34*)(DCE_V(pCar1, 0x8) + 0x8c));
-                vec1.v[1] = vec1.v[1] - -0.15f;
+                BrMatrix34ApplyP(&local_18, (br_vector3*)((char*)DCE_P(pCar1, 0x8) + 0x14),
+                                 (br_matrix34*)((char*)DCE_P(pCar1, 0x8) + 0x8c));
+                local_18.v[1] = local_18.v[1] + 0.15f;
             }
-            if (local_54 != 0 && DCE_I(local_54, 0x12e8) == 0) {
-                BrMatrix34ApplyP(&vec2, (br_vector3*)(DCE_V(local_54, 0x8) + 0x14), (br_matrix34*)(DCE_V(local_54, 0x8) + 0x8c));
-                vec2.v[1] = vec2.v[1] - -0.15f;
+            if (local_54 != NULL && DCE_I(local_54, 0x12e8) == 0) {
+                BrMatrix34ApplyP(&local_c, (br_vector3*)((char*)DCE_P(local_54, 0x8) + 0x14),
+                                 (br_matrix34*)((char*)DCE_P(local_54, 0x8) + 0x8c));
+                local_c.v[1] = local_c.v[1] + 0.15f;
             }
-            dmgv = (int)((0.7 / DCE_F(local_58, 0x18d0)) * (double)dsum);
-            if (DCE_P(local_58, 0x1cc) == 0 && gNet_mode == 0) {
-                mn = (local_4c > 8) ? 8 : local_4c;
-                fdmg = (float)dmgv;
-                c2 = (int)((gCredits_per_unit_car_damage[gCrash_earnings_index] * fdmg * (float)mn - -50.0f) * 0.01f) * 100;
-                if (c2 != 0 || DCE_I(local_58, 0x1d4) != 0) {
-                    if (DCE_I(local_58, 0x1d4) == 0) {
-                        credits = c2;
-                        if (credits >= 2000) {
-                            credits = 2000;
-                        }
-                        EarnCredits(credits);
-                        gLast_credit_award_time = time;
-                        tt = (int)((gSeconds_per_unit_car_damage[gCrash_earnings_index] * fdmg - -2.5) * 0.2) * 5;
-                        if (tt >= 90) {
-                            tt = 90;
-                        }
-                        AwardTime(tt);
-                        if (local_54 != 0) {
-                            if (flag3c != 0) {
-                                DoFancyHeadup(0x13);
-                            } else if (local_4c > 2) {
-                                DoFancyHeadup(3);
-                            } else if (local_4c > 1) {
-                                DoFancyHeadup(2);
-                            }
-                        }
-                    }
-                    for (k = 0; k < 12; k++) {
-                        DCE_I(local_58, 0x4e4 + 0x2c * k) = DCE_I(local_58, 0x4e0 + 0x2c * k);
+            iVar13 = (int)uVar12;
+            if (DCE_I(local_58, 0x1cc) == 0 && gNet_mode == 0 && (iVar13 * 100 != 0 || DCE_I(local_58, 0x1d4) != 0)) {
+                if (DCE_I(local_58, 0x1d4) == 0) {
+                    EarnCredits(0);
+                    AwardTime(0);
+                    if (local_54 != NULL && (bVar10 || local_4c > 2 || local_4c > 1)) {
+                        DoFancyHeadup(0);
                     }
                 }
+                piVar19 = (int*)((char*)local_58 + 0x4e4);
+                loop_n = 0xc;
+                do {
+                    piVar19[0] = piVar19[-1];
+                    piVar19 = piVar19 + 0xb;
+                    loop_n = loop_n - 1;
+                } while (loop_n != 0);
             }
         }
-    }
-
+        local_34 = local_34 + 1;
+    } while (local_34 < bVar8 + 1);
     DCE_I(pCar1, 0x133c) = 0;
-    if (local_54 != 0) {
+    if (local_54 != NULL) {
         DCE_I(local_54, 0x133c) = 0;
     }
-
-L_441239:
-    if (uVar12 != 0) {
-        return 1;
-    }
-    if (local_54 == 0) {
-        return 0;
-    }
-    if (bVar5 == 0) {
+LAB_00441239:
+    if (uVar12 == 0 && (local_54 == NULL || !bVar5)) {
         return 0;
     }
     return 1;
