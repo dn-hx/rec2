@@ -563,9 +563,8 @@ static void C2_HOOK_FASTCALL WaitForAnyKeyOrMouse_Mouldy(void) {
     }
 }
 
-// PARTIAL 85.71%: local stack-slot order of the inlined mouse sites and AnyKeyDown nesting (site3 returns 2) differ
-// wait for any key or mouse press, then wait for everything to be released
-// (AnyKeyDown / EitherMouseButtonDown / CheckKeysForMouldiness / PollKeys inlined)
+// PARTIAL 21.88%: WaitForAKey 0x004835d0 [tier1] - frame size wrong (0x18 vs 0x30), helpers inlined instead of called, three-phase loop structure differs
+// wait for a key press with edge-triggered mode, mouse support, and mouldy key handling
 // FUNCTION: CARMA2_HW 0x004835d0
 void C2_HOOK_FASTCALL WaitForAKey(void) {
     int i;
