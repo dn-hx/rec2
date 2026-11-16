@@ -146,6 +146,7 @@ void C2_HOOK_CDECL BrMatrix34RotateZ(br_matrix34* mat, br_angle rz) {
     M(3, 2) = 0;
 }
 
+// PARTIAL 38.28%: BrMatrix34Rotate 0x00532940 [x87 schedule] - double cos/sin of masked angle; residual = x87 interleave and store order, see state/findings/BrMatrix34Rotate.md
 // FUNCTION: CARMA2_HW 0x00532940
 void C2_HOOK_CDECL BrMatrix34Rotate(br_matrix34* mat, br_angle r, const br_vector3* a) {
     br_scalar t;
@@ -158,9 +159,9 @@ void C2_HOOK_CDECL BrMatrix34Rotate(br_matrix34* mat, br_angle r, const br_vecto
     br_scalar sy;
     br_scalar sz;
 
-    s = BR_SIN(r);
-    c = BR_COS(r);
-    t = 1.0f - c;
+    c = (br_scalar)cos(r * 9.587379924285257e-05);
+    s = (br_scalar)sin(r * 9.587379924285257e-05);
+    t = 1.0 - c;
 
     txy = t * a->v[0];
     txz = txy * a->v[2];
