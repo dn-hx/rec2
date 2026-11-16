@@ -37,6 +37,8 @@ extern void C2_HOOK_FASTCALL UpdateFramePeriod(tU32* pCamera_period);
 
 #ifdef REC2_MATCHING
 extern tU32 C2_HOOK_FASTCALL GetLastTickCount(void);
+extern void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer);
+
 #endif
 
 // CheckTimer
