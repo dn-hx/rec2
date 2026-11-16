@@ -2949,6 +2949,7 @@ void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_t
 #pragma inline_depth()
 #endif
 
+// PARTIAL 30.35%: MakeJointVelocitiesVector 0x004b77b0 [x87-schedule/structure] - no 12-byte frame, angular_delta never stored, x87 order differs
 // FUNCTION: CARMA2_HW 0x004b77b0
 void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount) {
     tPhysics_joint_force* record;
