@@ -474,124 +474,122 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(br_vector3* pPoint, br_vecto
 }
 
 
+// PARTIAL 41.79%: SphereEdgeCollide 0x0045d920 - x87 schedule (fxch placement) and one merged SpherePolyFaceCollide call site; frame 0x4c and every stack slot match the original. The vec[6] array + macros pin the six br_vector3 locals to the original's frame layout (0x14,0x20,0x2c,0x38,0x44,0x50); MSVC ignores the declaration order for separate br_vector3 locals.
 // FUNCTION: CARMA2_HW 0x0045d920
 void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b) {
-    br_scalar fVar5;
-    br_scalar fVar4;
-    br_scalar fVar3;
-    br_scalar fVar2;
-    br_scalar fVar1;
-    br_scalar local_4;
-    br_scalar local_8;
-    br_scalar local_c;
-    br_scalar local_10;
-    br_scalar local_14;
-    br_scalar local_18;
-    br_scalar local_1c;
-    br_scalar local_20;
-    br_scalar local_24;
-    br_scalar local_28;
-    br_scalar local_2c;
-    br_scalar local_30;
-    br_scalar local_34;
-    br_scalar local_38;
-    br_scalar local_3c;
-    br_scalar local_40;
-    br_scalar local_44;
-    br_scalar local_48;
+    br_scalar perpendicular_squared;
+    br_vector3 vec[6];
+#define edge vec[0]
+#define perpendicular vec[1]
+#define shifted vec[2]
+#define offset vec[3]
+#define sphere_direction vec[4]
+#define along vec[5]
+    br_scalar edge_squared;
+    br_scalar projection;
+    br_scalar time;
+    br_scalar distance;
+    br_scalar point_z;
+    br_scalar edge_parameter;
+    br_scalar length;
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    double perpendicular_length;
+    double scale;
 
     *pT = 100.0f;
-    local_48 = pEdge_end->v[0] - pEdge_start->v[0];
-    local_44 = pEdge_end->v[1] - pEdge_start->v[1];
-    local_18 = pEnd->v[0] - pStart->v[0];
-    local_14 = pEnd->v[1] - pStart->v[1];
-    local_40 = pEdge_end->v[2] - pEdge_start->v[2];
-    local_10 = pEnd->v[2] - pStart->v[2];
-    fVar2 = local_40 * local_40 + local_44 * local_44 + local_48 * local_48;
-    local_4 = (local_10 * local_40 + local_14 * local_44 + local_18 * local_48) / fVar2;
-    local_c = local_48 * local_4;
-    local_3c = local_18 - local_c;
-    local_8 = local_44 * local_4;
-    local_38 = local_14 - local_8;
-    local_4 = local_40 * local_4;
-    local_24 = pEdge_start->v[0] - pStart->v[0];
-    local_34 = local_10 - local_4;
-    local_20 = pEdge_start->v[1] - pStart->v[1];
-    local_1c = pEdge_start->v[2] - pStart->v[2];
-    fVar3 = local_34 * local_34 + local_38 * local_38 + local_3c * local_3c;
-    fVar1 = -((local_1c * local_40 + local_20 * local_44 + local_24 * local_48) / fVar2);
-    local_30 = local_48 * fVar1 + local_24;
-    local_2c = local_44 * fVar1 + local_20;
-    local_28 = local_40 * fVar1 + local_1c;
-    if (fVar3 < 1e-06) {
-        StationarySphereEdgeCollide(pEdge_start, pEdge_end, (br_vector3*)&local_48, *(br_scalar*)&pT, pEnd, pSphere, pPoint, pNormal, pT);
+    edge.v[0] = pEdge_end->v[0] - pEdge_start->v[0];
+    edge.v[1] = pEdge_end->v[1] - pEdge_start->v[1];
+    sphere_direction.v[0] = pEnd->v[0] - pStart->v[0];
+    sphere_direction.v[1] = pEnd->v[1] - pStart->v[1];
+    edge.v[2] = pEdge_end->v[2] - pEdge_start->v[2];
+    sphere_direction.v[2] = pEnd->v[2] - pStart->v[2];
+    projection = (sphere_direction.v[0] * edge.v[0] + sphere_direction.v[1] * edge.v[1] + sphere_direction.v[2] * edge.v[2]) / (edge.v[0] * edge.v[0] + edge.v[1] * edge.v[1] + edge.v[2] * edge.v[2]);
+    along.v[0] = edge.v[0] * projection;
+    along.v[1] = edge.v[1] * projection;
+    along.v[2] = edge.v[2] * projection;
+    perpendicular.v[0] = sphere_direction.v[0] - along.v[0];
+    perpendicular.v[1] = sphere_direction.v[1] - along.v[1];
+    perpendicular.v[2] = sphere_direction.v[2] - along.v[2];
+    offset.v[0] = pEdge_start->v[0] - pStart->v[0];
+    offset.v[1] = pEdge_start->v[1] - pStart->v[1];
+    offset.v[2] = pEdge_start->v[2] - pStart->v[2];
+    edge_squared = edge.v[0] * edge.v[0] + edge.v[1] * edge.v[1] + edge.v[2] * edge.v[2];
+    projection = -((offset.v[0] * edge.v[0] + offset.v[1] * edge.v[1] + offset.v[2] * edge.v[2]) / edge_squared);
+    shifted.v[0] = edge.v[0] * projection + offset.v[0];
+    shifted.v[1] = edge.v[1] * projection + offset.v[1];
+    shifted.v[2] = edge.v[2] * projection + offset.v[2];
+    perpendicular_length = perpendicular.v[0] * perpendicular.v[0] + perpendicular.v[1] * perpendicular.v[1] + perpendicular.v[2] * perpendicular.v[2];
+    perpendicular_squared = perpendicular_length;
+    if (perpendicular_length < 1e-06) {
+        StationarySphereEdgeCollide(pEdge_start, pEdge_end, &edge, edge_squared, pEnd, pSphere, pPoint, pNormal, pT);
         return;
     }
-    fVar1 = (local_28 * local_34 + local_2c * local_38 + local_30 * local_3c) / fVar3;
-    local_3c = local_3c * fVar1;
-    local_38 = local_38 * fVar1;
-    fVar4 = (local_28 * local_28 + local_2c * local_2c + local_30 * local_30) -
-            (local_34 * fVar1 * local_34 * fVar1 + local_38 * local_38 + local_3c * local_3c);
-    if (pSphere->radius_squared - pSphere->radius * 0.002 * -2.0 < fVar4) {
+    time = (shifted.v[0] * perpendicular.v[0] + shifted.v[1] * perpendicular.v[1] + shifted.v[2] * perpendicular.v[2]) / perpendicular_squared;
+    perpendicular.v[0] = perpendicular.v[0] * time;
+    perpendicular.v[1] = perpendicular.v[1] * time;
+    perpendicular.v[2] = perpendicular.v[2] * time;
+    distance = (shifted.v[0] * shifted.v[0] + shifted.v[1] * shifted.v[1] + shifted.v[2] * shifted.v[2]) - (perpendicular.v[0] * perpendicular.v[0] + perpendicular.v[1] * perpendicular.v[1] + perpendicular.v[2] * perpendicular.v[2]);
+    if (distance > pSphere->radius_squared - pSphere->radius * 0.002f * -2.0f) {
         return;
     }
-    if (pSphere->radius_squared < fVar4) {
-        goto LAB_0045de75;
+    if (distance > pSphere->radius_squared) {
+        goto do_stationary;
     }
-    fVar1 = fVar1 - sqrt((pSphere->radius_squared - fVar4) / fVar3);
-    local_c = (local_c * fVar1 + local_30) - local_24;
-    local_8 = (local_8 * fVar1 + local_2c) - local_20;
-    local_4 = (local_4 * fVar1 + local_28) - local_1c;
-    fVar3 = (local_4 * local_40 + local_8 * local_44 + local_c * local_48) / fVar2;
-    if (0.0 <= fVar3) {
-        if (fVar3 <= 1.0) {
-            if ((0.0 <= fVar1) && (fVar1 <= 1.0)) {
-                pPoint->v[0] = pEdge_start->v[0] + local_c;
-                pPoint->v[1] = local_8 + pEdge_start->v[1];
-                fVar2 = pEdge_start->v[2];
-                pPoint->v[2] = local_4 + fVar2;
-                fVar4 = pPoint->v[0] - (pStart->v[0] + (pEnd->v[0] - pStart->v[0]) * fVar1);
-                fVar3 = pPoint->v[1] - ((pEnd->v[1] - pStart->v[1]) * fVar1 + pStart->v[1]);
-                fVar5 = (local_4 + fVar2) - ((pEnd->v[2] - pStart->v[2]) * fVar1 + pStart->v[2]);
-                fVar2 = sqrt(fVar5 * fVar5 + fVar3 * fVar3 + fVar4 * fVar4);
-                if (fVar2 <= 2.3841858e-07) {
-                    pNormal->v[0] = 1.0f;
-                    pNormal->v[1] = 0.0f;
-                    pNormal->v[2] = 0.0f;
-                    *pT = fVar1;
-                    return;
-                }
-                fVar2 = 1.0 / fVar2;
-                pNormal->v[0] = fVar2 * fVar4;
-                pNormal->v[1] = fVar2 * fVar3;
-                pNormal->v[2] = fVar2 * fVar5;
-                *pT = fVar1;
-                return;
-            }
-            goto LAB_0045de75;
+    time = time - sqrt((pSphere->radius_squared - distance) / perpendicular_squared);
+    along.v[0] = along.v[0] * time + shifted.v[0] - offset.v[0];
+    along.v[1] = along.v[1] * time + shifted.v[1] - offset.v[1];
+    along.v[2] = along.v[2] * time + shifted.v[2] - offset.v[2];
+    edge_parameter = (along.v[0] * edge.v[0] + along.v[1] * edge.v[1] + along.v[2] * edge.v[2]) / edge_squared;
+    if (edge_parameter < 0.0f) {
+        if ((pFlags_a & 0x80) == 0) {
+            SpherePolyFaceCollide(pEdge_start, pStart, (int)pEnd, &sphere_direction, pSphere, pPoint, pNormal, pT);
         }
+    } else if (edge_parameter > 1.0f) {
         if ((pFlags_b & 0x80) == 0) {
-            SpherePolyFaceCollide(pEnd, pStart, 0, (br_vector3*)&local_18, pSphere, pPoint, pNormal, pT);
+            SpherePolyFaceCollide(pEdge_end, pStart, (int)pEnd, &sphere_direction, pSphere, pPoint, pNormal, pT);
         }
-LAB_0045dd10:
-        fVar1 = *pT;
     } else {
-        if ((pFlags_a & 0x80) != 0) {
-            goto LAB_0045dd10;
+        if (time >= 0.0f && time <= 1.0f) {
+            pPoint->v[0] = pEdge_start->v[0] + along.v[0];
+            pPoint->v[1] = along.v[1] + pEdge_start->v[1];
+            point_z = along.v[2] + pEdge_start->v[2];
+            pPoint->v[2] = point_z;
+            dx = (pEnd->v[0] - pStart->v[0]) * time;
+            dy = (pEnd->v[1] - pStart->v[1]) * time;
+            dz = (pEnd->v[2] - pStart->v[2]) * time;
+            dx = pPoint->v[0] - (pStart->v[0] + dx);
+            dy = pPoint->v[1] - (dy + pStart->v[1]);
+            dz = point_z - (pStart->v[2] + dz);
+            length = sqrt(dx * dx + dy * dy + dz * dz);
+            if (length > 2.3841858e-07f) {
+                scale = 1.0 / length;
+                pNormal->v[0] = scale * dx;
+                pNormal->v[1] = scale * dy;
+                pNormal->v[2] = scale * dz;
+            } else {
+                pNormal->v[0] = 1.0f;
+                pNormal->v[1] = 0.0f;
+                pNormal->v[2] = 0.0f;
+            }
+            *pT = time;
+            return;
         }
-        SpherePolyFaceCollide(pEnd, pStart, 0, (br_vector3*)&local_18, pSphere, pPoint, pNormal, pT);
-        fVar1 = *pT;
+        goto do_stationary;
     }
-    if (fVar1 < 2.0) {
+    if (*pT < 2.0f) {
         return;
     }
-LAB_0045de75:
-    StationarySphereEdgeCollide(pEdge_start, pEdge_end, (br_vector3*)&local_48, *(br_scalar*)&pT, pEnd, pSphere, pPoint, pNormal, pT);
+do_stationary:
+    StationarySphereEdgeCollide(pEdge_start, pEdge_end, &edge, edge_squared, pEnd, pSphere, pPoint, pNormal, pT);
 }
-
-// StationarySphereSphereCollide
-
-// SphereSphereCollide
+#undef edge
+#undef perpendicular
+#undef shifted
+#undef offset
+#undef sphere_direction
+#undef along
 
 // FUNCTION: CARMA2_HW 0x0045dea0
 void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
