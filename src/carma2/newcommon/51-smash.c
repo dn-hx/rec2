@@ -3673,6 +3673,10 @@ br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_mater
     br_uint_32 temp;
     br_scalar dot;
     br_scalar ny;
+    br_scalar n0;
+    br_scalar n2;
+    br_scalar q0;
+    br_scalar q2;
     int i;
     int swapped;
 
@@ -3704,9 +3708,17 @@ br_actor* C2_HOOK_FASTCALL AddDecal(tFace_ref* pFace, br_vertex* pQuad, br_mater
     for (i = 0; i < 2; i++) {
         br_face* face = &model->faces[i];
 
+        /* The six scalar temps reproduce the original's x87 load order (face
+           normal .y first, then the face normal .y/.x/.z): with the products
+           written straight into the comparison the compiler fuses n0*q0 into
+           the load and schedules the dot product differently. */
         dot = pFace->normal.v[1];
         ny = face->n.v[1];
-        if (dot * ny + face->n.v[0] * pFace->normal.v[0] + face->n.v[2] * pFace->normal.v[2] <= gFloat_0058aec0) {
+        n0 = face->n.v[0];
+        n2 = face->n.v[2];
+        q0 = pFace->normal.v[0];
+        q2 = pFace->normal.v[2];
+        if (dot * ny + n0 * q0 + n2 * q2 <= gFloat_0058aec0) {
             temp = model->faces[i].vertices[0];
             model->faces[i].vertices[0] = model->faces[i].vertices[1];
             model->faces[i].vertices[1] = temp;
