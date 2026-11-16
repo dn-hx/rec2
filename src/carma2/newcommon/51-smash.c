@@ -4120,6 +4120,7 @@ float gFloat_0058afb0 = 0.25f;
 // Walks the triangles/polygons attached to a face and finds the one that
 // contains pPoint; the matching triangle's material is written to pOut.
 // pFlag != 0 allows re-selecting the current edge, otherwise it is skipped.
+// PARTIAL 99.99%: FindFaceWithPoint 0x004f4c70 - else-branch register allocation (zNode/iVar3/wNode in eax/ecx swapped vs original esi/eax/ecx)
 // FUNCTION: CARMA2_HW 0x004f4c70
 int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
     tU8* p1;
