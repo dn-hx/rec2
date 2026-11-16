@@ -1254,6 +1254,7 @@ void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
 }
 
 /* (ReadNonCarMechanicsData) */
+// PARTIAL 59.71%: ReadNonCarMechanicsData 0x00487ec0 [structure] - frame 0x274 vs 0x264; cmpos/attached temps written direct (orig copies via stack temps); tumble-threshold scale and sprintf fatal fixed; command-loop joint/hinge x87 order open (state/findings/ReadNonCarMechanicsData.md)
 // FUNCTION: CARMA2_HW 0x00487ec0
 void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec) {
     int index_version;
@@ -1263,6 +1264,8 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
     br_scalar snap_angle;
     br_scalar ts;
     br_vector3 attached_cmpos;
+    char shrapnel_s[256];
+    char command_s[256];
 
     pNon_car_spec->driver = eDriver_non_car_unused_slot;
 
@@ -1295,7 +1298,8 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
         /* number of extra points */
         extra_point_num = GetAnInt(pF);
         if (extra_point_num > 6) {
-            FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, index_version);
+            sprintf(shrapnel_s, "%d", index_version);
+            FatalError(kFatalError_TooManyExtraPointsForCarIndex_S, shrapnel_s);
         }
         for (i = 0; i < extra_point_num; i++) {
             br_vector3 tmp;
@@ -1390,27 +1394,23 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
         pNon_car_spec->count_shrapnel_materials = GetAnInt(pF);
 
         for (i = 0; i < pNon_car_spec->count_shrapnel_materials; i++) {
-            char s[256];
-
-            GetALineAndDontArgue(pF, s);
-            pNon_car_spec->shrapnel_materials[i] = GetSimpleMaterial(s, (pNon_car_spec != NULL && pNon_car_spec->driver >= 6) ? kRendererShadingType_Specular : kRendererShadingType_Diffuse1);
+            GetALineAndDontArgue(pF, shrapnel_s);
+            pNon_car_spec->shrapnel_materials[i] = GetSimpleMaterial(shrapnel_s, (pNon_car_spec != NULL && pNon_car_spec->driver >= 6) ? kRendererShadingType_Specular : kRendererShadingType_Diffuse1);
         }
         pNon_car_spec->collision_info->object_friction = 0.4f;
         if (index_version > 100) {
             for (;;) {
-                char s[256];
-
-                GetAString(pF, s);
-                if (DRStricmp(s, "END") == 0) {
+                GetAString(pF, command_s);
+                if (DRStricmp(command_s, "END") == 0) {
                     break;
-                } else if (DRStricmp(s, "WORLD_FRICTION") == 0) {
+                } else if (DRStricmp(command_s, "WORLD_FRICTION") == 0) {
                     pNon_car_spec->collision_info->world_friction = GetAScalar(pF) - 1.f;
-                } else if (DRStricmp(s, "OBJECT_FRICTION") == 0) {
+                } else if (DRStricmp(command_s, "OBJECT_FRICTION") == 0) {
                     pNon_car_spec->collision_info->object_friction = GetAScalar(pF) - 1.f;
-                } else if (DRStricmp(s, "TUMBLE") == 0) {
+                } else if (DRStricmp(command_s, "TUMBLE") == 0) {
                     pNon_car_spec->tumble_factor = GetAScalar(pF);
-                    pNon_car_spec->tumble_threshold = GetAScalar(pF);
-                } else if (DRStricmp(s, "WORLD_BALL_JOINT") == 0) {
+                    pNon_car_spec->tumble_threshold = GetAScalar(pF) * 0.14492753f;
+                } else if (DRStricmp(command_s, "WORLD_BALL_JOINT") == 0) {
                     br_vector3 tv;
                     br_scalar friction;
                     int count_limits;
@@ -1427,7 +1427,7 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
                     pNon_car_spec->field_0xf0->friction = friction;
                     BrVector3Copy(&pNon_car_spec->field_0xf0->field_0x08, &tv);
                     pNon_car_spec->field_0xf0->type = eJoint_ball_n_socket;
-                } else if (DRStricmp(s, "WORLD_HINGE_JOINT") == 0) {
+                } else if (DRStricmp(command_s, "WORLD_HINGE_JOINT") == 0) {
                     br_vector3 tv1;
                     br_vector3 tv2;
                     br_scalar friction;
@@ -1446,7 +1446,7 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
                     pNon_car_spec->field_0xf0->friction = friction;
                     BrVector3Copy(&pNon_car_spec->field_0xf0->field_0x08, &tv1);
                     pNon_car_spec->field_0xf0->type = eJoint_ball_n_socket;
-                } else if (DRStricmp(s, "WORLD_TRANSLATION_JOINT") == 0) {
+                } else if (DRStricmp(command_s, "WORLD_TRANSLATION_JOINT") == 0) {
                     br_vector3 pos;
                     br_vector3 dir;
                     br_scalar limit;
@@ -1498,21 +1498,21 @@ void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_
 
                     pNon_car_spec->translation_parameters->forward_resistance = (float)exp(0.43 * (double)pNon_car_spec->translation_parameters->forward_resistance);
                     pNon_car_spec->translation_parameters->reverse_resistance = (float)exp(0.43 * (double)pNon_car_spec->translation_parameters->reverse_resistance);
-                } else if (DRStricmp(s, "RISE_WHEN_HIT") == 0) {
+                } else if (DRStricmp(command_s, "RISE_WHEN_HIT") == 0) {
                     pNon_car_spec->flags |= 0x20000;
-                } else if (DRStricmp(s, "RISE_WHEN_DRIVEN_ON") == 0) {
+                } else if (DRStricmp(command_s, "RISE_WHEN_DRIVEN_ON") == 0) {
                     pNon_car_spec->flags |= 0x40000;
-                } else if (DRStricmp(s, "NUMBER_OF_PUSHES") == 0) {
+                } else if (DRStricmp(command_s, "NUMBER_OF_PUSHES") == 0) {
                     pNon_car_spec->number_of_pushes = GetAnInt(pF);
-                } else if (DRStricmp(s, "DRIVABLE_ON") == 0) {
+                } else if (DRStricmp(command_s, "DRIVABLE_ON") == 0) {
                     pNon_car_spec->collision_info->drivable_on = 1;
-                } else if (DRStricmp(s, "INFINITE_I") == 0) {
+                } else if (DRStricmp(command_s, "INFINITE_I") == 0) {
                     pNon_car_spec->collision_info->flags |= 0x800;
-                } else if (DRStricmp(s, "IGNORE_WORLD_COLLISIONS") == 0) {
+                } else if (DRStricmp(command_s, "IGNORE_WORLD_COLLISIONS") == 0) {
                     pNon_car_spec->collision_info->flags |= 0x80;
-                } else if (DRStricmp(s, "BLOCK_CAMERA") == 0) {
+                } else if (DRStricmp(command_s, "BLOCK_CAMERA") == 0) {
                     pNon_car_spec->flags |= 0x80000;
-                } else if (DRStricmp(s, "SPARKY") == 0) {
+                } else if (DRStricmp(command_s, "SPARKY") == 0) {
                     pNon_car_spec->flags |= 0x200000;
                 } else {
                     FatalError(kFatalError_UnknownNonCarCommand);
