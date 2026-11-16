@@ -191,6 +191,16 @@ void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
 
 // InitializeActionReplayPix
 
+// FUNCTION: CARMA2_HW 0x004e7090
+void C2_HOOK_FASTCALL InitializeActionReplay(void) {
+    int i;
+
+    for (i = 0; i < 11; i++) {
+        gReplay_pixies[i] = LoadPixelmap(gReplay_pixie_names[i]);
+        BRPM_convert(gReplay_pixies[i], gBack_screen->type);
+        BrMapAdd(gReplay_pixies[i]);
+    }
+}
 // FUNCTION: CARMA2_HW 0x004e70d0
 // FUNCTION: CARMA2_SW 0x004e2f10
 void C2_HOOK_FASTCALL FreeActionReplayPix(void) {
