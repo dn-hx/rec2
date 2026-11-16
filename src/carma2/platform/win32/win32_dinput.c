@@ -1599,6 +1599,10 @@ void C2_HOOK_FASTCALL PDPlayFFBEffect(const char* effectName) {
     }
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0045c550
 // FUNCTION: CARMA2_SW 0x0045bf90
 int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void) {
@@ -1606,8 +1610,12 @@ int C2_HOOK_FASTCALL PDIsJoystickDPadEnabled(void) {
     tButtonJoystickInfo* joystick_info;
 
     joystick_info = PDGetCurrentJoystickData();
-    if (joystick_info == NULL) {
-        return 0;
+    if (joystick_info != NULL) {
+        return joystick_info->field_0xe0;
     }
-    return joystick_info->field_0xe0;
+    return 0;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
