@@ -16,7 +16,7 @@
 
 
 static float MapSawToTriangle(float pNumber);
-static br_scalar NormaliseDegreeAngle(br_scalar pAngle);
+static __inline double NormaliseDegreeAngle(double pAngle);
 
 // GLOBAL: CARMA2_HW 0x0068b840
 br_scalar gSight_distance_squared;
@@ -1347,6 +1347,54 @@ void C2_HOOK_FASTCALL KillFunkotronic(int pOwner) {
         }                                                                                       \
     } while (0)
 
+#define FUNK_SAW(T, PERIOD) (fmod((double)(T), (PERIOD)) / (PERIOD))
+
+static __inline double MapSawToTriangleF(double pNumber, br_scalar pAmplitude) {
+
+    if (pNumber < 0.5) {
+        return (pNumber * 4.0f - 1.0f) * pAmplitude;
+    } else {
+        return (3.0f - pNumber * 4.0f) * pAmplitude;
+    }
+}
+
+static __inline int GetFunkTexturebitsValue(tFunk_texturebits* pBits) {
+    int sum_flags;
+    int ii;
+
+    sum_flags = 0;
+    for (ii = 0; ii < pBits->count; ii++) {
+        if (pBits->car->field_0x18cc & (1 << pBits->bits[ii])) {
+            sum_flags |= 1 << ii;
+        }
+    }
+    return sum_flags;
+}
+
+#define FUNK_PARAMETER(MODE, PERIOD, TEXTUREBITS, AMPLITUDE, FLASH_VALUE)                     \
+    ((MODE) == eMove_continuous                                                                     \
+            ? ((PERIOD) == 0.f ? 0. : (AMPLITUDE) * FUNK_SAW(f_the_time, (PERIOD)))                       \
+            : (MODE) == eMove_controlled                                                            \
+                    ? (double)(PERIOD) * (AMPLITUDE)                                                 \
+                    : (MODE) == eMove_absolute                                                       \
+                            ? (double)(PERIOD)                                                       \
+                            : (MODE) == eMove_linear                                                 \
+                                    ? ((PERIOD) == 0.f                                               \
+                                            ? 0.                                                     \
+                                            : MapSawToTriangleF(FUNK_SAW(f_the_time, (PERIOD)), (AMPLITUDE))) \
+                                    : (MODE) == eMove_flash                                          \
+                                            ? (2 * fmod((double)f_the_time, (PERIOD)) > (PERIOD)      \
+                                                    ? (FLASH_VALUE)                                   \
+                                                    : -(FLASH_VALUE))                                 \
+                                            : (MODE) == eMove_texturebits                             \
+                                                    ? (double)GetFunkTexturebitsValue(TEXTUREBITS)    \
+                                                    : ((PERIOD) == 0.f                               \
+                                                            ? 0.                                      \
+                                                            : (AMPLITUDE) * BR_SIN(BrDegreeToAngle(FUNK_SAW(f_the_time, (PERIOD)) * 360.))))
+
+// PARTIAL 60.61%: FunkThoseTronics 0x00477230 - frame 0x48 vs 0x50 (8B), x87 schedule in the
+// proximity/closest-actor scans and the flic loop, regalloc (the_funk walk esi ok, actor in mem
+// not ecx), tail region 0x4788ce-0x478b9c section-alignment skew; see state/findings/FunkThoseTronics.md
 // (reference)
 // FUNCTION: CARMA2_HW 0x00477230
 void C2_HOOK_FASTCALL FunkThoseTronics(void) {
@@ -1356,13 +1404,12 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
     int finished;
     tFunkotronic_spec* the_funk;
     br_vector3* the_proximity;
-    tS32 the_time;
+    tU32 the_time;
     br_matrix23* mat_matrix;
     br_material* the_material;
     float f_the_time;
-    float rot_amount;
     float f_time_diff;
-    br_vector2 tmp_v2;
+    double d_value;
 
     if (gFunkotronics_array == NULL) {
         return;
@@ -1370,8 +1417,8 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
     DontLetFlicFuckWithPalettes();
     the_time = GetTotalTime();
     f_the_time = (float)the_time;
-    for (i = 0; i < gFunkotronics_array_size; i++) {
-        the_funk = &gFunkotronics_array[i];
+    the_funk = gFunkotronics_array;
+    for (i = 0; i < gFunkotronics_array_size; i++, the_funk++) {
         if (the_funk->owner == -999) {
             continue;
         }
@@ -1413,32 +1460,36 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
             switch (the_funk->matrix_mod_type) {
             case eMatrix_mod_spin:
                 BrMatrix23Identity(mat_matrix);
-                the_material->map_transform.m[2][0] -= .5f;
-                the_material->map_transform.m[2][1] -= .5f;
+                the_material->map_transform.m[2][0] -= 0.5f;
+                the_material->map_transform.m[2][1] -= 0.5f;
                 if (the_funk->matrix_mod_data.spin_info.period > 0.f) {
-                    f_time_diff = 1.f - fmodf(the_funk->matrix_mod_data.spin_info.period, 1.f);
+                    f_time_diff = 1.0 - fmod((double)the_funk->matrix_mod_data.spin_info.period, 1.0);
                 } else {
-                    f_time_diff = fmodf(-the_funk->matrix_mod_data.spin_info.period, 1.f);
+                    f_time_diff = fmod((double)-the_funk->matrix_mod_data.spin_info.period, 1.0);
                 }
 
-                MOVE_FUNK_PARAMETER(rot_amount, the_funk->matrix_mode, f_time_diff, the_funk->matrix_mod_data.texture_info.data, 65536.f, -65536.f);
-                DRMatrix23PostRotate(mat_matrix, (br_angle)rot_amount);
+                DRMatrix23PostRotate(mat_matrix, (br_angle)FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        f_time_diff,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        65536.,
+                        -65536.));
 
-                the_material->map_transform.m[2][0] += .5f;
-                the_material->map_transform.m[2][1] += .5f;
+                the_material->map_transform.m[2][0] -= -0.5f;
+                the_material->map_transform.m[2][1] -= -0.5f;
                 break;
             case eMatrix_mod_rock:
                 BrMatrix23Identity(mat_matrix);
                 the_material->map_transform.m[2][0] -= the_funk->matrix_mod_data.rock_info.x_centre;
                 the_material->map_transform.m[2][1] -= the_funk->matrix_mod_data.rock_info.y_centre;
 
-                MOVE_FUNK_PARAMETER(rot_amount,
-                    the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.rock_info.period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    the_funk->matrix_mod_data.rock_info.rock_angle,
-                    the_funk->matrix_mod_data.rock_info.rock_angle);
-                DRMatrix23PostRotate(mat_matrix, BrDegreeToAngle(NormaliseDegreeAngle(rot_amount)));
+                d_value = FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.rock_info.period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        the_funk->matrix_mod_data.rock_info.rock_angle,
+                        -the_funk->matrix_mod_data.rock_info.rock_angle);
+                DRMatrix23PostRotate(mat_matrix, BrDegreeToAngle(NormaliseDegreeAngle(d_value)));
 
                 the_material->map_transform.m[2][0] += the_funk->matrix_mod_data.rock_info.x_centre;
                 the_material->map_transform.m[2][1] += the_funk->matrix_mod_data.rock_info.y_centre;
@@ -1448,52 +1499,51 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
                 the_material->map_transform.m[2][0] -= the_funk->matrix_mod_data.throb_info.x_centre;
                 the_material->map_transform.m[2][1] -= the_funk->matrix_mod_data.throb_info.y_centre;
 
-                MOVE_FUNK_PARAMETER(tmp_v2.v[1],
-                    the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.throb_info.y_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    the_funk->matrix_mod_data.throb_info.y_magnitude,
-                    the_funk->matrix_mod_data.throb_info.y_magnitude);
-                MOVE_FUNK_PARAMETER(tmp_v2.v[0],
-                    the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.throb_info.x_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    the_funk->matrix_mod_data.throb_info.x_magnitude,
-                    the_funk->matrix_mod_data.throb_info.x_magnitude);
-                BrMatrix23PostScale(mat_matrix, tmp_v2.v[0] + 1.f, tmp_v2.v[1] + 1.f);
+                d_value = FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.throb_info.y_period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        the_funk->matrix_mod_data.throb_info.y_magnitude,
+                        -the_funk->matrix_mod_data.throb_info.y_magnitude);
+                BrMatrix23PostScale(mat_matrix,
+                        (br_scalar)(FUNK_PARAMETER(
+                                the_funk->matrix_mode,
+                                the_funk->matrix_mod_data.throb_info.x_period,
+                                the_funk->matrix_mod_data.texture_info.data,
+                                the_funk->matrix_mod_data.throb_info.x_magnitude,
+                                -the_funk->matrix_mod_data.throb_info.x_magnitude) - -1.0),
+                        (br_scalar)(d_value - -1.0));
 
                 the_material->map_transform.m[2][0] += the_funk->matrix_mod_data.throb_info.x_centre;
                 the_material->map_transform.m[2][1] += the_funk->matrix_mod_data.throb_info.y_centre;
                 break;
             case eMatrix_mod_slither:
-                MOVE_FUNK_PARAMETER(tmp_v2.v[0],
-                    the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.slither_info.x_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    the_funk->matrix_mod_data.slither_info.x_magnitude,
-                    the_funk->matrix_mod_data.slither_info.x_magnitude);
-                the_material->map_transform.m[2][0] = tmp_v2.v[0];
-                MOVE_FUNK_PARAMETER(tmp_v2.v[1],
-                    the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.slither_info.y_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    the_funk->matrix_mod_data.slither_info.y_magnitude,
-                    the_funk->matrix_mod_data.slither_info.y_magnitude);
-                the_material->map_transform.m[2][1] = tmp_v2.v[1];
+                the_material->map_transform.m[2][0] = (br_scalar)FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.slither_info.x_period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        the_funk->matrix_mod_data.slither_info.x_magnitude,
+                        -the_funk->matrix_mod_data.slither_info.x_magnitude);
+                the_material->map_transform.m[2][1] = (br_scalar)FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.slither_info.y_period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        the_funk->matrix_mod_data.slither_info.y_magnitude,
+                        -the_funk->matrix_mod_data.slither_info.y_magnitude);
                 break;
             case eMatrix_mod_roll:
-                MOVE_FUNK_PARAMETER(tmp_v2.v[0], the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.roll_info.x_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    1.f,
-                    -1.f);
-                the_material->map_transform.m[2][0] = tmp_v2.v[0];
-                MOVE_FUNK_PARAMETER(tmp_v2.v[1], the_funk->matrix_mode,
-                    the_funk->matrix_mod_data.roll_info.y_period,
-                    the_funk->matrix_mod_data.texture_info.data,
-                    1.f,
-                    -1.f);
-                the_material->map_transform.m[2][1] = tmp_v2.v[1];
+                the_material->map_transform.m[2][0] = (br_scalar)FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.roll_info.x_period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        1.f,
+                        -1.f);
+                the_material->map_transform.m[2][1] = (br_scalar)FUNK_PARAMETER(
+                        the_funk->matrix_mode,
+                        the_funk->matrix_mod_data.roll_info.y_period,
+                        the_funk->matrix_mod_data.texture_info.data,
+                        1.f,
+                        -1.f);
                 break;
             case eMatrix_mod_none:
                 break;
@@ -1503,25 +1553,26 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
             }
         }
         if (the_funk->lighting_animation_type != eMove_none) {
-            MOVE_FUNK_PARAMETER(the_material->ka, the_funk->lighting_animation_type,
-                the_funk->lighting_animation_data.controlled.period,
-                the_funk->lighting_animation_data.texture_info.data,
-                the_funk->ambient_delta, -the_funk->ambient_delta);
-            the_material->ka += the_funk->ambient_base;
+            the_material->ka = the_funk->ambient_base + (br_scalar)FUNK_PARAMETER(
+                    the_funk->lighting_animation_type,
+                    the_funk->lighting_animation_data.controlled.period,
+                    the_funk->lighting_animation_data.texture_info.data,
+                    the_funk->ambient_delta,
+                    -the_funk->ambient_delta);
 
-            MOVE_FUNK_PARAMETER(the_material->kd, the_funk->lighting_animation_type,
-                the_funk->lighting_animation_data.controlled.period,
-                the_funk->lighting_animation_data.texture_info.data,
-                the_funk->direct_delta,
-                -the_funk->direct_delta);
-            the_material->kd += the_funk->direct_base;
+            the_material->kd = the_funk->direct_base + (br_scalar)FUNK_PARAMETER(
+                    the_funk->lighting_animation_type,
+                    the_funk->lighting_animation_data.controlled.period,
+                    the_funk->lighting_animation_data.texture_info.data,
+                    the_funk->direct_delta,
+                    -the_funk->direct_delta);
 
-            MOVE_FUNK_PARAMETER(the_material->ks, the_funk->lighting_animation_type,
-                the_funk->lighting_animation_data.controlled.period,
-                the_funk->lighting_animation_data.texture_info.data,
-                the_funk->specular_delta,
-                -the_funk->specular_delta);
-            the_material->ks += the_funk->specular_base;
+            the_material->ks = the_funk->specular_base + (br_scalar)FUNK_PARAMETER(
+                    the_funk->lighting_animation_type,
+                    the_funk->lighting_animation_data.controlled.period,
+                    the_funk->lighting_animation_data.texture_info.data,
+                    the_funk->specular_delta,
+                    -the_funk->specular_delta);
         }
         switch (the_funk->texture_animation_type) {
         case eTexture_animation_none:
@@ -1533,12 +1584,12 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
                 br_pixelmap* new_colour_map;
 
                 if (the_funk->time_mode == eTime_mode_accurate) {
-                    MOVE_FUNK_PARAMETER(rot_amount, the_funk->texture_animation_data.frames_info.mode,
-                        the_funk->texture_animation_data.frames_info.controlled.period,
-                        the_funk->texture_animation_data.frames_info.texture_info.data,
-                        (br_scalar)the_funk->texture_animation_data.frames_info.texture_count,
-                        (br_scalar)-the_funk->texture_animation_data.frames_info.texture_count);
-                    the_funk->texture_animation_data.frames_info.current_frame = (int) rot_amount;
+                    the_funk->texture_animation_data.frames_info.current_frame = (int)FUNK_PARAMETER(
+                            the_funk->texture_animation_data.frames_info.mode,
+                            the_funk->texture_animation_data.frames_info.controlled.period,
+                            the_funk->texture_animation_data.frames_info.texture_info.data,
+                            the_funk->texture_animation_data.frames_info.texture_count,
+                            -the_funk->texture_animation_data.frames_info.texture_count);
                 } else if (f_the_time - the_funk->last_frame >= the_funk->texture_animation_data.frames_info.controlled.period) {
                     the_funk->last_frame = f_the_time;
                     the_funk->texture_animation_data.frames_info.current_frame += 1;
@@ -1552,11 +1603,7 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
                 if (the_material->colour_map != new_colour_map) {
                     the_material->colour_map = new_colour_map;
                     the_material->user = new_colour_map;
-                    update_flags |= BR_MATU_COLOURMAP;
-                }
-                the_material->colour_map = the_funk->texture_animation_data.frames_info.textures[the_funk->texture_animation_data.frames_info.current_frame];
-                if (the_material->colour_map != new_colour_map) {
-                    BrMaterialUpdate(the_funk->material, BR_MATU_COLOURMAP);
+                    update_flags = BR_MATU_COLOURMAP;
                 }
                 if (the_funk->texture_animation_data.frames_info.has_matrix) {
                     br_matrix23 *frame_mat = &the_funk->texture_animation_data.frames_info.mat[the_funk->texture_animation_data.frames_info.current_frame];
@@ -1578,20 +1625,20 @@ void C2_HOOK_FASTCALL FunkThoseTronics(void) {
             if (!gAction_replay_mode || !ARReplayIsReallyPaused()) {
                 tS32 i_last_frame = (tS32)the_funk->last_frame;
                 tS32 i_time_diff;
-                if (the_time < i_last_frame) {
+                if (the_time < (tU32)i_last_frame) {
                     i_time_diff = 2 * i_last_frame - the_time;
                 } else {
                     i_time_diff = the_time;
                 }
                 if (the_funk->time_mode == eTime_mode_accurate) {
-                    if (the_funk->last_frame) {
+                    if (i_last_frame) {
                         iteration_count = (i_time_diff - i_last_frame) /
                                           the_funk->texture_animation_data.flic_info.flic_descriptor.frame_period;
                     } else {
                         iteration_count = 1;
                     }
                 } else {
-                    if ((br_scalar)(i_time_diff - the_funk->last_frame) >= the_funk->texture_animation_data.flic_info.flic_descriptor.frame_period) {
+                    if ((double)i_time_diff - the_funk->last_frame > (double)(tU32)the_funk->texture_animation_data.flic_info.flic_descriptor.frame_period) {
                         iteration_count = 1;
                     } else {
                         iteration_count = 0;
@@ -2297,6 +2344,9 @@ void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* re
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 static float MapSawToTriangle(float pNumber) {
 
     if (pNumber >= 0.5) {
@@ -2306,10 +2356,10 @@ static float MapSawToTriangle(float pNumber) {
     }
 }
 
-static br_scalar NormaliseDegreeAngle(br_scalar pAngle) {
+static __inline double NormaliseDegreeAngle(double pAngle) {
 
     while (pAngle < .0f) {
-        pAngle += 360.f;
+        pAngle -= -360.f;
     }
     return pAngle;
 }
