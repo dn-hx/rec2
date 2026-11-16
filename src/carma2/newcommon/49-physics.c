@@ -553,6 +553,46 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b9e40
+void C2_HOOK_FASTCALL SetCollisionInfoDoNothingChain(tPhysics_object* pCollision_info, tU32 pDisable) {
+    tPhysics_object* cur;
+    tPhysics_object* sibling;
+
+    pCollision_info->disable_move_rotate = pDisable;
+    cur = pCollision_info;
+    do {
+        cur->disable_move_rotate = pDisable;
+        cur->field_0x1df = 0;
+        if (cur->child != NULL) {
+            sibling = cur->child;
+            while (sibling != NULL) {
+                sibling->disable_move_rotate = pDisable;
+                sibling->field_0x1df = 0;
+                if (sibling->child != NULL) {
+                    SetListDoingNothingFlag(sibling->child, pDisable);
+                }
+                sibling = sibling->next;
+            }
+        }
+        cur = (tPhysics_object*)cur->field183_0x1d8;
+    } while (cur != NULL && cur != pCollision_info);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
