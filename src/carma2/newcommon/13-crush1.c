@@ -2406,14 +2406,18 @@ void C2_HOOK_FASTCALL ARUndoModelMash(br_model* pModel, tCompressed_vector3* pSr
 // FUNCTION: CARMA2_HW 0x0043c0e0
 // FUNCTION: CARMA2_SW 0x0043c130
 void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
+    br_actor* actor;
     tUser_crush_data* user;
     tUser_crush_data* parent_user;
     br_model* parent_model;
     tCar_crush_flap_data* flap;
     const br_vector3* hinge;
     br_vector3 axis;
+    br_scalar nx, ny, nz;
+    br_scalar scale;
 
-    user = pActor->user;
+    actor = (br_actor*)pActor;
+    user = actor->user;
     if (user == NULL || user->crush_data == NULL) {
         return;
     }
@@ -2424,18 +2428,25 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
     flap->field_0x4 = (tU16)(flap->field_0x4 + pAngle);
     hinge = &user->models[0]->vertices[flap->hinge0].p;
     BrVector3Sub(&axis, &user->models[0]->vertices[flap->hinge1].p, hinge);
-    BrVector3Normalise(&axis, &axis);
-    BrMatrix34Translate(&pActor->t.t.mat,
-        -hinge->v[0],
-        -hinge->v[1],
-        -hinge->v[2]);
-    BrMatrix34PostRotate(&pActor->t.t.mat, flap->field_0x4, &axis);
-    parent_user = (tUser_crush_data*)pActor->parent->user;
+    scale = BR_LENGTH3(axis.v[0], axis.v[1], axis.v[2]);
+    if (scale > gFLT_EPSILON_00589a5c) {
+        scale = (br_scalar)(gDouble_00589a60 / scale);
+        axis.v[0] = axis.v[0] * scale;
+        axis.v[1] = axis.v[1] * scale;
+        axis.v[2] = axis.v[2] * scale;
+    } else {
+        axis.v[0] = 1.0f;
+        axis.v[1] = 0.0f;
+        axis.v[2] = 0.0f;
+    }
+    nx = -hinge->v[0];
+    ny = -hinge->v[1];
+    nz = -hinge->v[2];
+    BrMatrix34Translate(&actor->t.t.mat, nx, ny, nz);
+    BrMatrix34PostRotate(&actor->t.t.mat, flap->field_0x4, &axis);
+    parent_user = (tUser_crush_data*)actor->parent->user;
     parent_model = parent_user->models[0];
-    BrMatrix34PostTranslate(&pActor->t.t.mat,
-        parent_model->vertices[flap->field_0xc].p.v[0],
-        parent_model->vertices[flap->field_0xc].p.v[1],
-        parent_model->vertices[flap->field_0xc].p.v[2]);
+    BrMatrix34PostTranslate(&actor->t.t.mat, parent_model->vertices[flap->field_0xc].p.v[0], parent_model->vertices[flap->field_0xc].p.v[1], parent_model->vertices[flap->field_0xc].p.v[2]);
 }
 
 // ARApplySplitWeld
