@@ -1772,6 +1772,11 @@ tU32 gCamera_period;
 // GLOBAL: CARMA2_HW 0x00661678
 br_vector3 gVector3_00661678 = { { 0.0f, 1.0f, 0.0f } };
 
+// PARTIAL 49.62%: ShatterObject 0x4ec370 - residual is stack-slot and x87/register-role churn
+// (compiler slot order differs from the original: face_count/new_vertex/face_in land in other slots);
+// open regions: 0x4ec43c-0x4ec4dc (face-init loop base), 0x4ec6a2-0x4ec6dd (split setup spills),
+// 0x4ec73f-0x4ec784 (face_out base pointer), 0x4eca79-0x4ecb02 (fragment-centre x87 spills).
+// See state/findings/ShatterObject.md.  Frame size and all literals/scales match the original.
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -1798,6 +1803,8 @@ void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor
     float edge12;
     float fraction;
     float* vtx[3];
+    float* edge0;
+    float* edge1;
     float* new_vertex;
     float* next_vertex;
     float* midpoint0;
@@ -1821,8 +1828,7 @@ void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor
         face_data[i] = 0;
     }
     for (i = 0; i < pFace_count; i++) {
-        face_data[i * 20 + 0] = pSource_faces[i * 3 + 0];
-        face_data[i * 20 + 1] = pSource_faces[i * 3 + 1];
+        *(tU32*)&face_data[i * 20 + 0] = *(const tU32*)&pSource_faces[i * 3 + 0];
         face_data[i * 20 + 2] = pSource_faces[i * 3 + 2];
         *(tU32*)&face_data[i * 20 + 4] = pOwner;
         *(tU8*)&face_data[i * 20 + 8] = 0;
@@ -1857,32 +1863,36 @@ void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor
             }
             midpoint0 = new_vertex;
             midpoint1 = new_vertex + 10;
-            next_vertex = new_vertex + 20;
             vertex_count += 2;
+            next_vertex = new_vertex + 20;
+            edge0 = vtx[order[0]];
+            edge1 = vtx[order[1]];
             fraction = FRandomBetween(0.2f, 0.8f);
             for (j = 0; j < 3; j++) {
-                midpoint0[j] = (vtx[order[1]][j] - vtx[order[0]][j]) * fraction + vtx[order[0]][j];
+                midpoint0[j] = (edge1[j] - edge0[j]) * fraction + edge0[j];
             }
             for (j = 0; j < 2; j++) {
-                midpoint0[j + 3] = (vtx[order[1]][j + 3] - vtx[order[0]][j + 3]) * fraction + vtx[order[0]][j + 3];
+                midpoint0[j + 3] = (edge1[j + 3] - edge0[j + 3]) * fraction + edge0[j + 3];
             }
+            edge0 = vtx[order[0]];
+            edge1 = vtx[order[2]];
             fraction = FRandomBetween(0.2f, 0.8f);
             for (j = 0; j < 3; j++) {
-                midpoint1[j] = (vtx[order[2]][j] - vtx[order[0]][j]) * fraction + vtx[order[0]][j];
+                midpoint1[j] = (edge1[j] - edge0[j]) * fraction + edge0[j];
             }
             for (j = 0; j < 2; j++) {
-                midpoint1[j + 3] = (vtx[order[2]][j + 3] - vtx[order[0]][j + 3]) * fraction + vtx[order[0]][j + 3];
+                midpoint1[j + 3] = (edge1[j + 3] - edge0[j + 3]) * fraction + edge0[j + 3];
             }
+            *(tU32*)&face_out[4] = pOwner;
+            *(tU8*)&face_out[8] = 0;
             face_out[0] = face_in[order[1]];
             face_out[1] = (tU16)(vertex_count - 2);
             face_out[2] = (tU16)(vertex_count - 1);
-            *(tU32*)&face_out[4] = pOwner;
-            *(tU8*)&face_out[8] = 0;
+            *(tU32*)&face_out[24] = pOwner;
+            *(tU8*)&face_out[28] = 0;
             face_out[20] = face_in[order[1]];
             face_out[21] = face_in[order[2]];
             face_out[22] = (tU16)(vertex_count - 1);
-            *(tU32*)&face_out[24] = pOwner;
-            *(tU8*)&face_out[28] = 0;
             face_in[order[1]] = (tU16)(vertex_count - 2);
             face_in[order[2]] = (tU16)(vertex_count - 1);
             face_out += 40;
@@ -1909,32 +1919,30 @@ void C2_HOOK_FASTCALL ShatterObject(tU32 pSeed, br_vector3* pDirection, br_actor
     centre.v[1] /= (float)vertex_count;
     centre.v[2] /= (float)vertex_count;
     for (face_index = 0; face_index < face_count; face_index++) {
-        tU16 face0;
-        tU16 face1;
-        tU16 face2;
         tU16 index;
         fragment = FindShrapnelFragment(NULL, pFragment_owner, 3);
         if (fragment == NULL) {
             break;
         }
-        face0 = face_data[face_index * 20 + 0];
-        face1 = face_data[face_index * 20 + 1];
-        face2 = face_data[face_index * 20 + 2];
-        for (i = 0; i < 3; i++) {
-            if (i == 0) {
-                index = face0;
-            } else if (i == 1) {
-                index = face1;
-            } else {
-                index = face2;
-            }
-            for (j = 0; j < 3; j++) {
-                fragment->actor->model->vertices[i].p.v[j] = vertex_data[index * 10 + j];
-            }
-            fragment->actor->model->vertices[i].map.v[0] = vertex_data[index * 10 + 3];
-            fragment->actor->model->vertices[i].map.v[1] = vertex_data[index * 10 + 4];
-        }
+        index = face_data[face_index * 20 + 0];
+        fragment->actor->model->vertices[0].p.v[0] = vertex_data[index * 10 + 0];
+        fragment->actor->model->vertices[0].p.v[1] = vertex_data[index * 10 + 1];
+        fragment->actor->model->vertices[0].p.v[2] = vertex_data[index * 10 + 2];
+        fragment->actor->model->vertices[0].map.v[0] = vertex_data[index * 10 + 3];
+        fragment->actor->model->vertices[0].map.v[1] = vertex_data[index * 10 + 4];
         fragment->actor->model->faces[0].material = (br_material*)pOwner;
+        index = face_data[face_index * 20 + 1];
+        fragment->actor->model->vertices[1].p.v[0] = vertex_data[index * 10 + 0];
+        fragment->actor->model->vertices[1].p.v[1] = vertex_data[index * 10 + 1];
+        fragment->actor->model->vertices[1].p.v[2] = vertex_data[index * 10 + 2];
+        fragment->actor->model->vertices[1].map.v[0] = vertex_data[index * 10 + 3];
+        fragment->actor->model->vertices[1].map.v[1] = vertex_data[index * 10 + 4];
+        index = face_data[face_index * 20 + 2];
+        fragment->actor->model->vertices[2].p.v[0] = vertex_data[index * 10 + 0];
+        fragment->actor->model->vertices[2].p.v[1] = vertex_data[index * 10 + 1];
+        fragment->actor->model->vertices[2].p.v[2] = vertex_data[index * 10 + 2];
+        fragment->actor->model->vertices[2].map.v[0] = vertex_data[index * 10 + 3];
+        fragment->actor->model->vertices[2].map.v[1] = vertex_data[index * 10 + 4];
         fragment_centre.v[0] = (fragment->actor->model->vertices[0].p.v[0] + fragment->actor->model->vertices[1].p.v[0] + fragment->actor->model->vertices[2].p.v[0]) / (float)fragment->actor->model->nvertices;
         fragment_centre.v[1] = (fragment->actor->model->vertices[0].p.v[1] + fragment->actor->model->vertices[1].p.v[1] + fragment->actor->model->vertices[2].p.v[1]) / (float)fragment->actor->model->nvertices;
         fragment_centre.v[2] = (fragment->actor->model->vertices[0].p.v[2] + fragment->actor->model->vertices[1].p.v[2] + fragment->actor->model->vertices[2].p.v[2]) / (float)fragment->actor->model->nvertices;
