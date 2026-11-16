@@ -4321,6 +4321,7 @@ int C2_HOOK_FASTCALL SplitCheck(tCar_spec* pCar, int pMode, const br_vector3* pL
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 94.44%: QuantizeWithinBounds 0x00430d80 - stack slot: count spilled to pQuant home [esp+0xc] not pMax [esp+0x14]
 // FUNCTION: CARMA2_HW 0x00430d80
 int C2_HOOK_FASTCALL QuantizeWithinBounds(br_scalar* pValue, br_scalar pQuant, br_scalar pMin, br_scalar pMax) {
     br_scalar range = pMax - pMin;
@@ -4329,14 +4330,14 @@ int C2_HOOK_FASTCALL QuantizeWithinBounds(br_scalar* pValue, br_scalar pQuant, b
     int index;
 
     t = range / pQuant;
-    count = (int)(t > gCrushZero ? t - -0.5f : t - 0.5f);
+    count = (int)(t > gCrushZero ? t - -0.5f : t - gFLOAT_00589a2c);
     if (count == 0) {
         count = 1;
     }
     /* step reuses the dead pQuant argument home slot, as in the original */
     pQuant = range / (br_scalar)count;
     t = (*pValue - pMin) / pQuant;
-    index = (int)(t > gCrushZero ? t - -0.5f : t - 0.5f);
+    index = (int)(t > gCrushZero ? t - -0.5f : t - gFLOAT_00589a2c);
     if (index >= 0 && index <= count) {
         *pValue = (br_scalar)index * pQuant + pMin;
         return 1;
