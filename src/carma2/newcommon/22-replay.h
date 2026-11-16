@@ -96,3 +96,5 @@ extern void C2_HOOK_FASTCALL PedUndoStatus(int field_0x0, tU8 field_0x4, tU8 fie
 extern void C2_HOOK_FASTCALL PedApplyPedModelChangeP(int field_0x0, int field_0x4, int field_0xc, int field_0xa);
 
 #endif // GUARD_22_REPLAY_H
+
+extern void C2_HOOK_FASTCALL InitializeActionReplay(void);
