@@ -7,12 +7,14 @@
  */
 #define PARTS_MASK ((unsigned)(BR_STATE_SURFACE | BR_STATE_PRIMITIVE | BR_STATE_CULL))
 
+// PARTIAL 97.05%: BrMaterialUpdate 0x520e70 - residual x87 scheduling only (opacity fmul/fstp scheduled 2 slots early, lighting-block fxch layout); all sections otherwise matched
 // FUNCTION: CARMA2_HW 0x00520e70
 void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
     br_token_value tva[32];
     br_token_value* tvp;
     br_token t;
     br_int_32 c;
+    br_scalar fv, fw, fx, fy;
 
     C2_HOOK_BUG_ON(sizeof(br_token_value) != 8);
     C2_HOOK_BUG_ON(PARTS_MASK != 0x80000041u);
@@ -48,7 +50,8 @@ void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
         tvp++;
 
         tvp->t = BRT_OPACITY_F;
-        tvp->v.f = (float)mat->opacity * (1.f / 255.f);
+        fv = (float)mat->opacity * (1.f / 255.f);
+        tvp->v.f = fv;
         tvp++;
 
         tvp->t = BRT_MODULATE_B;
@@ -56,14 +59,14 @@ void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
         tvp++;
 
         tvp->t = BRT_BLEND_B;
-        tvp->v.b = mat->opacity != 255;
+        tvp->v.b = mat->opacity < 255;
         tvp++;
 
         tvp->t = BRT_SMOOTH_B;
         tvp->v.b = !!(mat->flags & BR_MATF_SMOOTH);
         tvp++;
 
-        tvp->t = BRT_BLEND_SUMMED;
+        tvp->t = BRT_ZTRANSPARENCY_B;
         tvp->v.b = !!(mat->flags & BR_MATF_DIM_BLENDING);
         tvp++;
 
@@ -185,19 +188,23 @@ void C2_HOOK_CDECL BrMaterialUpdate(br_material* mat, br_uint_16 flags) {
         tvp++;
 
         tvp->t = BRT_AMBIENT_F;
-        tvp->v.f = mat->ka;
+        fv = mat->ka;
+        tvp->v.f = fv;
         tvp++;
 
         tvp->t = BRT_DIFFUSE_F;
-        tvp->v.f = mat->kd;
+        fw = mat->kd;
+        tvp->v.f = fw;
         tvp++;
 
         tvp->t = BRT_SPECULAR_F;
-        tvp->v.f = mat->ks;
+        fx = mat->ks;
+        tvp->v.f = fx;
         tvp++;
 
         tvp->t = BRT_SPECULAR_POWER_F;
-        tvp->v.f = mat->power;
+        fy = mat->power;
+        tvp->v.f = fy;
         tvp++;
 
         tvp->t = BRT_LIGHTING_B;
