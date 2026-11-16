@@ -71,7 +71,26 @@ C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
     exit(0);
 }
 
-// ServiceTheGame
+// FUNCTION: CARMA2_HW 0x00492050
+void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
+
+    CheckMemory();
+    if (!pRacing) {
+        CyclePollKeys();
+    }
+    PollKeys();
+    rand();
+    if (PDServiceSystem(gFrame_period)) {
+        QuitGame();
+    }
+    if (!pRacing) {
+        CheckSystemKeys(0);
+    }
+    if (!pRacing && gSound_enabled) {
+        SoundService();
+    }
+    NetService(pRacing);
+}
 
 // STUB: CARMA2_HW 0x00492180
 void C2_HOOK_FASTCALL ServiceGame(void) {
