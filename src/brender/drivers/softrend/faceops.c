@@ -1,17 +1,5 @@
 #include "faceops.h"
 
-#if !defined(_MSC_VER)
-/* GCC's PE targets prepend an underscore to C identifiers, but the text of an
- * __asm__ template is emitted verbatim, so the fragments below would name
- * symbols that do not exist. Expand each name to the assembler's spelling.
- * The MSVC branch does not use this and the preprocessor drops it there. */
-#if defined(_WIN32) || defined(__CYGWIN__)
-#define C2_ASM_SYM(sym) "_" sym
-#else
-#define C2_ASM_SYM(sym) sym
-#endif
-#endif
-
 #include "clip.h"
 #include "setup.h"
 #include "subdiv.h"
@@ -387,103 +375,37 @@ void C2_HOOK_CDECL OpTriangleSubdivideOnScreen(brp_block* block, brp_vertex* v0,
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-/* Byte offsets into the three pointer arguments, indexed by the z-order code:
-   subdivideOrderMin = index of the vertex with the smallest |z|,
-   subdivideOrderMax = index of the vertex with the largest |z|. */
-// GLOBAL: CARMA2_HW 0x006707cc
-br_uint_32 subdivideOrderMin[8] = { 0, 0, 0, 8, 4, 0, 4, 8 };
-// GLOBAL: CARMA2_HW 0x006707d8
-br_uint_32 subdivideOrderMax[8] = { 8, 4, 0, 4, 8, 0, 0, 0 };
-// GLOBAL: CARMA2_HW 0x006707f8
-br_scalar subdivideScalar;
 
-#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
-C2_NAKED
-#endif
+// PARTIAL 6.25%: subdivideCheck 0x0054c766 - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x0054c766
 br_boolean C2_HOOK_CDECL subdivideCheck(brp_vertex* v0, brp_vertex* v1, brp_vertex* v2) {
-#if defined(_MSC_VER) && (defined(__I86__) || defined(_M_IX86))
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ebx
-        push edi
-        push esi
-        mov eax, dword ptr [ebp+0x8]
-        mov ebx, dword ptr [ebp+0xc]
-        mov ecx, dword ptr [ebp+0x10]
-        mov eax, dword ptr [eax+0xc]
-        mov ebx, dword ptr [ebx+0xc]
-        mov ecx, dword ptr [ecx+0xc]
-        and eax, 0x7fffffff
-        and ebx, 0x7fffffff
-        and ecx, 0x7fffffff
-        xor edx, edx
-        cmp ebx, eax
-        rcl edx, 1
-        cmp ecx, eax
-        rcl edx, 1
-        cmp ecx, ebx
-        rcl edx, 1
-        fld dword ptr [rend+0x60]
-        mov eax, dword ptr [edx*4+subdivideOrderMax]
-        mov ebx, dword ptr [edx*4+subdivideOrderMin]
-        mov eax, dword ptr ss:[eax+ebp+0x8]
-        mov ebx, dword ptr ss:[ebx+ebp+0x8]
-        fmul dword ptr [eax+0xc]
-        fstp dword ptr [subdivideScalar]
-        mov eax, dword ptr [subdivideScalar]
-        mov ebx, dword ptr [ebx+0xc]
-        and eax, 0x7fffffff
-        and ebx, 0x7fffffff
-        cmp eax, ebx
-        jge L_54c7e5
-        mov eax, 0x0
-        pop esi
-        pop edi
-        pop ebx
-        pop ebp
-        ret
-    L_54c7e5:
-        mov eax, 0x1
-        pop esi
-        pop edi
-        pop ebx
-        pop ebp
-        ret
-    }
-#else
-    brp_vertex* vertices[3];
-    br_uint_32 order;
-    br_uint_32 z0, z1, z2;
-    union {
-        br_scalar f;
-        br_uint_32 u;
-    } scaled, nearest;
+    br_scalar z0,z1,z2,zt;
 
-    vertices[0] = v0;
-    vertices[1] = v1;
-    vertices[2] = v2;
+    z0 = (br_scalar)fabs(v0->comp[C_Z]);
+    z1 = (br_scalar)fabs(v1->comp[C_Z]);
+    z2 = (br_scalar)fabs(v2->comp[C_Z]);
 
-    /* |z| of each vertex, compared as the original's masked bit patterns. */
-    z0 = (br_uint_32)v0->comp_i[C_Z] & 0x7fffffff;
-    z1 = (br_uint_32)v1->comp_i[C_Z] & 0x7fffffff;
-    z2 = (br_uint_32)v2->comp_i[C_Z] & 0x7fffffff;
-    order = 0;
-    if (z1 < z0) {
-        order |= 4;
-    }
-    if (z2 < z0) {
-        order |= 2;
-    }
-    if (z2 < z1) {
-        order |= 1;
+    if (z0 > z1) {
+        zt = z0;
+        z0 = z1;
+        z1 = zt;
     }
 
-    subdivideScalar = rend.subdivide_threshold * vertices[subdivideOrderMax[order] >> 2]->comp[C_Z];
-    scaled.f = subdivideScalar;
-    nearest.f = vertices[subdivideOrderMin[order] >> 2]->comp[C_Z];
+    if (z0 > z2) {
+        zt = z0;
+        z0 = z2;
+        z2 = zt;
+    }
 
-    return (scaled.u & 0x7fffffff) >= (nearest.u & 0x7fffffff);
-#endif
+    if (z1 > z2) {
+        zt = z1;
+        z1 = z2;
+        z2 = zt;
+    }
+
+    if (z0 > (br_scalar)fabs(rend.subdivide_threshold * z2)) {
+        return 0;
+    }
+
+    return 1;
 }
