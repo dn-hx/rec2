@@ -182,13 +182,12 @@ br_error C2_HOOK_CDECL _M_br_object_container_count(br_object_container* self, b
     if (hl == NULL) {
         return 0x1002;
     }
-    tvarg = NULL;
     if (tv != NULL) {
         tvarg = self->dispatch->_tokensMatchBegin(self, type, tv);
     }
     n = 0;
     for (he = (object_list_entry*)hl->l.head; he != NULL; he = (object_list_entry*)he->n.next) {
-        if (type != BR_NULL_TOKEN && he->h->dispatch->_type(he->h) != type) {
+        if (type != BR_NULL_TOKEN && type != he->h->dispatch->_type(he->h)) {
             continue;
         }
         if (!BrNamePatternMatch(pattern, he->h->dispatch->_identifier(he->h))) {
