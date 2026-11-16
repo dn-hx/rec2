@@ -1145,28 +1145,29 @@ void C2_HOOK_FASTCALL DoDamageScreen(tU32 pThe_time) {
     }
 }
 
+// PARTIAL 65.81%: DoInstruments 0x0044aad0 - needle tail (S18/S15) and cos/sin blocks (S10/S14) open; stack slots of wobble locals differ; see state/findings/DoInstruments.md
 // FUNCTION: CARMA2_HW 0x0044aad0
 void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
     char buffer[8];
     br_pixelmap* speedo_image;
     int cockpit;
-    int the_wobble_x;
-    int the_wobble_y;
     int rev;
     int rev_divisor;
     int gear;
     int gear_height;
+    int the_wobble_x;
+    int the_wobble_y;
     double the_angle;
     double the_angle2;
     double sin_angle;
     double cos_angle;
     double speed_mph;
 
-    if (gCar_to_view == NULL || (int)gCar_to_view->driver < eDriver_oppo) {
+    if (gCar_to_view == NULL || (int)gCar_to_view->driver <= 5) {
         return;
     }
-    speed_mph = (double)gCar_to_view->speedo_speed * WORLD_SCALE * 2250.0;
-    if (!(speed_mph >= 0.0)) {
+    speed_mph = gCar_to_view->speedo_speed * WORLD_SCALE * 2250.0;
+    if (speed_mph < 0.0) {
         speed_mph = 0.0;
     }
     if (gHeadup_detail_level == 0 || gHeadup_detail_level == 3) {
@@ -1193,8 +1194,8 @@ void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
         speedo_image = gRevs[div((int)gCar_to_view->revs, 11).quot];
         BrPixelmapRectangleCopy(
             gCurrent_rev,
-            gProgram_state.current_car.tacho_x[cockpit] + the_wobble_x,
-            gProgram_state.current_car.tacho_y[cockpit] + the_wobble_y,
+            gProgram_state.current_car.tacho_x[gProgram_state.cockpit_on] + the_wobble_x,
+            gProgram_state.current_car.tacho_y[gProgram_state.cockpit_on] + the_wobble_y,
             speedo_image, 0, 0, speedo_image->width, speedo_image->height);
     } else {
         rev_divisor = div(gCar_to_view->red_line, 11).quot;
