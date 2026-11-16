@@ -344,6 +344,10 @@ void C2_HOOK_STDCALL triangleSubdivide(int depth, brp_block* block, brp_vertex* 
     }
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
 // FUNCTION: CARMA2_HW 0x00545f70
 void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
     brp_vertex mid0, mid1, mid2;
@@ -359,6 +363,10 @@ void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_
         block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
     }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 void C2_HOOK_STDCALL triangleSubdivideCheck(int depth, brp_block* block, brp_vertex* v0, brp_vertex* v1, brp_vertex* v2, br_uint_16* fp_vertices, br_uint_16* fp_edges) {
     brp_vertex mid0, mid1, mid2;
