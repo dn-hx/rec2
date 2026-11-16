@@ -1138,15 +1138,22 @@ br_uint_32 C2_HOOK_CDECL BrModelSaveMany(char* filename, br_model** models, br_u
     return m;
 }
 
+// PARTIAL 97.11%: WriteModel 0x00523ee0 - x87-free; residual = 4-byte stack-slot swap (has_uv/block/spill at LB+8 vs LB+4) and one pointer-increment order
 // FUNCTION: CARMA2_HW 0x00523ee0
 br_uint_32 C2_HOOK_CDECL WriteModel(br_model* mp, br_datafile* df) {
+    br_vertex* vp;
     br_material** mindex;
+    int nv;
+    br_uint_16* block;
+    br_uint_16* bp;
+    br_model temp_model;
     int nmaterials;
+    int s;
     int i;
+    int j;
     int has_uv;
 
-    nmaterials = 0;
-    if (mp->vertices == NULL || mp->faces == NULL) {
+    if ((mp->faces == NULL) | (mp->vertices == NULL)) {
         if (mp->identifier != NULL) {
             BrWarning(mp->identifier);
         }
@@ -1154,41 +1161,91 @@ br_uint_32 C2_HOOK_CDECL WriteModel(br_model* mp, br_datafile* df) {
         BrWarning("This information may have neem stripped on addition to");
         BrWarning("the registry. To prevent this, set the BR_MODF_UPDATEABLE");
         BrFailure("flag before adding the model to the registry.");
+        return 0;
     }
-    mindex = BrResAllocate(v1db.res, mp->nfaces * sizeof(br_material*), BR_MEMORY_MATERIAL_INDEX);
-    for (i = 0; i < mp->nfaces; i++) {
-        mindex[i] = mp->faces[i].material;
-    }
-    BrQsort(mindex, mp->nfaces, sizeof(br_material*), (br_qsort_cbfn*)PtrCompare);
-    nmaterials = 1;
-    for (i = 1; i < mp->nfaces; i++) {
-        if (mindex[nmaterials-1] == mindex[i]) {
-            mindex[nmaterials] = mindex[i];
-            nmaterials++;
+    if (mp->faces != NULL) {
+        mindex = BrResAllocate(v1db.res, mp->nfaces * sizeof(br_material*), BR_MEMORY_MATERIAL_INDEX);
+        for (i = 0; i < mp->nfaces; i++) {
+            mindex[i] = mp->faces[i].material;
+        }
+        BrQsort(mindex, mp->nfaces, sizeof(br_material*), (br_qsort_cbfn*)PtrCompare);
+        nmaterials = 1;
+        for (i = 1; i < mp->nfaces; i++) {
+            if (mindex[i] != mindex[i-1]) {
+                mindex[nmaterials] = mindex[i];
+                nmaterials++;
+            }
+        }
+        if (mindex[nmaterials-1] == NULL) {
+            nmaterials--;
         }
     }
-    if (mindex[nmaterials-1] == NULL) {
-        nmaterials = 0;
-    }
     has_uv = 0;
+    vp = mp->vertices;
     for (i = 0; i < mp->nvertices; i++) {
-        if (mp->vertices[i].map.v[0] != 0.f || mp->vertices[i].map.v[1] != 0.f) {
+        if (vp[i].map.v[0] != 0.0f || vp[i].map.v[1] != 0.0f) {
             has_uv = 1;
             break;
         }
     }
 
-    FopWrite_MODEL(df, mp);
+    memcpy(&temp_model, mp, sizeof(br_model));
+    temp_model.flags &= (BR_MODF_DONT_WELD | BR_MODF_KEEP_ORIGINAL | BR_MODF_GENERATE_TAGS | BR_MODF_QUICK_UPDATE);
+    df->prims->chunk_write(df, CHUNKID_MODEL, df->prims->struct_size(df, &br_model_F, &temp_model));
+    df->prims->struct_write(df, &br_model_F, &temp_model);
     if (mp->nvertices != 0) {
-        FopWrite_VERTICES(df, mp->vertices, mp->nvertices);
+        vp = mp->vertices;
+        nv = mp->nvertices;
+        df->prims->chunk_write(df, CHUNKID_MODEL_VERTICES, df->prims->struct_size(df, &br_vertex_F, NULL) * nv + df->prims->count_size(df));
+        df->prims->count_write(df, nv);
+        DfStructWriteArray(df, &br_vertex_F, vp, nv);
         if (has_uv != 0) {
-            FopWrite_VERTEX_UV(df, mp->vertices, mp->nvertices);
+            vp = mp->vertices;
+            nv = mp->nvertices;
+            df->prims->chunk_write(df, CHUNKID_MODEL_VERTEX_UV, df->prims->struct_size(df, &br_vertex_uv_F, NULL) * nv + df->prims->count_size(df));
+            df->prims->count_write(df, nv);
+            DfStructWriteArray(df, &br_vertex_uv_F, vp, nv);
         }
     }
     if (mp->nfaces != 0) {
-        FopWrite_FACES(df, mp->faces, mp->nfaces);
+        br_face* fp;
+        int nf;
+
+        fp = mp->faces;
+        nf = mp->nfaces;
+        df->prims->chunk_write(df, CHUNKID_MODEL_FACES, df->prims->struct_size(df, &br_face_F, NULL) * nf + df->prims->count_size(df));
+        df->prims->count_write(df, nf);
+        DfStructWriteArray(df, &br_face_F, fp, nf);
         if (nmaterials != 0) {
-            FopWrite_FACE_MATERIAL(df, mp->faces, mp->nfaces, mindex, nmaterials);
+            s = df->prims->count_size(df);
+            for (i = 0; i < nmaterials; i++) {
+                s += df->prims->name_size(df, mindex[i]->identifier);
+            }
+            df->prims->chunk_write(df, CHUNKID_MATERIAL_INDEX, s);
+            df->prims->count_write(df, nmaterials);
+            for (i = 0; i < nmaterials; i++) {
+                df->prims->name_write(df, mindex[i]->identifier);
+            }
+            fp = mp->faces;
+            nf = mp->nfaces;
+            block = BrResAllocate(v1db.res, nf * sizeof(br_uint_16), BR_MEMORY_MATERIAL_INDEX);
+            bp = block;
+            for (i = nf; i > 0; i--) {
+                *bp = 0;
+                if (fp->material != NULL) {
+                    for (j = 0; j < nmaterials; j++) {
+                        if (mindex[j] == fp->material) {
+                            *bp = j + 1;
+                            break;
+                        }
+                    }
+                }
+                bp++;
+                fp++;
+            }
+            df->prims->chunk_write(df, CHUNKID_MODEL_FACE_MATERIAL, df->prims->block_size(df, block, nf, 0, 1, sizeof(br_uint_16)));
+            df->prims->block_write(df, block, nf, 0, 1, sizeof(br_uint_16));
+            BrResFree(block);
         }
     }
     FopWrite_END(df);
