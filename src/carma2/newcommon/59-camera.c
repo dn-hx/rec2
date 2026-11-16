@@ -847,6 +847,10 @@ static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count,
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 39%: IncidentCam 0x0040f790 - regalloc (orig esi=m2/edi=pCar/ebp=scan_index, ours ebp=m2+spill/ebx=pCar)
+// and x87 schedule; frame 0xc0 vs 0x94 (block-scoping all mode locals reaches 0x94 but measured 34.66).
+// Open: R4 corner math 0x40f960-0x40fc48 (also has a +2.0f inside the normalise input that the original
+// applies only to the final y, 0x40fa09), R12 perp 0x410196-0x4102dc. See state/findings/IncidentCam.md.
 // FUNCTION: CARMA2_HW 0x0040f790
 // FUNCTION: CARMA2_SW 0x0040f770
 int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
