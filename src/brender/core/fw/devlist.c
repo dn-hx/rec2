@@ -218,8 +218,7 @@ br_error C2_HOOK_CDECL BrDevCount(br_int_32* ndevices, const char* pattern) {
 
     AddRequestedDrivers();
 
-    c = 0;
-    for (i = 0; i < fw.ndev_slots; i++) {
+    for (i = 0, c = 0; i < fw.ndev_slots; i++) {
         if (fw.dev_slots[i].dev != NULL) {
             if (BrNamePatternMatch(pattern, fw.dev_slots[i].dev->dispatch->_identifier((br_object*)fw.dev_slots[i].dev))) {
                 c++;
