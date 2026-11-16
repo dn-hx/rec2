@@ -2162,7 +2162,29 @@ tPed_personality* C2_HOOK_FASTCALL FindOrOpenPersonality(const char* pName) {
     return ReadPersonality(pName);
 }
 
-// BuildCharacterInstance
+// FUNCTION: CARMA2_HW 0x004079a0
+tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
+    tPed_character_instance* instance;
+
+    instance = BrMemAllocate(sizeof(tPed_character_instance), kBoner_mem_type_char_instance);
+    if (instance == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    instance->personality = FindOrOpenPersonality(pName);
+    instance->field_0x4 = 0xff;
+    instance->field_0x7 = 0xff;
+    instance->field_0x6 = 0xff;
+    instance->field_0x28 = 0;
+    instance->field_0x2c = *pMat;
+    instance->field_0x8 = 0xff;
+    instance->field_0x9 = 0;
+    instance->field_0xa = 0;
+    instance->field_0x14 = 0;
+    instance->field_0xc = 0;
+    BrMatrix34Identity(&instance->field_0x5c);
+    BrMatrix34Identity(&instance->field_0x8c);
+    return instance;
+}
 
 // FUNCTION: CARMA2_HW 0x00407aa0
 // FUNCTION: CARMA2_SW 0x00407a90
