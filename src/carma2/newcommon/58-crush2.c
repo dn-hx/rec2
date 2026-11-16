@@ -87,9 +87,41 @@ void C2_HOOK_FASTCALL CheckLastCar(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x00441350
-int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x0043b470
+intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    int model_index;
+    br_model** model_cursor;
+
+    user = pActor->user;
+    if (user == NULL || user->crush_data == NULL) {
+        return 0;
+    }
+    crush_data = user->crush_data;
+    if (RepairModel(user->models[0], pContext) != 0) {
+        RepairSmash(pContext->car, user->crush_data);
+        crush_data->field_0x2c = 0;
+        if (crush_data->flap_data != NULL && crush_data->flap_data->kev_o_flap == 0) {
+            crush_data->flap_data->field_0x15 = 0;
+            crush_data->flap_data->field_0x14 = 1;
+            crush_data->flap_data->field_0x18 = 0.f;
+        }
+        if (crush_data->detach_data != NULL) {
+            crush_data->detach_data->field_0x0 = 0.f;
+        }
+        return 0;
+    }
+    model_index = 1;
+    if (model_index < pContext->car->count_detail_levels) {
+        model_cursor = &user->models[1];
+        do {
+            RepairModel(*model_cursor, pContext);
+            model_index++;
+            model_cursor++;
+        } while (model_index < pContext->car->count_detail_levels);
+    }
+    return 0;
 }
 // FUNCTION: CARMA2_HW 0x0043f5f0
 // FUNCTION: CARMA2_SW 0x0043f6d0
