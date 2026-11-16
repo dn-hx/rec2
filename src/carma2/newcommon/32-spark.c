@@ -606,9 +606,9 @@ void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void) {
         blu = BR_BLU(smoke->col);
         model = gBR_smoke_pointers[i]->model;
         for (j = 0; j < model->nvertices; j++) {
-            model->vertices[j].red = red;
-            model->vertices[j].grn = grn;
-            model->vertices[j].blu = blu;
+            ((br_vertex*)((char*)model->vertices + j * sizeof(br_vertex)))->red = red;
+            ((br_vertex*)((char*)model->vertices + j * sizeof(br_vertex)))->grn = grn;
+            ((br_vertex*)((char*)model->vertices + j * sizeof(br_vertex)))->blu = blu;
         }
         BrModelUpdate(model, BR_MODU_VERTEX_COLOURS);
         gBlend_actor->model = model;
