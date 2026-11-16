@@ -544,10 +544,19 @@ tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhys
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004ee250
+// FUNCTION: CARMA2_HW 0x004ee250
 void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9) {
-    NOT_IMPLEMENTED();
+    gINT_006a3334 = 0;
+    QueueSmashIfNecessary3(pCar, pCollision_info, pPos, pArg4, pActor, pArg6, pSmashable, pDamage, pArg9, 0);
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // AllocateSmashLevels
 
