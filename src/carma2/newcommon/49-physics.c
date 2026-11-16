@@ -606,11 +606,29 @@ void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_t
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004b9750
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b9750
 // STUB: CARMA2_SW 0x004b5e70
 void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_info) {
-    NOT_IMPLEMENTED();
+    pCollision_info->field_0x218 = 0;
+    MoveJointedObject(pCollision_info, 0.f);
+    gINT_00692dc8 = 1;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // CombineBounds
 
