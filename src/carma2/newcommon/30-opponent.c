@@ -216,7 +216,15 @@ tS16 C2_HOOK_FASTCALL FindNearestPathSection(const br_vector3* pActor_coords, br
 
 // DeadStopCar
 
-// TurnOpponentPhysicsOn
+// FUNCTION: CARMA2_HW 0x004a7960
+void C2_HOOK_FASTCALL TurnOpponentPhysicsOn(tOpponent_spec* pOpponent_spec) {
+    pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_DEFAULT;
+    PipeSingleOppoRenderage(pOpponent_spec, 1);
+    if (!pOpponent_spec->physics_me) {
+        pOpponent_spec->physics_me = 1;
+        gActive_car_list_rebuild_required = 1;
+    }
+}
 
 // TurnOpponentPhysicsOff
 
