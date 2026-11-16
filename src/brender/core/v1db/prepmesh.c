@@ -918,7 +918,7 @@ void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_mod
         group->vertices[v].n.v[2] = 0.0f;
     }
 
-    group->vertex_colours[v] = ((unsigned int)srcv->red << 24) | ((unsigned int)srcv->grn << 16) | ((unsigned int)srcv->blu << 8) | (unsigned int)srcv->index;
+    group->vertex_colours[v] = BR_COLOUR_RGBA(srcv->red, srcv->grn, srcv->blu, srcv->index);
     group->vertex_user[v] = src->v;
 }
 
