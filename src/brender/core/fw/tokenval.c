@@ -450,65 +450,55 @@ br_size_t C2_HOOK_STDCALL ValueExtraSize(void* block, br_tv_template_entry* tep)
     int t;
     br_tv_custom* custp;
 
-    if (tep->flags & 0x8) {
-        mem = (void*)&tep->offset;
+    if (((br_uint_8*)&tep->flags)[0] & 0x8) {
+        mem = (br_uint_8*)tep->offset;
     } else {
         mem = (br_uint_8*)block + tep->offset;
     }
     switch (tep->conv) {
+    case 4:
+    case 16:
+    case 17:
+        return 2 * sizeof(int);
+    case 5:
+    case 18:
+    case 19:
+        return 3 * sizeof(int);
+    case 6:
+    case 20:
+    case 21:
+        return 4 * sizeof(int);
+    case 7:
+    case 22:
+    case 23:
+        return 6 * sizeof(int);
+    case 9:
+    case 26:
+    case 27:
+        return 16 * sizeof(int);
+    case 8:
+    case 24:
+    case 25:
+        return 12 * sizeof(int);
+    case 28:
+        return (BrStrLen(*(char**)mem) + 1 + sizeof(int) - 1) / sizeof(int) * sizeof(int);
+    case 29:
+        lp = *(br_uint_32**)mem;
+        t = 1;
+        if (lp != NULL) {
+            if (*lp++ != 0) {
+                do {
+                    t++;
+                } while (*lp++ != 0);
+            }
+        }
+        return t * sizeof(int);
     case 2:
         custp = (br_tv_custom*)tep->conv_arg;
         if (custp == NULL || custp->extra_size == NULL) {
             return 0;
         }
         return custp->extra_size(block, tep);
-    case 4:
-        return 2 * sizeof(int);
-    case 5:
-        return 3 * sizeof(int);
-    case 6:
-        return 4 * sizeof(int);
-    case 7:
-        return 6 * sizeof(int);
-    case 8:
-        return 12 * sizeof(int);
-    case 9:
-        return 16 * sizeof(int);
-    case 16:
-        return 2 * sizeof(float);
-    case 17:
-        return 2 * sizeof(br_fixed_ls);
-    case 18:
-        return 3 * sizeof(float);
-    case 19:
-        return 3 * sizeof(br_fixed_ls);
-    case 20:
-        return 4 * sizeof(float);
-    case 21:
-        return 4 * sizeof(br_fixed_ls);
-    case 22:
-        return 6 * sizeof(float);
-    case 23:
-        return 6 * sizeof(br_fixed_ls);
-    case 24:
-        return 12 * sizeof(float);
-    case 25:
-        return 12 * sizeof(br_fixed_ls);
-    case 26:
-        return 16 * sizeof(float);
-    case 27:
-        return 16 * sizeof(br_fixed_ls);
-    case 28:
-        return (BrStrLen(*(char**)mem) + 1 + sizeof(int) - 1) / sizeof(int);
-    case 29:
-        t = 1;
-        lp = *(br_uint_32**)mem;
-        if (lp != NULL) {
-            while (*lp++ != 0) {
-                t++;
-            }
-        }
-        return t * sizeof(int);
     default:
         return 0;
     }
