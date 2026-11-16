@@ -13,7 +13,7 @@ extern int gJoystick_deadzone;
 
 extern void C2_HOOK_FASTCALL KeyBegin(void);
 
-extern void C2_HOOK_FASTCALL Win32InitInputDevice(void);
+extern int C2_HOOK_CDECL Win32InitInputDevice(void);
 
 extern void C2_HOOK_FASTCALL CloseDirectInput(void);
 
@@ -45,7 +45,7 @@ extern BOOL CALLBACK Win32DInputJoystickEnum(const DIDEVICEINSTANCEA* pDeviceIns
 
 extern void C2_HOOK_FASTCALL RegisterBasicJoystickFFBEffects(void);
 
-extern void C2_HOOK_FASTCALL Win32InitInputDevice(void);
+extern int C2_HOOK_CDECL Win32InitInputDevice(void);
 
 extern int C2_HOOK_FASTCALL JoystickDInputBegin(void);
 
