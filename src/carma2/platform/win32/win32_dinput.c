@@ -729,6 +729,7 @@ tDirectInputJoystickInfo* C2_HOOK_FASTCALL JoystickDInputGetInfo(int pJoystickIn
     return info;
 }
 
+// PARTIAL 95.71%: GetDirectInputJoy1X 0x00459050 - MSVC merges the two "couldn't reacquire" print+return tails into a shared jmp; original keeps them separate
 // FUNCTION: CARMA2_HW 0x00459050
 int C2_HOOK_FASTCALL GetDirectInputJoy1X(void) {
     HRESULT res;
@@ -749,10 +750,11 @@ int C2_HOOK_FASTCALL GetDirectInputJoy1X(void) {
     if (res != DI_OK) {
         if (res == DIERR_INPUTLOST) {
             acquired = AcquireDInputJoystickDevice(gJoystick_index);
-            if (acquired == 0) {
-                dr_dprintf("couldn't reacquire joystick %d\n", gJoystick_index);
+            if (acquired != 0) {
                 return -1;
             }
+            dr_dprintf("couldn't reacquire joystick %d\n", gJoystick_index);
+            return -1;
         } else if (res == DIERR_NOTACQUIRED) {
             acquired = AcquireDInputJoystickDevice(gJoystick_index);
             if (acquired == 0) {
