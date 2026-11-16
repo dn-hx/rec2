@@ -2310,10 +2310,7 @@ void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_c
     }
 }
 
-// PARTIAL 100% effective (not exact, 2026-11-08): only residual is a 3-instruction register-role swap in the model
-// comparison - original loads spec->trigger_object.model into ecx and pActor->model into eax (the running base dies
-// there); MSVC 11 reuses eax as the load destination and puts pActor->model in ecx. Operand order (each way), nested
-// ifs and the short-circuit form all compile identically. 94.05 -> effective came from the guard + do/while loop shape.
+// PARTIAL 99.99%: SetSmashableModel 0x004f5cb0 [rec2-worker] - 3-instruction register-role swap in model comparison (original: spec->trigger_object.model in ecx, pActor->model in eax; ours: swapped)
 // FUNCTION: CARMA2_HW 0x004f5cb0
 void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor) {
     extern int gCount_track_smashable_environment_specs;
