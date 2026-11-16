@@ -676,7 +676,7 @@ void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart
 
 #define ABS(a) (((a) < 0) ? -(a) : (a))
 
-// PARTIAL 46.69%: SphereFaceCollide 0x0045e850 - x87 scheduling in the dot/interp/barycentric blocks (orig 372 vs ours 367 ins) and frame 0x30 vs 0x34, see state/findings/SphereFaceCollide.md
+// PARTIAL 60.80%: SphereFaceCollide 0x0045e850 - frame 0x34 now matches (volatile store-only temp fSlot=px, void-read at end); residual x87 order in first dot, interp and barycentric blocks, see state/findings/SphereFaceCollide.md
 // FUNCTION: CARMA2_HW 0x0045e850
 void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT) {
     br_scalar fVar1;
@@ -693,6 +693,7 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
     int iAxis_b;
     int iAxis_a;
     br_scalar local_18[6];
+    volatile br_scalar fSlot;
     br_scalar px;
     br_scalar py;
     br_scalar pz;
@@ -734,6 +735,7 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
                 pRadius = 0.0f;
             }
             px = (pEnd->v[0] - pStart->v[0]) * pRadius + pStart->v[0];
+            fSlot = px;
             py = (pEnd->v[1] - pStart->v[1]) * pRadius + pStart->v[1];
             pz = (pEnd->v[2] - pStart->v[2]) * pRadius + pStart->v[2];
             fVar2 = (pFace->v[0].v[0] - px) * local_18[0] + (pFace->v[0].v[1] - py) * local_18[1] + (pFace->v[0].v[2] - pz) * local_18[2];
@@ -792,6 +794,7 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
             }
         }
     }
+    (void)fSlot;
     return;
 }
 
