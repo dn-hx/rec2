@@ -482,6 +482,7 @@ void C2_HOOK_FASTCALL SoundService(void) {
     gServicing_sound = 0;
 }
 
+// PARTIAL 90.78%: InitSoundSources 0x455bb0 - branch layout: ternary load order differs (true-case loaded before je vs after), second loop end compare uses wrong global (gPed_sound_path vs gEffects_outlet), outer loop extra mov/test at dec/jns; see state/findings/InitSoundSources.md
 // FUNCTION: CARMA2_HW 0x00455bb0
 void C2_HOOK_FASTCALL InitSoundSources(void) {
     int toggle = 0;
