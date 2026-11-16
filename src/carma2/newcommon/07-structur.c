@@ -237,13 +237,16 @@ static void InitRace_SetupFFBValues(void) {
     tPath_name path;
     FILE* f;
     char s[256];
+    char* token;
 
     PathCat(path, gApplication_path, "FFB.TXT");
     f = DRfopen(path, "rt");
     GetALineAndDontArgue(f, s);
-    sscanf(strtok(s, "\t ,/"), "%f", &gForce_feedback_upper_limit);
+    token = strtok(s, "\t ,/");
+    sscanf(token, "%f", &gForce_feedback_upper_limit);
     GetALineAndDontArgue(f, s);
-    sscanf(strtok(s, "\t ,/"), "%f", &gForce_feedback_lower_limit);
+    token = strtok(s, "\t ,/");
+    sscanf(token, "%f", &gForce_feedback_lower_limit);
     PFfclose(f);
 }
 
@@ -329,6 +332,9 @@ void C2_HOOK_FASTCALL InitRace(void) {
             gInitial_powerup_slots[i] = gNet_mode != eNet_mode_none ? gMax_APO[i].initial_network[gCurrent_net_game->type] : gMax_APO[i].initial[gProgram_state.skill_level];
         }
     } else {
+        int max_slot;
+        int cur_slot;
+
         gCredits_won_headup = NewTextHeadupSlot(1, 0, 0, -6, "");
         gPed_kill_count_headup = NewTextHeadupSlot(2, 0, 0, -6, "");
         gCar_kill_count_headup = NewTextHeadupSlot(12, 0, 0, -6, "");
@@ -339,7 +345,9 @@ void C2_HOOK_FASTCALL InitRace(void) {
         for (i = 0; i < (int)REC2_ASIZE(gInitial_powerup_slots); i++) {
 #define INITRACE_MAX(i) (gNet_mode != eNet_mode_none ? gMax_APO[i].initial_network[gCurrent_net_game->type] : gMax_APO[i].initial[gProgram_state.skill_level])
 #define INITRACE_CUR(i) (gNet_mode != eNet_mode_none ? gInitial_APO_potential[i].initial_network[gCurrent_net_game->type] : gInitial_APO_potential[i].initial[gProgram_state.skill_level])
-            gInitial_powerup_slots[i] = INITRACE_CUR(i) + 1 + (INITRACE_MAX(i) - INITRACE_CUR(i) - 1) * gCurrent_race.index / (gNumber_of_races - 1);
+            max_slot = INITRACE_MAX(i);
+            cur_slot = INITRACE_CUR(i);
+            gInitial_powerup_slots[i] = (max_slot - cur_slot - 1) * gCurrent_race.index / (gNumber_of_races - 1) + INITRACE_CUR(i) + 1;
         }
     }
 
@@ -365,19 +373,15 @@ void C2_HOOK_FASTCALL InitRace(void) {
     gCountdown = 7;
     gLap = 1;
     gTimer = 1000 * gCurrent_race.initial_timer[gProgram_state.skill_level];
-    gTotal_laps = gCurrent_race.total_laps;
-
-    if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_5) {
-        gTotal_laps = gCurrent_net_game->options.starting_target;
-    }
+    gTotal_laps = (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_5) ? gCurrent_net_game->options.starting_target : gCurrent_race.total_laps;
     gCheckpoint = 1;
     gCheckpoint_count = gCurrent_race.check_point_count;
     gFreeze_timer = 0;
     gFree_repairs = 0;
-    if (gNet_mode == eNet_mode_none) {
-        gShow_opponents = 1;
-    } else {
+    if (gNet_mode != eNet_mode_none) {
         gShow_opponents = gCurrent_net_game->options.show_players_on_map;
+    } else {
+        gShow_opponents = 1;
     }
     gOn_drugs = 0;
     gRace_finished = 0;
