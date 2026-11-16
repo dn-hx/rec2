@@ -178,7 +178,7 @@ void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, 
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004047b0
-static tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
     int i;
 
     for (i = 0; i < 250; i++) {
@@ -373,10 +373,175 @@ static tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm,
 
 
 
+/* inlined in the original: copies of ReadMove/FindOrOpenMove used by SetUpCharacterForm (0x404f60 has no call to 0x404840/0x4047b0) */
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+/* inlined in the original (static __inline so VC5 expands it inside the inlined ReadMove) */
+static __inline void Flip3DStoBRaxesInline(br_matrix34* pMat) {
+    br_vector3 tv;
+    float f;
+
+    BrVector3Copy(&tv, (br_vector3*)pMat->m[1]);
+    BrVector3Copy((br_vector3*)pMat->m[1], (br_vector3*)pMat->m[2]);
+    BrVector3Negate((br_vector3*)pMat->m[2], &tv);
+
+    f = pMat->m[0][1];
+    pMat->m[0][1] = pMat->m[0][2];
+    pMat->m[0][2] = f * -1.f;
+
+    f = pMat->m[1][1];
+    pMat->m[1][1] = pMat->m[1][2];
+    pMat->m[1][2] = f * -1.f;
+
+    f = pMat->m[2][1];
+    pMat->m[2][1] = pMat->m[2][2];
+    pMat->m[2][2] = f * -1.f;
+
+    f = pMat->m[3][1];
+    pMat->m[3][1] = pMat->m[3][2];
+    pMat->m[3][2] = f * -1.f;
+}
+
+static tPed_move* C2_HOOK_FASTCALL ReadMoveInline(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    FILE* f;
+    tPed_move* move;
+    int i;
+    int j;
+    int k;
+    int l;
+    char bone_names[50][36];
+    tS32 count_bones_in_anim_file;
+    br_vector3 rot_pos;
+    br_vector3 move_pos;
+    br_matrix34 mat;
+    br_matrix34 mat_lp;
+    br_euler e;
+    tPed_move_frame* frame;
+
+    f = BonerOpenMoves(pName);
+    if (f == NULL) {
+        FatalError(kFatalError_BonerError_UnableToOpenFile_S, pName);
+    }
+    move = BrMemAllocate(sizeof(tPed_move), kBoner_mem_type_sequence);
+    if (move == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    count_bones_in_anim_file = ReadS32(f);
+    move->count_frames = (tS16)ReadS32(f);
+    for (i = 0; i < count_bones_in_anim_file; i++) {
+        PFfread(bone_names[i], 1, 33, f);
+        PFfseek(f, sizeof(tU32) * ReadS32(f), SEEK_CUR);
+    }
+    BrVector3Set(&move_pos, 0.f, 0.f, 0.f);
+    move->frames = BrMemAllocate(move->count_frames * sizeof(tPed_move_frame), kMem_boner_type_frames);
+    frame = move->frames;
+    for (i = 0; i < move->count_frames; i++, frame++) {
+        frame->axis = BrMemAllocate(pForm->count_bones * sizeof(tPed_move_frame_axis), kBoner_mem_type_frame_2);
+        for (j = 0; j < count_bones_in_anim_file; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 3; l++) {
+                    mat.m[k][l] = ReadF32(f);
+                }
+            }
+            for (k = 0; k < pForm->count_bones; k++) {
+                if (strcmp(bone_names[j], pForm->bones[k].name) == 0) {
+                    Flip3DStoBRaxesInline(&mat);
+                    BrMatrix34LPNormalise(&mat_lp, &mat);
+                    if (pForm->bones[k].indices[0] == -1) {
+                        memcpy(&frame->mat, &mat_lp, 9 * sizeof(float));
+                        if (i != 0) {
+                            BrVector3Sub((br_vector3*)frame->mat.m[3], (br_vector3*)mat_lp.m[3], &rot_pos);
+                            BrVector3Accumulate(&move_pos, (br_vector3*)frame->mat.m[3]);
+                        }
+                        rot_pos = *(br_vector3*)mat_lp.m[3];
+                    }
+                    e.order = 0;
+                    BrMatrix34ToEuler(&e, &mat_lp);
+                    frame->axis[k].euler1 = e.a / 256;
+                    frame->axis[k].euler2 = e.b / 256;
+                    frame->axis[k].euler3 = e.c / 256;
+                    break;
+                }
+            }
+        }
+    }
+    if (strchr(pLooping_reset_flags, 'X') != NULL) {
+        move->frames[0].mat.m[3][0] = -move_pos.v[0];
+        move_pos.v[0] = 0.f;
+        move->looping_reset_flags |= 0x1;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][0] = move->frames[1].mat.m[3][0];
+        move_pos.v[0] += move->frames[0].mat.m[3][0];
+    } else {
+        move->frames[0].mat.m[3][0] = 0.f;
+    }
+    if (strchr(pLooping_reset_flags, 'Y') != NULL) {
+        move->frames[0].mat.m[3][1] = -move_pos.v[1];
+        move_pos.v[1] = 0.f;
+        move->looping_reset_flags |= 0x2;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][1] = move->frames[1].mat.m[3][1];
+        move_pos.v[1] += move->frames[0].mat.m[3][1];
+    } else {
+        move->frames[0].mat.m[3][1] = 0.f;
+    }
+    if (strchr(pLooping_reset_flags, 'Z') != NULL) {
+        move->frames[0].mat.m[3][2] = -move_pos.v[2];
+        move_pos.v[2] = 0.f;
+        move->looping_reset_flags |= 0x4;
+    } else if (move->count_frames > 1) {
+        move->frames[0].mat.m[3][2] = move->frames[1].mat.m[3][2];
+        move_pos.v[2] += move->frames[0].mat.m[3][2];
+    } else {
+        move->frames[0].mat.m[3][2] = 0.f;
+    }
+
+    if (BrVector3LengthSquared(&move_pos) != 0.f && !(move->looping_reset_flags & 0x1)) {
+        BrVector3Normalise(&move->field_0x34, &move_pos);
+        move->field_0x2a = 0;
+        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
+            move->field_0x40 = move->field_0x34;
+        } else {
+            BrVector3Copy(&move->field_0x40, pMovement_direction);
+        }
+    } else {
+        move->field_0x2a = 1;
+        if (BrVector3LengthSquared(pMovement_direction) == 0.f) {
+            BrVector3Set(&move->field_0x40, 0.f, 0.f, 1.f);
+        } else {
+            BrVector3Copy(&move->field_0x40, pMovement_direction);
+        }
+        BrVector3Set(&move->field_0x34, 0.f, 0.f, 0.f);
+    }
+    move->move_flags = pFlags;
+    PFfclose(f);
+    strcpy(move->name, pName);
+    for (i = 0; i < 250; i++) {
+        if (gPed_moves[i] == NULL) {
+            gPed_moves[i] = move;
+            return move;
+        }
+    }
+    FatalError(kFatalError_BonerError_TooManyMovesLoaded, 0);
+}
+
+static tPed_move* C2_HOOK_FASTCALL FindOrOpenMoveInline(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    int i;
+
+    for (i = 0; i < 250; i++) {
+        if (gPed_moves[i] != NULL && strcmp(pName, gPed_moves[i]->name) == 0) {
+            return gPed_moves[i];
+        }
+    }
+    return ReadMoveInline(pName, pForm, pLooping_reset_flags, pMovement_direction, pFlags);
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 /* control flow follows the original */
+// PARTIAL 79.41%: SetUpCharacterForm 0x00404f60 - stack slots shifted by 4-0x30 (total_mass 0x38 vs 0x3c), x87 mass!=0 store order, joint count reg role; see state/findings/SetUpCharacterForm.md
 // FUNCTION: CARMA2_HW 0x00404f60
 tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
     FILE* f;
@@ -596,7 +761,7 @@ tPed_form* C2_HOOK_FASTCALL SetUpCharacterForm(const char* pName) {
     form->moves = BrMemAllocate(form->count_moves * sizeof(tPed_form_move), kBoner_mem_type_moves);
     for (i = 0; i < form->count_moves; i++) {
         form->moves[i].id = form_moves[i].id;
-        form->moves[i].move = FindOrOpenMove(form_moves[i].biped_export_filename, form, form_moves[i].looping_reset_flags, &form_moves[i].movement_direction, form_moves[i].flags);
+        form->moves[i].move = FindOrOpenMoveInline(form_moves[i].biped_export_filename, form, form_moves[i].looping_reset_flags, &form_moves[i].movement_direction, form_moves[i].flags);
         form->moves[i].move->frametime = form_moves[i].frametime;
     }
     form->stored_dismembered_characters = BrMemAllocate(form->max_stored_dismembered_characters * sizeof(tPed_form_dismembered_character*), kBoner_mem_type_stored_ptrs);
