@@ -426,7 +426,35 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // LoadCarN
 
-// DisposeCarN
+// FUNCTION: CARMA2_HW 0x0049e100
+void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
+    int i;
+    int j;
+
+    if (gNet_players[pPlayer_index].car != NULL) {
+        for (i = 0; i < gCurrent_race.number_of_racers; i++) {
+            if (gCurrent_race.opponent_list[i].car_spec == gNet_players[pPlayer_index].car) {
+                gCurrent_race.number_of_racers--;
+                for (j = i; j < gCurrent_race.number_of_racers; j++) {
+                    gCurrent_race.opponent_list[j] = gCurrent_race.opponent_list[j + 1];
+                }
+            }
+        }
+        PHILRemoveObject(gNet_players[pPlayer_index].car->collision_info);
+        if (gProgram_state.racing != 0) {
+            DisposeKevStuffCar(gNet_players[pPlayer_index].car);
+        }
+        DisposeCar(gNet_players[pPlayer_index].car, gNet_players[pPlayer_index].car_index);
+        if (pPlayer_index != gThis_net_player_index) {
+            BrMemFree(gNet_players[pPlayer_index].car);
+            gNet_players[pPlayer_index].car = NULL;
+        }
+        if (gAction_replay_mode != 0) {
+            ToggleReplay(NULL, NULL);
+        }
+        ARResetPiping();
+    }
+}
 
 // PlayerHasLeft
 
