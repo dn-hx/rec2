@@ -24,6 +24,7 @@ void C2_HOOK_FASTCALL PDCloseReplayFile(void) {
         gActionReplayBufferFile = NULL;
     }
 }
+// PARTIAL 90.00%: Win32ServiceMessages 0x0051cad0 - all 9 dr_dprintf literal pushes read as unnamed recomp addresses (reccmp STRING naming), control flow matches
 // FUNCTION: CARMA2_HW 0x0051cad0
 void C2_HOOK_CDECL Win32ServiceMessages(void) {
     MSG msg;
