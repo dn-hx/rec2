@@ -4,8 +4,6 @@
 
 #include "c2_math.h"
 
-#include "brender/br_inline_funcs.h"
-
 
 // GLOBAL: CARMA2_HW 0x006b09c0
 br_matrix34 mattmp1;
@@ -366,7 +364,6 @@ void C2_HOOK_CDECL BrMatrix34LPInverse(br_matrix34* A, const br_matrix34* B) {
     A(3, 2) = -BR_MAC3(B(3, 0), A(0, 2), B(3, 1), A(1, 2), B(3, 2), A(2, 2));
 }
 
-// PARTIAL 48.48%: BrMatrix34LPNormalise 0x00532f60 - body is the correct inline normalise/cross expansion (the original has no calls); residual is the x87 schedule of all three cross/normalise blocks (24 vs 30 ins in the A[1] cross) plus the original's 4-byte frame slot, which is a scheduler spill and not steerable from C; see state/findings/BrMatrix34LPNormalise.md
 // FUNCTION: CARMA2_HW 0x00532f60
 void C2_HOOK_CDECL BrMatrix34LPNormalise(br_matrix34* A, const br_matrix34* B) {
 
