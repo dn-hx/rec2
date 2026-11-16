@@ -432,9 +432,72 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // RemoveReferencesToCar
 
-// NetPlayersChanged
+// STUB: CARMA2_HW 0x0049e450
+void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers) {
+    NOT_IMPLEMENTED();
+}
 
-// NetHostGame
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0049e210
+tNet_game_details* C2_HOOK_FASTCALL NetHostGame(tNet_game_type pNet_type, tNet_game_options* pOptions, int pRace_index, const char* pHost_name, int pCar_index) {
+    tNet_game_details* details;
+    tNet_game_player_info player;
+    void* host_address;
+    int i;
+
+    details = BrMemAllocate(sizeof(tNet_game_details), kMem_net_pid_details);
+    if (pHost_name[0] == '\0') {
+        sprintf((char*)pHost_name, "%s", "HOST");
+    }
+    gNet_service_disable = 1;
+    if (PDNetHostGame(details, (char*)pHost_name, &host_address)) {
+        gCurrent_net_game = details;
+        gSynch_race_start = 0;
+        strcpy((char*)details->pd_net_info.addr + 14, pHost_name);
+        details->host_ID = PDNetExtractPlayerID(details);
+        details->num_players = 1;
+        details->options = *pOptions;
+        details->status.stage = eNet_game_stage0;
+        details->type = pNet_type;
+        details->start_race = pRace_index;
+        details->no_races_yet = 1;
+        gINT_00690c30 = 0;
+        gINT_0068d968 = 0;
+        gNumber_of_net_players = 0;
+        gThis_net_player_index = 0;
+        gLocal_net_ID = details->host_ID;
+        FillInThisPlayer(details, &player, pCar_index, 1);
+        PDNetSetPlayerSystemInfo(&player, host_address);
+        NetPlayersChanged(1, &player);
+        for (i = 0; i < (int)REC2_ASIZE(gNet_players); i++) {
+            gNet_players[i].last_heard_from_him = PDGetTotalTime();
+            gNet_players[i].player_status = ePlayer_status_loading;
+        }
+        gNet_mode = eNet_mode_host;
+        InitNetworkShapesStuff(gNet_players[0].car->car_crush_spec);
+        gDont_allow_joiners = 0;
+        return details;
+    }
+    if (details != NULL) {
+        BrMemFree(details);
+    }
+    return NULL;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 int C2_HOOK_FASTCALL NetJoinGameLowLevel(tNet_game_details* pGame_details, const char* pName) {
 
