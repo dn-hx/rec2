@@ -18,17 +18,7 @@
 #include "rec2_macros.h"
 
 #include "c2_stdio.h"
-#include "28-world3.h"
-#include "32-spark.h"
 #include "52-errors.h"
-#include "59-camera.h"
-#include "globvrpb.h"
-#include "28-world3.h"
-#include "66-tintedpoly.h"
-#include "07-structur.h"
-#include "platform.h"
-#include "36-trig.h"
-#include "55-volume.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 // GLOBAL: CARMA2_SW 0x0058c180
