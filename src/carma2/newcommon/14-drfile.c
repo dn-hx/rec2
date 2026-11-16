@@ -10,6 +10,7 @@
 
 #include "70-packfile.h"
 #include "08-loading1.h"
+#include "01-network.h"
 
 #include <string.h>
 
