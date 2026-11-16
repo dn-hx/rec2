@@ -814,13 +814,18 @@ void C2_HOOK_FASTCALL UpdateTintedPolys(void) {
     }
 }
 
+// PARTIAL 55.56%: SetTintedPolySize 0x004d8bb0 - loop register/layout residual (x0/y0 register roles, frame 0x1c matches); see state/findings/SetTintedPolySize.md
 // FUNCTION: CARMA2_HW 0x004d8bb0
 void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int width, int height) {
-    tTintedPoly* tinted;
+    br_model* model;
     int nb_x;
     int nb_y;
     int step_x;
     int step_y;
+    int dx;
+    int dy;
+    int xi;
+    int yi;
     int i;
     int j;
     br_vertex* vertex;
@@ -828,31 +833,38 @@ void C2_HOOK_FASTCALL SetTintedPolySize(int pTintedIndex, int x0, int y0, int wi
     if (pTintedIndex == -1) {
         return;
     }
-    tinted = &gTintedPolys[pTintedIndex];
-    if (tinted->class == 3) {
+    if (gTintedPolys[pTintedIndex].class == 3) {
         nb_x = 4;
         nb_y = 4;
     } else {
         nb_x = 1;
         nb_y = 1;
     }
-    if (tinted->model == NULL) {
+    model = gTintedPolys[pTintedIndex].model;
+    if (model == NULL) {
         return;
     }
     step_x = width / nb_x;
     step_y = height / nb_y;
-    vertex = tinted->model->vertices;
-    for (i = 0; i <= nb_y; i++) {
-        int dy = i * step_y;
-        for (j = 0; j <= nb_x; j++) {
-            int dx = j * step_x;
-
-            BrVector3Set(&vertex->p, (br_scalar)(x0 + dx), (br_scalar)(-(y0 + dy)), -1.02f);
-            BrVector2Set(&vertex->map, (br_scalar)dx / (br_scalar)width, (br_scalar)dy / (br_scalar)height);
+    vertex = model->vertices;
+    dy = 0;
+    yi = -y0;
+    for (i = nb_y + 1; i != 0; i--) {
+        dx = 0;
+        for (j = nb_x + 1; j != 0; j--) {
+            xi = x0 + dx;
+            vertex->p.v[0] = (br_scalar)xi;
+            vertex->p.v[1] = (br_scalar)yi;
+            vertex->p.v[2] = -1.02f;
+            vertex->map.v[0] = (br_scalar)dx / (br_scalar)width;
+            vertex->map.v[1] = (br_scalar)dy / (br_scalar)height;
+            dx += step_x;
             vertex++;
         }
+        yi -= step_y;
+        dy += step_y;
     }
-    BrModelUpdate(tinted->model, BR_MODU_VERTICES);
+    BrModelUpdate(model, BR_MODU_VERTICES);
 }
 
 // FUNCTION: CARMA2_HW 0x004d8cf0
