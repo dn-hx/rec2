@@ -2046,6 +2046,11 @@ void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk)
 
 // UndoSpecial
 
+// FUNCTION: CARMA2_HW 0x004c9dc0
+void C2_HOOK_FASTCALL ApplyReplayFrameTime(tPipe_chunk** pChunk) {
+
+    return ApplyTime(((tPipe_chunk_frame_bound*)*pChunk)->field_0x4);
+}
 // FUNCTION: CARMA2_HW 0x004c9e50
 // FUNCTION: CARMA2_SW 0x004c6580
 void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
