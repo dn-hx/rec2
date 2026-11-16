@@ -656,10 +656,17 @@ static void RemapVector(br_vector3* pV, const tPed_remap_bone* pRemap) {
 /* inlined in the original */
 static void RemapModelAxis(br_model* pModel, const tPed_remap_bone* pRemap) {
     int i;
+    br_vertex* v;
 
     if (pRemap != NULL) {
-        for (i = 0; i < pModel->nvertices; i++) {
-            RemapVector(&pModel->vertices[i].p, pRemap);
+        if (pModel->nvertices != 0) {
+            i = 0;
+            v = pModel->vertices;
+            do {
+                RemapVector(&v->p, pRemap);
+                v++;
+                i++;
+            } while (i < pModel->nvertices);
         }
     }
     BrModelUpdate(pModel, BR_MODU_ALL);
@@ -673,6 +680,7 @@ static br_model* BonerCloneModel(br_model* pModel, int pIndex, int pUpdateable) 
     br_material* original_material;
     br_material* cloned_material;
     br_material* material;
+    br_face* face;
     int i;
 
     strcpy(identifier, pModel->identifier);
@@ -693,13 +701,15 @@ static br_model* BonerCloneModel(br_model* pModel, int pIndex, int pUpdateable) 
         gPedestrian_character_cloned_materials[gCount_pedestrian_personality_cloned_materials] = cloned_material;
         gCount_pedestrian_personality_cloned_materials++;
     }
+    face = clone->faces;
     for (i = 0; i < clone->nfaces; i++) {
         material = pModel->faces[i].material;
         if (material == original_material) {
-            clone->faces[i].material = cloned_material;
+            face->material = cloned_material;
         } else {
-            clone->faces[i].material = material;
+            face->material = material;
         }
+        face++;
     }
     if (pUpdateable) {
         clone->flags |= BR_MODF_UPDATEABLE;
@@ -748,6 +758,7 @@ static float CalcBoundsRadius(const br_bounds3* pBounds) {
 #pragma auto_inline(off)
 #endif
 /* control flow follows the original */
+// PARTIAL 88.15%: ReadPersonality 0x00406ab0 - stack slot layout of scalars (f, bone_index, i) and face-loop byte-offset cursor differ (regalloc)
 // FUNCTION: CARMA2_HW 0x00406ab0
 tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
     FILE* f;
