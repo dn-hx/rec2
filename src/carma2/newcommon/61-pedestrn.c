@@ -350,6 +350,18 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x0040ba80
+void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, br_vector3* pOmega) {
+    tPhysics_object* child;
+
+    child = pObject->child;
+    pObject->omega.v[0] = pOmega->v[0];
+    pObject->omega.v[1] = pOmega->v[1];
+    pObject->omega.v[2] = pOmega->v[2];
+    for (; child != NULL; child = child->next) {
+        SetPhysicsObjectOmegaRecursive(child, pOmega);
+    }
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
