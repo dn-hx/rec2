@@ -138,39 +138,33 @@ void C2_HOOK_FASTCALL HideSkids(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// PARTIAL 27.88%: WheelSkidSection 0x004e9f20 - x87 operand order/scheduling in the match test; frame 4 vs orig 8; see state/findings/WheelSkidSection.md
+// PARTIAL 55.30%: WheelSkidSection 0x004e9f20 - RESIDUAL x87 scheduling in the two dot products (open 0x4e9f20-0x4e9fa8, 0x4e9fcb-0x4ea164) and register-role swaps (pNorm ebx/esi, pPos esi/ebx, pPrev_pos edi/ebp); see state/findings/WheelSkidSection.md
 // FUNCTION: CARMA2_HW 0x004e9f20
 // FUNCTION: CARMA2_SW 0x004e5cc0
 int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, br_vector3* pSkid_end, br_material* pMaterial, br_vector3* pPos, br_vector3* pNorm, br_vector3* pPrev_pos, br_vector3* pPrev_norm, br_scalar pTexture_start, br_scalar pTexture_step) {
     tU16 idx;
-    br_scalar fVar1;
-    br_scalar fVar2;
+    br_scalar fVar[2];   /* two scalar temporaries: the original frame is 8 bytes (E-8 spilled, E-4 unused) */
 
 
-    if (((pNorm->v[0] * pPrev_norm->v[0] + pNorm->v[2] * pPrev_norm->v[2] + pNorm->v[1] * pPrev_norm->v[1]) < 0.997f) ||
-        (0.01f < fabs((pNorm->v[0] * pPos->v[0] + pNorm->v[2] * pPos->v[2] + pNorm->v[1] * pPos->v[1]) -
-                      (pNorm->v[0] * pPrev_pos->v[0] + pNorm->v[2] * pPrev_pos->v[2] + pNorm->v[1] * pPrev_pos->v[1])))) {
+    if (BrVector3Dot(pNorm, pPrev_norm) < 0.997f ||
+        (br_scalar)fabs(BrVector3Dot(pNorm, pPos) - BrVector3Dot(pPrev_pos, pNorm)) > 0.01f) {
         *pSkid_id = -1;
         return 1;
     }
     if ((tU16)*pSkid_id < 100 && pMaterial == gSkids[(tU16)*pSkid_id].actor->material) {
         idx = (tU16)*pSkid_id;
-        fVar1 = pTexture_step * pTexture_step;
-        fVar2 = gSkids[idx].actor->t.t.mat.m[2][2] * gSkids[idx].actor->t.t.mat.m[2][2] +
-                gSkids[idx].actor->t.t.mat.m[2][1] * gSkids[idx].actor->t.t.mat.m[2][1] +
-                gSkids[idx].actor->t.t.mat.m[2][0] * gSkids[idx].actor->t.t.mat.m[2][0];
-        if (fVar2 <= fVar1 + fVar1 && fVar1 <= fVar2 + fVar2 &&
-            sqrt(gSkids[idx].actor->t.t.mat.m[0][2] * gSkids[idx].actor->t.t.mat.m[0][2] +
-                 gSkids[idx].actor->t.t.mat.m[0][1] * gSkids[idx].actor->t.t.mat.m[0][1] +
-                 gSkids[idx].actor->t.t.mat.m[0][0] * gSkids[idx].actor->t.t.mat.m[0][0]) <= 0.5f) {
-            fVar1 = pSkid_end->v[0] - pSkid_start->v[0];
-            fVar2 = pSkid_end->v[2] - pSkid_start->v[2];
-            if (fabs(-fVar1 * (pPos->v[2] - pSkid_end->v[2]) + (pPos->v[0] - pSkid_end->v[0]) * fVar2) <=
-                    sqrt(fVar2 * fVar2 + fVar1 * fVar1) * 0.05f &&
-                0.0f <= (pPos->v[0] - pPrev_pos->v[0]) * (pPrev_pos->v[0] - pSkid_start->v[0]) +
-                        (pPos->v[2] - pPrev_pos->v[2]) * (pPrev_pos->v[2] - pSkid_start->v[2])) {
+        fVar[0] = pTexture_step * pTexture_step;
+        fVar[1] = BR_SQR3(gSkids[idx].actor->t.t.mat.m[2][0], gSkids[idx].actor->t.t.mat.m[2][1], gSkids[idx].actor->t.t.mat.m[2][2]);
+        if (fVar[0] + fVar[0] >= fVar[1] && fVar[0] <= fVar[1] + fVar[1] &&
+            BR_LENGTH3(gSkids[idx].actor->t.t.mat.m[0][0], gSkids[idx].actor->t.t.mat.m[0][1], gSkids[idx].actor->t.t.mat.m[0][2]) <= 0.5f) {
+            fVar[0] = pSkid_end->v[0] - pSkid_start->v[0];
+            fVar[1] = pSkid_end->v[2] - pSkid_start->v[2];
+            if ((br_scalar)fabs(-fVar[0] * (pPos->v[2] - pSkid_end->v[2]) + (pPos->v[0] - pSkid_end->v[0]) * fVar[1]) <=
+                    BR_LENGTH2(fVar[0], fVar[1]) * 0.05f &&
+                (pPos->v[0] - pPrev_pos->v[0]) * (pPrev_pos->v[0] - pSkid_start->v[0]) +
+                        (pPos->v[2] - pPrev_pos->v[2]) * (pPrev_pos->v[2] - pSkid_start->v[2]) >= 0.0f) {
                 StretchMark(&gSkids[idx], pSkid_start, pPos, pTexture_start, pTexture_step);
-                PipeSingleSkidAdjustment(idx, &gSkids[idx].actor->t.t.mat, pMaterial);
+                PipeSingleSkidAdjustment((tU16)*pSkid_id, &gSkids[(tU16)*pSkid_id].actor->t.t.mat, pMaterial);
                 return 0;
             }
         }
@@ -181,15 +175,15 @@ int C2_HOOK_FASTCALL WheelSkidSection(tS16* pSkid_id, br_vector3* pSkid_start, b
     pSkid_end->v[0] = pPos->v[0];
     pSkid_end->v[1] = pPos->v[1];
     pSkid_end->v[2] = pPos->v[2];
-    gSkids[gCurrent_skid].actor->render_style = BR_RSTYLE_DEFAULT;
-    gSkids[gCurrent_skid].actor->material = pMaterial;
-    gSkids[gCurrent_skid].normal.v[0] = pNorm->v[0];
-    gSkids[gCurrent_skid].normal.v[1] = pNorm->v[1];
-    gSkids[gCurrent_skid].normal.v[2] = pNorm->v[2];
-    StretchMark(&gSkids[gCurrent_skid], pPrev_pos, pPos, pTexture_start, pTexture_step);
-    PipeSingleSkidAdjustment(gCurrent_skid, &gSkids[gCurrent_skid].actor->t.t.mat, pMaterial);
+    gSkids[(tU16)gCurrent_skid].actor->render_style = BR_RSTYLE_DEFAULT;
+    gSkids[(tU16)gCurrent_skid].actor->material = pMaterial;
+    gSkids[(tU16)gCurrent_skid].normal.v[0] = pNorm->v[0];
+    gSkids[(tU16)gCurrent_skid].normal.v[1] = pNorm->v[1];
+    gSkids[(tU16)gCurrent_skid].normal.v[2] = pNorm->v[2];
+    StretchMark(&gSkids[(tU16)gCurrent_skid], pPrev_pos, pPos, pTexture_start, pTexture_step);
+    PipeSingleSkidAdjustment((tU16)gCurrent_skid, &gSkids[(tU16)gCurrent_skid].actor->t.t.mat, pMaterial);
     *pSkid_id = (tS16)gCurrent_skid;
-    gCurrent_skid = (tU16)(gCurrent_skid + 1) % 100;
+    gCurrent_skid = ((tU16)gCurrent_skid + 1) % 100;
     return 0;
 }
 #ifdef REC2_MATCHING
