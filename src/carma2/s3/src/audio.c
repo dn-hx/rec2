@@ -107,6 +107,13 @@ int gS3_inside_cockpit;
 // GLOBAL: CARMA2_SW 0x006ac39c
 br_uint_32 gS3_last_service_time_spatial;
 
+// FUNCTION: CARMA2_HW 0x005648ac
+int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2) {
+    int local;
+
+    (void)local;
+    return 0xc;
+}
 // FUNCTION: CARMA2_HW 0x005651d0
 // FUNCTION: CARMA2_SW 0x00560870
 int C2_HOOK_FASTCALL S3Init(const char* pPath, int pLow_memory_mode, const char* pSound_dirname) {
