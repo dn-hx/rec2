@@ -187,7 +187,24 @@ void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
 
 // PollActionReplayControls
 
-// CheckReplayTurnOn
+// FUNCTION: CARMA2_HW 0x004e6ff0
+void C2_HOOK_FASTCALL CheckReplayTurnOn(void) {
+
+    if (!gAction_replay_mode) {
+        if (!KeyIsDown(58) || gEntering_message) {
+            gKey_down = -1;
+        } else if (gKey_down == -1) {
+            if (gAction_replay_mode) {
+                RenderAFrame(1);
+                RenderAFrame(1);
+            }
+            if (!ARToggleReplay(TurnOnActionReplay, TurnOffActionReplay, AfterActionReplay,
+                    (tZappy_AR_callback*)DoZappyActionReplayHeadups, PreProcess, PostProcess, NULL, NULL)) {
+                NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_action_replay_unavailable));
+            }
+        }
+    }
+}
 
 // InitializeActionReplayPix
 
