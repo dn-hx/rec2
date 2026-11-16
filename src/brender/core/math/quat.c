@@ -36,12 +36,12 @@ br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r)
     return q;
 }
 
-// PARTIAL 39.08%: x87 schedule - sum order and temp spill differ (original loads y,z,w first, reloads x)
+// PARTIAL 54.76%: x87 schedule - sum order fixed to ((y*y+z*z)+w*w)+x*x; open: head int-reg spills (orig fld y,z,w) and tail extra s copies; see state/findings/BrQuatNormalise.md
 // FUNCTION: CARMA2_HW 0x00535710
 br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq) {
     br_scalar s;
 
-    s = 1.0f / (float)sqrt(qq->x * qq->x + qq->y * qq->y + qq->z * qq->z + qq->w * qq->w);
+    s = 1.0f / (float)sqrt(((qq->y * qq->y + qq->z * qq->z) + qq->w * qq->w) + qq->x * qq->x);
     q->x = qq->x * s;
     q->y = qq->y * s;
     q->z = qq->z * s;
