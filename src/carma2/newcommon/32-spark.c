@@ -489,10 +489,61 @@ void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar) {
     }
 }
 
-// STUB: CARMA2_HW 0x004f9020
+// FUNCTION: CARMA2_HW 0x004f9020
 // STUB: CARMA2_SW 0x004f46a0
 void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    tCar_crush_spec* spec;
+    tCar_bit_spec* bit;
+    br_actor* actor;
+    tCar_crush_buffer_entry* crush;
+    br_material* solid_mat;
+
+    spec = pCar->car_crush_spec;
+    DRActorEnumRecurse(pCar->car_model_actor, ActorFunks, (void*)MasterDisableFunkotronic);
+    i = 0;
+    if (0 < spec->field_0x270) {
+        bit = spec->field_0x274;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterDisableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x270);
+    }
+    i = 0;
+    if (0 < spec->field_0x2b0) {
+        bit = spec->field_0x2b4;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterDisableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x2b0);
+    }
+    solid_mat = BrMaterialFind(gSolidgrn_material);
+    if (solid_mat != NULL && solid_mat->colour_map != NULL) {
+        gCar_of_material = pCar;
+        pCar->field_0x1960 = solid_mat->colour_map;
+        ForEveryCarMaterial(pCar, SetPixelmap, 1);
+    }
 }
 
 // DoTrueColModelThing
