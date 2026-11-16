@@ -2338,7 +2338,32 @@ float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
     NOT_IMPLEMENTED();
 }
 
-// RepairCar
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043b840
+float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
+
+    return RepairCar2(
+        VEHICLE_TYPE_FROM_ID(pCar_ID) == eVehicle_self
+            ? &gProgram_state.current_car
+            : GetCarSpec(VEHICLE_TYPE_FROM_ID(pCar_ID), pCar_ID & 0xff),
+        pFrame_period,
+        pTotal_deflection);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // RestoreVitalBitsOfObject
 
