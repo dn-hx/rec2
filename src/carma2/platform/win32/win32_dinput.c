@@ -22,6 +22,7 @@
 
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "15-displays.h"
 
 #include <windows.h>
 #include <dinput.h>
