@@ -2652,7 +2652,7 @@ void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes)
     }
 }
 
-// STUB: CARMA2_HW 0x004c86f0
+// FUNCTION: CARMA2_HW 0x004c86f0
 void C2_HOOK_FASTCALL AddCarDamageToPipingSession(int pOwner, void* pData, tU32 pArg3) {
-    NOT_IMPLEMENTED();
+    ARDoSingleVariedSession(0x1b, pOwner, 2, 0x10, 0, pData, 4, 0x10, pArg3);
 }
