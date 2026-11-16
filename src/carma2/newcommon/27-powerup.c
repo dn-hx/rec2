@@ -2399,6 +2399,7 @@ extern tU32 gNext_goody_time;
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 97.06%: ResetPowerups 0x004da630 - loop bound names gPissed_flicker_frames (orig gUnknown_00705b80); repulse load order (actor read before gNon_track_actor)
 // FUNCTION: CARMA2_HW 0x004da630
 void C2_HOOK_FASTCALL ResetPowerups(void) {
     int i;
