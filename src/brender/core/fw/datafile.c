@@ -614,71 +614,122 @@ br_uint_32 C2_HOOK_STDCALL DfStructReadBinary(br_datafile* df, br_file_struct* s
     return 1;
 }
 
+// PARTIAL 46.31%: DfStructSizeBinary 0x0052ab30 - scalar-type mapping keeps mapped value in esi (orig eax, joins at and-ffff); prologue m/edi store order; see state/findings/DfStructSizeBinary.md
 // FUNCTION: CARMA2_HW 0x0052ab30
 int C2_HOOK_STDCALL DfStructSizeBinary(br_datafile* df, br_file_struct* str, void* base) {
-    unsigned char* mp;
     unsigned int m;
     br_file_struct_member* sm;
+    br_uint_16 t;
+    unsigned char* mp;
     int bytes;
 
     bytes = 0;
-    for (m = 0; m < str->nmembers; m++) {
-        sm = &str->members[m];
-
-        mp = ((unsigned char*)base) + sm->offset;
-
-        switch (scalarTypeConvert(df, sm->type)) {
-        case DF_TYPE_BR_INT_8:
-        case DF_TYPE_BR_UINT_8:
-        case DF_TYPE_ENUM_8:
-            bytes += 1;
-            break;
-        case DF_TYPE_BR_INT_16:
-        case DF_TYPE_BR_UINT_16:
-        case DF_TYPE_BR_ANGLE:
-        case DF_TYPE_ENUM_16:
-            bytes += 2;
-            break;
-        case DF_TYPE_BR_COLOUR:
-            bytes += 4;
-            break;
-        case DF_TYPE_BR_INT_32:
-        case DF_TYPE_BR_UINT_32:
-        case DF_TYPE_FLOAT:
-        case DF_TYPE_ENUM_32:
-        case DF_TYPE_BR_FRACTION_F:
-        case DF_TYPE_BR_UFRACTION_F:
-        case DF_TYPE_BR_FIXED:
-        case DF_TYPE_BR_FRACTION_X:
-        case DF_TYPE_BR_UFRACTION_X:
-            bytes += 4;
-            break;
-        case DF_TYPE_DOUBLE:
-            bytes += 8;
-            break;
-        case DF_TYPE_STRUCT:
-            bytes += DfStructSizeBinary(df, sm->extra, mp);
-            break;
-        case DF_TYPE_ASCIZ:
-            if (*(char**)mp != NULL) {
-                bytes += BrStrLen(*(char**)mp);
+    m = 0;
+    if (str->nmembers != 0) {
+        sm = str->members;
+        do {
+            t = sm->type;
+            if (df->scalar_type == BRT_FIXED) {
+                switch (t) {
+                case DF_TYPE_BR_SCALAR:
+                    t = DF_TYPE_BR_FIXED;
+                    break;
+                case DF_TYPE_BR_FRACTION:
+                    t = DF_TYPE_BR_FRACTION_X;
+                    break;
+                case DF_TYPE_BR_UFRACTION:
+                    t = DF_TYPE_BR_UFRACTION_X;
+                    break;
+                case DF_TYPE_BR_VECTOR2:
+                    t = DF_TYPE_BR_VECTOR2_X;
+                    break;
+                case DF_TYPE_BR_VECTOR3:
+                    t = DF_TYPE_BR_VECTOR3_X;
+                    break;
+                case DF_TYPE_BR_VECTOR4:
+                    t = DF_TYPE_BR_VECTOR4_X;
+                    break;
+                }
+            } else if (df->scalar_type == BRT_FLOAT) {
+                switch (t) {
+                case DF_TYPE_BR_SCALAR:
+                    t = DF_TYPE_FLOAT;
+                    break;
+                case DF_TYPE_BR_UFRACTION:
+                    t = DF_TYPE_BR_FRACTION_F;
+                    break;
+                case DF_TYPE_BR_FRACTION:
+                    t = DF_TYPE_BR_UFRACTION_F;
+                    break;
+                case DF_TYPE_BR_VECTOR2:
+                    t = DF_TYPE_BR_VECTOR2_F;
+                    break;
+                case DF_TYPE_BR_VECTOR3:
+                    t = DF_TYPE_BR_VECTOR3_F;
+                    break;
+                case DF_TYPE_BR_VECTOR4:
+                    t = DF_TYPE_BR_VECTOR4_F;
+                    break;
+                }
+            } else if ((t == DF_TYPE_BR_SCALAR) || ((DF_TYPE_BR_VECTOR2 <= t) && (t <= DF_TYPE_BR_VECTOR4))) {
+                BrFailure("Incorrect scalar type");
             }
-            break;
-        case DF_TYPE_BR_VECTOR2_X:
-        case DF_TYPE_BR_VECTOR2_F:
-            bytes += 8;
-            break;
-        case DF_TYPE_BR_VECTOR3_X:
-        case DF_TYPE_BR_VECTOR3_F:
-            bytes += 12;
-            break;
-        case DF_TYPE_BR_VECTOR4_X:
-        case DF_TYPE_BR_VECTOR4_F:
-            bytes += 16;
-            break;
-        }
+            switch (t) {
+            case DF_TYPE_BR_INT_16:
+            case DF_TYPE_BR_UINT_16:
+            case DF_TYPE_BR_ANGLE:
+            case DF_TYPE_ENUM_16:
+                bytes += 2;
+                break;
+            case DF_TYPE_BR_INT_32:
+            case DF_TYPE_BR_UINT_32:
+            case DF_TYPE_BR_FIXED:
+            case DF_TYPE_FLOAT:
+            case DF_TYPE_ENUM_32:
+            case DF_TYPE_BR_COLOUR:
+            case DF_TYPE_BR_FRACTION_X:
+            case DF_TYPE_BR_UFRACTION_X:
+            case DF_TYPE_BR_FRACTION_F:
+            case DF_TYPE_BR_UFRACTION_F:
+                bytes += 4;
+                break;
+            case DF_TYPE_DOUBLE:
+            case DF_TYPE_BR_VECTOR2_X:
+            case DF_TYPE_BR_VECTOR2_F:
+                bytes += 8;
+                break;
+            case DF_TYPE_BR_VECTOR3_X:
+            case DF_TYPE_BR_VECTOR3_F:
+                bytes += 12;
+                break;
+            case DF_TYPE_BR_VECTOR4_X:
+            case DF_TYPE_BR_VECTOR4_F:
+                bytes += 16;
+                break;
+            case DF_TYPE_STRUCT:
+                if (base == NULL) {
+                    mp = NULL;
+                } else {
+                    mp = (unsigned char*)base + sm->offset;
+                }
+                bytes += DfStructSizeBinary(df, sm->extra, mp);
+                break;
+            case DF_TYPE_ASCIZ:
+                mp = (unsigned char*)base + sm->offset;
+                if (*(char**)mp != NULL) {
+                    bytes += BrStrLen(*(char**)mp);
+                }
+                /* fall through */
+            case DF_TYPE_BR_INT_8:
+            case DF_TYPE_BR_UINT_8:
+            case DF_TYPE_ENUM_8:
+                bytes += 1;
+                break;
+            }
+            m++;
+            sm++;
+        } while (m < str->nmembers);
     }
-
     return bytes;
 }
 
