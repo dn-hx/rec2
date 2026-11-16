@@ -59,9 +59,44 @@ int gHud_tinted2_visible;
 // GLOBAL: CARMA2_SW 0x0065b650
 int gLast_wrong_checkpoint = -1;
 
-// GLOBAL: CARMA2_HW 0x006a0944
-int gNumber_of_icons;
+// FUNCTION: CARMA2_HW 0x004a5710
+void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason) {
+    tNet_message* message;
+    tNet_game_details* pGame;
+    int size_leave;
+    int size_guaranteed;
+    int size_leave_again;
+    int full_size;
+    int result;
+    int i;
 
+    gSynch_race_start = 0;
+    size_leave = NetGetContentsSize(0xa, 0);
+    size_guaranteed = NetGetContentsSize(5, 0);
+    size_leave_again = NetGetContentsSize(0xa, 0);
+    full_size = size_leave_again + 0x18 + size_guaranteed;
+    message = NetAllocateMessage(full_size);
+    if (message != NULL) {
+        message->contents.raw.header.size = (tU8)size_leave;
+        message->header.field_0x14 = 0xff;
+        message->header.field_0x16 = (tU16)full_size;
+        message->contents.raw.header.type = 0xa;
+        ((tU8*)message)[0x19 + (tU8)size_leave] = 5;
+        ((tU8*)message)[0x18 + message->contents.raw.header.size] = (tU8)size_guaranteed;
+    }
+    *(tU32*)((tU8*)message + 0x1c) = pReason;
+    result = 0;
+    pGame = gCurrent_net_game;
+    if (gNumber_of_net_players == 1) {
+        message->contents.raw.header.type = 0xff;
+        return;
+    }
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            result |= NetGuaranteedSendMessageToPlayer(pGame, message, gNet_players[i].ID, NULL);
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
