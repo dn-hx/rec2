@@ -3060,6 +3060,7 @@ static int SmashFindTriangleApex(const br_uint_16* pVertices, int pIndex0, int p
     return -1;
 }
 
+// PARTIAL 24.28%: ProcessTexture 0x004f18d0 [structure] - g<0 face-search branch uses SmashFindTriangleApex/SmashOrderTriangleByLongestEdge where the original walks an inline adjacency table; S02/S03/S04/S09/S20/S21 missing code; see state/findings/ProcessTexture.md
 // FUNCTION: CARMA2_HW 0x004f18d0
 float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork) {
     int tri_verts[8] = { 0, 0, 1, 2, 2, 1, 3, 3 };
