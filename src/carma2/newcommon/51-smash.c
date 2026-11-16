@@ -553,6 +553,58 @@ void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* p
 
 // ReadSmashSounds
 
+typedef struct {
+    br_bounds3* bounds;
+    tU8 field_0x4;
+    tS8 count;
+    undefined field_0x6[2];
+    br_actor* actors[20];
+} tNon_car_search_context;
+
+// FUNCTION: CARMA2_HW 0x004edb20
+intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
+    tNon_car_search_context* context;
+    char* identifier;
+    char first_digit;
+    br_vector3* position;
+
+    context = (tNon_car_search_context*)pContext;
+    identifier = pActor->identifier;
+    if (identifier == NULL || identifier[0] != '&') {
+        return 0;
+    }
+    position = &pActor->t.t.translate.t;
+    if (position->v[0] < context->bounds->min.v[0]) {
+        return 0;
+    }
+    if (position->v[1] < context->bounds->min.v[1]) {
+        return 0;
+    }
+    if (position->v[2] < context->bounds->min.v[2]) {
+        return 0;
+    }
+    if (position->v[0] > context->bounds->max.v[0]) {
+        return 0;
+    }
+    if (position->v[1] > context->bounds->max.v[1]) {
+        return 0;
+    }
+    if (position->v[2] > context->bounds->max.v[2]) {
+        return 0;
+    }
+    first_digit = identifier[1];
+    if (first_digit < '0' || first_digit > '9') {
+        return 0;
+    }
+    if ((tS8)context->field_0x4 < 0 || (tS8)context->field_0x4 == identifier[2] - 0x210 + first_digit * 10) {
+        if (context->count >= 20) {
+            return -1;
+        }
+        context->actors[context->count] = pActor;
+        context->count++;
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004ee500
 // FUNCTION: CARMA2_SW 0x004ea1d0
 void C2_HOOK_FASTCALL ReadShrapnelMovementSpec(FILE* pFile, tMovement_spec* pInitial_speed) {
