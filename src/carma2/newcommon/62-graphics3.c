@@ -698,9 +698,47 @@ void C2_HOOK_FASTCALL MapOverlay(void) {
 
 // InitNearestCar
 
-// STUB: CARMA2_HW 0x00496be0
+// FUNCTION: CARMA2_HW 0x00496be0
 void C2_HOOK_FASTCALL MapStuffBeforeRender(void) {
-    NOT_IMPLEMENTED();
+    gINT_0068d6f4 = -1;
+    if (gNet_mode != eNet_mode_none && gCurrent_net_game->type == eNet_game_type_foxy) {
+        gTarget_lock_car_2 = NULL;
+    } else if (gPrevious_opponent_status == eOpponent_status_Wasted && gTarget_lock_car_1 != NULL) {
+        if (PDGetTotalTime() - gTime_oppobar_target_wasted <= 2500) {
+            gFLOAT_0074ab90 = 0.f;
+        } else {
+            gTarget_lock_car_2 = NULL;
+            gTarget_lock_car_1 = NULL;
+            if (gTarget_lock_enabled) {
+                gTarget_lock_enabled = 0;
+            }
+        }
+    } else if (gTarget_lock_enabled) {
+        gFLOAT_0074ab90 = 0.f;
+    } else {
+        gTarget_lock_car_2 = NULL;
+    }
+    if (gCurrent_race.map_image != NULL && gMap_view == 2) {
+        gBack_original_origin_x = gBack_screen->origin_x;
+        gBack_original_origin_y = gBack_screen->origin_y;
+        gBack_original_base_x = gBack_screen->base_x;
+        gBack_original_base_y = gBack_screen->base_y;
+        gBack_screen->origin_x = 0;
+        gBack_screen->origin_y = 0;
+        gBack_screen->base_x = 0;
+        gBack_screen->base_y = 0;
+        if (gCurrent_race.map_image != NULL) {
+            if (gGraf_data_index != 0) {
+#ifdef REC2_HW
+                PossibleUnlock(1);
+#endif
+                DrPixelmapRectangleCopyPossibleLock(gBack_screen, -gBack_screen->origin_x, -gBack_screen->origin_y, gCurrent_race.map_image, gCurrent_race.map_image->origin_x, gCurrent_race.map_image->origin_y, 640, 480);
+            } else {
+                DRPixelmapCopy(gBack_screen, gCurrent_race.map_image);
+            }
+        }
+        DimRectangleClipped(gBack_screen, gMap_render_x_i - gCurrent_graf_data->map_render_x_marg, gMap_render_y_i - gCurrent_graf_data->map_render_y_marg, gMap_render_width_i + gMap_render_x_i + gCurrent_graf_data->map_render_x_marg, gMap_render_height_i + gMap_render_y_i + gCurrent_graf_data->map_render_y_marg, 1);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00496d80
