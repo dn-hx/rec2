@@ -3405,6 +3405,7 @@ int C2_HOOK_FASTCALL Controls_JoystickToggle(tFrontend_spec* pFrontend) {
     DisplayJoystickSettings(pFrontend);
     return 0;
 }
+// PARTIAL 98.39%: DisplayJoystickSettings 0x00472210 - loop end compare cmp edx,0x60493c (array+60, no symbol) maps raw; ours 0x5946a4
 // FUNCTION: CARMA2_HW 0x00472210
 void C2_HOOK_FASTCALL DisplayJoystickSettings(tFrontend_spec *pFrontend) {
     float joy;
