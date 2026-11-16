@@ -139,9 +139,9 @@ void C2_HOOK_STDCALL lightingColourLocal1(br_soft_renderer* self, br_vector3* p,
         br_scalar attn;
 
         attn = self->state.surface.kd * (alp->s->attenuation_q - dist2) / alp->s->attenuation_q ;
-        comp[C_R] += attn * BrFixedToFloat(BR_RED(colour)) * BR_RED(alp->s->colour);
-        comp[C_G] += attn * BrFixedToFloat(BR_GRN(colour)) * BR_GRN(alp->s->colour);
-        comp[C_B] += attn * BrFixedToFloat(BR_BLU(colour)) * BR_BLU(alp->s->colour);
+        comp[C_R] -= attn * (br_scalar)(BR_RED(colour) * BR_RED(alp->s->colour)) * (-1.0f / (float)BR_ONE_LS);
+        comp[C_G] -= attn * (br_scalar)(BR_GRN(colour) * BR_GRN(alp->s->colour)) * (-1.0f / (float)BR_ONE_LS);
+        comp[C_B] -= attn * (br_scalar)(BR_BLU(colour) * BR_BLU(alp->s->colour)) * (-1.0f / (float)BR_ONE_LS);
     }
 }
 
