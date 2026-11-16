@@ -66,7 +66,7 @@ extern void C2_HOOK_FASTCALL F12Key(void);
 
 // NumberKey1
 
-// NumberKey2
+extern void C2_HOOK_FASTCALL NumberKey2(void);
 
 // NumberKey3
 
