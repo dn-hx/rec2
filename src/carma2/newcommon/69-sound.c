@@ -1199,6 +1199,7 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
 // passes pName), which now matches. The only residual is the point case: the original copies x,y,z with the three loads
 // first and the three stores after, our BrVector3Set macro interleaves load/store pairs. Every 12-byte aggregate form
 // (struct assignment, cast block copy) hoists generator+4 into ebp and re-rolls the whole function's registers.
+// PARTIAL 99.99%: ReadSoundGenerators 0x004572f0 - point case stores x,y,z interleaved with loads; original loads all three then stores
 // FUNCTION: CARMA2_HW 0x004572f0
 void C2_HOOK_FASTCALL ReadSoundGenerators(tTrack_spec* pTrack_spec, FILE* pF) {
     float x;
