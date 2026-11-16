@@ -434,110 +434,99 @@ void C2_HOOK_FASTCALL FreeAllTintedPolyActor(void) {
 // FUNCTION: CARMA2_HW 0x004d7d80
 // FUNCTION: CARMA2_SW 0x004d4290
 void C2_HOOK_FASTCALL UpdateTintedPolyByMaterial(int pIndex) {
-    br_uint_32 new_grn, new_blu, new_red;
+    br_uint_32 new_red, new_grn, new_blu;
     tU32 time;
     int material_changed;
     tU32 time_since_last_update_s;
 
-    if (gTintedPolys[pIndex].visible && gTintedPolys[pIndex].material2 != NULL) {
+    if (!gTintedPolys[pIndex].visible || gTintedPolys[pIndex].material2 == NULL) {
+        return;
+    }
+    if (gTintedPolys[pIndex].material2->colour_map == NULL || gTintedPolys[pIndex].material2->colour_map->pixels == NULL) {
+        new_red = gTintedColourMap_red;
+        new_grn = gTintedColourMap_grn;
+        new_blu = gTintedColourMap_blu;
+    } else {
+        br_uint_32 v;
+        br_uint_32 w = gTintedPolys[pIndex].material2->colour_map->width;
+        br_uint_32 h = gTintedPolys[pIndex].material2->colour_map->height;
+        br_uint_32 quarter_width = w / 4;
+        br_uint_32 quarter_height = h / 4;
 
-        if (gTintedPolys[pIndex].material->colour_map == NULL || gTintedPolys[pIndex].material->colour_map->pixels == NULL) {
-            new_red = gTintedColourMap_red;
-            new_grn = gTintedColourMap_grn;
-            new_blu = gTintedColourMap_blu;
-        } else {
-            br_uint_32 v_tl, v_tr, v_bl, v_br;
-            br_uint_32 w = gTintedPolys[pIndex].material->colour_map->width;
-            br_uint_32 h = gTintedPolys[pIndex].material->colour_map->height;
-            br_uint_32 quarter_width = w / 4;
-            br_uint_32 quarter_height = h / 4;
+        v = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, quarter_width, quarter_height);
+        new_red = REC2_RGB888_R(v);
+        new_grn = REC2_RGB888_G(v);
+        new_blu = REC2_RGB888_B(v);
+        v = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, w - quarter_width, quarter_height);
+        new_red += REC2_RGB888_R(v);
+        new_grn += REC2_RGB888_G(v);
+        new_blu += REC2_RGB888_B(v);
+        v = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, quarter_width, h - quarter_height);
+        new_red += REC2_RGB888_R(v);
+        new_grn += REC2_RGB888_G(v);
+        new_blu += REC2_RGB888_B(v);
+        v = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, w - quarter_width, h - quarter_height);
+        new_red += REC2_RGB888_R(v);
+        new_grn += REC2_RGB888_G(v);
+        new_blu += REC2_RGB888_B(v);
+        new_red = (br_int_32)new_red >> 2;
+        new_grn = (br_int_32)new_grn >> 2;
+        new_blu = (br_int_32)new_blu >> 2;
+    }
+    time = GetTotalTime();
+    if (gTintedPolys[pIndex].color_blu + gTintedPolys[pIndex].color_grn + gTintedPolys[pIndex].color_red == 0) {
+        gTintedPolys[pIndex].color_red = new_red;
+        gTintedPolys[pIndex].color_grn = new_grn;
+        gTintedPolys[pIndex].color_blu = new_blu;
+        gTintedPolys[pIndex].lastTime = time;
+        gTintedPolys[pIndex].material->colour = BR_COLOUR_RGB(new_red, new_grn, new_blu);
+        BrMaterialUpdate(gTintedPolys[pIndex].material, BR_MATU_LIGHTING);
+        return;
+    }
 
-            v_tl = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, quarter_width, quarter_height);
-#ifdef REC2_SW
-            v_tl = gTinted_original_palette_colours[v_tl];
-#endif
-            v_tr = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, w - quarter_width, quarter_height);
-#ifdef REC2_SW
-            v_tr = gTinted_original_palette_colours[v_tr];
-#endif
-            v_bl = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, quarter_width, quarter_height);
-#ifdef REC2_SW
-            v_bl = gTinted_original_palette_colours[v_bl];
-#endif
-            v_br = BrPixelmapPixelGet(gTintedPolys[pIndex].material2->colour_map, w - quarter_width, h - quarter_height);
-#ifdef REC2_SW
-            v_br = gTinted_original_palette_colours[v_br];
-#endif
-
-            new_grn = (REC2_RGB888_G(v_tl) + REC2_RGB888_G(v_tr) + REC2_RGB888_G(v_bl) + REC2_RGB888_G(v_br)) / 4;
-            new_blu = (REC2_RGB888_B(v_tl) + REC2_RGB888_B(v_tr) + REC2_RGB888_B(v_bl) + REC2_RGB888_B(v_br)) / 4;
-            new_red = (REC2_RGB888_R(v_tl) + REC2_RGB888_R(v_tr) + REC2_RGB888_R(v_bl) + REC2_RGB888_R(v_br)) / 4;
-        }
-        time = GetTotalTime();
-        if (gTintedPolys[pIndex].color_red + gTintedPolys[pIndex].color_grn + gTintedPolys[pIndex].color_blu == 0) {
-            gTintedPolys[pIndex].color_red = new_red;
-            gTintedPolys[pIndex].color_grn = new_grn;
-            gTintedPolys[pIndex].color_blu = new_blu;
-            gTintedPolys[pIndex].lastTime = time;
-#ifdef REC2_HW
-            gTintedPolys[pIndex].material->colour = BR_COLOUR_RGB(new_red, new_grn, new_blu);
-            BrMaterialUpdate(gTintedPolys[pIndex].material, BR_MATU_LIGHTING);
-            return;
-#endif
-        } else {
-            material_changed = 0;
-            time_since_last_update_s = (time - gTintedPolys[pIndex].lastTime) / 4096;
-            if (time_since_last_update_s != 0) {
-                if (gTintedPolys[pIndex].color_red != new_red) {
-                    if (gTintedPolys[pIndex].color_red < new_red) {
-                        gTintedPolys[pIndex].color_red += time_since_last_update_s;
-                    } else {
-                        gTintedPolys[pIndex].color_red -= time_since_last_update_s;
-                    }
-                    if (new_red - time_since_last_update_s < gTintedPolys[pIndex].color_red && gTintedPolys[pIndex].color_red < time_since_last_update_s + new_red) {
-                        gTintedPolys[pIndex].color_red = new_red;
-                    }
-                    material_changed = 1;
-                }
-                if (gTintedPolys[pIndex].color_grn != new_grn) {
-                    if (gTintedPolys[pIndex].color_grn < new_grn) {
-                        gTintedPolys[pIndex].color_grn += time_since_last_update_s;
-                    } else {
-                        gTintedPolys[pIndex].color_grn -= time_since_last_update_s;
-                    }
-                    if (new_grn - time_since_last_update_s < gTintedPolys[pIndex].color_grn && gTintedPolys[pIndex].color_grn < time_since_last_update_s + new_grn) {
-                        gTintedPolys[pIndex].color_grn = new_grn;
-                    }
-                    material_changed = 1;
-                }
-                if (gTintedPolys[pIndex].color_blu != new_blu) {
-                    if (gTintedPolys[pIndex].color_blu < new_blu) {
-                        gTintedPolys[pIndex].color_blu += time_since_last_update_s;
-                    } else {
-                        gTintedPolys[pIndex].color_blu -= time_since_last_update_s;
-                    }
-                    if (new_blu - time_since_last_update_s < gTintedPolys[pIndex].color_blu && gTintedPolys[pIndex].color_blu < time_since_last_update_s + new_blu) {
-                        gTintedPolys[pIndex].color_blu = new_blu;
-                    }
-                    material_changed = 1;
-                }
-#ifdef REC2_HW
-                if (material_changed) {
-                    gTintedPolys[pIndex].material->colour = BR_COLOUR_RGB(gTintedPolys[pIndex].color_red, gTintedPolys[pIndex].color_grn, gTintedPolys[pIndex].color_blu);
-                    BrMaterialUpdate(gTintedPolys[pIndex].material, BR_MATU_LIGHTING);
-                }
-#endif
-#ifdef REC2_SW
-                if (!material_changed) {
-                    return;
-                }
-#endif
+    material_changed = 0;
+    time_since_last_update_s = (time - (tU32)gTintedPolys[pIndex].lastTime) >> 12;
+    if ((br_int_32)time_since_last_update_s < 0) {
+        time_since_last_update_s = 0;
+    }
+    if (time_since_last_update_s != 0) {
+        if (gTintedPolys[pIndex].color_red != new_red) {
+            if ((br_int_32)gTintedPolys[pIndex].color_red < (br_int_32)new_red) {
+                gTintedPolys[pIndex].color_red += time_since_last_update_s;
+            } else {
+                gTintedPolys[pIndex].color_red -= time_since_last_update_s;
             }
+            if ((br_int_32)gTintedPolys[pIndex].color_red > (br_int_32)(new_red - time_since_last_update_s) && (br_int_32)gTintedPolys[pIndex].color_red < (br_int_32)(time_since_last_update_s + new_red)) {
+                gTintedPolys[pIndex].color_red = new_red;
+            }
+            material_changed = 1;
         }
-#ifdef REC2_SW
-        UpdateTintedPalette(pIndex);
-        ResetPalette();
-#endif
+        if (gTintedPolys[pIndex].color_grn != new_grn) {
+            if ((br_int_32)gTintedPolys[pIndex].color_grn < (br_int_32)new_grn) {
+                gTintedPolys[pIndex].color_grn += time_since_last_update_s;
+            } else {
+                gTintedPolys[pIndex].color_grn -= time_since_last_update_s;
+            }
+            if ((br_int_32)gTintedPolys[pIndex].color_grn > (br_int_32)(new_grn - time_since_last_update_s) && (br_int_32)gTintedPolys[pIndex].color_grn < (br_int_32)(time_since_last_update_s + new_grn)) {
+                gTintedPolys[pIndex].color_grn = new_grn;
+            }
+            material_changed = 1;
+        }
+        if (gTintedPolys[pIndex].color_blu != new_blu) {
+            if ((br_int_32)gTintedPolys[pIndex].color_blu < (br_int_32)new_blu) {
+                gTintedPolys[pIndex].color_blu += time_since_last_update_s;
+            } else {
+                gTintedPolys[pIndex].color_blu -= time_since_last_update_s;
+            }
+            if ((br_int_32)gTintedPolys[pIndex].color_blu > (br_int_32)(new_blu - time_since_last_update_s) && (br_int_32)gTintedPolys[pIndex].color_blu < (br_int_32)(time_since_last_update_s + new_blu)) {
+                gTintedPolys[pIndex].color_blu = new_blu;
+            }
+            material_changed = 1;
+        }
+        if (material_changed) {
+            gTintedPolys[pIndex].material->colour = BR_COLOUR_RGB(gTintedPolys[pIndex].color_red, gTintedPolys[pIndex].color_grn, gTintedPolys[pIndex].color_blu);
+            BrMaterialUpdate(gTintedPolys[pIndex].material, BR_MATU_LIGHTING);
+        }
     }
 }
 
