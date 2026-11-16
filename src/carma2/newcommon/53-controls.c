@@ -41,6 +41,31 @@
 #include <s3/internal/audio.h>
 #include <stdio.h>
 
+// GLOBAL: CARMA2_HW 0x00596250
+tJoystick_headup_text gJoystick_headup_texts[21] = {
+    { "Recover", 60 },
+    { "Reapir", 45 },
+    { "Hand Brake", 54 },
+    { "Use Powerup", 61 },
+    { "Next Powerup", 64 },
+    { "Prev Powerup", 63 },
+    { "Wheel Spin", 56 },
+    { "Map", 57 },
+    { "Cockpit View", 46 },
+    { "Buy Armour", 67 },
+    { "Buy Power", 68 },
+    { "Buy Offensive", 69 },
+    { "Target Lock", 72 },
+    { "Cycle Target", 73 },
+    { "Camera Mode", 75 },
+    { "Doors", 74 },
+    { "Horn", 59 },
+    { "Accelerate", 49 },
+    { "Brake", 50 },
+    { "Left", 47 },
+    { "Right", 48 },
+};
+
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
 int gCheckpoint_finder_enabled = 1;
