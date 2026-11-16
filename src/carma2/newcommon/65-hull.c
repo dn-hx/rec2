@@ -22,9 +22,9 @@ br_scalar C2_HOOK_FASTCALL SignedTwiceAreaOf3DTriangle(const br_vector3* pV1, co
 #pragma inline_depth(0)
 #endif
 
-// PARTIAL 97.09 (EFFECTIVE, operand encodings only): the original encodes the tv1 component loads as
-// [edx+ecx] (base=points) while VC11 always emits [ecx+edx]; registers and addresses are identical.
-// Not source-controllable (SIB base/index encoder choice, VC5 vs VC11).
+// PARTIAL 99.99%: CompareAngle 0x00420dc0 - EFFECTIVE, operand encodings only (tv1 loads [edx+ecx] vs [ecx+edx]).
+// The original encodes the tv1 component loads as [edx+ecx] (base=points) while VC11 emits [ecx+edx] (base=offset);
+// registers and addresses are identical. Pointer-base spelling (char* + offset) and a local base pointer both tried: 99.99 kept, 92.16 rejected.
 // FUNCTION: CARMA2_HW 0x00420dc0
 int C2_HOOK_CDECL CompareAngle(const void *pLhs, const void *pRhs) {
     tCollision_shape_polyhedron_data* polyhedron;
