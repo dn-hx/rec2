@@ -1281,19 +1281,21 @@ void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics
     SetGravityDeltaV(pObject, &gravity);
     ApplyGravitySingleObject(pObject);
 }
-// PARTIAL 40.41%: LevelOutOnSurface 0x004b6fb0 - body complete; this build keeps the negated normal in st
-// registers and multiplies by water_normal from memory, the original stores n first and multiplies by n.
+// PARTIAL 45.64%: LevelOutOnSurface 0x004b6fb0 - open: n stores kept on FPU (orig pops n0..n2 then reloads), dot kept
+// in FPU (orig spills dot to [esp+0xc]), tail omega order and stale FPU pop before BrMatrix34TApplyV; see state/findings/LevelOutOnSurface.md
 // FUNCTION: CARMA2_HW 0x004b6fb0
 void C2_HOOK_FASTCALL LevelOutOnSurface(tPhysics_object* pObject) {
     br_scalar v0;
     br_scalar v1;
     br_scalar v2;
-    br_scalar dot;
+    volatile br_scalar dot;
     br_scalar p1;
     br_scalar tv;
     br_scalar px;
     br_scalar py;
     br_scalar pz;
+    br_scalar f2;
+    br_scalar *nv;
     br_vector3 n;
     br_vector3 u;
 
@@ -1315,18 +1317,20 @@ void C2_HOOK_FASTCALL LevelOutOnSurface(tPhysics_object* pObject) {
     n.v[1] = -1.0f * v1;
     n.v[2] = -1.0f * v2;
 
-    dot = pObject->water_normal.v[2] * n.v[2] + pObject->water_normal.v[0] * n.v[0] + pObject->water_normal.v[1] * n.v[1];
+    nv = n.v;
+    dot = pObject->water_normal.v[2] * nv[2] + pObject->water_normal.v[0] * nv[0] + pObject->water_normal.v[1] * nv[1];
 
     if (dot > -0.99) {
-        px = pObject->water_normal.v[1] * n.v[2] - pObject->water_normal.v[2] * n.v[1];
-        py = pObject->water_normal.v[2] * n.v[0] - pObject->water_normal.v[0] * n.v[2];
-        pz = pObject->water_normal.v[0] * n.v[1] - pObject->water_normal.v[1] * n.v[0];
+        px = pObject->water_normal.v[1] * nv[2] - pObject->water_normal.v[2] * nv[1];
+        py = pObject->water_normal.v[2] * nv[0] - pObject->water_normal.v[0] * nv[2];
+        pz = pObject->water_normal.v[0] * nv[1] - pObject->water_normal.v[1] * nv[0];
         p1 = dot + 1.0f;
-        tv = sqrt(px * px + py * py + pz * pz);
+        f2 = pz * pz;
+        tv = sqrt(px * px + f2 + py * py);
         u.v[0] = px * (p1 / tv);
-        tv = sqrt(pz * pz + py * py + u.v[0] * u.v[0]);
+        tv = sqrt(f2 + py * py + u.v[0] * u.v[0]);
         u.v[1] = py * (p1 / tv);
-        tv = sqrt(u.v[1] * u.v[1] + pz * pz + u.v[0] * u.v[0]);
+        tv = sqrt(u.v[1] * u.v[1] + f2 + u.v[0] * u.v[0]);
         u.v[2] = pz * (p1 / tv);
         BrMatrix34TApplyV(&n, &u, &pObject->actor->t.t.mat);
         pObject->omega.v[0] += n.v[0];
