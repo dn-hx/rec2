@@ -1861,7 +1861,12 @@ void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk) {
 
 // ApplyPedPhysics
 
-// ApplyPedDismember
+// FUNCTION: CARMA2_HW 0x004c9b20
+void C2_HOOK_FASTCALL ApplyPedDismember(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_dismember* chunk = (tPipe_chunk_ped_dismember*)*pChunk;
+
+    return PedApplyDismember(chunk->field_0x0, (int)chunk->field_0x4, (int)chunk->field_0x7);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9b40
 // FUNCTION: CARMA2_SW 0x004c6270
