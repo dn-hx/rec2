@@ -309,7 +309,7 @@ extern void C2_HOOK_FASTCALL PositionChildren(tPhysics_object* pCollision_info);
 
 // RQIterativeImprovement
 
-// RQExpand
+extern void C2_HOOK_FASTCALL RQExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder);
 
 // RQSingleExpand
 
