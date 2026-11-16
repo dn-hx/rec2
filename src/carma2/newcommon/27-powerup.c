@@ -5845,45 +5845,44 @@ void C2_HOOK_FASTCALL MayQueuePowerupRespawn(int pPowerup_index, br_actor* actor
 
 // ARUndoPowerupRespawn
 
+// PARTIAL 81.25%: PrintPowerupIconIn3D 0x004e07f0 [structure] - scale>0 block: orig pushes 1.0f before the scale fpu ops in both branches; branch/tail 22 B short
 // FUNCTION: CARMA2_HW 0x004e07f0
 void C2_HOOK_FASTCALL PrintPowerupIconIn3D(int pX, int pY, tHeadup_icon* pIcon, tPowerup* pPowerup, int pScale, tU32 pTime) {
     float f;
     float scale;
     br_fixed_ls prev_opacity;
+    br_material* material;
 
     if (pIcon == NULL) {
-        /* TEMP FIX (uncommitted): pIcon is NULL here, so use the powerup's own actor and skip when it has none */
-        if (pPowerup->icon_actor == NULL) {
-            return;
-        }
         pPowerup->icon_actor->render_style = BR_RSTYLE_FACES;
-        BrVector3Set(&pPowerup->icon_actor->t.t.translate.t, (float)pX + 16.0f, (float)-(pY + 16), 0.0f);
+        BrVector3Set(&pPowerup->icon_actor->t.t.translate.t, (float)pX - -16.0f, (float)(-16 - pY), 0.0f);
         RenderThisHeadup(pPowerup->icon_actor);
         return;
     }
     if (pIcon->icon_actor != NULL) {
         pIcon->icon_actor->render_style = BR_RSTYLE_FACES;
         if (pScale != 0) {
-            f = (float)(pTime - pIcon->fizzle_start) / 600.0f;
+            f = (float)(pTime - pIcon->fizzle_start) * 0.0016666667f;
             if (pIcon->fizzle_direction > 0) {
-                f = 1.0f - f;
-                scale = 1.0f + 5.0f * f;
-                BrMatrix34Scale(&pIcon->icon_actor->t.t.mat, scale, scale, 1.0f);
+                scale = 1.0f - (f = 1.0f - f) * -5.0f;
             } else {
-                BrMatrix34Scale(&pIcon->icon_actor->t.t.mat, 1.01f - f, 1.01f - f, 1.0f);
+                scale = 1.01f - f;
             }
-            BrMatrix34PostRotateZ(&pIcon->icon_actor->t.t.mat, (br_angle)((1.0f - f / 2.0f) * 65536.0f));
-            pIcon->icon_actor->material->extra_prim[1].v.x = BR_FIXED_INT((1.0f - f) * 255.0f);
-            BrMaterialUpdate(pIcon->icon_actor->material, BR_MATU_EXTRA_PRIM);
+            BrMatrix34Scale(&pIcon->icon_actor->t.t.mat, scale, scale, 1.0f);
+            BrMatrix34PostRotateZ(&pIcon->icon_actor->t.t.mat, (br_angle)((1.0f - f * 0.5f) * 65536.0f));
+            material = pIcon->icon_actor->material;
+            material->extra_prim[1].v.x = BR_FIXED_INT((1.0f - f) * 255.0f);
+            BrMaterialUpdate(material, BR_MATU_EXTRA_PRIM);
         } else {
-            prev_opacity = pIcon->icon_actor->material->extra_prim[1].v.x;
-            pIcon->icon_actor->material->extra_prim[1].v.x = BR_FIXED_INT(255);
-            if (prev_opacity != pIcon->icon_actor->material->extra_prim[1].v.x) {
-                BrMaterialUpdate(pIcon->icon_actor->material, BR_MATU_EXTRA_PRIM);
+            material = pIcon->icon_actor->material;
+            prev_opacity = material->extra_prim[1].v.x;
+            material->extra_prim[1].v.x = BR_FIXED_INT(255);
+            if (prev_opacity != material->extra_prim[1].v.x) {
+                BrMaterialUpdate(material, BR_MATU_EXTRA_PRIM);
             }
             BrMatrix34Identity(&pIcon->icon_actor->t.t.mat);
         }
-        BrVector3Set(&pIcon->icon_actor->t.t.translate.t, (float)pX + 16.0f, (float)-(pY + 16), 0.0f);
+        BrVector3Set(&pIcon->icon_actor->t.t.translate.t, (float)pX - -16.0f, (float)(-16 - pY), 0.0f);
         RenderThisHeadup(pIcon->icon_actor);
     }
 }
