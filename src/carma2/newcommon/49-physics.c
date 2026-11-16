@@ -7678,51 +7678,14 @@ void C2_HOOK_FASTCALL MakeMatrixFromIndices(br_scalar* pL, br_scalar* pInv, br_s
 void C2_HOOK_FASTCALL RQSingleExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, br_scalar* pInv, tU8* pOrder);
 void C2_HOOK_FASTCALL RQExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder);
 
-/* Inlined in RQMatrixSolveNoNegatives: is the active-set mask (with bit pBit toggled) already in the history? */
-static int C2_HOOK_FASTCALL SolverMaskInHistory(tU32* pMask, int pBit, tU32 (*pHistory)[2], int pCount) {
-    tU32 m[2];
-    int i;
-    int j;
-
-    m[0] = pMask[0];
-    m[1] = pMask[1];
-    if (pBit >= 0) {
-        m[pBit >> 5] ^= 1 << (pBit & 0x1f);
-    }
-    for (i = 0; i < pCount; i++) {
-        for (j = 0; j <= 1; j++) {
-            if (m[j] != pHistory[i][j]) {
-                break;
-            }
-        }
-        if (j > 1) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/* Inlined in RQMatrixSolveNoNegatives: forward substitution pY = L^-1 pB */
-static void C2_HOOK_FASTCALL SolverForwardSubstitute(br_scalar* pY, br_scalar* pB, int pN) {
-    int i;
-    int k;
-    br_scalar sum;
-
-    pY[0] = pB[0] / ((br_scalar*)gPhysics_buffer1_ptr)[0];
-    for (i = 1; i < pN; i++) {
-        sum = 0.0f;
-        for (k = 0; k < i; k++) {
-            sum += pY[k] * ((br_scalar*)gPhysics_buffer1_ptr)[i * 100 + k];
-        }
-        pY[i] = (pB[i] - sum) / ((br_scalar*)gPhysics_buffer1_ptr)[i * 101];
-    }
-}
-
-// PARTIAL 38.33%: RQMatrixSolveNoNegatives 0x004c3b60 - LCP pivoting solver; control flow, frame (0x8e4) and every loop
-// follow the disassembly, the two inlined helpers above reproduce the original's inlined history search and
-// forward substitution. Residual is register allocation (orig edi=pOut/esi=last/ebx=pJoint, ours ebp/edi/esi),
-// stack-slot weights (orig array order y,b,tmp,w; ours y,tmp,w,b) and the shared MakeMatrixFromIndices call tail the
-// original cross-jumps. Callees MakeMatrixFromIndices/RQSingleExpand/RQExpand are NOT_IMPLEMENTED stubs at EOF.
+// PARTIAL 41.62%: RQMatrixSolveNoNegatives 0x004c3b60 - LCP pivoting solver. Both helpers the original
+// inlines are written out at their call sites (4 mask-in-history searches with their own m[2] copies at
+// 0x50..0x6c, 2 forward substitutions), which reproduces the original's frame 0x8e4 and the array bases
+// order/y/b/tmp/w/history = 0x70/0xd4/0x264/0x3f4/0x584/0x714 exactly. Two mask flags (inhist/inhist2)
+// are needed to hold the last 4 bytes of the frame. Open: register roles in the prologue (orig
+// edi=pOut/esi=pRhs/ecx=pCount, ours ebp/ebx/esi), scalar slot map (orig mask 0x3c, dropped 0x34) and the
+// w/tmp array order (ours tmp/w swapped, not declaration-order controlled). See
+// state/findings/RQMatrixSolveNoNegatives.md.
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -7760,6 +7723,14 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
     br_scalar tmp[100];
     br_scalar w[100];
     tU32 history[60][2];
+    tU32 m1[2];
+    tU32 m2[2];
+    tU32 m3[2];
+    tU32 m4[2];
+    int hi;
+    int hj;
+    int inhist;
+    int inhist2;
 
     dropped = -1;
     *pOut = 0;
@@ -7793,11 +7764,18 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
         hist = history[iter];
         hist[0] = mask[0];
         hist[1] = mask[1];
-        SolverForwardSubstitute(y, b, n);
+        y[0] = b[0] / ((br_scalar*)gPhysics_buffer1_ptr)[0];
+        for (i = 1; i < n; i++) {
+            sum = 0.0f;
+            for (k = 0; k < i; k++) {
+                sum += y[k] * ((br_scalar*)gPhysics_buffer1_ptr)[i * 100 + k];
+            }
+            y[i] = (b[i] - sum) / ((br_scalar*)gPhysics_buffer1_ptr)[i * 101];
+        }
         last = n - 1;
         limit = (br_scalar)fabs(((br_scalar*)gPhysics_buffer1_ptr)[last * 101] * 100000.0f);
         for (j = 0; j < last; j++) {
-            if (limit < fabs(((br_scalar*)gPhysics_buffer1_ptr)[last * 100 + j])) {
+            if (limit < (br_scalar)fabs(((br_scalar*)gPhysics_buffer1_ptr)[last * 100 + j])) {
                 break;
             }
         }
@@ -7812,13 +7790,51 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
             }
             dropped = pJoint_count;
             if (k != last) {
-                if (SolverMaskInHistory(hist, order[k] - pJoint_count, history, iter)) {
+                m1[0] = hist[0];
+                m1[1] = hist[1];
+                d = order[k] - pJoint_count;
+                if (d >= 0) {
+                    m1[d >> 5] ^= 1 << (d & 0x1f);
+                }
+                inhist = 0;
+                for (hi = 0; hi < iter; hi++) {
+                    for (hj = 0; hj <= 1; hj++) {
+                        if (m1[hj] != history[hi][hj]) {
+                            break;
+                        }
+                    }
+                    if (hj > 1) {
+                        inhist = 1;
+                        break;
+                    }
+                }
+                if (inhist) {
                     best2 = 0.0f;
                     for (j = pJoint_count; j < last; j++) {
                         v = (br_scalar)fabs(((br_scalar*)gPhysics_buffer2_ptr)[last * 100 + j]);
-                        if (v > best2 && !SolverMaskInHistory(hist, order[j] - pJoint_count, history, iter)) {
-                            best2 = v;
-                            k = j;
+                        if (v > best2) {
+                            m2[0] = hist[0];
+                            m2[1] = hist[1];
+                            d = order[j] - pJoint_count;
+                            if (d >= 0) {
+                                m2[d >> 5] ^= 1 << (d & 0x1f);
+                            }
+                            inhist2 = 0;
+                            for (hi = 0; hi < iter; hi++) {
+                                for (hj = 0; hj <= 1; hj++) {
+                                    if (m2[hj] != history[hi][hj]) {
+                                        break;
+                                    }
+                                }
+                                if (hj > 1) {
+                                    inhist2 = 1;
+                                    break;
+                                }
+                            }
+                            if (!inhist2) {
+                                best2 = v;
+                                k = j;
+                            }
                         }
                     }
                 }
@@ -7890,7 +7906,7 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
                         y[j] = tmp[j];
                     }
                     for (j = pJoint_count; j < n; j++) {
-                        if (w[j] / y[j] < 0.0f && fabs(y[j]) > best3) {
+                        if (w[j] / y[j] < 0.0f && (br_scalar)fabs(y[j]) > best3) {
                             best3 = (br_scalar)fabs(y[j]);
                             leave = j;
                         }
@@ -7918,7 +7934,20 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
                 for (i = 0; i < n; i++) {
                     pX[order[i]] = w[i];
                 }
-                found = SolverMaskInHistory(hist, -1, history, iter);
+                m3[0] = hist[0];
+                m3[1] = hist[1];
+                found = 0;
+                for (hi = 0; hi < iter; hi++) {
+                    for (hj = 0; hj <= 1; hj++) {
+                        if (m3[hj] != history[hi][hj]) {
+                            break;
+                        }
+                    }
+                    if (hj > 1) {
+                        found = 1;
+                        break;
+                    }
+                }
                 enter = -1;
                 best_ratio = 0.0f;
                 for (i = 0; i < *pOut; i++) {
@@ -7930,11 +7959,34 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
                     sum -= pRhs[d];
                     ratio = sum / pMatrix[d * 101];
                     if (sum < -0.001 && ratio < best_ratio) {
-                        if (!found || !SolverMaskInHistory(hist, d - pJoint_count, history, iter)) {
+                        if (!found) {
                             best_ratio = ratio;
                             enter = i;
-                        } else if (enter == -1) {
-                            enter = i;
+                        } else {
+                            m4[0] = hist[0];
+                            m4[1] = hist[1];
+                            d -= pJoint_count;
+                            if (d >= 0) {
+                                m4[d >> 5] ^= 1 << (d & 0x1f);
+                            }
+                            inhist2 = 0;
+                            for (hi = 0; hi < iter; hi++) {
+                                for (hj = 0; hj <= 1; hj++) {
+                                    if (m4[hj] != history[hi][hj]) {
+                                        break;
+                                    }
+                                }
+                                if (hj > 1) {
+                                    inhist2 = 1;
+                                    break;
+                                }
+                            }
+                            if (!inhist2) {
+                                best_ratio = ratio;
+                                enter = i;
+                            } else if (enter == -1) {
+                                enter = i;
+                            }
                         }
                     }
                 }
@@ -7945,7 +7997,7 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
                         for (k = 0; k < pCount; k++) {
                             tmp[i] += pMatrix[i * 100 + k] * pX[k];
                         }
-                        if ((pX[i] != 0.0f && fabs(tmp[i] - pRhs[i]) > 0.01) || tmp[i] - pRhs[i] < -0.01) {
+                        if ((pX[i] != 0.0f && (br_scalar)fabs(tmp[i] - pRhs[i]) > 0.01) || tmp[i] - pRhs[i] < -0.01) {
                             bad = 1;
                         }
                     }
@@ -7956,7 +8008,14 @@ int C2_HOOK_FASTCALL RQMatrixSolveNoNegatives(br_scalar* pMatrix, br_scalar* pRh
                                 tmp[i] += pMatrix[order[i] * 100 + order[k]] * w[k];
                             }
                         }
-                        SolverForwardSubstitute(y, tmp, n);
+                        y[0] = tmp[0] / ((br_scalar*)gPhysics_buffer1_ptr)[0];
+                        for (i = 1; i < n; i++) {
+                            sum = 0.0f;
+                            for (k = 0; k < i; k++) {
+                                sum += y[k] * ((br_scalar*)gPhysics_buffer1_ptr)[i * 100 + k];
+                            }
+                            y[i] = (tmp[i] - sum) / ((br_scalar*)gPhysics_buffer1_ptr)[i * 101];
+                        }
                         for (i = 0; i < n; i++) {
                             for (k = 0; k < n; k++) {
                                 w[i] += ((br_scalar*)gPhysics_buffer2_ptr)[k * 100 + i] * y[k];
