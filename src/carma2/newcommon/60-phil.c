@@ -487,6 +487,23 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
 
 // PHILDoPhysics
 
+// FUNCTION: CARMA2_HW 0x004b71b0
+void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator) {
+    if (pObject->field_0x240 == NULL || ((tPHIL_queued_header*)pObject->field_0x240)->field_0x8 != 1) {
+        pObject->flags |= 0x1000;
+        return;
+    }
+    if (gPHIL_original_activate_passive != NULL) {
+        gPHIL_original_activate_passive(pObject);
+    }
+    if (((int (C2_HOOK_FASTCALL*)(tPhysics_object*, tPhysics_object*))gPHIL_callbacks->passive_activated) != NULL) {
+        if (((int (C2_HOOK_FASTCALL*)(tPhysics_object*, tPhysics_object*))gPHIL_callbacks->passive_activated)(pObject, pActivator)) {
+            PHILMakeObjectActive(pObject, NULL, NULL, 1);
+        }
+    } else {
+        PHILMakeObjectActive(pObject, NULL, NULL, 1);
+    }
+}
 // FUNCTION: CARMA2_HW 0x004b7220
 // FUNCTION: CARMA2_SW 0x004b3940
 void C2_HOOK_FASTCALL PHILApplyPHILObject(tPhysics_object* pObject, const br_matrix34* pMatrix) {
