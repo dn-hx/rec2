@@ -31,6 +31,7 @@ extern int gHeadup_map_h;
 extern int gRecovery_voucher_count;
 extern tRace_over_reason gRace_over_reason;
 extern tU32 gPalette_fade_time;
+extern tJoystick_headup_text gJoystick_headup_texts[21];
 
 extern void C2_HOOK_FASTCALL CompleteRace(void);
 

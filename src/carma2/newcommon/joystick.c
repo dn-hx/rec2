@@ -16,6 +16,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "53-controls.h"
 
 // GLOBAL: CARMA2_HW 0x00595f84
 // GLOBAL: CARMA2_SW 0x00590ee4
@@ -481,6 +482,21 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0045c590
+unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey) {
+    tButtonJoystickInfo* joystick_info;
+    unsigned int i;
+
+    joystick_info = PDGetCurrentJoystickData();
+    if (joystick_info != NULL) {
+        for (i = 0; i < joystick_info->count_buttons; i++) {
+            if (gJoystick_headup_texts[joystick_info->buttons[i]].key == pKey) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
 // STUB: CARMA2_HW 0x0045c6b0
 // STUB: CARMA2_SW 0x0045c0f0
 int C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2) {

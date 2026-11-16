@@ -6044,4 +6044,9 @@ enum {
 };
 
 
+typedef struct tJoystick_headup_text {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
+
 #endif // REC2_TYPES_H
