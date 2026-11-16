@@ -306,9 +306,8 @@ void C2_HOOK_CDECL Vertex_ForceFront(br_geometry* self, br_soft_renderer* render
     brp_vertex* tvp;
     int v;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
-
+    tvp = rend.temp_vertices;
+    for (v = 0; v < rend.nvertices; v++, tvp++) {
         if (rend.vertex_counts[v] == 0) {
             continue;
         }
