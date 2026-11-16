@@ -4707,7 +4707,7 @@ void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
 
 extern tWorld_callbacks gWorld_callbacks;
 
-// PARTIAL 36.36%: DoNetSmash 0x004f6130 [regalloc/structure] - pCollision kept in a register (original spills it to [esp+0x10]), frame 0x6b8 vs 0x6c0, gNet_mode branch order and join differ
+// PARTIAL 51.69%: DoNetSmash 0x004f6130 [structure] - open: bounds.mat store order before BrMatrix34Identity (S02), SmashEnvironment tail S05 (-4 ins), frame 0x6b8 vs 0x6c0; see state/findings/DoNetSmash.md
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -4723,23 +4723,28 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
     int count;
     int i;
 
-    pCollision = NULL;
     car_id = pSmash->field_0x8[0];
     if (car_id != -1) {
-        if (gNet_mode == eNet_mode_none) {
+        if (gNet_mode != eNet_mode_none) {
+            if (car_id < gNumber_of_net_players) {
+                car = gNet_players[car_id].car;
+            } else {
+                car = NULL;
+            }
+        } else {
             if ((car_id & 0xffffff00) == 0) {
                 car = &gProgram_state.current_car;
             } else {
                 car = GetCarSpec(car_id >> 8, car_id & 0xff);
             }
-        } else if (car_id < gNumber_of_net_players) {
-            car = gNet_players[car_id].car;
-        } else {
-            car = NULL;
         }
         if (car != NULL) {
             pCollision = car->collision_info;
+        } else {
+            pCollision = NULL;
         }
+    } else {
+        pCollision = NULL;
     }
     if (pCollision != NULL) {
         BrMatrix34Identity(&matrix);
@@ -4759,7 +4764,7 @@ void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
             return;
         }
         gINT_006a8294 = pSmash->field_0x8[11] & 1;
-        SmashEnvironment((tPhysics_object*)pPoint, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], (br_vector3*)pSmash, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
+        SmashEnvironment(pCollision, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], pPoint, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
         FlushSmashQueue(0);
         gINT_006a8294 = 0;
     }
