@@ -810,25 +810,37 @@ br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat,
 }
 
 /* ; called through DRActorEnumRecurseWithMat */
+// PARTIAL 91.33%: AddProximities 0x00476230 - x87 normalise store order (fld st(0)/fmul mem vs fld mem/fmul st(1)) and ret tail; see state/findings/AddProximities.md
 // FUNCTION: CARMA2_HW 0x00476230
 br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData) {
     tFunkotronic_spec* the_funk;
     br_face* the_face;
     int i;
     int j;
+    br_scalar scale;
 
     (void)pMat;
     the_funk = pData;
 
     if (pActor->model != NULL) {
-        for (i = 0; i < pActor->model->nfaces; i++) {
-            the_face = &pActor->model->faces[i];
+        the_face = pActor->model->faces;
+        for (i = 0; i < pActor->model->nfaces; i++, the_face++) {
             if (the_face->material == the_funk->material) {
                 for (j = 0; j < 3; j++) {
-                    BrVector3Copy(&the_funk->proximity_array[the_funk->proximity_count].v[j], &pActor->model->vertices[the_face->vertices[j]].p);
+                    the_funk->proximity_array[the_funk->proximity_count].v[j] = pActor->model->vertices[the_face->vertices[j]].p;
                     gFunk_temp_vertices[the_funk->proximity_count].vertices[j] = &pActor->model->vertices[the_face->vertices[j]];
                 }
-                BrVector3Normalise(&the_funk->proximity_array[the_funk->proximity_count].n, &the_face->n);
+                scale = BR_LENGTH3(the_face->n.v[0], the_face->n.v[1], the_face->n.v[2]);
+                if (scale > 2.384185791015625e-07f) {
+                    scale = (br_scalar)(1.0 / scale);
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[0] = the_face->n.v[0] * scale;
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[1] = the_face->n.v[1] * scale;
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[2] = the_face->n.v[2] * scale;
+                } else {
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[0] = 1.0f;
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[1] = 0.0f;
+                    the_funk->proximity_array[the_funk->proximity_count].n.v[2] = 0.0f;
+                }
                 the_funk->proximity_array[the_funk->proximity_count].d = -the_face->d;
                 the_funk->proximity_count += 1;
             }
@@ -836,8 +848,6 @@ br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, 
     }
     return 0;
 }
-
-// AddProximities
 
 // TryThisFunkLink
 
