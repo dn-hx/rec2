@@ -118,7 +118,7 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // DoSpecial
 
-// GiveNonCarsAShove
+extern intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext);
 
 // QueueDelayedSideEffect
 
