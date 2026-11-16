@@ -591,9 +591,90 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // LeftInventory
 
-// STUB: CARMA2_HW 0x004dad00
+// FUNCTION: CARMA2_HW 0x004dad00
 void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
-    NOT_IMPLEMENTED();
+    int i;
+    int x;
+    int y;
+    int cur;
+    tHeadup_icon* the_icon;
+    tPowerup* the_powerup;
+
+    x = gCurrent_graf_data->power_up_icon_x;
+    y = gCurrent_graf_data->power_up_icon_y;
+    for (i = 0; i < gNumber_of_icons; i++) {
+        the_icon = &gPickedup_powerups[i];
+        if (i >= 5) {
+            break;
+        }
+        if (gPickedup_powerups[i].powerup->icon != NULL) {
+            y += gCurrent_graf_data->power_up_icon_y_pitch;
+            if (the_icon->fizzle_stage < 4) {
+                if (the_icon->fizzle_direction < 0) {
+                    the_icon->fizzle_stage = 3 - (pTime - the_icon->fizzle_start) / 150;
+                } else {
+                    the_icon->fizzle_stage = (pTime - the_icon->fizzle_start) / 150;
+                }
+                if (the_icon->fizzle_stage > 4) {
+                    the_icon->fizzle_stage = 4;
+                } else if (the_icon->fizzle_stage < 0) {
+                    memcpy(the_icon, &the_icon[1], sizeof(tHeadup_icon) * (gNumber_of_icons - i - 1));
+                    gNumber_of_icons -= 1;
+                    continue;
+                }
+            }
+            DrawSinglePowerupIcon(1, pTime, the_icon->powerup, the_icon, x, y, 0);
+        }
+    }
+    if (gInventory_cycling) {
+        if (gInventory_selected >= 0) {
+            if (GetTotalTime() >= gInventory_timeout) {
+                gInventory_timeout = 0;
+                gInventory_cycling = 0;
+            }
+            x = gCurrent_graf_data->keyboard_powerup_x;
+            cur = gInventory_selected;
+            do {
+                if (gInventory[cur] >= 0) {
+                    x = DrawSinglePowerupIcon(0, pTime, &gPowerup_array[gInventory[cur]], NULL,
+                        x, gCurrent_graf_data->keyboard_powerup_y, 1) + gCurrent_graf_data->keyboard_powerup_spacing_x;
+                }
+                cur += 1;
+                if (cur >= (int)REC2_ASIZE(gInventory)) {
+                    cur = 0;
+                }
+            } while (cur != gInventory_selected);
+            if (x >= 0) {
+                DimRectangle(gBack_screen, gCurrent_graf_data->keyboard_powerup_bg_x, gCurrent_graf_data->keyboard_powerup_bg_y,
+                    x, gCurrent_graf_data->keyboard_powerup_bg_bottom, 1);
+                cur = gInventory_selected;
+                x = gCurrent_graf_data->keyboard_powerup_x;
+                DRPixelmapText(gBack_screen,
+                    gCurrent_graf_data->keyboard_powerup_bg_x + 1, gCurrent_graf_data->keyboard_powerup_bg_bottom - 9,
+                    &gFonts[2],
+                    gPowerup_array[gInventory[gInventory_selected]].message,
+                    gCurrent_graf_data->keyboard_powerup_bg_x + 100);
+                do {
+                    if (gInventory[cur] >= 0) {
+                        the_powerup = &gPowerup_array[gInventory[cur]];
+                        if (gInventory_cycling != 0) {
+                            x = DrawSinglePowerupIcon(1, pTime, the_powerup, NULL,
+                                x, gCurrent_graf_data->keyboard_powerup_y, 1) + gCurrent_graf_data->keyboard_powerup_spacing_x;
+                        }
+                    }
+                    cur += 1;
+                    if (cur >= (int)REC2_ASIZE(gInventory)) {
+                        cur = 0;
+                    }
+                } while (cur != gInventory_selected);
+            }
+        }
+    } else {
+        if (gInventory_selected >= 0) {
+            DrawSinglePowerupIcon(1, pTime, gPowerup_array + gInventory[gInventory_selected], NULL,
+                gCurrent_graf_data->keyboard_powerup_x, gCurrent_graf_data->keyboard_powerup_y, 0);
+        }
+    }
 }
 
 // MungeKeyboardPowerup
