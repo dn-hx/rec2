@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "47-win95net.h"
 #include <stddef.h>
 
 #include <stdlib.h>
