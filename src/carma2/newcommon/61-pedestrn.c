@@ -6919,6 +6919,15 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
     float local_2e4;
     int local_288[10];
 
+    (void)local_260;
+    (void)local_134;
+    (void)local_2d0;
+    (void)local_2b8;
+    (void)local_2e8;
+    (void)local_2e4;
+    (void)local_288;
+    (void)local_364;
+
     the_time = GetTotalTime();
 
     if (gPed_valium_left != 0) {
