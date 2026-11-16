@@ -109,7 +109,7 @@ extern void C2_HOOK_FASTCALL InitPowerups(void);
 
 extern void C2_HOOK_FASTCALL EmptyInventory(void);
 
-// ResetPowerups
+extern void C2_HOOK_FASTCALL ResetPowerups(void);
 
 extern void C2_HOOK_FASTCALL CloseDownPowerUps(void);
 
