@@ -487,3 +487,6 @@ extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPh
 
 #endif // GUARD_49_PHYSICS_H
 
+extern int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject);
+
+extern int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject);
