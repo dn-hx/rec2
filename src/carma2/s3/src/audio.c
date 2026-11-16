@@ -223,6 +223,95 @@ int C2_HOOK_FASTCALL S3StopChannel(tS3_channel* pChannel) {
     return eS3_error_none;
 }
 
+// FUNCTION: CARMA2_HW 0x00566dc1
+tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed) {
+    tS3_descriptor* descriptor;
+    tS3_outlet* outlet;
+    int priority;
+    tS3_channel* channel;
+
+    if (gS3_enabled) {
+        if (pSource == NULL) {
+            return 0;
+        }
+        outlet = pSource->bound_outlet;
+        descriptor = S3GetDescriptorByID(pSound);
+        if (descriptor == NULL) {
+            gS3_last_error = eS3_error_bad_id;
+            return 0;
+        }
+        if (descriptor->type != 0) {
+            return 0;
+        }
+        if (descriptor->buffer_description == NULL) {
+            return eS3_error_nonexistant_source;
+        }
+        if (pVolume > 255) {
+            pVolume = 255;
+        }
+        if (pVolume < 0) {
+            pVolume = S3IRandomBetween__dup(descriptor->min_volume, descriptor->max_volume, 128);
+        }
+        memset(&gS3_channel_template, 0, 0x78);
+        gS3_channel_template.source_volume = pVolume;
+        gS3_channel_template.volume_multiplier = pVolume;
+        gS3_channel_template.rate = S3IRandomBetweenLog(descriptor->min_pitch, descriptor->max_pitch, descriptor->buffer_description->sample_rate);
+        if (pPitch == -1) {
+            pPitch = 0x10000;
+        }
+        if (pSpeed == -1) {
+            pSpeed = 0x10000;
+        }
+        gS3_channel_template.rate = (int)((float)gS3_channel_template.rate * (float)ldexp((double)pPitch, -16));
+        if (!outlet->independent_pitch) {
+            gS3_channel_template.rate = (int)((float)gS3_channel_template.rate * (float)ldexp((double)pSpeed, -16));
+        }
+        gS3_channel_template.source_rate = gS3_channel_template.rate;
+        gS3_channel_template.sound_source_ptr = pSource;
+        if (pSource->velocity_ptr == NULL) {
+            S3CopyVector3(&gS3_channel_template.prev_position, pSource->position_ptr, pSource->brender_vector);
+        }
+        gS3_channel_template.max_distance_squared = 150.0f;
+        if (S3Calculate3D(&gS3_channel_template, 0)) {
+            priority = S3CalculatePriority(gS3_channel_template.volume_multiplier, descriptor->priority);
+            channel = S3AllocateChannel(outlet, priority);
+            if (channel == NULL) {
+                gS3_last_error = eS3_error_channel_alloc;
+                return 0;
+            }
+            if ((descriptor->buffer_description == NULL || (descriptor->flags & 2) != 0)
+                    && S3LoadSample(pSound) == eS3_error_none) {
+                gS3_last_error = eS3_error_load_sound;
+                channel->needs_service = 1;
+                return 0;
+            }
+            channel->volume_multiplier = gS3_channel_template.volume_multiplier;
+            channel->field_0x28 = gS3_channel_template.field_0x28;
+            channel->rate = gS3_channel_template.rate;
+            channel->position = gS3_channel_template.position;
+            channel->velocity = gS3_channel_template.velocity;
+            channel->prev_position = gS3_channel_template.prev_position;
+            channel->source_volume = gS3_channel_template.source_volume;
+            channel->source_rate = gS3_channel_template.source_rate;
+            channel->max_distance_squared = gS3_channel_template.max_distance_squared;
+            channel->spatial_sound = 1;
+            channel->sound_source_ptr = pSource;
+            channel->descriptor = descriptor;
+            channel->tag = S3GenerateTag(outlet);
+            channel->repetitions = pRepeats <= 0 ? 0 : pRepeats;
+            channel->needs_service = 0;
+            channel->termination_reason = eS3_tr_natural;
+            S3ExecuteSampleFilterFuncs(channel);
+            if (S3PlaySample(channel, descriptor) == 0) {
+                channel->needs_service = 1;
+                gS3_last_error = eS3_error_start_sound;
+                return 0;
+            }
+            return channel->tag;
+        }
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x005698fc
 // FUNCTION: CARMA2_SW 0x00564f9c
 int C2_HOOK_FASTCALL S3GetCountChannels(int pCount_channels_1, int pCount_channels_2) {
