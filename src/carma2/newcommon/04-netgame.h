@@ -120,7 +120,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // SendAllNonCarPositions
 
-// ReceivedNonCarPosition
+extern void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents);
 
 // ReceivedNonCar
 
