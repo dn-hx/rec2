@@ -560,7 +560,7 @@ extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pA
 
 // SendAllDBNonCars
 
-// ReceivedDBNonCarPosition
+extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents);
 
 extern void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents);
 
