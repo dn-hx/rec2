@@ -302,7 +302,7 @@ extern int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* 
 
 // SendAllSmashes
 
-// HitPowerup
+extern void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor);
 
 // SmashEnvironment
 
