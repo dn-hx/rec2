@@ -9533,15 +9533,14 @@ void C2_HOOK_FASTCALL ReceivedDetachBit(void* pMsg_) {
     }
 }
 
-// PARTIAL 38.81%: ReceivedFullyDetachBit 0x0043cbd0 [regalloc] - pContents/car register roles swapped (ebp/ebx), frame 0x4c with spill, neg/sbb found-test not reproduced
+// PARTIAL 46.51%: ReceivedFullyDetachBit 0x0043cbd0 [regalloc] - pContents in edi not ebp (car spill-free now), neg/sbb actor select and list-add store order open
 // FUNCTION: CARMA2_HW 0x0043cbd0
 void C2_HOOK_FASTCALL ReceivedFullyDetachBit(tU8* pContents) {
     /* frame: +0x0 keep int, +0x4 {u8 id; pad[3]; br_actor* actor} (DRActorEnumRecurse arg),
-       +0xc/+0x18/+0x24 vectors, +0x2c vector (ExpandVector3 dst), +0x30 bounds3 (min +0x30, max +0x3c). */
+       +0xc/+0x18/+0x24 vectors (ExpandVector3 dsts), +0x30 bounds3 (min +0x30, max +0x3c). */
     extern tCar_spec* C2_HOOK_FASTCALL NetCarFromPlayerID(tPlayer_ID pPlayer);
     tU8 frame[0x48];
     tCar_spec* car;
-    tCar_crush_spec* crush;
     tPhysics_object* bit;
     tPhysics_object** slot;
     br_actor* actor;
@@ -9558,23 +9557,23 @@ void C2_HOOK_FASTCALL ReceivedFullyDetachBit(tU8* pContents) {
     if (car == NULL) {
         return;
     }
-    bit = NULL;
-    crush = car->car_crush_spec;
-    if (crush != NULL) {
-        count = crush->field_0x270;
+    if (car->car_crush_spec != NULL) {
+        count = car->car_crush_spec->field_0x270;
         if (count > 0) {
-            slot = (tPhysics_object**)((char*)crush + 0x27c);
+            slot = (tPhysics_object**)((char*)car->car_crush_spec + 0x27c);
             i = 0;
             do {
                 if (*(tU8*)((char*)*slot + 0x190) == pContents[8]) {
                     bit = *slot;
-                    break;
+                    goto found;
                 }
                 i++;
                 slot += 5;
             } while (i < count);
         }
     }
+    bit = NULL;
+found:
     if (bit == NULL) {
         frame[4] = pContents[8];
         *(tU32*)(frame + 8) = 0;
@@ -9583,7 +9582,7 @@ void C2_HOOK_FASTCALL ReceivedFullyDetachBit(tU8* pContents) {
         if (actor == NULL) {
             return;
         }
-        ExpandVector3((br_vector3*)(frame + 0x2c), (tCompressed_vector3*)(pContents + 0x10), -10.0f, 10.0f);
+        ExpandVector3((br_vector3*)(frame + 0x24), (tCompressed_vector3*)(pContents + 0x10), -10.0f, 10.0f);
         ExpandVector3((br_vector3*)(frame + 0x18), (tCompressed_vector3*)(pContents + 0x16), -10.0f, 10.0f);
         ExpandVector3((br_vector3*)(frame + 0xc), (tCompressed_vector3*)(pContents + 0x1c), -10.0f, 10.0f);
         ExpandVector3((br_vector3*)(frame + 0x30), (tCompressed_vector3*)(pContents + 0x22), -10.0f, 10.0f);
