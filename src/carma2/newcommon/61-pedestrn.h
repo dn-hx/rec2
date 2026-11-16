@@ -630,7 +630,7 @@ extern float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_i
 
 extern void C2_HOOK_FASTCALL MungeAllCharacterMaterials(material_cbfn* pCallback);
 
-// MungeAllCharacterObjects
+extern void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback)(void*));
 
 // MungeAllCharacterModels
 
