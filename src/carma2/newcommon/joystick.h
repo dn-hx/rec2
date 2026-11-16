@@ -65,3 +65,5 @@ extern float C2_HOOK_FASTCALL GetJoystickX(void);
 extern float C2_HOOK_FASTCALL GetJoystickY(void);
 
 #endif /* REC2_JOYSTICK_H */
+
+extern unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey);
