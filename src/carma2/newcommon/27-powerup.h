@@ -289,7 +289,7 @@ extern int C2_HOOK_FASTCALL PissOutOil(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL KangerooJump(tPowerup* pPowerup, tCar_spec* pCar);
 
-// AnnihilatePeds
+extern int C2_HOOK_FASTCALL AnnihilatePeds(tPowerup* pPowerup, tCar_spec* pCar);
 
 // NapalmPeds
 
