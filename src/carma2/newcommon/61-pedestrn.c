@@ -5741,25 +5741,35 @@ typedef struct {
 // GLOBAL: CARMA2_HW 0x0069bd08
 tPed_prox_flag_cell gPed_prox_flag_cells[16];
 
+/* Bit masks the proximity half-space tests read (values 1..0x8000, read at 0x0065e5d8). */
+// GLOBAL: CARMA2_HW 0x0065e5d8
+tU16 gPow2_word_array[16] = {
+    0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
+    0x0100, 0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, 0x8000
+};
+
 /* One triangle-vertex side test with the original's memoisation (it is inlined there): a cached
    entry returns the stored result, a miss evaluates and caches test/result bits. */
 static int C2_HOOK_FASTCALL PedProxSideTest(tPed_prox_flag_cell* pCell, int pIndex, br_vector3* pPoint, br_vector3* pNormal, br_scalar pD, tU16 pTest_flag, tU16 pResult_flag) {
     int side;
+    int cache_ok;
 
-    if (pCell != NULL && pIndex < 0x200) {
-        if ((pCell->flags[pIndex] & pTest_flag) != 0) {
-            return pCell->flags[pIndex] & pResult_flag;
-        }
+    cache_ok = pCell != NULL && pIndex < 0x200;
+    if (cache_ok && (pCell->flags[pIndex] & pTest_flag) != 0) {
+        side = pCell->flags[pIndex] & pResult_flag;
+    } else {
         side = NormalSideOfPlane(pPoint, pNormal, pD);
-        pCell->flags[pIndex] |= pTest_flag;
-        if (side != 0) {
-            pCell->flags[pIndex] |= pResult_flag;
+        if (cache_ok) {
+            pCell->flags[pIndex] |= pTest_flag;
+            if (side != 0) {
+                pCell->flags[pIndex] |= pResult_flag;
+            }
         }
-        return side;
     }
-    return NormalSideOfPlane(pPoint, pNormal, pD);
+    return side;
 }
 
+// PARTIAL 24.07%: RescanPedProximity 0x004cfab0 - open: prologue/frame (orig 0xd8 + `and esp,-8` double local, ours 0xdc), stack slots, idx registers, x87 order in S02/S11, S11 tail
 // FUNCTION: CARMA2_HW 0x004cfab0
 float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) {
     tPed_cache_006944c0* cache;
@@ -5776,8 +5786,8 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
     tPed_prox_vertex* v2;
     tPed_prox_flag_cell* cell;
     tRace_ped_exclusion_spec* spec;
+    tPed_character_instance* character;
     br_vector3* pPos;
-    br_vector3* pSrc;
     br_vector3 dir;
     br_vector3 n;
     br_vector3 neg;
@@ -5786,9 +5796,10 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
     br_vector3 w;
     tU16* rec;
     br_scalar best;
-    br_scalar result = 0.f;
+    br_scalar result;
     br_scalar len;
     br_scalar scale;
+    br_scalar a0;
     br_scalar nx;
     br_scalar nz;
     br_scalar dot1;
@@ -5833,41 +5844,61 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
     if (face == NULL) {
         return 10000.f;
     }
-    cache->field_0x00 = face->normal;
+    cache->field_0x00.v[0] = face->normal.v[0];
+    cache->field_0x00.v[1] = face->normal.v[1];
+    cache->field_0x00.v[2] = face->normal.v[2];
 
-    pSrc = pArg2 != NULL ? pArg2 : &pPed->character->field_0xc0;
-    len = (br_scalar)sqrt(pSrc->v[0] * pSrc->v[0] + pSrc->v[1] * pSrc->v[1] + pSrc->v[2] * pSrc->v[2]);
-    if (len > 2.3841858e-7f) {
-        scale = (br_scalar)(1.0 / len);
-        dir.v[0] = pSrc->v[0] * scale;
-        dir.v[1] = pSrc->v[1] * scale;
-        dir.v[2] = pSrc->v[2] * scale;
+    if (pArg2 == NULL) {
+        character = pPed->character;
+        len = (br_scalar)sqrt(character->field_0xc0.v[2] * character->field_0xc0.v[2]
+                + character->field_0xc0.v[1] * character->field_0xc0.v[1]
+                + character->field_0xc0.v[0] * character->field_0xc0.v[0]);
+        if (2.3841858e-7f < len) {
+            scale = (br_scalar)(1.0 / len);
+            dir.v[0] = character->field_0xc0.v[0] * scale;
+            dir.v[1] = character->field_0xc0.v[1] * scale;
+            dir.v[2] = character->field_0xc0.v[2] * scale;
+            goto ped_prox_direction;
+        }
     } else {
-        dir.v[0] = 1.f;
-        dir.v[1] = 0.f;
-        dir.v[2] = 0.f;
+        a0 = pArg2->v[2];
+        len = (br_scalar)sqrt(pArg2->v[0] * pArg2->v[0] + a0 * a0 + pArg2->v[1] * pArg2->v[1]);
+        if (2.3841858e-7f < len) {
+            scale = (br_scalar)(1.0 / len);
+            dir.v[0] = pArg2->v[0] * scale;
+            dir.v[1] = pArg2->v[1] * scale;
+            dir.v[2] = pArg2->v[2] * scale;
+            goto ped_prox_direction;
+        }
     }
-    cache->field_0x0c = dir;
-
+    dir.v[0] = 1.f;
+    dir.v[1] = 0.f;
+    dir.v[2] = 0.f;
+ped_prox_direction:
     best = 10000.f;
-    cache->field_0x18 &= 0xf4;
+    cache->field_0x0c.v[0] = dir.v[0];
+    cache->field_0x0c.v[1] = dir.v[1];
+    cell_count = 0;
+    done = 0;
+    cache->field_0x0c.v[2] = dir.v[2];
 
-    len = (br_scalar)sqrt(dir.v[0] * dir.v[0] + dir.v[2] * dir.v[2]);
+    len = (br_scalar)sqrt(dir.v[2] * dir.v[2] + dir.v[0] * dir.v[0]);
     nx = dir.v[0] / len;
     nz = dir.v[2] / len;
 
     is_running = pPed->action == ePed_action_running;
+    cache->field_0x18 &= 0xf4;
+
     pPos = (br_vector3*)GetCharacterMatrixPtr(pPed->character)->m[3];
 
     entry = (tPed_prox_entry*)head->field_0x0;
     entry_count = ((tU8*)head)[0x4];
+    i = 0;
     if (entry_count == 0) {
         return best;
     }
 
-    done = 0;
-    cell_count = 0;
-    for (i = 0; i < entry_count; i++, entry++) {
+    for (; i < entry_count; i++, entry++) {
         matched = 0;
         if (entry->plane.v[1] > gPed_cos_max_slope) {
             if (gPeds_suicidal) {
@@ -5998,19 +6029,19 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
 
         /* The three movement half-spaces: along the direction, then the two extra planes of the
            pedestrian's breadth; the side test uses the three triangle-face normals. */
-        if (!PedProxSideTest(cell, idx0, &entry->normal1, &dir, d0, 0x8, 0x800)
-                && !PedProxSideTest(cell, idx1, &entry->normal2, &dir, d0, 0x8, 0x800)
-                && !PedProxSideTest(cell, idx2, &entry->normal3, &dir, d0, 0x8, 0x800)) {
+        if (!PedProxSideTest(cell, idx0, &entry->normal1, &dir, d0, gPow2_word_array[3], gPow2_word_array[11])
+                && !PedProxSideTest(cell, idx1, &entry->normal2, &dir, d0, gPow2_word_array[3], gPow2_word_array[11])
+                && !PedProxSideTest(cell, idx2, &entry->normal3, &dir, d0, gPow2_word_array[3], gPow2_word_array[11])) {
             continue;
         }
-        if (!PedProxSideTest(cell, idx0, &entry->normal1, &n, dot1, 0x2, 0x200)
-                && !PedProxSideTest(cell, idx1, &entry->normal2, &n, dot1, 0x2, 0x200)
-                && !PedProxSideTest(cell, idx2, &entry->normal3, &n, dot1, 0x2, 0x200)) {
+        if (!PedProxSideTest(cell, idx0, &entry->normal1, &n, dot1, gPow2_word_array[1], gPow2_word_array[9])
+                && !PedProxSideTest(cell, idx1, &entry->normal2, &n, dot1, gPow2_word_array[1], gPow2_word_array[9])
+                && !PedProxSideTest(cell, idx2, &entry->normal3, &n, dot1, gPow2_word_array[1], gPow2_word_array[9])) {
             continue;
         }
-        if (!PedProxSideTest(cell, idx0, &entry->normal1, &neg, dot2, 0x4, 0x400)
-                && !PedProxSideTest(cell, idx1, &entry->normal2, &neg, dot2, 0x4, 0x400)
-                && !PedProxSideTest(cell, idx2, &entry->normal3, &neg, dot2, 0x4, 0x400)) {
+        if (!PedProxSideTest(cell, idx0, &entry->normal1, &neg, dot2, gPow2_word_array[2], gPow2_word_array[10])
+                && !PedProxSideTest(cell, idx1, &entry->normal2, &neg, dot2, gPow2_word_array[2], gPow2_word_array[10])
+                && !PedProxSideTest(cell, idx2, &entry->normal3, &neg, dot2, gPow2_word_array[2], gPow2_word_array[10])) {
             continue;
         }
 
@@ -6115,17 +6146,17 @@ float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) 
                 entry->plane.v[2] = -entry->plane.v[2];
                 entry->d = -entry->d;
             } else {
-                if (PedProxSideTest(cell, idx0, &entry->normal1, &neg_normal, d1, 0x10, 0x1000)
-                        || PedProxSideTest(cell, idx1, &entry->normal2, &neg_normal, d1, 0x10, 0x1000)
-                        || PedProxSideTest(cell, idx2, &entry->normal3, &neg_normal, d1, 0x10, 0x1000)) {
+                if (PedProxSideTest(cell, idx0, &entry->normal1, &neg_normal, d1, gPow2_word_array[4], gPow2_word_array[12])
+                        || PedProxSideTest(cell, idx1, &entry->normal2, &neg_normal, d1, gPow2_word_array[4], gPow2_word_array[12])
+                        || PedProxSideTest(cell, idx2, &entry->normal3, &neg_normal, d1, gPow2_word_array[4], gPow2_word_array[12])) {
                     cache->field_0x18 |= 0x1;
                 }
                 goto ped_prox_final;
             }
         }
-        if (PedProxSideTest(cell, idx0, &entry->normal1, &face->normal, face->d, 0x1, 0x100)
-                || PedProxSideTest(cell, idx1, &entry->normal2, &face->normal, face->d, 0x1, 0x100)
-                || PedProxSideTest(cell, idx2, &entry->normal3, &face->normal, face->d, 0x1, 0x100)) {
+        if (PedProxSideTest(cell, idx0, &entry->normal1, &face->normal, face->d, gPow2_word_array[0], gPow2_word_array[8])
+                || PedProxSideTest(cell, idx1, &entry->normal2, &face->normal, face->d, gPow2_word_array[0], gPow2_word_array[8])
+                || PedProxSideTest(cell, idx2, &entry->normal3, &face->normal, face->d, gPow2_word_array[0], gPow2_word_array[8])) {
             cache->field_0x18 |= 0x2;
         }
     ped_prox_final:
