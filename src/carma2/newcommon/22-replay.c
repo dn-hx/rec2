@@ -393,7 +393,7 @@ void C2_HOOK_FASTCALL ARApplyFlap(int field_0x4, tU16 field_0x8) {
 }
 
 
-// PARTIAL 36.22%: ARApplySplitWeld 0x0043c240 - logic complete (inlined MakeModelMaterialsDoubleSided loop); residual: original copies the 4 plane floats via fld/fstp (x87 hoisted), MSVC emits integer movs; frame/regalloc follow.
+// PARTIAL 48.35%: ARApplySplitWeld 0x0043c240 - logic complete (inlined MakeModelMaterialsDoubleSided loop); residual: original copies the 4 plane floats via fld/fstp (x87 hoisted), MSVC emits integer movs; frame/regalloc follow.
 // FUNCTION: CARMA2_HW 0x0043c240
 void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector) {
     tCar_spec* car;
@@ -405,13 +405,18 @@ void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector) {
     int i;
     int g;
 
+    float p0 = pVector->v[0];
+    float p1 = pVector->v[1];
+    float p2 = pVector->v[2];
+    float p3 = ((float*)pVector)[3];
     car = roadMachine;
-    split_plane.v[0] = pVector->v[0];
-    split_plane.v[1] = pVector->v[1];
-    split_plane.v[2] = pVector->v[2];
+    split_plane.v[0] = p0;
+    split_plane.v[1] = p1;
+    split_plane.v[2] = p2;
+    split_plane.v[3] = p3;
     crush = car->car_crush_spec;
     user = car->car_model_actor->user;
-    split_plane.v[3] = ((float*)pVector)[3] - (car->car_model_actor->t.t.translate.t.v[1] * split_plane.v[1] + car->car_model_actor->t.t.translate.t.v[0] * split_plane.v[0] + car->car_model_actor->t.t.translate.t.v[2] * split_plane.v[2]);
+    split_plane.v[3] = split_plane.v[3] - (car->car_model_actor->t.t.translate.t.v[1] * split_plane.v[1] + car->car_model_actor->t.t.translate.t.v[0] * split_plane.v[0] + car->car_model_actor->t.t.translate.t.v[2] * split_plane.v[2]);
     SplitModel(user->models[0], (br_model**)crush->field_0x4c4, &crush->model_actor->model, split_plane.v, 0);
     i = 1;
     if (1 < car->count_detail_levels) {
