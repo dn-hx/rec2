@@ -409,35 +409,46 @@ int gCrush_panel_ids[10];
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 55.06%: MakeAISimpleEditSectionHere 0x004020e0 [regalloc/frame] - FPU-held pNode x/z, int-copied pPos x/z, vertex self-copies via volatile u32; see state/findings/MakeAISimpleEditSectionHere.md
 // FUNCTION: CARMA2_HW 0x004020e0
 void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2) {
     br_vector3 p1;
     br_vector3 p2;
 
-    p1 = pNode->position;
-    p1.v[1] -= -0.15f;
-    p2 = *pPos;
-    p2.v[1] -= -0.15f;
+    p1.v[0] = pNode->position.v[0];
+    p1.v[2] = pNode->position.v[2];
+    p1.v[1] = pNode->position.v[1] - -0.15f;
+    p2.v[0] = pPos->v[0];
+    p2.v[2] = pPos->v[2];
+    p2.v[1] = pPos->v[1] - -0.15f;
 
     pModel->vertices[pVert_index].p.v[0] = p1.v[0];
     pModel->vertices[pVert_index].p.v[1] = p1.v[1];
     pModel->vertices[pVert_index].p.v[2] = p1.v[2];
+    *(volatile tU32*)&pModel->vertices[pVert_index].p.v[0] = *(volatile tU32*)&pModel->vertices[pVert_index].p.v[0];
     pModel->vertices[pVert_index].p.v[1] -= -0.1f;
+    *(volatile tU32*)&pModel->vertices[pVert_index].p.v[2] = *(volatile tU32*)&pModel->vertices[pVert_index].p.v[2];
 
     pModel->vertices[pVert_index + 1].p.v[0] = p2.v[0];
     pModel->vertices[pVert_index + 1].p.v[1] = p2.v[1];
     pModel->vertices[pVert_index + 1].p.v[2] = p2.v[2];
+    *(volatile tU32*)&pModel->vertices[pVert_index + 1].p.v[0] = *(volatile tU32*)&pModel->vertices[pVert_index + 1].p.v[0];
     pModel->vertices[pVert_index + 1].p.v[1] -= -0.1f;
+    *(volatile tU32*)&pModel->vertices[pVert_index + 1].p.v[2] = *(volatile tU32*)&pModel->vertices[pVert_index + 1].p.v[2];
 
     pModel->vertices[pVert_index + 2].p.v[0] = p1.v[0];
     pModel->vertices[pVert_index + 2].p.v[1] = p1.v[1];
     pModel->vertices[pVert_index + 2].p.v[2] = p1.v[2];
+    *(volatile tU32*)&pModel->vertices[pVert_index + 2].p.v[0] = *(volatile tU32*)&pModel->vertices[pVert_index + 2].p.v[0];
     pModel->vertices[pVert_index + 2].p.v[1] -= 0.1f;
+    *(volatile tU32*)&pModel->vertices[pVert_index + 2].p.v[2] = *(volatile tU32*)&pModel->vertices[pVert_index + 2].p.v[2];
 
     pModel->vertices[pVert_index + 3].p.v[0] = p2.v[0];
     pModel->vertices[pVert_index + 3].p.v[1] = p2.v[1];
     pModel->vertices[pVert_index + 3].p.v[2] = p2.v[2];
+    *(volatile tU32*)&pModel->vertices[pVert_index + 3].p.v[0] = *(volatile tU32*)&pModel->vertices[pVert_index + 3].p.v[0];
     pModel->vertices[pVert_index + 3].p.v[1] -= 0.1f;
+    *(volatile tU32*)&pModel->vertices[pVert_index + 3].p.v[2] = *(volatile tU32*)&pModel->vertices[pVert_index + 3].p.v[2];
 
     pModel->faces[pFace_index].vertices[0] = pVert_index + 1;
     pModel->faces[pFace_index].vertices[1] = pVert_index + 3;
