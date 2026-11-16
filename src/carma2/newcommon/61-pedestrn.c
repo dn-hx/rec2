@@ -6902,6 +6902,7 @@ tU32 gPed_last_score_time;
 // GLOBAL: CARMA2_HW 0x00694120
 tPedestrian* gPed_recent_ped;
 
+// PARTIAL 32.82%: MungePedestrians 0x004d3740 - frame size 0x208 vs 0x3b8; first loop inlined FPU math; missing large local arrays usage; register allocation mismatch
 // FUNCTION: CARMA2_HW 0x004d3740
 void C2_HOOK_FASTCALL MungePedestrians(void) {
     tU32 the_time;
@@ -6909,6 +6910,14 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
     tPedestrian* scared_pedestrians[10];
     int scare_now;
     int i;
+    int local_364;
+    undefined4 local_260[75];
+    undefined4 local_134[76];
+    br_matrix34 local_2d0;
+    br_matrix34 local_2b8;
+    int local_2e8[4];
+    float local_2e4;
+    int local_288[10];
 
     the_time = GetTotalTime();
 
@@ -6930,25 +6939,42 @@ void C2_HOOK_FASTCALL MungePedestrians(void) {
         scare_now = 0;
     }
     if (!gAction_replay_mode) {
+        local_364 = 0;
         for (i = 0; i < gPed_count; i++) {
             tPedestrian* ped;
-            br_vector3 ped_distance;
+            float dx, dy, dz;
+            float abs_dx, abs_dy, abs_dz;
+            int flags;
+            int process_far;
 
             ped = &gPedestrian_array[i];
-            BrVector3Sub(&ped_distance, (br_vector3*)gCamera_to_world.m[3], &ped->pos);
-            if ((((ped->flags & 0x80)
-                        || fabs(ped_distance.v[0]) >= gPed_process_distance
-                        || fabs(ped_distance.v[1]) >= gPed_process_distance_inner
-                        || fabs(ped_distance.v[2]) >= gPed_process_distance) && (ped->field_0x0c == NULL || ped->field_0x0c->field_0x8c == 0 || the_time - ped->field_0x0c->field_0x8c >= 7500))
-                    || (!(ped->flags & 0x1)
-                        && !gPed_nearness
-                        && fabs(ped_distance.v[0]) <= gPed_popup_distance
-                        && fabs(ped_distance.v[1]) <= gPed_popup_distance_inner
-                        && fabs(ped_distance.v[2]) <= gPed_popup_distance)) {
+            dx = gCamera_to_world.m[3][0] - ped->pos.v[0];
+            dy = gCamera_to_world.m[3][1] - ped->pos.v[1];
+            dz = gCamera_to_world.m[3][2] - ped->pos.v[2];
+            abs_dx = dx >= 0 ? dx : -dx;
+            abs_dy = dy >= 0 ? dy : -dy;
+            abs_dz = dz >= 0 ? dz : -dz;
+            flags = ped->flags;
+            process_far = 0;
+            if (flags & 0x80) {
+                process_far = 1;
+            } else if (abs_dx >= gPed_process_distance) {
+                process_far = 1;
+            } else if (abs_dy >= gPed_process_distance_inner) {
+                process_far = 1;
+            } else if (abs_dz >= gPed_process_distance) {
+                process_far = 1;
+            }
+            if (process_far) {
+                if (ped->field_0x0c != NULL && ped->field_0x0c->field_0x8c != 0 && the_time - ped->field_0x0c->field_0x8c < 7500) {
+                    process_far = 0;
+                }
+            }
+            if (process_far || (!(flags & 0x1) && !gPed_nearness && abs_dx <= gPed_popup_distance && abs_dy <= gPed_popup_distance_inner && abs_dz <= gPed_popup_distance)) {
                 ped->flags &= ~0x1;
             } else {
                 ped->flags |= 0x1;
-                if (scare_now && ped->action == ePed_action_walking && count_scared_pedestrians < REC2_ASIZE(scared_pedestrians)) {
+                if (scare_now && ped->action == ePed_action_walking && count_scared_pedestrians < 10) {
                     scared_pedestrians[count_scared_pedestrians] = ped;
                     count_scared_pedestrians += 1;
                 }
