@@ -120,70 +120,22 @@ void C2_HOOK_CDECL BrBlockFill(br_uint_32* pDestination, br_uint_32 pValue, int 
 #endif
 }
 
-#if defined(_MSC_VER) && defined(_M_IX86)
-C2_NAKED
-#endif
+// PARTIAL 18.75%: BrBlockCopy 0x0052814e - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x0052814e
 void C2_HOOK_CDECL BrBlockCopy(br_uint_32* pDestination, br_uint_32* pSource, int pCount) {
-#if defined(_MSC_VER) && defined(_M_IX86)
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ecx
-        push esi
-        push edi
-        push es
-        mov ax, ds
-        mov es, ax
-        mov esi, dword ptr [ebp+0xc]
-        mov ecx, dword ptr [ebp+0x10]
-        mov edi, dword ptr [ebp+0x8]
-        rep movsd
-        pop es
-        pop edi
-        pop esi
-        pop ecx
-        leave
-        ret
-    }
-#else
     int i;
 
     for (i = 0; i < pCount; i++) {
         pDestination[i] = pSource[i];
     }
-#endif
 }
 
-#if defined(_MSC_VER) && defined(_M_IX86)
-C2_NAKED
-#endif
+// PARTIAL 20.00%: BrFarBlockCopy 0x0052816c - plain C restored 2026-11-16 (inline asm removed: not portable).
 // FUNCTION: CARMA2_HW 0x0052816c
 void C2_HOOK_CDECL BrFarBlockCopy(br_uint_32* pDestination, br_uint_16 pDestinationSel, br_uint_32* pSource, int pCount) {
-#if defined(_MSC_VER) && defined(_M_IX86)
-    __asm {
-        push ebp
-        mov ebp, esp
-        push ecx
-        push esi
-        push edi
-        push es
-        mov ecx, dword ptr [ebp+0x14]
-        mov esi, dword ptr [ebp+0x10]
-        les edi, fword ptr [ebp+0x8]
-        rep movsd
-        pop es
-        pop edi
-        pop esi
-        pop ecx
-        leave
-        ret
-    }
-#else
     int i;
 
     for (i = 0; i < pCount; i++) {
         pDestination[i] = pSource[i];
     }
-#endif
 }
