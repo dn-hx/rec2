@@ -1186,6 +1186,7 @@ int C2_HOOK_FASTCALL DRTextWidth(const tDR_font* pFont, const char* pText) {
     return PolyFontTextWidth(GetPolyFontIndexToReplaceDRfontWith(pFont), pText);
 }
 
+// PARTIAL 33.75%: DRTextCleverWidth 0x00465e10 [structure] - helpers inlined; register roles (i/len/polyfont) and pointer loop differ; see state/findings/DRTextCleverWidth.md
 // FUNCTION: CARMA2_HW 0x00465e10
 int C2_HOOK_FASTCALL DRTextCleverWidth(const tDR_font* pFont, const char* pText) {
     int polyfont_index;
