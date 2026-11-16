@@ -405,7 +405,7 @@ extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
 
 // DuplicateModel
 
-// SetChangingPowerup
+extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
 
 extern int C2_HOOK_FASTCALL PedValium(tPowerup* pPowerup, tCar_spec* pCar);
 
