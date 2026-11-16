@@ -3204,6 +3204,7 @@ void C2_HOOK_FASTCALL AnimateSky(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 97.22%: FastFloatCos 0x00511440 - cross-TU gFloat_sine_table reference prevents absolute offset folding for angle>90 case
 // FUNCTION: CARMA2_HW 0x00511440
 float C2_HOOK_FASTCALL FastFloatCos(int pAngle_in_degrees) {
 
