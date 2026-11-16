@@ -527,6 +527,31 @@ void C2_HOOK_FASTCALL DoSomeThingsToCheckpoints(br_pixelmap* pMap, tU32 pTime, t
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004967c0
+void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const br_vector3 *pPos, int pColour) {
+    br_vector3 map_pos;
+    if (pTime & 0x100) {
+        pColour = 0;
+    }
+    BrMatrix34ApplyP(&map_pos, pPos, &gCurrent_race.map_transformation);
+    if (map_pos.v[0] >= 0.f && map_pos.v[0] < (float)pScreen->width && map_pos.v[1] >= 0.f && map_pos.v[1] < (float)pScreen->height) {
+        if (gMap_view == 2) {
+#ifdef REC2_HW
+            PossibleLock(1);
+#endif
+        }
+        if (gBack_screen->type != BR_PMT_INDEX_8) {
+            *(tU16*)((int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0] * 2 + (int)pScreen->pixels) = PaletteEntry16Bit(gRender_palette, pColour);
+        } else {
+            ((tU8*)pScreen->pixels)[(int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0]] = (tU8)pColour;
+        }
+        if (gMap_view == 2) {
+#ifdef REC2_HW
+            PossibleUnlock(1);
+#endif
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x004968f0
 // FUNCTION: CARMA2_SW 0x00493260
 void C2_HOOK_FASTCALL CalcMapCheckpoint(br_pixelmap* pMap, int pCheckpoint, tU32 pTime, int pTarget) {
