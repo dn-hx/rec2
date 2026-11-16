@@ -213,7 +213,26 @@ void C2_HOOK_FASTCALL F12Key(void) {
 
 // NumberKey1
 
-// NumberKey2
+static void C2_HOOK_FASTCALL DoEditModeKey(int pIndex) {
+    int modifiers;
+
+    if (gI_am_cheating == 0xa11ee75d || (gI_am_cheating == 0x564e78b9 && gNet_mode == eNet_mode_none)) {
+        modifiers = PDKeyDown(0) ? 4 : 0;
+        modifiers |= PDKeyDown(1) ? 2 : 0;
+        modifiers |= PDKeyDown(2) ? 1 : 0;
+        if (gEdit_funcs[gWhich_edit_mode][pIndex][modifiers] != NULL) {
+            gEdit_funcs[gWhich_edit_mode][pIndex][modifiers]();
+        }
+    } else {
+        gWhich_edit_mode = 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00441a10
+void C2_HOOK_FASTCALL NumberKey2(void) {
+
+    DoEditModeKey(9);
+}
 
 // NumberKey3
 
