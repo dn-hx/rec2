@@ -1290,16 +1290,16 @@ static __inline int C2_HOOK_FASTCALL ModelPickBox_Clip(br_vector3* polygon, int 
     return result;
 }
 
-// PARTIAL 58.74%: ModelPickBox 0x0045ff90 - frame 0x230 vs 0x22c (one scalar slot extra), pushes not shrink-wrapped after the max_face test, x87 schedule of the distance test
+// PARTIAL 62.01%: ModelPickBox 0x0045ff90 - frame now 0x22c = original (polygon 0x7c, clipped 0x10c/0x19c, normal 0x70). A source `i2` local on top of `limit` needed 32 scalar slots, so the slab tests read face->vertices[2] directly (same 31-slot frame as the binary, ~18 extra instructions). Residual: prologue load order, x87 load/schedule of the |eqn.(v-box_centre)| test, group/face loop tails, clip inlined as index arithmetic not the original's pointer walk.
 // FUNCTION: CARMA2_HW 0x0045ff90
 int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
-    v11model* prepared = ((volatile br_model*)model)->prepared;
+    v11model* prepared = model->prepared;
     v11group* prepared_group;
     v11face* face;
     br_vector3 polygon[12];
     br_vector3 normal;
     int group, f, axis, count;
-    int i0, i1, i2;
+    int i0, i1;
     br_scalar limit;
     br_uint_16 original_face;
 
@@ -1317,29 +1317,28 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
                 continue;
             }
             i1 = face->vertices[1];
-            i2 = face->vertices[2];
             limit = bnds->real_bounds.min.v[0];
-            if (prepared_group->vertices[i0].p.v[0] < limit && prepared_group->vertices[i1].p.v[0] < limit && prepared_group->vertices[i2].p.v[0] < limit) {
+            if (prepared_group->vertices[i0].p.v[0] < limit && prepared_group->vertices[i1].p.v[0] < limit && prepared_group->vertices[face->vertices[2]].p.v[0] < limit) {
                 continue;
             }
             limit = bnds->real_bounds.max.v[0];
-            if (prepared_group->vertices[i0].p.v[0] > limit && prepared_group->vertices[i1].p.v[0] > limit && prepared_group->vertices[i2].p.v[0] > limit) {
+            if (prepared_group->vertices[i0].p.v[0] > limit && prepared_group->vertices[i1].p.v[0] > limit && prepared_group->vertices[face->vertices[2]].p.v[0] > limit) {
                 continue;
             }
             limit = bnds->real_bounds.min.v[1];
-            if (prepared_group->vertices[i0].p.v[1] < limit && prepared_group->vertices[i1].p.v[1] < limit && prepared_group->vertices[i2].p.v[1] < limit) {
+            if (prepared_group->vertices[i0].p.v[1] < limit && prepared_group->vertices[i1].p.v[1] < limit && prepared_group->vertices[face->vertices[2]].p.v[1] < limit) {
                 continue;
             }
             limit = bnds->real_bounds.max.v[1];
-            if (prepared_group->vertices[i0].p.v[1] > limit && prepared_group->vertices[i1].p.v[1] > limit && prepared_group->vertices[i2].p.v[1] > limit) {
+            if (prepared_group->vertices[i0].p.v[1] > limit && prepared_group->vertices[i1].p.v[1] > limit && prepared_group->vertices[face->vertices[2]].p.v[1] > limit) {
                 continue;
             }
             limit = bnds->real_bounds.min.v[2];
-            if (prepared_group->vertices[i0].p.v[2] < limit && prepared_group->vertices[i1].p.v[2] < limit && prepared_group->vertices[i2].p.v[2] < limit) {
+            if (prepared_group->vertices[i0].p.v[2] < limit && prepared_group->vertices[i1].p.v[2] < limit && prepared_group->vertices[face->vertices[2]].p.v[2] < limit) {
                 continue;
             }
             limit = bnds->real_bounds.max.v[2];
-            if (prepared_group->vertices[i0].p.v[2] > limit && prepared_group->vertices[i1].p.v[2] > limit && prepared_group->vertices[i2].p.v[2] > limit) {
+            if (prepared_group->vertices[i0].p.v[2] > limit && prepared_group->vertices[i1].p.v[2] > limit && prepared_group->vertices[face->vertices[2]].p.v[2] > limit) {
                 continue;
             }
             polygon[1].v[0] = prepared_group->vertices[i0].p.v[0] - bnds->mat->m[3][0];
@@ -1348,9 +1347,9 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
             polygon[2].v[0] = model->prepared->groups[group].vertices[i1].p.v[0] - bnds->mat->m[3][0];
             polygon[2].v[1] = model->prepared->groups[group].vertices[i1].p.v[1] - bnds->mat->m[3][1];
             polygon[2].v[2] = model->prepared->groups[group].vertices[i1].p.v[2] - bnds->mat->m[3][2];
-            polygon[3].v[0] = model->prepared->groups[group].vertices[i2].p.v[0] - bnds->mat->m[3][0];
-            polygon[3].v[1] = model->prepared->groups[group].vertices[i2].p.v[1] - bnds->mat->m[3][1];
-            polygon[3].v[2] = model->prepared->groups[group].vertices[i2].p.v[2] - bnds->mat->m[3][2];
+            polygon[3].v[0] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[0] - bnds->mat->m[3][0];
+            polygon[3].v[1] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[1] - bnds->mat->m[3][1];
+            polygon[3].v[2] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[2] - bnds->mat->m[3][2];
             BrMatrix34TApplyV(&polygon[0], &polygon[1], bnds->mat);
             BrMatrix34TApplyV(&polygon[1], &polygon[2], bnds->mat);
             BrMatrix34TApplyV(&polygon[2], &polygon[3], bnds->mat);
@@ -1371,7 +1370,7 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
             if (pMat != NULL) {
                 BrMatrix34ApplyP(&face_list->v[0], &model->prepared->groups[group].vertices[i0].p, pMat);
                 BrMatrix34ApplyP(&face_list->v[1], &model->prepared->groups[group].vertices[i1].p, pMat);
-                BrMatrix34ApplyP(&face_list->v[2], &model->prepared->groups[group].vertices[i2].p, pMat);
+                BrMatrix34ApplyP(&face_list->v[2], &model->prepared->groups[group].vertices[face->vertices[2]].p, pMat);
                 normal.v[0] = face->eqn.v[0];
                 normal.v[1] = face->eqn.v[1];
                 normal.v[2] = face->eqn.v[2];
@@ -1383,9 +1382,9 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
                 face_list->v[1].v[0] = model->prepared->groups[group].vertices[i1].p.v[0];
                 face_list->v[1].v[1] = model->prepared->groups[group].vertices[i1].p.v[1];
                 face_list->v[1].v[2] = model->prepared->groups[group].vertices[i1].p.v[2];
-                face_list->v[2].v[0] = model->prepared->groups[group].vertices[i2].p.v[0];
-                face_list->v[2].v[1] = model->prepared->groups[group].vertices[i2].p.v[1];
-                face_list->v[2].v[2] = model->prepared->groups[group].vertices[i2].p.v[2];
+                face_list->v[2].v[0] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[0];
+                face_list->v[2].v[1] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[1];
+                face_list->v[2].v[2] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[2];
                 face_list->normal.v[0] = face->eqn.v[0];
                 face_list->normal.v[1] = face->eqn.v[1];
                 face_list->normal.v[2] = face->eqn.v[2];
@@ -1423,7 +1422,7 @@ int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* mode
                 }
                 face_list->map[0] = &model->prepared->groups[group].vertices[i0].map;
                 face_list->map[1] = &model->prepared->groups[group].vertices[i1].map;
-                face_list->map[2] = &model->prepared->groups[group].vertices[i2].map;
+                face_list->map[2] = &model->prepared->groups[group].vertices[face->vertices[2]].map;
             }
             if (face_list->material != NULL && face_list->material->identifier != NULL && face_list->material->identifier[0] == '!') {
                 gPling_face = face_list;
