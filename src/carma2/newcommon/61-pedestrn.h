@@ -460,7 +460,7 @@ extern void C2_HOOK_FASTCALL SetExplosivesOn(int pExplosives_on);
 
 extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 
-// ClearOutMorphs
+extern void C2_HOOK_FASTCALL ClearOutMorphs(void);
 
 // InitBoner
 
