@@ -150,3 +150,5 @@ extern void C2_HOOK_FASTCALL DisposeTrack(void);
 extern int GetRegisterSourceLocation(char* pSource_location);
 
 #endif // GUARD_08_LOADING1_H
+
+extern void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis);
