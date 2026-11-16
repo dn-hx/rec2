@@ -82,6 +82,7 @@ float gDrone_render_zero = 0.0f;
 extern int gCount_active_drones;
 extern tDrone_state_function* gDrone_state_functions[6];
 extern tDrone_form_within_rendering_distance_cbfn* gDrone_form_within_rendering_distance_functions[4];
+extern const char gAct_file_extension[];
 
 /* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
 static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
@@ -1409,7 +1410,7 @@ void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone) {
     pDrone->actor->identifier = BrResStrDup(pDrone->actor, s);
     BrActorAdd(gNon_track_actor, pDrone->actor);
     PathCat(actor_path, dir_path, pDrone->form->name);
-    strcat(actor_path, ".ACT");
+    strcat(actor_path, gAct_file_extension);
     pDrone->model_actor = BrActorLoad(actor_path);
     if (pDrone->model_actor == NULL) {
         sprintf(s, "Can't load drone car actor file for %s", pDrone->form->name);
