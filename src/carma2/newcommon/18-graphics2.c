@@ -627,6 +627,7 @@ void C2_HOOK_FASTCALL DrawRRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop
 #endif
 /* local declarations (globvrbm.h is not included in this file) */
 
+// PARTIAL 99.99%: DeviouslyDimRectangle 0x0047cad0 - fchs instruction scheduling differs
 // FUNCTION: CARMA2_HW 0x0047cad0
 void C2_HOOK_FASTCALL DeviouslyDimRectangle(br_pixelmap* pPixelmap, int pLeft, int pTop, int pRight, int pBottom, int pKnock_out_corners) {
 
