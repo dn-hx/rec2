@@ -7636,11 +7636,13 @@ void C2_HOOK_FASTCALL ShowActivePedCount(void) {
     NewTextHeadupSlot2(4, 0, 1000, -4, text, 0);
 }
 
-// PARTIAL 99.99% (reccmp: "100% effective match"): the FP instruction stream is identical; the only
-// residual is that the original places the fastcall argument setup (`lea edx,[esp+0xc]` / `mov ecx,esi`)
-// between `fxch st(2)` and the final `faddp st(2)`, while MSVC 11 schedules it two slots later (after
-// `fxch st(1)`, before `fsqrt`). Pure x87 scheduler tie-break; not reachable from source (the cast on the
-// v[2] line IS load-bearing: removing it or widening it drops the match to 85.31% / 86.26%).
+// PARTIAL 99.99%: PedPreCollisionStuff 0x004d6880 - list-scheduler tie with no data dependency: the
+// original places the fastcall argument setup (`lea edx,[esp+0xc]` / `mov ecx,esi`) between `fxch st(2)`
+// and the final `faddp st(2)`; the matching compiler always emits it after `fxch st(1)`, just before
+// `fsqrt`. The x87 instruction stream is otherwise identical. Verified with the MSVC 5 single-TU oracle:
+// 12 source forms (out-param pointer local, that pointer assigned before/after the stores, br_scalar[3],
+// const cast, comma-merged call, pad local, float temp) all compile to the same schedule. The cast on the
+// v[2] line IS load-bearing: removing or widening it drops the match to 85.31% / 86.26%.
 // FUNCTION: CARMA2_HW 0x004d6880
 void C2_HOOK_FASTCALL PedPreCollisionStuff(void) {
     tPhysics_object* pObject;
