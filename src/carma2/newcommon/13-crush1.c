@@ -5269,8 +5269,7 @@ intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* 
                 DrMatrix34ApplyLPInverse(&points[i], &context->crush->vectors[i], pMat);
             }
             BrMatrix34TApplyV(&direction, &context->crush->field_0x44, pMat);
-            scale = context->force;
-            scale *= crush_data->softness_factor;
+            scale = context->force * crush_data->softness_factor;
             direction.v[0] = direction.v[0] * scale;
             direction.v[1] = direction.v[1] * scale;
             direction.v[2] = direction.v[2] * scale;
