@@ -682,7 +682,40 @@ void C2_HOOK_FASTCALL UseGeneralScore(int pScore) {
     }
 }
 
-// NetSendEnvironmentChanges
+// FUNCTION: CARMA2_HW 0x0049b8d0
+void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient) {
+    int i;
+    char exclamation;
+    br_actor** non_car_list;
+    tNon_car_spec* non_car;
+    tNet_message_chunk_non_car_position* message;
+
+    exclamation = '!';
+    non_car_list = gProgram_state.track_spec.non_car_list;
+    for (i = 0; i < gProgram_state.track_spec.count_non_cars; i++, non_car_list++) {
+        if ((*non_car_list)->identifier[3] != exclamation && (*non_car_list)->identifier[3] != '&') {
+            continue;
+        }
+        non_car = (tNon_car_spec*)(*non_car_list)->type_data;
+        if (non_car != NULL
+                && non_car->driver != 0
+                && (tU16)non_car->car_ID == i
+                && (non_car->flags & 0x100000) != 0) {
+            continue;
+        }
+        message = (tNet_message_chunk_non_car_position*)NetGetToPlayerContents(0x1c, 0, pRecipient->ID);
+        if (message != NULL) {
+            BrMatrix34Copy(&message->mat, &(*non_car_list)->t.t.mat);
+            message->ID = i;
+            message->flags = (*non_car_list)->identifier[3] == exclamation;
+        }
+    }
+    SendAllDBNonCars(pRecipient);
+    SendAllSHNonCars(pRecipient);
+    SendAllSemiDetachedBits((tNet_game_player_info*)(undefined4*)pRecipient);
+    SendAllSmashes(pRecipient);
+    NetSendMessageStacks();
+}
 
 // STUB: CARMA2_HW 0x0049b9a0
 // STUB: CARMA2_SW 0x00497b20
