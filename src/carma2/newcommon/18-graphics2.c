@@ -501,7 +501,7 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_1
     dest_row_bytes = pDest->row_bytes;
     dest_base_x = pDest->base_x;
 
-    source_ptr = (tU16*)pSource->pixels + (source_x * source_row_bytes / 2 + source_y);
+    source_ptr = (tU16*)pSource->pixels + (source_y * source_row_bytes / 2 + source_x);
     dest_ptr = (tU16*)pDest->pixels + (dest_base_x / 2 + dest_x + dest_y * dest_row_bytes / 2);
 
     source_row_wrap = source_row_bytes / 2 - pWidth;
