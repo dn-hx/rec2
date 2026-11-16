@@ -57,7 +57,7 @@ extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
 
 // PollActionReplayControls
 
-// CheckReplayTurnOn
+extern void C2_HOOK_FASTCALL CheckReplayTurnOn(void);
 
 // InitializeActionReplayPix
 
