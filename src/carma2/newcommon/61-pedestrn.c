@@ -1169,6 +1169,7 @@ void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat,
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// PARTIAL 24.24%: MakeRotationMatrix 0x004080d0 - x87 schedule and load order (x read first, sin/cos y late); frame 0x18 matches; see state/findings/MakeRotationMatrix.md
 // FUNCTION: CARMA2_HW 0x004080d0
 void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 pAngle_y, tU32 pAngle_z) {
     float fVar1;
@@ -1177,6 +1178,8 @@ void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 p
     float fVar4;
     float fVar5;
     float fVar6;
+    float fSxCz;
+    float fCzCx;
     tU32 local_4;
 
     local_4 = (tU32)pAngle_x;
@@ -1184,18 +1187,20 @@ void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 p
     fVar5 = gPed_sin_table[pAngle_z & 0xff];
     fVar6 = gPed_sin_table[local_4];
     fVar1 = gPed_cos_table[local_4];
+    fCzCx = fVar4 * fVar1;
+    fSxCz = fVar6 * fVar4;
     fVar2 = gPed_sin_table[pAngle_y & 0xff];
     fVar3 = gPed_cos_table[pAngle_y & 0xff];
 
     pMat->m[0][0] = fVar4 * fVar3;
     pMat->m[3][2] = 0.0f;
     pMat->m[3][1] = 0.0f;
-    pMat->m[1][0] = fVar6 * fVar4 * fVar2 - fVar5 * fVar1;
+    pMat->m[1][0] = fSxCz * fVar2 - fVar5 * fVar1;
     pMat->m[3][0] = 0.0f;
-    pMat->m[2][0] = fVar4 * fVar1 * fVar2 + fVar5 * fVar6;
+    pMat->m[2][0] = fCzCx * fVar2 + fVar5 * fVar6;
     pMat->m[0][1] = fVar5 * fVar3;
-    pMat->m[1][1] = fVar5 * fVar6 * fVar2 + fVar4 * fVar1;
-    pMat->m[2][1] = fVar5 * fVar1 * fVar2 - fVar6 * fVar4;
+    pMat->m[1][1] = fVar5 * fVar6 * fVar2 + fCzCx;
+    pMat->m[2][1] = fVar5 * fVar1 * fVar2 - fSxCz;
     pMat->m[0][2] = -fVar2;
     pMat->m[1][2] = fVar6 * fVar3;
     pMat->m[2][2] = fVar3 * fVar1;
