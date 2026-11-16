@@ -28,6 +28,7 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "52-errors.h"
 
 // GLOBAL: CARMA2_HW 0x00589a5c
 br_scalar gFLT_EPSILON_00589a5c = 2.3841858e-07f;
