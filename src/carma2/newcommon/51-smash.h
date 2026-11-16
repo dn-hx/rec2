@@ -362,6 +362,6 @@ extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 
 // ReceivedSmashShraps
 
-// MungeSmashEdgeTriggers
+extern void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime);
 
 #endif // GUARD_51_SMASH_H
