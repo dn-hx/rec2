@@ -6936,7 +6936,7 @@ void C2_HOOK_FASTCALL ReceivedMechanics(tU8* pContents) {
     }
 }
 
-// PARTIAL 75%: flag byte reload/regalloc differs from original
+// PARTIAL 87.58%: MSVC keeps the 0x292 flag byte in CL, so the copy/zero loops use EDX instead of ECX for the base and the bit-1 test reuses CL instead of reloading (regalloc)
 // FUNCTION: CARMA2_HW 0x00498ab0
 void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
     tU8* cursor;
@@ -6953,18 +6953,16 @@ void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
     flags = *((tU8*)pCar->collision_info + 0x292);
     offset = 0x48c;
     if (flags & 8) {
-        do {
+        for (; offset < 0x49c; offset += 4) {
             *(tU32*)((tU8*)pCar->collision_info + offset) = *(tU32*)cursor;
             cursor += 4;
-            offset += 4;
-        } while (offset < 0x49c);
+        }
     } else {
-        do {
-            offset += 4;
-            *(tU32*)((tU8*)pCar->collision_info + offset - 4) = 0;
-        } while (offset < 0x49c);
+        for (; offset < 0x49c; offset += 4) {
+            *(tU32*)((tU8*)pCar->collision_info + offset) = 0;
+        }
     }
-    if (*((tU8*)pCar->collision_info + 0x292) & 1) {
+    if (flags & 1) {
         size = GetNetShapeDataLengthFromData(cursor);
         memcpy((tU8*)pCar->collision_info + 0x2fc, cursor, size);
         cursor += size;
