@@ -1247,7 +1247,56 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
     }
 }
 
-// MungeSmashMaterialNames
+/* (inlined into MungeSmashMaterialNames in the original) */
+static __inline void SplondificatalizeIdentifierInline(br_material* pMaterial, char** ppIdentifier, int pIndex) {
+    int len;
+    char original_suffix[64];
+    char new_identifier[64];
+    char* suffix_ptr;
+
+    strcpy(new_identifier, *ppIdentifier);
+    len = strlen(new_identifier);
+    if (len < 4) {
+        sprintf(new_identifier, "Smash material %s has a name that is less than 4 characters long", *ppIdentifier);
+        PDFatalError(new_identifier);
+    }
+    suffix_ptr = new_identifier + len - 4;
+    strcpy(original_suffix, suffix_ptr);
+    sprintf(suffix_ptr, "        ");
+    sprintf(&new_identifier[5], "%cx", '|');
+    new_identifier[6] = (char)(pIndex + 1);
+    strcat(new_identifier, original_suffix);
+    new_identifier[11] = '\0';
+    if (strlen(*ppIdentifier) < 12) {
+        BrResFree(*ppIdentifier);
+        *ppIdentifier = BrResStrDup(pMaterial, new_identifier);
+    } else {
+        strcpy(*ppIdentifier, new_identifier);
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004f0bc0
+void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
+    extern tSmashable_item_spec* gTrack_smashable_environment_specs;
+    extern int gCount_track_smashable_environment_specs;
+    int i;
+    tSmashable_item_spec* item_spec;
+
+    i = 0;
+    if (i < gCount_track_smashable_environment_specs) {
+        item_spec = gTrack_smashable_environment_specs;
+        do {
+            if (item_spec->trigger_type == kSmashableTrigger_Material) {
+                SplondificatalizeIdentifierInline(
+                    item_spec->trigger_object.material,
+                    &item_spec->trigger_object.material->identifier,
+                    i);
+            }
+            i++;
+            item_spec++;
+        } while (i < gCount_track_smashable_environment_specs);
+    }
+}
 
 // ExtrapolateTextureCoordinates
 
