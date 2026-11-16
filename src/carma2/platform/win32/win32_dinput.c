@@ -1587,6 +1587,14 @@ int C2_HOOK_FASTCALL PDFindJoystickEffect(const char* effectName) {
     return -1;
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // FUNCTION: CARMA2_HW 0x0045c720
 // FUNCTION: CARMA2_SW 0x0045c160
 void C2_HOOK_FASTCALL PDPlayFFBEffect(const char* effectName) {
@@ -1598,6 +1606,14 @@ void C2_HOOK_FASTCALL PDPlayFFBEffect(const char* effectName) {
         }
     }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x0045c550
 // FUNCTION: CARMA2_SW 0x0045bf90
