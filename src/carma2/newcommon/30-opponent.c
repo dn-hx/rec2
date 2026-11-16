@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdarg.h>
 #include <string.h>
 
