@@ -25,8 +25,9 @@
 #include "platform.h"
 
 #include "rec2_macros.h"
-#include "16-graphics1.h"
-#include "15-displays.h"
+#include "64-movie.h"
+#include "25-grafdata.h"
+#include "19-font.h"
 
 #include <math.h>
 #include <stdlib.h>
