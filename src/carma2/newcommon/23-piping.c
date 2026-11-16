@@ -2425,7 +2425,10 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
     return pChunk->data.bend.size;
 }
 
-// CalcRemoveFacesLength
+// FUNCTION: CARMA2_HW 0x004ca460
+int C2_HOOK_FASTCALL CalcRemoveFacesLength(tPipe_chunk* pChunk) {
+    return 8 + 8 * *(int*)((tU8*)pChunk + 8);
+}
 
 
 // STUB: CARMA2_HW 0x00564e5e
