@@ -524,6 +524,7 @@ void C2_HOOK_CDECL BrTokenBegin(void) {
     fw.next_free_token = _BRT_LAST_BUILTIN_TOKEN + 1;
 }
 
+// PARTIAL 95.20%: BrTokenCreate 0x0052f070 [residual] - table-end cmp names (STRING, layout) + i*3 lea/edx-eax regalloc vs original
 // FUNCTION: CARMA2_HW 0x0052f070
 br_token C2_HOOK_CDECL BrTokenCreate(const char* identifier, br_token type) {
     br_token_entry* te;
