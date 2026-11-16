@@ -10044,12 +10044,14 @@ void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec) {
             int* car_powerup;
             tPowerup* powerup;
             tNet_message* message;
+            tU8* powerup_base;
 
             powerup_offset = 0;
             car_powerup = pCar_spec->powerups;
             do {
                 if (*car_powerup != 0) {
-                    powerup = (tPowerup*)((tU8*)gPowerup_array + powerup_offset);
+                    powerup_base = (tU8*)gPowerup_array;
+                    powerup = (tPowerup*)(powerup_base + powerup_offset);
                     if (powerup->net_type & eNet_powerup_off_before_snapweld) {
                         if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
                             powerup->lose_proc(powerup, powerup->car);
