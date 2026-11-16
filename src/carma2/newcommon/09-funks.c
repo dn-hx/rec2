@@ -1912,38 +1912,88 @@ void C2_HOOK_FASTCALL PathGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, 
     }
 }
 
+#define OBJECT_GROOVE_SAW(T, PERIOD) (fmod((double)(T), (PERIOD)) / (PERIOD))
+
+static __inline float MapSawToTriangle_ogb(float pNumber) {
+    if (pNumber < 0.5) {
+        return pNumber * 4.0f - 1.0f;
+    } else {
+        return 3.0f - pNumber * 4.0f;
+    }
+}
+
+#define MOVE_OBJECT_FUNK_PARAMETER(DEST, MODE, PERIOD, TEXTUREBITS, AMPLITUDE, FLASH_VALUE)             \
+    do {                                                                                                \
+        if ((MODE) == eMove_continuous) {                                                               \
+            if ((PERIOD) != 0.f) {                                                                      \
+                DEST = (AMPLITUDE)*OBJECT_GROOVE_SAW(pTime, (PERIOD));                                  \
+            } else {                                                                                    \
+                DEST = 0.;                                                                              \
+            }                                                                                           \
+        } else if ((MODE) == eMove_controlled) {                                                        \
+            DEST = (PERIOD) * (AMPLITUDE);                                                              \
+        } else if ((MODE) == eMove_absolute) {                                                          \
+            DEST = (PERIOD);                                                                            \
+        } else if ((MODE) == eMove_linear) {                                                            \
+            if ((PERIOD) != 0.f) {                                                                      \
+                DEST = (AMPLITUDE)*MapSawToTriangle_ogb((float)OBJECT_GROOVE_SAW(pTime, (PERIOD)));     \
+            } else {                                                                                    \
+                DEST = 0.f;                                                                             \
+            }                                                                                           \
+        } else if ((MODE) == eMove_flash) {                                                             \
+            if (2 * fmod((double)pTime, (PERIOD)) > (PERIOD)) {                                         \
+                DEST = (FLASH_VALUE);                                                                   \
+            } else {                                                                                    \
+                DEST = -(FLASH_VALUE);                                                                  \
+            }                                                                                           \
+        } else if ((MODE) == eMove_texturebits) {                                                       \
+            {                                                                                           \
+                int sum_flags = 0;                                                                      \
+                int ii;                                                                                 \
+                for (ii = 0; ii < (TEXTUREBITS)->count; ii++) {                                         \
+                    if ((TEXTUREBITS)->car->field_0x18cc & (1 << (TEXTUREBITS)->bits[ii])) {            \
+                        sum_flags += 1 << ii;                                                           \
+                    }                                                                                   \
+                }                                                                                       \
+                DEST = (double)sum_flags;                                                               \
+            }                                                                                           \
+        } else {                                                                                        \
+            if ((PERIOD) != 0.f) {                                                                      \
+                DEST = (AMPLITUDE)*BR_SIN(BrDegreeToAngle(OBJECT_GROOVE_SAW(pTime, (PERIOD)) * 360.f)); \
+            } else {                                                                                    \
+                DEST = 0.f;                                                                             \
+            }                                                                                           \
+        }                                                                                               \
+    } while (0)
+
+// PARTIAL 61.53%: ObjectGrooveBastard 0x00479890 - x87 schedule (fmod arg order -> fxch x44, fsin->fst rounding) +
+// regalloc (zero reg ebp vs edi, rock_it ecx vs edi) + texturebits loop strength-reduced to a pointer walk;
+// see state/findings/ObjectGrooveBastard.md
 // FUNCTION: CARMA2_HW 0x00479890
 void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime, br_matrix34* pMat, int pInterrupt_it) {
-    int rock_it;
-    br_scalar x_size;
-    br_scalar y_size;
-    br_scalar z_size;
-    br_scalar pos;
+    double pos;
     br_bounds* bounds;
-    br_scalar x_extent;
-    br_scalar y_extent;
-    br_scalar z_extent;
-    tU32 f_the_time = pTime;
+    int rock_it;
 
     switch (pGroove->object_type) {
     case eGroove_object_spin:
         switch (pGroove->object_data.spin_info.axis) {
-        case eAxis_x:
-            MOVE_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360.f, -360.f);
-            DRMatrix34PostRotateX(pMat, BrDegreeToAngle(pos));
+        case eAxis_z:
+            MOVE_OBJECT_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360., -360.);
+            DRMatrix34PostRotateZ(pMat, BrDegreeToAngle(pos));
             break;
         case eAxis_y:
-            MOVE_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360.f, -360.f);
+            MOVE_OBJECT_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360., -360.);
             DRMatrix34PostRotateY(pMat, BrDegreeToAngle(pos));
             break;
-        case eAxis_z:
-            MOVE_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360.f, -360.f);
-            DRMatrix34PostRotateZ(pMat, BrDegreeToAngle(pos));
+        case eAxis_x:
+            MOVE_OBJECT_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.spin_info.period.value, pGroove->object_data.spin_info.texture_info.data, 360., -360.);
+            DRMatrix34PostRotateX(pMat, BrDegreeToAngle(pos));
             break;
         }
         break;
     case eGroove_object_rock:
-        MOVE_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.rock_info.period.value, pGroove->object_data.rock_info.texture_info.data, pGroove->object_data.rock_info.max_angle, pGroove->object_data.rock_info.max_angle);
+        MOVE_OBJECT_FUNK_PARAMETER(pos, pGroove->object_mode, pGroove->object_data.rock_info.period.value, pGroove->object_data.rock_info.texture_info.data, pGroove->object_data.rock_info.max_angle, -pGroove->object_data.rock_info.max_angle);
         rock_it = 1;
         if (pInterrupt_it) {
             pGroove->object_resumption_value = pos;
@@ -1972,41 +2022,57 @@ void C2_HOOK_FASTCALL ObjectGrooveBastard(tGroovidelic_spec* pGroove, tU32 pTime
         }
 
         switch (pGroove->object_data.rock_info.axis) {
-        case eAxis_x:
-            DRMatrix34PostRotateX(pMat, BrDegreeToAngle(pGroove->object_data.rock_info.current_angle));
+        case eAxis_z:
+            DRMatrix34PostRotateZ(pMat, BrDegreeToAngle(pGroove->object_data.rock_info.current_angle));
             break;
         case eAxis_y:
             DRMatrix34PostRotateY(pMat, BrDegreeToAngle(pGroove->object_data.rock_info.current_angle));
             break;
-        case eAxis_z:
-            DRMatrix34PostRotateZ(pMat, BrDegreeToAngle(pGroove->object_data.rock_info.current_angle));
+        case eAxis_x:
+            DRMatrix34PostRotateX(pMat, BrDegreeToAngle(pGroove->object_data.rock_info.current_angle));
             break;
         }
         break;
     case eGroove_object_throb:
-        MOVE_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.throb_info.z_period.value, pGroove->object_data.throb_info.z_texture_info.data, pGroove->object_data.throb_info.z_magnitude, -pGroove->object_data.throb_info.z_magnitude);
-        MOVE_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.throb_info.y_period.value, pGroove->object_data.throb_info.y_texture_info.data, pGroove->object_data.throb_info.y_magnitude, -pGroove->object_data.throb_info.y_magnitude);
-        MOVE_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.throb_info.x_period.value, pGroove->object_data.throb_info.x_texture_info.data, pGroove->object_data.throb_info.x_magnitude, -pGroove->object_data.throb_info.x_magnitude);
+        {
+        double x_size;
+        double y_size;
+        double z_size;
+        MOVE_OBJECT_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.throb_info.z_period.value, pGroove->object_data.throb_info.z_texture_info.data, pGroove->object_data.throb_info.z_magnitude, -pGroove->object_data.throb_info.z_magnitude);
+        MOVE_OBJECT_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.throb_info.y_period.value, pGroove->object_data.throb_info.y_texture_info.data, pGroove->object_data.throb_info.y_magnitude, -pGroove->object_data.throb_info.y_magnitude);
+        MOVE_OBJECT_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.throb_info.x_period.value, pGroove->object_data.throb_info.x_texture_info.data, pGroove->object_data.throb_info.x_magnitude, -pGroove->object_data.throb_info.x_magnitude);
 
-        BrMatrix34PostScale(pMat, x_size + 1.f, y_size + 1.f, z_size + 1.f);
+        BrMatrix34PostScale(pMat, (br_scalar)(x_size - -1.0), (br_scalar)(y_size - -1.0), (br_scalar)(z_size - -1.0));
+        }
         /* FALLTHROUGH */
     case eGroove_object_shear:
+        {
+        br_scalar x_extent;
+        br_scalar y_extent;
+        br_scalar z_extent;
         bounds = &pGroove->actor->model->bounds;
         x_extent = bounds->max.v[0] - bounds->min.v[0];
         y_extent = bounds->max.v[1] - bounds->min.v[1];
         z_extent = bounds->max.v[2] - bounds->min.v[2];
-        if (!(pGroove->object_data.shear_info.x_magnitude < 0.0f || pGroove->object_data.shear_info.x_magnitude > 0.0f)) {
-            MOVE_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.shear_info.z_period.value, pGroove->object_data.shear_info.z_texture_info.data, pGroove->object_data.shear_info.z_magnitude, -pGroove->object_data.shear_info.z_magnitude);
-            MOVE_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.shear_info.y_period.value, pGroove->object_data.shear_info.y_texture_info.data, pGroove->object_data.shear_info.y_magnitude, -pGroove->object_data.shear_info.y_magnitude);
-            BrMatrix34PostShearX(pMat, y_size / y_extent, z_size / z_extent);
-        } else if (!(pGroove->object_data.shear_info.y_magnitude < 0.0f || pGroove->object_data.shear_info.y_magnitude > 0.0f)) {
-            MOVE_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.shear_info.z_period.value, pGroove->object_data.shear_info.z_texture_info.data, pGroove->object_data.shear_info.z_magnitude, -pGroove->object_data.shear_info.z_magnitude);
-            MOVE_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.shear_info.x_period.value, pGroove->object_data.shear_info.x_texture_info.data, pGroove->object_data.shear_info.x_magnitude, -pGroove->object_data.shear_info.x_magnitude);
-            BrMatrix34PostShearY(pMat, x_size / x_extent, z_size / z_extent);
+        if (pGroove->object_data.shear_info.x_magnitude == 0.f) {
+            double z_size;
+            double y_size;
+            MOVE_OBJECT_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.shear_info.z_period.value, pGroove->object_data.shear_info.z_texture_info.data, pGroove->object_data.shear_info.z_magnitude, -pGroove->object_data.shear_info.z_magnitude);
+            MOVE_OBJECT_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.shear_info.y_period.value, pGroove->object_data.shear_info.y_texture_info.data, pGroove->object_data.shear_info.y_magnitude, -pGroove->object_data.shear_info.y_magnitude);
+            BrMatrix34PostShearX(pMat, (br_scalar)(y_size / y_extent), (br_scalar)(z_size / z_extent));
+        } else if (pGroove->object_data.shear_info.y_magnitude == 0.f) {
+            double z_size;
+            double x_size;
+            MOVE_OBJECT_FUNK_PARAMETER(z_size, pGroove->object_mode, pGroove->object_data.shear_info.z_period.value, pGroove->object_data.shear_info.z_texture_info.data, pGroove->object_data.shear_info.z_magnitude, -pGroove->object_data.shear_info.z_magnitude);
+            MOVE_OBJECT_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.shear_info.x_period.value, pGroove->object_data.shear_info.x_texture_info.data, pGroove->object_data.shear_info.x_magnitude, -pGroove->object_data.shear_info.x_magnitude);
+            BrMatrix34PostShearY(pMat, (br_scalar)(x_size / x_extent), (br_scalar)(z_size / z_extent));
         } else {
-            MOVE_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.shear_info.y_period.value, pGroove->object_data.shear_info.y_texture_info.data, pGroove->object_data.shear_info.y_magnitude, -pGroove->object_data.shear_info.y_magnitude);
-            MOVE_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.shear_info.x_period.value, pGroove->object_data.shear_info.x_texture_info.data, pGroove->object_data.shear_info.x_magnitude, -pGroove->object_data.shear_info.x_magnitude);
-            BrMatrix34PostShearZ(pMat, x_size / x_extent, y_size / y_extent);
+            double y_size;
+            double x_size;
+            MOVE_OBJECT_FUNK_PARAMETER(y_size, pGroove->object_mode, pGroove->object_data.shear_info.y_period.value, pGroove->object_data.shear_info.y_texture_info.data, pGroove->object_data.shear_info.y_magnitude, -pGroove->object_data.shear_info.y_magnitude);
+            MOVE_OBJECT_FUNK_PARAMETER(x_size, pGroove->object_mode, pGroove->object_data.shear_info.x_period.value, pGroove->object_data.shear_info.x_texture_info.data, pGroove->object_data.shear_info.x_magnitude, -pGroove->object_data.shear_info.x_magnitude);
+            BrMatrix34PostShearZ(pMat, (br_scalar)(x_size / x_extent), (br_scalar)(y_size / y_extent));
+        }
         }
         break;
     default:
