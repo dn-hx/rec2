@@ -6144,6 +6144,10 @@ int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_s
 #pragma inline_depth()
 #endif
 
+// PARTIAL 18.39%: MakeMatrix 0x004bf490 - residual is x87 fld/fmul scheduling and register
+// allocation only; all 29 store expressions were re-derived from the original's x87 stack
+// program and match its operand pairings (state/findings/MakeMatrix.md). Open: whole body
+// (frame 0xfc vs 0xf8, 1098 vs 1251 ins).
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
 #endif
