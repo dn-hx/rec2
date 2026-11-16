@@ -1910,3 +1910,11 @@ int C2_HOOK_FASTCALL S3UpdateCDAVolume(tS3_channel* pChannel, int pVolume) {
     }
     return 0;
 }
+
+// FUNCTION: CARMA2_HW 0x0056a8a0
+void C2_HOOK_FASTCALL S3SetCallbacks(tS3_callbacks* pCallbacks) {
+    gS3_callbacks.field_0x0 = pCallbacks->field_0x0;
+    gS3_callbacks.on_sample_channel_stop = pCallbacks->on_sample_channel_stop;
+    gS3_callbacks.on_sample_channel_set_volume = pCallbacks->on_sample_channel_set_volume;
+    gS3_callbacks.on_sample_channel_set_pan = pCallbacks->on_sample_channel_set_pan;
+}
