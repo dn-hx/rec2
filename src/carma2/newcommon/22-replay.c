@@ -1142,6 +1142,7 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
+// PARTIAL 97.21%: ActualActionReplayHeadups 0x004e6280 - pos fild+fdivp (orig) folds to fidiv; operand order of two offset-first DRMaskedStamp sums
 // FUNCTION: CARMA2_HW 0x004e6280
 void C2_HOOK_FASTCALL ActualActionReplayHeadups(int pSpecial_zappy_bastard) {
     extern br_pixelmap* gReplay_pixelmaps[11];
