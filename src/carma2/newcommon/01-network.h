@@ -26,7 +26,8 @@ extern br_material* gNetscore_box_materials[4];
 extern br_actor* gNetscore_box_camera;
 extern br_model* gNetScore_box_model;
 extern br_actor* gNetscore_box_actors[12];
-extern tPlayer_ID gLocal_net_ID;
+extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
+
 #endif
 
 extern int C2_HOOK_FASTCALL NetInitialise(void);
