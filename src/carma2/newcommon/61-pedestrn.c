@@ -5148,6 +5148,7 @@ int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_
 
 extern tS3_outlet* gCar_outlet;
 
+// PARTIAL 93.20%: DoPedestrianRepulsifictor 0x004ce280 [x87-schedule] - same logic and literals; store/push order of data.f2/data.f3 and pF3 register choice differ
 // FUNCTION: CARMA2_HW 0x004ce280
 int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
     struct {
