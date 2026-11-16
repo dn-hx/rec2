@@ -149,34 +149,45 @@ br_matrix34* C2_HOOK_CDECL BrQuatToMatrix34(br_matrix34* mat, const br_quat* q) 
     return mat;
 }
 
+// GLOBAL: CARMA2_HW 0x0066cc20
+int gBr_quat_axis_next[3] = {1, 2, 0};
+
+// PARTIAL 40.95%: BrMatrix34ToQuat 0x00535ae0 [x87 temp + regalloc/frame] - structure and table walk match asm; orig keeps sqrt temp in memory (fstp/fdiv mem) and frame 0x14 spills, ours keeps them in regs (frame 4); see state/findings/BrMatrix34ToQuat.md
 // FUNCTION: CARMA2_HW 0x00535ae0
 br_quat* C2_HOOK_CDECL BrMatrix34ToQuat(br_quat* q, const br_matrix34* mat) {
     br_scalar tr;
     br_scalar s;
-    int i;
-    int j;
-    int k;
+    br_scalar t;
+    int u;
+    int ia;
+    int ib;
+    int lc;
 
-    tr = M(0, 0) + M(1, 1) + M(2, 2);
+    tr = M(0, 0) + M(2, 2);
+    tr = tr + M(1, 1);
     if (tr >= 0.f) {
-        tr = (br_scalar)sqrt(tr + 1.0f);
-        s = 0.5f / tr;
-        q->w = tr * 0.5f;
+        t = (br_scalar)sqrt(tr - -1.0f);
+        s = 0.5f / t;
+        q->w = t * 0.5f;
         q->x = (M(1, 2) - M(2, 1)) * s;
         q->y = (M(2, 0) - M(0, 2)) * s;
         q->z = (M(0, 1) - M(1, 0)) * s;
         return q;
     }
-    i = M_DIAG(1) >= M_DIAG(0) ? 1 : 0;
-    i = M_DIAG(2) >= M_DIAG(i) ? 2 : i;
-    j = (i + 1) % 3;
-    k = (j + 1) % 3;
-    tr = (br_scalar)sqrt(M_DIAG(i) - (M_DIAG(j) + M_DIAG(k)) + 1.f);
-    s = 0.5f / tr;
-    Q_EL(i) = 0.5f * tr;
-    Q_EL(j) = (M(i, j) + M(j, i)) * s;
-    Q_EL(k) = (M(i, k) + M(k, i)) * s;
-    q->w = (M(k, j) - M(j, k)) * s;
+    lc = M_DIAG(0) < M_DIAG(1) ? 1 : 0;
+    u = lc;
+    if (M_DIAG(u) < M_DIAG(2)) {
+        u = 2;
+        lc = 2;
+    }
+    ia = gBr_quat_axis_next[u];
+    ib = gBr_quat_axis_next[ia];
+    t = (br_scalar)sqrt(M_DIAG(u) - (M_DIAG(ib) + M_DIAG(ia)) - -1.0f);
+    s = 0.5f / t;
+    Q_EL(u) = t * 0.5f;
+    q->w = (M(ia, ib) - M(ib, ia)) * s;
+    Q_EL(ia) = (M(lc, ia) + M(ia, lc)) * s;
+    Q_EL(ib) = (M(lc, ib) + M(ib, lc)) * s;
     return q;
 }
 
