@@ -1857,7 +1857,12 @@ void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk) {
     PedApplyPedDir((*pChunk)->subject_index, &(*pChunk)->data.ped_dir.direction);
 }
 
-// ApplyPedMove
+// FUNCTION: CARMA2_HW 0x004c9ae0
+void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_move* chunk = (tPipe_chunk_ped_move*)*pChunk;
+
+    return PedApplyPedMove((tPedestrian*)chunk->field_0x0, chunk->field_0x4, chunk->field_0xc, chunk->field_0x8 & 1, chunk->field_0x14, 0, &chunk->field_0x24, chunk->field_0x34, &chunk->field_0x38);
+}
 
 // ApplyPedPhysics
 
