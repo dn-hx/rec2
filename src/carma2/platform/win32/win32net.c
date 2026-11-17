@@ -451,6 +451,34 @@ int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex) 
     return 1;
 }
 
+// FUNCTION: CARMA2_HW 0x0051a210
+int C2_HOOK_FASTCALL PDNetSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer_id) {
+    int i;
+    char* p;
+    tPD_net_player_info* to;
+
+    i = 0;
+    if (0 < gNumber_of_net_players) {
+        p = gNet_players[0].pd_net_info.addr + 9;
+        while (i < gNumber_of_net_players) {
+            if (p[-1] == (char)(pPlayer_id >> 24) && p[0] == (char)(pPlayer_id >> 16) && p[1] == (char)(pPlayer_id >> 8) && p[2] == (char)pPlayer_id) {
+                to = &gNet_players[i].pd_net_info;
+                goto found;
+            }
+            i++;
+            p += sizeof(tNet_game_player_info);
+        }
+    }
+    to = NULL;
+found:
+    if (to != NULL && sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, (const struct sockaddr*)to, 14) == SOCKET_ERROR) {
+        dr_dprintf("PDNetSendMessageToPlayer(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+        NetDisposeMessage(pDetails, pMessage);
+        return 1;
+    }
+    NetDisposeMessage(pDetails, pMessage);
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0051a6a0
 // FUNCTION: CARMA2_SW 0x00514180
 int C2_HOOK_FASTCALL PDNetGetHeaderSize(void) {
