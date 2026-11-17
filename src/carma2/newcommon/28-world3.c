@@ -32,6 +32,9 @@ br_actor* gAdditional_actors;
 // GLOBAL: CARMA2_SW 0x006ae500
 tBrender_storage* gStorage_for_callbacks;
 
+// GLOBAL: CARMA2_HW 0x0079efac
+int gMax_count_non_cars;
+
 // GLOBAL: CARMA2_HW 0x006aaa2c
 // GLOBAL: CARMA2_SW 0x006a447c
 int gDisallow_duplicates;

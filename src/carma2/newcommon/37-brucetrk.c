@@ -12,6 +12,7 @@
 
 #include "globvars.h"
 #include "rec2_macros.h"
+#include "platform.h"
 
 #include <math.h>
 #include <string.h>
@@ -209,7 +210,10 @@ void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX,
 
 // MungeFaces
 
-// ProcessModelsCB
+// STUB: CARMA2_HW 0x0040cf10
+intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
+    NOT_IMPLEMENTED();
+}
 
 // ProcessModels
 
