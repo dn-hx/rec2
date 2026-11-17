@@ -123,3 +123,147 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+
+static int GrooveAxisFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gDrone_axis_names; ppName < &gDrone_axis_names[3]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int GrooveReversenessFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gReverseness_type_names; ppName < &gReverseness_type_names[2]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int GrooveSpeedControlFromString(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gFunk_speed_control_names; ppName < &gFunk_speed_control_names[2]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+static int MatchGrooveFunkType(const char* pS) {
+    const char** ppName;
+    int i;
+
+    i = 0;
+    for (ppName = gGroove_funk_type_names; ppName < &gGroove_funk_type_names[3]; ppName++) {
+        if (strcmp(pS, *ppName) == 0) {
+            return i;
+        }
+        i += 1;
+    }
+    return -1;
+}
+
+/* helpers that the original inlines into LoadFunksAndGrooves */
+static int ReadPastThisLine(FILE* pF, const char* pLine) {
+    char s[256];
+
+    for (;;) {
+        if (PFfeof(pF)) {
+            return 0;
+        }
+        GetALineAndDontArgue(pF, s);
+        if (strcmp(s, pLine) == 0) {
+            return 1;
+        }
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00450680
+void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF) {
+    char s[256];
+    tFunk_groove* funk_groove;
+    tU8 funk_type;
+    int axis;
+    int reverseness;
+    int speed_control;
+
+    if (!ReadPastThisLine(pF, "START OF FUNKYGROOVY STUFF")) {
+        FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+    }
+    if (pDrone->funk_grooves == NULL) {
+        pDrone->funk_grooves = BrMemAllocate(sizeof(tFunk_grooves), kMem_drone_funk_groove);
+    }
+    GetALineAndDontArgue(pF, s);
+    while (strcmp(s, "END OF FUNKYGROOVY STUFF") != 0) {
+        if (PFfeof(pF)) {
+            return;
+        }
+        if (pDrone->funk_grooves->count >= 10) {
+            FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+        }
+        funk_groove = &pDrone->funk_grooves->items[pDrone->funk_grooves->count];
+        funk_type = MatchGrooveFunkType(s);
+        funk_groove->type = funk_type;
+        switch (funk_type) {
+        case eFunk_groove_type_spinny_groove:
+            GetALineAndDontArgue(pF, s);
+            funk_groove->actor = (br_actor*)DRActorEnumRecurse(pDrone->model_actor, (br_actor_enum_cbfn*)MrFindy, s);
+            if (funk_groove->actor == NULL) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            GetALineAndDontArgue(pF, s);
+            axis = GrooveAxisFromString(s);
+            if (axis < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.axis = axis;
+            GetALineAndDontArgue(pF, s);
+            speed_control = GrooveSpeedControlFromString(s);
+            if (speed_control < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.speed_control = speed_control;
+            GetALineAndDontArgue(pF, s);
+            reverseness = GrooveReversenessFromString(s);
+            if (reverseness < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->spinny.reverse = reverseness;
+            funk_groove->spinny.omega = (float)(GetAScalar(pF) * REC2_PI);
+            break;
+
+        case eFunk_groove_type_steering_groove:
+            GetALineAndDontArgue(pF, s);
+            funk_groove->actor = (br_actor*)DRActorEnumRecurse(pDrone->model_actor, (br_actor_enum_cbfn*)MrFindy, s);
+            if (funk_groove->actor == NULL) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            GetALineAndDontArgue(pF, s);
+            reverseness = GrooveReversenessFromString(s);
+            if (reverseness < 0) {
+                FatalError(kFatalError_UnableToOpenDroneFileOrFileCorrupted_S, pDrone->form->name);
+            }
+            funk_groove->steering.reverse = reverseness;
+            break;
+        }
+        pDrone->funk_grooves->count += 1;
+        GetALineAndDontArgue(pF, s);
+    }
+}
