@@ -976,7 +976,119 @@ void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTi
 
 // ReplaySmokeColumn
 
-// MungeSmokeColumn
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004fba40
+void C2_HOOK_FASTCALL MungeSmokeColumn(tU32 pTime) {
+    int i;
+
+    if (gColumn_flags == 0) {
+        return;
+    }
+    if (gAction_replay_mode) {
+        for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+            if (gColumn_flags & (1 << i)) {
+                br_vector3 replay_pos;
+
+                DoSmokeColumn(i, pTime, &replay_pos);
+                if (gSmoke_column[i].colour == 0) {
+                    FlameAnimate(i, &gSmoke_column[i].pos, pTime);
+                }
+            }
+        }
+        return;
+    }
+
+    gPHIL_mechanics_time_sync = 1;
+    for (i = 0; i < (int)REC2_ASIZE(gSmoke_column); i++) {
+        if (!(gColumn_flags & (1 << i))) {
+            continue;
+        }
+        if (gSmoke_column[i].lifetime >= pTime) {
+            tPhysics_object* object;
+            tCar_spec* c;
+            br_vector3 car_pos;
+
+            gSmoke_column[i].lifetime -= pTime;
+            object = gSmoke_column[i].core.collision_info;
+            c = gSmoke_column[i].core.car;
+            DoSmokeColumn(i, pTime, &car_pos);
+            if (gSmoke_column[i].core.field_0x0 == 1 && c->car_crush_spec->field_0x4b8 != 0) {
+                if (IsOnNonCarHalf(c, &car_pos)) {
+                    gSmoke_column[i].lifetime = 0;
+                }
+            }
+            if (gSmoke_column[i].colour == 0) {
+                FlameAnimate(i, &gSmoke_column[i].pos, pTime);
+                if (gSmoke_column[i].core.field_0x0 == 1) {
+                    if (gSmoke_column[i].smudge_timer >= pTime) {
+                        gSmoke_column[i].smudge_timer -= pTime;
+                    } else {
+                        gSmoke_column[i].smudge_timer += 2000;
+                        SmudgeCar(c, gSmoke_column[i].vertex_index);
+                        if (c->knackered) {
+                            int plane;
+
+                            plane = IRandomBetween(0, (int)REC2_ASIZE(gSmoke_column[i].core.car->fire_vertex) - 1);
+                            SmudgeCar(c, gSmoke_column[i].core.car->fire_vertex[plane]);
+                        }
+                    }
+                }
+            }
+            gSmoke_column[i].time += pTime;
+            if (gSmoke_column[i].time > 200) {
+                br_vector3 pos;
+                br_vector3 v;
+                br_scalar decay_factor;
+
+                gSmoke_column[i].time -= pTime;
+                gSmoke_column[i].count += 1;
+                pos.v[0] = gSmoke_column[i].pos.v[0] + SRandomBetween(-.03f, .03f);
+                pos.v[1] = gSmoke_column[i].pos.v[1] + (gSmoke_column[i].colour == 0) * .05f;
+                pos.v[2] = gSmoke_column[i].pos.v[2] + SRandomBetween(-.03f, .03f);
+                if (!(gSmoke_column[i].whiter & 0x2) || IRandomBetween(0, 3)) {
+                    if (gSmoke_column[i].whiter > 0) {
+                        gSmoke_column[i].whiter = 2;
+                    } else {
+                        gSmoke_column[i].whiter = -2;
+                    }
+                } else {
+                    gSmoke_column[i].whiter &= 0x1;
+                }
+                decay_factor = ((float)(gSmoke_column[i].whiter > 0) + 1.f) / 2.f;
+                if (gSmoke_column[i].lifetime < 4000) {
+                    decay_factor = gSmoke_column[i].lifetime * decay_factor / 4000.0f;
+                }
+                if (gSmoke_column[i].core.collision_info == NULL) {
+                    BrVector3SetFloat(&v, 0.f, 2.8985507f, 0.f);
+                } else {
+                    BrVector3Cross(&v, &object->omega, &car_pos);
+                    BrMatrix34ApplyV(&car_pos, &v, &object->actor->t.t.mat);
+                    v.v[0] = car_pos.v[0] + WORLD_SCALE * object->v.v[0];
+                    v.v[1] = car_pos.v[1] + WORLD_SCALE * object->v.v[1];
+                    v.v[2] = car_pos.v[2] + WORLD_SCALE * object->v.v[2];
+                }
+                CreatePuffOfSmoke(&pos, &v, decay_factor, decay_factor, gSmoke_column[i].colour + 16);
+            }
+        } else {
+            if (gSmoke_column[i].core.field_0x0 != 0) {
+                ARStartPipingSession(ePipe_chunk_smoke_column);
+                AddSmokeColumnToPipingSession(i, &gSmoke_column[i].core, gSmoke_column[i].vertex_index, gSmoke_column[i].colour);
+                AREndPipingSession();
+            }
+            gColumn_flags &= ~(1 << i);
+            if (gSmoke_column[i].colour == 0) {
+                BrActorRemove(gSmoke_column[i].flame_actor);
+            }
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FUNCTION: CARMA2_HW 0x004fc2e0
 // FUNCTION: CARMA2_SW 0x004f7840
