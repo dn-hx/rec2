@@ -213,6 +213,114 @@ void C2_HOOK_FASTCALL ARDispose(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00402e10
+int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, void* pCallback, void* pTime_check) {
+    tU32* session;
+    tU32 type;
+    tU32 total;
+    tU32 length;
+    tU32 i;
+    tU32 time;
+    tU8* the_chunk;
+    tU8* footer;
+    tU16 previous_length;
+    const tReplay_callback* callbacks;
+    int forwards;
+    int result;
+
+    time = pDefault_time;
+    do {
+        callbacks = gPipe_callbacks;
+        if (gPipe_play_ptr == gPipe_record_ptr) {
+            forwards = 0;
+        } else if (gPipe_play_ptr == gPipe_buffer_oldest) {
+            forwards = 1;
+        } else if (gReplay_rate != 0.f) {
+            if (gReplay_rate > 0.f) {
+                forwards = 1;
+            } else {
+                forwards = 0;
+            }
+        } else {
+            forwards = gPlay_direction > 0;
+        }
+        if (forwards) {
+            session = (tU32*)*pPtr;
+            total = 0;
+            i = 0;
+            if (i < session[1]) {
+                do {
+                    type = session[0];
+                    the_chunk = (tU8*)(session + 2) + total;
+                    if (callbacks[type].calc_length != NULL) {
+                        length = callbacks[type].calc_length((tPipe_chunk*)the_chunk);
+                        callbacks = gPipe_callbacks;
+                        length += callbacks[type].length + 4;
+                    } else {
+                        length = callbacks[type].length + 4;
+                    }
+                    total += length;
+                    i++;
+                } while (i < session[1]);
+            }
+            total += 10;
+            if ((total & 1) != 0) {
+                FatalError(0x62);
+            }
+            *pPtr += total;
+            if (*pPtr >= gPipe_buffer_working_end && *pPtr != gPipe_record_ptr) {
+                *pPtr = gPipe_buffer_start;
+            }
+            if (*pPtr == gPipe_record_ptr) {
+                return 0;
+            }
+        } else {
+            if (*pPtr == gPipe_buffer_oldest && *pPtr != gPipe_record_ptr) {
+                return 0;
+            }
+            if (*pPtr == gPipe_buffer_start) {
+                *pPtr = gPipe_buffer_working_end;
+            }
+            *pPtr -= sizeof(tU16);
+            footer = *pPtr;
+            memcpy(&previous_length, footer, sizeof(previous_length));
+            *pPtr = footer - previous_length;
+        }
+        session = (tU32*)*pPtr;
+        total = 0;
+        i = 0;
+        callbacks = gPipe_callbacks;
+        if (i < session[1]) {
+            do {
+                type = session[0];
+                the_chunk = (tU8*)(session + 2) + total;
+                if (callbacks[type].calc_length != NULL) {
+                    length = callbacks[type].calc_length((tPipe_chunk*)the_chunk);
+                    callbacks = gPipe_callbacks;
+                    length += callbacks[type].length + 4;
+                } else {
+                    length = callbacks[type].length + 4;
+                }
+                total += length;
+                i++;
+            } while (i < session[1]);
+        }
+        total += 10;
+        if ((total & 1) != 0) {
+            FatalError(0x62);
+        }
+        gEnd_of_session = *pPtr + total - 2;
+        if (*(tU32*)*pPtr == 0) {
+            time = ((tU32*)*pPtr)[3];
+        } else if (*(tU32*)*pPtr == (tU32)pType) {
+            result = ((tARScanBuffer_callback*)pCallback)((tPipe_chunk*)(*pPtr + sizeof(tPipe_session)), (int)((tU32*)*pPtr)[1], time);
+            if (result != 0) {
+                return result;
+            }
+        }
+    } while (pTime_check == NULL || ((tARScanBuffer_time_check*)pTime_check)(time) != 0);
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x00403720
 // FUNCTION: CARMA2_SW 0x00403720
 int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType) {
