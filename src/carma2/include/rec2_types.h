@@ -4224,13 +4224,19 @@ typedef struct tCar_crush_spec {
 typedef struct tCrush_net_detach_list_item {
     br_actor* actor;
     tCar_spec* car;
-    undefined field_0x8[28];
+    tU32 time;
+    br_bounds3 bounds;
 } tCrush_net_detach_list_item;
 
 typedef struct tCrush_net_semi_detach_bit_list_item {
     br_actor* actor;
     tCar_spec* car;
-    undefined field_0x8[68];
+    tU32 time;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_bounds3 bounds;
+    float field_0x48;
 } tCrush_net_semi_detach_bit_list_item;
 
 typedef struct tCrush_net_full_detach_bit_list_item {
@@ -4240,9 +4246,9 @@ typedef struct tCrush_net_full_detach_bit_list_item {
 } tCrush_net_full_detach_bit_list_item;
 
 typedef struct tCrush_net_reattach_bit_list_item {
-    br_actor* actor;
+    tCar_spec* actor;
     tCar_spec* car;
-    tU32 time;
+    undefined4 field_0x8;
 } tCrush_net_reattach_bit_list_item;
 
 typedef struct tCrush_detach_list_item {
@@ -6043,5 +6049,54 @@ enum {
     eNetMsg_none = 0xff,
 };
 
+
+typedef struct tBend_data_local {
+    br_scalar field_0x0;
+    br_scalar field_0x4;
+    undefined field_0x8[4];
+    br_scalar field_0xc;
+    br_scalar field_0x10;
+    undefined field_0x14[4];
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    br_vector3 field_0x30;
+    br_angle field_0x3c;
+    br_angle field_0x3e;
+    br_angle field_0x40;
+    undefined field_0x42[2];
+    br_vector3 field_0x44;
+    br_vector3 field_0x50;
+    br_vector3 field_0x5c;
+    br_vector3 field_0x68;
+    int field_0x74;
+    tCar_crush_vertex_data* field_0x78;
+} tBend_data_local;
+
+typedef struct tBend_point_context_local {
+    tCar_spec* car;
+    br_matrix34 matrix;
+    tBend_data_local* bend;
+} tBend_point_context_local;
+
+typedef struct tCollision_contact {
+    float impulse;
+    tPhysics_object* object1;
+    tPhysics_object* object2;
+    void* field_0xc;
+    float field_0x10;
+    br_vector3 r1;
+    br_vector3 r2;
+    br_vector3 normal;
+    br_vector3 field_0x38;
+    br_vector3 impulse1;
+    br_vector3 impulse2;
+    int type;
+} tCollision_contact;
+
+typedef struct {
+    undefined field_0x0[0x2c];
+    br_vector3 normal;
+    undefined field_0x38[0x28];
+} tSensible_place_contact;
 
 #endif // REC2_TYPES_H

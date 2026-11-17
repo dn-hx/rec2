@@ -379,7 +379,7 @@ extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 
 extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 
-// LoseDodgyPowerups
+extern void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec);
 
 extern int C2_HOOK_FASTCALL GetPowerupCount(void);
 

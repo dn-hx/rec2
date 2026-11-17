@@ -219,7 +219,7 @@ extern void C2_HOOK_FASTCALL FreezeMechanics(void);
 
 // FlyCar
 
-// GetCarOverallBoundsMinY
+extern float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 
@@ -244,3 +244,4 @@ extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
 #endif // GUARD_00_CAR_H
+
