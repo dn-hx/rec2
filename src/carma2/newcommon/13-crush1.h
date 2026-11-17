@@ -526,7 +526,7 @@ extern void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle);
 
 extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents);
 
-// DoQueuedNetDetaching
+extern void C2_HOOK_FASTCALL DoQueuedNetDetaching(void);
 
 // DBNonCarOwner
 
