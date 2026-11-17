@@ -22,6 +22,8 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "00-car.h"
+#include "49-physics.h"
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
@@ -46,6 +48,9 @@ int gOpponent_viewing_mode;
 // GLOBAL: CARMA2_HW 0x006792c8
 // GLOBAL: CARMA2_SW 0x00673a38
 tSave_camera gSave_camera[2];
+
+// GLOBAL: CARMA2_HW 0x006793e0
+int gCamera_has_collided;
 
 // GLOBAL: CARMA2_HW 0x007634ac
 // GLOBAL: CARMA2_SW 0x00759a0c

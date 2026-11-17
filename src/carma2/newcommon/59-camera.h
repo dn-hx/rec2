@@ -21,6 +21,7 @@ extern br_actor* gPed_actor;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern int gCamera_has_collided;
 
 // DoCameraControls
 
