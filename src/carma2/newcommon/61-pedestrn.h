@@ -516,7 +516,7 @@ extern void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34
 
 extern tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName);
 
-// DisposePersonality
+extern void C2_HOOK_FASTCALL DisposePersonality(tPed_personality* pPersonality);
 
 // DisposeAllLoadedPersonalities
 
