@@ -350,6 +350,39 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x004077f0
+void C2_HOOK_FASTCALL DisposePersonality(tPed_personality* pPersonality) {
+    int i;
+    int j;
+    int k;
+
+    if (gPed_vtable->dispose_personality != NULL) {
+        gPed_vtable->dispose_personality((undefined4*)pPersonality);
+    }
+    if (pPersonality->moves != NULL) {
+        BrMemFree(pPersonality->moves);
+    }
+    for (i = 0; i < pPersonality->form->count_bones; i++) {
+        for (j = 0; j < 4; j++) {
+            if (pPersonality->bones[i].models[j].models[0] == NULL) {
+                break;
+            }
+            for (k = 1; k < 2; k++) {
+                BrModelRemove(pPersonality->bones[i].models[j].models[k]);
+                BrModelFree(pPersonality->bones[i].models[j].models[k]);
+            }
+        }
+        if (pPersonality->bones[i].hinge != NULL) {
+            FreePhysicsJoint(pPersonality->bones[i].hinge);
+        }
+    }
+    if (pPersonality->bones != NULL) {
+        BrMemFree(pPersonality->bones);
+    }
+    if (pPersonality != NULL) {
+        BrMemFree(pPersonality);
+    }
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
