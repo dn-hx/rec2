@@ -16,6 +16,10 @@
 
 #include <stdio.h>
 
+extern float gDrone_delta_time;
+extern tU32 gFrame_period_for_this_munging;
+extern int gFirst_drone_processing;
+
 // MakeVertexAndOffsetIt
 
 extern void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial);
@@ -30,7 +34,7 @@ extern void C2_HOOK_FASTCALL LoadAIWorldForRace(tRace_info* pRace_info);
 
 extern void C2_HOOK_FASTCALL DisposeAIWorldRaceStuff(void);
 
-// MungeAIWorld
+extern void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period);
 
 extern void C2_HOOK_FASTCALL PointActorAlongThisBloodyVector(br_actor* pThe_actor, br_vector3* pThe_vector);
 

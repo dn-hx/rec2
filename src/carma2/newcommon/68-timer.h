@@ -12,6 +12,11 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+extern tTimer gTimers[19];
+extern int gTimers_stack_size;
+extern int gTimers_max_index;
+extern int gTimers_stack[8];
+
 #define TIMER_MNG 0
 #define TIMER_ROB 1
 #define TIMER_RWL 2

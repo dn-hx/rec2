@@ -13,9 +13,68 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+#include "08-loading1.h"
+#include "41-utility.h"
+#include "platform.h"
+#include "68-timer.h"
+#include "27-powerup.h"
 
 // MakeVertexAndOffsetIt
 
+static void TimersPop(int pType) {
+    int prev_type;
+
+    gTimers[pType].durations[gTimers[pType].index] += PDGetMicroseconds() - gTimers[pType].start_time;
+    if (gTimers_stack_size > 1) {
+        prev_type = gTimers_stack_size - 1;
+    } else {
+        prev_type = gTimers_max_index;
+    }
+    gTimers[prev_type].start_time = PDGetMicroseconds();
+    gTimers_stack_size -= 1;
+}
+
+static void TimersPush(int pType) {
+    int prev_type;
+
+    gTimers_stack[gTimers_stack_size] = pType;
+    if (gTimers_stack_size == 0) {
+        prev_type = gTimers_max_index;
+    } else {
+        prev_type = gTimers_stack[gTimers_stack_size - 1];
+    }
+    gTimers[prev_type].durations[gTimers[prev_type].index] += PDGetMicroseconds() - gTimers[prev_type].start_time;
+    gTimers[pType].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+}
+
+// GLOBAL: CARMA2_HW 0x0058f038
+int gFirst_drone_processing = 1;
+
+// GLOBAL: CARMA2_HW 0x0079efc0
+float gDrone_delta_time;
+
+// GLOBAL: CARMA2_HW 0x0079efc4
+tU32 gFrame_period_for_this_munging;
+
+// FUNCTION: CARMA2_HW 0x00401170
+void C2_HOOK_FASTCALL MungeAIWorld(tU32 pFrame_period) {
+
+    gTime_stamp_for_this_munging = GetTotalTime();
+    if (gTime_stamp_for_this_munging == 0) {
+        gTime_stamp_for_this_munging = PDGetTotalTime();
+    }
+    gDrone_delta_time = (float)pFrame_period / 1000.f;
+    gFrame_period_for_this_munging = pFrame_period;
+    TimersPush(TIMER_DRN);
+    DoDronePerGameFrameStuff();
+    TimersPop(TIMER_DRN);
+    TimersPush(TIMER_OPP);
+    MungeOpponents();
+    TimersPop(TIMER_OPP);
+    gFirst_drone_processing = 0;
+    MungeShatMines(gTime_stamp_for_this_munging);
+}
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
 void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial) {
