@@ -12,6 +12,9 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+#include <math.h>
+#include <stdarg.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
