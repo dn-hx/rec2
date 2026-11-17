@@ -235,3 +235,5 @@ extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent
 
 
 #endif // GUARD_30_OPPONENT_H
+
+extern void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet);
