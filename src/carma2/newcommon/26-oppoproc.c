@@ -70,3 +70,36 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
 
 // FollowCheatyPath
 
+
+// FUNCTION: CARMA2_HW 0x004b2430
+int C2_HOOK_FASTCALL FUN_004b2430(int* pIndex) {
+    int prev;
+    int cur;
+    int n;
+    int m;
+    int idx;
+
+    DRS3StartSound(gEffects_outlet, 3000);
+    idx = *pIndex;
+    n = idx - 2;
+    prev = gFlic_cycle_specs[n].current - 1;
+    if (prev < 0) {
+        prev = gFlic_cycle_specs[n].count - 1;
+    }
+    m = n;
+    cur = ((int*)&gFlic_cycle_specs[0])[m * 8 + 2];
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    RunFlicAt(287, gFlic_cycle_specs[m].x[cur], gFlic_cycle_specs[m].y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    RunFlicAt(288, gFlic_cycle_specs[m].x[prev], gFlic_cycle_specs[m].y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    gFlic_cycle_specs[m].current = prev;
+    return 1;
+}
