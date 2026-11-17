@@ -42,7 +42,7 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 
 // MakeAIEditCubeHere
 
-// CalcNegativeXVector
+extern void C2_HOOK_FASTCALL CalcNegativeXVector(br_vector3* pResult, br_vector3* pStart, br_vector3* pFinish, br_scalar pWidth);
 
 // MakeAISimpleEditSectionHere
 
