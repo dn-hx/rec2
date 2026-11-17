@@ -123,3 +123,31 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+
+/* inlined copy of CrappyLittleVector3DPrintf (0x451620) at this call site in the original */
+static void C2_HOOK_CDECL DroneCrappyLittleVector3DPrintf(const char* pMessage, br_vector3* pPosition) {
+    DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, pMessage, pPosition->v[0], pPosition->v[1], pPosition->v[2]);
+}
+
+// FUNCTION: CARMA2_HW 0x00451710
+void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce) {
+
+    if (pDrone->field_0x44) {
+        if (pForce || (!(pDrone->form->flags & 0x4) && pDrone->current_state != 3 && gCount_active_drones > 0)) {
+            pDrone->field_0x44 = 0;
+            gCount_active_drones -= 1;
+            if (pDrone->actor->render_style == BR_RSTYLE_FACES) {
+                DoNotDprintf("STOP RENDERING: %d", pDrone->id);
+                gCount_rendered_drones -= 1;
+                pDrone->actor->render_style = BR_RSTYLE_NONE;
+                PipeSingleDroneRender(pDrone, 0);
+            }
+            PHILRemoveObject(&pDrone->collision_info);
+            if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                gDrone_state_functions[pDrone->current_state](pDrone, (tDroneStateFuncState)2);
+            }
+            DoNotDprintf("PROCESSING OFF: Frame %d, Drone %d, state %d", gFrame, pDrone->id, pDrone->current_state);
+            DroneCrappyLittleVector3DPrintf("     Pos", &pDrone->actor->t.t.translate.t);
+        }
+    }
+}
