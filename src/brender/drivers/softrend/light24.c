@@ -86,19 +86,16 @@ void C2_HOOK_STDCALL lightingColourDirectSpecular(br_soft_renderer* self, br_vec
         return;
     }
 
-    red = BrFixedToFloat(BR_RED(colour) << 8) * dot;
-    grn = BrFixedToFloat(BR_GRN(colour) << 8) * dot;
-    blu = BrFixedToFloat(BR_BLU(colour) << 8) * dot;
+    red = BrFixedToScalar(BR_RED(colour) << 8) * (dot * self->state.surface.kd);
+    grn = BrFixedToScalar(BR_GRN(colour) << 8) * (dot * self->state.surface.kd);
+    blu = BrFixedToScalar(BR_BLU(colour) << 8) * (dot * self->state.surface.kd);
 
     if (self->state.surface.ks != 0.f) {
         dot = BrVector3Dot(&alp->half, n);
         if (dot > SPECULARPOW_CUTOFF) {
-            br_scalar specular;
-
-            specular = alp->intensity * SPECULAR_POWER(self->state.surface.ks);
-            red += specular;
-            grn += specular;
-            blu += specular;
+            red += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
+            grn += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
+            blu += SPECULAR_POWER(self->state.surface.ks * alp->intensity);
         }
     }
 
