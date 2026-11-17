@@ -114,7 +114,7 @@ extern void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 
-// DoTrueColModelThing
+extern void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
 
 // SetFoxModelCallback
 
