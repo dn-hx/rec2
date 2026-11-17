@@ -183,6 +183,142 @@ int gMouse_last_y_coord;
 // GLOBAL: CARMA2_SW 0x00676604
 int gCursor_transient_index;
 
+static void C2_HOOK_FASTCALL DR16BitPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
+    int half_width;
+    int half_height;
+    int dy;
+    int dx;
+    int dest_y;
+    int src_x;
+    int src_y;
+    int src_word_row;
+    float row_start_x;
+    float row_start_y;
+    float half_src_height;
+    float src_f_x;
+    float src_f_y;
+    tU16* ptr_write;
+    tU16 pixel;
+    int dummy_for_frame;
+
+    (void)pTrans;
+    (void)dummy_for_frame;
+    half_width = pSrc_width / 2;
+    half_height = pSrc_height / 2;
+    half_src_height = (float)(pSrc_height * 0.5);
+    row_start_x = -(pMat->m[0][0] * (float)half_width);
+    row_start_y = -(pMat->m[1][0] * (float)half_width);
+    dest_y = pDest_y;
+    for (dy = -half_height; dy < half_height; ++dy, ++dest_y) {
+        src_f_x = row_start_x - dy * pMat->m[0][1] + pSrc_x;
+        src_f_y = dy * pMat->m[1][1] - row_start_y + half_src_height + pSrc_y;
+        ptr_write = (tU16*)((tU8*)pDest->pixels + dest_y * pDest->row_bytes) + pDest_x;
+        for (dx = -half_width; dx < half_width; ++dx) {
+            src_y = (int)src_f_y;
+            src_word_row = (src_y * pSrc->row_bytes) / 2;
+            src_x = (int)src_f_x;
+            src_f_x += pMat->m[0][0];
+            src_f_y -= pMat->m[1][0];
+            pixel = *((tU16*)pSrc->pixels + src_word_row + half_width + src_x);
+            *ptr_write++ = pixel;
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0047cd40
+void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pixelmap* pDest, tS16 pDest_x, tS16 pDest_y, br_pixelmap* pSrc, tS16 pSrc_x, tS16 pSrc_y, tS16 pSrc_width, tS16 pSrc_height, int pTrans) {
+    int width_div_2;
+    int height_div_2;
+    int width_near1;
+    int width_near2;
+    int width_near3;
+    int height_near1;
+    int height_near2;
+    int height_near3;
+    int src_y;
+    int src_x;
+    int dx_bit0;
+    int dy_bit1;
+    tU8 src_pix;
+    float src_f_x;
+    float src_f_y;
+    tU8* ptr_write;
+    int dy;
+    int dx;
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        int width_full = pSrc_width;
+        int height_full = pSrc_height;
+        float height_half;
+        float f_src_x;
+        float f_src_y;
+        float xbase;
+        float ybase;
+
+        width_div_2 = width_full / 2;
+        height_div_2 = height_full / 2;
+        width_near1 = width_div_2 - width_full / 24;
+        width_near2 = width_div_2 - width_full / 12;
+        width_near3 = width_div_2 - width_full * 3 / 24;
+        height_near1 = height_div_2 - height_full / 24;
+        height_near2 = height_div_2 - height_full / 12;
+        height_near3 = height_div_2 - height_full * 3 / 24;
+        f_src_x = (float)pSrc_x;
+        f_src_y = (float)pSrc_y;
+        height_half = (float)height_full * 0.5f;
+        xbase = -(pMat->m[0][0] * (float)width_div_2);
+        ybase = -(pMat->m[1][0] * (float)width_div_2);
+
+        for (dy = -height_div_2; dy < height_div_2; dy++) {
+            ptr_write = (tU8*)pDest->pixels + (pDest_y + dy + height_div_2) * pDest->row_bytes + pDest_x;
+            src_f_x = xbase - pMat->m[0][1] * (float)dy + f_src_x;
+            src_f_y = pMat->m[1][1] * (float)dy - ybase + height_half + f_src_y;
+            for (dx = -width_div_2; dx < width_div_2; dx++, ptr_write++) {
+                src_y = (int)src_f_y;
+                src_x = (int)src_f_x;
+                src_f_x += pMat->m[0][0];
+                src_f_y -= pMat->m[1][0];
+                if (pTrans) {
+                    *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x] * 256];
+                } else {
+                    src_pix = ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x];
+                    dx_bit0 = ((src_pix >> 0) & 0x1) - ((*ptr_write >> 0) & 0x1) + dx;
+                    dy_bit1 = ((src_pix >> 1) & 0x1) - ((*ptr_write >> 1) & 0x1) + dy;
+
+                    if (-width_div_2 <= dx_bit0 && dx_bit0 <= width_div_2
+                            && -height_div_2 <= dy_bit1 && dy_bit1 <= height_div_2) {
+                        if (-width_near1 <= dx_bit0 && dx_bit0 <= width_near1
+                                && -height_near1 <= dy_bit1 && dy_bit1 <= height_near1) {
+                            if (-width_near2 <= dx_bit0 && dx_bit0 <= width_near2
+                                    && -height_near2 <= dy_bit1 && dy_bit1 <= height_near2) {
+                                if (-width_near3 <= dx_bit0 && dx_bit0 <= width_near3
+                                        && -height_near3 <= dy_bit1 && dy_bit1 <= height_near3) {
+                                    *ptr_write = src_pix;
+                                } else {
+                                    *ptr_write = ((tU8*)gPalette_0074a5fc->pixels)[*ptr_write + 256 * src_pix];
+                                }
+                            } else {
+                                *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + 256 * src_pix];
+                            }
+                        } else {
+                            *ptr_write = ((tU8*)gPalette_0074a604->pixels)[*ptr_write + 256 * src_pix];
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        DR16BitPixelmapRotatedAndFeatheredCopy(pMat, pDest, pDest_x, pDest_y, pSrc, pSrc_x, pSrc_y, pSrc_width, pSrc_height, pTrans);
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 // FUNCTION: CARMA2_HW 0x0047d470
 // FUNCTION: CARMA2_SW 0x0047d7a0
 void C2_HOOK_FASTCALL DRPixelmapShadedHRectFill(br_pixelmap* pMap, int pX, int pY, int pWidth, int pHeight, br_uint_32 pColour) {
