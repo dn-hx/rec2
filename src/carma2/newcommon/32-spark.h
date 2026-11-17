@@ -183,7 +183,7 @@ extern void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, t
 
 // ReplaySmokeColumn
 
-// MungeSmokeColumn
+extern void C2_HOOK_FASTCALL MungeSmokeColumn(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL DisposeFlame(void);
 
