@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "52-errors.h"
 #include <stddef.h>
 
 #include <stdlib.h>
@@ -38,6 +39,9 @@ int gBastard_has_answered;
 // GLOBAL: CARMA2_HW 0x0068d984
 tU32 gAsk_time;
 
+// GLOBAL: CARMA2_HW 0x0068d988
+int gINT_0068d988;
+
 // GLOBAL: CARMA2_HW 0x0068d98c
 // GLOBAL: CARMA2_SW 0x006879e4
 int gMessage_header_size;
@@ -48,6 +52,12 @@ tU32 gLast_status_broadcast;
 // GLOBAL: CARMA2_HW 0x00690238
 // GLOBAL: CARMA2_SW 0x0068a290
 int gTime_for_next_one;
+
+// GLOBAL: CARMA2_HW 0x00690240
+tNet_game_player_info gNet_received_players[12];
+
+// GLOBAL: CARMA2_HW 0x00690c30
+int gINT_00690c30;
 
 // GLOBAL: CARMA2_HW 0x00690c34
 // GLOBAL: CARMA2_SW 0x0068ac8c
@@ -89,6 +99,9 @@ tMin_message* gMin_messages;
 // GLOBAL: CARMA2_SW 0x006879c8
 tMid_message* gMid_messages;
 
+// GLOBAL: CARMA2_HW 0x0068d974
+int gINT_0068d974;
+
 // GLOBAL: CARMA2_HW 0x0068d980
 // GLOBAL: CARMA2_SW 0x006879d8
 tMax_message* gMax_messages;
@@ -100,6 +113,9 @@ int gNet_initialised;
 // GLOBAL: CARMA2_HW 0x0068d960
 // GLOBAL: CARMA2_SW 0x006879b8
 int gDont_allow_joiners;
+
+// GLOBAL: CARMA2_HW 0x0068d964
+int gINT_0068d964;
 
 // GLOBAL: CARMA2_HW 0x0074a690
 // GLOBAL: CARMA2_SW 0x00741150
@@ -158,6 +174,9 @@ tGuaranteed_message gGuarantee_list[200] = { 0 };
 // GLOBAL: CARMA2_HW 0x00690230
 // GLOBAL: CARMA2_SW 0x0068a288
 tAddToJoinListProc* gAdd_proc = NULL;
+
+// GLOBAL: CARMA2_HW 0x00690234
+int gINT_00690234;
 
 // GLOBAL: CARMA2_HW 0x00690c60
 // GLOBAL: CARMA2_SW 0x0068acb8
@@ -432,7 +451,10 @@ void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
 
 // RemoveReferencesToCar
 
-// NetPlayersChanged
+// STUB: CARMA2_HW 0x0049e450
+void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers) {
+    NOT_IMPLEMENTED();
+}
 
 // NetHostGame
 
