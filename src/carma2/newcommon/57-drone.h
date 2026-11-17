@@ -28,8 +28,7 @@ extern int gCurrent_selected_drone;
 extern int gCount_drones;
 
 extern int gCurrent_selected_drone;
-extern tU32 gINT_00705b70;
-extern float gDrone_render_zero;
+extern tDrone_state_function* gDrone_state_functions[6];
 
 // DoNotDprintf
 
@@ -133,7 +132,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // ProcessThisDrone
 
-// DroneStateFuncReset
+extern void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // InitDroneDrivingInfo
 
@@ -145,13 +144,13 @@ extern void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone);
 
 // PossiblyPipeDroneMovement
 
-// DroneStateFuncControlledMovement
+extern void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // DoDroneHaltingStuff
 
-// DroneStateFuncPhysicsActive
+extern void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state);
 
-// DroneStateFuncStationaryPassive
+extern void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // GetNewCrushyModelForDrone
 
