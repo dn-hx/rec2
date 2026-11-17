@@ -2463,19 +2463,124 @@ int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
 void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
     tCar_spec* car;
 
-    if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
-        return;
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043ceb0
+void C2_HOOK_FASTCALL DoQueuedNetDetaching(void) {
+    tCar_crush_spec* car_crush;
+    tCar_spec* car;
+    br_actor* bit;
+    int count;
+    int keep;
+    int found;
+    int i;
+    int j;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_semi_detach_bit_list; i++) {
+        keep = 1;
+        if (gNet_crush_semi_detach_bit_list[i].time <= gPHIL_last_physics_tick) {
+            SemiDetachBit(gNet_crush_semi_detach_bit_list[i].car, gNet_crush_semi_detach_bit_list[i].actor,
+                gNet_crush_semi_detach_bit_list[i].field_0x48, &keep,
+                &gNet_crush_semi_detach_bit_list[i].field_0xc,
+                &gNet_crush_semi_detach_bit_list[i].bounds,
+                &gNet_crush_semi_detach_bit_list[i].field_0x18,
+                &gNet_crush_semi_detach_bit_list[i].field_0x24);
+        }
+        if (keep != 0) {
+            if (count != i) {
+                gNet_crush_semi_detach_bit_list[count] = gNet_crush_semi_detach_bit_list[i];
+            }
+            count++;
+        }
     }
-    car = NetCarFromPlayerID(pContents->reattach_all_bits.player);
-    if (car == NULL) {
-        return;
+    gCount_net_crush_semi_detach_bit_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_detach_list; i++) {
+        if (gNet_crush_detach_list[i].time <= gPHIL_last_physics_tick) {
+            DetachBit(gNet_crush_detach_list[i].car, gNet_crush_detach_list[i].actor,
+                &gNet_crush_detach_list[i].bounds);
+        } else {
+            if (count != i) {
+                gNet_crush_detach_list[count] = gNet_crush_detach_list[i];
+            }
+            count++;
+        }
     }
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].field_0x8 = pContents->reattach_all_bits.time;
-    gCount_net_crush_reattach_bit_list += 1;
+    gCount_net_crush_detach_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_full_detach_bit_list; i++) {
+        if (gNet_crush_full_detach_bit_list[i].time <= gPHIL_last_physics_tick) {
+            FullyDetachBit(gNet_crush_full_detach_bit_list[i].car, gNet_crush_full_detach_bit_list[i].object);
+            MungeDetachLists(gNet_crush_full_detach_bit_list[i].car->car_crush_spec);
+        } else {
+            if (count != i) {
+                gNet_crush_full_detach_bit_list[count] = gNet_crush_full_detach_bit_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_full_detach_bit_list = count;
+
+    count = 0;
+    for (i = 0; i < gCount_net_crush_reattach_bit_list; i++) {
+        if (gNet_crush_reattach_bit_list[i].field_0x8 <= gPHIL_last_physics_tick) {
+            car = gNet_crush_reattach_bit_list[i].car;
+            bit = (br_actor*)gNet_crush_reattach_bit_list[i].actor;
+            car_crush = car->car_crush_spec;
+            if (bit == NULL) {
+                for (j = 0; j < car_crush->field_0x2b0; j++) {
+                    ReAttachBit(car, car_crush->field_0x2b4[j].field_0x4, car_crush->field_0x2b4[j].field_0x0, NULL);
+                }
+                car_crush->field_0x2b0 = 0;
+                for (j = 0; j < car_crush->field_0x270; j++) {
+                    ReAttachBit(car, car_crush->field_0x274[j].field_0x4, car_crush->field_0x274[j].field_0x0, car_crush->field_0x274[j].field_0x8);
+                }
+                car_crush->field_0x270 = 0;
+            } else {
+                found = 0;
+                for (j = 0; j < car_crush->field_0x2b0; j++) {
+                    if (car_crush->field_0x2b4[j].field_0x0 == bit) {
+                        ReAttachBit(car, car_crush->field_0x2b4[j].field_0x4, bit, NULL);
+                        MungeDetachLists(car_crush);
+                        found = 1;
+                    }
+                }
+                if (!found) {
+                    for (j = 0; j < car_crush->field_0x270; j++) {
+                        if (car_crush->field_0x274[j].field_0x0 == bit) {
+                            ReAttachBit(car, car_crush->field_0x274[j].field_0x4, bit, car_crush->field_0x274[j].field_0x8);
+                            MungeDetachLists(car_crush);
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            if (count != i) {
+                gNet_crush_reattach_bit_list[count] = gNet_crush_reattach_bit_list[i];
+            }
+            count++;
+        }
+    }
+    gCount_net_crush_reattach_bit_list = count;
 }
-// DoQueuedNetDetaching
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // DBNonCarOwner
 
