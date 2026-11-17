@@ -735,7 +735,10 @@ void C2_HOOK_FASTCALL DisposeActionReplay(void) {
 
 // GetNextIncident
 
-// AddCrushToPipingSession
+// STUB: CARMA2_HW 0x004c6e40
+void C2_HOOK_FASTCALL AddCrushToPipingSession(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
+    NOT_IMPLEMENTED();
+}
 
 // AddSmudgeToPipingSession
 
@@ -887,7 +890,10 @@ void C2_HOOK_FASTCALL AddFlapToPipingSession(br_actor* pActor, br_angle pAngle) 
         SIZE_OFFSET_PIPING(tPipe_chunk_flap, angle), pAngle);
 }
 
-// AddModelMashToPipingSession
+// STUB: CARMA2_HW 0x004c7550
+void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004c7940
 // FUNCTION: CARMA2_SW 0x004c4070

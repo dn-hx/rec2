@@ -1775,7 +1775,10 @@ intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser) {
 
 // SmashEverythingCB
 
-// SmashEverything
+// STUB: CARMA2_HW 0x004f5a60
+void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004f5ae0
 // FUNCTION: CARMA2_SW 0x004f1740

@@ -29,6 +29,29 @@
 #include "c2_math.h"
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x00589a60
+double gDouble_00589a60 = 1.0;
+
+// GLOBAL: CARMA2_HW 0x00589b18
+double gDouble_00589b18 = 99.0;
+
+// GLOBAL: CARMA2_HW 0x00589b20
+double gDouble_00589b20 = -0.05;
+
+// GLOBAL: CARMA2_HW 0x00589b28
+br_scalar gFloat_00589b28 = 5.0f;
+#include "27-powerup.h"
+#include "69-sound.h"
+#include "15-displays.h"
+#include "37-brucetrk.h"
+#include "37-brucetrk.h"
+#include "69-sound.h"
+#include "52-errors.h"
+#include <ctype.h>
+
+// GLOBAL: CARMA2_HW 0x00589a40
+br_scalar gCrushZero = 0.0f;
+
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
 const char* gSoftness_names[6] = {
@@ -116,6 +139,9 @@ int gCount_queued_drone_crushes;
 // GLOBAL: CARMA2_HW 0x0067bad0
 // GLOBAL: CARMA2_SW 0x00676240
 int gCount_crush_detach_list;
+
+// GLOBAL: CARMA2_HW 0x0067bad8
+tQueued_drone_crush gQueued_drone_crushes[4];
 
 // GLOBAL: CARMA2_HW 0x0067bdfc
 // GLOBAL: CARMA2_SW 0x0067656c
@@ -388,7 +414,7 @@ void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec) {
     gCount_net_crush_full_detach_bit_list = new_count;
 
     for (i = 0, new_count = 0; i < gCount_net_crush_reattach_bit_list; i++) {
-        if (gNet_crush_reattach_bit_list[i].car != pCar_spec) {
+        if (gNet_crush_reattach_bit_list[i].actor != pCar_spec) {
             if (new_count != i) {
                 gNet_crush_reattach_bit_list[new_count] = gNet_crush_reattach_bit_list[i];
             }
@@ -1124,7 +1150,10 @@ void C2_HOOK_FASTCALL ClipPointToLimits(br_vector3* pPoint, tU16 pLimit_bits, co
 
 // SimpleCrushCar
 
-// CrushCar
+// STUB: CARMA2_HW 0x004363f0
+void C2_HOOK_FASTCALL CrushCar(tCar_spec* pCar, br_actor* pActor, tCar_crush* pCrush) {
+    NOT_IMPLEMENTED();
+}
 
 // SendCrush
 
@@ -1142,7 +1171,10 @@ void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_cru
     pDest->field_0x24 = pSrc->field_0x50;
 }
 
-// ExpandCrush
+// STUB: CARMA2_HW 0x004369c0
+void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc) {
+    NOT_IMPLEMENTED();
+}
 
 // RemoveDuplicatePoints
 
@@ -1150,7 +1182,10 @@ void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_cru
 
 // CrushDrone
 
-// CrushDroneObject
+// STUB: CARMA2_HW 0x0042d180
+void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale) {
+    NOT_IMPLEMENTED();
+}
 
 // DoDroneCrushing
 
@@ -1273,19 +1308,31 @@ void C2_HOOK_FASTCALL SetFlappage(br_actor* pActor, tCar_spec* pCar, int pFlags,
 
 // RemoveNonCar
 
-// GetNonCar
+// STUB: CARMA2_HW 0x0042f170
+tCrush_info* C2_HOOK_FASTCALL GetNonCar(tCrush_info_buffer* pInfo_buffer, br_actor* pActor, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
 
 // GetNonCarObject
 
 // SetRelationsDoingNothingFlags
 
-// SetUpDetachedBitObject
+// STUB: CARMA2_HW 0x004336f0
+void C2_HOOK_FASTCALL SetUpDetachedBitObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info) {
+    NOT_IMPLEMENTED();
+}
 
-// SetUpSemiDetachedBitJoint
+// STUB: CARMA2_HW 0x00437480
+void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, br_model* pModel, tPhysics_object* pObject, const br_vector3* pOptional_pos) {
+    NOT_IMPLEMENTED();
+}
 
 // BitIsInBentPartOfCar
 
-// SetUpFlapJoint
+// STUB: CARMA2_HW 0x00437ac0
+void C2_HOOK_FASTCALL SetUpFlapJoint(tPhysics_joint* pJoint, tCar_crush_flap_data* pFlap_data, br_model* pModel, tPhysics_object* pObject, br_vector3* pPoint1, br_vector3* pPoint2, br_vector3* pPoint3) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0042d950
 // FUNCTION: CARMA2_SW 0x0042d9c0
@@ -1305,7 +1352,10 @@ void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel) {
     }
 }
 
-// CheckFlapAngles
+// STUB: CARMA2_HW 0x00434320
+intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pValue) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0042d9b0
 // FUNCTION: CARMA2_SW 0x0042da20
@@ -1325,11 +1375,17 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-// ReAttachBit
+// STUB: CARMA2_HW 0x00434010
+void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
 // CentreModelOnPoint
 
-// SemiDetachBit
+// STUB: CARMA2_HW 0x00436d60
+tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, int* pArg4, br_vector3* pArg5, br_bounds3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0042dbd0
 // FUNCTION: CARMA2_SW 0x0042dc40
@@ -1446,9 +1502,15 @@ void C2_HOOK_FASTCALL AddNonCar(tNon_car_spec* pNon_car, const tDriver* pDriver)
     }
 }
 
-// DetachBit
+// STUB: CARMA2_HW 0x00433350
+tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
+    NOT_IMPLEMENTED();
+}
 
-// DoDetaching
+// STUB: CARMA2_HW 0x00436ad0
+void C2_HOOK_FASTCALL DoDetaching(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FlapBit
 
@@ -1456,7 +1518,10 @@ void C2_HOOK_FASTCALL AddNonCar(tNon_car_spec* pNon_car, const tDriver* pDriver)
 
 // StartFlapping
 
-// MungeDetachLists
+// STUB: CARMA2_HW 0x0042f3d0
+void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0043b250
 // FUNCTION: CARMA2_SW 0x0043b2a0
@@ -1489,7 +1554,10 @@ void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
 #pragma auto_inline(on)
 #endif
 
-// DoFlapping
+// STUB: CARMA2_HW 0x004381b0
+void C2_HOOK_FASTCALL DoFlapping(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0042ddc0
 // FUNCTION: CARMA2_SW 0x0042de30
@@ -1547,6 +1615,11 @@ void C2_HOOK_FASTCALL ToggleFlaps(void) {
     }
 }
 
+// STUB: CARMA2_HW 0x00433b90
+void C2_HOOK_FASTCALL LazyMoveModel(br_model* pModel, const br_vector3* pOffset) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00434910
 // FUNCTION: CARMA2_SW 0x00434940
 int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_object* pObject) {
@@ -1599,7 +1672,10 @@ void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject) 
 
 // SendFullyDetachBit
 
-// DoFullyDetaching
+// STUB: CARMA2_HW 0x00438900
+void C2_HOOK_FASTCALL DoFullyDetaching(void) {
+    NOT_IMPLEMENTED();
+}
 
 // CalculateCollisionObjectStuffForSplitHalves
 
@@ -1693,7 +1769,10 @@ intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void*
 
 // MoveCarToSensiblePlace
 
-// SwapShapesIfPossible
+// STUB: CARMA2_HW 0x004349c0
+int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // DoShapeSwapping
 
@@ -1713,19 +1792,31 @@ void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context* p
 
 // EdgeCrossesZPlane
 
-// BendCollisionShape
+// STUB: CARMA2_HW 0x00435110
+void C2_HOOK_FASTCALL BendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // BendCollisionShapes
 
 // BendModel
 
-// BendModels
+// STUB: CARMA2_HW 0x004358a0
+intptr_t C2_HOOK_FASTCALL BendModels(br_actor* pActor, br_vector3* pDelta, void* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // BrAngleToSignedDegree
 
-// BendWheels
+// STUB: CARMA2_HW 0x00435310
+void C2_HOOK_FASTCALL BendWheels(tCar_spec* pCar_spec, const tBend_point_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
-// BendActor
+// STUB: CARMA2_HW 0x00435550
+void C2_HOOK_FASTCALL BendActor(tCar_spec* pCar, br_actor* pActor, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg6, float pArg7, tBend_data_local* pBend) {
+    NOT_IMPLEMENTED();
+}
 
 // BendOtherThings
 
@@ -1852,7 +1943,10 @@ void C2_HOOK_FASTCALL CompletelyUnBendCollisionShape(tCar_crush_shape_info* pSha
 
 // CompletelyUnBendCollisionShapes
 
-// CompletelyUnBendWheels
+// STUB: CARMA2_HW 0x0043a010
+void C2_HOOK_FASTCALL CompletelyUnBendWheels(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // CompletelyUnBendOtherThings
 
@@ -1957,22 +2051,19 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // UnBendModels
 
-// UnBendActor
-
-// FUNCTION: CARMA2_HW 0x0043aa20
-// FUNCTION: CARMA2_SW 0x0043aa70
-void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context* pContext) {
-    int i;
-
-    for (i = 0; i < pShape->count_points; i++) {
-        BrVector3Copy(&pShape->field_0x18[i].field_0x18, &pShape->field_0x18[i].field_0x2c);
-        BendPoint(&pShape->field_0x18[i].field_0x18, pContext);
-    }
+// STUB: CARMA2_HW 0x0043a150
+void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
 }
+
+// UnBendCollisionShape
 
 // UnBendCollisionShapes
 
-// UnBendWheels
+// STUB: CARMA2_HW 0x0043aa80
+void C2_HOOK_FASTCALL UnBendWheels(tCar_spec* pCar_spec, const tBend_point_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // UnBendOtherThings
 
@@ -2024,7 +2115,10 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // WeldCar
 
-// ARCompressCrush
+// STUB: CARMA2_HW 0x0043bca0
+void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars) {
+    NOT_IMPLEMENTED();
+}
 
 // ARApplyCrush
 
@@ -2125,23 +2219,7 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // ReceivedReAttachBit
 
-// FUNCTION: CARMA2_HW 0x0043ce60
-// FUNCTION: CARMA2_SW 0x0043ceb0
-void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
-    tCar_spec* car;
-
-    if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
-        return;
-    }
-    car = NetCarFromPlayerID(pContents->reattach_all_bits.player);
-    if (car == NULL) {
-        return;
-    }
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].time = pContents->reattach_all_bits.time;
-    gCount_net_crush_reattach_bit_list += 1;
-}
+// ReceivedReAttachAllBits
 
 // DoQueuedNetDetaching
 
@@ -2288,4 +2366,9 @@ void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes)
             pShapes->items[i].field_0x4 = 1;
         }
     }
+}
+
+// STUB: CARMA2_HW 0x004c86f0
+void C2_HOOK_FASTCALL AddCarDamageToPipingSession(int pOwner, void* pData, tU32 pArg3) {
+    NOT_IMPLEMENTED();
 }

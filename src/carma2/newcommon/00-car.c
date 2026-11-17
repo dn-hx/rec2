@@ -1386,7 +1386,10 @@ void C2_HOOK_FASTCALL FreezeMechanics(void) {
 
 // FlyCar
 
-// GetCarOverallBoundsMinY
+// STUB: CARMA2_HW 0x0041fbe0
+float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
