@@ -225,3 +225,5 @@ extern void C2_HOOK_FASTCALL CheckKevKeys(void);
 extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
 
 #endif // GUARD_53_CONTROLS_H
+
+extern int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3);
