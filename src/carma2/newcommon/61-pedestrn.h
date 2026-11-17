@@ -462,7 +462,7 @@ extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 
 // ClearOutMorphs
 
-// InitBoner
+extern void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable);
 
 extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 
