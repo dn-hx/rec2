@@ -16,6 +16,8 @@ extern int gHud_tinted1;
 extern int gHud_tinted2;
 #ifdef REC2_HW
 extern int gHud_tinted3;
+extern int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result);
+
 #endif
 extern int gCredits_checkpoint[3];
 extern tU32 gLast_checkpoint_time;
