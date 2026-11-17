@@ -2335,6 +2335,153 @@ float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0043b740
+void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0043ace0
+float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
+    tCar_crush_spec* crush;
+    tCrush_displacement_context_local ctx;
+    tCar_bit_spec* bit;
+    tCar_crush_detach_data* detach;
+    tUser_crush_data* user;
+    br_model* model;
+    br_vertex* vertices;
+    float repaired;
+    tU32 delta;
+    int i;
+    int j;
+    int found;
+
+    delta = pDelta;
+    pCar->repair_time += delta;
+    if (pCar->use_shell_model != 0
+            || pCar == NULL
+            || pCar->driver < eDriver_net_human
+            || (crush = pCar->car_crush_spec) == NULL
+            || crush->field_0x4b8 != 0
+            || gAusterity_mode != 0) {
+        return 0.f;
+    }
+    if (crush->field_0x144 == 0) {
+        if (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host) {
+            for (i = 0; i < crush->field_0x2b0; i++) {
+                bit = &crush->field_0x2b4[i];
+                if (bit->field_0xc != NULL
+                        && bit->field_0x4 != NULL
+                        && (user = bit->field_0x4->user) != NULL
+                        && (model = user->models[0]) != NULL) {
+                    detach = (tCar_crush_detach_data*)bit->field_0xc;
+                    vertices = model->vertices;
+                    if (Vector3DistanceSquared(&vertices[detach->min_vertex].p, (br_vector3*)&detach->field_0xc) < gCrushReattachDistanceSquared
+                            && Vector3DistanceSquared(&vertices[detach->max_vertex].p, (br_vector3*)(detach->field_0xc + 12)) < gCrushReattachDistanceSquared) {
+                        if (gNet_mode != eNet_mode_none) {
+                            found = 0;
+                            for (j = 0; j < gCount_net_crush_reattach_bit_list; j++) {
+                                if (gNet_crush_reattach_bit_list[j].actor == bit->field_0x0) {
+                                    found = 1;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                SendReAttachBit(pCar, bit->field_0x8);
+                            }
+                        } else {
+                            ReAttachBit(pCar, bit->field_0x4, bit->field_0x0, NULL);
+                        }
+                    }
+                }
+            }
+            for (i = 0; i < crush->field_0x270; i++) {
+                bit = &crush->field_0x274[i];
+                if (bit->field_0xc != NULL
+                        && bit->field_0x4 != NULL
+                        && (user = bit->field_0x4->user) != NULL
+                        && (model = user->models[0]) != NULL) {
+                    detach = (tCar_crush_detach_data*)bit->field_0xc;
+                    vertices = model->vertices;
+                    if (Vector3DistanceSquared(&vertices[detach->min_vertex].p, (br_vector3*)&detach->field_0xc) < gCrushReattachDistanceSquared
+                            && Vector3DistanceSquared(&vertices[detach->max_vertex].p, (br_vector3*)(detach->field_0xc + 12)) < gCrushReattachDistanceSquared) {
+                        if (gNet_mode != eNet_mode_none) {
+                            SendReAttachBit(pCar, bit->field_0x8);
+                        } else {
+                            ReAttachBit(pCar, bit->field_0x4, bit->field_0x0, bit->field_0x8);
+                        }
+                    }
+                }
+            }
+            MungeDetachLists(crush);
+        }
+        *pOut = 0.f;
+        ctx.car = pCar;
+        ctx.step = (float)delta * gFLOAT_00589b48;
+        ctx.total_displacement = pOut;
+        ctx.displacement = 0.f;
+        PhysicsObjectRecurse(pCar->collision_info, (tEnumCollision_cbfn*)RepairObject, &ctx);
+        RepairCarCollisionShapes(pCar, ctx.step);
+        for (i = 0; i < crush->field_0x2b0; i++) {
+            DRActorEnumRecurse(crush->field_0x2b4[i].field_0x0, (br_actor_enum_cbfn*)AddTotalDeflection, &ctx);
+        }
+        repaired = ctx.displacement;
+        if (ctx.displacement == gCrushZero) {
+            RepairAllSmashes(pCar);
+            TotallyRepairCarCollisionShapes(pCar);
+            if (gNet_mode == eNet_mode_none) {
+                for (i = 0; i < crush->field_0x2b0; i++) {
+                    ReAttachBit(pCar, crush->field_0x2b4[i].field_0x4, crush->field_0x2b4[i].field_0x0, NULL);
+                }
+                i = 0;
+                crush->field_0x2b0 = 0;
+                for (i = 0; i < crush->field_0x270; i++) {
+                    ReAttachBit(pCar, crush->field_0x274[i].field_0x4, crush->field_0x274[i].field_0x0, crush->field_0x274[i].field_0x8);
+                }
+                crush->field_0x270 = 0;
+            } else if (gNet_mode == eNet_mode_host) {
+                SendReAttachAllBits(pCar);
+            }
+            DRActorEnumRecurse(pCar->car_model_actor, MakeCarModelsMaterialsSingleSided, pCar);
+            PipeSingleDSModel(0, pCar);
+            gCount_toggled_doors = 0;
+            gCount_crush_detach_list = 0;
+            if (*pOut == gCrushZero
+                    && (gNet_mode == eNet_mode_none
+                        || (crush->field_0x270 < 1 && crush->field_0x2b0 < 1))) {
+                PhysicsObjectRecurse(pCar->collision_info, BattenDownTheObjects, pCar);
+                if (pCar->driver == eDriver_local_human) {
+                    pCar->repair_time += 100000;
+                }
+                pCar->use_shell_model = 1;
+            } else {
+                repaired = 1.1920929e-07f;
+            }
+        }
+    } else {
+        repaired = UnBendCar(pCar, delta, pOut);
+    }
+    if (SwapShapesIfPossible(pCar) != 0 && pCar->driver == eDriver_local_human) {
+        NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(6));
+    }
+    return repaired;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
 // RepairCar
 
 // RestoreVitalBitsOfObject
