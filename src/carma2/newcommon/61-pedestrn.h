@@ -552,7 +552,7 @@ extern int C2_HOOK_FASTCALL MakeCharacterCollideworthy(tPed_character_instance* 
 
 extern tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed);
 
-// CharacterNoLongerCollideworthy
+extern int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter);
 
 extern void C2_HOOK_FASTCALL SetObjectV(tPhysics_object* pObject, const br_vector3* pV);
 

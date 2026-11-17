@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include "60-phil.h"
 #include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x006a0414
