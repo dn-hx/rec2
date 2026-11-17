@@ -428,7 +428,7 @@ extern intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg);
 
 // DoSpams
 
-// CrushBendFlapRend
+extern void C2_HOOK_FASTCALL CrushBendFlapRend(void);
 
 // SphericizeModel
 
