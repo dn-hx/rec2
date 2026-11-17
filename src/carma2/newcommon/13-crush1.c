@@ -1966,10 +1966,39 @@ int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00434f60
+// FUNCTION: CARMA2_HW 0x00434f60
 // STUB: CARMA2_SW 0x00434f90
 void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    tBend_data_local* bend;
+    br_vector3 tmp;
+    br_vector3 d;
+    float z;
+    float a;
+    float b;
+    float c;
+    float ab;
+
+    bend = pContext->bend;
+    z = pPoint->v[2] - bend->field_0x18.v[2];
+    if ((bend->field_0x74 != 0 && z <= 0.f) || (bend->field_0x74 == 0 && z >= 0.f)) {
+        BrMatrix34ApplyP(&tmp, pPoint, &pContext->matrix);
+        pPoint->v[0] = tmp.v[0];
+        pPoint->v[1] = tmp.v[1];
+        pPoint->v[2] = tmp.v[2];
+        return;
+    }
+    d.v[0] = pPoint->v[0] - bend->field_0x24.v[0];
+    d.v[1] = pPoint->v[1] - bend->field_0x24.v[1];
+    d.v[2] = pPoint->v[2] - bend->field_0x24.v[2];
+    if ((bend->field_0x74 != 0 && d.v[2] <= 0.f) || (bend->field_0x74 == 0 && d.v[2] >= 0.f)) {
+        b = d.v[1] / bend->field_0x30.v[1];
+        a = d.v[0] / bend->field_0x30.v[0];
+        c = d.v[2] / bend->field_0x30.v[2];
+        ab = b * a;
+        pPoint->v[0] = (bend->field_0x68.v[0] + bend->field_0x5c.v[0] * b + bend->field_0x50.v[0] * a + bend->field_0x44.v[0] * ab) * c + pPoint->v[0];
+        pPoint->v[1] = (bend->field_0x68.v[1] + bend->field_0x5c.v[1] * b + bend->field_0x50.v[1] * a + bend->field_0x44.v[1] * ab) * c + pPoint->v[1];
+        pPoint->v[2] = (bend->field_0x68.v[2] + bend->field_0x5c.v[2] * b + bend->field_0x50.v[2] * a + bend->field_0x44.v[2] * ab) * c + pPoint->v[2];
+    }
 }
 
 #ifdef REC2_MATCHING
