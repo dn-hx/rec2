@@ -303,10 +303,190 @@ int C2_HOOK_FASTCALL GetEdgeToEdgePoints(tPhysics_object* pObject, tPhysics_shap
 
 // SetUpWorkspace
 
-// STUB: CARMA2_HW 0x004228b0
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004228b0
 int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg) {
-    NOT_IMPLEMENTED();
+    struct {
+        br_vector3 points[128];
+        int point_flags[64];
+        tU16 point_count;
+        tU16 edge_count;
+        tPolyhedron_edge_indexes* edges;
+    } data;
+    br_matrix34 object_to_actor_matrix;
+    br_matrix34 inverse_actor_matrix;
+    br_vector3 actor_point;
+    br_vector3 world_point;
+    int result_index;
+    tFace_ref* pClosest_face;
+    br_vector3 closest_point;
+    br_vector3 local_point;
+    br_scalar distance;
+    br_vector3 normal;
+    int has_collision;
+    int has_any_collision;
+    br_scalar closest_distance;
+    int tmp_count;
+    br_matrix34* pTransform;
+    int collision_count;
+    int* pFlags;
+    int i;
+    tPhysics_shape* pShape;
+    br_matrix34* pShape_transform;
+    br_scalar neg_radius;
+    tFace_ref* pFace;
+    int face_index;
+    tU32 three;
+
+    three = 3;
+    collision_count = 0;
+    has_any_collision = 0;
+    pShape = pObject->shape;
+    result_index = 1;
+    if (pObject->box_face_start == pObject->box_face_end) {
+        return 0;
+    }
+    if (pArg > 0x24) {
+        return 0;
+    }
+    BrMatrix34LPInverse(&inverse_actor_matrix, &pObject->actor->t.t.mat);
+    pTransform = &pObject->transform_matrix;
+    BrMatrix34Mul(&object_to_actor_matrix, pTransform, &inverse_actor_matrix);
+    for (; pShape != NULL; pShape = pShape->common.next) {
+        if (!EliminateFaces(pObject, (int*)pShape, &object_to_actor_matrix)) {
+            continue;
+        }
+        if (gSensible_place_collect_active != 0) {
+            pShape_transform = pTransform;
+        } else {
+            pShape_transform = &pObject->actor->t.t.mat;
+        }
+        switch (pShape->common.type) {
+        case kCollisionShapeType_Box:
+            data.point_count = 8;
+            data.edge_count = 12;
+            for (i = 0, pFlags = data.point_flags; i < 8; i++, pFlags++) {
+                if ((i & 2) != 0) {
+                    local_point.v[0] = pShape->box.common.bb.min.v[0];
+                } else {
+                    local_point.v[0] = pShape->box.common.bb.max.v[0];
+                }
+                if ((i & 1) != 0) {
+                    local_point.v[1] = pShape->box.common.bb.min.v[1];
+                } else {
+                    local_point.v[1] = pShape->box.common.bb.max.v[1];
+                }
+                if ((i & 4) != 0) {
+                    local_point.v[2] = pShape->box.common.bb.min.v[2];
+                } else {
+                    local_point.v[2] = pShape->box.common.bb.max.v[2];
+                }
+                BrMatrix34ApplyP(&data.points[i], &local_point, pTransform);
+                BrMatrix34ApplyP(&data.points[i + 64], &local_point, pShape_transform);
+                *pFlags = 0;
+            }
+            data.edges = gDefault_box_collision_wireframe_edges;
+            break;
+        case kCollisionShapeType_Wireframe:
+            data.point_count = (tU16)pShape->wireframe.wireframe.count_points;
+            data.edge_count = (tU16)pShape->wireframe.wireframe.count_lines;
+            if (data.point_count != 0) {
+                for (i = 0, pFlags = data.point_flags; i < (int)data.point_count; i++, pFlags++) {
+                    BrMatrix34ApplyP(&data.points[i], &pShape->wireframe.wireframe.points[i], pTransform);
+                    BrMatrix34ApplyP(&data.points[i + 64], &pShape->wireframe.wireframe.points[i], pShape_transform);
+                    *pFlags = 0;
+                }
+            }
+            data.edges = pShape->wireframe.wireframe.lines;
+            break;
+        case kCollisionShapeType_Polyhedron:
+        case kCollisionShapeType_Wireframe_Polyhedron:
+            data.point_count = (tU16)pShape->polyhedron.polyhedron.count_points;
+            data.edge_count = (tU16)pShape->polyhedron.polyhedron.count_edges;
+            if (data.point_count != 0) {
+                for (i = 0, pFlags = data.point_flags; i < (int)data.point_count; i++, pFlags++) {
+                    BrMatrix34ApplyP(&data.points[i], &pShape->polyhedron.polyhedron.points[i], pTransform);
+                    BrMatrix34ApplyP(&data.points[i + 64], &pShape->polyhedron.polyhedron.points[i], pShape_transform);
+                    *pFlags = 0;
+                }
+            }
+            data.edges = pShape->polyhedron.polyhedron.edges;
+            break;
+        case kCollisionShapeType_Sphere:
+            data.point_count = 1;
+            data.edge_count = 0;
+            BrMatrix34ApplyP(&data.points[0], &pShape->sphere.sphere.center, pTransform);
+            BrMatrix34ApplyP(&data.points[64], &pShape->sphere.sphere.center, pShape_transform);
+            break;
+        default:
+            PhysicsError(ePhysicsError_UnknownShapeType, "");
+            break;
+        }
+        if (gSensible_place_collect_active != 0) {
+            BrMatrix34ApplyP(&data.points[0], &pObject->cmpos, pTransform);
+            for (i = 1; i < (int)data.point_count; i++) {
+                data.points[i] = data.points[0];
+            }
+        }
+        if (pShape->common.type == kCollisionShapeType_Sphere) {
+            tmp_count = collision_count;
+            closest_distance = 2.0f;
+            for (face_index = pObject->box_face_start, pFace = &gFace_list__car[face_index]; face_index < (int)pObject->box_face_end; face_index++, pFace++) {
+                SphereFaceCollide(pFace, &data.points[0], &data.points[64], pShape->sphere.sphere.radius, &normal, &closest_point, &distance);
+                if (distance < closest_distance) {
+                    closest_distance = distance;
+                    pClosest_face = pFace;
+                    world_point = closest_point;
+                }
+            }
+            if (closest_distance <= 1.0f) {
+                BrMatrix34TApplyV(&closest_point, &world_point, pTransform);
+                BrMatrix34TApplyV(&actor_point, &world_point, &pObject->actor->t.t.mat);
+                neg_radius = -pShape->sphere.sphere.radius;
+                normal.v[0] = pShape->sphere.sphere.center.v[0] + actor_point.v[0] * neg_radius;
+                normal.v[1] = pShape->sphere.sphere.center.v[1] + actor_point.v[1] * neg_radius;
+                normal.v[2] = pShape->sphere.sphere.center.v[2] + actor_point.v[2] * neg_radius;
+                /* pPoint is the sphere surface point pulled towards the wall (our "normal"),
+                 * pNormal is the face normal returned by SphereFaceCollide (our "closest_point"). */
+                tmp_count = AddObjectWallForce((float*)&pContacts[pArg], &normal, closest_distance, &closest_point, 0, collision_count, pObject, *(float*)&three, *(float*)&pClosest_face, NULL);
+            }
+            i = GetSphereToEdgePoints(pObject, (int)&pShape->sphere.sphere.radius, (int)&pContacts[pArg], tmp_count, 0x28 - pArg, (int)&data.points[0], (int)&data.points[64], (int)&object_to_actor_matrix);
+            collision_count += (collision_count < i);
+        } else {
+            has_collision = 0;
+            if (pObject->field_0xed != 0) {
+                collision_count = GetFaceEdgeIntersection(pObject, pShape, &pContacts[pArg], collision_count, 0x28 - pArg, &data.points[0], &object_to_actor_matrix, &has_collision);
+            }
+            has_any_collision |= has_collision;
+            collision_count = GetCornerToFacePoints(pObject, (int)pShape, (tU32)(int)&pContacts[pArg], collision_count, 0x28 - pArg, (char*)&data.points[0], (tU32)(int)&object_to_actor_matrix);
+            if (has_collision == 0) {
+                collision_count = GetEdgeToEdgePoints(pObject, pShape, (tPhysics_shape*)&pContacts[pArg], collision_count, 0x28 - pArg, (tU8*)&data.points[0], (undefined4)&object_to_actor_matrix);
+            }
+        }
+    }
+    pObject->field_0xed = (tU8)has_any_collision;
+    if (collision_count == 0) {
+        return 0;
+    }
+    for (; result_index < collision_count; result_index++) {
+        if (pContacts[pArg].normal.v[0] * pContacts[pArg + result_index].normal.v[0]
+                + pContacts[pArg].normal.v[1] * pContacts[pArg + result_index].normal.v[1]
+                + pContacts[pArg].normal.v[2] * pContacts[pArg + result_index].normal.v[2] <= 0.95) {
+            break;
+        }
+    }
+    pObject->omega.v[0] = pObject->rotate_omega.v[0];
+    pObject->omega.v[1] = pObject->rotate_omega.v[1];
+    pObject->omega.v[2] = pObject->rotate_omega.v[2];
+    return result_index;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // GetObjectCornerToObjectFacePoints
 
