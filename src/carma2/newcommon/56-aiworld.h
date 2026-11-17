@@ -44,7 +44,7 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 
 // CalcNegativeXVector
 
-// MakeAISimpleEditSectionHere
+extern void C2_HOOK_FASTCALL MakeAISimpleEditSectionHere(br_model* pModel, int pVert_index, int pFace_index, tDrone_path_node* pNode, br_vector3* pPos, br_material* pMaterial1, br_material* pMaterial2);
 
 extern tU32 gFrame_period_for_this_munging;
 
