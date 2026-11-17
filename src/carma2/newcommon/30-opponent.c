@@ -592,7 +592,76 @@ void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spe
 
 // ProcessReturnToStart
 
-// ProcessLevitate
+typedef struct {
+    float initial_y;
+    int time_started;
+    unsigned int waiting_to_levitate : 1;
+} tLevitate_data;
+
+// FUNCTION: CARMA2_HW 0x004ac540
+void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    float t;
+    float y;
+
+    switch (pCommand) {
+    case ePOC_start:
+        DoNotDprintf("%s: ProcessLevitate() - new objective started", pOpponent_spec->car_spec->driver_name);
+        ((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate = 1;
+        pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.f;
+        pOpponent_spec->car_spec->acc_force = 0.f;
+        ((tLevitate_data*)pOpponent_spec->field_0x184)->time_started = gTime_stamp_for_this_munging;
+        return;
+    case ePOC_run:
+        if (((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate) {
+            if ((BrVector3Length(&pOpponent_spec->car_spec->collision_info->v) < 0.0014492754f
+                        && BrVector3Length(&pOpponent_spec->car_spec->collision_info->omega) < 1.f)
+                    || gTime_stamp_for_this_munging - ((tLevitate_data*)pOpponent_spec->field_0x184)->time_started > 4000) {
+                ((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate = 0;
+                ((tLevitate_data*)pOpponent_spec->field_0x184)->time_started = gTime_stamp_for_this_munging;
+                ((tLevitate_data*)pOpponent_spec->field_0x184)->initial_y = pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1];
+                if (pOpponent_spec->car_spec->has_been_stolen) {
+                    NewTextHeadupSlot(4, 250, 5000, -4, GetMiscString(170));
+                }
+            } else {
+                pOpponent_spec->car_spec->brake_force = pOpponent_spec->car_spec->collision_info->M * 15.f;
+                pOpponent_spec->car_spec->acc_force = 0.f;
+                pOpponent_spec->car_spec->collision_info->omega.v[0] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
+                pOpponent_spec->car_spec->collision_info->omega.v[1] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
+                pOpponent_spec->car_spec->collision_info->omega.v[2] /= (double)(float)pow(2.0, gFrame_period_for_this_munging / 1000.0);
+            }
+        }
+        if (!((tLevitate_data*)pOpponent_spec->field_0x184)->waiting_to_levitate) {
+            tCar_spec* car = pOpponent_spec->car_spec;
+
+            car->acc_force = 0.f;
+            car->brake_force = 0.f;
+            car->curvature = 0.f;
+            car->gear = 0;
+            car->revs = 0.f;
+            BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
+            BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
+            if (pOpponent_spec->physics_me) {
+                pOpponent_spec->physics_me = 0;
+                pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_NONE;
+                PipeSingleOppoRenderage(pOpponent_spec, 0);
+                gActive_car_list_rebuild_required = 1;
+            }
+            t = (gTime_stamp_for_this_munging - ((tLevitate_data*)pOpponent_spec->field_0x184)->time_started) / 1000.0;
+            if (t < 20.f) {
+                y = t * t * 0.25f;
+            } else {
+                y = (t - 20.f) * 10.0 - -100.0;
+            }
+            pOpponent_spec->car_spec->car_master_actor->t.t.translate.t.v[1] = ((tLevitate_data*)pOpponent_spec->field_0x184)->initial_y + y;
+            if (y > 200.f) {
+                pOpponent_spec->finished_for_this_race = 1;
+            }
+        }
+        return;
+    default:
+        return;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ac890
 // FUNCTION: CARMA2_SW 0x004a8a00
