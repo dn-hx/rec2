@@ -307,7 +307,7 @@ extern int C2_HOOK_FASTCALL CBActiveHalted(tPed_character_instance* pCharacter, 
 
 // RecordPedSlide
 
-// PedProcessForces
+extern void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint);
 
 // CBMovedByPhysics
 
