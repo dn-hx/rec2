@@ -869,7 +869,70 @@ void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMpDestap, int pX1, int pY1, in
 
 // DRPixelmapCopyMapBlack8Bit
 
-// DRPixelmapCopyMapBlack
+// DRPixelmapCopyMapBlack8Bit (no own entry in the original: inlined into DRPixelmapCopyMapBlack)
+static inline void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack8Bit(br_pixelmap* pDest, br_pixelmap* pSrc) {
+    int y;
+    int dwords_remaining;
+    int src_width_dwords;
+    tU8* dest_pixels;
+    tU8* src_pixels;
+    int src_skip;
+    int dest_skip;
+    tU8 p0;
+    tU8 p1;
+    tU8 p2;
+    tU8 p3;
+
+    dest_pixels = pDest->pixels;
+    src_pixels = pSrc->pixels;
+    src_skip = pSrc->row_bytes - pSrc->width;
+    dest_skip = pDest->row_bytes - pDest->width;
+    src_width_dwords = pSrc->width / sizeof(tU32);
+    for (y = 0; y < pSrc->height; y++) {
+        for (dwords_remaining = src_width_dwords; dwords_remaining > 0; dwords_remaining--) {
+            p0 = *src_pixels++;
+            p1 = *src_pixels++;
+            p2 = *src_pixels++;
+            p3 = *src_pixels++;
+            if (p0 != 0) {
+                *dest_pixels = p0;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p1 != 0) {
+                *dest_pixels = p1;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p2 != 0) {
+                *dest_pixels = p2;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+            if (p3 != 0) {
+                *dest_pixels = p3;
+            } else {
+                *dest_pixels = 0xf0;
+            }
+            dest_pixels++;
+        }
+        src_pixels += src_skip;
+        dest_pixels += dest_skip;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0047d5b0
+void C2_HOOK_FASTCALL DRPixelmapCopyMapBlack(br_pixelmap* pDest, br_pixelmap* pSrc) {
+
+    if (pDest->type == BR_PMT_INDEX_8) {
+        DRPixelmapCopyMapBlack8Bit(pDest, pSrc);
+    } else {
+        BrPixelmapCopy(pDest, pSrc);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0047d6a0
 void C2_HOOK_FASTCALL DisableLights(void) {
