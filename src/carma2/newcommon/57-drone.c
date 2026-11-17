@@ -343,7 +343,55 @@ void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone) {
 
 // PossiblyPipeDroneMovement
 
-// DroneStateFuncControlledMovement
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0044d1d0
+void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state) {
+
+    switch ((int)state) {
+    case eDrone_state_START:
+        DoNotDprintf("DroneStateFuncControlledMovement() START");
+        pDrone->field_0xdc = 0;
+        pDrone->field_0xe4 = 0.f;
+        pDrone->field_0x48 = 0.f;
+        pDrone->field_0x4c = 0.f;
+        break;
+    case eDrone_state_RUN:
+        DoNotDprintf("DroneStateFuncControlledMovement() RUN");
+        if (pDrone->field_0x44) {
+            switch (pDrone->form->type) {
+            case kDroneType_plane:
+                MoveThisDronePlane(pDrone);
+                break;
+            default:
+                MoveThisDroneCar(pDrone);
+                break;
+            }
+            if (pDrone->field_0xdc == 1) {
+                PipeSingleDroneStraightPos(pDrone, (tDrone_path_node_section*)pDrone->field_0x10,
+                    DRScalarToU16(pDrone->field_0x48, -500.f, 500.f),
+                    DRScalarToU16(pDrone->field_0x4c, 0.f, 255.f));
+                return;
+            }
+            if (pDrone->field_0xdc == 2) {
+                PipeDroneMatrix(pDrone);
+                return;
+            }
+            PDEnterDebugger("Keith");
+            return;
+        }
+        break;
+    default:
+        DoNotDprintf("DroneStateFuncControlledMovement() DEFAULT");
+        break;
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // DoDroneHaltingStuff
 
