@@ -2449,6 +2449,7 @@ void C2_HOOK_FASTCALL ProcessGetNearPlayer(tOpponent_spec* pOpponent_spec, tProc
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+// PARTIAL 47.54%: NewCalcGetNearPlayerRoute 0x004ac9e0 [tier1] - frame/regalloc mismatch (edi vs esi zero reg, stack offsets differ), main loop structure differs (while vs original's dual-check goto), x87 schedule of stopping calc differs
 // (GPL-3.0), plain float arithmetic
 // FUNCTION: CARMA2_HW 0x004ac9e0
 void C2_HOOK_FASTCALL NewCalcGetNearPlayerRoute(tOpponent_spec* pOpponent_spec, tCar_spec* pPursuee, int pForce) {
