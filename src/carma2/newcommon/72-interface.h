@@ -176,7 +176,7 @@ extern int C2_HOOK_FASTCALL StartFudge(tFrontend_spec* pFrontend);
 
 // NetGameTypeUp
 
-// NetGameTypeDn
+extern int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend);
 
