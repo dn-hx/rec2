@@ -123,7 +123,48 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 
 // ReceivedRecover
 
-// CopyMechanics
+// FUNCTION: CARMA2_HW 0x00498ab0
+void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
+    tU8* cursor;
+    int size;
+    int offset;
+    tU8 flags;
+    tU8* base;
+
+    memcpy((tU8*)pCar->collision_info + 0x260, pContents, 0xd * 4);
+    cursor = pContents + 0x34;
+    size = GetNetworkDataSize(cursor);
+    memcpy((tU8*)pCar->collision_info + 0x294, cursor, size);
+    cursor += size;
+    flags = *((tU8*)pCar->collision_info + 0x292);
+    offset = 0x48c;
+    if (flags & 8) {
+        for (; offset < 0x49c; offset += 4) {
+            *(tU32*)((tU8*)pCar->collision_info + offset) = *(tU32*)cursor;
+            cursor += 4;
+        }
+    } else {
+        for (; offset < 0x49c; offset += 4) {
+            *(tU32*)((tU8*)pCar->collision_info + offset) = 0;
+        }
+    }
+    if (flags & 1) {
+        size = GetNetShapeDataLengthFromData(cursor);
+        memcpy((tU8*)pCar->collision_info + 0x2fc, cursor, size);
+        cursor += size;
+    }
+    if (*((tU8*)pCar->collision_info + 0x292) & 2) {
+        *((tU8*)pCar->collision_info + 0x481) = *cursor;
+        cursor += 1;
+        *(tU16*)((tU8*)pCar->collision_info + 0x482) = *(tU16*)cursor;
+        cursor += 2;
+    }
+    base = (tU8*)pCar->collision_info;
+    if (base[0x292] & 4) {
+        *(tU32*)(base + 0x484) = *(tU32*)cursor;
+        *(tU32*)(base + 0x488) = *(tU32*)(cursor + 4);
+    }
+}
 
 // ReceivedShapeNumbers
 
