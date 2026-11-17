@@ -592,7 +592,7 @@ extern void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const 
 
 extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
 
-// SetCharacterPosition
+extern void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar, br_vector3* pPosition, int pMode);
 
 // DisposeClonedMaterials
 
