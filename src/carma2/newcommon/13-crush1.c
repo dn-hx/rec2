@@ -3161,7 +3161,7 @@ void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag) {
             }
             MungeDetachLists(crush);
         }
-        PipeSingleRelink((uintptr_t)gNon_track_actor, crush->actor);
+        PipeSingleRelink((br_actor*)gNon_track_actor, crush->actor);
         BrActorAdd(gNon_track_actor, crush->actor);
         BrMatrix34Copy(&crush->actor->t.t.mat, &pCar->car_master_actor->t.t.mat);
         PipeSingleNonCar((tU16)pCar->car_ID, crush->actor);
@@ -3185,7 +3185,7 @@ void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag) {
                         if (!flip) {
                             PipeSingleRelink(0, child);
                             BrActorRemove(child);
-                            PipeSingleRelink((uintptr_t)crush->model_actor, child);
+                            PipeSingleRelink((br_actor*)crush->model_actor, child);
                             BrActorAdd(crush->model_actor, child);
                             child->model = model;
                         }
@@ -3201,7 +3201,7 @@ on_non_car_half:
                 if ((child->t.t.translate.t.v[0] * pPlane->v[0] + pPlane->v[2] * child->t.t.translate.t.v[2] + pPlane->v[1] * child->t.t.translate.t.v[1]) - pPlane->v[3] < gCrushZero) {
                     PipeSingleRelink(0, child);
                     BrActorRemove(child);
-                    PipeSingleRelink((uintptr_t)crush->model_actor, child);
+                    PipeSingleRelink((br_actor*)crush->model_actor, child);
                     BrActorAdd(crush->model_actor, child);
                 }
             }
@@ -5354,7 +5354,6 @@ int C2_HOOK_FASTCALL BitIsInBentPartOfCar(br_actor* pActor, float pArg2, float p
 
 // FUNCTION: CARMA2_HW 0x00433350
 tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, br_bounds3* pBounds) {
-    extern void C2_HOOK_FASTCALL PipeSingleRelink(tU32 pArg1, br_actor* pActor);
     extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
     extern int gNum_active_non_cars;
     extern tNon_car_spec* gActive_non_car_list[99];
@@ -5398,7 +5397,7 @@ tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pActor, b
     bit_car->field_0x10 = PDGetTotalTime();
     pCar->car_crush_spec->field_0x2b0++;
     PipeSingleIdentity(pActor);
-    PipeSingleRelink((tU32)gNon_track_actor, pActor);
+    PipeSingleRelink((br_actor*)gNon_track_actor, pActor);
     ActorRelink(gNon_track_actor, pActor);
     BrMatrix34Copy(&bit_object->transform_matrix, &pActor->t.t.mat);
     PipeSingleNonCar((tU16)pCar->car_ID, pActor);
@@ -5834,7 +5833,7 @@ void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor,
             PHILRemoveObject(non_car->collision_info);
         }
     }
-    PipeSingleRelink((uintptr_t)pParent_actor, pActor);
+    PipeSingleRelink((br_actor*)pParent_actor, pActor);
     if (pActor->parent != NULL) {
         ActorRelink(pParent_actor, pActor);
     } else {
@@ -7055,7 +7054,6 @@ void C2_HOOK_FASTCALL DoDetaching(void) {
 
 // FUNCTION: CARMA2_HW 0x00436d60
 tPhysics_object* C2_HOOK_FASTCALL SemiDetachBit(tCar_spec* pCar, br_actor* pActor, float pArg3, int* pArg4, br_vector3* pArg5, br_bounds3* pArg6, br_vector3* pArg7, br_vector3* pArg8) {
-    extern void C2_HOOK_FASTCALL PipeSingleRelink(tU32 pArg1, br_actor* pActor);
     extern intptr_t C2_HOOK_CDECL SwitchCarModel(br_actor* pActor, void* pData);
     extern int gNum_active_non_cars;
     extern tNon_car_spec* gActive_non_car_list[99];
@@ -7244,7 +7242,7 @@ bit_found:
     bit_car->field_0x10 = PDGetTotalTime();
     pCar->car_crush_spec->field_0x270++;
     PipeSingleIdentity(pActor);
-    PipeSingleRelink((tU32)gNon_track_actor, pActor);
+    PipeSingleRelink((br_actor*)gNon_track_actor, pActor);
     ActorRelink(gNon_track_actor, pActor);
     BrMatrix34Copy(&bit_object->transform_matrix, &pActor->t.t.mat);
     PipeSingleNonCar(*(tU16*)((tU8*)pActor->type_data + 0x80), bit_object->actor);
@@ -9096,14 +9094,14 @@ void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
         }
         PipeSingleRelink(0, actor);
         BrActorRemove(actor);
-        PipeSingleRelink((uintptr_t)pCar_spec->car_model_actor, actor);
+        PipeSingleRelink((br_actor*)pCar_spec->car_model_actor, actor);
         BrActorAdd(pCar_spec->car_model_actor, actor);
     }
     i = 0;
     if (0 < *(int*)((tU8*)car_crush + 0x494)) {
         actor_ptr = (br_actor**)((tU8*)car_crush + 0x498);
         do {
-            PipeSingleRelink((uintptr_t)pCar_spec->car_model_actor, *actor_ptr);
+            PipeSingleRelink((br_actor*)pCar_spec->car_model_actor, *actor_ptr);
             BrActorAdd(pCar_spec->car_model_actor, *actor_ptr);
             i++;
             actor_ptr++;
@@ -9117,7 +9115,7 @@ void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec) {
         /* The original keeps this walked-but-unused cursor in memory; taking its address
            (never executed) is what makes MSVC 5.0 materialise the slot and the add/store. */
         if (0) {
-            PipeSingleRelink((uintptr_t)&model_source, actor);
+            PipeSingleRelink((br_actor*)&model_source, actor);
         }
         model_slot = models;
         do {
@@ -10040,14 +10038,14 @@ void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_c
 #pragma auto_inline(off)
 #endif
 // FUNCTION: CARMA2_HW 0x004c86b0
-void C2_HOOK_FASTCALL PipeSingleRelink(uintptr_t pId, br_actor* pActor) {
+void C2_HOOK_FASTCALL PipeSingleRelink(br_actor* pParent, br_actor* pActor) {
     br_actor* old_parent;
 
     old_parent = pActor->parent;
     ARDoSingleVariedSession(0x19, (uintptr_t)pActor, 3,
         4, 0, (uintptr_t)pActor,
         4, 4, (uintptr_t)old_parent,
-        4, 8, pId);
+        4, 8, (uintptr_t)pParent);
 }
 // FUNCTION: CARMA2_HW 0x004c86f0
 void C2_HOOK_FASTCALL AddCarDamageToPipingSession(int pOwner, void* pData, tU32 pArg3) {

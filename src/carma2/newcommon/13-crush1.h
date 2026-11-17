@@ -576,7 +576,7 @@ extern void C2_HOOK_FASTCALL AddCrushToPipingSession(br_model* pModel, br_vector
 extern void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars);
 extern intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, void* pData);
 extern void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, void* pContext);
-extern void C2_HOOK_FASTCALL PipeSingleRelink(uintptr_t pId, br_actor* pActor);
+extern void C2_HOOK_FASTCALL PipeSingleRelink(br_actor* pParent, br_actor* pActor);
 extern intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pValue);
 extern void C2_HOOK_FASTCALL AddCarDamageToPipingSession(int pOwner, void* pData, tU32 pArg3);
 extern int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg);
