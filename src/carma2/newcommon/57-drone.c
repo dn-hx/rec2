@@ -22,7 +22,8 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
-#include "30-opponent.h"
+#include "00-car.h"
+#include "34-finteray.h"
 
 #include <math.h>
 
