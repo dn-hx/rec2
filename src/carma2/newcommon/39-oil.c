@@ -13,6 +13,10 @@
 #include "63-loading3.h"
 #include "globvars.h"
 #include "rec2_macros.h"
+#include "49-physics.h"
+#include "34-finteray.h"
+#include "23-piping.h"
+#include "globvrpb.h"
 
 // GLOBAL: CARMA2_HW 0x0065a398
 // GLOBAL: CARMA2_SW 0x00654cb0
