@@ -94,7 +94,7 @@ extern void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex);
 
 // MoveWithWheels
 
-// SwingCamera
+extern void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar);
 
 // PointCameraAtCar
 
