@@ -42,7 +42,7 @@ extern void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFra
 
 // SwapPixelmapBytePairs
 
-// WriteBannerFrame
+extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
 
 // Allocate555BackScreen
 
