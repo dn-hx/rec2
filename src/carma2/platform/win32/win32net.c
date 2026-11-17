@@ -451,6 +451,22 @@ int C2_HOOK_FASTCALL PDNetGetNextJoinGame(tNet_game_details* pGame, int pIndex) 
     return 1;
 }
 
+// FUNCTION: CARMA2_HW 0x0051a2e0
+int C2_HOOK_FASTCALL PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage) {
+    int i;
+
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (i != gThis_net_player_index) {
+            if (sendto(gSocket, (const char*)pMessage, pMessage->header.field_0x16, 0, (const struct sockaddr*)&gNet_players[i].pd_net_info, 14) == SOCKET_ERROR) {
+                dr_dprintf("PDNetSendMessageToAllPlayers(): Error on sendto() - WSAGetLastError=%d", WSAGetLastError());
+                NetDisposeMessage(pDetails, pMessage);
+                return 1;
+            }
+        }
+    }
+    NetDisposeMessage(pDetails, pMessage);
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0051a6a0
 // FUNCTION: CARMA2_SW 0x00514180
 int C2_HOOK_FASTCALL PDNetGetHeaderSize(void) {
