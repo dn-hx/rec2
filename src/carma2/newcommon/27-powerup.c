@@ -1178,7 +1178,76 @@ void C2_HOOK_FASTCALL TiggerMineToExplode(tCar_spec* pCar) {
     pCar->index |= 0x20;
 }
 
-// HitAShatOutMine
+// FUNCTION: CARMA2_HW 0x004ddc20
+void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed) {
+    extern const float gConst_0p0;
+    extern const float gConst_0p025;
+    tShit_mine* mine;
+    tPhysics_object* other_object;
+    tCar_spec* car;
+    void* other_owner;
+    tNet_game_player_info* net_player;
+
+    mine = NULL;
+    other_object = NULL;
+    if (gNet_mode == eNet_mode_client) {
+        return;
+    }
+    if (pObject1 != NULL && pObject1->flags_0x238 == '@') {
+        mine = pObject1->owner;
+        other_object = pObject2;
+        if (mine->flags & 0x20) {
+            return;
+        }
+    } else if (pObject2 != NULL && pObject2->flags_0x238 == '@') {
+        mine = pObject2->owner;
+        other_object = pObject1;
+        if (mine->flags & 0x20) {
+            return;
+        }
+    }
+    if (mine != NULL && other_object != NULL) {
+        other_owner = other_object->owner;
+        if (other_owner != NULL && other_object->flags_0x238 == 1) {
+            car = (tCar_spec*)other_owner;
+        } else {
+            car = NULL;
+        }
+        if (car == NULL || car->driver == 0 || (car->driver != 4 && car->driver != 2 && car->driver != 3)
+                || (*(tU32*)((tU8*)car + 0x100) & 0x10000) == 0) {
+            if (other_object->flags_0x238 == '@') {
+                ((tShit_mine*)other_owner)->flags |= 0x20;
+                return;
+            }
+            if (other_owner == NULL || other_object->flags_0x238 != 1
+                    || ((((tCar_spec*)other_owner)->driver != 0
+                            && (((tCar_spec*)other_owner)->driver == 2 || ((tCar_spec*)other_owner)->driver == 3))
+                        || ((tCar_spec*)other_owner)->driver <= 5)) {
+                ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(other_object, 0);
+                mine->flags |= 0x20;
+                return;
+            }
+            if (((tCar_spec*)other_owner)->field_0x4c8 <= gConst_1p0
+                    && (gNet_mode == eNet_mode_none || (net_player = NetPlayerFromCar((tCar_spec*)other_owner)) == NULL
+                        || (net_player = NetPlayerFromCar((tCar_spec*)other_owner), net_player->field_0x80 == 0))) {
+                mine->car = (tCar_spec*)other_owner;
+                mine->flags |= 0x80;
+                mine->max_damage = (float)(((tCar_spec*)other_owner)->softness_factor * gConst_10_over_7);
+                mine->flags |= 0x20;
+                return;
+            }
+            mine->flags |= 0x20;
+            return;
+        }
+    }
+    if (pCollision_speed <= ((float*)mine->field_0x1c)[0] || gPinball_factor != gConst_0p0) {
+        if (pCollision_speed > gConst_0p025) {
+            DRS3StartSound3D(gCar_outlet, 0x151b, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+        }
+        return;
+    }
+    mine->flags |= 0x20;
+}
 
 // ClearMineReferencesToCar
 
