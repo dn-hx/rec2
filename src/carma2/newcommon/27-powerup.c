@@ -587,7 +587,65 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
     }
 }
 
-// RightInventory
+// FUNCTION: CARMA2_HW 0x004daa00
+void C2_HOOK_FASTCALL RightInventory(void) {
+    extern tPowerup* gPowerup_array;
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    int old_index;
+    int new_index;
+    tPowerup* powerup;
+    tNet_message* msg;
+    int i;
+
+    gInventory_timeout = GetTotalTime() + 3000;
+    old_index = gInventory_selected;
+    gInventory_cycling = 1;
+    if (old_index < 0) {
+        return;
+    }
+    new_index = old_index;
+    do {
+        new_index--;
+        if (new_index < 0) {
+            new_index = (int)REC2_ASIZE(gInventory) - 1;
+        }
+        if (gInventory[new_index] >= 0) {
+            powerup = &gPowerup_array[gInventory[gInventory_selected]];
+            if (powerup->initial_value >= 0 && gINT_006a0a6c == 0) {
+                goto select_new;
+            }
+            if (powerup->got_time != 0 && powerup->lose_proc != NULL) {
+                powerup->lose_proc(powerup, powerup->car);
+            }
+            if (powerup->net_type & 0x80) {
+                PipeSinglePowerupLose(powerup, powerup->car);
+            }
+            if (gNet_mode != eNet_mode_none) {
+                msg = NetBuildGuaranteedMessage(0x16, 0);
+                *(int*)((tU8*)msg + 0x28) = 2;
+                *(tPlayer_ID*)((tU8*)msg + 0x1c) = gLocal_net_ID;
+                *(int*)((tU8*)msg + 0x20) = powerup - gPowerup_array;
+                NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, msg, NULL);
+            }
+            gProgram_state.current_car.powerups[powerup - gPowerup_array] = 0;
+            if (powerup->initial_value == 0) {
+                for (i = 0; i < gNumber_of_icons; i++) {
+                    if (powerup == gPickedup_powerups[i].powerup) {
+                        gPickedup_powerups[i].fizzle_stage = 3;
+                        gPickedup_powerups[i].fizzle_direction = -1;
+                        gPickedup_powerups[i].fizzle_start = GetTotalTime();
+                        break;
+                    }
+                }
+            }
+            powerup->got_time = 0;
+select_new:
+            gINT_006a0a5c = 1;
+            gInventory_selected = new_index;
+        }
+    } while (new_index != gInventory_selected);
+}
 
 // LeftInventory
 
