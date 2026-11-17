@@ -1518,7 +1518,36 @@ int C2_HOOK_FASTCALL MainMenuOutfunc(tFrontend_spec* pFrontend) {
     return 1;
 }
 
-// MainMenuSelectRace
+// FUNCTION: CARMA2_HW 0x00469ea0
+int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend) {
+    char group_name[12];
+    int race_index;
+    int i;
+    char* str;
+
+    race_index = 0;
+    for (i = 0; i < gNumber_of_races; i++) {
+        if (DRStricmp(pFrontend->items[gFrontend_selected_item_index].text, gRace_list[i].name) == 0) {
+            race_index = i;
+            break;
+        }
+    }
+    gProgram_state.current_race_index = race_index;
+    pFrontend->items[22].highFont = 11;
+    pFrontend->items[22].unlitFont = 11;
+    if (!gMouse_in_use) {
+        str = pFrontend->items[22].text;
+        strcpy(str, gRace_list[race_index].description);
+        MungeMetaCharactersChar(str, 'R', '\r');
+        MungeMetaCharactersNum(str, 'O', gRace_list[race_index].count_explicit_opponents);
+        MungeMetaCharactersNum(str, 'L', gRace_list[race_index].count_laps);
+    }
+    gCurrent_race_group = gRace_list[gProgram_state.current_race_index].group;
+    sprintf(group_name, "%s %d", IString_Get(78), (gCurrent_race_group - gRace_groups) % 10 + 1);
+    strcpy(pFrontend->items[2].text, group_name);
+    FuckWithWidths(pFrontend);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x0046a010
 // FUNCTION: CARMA2_SW 0x00469d70
