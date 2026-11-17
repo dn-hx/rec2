@@ -191,7 +191,7 @@ extern void C2_HOOK_FASTCALL InitFlame(void);
 
 extern void C2_HOOK_FASTCALL InitSplash(FILE* pF);
 
-// DisposeSplash
+extern void C2_HOOK_FASTCALL DisposeSplash(void);
 
 // DrawTheGlow
 
