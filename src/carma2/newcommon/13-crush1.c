@@ -71,6 +71,9 @@ const char* gCrush_type_names[3] = {
     "detach",
 };
 
+// GLOBAL: CARMA2_HW 0x0058f860
+tU16 gNext_crush_actor_id = 10000;
+
 // GLOBAL: CARMA2_HW 0x0058f820
 // GLOBAL: CARMA2_SW 0x0058a820
 const char* gEase_of_detachment_names[5] = {
