@@ -39,7 +39,7 @@ extern void C2_HOOK_CDECL DoNotDprintf_oppoproc(const char* pMessage, ...);
 
 // NearestSectionInStraight
 
-// SetMaxSpeedFromSOCs
+extern void C2_HOOK_FASTCALL SetMaxSpeedFromSOCs(tSOC* socs, int count_socs, float* pDesired_speed, float pSpeed, const br_vector2* pPos2d, tCorner* pCorner, tOpponent_spec* pOpponent_spec);
 
 // CalcSOCs
 
