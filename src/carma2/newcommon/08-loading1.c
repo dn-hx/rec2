@@ -38,6 +38,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "c2_string.h"
+#include "32-spark.h"
 
 #ifdef REC2_MATCHING
 #include <windows.h>
