@@ -13,6 +13,13 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+#include "49-physics.h"
+#include "rec2_macros.h"
+#include "00-car.h"
+#include "34-finteray.h"
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
 
 // MakeVertexAndOffsetIt
 
