@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "09-funks.h"
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
@@ -447,10 +448,54 @@ void C2_HOOK_FASTCALL MasterDisableCarFunks(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f8e10
+// FUNCTION: CARMA2_HW 0x004f8e10
 // STUB: CARMA2_SW 0x004f4490
 void C2_HOOK_FASTCALL MasterEnableCarFunks(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    tCar_crush_spec* spec;
+    tCar_bit_spec* bit;
+    br_actor* actor;
+    tCar_crush_buffer_entry* crush;
+    int i;
+    int j;
+
+    spec = pCar->car_crush_spec;
+    DRActorEnumRecurse(pCar->car_model_actor, ActorFunks, (void*)MasterEnableFunkotronic);
+    i = 0;
+    if (0 < spec->field_0x270) {
+        bit = spec->field_0x274;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterEnableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x270);
+    }
+    i = 0;
+    if (0 < spec->field_0x2b0) {
+        bit = spec->field_0x2b4;
+        do {
+            actor = bit->field_0x0;
+            if (actor->user != NULL
+                    && (crush = ((tUser_crush_data*)actor->user)->crush_data) != NULL
+                    && crush->smashables != NULL) {
+                for (j = 0; j < crush->count_smashables; j++) {
+                    if (crush->smashables[j].funk >= 0) {
+                        MasterEnableFunkotronic(crush->smashables[j].funk);
+                    }
+                }
+            }
+            i++;
+            bit++;
+        } while (i < spec->field_0x2b0);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004f8ff0
