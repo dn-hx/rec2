@@ -21,6 +21,12 @@ extern br_actor* gPed_actor;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern br_angle gOld_yaw__car;
+extern int elapsed_time;
+extern br_vector3 old_vn;
+extern undefined2 gUNK_006792f4;
+extern int gUNK_006792f8;
+extern int gCamera_mode;
 
 // DoCameraControls
 

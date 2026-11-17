@@ -27,9 +27,15 @@
 // GLOBAL: CARMA2_SW 0x0058a5fc
 int gNet_player_to_view_index = -1;
 
+// GLOBAL: CARMA2_HW 0x0058f63c
+int elapsed_time = -1;
+
 // GLOBAL: CARMA2_HW 0x00679278
 // GLOBAL: CARMA2_SW 0x006739e8
 int gAction_replay_manual_camera_target_type;
+
+// GLOBAL: CARMA2_HW 0x00679294
+int gCamera_mode;
 
 // GLOBAL: CARMA2_HW 0x006792b4
 // GLOBAL: CARMA2_SW 0x00673a24
@@ -46,6 +52,18 @@ int gOpponent_viewing_mode;
 // GLOBAL: CARMA2_HW 0x006792c8
 // GLOBAL: CARMA2_SW 0x00673a38
 tSave_camera gSave_camera[2];
+
+// GLOBAL: CARMA2_HW 0x006792e0
+br_angle gOld_yaw__car;
+
+// GLOBAL: CARMA2_HW 0x006792f4
+undefined2 gUNK_006792f4;
+
+// GLOBAL: CARMA2_HW 0x006792f8
+int gUNK_006792f8;
+
+// GLOBAL: CARMA2_HW 0x00679338
+br_vector3 old_vn;
 
 // GLOBAL: CARMA2_HW 0x007634ac
 // GLOBAL: CARMA2_SW 0x00759a0c
