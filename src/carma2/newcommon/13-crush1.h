@@ -471,7 +471,7 @@ extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displa
 
 extern void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep);
 
-// RepairCar2
+extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
 
 // RepairCar
 
