@@ -202,7 +202,7 @@ extern void C2_HOOK_FASTCALL InitNetStorageSpace(void);
 
 // NetworkJoinGoAhead
 
-// NetSetRaceType
+extern int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend);
 
 // NetworkStartJoin
 
