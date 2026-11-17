@@ -403,10 +403,273 @@ void C2_HOOK_FASTCALL CreateBoxes(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00499a00
+typedef struct tNet_score_entry {
+    int player_index;
+    int score;
+    int out_of_game;
+} tNet_score_entry;
+
+// FUNCTION: CARMA2_HW 0x00499a00
 // STUB: CARMA2_SW 0x004962a0
 void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
-    NOT_IMPLEMENTED();
+    int i;
+    int score;
+    int font;
+    int ascending_order;
+    volatile int text_offset;
+    br_actor** actor_ptr;
+    int index;
+    tNet_score_entry* entry;
+    volatile int row_y;
+    int row;
+    int own_row;
+    int to;
+    int ry;
+    char* name_ptr;
+    br_actor* actor;
+    br_actor** box_actor_ptr;
+    br_material** box_material_ptr;
+    br_pixelmap* pixelmap;
+    br_material* material;
+    br_camera* camera;
+    int material_index;
+    char name_buffer[32];
+    char s[256];
+    char row_text[2];
+    tNet_score_entry entries[12];
+
+    ascending_order = (gCurrent_net_game->type == eNet_game_type_checkpoint
+        || gCurrent_net_game->type == eNet_game_type_6);
+    Flash(200, &gNet_score_last_flash, &gNet_score_flash_state);
+
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].player_status >= ePlayer_status_racing) {
+            score = gNet_players[i].score2;
+            entries[i].player_index = i;
+            entries[i].score = score;
+            if (abs(score) == 1000000 || (score < 0 && gCurrent_net_game->type != eNet_game_type_1)) {
+                entries[i].out_of_game = *(int*)&gNet_players[i].last_score_index + 1;
+            } else {
+                entries[i].out_of_game = 0;
+            }
+        } else {
+            entries[i].player_index = -1;
+            entries[i].score = ascending_order ? 1000001 : -1000001;
+            entries[i].out_of_game = 1000;
+        }
+    }
+    for (i = gNumber_of_net_players; i < 12; i++) {
+        entries[i].player_index = -1;
+        entries[i].score = ascending_order ? 1000001 : -1000001;
+        entries[i].out_of_game = 1000;
+    }
+
+    qsort(entries, 12, sizeof(tNet_score_entry), ascending_order ? SortNetHeadAscending : SortNetHeadDescending);
+
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (entries[i].player_index == gThis_net_player_index) {
+            own_row = i;
+            break;
+        }
+    }
+
+    row = 0;
+    actor_ptr = gNet_score_actors;
+    text_offset = 1;
+    entry = entries;
+    row_y = -1;
+    do {
+        index = entry->player_index;
+        if (index >= 0) {
+            *(int*)&gNet_players[index].last_score_index = row;
+        }
+        if (pOnly_sort_scores == 0 && index >= 0) {
+            if (own_row == row) {
+                if (gNet_score_scene_initialised == 0) {
+#ifdef REC2_HW
+                    CreateBoxes();
+#endif
+                }
+                if (gNet_score_scene_initialised != 0) {
+                    actor = *actor_ptr;
+                    actor->material = gNet_score_materials[1];
+                    actor->model = gNet_score_model;
+                    BrMatrix34Translate(&actor->t.t.mat, 220.f, (float)(row_y + 0xf0), 0.f);
+                    BrActorAdd(gNet_score_root, actor);
+                    BrZbSceneRender(gNet_score_root, gNet_score_camera, gRender_screen, gDepth_buffer);
+                    BrActorRemove(actor);
+                }
+                font = kPolyfont_ingame_medium_orange;
+            } else {
+                if (gNet_score_scene_initialised == 0) {
+                    gNet_score_root = BrActorAllocate(0, NULL);
+                    box_actor_ptr = gNet_score_actors;
+                    do {
+                        *box_actor_ptr = BrActorAllocate(1, NULL);
+                        if (*box_actor_ptr == NULL) {
+                            BrFailure("Out of memory for NetPlay");
+                        }
+                        (*box_actor_ptr)->render_style = 4;
+                        box_actor_ptr++;
+                    } while ((int)box_actor_ptr < (int)(gNet_score_actors + 12));
+
+                    gNet_score_model = BrModelAllocate("NetScore Model", 4, 2);
+                    gNet_score_model->faces[0].vertices[0] = 0;
+                    gNet_score_model->faces[0].vertices[1] = 1;
+                    gNet_score_model->faces[0].vertices[2] = 2;
+                    gNet_score_model->faces[1].vertices[0] = 1;
+                    gNet_score_model->faces[1].vertices[1] = 3;
+                    gNet_score_model->faces[1].vertices[2] = 2;
+                    gNet_score_model->faces[0].material = NULL;
+                    gNet_score_model->faces[1].material = NULL;
+                    gNet_score_model->vertices[0].p.v[0] = 0.0f;
+                    gNet_score_model->vertices[0].p.v[1] = 0.0f;
+                    gNet_score_model->vertices[0].p.v[2] = -2.0f;
+                    gNet_score_model->vertices[1].p.v[0] = 100.0f;
+                    gNet_score_model->vertices[1].p.v[1] = 0.0f;
+                    gNet_score_model->vertices[1].p.v[2] = -2.0f;
+                    gNet_score_model->vertices[2].p.v[0] = 0.0f;
+                    gNet_score_model->vertices[2].p.v[1] = -38.0f;
+                    gNet_score_model->vertices[2].p.v[2] = -2.0f;
+                    gNet_score_model->vertices[3].p.v[0] = 100.0f;
+                    gNet_score_model->vertices[3].p.v[1] = -38.0f;
+                    gNet_score_model->vertices[3].p.v[2] = -2.0f;
+                    gNet_score_model->vertices[0].map.v[0] = 0.0f;
+                    gNet_score_model->vertices[0].map.v[1] = 0.0f;
+                    gNet_score_model->vertices[1].map.v[0] = 0.78125f;
+                    gNet_score_model->vertices[1].map.v[1] = 0.0f;
+                    gNet_score_model->vertices[2].map.v[0] = 0.0f;
+                    gNet_score_model->vertices[2].map.v[1] = 0.296875f;
+                    gNet_score_model->vertices[3].map.v[0] = 0.78125f;
+                    gNet_score_model->vertices[3].map.v[1] = 0.296875f;
+                    gNet_score_model->flags |= 2;
+                    BrModelAdd(gNet_score_model);
+
+                    material_index = 0;
+                    box_material_ptr = gNet_score_materials;
+                    do {
+                        material_index++;
+                        sprintf(name_buffer, "NETBOX%i.PIX", material_index);
+                        pixelmap = LoadPixelmap(name_buffer);
+                        if (pixelmap == NULL) {
+                            BrFailure("Cannot find headup graphic %s", name_buffer);
+                        }
+                        BrMapAdd(pixelmap);
+                        material = BrMaterialAllocate("NetScore Material");
+                        material->colour = 0;
+                        material->colour_map = pixelmap;
+                        material->flags = 0x2800;
+                        BrMaterialAdd(material);
+                        *box_material_ptr = material;
+                        box_material_ptr++;
+                    } while ((int)box_material_ptr < (int)(gNet_score_materials + 4));
+
+                    gNet_score_camera = BrActorAllocate(3, NULL);
+                    gNet_score_camera->identifier = "Net HUD Camera";
+                    camera = (br_camera*)gNet_score_camera->type_data;
+                    camera->type = 0;
+                    camera->hither_z = 1.0f;
+                    camera->yon_z = 3.0f;
+                    camera->width = (float)gScreen->width;
+                    camera->height = (float)gScreen->height;
+                    BrActorAdd(gNet_score_root, gNet_score_camera);
+                    gNet_score_scene_initialised = 1;
+                }
+                if (gNet_score_scene_initialised != 0) {
+                    actor = *actor_ptr;
+                    actor->material = gNet_score_materials[0];
+                    actor->model = gNet_score_model;
+                    BrMatrix34Translate(&actor->t.t.mat, 220.f, (float)(row_y + 0xf0), 0.f);
+                    BrActorAdd(gNet_score_root, actor);
+                    BrZbSceneRender(gNet_score_root, gNet_score_camera, gRender_screen, gDepth_buffer);
+                    BrActorRemove(actor);
+                }
+                font = kPolyfont_ingame_medium_blue;
+            }
+            if (gNet_score_flash_state != 0 || gCurrent_net_game->type != eNet_game_type_foxy || index != gIt_or_fox) {
+                if (*(int*)&gNet_players[index].field_0x74 != 0) {
+                    name_ptr = gNet_players[index].player_name;
+                    while (DRTextWidth(&gFonts[6], name_ptr) > 77) {
+                        name_ptr[strlen(name_ptr) - 1] = '\0';
+                    }
+                    *(int*)&gNet_players[index].field_0x74 = 0;
+                }
+                PolyFontText(gNet_players[index].player_name, 547, text_offset + 4, font, eJust_left, 0);
+            }
+            score = gNet_players[index].score2;
+            if (abs(score) == 1000000) {
+                if (gNet_score_flash_state != 0) {
+                    strcpy(s, GetMiscString(173));
+                } else {
+                    s[0] = '\0';
+                }
+            } else {
+                switch (gCurrent_net_game->type) {
+                case eNet_game_type_6:
+                    if (score == 0) {
+                        sprintf(s, "%s", GetMiscString(192));
+                    } else if (gNet_score_flash_state != 0) {
+                        sprintf(s, "%s", GetMiscString(193));
+                    } else {
+                        s[0] = '\0';
+                    }
+                    break;
+                case eNet_game_type_fight_to_death:
+                    sprintf(s, "%d%%", score);
+                    break;
+                case eNet_game_type_1:
+                case eNet_game_type_2:
+                    sprintf(s, "%d", score);
+                    break;
+                case eNet_game_type_checkpoint:
+                    sprintf(s, "%d left", score >> 16);
+                    break;
+                case eNet_game_type_foxy:
+                    if (index == gIt_or_fox && gNet_score_flash_state == 0) {
+                        s[0] = '\0';
+                    } else {
+                        TimerString(score, s, 0, 1, 0);
+                    }
+                    break;
+                case eNet_game_type_5:
+                    sprintf(s, "%d-%d", score / gCurrent_race.check_point_count + 1,
+                        score % gCurrent_race.check_point_count + 1);
+                    break;
+                case eNet_game_type_4:
+                    if (score >= 0) {
+                        sprintf(s, "%s -%d-", GetMiscString(92), score);
+                    } else if (gNet_score_flash_state != 0) {
+                        sprintf(s, "%s", GetMiscString(93));
+                    } else {
+                        s[0] = '\0';
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+            row_text[0] = '0' + row;
+            to = text_offset;
+            row_text[1] = '\0';
+            PolyFontText(row_text, 624, to + 3, kPolyfont_netpos, eJust_left, 0);
+            ry = row_y;
+            BrMatrix34Translate(&gCar_icons_model_actor->t.t.mat, 610.f, (float)(ry - 0x14), 0.f);
+            gCar_icons_model_actor->material->colour_map = gTexture_maps[gCar_icons[gNet_players[index].car_index].index];
+            BrMaterialUpdate(gCar_icons_model_actor->material, BR_MATU_COLOURMAP);
+            gCar_icons_model_actor->model = gCar_icons[gNet_players[index].car_index].model;
+            BrActorAdd(gNet_score_camera, gCar_icons_model_actor);
+            BrZbsSceneRender(gNet_score_camera, gNet_score_camera, gBack_screen, gDepth_buffer);
+            BrActorRemove(gCar_icons_model_actor);
+            PolyFontText(s, 547, to + 0x12, font, eJust_left, 0);
+            ry -= 0x28;
+            to += 0x28;
+            row_y = ry;
+            text_offset = to;
+            actor_ptr++;
+        }
+        row++;
+        entry++;
+    } while (row < 12);
 }
 
 #ifdef REC2_MATCHING
