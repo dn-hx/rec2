@@ -230,3 +230,5 @@ extern void C2_HOOK_FASTCALL SaveDronePaths(void);
 extern int gCount_rendered_drones;
 
 #endif // GUARD_57_DRONE_H
+
+extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
