@@ -76,9 +76,39 @@ void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, i
     }
 }
 
-// STUB: CARMA2_HW 0x00497f10
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tU32 non_car_id;
+    tU32 player_id;
+    undefined4 field_0xc;
+    tU16 flags;
+    tU8 object_hierarchy[];
+} tNet_message_chunk_non_car_send;
+
+// FUNCTION: CARMA2_HW 0x00497f10
 void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id) {
-    NOT_IMPLEMENTED();
+    tNet_message_chunk_non_car_send* message;
+    int hierarchy_size;
+    int written_size;
+    int raw_flags;
+
+    hierarchy_size = GetHierarchyNetworkSize(pNon_car->collision_info);
+    message = (tNet_message_chunk_non_car_send*)NetStartBroadcastContents((tNet_message_type)0x11, hierarchy_size + 0x12);
+    if (message != NULL) {
+        message->non_car_id = (tU16)pNon_car->car_ID;
+        message->player_id = pPlayer_id;
+        raw_flags = pNon_car->flags;
+        message->flags = (tU16)(((raw_flags & 0xff00) != 0) * 8
+                | ((char)raw_flags != '\0') * 4
+                | pNon_car->collision_info->disable_move_rotate * 2
+                | (pNon_car->car_master_actor->identifier[3] == '!'));
+        written_size = GetHierarchyNetworkStuff(pNon_car->collision_info, message->object_hierarchy, 0x48);
+        if (written_size != hierarchy_size) {
+            FatalError(0x72, "in non_car object data");
+        }
+        NetBroadcastContents((tNet_message_chunk*)message);
+    }
 }
 
 // HostFillInCarContents
