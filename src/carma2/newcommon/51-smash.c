@@ -491,7 +491,95 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // MungeDelayedSideEffects
 
-// ActivateNonCarSideEffects
+typedef struct {
+    br_bounds3* bounds;
+    tU8 field_0x4;
+    tS8 count;
+    undefined field_0x6[2];
+    br_actor* actors[20];
+} tNon_car_search_context;
+
+// FUNCTION: CARMA2_HW 0x004ed860
+void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+    tNon_car_search_context search;
+    tDelayed_non_car delayed;
+    br_bounds3 bounds;
+    br_matrix34* matrix;
+    tNon_car_cuboid_activation* activation;
+    int* pActive;
+    tU32 time;
+    tU32 min_column_x;
+    tU32 min_column_z;
+    tU32 max_column_x;
+    tU32 max_column_z;
+    int slot_index;
+    int column_x;
+    int column_z;
+    int axis;
+    int i;
+    int j;
+
+    time = GetTotalTime();
+    if (pActor == NULL || pActor->identifier == NULL || pActor->identifier[0] != '&') {
+        matrix = (br_matrix34*)((tU8*)pContext + 0x8c);
+    } else {
+        matrix = (br_matrix34*)((tU8*)pActor + 0x2c);
+    }
+    i = 0;
+    activation = pActivations->activations;
+    for (; i < pActivations->count_activations; i++, activation++) {
+        search.count = 0;
+        if (activation->field_0x4 == 1) {
+            bounds = activation->bounds;
+        } else {
+            BrMatrix34ApplyP(&bounds.min, &activation->bounds.min, matrix);
+            BrMatrix34ApplyP(&bounds.max, &activation->bounds.max, matrix);
+            for (axis = 0; axis < 3; axis++) {
+                if (bounds.min.v[axis] > bounds.max.v[axis]) {
+                    br_scalar value = bounds.min.v[axis];
+
+                    bounds.min.v[axis] = bounds.max.v[axis];
+                    bounds.max.v[axis] = value;
+                }
+            }
+        }
+        search.bounds = &bounds;
+        search.field_0x4 = (tU8)activation->field_0x8;
+        XZToColumnXZ((tU8*)&min_column_x, (tU8*)&min_column_z, bounds.min.v[0], bounds.min.v[2], &gProgram_state.track_spec);
+        XZToColumnXZ((tU8*)&max_column_x, (tU8*)&max_column_z, bounds.max.v[0], bounds.max.v[2], &gProgram_state.track_spec);
+        for (column_x = (int)(min_column_x & 0xff); column_x <= (int)(max_column_x & 0xff); column_x++) {
+            for (column_z = (int)(min_column_z & 0xff); column_z <= (int)(max_column_z & 0xff); column_z++) {
+                if (gProgram_state.track_spec.columns[column_z][column_x].actor_0x0 != NULL
+                    && DRActorEnumRecurse(gProgram_state.track_spec.columns[column_z][column_x].actor_0x0, GiveNonCarsAShove, &search) != 0) {
+                    break;
+                }
+            }
+        }
+        delayed.field_0x0 = *(br_vector3*)((tU8*)pContext + 0x68);
+        delayed.field_0xc = *(br_vector3*)((tU8*)matrix + 0x24);
+        delayed.field_0x18 = (undefined4*)&activation->field_0x24;
+        delayed.count_actions = search.count;
+        for (j = 0; j < delayed.count_actions; j++) {
+            delayed.actor_time_actions[j].actor = search.actors[j];
+            delayed.actor_time_actions[j].time = time + IRandomBetween((tU16)activation->field_0x0, (tU16)activation->field_0x2);
+        }
+        pActive = &gSmash_explosions[0].active;
+        slot_index = 0;
+        for (;;) {
+            if (*pActive == 0) {
+                gSmash_explosions[slot_index].type = 0;
+                gSmash_explosions[slot_index].active = (int)(intptr_t)pContext;
+                gSmash_explosions[slot_index].what.non_car = delayed;
+                break;
+            }
+            pActive = (int*)((tU8*)pActive + sizeof(tSmash_explosion));
+            slot_index++;
+            if ((intptr_t)pActive >= (intptr_t)&gSmash_explosions[REC2_ASIZE(gSmash_explosions)].active) {
+                break;
+            }
+        }
+    }
+}
 
 // ActivateSmashSideEffects
 
