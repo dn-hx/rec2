@@ -1505,7 +1505,75 @@ void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFrontend_inde
     BrModelUpdate(gFrontend_brender_items[pFrontend_index].model, BR_MODU_VERTEX_POSITIONS);
 }
 
-// MainMenuInfunc
+// FUNCTION: CARMA2_HW 0x00469a40
+int C2_HOOK_FASTCALL MainMenuInfunc(tFrontend_spec* pFrontend) {
+    int group;
+    int race_index;
+    int i;
+    char group_name[12];
+    br_camera* camera;
+    tFrontend_item_spec* item;
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+        FuckWithWidths(pFrontend);
+        if (pFrontend->previous != NULL) {
+            pFrontend->previous->isPreviousSomeOtherMenu = 1;
+        }
+    }
+    gFrontend_scrollbars_updated = 0;
+    EdgeTriggerModeOff();
+    WaitForNoKeys();
+    EdgeTriggerModeOn();
+    gFrontend_time_last_input = PDGetTotalTime();
+    group = (gCurrent_race_group - gRace_groups) % 10;
+    sprintf(group_name, "%s %d", IString_Get(78), group + 1);
+    strcpy(pFrontend->items[2].text, group_name);
+    race_index = 4 * group;
+    for (i = pFrontend->scrollers[0].indexFirstScrollableItem; i <= pFrontend->scrollers[0].indexLastScrollableItem; i++) {
+        item = &pFrontend->items[i];
+        strcpy(item->text, gRace_list[race_index].name);
+        item->radioButton_selected = race_index == gProgram_state.current_race_index;
+        if (gRace_list[race_index].is_boundary) {
+            item->unlitFont = 2;
+            item->highFont = 3;
+        } else {
+            item->unlitFont = 0;
+            item->highFont = 1;
+        }
+        race_index++;
+    }
+    if (gIs_boundary_race || gProgram_state.game_completed) {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_enabled;
+    } else {
+        pFrontend->items[7].enabled = kFrontendItemEnabled_disabled;
+    }
+    div(gProgram_state.current_race_index, 4);
+    strcpy(pFrontend->items[22].text, gRace_list[gProgram_state.current_race_index].description);
+    MungeMetaCharactersChar(pFrontend->items[22].text, 'R', '\r');
+    MungeMetaCharactersNum(pFrontend->items[22].text, 'O', gRace_list[gProgram_state.current_race_index].count_explicit_opponents);
+    MungeMetaCharactersNum(pFrontend->items[22].text, 'L', gRace_list[gProgram_state.current_race_index].count_laps);
+    strcpy(pFrontend->items[18].text, gProgram_state.player_name);
+    strcpy(pFrontend->items[20].text, gOpponents[gProgram_state.current_car_index].car_name);
+    strcpy(pFrontend->items[23].text, MungeCommas(gProgram_state.credits));
+    gFrontend_car_image_outdated = 1;
+    pFrontend->isPreviousSomeOtherMenu = 1;
+    gMouse_in_use = 0;
+    gFrontend_menu_camera = BrActorAllocate(BR_ACTOR_CAMERA, NULL);
+    camera = gFrontend_menu_camera->type_data;
+    camera->type = BR_CAMERA_PARALLEL;
+    camera->field_of_view = BR_ANGLE_DEG(90);
+    camera->hither_z = 1.f;
+    camera->yon_z = 3.f;
+    camera->width = 640.f;
+    camera->height = 480.f;
+    gFrontend_billboard_actors[0] = CreateAPOactor();
+    gFrontend_APO_Colour_1 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0xff, 0x80, 0x00, 0xff);
+    gFrontend_APO_Colour_2 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0x80, 0xff);
+    gFrontend_APO_Colour_3 = FudgeBRenderIntoTheNinetiesWithSomeProperFuckingColourSupport(gFrontend_billboard_actors[0]->material->colour_map, 0x00, 0x00, 0xff, 0xff);
+    FuckWithWidths(pFrontend);
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x00469df0
 // FUNCTION: CARMA2_SW 0x00469b50
