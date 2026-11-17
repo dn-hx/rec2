@@ -126,11 +126,11 @@ void C2_HOOK_FASTCALL FogAccordingToGPSCDE(br_material* pMaterial) {
     int green;
     int blue;
 
+    start = gProgram_state.current_depth_effect.start;
+    end = gProgram_state.current_depth_effect.end;
     red = gProgram_state.current_depth_effect.colour.red;
     green = gProgram_state.current_depth_effect.colour.green;
     blue = gProgram_state.current_depth_effect.colour.blue;
-    start = gProgram_state.current_depth_effect.start;
-    end = gProgram_state.current_depth_effect.end;
 
     switch (gProgram_state.current_depth_effect.type) {
     case eDepth_effect_none:
