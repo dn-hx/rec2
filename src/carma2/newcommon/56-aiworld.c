@@ -131,3 +131,75 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+
+static int C2_HOOK_FASTCALL CarVulnerableByMine_Impl(tCar_spec* pCar) {
+    if (pCar->field_0x4c8 > 1.0) {
+        return 0;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        if (NetPlayerFromCar(pCar) != NULL && NetPlayerFromCar(pCar)->field_0x80 != 0) {
+            return 0;
+        }
+    }
+    if (pCar->invulnerable_no_crushage) {
+        return 0;
+    }
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004dde20
+void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime) {
+    int i;
+    int play_effect;
+
+    for (i = 0; i < 20; i++) {
+        tShit_mine* mine = &gShit_mines[i];
+
+        if (!(mine->flags & 0x1)) {
+            continue;
+        }
+        if ((mine->flags & 0x80) && mine->car != NULL) {
+            tCar_spec* car = mine->car;
+            int car_vulnerable;
+
+            mine->flags &= ~0x80;
+            car_vulnerable = CarVulnerableByMine_Impl(car);
+            if (car_vulnerable) {
+                TotallySpamTheCar(car, 0.1f * mine->max_damage);
+            }
+            if (car_vulnerable && (gNet_mode == eNet_mode_none || gNet_mode == eNet_mode_host)) {
+                car->collision_info->v.v[1] += FRandomBetween(mine->field3_0xc, mine->initial_y_speed_factor) / (car->collision_info->M * 6.9);
+                car->collision_info->omega.v[2] = FRandomPosNeg(mine->initial_z_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[2];
+                car->collision_info->omega.v[0] = FRandomPosNeg(mine->initial_x_omega_factor) * 6.283185307179586 / car->collision_info->M + car->collision_info->omega.v[0];
+                car->collision_info->disable_move_rotate = 0;
+                car->collision_info->field_0x49c = gPHIL_last_physics_tick + 40;
+                if (!car->invulnerable_no_damage) {
+                    for (i = 0; i < 12; i++) {
+                        DamageUnit2(car, i, IRandomBetween(0, (int)(25.f * mine->max_damage)));
+                    }
+                    if (car != mine->field_0x30) {
+                        car->last_hit_by = mine->field_0x30;
+                        car->time_last_hit = PDGetTotalTime();
+                        CrashEarnings(car, NULL);
+                    }
+                }
+            }
+        }
+        play_effect = 0;
+        if (mine->flags & 0x20) {
+            mine->flags &= ~0x20;
+            play_effect = 1;
+        } else {
+            if (!(mine->flags & 0x2)) {
+                if ((mine->flags & 0x4) && pTime > mine->next_think_time) {
+                    play_effect = 1;
+                }
+            } else if (pTime > mine->next_think_time) {
+                mine->flags &= ~0x3;
+            }
+        }
+        if (play_effect) {
+            MineExplode(mine);
+        }
+    }
+}
