@@ -105,3 +105,5 @@ extern void C2_HOOK_FASTCALL TidyMovieARDisplay(void);
 // FreeS3SoundOutput
 
 #endif // GUARD_64_MOVIE_H
+
+extern void* C2_HOOK_CDECL _QTLoadLibrary(void);

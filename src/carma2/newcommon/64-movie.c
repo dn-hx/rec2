@@ -17,9 +17,7 @@
 #include <QTML.h>
 #include <Movies.h>
 #include <TextUtils.h>
-
-#include <QTML.h>
-#include <Movies.h>
+#include <windows.h>
 
 #include "c2_string.h"
 #include "18-graphics2.h"
