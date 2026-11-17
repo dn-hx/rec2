@@ -113,3 +113,4 @@ extern void C2_HOOK_FASTCALL CleanPolyFontDanglers(void);
 
 #endif // GUARD_16_GRAPHICS1_H
 
+extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
