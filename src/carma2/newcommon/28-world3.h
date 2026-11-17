@@ -150,3 +150,7 @@ extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
 extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 
 #endif // GUARD_28_WORLD3_H
+
+extern tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 flags);
+
+extern void Flip3DStoBRaxes(br_matrix34* pMat);
