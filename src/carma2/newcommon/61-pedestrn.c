@@ -350,6 +350,19 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x004042f0
+void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
+    int i;
+    br_vertex* v;
+
+    REC2_THISCALL_UNUSED(pArg2);
+
+    v = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++, v++) {
+        BrVector3Scale(&v->p, &v->p, pScale);
+    }
+    BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
