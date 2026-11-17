@@ -78,10 +78,67 @@ void C2_HOOK_FASTCALL ServiceGame(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004922a0
+// FUNCTION: CARMA2_HW 0x004922a0
 // STUB: CARMA2_SW 0x0048f4e0
 void C2_HOOK_FASTCALL ServiceGameInRace(void) {
-    NOT_IMPLEMENTED();
+    int prev_type;
+    tU32* d;
+
+    gTimers_stack[gTimers_stack_size] = 17;
+    prev_type = gTimers_stack_size != 0 ? gTimers_stack[gTimers_stack_size - 1] : gTimers_max_index;
+    d = &gTimers[prev_type].durations[gTimers[prev_type].index];
+    *d += PDGetMicroseconds() - gTimers[prev_type].start_time;
+    gTimers[17].start_time = PDGetMicroseconds();
+    gTimers_stack_size += 1;
+
+    CheckMemory();
+    PollKeys();
+    rand();
+    if (PDServiceSystem(gFrame_period)) {
+        SaveOptions();
+        if (gSave_game_out_of_sync) {
+            DoSaveGame();
+        }
+        MovieStopRecordingIfNecessary();
+        PHILDisable();
+        dr_dprintf("QuitGame() - Point 1");
+        if (*(int*)((char*)&gProgram_state + 0x28) && gAdditional_actors && gAdditional_actors->children) {
+            dr_dprintf("QuitGame() - Point 2");
+            AutoSaveAdditionalStuff();
+            dr_dprintf("QuitGame() - Point 3");
+        }
+        *(int*)((char*)&gProgram_state + 0x28) = 0;
+        SaveOptions();
+        if (gNet_mode) {
+            NetLeaveGame(gCurrent_net_game);
+        }
+        ShutdownNetIfRequired();
+        if (gSound_available) {
+            DRS3ShutDown();
+        }
+        if (gBr_initialized) {
+            ClearEntireScreen();
+        }
+        PDRevertPalette();
+        StopMusic();
+        if (gBr_initialized) {
+            DRBrEnd();
+        }
+        PDShutdownSystem();
+        CloseDiagnostics();
+        exit(0);
+    }
+    NetService(1);
+    CheckKevKeys();
+
+    gTimers[17].durations[gTimers[17].index] += PDGetMicroseconds() - gTimers[17].start_time;
+    if (gTimers_stack_size > 1) {
+        prev_type = gTimers_stack[gTimers_stack_size - 1];
+    } else {
+        prev_type = gTimers_max_index;
+    }
+    gTimers[prev_type].start_time = PDGetMicroseconds();
+    gTimers_stack_size -= 1;
 }
 
 // FUNCTION: CARMA2_HW 0x004924a0
