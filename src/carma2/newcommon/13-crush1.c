@@ -2500,11 +2500,73 @@ void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tN
 
 // ReceivedDBNonCarPosition
 
-// STUB: CARMA2_HW 0x0043c7a0
-void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
-    NOT_IMPLEMENTED();
+#ifdef __GNUC__
+#define FUN_0043c7a0_INLINE static inline __attribute__((always_inline))
+#else
+#define FUN_0043c7a0_INLINE static __inline
+#endif
+
+FUN_0043c7a0_INLINE float FUN_0043c7a0_impact_scale(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
+    float dist_sq;
+
+    dist_sq = DistSq(pVertexPos, pCount, pVectors);
+    if (dist_sq > gMax_crush_dist_sq) {
+        return gCrushZero;
+    }
+    return gFLOAT_00589a54 - (float)sqrt(dist_sq / pMaxDistSq);
 }
 
+#ifdef __GNUC__
+#define FUN_0043c7a0_INLINE static inline __attribute__((always_inline))
+#else
+#define FUN_0043c7a0_INLINE static __inline
+#endif
+
+FUN_0043c7a0_INLINE void FUN_0043c7a0_morph_vertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
+    int index;
+    float t;
+
+    index = ((pFlags & 0xffff) >> ((pAxis * 2 + (pDirectionComponent > gCrushZero)) * 2)) & 3;
+    if (index > pFound) {
+        *pOut = gCrushZero;
+        return;
+    }
+    t = (pLimits->limits[pAxis][pDirectionComponent > gCrushZero].values[index] - pVertexComponent) / pDirectionComponent;
+    if (t < gCrushZero) {
+        *pOut = gCrushZero;
+    } else if (t < *pOut) {
+        *pOut = t;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0043c7a0
+void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
+    br_vector3 displacement;
+    float factor;
+    float force;
+    int axis;
+
+    factor = FUN_0043c7a0_impact_scale(pVertex, pCount, (br_vector3*)pVectors, gMax_crush_dist_sq);
+    force = pForce * gForce_to_movement_factor;
+    if (factor != gCrushZero) {
+        force *= factor;
+        if ((float)fabs(pDirection->v[0]) > gCrushSqrtHalf) {
+            axis = 0;
+        } else if ((float)fabs(pDirection->v[1]) > gCrushSqrtHalf) {
+            axis = 1;
+        } else {
+            axis = 2;
+        }
+        FUN_0043c7a0_morph_vertex(&force, axis, pVertex->v[axis], pDirection->v[axis], pFlags, pLimits, pFound);
+        if (force != gCrushZero) {
+            BrVector3Scale(&displacement, pDirection, force);
+            BrVector3Accumulate(pVertex, &displacement);
+        }
+    }
+    if (DRVector3TestForNan(pVertex)) {
+        PDEnterDebugger("NaN");
+    }
+}
 // FUNCTION: CARMA2_HW 0x0043d670
 // FUNCTION: CARMA2_SW 0x0043d6c0
 void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents) {
