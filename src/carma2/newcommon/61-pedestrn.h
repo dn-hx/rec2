@@ -468,7 +468,7 @@ extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vect
 
 // DRVector3SafeCrossXZ
 
-// ScaleModelXYZ
+extern void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ);
 
 // DRScaleModel
 
