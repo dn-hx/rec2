@@ -45,6 +45,8 @@ extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 extern void C2_HOOK_FASTCALL ClearCrushLists(void);
 
 extern void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec);
+extern const br_scalar gFLOAT_00589a54;
+extern tU16 gCrush_vertex_compression_index;
 
 extern void C2_HOOK_FASTCALL InitCrushSystems(void);
 

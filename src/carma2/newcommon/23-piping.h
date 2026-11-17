@@ -22,6 +22,7 @@ extern tU8* gMr_chunky;
 extern tU8* gPipe_buffer_start;
 extern int gPlay_direction;
 extern int gDisable_piped_sounds;
+extern tU32 gPipe_UNK_006768b0;
 
 typedef void C2_HOOK_FASTCALL tReplay_session_callback(int pFrames);
 extern float gReplay_rate;
@@ -277,11 +278,11 @@ extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
 // PipeSingleGibShower
 
-// PipeSingleBloodSpurt
+extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
 
 extern void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, int pBlock_flags);
 
-// PipeSinglePowerupGot
+extern void C2_HOOK_FASTCALL PipeSinglePowerupGot(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL PipeSinglePowerupLose(tPowerup* pPowerup, tCar_spec* pCar_spec);
 
@@ -536,5 +537,7 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
+
+extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
 
 #endif // GUARD_23_PIPING_H

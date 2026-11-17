@@ -29,6 +29,8 @@
 #include "69-sound.h"
 #include "globvars.h"
 #include "platform.h"
+#include "39-oil.h"
+#include "57-drone.h"
 
 #include <s3/internal/audio.h>
 
@@ -36,6 +38,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -97,6 +100,9 @@ tU8* gPipe_play_ptr;
 // GLOBAL: CARMA2_HW 0x006768ac
 // GLOBAL: CARMA2_SW 0x0067101c
 tU8* gPipe_buffer_oldest;
+
+// GLOBAL: CARMA2_HW 0x006768b0
+tU32 gPipe_UNK_006768b0 = 0;
 
 // GLOBAL: CARMA2_HW 0x006768bc
 // GLOBAL: CARMA2_SW 0x0067102c
@@ -1380,7 +1386,10 @@ void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject) {
 
 // PipeSingleGibShower
 
-// PipeSingleBloodSpurt
+// STUB: CARMA2_HW 0x004c8d40
+void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004c8d80
 // FUNCTION: CARMA2_SW 0x004c54b0
@@ -1394,7 +1403,10 @@ void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, int pBloc
         SIZE_OFFSET_PIPING(tPipe_single_groove_on_of, block_flags), pBlock_flags);
 }
 
-// PipeSinglePowerupGot
+// STUB: CARMA2_HW 0x004c8da0
+void C2_HOOK_FASTCALL PipeSinglePowerupGot(tPowerup* pPowerup, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004c8dc0
 // FUNCTION: CARMA2_SW 0x004c54f0
@@ -2400,3 +2412,8 @@ int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk) {
 
 // CalcRemoveFacesLength
 
+
+// STUB: CARMA2_HW 0x00564e5e
+int C2_HOOK_FASTCALL FUN_00564e5e(int pSound) {
+    NOT_IMPLEMENTED();
+}

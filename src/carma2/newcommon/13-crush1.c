@@ -52,6 +52,9 @@ const char* gCrush_type_names[3] = {
 // GLOBAL: CARMA2_SW 0x0058a820
 const char* gEase_of_detachment_names[5] = {
     "very_easy",
+// GLOBAL: CARMA2_HW 0x00589a54
+const br_scalar gFLOAT_00589a54 = 1.0f;
+
     "easy",
     "normal",
     "difficult",
@@ -159,6 +162,9 @@ int gMin_bend_damage;
 
 // GLOBAL: CARMA2_HW 0x0067b7b4
 // GLOBAL: CARMA2_SW 0x00675f24
+// GLOBAL: CARMA2_HW 0x0067b83c
+tU16 gCrush_vertex_compression_index;
+
 br_scalar gFlap_inertia_fudge_biscuit;
 
 // GLOBAL: CARMA2_HW 0x0067b7d0
