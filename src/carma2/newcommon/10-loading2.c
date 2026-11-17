@@ -50,6 +50,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include <ctype.h>
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
