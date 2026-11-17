@@ -2458,10 +2458,73 @@ int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
 
 // ReceivedReAttachBit
 
+// FUNCTION: CARMA2_HW 0x0043c940
+void C2_HOOK_FASTCALL ReceivedSemiDetachBit(tU8* pContents)
+{
+    extern int gCount_net_crush_semi_detach_bit_list;
+    struct {
+        tU8 id;
+        tU32 found;
+    } desc;
+    tCar_spec* car;
+    intptr_t found;
+    tU32 id;
+    int count;
+    int i;
+    tCrush_net_semi_detach_bit_list_item* item;
+    br_scalar scale;
+
+    if (gCount_net_crush_semi_detach_bit_list == 8) {
+        return;
+    }
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car == NULL) {
+        return;
+    }
+    desc.id = pContents[8];
+    desc.found = 0;
+    found = DRActorEnumRecurse(car->car_model_actor, FindBitWithID, &desc);
+    id = (found != 0) ? desc.found : 0;
+    if (id == 0) {
+        return;
+    }
+    count = gCount_net_crush_semi_detach_bit_list;
+    item = gNet_crush_semi_detach_bit_list;
+    for (i = 0; i < count; i++, item++) {
+        if (*(tU32*)&item->actor == id) {
+            return;
+        }
+    }
+    gNet_crush_semi_detach_bit_list[count].car = car;
+    *(tU32*)&gNet_crush_semi_detach_bit_list[count].actor = id;
+    *(tU32*)&gNet_crush_semi_detach_bit_list[count].field_0x8[0] = *(tU32*)(pContents + 0xc);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[count].field_0x8[4], (tCompressed_vector3*)(pContents + 0x10), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x28], (tCompressed_vector3*)(pContents + 0x22), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x34], (tCompressed_vector3*)(pContents + 0x28), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x10], (tCompressed_vector3*)(pContents + 0x16), -10.0f, 10.0f);
+    ExpandVector3((br_vector3*)&gNet_crush_semi_detach_bit_list[gCount_net_crush_semi_detach_bit_list].field_0x8[0x1c], (tCompressed_vector3*)(pContents + 0x1c), -10.0f, 10.0f);
+    scale = DRU16ToScalar(*(tU16*)(pContents + 0x2e), 0.0f, 40.0f);
+    count = gCount_net_crush_semi_detach_bit_list;
+    gCount_net_crush_semi_detach_bit_list = count + 1;
+    *(br_scalar*)&gNet_crush_semi_detach_bit_list[count].field_0x8[0x40] = scale;
+}
 // FUNCTION: CARMA2_HW 0x0043ce60
 // FUNCTION: CARMA2_SW 0x0043ceb0
 void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
     tCar_spec* car;
+
+    if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
+        return;
+    }
+    car = NetCarFromPlayerID(pContents->reattach_all_bits.player);
+    if (car == NULL) {
+        return;
+    }
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].time = pContents->reattach_all_bits.time;
+    gCount_net_crush_reattach_bit_list += 1;
+}
 
     if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
         return;
