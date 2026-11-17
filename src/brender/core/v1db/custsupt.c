@@ -255,8 +255,8 @@ br_scalar C2_HOOK_CDECL BrScreenZToCamera(br_actor* camera, br_scalar sz) {
     br_scalar yon;
 
     data = camera->type_data;
-    yon = data->yon_z;
     hither = data->hither_z;
+    yon = data->yon_z;
     if (sz <= -32768.0f) {
         return -hither;
     }
@@ -264,10 +264,10 @@ br_scalar C2_HOOK_CDECL BrScreenZToCamera(br_actor* camera, br_scalar sz) {
         return -yon;
     }
     switch (data->type) {
-    case BR_CAMERA_PARALLEL:
-        return 0.5f * sz * (hither - yon) * 0.5f / 16384.0f - (yon + hither) * 0.5f;
     case BR_CAMERA_PERSPECTIVE_FOV:
         return 2.0f * ((yon * hither) / (0.5f * sz * (yon - hither) / 16384.0f - (yon + hither)));
+    case BR_CAMERA_PARALLEL:
+        return 0.5f * sz * (hither - yon) * 0.5f / 16384.0f - (yon + hither) * 0.5f;
     default:
         return 0.f;
     }
