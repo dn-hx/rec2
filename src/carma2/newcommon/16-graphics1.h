@@ -39,7 +39,7 @@ extern int gHud_tinted4;
 extern br_matrix34 gSheer_mat;
 extern int gAR_fudge_headups;
 
-// MungeClipPlane
+extern void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset);
 
 // TryThisEdge
 
