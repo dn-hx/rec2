@@ -1450,9 +1450,123 @@ tCrush_info* C2_HOOK_FASTCALL GetNonCar(tCrush_info_buffer* pInfo_buffer, br_act
 
 // SetRelationsDoingNothingFlags
 
-// STUB: CARMA2_HW 0x004336f0
+// FUNCTION: CARMA2_HW 0x004336f0
 void C2_HOOK_FASTCALL SetUpDetachedBitObject(tPhysics_object* pObject, br_actor* pActor, br_model* pModel, tCar_crush_detach_data* pDetach_data, tCar_crush_spec* pCar_crush, const br_bounds3* pBounds, tPhysics_object* pParent_collision_info) {
-    NOT_IMPLEMENTED();
+    br_vector3* parent_bb[2];
+    br_vector3 half_min;
+    br_vector3 half_max;
+    br_scalar best_dist;
+    int best_index;
+    int i;
+    int axis;
+    br_scalar dx;
+    br_scalar dy;
+    br_scalar dz;
+    tPhysics_object* root;
+    br_scalar tmp;
+
+    pObject->actor = pActor;
+    if (pBounds != NULL) {
+        pObject->shape->common.type = 0;
+        DRBoundsCopy(&pObject->shape->common.bb, pBounds);
+    } else {
+        if (pDetach_data->type == 4) {
+            tPhysics_shape* old_shape;
+
+            old_shape = pObject->shape;
+            pObject->shape = (tPhysics_shape*)pCar_crush->field_0x4[*(int*)((tU8*)pDetach_data + 0x78)].field_0x0;
+            pCar_crush->field_0x4[*(int*)((tU8*)pDetach_data + 0x78)].field_0x0 = (tCollision_shape_polyhedron*)old_shape;
+            pCar_crush->field_0x4[*(int*)((tU8*)pDetach_data + 0x78)].field_0x8 = 1;
+            pCar_crush->expand_bounding_box |= 1;
+            goto LAB_004337fa;
+        }
+        if (pDetach_data->count_shape_points > 0) {
+            switch (NPointConvexHullUsingSample(&pObject->shape->polyhedron.polyhedron, pModel, 8, pDetach_data->count_shape_points, pDetach_data->shape_points)) {
+            case 0:
+                pObject->shape->common.type = 1;
+                GetBoundsFromPointList(pObject->shape->polyhedron.polyhedron.points, pObject->shape->polyhedron.polyhedron.count_points, &pObject->shape->common.bb);
+                goto LAB_004337fa;
+            case 2:
+                pObject->shape->common.type = 3;
+                GetBoundsFromPointList(pObject->shape->polyhedron.polyhedron.points, pObject->shape->polyhedron.polyhedron.count_points, &pObject->shape->common.bb);
+                goto LAB_004337fa;
+            default:
+                pObject->shape->common.type = 0;
+                break;
+            }
+        } else {
+            pObject->shape->common.type = 0;
+        }
+        DRBoundsCopy(&pObject->shape->common.bb, &pModel->bounds);
+    }
+LAB_004337fa:
+    DRBoundsCopy(&pObject->bb1, &pObject->shape->common.bb);
+    DRBoundsCopy(&pObject->bb2, &pObject->shape->common.bb);
+    half_min.v[0] = pObject->bb1.min.v[0] * gFLOAT_00589a2c;
+    parent_bb[0] = &pParent_collision_info->bb1.min;
+    half_min.v[1] = pObject->bb1.min.v[1] * gFLOAT_00589a2c;
+    pObject->M = ((tUser_crush_data*)pActor->user)->crush_data->field_0x24;
+    half_min.v[2] = pObject->bb1.min.v[2] * gFLOAT_00589a2c;
+    parent_bb[1] = &pParent_collision_info->bb1.max;
+    half_max.v[0] = pObject->bb1.max.v[0] * gFLOAT_00589a2c;
+    half_max.v[1] = pObject->bb1.max.v[1] * gFLOAT_00589a2c;
+    half_max.v[2] = pObject->bb1.max.v[2] * gFLOAT_00589a2c;
+    pObject->cmpos.v[0] = half_max.v[0] + half_min.v[0];
+    pObject->cmpos.v[1] = half_max.v[1] + half_min.v[1];
+    pObject->cmpos.v[2] = half_max.v[2] + half_min.v[2];
+    BrMatrix34ApplyP(&half_min, &pObject->cmpos, &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse(&half_max, &half_min, &pParent_collision_info->actor->t.t.mat);
+    best_index = 0;
+    best_dist = 3.4028235e+38f;
+    for (i = 0; i < 6; i++) {
+        if (i != 2) {
+            tmp = (float)fabs(half_max.v[i >> 1] - parent_bb[i & 1]->v[i >> 1]);
+            if (tmp < best_dist) {
+                best_dist = tmp;
+                best_index = i;
+            }
+        }
+    }
+    axis = best_index >> 1;
+    if ((best_index & 1) == 0) {
+        tmp = pObject->bb1.min.v[axis];
+    } else {
+        tmp = pObject->bb1.max.v[axis];
+    }
+    pObject->cmpos.v[axis] = (tmp + pObject->cmpos.v[axis]) * gFLOAT_00589a2c;
+    dx = pObject->bb1.max.v[0] - pObject->bb1.min.v[0];
+    dy = pObject->bb1.max.v[1] - pObject->bb1.min.v[1];
+    dz = pObject->bb1.max.v[2] - pObject->bb1.min.v[2];
+    pObject->I.v[2] = pObject->M * (dy * dy + dx * dx) * gFLOAT_00589ae0;
+    pObject->I.v[1] = (dz * dz + dx * dx) * pObject->M * gFLOAT_00589ae0;
+    pObject->I.v[0] = pObject->M * (dz * dz + dy * dy) * gFLOAT_00589ae0;
+    BrMatrix34ApplyV(&half_min, &pParent_collision_info->omega, &pParent_collision_info->actor->t.t.mat);
+    BrMatrix34TApplyV(&pObject->omega, &half_min, &pObject->actor->t.t.mat);
+    BrMatrix34ApplyP(&half_min, &pParent_collision_info->cmpos, &pParent_collision_info->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse(&half_max, &half_min, &pObject->actor->t.t.mat);
+    half_min.v[0] = pObject->cmpos.v[0] - half_max.v[0];
+    half_min.v[1] = pObject->cmpos.v[1] - half_max.v[1];
+    half_min.v[2] = pObject->cmpos.v[2] - half_max.v[2];
+    pObject->v.v[0] = pObject->omega.v[1] * half_min.v[2] - pObject->omega.v[2] * half_min.v[1];
+    pObject->v.v[1] = pObject->omega.v[2] * half_min.v[0] - pObject->omega.v[0] * half_min.v[2];
+    pObject->v.v[2] = pObject->omega.v[0] * half_min.v[1] - pObject->omega.v[1] * half_min.v[0];
+    BrMatrix34ApplyV(&half_min, &pObject->v, &pObject->actor->t.t.mat);
+    pObject->v.v[0] = pParent_collision_info->v.v[0] + half_min.v[0];
+    pObject->v.v[1] = pParent_collision_info->v.v[1] + half_min.v[1];
+    pObject->v.v[2] = pParent_collision_info->v.v[2] + half_min.v[2];
+    BrVector3SetFloat(&pObject->field_0x54, 0.0f, -0.057971016f, 0.0f);
+    pObject->box_face_ref = (tU16)(gFace_num__car - 2);
+    for (root = pObject; root->parent != NULL; root = root->parent) {
+    }
+    SetHierarchyDoingNothingFlag(root, 0);
+    pObject->field_0x261 = 0;
+    pObject->flags |= 0x100;
+    pObject->message_time = 0;
+    pObject->field_0x49c = 1;
+    pObject->uid = ((tUser_crush_data*)pActor->user)->crush_data->id;
+    pObject->auto_special_volume = pParent_collision_info->auto_special_volume;
+    pObject->last_special_volume = pParent_collision_info->last_special_volume;
+    pObject->water_d = pParent_collision_info->water_d;
 }
 
 // STUB: CARMA2_HW 0x00437480
