@@ -2203,11 +2203,106 @@ br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(const tPed_character_instance* p
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00407b30
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00407b30
 // STUB: CARMA2_SW 0x00407b20
 void C2_HOOK_FASTCALL SetCharacterBonePositions(tPed_character_instance* pPed, int pArg2, int pArg3) {
-    NOT_IMPLEMENTED();
+    tPed_personality *personality;
+    tPed_form_actor_set* actor_set;
+    tPed_form* form;
+    int i;
+    tPed_move_frame* ped_move_frame;
+
+    if (pPed->field_0x7 < 0) {
+        return;
+    }
+    if ((pPed->field_0x14 & 0x4) && (pPed->field_0x14 & 0x2) && pPed->field_0xe8 == NULL) {
+        return;
+    }
+    pPed->field_0x9 &= ~0x1;
+    if (pPed->field_0xbc != NULL) {
+        MorphCharacterBonePositions(pPed, 0);
+        return;
+    }
+    personality = pPed->personality;
+    form = personality->form;
+    if (pPed->field_0x4 >= 0) {
+        actor_set = &form->actor_sets[pPed->field_0x4];
+    } else {
+        actor_set = NULL;
+    }
+    ped_move_frame = &form->moves[pPed->field_0x7].move->frames[(tS16)pPed->field_0x1c];
+    for (i = 0; i < form->count_bones; i++) {
+        int parent_index = form->bones[i].indices[0];
+
+        if (parent_index >= 0) {
+            if (!(gPow2_array[i] & pPed->field_0xc) && !(gPow2_array[parent_index] & pPed->field_0xc)
+                    && pArg2 != 1 && pArg2 != 2 && actor_set != NULL) {
+                br_matrix34* mat;
+                br_matrix34* parent_mat;
+                tPed_move_frame_axis* axis;
+
+                if (pPed->field_0xe8 != NULL) {
+                    mat = &pPed->field_0xe8[i];
+                    parent_mat = &pPed->field_0xe8[parent_index];
+                } else {
+                    mat = &actor_set->actors[i]->t.t.mat;
+                    parent_mat = &actor_set->actors[parent_index]->t.t.mat;
+                }
+                axis = &ped_move_frame->axis[i];
+
+                SetBoner(pPed, mat, parent_mat, &pPed->field_0x8c, axis->euler1, axis->euler2, axis->euler3,
+                    &personality->bones[i].field_0x20, &personality->bones[i].field_0x2c);
+            }
+        } else {
+            if (pArg2 != 3 && !(pPed->field_0x14 & 0x4)) {
+                br_matrix34* mat;
+                br_vector3 original_pos;
+
+                if (pPed->field_0x4 < 0) {
+                    mat = &pPed->field_0x2c;
+                } else if (pPed->field_0xe8 == NULL) {
+                    mat = &pPed->personality->form->actor_sets[pPed->field_0x4].actors[0]->t.t.mat;
+                } else {
+                    mat = pPed->field_0xe8;
+                }
+                BrVector3Copy(&original_pos, (br_vector3*)mat->m[3]);
+                if (pArg2 != 2) {
+                    BrMatrix34Mul(mat, &ped_move_frame->mat, &pPed->field_0x8c);
+                }
+                if (pArg3 == 0 || gPed_overall_movement_disabled) {
+                    BrVector3Copy((br_vector3*)mat->m[3], &original_pos);
+                } else {
+                    br_vector3 move;
+                    br_vector3 delta;
+
+                    BrVector3Scale(&move, (br_vector3*)ped_move_frame->mat.m[3], personality->moves[pPed->field_0x7].scale_factor);
+                    BrMatrix34ApplyV(&delta, &move, &pPed->field_0x5c);
+                    if (gAction_replay_mode && ARGetReplayRate() < 0) {
+                        BrVector3Sub((br_vector3*)mat->m[3], &original_pos, &delta);
+                    } else {
+                        BrVector3Add((br_vector3*)mat->m[3], &original_pos, &delta);
+                    }
+                }
+            }
+        }
+    }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
