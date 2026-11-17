@@ -334,7 +334,7 @@ extern void C2_HOOK_FASTCALL SplitCollisionShape(tCollision_shape_polyhedron* pS
 
 // SplitCarCollisionShapes
 
-// QuantizeWithinBounds
+extern int C2_HOOK_FASTCALL QuantizeWithinBounds(br_scalar* pValue, br_scalar pQuant, br_scalar pMin, br_scalar pMax);
 
 // SaveVitalBitsOfObject
 
