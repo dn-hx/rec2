@@ -1560,3 +1560,51 @@ void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex) {
 void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
 }
+
+// FUNCTION: CARMA2_HW 0x00431310
+int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+    extern br_scalar gTorque_to_snap_per_tonne;
+    extern void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
+    tPhysics_object* object1;
+    tPhysics_object* parent;
+    tCar_spec* car;
+    tUser_crush_data* user;
+    float snap_torque;
+    int index;
+    int i;
+
+    for (i = 0; i < pCount; i++) {
+        if (pContacts[i].type == 0xb
+                && (object1 = pContacts[i].object1) != NULL
+                && object1->owner != NULL
+                && object1->flags_0x238 == 1
+                && (parent = object1->parent) != NULL
+                && parent->owner != NULL
+                && parent->flags_0x238 == 1
+                && (car = (tCar_spec*)parent->owner) != NULL
+                && car->driver > 5
+                && car->invulnerable_no_crushage == 0
+                && (user = (tUser_crush_data*)object1->actor->user) != NULL
+                && user->crush_data != NULL
+                && user->crush_data->flap_data != NULL
+                && user->crush_data->flap_data->kev_o_flap != 0) {
+            snap_torque = object1->M * gTorque_to_snap_per_tonne;
+            if (pImpulses[i] > snap_torque) {
+                if ((((&pContacts[i].normal)->v[0]) * ((&object1->physics_joint1->hinge_axis)->v[0])
+                        + ((&pContacts[i].normal)->v[2]) * ((&object1->physics_joint1->hinge_axis)->v[2]))
+                        + ((&pContacts[i].normal)->v[1]) * ((&object1->physics_joint1->hinge_axis)->v[1]) < gCrushZero) {
+                    if (gNet_mode == eNet_mode_none) {
+                        index = i;
+                        ReduceEffectOfForces((tPhysics_joint_force*)pContacts, pImpulses, pCount, &index, 1, snap_torque);
+                        FullyDetachBit(car, object1);
+                        MungeDetachLists(car->car_crush_spec);
+                        return 1;
+                    } else if (gNet_mode == eNet_mode_host) {
+                        SendFullyDetachBit(car, object1);
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
