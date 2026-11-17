@@ -205,7 +205,7 @@ extern void C2_HOOK_FASTCALL SetHierarchyDoingNothingFlag(tPhysics_object* pObje
 
 extern void C2_HOOK_FASTCALL SetGroup(tPhysics_object* pObject, int pGroup);
 
-// GroupTogether
+extern void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject1, tPhysics_object* pObject2);
 
 // GetPreCalculatedJointForces
 
