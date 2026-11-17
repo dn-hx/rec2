@@ -65,3 +65,5 @@ extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
 extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
 #endif // GUARD_56_AIWORLD_H
+
+extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
