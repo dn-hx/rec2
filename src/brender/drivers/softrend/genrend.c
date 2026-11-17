@@ -48,8 +48,8 @@ void C2_HOOK_CDECL Vertex_TransformProjectOutcode(br_geometry *self, br_soft_ren
     int v;
     brp_vertex* tvp;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
+    tvp = rend.temp_vertices;
+    for (v = 0; v < rend.nvertices; v++, tvp++) {
 
         if (rend.vertex_counts[v] == 0) {
             continue;
