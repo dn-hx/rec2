@@ -122,63 +122,67 @@ void C2_HOOK_FASTCALL LocalWindowedDDSetup(int pWidth, int pHeight, int* pPitch)
     SetRect(&gSSDXRect, 0, 0, pWidth, pHeight);
 
     memset(&desc, 0, sizeof(desc));
+    C2_HOOK_BUG_ON(sizeof(desc) != 0x6c);
     desc.dwSize = sizeof(desc);
     desc.dwFlags = DDSD_CAPS;
     desc.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
     dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for primary surface...");
     res = IDirectDraw2_CreateSurface(gDirectDraw, &desc, &gPrimary_surface, NULL);
-    if (res == DD_OK) {
-        memset(&desc, 0, sizeof(desc));
-        desc.dwSize = sizeof(desc);
-        desc.dwFlags = DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS;
-        desc.dwHeight = pHeight;
-        desc.dwWidth = pWidth;
-#ifdef REC2_HW
-        desc.ddsCaps.dwCaps = DDSCAPS_3DDEVICE | DDSCAPS_PALETTE | DDSCAPS_FLIP | DDSCAPS_ALPHA;
-#endif
-#ifdef REC2_SW
-        desc.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY | DDSCAPS_OFFSCREENPLAIN;
-#endif
-        dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for attached surface...");
-        res = IDirectDraw_CreateSurface(gDirectDraw, &desc, &gAttached_surface, NULL);
-        if (res == DD_OK) {
-            res = IDirectDraw_CreateClipper(gDirectDraw, 0, &gDirectDrawClipper, NULL);
-            if (res == DD_OK) {
-                res = IDirectDrawClipper_SetHWnd(gDirectDrawClipper, 0, gHWnd_SSDX);
-                if (res == DD_OK) {
-                    hdc = GetDC(gHWnd_SSDX);
-                    GetSystemPaletteEntries(hdc, 0, REC2_ASIZE(gSSDX_system_palette), gSSDX_system_palette);
-                    ReleaseDC(gHWnd_SSDX, hdc);
-                    for (i = 0; i < REC2_ASIZE(gSSDX_system_palette); i++) {
-                        if (i > 10 && i < 245) {
-                            gSSDX_system_palette[i].peFlags = 0;
-                        } else {
-                            gSSDX_system_palette[i].peFlags = PC_NOCOLLAPSE;
-                        }
-                    }
-                    dr_dprintf("LocalWindowedDDSetup(): Calling CreatePalette()...");
-                    res = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, gSSDX_system_palette, &gDirectDrawPalette, NULL);
-                    if (res == DD_OK) {
-                        dr_dprintf("LocalWindowedDDSetup(): Calling SetPalette()...");
-                        res = IDirectDrawSurface_SetPalette(gPrimary_surface, gDirectDrawPalette);
-                        if (res != DD_OK) {
-                            SSDXLogDirectDrawError(res);
-                        }
-                    } else {
-                        SSDXLogDirectDrawError(res);
-                    }
-                } else {
-                    SSDXLogDirectDrawError(res);
-                }
-            } else {
-                SSDXLogDirectDrawError(res);
-            }
-        } else {
-            SSDXLogDirectDrawError(res);
-        }
-    } else {
+    if (res != DD_OK) {
         SSDXLogDirectDrawError(res);
+        goto post_creation;
     }
+
+    memset(&desc, 0, sizeof(desc));
+    desc.dwSize = sizeof(desc);
+    desc.dwFlags = DDSD_WIDTH | DDSD_HEIGHT | DDSD_CAPS;
+    desc.dwHeight = pHeight;
+    desc.dwWidth = pWidth;
+    desc.ddsCaps.dwCaps = DDSCAPS_3DDEVICE | DDSCAPS_PALETTE | DDSCAPS_FLIP | DDSCAPS_ALPHA;
+    dr_dprintf("LocalWindowedDDSetup(): Calling CreateSurface() for attached surface...");
+    res = IDirectDraw_CreateSurface(gDirectDraw, &desc, &gAttached_surface, NULL);
+    if (res != DD_OK) {
+        SSDXLogDirectDrawError(res);
+        goto post_creation;
+    }
+
+    res = IDirectDraw_CreateClipper(gDirectDraw, 0, &gDirectDrawClipper, NULL);
+    if (res != DD_OK) {
+        SSDXLogDirectDrawError(res);
+        goto post_creation;
+    }
+
+    res = IDirectDrawClipper_SetHWnd(gDirectDrawClipper, 0, gHWnd_SSDX);
+    if (res != DD_OK) {
+        SSDXLogDirectDrawError(res);
+        goto post_creation;
+    }
+
+    hdc = GetDC(gHWnd_SSDX);
+    GetSystemPaletteEntries(hdc, 0, REC2_ASIZE(gSSDX_system_palette), gSSDX_system_palette);
+    ReleaseDC(gHWnd_SSDX, hdc);
+    for (i = 0; i < REC2_ASIZE(gSSDX_system_palette); i++) {
+        if (i > 10 && i < 245) {
+            gSSDX_system_palette[i].peFlags = 0;
+        } else {
+            gSSDX_system_palette[i].peFlags = PC_NOCOLLAPSE;
+        }
+    }
+    dr_dprintf("LocalWindowedDDSetup(): Calling CreatePalette()...");
+    res = IDirectDraw_CreatePalette(gDirectDraw, DDPCAPS_ALLOW256 | DDPCAPS_8BIT, gSSDX_system_palette, &gDirectDrawPalette, NULL);
+    if (res != DD_OK) {
+        SSDXLogDirectDrawError(res);
+        goto post_creation;
+    }
+
+    dr_dprintf("LocalWindowedDDSetup(): Calling SetPalette()...");
+    res = IDirectDrawSurface_SetPalette(gPrimary_surface, gDirectDrawPalette);
+    if (res != DD_OK) {
+        SSDXLogDirectDrawError(res);
+        goto post_creation;
+    }
+post_creation:
+    SSDXLockAttachedSurface();
     if (gAttached_surface_locked) {
         res = IDirectDrawSurface_Unlock(gAttached_surface, gSSDXLockedSurfaceData);
         if (res == DD_OK) {
