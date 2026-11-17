@@ -63,3 +63,5 @@ typedef struct {
 extern tFlic_cycle_spec gFlic_cycle_specs[2];
 
 #endif // GUARD_26_OPPOPROC_H
+
+extern int C2_HOOK_FASTCALL FUN_004b2430(int* pIndex);
