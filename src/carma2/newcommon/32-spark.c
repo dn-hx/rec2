@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "09-funks.h"
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
@@ -537,10 +538,60 @@ int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial) {
     }
 }
 
-// STUB: CARMA2_HW 0x004f9620
+// FUNCTION: CARMA2_HW 0x004f9620
 // STUB: CARMA2_SW 0x004f4ca0
 void C2_HOOK_FASTCALL RestoreCarPixelmaps(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    tCar_crush_spec* spec;
+    int i;
+    int j;
+    int funk_index;
+
+    spec = pCar_spec->car_crush_spec;
+    DRActorEnumRecurse(pCar_spec->car_model_actor, ActorFunks, (void*)MasterEnableFunkotronic);
+    for (i = 0; i < spec->field_0x270; i++) {
+        br_actor* bit_actor;
+        tUser_crush_data* user;
+        tCar_crush_buffer_entry* crush;
+
+        bit_actor = spec->field_0x274[i].field_0x0;
+        if (bit_actor->user != NULL) {
+            user = (tUser_crush_data*)bit_actor->user;
+            crush = user->crush_data;
+            if (crush != NULL) {
+                if (crush->smashables != NULL) {
+                    for (j = 0; j < crush->count_smashables; j++) {
+                        funk_index = j[crush->smashables].funk;
+                        if (funk_index >= 0) {
+                            MasterEnableFunkotronic(funk_index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (i = 0; i < spec->field_0x2b0; i++) {
+        br_actor* bit_actor;
+        tUser_crush_data* user;
+        tCar_crush_buffer_entry* crush;
+
+        bit_actor = spec->field_0x2b4[i].field_0x0;
+        if (bit_actor->user != NULL) {
+            user = (tUser_crush_data*)bit_actor->user;
+            crush = user->crush_data;
+            if (crush != NULL) {
+                if (crush->smashables != NULL) {
+                    for (j = 0; j < crush->count_smashables; j++) {
+                        funk_index = crush->smashables[j].funk;
+                        if (funk_index >= 0) {
+                            MasterEnableFunkotronic(funk_index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ForEveryCarMaterial(pCar_spec, RestorePixelmap, 1);
+    pCar_spec->field_0x1960 = NULL;
 }
 
 // MungeShrapnel
