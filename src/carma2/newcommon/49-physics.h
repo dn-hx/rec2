@@ -95,7 +95,7 @@ extern int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds3* pBounds_1, br_bounds3*
 
 // GetObjectObjectEdgePoints
 
-// GetSphereNonSphereForceInfo
+extern int C2_HOOK_FASTCALL GetSphereNonSphereForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, br_vector3* pVertices1, br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 
 // GetSphereSphereForceInfo
 
