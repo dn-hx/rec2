@@ -2597,7 +2597,46 @@ void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
     gPed_retain_root_mode = 0;
 }
 
-// STUB: CARMA2_HW 0x004eb6a0
+// FUNCTION: CARMA2_HW 0x004eb6a0
 void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix) {
-    NOT_IMPLEMENTED();
+    br_vector3 v;
+    br_scalar _scale;
+
+    pMatrix->m[3][0] = 0;
+    pMatrix->m[3][1] = 0;
+    pMatrix->m[3][2] = 0;
+    pMatrix->m[1][0] = FRandomPosNeg(1.0f);
+    pMatrix->m[1][1] = FRandomPosNeg(1.0f);
+    pMatrix->m[1][2] = FRandomPosNeg(1.0f);
+    pMatrix->m[2][0] = FRandomPosNeg(1.0f);
+    pMatrix->m[2][1] = FRandomPosNeg(1.0f);
+    pMatrix->m[2][2] = FRandomPosNeg(1.0f);
+    _scale = BR_LENGTH3(pMatrix->m[2][0], pMatrix->m[2][1], pMatrix->m[2][2]);
+    if (_scale > gFloat_0058aec4) {
+        _scale = (br_scalar)(gDouble_0058aec8 / _scale);
+        v.v[0] = pMatrix->m[2][0] * _scale;
+        v.v[1] = pMatrix->m[2][1] * _scale;
+        v.v[2] = pMatrix->m[2][2] * _scale;
+    } else {
+        v.v[0] = 1.0f;
+        v.v[1] = 0.0f;
+        v.v[2] = 0.0f;
+    }
+    BrVector3Copy((br_vector3*)&pMatrix->m[2], &v);
+    BrVector3Cross((br_vector3*)&pMatrix->m[0], (br_vector3*)&pMatrix->m[1], (br_vector3*)&pMatrix->m[2]);
+    _scale = BR_LENGTH3(pMatrix->m[0][0], pMatrix->m[0][1], pMatrix->m[0][2]);
+    if (_scale > gFloat_0058aec4) {
+        _scale = (br_scalar)(gDouble_0058aec8 / _scale);
+        pMatrix->m[0][0] = pMatrix->m[0][0] * _scale;
+        pMatrix->m[0][1] = pMatrix->m[0][1] * _scale;
+        pMatrix->m[0][2] = pMatrix->m[0][2] * _scale;
+    } else {
+        pMatrix->m[0][0] = 1.0f;
+        pMatrix->m[0][1] = 0.0f;
+        pMatrix->m[0][2] = 0.0f;
+    }
+    BrVector3Cross((br_vector3*)&pMatrix->m[1], (br_vector3*)&pMatrix->m[2], (br_vector3*)&pMatrix->m[0]);
+    if (BrVector3LengthSquared((br_vector3*)&pMatrix->m[1]) < 0.9) {
+        BrMatrix34Identity(pMatrix);
+    }
 }
