@@ -2029,3 +2029,78 @@ void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
 
 // MungeSmashEdgeTriggers
 
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004f6130
+void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
+    tCar_spec* car;
+    tPhysics_object* pCollision;
+    br_vector3* pPoint;
+    tBounds bounds;
+    br_matrix34 matrix;
+    tFace_ref faces[20];
+    int car_id;
+    int count;
+    int i;
+
+    car_id = pSmash->field_0x8[0];
+    if (car_id != -1) {
+        if (gNet_mode != eNet_mode_none) {
+            if (car_id < gNumber_of_net_players) {
+                car = gNet_players[car_id].car;
+            } else {
+                car = NULL;
+            }
+        } else {
+            if ((car_id & 0xffffff00) == 0) {
+                car = &gProgram_state.current_car;
+            } else {
+                car = GetCarSpec(car_id >> 8, car_id & 0xff);
+            }
+        }
+        if (car != NULL) {
+            pCollision = car->collision_info;
+        } else {
+            pCollision = NULL;
+        }
+    } else {
+        pCollision = NULL;
+    }
+    if (pCollision != NULL) {
+        BrMatrix34Identity(&matrix);
+        bounds.mat = &matrix;
+        pPoint = (br_vector3*)&pSmash->field_0x8[2];
+        *(br_vector3*)matrix.m[3] = *pPoint;
+        BrVector3Set(&bounds.original_bounds.min, -0.05f, -0.05f, -0.05f);
+        BrVector3Set(&bounds.original_bounds.max, 0.05f, 0.05f, 0.05f);
+        FillInBounds(&bounds);
+        count = FindFacesInBox(&bounds, faces, 20, &gWorld_callbacks);
+        for (i = 0; i < count; i++) {
+            if (PointInFace((const float*)pPoint, (const float*)&faces[i].normal, faces[i].d, (const float*)&faces[i].v[0], (const float*)&faces[i].v[1], (const float*)&faces[i].v[2]) != 0) {
+                break;
+            }
+        }
+        if (i == count) {
+            return;
+        }
+        gINT_006a8294 = pSmash->field_0x8[11] & 1;
+        SmashEnvironment(pCollision, (undefined4*)&faces[i], *(float*)&pSmash->field_0x8[1], pPoint, (br_vector3*)&pSmash->field_0x8[5], (br_vector3*)&pSmash->field_0x8[8], (pSmash->field_0x8[11] >> 1) & 1, 1);
+        FlushSmashQueue(0);
+        gINT_006a8294 = 0;
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
