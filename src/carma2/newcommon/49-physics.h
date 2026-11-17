@@ -145,7 +145,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // RedoQuickHingeVelocities
 
-// GetJointForces
+extern int C2_HOOK_FASTCALL GetJointForces(tPhysics_object* pObject, tPhysics_joint_force* pForce);
 
 // GetUniversalRotationAngle
 
