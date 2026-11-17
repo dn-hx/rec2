@@ -115,6 +115,59 @@ void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixm
 
 // FreeOffQTshite
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004e1250
+int C2_HOOK_FASTCALL WriteBannerFrame(void) {
+    br_pixelmap* pBanner;
+    int frame_size;
+    char codec_info;
+    short result;
+    int i;
+
+    if (gQuick_time_banner_number != 0) {
+        pBanner = LoadPixelmap(gQuick_time_banner_texture_name);
+        if (pBanner != NULL) {
+            if (pBanner->width != 320 || pBanner->height != 200) {
+                BrFailure("Banner picture must be 320x200");
+            }
+            *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
+            *(short*)(*gQuicktime_frame_pixmap_handle + 4) = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * 2;
+            memset(gQuicktime_frame_pixels, 0, (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2);
+            dr_dprintf("Converting banner. w=%d, h=%d, type=%d", pBanner->width, pBanner->height, pBanner->type);
+            Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pBanner);
+            for (i = 0; i < 0x12; i++) {
+                result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0xc0, *gQuicktime_compressed_frame_handle, &frame_size, &codec_info, 0);
+                if (result != 0) {
+                    return result;
+                }
+                *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
+                result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0, *(int*)(*gQuicktime_image_description_handle + 0x2c), 0x37, gQuicktime_image_description_handle, 1, 0, 0);
+                if (result != 0) {
+                    return result;
+                }
+            }
+            gQuicktime_frame_flags = 1;
+            return 0;
+        }
+    }
+    gQuicktime_frame_flags = 1;
+    return 0;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004e1700
 // FUNCTION: CARMA2_SW 0x004dda00
 void C2_HOOK_CDECL InitQuickTimeStuff(void) {
