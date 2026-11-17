@@ -1115,6 +1115,67 @@ void C2_HOOK_FASTCALL InitRepairAnimations(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004f0d50
+int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
+    float local_c[3];
+    float a, b, c, d, e, f, g, h, denom, u, v;
+    int axis;
+    int i8;
+    int i11;
+
+    f = (pNormal[0] * pPoint[0] + (pNormal[1] * pPoint[1] + pNormal[2] * pPoint[2])) - pPlane_distance;
+    if (fabs(f) > 0.5) {
+        return 0;
+    }
+    f = -f;
+    local_c[0] = pNormal[0] * f + pPoint[0];
+    local_c[1] = pNormal[1] * f + pPoint[1];
+    local_c[2] = pNormal[2] * f + pPoint[2];
+    axis = 0;
+    if (fabs(pNormal[0]) < fabs(pNormal[1])) {
+        axis = 1;
+    }
+    if (fabs(pNormal[axis]) < fabs(pNormal[2])) {
+        axis = 2;
+    }
+    switch (axis) {
+    case 0:
+        i8 = 1;
+        i11 = 2;
+        break;
+    case 1:
+        i8 = 0;
+        i11 = 2;
+        break;
+    case 2:
+        i8 = 0;
+        i11 = 1;
+        break;
+    }
+    a = pVertex0[i8];
+    b = pVertex1[i8] - a;
+    c = pVertex0[i11];
+    d = pVertex1[i11] - c;
+    e = pVertex2[i11] - c;
+    f = pVertex2[i8] - a;
+    g = local_c[i8] - a;
+    h = local_c[i11] - c;
+    if (fabs(b) > 2.3841858e-07) {
+        denom = e * b - d * f;
+        if (denom == 0.0f) {
+            return 0;
+        }
+        u = (h * b - d * g) / denom;
+        v = (g - u * f) / b;
+    } else {
+        u = g / f;
+        v = (h - u * e) / d;
+    }
+    if (v >= -0.0001 && u >= -0.0001 && u + v <= 1.0001) {
+        return 1;
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004f3560
 // FUNCTION: CARMA2_SW 0x004ef1c0
 void C2_HOOK_FASTCALL SplondificatalizeIdentifier(br_actor* pActor, char **pIdentifier, int pIndex) {
