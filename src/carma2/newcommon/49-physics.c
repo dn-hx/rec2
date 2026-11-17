@@ -814,7 +814,178 @@ int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, br_scal
     // return 0;
 }
 
-// DoCollisions
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004ba6b0
+void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callbacks* pWorld_callbacks) {
+    tPhysics_joint_force bufB[0x28];
+    tPhysics_joint_force bufA[0x28];
+    tPhysics_joint_force* pBuf1;
+    tPhysics_joint_force* pBuf2;
+    tPhysics_joint_force* tmp;
+    tPhysics_object* obj;
+    tPhysics_object* head;
+    tPhysics_object* tail;
+    tPhysics_object* cur;
+    tPhysics_object* next;
+    tPhysics_object* pos;
+    tPhysics_object* sibling;
+    tPhysics_object* node;
+    tPhysics_joint_force* contact;
+    tU32 marker;
+    int mask;
+    int loops;
+    int i;
+    int r;
+
+    pBuf1 = bufA;
+    pBuf2 = bufB;
+
+    ClearPhysicsScratchSpace();
+
+    gINT_006940a0 = 1;
+    gINT_00692ddc = 0;
+    gFLOAT_00692dd0 = 0.f;
+    gFLOAT_00692dd4 = 0.f;
+
+    for (obj = *pObject_list; obj != NULL; obj = obj->next) {
+        InternalPrepareObject(obj);
+    }
+
+    head = *pObject_list;
+    head->prev = NULL;
+    tail = head;
+    cur = head->next;
+    while (cur != NULL) {
+        pos = tail;
+        while (pos != NULL && cur->transform_matrix.m[3][0] < pos->transform_matrix.m[3][0]) {
+            pos = pos->prev;
+        }
+        if (pos == tail) {
+            tail->next = cur;
+            cur->prev = tail;
+            tail = cur;
+            cur = cur->next;
+        } else if (pos != NULL) {
+            next = cur->next;
+            cur->next = pos->next;
+            pos->next->prev = cur;
+            pos->next = cur;
+            cur->prev = pos;
+            cur = next;
+        } else {
+            head->prev = cur;
+            next = cur->next;
+            cur->next = head;
+            head = cur;
+            cur->prev = NULL;
+            cur = next;
+        }
+    }
+    tail->next = NULL;
+    *pObject_list = head;
+
+    do {
+        gPrepared_objects = 0;
+        for (obj = *pObject_list; obj != NULL; obj = obj->next) {
+            if (obj->field_0x1dc != 0) {
+                continue;
+            }
+            if (obj->disable_move_rotate != 0) {
+                continue;
+            }
+            if (obj->child != NULL && obj->child->physics_joint1 != NULL && obj->child->physics_joint1->type != 0) {
+                marker = gINT_006940a0;
+                obj->field_0x1dc = (tU8)marker;
+                for (sibling = obj->child; sibling != NULL; sibling = sibling->next) {
+                    if (sibling->physics_joint1 != NULL && sibling->physics_joint1->type != 0) {
+                        SetGroup(sibling, marker);
+                    }
+                }
+                gINT_006940a0++;
+            }
+            loops = 0;
+            gINT_006940a4 = 0;
+            r = DoInterGroupCollisions(pObject_list, obj, pBuf1, pBuf2, 0, pWorld_callbacks);
+            while (r != 0) {
+                loops++;
+                tmp = pBuf1;
+                pBuf1 = pBuf2;
+                pBuf2 = tmp;
+                if (loops >= 0x1e) {
+                    break;
+                }
+                if (gINT_006940a4 >= 3) {
+                    break;
+                }
+                r = DoInterGroupCollisions(pObject_list, obj, pBuf1, pBuf2, r, pWorld_callbacks);
+            }
+            if (loops >= 0x1e) {
+                PhysicsWarning("Too many loops in DoCollisions");
+            }
+        }
+    } while (gPrepared_objects != 0);
+
+    for (i = 0, contact = gCollision_contacts; i < gINT_00692ddc; i++, contact++) {
+        NewAddFriction(contact, pWorld_callbacks);
+    }
+
+    WriteNewPositions(*pObject_list);
+
+    for (obj = *pObject_list; obj != NULL; obj = obj->next) {
+        if (obj->disable_move_rotate != 0) {
+            continue;
+        }
+        if (!(obj->field_0x1df & 0x2)) {
+            continue;
+        }
+        mask = 0x2;
+        for (node = (tPhysics_object*)obj->field183_0x1d8; node != obj; node = (tPhysics_object*)node->field183_0x1d8) {
+            mask &= node->field_0x1df;
+        }
+        if (!(mask & 0x2)) {
+            continue;
+        }
+        obj->disable_move_rotate = 1;
+        for (cur = obj;; cur = (tPhysics_object*)cur->field183_0x1d8) {
+            sibling = cur->child;
+            cur->disable_move_rotate = 1;
+            cur->field_0x1df = 0;
+            if (sibling != NULL) {
+                for (sibling = cur->child; sibling != NULL; sibling = sibling->next) {
+                    sibling->disable_move_rotate = 1;
+                    sibling->field_0x1df = 0;
+                    if (sibling->child != NULL) {
+                        SetListDoingNothingFlag(sibling->child, 1);
+                    }
+                }
+            }
+            if (cur->field183_0x1d8 == 0 || (tPhysics_object*)cur->field183_0x1d8 == obj) {
+                break;
+            }
+        }
+    }
+
+    for (obj = *pObject_list; obj != NULL; obj = obj->next) {
+        if (obj->disable_move_rotate == 0) {
+            DoJointFriction(obj);
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // AddDoubleTorqueToMatrix
 
