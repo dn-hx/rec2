@@ -50,3 +50,4 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 
 #endif // GUARD_56_AIWORLD_H
 
+extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
