@@ -516,3 +516,76 @@ void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race) {
 
 // MouseClickInActionReplay
 
+
+static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime) {
+
+    if (ARReplayForwards()) {
+        if (pTime <= gOldest_time) {
+            return 0;
+        }
+    } else {
+        if (pTime >= gOldest_time) {
+            return 0;
+        }
+    }
+    gTrigger_time = pTime;
+    gPipe_car_state_chunk = (tU8*)pChunk;
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004c6c90
+int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
+    tU8* temp_ptr;
+
+    temp_ptr = ARGetPipePlayPtr();
+    gTrigger_time = 0;
+    if (ARReplayForwards()) {
+        gOldest_time = GetTotalTime() + pOffset;
+    } else {
+        gOldest_time = GetTotalTime() - pOffset;
+    }
+    ARScanBuffer(&temp_ptr, ePipe_chunk_ped_incident, GetTotalTime(), CheckIncident, NULL);
+    if (gTrigger_time != 0) {
+        *pTime = gTrigger_time - GetTotalTime();
+        *pMode = *(tS32*)gPipe_car_state_chunk;
+        *pTowards = *(br_scalar*)(gPipe_car_state_chunk + 4);
+        switch (*pMode) {
+        case 0:
+            {
+                tPedestrian* ped = *(tPedestrian**)(gPipe_car_state_chunk + 8);
+                br_actor* actor = GetCharacterActorPtr(ped->character);
+
+                pData[0] = (undefined4)(uintptr_t)actor;
+                if (actor == NULL) {
+                    gTrigger_time = 0;
+                }
+                pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+            }
+            break;
+        case 1:
+            {
+                tU32 car_id = *(tU16*)(gPipe_car_state_chunk + 8);
+                tCar_spec* car;
+
+                if ((car_id & 0xffffff00) == 0) {
+                    car = &gProgram_state.current_car;
+                } else {
+                    car = GetCarSpec(car_id >> 8, car_id & 0xff);
+                }
+                pData[0] = (undefined4)(uintptr_t)car;
+                pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+                pData[2] = *(undefined4*)(gPipe_car_state_chunk + 0x10);
+                pData[3] = *(undefined4*)(gPipe_car_state_chunk + 0x14);
+            }
+            break;
+        case 2:
+            pData[0] = *(undefined4*)(gPipe_car_state_chunk + 8);
+            pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+            pData[2] = *(undefined4*)(gPipe_car_state_chunk + 0x10);
+            break;
+        default:
+            break;
+        }
+    }
+    return gTrigger_time;
+}
