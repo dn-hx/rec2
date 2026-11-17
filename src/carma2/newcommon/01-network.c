@@ -951,9 +951,62 @@ void C2_HOOK_FASTCALL NetReceiveAndProcessMessages(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x004a4ac0
+// FUNCTION: CARMA2_HW 0x004a4ac0
 void C2_HOOK_FASTCALL BroadcastStatus(void) {
-    NOT_IMPLEMENTED();
+    tNet_message* message;
+    tNet_message_chunk* chunk;
+    int size;
+    int i;
+    int csize;
+    tU8* contents;
+
+    switch ((int)gNet_mode) {
+    case eNet_mode_host:
+        size = NetGetContentsSize(0x2e, gNumber_of_net_players) + 0x18;
+        message = NetAllocateMessage(size);
+        if (message != NULL) {
+            message->header.field_0x14 = 1;
+            message->header.field_0x16 = (tU16)size;
+            message->contents.raw.header.type = 0x2e;
+        }
+        *(tU32*)((tU8*)message + 0x1c) = 0;
+        *((tU8*)message + 0x20) = (tU8)gNumber_of_net_players;
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            *(tU32*)((tU8*)message + 0x1c) += gNet_players[i].ID;
+            *((tU8*)message + 0x21 + i) = (tU8)gNet_players[i].player_status;
+        }
+        chunk = &message->contents;
+        csize = (tU16)message->header.field_0x16 - 0x18;
+        chunk->raw.header.size = (tU8)csize;
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            if (i != gThis_net_player_index) {
+                contents = (tU8*)NetGetToPlayerContentsSize(&gNet_players[i], csize);
+                if (contents != NULL) {
+                    memcpy(contents, chunk, csize);
+                }
+            }
+        }
+        NetDisposeMessage(gCurrent_net_game, message);
+        break;
+    case eNet_mode_client:
+        size = NetGetContentsSize(0xb, 0) + 0x18;
+        message = NetAllocateMessage(size);
+        if (message != NULL) {
+            message->header.field_0x14 = 1;
+            message->header.field_0x16 = (tU16)size;
+            message->contents.raw.header.type = 0xb;
+        }
+        *(tU16*)((tU8*)message + 0x1a) = (tU16)gNet_players[gThis_net_player_index].player_status;
+        NetSendMessageToHost(gCurrent_net_game, message);
+        break;
+    }
+    gLast_flush_message = PDGetTotalTime();
+    for (i = 0; i < gNumber_of_net_players; i++) {
+        if (gNet_players[i].field_0xcc != NULL) {
+            NetReallySendMessageToPlayer(gCurrent_net_game, gNet_players[i].field_0xcc, gNet_players[i].ID);
+            gNet_players[i].field_0xcc = NULL;
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004a4da0
