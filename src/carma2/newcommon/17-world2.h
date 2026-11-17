@@ -101,3 +101,5 @@ extern intptr_t C2_HOOK_CDECL ProcessMaterials(br_actor* pActor, void* pContext)
 extern void C2_HOOK_FASTCALL BuildColourTable(br_pixelmap* pPalette);
 
 #endif // GUARD_17_WORLD2_H
+
+extern int C2_HOOK_FASTCALL FUN_00447ef0(br_model* pModel, tU16 pFace);
