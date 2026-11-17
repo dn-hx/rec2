@@ -667,18 +667,10 @@ static tFollow_path_result C2_HOOK_FASTCALL FollowCheatyPath(tOpponent_spec* pOp
     PointActorAlongThisBloodyVector(car_master_actor, &v);
     return eFPR_OK;
 }
-// PARTIAL 38.85%: control flow, all constants (-1.0f / -2.0f / 0.001f / 9.0f / 0.33333334f / 2.3841858e-07f /
-//   0.7f), the GetStraight/IRandomBetween calls and every tCorner field write match. Residual is MSVC codegen:
-//   our frame is 0x30 where the original reserves 0x38, so every [esp+N] operand and relative jump differs.
-//   Original slot map (ascending, from the disassembly): width 0x00, d 0x04, -fy 0x08, sqrt() term 0x0c,
-//   fx 0x10, fy 0x14, start 0x18, dx 0x20, dy 0x24, prev 0x28, finish 0x30; len1/len2 live in the dead
-//   pOpponent_spec/pStart argument homes 0x44/0x40. Declaration order alone did not reproduce it.
+// PARTIAL 39.78%: block-scoped d/nfy/sq/len/dot/cross/r; frame 0x30 vs 0x38; OPEN S00,S01 (prologue/loop structure) RESIDUAL S02 (epilogue)
 // FUNCTION: CARMA2_HW 0x004b1560
 int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec) {
     float width;
-    float d;
-    float nfy;
-    float sq;
     float fx;
     float fy;
     br_vector2 start;
@@ -686,12 +678,6 @@ int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, 
     float dy;
     br_vector2 prev;
     br_vector2 finish;
-    float len1;
-    float len2;
-    float len;
-    float dot;
-    float cross;
-    float r;
     tCorner* corner;
     int count;
 
@@ -706,53 +692,65 @@ int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, 
         dy = prev.v[1] - start.v[1];
         fx = finish.v[0] - start.v[0];
         fy = finish.v[1] - start.v[1];
-        len1 = dx * dx + dy * dy;
-        len2 = fx * fx + fy * fy;
-        if (len1 == 0.0f || len2 == 0.0f) {
-            goto simple_corner;
+        {
+            float len1;
+            float len2;
+            float d;
+            float nfy;
+            float sq;
+            float len;
+            float dot;
+            float cross;
+            float r;
+
+            len1 = dx * dx + dy * dy;
+            len2 = fx * fx + fy * fy;
+            if (len1 == 0.0f || len2 == 0.0f) {
+                goto simple_corner;
+            }
+            nfy = -fy;
+            dot = fy * dy + fx * dx;
+            cross = fx * dy + dx * nfy;
+            len = sqrt(cross * cross + dot * dot);
+            if (len <= 2.3841858e-07f) {
+                dot = 1.0f;
+                cross = 0.0f;
+            } else {
+                len = 1.0 / len;
+                dot = len * dot;
+                cross = len * cross;
+            }
+            if (cross > 0.0f) {
+                corner->left_not_right = 1;
+            } else {
+                corner->left_not_right = 0;
+                cross = -cross;
+            }
+            if (cross < 0.001f) {
+                goto simple_corner;
+            }
+            d = (dot * pWidth + width) / cross;
+            r = cross / (dot - -1.0f);
+            sq = sqrt(((r * r * pWidth - d * r * -2.0f) - pWidth) * pWidth);
+            corner->field_0x0c = r * pWidth + sq + d;
+            if (corner->field_0x0c * corner->field_0x0c * 9.0f > len1) {
+                corner->field_0x0c = sqrt(len1) * 0.33333334f;
+            }
+            if (corner->field_0x0c * corner->field_0x0c * 9.0f > len2) {
+                corner->field_0x0c = sqrt(len2) * 0.33333334f;
+            }
+            r = r * corner->field_0x0c;
+            corner->field_0x08 = r;
+            if (corner->left_not_right) {
+                corner->field_0x00.v[0] = r * nfy + fx * corner->field_0x0c;
+                corner->field_0x00.v[1] = fy * corner->field_0x0c + fx * corner->field_0x08;
+            } else {
+                corner->field_0x00.v[0] = fx * corner->field_0x0c + fy * r;
+                corner->field_0x00.v[1] = fy * corner->field_0x0c + -corner->field_0x08 * fx;
+            }
+            corner->field_0x00.v[0] = corner->field_0x00.v[0] / sqrt(len2) + start.v[0];
+            corner->field_0x00.v[1] = corner->field_0x00.v[1] / sqrt(len2) + start.v[1];
         }
-        nfy = -fy;
-        dot = fy * dy + fx * dx;
-        cross = fx * dy + dx * nfy;
-        len = sqrt(cross * cross + dot * dot);
-        if (len <= 2.3841858e-07f) {
-            dot = 1.0f;
-            cross = 0.0f;
-        } else {
-            len = 1.0 / len;
-            dot = len * dot;
-            cross = len * cross;
-        }
-        if (cross > 0.0f) {
-            corner->left_not_right = 1;
-        } else {
-            corner->left_not_right = 0;
-            cross = -cross;
-        }
-        if (cross < 0.001f) {
-            goto simple_corner;
-        }
-        d = (dot * pWidth + width) / cross;
-        r = cross / (dot - -1.0f);
-        sq = sqrt(((r * r * pWidth - d * r * -2.0f) - pWidth) * pWidth);
-        corner->field_0x0c = r * pWidth + sq + d;
-        if (corner->field_0x0c * corner->field_0x0c * 9.0f > len1) {
-            corner->field_0x0c = sqrt(len1) * 0.33333334f;
-        }
-        if (corner->field_0x0c * corner->field_0x0c * 9.0f > len2) {
-            corner->field_0x0c = sqrt(len2) * 0.33333334f;
-        }
-        r = r * corner->field_0x0c;
-        corner->field_0x08 = r;
-        if (corner->left_not_right) {
-            corner->field_0x00.v[0] = r * nfy + fx * corner->field_0x0c;
-            corner->field_0x00.v[1] = fy * corner->field_0x0c + fx * corner->field_0x08;
-        } else {
-            corner->field_0x00.v[0] = fx * corner->field_0x0c + fy * r;
-            corner->field_0x00.v[1] = fy * corner->field_0x0c + -corner->field_0x08 * fx;
-        }
-        corner->field_0x00.v[0] = corner->field_0x00.v[0] / sqrt(len2) + start.v[0];
-        corner->field_0x00.v[1] = corner->field_0x00.v[1] / sqrt(len2) + start.v[1];
         goto next_corner;
 simple_corner:
         corner->field_0x00.v[0] = start.v[0];
