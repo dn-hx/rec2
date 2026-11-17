@@ -186,7 +186,203 @@ br_actor* C2_HOOK_CDECL MrFindy(br_actor* pActor, const char* pName) {
 
 // LoadDrone
 
-// CalculateDrivingInfo
+#define DRONE_F(p, off) (*(float*)((char*)(p) + (off)))
+
+// FUNCTION: CARMA2_HW 0x0044dac0
+void C2_HOOK_FASTCALL CalculateDrivingInfo(tDrone_spec* pDrone) {
+    float max_radius;
+    float min_radius;
+    tDrone_form* form;
+    tDrone_path_node* node_a;
+    tDrone_path_node* node_b;
+    tDrone_path_node* node_c;
+    br_vector3 v1;
+    br_vector3 v2;
+    br_vector3 n;
+    br_vector3 t;
+    br_vector3 axis;
+    br_vector3 a;
+    br_vector3 b;
+    br_vector3 d;
+    int ang;
+    float f_ang;
+    float len_a;
+    float len_b;
+    float dot;
+    float cross;
+    float s;
+    float k;
+    float r;
+    float mag;
+    float len;
+    int left;
+
+    form = pDrone->form;
+    switch (form->type) {
+    case 1:
+        min_radius = 0.1f;
+        max_radius = 3.0f;
+        break;
+    default:
+        min_radius = 0.02f;
+        max_radius = 0.5f;
+        break;
+    }
+    pDrone->field_0xe0 = 0.0f;
+    pDrone->field_0x74 = 0.0f;
+    if (pDrone->field_0x14 == 0 || (form->flags & 1) == 0) {
+        DRONE_F(pDrone, 0x68) = 1000.0f;
+        DRONE_F(pDrone, 0x6c) = 0.0f;
+    } else {
+        node_a = &gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id];
+        node_b = &gDrone_path_nodes[pDrone->field_0xc];
+        node_c = &gDrone_path_nodes[pDrone->field_0xe];
+        BrVector3Sub(&v1, &node_a->position, &node_b->position);
+        BrVector3Sub(&v2, &node_c->position, &node_b->position);
+        BrVector3Cross(&n, &v2, &v1);
+        if (n.v[1] < 0.0f) {
+            n.v[0] = -n.v[0];
+            n.v[1] = -n.v[1];
+            n.v[2] = -n.v[2];
+        }
+        BrVector3Normalise(&n, &n);
+        t.v[0] = 0.0f - n.v[2];
+        t.v[1] = 0.0f;
+        t.v[2] = n.v[0] - 0.0f;
+        BrVector3Normalise(&axis, &t);
+        ang = (int)(acos(n.v[1]) * 10430.378350470453);
+        f_ang = (float)(ang & 0xffff) * 9.58738e-05f;
+        s = f_ang;
+        if (s > 3.141592653589793) {
+            s = 0.0f;
+        }
+        if (s > 1.5707963267948966) {
+            s = 3.141592653589793 - s;
+        }
+        if (form->type != 1 && form->type != 3) {
+            max_radius = (max_radius - min_radius) * (1.0 - s * 0.6366197723675814) + min_radius;
+        }
+        BrMatrix34Rotate((br_matrix34*)((char*)pDrone + 0x78), ang, &axis);
+        BrMatrix34LPInverse((br_matrix34*)((char*)pDrone + 0xa8), (br_matrix34*)((char*)pDrone + 0x78));
+        BrMatrix34ApplyV(&a, &v1, (br_matrix34*)((char*)pDrone + 0x78));
+        BrMatrix34ApplyV(&b, &v2, (br_matrix34*)((char*)pDrone + 0x78));
+        len_a = a.v[2] * a.v[2] + a.v[0] * a.v[0];
+        len_b = b.v[2] * b.v[2] + b.v[0] * b.v[0];
+        if (len_a != 0.0f && len_b != 0.0f) {
+            dot = b.v[2] * a.v[2] + b.v[0] * a.v[0];
+            cross = b.v[0] * a.v[2] + a.v[0] * -b.v[2];
+            mag = sqrt(cross * cross + dot * dot);
+            if (mag <= 2.3841858e-07f) {
+                dot = 1.0f;
+                mag = 0.0f;
+            } else {
+                mag = 1.0 / mag;
+                dot = mag * dot;
+                mag = mag * cross;
+            }
+            s = mag;
+            if (mag <= 0.0f) {
+                s = -mag;
+            }
+            left = mag > 0.0f;
+            if (s >= 0.04f) {
+                r = (dot * max_radius + max_radius) / s;
+                s = s / (dot - -1.0f);
+                r = s * max_radius + sqrt(((s * s * max_radius - r * s * -2.0f) - max_radius) * max_radius) + r;
+                DRONE_F(pDrone, 0x6c) = r;
+                if (len_a < r * r * 9.0f) {
+                    DRONE_F(pDrone, 0x6c) = sqrt(len_a) * 0.33333334f;
+                }
+                if (len_b < DRONE_F(pDrone, 0x6c) * DRONE_F(pDrone, 0x6c) * 9.0f) {
+                    DRONE_F(pDrone, 0x6c) = sqrt(len_b) * 0.33333334f;
+                }
+                s = s * DRONE_F(pDrone, 0x6c);
+                DRONE_F(pDrone, 0x68) = s;
+                if (left) {
+                    DRONE_F(pDrone, 0x54) = b.v[0] * DRONE_F(pDrone, 0x6c) + s * -b.v[2];
+                    DRONE_F(pDrone, 0x58) = b.v[0] * DRONE_F(pDrone, 0x68) + b.v[2] * DRONE_F(pDrone, 0x6c);
+                } else {
+                    DRONE_F(pDrone, 0x54) = b.v[0] * DRONE_F(pDrone, 0x6c) + b.v[2] * s;
+                    DRONE_F(pDrone, 0x58) = b.v[2] * DRONE_F(pDrone, 0x6c) + -DRONE_F(pDrone, 0x68) * b.v[0];
+                }
+                DRONE_F(pDrone, 0x54) = DRONE_F(pDrone, 0x54) / sqrt(len_b);
+                DRONE_F(pDrone, 0x58) = DRONE_F(pDrone, 0x58) / sqrt(len_b);
+                k = DRONE_F(pDrone, 0x54);
+                d.v[2] = -DRONE_F(pDrone, 0x58);
+                d.v[0] = (a.v[0] - DRONE_F(pDrone, 0x54)) - -k;
+                d.v[1] = (a.v[2] - DRONE_F(pDrone, 0x58)) - d.v[2];
+                pDrone->left_turn = left;
+                len = sqrt(d.v[1] * d.v[1] + d.v[0] * d.v[0]);
+                r = (1.0f - (float)sin(f_ang) * -7.0f) * sqrt(DRONE_F(pDrone, 0x58) * DRONE_F(pDrone, 0x58) + DRONE_F(pDrone, 0x54) * DRONE_F(pDrone, 0x54));
+                DRONE_F(pDrone, 0xe8) = r;
+                DRONE_F(pDrone, 0x70) = r;
+                if (len <= 2.3841858e-07f) {
+                    d.v[1] = 0.0f;
+                } else {
+                    d.v[1] = (1.0 / len) * d.v[1];
+                }
+                r = DRONE_F(pDrone, 0x6c);
+                DRONE_F(pDrone, 0x5c) = (float)acos(d.v[1]);
+                if (r * d.v[1] + d.v[2] < 0.0f) {
+                    DRONE_F(pDrone, 0x5c) = (float)(6.283185307179586 - acos(d.v[1]));
+                }
+                r = DRONE_F(pDrone, 0x6c);
+                d.v[0] = (b.v[0] - DRONE_F(pDrone, 0x54)) - -k;
+                d.v[1] = (b.v[2] - DRONE_F(pDrone, 0x58)) - d.v[2];
+                len = sqrt(d.v[1] * d.v[1] + d.v[0] * d.v[0]);
+                if (len <= 2.3841858e-07f) {
+                    d.v[1] = 0.0f;
+                } else {
+                    d.v[1] = (1.0 / len) * d.v[1];
+                }
+                DRONE_F(pDrone, 0x64) = (float)acos(d.v[1]);
+                if (r * d.v[1] + d.v[2] < 0.0f) {
+                    DRONE_F(pDrone, 0x64) = (float)(6.283185307179586 - acos(d.v[1]));
+                }
+                if (left) {
+                    if (DRONE_F(pDrone, 0x64) < DRONE_F(pDrone, 0x5c)) {
+                        len = DRONE_F(pDrone, 0x64);
+                        do {
+                            len = len - -6.2831855f;
+                        } while (len < DRONE_F(pDrone, 0x5c));
+                        DRONE_F(pDrone, 0x64) = len;
+                    }
+                } else if (DRONE_F(pDrone, 0x5c) < DRONE_F(pDrone, 0x64)) {
+                    do {
+                        len = DRONE_F(pDrone, 0x5c) - -6.2831855f;
+                        DRONE_F(pDrone, 0x5c) = len;
+                    } while (len < DRONE_F(pDrone, 0x64));
+                }
+                pDrone->field_0xdc = 1;
+                DRONE_F(pDrone, 0x60) = DRONE_F(pDrone, 0x5c);
+                goto done;
+            }
+        }
+        DRONE_F(pDrone, 0x68) = 1000.0f;
+        DRONE_F(pDrone, 0x6c) = 0.0f;
+    }
+done:
+    form = pDrone->form;
+    if (form->speed >= 0.0f) {
+        pDrone->field_0x50 = form->speed;
+    } else {
+        s = DRONE_F(pDrone, 0x68) * 0.5f;
+        pDrone->field_0x50 = s;
+        len = s;
+        if (s < form->min_speed) {
+            len = form->min_speed;
+        }
+        if (len <= form->max_speed) {
+            if (s < form->min_speed) {
+                s = form->min_speed;
+            }
+            pDrone->field_0x50 = s;
+        } else {
+            pDrone->field_0x50 = form->max_speed;
+        }
+    }
+    DoNotDprintf("CalculateDrivingInfo called - centre node %d, radius %f, section after corner %p", pDrone->field_0xc, (double)DRONE_F(pDrone, 0x68), (void*)pDrone->field_0x10);
+}
 
 // PauseDroneState
 
