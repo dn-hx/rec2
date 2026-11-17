@@ -1663,7 +1663,7 @@ void C2_HOOK_CDECL NewObjective(tOpponent_spec* pOpponent_spec, tOpponent_object
 
 // NewObjective
 
-// (reference only)
+// PARTIAL 45.40%: CalcRaceRoute 0x004aae20 - regalloc mismatch: original keeps this in esi, zero in edi, const 1 in bl; MSVC allocates this to edi, zero to ebx
 // FUNCTION: CARMA2_HW 0x004aae20
 void C2_HOOK_FASTCALL CalcRaceRoute(tOpponent_spec* pOpponent_spec) {
     tS16 section_no;
