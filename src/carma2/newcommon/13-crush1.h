@@ -284,7 +284,6 @@ extern tPhysics_object* C2_HOOK_FASTCALL DetachBit(tCar_spec* pCar, br_actor* pA
 
 extern void C2_HOOK_FASTCALL DoDetaching(void);
 
-// FlapBit
 extern intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pContext);
 
 // FlapBits
