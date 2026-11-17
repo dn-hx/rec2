@@ -130,3 +130,59 @@ br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex) {
 
 // MakeAISimpleEditSectionHere
 
+
+// FUNCTION: CARMA2_HW 0x0044f980
+void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec) {
+    br_bounds3 bnds;
+    tPhysics_object* pPhysics;
+    tPhysics_shape* original_shape;
+    br_scalar size_x;
+
+    pPhysics = &pDrone_spec->collision_info;
+    BrActorToBounds(&bnds, pDrone_spec->actor);
+    bnds.min.v[1] = bnds.min.v[1] - -0.001f;
+    if (pDrone_spec->field_0x46) {
+        original_shape = pPhysics->shape;
+    }
+    memset(pPhysics, 0, sizeof(tPhysics_object));
+    if (pDrone_spec->field_0x46) {
+        pPhysics->shape = original_shape;
+    }
+    else {
+        pPhysics->shape = (tPhysics_shape*)AllocateShapeBox(kMem_drone_collision_stuff);
+        pPhysics->shape->box.common.bb = bnds;
+        pPhysics->shape->box.common.field_0x1c = bnds;
+        pPhysics->shape->box.common.next = NULL;
+        pDrone_spec->field_0x46 = 1;
+    }
+    pPhysics->flags_0x238 = 16;
+    pPhysics->owner = pDrone_spec;
+    pPhysics->actor = pDrone_spec->actor;
+    pPhysics->M = pDrone_spec->form->M;
+    BrVector3Set(&pPhysics->cmpos, 0.f, .09f, 0.f);
+    BrVector3Set(&pPhysics->field_0x54, 0.f, -.4f / WORLD_SCALE, 0.f);
+    BrMatrix34Copy(&pPhysics->transform_matrix, &pDrone_spec->actor->t.t.mat);
+    pPhysics->box_face_ref = gFace_num__car - 2;
+    pPhysics->field_0x1a0 = 0x100000;
+    FillInShape(pPhysics->shape);
+    UpdateCollisionObject(pPhysics);
+    GetNewBoundingBox(&pPhysics->field_0xf4, &pPhysics->bb1, &pPhysics->transform_matrix);
+    size_x = bnds.max.v[0] - bnds.min.v[0];
+    pPhysics->I.v[0] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + (bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1])) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[1] = ((bnds.max.v[2] - bnds.min.v[2]) * (bnds.max.v[2] - bnds.min.v[2]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->I.v[2] = ((bnds.max.v[1] - bnds.min.v[1]) * (bnds.max.v[1] - bnds.min.v[1]) + size_x * size_x) * pPhysics->M * 0.083333336f;
+    pPhysics->cmpos.v[0] = bnds.min.v[0] - pDrone_spec->form->center.v[1] * size_x * -0.01;
+    pPhysics->cmpos.v[1] = bnds.min.v[1] - pDrone_spec->form->center.v[2] * (bnds.max.v[1] - bnds.min.v[1]) * -0.01;
+    pPhysics->cmpos.v[2] = bnds.min.v[2] - pDrone_spec->form->center.v[0] * (bnds.max.v[2] - bnds.min.v[2]) * -0.01;
+    if (pDrone_spec->form->type == kDroneType_train) {
+        pPhysics->world_friction = -.75;
+    }
+    pPhysics->disable_move_rotate = 1;
+    pPhysics->field_0xed = 1;
+    pPhysics->flags |= 0x40;
+    pPhysics->drivable_on = !!(pDrone_spec->form->flags & 0x8);
+    BrVector3SetFloat(&pPhysics->v, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->rotate_omega, 0.f, 0.f, 0.f);
+    BrVector3SetFloat(&pPhysics->velocity_car_space, 0.f, 0.f, 0.f);
+}
