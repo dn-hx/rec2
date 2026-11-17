@@ -2269,9 +2269,92 @@ intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, voi
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0043a150
+typedef struct tUnbend_model_context_local {
+    br_matrix34 matrix;
+    br_vector3 field_0x30;
+    br_vector3 field_0x3c;
+    br_vector3 field_0x48;
+    br_vector3 field_0x54;
+    tBend_data_local* bend;
+    tCar_spec* car;
+} tUnbend_model_context_local;
+
+// FUNCTION: CARMA2_HW 0x0043a150
 void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    tUnbend_model_context_local context;
+    br_vector3 tmp;
+
+    context.bend = pBend;
+    context.car = pCar_spec;
+    pBend->field_0x3c += pRepair_x;
+    pBend->field_0x3e += pRepair_y;
+    pBend->field_0x40 += pRepair_z;
+    BrMatrix34Translate(&context.matrix, -pBend->field_0x18.v[0], -pBend->field_0x18.v[1], -pBend->field_0x18.v[2]);
+    if (pBend->field_0x3e != 0) {
+        BrMatrix34PostRotateY(&context.matrix, pBend->field_0x3e);
+    }
+    if (pBend->field_0x3c != 0) {
+        BrMatrix34PostRotateX(&context.matrix, pBend->field_0x3c);
+    }
+    if (pBend->field_0x40 != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, pBend->field_0x40);
+    }
+    BrMatrix34PostTranslate(&context.matrix, pBend->field_0x18.v[0], pBend->field_0x18.v[1], pBend->field_0x18.v[2]);
+    context.field_0x30.v[0] = pBend->field_0xc;
+    context.field_0x30.v[1] = pBend->field_0x10;
+    context.field_0x30.v[2] = pBend->field_0x18.v[2];
+    context.field_0x3c.v[0] = pBend->field_0xc;
+    context.field_0x3c.v[1] = pBend->field_0x4;
+    context.field_0x3c.v[2] = pBend->field_0x18.v[2];
+    context.field_0x48.v[0] = pBend->field_0x0;
+    context.field_0x48.v[1] = pBend->field_0x10;
+    context.field_0x48.v[2] = pBend->field_0x18.v[2];
+    context.field_0x54.v[0] = pBend->field_0x0;
+    context.field_0x54.v[1] = pBend->field_0x4;
+    context.field_0x54.v[2] = pBend->field_0x18.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x30, &context.matrix);
+    context.field_0x30.v[0] = tmp.v[0] - context.field_0x30.v[0];
+    context.field_0x30.v[1] = tmp.v[1] - context.field_0x30.v[1];
+    context.field_0x30.v[2] = tmp.v[2] - context.field_0x30.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x3c, &context.matrix);
+    context.field_0x3c.v[0] = tmp.v[0] - context.field_0x3c.v[0];
+    context.field_0x3c.v[1] = tmp.v[1] - context.field_0x3c.v[1];
+    context.field_0x3c.v[2] = tmp.v[2] - context.field_0x3c.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x48, &context.matrix);
+    context.field_0x48.v[0] = tmp.v[0] - context.field_0x48.v[0];
+    context.field_0x48.v[1] = tmp.v[1] - context.field_0x48.v[1];
+    context.field_0x48.v[2] = tmp.v[2] - context.field_0x48.v[2];
+    BrMatrix34ApplyP(&tmp, &context.field_0x54, &context.matrix);
+    context.field_0x54.v[0] = tmp.v[0] - context.field_0x54.v[0];
+    context.field_0x54.v[1] = tmp.v[1] - context.field_0x54.v[1];
+    context.field_0x54.v[2] = tmp.v[2] - context.field_0x54.v[2];
+    context.field_0x30.v[0] = ((context.field_0x30.v[0] - context.field_0x3c.v[0]) - context.field_0x48.v[0]) + context.field_0x54.v[0];
+    context.field_0x30.v[1] = ((context.field_0x30.v[1] - context.field_0x3c.v[1]) - context.field_0x48.v[1]) + context.field_0x54.v[1];
+    context.field_0x30.v[2] = ((context.field_0x30.v[2] - context.field_0x3c.v[2]) - context.field_0x48.v[2]) + context.field_0x54.v[2];
+    context.field_0x3c.v[0] = context.field_0x3c.v[0] - context.field_0x54.v[0];
+    context.field_0x3c.v[1] = context.field_0x3c.v[1] - context.field_0x54.v[1];
+    context.field_0x3c.v[2] = context.field_0x3c.v[2] - context.field_0x54.v[2];
+    context.field_0x48.v[0] = context.field_0x48.v[0] - context.field_0x54.v[0];
+    context.field_0x48.v[1] = context.field_0x48.v[1] - context.field_0x54.v[1];
+    context.field_0x48.v[2] = context.field_0x48.v[2] - context.field_0x54.v[2];
+    BrMatrix34Translate(&context.matrix, -pBend->field_0x18.v[0], -pBend->field_0x18.v[1], -pBend->field_0x18.v[2]);
+    if (pRepair_y != 0) {
+        BrMatrix34PostRotateY(&context.matrix, pRepair_y);
+    }
+    if (pRepair_x != 0) {
+        BrMatrix34PostRotateX(&context.matrix, pRepair_x);
+    }
+    if (pRepair_z != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, pRepair_z);
+    }
+    BrMatrix34PostTranslate(&context.matrix, pBend->field_0x18.v[0], pBend->field_0x18.v[1], pBend->field_0x18.v[2]);
+    ARStartPipingSession((tPipe_chunk_type)0x18);
+    DRActorEnumRecurseWithTranslation(pActor, NULL, UnBendModels, &context.matrix);
+    AREndPipingSession();
+    pBend->field_0x44 = context.field_0x30;
+    pBend->field_0x50 = context.field_0x3c;
+    pBend->field_0x5c = context.field_0x48;
+    pBend->field_0x68 = context.field_0x54;
 }
 
 // FUNCTION: CARMA2_HW 0x0043aa20
