@@ -22,6 +22,7 @@ extern tU32 gLast_checkpoint_time;
 extern int gHud_tinted1_visible;
 extern int gHud_tinted2_visible;
 extern int gLast_wrong_checkpoint;
+extern int gNumber_of_icons;
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 

@@ -84,6 +84,9 @@ const char* gEase_of_detachment_names[5] = {
     "very_difficult",
 };
 
+// GLOBAL: CARMA2_HW 0x00589a54
+const br_scalar gFLOAT_00589a54 = 1.0f;
+
 // GLOBAL: CARMA2_HW 0x0058f858
 // GLOBAL: CARMA2_SW 0x0058a858
 const char* gCar_crush_shape_names[2] = {
@@ -189,6 +192,9 @@ int gMin_bend_damage;
 // GLOBAL: CARMA2_HW 0x0067b7b4
 // GLOBAL: CARMA2_SW 0x00675f24
 br_scalar gFlap_inertia_fudge_biscuit;
+
+// GLOBAL: CARMA2_HW 0x0067b83c
+tU16 gCrush_vertex_compression_index;
 
 // GLOBAL: CARMA2_HW 0x0067b7d0
 // GLOBAL: CARMA2_SW 0x00675f40
