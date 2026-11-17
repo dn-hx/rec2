@@ -1402,7 +1402,74 @@ void C2_HOOK_FASTCALL InitNetStorageSpace(void) {
 
 // NetworkJoinGoAhead
 
-// NetSetRaceType
+// FUNCTION: CARMA2_HW 0x00468790
+int C2_HOOK_FASTCALL NetSetRaceType(tFrontend_spec* pFrontend) {
+    tFrontend_scroller_spec* scroller;
+    const tRace_list_spec* race_list_item;
+    int i;
+    int text_idx;
+    tNet_game_type game_type;
+
+    game_type = pFrontend->scrollers[0].indexTopItem - pFrontend->scrollers[0].indexFirstScrollableItem;
+    switch (gFrontend_selected_item_index) {
+    case 3:
+        break;
+    case 4:
+        game_type += 1;
+        break;
+    case 5:
+        game_type += 2;
+        break;
+    case 6:
+        game_type += 3;
+        break;
+    }
+    if (game_type >= 2) {
+        game_type += 1;
+    }
+    gFrontend_game_type = game_type;
+    pFrontend->items[17].enabled = kFrontendItemEnabled_enabled;
+    pFrontend->items[29].enabled = kFrontendItemEnabled_disabled;
+    gNet_last_game_type = gFrontend_game_type;
+    SaveOptions();
+    /* SetOptions(&gFrontend_game_type, &gFrontend_net_options), inlined (SetGameTarget is empty) */
+    gFrontend_net_options.show_players_on_map = gNet_settings[0].show_players_on_map;
+    gFrontend_net_options.enable_text_messages = gNet_settings[0].enable_text_messages;
+    gFrontend_net_options.show_powerups_on_map = gNet_settings[0].show_powerups_on_map;
+    gFrontend_net_options.powerup_respawn = gNet_settings[0].powerup_respawn;
+    gFrontend_net_options.open_game = gNet_settings[gFrontend_game_type + 1].open_game;
+    gFrontend_net_options.starting_credits = gNet_settings[0].starting_credits;
+    gFrontend_net_options.grid_start = gNet_settings[gFrontend_game_type + 1].grid_start || gNet_grid_starts[gFrontend_game_type + 1];
+    gFrontend_net_options.waste_to_transfer = gNet_settings[gFrontend_game_type + 1].waste_to_transfer;
+    gFrontend_net_options.random_car_choice = gNet_settings[gFrontend_game_type + 1].random_car_choice;
+    gFrontend_net_options.race_sequence_type = gNet_settings[0].race_sequence_type;
+    gFrontend_net_options.car_choice = gNet_settings[0].car_choice;
+    gFrontend_net_options.starting_target = gNet_settings[gFrontend_game_type + 1].starting_target;
+    /* the PickNetRace call of ReadNetGameChoices (the final inlined part) */
+    gRace_index = PickNetRace(-1, gFrontend_net_options.race_sequence_type);
+    LoadRaces(gRace_list, &gNumber_of_races, gFrontend_game_type);
+    sprintf(pFrontend->items[30].text, "%s", GetMiscString(eMiscString_network_type_description_start + gFrontend_game_type));
+    MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
+    scroller = &pFrontend->scrollers[1];
+    scroller->indexTopItem = scroller->indexFirstScrollableItem;
+    scroller->count = gNumber_of_races;
+    /* UpdateNetTrackScroller(pFrontend), inlined */
+    race_list_item = &gRace_list[scroller->indexTopItem - scroller->indexFirstScrollableItem];
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; race_list_item++, i++) {
+        strcpy(pFrontend->items[i].text, race_list_item->name);
+    }
+    /* UpdateNetGameTypeScroller(pFrontend), inlined */
+    scroller = &pFrontend->scrollers[0];
+    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
+        int text_num;
+
+        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
+        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
+    }
+    FuckWithWidths(pFrontend);
+    return 0;
+}
 
 // NetworkStartJoin
 
