@@ -206,6 +206,9 @@ br_vector3 gChanged_points[10];
 // GLOBAL: CARMA2_SW 0x0068e4ac
 int gPed_dismember_spurting_member_count;
 
+// GLOBAL: CARMA2_HW 0x00694460
+br_material* gPed_smear_material;
+
 // GLOBAL: CARMA2_HW 0x00694490
 // GLOBAL: CARMA2_SW 0x0068e4e8
 int gPed_nearness;

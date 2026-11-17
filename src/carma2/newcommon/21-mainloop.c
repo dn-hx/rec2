@@ -14,6 +14,8 @@
 #include "globvrpb.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "49-physics.h"
+#include "20-skidmark.h"
 #include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x0068c814
