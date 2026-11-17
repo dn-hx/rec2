@@ -54,7 +54,7 @@ extern Handle gQuicktime_compressed_frame_handle;
 
 // Create555BELookupTable
 
-// Convert565BrPixelmapTo555BigEndianPixmap
+extern void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen);
 
 // SwapPixelmapBytePairs
 
