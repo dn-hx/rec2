@@ -349,10 +349,68 @@ int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, 
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00460bd0
+// FUNCTION: CARMA2_HW 0x00460bd0
 // STUB: CARMA2_SW 0x00460640
 int C2_HOOK_FASTCALL LineBoxColl(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    br_vector3 dir;
+    int inside;
+    int quad[3];
+    int i;
+    int which_plane;
+    br_scalar max_t[3];
+    br_scalar cp[3];
+
+    inside = 1;
+    dir.v[0] = pEnd->v[0] - pStart->v[0];
+    dir.v[1] = pEnd->v[1] - pStart->v[1];
+    dir.v[2] = pEnd->v[2] - pStart->v[2];
+    for (i = 0; i < 3; ++i) {
+        if (pStart->v[i] < pBounds->min.v[i]) {
+            quad[i] = 1;
+            cp[i] = pBounds->min.v[i];
+            inside = 0;
+        } else if (pStart->v[i] > pBounds->max.v[i]) {
+            quad[i] = 0;
+            cp[i] = pBounds->max.v[i];
+            inside = 0;
+        } else {
+            quad[i] = 2;
+        }
+    }
+    if (inside) {
+        pPoint->v[0] = pStart->v[0];
+        pPoint->v[1] = pStart->v[1];
+        pPoint->v[2] = pStart->v[2];
+        return -1;
+    }
+    for (i = 0; i < 3; ++i) {
+        if (quad[i] != 2 && dir.v[i] != 0.0f) {
+            max_t[i] = (cp[i] - pStart->v[i]) / dir.v[i];
+        } else {
+            max_t[i] = -1.0f;
+        }
+    }
+    which_plane = 0;
+    for (i = 1; i < 3; ++i) {
+        if (max_t[i] > max_t[which_plane]) {
+            which_plane = i;
+        }
+    }
+    if (max_t[which_plane] < 0.0f || max_t[which_plane] > 1.0f) {
+        return 0;
+    }
+    for (i = 0; i < 3; ++i) {
+        if (which_plane != i) {
+            pPoint->v[i] = dir.v[i] * max_t[which_plane] + pStart->v[i];
+            if (pPoint->v[i] < pBounds->min.v[i] || pBounds->max.v[i] < pPoint->v[i]) {
+                return 0;
+            }
+        } else {
+            pPoint->v[i] = cp[i];
+        }
+    }
+    *pT = max_t[which_plane];
+    return which_plane + 4 * quad[which_plane] + 1;
 }
 
 #ifdef REC2_MATCHING
