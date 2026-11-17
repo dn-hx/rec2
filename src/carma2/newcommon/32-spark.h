@@ -74,7 +74,7 @@ extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelm
 
 // CreateSparks
 
-// CreateSparkShower
+extern void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelocity, br_vector3* pForce, tNon_car_spec* pOwner1, tNon_car_spec* pOwner2);
 
 extern void C2_HOOK_FASTCALL AdjustSpark(int pSpark_num, br_vector3* pPos, br_vector3* pLength);
 
