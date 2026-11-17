@@ -451,9 +451,19 @@ void C2_HOOK_CDECL BrZsSceneRenderBegin(br_actor* world, br_actor* camera, br_pi
     v1db.render_root = world;
     v1db.colour_buffer = colour_buffer;
 
-    SetOrigin(colour_buffer);
-    SetViewport(colour_buffer);
-
+    {
+        br_scalar t1, t2;
+        t1 = (br_scalar)(colour_buffer->origin_x - colour_buffer->width / 2);
+        t2 = (br_scalar)(colour_buffer->width / 2);
+        v1db.origin.v[0] = t1 / t2;
+        t1 = (br_scalar)(colour_buffer->origin_y - colour_buffer->height / 2);
+        t2 = (br_scalar)(colour_buffer->height / 2);
+        v1db.origin.v[1] = -(t1 / t2);
+    }
+    v1db.vp_ox = (br_scalar)(colour_buffer->base_x + colour_buffer->width / 2) + 0.5f;
+    v1db.vp_width = (br_scalar)(colour_buffer->width / 2);
+    v1db.vp_oy = (br_scalar)(colour_buffer->height / 2) + 0.5f;
+    v1db.vp_height = -(br_scalar)(colour_buffer->height / 2);
     v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_COLOUR_BUFFER_O, (uintptr_t)colour_buffer);
     v1db.renderer->dispatch->_partSet(v1db.renderer, BRT_OUTPUT, 0, BRT_DEPTH_BUFFER_O, (uintptr_t)NULL);
     v1db.heap.current = v1db.heap.base;
