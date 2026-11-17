@@ -39,6 +39,7 @@ extern int gCount_car_damage_crush_list;
 extern tToggled_door gToggled_doors[16];
 extern tCrush_detach_list_item gCrush_detach_list[16];
 extern tU32 gUINT_0067be84;
+extern br_scalar gCrushZero;
 
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 
@@ -232,7 +233,7 @@ extern void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel);
 
 extern void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel);
 
-// ReAttachBit
+extern void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject);
 
 // CentreModelOnPoint
 
@@ -258,7 +259,7 @@ extern void C2_HOOK_FASTCALL AddNonCar(tNon_car_spec* pNon_car, const tDriver* p
 
 // StartFlapping
 
-// MungeDetachLists
+extern void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush);
 
 extern void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject);
 
@@ -344,7 +345,7 @@ extern intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor
 
 // MoveCarToSensiblePlace
 
-// SwapShapesIfPossible
+extern int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec);
 
 // DoShapeSwapping
 
@@ -436,7 +437,7 @@ extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
 
 // AddTotalDeflectionOfModel
 
-// AddTotalDeflection
+extern intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext);
 
 // RepairModel
 
@@ -466,9 +467,9 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // ReAttachBits
 
-// RepairObject
+extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
 
-// RepairCarCollisionShapes
+extern void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep);
 
 // RepairCar2
 

@@ -28,6 +28,10 @@
 
 #include "c2_math.h"
 #include "c2_string.h"
+#include "15-displays.h"
+
+// GLOBAL: CARMA2_HW 0x00589a40
+br_scalar gCrushZero = 0.0f;
 
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -1325,7 +1329,10 @@ void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
     }
 }
 
-// ReAttachBit
+// STUB: CARMA2_HW 0x00434010
+void C2_HOOK_FASTCALL ReAttachBit(tCar_spec* pCar_spec, br_actor* pParent_actor, br_actor* pActor, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
 // CentreModelOnPoint
 
@@ -1456,7 +1463,10 @@ void C2_HOOK_FASTCALL AddNonCar(tNon_car_spec* pNon_car, const tDriver* pDriver)
 
 // StartFlapping
 
-// MungeDetachLists
+// STUB: CARMA2_HW 0x0042f3d0
+void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0043b250
 // FUNCTION: CARMA2_SW 0x0043b2a0
@@ -1693,7 +1703,10 @@ intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor, void*
 
 // MoveCarToSensiblePlace
 
-// SwapShapesIfPossible
+// STUB: CARMA2_HW 0x004349c0
+int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // DoShapeSwapping
 
@@ -1947,7 +1960,10 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // AddTotalDeflectionOfModel
 
-// AddTotalDeflection
+// STUB: CARMA2_HW 0x0043b2e0
+intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // RepairModel
 
@@ -2012,9 +2028,19 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // ReAttachBits
 
-// RepairObject
+// STUB: CARMA2_HW 0x0043b400
+int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
-// RepairCarCollisionShapes
+// STUB: CARMA2_HW 0x0043b740
+void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // RepairCar2
 
