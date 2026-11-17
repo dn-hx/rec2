@@ -21,6 +21,12 @@ extern br_actor* gPed_actor;
 
 extern float gCamera_cockpit_hither;
 extern tActionReplayCameraMode gAction_replay_camera_mode;
+extern br_angle gOld_yaw__car;
+extern int elapsed_time;
+extern br_vector3 old_vn;
+extern undefined2 gUNK_006792f4;
+extern int gUNK_006792f8;
+extern int gCamera_mode;
 
 // DoCameraControls
 
@@ -88,7 +94,7 @@ extern void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex);
 
 // MoveWithWheels
 
-// SwingCamera
+extern void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar);
 
 // PointCameraAtCar
 
