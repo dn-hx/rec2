@@ -253,7 +253,7 @@ extern void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float p
 
 extern int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBone_index);
 
-extern void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3, int pArg4, tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3, int pArg4, tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info);
 
