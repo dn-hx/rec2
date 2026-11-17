@@ -520,7 +520,7 @@ extern void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle);
 
 // SemiDetachedBitFromID
 
-// ReceivedReAttachBit
+extern void C2_HOOK_FASTCALL ReceivedReAttachBit(tU8* pContents);
 
 extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents);
 
