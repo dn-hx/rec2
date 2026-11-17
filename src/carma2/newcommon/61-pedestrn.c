@@ -350,6 +350,32 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x00403ed0
+void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
+    int i;
+
+    gPed_vtable = pTable;
+    memset(gPed_forms, 0, sizeof(gPed_forms));
+    memset(gPed_personalities, 0, sizeof(gPed_personalities));
+    memset(gPed_moves, 0, sizeof(gPed_moves));
+    memset(gPed_remaps, 0, sizeof(gPed_remaps));
+
+    for (i = 0; i < 20; i++) {
+        gPed_morph_slots[i].field_0x0 = 0;
+    }
+
+    for (i = 0; i < 256; i++) {
+        float a = (i * 256) * 2 * 3.14159265358979323846 / 256. / 256.;
+        gPed_sin_table[i] = (float)sin(a);
+        gPed_cos_table[i] = (float)cos(a);
+    }
+
+    gDAT_00677728 = 0;
+    gFLOAT_00677230 = 1.f;
+    gCount_pedestrian_personality_cloned_materials = 0;
+    gPed_overall_movement_disabled = 0;
+    gPed_retain_root_mode = 0;
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
