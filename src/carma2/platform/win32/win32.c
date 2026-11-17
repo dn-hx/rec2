@@ -791,11 +791,17 @@ tU32 C2_HOOK_FASTCALL PDGetTotalTime(void) {
 // FUNCTION: CARMA2_SW 0x00519000
 int C2_HOOK_FASTCALL PDGetMicroseconds(void) {
     if (gPerformanceCounterInitialized) {
-        LARGE_INTEGER perfCountValue;
-        QueryPerformanceCounter(&perfCountValue);
-        // Is it okay to convert unsigned to int here?
-        return (int) ((perfCountValue.QuadPart - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_us.
-                      QuadPart);
+        LARGE_INTEGER current_count;
+        DWORDLONG shifted;
+        int shift_count;
+
+        QueryPerformanceCounter(&current_count);
+        shift_count = 16;
+        shifted = Int64ShllMod32((LONGLONG) current_count.HighPart, shift_count);
+        shift_count = 16;
+        shifted = Int64ShllMod32(shifted, shift_count);
+        shifted = (((shifted + (DWORDLONG) current_count.LowPart) - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_us.QuadPart);
+        return (int) shifted;
     }
     return 0;
 }
