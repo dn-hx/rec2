@@ -546,7 +546,7 @@ extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
 
 // SemiDetachedBitFromID
 
-// ReceivedReAttachBit
+extern void C2_HOOK_FASTCALL ReceivedReAttachBit(tU8* pContents);
 
 extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents);
 
