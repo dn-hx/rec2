@@ -310,7 +310,199 @@ int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3* pPos) 
 
 // MoveThisDronePlane
 
-// MoveThisDroneCar
+#define DRONE_F(p, off) (*(float*)((char*)(p) + (off)))
+
+#define DRONE_SF(p, off) (*(float*)((char*)(p) + (off)))
+
+#define DRONE_SP(p, off) (*(char**)((char*)(p) + (off)))
+
+// STUB: CARMA2_HW 0x0044e410
+int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone) {
+    NOT_IMPLEMENTED();
+}
+
+// FUNCTION: CARMA2_HW 0x0044e540
+void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone) {
+    float dt;
+    float step;
+    float remaining;
+    float new_dist;
+    float brake;
+    float decel;
+    float t;
+    int finished;
+    tDrone_form* form;
+    char* sect;
+    char* secremaining;
+    br_vector3 v;
+    br_vector3 v2;
+    br_vector3 dir;
+
+    DoNotDprintf("MoveThisDroneCar()");
+    dt = gDrone_delta_time;
+    if (dt <= gDrone_render_zero) {
+        return;
+    }
+    do {
+        switch (pDrone->field_0xdc) {
+        case 0:
+            DoNotDprintf("eDDS_straight_start");
+            if (!AdvanceDroneSection(pDrone)) {
+                DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 4);
+                if (pDrone->current_state == 4) {
+                    return;
+                }
+                if (gDrone_state_functions[pDrone->current_state] != NULL) {
+                    gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+                }
+                pDrone->time_last_munge = gTime_stamp_for_this_munging;
+                pDrone->prev_states[1] = pDrone->prev_states[0];
+                pDrone->prev_states[0] = pDrone->current_state;
+                pDrone->current_state = 4;
+                if (gDrone_state_functions[4] != NULL) {
+                    gDrone_state_functions[4](pDrone, eDrone_state_START);
+                }
+                return;
+            }
+            CalculateDrivingInfo(pDrone);
+            sect = DRONE_SP(pDrone, 0x10);
+            dir.v[0] = DRONE_SF(sect, 0x4);
+            dir.v[1] = DRONE_SF(sect, 0x8);
+            dir.v[2] = DRONE_SF(sect, 0xc);
+            if (pDrone->form->flags & 0x10) {
+                dir.v[1] = 0.0f;
+            }
+            PointActorAlongThisBloodyVector(pDrone->actor, &dir);
+            pDrone->field_0xdc = 1;
+            break;
+        case 1:
+            form = pDrone->form;
+            if (DRONE_SF(form, 0x18) >= gDrone_render_zero) {
+                pDrone->field_0x48 = DRONE_SF(form, 0x18);
+                pDrone->field_0x50 = DRONE_SF(form, 0x18);
+            }
+            sect = DRONE_SP(pDrone, 0x10);
+            remaining = DRONE_SF(sect, 0x1c) - DRONE_F(pDrone, 0x6c);
+            new_dist = dt * pDrone->field_0x48 + pDrone->field_0x4c;
+            if (pDrone->field_0x4c < remaining) {
+                step = dt;
+                if (new_dist <= remaining) {
+                    if (DRONE_SF(form, 0x18) < gDrone_render_zero) {
+                        decel = pDrone->field_0x48 * pDrone->field_0x48 - pDrone->field_0x50 * pDrone->field_0x50;
+                        brake = remaining - decel * 0.5f;
+                        if (pDrone->field_0x48 <= pDrone->field_0x50 || pDrone->field_0x4c < brake) {
+                            if ((pDrone->field_0x48 <= pDrone->field_0x50 || new_dist <= brake)
+                                && (pDrone->field_0x48 <= pDrone->field_0x50
+                                    || dt * pDrone->field_0x48 + DRONE_SF(form, 0x24) * dt * dt * 0.5f + pDrone->field_0x4c <= brake)) {
+                                pDrone->field_0x48 = DRONE_SF(form, 0x24) * dt + pDrone->field_0x48;
+                                step = gDrone_delta_time;
+                                if (DRONE_SF(form, 0x20) < pDrone->field_0x48) {
+                                    pDrone->field_0x48 = DRONE_SF(form, 0x20);
+                                }
+                            }
+                        } else {
+                            t = -(decel / ((remaining - pDrone->field_0x4c) + (remaining - pDrone->field_0x4c)));
+                            step = (pDrone->field_0x48 - pDrone->field_0x50) / -t;
+                            if (dt < step) {
+                                pDrone->field_0x48 = t * dt + pDrone->field_0x48;
+                                step = dt;
+                            } else {
+                                pDrone->field_0x48 = pDrone->field_0x50;
+                            }
+                        }
+                    }
+                } else if (pDrone->field_0x50 < pDrone->field_0x48) {
+                    t = pDrone->field_0x48;
+                    pDrone->field_0x48 = pDrone->field_0x50;
+                    step = t - pDrone->field_0x50;
+                }
+            } else {
+                pDrone->field_0xdc = 2;
+                step = gDrone_render_zero;
+                if (pDrone->field_0x50 < pDrone->field_0x48) {
+                    pDrone->field_0x48 = pDrone->field_0x50;
+                }
+            }
+            if (pDrone->field_0xdc == 2) {
+                pDrone->field_0x4c = DRONE_SF(sect, 0x1c) - DRONE_F(pDrone, 0x6c);
+            } else {
+                pDrone->field_0x4c = step * pDrone->field_0x48 + pDrone->field_0x4c;
+            }
+            pDrone->actor->t.t.translate.t.v[0] = DRONE_SF(sect, 0x10) * pDrone->field_0x4c;
+            pDrone->actor->t.t.translate.t.v[1] = DRONE_SF(DRONE_SP(pDrone, 0x10), 0x14) * pDrone->field_0x4c;
+            pDrone->actor->t.t.translate.t.v[2] = DRONE_SF(DRONE_SP(pDrone, 0x10), 0x18) * pDrone->field_0x4c;
+            pDrone->actor->t.t.translate.t.v[0] = gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].position.v[0] + pDrone->actor->t.t.translate.t.v[0];
+            pDrone->actor->t.t.translate.t.v[1] = gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].position.v[1] + pDrone->actor->t.t.translate.t.v[1];
+            pDrone->actor->t.t.translate.t.v[2] = gDrone_path_nodes[(tS16)pDrone->field_0xa_pathnode_id].position.v[2] + pDrone->actor->t.t.translate.t.v[2];
+            dt = dt - step;
+            pDrone->field_0xe4 = pDrone->field_0x48;
+            break;
+        case 2:
+            if (DRONE_F(pDrone, 0x68) > gDrone_render_zero) {
+                finished = 0;
+                t = dt * pDrone->field_0x48 / DRONE_F(pDrone, 0x68);
+                if (pDrone->left_turn) {
+                    t = t + DRONE_F(pDrone, 0x60);
+                    if (t >= DRONE_F(pDrone, 0x64)) {
+                        finished = 1;
+                        step = (DRONE_F(pDrone, 0x64) - DRONE_F(pDrone, 0x60)) * DRONE_F(pDrone, 0x68) / pDrone->field_0x48;
+                        DRONE_F(pDrone, 0x60) = DRONE_F(pDrone, 0x64);
+                    } else {
+                        step = gDrone_delta_time;
+                        DRONE_F(pDrone, 0x60) = t;
+                    }
+                } else {
+                    t = DRONE_F(pDrone, 0x60) - t;
+                    if (t <= DRONE_F(pDrone, 0x64)) {
+                        finished = 1;
+                        step = (DRONE_F(pDrone, 0x60) - DRONE_F(pDrone, 0x64)) * DRONE_F(pDrone, 0x68) / pDrone->field_0x48;
+                        DRONE_F(pDrone, 0x60) = DRONE_F(pDrone, 0x64);
+                    } else {
+                        step = gDrone_delta_time;
+                        DRONE_F(pDrone, 0x60) = t;
+                    }
+                }
+                v.v[1] = 0.0f;
+                v.v[0] = cos(DRONE_F(pDrone, 0x60)) * DRONE_F(pDrone, 0x68) + DRONE_F(pDrone, 0x54);
+                v.v[2] = sin(DRONE_F(pDrone, 0x60)) * DRONE_F(pDrone, 0x68) + DRONE_F(pDrone, 0x58);
+                BrMatrix34ApplyV(&pDrone->actor->t.t.translate.t, &v, (br_matrix34*)((char*)pDrone + 0xa8));
+                pDrone->actor->t.t.translate.t.v[0] = gDrone_path_nodes[pDrone->field_0xc].position.v[0] + pDrone->actor->t.t.translate.t.v[0];
+                pDrone->actor->t.t.translate.t.v[1] = gDrone_path_nodes[pDrone->field_0xc].position.v[1] + pDrone->actor->t.t.translate.t.v[1];
+                pDrone->actor->t.t.translate.t.v[2] = gDrone_path_nodes[pDrone->field_0xc].position.v[2] + pDrone->actor->t.t.translate.t.v[2];
+                remaining = (DRONE_F(pDrone, 0x60) - DRONE_F(pDrone, 0x5c)) / (DRONE_F(pDrone, 0x64) - DRONE_F(pDrone, 0x5c));
+                pDrone->field_0xe0 = remaining;
+                pDrone->field_0x74 = remaining;
+                sect = DRONE_SP(pDrone, 0x10);
+                secremaining = DRONE_SP(pDrone, 0x14);
+                dir.v[0] = DRONE_SF(secremaining, 0x10) * remaining;
+                dir.v[1] = DRONE_SF(secremaining, 0x14) * remaining;
+                dir.v[2] = DRONE_SF(secremaining, 0x18) * remaining;
+                v2.v[0] = DRONE_SF(sect, 0x10) * (1.0f - remaining);
+                v2.v[1] = DRONE_SF(sect, 0x14) * (1.0f - remaining);
+                v2.v[2] = DRONE_SF(sect, 0x18) * (1.0f - remaining);
+                dir.v[0] = dir.v[0] + v2.v[0];
+                dir.v[1] = dir.v[1] + v2.v[1];
+                dir.v[2] = dir.v[2] + v2.v[2];
+                if (pDrone->form->flags & 0x10) {
+                    dir.v[1] = 0.0f;
+                }
+                PointActorAlongThisBloodyVector(pDrone->actor, &dir);
+                dt = dt - step;
+                if (finished) {
+                    pDrone->field_0x4c = DRONE_F(pDrone, 0x6c);
+                    pDrone->field_0xdc = 0;
+                }
+            } else {
+                pDrone->field_0x4c = 0;
+                pDrone->field_0xdc = 0;
+            }
+            pDrone->field_0xe4 = pDrone->field_0x48;
+            break;
+        default:
+            break;
+        }
+    } while (dt > gDrone_render_zero);
+}
 
 // FUNCTION: CARMA2_HW 0x0044cfd0
 // FUNCTION: CARMA2_SW 0x0044cd80
