@@ -42,7 +42,7 @@ extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_sca
 
 // ProcessModels
 
-// ExtractColumns
+extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
 
 extern void C2_HOOK_FASTCALL RenderTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
