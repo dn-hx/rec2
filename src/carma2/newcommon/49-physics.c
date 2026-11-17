@@ -970,7 +970,40 @@ void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt) {
     NOT_IMPLEMENTED();
 }
 
-// InterpolateSingleObject
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004c2830
+void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt) {
+    tPhysics_object* pChild;
+    float t0;
+    float t1;
+    float t2;
+
+    t0 = pObject->v.v[0] * pDt;
+    t1 = pObject->v.v[1] * pDt;
+    t2 = pObject->v.v[2] * pDt;
+    pObject->actor->t.t.mat.m[3][0] += t0;
+    pObject->actor->t.t.mat.m[3][1] += t1;
+    pObject->actor->t.t.mat.m[3][2] += t2;
+    SimpleRotate(pObject, pDt);
+    for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
+        InterpolateSingleObject(pChild, pDt);
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // InterpolateObjects
 
