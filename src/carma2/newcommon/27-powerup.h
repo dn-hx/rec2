@@ -457,3 +457,5 @@ extern void C2_HOOK_FASTCALL ResetPowerups(void);
 extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);
 
 #endif // GUARD_27_POWERUP_H
+
+extern void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);
