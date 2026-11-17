@@ -1766,10 +1766,10 @@ tS3_error_codes C2_HOOK_FASTCALL S3SetChannelPitch(tS3_sound_tag pChannel_tag, i
 // FUNCTION: CARMA2_HW 0x00564e9b
 // FUNCTION: CARMA2_SW 0x0056053b
 int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, unsigned int pRepeats, int pLeft_volume, int pRight_volume,  tS32 pLeft_pitch, tS32 pRight_pitch) {
-    tS3_descriptor* descriptor;
     tS3_channel *chan;
-    float normalized_delta_volume;
     int priority;
+    tS3_descriptor* descriptor;
+    float normalized_delta_volume;
 
     if (gS3_enabled) {
         descriptor = S3GetDescriptorByID(pSound);
@@ -1797,15 +1797,12 @@ int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, uns
             gS3_last_error = eS3_error_channel_alloc;
             return 0;
         }
-        if (descriptor->type != 2) {
-            if (descriptor->type == 0) {
-                if (descriptor->buffer_description == NULL) {
-                    if (!S3LoadSample(pSound) || (descriptor->flags & 0x2)) {
-                        chan->needs_service = 1;
-                        gS3_last_error = eS3_error_load_sound;
-                        return 0;
-                    }
-                }
+        if (descriptor->type == 2) {
+        } else if (descriptor->type == 0 && descriptor->buffer_description == NULL) {
+            if (!S3LoadSample(pSound) || (descriptor->flags & 0x2)) {
+                chan->needs_service = 1;
+                gS3_last_error = eS3_error_load_sound;
+                return 0;
             }
         }
         if (chan->descriptor != NULL && chan->descriptor->type == 1 && chan->descriptor->sample_id != pSound) {
@@ -1817,7 +1814,7 @@ int C2_HOOK_FASTCALL S3StartSound2(tS3_outlet* pOutlet, tS3_sound_id pSound, uns
         chan->termination_reason = 0;
         chan->type = descriptor->type;
         chan->sound_source_ptr = NULL;
-        chan->repetitions = pRepeats <= 0 ? 0 : pRepeats;
+        chan->repetitions = (int)pRepeats <= 0 ? 0 : pRepeats;
         S3CalculateRandomizedFields(chan, descriptor);
         chan->volume_multiplier = (pLeft_volume + pRight_volume) / 2;
         chan->field_0x28 = normalized_delta_volume;
