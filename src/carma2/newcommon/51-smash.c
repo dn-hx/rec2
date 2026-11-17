@@ -463,10 +463,69 @@ void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashab
 
 // Random34Matrix
 
-// STUB: CARMA2_HW 0x004eb4a0
+// FUNCTION: CARMA2_HW 0x004eb4a0
 // STUB: CARMA2_SW 0x004e7170
 br_scalar C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_position_spec* pInitial_position, br_actor* pSource_actor, br_vector3* pPosition, br_vector3* pAlternate_position, br_actor* pReference_actor, br_bounds3* pBounds, br_matrix34* pMatrix) {
-    NOT_IMPLEMENTED();
+    int i;
+    float local_1c;
+    br_vector3 local_c;
+    br_vector3 transformed_vector;
+    br_vector3* pPos;
+    float f1;
+    float f2;
+    float f3;
+    float f4;
+    float f5;
+
+    local_1c = 1.f;
+    switch (pInitial_position->type) {
+    case kInitialSmashablePosition_SphereClumped:
+        RandomRotationMatrix(&pActor->t.t.mat);
+        pPos = (br_vector3*)pAlternate_position;
+        if (pInitial_position->position.sphere.where != 0) {
+            pPos = (br_vector3*)pPosition;
+        }
+        pActor->t.t.translate.t = *pPos;
+        f1 = FRandomPosNeg(1.f);
+        f2 = FRandomPosNeg(1.f);
+        f3 = FRandomPosNeg(1.f);
+        f4 = FRandomBetween(0.f, pInitial_position->position.sphere.radius);
+        local_1c = f4 / pInitial_position->position.sphere.radius;
+        f5 = f4 / (float)sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+        pActor->t.t.translate.t.v[0] = f5 * f1 + pPos->v[0];
+        pActor->t.t.translate.t.v[1] = f5 * f2 + pPos->v[1];
+        pActor->t.t.translate.t.v[2] = f5 * f3 + pPos->v[2];
+        break;
+    case kInitialSmashablePosition_BoxClumped:
+        RandomRotationMatrix(&pActor->t.t.mat);
+        for (i = 0; i < 3; i++) {
+            float r;
+            float b;
+
+            if (pBounds != NULL) {
+                r = FRandomBetween(((float*)pBounds)[i], ((float*)pBounds)[i + 3]);
+            } else {
+                r = gFloat_0058aec0;
+            }
+            b = pInitial_position->position.box.v[i];
+            local_c.v[i] = b * r;
+        }
+        BrMatrix34ApplyV(&transformed_vector, &local_c, &((br_actor*)pReference_actor)->t.t.mat);
+        pActor->t.t.translate.t.v[0] = transformed_vector.v[0] + ((br_vector3*)pPosition)->v[0];
+        pActor->t.t.translate.t.v[1] = transformed_vector.v[1] + ((br_vector3*)pPosition)->v[1];
+        pActor->t.t.translate.t.v[2] = transformed_vector.v[2] + ((br_vector3*)pPosition)->v[2];
+        break;
+    case kInitialSmashablePosition_ActorBased:
+        if (pMatrix != 0) {
+            pActor->t.t.mat = ((br_actor*)pSource_actor)->t.t.mat;
+            BrMatrix34Post(&pActor->t.t.mat, (br_matrix34*)pMatrix);
+        } else {
+            pActor->t.t.mat = ((br_actor*)pSource_actor)->t.t.mat;
+            BrMatrix34Post(&pActor->t.t.mat, &((br_actor*)pReference_actor)->t.t.mat);
+        }
+        break;
+    }
+    return local_1c;
 }
 
 // DoGhostPartShrapnel
