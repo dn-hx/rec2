@@ -72,7 +72,7 @@ extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelm
 
 // CreateSingleSpark
 
-// CreateSparks
+extern void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVelocity, const br_vector3* pForce, br_scalar pStrength, tCar_spec* pCar);
 
 // CreateSparkShower
 
