@@ -12,6 +12,9 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+#include <math.h>
+#include <stdarg.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
@@ -252,10 +255,63 @@ void C2_HOOK_FASTCALL PHILDisable(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004b5d40
+// FUNCTION: CARMA2_HW 0x004b5d40
 // STUB: CARMA2_SW 0x004b2460
 int C2_HOOK_FASTCALL PHILAddObject(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    int i;
+    tPHIL_queued_header* object_info;
+
+    object_info = NULL;
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects && !gPHIL_object_added) {
+        gPhil_queued_objects.objects[gPHIL_count_queued_objects].collision_info = pObject;
+        gPhil_queued_objects.objects[gPHIL_count_queued_objects].field_0x8 = 1;
+        gPhil_queued_objects.objects[gPHIL_count_queued_objects].flags = 0;
+        pObject->field_0x240 = &gPhil_queued_objects.objects[gPHIL_count_queued_objects];
+        pObject->field_0x239 = 2;
+        gPHIL_count_queued_objects += 1;
+        return 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gPhil_queued_objects.headers); i++) {
+        tPHIL_queued_header* current_object_info = &gPhil_queued_objects.headers[i];
+
+        if (current_object_info->collision_info == NULL) {
+            if (object_info == NULL) {
+                object_info = current_object_info;
+            }
+        } else if (pObject == current_object_info->collision_info) {
+            return 2;
+        }
+    }
+    if (object_info != NULL) {
+        memset(object_info, 0, sizeof(*object_info));
+        object_info->collision_info = pObject;
+        object_info->field_0x8 = 1;
+        pObject->field_0x240 = object_info;
+        pObject->flags |= 0x20;
+        pObject->field_0x239 = 1;
+        gPHIL_count_list_collision_infos += 1;
+        if (gPHIL_list_collision_infos != NULL) {
+            pObject->next = gPHIL_list_collision_infos->next;
+            gPHIL_list_collision_infos->next = pObject;
+            pObject->prev = gPHIL_list_collision_infos;
+            if (pObject->next != NULL) {
+                pObject->next->prev = pObject;
+            }
+        } else {
+            gPHIL_list_collision_infos = pObject;
+            pObject->next = NULL;
+            pObject->prev = NULL;
+        }
+        if (gPHIL_doing_physics) {
+            PrepareObject(pObject, &gPHIL_list_collision_infos);
+        }
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 #ifdef REC2_MATCHING

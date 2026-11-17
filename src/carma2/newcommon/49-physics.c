@@ -586,7 +586,10 @@ void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_i
 
 // InternalPrepareObject
 
-// PrepareObject
+// STUB: CARMA2_HW 0x004b9770
+void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList) {
+    NOT_IMPLEMENTED();
+}
 
 // PrepareForCollisions
 
