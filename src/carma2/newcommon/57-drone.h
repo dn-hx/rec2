@@ -145,7 +145,7 @@ extern void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone);
 
 // PossiblyPipeDroneMovement
 
-// DroneStateFuncControlledMovement
+extern void C2_HOOK_FASTCALL DroneStateFuncControlledMovement(tDrone_spec* pDrone, tDroneStateFuncState state);
 
 // DoDroneHaltingStuff
 
