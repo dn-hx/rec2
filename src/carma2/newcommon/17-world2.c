@@ -80,6 +80,36 @@ br_colour gRGB_colours[9] = {
 // GLOBAL: CARMA2_SW 0x007410e0
 br_colour gColours[9];
 
+// FUNCTION: CARMA2_HW 0x00447ef0
+int C2_HOOK_FASTCALL FUN_00447ef0(br_model* pModel, tU16 pFace) {
+    br_vertex* v0;
+    br_vertex* v1;
+    br_vertex* v2;
+    br_vector3 a;
+    float bx;
+    float by;
+    float bz;
+    float cx;
+    float cy;
+    float cz;
+
+    v0 = &pModel->vertices[pModel->faces[pFace].vertices[0]];
+    v1 = &pModel->vertices[pModel->faces[pFace].vertices[1]];
+    v2 = &pModel->vertices[pModel->faces[pFace].vertices[2]];
+    a.v[0] = v0->p.v[0] - v1->p.v[0];
+    a.v[1] = v0->p.v[1] - v1->p.v[1];
+    a.v[2] = v0->p.v[2] - v1->p.v[2];
+    bx = v1->p.v[0] - v2->p.v[0];
+    by = v1->p.v[1] - v2->p.v[1];
+    bz = v1->p.v[2] - v2->p.v[2];
+    cx = bz * a.v[1] - by * a.v[2];
+    cy = by * a.v[0] - bx * a.v[1];
+    cz = bx * a.v[2] - bz * a.v[0];
+    if (sqrt(cy * cy + cx * cx) < cz * 0.7f) {
+        return 1;
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004e5cb0
 // FUNCTION: CARMA2_SW 0x004e1cd0
 void C2_HOOK_FASTCALL InitialiseExtraRenders(void) {
