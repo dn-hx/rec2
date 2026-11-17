@@ -24,7 +24,7 @@ extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* p
 
 // DRVector4Negate
 
-// ConstructTetrahedron
+extern tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_data* pPolyhedron, tPolyhedron_edge_indexes* pEdges);
 
 // CheckSignOfNormal
 
