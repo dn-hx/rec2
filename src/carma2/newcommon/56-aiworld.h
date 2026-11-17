@@ -16,6 +16,10 @@
 
 #include <stdio.h>
 
+extern const char* gDrone_axis_names[4];
+extern const char* gReverseness_type_names[2];
+extern const char* gFunk_speed_control_names[2];
+
 // MakeVertexAndOffsetIt
 
 extern void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial);
@@ -45,3 +49,4 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 // MakeAISimpleEditSectionHere
 
 #endif // GUARD_56_AIWORLD_H
+

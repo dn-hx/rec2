@@ -28,6 +28,7 @@ extern int gCurrent_selected_drone;
 extern int gCount_drones;
 
 extern int gCurrent_selected_drone;
+extern const char* gGroove_funk_type_names[4];
 
 // DoNotDprintf
 

@@ -13,8 +13,36 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+#include "52-errors.h"
+#include "08-loading1.h"
+#include "70-packfile.h"
+#include "41-utility.h"
+#include "rec2_macros.h"
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
 
 // MakeVertexAndOffsetIt
+
+// GLOBAL: CARMA2_HW 0x00594790
+const char* gDrone_axis_names[4] = {
+    "x",
+    "y",
+    "z",
+    NULL,
+};
+
+// GLOBAL: CARMA2_HW 0x005947a0
+const char* gFunk_speed_control_names[2] = {
+    "controller",
+    "dronespeed",
+};
+
+// GLOBAL: CARMA2_HW 0x005947a8
+const char* gReverseness_type_names[2] = {
+    "forward",
+    "reverse",
+};
 
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90

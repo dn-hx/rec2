@@ -61,6 +61,14 @@ tDrone_path_node* gDrone_path_nodes;
 // GLOBAL: CARMA2_SW 0x0067ec58
 int gTraffic_disabled;
 
+// GLOBAL: CARMA2_HW 0x00594780
+const char* gGroove_funk_type_names[4] = {
+    "spinnyGroove",
+    "steeringGroove",
+    "spinnyFunk",
+    NULL,
+};
+
 // GLOBAL: CARMA2_HW 0x00681fb0
 // GLOBAL: CARMA2_SW 0x0067c6f0
 int gINT_00681fb0;
