@@ -10,6 +10,7 @@
 
 #include "16-graphics1.h"
 #include "globvars.h"
+#include "32-spark.h"
 
 // GLOBAL: CARMA2_HW 0x006a20d0
 // GLOBAL: CARMA2_SW 0x0069c128
