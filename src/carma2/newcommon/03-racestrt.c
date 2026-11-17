@@ -26,5 +26,22 @@ int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_o
 
 // DoGridPosition
 
-// ReceivedViewCar
+// FUNCTION: CARMA2_HW 0x00497860
+void C2_HOOK_FASTCALL ReceivedViewCar(int* pA, int* pB) {
+    int i;
+    tNet_game_player_info* p;
+
+    if (gNet_mode != eNet_mode_none) {
+        p = gNet_players;
+        for (i = 0; i < gNumber_of_net_players; i++, p++) {
+            if (p->ID == (tPlayer_ID)pB[2]) {
+                *(int*)&gNet_players[i].field_0xd0 = pA[1];
+                if (gNet_players[i].ID == (tPlayer_ID)pA[1]) {
+                    *(int*)&gNet_players[i].car->collision_info->field_0x49c += 0x28;
+                }
+                return;
+            }
+        }
+    }
+}
 
