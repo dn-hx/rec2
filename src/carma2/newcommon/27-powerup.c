@@ -37,6 +37,10 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "63-loading3.h"
+#include "52-errors.h"
+#include "70-packfile.h"
+#include "28-world3.h"
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -282,7 +286,10 @@ void C2_HOOK_FASTCALL LoadPowerups(void) {
 
 // InitRepulseEffects
 
-// MungeBoxObject
+// STUB: CARMA2_HW 0x004da290
+tPhysics_object* C2_HOOK_FASTCALL MungeBoxObject(br_model* pModel, undefined4 pArg2, float pMass) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004da400
 // FUNCTION: CARMA2_SW 0x004d68d0
@@ -355,7 +362,25 @@ void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhy
     }
 }
 
-// InitMineShit
+// STUB: CARMA2_HW 0x004da530
+void C2_HOOK_FASTCALL InitMineShit(void) {
+    NOT_IMPLEMENTED();
+}
+
+typedef struct {
+    br_actor* actor;
+    undefined4 field_0x10;
+    br_material* material;
+    float field_0x18;
+    float field_0x1c;
+    tCar_spec* car;
+    undefined4 field_0x24;
+    undefined4 pad[3];
+} tRepulse_link_tail;
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // STUB: CARMA2_HW 0x004d9ea0
 // STUB: CARMA2_SW 0x004d6370

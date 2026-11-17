@@ -89,7 +89,7 @@ extern void C2_HOOK_FASTCALL LoadPowerups(void);
 
 // InitRepulseEffects
 
-// MungeBoxObject
+extern tPhysics_object* C2_HOOK_FASTCALL MungeBoxObject(br_model* pModel, undefined4 pArg2, float pMass);
 
 extern tPhysics_object* C2_HOOK_FASTCALL MungeShereObject(br_model* pModel, float pWeight);
 
@@ -97,7 +97,7 @@ extern tPhysics_object* C2_HOOK_FASTCALL MungeShereObject(br_model* pModel, floa
 
 extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pPowerup_index);
 
-// InitMineShit
+extern void C2_HOOK_FASTCALL InitMineShit(void);
 
 extern void C2_HOOK_FASTCALL InitPowerups(void);
 
