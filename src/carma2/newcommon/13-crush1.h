@@ -528,7 +528,7 @@ extern void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle);
 
 // ARUndoSplitWeld
 
-// ReceivedCrush
+extern void C2_HOOK_FASTCALL ReceivedCrush(tU8* pContents);
 
 extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
 
