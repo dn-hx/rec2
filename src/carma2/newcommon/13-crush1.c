@@ -1752,9 +1752,37 @@ void C2_HOOK_FASTCALL ToggleFlaps(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x00433b90
+// FUNCTION: CARMA2_HW 0x00433b90
 void C2_HOOK_FASTCALL LazyMoveModel(br_model* pModel, const br_vector3* pOffset) {
-    NOT_IMPLEMENTED();
+    volatile br_scalar center_x;
+    volatile br_scalar center_y;
+    volatile br_scalar center_z;
+    volatile br_vector3 offset;
+    volatile br_scalar delta_x;
+    volatile br_scalar delta_y;
+    volatile br_scalar delta_z;
+    tU16 i;
+
+    center_x = (pModel->bounds.max.v[0] + pModel->bounds.min.v[0]) * gFLOAT_00589a2c;
+    center_y = (pModel->bounds.max.v[1] + pModel->bounds.min.v[1]) * gFLOAT_00589a2c;
+    center_z = (pModel->bounds.max.v[2] + pModel->bounds.min.v[2]) * gFLOAT_00589a2c;
+    offset.v[0] = pOffset->v[0];
+    offset.v[1] = pOffset->v[1];
+    offset.v[2] = pOffset->v[2];
+    delta_x = offset.v[0] - center_x;
+    delta_y = offset.v[1] - center_y;
+    delta_z = offset.v[2] - center_z;
+    for (i = 0; i < pModel->nvertices; i++) {
+        pModel->vertices[i].p.v[0] = delta_x + pModel->vertices[i].p.v[0];
+        pModel->vertices[i].p.v[1] = delta_y + pModel->vertices[i].p.v[1];
+        pModel->vertices[i].p.v[2] = delta_z + pModel->vertices[i].p.v[2];
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        *(int*)pModel->user = 1;
+        return;
+    }
+    pModel->custom = JitModelUpdate;
+    pModel->flags |= BR_MODF_CUSTOM;
 }
 
 // FUNCTION: CARMA2_HW 0x00434910
