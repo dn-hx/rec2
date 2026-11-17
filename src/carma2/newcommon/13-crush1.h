@@ -604,3 +604,4 @@ extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float
 #endif // GUARD_13_CRUSH1_H
 
 
+extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound);
