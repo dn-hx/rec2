@@ -1199,6 +1199,147 @@ float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3
 
 // LimitImpactScale
 
+static __inline float SpamCrushBendFactor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
+    float dist_sq;
+
+    dist_sq = DistSq(pVertexPos, pCount, pVectors);
+    if (dist_sq > gMax_crush_dist_sq) {
+        return gCrushZero;
+    }
+    return 1.0f - (float)sqrt(dist_sq / pMaxDistSq);
+}
+
+static __inline void SpamCrushFinishVertex(br_vector3* pVertexPos, tU16 pFlags, tCar_crush_limits* pLimits) {
+    int i;
+
+    for (i = 0; i < 3; i++) {
+        if (pVertexPos->v[i] < pLimits->limits[i][0].values[pFlags & 3]) {
+            pVertexPos->v[i] = pLimits->limits[i][0].values[pFlags & 3];
+            pFlags >>= 4;
+        } else {
+            pFlags >>= 2;
+            if (pVertexPos->v[i] > pLimits->limits[i][1].values[pFlags & 3]) {
+                pVertexPos->v[i] = pLimits->limits[i][1].values[pFlags & 3];
+            }
+            pFlags >>= 2;
+        }
+    }
+}
+
+static __inline void SpamCrushMorphVertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, tCar_crush_limits* pLimits, int pFound) {
+    int index;
+    float t;
+
+    index = ((pFlags & 0xffff) >> ((pAxis * 2 + (pDirectionComponent > gCrushZero)) * 2)) & 3;
+    if (index > pFound) {
+        *pOut = 0.0f;
+        return;
+    }
+    t = (pLimits->limits[pAxis][pDirectionComponent > gCrushZero].values[index] - pVertexComponent) / pDirectionComponent;
+    if (t < gCrushZero) {
+        *pOut = 0.0f;
+    } else if (t < *pOut) {
+        *pOut = t;
+    }
+}
+
+static __inline int SpamCrushNearestAxis(const br_vector3* pVector) {
+
+    if ((float)fabs(pVector->v[0]) > gCrushSqrtHalf) {
+        return 0;
+    } else if ((float)fabs(pVector->v[1]) > gCrushSqrtHalf) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00432e70
+void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext) {
+    float fVar2;
+    float fVar6;
+    float fVar7;
+    float len;
+    float factor;
+    float value;
+    int axis;
+    int k;
+    int found;
+    int i;
+    int j;
+    tCar_crush_shape_info* shape;
+    br_vector3* vert;
+    br_vector3 local_c;
+    tCar_crush_spec* spec;
+
+
+    fVar2 = *(float*)((char*)(*(void**)((char*)pContext + 4)) + 0x48) * *(float*)((char*)pContext + 8);
+    fVar6 = *(float*)((char*)(*(void**)((char*)pContext + 4)) + 0x4c) * *(float*)((char*)pContext + 8);
+    if (fVar2 > gCrushZero) {
+        fVar2 = gCrushZero;
+    }
+    len = (float)sqrt(fVar6 * fVar6 + fVar2 * fVar2);
+    if (len < 1e-05f) {
+        return;
+    }
+    spec = pCar->car_crush_spec;
+    local_c.v[0] = gCrushZero / len;
+    fVar7 = (float)fabs(local_c.v[0]);
+    (void)fVar7;
+    local_c.v[1] = fVar2 / len;
+    local_c.v[2] = fVar6 / len;
+    axis = SpamCrushNearestAxis(&local_c);
+    k = local_c.v[axis] > gCrushZero;
+    found = 0;
+    i = 0;
+    if (spec->field_0xa4.counts[axis][k] > 0) {
+        do {
+            if (k) {
+                if (spec->field_0xbc.limits[axis][1].values[i] > *(float*)((char*)(*(void**)((char*)pContext + 4)) + 0x34 + axis * 4)) {
+                    found = i;
+                    break;
+                }
+            } else {
+                if (spec->field_0xbc.limits[axis][0].values[i] < *(float*)((char*)(*(void**)((char*)pContext + 4)) + 0x34 + axis * 4)) {
+                    found = i;
+                    break;
+                }
+            }
+            i++;
+        } while (i < spec->field_0xa4.counts[axis][k]);
+    }
+    i = 0;
+    if (spec->count_shapes > 0) {
+        do {
+            shape = &spec->field_0x4[i];
+            if (shape->field_0x8 == 0 && shape->count_points > 0) {
+                j = 0;
+                do {
+                    vert = &shape->field_0x18[j].field_0x18;
+                    value = *(float*)((char*)vert + 0xc) * len;
+                    factor = SpamCrushBendFactor(vert, *(int*)(*(void**)((char*)pContext + 4)), (br_vector3*)((char*)(*(void**)((char*)pContext + 4)) + 4), gMax_crush_dist_sq);
+                    if (factor != gCrushZero) {
+                        factor = value * gForce_to_movement_factor * factor;
+                        axis = SpamCrushNearestAxis(&local_c);
+                        SpamCrushMorphVertex(&factor, axis, vert->v[axis], local_c.v[axis], *(tU16*)((char*)vert + 0x10), &spec->field_0xbc, found);
+                        if (factor != gCrushZero) {
+                            vert->v[0] = local_c.v[0] * factor + vert->v[0];
+                            vert->v[1] = local_c.v[1] * factor + vert->v[1];
+                            vert->v[2] = local_c.v[2] * factor + vert->v[2];
+                        }
+                    }
+                    if (DRVector3TestForNan(vert) != 0) {
+                        PDEnterDebugger("NaN");
+                    }
+                    SpamCrushFinishVertex(vert, *(tU16*)((char*)vert + 0x10), &spec->field_0xbc);
+                    j++;
+                } while (j < shape->count_points);
+            }
+            i++;
+        } while (i < spec->count_shapes);
+    }
+    spec->expand_bounding_box = 7;
+}
 // FUNCTION: CARMA2_HW 0x00436850
 // FUNCTION: CARMA2_SW 0x00436880
 float C2_HOOK_FASTCALL GetImpactScale(const br_vector3* pP, int pCount, const br_vector3* pVertices, float pMax_dist_sq) {
