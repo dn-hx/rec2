@@ -133,7 +133,7 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
 // RightInventory
 
-// LeftInventory
+extern void C2_HOOK_FASTCALL LeftInventory(void);
 
 extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
 
