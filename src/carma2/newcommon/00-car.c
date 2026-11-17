@@ -101,6 +101,12 @@ int gEliminate_faces;
 // GLOBAL: CARMA2_SW 0x00673ad4
 int gIn_the_sea;
 
+// GLOBAL: CARMA2_HW 0x00589a68
+br_scalar gCrushReattachDistanceSquared = 0.000210039914236404f;
+
+// GLOBAL: CARMA2_HW 0x00589b48
+float gFLOAT_00589b48 = 4.999999873689376e-05f;
+
 // GLOBAL: CARMA2_HW 0x0065d010
 // GLOBAL: CARMA2_SW 0x00657948
 int gFace_num__car = 1;

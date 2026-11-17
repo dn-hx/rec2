@@ -28,6 +28,8 @@ extern int gIn_the_sea;
 extern int gFace_num__car;
 extern tFace_ref gFace_list__car[300];
 extern br_scalar gMin_world_y;
+extern br_scalar gCrushReattachDistanceSquared;
+extern float gFLOAT_00589b48;
 
 extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
 

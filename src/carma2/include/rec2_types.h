@@ -6044,4 +6044,11 @@ enum {
 };
 
 
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float* total_displacement;
+    float displacement;
+} tCrush_displacement_context_local;
+
 #endif // REC2_TYPES_H
