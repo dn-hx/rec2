@@ -2446,7 +2446,55 @@ int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
 
 // ReceivedSemiDetachBit
 
-// ReceivedDetachBit
+typedef struct {
+    undefined field_0x0[4];
+    tPlayer_ID player_id;
+    tU8 crush_id;
+    undefined field_0x9[3];
+    float time;
+    tCompressed_vector3 min_pos;
+    tCompressed_vector3 max_pos;
+} tNet_crush_detach_msg;
+
+typedef struct {
+    tU8 id;
+    undefined field_0x1[3];
+    br_actor* actor;
+} tFind_crush_actor_arg;
+
+// FUNCTION: CARMA2_HW 0x0043caf0
+void C2_HOOK_FASTCALL ReceivedDetachBit(void* pMsg_) {
+    tNet_crush_detach_msg* pMsg = pMsg_;
+    extern int gCount_net_crush_detach_list;
+    extern tCrush_net_detach_list_item gNet_crush_detach_list[8];
+    tFind_crush_actor_arg arg;
+    tCar_spec* car;
+    br_actor* actor;
+
+    if (gCount_net_crush_detach_list != 8) {
+        car = NetCarFromPlayerID(pMsg->player_id);
+        if (car != NULL) {
+            arg.id = pMsg->crush_id;
+            arg.actor = NULL;
+            actor = (br_actor*)((DRActorEnumRecurse(car->car_model_actor, FindBitWithID, &arg) != 0 ? 0xffffffff : 0) & (tU32)arg.actor);
+            if (actor != NULL) {
+                int i;
+
+                for (i = 0; i < gCount_net_crush_detach_list; i++) {
+                    if (gNet_crush_detach_list[i].actor == actor) {
+                        return;
+                    }
+                }
+                gNet_crush_detach_list[gCount_net_crush_detach_list].car = car;
+                gNet_crush_detach_list[gCount_net_crush_detach_list].actor = actor;
+                *(float*)&gNet_crush_detach_list[gCount_net_crush_detach_list].field_0x8[0] = pMsg->time;
+                ExpandVector3((br_vector3*)&gNet_crush_detach_list[gCount_net_crush_detach_list].field_0x8[4], &pMsg->min_pos, -10.0f, 10.0f);
+                ExpandVector3((br_vector3*)&gNet_crush_detach_list[gCount_net_crush_detach_list].field_0x8[16], &pMsg->max_pos, -10.0f, 10.0f);
+                gCount_net_crush_detach_list++;
+            }
+        }
+    }
+}
 
 // SemiDetachedBitObjectFromID
 
