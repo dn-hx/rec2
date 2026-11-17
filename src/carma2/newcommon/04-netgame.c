@@ -684,10 +684,54 @@ void C2_HOOK_FASTCALL UseGeneralScore(int pScore) {
 
 // NetSendEnvironmentChanges
 
-// STUB: CARMA2_HW 0x0049b9a0
+// FUNCTION: CARMA2_HW 0x0049b9a0
 // STUB: CARMA2_SW 0x00497b20
 void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    int j;
+    int* needy;
+    tNet_game_player_info* player;
+    br_actor** non_car_list;
+    tNon_car_spec* non_car;
+    tNet_message_chunk_non_car_position* message;
+
+    i = 1;
+    if (1 < gNumber_of_net_players) {
+        needy = (int*)((tU8*)&gNet_players[1] + 0x58);
+        do {
+            player = (tNet_game_player_info*)((tU8*)needy - 0x58);
+            if (*needy != 0 && player->player_status == ePlayer_status_racing) {
+                non_car_list = gProgram_state.track_spec.non_car_list;
+                for (j = 0; j < gProgram_state.track_spec.count_non_cars; j++, non_car_list++) {
+                    if ((*non_car_list)->identifier[3] != '!' && (*non_car_list)->identifier[3] != '&') {
+                        continue;
+                    }
+                    non_car = (tNon_car_spec*)(*non_car_list)->type_data;
+                    if (non_car != NULL
+                            && non_car->driver != 0
+                            && (tU16)non_car->car_ID == j
+                            && (non_car->flags & 0x100000) != 0) {
+                        continue;
+                    }
+                    message = (tNet_message_chunk_non_car_position*)NetGetToPlayerContents(0x1c, 0, player->ID);
+                    if (message != NULL) {
+                        BrMatrix34Copy(&message->mat, &(*non_car_list)->t.t.mat);
+                        message->ID = j;
+                        message->flags = (*non_car_list)->identifier[3] == '!';
+                    }
+                }
+                SendAllDBNonCars(player);
+                SendAllSHNonCars(player);
+                SendAllSemiDetachedBits((tNet_game_player_info*)(undefined4*)player);
+                SendAllSmashes(player);
+                NetSendMessageStacks();
+                *needy = 0;
+                NetSendMessageStacks();
+            }
+            i++;
+            needy = (int*)((tU8*)needy + 0xd4);
+        } while (i < gNumber_of_net_players);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0049bad0
