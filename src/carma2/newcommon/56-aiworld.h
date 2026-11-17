@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 
-extern int gCrush_panel_ids[10];
+extern int gCount_active_drones;
 
 // MakeVertexAndOffsetIt
 
