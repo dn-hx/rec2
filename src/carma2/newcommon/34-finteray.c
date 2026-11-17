@@ -385,10 +385,53 @@ int C2_HOOK_FASTCALL SphereBoxIntersection(const br_bounds* pBounds, const br_ve
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00460e10
+// FUNCTION: CARMA2_HW 0x00460e10
 // STUB: CARMA2_SW 0x00460880
 int C2_HOOK_FASTCALL LineBoxCollWithSphere(br_vector3* pStart, br_vector3* pEnd, br_bounds* pBounds, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    int uVar2;
+    int uVar4;
+    int i;
+    br_scalar fVar1;
+    br_scalar n1;
+    br_scalar n2;
+
+    uVar2 = LineBoxColl(pStart, pEnd, pBounds, pPoint, pT);
+    if (uVar2 != 0) {
+        pNormal->v[0] = 0.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        uVar4 = (uVar2 - 1) & 3;
+        pNormal->v[uVar4] = (uVar2 & 4) ? 1.0f : -1.0f;
+        return uVar2;
+    }
+    if (SphereBoxIntersection(pBounds, pEnd, 2.49999994e-05f, pPoint) != 0) {
+        *pT = 1.0f;
+        pNormal->v[0] = 0.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        for (i = 0; i < 3; i++) {
+            if (pPoint->v[i] == pBounds->max.v[i]) {
+                pNormal->v[i] = -1.0f;
+            } else if (pPoint->v[i] == pBounds->min.v[i]) {
+                pNormal->v[i] = 1.0f;
+            }
+        }
+        n1 = pNormal->v[1];
+        n2 = pNormal->v[2];
+        fVar1 = sqrt(n1 * n1 + n2 * n2 + pNormal->v[0] * pNormal->v[0]);
+        if (fVar1 > 2.3841858e-07f) {
+            fVar1 = 1.0 / fVar1;
+            pNormal->v[0] = fVar1 * pNormal->v[0];
+            pNormal->v[1] = pNormal->v[1] * fVar1;
+            pNormal->v[2] = pNormal->v[2] * fVar1;
+            return 0x40;
+        }
+        pNormal->v[0] = 1.0f;
+        pNormal->v[1] = 0.0f;
+        pNormal->v[2] = 0.0f;
+        return 0x40;
+    }
+    return 0;
 }
 
 #ifdef REC2_MATCHING
