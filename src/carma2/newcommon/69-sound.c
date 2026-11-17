@@ -553,7 +553,7 @@ void C2_HOOK_FASTCALL SoundService(void) {
 // FUNCTION: CARMA2_HW 0x00455bb0
 // FUNCTION: CARMA2_SW 0x00455940
 void C2_HOOK_FASTCALL InitSoundSources(void) {
-    int toggle;
+    int toggle = 0;
     int cat;
     int car_count;
     tCar_spec* car;
@@ -565,13 +565,11 @@ void C2_HOOK_FASTCALL InitSoundSources(void) {
     }
 
     if (!gSound_enabled) {
-        toggle = 1;
         ToggleSoundEnable();
-    } else {
-        toggle = 0;
+        toggle = 1;
     }
-    BrVector3Scale(&gCamera_left, (br_vector3*)gCamera_to_world.m[0], -1.0f);
     BrVector3Copy(&gCamera_position, (br_vector3*)gCamera_to_world.m[3]);
+    BrVector3Scale(&gCamera_left, (br_vector3*)gCamera_to_world.m[0], -1.0f);
     S3BindListenerPositionBRender(&gCamera_position);
     S3BindListenerVelocityBRender(&gCamera_velocity);
     S3BindListenerLeftBRender(&gCamera_left);
