@@ -1874,7 +1874,36 @@ void C2_HOOK_FASTCALL SplitModel(br_model* pSource_model, br_model** pModels, br
     NOT_IMPLEMENTED();
 }
 
-// CreateSplitPoints
+// FUNCTION: CARMA2_HW 0x00430600
+void C2_HOOK_FASTCALL CreateSplitPoints(br_vector3* pPositive_intersection, br_vector3* pNegative_intersection, const br_vector3* pPositive_point, const br_vector3* pNegative_point, float pPositive_distance, float pNegative_distance) {
+    float ratio1;
+    float ratio2;
+    float other1;
+    float other2;
+    float zn;
+    float zp;
+    float xn;
+    float xp;
+
+    ratio1 = -((pPositive_distance - gFLOAT_00589aa0) / (pNegative_distance - pPositive_distance));
+    ratio2 = -((pPositive_distance - gFLOAT_00589aa4) / (pNegative_distance - pPositive_distance));
+    other1 = gFLOAT_00589a54 - ratio1;
+    zn = pNegative_point->v[2];
+    zp = pPositive_point->v[2];
+    xp = pPositive_point->v[0];
+    xn = pNegative_point->v[0];
+    pPositive_intersection->v[1] = pNegative_point->v[1] * ratio1 + pPositive_point->v[1] * other1;
+    pPositive_intersection->v[2] = zn * ratio1 + zp * other1;
+    pPositive_intersection->v[0] = ratio1 * xn + xp * other1;
+    other2 = gFLOAT_00589a54 - ratio2;
+    zp = pPositive_point->v[2];
+    zn = pNegative_point->v[2];
+    xp = pPositive_point->v[0];
+    xn = pNegative_point->v[0];
+    pNegative_intersection->v[1] = pNegative_point->v[1] * ratio2 + pPositive_point->v[1] * other2;
+    pNegative_intersection->v[2] = zn * ratio2 + zp * other2;
+    pNegative_intersection->v[0] = ratio2 * xn + xp * other2;
+}
 
 // STUB: CARMA2_HW 0x004303c0
 void C2_HOOK_FASTCALL SplitCollisionShape(tCollision_shape_polyhedron* pSource, tCollision_shape_polyhedron* pPositive_output, tPhysics_shape* pNegative_output, br_scalar* pPlane) {
