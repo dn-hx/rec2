@@ -21,6 +21,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+#include "01-network.h"
+#include "34-finteray.h"
 
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
