@@ -1782,7 +1782,7 @@ int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec) {
 
 // STUB: CARMA2_HW 0x00434f60
 // STUB: CARMA2_SW 0x00434f90
-void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context* pContext) {
+void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_local* pContext) {
     NOT_IMPLEMENTED();
 }
 

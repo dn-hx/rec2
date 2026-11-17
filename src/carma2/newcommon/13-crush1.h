@@ -354,7 +354,7 @@ extern int C2_HOOK_FASTCALL SwapShapesIfPossible(tCar_spec* pCar_spec);
 
 // DoShapeSwapping
 
-extern void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context* pContext);
+extern void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_local* pContext);
 
 // EdgeCrossesZPlane
 
@@ -454,7 +454,7 @@ extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
 
 extern void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec);
 
-extern void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context* pContext);
+extern void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext);
 
 // UnBendCollisionShapes
 
