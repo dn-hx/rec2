@@ -428,7 +428,47 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex) {
 
 // SwingCamera
 
-// PointCameraAtCar
+// FUNCTION: CARMA2_HW 0x00411fc0
+void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) {
+    br_vector3 vn;
+    br_vector3 tv;
+    br_vector3 tv2;
+    br_scalar dist;
+    br_scalar frac;
+    br_angle theta;
+    br_vector3* pos;
+    br_camera* camera_ptr;
+    int swoop;
+
+    camera_ptr = gCamera->type_data;
+    theta = (br_angle)(pFov_factor * 0.2f * camera_ptr->field_of_view);
+    swoop = gCountdown && gCamera_height > pPos->v[1] - -0.01f;
+    if (swoop) {
+        BrVector3Sub(&tv, &gAverage_grid_position, pPos);
+        frac = (gCamera_height - pPos->v[1]) * 0.1f;
+        BrVector3Scale(&tv, &tv, frac);
+        BrVector3Add(&tv, pPos, &tv);
+        pos = &tv;
+        theta = (br_angle)((1.0f - frac) * theta);
+    } else {
+        pos = pPos;
+    }
+    BrVector3Sub(&vn, pPos, (br_vector3*)pMat->m[3]);
+    vn.v[1] = 0.f;
+    BrVector3Normalise(&vn, &vn);
+    pMat->m[0][0] = -vn.v[2];
+    pMat->m[0][1] = 0.0f;
+    pMat->m[1][0] = 0.0f;
+    pMat->m[0][2] = vn.v[0];
+    pMat->m[2][0] = -vn.v[0];
+    pMat->m[1][1] = 1.0f;
+    pMat->m[1][2] = 0.0f;
+    pMat->m[2][2] = -vn.v[2];
+    pMat->m[2][1] = 0.0f;
+    BrVector3Sub(&tv2, pos, (br_vector3*)pMat->m[3]);
+    dist = BrVector3Dot(&tv2, &vn);
+    BrMatrix34PreRotateX(pMat, theta - BR_ATAN2(pMat->m[3][1] - pos->v[1], dist));
+}
 
 // FUNCTION: CARMA2_HW 0x004121b0
 // FUNCTION: CARMA2_SW 0x00412190
