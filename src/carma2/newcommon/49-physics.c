@@ -878,7 +878,252 @@ void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject) {
 
 // NewAddFrictionObjectObject
 
-// NewAddFriction
+// FUNCTION: CARMA2_HW 0x004c0ac0
+void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks) {
+    tPhysics_object* pObject_a;
+    tPhysics_object* pObject_b;
+    br_vector3 velocity_a;
+    br_vector3 velocity_b;
+    br_vector3 world;
+    br_vector3 normal;
+    br_vector3 direction_a;
+    br_vector3 direction_b;
+    br_vector3 angular_a;
+    br_vector3 angular_b;
+    br_vector3 cross;
+    br_vector3 lever;
+    br_scalar coefficient;
+    br_scalar maximum;
+    br_scalar speed;
+    br_scalar inverse_speed;
+    br_scalar denominator;
+    br_scalar impulse;
+    br_scalar scale;
+    br_scalar dot;
+    br_scalar base;
+    br_scalar tangent_x;
+    br_scalar tangent_y;
+    br_scalar tangent_z;
+
+    pObject_a = pContact->object_a;
+    pObject_b = pContact->object_b;
+
+    if (pObject_b != NULL && pContact->type != 14) {
+        coefficient = pContact->field_0x0;
+        pObject_a->collision_flag |= 2;
+        pObject_b->collision_flag |= 2;
+
+        velocity_a.v[0] = pContact->point_a.v[2] * pObject_a->omega.v[1] - pContact->point_a.v[1] * pObject_a->omega.v[2] + pObject_a->velocity_car_space.v[0];
+        velocity_a.v[1] = pObject_a->omega.v[2] * pContact->point_a.v[0] - pObject_a->omega.v[0] * pContact->point_a.v[2] + pObject_a->velocity_car_space.v[1];
+        velocity_a.v[2] = pObject_a->omega.v[0] * pContact->point_a.v[1] - pObject_a->omega.v[1] * pContact->point_a.v[0] + pObject_a->velocity_car_space.v[2];
+
+        velocity_b.v[0] = pObject_b->omega.v[1] * pContact->point_b.v[2] - pObject_b->omega.v[2] * pContact->point_b.v[1] + pObject_b->velocity_car_space.v[0];
+        velocity_b.v[1] = pContact->point_b.v[0] * pObject_b->omega.v[2] - pObject_b->omega.v[0] * pContact->point_b.v[2] + pObject_b->velocity_car_space.v[1];
+        velocity_b.v[2] = pObject_b->omega.v[0] * pContact->point_b.v[1] - pObject_b->omega.v[1] * pContact->point_b.v[0] + pObject_b->velocity_car_space.v[2];
+
+        BrMatrix34ApplyV(&world, &velocity_b, &pObject_b->actor->t.t.mat);
+        BrMatrix34TApplyV(&velocity_b, &world, &pObject_a->actor->t.t.mat);
+        velocity_a.v[0] -= velocity_b.v[0];
+        velocity_a.v[1] -= velocity_b.v[1];
+        velocity_a.v[2] -= velocity_b.v[2];
+
+        BrMatrix34ApplyV(&world, &pContact->direction_a, &pObject_a->transform_matrix);
+        BrMatrix34TApplyV(&normal, &world, &pObject_a->actor->t.t.mat);
+        dot = normal.v[2] * velocity_a.v[2] + normal.v[1] * velocity_a.v[1] + normal.v[0] * velocity_a.v[0];
+        world.v[0] = normal.v[0] * dot;
+        world.v[1] = normal.v[1] * dot;
+        world.v[2] = normal.v[2] * dot;
+        tangent_x = velocity_a.v[0] - world.v[0];
+        tangent_y = velocity_a.v[1] - world.v[1];
+        tangent_z = velocity_a.v[2] - world.v[2];
+        speed = (br_scalar)sqrt(tangent_z * tangent_z + tangent_y * tangent_y + tangent_x * tangent_x);
+        base = coefficient * 0.35f;
+        maximum = pObject_a->object_friction * base + base;
+        maximum = pObject_b->object_friction * maximum + maximum;
+
+        if (speed >= 0.001f) {
+            inverse_speed = 1.0f / -speed;
+            direction_a.v[0] = inverse_speed * tangent_x;
+            direction_a.v[1] = inverse_speed * tangent_y;
+            direction_a.v[2] = inverse_speed * tangent_z;
+            BrMatrix34ApplyV(&world, &direction_a, &pObject_a->actor->t.t.mat);
+            BrMatrix34TApplyV(&direction_b, &world, &pObject_b->actor->t.t.mat);
+            if (!(pObject_a->flags & 0x800)) {
+                angular_a.v[0] = (pContact->point_a.v[1] * direction_a.v[2] - pContact->point_a.v[2] * direction_a.v[1]) / pObject_a->I.v[0];
+                angular_a.v[1] = (pContact->point_a.v[2] * direction_a.v[0] - pContact->point_a.v[0] * direction_a.v[2]) / pObject_a->I.v[1];
+                angular_a.v[2] = (pContact->point_a.v[0] * direction_a.v[1] - pContact->point_a.v[1] * direction_a.v[0]) / pObject_a->I.v[2];
+            } else {
+                angular_a.v[0] = 0.0f;
+                angular_a.v[1] = 0.0f;
+                angular_a.v[2] = 0.0f;
+            }
+            if (!(pObject_b->flags & 0x800)) {
+                angular_b.v[0] = (pContact->point_b.v[1] * direction_b.v[2] - pContact->point_b.v[2] * direction_b.v[1]) / pObject_b->I.v[0];
+                angular_b.v[1] = (pContact->point_b.v[2] * direction_b.v[0] - pContact->point_b.v[0] * direction_b.v[2]) / pObject_b->I.v[1];
+                angular_b.v[2] = (pContact->point_b.v[0] * direction_b.v[1] - pContact->point_b.v[1] * direction_b.v[0]) / pObject_b->I.v[2];
+            } else {
+                angular_b.v[0] = 0.0f;
+                angular_b.v[1] = 0.0f;
+                angular_b.v[2] = 0.0f;
+            }
+            world.v[0] = pContact->point_b.v[2] * angular_b.v[1] - pContact->point_b.v[1] * angular_b.v[2];
+            world.v[1] = pContact->point_b.v[0] * angular_b.v[2] - pContact->point_b.v[2] * angular_b.v[0];
+            world.v[2] = pContact->point_b.v[1] * angular_b.v[0] - pContact->point_b.v[0] * angular_b.v[1];
+            base = (pContact->point_a.v[0] * angular_a.v[2] - pContact->point_a.v[2] * angular_a.v[0]) * direction_a.v[1]
+                + (pContact->point_a.v[2] * angular_a.v[1] - pContact->point_a.v[1] * angular_a.v[2]) * direction_a.v[0]
+                + (pContact->point_a.v[1] * angular_a.v[0] - pContact->point_a.v[0] * angular_a.v[1]) * direction_a.v[2]
+                + 1.0f / pObject_a->M + 1.0f / pObject_b->M;
+            denominator = direction_b.v[0] * world.v[0] + direction_b.v[1] * world.v[1] + direction_b.v[2] * world.v[2] + base;
+            if (0.0001f < fabs(denominator)) {
+                impulse = speed / denominator;
+                if (maximum < impulse) {
+                    impulse = maximum;
+                }
+                scale = impulse / pObject_a->M;
+                direction_a.v[0] = direction_a.v[0] * scale;
+                direction_a.v[1] = direction_a.v[1] * scale;
+                direction_a.v[2] = direction_a.v[2] * scale;
+                scale = -(impulse / pObject_b->M);
+                direction_b.v[0] = direction_b.v[0] * scale;
+                direction_b.v[1] = direction_b.v[1] * scale;
+                direction_b.v[2] = direction_b.v[2] * scale;
+                pContact->field_0x44.v[0] = pObject_a->M * direction_a.v[0];
+                pContact->field_0x44.v[1] = pObject_a->M * direction_a.v[1];
+                pContact->field_0x44.v[2] = pObject_a->M * direction_a.v[2];
+                pContact->field_0x50.v[0] = pObject_b->M * direction_b.v[0];
+                pContact->field_0x50.v[1] = pObject_b->M * direction_b.v[1];
+                pContact->field_0x50.v[2] = pObject_b->M * direction_b.v[2];
+                pContact->type |= 0x100;
+                pObject_a->omega.v[0] += impulse * angular_a.v[0];
+                pObject_a->omega.v[1] += impulse * angular_a.v[1];
+                pObject_a->omega.v[2] += impulse * angular_a.v[2];
+                pObject_b->omega.v[0] += -impulse * angular_b.v[0];
+                pObject_b->omega.v[1] += -impulse * angular_b.v[1];
+                pObject_b->omega.v[2] += -impulse * angular_b.v[2];
+                BrMatrix34ApplyV(&world, &direction_a, &pObject_a->actor->t.t.mat);
+                pObject_a->v.v[0] += world.v[0];
+                pObject_a->v.v[1] += world.v[1];
+                pObject_a->v.v[2] += world.v[2];
+                pObject_a->velocity_car_space.v[0] += direction_a.v[0];
+                pObject_a->velocity_car_space.v[1] += direction_a.v[1];
+                pObject_a->velocity_car_space.v[2] += direction_a.v[2];
+                BrMatrix34ApplyV(&world, &direction_b, &pObject_b->actor->t.t.mat);
+                pObject_b->v.v[0] += world.v[0];
+                pObject_b->v.v[1] += world.v[1];
+                pObject_b->v.v[2] += world.v[2];
+                pObject_b->velocity_car_space.v[0] += direction_b.v[0];
+                pObject_b->velocity_car_space.v[1] += direction_b.v[1];
+                pObject_b->velocity_car_space.v[2] += direction_b.v[2];
+            }
+        }
+        CapOmega(pObject_a);
+        CapOmega(pObject_b);
+        return;
+    }
+
+    coefficient = pContact->field_0x0;
+    pObject_a->collision_flag |= 1;
+    if (pContact->type == 1) {
+        lever.v[0] = pContact->point_a.v[0] * -0.005f + pContact->point_a.v[0];
+        lever.v[1] = pContact->point_a.v[1] * -0.005f + pContact->point_a.v[1];
+        lever.v[2] = pContact->point_a.v[2] * -0.005f + pContact->point_a.v[2];
+        velocity_a.v[0] = pObject_a->omega.v[1] * lever.v[2] - pObject_a->omega.v[2] * lever.v[1];
+        velocity_a.v[1] = pObject_a->omega.v[2] * lever.v[0] - pObject_a->omega.v[0] * lever.v[2];
+        velocity_a.v[2] = pObject_a->omega.v[0] * lever.v[1] - pObject_a->omega.v[1] * lever.v[0];
+    } else {
+        velocity_a.v[0] = pContact->point_a.v[2] * pObject_a->omega.v[1] - pObject_a->omega.v[2] * pContact->point_a.v[1];
+        velocity_a.v[1] = pContact->point_a.v[0] * pObject_a->omega.v[2] - pObject_a->omega.v[0] * pContact->point_a.v[2];
+        velocity_a.v[2] = pContact->point_a.v[1] * pObject_a->omega.v[0] - pObject_a->omega.v[1] * pContact->point_a.v[0];
+    }
+    velocity_a.v[0] += pObject_a->velocity_car_space.v[0];
+    velocity_a.v[1] += pObject_a->velocity_car_space.v[1];
+    velocity_a.v[2] += pObject_a->velocity_car_space.v[2];
+    BrMatrix34ApplyV(&world, &pContact->direction_a, &pObject_a->transform_matrix);
+    BrMatrix34TApplyV(&normal, &world, &pObject_a->actor->t.t.mat);
+    dot = normal.v[2] * velocity_a.v[2] + normal.v[1] * velocity_a.v[1] + normal.v[0] * velocity_a.v[0];
+    world.v[0] = dot * normal.v[0];
+    world.v[1] = dot * normal.v[1];
+    world.v[2] = dot * normal.v[2];
+    velocity_a.v[0] -= world.v[0];
+    velocity_a.v[1] -= world.v[1];
+    velocity_a.v[2] -= world.v[2];
+    if (pWorld_callbacks != NULL && pWorld_callbacks->get_friction_from_face != NULL && pContact->field_0xc != NULL) {
+        coefficient = pWorld_callbacks->get_friction_from_face(pContact->field_0xc) * coefficient;
+    }
+    speed = (br_scalar)sqrt(velocity_a.v[2] * velocity_a.v[2] + velocity_a.v[1] * velocity_a.v[1] + velocity_a.v[0] * velocity_a.v[0]);
+    base = coefficient * 0.35f;
+    maximum = pObject_a->world_friction * base + base;
+    if (speed >= 0.001f) {
+        inverse_speed = 1.0f / -speed;
+        direction_a.v[0] = inverse_speed * velocity_a.v[0];
+        direction_a.v[1] = inverse_speed * velocity_a.v[1];
+        direction_a.v[2] = inverse_speed * velocity_a.v[2];
+        if (!(pObject_a->flags & 0x800)) {
+            angular_a.v[0] = (pContact->point_a.v[1] * direction_a.v[2] - pContact->point_a.v[2] * direction_a.v[1]) / pObject_a->I.v[0];
+            angular_a.v[1] = (pContact->point_a.v[2] * direction_a.v[0] - pContact->point_a.v[0] * direction_a.v[2]) / pObject_a->I.v[1];
+            angular_a.v[2] = (pContact->point_a.v[0] * direction_a.v[1] - pContact->point_a.v[1] * direction_a.v[0]) / pObject_a->I.v[2];
+        } else {
+            angular_a.v[0] = 0.0f;
+            angular_a.v[1] = 0.0f;
+            angular_a.v[2] = 0.0f;
+        }
+        dot = pObject_a->omega.v[0] * pContact->direction_a.v[0] + pContact->direction_a.v[2] * pObject_a->omega.v[2] + pObject_a->omega.v[1] * pContact->direction_a.v[1];
+        if (fabs(dot) < 0.1f
+                && pObject_a->omega.v[0] * angular_a.v[0] + pObject_a->omega.v[2] * angular_a.v[2] + pObject_a->omega.v[1] * angular_a.v[1] < 0.0f
+                && pObject_a->v.v[2] * pObject_a->v.v[2] + pObject_a->v.v[1] * pObject_a->v.v[1] + pObject_a->v.v[0] * pObject_a->v.v[0] < 0.001f) {
+            world.v[0] = pContact->direction_a.v[0] * dot;
+            world.v[1] = pContact->direction_a.v[1] * dot;
+            world.v[2] = pContact->direction_a.v[2] * dot;
+            pObject_a->omega.v[0] -= world.v[0];
+            pObject_a->omega.v[1] -= world.v[1];
+            pObject_a->omega.v[2] -= world.v[2];
+            BrVector3SetFloat(&angular_a, 0.0f, 0.0f, 0.0f);
+            direction_a.v[0] = pObject_a->velocity_car_space.v[0];
+            direction_a.v[1] = pObject_a->velocity_car_space.v[1];
+            direction_a.v[2] = pObject_a->velocity_car_space.v[2];
+            speed = (br_scalar)sqrt(direction_a.v[2] * direction_a.v[2] + direction_a.v[1] * direction_a.v[1] + direction_a.v[0] * direction_a.v[0]);
+            if (speed < 0.001f) {
+                return;
+            }
+            inverse_speed = -speed;
+            direction_a.v[0] = direction_a.v[0] / inverse_speed;
+            direction_a.v[1] = direction_a.v[1] / inverse_speed;
+            direction_a.v[2] = direction_a.v[2] / inverse_speed;
+        }
+        cross.v[0] = pContact->point_a.v[2] * angular_a.v[1] - pContact->point_a.v[1] * angular_a.v[2];
+        cross.v[1] = pContact->point_a.v[0] * angular_a.v[2] - pContact->point_a.v[2] * angular_a.v[0];
+        cross.v[2] = pContact->point_a.v[1] * angular_a.v[0] - pContact->point_a.v[0] * angular_a.v[1];
+        denominator = direction_a.v[2] * cross.v[2] + direction_a.v[1] * cross.v[1] + direction_a.v[0] * cross.v[0] + 1.0f / pObject_a->M;
+        if (0.0001f < fabs(denominator)) {
+            impulse = speed / denominator;
+            if (maximum < impulse) {
+                impulse = maximum;
+            }
+            angular_a.v[0] = impulse * angular_a.v[0];
+            angular_a.v[1] = impulse * angular_a.v[1];
+            angular_a.v[2] = impulse * angular_a.v[2];
+            scale = impulse / pObject_a->M;
+            direction_a.v[0] = direction_a.v[0] * scale;
+            direction_a.v[1] = direction_a.v[1] * scale;
+            direction_a.v[2] = direction_a.v[2] * scale;
+            pContact->field_0x44.v[0] = pObject_a->M * direction_a.v[0];
+            pContact->field_0x44.v[1] = pObject_a->M * direction_a.v[1];
+            pContact->field_0x44.v[2] = pObject_a->M * direction_a.v[2];
+            pContact->type |= 0x100;
+            pObject_a->omega.v[0] += angular_a.v[0];
+            pObject_a->omega.v[1] += angular_a.v[1];
+            pObject_a->omega.v[2] += angular_a.v[2];
+            BrMatrix34ApplyV(&world, &direction_a, &pObject_a->actor->t.t.mat);
+            pObject_a->v.v[0] += world.v[0];
+            pObject_a->v.v[1] += world.v[1];
+            pObject_a->v.v[2] += world.v[2];
+            pObject_a->velocity_car_space.v[0] += direction_a.v[0];
+            pObject_a->velocity_car_space.v[1] += direction_a.v[1];
+            pObject_a->velocity_car_space.v[2] += direction_a.v[2];
+            CapOmega(pObject_a);
+        }
+    }
+}
 
 // ApplyForces
 
