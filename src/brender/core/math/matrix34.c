@@ -173,9 +173,9 @@ void C2_HOOK_CDECL BrMatrix34Rotate(br_matrix34* mat, br_angle r, const br_vecto
     br_scalar sy;
     br_scalar sz;
 
-    s = BR_SIN(r);
-    c = BR_COS(r);
-    t = 1.0f - c;
+    c = (br_scalar)cos(r * 9.587379924285257e-05);
+    s = (br_scalar)sin(r * 9.587379924285257e-05);
+    t = 1.0 - c;
 
     txy = t * a->v[0];
     txz = txy * a->v[2];
