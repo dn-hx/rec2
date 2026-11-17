@@ -51,6 +51,9 @@ tU32 gTimers_frame_start_time;
 // GLOBAL: CARMA2_HW 0x006aaa5c
 tU32 gTimers_tolerance;
 
+// GLOBAL: CARMA2_HW 0x006b75e0
+int gTimers_stack[8] = { 0 };
+
 // FUNCTION: CARMA2_HW 0x00504300
 // FUNCTION: CARMA2_SW 0x004ffc50
 void C2_HOOK_FASTCALL Timers_Init(void) {

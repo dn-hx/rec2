@@ -13,6 +13,11 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+#include "08-loading1.h"
+#include "41-utility.h"
+#include "platform.h"
+#include "68-timer.h"
+#include "27-powerup.h"
 
 // MakeVertexAndOffsetIt
 

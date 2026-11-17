@@ -445,7 +445,10 @@ void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
     gFrame++;
 }
 
-// DoDronePerGameFrameStuff
+// STUB: CARMA2_HW 0x004512f0
+void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

@@ -1169,7 +1169,10 @@ void C2_HOOK_FASTCALL TiggerMineToExplode(tCar_spec* pCar) {
 
 // ClearMineReferencesToCar
 
-// MungeShatMines
+// STUB: CARMA2_HW 0x004dde20
+void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004de000
 // FUNCTION: CARMA2_SW 0x004da500

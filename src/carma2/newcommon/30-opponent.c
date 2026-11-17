@@ -1087,7 +1087,10 @@ void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
     gBit_per_node = NULL;
 }
 
-// MungeOpponents
+// STUB: CARMA2_HW 0x004a9e10
+void C2_HOOK_FASTCALL MungeOpponents(void) {
+    NOT_IMPLEMENTED();
+}
 
 // InitOpponents
 
