@@ -1994,9 +1994,69 @@ intptr_t C2_HOOK_FASTCALL BendModels(br_actor* pActor, br_vector3* pDelta, void*
 
 // BrAngleToSignedDegree
 
-// STUB: CARMA2_HW 0x00435310
+// FUNCTION: CARMA2_HW 0x00435310
 void C2_HOOK_FASTCALL BendWheels(tCar_spec* pCar_spec, const tBend_point_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    extern void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar);
+    int i;
+    br_actor* actor;
+    tGroovidelic_spec* groove;
+    float angle;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    br_vector3 delta;
+    br_vector3 tmp;
+
+    for (i = 0; i < (int)REC2_ASIZE(pCar_spec->wheel_actors); i++) {
+        actor = pCar_spec->pivot_actors[i];
+        if (actor == NULL) {
+            actor = pCar_spec->wheel_actors[i];
+            if (actor == NULL) {
+                continue;
+            }
+        }
+        groove = ActorsGroove(actor);
+        if (groove != NULL && groove->path_type == eGroove_path_straight) {
+            br_vector3* centre = &groove->path_data.straight_info.centre;
+
+            pCar_spec->car_crush_spec->field_0x1ec[i].v[0] = centre->v[0];
+            pCar_spec->car_crush_spec->field_0x1ec[i].v[1] = centre->v[1];
+            pCar_spec->car_crush_spec->field_0x1ec[i].v[2] = centre->v[2];
+            delta.v[0] = -centre->v[0];
+            delta.v[1] = -centre->v[1];
+            delta.v[2] = -centre->v[2];
+            BendPoint(centre, pContext);
+            centre->v[1] = pCar_spec->car_crush_spec->field_0x1ec[i].v[1];
+            delta.v[0] = centre->v[0] + delta.v[0];
+            delta.v[1] = centre->v[1] + delta.v[1];
+            delta.v[2] = centre->v[2] + delta.v[2];
+            PipeSingleVector3(centre, &delta);
+        }
+    }
+    for (i = 0; i < REC2_ASIZE(pCar_spec->wpos); i++) {
+        fVar2 = pCar_spec->wpos[i].v[0];
+        fVar3 = pCar_spec->wpos[i].v[1];
+        fVar4 = pCar_spec->wpos[i].v[2];
+        pCar_spec->car_crush_spec->field_0x234[i].v[0] = fVar2;
+        pCar_spec->car_crush_spec->field_0x234[i].v[1] = fVar3;
+        pCar_spec->car_crush_spec->field_0x234[i].v[2] = fVar4;
+        tmp.v[0] = fVar2 * 0.14492753623188406;
+        tmp.v[1] = fVar3 * 0.14492753623188406;
+        tmp.v[2] = fVar4 * 0.14492753623188406;
+        BendPoint(&tmp, pContext);
+        pCar_spec->wpos[i].v[0] = tmp.v[0] * 6.9;
+        pCar_spec->wpos[i].v[1] = tmp.v[1] * 6.9;
+        pCar_spec->wpos[i].v[2] = tmp.v[2] * 6.9;
+    }
+    SetCarSuspGiveAndHeight(pCar_spec, 1.f, 1.f, 1.f, 0.f, 0.f);
+    if (pContext->bend->field_0x18.v[2] == pCar_spec->car_crush_spec->bend_z_min) {
+        angle = (tU16)pContext->bend->field_0x3e * 0.005493164;
+        if (angle >= 180.f) {
+            angle = angle - 360.f;
+        }
+        pCar_spec->field_0x1260 = angle * 0.03f;
+    }
+    CalcGraphicalWheelStuff(pCar_spec);
 }
 
 // STUB: CARMA2_HW 0x00435550
