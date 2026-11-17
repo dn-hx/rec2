@@ -81,7 +81,7 @@ extern br_actor* C2_HOOK_CDECL MrFindy(br_actor* pActor, const char* pName);
 
 // LoadDrone
 
-// CalculateDrivingInfo
+extern void C2_HOOK_FASTCALL CalculateDrivingInfo(tDrone_spec* pDrone);
 
 // PauseDroneState
 
