@@ -235,11 +235,20 @@ void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scala
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a77d0
+// FUNCTION: CARMA2_HW 0x004a77d0
 // STUB: CARMA2_SW 0x004a3940
 int C2_HOOK_FASTCALL PointInSpill(const br_vector3* pPoint, int pIndex) {
+    br_actor* actor;
+    br_scalar delta;
+    br_scalar range_squared;
 
-    NOT_IMPLEMENTED();
+    actor = gOily_spills[pIndex].actor;
+    delta = pPoint->v[0] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][0];
+    range_squared = gOily_spills[pIndex].current_size * gOily_spills[pIndex].current_size * 0.8f;
+    if (delta * delta < range_squared && (delta = pPoint->v[2] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][2], delta * delta < range_squared) && (float)fabs(pPoint->v[1] * (1.f / WORLD_SCALE) - actor->t.t.mat.m[3][1]) < 0.1f) {
+        return 1;
+    }
+    return 0;
 }
 
 #ifdef REC2_MATCHING
