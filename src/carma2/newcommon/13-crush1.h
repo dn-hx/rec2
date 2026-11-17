@@ -603,4 +603,4 @@ extern void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float
 
 #endif // GUARD_13_CRUSH1_H
 
-
+extern int C2_HOOK_FASTCALL TestPairOverlap(tPhysics_object* pObject, tPhysics_object* pOther);
