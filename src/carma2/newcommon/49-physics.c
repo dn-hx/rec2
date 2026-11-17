@@ -273,7 +273,56 @@ int C2_HOOK_FASTCALL GetFaceEdgeIntersection(tPhysics_object* pObject, tPhysics_
 
 // GetSphereToFacePoints
 
-// CheckSingleEdgeWithSphere
+// FUNCTION: CARMA2_HW 0x00423ce0
+int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace) {
+    float local_48[3];
+    float local_3c[3];
+    float local_30[3];
+    float local_24[5];
+    float local_10;
+    float local_c[3];
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float* pfVar4;
+    int uVar5;
+    tU32 four;
+
+    pfVar4 = pSphere;
+    SphereEdgeCollide(pEdgeStart, pEdgeEnd, pStart, pEnd, (tCollision_shape_sphere_data*)pSphere, (br_vector3*)local_c, (br_vector3*)local_24, (br_scalar*)&pSphere, 0, 0);
+    if (*(float*)&pSphere <= 1.0f) {
+        BrMatrix34TApplyV((br_vector3*)local_48, (br_vector3*)local_24, (br_matrix34*)((char*)pObject + 0x8c));
+        BrMatrix34TApplyV((br_vector3*)local_3c, (br_vector3*)local_24, (br_matrix34*)(*(char**)pObject + 0x2c));
+        fVar1 = 1.0f - *(float*)&pSphere;
+        local_3c[0] = *(float*)&pSphere * local_3c[0];
+        local_3c[1] = *(float*)&pSphere * local_3c[1];
+        local_3c[2] = *(float*)&pSphere * local_3c[2];
+        fVar3 = local_48[0] * fVar1 + local_3c[0];
+        fVar2 = local_48[1] * fVar1 + local_3c[1];
+        fVar1 = local_48[2] * fVar1 + local_3c[2];
+        local_10 = (float)sqrt(fVar1 * fVar1 + fVar2 * fVar2 + fVar3 * fVar3);
+        if (local_10 <= 2.3841858e-07f) {
+            fVar3 = 1.0;
+            fVar2 = 0.0;
+            local_10 = 0.0;
+        } else {
+            local_10 = 1.0 / local_10;
+            fVar3 = local_10 * fVar3;
+            fVar2 = local_10 * fVar2;
+            local_10 = local_10 * fVar1;
+        }
+        local_30[0] = pfVar4[1] + *pfVar4 * fVar3;
+        local_30[1] = pfVar4[2] + *pfVar4 * fVar2;
+        local_30[2] = pfVar4[3] + *pfVar4 * local_10;
+        local_48[0] = -local_48[0];
+        local_48[1] = -local_48[1];
+        local_48[2] = -local_48[2];
+        four = 4;
+        uVar5 = AddObjectWallForce(pWalls, (br_vector3*)local_30, *(float*)&pSphere, (br_vector3*)local_48, 0, pCount, pObject, *(float*)&four, *(float*)&pFace, NULL);
+        return uVar5;
+    }
+    return pCount;
+}
 
 // STUB: CARMA2_HW 0x00423c00
 int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, int pParam1, int pParam2, int pParam3, int pParam4, int pParam5, int pParam6) {
