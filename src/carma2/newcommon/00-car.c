@@ -1177,7 +1177,68 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
 
 // ScrapeNoise
 
-// SkidNoise
+// FUNCTION: CARMA2_HW 0x0041bed0
+void C2_HOOK_FASTCALL SkidNoise(tCar_spec* pCar, int pSide, br_scalar pV, int pMaterial_index) {
+    br_vector3 tv;
+    br_vector3 wvw;
+    br_vector3 world_pos;
+    br_vector3 pos;
+    br_vector3 wv;
+    br_scalar ts;
+    int i;
+
+    extern tS3_outlet* gCar_outlet;
+
+    i = IRandomBetween(0, 1);
+    if (pV < 5.0f) {
+        return;
+    }
+    if (gCurrent_race.material_modifiers[pMaterial_index].tyre_noise_index == -1) {
+        return;
+    }
+    if (IRandomBetween(0, 4) != 0) {
+        return;
+    }
+
+    gLast_skid_vol[i] = pV * 10.0f;
+    pos.v[0] = pCar->wpos[pSide].v[0];
+    pos.v[1] = pCar->wpos[pSide].v[1] - pCar->oldd[pSide];
+    pos.v[2] = pCar->wpos[pSide].v[2];
+    BrMatrix34ApplyP(&world_pos, &pos, &pCar->car_master_actor->t.t.mat);
+    BrVector3InvScale(&world_pos, &world_pos, 6.9f);
+    if (!DRS3SoundStillPlaying(gSkid_tag[i])
+            || (pCar != NULL && pCar->driver == eDriver_local_human && gLast_car_to_skid[i] != pCar)) {
+        gSkid_tag[i] = DRS3StartSound3D(gCar_outlet,
+            IRandomBetween(0, 4) + 9000,
+            &world_pos,
+            &pCar->vel,
+            1,
+            gLast_skid_vol[i],
+            IRandomBetween(49152, 81920),
+            0x10000);
+        gLast_car_to_skid[i] = pCar;
+    }
+    if (gCurrent_race.material_modifiers[pMaterial_index].smoke_type == 1) {
+        wv.v[0] = pCar->collision_info->omega.v[1] * pos.v[2] - pCar->collision_info->omega.v[2] * pos.v[1];
+        wv.v[1] = pCar->collision_info->omega.v[2] * pos.v[0] - pCar->collision_info->omega.v[0] * pos.v[2];
+        wv.v[2] = pCar->collision_info->omega.v[0] * pos.v[1] - pCar->collision_info->omega.v[1] * pos.v[0];
+        tv.v[0] = pCar->collision_info->velocity_car_space.v[0] * 6.9f;
+        tv.v[1] = pCar->collision_info->velocity_car_space.v[1] * 6.9f;
+        tv.v[2] = pCar->collision_info->velocity_car_space.v[2] * 6.9f;
+        wv.v[0] += tv.v[0];
+        wv.v[1] += tv.v[1];
+        wv.v[2] += tv.v[2];
+        ts = -(wv.v[0] * ((br_vector3*)(pCar->field_0x1348))->v[0] + wv.v[1] * ((br_vector3*)(pCar->field_0x1348))->v[1] + wv.v[2] * ((br_vector3*)(pCar->field_0x1348))->v[2]);
+        wvw.v[0] = ((br_vector3*)(pCar->field_0x1348))->v[0] * ts;
+        wvw.v[1] = ((br_vector3*)(pCar->field_0x1348))->v[1] * ts;
+        wvw.v[2] = ((br_vector3*)(pCar->field_0x1348))->v[2] * ts;
+        wv.v[0] += wvw.v[0];
+        wv.v[1] += wvw.v[1];
+        wv.v[2] += wvw.v[2];
+        BrMatrix34ApplyV(&wvw, &wv, &pCar->car_master_actor->t.t.mat);
+        CreatePuffOfSmoke(&world_pos, &wvw, pV / 25.0f, 1.0f, 4);
+    }
+}
 
 // StopSkid
 
