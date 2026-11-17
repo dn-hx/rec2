@@ -182,7 +182,7 @@ extern int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend);
 
 // NetworkJoinSetup
 
-// NetworkJoinMenuInfunc
+extern int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL StopAllThatJoinyStuffThisInstant(void);
 
