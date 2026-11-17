@@ -38,6 +38,8 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+#include "70-packfile.h"
+#include "28-world3.h"
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
