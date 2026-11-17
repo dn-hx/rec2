@@ -126,8 +126,7 @@ void C2_HOOK_STDCALL BrResInternalFree(resource_header* res, br_boolean callback
     }
 
     while (res->children.head != NULL) {
-        r = BrSimpleRemove(res->children.head);
-        BrResInternalFree((resource_header*)r, 1);
+        BrResInternalFree((resource_header*)BrSimpleRemove(res->children.head), 1);
     }
     if (res->node.prev != NULL) {
         BrSimpleRemove(&res->node);
