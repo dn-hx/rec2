@@ -273,7 +273,7 @@ typedef struct {
     tS8 field_0x7;
     tS8 field_0x8;
     tS8 field_0x9;
-} tPipe_chunk_graphpical_wheel_stuff;
+} tPipe_chunk_graphical_wheel_stuff;
 
 typedef struct {
     int field_0x0;

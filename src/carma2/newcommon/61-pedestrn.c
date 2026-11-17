@@ -70,7 +70,7 @@ tPedForms_vtable gPed_forms_vtable = {
     (void (C2_HOOK_FASTCALL *)(undefined4*))CBDisposePersonality,
 };
 
-// UNCERTAIN: unreferenced gap
+// GLOBAL: CARMA2_HW 0x0065d7a0
 int gUNK_0065d7a0[2] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0065d7a8

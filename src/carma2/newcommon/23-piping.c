@@ -1920,7 +1920,7 @@ void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pCollisi
 // FUNCTION: CARMA2_HW 0x004c72f0
 void C2_HOOK_FASTCALL AddGraphicalWheelStuffToPipingSession(tCar_spec* pCar) {
 
-    ARAddVariedDataToSession(ePipe_chunk_single_graphpical_wheel_stuff, (uintptr_t)(tU16)pCar->car_ID, 5,
+    ARAddVariedDataToSession(ePipe_chunk_single_graphical_wheel_stuff, (uintptr_t)(tU16)pCar->car_ID, 5,
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, steering_angle), (int)(pCar->steering_angle * (32767.0 / 60.0)),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lf_sus_position), (int)(pCar->lf_sus_position * 127.f * (20.0 / 3.0)),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rf_sus_position), (int)(pCar->rf_sus_position * 127.f * (20.0 / 3.0)),
@@ -2097,7 +2097,7 @@ void C2_HOOK_FASTCALL PipeSingleFrameFinish(void) {
 // FUNCTION: CARMA2_HW 0x004c83f0
 void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar) {
 
-    ARDoSingleVariedSession(ePipe_chunk_single_graphpical_wheel_stuff, (tU16)pCar->car_ID, 5,
+    ARDoSingleVariedSession(ePipe_chunk_single_graphical_wheel_stuff, (tU16)pCar->car_ID, 5,
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, steering_angle), (int)(pCar->steering_angle * (32767.0 / 60.0)),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lf_sus_position), (int)(pCar->lf_sus_position * 127.f * (20.0 / 3.0)),
         SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rf_sus_position), (int)(pCar->rf_sus_position * 127.f * (20.0 / 3.0)),
@@ -2839,7 +2839,7 @@ void C2_HOOK_FASTCALL ApplyCar(tPipe_chunk** pChunk) {
 // FUNCTION: CARMA2_HW 0x004c96c0
 void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
     tCar_spec* car;
-    tU32 code = ((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x0;
+    tU32 code = ((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x0;
 
     if ((code & 0xffffff00u) == 0) {
         car = &gProgram_state.current_car;
@@ -2847,11 +2847,11 @@ void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
         car = GetCarSpec(code >> 8, code & 0xffu);
     }
 
-    *(float*)((tU8*)car + 0x4a8) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x6 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4ac) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x7 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4b0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x8 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4b4) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x9 * 0.001181102362);
-    *(float*)((tU8*)car + 0x4a0) = (float)((double)(int)((tPipe_chunk_graphpical_wheel_stuff*)*pChunk)->field_0x4 * 0.001831110569);
+    *(float*)((tU8*)car + 0x4a8) = (float)((double)(int)((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x6 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4ac) = (float)((double)(int)((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x7 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4b0) = (float)((double)(int)((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x8 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4b4) = (float)((double)(int)((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x9 * 0.001181102362);
+    *(float*)((tU8*)car + 0x4a0) = (float)((double)(int)((tPipe_chunk_graphical_wheel_stuff*)*pChunk)->field_0x4 * 0.001831110569);
 }
 
 // FUNCTION: CARMA2_HW 0x004c9770
