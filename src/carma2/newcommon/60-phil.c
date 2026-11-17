@@ -476,7 +476,33 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
 
 // SetStandardGravity
 
-// ProcessGravity
+// FUNCTION: CARMA2_HW 0x004b6ec0
+void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pGravity) {
+    br_vector3 gravity;
+    tSpecial_volume* pSpecial_volume;
+
+    pSpecial_volume = NULL;
+    if (pObject_info->field_0x4 & 0x8) {
+        pSpecial_volume = pObject->last_special_volume;
+    }
+    if (pSpecial_volume != NULL) {
+        if (pObject_info->field_0x14 == 0.0f || pSpecial_volume->viscosity_multiplier <= 2.0) {
+            gravity.v[1] = pObject->water_depth_factor * pSpecial_volume->gravity_multiplier * pGravity * gGravity_multiplier * -0.05681159420289855;
+            gravity.v[0] = 0.0f;
+            gravity.v[2] = 0.0f;
+        } else {
+            gravity.v[0] = 0.0f;
+            gravity.v[1] = ((1.0f - pSpecial_volume->gravity_multiplier) * pObject->water_depth_factor * pObject_info->field_0x14 - gGravity_multiplier * 1.4202898550724639 * pGravity) * 0.04;
+            gravity.v[2] = 0.0f;
+        }
+    } else {
+        gravity.v[0] = 0.0f;
+        gravity.v[2] = 0.0f;
+        gravity.v[1] = pGravity * gGravity_multiplier * -0.05681159420289855;
+    }
+    SetGravityDeltaV(pObject, &gravity);
+    ApplyGravitySingleObject(pObject);
+}
 
 // LevelOutOnSurface
 
