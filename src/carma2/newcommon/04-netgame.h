@@ -152,6 +152,8 @@ extern void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar);
 
 #ifdef REC2_HW
 extern void C2_HOOK_FASTCALL CreateBoxes(void);
+extern void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
+
 #endif
 
 // DrawScoreBoxes
