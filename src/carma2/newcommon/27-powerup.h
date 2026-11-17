@@ -391,7 +391,7 @@ extern void C2_HOOK_FASTCALL ARPowerupGot(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar);
 
-// SetPissed
+extern int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car);
 
 // ResetPissed
 
