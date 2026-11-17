@@ -1373,4 +1373,52 @@ void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* pAnother
 
 // RecordOpponentTwattageOccurrence
 
-// GetOpponentMood
+// FUNCTION: CARMA2_HW 0x004af640
+int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar) {
+    tOpponent_spec* opponent;
+    int i;
+    int type;
+
+    type = (tU16)pCar->car_ID & ~0xff;
+    if (type == 0x200) {
+        for (i = 0; i < gProgram_state.AI_vehicles.number_of_opponents; i++) {
+            if (gProgram_state.AI_vehicles.opponents[i].car_spec == pCar) {
+                opponent = &gProgram_state.AI_vehicles.opponents[i];
+                goto found;
+            }
+        }
+    } else if (type == 0x300) {
+        for (i = 0; i < gNumber_of_cops_before_faffage; i++) {
+            if (gProgram_state.AI_vehicles.cops[i].car_spec == pCar) {
+                opponent = &gProgram_state.AI_vehicles.cops[i];
+                goto found;
+            }
+        }
+    }
+    opponent = NULL;
+found:
+    if (*(int*)((char*)pCar + 0x1d4) != 0) {
+        return eOpponent_status_Wasted;
+    }
+    if (gCountdown != 0) {
+        return eOpponent_status_On_grid;
+    }
+    if (gTime_stamp_for_this_munging < opponent->stun_time_ends) {
+        return eOpponent_status_Stunned;
+    }
+    if (*(int*)((char*)opponent + 0xbc) != 0 && opponent->current_objective != eOOT_get_near_player) {
+        return eOpponent_status_Confused;
+    }
+    switch (opponent->current_objective) {
+    case eOOT_complete_race:
+        return eOpponent_status_Racing;
+    case eOOT_pursue_and_twat:
+        return eOpponent_status_Trying_to_kill_you;
+    case eOOT_run_away:
+        return eOpponent_status_Running_away;
+    case eOOT_frozen:
+        return eOpponent_status_Frozen;
+    default:
+        return eOpponent_status_Trying_to_get_to_you;
+    }
+}
