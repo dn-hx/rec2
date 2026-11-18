@@ -150,7 +150,7 @@ extern void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void);
 
 // ReplaySmoke
 
-// GenerateContinuousSmoke
+extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
 
 // RenderSmoke
 
@@ -268,7 +268,7 @@ extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
 extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
-// ClearSplashes
+extern void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 
