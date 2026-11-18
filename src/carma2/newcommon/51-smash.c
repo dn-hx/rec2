@@ -462,7 +462,10 @@ br_scalar C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_
 
 // DoNonCarShrapnel
 
-// DoShrapnel
+// STUB: CARMA2_HW 0x004eb8f0
+void C2_HOOK_FASTCALL DoShrapnel(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, tU32 pActor, tU32 pTime, tU32 pArg9, br_vector3* pTransform, br_vector3* pFragment_owner, br_vector3* pPosition, tU32 pDistance, br_vector3* pArg14, tU32 pArg15) {
+    NOT_IMPLEMENTED();
+}
 
 // DoAward
 
@@ -1062,7 +1065,10 @@ void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_data) {
     }
 }
 
-// DoBackwardShrapnel
+// STUB: CARMA2_HW 0x004f0380
+void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004f0430
 // FUNCTION: CARMA2_SW 0x004ec090
