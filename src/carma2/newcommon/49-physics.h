@@ -37,6 +37,7 @@ extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
 extern int gFace_count;
 extern tWorld_callbacks gWorld_callbacks;
+extern double gDOUBLE_0058a798;
 
 // count
 
@@ -172,7 +173,7 @@ extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject
 
 // CountJointForces
 
-// MoveJointedObject
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 extern void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_info);
 
@@ -216,7 +217,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-// CheckForObjectHierachyTouchingObjectList
+extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 
 // MakeObjectDoSomething
 
@@ -258,9 +259,9 @@ extern int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, 
 
 extern void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
 
-// SetUpTorqueHingePartners
+extern int C2_HOOK_FASTCALL SetUpTorqueHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject);
 
-// SetUpHingePartners
+extern int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject);
 
 // MakeMatrix
 
@@ -300,7 +301,7 @@ extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 
 // RepositionObjectGroup
 
-// SimpleRotate
+extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
 
 // InterpolateSingleObject
 
@@ -441,3 +442,4 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 // GetCollObjFromID
 
 #endif // GUARD_49_PHYSICS_H
+

@@ -122,6 +122,9 @@ void* gPhysics_scratch_ptr;
 // GLOBAL: CARMA2_SW 0x0068e108
 int gFace_count;
 
+// GLOBAL: CARMA2_HW 0x0058a798
+double gDOUBLE_0058a798 = 0.01;
+
 // GLOBAL: CARMA2_HW 0x0065cf78
 // GLOBAL: CARMA2_SW 0x006578b0
 tWorld_callbacks gWorld_callbacks = {
@@ -571,7 +574,10 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
 
 // CountJointForces
 
-// MoveJointedObject
+// STUB: CARMA2_HW 0x004b7510
+void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x004b9750
 // STUB: CARMA2_SW 0x004b5e70
@@ -811,9 +817,15 @@ void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, cons
     BrVector3Scale(pLinear, pDirection, inverse_mass);
 }
 
-// SetUpTorqueHingePartners
+// STUB: CARMA2_HW 0x004be550
+int C2_HOOK_FASTCALL SetUpTorqueHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
-// SetUpHingePartners
+// STUB: CARMA2_HW 0x004becf0
+int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
 // MakeMatrix
 
@@ -926,7 +938,10 @@ void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects) {
 
 // RepositionObjectGroup
 
-// SimpleRotate
+// STUB: CARMA2_HW 0x004c2670
+void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt) {
+    NOT_IMPLEMENTED();
+}
 
 // InterpolateSingleObject
 
