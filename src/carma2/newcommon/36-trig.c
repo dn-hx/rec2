@@ -400,5 +400,8 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateZ(br_matrix34* mat, br_angle rz) {
 
 // DRMatrix23Rotate
 
-// DRMatrix23PostRotate
+// STUB: CARMA2_HW 0x005132a0
+void C2_HOOK_FASTCALL DRMatrix23PostRotate(br_matrix23* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
 

@@ -44,6 +44,26 @@ br_angle gSky_image_underground;
 // GLOBAL: CARMA2_HW 0x006aaa2c
 // GLOBAL: CARMA2_SW 0x006a447c
 int gDisallow_duplicates;
+// GLOBAL: CARMA2_HW 0x00655bb8
+const char* gAxis_names[3] = {
+    "x",
+    "y",
+    "z",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bc8
+const char* gLollipop_names[3] = {
+    "xlollipop",
+    "ylollipop",
+    "zlollipop",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bd8
+const char* gGroove_path_names[2] = {
+    "straight",
+    "circular",
+};
+
 
 // GLOBAL: CARMA2_HW 0x006aaf40
 tU8* gTrack_flic_buffer;
@@ -68,9 +88,26 @@ br_material* gDuplicate_material;
 // GLOBAL: CARMA2_HW 0x006aaa24
 br_model* gDuplicate_model;
 
+// GLOBAL: CARMA2_HW 0x00655bb0
+const char* gGroove_nature_names[2] = {
+    "constant",
+    "distance",
+};
+
+// GLOBAL: CARMA2_HW 0x00655be0
+const char* gGroove_object_names[4] = {
+    "spin",
+    "rock",
+    "throb",
+    "shear",
+};
+
 // GLOBAL: CARMA2_HW 0x00660cb8
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
+
+// GLOBAL: CARMA2_HW 0x0068b854
+br_actor* gGroove_by_proxy_actor;
 
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
