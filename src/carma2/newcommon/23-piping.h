@@ -206,7 +206,7 @@ extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3
 
 extern void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
-// PipeSingleCrush
+extern void C2_HOOK_FASTCALL PipeSingleCrush(br_model* pModel, br_vector3* pSrc, const float* pScalars);
 
 extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
 
