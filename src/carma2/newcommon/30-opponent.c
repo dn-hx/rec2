@@ -210,7 +210,10 @@ tS16 C2_HOOK_FASTCALL FindNearestPathSection(const br_vector3* pActor_coords, br
 
 // TurnOpponentPhysicsOn
 
-// TurnOpponentPhysicsOff
+// STUB: CARMA2_HW 0x004a79a0
+void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // ApplyOppoRenderage2
 
@@ -994,7 +997,10 @@ void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
 
 // MassageOpponentPosition
 
-// RematerialiseOpponentOnThisSection
+// STUB: CARMA2_HW 0x004a7f20
+int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004a8170
 // FUNCTION: CARMA2_SW 0x004a42e0
@@ -1305,11 +1311,20 @@ int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spe
     return -1;
 }
 
-// GetOpponentsSectionStartNodePoint
+// STUB: CARMA2_HW 0x004aeb90
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
+}
 
-// GetOpponentsSectionFinishNodePoint
+// STUB: CARMA2_HW 0x004aec40
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
+}
 
-// GetOpponentsSectionWidth
+// STUB: CARMA2_HW 0x004aece0
+float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004aed50
 // FUNCTION: CARMA2_SW 0x004aaec0
