@@ -88,7 +88,35 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // GetCompressorTypeFromOptions
 
-// InitMovie
+// FUNCTION: CARMA2_HW 0x004e0f20
+int C2_HOOK_FASTCALL InitMovie(void) {
+    tGraf_data* pGraf;
+    int bits;
+    int w;
+    OSErr err;
+
+    pGraf = gCurrent_graf_data;
+    bits = gNbPixelBits;
+    gQuicktime_rect.top = 0;
+    gQuicktime_rect.left = 0;
+    w = pGraf->width;
+    if (bits == 16) {
+        w = w / 2;
+    }
+    gQuicktime_rect.right = w;
+    w = pGraf->height;
+    if (bits == 16) {
+        w = w / 2;
+    }
+    gQuicktime_rect.bottom = w;
+    err = ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie);
+    if (err == 0) {
+        return err;
+    }
+    PathCat(gQuick_time_temp_path, gApplication_path, "QTTMP");
+    PathCat(gQuick_time_movie_path_stub, gApplication_path, "MOVIE");
+    return ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie);
+}
 
 // CreateMovie
 
