@@ -6138,6 +6138,12 @@ typedef struct {
 } tPipe_chunk_shrapnel_shower;
 
 typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
+typedef struct {
     tNet_message_chunk_header header;
     undefined field_0x2[2];
     tU32 seed;

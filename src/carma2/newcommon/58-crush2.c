@@ -83,6 +83,10 @@ void C2_HOOK_FASTCALL CheckLastCar(void) {
     }
 }
 
+// STUB: CARMA2_HW 0x00441350
+int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x0043f5f0
 // FUNCTION: CARMA2_SW 0x0043f6d0
 inline void C2_HOOK_FASTCALL KnackerThisCar(tCar_spec* pCar) {

@@ -1137,7 +1137,10 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 
 // DrawTheGlow
 
-// PipeInstantUnSmudge
+// STUB: CARMA2_HW 0x004fc740
+void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004fc9c0
 void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point) {

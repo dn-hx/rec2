@@ -369,6 +369,10 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x00450b50
+tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 // InitDrones
 
 // FUNCTION: CARMA2_HW 0x0044fc10
