@@ -60,7 +60,7 @@ extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(const br_vector3* pPoin
 
 // SphereBoxFaceCollide
 
-// SphereFaceCollide
+extern void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT);
 
 extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
 
@@ -72,7 +72,7 @@ extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
 
 extern int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, br_material* material, tFace_ref* face_list, int max_face, br_matrix34* pMat, tWorld_callbacks* pWorld_callbacks);
 
-// ModelPickBox
+extern int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat);
 
 // ClipToPlaneGE
 

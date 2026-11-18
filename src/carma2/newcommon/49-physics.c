@@ -24,6 +24,9 @@
 #include "c2_math.h"
 #include "c2_string.h"
 #include "c2_stdlib.h"
+#include "13-crush1.h"
+#include "27-powerup.h"
+#include "13-crush1.h"
 
 #include <stddef.h>
 
@@ -77,6 +80,9 @@ int gPHIL_mechanics_time_sync;
 // GLOBAL: CARMA2_HW 0x0074a5e8
 // GLOBAL: CARMA2_SW 0x007410a8
 int gPHIL_munging_objects;
+
+// GLOBAL: CARMA2_HW 0x0079d858
+tFace_ref* gPling_face;
 
 // GLOBAL: CARMA2_HW 0x006940c8
 // GLOBAL: CARMA2_SW 0x0068e120
@@ -251,21 +257,33 @@ tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, br_vecto
 
 // FaceOnCount
 
-// EliminateFaces
+// STUB: CARMA2_HW 0x00423320
+int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix) {
+    NOT_IMPLEMENTED();
+}
 
 // GetShapePoint
 
 // GetObjectObjectEdgeIntersections
 
-// GetFaceEdgeIntersection
+// STUB: CARMA2_HW 0x004236a0
+int C2_HOOK_FASTCALL GetFaceEdgeIntersection(tPhysics_object* pObject, tPhysics_shape* pShape, tSensible_place_contact* pContacts, int pCount, int pMax, br_vector3* pPoints, br_matrix34* pScratch, int* pHas_collision) {
+    NOT_IMPLEMENTED();
+}
 
 // GetSphereToFacePoints
 
 // CheckSingleEdgeWithSphere
 
-// GetSphereToEdgePoints
+// STUB: CARMA2_HW 0x00423c00
+int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, int pParam1, int pParam2, int pParam3, int pParam4, int pParam5, int pParam6) {
+    NOT_IMPLEMENTED();
+}
 
-// GetCornerToFacePoints
+// STUB: CARMA2_HW 0x00423ed0
+int C2_HOOK_FASTCALL GetCornerToFacePoints(tPhysics_object* pObject, int pEdx, tU32 pParam1, int pParam2, int pParam3, char* pParam4, tU32 pParam5) {
+    NOT_IMPLEMENTED();
+}
 
 // CylinderCheck
 
@@ -273,13 +291,22 @@ tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, br_vecto
 
 // WorldPointCollision
 
-// CheckSingleEdgeWithObjectEdges
+// STUB: CARMA2_HW 0x00424270
+int C2_HOOK_FASTCALL CheckSingleEdgeWithObjectEdges(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data) {
+    NOT_IMPLEMENTED();
+}
 
-// GetEdgeToEdgePoints
+// STUB: CARMA2_HW 0x00424140
+int C2_HOOK_FASTCALL GetEdgeToEdgePoints(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7) {
+    NOT_IMPLEMENTED();
+}
 
 // SetUpWorkspace
 
-// GetObjectWallForceInfo
+// STUB: CARMA2_HW 0x004228b0
+int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg) {
+    NOT_IMPLEMENTED();
+}
 
 // GetObjectCornerToObjectFacePoints
 

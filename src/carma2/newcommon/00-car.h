@@ -28,6 +28,24 @@ extern int gIn_the_sea;
 extern int gFace_num__car;
 extern tFace_ref gFace_list__car[300];
 extern br_scalar gMin_world_y;
+extern double gZero;
+extern float gF1000;
+extern float gF1000;
+extern double gZero;
+extern int gNum_cars_and_non_cars;
+extern int gControl__car;
+extern tControl_car_fn ControlCar[6];
+extern int gLast_skid_vol[2];
+extern int gSkid_tag[2];
+extern tCar_spec* gLast_car_to_skid[2];
+extern int gMetal_crunch_sound_id[5];
+extern int gNum_cars_and_non_cars;
+extern tU32 gCheck_for_deattachment_total_time;
+extern int gNum_cars_and_non_cars;
+extern tU32 gLast_cunning_stunt;
+extern tU32 gSafe_position_time_count;
+extern tControl_car_fn ControlCar[6];
+extern int gControl__car;
 
 extern void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int pDamage_amount);
 
@@ -79,7 +97,7 @@ extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
 // ControlOurCar
 
-// CalcEngineForce
+extern void C2_HOOK_FASTCALL CalcEngineForce(tCar_spec* pCar, br_scalar pDt);
 
 // PrepareCars
 
@@ -129,7 +147,7 @@ extern void C2_HOOK_FASTCALL ControlCar2(tCar_spec* pCar, br_scalar pDt);
 
 extern void C2_HOOK_FASTCALL ControlCar3(tCar_spec* pCar, br_scalar pDt);
 
-// ControlCar4
+extern void C2_HOOK_FASTCALL ControlCar4(tCar_spec* pCar, void* pUnused, br_scalar pDt);
 
 extern void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, br_scalar pDt);
 
@@ -157,7 +175,7 @@ extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar 
 
 // NudgeObject
 
-// CalcForce
+extern void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt);
 
 // DoRevs
 
@@ -217,7 +235,7 @@ extern void C2_HOOK_FASTCALL AdjustDownForce(void);
 
 extern void C2_HOOK_FASTCALL FreezeMechanics(void);
 
-// FlyCar
+extern void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt);
 
 extern float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec);
 
@@ -229,7 +247,7 @@ extern tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* pActor);
 
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor);
 
-// PipeNonCarObject
+extern int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data);
 
 // PipeNonCars
 

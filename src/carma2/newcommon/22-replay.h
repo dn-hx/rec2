@@ -45,9 +45,9 @@ extern void C2_HOOK_FASTCALL DoZappyActionReplayHeadups(int pSpecial_zappy_basta
 
 extern void C2_HOOK_FASTCALL DoActionReplayHeadups(void);
 
-// PreProcess
+extern void C2_HOOK_FASTCALL PreProcess(int pFrame_period);
 
-// PostProcess
+extern void C2_HOOK_FASTCALL PostProcess(int pFrame_period);
 
 // DoActionReplay
 

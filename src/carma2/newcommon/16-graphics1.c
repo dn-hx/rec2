@@ -24,6 +24,22 @@
 #include "platform.h"
 #include "rec2_types.h"
 #include "rec2_macros.h"
+#include "25-grafdata.h"
+#include "23-piping.h"
+#include "globvrpb.h"
+#include "53-controls.h"
+#include "22-replay.h"
+#include "17-world2.h"
+#include "64-movie.h"
+#include "49-physics.h"
+#include "32-spark.h"
+#include "globvrpb.h"
+#include "01-network.h"
+#include "33-depth.h"
+#include "18-graphics2.h"
+#include "28-world3.h"
+#include "61-pedestrn.h"
+#include "32-spark.h"
 
 #include <limits.h>
 #include <string.h>
@@ -75,6 +91,9 @@ float gPrevious_rear_yon = 0.0f;
 int gINT_006a2350[2] = { 0 };
 #endif
 
+// GLOBAL: CARMA2_HW 0x006a2358
+int gAR_fudge_headups;
+
 // GLOBAL: CARMA2_HW 0x00705080
 // GLOBAL: CARMA2_SW 0x006fbb40
 float gCosine_array[65] = { 0 };
@@ -86,6 +105,14 @@ int gScreen_wobble_y = 0;
 // GLOBAL: CARMA2_HW 0x0065fdc8
 // GLOBAL: CARMA2_SW 0x0065a708
 tShadow_level gShadow_level = eShadow_us_only;
+
+// GLOBAL: CARMA2_HW 0x0065fb20
+br_matrix34 gSheer_mat = {
+    { { 1.0, 0.0, 0.0 },
+      { 0.0, 1.0, 0.0 },
+      { 0.0, 0.0, 1.0 },
+      { 0.0, 0.0, 0.0 } }
+};
 
 // GLOBAL: CARMA2_HW 0x0065fb54
 int gHud_tinted4 = -1;
@@ -112,6 +139,9 @@ br_material* gShadow_material;
 
 // GLOBAL: CARMA2_HW 0x006a27d0
 br_vector3 gShadow_light_ray;
+
+// GLOBAL: CARMA2_HW 0x006a27dc
+int gShadow_clip_plane_count;
 
 // GLOBAL: CARMA2_HW 0x006a27c0
 br_vector3 gShadow_light_z;
@@ -566,7 +596,14 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // DoARenderPass
 
-// DoACompleteRenderPass
+// STUB: CARMA2_HW 0x004e54f0
+void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // STUB: CARMA2_HW 0x004e4e40
 // STUB: CARMA2_SW 0x004e11a0

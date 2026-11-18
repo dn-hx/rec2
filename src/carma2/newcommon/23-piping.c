@@ -120,6 +120,9 @@ tU32 gPipe_sound_time_window;
 // GLOBAL: CARMA2_SW 0x0067107c
 int gDisable_advance;
 
+// GLOBAL: CARMA2_HW 0x006940d4
+tPipe_smudge_data* gSmudge_space;
+
 // GLOBAL: CARMA2_HW 0x00694104
 // GLOBAL: CARMA2_SW 0x0068e15c
 tPipe_smudge_data* gCrush_space;
@@ -638,7 +641,10 @@ void C2_HOOK_FASTCALL ARMainLoopStart(void) {
     gLast_replay_frame_time = PDGetTotalTime();
 }
 
-// ARToggleReplay
+// STUB: CARMA2_HW 0x00403d60
+int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8) {
+    NOT_IMPLEMENTED();
+}
 
 // GetReducedPos
 
@@ -928,7 +934,10 @@ void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed
         SIZE_OFFSET_PIPING(tPipe_chunk_napalm_bolt, positions), pPositions);
 }
 
-// PipeSingleCrush
+// STUB: CARMA2_HW 0x004c7f40
+void C2_HOOK_FASTCALL PipeSingleCrush(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004c8090
 void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y) {

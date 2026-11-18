@@ -66,7 +66,7 @@ extern int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime);
 
 // MoveCamToIncident
 
-// PanningExternalCamera
+extern void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime);
 
 // CheckForWall
 

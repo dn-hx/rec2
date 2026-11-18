@@ -50,6 +50,7 @@ extern tU32 gInventory_timeout;
 extern tU32* gReal_render_palette;
 extern int gCollision_info_uid_counter;
 extern tShit_mine gShit_mines[20];
+extern tPhysics_object* gUNK_0079ecbc;
 extern int gNumber_of_powerups;
 
 extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
@@ -134,7 +135,7 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
 // LeftInventory
 
-// DrawPowerups
+extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
 
 // MungeKeyboardPowerup
 

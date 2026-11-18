@@ -384,7 +384,48 @@ int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
 
 // MoveCamToIncident
 
-// PanningExternalCamera
+// FUNCTION: CARMA2_HW 0x004104b0
+void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) {
+    br_vector3 dir;
+    br_vector3 normal;
+    br_scalar t;
+    br_scalar d;
+    br_material* material;
+    br_vector3 delta;
+
+    BrVector3Sub(&delta, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
+    d = BrVector3LengthSquared(&delta);
+    if (d <= 102.91955471539592) {
+        if (gSwitch_time != 0) {
+            int passed;
+
+            if (ARPipeSearchForwards()) {
+                passed = GetTotalTime() < gSwitch_time;
+            } else {
+                passed = gSwitch_time < GetTotalTime();
+            }
+            if (passed) {
+                goto check_camera;
+            }
+        }
+        gCamera_incident_flag = 1;
+        goto point_camera;
+    }
+check_camera:
+    if (gCamera_incident_flag == 0 && d <= 205.83910943079184) {
+        goto point_camera;
+    }
+    if (d <= 25.f) {
+        BrVector3Sub(&dir, (br_vector3*)&gCamera->t.t.mat.m[3][0], &pCar->pos);
+        FindFace(&pCar->pos, &dir, &normal, &t, &material);
+        if (t > 1.f) {
+            goto point_camera;
+        }
+    }
+    SetUpPanningCamera(pCar);
+point_camera:
+    PointCameraAtCar(&pCar->pos, &gCamera->t.t.mat, 1.f);
+}
 
 // CheckForWall
 

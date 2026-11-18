@@ -39,6 +39,9 @@ int gHud_tinted3 = -1;
 // GLOBAL: CARMA2_SW 0x007586a0
 int gCredits_checkpoint[3];
 
+// GLOBAL: CARMA2_HW 0x0079ec44
+tSpecial_volume* gLast_camera_special_volume;
+
 // GLOBAL: CARMA2_HW 0x006aaa34
 // GLOBAL: CARMA2_SW 0x006a4484
 tU32 gLast_checkpoint_time;

@@ -32,9 +32,38 @@ br_actor* gAdditional_actors;
 // GLOBAL: CARMA2_SW 0x006ae500
 tBrender_storage* gStorage_for_callbacks;
 
+// GLOBAL: CARMA2_HW 0x0079ec2c
+br_angle gSky_image_height;
+
+
+// GLOBAL: CARMA2_HW 0x0079ec2e
+br_angle gSky_image_width;
+// GLOBAL: CARMA2_HW 0x0079ec30
+br_angle gSky_image_underground;
+
 // GLOBAL: CARMA2_HW 0x006aaa2c
 // GLOBAL: CARMA2_SW 0x006a447c
 int gDisallow_duplicates;
+// GLOBAL: CARMA2_HW 0x00655bb8
+const char* gAxis_names[3] = {
+    "x",
+    "y",
+    "z",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bc8
+const char* gLollipop_names[3] = {
+    "xlollipop",
+    "ylollipop",
+    "zlollipop",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bd8
+const char* gGroove_path_names[2] = {
+    "straight",
+    "circular",
+};
+
 
 // GLOBAL: CARMA2_HW 0x006aaf40
 tU8* gTrack_flic_buffer;
@@ -59,9 +88,26 @@ br_material* gDuplicate_material;
 // GLOBAL: CARMA2_HW 0x006aaa24
 br_model* gDuplicate_model;
 
+// GLOBAL: CARMA2_HW 0x00655bb0
+const char* gGroove_nature_names[2] = {
+    "constant",
+    "distance",
+};
+
+// GLOBAL: CARMA2_HW 0x00655be0
+const char* gGroove_object_names[4] = {
+    "spin",
+    "rock",
+    "throb",
+    "shear",
+};
+
 // GLOBAL: CARMA2_HW 0x00660cb8
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
+
+// GLOBAL: CARMA2_HW 0x0068b854
+br_actor* gGroove_by_proxy_actor;
 
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
@@ -149,6 +195,11 @@ void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, b
 // CombineBounds
 
 // CheckNonCarModelBounds
+
+// STUB: CARMA2_HW 0x00404150
+void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00500d50
 // FUNCTION: CARMA2_SW 0x004fc6b0

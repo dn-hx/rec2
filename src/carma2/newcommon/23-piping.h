@@ -140,7 +140,7 @@ extern void C2_HOOK_FASTCALL ARService(void);
 
 extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
-// ARToggleReplay
+extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
 
 // GetReducedPos
 
@@ -206,7 +206,7 @@ extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3
 
 extern void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
 
-// PipeSingleCrush
+extern void C2_HOOK_FASTCALL PipeSingleCrush(br_model* pModel, br_vector3* pSrc, const float* pScalars);
 
 extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
 

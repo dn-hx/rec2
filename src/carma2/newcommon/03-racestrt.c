@@ -9,6 +9,11 @@
 #include "03-racestrt.h"
 
 #include "rec2_types.h"
+#include "globvars.h"
+#include "41-utility.h"
+
+// GLOBAL: CARMA2_HW 0x006a0c74
+int gOur_starting_position;
 
 // GLOBAL: CARMA2_HW 0x006a0d38
 // GLOBAL: CARMA2_SW 0x0069ad90

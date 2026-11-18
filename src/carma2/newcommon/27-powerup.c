@@ -210,6 +210,9 @@ tU32 gInventory_timeout;
 // GLOBAL: CARMA2_SW 0x007951b0
 int gInstant_handbrake;
 
+// GLOBAL: CARMA2_HW 0x0079ecbc
+tPhysics_object* gUNK_0079ecbc;
+
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
 char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
@@ -588,7 +591,10 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // LeftInventory
 
-// DrawPowerups
+// STUB: CARMA2_HW 0x004dad00
+void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // MungeKeyboardPowerup
 
