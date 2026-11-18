@@ -27,6 +27,10 @@
 #include "globvrpb.h"
 
 #include "rec2_macros.h"
+#include "13-crush1.h"
+#include "platform.h"
+#include "platform.h"
+#include "13-crush1.h"
 
 // GLOBAL: CARMA2_HW 0x0074d3b0
 // GLOBAL: CARMA2_SW 0x00743910

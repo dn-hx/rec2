@@ -6050,6 +6050,13 @@ enum {
 };
 
 
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float* total_displacement;
+    float displacement;
+} tCrush_displacement_context_local;
+
 typedef struct tBend_data_local {
     br_scalar field_0x0;
     br_scalar field_0x4;
@@ -6160,5 +6167,12 @@ typedef struct {
     int min_smokiness;
     int max_smokiness;
 } tNet_message_chunk_non_car_shrapnel;
+
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float displacement;
+    float* total_displacement;
+} tModel_mash_context_local;
 
 #endif // REC2_TYPES_H
