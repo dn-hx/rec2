@@ -159,7 +159,10 @@ void C2_HOOK_FASTCALL FUN_004e1c60(undefined4 pArg1, undefined4 pArg2, undefined
 
 // GenerateOneMovieFrame
 
-// MovieRecordFrame
+// STUB: CARMA2_HW 0x004e1da0
+int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e2100
 // FUNCTION: CARMA2_SW 0x004de480

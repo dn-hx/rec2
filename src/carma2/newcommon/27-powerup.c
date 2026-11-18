@@ -591,7 +591,10 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // LeftInventory
 
-// DrawPowerups
+// STUB: CARMA2_HW 0x004dad00
+void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // MungeKeyboardPowerup
 

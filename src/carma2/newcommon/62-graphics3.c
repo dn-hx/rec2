@@ -685,7 +685,10 @@ void C2_HOOK_FASTCALL MapOverlay(void) {
 
 // InitNearestCar
 
-// MapStuffBeforeRender
+// STUB: CARMA2_HW 0x00496be0
+void C2_HOOK_FASTCALL MapStuffBeforeRender(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00496d80
 // FUNCTION: CARMA2_SW 0x00493bf0
