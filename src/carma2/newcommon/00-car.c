@@ -4892,19 +4892,24 @@ int gFlyCarMode = 2;
 // GLOBAL: CARMA2_HW 0x00679414
 br_scalar gFlyCarAngularVelocity;
 
-// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cefc
+// GLOBAL: CARMA2_HW 0x0075cefc
+// shadows gProgram_state (naming breaks other TUs)
 int gFlyCarKeyFlags;
 
-// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf00
+// GLOBAL: CARMA2_HW 0x0075cf00
+// shadows gProgram_state (naming breaks other TUs)
 int gFlyCarKeyTimer0;
 
-// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf04
+// GLOBAL: CARMA2_HW 0x0075cf04
+// shadows gProgram_state (naming breaks other TUs)
 int gFlyCarKeyTimer1;
 
-// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf08
+// GLOBAL: CARMA2_HW 0x0075cf08
+// shadows gProgram_state (naming breaks other TUs)
 int gFlyCarKeyTimer2;
 
-// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf0c
+// GLOBAL: CARMA2_HW 0x0075cf0c
+// shadows gProgram_state (naming breaks other TUs)
 int gFlyCarKeyTimer3;
 
 #ifdef REC2_MATCHING
