@@ -17,6 +17,9 @@ extern br_actor* gAdditional_actors;
 extern tBrender_storage* gStorage_for_callbacks;
 
 extern tRendererShadingType gMaterial_shading_for_callback;
+extern br_angle gSky_image_underground;
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_width;
 extern tU8* gTrack_flic_buffer;
 extern tU32 prev_sky_animation;
 extern tFlic_descriptor gTrack_flic_descriptor;
