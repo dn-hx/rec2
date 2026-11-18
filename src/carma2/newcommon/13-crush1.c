@@ -2116,7 +2116,10 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // RepairCarCollisionShapes
 
-// RepairCar2
+// STUB: CARMA2_HW 0x0043ace0
+float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
+    NOT_IMPLEMENTED();
+}
 
 // RepairCar
 
@@ -2234,7 +2237,10 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // DBNonCarOwner
 
-// SendDBNonCar
+// STUB: CARMA2_HW 0x0043d1d0
+void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
 
 // ReceivedDBNonCar
 
@@ -2255,7 +2261,10 @@ void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents) {
 
 // SHNonCarOwner
 
-// SendSHNonCar
+// STUB: CARMA2_HW 0x0043d690
+void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
 
 // SendAllSHNonCars
 
@@ -2288,7 +2297,10 @@ int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar) {
     }
 }
 
-// GetNetShapeDataLengthFromData
+// STUB: CARMA2_HW 0x0043d960
+int C2_HOOK_FASTCALL GetNetShapeDataLengthFromData(tU8* pData) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0043d9c0
 // FUNCTION: CARMA2_SW 0x0043da10
