@@ -16,16 +16,49 @@
 
 #include <QTML.h>
 #include <Movies.h>
+#include <TextUtils.h>
+
+#include <QTML.h>
+#include <Movies.h>
 
 #include "c2_string.h"
+#include "18-graphics2.h"
 
 // GLOBAL: CARMA2_HW 0x006a0c24
 // GLOBAL: CARMA2_SW 0x0069ac7c
 int gQuickTime_initialized;
 
+// GLOBAL: CARMA2_HW 0x006a0c28
+int gRecording_paused;
+
+
+// GLOBAL: CARMA2_HW 0x006a0c2c
+int gQuicktime_movie_counter;
+
+// GLOBAL: CARMA2_HW 0x006a0c30
+Movie gQuicktime_movie;
+
+// GLOBAL: CARMA2_HW 0x006a0c34
+Handle gQuicktime_frame_pixmap_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c3c
+Handle gQuicktime_compressed_frame_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c40
+Handle gQuicktime_image_description_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c44
+br_uint_16* gQuicktime_frame_pixels;
+
+// GLOBAL: CARMA2_HW 0x006a0c48
+br_uint_16* gQuicktime_frame_pixel_conversion_table;
+
 // GLOBAL: CARMA2_HW 0x006a0c50
 // GLOBAL: CARMA2_SW 0x0069aca8
 int gNext_replay_record_state;
+
+// GLOBAL: CARMA2_HW 0x006a0c54
+tU32 gRecording_time;
 
 // GLOBAL: CARMA2_HW 0x006a23b8
 // GLOBAL: CARMA2_SW 0x0069c410
@@ -38,6 +71,9 @@ int gStatus_message_1;
 // GLOBAL: CARMA2_HW 0x006a23c0
 // GLOBAL: CARMA2_SW 0x0069c418
 int gStatus_message_2;
+
+// GLOBAL: CARMA2_HW 0x006baa28
+int gRecording_mouse_disabled;
 
 // GLOBAL: CARMA2_HW 0x00705440
 // GLOBAL: CARMA2_SW 0x006fbf00
@@ -54,6 +90,23 @@ char gQuick_time_banner_texture_name[256];
 // GLOBAL: CARMA2_HW 0x0065ee50
 char gDefault_quick_time_quality[] = "normal";
 
+// GLOBAL: CARMA2_HW 0x006a0af0
+short gQuicktime_movie_file;
+
+// GLOBAL: CARMA2_HW 0x006a0af4
+ImageSequence gQuicktime_image_sequence;
+
+// GLOBAL: CARMA2_HW 0x006a0afc
+Media gQuicktime_media;
+
+// GLOBAL: CARMA2_HW 0x006a0b08
+FSSpec gQt_file_spec;
+
+// GLOBAL: CARMA2_HW 0x006a0c10
+Track gQuicktime_track;
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
+
 // GLOBAL: CARMA2_HW 0x0065ed30
 // GLOBAL: CARMA2_SW 0x00659690
 char gDefault_quick_time_compressor[] = "animation";
@@ -64,7 +117,10 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // SwapPixelmapBytePairs
 
-// WriteBannerFrame
+// STUB: CARMA2_HW 0x004e1250
+int C2_HOOK_FASTCALL WriteBannerFrame(void) {
+    NOT_IMPLEMENTED();
+}
 
 // Allocate555BackScreen
 
@@ -74,7 +130,10 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // InitMovie
 
-// CreateMovie
+// STUB: CARMA2_HW 0x004e0fe0
+short C2_HOOK_FASTCALL CreateMovie(void) {
+    NOT_IMPLEMENTED();
+}
 
 // MovieStartNewMovie
 
@@ -135,6 +194,12 @@ void C2_HOOK_FASTCALL FUN_004e1c30(void) {
     /* Unused */
 }
 
+// STUB: CARMA2_HW 0x004e1c70
+short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+}
+
+#define QT_CloseMovieFile ((OSErr (C2_HOOK_CDECL *)(short))CloseMovieFile)
 // FUNCTION: CARMA2_HW 0x004e1c40
 // FUNCTION: CARMA2_SW 0x004ddf40
 void C2_HOOK_FASTCALL FUN_004e1c40(void) {
@@ -155,7 +220,10 @@ void C2_HOOK_FASTCALL FUN_004e1c60(undefined4 pArg1, undefined4 pArg2, undefined
 
 // GenerateOneMovieFrame
 
-// MovieRecordFrame
+// STUB: CARMA2_HW 0x004e1da0
+int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e2100
 // FUNCTION: CARMA2_SW 0x004de480

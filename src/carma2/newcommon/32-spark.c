@@ -28,6 +28,9 @@
 
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x0058b008
+const br_scalar gFLOAT_0058b008 = 0.0f;
+
 // GLOBAL: CARMA2_HW 0x00660110
 // GLOBAL: CARMA2_SW 0x0065aa58
 int gSmoke_on = 1;
@@ -112,6 +115,9 @@ tSpark gSparks[32] = { 0 };
 // GLOBAL: CARMA2_SW 0x006a3dd0
 br_model* gLollipop_model = NULL;
 
+// GLOBAL: CARMA2_HW 0x006aa388
+tReplay_splash gReplay_splashes[10];
+
 // GLOBAL: CARMA2_HW 0x006aa59c
 // GLOBAL: CARMA2_SW 0x006a3fec
 int gColumn_flags;
@@ -170,6 +176,9 @@ tSplash gSplash[32] = { 0 };
 // GLOBAL: CARMA2_HW 0x006aa570
 // GLOBAL: CARMA2_SW 0x006a3fbc
 int gSplash_flags;
+
+// GLOBAL: CARMA2_HW 0x006aa574
+int gReplay_splash_flags;
 
 // GLOBAL: CARMA2_HW 0x006a9130
 // GLOBAL: CARMA2_SW 0x006a2b80
@@ -276,7 +285,10 @@ void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol) {
 
 // ReplaySparks
 
-// RenderSparks
+// STUB: CARMA2_HW 0x004f7450
+void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // CreateSingleSpark
 
@@ -610,9 +622,16 @@ void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void) {
 
 // ReplaySmoke
 
-// GenerateContinuousSmoke
+// STUB: CARMA2_HW 0x004fa5b0
+void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // RenderSmoke
+// STUB: CARMA2_HW 0x004fa910
+void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004fb330
 // FUNCTION: CARMA2_SW 0x004f6870
@@ -1128,7 +1147,10 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 
 // DrawTheGlow
 
-// PipeInstantUnSmudge
+// STUB: CARMA2_HW 0x004fc740
+void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004fc9c0
 void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point) {
@@ -1504,9 +1526,15 @@ void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {
     return NULL;
 }
 
-// ClearSplashes
+// STUB: CARMA2_HW 0x004fee70
+void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
-// AdjustSplashReplay
+// STUB: CARMA2_HW 0x004fef40
+void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x004ff030
 // STUB: CARMA2_SW 0x004fa910

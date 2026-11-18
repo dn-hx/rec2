@@ -517,6 +517,11 @@ const int gControls_frontend_to_key_mapping_lut[29] = {
     59, 70, 72, 73, 75, 76, 35, 65, 66,
 };
 
+// GLOBAL: CARMA2_HW 0x00604900
+int gFrontend_controls_indices[15] = {
+    12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+};
+
 // SetGameTarget
 
 // FUNCTION: CARMA2_HW 0x00468140
@@ -580,6 +585,10 @@ void C2_HOOK_FASTCALL PollCarDetails(tNet_game_details* pNet_game) {
     }
 }
 
+// STUB: CARMA2_HW 0x0046e020
+void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00466370
 // FUNCTION: CARMA2_SW 0x00466100
 void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions) {
@@ -1338,7 +1347,61 @@ int C2_HOOK_FASTCALL MultiplayerSetup(tFrontend_spec* pFrontend) {
 
 // NetworkJoinSetup
 
-// NetworkJoinMenuInfunc
+// FUNCTION: CARMA2_HW 0x00467ef0
+int C2_HOOK_FASTCALL NetworkJoinMenuInfunc(tFrontend_spec* pFrontend) {
+    tFrontend_scroller_spec* scroller;
+    int race_idx;
+    int i;
+    int text_idx;
+
+    if (!pFrontend->loaded) {
+        LoadMenuSettings(pFrontend);
+    }
+    if (!gValid_stashed_save_game) {
+        MakeSavedGame(&gStashed_save_game);
+    }
+    gValid_stashed_save_game = 1;
+    pFrontend->items[30].text[0] = '\0';
+    SetOptions(gFrontend_game_type, &gFrontend_net_options);
+    gRace_index = PickNetRace(-1, gFrontend_net_options.race_sequence_type);
+    LoadRaces(gRace_list, &gNumber_of_races, gFrontend_game_type);
+    strcpy(pFrontend->items[26].text, gProgram_state.player_name);
+    FuckWithWidths(pFrontend);
+    gFrontend_time_last_input = PDGetTotalTime();
+    for (i = 0; i < pFrontend->count_items; i++) {
+        pFrontend->items[i].visible = 1;
+        if (i == 19 || i == 24) {
+            pFrontend->items[i].visible = 0;
+            pFrontend->items[i].enabled = kFrontendItemEnabled_default;
+        }
+    }
+    /* UpdateNetTrackScroller(pFrontend), inlined */
+    scroller = &pFrontend->scrollers[1];
+    scroller->indexTopItem = scroller->indexFirstScrollableItem;
+    scroller->count = gNumber_of_races;
+    race_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; race_idx++, i++) {
+        strcpy(pFrontend->items[i].text, gRace_list[race_idx].name);
+    }
+    /* UpdateNetGameTypeScroller(pFrontend), inlined */
+    scroller = &pFrontend->scrollers[0];
+    text_idx = scroller->indexTopItem - scroller->indexFirstScrollableItem;
+    for (i = scroller->indexFirstScrollableItem; i < scroller->indexFirstScrollableItem + scroller->nbDisplayedAtOnce; text_idx++, i++) {
+        int text_num;
+
+        text_num = text_idx >= 2 ? text_idx + 1 : text_idx;
+        strcpy(pFrontend->items[i].text, GetMiscString(eMiscString_network_type_start + text_num));
+    }
+    FuckWithWidths(pFrontend);
+    /* NetworkJoinSetup(), inlined */
+    gINT_0068703c = 0;
+    SetAlwaysTyping();
+    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+        gGames_to_join[i].game = NULL;
+    }
+    NetStartProducingJoinList(AddToJoinList);
+    return 0;
+}
 
 void C2_HOOK_FASTCALL StopAllThatJoinyStuffThisInstant(void) {
 

@@ -36,6 +36,8 @@ extern tSaved_table gSaved_shade_tables[100];
 extern int gNumber_of_lollipops;
 extern br_scalar gYon_squared;
 extern int gHud_tinted4;
+extern br_matrix34 gSheer_mat;
+extern int gAR_fudge_headups;
 
 // MungeClipPlane
 
@@ -97,7 +99,7 @@ extern void C2_HOOK_FASTCALL ResetScreenWobble(void);
 
 // DoARenderPass
 
-// DoACompleteRenderPass
+extern void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth);
 
 extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 
@@ -110,3 +112,4 @@ extern void C2_HOOK_FASTCALL StopRenderingHeadups(void);
 extern void C2_HOOK_FASTCALL CleanPolyFontDanglers(void);
 
 #endif // GUARD_16_GRAPHICS1_H
+

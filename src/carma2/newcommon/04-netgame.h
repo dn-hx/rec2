@@ -20,11 +20,11 @@ extern int gLast_it_change;
 
 extern void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, int pPlayer_id);
 
-// SendNonCar
+extern void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id);
 
 // HostFillInCarContents
 
-// ClientSendCarData
+extern void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time);
 
 // DistanceBetweenCars
 
@@ -42,7 +42,7 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 
 // ReceivedShapeNumbers
 
-// FillInSimpleCarPos
+extern void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index);
 
 // ReceivedSimpleCarPos
 
