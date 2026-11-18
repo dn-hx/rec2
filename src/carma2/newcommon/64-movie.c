@@ -22,10 +22,24 @@
 #include <Movies.h>
 
 #include "c2_string.h"
+#include "63-loading3.h"
+#include "52-errors.h"
 
 // GLOBAL: CARMA2_HW 0x006a0c24
 // GLOBAL: CARMA2_SW 0x0069ac7c
 int gQuickTime_initialized;
+
+// GLOBAL: CARMA2_HW 0x006a0c34
+Handle gQuicktime_frame_pixmap_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c3c
+Handle gQuicktime_compressed_frame_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c40
+Handle gQuicktime_image_description_handle;
+
+// GLOBAL: CARMA2_HW 0x006a0c44
+br_uint_16* gQuicktime_frame_pixels;
 
 // GLOBAL: CARMA2_HW 0x006a0c50
 // GLOBAL: CARMA2_SW 0x0069aca8
@@ -58,13 +72,28 @@ char gQuick_time_banner_texture_name[256];
 // GLOBAL: CARMA2_HW 0x0065ee50
 char gDefault_quick_time_quality[] = "normal";
 
+// GLOBAL: CARMA2_HW 0x0065ef2c
+int gQuicktime_frame_flags = 1;
+
+// GLOBAL: CARMA2_HW 0x006a0af4
+ImageSequence gQuicktime_image_sequence;
+
+// GLOBAL: CARMA2_HW 0x006a0afc
+Media gQuicktime_media;
+
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
+
 // GLOBAL: CARMA2_HW 0x0065ed30
 // GLOBAL: CARMA2_SW 0x00659690
 char gDefault_quick_time_compressor[] = "animation";
 
 // Create555BELookupTable
 
-// Convert565BrPixelmapTo555BigEndianPixmap
+// STUB: CARMA2_HW 0x004e1400
+void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+}
 
 // SwapPixelmapBytePairs
 
@@ -86,6 +115,59 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // FreeOffQTshite
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004e1250
+int C2_HOOK_FASTCALL WriteBannerFrame(void) {
+    br_pixelmap* pBanner;
+    int frame_size;
+    char codec_info;
+    short result;
+    int i;
+
+    if (gQuick_time_banner_number != 0) {
+        pBanner = LoadPixelmap(gQuick_time_banner_texture_name);
+        if (pBanner != NULL) {
+            if (pBanner->width != 320 || pBanner->height != 200) {
+                BrFailure("Banner picture must be 320x200");
+            }
+            *(void**)(*gQuicktime_frame_pixmap_handle) = gQuicktime_frame_pixels;
+            *(short*)(*gQuicktime_frame_pixmap_handle + 4) = (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * 2;
+            memset(gQuicktime_frame_pixels, 0, (gNbPixelBits == 16 ? gCurrent_graf_data->width / 2 : gCurrent_graf_data->width) * (gNbPixelBits == 16 ? gCurrent_graf_data->height / 2 : gCurrent_graf_data->height) * 2);
+            dr_dprintf("Converting banner. w=%d, h=%d, type=%d", pBanner->width, pBanner->height, pBanner->type);
+            Convert565BrPixelmapTo555BigEndianPixmap(gQuicktime_frame_pixmap_handle, pBanner);
+            for (i = 0; i < 0x12; i++) {
+                result = CompressSequenceFrame(gQuicktime_image_sequence, gQuicktime_frame_pixmap_handle, &gQuicktime_rect, 0xc0, *gQuicktime_compressed_frame_handle, &frame_size, &codec_info, 0);
+                if (result != 0) {
+                    return result;
+                }
+                *(int*)(*gQuicktime_image_description_handle + 0x2c) = frame_size;
+                result = AddMediaSample(gQuicktime_media, gQuicktime_compressed_frame_handle, 0, *(int*)(*gQuicktime_image_description_handle + 0x2c), 0x37, gQuicktime_image_description_handle, 1, 0, 0);
+                if (result != 0) {
+                    return result;
+                }
+            }
+            gQuicktime_frame_flags = 1;
+            return 0;
+        }
+    }
+    gQuicktime_frame_flags = 1;
+    return 0;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004e1700
 // FUNCTION: CARMA2_SW 0x004dda00
 void C2_HOOK_CDECL InitQuickTimeStuff(void) {
@@ -221,3 +303,13 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
 
 // FreeS3SoundOutput
 
+
+// STUB: CARMA2_HW 0x0056b440
+short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056d8c0
+short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
+    NOT_IMPLEMENTED();
+}
