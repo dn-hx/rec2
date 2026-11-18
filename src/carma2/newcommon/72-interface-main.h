@@ -12,5 +12,7 @@
 #include "rec2_types.h"
 
 extern tFrontend_spec gFrontend_MAIN;
+extern int gCount_connected_items_indices;
+extern int gConnected_items_indices[6];
 
 #endif /* GUARD_72_MAIN_H */
