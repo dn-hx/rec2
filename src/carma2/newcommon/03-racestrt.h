@@ -13,6 +13,7 @@
 #include "rec2_types.h"
 
 extern tU32 gLast_host_query;
+extern int gOur_starting_position;
 
 extern int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_one);
 
