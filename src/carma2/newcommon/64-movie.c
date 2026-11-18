@@ -27,6 +27,9 @@
 // GLOBAL: CARMA2_SW 0x0069ac7c
 int gQuickTime_initialized;
 
+// GLOBAL: CARMA2_HW 0x006a0c30
+Movie gQuicktime_movie;
+
 // GLOBAL: CARMA2_HW 0x006a0c50
 // GLOBAL: CARMA2_SW 0x0069aca8
 int gNext_replay_record_state;
@@ -57,6 +60,15 @@ char gQuick_time_banner_texture_name[256];
 
 // GLOBAL: CARMA2_HW 0x0065ee50
 char gDefault_quick_time_quality[] = "normal";
+
+// GLOBAL: CARMA2_HW 0x006a0af0
+short gQuicktime_movie_file;
+
+// GLOBAL: CARMA2_HW 0x006a0b08
+FSSpec gQt_file_spec;
+
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
 
 // GLOBAL: CARMA2_HW 0x0065ed30
 // GLOBAL: CARMA2_SW 0x00659690

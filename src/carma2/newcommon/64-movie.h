@@ -26,6 +26,10 @@ extern int gStatus_message_2;
 extern char gQuick_time_temp_path[256];
 extern char gQuick_time_movie_path_stub[256];
 extern char gQuick_time_banner_texture_name[256];
+extern struct Rect gQuicktime_rect;
+extern FSSpec gQt_file_spec;
+extern short gQuicktime_movie_file;
+extern Movie gQuicktime_movie;
 
 // Create555BELookupTable
 
