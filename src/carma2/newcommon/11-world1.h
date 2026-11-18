@@ -41,3 +41,4 @@ extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
 
 #endif // GUARD_11_WORLD1_H
 
+extern void C2_HOOK_FASTCALL LoadAdditionalStuff(void);
