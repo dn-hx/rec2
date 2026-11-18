@@ -132,6 +132,9 @@ tFlic_descriptor gPanel_flic[2] = { 0 };
 // GLOBAL: CARMA2_SW 0x00680a38
 tU32 gLast_panel_frame_time[2] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x00686300
+int gSound_ID;
+
 // GLOBAL: CARMA2_HW 0x006861d0
 // GLOBAL: CARMA2_SW 0x00680910
 tU8* gPanel_flic_data[2];
@@ -151,6 +154,9 @@ int gPanel_flic_top[2];
 // GLOBAL: CARMA2_HW 0x00686320
 // GLOBAL: CARMA2_SW 0x00680a60
 br_pixelmap* gPanel_buffer[2];
+
+// GLOBAL: CARMA2_HW 0x00686328
+tU32 gSound_time;
 
 // GLOBAL: CARMA2_HW 0x006861e0
 // GLOBAL: CARMA2_SW 0x00680920
