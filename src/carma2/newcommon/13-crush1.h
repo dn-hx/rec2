@@ -310,8 +310,7 @@ extern void C2_HOOK_FASTCALL ToggleFlaps(void);
 extern int C2_HOOK_FASTCALL BitObjectIsSufficientlyOutsideCarObjectToDetach(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL FullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
-
-// SendFullyDetachBit
+extern void C2_HOOK_FASTCALL SendFullyDetachBit(tCar_spec* pCar, tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL DoFullyDetaching(void);
 
@@ -551,7 +550,7 @@ extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
 
 extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents);
 
-// DoQueuedNetDetaching
+extern void C2_HOOK_FASTCALL DoQueuedNetDetaching(void);
 
 // DBNonCarOwner
 
@@ -579,9 +578,9 @@ extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromData(tU8* pData);
 
 extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
 
-// DecodeNetShapeData
+extern void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData);
 
-// CopyBendInMessage
+extern void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar);
 
 // Vector4Equal
 
@@ -590,7 +589,7 @@ extern void C2_HOOK_FASTCALL CompressPlane(tCompressed_vector4* pDest, const br_
 
 extern void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_vector4* pSrc);
 
-// CopySplitInMessage
+extern void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes);
 

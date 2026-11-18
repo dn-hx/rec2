@@ -469,11 +469,20 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #pragma auto_inline(on)
 #endif
 
-// MyDroneHathCollideth
+// STUB: CARMA2_HW 0x00452230
+int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther) {
+    NOT_IMPLEMENTED();
+}
 
-// MyDroneHathHalteth
+// STUB: CARMA2_HW 0x00452360
+int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
-// MoveMyDroneBaby
+// STUB: CARMA2_HW 0x00452410
+void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004525c0
 // FUNCTION: CARMA2_SW 0x00452350

@@ -44,6 +44,9 @@ int gBIG_APC_index = -1;
 // GLOBAL: CARMA2_SW 0x00654ce4
 float gOpponent_nastyness_frigger = 1.0f;
 
+// GLOBAL: CARMA2_HW 0x00676854
+int gStop_opponents_moving;
+
 // GLOBAL: CARMA2_HW 0x0074a684
 // GLOBAL: CARMA2_SW 0x00741144
 int gMinTimeOpponentRepair;
