@@ -952,7 +952,10 @@ void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smash
 
 // AddRepairAnimationToQueue
 
-// RepairSmash
+// STUB: CARMA2_HW 0x004ef910
+void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004ef9c0
 // FUNCTION: CARMA2_SW 0x004eb620

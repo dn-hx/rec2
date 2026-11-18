@@ -2238,7 +2238,10 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // AddTotalDeflection
 
-// RepairModel
+// STUB: CARMA2_HW 0x0043b510
+int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // RepairModels
 
