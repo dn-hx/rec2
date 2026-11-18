@@ -23,6 +23,7 @@ extern int gHud_tinted1_visible;
 extern int gHud_tinted2_visible;
 extern int gLast_wrong_checkpoint;
 extern int gNumber_of_icons;
+extern tSpecial_volume* gLast_camera_special_volume;
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
