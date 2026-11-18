@@ -478,7 +478,7 @@ extern void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec);
 
 // RepairCarCollisionShapes
 
-// RepairCar2
+extern float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut);
 
 // RepairCar
 
@@ -530,7 +530,7 @@ extern void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pConten
 
 // DBNonCarOwner
 
-// SendDBNonCar
+extern void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 
 // ReceivedDBNonCar
 
@@ -542,7 +542,7 @@ extern void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents);
 
 // SHNonCarOwner
 
-// SendSHNonCar
+extern void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient);
 
 // SendAllSHNonCars
 
@@ -550,7 +550,7 @@ extern void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents);
 
 extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar);
 
-// GetNetShapeDataLengthFromData
+extern int C2_HOOK_FASTCALL GetNetShapeDataLengthFromData(tU8* pData);
 
 extern void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar);
 
