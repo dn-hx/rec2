@@ -135,7 +135,7 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
 // LeftInventory
 
-// DrawPowerups
+extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
 
 // MungeKeyboardPowerup
 

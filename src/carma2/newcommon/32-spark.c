@@ -285,7 +285,10 @@ void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol) {
 
 // ReplaySparks
 
-// RenderSparks
+// STUB: CARMA2_HW 0x004f7450
+void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // CreateSingleSpark
 
@@ -625,6 +628,10 @@ void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 
 }
 
 // RenderSmoke
+// STUB: CARMA2_HW 0x004fa910
+void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004fb330
 // FUNCTION: CARMA2_SW 0x004f6870

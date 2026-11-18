@@ -206,6 +206,9 @@ br_vector3 gChanged_points[10];
 // GLOBAL: CARMA2_SW 0x0068e4ac
 int gPed_dismember_spurting_member_count;
 
+// GLOBAL: CARMA2_HW 0x00694458
+br_pixelmap* gProx_ray_shade_table;
+
 // GLOBAL: CARMA2_HW 0x00694490
 // GLOBAL: CARMA2_SW 0x0068e4e8
 int gPed_nearness;
@@ -1430,7 +1433,10 @@ void C2_HOOK_FASTCALL InitPedsForRace(void) {
     memset(gPed_cache_006944c0, 0, sizeof(gPed_cache_006944c0));
 }
 
-// RenderElectroBastardRays
+// STUB: CARMA2_HW 0x004d5d60
+void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004d6180
 // FUNCTION: CARMA2_SW 0x004d2780
