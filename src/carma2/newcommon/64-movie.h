@@ -10,6 +10,7 @@
 #define GUARD_64_MOVIE_H
 
 #include "c2_hooks.h"
+#include "brender/br_types.h"
 
 /* the unit's prototypes are written in the shim's own types (Handle, Track, Movie, ...) */
 #include <QTML.h>
@@ -61,7 +62,7 @@ extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
 
 // GenerateOneMovieFrame
 
-// MovieRecordFrame
+extern int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period);
 
 extern int C2_HOOK_FASTCALL MovieRecording(void);
 

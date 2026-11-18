@@ -15,6 +15,7 @@
 
 extern int gHas_sky_texture;
 extern br_pixelmap* gDepth_shade_table;
+extern tDepth_effect_type gSwap_depth_effect_type;
 extern br_actor* gRearview_sky_actor;
 extern br_actor* gForward_sky_actor;
 extern br_angle gOld_fov;
@@ -64,7 +65,7 @@ extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
 extern void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
-// DepthEffectSky
+extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
 extern void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera);
 
@@ -72,7 +73,7 @@ extern void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera);
 
 // DoSubaquaCam
 
-// DoSpecialCameraEffect
+extern void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world);
 
 extern void C2_HOOK_FASTCALL ReduceDepthStart(void);
 

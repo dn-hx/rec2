@@ -315,7 +315,10 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
 void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
 }
 
-// DepthEffectSky
+// STUB: CARMA2_HW 0x00445cb0
+void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x00446680
 void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
@@ -326,7 +329,10 @@ void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
 
 // DoSubaquaCam
 
-// DoSpecialCameraEffect
+// STUB: CARMA2_HW 0x00446340
+void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00446890
 // FUNCTION: CARMA2_SW 0x00446910
