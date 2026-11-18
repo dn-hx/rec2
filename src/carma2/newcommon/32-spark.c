@@ -1515,7 +1515,10 @@ void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {
 
 // ClearSplashes
 
-// AdjustSplashReplay
+// STUB: CARMA2_HW 0x004fef40
+void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x004ff030
 // STUB: CARMA2_SW 0x004fa910
