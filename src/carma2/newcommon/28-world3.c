@@ -19,6 +19,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "38-flicplay.h"
+#include "33-depth.h"
 
 #include <string.h>
 
@@ -33,6 +35,18 @@ tBrender_storage* gStorage_for_callbacks;
 // GLOBAL: CARMA2_HW 0x006aaa2c
 // GLOBAL: CARMA2_SW 0x006a447c
 int gDisallow_duplicates;
+
+// GLOBAL: CARMA2_HW 0x006aaf40
+tU8* gTrack_flic_buffer;
+
+// GLOBAL: CARMA2_HW 0x006aaf48
+tU32 gTrack_flic_buffer_size;
+
+// GLOBAL: CARMA2_HW 0x006aaf50
+tFlic_descriptor gTrack_flic_descriptor;
+
+// GLOBAL: CARMA2_HW 0x006aafc0
+tU32 prev_sky_animation;
 
 // GLOBAL: CARMA2_HW 0x006aaa20
 // GLOBAL: CARMA2_SW 0x006a4470

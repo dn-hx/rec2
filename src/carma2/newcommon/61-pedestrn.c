@@ -306,7 +306,10 @@ int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const
     }
 }
 
-// AssertRootObjectsMatrix
+// STUB: CARMA2_HW 0x004d57c0
+void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
+    NOT_IMPLEMENTED();
+}
 
 // InitFaceCaches
 
