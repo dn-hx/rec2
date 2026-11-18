@@ -17,6 +17,12 @@ extern br_actor* gAdditional_actors;
 extern tBrender_storage* gStorage_for_callbacks;
 
 extern tRendererShadingType gMaterial_shading_for_callback;
+extern br_actor* gGroove_by_proxy_actor;
+extern const char* gLollipop_names[3];
+extern const char* gGroove_nature_names[2];
+extern const char* gGroove_path_names[2];
+extern const char* gAxis_names[3];
+extern const char* gGroove_object_names[4];
 extern br_angle gSky_image_underground;
 extern br_angle gSky_image_height;
 extern br_angle gSky_image_width;
