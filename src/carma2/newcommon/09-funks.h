@@ -20,6 +20,10 @@ extern int gGroovidelics_array_size;
 extern tU32 gPrevious_groove_times[2];
 extern tGroove_funk_binding gGroove_funk_bindings[1440];
 extern int gFunkotronics_array_size;
+extern const char* gFunk_move_names[7];
+extern tCar_spec* gCurrent_car_spec;
+extern float gFunk_scalar;
+extern tFunk_temp_buffer* gFunk_temp_vertices;
 
 extern int C2_HOOK_FASTCALL CalculateTextureBitsValue(tFunk_texturebits* pTexturebits);
 
@@ -41,7 +45,7 @@ extern void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner);
 
 extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
 
-// AddProximities
+extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
 
 // TryThisFunkLink
 
