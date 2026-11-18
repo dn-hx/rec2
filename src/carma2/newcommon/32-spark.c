@@ -28,6 +28,9 @@
 
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x0058b008
+const br_scalar gFLOAT_0058b008 = 0.0f;
+
 // GLOBAL: CARMA2_HW 0x00660110
 // GLOBAL: CARMA2_SW 0x0065aa58
 int gSmoke_on = 1;
@@ -112,6 +115,9 @@ tSpark gSparks[32] = { 0 };
 // GLOBAL: CARMA2_SW 0x006a3dd0
 br_model* gLollipop_model = NULL;
 
+// GLOBAL: CARMA2_HW 0x006aa388
+tReplay_splash gReplay_splashes[10];
+
 // GLOBAL: CARMA2_HW 0x006aa59c
 // GLOBAL: CARMA2_SW 0x006a3fec
 int gColumn_flags;
@@ -170,6 +176,9 @@ tSplash gSplash[32] = { 0 };
 // GLOBAL: CARMA2_HW 0x006aa570
 // GLOBAL: CARMA2_SW 0x006a3fbc
 int gSplash_flags;
+
+// GLOBAL: CARMA2_HW 0x006aa574
+int gReplay_splash_flags;
 
 // GLOBAL: CARMA2_HW 0x006a9130
 // GLOBAL: CARMA2_SW 0x006a2b80

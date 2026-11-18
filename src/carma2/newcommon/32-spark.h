@@ -51,6 +51,8 @@ extern br_material* gSplash_material[20];
 extern br_model* gSplash_model;
 extern br_pixelmap* gFog_shade_table;
 extern br_pixelmap* gAcid_shade_table;
+extern tReplay_splash gReplay_splashes[10];
+extern int gReplay_splash_flags;
 
 // DrawDot
 
