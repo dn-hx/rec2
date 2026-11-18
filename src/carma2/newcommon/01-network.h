@@ -93,7 +93,7 @@ extern int C2_HOOK_FASTCALL NetJoinGameLowLevel(tNet_game_details* pGame_details
 
 extern void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_length);
 
-// NetExtractGameID
+extern tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails);
 
 // NetExtractPlayerID
 
