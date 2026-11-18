@@ -30,6 +30,7 @@ extern tS3_outlet* gPedestrians_outlet;
 extern tS3_outlet* gCar_outlet;
 
 extern int gCD_fully_installed;
+extern undefined4 gUNK_0079e140;
 
 extern void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size);
 
@@ -103,13 +104,13 @@ extern void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_dat
 
 // TryToSetEnvironmentalSound
 
-// DoAnEnvironmentalSound
+extern void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos);
 
 // DoEnvSound
 
 // FoundSoundSource
 
-// MungeSoundGenerators
+extern void C2_HOOK_FASTCALL MungeSoundGenerators(void);
 
 // MungeEnvironmentalSound
 
