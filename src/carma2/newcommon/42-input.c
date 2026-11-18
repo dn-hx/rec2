@@ -120,6 +120,9 @@ int gLast_key_down = -1000;
 // GLOBAL: CARMA2_HW 0x0068c1d0
 tU32 gLast_key_down_time;
 
+// GLOBAL: CARMA2_HW 0x0074b384
+int gUNK_0074b384[1];
+
 // GLOBAL: CARMA2_HW 0x0068bed8
 int gModifiers_down;
 
