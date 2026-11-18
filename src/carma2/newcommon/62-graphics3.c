@@ -26,6 +26,7 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "platform.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -54,6 +55,9 @@ const int gArrows[2][4][60] = {
     },
 };
 
+// GLOBAL: CARMA2_HW 0x00659b20
+int gPrevious_opponent_status = -1;
+
 // GLOBAL: CARMA2_HW 0x00655df0
 // GLOBAL: CARMA2_SW 0x00650cd8
 br_vector3 y_unit_vector = { { 0.f, 1.f, 0.f } };
@@ -76,6 +80,9 @@ tCar_spec* gTarget_lock_car_1;
 // GLOBAL: CARMA2_SW 0x00687748
 tCar_spec* gTarget_lock_car_2;
 
+// GLOBAL: CARMA2_HW 0x0068d6f4
+int gINT_0068d6f4;
+
 // GLOBAL: CARMA2_HW 0x0068d8c8
 // GLOBAL: CARMA2_SW 0x00687920
 int gTarget_lock_enabled;
@@ -83,6 +90,9 @@ int gTarget_lock_enabled;
 // GLOBAL: CARMA2_HW 0x0068d8cc
 // GLOBAL: CARMA2_SW 0x00687924
 int gInitMap_done;
+
+// GLOBAL: CARMA2_HW 0x0068d8d0
+tU32 gTime_oppobar_target_wasted;
 
 // GLOBAL: CARMA2_HW 0x0074abdc
 // GLOBAL: CARMA2_SW 0x00741288
@@ -107,6 +117,9 @@ int gINT_0074ab88;
 // GLOBAL: CARMA2_HW 0x0074ab8c
 // GLOBAL: CARMA2_SW 0x00741238
 int gINT_0074ab8c;
+
+// GLOBAL: CARMA2_HW 0x0074ab90
+float gFLOAT_0074ab90;
 
 // GLOBAL: CARMA2_HW 0x0074ab94
 // GLOBAL: CARMA2_SW 0x00741240
