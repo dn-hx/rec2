@@ -2059,6 +2059,8 @@ void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x0043aa20
+// FUNCTION: CARMA2_SW 0x0043aa70
 void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
     int i;
 
@@ -2228,6 +2230,8 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // ReceivedReAttachBit
 
+// FUNCTION: CARMA2_HW 0x0043ce60
+// FUNCTION: CARMA2_SW 0x0043ceb0
 void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
     tCar_spec* car;
 
