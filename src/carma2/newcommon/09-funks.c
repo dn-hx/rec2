@@ -66,6 +66,10 @@ inline float C2_HOOK_FASTCALL MapSawToTriangle(float pNumber) {
     }
 }
 
+// STUB: CARMA2_HW 0x004748e0
+float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00474880
 // FUNCTION: CARMA2_SW 0x00473de0
 void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon) {

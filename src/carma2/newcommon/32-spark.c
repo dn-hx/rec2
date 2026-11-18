@@ -619,7 +619,10 @@ void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void) {
 
 // ReplaySmoke
 
-// GenerateContinuousSmoke
+// STUB: CARMA2_HW 0x004fa5b0
+void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // RenderSmoke
 
@@ -1516,7 +1519,10 @@ void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject) {
     return NULL;
 }
 
-// ClearSplashes
+// STUB: CARMA2_HW 0x004fee70
+void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x004fef40
 void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18) {

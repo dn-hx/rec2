@@ -437,6 +437,10 @@ void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF) {
     }
 }
 
+// STUB: CARMA2_HW 0x0043db00
+void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
+    NOT_IMPLEMENTED();
+}
 // STUB: CARMA2_HW 0x004321d0
 void C2_HOOK_FASTCALL BuckleTheBugger(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
     NOT_IMPLEMENTED();
@@ -2452,7 +2456,10 @@ int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
 
 // ReceivedReAttachAllBits
 
-// DoQueuedNetDetaching
+// STUB: CARMA2_HW 0x0043ceb0
+void C2_HOOK_FASTCALL DoQueuedNetDetaching(void) {
+    NOT_IMPLEMENTED();
+}
 
 // DBNonCarOwner
 
@@ -2576,7 +2583,10 @@ void C2_HOOK_FASTCALL EncodeNetShapeData(tU8* pData, tCar_spec* pCar) {
 
 // DecodeNetShapeData
 
-// CopyBendInMessage
+// STUB: CARMA2_HW 0x0043dce0
+void C2_HOOK_FASTCALL CopyBendInMessage(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
 
 // Vector4Equal
 
@@ -2596,7 +2606,10 @@ void C2_HOOK_FASTCALL ExpandPlane(br_vector4* pDest, const tCompressed_vector4* 
     pDest->v[3] = DRU16ToScalar(pSrc->v[3], -2.5f, 2.5f);
 }
 
-// CopySplitInMessage
+// STUB: CARMA2_HW 0x0043df10
+void C2_HOOK_FASTCALL CopySplitInMessage(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0043dfd0
 // FUNCTION: CARMA2_SW 0x0043e020
