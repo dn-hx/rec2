@@ -81,6 +81,9 @@ int gPHIL_mechanics_time_sync;
 // GLOBAL: CARMA2_SW 0x007410a8
 int gPHIL_munging_objects;
 
+// GLOBAL: CARMA2_HW 0x0079d858
+tFace_ref* gPling_face;
+
 // GLOBAL: CARMA2_HW 0x006940c8
 // GLOBAL: CARMA2_SW 0x0068e120
 int gPhysics_other_buffer_capacity;
