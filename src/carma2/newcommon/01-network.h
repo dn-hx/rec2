@@ -27,6 +27,12 @@ extern br_actor* gNetscore_box_camera;
 extern br_model* gNetScore_box_model;
 extern br_actor* gNetscore_box_actors[12];
 extern tPlayer_ID gLocal_net_ID;
+extern int gINT_0068d964;
+extern int gINT_0068d988;
+extern int gINT_00690234;
+extern int gINT_00690c30;
+extern int gINT_0068d974;
+extern tNet_game_player_info gNet_received_players[12];
 #endif
 
 extern int C2_HOOK_FASTCALL NetInitialise(void);
@@ -83,7 +89,7 @@ extern void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game);
 
 // RemoveReferencesToCar
 
-// NetPlayersChanged
+extern void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers);
 
 // NetHostGame
 
@@ -157,7 +163,7 @@ extern void C2_HOOK_FASTCALL NetFullScreenMessage(int pStr_index, int pLeave_it_
 
 // ReceivedHosticide
 
-// ReceivedNewPlayerList
+extern void C2_HOOK_FASTCALL ReceivedNewPlayerList(tNet_message_chunk_player_info* pContents, tNet_message* pMessage);
 
 // ReceivedRaceOver
 

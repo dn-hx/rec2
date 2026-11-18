@@ -6137,4 +6137,13 @@ typedef struct {
     br_matrix34 field_0xa4;
 } tPipe_chunk_shrapnel_shower;
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    int num_players;
+    int player_index;
+    int field_0xc;
+    tNet_game_player_info player;
+} tNet_message_chunk_player_info;
+
 #endif // REC2_TYPES_H
