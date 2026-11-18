@@ -27,6 +27,9 @@
 // GLOBAL: CARMA2_SW 0x0069ac7c
 int gQuickTime_initialized;
 
+// GLOBAL: CARMA2_HW 0x006a0c30
+Movie gQuicktime_movie;
+
 // GLOBAL: CARMA2_HW 0x006a0c50
 // GLOBAL: CARMA2_SW 0x0069aca8
 int gNext_replay_record_state;
@@ -58,6 +61,15 @@ char gQuick_time_banner_texture_name[256];
 // GLOBAL: CARMA2_HW 0x0065ee50
 char gDefault_quick_time_quality[] = "normal";
 
+// GLOBAL: CARMA2_HW 0x006a0af0
+short gQuicktime_movie_file;
+
+// GLOBAL: CARMA2_HW 0x006a0b08
+FSSpec gQt_file_spec;
+
+// GLOBAL: CARMA2_HW 0x006a0c18
+struct Rect gQuicktime_rect;
+
 // GLOBAL: CARMA2_HW 0x0065ed30
 // GLOBAL: CARMA2_SW 0x00659690
 char gDefault_quick_time_compressor[] = "animation";
@@ -76,7 +88,35 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // GetCompressorTypeFromOptions
 
-// InitMovie
+// FUNCTION: CARMA2_HW 0x004e0f20
+int C2_HOOK_FASTCALL InitMovie(void) {
+    tGraf_data* pGraf;
+    int bits;
+    int w;
+    OSErr err;
+
+    pGraf = gCurrent_graf_data;
+    bits = gNbPixelBits;
+    gQuicktime_rect.top = 0;
+    gQuicktime_rect.left = 0;
+    w = pGraf->width;
+    if (bits == 16) {
+        w = w / 2;
+    }
+    gQuicktime_rect.right = w;
+    w = pGraf->height;
+    if (bits == 16) {
+        w = w / 2;
+    }
+    gQuicktime_rect.bottom = w;
+    err = ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie);
+    if (err == 0) {
+        return err;
+    }
+    PathCat(gQuick_time_temp_path, gApplication_path, "QTTMP");
+    PathCat(gQuick_time_movie_path_stub, gApplication_path, "MOVIE");
+    return ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)(&gQt_file_spec, 0x54564f44, -2, 0x80000000, &gQuicktime_movie_file, &gQuicktime_movie);
+}
 
 // CreateMovie
 
