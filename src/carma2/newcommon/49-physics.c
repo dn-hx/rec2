@@ -146,7 +146,10 @@ void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector
     BrMatrix34TApplyV(dest, &relative, matrix);
 }
 
-// AddObjectWallForce
+// STUB: CARMA2_HW 0x00422fe0
+int C2_HOOK_FASTCALL AddObjectWallForce(float* pWalls, const br_vector3* pPoint, float pDistance, const br_vector3* pNormal, tU32 pUnused, int pCount, tPhysics_object* pObject, float pT, float pRadius, const float* pVector) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004268a0
 // FUNCTION: CARMA2_SW 0x00426940

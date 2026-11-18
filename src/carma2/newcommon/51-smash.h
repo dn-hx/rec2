@@ -323,7 +323,7 @@ extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
 // SmashEverythingCB
 
-// SmashEverything
+extern void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea_1, int* pArea_2);
 
