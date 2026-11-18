@@ -270,7 +270,7 @@ extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
 // ClearSplashes
 
-// AdjustSplashReplay
+extern void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 
 extern void C2_HOOK_FASTCALL InitReplaySplashes(void);
 
