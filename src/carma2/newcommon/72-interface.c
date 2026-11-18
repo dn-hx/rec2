@@ -517,6 +517,11 @@ const int gControls_frontend_to_key_mapping_lut[29] = {
     59, 70, 72, 73, 75, 76, 35, 65, 66,
 };
 
+// GLOBAL: CARMA2_HW 0x00604900
+int gFrontend_controls_indices[15] = {
+    12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+};
+
 // SetGameTarget
 
 // FUNCTION: CARMA2_HW 0x00468140
@@ -580,6 +585,10 @@ void C2_HOOK_FASTCALL PollCarDetails(tNet_game_details* pNet_game) {
     }
 }
 
+// STUB: CARMA2_HW 0x0046e020
+void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00466370
 // FUNCTION: CARMA2_SW 0x00466100
 void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions) {
