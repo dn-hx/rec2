@@ -2059,8 +2059,14 @@ void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_
     NOT_IMPLEMENTED();
 }
 
-// UnBendCollisionShape
+void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
+    int i;
 
+    for (i = 0; i < pShape->count_points; i++) {
+        BrVector3Copy(&pShape->field_0x18[i].field_0x18, &pShape->field_0x18[i].field_0x2c);
+        BendPoint(&pShape->field_0x18[i].field_0x18, pContext);
+    }
+}
 // UnBendCollisionShapes
 
 // STUB: CARMA2_HW 0x0043aa80
@@ -2222,8 +2228,21 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // ReceivedReAttachBit
 
-// ReceivedReAttachAllBits
+void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
+    tCar_spec* car;
 
+    if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
+        return;
+    }
+    car = NetCarFromPlayerID(pContents->reattach_all_bits.player);
+    if (car == NULL) {
+        return;
+    }
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].field_0x8 = pContents->reattach_all_bits.time;
+    gCount_net_crush_reattach_bit_list += 1;
+}
 // DoQueuedNetDetaching
 
 // DBNonCarOwner
