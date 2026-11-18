@@ -45,7 +45,7 @@ extern Movie gQuicktime_movie;
 
 // GetCompressorTypeFromOptions
 
-// InitMovie
+extern int C2_HOOK_FASTCALL InitMovie(void);
 
 // CreateMovie
 
