@@ -29,6 +29,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "61-pedestrn.h"
 #include "00-car.h"
 
 #include <stdio.h>
@@ -39,6 +40,15 @@ int gAllow_material_adapt;
 
 // GLOBAL: CARMA2_HW 0x006a3340
 br_material* gMaterials_to_adapt[200];
+
+// GLOBAL: CARMA2_HW 0x0058aec0
+float gFloat_0058aec0 = 0.0f;
+
+// GLOBAL: CARMA2_HW 0x0058aec4
+float gFloat_0058aec4 = 2.3841858e-07f;
+
+// GLOBAL: CARMA2_HW 0x0058aec8
+double gDouble_0058aec8 = 1.0;
 
 // GLOBAL: CARMA2_HW 0x006a3334
 // GLOBAL: CARMA2_SW 0x0069d394

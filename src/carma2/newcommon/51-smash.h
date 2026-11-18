@@ -30,6 +30,9 @@ extern br_vector3 gZero_vector__smash;
 extern tDecal gDecals[50];
 extern int gCount_queued_smashes;
 extern tSmash_explosion gSmash_explosions[20];
+extern float gFloat_0058aec0;
+extern float gFloat_0058aec4;
+extern double gDouble_0058aec8;
 
 typedef struct {
     br_vector3 origin;

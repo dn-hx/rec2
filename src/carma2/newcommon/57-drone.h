@@ -28,6 +28,7 @@ extern int gCurrent_selected_drone;
 extern int gCount_drones;
 
 extern int gCurrent_selected_drone;
+extern tU32 gINT_00705b70;
 extern float gDrone_render_zero;
 
 // DoNotDprintf
