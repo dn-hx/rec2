@@ -35,6 +35,7 @@ extern MCI_STATUS_PARMS gPDS3_mci_midi_status_parms;
 extern MCI_OPEN_PARMS mci_open_params;
 extern MCI_PLAY_PARMS mci_play_parms;
 extern MCI_PLAY_PARMS gPDS3_cda_play_parms;
+extern int gPDS3_midi_restart_required;
 
 enum tSSDXFlags {
     SSDX_InitDirectDraw = 0x1,
@@ -88,5 +89,6 @@ extern tS3_error_codes C2_HOOK_FASTCALL PDS3StartMidiChannel(tS3_channel* pChann
 extern tS3_error_codes C2_HOOK_FASTCALL PDS3PlayCDAChannel(tS3_channel* pChannel);
 
 extern void C2_HOOK_FASTCALL PDS3ServiceCDA(tS32 pDelta_time);
+
 
 #endif

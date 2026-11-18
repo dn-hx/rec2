@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "30-opponent.h"
 
 #include <math.h>
 
@@ -60,6 +61,12 @@ tDrone_path_node* gDrone_path_nodes;
 // GLOBAL: CARMA2_HW 0x00684518
 // GLOBAL: CARMA2_SW 0x0067ec58
 int gTraffic_disabled;
+
+// GLOBAL: CARMA2_HW 0x00705b70
+tU32 gINT_00705b70;
+
+// GLOBAL: CARMA2_HW 0x00589dc4
+float gDrone_render_zero = 0.0f;
 
 // GLOBAL: CARMA2_HW 0x00681fb0
 // GLOBAL: CARMA2_SW 0x0067c6f0
@@ -365,6 +372,10 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x00450b50
+tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 // InitDrones
 
 // FUNCTION: CARMA2_HW 0x0044fc10
@@ -461,11 +472,20 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #pragma auto_inline(on)
 #endif
 
-// MyDroneHathCollideth
+// STUB: CARMA2_HW 0x00452230
+int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther) {
+    NOT_IMPLEMENTED();
+}
 
-// MyDroneHathHalteth
+// STUB: CARMA2_HW 0x00452360
+int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
 
-// MoveMyDroneBaby
+// STUB: CARMA2_HW 0x00452410
+void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004525c0
 // FUNCTION: CARMA2_SW 0x00452350

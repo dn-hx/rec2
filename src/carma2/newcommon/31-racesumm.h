@@ -10,6 +10,10 @@
 #define GUARD_31_RACESUMM_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
+
+extern int gReceived_game_scores;
+extern int gPlayer_lookup_racesumm[14];
 
 // SortScores
 

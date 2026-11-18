@@ -70,6 +70,7 @@ extern br_token_value gFrontend_backdrop2_material_prims[3];
 extern br_token_value gFrontend_backdrop0_material_prims[3];
 extern br_actor* gFrontend_camera;
 extern br_actor* gFrontend_backdrop_actors[3];
+extern int gFrontend_controls_indices[15];
 
 // SetGameTarget
 
@@ -187,7 +188,7 @@ extern void C2_HOOK_FASTCALL StopAllThatJoinyStuffThisInstant(void);
 
 extern int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend);
 
-// NetJoinChooseThisGame
+extern int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL ChooseNetCar(tNet_game_details* pNet_game, tNet_game_options* pOptions, int* pCar_index, int pIm_the_host_so_fuck_off);
 
@@ -265,7 +266,7 @@ extern int C2_HOOK_FASTCALL FRONTEND_DestroyMenu(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void);
 
-// FRONTEND_DrawMenu
+extern void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL FRONTEND_Setup2D(void);
 

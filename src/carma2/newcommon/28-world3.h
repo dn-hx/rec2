@@ -17,6 +17,19 @@ extern br_actor* gAdditional_actors;
 extern tBrender_storage* gStorage_for_callbacks;
 
 extern tRendererShadingType gMaterial_shading_for_callback;
+extern br_actor* gGroove_by_proxy_actor;
+extern const char* gLollipop_names[3];
+extern const char* gGroove_nature_names[2];
+extern const char* gGroove_path_names[2];
+extern const char* gAxis_names[3];
+extern const char* gGroove_object_names[4];
+extern br_angle gSky_image_underground;
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_width;
+extern tU8* gTrack_flic_buffer;
+extern tU32 prev_sky_animation;
+extern tFlic_descriptor gTrack_flic_descriptor;
+extern tU32 gTrack_flic_buffer_size;
 
 extern void C2_HOOK_FASTCALL InitTreeSurgery(void);
 
@@ -121,5 +134,7 @@ extern void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage,
 extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
+
+extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
 
 #endif // GUARD_28_WORLD3_H

@@ -37,12 +37,13 @@ extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
 extern int gFace_count;
 extern tWorld_callbacks gWorld_callbacks;
+extern double gDOUBLE_0058a798;
 
 // count
 
 void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
 
-// AddObjectWallForce
+extern int C2_HOOK_FASTCALL AddObjectWallForce(float* pWalls, const br_vector3* pPoint, float pDistance, const br_vector3* pNormal, tU32 pUnused, int pCount, tPhysics_object* pObject, float pT, float pRadius, const float* pVector);
 
 extern int C2_HOOK_FASTCALL AddObjectObjectForce(tPhysics_joint_force* pForces, const br_vector3* pPoint_a, br_scalar pT, const br_vector3* pPoint_b, const br_vector3* pNormal, int pCount, tPhysics_object* pObject_a, tPhysics_object* pObject_b, int pType, void* pUnused, br_scalar pValue);
 
@@ -58,21 +59,21 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // FaceOnCount
 
-// EliminateFaces
+extern int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix);
 
 // GetShapePoint
 
 // GetObjectObjectEdgeIntersections
 
-// GetFaceEdgeIntersection
+extern int C2_HOOK_FASTCALL GetFaceEdgeIntersection(tPhysics_object* pObject, tPhysics_shape* pShape, tSensible_place_contact* pContacts, int pCount, int pMax, br_vector3* pPoints, br_matrix34* pScratch, int* pHas_collision);
 
 // GetSphereToFacePoints
 
 // CheckSingleEdgeWithSphere
 
-// GetSphereToEdgePoints
+extern int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, int pParam1, int pParam2, int pParam3, int pParam4, int pParam5, int pParam6);
 
-// GetCornerToFacePoints
+extern int C2_HOOK_FASTCALL GetCornerToFacePoints(tPhysics_object* pObject, int pEdx, tU32 pParam1, int pParam2, int pParam3, char* pParam4, tU32 pParam5);
 
 // CylinderCheck
 
@@ -80,13 +81,13 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // WorldPointCollision
 
-// CheckSingleEdgeWithObjectEdges
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithObjectEdges(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data);
 
-// GetEdgeToEdgePoints
+extern int C2_HOOK_FASTCALL GetEdgeToEdgePoints(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7);
 
 // SetUpWorkspace
 
-// GetObjectWallForceInfo
+extern int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg);
 
 // GetObjectCornerToObjectFacePoints
 
@@ -172,7 +173,7 @@ extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject
 
 // CountJointForces
 
-// MoveJointedObject
+extern void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 extern void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_info);
 
@@ -216,7 +217,7 @@ extern void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject)
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-// CheckForObjectHierachyTouchingObjectList
+extern void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original);
 
 // MakeObjectDoSomething
 
@@ -258,9 +259,9 @@ extern int C2_HOOK_FASTCALL ReduceEffectOfForces(tPhysics_joint_force* pForces, 
 
 extern void C2_HOOK_FASTCALL SetUpForce(br_vector3* pAngular, br_vector3* pLinear, const br_vector3* pPoint, const br_vector3* pDirection, tPhysics_object* pObject);
 
-// SetUpTorqueHingePartners
+extern int C2_HOOK_FASTCALL SetUpTorqueHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, const br_vector3* pDirection, tPhysics_object* pObject);
 
-// SetUpHingePartners
+extern int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject);
 
 // MakeMatrix
 
@@ -300,7 +301,7 @@ extern void C2_HOOK_FASTCALL ResetObjectList(tPhysics_object* pObjects);
 
 // RepositionObjectGroup
 
-// SimpleRotate
+extern void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt);
 
 // InterpolateSingleObject
 
@@ -441,3 +442,4 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 // GetCollObjFromID
 
 #endif // GUARD_49_PHYSICS_H
+

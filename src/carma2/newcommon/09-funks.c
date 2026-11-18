@@ -16,6 +16,16 @@
 #include "52-errors.h"
 #include "globvars.h"
 #include "rec2_macros.h"
+#include "38-flicplay.h"
+#include "70-packfile.h"
+#include "08-loading1.h"
+#include "38-flicplay.h"
+#include <string.h>
+#include "70-packfile.h"
+#include "08-loading1.h"
+#include "63-loading3.h"
+#include "28-world3.h"
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0068b840
 // GLOBAL: CARMA2_SW 0x00685da0
@@ -29,6 +39,9 @@ tFunkotronic_spec* gFunkotronics_array;
 // GLOBAL: CARMA2_SW 0x00685db0
 tGroovidelic_spec* gGroovidelics_array;
 
+// GLOBAL: CARMA2_HW 0x0074b584
+tCar_spec* gCurrent_car_spec;
+
 // GLOBAL: CARMA2_HW 0x0068b848
 // GLOBAL: CARMA2_SW 0x00685da8
 int gGroovidelics_array_size;
@@ -37,8 +50,62 @@ int gGroovidelics_array_size;
 // GLOBAL: CARMA2_SW 0x00685d98
 tU32 gPrevious_groove_times[2];
 
+// GLOBAL: CARMA2_HW 0x00655b50
+const char* gFunk_type_names[5] = {
+    "spin",
+    "rock",
+    "throb",
+    "slither",
+    "roll",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b68
+const char* gFunk_anim_names[4] = {
+    "frames",
+    "flic",
+    "camera",
+    "mirror",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b78
+const char* gTime_mode_names[2] = {
+    "approximate",
+    "accurate",
+};
+
+// GLOBAL: CARMA2_HW 0x00655b80
+const char* gFunk_move_names[7] = {
+    "linear",
+    "harmonic",
+    "flash",
+    "controlled",
+    "absolute",
+    "continuous",
+    "texturebits",
+};
+
+// GLOBAL: CARMA2_HW 0x00655ba0
+const char* gFunk_nature_names[4] = {
+    "constant",
+    "distance",
+    "lastlap",
+    "otherlaps",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bf0
+const char* gCamera_animation_names[2] = {
+    "static",
+    "tracking",
+};
+
+// GLOBAL: CARMA2_HW 0x00688b28
+float gFunk_scalar;
+
 // GLOBAL: CARMA2_HW 0x00688b30
 tGroove_funk_binding gGroove_funk_bindings[1440];
+
+// GLOBAL: CARMA2_HW 0x0068b830
+tFunk_temp_buffer* gFunk_temp_vertices;
 
 // GLOBAL: CARMA2_HW 0x0068b844
 // GLOBAL: CARMA2_SW 0x00685da4
@@ -66,6 +133,10 @@ inline float C2_HOOK_FASTCALL MapSawToTriangle(float pNumber) {
     }
 }
 
+// STUB: CARMA2_HW 0x004748e0
+float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00474880
 // FUNCTION: CARMA2_SW 0x00473de0
 void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon) {
@@ -129,7 +200,10 @@ br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat,
     return 0;
 }
 
-// AddProximities
+// STUB: CARMA2_HW 0x00476230
+br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData) {
+    NOT_IMPLEMENTED();
+}
 
 // TryThisFunkLink
 

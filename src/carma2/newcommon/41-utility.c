@@ -503,7 +503,10 @@ br_uint_32 C2_HOOK_FASTCALL DRActorEnumRecurseWithTrans(br_actor* pActor, br_mat
 
 // STUB: CARMA2_HW 0x005148c0
 // STUB: CARMA2_SW 0x0050fd00
-// DRActorEnumRecurseWithSnart
+// STUB: CARMA2_HW 0x005148c0
+intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseWithSnart(br_actor* pActor, br_matrix34* pMat, tDRActorEnumRecurseWithSnart_cbfn* pCallback, void* pContext) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00514930
 // FUNCTION: CARMA2_SW 0x0050fd70

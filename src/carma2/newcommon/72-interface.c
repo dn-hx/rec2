@@ -517,6 +517,11 @@ const int gControls_frontend_to_key_mapping_lut[29] = {
     59, 70, 72, 73, 75, 76, 35, 65, 66,
 };
 
+// GLOBAL: CARMA2_HW 0x00604900
+int gFrontend_controls_indices[15] = {
+    12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+};
+
 // SetGameTarget
 
 // FUNCTION: CARMA2_HW 0x00468140
@@ -580,6 +585,10 @@ void C2_HOOK_FASTCALL PollCarDetails(tNet_game_details* pNet_game) {
     }
 }
 
+// STUB: CARMA2_HW 0x0046e020
+void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00466370
 // FUNCTION: CARMA2_SW 0x00466100
 void C2_HOOK_FASTCALL SetNetAvailability(tNet_game_options* pOptions) {
@@ -1355,7 +1364,59 @@ int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// NetJoinChooseThisGame
+static void NetJoinUpdateSelectedGameInfo(tFrontend_spec* pFrontend) {
+    int netgame_idx;
+
+    netgame_idx = 0;
+    if (gFrontend_selected_item_index >= pFrontend->scrollers[2].indexFirstScrollableItem
+            && gFrontend_selected_item_index <= pFrontend->scrollers[2].indexLastScrollableItem) {
+        netgame_idx = gFrontend_selected_item_index - pFrontend->scrollers[2].indexFirstScrollableItem;
+    }
+    if (gGames_to_join[netgame_idx].game != NULL
+            && gGames_to_join[netgame_idx].game->type >= 0
+            && gGames_to_join[netgame_idx].game->type <= 7) {
+        size_t len;
+        const char* status_str;
+        const char* open_str;
+        char s[256];
+
+        if (PDGetTotalTime() - gGames_to_join[netgame_idx].time >= 15000) {
+            NetJoinDisposeGame(netgame_idx);
+            return;
+        }
+        len = 0;
+        len += sprintf(s + len, "Game: %s @R", gGames_to_join[netgame_idx].game->pd_net_info.addr + 14);
+        len += sprintf(s + len, "Type: %s @R", GetMiscString(eMiscString_network_type_start + gGames_to_join[netgame_idx].game->type));
+        len += sprintf(s + len, "Players: %d @R", gGames_to_join[netgame_idx].game->num_players);
+        status_str = GetMiscString(eMiscString_netgame_stage_start + gGames_to_join[netgame_idx].game->status.stage);
+        open_str = GetMiscString(eMiscString_closed + gGames_to_join[netgame_idx].game->options.open_game);
+        sprintf(s + len, "Status: %s, %s ", status_str, open_str);
+        sprintf(pFrontend->items[30].text, "%s", s);
+        MungeMetaCharactersChar(pFrontend->items[30].text, 'R', '\r');
+    }
+}
+
+// ScrollDn of the join list and NetworkUpdateSelectedGameInfo are inlined in the original:
+// the game-info text is built with sprintf into a local buffer and copied to items[30].
+void NetJoinDisposeGame(int netgame_idx) {
+    NetDisposeGameDetails(gGames_to_join[netgame_idx].game);
+    gGames_to_join[netgame_idx].game = NULL;
+}
+
+// FUNCTION: CARMA2_HW 0x004682c0
+int C2_HOOK_FASTCALL NetJoinChooseThisGame(tFrontend_spec* pFrontend) {
+    int sel;
+
+    sel = gFrontend_selected_item_index - pFrontend->scrollers[2].indexFirstScrollableItem;
+    if (sel < 0 || gGames_to_join[sel].game == NULL || (!gGames_to_join[sel].game->options.open_game && !gGames_to_join[sel].game->no_races_yet) || gGames_to_join[sel].game->num_players >= kMax_netplayers) {
+        gLast_graph_sel = -1;
+    } else {
+        gLast_graph_sel = sel;
+    }
+    pFrontend->items[17].enabled = kFrontendItemEnabled_disabled;
+    NetJoinUpdateSelectedGameInfo(pFrontend);
+    return 0;
+}
 
 // FUNCTION: CARMA2_HW 0x00468d70
 // FUNCTION: CARMA2_SW 0x00468af0

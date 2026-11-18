@@ -28,6 +28,8 @@ extern int gCurrent_selected_drone;
 extern int gCount_drones;
 
 extern int gCurrent_selected_drone;
+extern tU32 gINT_00705b70;
+extern float gDrone_render_zero;
 
 // DoNotDprintf
 
@@ -165,7 +167,7 @@ extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
 
 extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 
-// GetDroneCrushData
+extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject);
 
 // AllocateAndInitDrones
 
@@ -177,11 +179,11 @@ extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
-// MyDroneHathCollideth
+extern int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther);
 
-// MyDroneHathHalteth
+extern int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject);
 
-// MoveMyDroneBaby
+extern void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2);
 
 extern void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void);
 

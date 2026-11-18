@@ -132,6 +132,9 @@ tFlic_descriptor gPanel_flic[2] = { 0 };
 // GLOBAL: CARMA2_SW 0x00680a38
 tU32 gLast_panel_frame_time[2] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x00686300
+int gSound_ID;
+
 // GLOBAL: CARMA2_HW 0x006861d0
 // GLOBAL: CARMA2_SW 0x00680910
 tU8* gPanel_flic_data[2];
@@ -151,6 +154,9 @@ int gPanel_flic_top[2];
 // GLOBAL: CARMA2_HW 0x00686320
 // GLOBAL: CARMA2_SW 0x00680a60
 br_pixelmap* gPanel_buffer[2];
+
+// GLOBAL: CARMA2_HW 0x00686328
+tU32 gSound_time;
 
 // GLOBAL: CARMA2_HW 0x006861e0
 // GLOBAL: CARMA2_SW 0x00680920
@@ -611,7 +617,10 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
     gPalette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gPalette_pixels, 0);
 }
 
-// AssertFlicPixelmap
+// STUB: CARMA2_HW 0x00461aa0
+void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

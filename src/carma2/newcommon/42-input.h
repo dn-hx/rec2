@@ -41,6 +41,7 @@ extern int gLast_key_down;
 extern tU32 gLast_key_down_time;
 extern int gModifiers_down;
 extern int gKey_poll_counter;
+extern int gUNK_0074b384[1];
 
 extern void C2_HOOK_FASTCALL SetJoystickArrays(int* pKeys, int pMark);
 
