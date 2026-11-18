@@ -611,7 +611,10 @@ void C2_HOOK_FASTCALL FlicPaletteAllocate(void) {
     gPalette = DRPixelmapAllocate(BR_PMT_RGBX_888, 1, 256, gPalette_pixels, 0);
 }
 
-// AssertFlicPixelmap
+// STUB: CARMA2_HW 0x00461aa0
+void C2_HOOK_FASTCALL AssertFlicPixelmap(tFlic_descriptor_ptr pFlic_info, br_pixelmap* pDest_pixelmap) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
