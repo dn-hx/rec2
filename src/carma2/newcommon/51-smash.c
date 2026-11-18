@@ -521,9 +521,23 @@ void C2_HOOK_FASTCALL InitSmashQueue(void) {
 
 // FlushSmashQueue
 
-// QueueSmashIfNecessary3
+// STUB: CARMA2_HW 0x004ee290
+tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10) {
+    NOT_IMPLEMENTED();
+}
 
-// QueueSmashIfNecessary2
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ee250
+void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9) {
+    NOT_IMPLEMENTED();
+}
 
 // AllocateSmashLevels
 
@@ -587,6 +601,10 @@ intptr_t C2_HOOK_CDECL NoteChildren(br_actor* pActor, void* pData) {
     return 0;
 }
 
+// STUB: CARMA2_HW 0x004f5a70
+intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+}
 void C2_HOOK_FASTCALL ReadSmokeFireChance(FILE* pF, tSmoke_fire_chance* pSmoke_fire_chance) {
     pSmoke_fire_chance->probability_fire = GetAnInt(pF);
     if (pSmoke_fire_chance->probability_fire != 0) {

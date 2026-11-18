@@ -59,21 +59,21 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // FaceOnCount
 
-// EliminateFaces
+extern int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix);
 
 // GetShapePoint
 
 // GetObjectObjectEdgeIntersections
 
-// GetFaceEdgeIntersection
+extern int C2_HOOK_FASTCALL GetFaceEdgeIntersection(tPhysics_object* pObject, tPhysics_shape* pShape, tSensible_place_contact* pContacts, int pCount, int pMax, br_vector3* pPoints, br_matrix34* pScratch, int* pHas_collision);
 
 // GetSphereToFacePoints
 
 // CheckSingleEdgeWithSphere
 
-// GetSphereToEdgePoints
+extern int C2_HOOK_FASTCALL GetSphereToEdgePoints(tPhysics_object* pObject, int pEdx, int pParam1, int pParam2, int pParam3, int pParam4, int pParam5, int pParam6);
 
-// GetCornerToFacePoints
+extern int C2_HOOK_FASTCALL GetCornerToFacePoints(tPhysics_object* pObject, int pEdx, tU32 pParam1, int pParam2, int pParam3, char* pParam4, tU32 pParam5);
 
 // CylinderCheck
 
@@ -81,13 +81,13 @@ extern tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, b
 
 // WorldPointCollision
 
-// CheckSingleEdgeWithObjectEdges
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithObjectEdges(float* pStart, float* pEnd, int* pObject, int pBounds_shape, undefined4 pRay_shape, int pCollision_count, int pFace, int pPolyhedron_data);
 
-// GetEdgeToEdgePoints
+extern int C2_HOOK_FASTCALL GetEdgeToEdgePoints(tPhysics_object* pObject, tPhysics_shape* pBounds_shape, tPhysics_shape* pRay_shape, int pCollision_count, undefined4 pArg5, tU8* pPolyhedron_data, undefined4 pArg7);
 
 // SetUpWorkspace
 
-// GetObjectWallForceInfo
+extern int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_place_contact* pContacts, int pArg);
 
 // GetObjectCornerToObjectFacePoints
 

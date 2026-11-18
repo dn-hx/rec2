@@ -147,9 +147,9 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
 // FlushSmashQueue
 
-// QueueSmashIfNecessary3
+extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
 
-// QueueSmashIfNecessary2
+extern void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9);
 
 // AllocateSmashLevels
 
@@ -321,7 +321,7 @@ extern intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser);
 
 extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
-// SmashEverythingCB
+extern intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext);
 
 extern void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec);
 
