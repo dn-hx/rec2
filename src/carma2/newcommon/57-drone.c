@@ -25,6 +25,9 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern void C2_HOOK_FASTCALL PreprocessDronePaths(void);
+extern void C2_HOOK_FASTCALL InitDroneSpec(tDrone_spec* pDrone_spec, int pNode);
+extern tNet_mode gNet_mode;;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
