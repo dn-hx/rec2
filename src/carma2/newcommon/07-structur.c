@@ -21,6 +21,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
+extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
