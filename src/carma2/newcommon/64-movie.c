@@ -17,9 +17,7 @@
 #include <QTML.h>
 #include <Movies.h>
 #include <TextUtils.h>
-
-#include <QTML.h>
-#include <Movies.h>
+#include <windows.h>
 
 #include "c2_string.h"
 #include "18-graphics2.h"
@@ -285,3 +283,43 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
 
 // FreeS3SoundOutput
 
+
+// FUNCTION: CARMA2_HW 0x005757d0
+void* C2_HOOK_CDECL _QTLoadLibrary(void) {
+    char path[0x104];
+    char* p;
+    HMODULE hModule;
+    DWORD len;
+
+    hModule = GetModuleHandleA("QuickTime.qts");
+    if (hModule != NULL) {
+        len = GetModuleFileNameA(hModule, path, 0x104);
+        if (len != 0) {
+            hModule = LoadLibraryA(path);
+            return hModule;
+        }
+    }
+    len = GetModuleFileNameA(NULL, path, 0x104);
+    if (len != 0) {
+        for (p = path + strlen(path) - 1; p >= path; p--) {
+            if (*p == '\\' || *p == '/') {
+                break;
+            }
+        }
+        if (p >= path) {
+            p[1] = '\0';
+            strcat(path, "QuickTime.qts");
+            hModule = LoadLibraryA(path);
+            if (hModule != NULL) {
+                return hModule;
+            }
+        }
+    }
+    hModule = NULL;
+    if (GetSystemDirectoryA(path, 0x104) != 0) {
+        strcat(path, "\\");
+        strcat(path, "QuickTime.qts");
+        hModule = LoadLibraryA(path);
+    }
+    return hModule;
+}
