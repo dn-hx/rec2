@@ -44,6 +44,7 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
