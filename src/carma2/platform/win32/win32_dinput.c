@@ -225,6 +225,14 @@ static int C2_HOOK_FASTCALL AcquireDInputJoystickDevice(int pIndex) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00458430
+int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
+
+    if (index < 0 || index > gCount_joystick_effects) {
+        return NULL;
+    }
+    return (int*)&gJoystick_effects[index];
+}
 // FUNCTION: CARMA2_HW 0x004589d0
 // FUNCTION: CARMA2_SW 0x00458760
 tDirectInputJoystickInfo* C2_HOOK_FASTCALL JoystickDInputGetInfo(int pJoystickIndex, tU32* pButtonMask, tU32* pAxisMask) {
