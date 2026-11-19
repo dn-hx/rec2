@@ -771,20 +771,16 @@ void C2_HOOK_FASTCALL PDInitTimer(void) {
 // FUNCTION: CARMA2_HW 0x0051d410
 // FUNCTION: CARMA2_SW 0x00518cb0
 tU32 C2_HOOK_FASTCALL PDGetTotalTime(void) {
-#ifdef REC2_HW
-    LARGE_INTEGER perfCountValue;
-    LARGE_INTEGER delta;
+    LARGE_INTEGER current_count;
+    DWORDLONG shifted;
 
     if (gPerformanceCounterInitialized) {
-        QueryPerformanceCounter(&perfCountValue);
-        delta.QuadPart = perfCountValue.QuadPart - gPerformanceCounterStart.QuadPart;
-        return (tU32) (delta.QuadPart / gPerformanceCounterFrequency_ms.QuadPart);
+        QueryPerformanceCounter(&current_count);
+        shifted = Int64ShllMod32((LONGLONG) current_count.HighPart, 16);
+        shifted = Int64ShllMod32((LONGLONG) shifted, 16);
+        return (tU32) ((((DWORDLONG) current_count.LowPart + shifted) - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_ms.QuadPart);
     }
     return 0;
-#endif
-#ifdef REC2_SW
-    return timeGetTime();
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x0051d990
