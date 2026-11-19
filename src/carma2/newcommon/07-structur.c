@@ -21,6 +21,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
+extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
@@ -61,6 +63,70 @@ int gLast_wrong_checkpoint = -1;
 // GLOBAL: CARMA2_HW 0x006a0944
 int gNumber_of_icons;
 
+// FUNCTION: CARMA2_HW 0x004e3440
+int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
+    extern tRace_group_spec* gRace_groups;
+    extern int gCountRaceGroups;
+    int i;
+    int count;
+    volatile int result;
+    int min_index;
+    int min_count;
+
+    result = 0;
+    if (pRace_result == eRace_completed) {
+        gCurrent_race.race_spec->count_opponents++;
+        if (gProgram_state.game_completed) {
+            gProgram_state.current_race_index = IRandomBetween(0, gNumber_of_races - 1);
+            gCurrent_race_group = gRace_list[gProgram_state.current_race_index].group;
+            return result;
+        }
+        if (gCurrent_race.race_spec->is_boundary) {
+            gCurrent_race_group += 1;
+            gIs_boundary_race = 0;
+            if ((gCurrent_race_group - gRace_groups) >= gCountRaceGroups) {
+                gProgram_state.game_completed = 1;
+                DoGameCompletedAnimation();
+                FRONTEND_Main(kFrontend_menu_credits);
+                gProgram_state.current_race_index = IRandomBetween(0, gNumber_of_races - 1);
+                gCurrent_race_group = gRace_list[gProgram_state.current_race_index].group;
+                result = 1;
+                return 1;
+            }
+            gProgram_state.current_race_index = gCurrent_race_group->races - gRace_list;
+            return result;
+        }
+        count = gCurrent_race_group->count_races;
+        min_count = 10000;
+        if (count > 0) {
+            i = 0;
+            min_index = result; /* the original rereads the shared zero stack slot here */
+            do {
+                if (gCurrent_race_group->races[i].count_opponents < min_count) {
+                    min_count = gCurrent_race_group->races[i].count_opponents;
+                    min_index = i;
+                }
+                i++;
+            } while (i < count);
+        } else {
+            min_index = result;
+        }
+        if (min_count != 0) {
+            gIs_boundary_race = 1;
+            gProgram_state.current_race_index = gCurrent_race_group->mission - gRace_list;
+            return result;
+        }
+        gProgram_state.current_race_index = (gCurrent_race_group->races + min_index) - gRace_list;
+        return result;
+    }
+    if (gNo_credits_APO_restore == 0) {
+        gProgram_state.credits = gMoney_pre_race;
+        gProgram_state.current_car.power_up_levels[0] = gAPO_pre_race[0];
+        gProgram_state.current_car.power_up_levels[1] = gAPO_pre_race[1];
+        gProgram_state.current_car.power_up_levels[2] = gAPO_pre_race[2];
+    }
+    return result;
+}
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0
 int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void) {
