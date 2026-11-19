@@ -355,11 +355,42 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
 // FUNCTION: CARMA2_HW 0x00512170
 // FUNCTION: CARMA2_SW 0x0050d5c0
 void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry) {
+    int angle_in_degrees;
+    int angle;
     br_scalar s;
     br_scalar c;
 
-    s = FastScalarSinAngle(ry);
-    c = FastScalarCosAngle(ry);
+    angle_in_degrees = (int)((double)ry * (360.0 / 65536.0));
+    angle = angle_in_degrees;
+    if (angle < 0) {
+        angle = 360 - -angle % 360;
+    } else {
+        angle = angle % 360;
+    }
+    if (angle > 270) {
+        s = -*(gFloat_sine_table_360 - angle);
+    } else if (angle > 180) {
+        s = -gFloat_sine_table[angle - 180];
+    } else if (angle > 90) {
+        s = *(gFloat_sine_table + 180 - angle);
+    } else {
+        s = gFloat_sine_table[angle];
+    }
+    angle = angle_in_degrees;
+    if (angle < 0) {
+        angle = 360 - -angle % 360;
+    } else {
+        angle = angle % 360;
+    }
+    if (angle > 270) {
+        c = gFloat_sine_table[angle - 270];
+    } else if (angle > 180) {
+        c = -*(gFloat_sine_table_270 - angle);
+    } else if (angle > 90) {
+        c = -gFloat_sine_table[angle - 90];
+    } else {
+        c = *(gFloat_sine_table + 90 - angle);
+    }
     mat->m[0][0] = c;
     mat->m[0][1] = 0.0f;
     mat->m[0][2] = -s;
