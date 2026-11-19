@@ -257,11 +257,11 @@ br_error C2_HOOK_CDECL _M_br_soft_renderer_partIndexQuery(br_soft_renderer* self
         }
     }
 
-    if (pnindex == NULL) {
-        return 0x1002;
+    if (pnindex != NULL) {
+        *pnindex = n;
+        return 0;
     }
-    *pnindex = n;
-    return 0;
+    return 0x1002;
 }
 
 // FUNCTION: CARMA2_HW 0x00542060
