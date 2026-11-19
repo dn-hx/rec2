@@ -420,9 +420,6 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
     int i;
     int j;
 
-    C2_HOOK_BUG_ON(REC2_ASIZE(gArrows) != 2);
-    C2_HOOK_BUG_ON(sizeof(gArrows) != 1920);
-
     if (pColour == 0xffffffff) {
         colours[0] = 0;
         colours[1] = 0x84;
@@ -449,7 +446,7 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
             colours[1] = Colour24BitTo16Bit(0xff00ff);
         }
     }
-    for (i = 0; i < REC2_ASIZE(colours); i++) {
+    for (i = 0; i < 2; i++) {
         arrow_ptr = &gArrows[i][pArrow_index & 0x3][0];
         point_count = *arrow_ptr++;
         for (j = 0; j < point_count; j++) {
@@ -462,9 +459,9 @@ void C2_HOOK_FASTCALL DrawArrow(br_pixelmap* pScreen, br_uint_32 pArrow_index, c
                 y = *arrow_ptr++;
             }
             if (pArrow_index & 0x4) {
-                temp = x;
-                x = -y;
-                y = temp;
+                temp = y;
+                y = x;
+                x = -temp;
             }
             BrPixelmapPixelSet(pScreen, (int)(pPos->v[0] + x), (int)(pPos->v[1] + y), colour);
         }
