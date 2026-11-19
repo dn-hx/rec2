@@ -29,8 +29,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
-#include "61-pedestrn.h"
-#include "00-car.h"
+#include "01-network.h"
 
 #include <stdio.h>
 
@@ -1661,7 +1660,31 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
 
 // SendNetSmash
 
-// SendAllSmashes
+// FUNCTION: CARMA2_HW 0x004f0f80
+void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
+    tNet_message* message;
+    tU8 field_0x18;
+    tU8 field_0x19;
+    int i;
+    int offset;
+
+    message = NetBuildMessage(0x21, 0);
+    field_0x18 = ((tU8*)message)[0x18];
+    field_0x19 = ((tU8*)message)[0x19];
+    i = 0;
+    if (0 < gCount_host_smashes) {
+        offset = 0;
+        do {
+            memcpy((tU8*)message + 0x18, (tU8*)gNet_host_smashes + offset, 0x38);
+            ((tU8*)message)[0x18] = field_0x18;
+            *(tU32*)((tU8*)message + 0x4c) |= 1;
+            ((tU8*)message)[0x19] = field_0x19;
+            NetSendMessageToPlayer(gCurrent_net_game, message, pRecipient->ID);
+            i++;
+            offset += 0x38;
+        } while (i < gCount_host_smashes);
+    }
+}
 
 // HitPowerup
 
