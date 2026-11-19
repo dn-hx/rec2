@@ -33,6 +33,8 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern tU32 gPHIL_last_physics_tick;;
+extern tU32 gLast_munge_smash_edge_triggers;;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
