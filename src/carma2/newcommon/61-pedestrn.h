@@ -624,7 +624,7 @@ extern float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_i
 
 // ScaleCollisionObject
 
-// ScaleFormBone
+extern void C2_HOOK_FASTCALL ScaleFormBone(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode);
 
 // ScaleBone
 
