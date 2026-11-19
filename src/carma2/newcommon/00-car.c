@@ -1560,3 +1560,225 @@ void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex) {
 void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
 }
+
+typedef struct {
+    tU8 size;
+    tU8 type;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU32 next_frame_time;
+    tU8 suspension_compression[4];
+    tU32 controls;
+    tU32 hierarchy_flags;
+    tU16 curvature;
+    tU16 revs;
+    tS32 repair_time;
+    tU8 damage_levels[12];
+    tU8 power_up_levels[3];
+    undefined field_0x2f;
+    tU16 crush_state;
+    tU8 flags;
+    undefined field_0x33;
+    tU8 object_hierarchy[0x208];
+} tNet_message_chunk_car_data;
+
+// FUNCTION: CARMA2_HW 0x00497900
+void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
+    tNet_message_chunk_car_data* message;
+    tU8 message_buffer[0x23c];
+    tNet_message_chunk* chunk;
+    tCar_spec* pCar;
+    tCar_spec* pOther_car;
+    tNon_car_spec* pNon_car;
+    tU8 hierarchy_size;
+    tU8 message_size;
+    tU8 flags;
+    tU8 base_size;
+    tU8 extra_size;
+    tU8 deform_flags;
+    tU16 deform_value;
+    int i;
+    int j;
+    int k;
+    int check_idx;
+    int crush_size;
+    tPlayer_ID target_id;
+    tPlayer_ID proxy_id;
+    float dx;
+    float dy;
+    float dz;
+    tU8* pData;
+
+    message = (tNet_message_chunk_car_data*)message_buffer;
+    if (gNet_mode == eNet_mode_none) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_host) {
+        chunk = NetStartBroadcastContents(0x12, 0);
+        if (chunk != NULL) {
+            *(tU32*)((tU8*)chunk + 4) = gRace_start;
+            NetBroadcastContents(chunk);
+        }
+    } else {
+        chunk = NetGetToHostContents(0x12, 0);
+        *(tU32*)((tU8*)chunk + 4) = gRace_start;
+    }
+    if (gNet_mode == eNet_mode_host) {
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            pCar = gNet_players[i].car;
+            if (pCar->disabled != 0) {
+                continue;
+            }
+            flags = 0;
+            hierarchy_size = (tU8)GetHierarchyNetworkSize(pCar->collision_info);
+            message_size = hierarchy_size + 0x34;
+            if (pCar->damage_units[8].damage_level > 0x1e || pCar->damage_units[9].damage_level > 0x1e
+                    || pCar->damage_units[10].damage_level > 0x1e || pCar->damage_units[11].damage_level > 0x1e) {
+                flags = 8;
+                message_size += 0x10;
+            }
+            message->size = message_size;
+            message->type = 0x10;
+            message->player_id = gNet_players[i].ID;
+            message->next_frame_time = pNext_frame_time;
+            message->curvature = (tU16)(pCar->curvature / pCar->maxcurve * 32766.0f);
+            message->controls = *(tU32*)&pCar->keys;
+            message->controls = (message->controls & 0xffffff00) | ((pCar->joystick.acc >> 9) & 0xff);
+            message->controls = (message->controls & 0xffff00ff) | ((pCar->joystick.dec >> 1) & 0xff00);
+            message->revs = (tU16)pCar->revs;
+            for (j = 0; j < 4; j++) {
+                message->suspension_compression[j] = (tU8)(pCar->oldd[j] / pCar->susp_height[j >> 1] * 255.0f);
+            }
+            for (j = 0; j < 12; j++) {
+                message->damage_levels[j] = (tU8)pCar->damage_units[j].damage_level;
+            }
+            message->power_up_levels[0] = (tU8)pCar->power_up_levels[0];
+            message->power_up_levels[1] = (tU8)pCar->power_up_levels[1];
+            message->power_up_levels[2] = (tU8)pCar->power_up_levels[2];
+            message->repair_time = pCar->repair_time;
+            message->hierarchy_flags = pCar->collision_info->field_0x49c;
+            message->crush_state = pCar->car_crush_spec->field_0x24;
+            message->flags = flags;
+            if (GetHierarchyNetworkStuff(pCar->collision_info, message->object_hierarchy, 0x68) != hierarchy_size) {
+                FatalError(0x72, "in car object data");
+            }
+            pData = message->object_hierarchy + hierarchy_size;
+            if ((flags & 8) != 0) {
+                for (j = 0; j < 4; j++) {
+                    *(float*)pData = pCar->wheel_dam_offset[j];
+                    pData += sizeof(float);
+                }
+            }
+            base_size = message->size;
+            for (j = 1; j < gNumber_of_net_players; j++) {
+                if (i == j && pCar->collision_info->field_0x49c == *(undefined4*)((char*)pCar->collision_info + 0x274)) {
+                    continue;
+                }
+                target_id = gNet_players[j].ID;
+                proxy_id = *(tPlayer_ID*)&gNet_players[j].field_0xd0;
+                if (proxy_id == 0) {
+                    check_idx = j;
+                } else {
+                    check_idx = 0;
+                    if (gNumber_of_net_players - 1 > 0) {
+                        for (k = 0; k < gNumber_of_net_players - 1; k++) {
+                            if (gNet_players[k].ID == proxy_id) {
+                                break;
+                            }
+                        }
+                        check_idx = k;
+                    }
+                }
+                if (i != j) {
+                    pOther_car = gNet_players[check_idx].car;
+                    dx = pCar->car_master_actor->t.t.translate.t.v[0] - pOther_car->car_master_actor->t.t.translate.t.v[0];
+                    dy = pCar->car_master_actor->t.t.translate.t.v[1] - pOther_car->car_master_actor->t.t.translate.t.v[1];
+                    dz = pCar->car_master_actor->t.t.translate.t.v[2] - pOther_car->car_master_actor->t.t.translate.t.v[2];
+                    if (sqrt(dx * dx + dy * dy + dz * dz) >= 40.0f) {
+                        chunk = NetGetToPlayerContents(0x2d, 0, target_id);
+                        FillInSimpleCarPos(chunk, i);
+                        continue;
+                    }
+                }
+                message->flags &= 0xf8;
+                message->size = base_size;
+                if (pCar->car_crush_spec->version_le_100 != 0) {
+                    if (pCar->car_crush_spec->field_0x28 != 0) {
+                        pCar->car_crush_spec->field_0x24 = (tU16)(pCar->car_crush_spec->field_0x24 + 2 - ((pCar->car_crush_spec->field_0x24 & 1) != 0));
+                        SetAllShapeStatusFlags(pCar->car_crush_spec->network_stuff);
+                        ClearShapeStatusFlag(pCar->car_crush_spec->network_stuff, gNet_players[i].ID);
+                        pCar->car_crush_spec->field_0x28 = 0;
+                    }
+                    if (CarShapeNeedsSendingToPlayer(pCar->car_crush_spec->network_stuff, gNet_players[check_idx].ID) != 0) {
+                        crush_size = GetNetShapeDataLengthFromShape(pCar);
+                        extra_size = 1;
+                        message_size = (tU8)crush_size;
+                        if (pCar->car_crush_spec->field_0x144 != 0) {
+                            extra_size = 3;
+                            message_size += 3;
+                        }
+                        if (pCar->car_crush_spec->field_0x4b8 != 0) {
+                            extra_size |= 4;
+                            message_size += 8;
+                        }
+                        message->flags |= extra_size;
+                        pData = (tU8*)message + message->size;
+                        message->size += message_size;
+                        if ((extra_size & 1) != 0) {
+                            EncodeNetShapeData(pData, pCar);
+                            pData += crush_size;
+                        }
+                        if ((extra_size & 2) != 0) {
+                            deform_flags = 0;
+                            if (pCar->car_crush_spec->field_0x174 == pCar->car_crush_spec->bend_z_min) {
+                                deform_flags |= 1;
+                            }
+                            if (*(tU16*)((char*)pCar->car_crush_spec + 0x190) != 0) {
+                                deform_flags |= 2;
+                                deform_value = *(tU16*)((char*)pCar->car_crush_spec + 0x190);
+                            } else if (*(tU16*)((char*)pCar->car_crush_spec + 0x192) != 0) {
+                                deform_flags |= 4;
+                                deform_value = *(tU16*)((char*)pCar->car_crush_spec + 0x192);
+                            } else {
+                                deform_flags |= 8;
+                                deform_value = *(tU16*)((char*)pCar->car_crush_spec + 0x194);
+                            }
+                            *pData = deform_flags;
+                            pData++;
+                            *(tU16*)pData = deform_value;
+                            pData += 2;
+                        }
+                        if ((extra_size & 4) != 0) {
+                            CompressPlane((tCompressed_vector4*)(tU16*)pData, (const br_vector4*)&pCar->car_crush_spec->field_0x548);
+                        }
+                    }
+                }
+                message->size = (tU8)(message->size + (message->size & 1));
+                chunk = NetGetToPlayerContents(0x10, message->size, target_id);
+                memcpy(chunk, message, message->size);
+            }
+            if (pCar->time_to_recover != 0 && pCar->time_to_recover - 500 < pNext_frame_time) {
+                chunk = NetStartBroadcastContents(0x17, 0);
+                if (chunk != NULL) {
+                    *(tU32*)((tU8*)chunk + 4) = gNet_players[i].ID;
+                    *(tU32*)((tU8*)chunk + 8) = pCar->time_to_recover;
+                    NetBroadcastContents(chunk);
+                }
+            }
+        }
+        for (i = 0; i < gNum_active_non_cars; i++) {
+            pNon_car = gActive_non_car_list[i];
+            if ((pNon_car->flags & 0x100000) != 0) {
+                if (pNon_car->driver == 2) {
+                    SendDBNonCar(pNon_car, pNext_frame_time, NULL);
+                } else if (pNon_car->driver == 3) {
+                    SendSHNonCar(pNon_car, pNext_frame_time, NULL);
+                } else {
+                    SendNonCar(pNon_car, pNext_frame_time);
+                }
+            }
+        }
+    } else if (gNet_mode == eNet_mode_client) {
+        ClientSendCarData(pNext_frame_time);
+    }
+}

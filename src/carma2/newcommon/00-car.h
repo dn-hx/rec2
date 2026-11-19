@@ -265,3 +265,4 @@ extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 
 #endif // GUARD_00_CAR_H
 
+extern void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time);
