@@ -67,12 +67,14 @@ br_error C2_HOOK_CDECL _M_br_soft_renderer_partSet(br_soft_renderer* self, br_to
 // FUNCTION: CARMA2_SW 0x0053cf90
 br_error C2_HOOK_CDECL _M_br_soft_renderer_partSetMany(br_soft_renderer* self, br_token part, br_int_32 index, br_token_value* tv, br_int_32* pcount) {
     br_error r;
-    soft_state_all* sp = &self->state;
+    soft_state_all* sp;
     br_tv_template* tp;
-    br_uint_32 m = 0;
+    br_uint_32 m;
     br_int_32 c;
 
+    sp = &self->state;
     tp = FindStateTemplate(self, &sp, part, index);
+    m = 0;
 
     if (tp != NULL) {
         r = BrTokenValueSetMany(sp, pcount, &m, tv, tp);
