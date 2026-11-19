@@ -40,6 +40,8 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern int gWhich_edit_mode;;
+extern tEdit_func* gEdit_funcs[2][18][8];;
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
