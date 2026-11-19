@@ -2083,7 +2083,93 @@ intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
 
 // DoSpams
 
-// CrushBendFlapRend
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00436170
+void C2_HOOK_FASTCALL CrushBendFlapRend(void) {
+    tCompressed_car_crush compressed;
+    br_vector3 tv;
+    double factor;
+    tCrush_list_item* crush_list;
+
+    tQueued_drone_crush* queued_crush;
+    tQueued_drone_crush_item* drone_item;
+    float force;
+    int i;
+    int drone_i;
+    int drone_j;
+
+    for (i = 0; i < gCount_car_damage_crush_list; i++) {
+        TotallySpamTheCar(gCar_damage_crush_list[i].car, gCar_damage_crush_list[i].damage);
+    }
+    gCount_car_damage_crush_list = 0;
+
+    for (crush_list = gCrush_lists; crush_list->car_spec != NULL; crush_list++) {
+        for (i = 0; i < crush_list->count; i++) {
+            force = crush_list->car_spec->car_crush_spec->bendability_factor * crush_list->items[i].field_0x40;
+            if (crush_list->car_spec == NULL || crush_list->car_spec->driver != eDriver_local_human) {
+                factor = (gDouble_00589a60 - (float)gCurrent_race.index / gNumber_of_races) * gDouble_00589b18;
+                force = force * (gDouble_00589a60 - factor * gDouble_00589b20);
+            }
+            if (force > gMin_bend_force) {
+                if (PercentageChance((int)gChance_of_bending)) {
+                    crush_list->items[i].field_0x40 = -crush_list->items[i].field_0x40;
+                }
+            } else {
+                tNet_message_chunk* message;
+
+                if (gNet_mode != eNet_mode_none) {
+                    CompressCrush(&compressed, &crush_list->items[i]);
+                    message = NetStartBroadcastContents(0x20, 0);
+                    if (message != NULL) {
+                        message->car_crush.car_id = NetPlayerFromCar(crush_list->car_spec)->ID;
+                        memcpy(&message->car_crush.car_crush, &compressed, sizeof(tCompressed_car_crush));
+                        NetBroadcastContents(message);
+                    }
+                    ExpandCrush(&crush_list->items[i], &compressed);
+                }
+                CrushCar(crush_list->car_spec, crush_list->car_spec->car_master_actor, &crush_list->items[i]);
+            }
+        }
+    }
+
+    for (drone_i = 0; drone_i < gCount_queued_drone_crushes; drone_i++) {
+        queued_crush = &gQueued_drone_crushes[drone_i];
+        for (drone_j = 0; drone_j < queued_crush->count; drone_j++) {
+            drone_item = &queued_crush->items[drone_j];
+            if (drone_item->field_0x34 > gFloat_00589b28) {
+                drone_item->field_0x34 = 5.f;
+            }
+            BrVector3Scale(&tv, &drone_item->field_0x38, drone_item->field_0x34);
+            CrushDroneObject((tPhysics_object*)queued_crush->field_0x0, drone_item->count, (float*)drone_item->points, &tv);
+        }
+    }
+    gCount_queued_drone_crushes = 0;
+
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car = gActive_car_list[i];
+
+        if (car != NULL && car->driver > 5 && car->car_crush_spec != NULL
+                && (car->car_crush_spec->expand_bounding_box & 1)) {
+            SwapShapesIfPossible(car);
+        }
+    }
+
+    DoFlapping();
+    DoDetaching();
+    DoFullyDetaching();
+    DoBending();
+
+    for (crush_list = gCrush_lists; crush_list->car_spec != NULL; crush_list++) {
+        crush_list->car_spec = NULL;
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // SphericizeModel
 
