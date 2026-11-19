@@ -33,6 +33,7 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern int gNext_explosion_slot;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
