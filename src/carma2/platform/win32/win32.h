@@ -27,6 +27,8 @@ extern int gWindowMovingResizing;
 extern LPDIRECTINPUTDEVICEA gDirectInputDevice;
 #ifdef REC2_HW
 extern char* gRenderer;
+extern int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2);
+
 #endif
 extern int gMouseLButtonDown;
 extern int gMouseRButtonDown;

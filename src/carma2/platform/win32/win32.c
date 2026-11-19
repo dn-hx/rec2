@@ -235,6 +235,11 @@ int gINT_006a6c3c;
 
 #define Win32AllocateActionReplayBuffer PDReallyAllocateActionReplayBuffer
 
+// FUNCTION: CARMA2_HW 0x0047d850
+int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2) {
+
+    return strcasecmp(str1, str2);
+}
 // FUNCTION: CARMA2_HW 0x0051b810
 // FUNCTION: CARMA2_SW 0x005155e0
 void C2_HOOK_FASTCALL Win32AllocateActionReplayBuffer(void) {
