@@ -435,10 +435,20 @@ int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, const br_matrix
 
 // PHILAddObjectImmediately
 
-// STUB: CARMA2_HW 0x004b62e0
+// FUNCTION: CARMA2_HW 0x004b62e0
 // STUB: CARMA2_SW 0x004b2a00
 int C2_HOOK_FASTCALL PHILAddActiveObjectImmediately(tPhysics_object* pObject, const br_matrix34* pMatrix, const br_vector3* pVelocity, const br_vector3* pOmega) {
-    NOT_IMPLEMENTED();
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddActiveObject(pObject, pMatrix, pVelocity, pOmega);
+    gPHIL_object_added = 0;
+    return result;
 }
 
 // STUB: CARMA2_HW 0x004b63b0
