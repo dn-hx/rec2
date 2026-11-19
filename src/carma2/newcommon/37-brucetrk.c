@@ -18,6 +18,7 @@
 #include "51-smash.h"
 #include "61-pedestrn.h"
 #include "platform.h"
+extern void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel);
 
 // GLOBAL: CARMA2_HW 0x0058f490
 // GLOBAL: CARMA2_SW 0x0058a490
