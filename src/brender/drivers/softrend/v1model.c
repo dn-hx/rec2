@@ -115,9 +115,7 @@ void C2_HOOK_CDECL V1Face_OS_CullNone(br_geometry* self, br_soft_renderer* rende
     int f;
     temp_face_soft* tfp;
 
-    for (f = 0; f < rend.nfaces; f++) {
-
-        tfp = &rend.temp_faces[f];
+    for (f = 0, tfp = rend.temp_faces; f < rend.nfaces; f++, tfp++) {
         tfp->flag = TFF_VISIBLE;
     }
 
