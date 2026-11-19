@@ -166,6 +166,11 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
     }
 }
 
+// FUNCTION: CARMA2_HW 0x0053e584
+void C2_HOOK_CDECL FUN_0053e584(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height) {
+    br_uint_32 total = width * height;
+    memcpy(dest, src, total);
+}
 // FUNCTION: CARMA2_HW 0x0053e686
 // FUNCTION: CARMA2_SW 0x005399ba
 void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour) {
