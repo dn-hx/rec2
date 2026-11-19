@@ -47,6 +47,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
 
 // GLOBAL: CARMA2_HW 0x0079eda0
 // GLOBAL: CARMA2_SW 0x00795340
@@ -726,7 +727,61 @@ void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar) {
     PipeSingleGraphicalWheelStuff(pCar);
 }
 
-// FinishCars
+// FUNCTION: CARMA2_HW 0x00416500
+void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
+    int i;
+    br_vector3 tv;
+    br_scalar dt;
+    br_vector3 minus_k;
+
+    if (gCar_flying) {
+        BrMatrix34Copy(&gCar_to_view->collision_info->actor->t.t.mat, &gCar_to_view->collision_info->transform_matrix);
+    }
+    for (i = 0; i < gNum_cars_and_non_cars; i++) {
+        tCar_spec* car;
+        float original_speed;
+
+        car = gActive_car_list[i];
+        BrMatrix34ApplyP(&car->pos, &car->collision_info->cmpos, &car->car_master_actor->t.t.mat);
+        original_speed = car->speed;
+        car->speed = BR_LENGTH2(car->collision_info->v.v[0], car->collision_info->v.v[2]) / 1000.f;
+        BrVector3Negate(&minus_k, (br_vector3*)&car->car_master_actor->t.t.mat.m[2]);
+        if (original_speed < 0.0001f && car->speed > 0.0001f) {
+            car->speed = .0001f;
+        }
+        if (car->speed > .0001f) {
+            BrVector3Normalise(&car->direction, &car->collision_info->v);
+        } else {
+            if (BrVector3Dot(&car->direction, &minus_k) < 0.f) {
+                BrVector3SetFloat(&minus_k, 0.f, 0.f, 1.f);
+            } else {
+                BrVector3SetFloat(&minus_k, 0.f, 0.f, -1.f);
+            }
+            BrMatrix34ApplyV(&car->direction, &minus_k, &car->car_master_actor->t.t.mat);
+        }
+        if (car != NULL && car->driver > 5) {
+            int wheel;
+
+            car->speedo_speed = BrVector3Dot(&minus_k, &car->collision_info->v) / 1000.f;
+            CalcGraphicalWheelStuff(car);
+
+            for (wheel = 0; wheel < 4; wheel++) {
+                if (car->oldd[wheel] < car->susp_height[wheel >> 1]
+                        && gCurrent_race.material_modifiers[car->material_index[wheel]].smoke_type >= 2
+                        && !car->collision_info->disable_move_rotate) {
+                    GenerateContinuousSmoke(car, wheel, pTime);
+                }
+            }
+        }
+    }
+    if (gPHIL_last_physics_tick > pLast_frame_time && gCar_to_view->speed > .0001f) {
+        dt = (gPHIL_last_physics_tick - pLast_frame_time) / 40.f;
+        BrVector3Sub(&tv, &gCar_to_view_original_v, &gCar_to_view->collision_info->v);
+        BrVector3Scale(&tv, &tv, dt);
+        BrVector3Accumulate(&tv, &gCar_to_view->collision_info->v);
+        BrVector3Normalise(&gCar_to_view->direction, &tv);
+    }
+}
 
 // GetNonCars
 
