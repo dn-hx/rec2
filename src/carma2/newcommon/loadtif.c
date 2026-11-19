@@ -316,6 +316,7 @@ int C2_HOOK_FASTCALL ReadFileLink(char* pDest, const char* pPath) {
 // FUNCTION: CARMA2_SW 0x00483c60
 int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_source) {
     char *ptr;
+    char c;
     FILE *f;
     int i;
     char rel_dest[256];
@@ -323,15 +324,16 @@ int C2_HOOK_FASTCALL WriteFileLink(const char* pLink_dest, const char* pLink_sou
 
     i = 0;
     strcpy(s, pLink_dest);
-    for (ptr = strstr(s, "DATA") + 5; *ptr != '\0'; i++, ptr++) {
-
-        if (*ptr == '\\') {
-            rel_dest[i] = *ptr;
-        } else if (*ptr < '\\' && *ptr == ':') {
+    ptr = strstr(s, "DATA") + 5;
+    while (*ptr != '\0') {
+        c = *ptr;
+        if (c == ':' || c == '\\') {
             rel_dest[i] = '\\';
         } else {
-            rel_dest[i] = *ptr;
+            rel_dest[i] = c;
         }
+        i++;
+        ptr++;
     }
     rel_dest[i] = '\0';
     f = DRfopen(pLink_source, "wt");
