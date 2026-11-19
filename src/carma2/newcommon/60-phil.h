@@ -110,7 +110,7 @@ extern void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pOb
 
 // PHILMungeObjects
 
-// PHILActivatePassive
+extern void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator);
 
 // PHILInterpolateObjects
 
