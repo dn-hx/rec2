@@ -494,6 +494,102 @@ int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_in
 
 // CheckForTwang
 
+// FUNCTION: CARMA2_HW 0x0045e200
+void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_data* pPolyhedron, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar7;
+    float* pfVar8;
+    int iVar9;
+    int iVar10;
+    int iVar11;
+    int local_400;
+    int local_3f4;
+    float afStack_3e0[124];
+    float afStack_1f0[124];
+
+    iVar9 = 0;
+    *pParam5 = 100.0f;
+    iVar11 = pPolyhedron->count_planes;
+    if (0 < iVar11) {
+        pfVar8 = pPolyhedron->planes->v;
+        do {
+            fVar7 = pParam1[2] * pfVar8[2] + pParam1[1] * pfVar8[1] + *pfVar8 * *pParam1 + *pOffset + pfVar8[3];
+            fVar1 = pParam2[2] * pfVar8[2] + pParam2[1] * pfVar8[1] + *pfVar8 * *pParam2 + *pOffset + pfVar8[3];
+            afStack_1f0[iVar9] = fVar7;
+            afStack_3e0[iVar9] = fVar1;
+            if ((fVar7 < -0.002) && (fVar1 < -0.002)) {
+                return;
+            }
+            iVar9 = iVar9 + 1;
+            pfVar8 = pfVar8 + 4;
+        } while (iVar9 < iVar11);
+    }
+    local_400 = 0;
+    if (iVar11 < 1) {
+        return;
+    }
+    local_3f4 = 0;
+    do {
+        if ((-0.002 < afStack_3e0[local_400]) && (afStack_1f0[local_400] < 0.0f)) {
+            if (0.0f <= afStack_3e0[local_400]) {
+                fVar3 = -afStack_1f0[local_400] / (afStack_3e0[local_400] - afStack_1f0[local_400]);
+                fVar1 = 1.0f - fVar3;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar3 + pParam3[1];
+                pParam3[2] = fVar1 * fVar3 + pParam3[2];
+                *pParam3 = fVar2 * fVar3 + *pParam3;
+            } else {
+                fVar3 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar9 = 0;
+            pfVar8 = (float*)((tU8*)pPolyhedron->planes + local_3f4);
+            fVar1 = *pfVar8;
+            fVar5 = pfVar8[1] * *pOffset + pParam3[1];
+            fVar4 = pfVar8[2] * *pOffset + pParam3[2];
+            fVar2 = *pOffset;
+            pParam3[1] = fVar5;
+            *pParam3 = fVar1 * fVar2 + *pParam3;
+            pParam3[2] = fVar4;
+            iVar11 = pPolyhedron->count_planes;
+            if (0 < iVar11) {
+                iVar10 = 0;
+                do {
+                    if ((iVar9 != local_400) &&
+                        (pfVar8 = (float*)((tU8*)pPolyhedron->planes + iVar10),
+                         pfVar8[2] * fVar4 + pfVar8[1] * fVar5 + *pfVar8 * *pParam3 + pfVar8[3] <= 0.0f)) {
+                        break;
+                    }
+                    iVar9 = iVar9 + 1;
+                    iVar10 = iVar10 + 0x10;
+                } while (iVar9 < iVar11);
+            }
+            if (iVar9 == iVar11) {
+                *pParam5 = fVar3;
+                local_400 = local_400 * 0x10;
+                *pParam4 = *(float*)((tU8*)pPolyhedron->planes + local_400);
+                pParam4[1] = *(float*)((tU8*)pPolyhedron->planes + local_400 + 4);
+                pParam4[2] = *(float*)((tU8*)pPolyhedron->planes + local_400 + 8);
+                return;
+            }
+        }
+        local_400 = local_400 + 1;
+        local_3f4 = local_3f4 + 0x10;
+        if (iVar11 <= local_400) {
+            return;
+        }
+    } while (1);
+}
 // FUNCTION: CARMA2_HW 0x004b8c20
 void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
