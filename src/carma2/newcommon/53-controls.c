@@ -40,6 +40,7 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
