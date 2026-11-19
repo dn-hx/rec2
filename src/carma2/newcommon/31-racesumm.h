@@ -21,7 +21,7 @@ extern int gPlayer_lookup_racesumm[14];
 
 // DoNetRaceSummary
 
-// DoEndRaceSummary
+extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
 
 extern int C2_HOOK_FASTCALL AnyBuyableCars(void);
 
