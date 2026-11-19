@@ -44,6 +44,7 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern tU32 gINT_00705b70;;
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -375,10 +376,6 @@ void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004cdeb0
-void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info) {
-    NOT_IMPLEMENTED();
-}
 // InitFaceCaches
 
 inline void C2_HOOK_FASTCALL ResetPedFaceCache(void) {
