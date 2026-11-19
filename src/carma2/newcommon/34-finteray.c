@@ -186,10 +186,167 @@ int C2_HOOK_FASTCALL ActorRayPick2D(br_actor* pActor, br_vector3* pPosition, br_
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0045cf60
+// FUNCTION: CARMA2_HW 0x0045cf60
 // STUB: CARMA2_SW 0x0045c9a0
 int C2_HOOK_FASTCALL DRModelPick2D_finteray(br_model* pModel, br_material* pMaterial, br_actor* pActor, br_vector3* pRay_pos, br_vector3* pRay_dir, br_scalar pT_near, br_scalar pT_far, dr_modelpick2d_cbfn* pCallback, void* pArg) {
-    NOT_IMPLEMENTED();
+    DR_FACE* fp;
+    int f;
+    int axis_m;
+    int axis_0;
+    int axis_1;
+    br_scalar t;
+    br_scalar d;
+    br_vector3 p;
+    float u0;
+    float u1;
+    float u2;
+    float v0;
+    float v1;
+    float v2;
+    float du;
+    float dv;
+    float alpha;
+    float beta;
+    float f_d;
+    float f_n;
+    float weight;
+    br_vector2 map;
+    int v;
+    int e;
+    int r;
+    br_material* this_material;
+    br_scalar abs_d;
+    br_scalar numerator;
+    int group;
+
+    pT_near -= 1e-5f;
+    pT_far -= -1e-5f;
+    for (group = 0; group < V11MODEL(pModel)->ngroups; group++) {
+        fp = V11MODEL(pModel)->groups[group].faces;
+        for (f = 0; f < V11MODEL(pModel)->groups[group].nfaces; f++, fp++) {
+            this_material = *V11MODEL(pModel)->groups[group].face_colours.materials;
+            if (!this_material) {
+                this_material = pMaterial;
+            }
+            d = fp->eqn.v[0] * pRay_dir->v[0] + fp->eqn.v[1] * pRay_dir->v[1] + fp->eqn.v[2] * pRay_dir->v[2];
+            abs_d = (float)fabs(d);
+            if (abs_d < 2.3841858e-7f) {
+                continue;
+            }
+            if (this_material && this_material->identifier
+                    && (this_material->identifier[0] == '!' || this_material->identifier[0] == '>' || this_material->identifier[0] == '?')
+                    && gPling_materials) {
+                continue;
+            }
+            if (this_material && (this_material->flags & (BR_MATF_ALWAYS_VISIBLE | BR_MATF_TWO_SIDED)) == 0 && d > 0.0f) {
+                continue;
+            }
+            numerator = fp->eqn.v[0] * pRay_pos->v[0] + fp->eqn.v[2] * pRay_pos->v[2] + fp->eqn.v[1] * pRay_pos->v[1] - fp->eqn.v[3];
+            if (abs_d < 1.0f) {
+                if (abs_d * BR_SCALAR_MAX < (float)fabs(numerator)) {
+                    continue;
+                }
+            }
+            t = -(numerator / d);
+            if (t < pT_near || t > pT_far) {
+                continue;
+            }
+            p.v[0] = pRay_dir->v[0] * t + pRay_pos->v[0];
+            p.v[1] = pRay_dir->v[1] * t + pRay_pos->v[1];
+            p.v[2] = pRay_dir->v[2] * t + pRay_pos->v[2];
+            axis_m = (float)fabs(fp->eqn.v[0]) < (float)fabs(fp->eqn.v[1]);
+            if ((float)fabs(fp->eqn.v[2]) > (float)fabs(fp->eqn.v[axis_m])) {
+                axis_m = 2;
+            }
+            switch (axis_m) {
+            case 0:
+                axis_0 = 1;
+                axis_1 = 2;
+                break;
+            case 1:
+                axis_0 = 0;
+                axis_1 = 2;
+                break;
+            case 2:
+                axis_0 = 0;
+                axis_1 = 1;
+                break;
+            }
+            v0 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[0]].p.v[axis_0];
+            u0 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[0]].p.v[axis_1];
+            v1 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[1]].p.v[axis_0] - v0;
+            u1 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[1]].p.v[axis_1] - u0;
+            v2 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[2]].p.v[axis_0] - v0;
+            u2 = V11MODEL(pModel)->groups[group].vertices[fp->vertices[2]].p.v[axis_1] - u0;
+            du = p.v[axis_1] - u0;
+            dv = p.v[axis_0] - v0;
+            f_n = u2 * v1 - u1 * v2;
+            f_d = du * v1 - u1 * dv;
+            if ((float)fabs(f_n) < (float)fabs(f_d)) {
+                continue;
+            }
+            if (f_n == 0.0f) {
+                continue;
+            }
+            beta = f_d / f_n;
+            if (beta < 0.0f) {
+                continue;
+            }
+            f_d = du * v2 - u2 * dv;
+            f_n = u1 * v2 - u2 * v1;
+            if ((float)fabs(f_n) < (float)fabs(f_d)) {
+                continue;
+            }
+            if (f_n == 0.0f) {
+                continue;
+            }
+            alpha = f_d / f_n;
+            if (alpha < 0.0f) {
+                continue;
+            }
+            if (alpha + beta > 1.0f) {
+                continue;
+            }
+            map.v[0] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[1]].map.v[0] * alpha;
+            map.v[1] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[1]].map.v[1] * alpha;
+            map.v[0] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[2]].map.v[0] * beta + map.v[0];
+            map.v[1] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[2]].map.v[1] * beta + map.v[1];
+            weight = 1.0f - (alpha + beta);
+            map.v[0] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[0]].map.v[0] * weight + map.v[0];
+            map.v[1] = V11MODEL(pModel)->groups[group].vertices[fp->vertices[0]].map.v[1] * weight + map.v[1];
+            v = 0;
+            e = 1;
+            if (alpha >= beta) {
+                if (alpha < 1.0f - beta * 2.0f) {
+                    e = 2;
+                } else {
+                    e = 1;
+                }
+                if (alpha < 0.5f - beta * 0.5f) {
+                    v = 0;
+                } else {
+                    v = 2;
+                }
+            } else {
+                if (alpha < 0.5f - beta * 0.5f) {
+                    e = 0;
+                } else {
+                    e = 1;
+                }
+                if (alpha < 1.0f - beta * 2.0f) {
+                    v = 0;
+                } else {
+                    v = 1;
+                }
+            }
+            gTemp_group = group;
+            r = pCallback(pModel, pActor, this_material, pRay_pos, pRay_dir, t, f, e, v, &p, &map, pArg);
+            if (r != 0) {
+                return r;
+            }
+        }
+    }
+    return 0;
 }
 
 // STUB: CARMA2_HW 0x0045ff90
