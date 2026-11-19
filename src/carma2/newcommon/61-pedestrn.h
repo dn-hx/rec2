@@ -283,7 +283,7 @@ extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* p
 
 // KillNapalmBolt
 
-// MungeNapalm
+extern void C2_HOOK_FASTCALL MungeNapalm(void);
 
 // PedHeadingTowardsCollisionObject
 
