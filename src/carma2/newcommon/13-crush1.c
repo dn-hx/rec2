@@ -2440,7 +2440,26 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // ARApplySplitWeld
 
-// ARUndoSplitWeld
+// FUNCTION: CARMA2_HW 0x0043c3d0
+void C2_HOOK_FASTCALL ARUndoSplitWeld(void* roadMachine) {
+    tCar_spec* car;
+    tCar_crush_spec* spec;
+    tUser_crush_data* user;
+    int i;
+
+    car = roadMachine;
+    spec = car->car_crush_spec;
+    user = (tUser_crush_data*)car->car_model_actor->user;
+    for (i = 0; i < car->count_detail_levels; i++) {
+        if (user->models[i] != NULL) {
+            BrModelFree(BrModelRemove(user->models[i]));
+            user->models[i] = (br_model*)*(undefined4*)&spec->field_0x4c4[i * 4];
+        }
+    }
+    car->car_model_actor->model = user->models[0];
+    BrModelFree(BrModelRemove(spec->model_actor->model));
+    DRActorEnumRecurse(car->car_model_actor, MakeCarModelsMaterialsSingleSided, car);
+}
 
 // ReceivedCrush
 
