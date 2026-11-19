@@ -170,8 +170,8 @@ void C2_HOOK_CDECL BrMatrix23LPInverse(br_matrix23* B, const br_matrix23* A) {
     B(0, 1) = -A(0, 1);
     B(1, 0) = -A(1, 0);
     B(1, 1) = A(0, 0);
-    B(2, 0) = BR_MAC2(A(1, 0), A(2, 1), -A(2, 0), A(1, 1));
-    B(2, 1) = BR_MAC2(-A(2, 1), A(0, 0), A(0, 1), A(2, 0));
+    B(2, 0) = (double)A(1, 0) * A(2, 1) - (double)A(1, 1) * A(2, 0);
+    B(2, 1) = (double)A(0, 1) * A(2, 0) - A(2, 1) * A(0, 0);
 }
 
 // FUNCTION: CARMA2_HW 0x00534e30
