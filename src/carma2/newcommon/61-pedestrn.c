@@ -2406,11 +2406,6 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pPed, int pMove_a
 
 // DRMatrix34RotateCos
 
-// STUB: CARMA2_HW 0x0040b030
-void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
-    NOT_IMPLEMENTED();
-}
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
