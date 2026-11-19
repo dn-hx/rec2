@@ -22,6 +22,15 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern tU32 gTrigger_time;;
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, void* pCallback, void* pTime_check);
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
+extern tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void);
+extern tU8* gPipe_car_state_chunk;;
+extern tU32 gOldest_time;;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
