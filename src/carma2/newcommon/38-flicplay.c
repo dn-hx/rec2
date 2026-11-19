@@ -19,6 +19,11 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+extern void C2_HOOK_FASTCALL ServiceGame(void);
+extern void C2_HOOK_FASTCALL EnsurePaletteUp(void);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int C2_HOOK_FASTCALL AnyKeyDown(void);
+extern tS3_outlet* gEffects_outlet;;
 
 // GLOBAL: CARMA2_HW 0x00599998
 // GLOBAL: CARMA2_SW 0x005948e0
