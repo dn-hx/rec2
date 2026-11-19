@@ -40,6 +40,10 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern int gRender_acc_poly_actor;;
+extern tHeadup_text_buffer gHeadup_text_buffer_0079d860;;
+extern const char gAct_file_extension[];
+extern br_actor* gAcc_poly_actor;;
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
@@ -1130,3 +1134,57 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
     NewTextHeadupSlot2(4, 0, 250, -4, GetMiscString(eMiscString_no_HUD + gHeadup_detail_level % 3), 0);
 }
 
+
+// FUNCTION: CARMA2_HW 0x0045a670
+void C2_HOOK_FASTCALL FUN_0045a670(void) {
+    tPath_name the_path;
+    struct {
+        int ext[3];
+        void* args[3];
+    } l;
+    int i;
+
+    if (gINT_0068b8e4) {
+        gINT_0068b8e4 = 0;
+        if (gAcc_poly_actor != NULL && gRender_acc_poly_actor != 0) {
+            BrActorRemove(gAcc_poly_actor);
+            gRender_acc_poly_actor = 0;
+        }
+    } else {
+        gINT_0068b8e4 = 1;
+        MoveHeadupTo(gProgram_state.frame_rate_headup, 10, 350);
+        for (i = 0; i < 22; i++) {
+            MoveHeadupTo(gRace_head_ups[i], 10, 120 + i * 10);
+            ChangeHeadupFont(gRace_head_ups[i], -2);
+        }
+        CreateAccentPolyActor(8.f, 118.f, 130.f, 224.f);
+        if (gHeadup_text_buffer_0079d860.count == 0) {
+            PathCat(the_path, gRace_path, "");
+            if (gHeadup_text_buffer_0079d860.field_0x14 < 5) {
+                gHeadup_text_buffer_0079d860.field_0x14 = 10;
+            }
+            strcpy((char*)l.ext, gAct_file_extension);
+            gHeadup_text_buffer_0079d860.texts = NULL;
+            gHeadup_text_buffer_0079d860.count = 0;
+            gHeadup_text_buffer_0079d860.pos_last_add = 0;
+            gHeadup_text_buffer_0079d860.text_last_add = NULL;
+            gHeadup_text_buffer_0079d860.field_0x4 = NULL;
+            gHeadup_text_buffer_0079d860.field_0x10 = 22;
+            l.args[0] = &gHeadup_text_buffer_0079d860;
+            DRstrlwr((char*)l.ext);
+            l.args[1] = l.ext;
+            PDEnumPath(the_path, (tEnumPathCallback)AddToTextBufferCallback, l.args);
+            gHeadup_text_buffer_0079d860.pos_last_add = 0;
+            gHeadup_text_buffer_0079d860.text_last_add = gHeadup_text_buffer_0079d860.texts;
+        }
+    }
+}
+// STUB: CARMA2_HW 0x0045a7f0
+int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045aa60
+void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
+    NOT_IMPLEMENTED();
+}

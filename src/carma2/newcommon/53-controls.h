@@ -225,3 +225,9 @@ extern void C2_HOOK_FASTCALL CheckKevKeys(void);
 extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
 
 #endif // GUARD_53_CONTROLS_H
+
+extern void C2_HOOK_FASTCALL FUN_0045a670(void);
+
+extern void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight);
+
+extern int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2);
