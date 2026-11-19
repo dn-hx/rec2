@@ -612,7 +612,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 // ApplyExtendedSplash
 
-// ApplyOilSpill
+extern void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyFrameBoundary(tPipe_chunk** pChunk);
 
