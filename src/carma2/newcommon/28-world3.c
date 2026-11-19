@@ -23,6 +23,8 @@
 #include "33-depth.h"
 
 #include <string.h>
+extern const br_vector3 g_Ped_z_unit_vector;
+extern const br_vector3 g_Ped_x_unit_vector;
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0
@@ -204,11 +206,6 @@ void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, b
 // CombineBounds
 
 // CheckNonCarModelBounds
-
-// STUB: CARMA2_HW 0x00404150
-void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
-}
 
 // FUNCTION: CARMA2_HW 0x00500d50
 // FUNCTION: CARMA2_SW 0x004fc6b0
