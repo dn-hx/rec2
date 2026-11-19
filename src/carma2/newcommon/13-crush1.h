@@ -348,7 +348,7 @@ extern intptr_t C2_HOOK_CDECL MakeCarModelsMaterialsSingleSided(br_actor* pActor
 
 // IsOnNonCarHalf
 
-// SplitCar
+extern void C2_HOOK_FASTCALL SplitCar(tCar_spec* pCar, br_vector4* pPlane, int pFlag);
 
 // QuantizePlane
 
