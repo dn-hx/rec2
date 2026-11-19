@@ -54,7 +54,7 @@ extern void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void);
 
 // F7Key
 
-// F8Key
+extern void C2_HOOK_FASTCALL F8Key(void);
 
 // F10Key
 
