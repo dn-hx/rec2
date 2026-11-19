@@ -44,6 +44,8 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern tPhysics_object* C2_HOOK_FASTCALL PHILGetNextObject(tPhysics_object* pObject);
+extern tPhysics_object* C2_HOOK_FASTCALL PHILGetFirstObject(void);
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
