@@ -24,6 +24,12 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist);
+extern void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, int pEnable);
+extern int gRematerialisation_max_extra_attempts;;
+extern int gRematerialisation_extra_attempts;;
+extern int gRematerialisation_count;;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
@@ -1041,10 +1047,183 @@ int C2_HOOK_FASTCALL RematerialiseOpponentOnNearestSection(tOpponent_spec* pOppo
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a87a0
+static __inline int C2_HOOK_FASTCALL MassageOpponentPosition_inl(tOpponent_spec* pOpponent_spec, int pMassage_count) {
+    br_matrix34* mat;
+    br_vector3* car_trans;
+    br_vector3 displacement;
+    br_vector3 positive_y_vector;
+    br_vector3 direction_v;
+
+    mat = &pOpponent_spec->car_spec->car_master_actor->t.t.mat;
+    car_trans = &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t;
+    if (pMassage_count > 22) {
+        return 0;
+    }
+    if (pMassage_count > 20) {
+        car_trans->v[1] += (pMassage_count - 20) * 2.0f;
+    } else {
+        direction_v.v[0] = -mat->m[2][0];
+        direction_v.v[1] = -mat->m[2][1];
+        direction_v.v[2] = -mat->m[2][2];
+        if (pMassage_count % 4 < 2) {
+            BrVector3Normalise(&displacement, &direction_v);
+            BrVector3Scale(&displacement, &displacement, (pMassage_count / 4) * 0.5f);
+        } else {
+            BrVector3Set(&positive_y_vector, 0.f, 1.f, 0.f);
+            BrVector3Cross(&displacement, &positive_y_vector, &direction_v);
+            BrVector3Normalise(&displacement, &displacement);
+            BrVector3Scale(&displacement, &displacement, (pMassage_count / 4) * 0.1f);
+        }
+        if (pMassage_count % 2) {
+            BrVector3Negate(&displacement, &displacement);
+        }
+        BrVector3Accumulate(car_trans, &displacement);
+    }
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004a87a0
 // STUB: CARMA2_SW 0x004a4910
 int C2_HOOK_FASTCALL RematerialiseOpponent(tOpponent_spec* pOpponent_spec, br_scalar pSpeed) {
-    NOT_IMPLEMENTED();
+    int this_total;
+    br_matrix34* mat;
+    br_matrix34 original_mat;
+    br_vector3 a;
+    br_vector3 b;
+    br_vector3 norm;
+    br_vector3 norm2;
+    br_scalar dist;
+    br_scalar dist2;
+    br_scalar ts;
+    br_angle phi;
+    int i;
+    int massage_count;
+    int theta;
+    int sensible_place;
+    br_vector3 tmp_vec;
+    int j;
+
+    this_total = 0;
+    mat = &pOpponent_spec->car_spec->car_master_actor->t.t.mat;
+    massage_count = 0;
+    theta = 0x3ffc - (long)(atan2(mat->m[2][2], mat->m[2][0]) * (32768.0 / PI));
+    if (pOpponent_spec->physics_me) {
+        DoNotDprintf("%s: Actually, we're already materialised", pOpponent_spec->car_spec->driver_name);
+        return 1;
+    }
+    gRematerialisation_count++;
+    BrMatrix34Copy(&original_mat, mat);
+    pOpponent_spec->car_spec->collision_info->flags |= 0x100;
+    pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_DEFAULT;
+    PipeSingleOppoRenderage(pOpponent_spec, 1);
+    if (!pOpponent_spec->physics_me) {
+        pOpponent_spec->physics_me = 1;
+    }
+    gActive_car_list_rebuild_required = 1;
+    RebuildActiveCarList();
+    do {
+        gRematerialisation_extra_attempts++;
+        this_total++;
+        BrVector3Scale((br_vector3*)mat->m[3], (br_vector3*)mat->m[3], 6.9);
+        BrVector3Copy(&b, (br_vector3*)mat->m[3]);
+        BrMatrix34RotateY(mat, theta);
+        BrVector3Copy((br_vector3*)mat->m[3], &b);
+        BrVector3SetFloat(&b, 0.f, -100.f, 0.f);
+        BrVector3Copy(&a, (br_vector3*)mat->m[3]);
+        a.v[1] = a.v[1] - -1.f;
+        findfloor(&a, &b, &norm, &dist);
+        a.v[1] = a.v[1] - -100.f;
+        findfloor(&a, &b, &norm2, &dist2);
+        if (dist2 <= 1.f) {
+            BrVector3SetFloat(&b, 0.f, -5.01f, 0.f);
+            a.v[1] = a.v[1] - 100.f;
+            for (i = 0; i < 20; i++) {
+                a.v[1] = a.v[1] - -5.f;
+                findfloor(&a, &b, &norm2, &dist2);
+                if (dist2 <= 1.f) {
+                    break;
+                }
+            }
+            dist2 = dist2 * -0.05f - (i + 1) * -0.05f;
+        }
+        if (dist2 < dist) {
+            dist = -dist2;
+            BrVector3Copy(&norm, &norm2);
+        }
+        if ((float)fabs(dist) <= 1.f) {
+            mat->m[3][1] -= dist * 100.f - 2.f;
+            ts = BrVector3Dot((br_vector3*)mat->m[2], &norm);
+            phi = BrRadianToAngle(asin(ts));
+            BrMatrix34PreRotateX(mat, phi);
+            ts = BrVector3Dot((br_vector3*)mat->m[0], &norm);
+            phi = (long)(asin(ts) * -(32768.0 / PI));
+            BrMatrix34PreRotateZ(mat, phi);
+        }
+        BrVector3Negate(&pOpponent_spec->car_spec->direction, (br_vector3*)mat->m[2]);
+        BrMatrix34ApplyP(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->centre_of_mass_world_scale, mat);
+        BrVector3InvScale(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->pos, WORLD_SCALE);
+        BrVector3Scale((br_vector3*)mat->m[3], (br_vector3*)mat->m[3], 1.0 / 6.9);
+        BrVector3Copy(&pOpponent_spec->car_spec->collision_info->v, (br_vector3*)pOpponent_spec->car_spec->car_master_actor->t.t.mat.m[2]);
+        BrVector3Negate(&pOpponent_spec->car_spec->collision_info->v, &pOpponent_spec->car_spec->collision_info->v);
+        BrVector3Normalise(&pOpponent_spec->car_spec->collision_info->v, &pOpponent_spec->car_spec->collision_info->v);
+        BrVector3Scale(&pOpponent_spec->car_spec->collision_info->v, &pOpponent_spec->car_spec->collision_info->v, 10.f < pSpeed ? 10.f : pSpeed);
+        BrVector3Set(&pOpponent_spec->car_spec->collision_info->omega, 0.f, 0.f, 0.f);
+        pOpponent_spec->car_spec->curvature = 0.f;
+        BrMatrix34Copy(&pOpponent_spec->car_spec->collision_info->transform_matrix, mat);
+        BrMatrix34Copy(&pOpponent_spec->car_spec->old_frame_mat, mat);
+        for (j = 0; j < 4; j++) {
+            pOpponent_spec->car_spec->oldd[j] = pOpponent_spec->car_spec->ride_height;
+        }
+        pOpponent_spec->car_spec->gear = 0;
+        pOpponent_spec->car_spec->revs = 0.f;
+        pOpponent_spec->car_spec->traction_control = 1;
+        BrMatrix34ApplyP(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->centre_of_mass_world_scale, mat);
+        BrVector3InvScale(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->pos, WORLD_SCALE);
+        BrVector3Negate(&pOpponent_spec->car_spec->direction, (br_vector3*)&pOpponent_spec->car_spec->collision_info->transform_matrix.m[2]);
+        pOpponent_spec->car_spec->collision_info->box_face_ref = gFace_num__car - 2;
+        pOpponent_spec->car_spec->collision_info->disable_move_rotate = 0;
+        sensible_place = TestForCarInSensiblePlace(pOpponent_spec->car_spec, &tmp_vec);
+        if (!sensible_place) {
+            BrMatrix34Copy(mat, &original_mat);
+        }
+    } while (!sensible_place && MassageOpponentPosition_inl(pOpponent_spec, massage_count++));
+
+    gRematerialisation_extra_attempts--;
+    this_total--;
+    if (sensible_place) {
+        DoNotDprintf("%s: Rematerialised (took %d attempts, orig. pos. (%7.3f,%7.3f,%7.3f), actual pos. (%7.3f,%7.3f,%7.3f))",
+            pOpponent_spec->car_spec->driver_name,
+            this_total + 1,
+            original_mat.m[3][0], original_mat.m[3][1], original_mat.m[3][2],
+            mat->m[3][0], mat->m[3][1], mat->m[3][2]);
+    }
+    if (this_total > gRematerialisation_max_extra_attempts) {
+        gRematerialisation_max_extra_attempts = this_total;
+    }
+    if (gRematerialisation_extra_attempts != 0) {
+        DoNotDprintf("MassageOpponentPosition() called an avg of %.1f times (max %d) per ReMaterialisation",
+            (double)gRematerialisation_extra_attempts / gRematerialisation_count, gRematerialisation_max_extra_attempts);
+    }
+    if (!sensible_place) {
+        pOpponent_spec->car_spec->acc_force = 0.f;
+        pOpponent_spec->car_spec->brake_force = 0.f;
+        pOpponent_spec->car_spec->curvature = 0.f;
+        pOpponent_spec->car_spec->gear = 0;
+        pOpponent_spec->car_spec->revs = 0.f;
+        BrVector3Set(&pOpponent_spec->car_spec->collision_info->omega, 0.f, 0.f, 0.f);
+        BrVector3Set(&pOpponent_spec->car_spec->collision_info->v, 0.f, 0.f, 0.f);
+        if (pOpponent_spec->physics_me) {
+            pOpponent_spec->physics_me = 0;
+            pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_NONE;
+            PipeSingleOppoRenderage(pOpponent_spec, 0);
+        }
+        gActive_car_list_rebuild_required = 1;
+        RebuildActiveCarList();
+        TeleportOpponentToNearestSafeLocation(pOpponent_spec);
+        return 1;
+    }
+    ResetCarSpecialVolume(pOpponent_spec->car_spec->collision_info);
+    return 1;
 }
 
 #ifdef REC2_MATCHING
