@@ -33,6 +33,11 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
+extern int gSize_powerup_queue;;
+extern tPowerup_queue_item gPowerup_queue[50];
+extern int gMutant_tail_state;;
+extern tU32 gINT_00705b70;;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
