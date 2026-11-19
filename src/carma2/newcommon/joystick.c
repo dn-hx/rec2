@@ -12,10 +12,15 @@
 #include "41-utility.h"
 #include "globvars.h"
 #include "platform.h"
+typedef struct {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
 
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+extern tJoystick_headup_text gJoystick_headup_texts[21];
 
 // GLOBAL: CARMA2_HW 0x00595f84
 // GLOBAL: CARMA2_SW 0x00590ee4
