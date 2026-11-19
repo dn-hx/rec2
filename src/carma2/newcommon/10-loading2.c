@@ -50,6 +50,13 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern int C2_HOOK_FASTCALL LoadCrushDataFile(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec);
+extern void C2_HOOK_FASTCALL LoadCarMaterials(tBrender_storage* pStorage, const char* pPath, tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL InitPhysModCrushData(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
+extern void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas);
+extern const char* gPivot_actor_names[6];
+extern tGraf_data* gCurrent_graf_data;;
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
