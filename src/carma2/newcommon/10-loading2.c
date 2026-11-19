@@ -50,6 +50,10 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern char* gRaces_file_names[9];
+extern tRace_group_spec* gRace_groups;;
+extern int gCurrent_race_file_index;;
+extern int gCountRaceGroups;;
 
 // GLOBAL: CARMA2_HW 0x0068c6ec
 // GLOBAL: CARMA2_SW 0x0068673c
