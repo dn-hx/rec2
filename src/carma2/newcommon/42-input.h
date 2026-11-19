@@ -106,3 +106,5 @@ extern void C2_HOOK_FASTCALL EdgeTriggerModeOn(void);
 extern void C2_HOOK_FASTCALL EdgeTriggerModeOff(void);
 
 #endif // GUARD_42_INPUT_H
+
+extern void C2_HOOK_FASTCALL WaitForAKey(void);
