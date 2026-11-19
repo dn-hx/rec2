@@ -1918,7 +1918,14 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
     gGoreLevel = 2 - pNewLevel;
 }
 
-// ClearOutMorphs
+// FUNCTION: CARMA2_HW 0x00403eb0
+void C2_HOOK_FASTCALL ClearOutMorphs(void) {
+    tPed_morph_slot* pMorph;
+
+    for (pMorph = gPed_morph_slots; (int)pMorph < (int)&gPed_morph_slots[20]; pMorph++) {
+        pMorph->field_0x0 = 0;
+    }
+}
 
 // InitBoner
 
