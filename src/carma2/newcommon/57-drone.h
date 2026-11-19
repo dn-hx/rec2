@@ -137,7 +137,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // InitDroneDrivingInfo
 
-// MoveThisDronePlane
+extern void C2_HOOK_FASTCALL MoveThisDronePlane(tDrone_spec* pDrone);
 
 // MoveThisDroneCar
 
