@@ -25,6 +25,7 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern tDrone_crush_data gDrone_crush_data;;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -372,10 +373,6 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00450b50
-tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
-}
 // InitDrones
 
 // FUNCTION: CARMA2_HW 0x0044fc10
