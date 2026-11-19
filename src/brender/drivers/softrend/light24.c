@@ -189,22 +189,27 @@ void C2_HOOK_STDCALL lightingColourPointAttnSpecular(br_soft_renderer* self, br_
     br_scalar dist, dist2;
     br_scalar attn;
     br_vector3 dirn;
+    br_scalar inv;
     br_scalar red, grn, blu;
 
     BrVector3Sub(&dirn, &alp->position, p);
     dist = BrVector3Length(&dirn);
-    if (dist <= BR_SCALAR_EPSILON) {
+    if (dist <= BR_SCALAR_EPSILON * 2) {
         return;
     }
-    dist2 = (dist < 180.f) ? dist * dist : 32767.f;
-    BrVector3InvScale(&dirn, &dirn, dist);
+    inv = (br_scalar)(1.0 / dist);
+    dirn.v[0] = dirn.v[0] * inv;
+    dirn.v[1] = dirn.v[1] * inv;
+    dirn.v[2] = dirn.v[2] * inv;
+    dist2 = (dist >= 180.f) ? 32767.f : dist * dist;
     dot = BrVector3Dot(&dirn, n);
+    attn = 1.0 / (alp->s->attenuation_q * dist2 + alp->s->attenuation_l * dist + alp->s->attenuation_c);
     if (dot <= 0.f) {
         return;
     }
-    red = BrFixedToScalar(BR_RED(colour) << 8) * self->state.surface.kd * dot;
-    grn = BrFixedToScalar(BR_GRN(colour) << 8) * self->state.surface.kd * dot;
-    blu = BrFixedToScalar(BR_BLU(colour) << 8) * self->state.surface.kd * dot;
+    red = BrFixedToScalar(BR_RED(colour) << 8) * (dot * self->state.surface.kd);
+    grn = BrFixedToScalar(BR_GRN(colour) << 8) * (dot * self->state.surface.kd);
+    blu = BrFixedToScalar(BR_BLU(colour) << 8) * (dot * self->state.surface.kd);
     if (self->state.surface.ks != 0.f) {
         br_vector3 tmp;
 
@@ -220,11 +225,10 @@ void C2_HOOK_STDCALL lightingColourPointAttnSpecular(br_soft_renderer* self, br_
             blu += specular;
         }
     }
-    attn = 1.f / (alp->s->attenuation_q * dist2 + alp->s->attenuation_l * dist + alp->s->attenuation_c);
 
-    comp[C_R] += red * attn * BrFixedToFloat(BR_RED(alp->s->colour) << 8);
-    comp[C_G] += grn * attn * BrFixedToFloat(BR_GRN(alp->s->colour) << 8);
-    comp[C_B] += blu * attn * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
+    comp[C_R] += (red * attn) * BrFixedToFloat(BR_RED(alp->s->colour) << 8);
+    comp[C_G] += (grn * attn) * BrFixedToFloat(BR_GRN(alp->s->colour) << 8);
+    comp[C_B] += (blu * attn) * BrFixedToFloat(BR_BLU(alp->s->colour) << 8);
 }
 
 // FUNCTION: CARMA2_HW 0x00549be0
