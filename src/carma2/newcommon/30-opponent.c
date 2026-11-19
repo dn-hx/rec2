@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -143,6 +144,24 @@ float gCop_pursuit_speed_percentage_multiplier;
 // GLOBAL: CARMA2_SW 0x0068b7c0
 float gHead_on_cos_value;
 
+// FUNCTION: CARMA2_HW 0x004a79a0
+void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
+    tCar_spec* car = pOpponent_spec->car_spec;
+
+    car->acc_force = 0.f;
+    car->brake_force = 0.f;
+    car->curvature = 0.f;
+    car->gear = 0;
+    car->revs = 0.f;
+    BrVector3Set(&car->collision_info->omega, 0.f, 0.f, 0.f);
+    BrVector3Set(&car->collision_info->v, 0.f, 0.f, 0.f);
+    if (pOpponent_spec->physics_me) {
+        pOpponent_spec->physics_me = 0;
+        pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_NONE;
+        PipeSingleOppoRenderage(pOpponent_spec, 0);
+        gActive_car_list_rebuild_required = 1;
+    }
+}
 // FUNCTION: CARMA2_HW 0x004a8160
 // FUNCTION: CARMA2_SW 0x004a42d0
 void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {

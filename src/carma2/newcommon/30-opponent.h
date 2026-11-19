@@ -65,7 +65,7 @@ extern tS16 C2_HOOK_FASTCALL FindNearestPathSection(const br_vector3* pActor_coo
 
 // TurnOpponentPhysicsOn
 
-// TurnOpponentPhysicsOff
+extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec);
 
 // ApplyOppoRenderage2
 
