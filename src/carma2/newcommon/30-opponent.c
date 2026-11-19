@@ -24,6 +24,8 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern int gBig_bang;
+extern tU32 gAcme_frame_count;;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
@@ -188,10 +190,6 @@ int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* pTo) {
     }
 }
 
-// STUB: CARMA2_HW 0x004aeef0
-void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee) {
-    NOT_IMPLEMENTED();
-}
 // WeightedFindNearestNodeAndSection
 
 #ifdef REC2_MATCHING
