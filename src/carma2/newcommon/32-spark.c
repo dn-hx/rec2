@@ -521,6 +521,12 @@ int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial) {
 
 // SetupAlternateFoxEffect
 
+// FUNCTION: CARMA2_HW 0x004f95e0
+int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel) {
+    pModel->flags |= BR_MODF_CUSTOM;
+    pModel->custom = DoTrueColModelThing;
+    return 1;
+}
 // FUNCTION: CARMA2_HW 0x004f9760
 // FUNCTION: CARMA2_SW 0x004f4de0
 int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial) {
