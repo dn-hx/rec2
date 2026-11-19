@@ -2269,15 +2269,6 @@ intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, voi
     NOT_IMPLEMENTED();
 }
 
-typedef struct tUnbend_model_context_local {
-    br_matrix34 matrix;
-    br_vector3 field_0x30;
-    br_vector3 field_0x3c;
-    br_vector3 field_0x48;
-    br_vector3 field_0x54;
-    tBend_data_local* bend;
-    tCar_spec* car;
-} tUnbend_model_context_local;
 
 // FUNCTION: CARMA2_HW 0x0043a150
 void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {
