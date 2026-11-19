@@ -150,3 +150,5 @@ extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
 extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 
 #endif // GUARD_28_WORLD3_H
+
+extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
