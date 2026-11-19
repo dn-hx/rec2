@@ -350,6 +350,17 @@ int gPed_movements_count;
 // GLOBAL: CARMA2_SW 0x00695d48
 tPed_movement_spec* gPed_movements;
 
+// FUNCTION: CARMA2_HW 0x00406a00
+void C2_HOOK_FASTCALL DisposePedForms(void) {
+    int i;
+
+    for (i = 0; i < 20; i++) {
+        if (gPed_forms[i] != NULL) {
+            DisposeCharacterForm(gPed_forms[i]);
+            gPed_forms[i] = NULL;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x004d5730
 // FUNCTION: CARMA2_SW 0x004d1e20
 int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle) {
