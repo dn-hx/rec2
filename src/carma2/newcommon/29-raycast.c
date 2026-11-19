@@ -10,6 +10,9 @@
 
 #include "16-graphics1.h"
 #include "globvars.h"
+#include "37-brucetrk.h"
+#include "rec2_macros.h"
+#include "32-spark.h"
 
 // GLOBAL: CARMA2_HW 0x006a20d0
 // GLOBAL: CARMA2_SW 0x0069c128
@@ -247,10 +250,58 @@ int C2_HOOK_CDECL FindYVerticallyBelowCallBack(br_actor* pActor, br_model* pMode
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004e4370
+// FUNCTION: CARMA2_HW 0x004e4370
 // STUB: CARMA2_SW 0x004e0700
 br_scalar C2_HOOK_FASTCALL FindYVerticallyBelow(br_vector3* pPosition) {
-    NOT_IMPLEMENTED();
+    tU8 cx;
+    tU8 cz;
+    tU8 x;
+    tU8 z;
+    tTrack_spec* track_spec;
+    br_actor* world;
+    br_actor* camera;
+    br_matrix34 camera_tfm;
+    br_camera* camera_data;
+    br_angle view_over_2;
+    br_scalar aspect;
+    br_scalar angle;
+    br_scalar cos_angle;
+    br_scalar sin_angle;
+    br_scalar scale;
+
+    track_spec = &gProgram_state.track_spec;
+    XZToColumnXZ(&cx, &cz, pPosition->v[0], pPosition->v[2], track_spec);
+    gHighest_y_below = BR_SCALAR_MIN;
+    gY_picking_camera->t.t.translate.t = *pPosition;
+    for (x = MAX(0, cx - 1); x < MIN(track_spec->ncolumns_x, cx + 2); x++) {
+        for (z = MAX(0, cz - 1); z < MIN(track_spec->ncolumns_z, cz + 2); z++) {
+            if (track_spec->columns[z][x].actor_0x0 != NULL) {
+                world = track_spec->columns[z][x].actor_0x0;
+                camera = gY_picking_camera;
+                camera_data = (br_camera*)camera->type_data;
+                if (gY_picking_camera == world) {
+                    BrMatrix34Identity(&camera_tfm);
+                } else {
+                    BrTransformToMatrix34(&camera_tfm, &camera->t);
+                    for (camera = camera->parent; camera != NULL && camera != world; camera = camera->parent) {
+                        if (camera->t.type != BR_TRANSFORM_IDENTITY) {
+                            BrMatrix34PostTransform(&camera_tfm, &camera->t);
+                        }
+                    }
+                }
+                BrMatrix34Inverse(&gPick_model_to_view__raycast, &camera_tfm);
+                view_over_2 = camera_data->field_of_view / 2;
+                aspect = camera_data->aspect;
+                angle = BrAngleToRadian(view_over_2);
+                cos_angle = cosf(angle);
+                sin_angle = sinf(angle);
+                scale = cos_angle / sin_angle;
+                BrMatrix34PostScale(&gPick_model_to_view__raycast, scale / aspect, scale, 1.0f);
+                ActorPick2D(world, NULL, gBlack_material, FindYVerticallyBelowCallBack, NULL);
+            }
+        }
+    }
+    return gHighest_y_below;
 }
 
 #ifdef REC2_MATCHING
