@@ -12,6 +12,8 @@
 #include "platform.h"
 
 #include <string.h>
+extern br_pixelmap* gMini_map_glowing_line_palettes[3];;
+extern const int gMini_map_glowing_line_animation_indices[5];
 
 // FUNCTION: CARMA2_HW 0x0047b450
 void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, int pX2, int pY2, int pColour) {
@@ -861,10 +863,31 @@ void C2_HOOK_FASTCALL DRPixelmapBlendedLine(br_pixelmap* pDest, int pX1, int pY1
 
 // DR8BitFancyDrawLine
 
-// STUB: CARMA2_HW 0x0047d2b0
+// FUNCTION: CARMA2_HW 0x0047d2b0
 // STUB: CARMA2_SW 0x0047d2b0
 void C2_HOOK_FASTCALL FancyDrawLine(br_pixelmap* pMpDestap, int pX1, int pY1, int pX2, int pY2, br_uint_32 pColour, tU32 pTime_period) {
-    NOT_IMPLEMENTED();
+
+    if (pMpDestap->type == BR_PMT_INDEX_8) {
+        int anim_index;
+        int dx;
+        int dy;
+        float abs_dy;
+
+        dx = pX2 - pX1;
+        dy = pY2 - pY1;
+        anim_index = (PDGetTotalTime() / pTime_period) % BR_ASIZE(gMini_map_glowing_line_animation_indices);
+        DRPixelmapBlendedLine(pMpDestap, pX1, pY1, pX2, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        abs_dy = (float)fabs((double)dy);
+        if (abs_dy < (float)fabs((double)dx)) {
+            DRPixelmapBlendedLine(pMpDestap, pX1, pY1 - 1, pX2, pY2 - 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+            DRPixelmapBlendedLine(pMpDestap, pX1, pY1 + 1, pX2, pY2 + 1, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        } else {
+            DRPixelmapBlendedLine(pMpDestap, pX1 - 1, pY1, pX2 - 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+            DRPixelmapBlendedLine(pMpDestap, pX1 + 1, pY1, pX2 + 1, pY2, pColour, gMini_map_glowing_line_palettes[gMini_map_glowing_line_animation_indices[anim_index]]);
+        }
+    } else {
+        BrPixelmapLine(pMpDestap, pX1, pY1, pX2, pY2, PaletteEntry16Bit(gRender_palette, pColour));
+    }
 }
 
 // DRPixelmapCopyMapBlack8Bit
