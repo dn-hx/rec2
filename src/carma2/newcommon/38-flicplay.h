@@ -148,3 +148,5 @@ extern void C2_HOOK_FASTCALL ResumePendingFlic(void);
 extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
 
 #endif // GUARD_38_FLICPLAY_H
+
+extern int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate);
