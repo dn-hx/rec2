@@ -537,7 +537,7 @@ extern int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg);
 
 // ReceivedSemiDetachBit
 
-// ReceivedDetachBit
+extern void C2_HOOK_FASTCALL ReceivedDetachBit(void* pMsg);
 
 // SemiDetachedBitObjectFromID
 
