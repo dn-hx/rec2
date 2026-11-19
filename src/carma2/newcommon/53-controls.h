@@ -62,7 +62,7 @@ extern void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void);
 
 extern void C2_HOOK_FASTCALL F12Key(void);
 
-// NumberKey0
+extern void C2_HOOK_FASTCALL NumberKey0(void);
 
 // NumberKey1
 
