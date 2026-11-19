@@ -983,7 +983,22 @@ void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSeed, floa
 
 // PedApplyGibShower
 
-// PedUndoGibShower
+// FUNCTION: CARMA2_HW 0x004ccc40
+void C2_HOOK_FASTCALL PedUndoGibShower(int field_0xc, int prev_0x0, int prev_0xc, int prev_0x8, int prev_0x10, int prev_0x4, br_vector3* prev_0x14, br_vector3* prev_0x20, br_vector3* prev_0x2c) {
+    int i;
+    tSmash_vertex* fragment;
+    float delta_time;
+
+    DoGibShower(prev_0x0, prev_0xc, prev_0x8, prev_0x10, prev_0x4, prev_0x14, prev_0x20, prev_0x2c);
+    delta_time = (float)(field_0xc - prev_0xc);
+    for (i = 0, fragment = gSmash_glass_fragments; i < 200; i++, fragment++) {
+        if (fragment->end_time != 0 && fragment->field_0x18 == prev_0x0) {
+            fragment->field_0x34 = 0;
+            DoFragMovement(fragment, GetTotalTime(), delta_time);
+            fragment->field_0x34 = 1;
+        }
+    }
+}
 
 // STUB: CARMA2_HW 0x004ccff0
 void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
