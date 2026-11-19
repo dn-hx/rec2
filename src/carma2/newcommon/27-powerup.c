@@ -224,11 +224,6 @@ char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
 
 // DoPowerupTextHeadup
 
-// STUB: CARMA2_HW 0x004d9670
-void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons) {
-    NOT_IMPLEMENTED();
-}
-
 // QueueIconComing
 
 // LosePowerupX
