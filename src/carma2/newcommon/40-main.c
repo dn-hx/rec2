@@ -31,6 +31,10 @@
 #include "53-controls.h"
 
 #include <string.h>
+extern int gTimers_stack_size;
+extern int gTimers_stack[8];
+extern int gTimers_max_index;
+extern tTimer gTimers[19];
 
 // FUNCTION: CARMA2_HW 0x00491f70
 // FUNCTION: CARMA2_SW 0x0048f1e0
