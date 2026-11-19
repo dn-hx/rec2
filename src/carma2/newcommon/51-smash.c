@@ -33,6 +33,7 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern int gNext_explosion_slot;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
@@ -286,10 +287,125 @@ void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosion) {
 
 // DoExplosionette
 
-// STUB: CARMA2_HW 0x004ead00
+// FUNCTION: CARMA2_HW 0x004ead00
 // STUB: CARMA2_SW 0x004e69e0
 void C2_HOOK_FASTCALL Explode(tExplosion_animation *pExplosion_animation,br_actor *pActor, const br_bounds3* pBounds, const br_vector3* pPos) {
-    NOT_IMPLEMENTED();
+    tExplosion_animation_group* group;
+    tExplosion* slot;
+    tU32 now;
+    int count;
+    int slot_index;
+    int slot_found;
+    int i;
+    int j;
+    int k;
+    int frametime;
+    int start_delay;
+    tU16 angle;
+    float scaling;
+    float sx_min;
+    float sx_max;
+    float sy_min;
+    float sy_max;
+    float sz_min;
+    float sz_max;
+    float px;
+    float py;
+    float pz;
+    float rand_value;
+    int sign;
+
+    now = GetTotalTime();
+    if (pActor == NULL) {
+        return;
+    }
+    for (i = 0; i < pExplosion_animation->count_groups; i++) {
+        group = &pExplosion_animation->groups[i];
+        count = IRandomBetween((tS16)group->min_count, (tS16)group->max_count);
+        sx_min = group->min_xyz_factor.v[0] * pBounds->max.v[0];
+        sx_max = group->max_xyz_factor.v[0] * pBounds->max.v[0];
+        sy_min = group->min_xyz_factor.v[1] * pBounds->max.v[1];
+        sy_max = group->max_xyz_factor.v[1] * pBounds->max.v[1];
+        sz_min = group->min_xyz_factor.v[2] * pBounds->max.v[2];
+        sz_max = group->max_xyz_factor.v[2] * pBounds->max.v[2];
+        if (count <= 0) {
+            continue;
+        }
+        for (j = 0; j < count; j++) {
+            rand_value = FRandomBetween(sx_min, sx_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            px = sign * rand_value;
+            rand_value = FRandomBetween(sy_min, sy_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            py = sign * rand_value;
+            rand_value = FRandomBetween(sz_min, sz_max);
+            sign = PercentageChance(50) ? 1 : -1;
+            pz = sign * rand_value;
+            if (pPos != NULL) {
+                px += pPos->v[0];
+                py += pPos->v[1];
+                pz += pPos->v[2];
+            }
+            px += group->offset.v[0];
+            py += group->offset.v[1];
+            pz += group->offset.v[2];
+            if (group->rotate_modus != kExplosionRotateModus_NoRotate) {
+                angle = (tU16)IRandomBetween(0, 0xffff);
+            } else {
+                angle = 0;
+            }
+            scaling = FRandomBetween(group->min_scaling_factor, group->max_scaling_factor);
+            frametime = IRandomBetween(group->min_frametime_ms, group->max_frametime_ms);
+            start_delay = IRandomBetween(group->min_start_delay_ms, group->max_start_delay_ms);
+            slot_found = 0;
+            slot_index = 0;
+            slot = gExplosions;
+            do {
+                if (slot->start == 0) {
+                    slot_found = 1;
+                    break;
+                }
+                slot_index++;
+                slot++;
+            } while (slot_index < (int)REC2_ASIZE(gExplosions));
+            if (slot_index == (int)REC2_ASIZE(gExplosions)) {
+                slot_index = gNext_explosion_slot;
+                slot = &gExplosions[slot_index];
+                do {
+                    slot_index++;
+                    if (slot_index < (int)REC2_ASIZE(gExplosions)) {
+                        slot++;
+                    } else {
+                        slot_index = 0;
+                        slot = gExplosions;
+                    }
+                    if (slot->finished != 0) {
+                        slot_found = 1;
+                        gNext_explosion_slot = slot_index;
+                        break;
+                    }
+                } while (slot_index != gNext_explosion_slot);
+            }
+            if (!slot_found) {
+                return;
+            }
+            slot->start = now + start_delay;
+            slot->count_frames = (tS8)group->count_frames;
+            slot->period = frametime;
+            slot->field_0x14 = scaling * 0.14492753;
+            slot->collision_actor = pActor;
+            slot->finished = 0;
+            slot->field_0x8 = 0xff;
+            for (k = 0; k < group->count_frames; k++) {
+                *(tExplosion_frame*)&slot->frames[k] = *(tExplosion_frame*)&group->frames[k];
+            }
+            slot->field_0x1c.v[0] = px;
+            slot->field_0x1c.v[1] = py;
+            slot->field_0x1c.v[2] = pz;
+            slot->angle = angle;
+            PipeSingleExplosion(slot_index, slot);
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004eb020
