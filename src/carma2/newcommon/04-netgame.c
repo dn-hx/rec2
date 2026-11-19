@@ -37,6 +37,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern br_pixelmap* gTexture_maps[1024];
+extern int gNet_score_scene_initialised;;
+extern void C2_HOOK_FASTCALL PolyFontText(const char *pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
+extern int C2_HOOK_FASTCALL DRTextWidth(const tDR_font* pFont, const char* pText);
+extern br_actor* gNet_score_root;;
+extern br_model* gNet_score_model;;
+extern br_material* gNet_score_materials[4];;
+extern tU32 gNet_score_last_flash;;
+extern int gNet_score_flash_state;;
+extern br_actor* gNet_score_camera;;
+extern br_actor* gNet_score_actors[12];;
+extern tDR_font gFonts[28];
+extern br_actor* gCar_icons_model_actor;;
+extern tCar_icon gCar_icons[128];;
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
