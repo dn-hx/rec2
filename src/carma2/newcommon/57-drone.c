@@ -25,6 +25,8 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern int gMutant_tail_state;;
+extern tDrone_state_function* gDrone_state_functions[6];
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -472,9 +474,42 @@ void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x00452230
+// FUNCTION: CARMA2_HW 0x00452230
 int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther) {
-    NOT_IMPLEMENTED();
+    tDrone_spec* pDrone;
+
+    DoNotDprintf("MyDroneHathCollideth(): PHIL called a bloody callback. Rejoice!");
+    pDrone = (tDrone_spec*)pObject->owner;
+    pObject->disable_move_rotate = 0;
+    pObject->field_0xed = 1;
+    pObject->field_0x1a0 = 0x200000;
+    pObject->v.v[0] = pDrone->field_0x18.v[0];
+    pObject->v.v[1] = pDrone->field_0x18.v[1];
+    pObject->v.v[2] = pDrone->field_0x18.v[2];
+    PHILMakeObjectActive(pObject, NULL, NULL, 1);
+    PHILSetObjectProperty(pObject, 3, 0);
+    if ((pOther != NULL && pOther->owner != NULL && pOther->flags_0x238 == 1)
+            || (pOther->flags_0x238 == 0x20
+                && (gMutant_tail_state == 2 || GetTotalTime() - gINT_00705b70 < 0x1d4c))) {
+        ((tDrone_spec*)pObject->owner)->field_0x5d4 = (undefined4)pOther->owner;
+    } else if (pOther != NULL && pOther->flags_0x238 == 0x40) {
+        ((tDrone_spec*)pObject->owner)->field_0x5d4 = ((tDrone_spec*)pOther->owner)->time_last_munge;
+    }
+    pDrone = (tDrone_spec*)pObject->owner;
+    DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", pDrone->id, pDrone->current_state, 3);
+    if (pDrone->current_state != 3) {
+        if (gDrone_state_functions[pDrone->current_state] != NULL) {
+            gDrone_state_functions[pDrone->current_state](pDrone, eDrone_state_STOP);
+        }
+        pDrone->time_last_munge = gTime_stamp_for_this_munging;
+        pDrone->prev_states[1] = pDrone->prev_states[0];
+        pDrone->prev_states[0] = pDrone->current_state;
+        pDrone->current_state = 3;
+        if (gDrone_state_functions[3] != NULL) {
+            gDrone_state_functions[3](pDrone, eDrone_state_START);
+        }
+    }
+    return 0;
 }
 
 // STUB: CARMA2_HW 0x00452360
