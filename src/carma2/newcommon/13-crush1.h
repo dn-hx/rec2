@@ -222,7 +222,7 @@ extern void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCou
 
 extern void C2_HOOK_FASTCALL AddDroneCrush(tQueued_drone_crush_item* pCrush, const br_vector3* pVector, float pScale, int pCount, const br_vector3* pPoints);
 
-// QueueDroneCrush
+extern void C2_HOOK_FASTCALL QueueDroneCrush(tPhysics_object* pObject, int pChain_count, br_vector3* pChain, br_vector3* pForce);
 
 // DoCrushing
 
