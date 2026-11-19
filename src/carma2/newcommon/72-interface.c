@@ -1364,6 +1364,7 @@ int C2_HOOK_FASTCALL NetworkJoinMenuOutfunc(tFrontend_spec* pFrontend) {
     return 0;
 }
 
+static void NetJoinDisposeGame(int netgame_idx);
 static void NetJoinUpdateSelectedGameInfo(tFrontend_spec* pFrontend) {
     int netgame_idx;
 
@@ -1398,7 +1399,7 @@ static void NetJoinUpdateSelectedGameInfo(tFrontend_spec* pFrontend) {
 
 // ScrollDn of the join list and NetworkUpdateSelectedGameInfo are inlined in the original:
 // the game-info text is built with sprintf into a local buffer and copied to items[30].
-void NetJoinDisposeGame(int netgame_idx) {
+static void NetJoinDisposeGame(int netgame_idx) {
     NetDisposeGameDetails(gGames_to_join[netgame_idx].game);
     gGames_to_join[netgame_idx].game = NULL;
 }
