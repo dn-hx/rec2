@@ -22,6 +22,15 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern tU32 gTrigger_time;;
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern br_actor* C2_HOOK_FASTCALL GetCharacterActorPtr(tPed_character_instance* pCharacter);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, void* pCallback, void* pTime_check);
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
+extern tU8* C2_HOOK_FASTCALL ARGetPipePlayPtr(void);
+extern tU8* gPipe_car_state_chunk;;
+extern tU32 gOldest_time;;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
@@ -516,3 +525,76 @@ void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race) {
 
 // MouseClickInActionReplay
 
+
+static int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime) {
+
+    if (ARReplayForwards()) {
+        if (pTime <= gOldest_time) {
+            return 0;
+        }
+    } else {
+        if (pTime >= gOldest_time) {
+            return 0;
+        }
+    }
+    gTrigger_time = pTime;
+    gPipe_car_state_chunk = (tU8*)pChunk;
+    return 1;
+}
+
+// FUNCTION: CARMA2_HW 0x004c6c90
+int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
+    tU8* temp_ptr;
+
+    temp_ptr = ARGetPipePlayPtr();
+    gTrigger_time = 0;
+    if (ARReplayForwards()) {
+        gOldest_time = GetTotalTime() + pOffset;
+    } else {
+        gOldest_time = GetTotalTime() - pOffset;
+    }
+    ARScanBuffer(&temp_ptr, ePipe_chunk_ped_incident, GetTotalTime(), CheckIncident, NULL);
+    if (gTrigger_time != 0) {
+        *pTime = gTrigger_time - GetTotalTime();
+        *pMode = *(tS32*)gPipe_car_state_chunk;
+        *pTowards = *(br_scalar*)(gPipe_car_state_chunk + 4);
+        switch (*pMode) {
+        case 0:
+            {
+                tPedestrian* ped = *(tPedestrian**)(gPipe_car_state_chunk + 8);
+                br_actor* actor = GetCharacterActorPtr(ped->character);
+
+                pData[0] = (undefined4)(uintptr_t)actor;
+                if (actor == NULL) {
+                    gTrigger_time = 0;
+                }
+                pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+            }
+            break;
+        case 1:
+            {
+                tU32 car_id = *(tU16*)(gPipe_car_state_chunk + 8);
+                tCar_spec* car;
+
+                if ((car_id & 0xffffff00) == 0) {
+                    car = &gProgram_state.current_car;
+                } else {
+                    car = GetCarSpec(car_id >> 8, car_id & 0xff);
+                }
+                pData[0] = (undefined4)(uintptr_t)car;
+                pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+                pData[2] = *(undefined4*)(gPipe_car_state_chunk + 0x10);
+                pData[3] = *(undefined4*)(gPipe_car_state_chunk + 0x14);
+            }
+            break;
+        case 2:
+            pData[0] = *(undefined4*)(gPipe_car_state_chunk + 8);
+            pData[1] = *(undefined4*)(gPipe_car_state_chunk + 0xc);
+            pData[2] = *(undefined4*)(gPipe_car_state_chunk + 0x10);
+            break;
+        default:
+            break;
+        }
+    }
+    return gTrigger_time;
+}
