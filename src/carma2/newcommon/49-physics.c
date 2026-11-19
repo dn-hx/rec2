@@ -29,6 +29,17 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL InternalPrepareObject(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL DoInterGroupCollisions(tPhysics_object** pObject_list, tPhysics_object* pObject, tPhysics_joint_force* pContacts, tPhysics_joint_force* pJoint_data, int pJoint_count, tWorld_callbacks* pWorld_callbacks);
+extern int gPrepared_objects;;
+extern int gINT_006940a4;;
+extern int gINT_006940a0;;
+extern int gINT_00692ddc;;
+extern float gFLOAT_00692dd4;;
+extern float gFLOAT_00692dd0;;
+extern tPhysics_joint_force gCollision_contacts[50];;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
