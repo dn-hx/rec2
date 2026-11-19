@@ -849,9 +849,132 @@ int C2_HOOK_FASTCALL SetUpTorqueHingePartners(br_scalar* pOut1, br_scalar* pOut2
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004becf0
+// FUNCTION: CARMA2_HW 0x004becf0
 int C2_HOOK_FASTCALL SetUpHingePartners(br_scalar* pOut1, br_scalar* pOut2, br_scalar* pOut3, br_scalar* pOut4, tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    br_vector3 v;
+    br_vector3 d;
+    br_vector3 t2;
+    br_vector3 t;
+    br_vector3 axis;
+    tU8* pWorkspace;
+    tPhysics_object* pOther;
+    br_scalar f;
+    br_scalar fa;
+    br_scalar fb;
+    br_scalar fc;
+    int i;
+
+    pWorkspace = (tU8*)*(int*)((tU8*)pObject + 0x1e4);
+    pOther = (tPhysics_object*)*(int*)(pWorkspace + 4);
+    if (pOther == pObject->field_0x230) {
+        d.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+        t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+        t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+        t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+        axis.v[0] = -(pObject->physics_joint1->hinge_axis.v[0] * t2.v[0]
+            + pObject->physics_joint1->hinge_axis.v[1] * t2.v[1]
+            + pObject->physics_joint1->hinge_axis.v[2] * t2.v[2]);
+        axis.v[1] = -(pObject->physics_joint1->hinge_axis2.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis2.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis2.v[2] * pOut1[2]);
+        axis.v[2] = -(pObject->physics_joint1->hinge_axis3.v[0] * pOut1[0]
+            + pObject->physics_joint1->hinge_axis3.v[1] * pOut1[1]
+            + pObject->physics_joint1->hinge_axis3.v[2] * pOut1[2]);
+        BrMatrix34ApplyV(&t, &axis, (br_matrix34*)(pWorkspace + 8));
+        f = t.v[0] / pObject->M;
+        pOut2[0] = pObject->physics_joint1->hinge_axis.v[0] * f + pOut2[0];
+        pOut2[1] = pObject->physics_joint1->hinge_axis.v[1] * f + pOut2[1];
+        pOut2[2] = pObject->physics_joint1->hinge_axis.v[2] * f + pOut2[2];
+        f = -(t.v[0] / pOther->M);
+        pOut4[0] = pObject->physics_joint1->parent_bone_axis.v[0] * f;
+        pOut4[1] = pObject->physics_joint1->parent_bone_axis.v[1] * f;
+        pOut4[2] = pObject->physics_joint1->parent_bone_axis.v[2] * f;
+        t2.v[0] = pObject->physics_joint1->hinge_axis3.v[0] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[0] * t.v[1];
+        t2.v[1] = pObject->physics_joint1->hinge_axis3.v[1] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[1] * t.v[1];
+        t2.v[2] = pObject->physics_joint1->hinge_axis3.v[2] * t.v[2] + pObject->physics_joint1->hinge_axis2.v[2] * t.v[1];
+        fa = pObject->physics_joint1->hinge_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->hinge_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->hinge_axis.v[2] * t.v[0];
+        v.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+        v.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+        v.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+        for (i = 0; i < 3; i++) {
+            pOut1[i] = v.v[i] / pObject->I.v[i] + pOut1[i];
+        }
+        BrMatrix34ApplyV(&v, &t2, &pObject->transform_matrix);
+        BrMatrix34TApplyV((br_vector3*)pOut3, &v, &pOther->transform_matrix);
+        d.v[0] = pObject->physics_joint1->field_0x14.v[0] - pOther->cmpos.v[0];
+        d.v[1] = pObject->physics_joint1->field_0x14.v[1] - pOther->cmpos.v[1];
+        d.v[2] = pObject->physics_joint1->field_0x14.v[2] - pOther->cmpos.v[2];
+        fa = pObject->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+        fb = pObject->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+        fc = pObject->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+        pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+        pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+        pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+        for (i = 0; i < 3; i++) {
+            pOut3[i] = -(pOut3[i] / pOther->I.v[i]);
+        }
+        return (int)pOther;
+    }
+    d.v[0] = pOther->physics_joint1->field_0x14.v[0] - pObject->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x14.v[1] - pObject->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x14.v[2] - pObject->cmpos.v[2];
+    t2.v[0] = (pOut1[1] * d.v[2] - pOut1[2] * d.v[1]) + pOut2[0];
+    t2.v[1] = (pOut1[2] * d.v[0] - d.v[2] * pOut1[0]) + pOut2[1];
+    t2.v[2] = (d.v[1] * pOut1[0] - pOut1[1] * d.v[0]) + pOut2[2];
+    axis.v[0] = pOther->physics_joint1->parent_bone_axis.v[0] * t2.v[0]
+        + pOther->physics_joint1->parent_bone_axis.v[1] * t2.v[1]
+        + pOther->physics_joint1->parent_bone_axis.v[2] * t2.v[2];
+    BrMatrix34ApplyV(&t2, (br_vector3*)pOut1, &pObject->transform_matrix);
+    BrMatrix34TApplyV(&v, &t2, &pOther->transform_matrix);
+    axis.v[1] = pOther->physics_joint1->hinge_axis2.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis2.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis2.v[2] * v.v[2];
+    axis.v[2] = pOther->physics_joint1->hinge_axis3.v[0] * v.v[0]
+        + pOther->physics_joint1->hinge_axis3.v[1] * v.v[1]
+        + pOther->physics_joint1->hinge_axis3.v[2] * v.v[2];
+    BrMatrix34ApplyV(&t, &axis, (br_matrix34*)((tU8*)*(int*)((tU8*)pOther + 0x1e4) + 8));
+    f = t.v[0] / pOther->M;
+    pOut4[0] = pOther->physics_joint1->hinge_axis.v[0] * f;
+    pOut4[1] = pOther->physics_joint1->hinge_axis.v[1] * f;
+    pOut4[2] = pOther->physics_joint1->hinge_axis.v[2] * f;
+    f = -(t.v[0] / pObject->M);
+    pOut2[0] = pOther->physics_joint1->parent_bone_axis.v[0] * f + pOut2[0];
+    pOut2[1] = pOther->physics_joint1->parent_bone_axis.v[1] * f + pOut2[1];
+    pOut2[2] = pOther->physics_joint1->parent_bone_axis.v[2] * f + pOut2[2];
+    pOut3[0] = pOther->physics_joint1->hinge_axis2.v[0] * t.v[1];
+    pOut3[1] = pOther->physics_joint1->hinge_axis2.v[1] * t.v[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis2.v[2] * t.v[1];
+    pOut3[0] = pOther->physics_joint1->hinge_axis3.v[0] * t.v[2] + pOut3[0];
+    pOut3[1] = pOther->physics_joint1->hinge_axis3.v[1] * t.v[2] + pOut3[1];
+    pOut3[2] = pOther->physics_joint1->hinge_axis3.v[2] * t.v[2] + pOut3[2];
+    BrMatrix34ApplyV(&v, (br_vector3*)pOut3, &pOther->transform_matrix);
+    BrMatrix34TApplyV(&t2, &v, &pObject->transform_matrix);
+    fa = pOther->physics_joint1->parent_bone_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->parent_bone_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->parent_bone_axis.v[2] * t.v[0];
+    t2.v[0] = d.v[1] * fc - d.v[2] * fb + t2.v[0];
+    t2.v[1] = d.v[2] * fa - d.v[0] * fc + t2.v[1];
+    t2.v[2] = d.v[0] * fb - d.v[1] * fa + t2.v[2];
+    for (i = 0; i < 3; i++) {
+        pOut1[i] -= t2.v[i] / pObject->I.v[i];
+    }
+    d.v[0] = pOther->physics_joint1->field_0x08.v[0] - pOther->cmpos.v[0];
+    d.v[1] = pOther->physics_joint1->field_0x08.v[1] - pOther->cmpos.v[1];
+    d.v[2] = pOther->physics_joint1->field_0x08.v[2] - pOther->cmpos.v[2];
+    fa = pOther->physics_joint1->hinge_axis.v[0] * t.v[0];
+    fb = pOther->physics_joint1->hinge_axis.v[1] * t.v[0];
+    fc = pOther->physics_joint1->hinge_axis.v[2] * t.v[0];
+    pOut3[0] = d.v[1] * fc - d.v[2] * fb + pOut3[0];
+    pOut3[1] = d.v[2] * fa - d.v[0] * fc + pOut3[1];
+    pOut3[2] = d.v[0] * fb - d.v[1] * fa + pOut3[2];
+    for (i = 0; i < 3; i++) {
+        pOut3[i] = pOut3[i] / pOther->I.v[i];
+    }
+    return (int)pOther;
 }
 
 // MakeMatrix
