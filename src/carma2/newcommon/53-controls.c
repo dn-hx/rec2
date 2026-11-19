@@ -40,6 +40,8 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern int gWhich_edit_mode;;
+extern tEdit_func* gEdit_funcs[2][18][8];;
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
@@ -202,7 +204,26 @@ void C2_HOOK_FASTCALL ShowSpecialVolumesIfRequ(void) {
 
 // F10Key
 
-// F11Key
+static void C2_HOOK_FASTCALL DoEditModeKey(int pIndex) {
+    int modifiers;
+
+    if (gI_am_cheating == 0xa11ee75d || (gI_am_cheating == 0x564e78b9 && gNet_mode == eNet_mode_none)) {
+        modifiers = PDKeyDown(0) ? 4 : 0;
+        modifiers |= PDKeyDown(1) ? 2 : 0;
+        modifiers |= PDKeyDown(2) ? 1 : 0;
+        if (gEdit_funcs[gWhich_edit_mode][pIndex][modifiers] != NULL) {
+            gEdit_funcs[gWhich_edit_mode][pIndex][modifiers]();
+        }
+    } else {
+        gWhich_edit_mode = 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00441880
+void C2_HOOK_FASTCALL F11Key(void) {
+
+    DoEditModeKey(5);
+}
 
 // FUNCTION: CARMA2_HW 0x00441900
 // FUNCTION: CARMA2_SW 0x004419e0
