@@ -25,6 +25,14 @@
 
 #include <limits.h>
 #include <string.h>
+extern int gTransient_bitmap_index;;
+extern int gDraw_cursor;
+extern int gDoMouseCursor_zero_count;;
+extern int gDoMouseCursor_required_cursor;;
+extern tU32 gDoMouseCursor_last_required_change;;
+extern tU32 gDoMouseCursor_last_call_time;;
+extern int gDoMouseCursor_delta_x;;
+extern int gDoMouseCursor_button_was_down;;
 
 // GLOBAL: CARMA2_HW 0x00656998
 // GLOBAL: CARMA2_SW 0x006517a8
