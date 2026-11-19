@@ -25,6 +25,8 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
+extern const char gAct_file_extension[];
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -155,7 +157,117 @@ int C2_HOOK_CDECL LinkyCallback(br_actor* pActor, void* pData) {
 
 // LinkDroneActorsToModelsAndSetRenderStyle
 
-// LoadDroneActorsModels
+/* inlined copy of LinkDroneActorsToModelsAndSetRenderStyle (0x4505a0) at this call site */
+static void C2_HOOK_FASTCALL LinkDroneActorsToModelsAndSetRenderStyle_Impl(tDrone_spec* pDrone, int pModel_start, int pModel_end) {
+    tLinkyCallback_context data;
+
+    data.drone = pDrone;
+    data.model_start = pModel_start;
+    data.model_end = pModel_end;
+    DRActorEnumRecurse(pDrone->model_actor, LinkyCallback, &data);
+}
+
+// FUNCTION: CARMA2_HW 0x00450150
+void C2_HOOK_FASTCALL LoadDroneActorsModels(tDrone_spec* pDrone) {
+    br_matrix34 mat;
+    tPath_name dir_path;
+    tPath_name actor_path;
+    char s[256];
+    int i;
+    tDrone_form* form;
+    br_bounds3* bounds;
+    int flags;
+
+    PossibleService();
+    BrMatrix34Identity(&mat);
+    if (pDrone->model_actor != NULL) {
+        if (pDrone->model_actor->parent != NULL) {
+            BrActorRemove(pDrone->model_actor);
+        }
+        BrActorFree(pDrone->model_actor);
+        pDrone->model_actor = NULL;
+    }
+    if (pDrone->actor != NULL) {
+        BrMatrix34Copy(&mat, &pDrone->actor->t.t.mat);
+        if (pDrone->actor->parent != NULL) {
+            BrActorRemove(pDrone->actor);
+        }
+        BrActorFree(pDrone->actor);
+        pDrone->actor = NULL;
+    }
+    strcpy(gCurrent_load_directory, "DRONES");
+    strcpy(gCurrent_load_name, pDrone->form->name);
+    strcpy(dir_path, gApplication_path);
+    PathCat(dir_path, dir_path, gCurrent_load_directory);
+    PathCat(dir_path, dir_path, gCurrent_load_name);
+
+    if (pDrone->form->model_start < 0) {
+        int material_start;
+
+        PrintMemoryDump(0, "BEFORE LOADING DRONE ACTORS/MODELS");
+        LoadAllImagesInDirectory(&gDroneStorage, dir_path);
+        LoadAllShadeTablesInDirectory(&gDroneStorage, dir_path);
+        material_start = gDroneStorage.materials_count;
+        LoadAllMaterialsInDirectory(&gDroneStorage, dir_path, kRendererShadingType_Specular);
+        for (i = material_start; i < gDroneStorage.materials_count; i++) {
+            br_material* material;
+
+            material = gDroneStorage.materials[i];
+            if (material != NULL && material->colour_map != NULL) {
+                material->flags |= BR_MATF_LIGHT | BR_MATF_PRELIT;
+                gDroneStorage.materials[i]->flags |= BR_MATF_SMOOTH;
+                BrMaterialUpdate(gDroneStorage.materials[i], BR_MATU_ALL);
+            }
+            PossibleService();
+        }
+        pDrone->form->model_start = gDroneStorage.models_count;
+        LoadAllModelsInDirectory(&gDroneStorage, dir_path);
+        pDrone->form->model_end = gDroneStorage.models_count - pDrone->form->model_start;
+        if (pDrone->form->crushability != gDrone_render_zero) {
+            pDrone->form->model_index = -1;
+
+            for (i = pDrone->form->model_start; i < pDrone->form->model_start + pDrone->form->model_end; i++) {
+                if (DRStricmp(gDroneStorage.models[i]->identifier, pDrone->form->name) == 0) {
+                    pDrone->form->model_index = i;
+                    break;
+                }
+            }
+            if (pDrone->form->model_index < 0) {
+                sprintf(s, "Can't find model called '%s' for drone '%s'", pDrone->form->name, pDrone->form->name);
+                PDFatalError(s);
+            }
+        }
+        PrintMemoryDump(0, "AFTER LOADING DRONE ACTORS/MODELS");
+    }
+    pDrone->actor = BrActorAllocate(BR_ACTOR_NONE, NULL);
+    BrMatrix34Copy(&pDrone->actor->t.t.mat, &mat);
+    sprintf(s, "Drone%d", pDrone->id);
+    pDrone->actor->identifier = BrResStrDup(pDrone->actor, s);
+    BrActorAdd(gNon_track_actor, pDrone->actor);
+    PathCat(actor_path, dir_path, pDrone->form->name);
+    strcat(actor_path, gAct_file_extension);
+    pDrone->model_actor = BrActorLoad(actor_path);
+    if (pDrone->model_actor == NULL) {
+        sprintf(s, "Can't load drone car actor file for %s", pDrone->form->name);
+        PDFatalError(s);
+    }
+    LinkDroneActorsToModelsAndSetRenderStyle_Impl(pDrone, pDrone->form->model_start, pDrone->form->model_end);
+    pDrone->actor->render_style = BR_RSTYLE_NONE;
+    BrActorAdd(pDrone->actor, pDrone->model_actor);
+    form = pDrone->form;
+    flags = form->flags;
+    if (!(flags & 0x20)) {
+        bounds = &pDrone->model_actor->model->bounds;
+
+        form->field_0x54.min.v[0] = bounds->min.v[0] + (bounds->max.v[0] - bounds->min.v[0]) * (form->crush_limits_left * 0.01);
+        form->field_0x54.min.v[1] = bounds->min.v[1] + (bounds->max.v[1] - bounds->min.v[1]) * (form->crush_limits_bottom * 0.01);
+        form->field_0x54.min.v[2] = bounds->min.v[2] + (bounds->max.v[2] - bounds->min.v[2]) * (form->crush_limits_back * 0.01);
+        form->field_0x54.max.v[0] = bounds->max.v[0] - (bounds->max.v[0] - bounds->min.v[0]) * (form->crush_limits_right * 0.01);
+        form->field_0x54.max.v[1] = bounds->max.v[1] - (bounds->max.v[1] - bounds->min.v[1]) * (form->crush_limits_top * 0.01);
+        form->field_0x54.max.v[2] = bounds->max.v[2] - (bounds->max.v[2] - bounds->min.v[2]) * (form->crush_limits_front * 0.01);
+        form->flags = flags | 0x20;
+    }
+}
 
 // ReadPastBoundsShapesHeader
 
