@@ -349,12 +349,14 @@ void C2_HOOK_CDECL BrFVector3NormaliseLP(br_fvector3* v1, const br_vector3* v2) 
 // FUNCTION: CARMA2_SW 0x00530120
 void C2_HOOK_CDECL BrVector2Normalise(br_vector2* v1, const br_vector2* v2) {
     br_scalar scale;
+    br_scalar y;
 
     scale = (br_scalar)sqrt(BR_MAC2(v2->v[0], v2->v[0], v2->v[1], v2->v[1]));
     if (scale > 2.3841858e-7f) {
         scale = 1.f / scale;
         v1->v[0] = v2->v[0] * scale;
-        v1->v[1] = v2->v[1] * scale;
+        y = v2->v[1];
+        v1->v[1] = y * scale;
 
     } else {
         v1->v[0] = 1.f;
