@@ -29,6 +29,7 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject);
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -494,6 +495,271 @@ int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_in
 
 // CheckForTwang
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b8350
+int C2_HOOK_FASTCALL GetJointForces(tPhysics_object* pObject, tPhysics_joint_force* pForce) {
+    tPhysics_object* other;
+    tPhysics_object* child;
+    float* axis_component;
+    float local_54[9];
+    br_matrix34 inverse;
+    tU8* workspace;
+    int count;
+    int local_58;
+    int child_count;
+    int i;
+
+    count = 0;
+    if (pObject->physics_joint1 != NULL && pObject->physics_joint1->type != eJoint_none && (pObject->flags & 0x400) == 0) {
+        other = pObject->field_0x230;
+        if (pObject->physics_joint1->type == eJoint_quick_hinge) {
+            CreateJointForce(pObject, other, pForce, &pObject->physics_joint1->hinge_axis2);
+            CreateJointForce(pObject, other, pForce + 1, &pObject->physics_joint1->hinge_axis3);
+            pForce += 2;
+            count = 2;
+        } else {
+            axis_component = local_54;
+            local_58 = 3;
+            do {
+                local_54[0] = 0.f;
+                local_54[1] = 0.f;
+                local_54[2] = 0.f;
+                *axis_component = 1.f;
+                CreateJointForce(pObject, other, pForce, (br_vector3*)local_54);
+                pForce++;
+                axis_component++;
+                local_58--;
+            } while (local_58 != 0);
+            count = 3;
+        }
+        switch (pObject->physics_joint1->type) {
+        case eJoint_hinge:
+            pForce->field_0x0 = 0.f;
+            pForce->object_a = pObject;
+            pForce->object_b = other;
+            pForce->point_a.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+            pForce->point_a.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+            pForce->point_a.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+            pForce->point_b.v[0] = pObject->physics_joint1->field_0x14.v[0] - other->cmpos.v[0];
+            pForce->point_b.v[1] = pObject->physics_joint1->field_0x14.v[1] - other->cmpos.v[1];
+            pForce->point_b.v[2] = pObject->physics_joint1->field_0x14.v[2] - other->cmpos.v[2];
+            pForce->direction_a.v[0] = pObject->physics_joint1->hinge_axis2.v[0];
+            pForce->direction_a.v[1] = pObject->physics_joint1->hinge_axis2.v[1];
+            pForce->direction_a.v[2] = pObject->physics_joint1->hinge_axis2.v[2];
+            BrMatrix34ApplyV((br_vector3*)local_54, &pForce->direction_a, &pObject->transform_matrix);
+            BrMatrix34TApplyV(&pForce->direction_b, (br_vector3*)local_54, &other->transform_matrix);
+            pForce->type = 0xb;
+            pForce++;
+
+            pForce->field_0x0 = 0.f;
+            pForce->object_a = pObject;
+            pForce->object_b = other;
+            pForce->point_a.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+            pForce->point_a.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+            pForce->point_a.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+            pForce->point_b.v[0] = pObject->physics_joint1->field_0x14.v[0] - other->cmpos.v[0];
+            pForce->point_b.v[1] = pObject->physics_joint1->field_0x14.v[1] - other->cmpos.v[1];
+            pForce->point_b.v[2] = pObject->physics_joint1->field_0x14.v[2] - other->cmpos.v[2];
+            pForce->direction_a.v[0] = pObject->physics_joint1->hinge_axis3.v[0];
+            pForce->direction_a.v[1] = pObject->physics_joint1->hinge_axis3.v[1];
+            pForce->direction_a.v[2] = pObject->physics_joint1->hinge_axis3.v[2];
+            BrMatrix34ApplyV((br_vector3*)local_54, &pForce->direction_a, &pObject->transform_matrix);
+            BrMatrix34TApplyV(&pForce->direction_b, (br_vector3*)local_54, &other->transform_matrix);
+            pForce->type = 0xb;
+            pForce++;
+            count += 2;
+            break;
+
+        case eJoint_universal:
+            pForce->field_0x0 = 0.f;
+            pForce->object_a = pObject;
+            pForce->object_b = other;
+            pForce->point_a.v[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+            pForce->point_a.v[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+            pForce->point_a.v[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+            pForce->point_b.v[0] = pObject->physics_joint1->field_0x14.v[0] - other->cmpos.v[0];
+            pForce->point_b.v[1] = pObject->physics_joint1->field_0x14.v[1] - other->cmpos.v[1];
+            pForce->point_b.v[2] = pObject->physics_joint1->field_0x14.v[2] - other->cmpos.v[2];
+            pForce->direction_a.v[0] = pObject->physics_joint1->hinge_axis2.v[0];
+            pForce->direction_a.v[1] = pObject->physics_joint1->hinge_axis2.v[1];
+            pForce->direction_a.v[2] = pObject->physics_joint1->hinge_axis2.v[2];
+            BrMatrix34ApplyV((br_vector3*)local_54, &pForce->direction_a, &pObject->transform_matrix);
+            BrMatrix34TApplyV(&pForce->direction_b, (br_vector3*)local_54, &other->transform_matrix);
+            pForce->type = 0xb;
+            pForce++;
+            count++;
+            break;
+
+        case eJoint_ball_n_socket:
+            break;
+
+        case eJoint_quick_hinge:
+            workspace = (tU8*)GetPhysicsScratchPointer(0xd0);
+            IncreasePhysicsScratchPointer(0xd0);
+            *(int*)((tU8*)pObject + 0x1e4) = (int)workspace;
+            *(int*)((tU8*)other + 0x1e4) = (int)(workspace + 0x68);
+            *(int*)workspace = 0;
+            *(tPhysics_object**)(workspace + 4) = other;
+            *(int*)(workspace + 0x68) = 0;
+            *(tPhysics_object**)(workspace + 0x6c) = pObject;
+            BrMatrix34LPInverse(&inverse, &pObject->transform_matrix);
+            BrMatrix34Mul((br_matrix34*)(workspace + 0x38), &other->transform_matrix, &inverse);
+            BrMatrix34LPInverse((br_matrix34*)(workspace + 0xa0), (br_matrix34*)(workspace + 0x38));
+            *(int*)workspace = 1;
+            *(int*)(workspace + 0x68) = 1;
+            RedoQuickHingeVelocities(pObject);
+
+            local_54[0] = pObject->physics_joint1->parent_bone_axis.v[1] * other->omega.v[1]
+                + other->omega.v[0] * pObject->physics_joint1->parent_bone_axis.v[0]
+                + pObject->physics_joint1->parent_bone_axis.v[2] * other->omega.v[2];
+            local_54[3] = other->omega.v[0] - pObject->physics_joint1->parent_bone_axis.v[0] * local_54[0];
+            local_54[4] = other->omega.v[1] - pObject->physics_joint1->parent_bone_axis.v[1] * local_54[0];
+            local_54[5] = other->omega.v[2] - pObject->physics_joint1->parent_bone_axis.v[2] * local_54[0];
+            BrMatrix34ApplyV((br_vector3*)local_54, (br_vector3*)(local_54 + 3), &other->transform_matrix);
+            BrMatrix34TApplyV((br_vector3*)(local_54 + 6), (br_vector3*)local_54, &pObject->transform_matrix);
+
+            local_54[0] = pObject->physics_joint1->hinge_axis.v[1] * pObject->omega.v[1]
+                + pObject->physics_joint1->hinge_axis.v[2] * pObject->omega.v[2]
+                + pObject->physics_joint1->hinge_axis.v[0] * pObject->omega.v[0];
+            pObject->omega.v[0] = pObject->physics_joint1->hinge_axis.v[0] * local_54[0];
+            pObject->omega.v[1] = pObject->physics_joint1->hinge_axis.v[1] * local_54[0];
+            pObject->omega.v[0] = local_54[6] + pObject->omega.v[0];
+            pObject->omega.v[1] = local_54[7] + pObject->omega.v[1];
+            pObject->omega.v[2] = pObject->physics_joint1->hinge_axis.v[2] * local_54[0];
+            pObject->omega.v[2] = local_54[8] + pObject->omega.v[2];
+
+            local_54[0] = pObject->physics_joint1->field_0x14.v[0] - other->cmpos.v[0];
+            local_54[1] = pObject->physics_joint1->field_0x14.v[1] - other->cmpos.v[1];
+            local_54[2] = pObject->physics_joint1->field_0x14.v[2] - other->cmpos.v[2];
+            local_54[3] = other->omega.v[1] * local_54[2] - other->omega.v[2] * local_54[1];
+            local_54[4] = other->omega.v[2] * local_54[0] - other->omega.v[0] * local_54[2];
+            local_54[5] = other->omega.v[0] * local_54[1] - other->omega.v[1] * local_54[0];
+            BrMatrix34ApplyV((br_vector3*)local_54, (br_vector3*)(local_54 + 3), &other->transform_matrix);
+            local_54[0] = other->v.v[0] + local_54[0];
+            local_54[1] = other->v.v[1] + local_54[1];
+            local_54[2] = other->v.v[2] + local_54[2];
+            BrMatrix34TApplyV((br_vector3*)(local_54 + 6), (br_vector3*)local_54, &pObject->transform_matrix);
+
+            local_54[0] = pObject->physics_joint1->field_0x08.v[0] - pObject->cmpos.v[0];
+            local_54[1] = pObject->physics_joint1->field_0x08.v[1] - pObject->cmpos.v[1];
+            local_54[2] = pObject->physics_joint1->field_0x08.v[2] - pObject->cmpos.v[2];
+            local_54[3] = pObject->omega.v[1] * local_54[2] - pObject->omega.v[2] * local_54[1];
+            local_54[4] = pObject->omega.v[2] * local_54[0] - pObject->omega.v[0] * local_54[2];
+            local_54[5] = pObject->omega.v[0] * local_54[1] - pObject->omega.v[1] * local_54[0];
+            local_54[6] = local_54[6] - local_54[3];
+            local_54[7] = local_54[7] - local_54[4];
+            local_54[8] = local_54[8] - local_54[5];
+            local_54[2] = (pObject->physics_joint1->hinge_axis.v[1] * local_54[7]
+                + pObject->physics_joint1->hinge_axis.v[0] * local_54[6]
+                + pObject->physics_joint1->hinge_axis.v[2] * local_54[8])
+                - (pObject->physics_joint1->hinge_axis.v[1] * pObject->velocity_car_space.v[1]
+                + pObject->physics_joint1->hinge_axis.v[0] * pObject->velocity_car_space.v[0]
+                + pObject->physics_joint1->hinge_axis.v[2] * pObject->velocity_car_space.v[2]);
+            local_54[0] = pObject->physics_joint1->hinge_axis.v[0] * local_54[2];
+            local_54[1] = pObject->physics_joint1->hinge_axis.v[1] * local_54[2];
+            local_54[2] = pObject->physics_joint1->hinge_axis.v[2] * local_54[2];
+            pObject->velocity_car_space.v[0] = local_54[0] + pObject->velocity_car_space.v[0];
+            pObject->velocity_car_space.v[1] = local_54[1] + pObject->velocity_car_space.v[1];
+            pObject->velocity_car_space.v[2] = local_54[2] + pObject->velocity_car_space.v[2];
+            BrMatrix34ApplyV(&pObject->v, &pObject->velocity_car_space, &pObject->transform_matrix);
+            break;
+
+        default:
+            PhysicsError(ePhysicsError_UnknownHingeType, NULL);
+            break;
+        }
+    }
+
+    if (pObject->physics_joint2 != NULL) {
+        if (pObject->physics_joint2->type == eJoint_translation) {
+            pForce->field_0x0 = 0.f;
+            pForce->object_a = pObject;
+            pForce->object_b = NULL;
+            pForce->field_0xc = NULL;
+            pForce->direction_a.v[0] = pObject->physics_joint2->hinge_axis2.v[0];
+            pForce->direction_a.v[1] = pObject->physics_joint2->hinge_axis2.v[1];
+            pForce->direction_a.v[2] = pObject->physics_joint2->hinge_axis2.v[2];
+            pForce->type = 10;
+            pForce++;
+            count++;
+
+            pForce->field_0x0 = 0.f;
+            pForce->object_a = pObject;
+            pForce->object_b = NULL;
+            pForce->field_0xc = NULL;
+            pForce->direction_a.v[0] = pObject->physics_joint2->hinge_axis3.v[0];
+            pForce->direction_a.v[1] = pObject->physics_joint2->hinge_axis3.v[1];
+            pForce->direction_a.v[2] = pObject->physics_joint2->hinge_axis3.v[2];
+            pForce->type = 10;
+            pForce++;
+            count++;
+        } else {
+            count += 3;
+            for (i = 0; i < 3; i++) {
+                pForce->field_0x0 = 0.f;
+                pForce->object_a = pObject;
+                pForce->object_b = NULL;
+                pForce->field_0xc = NULL;
+                pForce->point_a.v[0] = pObject->physics_joint2->field_0x08.v[0] - pObject->cmpos.v[0];
+                pForce->point_a.v[1] = pObject->physics_joint2->field_0x08.v[1] - pObject->cmpos.v[1];
+                pForce->point_a.v[2] = pObject->physics_joint2->field_0x08.v[2] - pObject->cmpos.v[2];
+                pForce->direction_a.v[0] = 0.f;
+                pForce->direction_a.v[1] = 0.f;
+                pForce->direction_a.v[2] = 0.f;
+                pForce->direction_a.v[i] = 1.f;
+                pForce->type = 10;
+                pForce++;
+            }
+            switch (pObject->physics_joint2->type) {
+            case eJoint_hinge:
+            case eJoint_ball_n_socket:
+                break;
+
+            case eJoint_universal:
+                pForce->field_0x0 = 0.f;
+                pForce->object_a = pObject;
+                pForce->object_b = NULL;
+                pForce->field_0xc = NULL;
+                pForce->point_a.v[0] = pObject->physics_joint2->field_0x08.v[0] - pObject->cmpos.v[0];
+                pForce->point_a.v[1] = pObject->physics_joint2->field_0x08.v[1] - pObject->cmpos.v[1];
+                pForce->point_a.v[2] = pObject->physics_joint2->field_0x08.v[2] - pObject->cmpos.v[2];
+                pForce->direction_a.v[0] = pObject->physics_joint2->hinge_axis2.v[0];
+                pForce->direction_a.v[1] = pObject->physics_joint2->hinge_axis2.v[1];
+                pForce->direction_a.v[2] = pObject->physics_joint2->hinge_axis2.v[2];
+                pForce->type = 0xb;
+                pForce++;
+                count++;
+                break;
+
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, NULL);
+                break;
+            }
+        }
+    }
+
+    for (child = pObject->child; child != NULL; child = child->next) {
+        child_count = GetJointForces(child, pForce);
+        count += child_count;
+        pForce += child_count;
+    }
+    return count;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004b8c20
 void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
