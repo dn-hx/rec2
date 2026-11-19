@@ -722,9 +722,88 @@ void C2_HOOK_FASTCALL MakeObjectListDoSomething(tPhysics_object* pObject) {
 
 // CheckForObjectHierachyTouchingAnotherObject
 
-// CheckForObjectHierachyTouchingObjectList
+// STUB: CARMA2_HW 0x004ba190
+void C2_HOOK_FASTCALL CheckForObjectHierachyTouchingObjectList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original) {
+    NOT_IMPLEMENTED();
+}
 
-// MakeObjectDoSomething
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004be0e0
+void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList) {
+    tPhysics_object* child;
+    tPhysics_object* item;
+
+    if (pObject->disable_move_rotate == 0) {
+        return;
+    }
+    while (pObject->parent != NULL && pObject->physics_joint1 != NULL && pObject->physics_joint1->type != eJoint_none) {
+        pObject = pObject->parent;
+    }
+    pObject->box_face_ref = gFace_num__car - 2;
+    pObject->disable_move_rotate = 0;
+    if (pObject->child != NULL || pObject->physics_joint1 != NULL || pObject->physics_joint2 != NULL) {
+        if (pObject->field_0x218 == 0) {
+            MoveJointedObject(pObject, 0.f);
+        }
+        for (child = pObject->child; child != NULL; child = child->next) {
+            if (child->disable_move_rotate != 0) {
+                child->box_face_ref = gFace_num__car - 2;
+                child->disable_move_rotate = 0;
+            }
+            if (child->child != NULL) {
+                MakeObjectListDoSomething(child->child);
+            }
+        }
+    }
+    for (item = pList; item != NULL; item = item->next) {
+        if (item->disable_move_rotate == 0) {
+            continue;
+        }
+        if (pObject->field_0xf4.min.v[0] - item->field_0xf4.max.v[0] <= gDOUBLE_0058a798
+                && pObject->field_0xf4.min.v[1] - item->field_0xf4.max.v[1] <= gDOUBLE_0058a798
+                && pObject->field_0xf4.min.v[2] - item->field_0xf4.max.v[2] <= gDOUBLE_0058a798
+                && item->field_0xf4.min.v[0] - pObject->field_0xf4.max.v[0] <= gDOUBLE_0058a798
+                && item->field_0xf4.min.v[1] - pObject->field_0xf4.max.v[1] <= gDOUBLE_0058a798
+                && item->field_0xf4.min.v[2] - pObject->field_0xf4.max.v[2] <= gDOUBLE_0058a798) {
+            MakeObjectDoSomething(item, pList);
+        }
+        if (pObject->child != NULL && item->disable_move_rotate != 0) {
+            child = pObject->child;
+            if (child != NULL) {
+                do {
+                    if (child->field_0xf4.min.v[0] - item->field_0xf4.max.v[0] <= gDOUBLE_0058a798
+                        && child->field_0xf4.min.v[1] - item->field_0xf4.max.v[1] <= gDOUBLE_0058a798
+                        && child->field_0xf4.min.v[2] - item->field_0xf4.max.v[2] <= gDOUBLE_0058a798
+                        && item->field_0xf4.min.v[0] - child->field_0xf4.max.v[0] <= gDOUBLE_0058a798
+                        && item->field_0xf4.min.v[1] - child->field_0xf4.max.v[1] <= gDOUBLE_0058a798
+                        && item->field_0xf4.min.v[2] - child->field_0xf4.max.v[2] <= gDOUBLE_0058a798) {
+                        MakeObjectDoSomething(item, pList);
+                        break;
+                    }
+                    child = child->next;
+                } while (child != NULL);
+            }
+        }
+        if (item->child != NULL) {
+            CheckForObjectHierachyTouchingObjectList(pObject, item->child, pList);
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // GetReducedList
 
