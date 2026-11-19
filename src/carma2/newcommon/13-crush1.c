@@ -2498,7 +2498,31 @@ void C2_HOOK_FASTCALL SendDBNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tN
 
 // SendAllDBNonCars
 
-// ReceivedDBNonCarPosition
+// FUNCTION: CARMA2_HW 0x0043d5f0
+void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents) {
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+    br_actor* actor;
+    int i;
+
+    car = NetCarFromPlayerID(pContents->player_id);
+    if (car != NULL) {
+        crush_spec = car->car_crush_spec;
+        if (crush_spec != NULL) {
+            for (i = 0; i < crush_spec->field_0x2b0; i++) {
+                if (crush_spec->field_0x2b4[i].field_0x8->uid == pContents->uid) {
+                    actor = crush_spec->field_0x2b4[i].field_0x0;
+                    goto have_actor;
+                }
+            }
+        }
+        actor = NULL;
+have_actor:
+        if (actor != NULL && gNet_mode != eNet_mode_host) {
+            BrMatrix34Copy(&actor->t.t.mat, &pContents->mat);
+        }
+    }
+}
 
 // STUB: CARMA2_HW 0x0043c7a0
 void C2_HOOK_FASTCALL FUN_0043c7a0(br_vector3* pVertex, int pCount, float* pVectors, br_vector3* pDirection, br_scalar pForce, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
