@@ -492,7 +492,40 @@ void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// DoTrueColModelThing
+// FUNCTION: CARMA2_HW 0x004f9180
+void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+    br_vertex* vertex;
+    int fade;
+    int fade2;
+    int fade3;
+    int time;
+    int j;
+    int i;
+
+    if (gAFE_color_cycle) {
+        time = (int)GetTotalTime() >> 1;
+        if (pModel != NULL) {
+            for (i = 0; i < pModel->prepared->ngroups; i++) {
+                for (j = 0; j < pModel->prepared->groups[i].nvertices; j++) {
+                    vertex = &pModel->vertices[pModel->prepared->groups[i].vertex_user[j]];
+                    if (vertex == NULL) {
+                        continue;
+                    }
+                    fade = time & 0x3fff;
+                    vertex->red = (br_uint_8)(fade < 0x100 ? fade : 0x3ff - fade);
+                    fade2 = (time + 0x100) & 0x3ff;
+                    vertex->grn = (br_uint_8)(fade2 < 0x100 ? fade2 : 0x3ff - fade2);
+                    fade3 = (time - 0x200) & 0x3ff;
+                    vertex->blu = (br_uint_8)(fade3 < 0x100 ? fade3 : 0x3ff - fade3);
+                }
+            }
+        }
+        if (pModel->flags & BR_MODF_UPDATEABLE) {
+            BrModelUpdate(pModel, BR_MODU_VERTICES);
+        }
+    }
+    BrZsModelRender(pActor, pModel, pMaterial, pArg4, pArg5, BrOnScreenCheck(&pModel->bounds), 0);
+}
 
 // SetFoxModelCallback
 
