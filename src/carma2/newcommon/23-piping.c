@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2070,7 +2071,19 @@ void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_
 
 // UndoSplash
 
-// UndoExtendedSplash
+// FUNCTION: CARMA2_HW 0x004c9ee0
+void C2_HOOK_FASTCALL UndoExtendedSplash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    ARDisableAdvance();
+    if (pPrev_chunk != NULL) {
+        tPipe_chunk_extended_splash* chunk = (tPipe_chunk_extended_splash*)pPrev_chunk;
+
+        AdjustSplashReplay(chunk->field_0x0, (tU8)chunk->field_0x4, chunk->field_0x8, &chunk->field_0xc, &chunk->field_0x18);
+    } else {
+        ClearSplashReplay(*(uintptr_t*)*pChunk);
+    }
+    AREnableAdvance();
+}
 
 // FUNCTION: CARMA2_HW 0x004c9f20
 // FUNCTION: CARMA2_SW 0x004c6650
