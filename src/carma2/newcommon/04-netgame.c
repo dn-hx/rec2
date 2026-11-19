@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern int gWinner_declared;
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
@@ -646,7 +647,50 @@ void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlayer) {
     pPlayer->reposition_time = 0;
 }
 
-// InitPlayers
+// FUNCTION: CARMA2_HW 0x0049b720
+void C2_HOOK_FASTCALL InitPlayers(void) {
+    tNet_game_player_info* player;
+    int i;
+
+    i = 0;
+    if (0 < gNumber_of_net_players) {
+        player = &gNet_players[0];
+        do {
+            PossibleService();
+            switch (gCurrent_net_game->type) {
+            case eNet_game_type_fight_to_death:
+                player->score2 = 100;
+                break;
+            case eNet_game_type_checkpoint:
+                player->score2 = 0xffff;
+                break;
+            case eNet_game_type_1:
+            case eNet_game_type_2:
+            case eNet_game_type_4:
+            case eNet_game_type_5:
+            case eNet_game_type_6:
+            case eNet_game_type_foxy:
+                player->score2 = 0;
+                break;
+            }
+            player->credits = gCurrent_net_game->options.starting_credits;
+            player->wasted = 0;
+            player->reposition_time = 0;
+            *(int*)player->field_0xd0 = 0;
+            player->field_0x80 = 0;
+            i++;
+            player++;
+        } while (i < gNumber_of_net_players);
+    }
+    gIt_or_fox = -1;
+    if (gNet_mode == eNet_mode_host) {
+        gLast_it_change = 0;
+        gLast_lepper = NULL;
+    }
+    gTime_for_punishment = 0;
+    gWinner_declared = 0;
+    gNot_shown_race_type_headup = 1;
+}
 
 // FUNCTION: CARMA2_HW 0x0049b7e0
 // FUNCTION: CARMA2_SW 0x00497960
