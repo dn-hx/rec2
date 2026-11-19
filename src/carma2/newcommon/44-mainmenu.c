@@ -21,6 +21,7 @@
 #include "38-flicplay.h"
 #include "41-utility.h"
 #include "platform.h"
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
 // QuitVerifyStart
 
