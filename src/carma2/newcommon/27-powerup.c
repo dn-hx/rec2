@@ -38,6 +38,12 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2);
+extern void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new);
+extern int gNet_powerup_time_between_goodies_min;;
+extern int gNet_powerup_time_between_goodies_max;;
+extern int* gNet_powerup_goodies;;
+extern int gNet_count_powerup_goodies;;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
