@@ -22,6 +22,19 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern int gUNK_006792f8;;
+extern void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor);
+extern int C2_HOOK_FASTCALL GetRuntimeVariable(int pAddress);
+extern int C2_HOOK_FASTCALL ARReplayIsReallyPaused(void);
+extern int C2_HOOK_FASTCALL ARReplayForwards(void);
+extern undefined2 gUNK_006792f4;;
+extern br_angle gOld_zoom;;
+extern br_angle gOld_yaw__car;;
+extern br_vector3 gCamera_pos_before_collide;;
+extern int gCamera_mode;;
+extern tCamera_key_flags gCamera_key_flags;;
+extern int gCamera_has_collided;;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
