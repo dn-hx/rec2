@@ -113,7 +113,116 @@ char gDefault_quick_time_compressor[] = "animation";
 
 // Create555BELookupTable
 
-// Convert565BrPixelmapTo555BigEndianPixmap
+// FUNCTION: CARMA2_HW 0x004e1400
+void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
+    int row;
+    int height;
+    int destination_offset;
+    int col;
+    int width;
+    int i;
+    int pixel_step;
+    int top;
+    int source_x;
+    int source_pixel;
+    int dest;
+
+    (void)pFrame_pixmap_handle;
+    if (gQuicktime_frame_pixel_conversion_table == NULL) {
+        gQuicktime_frame_pixel_conversion_table = BrMemAllocate(0x20000, 0xfd);
+        if (gNbPixelBits == 0x10) {
+            i = 0;
+            do {
+                unsigned int value;
+                br_uint_8 blue;
+
+                value = ((unsigned int)i >> 1) & 0x7fe0;
+                blue = (br_uint_8)i;
+                value |= blue & 0x1f;
+                i++;
+                gQuicktime_frame_pixel_conversion_table[i - 1] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
+            } while (i < 0x10000);
+        } else {
+            for (i = 0; i < 256; i++) {
+                br_uint_32 colour;
+                unsigned int value;
+
+                colour = ((br_uint_32*)gRender_palette->pixels)[i];
+                value = (((colour >> 19) & 0x1f) << 5) | ((colour >> 11) & 0x1f);
+                value = (value << 5) | ((colour >> 3) & 0x1f);
+                gQuicktime_frame_pixel_conversion_table[i] = ((value & 0xff) << 8) | ((value >> 8) & 0xff);
+            }
+        }
+    }
+
+#ifdef REC2_HW
+    PossibleLock(1);
+#endif
+    if (gNbPixelBits == 0x10) {
+        width = gCurrent_graf_data->width / 2;
+    } else {
+        width = gCurrent_graf_data->width;
+    }
+    height = gCurrent_graf_data->height;
+    if (gNbPixelBits == 0x10) {
+        height /= 2;
+    }
+
+    if (gNbPixelBits == 0x10) {
+        pixel_step = 2;
+        if (pScreen->height == 200) {
+            top = 20;
+            height = 200;
+            pixel_step = 1;
+        } else {
+            top = 0;
+        }
+        row = 0;
+        if (height > 0) {
+            destination_offset = top * width * 2;
+            do {
+                if (width > 0) {
+                    dest = destination_offset;
+                    source_x = 0;
+                    col = width;
+                    do {
+                        source_pixel = (pixel_step * row * (int)pScreen->row_bytes) / 2 + source_x;
+                        *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_16*)pScreen->pixels)[source_pixel]];
+                        dest += 2;
+                        source_x += pixel_step;
+                        col--;
+                    } while (col != 0);
+                }
+                row++;
+                destination_offset += width * 2;
+            } while (row < height);
+#ifdef REC2_HW
+            PossibleUnlock(1);
+#endif
+            return;
+        }
+    } else {
+        row = 0;
+        destination_offset = 0;
+        do {
+            if (width > 0) {
+                dest = destination_offset;
+                col = 0;
+                do {
+                    source_pixel = row * (int)pScreen->row_bytes + col;
+                    *(br_uint_16*)((char*)gQuicktime_frame_pixels + dest) = gQuicktime_frame_pixel_conversion_table[((br_uint_8*)pScreen->pixels)[source_pixel]];
+                    dest += 2;
+                    col++;
+                } while (col < width);
+            }
+            row++;
+            destination_offset += width * 2;
+        } while (row < 200);
+    }
+#ifdef REC2_HW
+    PossibleUnlock(1);
+#endif
+}
 
 // SwapPixelmapBytePairs
 
