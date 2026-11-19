@@ -33,6 +33,7 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult);
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
@@ -1257,11 +1258,38 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f36c0
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004f36c0
 // STUB: CARMA2_SW 0x004ef320
 void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMapping, br_vector2* pMap, br_vertex* pVertex) {
-    NOT_IMPLEMENTED();
+    const float* pData;
+    float dy1;
+    float dx1;
+    float dy0;
+    float dx0;
+    float distance1;
+    float distance0;
+
+    pData = (const float*)pMapping;
+    dy1 = pData[27] - pMap->v[1];
+    dx1 = pData[26] - pMap->v[0];
+    dy0 = pData[15] - pMap->v[1];
+    dx0 = pData[14] - pMap->v[0];
+    distance1 = dy1 * dy1 + dx1 * dx1;
+    distance0 = dy0 * dy0 + dx0 * dx0;
+    if (distance1 < distance0) {
+        ExtrapolateGeometryCoordinates2((const int*)pMapping, (const float*)((const tU8*)pMapping + 0x54), (const float*)pMap, (float*)pVertex);
+    } else {
+        ExtrapolateGeometryCoordinates2((const int*)pMapping, (const float*)((const tU8*)pMapping + 0x24), (const float*)pMap, (float*)pVertex);
+    }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
