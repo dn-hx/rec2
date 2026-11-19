@@ -44,6 +44,7 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
