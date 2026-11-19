@@ -33,6 +33,9 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
+extern int gUnknown_006b9c60[100];
+extern float gFloat_0058af38;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
