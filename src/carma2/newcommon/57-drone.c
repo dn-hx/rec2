@@ -25,6 +25,7 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern tDrone_crush_data gDrone_crush_data;;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -372,10 +373,6 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00450b50
-tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
-}
 // InitDrones
 
 // FUNCTION: CARMA2_HW 0x0044fc10
@@ -439,7 +436,32 @@ void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void) {
     NOT_IMPLEMENTED();
 }
 
-// GetDroneCrushData
+// FUNCTION: CARMA2_HW 0x00450b50
+tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
+    tDrone_spec* pDrone;
+    int i;
+
+    pDrone = (tDrone_spec*)pObject->owner;
+    if (pDrone->form->crushability == gDrone_render_zero) {
+        return NULL;
+    }
+    if (pDrone->field_0xf4 < 0) {
+        for (i = 0; i < pDrone->form->count_models; i++) {
+            if (pDrone->form->field_0x80[i] == 0) {
+                pDrone->form->field_0x80[i] = 1;
+                pDrone->field_0xf4 = i;
+                pDrone->model_actor->model = pDrone->form->models[i];
+                goto selected_model;
+            }
+        }
+        return NULL;
+    }
+selected_model:
+    gDrone_crush_data.model = pDrone->model_actor->model;
+    gDrone_crush_data.crushability = pDrone->form->crushability;
+    gDrone_crush_data.bounds = pDrone->form->field_0x54;
+    return &gDrone_crush_data;
+}
 
 // AllocateAndInitDrones
 
