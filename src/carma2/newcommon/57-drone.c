@@ -25,6 +25,8 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern void C2_HOOK_FASTCALL MoveThisDronePlane(tDrone_spec* pDrone);
+extern void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone);
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
