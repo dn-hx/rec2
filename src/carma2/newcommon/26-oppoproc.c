@@ -9,6 +9,10 @@
 #include "26-oppoproc.h"
 
 #include "08-loading1.h"
+extern float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection);
+extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
+extern const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection);
+extern int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spec, tS16 pSection);
 
 // DoNotDprintf
 
@@ -22,7 +26,62 @@
 
 // RoughlyColinear
 
-// GetStraight
+// FUNCTION: CARMA2_HW 0x004b13d0
+int C2_HOOK_FASTCALL GetStraight(br_vector2* pStart, br_vector2* pFinish, float* pWidth, int pSection, tOpponent_spec* pOpponent_spec) {
+    const br_vector3* point;
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    float width;
+    int section;
+    int straight;
+
+    section = pSection;
+    point = GetOpponentsSectionStartNodePoint(pOpponent_spec, section);
+    pStart->v[0] = point->v[2];
+    point = GetOpponentsSectionStartNodePoint(pOpponent_spec, section);
+    pStart->v[1] = point->v[0];
+    point = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+    pFinish->v[0] = point->v[2];
+    point = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+    pFinish->v[1] = point->v[0];
+    *pWidth = GetOpponentsSectionWidth(pOpponent_spec, section);
+    section = GetOpponentsNextSection(pOpponent_spec, section);
+    if (section != -1) {
+        for (;;) {
+            point = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+            fVar2 = point->v[2];
+            point = GetOpponentsSectionFinishNodePoint(pOpponent_spec, section);
+            fVar1 = point->v[0];
+            fVar3 = pFinish->v[0] - pStart->v[0];
+            fVar6 = pFinish->v[1] - pStart->v[1];
+            fVar4 = (fVar2 - pFinish->v[0]) + fVar3;
+            fVar5 = (fVar1 - pFinish->v[1]) + fVar6;
+            if ((fVar5 * fVar6 + fVar4 * fVar3 < 0.0) || (0.1 <= fabs((fVar5 * fVar3 + -fVar6 * fVar4) / sqrt(fVar5 * fVar5 + fVar4 * fVar4)))) {
+                straight = 0;
+            } else {
+                straight = 1;
+            }
+            if (!straight) {
+                break;
+            }
+            pFinish->v[0] = fVar2;
+            pFinish->v[1] = fVar1;
+            width = GetOpponentsSectionWidth(pOpponent_spec, section);
+            if (width < *pWidth) {
+                *pWidth = width;
+            }
+            section = GetOpponentsNextSection(pOpponent_spec, section);
+            if (section == -1) {
+                return -1;
+            }
+        }
+    }
+    return section;
+}
 
 // FUNCTION: CARMA2_HW 0x004af8d0
 // FUNCTION: CARMA2_SW 0x004aba40
