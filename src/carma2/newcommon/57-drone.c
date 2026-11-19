@@ -25,6 +25,11 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern int C2_HOOK_FASTCALL PFfeof(FILE* pFile);
+extern int C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern tTWTVFS C2_HOOK_FASTCALL OpenPackFileAndSetTiffLoading(const char* path);
+extern void C2_HOOK_FASTCALL ClosePackFileAndSetTiffLoading(tTWTVFS twt);
+extern const char* gDrone_type_names[4];
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
