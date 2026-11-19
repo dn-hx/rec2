@@ -43,6 +43,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -894,7 +895,7 @@ void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSeed, floa
                 if (fragment == NULL) {
                     break;
                 }
-                scale = SetInitPosition(fragment->actor, &gGiblet_initial_position, NULL, pPosition, pAlternate_position, NULL, NULL, NULL);
+                scale = SetInitPosition(fragment->actor, &gGiblet_initial_position, NULL, (br_vector3*)pPosition, (br_vector3*)pAlternate_position, NULL, NULL, NULL);
                 SetShrapnelFragment(fragment, &gGiblet_initial_speed, pImpactee_velocity, scale, &gGiblet_min_max_time, pTime, &gZero_vector__smash, NULL, NULL);
             }
         }
@@ -921,7 +922,7 @@ void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_
         if (fragment == NULL) {
             break;
         }
-        scale = SetInitPosition(fragment->actor, &gPed_spurt_initial_position, NULL, pPosition, pPosition, NULL, NULL, NULL);
+        scale = SetInitPosition(fragment->actor, &gPed_spurt_initial_position, NULL, (br_vector3*)pPosition, (br_vector3*)pPosition, NULL, NULL, NULL);
         SetShrapnelFragment(fragment, &gPed_spurt_initial_speed, pImpactee_velocity, scale, &gPed_spurt_min_max_time, pTime, pNormal, NULL, NULL);
     }
     srand(seed);
