@@ -760,6 +760,19 @@ void C2_HOOK_FASTCALL FuckWithWidths(tFrontend_spec* pFrontend) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x004682a0
+int C2_HOOK_FASTCALL NetToggleMode(tFrontend_spec* pFrontend) {
+    extern tNet_mode gFrontend_net_mode;
+
+    (void)pFrontend;
+    if (gFrontend_net_mode == eNet_mode_thinking_about_it) {
+        gFrontend_net_mode = eNet_mode_host;
+    } else {
+        gFrontend_net_mode = eNet_mode_thinking_about_it;
+    }
+    WaitFor(6000);
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x0046abf0
 // FUNCTION: CARMA2_SW 0x0046a930
 br_pixelmap* C2_HOOK_FASTCALL GetThisFuckingPixelmapPleaseMrTwatter(const char* pFolder, const char* pName) {
