@@ -40,6 +40,7 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
@@ -488,7 +489,65 @@ void C2_HOOK_FASTCALL CheckHorn3D(tCar_spec* pCar) {
 
 // ExplodeCar
 
-// CheckRecoveryOfCars
+// FUNCTION: CARMA2_HW 0x00442500
+void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime) {
+    extern int gToo_late;
+    extern int gCancel_recover;
+
+    if (gProgram_state.current_car.time_to_recover != 0) {
+        if (gProgram_state.current_car.knackered) {
+            gProgram_state.current_car.time_to_recover = 0;
+        } else {
+            int time;
+            char str[256];
+
+            time = (gProgram_state.current_car.time_to_recover - pEndFrameTime + 1000) / 1000;
+            sprintf(str, "%s %d %s", GetMiscString(eMiscString_recovery_in), time, GetMiscString(time > 1 ? eMiscString_seconds : eMiscString_second));
+            if (!gToo_late && gCancel_recover) {
+                NewTextHeadupSlot2(4, 0, 2000, -4, str, 0);
+            }
+            if (gProgram_state.current_car.time_to_recover <= pEndFrameTime) {
+                if (gNet_mode == eNet_mode_none || gPalette_fade_time == 0) {
+                    gRecover_car = 1;
+                }
+                gProgram_state.current_car.time_to_recover = 0;
+            }
+        }
+    }
+    if (gNet_mode != eNet_mode_none) {
+        int i;
+
+        for (i = 0; i < gNumber_of_net_players; i++) {
+            tCar_spec* car;
+            br_vector3 pos;
+            br_vector3 vel;
+            br_vector3 coll_pos;
+
+            if (i != gThis_net_player_index && gNet_players[i].car->time_to_recover != 0 && gNet_players[i].car->time_to_recover <= pEndFrameTime) {
+                gNet_players[i].player_status = ePlayer_status_recovering;
+                gNet_players[i].car->collision_info->field_0x261 = 0xff;
+                gNet_players[i].car->collision_info->message_time = pEndFrameTime;
+                gNet_players[i].car->collision_info->field_0x49c = 0;
+                car = gNet_players[i].car;
+                pos = car->collision_info->cmpos;
+                vel.v[0] = car->collision_info->v.v[0] * 6.9;
+                vel.v[1] = car->collision_info->v.v[1] * 6.9;
+                vel.v[2] = car->collision_info->v.v[2] * 6.9;
+                pos.v[2] = car->collision_info->bb2.min.v[2] - (car->collision_info->bb2.max.v[2] - car->collision_info->bb2.min.v[2]) * -0.3;
+                BrMatrix34ApplyP(&coll_pos, &pos, &car->car_master_actor->t.t.mat);
+                CreatePuffOfSmoke(&coll_pos, &vel, 1.f, 1.f, 7);
+                pos.v[2] = car->collision_info->bb2.min.v[2] - (car->collision_info->bb2.max.v[2] - car->collision_info->bb2.min.v[2]) * -0.7;
+                BrMatrix34ApplyP(&coll_pos, &pos, &car->car_master_actor->t.t.mat);
+                CreatePuffOfSmoke(&coll_pos, &vel, 1.f, 1.f, 7);
+                if (car->car_crush_spec->field_0x4b8 != 0) {
+                    WeldCar(car);
+                }
+                DisableCar(car);
+                car->time_to_recover = 0;
+            }
+        }
+    }
+}
 
 inline int C2_HOOK_FASTCALL TradeInAPO(int pCost) {
     int type;
