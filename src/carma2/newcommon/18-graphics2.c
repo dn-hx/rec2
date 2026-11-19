@@ -25,6 +25,14 @@
 
 #include <limits.h>
 #include <string.h>
+extern int gTransient_bitmap_index;;
+extern int gDraw_cursor;
+extern int gDoMouseCursor_zero_count;;
+extern int gDoMouseCursor_required_cursor;;
+extern tU32 gDoMouseCursor_last_required_change;;
+extern tU32 gDoMouseCursor_last_call_time;;
+extern int gDoMouseCursor_delta_x;;
+extern int gDoMouseCursor_button_was_down;;
 
 // GLOBAL: CARMA2_HW 0x00656998
 // GLOBAL: CARMA2_SW 0x006517a8
@@ -579,9 +587,115 @@ void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them) {
 
 // SaveTransient
 
-// STUB: CARMA2_HW 0x0043e0a0
+// FUNCTION: CARMA2_HW 0x0043e0a0
 int C2_HOOK_FASTCALL DoMouseCursor(void) {
-    NOT_IMPLEMENTED();
+    int delta_time;
+    int mouse_moved;
+    int button_down;
+    int new_required;
+    tU32 time_now;
+    int pos_x, pos_y;
+    int x_pos;
+
+    do {
+        time_now = PDGetTotalTime();
+        if (gDoMouseCursor_last_call_time != 0) {
+            delta_time = time_now - gDoMouseCursor_last_call_time;
+        } else {
+            delta_time = 1000;
+        }
+    } while (delta_time <= 20);
+    GetMousePosition(&pos_x, &pos_y);
+    mouse_moved = pos_x != gMouse_last_pos.x || pos_y != gMouse_last_pos.y;
+    button_down = EitherMouseButtonDown();
+    if (gMouse_in_use || mouse_moved) {
+        gMouse_in_use = 1;
+        if (pos_x == gMouse_last_pos.x) {
+            if (gDoMouseCursor_zero_count++ >= 5) {
+                gDoMouseCursor_delta_x = 0;
+            }
+        } else {
+            gDoMouseCursor_zero_count = 0;
+            gDoMouseCursor_delta_x = 1000 * (pos_x - gMouse_last_pos.x) / delta_time;
+        }
+        if (gDoMouseCursor_delta_x < -10) {
+            new_required = 0;
+        } else if (gDoMouseCursor_delta_x > 10) {
+            new_required = 3;
+        } else {
+            new_required = 2;
+        }
+        if (new_required != gDoMouseCursor_required_cursor && time_now - gDoMouseCursor_last_required_change >= 200) {
+            gDoMouseCursor_last_required_change = time_now;
+            gDoMouseCursor_required_cursor = new_required;
+        }
+        new_required = pos_y - 7;
+        x_pos = pos_x - 7;
+        gCurrent_cursor_index = 2;
+        if (!gNoTransients) {
+            br_pixelmap *map;
+            int idx = gTransient_bitmap_index;
+
+            gTransient_bitmaps[idx].x_coord = x_pos & ~3;
+            gTransient_bitmaps[idx].y_coord = new_required;
+            gTransient_bitmaps[idx].in_use = 1;
+            gTransient_bitmaps[idx].order_number = gNext_transient;
+            gNext_transient += 1;
+            map = gTransient_bitmaps[idx].pixmap;
+            BrPixelmapRectangleCopy(map,
+                0, 0,
+                gBack_screen,
+                gTransient_bitmaps[idx].x_coord,
+                gTransient_bitmaps[idx].y_coord,
+                map->width,
+                map->height);
+        }
+        switch (gDraw_cursor) {
+        case 0:
+            break;
+        case 1:
+#ifdef REC2_HW
+            PossibleUnlock(1);
+#endif
+            SetTintedPolySize(gCursor_tinted_top,
+                pos_x - 1, 0,
+                gCursor_line_width, pos_y - 9);
+            SetTintedPolySize(gCursor_tinted_left,
+                0, pos_y - 1,
+                pos_x - 9, gCursor_line_width);
+            SetTintedPolySize(gCursor_tinted_bottom,
+                pos_x - 1, pos_y + 5 + gCursor_line_width,
+                gCursor_line_width, (gCurrent_graf_data->height - gCursor_line_width) - pos_y + 9);
+            SetTintedPolySize(gCursor_tinted_right,
+                pos_x + 5 + gCursor_line_width, pos_y - 1,
+                (gCurrent_graf_data->width - gCursor_line_width) - pos_x + 9, gCursor_line_width);
+            SetTintedPolySize(gCursor_tinted_center,
+                pos_x - 7, pos_y - 7,
+                16, 16);
+            TurnTintedPolyOn(gCursor_tinted_top);
+            TurnTintedPolyOn(gCursor_tinted_left);
+            TurnTintedPolyOn(gCursor_tinted_bottom);
+            TurnTintedPolyOn(gCursor_tinted_right);
+            TurnTintedPolyOn(gCursor_tinted_center);
+            ProcessTintedPoly(gCursor_tinted_top);
+            ProcessTintedPoly(gCursor_tinted_left);
+            ProcessTintedPoly(gCursor_tinted_bottom);
+            ProcessTintedPoly(gCursor_tinted_right);
+            ProcessTintedPoly(gCursor_tinted_center);
+            RenderTintedPolys();
+            TurnTintedPolyOff(gCursor_tinted_top);
+            TurnTintedPolyOff(gCursor_tinted_left);
+            TurnTintedPolyOff(gCursor_tinted_bottom);
+            TurnTintedPolyOff(gCursor_tinted_right);
+            TurnTintedPolyOff(gCursor_tinted_center);
+            break;
+        }
+    }
+    gDoMouseCursor_last_call_time = time_now;
+    gMouse_last_pos.x = pos_x;
+    gMouse_last_pos.y = pos_y;
+    gDoMouseCursor_button_was_down = button_down;
+    return mouse_moved;
 }
 
 int C2_HOOK_FASTCALL AllocateCursorTransient(void) {
