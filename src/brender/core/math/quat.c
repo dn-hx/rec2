@@ -57,11 +57,13 @@ br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq) {
 // FUNCTION: CARMA2_HW 0x00535790
 // FUNCTION: CARMA2_SW 0x00530e30
 br_quat* C2_HOOK_CDECL BrQuatInvert(br_quat* q, const br_quat* qq) {
+    br_scalar w;
 
     q->x = -qq->x;
     q->y = -qq->y;
     q->z = -qq->z;
-    q->w = qq->w;
+    w = qq->w;
+    q->w = w;
     return q;
 }
 
