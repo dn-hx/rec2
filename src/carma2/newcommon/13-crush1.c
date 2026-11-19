@@ -2264,10 +2264,28 @@ typedef struct tUnbend_model_context_local {
 #pragma inline_depth(0)
 #endif
 
-// STUB: CARMA2_HW 0x0043a560
+// FUNCTION: CARMA2_HW 0x0043a560
 intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, void* pData) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user_crush;
+    const tUnbend_model_context_local* context;
+    int i;
+
+    user_crush = pActor->user;
+    if (user_crush == NULL) {
+        return 0;
+    }
+    if (user_crush->crush_data != NULL) {
+        context = pData;
+        for (i = 0; i < context->car->count_detail_levels; i++) {
+            UnBendModel(user_crush->models[i], pDelta, pData);
+        }
+    }
+    return 0;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // STUB: CARMA2_HW 0x0043a150
 void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {
