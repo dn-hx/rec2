@@ -279,7 +279,7 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // ApplyForces
 
-// DoJointFriction
+extern void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject);
 
 // ListDoJointFriction
 
