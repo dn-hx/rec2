@@ -445,10 +445,6 @@ void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
 void C2_HOOK_FASTCALL BuckleTheBugger(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
     NOT_IMPLEMENTED();
 }
-// STUB: CARMA2_HW 0x00432b80
-void C2_HOOK_FASTCALL CrushModel(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex) {
-    NOT_IMPLEMENTED();
-}
 // STUB: CARMA2_HW 0x00432e70
 void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext) {
     NOT_IMPLEMENTED();
@@ -1199,6 +1195,111 @@ float C2_HOOK_FASTCALL DistSq(const br_vector3* pP, int pCount, const br_vector3
 
 // LimitImpactScale
 
+#ifdef __GNUC__
+#define FUN_00432b80_INLINE static inline __attribute__((always_inline))
+#else
+#define FUN_00432b80_INLINE static __inline
+#endif
+
+FUN_00432b80_INLINE float FUN_00432b80_bend_factor(br_vector3* pVertexPos, int pCount, br_vector3* pVectors, br_scalar pMaxDistSq) {
+    float dist_sq;
+
+    dist_sq = DistSq(pVertexPos, pCount, pVectors);
+    if (dist_sq > gMax_crush_dist_sq) {
+        return gCrushZero;
+    }
+    return gFLOAT_00589a54 - (float)sqrt(dist_sq / pMaxDistSq);
+}
+
+#ifdef __GNUC__
+#define FUN_00432b80_INLINE static inline __attribute__((always_inline))
+#else
+#define FUN_00432b80_INLINE static __inline
+#endif
+
+FUN_00432b80_INLINE void FUN_00432b80_morph_vertex(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, const tCar_crush_limits* pLimits, int pFound) {
+    int index;
+    float t;
+
+    index = ((pFlags & 0xffff) >> ((pAxis * 2 + (pDirectionComponent > gCrushZero)) * 2)) & 3;
+    if (index > pFound) {
+        *pOut = 0.0f;
+        return;
+    }
+    t = (pLimits->limits[pAxis][pDirectionComponent > gCrushZero].values[index] - pVertexComponent) / pDirectionComponent;
+    if (t < gCrushZero) {
+        *pOut = 0.0f;
+    } else if (t < *pOut) {
+        *pOut = t;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x00432b80
+void C2_HOOK_FASTCALL CrushModel(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex) {
+    float weights[1024];
+    tModel_detail_vertex_data* pVertex_data;
+    tUser_detail_level_model* pUser;
+    float* pVert;
+    float bend;
+    float force;
+    tU16 v;
+
+    *pMax_bend = 0.f;
+    *pMax_distance = 0.f;
+    *(tU16*)pMax_vertex = 0;
+    if (pModel == NULL) {
+        return;
+    }
+    pUser = pModel->user;
+    if (pUser == NULL) {
+        return;
+    }
+    pVertex_data = pUser->field_0x4;
+    if (pVertex_data == NULL) {
+        return;
+    }
+    if (pModel->nvertices > 0x400) {
+        PDFatalError("Well stone the crows, there's a lot of vertices on that model.");
+    }
+    v = 0;
+    if (pModel->nvertices > 0) {
+        do {
+            pVert = (float*)((tU8*)pModel->vertices + (tU32)v * 0x28);
+            bend = FUN_00432b80_bend_factor((br_vector3*)pVert, pCount, pPoints, gMax_crush_dist_sq);
+            weights[v] = bend;
+            if (bend > *pMax_bend) {
+                *pMax_bend = bend;
+                *(tU16*)pMax_vertex = v;
+            }
+            v++;
+        } while (v < pModel->nvertices);
+    }
+    if (pForce != gCrushZero && *pMax_bend != gCrushZero) {
+        force = pForce * gForce_to_movement_factor;
+        v = 0;
+        if (pModel->nvertices > 0) {
+            do {
+                pVert = (float*)((tU8*)pModel->vertices + (tU32)v * 0x28);
+                if (weights[v] != gCrushZero) {
+                    weights[v] = weights[v] * force;
+                    FUN_00432b80_morph_vertex(&weights[v], pAxis, pVert[pAxis], pDirection->v[pAxis], (tU32)pVertex_data[v].limit_number & 0xffff, pLimits, pFound);
+                    pVert[0] = pVert[0] + weights[v] * pDirection->v[0];
+                    pVert[1] = pDirection->v[1] * weights[v] + pVert[1];
+                    pVert[2] = pDirection->v[2] * weights[v] + pVert[2];
+                }
+                v++;
+            } while (v < pModel->nvertices);
+        }
+        *pMax_distance = weights[*(tU16*)pMax_vertex];
+        AddCrushToPipingSession(pModel, pDirection, weights);
+        if ((pModel->flags & 0x20) != 0 && pModel->user != NULL) {
+            *(int*)pModel->user = 1;
+            return;
+        }
+        pModel->custom = JitModelUpdate;
+        pModel->flags = pModel->flags | 0x20;
+    }
+}
 // FUNCTION: CARMA2_HW 0x00436850
 // FUNCTION: CARMA2_SW 0x00436880
 float C2_HOOK_FASTCALL GetImpactScale(const br_vector3* pP, int pCount, const br_vector3* pVertices, float pMax_dist_sq) {
