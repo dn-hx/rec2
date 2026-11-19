@@ -38,6 +38,10 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern int gPissed_next_time;;
+extern float gPissed_hold_time;;
+extern float gPissed_flicker_limit;;
+extern float gPissed_flicker_frames[3];;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -1592,7 +1596,35 @@ void C2_HOOK_FASTCALL ARPowerupLose(tPowerup* pPowerup, tCar_spec* pCar) {
     }
 }
 
-// SetPissed
+// FUNCTION: CARMA2_HW 0x004df220
+int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
+
+    if (car != NULL && car->driver == eDriver_local_human) {
+        float* pOut;
+        int k;
+
+        DRS3StartSound2(gCar_outlet, 0xe11, 1, 0xff, 0xff, -1, -1);
+        gPissed_next_time = IRandomBetween(0x5dc, 0xbb8) + GetTotalTime();
+        gCredit_multiplier = *powerup->integer_params;
+        gPissed_hold_time = powerup->float_params[3];
+
+        pOut = gPissed_flicker_frames;
+        do {
+            float* p = pOut;
+            for (k = 1; k; k--) {
+                float tmp;
+
+                p[-12] = powerup->float_params[0];
+                tmp = FRandomBetween(powerup->float_params[1], powerup->float_params[2]);
+                p[0] = tmp;
+                p[12] = FRandomBetween(0.0f, tmp);
+                p += 1;
+            }
+            pOut += 3;
+        } while ((int)pOut < (int)&gPissed_flicker_limit);
+    }
+    return powerup - gPowerup_array;
+}
 
 // ResetPissed
 
