@@ -40,6 +40,10 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern int gRender_acc_poly_actor;;
+extern tHeadup_text_buffer gHeadup_text_buffer_0079d860;;
+extern const char gAct_file_extension[];
+extern br_actor* gAcc_poly_actor;;
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
