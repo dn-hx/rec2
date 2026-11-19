@@ -25,6 +25,13 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
+extern int gShow_drone_paths;;
+extern int gINT_006844fc;;
+extern int gINT_006820d4;;
+extern int gDrones_unmodified;;
+extern tDrone_state_function* gDrone_state_functions[6];
+extern int gCount_active_drones;;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
