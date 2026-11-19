@@ -14,6 +14,7 @@
 #include "platform.h"
 
 #include <brender/brender.h>
+#include <dsound.h>
 #include "rec2_types.h"
 
 #include "c2_string.h"
@@ -246,6 +247,26 @@ void* C2_HOOK_FASTCALL S3BufferWav(const char* pPath, tS3_buffer_desc* pBuffer_d
 // FUNCTION: CARMA2_HW 0x00569865
 // FUNCTION: CARMA2_SW 0x00564f05
 int C2_HOOK_FASTCALL S3PlaySample(tS3_channel* pChannel, tS3_descriptor* pDesc) {
+    int unused;
+    int looping;
+    IDirectSoundBuffer* sound_buffer;
 
-    return PDS3PlaySample(pChannel);
+    unused = 0;
+    looping = 0;
+    (void)unused;
+    if (pChannel->descriptor != NULL && pChannel->descriptor->type == pChannel->type) {
+        sound_buffer = pChannel->descriptor->pd_handle;
+        if (sound_buffer != NULL) {
+            if (pChannel->repetitions == 0) {
+                looping = 1;
+            }
+            IDirectSoundBuffer_Play(sound_buffer, 0, 0, looping);
+            if (!looping) {
+                IDirectSoundBuffer_SetCurrentPosition(sound_buffer, 0);
+            }
+        }
+    }
+    PDS3UpdateChannelVolume(pChannel);
+    PDS3UpdateChannelFrequency(pChannel);
+    return 1;
 }
