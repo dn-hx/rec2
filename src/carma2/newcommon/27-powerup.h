@@ -267,7 +267,7 @@ extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
 // MineSound
 
-// ReceivedMine
+extern void C2_HOOK_FASTCALL ReceivedMine(tNet_message_chunk* pChunk);
 
 // ShitMine
 
