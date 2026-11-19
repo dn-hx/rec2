@@ -265,7 +265,7 @@ extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* p
 
 // MungeProxRay
 
-// DoToPeds
+extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
 
 // DoPedAnnihilator
 
