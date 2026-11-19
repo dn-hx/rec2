@@ -21,7 +21,7 @@ extern int gJoystick_deadzone;
 
 extern void C2_HOOK_FASTCALL KeyBegin(void);
 
-extern void C2_HOOK_FASTCALL Win32InitInputDevice(void);
+extern int C2_HOOK_FASTCALL Win32InitInputDevice(void);
 
 extern void C2_HOOK_FASTCALL CloseDirectInput(void);
 
@@ -35,7 +35,7 @@ extern void C2_HOOK_FASTCALL ResetDInputJoystickFFB(int pIndex);
 
 extern void C2_HOOK_FASTCALL RegisterJoystickFFBForces(void);
 
-extern void C2_HOOK_FASTCALL Win32InitInputDevice(void);
+extern int C2_HOOK_FASTCALL Win32InitInputDevice(void);
 
 extern int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain);
 
