@@ -141,21 +141,23 @@ br_matrix34 mattmp2__trig;
 // FUNCTION: CARMA2_SW 0x0050c820
 float C2_HOOK_FASTCALL FastFloatSin(int pAngle_degrees) {
 
+    int angle;
+
     if (pAngle_degrees < 0) {
-        pAngle_degrees = 360 - -pAngle_degrees % 360;
+        angle = 360 - ((-pAngle_degrees) % 360);
     } else {
-        pAngle_degrees = pAngle_degrees % 360;
+        angle = pAngle_degrees % 360;
     }
-    if (pAngle_degrees > 270) {
-        return -gFloat_sine_table[360 - pAngle_degrees];
+    if (angle > 270) {
+        return -*(gFloat_sine_table_360 - angle);
     }
-    if (pAngle_degrees > 180) {
-        return -gFloat_sine_table[pAngle_degrees - 180];
+    if (angle > 180) {
+        return -gFloat_sine_table[angle - 180];
     }
-    if (pAngle_degrees > 90) {
-        return *(gFloat_sine_table + 90 - (pAngle_degrees - 90));
+    if (angle > 90) {
+        return *(gFloat_sine_table + 180 - angle);
     }
-    return gFloat_sine_table[pAngle_degrees];
+    return gFloat_sine_table[angle];
 }
 
 // FUNCTION: CARMA2_HW 0x00511440
