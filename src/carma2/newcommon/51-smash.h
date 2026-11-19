@@ -236,7 +236,7 @@ extern void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race);
 
 // MungeAnimationRepairs
 
-// MungeGlassFragments
+extern void C2_HOOK_FASTCALL MungeGlassFragments(void);
 
 // KillAllGlassFragments
 
