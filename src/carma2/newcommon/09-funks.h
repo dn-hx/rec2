@@ -57,7 +57,7 @@ extern void C2_HOOK_FASTCALL DisposeGroovidelics(int pOwner);
 
 // AddNewGroovidelic
 
-// AddGroovidelics
+extern void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
 
 extern void C2_HOOK_FASTCALL KillGroovadelic(int pOwner);
 

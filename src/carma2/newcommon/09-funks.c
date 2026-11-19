@@ -231,6 +231,372 @@ void C2_HOOK_FASTCALL DisposeGroovidelics(int pOwner) {
 
 // AddGroovidelics
 
+// FUNCTION: CARMA2_HW 0x00476470
+void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent) {
+    volatile int first_time;
+    char s[256];
+    char circular_texture_name[32];
+    char spin_texture_name[32];
+    char rock_texture_name[32];
+    char straight_texture_name[32];
+    tGroovidelic_spec* the_groove;
+    tGroovidelic_spec* new_array;
+    tFunk_texturebits* texture_bits;
+    br_model* proxy_model;
+    char* volatile str;
+    int binding_slot;
+    int i;
+    int j;
+    float straight_centre_0;
+    float straight_centre_1;
+    float straight_centre_2;
+    float circular_centre_0;
+    float circular_centre_1;
+    float circular_centre_2;
+    float spin_centre_0;
+    float spin_centre_1;
+    float spin_centre_2;
+    float rock_centre_0;
+    float rock_centre_1;
+    float rock_centre_2;
+    float throb_centre_0;
+    float throb_centre_1;
+    float throb_centre_2;
+    float shear_centre_0;
+    float shear_centre_1;
+    float shear_centre_2;
+    float throb_speed_0;
+    float throb_speed_1;
+    float throb_speed_2;
+    float shear_speed_0;
+    float shear_speed_1;
+    float shear_speed_2;
+    int throb_0;
+    int throb_1;
+    int throb_2;
+    int shear_0;
+    int shear_1;
+    int shear_2;
+
+    first_time = 1;
+    while (!PFfeof(pF)) {
+        PossibleService();
+        GetALineAndDontArgue(pF, s);
+        if (strcmp(s, "END OF GROOVE") == 0) {
+            break;
+        }
+        if (!first_time) {
+            if (strcmp(s, "NEXT GROOVE") != 0) {
+                FatalError(kFatalError_ErrorWithinGroovidelicFile);
+            } else {
+                GetALineAndDontArgue(pF, s);
+            }
+        }
+        first_time = 0;
+        str = strtok(s, "\t ,/");
+        for (i = 0; i < gGroovidelics_array_size; i++) {
+            if (gGroovidelics_array[i].owner == -999) {
+                the_groove = &gGroovidelics_array[i];
+                memset(the_groove, 0, sizeof(tGroovidelic_spec));
+                goto have_groove;
+            }
+        }
+        gGroovidelics_array_size += 16;
+        new_array = BrMemCalloc(gGroovidelics_array_size, sizeof(tGroovidelic_spec), kMem_groove_spec);
+        if (gGroovidelics_array != NULL) {
+            memcpy(new_array, gGroovidelics_array, (gGroovidelics_array_size - 16) * sizeof(tGroovidelic_spec));
+            {
+                char* pStart;
+                char* pEnd;
+                unsigned int pDelta;
+
+                pStart = (char*)gGroovidelics_array;
+                pEnd = (char*)&gGroovidelics_array[gGroovidelics_array_size - 16];
+                pDelta = (unsigned int)((char*)new_array - (char*)gGroovidelics_array);
+                for (j = 0; j < (int)REC2_ASIZE(gGroove_funk_bindings); j++) {
+                    if ((int)gGroove_funk_bindings[j].v >= (int)pStart && (int)gGroove_funk_bindings[j].v < (int)pEnd) {
+                        gGroove_funk_bindings[j].v = gGroove_funk_bindings[j].v + pDelta / sizeof(float);
+                    }
+                }
+            }
+            BrMemFree(gGroovidelics_array);
+        }
+        gGroovidelics_array = new_array;
+        for (i = 0; i < 16; i++) {
+            gGroovidelics_array[gGroovidelics_array_size - 16 + i].owner = -999;
+        }
+        the_groove = &gGroovidelics_array[gGroovidelics_array_size - 16];
+have_groove:
+        the_groove->owner = pOwner;
+        the_groove->block_flags = 0;
+        the_groove->actor = DRActorFindRecurse(pParent_actor, str);
+        if (the_groove->actor == NULL) {
+            if (!pAllowed_to_be_absent && !gAusterity_mode) {
+                FatalError(kFatalError_CannotFindActorReferencedInGroovidelicFile_S, str);
+            } else {
+                if (gGroove_by_proxy_actor == NULL) {
+                    gGroove_by_proxy_actor = BrActorAllocate(BR_ACTOR_MODEL, NULL);
+                    proxy_model = LoadModel("PROXY.DAT");
+                    gGroove_by_proxy_actor->model = proxy_model;
+                    BrModelAdd(gGroove_by_proxy_actor->model);
+                    BrActorAdd(gDont_render_actor, gGroove_by_proxy_actor);
+                }
+                the_groove->actor = gGroove_by_proxy_actor;
+            }
+        }
+        the_groove->lollipop_mode = GetALineAndInterpretCommand(pF, gLollipop_names, REC2_ASIZE(gLollipop_names));
+        the_groove->mode = GetALineAndInterpretCommand(pF, gGroove_nature_names, REC2_ASIZE(gGroove_nature_names));
+        the_groove->path_type = GetALineAndInterpretCommand(pF, gGroove_path_names, REC2_ASIZE(gGroove_path_names));
+        the_groove->path_interrupt_status = eInterrupt_none;
+        the_groove->object_interrupt_status = eInterrupt_none;
+        if (the_groove->path_type != eGroove_path_none) {
+            the_groove->path_mode = GetALineAndInterpretCommand(pF, gFunk_move_names, REC2_ASIZE(gFunk_move_names));
+        }
+        switch (the_groove->path_type) {
+        case eGroove_path_straight:
+            GetThreeFloats(pF, &straight_centre_0, &straight_centre_1, &straight_centre_2);
+            the_groove->path_data.straight_info.centre.v[0] = straight_centre_0;
+            the_groove->path_data.straight_info.centre.v[1] = straight_centre_1;
+            the_groove->path_data.straight_info.centre.v[2] = straight_centre_2;
+            if (the_groove->path_data.straight_info.centre.v[0] == 0.f
+                    && the_groove->path_data.straight_info.centre.v[1] == 0.f
+                    && the_groove->path_data.straight_info.centre.v[2] == 0.f) {
+                the_groove->path_data.straight_info.centre = the_groove->actor->t.t.translate.t;
+            }
+            if (the_groove->path_mode == eMove_controlled || the_groove->path_mode == eMove_absolute) {
+                binding_slot = pRef_offset + GetAnInt(pF);
+                if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                    FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                }
+                gGroove_funk_bindings[binding_slot].v = &the_groove->path_data.straight_info.period.value;
+                gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                the_groove->path_data.straight_info.period.value = 0.f;
+                } else if (the_groove->path_mode == eMove_texturebits) {
+                texture_bits = BrMemAllocate(sizeof(tFunk_texturebits), kMem_funk_spec);
+                the_groove->path_data.straight_info.texture_info.data = texture_bits;
+                GetAString(pF, straight_texture_name);
+                texture_bits->count = (tU8)strlen(straight_texture_name);
+                for (i = 0; i < texture_bits->count; i++) {
+                    for (j = 0; j < 7; j++) {
+                        if (straight_texture_name[i] == "THBVLRF"[j]) {
+                            texture_bits->bits[i] = (tU8)j;
+                            break;
+                        }
+                    }
+                }
+                texture_bits->car = gCurrent_car_spec;
+                } else {
+                gFunk_scalar = GetAScalar(pF);
+                the_groove->path_data.straight_info.period.value = (gFunk_scalar == 0.f) ? 0.f : 1000.0 / gFunk_scalar;
+            }
+            GetThreeFloats(pF, &the_groove->path_data.straight_info.x_delta, &the_groove->path_data.straight_info.y_delta, &the_groove->path_data.straight_info.z_delta);
+            break;
+        case eGroove_path_circular:
+            GetThreeFloats(pF, &circular_centre_0, &circular_centre_1, &circular_centre_2);
+            the_groove->path_data.circular_info.centre.v[0] = circular_centre_0;
+            the_groove->path_data.circular_info.centre.v[1] = circular_centre_1;
+            the_groove->path_data.circular_info.centre.v[2] = circular_centre_2;
+            if (the_groove->path_data.straight_info.centre.v[0] == 0.f
+                    && the_groove->path_data.straight_info.centre.v[1] == 0.f
+                    && the_groove->path_data.straight_info.centre.v[2] == 0.f) {
+                the_groove->path_data.straight_info.centre = the_groove->actor->t.t.translate.t;
+            }
+            if (the_groove->path_mode == eMove_controlled || the_groove->path_mode == eMove_absolute) {
+                binding_slot = pRef_offset + GetAnInt(pF);
+                if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                    FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                }
+                gGroove_funk_bindings[binding_slot].v = &the_groove->path_data.circular_info.period.value;
+                gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                the_groove->path_data.circular_info.period.value = 0.f;
+                } else if (the_groove->path_mode == eMove_texturebits) {
+                texture_bits = BrMemAllocate(sizeof(tFunk_texturebits), kMem_funk_spec);
+                the_groove->path_data.circular_info.texture_info.data = texture_bits;
+                GetAString(pF, circular_texture_name);
+                texture_bits->count = (tU8)strlen(circular_texture_name);
+                for (i = 0; i < texture_bits->count; i++) {
+                    for (j = 0; j < 7; j++) {
+                        if (circular_texture_name[i] == "THBVLRF"[j]) {
+                            texture_bits->bits[i] = (tU8)j;
+                            break;
+                        }
+                    }
+                }
+                texture_bits->car = gCurrent_car_spec;
+                } else {
+                gFunk_scalar = GetAScalar(pF);
+                the_groove->path_data.circular_info.period.value = (gFunk_scalar == 0.f) ? 0.f : 1000.0 / gFunk_scalar;
+            }
+            the_groove->path_data.circular_info.radius = GetAScalar(pF);
+            the_groove->path_data.circular_info.axis = GetALineAndInterpretCommand(pF, gAxis_names, REC2_ASIZE(gAxis_names));
+            break;
+        default:
+            break;
+        }
+        the_groove->object_type = GetALineAndInterpretCommand(pF, gGroove_object_names, REC2_ASIZE(gGroove_object_names));
+        the_groove->object_position = the_groove->actor->t.t.translate.t;
+        if (the_groove->object_type != eGroove_object_none) {
+            the_groove->object_mode = GetALineAndInterpretCommand(pF, gFunk_move_names, REC2_ASIZE(gFunk_move_names));
+        }
+        switch (the_groove->object_type) {
+        case eGroove_object_spin:
+            if (the_groove->object_mode == eMove_controlled || the_groove->object_mode == eMove_absolute) {
+                binding_slot = pRef_offset + GetAnInt(pF);
+                if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                    FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                }
+                gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.spin_info.period.value;
+                gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                the_groove->object_data.spin_info.period.value = 0.f;
+                } else if (the_groove->object_mode == eMove_texturebits) {
+                texture_bits = BrMemAllocate(sizeof(tFunk_texturebits), kMem_funk_spec);
+                the_groove->object_data.spin_info.texture_info.data = texture_bits;
+                GetAString(pF, spin_texture_name);
+                texture_bits->count = (tU8)strlen(spin_texture_name);
+                for (i = 0; i < texture_bits->count; i++) {
+                    for (j = 0; j < 7; j++) {
+                        if (spin_texture_name[i] == "THBVLRF"[j]) {
+                            texture_bits->bits[i] = (tU8)j;
+                            break;
+                        }
+                    }
+                }
+                texture_bits->car = gCurrent_car_spec;
+                } else {
+                gFunk_scalar = GetAScalar(pF);
+                the_groove->object_data.spin_info.period.value = (gFunk_scalar == 0.f) ? 0.f : 1000.0 / gFunk_scalar;
+            }
+            GetThreeFloats(pF, &spin_centre_0, &spin_centre_1, &spin_centre_2);
+            the_groove->object_centre.v[0] = spin_centre_0;
+            the_groove->object_centre.v[1] = spin_centre_1;
+            the_groove->object_centre.v[2] = spin_centre_2;
+            the_groove->object_data.spin_info.axis = GetALineAndInterpretCommand(pF, gAxis_names, REC2_ASIZE(gAxis_names));
+            break;
+        case eGroove_object_rock:
+            if (the_groove->object_mode == eMove_controlled || the_groove->object_mode == eMove_absolute) {
+                binding_slot = pRef_offset + GetAnInt(pF);
+                if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                    FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                }
+                gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.rock_info.period.value;
+                gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                the_groove->object_data.rock_info.period.value = 0.f;
+                } else if (the_groove->object_mode == eMove_texturebits) {
+                texture_bits = BrMemAllocate(sizeof(tFunk_texturebits), kMem_funk_spec);
+                the_groove->object_data.rock_info.texture_info.data = texture_bits;
+                GetAString(pF, rock_texture_name);
+                texture_bits->count = (tU8)strlen(rock_texture_name);
+                for (i = 0; i < texture_bits->count; i++) {
+                    for (j = 0; j < 7; j++) {
+                        if (rock_texture_name[i] == "THBVLRF"[j]) {
+                            texture_bits->bits[i] = (tU8)j;
+                            break;
+                        }
+                    }
+                }
+                texture_bits->car = gCurrent_car_spec;
+                } else {
+                gFunk_scalar = GetAScalar(pF);
+                the_groove->object_data.rock_info.period.value = (gFunk_scalar == 0.f) ? 0.f : 1000.0 / gFunk_scalar;
+            }
+            GetThreeFloats(pF, &rock_centre_0, &rock_centre_1, &rock_centre_2);
+            the_groove->object_centre.v[0] = rock_centre_0;
+            the_groove->object_centre.v[1] = rock_centre_1;
+            the_groove->object_centre.v[2] = rock_centre_2;
+            the_groove->object_data.rock_info.axis = GetALineAndInterpretCommand(pF, gAxis_names, REC2_ASIZE(gAxis_names));
+            the_groove->object_data.rock_info.max_angle = GetAScalar(pF);
+            break;
+        case eGroove_object_throb:
+            if (the_groove->object_mode == eMove_controlled || the_groove->object_mode == eMove_absolute) {
+                GetThreeInts(pF, &throb_0, &throb_1, &throb_2);
+                if (throb_0 >= 0) {
+                    binding_slot = pRef_offset + throb_0;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.throb_info.x_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.throb_info.x_period.value = 0.f;
+                }
+                if (throb_1 >= 0) {
+                    binding_slot = pRef_offset + throb_1;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.throb_info.y_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.throb_info.y_period.value = 0.f;
+                }
+                if (throb_2 >= 0) {
+                    binding_slot = pRef_offset + throb_2;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.throb_info.z_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.throb_info.z_period.value = 0.f;
+                }
+            } else {
+                GetThreeFloats(pF, &throb_speed_0, &throb_speed_1, &throb_speed_2);
+                the_groove->object_data.throb_info.x_period.value = (throb_speed_0 == 0.f) ? 0.f : 1000.0 / throb_speed_0;
+                the_groove->object_data.throb_info.y_period.value = (throb_speed_1 == 0.f) ? 0.f : 1000.0 / throb_speed_1;
+                gFunk_scalar = throb_speed_2;
+                the_groove->object_data.throb_info.z_period.value = (throb_speed_2 == 0.f) ? 0.f : 1000.0 / throb_speed_2;
+            }
+            GetThreeFloats(pF, &throb_centre_0, &throb_centre_1, &throb_centre_2);
+            the_groove->object_centre.v[0] = throb_centre_0;
+            the_groove->object_centre.v[1] = throb_centre_1;
+            the_groove->object_centre.v[2] = throb_centre_2;
+            GetThreeFloatPercents(pF, &the_groove->object_data.throb_info.x_magnitude, &the_groove->object_data.throb_info.y_magnitude, &the_groove->object_data.throb_info.z_magnitude);
+            break;
+        case eGroove_object_shear:
+            if (the_groove->object_mode == eMove_controlled || the_groove->object_mode == eMove_absolute) {
+                GetThreeInts(pF, &shear_0, &shear_1, &shear_2);
+                if (shear_0 >= 0) {
+                    binding_slot = pRef_offset + shear_0;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.shear_info.x_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.shear_info.x_period.value = 0.f;
+                }
+                if (shear_1 >= 0) {
+                    binding_slot = pRef_offset + shear_1;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.shear_info.y_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.shear_info.y_period.value = 0.f;
+                }
+                if (shear_2 >= 0) {
+                    binding_slot = pRef_offset + shear_2;
+                    if (binding_slot < 0 || binding_slot >= (int)REC2_ASIZE(gGroove_funk_bindings)) {
+                        FatalError(kFatalError_DefinedRefNumOfControlledGoorvFunkOutOfRange);
+                    }
+                    gGroove_funk_bindings[binding_slot].v = &the_groove->object_data.shear_info.z_period.value;
+                    gGroove_funk_bindings[binding_slot].field_0x4 = 0;
+                    the_groove->object_data.shear_info.z_period.value = 0.f;
+                }
+            } else {
+                GetThreeFloats(pF, &shear_speed_0, &shear_speed_1, &shear_speed_2);
+                the_groove->object_data.shear_info.x_period.value = (shear_speed_0 == 0.f) ? 0.f : 1000.0 / shear_speed_0;
+                the_groove->object_data.shear_info.y_period.value = (shear_speed_1 == 0.f) ? 0.f : 1000.0 / shear_speed_1;
+                gFunk_scalar = shear_speed_2;
+                the_groove->object_data.shear_info.z_period.value = (shear_speed_2 == 0.f) ? 0.f : 1000.0 / shear_speed_2;
+            }
+            GetThreeFloats(pF, &shear_centre_0, &shear_centre_1, &shear_centre_2);
+            the_groove->object_centre.v[0] = shear_centre_0;
+            the_groove->object_centre.v[1] = shear_centre_1;
+            the_groove->object_centre.v[2] = shear_centre_2;
+            GetThreeFloatPercents(pF, &the_groove->object_data.shear_info.x_magnitude, &the_groove->object_data.shear_info.y_magnitude, &the_groove->object_data.shear_info.z_magnitude);
+            break;
+        default:
+            break;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x00477160
 // FUNCTION: CARMA2_SW 0x004766c0
 void C2_HOOK_FASTCALL KillGroovadelic(int pOwner) {
