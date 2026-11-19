@@ -29,6 +29,8 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
