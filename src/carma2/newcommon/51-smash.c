@@ -33,6 +33,13 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork);
+extern int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2);
+extern tCar_spec* C2_HOOK_FASTCALL GetCarSpec(tVehicle_type pCategory, int pIndex);
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL FillInBounds(tBounds* bnds);
+extern tWorld_callbacks gWorld_callbacks;
+extern int gINT_006a8294;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
