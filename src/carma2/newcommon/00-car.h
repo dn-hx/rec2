@@ -251,7 +251,7 @@ extern int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, v
 
 // PipeNonCars
 
-// CheckForDeAttachmentOfNonCars
+extern void C2_HOOK_FASTCALL CheckForDeAttachmentOfNonCars(tU32 pTime);
 
 extern void C2_HOOK_FASTCALL AdjustNonCar(br_actor* pActor, const br_matrix34* pMatrix);
 
