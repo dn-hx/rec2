@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern volatile undefined4 gUNK_0069410c;;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
