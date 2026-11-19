@@ -20,6 +20,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "27-powerup.h"
 #include <stddef.h>
 
 #include <stdlib.h>
@@ -1234,4 +1235,23 @@ void C2_HOOK_FASTCALL StatReceivePacket(void) {
 }
 
 void C2_HOOK_FASTCALL StatSendPacket(void) {
+}
+
+// FUNCTION: CARMA2_HW 0x004ddde0
+void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar) {
+    int i;
+    tShit_mine* mine;
+
+    for (i = 0; i < 20; i++) {
+        mine = &gShit_mines[i];
+        if (mine->flags & 1) {
+            if (mine->car == pCar) {
+                mine->car = NULL;
+            }
+            if (mine->field_0x30 == pCar) {
+                mine->field_0x30 = NULL;
+                MineExplode(mine);
+            }
+        }
+    }
 }
