@@ -38,6 +38,19 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern int gPissed_next_time;;
+extern float gPissed_flicker_limit;;
+extern float gPissed_flicker_frames[3];;
+extern float gCosine_array[65];
+extern const double gConst_radians_to_degrees;
+extern const double gConst_pi_over_2;
+extern const double gConst_pi;
+extern const float gConst_minus_1p0;
+extern const double gConst_minus_128_over_pi;
+extern const double gConst_3pi_over_2;
+extern const double gConst_2pi;
+extern const float gConst_0p0;
+extern float gCamera_angle;;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
