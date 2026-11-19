@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern int gPipe_count_callbacks;
+extern tU32 gPipe_buffer_size;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
