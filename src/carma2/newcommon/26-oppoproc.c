@@ -9,6 +9,16 @@
 #include "26-oppoproc.h"
 
 #include "08-loading1.h"
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOn(void);
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOff(void);
+extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+extern void C2_HOOK_FASTCALL LetFlicFuckWithPalettes(void);
+extern void C2_HOOK_FASTCALL DontLetFlicFuckWithPalettes(void);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern int gReal_graf_data_index;;
+extern const tInterface_spec* gInterface_spec;;
+extern tS3_outlet* gEffects_outlet;;
 
 // DoNotDprintf
 
@@ -70,3 +80,50 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
 
 // FollowCheatyPath
 
+
+// FUNCTION: CARMA2_HW 0x004b2640
+int C2_HOOK_FASTCALL RadioClick(int* pNew_choice, int* pNew_mode, int pX, int pY) {
+    int i;
+    int n;
+    int current;
+    int x;
+    int y;
+
+    i = gFlic_cycle_specs[*pNew_choice - 2].count - 1;
+    if (i >= 0) {
+        int limit = gInterface_spec->mouse_areas[2].left[gReal_graf_data_index] + 3 + pX;
+        int* px = &gFlic_cycle_specs[*pNew_choice - 2].x[i];
+
+        while (1) {
+            if (limit >= *px) {
+                break;
+            }
+            i--;
+            px--;
+            if (i < 0) {
+                return 0;
+            }
+        }
+        DRS3StartSound(gEffects_outlet, 3000);
+        n = *pNew_choice - 2;
+        current = gFlic_cycle_specs[n].current;
+        RemoveTransientBitmaps(1);
+        DontLetFlicFuckWithPalettes();
+        TurnFlicTransparencyOn();
+        y = gFlic_cycle_specs[n].y;
+        x = gFlic_cycle_specs[n].x[current];
+        RunFlicAt(287, x, y);
+        TurnFlicTransparencyOff();
+        LetFlicFuckWithPalettes();
+        RemoveTransientBitmaps(1);
+        DontLetFlicFuckWithPalettes();
+        TurnFlicTransparencyOn();
+        y = gFlic_cycle_specs[n].y;
+        x = gFlic_cycle_specs[n].x[i];
+        RunFlicAt(288, x, y);
+        TurnFlicTransparencyOff();
+        LetFlicFuckWithPalettes();
+        gFlic_cycle_specs[n].current = i;
+    }
+    return 0;
+}
