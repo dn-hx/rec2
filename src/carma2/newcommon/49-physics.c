@@ -29,6 +29,7 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern int gINT_006940a0;;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -698,7 +699,105 @@ void C2_HOOK_FASTCALL SetGroup(tPhysics_object* pObject, int pGroup) {
     }
 }
 
-// GroupTogether
+// FUNCTION: CARMA2_HW 0x004bddd0
+void C2_HOOK_FASTCALL GroupTogether(tPhysics_object* pObject1, tPhysics_object* pObject2) {
+    tPhysics_object* parent;
+    tPhysics_object* child;
+    tPhysics_object* group;
+    int next_mark;
+
+    parent = pObject1->parent;
+    while (parent != NULL && pObject1->physics_joint1 != NULL && pObject1->physics_joint1->type != eJoint_none) {
+        pObject1 = parent;
+        parent = parent->parent;
+    }
+    parent = pObject2->parent;
+    while (parent != NULL && pObject2->physics_joint1 != NULL && pObject2->physics_joint1->type != eJoint_none) {
+        pObject2 = parent;
+        parent = parent->parent;
+    }
+    if (pObject1 == pObject2) {
+        return;
+    }
+    if (pObject2 == NULL) {
+        if (pObject1->field_0x1dc != 0) {
+            return;
+        }
+        next_mark = gINT_006940a0;
+        pObject1->field_0x1dc = (tU8)next_mark;
+        for (child = pObject1->child; child != NULL; child = child->next) {
+            if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                SetGroup(child, next_mark);
+            }
+        }
+        pObject1->field183_0x1d8 = (undefined4)pObject1;
+        gINT_006940a0++;
+        return;
+    }
+    if (pObject1->field_0x1dc == 0) {
+        if (pObject2->field_0x1dc == 0) {
+            next_mark = gINT_006940a0;
+            pObject1->field_0x1dc = (tU8)next_mark;
+            for (child = pObject1->child; child != NULL; child = child->next) {
+                if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                    SetGroup(child, next_mark);
+                }
+            }
+            next_mark = gINT_006940a0;
+            pObject2->field_0x1dc = (tU8)next_mark;
+            for (child = pObject2->child; child != NULL; child = child->next) {
+                if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                    SetGroup(child, next_mark);
+                }
+            }
+            pObject1->field183_0x1d8 = (undefined4)pObject2;
+            pObject2->field183_0x1d8 = (undefined4)pObject1;
+            gINT_006940a0++;
+            return;
+        }
+        pObject1->field_0x1dc = pObject2->field_0x1dc;
+        for (child = pObject1->child; child != NULL; child = child->next) {
+            if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                SetGroup(child, (char)pObject2->field_0x1dc);
+            }
+        }
+        pObject1->field183_0x1d8 = pObject2->field183_0x1d8;
+        pObject2->field183_0x1d8 = (undefined4)pObject1;
+        return;
+    }
+    if (pObject2->field_0x1dc == 0) {
+        pObject2->field_0x1dc = pObject1->field_0x1dc;
+        for (child = pObject2->child; child != NULL; child = child->next) {
+            if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                SetGroup(child, (char)pObject1->field_0x1dc);
+            }
+        }
+        pObject2->field183_0x1d8 = pObject1->field183_0x1d8;
+        pObject1->field183_0x1d8 = (undefined4)pObject2;
+        return;
+    }
+    if (pObject1->field_0x1dc == pObject2->field_0x1dc) {
+        return;
+    }
+    group = pObject2;
+    while ((tPhysics_object*)group->field183_0x1d8 != pObject2) {
+        group->field_0x1dc = pObject1->field_0x1dc;
+        for (child = group->child; child != NULL; child = child->next) {
+            if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+                SetGroup(child, (char)pObject1->field_0x1dc);
+            }
+        }
+        group = (tPhysics_object*)group->field183_0x1d8;
+    }
+    group->field_0x1dc = pObject1->field_0x1dc;
+    for (child = group->child; child != NULL; child = child->next) {
+        if (child->physics_joint1 != NULL && child->physics_joint1->type != eJoint_none) {
+            SetGroup(child, (char)pObject1->field_0x1dc);
+        }
+    }
+    group->field183_0x1d8 = pObject1->field183_0x1d8;
+    pObject1->field183_0x1d8 = (undefined4)pObject2;
+}
 
 // GetPreCalculatedJointForces
 
