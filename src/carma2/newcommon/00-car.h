@@ -265,3 +265,4 @@ extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 
 #endif // GUARD_00_CAR_H
 
+extern int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float* pImpulses, int pCount);
