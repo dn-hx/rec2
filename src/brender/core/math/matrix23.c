@@ -39,8 +39,10 @@ void C2_HOOK_CDECL BrMatrix23Copy(br_matrix23* A, const br_matrix23* B) {
 // FUNCTION: CARMA2_HW 0x00534b10
 // FUNCTION: CARMA2_SW 0x005301b0
 void C2_HOOK_CDECL BrMatrix23Mul(br_matrix23* A, const br_matrix23* B, const br_matrix23* C) {
+    br_scalar t;
 
-    A(0, 0) = BR_MAC2(B(0, 0), C(0, 0), B(0, 1), C(1, 0));
+    t = C(0, 0);
+    A(0, 0) = BR_MAC2(B(0, 0), t, B(0, 1), C(1, 0));
     A(0, 1) = BR_MAC2(B(0, 0), C(0, 1), B(0, 1), C(1, 1));
     A(1, 0) = BR_MAC2(B(1, 0), C(0, 0), B(1, 1), C(1, 0));
     A(1, 1) = BR_MAC2(B(1, 0), C(0, 1), B(1, 1), C(1, 1));
