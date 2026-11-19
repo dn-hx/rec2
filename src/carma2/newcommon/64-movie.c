@@ -220,11 +220,6 @@ void C2_HOOK_FASTCALL FUN_004e1c60(undefined4 pArg1, undefined4 pArg2, undefined
 
 // GenerateOneMovieFrame
 
-// STUB: CARMA2_HW 0x004e1da0
-int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period) {
-    NOT_IMPLEMENTED();
-}
-
 #define QT_CloseMovieFile ((OSErr (C2_HOOK_CDECL *)(short))CloseMovieFile)
 
 #define QT_CreateMovieFile ((OSErr (C2_HOOK_CDECL *)(const FSSpec*, OSType, ScriptCode, long, short*, Movie*))CreateMovieFile)
