@@ -455,10 +455,6 @@ void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacte
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x0040aed0
-void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
-    NOT_IMPLEMENTED();
-}
 // PedApplyPedPhysics
 
 // STUB: CARMA2_HW 0x004ca830
