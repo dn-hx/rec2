@@ -422,7 +422,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 
 // SaveReducedPos
 
-// InitLastDamageArrayEtc
+extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
 
 extern void C2_HOOK_FASTCALL ResetCars(void);
 

@@ -658,7 +658,33 @@ inline void C2_HOOK_FASTCALL SaveReducedPos(tReduced_pos* pReduced_pos, br_vecto
         (tS16)(tv.v[2] * 800.0f));
 }
 
-// InitLastDamageArrayEtc
+// FUNCTION: CARMA2_HW 0x004c6580
+void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
+    int cat;
+    int car_count;
+    int i;
+
+    for (cat = eVehicle_self; cat <= eVehicle_not_really; cat++) {
+        if (cat == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(cat);
+        }
+        for (i = 0; i < car_count; i++) {
+            tCar_spec* car;
+
+            car = cat == eVehicle_self ? &gProgram_state.current_car : GetCarSpec(cat, i);
+            if (cat != eVehicle_not_really) {
+                int j;
+
+                for (j = 0; j < 12; j++) {
+                    car->frame_start_damage[j] = 0;
+                }
+            }
+            car->car_ID = (tU16)((cat << 8) + i);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c65f0
 // FUNCTION: CARMA2_SW 0x004c2d20
