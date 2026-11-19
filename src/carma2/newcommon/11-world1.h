@@ -40,3 +40,4 @@ extern void C2_HOOK_FASTCALL MungeMaterialSV(br_matrix34* pMat, br_material* pMa
 extern void C2_HOOK_FASTCALL AutoSaveAdditionalStuff(void);
 
 #endif // GUARD_11_WORLD1_H
+
