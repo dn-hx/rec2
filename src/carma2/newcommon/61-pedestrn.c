@@ -1572,7 +1572,31 @@ void C2_HOOK_FASTCALL PrevPedCam(void) {
     }
 }
 
-// FindNearestPed
+// FUNCTION: CARMA2_HW 0x004d62e0
+void C2_HOOK_FASTCALL FindNearestPed(void) {
+    int i;
+    int nearest;
+    tPedestrian* ped;
+    float d;
+    float best;
+
+    if (gPed_count == 0) {
+        return;
+    }
+    best = 1e7f;
+    for (i = 0; i < gPed_count; i++) {
+        ped = &gPedestrian_array[i];
+        d = (ped->pos.v[0] - gProgram_state.current_car.pos.v[0]) * (ped->pos.v[0] - gProgram_state.current_car.pos.v[0])
+                + (ped->pos.v[1] - gProgram_state.current_car.pos.v[1]) * (ped->pos.v[1] - gProgram_state.current_car.pos.v[1])
+                + (ped->pos.v[2] - gProgram_state.current_car.pos.v[2]) * (ped->pos.v[2] - gProgram_state.current_car.pos.v[2]);
+        if (d < best) {
+            best = d;
+            nearest = i;
+        }
+    }
+    gSelected_ped = nearest;
+    gPed_nearness = 1;
+}
 
 // FUNCTION: CARMA2_HW 0x004d6390
 // FUNCTION: CARMA2_SW 0x004d2990
