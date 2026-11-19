@@ -25,6 +25,9 @@
 
 #include <limits.h>
 #include <string.h>
+extern br_pixelmap* gPalette_0074a604;;
+extern br_pixelmap* gPalette_0074a600;;
+extern br_pixelmap* gPalette_0074a5fc;;
 
 // GLOBAL: CARMA2_HW 0x00656998
 // GLOBAL: CARMA2_SW 0x006517a8
