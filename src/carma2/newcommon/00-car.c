@@ -47,6 +47,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL StopCarSmoking(tCar_spec* pCar);
 
 // GLOBAL: CARMA2_HW 0x0079eda0
 // GLOBAL: CARMA2_SW 0x00795340
