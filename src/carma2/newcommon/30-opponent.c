@@ -24,6 +24,8 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern float C2_HOOK_FASTCALL ARGetReplayRate(void);
+extern float gOppo_render_zero;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
@@ -219,7 +221,13 @@ tS16 C2_HOOK_FASTCALL FindNearestPathSection(const br_vector3* pActor_coords, br
 
 // TurnOpponentPhysicsOff
 
-// ApplyOppoRenderage2
+// FUNCTION: CARMA2_HW 0x004a7a20
+void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender) {
+    if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
+        pRender = (pRender == 0);
+    }
+    pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
+}
 
 // FUNCTION: CARMA2_HW 0x004aad70
 // FUNCTION: CARMA2_SW 0x004a6ee0
