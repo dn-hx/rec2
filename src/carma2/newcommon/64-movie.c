@@ -182,10 +182,86 @@ void C2_HOOK_FASTCALL SetQuickTimeDefaults(void) {
 
 // MovieRecordButtonPressed
 
-// STUB: CARMA2_HW 0x004e1a20
+#define QT_CDSequenceEnd ((OSErr (C2_HOOK_CDECL *)(ImageSequence))CDSequenceEnd)
+
+#define QT_CloseMovieFile ((OSErr (C2_HOOK_CDECL *)(short))CloseMovieFile)
+
+#define QT_DisposeHandle ((void (C2_HOOK_CDECL *)(Handle))DisposeHandle)
+
+#define QT_DisposeMovie ((void (C2_HOOK_CDECL *)(Movie))DisposeMovie)
+
+#define QT_EndMediaEdits ((OSErr (C2_HOOK_CDECL *)(Media))EndMediaEdits)
+
+#define QT_FlattenMovieData ((Movie (C2_HOOK_CDECL *)(Movie, long, const FSSpec*, OSType, ScriptCode, long))FlattenMovieData)
+
+#define QT_GetMediaDuration ((TimeValue (C2_HOOK_CDECL *)(Media))GetMediaDuration)
+
+#define QT_InsertMediaIntoTrack ((OSErr (C2_HOOK_CDECL *)(Track, TimeValue, TimeValue, TimeValue, Fixed))InsertMediaIntoTrack)
+
+#define QT_c2pstr ((StringPtr (C2_HOOK_CDECL *)(char*))c2pstr)
+
+typedef struct {
+    short vRefNum;
+    long parID;
+    char name[64];
+} tPackedFSSpec;
+
+// FUNCTION: CARMA2_HW 0x004e1a20
 // STUB: CARMA2_SW 0x004ddd20
 void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void) {
-    NOT_IMPLEMENTED();
+
+    if (gNext_replay_record_state == 4) {
+        tPackedFSSpec fs_spec;
+        TimeValue duration;
+        tPath_name path;
+        tPath_name path2;
+
+        gShow_status_message = 1;
+        gStatus_message_1 = 282;
+        gStatus_message_2 = 280;
+        gNext_replay_record_state = 20;
+        RenderAFrame(1);
+        RenderAFrame(1);
+        gNext_replay_record_state = 5;
+        WriteBannerFrame();
+        gNext_replay_record_state = 0;
+        QT_CDSequenceEnd(gQuicktime_image_sequence);
+        QT_EndMediaEdits(gQuicktime_media);
+        duration = QT_GetMediaDuration(gQuicktime_media);
+        if (duration != 0) {
+            QT_InsertMediaIntoTrack(gQuicktime_track, 0, 0, duration, 0x10000);
+        }
+        if (gQuicktime_movie_file != 0) {
+            QT_CloseMovieFile(gQuicktime_movie_file);
+        }
+        sprintf(path, "%s%3.3d.MOV", gQuick_time_movie_path_stub, gQuicktime_movie_counter);
+        gQuicktime_movie_counter += 1;
+        fs_spec.vRefNum = 0;
+        fs_spec.parID = 0;
+        strcpy(fs_spec.name, path);
+        QT_c2pstr(fs_spec.name);
+        QT_FlattenMovieData(gQuicktime_movie, 1, (const FSSpec *)&fs_spec, 0x54564f44, -1, createMovieFileDeleteCurFile);
+        if (gQuicktime_movie_file != 0) {
+            QT_CloseMovieFile(gQuicktime_movie_file);
+        }
+        QT_DisposeMovie(gQuicktime_movie);
+        PDFileDelete(gQuick_time_temp_path, 1);
+        sprintf(path2, "%s.#Res", gQuick_time_temp_path);
+        PDFileDelete(path2, 1);
+        if (gQuicktime_frame_pixmap_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_frame_pixmap_handle);
+            gQuicktime_frame_pixmap_handle = NULL;
+        }
+        if (gQuicktime_image_description_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_image_description_handle);
+            gQuicktime_image_description_handle = NULL;
+        }
+        if (gQuicktime_compressed_frame_handle != NULL) {
+            QT_DisposeHandle(gQuicktime_compressed_frame_handle);
+            gQuicktime_compressed_frame_handle = NULL;
+        }
+    }
+    gShow_status_message = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x004e1c30
