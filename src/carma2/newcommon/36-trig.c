@@ -10,6 +10,8 @@
 
 #include "c2_math.h"
 #include "rec2_macros.h"
+extern br_matrix23 mat23tmp2;;
+extern br_matrix23 mat23tmp1;;
 
 // GLOBAL: CARMA2_HW 0x00661398
 // GLOBAL: CARMA2_SW 0x0065bcf0
