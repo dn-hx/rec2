@@ -115,7 +115,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinRenderingDistance(const br_vector3* 
 
 // StartRenderingThisDrone
 
-// CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing
+extern int C2_HOOK_FASTCALL CheckDroneInSensiblePlaceBeforeStartingToProcessTheCuntingThing(tDrone_spec* pDrone);
 
 // StartProcessingThisDrone
 
