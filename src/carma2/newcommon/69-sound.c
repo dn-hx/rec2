@@ -1005,7 +1005,32 @@ void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpec
     NOT_IMPLEMENTED();
 }
 
-// FoundSoundSource
+// FUNCTION: CARMA2_HW 0x00457260
+intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
+    tEnvironment_sound_generator_vector* found_sources;
+    tEnvironment_sound_generator_info* src;
+    tTrackSoundGenerator* generator;
+    tSpecial_volume_soundfx_data* soundfx;
+    int count;
+
+    found_sources = pContext;
+    count = found_sources->count;
+    if (count < 20) {
+        found_sources->count = count + 1;
+        src = &found_sources->sources[count];
+        src->actor = pActor;
+        generator = &gProgram_state.track_sound_generators[(pActor->model->identifier[1] - '0') * 10 + (pActor->model->identifier[2] - '0')];
+        src->generator = generator;
+        if (generator->type == kSoundGeneratorType_noncar && pActor->identifier[3] == '!') {
+            soundfx = &generator->fx2_noncar;
+        } else {
+            soundfx = &generator->fx;
+        }
+        src->soundfx = *soundfx;
+        src->pos = pActor->t.t.translate.t;
+    }
+    return 0;
+}
 
 // STUB: CARMA2_HW 0x00456ea0
 void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
