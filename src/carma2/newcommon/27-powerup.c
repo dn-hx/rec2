@@ -38,6 +38,7 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern void C2_HOOK_STDCALL ChangeHeadScaling(float pHead_scale);
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -871,7 +872,11 @@ void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     ChangePedScaling(&scale);
 }
 
-// ResetPedHeadSize
+// FUNCTION: CARMA2_HW 0x004dca00
+void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
+
+    ChangeHeadScaling(1.0f);
+}
 
 // FUNCTION: CARMA2_HW 0x004dca10
 // FUNCTION: CARMA2_SW 0x004d8f10
