@@ -93,8 +93,9 @@ void C2_HOOK_FASTCALL S3StopSoundSource(tS3_sound_source* src) {
 // FUNCTION: CARMA2_HW 0x00567875
 // FUNCTION: CARMA2_SW 0x00562f15
 void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag, tS3_sound_source* src, float pMax_distance_squared, int pPeriod, tS3_repeats pAmbient_repeats, tS3_volume pVolume, int pPitch, tS3_speed pSpeed) {
-    tS3_channel* channel;
+    tS3_descriptor* desc;
     int is_sample;
+    tS3_channel* channel;
 
     is_sample = 0;
     if (!gS3_enabled) {
@@ -105,7 +106,7 @@ void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag,
     }
     channel = src->channel;
     if (tag != -1 && src->sound_id != tag) {
-        tS3_descriptor* desc = S3GetDescriptorByID(tag);
+        desc = S3GetDescriptorByID(tag);
         if (desc == NULL) {
             return;
         }
@@ -120,13 +121,13 @@ void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag,
         }
     }
     if (pSpeed != -1) {
-        if (pSpeed <= 0) {
+        if (pSpeed < 1) {
             pSpeed = 0x10000;
         }
         src->speed = pSpeed;
     }
     if (pPitch != -1) {
-        if (pPitch <= 0) {
+        if (pPitch < 1) {
             pPitch = 0x10000;
         }
         src->pitch = pPitch;
@@ -134,11 +135,11 @@ void C2_HOOK_FASTCALL S3UpdateSoundSource(tS3_outlet* outlet, tS3_sound_tag tag,
             C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tS3_channel, source_rate, 0x54);
 
             channel->source_rate = S3IRandomBetweenLog(channel->descriptor->min_pitch, channel->descriptor->max_pitch, channel->descriptor->buffer_description->sample_rate);
-            channel->source_rate = (int)((float)channel->source_rate * ldexpf((float)src->pitch, -16));
+            channel->source_rate = (int)((double)channel->source_rate * ldexp((double)src->pitch, -16));
         }
     }
     if (pAmbient_repeats != -1) {
-        src->ambient_repeats = MAX(0, pAmbient_repeats);
+        src->ambient_repeats = pAmbient_repeats <= 0 ? 0 : pAmbient_repeats;
         if (channel != NULL) {
             channel->repetitions = src->ambient_repeats;
         }
