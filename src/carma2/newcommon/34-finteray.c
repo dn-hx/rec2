@@ -427,10 +427,77 @@ int C2_HOOK_FASTCALL LineSphereCollWithSphere(br_vector3* pStart, br_vector3* pE
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00461310
+// FUNCTION: CARMA2_HW 0x00461310
 // STUB: CARMA2_SW 0x00460db0
 int C2_HOOK_FASTCALL LinePolyColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_polyhedron_data* pPoly, br_vector3* pPoint, br_scalar pRadius, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    br_scalar denominators[64];
+    br_scalar candidate[64];
+    br_scalar dot;
+    int selected;
+    br_vector3 direction;
+    int count;
+    int plane;
+    int inside;
+    br_vector4* eq;
+    br_scalar best_t;
+    br_scalar den, dist;
+
+    *pT = 2.0f;
+    direction.v[0] = pEnd->v[0] - pStart->v[0];
+    direction.v[1] = pEnd->v[1] - pStart->v[1];
+    direction.v[2] = pEnd->v[2] - pStart->v[2];
+    count = pPoly->count_planes;
+    plane = 0;
+    inside = 1;
+    selected = -1;
+    best_t = 0.0f;
+    if (count > 0) {
+        eq = pPoly->planes;
+        do {
+            den = eq->v[2] * direction.v[2] + eq->v[1] * direction.v[1] + eq->v[0] * direction.v[0];
+            denominators[plane] = den;
+            dot = eq->v[0] * pStart->v[0] + pStart->v[1] * eq->v[1] + eq->v[2] * pStart->v[2] + pRadius;
+            dist = eq->v[3] + dot;
+            if (dist < 0.0f) {
+                inside = 0;
+            }
+            if (den == 0.0f) {
+                if (dist < 0.0f) {
+                    return 0;
+                }
+            } else {
+                candidate[plane] = -(dist / den);
+            }
+            if (den > 0.0f && best_t <= candidate[plane]) {
+                if (candidate[plane] > 1.0f) {
+                    return 0;
+                }
+                best_t = candidate[plane];
+                selected = plane;
+            }
+            plane++;
+            eq++;
+        } while (plane < count);
+    }
+    if (inside) {
+        return -1;
+    }
+    if (selected < 0) {
+        return 0;
+    }
+    for (plane = 0; plane < count; plane++) {
+        if (denominators[plane] < 0.0f && candidate[plane] < best_t) {
+            return 0;
+        }
+    }
+    pPoint->v[0] = best_t * direction.v[0];
+    pPoint->v[1] = best_t * direction.v[1];
+    pPoint->v[2] = best_t * direction.v[2];
+    pPoint->v[0] = pStart->v[0] + pPoint->v[0];
+    pPoint->v[1] = pPoint->v[1] + pStart->v[1];
+    pPoint->v[2] = pPoint->v[2] + pStart->v[2];
+    *pT = best_t;
+    return selected + 1;
 }
 
 #ifdef REC2_MATCHING
