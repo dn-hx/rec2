@@ -23,6 +23,7 @@
 #include "33-depth.h"
 
 #include <string.h>
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0
