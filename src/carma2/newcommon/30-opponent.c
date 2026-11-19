@@ -24,6 +24,7 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern float gOppo_render_zero;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
