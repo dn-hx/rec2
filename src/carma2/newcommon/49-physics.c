@@ -29,6 +29,7 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern br_scalar gFLOAT_0058a768;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
