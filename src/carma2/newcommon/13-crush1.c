@@ -1587,11 +1587,6 @@ void C2_HOOK_FASTCALL MakeModelMaterialsDoubleSided(br_model* pModel) {
     }
 }
 
-// STUB: CARMA2_HW 0x00434320
-intptr_t C2_HOOK_CDECL CheckFlapAngles(br_actor* pActor, int pValue) {
-    NOT_IMPLEMENTED();
-}
-
 // FUNCTION: CARMA2_HW 0x0042d9b0
 // FUNCTION: CARMA2_SW 0x0042da20
 void C2_HOOK_FASTCALL MakeModelMaterialsSingleSided(br_model* pModel) {
