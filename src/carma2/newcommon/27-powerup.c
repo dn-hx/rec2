@@ -38,6 +38,12 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern const double gConst_world_scale;
+extern const double gConst_2pi;
+extern const float gConst_25;
+extern const double gConst_1p0;
+extern const double gConst_10_over_7;
+extern const float gConst_0p1;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -1464,7 +1470,37 @@ void C2_HOOK_FASTCALL ResetGhostPeds(tPowerup* pPowerup, tCar_spec* pCar) {
 
 // DoBouncey
 
-// HitMine
+// FUNCTION: CARMA2_HW 0x004dea40
+int C2_HOOK_FASTCALL HitMine(tPowerup* pPowerup, tCar_spec* pCar) {
+    float d;
+    int max_damage;
+    int j;
+
+    if (pCar->field_0x4c8 <= gConst_1p0) {
+        if (gNet_mode == eNet_mode_none || NetPlayerFromCar(pCar) == NULL || NetPlayerFromCar(pCar)->field_0x80 == 0) {
+            pCar->collision_info->v.v[1] = pCar->collision_info->v.v[1] + FRandomBetween(pPowerup->float_params[0], pPowerup->float_params[1]) / (pCar->collision_info->M * gConst_world_scale);
+            pCar->collision_info->omega.v[2] = pCar->collision_info->omega.v[2] + FRandomPosNeg(pPowerup->float_params[2]) * gConst_2pi / pCar->collision_info->M;
+            pCar->collision_info->omega.v[0] = pCar->collision_info->omega.v[0] + FRandomPosNeg(pPowerup->float_params[3]) * gConst_2pi / pCar->collision_info->M;
+            if (pCar != NULL && pCar->driver > 5) {
+                d = pCar->softness_factor * gConst_10_over_7;
+                if (pCar->invulnerable_no_damage == 0) {
+                    j = 0;
+                    max_damage = (int)(d * gConst_25);
+                    while (j < 12) {
+                        DamageUnit(pCar, j, IRandomBetween(0, max_damage));
+                        j++;
+                    }
+                }
+                if (pCar->invulnerable_no_crushage == 0) {
+                    TotallySpamTheCar(pCar, d * gConst_0p1);
+                }
+            }
+            pCar->collision_info->disable_move_rotate = 0;
+            return pPowerup - gPowerup_array;
+        }
+    }
+    return pPowerup - gPowerup_array;
+}
 
 // FUNCTION: CARMA2_HW 0x004debb0
 // FUNCTION: CARMA2_SW 0x004db0b0
