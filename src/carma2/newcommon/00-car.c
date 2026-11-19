@@ -47,6 +47,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 
 // GLOBAL: CARMA2_HW 0x0079eda0
 // GLOBAL: CARMA2_SW 0x00795340
@@ -935,7 +936,63 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject) {
     }
 }
 
-// APTCPostCollision
+// FUNCTION: CARMA2_HW 0x00416070
+void C2_HOOK_FASTCALL APTCPostCollision(void) {
+    void** wp;
+    tCar_spec* car;
+    int i;
+
+    if (gCar_flying) {
+        tCar_spec* c = gCar_to_view;
+
+        c->collision_info->transform_matrix.m[3][1] -= gF1000;
+        BrMatrix34Copy(&c->car_master_actor->t.t.mat, &c->collision_info->transform_matrix);
+        PositionChildren(c->collision_info);
+        SetHierarchyDoingNothingFlag(c->collision_info, 0);
+    }
+
+    i = 0;
+    if (i < gNum_active_cars) {
+        wp = (void**)gActive_car_list;
+        do {
+            float x;
+            float fac;
+            float f;
+
+            car = (tCar_spec*)*wp;
+            if (car->field_0x4c8 != gZero) {
+                x = car->field_0x4c8;
+                fac = (float)(gZero / x);
+                f = car->collision_info->M; f *= fac; car->collision_info->M = f;
+                f = car->collision_info->I.v[0]; f *= fac; car->collision_info->I.v[0] = f;
+                f = car->collision_info->I.v[1]; f *= fac; car->collision_info->I.v[1] = f;
+                f = car->collision_info->I.v[2]; f *= fac; car->collision_info->I.v[2] = f;
+            }
+            if (((tCar_spec*)*wp)->number_of_wheels_on_ground != 0) {
+                SetHierarchyDoingNothingFlag(((tCar_spec*)*wp)->collision_info, 0);
+            }
+            i++;
+            wp++;
+        } while (i < gNum_active_cars);
+    }
+
+    i = 0;
+    if (i < gNum_cars_and_non_cars) {
+        wp = (void**)gActive_car_list;
+        do {
+            car = (tCar_spec*)*wp;
+            car->frame_collision_flag |= (int)(signed char)car->collision_info->collision_flag;
+            i++;
+            wp++;
+        } while (i < gNum_cars_and_non_cars);
+    }
+
+    DoQueuedNetSmashes();
+    if (gNet_mode) {
+        DoQueuedNetDetaching();
+    }
+    SetCollisionFlagsAndStuff(gPHIL_list_collision_infos);
+}
 
 // APTCActiveHalted
 
