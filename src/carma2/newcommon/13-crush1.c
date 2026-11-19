@@ -1301,11 +1301,6 @@ void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_cru
     pDest->field_0x24 = pSrc->field_0x50;
 }
 
-// STUB: CARMA2_HW 0x004369c0
-void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc) {
-    NOT_IMPLEMENTED();
-}
-
 // RemoveDuplicatePoints
 
 // STUB: CARMA2_HW 0x0042c540
