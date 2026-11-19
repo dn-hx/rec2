@@ -437,10 +437,6 @@ void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF) {
     }
 }
 
-// STUB: CARMA2_HW 0x0043db00
-void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
-    NOT_IMPLEMENTED();
-}
 // STUB: CARMA2_HW 0x004321d0
 void C2_HOOK_FASTCALL BuckleTheBugger(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
     NOT_IMPLEMENTED();
