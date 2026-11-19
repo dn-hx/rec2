@@ -143,7 +143,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // AllocateObjectWorkspace
 
-// RedoQuickHingeVelocities
+extern void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject);
 
 // GetJointForces
 
