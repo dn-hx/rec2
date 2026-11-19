@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
