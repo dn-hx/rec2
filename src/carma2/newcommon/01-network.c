@@ -26,6 +26,19 @@
 #include <string.h>
 #include <winsock.h>
 #include <wsipx.h>
+extern void C2_HOOK_FASTCALL SetCarStorageTexturingLevel(tBrender_storage* pStorage, tCar_texturing_level pNew, tCar_texturing_level pOld);
+extern void C2_HOOK_FASTCALL RemoveRepulsiveReferences(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers);
+extern void C2_HOOK_FASTCALL RemoveFromCloakingList(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec);
+extern void C2_HOOK_FASTCALL RemoveCarsOilSlicks(tCar_spec* pCar);
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
+extern void C2_HOOK_FASTCALL InitialiseCar(tCar_spec* pCar);
+extern tCar_texturing_level C2_HOOK_FASTCALL GetCarTexturingLevel(void);
+extern void C2_HOOK_FASTCALL ForceRebuildActiveCarList(void);
+extern void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index);
+extern void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar);
 
 // GLOBAL: CARMA2_HW 0x0068d95c
 // GLOBAL: CARMA2_SW 0x006879b4
