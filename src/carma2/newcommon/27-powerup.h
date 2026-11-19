@@ -269,7 +269,7 @@ extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
 // ReceivedMine
 
-// ShitMine
+extern int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL MineExplode(tShit_mine* pMine);
 
