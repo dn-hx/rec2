@@ -38,6 +38,12 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2);
+extern void C2_HOOK_FASTCALL KeyboardPowerupFinished(tPowerup* pPowerup, int pSelect_new);
+extern int gNet_powerup_time_between_goodies_min;;
+extern int gNet_powerup_time_between_goodies_max;;
+extern int* gNet_powerup_goodies;;
+extern int gNet_count_powerup_goodies;;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -598,7 +604,157 @@ void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
 
 // MungeKeyboardPowerup
 
-// DoPowerupPeriodics
+/* inlined into DoPowerupPeriodics in the original */
+static void C2_HOOK_FASTCALL AutoGoody(tU32 pTime) {
+    extern tU32 gNext_goody_time;
+
+    if (gNext_goody_time == 0) {
+        gNext_goody_time = IRandomBetween(gNet_powerup_time_between_goodies_min, gNet_powerup_time_between_goodies_max) + pTime;
+    } else if (gNet_mode != 0 && gRace_finished == 0 && gProgram_state.current_car.knackered == 0
+            && gCurrent_net_game->options.random_car_choice != 0 && pTime > gNext_goody_time) {
+        gNext_goody_time = IRandomBetween(gNet_powerup_time_between_goodies_min, gNet_powerup_time_between_goodies_max) + pTime;
+        GotPowerupEarwig(&gProgram_state.current_car,
+            gNet_powerup_goodies[IRandomBetween(0, gNet_count_powerup_goodies - 1)], 2, 0);
+    }
+}
+
+/* inlined into DoPowerupPeriodics in the original */
+static void C2_HOOK_FASTCALL MungeKeyboardPowerup(void) {
+    int i;
+    int flag;
+    int* pInventory;
+    tCar_spec* pCar;
+    tPowerup* powerup;
+
+    if (gInventory_selected < 0) {
+        return;
+    }
+    if (gCountdown != 0) {
+        return;
+    }
+    if (gRace_finished != 0) {
+        return;
+    }
+    if (gProgram_state.current_car.knackered != 0) {
+        return;
+    }
+    powerup = &gPowerup_array[gInventory[gInventory_selected]];
+    if (gINT_006a0a5c != 0) {
+        gINT_006a0a5c = KeyIsDown(0x3d);
+    } else {
+        if (KeyIsDown(0x3d) != gINT_006a0a6c) {
+            if (gINT_006a0a6c == 0 && gProgram_state.current_car.knackered == 0) {
+                gINT_006a0a6c = 1;
+                pCar = &gProgram_state.current_car;
+                if (gNet_mode != 0 && pCar != NULL && pCar->driver == eDriver_local_human) {
+                    flag = 1;
+                } else {
+                    flag = 0;
+                }
+                if (GotPowerupX(&gProgram_state.current_car, gInventory[gInventory_selected], flag, 1, 0) >= 0) {
+                    if (powerup->initial_value < 0) {
+                        powerup->value += 1;
+                        if (powerup->value >= 0) {
+                            LosePowerupX(powerup, 1);
+                            gInventory[gInventory_selected] = -1;
+                            gInventory_selected = -1;
+                            gINT_006a0a5c = 1;
+                            i = 0;
+                            pInventory = gInventory;
+                            do {
+                                if (*pInventory >= 0) {
+                                    gInventory_selected = i;
+                                    break;
+                                }
+                                pInventory++;
+                                i++;
+                            } while ((int)pInventory < (int)&gFizzle_in);
+                        }
+                    }
+                }
+            } else {
+                gINT_006a0a6c = 0;
+                LosePowerupX(powerup, 1);
+            }
+        }
+    }
+    if (powerup->initial_value > 0 && gINT_006a0a6c != 0) {
+        powerup->value -= gFrame_period;
+        if (powerup->value <= 0) {
+            KeyboardPowerupFinished(powerup, 1);
+        }
+    }
+}
+
+__inline static void C2_HOOK_FASTCALL LosePowerup(tPowerup* pPowerup) {
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    int i;
+    int message_address;
+    int* picked_up_powerup;
+    tU32 total_time;
+
+    if (pPowerup->lose_proc != NULL) {
+        pPowerup->lose_proc(pPowerup, pPowerup->car);
+    }
+    if (pPowerup->net_type & 0x80) {
+        PipeSinglePowerupLose(pPowerup, pPowerup->car);
+    }
+    if (gNet_mode != 0) {
+        message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
+        *(int*)(message_address + 0x28) = 2;
+        *(tPlayer_ID*)(message_address + 0x1c) = gLocal_net_ID;
+        *(int*)(message_address + 0x20) = pPowerup - gPowerup_array;
+        NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)message_address, 0);
+    }
+    gProgram_state.current_car.powerups[pPowerup - gPowerup_array] = 0;
+    if (pPowerup->initial_value == 0 && (i = 0, 0 < gNumber_of_icons)) {
+        picked_up_powerup = (int*)&gPickedup_powerups[0].powerup;
+        while (i < gNumber_of_icons) {
+            if (pPowerup == (tPowerup*)*picked_up_powerup) {
+                gPickedup_powerups[i].fizzle_stage = 3;
+                gPickedup_powerups[i].fizzle_direction = -1;
+                total_time = GetTotalTime();
+                gPickedup_powerups[i].fizzle_start = total_time;
+                break;
+            }
+            i++;
+            picked_up_powerup += 5;
+        }
+    }
+    pPowerup->got_time = 0;
+}
+
+// FUNCTION: CARMA2_HW 0x004db1c0
+void C2_HOOK_FASTCALL DoPowerupPeriodics(tU32 pFrame_period) {
+    tU32 the_time;
+    int i;
+
+    the_time = GetTotalTime();
+    AutoGoody(the_time);
+    if (gNet_mode != 0) {
+        for (i = 0; i < gCount_cloaked_cars; i++) {
+            DoCamouflageThing(gCloaked_cars[i]);
+        }
+    }
+    {
+        tPowerup* powerup;
+
+        powerup = gPowerup_array;
+        for (i = 0; i < gNumber_of_powerups; i++, powerup++) {
+            if (powerup->got_time != 0) {
+                if (powerup->type == ePowerup_timed && the_time >= powerup->lose_time && powerup->initial_value == 0) {
+                    LosePowerup(powerup);
+                } else if (powerup->current_value == 0 && powerup->initial_value == 0) {
+                    LosePowerup(powerup);
+                } else if (powerup->periodic_proc != NULL) {
+                    powerup->periodic_proc(powerup, pFrame_period);
+                }
+            }
+        }
+    }
+    MungeKeyboardPowerup();
+}
 
 inline void C2_HOOK_FASTCALL CheckRespawnQueue(tU32 pTime) {
     int i;
