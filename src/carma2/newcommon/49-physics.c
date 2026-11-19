@@ -29,6 +29,8 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL SphereSphereCollide(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor);
+extern int C2_HOOK_FASTCALL GetSphereNonSphereForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, br_vector3* pVertices1, br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -336,7 +338,270 @@ int C2_HOOK_FASTCALL BoundsOverlapTest(br_bounds3* pBounds_1, br_bounds3* pBound
 
 // GetNonSphereShapeForceInfo
 
-// GetObjectObjectForceInfo
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00425ca0
+int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_joint_force* pContacts, int pCount) {
+    br_vector3 vertices1[128][2];
+    br_vector3 vertices2[128][2];
+    tU16 point_counts1[66];
+    tU16 point_counts2[18];
+    br_matrix34 object2_to_object1;
+    br_matrix34 actor2_to_actor1;
+    br_vector3 point;
+    br_vector3 translated_point;
+    tPhysics_shape* shape1;
+    tPhysics_shape* shape2;
+    br_vector3* vertices1_for_shape;
+    br_vector3* vertices2_for_shape;
+    tU16* point_count1_for_shape;
+    tU16* point_count2_for_shape;
+    int vertex_count1;
+    int vertex_count2;
+    int point_count;
+    int i;
+    int contact_count;
+    int result;
+    float collision_factor;
+    float remaining;
+    tPhysics_joint_force* first_contact;
+    float* record;
+    float normal_dot;
+
+    shape2 = pObject2->shape;
+    shape1 = pObject1->shape;
+    contact_count = 0;
+    if (pCount > 0x24) {
+        return 0;
+    }
+
+    {
+        br_matrix34 inverse_object1;
+        br_matrix34 inverse_actor1;
+
+        BrMatrix34LPInverse(&inverse_object1, &pObject1->transform_matrix);
+        BrMatrix34Mul(&object2_to_object1, &pObject2->transform_matrix, &inverse_object1);
+        BrMatrix34LPInverse(&inverse_actor1, &pObject1->actor->t.t.mat);
+        BrMatrix34Mul(&actor2_to_actor1, &pObject2->actor->t.t.mat, &inverse_actor1);
+    }
+    /* Object 2 points are expressed in object 1 space; object 1 points use
+     * the inverse relative transform to enter object 2 space. */
+    point_count2_for_shape = point_counts2;
+    vertices2_for_shape = &vertices2[0][0];
+    for (; shape2 != NULL; shape2 = shape2->common.next) {
+        switch (shape2->common.type) {
+        case kCollisionShapeType_Box:
+            point_count = 8;
+            for (i = 0; i < 8; i++) {
+                point.v[0] = (i & 2) ? shape2->box.common.bb.min.v[0] : shape2->box.common.bb.max.v[0];
+                point.v[1] = (i & 1) ? shape2->box.common.bb.min.v[1] : shape2->box.common.bb.max.v[1];
+                point.v[2] = (i & 4) ? shape2->box.common.bb.min.v[2] : shape2->box.common.bb.max.v[2];
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2], &point, &object2_to_object1);
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2 + 1], &point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Polyhedron:
+        case kCollisionShapeType_Wireframe_Polyhedron:
+            point_count = shape2->polyhedron.polyhedron.count_points;
+            for (i = 0; i < point_count; i++) {
+                point = shape2->polyhedron.polyhedron.points[i];
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2], &point, &object2_to_object1);
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2 + 1], &point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Wireframe:
+            point_count = shape2->wireframe.wireframe.count_points;
+            for (i = 0; i < point_count; i++) {
+                point = shape2->wireframe.wireframe.points[i];
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2], &point, &object2_to_object1);
+                BrMatrix34ApplyP(&vertices2_for_shape[i * 2 + 1], &point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Sphere:
+            point_count = 1;
+            point = shape2->sphere.sphere.center;
+            BrMatrix34ApplyP(&vertices2_for_shape[0], &point, &object2_to_object1);
+            BrMatrix34ApplyP(&vertices2_for_shape[1], &point, &actor2_to_actor1);
+            break;
+        default:
+            PhysicsError(ePhysicsError_UnknownShapeType, "");
+            point_count = 0;
+            break;
+        }
+        *point_count2_for_shape = (tU16)point_count;
+        point_count2_for_shape++;
+        vertices2_for_shape += point_count * 2;
+    }
+
+    point_count1_for_shape = point_counts1;
+    vertices1_for_shape = &vertices1[0][0];
+    for (; shape1 != NULL; shape1 = shape1->common.next) {
+        switch (shape1->common.type) {
+        case kCollisionShapeType_Box:
+            point_count = 8;
+            for (i = 0; i < 8; i++) {
+                point.v[0] = (i & 2) ? shape1->box.common.bb.min.v[0] : shape1->box.common.bb.max.v[0];
+                point.v[1] = (i & 1) ? shape1->box.common.bb.min.v[1] : shape1->box.common.bb.max.v[1];
+                point.v[2] = (i & 4) ? shape1->box.common.bb.min.v[2] : shape1->box.common.bb.max.v[2];
+                translated_point.v[0] = point.v[0] - object2_to_object1.m[3][0];
+                translated_point.v[1] = point.v[1] - object2_to_object1.m[3][1];
+                translated_point.v[2] = point.v[2] - object2_to_object1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2], &translated_point, &object2_to_object1);
+                translated_point.v[0] = point.v[0] - actor2_to_actor1.m[3][0];
+                translated_point.v[1] = point.v[1] - actor2_to_actor1.m[3][1];
+                translated_point.v[2] = point.v[2] - actor2_to_actor1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2 + 1], &translated_point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Polyhedron:
+        case kCollisionShapeType_Wireframe_Polyhedron:
+            point_count = shape1->polyhedron.polyhedron.count_points;
+            for (i = 0; i < point_count; i++) {
+                point = shape1->polyhedron.polyhedron.points[i];
+                translated_point.v[0] = point.v[0] - object2_to_object1.m[3][0];
+                translated_point.v[1] = point.v[1] - object2_to_object1.m[3][1];
+                translated_point.v[2] = point.v[2] - object2_to_object1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2], &translated_point, &object2_to_object1);
+                translated_point.v[0] = point.v[0] - actor2_to_actor1.m[3][0];
+                translated_point.v[1] = point.v[1] - actor2_to_actor1.m[3][1];
+                translated_point.v[2] = point.v[2] - actor2_to_actor1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2 + 1], &translated_point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Wireframe:
+            point_count = shape1->wireframe.wireframe.count_points;
+            for (i = 0; i < point_count; i++) {
+                point = shape1->wireframe.wireframe.points[i];
+                translated_point.v[0] = point.v[0] - object2_to_object1.m[3][0];
+                translated_point.v[1] = point.v[1] - object2_to_object1.m[3][1];
+                translated_point.v[2] = point.v[2] - object2_to_object1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2], &translated_point, &object2_to_object1);
+                translated_point.v[0] = point.v[0] - actor2_to_actor1.m[3][0];
+                translated_point.v[1] = point.v[1] - actor2_to_actor1.m[3][1];
+                translated_point.v[2] = point.v[2] - actor2_to_actor1.m[3][2];
+                BrMatrix34TApplyV(&vertices1_for_shape[i * 2 + 1], &translated_point, &actor2_to_actor1);
+            }
+            break;
+        case kCollisionShapeType_Sphere:
+            point_count = 1;
+            point = shape1->sphere.sphere.center;
+            translated_point.v[0] = point.v[0] - object2_to_object1.m[3][0];
+            translated_point.v[1] = point.v[1] - object2_to_object1.m[3][1];
+            translated_point.v[2] = point.v[2] - object2_to_object1.m[3][2];
+            BrMatrix34TApplyV(&vertices1_for_shape[0], &translated_point, &object2_to_object1);
+            translated_point.v[0] = point.v[0] - actor2_to_actor1.m[3][0];
+            translated_point.v[1] = point.v[1] - actor2_to_actor1.m[3][1];
+            translated_point.v[2] = point.v[2] - actor2_to_actor1.m[3][2];
+            BrMatrix34TApplyV(&vertices1_for_shape[1], &translated_point, &actor2_to_actor1);
+            break;
+        default:
+            PhysicsError(ePhysicsError_UnknownShapeType, "");
+            point_count = 0;
+            break;
+        }
+        *point_count1_for_shape = (tU16)point_count;
+        point_count1_for_shape++;
+        vertices1_for_shape += point_count * 2;
+    }
+
+    contact_count = 0;
+    point_count1_for_shape = point_counts1;
+    vertices1_for_shape = &vertices1[0][0];
+    for (shape1 = pObject1->shape; shape1 != NULL; shape1 = shape1->common.next) {
+        vertex_count1 = *point_count1_for_shape;
+        point_count2_for_shape = point_counts2;
+        vertices2_for_shape = &vertices2[0][0];
+        for (shape2 = pObject2->shape; shape2 != NULL; shape2 = shape2->common.next) {
+            vertex_count2 = *point_count2_for_shape;
+            if (shape1->common.type == kCollisionShapeType_Sphere) {
+                if (shape2->common.type == kCollisionShapeType_Sphere) {
+                    br_vector3 normal;
+                    br_vector3 contact1;
+                    br_vector3 contact2;
+                    br_vector3 normal_start;
+                    br_vector3 normal_end;
+                    br_vector3 world_normal;
+                    br_vector3 local_normal_start;
+                    br_vector3 local_normal_end;
+                    br_vector3 local_normal;
+
+                    collision_factor = 100.0f;
+                    SphereSphereCollide(&shape1->sphere.sphere, &shape2->sphere.sphere, &vertices2_for_shape[0], &vertices2_for_shape[1], &normal, &collision_factor);
+                    if (collision_factor <= 1.0f) {
+                        BrVector3Scale(&contact1, &normal, -shape1->sphere.sphere.radius);
+                        BrVector3Accumulate(&contact1, &shape1->sphere.sphere.center);
+                        BrMatrix34ApplyV(&normal_start, &normal, &pObject1->transform_matrix);
+                        BrMatrix34ApplyV(&normal_end, &normal, &pObject1->actor->t.t.mat);
+                        remaining = 1.0f - collision_factor;
+                        world_normal.v[0] = normal_start.v[0] * remaining + normal_end.v[0] * collision_factor;
+                        world_normal.v[1] = normal_start.v[1] * remaining + normal_end.v[1] * collision_factor;
+                        world_normal.v[2] = normal_start.v[2] * remaining + normal_end.v[2] * collision_factor;
+                        BrMatrix34TApplyV(&local_normal_start, &world_normal, &pObject2->transform_matrix);
+                        BrMatrix34TApplyV(&local_normal_end, &world_normal, &pObject2->actor->t.t.mat);
+                        local_normal.v[0] = local_normal_start.v[0] * remaining + local_normal_end.v[0] * collision_factor;
+                        local_normal.v[1] = local_normal_start.v[1] * remaining + local_normal_end.v[1] * collision_factor;
+                        local_normal.v[2] = local_normal_start.v[2] * remaining + local_normal_end.v[2] * collision_factor;
+                        BrVector3Scale(&contact2, &local_normal, shape2->sphere.sphere.radius);
+                        BrVector3Accumulate(&contact2, &shape2->sphere.sphere.center);
+                        contact_count = AddObjectObjectForce(&pContacts[pCount], &contact1, collision_factor, &contact2, &world_normal, contact_count, pObject1, pObject2, 7, NULL, 0.0f);
+                    }
+                } else {
+                    contact_count = GetSphereNonSphereForceInfo(pObject2, pObject1, shape2, shape1, vertices2_for_shape, vertices1_for_shape, vertex_count2, vertex_count1, &pContacts[pCount], contact_count, 0x28 - pCount);
+                }
+            } else if (shape2->common.type == kCollisionShapeType_Sphere) {
+                contact_count = GetSphereNonSphereForceInfo(pObject1, pObject2, shape1, shape2, vertices1_for_shape, vertices2_for_shape, vertex_count1, vertex_count2, &pContacts[pCount], contact_count, 0x28 - pCount);
+            } else {
+                contact_count = GetNonSphereNonSphereForceInfo(pObject1, pObject2, shape1, shape2, vertices1_for_shape, vertices2_for_shape, vertex_count1, vertex_count2, &pContacts[pCount], contact_count, 0x28 - pCount);
+            }
+            vertices2_for_shape += vertex_count2 * 2;
+            point_count2_for_shape++;
+        }
+        vertices1_for_shape += vertex_count1 * 2;
+        point_count1_for_shape++;
+    }
+
+    if (contact_count != 0) {
+        pObject1->omega = pObject1->rotate_omega;
+        pObject2->omega = pObject2->rotate_omega;
+        result = 1;
+        if (contact_count > 1) {
+            first_contact = &pContacts[pCount];
+            record = (float*)&first_contact[1].direction_a.v[2];
+            do {
+                if (first_contact[1].object_a == first_contact[0].object_a) {
+                    normal_dot = record[0] * first_contact[0].direction_a.v[2]
+                            + record[-1] * first_contact[0].direction_a.v[1]
+                            + record[-2] * first_contact[0].direction_a.v[0];
+                } else {
+                    normal_dot = -(record[0] * first_contact[0].direction_b.v[2]
+                            + record[-1] * first_contact[0].direction_b.v[1]
+                            + record[-2] * first_contact[0].direction_b.v[0]);
+                }
+                if (normal_dot < 0.7071067811865476) {
+                    return result;
+                }
+                result++;
+                record += 0x18;
+            } while (result < contact_count);
+        }
+        return result;
+    }
+    return 0;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00428480
 // FUNCTION: CARMA2_SW 0x00428510
