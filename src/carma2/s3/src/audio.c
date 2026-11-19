@@ -107,6 +107,17 @@ int gS3_inside_cockpit;
 // GLOBAL: CARMA2_SW 0x006ac39c
 br_uint_32 gS3_last_service_time_spatial;
 
+// FUNCTION: CARMA2_HW 0x005642b5
+int C2_HOOK_FASTCALL S3IRandomBetweenLog_2(int pMin, int pMax, int pDefault) {
+    double dbl;
+
+    if (pMin == -1 || pMin >= pMax) {
+        return pDefault;
+    } else {
+        dbl = exp(S3FRandomBetween2(log(pMin), log(pMax)));
+        return (int)(ldexp(dbl, -16) * pDefault);
+    }
+}
 // FUNCTION: CARMA2_HW 0x005651d0
 // FUNCTION: CARMA2_SW 0x00560870
 int C2_HOOK_FASTCALL S3Init(const char* pPath, int pLow_memory_mode, const char* pSound_dirname) {
