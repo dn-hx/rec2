@@ -6137,6 +6137,14 @@ typedef struct {
     br_matrix34 field_0xa4;
 } tPipe_chunk_shrapnel_shower;
 
+typedef void (C2_HOOK_FASTCALL * tControl_car_fn)(tCar_spec* pCar_spec, float pT);
+
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
 typedef struct {
     int field_0x0;
     char pad[0x158];
