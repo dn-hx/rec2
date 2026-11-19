@@ -22,6 +22,13 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor);
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern int C2_HOOK_FASTCALL ARPipeSearchForwards(void);
+extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
+extern tU32 gSwitch_time;;
+extern int gCamera_incident_flag;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
