@@ -399,10 +399,62 @@ int C2_HOOK_FASTCALL LineBoxCollWithSphere(br_vector3* pStart, br_vector3* pEnd,
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00460f60
+// FUNCTION: CARMA2_HW 0x00460f60
 // STUB: CARMA2_SW 0x004609e0
 int C2_HOOK_FASTCALL LineSphereColl(br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
-    NOT_IMPLEMENTED();
+    br_scalar fVar6;
+    br_scalar fVar4;
+    br_scalar fVar3;
+    br_scalar fVar1;
+    br_scalar fVar8;
+    br_scalar fVar5;
+    br_scalar fVar7;
+    br_scalar fVar2;
+
+    fVar1 = pSphere->center.v[0] - pStart->v[0];
+    fVar3 = pSphere->center.v[1] - pStart->v[1];
+    fVar4 = pSphere->center.v[2] - pStart->v[2];
+    fVar2 = fVar1 * fVar1 + fVar3 * fVar3 + fVar4 * fVar4;
+    if (fVar2 < pSphere->radius_squared) {
+        return -1;
+    }
+    fVar7 = pEnd->v[0] - pStart->v[0];
+    fVar5 = pEnd->v[1] - pStart->v[1];
+    fVar8 = pEnd->v[2] - pStart->v[2];
+    fVar6 = fVar7 * fVar7 + fVar5 * fVar5 + fVar8 * fVar8;
+    if (fVar6 >= 1e-06) {
+        fVar1 = (fVar4 * fVar8 + fVar3 * fVar5 + fVar1 * fVar7) / fVar6;
+        fVar2 = fVar2 - fVar1 * fVar1 * fVar6;
+        if (pSphere->radius_squared < fVar2) {
+            return 0;
+        }
+        fVar1 = fVar1 - sqrt((pSphere->radius_squared - fVar2) / fVar6);
+        *pT = fVar1;
+        if ((0.0f <= fVar1) && (fVar1 <= 1.0f)) {
+            pPoint->v[0] = fVar7 * fVar1 + pStart->v[0];
+            pPoint->v[1] = fVar5 * fVar1 + pStart->v[1];
+            pPoint->v[2] = fVar8 * fVar1 + pStart->v[2];
+            if (pNormal != 0) {
+                pNormal->v[0] = pSphere->center.v[0] - pPoint->v[0];
+                pNormal->v[1] = pSphere->center.v[1] - pPoint->v[1];
+                fVar1 = pSphere->center.v[2] - pPoint->v[2];
+                pNormal->v[2] = fVar1;
+                fVar1 = sqrt(pNormal->v[0] * pNormal->v[0] + fVar1 * fVar1 + pNormal->v[1] * pNormal->v[1]);
+                if (fVar1 > 2.3841858e-07f) {
+                    fVar1 = 1.0 / fVar1;
+                    pNormal->v[0] = fVar1 * pNormal->v[0];
+                    pNormal->v[1] = pNormal->v[1] * fVar1;
+                    pNormal->v[2] = pNormal->v[2] * fVar1;
+                    return 1;
+                }
+                pNormal->v[0] = 1.0f;
+                pNormal->v[1] = 0.0f;
+                pNormal->v[2] = 0.0f;
+            }
+            return 1;
+        }
+    }
+    return 0;
 }
 
 #ifdef REC2_MATCHING
