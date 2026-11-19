@@ -224,11 +224,6 @@ char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
 
 // DoPowerupTextHeadup
 
-// STUB: CARMA2_HW 0x004d9670
-void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons) {
-    NOT_IMPLEMENTED();
-}
-
 // QueueIconComing
 
 // LosePowerupX
@@ -284,6 +279,19 @@ void C2_HOOK_FASTCALL GotPowerup(tCar_spec* pCar, int pIndex) {
 // DRMapFindMeAPixie
 
 
+// FUNCTION: CARMA2_HW 0x004d9670
+void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons) {
+    int i;
+
+    for (i = 0; i < *pCount_icons; i++) {
+        if (pPowerup == pHeadup_icons[i].powerup) {
+            pHeadup_icons[i].fizzle_stage = 3;
+            pHeadup_icons[i].fizzle_direction = -1;
+            pHeadup_icons[i].fizzle_start = GetTotalTime();
+            break;
+        }
+    }
+}
 // STUB: CARMA2_HW 0x004d96c0
 // STUB: CARMA2_SW 0x004d5b90
 void C2_HOOK_FASTCALL LoadPowerups(void) {
