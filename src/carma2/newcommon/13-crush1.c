@@ -1691,9 +1691,81 @@ void C2_HOOK_FASTCALL StopFlapping(br_actor* pActor, tCar_spec* pCar_spec) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004381b0
+static void C2_HOOK_FASTCALL FlapBits(tCar_spec* pCar_spec) {
+    tCar_crush_spec* car_crush_spec;
+
+    car_crush_spec = pCar_spec->car_crush_spec;
+    if (car_crush_spec != NULL) {
+        if (car_crush_spec->field_0x134) {
+            float dt;
+            br_vector3 force;
+            tFlapBit_arg flapbit_arg;
+
+            dt = (float)(gPHIL_last_physics_tick - last_flap_bits) * 0.001f;
+            BrVector3Sub(&force, &pCar_spec->collision_info->v, &car_crush_spec->field_0x138);
+            force.v[0] = force.v[0] / dt;
+            force.v[1] = force.v[1] / dt;
+            force.v[2] = force.v[2] / dt;
+            BrVector3Add(&force, &gBatty_gravity, &force);
+            BrMatrix34TApplyV(&flapbit_arg.force, &force, &pCar_spec->car_master_actor->t.t.mat);
+            flapbit_arg.car = pCar_spec;
+            ARStartPipingSession(ePipe_chunk_flap);
+            DRActorEnumRecurseWithSnart(pCar_spec->car_model_actor, NULL, FlapBit, &flapbit_arg);
+            AREndPipingSession();
+        }
+        BrVector3Copy(&car_crush_spec->field_0x138, &pCar_spec->collision_info->v);
+        last_flap_bits = gPHIL_last_physics_tick;
+    }
+}
+
+/* StartFlapping and FlapBits only exist inlined into their callers in the original */
+static void C2_HOOK_FASTCALL StartFlapping(br_actor* pActor, tCar_spec* pCar_spec, int pArg3, float pArg4) {
+    tUser_crush_data* user_crush;
+
+    user_crush = pActor->user;
+    if (user_crush != NULL && user_crush->crush_data != NULL && user_crush->crush_data->flap_data != NULL) {
+        tCar_crush_flap_data* flap_data = user_crush->crush_data->flap_data;
+
+        if (flap_data->kev_o_flap) {
+            SetBitForDetachment(pActor, pCar_spec, pArg4, 1);
+        } else {
+            MakeModelMaterialsDoubleSided(user_crush->models[0]);
+            PipeSingleDSModel(1, user_crush->models[0]);
+            pCar_spec->car_crush_spec->field_0x134 += 1;
+            flap_data->field_0x0 = 1;
+        }
+        pCar_spec->use_shell_model = 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004381b0
 void C2_HOOK_FASTCALL DoFlapping(void) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    for (i = 0; i < gCount_toggled_doors; i++) {
+        tToggled_door *toggle_door = &gToggled_doors[i];
+        if (toggle_door->actor != NULL) {
+            tUser_crush_data *user_crush_data = toggle_door->actor->user;
+            if (user_crush_data != NULL && user_crush_data->crush_data != NULL &&
+                user_crush_data->crush_data->flap_data != NULL) {
+                tCar_crush_flap_data *flap_data = user_crush_data->crush_data->flap_data;
+                if (!flap_data->field_0x0 && (toggle_door->field_0x8 & 0x1)) {
+                    StartFlapping(toggle_door->actor, toggle_door->car, flap_data->field_0x0, toggle_door->field_0xc);
+                } else if (flap_data->field_0x0 && !(toggle_door->field_0x8 & 0x1)) {
+                    StopFlapping(toggle_door->actor, toggle_door->car);
+                }
+            }
+        }
+    }
+    gCount_toggled_doors = 0;
+    for (i = 0; i < gNum_active_cars; i++) {
+        tCar_spec* car;
+
+        car = gActive_car_list[i];
+        if (car != NULL && car->driver > 5) {
+            FlapBits(car);
+        }
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x0042ddc0
