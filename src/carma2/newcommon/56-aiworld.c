@@ -16,8 +16,8 @@
 
 // MakeVertexAndOffsetIt
 
-// GLOBAL: CARMA2_HW 0x0067baa0
-int gCrush_panel_ids[10];
+// GLOBAL: CARMA2_HW 0x00681fb4
+int gCount_active_drones;
 
 // FUNCTION: CARMA2_HW 0x00401f90
 // FUNCTION: CARMA2_SW 0x00401f90
