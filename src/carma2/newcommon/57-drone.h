@@ -131,7 +131,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // DoDroneFunkyGroovyThings
 
-// ProcessThisDrone
+extern void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex);
 
 // DroneStateFuncReset
 

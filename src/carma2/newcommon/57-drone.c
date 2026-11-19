@@ -25,6 +25,7 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern tDrone_state_function* gDrone_state_functions[6];
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -302,7 +303,48 @@ int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3* pPos) 
 
 // DoDroneFunkyGroovyThings
 
-// ProcessThisDrone
+// (inlined in the original)
+static int C2_HOOK_FASTCALL DroneOrientationChanged(tDrone_spec* pDrone, float pDot) {
+    br_actor* actor;
+
+    actor = pDrone->actor;
+    if (pDrone->collision_info.transform_matrix.m[0][1] * actor->t.t.mat.m[0][1]
+            + pDrone->collision_info.transform_matrix.m[0][2] * actor->t.t.mat.m[0][2]
+            + pDrone->collision_info.transform_matrix.m[0][0] * actor->t.t.mat.m[0][0] < pDot) {
+        return 1;
+    }
+    if (BrVector3Dot((br_vector3*)actor->t.t.mat.m[1], (br_vector3*)pDrone->collision_info.transform_matrix.m[1]) < pDot) {
+        return 1;
+    }
+    if (BrVector3Dot((br_vector3*)actor->t.t.mat.m[2], (br_vector3*)pDrone->collision_info.transform_matrix.m[2]) < pDot) {
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: CARMA2_HW 0x00451ca0
+void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex) {
+    tDrone_spec* drone;
+    float len;
+
+    drone = &gDrone_specs[pIndex];
+    BrVector3Copy(&drone->pos, &drone->actor->t.t.translate.t);
+    if (gDrone_state_functions[drone->current_state] != NULL) {
+        gDrone_state_functions[drone->current_state](drone, eDrone_state_RUN);
+    }
+    if (drone->field_0x45) {
+        DoDroneFunkyGroovyThings(drone);
+    }
+    BrVector3Sub(&drone->field_0x18, &drone->actor->t.t.translate.t, &drone->pos);
+    if ((drone->field_0x44 && DroneOrientationChanged(drone, 0.92f)) || (len = BrVector3Length(&drone->field_0x18)) > 1.0) {
+        BrMatrix34Copy(&drone->collision_info.transform_matrix, &drone->actor->t.t.mat);
+        DoNotDprintf("REASSERTING OBJECT MATRIX: v length %f, Frame %d, Drone %d, state %d: ",
+            len, gFrame, drone->id, drone->current_state);
+    }
+    drone->field_0x18.v[0] /= gDrone_delta_time;
+    drone->field_0x18.v[1] /= gDrone_delta_time;
+    drone->field_0x18.v[2] /= gDrone_delta_time;
+}
 
 // DroneStateFuncReset
 
