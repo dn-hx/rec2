@@ -1315,9 +1315,24 @@ void C2_HOOK_FASTCALL SimpleCrushModel(br_model* pModel, int pCount, float* pPoi
 
 // CrushDrone
 
-// STUB: CARMA2_HW 0x0042d180
+// FUNCTION: CARMA2_HW 0x0042d180
 void C2_HOOK_FASTCALL CrushDroneObject(tPhysics_object* pObject, int pCount, float* pPoints, br_vector3* pScale) {
-    NOT_IMPLEMENTED();
+    tDrone_crush_data* crush_data;
+    br_vector3 scaled;
+    float s0;
+    float s1;
+    float s2;
+
+    crush_data = GetDroneCrushData(pObject);
+    if (crush_data != NULL && pCount >= 1) {
+        s0 = crush_data->crushability * pScale->v[0];
+        s1 = crush_data->crushability * pScale->v[1];
+        s2 = crush_data->crushability * pScale->v[2];
+        scaled.v[0] = s0;
+        scaled.v[1] = s1;
+        scaled.v[2] = s2;
+        SimpleCrushModel(crush_data->model, pCount, pPoints, scaled.v, (float*)&crush_data->bounds);
+    }
 }
 
 // DoDroneCrushing
