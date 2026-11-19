@@ -5,6 +5,7 @@
  *
  * Copyright 2022-2026 rec2 developers
  */
+#include <string.h>
 
 #include "60-phil.h"
 
@@ -12,6 +13,7 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+extern void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList);
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
