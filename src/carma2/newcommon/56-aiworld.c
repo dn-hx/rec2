@@ -13,6 +13,10 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+extern void C2_HOOK_FASTCALL PipeSingleDroneRender(tDrone_spec* pDrone_spec, int pRender);
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+extern tDrone_state_function* gDrone_state_functions[6];
+extern int gCount_active_drones;;
 
 // MakeVertexAndOffsetIt
 
