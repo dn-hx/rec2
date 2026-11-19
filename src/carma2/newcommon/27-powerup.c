@@ -38,6 +38,9 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern tPowerup_respawn_spec* gPowerup_respawn_specs;;
+extern tU32 gNext_goody_time;;
+extern undefined4 gDAT_006a0958;;
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
