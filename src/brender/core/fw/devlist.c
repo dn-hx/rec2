@@ -284,9 +284,10 @@ br_error C2_HOOK_CDECL BrDevContainedCount(br_int_32* pcount, br_token type, con
     br_int_32 total;
     br_error r;
 
+    total = 0;
+
     AddRequestedDrivers();
 
-    total = 0;
     for (i = 0; i < fw.ndev_slots; i++) {
         if (fw.dev_slots[i].dev != NULL) {
             r = fw.dev_slots[i].dev->dispatch->_count((br_object_container*)fw.dev_slots[i].dev, &n, type, pattern, tv);
