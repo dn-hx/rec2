@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient);
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
