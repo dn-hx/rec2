@@ -229,7 +229,7 @@ extern void C2_HOOK_FASTCALL TwoCarsHitEachOther(tCar_spec* pA_car, tCar_spec* p
 
 extern void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee);
 
-// GetOpponentMood
+extern int C2_HOOK_FASTCALL GetOpponentMood(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec);
 
