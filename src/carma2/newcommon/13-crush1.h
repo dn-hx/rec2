@@ -470,7 +470,7 @@ extern void C2_HOOK_FASTCALL TotallyRepairCar(void);
 
 // AddTotalDeflection
 
-// RepairModel
+extern int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext);
 
 // RepairModels
 

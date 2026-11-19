@@ -188,6 +188,10 @@ int C2_HOOK_FASTCALL PointVisibleFromHere(br_vector3* pFrom, br_vector3* pTo) {
     }
 }
 
+// STUB: CARMA2_HW 0x004aeef0
+void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar_spec* pTwattee) {
+    NOT_IMPLEMENTED();
+}
 // WeightedFindNearestNodeAndSection
 
 #ifdef REC2_MATCHING
