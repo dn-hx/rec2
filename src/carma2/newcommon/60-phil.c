@@ -12,6 +12,7 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+extern tPhysics_object* gPHIL_queued_objects_for_removal[1];;
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
