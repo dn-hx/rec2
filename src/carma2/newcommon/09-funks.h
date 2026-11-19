@@ -51,7 +51,7 @@ extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material*
 
 // FindSmashableMaterial
 
-// AddFunkotronics
+extern void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas);
 
 extern void C2_HOOK_FASTCALL DisposeGroovidelics(int pOwner);
 
