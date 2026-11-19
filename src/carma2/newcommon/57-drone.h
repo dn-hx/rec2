@@ -139,7 +139,7 @@ extern int C2_HOOK_FASTCALL DroneTrainWithinProcessingDistance(const br_vector3*
 
 // MoveThisDronePlane
 
-// MoveThisDroneCar
+extern void C2_HOOK_FASTCALL MoveThisDroneCar(tDrone_spec* pDrone);
 
 extern void C2_HOOK_FASTCALL PipeDroneMatrix(tDrone_spec* pDrone);
 
