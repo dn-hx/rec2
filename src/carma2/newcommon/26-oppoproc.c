@@ -9,6 +9,14 @@
 #include "26-oppoproc.h"
 
 #include "08-loading1.h"
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOn(void);
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOff(void);
+extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+extern void C2_HOOK_FASTCALL LetFlicFuckWithPalettes(void);
+extern void C2_HOOK_FASTCALL DontLetFlicFuckWithPalettes(void);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern tS3_outlet* gEffects_outlet;;
 
 // DoNotDprintf
 
