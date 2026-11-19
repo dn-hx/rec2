@@ -125,7 +125,7 @@ extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
 
 // MungeDelayedSideEffects
 
-// ActivateNonCarSideEffects
+extern void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext);
 
 // ActivateSmashSideEffects
 
