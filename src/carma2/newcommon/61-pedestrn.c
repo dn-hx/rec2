@@ -1174,7 +1174,59 @@ void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float pHeight)
     AwardTime(gPed_times[gProgram_state.skill_level]);
 }
 
-// KillPedestrian
+#define GET_PED_COLLISION_OBJECT(PED) ( ((PED)->character->field_0x14 & 1) ? (PED)->character->personality->form->simple_physicing[(PED)->character->field_0x5].collision_info : GetRootObject((PED)->character))
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004cce70
+void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    tPed_character_instance* character;
+    int head_bone;
+
+    if (GET_PED_COLLISION_OBJECT(pPed)->last_special_volume == NULL
+            || GET_PED_COLLISION_OBJECT(pPed)->last_special_volume->gravity_multiplier >= 1.f) {
+        if (gGoreLevel > 0) {
+            character = pPed->character;
+            if (character->field_0x4 >= 0) {
+                PipeSinglePedModelChange(character->ped, -1, NULL, -1, GetCharacterModelSet(character), 1);
+                SetCharacterAllBonesModel(character, 0, 1);
+            }
+            character = pPed->character;
+            head_bone = character->personality->form->index_head_bone;
+            if (character->field_0x4 >= 0) {
+                if (head_bone < 0) {
+                    PipeSinglePedModelChange(character->ped, head_bone, NULL, -1, GetCharacterModelSet(character), 1);
+                    SetCharacterAllBonesModel(character, 2, 1);
+                } else {
+                    PipeSinglePedModelChange(character->ped, head_bone,
+                        GetCharacterBoneModel(character, head_bone), 2,
+                        GetCharacterModelSet(character), 1);
+                    SetCharacterBoneModel(character, head_bone, 2, 1);
+                }
+            }
+            if (pPed->field_0x0c != NULL) {
+                pPed->field_0x0c->field_0x1c = NULL;
+            }
+            DoGiblets(pPed, GET_PED_COLLISION_OBJECT(pPed), pCollision_info, 0.4f, &pPed->pos, 1);
+        }
+    }
+    OneLessPed(pPed);
+    ScoreForKilledPedestrian(pPed, 0.f);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004cd9e0
 // FUNCTION: CARMA2_SW 0x004ca0e0
