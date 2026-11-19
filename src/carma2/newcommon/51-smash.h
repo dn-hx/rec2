@@ -360,7 +360,7 @@ extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 
 // FindTheBastard
 
-// ReceivedSmashShraps
+extern void C2_HOOK_FASTCALL ReceivedSmashShraps(tNet_message_chunk_non_car_shrapnel* pSpec);
 
 // MungeSmashEdgeTriggers
 
