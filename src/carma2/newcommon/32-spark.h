@@ -15,6 +15,8 @@
 #ifdef REC2_HW
 extern int gShade_list[16];
 extern int* gShade_table;
+extern tU8* C2_HOOK_FASTCALL FindNextChunk(tPipe_chunk_type pType, uintptr_t pOwner);
+
 #endif
 #ifdef REC2_SW
 extern br_pixelmap* gShade_list[16];
