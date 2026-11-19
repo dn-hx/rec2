@@ -495,12 +495,35 @@ void C2_HOOK_CDECL BrZsSceneRenderEnd(void) {
 // FUNCTION: CARMA2_HW 0x00522b70
 void C2_HOOK_CDECL BrZsSceneRender(br_actor* world, br_actor* camera, br_pixelmap* colour_buffer) {
 
-    if (v1db.renderer == NULL) {
-        return;
+    br_model* model;
+    br_material* material;
+    void* render_data;
+    br_uint_8 style;
+    br_actor* a;
+
+    if (v1db.renderer != NULL) {
+        BrZsSceneRenderBegin(world, camera, colour_buffer);
+        model = v1db.default_model;
+        material = v1db.default_material;
+        render_data = v1db.default_render_data;
+        style = BR_RSTYLE_DEFAULT;
+        if (world->model != NULL) {
+            model = world->model;
+        }
+        if (world->material != NULL) {
+            material = world->material;
+        }
+        if (world->render_data != NULL) {
+            render_data = world->render_data;
+        }
+        if (world->render_style != BR_RSTYLE_DEFAULT) {
+            style = world->render_style;
+        }
+        for (a = world->children; a != NULL; a = a->next) {
+            actorRender(a, model, material, render_data, style, v1db.ttype);
+        }
+        BrZsSceneRenderEnd();
     }
-    BrZsSceneRenderBegin(world, camera, colour_buffer);
-    sceneRenderWorld(world);
-    BrZsSceneRenderEnd();
 }
 
 // FUNCTION: CARMA2_HW 0x00522c70
