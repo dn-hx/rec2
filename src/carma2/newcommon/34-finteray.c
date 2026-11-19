@@ -10,6 +10,7 @@
 
 #include "49-physics.h"
 #include "rec2_macros.h"
+extern tFace_ref* gPling_face;;
 
 // GLOBAL: CARMA2_HW 0x005964c0
 // GLOBAL: CARMA2_SW 0x00591404
@@ -192,10 +193,6 @@ int C2_HOOK_FASTCALL DRModelPick2D_finteray(br_model* pModel, br_material* pMate
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0045ff90
-int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
-    NOT_IMPLEMENTED();
-}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -335,7 +332,189 @@ int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, 
     NOT_IMPLEMENTED();
 }
 
-// ModelPickBox
+static __inline int C2_HOOK_FASTCALL ModelPickBox_Clip(br_vector3* polygon, int count, int axis, br_scalar limit, int upper) {
+    br_vector3 clipped[12];
+    int previous = count - 1;
+    int vertex, component;
+    int result = 0;
+
+    for (vertex = 0; vertex < count; vertex++) {
+        if ((polygon[vertex].v[axis] > limit) != (polygon[previous].v[axis] > limit)) {
+            for (component = 0; component < 3; component++) {
+                if (component != axis) {
+                    clipped[result].v[component] = ((polygon[vertex].v[component] - polygon[previous].v[component])
+                        * (limit - polygon[previous].v[axis]))
+                        / (polygon[vertex].v[axis] - polygon[previous].v[axis]) + polygon[previous].v[component];
+                }
+            }
+            clipped[result].v[axis] = limit;
+            result++;
+        }
+        if ((!upper && polygon[vertex].v[axis] >= limit)
+            || (upper && polygon[vertex].v[axis] <= limit)) {
+            clipped[result].v[0] = polygon[vertex].v[0];
+            clipped[result].v[1] = polygon[vertex].v[1];
+            clipped[result].v[2] = polygon[vertex].v[2];
+            result++;
+        }
+        previous = vertex;
+    }
+    for (vertex = 0; vertex < result; vertex++) {
+        polygon[vertex].v[0] = clipped[vertex].v[0];
+        polygon[vertex].v[1] = clipped[vertex].v[1];
+        polygon[vertex].v[2] = clipped[vertex].v[2];
+    }
+    return result;
+}
+
+// FUNCTION: CARMA2_HW 0x0045ff90
+int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
+    v11model* prepared = model->prepared;
+    v11group* prepared_group;
+    v11face* face;
+    br_vector3 polygon[12];
+    br_vector3 normal;
+    int group, f, axis, count;
+    int i0, i1;
+    br_scalar limit;
+    br_uint_16 original_face;
+
+    if (max_face <= 0) {
+        return 0;
+    }
+    for (group = 0; group < model->prepared->ngroups; group++) {
+        prepared_group = &model->prepared->groups[group];
+        face = prepared_group->faces;
+        for (f = 0; f < model->prepared->groups[group].nfaces; f++, face++) {
+            i0 = face->vertices[0];
+            if ((float)fabs((prepared_group->vertices[i0].p.v[0] - bnds->box_centre.v[0]) * face->eqn.v[0]
+                + face->eqn.v[2] * (prepared_group->vertices[i0].p.v[2] - bnds->box_centre.v[2])
+                + face->eqn.v[1] * (prepared_group->vertices[i0].p.v[1] - bnds->box_centre.v[1])) > bnds->radius) {
+                continue;
+            }
+            i1 = face->vertices[1];
+            limit = bnds->real_bounds.min.v[0];
+            if (prepared_group->vertices[i0].p.v[0] < limit && prepared_group->vertices[i1].p.v[0] < limit && prepared_group->vertices[face->vertices[2]].p.v[0] < limit) {
+                continue;
+            }
+            limit = bnds->real_bounds.max.v[0];
+            if (prepared_group->vertices[i0].p.v[0] > limit && prepared_group->vertices[i1].p.v[0] > limit && prepared_group->vertices[face->vertices[2]].p.v[0] > limit) {
+                continue;
+            }
+            limit = bnds->real_bounds.min.v[1];
+            if (prepared_group->vertices[i0].p.v[1] < limit && prepared_group->vertices[i1].p.v[1] < limit && prepared_group->vertices[face->vertices[2]].p.v[1] < limit) {
+                continue;
+            }
+            limit = bnds->real_bounds.max.v[1];
+            if (prepared_group->vertices[i0].p.v[1] > limit && prepared_group->vertices[i1].p.v[1] > limit && prepared_group->vertices[face->vertices[2]].p.v[1] > limit) {
+                continue;
+            }
+            limit = bnds->real_bounds.min.v[2];
+            if (prepared_group->vertices[i0].p.v[2] < limit && prepared_group->vertices[i1].p.v[2] < limit && prepared_group->vertices[face->vertices[2]].p.v[2] < limit) {
+                continue;
+            }
+            limit = bnds->real_bounds.max.v[2];
+            if (prepared_group->vertices[i0].p.v[2] > limit && prepared_group->vertices[i1].p.v[2] > limit && prepared_group->vertices[face->vertices[2]].p.v[2] > limit) {
+                continue;
+            }
+            polygon[1].v[0] = prepared_group->vertices[i0].p.v[0] - bnds->mat->m[3][0];
+            polygon[1].v[1] = model->prepared->groups[group].vertices[i0].p.v[1] - bnds->mat->m[3][1];
+            polygon[1].v[2] = model->prepared->groups[group].vertices[i0].p.v[2] - bnds->mat->m[3][2];
+            polygon[2].v[0] = model->prepared->groups[group].vertices[i1].p.v[0] - bnds->mat->m[3][0];
+            polygon[2].v[1] = model->prepared->groups[group].vertices[i1].p.v[1] - bnds->mat->m[3][1];
+            polygon[2].v[2] = model->prepared->groups[group].vertices[i1].p.v[2] - bnds->mat->m[3][2];
+            polygon[3].v[0] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[0] - bnds->mat->m[3][0];
+            polygon[3].v[1] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[1] - bnds->mat->m[3][1];
+            polygon[3].v[2] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[2] - bnds->mat->m[3][2];
+            BrMatrix34TApplyV(&polygon[0], &polygon[1], bnds->mat);
+            BrMatrix34TApplyV(&polygon[1], &polygon[2], bnds->mat);
+            BrMatrix34TApplyV(&polygon[2], &polygon[3], bnds->mat);
+            count = 3;
+            for (axis = 0; axis < 3; axis++) {
+                count = ModelPickBox_Clip(polygon, count, axis, bnds->original_bounds.min.v[axis], 0);
+                if (count < 3) {
+                    break;
+                }
+                count = ModelPickBox_Clip(polygon, count, axis, bnds->original_bounds.max.v[axis], 1);
+                if (count < 3) {
+                    break;
+                }
+            }
+            if (count < 3) {
+                continue;
+            }
+            if (pMat != NULL) {
+                BrMatrix34ApplyP(&face_list->v[0], &model->prepared->groups[group].vertices[i0].p, pMat);
+                BrMatrix34ApplyP(&face_list->v[1], &model->prepared->groups[group].vertices[i1].p, pMat);
+                BrMatrix34ApplyP(&face_list->v[2], &model->prepared->groups[group].vertices[face->vertices[2]].p, pMat);
+                normal.v[0] = face->eqn.v[0];
+                normal.v[1] = face->eqn.v[1];
+                normal.v[2] = face->eqn.v[2];
+                BrMatrix34ApplyV(&face_list->normal, &normal, pMat);
+            } else {
+                face_list->v[0].v[0] = model->prepared->groups[group].vertices[i0].p.v[0];
+                face_list->v[0].v[1] = model->prepared->groups[group].vertices[i0].p.v[1];
+                face_list->v[0].v[2] = model->prepared->groups[group].vertices[i0].p.v[2];
+                face_list->v[1].v[0] = model->prepared->groups[group].vertices[i1].p.v[0];
+                face_list->v[1].v[1] = model->prepared->groups[group].vertices[i1].p.v[1];
+                face_list->v[1].v[2] = model->prepared->groups[group].vertices[i1].p.v[2];
+                face_list->v[2].v[0] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[0];
+                face_list->v[2].v[1] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[1];
+                face_list->v[2].v[2] = model->prepared->groups[group].vertices[face->vertices[2]].p.v[2];
+                face_list->normal.v[0] = face->eqn.v[0];
+                face_list->normal.v[1] = face->eqn.v[1];
+                face_list->normal.v[2] = face->eqn.v[2];
+            }
+            face_list->material = *model->prepared->groups[group].face_colours.materials;
+            if (face_list->material == NULL) {
+                face_list->material = model_material;
+            }
+            if (pMat != NULL) {
+                face_list->d = face_list->normal.v[2] * face_list->v[0].v[2] + face_list->normal.v[1] * face_list->v[0].v[1] + face_list->v[0].v[0] * face_list->normal.v[0];
+            } else {
+                face_list->d = face->eqn.v[3];
+            }
+            face_list->a = actor;
+            if (model->flags & BR_MODF_UPDATEABLE) {
+                face_list->g = -1;
+                original_face = model->prepared->groups[group].face_user[f];
+                face_list->f = original_face;
+                face_list->flags = model->faces[original_face].flags;
+                face_list->map[0] = &model->vertices[model->faces[original_face].vertices[0]].map;
+                face_list->map[1] = &model->vertices[model->faces[original_face].vertices[1]].map;
+                face_list->map[2] = &model->vertices[model->faces[original_face].vertices[2]].map;
+            } else {
+                face_list->g = group;
+                face_list->f = f;
+                face_list->flags = 0;
+                if (prepared->groups[group].faces[f].edges[0] == 0) {
+                    face_list->flags |= 1;
+                }
+                if (prepared->groups[group].faces[f].edges[1] == 0) {
+                    face_list->flags |= 2;
+                }
+                if (prepared->groups[group].faces[f].edges[2] == 0) {
+                    face_list->flags |= 4;
+                }
+                face_list->map[0] = &model->prepared->groups[group].vertices[i0].map;
+                face_list->map[1] = &model->prepared->groups[group].vertices[i1].map;
+                face_list->map[2] = &model->prepared->groups[group].vertices[face->vertices[2]].map;
+            }
+            if (face_list->material != NULL && face_list->material->identifier != NULL && face_list->material->identifier[0] == '!') {
+                gPling_face = face_list;
+            }
+            face_list++;
+            max_face--;
+            if (max_face == 0) {
+                break;
+            }
+        }
+        if (max_face == 0) {
+            break;
+        }
+    }
+    return max_face;
+}
 
 // ClipToPlaneGE
 
