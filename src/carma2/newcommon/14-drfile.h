@@ -34,3 +34,5 @@ extern br_size_t C2_HOOK_CDECL DRStdioWrite(const void* buf, br_size_t size, uns
 extern void C2_HOOK_FASTCALL InstallDRFileCalls(void);
 
 #endif // GUARD_14_DRFILE_H
+
+extern int C2_HOOK_FASTCALL FUN_0044c690(int pStr_index);
