@@ -32,6 +32,7 @@
 #include "17-world2.h"
 
 #include <math.h>
+extern float gCosine_array[65];
 
 // GLOBAL: CARMA2_HW 0x0067c500
 // GLOBAL: CARMA2_SW 0x00676c70
@@ -364,10 +365,6 @@ void C2_HOOK_FASTCALL ClearHeadupSlot(int pSlot_index) {
     }
 }
 
-// STUB: CARMA2_HW 0x0044aad0
-void C2_HOOK_FASTCALL DoInstruments(tU32 pThe_time) {
-    NOT_IMPLEMENTED();
-}
 // FUNCTION: CARMA2_HW 0x00449690
 // FUNCTION: CARMA2_SW 0x004497e0
 void C2_HOOK_FASTCALL ClearHeadups(void) {
