@@ -25,6 +25,13 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern void C2_HOOK_FASTCALL InitDroneCollisionObject(tDrone_spec* pDrone_spec);
+extern int gShow_drone_paths;;
+extern int gINT_006844fc;;
+extern int gINT_006820d4;;
+extern int gDrones_unmodified;;
+extern tDrone_state_function* gDrone_state_functions[6];
+extern int gCount_active_drones;;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
@@ -372,11 +379,81 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00450b50
-tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+static int C2_HOOK_FASTCALL AddDroneToPHIL_Impl(tDrone_spec* pDrone) {
+
+    if (PHILAddObject(&pDrone->collision_info)) {
+        return 0;
+    }
+    PHILSetObjectProperty(&pDrone->collision_info, 0, 1.0);
+    PHILSetObjectProperty(&pDrone->collision_info, 3, 1);
+    PHILSetObjectProperty(&pDrone->collision_info, 7, 1);
+    PHILSetObjectProperty(&pDrone->collision_info, 6, 1);
+    return 1;
 }
-// InitDrones
+
+static int C2_HOOK_FASTCALL DroneInSensiblePlace_Impl(tDrone_spec* pDrone) {
+    tPhysics_object* collision;
+
+    if (gTime_stamp_for_this_munging > pDrone->last_collide_check + 1000) {
+        pDrone->last_collide_check = gTime_stamp_for_this_munging;
+        InitDroneCollisionObject(pDrone);
+        for (collision = gPHIL_list_collision_infos; collision != NULL; collision = collision->next) {
+            if (&pDrone->collision_info != collision && TestObjectOverlap(&pDrone->collision_info, collision)) {
+                return 0;
+            }
+        }
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x0044f700
+void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info) {
+    int i;
+    tDrone_spec* drone;
+    tDrone_form* form;
+
+    gDrones_unmodified = 1;
+    gCount_rendered_drones = 0;
+    gCurrent_selected_drone = 0;
+    gINT_006820d4 = 0;
+    gINT_006844fc = 0;
+    gINT_00681fb0 = 0;
+
+    for (i = 0; i < gCount_drones; i++) {
+        drone = &gDrone_specs[i];
+        form = drone->form;
+
+        DoNotDprintf("NewDroneState() Drone %d, Current state %d, New state %d", drone->id, drone->current_state, 1);
+        if (drone->current_state != 1) {
+            if (gDrone_state_functions[drone->current_state] != NULL) {
+                gDrone_state_functions[drone->current_state](drone, eDrone_state_STOP);
+            }
+            drone->time_last_munge = gTime_stamp_for_this_munging;
+            drone->prev_states[1] = drone->prev_states[0];
+            drone->prev_states[0] = drone->current_state;
+            drone->current_state = 1;
+            if (gDrone_state_functions[1] != NULL) {
+                gDrone_state_functions[1](drone, eDrone_state_START);
+            }
+        }
+        if (form->type == kDroneType_plane && !gShow_drone_paths && drone->field_0x44 == 0 && ((form->flags & 0x4) != 0 || gCount_active_drones < 12)) {
+            if (DroneInSensiblePlace_Impl(drone) && AddDroneToPHIL_Impl(drone)) {
+                BrMatrix34Copy(&drone->collision_info.transform_matrix, &drone->actor->t.t.mat);
+                drone->field_0x44 = 1;
+                if ((drone->form->flags & 0x4) == 0) {
+                    gCount_active_drones += 1;
+                }
+                if (gDrone_state_functions[drone->current_state] != NULL) {
+                    gDrone_state_functions[drone->current_state](drone, eDrone_state_DEFAULT);
+                }
+                DoNotDprintf("PROCESSING ON: Frame %d, Drone %d, state %d", gFrame, drone->id, drone->current_state);
+                DoNotDprintf("%d: %s: %3.3f, %3.3f, %3.3f", gFrame, "    Pos", drone->actor->t.t.translate.t.v[0], drone->actor->t.t.translate.t.v[1], drone->actor->t.t.translate.t.v[2]);
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0044fc10
 // FUNCTION: CARMA2_SW 0x0044f9b0
