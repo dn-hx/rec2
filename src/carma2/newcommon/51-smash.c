@@ -33,6 +33,8 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern tU32 gPHIL_last_physics_tick;;
+extern tU32 gLast_munge_smash_edge_triggers;;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
@@ -2027,5 +2029,24 @@ void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
 
 // ReceivedSmashShraps
 
-// MungeSmashEdgeTriggers
+// FUNCTION: CARMA2_HW 0x004f64d0
+void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime) {
+    undefined4* p;
+    int i;
+
+    if (gLast_munge_smash_edge_triggers != gPHIL_last_physics_tick) {
+        i = 0;
+        if (i < gCount_track_smashable_environment_specs) {
+            p = &gTrack_smashable_environment_specs->field_0x10;
+            do {
+                if (*p != 0 && *p != pTime) {
+                    *p = 0;
+                }
+                i++;
+                p = (undefined4*)((char*)p + sizeof(tSmashable_item_spec));
+            } while (i < gCount_track_smashable_environment_specs);
+        }
+    }
+    gLast_munge_smash_edge_triggers = gPHIL_last_physics_tick;
+}
 
