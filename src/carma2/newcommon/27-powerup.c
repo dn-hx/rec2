@@ -38,6 +38,10 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar);
+extern void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor);
+extern void C2_HOOK_FASTCALL HitAShatOutMine(tPhysics_object* pObject1, tPhysics_object* pObject2, float pCollision_speed);
+extern void C2_HOOK_FASTCALL ActivateMine(tShit_mine* pMine, tPowerup* pPowerup, tCar_spec* pCar);
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
