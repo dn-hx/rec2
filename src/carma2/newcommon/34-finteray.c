@@ -280,7 +280,46 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
 
 // SphereEdgeCollide
 
-// SpherePolyFaceCollide
+// FUNCTION: CARMA2_HW 0x0045e020
+void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    br_scalar fVar1;
+    br_scalar fVar2;
+    br_scalar fVar3;
+    br_scalar fVar4;
+    br_scalar fVar5;
+    br_vector3 delta;
+
+    delta.v[1] = pEnd->v[1] - pStart->v[1];
+    delta.v[2] = pEnd->v[2] - pStart->v[2];
+    delta.v[0] = pEnd->v[0] - pStart->v[0];
+    fVar1 = pDirection->v[0] * pDirection->v[0] + pDirection->v[2] * pDirection->v[2] + pDirection->v[1] * pDirection->v[1];
+    fVar3 = (pDirection->v[0] * delta.v[0] + pDirection->v[1] * delta.v[1] + pDirection->v[2] * delta.v[2]) / fVar1;
+    fVar2 = (delta.v[2] * delta.v[2] + delta.v[1] * delta.v[1] + delta.v[0] * delta.v[0]) - fVar3 * fVar3 * fVar1;
+    if (fVar2 <= pSphere->radius_squared) {
+        fVar3 = fVar3 - sqrt((pSphere->radius_squared - fVar2) / fVar1);
+        if (0.0f <= fVar3 && fVar3 <= 1.0f) {
+            pPoint->v[0] = pEnd->v[0];
+            pPoint->v[1] = pEnd->v[1];
+            pPoint->v[2] = pEnd->v[2];
+            fVar4 = pPoint->v[0] - (pDirection->v[0] * fVar3 + pStart->v[0]);
+            fVar5 = pPoint->v[1] - (pDirection->v[1] * fVar3 + pStart->v[1]);
+            fVar1 = pPoint->v[2] - (pDirection->v[2] * fVar3 + pStart->v[2]);
+            fVar2 = sqrt(fVar1 * fVar1 + fVar5 * fVar5 + fVar4 * fVar4);
+            if (2.3841858e-07f < fVar2) {
+                fVar2 = 1.0f / fVar2;
+                pNormal->v[0] = fVar2 * fVar4;
+                pNormal->v[1] = fVar2 * fVar5;
+                pNormal->v[2] = fVar2 * fVar1;
+                *pT = fVar3;
+                return;
+            }
+            pNormal->v[0] = 1.0f;
+            pNormal->v[1] = 0.0f;
+            pNormal->v[2] = 0.0f;
+            *pT = fVar3;
+        }
+    }
+}
 
 // SphereBoxFaceCollide
 
