@@ -82,6 +82,8 @@ extern void C2_HOOK_FASTCALL PrintScreenFile(FILE* pF);
 
 #ifdef REC2_HW
 extern void C2_HOOK_FASTCALL PrintScreenFile16(FILE* pF);
+extern void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap);
+
 #endif
 
 extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
