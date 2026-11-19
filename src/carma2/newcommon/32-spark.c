@@ -27,6 +27,8 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern void C2_HOOK_FASTCALL MasterDisableFunkotronic(int pIndex);
+extern const char gSolidgrn_material[10];
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
