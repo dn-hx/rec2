@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL ARUndoSplitWeld(void* roadMachine);
+extern void C2_HOOK_FASTCALL ARApplySplitWeld(void* roadMachine, br_vector3* pVector);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -1753,7 +1755,24 @@ void C2_HOOK_FASTCALL ApplyIdentity(tPipe_chunk** pChunk) {
     BrMatrix34Identity(&chunk->data.identity.actor->t.t.mat);
 }
 
-// ApplySplitWeld
+// FUNCTION: CARMA2_HW 0x004c98b0
+void C2_HOOK_FASTCALL ApplySplitWeld(tPipe_chunk** pChunk) {
+    tU32 fn = *(tU32*)*pChunk;
+
+    if (*(int*)((tU8*)*pChunk + 0x14)) {
+        if ((fn & 0xffffff00u) == 0) {
+            return ARApplySplitWeld(&gProgram_state.current_car, (br_vector3*)((tU8*)*pChunk + 4));
+        }
+
+        return ARApplySplitWeld(GetCarSpec(fn >> 8, fn & 0xffu), (br_vector3*)((tU8*)*pChunk + 4));
+    }
+
+    if ((fn & 0xffffff00u) == 0) {
+        return ARUndoSplitWeld(&gProgram_state.current_car);
+    }
+
+    return ARUndoSplitWeld(GetCarSpec(fn >> 8, fn & 0xffu));
+}
 
 // FUNCTION: CARMA2_HW 0x004c9930
 // FUNCTION: CARMA2_SW 0x004c6060
