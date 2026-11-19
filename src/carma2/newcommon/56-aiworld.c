@@ -13,6 +13,12 @@
 #include "18-graphics2.h"
 #include "30-opponent.h"
 #include "57-drone.h"
+extern tU32 C2_HOOK_FASTCALL PDGetTotalTime(void);
+extern void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL InitDrones(tRace_info* pRace_info);
+extern tU32 C2_HOOK_FASTCALL GetTotalTime(void);
+extern br_actor* gTrack_actor;;
+extern tU32 gTime_stamp_for_this_munging;;
 
 // MakeVertexAndOffsetIt
 
