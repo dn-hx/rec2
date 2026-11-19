@@ -10,6 +10,7 @@
 #define REC2_REC2_MACROS_H
 
 #define REC2_THISCALL_UNUSED(VAR) do { (void)VAR; } while (0)
+#define REC2_THISCALL_EDX , 0
 
 #define REC2_UNREACHABLE()  abort()
 
