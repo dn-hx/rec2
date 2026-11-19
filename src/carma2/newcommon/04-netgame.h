@@ -192,7 +192,7 @@ extern void C2_HOOK_FASTCALL InitialisePlayerScore(tNet_game_player_info* pPlaye
 
 extern void C2_HOOK_FASTCALL UseGeneralScore(int pScore);
 
-// NetSendEnvironmentChanges
+extern void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient);
 
 extern void C2_HOOK_FASTCALL CheckForNeedyEnvironmentRecipients(void);
 
