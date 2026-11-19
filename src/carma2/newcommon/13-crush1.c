@@ -2074,10 +2074,92 @@ intptr_t C2_HOOK_FASTCALL DRActorEnumRecurseUltraPlus(br_actor* pActor, br_actor
     return pCallback(actor, pArg);
 }
 
-// STUB: CARMA2_HW 0x00435e10
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x00435e10
 intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
-    NOT_IMPLEMENTED();
+    tCar_spec* pCar;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tPhysics_object* panel_actor;
+    br_vector3 tmp1;
+    br_vector3 tmp2;
+    float len;
+    float inv_len;
+    float dx;
+    float dy;
+    float dz;
+    int rnd;
+    int i;
+    int found;
+
+    pCar = pArg;
+    user = (tUser_crush_data*)pActor->user;
+    if (user == NULL) {
+        goto fail;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        goto fail;
+    }
+    if (crush_data->detach_data == NULL) {
+        goto fail;
+    }
+    rnd = crush_data->id;
+    found = 0;
+    for (i = 0; i < 10; i++) {
+        if (gCrush_panel_ids[i] == rnd) {
+            found = 1;
+            break;
+        }
+    }
+    if (found == 0) {
+        goto fail;
+    }
+    panel_actor = DetachBit(pCar, pActor, NULL);
+    if (panel_actor == NULL) {
+        goto fail;
+    }
+    BrMatrix34ApplyP(&tmp1, &pCar->collision_info->cmpos, (br_matrix34*)((tU8*)pCar->collision_info->actor + 0x2c));
+    BrMatrix34ApplyP(&tmp2, &panel_actor->cmpos, (br_matrix34*)((tU8*)panel_actor->actor + 0x2c));
+    dx = tmp2.v[0] - tmp1.v[0];
+    dy = tmp2.v[1] - tmp1.v[1];
+    dz = tmp2.v[2] - tmp1.v[2];
+    len = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    if (len > 2.3841858e-07f) {
+        inv_len = (float)(1.0 / len);
+        dx = inv_len * dx;
+        dy = inv_len * dy;
+        dz = inv_len * dz;
+    } else {
+        dx = 1.0f;
+        dy = 0.0f;
+        dz = 0.0f;
+    }
+    panel_actor->v.v[0] = dx * 1.1594203f + panel_actor->v.v[0];
+    panel_actor->v.v[1] = dy * 1.1594203f + panel_actor->v.v[1];
+    panel_actor->v.v[2] = dz * 1.1594203f + panel_actor->v.v[2];
+    panel_actor->v.v[0] = pCar->collision_info->v.v[0] + panel_actor->v.v[0];
+    panel_actor->v.v[1] = pCar->collision_info->v.v[1] + panel_actor->v.v[1];
+    panel_actor->v.v[2] = pCar->collision_info->v.v[2] + panel_actor->v.v[2];
+    return 0;
+fail:
+    return 0;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FireSomeBitsOffCar
 
