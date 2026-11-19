@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern int gSpark_next;;
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
@@ -292,7 +293,92 @@ void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDe
 
 // CreateSingleSpark
 
-// CreateSparks
+// FUNCTION: CARMA2_HW 0x004f7d60
+void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVelocity, const br_vector3* pForce, br_scalar pStrength, tCar_spec* pCar) {
+    br_vector3 force_normal;
+    br_vector3 local_position;
+    br_vector3 relative_position;
+    br_vector3 local_normal;
+    br_vector3 random_vector;
+    br_scalar force_length;
+    br_scalar dot;
+    br_scalar scale;
+    int spark_count;
+
+    force_length = (br_scalar)sqrt((double)(pForce->v[0] * pForce->v[0] + pForce->v[2] * pForce->v[2] + pForce->v[1] * pForce->v[1]));
+    force_normal.v[0] = pForce->v[0] / force_length;
+    force_normal.v[1] = pForce->v[1] / force_length;
+    force_normal.v[2] = pForce->v[2] / force_length;
+    dot = pForce->v[0] * pVelocity->v[0] + pVelocity->v[2] * pForce->v[2] + pForce->v[1] * pVelocity->v[1];
+    if (0.0f <= dot) {
+        scale = (br_scalar)(1.0 / (force_length * 10.0f));
+    } else {
+        scale = (br_scalar)(1.0 / (force_length * 10.0f)) - dot / (force_length * force_length);
+    }
+    pVelocity->v[0] += pForce->v[0] * scale;
+    pVelocity->v[1] += pForce->v[1] * scale;
+    pVelocity->v[2] += pForce->v[2] * scale;
+
+    spark_count = (int)(FRandomBetween(0.0f, (br_scalar)(0.7 - (double)((br_scalar)sqrt((double)(pVelocity->v[0] * pVelocity->v[0] + pVelocity->v[2] * pVelocity->v[2] + pVelocity->v[1] * pVelocity->v[1])) * -0.5f))) * pStrength);
+    if (spark_count > 10) {
+        spark_count = 10;
+    }
+    while (spark_count > 0) {
+        gSparks[gSpark_next].pos = *pPosition;
+        gSparks[gSpark_next].normal = force_normal;
+        gSparks[gSpark_next].v = *pVelocity;
+        gSparks[gSpark_next].v.v[0] *= FRandomBetween(0.5f, 0.9f);
+        gSparks[gSpark_next].v.v[1] *= FRandomBetween(0.5f, 0.9f);
+        gSparks[gSpark_next].v.v[2] *= FRandomBetween(0.5f, 0.9f);
+        gSpark_flags |= 1 << gSpark_next;
+        gSpark_next++;
+        gSparks[gSpark_next - 1].count = 1000;
+        gSparks[gSpark_next - 1].car = NULL;
+        gSparks[gSpark_next - 1].time_sync = gPHIL_mechanics_time_sync;
+        gSparks[gSpark_next - 1].colour = 0;
+        if (gSpark_next >= (int)REC2_ASIZE(gSparks)) {
+            gSpark_next = 0;
+        }
+        spark_count--;
+    }
+
+    if (force_length * pStrength >= 10.0f) {
+        relative_position.v[0] = pPosition->v[0] - pCar->car_master_actor->t.t.mat.m[3][0];
+        relative_position.v[1] = pPosition->v[1] - pCar->car_master_actor->t.t.mat.m[3][1];
+        relative_position.v[2] = pPosition->v[2] - pCar->car_master_actor->t.t.mat.m[3][2];
+        BrMatrix34TApplyV(&local_position, &relative_position, &pCar->car_master_actor->t.t.mat);
+        BrMatrix34TApplyV(&local_normal, &force_normal, &pCar->car_master_actor->t.t.mat);
+        spark_count = 3 - (int)(force_length * pStrength * -0.1f);
+        if (spark_count > 10) {
+            spark_count = 10;
+        }
+        while (spark_count > 0) {
+            gSparks[gSpark_next].pos.v[0] = local_position.v[0] + local_normal.v[0] * 0.01f;
+            gSparks[gSpark_next].pos.v[1] = local_position.v[1] + local_normal.v[1] * 0.01f;
+            gSparks[gSpark_next].pos.v[2] = local_position.v[2] + local_normal.v[2] * 0.01f;
+            gSparks[gSpark_next].normal = local_normal;
+            BrVector3SetFloat(&random_vector,
+                FRandomBetween(-1.0f, 1.0f),
+                FRandomBetween(-0.2f, 1.0f),
+                FRandomBetween(-1.0f, 1.0f));
+            dot = random_vector.v[0] * local_normal.v[0] + random_vector.v[1] * local_normal.v[1] + random_vector.v[2] * local_normal.v[2];
+            gSparks[gSpark_next].v.v[0] = random_vector.v[0] - dot * local_normal.v[0];
+            gSparks[gSpark_next].v.v[1] = random_vector.v[1] - dot * local_normal.v[1];
+            gSparks[gSpark_next].v.v[2] = random_vector.v[2] - dot * local_normal.v[2];
+            gSpark_flags |= 1 << gSpark_next;
+            gSparks[gSpark_next].count = 1000;
+            gSparks[gSpark_next].car = pCar;
+            gSparks[gSpark_next].time_sync = gPHIL_mechanics_time_sync;
+            gSparks[gSpark_next].colour = 0;
+            gSpark_next++;
+            if (gSpark_next >= (int)REC2_ASIZE(gSparks)) {
+                gSpark_next = 0;
+            }
+            spark_count--;
+        }
+        CreateShrapnelShower2(pPosition, pVelocity, &force_normal, force_length, pCar, pCar, 0, NULL);
+    }
+}
 
 // CreateSparkShower
 
