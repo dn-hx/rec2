@@ -40,6 +40,7 @@
 
 #include <s3/internal/audio.h>
 #include <stdio.h>
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
 
 // GLOBAL: CARMA2_HW 0x00659b28
 // GLOBAL: CARMA2_SW 0x00654510
@@ -1003,6 +1004,123 @@ void C2_HOOK_FASTCALL UserSendMessage(void) {
 
 // EnterUserMessage
 
+// FUNCTION: CARMA2_HW 0x00444910
+void C2_HOOK_FASTCALL EnterUserMessage(void) {
+    // GLOBAL: CARMA2_HW 0x00590f64
+    static int last_key = -1;
+    // GLOBAL: CARMA2_HW 0x0067c49c
+    static int about_to_die;
+    // GLOBAL: CARMA2_HW 0x0067c454
+    static tU32 next_time;
+    char* the_message;
+    int len;
+    int the_key;
+    int abuse_num;
+
+    if (!gEntering_message) {
+        return;
+    }
+    if (gNet_mode == eNet_mode_none) {
+        return;
+    }
+    if (!gCurrent_net_game->options.enable_text_messages) {
+        return;
+    }
+    the_key = PDAnyKeyDown();
+    if (gEntering_message == 1) {
+        if (the_key != -1) {
+            return;
+        }
+        gEntering_message = 2;
+        PDClearKeyboardBuffer();
+    }
+    if (about_to_die) {
+        if (the_key != -1) {
+            return;
+        }
+        about_to_die = 0;
+        gEntering_message = 0;
+        return;
+    }
+    if (the_key == last_key) {
+        if (PDGetTotalTime() > next_time) {
+            next_time += 100;
+        } else {
+            the_key = -1000;
+        }
+    } else {
+        last_key = the_key;
+        next_time = PDGetTotalTime() + 500;
+    }
+    switch (the_key) {
+    default:
+        if (the_key == gKey_mapping[71]) {
+            about_to_die = 1;
+        } else if (the_key < 75 || the_key > 105) {
+            for (;;) {
+                int raw_ch = PDGetKeyboardCharacter();
+                unsigned char ch;
+                if (raw_ch == '\0') {
+                    break;
+                }
+                ch = PDConvertToASCIILessThan128(raw_ch);
+                len = strlen(&gString[20]);
+                if (len < 64 - 1) {
+                    gString[20 + len] = ch;
+                    if (ch < gFonts[4].offset || ch >= gFonts[4].offset + gFonts[4].num_entries) {
+                        gString[20 + len] = '\0';
+                    }
+                    gString[20 + len + 1] = '\0';
+                    dr_dprintf("NETMESSAGE: '%s'", &gString[20]);
+                }
+            }
+        } else if (the_key >= 81 && the_key <= 90) {
+            if (the_key == 81) {
+                abuse_num = 9;
+            } else {
+                abuse_num = the_key - 82;
+            }
+            if (gAbuse_text[abuse_num] != NULL) {
+                strcpy(&gString[20], gAbuse_text[abuse_num]);
+            }
+        } else {
+            gEntering_message = 0;
+        }
+        break;
+    case 2:
+    case 3:
+    case 53:
+    case 63:
+        about_to_die = 1;
+        break;
+    case 51:
+    case 52:
+        len = strlen(gNet_players[gThis_net_player_index].player_name);
+        if (len <= 18) {
+            the_message = gString + 18 - len;
+            strcpy(the_message, gNet_players[gThis_net_player_index].player_name);
+            the_message[len + 0] = ':';
+            the_message[len + 1] = ' ';
+            gString[REC2_ASIZE(gString) - 1] = '\0';
+            NetSendHeadupToAllPlayers(the_message);
+            gString[20] = '\0';
+            NewTextHeadupSlot(4, 0, 1000, -4, GetMiscString(eMiscString_message_sent));
+            about_to_die = 1;
+        }
+        break;
+    case 50:
+    case 65:
+    case 70:
+        len = strlen(&gString[20]);
+        if (len > 0) {
+            gString[20 + len - 1] = '\0';
+        }
+        break;
+    case -1:
+    case 0:
+        break;
+    }
+}
 // FUNCTION: CARMA2_HW 0x00444c00
 // FUNCTION: CARMA2_SW 0x00444ce0
 void C2_HOOK_FASTCALL DisplayUserMessage(void) {
