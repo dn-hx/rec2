@@ -21,6 +21,45 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "c2_stdio.h"
+extern int gSave_game_out_of_sync;;
+extern int gMirror_on__structur;
+extern int gLoad_last_save_game;
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+extern int C2_HOOK_FASTCALL SortOpponents(void);
+extern void C2_HOOK_FASTCALL SetInitialPositions(tRace_info* pThe_race);
+extern void C2_HOOK_FASTCALL RecordAPOAndCredits(void);
+extern void C2_HOOK_FASTCALL PrintMemoryDump(int pFlags, char* pTitle);
+extern void C2_HOOK_FASTCALL MaybeRestoreSavedGame(void);
+extern void C2_HOOK_FASTCALL LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
+extern void C2_HOOK_FASTCALL LoadRaceInfo(int pRace_index, tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, const char* pDriver_name, tBrender_storage* pStorage_space);
+extern void C2_HOOK_FASTCALL InitialiseCarsEtc(tRace_info* pThe_race);
+extern tCar_spec* gCar_to_view;
+extern void C2_HOOK_FASTCALL InitialiseAIWorldForRace(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL InitGame(int pStart_race);
+extern void C2_HOOK_FASTCALL FogificateMaterials(tRendererShadingType pShading_type);
+extern void C2_HOOK_FASTCALL FillInRaceInfo(tRace_info* pThe_race);
+extern int C2_HOOK_FASTCALL FRONTEND_Main(tFrontendMenuType pFrontend_type);
+extern void C2_HOOK_FASTCALL EnableAutoFogification(void);
+extern void C2_HOOK_STDCALL DoStainlessLogo(void);
+extern void C2_HOOK_FASTCALL DoSaveGame(void);
+extern void C2_HOOK_FASTCALL DoSCILogo(void);
+extern tRace_result C2_HOOK_FASTCALL DoRace(void);
+extern void C2_HOOK_FASTCALL DoOpeningAnimation(void);
+extern void C2_HOOK_FASTCALL DoMainScreen(void);
+extern void C2_HOOK_FASTCALL DoLoadMostRecentGame(void);
+extern void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed);
+extern void C2_HOOK_FASTCALL DoEndRaceAnimation(void);
+extern void C2_HOOK_FASTCALL DisposeTrack(void);
+extern void C2_HOOK_FASTCALL DisposeRaceInfo(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisposeRace(void);
+extern void C2_HOOK_FASTCALL DisposeOpponentsCars(tRace_info* pRace_info);
+extern void C2_HOOK_FASTCALL DisposeGameIfNecessary(void);
+extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
+extern void C2_HOOK_FASTCALL DisableAutoFogification(void);
+extern void C2_HOOK_FASTCALL ClearOutStorageSpace(tBrender_storage* pStorage_space);
+extern void C2_HOOK_FASTCALL AboutToLoadFirstCar(void);
 
 // GLOBAL: CARMA2_HW 0x00655e48
 // GLOBAL: CARMA2_SW 0x00650d30
