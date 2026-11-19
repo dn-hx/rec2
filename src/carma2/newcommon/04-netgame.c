@@ -37,6 +37,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX, br_scalar pZ, tTrack_spec* pTrack_spec);
+extern int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix);
+extern tS8 gNon_car_spec_indices[100];;
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
