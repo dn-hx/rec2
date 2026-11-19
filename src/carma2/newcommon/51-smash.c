@@ -33,6 +33,8 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern int gSize_powerup_queue;;
+extern tQueued_net_smash gQueued_net_smashes[50];
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
