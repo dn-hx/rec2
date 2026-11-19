@@ -210,9 +210,110 @@ tU32 gInventory_timeout;
 // GLOBAL: CARMA2_SW 0x007951b0
 int gInstant_handbrake;
 
-// GLOBAL: CARMA2_HW 0x0079ecbc
-tPhysics_object* gUNK_0079ecbc;
+// FUNCTION: CARMA2_HW 0x0040bb20
+void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode) {
+    br_scalar scales[3];
+    tPed_personality_bone* pBone;
+    tPed_remap_bone* pRemap;
+    br_model* pModel;
+    br_vertex* pVertex;
+    int start;
+    int end;
+    int i;
+    int j;
+    int k;
+    int axis;
 
+    if (pIndex == -1) {
+        end = pPersonality->form->count_bones;
+    } else {
+        end = pIndex + 1;
+    }
+    start = (pIndex == -1) ? 0 : pIndex;
+    for (; start < end; start++) {
+        pBone = &pPersonality->bones[start];
+        pRemap = pPersonality->form->bones[start].remapped_bone;
+        if (pRemap != NULL) {
+            for (j = 0; j < 3; j++) {
+                axis = pRemap->powerup_axis[j];
+
+                scales[axis % 3] = pScale[j];
+                if (axis >= 3) {
+                    scales[j] = -scales[j];
+                }
+            }
+        }
+        for (j = 0; j < 2; j++) {
+            for (k = 0; k < 4; k++) {
+                pModel = pBone->models[k].models[j];
+                if (pModel == NULL) {
+                    break;
+                }
+                pVertex = pModel->vertices;
+                for (i = 0; i < pModel->nvertices; i++) {
+                    pVertex->p.v[0] = pVertex->p.v[0] * scales[0];
+                    pVertex->p.v[1] = scales[1] * pVertex->p.v[1];
+                    pVertex->p.v[2] = scales[2] * pVertex->p.v[2];
+                    pVertex++;
+                }
+                BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
+            }
+        }
+        pBone->field_0x20.v[0] = pBone->field_0x20.v[0] * scales[0];
+        pBone->field_0x20.v[1] = scales[1] * pBone->field_0x20.v[1];
+        pBone->field_0x20.v[2] = scales[2] * pBone->field_0x20.v[2];
+        if (pIndex == -1) {
+            if (pPersonality->form->bones[start].indices[0] >= 0) {
+                pRemap = pPersonality->form->bones[pPersonality->form->bones[start].indices[0]].remapped_bone;
+                if (pRemap != NULL) {
+                    for (j = 0; j < 3; j++) {
+                        axis = pRemap->powerup_axis[j];
+
+                        scales[axis % 3] = pScale[j];
+                        if (axis >= 3) {
+                            scales[j] = -scales[j];
+                        }
+                    }
+                }
+                pBone->field_0x2c.v[0] = pBone->field_0x2c.v[0] * scales[0];
+                pBone->field_0x2c.v[1] = scales[1] * pBone->field_0x2c.v[1];
+                pBone->field_0x2c.v[2] = scales[2] * pBone->field_0x2c.v[2];
+            }
+        } else {
+            for (i = 0; i < pPersonality->form->count_bones; i++) {
+                if (pPersonality->form->bones[i].indices[0] == pIndex) {
+                    pRemap = pPersonality->form->bones[pPersonality->form->bones[i].indices[0]].remapped_bone;
+                    if (pRemap != NULL) {
+                        for (j = 0; j < 3; j++) {
+                            axis = pRemap->powerup_axis[j];
+
+                            scales[axis % 3] = pScale[j];
+                            if (axis >= 3) {
+                                scales[j] = -scales[j];
+                            }
+                        }
+                    }
+                    pPersonality->bones[i].field_0x2c.v[0] = scales[0] * pPersonality->bones[i].field_0x2c.v[0];
+                    pPersonality->bones[i].field_0x2c.v[1] = scales[1] * pPersonality->bones[i].field_0x2c.v[1];
+                    pPersonality->bones[i].field_0x2c.v[2] = scales[2] * pPersonality->bones[i].field_0x2c.v[2];
+                }
+            }
+        }
+    }
+    if (pMode != 0) {
+        for (i = 0; i < pPersonality->form->count_moves; i++) {
+            pPersonality->moves[i].grounding_offset = pScale[0] * pPersonality->moves[i].grounding_offset;
+        }
+        pPersonality->bb.min.v[0] = pPersonality->bb.min.v[0] * pScale[0];
+        pPersonality->bb.min.v[1] = pScale[1] * pPersonality->bb.min.v[1];
+        pPersonality->bb.min.v[2] = pScale[2] * pPersonality->bb.min.v[2];
+        pPersonality->bb.max.v[0] = pPersonality->bb.max.v[0] * pScale[0];
+        pPersonality->bb.max.v[1] = pPersonality->bb.max.v[1] * pScale[1];
+        pPersonality->bb.max.v[2] = pPersonality->bb.max.v[2] * pScale[2];
+        pPersonality->M = pScale[0] * pPersonality->M * pScale[2] * pScale[1];
+        pPersonality->radius = (pScale[0] + pScale[2] + pScale[1]) * pPersonality->radius * 0.33333334f;
+    }
+}
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
 char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
