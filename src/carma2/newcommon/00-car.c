@@ -47,6 +47,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL GetOilSpillDetails(int pIndex, br_actor** pActor, br_scalar* pSize);
+extern int C2_HOOK_FASTCALL GetOilSpillCount(void);
+extern br_scalar C2_HOOK_FASTCALL FastScalarSin(int pAngle_in_degrees);
+extern float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
+extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
+extern void C2_HOOK_FASTCALL ChangeAmbientPratcam(int pIndex);
+extern float gYon_squared;
 
 // GLOBAL: CARMA2_HW 0x0079eda0
 // GLOBAL: CARMA2_SW 0x00795340
