@@ -23,6 +23,9 @@
 #include "33-depth.h"
 
 #include <string.h>
+extern const br_vector3 g_Ped_z_unit_vector;
+extern const br_vector3 g_Ped_y_unit_vector;
+extern const br_vector3 g_Ped_x_unit_vector;
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0
