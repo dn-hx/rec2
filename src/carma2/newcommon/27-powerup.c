@@ -1125,10 +1125,24 @@ inline void C2_HOOK_FASTCALL FillInMine(tNet_message_chunk* pChunk, tShit_mine* 
 
 // SendMines
 
-// STUB: CARMA2_HW 0x004dd1b0
+// FUNCTION: CARMA2_HW 0x004dd1b0
 // STUB: CARMA2_SW 0x004d96b0
 void C2_HOOK_FASTCALL MinePreCollisionStuff(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    tPhysics_object* obj;
+
+    for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
+        if (!(gShit_mines[i].flags & 0x1)) {
+            continue;
+        }
+        obj = gShit_mines[i].collision_info;
+        if (obj->field_0x261 != 0x31 || obj->message_time != gPHIL_last_physics_tick) {
+            continue;
+        }
+        obj->field_0xf0 = 1;
+        WriteHierarchyNetworkStuff((undefined4*)((char*)obj + 0x294), obj, 2);
+        obj->field_0x261 = 0;
+    }
 }
 
 // ActivateMine
