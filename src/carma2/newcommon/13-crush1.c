@@ -1645,10 +1645,99 @@ void C2_HOOK_FASTCALL DoDetaching(void) {
     NOT_IMPLEMENTED();
 }
 
-// FlapBit
-// STUB: CARMA2_HW 0x004384c0
+// FUNCTION: CARMA2_HW 0x004384c0
 intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pContext) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_flap_data* flap_data;
+    tFlapBit_arg* arg;
+    br_vertex* hinge;
+    br_vector3 hinge01;
+    br_vector3 offset;
+    br_vector3 world_offset;
+    br_vector3* parent_point;
+    br_angle angle;
+    br_angle new_angle;
+    tU16 old_angle;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return 0;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return 0;
+    }
+    flap_data = crush_data->flap_data;
+    if (flap_data == NULL) {
+        return 0;
+    }
+    if (flap_data->kev_o_flap) {
+        return 0;
+    }
+    if (!flap_data->field_0x0) {
+        return 0;
+    }
+    hinge = &user->models[0]->vertices[flap_data->hinge0];
+    BrVector3Sub(&hinge01, &user->models[0]->vertices[flap_data->hinge1].p, &hinge->p);
+    {
+        br_scalar scale;
+        scale = BR_LENGTH3(hinge01.v[0], hinge01.v[1], hinge01.v[2]);
+        if (scale > gFLT_EPSILON_00589a5c) {
+            scale = (br_scalar)(gDouble_00589a60 / scale);
+            hinge01.v[0] = hinge01.v[0] * scale;
+            hinge01.v[1] = hinge01.v[1] * scale;
+            hinge01.v[2] = hinge01.v[2] * scale;
+        } else {
+            hinge01.v[0] = 1.0f;
+            hinge01.v[1] = 0.0f;
+            hinge01.v[2] = 0.0f;
+        }
+    }
+    BrVector3Sub(&offset, &user->models[0]->vertices[flap_data->hinge2].p, &hinge->p);
+    {
+        br_scalar scale;
+        scale = BR_LENGTH3(offset.v[0], offset.v[1], offset.v[2]);
+        if (scale > gFLT_EPSILON_00589a5c) {
+            scale = (br_scalar)(gDouble_00589a60 / scale);
+            offset.v[0] = offset.v[0] * scale;
+            offset.v[1] = offset.v[1] * scale;
+            offset.v[2] = offset.v[2] * scale;
+        } else {
+            offset.v[0] = 1.0f;
+            offset.v[1] = 0.0f;
+            offset.v[2] = 0.0f;
+        }
+    }
+    BrMatrix34ApplyV(&world_offset, &offset, pMat);
+    arg = pContext;
+    angle = BrRadianToAngle(atan2(
+        ((hinge01.v[2] * world_offset.v[1] - hinge01.v[1] * world_offset.v[2]) * arg->force.v[0]
+            + (hinge01.v[1] * world_offset.v[0] - hinge01.v[0] * world_offset.v[1]) * arg->force.v[2]
+            + (hinge01.v[0] * world_offset.v[2] - hinge01.v[2] * world_offset.v[0]) * arg->force.v[1])
+        * gFlap_inertia_fudge_biscuit,
+        crush_data->field_0x24));
+    if (angle == 0) {
+        return 0;
+    }
+    old_angle = flap_data->field_0x4;
+    new_angle = flap_data->field_0x4 + angle;
+    flap_data->field_0x4 = new_angle;
+    if ((br_angle)(new_angle - flap_data->field_0x2) > flap_data->field_0x8) {
+        if ((br_angle)(new_angle - flap_data->field_0x6) < 0x3ffc) {
+            flap_data->field_0x4 = flap_data->field_0x6;
+        } else {
+            flap_data->field_0x4 = flap_data->field_0x2;
+        }
+    }
+    BrMatrix34Translate(&pActor->t.t.mat, -hinge->p.v[0], -hinge->p.v[1], -hinge->p.v[2]);
+    BrMatrix34PostRotate(&pActor->t.t.mat, flap_data->field_0x4, &hinge01);
+    parent_point = &((tUser_crush_data*)pActor->parent->user)->models[0]->vertices[flap_data->field_0xc].p;
+    BrMatrix34PostTranslate(&pActor->t.t.mat, parent_point->v[0], parent_point->v[1], parent_point->v[2]);
+    if (old_angle != flap_data->field_0x4) {
+        AddFlapToPipingSession((br_actor*)(uintptr_t)pActor, (tU16)(flap_data->field_0x4 - old_angle));
+    }
+    return 0;
 }
 
 // FlapBits
