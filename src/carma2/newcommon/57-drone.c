@@ -25,6 +25,8 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern int gMutant_tail_state;;
+extern tDrone_state_function* gDrone_state_functions[6];
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
