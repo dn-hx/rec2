@@ -1644,7 +1644,29 @@ void C2_HOOK_FASTCALL ApplyNonCar(tPipe_chunk** pChunk) {
     AdjustNonCar((*pChunk)->data.non_car.actor, &(*pChunk)->data.non_car.matrix);
 }
 
-// ApplySmoke
+// FUNCTION: CARMA2_HW 0x004c91c0
+void C2_HOOK_FASTCALL ApplySmoke(tPipe_chunk** pChunk) {
+    tPipe_chunk_smoke* chunk = (tPipe_chunk_smoke*)(*pChunk)->data.raw_data;
+    br_vector3 pos;
+    br_scalar radius;
+    br_scalar strength;
+
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, pos, 0x0);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, radius, 0x6);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, strength, 0x8);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk_smoke, type, 0x9);
+
+    pos.v[0] = chunk->pos.v[0] * 0.00125;
+    pos.v[1] = chunk->pos.v[1] * 0.00125;
+    pos.v[2] = chunk->pos.v[2] * 0.00125;
+    pos.v[0] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[0];
+    pos.v[1] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[1];
+    pos.v[2] += gProgram_state.current_car.car_master_actor->t.t.translate.t.v[2];
+
+    radius = chunk->radius * 0.0009765625f;
+    strength = chunk->strength * 0.00390625f;
+    AdjustSmoke((*pChunk)->subject_index, chunk->type, &pos, radius, strength);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9280
 // FUNCTION: CARMA2_SW 0x004c59b0
