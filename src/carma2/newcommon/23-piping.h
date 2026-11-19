@@ -328,7 +328,7 @@ extern void C2_HOOK_FASTCALL ARSetReplayDirection(float pDirection);
 
 extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
-// ARInitialise
+extern void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks);
 
 extern void C2_HOOK_FASTCALL ARDispose(void);
 

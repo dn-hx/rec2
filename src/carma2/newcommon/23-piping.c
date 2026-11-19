@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern int gPipe_count_callbacks;
+extern tU32 gPipe_buffer_size;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -199,6 +201,21 @@ void C2_HOOK_FASTCALL ARResetPiping(void) {
 
 // ARInitialise
 
+// FUNCTION: CARMA2_HW 0x00402410
+void C2_HOOK_FASTCALL ARInitialise(int pEnable, int pCount_callbacks, const tReplay_callback* pCallbacks) {
+
+    if (!pEnable) {
+        gPipe_buffer_start = NULL;
+        gLocal_buffer = NULL;
+    } else {
+        gPipe_callbacks = pCallbacks;
+        gPipe_count_callbacks = pCount_callbacks;
+        PDAllocateActionReplayBuffer(&gPipe_buffer_start, &gPipe_buffer_size);
+        gPipe_buffer_phys_end = gPipe_buffer_start + gPipe_buffer_size;
+        gLocal_buffer = BrMemAllocate(15000, kMem_pipe_model_geometry);
+    }
+    ARResetPiping();
+}
 // FUNCTION: CARMA2_HW 0x004024a0
 // FUNCTION: CARMA2_SW 0x004024a0
 void C2_HOOK_FASTCALL ARDispose(void) {
