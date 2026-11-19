@@ -1698,11 +1698,6 @@ intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pCo
 
 // StartFlapping
 
-// STUB: CARMA2_HW 0x0042f3d0
-void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
-    NOT_IMPLEMENTED();
-}
-
 // FUNCTION: CARMA2_HW 0x0043b250
 // FUNCTION: CARMA2_SW 0x0043b2a0
 void C2_HOOK_FASTCALL SendReAttachBit(tCar_spec* pCar, tPhysics_object* pObject) {
