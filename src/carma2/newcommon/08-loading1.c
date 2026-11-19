@@ -81,6 +81,12 @@ int gFunk_groove_flags[30];
 br_pixelmap* gCursors[8];
 #endif
 
+// FUNCTION: CARMA2_HW 0x0044bf20
+void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis) {
+
+    BrActorRemove(pThis->actor);
+    BrActorFree(pThis->actor);
+}
 // FUNCTION: CARMA2_HW 0x0048f830
 // FUNCTION: CARMA2_SW 0x0048caa0
 tU32 C2_HOOK_FASTCALL ReadU32(FILE* pF) {
