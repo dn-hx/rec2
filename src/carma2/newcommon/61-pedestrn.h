@@ -644,4 +644,6 @@ extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
 
 extern void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix);
 
+extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
+
 #endif // GUARD_61_PEDESTRN_H

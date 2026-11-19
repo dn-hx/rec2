@@ -275,4 +275,12 @@ extern void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, in
 
 extern void C2_HOOK_FASTCALL InitReplaySplashes(void);
 
+extern void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a);
+
+extern int C2_HOOK_FASTCALL IsOnNonCarHalf(tCar_spec* pCar, br_vector3* pPos);
+
+extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
+
+extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
+
 #endif // GUARD_32_SPARK_H

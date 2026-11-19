@@ -231,4 +231,7 @@ extern void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatte
 
 // GetOpponentMood
 
+extern void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec);
+
+
 #endif // GUARD_30_OPPONENT_H

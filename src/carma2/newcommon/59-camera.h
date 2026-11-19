@@ -110,4 +110,6 @@ extern void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race);
 
 // MouseClickInActionReplay
 
+extern int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info);
+
 #endif // GUARD_59_CAMERA_H

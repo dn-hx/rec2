@@ -145,4 +145,6 @@ extern void C2_HOOK_FASTCALL SuspendPendingFlic(void);
 
 extern void C2_HOOK_FASTCALL ResumePendingFlic(void);
 
+extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
+
 #endif // GUARD_38_FLICPLAY_H
