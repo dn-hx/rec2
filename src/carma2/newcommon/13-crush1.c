@@ -67,6 +67,7 @@ br_scalar gFloat_00589b28 = 5.0f;
 #include "52-errors.h"
 #include "57-drone.h"
 #include <ctype.h>
+extern int C2_HOOK_FASTCALL NPointConvexHullUsingSample(tCollision_shape_polyhedron_data* pPolyhedron, br_model* pModel, int pMin_point_count, int pMax_point_count, int* pVertex_indices);
 
 // GLOBAL: CARMA2_HW 0x00589a2c
 br_scalar gFLOAT_00589a2c = 0.5f;
