@@ -107,11 +107,13 @@ void C2_HOOK_CDECL BrSimpleNewList(br_simple_list* list) {
 // FUNCTION: CARMA2_HW 0x00529a50
 // FUNCTION: CARMA2_SW 0x005245c0
 void C2_HOOK_CDECL BrSimpleAddHead(br_simple_list* list, br_simple_node* node) {
+    br_simple_node* head;
 
-    node->next = list->head;
+    head = list->head;
     node->prev = (br_simple_node**)&list->head;
-    if (list->head != NULL) {
-        list->head->prev = &node->next;
+    node->next = head;
+    if (head != NULL) {
+        head->prev = &node->next;
     }
     list->head = node;
 }
