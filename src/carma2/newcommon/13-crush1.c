@@ -445,10 +445,6 @@ void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
 void C2_HOOK_FASTCALL BuckleTheBugger(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
     NOT_IMPLEMENTED();
 }
-// STUB: CARMA2_HW 0x00432b80
-void C2_HOOK_FASTCALL CrushModel(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex) {
-    NOT_IMPLEMENTED();
-}
 // STUB: CARMA2_HW 0x00432e70
 void C2_HOOK_FASTCALL CrushCollisionShapes(tCar_spec* pCar, void* pContext) {
     NOT_IMPLEMENTED();
