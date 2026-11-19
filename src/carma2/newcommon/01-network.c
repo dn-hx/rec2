@@ -26,6 +26,7 @@
 #include <string.h>
 #include <winsock.h>
 #include <wsipx.h>
+extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
 
 // GLOBAL: CARMA2_HW 0x0068d95c
 // GLOBAL: CARMA2_SW 0x006879b4
