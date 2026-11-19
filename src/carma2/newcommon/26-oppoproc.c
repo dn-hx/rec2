@@ -9,6 +9,14 @@
 #include "26-oppoproc.h"
 
 #include "08-loading1.h"
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOn(void);
+extern void C2_HOOK_FASTCALL TurnFlicTransparencyOff(void);
+extern void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY);
+extern void C2_HOOK_FASTCALL RemoveTransientBitmaps(int pGraphically_remove_them);
+extern void C2_HOOK_FASTCALL LetFlicFuckWithPalettes(void);
+extern void C2_HOOK_FASTCALL DontLetFlicFuckWithPalettes(void);
+extern tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound);
+extern tS3_outlet* gEffects_outlet;;
 
 // DoNotDprintf
 
@@ -70,3 +78,40 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
 
 // FollowCheatyPath
 
+
+// FUNCTION: CARMA2_HW 0x004b2740
+int C2_HOOK_FASTCALL FUN_004b2740(int* pIndex) {
+    int n;
+    int current;
+    int count;
+    int new_current;
+    int y;
+    int x;
+
+    DRS3StartSound(gEffects_outlet, 3000);
+    n = *pIndex - 2;
+    current = gFlic_cycle_specs[n].current;
+    count = gFlic_cycle_specs[n].count;
+    new_current = current + 1;
+    if (new_current == count) {
+        new_current = 0;
+    }
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[current];
+    RunFlicAt(287, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    RemoveTransientBitmaps(1);
+    DontLetFlicFuckWithPalettes();
+    TurnFlicTransparencyOn();
+    y = gFlic_cycle_specs[n].y;
+    x = gFlic_cycle_specs[n].x[new_current];
+    RunFlicAt(288, x, y);
+    TurnFlicTransparencyOff();
+    LetFlicFuckWithPalettes();
+    gFlic_cycle_specs[n].current = new_current;
+    return 0;
+}
