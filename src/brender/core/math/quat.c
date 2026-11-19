@@ -23,21 +23,27 @@ int gBr_quat_axis_next[3] = {1, 2, 0};
 // FUNCTION: CARMA2_HW 0x005355e0
 // FUNCTION: CARMA2_SW 0x00530c80
 br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r) {
+    br_scalar qx;
+    br_scalar qy;
+    br_scalar qz;
     br_scalar x1;
     br_scalar x2;
     br_scalar x3;
-    br_scalar x4;
     br_scalar s;
+    br_scalar x4;
 
-    x1 = (l->x + l->z) * (r->y + r->x);
-    x2 = (l->w + l->y) * (r->w - r->z);
+    qx = (l->w + l->x) * (r->w + r->x);
+    qy = (l->w - l->x) * (r->z + r->y);
+    qz = (r->w - r->x) * (l->y + l->z);
+    x1 = (r->y + r->x) * (l->z + l->x);
+    x2 = (l->y + l->w) * (r->w - r->z);
     x3 = (l->w - l->y) * (r->w + r->z);
-    s = x1 + x2 + x3;
-    x4 = ((l->z - l->x) * (r->x - r->y) + s) * 0.5f;
-    q->x = x4 + (l->w + l->x) * (r->w + r->x) - s;
-    q->y = x4 + (l->w - l->x) * (r->z + r->y) - x3;
-    q->z = x4 + (l->y + l->z) * (r->w - r->x) - x2;
-    q->w = x4 + (l->z - l->y) * (r->y - r->z) - x1;
+    s = (x3 + x2) + x1;
+    x4 = ((r->x - r->y) * (l->z - l->x) + s) * 0.5f;
+    q->x = (x4 + qx) - s;
+    q->w = ((l->z - l->y) * (r->y - r->z) + x4) - x1;
+    q->y = (x4 + qy) - x3;
+    q->z = (x4 + qz) - x2;
     return q;
 }
 
