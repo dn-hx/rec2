@@ -63,7 +63,7 @@ extern void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pH
 
 // QueueIconComing
 
-// LosePowerupX
+extern void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2);
 
 // LosePowerup
 

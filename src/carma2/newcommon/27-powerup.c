@@ -441,6 +441,45 @@ void C2_HOOK_FASTCALL NewRepulseRay(tU32 pTime, tCar_spec* pCar, tCar_spec* pVic
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004db630
+void C2_HOOK_FASTCALL LosePowerupX(tPowerup* pPowerup, int pArg2) {
+    extern int gNumber_of_icons;
+    extern tPlayer_ID gLocal_net_ID;
+    int i;
+    int message_address;
+    int* picked_up_powerup;
+    tU32 total_time;
+
+    if (pPowerup->got_time != 0 && pPowerup->lose_proc != NULL) {
+        pPowerup->lose_proc(pPowerup, pPowerup->car);
+    }
+    if (pPowerup->net_type & 0x80) {
+        PipeSinglePowerupLose(pPowerup, pPowerup->car);
+    }
+    if (gNet_mode != 0) {
+        message_address = (int)NetBuildGuaranteedMessage(0x16, 0);
+        *(int*)(message_address + 0x28) = 2;
+        *(tPlayer_ID*)(message_address + 0x1c) = gLocal_net_ID;
+        *(int*)(message_address + 0x20) = pPowerup - gPowerup_array;
+        NetGuaranteedSendMessageToAllPlayers(gCurrent_net_game, (tNet_message*)message_address, 0);
+    }
+    gProgram_state.current_car.powerups[pPowerup - gPowerup_array] = 0;
+    if (pPowerup->initial_value == 0 && (i = 0, 0 < gNumber_of_icons)) {
+        picked_up_powerup = (int*)&gPickedup_powerups[0].powerup;
+        while (i < gNumber_of_icons) {
+            if (pPowerup == (tPowerup*)*picked_up_powerup) {
+                gPickedup_powerups[i].fizzle_stage = 3;
+                gPickedup_powerups[i].fizzle_direction = -1;
+                total_time = GetTotalTime();
+                gPickedup_powerups[i].fizzle_start = total_time;
+                break;
+            }
+            i++;
+            picked_up_powerup += 5;
+        }
+    }
+    pPowerup->got_time = 0;
+}
 // STUB: CARMA2_HW 0x004db8e0
 // STUB: CARMA2_SW 0x004d7de0
 void C2_HOOK_FASTCALL MungeRepulseRays(tU32 pTime) {
