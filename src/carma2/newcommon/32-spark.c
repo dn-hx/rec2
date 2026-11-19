@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern void C2_HOOK_FASTCALL AddSmudgeToPipingSession(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates);
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
@@ -1147,9 +1148,78 @@ void C2_HOOK_FASTCALL InitSplash(FILE* pF) {
 
 // DrawTheGlow
 
-// STUB: CARMA2_HW 0x004fc740
+// FUNCTION: CARMA2_HW 0x004fc740
 void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec) {
-    NOT_IMPLEMENTED();
+    br_model* model;
+    br_model* b_model;
+    br_actor* actor;
+    br_actor* bonny;
+    int j;
+    int n;
+    int v;
+    int group;
+    tSmudged_vertex data[1000];
+
+    if (gAction_replay_mode != 0) {
+        return;
+    }
+    actor = pCar_spec->car_actor;
+    model = actor->model;
+    bonny = pCar_spec->car_actor;
+    n = 0;
+    if ((model->flags & BR_MODF_KEEP_ORIGINAL) || (model->flags & BR_MODF_UPDATEABLE)) {
+        ARStartPipingSession(ePipe_chunk_smudge);
+        j = 0;
+        for (group = 0; group < model->prepared->ngroups; group++) {
+            for (v = 0; v < model->prepared->groups[group].nvertices; v++) {
+                if ((model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
+                    data[n].vertex_index = j;
+                    data[n].light_index = -((tS32)(model->prepared->groups[group].vertex_colours[v] >> 24));
+                    n += 1;
+                    model->prepared->groups[group].vertex_colours[v] = 0;
+                    if (model->flags & BR_MODF_UPDATEABLE) {
+                        model->vertices[model->prepared->groups[group].vertex_user[v]].index = 0;
+                    }
+                    if (n >= REC2_ASIZE(data)) {
+                        group = model->prepared->ngroups;
+                        break;
+                    }
+                }
+                j += 1;
+            }
+        }
+        if (n != 0) {
+            AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
+        }
+        if (bonny != actor) {
+            /* This branch is never taken */
+            b_model = bonny->model;
+            n = 0;
+            j = 0;
+            for (group = 0; group < b_model->prepared->ngroups; group++) {
+                for (v = 0; v < b_model->prepared->groups[group].nvertices; v++) {
+                    if ((b_model->prepared->groups[group].vertex_colours[v] >> 24) != 0) {
+                        data[n].vertex_index = j;
+                        data[n].light_index = -b_model->prepared->groups[group].nvertices;
+                        n += 1;
+                        b_model->prepared->groups[group].vertex_colours[v] = 0;
+                        if (b_model->flags & BR_MODF_UPDATEABLE) {
+                            b_model->vertices[b_model->prepared->groups[group].vertex_user[v]].index = 0;
+                        }
+                        if (n >= REC2_ASIZE(data)) {
+                            group = b_model->prepared->groups[group].nvertices;
+                            break;
+                        }
+                    }
+                    j += 1;
+                }
+            }
+            if (n != 0) {
+                AddSmudgeToPipingSession(pCar_spec->car_ID, 0, n, data);
+            }
+        }
+        AREndPipingSession();
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004fc9c0
