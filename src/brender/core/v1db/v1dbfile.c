@@ -1307,14 +1307,14 @@ br_uint_32 C2_HOOK_CDECL BrModelSaveMany(char* filename, br_model** models, br_u
         return 0;
     }
     FopWrite_FILE_INFO(df, FILE_TYPE_MODEL);
-    if (models == NULL) {
-        BrModelEnum(NULL, (br_model_enum_cbfn*)&WriteModel, df);
-        m = BrModelCount(NULL);
-    } else {
+    if (models != NULL) {
         for (i = 0; i < num; i++) {
             WriteModel(models[i], df);
         }
         m = num;
+    } else {
+        BrModelEnum(NULL, (br_model_enum_cbfn*)&WriteModel, df);
+        m = BrModelCount(NULL);
     }
     DfClose(df);
     return m;
