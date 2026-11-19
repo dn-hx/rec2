@@ -1490,13 +1490,50 @@ void C2_HOOK_FASTCALL CompressMatrix34(tCompressed_matrix3* pCompressed_matrix3,
 // FUNCTION: CARMA2_HW 0x00516910
 // FUNCTION: CARMA2_SW 0x00511d80
 void C2_HOOK_FASTCALL ExpandMatrix34(br_matrix34* pMatrix, const tCompressed_matrix3* pCompressed, int pInactive) {
+    br_scalar scale;
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
 
     ExpandVector3((br_vector3*)pMatrix->m[0], &pCompressed->m0, -1.1f, 1.1f);
-    BrVector3Normalise((br_vector3*)pMatrix->m[0], (br_vector3*)pMatrix->m[0]);
+    scale = BR_LENGTH3(pMatrix->m[0][0], pMatrix->m[0][1], pMatrix->m[0][2]);
+    if (scale > BR_SCALAR_EPSILON * 2) {
+        scale = (br_scalar)(1.0 / scale);
+        x = pMatrix->m[0][0];
+        y = pMatrix->m[0][1];
+        z = pMatrix->m[0][2];
+        pMatrix->m[0][0] = x * scale;
+        pMatrix->m[0][1] = y * scale;
+        pMatrix->m[0][2] = z * scale;
+    } else {
+        BrVector3Set((br_vector3*)pMatrix->m[0], 1.0f, 0.0f, 0.0f);
+    }
     ExpandVector3((br_vector3*)pMatrix->m[1], &pCompressed->m1, -1.1f, 1.1f);
-    BrVector3Normalise((br_vector3*)pMatrix->m[1], (br_vector3*)pMatrix->m[1]);
+    scale = BR_LENGTH3(pMatrix->m[1][0], pMatrix->m[1][1], pMatrix->m[1][2]);
+    if (scale > BR_SCALAR_EPSILON * 2) {
+        scale = (br_scalar)(1.0 / scale);
+        x = pMatrix->m[1][0];
+        y = pMatrix->m[1][1];
+        z = pMatrix->m[1][2];
+        pMatrix->m[1][0] = x * scale;
+        pMatrix->m[1][1] = y * scale;
+        pMatrix->m[1][2] = z * scale;
+    } else {
+        BrVector3Set((br_vector3*)pMatrix->m[1], 1.0f, 0.0f, 0.0f);
+    }
     BrVector3Cross((br_vector3*)pMatrix->m[2], (br_vector3*)pMatrix->m[0], (br_vector3*)pMatrix->m[1]);
-    BrVector3Normalise((br_vector3*)pMatrix->m[2], (br_vector3*)pMatrix->m[2]);
+    scale = BR_LENGTH3(pMatrix->m[2][0], pMatrix->m[2][1], pMatrix->m[2][2]);
+    if (scale > BR_SCALAR_EPSILON * 2) {
+        scale = (br_scalar)(1.0 / scale);
+        x = pMatrix->m[2][0];
+        y = pMatrix->m[2][1];
+        z = pMatrix->m[2][2];
+        pMatrix->m[2][0] = x * scale;
+        pMatrix->m[2][1] = y * scale;
+        pMatrix->m[2][2] = z * scale;
+    } else {
+        BrVector3Set((br_vector3*)pMatrix->m[2], 1.0f, 0.0f, 0.0f);
+    }
     ExpandVector3((br_vector3*)pMatrix->m[3], &pCompressed->p, -300.0f, 300.0f);
     if (pInactive) {
         BrVector3Set((br_vector3*)pMatrix->m[3],
