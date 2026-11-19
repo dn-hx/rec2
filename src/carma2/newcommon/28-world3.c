@@ -23,6 +23,9 @@
 #include "33-depth.h"
 
 #include <string.h>
+extern const br_vector3 g_Ped_z_unit_vector;
+extern const br_vector3 g_Ped_y_unit_vector;
+extern const br_vector3 g_Ped_x_unit_vector;
 
 // GLOBAL: CARMA2_HW 0x006b75c0
 // GLOBAL: CARMA2_SW 0x006ae2a0
@@ -106,9 +109,23 @@ const char* gGroove_object_names[4] = {
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
 
-// GLOBAL: CARMA2_HW 0x0068b854
-br_actor* gGroove_by_proxy_actor;
+// FUNCTION: CARMA2_HW 0x00403f90
+void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    float z;
 
+    pDest->v[0] = pA->v[1] * pB->v[2] - pA->v[2] * pB->v[1];
+    pDest->v[1] = pA->v[2] * pB->v[0] - pA->v[0] * pB->v[2];
+    pDest->v[2] = z = pA->v[0] * pB->v[1] - pA->v[1] * pB->v[0];
+    if ((float)fabs(pDest->v[0]) < 2.384186e-6f && (float)fabs(pDest->v[1]) < 2.384186e-6f && (float)fabs(z) < 2.384186e-6f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[1]) && (float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
+        } else if ((float)fabs(pA->v[1]) <= (float)fabs(pA->v[0]) && (float)fabs(pA->v[1]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_y_unit_vector);
+        } else {
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
 void C2_HOOK_FASTCALL InitTreeSurgery(void) {
