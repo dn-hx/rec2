@@ -26,6 +26,13 @@
 #include <string.h>
 #include <winsock.h>
 #include <wsipx.h>
+extern void C2_HOOK_FASTCALL PDNetSetPlayerSystemInfo(tNet_game_player_info* pPlayer, void* pSender_address);
+extern int C2_HOOK_FASTCALL PDNetHostGame(tNet_game_details* pDetails, char* pHost_name, void** pHost_address);
+extern tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails);
+extern void C2_HOOK_FASTCALL InitNetworkShapesStuff(tCar_crush_spec* pCar_crush);
+extern void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost);
+extern int gINT_00690c30;;
+extern int gINT_0068d968;;
 
 // GLOBAL: CARMA2_HW 0x0068d95c
 // GLOBAL: CARMA2_SW 0x006879b4
