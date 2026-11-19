@@ -15,6 +15,8 @@
 #ifdef REC2_HW
 extern int gShade_list[16];
 extern int* gShade_table;
+extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
+
 #endif
 #ifdef REC2_SW
 extern br_pixelmap* gShade_list[16];
