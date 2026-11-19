@@ -512,7 +512,7 @@ extern void C2_HOOK_FASTCALL WeldCar(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* pModel, const br_vector3* pSrc, const float* pScalars);
 
-// ARApplyCrush
+extern void C2_HOOK_FASTCALL ARApplyCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 // ARUndoCrush
 
