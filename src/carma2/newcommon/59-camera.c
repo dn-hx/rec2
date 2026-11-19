@@ -22,6 +22,12 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern int C2_HOOK_FASTCALL FindFacesInBox(tBounds* pBounds, tFace_ref* pFace_list, int pMax_face, tWorld_callbacks* pWorld_callbacks);
+extern void C2_HOOK_FASTCALL FindFace(br_vector3* pPosition, br_vector3* pDir, br_vector3* nor, br_scalar* t, br_material** material);
+extern void C2_HOOK_FASTCALL DrMatrix34ApplyLPInverse(br_vector3* dest, const br_vector3* source, const br_matrix34* matrix);
+extern int gNum_active_non_cars;;
+extern int gCamera_has_collided;;
+extern tNon_car_spec* gActive_non_car_list[99];;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
