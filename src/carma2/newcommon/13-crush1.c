@@ -2369,15 +2369,6 @@ void C2_HOOK_FASTCALL UnBendModel(br_model* pModel, br_vector3* pTranslation, vo
     }
 }
 
-typedef struct tUnbend_model_context_local {
-    br_matrix34 matrix;
-    br_vector3 field_0x30;
-    br_vector3 field_0x3c;
-    br_vector3 field_0x48;
-    br_vector3 field_0x54;
-    tBend_data_local* bend;
-    tCar_spec* car;
-} tUnbend_model_context_local;
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
