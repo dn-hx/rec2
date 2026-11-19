@@ -44,6 +44,7 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern br_vector3 gZero_v__car;  // FIXME: make const?;
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
