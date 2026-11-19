@@ -744,10 +744,6 @@ void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004207a0
-int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data) {
-    NOT_IMPLEMENTED();
-}
 void C2_HOOK_FASTCALL MungeCarsMass(tCar_spec* pCar, br_scalar pFactor) {
 
     pCar->collision_info->M *= pFactor;
