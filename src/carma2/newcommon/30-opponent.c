@@ -153,6 +153,14 @@ void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...) {
 #pragma auto_inline(off)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004a95f0
+void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet) {
+    extern int gChallenger_index__opponent;
+
+    if (pSet) {
+        gChallenger_index__opponent = pIndex;
+    }
+}
 // STUB: CARMA2_HW 0x004aa900
 // STUB: CARMA2_SW 0x004a6a70
 void C2_HOOK_FASTCALL ProcessCurrentObjective(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
