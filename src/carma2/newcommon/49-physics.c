@@ -29,6 +29,8 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern float gFLOAT_00692dd4;;
+extern float gFLOAT_00692dd0;;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
