@@ -462,10 +462,105 @@ void C2_HOOK_FASTCALL DronePreCollisionStuff(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00451e70
+// FUNCTION: CARMA2_HW 0x00451e70
 // STUB: CARMA2_SW 0x00451c00
 void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone) {
-    NOT_IMPLEMENTED();
+    float delta_time;
+    float flt_unk0;
+    float flt_unk1;
+    int left_turn;
+    int i;
+
+    delta_time = gAction_replay_mode ? gFrame_period * 0.001 : gDrone_delta_time;
+    flt_unk0 = gAction_replay_mode ? pDrone->field_0xe0 : pDrone->field_0x74;
+    flt_unk1 = gAction_replay_mode ? pDrone->field_0xe4 : pDrone->field_0x48;
+    if (gAction_replay_mode) {
+        if (flt_unk1 < gDrone_render_zero) {
+            flt_unk1 = -flt_unk1;
+            left_turn = 0;
+        } else {
+            left_turn = 1;
+        }
+    } else {
+        left_turn = pDrone->left_turn;
+    }
+    if (pDrone->funk_grooves == NULL) {
+        return;
+    }
+    if (!gAction_replay_mode && (pDrone->current_state == 3 || pDrone->current_state == 4)) {
+        return;
+    }
+    for (i = 0; i < pDrone->funk_grooves->count; i++) {
+        tFunk_groove* groove = &pDrone->funk_grooves->items[i];
+
+        switch ((tU8)groove->type) {
+        case 0:
+            {
+                float angle;
+
+                if (groove->spinny.speed_control) {
+                    angle = delta_time * flt_unk1 / groove->spinny.omega;
+                } else {
+                    angle = gDrone_render_zero;
+                }
+                if (!groove->spinny.reverse) {
+                    angle = -angle;
+                }
+                switch (groove->spinny.axis) {
+                case 0:
+                    BrMatrix34PreRotateX(&groove->actor->t.t.mat, (br_angle)(angle * 65536.f));
+                    break;
+                case 1:
+                    BrMatrix34PreRotateY(&groove->actor->t.t.mat, (br_angle)(angle * 65536.f));
+                    break;
+                case 2:
+                    BrMatrix34PreRotateZ(&groove->actor->t.t.mat, (br_angle)(angle * 65536.f));
+                    break;
+                }
+            }
+            break;
+        case 1:
+            {
+                float f;
+                float angle;
+
+                if (gAction_replay_mode) {
+                    f = (10.f - (10.f < (pDrone->field_0xe8 >= gDrone_render_zero ? pDrone->field_0xe8 : gDrone_render_zero) ? 10.f : (pDrone->field_0xe8 >= gDrone_render_zero ? pDrone->field_0xe8 : gDrone_render_zero))) * 0.014285714f;
+                } else if (pDrone->field_0xdc == 2) {
+                    f = (10.f - (10.f < (pDrone->h_radius >= gDrone_render_zero ? pDrone->h_radius : gDrone_render_zero) ? 10.f : (pDrone->h_radius >= gDrone_render_zero ? pDrone->h_radius : gDrone_render_zero))) * 0.014285714f;
+                } else {
+                    f = gDrone_render_zero;
+                }
+                if (flt_unk0 < 0.5) {
+                    angle = flt_unk0;
+                } else {
+                    angle = 1.f - flt_unk0;
+                }
+                angle = angle * f;
+                angle = angle + angle;
+                if (groove->steering.reverse) {
+                    angle = -angle;
+                }
+                if (left_turn) {
+                    angle = -angle;
+                }
+                groove->actor->t.t.mat.m[0][0] = 1.f;
+                groove->actor->t.t.mat.m[0][1] = 0.f;
+                groove->actor->t.t.mat.m[0][2] = 0.f;
+                groove->actor->t.t.mat.m[1][0] = 0.f;
+                groove->actor->t.t.mat.m[1][1] = 1.f;
+                groove->actor->t.t.mat.m[1][2] = 0.f;
+                groove->actor->t.t.mat.m[2][0] = 0.f;
+                groove->actor->t.t.mat.m[2][1] = 0.f;
+                groove->actor->t.t.mat.m[2][2] = 1.f;
+                BrMatrix34PreRotateY(&groove->actor->t.t.mat, (br_angle)(angle * 65536.f));
+                if (pDrone->field_0xdc == 2) {
+                    DoNotDprintf("STEERING GROOVE: rot %f, h_radius %f, reverse %d, left_turn %d", angle, pDrone->h_radius, groove->steering.reverse, pDrone->left_turn);
+                }
+            }
+            break;
+        }
+    }
 }
 
 #ifdef REC2_MATCHING
