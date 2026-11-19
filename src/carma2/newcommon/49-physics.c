@@ -29,6 +29,7 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern int C2_HOOK_FASTCALL CheckSingleEdgeWithSphere(br_vector3* pEdgeStart, br_vector3* pEdgeEnd, tPhysics_object* pObject, float* pSphere, float* pWalls, int pCount, br_vector3* pStart, br_vector3* pEnd, tFace_ref* pFace);
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
