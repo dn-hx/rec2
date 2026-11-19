@@ -27,6 +27,8 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern int gSplash_next;;
+extern int gSpark_next;;
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
