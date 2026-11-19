@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern void C2_HOOK_FASTCALL SingleSplash(tPhysics_object* pObject, const br_matrix34* pMatrix, const br_vector3* pVelocity, const br_vector3* pNormal_velocity, const br_vector3* pOmega, const br_vector3* pPoint, const br_vector3* pNormal, tU32 pTime);
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
