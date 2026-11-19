@@ -341,6 +341,8 @@ void C2_HOOK_STDCALL SmoothingCreased(br_model* model, br_scalar crease_limit, p
 // FUNCTION: CARMA2_SW 0x0051c300
 void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_model* model) {
     br_vertex* srcv;
+    br_scalar len;
+    br_scalar inv;
 
     srcv = &model->vertices[src->v];
 
@@ -350,8 +352,17 @@ void C2_HOOK_STDCALL CopyVertex(v11group* group, int v, prep_vertex* src, br_mod
 
     group->vertices[v].map = srcv->map;
 
-    /* FIXME: use inlined function */
-    BrVector3Normalise(&group->vertices[v].n, &src->n);
+    len = (br_scalar)sqrt(src->n.v[1] * src->n.v[1] + src->n.v[2] * src->n.v[2] + src->n.v[0] * src->n.v[0]);
+    if (len > 2.384185791015625e-07f) {
+        inv = (br_scalar)(1.0 / len);
+        group->vertices[v].n.v[0] = src->n.v[0] * inv;
+        group->vertices[v].n.v[1] = src->n.v[1] * inv;
+        group->vertices[v].n.v[2] = src->n.v[2] * inv;
+    } else {
+        group->vertices[v].n.v[0] = 1.0f;
+        group->vertices[v].n.v[1] = 0.0f;
+        group->vertices[v].n.v[2] = 0.0f;
+    }
 
     group->vertex_colours[v] = BR_COLOUR_RGBA(srcv->red, srcv->grn, srcv->blu, srcv->index);
     group->vertex_user[v] = src->v;
