@@ -34,7 +34,7 @@ extern int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* p
 
 // AdjustEdgePlanes
 
-// AddPointToPolyhedron
+extern int C2_HOOK_FASTCALL AddPointToPolyhedron(tCollision_shape_polyhedron_data* pPolyhedron, br_vector3* pVertex, tU8 pVertex_index, tPolyhedron_edge_indexes* pEdge_to_plane_indices);
 
 #ifdef REC2_MATCHING
 extern undefined4* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_points);
