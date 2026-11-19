@@ -628,6 +628,25 @@ void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_i
 
 // CheckPointVelocities
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004c27c0
+void C2_HOOK_FASTCALL FUN_004c27c0(tPhysics_object* pObject, float pDt) {
+    br_vector3 omega_world;
+
+    pObject->rotate_omega.v[0] = pObject->omega.v[0];
+    pObject->rotate_omega.v[1] = pObject->omega.v[1];
+    pObject->rotate_omega.v[2] = pObject->omega.v[2];
+    BrMatrix34ApplyV(&omega_world, &pObject->omega, &pObject->actor->t.t.mat);
+    SimpleRotate(pObject, pDt);
+    BrMatrix34TApplyV(&pObject->omega, &omega_world, &pObject->actor->t.t.mat);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 // FUNCTION: CARMA2_HW 0x004c2a10
 // FUNCTION: CARMA2_SW 0x004bf140
 void C2_HOOK_FASTCALL WriteNewPositions(tPhysics_object* pObject) {
