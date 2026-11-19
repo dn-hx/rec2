@@ -4246,9 +4246,9 @@ typedef struct tCrush_net_full_detach_bit_list_item {
 } tCrush_net_full_detach_bit_list_item;
 
 typedef struct tCrush_net_reattach_bit_list_item {
-    tCar_spec* actor;
+    br_actor* actor;
     tCar_spec* car;
-    undefined4 field_0x8;
+    tU32 time;
 } tCrush_net_reattach_bit_list_item;
 
 typedef struct tCrush_detach_list_item {

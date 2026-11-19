@@ -67,6 +67,8 @@ br_scalar gFloat_00589b28 = 5.0f;
 #include "52-errors.h"
 #include "57-drone.h"
 #include <ctype.h>
+extern float gFLOAT_00589b48;
+extern br_scalar gCrushReattachDistanceSquared;
 
 // GLOBAL: CARMA2_HW 0x00589a2c
 br_scalar gFLOAT_00589a2c = 0.5f;
@@ -510,7 +512,7 @@ void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec) {
     gCount_net_crush_full_detach_bit_list = new_count;
 
     for (i = 0, new_count = 0; i < gCount_net_crush_reattach_bit_list; i++) {
-        if (gNet_crush_reattach_bit_list[i].actor != pCar_spec) {
+        if (gNet_crush_reattach_bit_list[i].car != pCar_spec) {
             if (new_count != i) {
                 gNet_crush_reattach_bit_list[new_count] = gNet_crush_reattach_bit_list[i];
             }
@@ -2330,11 +2332,6 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // RepairCarCollisionShapes
 
-// STUB: CARMA2_HW 0x0043ace0
-float C2_HOOK_FASTCALL RepairCar2(tCar_spec* pCar, tU32 pDelta, float* pOut) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x0043b740
 void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
     NOT_IMPLEMENTED();
@@ -2623,7 +2620,7 @@ void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
     }
     gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
     gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
-    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].field_0x8 = pContents->reattach_all_bits.time;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].time = pContents->reattach_all_bits.time;
     gCount_net_crush_reattach_bit_list += 1;
 }
 // STUB: CARMA2_HW 0x0043ceb0

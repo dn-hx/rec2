@@ -12,6 +12,16 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float* total_displacement;
+    float displacement;
+} tCrush_displacement_context_local;
+
+extern intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext);
+extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
+
 extern int gCredits_wasting_car[3];
 extern float gCredits_per_unit_car_damage[3];
 extern int gTime_rolling_car[3];
