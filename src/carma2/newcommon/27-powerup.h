@@ -263,7 +263,7 @@ extern void C2_HOOK_FASTCALL MinePreCollisionStuff(void);
 
 // ActivateMine
 
-// PositionMine
+extern void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar);
 
 // MineSound
 
