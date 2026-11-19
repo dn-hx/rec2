@@ -329,9 +329,85 @@ void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
 
 // DoSubaquaCam
 
-// STUB: CARMA2_HW 0x00446340
+// FUNCTION: CARMA2_HW 0x00446340
 void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    NOT_IMPLEMENTED();
+    float f_time;
+    int r;
+    // GLOBAL: CARMA2_HW 0x005911d0
+    static float mag00 = 0.03f;
+    // GLOBAL: CARMA2_HW 0x005911d4
+    static float mag01 = 0.03f;
+    // GLOBAL: CARMA2_HW 0x005911d8
+    static float mag02 = 0.03f;
+    // GLOBAL: CARMA2_HW 0x005911dc
+    static float mag10 = 0.2f;
+    // GLOBAL: CARMA2_HW 0x005911e0
+    static float mag11 = 0.07f;
+    // GLOBAL: CARMA2_HW 0x005911e4
+    static float mag12 = 0.03f;
+    // GLOBAL: CARMA2_HW 0x005911e8
+    static float mag20 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x005911ec
+    static float mag21 = 0.03f;
+    // GLOBAL: CARMA2_HW 0x005911f0
+    static float mag22 = 0.01f;
+    // GLOBAL: CARMA2_HW 0x005911f4
+    static float period00 = 550.f;
+    // GLOBAL: CARMA2_HW 0x005911f8
+    static float period01 = 700.f;
+    // GLOBAL: CARMA2_HW 0x005911fc
+    static float period02 = 200.f;
+    // GLOBAL: CARMA2_HW 0x00591200
+    static float period10 = 100.f;
+    // GLOBAL: CARMA2_HW 0x00591204
+    static float period11 = 1300.f;
+    // GLOBAL: CARMA2_HW 0x00591208
+    static float period12 = 500.f;
+    // GLOBAL: CARMA2_HW 0x0059120c
+    static float period20 = 800.f;
+    // GLOBAL: CARMA2_HW 0x00591210
+    static float period21 = 1500.f;
+    // GLOBAL: CARMA2_HW 0x00591214
+    static float period22 = 300.f;
+
+    UpdateTintedPolys();
+    if (gOn_drugs && !gAction_replay_mode) {
+        TurnTintedPolyOn(gHud_tinted2);
+        f_time = (float)(int)PDGetTotalTime();
+        pCamera->t.t.mat.m[0][0] += FastScalarSin((int)fmod(f_time / period00 * 360.f, 360.f)) * mag00;
+        pCamera->t.t.mat.m[0][1] += FastScalarSin((int)fmod(f_time / period01 * 360.f, 360.f)) * mag01;
+        pCamera->t.t.mat.m[0][2] += FastScalarSin((int)fmod(f_time / period02 * 360.f, 360.f)) * mag02;
+        pCamera->t.t.mat.m[1][0] += FastScalarSin((int)fmod(f_time / period10 * 360.f, 360.f)) * mag10;
+        pCamera->t.t.mat.m[1][1] += FastScalarSin((int)fmod(f_time / period11 * 360.f, 360.f)) * mag11;
+        pCamera->t.t.mat.m[1][2] += FastScalarSin((int)fmod(f_time / period12 * 360.f, 360.f)) * mag12;
+        pCamera->t.t.mat.m[2][0] += FastScalarSin((int)fmod(f_time / period20 * 360.f, 360.f)) * mag20;
+        pCamera->t.t.mat.m[2][1] += FastScalarSin((int)fmod(f_time / period21 * 360.f, 360.f)) * mag21;
+        pCamera->t.t.mat.m[2][2] += FastScalarSin((int)fmod(f_time / period22 * 360.f, 360.f)) * mag22;
+    } else {
+        TurnTintedPolyOff(gHud_tinted2);
+        gLast_camera_special_volume = FindSpecialVolume((br_vector3*)pCamera_to_world->m[3], gLast_camera_special_volume, 0);
+        if (gLast_camera_special_volume != NULL) {
+            if (gLast_camera_special_volume->camera_special_effect_index == 0) {
+                DoWobbleCamera(pCamera);
+            }
+        }
+        if (gHas_sky_texture && gSky_on) {
+            if ((gProgram_state.current_depth_effect.sky_texture != NULL) == (gLast_camera_special_volume != NULL && gLast_camera_special_volume->sky_col == -2)) {
+                ToggleSkyQuietly();
+            }
+        }
+    }
+    SetTintedPolyRefMaterial(gHud_tinted1, (br_vector3*)pCamera_to_world->m[3]);
+    r = 0;
+    if (InWater(gHud_tinted1)) {
+        TurnTintedPolyOn(gHud_tinted1);
+        r = 1;
+    } else {
+        TurnTintedPolyOff(gHud_tinted1);
+    }
+    if (r) {
+        DoWobbleCamera(pCamera);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00446890
