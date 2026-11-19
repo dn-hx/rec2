@@ -1703,7 +1703,26 @@ void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
     car->steering_angle = (br_scalar)((tS16)(*pChunk)->data.graphical_wheel_stuff.steering_angle * (60.0 / 32767.0));
 }
 
-// ApplyDamage
+// FUNCTION: CARMA2_HW 0x004c9770
+void C2_HOOK_FASTCALL ApplyDamage(tPipe_chunk** pChunk) {
+    tCar_spec* car;
+    tU32 code = ((tPipe_chunk_damage*)*pChunk)->field_0x0;
+    int* p;
+    int i;
+
+    if ((code & 0xffffff00u) == 0) {
+        car = &gProgram_state.current_car;
+    } else {
+        car = GetCarSpec(code >> 8, code & 0xffu);
+    }
+
+    p = (int*)((tU8*)car + 0x4e0);
+
+    for (i = 0; i < 12; i++) {
+        *p += ((tPipe_chunk_damage*)*pChunk)->field_0x4[i];
+        p = (int*)((tU8*)p + 0x2c);
+    }
+}
 
 // ApplySpecial
 
