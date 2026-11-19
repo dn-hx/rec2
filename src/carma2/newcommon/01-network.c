@@ -26,6 +26,10 @@
 #include <string.h>
 #include <winsock.h>
 #include <wsipx.h>
+extern void C2_HOOK_FASTCALL ToggleReplay(int* pArg1, int* pArg2);
+extern int C2_HOOK_FASTCALL PHILRemoveObject(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL DisposeCar(tCar_spec* pCar_spec, int pOwner);
+extern void C2_HOOK_FASTCALL ARResetPiping(void);
 
 // GLOBAL: CARMA2_HW 0x0068d95c
 // GLOBAL: CARMA2_SW 0x006879b4
