@@ -42,6 +42,8 @@
 
 #define BrScalarToFraction(f) f
 #define BrFractionToScalar(f) f
+extern br_fixed_ls C2_HOOK_CDECL FUN_00537304(br_fixed_ls a, br_fixed_ls b);
+
 #endif
 
 br_fixed_ls C2_HOOK_CDECL BrFixedAbs(br_fixed_ls a);
