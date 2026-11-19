@@ -12,6 +12,8 @@
 #include "platform.h"
 
 #include <string.h>
+extern br_pixelmap* gMini_map_glowing_line_palettes[3];;
+extern const int gMini_map_glowing_line_animation_indices[5];
 
 // FUNCTION: CARMA2_HW 0x0047b450
 void C2_HOOK_FASTCALL DRDrawLine(br_pixelmap* pDestn, int pX1, int pY1, int pX2, int pY2, int pColour) {
