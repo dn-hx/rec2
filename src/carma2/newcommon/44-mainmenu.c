@@ -21,14 +21,67 @@
 #include "38-flicplay.h"
 #include "41-utility.h"
 #include "platform.h"
+extern void C2_HOOK_FASTCALL ClearEntireScreen(void);
 
 // QuitVerifyStart
 
 // QuitVerifyDone
 
-// STUB: CARMA2_HW 0x00494450
+// GLOBAL: CARMA2_HW 0x00659270
+tInterface_spec gQuitVerify_spec;
+
+// GLOBAL: CARMA2_HW 0x0068c850
+int gMouse_was_started__mainmenu = 0;
+
+// GLOBAL: CARMA2_HW 0x0068c854
+int gReplace_background = 0;
+
+// FUNCTION: CARMA2_HW 0x00494450
 int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background) {
-    NOT_IMPLEMENTED();
+    int from_race;
+    int result;
+
+    from_race = 0;
+    if (gAusterity_mode != 0) {
+        return 1;
+    }
+    if (gProgram_state.racing != 0) {
+        FadePaletteDown();
+        ClearEntireScreen();
+        GoingToInterfaceFromRace();
+        from_race = 1;
+        gProgram_state.racing = 0;
+    }
+    switch (IRandomBetween(1, 3)) {
+    case 1:
+        gQuitVerify_spec.first_opening_flic = 0x82;
+        break;
+    case 2:
+        gQuitVerify_spec.first_opening_flic = 0x83;
+        break;
+    case 3:
+        gQuitVerify_spec.first_opening_flic = 0x84;
+        break;
+    }
+    gMouse_was_started__mainmenu = gMouse_started;
+    if (gMouse_started != 0) {
+        RemoveTransientBitmaps(1);
+        EndMouseCursor();
+    }
+    TurnOffPanelFlics();
+    gReplace_background = pReplace_background;
+    DRS3StopOutletSound(gEffects_outlet);
+    LoadInterfaceStuff(from_race);
+    result = DoInterfaceScreen(&gQuitVerify_spec, 0, 0);
+    if (gMouse_was_started__mainmenu != 0) {
+        LoadInterfaceStuff(from_race);
+        StartMouseCursor();
+    }
+    if (from_race) {
+        GoingBackToRaceFromInterface();
+        gProgram_state.racing = 1;
+    }
+    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x00494540
