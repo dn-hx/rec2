@@ -122,7 +122,7 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 
 // ReceivedNonCarPosition
 
-// ReceivedNonCar
+extern void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents);
 
 #ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
 extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents);
