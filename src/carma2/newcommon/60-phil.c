@@ -12,6 +12,7 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+extern int gFace_num__car;
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
@@ -500,3 +501,59 @@ void C2_HOOK_FASTCALL PHILApplyPHILObject(tPhysics_object* pObject, const br_mat
     BrMatrix34Copy(&pObject->actor->t.t.mat, pMatrix);
 }
 
+
+// FUNCTION: CARMA2_HW 0x004b9f90
+int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original) {
+    tPhysics_object* obj;
+    tPhysics_object* child;
+    tPhysics_object* current;
+
+    if (pObject->field_0xf4.min.v[0] - pList->field_0xf4.max.v[0] > 0.01
+        || pObject->field_0xf4.min.v[1] - pList->field_0xf4.max.v[1] > 0.01
+        || pObject->field_0xf4.min.v[2] - pList->field_0xf4.max.v[2] > 0.01
+        || pList->field_0xf4.min.v[0] - pObject->field_0xf4.max.v[0] > 0.01
+        || pList->field_0xf4.min.v[1] - pObject->field_0xf4.max.v[1] > 0.01
+        || pList->field_0xf4.min.v[2] - pObject->field_0xf4.max.v[2] > 0.01) {
+        return 0;
+    }
+    obj = pList;
+    if (obj->disable_move_rotate) {
+        while (obj->parent != NULL && obj->physics_joint1 != NULL && obj->physics_joint1->type != eJoint_none) {
+            obj = obj->parent;
+        }
+        obj->disable_move_rotate = 0;
+        obj->box_face_ref = gFace_num__car - 2;
+        if (obj->child != NULL || obj->physics_joint1 != NULL || obj->physics_joint2 != NULL) {
+            if (obj->field_0x218 == 0) {
+                MoveJointedObject(obj, 0.f);
+            }
+            for (child = obj->child; child != NULL; child = child->next) {
+                if (child->disable_move_rotate) {
+                    child->disable_move_rotate = 0;
+                    child->box_face_ref = gFace_num__car - 2;
+                }
+                if (child->child != NULL) {
+                    MakeObjectListDoSomething(child->child);
+                }
+            }
+        }
+        for (current = pList_original; current != NULL; current = current->next) {
+            if (current->disable_move_rotate) {
+                CheckForObjectHierachyTouchingAnotherObject(obj, current, pList_original);
+                child = obj->child;
+                if (child != NULL && current->disable_move_rotate) {
+                    while (child != NULL) {
+                        if (CheckForObjectHierachyTouchingAnotherObject(child, current, pList_original)) {
+                            break;
+                        }
+                        child = child->next;
+                    }
+                }
+                if (current->child != NULL) {
+                    CheckForObjectHierachyTouchingObjectList(obj, current->child, pList_original);
+                }
+            }
+        }
+    }
+    return 1;
+}
