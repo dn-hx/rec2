@@ -131,7 +131,7 @@ extern int C2_HOOK_FASTCALL DrawSinglePowerupIcon(int pDraw, int pTime, tPowerup
 
 extern void C2_HOOK_FASTCALL ToggleInventory(void);
 
-// RightInventory
+extern void C2_HOOK_FASTCALL RightInventory(void);
 
 // LeftInventory
 
