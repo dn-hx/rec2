@@ -314,10 +314,49 @@ void C2_HOOK_FASTCALL RemoveExplosions(tCar_spec* pCar_spec) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004eb180
+// FUNCTION: CARMA2_HW 0x004eb180
 // STUB: CARMA2_SW 0x004e6e60
 void C2_HOOK_FASTCALL ApplyInitialMovement(tMovement_spec* pSpeed_info, br_vector3* pImpactee_velocity, br_vector3* pVelocity, br_vector3* pOmega, float pScale, br_vector3* pNormal, br_vector3* pSource_position, br_vector3* pPosition) {
-    NOT_IMPLEMENTED();
+    float* f = (float*)pSpeed_info;
+    br_vector3 unit;
+    float len;
+    int i;
+
+    pVelocity->v[0] = f[2] * pImpactee_velocity->v[0];
+    pVelocity->v[1] = pImpactee_velocity->v[1] * f[2];
+    pVelocity->v[2] = pImpactee_velocity->v[2] * f[2];
+
+    if (pSource_position != NULL && pPosition != NULL && f[0] != 0.f && f[1] != 0.f) {
+        BrVector3Sub(&unit, pSource_position, pPosition);
+        len = BrVector3Length(&unit);
+        unit.v[0] = FRandomBetween(f[0], f[1]) / len * unit.v[0];
+        unit.v[1] = FRandomBetween(f[0], f[1]) / len * unit.v[1];
+        unit.v[2] = FRandomBetween(f[0], f[1]) / len * unit.v[2];
+        pVelocity->v[0] += unit.v[0];
+        pVelocity->v[1] += unit.v[1];
+        pVelocity->v[2] += unit.v[2];
+    }
+
+    for (i = 0; i < 3; i++) {
+        pVelocity->v[i] = (FRandomPosNeg(f[3]) + pVelocity->v[i]) * pScale;
+        pOmega->v[i] = FRandomBetween(0.f, 1.f);
+    }
+
+    pVelocity->v[1] += FRandomBetween(0.f, f[4]);
+
+    BrVector3Normalise(&unit, pNormal);
+    unit.v[0] = FRandomBetween(0.f, f[5]) * unit.v[0];
+    unit.v[1] = FRandomBetween(0.f, f[5]) * unit.v[1];
+    unit.v[2] = FRandomBetween(0.f, f[5]) * unit.v[2];
+    pVelocity->v[0] += unit.v[0];
+    pVelocity->v[1] += unit.v[1];
+    pVelocity->v[2] += unit.v[2];
+
+    BrVector3Normalise(pOmega, pOmega);
+
+    pOmega->v[0] *= FRandomPosNeg(pScale * f[6]);
+    pOmega->v[1] *= FRandomPosNeg(pScale * f[6]);
+    pOmega->v[2] *= FRandomPosNeg(pScale * f[6]);
 }
 
 #ifdef REC2_MATCHING
