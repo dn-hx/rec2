@@ -485,6 +485,9 @@ void C2_HOOK_STDCALL ActorToBounds(br_bounds* dest, br_actor* ap, br_model* mode
     br_bounds new;
     br_matrix34 m2v;
     int i;
+    int j;
+    br_scalar sa;
+    br_scalar sb;
 
     if (ap->model != NULL) {
         model = ap->model;
@@ -494,7 +497,23 @@ void C2_HOOK_STDCALL ActorToBounds(br_bounds* dest, br_actor* ap, br_model* mode
     BrMatrix34PreTransform(&v1db.model_to_view, &ap->t);
 
     if (ap->type == BR_ACTOR_MODEL) {
-        BrMatrix34ApplyBounds(&new, &model->bounds, &v1db.model_to_view);
+        new.min.v[0] = new.max.v[0] = v1db.model_to_view.m[3][0];
+        new.min.v[1] = new.max.v[1] = v1db.model_to_view.m[3][1];
+        new.min.v[2] = new.max.v[2] = v1db.model_to_view.m[3][2];
+
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                sa = v1db.model_to_view.m[j][i] * model->bounds.min.v[j];
+                sb = v1db.model_to_view.m[j][i] * model->bounds.max.v[j];
+                if (sa < sb) {
+                    new.min.v[i] += sa;
+                    new.max.v[i] += sb;
+                } else {
+                    new.min.v[i] += sb;
+                    new.max.v[i] += sa;
+                }
+            }
+        }
 
         for (i = 0; i < 3; i++) {
             if (new.min.v[i] < dest->min.v[i]) {
