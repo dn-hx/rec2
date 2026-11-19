@@ -22,6 +22,10 @@
 #include "globvrme.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+extern int gUNK_006792f8;;
+extern undefined2 gUNK_006792f4;;
+extern br_angle gOld_yaw__car;;
+extern int gCamera_mode;;
 
 // GLOBAL: CARMA2_HW 0x0058f5fc
 // GLOBAL: CARMA2_SW 0x0058a5fc
@@ -421,6 +425,13 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex) {
 // NormalPositionExternalCamera
 
 // PositionPedCam
+
+// GLOBAL: CARMA2_HW 0x0058f63c
+static int elapsed_time = -1;
+
+// GLOBAL: CARMA2_HW 0x00679338
+static br_vector3 old_vn;
+
 
 // PositionDroneCam
 
