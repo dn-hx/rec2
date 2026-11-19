@@ -113,7 +113,7 @@ extern void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP
 
 extern void C2_HOOK_FASTCALL MungeSoundGenerators(void);
 
-// MungeEnvironmentalSound
+extern void C2_HOOK_FASTCALL MungeEnvironmentalSound(void);
 
 extern void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pName, int pIndex);
 
