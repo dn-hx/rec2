@@ -1455,9 +1455,137 @@ void C2_HOOK_FASTCALL SetUpDetachedBitObject(tPhysics_object* pObject, br_actor*
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00437480
+#define NormaliseVector3InPlace(v1, v2)                                           \
+    do {                                                                          \
+        br_scalar __normalise_scale;                                              \
+        __normalise_scale = (br_scalar)sqrt(((v2)->v[0]) * ((v2)->v[0])           \
+                + ((v2)->v[1]) * ((v2)->v[1]) + ((v2)->v[2]) * ((v2)->v[2]));     \
+        if (__normalise_scale > gFLT_EPSILON_00589a5c) {                          \
+            __normalise_scale = (br_scalar)(gDouble_00589a60 / __normalise_scale);\
+            (v1)->v[0] = (v2)->v[0] * __normalise_scale;                          \
+            (v1)->v[1] = (v2)->v[1] * __normalise_scale;                          \
+            (v1)->v[2] = (v2)->v[2] * __normalise_scale;                          \
+        } else {                                                                  \
+            (v1)->v[0] = 1.0f;                                                    \
+            (v1)->v[1] = 0.0f;                                                    \
+            (v1)->v[2] = 0.0f;                                                    \
+        }                                                                         \
+    } while (0)
+
+// FUNCTION: CARMA2_HW 0x00437480
 void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_crush_detach_data* pDetach_data, int pVertex_index1, br_model* pModel, tPhysics_object* pObject, const br_vector3* pOptional_pos) {
-    NOT_IMPLEMENTED();
+    br_vector3 local_c;
+    br_scalar fVar3;
+    br_scalar fVar4;
+    br_scalar fVar5;
+    br_scalar fVar7;
+    int iVar8;
+    int* pLimit;
+    tU32 uVar7;
+    int uVar9;
+    int uVar10;
+    int bVar1;
+    int bVar2;
+
+    pJoint->type = 3;
+    if (pOptional_pos != NULL) {
+        pJoint->field_0x08.v[0] = pOptional_pos->v[0];
+        pJoint->field_0x08.v[1] = pOptional_pos->v[1];
+        uVar7 = ((const tU32*)pOptional_pos)[2];
+    } else {
+        if (pVertex_index1 != 0) {
+            pJoint->field_0x08.v[0] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10);
+            pJoint->field_0x08.v[1] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 1);
+            pJoint->field_0x08.v[2] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 2);
+            goto LAB_0043752a;
+        }
+        pJoint->field_0x08.v[0] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pDetach_data + 0x30) * 10);
+        pJoint->field_0x08.v[1] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pDetach_data + 0x30) * 10 + 1);
+        uVar7 = *(tU32*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pDetach_data + 0x30) * 10 + 2);
+    }
+    *(tU32*)&pJoint->field_0x08.v[2] = uVar7;
+LAB_0043752a:
+    BrMatrix34ApplyP(&local_c, &pJoint->field_0x08, &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse(&pJoint->field_0x14, &local_c, &pObject->parent->actor->t.t.mat);
+    pJoint->count_limits = 2;
+    iVar8 = 0;
+    pLimit = (int*)&pJoint->limits[0].value;
+    do {
+        pLimit[-1] = 0;
+        *pLimit = 0;
+        iVar8 = iVar8 + 1;
+        pLimit = pLimit + 8;
+    } while (iVar8 < pJoint->count_limits);
+    if (pVertex_index1 != 0) {
+        pJoint->limits[0].child.v[0] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0xe) * 10) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10);
+        pJoint->limits[0].child.v[1] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0xe) * 10 + 1) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 1);
+        pJoint->limits[0].child.v[2] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0xe) * 10 + 2) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 2);
+        NormaliseVector3InPlace(&pJoint->limits[0].child, &pJoint->limits[0].child);
+        pJoint->limits[1].child.v[0] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0x10) * 10) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10);
+        pJoint->limits[1].child.v[1] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0x10) * 10 + 1) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 1);
+        pJoint->limits[1].child.v[2] = *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 0x10) * 10 + 2) - *(br_scalar*)((int*)pModel->vertices + (tU32)*(tU16*)((tU8*)pVertex_index1 + 10) * 10 + 2);
+        NormaliseVector3InPlace(&pJoint->limits[1].child, &pJoint->limits[1].child);
+        pJoint->limits[0].parent.v[0] = pJoint->limits[1].child.v[2] * pJoint->limits[0].child.v[1] - pJoint->limits[1].child.v[1] * pJoint->limits[0].child.v[2];
+        fVar3 = pJoint->limits[0].child.v[2] * pJoint->limits[1].child.v[0] - pJoint->limits[0].child.v[0] * pJoint->limits[1].child.v[2];
+        pJoint->limits[0].parent.v[1] = fVar3;
+        pJoint->limits[0].parent.v[2] = pJoint->limits[0].child.v[2] * gFLOAT_0_01_00589a58 + (pJoint->limits[0].child.v[0] * pJoint->limits[1].child.v[1] - pJoint->limits[0].child.v[1] * pJoint->limits[1].child.v[0]);
+        fVar4 = pJoint->limits[1].child.v[0] * gFLOAT_0_01_00589a58 + pJoint->limits[0].child.v[0] * gFLOAT_0_01_00589a58 + pJoint->limits[0].parent.v[0];
+        fVar3 = pJoint->limits[1].child.v[1] * gFLOAT_0_01_00589a58 + pJoint->limits[0].child.v[1] * gFLOAT_0_01_00589a58 + fVar3;
+        fVar5 = pJoint->limits[1].child.v[2] * gFLOAT_0_01_00589a58 + pJoint->limits[0].parent.v[2];
+        pJoint->limits[0].parent.v[0] = fVar4;
+        pJoint->limits[0].parent.v[1] = fVar3;
+        pJoint->limits[0].parent.v[2] = fVar5;
+        NormaliseVector3InPlace(&pJoint->limits[0].parent, &pJoint->limits[0].parent);
+        pJoint->limits[1].parent.v[0] = pJoint->limits[0].parent.v[0];
+        pJoint->limits[1].parent.v[1] = pJoint->limits[0].parent.v[1];
+        pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
+        return;
+    }
+    bVar1 = *(tU8*)((tU8*)pDetach_data + 0x33);
+    bVar2 = *(tU8*)((tU8*)pDetach_data + 0x32);
+    iVar8 = bVar1 >> 1;
+    pJoint->limits[0].parent.v[0] = 0;
+    pJoint->limits[0].parent.v[1] = 0;
+    pJoint->limits[0].parent.v[2] = 0;
+    if ((bVar1 & 1) != 0) {
+        fVar7 = gFLOAT_00589a54;
+    } else {
+        fVar7 = gFLOAT_NEG1_0_00589b2c;
+    }
+    (&pJoint->limits[0].parent.v[0])[iVar8] = fVar7;
+    pJoint->limits[1].parent.v[2] = pJoint->limits[0].parent.v[2];
+    pJoint->limits[1].parent.v[1] = pJoint->limits[0].parent.v[1];
+    pJoint->limits[1].parent.v[0] = pJoint->limits[0].parent.v[0];
+    uVar9 = (iVar8 + 1) % 3;
+    if (((bVar2 >> uVar9) & 1) != 0) {
+        fVar7 = gFLOAT_NEG1_0_00589b2c;
+    } else {
+        fVar7 = gFLOAT_00589a54;
+    }
+    (&pJoint->limits[0].child.v[0])[uVar9] = fVar7;
+    uVar10 = (iVar8 + 2) % 3;
+    (&pJoint->limits[0].child.v[0])[uVar10] = 0;
+    if ((bVar1 & 1) == 0) {
+        fVar7 = gFLOAT_0_015_00589b30;
+    } else {
+        fVar7 = gFLOAT_0_01_00589a58;
+    }
+    (&pJoint->limits[0].child.v[0])[iVar8] = fVar7;
+    NormaliseVector3InPlace(&pJoint->limits[0].child, &pJoint->limits[0].child);
+    (&pJoint->limits[1].child.v[0])[uVar9] = 0;
+    if (((bVar2 >> uVar10) & 1) != 0) {
+        fVar7 = gFLOAT_NEG1_0_00589b2c;
+    } else {
+        fVar7 = gFLOAT_00589a54;
+    }
+    (&pJoint->limits[1].child.v[0])[uVar10] = fVar7;
+    if ((bVar1 & 1) == 0) {
+        fVar7 = gFLOAT_0_015_00589b30;
+    } else {
+        fVar7 = gFLOAT_0_01_00589a58;
+    }
+    (&pJoint->limits[1].child.v[0])[iVar8] = fVar7;
+    NormaliseVector3InPlace(&pJoint->limits[1].child, &pJoint->limits[1].child);
 }
 
 // BitIsInBentPartOfCar
