@@ -702,7 +702,7 @@ extern void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
-// ApplyDroneRender
+extern void C2_HOOK_FASTCALL ApplyDroneRender(tPipe_chunk** pChunk);
 
 // ApplyDroneCornerPos
 
