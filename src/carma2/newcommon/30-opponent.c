@@ -24,6 +24,14 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern tCar_spec* gViewable_car_list[50];;
+extern int gNum_viewable_cars;;
+extern tU32 gNext_grudge_reduction;;
+extern br_scalar gMinimum_yness_before_knackerisation;
+extern int gGrudge_reduction_per_period;;
+extern int gChallenger_index__opponent;
+extern int gBig_bang;
+extern tU32 gAcme_frame_count;;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
