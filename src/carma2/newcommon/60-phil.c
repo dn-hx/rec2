@@ -12,6 +12,7 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+#include "41-utility.h"
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
@@ -457,7 +458,42 @@ float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pObject, int pProp
 
 // ChangedObjectsCallbacks
 
-// ProcessDrag2
+// FUNCTION: CARMA2_HW 0x004b6ce0
+void C2_HOOK_FASTCALL ProcessDrag2(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pDrag, int pObject_info_flags, tSpecial_volume* pSpecial_volume) {
+    br_scalar drag;
+    br_scalar s;
+    tSpecial_volume* sp;
+    br_vector3 v;
+
+    drag = pDrag * 2e-05;
+    sp = NULL;
+    if (pObject_info_flags & 8) {
+        sp = pSpecial_volume;
+    }
+    if (sp != NULL) {
+        if (pObject_info->field_0x14 == 0.0f || sp->viscosity_multiplier <= 2.0) {
+            drag = sp->viscosity_multiplier * pObject->water_depth_factor * drag;
+        } else {
+            drag = pObject->water_depth_factor * sp->viscosity_multiplier * drag * 0.5;
+        }
+    }
+
+    s = BrVector3Length(&pObject->v);
+    v.v[0] = pObject->v.v[0] * (s * drag * 6.9 / pObject->M);
+    v.v[1] = pObject->v.v[1] * (s * drag * 6.9 / pObject->M);
+    v.v[2] = pObject->v.v[2] * (s * drag * 6.9 / pObject->M);
+    DRVector3Diminish(&pObject->v, &v);
+
+    s = BrVector3Length(&pObject->omega);
+    v.v[0] = pObject->omega.v[0] * (s * drag);
+    v.v[1] = pObject->omega.v[1] * (s * drag);
+    v.v[2] = pObject->omega.v[2] * (s * drag);
+    ApplyDiminishingTorque(pObject, &v);
+
+    for (pObject = pObject->child; pObject != NULL; pObject = pObject->next) {
+        ProcessDrag2(pObject_info, pObject, pDrag, pObject_info_flags, pSpecial_volume);
+    }
+}
 
 // ProcessDrag
 
