@@ -30,6 +30,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+extern br_pixelmap* C2_HOOK_FASTCALL LoadPixelmap(const char* pPath_name);
+extern const char* gReplay_pixie_names[11];
 
 // GLOBAL: CARMA2_HW 0x006a2360
 // GLOBAL: CARMA2_SW 0x0069c3b8
