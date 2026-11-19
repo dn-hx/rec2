@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2042,7 +2043,12 @@ void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk) {
 
 // ApplyOppoRenderage
 
-// UndoCrush
+// FUNCTION: CARMA2_HW 0x004c9d90
+void C2_HOOK_FASTCALL UndoCrush(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_crush* chunk = (tPipe_chunk_crush*)*pChunk;
+
+    return ARUndoCrush(chunk->field_0x4, &chunk->field_0x8[0], &chunk->field_0x8[6]);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9db0
 // FUNCTION: CARMA2_SW 0x004c64e0
