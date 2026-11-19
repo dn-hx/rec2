@@ -553,6 +553,48 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004bd720
+int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject) {
+    extern void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale);
+    tPhysics_object* other;
+    br_scalar t;
+
+    t = BrVector3LengthSquared(&pObject->omega) * 0.0016f;
+    if (t > 2.4649f) {
+        t = (float)sqrt(t) * 1.2738853f;
+        pObject->omega.v[0] = pObject->omega.v[0] / (2.f * t);
+        pObject->omega.v[1] = pObject->omega.v[1] / (2.f * t);
+        pObject->omega.v[2] = pObject->omega.v[2] / (2.f * t);
+        if (*(int*)((tU8*)pObject + 0x1e4) != 0) {
+            other = (tPhysics_object*)*(int*)(*(int*)((tU8*)pObject + 0x1e4) + 4);
+            other->omega.v[0] = other->omega.v[0] / (2.f * t);
+            other->omega.v[1] = other->omega.v[1] / (2.f * t);
+            other->omega.v[2] = other->omega.v[2] / (2.f * t);
+        }
+        FUN_004bc8e0(pObject, t * t);
+        if (*(int*)((tU8*)pObject + 0x198) != 0) {
+            ((int (C2_HOOK_FASTCALL *)(tPhysics_object*))*(int*)((tU8*)pObject + 0x198))(pObject);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
