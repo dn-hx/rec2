@@ -135,7 +135,7 @@ extern void C2_HOOK_FASTCALL TeleportOpponentToNearestSafeLocation(tOpponent_spe
 
 extern void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMust_choose_one);
 
-// ProcessThisOpponent
+extern void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec);
 
 // IsNetCarActive
 

@@ -24,6 +24,9 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec);
+extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, int pEnable);
+extern float gOppo_render_zero;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
@@ -887,7 +890,123 @@ void C2_HOOK_FASTCALL ChooseNewObjective(tOpponent_spec* pOpponent_spec, int pMu
     }
 }
 
-// ProcessThisOpponent
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004aa570
+void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
+    extern int gStop_opponents_moving;
+    br_scalar distance;
+    br_vector3 intersect;
+    br_vector3 direction_v;
+    br_vector3 dir;
+
+    if (gMap_view == 2) {
+        if (gShow_opponents) {
+            goto in_view;
+        }
+    } else if (gTime_stamp_for_this_munging <= pOpponent_spec->last_in_view + 3000) {
+        goto in_view;
+    }
+    if (!pOpponent_spec->cheating) {
+        if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
+            DoNotDprintf("%s: StartToCheat() - Turning physics OFF", pOpponent_spec->car_spec->driver_name);
+            TurnOpponentPhysicsOff(pOpponent_spec);
+            RebuildActiveCarList();
+        } else {
+            DoNotDprintf("%s: StartToCheat() - Starting to cheat", pOpponent_spec->car_spec->driver_name);
+            pOpponent_spec->cheating = 1;
+            switch (pOpponent_spec->current_objective) {
+            case eOOT_levitate:
+            case eOOT_knackered_and_freewheeling:
+            case eOOT_none:
+                break;
+            default:
+                if (!pOpponent_spec->car_spec->knackered
+                        && (pOpponent_spec->car_spec->collision_info->last_special_volume == NULL
+                            || pOpponent_spec->car_spec->collision_info->last_special_volume->gravity_multiplier >= 1.f)
+                        && pOpponent_spec->follow_path_data.has_moved_during_this_task
+                        && pOpponent_spec->follow_path_data.struggle_time != 0) {
+                    TimeToStopStruggling(pOpponent_spec);
+                }
+                break;
+            }
+            switch (pOpponent_spec->current_objective) {
+            case eOOT_complete_race:
+            case eOOT_pursue_and_twat:
+            case eOOT_run_away:
+            case eOOT_get_near_player:
+            case eOOT_return_to_start:
+                if (pOpponent_spec->follow_path_data.section_no < 15000
+                        || pOpponent_spec->follow_path_data.section_no >= 20000) {
+                    int section = pOpponent_spec->follow_path_data.section_no - 20000;
+                    if (section >= 0 && section < pOpponent_spec->nnext_sections - 1) {
+                        tS16 nearest_section;
+                        tS16 real_section;
+                        int i;
+
+                        nearest_section = FindNearestGeneralSection(NULL, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &direction_v, &intersect, &distance);
+                        real_section = GetOpponentsRealSection(pOpponent_spec, pOpponent_spec->follow_path_data.section_no);
+                        if (nearest_section != real_section) {
+                            for (i = section; i < pOpponent_spec->nnext_sections; i++) {
+                                if (pOpponent_spec->next_sections[i].section_no == nearest_section) {
+                                    break;
+                                }
+                            }
+                            if (i < pOpponent_spec->nnext_sections) {
+                                ShiftOpponentsProjectedRoute(pOpponent_spec, i);
+                                pOpponent_spec->follow_path_data.section_no = 20000;
+                            } else {
+                                pOpponent_spec->follow_path_data.section_no = 20000;
+                                pOpponent_spec->nnext_sections = 1;
+                                pOpponent_spec->next_sections[0].section_no = nearest_section;
+                                BrVector3Sub(&dir, &intersect, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t);
+                                pOpponent_spec->next_sections[0].direction = BrVector3Dot(&dir, (br_vector3*)pOpponent_spec->car_spec->car_master_actor->t.t.mat.m[2]) >= gOppo_render_zero;
+                            }
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    goto after_cheat_check;
+in_view:
+    if (pOpponent_spec->cheating) {
+        DoNotDprintf("%s: OiStopCheating() - End of cheating sesh", pOpponent_spec->car_spec->driver_name);
+        pOpponent_spec->cheating = 0;
+        if (((tU16)pOpponent_spec->car_spec->car_ID & ~0xff) == 0x300) {
+            DoNotDprintf("%s: OiStopCheating() - Turning physics ON", pOpponent_spec->car_spec->driver_name);
+            pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_DEFAULT;
+            PipeSingleOppoRenderage(pOpponent_spec, 1);
+            if (!pOpponent_spec->physics_me) {
+                pOpponent_spec->physics_me = 1;
+                gActive_car_list_rebuild_required = 1;
+            }
+            RebuildActiveCarList();
+        }
+    }
+after_cheat_check:
+    PossiblyRepairOpponent(pOpponent_spec);
+    ChooseNewObjective(pOpponent_spec, pOpponent_spec->new_objective_required != 0 || gTime_stamp_for_this_munging > pOpponent_spec->time_for_this_objective_to_finish);
+    pOpponent_spec->new_objective_required = 0;
+    if (gCountdown != 0 || gRace_finished) {
+        pOpponent_spec->car_spec->brake_force = 10.f * pOpponent_spec->car_spec->collision_info->M;
+    }
+    if (!pOpponent_spec->finished_for_this_race && !gStop_opponents_moving && !gRace_finished && pOpponent_spec->stun_time_ends < gTime_stamp_for_this_munging) {
+        ProcessCurrentObjective(pOpponent_spec, ePOC_run);
+    }
+    if (pOpponent_spec->cheating) {
+        BrVector3Copy(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t);
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // IsNetCarActive
 
