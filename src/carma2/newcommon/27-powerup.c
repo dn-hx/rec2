@@ -38,6 +38,11 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+extern int C2_HOOK_FASTCALL PFfclose(FILE* pFile);
+extern void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char* pThe_str);
+extern br_actor* C2_HOOK_FASTCALL LoadActor(const char* pName);
+extern void C2_HOOK_FASTCALL GetAString(FILE* pF, char* pString);
+extern FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode);
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
