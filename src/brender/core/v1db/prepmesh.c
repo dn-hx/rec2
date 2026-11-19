@@ -312,7 +312,9 @@ void C2_HOOK_STDCALL Smoothing(br_model* model, br_scalar crease_limit, prep_ver
     for (outer = start; outer < end; outer++) {
         for (inner = start; inner < end; inner++) {
             if (inner == outer || (model->faces[(*outer)->f].smoothing & model->faces[(*inner)->f].smoothing) != 0) {
-                BrVector3Accumulate(&(*outer)->n, (br_vector3*)&model->faces[(*inner)->f].n);
+                (*outer)->n.v[0] = model->faces[(*inner)->f].n.v[0] + (*outer)->n.v[0];
+                (*outer)->n.v[1] = model->faces[(*inner)->f].n.v[1] + (*outer)->n.v[1];
+                (*outer)->n.v[2] = model->faces[(*inner)->f].n.v[2] + (*outer)->n.v[2];
             }
         }
     }
