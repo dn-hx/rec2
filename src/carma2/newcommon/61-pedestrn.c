@@ -1268,10 +1268,19 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004d1030
+// FUNCTION: CARMA2_HW 0x004d1030
 // STUB: CARMA2_SW 0x004cd730
 int C2_HOOK_FASTCALL ActiveHalted(tPed_character_instance* pCharacter, tPhysics_object* pObject, tFace_ref* pFace) {
-    NOT_IMPLEMENTED();
+    tPed_character_instance* character = (tPed_character_instance*)pCharacter;
+
+    if (gAction_replay_mode != 0) {
+        return 1;
+    }
+    if (gPipe_halted_ped_status != 0) {
+        PipeSinglePedStatus(NULL, 5, 1, character->field_0x4, character->field_0x4, character->field_0x5, character->field_0x5, 0, 0, &character->field_0xc0, &character->field_0xcc, &character->field_0x8c);
+        return 1;
+    }
+    return 1;
 }
 
 #ifdef REC2_MATCHING
