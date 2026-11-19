@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL PedUndoPedMove(tPedestrian* pPed, int field_0x6, int field_0x10, int zero, int zero2, int field_0xa, br_vector3* pField_0x18, int field_0x30, br_vector3* pField_0x38);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
