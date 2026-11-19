@@ -2365,7 +2365,40 @@ void C2_HOOK_FASTCALL ARCompressCrush(undefined4* pArg1, void* pArg2, br_model* 
 
 // ARApplyCrush
 
-// ARUndoCrush
+// FUNCTION: CARMA2_HW 0x0043be50
+void C2_HOOK_FASTCALL ARUndoCrush(int field_0x4, void* pField_0x8, void* pField_0xe) {
+    br_model* pModel;
+    br_vector3 offset;
+    br_vector3 scaled_offset;
+    tU16* pWeights;
+    br_scalar scale;
+    int i;
+    int vertex_offset;
+
+    pModel = (br_model*)field_0x4;
+    ExpandVector3(&offset, (const tCompressed_vector3*)pField_0x8, -1.f, 1.f);
+    i = 0;
+    if (pModel->nvertices > 0) {
+        pWeights = (tU16*)pField_0xe;
+        vertex_offset = 0;
+        do {
+            if (*pWeights != 0) {
+                scale = DRU16ToScalar(*pWeights, 0.f, 10.f);
+                BrVector3Scale(&scaled_offset, &offset, -scale);
+                BrVector3Accumulate((br_vector3*)((tU8*)pModel->vertices + vertex_offset), &scaled_offset);
+            }
+            i++;
+            pWeights++;
+            vertex_offset += sizeof(br_vertex);
+        } while (i < pModel->nvertices);
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
+        return;
+    }
+    pModel->custom = JitModelUpdate;
+    pModel->flags |= BR_MODF_CUSTOM;
+}
 
 // FUNCTION: CARMA2_HW 0x0043bf30
 // FUNCTION: CARMA2_SW 0x0043bf80
