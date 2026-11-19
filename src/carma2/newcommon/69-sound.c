@@ -1000,6 +1000,10 @@ void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sou
 #endif
 
 // DoEnvSound
+// STUB: CARMA2_HW 0x00456af0
+void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir) {
+    NOT_IMPLEMENTED();
+}
 
 // FoundSoundSource
 
