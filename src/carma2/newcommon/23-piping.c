@@ -213,6 +213,11 @@ void C2_HOOK_FASTCALL ARDispose(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00402dd0
+void C2_HOOK_FASTCALL FUN_00402dd0(void) {
+
+    gPipe_play_ptr = gPipe_record_ptr;
+}
 // FUNCTION: CARMA2_HW 0x00403720
 // FUNCTION: CARMA2_SW 0x00403720
 int C2_HOOK_FASTCALL LengthOfChunk(tPipe_chunk* pChunk, int pType) {
