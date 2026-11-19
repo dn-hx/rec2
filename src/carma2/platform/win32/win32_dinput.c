@@ -1187,79 +1187,92 @@ void C2_HOOK_FASTCALL PDSetKeyArray(int* pKeys, int pMark) {
     BYTE diKeys[256];
     HRESULT res;
     int i;
+    tU32 now;
+    LARGE_INTEGER perfCountValue;
+    DWORDLONG shifted;
 
     gKeys_pressed = 0;
     Win32ServiceMessages();
-    if (gWindowActiveState != 2) {
-        *pKeys = 0;
-        return;
-    }
-    if (gTime_app_activated != 0) {
-        if (PDGetTotalTime() < gTime_app_activated + 1000) {
-            *pKeys = 0;
-            return;
+    if (gWindowActiveState == 2) {
+        if (gTime_app_activated != 0) {
+            /* PDGetTotalTime (0x51d410) is inlined here in the original */
+            if (gPerformanceCounterInitialized) {
+                QueryPerformanceCounter(&perfCountValue);
+                shifted = (LONGLONG) perfCountValue.HighPart;
+                shifted = Int64ShllMod32(shifted, 16);
+                shifted = ((Int64ShllMod32(shifted, 16) + (DWORDLONG) perfCountValue.LowPart) - gPerformanceCounterStart.QuadPart) / gPerformanceCounterFrequency_ms.QuadPart;
+                now = (tU32) shifted;
+            } else {
+                now = 0;
+            }
+            if (now < gTime_app_activated + 1000) {
+                goto zero_keys;
+            }
         }
-    }
-    gTime_app_activated = 0;
-    res = IDirectInputDevice_GetDeviceState(gDirectInputDevice, sizeof(diKeys), diKeys);
-    if (res != DI_OK) {
-        dr_dprintf("ACTIVE but couldn't get keyboard device state on 1st attempt");
-        dr_dprintf("Keyboard input lost; reacquiring...");
-        if (gDirectInputDevice != NULL) {
-            IDirectInputDevice_Acquire(gDirectInputDevice);
-        }
+        gTime_app_activated = 0;
         res = IDirectInputDevice_GetDeviceState(gDirectInputDevice, sizeof(diKeys), diKeys);
         if (res != DI_OK) {
-            dr_dprintf("Couldn't get keyboard device state on 2nd attempt");
-            dr_dprintf("Zeroing pKeys");
-            *pKeys = 0;
-            return;
+            dr_dprintf("ACTIVE but couldn't get keyboard device state on 1st attempt");
+            dr_dprintf("Keyboard input lost; reacquiring...");
+            if (gDirectInputDevice != NULL) {
+                IDirectInputDevice_Acquire(gDirectInputDevice);
+            }
+            res = IDirectInputDevice_GetDeviceState(gDirectInputDevice, sizeof(diKeys), diKeys);
+            if (res != DI_OK) {
+                dr_dprintf("Couldn't get keyboard device state on 2nd attempt");
+                dr_dprintf("Zeroing pKeys");
+                *pKeys = 0;
+                return;
+            }
+            dr_dprintf("Keyboard reacquired OK.");
         }
-        dr_dprintf("Keyboard reacquired OK.");
-    }
-    for (i = 0; i < 151; i++) {
-        int scan_code;
+        for (i = 0; i < 151; i++) {
+            int scan_code;
 
-        scan_code = gScan_code[12 + i];
-        if (scan_code == 0) {
-            continue;
-        }
-        if (scan_code == 0xff) {
-            switch (i) {
-            case 0:
-                if ((diKeys[gScan_code[20]] & 0x80) || (diKeys[gScan_code[17]] & 0x80)) {
-                    pKeys[0] = pMark;
-                } else if (pKeys[0] == pMark) {
-                    pKeys[0] = 0;
-                }
-                break;
-            case 1:
-                if ((diKeys[gScan_code[21]] & 0x80) || (diKeys[gScan_code[18]] & 0x80)) {
-                    pKeys[1] = pMark;
-                } else if (pKeys[1] == pMark) {
-                    pKeys[1] = 0;
-                }
-                break;
-            case 2:
-            case 3:
-                if ((diKeys[gScan_code[22]] & 0x80) || (diKeys[gScan_code[19]] & 0x80)) {
-                    pKeys[2] = pMark;
-                    pKeys[3] = pMark;
-                } else if (pKeys[2] == pMark || pKeys[3] == pMark) {
-                    pKeys[2] = 0;
-                    pKeys[3] = 0;
-                }
-                break;
+            scan_code = gScan_code[12 + i];
+            if (scan_code == 0) {
+                continue;
             }
-        } else {
-            if (diKeys[scan_code] & 0x80) {
-                pKeys[i] = pMark;
-                gKeys_pressed = gKeys_pressed << 8 | (i + 1);
-            } else if (pKeys[i] == pMark) {
-                pKeys[i] = 0;
+            if (scan_code == 0xff) {
+                switch (i) {
+                case 0:
+                    if ((diKeys[gScan_code[20]] & 0x80) || (diKeys[gScan_code[17]] & 0x80)) {
+                        pKeys[0] = pMark;
+                    } else if (pKeys[0] == pMark) {
+                        pKeys[0] = 0;
+                    }
+                    break;
+                case 1:
+                    if ((diKeys[gScan_code[21]] & 0x80) || (diKeys[gScan_code[18]] & 0x80)) {
+                        pKeys[1] = pMark;
+                    } else if (pKeys[1] == pMark) {
+                        pKeys[1] = 0;
+                    }
+                    break;
+                case 2:
+                case 3:
+                    if ((diKeys[gScan_code[22]] & 0x80) || (diKeys[gScan_code[19]] & 0x80)) {
+                        pKeys[2] = pMark;
+                        pKeys[3] = pMark;
+                    } else if (pKeys[2] == pMark || pKeys[3] == pMark) {
+                        pKeys[2] = 0;
+                        pKeys[3] = 0;
+                    }
+                    break;
+                }
+            } else {
+                if (diKeys[scan_code] & 0x80) {
+                    pKeys[i] = pMark;
+                    gKeys_pressed = (gKeys_pressed << 8) + i + 1;
+                } else if (pKeys[i] == pMark) {
+                    pKeys[i] = 0;
+                }
             }
         }
+        return;
     }
+zero_keys:
+    *pKeys = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0051d1d0
