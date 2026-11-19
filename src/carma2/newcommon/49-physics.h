@@ -487,3 +487,4 @@ extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPh
 
 #endif // GUARD_49_PHYSICS_H
 
+extern int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
