@@ -142,7 +142,7 @@ extern void C2_HOOK_FASTCALL RefreshRacesScroller(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL RefreshNetRacesScroller(tFrontend_spec* pFrontend);
 
-// NetRaceUp
+extern int C2_HOOK_FASTCALL NetRaceUp(tFrontend_spec* pFrontend);
 
 // NetRaceDn
 
