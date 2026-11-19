@@ -11,6 +11,11 @@
 
 #include "c2_hooks.h"
 
+/* the unit's prototypes are written in the shim's own types (Handle, Track, Movie, ...) */
+#include <QTML.h>
+#include <Movies.h>
+#include <TextUtils.h>
+
 extern int gNext_replay_record_state;
 extern int gShow_status_message;
 

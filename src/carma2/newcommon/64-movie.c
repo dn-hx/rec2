@@ -16,6 +16,10 @@
 
 #include <QTML.h>
 #include <Movies.h>
+#include <TextUtils.h>
+
+#include <QTML.h>
+#include <Movies.h>
 
 #include "c2_string.h"
 
