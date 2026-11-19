@@ -410,7 +410,41 @@ inline void C2_HOOK_FASTCALL ResetPedFaceCache(void) {
 
 // RecachePedestrian
 
-// SetCharacterDirectionAR
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004d3360
+void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+    tPhysics_object* collision_info;
+
+    if (pCharacter->field_0x14 & 0x1) {
+        collision_info = pCharacter->personality->form->simple_physicing[pCharacter->field_0x5].collision_info;
+    } else {
+        collision_info = GetRootObject(pCharacter);
+    }
+    if (!gAction_replay_mode || gBOOL_00744804) {
+        if (!(pCharacter->field_0x14 & 0x4) && gProgram_state.racing) {
+            PipeSinglePedDir((((short)pCharacter->ped->field_0x06) << 16) | (pCharacter->ped - gPedestrian_array), pDir);
+        }
+        SetCharacterDirection(pCharacter, pDir, pUp);
+        if (gProgram_state.racing && OrientationChanged(&collision_info->transform_matrix, &collision_info->actor->t.t.mat, .7f)) {
+            AssertRootObjectsMatrix(pCharacter);
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004ca4d0
 // FUNCTION: CARMA2_SW 0x004c6c00
