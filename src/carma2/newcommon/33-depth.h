@@ -55,7 +55,7 @@ extern void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, i
 
 extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
-// DoHorizon
+extern void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
 // DoDepthCue
 
