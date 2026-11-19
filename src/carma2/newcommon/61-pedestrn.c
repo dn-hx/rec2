@@ -44,6 +44,7 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -1212,11 +1213,102 @@ int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBone_index) {
     }
 }
 
-// STUB: CARMA2_HW 0x004cd640
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004cd640
 // STUB: CARMA2_SW 0x004c9d40
-void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3, int pArg4, tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3, int pArg4, tPhysics_object* pObject) {
+    int limit;
+    double a;
+    int move_time;
+    int count;
+    float time_left;
+
+    count = 0;
+    a = 0.068 / pPed->character->personality->form->simple_physicing[pPed->character->field_0x5].collision_info->M;
+    move_time = (int)(a * a * pDamage);
+    if (pPed->character->personality->form->non_humanoid != 0 && (gPed_dismemberfest != 0 || gExploding_pedestrians != 0)) {
+        if (move_time < 100) {
+            move_time = 100;
+        }
+    }
+    time_left = (float)move_time;
+    if (pObject != NULL && gImmortal_peds == 0 && gGoreLevel >= 2) {
+        while (1) {
+            if (gPed_dismemberfest != 0) {
+                limit = 5;
+            } else {
+                limit = gPed_severing_damage;
+            }
+            time_left = time_left - (float)limit;
+            if (time_left < 0.0f) {
+                break;
+            }
+            if (count >= 5) {
+                break;
+            }
+            if (gExploding_pedestrians == 0 && gPed_dismemberfest == 0) {
+                if (!PercentageChance(gPed_severing_chance)) {
+                    continue;
+                }
+            }
+            count += DismemberPed(pPed, IRandomBetween(1, pPed->character->personality->form->count_bones - 1));
+        }
+    }
+    if (count > 4) {
+        ((tU8*)pPed->field_0x0c)[0x2e] |= 2;
+    }
+    if (pPed->hit_points <= 0) {
+        if (move_time <= 2) {
+            return 1;
+        }
+        MakePedNoise(pPed, 5, 0, pObject);
+        return 1;
+    }
+    if (pPed->character->personality->form->non_humanoid != 0 && pPed->character->field_0xc != 0) {
+        pPed->hit_points = 0;
+        move_time = 0;
+    }
+    if ((pPed->character->field_0xc & gPow2_array[pPed->character->personality->form->index_head_bone]) != 0) {
+        pPed->hit_points = 0;
+    } else if (move_time >= 100) {
+        pPed->hit_points = 0;
+    } else {
+        pPed->hit_points -= (tS8)move_time;
+    }
+    if (gImmortal_peds != 0) {
+        if (pPed->hit_points <= 0) {
+            pPed->hit_points = 1;
+        }
+    }
+    if (pPed->hit_points > 0) {
+        if (pArg3 >= 0) {
+            SetPedMove(pPed, pArg3, -1, 0, 1, GetTotalTime(), 5);
+        }
+        MakePedNoise(pPed, 4, 0, pObject);
+        return 0;
+    }
+    if (pArg4 >= 0) {
+        SetPedMove(pPed, pArg4, -1, 0, 1, GetTotalTime(), 5);
+    }
+    MakePedNoise(pPed, 1, 0, pObject);
+    KillPedestrian(pPed, pObject);
+    return 1;
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // SetLastHitter
 
