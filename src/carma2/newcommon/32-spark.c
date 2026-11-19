@@ -27,6 +27,7 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+extern void C2_HOOK_FASTCALL DoSmokeColumn(int pColumn, tU32 pTime, br_vector3* pRet_car_pos);
 
 // GLOBAL: CARMA2_HW 0x0058b008
 const br_scalar gFLOAT_0058b008 = 0.0f;
