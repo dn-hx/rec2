@@ -18,6 +18,10 @@
 #include "51-smash.h"
 #include "61-pedestrn.h"
 #include "platform.h"
+extern void C2_HOOK_CDECL dr_dprintf(const char* fmt_string, ...);
+extern void C2_HOOK_FASTCALL SmoothificatePowerups(br_actor* pActor);
+extern void C2_HOOK_FASTCALL SetSpinningPowerup(br_actor* pActor, int pOpacity);
+extern void C2_HOOK_FASTCALL SetChangingPowerup(br_actor* pActor);
 
 // GLOBAL: CARMA2_HW 0x0058f490
 // GLOBAL: CARMA2_SW 0x0058a490
