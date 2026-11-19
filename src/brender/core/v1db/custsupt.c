@@ -235,11 +235,20 @@ br_scalar C2_HOOK_CDECL BrZsDepthToScreenZ(br_scalar depth_z, br_camera* camera)
 br_scalar C2_HOOK_CDECL BrZsScreenZToDepth(br_scalar sz, br_camera* camera) {
     br_scalar hither;
     br_scalar yon;
+    br_scalar sz_half;
+    br_scalar diff;
+    br_scalar term;
+    br_scalar sum;
     br_scalar depth;
 
     hither = camera->hither_z;
     yon = camera->yon_z;
-    depth = ((yon + hither) + (sz / 2.0f) * (yon - hither) / 16384.0f) / 2.0f;
+    sz_half = sz * 0.5f;
+    diff = yon - hither;
+    term = sz_half * diff;
+    term = term / 16384.0f;
+    sum = yon + hither;
+    depth = (sum + term) * 0.5f;
     if (sz <= -32768.0f) {
         return hither;
     } else if (sz >= 32768.0f) {
