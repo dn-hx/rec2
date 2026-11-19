@@ -229,7 +229,7 @@ extern void C2_HOOK_FASTCALL GetSmokeShadeTables(FILE* pF);
 
 extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
 
-// LoadInKevStuff
+extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
 
 // DisposeKevStuff
 
