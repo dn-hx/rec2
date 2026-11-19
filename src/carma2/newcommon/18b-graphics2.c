@@ -106,98 +106,51 @@ void C2_HOOK_FASTCALL SplashScreenWith(const char* pPixmap_name) {
 // FUNCTION: CARMA2_HW 0x0047ba80
 // FUNCTION: CARMA2_SW 0x0047ae00
 void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_16 pDest_x, br_int_16 pDest_y, const br_pixelmap* pSource, br_int_16 pSource_x, br_int_16 pSource_y, br_int_16 pWidth, br_int_16 pHeight) {
-#ifdef REC2_SW
-    int y_count;
-    int x_count;
-    int dest_row_wrap;
-    int source_row_wrap;
-    int x_delta;
-    tU8 the_byte;
-    tU8* source_ptr;
-    tU8* dest_ptr;
-
-    source_ptr = (tU8*)pSource->pixels + pSource->row_bytes * pSource_y + pSource_x;
-    dest_ptr = (tU8*)pDest->pixels + pDest->row_bytes * pDest_y + pDest_x;
-    source_row_wrap = pSource->row_bytes - pWidth;
-    dest_row_wrap = pDest->row_bytes - pWidth;
-
-    if (pDest_y < 0) {
-        pHeight += pDest_y;
-        if (pHeight <= 0) {
-            return;
-        }
-        source_ptr -= pDest_y * pSource->row_bytes;
-        dest_ptr -= pDest_y * pDest->row_bytes;
-        pDest_y = 0;
-    }
-    if (pDest_y >= pDest->height) {
-        return;
-    }
-    if (pDest_y + pHeight > pDest->height) {
-        pHeight = pDest->height - pDest_y;
-    }
-    if (pDest_x < 0) {
-        pWidth += pDest_x;
-        if (pWidth <= 0) {
-            return;
-        }
-        source_ptr -= pDest_x;
-        dest_ptr -= pDest_x;
-        source_row_wrap -= pDest_x;
-        dest_row_wrap -= pDest_x;
-        pDest_x = 0;
-    }
-    if (pDest_x >= pDest->width) {
-        return;
-    }
-    if (pDest_x + pWidth > pDest->width) {
-        x_delta = pDest_x + pWidth - pDest->width;
-        pWidth -= x_delta;
-        source_row_wrap += x_delta;
-        dest_row_wrap += x_delta;
-    }
-    for (y_count = 0; y_count < pHeight; y_count++) {
-        for (x_count = 0; x_count < pWidth; x_count++) {
-            the_byte = *source_ptr;
-            if (the_byte != 0) {
-                *dest_ptr = the_byte;
-            }
-            source_ptr++;
-            dest_ptr++;
-        }
-        source_ptr += source_row_wrap;
-        dest_ptr += dest_row_wrap;
-    }
-#else
     int y;
     int x;
     int dest_row_wrap;
     int source_row_wrap;
-    tU16 the_byte;
+    tU16 pixel;
     tU16* source_ptr;
     tU16* dest_ptr;
     int dest_x;
     int dest_y;
+    int source_y;
+    int source_x;
+    int dest_height;
+    int dest_width;
+    int source_row_bytes;
+    int dest_row_bytes;
+    int dest_base_x;
 
-    source_ptr = (tU16*)pSource->pixels + pSource->row_bytes * pSource_y / sizeof(tU16) + pSource_x;
     dest_x = pDest_x;
     dest_y = pDest_y;
-    dest_ptr = (tU16*)pDest->pixels + dest_y * pDest->row_bytes / sizeof(tU16) + pDest->base_x / sizeof(tU16) + dest_x;
-    source_row_wrap = pSource->row_bytes / sizeof(tU16) - pWidth;
-    dest_row_wrap = pDest->row_bytes / sizeof(tU16) - pWidth;
+    source_x = pSource_x;
+    source_y = pSource_y;
+    dest_height = pDest->height;
+    dest_width = pDest->width;
+    source_row_bytes = pSource->row_bytes;
+    dest_row_bytes = pDest->row_bytes;
+    dest_base_x = pDest->base_x;
+
+    source_ptr = (tU16*)pSource->pixels + (source_y * source_row_bytes / 2 + source_x);
+    dest_ptr = (tU16*)pDest->pixels + (dest_base_x / 2 + dest_x + dest_y * dest_row_bytes / 2);
+
+    source_row_wrap = source_row_bytes / 2 - pWidth;
+    dest_row_wrap = dest_row_bytes / 2 - pWidth;
 
     if (dest_y < 0) {
         pHeight += dest_y;
         if (pHeight <= 0) {
             return;
         }
-        source_ptr -= dest_y * pSource->row_bytes / sizeof(tU16);
-        dest_ptr -= dest_y * pDest->row_bytes / sizeof(tU16);
         dest_y = 0;
+        source_ptr -= dest_y * source_row_bytes / 2;
+        dest_ptr -= dest_y * dest_row_bytes / 2;
     }
-    if (dest_y < pDest->height) {
-        if (pDest->height < dest_y + pHeight) {
-            pHeight = pDest->height - dest_y;
+    if (dest_y < dest_height) {
+        if (pHeight + dest_y > dest_height) {
+            pHeight = dest_height - dest_y;
         }
         if (dest_x < 0) {
             pWidth += dest_x;
@@ -205,32 +158,37 @@ void C2_HOOK_FASTCALL DRPixelmapRectangleMaskedCopy(br_pixelmap* pDest, br_int_1
                 return;
             }
             dest_x = 0;
-            source_ptr -= dest_x;
-            dest_ptr -= dest_x;
-            source_row_wrap -= dest_x;
+            source_ptr -= source_x;
+            dest_ptr -= source_x;
+            source_row_wrap -= source_x;
             dest_row_wrap -= dest_x;
         }
-        if (dest_x < pDest->width) {
-            if (dest_x + pWidth > pDest->width) {
-                pWidth -= pWidth + dest_x - pDest->width;
-                source_row_wrap += pWidth + dest_x - pDest->width;
-                dest_row_wrap += pWidth + dest_x - pDest->width;
+        if (dest_x < dest_width) {
+            if (pWidth + dest_x > dest_width) {
+                x = pWidth + dest_x - dest_width;
+                pWidth -= x;
+                source_row_wrap += x;
+                dest_row_wrap += x;
             }
-            for (y = 0; y < pHeight; y++) {
-                for (x = 0; x < pWidth; x++) {
-                    the_byte = *source_ptr;
-                    if (the_byte != 0) {
-                        *dest_ptr = the_byte;
+            if (pHeight > 0) {
+                y = pHeight;
+                do {
+                    if (pWidth > 0) {
+                        x = pWidth;
+                        do {
+                            pixel = *source_ptr++;
+                            if (pixel != 0) {
+                                *dest_ptr = pixel;
+                            }
+                            dest_ptr++;
+                        } while (--x);
                     }
-                    source_ptr++;
-                    dest_ptr++;
-                }
-                source_ptr += source_row_wrap;
-                dest_ptr += dest_row_wrap;
+                    dest_ptr += dest_row_wrap;
+                    source_ptr += source_row_wrap;
+                } while (--y);
             }
         }
     }
-#endif
 }
 
 // FUNCTION: CARMA2_HW 0x0047bc40
