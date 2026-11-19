@@ -208,11 +208,97 @@ void C2_HOOK_FASTCALL XZToColumnXZ(tU8* pColumn_x, tU8* pColumn_z, br_scalar pX,
     *pColumn_z = (tU8)z;
 }
 
-// FindNonCarsCB
+// STUB: CARMA2_HW 0x0040d1f0
+intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
+    NOT_IMPLEMENTED();
+}
 
-// MungeFaces
+// STUB: CARMA2_HW 0x0040d530
+void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
+    NOT_IMPLEMENTED();
+}
 
-// ProcessModelsCB
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x0040cf10
+intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
+    int area1;
+    int area2;
+    unsigned int x;
+    unsigned int z;
+    br_model* model;
+    tTrack_spec* pTrack_spec = data;
+
+    if (sscanf(pActor->identifier, "%u%u", &x, &z) == 2 && x < pTrack_spec->ncolumns_x && z < pTrack_spec->ncolumns_z) {
+        pActor->material = gDefault_track_material;
+        pTrack_spec->columns[z][x].actor_0x0 = BrActorAllocate(BR_ACTOR_NONE, NULL);
+        BrActorAdd(pActor->parent, pTrack_spec->columns[z][x].actor_0x0);
+        pTrack_spec->columns[z][x].actor_0x4 = pActor;
+        pTrack_spec->columns[z][x].actor_0x8 = NULL;
+        ActorRelink(pTrack_spec->columns[z][x].actor_0x0, pActor);
+        gMr_blendy = NULL;
+        if (pActor->model != NULL && !gAusterity_mode) {
+            MungeFaces(pActor, pActor->model);
+        } else {
+            br_actor* child;
+
+            for (child = pActor->children; child != NULL; child = child->next) {
+                if (child->identifier[0] != '&') {
+                    break;
+                }
+            }
+            if (child != NULL) {
+                MungeFaces(child, child->model);
+            }
+        }
+        BrActorEnum(pActor, FindNonCarsCB, pTrack_spec);
+        if (gMr_blendy != NULL) {
+            int nverts;
+            int nfaces;
+            br_vertex* new_vertices;
+            br_face* new_faces;
+
+            model = gMr_blendy->model;
+            BrActorAdd(pTrack_spec->columns[z][x].actor_0x0, gMr_blendy);
+            gMr_blendy->model->flags |= BR_MODU_FACES;
+            BrModelAdd(gMr_blendy->model);
+            DetermineTilitudinality(gMr_blendy->model, &area1, &area2);
+
+            nverts = model->nvertices + area2;
+            nfaces = model->nfaces + area1;
+            new_vertices = BrResAllocate(gMr_blendy->model, nverts * sizeof(br_vertex), BR_MEMORY_VERTICES);
+            memcpy(new_vertices, gMr_blendy->model->vertices, gMr_blendy->model->nvertices * sizeof(br_vertex));
+            BrResFree(gMr_blendy->model->vertices);
+            gMr_blendy->model->vertices = new_vertices;
+
+            new_faces = BrResAllocate(gMr_blendy->model, nfaces * sizeof(br_face), BR_MEMORY_FACES);
+            memcpy(new_faces, gMr_blendy->model->faces, gMr_blendy->model->nfaces * sizeof(br_face));
+            BrResFree(gMr_blendy->model->faces);
+            gMr_blendy->model->faces = new_faces;
+
+            DRModelUpdateAndKevificateMaterials(gMr_blendy->model, BR_MODU_ALL);
+            pTrack_spec->columns[z][x].actor_0x8 = gMr_blendy;
+        }
+    } else {
+        BrActorEnum(pActor, ProcessModelsCB, pTrack_spec);
+    }
+    SetSmashableModel(pActor);
+    return 0;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // ProcessModels
 
