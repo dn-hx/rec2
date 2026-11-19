@@ -678,7 +678,7 @@ extern void C2_HOOK_FASTCALL ApplyPedFPChange(tPipe_chunk** pChunk);
 
 // ApplyPedPos
 
-// ApplyPedModelChange
+extern void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
