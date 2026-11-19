@@ -1510,21 +1510,24 @@ int C2_HOOK_STDCALL DfChunksInterpret(br_datafile* df, br_chunks_table* table) {
     br_uint_32 id;
     int r;
     int i;
+    int n;
+    br_chunks_table_entry* e;
 
-    while (1) {
-        id = df->prims->chunk_read(df, &length);
-        // LOG_DEBUG("chunk id=%d, len=%d", id, length);
-        if (id == (br_uint_32)-1) {
-            break;
+    id = df->prims->chunk_read(df, &length);
+    while (id != (br_uint_32)-1) {
+        n = table->nentries;
+        i = 0;
+        if (n > 0) {
+            e = table->entries;
+            do {
+                if (id == e->id) {
+                    break;
+                }
+                i++;
+                e++;
+            } while (i < n);
         }
-        for (i = 0; i < table->nentries; i++) {
-            if (table->entries[i].id == id) {
-                break;
-            }
-        }
-        if (i >= table->nentries) {
-            df->prims->skip(df, length);
-        } else {
+        if (i < n) {
             if (table->entries[i].has_count != 0) {
                 count = df->prims->count_read(df);
             } else {
@@ -1534,7 +1537,10 @@ int C2_HOOK_STDCALL DfChunksInterpret(br_datafile* df, br_chunks_table* table) {
             if (r != 0) {
                 return r;
             }
+        } else {
+            df->prims->skip(df, length);
         }
+        id = df->prims->chunk_read(df, &length);
     }
     return 0;
 }
