@@ -33,6 +33,7 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern const char* gPosition_type_names[2];
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
