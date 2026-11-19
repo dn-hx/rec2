@@ -350,8 +350,8 @@ void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char *pThe_str) {
     const char *str2;
 
     dr_dprintf("FATAL ERROR: %s", pThe_str);
-    str1 = pThe_str;
     str2 = "";
+    str1 = pThe_str;
     if (str1 == NULL) {
         str1 = "NULL str1";
     }
@@ -360,17 +360,18 @@ void C2_NORETURN C2_HOOK_FASTCALL PDFatalError(const char *pThe_str) {
     }
     gIsFatalError = 1;
     sprintf(gFatalErrorMessage, "%s\n%s", str1, str2);
-#ifdef REC2_HW
+
     gExit_code = 700;
     if (gBack_screen != NULL) {
         if (gBack_screen->pixels != NULL) {
+#ifdef REC2_HW
             PossibleUnlock(1);
+#endif
         }
     }
     if (gBr_initialized) {
         DRBrEnd();
     }
-#endif
     PDShutdownSystem();
 }
 
