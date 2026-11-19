@@ -51,6 +51,8 @@
 #include "c2_stdlib.h"
 #include "c2_string.h"
 #include <ctype.h>
+extern int C2_HOOK_FASTCALL PickNetRace(int pCurrent_race, tNet_sequence_type pNet_race_sequence);
+extern int gRace_index;;
 
 // GLOBAL: CARMA2_HW 0x00688b1c
 // GLOBAL: CARMA2_SW 0x0068307c
