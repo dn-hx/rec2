@@ -25,6 +25,9 @@
 #include "30-opponent.h"
 
 #include <math.h>
+extern int gShow_drone_paths;;
+extern tDrone_state_function* gDrone_state_functions[6];
+extern br_vector3 gDefault_drone_direction;
 
 // GLOBAL: CARMA2_HW 0x006820c0
 // GLOBAL: CARMA2_SW 0x0067c800
