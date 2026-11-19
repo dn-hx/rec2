@@ -2463,6 +2463,18 @@ int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
 void C2_HOOK_FASTCALL ReceivedReAttachAllBits(tNet_message_chunk* pContents) {
     tCar_spec* car;
 
+    if (gCount_net_crush_reattach_bit_list == REC2_ASIZE(gNet_crush_reattach_bit_list)) {
+        return;
+    }
+    car = NetCarFromPlayerID(pContents->reattach_all_bits.player);
+    if (car == NULL) {
+        return;
+    }
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].car = car;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].actor = NULL;
+    gNet_crush_reattach_bit_list[gCount_net_crush_reattach_bit_list].field_0x8 = pContents->reattach_all_bits.time;
+    gCount_net_crush_reattach_bit_list += 1;
+}
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
 #endif
