@@ -673,44 +673,45 @@ br_error C2_HOOK_CDECL BrTokenValueQueryAll(br_token_value* buffer, br_size_t bu
     br_tv_template_entry* tp;
     int n;
     int e;
-    br_token_value* tv;
     char* extra;
-    br_size_t extra_size;
     br_error r;
 
     if (!template->names_resolved) {
-        templateResolveNames(template);
+        tp = template->entries;
+        for (e = 0; e < template->n_entries; e++) {
+            if (tp->name != NULL) {
+                tp->token = BrTokenCreate(tp->name, BR_NULL_TOKEN);
+            }
+            tp++;
+        }
     }
 
+    tp = template->entries;
     n = 1;
-    for (e = 0; e < template->n_entries; e++) {
-        tp = &template->entries[e];
+    for (e = template->n_entries; e > 0; e--) {
         if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
             n++;
         }
+        tp++;
     }
-    extra = (char *)(buffer + n);
+    extra = (char*)(buffer + n);
     if (buffer_size < sizeof(*buffer) * n) {
         return 0x1004;
     }
-    tv = buffer;
-    extra_size = buffer_size - sizeof(*buffer) * n;
+    buffer_size -= sizeof(*buffer) * n;
+    tp = template->entries;
     for (e = 0; e < template->n_entries; e++) {
-        tp = &template->entries[e];
-        if (tp->token == BR_NULL_TOKEN) {
-            continue;
+        if (tp->token != BR_NULL_TOKEN && (tp->flags & 0x4)) {
+            buffer->t = tp->token;
+            r = ValueQuery(buffer, (void**)&extra, &buffer_size, block, tp);
+            if (r != 0) {
+                return r;
+            }
+            buffer++;
         }
-        if ((tp->flags & 4) == 0) {
-            continue;
-        }
-        tv->t = tp->token;
-        r = ValueQuery(tv, (void*)&extra, &extra_size, block, tp);
-        if (r != 0) {
-            return r;
-        }
-        tv++;
+        tp++;
     }
-    tv->t = BR_NULL_TOKEN;
+    buffer->t = BR_NULL_TOKEN;
     return 0;
 }
 
