@@ -62,6 +62,7 @@ extern void C2_HOOK_FASTCALL ChristmasLights(tCar_spec* pCar, int pMin_damage, i
 
 #endif // GUARD_58_CRUSH2_H
 
+extern int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext);
 
 
 extern intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext);
