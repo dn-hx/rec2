@@ -24,6 +24,12 @@
 #include "rec2_macros.h"
 #include <stdarg.h>
 #include <string.h>
+extern void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist);
+extern void C2_HOOK_FASTCALL ResetCarSpecialVolume(tPhysics_object* pObject);
+extern void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec *pOpponent_spec, int pEnable);
+extern int gRematerialisation_max_extra_attempts;;
+extern int gRematerialisation_extra_attempts;;
+extern int gRematerialisation_count;;
 
 #define CAR_SPEC_IS_ROZZER(CAR_SPEC) (VEHICLE_TYPE_FROM_ID((tU16)(CAR_SPEC)->car_ID) == eVehicle_rozzer)
 #define GET_CAR_SPEED_FACTOR(CAR) (CAR_SPEC_IS_ROZZER(CAR) ? gCop_speed_factor : gOpponent_speed_factor)
