@@ -30,6 +30,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+extern int C2_HOOK_FASTCALL KeyIsDown(int pKey_index);
 
 // GLOBAL: CARMA2_HW 0x006a2360
 // GLOBAL: CARMA2_SW 0x0069c3b8
