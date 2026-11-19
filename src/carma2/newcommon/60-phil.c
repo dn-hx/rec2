@@ -433,7 +433,20 @@ int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, const br_matrix
     return result;
 }
 
-// PHILAddObjectImmediately
+// FUNCTION: CARMA2_HW 0x004b62b0
+int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
+    int result;
+
+    if (gPHIL_disabled) {
+        return 0;
+    }
+    if (gPHIL_munging_objects) {
+        gPHIL_object_added = 1;
+    }
+    result = PHILAddObject(pObject);
+    gPHIL_object_added = 0;
+    return result;
+}
 
 // STUB: CARMA2_HW 0x004b62e0
 // STUB: CARMA2_SW 0x004b2a00
