@@ -99,7 +99,7 @@ extern void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, t
 
 // DoMini
 
-// DrawTranslations
+extern void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info);
 
 extern int C2_HOOK_FASTCALL PlayNextFlicFrame(tFlic_descriptor* pFlic_info);
 
