@@ -32,6 +32,7 @@
 #include "17-world2.h"
 
 #include <math.h>
+extern int gLast_credit_amount;;
 
 // GLOBAL: CARMA2_HW 0x0067c500
 // GLOBAL: CARMA2_SW 0x00676c70
