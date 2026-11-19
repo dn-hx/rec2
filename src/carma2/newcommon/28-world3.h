@@ -127,3 +127,5 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
 #endif // GUARD_28_WORLD3_H
+
+extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
