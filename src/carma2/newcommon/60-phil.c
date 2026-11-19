@@ -12,6 +12,9 @@
 #include "49-physics.h"
 #include "55-volume.h"
 #include "rec2_macros.h"
+#include <math.h>
+#include <stdarg.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0065d004
 // GLOBAL: CARMA2_SW 0x0065793c
@@ -221,7 +224,67 @@ int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data) {
     return size;
 }
 
-// GetSingleMatrixFromNetworkData
+// FUNCTION: CARMA2_HW 0x0049cf50
+int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix) {
+    br_quat quaternion;
+
+    switch (pNet_data[0] & 0xF) {
+    case 0:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 0x14))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 0x14))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 0x14))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 0x14))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        memcpy(pMatrix->m[3], pNet_data + 0x1c, sizeof(pMatrix->m[3]));
+        return 0x28;
+    case 1:
+    case 4:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 4))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 4))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 4))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 4))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        return 0xc;
+    case 2:
+    case 3:
+        quaternion.x = (br_scalar)((const tU16*)(pNet_data + 8))[0] * 1.5259255e-05f;
+        quaternion.y = (br_scalar)((const tU16*)(pNet_data + 8))[1] * 1.5259255e-05f;
+        quaternion.z = (br_scalar)((const tU16*)(pNet_data + 8))[2] * 1.5259255e-05f;
+        quaternion.w = (br_scalar)((const tU16*)(pNet_data + 8))[3] * 1.5259255e-05f;
+        quaternion.x = quaternion.x + quaternion.x;
+        quaternion.y = quaternion.y + quaternion.y;
+        quaternion.z = quaternion.z + quaternion.z;
+        quaternion.w = quaternion.w + quaternion.w;
+        quaternion.x = quaternion.x - 1.0f;
+        quaternion.y = quaternion.y - 1.0f;
+        quaternion.z = quaternion.z - 1.0f;
+        quaternion.w = quaternion.w - 1.0f;
+        BrQuatNormalise(&quaternion, &quaternion);
+        BrQuatToMatrix34(pMatrix, &quaternion);
+        return 0x10;
+    default:
+        PhysicsError((tPhysicsError)9, "netphys got messed up");
+        return -1;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004b5cc0
 // FUNCTION: CARMA2_SW 0x004b23e0
