@@ -80,7 +80,7 @@ extern void C2_HOOK_FASTCALL F12Key(void);
 
 // NumberKey8
 
-// NumberKey9
+extern void C2_HOOK_FASTCALL NumberKey9(void);
 
 extern void C2_HOOK_FASTCALL LookLeft(void);
 
