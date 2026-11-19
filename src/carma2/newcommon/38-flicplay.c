@@ -19,6 +19,7 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+extern char gLast_flic_name[14];;
 
 // GLOBAL: CARMA2_HW 0x00599998
 // GLOBAL: CARMA2_SW 0x005948e0
