@@ -257,10 +257,9 @@ void C2_HOOK_CDECL Vertex_SurfaceComponentsGeom(br_geometry* self, br_soft_rende
     int v;
     int i;
 
-    for (v = 0; v < rend.nvertices; v++) {
-        tvp = &rend.temp_vertices[v];
-        vp = &rend.vertices[v];
-
+    tvp = rend.temp_vertices;
+    vp = rend.vertices;
+    for (v = 0; v < rend.nvertices; v++, tvp++, vp++) {
         if (rend.vertex_counts[v] == 0) {
             continue;
         }
