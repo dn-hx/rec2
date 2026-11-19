@@ -345,6 +345,7 @@ extern void C2_HOOK_FASTCALL SetThisPedPhysicing(tPedestrian* pPed);
 
 #ifdef REC2_MATCHING
 extern void C2_HOOK_FASTCALL FUN_004d3600(void);
+extern void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale);
 
 #endif
 
