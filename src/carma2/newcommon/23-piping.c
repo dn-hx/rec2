@@ -39,6 +39,13 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern tU32 gYoungest_time;;
+extern tU32 gTrigger_time;;
+extern br_vector3 gReference_pos;;
+extern tU32 gOldest_time;;
+extern br_scalar gMax_distance;;
+extern tCar_spec* gCar_ptr;;
+extern br_vector3 gCar_pos;;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
