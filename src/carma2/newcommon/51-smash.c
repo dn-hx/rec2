@@ -33,6 +33,11 @@
 #include "00-car.h"
 
 #include <stdio.h>
+extern void C2_HOOK_FASTCALL ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(tPhysics_object* pObject, int pMode);
+extern int gSize_powerup_queue;;
+extern tPowerup_queue_item gPowerup_queue[50];
+extern int gMutant_tail_state;;
+extern tU32 gINT_00705b70;;
 
 // GLOBAL: CARMA2_HW 0x006a8298
 // GLOBAL: CARMA2_SW 0x006a22f8
@@ -1663,7 +1668,47 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
 
 // SendAllSmashes
 
-// HitPowerup
+// FUNCTION: CARMA2_HW 0x004f1030
+void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+    void* info;
+    int type;
+
+    info = pObject->owner;
+    if (pMode == 0xe) {
+        if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+            type = *(volatile int*)((tU8*)info + 0xc);
+            if ((type == 0 || (type != 2 && type != 3))
+                    && gSize_powerup_queue < 0x32
+                    && *(volatile int*)((tU8*)info + 0xc) > 5) {
+                gPowerup_queue[gSize_powerup_queue].actor = pActor;
+                gPowerup_queue[gSize_powerup_queue].car = pObject->owner;
+                gPowerup_queue[gSize_powerup_queue].powerup_index = 0xe;
+                gSize_powerup_queue = gSize_powerup_queue + 1;
+                return;
+            }
+        }
+        ThisObjectHitAMineSoSpamItUpUsingThisPowerupsSettings(pObject, 0xe);
+        return;
+    }
+    if (pObject != NULL && info != NULL && pObject->flags_0x238 == 1) {
+        type = *(volatile int*)((tU8*)info + 0xc);
+        if ((type == 0 || (type != 2 && type != 3))
+                && gSize_powerup_queue < 0x32
+                && *(volatile int*)((tU8*)info + 0xc) == 8) {
+            goto enqueue;
+        }
+    }
+    if (pObject->flags_0x238 == 0x20
+            && (gMutant_tail_state == 2 || GetTotalTime() - gINT_00705b70 < 0x1d4c)) {
+        goto enqueue;
+    }
+    return;
+enqueue:
+    gPowerup_queue[gSize_powerup_queue].actor = pActor;
+    gPowerup_queue[gSize_powerup_queue].car = &gProgram_state.current_car;
+    gPowerup_queue[gSize_powerup_queue].powerup_index = pMode;
+    gSize_powerup_queue = gSize_powerup_queue + 1;
+}
 
 // SmashEnvironment
 
