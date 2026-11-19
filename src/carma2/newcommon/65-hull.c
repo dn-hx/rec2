@@ -17,10 +17,91 @@ tCollision_shape_polyhedron_data* gPolyhedron_to_sort;
 // GLOBAL: CARMA2_SW 0x00673b90
 br_vector3 gPhysics_reference_normal_comparison;
 
-// STUB: CARMA2_HW 0x00420910
+// FUNCTION: CARMA2_HW 0x00420910
 // STUB: CARMA2_SW 0x00420990
 tPhysicsError C2_HOOK_FASTCALL ConvexHull2D(tCollision_shape_polyhedron_data* pPolyhedron) {
-    NOT_IMPLEMENTED();
+    int new_count_points;
+    br_vector4 tv1;
+    volatile int read_idx;
+    br_vector3 tv2;
+    int indices_buffer[301];
+    br_vector3 point_buffer[300];
+    int first_vertex;
+    int i;
+    int index_min;
+    br_vector3 tv3;
+    int* write_ptr;
+    int* read_ptr;
+
+    first_vertex = 0;
+    while (Collinear(&pPolyhedron->points[first_vertex + 0], &pPolyhedron->points[first_vertex + 1], &pPolyhedron->points[first_vertex + 2])) {
+        first_vertex++;
+        if (first_vertex == pPolyhedron->count_points - 3) {
+            return ePhysicsError_UnknownShapeType;
+        }
+    }
+    BrVector3Sub((br_vector3*)&tv1, &pPolyhedron->points[first_vertex + 1], &pPolyhedron->points[first_vertex + 0]);
+    BrVector3Sub(&tv2, &pPolyhedron->points[first_vertex + 2], &pPolyhedron->points[first_vertex + 0]);
+    BrVector3Cross(&tv3, (br_vector3*)&tv1, &tv2);
+    BrVector3Normalise(&gPhysics_reference_normal_comparison, &tv3);
+
+    index_min = 0;
+    for (i = 1; i < pPolyhedron->count_points; i++) {
+
+        if (pPolyhedron->points[i].v[0] < pPolyhedron->points[index_min].v[0]
+                || (pPolyhedron->points[i].v[0] == pPolyhedron->points[index_min].v[0]
+                        && (pPolyhedron->points[i].v[1] < pPolyhedron->points[index_min].v[1]
+                            || (pPolyhedron->points[i].v[1] == pPolyhedron->points[index_min].v[1]
+                               && pPolyhedron->points[i].v[2] < pPolyhedron->points[index_min].v[2])))) {
+            index_min = i;
+        }
+    }
+
+    BrVector3Copy((br_vector3*)&tv1, &pPolyhedron->points[0]);
+    BrVector3Copy(&pPolyhedron->points[0], &pPolyhedron->points[index_min]);
+    BrVector3Copy(&pPolyhedron->points[index_min], (br_vector3*)&tv1);
+    for (i = 0; i < pPolyhedron->count_points; i++) {
+        indices_buffer[i + 1] = i;
+    }
+    gPolyhedron_to_sort = pPolyhedron;
+    qsort(&indices_buffer[2], pPolyhedron->count_points - 1, sizeof(indices_buffer[1]), (int(C2_HOOK_CDECL*)(const void*, const void*))CompareAngle);
+    indices_buffer[0] = indices_buffer[pPolyhedron->count_points];
+    indices_buffer[1] = 0;
+
+    new_count_points = 1;
+    read_idx = 2;
+    write_ptr = &indices_buffer[1];
+    read_ptr = &indices_buffer[2];
+    while (read_idx <= pPolyhedron->count_points) {
+        BrVector3Sub((br_vector3*)&tv1, &pPolyhedron->points[*write_ptr], &pPolyhedron->points[write_ptr[-1]]);
+        BrVector3Sub(&tv2, &pPolyhedron->points[*read_ptr], &pPolyhedron->points[*write_ptr]);
+
+        if (SignedTwiceAreaOf3DTriangle((br_vector3*)&tv1, &tv2) > 1e-6f) {
+            write_ptr++;
+            new_count_points++;
+            *write_ptr = *read_ptr;
+            read_idx++;
+            read_ptr++;
+        } else {
+            new_count_points--;
+            write_ptr--;
+        }
+    }
+    pPolyhedron->count_points = new_count_points;
+    pPolyhedron->count_edges = new_count_points;
+    pPolyhedron->count_planes = 1;
+    for (i = 0; i < new_count_points; i++) {
+        BrVector3Copy(&point_buffer[i], &pPolyhedron->points[indices_buffer[i]]);
+    }
+    for (i = 0; i < new_count_points; i++) {
+        BrVector3Copy(&pPolyhedron->points[i], &point_buffer[i]);
+        pPolyhedron->edges[i].index1 = i + 0;
+        pPolyhedron->edges[i].index2 = i + 1;
+    }
+    pPolyhedron->edges[0].index2 = 0;
+    BrVector3Copy(&pPolyhedron->planes[0], &gPhysics_reference_normal_comparison);
+    pPolyhedron->planes[0].v[3] = pPolyhedron->planes[0].v[1] * pPolyhedron->points[0].v[1] + pPolyhedron->planes[0].v[2] * pPolyhedron->points[0].v[2] + pPolyhedron->planes[0].v[0] * pPolyhedron->points[0].v[0];
+    return ePhysicsError_Ok;
 }
 
 // FUNCTION: CARMA2_HW 0x00420d60
