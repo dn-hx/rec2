@@ -2442,7 +2442,116 @@ void C2_HOOK_FASTCALL ARApplyFlap(br_actor* pActor, br_angle pAngle) {
 
 // ARUndoSplitWeld
 
-// ReceivedCrush
+// FUNCTION: CARMA2_HW 0x0043c480
+void C2_HOOK_FASTCALL ReceivedCrush(tU8* pContents) {
+    tCar_crush crush;
+    struct {
+        tCar_spec* car;
+        tCar_crush* crush;
+        float force;
+    } context;
+    br_actor* master_actor;
+    tCar_spec* car;
+    tCar_crush_spec* crush_spec;
+    br_vector3 direction;
+    float crush_y;
+    float crush_z;
+    float magnitude;
+    int axis;
+    int sign;
+    int found;
+    int count;
+    int i;
+    int j;
+    tCar_crush_shape_info* shape;
+    tCar_crush_reordered_shape_info* entry;
+
+    car = NetCarFromPlayerID(*(tPlayer_ID*)(pContents + 4));
+    if (car != NULL && gNet_mode != 2 && car->active == 0 && gArrow_mode == 0) {
+        ExpandCrush(&crush, (tCompressed_car_crush*)(pContents + 8));
+        crush_spec = car->car_crush_spec;
+        master_actor = car->car_master_actor;
+        if (crush_spec != NULL && car->invulnerable_no_crushage == 0 && crush_spec->field_0x4b8 == 0) {
+            context.car = car;
+            context.crush = &crush;
+            context.force = crush.field_0x40;
+            if (context.force > gMax_crush_force) {
+                context.force = gMax_crush_force;
+            }
+            context.force = context.force / (float)crush.count;
+
+            if (crush_spec->field_0x144 != 0) {
+                ARStartPipingSession(3);
+                DRActorEnumRecurseWithSnart(car->car_model_actor, NULL, SimpleCrushCarModelsCB, &context);
+                AREndPipingSession();
+                return;
+            }
+
+            crush_y = context.force * crush.field_0x44.v[1];
+            crush_z = context.force * crush.field_0x44.v[2];
+            direction.v[0] = gCrushZero;
+            if (crush_y > gCrushZero) {
+                crush_y = gCrushZero;
+            }
+            magnitude = (float)sqrt(crush_y * crush_y + crush_z * crush_z);
+            if (magnitude >= 1e-05f) {
+                direction.v[0] = gCrushZero / magnitude;
+                direction.v[1] = crush_y / magnitude;
+                direction.v[2] = crush_z / magnitude;
+                if ((float)fabs(direction.v[0]) <= 0.707107f) {
+                    axis = 1;
+                    if ((float)fabs(direction.v[1]) <= 0.707107f) {
+                        axis = 2;
+                    }
+                } else {
+                    axis = 0;
+                }
+                sign = (direction.v[axis] > gCrushZero) ? 1 : 0;
+                found = 0;
+                count = crush_spec->field_0xa4.counts[axis][sign];
+                if (count > 0) {
+                    i = 0;
+                    do {
+                        if (sign == 0) {
+                            if (crush_spec->field_0xbc.limits[axis][0].values[i] < crush.field_0x34.v[axis]) {
+                                found = i;
+                                break;
+                            }
+                        } else {
+                            if (crush.field_0x34.v[axis] < crush_spec->field_0xbc.limits[axis][1].values[i]) {
+                                found = i;
+                                break;
+                            }
+                        }
+                        i++;
+                    } while (i < count);
+                }
+
+                if (crush_spec->count_shapes > 0) {
+                    i = 0;
+                    do {
+                        shape = &crush_spec->field_0x4[i];
+                        if (shape->field_0x8 == 0) {
+                            for (j = 0; j < shape->count_points; j++) {
+                                entry = &shape->field_0x18[j];
+                                FUN_0043c7a0(&entry->field_0x18, crush.count, crush.vectors[0].v, &direction,
+                                    entry->field_0x24 * magnitude, entry->field_0x28, &crush_spec->field_0xbc, found);
+                                ClipPointToLimits(&entry->field_0x18, entry->field_0x28, &crush_spec->field_0xbc);
+                            }
+                        }
+                        i++;
+                    } while (i < crush_spec->count_shapes);
+                }
+                crush_spec->expand_bounding_box = 7;
+            }
+
+            ARStartPipingSession(3);
+            DRActorEnumRecurseWithSnart(master_actor, NULL, CrushModels, &context);
+            AREndPipingSession();
+            car->use_shell_model = 0;
+        }
+    }
+}
 
 // STUB: CARMA2_HW 0x0043cac0
 int C2_HOOK_CDECL FindBitWithID(br_actor* pActor, void* pArg) {
