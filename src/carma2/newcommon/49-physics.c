@@ -29,6 +29,7 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern br_scalar gFLOAT_0058a768;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -553,6 +554,158 @@ void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_objec
 
 // LimitOmega
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004bc190
+void C2_HOOK_FASTCALL FUN_004bc190(tPhysics_joint_force** pRecords, br_scalar* pImpulses, int pCount, tWorld_callbacks* pWorld_callbacks) {
+    extern void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale);
+    int i;
+    int j;
+    tPhysics_object* obj;
+    tPhysics_joint_force* rec;
+    tPhysics_object* other;
+    br_scalar limit;
+    br_scalar len;
+    br_scalar omega_len;
+    br_vector3 imp;
+    br_vector3 dir;
+    br_vector3 impulse;
+    br_vector3 rotated;
+    br_vector3 axis;
+    br_matrix34 rotation;
+
+    for (i = 0; i < pCount; ) {
+        obj = pRecords[i]->object_a;
+        if (obj->child != NULL) {
+            for (j = i; j < pCount; ) {
+                rec = pRecords[j];
+                if (rec->object_b == obj && BrVector3LengthSquared(&obj->rotate_omega) < BrVector3LengthSquared(&obj->omega)) {
+                    other = rec->object_a;
+                    imp.v[2] = pImpulses[i + 2];
+                    imp.v[1] = pImpulses[i + 1];
+                    imp.v[0] = pImpulses[i];
+                    dir.v[0] = obj->physics_joint1->field_0x08.v[0] - other->physics_joint1->field_0x14.v[0];
+                    dir.v[1] = obj->physics_joint1->field_0x08.v[1] - other->physics_joint1->field_0x14.v[1];
+                    dir.v[2] = obj->physics_joint1->field_0x08.v[2] - other->physics_joint1->field_0x14.v[2];
+                    len = BrVector3Length(&dir);
+                    dir.v[0] = dir.v[0] / len;
+                    dir.v[1] = dir.v[1] / len;
+                    dir.v[2] = dir.v[2] / len;
+                    limit = obj->M * 0.5;
+                    if (imp.v[0] * dir.v[0] + imp.v[1] * dir.v[1] + imp.v[2] * dir.v[2] >= limit
+                        && BrVector3Dot(&pRecords[j]->direction_b, &dir) * pImpulses[j] + BrVector3Dot(&pRecords[j + 1]->direction_b, &dir) * pImpulses[j + 1] + BrVector3Dot(&pRecords[j + 2]->direction_b, &dir) * pImpulses[j + 2] >= limit) {
+                        omega_len = BrVector3Length(&obj->omega);
+                        axis.v[0] = obj->omega.v[0] / omega_len;
+                        axis.v[1] = obj->omega.v[1] / omega_len;
+                        axis.v[2] = obj->omega.v[2] / omega_len;
+                        BrMatrix34Rotate(&rotation, BrRadianToAngle(omega_len * 0.04f), &axis);
+                        BrMatrix34ApplyV(&rotated, &dir, &rotation);
+                        impulse.v[0] = pImpulses[i];
+                        impulse.v[1] = pImpulses[i + 1];
+                        impulse.v[2] = pImpulses[i + 2];
+                        BrVector3Normalise(&impulse, &impulse);
+                        if ((dir.v[1] * impulse.v[2] - dir.v[2] * impulse.v[1]) * (rotated.v[1] * impulse.v[2] - rotated.v[2] * impulse.v[1]) + (dir.v[2] * impulse.v[0] - dir.v[0] * impulse.v[2]) * (rotated.v[2] * impulse.v[0] - rotated.v[0] * impulse.v[2]) + (dir.v[0] * impulse.v[1] - dir.v[1] * impulse.v[0]) * (rotated.v[0] * impulse.v[1] - rotated.v[1] * impulse.v[0]) < gFLOAT_0058a768) {
+                            BrVector3Scale(&obj->omega, &obj->omega, 0.1f);
+                            FUN_004bc8e0(obj, 25.0f);
+                        }
+                    }
+                }
+                rec = pRecords[j];
+                if (rec->object_a->physics_joint1 != NULL) {
+                    switch (rec->object_a->physics_joint1->type) {
+                    case eJoint_hinge:
+                        j += 5;
+                        break;
+                    case eJoint_universal:
+                        j += 4;
+                        break;
+                    case eJoint_ball_n_socket:
+                        j += 3;
+                        break;
+                    case eJoint_quick_hinge:
+                        j += 2;
+                        break;
+                    default:
+                        PhysicsError(ePhysicsError_UnknownHingeType, "");
+                        break;
+                    }
+                }
+                if (rec->object_a->physics_joint2 != NULL) {
+                    switch (rec->object_a->physics_joint2->type) {
+                    case eJoint_hinge:
+                        j += 5;
+                        break;
+                    case eJoint_universal:
+                        j += 4;
+                        break;
+                    case eJoint_ball_n_socket:
+                        j += 3;
+                        break;
+                    case eJoint_translation:
+                        j += 2;
+                        break;
+                    default:
+                        PhysicsError(ePhysicsError_UnknownHingeType, "");
+                        break;
+                    }
+                }
+            }
+        }
+        rec = pRecords[i];
+        if (rec->object_a->physics_joint1 != NULL) {
+            switch (rec->object_a->physics_joint1->type) {
+            case eJoint_hinge:
+                i += 5;
+                break;
+            case eJoint_universal:
+                i += 4;
+                break;
+            case eJoint_ball_n_socket:
+                i += 3;
+                break;
+            case eJoint_quick_hinge:
+                i += 2;
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, "");
+                break;
+            }
+        }
+        if (rec->object_a->physics_joint2 != NULL) {
+            switch (rec->object_a->physics_joint2->type) {
+            case eJoint_hinge:
+                i += 5;
+                break;
+            case eJoint_universal:
+                i += 4;
+                break;
+            case eJoint_ball_n_socket:
+                i += 3;
+                break;
+            case eJoint_translation:
+                i += 2;
+                break;
+            default:
+                PhysicsError(ePhysicsError_UnknownHingeType, "");
+                break;
+            }
+        }
+    }
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
