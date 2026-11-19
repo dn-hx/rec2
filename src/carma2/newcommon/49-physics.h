@@ -487,3 +487,4 @@ extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPh
 
 #endif // GUARD_49_PHYSICS_H
 
+extern int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags);
