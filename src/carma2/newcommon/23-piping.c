@@ -1826,11 +1826,6 @@ void C2_HOOK_FASTCALL ApplySplash(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c9310
-void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9330
 void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -1840,7 +1835,12 @@ void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
 
 // ApplySplash
 
-// ApplyExtendedSplash
+// FUNCTION: CARMA2_HW 0x004c9310
+void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk) {
+    tPipe_chunk_extended_splash* chunk = (tPipe_chunk_extended_splash*)*pChunk;
+
+    return AdjustSplashReplay(chunk->field_0x0, (tU8)chunk->field_0x4, chunk->field_0x8, &chunk->field_0xc, &chunk->field_0x18);
+}
 
 // ApplyOilSpill
 
