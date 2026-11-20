@@ -249,6 +249,9 @@ const char* ChunkNames[CHUNKNAMES_NB] = {
     PIXELMAP_NEW_STR
 };
 
+// GLOBAL: CARMA2_HW 0x006673c4
+const char* gUNK_006673c4[1] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006b09b0
 // GLOBAL: CARMA2_SW 0x006aa138
 int DatafileStackTop;

@@ -19,6 +19,9 @@
 // GLOBAL: CARMA2_SW 0x006ae4f8
 int gTimers_stack_size;
 
+// GLOBAL: CARMA2_HW 0x006b7824
+int gUNK_006b7824;
+
 // GLOBAL: CARMA2_HW 0x006b7600
 tTimer gTimers[19];
 
@@ -50,6 +53,12 @@ tU32 gTimers_frame_start_time;
 
 // GLOBAL: CARMA2_HW 0x006aaa5c
 tU32 gTimers_tolerance;
+
+// GLOBAL: CARMA2_HW 0x006b75dc
+int gUNK_006b75dc;
+
+// GLOBAL: CARMA2_HW 0x006b75e0
+int gTimers_stack[8];
 
 // FUNCTION: CARMA2_HW 0x00504300
 // FUNCTION: CARMA2_SW 0x004ffc50
