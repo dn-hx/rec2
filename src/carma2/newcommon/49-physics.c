@@ -29,6 +29,8 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern float gFLOAT_00692dd4;;
+extern float gFLOAT_00692dd0;;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -656,6 +658,61 @@ void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, 
 
 // LimitOmega
 
+// FUNCTION: CARMA2_HW 0x004bd830
+tPhysics_object** C2_HOOK_FASTCALL GetReducedList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object** pObjects) {
+    tPhysics_object** pLink;
+    tPhysics_object** pChild_link;
+    tPhysics_object* pCurrent;
+    tPhysics_object* child_head;
+    float x;
+
+    pLink = pObjects;
+    if (pList->parent != NULL) {
+        for (pCurrent = pList; pCurrent != NULL; pCurrent = pCurrent->next) {
+            if ((pCurrent == pObject && (pObject->flags & 8) == 0)
+                    || BoundsOverlapTest(&pObject->field_0x10c, &pCurrent->field_0x10c)) {
+                *pLink = pCurrent;
+                pLink = (tPhysics_object**)&pCurrent->field_0x234;
+            }
+        }
+    } else {
+        x = pObject->field_0x10c.min.v[0] - gFLOAT_00692dd0;
+        for (pCurrent = pObject->prev; pCurrent != NULL && pCurrent->transform_matrix.m[3][0] >= x; pCurrent = pCurrent->prev) {
+            if (BoundsOverlapTest(&pObject->field_0x10c, &pCurrent->field_0x10c)) {
+                *pLink = pCurrent;
+                pLink = (tPhysics_object**)&pCurrent->field_0x234;
+            }
+        }
+        x = pObject->field_0x10c.max.v[0] - gFLOAT_00692dd4;
+        for (pCurrent = pObject->next; pCurrent != NULL && pCurrent->transform_matrix.m[3][0] <= x; pCurrent = pCurrent->next) {
+            if (BoundsOverlapTest(&pObject->field_0x10c, &pCurrent->field_0x10c)) {
+                *pLink = pCurrent;
+                pLink = (tPhysics_object**)&pCurrent->field_0x234;
+            }
+        }
+        if ((pObject->flags & 8) == 0) {
+            *pLink = pObject;
+            pLink = (tPhysics_object**)&pObject->field_0x234;
+        }
+    }
+    *pLink = NULL;
+
+    child_head = NULL;
+    pCurrent = *pObjects;
+    pChild_link = &child_head;
+    while (pCurrent != NULL) {
+        if (pCurrent->child != NULL) {
+            pChild_link = GetReducedList(pObject, pCurrent->child, pChild_link);
+        }
+        pCurrent = (tPhysics_object*)pCurrent->field_0x234;
+    }
+    if (child_head != NULL) {
+        *pChild_link = NULL;
+        *pLink = child_head;
+        return pChild_link;
+    }
+    return pLink;
+}
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
@@ -888,11 +945,6 @@ int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject) {
 
 // STUB: CARMA2_HW 0x004bd7f0
 int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x004bd830
-tPhysics_object** C2_HOOK_FASTCALL GetReducedList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object** pObjects) {
     NOT_IMPLEMENTED();
 }
 
