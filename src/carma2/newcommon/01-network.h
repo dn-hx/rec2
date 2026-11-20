@@ -12,6 +12,15 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    int num_players;
+    int player_index;
+    int field_0xc;
+    tNet_game_player_info player;
+} tNet_message_chunk_player_info;
+
 extern int INT_00659d34;
 
 extern int gIt_or_fox;

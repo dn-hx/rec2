@@ -56,6 +56,11 @@ int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
 }
 
+// STUB: CARMA2_HW 0x0045a100
+int C2_HOOK_FASTCALL CreateDinputEffectFromSpec(int pJoystickIndex, const tJoystick_effect_spec* pEffectSpec, const char* pName) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0045a2e0
 // FUNCTION: CARMA2_SW 0x0045a070
 void C2_HOOK_FASTCALL PeekCharacter(FILE* pF) {
@@ -481,6 +486,11 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     }
 }
 
+// STUB: CARMA2_HW 0x0045c590
+unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey) {
+    NOT_IMPLEMENTED();
+}
+
 // STUB: CARMA2_HW 0x0045c6b0
 // STUB: CARMA2_SW 0x0045c0f0
 int C2_HOOK_FASTCALL PlayExclusiveFFBEffect(const char* pEffect_name, int pArg2) {
@@ -588,4 +598,24 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
         return info->field_0xdc;
     }
     return gJoystick_y_throttle;
+}
+
+// STUB: CARMA2_HW 0x00511280
+void C2_HOOK_FASTCALL ToggleJoystickYAxis(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005112d0
+void C2_HOOK_FASTCALL ToggleJoystickEnable(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511330
+void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511390
+void C2_HOOK_FASTCALL IncreaseJoystickFFB(void) {
+    NOT_IMPLEMENTED();
 }
