@@ -1301,6 +1301,10 @@ int C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3,
     KillPedestrian(pPed, pObject);
     return 1;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
