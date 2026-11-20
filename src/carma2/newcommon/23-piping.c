@@ -969,11 +969,6 @@ void C2_HOOK_FASTCALL AddExtendedSplashToPipingSession(tPhysics_object* pObject,
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c72f0
-void C2_HOOK_FASTCALL AddGraphicalWheelStuffToPipingSession(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c73a0
 void C2_HOOK_FASTCALL AddSoundToPipingSession(tS3_outlet* pOutlet, int pSound, tS3_volume pL_volume, tS3_volume pR_volume, int pPitch, const br_vector3* pPosition) {
     NOT_IMPLEMENTED();
@@ -983,6 +978,16 @@ void C2_HOOK_FASTCALL AddSoundToPipingSession(tS3_outlet* pOutlet, int pSound, t
 
 // AddDamageToPipingSession
 
+// FUNCTION: CARMA2_HW 0x004c72f0
+void C2_HOOK_FASTCALL AddGraphicalWheelStuffToPipingSession(tCar_spec* pCar) {
+
+    ARAddVariedDataToSession(ePipe_chunk_single_graphical_wheel_stuff, (uintptr_t)(tU16)pCar->car_ID, 5,
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, steering_angle), (int)(pCar->steering_angle * (32767.0 / 60.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lf_sus_position), (int)(pCar->lf_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rf_sus_position), (int)(pCar->rf_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, lr_sus_position), (int)(pCar->lr_sus_position * 127.f * (20.0 / 3.0)),
+        SIZE_OFFSET_PIPING(tPipe_single_graphical_wheel_stuff, rr_sus_position), (int)(pCar->rr_sus_position * 127.f * (20.0 / 3.0)));
+}
 // FUNCTION: CARMA2_HW 0x004c74c0
 // FUNCTION: CARMA2_SW 0x004c3bf0
 void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec* pCar, tU16 pPed_index, tU32 pTime) {
