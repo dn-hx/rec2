@@ -1286,6 +1286,9 @@ void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMappi
         ExtrapolateGeometryCoordinates2((const int*)pMapping, (const float*)((const tU8*)pMapping + 0x24), (const float*)pMap, (float*)pVertex);
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
