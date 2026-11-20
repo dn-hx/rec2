@@ -310,9 +310,94 @@ tFace_ref* C2_HOOK_FASTCALL RayCastThruFaceList2(br_vector3* pPosition, br_vecto
 
 // FaceOnCount
 
-// STUB: CARMA2_HW 0x00423320
+typedef struct tFace_ref_flag_bits {
+    unsigned int other : 7;
+    unsigned int eliminated : 1;
+} tFace_ref_flag_bits;
+
+// FUNCTION: CARMA2_HW 0x00423320
 int C2_HOOK_FASTCALL EliminateFaces(tPhysics_object* pObject, int* pCtx, br_matrix34* pMatrix) {
-    NOT_IMPLEMENTED();
+    tCollision_shape_common* shape;
+    br_matrix34* mat;
+    br_bounds3* bnds;
+    tFace_ref* f;
+    int i;
+    int j;
+    int count;
+    br_vector3 pos;
+    br_vector3 edges[3];
+    float d;
+    float max;
+    float min;
+    float lo;
+    float hi;
+
+    shape = (tCollision_shape_common*)pCtx;
+    mat = &pObject->actor->t.t.mat;
+    bnds = &shape->field_0x1c;
+    i = 0;
+    count = 0;
+    GetNewBoundingBox(bnds, &shape->bb, pMatrix);
+    for (j = 0; j < 3; j++) {
+        if (bnds->min.v[j] > shape->bb.min.v[j]) {
+            bnds->min.v[j] = shape->bb.min.v[j];
+        }
+        if (bnds->max.v[j] < shape->bb.max.v[j]) {
+            bnds->max.v[j] = shape->bb.max.v[j];
+        }
+    }
+    BrMatrix34ApplyV(&pos, &bnds->min, mat);
+    pos.v[0] += mat->m[3][0];
+    pos.v[1] += mat->m[3][1];
+    pos.v[2] += mat->m[3][2];
+    for (j = 0; j < 3; j++) {
+        d = bnds->max.v[j] - bnds->min.v[j];
+        edges[j].v[0] = mat->m[j][0] * d;
+        edges[j].v[1] = mat->m[j][1] * d;
+        edges[j].v[2] = mat->m[j][2] * d;
+    }
+    f = &gFace_list__car[pObject->box_face_start];
+    while (i < pObject->box_face_end - pObject->box_face_start) {
+        max = (pos.v[0] - f->v[0].v[0]) * f->normal.v[0] + (pos.v[2] - f->v[0].v[2]) * f->normal.v[2] + (pos.v[1] - f->v[0].v[1]) * f->normal.v[1];
+        min = max;
+        for (j = 0; j < 3; j++) {
+            d = edges[j].v[0] * f->normal.v[0] + edges[j].v[1] * f->normal.v[1] + edges[j].v[2] * f->normal.v[2];
+            if (d < 0.f) {
+                min += d;
+            } else {
+                max += d;
+            }
+        }
+        if ((max > 0.005f && min > 0.005f) || (max < -0.005f && min < -0.005f) || (f->material != NULL && f->material->identifier[0] == '!')) {
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+        } else if (f->material->identifier[0] == '>') {
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+        } else {
+            for (j = 0; j < 3; j++) {
+                d = mat->m[j][2] * mat->m[3][2] + mat->m[j][0] * mat->m[3][0] + mat->m[j][1] * mat->m[3][1];
+                max = mat->m[j][2] * f->v[0].v[2] + mat->m[j][0] * f->v[0].v[0] + mat->m[j][1] * f->v[0].v[1];
+                lo = bnds->min.v[j] - 0.005f + d;
+                if (max < lo) {
+                    if (f->v[1].v[1] * mat->m[j][1] + f->v[1].v[0] * mat->m[j][0] + f->v[1].v[2] * mat->m[j][2] < lo
+                        && f->v[2].v[1] * mat->m[j][1] + f->v[2].v[0] * mat->m[j][0] + f->v[2].v[2] * mat->m[j][2] < lo) {
+                        ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+                    }
+                } else {
+                    hi = bnds->max.v[j] + d - -0.005f;
+                    if (max > hi
+                        && f->v[1].v[1] * mat->m[j][1] + f->v[1].v[0] * mat->m[j][0] + f->v[1].v[2] * mat->m[j][2] > hi
+                        && f->v[2].v[1] * mat->m[j][1] + f->v[2].v[0] * mat->m[j][0] + f->v[2].v[2] * mat->m[j][2] > hi) {
+                        ((tFace_ref_flag_bits*)&f->flags)->eliminated = 1;
+                    }
+                }
+            }
+            ((tFace_ref_flag_bits*)&f->flags)->eliminated = 0;
+            count++;
+        }
+        i++;
+        f++;
+    }
+    return count;
 }
 
 // GetShapePoint
