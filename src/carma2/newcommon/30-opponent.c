@@ -1003,6 +1003,9 @@ after_cheat_check:
         BrVector3Copy(&pOpponent_spec->car_spec->pos, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t);
     }
 }
+#ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
