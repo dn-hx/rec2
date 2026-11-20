@@ -2152,6 +2152,9 @@ intptr_t C2_HOOK_CDECL FireOffBitsCB(br_actor* pActor, void* pArg) {
 fail:
     return 0;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
