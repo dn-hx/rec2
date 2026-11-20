@@ -29,6 +29,13 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time);
+extern void C2_HOOK_FASTCALL RQMatrixSolveWithNegatives(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount);
+extern void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+extern br_scalar C2_HOOK_FASTCALL HierarchyCalcEnergy(tPhysics_object* pObject);
+extern int C2_HOOK_FASTCALL GetJointForces(tPhysics_object* pObject, tPhysics_joint_force* pForce);
+extern int C2_HOOK_FASTCALL CountJointForces(tPhysics_object* pObject, tPhysics_object* pParent_context);
+extern br_scalar gFLOAT_0058a768;
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -494,6 +501,97 @@ int C2_HOOK_FASTCALL TestForObjectInSensiblePlace(tPhysics_object* pCollision_in
 
 // CheckForTwang
 
+typedef struct tPhysics_joint_force_group {
+    int count;
+    tPhysics_joint_force* records;
+    undefined4 field_0x8[3];
+    br_scalar* orthogonal;
+    br_scalar* matrix;
+} tPhysics_joint_force_group;
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b7510
+void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
+    br_scalar energy;
+    br_scalar total;
+    tPhysics_joint_force* records[40];
+    br_scalar velocity[100];
+    br_scalar impulses[100];
+    tPhysics_joint_force_group* joint_forces;
+    tPhysics_joint_force* record;
+    tPhysics_object* obj;
+    int count;
+    int actual_count;
+    int i;
+
+    count = CountJointForces(pObject, NULL);
+    if (count != 0) {
+        joint_forces = (tPhysics_joint_force_group*)GetPhysicsScratchPointer((count + 12) * count * 8 + 28);
+        IncreasePhysicsScratchPointer((count + 12) * count * 8 + 28);
+        joint_forces->count = count;
+        joint_forces->records = (tPhysics_joint_force*)((tU8*)joint_forces + 28);
+        joint_forces->orthogonal = (br_scalar*)(joint_forces->records + count);
+        joint_forces->matrix = joint_forces->orthogonal + count * count;
+        actual_count = GetJointForces(pObject, joint_forces->records);
+        pObject->field_0x218 = (undefined4)joint_forces;
+        record = joint_forces->records;
+        for (i = 0; i < actual_count; i++) {
+            records[i] = record++;
+        }
+        MakeMatrix(joint_forces->matrix, actual_count, records, actual_count);
+        MakeJointVelocitiesVector(velocity, records, actual_count);
+        RQMatrixSolveWithNegatives(joint_forces->matrix, joint_forces->orthogonal, velocity, impulses, actual_count);
+        if (pDelta_time == gFLOAT_0058a768) {
+            return;
+        }
+        total = gFLOAT_0058a768;
+        for (obj = pObject; obj != NULL; obj = obj->next) {
+            energy = gFLOAT_0058a768;
+            for (i = 0; i < 3; i++) {
+                energy += obj->v.v[i] * obj->v.v[i] * obj->M + obj->omega.v[i] * obj->omega.v[i] * obj->I.v[i];
+            }
+            total = HierarchyCalcEnergy(obj->child) + energy + total;
+        }
+        for (i = 0; i < actual_count; i++) {
+            ApplySingleForce(records[i], impulses[i]);
+        }
+        total = gFLOAT_0058a768;
+        for (obj = pObject; obj != NULL; obj = obj->next) {
+            energy = gFLOAT_0058a768;
+            for (i = 0; i < 3; i++) {
+                energy += obj->v.v[i] * obj->v.v[i] * obj->M + obj->omega.v[i] * obj->omega.v[i] * obj->I.v[i];
+            }
+            total = HierarchyCalcEnergy(obj->child) + energy + total;
+        }
+        if (pDelta_time > gFLOAT_0058a768) {
+            TranslateAndRotateJointedObject(pObject, pDelta_time);
+        }
+        return;
+    }
+    if (pObject->child != NULL) {
+        TranslateAndRotateJointedObject(pObject, pDelta_time);
+        return;
+    }
+    pObject->actor->t.t.mat.m[3][0] = pObject->v.v[0] * pDelta_time + pObject->actor->t.t.mat.m[3][0];
+    pObject->actor->t.t.mat.m[3][1] = pObject->v.v[1] * pDelta_time + pObject->actor->t.t.mat.m[3][1];
+    pObject->actor->t.t.mat.m[3][2] = pObject->v.v[2] * pDelta_time + pObject->actor->t.t.mat.m[3][2];
+    RotateObject(pObject, *(undefined4*)&pDelta_time, pDelta_time);
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004b8c20
 void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
@@ -600,11 +698,6 @@ void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_sc
 // TranslateAndRotateJointedObject
 
 // CountJointForces
-
-// STUB: CARMA2_HW 0x004b7510
-void C2_HOOK_FASTCALL MoveJointedObject(tPhysics_object* pObject, float pDelta_time) {
-    NOT_IMPLEMENTED();
-}
 
 // STUB: CARMA2_HW 0x004b9750
 // STUB: CARMA2_SW 0x004b5e70
