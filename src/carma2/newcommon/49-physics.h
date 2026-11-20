@@ -167,9 +167,9 @@ extern void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject);
 
 extern void C2_HOOK_FASTCALL PositionWorldJointedObject(tPhysics_object* pObject, br_scalar pDelta_time);
 
-// TranslateAndRotatePartialObject
+extern void C2_HOOK_FASTCALL TranslateAndRotatePartialObject(tPhysics_object* pObject, tPhysics_object** ppChanged_object, float pDelta_time);
 
-// TranslateAndRotateJointedObject
+extern void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, float pDelta_time);
 
 // CountJointForces
 
