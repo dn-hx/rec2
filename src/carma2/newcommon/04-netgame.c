@@ -38,16 +38,18 @@
 #include <stdlib.h>
 #include <string.h>
 extern br_pixelmap* gTexture_maps[1024];
-extern int gNet_score_scene_initialised;;
 extern void C2_HOOK_FASTCALL PolyFontText(const char *pText, int pX, int pY, int pFont, tJustification pJust, int pRender);
 extern int C2_HOOK_FASTCALL DRTextWidth(const tDR_font* pFont, const char* pText);
-extern br_actor* gNet_score_root;;
-extern br_model* gNet_score_model;;
-extern br_material* gNet_score_materials[4];;
+#ifndef REC2_HW
+extern int gNetscore_box_created;
+extern br_actor* gNetscore_box_universe;
+extern br_model* gNetScore_box_model;
+extern br_material* gNetscore_box_materials[4];
+extern br_actor* gNetscore_box_camera;
+extern br_actor* gNetscore_box_actors[12];
+#endif
 extern tU32 gNet_score_last_flash;;
 extern int gNet_score_flash_state;;
-extern br_actor* gNet_score_camera;;
-extern br_actor* gNet_score_actors[12];;
 extern tDR_font gFonts[28];
 extern br_actor* gCar_icons_model_actor;;
 extern tCar_icon gCar_icons[128];;
@@ -488,7 +490,7 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
     }
 
     row = 0;
-    actor_ptr = gNet_score_actors;
+    actor_ptr = gNetscore_box_actors;
     text_offset = 1;
     entry = entries;
     row_y = -1;
@@ -499,25 +501,25 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
         }
         if (pOnly_sort_scores == 0 && index >= 0) {
             if (own_row == row) {
-                if (gNet_score_scene_initialised == 0) {
+                if (gNetscore_box_created == 0) {
 #ifdef REC2_HW
                     CreateBoxes();
 #endif
                 }
-                if (gNet_score_scene_initialised != 0) {
+                if (gNetscore_box_created != 0) {
                     actor = *actor_ptr;
-                    actor->material = gNet_score_materials[1];
-                    actor->model = gNet_score_model;
+                    actor->material = gNetscore_box_materials[1];
+                    actor->model = gNetScore_box_model;
                     BrMatrix34Translate(&actor->t.t.mat, 220.f, (float)(row_y + 0xf0), 0.f);
-                    BrActorAdd(gNet_score_root, actor);
-                    BrZbSceneRender(gNet_score_root, gNet_score_camera, gRender_screen, gDepth_buffer);
+                    BrActorAdd(gNetscore_box_universe, actor);
+                    BrZbSceneRender(gNetscore_box_universe, gNetscore_box_camera, gRender_screen, gDepth_buffer);
                     BrActorRemove(actor);
                 }
                 font = kPolyfont_ingame_medium_orange;
             } else {
-                if (gNet_score_scene_initialised == 0) {
-                    gNet_score_root = BrActorAllocate(0, NULL);
-                    box_actor_ptr = gNet_score_actors;
+                if (gNetscore_box_created == 0) {
+                    gNetscore_box_universe = BrActorAllocate(0, NULL);
+                    box_actor_ptr = gNetscore_box_actors;
                     do {
                         *box_actor_ptr = BrActorAllocate(1, NULL);
                         if (*box_actor_ptr == NULL) {
@@ -525,42 +527,42 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
                         }
                         (*box_actor_ptr)->render_style = 4;
                         box_actor_ptr++;
-                    } while ((int)box_actor_ptr < (int)(gNet_score_actors + 12));
+                    } while ((int)box_actor_ptr < (int)(gNetscore_box_actors + 12));
 
-                    gNet_score_model = BrModelAllocate("NetScore Model", 4, 2);
-                    gNet_score_model->faces[0].vertices[0] = 0;
-                    gNet_score_model->faces[0].vertices[1] = 1;
-                    gNet_score_model->faces[0].vertices[2] = 2;
-                    gNet_score_model->faces[1].vertices[0] = 1;
-                    gNet_score_model->faces[1].vertices[1] = 3;
-                    gNet_score_model->faces[1].vertices[2] = 2;
-                    gNet_score_model->faces[0].material = NULL;
-                    gNet_score_model->faces[1].material = NULL;
-                    gNet_score_model->vertices[0].p.v[0] = 0.0f;
-                    gNet_score_model->vertices[0].p.v[1] = 0.0f;
-                    gNet_score_model->vertices[0].p.v[2] = -2.0f;
-                    gNet_score_model->vertices[1].p.v[0] = 100.0f;
-                    gNet_score_model->vertices[1].p.v[1] = 0.0f;
-                    gNet_score_model->vertices[1].p.v[2] = -2.0f;
-                    gNet_score_model->vertices[2].p.v[0] = 0.0f;
-                    gNet_score_model->vertices[2].p.v[1] = -38.0f;
-                    gNet_score_model->vertices[2].p.v[2] = -2.0f;
-                    gNet_score_model->vertices[3].p.v[0] = 100.0f;
-                    gNet_score_model->vertices[3].p.v[1] = -38.0f;
-                    gNet_score_model->vertices[3].p.v[2] = -2.0f;
-                    gNet_score_model->vertices[0].map.v[0] = 0.0f;
-                    gNet_score_model->vertices[0].map.v[1] = 0.0f;
-                    gNet_score_model->vertices[1].map.v[0] = 0.78125f;
-                    gNet_score_model->vertices[1].map.v[1] = 0.0f;
-                    gNet_score_model->vertices[2].map.v[0] = 0.0f;
-                    gNet_score_model->vertices[2].map.v[1] = 0.296875f;
-                    gNet_score_model->vertices[3].map.v[0] = 0.78125f;
-                    gNet_score_model->vertices[3].map.v[1] = 0.296875f;
-                    gNet_score_model->flags |= 2;
-                    BrModelAdd(gNet_score_model);
+                    gNetScore_box_model = BrModelAllocate("NetScore Model", 4, 2);
+                    gNetScore_box_model->faces[0].vertices[0] = 0;
+                    gNetScore_box_model->faces[0].vertices[1] = 1;
+                    gNetScore_box_model->faces[0].vertices[2] = 2;
+                    gNetScore_box_model->faces[1].vertices[0] = 1;
+                    gNetScore_box_model->faces[1].vertices[1] = 3;
+                    gNetScore_box_model->faces[1].vertices[2] = 2;
+                    gNetScore_box_model->faces[0].material = NULL;
+                    gNetScore_box_model->faces[1].material = NULL;
+                    gNetScore_box_model->vertices[0].p.v[0] = 0.0f;
+                    gNetScore_box_model->vertices[0].p.v[1] = 0.0f;
+                    gNetScore_box_model->vertices[0].p.v[2] = -2.0f;
+                    gNetScore_box_model->vertices[1].p.v[0] = 100.0f;
+                    gNetScore_box_model->vertices[1].p.v[1] = 0.0f;
+                    gNetScore_box_model->vertices[1].p.v[2] = -2.0f;
+                    gNetScore_box_model->vertices[2].p.v[0] = 0.0f;
+                    gNetScore_box_model->vertices[2].p.v[1] = -38.0f;
+                    gNetScore_box_model->vertices[2].p.v[2] = -2.0f;
+                    gNetScore_box_model->vertices[3].p.v[0] = 100.0f;
+                    gNetScore_box_model->vertices[3].p.v[1] = -38.0f;
+                    gNetScore_box_model->vertices[3].p.v[2] = -2.0f;
+                    gNetScore_box_model->vertices[0].map.v[0] = 0.0f;
+                    gNetScore_box_model->vertices[0].map.v[1] = 0.0f;
+                    gNetScore_box_model->vertices[1].map.v[0] = 0.78125f;
+                    gNetScore_box_model->vertices[1].map.v[1] = 0.0f;
+                    gNetScore_box_model->vertices[2].map.v[0] = 0.0f;
+                    gNetScore_box_model->vertices[2].map.v[1] = 0.296875f;
+                    gNetScore_box_model->vertices[3].map.v[0] = 0.78125f;
+                    gNetScore_box_model->vertices[3].map.v[1] = 0.296875f;
+                    gNetScore_box_model->flags |= 2;
+                    BrModelAdd(gNetScore_box_model);
 
                     material_index = 0;
-                    box_material_ptr = gNet_score_materials;
+                    box_material_ptr = gNetscore_box_materials;
                     do {
                         material_index++;
                         sprintf(name_buffer, "NETBOX%i.PIX", material_index);
@@ -576,26 +578,26 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
                         BrMaterialAdd(material);
                         *box_material_ptr = material;
                         box_material_ptr++;
-                    } while ((int)box_material_ptr < (int)(gNet_score_materials + 4));
+                    } while ((int)box_material_ptr < (int)(gNetscore_box_materials + 4));
 
-                    gNet_score_camera = BrActorAllocate(3, NULL);
-                    gNet_score_camera->identifier = "Net HUD Camera";
-                    camera = (br_camera*)gNet_score_camera->type_data;
+                    gNetscore_box_camera = BrActorAllocate(3, NULL);
+                    gNetscore_box_camera->identifier = "Net HUD Camera";
+                    camera = (br_camera*)gNetscore_box_camera->type_data;
                     camera->type = 0;
                     camera->hither_z = 1.0f;
                     camera->yon_z = 3.0f;
                     camera->width = (float)gScreen->width;
                     camera->height = (float)gScreen->height;
-                    BrActorAdd(gNet_score_root, gNet_score_camera);
-                    gNet_score_scene_initialised = 1;
+                    BrActorAdd(gNetscore_box_universe, gNetscore_box_camera);
+                    gNetscore_box_created = 1;
                 }
-                if (gNet_score_scene_initialised != 0) {
+                if (gNetscore_box_created != 0) {
                     actor = *actor_ptr;
-                    actor->material = gNet_score_materials[0];
-                    actor->model = gNet_score_model;
+                    actor->material = gNetscore_box_materials[0];
+                    actor->model = gNetScore_box_model;
                     BrMatrix34Translate(&actor->t.t.mat, 220.f, (float)(row_y + 0xf0), 0.f);
-                    BrActorAdd(gNet_score_root, actor);
-                    BrZbSceneRender(gNet_score_root, gNet_score_camera, gRender_screen, gDepth_buffer);
+                    BrActorAdd(gNetscore_box_universe, actor);
+                    BrZbSceneRender(gNetscore_box_universe, gNetscore_box_camera, gRender_screen, gDepth_buffer);
                     BrActorRemove(actor);
                 }
                 font = kPolyfont_ingame_medium_blue;
@@ -671,8 +673,8 @@ void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
             gCar_icons_model_actor->material->colour_map = gTexture_maps[gCar_icons[gNet_players[index].car_index].index];
             BrMaterialUpdate(gCar_icons_model_actor->material, BR_MATU_COLOURMAP);
             gCar_icons_model_actor->model = gCar_icons[gNet_players[index].car_index].model;
-            BrActorAdd(gNet_score_camera, gCar_icons_model_actor);
-            BrZbsSceneRender(gNet_score_camera, gNet_score_camera, gBack_screen, gDepth_buffer);
+            BrActorAdd(gNetscore_box_camera, gCar_icons_model_actor);
+            BrZbsSceneRender(gNetscore_box_camera, gNetscore_box_camera, gBack_screen, gDepth_buffer);
             BrActorRemove(gCar_icons_model_actor);
             PolyFontText(s, 547, to + 0x12, font, eJust_left, 0);
             ry -= 0x28;
