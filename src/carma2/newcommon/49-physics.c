@@ -656,6 +656,35 @@ void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, 
 
 // LimitOmega
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004bd6d0
+int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count) {
+    if (pObject != NULL) {
+        do {
+            pCount = GetJointLimits(pObject, pContacts, pCount, pMax_count);
+            if (pObject->child != NULL) {
+                pCount = CollectJointLimitsOfTree(pObject->child, pContacts, pCount, pMax_count);
+            }
+            pObject = pObject->next;
+        } while (pObject != NULL);
+    }
+    return pCount;
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004c1840
 // FUNCTION: CARMA2_SW 0x004bdf70
 void C2_HOOK_FASTCALL CapOmega(tPhysics_object* pObject) {
@@ -873,11 +902,6 @@ int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_for
 
 // STUB: CARMA2_HW 0x004bd4f0
 void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x004bd6d0
-int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count) {
     NOT_IMPLEMENTED();
 }
 
