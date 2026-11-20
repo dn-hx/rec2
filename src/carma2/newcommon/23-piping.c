@@ -299,6 +299,11 @@ void C2_HOOK_FASTCALL ARDispose(void) {
     }
 }
 
+// FUNCTION: CARMA2_HW 0x00402dd0
+void C2_HOOK_FASTCALL FUN_00402dd0(void) {
+
+    gPipe_play_ptr = gPipe_record_ptr;
+}
 // FUNCTION: CARMA2_HW 0x00403720
 // FUNCTION: CARMA2_SW 0x00403720
 // FUNCTION: CARMA2_CHEAT 0x00403720
@@ -563,11 +568,6 @@ void C2_HOOK_CDECL ARDoSingleVariedSession(int pType, uintptr_t pOwner, int pCou
         ARAddDataToSession(pType, pOwner, &buffer[offsetof(tPipe_chunk, data)], LengthOfChunk((tPipe_chunk*)buffer, pType) - offsetof(tPipe_chunk, data));
     }
     AREndPipingSession();
-}
-
-// STUB: CARMA2_HW 0x00402dd0
-void C2_HOOK_FASTCALL FUN_00402dd0(void) {
-    NOT_IMPLEMENTED();
 }
 
 // ARResetPipePlayToEnd
