@@ -543,6 +543,9 @@ void C2_HOOK_FASTCALL LoadPanGameDroneInfo(void) {
     }
     PFfclose(f);
 }
+#ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
