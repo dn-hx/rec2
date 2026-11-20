@@ -25,7 +25,6 @@
 
 #include <limits.h>
 #include <string.h>
-extern int gTransient_bitmap_index;;
 extern int gDraw_cursor;
 extern int gDoMouseCursor_zero_count;;
 extern int gDoMouseCursor_required_cursor;;
@@ -634,7 +633,7 @@ int C2_HOOK_FASTCALL DoMouseCursor(void) {
         gCurrent_cursor_index = 2;
         if (!gNoTransients) {
             br_pixelmap *map;
-            int idx = gTransient_bitmap_index;
+            int idx = gCursor_transient_index;
 
             gTransient_bitmaps[idx].x_coord = x_pos & ~3;
             gTransient_bitmaps[idx].y_coord = new_required;
