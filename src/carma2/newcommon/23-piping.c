@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern br_matrix34 gShrapnel_shower_matrix;;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2479,12 +2480,18 @@ void C2_HOOK_FASTCALL UndoBend(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
 void C2_HOOK_FASTCALL UndoUnBend(void) {
 }
 
-// STUB: CARMA2_HW 0x004ca070
+// FUNCTION: CARMA2_HW 0x004ca070
 void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
-    NOT_IMPLEMENTED();
-}
+    tPipe_chunk_shrapnel_shower* prev = (tPipe_chunk_shrapnel_shower*)pPrev_chunk;
 
-// UndoShrapnelShower
+    if (((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x84 != 0 || prev == NULL || prev->field_0x4 == 0 || prev->field_0x84 == 0) {
+        return;
+    }
+
+    memcpy(&gShrapnel_shower_matrix, &prev->field_0xa4, sizeof(prev->field_0xa4));
+
+    return DoBackwardShrapnel(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, prev->field_0x4, prev->field_0x84, prev->field_0x44, &prev->field_0x8, &prev->field_0x20, &prev->field_0x2c, prev->field_0x50, prev->field_0x48, prev->field_0x0, &prev->field_0x54, &prev->field_0x88, &prev->field_0x14, prev->field_0xa0, &prev->field_0x38);
+}
 
 // FUNCTION: CARMA2_HW 0x004ca100
 // FUNCTION: CARMA2_SW 0x004c6830
