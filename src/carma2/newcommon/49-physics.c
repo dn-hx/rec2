@@ -644,7 +644,45 @@ void C2_HOOK_FASTCALL TranslateAndRotateJointedObject(tPhysics_object* pObject, 
 
 // GetJointForces
 
-// GetUniversalRotationAngle
+// FUNCTION: CARMA2_HW 0x004bd4f0
+void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2) {
+    br_vector3 vec[2];
+    float d;
+    float t1;
+    float t2;
+
+    BrMatrix34ApplyV(&vec[0], pChild1, pMatrix1);
+    BrMatrix34TApplyV(&vec[1], &vec[0], pMatrix2);
+    pOut2->v[0] = vec[1].v[0] + pParent1->v[0];
+    pOut2->v[1] = vec[1].v[1] + pParent1->v[1];
+    vec[1].v[2] = vec[1].v[2] + pParent1->v[2];
+    pOut2->v[2] = vec[1].v[2];
+    d = sqrt(pOut2->v[0] * pOut2->v[0] + vec[1].v[2] * vec[1].v[2] + pOut2->v[1] * pOut2->v[1]);
+    if (d <= 2.3841858e-07f) {
+        pOut2->v[0] = 1.0f;
+        pOut2->v[1] = 0.0f;
+        pOut2->v[2] = 0.0f;
+    } else {
+        d = 1.0 / d;
+        pOut2->v[0] = pOut2->v[0] * d;
+        pOut2->v[1] = pOut2->v[1] * d;
+        pOut2->v[2] = pOut2->v[2] * d;
+    }
+    BrMatrix34ApplyV(&vec[0], pChild2, pMatrix1);
+    BrMatrix34TApplyV(pOut1, &vec[0], pMatrix2);
+    d = pOut1->v[1] * pOut2->v[1] + pOut2->v[2] * pOut1->v[2] + pOut1->v[0] * pOut2->v[0];
+    d = d + d;
+    t1 = pOut1->v[1] - pOut2->v[1] * d;
+    t2 = pOut1->v[2] - pOut2->v[2] * d;
+    pOut1->v[0] = pOut1->v[0] - d * pOut2->v[0];
+    pOut1->v[1] = t1;
+    pOut1->v[2] = t2;
+    d = pParent1->v[2] * pOut1->v[2] + pParent1->v[1] * pOut1->v[1] + pOut1->v[0] * pParent1->v[0];
+    d = d + d;
+    pOut1->v[0] = pOut1->v[0] - d * pParent1->v[0];
+    pOut1->v[1] = pOut1->v[1] - pParent1->v[1] * d;
+    pOut1->v[2] = pOut1->v[2] - pParent1->v[2] * d;
+}
 
 // GetObjectsParent
 
@@ -868,11 +906,6 @@ void C2_HOOK_FASTCALL FUN_004bc8e0(tPhysics_object* pObject, float pScale) {
 
 // STUB: CARMA2_HW 0x004bca10
 int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x004bd4f0
-void C2_HOOK_FASTCALL GetUniversalRotationAngle(br_matrix34* pMatrix1, br_matrix34* pMatrix2, br_vector3* pChild1, br_vector3* pParent1, br_vector3* pChild2, br_vector3* pParent2, br_vector3* pOut1, br_vector3* pOut2) {
     NOT_IMPLEMENTED();
 }
 
