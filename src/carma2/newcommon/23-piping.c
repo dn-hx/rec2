@@ -2071,14 +2071,14 @@ void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c9aa0
-void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // ApplyActorTrans
 
-// ApplyPedStatus
+// FUNCTION: CARMA2_HW 0x004c9aa0
+void C2_HOOK_FASTCALL ApplyPedStatus(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_status* chunk = (tPipe_chunk_ped_status*)*pChunk;
+
+    return PedApplyStatus(chunk->field_0x0, chunk->field_0x4[0], chunk->field_0x4[1], chunk->field_0x4[2], chunk->field_0x4[3], chunk->field_0x4[5], chunk->field_0x4[7], &chunk->field_0xc, &chunk->field_0x18, &chunk->field_0x24);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9ad0
 // FUNCTION: CARMA2_SW 0x004c6200
