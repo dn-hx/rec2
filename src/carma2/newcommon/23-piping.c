@@ -39,7 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
-extern br_matrix34 gShrapnel_shower_matrix;;
+extern br_vector3 gVector3_006b78a0[4];
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2488,7 +2488,7 @@ void C2_HOOK_FASTCALL UndoShrapnelShower(tPipe_chunk** pChunk, tPipe_chunk* pPre
         return;
     }
 
-    memcpy(&gShrapnel_shower_matrix, &prev->field_0xa4, sizeof(prev->field_0xa4));
+    memcpy(gVector3_006b78a0, &prev->field_0xa4, sizeof(prev->field_0xa4));
 
     return DoBackwardShrapnel(((tPipe_chunk_shrapnel_shower*)*pChunk)->field_0x48, prev->field_0x4, prev->field_0x84, prev->field_0x44, &prev->field_0x8, &prev->field_0x20, &prev->field_0x2c, prev->field_0x50, prev->field_0x48, prev->field_0x0, &prev->field_0x54, &prev->field_0x88, &prev->field_0x14, prev->field_0xa0, &prev->field_0x38);
 }
