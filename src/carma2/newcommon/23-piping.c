@@ -2547,11 +2547,6 @@ void C2_HOOK_FASTCALL UndoActorTrans(tPipe_chunk** pChunk, tPipe_chunk* pPrev_ch
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004ca1b0
-void C2_HOOK_FASTCALL UndoPedStatus(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004ca1e0
 void C2_HOOK_FASTCALL UndoPedMove(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
     NOT_IMPLEMENTED();
@@ -2559,7 +2554,12 @@ void C2_HOOK_FASTCALL UndoPedMove(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk
 
 // UndoActorTrans
 
-// UndoPedStatus
+// FUNCTION: CARMA2_HW 0x004ca1b0
+void C2_HOOK_FASTCALL UndoPedStatus(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+    tPipe_chunk_ped_status* chunk = (tPipe_chunk_ped_status*)*pChunk;
+
+    return PedUndoStatus(chunk->field_0x0, chunk->field_0x4[0], chunk->field_0x4[1], chunk->field_0x4[2], chunk->field_0x4[3], chunk->field_0x4[4], chunk->field_0x4[6], &chunk->field_0xc, &chunk->field_0x18, &chunk->field_0x24);
+}
 
 // UndoPedMove
 
