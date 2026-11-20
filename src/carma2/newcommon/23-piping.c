@@ -1710,12 +1710,12 @@ void C2_HOOK_FASTCALL PipeSingleOppoRenderage(tOpponent_spec* pOpponent_spec, in
         SIZE_OFFSET_PIPING(tPipe_single_oppo_renderage, enable), pEnable);
 }
 
-// STUB: CARMA2_HW 0x004c9040
+// FUNCTION: CARMA2_HW 0x004c9040
 void C2_HOOK_FASTCALL ApplyCrush(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
+    tPipe_chunk_crush* chunk = (tPipe_chunk_crush*)*pChunk;
 
-// ApplyCrush
+    return ARApplyCrush(chunk->field_0x4, &chunk->field_0x8[0], &chunk->field_0x8[6]);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9060
 // FUNCTION: CARMA2_SW 0x004c5790
