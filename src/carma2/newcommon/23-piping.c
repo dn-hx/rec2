@@ -1816,11 +1816,6 @@ void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
         (*pChunk)->subject_index >> 14);
 }
 
-// STUB: CARMA2_HW 0x004c92a0
-void C2_HOOK_FASTCALL ApplyFlame(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c92d0
 void C2_HOOK_FASTCALL ApplySplash(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -1836,7 +1831,12 @@ void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// ApplyFlame
+// FUNCTION: CARMA2_HW 0x004c92a0
+void C2_HOOK_FASTCALL ApplyFlame(tPipe_chunk** pChunk) {
+    tU8* chunk = (tU8*)*pChunk;
+
+    return AdjustFlame(*(int*)(chunk + 0), (int)(tS16)*(tU16*)(chunk + 4), *(float*)(chunk + 8), *(float*)(chunk + 0xc), *(float*)(chunk + 0x10), *(float*)(chunk + 0x10));
+}
 
 // ApplySplash
 
