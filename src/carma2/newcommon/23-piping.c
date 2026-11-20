@@ -1982,7 +1982,12 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneCornerPos
 
-// ApplyDroneStraightPos
+// FUNCTION: CARMA2_HW 0x004c9cf0
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_straight_pos* chunk = (tPipe_chunk_drone_straight_pos*)*pChunk;
+
+    return ApplyDroneStraightPos2(chunk->field_0x0, (tDrone_path_node_section*)chunk->field_0x4, chunk->field_0x8, chunk->field_0xa);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d10
 // FUNCTION: CARMA2_SW 0x004c6440
