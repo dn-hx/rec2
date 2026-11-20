@@ -2509,12 +2509,12 @@ void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pP
     }
 }
 
-// STUB: CARMA2_HW 0x004ca130
+// FUNCTION: CARMA2_HW 0x004ca130
 void C2_HOOK_FASTCALL UndoSmashRemoveFaces(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
-    NOT_IMPLEMENTED();
-}
+    tPipe_chunk_remove_faces_replay* chunk = (tPipe_chunk_remove_faces_replay*)*pChunk;
 
-// UndoSmashRemoveFaces
+    return SmashRestoreSomeFaces((br_model*)chunk->field_0x0, chunk->field_0x8, (const tU16*)&chunk->field_0xc, (br_material*)chunk->field_0x4);
+}
 
 // FUNCTION: CARMA2_HW 0x004ca150
 // FUNCTION: CARMA2_SW 0x004c6880
