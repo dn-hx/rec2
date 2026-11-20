@@ -25,9 +25,6 @@
 
 #include <limits.h>
 #include <string.h>
-extern br_pixelmap* gPalette_0074a604;;
-extern br_pixelmap* gPalette_0074a600;;
-extern br_pixelmap* gPalette_0074a5fc;;
 
 // GLOBAL: CARMA2_HW 0x00656998
 // GLOBAL: CARMA2_SW 0x006517a8
@@ -286,7 +283,7 @@ void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pi
                 src_f_x += pMat->m[0][0];
                 src_f_y -= pMat->m[1][0];
                 if (pTrans) {
-                    *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x] * 256];
+                    *ptr_write = ((tU8*)gBlend50_table->pixels)[*ptr_write + ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x] * 256];
                 } else {
                     src_pix = ((tU8*)pSrc->pixels)[src_y * pSrc->row_bytes + width_div_2 + src_x];
                     dx_bit0 = ((src_pix >> 0) & 0x1) - ((*ptr_write >> 0) & 0x1) + dx;
@@ -302,13 +299,13 @@ void C2_HOOK_FASTCALL DRPixelmapRotatedAndFeatheredCopy(br_matrix23* pMat, br_pi
                                         && -height_near3 <= dy_bit1 && dy_bit1 <= height_near3) {
                                     *ptr_write = src_pix;
                                 } else {
-                                    *ptr_write = ((tU8*)gPalette_0074a5fc->pixels)[*ptr_write + 256 * src_pix];
+                                    *ptr_write = ((tU8*)gBlend75_table->pixels)[*ptr_write + 256 * src_pix];
                                 }
                             } else {
-                                *ptr_write = ((tU8*)gPalette_0074a600->pixels)[*ptr_write + 256 * src_pix];
+                                *ptr_write = ((tU8*)gBlend50_table->pixels)[*ptr_write + 256 * src_pix];
                             }
                         } else {
-                            *ptr_write = ((tU8*)gPalette_0074a604->pixels)[*ptr_write + 256 * src_pix];
+                            *ptr_write = ((tU8*)gBlend25_table->pixels)[*ptr_write + 256 * src_pix];
                         }
                     }
                 }
