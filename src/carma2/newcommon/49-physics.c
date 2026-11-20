@@ -433,16 +433,78 @@ void C2_HOOK_FASTCALL GetShapePoint(br_vector3* pPoint, tPhysics_shape* pShape, 
     }
 }
 
-// STUB: CARMA2_HW 0x00428530
-int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004287a0
 int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2) {
     NOT_IMPLEMENTED();
 }
 
+// FUNCTION: CARMA2_HW 0x00428530
+int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, int pCount, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, tU8* pFlags) {
+    br_vector3 v1;
+    br_vector3 v2;
+    br_vector3 normal;
+    br_vector3 point;
+    br_vector3 shape_point;
+    br_scalar t;
+    br_scalar scale;
+    br_scalar neg_t;
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+    int result;
+    int i;
+
+    if (pShape2->common.type == kCollisionShapeType_Wireframe) {
+        return pRecord_count;
+    }
+    for (i = 0; i < pCount; i++) {
+        if (pFlags[i] != 0) {
+            continue;
+        }
+        result = ShapeRayCastWithSphere((br_vector3*)&pVertices[i * 2], (br_vector3*)&pVertices[i * 2 + 1], pShape1, &point, &normal, &t);
+        if (result == 0) {
+            continue;
+        }
+        if (result == -1) {
+            pFlags[i] = 0xff;
+            pObject1->flags = pObject1->flags | 0x200;
+            pObject2->flags = pObject2->flags | 0x200;
+        } else {
+            GetShapePoint(&shape_point, pShape1, i);
+            if ((result & 0x40) != 0) {
+                t = 1.05f;
+                BrMatrix34ApplyV(&v1, &normal, &pObject2->actor->t.t.mat);
+                v1.v[0] = -v1.v[0];
+                v1.v[1] = -v1.v[1];
+                v1.v[2] = -v1.v[2];
+            } else {
+                BrMatrix34ApplyV(&v1, &normal, &pObject2->actor->t.t.mat);
+                BrMatrix34ApplyV(&v2, &normal, &pObject2->transform_matrix);
+                scale = -(1.0f - t);
+                v2.v[0] = v2.v[0] * scale;
+                v2.v[1] = v2.v[1] * scale;
+                v2.v[2] = v2.v[2] * scale;
+                neg_t = -t;
+                x = v1.v[0] * neg_t + v2.v[0];
+                y = v1.v[1] * neg_t + v2.v[1];
+                z = v1.v[2] * neg_t + v2.v[2];
+                v1.v[2] = (float)sqrt(x * x + y * y + z * z);
+                if (v1.v[2] <= 2.3841858e-07f) {
+                    v1.v[0] = 1.0f;
+                    v1.v[1] = 0.0f;
+                    v1.v[2] = 0.0f;
+                } else {
+                    v1.v[2] = (float)(1.0 / v1.v[2]);
+                    v1.v[0] = v1.v[2] * x;
+                    v1.v[1] = v1.v[2] * y;
+                    v1.v[2] = v1.v[2] * z;
+                }
+            }
+            pRecord_count = AddObjectObjectForce(pRecords, &shape_point, t, &point, &v1, pRecord_count, pObject1, pObject2, 5, NULL, 0.f);
+        }
+    }
+    return pRecord_count;
+}
 // FUNCTION: CARMA2_HW 0x00428cf0
 // FUNCTION: CARMA2_SW 0x00428d80
 int C2_HOOK_FASTCALL AddOldForces(tPhysics_joint_force* pForces, int pCount, const tPhysics_joint_force* pOld_forces, int pOld_count) {
