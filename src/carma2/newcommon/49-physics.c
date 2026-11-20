@@ -566,11 +566,6 @@ void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_d
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0045e4e0
-void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pShape, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5) {
-    NOT_IMPLEMENTED();
-}
-
 // HierarchyCalcEnergy
 
 // CheckCollisionList
@@ -587,6 +582,130 @@ void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pSha
 
 // CheckForTwang
 
+// FUNCTION: CARMA2_HW 0x0045e4e0
+void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pShape, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5) {
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float* pfVar5;
+    float* pfVar7;
+    float* pfVar10;
+    float* pfVar11;
+    float* local_18;
+    int iVar6;
+    int iVar8;
+    int iVar9;
+
+    *pParam5 = 100.0f;
+    fVar3 = *pOffset;
+    iVar8 = 0;
+    pfVar5 = pParam2;
+    pfVar10 = (float*)pShape;
+    iVar6 = (int)pParam1 - (int)pParam2;
+    do {
+        fVar1 = (pfVar10[4] + fVar3) - -0.002;
+        if ((fVar1 < *(float*)(iVar6 + (int)pfVar5)) && (fVar1 < *pfVar5)) {
+            return;
+        }
+        fVar1 = (pfVar10[1] - fVar3) - 0.002;
+        if ((*(float*)(iVar6 + (int)pfVar5) < fVar1) && (*pfVar5 < fVar1)) {
+            return;
+        }
+        iVar8 = iVar8 + 1;
+        pfVar5 = pfVar5 + 1;
+        pfVar10 = pfVar10 + 1;
+    } while (iVar8 < 3);
+    iVar9 = 0;
+    pfVar5 = (float*)((tU8*)pShape + 0x10);
+    iVar8 = (int)pParam2 - (int)pParam1;
+    pfVar10 = pParam1;
+    local_18 = pfVar5;
+    do {
+        fVar1 = local_18[-3] - fVar3;
+        if ((*pfVar10 < fVar1) && (fVar1 - 0.002 < *(float*)(iVar8 + (int)pfVar10))) {
+            if (fVar1 < *(float*)(iVar8 + (int)pfVar10)) {
+                fVar4 = (fVar1 - *pfVar10) / (*(float*)(iVar8 + (int)pfVar10) - *pfVar10);
+                fVar1 = 1.0f - fVar4;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar4 + pParam3[1];
+                pParam3[2] = fVar1 * fVar4 + pParam3[2];
+                *pParam3 = fVar2 * fVar4 + *pParam3;
+                pParam3[iVar9] = fVar3 + pParam3[iVar9];
+            } else {
+                fVar4 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar6 = 0;
+            pfVar7 = pfVar5;
+            pfVar11 = pParam3;
+            do {
+                if ((iVar6 != iVar9) && ((*pfVar11 < pfVar7[-3]) || (*pfVar7 < *pfVar11))) {
+                    break;
+                }
+                iVar6 = iVar6 + 1;
+                pfVar11 = pfVar11 + 1;
+                pfVar7 = pfVar7 + 1;
+            } while (iVar6 < 3);
+            if (iVar6 == 3) {
+                *pParam5 = fVar4;
+                BrVector3SetFloat((br_vector3*)pParam4, 0.0f, 0.0f, 0.0f);
+                pParam4[iVar9] = 1.0f;
+                return;
+            }
+        }
+        fVar1 = fVar3 + *local_18;
+        if ((fVar1 < *pfVar10) && (*(float*)(iVar8 + (int)pfVar10) < fVar1 - -0.002)) {
+            if (*(float*)(iVar8 + (int)pfVar10) < fVar1) {
+                fVar4 = (fVar1 - *pfVar10) / (*(float*)(iVar8 + (int)pfVar10) - *pfVar10);
+                fVar1 = 1.0f - fVar4;
+                *pParam3 = *pParam1 * fVar1;
+                pParam3[1] = pParam1[1] * fVar1;
+                pParam3[2] = pParam1[2] * fVar1;
+                fVar1 = pParam2[2];
+                fVar2 = *pParam2;
+                pParam3[1] = pParam2[1] * fVar4 + pParam3[1];
+                pParam3[2] = fVar1 * fVar4 + pParam3[2];
+                *pParam3 = fVar2 * fVar4 + *pParam3;
+                pParam3[iVar9] = pParam3[iVar9] - fVar3;
+            } else {
+                fVar4 = 1.0f;
+                *pParam3 = *pParam2;
+                pParam3[1] = pParam2[1];
+                pParam3[2] = pParam2[2];
+            }
+            iVar6 = 0;
+            pfVar7 = pfVar5;
+            pfVar11 = pParam3;
+            do {
+                if ((iVar6 != iVar9) && ((*pfVar11 < pfVar7[-3]) || (*pfVar7 < *pfVar11))) {
+                    break;
+                }
+                iVar6 = iVar6 + 1;
+                pfVar11 = pfVar11 + 1;
+                pfVar7 = pfVar7 + 1;
+            } while (iVar6 < 3);
+            if (iVar6 == 3) {
+                *pParam5 = fVar4;
+                BrVector3SetFloat((br_vector3*)pParam4, 0.0f, 0.0f, 0.0f);
+                pParam4[iVar9] = -1.0f;
+                return;
+            }
+        }
+        iVar9 = iVar9 + 1;
+        local_18 = local_18 + 1;
+        pfVar10 = pfVar10 + 1;
+        if (2 < iVar9) {
+            return;
+        }
+    } while (1);
+}
 // FUNCTION: CARMA2_HW 0x004b8c20
 void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
