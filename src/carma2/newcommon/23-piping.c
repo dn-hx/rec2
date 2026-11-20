@@ -558,11 +558,6 @@ int C2_HOOK_FASTCALL MoveSessionPointerBackOne(tU8** pPtr) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x00403800
-tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x00403990
 void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time) {
     NOT_IMPLEMENTED();
@@ -587,6 +582,90 @@ int C2_HOOK_FASTCALL MoveSessionPointerForwardOne(tU8** pPtr) {
 
 // CheckSound
 
+// FUNCTION: CARMA2_HW 0x00403800
+tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner) {
+    tU8* session;
+    tU8* chunk;
+    tU8* old_chunk;
+    tU32 owner;
+    int count;
+    tU32 type;
+    tU32 total;
+    tU32 length;
+    tU32 i;
+    int done;
+    const tReplay_callback* callbacks;
+
+    session = (tU8*)pSession;
+    count = 0;
+    callbacks = gPipe_callbacks;
+    owner = pOwner & 0xfff;
+    for (;;) {
+        if (session == gPipe_buffer_oldest && session != gPipe_record_ptr) {
+            done = 1;
+        } else {
+            if (session == gPipe_buffer_start) {
+                session = gPipe_buffer_working_end;
+            }
+            session -= sizeof(tU16);
+            session -= *(tU16*)session;
+            if (count++ >= gPipe_session_search_limit) {
+                done = 1;
+            } else {
+                total = 0;
+                i = 0;
+                done = 0;
+                if (i < ((tU32*)session)[1]) {
+                    do {
+                        type = ((tU32*)session)[0];
+                        chunk = (tU8*)((tU32*)session + 2) + total;
+                        if (callbacks[type].calc_length != NULL) {
+                            length = callbacks[type].calc_length((tPipe_chunk*)chunk);
+                            callbacks = gPipe_callbacks;
+                            length += callbacks[type].length + 4;
+                        } else {
+                            length = callbacks[type].length + 4;
+                        }
+                        total += length;
+                        i++;
+                    } while (i < ((tU32*)session)[1]);
+                }
+                total += 10;
+                if ((total & 1) != 0) {
+                    FatalError(0x62);
+                    callbacks = gPipe_callbacks;
+                }
+                gEnd_of_session = session + total - 2;
+                chunk = session + sizeof(tPipe_session);
+                for (pOwner = 0; pOwner < ((tU32*)session)[1]; pOwner++) {
+                    if (((tU32*)session)[0] != (tU32)pType) {
+                        break;
+                    }
+                    if ((*(tU32*)chunk & 0xfff) == owner) {
+                        return (tPipe_chunk*)chunk;
+                    }
+                    old_chunk = chunk;
+                    if (gDisable_advance == 0) {
+                        if (callbacks[pType].calc_length != NULL) {
+                            length = callbacks[pType].calc_length((tPipe_chunk*)chunk);
+                            callbacks = gPipe_callbacks;
+                            length += callbacks[pType].length + 4;
+                        } else {
+                            length = callbacks[pType].length + 4;
+                        }
+                        chunk += length;
+                        if (chunk == gEnd_of_session || (int)chunk > (int)gEnd_of_session) {
+                            chunk = old_chunk;
+                        }
+                    }
+                }
+            }
+        }
+        if (done) {
+            return NULL;
+        }
+    }
+}
 // FUNCTION: CARMA2_HW 0x00403c50
 // FUNCTION: CARMA2_SW 0x00403c50
 int C2_HOOK_FASTCALL SoundTimeout(tU32 pTime) {
