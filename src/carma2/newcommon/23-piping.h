@@ -777,7 +777,7 @@ extern void C2_HOOK_FASTCALL UndoPedPos(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 // UndoPedModelChange
 
-// UndoGibShower
+extern void C2_HOOK_FASTCALL UndoGibShower(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoBloodSpurt
 
