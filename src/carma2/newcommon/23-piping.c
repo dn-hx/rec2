@@ -39,6 +39,12 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern tU32 gTrigger_time;;
+extern br_vector3 gReference_pos;;
+extern tU32 gOldest_time;;
+extern br_scalar gMax_distance;;
+extern tCar_spec* gCar_ptr;;
+extern br_vector3 gCar_pos;;
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -790,11 +796,6 @@ void C2_HOOK_FASTCALL ScanCarsPositions(tCar_spec* pCar, br_vector3* pSource_pos
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c6a30
-int C2_HOOK_FASTCALL CheckCar(tPipe_chunk* pChunk_ptr, int pChunk_count, tU32 pTime) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c6bc0
 int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
     NOT_IMPLEMENTED();
@@ -821,6 +822,53 @@ void C2_HOOK_FASTCALL InitialiseActionReplay(void) {
 #pragma inline_depth(0)
 #endif
 
+// FUNCTION: CARMA2_HW 0x004c6a30
+int C2_HOOK_FASTCALL CheckCar(tPipe_chunk* pChunk_ptr, int pChunk_count, tU32 pTime) {
+    int i;
+    tCar_spec* car;
+    br_vector3 com_offset_c;
+    br_vector3 com_offset_w;
+    br_vector3 difference;
+    tPipe_chunk* temp_ptr;
+
+    temp_ptr = pChunk_ptr;
+    if (ARReplayForwards()) {
+        if (pTime <= gOldest_time) {
+            return 0;
+        }
+    } else {
+        if (pTime >= gOldest_time) {
+            return 0;
+        }
+    }
+    for (i = 0; i < pChunk_count; i++) {
+        if ((temp_ptr->subject_index & 0xffffff00) == 0) {
+            car = &gProgram_state.current_car;
+        } else {
+            car = GetCarSpec(temp_ptr->subject_index >> 8, temp_ptr->subject_index & 0xff);
+        }
+        if (car == gCar_ptr) {
+            gCar_pos.v[0] = ((tPipe_car_chunk*)&temp_ptr->data)->mat.m[3][0];
+            gCar_pos.v[1] = ((tPipe_car_chunk*)&temp_ptr->data)->mat.m[3][1];
+            gCar_pos.v[2] = ((tPipe_car_chunk*)&temp_ptr->data)->mat.m[3][2];
+            com_offset_c.v[0] = car->centre_of_mass_world_scale.v[0] * 0.1449275f;
+            com_offset_c.v[1] = car->centre_of_mass_world_scale.v[1] * 0.1449275f;
+            com_offset_c.v[2] = car->centre_of_mass_world_scale.v[2] * 0.1449275f;
+            BrMatrix34ApplyV(&com_offset_w, &com_offset_c, &((tPipe_car_chunk*)&temp_ptr->data)->mat);
+            BrVector3Accumulate(&gCar_pos, &com_offset_w);
+            BrVector3Sub(&difference, &gCar_pos, &gReference_pos);
+            if (BrVector3LengthSquared(&difference) <= gMax_distance) {
+                gTrigger_time = pTime;
+                return 0;
+            } else {
+                gTrigger_time = pTime;
+                return 1;
+            }
+        }
+        ARAdvanceChunkPtr((tU8**)&temp_ptr, ePipe_chunk_car);
+    }
+    return 0;
+}
 // FUNCTION: CARMA2_HW 0x004c6c60
 // FUNCTION: CARMA2_SW 0x004c3390
 void C2_HOOK_FASTCALL DisposeActionReplay(void) {
