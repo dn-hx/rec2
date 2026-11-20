@@ -483,6 +483,9 @@ int C2_HOOK_FASTCALL GetObjectWallForceInfo(tPhysics_object* pObject, tSensible_
     pObject->omega.v[2] = pObject->rotate_omega.v[2];
     return result_index;
 }
+#ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
