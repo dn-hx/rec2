@@ -151,7 +151,7 @@ extern void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysic
 
 // GetObjectsParent
 
-// GetJointLimits
+extern int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
 
 // GetListJointLimits
 
