@@ -1671,12 +1671,12 @@ void C2_HOOK_FASTCALL PipeSinglePowerupRespawn(br_actor* pActor, int pPowerup_id
         SIZE_OFFSET_PIPING(tPipe_chunk_powerup_respawn, index), pPowerup_id);
 }
 
-// STUB: CARMA2_HW 0x004c8fb0
+// FUNCTION: CARMA2_HW 0x004c8fb0
 void C2_HOOK_FASTCALL PipeSingleShitMine(br_actor* pActor) {
-    NOT_IMPLEMENTED();
-}
 
-// PipeSingleShitMine
+    ARDoSingleVariedSession(0x42, (uintptr_t)pActor, 1,
+        0x30, 0, (uintptr_t)&pActor->t.t.mat);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8fd0
 // FUNCTION: CARMA2_SW 0x004c5700
