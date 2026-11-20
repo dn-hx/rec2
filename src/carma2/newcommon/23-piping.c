@@ -2095,11 +2095,6 @@ void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c9b10
-void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9b20
 void C2_HOOK_FASTCALL ApplyPedDismember(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -2107,7 +2102,12 @@ void C2_HOOK_FASTCALL ApplyPedDismember(tPipe_chunk** pChunk) {
 
 // ApplyPedMove
 
-// ApplyPedPhysics
+// FUNCTION: CARMA2_HW 0x004c9b10
+void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_physics* chunk = (tPipe_chunk_ped_physics*)*pChunk;
+
+    return PedApplyPedPhysics(chunk->field_0x0, &chunk->field_0x4);
+}
 
 // ApplyPedDismember
 
