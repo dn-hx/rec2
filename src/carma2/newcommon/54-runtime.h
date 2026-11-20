@@ -22,4 +22,6 @@ extern int C2_HOOK_FASTCALL AccumulateRuntimeVariable(int pAddress, int pDelta);
 
 extern void C2_HOOK_FASTCALL ClearAllRuntimeVariables(void);
 
+extern int C2_HOOK_FASTCALL ToggleRuntimeVariable(int pAddress);
+
 #endif // GUARD_54_RUNTIME_H

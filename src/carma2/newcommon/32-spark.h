@@ -51,6 +51,8 @@ extern br_material* gSplash_material[20];
 extern br_model* gSplash_model;
 extern br_pixelmap* gFog_shade_table;
 extern br_pixelmap* gAcid_shade_table;
+extern tReplay_splash gReplay_splashes[10];
+extern int gReplay_splash_flags;
 
 // DrawDot
 
@@ -66,7 +68,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // ReplaySparks
 
-// RenderSparks
+extern void C2_HOOK_FASTCALL RenderSparks(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 // CreateSingleSpark
 
@@ -148,9 +150,10 @@ extern void C2_HOOK_FASTCALL RenderRecordedSmokeCircles(void);
 
 // ReplaySmoke
 
-// GenerateContinuousSmoke
+extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
 
 // RenderSmoke
+extern void C2_HOOK_FASTCALL RenderSmoke(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
 
 extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
 
@@ -192,7 +195,7 @@ extern void C2_HOOK_FASTCALL InitSplash(FILE* pF);
 
 // DrawTheGlow
 
-// PipeInstantUnSmudge
+extern void C2_HOOK_FASTCALL PipeInstantUnSmudge(tCar_spec* pCar_spec);
 
 extern void C2_HOOK_FASTCALL SmudgeCar(tCar_spec* pCar, int pFire_point);
 
@@ -266,10 +269,18 @@ extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
 extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
-// ClearSplashes
+extern void C2_HOOK_FASTCALL ClearSplashes(tPhysics_object* pObject);
 
-// AdjustSplashReplay
+extern void C2_HOOK_FASTCALL AdjustSplashReplay(int field_0x0, int field_0x4, int field_0x8, br_vector3* pField_0xc, br_vector3* pField_0x18);
 
 extern void C2_HOOK_FASTCALL InitReplaySplashes(void);
+
+extern void C2_HOOK_FASTCALL DrMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a);
+
+extern int C2_HOOK_FASTCALL IsOnNonCarHalf(tCar_spec* pCar, br_vector3* pPos);
+
+extern int C2_HOOK_FASTCALL SetMaterialPrelitCB(br_material* pMaterial);
+
+extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
 
 #endif // GUARD_32_SPARK_H

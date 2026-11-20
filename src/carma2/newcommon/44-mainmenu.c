@@ -13,6 +13,14 @@
 #include "72-interface.h"
 #include "globvars.h"
 #include "globvrpb.h"
+#include "rec2_types.h"
+#include "07-structur.h"
+#include "10-loading2.h"
+#include "18-graphics2.h"
+#include "35-intrface.h"
+#include "38-flicplay.h"
+#include "41-utility.h"
+#include "platform.h"
 
 // QuitVerifyStart
 

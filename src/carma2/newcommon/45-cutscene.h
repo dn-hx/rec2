@@ -10,6 +10,7 @@
 #define GUARD_45_CUTSCENE_H
 
 #include "c2_hooks.h"
+#include "rec2_types.h"
 
 extern void C2_HOOK_FASTCALL DoSCILogo(void);
 
@@ -31,4 +32,7 @@ extern void C2_HOOK_FASTCALL DoGameCompletedAnimation(void);
 
 // StartLoadingScreen
 
+extern void C2_HOOK_FASTCALL StartLoadingScreen(void);
+
 #endif // GUARD_45_CUTSCENE_H
+

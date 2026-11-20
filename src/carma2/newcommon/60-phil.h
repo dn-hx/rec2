@@ -22,6 +22,7 @@ extern int gPHIL_object_added;
 extern tPHIL_queued_objects gPhil_queued_objects;
 extern int gPHIL_count_queued_objects_for_removal;
 extern int gPHIL_count_queued_objects;
+extern int gCrush_deferred;
 
 extern tU16 C2_HOOK_FASTCALL ScalarToFraction(br_scalar pMin, br_scalar pMax, br_scalar pValue);
 
@@ -53,7 +54,7 @@ extern int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, t
 
 // FindObject
 
-// WriteHierarchyNetworkStuff
+extern int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode);
 
 extern int C2_HOOK_FASTCALL GetHierarchyNetworkSize(tPhysics_object* pObject);
 
