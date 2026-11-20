@@ -1831,18 +1831,23 @@ void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c9330
-void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // ApplyFlame
 
 // ApplySplash
 
 // ApplyExtendedSplash
 
-// ApplyOilSpill
+// FUNCTION: CARMA2_HW 0x004c9330
+void C2_HOOK_FASTCALL ApplyOilSpill(tPipe_chunk** pChunk) {
+    tPipe_chunk_oil_spill* chunk = (tPipe_chunk_oil_spill*)*pChunk;
+
+#ifdef REC2_MATCHING
+    /* the original passes the raw ints as arguments */
+    ((void (C2_HOOK_FASTCALL*)(int, br_matrix34*, int, int, int, int, int, br_vector3*, int))(void*)AdjustOilSpill)(*(int*)((tU8*)chunk + 0x0), (br_matrix34*)((tU8*)chunk + 0x4), *(int*)((tU8*)chunk + 0x34), *(int*)((tU8*)chunk + 0x38), *(int*)((tU8*)chunk + 0x3c), 0, *(int*)((tU8*)chunk + 0x44), (br_vector3*)((tU8*)chunk + 0x48), *(int*)((tU8*)chunk + 0x54));
+#else
+    AdjustOilSpill(*(int*)((tU8*)chunk + 0x0), (br_matrix34*)((tU8*)chunk + 0x4), *(float*)((tU8*)chunk + 0x34), *(float*)((tU8*)chunk + 0x38), *(int*)((tU8*)chunk + 0x3c), 0, (tCar_spec*)*(int*)((tU8*)chunk + 0x44), &*(br_vector3*)((tU8*)chunk + 0x48), (br_pixelmap*)(intptr_t)*(int*)((tU8*)chunk + 0x54));
+#endif
+}
 
 // FUNCTION: CARMA2_HW 0x004c9360
 // FUNCTION: CARMA2_SW 0x004c5a90
