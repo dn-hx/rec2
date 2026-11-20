@@ -1085,6 +1085,10 @@ void C2_HOOK_FASTCALL SetFlapCheckVertices(tCar_crush_flap_data* pFlap_data, con
         }
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
