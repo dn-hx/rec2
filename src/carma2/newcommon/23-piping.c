@@ -2231,12 +2231,12 @@ void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
     }
 }
 
-// STUB: CARMA2_HW 0x004c9c70
+// FUNCTION: CARMA2_HW 0x004c9c70
 void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
+    tU8* chunk = (tU8*)*pChunk;
 
-// ApplyPedDiagnostics
+    return AdjustPedDiagnostics((tU32)*(void**)chunk, chunk + 4, chunk + 0x58, chunk + 0x144);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9c90
 // FUNCTION: CARMA2_SW 0x004c63c0
