@@ -1199,35 +1199,9 @@ found:
     return 0;
 }
 
-    if (pMessage->header.field_0x14 != 0xff) {
-        PDFatalError("Guaranteed message not built properly");
-    }
-    for (i = 0; i < gNumber_of_net_players; i++) {
-        if (gNet_players[i].ID == pPlayer) {
-            if (pPlayer == gLocal_net_ID) {
-                pMessage->header.field_0x8 = gLocal_net_ID;
-                pMessage->header.field_0x10 = PDGetTotalTime();
-                pMessage->header.field_0x14 = 1;
-                ReceivedMessage(pMessage, &gNet_players[i], GetRaceTime());
-                NetDisposeMessage(pDetails, pMessage);
-                return 0;
-            } else {
-                AddToGuaranteeList(pMessage, NULL, pPlayer, pNotifyFail);
-                size = 0;
-                contents = &pMessage->contents;
-                for (j = 0; j < 2; j++) {
-                    size += contents->raw.header.size;
-                    contents = (tNet_message_chunk*)((tU8*)contents + contents->raw.header.size);
-                }
-                dest = NetGetToPlayerContentsSize(&gNet_players[i], size);
-                gNet_players[i].field_0xcc->header.field_0x14++;
-                memcpy(dest, &pMessage->contents, size);
-                return 0;
-            }
-        }
-    }
-    return -1;
-}
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004a6020
 // FUNCTION: CARMA2_SW 0x004a21a0
