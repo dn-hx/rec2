@@ -2253,11 +2253,6 @@ void C2_HOOK_FASTCALL ApplyDroneRender(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c9cd0
-void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9cf0
 void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -2265,7 +2260,12 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+// FUNCTION: CARMA2_HW 0x004c9cd0
+void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_drone_corner_pos* chunk = (tPipe_chunk_drone_corner_pos*)*pChunk;
+
+    return ApplyDroneCornerPos2(chunk->field_0x0, chunk->field_0x4, chunk->field_0x6, chunk->field_0x8, (const tCompressed_matrix34*)&chunk->field_0xa);
+}
 
 // ApplyDroneStraightPos
 
