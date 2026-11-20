@@ -2120,17 +2120,17 @@ void C2_HOOK_FASTCALL ApplyPedFPChange(tPipe_chunk** pChunk) {
     PedApplyPedFPChange((tPedestrian*)(*pChunk)->subject_index, (*pChunk)->data.ped_fp_change.new_speed);
 }
 
-// STUB: CARMA2_HW 0x004c9b50
-void C2_HOOK_FASTCALL ApplyPedPos(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9b60
 void C2_HOOK_FASTCALL ApplyPedModelChange(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// ApplyPedPos
+// FUNCTION: CARMA2_HW 0x004c9b50
+void C2_HOOK_FASTCALL ApplyPedPos(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_pos* chunk = (tPipe_chunk_ped_pos*)*pChunk;
+
+    return PedApplyPedPos((tPedestrian*)chunk->field_0x0, &chunk->field_0x10);
+}
 
 // ApplyPedModelChange
 
