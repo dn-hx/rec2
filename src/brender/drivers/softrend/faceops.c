@@ -363,6 +363,9 @@ void C2_HOOK_STDCALL triangleSubdivideOnScreen(int depth, brp_block* block, brp_
         block->chain->render(block->chain, v0, v1, v2, fp_vertices, fp_edges);
     }
 }
+#ifdef REC2_MATCHING
+#pragma inline_depth()
+#endif
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
