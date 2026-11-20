@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2248,11 +2249,6 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
         (br_vector3*)(*pChunk)->subject_index);
 }
 
-// STUB: CARMA2_HW 0x004c9cc0
-void C2_HOOK_FASTCALL ApplyDroneRender(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9cd0
 void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -2263,7 +2259,11 @@ void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// ApplyDroneRender
+// FUNCTION: CARMA2_HW 0x004c9cc0
+void C2_HOOK_FASTCALL ApplyDroneRender(tPipe_chunk** pChunk) {
+
+    return ApplyDroneRender2(*(tU32*)*pChunk, *(tU16*)((tU8*)*pChunk + 4));
+}
 
 // ApplyDroneCornerPos
 
