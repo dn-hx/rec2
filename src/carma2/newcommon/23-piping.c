@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+extern void C2_HOOK_FASTCALL PedApplyPedMove(tPedestrian* pPed, int field_0x4, int field_0xc, int field_0x8_1, int field_0x14, int zero, br_vector3* pField_0x24, int field_0x34, br_vector3* pField_0x38);
 
 #define SIZE_OFFSET_PIPING(T, M) ((int)sizeof(((T*)NULL)->M)), ((int)offsetof(T, M))
 
@@ -2090,11 +2091,6 @@ void C2_HOOK_FASTCALL ApplyPedDir(tPipe_chunk** pChunk) {
     PedApplyPedDir((*pChunk)->subject_index, &(*pChunk)->data.ped_dir.direction);
 }
 
-// STUB: CARMA2_HW 0x004c9ae0
-void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x004c9b10
 void C2_HOOK_FASTCALL ApplyPedPhysics(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
@@ -2105,7 +2101,12 @@ void C2_HOOK_FASTCALL ApplyPedDismember(tPipe_chunk** pChunk) {
     NOT_IMPLEMENTED();
 }
 
-// ApplyPedMove
+// FUNCTION: CARMA2_HW 0x004c9ae0
+void C2_HOOK_FASTCALL ApplyPedMove(tPipe_chunk** pChunk) {
+    tPipe_chunk_ped_move* chunk = (tPipe_chunk_ped_move*)*pChunk;
+
+    return PedApplyPedMove((tPedestrian*)chunk->field_0x0, chunk->field_0x4, chunk->field_0xc, chunk->field_0x8 & 1, chunk->field_0x14, 0, &chunk->field_0x24, chunk->field_0x34, &chunk->field_0x38);
+}
 
 // ApplyPedPhysics
 
