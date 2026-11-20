@@ -587,6 +587,22 @@ void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pSha
 
 // CheckForTwang
 
+// FUNCTION: CARMA2_HW 0x004b5c00
+void C2_HOOK_FASTCALL ResetObjectList_1(tPhysics_object* pObject) {
+
+    while (pObject != NULL) {
+        BrMatrix34Translate(&pObject->transform_matrix, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->v, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->rotate_omega, 0.f, 0.f, 0.f);
+        BrVector3SetFloat(&pObject->velocity_car_space, 0.f, 0.f, 0.f);
+        pObject->disable_move_rotate = 1;
+        if (pObject->child != NULL) {
+            ResetObjectList_1(pObject->child);
+        }
+        pObject = pObject->next;
+    }
+}
 // FUNCTION: CARMA2_HW 0x004b8c20
 void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
@@ -1982,11 +1998,6 @@ void C2_HOOK_FASTCALL SetUpTestObjects(void) {
 
 // STUB: CARMA2_HW 0x004b5ab0
 void C2_HOOK_FASTCALL ResetMan(void) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x004b5c00
-void C2_HOOK_FASTCALL ResetObjectList_1(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 
