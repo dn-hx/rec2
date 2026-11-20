@@ -29,6 +29,8 @@
 #include "13-crush1.h"
 
 #include <stddef.h>
+extern void C2_HOOK_FASTCALL MakeJointVelocitiesVector(br_scalar* pVelocity, tPhysics_joint_force** pRecords, int pCount);
+extern void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSource);
 
 #define PHYSICS_BUFFER_PART_SIZE 40000
 #define PHYSICS_BUFFER_OTHER_SIZE 50000
@@ -613,11 +615,69 @@ void C2_HOOK_FASTCALL CreateJointForce(tPhysics_object* pObject, tPhysics_object
     pForce->type = 10;
 }
 
-// STUB: CARMA2_HW 0x004b8cf0
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// FUNCTION: CARMA2_HW 0x004b8cf0
 void C2_HOOK_FASTCALL RedoQuickHingeVelocities(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    int uVar1;
+    int uVar2;
+    int i;
+    int* piVar4;
+    char* puVar3;
+    int local_174[6];
+    float local_15c[15];
+    tPhysics_joint_force rows[3];
+    tPhysics_object* pObject2;
+    tPhysics_object* pOther;
+
+    pObject2 = pObject->field_0x230;
+    pOther = (tPhysics_object*)*(int*)(*(int*)((tU8*)pObject + 0x1e4) + 4);
+    if (pOther != pObject2) {
+        pObject2 = pObject;
+        pObject = pOther;
+    }
+    CreateJointForce(pObject, pObject2, &rows[0], (br_vector3*)((char*)pObject->physics_joint1 + 0x38));
+    CreateJointTorque(pObject, pObject2, &rows[1], (br_vector3*)((char*)pObject->physics_joint1 + 0x20));
+    CreateJointTorque(pObject, pObject2, &rows[2], (br_vector3*)((char*)pObject->physics_joint1 + 0x2c));
+    piVar4 = local_174;
+    puVar3 = (char*)rows;
+    i = 3;
+    do {
+        *piVar4 = (int)puVar3;
+        puVar3 += 0x60;
+        piVar4++;
+        i--;
+    } while (i != 0);
+    uVar1 = *(int*)&pObject2->field_0x1e0[4];
+    uVar2 = *(int*)&pObject->field_0x1e0[4];
+    *(int*)&pObject->field_0x1e0[4] = 0;
+    *(int*)&pObject2->field_0x1e0[4] = 0;
+    MakeMatrix(&local_15c[3], 3, (tPhysics_joint_force**)local_174, 3);
+    DRMatrix33Inverse((float*)(uVar2 + 8), &local_15c[3]);
+    MakeJointVelocitiesVector((br_scalar*)&local_174[3], (tPhysics_joint_force**)local_174, 3);
+    BrMatrix34ApplyV((br_vector3*)&local_15c[0], (br_vector3*)&local_174[3], (br_matrix34*)(uVar2 + 8));
+    i = 0;
+    do {
+        ApplySingleForce((tPhysics_joint_force*)*(int*)((char*)local_174 + i), *(float*)((char*)local_15c + i));
+        i += 4;
+    } while (i < 0xc);
+    *(int*)&pObject->field_0x1e0[4] = uVar2;
+    *(int*)&pObject2->field_0x1e0[4] = uVar1;
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 // FUNCTION: CARMA2_HW 0x004b8e10
 void C2_HOOK_FASTCALL CreateJointTorque(tPhysics_object* pObject, tPhysics_object* pPartner, tPhysics_joint_force* pForce, const br_vector3* pDirection) {
     br_vector3 direction;
