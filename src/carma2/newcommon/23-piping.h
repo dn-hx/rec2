@@ -309,6 +309,7 @@ extern tU8* gPipe_record_ptr;
 extern tU32 gPipe_sound_start_time;
 extern tU32 gPipe_sound_time_window;
 extern int gDisable_advance;
+extern int gPipe_session_search_limit;
 extern tPipe_smudge_data* gCrush_space;
 extern tU8* gEnd_of_session;
 
