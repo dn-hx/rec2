@@ -51,3 +51,6 @@ tFrontend_spec gFrontend_OPTIONS = {
     0
 #endif
 };
+
+// GLOBAL: CARMA2_HW 0x0063e528
+tFrontend_spec gFrontend_GRAPHICS;
