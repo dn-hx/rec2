@@ -1039,9 +1039,24 @@ intptr_t C2_HOOK_CDECL InitModelCrushDataCB(br_actor* pActor, void* pData) {
 
 // InitModelCrushData
 
-// STUB: CARMA2_HW 0x0042c300
+// FUNCTION: CARMA2_HW 0x0042c300
 float C2_HOOK_FASTCALL PointEdgeDistSq(const br_vector3* pP, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
+    br_vector3 pAB;
+    br_vector3 pAP;
+    br_vector3 pProj;
+    float proj;
+
+    BrVector3Sub(&pAB, pB, pA);
+    BrVector3Sub(&pAP, pP, pA);
+    proj = BrVector3Dot(&pAP, &pAB) / BrVector3Dot(&pAB, &pAB);
+    if (proj < 0.f) {
+        proj = 0.f;
+    } else if (proj > 1.f) {
+        proj = 1.f;
+    }
+    BrVector3Scale(&pProj, &pAB, proj);
+    BrVector3Sub(&pProj, &pAP, &pProj);
+    return BrVector3LengthSquared(&pProj);
 }
 
 #ifdef REC2_MATCHING
