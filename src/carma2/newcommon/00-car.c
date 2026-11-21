@@ -116,7 +116,6 @@ int gEliminate_faces;
 // GLOBAL: CARMA2_SW 0x00673ad4
 int gIn_the_sea;
 
-// GLOBAL: CARMA2_HW 0x005895f0
 double gZero = 1.0;
 
 
@@ -133,7 +132,6 @@ tControl_car_fn ControlCar[6] = {
 
 // GLOBAL: CARMA2_HW 0x0058f680
 int gMetal_crunch_sound_id[5] = { 5000, 5001, 5002, 5003, 5004 };
-// GLOBAL: CARMA2_HW 0x005896a8
 float gF1000 = 1000.0f;
 // GLOBAL: CARMA2_HW 0x0058f678
 int gControl__car = 3;

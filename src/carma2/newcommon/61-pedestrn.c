@@ -304,7 +304,6 @@ int gDrunk_pedestrians;
 // GLOBAL: CARMA2_SW 0x00695d38
 int gPeds_already_munged;
 
-// GLOBAL: CARMA2_HW 0x0058a9c8
 const float gFLOAT_0058a9c8 = -1.0f;
 
 // GLOBAL: CARMA2_HW 0x0065d7b8

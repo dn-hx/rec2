@@ -29,7 +29,6 @@
 #include "c2_math.h"
 #include "c2_string.h"
 
-// GLOBAL: CARMA2_HW 0x00589a5c
 br_scalar gFLT_EPSILON_00589a5c = 2.3841858e-07f;
 
 #include "32-spark.h"
@@ -38,25 +37,18 @@ br_scalar gFLT_EPSILON_00589a5c = 2.3841858e-07f;
 #include "58-crush2.h"
 #include <ctype.h>
 
-// GLOBAL: CARMA2_HW 0x00589a60
 double gDouble_00589a60 = 1.0;
 
-// GLOBAL: CARMA2_HW 0x00589aa0
 const br_scalar gFLOAT_00589aa0 = 0.007246376946568489f;
 
-// GLOBAL: CARMA2_HW 0x00589aa4
 const br_scalar gFLOAT_00589aa4 = -0.007246376946568489f;
 
-// GLOBAL: CARMA2_HW 0x00589b2c
 br_scalar gFLOAT_NEG1_0_00589b2c = -1.0f;
 
-// GLOBAL: CARMA2_HW 0x00589b18
 double gDouble_00589b18 = 99.0;
 
-// GLOBAL: CARMA2_HW 0x00589b20
 double gDouble_00589b20 = -0.05;
 
-// GLOBAL: CARMA2_HW 0x00589b28
 br_scalar gFloat_00589b28 = 5.0f;
 #include "27-powerup.h"
 #include "69-sound.h"
@@ -68,21 +60,14 @@ br_scalar gFloat_00589b28 = 5.0f;
 #include "57-drone.h"
 #include <ctype.h>
 
-// GLOBAL: CARMA2_HW 0x00589a2c
 br_scalar gFLOAT_00589a2c = 0.5f;
 
-// GLOBAL: CARMA2_HW 0x00589a40
 br_scalar gCrushZero = 0.0f;
-// GLOBAL: CARMA2_HW 0x00589a9c
 const br_scalar gFLOAT_00589a9c = 0.9999f;
-// GLOBAL: CARMA2_HW 0x00589acc
 br_scalar gFLOAT_00589acc = 0.0014492754f;
-// GLOBAL: CARMA2_HW 0x00589ae0
 br_scalar gFLOAT_00589ae0 = 0.083333336f;
-// GLOBAL: CARMA2_HW 0x00589b30
 br_scalar gFLOAT_0_015_00589b30 = 0.015f;
 
-// GLOBAL: CARMA2_HW 0x00589a74
 br_scalar gCrushSqrtHalf = 0.70710701f;
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808
@@ -116,13 +101,10 @@ const char* gEase_of_detachment_names[5] = {
     "very_difficult",
 };
 
-// GLOBAL: CARMA2_HW 0x00589a54
 const br_scalar gFLOAT_00589a54 = 1.0f;
 
-// GLOBAL: CARMA2_HW 0x00589a58
 br_scalar gFLOAT_0_01_00589a58 = 0.01f;
 
-// GLOBAL: CARMA2_HW 0x00589a98
 const br_scalar gFLOAT_00589a98 = 0.0001f;
 
 // GLOBAL: CARMA2_HW 0x0058f858
