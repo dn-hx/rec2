@@ -336,9 +336,10 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
 void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
 }
 
-// STUB: CARMA2_HW 0x00445cb0
+// FUNCTION: CARMA2_HW 0x00445cb0
 void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    NOT_IMPLEMENTED();
+
+    DoHorizon(pRender_buffer, pDepth_buffer, pCamera, pCamera_to_world);
 }
 
 // STUB: CARMA2_HW 0x00446680
