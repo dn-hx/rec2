@@ -33,14 +33,41 @@ int gHud_tinted2 = -1;
 #ifdef REC2_HW
 // GLOBAL: CARMA2_HW 0x00655e50
 int gHud_tinted3 = -1;
+
+// GLOBAL: CARMA2_HW 0x00655e58
+float gForce_feedback_upper_limit;
+
+// GLOBAL: CARMA2_HW 0x00655e5c
+float gForce_feedback_lower_limit;
 #endif
 
 // GLOBAL: CARMA2_HW 0x00762140
 // GLOBAL: CARMA2_SW 0x007586a0
 int gCredits_checkpoint[3];
 
+// GLOBAL: CARMA2_HW 0x0079eaa8
+int gCredits_won_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaec
+int gTimer_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf0
+int gLaps_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf4
+int gPed_kill_count_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eaf8
+int gCar_kill_count_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eb40
+int gTime_awarded_headup;
+
 // GLOBAL: CARMA2_HW 0x0079ec44
 tSpecial_volume* gLast_camera_special_volume;
+
+// GLOBAL: CARMA2_HW 0x0079ec54
+int gAuto_repair;
 
 // GLOBAL: CARMA2_HW 0x006aaa34
 // GLOBAL: CARMA2_SW 0x006a4484
@@ -54,12 +81,55 @@ int gHud_tinted1_visible;
 // GLOBAL: CARMA2_SW 0x006a448c
 int gHud_tinted2_visible;
 
+// GLOBAL: CARMA2_HW 0x0074c6d0
+int gInitialised_grid_unk_0074c6d0;
+
 // GLOBAL: CARMA2_HW 0x00660cdc
 // GLOBAL: CARMA2_SW 0x0065b650
 int gLast_wrong_checkpoint = -1;
 
+// GLOBAL: CARMA2_HW 0x00660ce0
+int gMirror_on__structur;
+
+// GLOBAL: CARMA2_HW 0x00660ce8
+int gLoad_last_save_game;
+
+// GLOBAL: CARMA2_HW 0x0068d938
+int gWinner_declared;
+
 // GLOBAL: CARMA2_HW 0x006a0944
 int gNumber_of_icons;
+
+// GLOBAL: CARMA2_HW 0x006a0958
+undefined4 gDAT_006a0958;
+
+// GLOBAL: CARMA2_HW 0x006a0aec
+tU32 gNext_goody_time;
+
+// STUB: CARMA2_HW 0x00481830
+void C2_HOOK_FASTCALL InitRace(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049b720
+void C2_HOOK_FASTCALL InitPlayers(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004a5710
+void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reason pReason) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c6580
+void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e3440
+int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0
@@ -192,6 +262,11 @@ void C2_HOOK_FASTCALL WrongCheckpoint(int pCheckpoint_index) {
         gLast_checkpoint_time = GetTotalTime();
         gLast_wrong_checkpoint = pCheckpoint_index;
     }
+}
+
+// STUB: CARMA2_HW 0x005034b0
+void C2_HOOK_FASTCALL CheckCheckpoints(void) {
+    NOT_IMPLEMENTED();
 }
 
 // CheckCheckpoints
@@ -364,5 +439,10 @@ void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void) {
     if (gNet_mode == eNet_mode_host) {
         SendGameplayToAllPlayers(eNet_gameplay_host_unpaused, 0, 0, 0, 0);
     }
+}
+
+// STUB: CARMA2_HW 0x00504bf0
+void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
 }
 

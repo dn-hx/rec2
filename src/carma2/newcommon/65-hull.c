@@ -99,11 +99,28 @@ int C2_HOOK_FASTCALL Collinear(const br_vector3* pV1, const br_vector3* pV2, con
 // AddPointToPolyhedron
 
 #ifdef REC2_MATCHING
-// STUB: CARMA2_HW 0x00421fd0
+// FUNCTION: CARMA2_HW 0x00421fd0
 // STUB: CARMA2_SW 0x00422050
 undefined4* C2_HOOK_FASTCALL FUN_00421fd0(int pCount_points) {
-    NOT_IMPLEMENTED();
-    /* Unused */
+    tCollision_shape_polyhedron_data* result;
+    int count_minus_two;
+    int count_plus_two;
+    int count_edges;
+
+    count_minus_two = pCount_points - 2;
+    count_plus_two = pCount_points + 2;
+    count_edges = count_minus_two * 3;
+    result = BrMemAllocate(2 * (count_edges + count_minus_two * 16 + count_plus_two * 6), 0x80);
+    if (result == NULL) {
+        return NULL;
+    }
+    result->points = (br_vector3*)((tU8*)result + sizeof(*result));
+    result->count_points = 0;
+    result->count_edges = 0;
+    result->edges = (tPolyhedron_edge_indexes*)(result->points + pCount_points);
+    result->count_planes = 0;
+    result->planes = (br_vector4*)(result->edges + count_edges);
+    return result;
 }
 #endif
 
