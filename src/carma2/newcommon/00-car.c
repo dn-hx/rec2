@@ -83,6 +83,16 @@ float gOffensive_starting_value[100];
 // GLOBAL: CARMA2_SW 0x00751f80
 tFloat_bunch_info gCar_softness;
 
+int gFlyCarKeyFlags;
+
+int gFlyCarKeyTimer0;
+
+int gFlyCarKeyTimer1;
+
+int gFlyCarKeyTimer2;
+
+int gFlyCarKeyTimer3;
+
 // GLOBAL: CARMA2_HW 0x0074d600
 // GLOBAL: CARMA2_SW 0x00743b60
 tFloat_bunch_info gCar_car_damage_multiplier;
@@ -118,6 +128,8 @@ int gIn_the_sea;
 
 double gZero = 1.0;
 
+float gFneg1000;
+
 
 // GLOBAL: CARMA2_HW 0x0058f660
 tControl_car_fn ControlCar[6] = {
@@ -132,7 +144,74 @@ tControl_car_fn ControlCar[6] = {
 
 // GLOBAL: CARMA2_HW 0x0058f680
 int gMetal_crunch_sound_id[5] = { 5000, 5001, 5002, 5003, 5004 };
+
+// GLOBAL: CARMA2_HW 0x0058f698
+int gScrape_sound_id[3];
+
+// GLOBAL: CARMA2_HW 0x0058f6e0
+tPhysics_callbacks gCar_physics_callbacks;
+
+// GLOBAL: CARMA2_HW 0x0058f704
+int gFlyCarMode;
 float gF1000 = 1000.0f;
+
+br_scalar gCrushReattachDistanceSquared;
+
+float gFLOAT_00589b48;
+
+br_scalar gFloat_00589b64;
+
+double gDouble_00589b68;
+
+br_scalar gFloat_00589b70;
+
+br_scalar gFloat_00589b74;
+
+br_scalar gFloat_00589b78;
+
+br_scalar gFloat_00589b7c;
+
+double gDouble_00589b80;
+
+double gDouble_00589b88;
+
+double gDouble_00589b90;
+
+br_scalar gFloat_00589b98;
+
+br_scalar gFloat_00589b9c;
+
+br_scalar gFloat_00589ba0;
+
+br_scalar gFloat_00589ba4;
+
+br_scalar gFloat_00589ba8;
+
+br_scalar gFloat_00589bac;
+
+br_scalar gFloat_00589bb0;
+
+br_scalar gFloat_00589bb4;
+
+br_scalar gFloat_00589bb8;
+
+br_scalar gFloat_00589bbc;
+
+br_scalar gFloat_00589bc0;
+
+br_scalar gFloat_00589bc4;
+
+const double gJoystick_collision_force_scale = 0;
+
+const float gJoystick_collision_force_min_length = 0;
+
+const double gJoystick_collision_force_one = 0;
+
+const float gJoystick_collision_force_one_f = 0;
+
+const float gJoystick_collision_force_zero_f = 0;
+
+const double gJoystick_collision_force_radians_to_degrees = 0;
 // GLOBAL: CARMA2_HW 0x0058f678
 int gControl__car = 3;
 
@@ -143,6 +222,9 @@ int gFace_num__car = 1;
 // GLOBAL: CARMA2_HW 0x00744820
 // GLOBAL: CARMA2_SW 0x0073b2e0
 tFace_ref gFace_list__car[300];
+
+// GLOBAL: CARMA2_HW 0x0074cf98
+int gUNK_0074cf98;
 
 // GLOBAL: CARMA2_HW 0x00679360
 // GLOBAL: CARMA2_SW 0x00673ad0
@@ -155,8 +237,14 @@ tPhysics_object* gUnknown_car_collision_info;
 // GLOBAL: CARMA2_HW 0x006793ec
 tU32 gSafe_position_time_count = 0;
 
+// GLOBAL: CARMA2_HW 0x006793f4
+tU32 last_frame_start;
+
 // GLOBAL: CARMA2_HW 0x00679408
 int gLast_skid_vol[2];
+
+// GLOBAL: CARMA2_HW 0x00679414
+br_scalar gFlyCarAngularVelocity;
 
 // GLOBAL: CARMA2_HW 0x00679418
 tU32 gCheck_for_deattachment_total_time;
@@ -699,6 +787,11 @@ int C2_HOOK_FASTCALL IsCarInTheSea(void) {
     return gIn_the_sea;
 }
 
+// STUB: CARMA2_HW 0x00414cb0
+void C2_HOOK_FASTCALL ControlOurCar(tU32 pTime_difference) {
+    NOT_IMPLEMENTED();
+}
+
 // RememberSafePosition
 
 // ControlNetCars
@@ -788,6 +881,11 @@ void C2_HOOK_FASTCALL DragChildren(tCar_spec* pCar, tPhysics_object* pObject) {
             DragChildren(pCar, pObject->child);
         }
     }
+}
+
+// STUB: CARMA2_HW 0x00416070
+void C2_HOOK_FASTCALL APTCPostCollision(void) {
+    NOT_IMPLEMENTED();
 }
 
 inline void C2_HOOK_FASTCALL DoCarStuff(tCar_spec* pCar) {
@@ -933,6 +1031,31 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject) {
     }
 }
 
+// STUB: CARMA2_HW 0x00416270
+int C2_HOOK_FASTCALL APTCActiveHalted(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004162b0
+int C2_HOOK_FASTCALL APTCPassiveActivated(tPhysics_object* pObject, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00416300
+void C2_HOOK_FASTCALL APTCChangedObjects(tPhysics_object* pObject, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00416340
+void C2_HOOK_FASTCALL ApplyPhysicsToCars(tU32 pLast_tick_time, tU32 pFrame_period) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00416500
+void C2_HOOK_FASTCALL FinishCars(tU32 pLast_frame_time, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
 // APTCPostCollision
 
 // APTCActiveHalted
@@ -971,6 +1094,11 @@ void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pD
     NonCarCalcForce(pNon_car, pDt);
     BrMatrix34ApplyP(&pNon_car->pos, &pNon_car->centre_of_mass_world_scale, &pNon_car->car_master_actor->t.t.mat);
     BrVector3InvScale(&pNon_car->pos, &pNon_car->pos, WORLD_SCALE);
+}
+
+// STUB: CARMA2_HW 0x004170c0
+void C2_HOOK_FASTCALL CycleControlCar(void) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00417180
@@ -1120,6 +1248,16 @@ void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, br_scalar pDt) {
     pCar->keys.left = 1;
 }
 
+// STUB: CARMA2_HW 0x00417de0
+void C2_HOOK_FASTCALL ControlCar1(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00417fb0
+void C2_HOOK_FASTCALL TumbleObjectWithV(tPhysics_object* pObject, br_vector3* pV, br_scalar pTumbleFactor, br_scalar pTumbleThreshold) {
+    NOT_IMPLEMENTED();
+}
+
 // ControlCar1
 
 // SteeringSelfCentre
@@ -1171,6 +1309,16 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0041bd40
+void C2_HOOK_FASTCALL NewSkidding(tCar_spec* pCar, tFace_ref** faces, int pIndex) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0041bed0
+void C2_HOOK_FASTCALL SkidNoise(tCar_spec* pCar, int pSide, br_scalar pV, int pMaterial_index) {
+    NOT_IMPLEMENTED();
+}
+
 // DoRevs
 
 // ScrapeNoise
@@ -1190,6 +1338,16 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
 // STUB: CARMA2_HW 0x0041c1b0
 // STUB: CARMA2_SW 0x0041c1e0
 int C2_HOOK_FASTCALL ProcessForcesCallback(void* pArg1, float *pArg2, int pArg3) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0041ddc0
+void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0041deb0
+void C2_HOOK_FASTCALL CrushAndDamageCar(tCar_spec* pCar1, br_vector3* pPoint, br_vector3* pForce, tCar_spec* pCar2, int pChain_count, br_vector3* pChain, br_actor* pActor) {
     NOT_IMPLEMENTED();
 }
 
@@ -1446,6 +1604,11 @@ void C2_HOOK_FASTCALL FreezeMechanics(void) {
     }
 }
 
+// STUB: CARMA2_HW 0x0041f4a0
+void C2_HOOK_FASTCALL PutOpponentsInNeutral(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FlyCar
 
 // STUB: CARMA2_HW 0x0041fbe0
@@ -1505,6 +1668,21 @@ tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor) {
     return NULL;
 }
 
+// STUB: CARMA2_HW 0x00420310
+int C2_HOOK_FASTCALL NonCarSnapOff(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00420360
+int C2_HOOK_FASTCALL TestNonCarSnapOff(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004203c0
+void C2_HOOK_FASTCALL CheckForDeAttachmentOfNonCars(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -1557,4 +1735,54 @@ void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex) {
 // FUNCTION: CARMA2_SW 0x00420980
 void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex) {
     gProgram_state.track_spec.non_car_list[pIndex]->render_style = BR_RSTYLE_NONE;
+}
+
+// STUB: CARMA2_HW 0x0042dfd0
+int C2_HOOK_FASTCALL DoSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00430e30
+int C2_HOOK_FASTCALL DoXZSplitting(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00431310
+int C2_HOOK_FASTCALL DoJointSnapping(tCollision_contact* pContacts, float* pImpulses, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043b740
+void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045c910
+void C2_HOOK_FASTCALL FUN_0045c910(tCar_spec* pCar, br_vector3* pPoint, br_vector3* pForce, float pImpulse) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00497900
+void C2_HOOK_FASTCALL SendCarData(tU32 pNext_frame_time) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004984c0
+void C2_HOOK_FASTCALL ReceivedSimpleCarPos(tU8* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004985f0
+void C2_HOOK_FASTCALL ReceivedMechanics(tU8* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00498ab0
+void C2_HOOK_FASTCALL CopyMechanics(tCar_spec* pCar, tU8* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ecfb0
+void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups) {
+    NOT_IMPLEMENTED();
 }
