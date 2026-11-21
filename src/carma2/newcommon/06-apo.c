@@ -22,6 +22,9 @@
 #include "c2_stdio.h"
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x0076213c
+int gUNK_0076213c;
+
 // FUNCTION: CARMA2_HW 0x00502e00
 // FUNCTION: CARMA2_SW 0x004fe750
 void C2_HOOK_FASTCALL MaxOutAPO(void) {
