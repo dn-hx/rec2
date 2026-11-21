@@ -1874,6 +1874,14 @@ void C2_HOOK_FASTCALL SplitModel(br_model* pSource_model, br_model** pModels, br
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // CreateSplitPoints
 
 // STUB: CARMA2_HW 0x004303c0
@@ -2268,6 +2276,10 @@ typedef struct tUnbend_model_context_local {
 intptr_t C2_HOOK_FASTCALL UnBendModels(br_actor* pActor, br_vector3* pDelta, void* pData) {
     NOT_IMPLEMENTED();
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // STUB: CARMA2_HW 0x0043a150
 void C2_HOOK_FASTCALL UnBendActor(br_actor* pActor, tBend_data_local* pBend, br_angle pRepair_x, br_angle pRepair_y, br_angle pRepair_z, tCar_spec* pCar_spec) {

@@ -303,6 +303,10 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
     NOT_IMPLEMENTED();
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // DoHorizon
 
 // DoDepthCue

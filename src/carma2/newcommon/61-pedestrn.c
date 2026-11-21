@@ -2121,6 +2121,10 @@ void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat,
     NOT_IMPLEMENTED();
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // CalcBoundsRadius
 
 // BonerCloneModel
