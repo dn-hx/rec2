@@ -66,3 +66,9 @@ tFrontend_spec gFrontend_MAIN = {
 #endif
 };
 
+// GLOBAL: CARMA2_HW 0x00686f08
+int gCount_connected_items_indices;
+
+// GLOBAL: CARMA2_HW 0x00687018
+int gConnected_items_indices[6];
+

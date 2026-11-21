@@ -42,14 +42,20 @@
 #include "c2_math.h"
 #include "c2_stdio.h"
 #include "rec2_macros.h"
+#include "52-errors.h"
 
 #include <limits.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0079eda0
 // GLOBAL: CARMA2_SW 0x00795340
 // GLOBAL: CARMA2_CHEAT 0x007a6440
 tNon_car_spec* gActive_non_car_list[99];
+
+// GLOBAL: CARMA2_HW 0x0079ef2c
+int gNum_cars_and_non_cars;
 
 // GLOBAL: CARMA2_HW 0x0067939c
 // GLOBAL: CARMA2_SW 0x00673b0c
@@ -100,6 +106,15 @@ br_vector3 gZero_v__car;  // FIXME: make const?
 // GLOBAL: CARMA2_SW 0x00673b10
 int gFreeze_mechanics;
 
+// GLOBAL: CARMA2_HW 0x006793a4
+tU32 gLast_cunning_stunt;
+
+// GLOBAL: CARMA2_HW 0x006793c0
+int gSkid_tag[2];
+
+// GLOBAL: CARMA2_HW 0x006793c8
+tCar_spec* gLast_car_to_skid[2];
+
 // GLOBAL: CARMA2_HW 0x006793dc
 // GLOBAL: CARMA2_SW 0x00673b4c
 // GLOBAL: CARMA2_CHEAT 0x00680c8c
@@ -113,6 +128,28 @@ int gEliminate_faces;
 // GLOBAL: CARMA2_SW 0x00673ad4
 // GLOBAL: CARMA2_CHEAT 0x00680c14
 int gIn_the_sea;
+
+// GLOBAL: CARMA2_HW 0x005895f0
+double gZero = 1.0;
+
+
+// GLOBAL: CARMA2_HW 0x0058f660
+tControl_car_fn ControlCar[6] = {
+    NULL,
+    NULL,
+    NULL,
+    (tControl_car_fn)ControlCar4,
+    NULL,
+    NULL,
+};
+
+
+// GLOBAL: CARMA2_HW 0x0058f680
+int gMetal_crunch_sound_id[5] = { 5000, 5001, 5002, 5003, 5004 };
+// GLOBAL: CARMA2_HW 0x005896a8
+float gF1000 = 1000.0f;
+// GLOBAL: CARMA2_HW 0x0058f678
+int gControl__car = 3;
 
 // GLOBAL: CARMA2_HW 0x0065d010
 // GLOBAL: CARMA2_SW 0x00657948
@@ -133,6 +170,15 @@ br_scalar gMin_world_y;
 // GLOBAL: CARMA2_SW 0x00673b54
 // GLOBAL: CARMA2_CHEAT 0x00680c94
 tPhysics_object* gUnknown_car_collision_info;
+
+// GLOBAL: CARMA2_HW 0x006793ec
+tU32 gSafe_position_time_count = 0;
+
+// GLOBAL: CARMA2_HW 0x00679408
+int gLast_skid_vol[2];
+
+// GLOBAL: CARMA2_HW 0x00679418
+tU32 gCheck_for_deattachment_total_time;
 
 // GLOBAL: CARMA2_HW 0x006793d4
 // GLOBAL: CARMA2_SW 0x00673b44
@@ -165,6 +211,14 @@ void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int p
     }
 }
 
+// STUB: CARMA2_HW 0x004175e0
+void C2_HOOK_FASTCALL ControlCar4(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x0041f4f0
+void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt) {
+    NOT_IMPLEMENTED();
+}
 // FUNCTION: CARMA2_HW 0x00413d00
 // FUNCTION: CARMA2_SW 0x00413d30
 // FUNCTION: CARMA2_CHEAT 0x00413f60
@@ -689,7 +743,10 @@ int C2_HOOK_FASTCALL IsCarInTheSea(void) {
 
 // ControlOurCar
 
-// CalcEngineForce
+// STUB: CARMA2_HW 0x00415300
+void C2_HOOK_FASTCALL CalcEngineForce(tCar_spec* pCar, br_scalar pDt) {
+    NOT_IMPLEMENTED();
+}
 
 // PrepareCars
 
@@ -724,6 +781,10 @@ void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
 #pragma auto_inline(on)
 #endif
 
+// STUB: CARMA2_HW 0x004207a0
+int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data) {
+    NOT_IMPLEMENTED();
+}
 void C2_HOOK_FASTCALL MungeCarsMass(tCar_spec* pCar, br_scalar pFactor) {
 
     pCar->collision_info->M *= pFactor;
@@ -1235,7 +1296,10 @@ void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar pDt) {
 
 // NudgeObject
 
-// CalcForce
+// STUB: CARMA2_HW 0x00418850
+void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
+    NOT_IMPLEMENTED();
+}
 
 // DoRevs
 
@@ -1522,7 +1586,10 @@ void C2_HOOK_FASTCALL FreezeMechanics(void) {
 
 // FlyCar
 
-// GetCarOverallBoundsMinY
+// STUB: CARMA2_HW 0x0041fbe0
+float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

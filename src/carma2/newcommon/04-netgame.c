@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
@@ -78,11 +79,17 @@ void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, i
     }
 }
 
-// SendNonCar
+// STUB: CARMA2_HW 0x00497f10
+void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id) {
+    NOT_IMPLEMENTED();
+}
 
 // HostFillInCarContents
 
-// ClientSendCarData
+// STUB: CARMA2_HW 0x00497fc0
+void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time) {
+    NOT_IMPLEMENTED();
+}
 
 // DistanceBetweenCars
 
@@ -123,7 +130,10 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 
 // ReceivedShapeNumbers
 
-// FillInSimpleCarPos
+// STUB: CARMA2_HW 0x00498460
+void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index) {
+    NOT_IMPLEMENTED();
+}
 
 // ReceivedSimpleCarPos
 

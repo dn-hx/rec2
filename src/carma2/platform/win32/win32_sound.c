@@ -50,6 +50,9 @@ char gS3_working_directory[260];
 // GLOBAL: CARMA2_SW 0x006ac52c
 int gPDS3_midi_playing;
 
+// GLOBAL: CARMA2_HW 0x006b2da8
+int gPDS3_midi_restart_required;
+
 // GLOBAL: CARMA2_HW 0x006b2dac
 // GLOBAL: CARMA2_SW 0x006ac534
 int gPDS3_cda_media_present;

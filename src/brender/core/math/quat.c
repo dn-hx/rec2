@@ -17,6 +17,9 @@
 #define M_DIAG(x) (((br_scalar*)mat->m)[4*(x)])
 #define Q_EL(e) (((br_scalar*)&(q->x))[(e)])
 
+// GLOBAL: CARMA2_HW 0x0066cc20
+int gBr_quat_axis_next[3] = {1, 2, 0};
+
 // FUNCTION: CARMA2_HW 0x005355e0
 // FUNCTION: CARMA2_SW 0x00530c80
 // FUNCTION: CARMA2_CHEAT 0x0053b1d0

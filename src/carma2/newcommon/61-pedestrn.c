@@ -44,6 +44,7 @@
 #include "c2_stdio.h"
 #include "c2_stdlib.h"
 #include "c2_string.h"
+#include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x006a0414
 // GLOBAL: CARMA2_SW 0x0069a46c
@@ -80,10 +81,16 @@ tShrapnel_time_info gGiblet_min_max_time;
 // GLOBAL: CARMA2_CHEAT 0x006a3790
 int gGiblet_size_count;
 
+// GLOBAL: CARMA2_HW 0x0069bc20
+float gPed_damage_per_force;
+
 // GLOBAL: CARMA2_HW 0x0065d7d4
 // GLOBAL: CARMA2_SW 0x0065810c
 // GLOBAL: CARMA2_CHEAT 0x00664e8c
 int gGoreLevel = 1;
+
+// GLOBAL: CARMA2_HW 0x0065e4e0
+const tU8 gPed_anim_sequence_0065e4e0[4] = { 3, 1, 2, 1 };
 
 // GLOBAL: CARMA2_HW 0x0065d7c8
 // GLOBAL: CARMA2_SW 0x00658100
@@ -103,6 +110,9 @@ int gExplosives_on = 1;
 // GLOBAL: CARMA2_CHEAT 0x0067e22c
 tPedForms_vtable* gPed_vtable = NULL;
 
+// GLOBAL: CARMA2_HW 0x00676980
+tPed_move* gPed_moves[250] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00677234
 // GLOBAL: CARMA2_SW 0x006719a4
 // GLOBAL: CARMA2_CHEAT 0x0067eae4
@@ -113,10 +123,28 @@ int gPed_retain_root_mode = 0;
 // GLOBAL: CARMA2_CHEAT 0x0067e618
 br_material* gPedestrian_character_cloned_materials[50];
 
+// GLOBAL: CARMA2_HW 0x00676e30
+float gPed_cos_table[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677230
+float gFLOAT_00677230 = 0.f;
+
 // GLOBAL: CARMA2_HW 0x0067772c
 // GLOBAL: CARMA2_SW 0x00671e9c
 // GLOBAL: CARMA2_CHEAT 0x0067efdc
 int gCount_pedestrian_personality_cloned_materials;
+
+// GLOBAL: CARMA2_HW 0x00677734
+tPed_morph_slot gPed_morph_slots[20] = { 0 };
+
+
+// GLOBAL: CARMA2_HW 0x0069411c
+float gGiblet_scrape_start = 0.f;
+
+// GLOBAL: CARMA2_HW 0x00679264
+br_actor* gMr_blendy = 0;
+// GLOBAL: CARMA2_HW 0x00694120
+tPedestrian* gPed_recent_ped;
 
 // GLOBAL: CARMA2_HW 0x00677238
 // GLOBAL: CARMA2_SW 0x006719a8
@@ -132,6 +160,9 @@ tPed_personality* gPed_personalities[50] = { 0 };
 // GLOBAL: CARMA2_SW 0x00671a98
 // GLOBAL: CARMA2_CHEAT 0x0067ebd8
 float gPed_sin_table[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677728
+int gDAT_00677728 = 0;
 
 // GLOBAL: CARMA2_HW 0x007447e0
 // GLOBAL: CARMA2_SW 0x0073b2a0
@@ -158,6 +189,9 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_CHEAT 0x0074be50
 int gExploding_pedestrians;
 
+// GLOBAL: CARMA2_HW 0x007447b4
+tPedestrian* gPedestrians_in_sight;
+
 // GLOBAL: CARMA2_HW 0x007447c0
 // GLOBAL: CARMA2_SW 0x0073b280
 // GLOBAL: CARMA2_CHEAT 0x0074be60
@@ -167,6 +201,9 @@ br_vector3 gPed_scale;
 // GLOBAL: CARMA2_SW 0x00695c7c
 // GLOBAL: CARMA2_CHEAT 0x006a379c
 float gAverage_ped_scale;
+
+// GLOBAL: CARMA2_HW 0x0069bc28
+tExplosion_animation gNapalmed_ped_animation;
 
 // GLOBAL: CARMA2_HW 0x006a03f8
 // GLOBAL: CARMA2_SW 0x0069a450
@@ -229,6 +266,17 @@ const char* gNapalm_bolt_texture_names[7] = {
     "Ex00006",
 };
 
+// GLOBAL: CARMA2_HW 0x0065e5b8
+const float gFlamed_ped_flame_scales[7] = {
+    .275f,
+    .2245f,
+    .2f,
+    .175f,
+    .15f,
+    .075f,
+    .05f,
+};
+
 // GLOBAL: CARMA2_HW 0x0069412c
 // GLOBAL: CARMA2_SW 0x0068e184
 // GLOBAL: CARMA2_CHEAT 0x0069bca4
@@ -242,6 +290,9 @@ br_vector3 gChanged_points[10];
 // GLOBAL: CARMA2_HW 0x00694454
 // GLOBAL: CARMA2_SW 0x0068e4ac
 int gPed_dismember_spurting_member_count;
+
+// GLOBAL: CARMA2_HW 0x00694458
+br_pixelmap* gProx_ray_shade_table;
 
 // GLOBAL: CARMA2_HW 0x00694490
 // GLOBAL: CARMA2_SW 0x0068e4e8
@@ -302,6 +353,9 @@ int gDrunk_pedestrians;
 // GLOBAL: CARMA2_CHEAT 0x006a3858
 int gPeds_already_munged;
 
+// GLOBAL: CARMA2_HW 0x0058a9c8
+const float gFLOAT_0058a9c8 = -1.0f;
+
 // GLOBAL: CARMA2_HW 0x0065d7b8
 // GLOBAL: CARMA2_SW 0x006580f0
 // GLOBAL: CARMA2_CHEAT 0x00664e70
@@ -326,6 +380,9 @@ int gPed_groups_count;
 // GLOBAL: CARMA2_SW 0x0068e190
 // GLOBAL: CARMA2_CHEAT 0x0069bcb0
 tRace_ped_spec* gRace_pedestrian_specs;
+
+// GLOBAL: CARMA2_HW 0x00694234
+int gPed_severing_damage;
 
 // GLOBAL: CARMA2_HW 0x0069bc14
 // GLOBAL: CARMA2_SW 0x00695c6c
@@ -365,8 +422,23 @@ int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const
     }
 }
 
-// AssertRootObjectsMatrix
+// STUB: CARMA2_HW 0x004097b0
+int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004cc2c0
+void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004d57c0
+void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
+    NOT_IMPLEMENTED();
+}
 
+// STUB: CARMA2_HW 0x004cdeb0
+void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    NOT_IMPLEMENTED();
+}
 // InitFaceCaches
 
 inline void C2_HOOK_FASTCALL ResetPedFaceCache(void) {
@@ -446,6 +518,10 @@ void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacte
 #pragma auto_inline(on)
 #endif
 
+// STUB: CARMA2_HW 0x0040aed0
+void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
+    NOT_IMPLEMENTED();
+}
 // PedApplyPedPhysics
 
 // STUB: CARMA2_HW 0x004ca830
@@ -852,7 +928,10 @@ void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) 
 
 // SetKnockedOverMove
 
-// DoPostElectricution
+// STUB: CARMA2_HW 0x004cc6e0
+void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2) {
+    NOT_IMPLEMENTED();
+}
 
 // CBMoveCompleted
 
@@ -981,7 +1060,7 @@ void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSeed, floa
                 if (fragment == NULL) {
                     break;
                 }
-                scale = SetInitPosition(fragment->actor, &gGiblet_initial_position, NULL, pPosition, pAlternate_position, NULL, NULL, NULL);
+                scale = SetInitPosition(fragment->actor, &gGiblet_initial_position, NULL, (br_vector3*)pPosition, (br_vector3*)pAlternate_position, NULL, NULL, NULL);
                 SetShrapnelFragment(fragment, &gGiblet_initial_speed, pImpactee_velocity, scale, &gGiblet_min_max_time, pTime, &gZero_vector__smash, NULL, NULL);
             }
         }
@@ -993,7 +1072,10 @@ void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSeed, floa
 
 // PedUndoGibShower
 
-// DoGiblets
+// STUB: CARMA2_HW 0x004ccff0
+void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
 
 void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_vector3* pPosition, br_vector3* pImpactee_velocity, br_vector3* pNormal) {
     int seed;
@@ -1008,7 +1090,7 @@ void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_
         if (fragment == NULL) {
             break;
         }
-        scale = SetInitPosition(fragment->actor, &gPed_spurt_initial_position, NULL, pPosition, pPosition, NULL, NULL, NULL);
+        scale = SetInitPosition(fragment->actor, &gPed_spurt_initial_position, NULL, (br_vector3*)pPosition, (br_vector3*)pPosition, NULL, NULL, NULL);
         SetShrapnelFragment(fragment, &gPed_spurt_initial_speed, pImpactee_velocity, scale, &gPed_spurt_min_max_time, pTime, pNormal, NULL, NULL);
     }
     srand(seed);
@@ -1533,7 +1615,10 @@ void C2_HOOK_FASTCALL InitPedsForRace(void) {
     memset(gPed_cache_006944c0, 0, sizeof(gPed_cache_006944c0));
 }
 
-// RenderElectroBastardRays
+// STUB: CARMA2_HW 0x004d5d60
+void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004d6180
 // FUNCTION: CARMA2_SW 0x004d2780
@@ -1984,7 +2069,10 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // InitBoner
 
-// DRVector3SafeCross
+// STUB: CARMA2_HW 0x00403f90
+void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    NOT_IMPLEMENTED();
+}
 
 // DRVector3SafeCrossXZ
 
@@ -2167,9 +2255,19 @@ tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName) {
     return SetUpCharacterForm(pName);
 }
 
-// MakeRotationMatrix
+// STUB: CARMA2_HW 0x004080d0
+void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 pAngle_y, tU32 pAngle_z) {
+    NOT_IMPLEMENTED();
+}
 
-// SetBoner
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// STUB: CARMA2_HW 0x00407e70
+void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9) {
+    NOT_IMPLEMENTED();
+}
 
 // CalcBoundsRadius
 
@@ -2467,7 +2565,10 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pPed, int pMove_a
 
 // DRMatrix34RotateCos
 
-// DropPointOntoPlane
+// STUB: CARMA2_HW 0x0040b030
+void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2570,7 +2671,10 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
     return pCharacter->field_0xa;
 }
 
-// BonerPassiveCollision
+// STUB: CARMA2_HW 0x0040b620
+int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0040b760
 // FUNCTION: CARMA2_SW 0x0040b750
@@ -2579,7 +2683,10 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
     return BonerActiveHalted2(pCharacter, 0);
 }
 
-// BonerPedMovedByPhysics
+// STUB: CARMA2_HW 0x0040b770
+void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2738,4 +2845,9 @@ void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
 // FUNCTION: CARMA2_CHEAT 0x0040c6d0
 void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
     gPed_retain_root_mode = 0;
+}
+
+// STUB: CARMA2_HW 0x004eb6a0
+void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix) {
+    NOT_IMPLEMENTED();
 }
