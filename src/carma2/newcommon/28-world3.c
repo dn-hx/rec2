@@ -21,6 +21,7 @@
 #include "rec2_macros.h"
 #include "38-flicplay.h"
 #include "33-depth.h"
+#include "platform.h"
 
 #include <string.h>
 
@@ -1057,7 +1058,18 @@ void C2_HOOK_FASTCALL AllowDuplicates(void) {
     gDisallow_duplicates = 0;
 }
 
-// STUB: CARMA2_HW 0x00502d80
+// FUNCTION: CARMA2_HW 0x00502d80
 br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    for (i = 0; i < pStorage->pixelmaps_count; i++) {
+        if (pStorage->pixelmaps[i] == pOriginal) {
+            BrMapRemove(pOriginal);
+            BrPixelmapFree(pOriginal);
+            pStorage->pixelmaps[i] = pNew;
+            BrMapAdd(pNew);
+            return pNew;
+        }
+    }
+    PDFatalError("Can't swap in pixelmap");
 }
