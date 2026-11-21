@@ -1283,9 +1283,119 @@ intptr_t C2_HOOK_FASTCALL SimpleCrushCarModelsCB(br_actor* pActor, br_matrix34* 
 
 // SimpleCrushCar
 
-// STUB: CARMA2_HW 0x004363f0
+// FUNCTION: CARMA2_HW 0x004363f0
 void C2_HOOK_FASTCALL CrushCar(tCar_spec* pCar, br_actor* pActor, tCar_crush* pCrush) {
-    NOT_IMPLEMENTED();
+    struct {
+        tCar_spec* car;
+        tCar_crush* crush;
+        float force;
+    } context;
+    tCar_crush_spec* crush_spec;
+    tCar_crush_limits* limits;
+    tCar_crush_shape_info* shape;
+    tCar_crush_reordered_shape_info* entry;
+    br_vector3* pVertex;
+    br_vector3 direction;
+    float magnitude;
+    float bend;
+    float factor;
+    float force;
+    int count;
+    int axis;
+    int flip;
+    int found;
+    int i;
+    int j;
+
+    crush_spec = pCar->car_crush_spec;
+    if (crush_spec == NULL || pCar->invulnerable_no_crushage != 0 || crush_spec->field_0x4b8 != 0) {
+        return;
+    }
+    context.car = pCar;
+    context.crush = pCrush;
+    context.force = pCrush->field_0x40;
+    if (context.force > gMax_crush_force) {
+        context.force = gMax_crush_force;
+    }
+    context.force = context.force / (float)pCrush->count;
+    if (crush_spec->field_0x144 != 0) {
+        ARStartPipingSession(3);
+        DRActorEnumRecurseWithSnart(pCar->car_model_actor, NULL, SimpleCrushCarModelsCB, &context);
+        AREndPipingSession();
+        return;
+    }
+    if (pActor == pCar->car_master_actor) {
+        direction.v[0] = pCrush->field_0x44.v[0] * context.force;
+        direction.v[1] = pCrush->field_0x44.v[1] * context.force;
+        direction.v[2] = pCrush->field_0x44.v[2] * context.force;
+        direction.v[0] = gCrushZero;
+        if (direction.v[1] > gCrushZero) {
+            direction.v[1] = gCrushZero;
+        }
+        magnitude = (float)sqrt(direction.v[1] * direction.v[1] + direction.v[2] * direction.v[2]);
+        if (magnitude >= 1e-05f) {
+            direction.v[0] = gCrushZero / magnitude;
+            direction.v[1] = direction.v[1] / magnitude;
+            direction.v[2] = direction.v[2] / magnitude;
+            axis = NearestAxis(&direction);
+            flip = (direction.v[axis] > gCrushZero) ? 1 : 0;
+            found = 0;
+            count = crush_spec->field_0xa4.counts[axis][flip];
+            limits = &crush_spec->field_0xbc;
+            if (count > 0) {
+                i = 0;
+                do {
+                    if (flip == 0) {
+                        if (limits->limits[axis][0].values[i] < pCrush->field_0x34.v[axis]) {
+                            found = i;
+                            break;
+                        }
+                    } else {
+                        if (pCrush->field_0x34.v[axis] < limits->limits[axis][1].values[i]) {
+                            found = i;
+                            break;
+                        }
+                    }
+                    i++;
+                } while (i < count);
+            }
+            if (crush_spec->count_shapes > 0) {
+                i = 0;
+                do {
+                    shape = &crush_spec->field_0x4[i];
+                    if (shape->field_0x8 == 0) {
+                        for (j = 0; j < shape->count_points; j++) {
+                            entry = &shape->field_0x18[j];
+                            pVertex = &entry->field_0x18;
+                            bend = entry->field_0x24 * magnitude;
+                            factor = GetImpactScale(pVertex, pCrush->count, pCrush->vectors, gMax_crush_dist_sq);
+                            force = gForce_to_movement_factor * bend;
+                            if (factor != gCrushZero) {
+                                force *= factor;
+                                axis = NearestAxis(&direction);
+                                LimitImpactScale(&force, axis, pVertex->v[axis], direction.v[axis], entry->field_0x28, limits, found);
+                                if (force != gCrushZero) {
+                                    pVertex->v[1] = direction.v[1] * force + pVertex->v[1];
+                                    pVertex->v[2] = direction.v[2] * force + pVertex->v[2];
+                                    pVertex->v[0] = direction.v[0] * force + pVertex->v[0];
+                                }
+                            }
+                            if (DRVector3TestForNan(pVertex) != 0) {
+                                PDEnterDebugger("NaN");
+                            }
+                            ClipPointToLimits(pVertex, entry->field_0x28, limits);
+                        }
+                    }
+                    i++;
+                } while (i < crush_spec->count_shapes);
+            }
+            crush_spec->expand_bounding_box = 7;
+        }
+    }
+    ARStartPipingSession(3);
+    DRActorEnumRecurseWithSnart(pActor, NULL, CrushModels, &context);
+    AREndPipingSession();
+    pCar->use_shell_model = 0;
 }
 
 // SendCrush
