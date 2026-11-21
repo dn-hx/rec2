@@ -27,7 +27,6 @@
 // GLOBAL: CARMA2_SW 0x0058a5fc
 int gNet_player_to_view_index = -1;
 
-// GLOBAL: CARMA2_HW 0x0058f628
 int gView_opponent_index;
 
 // GLOBAL: CARMA2_HW 0x0058f630

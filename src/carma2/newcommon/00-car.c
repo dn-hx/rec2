@@ -83,19 +83,14 @@ float gOffensive_starting_value[100];
 // GLOBAL: CARMA2_SW 0x00751f80
 tFloat_bunch_info gCar_softness;
 
-// GLOBAL: CARMA2_HW 0x0075cefc
 int gFlyCarKeyFlags;
 
-// GLOBAL: CARMA2_HW 0x0075cf00
 int gFlyCarKeyTimer0;
 
-// GLOBAL: CARMA2_HW 0x0075cf04
 int gFlyCarKeyTimer1;
 
-// GLOBAL: CARMA2_HW 0x0075cf08
 int gFlyCarKeyTimer2;
 
-// GLOBAL: CARMA2_HW 0x0075cf0c
 int gFlyCarKeyTimer3;
 
 // GLOBAL: CARMA2_HW 0x0074d600

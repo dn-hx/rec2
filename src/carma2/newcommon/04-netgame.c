@@ -76,7 +76,6 @@ tU32 gNet_score_last_flash;
 // GLOBAL: CARMA2_HW 0x0068d950
 int gNet_score_flash_state;
 
-// GLOBAL: CARMA2_HW 0x0068d954
 int gNet_fullscreen_active;
 
 // SendShapeNumbers
