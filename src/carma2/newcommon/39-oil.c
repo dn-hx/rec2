@@ -36,6 +36,9 @@ int gNext_oil_pixie = 0;
 // GLOBAL: CARMA2_SW 0x0068b76c
 int gBig_bang = 0;
 
+// GLOBAL: CARMA2_HW 0x00691760
+br_scalar gMinimum_yness_before_knackerisation;
+
 // GLOBAL: CARMA2_HW 0x0074a68c
 // GLOBAL: CARMA2_SW 0x0074114c
 br_material* oily_material;
@@ -194,6 +197,11 @@ void C2_HOOK_FASTCALL MungeIndexedOilsHeightAboveGround(int pIndex) {
     C2_HOOK_BUG_ON(sizeof(tOil_spill_info) != 0x54);
 
     MungeOilsHeightAboveGround(&gOily_spills[pIndex]);
+}
+
+// STUB: CARMA2_HW 0x004a6e50
+void C2_HOOK_FASTCALL ProcessOilSpills(tU32 pFrame_period) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x004a7460
