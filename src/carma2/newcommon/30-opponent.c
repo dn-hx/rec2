@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "34-finteray.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -975,9 +976,18 @@ void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x0041e360
+// FUNCTION: CARMA2_HW 0x0041e360
 void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist) {
-    NOT_IMPLEMENTED();
+    br_vector3 pos;
+    br_vector3 dir;
+
+    pos.v[1] = pPos->v[1] * 0.14492753f;
+    pos.v[2] = pPos->v[2] * 0.14492753f;
+    pos.v[0] = pPos->v[0] * 0.14492753f;
+    dir.v[1] = pDir->v[1] * 0.14492753f;
+    dir.v[2] = pDir->v[2] * 0.14492753f;
+    dir.v[0] = pDir->v[0] * 0.14492753f;
+    ActorFindFace(&pos, &dir, gTrack_actor, pNormal, pDist, (br_material**)&pDist, NULL);
 }
 
 // STUB: CARMA2_HW 0x004a7960
