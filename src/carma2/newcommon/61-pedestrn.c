@@ -1736,11 +1736,10 @@ int C2_HOOK_FASTCALL MakeCharacterCollideworthy2(tPed_character_instance* pChara
                 if (((pCharacter->field_0xc & gPow2_array[iVar5]) != 0) && ((pCharacter->field_0x10 & gPow2_array[iVar5]) == 0)) {
                     cVar1 = pCharacter->field_0x6;
                     actor = form->actor_sets[pCharacter->field_0x4].actors[iVar5];
-                    iVar8 = SetCollisionObject(pCharacter, NULL, actor, (void*)(*(int*)((char*)actor + 0x18) + 0x34), NULL, 3, pArg3, 1, 0, NULL, NULL);
+                    obj = ((tPed_form_boned_phys*)((char*)form->boned_physicing + cVar1 * 8))->collision_infos[iVar5];
+                    iVar8 = SetCollisionObject(pCharacter, obj, actor, (void*)(*(int*)((char*)actor + 0x18) + 0x34), NULL, 3, pArg3, 1, 0, NULL, NULL);
                     if (iVar8 == 0) {
                         obj = NULL;
-                    } else {
-                        obj = ((tPed_form_boned_phys*)((char*)form->boned_physicing + cVar1 * 8))->collision_infos[iVar5];
                     }
                     if (obj != NULL) {
                         *(undefined4*)((char*)obj + 0x68) = 0;
