@@ -1534,9 +1534,15 @@ void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, undefined4 pArg2, undef
 
 // PipeSingleGibShower
 
-// STUB: CARMA2_HW 0x004c8d40
+// FUNCTION: CARMA2_HW 0x004c8d40
 void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6) {
-    NOT_IMPLEMENTED();
+
+    ARDoSingleVariedSession(50, pId, 5,
+        4, 4, (uintptr_t)pArg2,
+        4, 0, (uintptr_t)pArg3,
+        12, 8, (uintptr_t)pArg4,
+        12, 20, (uintptr_t)pArg5,
+        12, 32, (uintptr_t)pArg6);
 }
 
 // FUNCTION: CARMA2_HW 0x004c8d80
