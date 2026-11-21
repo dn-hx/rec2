@@ -341,9 +341,57 @@ void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* p
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00446680
+// FUNCTION: CARMA2_HW 0x00446680
 void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
-    NOT_IMPLEMENTED();
+    float f_time;
+
+    // GLOBAL: CARMA2_HW 0x00591194
+    static float mag00 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x00591198
+    static  float mag01 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x0059119c
+    static float mag02 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x005911a0
+    static float mag10 = 0.15f;
+    // GLOBAL: CARMA2_HW 0x005911a4
+    static float mag11 = 0.05f;
+    // GLOBAL: CARMA2_HW 0x005911a8
+    static float mag12 = 0.02f;
+    // GLOBAL: CARMA2_HW 0x0067c4e4
+    static float mag20;
+    // GLOBAL: CARMA2_HW 0x0067c4e8
+    static float mag21;
+    // GLOBAL: CARMA2_HW 0x0067c4ec
+    static float mag22;
+    // GLOBAL: CARMA2_HW 0x005911ac
+    static float period00 = 3000.f;
+    // GLOBAL: CARMA2_HW 0x005911b0
+    static float period01 = 3000.f;
+    // GLOBAL: CARMA2_HW 0x005911b4
+    static float period02 = 4000.f;
+    // GLOBAL: CARMA2_HW 0x005911b8
+    static float period10 = 2200.f;
+    // GLOBAL: CARMA2_HW 0x005911bc
+    static float period11 = 3300.f;
+    // GLOBAL: CARMA2_HW 0x005911c0
+    static float period12 = 3100.f;
+    // GLOBAL: CARMA2_HW 0x005911c4
+    static float period20 = 2800.f;
+    // GLOBAL: CARMA2_HW 0x005911c8
+    static float period21 = 2500.f;
+    // GLOBAL: CARMA2_HW 0x005911cc
+    static float period22 = 3900.f;
+
+    f_time = (float)PDGetTotalTime();
+    pCamera->t.t.mat.m[0][0] += FastScalarSin((int)fmod(f_time / period00 * 360.f, 360.f)) * mag00;
+    pCamera->t.t.mat.m[0][1] += FastScalarSin((int)fmod(f_time / period01 * 360.f, 360.f)) * mag01;
+    pCamera->t.t.mat.m[0][2] += FastScalarSin((int)fmod(f_time / period02 * 360.f, 360.f)) * mag02;
+    pCamera->t.t.mat.m[1][0] += FastScalarSin((int)fmod(f_time / period10 * 360.f, 360.f)) * mag10;
+    pCamera->t.t.mat.m[1][1] += FastScalarSin((int)fmod(f_time / period11 * 360.f, 360.f)) * mag11;
+    pCamera->t.t.mat.m[1][2] += FastScalarSin((int)fmod(f_time / period12 * 360.f, 360.f)) * mag12;
+    pCamera->t.t.mat.m[2][0] += FastScalarSin((int)fmod(f_time / period20 * 360.f, 360.f)) * mag20;
+    pCamera->t.t.mat.m[2][1] += FastScalarSin((int)fmod(f_time / period21 * 360.f, 360.f)) * mag21;
+    pCamera->t.t.mat.m[2][2] += FastScalarSin((int)fmod(f_time / period22 * 360.f, 360.f)) * mag22;
 }
 
 // DoDrugWobbleCamera
