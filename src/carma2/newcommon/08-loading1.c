@@ -837,9 +837,12 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     rename(new_file, pThe_path);
 }
 
-// STUB: CARMA2_HW 0x00490b90
+// FUNCTION: CARMA2_HW 0x00490b90
 void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path) {
-    NOT_IMPLEMENTED();
+    char path[256];
+
+    PathCat(path, gApplication_path, pThe_path);
+    PFForEveryFile(path, (tPDForEveryFileRecurse_cbfn)EncodeFileWrapper);
 }
 
 // FUNCTION: CARMA2_HW 0x00490bc0
