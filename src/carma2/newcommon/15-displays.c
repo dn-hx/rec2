@@ -888,10 +888,40 @@ void C2_HOOK_FASTCALL ChangingView(void) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x0044b300
+// FUNCTION: CARMA2_HW 0x0044b300
 // STUB: CARMA2_SW 0x0044b490
 void C2_HOOK_FASTCALL EarnCredits2(int pAmount, const char* pPrefix_text) {
-    NOT_IMPLEMENTED();
+    tU32 the_time;
+    int original_amount;
+    char s[256];
+
+    if (gRace_finished) {
+        return;
+    }
+    the_time = GetTotalTime();
+    if (pAmount == 0) {
+        return;
+    }
+    if (gCredit_multiplier != 0) {
+        pAmount *= gCredit_multiplier;
+    }
+    original_amount = pAmount;
+    if (gLast_credit_headup__displays >= 0 && the_time - gLast_earn_time < 2000) {
+        pAmount += gLast_credit_amount;
+    }
+    gLast_credit_amount = pAmount;
+    if (pAmount > 1) {
+        sprintf(s, "%s%d %s", pPrefix_text, pAmount, GetMiscString(eMiscString_credits));
+    } else if (pAmount > 0) {
+        sprintf(s, "%s1 %s", pPrefix_text, GetMiscString(eMiscString_credit));
+    } else if (pAmount < -1) {
+        sprintf(s, "%s%s %d %s", GetMiscString(eMiscString_lost_credits_prefix), pPrefix_text, -pAmount, GetMiscString(eMiscString_credits));
+    } else {
+        sprintf(s, "%s%s 1 %s", pPrefix_text, GetMiscString(eMiscString_lost_credits_prefix), GetMiscString(eMiscString_credit));
+    }
+    gProgram_state.credits += original_amount;
+    gLast_credit_headup__displays = NewTextHeadupSlot2(4, 0, 2000, -4, s, 1);
+    gLast_earn_time = the_time;
 }
 
 #ifdef REC2_MATCHING
