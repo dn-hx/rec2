@@ -2608,9 +2608,53 @@ void C2_HOOK_FASTCALL ReceivedToggleFlaps(tNet_message_chunk* pContents) {
 
 // SHNonCarOwner
 
-// STUB: CARMA2_HW 0x0043d690
+// FUNCTION: CARMA2_HW 0x0043d690
 void C2_HOOK_FASTCALL SendSHNonCar(tNon_car_spec* pNon_car, undefined4 pArg2, tNet_game_player_info* pRecipient) {
-    NOT_IMPLEMENTED();
+    tU8* message;
+    int hierarchy_size;
+    int contents_size;
+    int written_size;
+    tCar_spec* car;
+    tNet_message* guaranteed_message;
+    br_vector3* crush_vector;
+
+    guaranteed_message = NULL;
+    car = NULL;
+    hierarchy_size = GetHierarchyNetworkSize(pNon_car->collision_info);
+    contents_size = hierarchy_size + 0x16;
+    if (pRecipient == NULL) {
+        if (pNon_car->collision_info->disable_move_rotate == 0 || (pNon_car->flags & 0x100000) == 0) {
+            message = (tU8*)NetStartBroadcastContents(0x29, contents_size);
+        } else {
+            guaranteed_message = NetBuildGuaranteedMessage(0x29, contents_size);
+            message = (tU8*)guaranteed_message + 0x18;
+            pNon_car->flags &= ~0x100000;
+        }
+    } else {
+        message = (tU8*)NetGetToPlayerContents(0x29, contents_size, pRecipient->ID);
+    }
+    if (message != NULL) {
+        if (pNon_car->car_master_actor != NULL) {
+            car = (tCar_spec*)pNon_car->car_master_actor->user;
+        }
+        *(undefined4*)(message + 8) = pArg2;
+        *(tPlayer_ID*)(message + 4) = NetPlayerFromCar(car)->ID;
+        *(tU16*)(message + 0xc) = (tU16)(pNon_car->collision_info->disable_move_rotate << 1);
+        crush_vector = &car->car_crush_spec->field_0x548;
+        CompressVector3((tCompressed_vector3*)(message + 0xe), crush_vector, -1.0f, 1.0f);
+        *(tU16*)(message + 0x14) = DRScalarToU16(*(float*)((tU8*)crush_vector + 0xc), -2.5f, 2.5f);
+        written_size = GetHierarchyNetworkStuff(pNon_car->collision_info, message + 0x16, 0x48);
+        if (written_size != hierarchy_size) {
+            FatalError(0x72, "in split half non_car object data");
+        }
+        if (pRecipient == NULL) {
+            if (guaranteed_message == NULL) {
+                NetBroadcastContents((tNet_message_chunk*)message);
+                return;
+            }
+            NetGuaranteedSendMessageToEverybody(gCurrent_net_game, guaranteed_message, 0);
+        }
+    }
 }
 
 // SendAllSHNonCars
