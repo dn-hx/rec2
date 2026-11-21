@@ -1141,9 +1141,29 @@ void C2_HOOK_FASTCALL InitFlame(void) {
     BrModelAdd(gLollipop_model);
 }
 
-// STUB: CARMA2_HW 0x004fc680
+// FUNCTION: CARMA2_HW 0x004fc680
 void C2_HOOK_FASTCALL DisposeSplash(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    tSplash* splash;
+
+    for (i = 0; i < gNum_splash_types; i++) {
+        BrMapRemove(gSplash_material[i]->colour_map);
+        BrPixelmapFree(gSplash_material[i]->colour_map);
+        BrMaterialRemove(gSplash_material[i]);
+        BrMaterialFree(gSplash_material[i]);
+    }
+    i = 0;
+    splash = &gSplash[0];
+    do {
+        if ((gSplash_flags & (1 << i)) != 0 && splash->actor->parent != NULL) {
+            BrActorRemove(splash->actor);
+        }
+        BrActorFree(splash->actor);
+        splash++;
+        i++;
+    } while ((int)splash < (int)((tU8*)gSplash + sizeof(gSplash)));
+    BrModelRemove(gSplash_model);
+    BrModelFree(gSplash_model);
 }
 
 // FUNCTION: CARMA2_HW 0x004fdde0
