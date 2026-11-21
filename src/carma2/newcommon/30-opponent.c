@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -980,9 +981,14 @@ void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* 
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004a7960
+// FUNCTION: CARMA2_HW 0x004a7960
 void C2_HOOK_FASTCALL TurnOpponentPhysicsOn(tOpponent_spec* pOpponent_spec) {
-    NOT_IMPLEMENTED();
+    pOpponent_spec->car_spec->car_master_actor->render_style = BR_RSTYLE_DEFAULT;
+    PipeSingleOppoRenderage(pOpponent_spec, 1);
+    if (!pOpponent_spec->physics_me) {
+        pOpponent_spec->physics_me = 1;
+        gActive_car_list_rebuild_required = 1;
+    }
 }
 
 // STUB: CARMA2_HW 0x004a79a0
