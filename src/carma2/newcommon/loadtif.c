@@ -534,9 +534,37 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiff16bit(const char *pPath, int pFlags, int *
     return pm;
 }
 
-// STUB: CARMA2_HW 0x00486760
+// FUNCTION: CARMA2_HW 0x00486760
 void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode) {
-    NOT_IMPLEMENTED();
+    tLoadDirectoryStructureCBData data;
+    tLoadDirectoryStructureCBResult* nextItem;
+    tPath_name pathBuffer;
+
+    data.loadFlags = loadFlags | kLoadTextureFlags_SaveBrenderTexture;
+    data.errorCode = errorCode;
+    data.results = NULL;
+    data.directory = directory;
+    data.pPalette = pPalette;
+    if (!(loadFlags & kLoadTextureFlags_16bbp)) {
+        sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFX");
+        data.isTiffx = 0x1;
+        PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+    }
+    if (*errorCode != 0) {
+        return;
+    }
+    sprintf(pathBuffer, "%s%s%s", directory, gDir_separator, "TIFFRGB");
+    data.isTiffx = 0x0;
+    PDEnumPath(pathBuffer, (tEnumPathCallback)LoadTiffTextureCB, &data);
+
+    while (data.results != NULL) {
+        nextItem = data.results->next;
+        if (data.results->name != NULL) {
+            BrMemFree(data.results->name);
+        }
+        BrMemFree(data.results);
+        data.results = nextItem;
+    }
 }
 
 // STUB: CARMA2_HW 0x00486860
