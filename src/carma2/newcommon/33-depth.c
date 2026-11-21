@@ -305,9 +305,83 @@ void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPo
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004459e0
+// FUNCTION: CARMA2_HW 0x004459e0
 void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    NOT_IMPLEMENTED();
+    int dst_x;
+    int src_x;
+    int dx;
+    int hori_y;
+    int top_y;
+    int bot_height;
+    int repetitions;
+    br_angle yaw;
+    br_angle hori_sky;
+    br_camera* camera;
+    br_scalar tan_half_fov;
+    br_scalar tan_half_hori_fov;
+    br_scalar tan_half_hori_sky;
+    br_scalar hshift;
+    br_scalar tan_pitch;
+    br_scalar sin_v;
+    br_scalar cos_v;
+    br_scalar col_w;
+    int rw;
+    int cw;
+    tU8 top_col;
+    tU8 bot_col;
+    br_pixelmap* col_map;
+
+    (void)pDepth_buffer;
+    dst_x = 0;
+    col_map = gHorizon_material->colour_map;
+    camera = (br_camera*)pCamera->type_data;
+    sin_v = (br_scalar)sin(BrAngleToRadian((br_scalar)(camera->field_of_view / 2)));
+    cos_v = (br_scalar)cos(BrAngleToRadian((br_scalar)(camera->field_of_view / 2)));
+    tan_half_fov = sin_v / cos_v;
+    tan_half_hori_fov = tan_half_fov * camera->aspect;
+
+    rw = pRender_buffer->width;
+    cw = col_map->width;
+    col_w = (br_scalar)cw;
+    tan_half_hori_sky = tan_half_hori_fov * col_w / rw;
+    hori_sky = 2 * BrRadianToAngle(atan2(tan_half_hori_sky, 1.0));
+    repetitions = (int)(1.f / (hori_sky * 1.52587890625e-05) + 0.5f);
+    hori_sky = 0xfff0 / repetitions;
+    yaw = BrRadianToAngle(atan2(pCamera_to_world->m[2][0], pCamera_to_world->m[2][2]));
+    hshift = -((yaw * 1.52587890625e-05) / (hori_sky * 1.52587890625e-05));
+
+    src_x = col_map->width * hshift;
+    while (src_x < 0) {
+        src_x += col_map->width;
+    }
+    while (src_x > col_map->width) {
+        src_x -= col_map->width;
+    }
+
+    tan_pitch = pCamera_to_world->m[2][1] / sqrt(pCamera_to_world->m[2][0] * pCamera_to_world->m[2][0] + pCamera_to_world->m[2][2] * pCamera_to_world->m[2][2]);
+    hori_y = tan_pitch / tan_half_fov * pRender_buffer->height / 2.0f;
+    top_y = gSky_image_underground * col_map->height / gSky_image_height - hori_y - col_map->height;
+
+    while (dst_x < pRender_buffer->width) {
+        dx = pRender_buffer->width - dst_x < col_map->width - src_x ? pRender_buffer->width - dst_x : col_map->width - src_x;
+        DRPixelmapRectangleCopy(pRender_buffer, dst_x - pRender_buffer->origin_x, top_y, col_map,
+                src_x - col_map->origin_x, -col_map->origin_y, dx, col_map->height);
+        dst_x += dx;
+        src_x = 0;
+    }
+
+    top_col = ((tU8*)col_map->pixels)[0];
+    if (pRender_buffer->origin_y + top_y > 0) {
+        DRPixelmapRectangleFill(pRender_buffer, -pRender_buffer->origin_x, -pRender_buffer->origin_y,
+                pRender_buffer->width, pRender_buffer->origin_y + top_y, top_col);
+    }
+
+    bot_col = ((tU8*)col_map->pixels)[col_map->row_bytes * (col_map->height - 1)];
+    bot_height = pRender_buffer->height - top_y - col_map->height - pRender_buffer->origin_y;
+    if (bot_height > 0) {
+        DRPixelmapRectangleFill(pRender_buffer, -pRender_buffer->origin_x, top_y + col_map->height,
+                pRender_buffer->width, bot_height, bot_col);
+    }
 }
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
