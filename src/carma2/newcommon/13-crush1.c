@@ -1475,9 +1475,175 @@ void C2_HOOK_FASTCALL SetUpSemiDetachedBitJoint(tPhysics_joint* pJoint, tCar_cru
 
 // BitIsInBentPartOfCar
 
-// STUB: CARMA2_HW 0x00437ac0
+// FUNCTION: CARMA2_HW 0x00437ac0
 void C2_HOOK_FASTCALL SetUpFlapJoint(tPhysics_joint* pJoint, tCar_crush_flap_data* pFlap_data, br_model* pModel, tPhysics_object* pObject, br_vector3* pPoint1, br_vector3* pPoint2, br_vector3* pPoint3) {
-    NOT_IMPLEMENTED();
+    float* pfVar1;
+    float* pfVar8;
+    float* joint;
+    float* point_1;
+    float* point_2;
+    float* point_3;
+    br_vector3 local_point;
+    br_matrix34 rotation;
+    float fVar2;
+    float fVar3;
+    float fVar5;
+    float fVar6;
+
+    joint = (float*)pJoint;
+    point_1 = (float*)pPoint1;
+    point_2 = (float*)pPoint2;
+    point_3 = (float*)pPoint3;
+    pJoint->type = eJoint_quick_hinge;
+    if (point_1 == NULL) {
+        point_1 = (float*)&pModel->vertices[pFlap_data->hinge0].p;
+    }
+    pfVar8 = point_2;
+    if (point_2 == NULL) {
+        pfVar8 = (float*)&pModel->vertices[pFlap_data->hinge1].p;
+    }
+    if (point_3 != NULL) {
+        point_2 = point_3;
+    } else {
+        point_2 = (float*)&pModel->vertices[pFlap_data->hinge2].p;
+    }
+    joint[2] = *point_1;
+    joint[3] = point_1[1];
+    joint[4] = point_1[2];
+    BrMatrix34ApplyP(&local_point, (br_vector3*)&joint[2], &pObject->actor->t.t.mat);
+    DrMatrix34ApplyLPInverse((br_vector3*)&joint[5], &local_point, &pObject->parent->actor->t.t.mat);
+    pfVar1 = (float*)(joint + 0xe);
+    *pfVar1 = *pfVar8 - *point_1;
+    joint[0xf] = pfVar8[1] - point_1[1];
+    fVar2 = pfVar8[2] - point_1[2];
+    joint[0x10] = fVar2;
+    fVar2 = (float)sqrt(fVar2 * fVar2 + (float)joint[0xf] * (float)joint[0xf] + *pfVar1 * *pfVar1);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        *pfVar1 = *pfVar1 * fVar2;
+        joint[0xf] = (float)joint[0xf] * fVar2;
+        joint[0x10] = (float)joint[0x10] * fVar2;
+    } else {
+        *pfVar1 = 1.0;
+        joint[0xf] = 0;
+        joint[0x10] = 0;
+    }
+    joint[0x11] = *pfVar1;
+    joint[0x12] = joint[0xf];
+    joint[0x13] = joint[0x10];
+    if (*pfVar1 == gCrushZero && (float)joint[0x10] == gCrushZero) {
+        joint[8] = 1.0f;
+        joint[9] = 0;
+        joint[10] = 0;
+    } else {
+        joint[8] = -(float)joint[0x10];
+        joint[10] = *pfVar1;
+        joint[9] = 0;
+    }
+    fVar2 = (float)sqrt((float)joint[10] * (float)joint[10] + (float)joint[8] * (float)joint[8]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[9] = 0;
+        joint[8] = (float)joint[8] * fVar2;
+        joint[10] = (float)joint[10] * fVar2;
+    } else {
+        joint[8] = 1.0f;
+        joint[9] = 0;
+        joint[10] = 0;
+    }
+    joint[0xb] = (float)joint[0xf] * (float)joint[10] - (float)joint[0x10] * (float)joint[9];
+    joint[0xc] = (float)joint[8] * (float)joint[0x10] - *pfVar1 * (float)joint[10];
+    fVar3 = *pfVar1 * (float)joint[9] - (float)joint[8] * (float)joint[0xf];
+    joint[0xd] = fVar3;
+    fVar2 = (float)sqrt(fVar3 * fVar3 + (float)joint[0xc] * (float)joint[0xc] + (float)joint[0xb] * (float)joint[0xb]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[0xb] = (float)joint[0xb] * fVar2;
+        joint[0xc] = (float)joint[0xc] * fVar2;
+        joint[0xd] = fVar2 * fVar3;
+    } else {
+        joint[0xb] = 1.0f;
+        joint[0xc] = 0;
+        joint[0xd] = 0;
+    }
+    pJoint->count_limits = 2;
+    joint[0x17] = *point_2 - *point_1;
+    joint[0x18] = point_2[1] - point_1[1];
+    fVar2 = point_2[2];
+    fVar3 = point_1[2];
+    joint[0x19] = fVar2 - fVar3;
+    fVar2 = (float)joint[0x17] - *pfVar1 * (*pfVar1 * (float)joint[0x17] + (float)joint[0x10] * (fVar2 - fVar3) + (float)joint[0xf] * (float)joint[0x18]);
+    fVar3 = (float)joint[0x18] - ((float)joint[0x10] * (float)joint[0x19] + (float)joint[0xf] * (float)joint[0x18] + (float)joint[0x17] * *pfVar1) * (float)joint[0xf];
+    fVar6 = (float)joint[0x19] - (float)joint[0x10] * ((float)joint[0x18] * (float)joint[0xf] + (float)joint[0x10] * (float)joint[0x19] + (float)joint[0x17] * *pfVar1);
+    joint[0x17] = fVar2;
+    fVar5 = (float)sqrt(fVar6 * fVar6 + fVar3 * fVar3 + fVar2 * fVar2);
+    joint[0x18] = fVar3;
+    joint[0x19] = fVar6;
+    if (fVar5 > 2.3841858e-07f) {
+        fVar5 = 1.0 / fVar5;
+        joint[0x17] = fVar5 * fVar2;
+        joint[0x18] = fVar5 * fVar3;
+        joint[0x19] = (float)joint[0x19] * fVar5;
+    } else {
+        joint[0x17] = 1.0f;
+        joint[0x18] = 0;
+        joint[0x19] = 0;
+    }
+    joint[0x1a] = (float)joint[0xf] * (float)joint[0x19] - (float)joint[0x10] * (float)joint[0x18];
+    pfVar8 = (float*)(joint + 0x1f);
+    joint[0x1b] = (float)joint[0x10] * (float)joint[0x17] - *pfVar1 * (float)joint[0x19];
+    *pfVar8 = (float)joint[0x17];
+    fVar3 = *pfVar1 * (float)joint[0x18] - (float)joint[0x17] * (float)joint[0xf];
+    joint[0x20] = joint[0x18];
+    joint[0x21] = joint[0x19];
+    joint[0x1c] = fVar3;
+    fVar2 = (float)sqrt(fVar3 * fVar3 + (float)joint[0x1b] * (float)joint[0x1b] + (float)joint[0x1a] * (float)joint[0x1a]);
+    if (fVar2 > 2.3841858e-07f) {
+        fVar2 = 1.0 / fVar2;
+        joint[0x1a] = (float)joint[0x1a] * fVar2;
+        joint[0x1b] = (float)joint[0x1b] * fVar2;
+        joint[0x1c] = fVar2 * fVar3;
+    } else {
+        joint[0x1a] = 1.0f;
+        joint[0x1b] = 0;
+        joint[0x1c] = 0;
+    }
+    BrMatrix34Rotate(&rotation, (br_angle)(pFlap_data->field_0x6 - 0x3ffc), (br_vector3*)pfVar1);
+    BrMatrix34ApplyV((br_vector3*)&joint[0x22], (br_vector3*)&joint[0x1f], &rotation);
+    fVar2 = (float)joint[0x1a] * 0.01f + (float)joint[0x17];
+    fVar6 = (float)joint[0x1b] * 0.01f + (float)joint[0x18];
+    fVar5 = (float)joint[0x1c] * 0.01f + (float)joint[0x19];
+    fVar3 = (float)sqrt(fVar5 * fVar5 + fVar6 * fVar6 + fVar2 * fVar2);
+    joint[0x17] = fVar2;
+    joint[0x18] = fVar6;
+    joint[0x19] = fVar5;
+    if (fVar3 > 2.3841858e-07f) {
+        fVar3 = 1.0 / fVar3;
+        joint[0x17] = fVar3 * fVar2;
+        joint[0x18] = fVar3 * fVar6;
+        joint[0x19] = (float)joint[0x19] * fVar3;
+    } else {
+        joint[0x17] = 1.0f;
+        joint[0x18] = 0;
+        joint[0x19] = 0;
+    }
+    fVar2 = (float)joint[0x22] * 0.01f + *pfVar8;
+    fVar6 = (float)joint[0x23] * 0.01f + (float)joint[0x20];
+    fVar5 = (float)joint[0x24] * 0.01f + (float)joint[0x21];
+    *pfVar8 = fVar2;
+    fVar3 = (float)sqrt(fVar5 * fVar5 + fVar6 * fVar6 + fVar2 * fVar2);
+    joint[0x20] = fVar6;
+    joint[0x21] = fVar5;
+    if (fVar3 > 2.3841858e-07f) {
+        fVar3 = 1.0 / fVar3;
+        *pfVar8 = fVar3 * fVar2;
+        joint[0x20] = fVar3 * fVar6;
+        joint[0x21] = fVar3 * fVar5;
+        return;
+    }
+    *pfVar8 = 1.0;
+    joint[0x20] = 0;
+    joint[0x21] = 0;
 }
 
 // FUNCTION: CARMA2_HW 0x0042d950
