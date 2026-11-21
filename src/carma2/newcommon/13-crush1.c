@@ -1668,9 +1668,44 @@ intptr_t C2_HOOK_FASTCALL FlapBit(br_actor* pActor, br_matrix34* pMat, void* pCo
 
 // StartFlapping
 
-// STUB: CARMA2_HW 0x0042f3d0
+// FUNCTION: CARMA2_HW 0x0042f3d0
 void C2_HOOK_FASTCALL MungeDetachLists(tCar_crush_spec* pCar_crush) {
-    NOT_IMPLEMENTED();
+    int i;
+    int new_count;
+
+    new_count = 0;
+    for (i = 0; i < pCar_crush->field_0x270; i++) {
+        tCar_bit_spec* car_bit = &pCar_crush->field_0x274[i];
+
+        /* FIXME: what is type ot tCar_bit_spec::field_0xc? */
+        if (car_bit->field_0xc[10] == 1) {
+            if (i != new_count) {
+                pCar_crush->field_0x274[new_count] = *car_bit;
+                new_count += 1;
+            }
+        } else if (car_bit->field_0xc[10] == 2) {
+            pCar_crush->field_0x2b4[pCar_crush->field_0x2b0] = *car_bit;
+            pCar_crush->field_0x2b0 += 1;
+        }
+    }
+    pCar_crush->field_0x270 = new_count;
+
+    new_count = 0;
+    for (i = 0; i < pCar_crush->field_0x2b0; i++) {
+        tCar_bit_spec* car_bit = &pCar_crush->field_0x2b4[i];
+
+        /* FIXME: what is type ot tCar_bit_spec::field_0xc? */
+        if (car_bit->field_0xc[10] == 1) {
+            pCar_crush->field_0x274[pCar_crush->field_0x270] = *car_bit;
+            pCar_crush->field_0x270 += 1;
+        } else if (car_bit->field_0xc[10] == 2) {
+            if (i != new_count) {
+                pCar_crush->field_0x2b4[new_count] = *car_bit;
+                new_count += 1;
+            }
+        }
+    }
+    pCar_crush->field_0x2b0 = new_count;
 }
 
 // FUNCTION: CARMA2_HW 0x0043b250
