@@ -1327,9 +1327,193 @@ void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, i
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004fcbb0
+// FUNCTION: CARMA2_HW 0x004fcbb0
 void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, const br_vector3* pNormal, br_scalar pWater_distance, const br_bounds3* pBounds, const br_matrix34* pMatrix, tU32 pTime) {
-    NOT_IMPLEMENTED();
+    br_vector3 vec;
+    int i;
+    br_scalar projection;
+    int j;
+    int axis;
+    br_vector3 point;
+    br_scalar minimum_projection;
+    br_scalar maximum_projection;
+    br_vector3 local_normal;
+    br_vector3 minimum_point;
+    br_vector3 maximum_point;
+    br_vector3 local_velocity;
+    br_scalar plane_distance;
+    br_scalar length;
+    br_bounds3 bounds;
+    br_vector3 side;
+    br_scalar vy;
+    br_scalar vz;
+    br_scalar lower;
+    br_scalar upper;
+    br_scalar dot;
+    br_scalar random;
+    br_scalar random2;
+    br_scalar value;
+    br_scalar height;
+    br_scalar near_distance;
+    br_scalar far_distance;
+    int start;
+    int first;
+    int corner;
+    int pattern;
+    tCar_spec* car;
+
+    vy = pVelocity->v[1];
+    vz = pVelocity->v[2];
+    minimum_projection = 0.f;
+    maximum_projection = 0.f;
+    if (!((pVelocity->v[0] * pVelocity->v[0] + vz * vz + vy * vy) * 47.61 >= 1.0)) {
+        return;
+    }
+    BrMatrix34TApplyV(&local_normal, pNormal, pMatrix);
+    BrMatrix34ApplyP(&vec, &pBounds->min, pMatrix);
+    lower = pNormal->v[1] * vec.v[1] + pNormal->v[2] * vec.v[2] + pNormal->v[0] * vec.v[0] - pWater_distance;
+    upper = lower;
+    for (i = 3; i != 0; i--) {
+        dot = (pBounds->max.v[3 - i] - pBounds->min.v[3 - i]) * local_normal.v[3 - i];
+        if (local_normal.v[3 - i] <= 0.f) {
+            upper = dot + upper;
+        } else {
+            lower = dot + lower;
+        }
+    }
+    if (lower * upper > 0.f) {
+        return;
+    }
+    dot = pVelocity->v[0] * pNormal->v[0] + pVelocity->v[1] * pNormal->v[1] + pVelocity->v[2] * pNormal->v[2];
+    vec.v[0] = dot * local_normal.v[0];
+    vec.v[1] = dot * local_normal.v[1];
+    vec.v[2] = dot * local_normal.v[2];
+    bounds.min.v[0] = pBounds->min.v[0];
+    bounds.min.v[1] = pBounds->min.v[1];
+    bounds.min.v[2] = pBounds->min.v[2];
+    bounds.max.v[0] = pBounds->max.v[0];
+    bounds.max.v[1] = pBounds->max.v[1];
+    bounds.max.v[2] = pBounds->max.v[2];
+    bounds.min.v[1] = 0.01f;
+    BrMatrix34TApplyV(&local_velocity, pVelocity, pMatrix);
+    plane_distance = pWater_distance - (pMatrix->m[3][2] * pNormal->v[2] + pMatrix->m[3][1] * pNormal->v[1] + pMatrix->m[3][0] * pNormal->v[0]);
+    start = IRandomBetween(0, 3);
+    axis = 0;
+    j = 2;
+    for (i = 3; i != 0; i--) {
+        first = i - j;
+        for (corner = 0; corner < 4; corner++) {
+            pattern = start ^ corner;
+            point.v[first] = (pattern & 1) ? bounds.min.v[first] : bounds.max.v[first];
+            point.v[j] = (pattern & 2) ? bounds.min.v[j] : bounds.max.v[j];
+            dot = (plane_distance - point.v[first] * local_normal.v[first] - point.v[j] * local_normal.v[j]) / local_normal.v[axis];
+            if (!(bounds.min.v[axis] <= dot)) {
+                continue;
+            }
+            if (!(dot <= bounds.max.v[axis])) {
+                continue;
+            }
+            point.v[axis] = dot;
+            projection = local_velocity.v[0] * point.v[0] + local_velocity.v[1] * point.v[1] + local_velocity.v[2] * point.v[2];
+            if (minimum_projection <= projection) {
+                if (maximum_projection <= projection) {
+                    SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
+                } else {
+                    if (maximum_projection < 0.f) {
+                        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
+                    }
+                    maximum_projection = projection;
+                    maximum_point.v[0] = point.v[0];
+                    maximum_point.v[1] = point.v[1];
+                    maximum_point.v[2] = point.v[2];
+                }
+            } else {
+                if (maximum_projection < 0.f) {
+                    SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
+                }
+                maximum_projection = minimum_projection;
+                minimum_projection = projection;
+                maximum_point.v[0] = minimum_point.v[0];
+                maximum_point.v[1] = minimum_point.v[1];
+                maximum_point.v[2] = minimum_point.v[2];
+                minimum_point.v[0] = point.v[0];
+                minimum_point.v[1] = point.v[1];
+                minimum_point.v[2] = point.v[2];
+            }
+        }
+        j = axis;
+        axis++;
+    }
+    if (maximum_projection < 0.f) {
+        vec.v[0] = maximum_point.v[0] - minimum_point.v[0];
+        vec.v[1] = maximum_point.v[1] - minimum_point.v[1];
+        vec.v[2] = maximum_point.v[2] - minimum_point.v[2];
+        random = SRandomBetween(0.4f, 0.6f);
+        point.v[1] = minimum_point.v[1] + random * vec.v[1];
+        point.v[0] = minimum_point.v[0] + random * vec.v[0];
+        point.v[2] = minimum_point.v[2] + random * vec.v[2];
+        random = SRandomBetween(0.2f, 0.3f);
+        minimum_point.v[0] = random * vec.v[0] + minimum_point.v[0];
+        minimum_point.v[1] = random * vec.v[1] + minimum_point.v[1];
+        minimum_point.v[2] = random * vec.v[2] + minimum_point.v[2];
+        random2 = SRandomBetween(0.2f, 0.3f);
+        dot = -(local_velocity.v[0] * local_normal.v[0] + local_velocity.v[1] * local_normal.v[1] + local_velocity.v[2] * local_normal.v[2]);
+        maximum_point.v[0] = -random2 * vec.v[0] + maximum_point.v[0];
+        maximum_point.v[1] = -random2 * vec.v[1] + maximum_point.v[1];
+        maximum_point.v[2] = -random2 * vec.v[2] + maximum_point.v[2];
+        side.v[0] = local_velocity.v[0] + local_normal.v[0] * dot;
+        side.v[1] = local_velocity.v[1] + local_normal.v[1] * dot;
+        side.v[2] = local_velocity.v[2] + local_normal.v[2] * dot;
+        length = sqrt(side.v[2] * side.v[2] + side.v[1] * side.v[1] + side.v[0] * side.v[0]);
+        if (length <= 2.384185791015625e-07f) {
+            side.v[0] = 1.f;
+            side.v[1] = 0.f;
+            side.v[2] = 0.f;
+        } else {
+            random = 1.0 / length;
+            side.v[0] = random * side.v[0];
+            side.v[1] = random * side.v[1];
+            side.v[2] = random * side.v[2];
+        }
+        vec.v[0] = side.v[0] * -0.028985507786273956f;
+        vec.v[1] = side.v[1] * -0.028985507786273956f;
+        vec.v[2] = side.v[2] * -0.028985507786273956f;
+        point.v[0] = vec.v[0] + point.v[0];
+        point.v[1] = vec.v[1] + point.v[1];
+        point.v[2] = vec.v[2] + point.v[2];
+        minimum_point.v[0] = minimum_point.v[0] + vec.v[0] * 0.5f;
+        minimum_point.v[1] = minimum_point.v[1] + vec.v[1] * 0.5f;
+        minimum_point.v[2] = minimum_point.v[2] + vec.v[2] * 0.5f;
+        maximum_point.v[0] = maximum_point.v[0] + vec.v[0] * 0.5f;
+        maximum_point.v[1] = maximum_point.v[1] + vec.v[1] * 0.5f;
+        maximum_point.v[2] = maximum_point.v[2] + vec.v[2] * 0.5f;
+        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &point, &local_normal, pTime);
+        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &minimum_point, &local_normal, pTime);
+        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &maximum_point, &local_normal, pTime);
+    } else if (minimum_projection < 0.f) {
+        SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &minimum_point, &local_normal, pTime);
+    }
+    plane_distance = plane_distance * 6.9f;
+    if (pObject != NULL) {
+        car = pObject->owner;
+        if (car == NULL || pObject->flags_0x238 != 1) {
+            car = NULL;
+        }
+        if (car != NULL && car->driver > 5) {
+            for (i = 0; i < 4; i++) {
+                value = (i & 1) ? pObject->shape->common.bb.max.v[0] : pObject->shape->common.bb.min.v[0];
+                height = pObject->shape->common.bb.max.v[1] * 6.9;
+                near_distance = plane_distance - (car->wpos[i].v[2] * local_normal.v[2] + height * local_normal.v[1] + value * 6.9 * local_normal.v[0]);
+                far_distance = (pObject->shape->common.bb.max.v[1] - 0.01f) * local_normal.v[1] * 6.9f + near_distance;
+                if ((near_distance > 0.f) != (far_distance > 0.f)) {
+                    vec.v[0] = value * 6.9 * 0.14492753148078918f;
+                    vec.v[1] = (height - (height - 0.01) * (near_distance / (near_distance - far_distance))) * 0.14492753148078918f;
+                    vec.v[2] = car->wpos[i].v[2] * 0.14492753148078918f;
+                    SingleSplash(pObject, pMatrix, pVelocity, &local_velocity, pOmega, &vec, &local_normal, pTime);
+                }
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004fd530
