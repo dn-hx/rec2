@@ -11,6 +11,74 @@
 
 #include "c2_hooks.h"
 #include "rec2_types.h"
+#include "01-network.h"
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player;
+    tU32 time;
+} tNet_message_chunk_recover;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[6];
+    tU32 ID;
+    br_matrix34 mat;
+    tU16 flags;
+} tNet_message_chunk_non_car_position;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tU32 non_car_id;
+    tU32 player_id;
+    undefined field_0xc[4];
+    tU16 flags;
+    tU8 object_hierarchy[];
+} tNet_message_chunk_non_car;
+
+/* Used by 04-netgame.c only. Declaring it here adds symbols to every including TU,
+ * which rotates MSVC 5 register allocation in 04-netgame.c itself
+ * (SortNetHeadAscending 0x49a330); that TU opts out and keeps a local copy. */
+#ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU8 uid;
+    undefined field_0x9[3];
+    br_matrix34 mat;
+} tNet_message_chunk_bit_position;
+#endif
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU8 uid;
+    tCompressed_vector3 bounds_min;
+    tCompressed_vector3 bounds_max;
+    undefined field_0x16[2];
+    tU32 time;
+    undefined field_0x1c[4];
+    tU8 flags;
+    undefined field_0x21;
+    tU8 object_hierarchy[];
+} tNet_message_chunk_detached_non_car;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player_id;
+    tU8 count;
+    undefined field_0x9[3];
+    struct {
+        tPlayer_ID player;
+        tU16 crush_state;
+        undefined field_0x6[2];
+    } players[1];
+} tNet_message_chunk_car_crush_sync;
 
 extern int gINT_0068d920;
 extern tNet_game_player_info* gLast_lepper;
@@ -55,6 +123,10 @@ extern void C2_HOOK_FASTCALL ReceivedCopInfo(void);
 // ReceivedNonCarPosition
 
 // ReceivedNonCar
+
+#ifndef REC2_NO_NET_CHUNK_BIT_POSITION_DECLS
+extern void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents);
+#endif
 
 extern void C2_HOOK_FASTCALL SignalToStartRace(void);
 
@@ -139,5 +211,19 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
 // RemovePlayerFromShapeStatusLists
+
+extern int C2_HOOK_CDECL SortNetHeadAscending(const void* pFirst, const void* pSecond);
+
+extern int C2_HOOK_CDECL SortNetHeadDescending(const void* pFirst, const void* pSecond);
+
+extern int gNot_shown_race_type_headup;
+
+extern void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient);
+
+extern void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient);
+
+extern int gNet_cash_headup;
+
+extern int gNet_ped_headup;
 
 #endif // GUARD_04_NETGAME_H

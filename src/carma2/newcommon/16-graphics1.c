@@ -664,6 +664,10 @@ void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {
     NOT_IMPLEMENTED();
 }
 
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // FUNCTION: CARMA2_HW 0x004e5a70
 // FUNCTION: CARMA2_SW 0x004e1c30
 // FUNCTION: CARMA2_CHEAT 0x004eb780

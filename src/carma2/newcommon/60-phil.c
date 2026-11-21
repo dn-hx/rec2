@@ -23,7 +23,6 @@ int gPHIL_disabled = 1;
 // GLOBAL: CARMA2_CHEAT 0x00751c90
 tPhysics_object* gPHIL_list_collision_infos;
 
-// GLOBAL: CARMA2_HW 0x0074a5f8
 int gCrush_deferred;
 
 // GLOBAL: CARMA2_HW 0x0074a5ec

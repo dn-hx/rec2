@@ -261,5 +261,7 @@ extern void C2_HOOK_FASTCALL TurnOnNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
+extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
+
 #endif // GUARD_00_CAR_H
 

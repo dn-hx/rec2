@@ -137,6 +137,9 @@ tU32 gPipe_sound_time_window;
 // GLOBAL: CARMA2_CHEAT 0x0067e1bc
 int gDisable_advance;
 
+// GLOBAL: CARMA2_HW 0x0058f1e8
+int gPipe_session_search_limit = 1000;
+
 // GLOBAL: CARMA2_HW 0x006940d4
 tPipe_smudge_data* gSmudge_space;
 

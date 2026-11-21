@@ -1061,6 +1061,14 @@ void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpec
     NOT_IMPLEMENTED();
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
+
 // FoundSoundSource
 
 // STUB: CARMA2_HW 0x00456ea0
@@ -1090,6 +1098,10 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
         memcpy(model->identifier, identifier, sizeof(identifier));
     }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FUNCTION: CARMA2_HW 0x004572f0
 // FUNCTION: CARMA2_SW 0x00457080

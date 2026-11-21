@@ -13,6 +13,282 @@
 #include "rec2_types.h"
 #include <s3/s3.h>
 
+typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+
+/* Replay pipe chunk layouts (kept out of rec2_types.h: adding declarations there perturbs MSVC codegen of unrelated functions) */
+typedef struct {
+    tU32 value;
+} tPipe_stack_word;
+
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+} tPipe_chunk_funk_enable;
+
+typedef struct {
+    uintptr_t pOwner;
+    tU8 type_from;
+    tU8 type_to;
+} tPipe_chunk_transform_type;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU16 field_0x8;
+    tU16 field_0xa;
+} tPipe_chunk_drone_straight_pos;
+
+typedef struct {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    tU32 count;
+} tPipe_chunk_remove_faces;
+
+typedef struct {
+    int field_0x0;
+} tPipe_chunk_non_car_creation;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    br_vector3 field_0x8;
+} tPipe_chunk_non_car_replay;
+
+typedef struct {
+    int field_0x0;
+    tU32 field_0x4;
+} tPipe_chunk_frame_bound;
+
+typedef struct {
+    br_vector3* p_vector;
+    br_vector3 delta;
+} tPipe_chunk_vector3;
+
+typedef struct {
+    undefined4 field_0x0;
+    undefined4 field_0x4;
+    undefined4 field_0x8;
+} tPipe_chunk_vanish;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+} tPipe_chunk_powerup;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU32 field_0x8;
+} tPipe_chunk_groove_on_off;
+
+typedef struct {
+    uintptr_t pOwner;
+    undefined4 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+} tPipe_chunk_blood_spurt;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+    int field_0x10;
+    br_vector3 field_0x14;
+    br_vector3 field_0x20;
+    br_vector3 field_0x2c;
+} tPipe_chunk_gib_shower;
+
+typedef struct {
+    int field_0x0;
+    br_matrix34 field_0x4;
+} tPipe_chunk_phil_object;
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tS16 field_0x8;
+    tS16 field_0xa;
+    int field_0xc;
+} tPipe_chunk_ped_model_change;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+    br_vector3 field_0x10;
+} tPipe_chunk_ped_pos;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+} tPipe_chunk_ped_fp_change;
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tU8 field_0x6;
+    tS8 field_0x7;
+} tPipe_chunk_ped_dismember;
+
+typedef struct {
+    int field_0x0;
+    br_matrix34 field_0x4;
+} tPipe_chunk_ped_physics;
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS16 field_0x6;
+    tU8 field_0x8;
+    tU8 field_0x9;
+    tS16 field_0xa;
+    int field_0xc;
+    int field_0x10;
+    int field_0x14;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+    int field_0x30;
+    int field_0x34;
+    br_vector3 field_0x38;
+} tPipe_chunk_ped_move;
+
+typedef struct {
+    int field_0x0;
+    br_vector3 field_0x4;
+} tPipe_chunk_ped_dir;
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[8];
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+    br_vector3 field_0x24;
+} tPipe_chunk_ped_status;
+
+typedef struct {
+    tU8 pad[0x50];
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+} tReplay_actor_trans_effect;
+
+typedef struct {
+    tU32 field_0x0;
+    br_vector3 field_0x4;
+    tU8 field_0x10[4];
+    tU32 field_0x14;
+} tPipe_chunk_split_weld;
+
+typedef struct {
+    undefined4 field_0x0;
+    uintptr_t field_0x4;
+    br_vector3 delta;
+} tPipe_chunk_actor_trans;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[4];
+} tPipe_chunk_model_mash;
+
+typedef struct {
+    int skid_num;
+    br_matrix34 matrix;
+    br_material* material;
+} tPipe_chunk_skid_adjust;
+
+typedef struct {
+    int field_0x0;
+    tU16 field_0x4;
+    tU16 field_0x6;
+    int field_0x8;
+} tPipe_chunk_prox_ray_replay;
+
+typedef struct {
+    int field_0x0;
+    tS8 field_0x4[12];
+} tPipe_chunk_damage;
+
+typedef struct {
+    int field_0x0;
+    tS16 field_0x4;
+    tS8 field_0x6;
+    tS8 field_0x7;
+    tS8 field_0x8;
+    tS8 field_0x9;
+} tPipe_chunk_graphical_wheel_stuff;
+
+typedef struct {
+    int field_0x0;
+    tS32 field_0x4;
+    float field_0x8;
+    float field_0xc;
+    float field_0x10;
+    tU16 field_0x14;
+    tU16 field_0x16;
+} tPipe_chunk_sound;
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4;
+    int field_0x8;
+    br_vector3 field_0xc;
+    br_vector3 field_0x18;
+} tPipe_chunk_extended_splash;
+
+typedef struct {
+    uintptr_t pOwner;
+    float v[4];
+} tPipe_chunk_splash;
+
+typedef struct {
+    tU8 pad[0x244];
+    br_scalar x;
+    br_scalar y;
+    br_scalar z;
+    br_scalar size;
+} tReplay_splash_effect;
+
+typedef struct {
+    tU32 field_0x0;
+    tU8 pad[0x10];
+    tU16 field_0x14;
+} tPipe_chunk_smoke_column_replay;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    int field_0x8;
+    int field_0xc;
+    int field_0x10;
+    br_vector3 field_0x14;
+} tPipe_chunk_groove_stop;
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[0xc];
+    tU16 field_0x10;
+    int field_0x14;
+} tPipe_chunk_shrapnel_replay;
+
+typedef struct {
+    int field_0x0;
+    tU8 field_0x4[0x10];
+} tPipe_chunk_spark_replay;
+
+typedef struct {
+    int field_0x0;
+    int field_0x4;
+    tU8 field_0x8[0x10];
+} tPipe_chunk_crush;
+
+
 extern tU8* gLocal_buffer;
 extern tU8* gPipe_buffer_working_end;
 extern int gReentrancy_count;
@@ -33,6 +309,7 @@ extern tU8* gPipe_record_ptr;
 extern tU32 gPipe_sound_start_time;
 extern tU32 gPipe_sound_time_window;
 extern int gDisable_advance;
+extern int gPipe_session_search_limit;
 extern tPipe_smudge_data* gCrush_space;
 extern tU8* gEnd_of_session;
 
@@ -144,7 +421,7 @@ extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb,
 
 // GetReducedPos
 
-extern void C2_HOOK_FASTCALL SaveReducedPos(tReduced_pos* pReduced_pos, br_vector3* pPos);
+// SaveReducedPos
 
 // InitLastDamageArrayEtc
 
@@ -539,5 +816,15 @@ extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 // CalcRemoveFacesLength
 
 extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
+
+extern int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, void* pCallback, void* pTime_check);
+
+extern int C2_HOOK_FASTCALL CheckCar(tPipe_chunk* pChunk_ptr, int pChunk_count, tU32 pTime);
+
+extern int C2_HOOK_FASTCALL CarTimeout(tU32 pTime);
+
+extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
+
+extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time);
 
 #endif // GUARD_23_PIPING_H

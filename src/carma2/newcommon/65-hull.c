@@ -7,6 +7,7 @@
  */
 
 #include "65-hull.h"
+#include "49-physics.h"
 
 // GLOBAL: CARMA2_HW 0x0067942c
 // GLOBAL: CARMA2_SW 0x00673b9c
