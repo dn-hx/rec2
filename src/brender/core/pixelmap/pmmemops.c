@@ -169,9 +169,43 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
     }
 }
 
-// STUB: CARMA2_HW 0x0053e31a
+// FUNCTION: CARMA2_HW 0x0053e31a
 void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour) {
-    NOT_IMPLEMENTED();
+    br_uint_8 c8;
+    br_uint_16 c16;
+    br_uint_8 b0, b1, b2;
+
+    switch (bpp) {
+    case 1:
+        c8 = (br_uint_8)colour;
+        for (; nbpixels != 0; nbpixels--, dest++) {
+            *dest = c8;
+        }
+        break;
+    case 2:
+        c16 = (br_uint_16)colour;
+        for (; nbpixels != 0; nbpixels--, dest += 2) {
+            *(br_uint_16*)dest = c16;
+        }
+        break;
+    case 3:
+        b0 = (br_uint_8)((colour >>  0) & 0xff);
+        b1 = (br_uint_8)((colour >>  8) & 0xff);
+        b2 = (br_uint_8)((colour >> 16) & 0xff);
+        for (; nbpixels != 0; nbpixels--, dest += 3) {
+            dest[0] = b0;
+            dest[1] = b1;
+            dest[2] = b2;
+        }
+        break;
+    case 4:
+        for (; nbpixels != 0; nbpixels--, dest += 4) {
+            *(br_uint_32*)dest = colour;
+        }
+        break;
+    default:
+        abort();
+    }
 }
 
 // STUB: CARMA2_HW 0x0053e3fe
