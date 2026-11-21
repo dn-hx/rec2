@@ -346,7 +346,7 @@ void C2_HOOK_CDECL pm_mem_fill_colour(br_uint_8 *dest, br_uint_32 qual, br_uint_
         break;
     }
     default:
-        abort();
+        /* the original returns without writing for any bpp other than 1-4 */
         return;
     }
 }
