@@ -27,6 +27,10 @@
 #include "globvrpb.h"
 
 #include "rec2_macros.h"
+#include "13-crush1.h"
+#include "platform.h"
+#include "platform.h"
+#include "13-crush1.h"
 
 // GLOBAL: CARMA2_HW 0x0074d3b0
 // GLOBAL: CARMA2_SW 0x00743910
@@ -81,6 +85,25 @@ void C2_HOOK_FASTCALL CheckLastCar(void) {
             RaceCompleted(eRace_over_2);
         }
     }
+}
+
+// STUB: CARMA2_HW 0x00441350
+int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x0043b2e0
+intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043b400
+int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043b470
+intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0043f5f0

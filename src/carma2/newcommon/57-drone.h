@@ -28,6 +28,8 @@ extern int gCurrent_selected_drone;
 extern int gCount_drones;
 
 extern int gCurrent_selected_drone;
+extern tU32 gINT_00705b70;
+extern float gDrone_render_zero;
 
 // DoNotDprintf
 
@@ -165,7 +167,7 @@ extern void C2_HOOK_FASTCALL DisposeDronesRaceStuff(void);
 
 extern void C2_HOOK_FASTCALL LoadPerRaceDroneStuff(void);
 
-// GetDroneCrushData
+extern tDrone_crush_data* C2_HOOK_FASTCALL GetDroneCrushData(tPhysics_object* pObject);
 
 // AllocateAndInitDrones
 
@@ -177,11 +179,11 @@ extern void C2_HOOK_FASTCALL DronePreCollisionStuff(void);
 
 extern void C2_HOOK_FASTCALL DoDroneFunkyGroovyThings(tDrone_spec* pDrone);
 
-// MyDroneHathCollideth
+extern int C2_HOOK_FASTCALL MyDroneHathCollideth(tPhysics_object* pObject, tPhysics_object* pOther);
 
-// MyDroneHathHalteth
+extern int C2_HOOK_FASTCALL MyDroneHathHalteth(tPhysics_object* pObject);
 
-// MoveMyDroneBaby
+extern void C2_HOOK_FASTCALL MoveMyDroneBaby(tPhysics_object* pObject, undefined4 pArg2);
 
 extern void C2_HOOK_FASTCALL DroneLookWhereYoureGoingYouBlindCunt(void);
 
@@ -210,5 +212,21 @@ extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int 
 // UpdateEditModels
 
 // WriteOutDronePaths
+
+extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
+
+extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
+
+extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL SaveDronePaths(void);
+
+extern int gCount_rendered_drones;
 
 #endif // GUARD_57_DRONE_H

@@ -57,13 +57,31 @@ int gPed_count_limbed_actors;
 // GLOBAL: CARMA2_SW 0x0069a47c
 br_actor* gLimbs_actor;
 
+// GLOBAL: CARMA2_HW 0x006a0428
+tU32 gLast_bleed_giblet_time;
+
+// GLOBAL: CARMA2_HW 0x006a042c
+tU32 gLast_scare_time;
+
 // GLOBAL: CARMA2_HW 0x00694468
 // GLOBAL: CARMA2_SW 0x0068e4c0
 tSmashable_initial_position_spec gGiblet_initial_position;
 
+// GLOBAL: CARMA2_HW 0x00694478
+tExplosion_animation gPed_explosion_small_blood_cloud;
+
+// GLOBAL: CARMA2_HW 0x00694480
+tExplosion_animation gPed_medium_blood_cloud;
+
+// GLOBAL: CARMA2_HW 0x00694488
+tExplosion_animation gPed_large_blood_cloud;
+
 // GLOBAL: CARMA2_HW 0x0069bc38
 // GLOBAL: CARMA2_SW 0x00695c90
 tMovement_spec gGiblet_initial_speed;
+
+// GLOBAL: CARMA2_HW 0x0069bc54
+tPed_face_cache_0x50* gPed_face_cache;
 
 // GLOBAL: CARMA2_HW 0x006a0408
 // GLOBAL: CARMA2_SW 0x0069a460
@@ -73,9 +91,39 @@ tShrapnel_time_info gGiblet_min_max_time;
 // GLOBAL: CARMA2_SW 0x00695c70
 int gGiblet_size_count;
 
+// GLOBAL: CARMA2_HW 0x0069bc1c
+float gPed_process_distance_inner;
+
+// GLOBAL: CARMA2_HW 0x0069bc20
+float gPed_damage_per_force;
+
 // GLOBAL: CARMA2_HW 0x0065d7d4
 // GLOBAL: CARMA2_SW 0x0065810c
 int gGoreLevel = 1;
+
+// GLOBAL: CARMA2_HW 0x0065d7f0
+int gPed_move_fsm[118][7];
+
+// GLOBAL: CARMA2_HW 0x0065e4d8
+const tU8 gScare_ped_anim_sequence[8] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065e4e0
+const tU8 gPed_anim_sequence_0065e4e0[4] = { 3, 1, 2, 1 };
+
+/* tPed_anim_seq has a flexible poses[] member: use a fixed-size twin for the initializer */
+typedef struct {
+    tU8 count;
+    tU8 poses[2];
+} tPed_anim_seq_2;
+
+// GLOBAL: CARMA2_HW 0x0065e4e4
+tPed_anim_seq_2 gCalm_ped_anim_sequence;
+
+// GLOBAL: CARMA2_HW 0x0065e4f4
+const br_vector3 gPed_bone_look_vecs[9] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065e568
+const br_matrix34 gPed_face_bounds_identity = { 0 };
 
 // GLOBAL: CARMA2_HW 0x0065d7c8
 // GLOBAL: CARMA2_SW 0x00658100
@@ -91,6 +139,9 @@ int gExplosives_on = 1;
 // GLOBAL: CARMA2_SW 0x006710ec
 tPedForms_vtable* gPed_vtable = NULL;
 
+// GLOBAL: CARMA2_HW 0x00676980
+tPed_move* gPed_moves[250] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00677234
 // GLOBAL: CARMA2_SW 0x006719a4
 int gPed_retain_root_mode = 0;
@@ -99,9 +150,29 @@ int gPed_retain_root_mode = 0;
 // GLOBAL: CARMA2_SW 0x006714d8
 br_material* gPedestrian_character_cloned_materials[50];
 
+// GLOBAL: CARMA2_HW 0x00676e30
+float gPed_cos_table[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00677230
+float gFLOAT_00677230 = 0.f;
+
 // GLOBAL: CARMA2_HW 0x0067772c
 // GLOBAL: CARMA2_SW 0x00671e9c
 int gCount_pedestrian_personality_cloned_materials;
+
+// GLOBAL: CARMA2_HW 0x00677734
+tPed_morph_slot gPed_morph_slots[20] = { 0 };
+
+
+// GLOBAL: CARMA2_HW 0x0069411c
+float gGiblet_scrape_start = 0.f;
+
+// GLOBAL: CARMA2_HW 0x00679264
+br_actor* gMr_blendy = 0;
+
+// GLOBAL: CARMA2_HW 0x00694118
+float gPed_process_distance;
+tPedestrian* gPed_recent_ped;
 
 // GLOBAL: CARMA2_HW 0x00677238
 // GLOBAL: CARMA2_SW 0x006719a8
@@ -115,6 +186,9 @@ tPed_personality* gPed_personalities[50] = { 0 };
 // GLOBAL: CARMA2_SW 0x00671a98
 float gPed_sin_table[256] = { 0 };
 
+// GLOBAL: CARMA2_HW 0x00677728
+int gDAT_00677728 = 0;
+
 // GLOBAL: CARMA2_HW 0x007447e0
 // GLOBAL: CARMA2_SW 0x0073b2a0
 float gPedestrian_speed_factor;
@@ -127,6 +201,11 @@ int gCount_active_peds;
 // GLOBAL: CARMA2_SW 0x0073b2b0
 int gSelected_ped;
 
+// GLOBAL: CARMA2_HW 0x007447fc
+float gPed_buoyancy_factor;
+
+const br_scalar gFloat_00589358 = 0;
+
 // GLOBAL: CARMA2_HW 0x007447ac
 // GLOBAL: CARMA2_SW 0x0073b26c
 int gPeds_suicidal;
@@ -135,6 +214,9 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_SW 0x0073b270
 int gExploding_pedestrians;
 
+// GLOBAL: CARMA2_HW 0x007447b4
+tPedestrian* gPedestrians_in_sight;
+
 // GLOBAL: CARMA2_HW 0x007447c0
 // GLOBAL: CARMA2_SW 0x0073b280
 br_vector3 gPed_scale;
@@ -142,6 +224,9 @@ br_vector3 gPed_scale;
 // GLOBAL: CARMA2_HW 0x0069bc24
 // GLOBAL: CARMA2_SW 0x00695c7c
 float gAverage_ped_scale;
+
+// GLOBAL: CARMA2_HW 0x0069bc28
+tExplosion_animation gNapalmed_ped_animation;
 
 // GLOBAL: CARMA2_HW 0x006a03f8
 // GLOBAL: CARMA2_SW 0x0069a450
@@ -182,6 +267,9 @@ int gINT_0069fda4 = 0;
 // GLOBAL: CARMA2_SW 0x0068e360
 br_model* gNapalm_bolt_models[7];
 
+// GLOBAL: CARMA2_HW 0x00694328
+tPed_cache_006944c0 gPed_cache_00694328;
+
 // GLOBAL: CARMA2_HW 0x0065e598
 // GLOBAL: CARMA2_SW 0x00658ed0
 const char* gNapalm_bolt_texture_names[7] = {
@@ -194,9 +282,26 @@ const char* gNapalm_bolt_texture_names[7] = {
     "Ex00006",
 };
 
+// GLOBAL: CARMA2_HW 0x0065e5b8
+const float gFlamed_ped_flame_scales[7] = {
+    .275f,
+    .2245f,
+    .2f,
+    .175f,
+    .15f,
+    .075f,
+    .05f,
+};
+
+// GLOBAL: CARMA2_HW 0x0065e5d8
+tU16 gPow2_word_array[16];
+
 // GLOBAL: CARMA2_HW 0x0069412c
 // GLOBAL: CARMA2_SW 0x0068e184
 int gCount_changed_points;
+
+// GLOBAL: CARMA2_HW 0x00694130
+tU32 gPed_last_munging;
 
 // GLOBAL: CARMA2_HW 0x0069bc68
 // GLOBAL: CARMA2_SW 0x00695cc0
@@ -206,9 +311,24 @@ br_vector3 gChanged_points[10];
 // GLOBAL: CARMA2_SW 0x0068e4ac
 int gPed_dismember_spurting_member_count;
 
+// GLOBAL: CARMA2_HW 0x00694458
+br_pixelmap* gProx_ray_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0069445c
+int gPed_spurting_period;
+
+// GLOBAL: CARMA2_HW 0x00694460
+br_material* gPed_smear_material;
+
+// GLOBAL: CARMA2_HW 0x00694464
+float gPed_cos_max_slope;
+
 // GLOBAL: CARMA2_HW 0x00694490
 // GLOBAL: CARMA2_SW 0x0068e4e8
 int gPed_nearness;
+
+// GLOBAL: CARMA2_HW 0x00694494
+float gPed_max_survivable_impact;
 
 // GLOBAL: CARMA2_HW 0x00694498
 // GLOBAL: CARMA2_SW 0x0068e4f0
@@ -218,9 +338,15 @@ tTWTVFS gTwtPeds;
 // GLOBAL: CARMA2_SW 0x0068e4f8
 tMovement_spec gPed_spurt_initial_speed;
 
+// GLOBAL: CARMA2_HW 0x006944bc
+float gPed_popup_distance;
+
 // GLOBAL: CARMA2_HW 0x0069fda8
 // GLOBAL: CARMA2_SW 0x00699e00
 tSmashable_initial_position_spec gPed_spurt_initial_position;
+
+// GLOBAL: CARMA2_HW 0x0069fdb8
+char gPed_animal_names[50][32];
 
 // GLOBAL: CARMA2_HW 0x0069bc30
 // GLOBAL: CARMA2_SW 0x00695c88
@@ -233,6 +359,15 @@ int gPed_score_multiplier;
 // GLOBAL: CARMA2_HW 0x0069bcf8
 // GLOBAL: CARMA2_SW 0x00695d50
 int gPed_points[3];
+
+typedef struct {
+    void* field_0x00;
+    int field_0x04;
+    tU16 flags[0x200];
+} tPed_prox_flag_cell;
+
+// GLOBAL: CARMA2_HW 0x0069bd08
+tPed_prox_flag_cell gPed_prox_flag_cells[16];
 
 // GLOBAL: CARMA2_HW 0x006a0418
 // GLOBAL: CARMA2_SW 0x0069a470
@@ -254,6 +389,37 @@ int gDrunk_pedestrians;
 // GLOBAL: CARMA2_SW 0x00695d38
 int gPeds_already_munged;
 
+const float gFLOAT_0058a9c8 = -1.0f;
+
+double gPed_face_cache_margin;
+
+double gPed_face_normal_threshold;
+
+const float gPed_face_bounds_min_x = 0;
+
+const double gPed_face_bounds_vertical_margin = 0;
+
+const float gPed_face_bounds_min_z = 0;
+
+const float gPed_face_bounds_max_x = 0;
+
+const float gPed_face_bounds_max_z = 0;
+
+// GLOBAL: CARMA2_HW 0x0065d758
+char gPed_noise_table[16];
+
+// GLOBAL: CARMA2_HW 0x0065d778
+tPedForms_vtable gPed_forms_vtable;
+
+// GLOBAL: CARMA2_HW 0x0065d79c
+int gGib_shower_id;
+
+// GLOBAL: CARMA2_HW 0x0065d7a0
+int gUNK_0065d7a0[2];
+
+// GLOBAL: CARMA2_HW 0x0065d7a8
+int gPed_cache_sizes_2[4];
+
 // GLOBAL: CARMA2_HW 0x0065d7b8
 // GLOBAL: CARMA2_SW 0x006580f0
 int gPed_cache_sizes_1[4] = { 40, 25, 15, 5 };
@@ -274,6 +440,21 @@ int gPed_groups_count;
 // GLOBAL: CARMA2_SW 0x0068e190
 tRace_ped_spec* gRace_pedestrian_specs;
 
+// GLOBAL: CARMA2_HW 0x0069413c
+float gPed_reach_squared;
+
+// GLOBAL: CARMA2_HW 0x00694230
+int gPed_animal_count;
+
+// GLOBAL: CARMA2_HW 0x00694234
+int gPed_severing_damage;
+
+// GLOBAL: CARMA2_HW 0x00694238
+tSlick_spec gPed_slick;
+
+// GLOBAL: CARMA2_HW 0x00694300
+float gPed_min_dist_avoid_collisions_squared;
+
 // GLOBAL: CARMA2_HW 0x0069bc14
 // GLOBAL: CARMA2_SW 0x00695c6c
 tPed_group_spec* gPed_groups;
@@ -281,6 +462,9 @@ tPed_group_spec* gPed_groups;
 // GLOBAL: CARMA2_HW 0x00694124
 // GLOBAL: CARMA2_SW 0x0068e17c
 int gPed_cache_notify_flags;
+
+// GLOBAL: CARMA2_HW 0x00694128
+float gPed_popup_distance_inner;
 
 // GLOBAL: CARMA2_HW 0x0069bce8
 // GLOBAL: CARMA2_SW 0x00695d40
@@ -306,8 +490,83 @@ int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const
     }
 }
 
-// AssertRootObjectsMatrix
+// STUB: CARMA2_HW 0x004097b0
+int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
+// STUB: CARMA2_HW 0x00409ca0
+void C2_HOOK_FASTCALL MungeCharacterAnimation(tPed_character_instance* pCharacter, tU32 pTime, undefined4 pArg3) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004cc2c0
+void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+// STUB: CARMA2_HW 0x004d57c0
+void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d5820
+void C2_HOOK_FASTCALL DoSpurt(br_matrix34* pTransform, br_vector3* pPosition, br_vector3* pDirection, br_vector3* pRandom_direction) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d5b10
+void C2_HOOK_FASTCALL ARResetNapalmBolts(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cdeb0
+void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce030
+int C2_HOOK_FASTCALL DoPedAnnihilator(tCar_spec* pCar, br_scalar pRadius) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce050
+int C2_HOOK_FASTCALL BastardIt(tPedestrian* pPed, tCar_spec* pCar, float pDistance_squared, tU32 pArg4, tPedestrian_distances* pDistances) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce140
+int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce280
+int C2_HOOK_FASTCALL DoPedestrianRepulsifictor(tCar_spec* pCar, float pF0, float pF1, float pF2, float pF3) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce330
+void C2_HOOK_FASTCALL RepulsePedestrian(tPedestrian* pPed, tCar_spec* pCar, float pDist_sq, tU32 pNow, void* pData) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ce7d0
+void C2_HOOK_FASTCALL MungeNapalm(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cef80
+void C2_HOOK_FASTCALL PedScanForObjects(tPedestrian* pPed, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cfa30
+void C2_HOOK_FASTCALL SetCharacterBoneModelAR(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, int pArg4) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004cfab0
+float C2_HOOK_FASTCALL RescanPedProximity(tPedestrian* pPed, br_vector3* pArg2) {
+    NOT_IMPLEMENTED();
+}
 // InitFaceCaches
 
 inline void C2_HOOK_FASTCALL ResetPedFaceCache(void) {
@@ -384,6 +643,10 @@ void C2_HOOK_CDECL SetCharacterPhysicsLevelAR(tPed_character_instance* pCharacte
 #pragma auto_inline(on)
 #endif
 
+// STUB: CARMA2_HW 0x0040aed0
+void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA) {
+    NOT_IMPLEMENTED();
+}
 // PedApplyPedPhysics
 
 // STUB: CARMA2_HW 0x004ca830
@@ -608,6 +871,11 @@ void C2_HOOK_FASTCALL InitPolyPedSystem(void) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004cb1e0
+void C2_HOOK_FASTCALL ReadPedGiblets(FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
 // DisposePedSpawnSpec
 
 // DisposeCharacterInstances
@@ -737,6 +1005,11 @@ void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004cbf20
+int C2_HOOK_FASTCALL CBMoveCompleted(tPed_character_instance* pCharacter) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -772,7 +1045,10 @@ void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int pArg3) 
 
 // SetKnockedOverMove
 
-// DoPostElectricution
+// STUB: CARMA2_HW 0x004cc6e0
+void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2) {
+    NOT_IMPLEMENTED();
+}
 
 // CBMoveCompleted
 
@@ -907,7 +1183,10 @@ void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSeed, floa
 
 // PedUndoGibShower
 
-// DoGiblets
+// STUB: CARMA2_HW 0x004ccff0
+void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
 
 void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_vector3* pPosition, br_vector3* pImpactee_velocity, br_vector3* pNormal) {
     int seed;
@@ -953,6 +1232,11 @@ void C2_HOOK_FASTCALL PedUndoBloodSpurt(tU32 pCurrent_time, tU32 pId, tU32 pTime
             fragment->field_0x34 = 1;
         }
     }
+}
+
+// STUB: CARMA2_HW 0x004cce70
+void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x004cd160
@@ -1137,6 +1421,11 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004cd880
+void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info) {
+    NOT_IMPLEMENTED();
+}
+
 // SetLastHitter
 
 // MakePedVanish
@@ -1190,6 +1479,31 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 // STUB: CARMA2_HW 0x004d1030
 // STUB: CARMA2_SW 0x004cd730
 int C2_HOOK_FASTCALL ActiveHalted(tPed_character_instance* pCharacter, tPhysics_object* pObject, tFace_ref* pFace) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d1c60
+void C2_HOOK_FASTCALL SetCharacterMoveAR(tPed_character_instance* pCharacter, int pMove_action, float pSpeed, undefined4 pArg4, undefined4 pArg5, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d1d70
+tPed_face_cache_0x34* C2_HOOK_FASTCALL RecacheAndSetFace(tPedestrian* pPed, int* pArg2, int* pArg3, br_vector3* pArg4, int pArg5, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d2060
+void C2_HOOK_FASTCALL RecachePedestrian(tPedestrian* pPed, br_vector3* pHit_pos, tU32 pCache_key) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d2320
+void C2_HOOK_FASTCALL PedProcessForces(tPhysics_object* pObject1, tPhysics_object* pObject2, tFace_ref* pFace, float pImpulse, br_vector3* pPoint) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d2930
+void C2_HOOK_FASTCALL CBMovedByPhysics(tPed_character_instance* pCharacter, tPhysics_object* pPhysics, undefined4 pArg3) {
     NOT_IMPLEMENTED();
 }
 
@@ -1349,6 +1663,11 @@ void C2_HOOK_FASTCALL RenderLimbs(void) {
     gPed_count_limbed_actors = 0;
 }
 
+// STUB: CARMA2_HW 0x004d3740
+void C2_HOOK_FASTCALL MungePedestrians(void) {
+    NOT_IMPLEMENTED();
+}
+
 // MungePedestrians
 
 // FUN_1011cb0c
@@ -1427,7 +1746,10 @@ void C2_HOOK_FASTCALL InitPedsForRace(void) {
     memset(gPed_cache_006944c0, 0, sizeof(gPed_cache_006944c0));
 }
 
-// RenderElectroBastardRays
+// STUB: CARMA2_HW 0x004d5d60
+void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004d6180
 // FUNCTION: CARMA2_SW 0x004d2780
@@ -1442,6 +1764,11 @@ void C2_HOOK_FASTCALL AdjustProxRay(int pRay_index, tU16 pCar_ID, tU16 pPed_inde
     gProximity_rays[pRay_index].car = car;
     gProximity_rays[pRay_index].ped = &gPedestrian_array[pPed_index];
     gProximity_rays[pRay_index].start_time = pTime;
+}
+
+// STUB: CARMA2_HW 0x004d61f0
+void C2_HOOK_FASTCALL ResetProxRay(void) {
+    NOT_IMPLEMENTED();
 }
 
 // ResetProxRay
@@ -1486,6 +1813,11 @@ void C2_HOOK_FASTCALL PrevPedCam(void) {
             }
         } while (!(gPedestrian_array[gSelected_ped].flags & 0x1) && selected_ped != gSelected_ped);
     }
+}
+
+// STUB: CARMA2_HW 0x004d62e0
+void C2_HOOK_FASTCALL FindNearestPed(void) {
+    NOT_IMPLEMENTED();
 }
 
 // FindNearestPed
@@ -1704,6 +2036,11 @@ void C2_HOOK_FASTCALL FlushAllPedCaches(void) {
     }
 }
 
+// STUB: CARMA2_HW 0x004d6cc0
+void C2_HOOK_CDECL FUN_004d6cc0(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004d6d90
 // FUNCTION: CARMA2_SW 0x004d3390
 void C2_HOOK_FASTCALL SavePedStuff(void) {
@@ -1838,7 +2175,45 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // InitBoner
 
-// DRVector3SafeCross
+// STUB: CARMA2_HW 0x00403eb0
+void C2_HOOK_FASTCALL ClearOutMorphs(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00403ed0
+void C2_HOOK_FASTCALL InitBoner(tPedForms_vtable* pTable) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00403f90
+void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00404290
+void C2_HOOK_FASTCALL ScaleModelXYZ(br_model* pModel, int pArg2, float pX, float pY, float pZ) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004042f0
+void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, int pArg2, float pScale) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00404350
+void C2_HOOK_FASTCALL FreePedForm_PedSequence(tPed_move* pMove) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004043a0
+void C2_HOOK_FASTCALL FreePedSequences(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00404410
+tPed_remap* C2_HOOK_FASTCALL ReadRemap(const char* pFile_name) {
+    NOT_IMPLEMENTED();
+}
 
 // DRVector3SafeCrossXZ
 
@@ -1877,6 +2252,11 @@ void C2_HOOK_FASTCALL DisposeAllLoadedRemaps(void) {
             gPed_remaps[i] = NULL;
         }
     }
+}
+
+// STUB: CARMA2_HW 0x00404740
+tPed_remap* C2_HOOK_FASTCALL FindOrOpenRemap(const char* pName) {
+    NOT_IMPLEMENTED();
 }
 
 // FindOrOpenRemap
@@ -1989,6 +2369,11 @@ void C2_HOOK_FASTCALL DisposeCharacterForm(tPed_form* pForm) {
     }
 }
 
+// STUB: CARMA2_HW 0x00406a00
+void C2_HOOK_FASTCALL DisposePedForms(void) {
+    NOT_IMPLEMENTED();
+}
+
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth()
 #endif
@@ -2020,9 +2405,23 @@ tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName) {
     return SetUpCharacterForm(pName);
 }
 
-// MakeRotationMatrix
+// STUB: CARMA2_HW 0x004080d0
+void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 pAngle_y, tU32 pAngle_z) {
+    NOT_IMPLEMENTED();
+}
 
-// SetBoner
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+// STUB: CARMA2_HW 0x00407e70
+void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // CalcBoundsRadius
 
@@ -2035,6 +2434,16 @@ tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName) {
 // STUB: CARMA2_HW 0x00406ab0
 // STUB: CARMA2_SW 0x00406ab0
 tPed_personality* C2_HOOK_FASTCALL ReadPersonality(const char* pName) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004077f0
+void C2_HOOK_FASTCALL DisposePersonality(tPed_personality* pPersonality) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00407900
+void C2_HOOK_FASTCALL DisposeAllPedPersonalities(void) {
     NOT_IMPLEMENTED();
 }
 
@@ -2150,6 +2559,26 @@ int C2_HOOK_FASTCALL MakeCharacterRenderable(tPed_character_instance* pCharacter
     return MakeCharacterRenderable2(pCharacter, i);
 }
 
+// STUB: CARMA2_HW 0x00408400
+int C2_HOOK_FASTCALL CharacterNoLongerRenderable(tPed_character_instance* pCharacter) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00408580
+tPhysics_object* C2_HOOK_FASTCALL SetSeveredLimbObject(tPed_character_instance* pCharacter, int pBone_index, undefined4 pArg3, undefined4 pArg4) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004085f0
+int C2_HOOK_FASTCALL SetCollisionObject(tPed_character_instance* pCharacter, tPhysics_object* pObject, br_actor* pActor, void* pFrame, br_vector3* pBonePos, int pKind, undefined4 pArg3, int pFlag, int pBoneIndex, br_vector3* pBoneVec, br_vector3* pBonePtr) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004087b0
+void C2_HOOK_FASTCALL CalcCollisionObjectThings(tPhysics_object* pObject, br_bounds3* pFrame, int pNull, br_vector3* pBoneVec, br_vector3* pBonePtr) {
+    NOT_IMPLEMENTED();
+}
+
 // CharacterNoLongerRenderable
 
 // CalcCollisionObjectThings
@@ -2197,6 +2626,16 @@ tPhysics_object* C2_HOOK_FASTCALL GetRootObject(tPed_character_instance* pPed) {
     return NULL;
 }
 
+// STUB: CARMA2_HW 0x00409090
+int C2_HOOK_FASTCALL CharacterNoLongerCollideworthy(tPed_character_instance* pCharacter) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004091e0
+int C2_HOOK_FASTCALL MakeCharacterPhysicworthy(tPed_character_instance* pCharacter) {
+    NOT_IMPLEMENTED();
+}
+
 // CharacterNoLongerCollideworthy
 
 // FUNCTION: CARMA2_HW 0x00409300
@@ -2239,6 +2678,11 @@ void C2_HOOK_FASTCALL RecalculateOrientationOfRoot(tPed_character_instance* pCha
 // STUB: CARMA2_HW 0x00409400
 // STUB: CARMA2_SW 0x00409400
 int C2_HOOK_FASTCALL BonerActiveHalted2(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00409570
+int C2_HOOK_CDECL SetCharacterPhysicsLevel(tPed_character_instance* pCharacter, int pLevel, undefined4 pArg3) {
     NOT_IMPLEMENTED();
 }
 
@@ -2301,7 +2745,20 @@ int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pPed, int pMove_a
 
 // DRMatrix34RotateCos
 
-// DropPointOntoPlane
+// STUB: CARMA2_HW 0x0040b030
+void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040b0a0
+void C2_HOOK_FASTCALL SetCharacterPosition(tPed_character_instance* pChar, br_vector3* pPosition, int pMode) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040b2e0
+void C2_HOOK_FASTCALL DisposeAllBonerData(void) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2399,7 +2856,15 @@ int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter) {
     return pCharacter->field_0xa;
 }
 
-// BonerPassiveCollision
+// STUB: CARMA2_HW 0x0040b5a0
+int C2_HOOK_FASTCALL GetCharacterBoneIndexByName(tPed_character_instance* pCharacter, const char* pBone_name) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040b620
+int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0040b760
 // FUNCTION: CARMA2_SW 0x0040b750
@@ -2408,7 +2873,10 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
     return BonerActiveHalted2(pCharacter, 0);
 }
 
-// BonerPedMovedByPhysics
+// STUB: CARMA2_HW 0x0040b770
+void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter, undefined4 pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
@@ -2417,6 +2885,11 @@ int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter) {
 // STUB: CARMA2_HW 0x0040b860
 // STUB: CARMA2_SW 0x0040b850
 int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pAngular_velocity) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040ba80
+void C2_HOOK_FASTCALL SetPhysicsObjectOmegaRecursive(tPhysics_object* pObject, br_vector3* pOmega) {
     NOT_IMPLEMENTED();
 }
 
@@ -2463,6 +2936,16 @@ void C2_HOOK_FASTCALL MungeAllCharacterMaterials(material_cbfn* pCallback) {
     }
 }
 
+// STUB: CARMA2_HW 0x0040c4e0
+void C2_HOOK_FASTCALL MungeAllCharacterObjects(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040c560
+void C2_HOOK_FASTCALL MungeAllCharacterModels(void (C2_HOOK_FASTCALL* pCallback)(void*)) {
+    NOT_IMPLEMENTED();
+}
+
 // MungeAllCharacterObjects
 
 // MungeAllCharacterModels
@@ -2489,4 +2972,14 @@ void C2_HOOK_FASTCALL EnableRetainRootMode(void) {
 // FUNCTION: CARMA2_SW 0x0040c620
 void C2_HOOK_FASTCALL DisableRetainRootMode(void) {
     gPed_retain_root_mode = 0;
+}
+
+// STUB: CARMA2_HW 0x0040c640
+void C2_HOOK_FASTCALL PedNoOp(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004eb6a0
+void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix) {
+    NOT_IMPLEMENTED();
 }

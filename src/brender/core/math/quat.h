@@ -13,6 +13,8 @@
 
 #include "brender/br_types.h"
 
+extern int gBr_quat_axis_next[3];
+
 br_quat* C2_HOOK_CDECL BrQuatMul(br_quat* q, const br_quat* l, const br_quat* r);
 
 br_quat* C2_HOOK_CDECL BrQuatNormalise(br_quat* q, const br_quat* qq);

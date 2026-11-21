@@ -17,9 +17,20 @@
 // GLOBAL: CARMA2_SW 0x0065793c
 int gPHIL_disabled = 1;
 
+// GLOBAL: CARMA2_HW 0x0065d008
+br_scalar gFLOAT_0065d008;
+
+// GLOBAL: CARMA2_HW 0x0065d00c
+br_scalar gFLOAT_0065d00c;
+
 // GLOBAL: CARMA2_HW 0x0074a5f0
 // GLOBAL: CARMA2_SW 0x007410b0
 tPhysics_object* gPHIL_list_collision_infos;
+
+// GLOBAL: CARMA2_HW 0x0074a5f4
+int gOver_shoot;
+
+int gCrush_deferred;
 
 // GLOBAL: CARMA2_HW 0x0074a5ec
 // GLOBAL: CARMA2_SW 0x007410ac
@@ -32,6 +43,12 @@ int gPHIL_count_list_collision_infos;
 // GLOBAL: CARMA2_HW 0x006923e4
 // GLOBAL: CARMA2_SW 0x0068c43c
 int gPHIL_object_added;
+
+// GLOBAL: CARMA2_HW 0x006923e8
+tPhysics_callbacks* gPHIL_callbacks;
+
+// GLOBAL: CARMA2_HW 0x006923ec
+tPhysics_object* gPHIL_queued_objects_for_removal[1];
 
 // GLOBAL: CARMA2_HW 0x006923f0
 // GLOBAL: CARMA2_SW 0x0068c448
@@ -48,6 +65,24 @@ int gPHIL_count_queued_objects_for_removal;
 // GLOBAL: CARMA2_HW 0x00692dc0
 // GLOBAL: CARMA2_SW 0x0068ce18
 int gPHIL_count_queued_objects;
+
+// GLOBAL: CARMA2_HW 0x00692dcc
+int gPrepared_objects;
+
+// GLOBAL: CARMA2_HW 0x00692dd0
+float gFLOAT_00692dd0;
+
+// GLOBAL: CARMA2_HW 0x00692dd4
+float gFLOAT_00692dd4;
+
+// GLOBAL: CARMA2_HW 0x006940a0
+int gINT_006940a0;
+
+// GLOBAL: CARMA2_HW 0x006940a8
+tPhysics_object** gReduced_object_list;
+
+// GLOBAL: CARMA2_HW 0x006940ac
+int gINT_006940ac;
 
 tU16 C2_HOOK_FASTCALL ScalarToFraction(br_scalar pMin, br_scalar pMax, br_scalar pValue) {
 
@@ -183,7 +218,10 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 
 // FindObject
 
-// WriteHierarchyNetworkStuff
+// STUB: CARMA2_HW 0x0049cd90
+int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0049ce60
 // FUNCTION: CARMA2_SW 0x00498fe0
@@ -213,6 +251,11 @@ int C2_HOOK_FASTCALL GetNetworkDataSize(tU8* pNet_data) {
         more = *next & 0x40;
     }
     return size;
+}
+
+// STUB: CARMA2_HW 0x0049cf50
+int C2_HOOK_FASTCALL GetSingleMatrixFromNetworkData(tU8* pNet_data, br_matrix34* pMatrix) {
+    NOT_IMPLEMENTED();
 }
 
 // GetSingleMatrixFromNetworkData
@@ -427,6 +470,11 @@ int C2_HOOK_FASTCALL PHILAddActiveObject(tPhysics_object* pInfo, const br_matrix
     return result;
 }
 
+// STUB: CARMA2_HW 0x004b62b0
+int C2_HOOK_FASTCALL PHILAddObjectImmediately(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
 // PHILAddObjectImmediately
 
 // STUB: CARMA2_HW 0x004b62e0
@@ -444,6 +492,21 @@ int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pCollision_info, int pP
 // STUB: CARMA2_HW 0x004b6530
 // STUB: CARMA2_SW 0x004b2c50
 float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pObject, int pProperty) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b6630
+int C2_HOOK_FASTCALL PHILDoPhysics(tPhysics_callbacks* pCallbacks, tU32 pLast_tick_time, tU32 pFrame_period) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b6be0
+void C2_HOOK_FASTCALL ChangedObjectsCallbacks(tPhysics_object* pObjects, tPhysics_callbacks* pCallbacks, tU32 pPeriod) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b6ce0
+void C2_HOOK_FASTCALL ProcessDrag2(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pDrag, int pObject_info_flags, tSpecial_volume* pSpecial_volume) {
     NOT_IMPLEMENTED();
 }
 
@@ -465,6 +528,21 @@ void C2_HOOK_FASTCALL MarkObjectAndChildrenAsPassive(tPhysics_object* pObject) {
     for (child = pObject->child; child != NULL; child = child->next) {
         MarkObjectAndChildrenAsPassive(child);
     }
+}
+
+// STUB: CARMA2_HW 0x004b6ec0
+void C2_HOOK_FASTCALL ProcessGravity(tPHIL_queued_header* pObject_info, tPhysics_object* pObject, float pGravity) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b6fb0
+void C2_HOOK_FASTCALL LevelOutOnSurface(tPhysics_object* pObject) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b71b0
+void C2_HOOK_FASTCALL PHILActivatePassive(tPhysics_object* pObject, tPhysics_object* pActivator) {
+    NOT_IMPLEMENTED();
 }
 
 // SetStandardGravity
@@ -492,5 +570,30 @@ void C2_HOOK_FASTCALL PHILApplyPHILObject(tPhysics_object* pObject, const br_mat
 
     BrMatrix34Copy(&pObject->transform_matrix, pMatrix);
     BrMatrix34Copy(&pObject->actor->t.t.mat, pMatrix);
+}
+
+// STUB: CARMA2_HW 0x004b9770
+void C2_HOOK_FASTCALL PrepareObject(tPhysics_object* pObject, tPhysics_object** pList) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004b9f90
+int C2_HOOK_FASTCALL CheckForObjectHierachyTouchingAnotherObject(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object* pList_original) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ba6b0
+void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callbacks* pWorld_callbacks) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c2830
+void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c28a0
+void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, undefined4 arg2, float pDt) {
+    NOT_IMPLEMENTED();
 }
 

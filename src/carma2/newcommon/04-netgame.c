@@ -36,10 +36,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // GLOBAL: CARMA2_HW 0x0075b8f8
 // GLOBAL: CARMA2_SW 0x00751e58
 br_pixelmap* gDigits_pix;
+
+// GLOBAL: CARMA2_HW 0x0079eaa4
+int gNet_ped_headup;
+
+// GLOBAL: CARMA2_HW 0x0079eae8
+int gNet_cash_headup;
+
+// GLOBAL: CARMA2_HW 0x00659c2c
+int gScore_winner;
 
 // GLOBAL: CARMA2_HW 0x0068d920
 // GLOBAL: CARMA2_SW 0x00687978
@@ -56,6 +66,17 @@ int gLast_it_change;
 // GLOBAL: CARMA2_HW 0x0068d92c
 // GLOBAL: CARMA2_SW 0x00687984
 tU32 gTime_for_punishment;
+
+// GLOBAL: CARMA2_HW 0x0068d934
+int gNot_shown_race_type_headup;
+
+// GLOBAL: CARMA2_HW 0x0068d94c
+tU32 gNet_score_last_flash;
+
+// GLOBAL: CARMA2_HW 0x0068d950
+int gNet_score_flash_state;
+
+int gNet_fullscreen_active;
 
 // SendShapeNumbers
 
@@ -75,11 +96,17 @@ void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, i
     }
 }
 
-// SendNonCar
+// STUB: CARMA2_HW 0x00497f10
+void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id) {
+    NOT_IMPLEMENTED();
+}
 
 // HostFillInCarContents
 
-// ClientSendCarData
+// STUB: CARMA2_HW 0x00497fc0
+void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time) {
+    NOT_IMPLEMENTED();
+}
 
 // DistanceBetweenCars
 
@@ -96,7 +123,42 @@ int C2_HOOK_FASTCALL CarShapeNeedsSendingToPlayer(tCar_crush_network_shapes* pSh
     return 0;
 }
 
+// STUB: CARMA2_HW 0x00498390
+void C2_HOOK_FASTCALL ReceivedRecover(tNet_message_chunk_recover* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004983f0
+void C2_HOOK_FASTCALL ReceivedShapeNumbers(tNet_message_chunk_car_crush_sync* pContents) {
+    NOT_IMPLEMENTED();
+}
+
 // AddShapeStuffToMechanicsMessage
+
+// STUB: CARMA2_HW 0x0043d340
+void C2_HOOK_FASTCALL ReceivedDBNonCar(tNet_message_chunk_detached_non_car* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043d5b0
+void C2_HOOK_FASTCALL SendAllDBNonCars(tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043d5f0
+void C2_HOOK_FASTCALL ReceivedDBNonCarPosition(tNet_message_chunk_bit_position* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043d7d0
+void C2_HOOK_FASTCALL SendAllSHNonCars(tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043d810
+void C2_HOOK_FASTCALL ReceivedSHNonCar(tU8* pContents) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004978d0
 // FUNCTION: CARMA2_SW 0x00494500
@@ -120,7 +182,10 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 
 // ReceivedShapeNumbers
 
-// FillInSimpleCarPos
+// STUB: CARMA2_HW 0x00498460
+void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index) {
+    NOT_IMPLEMENTED();
+}
 
 // ReceivedSimpleCarPos
 
@@ -129,6 +194,16 @@ int C2_HOOK_FASTCALL TimeToSendData(void) {
 // FUNCTION: CARMA2_HW 0x00498bb0
 // FUNCTION: CARMA2_SW 0x004957e0
 void C2_HOOK_FASTCALL ReceivedCopInfo(void) {
+}
+
+// STUB: CARMA2_HW 0x00498bc0
+void C2_HOOK_FASTCALL ReceivedNonCarPosition(tNet_message_chunk_non_car_position* pContents) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00498c00
+void C2_HOOK_FASTCALL ReceivedNonCar(tNet_message_chunk_non_car* pContents) {
+    NOT_IMPLEMENTED();
 }
 
 // SendAllNonCarPositions
@@ -313,6 +388,11 @@ void C2_HOOK_FASTCALL EnableCar(tCar_spec* pCar) {
     }
 }
 
+// STUB: CARMA2_HW 0x00499360
+void C2_HOOK_FASTCALL DoNetworkHeadups(int pCredits) {
+    NOT_IMPLEMENTED();
+}
+
 // DoNetworkHeadups
 
 // SortNetHeadAscending
@@ -396,6 +476,16 @@ void C2_HOOK_FASTCALL CreateBoxes(void) {
 // STUB: CARMA2_HW 0x00499a00
 // STUB: CARMA2_SW 0x004962a0
 void C2_HOOK_FASTCALL DoNetScores2(int pOnly_sort_scores) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049a330
+int C2_HOOK_CDECL SortNetHeadAscending(const void* pFirst, const void* pSecond) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049a3a0
+int C2_HOOK_CDECL SortNetHeadDescending(const void* pFirst, const void* pSecond) {
     NOT_IMPLEMENTED();
 }
 
@@ -672,6 +762,11 @@ void C2_HOOK_FASTCALL UseGeneralScore(int pScore) {
     }
 }
 
+// STUB: CARMA2_HW 0x0049b8d0
+void C2_HOOK_FASTCALL NetSendEnvironmentChanges(tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
+}
+
 // NetSendEnvironmentChanges
 
 // STUB: CARMA2_HW 0x0049b9a0
@@ -823,6 +918,26 @@ void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tN
             }
         }
     }
+}
+
+// STUB: CARMA2_HW 0x0049be40
+void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049c630
+int C2_HOOK_FASTCALL WriteObjectNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049cb00
+void C2_HOOK_FASTCALL GetVelocityAndPosition(tPhysics_object* pObj, br_matrix34* pMat, br_matrix34* pParent_mat) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f0f80
+void C2_HOOK_FASTCALL SendAllSmashes(tNet_game_player_info* pRecipient) {
+    NOT_IMPLEMENTED();
 }
 
 // RemovePlayerFromShapeStatusLists

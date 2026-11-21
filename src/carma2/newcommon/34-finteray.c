@@ -192,6 +192,10 @@ int C2_HOOK_FASTCALL DRModelPick2D_finteray(br_model* pModel, br_material* pMate
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0045ff90
+int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -251,6 +255,11 @@ void C2_HOOK_FASTCALL DisablePlingMaterials(void) {
     gPling_materials = 0;
 }
 
+// STUB: CARMA2_HW 0x0045d5e0
+void C2_HOOK_FASTCALL SphereSphereCollide(tCollision_shape_sphere_data* pSphere1, tCollision_shape_sphere_data* pSphere2, br_vector3* pStart, br_vector3* pEnd, br_vector3* pNormal, float* pFactor) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0045d860
 // FUNCTION: CARMA2_SW 0x0045d2a0
 void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, const br_vector3* pSphere_center, br_scalar pRadius, br_vector3* pNormal, br_scalar* pCollision_t) {
@@ -268,6 +277,21 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
     }
 }
 
+// STUB: CARMA2_HW 0x0045d920
+void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045dea0
+void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045e020
+void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT) {
+    NOT_IMPLEMENTED();
+}
+
 // SphereSphereCollide
 
 // StationarySphereEdgeCollide
@@ -280,11 +304,19 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
 
 // SphereBoxFaceCollide
 
-// SphereFaceCollide
+// STUB: CARMA2_HW 0x0045e850
+void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x0045ecc0
 // STUB: CARMA2_SW 0x0045e730
 void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045f0d0
+void C2_HOOK_FASTCALL MultiRayCheckSingleFace(int pNum_rays, tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt) {
     NOT_IMPLEMENTED();
 }
 

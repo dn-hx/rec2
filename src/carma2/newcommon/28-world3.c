@@ -19,6 +19,8 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "rec2_macros.h"
+#include "38-flicplay.h"
+#include "33-depth.h"
 
 #include <string.h>
 
@@ -30,9 +32,104 @@ br_actor* gAdditional_actors;
 // GLOBAL: CARMA2_SW 0x006ae500
 tBrender_storage* gStorage_for_callbacks;
 
+// GLOBAL: CARMA2_HW 0x0074caa8
+int gTrack_depth_colour_red;
+
+// GLOBAL: CARMA2_HW 0x0074cad0
+int gTrack_depth_colour_blue;
+
+// GLOBAL: CARMA2_HW 0x0074cf2c
+int gTrack_depth_colour_green;
+
+// GLOBAL: CARMA2_HW 0x0079ec2c
+br_angle gSky_image_height;
+
+
+// GLOBAL: CARMA2_HW 0x0079ec2e
+br_angle gSky_image_width;
+// GLOBAL: CARMA2_HW 0x0079ec30
+br_angle gSky_image_underground;
+
+// GLOBAL: CARMA2_HW 0x0079ef40
+tS8 gNon_car_spec_indices[100];
+
+// GLOBAL: CARMA2_HW 0x0079efac
+int gMax_count_non_cars;
+
+// GLOBAL: CARMA2_HW 0x0058f230
+const char* gPed_form_collision_type_names[9] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f258
+const char* gPed_form_bone_joint_type_names[10] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f280
+const char* gPed_form_joint_limit_type_names[2] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f288
+const char* gPed_personality_grounding_type_names[1] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f290
+const char* gPed_remap_axis_choices[6] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f2a8
+const br_vector3 g_Ped_x_unit_vector = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f2b8
+const br_vector3 g_Ped_y_unit_vector = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0058f2c8
+const br_vector3 g_Ped_z_unit_vector = { 0 };
+
 // GLOBAL: CARMA2_HW 0x006aaa2c
 // GLOBAL: CARMA2_SW 0x006a447c
 int gDisallow_duplicates;
+// GLOBAL: CARMA2_HW 0x00655bb8
+const char* gAxis_names[3] = {
+    "x",
+    "y",
+    "z",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bc8
+const char* gLollipop_names[3] = {
+    "xlollipop",
+    "ylollipop",
+    "zlollipop",
+};
+
+// GLOBAL: CARMA2_HW 0x00655bd8
+const char* gGroove_path_names[2] = {
+    "straight",
+    "circular",
+};
+
+
+// GLOBAL: CARMA2_HW 0x006aaf40
+tU8* gTrack_flic_buffer;
+
+// GLOBAL: CARMA2_HW 0x006aaf48
+tU32 gTrack_flic_buffer_size;
+
+// GLOBAL: CARMA2_HW 0x006aaf50
+tFlic_descriptor gTrack_flic_descriptor;
+
+// GLOBAL: CARMA2_HW 0x006aafc0
+tU32 prev_sky_animation;
+
+// GLOBAL: CARMA2_HW 0x006ab948
+int gNumber_of_additional_models;
+
+// GLOBAL: CARMA2_HW 0x006b6400
+char gAdditional_model_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6500
+char gAdditional_actor_path[256];
+
+// GLOBAL: CARMA2_HW 0x006b6600
+br_actor* gLast_actor;
+
+// GLOBAL: CARMA2_HW 0x006b6620
+br_model* gAdditional_models[1000];
 
 // GLOBAL: CARMA2_HW 0x006aaa20
 // GLOBAL: CARMA2_SW 0x006a4470
@@ -45,9 +142,35 @@ br_material* gDuplicate_material;
 // GLOBAL: CARMA2_HW 0x006aaa24
 br_model* gDuplicate_model;
 
+// GLOBAL: CARMA2_HW 0x00655bb0
+const char* gGroove_nature_names[2] = {
+    "constant",
+    "distance",
+};
+
+// GLOBAL: CARMA2_HW 0x00655be0
+const char* gGroove_object_names[4] = {
+    "spin",
+    "rock",
+    "throb",
+    "shear",
+};
+
+// GLOBAL: CARMA2_HW 0x0065fe88
+const char* gSmashable_item_mode_names[6] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x00660cb8
 // GLOBAL: CARMA2_SW 0x0065b62c
 tRendererShadingType gMaterial_shading_for_callback = kRendererShadingType_Undefined;
+
+// GLOBAL: CARMA2_HW 0x00660e90
+const char* gDepth_effect_names[3] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0068b854
+br_actor* gGroove_by_proxy_actor;
+
+// GLOBAL: CARMA2_HW 0x006a3330
+int gCapacity_track_smashables;
 
 // FUNCTION: CARMA2_HW 0x00504b30
 // FUNCTION: CARMA2_SW 0x005002f0
@@ -130,11 +253,86 @@ void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, b
     }
 }
 
+// STUB: CARMA2_HW 0x00506e80
+void C2_HOOK_FASTCALL AnimateSky(void) {
+    NOT_IMPLEMENTED();
+}
+
 // AnimateSky
 
 // CombineBounds
 
 // CheckNonCarModelBounds
+
+// STUB: CARMA2_HW 0x00404150
+void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004047b0
+tPed_move* C2_HOOK_FASTCALL FindOrOpenMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00404840
+tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const char* pLooping_reset_flags, const br_vector3* pMovement_direction, tU32 pFlags) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004079a0
+tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040cc50
+void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040cf10
+intptr_t C2_HOOK_CDECL ProcessModelsCB(br_actor* pActor, void* data) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040d1f0
+intptr_t C2_HOOK_CDECL FindNonCarsCB(br_actor* pActor, void* pData) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0040d530
+void C2_HOOK_FASTCALL MungeFaces(br_actor* pActor, br_model* pModel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00487ec0
+void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00488b00
+void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d2cc0
+void C2_HOOK_FASTCALL SpawnPedsOnFace(br_face* pFace, br_model* pModel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d3360
+void C2_HOOK_FASTCALL SetCharacterDirectionAR(tPed_character_instance* pCharacter, br_vector3* pDir, br_vector3* pUp) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f0450
+void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f0bc0
+void C2_HOOK_FASTCALL MungeSmashMaterialNames(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00500d50
 // FUNCTION: CARMA2_SW 0x004fc6b0
@@ -857,4 +1055,9 @@ void C2_HOOK_FASTCALL DisallowDuplicates(void) {
 void C2_HOOK_FASTCALL AllowDuplicates(void) {
 
     gDisallow_duplicates = 0;
+}
+
+// STUB: CARMA2_HW 0x00502d80
+br_pixelmap* C2_HOOK_FASTCALL SwapPixelmapInStorage(br_pixelmap* pNew, br_pixelmap* pOriginal, tBrender_storage* pStorage) {
+    NOT_IMPLEMENTED();
 }

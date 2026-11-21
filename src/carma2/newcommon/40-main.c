@@ -26,6 +26,9 @@
 #include "28-world3.h"
 #include "11-world1.h"
 #include "18b-graphics2.h"
+#include "05-drmem.h"
+#include "42-input.h"
+#include "53-controls.h"
 
 #include <string.h>
 
@@ -66,6 +69,11 @@ C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
     PDShutdownSystem();
     CloseDiagnostics();
     exit(0);
+}
+
+// STUB: CARMA2_HW 0x00492050
+void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
+    NOT_IMPLEMENTED();
 }
 
 // ServiceTheGame

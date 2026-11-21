@@ -6050,6 +6050,13 @@ enum {
 };
 
 
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float* total_displacement;
+    float displacement;
+} tCrush_displacement_context_local;
+
 typedef struct tBend_data_local {
     br_scalar field_0x0;
     br_scalar field_0x4;
@@ -6136,5 +6143,36 @@ typedef struct {
     tU32 field_0xa0;
     br_matrix34 field_0xa4;
 } tPipe_chunk_shrapnel_shower;
+
+typedef void (C2_HOOK_FASTCALL * tControl_car_fn)(tCar_spec* pCar_spec, float pT);
+
+typedef struct {
+    br_model* model;
+    float crushability;
+    br_bounds3 bounds;
+} tDrone_crush_data;
+
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tU32 seed;
+    tU16 field_0x8;
+    tS8 field_0xa;
+    tS8 field_0xb;
+    br_vector3 v;
+    br_vector3 omega;
+    br_matrix34 mat;
+    int probability_fire;
+    int count_fire_columns;
+    int min_smokiness;
+    int max_smokiness;
+} tNet_message_chunk_non_car_shrapnel;
+
+typedef struct {
+    tCar_spec* car;
+    float step;
+    float displacement;
+    float* total_displacement;
+} tModel_mash_context_local;
 
 #endif // REC2_TYPES_H

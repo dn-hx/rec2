@@ -7,6 +7,7 @@
  */
 
 #include "65-hull.h"
+#include "49-physics.h"
 
 // GLOBAL: CARMA2_HW 0x0067942c
 // GLOBAL: CARMA2_SW 0x00673b9c
@@ -120,5 +121,8 @@ tPhysicsError C2_HOOK_FASTCALL ConvexHull3D(tCollision_shape_polyhedron_data* pP
 
 // SampledConvexHull
 
-// NPointConvexHullUsingSample
+// STUB: CARMA2_HW 0x00422500
+int C2_HOOK_FASTCALL NPointConvexHullUsingSample(tCollision_shape_polyhedron_data* pPolyhedron, br_model* pModel, int pMin_point_count, int pMax_point_count, int* pVertex_indices) {
+    NOT_IMPLEMENTED();
+}
 

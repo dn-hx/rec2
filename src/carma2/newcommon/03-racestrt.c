@@ -9,6 +9,11 @@
 #include "03-racestrt.h"
 
 #include "rec2_types.h"
+#include "globvars.h"
+#include "41-utility.h"
+
+// GLOBAL: CARMA2_HW 0x006a0c74
+int gOur_starting_position;
 
 // GLOBAL: CARMA2_HW 0x006a0d38
 // GLOBAL: CARMA2_SW 0x0069ad90
@@ -19,6 +24,11 @@ tU32 gLast_host_query;
 int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_one) {
 
     return ((tOpp_spec*)pFirst_one)->ranking - ((tOpp_spec*)pSecond_one)->ranking;
+}
+
+// STUB: CARMA2_HW 0x004e2b70
+int C2_HOOK_FASTCALL SortOpponents(void) {
+    NOT_IMPLEMENTED();
 }
 
 // SortOpponents

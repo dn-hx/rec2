@@ -30,6 +30,9 @@ extern br_vector3 gZero_vector__smash;
 extern tDecal gDecals[50];
 extern int gCount_queued_smashes;
 extern tSmash_explosion gSmash_explosions[20];
+extern float gFloat_0058aec0;
+extern float gFloat_0058aec4;
+extern double gDouble_0058aec8;
 
 typedef struct {
     br_vector3 origin;
@@ -147,9 +150,9 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 
 // FlushSmashQueue
 
-// QueueSmashIfNecessary3
+extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
 
-// QueueSmashIfNecessary2
+extern void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9);
 
 // AllocateSmashLevels
 
@@ -211,7 +214,7 @@ extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crus
 
 // AddRepairAnimationToQueue
 
-// RepairSmash
+extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
 
 extern void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data);
 
@@ -321,7 +324,7 @@ extern intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser);
 
 extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
-// SmashEverythingCB
+extern intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext);
 
 extern void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec);
 
@@ -353,7 +356,7 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 
 // ReceivedSmashEnvironment
 
-// DoQueuedNetSmashes
+extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 
 // FindTheBastard
 

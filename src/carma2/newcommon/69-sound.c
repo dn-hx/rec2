@@ -20,6 +20,8 @@
 #include "platform.h"
 #include "rec2_macros.h"
 #include "s3/internal/audio.h"
+#include "55-volume.h"
+#include "18-graphics2.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +82,9 @@ undefined4 gUNK_0068455c;
 // GLOBAL: CARMA2_HW 0x0079e13c
 // GLOBAL: CARMA2_SW 0x0079469c
 int gCD_is_disabled;
+
+// GLOBAL: CARMA2_HW 0x0079e140
+undefined4 gUNK_0079e140;
 
 // GLOBAL: CARMA2_HW 0x00595c78
 // GLOBAL: CARMA2_SW 0x00590bd8
@@ -692,6 +697,11 @@ int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const 
     }
 }
 
+// STUB: CARMA2_HW 0x00456010
+tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSoundFromSource3(tS3_sound_source* pSource, tS3_sound_id pSound, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00456070
 // FUNCTION: CARMA2_SW 0x00455e00
 void C2_HOOK_FASTCALL MungeEngineNoise(void) {
@@ -981,13 +991,53 @@ void C2_HOOK_FASTCALL ReadSoundSpec(FILE* pF, tSpecial_volume_soundfx_data* pSpe
 
 // TryToSetEnvironmentalSound
 
-// DoAnEnvironmentalSound
+// STUB: CARMA2_HW 0x00456c60
+void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sound_generator_info* pEnv_info, int pVolume, br_vector3* pPos) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00456e20
+void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 
 // DoEnvSound
+// STUB: CARMA2_HW 0x00456af0
+void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpecial_volume_soundfx_type pType, tSpecial_volume_soundfx_data* pSound_data, float pSound_dist, br_vector3* pSound_dir) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FoundSoundSource
 
-// MungeSoundGenerators
+// STUB: CARMA2_HW 0x00456ea0
+void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00457260
+intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // MungeEnvironmentalSound
 
@@ -1007,6 +1057,10 @@ void C2_HOOK_FASTCALL BuggerModelName(tTrack_spec* pTrack_spec, const char* pNam
         memcpy(model->identifier, identifier, sizeof(identifier));
     }
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FUNCTION: CARMA2_HW 0x004572f0
 // FUNCTION: CARMA2_SW 0x00457080

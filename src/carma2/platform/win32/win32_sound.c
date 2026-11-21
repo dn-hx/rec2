@@ -49,6 +49,9 @@ char gS3_working_directory[260];
 // GLOBAL: CARMA2_SW 0x006ac52c
 int gPDS3_midi_playing;
 
+// GLOBAL: CARMA2_HW 0x006b2da8
+int gPDS3_midi_restart_required;
+
 // GLOBAL: CARMA2_HW 0x006b2dac
 // GLOBAL: CARMA2_SW 0x006ac534
 int gPDS3_cda_media_present;
@@ -262,6 +265,16 @@ int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel) {
         pChannel->needs_service = 1;
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x00569e6d
+int C2_HOOK_FASTCALL PDS3PauseMidiChannel(tS3_channel* pChannel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00569eda
+int C2_HOOK_FASTCALL PDS3ResumeMidiChannel(tS3_channel* pChannel) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0056a0e1

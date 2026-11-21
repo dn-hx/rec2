@@ -24,6 +24,22 @@
 #include "platform.h"
 #include "rec2_types.h"
 #include "rec2_macros.h"
+#include "25-grafdata.h"
+#include "23-piping.h"
+#include "globvrpb.h"
+#include "53-controls.h"
+#include "22-replay.h"
+#include "17-world2.h"
+#include "64-movie.h"
+#include "49-physics.h"
+#include "32-spark.h"
+#include "globvrpb.h"
+#include "01-network.h"
+#include "33-depth.h"
+#include "18-graphics2.h"
+#include "28-world3.h"
+#include "61-pedestrn.h"
+#include "32-spark.h"
 
 #include <limits.h>
 #include <string.h>
@@ -73,7 +89,12 @@ float gPrevious_rear_yon = 0.0f;
 // GLOBAL: CARMA2_HW 0x006a2350
 // GLOBAL: CARMA2_SW 0x0069c3a8
 int gINT_006a2350[2] = { 0 };
+
+int gUNK_006a2354;
 #endif
+
+// GLOBAL: CARMA2_HW 0x006a2358
+int gAR_fudge_headups;
 
 // GLOBAL: CARMA2_HW 0x00705080
 // GLOBAL: CARMA2_SW 0x006fbb40
@@ -86,6 +107,14 @@ int gScreen_wobble_y = 0;
 // GLOBAL: CARMA2_HW 0x0065fdc8
 // GLOBAL: CARMA2_SW 0x0065a708
 tShadow_level gShadow_level = eShadow_us_only;
+
+// GLOBAL: CARMA2_HW 0x0065fb20
+br_matrix34 gSheer_mat = {
+    { { 1.0, 0.0, 0.0 },
+      { 0.0, 1.0, 0.0 },
+      { 0.0, 0.0, 1.0 },
+      { 0.0, 0.0, 0.0 } }
+};
 
 // GLOBAL: CARMA2_HW 0x0065fb54
 int gHud_tinted4 = -1;
@@ -106,12 +135,21 @@ tClip_details gShadow_clip_planes[8];
 // GLOBAL: CARMA2_SW 0x0069c430
 int gFancy_shadow;
 
+// GLOBAL: CARMA2_HW 0x006a23e0
+br_vector3 gShadow_points[8];
+
+// GLOBAL: CARMA2_HW 0x006a2440
+int gShadow_dim_amount;
+
 // GLOBAL: CARMA2_HW 0x006a27e0
 // GLOBAL: CARMA2_SW 0x0069c838
 br_material* gShadow_material;
 
 // GLOBAL: CARMA2_HW 0x006a27d0
 br_vector3 gShadow_light_ray;
+
+// GLOBAL: CARMA2_HW 0x006a27dc
+int gShadow_clip_plane_count;
 
 // GLOBAL: CARMA2_HW 0x006a27c0
 br_vector3 gShadow_light_z;
@@ -161,6 +199,9 @@ int gNumber_of_lollipops;
 // GLOBAL: CARMA2_SW 0x00758660
 br_scalar gYon_squared;
 
+// GLOBAL: CARMA2_HW 0x00655e00
+br_matrix34 gIdentity34;
+
 // MungeClipPlane
 
 // TryThisEdge
@@ -172,6 +213,11 @@ br_scalar gYon_squared;
 // STUB: CARMA2_HW 0x004e7650
 // STUB: CARMA2_SW 0x004e3470
 void C2_HOOK_FASTCALL ProcessShadow(tCar_spec* pCar, br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform, br_scalar pDistance_factor) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e9680
+void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset) {
     NOT_IMPLEMENTED();
 }
 
@@ -360,6 +406,11 @@ void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* re
 // FUNCTION: CARMA2_SW 0x004e0c90
 void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
+}
+
+// STUB: CARMA2_HW 0x004e4910
+int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex) {
+    NOT_IMPLEMENTED();
 }
 
 // RenderLollipops
@@ -566,13 +617,29 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // DoARenderPass
 
-// DoACompleteRenderPass
+// STUB: CARMA2_HW 0x004e54f0
+void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e5680
+void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // STUB: CARMA2_HW 0x004e4e40
 // STUB: CARMA2_SW 0x004e11a0
 void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on) {
     NOT_IMPLEMENTED();
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // FUNCTION: CARMA2_HW 0x004e5a70
 // FUNCTION: CARMA2_SW 0x004e1c30

@@ -18,6 +18,17 @@
 #include "rec2_macros.h"
 
 #include "c2_stdio.h"
+#include "28-world3.h"
+#include "32-spark.h"
+#include "52-errors.h"
+#include "59-camera.h"
+#include "globvrpb.h"
+#include "28-world3.h"
+#include "66-tintedpoly.h"
+#include "07-structur.h"
+#include "platform.h"
+#include "36-trig.h"
+#include "55-volume.h"
 
 // GLOBAL: CARMA2_HW 0x00591188
 // GLOBAL: CARMA2_SW 0x0058c180
@@ -34,6 +45,9 @@ br_material* gHorizon_material;
 // GLOBAL: CARMA2_HW 0x0067c4a0
 // GLOBAL: CARMA2_SW 0x00676c18
 br_model* gForward_sky_model;
+
+// GLOBAL: CARMA2_HW 0x0067c4a4
+int gFog_shade_table_power;
 
 // GLOBAL: CARMA2_HW 0x0074cee8
 br_material* gMaterial[2];
@@ -64,9 +78,46 @@ int gSwap_depth_effect_colour_green;
 // GLOBAL: CARMA2_SW 0x00676c20
 int gHas_sky_texture;
 
+// GLOBAL: CARMA2_HW 0x0067c4ac
+br_angle gOld_fov;
+
+// GLOBAL: CARMA2_HW 0x0067c4b4
+br_scalar gSky_height;
+
+
+// GLOBAL: CARMA2_HW 0x0067c4bc
+int gDepth_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0067c4b8
+br_scalar gOld_yon;
+
+// GLOBAL: CARMA2_HW 0x0067c4c0
+br_actor* gRearview_sky_actor;
+
+// GLOBAL: CARMA2_HW 0x0067c4c8
+br_scalar gSky_width;
+
+// GLOBAL: CARMA2_HW 0x0067c4cc
+int gWater_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0067c4d0
+br_scalar gSky_x_multiplier;
+
+// GLOBAL: CARMA2_HW 0x0067c4d4
+br_scalar gSky_y_multiplier;
+
+// GLOBAL: CARMA2_HW 0x0067c4d8
+br_actor* gForward_sky_actor;
+
+// GLOBAL: CARMA2_HW 0x0067c4dc
+int gAcid_shade_table_power;
+
 // GLOBAL: CARMA2_HW 0x0079ec20
 // GLOBAL: CARMA2_SW 0x00795180
 br_pixelmap* gDepth_shade_table;
+
+// GLOBAL: CARMA2_HW 0x0079ec28
+br_pixelmap* gWater_shade_table;
 
 static void C2_HOOK_FASTCALL FrobFog(void);
 
@@ -249,13 +300,29 @@ void C2_HOOK_FASTCALL InstantDepthChange(tDepth_effect_type pType, br_pixelmap* 
 
 // CreateHorizonModel
 
-// LoadDepthTable
+// STUB: CARMA2_HW 0x00445860
+void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004459e0
+void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
 
 // STUB: CARMA2_HW 0x00445620
 // STUB: CARMA2_SW 0x00445450
 void C2_HOOK_FASTCALL InitDepthEffects(void) {
     NOT_IMPLEMENTED();
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // DoHorizon
 
@@ -269,15 +336,24 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
 void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
 }
 
-// DepthEffectSky
+// STUB: CARMA2_HW 0x00445cb0
+void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
 
-// DoWobbleCamera
+// STUB: CARMA2_HW 0x00446680
+void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera) {
+    NOT_IMPLEMENTED();
+}
 
 // DoDrugWobbleCamera
 
 // DoSubaquaCam
 
-// DoSpecialCameraEffect
+// STUB: CARMA2_HW 0x00446340
+void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00446890
 // FUNCTION: CARMA2_SW 0x00446910

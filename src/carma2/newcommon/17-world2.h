@@ -24,6 +24,7 @@ extern tU32 gQuite_wild_end;
 extern tU32 gOn_me_wheels_start;
 
 extern tU32 gWoz_upside_down_at_all;
+extern int gMirror_on__graphics;
 
 extern void C2_HOOK_FASTCALL InitialiseExtraRenders(void);
 
