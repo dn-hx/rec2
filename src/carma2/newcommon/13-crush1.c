@@ -354,9 +354,40 @@ int gCount_toggled_doors;
 // GLOBAL: CARMA2_SW 0x00673bc0
 tToggled_door gToggled_doors[16];
 
-// STUB: CARMA2_HW 0x004293c0
+// FUNCTION: CARMA2_HW 0x004293c0
 int C2_HOOK_FASTCALL TestPairOverlap(tPhysics_object* pObject, tPhysics_object* pOther) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* child;
+    tPhysics_shape* shape1;
+    tPhysics_shape* shape2;
+    int found;
+
+    found = 0;
+    if (pOther != pObject && pObject->parent != pOther && pOther->parent != pObject) {
+        shape1 = pObject->shape;
+        shape2 = pOther->shape;
+        if (FlagsAreGo(pObject, pOther) && BoundsOverlapTest(&pObject->field_0xf4, &pOther->field_0xf4)) {
+            while (shape1 != NULL) {
+                while (shape2 != NULL) {
+                    if (TestShapeEdgeIntersection(pObject, pOther, shape1, shape2) || TestShapeEdgeIntersection(pOther, pObject, shape2, shape1)) {
+                        found = 1;
+                        goto done;
+                    }
+                    shape2 = shape2->common.next;
+                }
+                shape1 = shape1->common.next;
+            }
+        }
+    }
+done:
+    if (found != 0) {
+        return 1;
+    }
+    for (child = pOther->child; child != NULL; child = child->next) {
+        if (TestPairOverlap(pObject, child)) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: CARMA2_HW 0x00429bb0
