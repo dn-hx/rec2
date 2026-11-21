@@ -269,6 +269,7 @@ extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* p
 
 // DoPedAnnihilator
 
+extern int C2_HOOK_FASTCALL DoPedAnnihilator(tCar_spec* pCar, br_scalar pRadius);
 // RepulseIt
 
 // DoPedestrianRepulsifictor
