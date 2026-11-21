@@ -1058,9 +1058,22 @@ void C2_HOOK_FASTCALL SetFlapCheckVertices(tCar_crush_flap_data* pFlap_data, con
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004367a0
+// FUNCTION: CARMA2_HW 0x004367a0
 void C2_HOOK_FASTCALL LimitImpactScale(float* pOut, int pAxis, float pVertexComponent, float pDirectionComponent, tU32 pFlags, tCar_crush_limits* pLimits, int pFound) {
-    NOT_IMPLEMENTED();
+    int index;
+    float t;
+
+    index = ((pFlags & 0xffff) >> ((pAxis * 2 + (pDirectionComponent > gCrushZero)) * 2)) & 3;
+    if (index > pFound) {
+        *pOut = 0.0f;
+        return;
+    }
+    t = (pLimits->limits[pAxis][pDirectionComponent > gCrushZero].values[index] - pVertexComponent) / pDirectionComponent;
+    if (t < gCrushZero) {
+        *pOut = 0.0f;
+    } else if (t < *pOut) {
+        *pOut = t;
+    }
 }
 void C2_HOOK_FASTCALL InitModelVertexData(tModel_detail_vertex_data* pVertex_data, br_model* pModel, int pDetail_level, tCar_crush_buffer_entry* pCrush_data, tCar_crush_spec* pCar_crush_spec) {
     int invalid;
