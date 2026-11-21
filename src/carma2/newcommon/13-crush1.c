@@ -2299,9 +2299,85 @@ void C2_HOOK_FASTCALL TotallyRepairCar(void) {
 
 // AddTotalDeflection
 
-// STUB: CARMA2_HW 0x0043b510
+// FUNCTION: CARMA2_HW 0x0043b510
 int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    br_vector3 mash[1024];
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    br_vector3 original_position;
+    br_vector3 vertex_position;
+    br_vertex* vertex;
+    int i;
+    int j;
+    float displacement;
+
+    if (pModel == NULL) {
+        return 0;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return 0;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return 0;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("Dog gone it, there's a lot of vertices on that model.");
+    }
+    displacement = gCrushZero;
+    vertex = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++) {
+        ExpandVector3(&original_position, &vertex_data[i].p, -10.f, 10.f);
+        vertex_position = vertex->p;
+        for (j = 0; j < 3; j++) {
+            float delta;
+
+            delta = original_position.v[j] - vertex_position.v[j];
+            delta = fabs(delta);
+            if (delta > gCrushZero) {
+                *pContext->total_displacement = *pContext->total_displacement + delta;
+                if (original_position.v[j] < vertex_position.v[j]) {
+                    vertex->p.v[j] = vertex->p.v[j] - pContext->step;
+                    if (vertex->p.v[j] < original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement - delta;
+                    mash[i].v[j] = delta;
+                } else {
+                    vertex->p.v[j] = pContext->step + vertex->p.v[j];
+                    if (vertex->p.v[j] > original_position.v[j]) {
+                        vertex->p.v[j] = original_position.v[j];
+                    }
+                    delta = vertex->p.v[j] - vertex_position.v[j];
+                    displacement = displacement + delta;
+                    mash[i].v[j] = delta;
+                }
+                vertex_data[i].flags &= 0xfb;
+            } else {
+                mash[i].v[j] = 0.f;
+            }
+        }
+        vertex++;
+    }
+    if (displacement == gCrushZero) {
+        return 1;
+    }
+    if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+        ((tUser_detail_level_model*)pModel->user)->field_0x0 = 1;
+    } else {
+        pModel->custom = JitModelUpdate;
+        pModel->flags |= BR_MODF_CUSTOM;
+    }
+    AddModelMashToPipingSession(pModel, mash);
+    {
+        float previous_displacement;
+
+        previous_displacement = pContext->displacement;
+        pContext->displacement = previous_displacement + displacement;
+    }
+    return 0;
 }
 
 // RepairModels
