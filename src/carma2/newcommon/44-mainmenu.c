@@ -22,9 +22,23 @@
 #include "41-utility.h"
 #include "platform.h"
 
+// GLOBAL: CARMA2_HW 0x00659270
+tInterface_spec gQuitVerify_spec;
+
+// GLOBAL: CARMA2_HW 0x0068c850
+int gMouse_was_started__mainmenu;
+
+// GLOBAL: CARMA2_HW 0x0068c854
+int gReplace_background;
+
 // QuitVerifyStart
 
 // QuitVerifyDone
+
+// STUB: CARMA2_HW 0x00494400
+int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x00494450
 int C2_HOOK_FASTCALL DoVerifyQuit(int pReplace_background) {
