@@ -968,9 +968,20 @@ void C2_HOOK_FASTCALL InitPhysMasterCrushData(tCar_spec* pCar_spec) {
 
 // CheckHingePointOrder
 
-// STUB: CARMA2_HW 0x0042bb00
+// FUNCTION: CARMA2_HW 0x0042bb00
 tU16 C2_HOOK_FASTCALL FindNearestVertex(br_vector3* pPoint, const br_model* pModel) {
-    NOT_IMPLEMENTED();
+    tU16 closest_vertex = 0;
+    br_scalar closest_dist = BR_SCALAR_MAX;
+    tU16 i;
+
+    for (i = 0; i < pModel->nvertices; i++) {
+        br_scalar d = Vector3DistanceSquared(pPoint, &pModel->vertices[i].p);
+        if (d < closest_dist) {
+            closest_dist = d;
+            closest_vertex = i;
+        }
+    }
+    return closest_vertex;
 }
 
 // STUB: CARMA2_HW 0x0042bb90
