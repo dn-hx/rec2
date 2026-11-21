@@ -360,9 +360,13 @@ void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOp
     }
 }
 
-// STUB: CARMA2_HW 0x004a95f0
+// FUNCTION: CARMA2_HW 0x004a95f0
 void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet) {
-    NOT_IMPLEMENTED();
+    extern int gChallenger_index__opponent;
+
+    if (pSet) {
+        gChallenger_index__opponent = pIndex;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004ac180
