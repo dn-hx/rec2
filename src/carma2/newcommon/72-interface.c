@@ -145,6 +145,9 @@ int gFrontend_controls_count_keys;
 // GLOBAL: CARMA2_SW 0x006829a0
 int gOrig_key_map_index;
 
+// GLOBAL: CARMA2_HW 0x00688444
+int gINT_00688444;
+
 // GLOBAL: CARMA2_HW 0x006869e0
 // GLOBAL: CARMA2_SW 0x00681120
 int gBackup_key_mappings[4][77] = { 0 };
@@ -522,6 +525,9 @@ int gFrontend_controls_indices[15] = {
     12, 13, 17, 18, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 };
 
+// GLOBAL: CARMA2_HW 0x00604940
+tFrontend_spec gFrontend_CONTROLS;
+
 // SetGameTarget
 
 // FUNCTION: CARMA2_HW 0x00468140
@@ -541,6 +547,11 @@ void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* p
     pGame_options->race_sequence_type = gNet_settings[0].race_sequence_type;
     pGame_options->car_choice = gNet_settings[0].car_choice;
     pGame_options->starting_target = gNet_settings[pGame_type + 1].starting_target;
+}
+
+// STUB: CARMA2_HW 0x004681d0
+void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame) {
+    NOT_IMPLEMENTED();
 }
 
 // ReadNetGameChoices
@@ -1163,6 +1174,16 @@ void C2_HOOK_FASTCALL RefreshRacesScroller(tFrontend_spec* pFrontend) {
     MungeButtonModels(pFrontend, 0);
 }
 
+// STUB: CARMA2_HW 0x00467ce0
+int C2_HOOK_FASTCALL NetGameTypeUp(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00467dc0
+int C2_HOOK_FASTCALL NetGameTypeDn(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
 // NetworkUpdateSelectedGameInfo
 
 // UpdateNetTrackScroller
@@ -1673,6 +1694,11 @@ int C2_HOOK_FASTCALL ChangeCarMenuOutfunc(tFrontend_spec* pFrontend) {
     return 1;
 }
 
+// STUB: CARMA2_HW 0x0046ba80
+int C2_HOOK_FASTCALL FRONTEND_ChangeCarMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
 // FRONTEND_ChangeCarMenuHandler
 
 // FUNCTION: CARMA2_HW 0x0046bcb0
@@ -1778,6 +1804,11 @@ int C2_HOOK_FASTCALL CreditsScreenOutfunc(tFrontend_spec* pFrontend) {
     }
     free(gCredits_texts);
     return 1;
+}
+
+// STUB: CARMA2_HW 0x0046c0d0
+int C2_HOOK_FASTCALL FRONTEND_GenericMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
 }
 
 // FRONTEND_GenericMenuHandler
@@ -3237,6 +3268,11 @@ int C2_HOOK_FASTCALL ScrollSet_TranslateItemToIndex(tConnected_items* pConnected
     return pConnected->field_0x8 + offset;
 }
 
+// STUB: CARMA2_HW 0x00471dd0
+int C2_HOOK_FASTCALL Generic_FindNextActiveItem(tFrontend_spec* pFrontend, int pItem) {
+    NOT_IMPLEMENTED();
+}
+
 // Generic_FindNextActiveItem
 
 // Generic_FindPrevActiveItem
@@ -3460,10 +3496,81 @@ void C2_HOOK_FASTCALL Slider_ForceProc(tFrontend_slider* pSlider) {
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x00472210
+// FUNCTION: CARMA2_HW 0x00472210
 // STUB: CARMA2_SW 0x004717a0
 void C2_HOOK_FASTCALL DisplayJoystickSettings(tFrontend_spec* pFrontend) {
-    NOT_IMPLEMENTED();
+    float joy;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(gFrontend_controls_indices) != 15);
+
+    if (gJoystick_index == -1) {
+        int i;
+
+        pFrontend->items[10].unlitFont = 0;
+        pFrontend->items[10].highFont = 0;
+        pFrontend->items[11].unlitFont = 1;
+        pFrontend->items[11].highFont = 1;
+        gControls_slider_1.flags = 1;
+        gControls_slider_2.flags = 1;
+        gControls_slider_3.flags = 1;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_disabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_disabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_disabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_disabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_disabled;
+    } else {
+        int i;
+
+        pFrontend->items[10].unlitFont = 1;
+        pFrontend->items[10].highFont = 1;
+        pFrontend->items[11].unlitFont = 0;
+        pFrontend->items[11].highFont = 0;
+        gControls_slider_1.flags = 0;
+        gControls_slider_2.flags = 0;
+        gControls_slider_3.flags = 0;
+
+        for (i = 0; i < 3; i++) {
+            pFrontend->items[ 1 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 4 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[ 7 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[14 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[19 + i].enabled = kFrontendItemEnabled_enabled;
+            pFrontend->items[23 + i].enabled = kFrontendItemEnabled_enabled;
+        }
+        for (i = 0; i < (int)REC2_ASIZE(gFrontend_controls_indices); i++) {
+
+            pFrontend->items[gFrontend_controls_indices[i]].enabled = kFrontendItemEnabled_enabled;
+        }
+        pFrontend->items[36].enabled = kFrontendItemEnabled_enabled;
+        pFrontend->items[37].enabled = kFrontendItemEnabled_enabled;
+    }
+
+    joy = GetJoystickX();
+    gControls_slider_1.value = gControls_slider_1.field_0x14 + joy / (gControls_slider_1.field_0x18 - gControls_slider_1.field_0x14);
+    joy = GetJoystickY();
+    gControls_slider_2.value = gControls_slider_2.field_0x14 + joy / (gControls_slider_2.field_0x18 - gControls_slider_2.field_0x14);
+    gControls_slider_3.value = 0.01 * GetJoystickFBBGain();
+    if (PDIsJoystickDPadEnabled()) {
+        pFrontend->items[36].unlitFont = 1;
+        pFrontend->items[36].highFont = 1;
+        pFrontend->items[37].unlitFont = 0;
+        pFrontend->items[37].highFont = 0;
+    } else {
+        pFrontend->items[36].unlitFont = 0;
+        pFrontend->items[36].highFont = 0;
+        pFrontend->items[37].unlitFont = 1;
+        pFrontend->items[37].highFont = 1;
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -3930,6 +4037,11 @@ int C2_HOOK_FASTCALL NetSync_Infunc(tFrontend_spec* pFrontend) {
     }
     FuckWithWidths(pFrontend);
     return 0;
+}
+
+// STUB: CARMA2_HW 0x004743c0
+int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2) {
+    NOT_IMPLEMENTED();
 }
 
 // NetSync_MenuHandler
