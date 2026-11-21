@@ -91,7 +91,7 @@ extern void C2_HOOK_FASTCALL NewFaceListCallBack(tPhysics_object* pObject, tFace
 
 extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
-// RememberSafePosition
+extern void C2_HOOK_FASTCALL RememberSafePosition(tCar_spec* car, tU32 pTime);
 
 // ControlNetCars
 
