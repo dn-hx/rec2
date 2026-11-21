@@ -1923,9 +1923,32 @@ intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* pData) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x004f5750
+// FUNCTION: CARMA2_HW 0x004f5750
 void C2_HOOK_FASTCALL ReinitSmashing(void) {
-    NOT_IMPLEMENTED();
+    int i;
+
+    C2_HOOK_BUG_ON(REC2_ASIZE(gSmash_glass_fragments) != 200);
+    C2_HOOK_BUG_ON(sizeof(gSmash_glass_fragments[0]) != 0x38);
+    C2_HOOK_BUG_ON(REC2_ASIZE(gDecals) != 50);
+    C2_HOOK_BUG_ON(sizeof(gDecals[0]) != 0x8);
+    C2_HOOK_BUG_ON(REC2_ASIZE(gQueued_net_smashes) != 50);
+    C2_HOOK_BUG_ON(sizeof(gQueued_net_smashes[0]) != 0x38);
+    C2_HOOK_BUG_ON(sizeof(tStored_smash) != 0x38);
+
+    for (i = 0; i < (int)REC2_ASIZE(gSmash_glass_fragments); i++) {
+        gSmash_glass_fragments[i].end_time = 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gDecals); i++) {
+        gDecals[i].time = 0;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gQueued_net_smashes); i++) {
+        gQueued_net_smashes[i].field_0x4 = 0;
+    }
+    gSize_powerup_queue = 0;
+    gCount_host_smashes = 0;
+    if (gNet_mode == eNet_mode_host) {
+        gNet_host_smashes = BrMemAllocate(1000 * sizeof(tStored_smash), kMem_stored_smash);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004f54d0
