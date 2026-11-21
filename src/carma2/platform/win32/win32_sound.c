@@ -267,9 +267,20 @@ int C2_HOOK_FASTCALL PDS3StopMidiChannel(tS3_channel* pChannel) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x00569e6d
+// FUNCTION: CARMA2_HW 0x00569e6d
 int C2_HOOK_FASTCALL PDS3PauseMidiChannel(tS3_channel* pChannel) {
-    NOT_IMPLEMENTED();
+    MCIDEVICEID device;
+
+    device = pChannel->mciDevice;
+    if (gPDS3_midi_restart_required == 0) {
+        gPDS3_mci_midi_status_parms.dwItem = MCI_STATUS_MODE;
+        mciSendCommandA(device, MCI_STATUS, MCI_STATUS_ITEM | MCI_WAIT, (DWORD_PTR)&gPDS3_mci_midi_status_parms);
+        if (gPDS3_mci_midi_status_parms.dwReturn == MCI_MODE_PLAY) {
+            gPDS3_midi_restart_required = 1;
+            mciSendCommandA(device, MCI_PAUSE, 0, 0);
+        }
+    }
+    return 0;
 }
 
 // STUB: CARMA2_HW 0x00569eda
