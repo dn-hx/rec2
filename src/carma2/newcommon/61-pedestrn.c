@@ -127,7 +127,6 @@ float gGiblet_scrape_start = 0.f;
 
 // GLOBAL: CARMA2_HW 0x00679264
 br_actor* gMr_blendy = 0;
-// GLOBAL: CARMA2_HW 0x00694120
 tPedestrian* gPed_recent_ped;
 
 // GLOBAL: CARMA2_HW 0x00677238
