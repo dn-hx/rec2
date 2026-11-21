@@ -15,6 +15,9 @@
 
 #include "c2_string.h"
 
+// GLOBAL: CARMA2_HW 0x006b7824
+int gUNK_006b7824;
+
 // GLOBAL: CARMA2_HW 0x006aaa40
 // GLOBAL: CARMA2_SW 0x006a4490
 // GLOBAL: CARMA2_CHEAT 0x006b25b8
@@ -51,6 +54,12 @@ tU32 gTimers_frame_start_time;
 // GLOBAL: CARMA2_HW 0x006aaa5c
 // GLOBAL: CARMA2_SW 0x006a44ac
 tU32 gTimers_tolerance;
+
+// GLOBAL: CARMA2_HW 0x006b75dc
+int gUNK_006b75dc;
+
+// GLOBAL: CARMA2_HW 0x006b75e0
+int gTimers_stack[8];
 
 // GLOBAL: CARMA2_HW 0x006b7600
 // GLOBAL: CARMA2_SW 0x006ae2e0

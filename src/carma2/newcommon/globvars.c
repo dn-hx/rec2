@@ -529,6 +529,9 @@ int gArrow_mode;
 // GLOBAL: CARMA2_CHEAT 0x007546e0
 int gRace_head_ups[22];
 
+// GLOBAL: CARMA2_HW 0x0074d098
+int gUNK_0074d098;
+
 //int gInfo_on;
 
 // GLOBAL: CARMA2_HW 0x0068b86c

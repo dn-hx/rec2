@@ -251,6 +251,9 @@ HPALETTE gPDPalette;
 // GLOBAL: CARMA2_CHEAT 0x007a6120
 SYSTEM_INFO gSystem_info;
 
+// GLOBAL: CARMA2_HW 0x006620d0
+tU8 gUNK_006620d0[128];
+
 // GLOBAL: CARMA2_HW 0x0068c830
 // GLOBAL: CARMA2_SW 0x00686884
 // GLOBAL: CARMA2_CHEAT 0x006940d0
@@ -1018,6 +1021,11 @@ void C2_HOOK_FASTCALL MAMSUnlock(void **pPtr) {
 void C2_HOOK_FASTCALL MAMSLock(void **pPtr) {
 }
 
+// STUB: CARMA2_HW 0x0047d850
+int C2_HOOK_FASTCALL DRstrcmpi(const char* str1, const char* str2) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0051d640
 // FUNCTION: CARMA2_SW 0x00517a70
 void C2_HOOK_FASTCALL PDForEveryFileRecurse(const char *pThe_path, tPDForEveryFileRecurse_cbfn pAction_routine) {
@@ -1490,6 +1498,11 @@ void C2_HOOK_FASTCALL PDGetMousePosition(int *pX, int *pY) {
         *pY = (int)((float)*pY + (float)*pY);
     }
 #endif
+}
+
+// STUB: CARMA2_HW 0x0051c9f0
+void C2_HOOK_FASTCALL PDConvertMousePosition(LPPOINT pPoint, LONG* pX, LONG* pY) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0051c280

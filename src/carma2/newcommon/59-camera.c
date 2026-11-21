@@ -28,10 +28,45 @@
 // GLOBAL: CARMA2_CHEAT 0x0059468c
 int gNet_player_to_view_index = -1;
 
+int gView_opponent_index;
+
+// GLOBAL: CARMA2_HW 0x0058f630
+int gCamera_incident_mode;
+
+// GLOBAL: CARMA2_HW 0x0058f634
+int gCamera_incident_direction;
+
+// GLOBAL: CARMA2_HW 0x0058f63c
+int elapsed_time;
+
 // GLOBAL: CARMA2_HW 0x00679278
 // GLOBAL: CARMA2_SW 0x006739e8
 // GLOBAL: CARMA2_CHEAT 0x00680b28
 int gAction_replay_manual_camera_target_type;
+
+// GLOBAL: CARMA2_HW 0x0067927c
+br_vector3 gAction_replay_manual_camera_target_position;
+
+// GLOBAL: CARMA2_HW 0x00679288
+tCar_spec* gAction_replay_manual_camera_target_car;
+
+// GLOBAL: CARMA2_HW 0x0067928c
+tPedestrian* gAction_replay_manual_camera_target_pedestrian;
+
+// GLOBAL: CARMA2_HW 0x00679290
+br_actor* gAction_replay_manual_camera_target_character_actor;
+
+// GLOBAL: CARMA2_HW 0x00679294
+int gCamera_mode;
+
+// GLOBAL: CARMA2_HW 0x00679298
+tU32 time_of_death;
+
+// GLOBAL: CARMA2_HW 0x006792a0
+tU32 gIncident_car_data[4];
+
+// GLOBAL: CARMA2_HW 0x006792b0
+br_scalar gIncident_towards;
 
 // GLOBAL: CARMA2_HW 0x006792b4
 // GLOBAL: CARMA2_SW 0x00673a24
@@ -47,10 +82,64 @@ int gCamera_frozen;
 // GLOBAL: CARMA2_CHEAT 0x00680b6c
 int gOpponent_viewing_mode;
 
+// GLOBAL: CARMA2_HW 0x006792c0
+tU32 gSwitch_time;
+
 // GLOBAL: CARMA2_HW 0x006792c8
 // GLOBAL: CARMA2_SW 0x00673a38
 // GLOBAL: CARMA2_CHEAT 0x00680b78
 tSave_camera gSave_camera[2];
+
+// GLOBAL: CARMA2_HW 0x006792e0
+br_angle gOld_yaw__car;
+
+// GLOBAL: CARMA2_HW 0x006792e4
+br_angle gOld_zoom;
+
+// GLOBAL: CARMA2_HW 0x006792e8
+br_vector3 gCamera_pos_before_collide;
+
+// GLOBAL: CARMA2_HW 0x006792f4
+undefined2 gUNK_006792f4;
+
+// GLOBAL: CARMA2_HW 0x006792f8
+int gUNK_006792f8;
+
+// GLOBAL: CARMA2_HW 0x006792fc
+float gUNK_006792fc;
+
+// GLOBAL: CARMA2_HW 0x00679304
+br_angle gPanning_camera_angle;
+
+// GLOBAL: CARMA2_HW 0x00679310
+br_scalar gManual_camera_yaw;
+
+// GLOBAL: CARMA2_HW 0x00679314
+br_scalar gManual_camera_dolly;
+
+// GLOBAL: CARMA2_HW 0x00679318
+br_scalar gManual_camera_vertical;
+
+// GLOBAL: CARMA2_HW 0x0067931c
+int old_hither;
+
+// GLOBAL: CARMA2_HW 0x00679320
+tU32 headup_timer;
+
+// GLOBAL: CARMA2_HW 0x0067932c
+tS32 gIncident_time;
+
+// GLOBAL: CARMA2_HW 0x00679330
+tS32 gIncident_camera_stack;
+
+// GLOBAL: CARMA2_HW 0x00679338
+br_vector3 old_vn;
+
+// GLOBAL: CARMA2_HW 0x006793e0
+int gCamera_has_collided;
+
+// GLOBAL: CARMA2_HW 0x006940fc
+tU8* gPipe_car_state_chunk;
 
 // GLOBAL: CARMA2_HW 0x007634ac
 // GLOBAL: CARMA2_SW 0x00759a0c
@@ -60,6 +149,11 @@ float gCamera_cockpit_hither;
 // GLOBAL: CARMA2_SW 0x00795548
 // GLOBAL: CARMA2_CHEAT 0x007a6648
 tActionReplayCameraMode gAction_replay_camera_mode;
+
+const br_scalar gFLOAT_00589418 = 0;
+
+// GLOBAL: CARMA2_HW 0x0058f5e8
+int gCamera_incident_flag;
 
 // DoCameraControls
 
@@ -210,6 +304,11 @@ void C2_HOOK_FASTCALL CheckDisablePlingMaterials(tCar_spec* pCar) {
     }
 }
 
+// STUB: CARMA2_HW 0x0040f590
+void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
 // SetPanningFieldOfView
 
 int C2_HOOK_FASTCALL IsCameraTypeAllowed(int pCamera_mode) {
@@ -358,6 +457,11 @@ void C2_HOOK_FASTCALL PositionExternalCamera(tCar_spec* pCar_spec, tU32 pTime) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0040ef90
+void C2_HOOK_FASTCALL FrozenCamera(tCar_spec* pCar, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -388,6 +492,16 @@ void C2_HOOK_FASTCALL CameraBugFix(tCar_spec* pCar, tU32 pTime) {
 // STUB: CARMA2_CHEAT 0x0040f9e0
 int C2_HOOK_FASTCALL IncidentCam(tCar_spec* pCar, tU32 pTime) {
 
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004104b0
+void C2_HOOK_FASTCALL PanningExternalCamera(tCar_spec* pCar, tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004105f0
+void C2_HOOK_FASTCALL SetUpPanningCamera(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
@@ -427,6 +541,21 @@ void C2_HOOK_FASTCALL RestoreCameraPosition(int pIndex) {
     gCamera_zoom = gSave_camera[pIndex].zoom;
     gCamera_yaw = gSave_camera[pIndex].yaw;
     gSave_camera[pIndex].saved = 0;
+}
+
+// STUB: CARMA2_HW 0x00410c60
+void C2_HOOK_FASTCALL GeneralisedPositionExternalCamera(tCar_spec* pCar, br_matrix34* pMat, br_vector3* pPos, float pSpeed, float pSpeedo_speed, br_vector3* pDirection, br_vector3* pOmega, tU32 pTime_difference) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00411980
+void C2_HOOK_FASTCALL SwingCamera(br_matrix34* pM1, br_matrix34* pM2, br_vector3* pVn, br_vector3* pOmega, float pSpeed, float pSpeedo_speed, tU32 pTime_difference, tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00411fc0
+void C2_HOOK_FASTCALL PointCameraAtCar(br_vector3* pPos, br_matrix34* pMat, float pFov_factor) {
+    NOT_IMPLEMENTED();
 }
 
 // DrVector3RotateY
@@ -469,6 +598,11 @@ void C2_HOOK_FASTCALL PointCamera(const br_vector3* pPos, br_matrix34* pMat) {
     dist = BR_LENGTH2(pMat->m[3][0] - pPos->v[0], pMat->m[3][2] - pPos->v[2]);
     theta = BR_ATAN2(pMat->m[3][1] - pPos->v[1], dist);
     BrMatrix34PreRotateX(pMat, camera_ptr->field_of_view / 5 - theta);
+}
+
+// STUB: CARMA2_HW 0x004122b0
+int C2_HOOK_FASTCALL CollideCamera2(br_vector3* car_pos, br_vector3* cam_pos, br_vector3* old_camera_pos, int manual_move, tPhysics_object* collision_info) {
+    NOT_IMPLEMENTED();
 }
 
 // CollideCamera2
@@ -525,6 +659,16 @@ void C2_HOOK_FASTCALL GetAverageGridPosition(tRace_info* pThe_race) {
         gAverage_grid_position.v[1] /= total_cars;
         gAverage_grid_position.v[2] /= total_cars;
     }
+}
+
+// STUB: CARMA2_HW 0x004c6c90
+int C2_HOOK_FASTCALL GetNextIncident(tS32 pOffset, tS32* pMode, br_scalar* pTowards, undefined4* pData, tS32* pTime) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004c6e00
+int C2_HOOK_FASTCALL CheckIncident(tPipe_chunk* pChunk, int pChunk_count, tU32 pTime) {
+    NOT_IMPLEMENTED();
 }
 
 // FindACar

@@ -182,6 +182,9 @@ br_pixelmap* gPanel_buffer[2];
 // GLOBAL: CARMA2_HW 0x00686328
 tU32 gSound_time;
 
+// GLOBAL: CARMA2_HW 0x00686330
+char gLast_flic_name[14];
+
 // GLOBAL: CARMA2_HW 0x006861e0
 // GLOBAL: CARMA2_SW 0x00680920
 // GLOBAL: CARMA2_CHEAT 0x0068da88
@@ -930,6 +933,16 @@ void C2_HOOK_FASTCALL DoUncompressedTrans(tFlic_descriptor* pFlic_info, tU32 pCh
     }
 }
 
+// STUB: CARMA2_HW 0x00462860
+void C2_HOOK_FASTCALL DrawTranslations(tFlic_descriptor* pFlic_info) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00462930
+int C2_HOOK_FASTCALL PlayFlic(int pIndex, tU32 pSize, tS8* pData_ptr, br_pixelmap* pDest_pixelmap, int pX_offset, int pY_offset, void (C2_HOOK_FASTCALL* DoPerFrame)(void), int pInterruptable, int pFrame_rate) {
+    NOT_IMPLEMENTED();
+}
+
 // DoMini
 
 // DrawTranslations
@@ -1020,6 +1033,11 @@ void C2_HOOK_FASTCALL FreeFlic(int pIndex) {
         BrMemFree(gMain_flic_list[pIndex].data_ptr);
         gMain_flic_list[pIndex].data_ptr = NULL;
     }
+}
+
+// STUB: CARMA2_HW 0x00462bb0
+void C2_HOOK_FASTCALL RunFlicAt(int pIndex, int pX, int pY) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00462c10
@@ -1143,6 +1161,11 @@ void C2_HOOK_FASTCALL ProcessFlicQueue(tU32 pInterval) {
 // STUB: CARMA2_SW 0x00462850
 // STUB: CARMA2_CHEAT 0x00463230
 void C2_HOOK_FASTCALL FlushFlicQueue(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00463020
+void C2_HOOK_FASTCALL InitialiseFlicPanel(int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
     NOT_IMPLEMENTED();
 }
 

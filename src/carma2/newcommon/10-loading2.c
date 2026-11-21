@@ -56,6 +56,9 @@
 // GLOBAL: CARMA2_CHEAT 0x00693f8c
 FILE* gTempFile;
 
+// GLOBAL: CARMA2_HW 0x0068c6f4
+int gCurrent_race_file_index;
+
 // GLOBAL: CARMA2_HW 0x0068c718
 // GLOBAL: CARMA2_SW 0x00686768
 // GLOBAL: CARMA2_CHEAT 0x00693fb8
@@ -111,6 +114,9 @@ int gNet_score_targets[8];
 // GLOBAL: CARMA2_SW 0x00741c4c
 // GLOBAL: CARMA2_CHEAT 0x00752c2c
 int gDemo_race_rank_equivalent;
+
+// GLOBAL: CARMA2_HW 0x007634ec
+int gCountRaceGroups;
 
 // GLOBAL: CARMA2_HW 0x0074b4fc
 // GLOBAL: CARMA2_SW 0x00741bbc
@@ -271,6 +277,12 @@ const char* gWheel_actor_names[6] = {
     "IRRWHEEL.ACT",
 };
 
+// GLOBAL: CARMA2_HW 0x00657518
+const char* gPivot_actor_names[6] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00657530
+char* gRaces_file_names[9];
+
 void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, int pInitialize_palettes) {
     tPath_name the_path;
     tPath_name the_path2;
@@ -299,6 +311,11 @@ void C2_HOOK_FASTCALL LoadInRegisteeDir(const char *pRoot, const char *pSubDir, 
     LoadInFiles(the_path, "MODELS", DRLoadModels);
     LoadInFiles(the_path, "ACTORS", DRLoadActors);
     LoadInFiles(the_path, "LIGHTS", DRLoadLights);
+}
+
+// STUB: CARMA2_HW 0x0042a280
+int C2_HOOK_FASTCALL LoadCrushDataFile(tCar_crush_buffer* pCar_crush_buffer, const char* pPath, tBrender_storage* pBrender_storage, tCar_crush_spec** pCar_crush_spec) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00486e10
@@ -956,6 +973,11 @@ intptr_t C2_HOOK_CDECL AllocateCarModelData(br_actor* pActor, void* pData) {
         }
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x0048bfa0
+intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData) {
+    NOT_IMPLEMENTED();
 }
 
 // AddCarModelToList

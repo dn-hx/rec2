@@ -67,6 +67,16 @@ tU32 gLast_tick_count;
 // GLOBAL: CARMA2_CHEAT 0x00769820
 char gCurrent_load_directory[256];
 
+// STUB: CARMA2_HW 0x0045c420
+void C2_HOOK_FASTCALL SelectNextJoystick(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511270
+void C2_HOOK_FASTCALL CycleJoystick(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00513400
 // FUNCTION: CARMA2_SW 0x0050e840
 // FUNCTION: CARMA2_CHEAT 0x00518df0
@@ -2259,5 +2269,10 @@ void C2_HOOK_FASTCALL ConvertARGB4444ToARGB1555(br_uint_16* pPixel) {
 // FUNCTION: CARMA2_SW 0x00512ed0
 void C2_HOOK_FASTCALL EnsurePixelmapAllowed(br_pixelmap* pMap, undefined4 pArg2) {
 
+}
+
+// STUB: CARMA2_HW 0x00519400
+void C2_HOOK_FASTCALL ConvertRGBA5x5ToRGBA1555Map(br_pixelmap* pMap) {
+    NOT_IMPLEMENTED();
 }
 

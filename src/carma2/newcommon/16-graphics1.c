@@ -97,6 +97,8 @@ float gPrevious_rear_yon = 0.0f;
 // GLOBAL: CARMA2_HW 0x006a2350
 // GLOBAL: CARMA2_SW 0x0069c3a8
 int gINT_006a2350[2] = { 0 };
+
+int gUNK_006a2354;
 #endif
 
 // GLOBAL: CARMA2_HW 0x006a2358
@@ -148,6 +150,12 @@ tClip_details gShadow_clip_planes[8];
 // GLOBAL: CARMA2_SW 0x0069c430
 // GLOBAL: CARMA2_CHEAT 0x006a9f50
 int gFancy_shadow;
+
+// GLOBAL: CARMA2_HW 0x006a23e0
+br_vector3 gShadow_points[8];
+
+// GLOBAL: CARMA2_HW 0x006a2440
+int gShadow_dim_amount;
 
 // GLOBAL: CARMA2_HW 0x006a27e0
 // GLOBAL: CARMA2_SW 0x0069c838
@@ -222,6 +230,9 @@ int gNumber_of_lollipops;
 // GLOBAL: CARMA2_CHEAT 0x007697a0
 br_scalar gYon_squared;
 
+// GLOBAL: CARMA2_HW 0x00655e00
+br_matrix34 gIdentity34;
+
 // MungeClipPlane
 
 // TryThisEdge
@@ -233,6 +244,11 @@ br_scalar gYon_squared;
 // STUB: CARMA2_HW 0x004e7650
 // STUB: CARMA2_SW 0x004e3470
 void C2_HOOK_FASTCALL ProcessShadow(tCar_spec* pCar, br_actor* pWorld, tTrack_spec* pTrack_spec, br_actor* pCamera, br_matrix34* pCamera_to_world_transform, br_scalar pDistance_factor) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e9680
+void C2_HOOK_FASTCALL MungeClipPlane(br_vector3* pLight, tCar_spec* pCar, br_vector3* p1, br_vector3* p2, br_vector3* pOffset) {
     NOT_IMPLEMENTED();
 }
 
@@ -432,6 +448,11 @@ void C2_HOOK_FASTCALL LollipopizeActor(br_actor* pSubject_actor, br_matrix34* re
 // FUNCTION: CARMA2_CHEAT 0x004ea480
 void C2_HOOK_FASTCALL ResetLollipopQueue(void) {
     gNumber_of_lollipops = 0;
+}
+
+// STUB: CARMA2_HW 0x004e4910
+int C2_HOOK_FASTCALL AddToLollipopQueue(void* pItem, int pIndex) {
+    NOT_IMPLEMENTED();
 }
 
 // RenderLollipops
@@ -650,6 +671,11 @@ void C2_HOOK_FASTCALL ResetScreenWobble(void) {
 
 // STUB: CARMA2_HW 0x004e54f0
 void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e5680
+void C2_HOOK_FASTCALL DoARenderPass(br_matrix34* pMat34, br_actor* pCamera, br_pixelmap* pColour, br_pixelmap* pDepth, float pYon_factor, int pShadows, int pEffects, int pEffects_extra) {
     NOT_IMPLEMENTED();
 }
 

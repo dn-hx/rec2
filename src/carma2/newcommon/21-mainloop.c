@@ -21,6 +21,9 @@
 // GLOBAL: CARMA2_CHEAT 0x006940b4
 tU32 gOld_camera_time;
 
+// GLOBAL: CARMA2_HW 0x0068c818
+tU32 gLast_rattle_time;
+
 // GLOBAL: CARMA2_HW 0x0068c820
 // GLOBAL: CARMA2_SW 0x00686874
 // GLOBAL: CARMA2_CHEAT 0x006940c0
@@ -31,6 +34,30 @@ tU32 gActual_last_tick_count;
 // GLOBAL: CARMA2_CHEAT 0x006940c4
 tU32 gAverage_frame_period;
 
+// GLOBAL: CARMA2_HW 0x0068c828
+int gLast_time_in_seconds;
+
+// GLOBAL: CARMA2_HW 0x0068c834
+tU32 gPrev_task_switched_message;
+
+// GLOBAL: CARMA2_HW 0x0068c838
+int gWindow_inactive;
+
+// GLOBAL: CARMA2_HW 0x006a2368
+int gReplay_show_controls;
+
+// GLOBAL: CARMA2_HW 0x006a23cc
+int gUnk_006a23cc;
+
+// GLOBAL: CARMA2_HW 0x006a23d0
+tU32 gUnk_006a23d0;
+
+// GLOBAL: CARMA2_HW 0x006a82a4
+tU32 gLast_munge_smash_edge_triggers;
+
+// GLOBAL: CARMA2_HW 0x00704e44
+float gCamera_to_horiz_angle;
+
 // GLOBAL: CARMA2_HW 0x00761ef0
 // GLOBAL: CARMA2_SW 0x00758450
 // GLOBAL: CARMA2_CHEAT 0x00769590
@@ -40,6 +67,33 @@ int gCredits_per_second_time_bonus[3];  /* FIXME: rename to gPoints_per_second *
 // GLOBAL: CARMA2_SW 0x00741e00
 // GLOBAL: CARMA2_CHEAT 0x00752de0
 int gAuto_increase_credits_dt[3];
+
+// GLOBAL: CARMA2_HW 0x0079d8a0
+tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
+
+float gFLOAT_00589440;
+
+double gDouble_00589508;
+
+double gDouble_005895a8;
+
+// GLOBAL: CARMA2_HW 0x00596308
+int gINT_00596308;
+
+// GLOBAL: CARMA2_HW 0x0065fbf8
+int gReplay_button_keys[10];
+
+// GLOBAL: CARMA2_HW 0x0065fc20
+int gReplay_button_rects[2][9][4];
+
+// GLOBAL: CARMA2_HW 0x0068c730
+tU32 gWasted_last_flash;
+
+// GLOBAL: CARMA2_HW 0x0068c734
+tU32 gFrame_rate_last_time;
+
+// GLOBAL: CARMA2_HW 0x0068c738
+br_vector3 gPrev_camera_position;
 
 // GLOBAL: CARMA2_HW 0x0074b720
 // GLOBAL: CARMA2_SW 0x00741de0
@@ -65,10 +119,49 @@ int gCompletion_bonus_post_race = 0;
 // GLOBAL: CARMA2_CHEAT 0x00694000
 int gQueued_wasted_messages_count;
 
+// GLOBAL: CARMA2_HW 0x0068c764
+int gLast_credit_headup__mainloop;
+
+// GLOBAL: CARMA2_HW 0x0068c768
+int gWasted_flash_state;
+
+// GLOBAL: CARMA2_HW 0x0068c76c
+int gLast_time_headup;
+
+// GLOBAL: CARMA2_HW 0x0068c770
+tU32 gLast_net_auto_increase_credits;
+
+// GLOBAL: CARMA2_HW 0x0068c774
+int gTotal_bonus_post_race;
+
+// GLOBAL: CARMA2_HW 0x0068c778
+float gFLOAT_0068c778;
+
 // GLOBAL: CARMA2_HW 0x0068c77c
 // GLOBAL: CARMA2_SW 0x006867d0
 // GLOBAL: CARMA2_CHEAT 0x0069401c
 tU32 gLast_wasted_message_start;
+
+// GLOBAL: CARMA2_HW 0x0068c780
+int gTime_bonus;
+
+// GLOBAL: CARMA2_HW 0x0068c784
+tTime_bonus_state gTime_bonus_state;
+
+// GLOBAL: CARMA2_HW 0x0068c788
+tU32 gTime_bonus_start;
+
+// GLOBAL: CARMA2_HW 0x0068c790
+int gFrame_rate_last_rates[30];
+
+// GLOBAL: CARMA2_HW 0x0068c808
+int gTime_bonus_headup;
+
+// GLOBAL: CARMA2_HW 0x0068c80c
+int gCredits_post_race;
+
+// GLOBAL: CARMA2_HW 0x0068c810
+int gRace_bonus_headup;
 
 // CalculateFrameRate
 
@@ -80,6 +173,31 @@ void C2_HOOK_FASTCALL LoseOldestWastedMassage(void) {
     }
     gQueued_wasted_messages_count--;
     gLast_wasted_message_start = GetTotalTime();
+}
+
+// STUB: CARMA2_HW 0x00403cc0
+void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00413860
+void C2_HOOK_FASTCALL MouseClickInActionReplay(int pCursor_x, int pCursor_y, int pArg3) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045b0a0
+void C2_HOOK_FASTCALL AdjustHeadupTextBuffer(tHeadup_text_buffer* pBuffer) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045b3b0
+void C2_HOOK_FASTCALL MungeJoystickHeadups(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045b790
+void C2_HOOK_FASTCALL CreateKeyConfigurationHeadups(tHeadup_text_buffer* pBuffer) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00492620
@@ -182,6 +300,11 @@ tU32 C2_HOOK_FASTCALL GetLastTickCount(void) {
 
     return gLast_tick_count;
 }
+
+// STUB: CARMA2_HW 0x00492840
+void C2_HOOK_FASTCALL PrecacheData(volatile tU8* pBase, tU32 pSize) {
+    NOT_IMPLEMENTED();
+}
 #endif
 
 // CheckTimer
@@ -201,6 +324,26 @@ tU32 C2_HOOK_FASTCALL GetLastTickCount(void) {
 // STUB: CARMA2_CHEAT 0x00492920
 tRace_result C2_HOOK_FASTCALL MainGameLoop(void) {
 
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004940e0
+void C2_HOOK_FASTCALL CalculateCameraStuff(tU32 pCamera_period) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004d5970
+void C2_HOOK_FASTCALL LastChanceForPedEffects(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e69b0
+void C2_HOOK_FASTCALL PollActionReplayControls(tU32* pFrame_period, tU32* pAverage_frame_period) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f64d0
+void C2_HOOK_FASTCALL MungeSmashEdgeTriggers(tU32 pTime) {
     NOT_IMPLEMENTED();
 }
 

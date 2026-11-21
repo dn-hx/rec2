@@ -27,6 +27,11 @@
 #include <fcntl.h>
 #include <stddef.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <mmsystem.h>
+#endif
+
 
 // GLOBAL: CARMA2_HW 0x007a06c0
 // GLOBAL: CARMA2_SW 0x00796c60
@@ -84,6 +89,12 @@ tS3_channel* gS3_last_unbound_channel;
 // GLOBAL: CARMA2_SW 0x00796458
 // GLOBAL: CARMA2_CHEAT 0x007a7558
 int gS3_enable_midi;
+
+// GLOBAL: CARMA2_HW 0x007a00a0
+MCI_SET_PARMS gPDS3_mci_audio_parms;
+
+// GLOBAL: CARMA2_HW 0x007a00c0
+MCI_SEQ_SET_PARMS gPDS3_mci_seq_set_parms;
 
 // GLOBAL: CARMA2_HW 0x007a0564
 // GLOBAL: CARMA2_CHEAT 0x007a7c04
@@ -191,6 +202,11 @@ void C2_HOOK_FASTCALL S3Toggle(void) {
     } else {
         gS3_enabled = 1;
     }
+}
+
+// STUB: CARMA2_HW 0x00564d33
+int C2_HOOK_FASTCALL S3IsEnabled(void) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00564bfd
@@ -410,6 +426,21 @@ int C2_HOOK_FASTCALL S3ReleaseSoundSource(tS3_sound_source* src) {
     S3StopSoundSource(src);
     S3MemFree(src);
     return 0;
+}
+
+// STUB: CARMA2_HW 0x005667af
+int C2_HOOK_FASTCALL FUN_005667af(tS3_sound_id pSound, tS3_sound_source* pSource) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00566a54
+int C2_HOOK_FASTCALL FUN_00566a54(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_volume pVolume, tS3_pitch pPitch_min, tS3_pitch pPitch_max) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00566dc1
+tS3_sound_tag C2_HOOK_FASTCALL S3StartSoundFromSource3(tS3_sound_id pSound, tS3_sound_source* pSource, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x005657bd
@@ -706,6 +737,11 @@ void* C2_HOOK_FASTCALL S3LoadSoundBankFile(const char* pPath) {
     return buffer;
 }
 
+// STUB: CARMA2_HW 0x005696f9
+int C2_HOOK_FASTCALL S3UpdateFrequencyChannel(tS3_sound_tag pTag, int pPitch) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00567fe0
 int C2_HOOK_FASTCALL S3LoadSoundbank(const char* pPath, int pLow_memory_mode) {
     tS3_soundbank_read_ctx read_ctx;
@@ -951,6 +987,11 @@ tS3_descriptor* C2_HOOK_FASTCALL S3CreateDescriptor(void) {
     return descriptor;
 }
 
+// STUB: CARMA2_HW 0x00565aed
+void C2_HOOK_FASTCALL FUN_00565aed(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00568704
 int C2_HOOK_FASTCALL S3SoundBankReaderReadFilename(char** pPath, tS3_soundbank_read_ctx* pContext, const char* pDir_name) {
     unsigned int dir_name_len;
@@ -1019,6 +1060,11 @@ void C2_HOOK_FASTCALL S3StopCDA(void) {
     gS3_CDA_enabled = 0;
 }
 
+// STUB: CARMA2_HW 0x00565b93
+void C2_HOOK_FASTCALL S3ToggleCDA(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0056a7bd
 // FUNCTION: CARMA2_SW 0x00565e5d
 void C2_HOOK_FASTCALL S3StopMidiInternal(void) {
@@ -1066,6 +1112,16 @@ int C2_HOOK_FASTCALL S3StopCDAInternal(void) {
         }
     }
     return 1;
+}
+
+// STUB: CARMA2_HW 0x00565c82
+int C2_HOOK_FASTCALL FUN_00565c82(int pTag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00565cce
+int C2_HOOK_FASTCALL S3ResumeCDAChannel(int pTag) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00565bfe
@@ -1207,10 +1263,35 @@ int C2_HOOK_FASTCALL S3ReleaseSound(int pSound_id) {
     return eS3_error_none;
 }
 
+// STUB: CARMA2_HW 0x00568a11
+void C2_HOOK_FASTCALL S3LoadSampleList(int* pSample_ids, int pCount) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00568a54
+void C2_HOOK_FASTCALL S3ReleaseSounds(int* pSound_ids, int pSound_count) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00566454
 double C2_HOOK_STDCALL S3FRandomBetween(double pMin, double pMax) {
 
     return (pMax - pMin) * (double)rand() / 32767.0 + pMin;
+}
+
+// STUB: CARMA2_HW 0x00566480
+int C2_HOOK_FASTCALL S3SetChannelPosition(tS3_sound_tag pChannel_tag, const tS3_vector3* pPosition) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005664e6
+int C2_HOOK_FASTCALL S3SetChannelVelocity(tS3_sound_tag pChannel_tag, const tS3_vector3* pVelocity) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056654c
+tS3_sound_source* C2_HOOK_FASTCALL RealS3CreateSoundSource(void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00564278
@@ -1224,6 +1305,11 @@ int C2_HOOK_FASTCALL S3IRandomBetween(int pMin, int pMax, int pDefault) {
     } else {
         return pMin;
     }
+}
+
+// STUB: CARMA2_HW 0x005642b5
+int C2_HOOK_FASTCALL S3IRandomBetweenLog_2(int pMin, int pMax, int pDefault) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0056432c
@@ -1339,6 +1425,11 @@ int C2_HOOK_FASTCALL S3GetLastError(void) {
     return gS3_last_error;
 }
 
+// STUB: CARMA2_HW 0x00565849
+int C2_HOOK_FASTCALL S3SetChannelTag(tS3_channel* pChannel, tS3_sound_tag pTag) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x005649c8
 // FUNCTION: CARMA2_SW 0x00560068
 int C2_HOOK_FASTCALL S3SetVolume(int pVolume) {
@@ -1358,6 +1449,11 @@ int C2_HOOK_FASTCALL S3SetVolume(int pVolume) {
         }
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x00564a21
+int C2_HOOK_FASTCALL S3SetFrequency(tS3_sound_tag pTag, int pPitch) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00564a56
@@ -1446,6 +1542,11 @@ tS3_sound_source* C2_HOOK_FASTCALL S3CreateSoundSource(void* pPosition, void* pV
     }
     gS3_state.count_sources += 1;
     return src;
+}
+
+// STUB: CARMA2_HW 0x00566686
+int C2_HOOK_FASTCALL S3SetSoundSourceBinding(tS3_sound_source* pSource, void* pPosition, void* pVelocity, tS3_outlet* pBound_outlet) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00566590
@@ -1562,6 +1663,11 @@ int C2_HOOK_FASTCALL S3MIDILoadSong2(tS3_channel* pChannel) {
     return 0;
 }
 
+// STUB: CARMA2_HW 0x00569d01
+int C2_HOOK_FASTCALL PDS3CloseMidiChannel(tS3_channel* pChannel) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0056a473
 // FUNCTION: CARMA2_SW 0x00565b13
 // FUNCTION: CARMA2_CHEAT 0x00570063
@@ -1644,6 +1750,26 @@ int C2_HOOK_FASTCALL S3SetMIDIVolume2(tS3_channel* pChannel, int pVolume) {
     return 0;
 }
 
+// STUB: CARMA2_HW 0x00569d5a
+int C2_HOOK_FASTCALL FUN_00569d5a(int pVolume) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00569d67
+int C2_HOOK_FASTCALL PDApplyFrequencyMidi(tS3_channel* pChannel, int pPitch) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00569de5
+int C2_HOOK_FASTCALL PDS3MuteMidiChannel(tS3_channel* pChannel) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00569e29
+int C2_HOOK_FASTCALL PDS3UnmuteMidiChannel(tS3_channel* pChannel) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0056a505
 // FUNCTION: CARMA2_SW 0x00565ba5
 // FUNCTION: CARMA2_CHEAT 0x005700f5
@@ -1659,6 +1785,31 @@ int C2_HOOK_FASTCALL S3SetMIDIVolume(tS3_channel* pChannel, int pVolume) {
         S3SetMIDIVolume2(pChannel, pVolume);
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x0056a548
+int C2_HOOK_FASTCALL FUN_0056a548(int pVolume) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a583
+int C2_HOOK_FASTCALL FUN_0056a583(int pTag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a5c4
+int C2_HOOK_FASTCALL FUN_0056a5c4(int pTag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a605
+int C2_HOOK_FASTCALL FUN_0056a605(int pTag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a646
+int C2_HOOK_FASTCALL FUN_0056a646(int pTag) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00565bd3
@@ -1780,6 +1931,11 @@ int C2_HOOK_FASTCALL S3SetChannelVolume(int pChannel_tag, int pVolume) {
         }
     }
     return eS3_error_none;
+}
+
+// STUB: CARMA2_HW 0x005648ac
+int C2_HOOK_FASTCALL FUN_005648ac(int pArg0, int pArg1, int pArg2) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x005648c3
@@ -1919,6 +2075,16 @@ tS3_error_codes C2_HOOK_FASTCALL S3MIDITagHasStoppedPlaying(int pTag) {
     return eS3_error_digi_init;
 }
 
+// STUB: CARMA2_HW 0x0056a6cd
+int C2_HOOK_FASTCALL S3UpdateFrequencyMidiChannel(int pTag, int pPitch) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a71f
+int C2_HOOK_FASTCALL FUN_0056a71f(int pTag, int pArg2, int pArg3, int pArg4, int pArg5) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0056a866
 // FUNCTION: CARMA2_SW 0x00565f06
 // FUNCTION: CARMA2_CHEAT 0x00570456
@@ -1930,6 +2096,11 @@ int C2_HOOK_FASTCALL S3ServiceMIDIChannel(tS3_channel* pChannel) {
         }
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x0056a8a0
+void C2_HOOK_FASTCALL S3SetCallbacks(tS3_callbacks* pCallbacks) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00565d1a

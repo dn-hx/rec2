@@ -177,10 +177,22 @@ int gLast_credit_headup__displays = -1;
 // GLOBAL: CARMA2_CHEAT 0x0068711c
 tU32 gLast_earn_time;
 
+// GLOBAL: CARMA2_HW 0x0067f878
+int gLast_credit_amount;
+
 // GLOBAL: CARMA2_HW 0x005913dc
 // GLOBAL: CARMA2_SW 0x0058c3bc
 // GLOBAL: CARMA2_CHEAT 0x00597d34
 int gLast_time_credit_headup = -1;
+
+// GLOBAL: CARMA2_HW 0x005913e0
+int gPS_apo_level_changed[3];
+
+// GLOBAL: CARMA2_HW 0x005913ec
+int gPrev_ps_apo_levels[3];
+
+// GLOBAL: CARMA2_HW 0x005913f8
+int gPrev_ps_drawn_levels[3];
 
 // GLOBAL: CARMA2_HW 0x0067fcc4
 // GLOBAL: CARMA2_SW 0x0067a42c
@@ -204,6 +216,9 @@ char gHeadup_oppo_ped_text[64];
 // GLOBAL: CARMA2_SW 0x00679ff4
 // GLOBAL: CARMA2_CHEAT 0x00687130
 int gQueued_headup_count;
+
+// GLOBAL: CARMA2_HW 0x0067f890
+tQueued_headup gQueued_headups[4];
 
 
 static void C2_HOOK_FASTCALL LoadHeadupMessageFile(void) {
@@ -452,6 +467,11 @@ void C2_HOOK_FASTCALL DimAFewBits(void) {
             1);
     }
 #undef DIM_INDEX
+}
+
+// STUB: CARMA2_HW 0x004497b0
+void C2_HOOK_FASTCALL ClearQueuedHeadups(void) {
+    NOT_IMPLEMENTED();
 }
 
 // KillOldestQueuedHeadup

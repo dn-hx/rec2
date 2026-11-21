@@ -130,6 +130,8 @@ tCar_spec* gActive_car_list[139];
 // GLOBAL: CARMA2_CHEAT 0x0075408c
 int gNum_active_cars;
 
+float gOppo_render_zero;
+
 // GLOBAL: CARMA2_HW 0x00691770
 // GLOBAL: CARMA2_SW 0x0068b7c8
 // GLOBAL: CARMA2_CHEAT 0x00699150
@@ -139,6 +141,15 @@ int gRoute_search_attempts;
 // GLOBAL: CARMA2_SW 0x0068b7d0
 // GLOBAL: CARMA2_CHEAT 0x00699158
 int gRoute_search_max_calls;
+
+// GLOBAL: CARMA2_HW 0x0069177c
+int gRematerialisation_count;
+
+// GLOBAL: CARMA2_HW 0x00691780
+int gRematerialisation_extra_attempts;
+
+// GLOBAL: CARMA2_HW 0x00691784
+int gRematerialisation_max_extra_attempts;
 
 // GLOBAL: CARMA2_HW 0x00691774
 // GLOBAL: CARMA2_SW 0x0068b7cc
@@ -374,6 +385,11 @@ void C2_HOOK_FASTCALL CalcOpponentConspicuousnessWithAViewToCheatingLikeFuck(tOp
     }
 }
 
+// STUB: CARMA2_HW 0x004a95f0
+void C2_HOOK_FASTCALL SetChallengerIndexIf(int pIndex, int pSet) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004ac180
 // FUNCTION: CARMA2_SW 0x004a82f0
 // FUNCTION: CARMA2_CHEAT 0x004ad670
@@ -448,6 +464,11 @@ int C2_HOOK_FASTCALL SearchForSection(tRoute_section* pRoute, tRoute_section* pB
     gBit_per_node[node / 8] &= ~(1 << (node % 8));
     DoNotDprintf("%sSearchForSection() - Returning to depth %d", prefix, pDepth - 1);
     return 0;
+}
+
+// STUB: CARMA2_HW 0x004ac540
+void C2_HOOK_FASTCALL ProcessLevitate(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    NOT_IMPLEMENTED();
 }
 
 // UpdatePlayersSection
@@ -558,6 +579,11 @@ int C2_HOOK_FASTCALL AddToOpponentsProjectedRoute(tOpponent_spec* pOpponent_spec
     }
 }
 
+// STUB: CARMA2_HW 0x004ab190
+void C2_HOOK_FASTCALL ProcessPursueAndTwat(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    NOT_IMPLEMENTED();
+}
+
 void C2_HOOK_FASTCALL StunTheBugger(tOpponent_spec* pOpponent, int pMilliseconds) {
 
     pOpponent->car_spec->acc_force = 0.0f;
@@ -595,6 +621,11 @@ void C2_HOOK_FASTCALL StartRecordingTrail(tCar_spec* pPursuee) {
     }
 }
 
+// STUB: CARMA2_HW 0x004aa570
+void C2_HOOK_FASTCALL ProcessThisOpponent(tOpponent_spec* pOpponent_spec) {
+    NOT_IMPLEMENTED();
+}
+
 // RecordNextTrailNode
 
 // FindNearestTrailSection
@@ -620,6 +651,11 @@ void C2_HOOK_FASTCALL ProcessWaitForSomeHaplessSod(tOpponent_spec* pOpponent_spe
     case ePOC_die:
         return;
     }
+}
+
+// STUB: CARMA2_HW 0x004abc40
+void C2_HOOK_FASTCALL ProcessReturnToStart(tOpponent_spec* pOpponent_spec, tProcess_objective_command pCommand) {
+    NOT_IMPLEMENTED();
 }
 
 // ProcessReturnToStart
@@ -953,6 +989,11 @@ void C2_HOOK_FASTCALL RemoveAnythingStillInList(tPhysics_object** pList, int pCo
     }
 }
 
+// STUB: CARMA2_HW 0x004a7f20
+int C2_HOOK_FASTCALL RematerialiseOpponentOnThisSection(tOpponent_spec* pOpponent_spec, tS16 pSection_no, br_scalar pSpeed) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -967,6 +1008,26 @@ void C2_HOOK_FASTCALL RebuildActiveCarList(void) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
+
+// STUB: CARMA2_HW 0x0041e360
+void C2_HOOK_FASTCALL findfloor(br_vector3* pPos, br_vector3* pDir, br_vector3* pNormal, br_scalar* pDist) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004a7960
+void C2_HOOK_FASTCALL TurnOpponentPhysicsOn(tOpponent_spec* pOpponent_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004a79a0
+void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004a7a20
+void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004a7a60
 // FUNCTION: CARMA2_SW 0x004a3bd0
@@ -1034,6 +1095,16 @@ void C2_HOOK_FASTCALL CalcDistanceFromHome(tOpponent_spec* pOpponent_spec) {
 
     BrVector3Sub(&wank, &pOpponent_spec->car_spec->car_master_actor->t.t.translate.t, &pOpponent_spec->start_pos);
     pOpponent_spec->distance_from_home = BrVector3Length(&wank);
+}
+
+// STUB: CARMA2_HW 0x004adae0
+void C2_HOOK_FASTCALL CalcPlayerConspicuousness(tOpponent_spec* pOpponent_spec) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004add50
+void C2_HOOK_FASTCALL InitOpponents(tRace_info* pRace_info) {
+    NOT_IMPLEMENTED();
 }
 
 // MassageOpponentPosition
@@ -1133,6 +1204,11 @@ void C2_HOOK_FASTCALL DisposeOpponentPaths(void) {
     gProgram_state.AI_vehicles.path_nodes = NULL;
     gProgram_state.AI_vehicles.path_sections = NULL;
     gBit_per_node = NULL;
+}
+
+// STUB: CARMA2_HW 0x004a9e10
+void C2_HOOK_FASTCALL MungeOpponents(void) {
+    NOT_IMPLEMENTED();
 }
 
 // MungeOpponents
@@ -1358,6 +1434,21 @@ int C2_HOOK_FASTCALL GetOpponentsNextSection(const tOpponent_spec* pOpponent_spe
         return (tS16)trail_section;
     }
     return -1;
+}
+
+// STUB: CARMA2_HW 0x004aeb90
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004aec40
+const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004aece0
+float C2_HOOK_FASTCALL GetOpponentsSectionWidth(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
+    NOT_IMPLEMENTED();
 }
 
 // GetOpponentsSectionStartNodePoint

@@ -39,15 +39,58 @@
 // GLOBAL: CARMA2_CHEAT 0x006afe10
 int gAllow_material_adapt;
 
+// GLOBAL: CARMA2_HW 0x006a829c
+int gCount_shrapnel_shower_calls;
+
+// GLOBAL: CARMA2_HW 0x006a82a0
+int gNext_explosion_slot;
+
 // GLOBAL: CARMA2_HW 0x006a3340
 // GLOBAL: CARMA2_CHEAT 0x006aaeb8
 br_material* gMaterials_to_adapt[200];
+
+// GLOBAL: CARMA2_HW 0x006a3660
+tSmashable_item_spec gUnknown_smashable_006a3660;
+
+// GLOBAL: CARMA2_HW 0x006a3940
+tQueued_net_smash gQueued_net_smashes[50];
+
+// GLOBAL: CARMA2_HW 0x006a4430
+tPowerup_queue_item gPowerup_queue[50];
 
 float gFloat_0058aec0 = 0.0f;
 
 float gFloat_0058aec4 = 2.3841858e-07f;
 
 double gDouble_0058aec8 = 1.0;
+
+const double gDouble_0058aee8 = 0;
+
+const double gDOUBLE_0058aef8 = 0;
+
+const float gFLOAT_0058af20 = 0;
+
+float gFloat_0058af38;
+
+const double gDOUBLE_0058af88 = 0;
+
+const double gDOUBLE_0058afa8 = 0;
+
+float gFloat_0058afb0;
+
+float gFloat_0058afb4;
+
+// GLOBAL: CARMA2_HW 0x0065fea0
+const char* gSmashable_collision_type_names[3] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065feb0
+const char* gRepeatability_names[4] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065fef0
+const char* gSmash_side_effect_direction_names[3] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0065ff00
+const char* gPosition_type_names[2] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a3334
 // GLOBAL: CARMA2_SW 0x0069d394
@@ -67,6 +110,12 @@ br_vector3 gVector3_006b78a0[4] = { { { 0.f } } };
 // GLOBAL: CARMA2_SW 0x006ae5b0
 int gINT_006b78d0 = 0;
 
+// GLOBAL: CARMA2_HW 0x006b9c60
+int gUnknown_006b9c60[100];
+
+// GLOBAL: CARMA2_HW 0x006ba4a0
+tSmashable_item_spec* gSmashable_track_indexable_triggers[100];
+
 // GLOBAL: CARMA2_HW 0x006a3338
 // GLOBAL: CARMA2_SW 0x0069d398
 // GLOBAL: CARMA2_CHEAT 0x006aaeb0
@@ -82,6 +131,9 @@ tSmashable_item_spec* gTrack_smashable_environment_specs;
 // GLOBAL: CARMA2_CHEAT 0x006accb8
 br_actor* gSmashable_noncar_shrapnel_actors[100];
 
+// GLOBAL: CARMA2_HW 0x006a52d0
+tSmashable_item_spec gPowerup_pickup_smashable;
+
 // GLOBAL: CARMA2_HW 0x006a55b0
 // GLOBAL: CARMA2_SW 0x0069f610
 // GLOBAL: CARMA2_CHEAT 0x006ad128
@@ -96,6 +148,9 @@ int gCount_track_smashable_environment_specs;
 // GLOBAL: CARMA2_SW 0x0069f618
 // GLOBAL: CARMA2_CHEAT 0x006ad130
 const char* gSmashable_track_environment_path;
+
+// GLOBAL: CARMA2_HW 0x006a55bc
+int gSize_powerup_queue;
 
 // GLOBAL: CARMA2_HW 0x006a55c0
 // GLOBAL: CARMA2_SW 0x0069f620
@@ -126,6 +181,9 @@ tSmash_explosion gSmash_explosions[20] = { 0 };
 // GLOBAL: CARMA2_CHEAT 0x006af858
 tSmashable_item_spec gPowerup_respawn_smashable = { 0 };
 
+// GLOBAL: CARMA2_HW 0x006a7fc0
+int gPrev_glass_munge;
+
 // GLOBAL: CARMA2_HW 0x006a7fc8
 // GLOBAL: CARMA2_SW 0x006a2028
 // GLOBAL: CARMA2_CHEAT 0x006afb40
@@ -140,15 +198,29 @@ int gINT_006a80f4 = 0;
 // GLOBAL: CARMA2_CHEAT 0x006afc70
 tDecal gDecals[50];
 
+// GLOBAL: CARMA2_HW 0x006a8288
+int gCount_track_smashable_environment_specs_2;
+
 // GLOBAL: CARMA2_HW 0x006a828c
 // GLOBAL: CARMA2_SW 0x006a22ec
 // GLOBAL: CARMA2_CHEAT 0x006afe04
 int gCount_queued_smashes;
 
+// GLOBAL: CARMA2_HW 0x006a8290
+int gINT_006a8290;
+
+// GLOBAL: CARMA2_HW 0x006a8294
+int gINT_006a8294;
+
 // GLOBAL: CARMA2_HW 0x006abee8
 // GLOBAL: CARMA2_SW 0x006a5438
 // GLOBAL: CARMA2_CHEAT 0x006b3578
 br_vector3 gZero_vector__smash;
+
+// STUB: CARMA2_HW 0x004c8870
+void C2_HOOK_FASTCALL PipeSingleShrapnelShower(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, undefined4 pArg4, br_vector3* pArg5, br_vector3* pArg6, float pArg7, br_vector3* pArg8, br_vector3* pArg9, undefined4 pArg10, br_bounds3* pArg11, undefined4 pArg12, br_matrix34* pArg13, br_vector3* pArg14, void* pArg15) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
@@ -286,6 +358,11 @@ void C2_HOOK_FASTCALL ResetExplosions(void) {
     for (i = 0; i < (int)REC2_ASIZE(gSmash_explosions); i++) {
         gSmash_explosions[i].active = 0;
     }
+}
+
+// STUB: CARMA2_HW 0x004eaaf0
+void C2_HOOK_FASTCALL MungeExplosions(void) {
+    NOT_IMPLEMENTED();
 }
 
 void C2_HOOK_FASTCALL RemoveAllExplosionettes(void) {
@@ -488,6 +565,26 @@ void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashab
     }
 }
 
+// STUB: CARMA2_HW 0x004ed490
+void C2_HOOK_FASTCALL DoConnotations(tPhysics_object* pObject, tSmashable_item_spec* pSpec, undefined4 pArg3, tConnotations* pConnotations, tU32 pSeed, undefined4 pArg6, const br_vector3* pPoint, const br_vector3* pSound_position, br_actor* pActor, tU32 pTime, undefined4 pArg11, br_matrix34* pTransform, br_bounds3* pBounds, br_vector3* pPosition, float pDistance, undefined4 pArg16, int pFlag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004ed860
+void C2_HOOK_FASTCALL ActivateNonCarSideEffects(br_actor* pActor, tNon_car_cuboid_activations* pActivations, void* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004edb20
+intptr_t C2_HOOK_CDECL GiveNonCarsAShove(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004edbe0
+void C2_HOOK_FASTCALL ActivateSmashSideEffects(tSmashable_item_spec* pSpec, void* pObject, tShrapnel_side_effects* pSide_effects, undefined4 pArg16, float pDistance) {
+    NOT_IMPLEMENTED();
+}
+
 // MakeSmashSound
 
 // MungeSmokeFire
@@ -520,6 +617,11 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
         pSlick->field_0x4, pSlick->field_0x8, pSlick->field_0xc, pSlick->field_0x10,
         pSlick->field_0x14, pSlick->field_0x20, pSlick->field_0x24, pSlick->field_0x18,
         pSlick->field_0x1c, pSlick->material, pSlick->material2);
+}
+
+// STUB: CARMA2_HW 0x004ecc80
+void C2_HOOK_FASTCALL MungeDelayedSideEffects(void) {
+    NOT_IMPLEMENTED();
 }
 
 // DoSpecial
@@ -643,6 +745,11 @@ void C2_HOOK_FASTCALL ReadShrapnelTimeInfo(FILE* pF, tShrapnel_time_info* pMin_m
     GetPairOfFloats(pF, &min_time, &max_time);
     pMin_max_time->min_time = (int)(min_time * 1000.0);
     pMin_max_time->max_time = (int)(max_time * 1000.0);
+}
+
+// STUB: CARMA2_HW 0x004ee5e0
+void C2_HOOK_FASTCALL ReadSpillData(FILE* pF, tSlick_spec* pSlick) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x004ef440
@@ -923,6 +1030,11 @@ void C2_HOOK_FASTCALL LoadMinMax(FILE* pF, br_bounds3* pBounds) {
     pBounds->max.v[2] = MAX(z1, z2);
 }
 
+// STUB: CARMA2_HW 0x004ef550
+void C2_HOOK_FASTCALL ReadShrapnelSideEffects(FILE* pF, tShrapnel_side_effects* pShrapnel_side_effects) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 // FUNCTION: CARMA2_HW 0x004ef830
 // FUNCTION: CARMA2_SW 0x004eb490
@@ -1081,6 +1193,11 @@ void C2_HOOK_FASTCALL ReadPowerupSmash(FILE* pF) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004efce0
+void C2_HOOK_FASTCALL ReadNonCarCuboidActivation(FILE* pF, tNon_car_cuboid_activations* pNon_car_cuboid_activations) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004efe00
 // FUNCTION: CARMA2_SW 0x004eba60
 // FUNCTION: CARMA2_CHEAT 0x004f5aa0
@@ -1096,6 +1213,11 @@ void C2_HOOK_FASTCALL InitSmashing(void) {
 // STUB: CARMA2_SW 0x004ebb90
 // STUB: CARMA2_CHEAT 0x004f5bd0
 void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f00f0
+void C2_HOOK_FASTCALL MungeGlassFragments(void) {
     NOT_IMPLEMENTED();
 }
 
@@ -1309,6 +1431,26 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
     }
 }
 
+// STUB: CARMA2_HW 0x004f0d50
+int C2_HOOK_FASTCALL PointInFace(const float* pPoint, const float* pNormal, float pPlane_distance, const float* pVertex0, const float* pVertex1, const float* pVertex2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f1030
+void C2_HOOK_FASTCALL HitPowerup(tPhysics_object* pObject, int pMode, br_actor* pActor) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f1140
+float C2_HOOK_FASTCALL SmashEnvironment(tPhysics_object* pObject, undefined4* pArg2, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pSnap, int pNetwork) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f18d0
+float C2_HOOK_FASTCALL ProcessTexture(tPhysics_object* pObject, br_material* pMaterial, br_actor* pActor, tSmashable_item_spec* pSpec, tSmashable_item_spec* pSpec2, tFace_ref* pFace, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg11, int pArg12, int* pFlag, int pNetwork) {
+    NOT_IMPLEMENTED();
+}
+
 // MungeSmashMaterialNames
 
 // ExtrapolateTextureCoordinates
@@ -1322,6 +1464,11 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
 // STUB: CARMA2_HW 0x004f36c0
 // STUB: CARMA2_SW 0x004ef320
 void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMapping, br_vector2* pMap, br_vertex* pVertex) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f3740
+void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
     NOT_IMPLEMENTED();
 }
 
@@ -1707,6 +1854,21 @@ int C2_HOOK_FASTCALL InsertQuad(tSmash_quad_mapping* pMapping, br_actor* pActor,
     return 1;
 }
 
+// STUB: CARMA2_HW 0x004f4c70
+int C2_HOOK_FASTCALL FindFaceWithPoint(tFace_ref* pFace, br_vector3* pPoint, tFace_ref* pOut, int pFlag) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f4e20
+float C2_HOOK_FASTCALL BashModel(tSmashable_item_spec* pSpec, tPhysics_object* pObject, br_actor* pActor, float pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int* pFlag, int pNetwork) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f5110
+void C2_HOOK_FASTCALL SendNetSmash(tPhysics_object* pObject, tFace_ref* pFace, br_scalar pMagnitude, br_vector3* pPosition, br_vector3* pNormal, br_vector3* pForce, int pArg7) {
+    NOT_IMPLEMENTED();
+}
+
 // SpawnSmashAndMungeFaces
 
 // DistanceFromFaceND
@@ -1821,6 +1983,11 @@ intptr_t C2_HOOK_CDECL MungeMaterialCB(br_actor* pActor, void* pData) {
         }
     }
     return 0;
+}
+
+// STUB: CARMA2_HW 0x004f5750
+void C2_HOOK_FASTCALL ReinitSmashing(void) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x004f54d0
@@ -2096,12 +2263,27 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004f60b0
+void C2_HOOK_FASTCALL ReceivedSmashEnvironment(tQueued_net_smash* pSmash) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f6130
+void C2_HOOK_FASTCALL DoNetSmash(tQueued_net_smash* pSmash) {
+    NOT_IMPLEMENTED();
+}
+
 // DoNetSmash
 
 // ReceivedSmashEnvironment
 
 // STUB: CARMA2_HW 0x004f62e0
 void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004f6320
+void C2_HOOK_FASTCALL ReceivedSmashShraps(tNet_message_chunk_non_car_shrapnel* pSpec) {
     NOT_IMPLEMENTED();
 }
 

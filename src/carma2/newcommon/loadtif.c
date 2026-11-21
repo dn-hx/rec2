@@ -543,6 +543,16 @@ br_pixelmap* C2_HOOK_FASTCALL LoadTiff16bit(const char *pPath, int pFlags, int *
     return pm;
 }
 
+// STUB: CARMA2_HW 0x00486760
+void C2_HOOK_FASTCALL LoadAllTiffTexturesInDirectory(const char* directory, br_pixelmap* pPalette, int loadFlags, int* errorCode) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00486860
+int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data) {
+    NOT_IMPLEMENTED();
+}
+
 br_pixelmap* C2_HOOK_FASTCALL LoadTiffUsingPalette(const char* pPath, br_pixelmap* pPalette, int pFlags, int* pError_code) {
     TIFF* tif;
     br_pixelmap* pm;

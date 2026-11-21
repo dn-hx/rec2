@@ -42,6 +42,9 @@ Movie gQuicktime_movie;
 // GLOBAL: CARMA2_HW 0x006a0c34
 Handle gQuicktime_frame_pixmap_handle;
 
+// GLOBAL: CARMA2_HW 0x006a0c38
+void* gQuicktime_compressed_frame_pixels;
+
 // GLOBAL: CARMA2_HW 0x006a0c3c
 Handle gQuicktime_compressed_frame_handle;
 
@@ -53,6 +56,9 @@ br_uint_16* gQuicktime_frame_pixels;
 
 // GLOBAL: CARMA2_HW 0x006a0c48
 br_uint_16* gQuicktime_frame_pixel_conversion_table;
+
+// GLOBAL: CARMA2_HW 0x006a0c4c
+int gQuickTime_compressor_code;
 
 // GLOBAL: CARMA2_HW 0x006a0c50
 // GLOBAL: CARMA2_SW 0x0069aca8
@@ -85,6 +91,21 @@ int gRecording_mouse_disabled;
 // GLOBAL: CARMA2_CHEAT 0x0070cae0
 char gQuick_time_temp_path[256];
 
+// GLOBAL: CARMA2_HW 0x0057a370
+void* gUNK_0057a370;
+
+// GLOBAL: CARMA2_HW 0x0057a3d0
+void* gUNK_0057a3d0;
+
+// GLOBAL: CARMA2_HW 0x0057a440
+void* gUNK_0057a440;
+
+// GLOBAL: CARMA2_HW 0x0057a460
+void* gUNK_0057a460;
+
+// GLOBAL: CARMA2_HW 0x0057a810
+void* gUNK_0057a810;
+
 // GLOBAL: CARMA2_HW 0x00705240
 // GLOBAL: CARMA2_SW 0x006fbd00
 // GLOBAL: CARMA2_CHEAT 0x0070c8e0
@@ -99,11 +120,53 @@ char gQuick_time_banner_texture_name[256];
 // GLOBAL: CARMA2_CHEAT 0x00666628
 char gDefault_quick_time_quality[32] = "normal";
 
+// GLOBAL: CARMA2_HW 0x0065ef28
+int gQuickTime_quality_code;
+
+// GLOBAL: CARMA2_HW 0x0065ef2c
+int gQuicktime_frame_flags;
+
+// GLOBAL: CARMA2_HW 0x0065ef34
+br_uint_16 gQuickTime_pixel_depth;
+
+// GLOBAL: CARMA2_HW 0x006736a8
+void* gQuickTime_dispatcher;
+
+// GLOBAL: CARMA2_HW 0x006736b0
+void* gQuickTime_module;
+
+// GLOBAL: CARMA2_HW 0x006736b4
+void* gQuickTime_dispatch;
+
+// GLOBAL: CARMA2_HW 0x006736b8
+void* gQuickTime_call_component;
+
+// GLOBAL: CARMA2_HW 0x006736bc
+void* gQuickTime_call_component_with_storage;
+
+// GLOBAL: CARMA2_HW 0x00673cf8
+void* PTR_FUN_00673cf8;
+
+// GLOBAL: CARMA2_HW 0x00673cfc
+void* PTR_FUN_00673cfc;
+
+// GLOBAL: CARMA2_HW 0x00673d04
+void* PTR_FUN_00673d04;
+
+// GLOBAL: CARMA2_HW 0x00673d08
+void* PTR_FUN_00673d08;
+
+// GLOBAL: CARMA2_HW 0x00673d0c
+void* PTR_FUN_00673d0c;
+
 // GLOBAL: CARMA2_HW 0x006a0af0
 short gQuicktime_movie_file;
 
 // GLOBAL: CARMA2_HW 0x006a0af4
 ImageSequence gQuicktime_image_sequence;
+
+// GLOBAL: CARMA2_HW 0x006a0af8
+int gQuicktime_max_compression_size;
 
 // GLOBAL: CARMA2_HW 0x006a0afc
 Media gQuicktime_media;
@@ -132,6 +195,11 @@ int C2_HOOK_FASTCALL WriteBannerFrame(void) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004e1400
+void C2_HOOK_FASTCALL Convert565BrPixelmapTo555BigEndianPixmap(void* pFrame_pixmap_handle, br_pixelmap* pScreen) {
+    NOT_IMPLEMENTED();
+}
+
 // Allocate555BackScreen
 
 // GetCompressorQualityFromOptions
@@ -139,6 +207,11 @@ int C2_HOOK_FASTCALL WriteBannerFrame(void) {
 // GetCompressorTypeFromOptions
 
 // InitMovie
+
+// STUB: CARMA2_HW 0x004e0f20
+int C2_HOOK_FASTCALL InitMovie(void) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x004e0fe0
 short C2_HOOK_FASTCALL CreateMovie(void) {
@@ -190,6 +263,11 @@ void C2_HOOK_FASTCALL SetQuickTimeDefaults(void) {
     if (gQuick_time_banner_texture_name[0] == '\0') {
         strcpy(gQuick_time_banner_texture_name, "ARBANNER.PIX");
     }
+}
+
+// STUB: CARMA2_HW 0x004e1810
+void C2_HOOK_FASTCALL MovieRecordButtonPressed(void) {
+    NOT_IMPLEMENTED();
 }
 
 // MovieRecordButtonPressed
@@ -298,6 +376,146 @@ void C2_HOOK_FASTCALL TidyMovieARDisplay(void) {
     RenderAFrame(1);
     RenderAFrame(1);
     gNext_replay_record_state = old_state;
+}
+
+// STUB: CARMA2_HW 0x0056a900
+int C2_HOOK_CDECL ExitMovies(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056a920
+int C2_HOOK_CDECL GetMoviesError(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056abe0
+void C2_HOOK_CDECL FUN_0056abe0(void* pMovie) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056b240
+int C2_HOOK_CDECL FUN_0056b240(void* pMedia) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056b340
+int C2_HOOK_CDECL BeginMediaEdits(void* pMedia) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056b360
+short C2_HOOK_CDECL FUN_0056b360(void* pMedia) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056b440
+short C2_HOOK_CDECL AddMediaSample(void* pMedia, void* pCompressed_frame, int pOffset, int pSize, int pDuration, void* pImage_description, int pSample_count, int pSample_flags, int pSample_time) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056baa0
+short C2_HOOK_CDECL FUN_0056baa0(short pRes_ref_num) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056c600
+short C2_HOOK_CDECL FUN_0056c600(void* pTrack, int pTrack_start, int pMedia_time, int pMedia_duration, int pMedia_rate) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056c640
+void* C2_HOOK_CDECL NewMovieTrack(void* pMovie, void* pWidth, void* pHeight, int pVolume) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056c6e0
+void* C2_HOOK_CDECL NewTrackMedia(void* pTrack, int pMedia_type, int pTime_scale, int pLanguage, int pQuality) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056c720
+short C2_HOOK_CDECL FUN_0056c720(void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags, short* pRes_ref_num, void** pMovie) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056c800
+void* C2_HOOK_CDECL FUN_0056c800(void* pMovie, int pFlatten_flags, const void* pFile_spec, int pCreator, short pScript_tag, int pCreate_flags) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056d7e0
+int C2_HOOK_CDECL GetMaxCompressionSize(void* pFrame_pixmap_handle, void* pFrame_rect, int pFlags, int pSpatial_quality, int pCompressor, int pColor_table_id, int* pMax_compression_size) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056d8a0
+int C2_HOOK_CDECL CompressSequenceBegin(void* pImage_sequence, void* pFrame_pixmap_handle, int pFrame_number, void* pFrame_rect1, void* pFrame_rect2, br_uint_16 pPixel_depth, int pCompressor, int pColor_table_id, int pSpatial_quality, int pTemporal_quality, int pFrame_type, int pUnused12, int pFlags, void* pImage_description_handle) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056d8c0
+short C2_HOOK_CDECL CompressSequenceFrame(int pSequence, void* pFrame_pixmap, void* pFrame_rect, int pFlags, void* pCompressed_frame, int* pFrame_size, void* pCodec_info, void* pUnused8) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056dac0
+short C2_HOOK_CDECL FUN_0056dac0(void* pSequence) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056e760
+void C2_HOOK_CDECL QTMLInitInternals(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0056fde0
+void* C2_HOOK_CDECL FixRatio(int pWidth, int pHeight) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005705c0
+int C2_HOOK_CDECL MemError(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00570600
+void* C2_HOOK_CDECL NewHandle(int pSize) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005707e0
+void C2_HOOK_CDECL HLock(void* pHandle) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00570a40
+void C2_HOOK_CDECL MoveHHi(void* pHandle) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00570ac0
+void C2_HOOK_CDECL FUN_00570ac0(void* pHandle) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00575340
+int C2_HOOK_CDECL FUN_00575340(char* pString) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00575730
+void C2_HOOK_CDECL autoPatchThoseAddresses(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005757d0
+void* C2_HOOK_CDECL _QTLoadLibrary(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00575b30
+void C2_HOOK_CDECL FUN_00575b30(void) {
+    NOT_IMPLEMENTED();
 }
 
 // TrapS3SoundOutput

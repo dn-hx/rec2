@@ -28,6 +28,9 @@ br_uint_8 g_endMasks[9] = {
     0xf8, 0xfc, 0xfe, 0xff,
 };
 
+// GLOBAL: CARMA2_HW 0x0066fd1e
+br_uint_16 g_fpuControlWord;
+
 #define WRITE_COLOUR_U8(DEST, COLOUR)               \
     do {                                            \
         *(br_uint_8*)(DEST) = (br_uint_8)(COLOUR);  \
@@ -164,6 +167,26 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
             break;
         }
     }
+}
+
+// STUB: CARMA2_HW 0x0053e31a
+void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbpixels, br_uint_32 bpp, br_uint_32 colour) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0053e3fe
+void C2_HOOK_CDECL FUN_0053e3fe(br_uint_8* dest, br_uint_32 qual, br_uint_32 width, br_uint_32 height, br_uint_32 stride, br_uint_32 bpp, br_uint_32 colour) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0053e527
+void C2_HOOK_CDECL FUN_0053e527(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height, br_uint_32 dest_stride, br_uint_32 src_stride, br_uint_32 bpp) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0053e584
+void C2_HOOK_CDECL FUN_0053e584(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0053e686

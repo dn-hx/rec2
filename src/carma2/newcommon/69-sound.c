@@ -740,6 +740,11 @@ int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const 
     }
 }
 
+// STUB: CARMA2_HW 0x00456010
+tS3_sound_tag C2_HOOK_FASTCALL DRS3StartSoundFromSource3(tS3_sound_source* pSource, tS3_sound_id pSound, tS3_repeats pRepeats, tS3_volume pVolume, tS3_pitch pPitch, tS3_speed pSpeed) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00456070
 // FUNCTION: CARMA2_SW 0x00455e00
 // FUNCTION: CARMA2_CHEAT 0x00456580
@@ -1047,6 +1052,11 @@ void C2_HOOK_FASTCALL DoAnEnvironmentalSound(void* pSrc_object, tEnvironment_sou
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x00456e20
+void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
+    NOT_IMPLEMENTED();
+}
+
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
 #endif
@@ -1073,6 +1083,11 @@ void C2_HOOK_FASTCALL DoEnvSound(tSpecial_volume* pVolume, br_vector3* pP, tSpec
 
 // STUB: CARMA2_HW 0x00456ea0
 void C2_HOOK_FASTCALL MungeSoundGenerators(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00457260
+intptr_t C2_HOOK_FASTCALL FoundSoundSource(br_actor* pActor, void* pContext) {
     NOT_IMPLEMENTED();
 }
 
