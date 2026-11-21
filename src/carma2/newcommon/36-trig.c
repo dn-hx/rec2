@@ -390,9 +390,40 @@ void C2_HOOK_FASTCALL DRMatrix34RotateZ(br_matrix34* mat, br_angle rz) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x005123f0
+// FUNCTION: CARMA2_HW 0x005123f0
 void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
-    NOT_IMPLEMENTED();
+    br_scalar t;
+    br_scalar s;
+    br_scalar c;
+    br_scalar txy;
+    br_scalar txz;
+    br_scalar tyz;
+    br_scalar sx;
+    br_scalar sy;
+    br_scalar sz;
+
+    s = FastScalarSinAngle(r);
+    c = FastScalarCosAngle(r);
+    t = 1.f - c;
+    txy = t * a->v[0] * a->v[1];
+    txz = t * a->v[0] * a->v[2];
+    tyz = t * a->v[1] * a->v[2];
+    sx = s * a->v[0];
+    sy = s * a->v[1];
+    sz = s * a->v[2];
+
+    mat->m[0][0] = a->v[0] * a->v[0] * t + c;
+    mat->m[0][1] = sx + txy;
+    mat->m[0][2] = txz - sy;
+    mat->m[1][0] = txy - sz;
+    mat->m[1][1] = a->v[1] * a->v[1] * t + c;
+    mat->m[1][2] = sx + tyz;
+    mat->m[2][0] = sy + txz;
+    mat->m[2][1] = tyz - sx;
+    mat->m[2][2] = a->v[2] * a->v[2] * t + c;
+    mat->m[3][2] = 0.f;
+    mat->m[3][1] = 0.f;
+    mat->m[3][0] = 0.f;
 }
 
 // DRMatrix34RotateZ
