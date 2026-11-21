@@ -253,9 +253,39 @@ void C2_HOOK_FASTCALL ProcessTrack(br_actor* pWorld, tTrack_spec* pTrack_spec, b
     }
 }
 
-// STUB: CARMA2_HW 0x00506e80
+// FUNCTION: CARMA2_HW 0x00506e80
 void C2_HOOK_FASTCALL AnimateSky(void) {
-    NOT_IMPLEMENTED();
+    // GLOBAL: CARMA2_HW 0x006aafc0
+    static tU32 prev_sky_animation;
+    tU32 now;
+    tU32 now2;
+    int frame_increment;
+
+    now = GetTotalTime();
+
+    if (gTrack_flic_buffer == NULL) {
+        return;
+    }
+    now2 = now;
+    if (now < prev_sky_animation) {
+        now2 = 2 * prev_sky_animation - now;
+    }
+    if (prev_sky_animation == 0) {
+        frame_increment = 1;
+    } else {
+        frame_increment = ((now2 - prev_sky_animation) / (gTrack_flic_descriptor.frame_period)) % (gTrack_flic_descriptor.current_frame + gTrack_flic_descriptor.frames_left);
+    }
+
+    for (; frame_increment != 0; frame_increment -= 1) {
+        if (PlayNextFlicFrame(&gTrack_flic_descriptor)) {
+            EndFlic(&gTrack_flic_descriptor);
+            StartFlic(gTrack_flic_descriptor.file_name, -1, &gTrack_flic_descriptor,
+                gTrack_flic_buffer_size, (tS8*)gTrack_flic_buffer, NULL, 0, 0, 0);
+            AssertFlicPixelmap(&gTrack_flic_descriptor, gProgram_state.default_depth_effect.sky_texture);
+        }
+        prev_sky_animation = now;
+        SkyTextureChanged();
+    }
 }
 
 // AnimateSky
