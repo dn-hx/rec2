@@ -2351,9 +2351,60 @@ void C2_HOOK_FASTCALL UnBendCollisionShape(tCar_crush_shape_info* pShape, const 
 }
 // UnBendCollisionShapes
 
-// STUB: CARMA2_HW 0x0043aa80
+// FUNCTION: CARMA2_HW 0x0043aa80
 void C2_HOOK_FASTCALL UnBendWheels(tCar_spec* pCar_spec, const tBend_point_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    int i;
+    float angle;
+    br_vector3 delta;
+    br_vector3 tmp;
+
+    for (i = 0; i < (int)REC2_ASIZE(pCar_spec->wheel_actors); i++) {
+        br_actor* actor;
+        tGroovidelic_spec* groove;
+
+        actor = pCar_spec->pivot_actors[i];
+        if (actor == NULL) {
+            actor = pCar_spec->wheel_actors[i];
+            if (actor == NULL) {
+                continue;
+            }
+        }
+        groove = ActorsGroove(actor);
+        if (groove != NULL && groove->path_type == eGroove_path_straight) {
+            br_vector3* centre = &groove->path_data.straight_info.centre;
+
+            delta.v[0] = -centre->v[0];
+            delta.v[1] = -centre->v[1];
+            delta.v[2] = -centre->v[2];
+            centre->v[0] = pCar_spec->car_crush_spec->field_0x1ec[i].v[0];
+            centre->v[1] = pCar_spec->car_crush_spec->field_0x1ec[i].v[1];
+            centre->v[2] = pCar_spec->car_crush_spec->field_0x1ec[i].v[2];
+            BendPoint(centre, pContext);
+            centre->v[1] = pCar_spec->car_crush_spec->field_0x1ec[i].v[1];
+            delta.v[0] = centre->v[0] + delta.v[0];
+            delta.v[1] = centre->v[1] + delta.v[1];
+            delta.v[2] = centre->v[2] + delta.v[2];
+            PipeSingleVector3(centre, &delta);
+        }
+    }
+
+    for (i = 0; i < REC2_ASIZE(pCar_spec->wpos); i++) {
+        tmp.v[0] = pCar_spec->car_crush_spec->field_0x234[i].v[0] * 6.9;
+        tmp.v[1] = pCar_spec->car_crush_spec->field_0x234[i].v[1] * 6.9;
+        tmp.v[2] = pCar_spec->car_crush_spec->field_0x234[i].v[2] * 6.9;
+        BendPoint(&tmp, pContext);
+        pCar_spec->wpos[i].v[0] = tmp.v[0] * 0.14492753;
+        pCar_spec->wpos[i].v[1] = tmp.v[1] * 0.14492753;
+        pCar_spec->wpos[i].v[2] = tmp.v[2] * 0.14492753;
+    }
+    SetCarSuspGiveAndHeight(pCar_spec, 1.f, 1.f, 1.f, 0.f, 0.f);
+    if (pContext->bend->field_0x18.v[2] == pCar_spec->car_crush_spec->bend_z_min) {
+        angle = (tU16)pContext->bend->field_0x3e * 0.005493164;
+        if (angle >= 180.f) {
+            angle = angle - 360.f;
+        }
+        pCar_spec->field_0x1260 = angle * 0.03f;
+    }
 }
 
 // UnBendOtherThings
