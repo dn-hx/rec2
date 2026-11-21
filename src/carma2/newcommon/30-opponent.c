@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -990,9 +991,12 @@ void C2_HOOK_FASTCALL TurnOpponentPhysicsOff(tOpponent_spec* pOpponent_spec) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004a7a20
+// FUNCTION: CARMA2_HW 0x004a7a20
 void C2_HOOK_FASTCALL ApplyOppoRenderage2(tOpponent_spec* pOpponent_spec, int pRender) {
-    NOT_IMPLEMENTED();
+    if (gAction_replay_mode && ARGetReplayRate() < gOppo_render_zero) {
+        pRender = (pRender == 0);
+    }
+    pOpponent_spec->car_spec->car_master_actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_DEFAULT;
 }
 
 // FUNCTION: CARMA2_HW 0x004a7a60
