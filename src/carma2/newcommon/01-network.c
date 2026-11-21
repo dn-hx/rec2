@@ -500,11 +500,6 @@ void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0049e3a0
-void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost) {
-    NOT_IMPLEMENTED();
-}
-
 // STUB: CARMA2_HW 0x0049e450
 void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers) {
     NOT_IMPLEMENTED();
@@ -1399,11 +1394,6 @@ void C2_HOOK_FASTCALL CheckCheckSum(tNet_message* pMessage) {
 
 // STUB: CARMA2_HW 0x004ddde0
 void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
-}
-
-// STUB: CARMA2_HW 0x0051a130
-tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails) {
     NOT_IMPLEMENTED();
 }
 

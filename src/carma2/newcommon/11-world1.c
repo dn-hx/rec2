@@ -26,12 +26,6 @@
 // GLOBAL: CARMA2_CHEAT 0x006b2e38
 int gDelete_count;
 
-// GLOBAL: CARMA2_HW 0x006ab7b0
-br_actor* gSpec_vol_actors[100];
-
-// GLOBAL: CARMA2_HW 0x006ab940
-int gSpec_vol_mode;
-
 // GLOBAL: CARMA2_HW 0x006aafc8
 // GLOBAL: CARMA2_SW 0x006a4a18
 // GLOBAL: CARMA2_CHEAT 0x006b2658

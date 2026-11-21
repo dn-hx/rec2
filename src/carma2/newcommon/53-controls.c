@@ -117,9 +117,6 @@ int gHad_auto_recover;
 // GLOBAL: CARMA2_HW 0x0067c464
 tU32 gLast_repair_time;
 
-// GLOBAL: CARMA2_HW 0x0067c468
-int gWhich_edit_mode;
-
 // GLOBAL: CARMA2_HW 0x0067c498
 // GLOBAL: CARMA2_SW 0x00676c10
 // GLOBAL: CARMA2_CHEAT 0x00683d40
@@ -181,9 +178,6 @@ tToggle_element gToggle_array[44];
 
 // GLOBAL: CARMA2_HW 0x005904c0
 const char* gUNK_005904c0[12] = { 0 };
-
-// GLOBAL: CARMA2_HW 0x005904f0
-tEdit_func* gEdit_funcs[2][18][8];
 
 // GLOBAL: CARMA2_HW 0x00590f60
 int gCancel_recover;
