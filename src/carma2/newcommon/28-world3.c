@@ -122,15 +122,6 @@ tU32 prev_sky_animation;
 // GLOBAL: CARMA2_HW 0x006ab948
 int gNumber_of_additional_models;
 
-// GLOBAL: CARMA2_HW 0x006b6400
-char gAdditional_model_path[256];
-
-// GLOBAL: CARMA2_HW 0x006b6500
-char gAdditional_actor_path[256];
-
-// GLOBAL: CARMA2_HW 0x006b6600
-br_actor* gLast_actor;
-
 // GLOBAL: CARMA2_HW 0x006b6620
 br_model* gAdditional_models[1000];
 
