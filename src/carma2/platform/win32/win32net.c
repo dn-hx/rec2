@@ -114,6 +114,16 @@ void C2_HOOK_FASTCALL PDNetObtainSystemUserName(char* pName, int pMax_length) {
     }
 }
 
+// STUB: CARMA2_HW 0x0051a210
+int C2_HOOK_FASTCALL PDNetSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage, tPlayer_ID pPlayer_id) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0051a2e0
+int C2_HOOK_FASTCALL PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMessage) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0051a010
 // FUNCTION: CARMA2_SW 0x00513af0
 void C2_HOOK_FASTCALL NetNowIPXLocalTarget2String(char* pString, struct sockaddr* pSock_addr) {
