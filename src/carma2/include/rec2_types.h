@@ -3440,16 +3440,6 @@ typedef struct {
     float random_up_velocity_max;
     float random_normal_velocity_max;
     float random_spin_rate_max;
-} tSmashable_initial_speed_spec;
-
-typedef struct {
-    float min_speed;
-    float max_speed;
-    float impactee_velocity_factor;
-    float random_velocity_max;
-    float random_up_velocity_max;
-    float random_normal_velocity_max;
-    float random_spin_rate_max;
 } tMovement_spec;
 
 typedef struct tSmoke_fire_chance {
