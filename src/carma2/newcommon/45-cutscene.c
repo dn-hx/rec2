@@ -116,8 +116,12 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
     }
 }
 
-// STUB: CARMA2_HW 0x00461980
+// FUNCTION: CARMA2_HW 0x00461980
 void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
-    NOT_IMPLEMENTED();
+    extern int gSound_ID;
+    extern tU32 gSound_time;
+
+    gSound_ID = pSound_ID;
+    gSound_time = pSound_time;
 }
 
