@@ -39,44 +39,12 @@ extern int gCount_car_damage_crush_list;
 extern tToggled_door gToggled_doors[16];
 extern tCrush_detach_list_item gCrush_detach_list[16];
 extern tU32 gUINT_0067be84;
-extern br_scalar gFLT_EPSILON_00589a5c;
-extern double gDouble_00589a60;
-extern float* gSplit_polyhedron_source_vertices;
-extern br_scalar gCrushZero;
-extern tU16 gSplit_polyhedron_edge_map[2560];
-extern br_face* gSplit_polyhedron_source_faces;
-extern float* gSplit_polyhedron_positive_vertices;
-extern float* gSplit_polyhedron_negative_vertices;
-extern int gCollision_face_mask__raycast;
-extern int gSensible_place_collect_active;
-extern tU16 gNext_crush_actor_id;
-extern tU16 gSplit_polyhedron_edge_map[2560];
-extern float* gSplit_polyhedron_positive_vertices;
-extern br_scalar gCrushZero;
-extern const br_scalar gFLOAT_00589a54;
-extern const br_scalar gFLOAT_00589a9c;
-extern const br_scalar gFLOAT_00589a98;
-extern float* gSplit_polyhedron_source_vertices;
-extern float* gSplit_polyhedron_negative_vertices;
-extern tU32 last_flap_bits;
-extern br_scalar gCrushZero;
-extern double gDouble_00589a60;
-extern double gDouble_00589b18;
-extern double gDouble_00589b20;
-extern tQueued_drone_crush gQueued_drone_crushes[4];
-extern br_scalar gFloat_00589b28;
-extern br_scalar gCrushSqrtHalf;
-extern br_scalar gFLOAT_00589a2c;
-extern const br_scalar gFLOAT_00589aa0;
-extern const br_scalar gFLOAT_00589aa4;
 
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 
 extern void C2_HOOK_FASTCALL ClearCrushLists(void);
 
 extern void C2_HOOK_FASTCALL RemoveCarFromCrushLists(tCar_spec* pCar_spec);
-extern const br_scalar gFLOAT_00589a54;
-extern tU16 gCrush_vertex_compression_index;
 
 extern void C2_HOOK_FASTCALL InitCrushSystems(void);
 

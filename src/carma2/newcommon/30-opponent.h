@@ -43,7 +43,6 @@ extern float gDefinite_no_cop_pursuit_speed;
 extern int gFirst_frame;
 extern float gCop_pursuit_speed_percentage_multiplier;
 extern float gHead_on_cos_value;
-extern int gStop_opponents_moving;
 
 extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
 

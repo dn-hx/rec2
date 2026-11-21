@@ -70,7 +70,6 @@ extern br_token_value gFrontend_backdrop2_material_prims[3];
 extern br_token_value gFrontend_backdrop0_material_prims[3];
 extern br_actor* gFrontend_camera;
 extern br_actor* gFrontend_backdrop_actors[3];
-extern int gFrontend_controls_indices[15];
 
 // SetGameTarget
 

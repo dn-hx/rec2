@@ -35,7 +35,6 @@ extern MCI_STATUS_PARMS gPDS3_mci_midi_status_parms;
 extern MCI_OPEN_PARMS mci_open_params;
 extern MCI_PLAY_PARMS mci_play_parms;
 extern MCI_PLAY_PARMS gPDS3_cda_play_parms;
-extern int gPDS3_midi_restart_required;
 
 enum tSSDXFlags {
     SSDX_InitDirectDraw = 0x1,

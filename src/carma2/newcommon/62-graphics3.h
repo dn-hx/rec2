@@ -37,10 +37,6 @@ extern int gBack_original_origin_x;
 extern int gBack_original_origin_y;
 #ifdef REC2_HW
 extern br_actor* gLit_op_stat_actor;
-extern int gINT_0068d6f4;
-extern int gPrevious_opponent_status;
-extern tU32 gTime_oppobar_target_wasted;
-extern float gFLOAT_0074ab90;
 #endif
 
 // CarArrowColour

@@ -30,7 +30,6 @@ extern tS3_outlet* gPedestrians_outlet;
 extern tS3_outlet* gCar_outlet;
 
 extern int gCD_fully_installed;
-extern undefined4 gUNK_0079e140;
 
 extern void C2_HOOK_FASTCALL SplungeSomeData(void* pData, br_size_t size);
 

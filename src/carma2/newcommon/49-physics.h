@@ -37,7 +37,6 @@ extern void* gPhysics_other_buffer;
 extern void* gPhysics_scratch_ptr;
 extern int gFace_count;
 extern tWorld_callbacks gWorld_callbacks;
-extern double gDOUBLE_0058a798;
 
 // count
 

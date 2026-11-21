@@ -13,9 +13,6 @@
 #include "c2_hooks.h"
 
 extern float gFloat_sine_table[91];
-extern float gFloat_sine_table_360[1];
-extern br_fixed_ls gFixed_sine_table[91];
-extern float gFloat_sine_table_270[1];
 
 extern float C2_HOOK_FASTCALL FastFloatSin(int pAngle_degrees);
 

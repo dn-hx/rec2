@@ -30,27 +30,6 @@ extern int gStatus_message_2;
 extern char gQuick_time_temp_path[256];
 extern char gQuick_time_movie_path_stub[256];
 extern char gQuick_time_banner_texture_name[256];
-extern ImageSequence gQuicktime_image_sequence;
-extern Media gQuicktime_media;
-extern Track gQuicktime_track;
-extern short gQuicktime_movie_file;
-extern int gQuicktime_movie_counter;
-extern Movie gQuicktime_movie;
-extern Handle gQuicktime_frame_pixmap_handle;
-extern Handle gQuicktime_image_description_handle;
-extern Handle gQuicktime_compressed_frame_handle;
-extern br_uint_16* gQuicktime_frame_pixel_conversion_table;
-extern br_uint_16* gQuicktime_frame_pixels;
-extern struct Rect gQuicktime_rect;
-extern FSSpec gQt_file_spec;
-extern short gQuicktime_movie_file;
-extern Movie gQuicktime_movie;
-extern int gRecording_paused;
-extern tU32 gRecording_time;
-extern int gRecording_mouse_disabled;
-extern Handle gQuicktime_frame_pixmap_handle;
-extern Handle gQuicktime_image_description_handle;
-extern Handle gQuicktime_compressed_frame_handle;
 
 // Create555BELookupTable
 

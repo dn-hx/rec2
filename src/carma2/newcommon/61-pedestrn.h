@@ -72,30 +72,12 @@ extern tPed_cache_006944c0 gPed_cache_006944c0[100];
 extern tPed_face_cache_0x34* gPed_face_caches[4];
 extern int gPipe_halted_ped_status;
 extern int gPed_valium_left;
-extern const float gFLOAT_0058a9c8;
-extern const tU8 gPed_anim_sequence_0065e4e0[4];
-extern float gPed_cos_table[256];
-extern int gPed_severing_damage;
-extern float gPed_damage_per_force;
-extern tPedestrian* gPed_recent_ped;
-extern float gGiblet_scrape_start;
-extern tExplosion_animation gNapalmed_ped_animation;
-extern const float gFlamed_ped_flame_scales[7];
 typedef struct {
     int field_0x0;
     char pad[0x158];
 } tPed_morph_slot;
 
 
-extern tPed_morph_slot gPed_morph_slots[20];
-extern br_actor* gMr_blendy;
-extern tPed_move* gPed_moves[250];
-extern tPed_morph_slot gPed_morph_slots[20];
-extern float gPed_cos_table[256];
-extern int gDAT_00677728;
-extern float gFLOAT_00677230;
-extern br_actor* gMr_blendy;
-extern tPedestrian* gPedestrians_in_sight;
 
 extern int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle);
 
