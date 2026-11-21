@@ -121,9 +121,32 @@ void C2_HOOK_FASTCALL NetFinishrace(tNet_game_details* pDetails, tRace_over_reas
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c6580
+// FUNCTION: CARMA2_HW 0x004c6580
 void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void) {
-    NOT_IMPLEMENTED();
+    int cat;
+    int car_count;
+    int i;
+
+    for (cat = eVehicle_self; cat <= eVehicle_not_really; cat++) {
+        if (cat == eVehicle_self) {
+            car_count = 1;
+        } else {
+            car_count = GetCarCount(cat);
+        }
+        for (i = 0; i < car_count; i++) {
+            tCar_spec* car;
+
+            car = cat == eVehicle_self ? &gProgram_state.current_car : GetCarSpec(cat, i);
+            if (cat != eVehicle_not_really) {
+                int j;
+
+                for (j = 0; j < 12; j++) {
+                    car->frame_start_damage[j] = 0;
+                }
+            }
+            car->car_ID = (tU16)((cat << 8) + i);
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004e3440
