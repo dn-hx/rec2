@@ -2101,10 +2101,248 @@ void C2_HOOK_FASTCALL SetModelForUpdate(br_model* pModel) {
 
 // RandomlyBendCar
 
-// STUB: CARMA2_HW 0x00431610
+// FUNCTION: CARMA2_HW 0x00431610
 // STUB: CARMA2_SW 0x00431640
 void C2_HOOK_FASTCALL TotallySpamTheCar(tCar_spec* pCar, br_scalar pDamage) {
-    NOT_IMPLEMENTED();
+    tCar_crush_spec* spec;
+    tPhysics_object* collision_info;
+    tPhysics_object* panel_actor;
+    br_actor* model_actor;
+    br_actor* node;
+    br_actor* next_node;
+    br_actor* shell;
+    float damage2;
+    float vdim[6];
+    float vlow[3];
+    float vhigh[3];
+    float f1;
+    float len;
+    float inv_len;
+    br_vector3 vec_dir;
+    br_vector3 spam_vec;
+    br_vector3 tmp1;
+    br_vector3 tmp2;
+    struct {
+        tCar_spec* car;
+        int* pCount;
+        float rate;
+    } context;
+    int pCount;
+    tU32 tick;
+    int i;
+    int j;
+    int axis;
+    int flip;
+    int rnd;
+    int found;
+    int count;
+
+    if (gArrow_mode != 0) {
+        return;
+    }
+    if (gPHIL_doing_physics != 0) {
+        count = gCount_car_damage_crush_list;
+        if (count == 8) {
+            return;
+        }
+        for (i = 0; i < count; i++) {
+            if (gCar_damage_crush_list[i].car == pCar) {
+                if (pDamage > gCar_damage_crush_list[i].damage) {
+                    gCar_damage_crush_list[i].damage = pDamage;
+                }
+                return;
+            }
+        }
+        gCar_damage_crush_list[count].car = pCar;
+        gCar_damage_crush_list[count].damage = pDamage;
+        gCount_car_damage_crush_list = count + 1;
+        return;
+    }
+    spec = pCar->car_crush_spec;
+    if (spec == NULL) {
+        return;
+    }
+    if (pCar->invulnerable_no_crushage != 0) {
+        return;
+    }
+    if (spec->field_0x4b8 != 0) {
+        return;
+    }
+    if (spec->field_0x144 != 0) {
+        return;
+    }
+    if (gNet_mode != eNet_mode_none) {
+        srand(pCar->car_crush_spec->field_0x574);
+        pCar->car_crush_spec->field_0x574 = rand();
+    }
+    for (i = 0; i < 10; i++) {
+        gCrush_panel_ids[i] = IRandomBetween(1, pCar->car_crush_spec->nb_entries);
+    }
+
+    model_actor = pCar->car_model_actor;
+    node = model_actor->children;
+    while (node != NULL) {
+        next_node = node->next;
+        if (DRActorEnumRecurseUltraPlus(node, FireOffBitsCB, pCar) != 0) {
+            goto paint;
+        }
+        node = next_node;
+    }
+    shell = (br_actor*)model_actor->user;
+    if (shell != NULL) {
+        shell = shell->children;
+        if (shell != NULL && *(void**)((tU8*)shell + 0x34) != NULL) {
+            rnd = *(tU8*)((tU8*)shell + 0x20);
+            found = 0;
+            for (i = 0; i < 10; i++) {
+                if (gCrush_panel_ids[i] == rnd) {
+                    found = 1;
+                    break;
+                }
+            }
+            if (found != 0) {
+                panel_actor = DetachBit(pCar, model_actor, NULL);
+                if (panel_actor != NULL) {
+                    BrMatrix34ApplyP(&tmp1, &pCar->collision_info->cmpos, (br_matrix34*)((tU8*)pCar->collision_info->actor + 0x2c));
+                    BrMatrix34ApplyP(&tmp2, &panel_actor->cmpos, (br_matrix34*)((tU8*)panel_actor->actor + 0x2c));
+                    tmp2.v[0] = tmp2.v[0] - tmp1.v[0];
+                    tmp2.v[1] = tmp2.v[1] - tmp1.v[1];
+                    tmp2.v[2] = tmp2.v[2] - tmp1.v[2];
+                    len = (float)sqrt(tmp2.v[0] * tmp2.v[0] + tmp2.v[1] * tmp2.v[1] + tmp2.v[2] * tmp2.v[2]);
+                    if (len <= 2.3841858e-07f) {
+                        tmp2.v[0] = 1.0f;
+                        tmp2.v[1] = 0.0f;
+                        tmp2.v[2] = 0.0f;
+                    } else {
+                        inv_len = (float)(1.0 / len);
+                        tmp2.v[0] = inv_len * tmp2.v[0];
+                        tmp2.v[1] = inv_len * tmp2.v[1];
+                        tmp2.v[2] = inv_len * tmp2.v[2];
+                    }
+                    panel_actor->v.v[0] = tmp2.v[0] * 1.1594203f + panel_actor->v.v[0];
+                    panel_actor->v.v[1] = tmp2.v[1] * 1.1594203f + panel_actor->v.v[1];
+                    panel_actor->v.v[2] = tmp2.v[2] * 1.1594203f + panel_actor->v.v[2];
+                    panel_actor->v.v[0] = pCar->collision_info->v.v[0] + tmp2.v[0] * 1.1594203f;
+                    panel_actor->v.v[1] = pCar->collision_info->v.v[1] + tmp2.v[1] * 1.1594203f;
+                    panel_actor->v.v[2] = pCar->collision_info->v.v[2] + tmp2.v[2] * 1.1594203f;
+                }
+            }
+        }
+    }
+
+paint:
+    damage2 = pDamage * 1.5f;
+    collision_info = pCar->collision_info;
+    pCount = 1;
+    tick = gPHIL_last_physics_tick;
+    vdim[0] = collision_info->bb1.min.v[0] - 0.028985508f;
+    vdim[1] = collision_info->bb1.min.v[1] - 0.028985508f;
+    vdim[2] = collision_info->bb1.min.v[2] - 0.028985508f;
+    vdim[3] = collision_info->bb1.max.v[0] - -0.028985508f;
+    vdim[4] = collision_info->bb1.max.v[1] - -0.028985508f;
+    vdim[5] = collision_info->bb1.max.v[2] - -0.028985508f;
+    i = 10;
+    do {
+        rnd = IRandomBetween(0, 5);
+        axis = rnd >> 1;
+        flip = rnd & 1;
+        vlow[axis] = flip != 0 ? vdim[axis] : vdim[axis + 3];
+        vhigh[axis] = flip != 0 ? vdim[axis + 3] : vdim[axis];
+        j = (axis + 1) % 3;
+        vlow[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        j = (j + 1) % 3;
+        vlow[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[j] = SRandomBetween(vdim[j], vdim[j + 3]);
+        vhigh[0] = vhigh[0] - vlow[0];
+        vhigh[1] = vhigh[1] - vlow[1];
+        f1 = vhigh[2] - vlow[2];
+        vhigh[2] = (float)sqrt(f1 * f1 + vhigh[1] * vhigh[1] + vhigh[0] * vhigh[0]);
+        if (vhigh[2] <= 2.3841858e-07f) {
+            vhigh[0] = 1.0f;
+            vhigh[1] = 0.0f;
+            vhigh[2] = 0.0f;
+        } else {
+            vhigh[2] = (float)(1.0 / vhigh[2]);
+            vhigh[0] = vhigh[2] * vhigh[0];
+            vhigh[1] = vhigh[2] * vhigh[1];
+            vhigh[2] = vhigh[2] * f1;
+        }
+        memcpy(&vec_dir, vlow, sizeof(vec_dir));
+        (void)vec_dir.v[0];
+        spec = pCar->car_crush_spec;
+        if (spec != NULL && pCar->invulnerable_no_crushage == 0 && spec->field_0x4b8 == 0) {
+            context.car = pCar;
+            context.pCount = &pCount;
+            context.rate = damage2;
+            if (context.rate > gMax_crush_force) {
+                context.rate = gMax_crush_force;
+            }
+            context.rate = context.rate / (float)pCount;
+            if (spec->field_0x144 != 0) {
+                ARStartPipingSession((tPipe_chunk_type)3);
+                DRActorEnumRecurseWithSnart(pCar->car_model_actor, NULL, SimpleCrushCarModelsCB, &context);
+                AREndPipingSession();
+            } else {
+                CrushCollisionShapes(pCar, &context);
+                ARStartPipingSession((tPipe_chunk_type)3);
+                DRActorEnumRecurseWithSnart(pCar->car_master_actor, NULL, CrushModels, &context);
+                AREndPipingSession();
+                pCar->use_shell_model = 0;
+            }
+        }
+        i = i - 1;
+    } while (i != 0);
+    (void)tick;
+    if (pCar->car_crush_spec->field_0x144 != 0) {
+        return;
+    }
+    if (PercentageCarHealth(pCar) >= 0x4b) {
+        return;
+    }
+    if (PercentageChance((int)(pCar->car_crush_spec->snappability_factor * 25.0f)) != 0) {
+        RandomlyXZSplitCar(pCar);
+        return;
+    }
+    if (pCar->car_crush_spec->bendability_factor == 0.0f) {
+        return;
+    }
+    rnd = IRandomBetween(1, 8) - 1;
+    switch (rnd) {
+    case 0:
+        spam_vec.v[0] = 0.0f;
+        spam_vec.v[1] = pCar->collision_info->bb1.max.v[1];
+        spam_vec.v[2] = pCar->car_crush_spec->bend_z_min;
+        BendCar(pCar, 0xe002, 0, 0, &spam_vec, pCar->collision_info->bb1.max.v[2], 0);
+        return;
+    case 1:
+        spam_vec.v[0] = 0.0f;
+        spam_vec.v[1] = pCar->collision_info->bb1.min.v[1];
+        spam_vec.v[2] = pCar->car_crush_spec->bend_z_min;
+        BendCar(pCar, 0x1ffe, 0, 0, &spam_vec, pCar->collision_info->bb1.max.v[2], 0);
+        return;
+    case 2:
+        spam_vec.v[0] = pCar->collision_info->bb1.min.v[0];
+        spam_vec.v[1] = 0.0f;
+        spam_vec.v[2] = pCar->car_crush_spec->bend_z_min;
+        BendCar(pCar, 0, 0xe002, 0, &spam_vec, pCar->collision_info->bb1.max.v[2], 0);
+        return;
+    case 3:
+        spam_vec.v[0] = pCar->collision_info->bb1.max.v[0];
+        spam_vec.v[1] = 0.0f;
+        spam_vec.v[2] = pCar->car_crush_spec->bend_z_min;
+        BendCar(pCar, 0, 0x1ffe, 0, &spam_vec, pCar->collision_info->bb1.max.v[2], 0);
+        return;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        spam_vec.v[0] = (pCar->collision_info->bb1.min.v[0] + pCar->collision_info->bb1.max.v[0]) * 0.5f;
+        spam_vec.v[1] = (pCar->collision_info->bb1.min.v[1] + pCar->collision_info->bb1.max.v[1]) * 0.5f;
+        spam_vec.v[2] = pCar->car_crush_spec->bend_z_max;
+        BendCar(pCar, 0, 0, 0x1ffe, &spam_vec, pCar->collision_info->bb1.min.v[2], 0);
+        return;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00435dd0
