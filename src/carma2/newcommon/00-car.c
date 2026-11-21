@@ -1096,9 +1096,29 @@ void C2_HOOK_FASTCALL MoveAndCollideNonCar(tNon_car_spec* pNon_car, br_scalar pD
     BrVector3InvScale(&pNon_car->pos, &pNon_car->pos, WORLD_SCALE);
 }
 
-// STUB: CARMA2_HW 0x004170c0
+// FUNCTION: CARMA2_HW 0x004170c0
 void C2_HOOK_FASTCALL CycleControlCar(void) {
-    NOT_IMPLEMENTED();
+    gControl__car++;
+    if (ControlCar[gControl__car] == NULL) {
+        gControl__car = 0;
+    }
+    switch (gControl__car) {
+    case 0:
+        NewTextHeadupSlot(4, 0, 500, -1, "Original Controls");
+        return;
+    case 1:
+        NewTextHeadupSlot(4, 0, 500, -1, "Accelerated steering");
+        return;
+    case 2:
+        NewTextHeadupSlot(4, 0, 500, -1, "0.75 Accelerated");
+        return;
+    case 3:
+        NewTextHeadupSlot(4, 0, 500, -1, "0.5 Accelerated");
+        return;
+    default:
+        NewTextHeadupSlot(4, 0, 500, -1, "New controls");
+        return;
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x00417180
