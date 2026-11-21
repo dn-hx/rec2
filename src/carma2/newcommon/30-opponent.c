@@ -209,10 +209,115 @@ void C2_HOOK_FASTCALL RecordOpponentTwattageOccurrence(tCar_spec* pTwatter, tCar
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004a82d0
+// FUNCTION: CARMA2_HW 0x004a82d0
 // STUB: CARMA2_SW 0x004a4440
 tS16 C2_HOOK_FASTCALL FindNearestGeneralSection(tCar_spec* pCar, const br_vector3* pActor_coords, br_vector3* pPath_direction, br_vector3* pIntersect, br_scalar* pDistance) {
-    NOT_IMPLEMENTED();
+    tS16 nearest_node_section_no;
+    tS16 nearest_node;
+    float t;
+    float nearest_t;
+    br_vector3 delta;
+    int section_no;
+    int no_sections;
+    tS16 nearest_projected;
+    br_scalar nearest_node_distance_squared;
+    br_scalar closest_distance_squared;
+    br_scalar the_distance_squared;
+    br_scalar length_squared_a;
+    br_vector3 a;
+    br_vector3 p;
+    br_vector3 temp;
+
+    nearest_node = -1;
+    nearest_projected = -1;
+    nearest_node_distance_squared = BR_SCALAR_MAX;
+    closest_distance_squared = BR_SCALAR_MAX;
+    if (pCar != NULL) {
+        no_sections = pCar->my_trail.number_of_nodes - 1;
+    } else {
+        no_sections = gProgram_state.AI_vehicles.number_of_path_sections;
+    }
+    for (section_no = 0; section_no < no_sections; section_no++) {
+        br_vector3* start;
+        br_vector3* finish;
+
+        if (pCar != NULL) {
+            start = &pCar->my_trail.trail_nodes[section_no + 0];
+            finish = &pCar->my_trail.trail_nodes[section_no + 1];
+        } else {
+            start = &gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0]].pos;
+            finish = &gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[section_no].node_indices[1]].pos;
+        }
+        BrVector3Sub(&a, finish, start);
+        a.v[1] *= 2.f;
+        BrVector3Sub(&p, pActor_coords, start);
+        p.v[1] *= 2.f;
+        the_distance_squared = Vector3DistanceSquared(&p, &a);
+        if (the_distance_squared < closest_distance_squared) {
+            if (pCar != NULL) {
+                nearest_node = section_no;
+            } else {
+                nearest_node = gProgram_state.AI_vehicles.path_sections[section_no].node_indices[1];
+            }
+            nearest_node_section_no = section_no;
+            closest_distance_squared = the_distance_squared;
+        }
+        the_distance_squared = BrVector3LengthSquared(&p);
+        if (the_distance_squared < closest_distance_squared) {
+            if (pCar != NULL) {
+                nearest_node = section_no + 1;
+            } else {
+                nearest_node = gProgram_state.AI_vehicles.path_sections[section_no].node_indices[0];
+            }
+            nearest_node_section_no = section_no;
+            closest_distance_squared = the_distance_squared;
+        }
+        length_squared_a = BrVector3LengthSquared(&a);
+        if (length_squared_a >= 0.0001f) {
+            t = BrVector3Dot(&p, &a) / length_squared_a;
+            if (t >= 0.f && t <= 1.f) {
+                temp.v[0] = p.v[0] - a.v[0] * t;
+                temp.v[1] = p.v[1] - a.v[1] * t;
+                temp.v[2] = p.v[2] - a.v[2] * t;
+                the_distance_squared = temp.v[2] * temp.v[2] + temp.v[1] * temp.v[1] + temp.v[0] * temp.v[0];
+                if (the_distance_squared < nearest_node_distance_squared) {
+                    nearest_projected = section_no;
+                    nearest_node_distance_squared = the_distance_squared;
+                    nearest_t = t;
+                }
+            }
+        }
+    }
+    if (nearest_node_distance_squared <= closest_distance_squared) {
+        nearest_node = -1;
+        nearest_node_section_no = nearest_projected;
+    }
+    if (pCar != NULL) {
+        delta.v[0] = pCar->my_trail.trail_nodes[nearest_node_section_no + 1].v[0] - pCar->my_trail.trail_nodes[nearest_node_section_no + 0].v[0];
+        delta.v[1] = pCar->my_trail.trail_nodes[nearest_node_section_no + 1].v[1] - pCar->my_trail.trail_nodes[nearest_node_section_no + 0].v[1];
+        delta.v[2] = pCar->my_trail.trail_nodes[nearest_node_section_no + 1].v[2] - pCar->my_trail.trail_nodes[nearest_node_section_no + 0].v[2];
+    } else {
+        delta.v[0] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[1]].pos.v[0] - gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[0];
+        delta.v[1] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[1]].pos.v[1] - gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[1];
+        delta.v[2] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[1]].pos.v[2] - gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[2];
+    }
+    if (nearest_node < 0) {
+        pIntersect->v[0] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[0] + delta.v[0] * nearest_t;
+        pIntersect->v[1] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[1] + delta.v[1] * nearest_t;
+        pIntersect->v[2] = gProgram_state.AI_vehicles.path_nodes[gProgram_state.AI_vehicles.path_sections[nearest_node_section_no].node_indices[0]].pos.v[2] + delta.v[2] * nearest_t;
+    } else if (pCar != NULL) {
+        BrVector3Copy(pIntersect, &pCar->my_trail.trail_nodes[nearest_node]);
+    } else {
+        BrVector3Copy(pIntersect, &gProgram_state.AI_vehicles.path_nodes[nearest_node].pos);
+    }
+    BrVector3InvScale(pPath_direction, &delta, BrVector3Length(&delta));
+    *pDistance = (br_scalar)sqrt((pActor_coords->v[0] - pIntersect->v[0]) * (pActor_coords->v[0] - pIntersect->v[0])
+            + (pActor_coords->v[1] - pIntersect->v[1]) * (pActor_coords->v[1] - pIntersect->v[1])
+            + (pActor_coords->v[2] - pIntersect->v[2]) * (pActor_coords->v[2] - pIntersect->v[2]));
+    if (pCar != NULL) {
+        nearest_node_section_no += 15000;
+    }
+    return nearest_node_section_no;
 }
 
 #ifdef REC2_MATCHING
