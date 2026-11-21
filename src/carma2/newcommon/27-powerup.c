@@ -2232,9 +2232,23 @@ br_actor* C2_HOOK_FASTCALL CreateBillBoard(br_pixelmap* pTexture) {
     return actor;
 }
 
-// STUB: CARMA2_HW 0x004e0ba0
+// FUNCTION: CARMA2_HW 0x004e0ba0
 void C2_HOOK_FASTCALL DisposeBillBoard(br_actor* pActor) {
-    NOT_IMPLEMENTED();
+
+    if (pActor != NULL) {
+        if (pActor->material != NULL) {
+            BrMaterialRemove(pActor->material);
+            BrMaterialFree(pActor->material);
+        }
+        if (pActor->model != NULL) {
+            BrModelRemove(pActor->model);
+            BrModelFree(pActor->model);
+        }
+        if (pActor->parent != NULL) {
+            BrActorRemove(pActor);
+        }
+        BrActorFree(pActor);
+    }
 }
 
 // FUNCTION: CARMA2_HW 0x004e0c00
