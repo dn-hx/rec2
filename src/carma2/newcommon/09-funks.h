@@ -31,6 +31,8 @@ extern void C2_HOOK_STDCALL SetSightDistance(br_scalar pYon);
 
 extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pValue);
 
+extern float C2_HOOK_FASTCALL ControlBoundFunkGroovePlus(int pSlot_number, undefined4 pArg2, float pValue);
+
 // ShiftBoundGrooveFunks
 
 // AddNewFunkotronic
@@ -38,6 +40,8 @@ extern void C2_HOOK_FASTCALL ControlBoundFunkGroove(int pSlot_number, float pVal
 extern void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner);
 
 extern br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData);
+
+extern br_uint_32 C2_HOOK_FASTCALL AddProximities(br_actor* pActor, br_material* pMat, void* pData);
 
 // TryThisFunkLink
 

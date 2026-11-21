@@ -141,4 +141,6 @@ extern void C2_HOOK_FASTCALL ConfigureZombiePedTextTxtPath(void);
 
 extern void C2_HOOK_FASTCALL ConfigureAlienPedTextTxtPath(void);
 
+extern intptr_t C2_HOOK_CDECL LinkCrushModel(br_actor* pActor, void* pData);
+
 #endif // GUARD_10_LOADING2_H

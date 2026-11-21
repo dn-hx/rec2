@@ -107,6 +107,8 @@ extern br_scalar C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_i
 
 // DoNonCarShrapnel
 
+extern void C2_HOOK_FASTCALL DoShrapnel(tU32 field_0x4, tU32 field_0x84, tU32 field_0x44, br_vector3* field_0x8, br_vector3* field_0x20, br_vector3* field_0x2c, tU32 field_0x50, tU32 field_0x48, tU32 field_0x0, br_vector3* field_0x54, br_vector3* field_0x88, br_vector3* field_0x14, tU32 field_0xa0, br_vector3* field_0x38, tU32 field_0);
+
 // DoAward
 
 extern void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor);
@@ -144,6 +146,10 @@ extern void C2_HOOK_FASTCALL InitSmashQueue(void);
 // FlushPowerupQueue
 
 // FlushSmashQueue
+
+extern tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10);
+
+extern void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9);
 
 // AllocateSmashLevels
 
@@ -205,6 +211,8 @@ extern void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crus
 
 // AddRepairAnimationToQueue
 
+extern void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data);
+
 extern void C2_HOOK_FASTCALL TotallyRepairSmash(tCar_spec* pCar_Spec, tCar_crush_buffer_entry* pSmash_data);
 
 // InitGlassFragments
@@ -232,6 +240,8 @@ extern void C2_HOOK_FASTCALL MungeGlassFragments2(int pEnd_race);
 extern void C2_HOOK_FASTCALL CleanUpSmashStuff(void);
 
 extern void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_data);
+
+extern void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38);
 
 extern void C2_HOOK_FASTCALL InitRepairAnimations(void);
 
@@ -311,6 +321,10 @@ extern intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser);
 
 extern intptr_t C2_HOOK_FASTCALL RepairAllSmashes(tCar_spec* pCar_spec);
 
+extern intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext);
+
+extern void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec);
+
 extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea_1, int* pArea_2);
 
 extern void C2_HOOK_FASTCALL GetGlassFragmentCounts(int* pVisible_count, int* pActive_count);
@@ -338,6 +352,8 @@ extern void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spe
 // DoNetSmash
 
 // ReceivedSmashEnvironment
+
+extern void C2_HOOK_FASTCALL DoQueuedNetSmashes(void);
 
 // FindTheBastard
 
