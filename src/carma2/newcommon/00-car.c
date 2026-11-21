@@ -1248,9 +1248,40 @@ void C2_HOOK_FASTCALL ControlCar5(tCar_spec* pCar, br_scalar pDt) {
     pCar->keys.left = 1;
 }
 
-// STUB: CARMA2_HW 0x00417de0
+// FUNCTION: CARMA2_HW 0x00417de0
 void C2_HOOK_FASTCALL ControlCar1(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
-    NOT_IMPLEMENTED();
+    br_scalar speed;
+
+    (void)pUnused;
+    pCar->acc_force = 0.0f;
+    if (pCar->keys.acc) {
+        pCar->acc_force = 7.0f * pCar->collision_info->M;
+    }
+    if (pCar->keys.dec) {
+        pCar->acc_force = -(7.0f * pCar->collision_info->M);
+    }
+    if (pCar->keys.left) {
+        if (pCar->curvature < 0.0f) {
+            pCar->curvature = (float)(pCar->curvature - pDt * -0.25);
+        } else {
+            speed = BrVector3Length(&pCar->collision_info->v);
+            pCar->curvature = (float)(pCar->curvature + (pDt * 25.0f) * (0.05f / (speed + 5.0f)));
+        }
+    }
+    if (pCar->keys.right) {
+        if (pCar->curvature > 0.0f) {
+            pCar->curvature = (float)(pCar->curvature - pDt * 0.25);
+        } else {
+            speed = BrVector3Length(&pCar->collision_info->v);
+            pCar->curvature = (float)(pCar->curvature - (pDt * 25.0f) * (0.05f / (speed + 5.0f)));
+        }
+    }
+    if (pCar->curvature > pCar->maxcurve) {
+        pCar->curvature = pCar->maxcurve;
+    }
+    if (pCar->curvature < -pCar->maxcurve) {
+        pCar->curvature = -pCar->maxcurve;
+    }
 }
 
 // STUB: CARMA2_HW 0x00417fb0
