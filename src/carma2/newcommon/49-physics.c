@@ -744,10 +744,12 @@ int C2_HOOK_FASTCALL GetJointForces(tPhysics_object* pObject, tPhysics_joint_for
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004b9750
+// FUNCTION: CARMA2_HW 0x004b9750
 // STUB: CARMA2_SW 0x004b5e70
 void C2_HOOK_FASTCALL TellPhysicsJointsHaveChanged(tPhysics_object* pCollision_info) {
-    NOT_IMPLEMENTED();
+    pCollision_info->field_0x218 = 0;
+    MoveJointedObject(pCollision_info, 0.f);
+    gINT_00692dc8 = 1;
 }
 
 // STUB: CARMA2_HW 0x004b99e0
