@@ -548,9 +548,23 @@ void C2_HOOK_FASTCALL LoadInDronePaths(FILE* pF) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00451070
+// FUNCTION: CARMA2_HW 0x00451070
 void C2_HOOK_FASTCALL PreprocessDronePaths(void) {
-    NOT_IMPLEMENTED();
+    int i;
+    for (i = 0; i < gCount_drone_path_nodes; i++) {
+        tDrone_path_node* node;
+        int j;
+
+        node = &gDrone_path_nodes[i];
+        for (j = 0; j < node->count_sections; j++) {
+            tDrone_path_node_section* section;
+
+            section = &node->sections[j];
+            BrVector3Sub(&section->field_0x04, &gDrone_path_nodes[section->node1].position, &node->position);
+            section->field_0x1c = BrVector3Length(&section->field_0x04);
+            BrVector3Normalise(&section->field_0x10, &section->field_0x04);
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x00451210
