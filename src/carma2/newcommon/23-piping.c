@@ -697,7 +697,7 @@ int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_
 
 // GetReducedPos
 
-inline void C2_HOOK_FASTCALL SaveReducedPos(tReduced_pos* pReduced_pos, br_vector3* pPos) {
+static inline void C2_HOOK_FASTCALL SaveReducedPos(tReduced_pos* pReduced_pos, br_vector3* pPos) {
     br_vector3 tv;
 
     BrVector3Sub(&tv, pPos, &gProgram_state.current_car.car_master_actor->t.t.translate.t);
