@@ -72,6 +72,9 @@ br_resource_class fw_resourceClasses[25] = {
     { 0u, "TOKEN_TEMPLATE", BR_MEMORY_TOKEN_TEMPLATE, NULL, 0u },
 };
 
+// GLOBAL: CARMA2_HW 0x0066570c
+br_uint_32 fw_resourceClassesPadding;
+
 // GLOBAL: CARMA2_HW 0x00665b70
 // GLOBAL: CARMA2_SW 0x00660308
 void* functionPointers_BRCORE1[185] = {
