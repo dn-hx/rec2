@@ -697,9 +697,10 @@ void C2_HOOK_FASTCALL EndMouseCursor(void) {
     gMouse_started = 0;
 }
 
-// STUB: CARMA2_HW 0x0047b910
-br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x0047b910
+br_scalar C2_HOOK_FASTCALL DistanceFromPlane(br_vector3* pPos, br_scalar arg2, br_scalar pA, br_scalar pB, br_scalar pC, br_scalar pD) {
+
+    return (float)fabs((pPos->v[0] * pA + pPos->v[1] * pB + pPos->v[2] * pC + pD) / (pA * pA + pB * pB + pC * pC));
 }
 
 // STUB: CARMA2_HW 0x0047cd40
