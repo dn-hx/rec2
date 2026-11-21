@@ -3968,9 +3968,10 @@ int C2_HOOK_FASTCALL NetSync_Infunc(tFrontend_spec* pFrontend) {
     return 0;
 }
 
-// STUB: CARMA2_HW 0x004743c0
+// FUNCTION: CARMA2_HW 0x004743c0
 int C2_HOOK_CDECL SortScores_1(const void* pArg1, const void* pArg2) {
-    NOT_IMPLEMENTED();
+
+    return gNet_players[*(int*)pArg2].score - gNet_players[*(int*)pArg1].score;
 }
 
 // NetSync_MenuHandler
