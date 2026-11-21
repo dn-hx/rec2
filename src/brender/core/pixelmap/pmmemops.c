@@ -71,19 +71,27 @@ br_uint_16 g_fpuControlWord = 0x1f3f;
         }                                                       \
     } while (0)
 
+/* Rows that are more than one source byte wide: row_bytes + 1 source bytes per row, the first masked with
+ * start_mask and the last with end_mask. Row start pointers are kept so that the strides apply to them. */
 #define COLOR_BITS_BLOCK(SIZE, WRITE, SRC, DEST, COLOUR)                                                    \
     do {                                                                                                    \
         br_uint_8* src_ptr = (SRC);                                                                         \
-        void* dest_ptr = (DEST);                                                                            \
-        for (; height != 0; height--, src_ptr += s_stride, dest_ptr = (br_uint_8*)dest_ptr + dest_stride) { \
+        br_uint_8* dest_ptr = (DEST);                                                                       \
+        for (; height != 0; height--, src_ptr += s_stride, dest_ptr += dest_stride) {                       \
+            br_uint_8* row_src = src_ptr;                                                                   \
+            br_uint_8* row_dest = dest_ptr;                                                                 \
             br_uint_32 remaining_row = row_bytes;                                                           \
-            br_uint_8 bits = *src_ptr & start_mask;                                                         \
+            br_uint_8 bits = *row_src & start_mask;                                                         \
                                                                                                             \
-            for (; remaining_row >= 0; remaining_row--) {                                                   \
-                COLOR_BITS_BYTE((SIZE), WRITE, bits, dest_ptr, src_ptr, (COLOUR));                          \
-                ++src_ptr;                                                                                  \
-                dest_ptr = (br_uint_8*)dest_ptr + 8 * (SIZE);                                               \
-                bits = *src_ptr;                                                                            \
+            for (;;) {                                                                                      \
+                COLOR_BITS_BYTE((SIZE), WRITE, bits, row_dest, row_src, (COLOUR));                          \
+                row_dest += 8 * (SIZE);                                                                     \
+                row_src++;                                                                                  \
+                if (remaining_row == 0) {                                                                   \
+                    break;                                                                                  \
+                }                                                                                           \
+                bits = *row_src;                                                                            \
+                remaining_row--;                                                                            \
                 if (remaining_row == 0) {                                                                   \
                     bits &= end_mask;                                                                       \
                 }                                                                                           \
@@ -134,7 +142,7 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
             break;
         }
         default:
-            abort();
+            /* the original returns without writing for any bpp other than 1-4 */
             break;
         }
     } else {
@@ -156,7 +164,7 @@ void C2_HOOK_CDECL pm_mem_copy_bits(void* dest, br_uint_32 qual, br_uint_32 dest
             COLOR_BITS_BLOCK(4, WRITE_COLOUR_U32, src, dest, colour);
             break;
         default:
-            abort();
+            /* the original returns without writing for any bpp other than 1-4 */
             break;
         }
     }
@@ -198,7 +206,8 @@ void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbp
         }
         break;
     default:
-        abort();
+        /* the original returns without writing for any bpp other than 1-4 */
+        break;
     }
 }
 
@@ -242,7 +251,8 @@ void C2_HOOK_CDECL FUN_0053e3fe(br_uint_8* dest, br_uint_32 qual, br_uint_32 wid
             }
             break;
         default:
-            abort();
+            /* the original returns without writing for any bpp other than 1-4 */
+            break;
         }
     }
 }
@@ -281,7 +291,8 @@ void C2_HOOK_CDECL pm_mem_set_colour(br_uint_8* dest, br_uint_32 dest_qual, br_u
         *(br_uint_32*)dest = colour;
         break;
     default:
-        abort();
+        /* the original returns without writing for any bpp other than 1-4 */
+        break;
     }
 }
 
@@ -301,7 +312,7 @@ br_uint_32 C2_HOOK_CDECL pm_mem_read_colour(void* src, br_uint_32 src_qual, br_u
     case 4:
         return (br_uint_32)*(br_uint_32*)src;
     default:
-        abort();
+        /* the original returns 0 for any bpp other than 1-4 */
         return 0;
     }
 }
@@ -373,17 +384,18 @@ void C2_HOOK_CDECL pm_mem_fill_colour_rect(br_uint_8* dest, br_uint_32 qual, br_
         }
         break;
     case 3: {
-        br_uint_8 r, g, b;
+        br_uint_8 b0, b1, b2;
 
-        r = (br_uint_8)((colour >> 16) & 0xff);
-        g = (br_uint_8)((colour >>  8) & 0xff);
-        b = (br_uint_8)((colour >>  0) & 0xff);
+        /* the original stores the colour low byte first, like pm_mem_fill_colour */
+        b0 = (br_uint_8)((colour >>  0) & 0xff);
+        b1 = (br_uint_8)((colour >>  8) & 0xff);
+        b2 = (br_uint_8)((colour >> 16) & 0xff);
 
         for (y = 0; y < height; y++, dest += stride) {
             for (x = 0; x < width; x++) {
-                ((br_uint_8*)dest)[3 * x + 0] = r;
-                ((br_uint_8*)dest)[3 * x + 1] = g;
-                ((br_uint_8*)dest)[3 * x + 2] = b;
+                ((br_uint_8*)dest)[3 * x + 0] = b0;
+                ((br_uint_8*)dest)[3 * x + 1] = b1;
+                ((br_uint_8*)dest)[3 * x + 2] = b2;
             }
         }
         break;
@@ -396,7 +408,7 @@ void C2_HOOK_CDECL pm_mem_fill_colour_rect(br_uint_8* dest, br_uint_32 qual, br_
         }
         break;
     default:
-        abort();
+        /* the original returns without writing for any bpp other than 1-4 */
         return;
     }
 }
