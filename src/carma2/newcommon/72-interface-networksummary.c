@@ -113,3 +113,9 @@ tFrontend_spec gFrontend_NETWORK_SUMMARY = {
     0
 #endif
 };
+
+
+// STUB: CARMA2_HW 0x00473f40
+int C2_HOOK_FASTCALL NetSummary_Infunc(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
