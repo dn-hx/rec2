@@ -56,35 +56,26 @@ tQueued_net_smash gQueued_net_smashes[50];
 // GLOBAL: CARMA2_HW 0x006a4430
 tPowerup_queue_item gPowerup_queue[50];
 
-// GLOBAL: CARMA2_HW 0x0058aec0
 float gFloat_0058aec0 = 0.0f;
 
 float gFloat_0058aec4 = 2.3841858e-07f;
 
 double gDouble_0058aec8 = 1.0;
 
-// GLOBAL: CARMA2_HW 0x0058aee8
 const double gDouble_0058aee8 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058aef8
 const double gDOUBLE_0058aef8 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058af20
 const float gFLOAT_0058af20 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058af38
 float gFloat_0058af38;
 
-// GLOBAL: CARMA2_HW 0x0058af88
 const double gDOUBLE_0058af88 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058afa8
 const double gDOUBLE_0058afa8 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058afb0
 float gFloat_0058afb0;
 
-// GLOBAL: CARMA2_HW 0x0058afb4
 float gFloat_0058afb4;
 
 // GLOBAL: CARMA2_HW 0x0065fea0

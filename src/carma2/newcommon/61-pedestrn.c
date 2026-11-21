@@ -205,7 +205,6 @@ int gSelected_ped;
 // GLOBAL: CARMA2_HW 0x007447fc
 float gPed_buoyancy_factor;
 
-// GLOBAL: CARMA2_HW 0x00589358
 const br_scalar gFloat_00589358 = 0;
 
 // GLOBAL: CARMA2_HW 0x007447ac
@@ -393,25 +392,18 @@ int gPeds_already_munged;
 
 const float gFLOAT_0058a9c8 = -1.0f;
 
-// GLOBAL: CARMA2_HW 0x0058aae0
 double gPed_face_cache_margin;
 
-// GLOBAL: CARMA2_HW 0x0058aae8
 double gPed_face_normal_threshold;
 
-// GLOBAL: CARMA2_HW 0x0058aaf0
 const float gPed_face_bounds_min_x = 0;
 
-// GLOBAL: CARMA2_HW 0x0058aaf8
 const double gPed_face_bounds_vertical_margin = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ab00
 const float gPed_face_bounds_min_z = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ab04
 const float gPed_face_bounds_max_x = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ab08
 const float gPed_face_bounds_max_z = 0;
 
 // GLOBAL: CARMA2_HW 0x0065d758

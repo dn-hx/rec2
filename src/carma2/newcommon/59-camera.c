@@ -145,7 +145,6 @@ float gCamera_cockpit_hither;
 // GLOBAL: CARMA2_SW 0x00795548
 tActionReplayCameraMode gAction_replay_camera_mode;
 
-// GLOBAL: CARMA2_HW 0x00589418
 const br_scalar gFLOAT_00589418 = 0;
 
 // GLOBAL: CARMA2_HW 0x0058f5e8

@@ -66,13 +66,10 @@ int gAuto_increase_credits_dt[3];
 // GLOBAL: CARMA2_HW 0x0079d8a0
 tHeadup_text_buffer gJoystick_headup_buffer_0079d8a0;
 
-// GLOBAL: CARMA2_HW 0x00589440
 float gFLOAT_00589440;
 
-// GLOBAL: CARMA2_HW 0x00589508
 double gDouble_00589508;
 
-// GLOBAL: CARMA2_HW 0x005895a8
 double gDouble_005895a8;
 
 // GLOBAL: CARMA2_HW 0x00596308

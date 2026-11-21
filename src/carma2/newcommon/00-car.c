@@ -133,7 +133,6 @@ int gIn_the_sea;
 
 double gZero = 1.0;
 
-// GLOBAL: CARMA2_HW 0x00589694
 float gFneg1000;
 
 
@@ -159,94 +158,64 @@ tPhysics_callbacks gCar_physics_callbacks;
 
 // GLOBAL: CARMA2_HW 0x0058f704
 int gFlyCarMode;
-// GLOBAL: CARMA2_HW 0x005896a8
 float gF1000 = 1000.0f;
 
-// GLOBAL: CARMA2_HW 0x00589a68
 br_scalar gCrushReattachDistanceSquared;
 
-// GLOBAL: CARMA2_HW 0x00589b48
 float gFLOAT_00589b48;
 
-// GLOBAL: CARMA2_HW 0x00589b64
 br_scalar gFloat_00589b64;
 
-// GLOBAL: CARMA2_HW 0x00589b68
 double gDouble_00589b68;
 
-// GLOBAL: CARMA2_HW 0x00589b70
 br_scalar gFloat_00589b70;
 
-// GLOBAL: CARMA2_HW 0x00589b74
 br_scalar gFloat_00589b74;
 
-// GLOBAL: CARMA2_HW 0x00589b78
 br_scalar gFloat_00589b78;
 
-// GLOBAL: CARMA2_HW 0x00589b7c
 br_scalar gFloat_00589b7c;
 
-// GLOBAL: CARMA2_HW 0x00589b80
 double gDouble_00589b80;
 
-// GLOBAL: CARMA2_HW 0x00589b88
 double gDouble_00589b88;
 
-// GLOBAL: CARMA2_HW 0x00589b90
 double gDouble_00589b90;
 
-// GLOBAL: CARMA2_HW 0x00589b98
 br_scalar gFloat_00589b98;
 
-// GLOBAL: CARMA2_HW 0x00589b9c
 br_scalar gFloat_00589b9c;
 
-// GLOBAL: CARMA2_HW 0x00589ba0
 br_scalar gFloat_00589ba0;
 
-// GLOBAL: CARMA2_HW 0x00589ba4
 br_scalar gFloat_00589ba4;
 
-// GLOBAL: CARMA2_HW 0x00589ba8
 br_scalar gFloat_00589ba8;
 
-// GLOBAL: CARMA2_HW 0x00589bac
 br_scalar gFloat_00589bac;
 
-// GLOBAL: CARMA2_HW 0x00589bb0
 br_scalar gFloat_00589bb0;
 
-// GLOBAL: CARMA2_HW 0x00589bb4
 br_scalar gFloat_00589bb4;
 
-// GLOBAL: CARMA2_HW 0x00589bb8
 br_scalar gFloat_00589bb8;
 
-// GLOBAL: CARMA2_HW 0x00589bbc
 br_scalar gFloat_00589bbc;
 
-// GLOBAL: CARMA2_HW 0x00589bc0
 br_scalar gFloat_00589bc0;
 
-// GLOBAL: CARMA2_HW 0x00589bc4
 br_scalar gFloat_00589bc4;
 
-// GLOBAL: CARMA2_HW 0x00589f80
 const double gJoystick_collision_force_scale = 0;
 
-// GLOBAL: CARMA2_HW 0x00589f88
 const float gJoystick_collision_force_min_length = 0;
 
-// GLOBAL: CARMA2_HW 0x00589f90
 const double gJoystick_collision_force_one = 0;
 
-// GLOBAL: CARMA2_HW 0x00589f98
 const float gJoystick_collision_force_one_f = 0;
 
-// GLOBAL: CARMA2_HW 0x00589f9c
 const float gJoystick_collision_force_zero_f = 0;
 
-// GLOBAL: CARMA2_HW 0x00589fa0
 const double gJoystick_collision_force_radians_to_degrees = 0;
 // GLOBAL: CARMA2_HW 0x0058f678
 int gControl__car = 3;

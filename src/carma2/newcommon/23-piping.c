@@ -170,10 +170,8 @@ tFloat_u32_union gFloat_pipe_union;
 // GLOBAL: CARMA2_HW 0x00694110
 tU32 gTrigger_time;
 
-// GLOBAL: CARMA2_HW 0x00589338
 double gDouble_00589338;
 
-// GLOBAL: CARMA2_HW 0x00589340
 double gDouble_00589340;
 
 // FUNCTION: CARMA2_HW 0x00402300

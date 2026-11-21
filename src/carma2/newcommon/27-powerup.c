@@ -249,61 +249,42 @@ int gInstant_handbrake;
 // GLOBAL: CARMA2_HW 0x0079ecbc
 tPhysics_object* gUNK_0079ecbc;
 
-// GLOBAL: CARMA2_HW 0x0058abe0
 const double gConst_world_scale = 0;
 
-// GLOBAL: CARMA2_HW 0x0058abe8
 const double gConst_2pi = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac00
 const float gConst_0p5 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac0c
 const float gConst_0p0 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac18
 const double gConst_1p0 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac40
 const float gConst_0p1 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac48
 const double gConst_10_over_7 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac50
 const float gBounce_rate_const = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac70
 const double gConst_minus_0p15 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac88
 const float gConst_0p025 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac8c
 const float gConst_25 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac90
 const double gConst_inverse_world_scale = 0;
 
-// GLOBAL: CARMA2_HW 0x0058ac98
 const double gConst_3pi_over_2 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058aca0
 const double gConst_minus_128_over_pi = 0;
 
-// GLOBAL: CARMA2_HW 0x0058aca8
 const double gConst_pi = 0;
 
-// GLOBAL: CARMA2_HW 0x0058acb0
 const double gConst_pi_over_2 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058acb8
 const float gConst_minus_1p0 = 0;
 
-// GLOBAL: CARMA2_HW 0x0058acc0
 const double gConst_radians_to_degrees = 0;
 
-// GLOBAL: CARMA2_HW 0x0058acc8
 const double gConst_0p95 = 0;
 
 // GLOBAL: CARMA2_HW 0x0059630c

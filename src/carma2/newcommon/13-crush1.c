@@ -66,20 +66,14 @@ br_scalar gCrushZero = 0.0f;
 const br_scalar gFLOAT_00589a9c = 0.9999f;
 br_scalar gFLOAT_00589acc = 0.0014492754f;
 
-// GLOBAL: CARMA2_HW 0x00589ad0
 double gDouble_00589ad0;
-// GLOBAL: CARMA2_HW 0x00589ae0
 br_scalar gFLOAT_00589ae0 = 0.083333336f;
 
-// GLOBAL: CARMA2_HW 0x00589ae4
 br_scalar gFLOAT_00589ae4;
-// GLOBAL: CARMA2_HW 0x00589b30
 br_scalar gFLOAT_0_015_00589b30 = 0.015f;
 
-// GLOBAL: CARMA2_HW 0x00589c40
 float gFloat_00589c40;
 
-// GLOBAL: CARMA2_HW 0x00589a74
 br_scalar gCrushSqrtHalf = 0.70710701f;
 // GLOBAL: CARMA2_HW 0x0058f808
 // GLOBAL: CARMA2_SW 0x0058a808

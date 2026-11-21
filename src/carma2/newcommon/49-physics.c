@@ -96,7 +96,6 @@ int gPHIL_munging_objects;
 // GLOBAL: CARMA2_HW 0x0079d858
 tFace_ref* gPling_face;
 
-// GLOBAL: CARMA2_HW 0x0058a768
 br_scalar gFLOAT_0058a768;
 
 // GLOBAL: CARMA2_HW 0x006940c8
@@ -146,7 +145,6 @@ int gFace_count;
 // GLOBAL: CARMA2_HW 0x006940b8
 int gINT_006940b8;
 
-// GLOBAL: CARMA2_HW 0x0058a798
 double gDOUBLE_0058a798 = 0.01;
 
 // GLOBAL: CARMA2_HW 0x005964c4

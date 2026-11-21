@@ -115,7 +115,6 @@ tCar_spec* gActive_car_list[139];
 // GLOBAL: CARMA2_SW 0x007430ac
 int gNum_active_cars;
 
-// GLOBAL: CARMA2_HW 0x0058a478
 float gOppo_render_zero;
 
 // GLOBAL: CARMA2_HW 0x00691770
