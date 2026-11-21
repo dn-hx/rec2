@@ -2050,9 +2050,85 @@ void C2_HOOK_FASTCALL BendWheels(tCar_spec* pCar_spec, const tBend_point_context
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00435550
+// FUNCTION: CARMA2_HW 0x00435550
 void C2_HOOK_FASTCALL BendActor(tCar_spec* pCar, br_actor* pActor, br_angle pAngle_x, br_angle pAngle_y, br_angle pAngle_z, const br_vector3* pArg6, float pArg7, tBend_data_local* pBend) {
-    NOT_IMPLEMENTED();
+    br_vector3 transformed;
+    struct {
+        tCar_spec* car;
+        br_matrix34 matrix;
+        tBend_data_local* bend;
+    } context;
+    float* pBounds;
+
+    context.bend = pBend;
+    pBounds = (float*)pBend;
+    BrMatrix34Translate(&context.matrix, -pArg6->v[0], -pArg6->v[1], -pArg6->v[2]);
+    if (pAngle_y != 0) {
+        BrMatrix34PostRotateY(&context.matrix, pAngle_y);
+    }
+    if (pAngle_x != 0) {
+        BrMatrix34PostRotateX(&context.matrix, pAngle_x);
+    }
+    if (pAngle_z != 0) {
+        BrMatrix34PostRotateZ(&context.matrix, pAngle_z);
+    }
+    BrMatrix34PostTranslate(&context.matrix, pArg6->v[0], pArg6->v[1], pArg6->v[2]);
+    BrActorToBounds((br_bounds*)pBend, pActor);
+    pBounds[0x11] = pBounds[3];
+    pBounds[0x12] = pBounds[4];
+    pBounds[0x13] = pArg6->v[2];
+    pBounds[0x14] = pBounds[3];
+    pBounds[0x15] = pBounds[1];
+    pBounds[0x16] = pArg6->v[2];
+    pBounds[0x17] = pBounds[0];
+    pBounds[0x18] = pBounds[4];
+    pBounds[0x19] = pArg6->v[2];
+    pBounds[0x1a] = pBounds[0];
+    pBounds[0x1b] = pBounds[1];
+    pBounds[0x1c] = pArg6->v[2];
+    pBounds[9] = pBounds[0];
+    pBounds[10] = pBounds[1];
+    pBounds[0xb] = pArg7;
+    pBounds[0xc] = pBounds[0x11] - pBounds[0];
+    pBounds[0xd] = pBounds[0x12] - pBounds[1];
+    pBounds[0xe] = pBounds[0x13] - pArg7;
+    BrMatrix34ApplyP(&transformed, (br_vector3*)&pBounds[0x11], &context.matrix);
+    pBounds[0x11] = transformed.v[0] - pBounds[0x11];
+    pBounds[0x12] = transformed.v[1] - pBounds[0x12];
+    pBounds[0x13] = transformed.v[2] - pBounds[0x13];
+    BrMatrix34ApplyP(&transformed, (br_vector3*)&pBounds[0x14], &context.matrix);
+    pBounds[0x14] = transformed.v[0] - pBounds[0x14];
+    pBounds[0x15] = transformed.v[1] - pBounds[0x15];
+    pBounds[0x16] = transformed.v[2] - pBounds[0x16];
+    BrMatrix34ApplyP(&transformed, (br_vector3*)&pBounds[0x17], &context.matrix);
+    pBounds[0x17] = transformed.v[0] - pBounds[0x17];
+    pBounds[0x18] = transformed.v[1] - pBounds[0x18];
+    pBounds[0x19] = transformed.v[2] - pBounds[0x19];
+    BrMatrix34ApplyP(&transformed, (br_vector3*)&pBounds[0x1a], &context.matrix);
+    pBounds[0x1a] = transformed.v[0] - pBounds[0x1a];
+    pBounds[0x1b] = transformed.v[1] - pBounds[0x1b];
+    pBounds[0x1c] = transformed.v[2] - pBounds[0x1c];
+    pBounds[0x11] = ((pBounds[0x11] - pBounds[0x14]) - pBounds[0x17]) + pBounds[0x1a];
+    pBounds[0x12] = ((pBounds[0x12] - pBounds[0x15]) - pBounds[0x18]) + pBounds[0x1b];
+    pBounds[0x13] = ((pBounds[0x13] - pBounds[0x16]) - pBounds[0x19]) + pBounds[0x1c];
+    pBounds[0x14] = pBounds[0x14] - pBounds[0x1a];
+    pBounds[0x15] = pBounds[0x15] - pBounds[0x1b];
+    pBounds[0x16] = pBounds[0x16] - pBounds[0x1c];
+    pBounds[0x17] = pBounds[0x17] - pBounds[0x1a];
+    pBounds[0x18] = pBounds[0x18] - pBounds[0x1b];
+    pBounds[0x19] = pBounds[0x19] - pBounds[0x1c];
+    pBend->field_0x74 = pArg6->v[2] < pArg7;
+    pBend->field_0x18.v[0] = pArg6->v[0];
+    pBend->field_0x18.v[1] = pArg6->v[1];
+    pBend->field_0x18.v[2] = pArg6->v[2];
+    gCrush_vertex_compression_index = 0;
+    context.car = pCar;
+    ARStartPipingSession(ePipe_model_mash);
+    DRActorEnumRecurseWithTranslation(pActor, NULL, (tDRActorEnumRecurseWithTranslation_cbfn*)BendModels, &context.car);
+    AREndPipingSession();
+    pBend->field_0x3c = pAngle_x;
+    pBend->field_0x3e = pAngle_y;
+    pBend->field_0x40 = pAngle_z;
 }
 
 // BendOtherThings
