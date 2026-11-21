@@ -2038,9 +2038,103 @@ intptr_t C2_HOOK_FASTCALL BendModels(br_actor* pActor, br_vector3* pDelta, void*
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00435960
+// FUNCTION: CARMA2_HW 0x00435960
 void C2_HOOK_FASTCALL BendModel(br_model* pModel, const br_vector3* pOffset, void* pContext, br_actor* pActor) {
-    NOT_IMPLEMENTED();
+    br_vector3 mash[1024];
+    tUser_detail_level_model* detail_model;
+    tModel_detail_vertex_data* vertex_data;
+    tBend_data_local* bend;
+    br_vertex* vertex;
+    br_vector3 pos;
+    br_vector3 tmp;
+    br_vector3 d;
+    br_vector3 delta;
+    float a;
+    float b;
+    float c;
+    float ab;
+    int changed;
+    tU16 i;
+
+    if (pModel == NULL) {
+        return;
+    }
+    detail_model = pModel->user;
+    if (detail_model == NULL) {
+        return;
+    }
+    vertex_data = detail_model->field_0x4;
+    if (vertex_data == NULL) {
+        return;
+    }
+    if (pModel->nvertices > REC2_ASIZE(mash)) {
+        PDFatalError("Alas, there's a lot of vertices on that model.");
+    }
+    bend = ((const tBend_point_context_local*)pContext)->bend;
+    *(tU16*)&detail_model->field_0x8[0] = gCrush_vertex_compression_index;
+    changed = 0;
+    for (i = 0; i < pModel->nvertices; i++) {
+        vertex = &pModel->vertices[i];
+        pos.v[0] = vertex->p.v[0] + pOffset->v[0];
+        pos.v[1] = pOffset->v[1] + vertex->p.v[1];
+        pos.v[2] = pOffset->v[2] + vertex->p.v[2];
+        if ((bend->field_0x74 != 0 && pos.v[2] - bend->field_0x18.v[2] <= gCrushZero)
+                || (bend->field_0x74 == 0 && pos.v[2] - bend->field_0x18.v[2] >= gCrushZero)) {
+            BrMatrix34ApplyP(&tmp, &pos, &((const tBend_point_context_local*)pContext)->matrix);
+            mash[i].v[0] = -vertex->p.v[0];
+            mash[i].v[1] = -vertex->p.v[1];
+            mash[i].v[2] = -vertex->p.v[2];
+            vertex->p.v[0] = tmp.v[0] - pOffset->v[0];
+            vertex->p.v[1] = tmp.v[1] - pOffset->v[1];
+            vertex->p.v[2] = tmp.v[2] - pOffset->v[2];
+            mash[i].v[0] += vertex->p.v[0];
+            mash[i].v[1] += vertex->p.v[1];
+            mash[i].v[2] += vertex->p.v[2];
+            vertex_data[i].flags |= 0x18;
+            changed = 1;
+        } else {
+            d.v[0] = pos.v[0] - bend->field_0x24.v[0];
+            d.v[1] = pos.v[1] - bend->field_0x24.v[1];
+            d.v[2] = pos.v[2] - bend->field_0x24.v[2];
+            if ((bend->field_0x74 != 0 && d.v[2] > gCrushZero)
+                    || (bend->field_0x74 == 0 && d.v[2] < gCrushZero)) {
+                mash[i].v[0] = 0.f;
+                mash[i].v[1] = 0.f;
+                mash[i].v[2] = 0.f;
+                vertex_data[i].flags &= ~0x8;
+            } else {
+                vertex_data[i].flags = (vertex_data[i].flags & ~0x10) | 0x8;
+                CompressVector3((tCompressed_vector3*)&bend->field_0x78[gCrush_vertex_compression_index], &pos, -10.f, 10.f);
+                gCrush_vertex_compression_index++;
+                a = d.v[0] / bend->field_0x30.v[0];
+                b = d.v[1] / bend->field_0x30.v[1];
+                c = d.v[2] / bend->field_0x30.v[2];
+                ab = a * b;
+                delta.v[0] = (bend->field_0x68.v[0] + bend->field_0x5c.v[0] * b + bend->field_0x50.v[0] * a + bend->field_0x44.v[0] * ab) * c;
+                delta.v[1] = (bend->field_0x68.v[1] + bend->field_0x5c.v[1] * b + bend->field_0x50.v[1] * a + bend->field_0x44.v[1] * ab) * c;
+                delta.v[2] = (bend->field_0x68.v[2] + bend->field_0x5c.v[2] * b + bend->field_0x50.v[2] * a + bend->field_0x44.v[2] * ab) * c;
+                pos.v[0] += delta.v[0];
+                pos.v[1] += delta.v[1];
+                pos.v[2] += delta.v[2];
+                mash[i].v[0] = delta.v[0];
+                mash[i].v[1] = delta.v[1];
+                mash[i].v[2] = delta.v[2];
+                vertex->p.v[0] = pos.v[0] - pOffset->v[0];
+                vertex->p.v[1] = pos.v[1] - pOffset->v[1];
+                vertex->p.v[2] = pos.v[2] - pOffset->v[2];
+                changed = 1;
+            }
+        }
+    }
+    if (changed != 0) {
+        if ((pModel->flags & BR_MODF_CUSTOM) != 0 && pModel->user != NULL) {
+            detail_model->field_0x0 = 1;
+        } else {
+            pModel->custom = JitModelUpdate;
+            pModel->flags |= BR_MODF_CUSTOM;
+        }
+        AddModelMashToPipingSession(pModel, mash);
+    }
 }
 
 // BrAngleToSignedDegree
