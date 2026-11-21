@@ -1064,9 +1064,16 @@ void C2_HOOK_FASTCALL SetCollisionFlagsAndStuff(tPhysics_object* pObject) {
     }
 }
 
-// STUB: CARMA2_HW 0x00416270
+// FUNCTION: CARMA2_HW 0x00416270
 int C2_HOOK_FASTCALL APTCActiveHalted(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+
+    if (pObject != NULL && pObject->owner != NULL && pObject->flags_0x238 >= 2 && pObject->flags_0x238 <= 4) {
+        return BonerActiveHalted((tPed_character_instance*)pObject->owner);
+    }
+    if (pObject != NULL && pObject->flags_0x238 == 0x10) {
+        return MyDroneHathHalteth(pObject);
+    }
+    return 1;
 }
 
 // STUB: CARMA2_HW 0x004162b0
