@@ -417,6 +417,11 @@ br_material* C2_HOOK_FASTCALL RoadUntexToPersp(br_model* pModel, tU16 pFace) {
     return new_mat;
 }
 
+// STUB: CARMA2_HW 0x00447ef0
+int C2_HOOK_FASTCALL FUN_00447ef0(br_model* pModel, tU16 pFace) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004481d0
 br_material* C2_HOOK_FASTCALL WallUntexToPersp(br_model* pModel, tU16 pFace) {
     br_material* old_mat;
@@ -473,6 +478,11 @@ tWall_texturing_level C2_HOOK_FASTCALL GetWallTexturingLevel(void) {
 void C2_HOOK_FASTCALL SetWallTexturingLevel(tWall_texturing_level pLevel) {
 
     gWall_texturing_level = pLevel;
+}
+
+// STUB: CARMA2_HW 0x004489d0
+void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00448dd0

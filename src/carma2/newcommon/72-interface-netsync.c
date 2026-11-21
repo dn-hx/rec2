@@ -62,3 +62,9 @@ tFrontend_spec gFrontend_NETSYNC = {
     0
 #endif
 };
+
+
+// STUB: CARMA2_HW 0x00473870
+int C2_HOOK_FASTCALL NetSync_MenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
