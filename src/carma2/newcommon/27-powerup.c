@@ -1358,9 +1358,90 @@ void C2_HOOK_FASTCALL PositionMine(tShit_mine* pMine, tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004dd700
+// FUNCTION: CARMA2_HW 0x004dd700
 int C2_HOOK_FASTCALL ShitMine(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+    int i;
+    int best_index;
+    tShit_mine* mine;
+    tFace_ref* face;
+    tU32 time;
+    tU32 best;
+    br_scalar dist;
+    br_vector3 d;
+    br_vector3 dir;
+    br_vector3 car_pos;
+    br_vector3 mine_pos;
+    br_vector3 out2;
+
+    mine = NULL;
+    if (gNet_mode == eNet_mode_client) {
+        return pPowerup - gPowerup_array;
+    }
+    for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
+        if (!(gShit_mines[i].flags & 0x1)) {
+            mine = &gShit_mines[i];
+            break;
+        }
+    }
+    if (mine == NULL) {
+        time = GetTotalTime();
+        best = (tU32)(pPowerup->float_params[0] * 1000.0);
+        best_index = -1;
+        for (i = 0; i < (int)REC2_ASIZE(gShit_mines); i++) {
+            tU32 remaining;
+
+            if ((gShit_mines[i].flags & 0x4) != 0 && (gShit_mines[i].flags & 0x2) == 0) {
+                remaining = gShit_mines[i].next_think_time - time;
+                if (remaining < best) {
+                    best = remaining;
+                    best_index = i;
+                }
+            }
+        }
+        if (best_index == -1) {
+            return pPowerup - gPowerup_array;
+        }
+        mine = &gShit_mines[best_index];
+    }
+    ActivateMine(mine, pPowerup, pCar);
+    mine->field_0x30 = pCar;
+    mine->field_0x35++;
+    PositionMine(mine, pCar);
+    if (gNet_mode == eNet_mode_none) {
+        PipeSingleShitMine(mine->collision_info->actor);
+    }
+    if ((mine->flags & 0x40) != 0) {
+        DRS3StartSound3D(gCar_outlet, 0x151d, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+    } else {
+        DRS3StartSound3D(gCar_outlet, 0x151c, &mine->collision_info->actor->t.t.translate.t, &gZero_v__car, 1, 0xff, 0x10000, 0x10000);
+    }
+    if (mine->field_0x30 != NULL && mine->field_0x30->driver == eDriver_local_human) {
+        PlayExclusiveFFBEffect("Mine_Shit", 0);
+    }
+    BrMatrix34ApplyP(&car_pos, &pCar->collision_info->cmpos, &pCar->collision_info->transform_matrix);
+    BrMatrix34ApplyP(&mine_pos, &mine->collision_info->cmpos, &mine->collision_info->transform_matrix);
+    BrVector3Sub(&d, &mine_pos, &car_pos);
+    BrVector3Normalise(&dir, &d);
+    d.v[0] = d.v[0] + dir.v[0] * 0.15;
+    d.v[1] = d.v[1] + dir.v[1] * 0.15;
+    d.v[2] = d.v[2] + dir.v[2] * 0.15;
+    if (!TestForObjectInSensiblePlace(mine->collision_info, gPHIL_list_collision_infos, &d, &gWorld_callbacks)) {
+        HitAShatOutMine(mine->collision_info, gUNK_0079ecbc, 1.0f);
+    } else {
+        face = RayCastThruFaceList2(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[pCar->collision_info->box_face_start], pCar->collision_info->box_face_end - pCar->collision_info->box_face_start);
+        if (face == NULL) {
+            face = RayCastThruFaceList2(&car_pos, &d, &dir, &dist, &out2, &gFace_list__car[mine->collision_info->box_face_start], mine->collision_info->box_face_end - mine->collision_info->box_face_start);
+            if (face == NULL) {
+                return pPowerup - gPowerup_array;
+            }
+        }
+        BrVector3Scale(&d, &d, -(1.0f - dist) - 0.1);
+        mine->collision_info->transform_matrix.m[3][0] += d.v[0];
+        mine->collision_info->transform_matrix.m[3][1] += d.v[1];
+        mine->collision_info->transform_matrix.m[3][2] += d.v[2];
+        HitAShatOutMine(pCar->collision_info, mine->collision_info, 1.0f);
+    }
+    return pPowerup - gPowerup_array;
 }
 
 // ActivateMine
