@@ -129,6 +129,12 @@ float gFloat_sine_table_270[1] = { 1.0f };
 // GLOBAL: CARMA2_HW 0x00661938
 float gFloat_sine_table_360[1] = { 1.0f };
 
+// GLOBAL: CARMA2_HW 0x006ab950
+br_matrix23 mat23tmp1;
+
+// GLOBAL: CARMA2_HW 0x006ab968
+br_matrix23 mat23tmp2;
+
 // GLOBAL: CARMA2_HW 0x006ab980
 // GLOBAL: CARMA2_SW 0x006a53d0
 br_matrix34 mattmp1__trig;
@@ -350,6 +356,11 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
     return FastFloatArcTan2Angle(pY, pX);
 }
 
+// STUB: CARMA2_HW 0x00512030
+void C2_HOOK_FASTCALL DRMatrix34RotateX(br_matrix34* mat, br_angle rx) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34RotateX
 
 // FUNCTION: CARMA2_HW 0x00512170
@@ -374,12 +385,71 @@ void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry) {
     mat->m[3][2] = 0.0f;
 }
 
+// STUB: CARMA2_HW 0x005122b0
+void C2_HOOK_FASTCALL DRMatrix34RotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005123f0
+void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34RotateZ
 
-// STUB: CARMA2_HW 0x005127b0
+// FUNCTION: CARMA2_HW 0x005127b0
 // STUB: CARMA2_SW 0x0050dbf0
 void C2_HOOK_FASTCALL DRMatrix34PostRotateX(br_matrix34* mat, br_angle rx) {
-    NOT_IMPLEMENTED();
+    int angle_in_degrees;
+    int angle;
+    br_scalar s;
+    br_scalar c;
+
+    angle_in_degrees = (int)((double)rx * (360.0 / 65536.0));
+    angle = angle_in_degrees;
+    if (angle < 0) {
+        angle = 360 - -angle % 360;
+    } else {
+        angle = angle % 360;
+    }
+    if (angle > 270) {
+        s = -*(gFloat_sine_table_360 - angle);
+    } else if (angle > 180) {
+        s = -gFloat_sine_table[angle - 180];
+    } else if (angle > 90) {
+        s = *(gFloat_sine_table + 180 - angle);
+    } else {
+        s = gFloat_sine_table[angle];
+    }
+    angle = angle_in_degrees;
+    if (angle < 0) {
+        angle = 360 - -angle % 360;
+    } else {
+        angle = angle % 360;
+    }
+    if (angle > 270) {
+        c = gFloat_sine_table[angle - 270];
+    } else if (angle > 180) {
+        c = -*(gFloat_sine_table_270 - angle);
+    } else if (angle > 90) {
+        c = -gFloat_sine_table[angle - 90];
+    } else {
+        c = *(gFloat_sine_table + 90 - angle);
+    }
+    mattmp2__trig.m[0][0] = 1.0f;
+    mattmp2__trig.m[0][1] = 0.0f;
+    mattmp2__trig.m[0][2] = 0.0f;
+    mattmp2__trig.m[1][0] = 0.0f;
+    mattmp2__trig.m[1][1] = c;
+    mattmp2__trig.m[1][2] = s;
+    mattmp2__trig.m[2][0] = 0.0f;
+    mattmp2__trig.m[2][1] = -s;
+    mattmp2__trig.m[2][2] = c;
+    mattmp2__trig.m[3][0] = 0.0f;
+    mattmp2__trig.m[3][1] = 0.0f;
+    mattmp2__trig.m[3][2] = 0.0f;
+    BrMatrix34Mul(&mattmp1__trig, mat, &mattmp2__trig);
+    BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
 // FUNCTION: CARMA2_HW 0x00512ad0
@@ -390,11 +460,31 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
     BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
+// STUB: CARMA2_HW 0x00512c60
+void C2_HOOK_FASTCALL DRMatrix34PreRotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34PreRotateZ
 
 // STUB: CARMA2_HW 0x00512df0
 // STUB: CARMA2_SW 0x0050e230
 void C2_HOOK_FASTCALL DRMatrix34PostRotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00512f80
+void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00512fd0
+void C2_HOOK_FASTCALL DRMatrix34PostRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00513020
+void C2_HOOK_FASTCALL DRMatrix23Rotate(br_matrix23* mat, br_angle rz) {
     NOT_IMPLEMENTED();
 }
 
