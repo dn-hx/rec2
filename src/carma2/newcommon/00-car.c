@@ -835,9 +835,14 @@ void C2_HOOK_FASTCALL GetNetPos(tCar_spec* pCar) {
 #pragma auto_inline(on)
 #endif
 
-// STUB: CARMA2_HW 0x004207a0
+// FUNCTION: CARMA2_HW 0x004207a0
 int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data) {
-    NOT_IMPLEMENTED();
+
+    if (!pCollision_info->disable_move_rotate && pCollision_info->actor != NULL && pCollision_info->actor->type_data != NULL) {
+        AddNonCarToPipingSession((tU16)((tNon_car_spec*)pCollision_info->actor->type_data)->car_ID, pCollision_info->actor);
+    }
+    ((tNon_car_spec*)pCollision_info->owner)->field_0xfc = pCollision_info->disable_move_rotate;
+    return 0;
 }
 void C2_HOOK_FASTCALL MungeCarsMass(tCar_spec* pCar, br_scalar pFactor) {
 
