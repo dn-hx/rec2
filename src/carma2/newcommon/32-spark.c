@@ -566,9 +566,11 @@ int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial) {
     }
 }
 
-// STUB: CARMA2_HW 0x004f95e0
+// FUNCTION: CARMA2_HW 0x004f95e0
 int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel) {
-    NOT_IMPLEMENTED();
+    pModel->flags |= BR_MODF_CUSTOM;
+    pModel->custom = DoTrueColModelThing;
+    return 1;
 }
 
 // STUB: CARMA2_HW 0x004f9600
