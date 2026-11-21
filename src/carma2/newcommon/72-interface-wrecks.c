@@ -46,3 +46,9 @@ tFrontend_spec gFrontend_WRECKS = {
     0
 #endif
 };
+
+
+// STUB: CARMA2_HW 0x0046eb80
+int C2_HOOK_FASTCALL WrecksUpdateFunc(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
