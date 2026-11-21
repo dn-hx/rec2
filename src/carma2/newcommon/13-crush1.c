@@ -2024,9 +2024,83 @@ void C2_HOOK_FASTCALL BendPoint(br_vector3* pPoint, const tBend_point_context_lo
 
 // EdgeCrossesZPlane
 
-// STUB: CARMA2_HW 0x00435110
+// FUNCTION: CARMA2_HW 0x00435110
 void C2_HOOK_FASTCALL BendCollisionShape(tCar_crush_shape_info* pShape, const tBend_point_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    float intersections[24];
+    float plane_z;
+    int i;
+    int j;
+    br_vector3* points;
+    int count_edges;
+    int count_points_add_8;
+    int added;
+    tU8* edges;
+    float* pIntersection;
+    float* pNext_intersection;
+    br_vector3* point1;
+    br_vector3* point2;
+    float ratio;
+    int crosses;
+
+    count_points_add_8 = pShape->count_points_add_8;
+    if (pShape->count_points == count_points_add_8) {
+        return;
+    }
+    plane_z = pContext->bend->field_0x18.v[2];
+    i = 0;
+    added = 0;
+    count_edges = pShape->field_0x0->polyhedron.count_edges;
+    if (0 < count_edges) {
+        points = pShape->field_0x0->polyhedron.points;
+        edges = (tU8*)pShape->field_0x0->polyhedron.edges;
+        pIntersection = &intersections[1];
+        do {
+            point1 = &points[edges[0]];
+            point2 = &points[edges[1]];
+            if (point2->v[2] < plane_z) {
+                crosses = point1->v[2] > plane_z;
+            } else {
+                crosses = point1->v[2] < plane_z;
+            }
+            pNext_intersection = pIntersection;
+            if (crosses && 0.028985508f <= (float)fabs(point1->v[2] - plane_z) && 0.028985508f <= (float)fabs(point2->v[2] - plane_z)) {
+                ratio = (plane_z - point1->v[2]) / (point1->v[2] - point2->v[2]);
+                added++;
+                pNext_intersection = pIntersection + 3;
+                pIntersection[-1] = point1->v[0] + (point1->v[0] - point2->v[0]) * ratio;
+                pIntersection[0] = point1->v[1] + (point1->v[1] - point2->v[1]) * ratio;
+                pIntersection[1] = plane_z;
+                if (added == 8) {
+                    break;
+                }
+            }
+            i++;
+            edges += 2;
+            pIntersection = pNext_intersection;
+        } while (i < count_edges);
+    }
+    if (pShape->count_points + added > count_points_add_8) {
+        added = count_points_add_8 - pShape->count_points;
+    }
+    if (added > 0) {
+        pIntersection = &intersections[1];
+        for (j = 0, i = pShape->count_points; j < added; j++, i++) {
+            pShape->field_0x18[i].field_0x18.v[0] = pIntersection[-1];
+            pShape->field_0x18[i].field_0x18.v[1] = pIntersection[0];
+            pShape->field_0x18[i].field_0x18.v[2] = pIntersection[1];
+            pIntersection += 3;
+        }
+    }
+    pShape->original_count_points = pShape->count_points;
+    pShape->count_points = pShape->count_points + added;
+    for (j = 0; j < pShape->count_points; j++) {
+        pShape->field_0x18[j].field_0x2c.v[0] = pShape->field_0x18[j].field_0x18.v[0];
+        pShape->field_0x18[j].field_0x2c.v[1] = pShape->field_0x18[j].field_0x18.v[1];
+        pShape->field_0x18[j].field_0x2c.v[2] = pShape->field_0x18[j].field_0x18.v[2];
+    }
+    for (j = 0; j < pShape->count_points; j++) {
+        BendPoint(&pShape->field_0x18[j].field_0x18, pContext);
+    }
 }
 
 // BendCollisionShapes
