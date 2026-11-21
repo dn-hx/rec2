@@ -549,9 +549,36 @@ void C2_HOOK_FASTCALL SetOptions(tNet_game_type pGame_type, tNet_game_options* p
     pGame_options->starting_target = gNet_settings[pGame_type + 1].starting_target;
 }
 
-// STUB: CARMA2_HW 0x004681d0
+// FUNCTION: CARMA2_HW 0x004681d0
 void C2_HOOK_FASTCALL AddToJoinList(tNet_game_details* pGame) {
-    NOT_IMPLEMENTED();
+    int i;
+    int slot_to_use;
+    tU32 this_game_ID;
+
+    slot_to_use = -1;
+    this_game_ID = NetExtractGameID(pGame);
+    for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+        if (gGames_to_join[i].game != NULL) {
+            if (NetExtractGameID(gGames_to_join[i].game) == this_game_ID) {
+                NetDisposeGameDetails(gGames_to_join[i].game);
+                gGames_to_join[i].game = NULL;
+                slot_to_use = i;
+                break;
+            }
+        }
+    }
+    if (slot_to_use < 0) {
+        for (i = 0; i < (int)REC2_ASIZE(gGames_to_join); i++) {
+            if (gGames_to_join[i].game == NULL) {
+                slot_to_use = i;
+                break;
+            }
+        }
+    }
+    if (slot_to_use >= 0) {
+        gGames_to_join[slot_to_use].game = pGame;
+        gGames_to_join[slot_to_use].time = PDGetTotalTime();
+    }
 }
 
 // ReadNetGameChoices
