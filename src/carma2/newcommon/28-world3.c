@@ -21,6 +21,7 @@
 #include "rec2_macros.h"
 #include "38-flicplay.h"
 #include "33-depth.h"
+#include "61-pedestrn.h"
 
 #include <string.h>
 
@@ -278,9 +279,42 @@ tPed_move* C2_HOOK_FASTCALL ReadMove(const char* pName, tPed_form* pForm, const 
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004079a0
-tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pName, br_matrix34* pMat) {
-    NOT_IMPLEMENTED();
+// FUNCTION: CARMA2_HW 0x004079a0
+tPed_character_instance* C2_HOOK_FASTCALL BuildCharacterInstance(const char* pGroup_name, br_matrix34* pMat34) {
+    tPed_character_instance* instance;
+
+    C2_HOOK_BUG_ON(sizeof(tPed_character_instance) != 0xec);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x4, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x6, 0x6);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x7, 0x7);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x8, 0x8);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x9, 0x9);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0xa, 0xa);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0xc, 0xc);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x14, 0x14);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x28, 0x28);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x2c, 0x2c);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x5c, 0x5c);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPed_character_instance, field_0x8c, 0x8c);
+
+    instance = BrMemAllocate(sizeof(tPed_character_instance), kBoner_mem_type_char_instance);
+    if (instance == NULL) {
+        FatalError(kFatalError_BonerError_UnableToAllocateMemory, 0);
+    }
+    instance->personality = FindOrOpenPersonality(pGroup_name);
+    instance->field_0x4 = 0xff;
+    instance->field_0x6 = 0xff;
+    instance->field_0x7 = 0xff;
+    instance->field_0x8 = 0;
+    instance->field_0x9 = 0;
+    instance->field_0xa = 0;
+    instance->field_0xc = 0;
+    instance->field_0x14 = 0;
+    instance->field_0x28 = 0;
+    instance->field_0x2c = *pMat34;
+    BrMatrix34Identity(&instance->field_0x5c);
+    BrMatrix34Identity(&instance->field_0x8c);
+    return instance;
 }
 
 // STUB: CARMA2_HW 0x0040cc50
