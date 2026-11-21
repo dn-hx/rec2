@@ -172,7 +172,6 @@ br_actor* gMr_blendy = 0;
 
 // GLOBAL: CARMA2_HW 0x00694118
 float gPed_process_distance;
-// GLOBAL: CARMA2_HW 0x00694120
 tPedestrian* gPed_recent_ped;
 
 // GLOBAL: CARMA2_HW 0x00677238

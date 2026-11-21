@@ -184,7 +184,6 @@ br_pixelmap* gPalette_0074a670;
 // GLOBAL: CARMA2_SW 0x00741120
 br_pixelmap* gBlend_palettes[4];
 
-// GLOBAL: CARMA2_HW 0x0074a66c
 br_pixelmap* gPalette_0074a66c;
 
 // GLOBAL: CARMA2_HW 0x0068be20

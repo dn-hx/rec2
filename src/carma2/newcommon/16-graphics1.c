@@ -90,7 +90,6 @@ float gPrevious_rear_yon = 0.0f;
 // GLOBAL: CARMA2_SW 0x0069c3a8
 int gINT_006a2350[2] = { 0 };
 
-// GLOBAL: CARMA2_HW 0x006a2354
 int gUNK_006a2354;
 #endif
 

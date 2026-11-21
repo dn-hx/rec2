@@ -30,7 +30,6 @@ tPhysics_object* gPHIL_list_collision_infos;
 // GLOBAL: CARMA2_HW 0x0074a5f4
 int gOver_shoot;
 
-// GLOBAL: CARMA2_HW 0x0074a5f8
 int gCrush_deferred;
 
 // GLOBAL: CARMA2_HW 0x0074a5ec
