@@ -19,9 +19,20 @@
 // GLOBAL: CARMA2_SW 0x006a51f8
 int gDelete_count;
 
+// GLOBAL: CARMA2_HW 0x006ab7b0
+br_actor* gSpec_vol_actors[100];
+
+// GLOBAL: CARMA2_HW 0x006ab940
+int gSpec_vol_mode;
+
 // GLOBAL: CARMA2_HW 0x006aafc8
 // GLOBAL: CARMA2_SW 0x006a4a18
 br_actor* gDelete_list[500];
+
+// STUB: CARMA2_HW 0x00506f40
+void C2_HOOK_FASTCALL SaveAdditionalActors(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x00507210
 // FUNCTION: CARMA2_SW 0x00502660
@@ -77,6 +88,16 @@ void C2_HOOK_FASTCALL MungeMaterialSV(br_matrix34* pMat, br_material* pMat_1, br
     pMat_1->map_transform.m[0][0] = 6.f * BrVector3Length((br_vector3*)pMat->m[pAxis_0]);
     pMat_1->map_transform.m[1][1] = 6.f * BrVector3Length((br_vector3*)pMat->m[pAxis_1]);
     BrMatrix23Copy(&pMat_2->map_transform, &pMat_1->map_transform);
+}
+
+// STUB: CARMA2_HW 0x00507580
+void C2_HOOK_FASTCALL LoadAdditionalStuff(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00508e50
+intptr_t C2_HOOK_CDECL OffsetModel(br_actor* pActor, br_vector3* pOffset) {
+    NOT_IMPLEMENTED();
 }
 
 // SetSpecVolMatSize
