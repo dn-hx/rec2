@@ -263,5 +263,7 @@ extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 
+extern void C2_HOOK_FASTCALL GenerateContinuousSmoke(tCar_spec* pCar, int pWheel, tU32 pTime);
+
 #endif // GUARD_00_CAR_H
 
