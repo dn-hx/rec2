@@ -411,9 +411,12 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
     BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
-// STUB: CARMA2_HW 0x00512c60
+// FUNCTION: CARMA2_HW 0x00512c60
 void C2_HOOK_FASTCALL DRMatrix34PreRotateZ(br_matrix34* mat, br_angle rz) {
-    NOT_IMPLEMENTED();
+
+    DRMatrix34RotateZ(&mattmp2__trig, rz);
+    BrMatrix34Mul(&mattmp1__trig, &mattmp2__trig, mat);
+    BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
 // DRMatrix34PreRotateZ
