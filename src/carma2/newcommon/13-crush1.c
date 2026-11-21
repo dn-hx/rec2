@@ -429,9 +429,195 @@ void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF) {
 void C2_HOOK_FASTCALL DecodeNetShapeData(tCar_spec* pCar, tU8* pData) {
     NOT_IMPLEMENTED();
 }
-// STUB: CARMA2_HW 0x004321d0
+// FUNCTION: CARMA2_HW 0x004321d0
 void C2_HOOK_FASTCALL BuckleTheBugger(tCar_spec* pCar, br_actor* pActor, br_vector3* pDirection, float pDistance, tU32 pMax_vertex, tU32 pField_0x50) {
-    NOT_IMPLEMENTED();
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* crush_data;
+    tCar_crush_flap_data* flap;
+    tUser_detail_level_model* detail;
+    tModel_detail_vertex_data* vertex_data;
+    tUser_crush_data* parent_user;
+    br_model* model;
+    br_vertex* vertices;
+    br_vector3* hinge;
+    br_vertex* max_vertex;
+    const br_vector3* parent_point;
+    br_vector3 offset;
+    br_vector3 hinge01;
+    br_vector3 perpendicular;
+    br_vector3 hinge_normal;
+    float weights[1024];
+    br_scalar projection;
+    br_scalar distance;
+    br_scalar offset_value;
+    br_scalar rand_distance;
+    br_scalar temp;
+    br_scalar limit_diff;
+    int reference_angle;
+    int min_angle;
+    int max_angle;
+    int angle;
+    int current_angle;
+    tU16 v;
+    tU8 changed;
+    int index;
+
+    user = pActor->user;
+    if (user == NULL) {
+        return;
+    }
+    model = user->models[0];
+    if (model == NULL) {
+        return;
+    }
+    detail = model->user;
+    if (detail == NULL) {
+        return;
+    }
+    vertex_data = detail->field_0x4;
+    if (vertex_data == NULL) {
+        return;
+    }
+    crush_data = user->crush_data;
+    if (crush_data == NULL) {
+        return;
+    }
+    flap = crush_data->flap_data;
+    if (flap == NULL) {
+        return;
+    }
+    if (flap->field_0x14 == 0) {
+        return;
+    }
+    if (model->nvertices > 0x400) {
+        PDFatalError("Oh my goodness, there's a lot of vertices on that model.");
+    }
+    vertices = model->vertices;
+    hinge = &vertices[flap->hinge0].p;
+    BrVector3Sub(&hinge01, &vertices[flap->hinge1].p, hinge);
+    BrVector3Normalise(&hinge01, &hinge01);
+    BrVector3Sub(&offset, &vertices[flap->hinge2].p, hinge);
+    BrVector3Normalise(&offset, &offset);
+    BrVector3Cross(&hinge_normal, &hinge01, &offset);
+    BrVector3Normalise(&hinge_normal, &hinge_normal);
+    projection = BrVector3Dot(&offset, &hinge01);
+    BrVector3Scale(&perpendicular, &hinge01, projection);
+    BrVector3Sub(&perpendicular, &perpendicular, &offset);
+    BrVector3Normalise(&perpendicular, &perpendicular);
+    parent_user = pActor->parent->user;
+    parent_point = &parent_user->models[0]->vertices[flap->field_0x12].p;
+    DrMatrix34ApplyLPInverse(&offset, parent_point, &pActor->t.t.mat);
+    BrVector3Sub(&offset, &offset, hinge);
+    projection = -BrVector3Dot(&perpendicular, &offset);
+    if (projection == gCrushZero) {
+        reference_angle = 0;
+    } else {
+        reference_angle = (int)(atan2(BrVector3Dot(&hinge_normal, &offset), projection) * (32768.0 / PI));
+    }
+    max_vertex = &vertices[(tU16)pMax_vertex];
+    BrVector3Sub(&offset, hinge, &max_vertex->p);
+    distance = BrVector3Dot(&perpendicular, &offset) / projection;
+    if (distance <= gCrushZero) {
+        return;
+    }
+    if (pDistance <= gCrushZero) {
+        return;
+    }
+    offset_value = (float)sqrt((distance + pDistance) * (distance + pDistance) - distance * distance) * 0.5f;
+    srand(pField_0x50);
+    if (PercentageChance((int)gChance_of_inverse_buckle) != 0) {
+        offset_value = -offset_value;
+    }
+    flap->field_0x18 = flap->field_0x18 + offset_value;
+    limit_diff = (float)fabs(flap->field_0x18) - flap->field_0x1c;
+    if (limit_diff > gCrushZero) {
+        flap->field_0x14 = 0;
+        if (offset_value > gCrushZero) {
+            offset_value = offset_value - limit_diff;
+        } else {
+            offset_value = limit_diff + offset_value;
+        }
+    }
+    rand_distance = SRandomBetween(0.3f, 0.7f) * distance;
+    min_angle = 0x3ffc;
+    max_angle = 0xc004;
+    for (v = 0; v < model->nvertices; v++) {
+        BrVector3Sub(&offset, &vertices[v].p, &max_vertex->p);
+        distance = BrVector3Dot(pDirection, &offset);
+        if (distance > gCrushZero) {
+            temp = distance - rand_distance;
+            if (temp > gCrushZero) {
+                BrVector3Sub(&offset, hinge, &vertices[v].p);
+                distance = BrVector3Dot(&perpendicular, &offset) / projection;
+                if (distance > gCrushZero) {
+                    if (temp + distance != gCrushZero) {
+                        weights[v] = offset_value * distance / (temp + distance);
+                    } else {
+                        weights[v] = 0.0f;
+                    }
+                } else {
+                    weights[v] = 0.0f;
+                }
+            } else {
+                weights[v] = offset_value * distance / rand_distance;
+            }
+            BrVector3Scale(&offset, &hinge_normal, weights[v]);
+            BrVector3Add(&vertices[v].p, &vertices[v].p, &offset);
+        } else {
+            weights[v] = 0.0f;
+        }
+        if (vertex_data[v].flags & 2) {
+            BrVector3Sub(&offset, &vertices[v].p, hinge);
+            projection = -BrVector3Dot(&perpendicular, &offset);
+            if (projection != gCrushZero) {
+                angle = (int)(atan2(BrVector3Dot(&hinge_normal, &offset), projection) * (32768.0 / PI));
+                if ((tU16)(angle - max_angle) < 0x7ff8) {
+                    max_angle = angle;
+                }
+                if ((tU16)(min_angle - angle) < 0x7ff8) {
+                    min_angle = angle;
+                }
+            }
+        }
+    }
+    current_angle = flap->field_0x4;
+    flap->field_0x2 = (tU16)(current_angle + reference_angle - min_angle);
+    flap->field_0x6 = (tU16)(current_angle + reference_angle + 0x3ffc - max_angle);
+    flap->field_0x8 = (tU16)(flap->field_0x6 - flap->field_0x2);
+    changed = 0;
+    if ((tU16)(current_angle - flap->field_0x2) > flap->field_0x8) {
+        if ((tU16)(current_angle - flap->field_0x6) < 0x7ff8) {
+            PipeSingleFlap(pActor, (tU16)(flap->field_0x6 - current_angle));
+            flap->field_0x4 = flap->field_0x6;
+        } else {
+            PipeSingleFlap(pActor, (tU16)(flap->field_0x2 - current_angle));
+            flap->field_0x4 = flap->field_0x2;
+        }
+        changed = 1;
+    }
+    if (changed) {
+        BrMatrix34Translate(&pActor->t.t.mat, -hinge->v[0], -hinge->v[1], -hinge->v[2]);
+        BrMatrix34PostRotate(&pActor->t.t.mat, flap->field_0x4, &hinge01);
+        parent_user = pActor->parent->user;
+        parent_point = &parent_user->models[0]->vertices[flap->field_0xc].p;
+        BrMatrix34PostTranslate(&pActor->t.t.mat, parent_point->v[0], parent_point->v[1], parent_point->v[2]);
+    }
+    flap->field_0x15 = 1;
+    if (flap->field_0x0 == 0 && gCount_toggled_doors != 16) {
+        for (index = 0; index < gCount_toggled_doors; index++) {
+            if (gToggled_doors[index].actor == pActor) {
+                goto already_toggled;
+            }
+        }
+        gToggled_doors[gCount_toggled_doors].actor = pActor;
+        gToggled_doors[gCount_toggled_doors].car = pCar;
+        gToggled_doors[gCount_toggled_doors].field_0x8 = 1;
+        gToggled_doors[gCount_toggled_doors].field_0xc = 0.f;
+        gCount_toggled_doors += 1;
+    already_toggled:
+        ;
+    }
+    AddCrushToPipingSession(model, &hinge_normal, weights);
 }
 // STUB: CARMA2_HW 0x00432b80
 void C2_HOOK_FASTCALL CrushModel(br_model* pModel, int pCount, br_vector3* pPoints, br_vector3* pDirection, float pForce, const tCar_crush_limits* pLimits, int pAxis, int pFound, float* pMax_bend, float* pMax_distance, tU32* pMax_vertex) {
