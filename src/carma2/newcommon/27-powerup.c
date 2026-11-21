@@ -1073,9 +1073,10 @@ void C2_HOOK_FASTCALL ResetPedSize(tPowerup* pPowerup, tCar_spec* pCar) {
     ChangePedScaling(&scale);
 }
 
-// STUB: CARMA2_HW 0x004dca00
+// FUNCTION: CARMA2_HW 0x004dca00
 void C2_HOOK_FASTCALL ResetPedHeadSize(tPowerup* pPowerup, tCar_spec* pCar) {
-    NOT_IMPLEMENTED();
+
+    ChangeHeadScaling(1.0f);
 }
 
 // ResetPedHeadSize
