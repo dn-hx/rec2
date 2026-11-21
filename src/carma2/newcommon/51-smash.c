@@ -1410,9 +1410,19 @@ void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMappi
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f3740
+// FUNCTION: CARMA2_HW 0x004f3740
 void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(const int* pIndices, const float* pTransform, const float* pPoint, float* pResult) {
-    NOT_IMPLEMENTED();
+    const float* pData = (const float*)pIndices;
+
+    pResult[pIndices[0]] = ((pTransform[7] * pTransform[pIndices[0]] + (pPoint[0] - pTransform[3])) * pTransform[10]
+        - ((pPoint[1] - pTransform[4]) + pTransform[9] * pTransform[pIndices[0]]) * pTransform[8])
+        / (pTransform[10] * pTransform[7] - pTransform[9] * pTransform[8]);
+    pResult[pIndices[1]] = ((pTransform[pIndices[1]] * pTransform[8] + (pPoint[0] - pTransform[3])) * pTransform[9]
+        - ((pPoint[1] - pTransform[4]) + pTransform[10] * pTransform[pIndices[1]]) * pTransform[7])
+        / (pTransform[9] * pTransform[8] - pTransform[10] * pTransform[7]);
+    pResult[pIndices[2]] = (pData[6] - pResult[pIndices[0]] * pData[pIndices[0] + 3]
+        - pResult[pIndices[1]] * pData[pIndices[1] + 3])
+        / pData[pIndices[2] + 3];
 }
 
 #ifdef REC2_MATCHING
