@@ -65,9 +65,48 @@ tFrontend_spec gFrontend_MAIN = {
 #endif
 };
 
+// GLOBAL: CARMA2_HW 0x005d6410
+tFrontend_spec gFrontend_CHANGE_CAR;
+
+// GLOBAL: CARMA2_HW 0x005ed5a0
+tFrontend_spec gFrontend_LOAD_GAME;
+
 // GLOBAL: CARMA2_HW 0x00686f08
 int gCount_connected_items_indices;
 
 // GLOBAL: CARMA2_HW 0x00687018
 int gConnected_items_indices[6];
 
+// GLOBAL: CARMA2_HW 0x00763704
+int back_screen_origin_x;
+
+// GLOBAL: CARMA2_HW 0x00763708
+int back_screen_origin_y;
+
+// GLOBAL: CARMA2_HW 0x0076370c
+int back_screen_base_x;
+
+// GLOBAL: CARMA2_HW 0x00763710
+int back_screen_base_y;
+
+
+
+// STUB: CARMA2_HW 0x00467280
+int C2_HOOK_FASTCALL FRONTEND_NewGameMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00469a40
+int C2_HOOK_FASTCALL MainMenuInfunc(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00469ea0
+int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0046a0e0
+int C2_HOOK_FASTCALL FRONTEND_MainMenuHandler(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
