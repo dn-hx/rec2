@@ -622,9 +622,9 @@ br_fixed_ls BR_NAKED C2_HOOK_CDECL BrFixedDivF(br_fixed_ls a, br_fixed_ls b) {
 #endif
 }
 
-// STUB: CARMA2_HW 0x00537304
+// FUNCTION: CARMA2_HW 0x00537304
 br_fixed_ls C2_HOOK_CDECL FUN_00537304(br_fixed_ls a, br_fixed_ls b) {
-    NOT_IMPLEMENTED();
+    return (br_fixed_ls)((((br_int_64)a) << 30) / b * -2 - (br_int_64)0x80000000);
 }
 
 // FUNCTION: CARMA2_HW 0x00537322
