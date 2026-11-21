@@ -2205,9 +2205,60 @@ void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004f6320
+// FUNCTION: CARMA2_HW 0x004f6320
 void C2_HOOK_FASTCALL ReceivedSmashShraps(tNet_message_chunk_non_car_shrapnel* pSpec) {
-    NOT_IMPLEMENTED();
+    br_actor* actor;
+    br_actor* clone;
+    br_actor** p;
+    tNon_car_spec* non_car;
+    int i;
+
+    i = 0;
+    if (i < gCount_smashable_noncar_shrapnel_actors) {
+        p = gSmashable_noncar_shrapnel_actors;
+        do {
+            if ((*p)->identifier[1] == pSpec->field_0xa && (*p)->identifier[2] == pSpec->field_0xb) {
+                actor = gSmashable_noncar_shrapnel_actors[i];
+                goto found;
+            }
+            i++;
+            p++;
+        } while (i < gCount_smashable_noncar_shrapnel_actors);
+    }
+    actor = NULL;
+found:
+    if (actor == NULL || gProgram_state.track_spec.non_car_list[pSpec->field_0x8] != NULL) {
+        return;
+    }
+    clone = CloneActor(actor);
+    sprintf(clone->identifier + 4, "%04d.ACT", pSpec->field_0x8);
+    gProgram_state.track_spec.non_car_list[pSpec->field_0x8] = clone;
+    BrActorAdd(gDont_render_actor, clone);
+    BrMatrix34Copy(&clone->t.t.mat, &pSpec->mat);
+    if (clone->type_data == NULL && (non_car = DoPullActorFromWorld(clone)) != NULL) {
+        non_car->collision_info->v.v[0] = pSpec->v.v[0];
+        non_car->collision_info->v.v[1] = pSpec->v.v[1];
+        non_car->collision_info->v.v[2] = pSpec->v.v[2];
+        non_car->collision_info->omega.v[0] = pSpec->omega.v[0];
+        non_car->collision_info->omega.v[1] = pSpec->omega.v[1];
+        non_car->collision_info->omega.v[2] = pSpec->omega.v[2];
+        srand(pSpec->seed);
+        if (PercentageChance(pSpec->probability_fire)) {
+            for (i = 0; i < pSpec->count_fire_columns; i++) {
+                CreateSmokeColumn2(2, clone, (tCar_spec*)non_car, NULL,
+                        IRandomBetween(pSpec->min_smokiness, pSpec->max_smokiness),
+                        IRandomBetween(0, clone->model->prepared->groups->nvertices),
+                        10000000);
+            }
+        }
+        if (gProgram_state.track_spec.count_non_cars < pSpec->field_0x8 + 1) {
+            gProgram_state.track_spec.count_non_cars = pSpec->field_0x8 + 1;
+        }
+        return;
+    }
+    BrActorRemove(clone);
+    BrActorFree(clone);
+    gProgram_state.track_spec.non_car_list[pSpec->field_0x8] = NULL;
 }
 
 // FindTheBastard
