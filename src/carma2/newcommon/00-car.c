@@ -1341,9 +1341,36 @@ int C2_HOOK_FASTCALL ProcessForcesCallback(void* pArg1, float *pArg2, int pArg3)
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0041ddc0
+// FUNCTION: CARMA2_HW 0x0041ddc0
 void C2_HOOK_FASTCALL CrashNoise(br_vector3* pForce, br_vector3* pPosition, int pMaterial) {
-    NOT_IMPLEMENTED();
+    // GLOBAL: CARMA2_HW 0x00679410
+    static tS3_sound_tag crunch_tag;
+    // GLOBAL: CARMA2_HW 0x0067935c
+    static tS3_volume last_crunch_vol;
+    tS3_volume vol;
+    br_vector3 velocity;
+
+    extern tS3_outlet* gCar_outlet;
+
+    vol = 60.0 * BrVector3Length(pForce);
+    if (gCurrent_race.material_modifiers[pMaterial].crash_noise_index == -1) {
+    } else {
+        if (vol > 255) {
+            vol = 255;
+        }
+        if (crunch_tag == 0 || !DRS3SoundStillPlaying(crunch_tag)) {
+            if (vol > 30) {
+                last_crunch_vol = vol;
+                (void)last_crunch_vol;
+                velocity.v[0] = 0.f;
+                velocity.v[1] = 0.f;
+                velocity.v[2] = 0.f;
+                crunch_tag = DRS3StartSound3D(gCar_outlet,
+                    gMetal_crunch_sound_id[IRandomBetween(0, 4)],
+                    pPosition, &velocity, 1, vol, IRandomBetween(49152, 81920), 0x10000);
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0041deb0
