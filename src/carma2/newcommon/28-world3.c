@@ -264,9 +264,17 @@ void C2_HOOK_FASTCALL AnimateSky(void) {
 
 // CheckNonCarModelBounds
 
-// STUB: CARMA2_HW 0x00404150
+// FUNCTION: CARMA2_HW 0x00404150
 void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB) {
-    NOT_IMPLEMENTED();
+
+    BrVector3Cross(pDest, pA, pB);
+    if ((float)fabs(pDest->v[0]) < 2.384186e-06f && (float)fabs(pDest->v[1]) < 2.384186e-06f && (float)fabs(pDest->v[1]) < 2.384186e-06f) {
+        if ((float)fabs(pA->v[0]) <= (float)fabs(pA->v[2])) {
+            BrVector3Cross(pDest, pA, &g_Ped_x_unit_vector);
+        } else {
+            BrVector3Cross(pDest, pA, &g_Ped_z_unit_vector);
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x004047b0
