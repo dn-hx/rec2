@@ -51,4 +51,15 @@ extern tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pO
 
 // FollowCheatyPath
 
+extern int C2_HOOK_FASTCALL CalcCorners(tCorner* pCorners, int pSection, float pWidth, br_vector2* pStart, tOpponent_spec* pOpponent_spec);
+
+typedef struct {
+    int count;
+    int y;
+    int current;
+    int x[5];
+} tFlic_cycle_spec;
+
+extern tFlic_cycle_spec gFlic_cycle_specs[2];
+
 #endif // GUARD_26_OPPOPROC_H

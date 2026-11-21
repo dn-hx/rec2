@@ -200,6 +200,10 @@ int C2_HOOK_FASTCALL DRModelPick2D_finteray(br_model* pModel, br_material* pMate
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x0045ff90
+int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat) {
+    NOT_IMPLEMENTED();
+}
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -293,7 +297,10 @@ void C2_HOOK_FASTCALL StationarySphereSphereCollide(const br_vector3* pPoint, co
 
 // SphereBoxFaceCollide
 
-// SphereFaceCollide
+// STUB: CARMA2_HW 0x0045e850
+void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT) {
+    NOT_IMPLEMENTED();
+}
 
 // STUB: CARMA2_HW 0x0045ecc0
 // STUB: CARMA2_SW 0x0045e730

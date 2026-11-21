@@ -25,6 +25,8 @@
 #include "platform.h"
 
 #include "rec2_macros.h"
+#include "16-graphics1.h"
+#include "15-displays.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -196,9 +198,15 @@ void C2_HOOK_FASTCALL DoActionReplayHeadups(void) {
     ActualActionReplayHeadups(0);
 }
 
-// PreProcess
+// STUB: CARMA2_HW 0x004e6950
+void C2_HOOK_FASTCALL PreProcess(int pFrame_period) {
+    NOT_IMPLEMENTED();
+}
 
-// PostProcess
+// STUB: CARMA2_HW 0x004e6980
+void C2_HOOK_FASTCALL PostProcess(int pFrame_period) {
+    NOT_IMPLEMENTED();
+}
 
 // DoActionReplay
 

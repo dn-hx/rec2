@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 
+extern int gCrush_panel_ids[10];
+
 // MakeVertexAndOffsetIt
 
 extern void C2_HOOK_FASTCALL MakeFaceAndTextureIt(br_model* pModel, int pFace_num, br_uint_16 pV0, br_uint_16 pV1, br_uint_16 pV2, br_material* pMaterial);
@@ -43,5 +45,23 @@ extern br_material* C2_HOOK_FASTCALL CreateSimpleMaterial(int pIndex);
 // CalcNegativeXVector
 
 // MakeAISimpleEditSectionHere
+
+extern tU32 gFrame_period_for_this_munging;
+
+extern void C2_HOOK_FASTCALL MungeShatMines(tU32 pTime);
+
+extern float gDrone_delta_time;
+
+extern void C2_HOOK_FASTCALL LoadFunksAndGrooves(tDrone_spec* pDrone, FILE* pF);
+
+extern float gTrack_drone_min_y;
+
+extern void C2_HOOK_FASTCALL StopProcessingThisDrone(tDrone_spec* pDrone, int pForce);
+
+extern int gFirst_drone_processing;
+
+extern int C2_HOOK_FASTCALL InitialiseEditModelsEtc(void);
+
+extern void C2_HOOK_FASTCALL MakeAIEditCubeHere(br_model* pModel, int pVert_index, int pFace_index, br_vector3* pPosition, br_material* pMaterial1, br_material* pMaterial2, br_material* pMaterial3);
 
 #endif // GUARD_56_AIWORLD_H

@@ -23,6 +23,8 @@ int gPHIL_disabled = 1;
 // GLOBAL: CARMA2_CHEAT 0x00751c90
 tPhysics_object* gPHIL_list_collision_infos;
 
+int gCrush_deferred;
+
 // GLOBAL: CARMA2_HW 0x0074a5ec
 // GLOBAL: CARMA2_SW 0x007410ac
 // GLOBAL: CARMA2_CHEAT 0x00751c8c
@@ -232,7 +234,10 @@ int C2_HOOK_FASTCALL GetHierarchyNetworkStuff(tPhysics_object* pObject, tU8* pBu
 
 // FindObject
 
-// WriteHierarchyNetworkStuff
+// STUB: CARMA2_HW 0x0049cd90
+int C2_HOOK_FASTCALL WriteHierarchyNetworkStuff(undefined4* pField, tPhysics_object* pObj, int pMode) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x0049ce60
 // FUNCTION: CARMA2_SW 0x00498fe0

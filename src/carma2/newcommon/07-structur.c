@@ -43,6 +43,9 @@ int gHud_tinted3 = -1;
 // GLOBAL: CARMA2_CHEAT 0x007697e0
 int gCredits_checkpoint[3];
 
+// GLOBAL: CARMA2_HW 0x0079ec44
+tSpecial_volume* gLast_camera_special_volume;
+
 // GLOBAL: CARMA2_HW 0x006aaa34
 // GLOBAL: CARMA2_SW 0x006a4484
 // GLOBAL: CARMA2_CHEAT 0x006b25ac
@@ -62,6 +65,9 @@ int gHud_tinted2_visible;
 // GLOBAL: CARMA2_SW 0x0065b650
 // GLOBAL: CARMA2_CHEAT 0x00668524
 int gLast_wrong_checkpoint = -1;
+
+// GLOBAL: CARMA2_HW 0x006a0944
+int gNumber_of_icons;
 
 // FUNCTION: CARMA2_HW 0x00503050
 // FUNCTION: CARMA2_SW 0x004fe9a0

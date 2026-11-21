@@ -26,6 +26,9 @@
 #include "28-world3.h"
 #include "11-world1.h"
 #include "18b-graphics2.h"
+#include "05-drmem.h"
+#include "42-input.h"
+#include "53-controls.h"
 
 #include <string.h>
 

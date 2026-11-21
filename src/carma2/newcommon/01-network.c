@@ -528,7 +528,10 @@ void C2_HOOK_FASTCALL NetObtainSystemUserName(char* pName, int pMax_length) {
     pName[9] = '\0';
 }
 
-// NetExtractGameID
+// STUB: CARMA2_HW 0x0049ee30
+tU32 C2_HOOK_FASTCALL NetExtractGameID(tNet_game_details* pDetails) {
+    NOT_IMPLEMENTED();
+}
 
 inline tPlayer_ID C2_HOOK_FASTCALL NetExtractPlayerID(tNet_game_details* pDetails) {
 

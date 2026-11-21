@@ -22,6 +22,8 @@ extern tU32 gLast_checkpoint_time;
 extern int gHud_tinted1_visible;
 extern int gHud_tinted2_visible;
 extern int gLast_wrong_checkpoint;
+extern int gNumber_of_icons;
+extern tSpecial_volume* gLast_camera_special_volume;
 
 extern int C2_HOOK_FASTCALL NumberOfOpponentsLeft(void);
 
@@ -68,5 +70,13 @@ extern void C2_HOOK_FASTCALL JumpTheStart(void);
 extern void C2_HOOK_FASTCALL GoingToInterfaceFromRace(void);
 
 extern void C2_HOOK_FASTCALL GoingBackToRaceFromInterface(void);
+
+extern void C2_HOOK_FASTCALL InitRace(void);
+
+extern void C2_HOOK_FASTCALL InitLastDamageArrayEtc(void);
+
+extern int C2_HOOK_FASTCALL DoPostRace(tRace_result pRace_result);
+
+extern void C2_HOOK_FASTCALL LoadTrack(const char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);
 
 #endif // GUARD_07_STRUCTUR_H

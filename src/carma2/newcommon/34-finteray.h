@@ -44,7 +44,7 @@ extern void C2_HOOK_FASTCALL EnablePlingMaterials(void);
 
 extern void C2_HOOK_FASTCALL DisablePlingMaterials(void);
 
-extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(const br_vector3* pPoint, const br_vector3* pSphere_center, br_scalar pRadius, br_vector3* pNormal, br_scalar* pCollision_t);
+extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pEdge_direction, br_scalar pEdge_length_squared, br_vector3* pSphere_end, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 // StationarySphereSphereCollide
 
@@ -60,7 +60,7 @@ extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(const br_vector3* pPoin
 
 // SphereBoxFaceCollide
 
-// SphereFaceCollide
+extern void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br_vector3* pEnd, br_scalar pRadius, void* pUnused_point, br_vector3* pNormal, br_scalar* pT);
 
 extern void C2_HOOK_FASTCALL CheckSingleFace(tFace_ref* pFace, br_vector3* ray_pos, br_vector3* ray_dir, br_vector3* normal, br_scalar* rt, br_vector3* coll_pos);
 
@@ -72,7 +72,7 @@ extern void C2_HOOK_FASTCALL FillInBounds(tBounds* pBounds);
 
 extern int C2_HOOK_FASTCALL ActorBoxPick(tBounds* bnds, br_actor* ap, br_model* model, br_material* material, tFace_ref* face_list, int max_face, br_matrix34* pMat, tWorld_callbacks* pWorld_callbacks);
 
-// ModelPickBox
+extern int C2_HOOK_FASTCALL ModelPickBox(br_actor* actor, tBounds* bnds, br_model* model, br_material* model_material, tFace_ref* face_list, int max_face, br_matrix34* pMat);
 
 // ClipToPlaneGE
 
@@ -103,5 +103,7 @@ extern int C2_HOOK_FASTCALL ShapeRayCast(br_vector3* pStart, br_vector3* pEnd, t
 extern int C2_HOOK_FASTCALL ShapeRayCastWithSphere(br_vector3* pStart, br_vector3* pEnd, tPhysics_shape* pShape, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 extern tFace_ref* C2_HOOK_FASTCALL CastRayDownThruFaces(br_vector3* pPosition, tFace_ref* pFaces, int pCount, br_scalar pOffset, br_vector3* pCollision_position);
+
+extern void C2_HOOK_FASTCALL SphereEdgeCollide(br_vector3* pEdge_start, br_vector3* pEdge_end, br_vector3* pStart, br_vector3* pEnd, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT, tU32 pFlags_a, tU8 pFlags_b);
 
 #endif // GUARD_34_FINTERAY_H

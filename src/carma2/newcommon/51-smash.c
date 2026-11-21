@@ -29,6 +29,8 @@
 #include "rec2_macros.h"
 
 #include "c2_string.h"
+#include "61-pedestrn.h"
+#include "00-car.h"
 
 #include <stdio.h>
 
@@ -40,6 +42,12 @@ int gAllow_material_adapt;
 // GLOBAL: CARMA2_HW 0x006a3340
 // GLOBAL: CARMA2_CHEAT 0x006aaeb8
 br_material* gMaterials_to_adapt[200];
+
+float gFloat_0058aec0 = 0.0f;
+
+float gFloat_0058aec4 = 2.3841858e-07f;
+
+double gDouble_0058aec8 = 1.0;
 
 // GLOBAL: CARMA2_HW 0x006a3334
 // GLOBAL: CARMA2_SW 0x0069d394
@@ -497,7 +505,10 @@ br_scalar C2_HOOK_FASTCALL SetInitPosition(br_actor* pActor, tSmashable_initial_
 
 // DoNonCarShrapnel
 
-// DoShrapnel
+// STUB: CARMA2_HW 0x004eb8f0
+void C2_HOOK_FASTCALL DoShrapnel(tU32 pOwner, tU32 pShrapnel, tU32 pSeed, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6, tU32 pActor, tU32 pTime, tU32 pArg9, br_vector3* pTransform, br_vector3* pFragment_owner, br_vector3* pPosition, tU32 pDistance, br_vector3* pArg14, tU32 pArg15) {
+    NOT_IMPLEMENTED();
+}
 
 // DoAward
 
@@ -554,9 +565,31 @@ void C2_HOOK_FASTCALL InitSmashQueue(void) {
 
 // FlushSmashQueue
 
-// QueueSmashIfNecessary3
+// STUB: CARMA2_HW 0x004ee290
+tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, br_vector3* pOptional_position, br_actor* pActor, undefined4 pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, undefined4 pArg9, undefined4 pArg10) {
+    NOT_IMPLEMENTED();
+}
 
-// QueueSmashIfNecessary2
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth(0)
+#endif
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
+// STUB: CARMA2_HW 0x004ee250
+void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9) {
+    NOT_IMPLEMENTED();
+}
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // AllocateSmashLevels
 
@@ -624,6 +657,10 @@ intptr_t C2_HOOK_CDECL NoteChildren(br_actor* pActor, void* pData) {
     return 0;
 }
 
+// STUB: CARMA2_HW 0x004f5a70
+intptr_t C2_HOOK_CDECL SmashEverythingCB(br_actor* pActor, void* pContext) {
+    NOT_IMPLEMENTED();
+}
 void C2_HOOK_FASTCALL ReadSmokeFireChance(FILE* pF, tSmoke_fire_chance* pSmoke_fire_chance) {
     pSmoke_fire_chance->probability_fire = GetAnInt(pF);
     if (pSmoke_fire_chance->probability_fire != 0) {
@@ -965,7 +1002,10 @@ void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smash
 
 // AddRepairAnimationToQueue
 
-// RepairSmash
+// STUB: CARMA2_HW 0x004ef910
+void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004ef9c0
 // FUNCTION: CARMA2_SW 0x004eb620
@@ -1113,7 +1153,10 @@ void C2_HOOK_FASTCALL DisposeSmashData(tCar_crush_buffer_entry* pCrush_data) {
     }
 }
 
-// DoBackwardShrapnel
+// STUB: CARMA2_HW 0x004f0380
+void C2_HOOK_FASTCALL DoBackwardShrapnel(tU32 chunk_0x48, tU32 prev_0x4, tU32 prev_0x84, tU32 prev_0x44, br_vector3* prev_0x8, br_vector3* prev_0x20, br_vector3* prev_0x2c, tU32 prev_0x50, tU32 prev_0x48, tU32 prev_0x0, br_vector3* prev_0x54, br_vector3* prev_0x88, br_vector3* prev_0x14, tU32 prev_0xa0, br_vector3* prev_0x38) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004f0430
 // FUNCTION: CARMA2_SW 0x004ec090
@@ -1841,7 +1884,10 @@ intptr_t C2_HOOK_CDECL RepairModels(br_actor* pActor, void* pUser) {
 
 // SmashEverythingCB
 
-// SmashEverything
+// STUB: CARMA2_HW 0x004f5a60
+void C2_HOOK_FASTCALL SmashEverything(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004f5ae0
 // FUNCTION: CARMA2_SW 0x004f1740
@@ -2054,7 +2100,10 @@ void C2_HOOK_FASTCALL ChangeSmashTexture(br_material* pMaterial, tCar_spec* pCar
 
 // ReceivedSmashEnvironment
 
-// DoQueuedNetSmashes
+// STUB: CARMA2_HW 0x004f62e0
+void C2_HOOK_FASTCALL DoQueuedNetSmashes(void) {
+    NOT_IMPLEMENTED();
+}
 
 // FindTheBastard
 

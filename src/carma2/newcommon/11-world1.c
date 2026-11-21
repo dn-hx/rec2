@@ -17,6 +17,9 @@
 #include <string.h>
 
 #include "rec2_macros.h"
+#include "00-car.h"
+#include "15-displays.h"
+#include "globvars.h"
 
 // GLOBAL: CARMA2_HW 0x006ab7a8
 // GLOBAL: CARMA2_SW 0x006a51f8

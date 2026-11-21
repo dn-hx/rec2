@@ -11,6 +11,13 @@
 #include "30-opponent.h"
 
 #include "globvars.h"
+#include "35-intrface.h"
+#include "globvrpb.h"
+#include "01-network.h"
+#include "platform.h"
+#include "72-interface.h"
+#include "18-graphics2.h"
+#include "69-sound.h"
 
 // SortScores
 

@@ -17,6 +17,19 @@ extern br_actor* gAdditional_actors;
 extern tBrender_storage* gStorage_for_callbacks;
 
 extern tRendererShadingType gMaterial_shading_for_callback;
+extern br_actor* gGroove_by_proxy_actor;
+extern const char* gLollipop_names[3];
+extern const char* gGroove_nature_names[2];
+extern const char* gGroove_path_names[2];
+extern const char* gAxis_names[3];
+extern const char* gGroove_object_names[4];
+extern br_angle gSky_image_underground;
+extern br_angle gSky_image_height;
+extern br_angle gSky_image_width;
+extern tU8* gTrack_flic_buffer;
+extern tU32 prev_sky_animation;
+extern tFlic_descriptor gTrack_flic_descriptor;
+extern tU32 gTrack_flic_buffer_size;
 
 extern void C2_HOOK_FASTCALL InitTreeSurgery(void);
 
@@ -121,5 +134,19 @@ extern void C2_HOOK_FASTCALL LoadAllStuffInDirectory(tBrender_storage* pStorage,
 extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
+
+extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
+
+extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
+
+extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);
+
+extern void C2_HOOK_FASTCALL SetSmashableModel(br_actor* pActor);
+
+extern void C2_HOOK_FASTCALL ReadSmashableEnvironment(FILE* pF, const char* pPath);
+
+extern void C2_HOOK_FASTCALL ExtractColumns(tTrack_spec* pTrack_spec);
+
+extern void C2_HOOK_FASTCALL ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* pNon_car_spec);
 
 #endif // GUARD_28_WORLD3_H

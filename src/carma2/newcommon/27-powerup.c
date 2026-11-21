@@ -37,6 +37,7 @@
 
 #include "c2_stdio.h"
 #include "c2_string.h"
+#include "07-structur.h"
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -198,6 +199,9 @@ tPhysics_object* gMutant_tail_object = NULL;
 // GLOBAL: CARMA2_CHEAT 0x006a8644
 tPhysics_joint* gMutant_tail_first_joint;
 
+// GLOBAL: CARMA2_HW 0x006a0ad0
+int gNumber_of_powerups;
+
 // GLOBAL: CARMA2_HW 0x00705540
 // GLOBAL: CARMA2_SW 0x006fc000
 // GLOBAL: CARMA2_CHEAT 0x0070cbe0
@@ -247,6 +251,9 @@ tU32 gInventory_timeout;
 // GLOBAL: CARMA2_CHEAT 0x007a62f0
 int gInstant_handbrake;
 
+// GLOBAL: CARMA2_HW 0x0079ecbc
+tPhysics_object* gUNK_0079ecbc;
+
 // FUNCTION: CARMA2_HW 0x004d8d10
 // FUNCTION: CARMA2_SW 0x004d5240
 // FUNCTION: CARMA2_CHEAT 0x004de8d0
@@ -259,7 +266,10 @@ char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index) {
 
 // DoPowerupTextHeadup
 
-// QueueIconGoing
+// STUB: CARMA2_HW 0x004d9670
+void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons) {
+    NOT_IMPLEMENTED();
+}
 
 // QueueIconComing
 
@@ -636,7 +646,10 @@ void C2_HOOK_FASTCALL ToggleInventory(void) {
 
 // LeftInventory
 
-// DrawPowerups
+// STUB: CARMA2_HW 0x004dad00
+void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime) {
+    NOT_IMPLEMENTED();
+}
 
 // MungeKeyboardPowerup
 
@@ -1689,7 +1702,10 @@ void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// LoseDodgyPowerups
+// STUB: CARMA2_HW 0x004df070
+void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004df1e0
 // FUNCTION: CARMA2_SW 0x004db6e0
