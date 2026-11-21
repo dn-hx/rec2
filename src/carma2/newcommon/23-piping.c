@@ -840,9 +840,22 @@ void C2_HOOK_FASTCALL DisposeActionReplay(void) {
 
 // GetNextIncident
 
-// STUB: CARMA2_HW 0x004c6e40
+// FUNCTION: CARMA2_HW 0x004c6e40
 void C2_HOOK_FASTCALL AddCrushToPipingSession(br_model* pModel, br_vector3* pSrc, const float* pScalars) {
-    NOT_IMPLEMENTED();
+    undefined4* crush_space;
+    tU32 size;
+
+    crush_space = (undefined4*)gCrush_space;
+    if (crush_space == NULL) {
+        return;
+    }
+    size = (tU32)pModel->nvertices * 2 + 0xa;
+    if (size > 0x4000) {
+        FatalError(kFatalError_ChunkIsTooLargeToPipe);
+    }
+    *(br_model**)crush_space = pModel;
+    ARCompressCrush(crush_space + 1, (char*)crush_space + 0xa, pModel, pSrc, pScalars);
+    ARAddDataToSession(3, (uintptr_t)-1, crush_space, (int)size);
 }
 
 // STUB: CARMA2_HW 0x004c6ea0
