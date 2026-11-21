@@ -2742,9 +2742,22 @@ void C2_HOOK_FASTCALL SetAllShapeStatusFlags(tCar_crush_network_shapes* pShapes)
     }
 }
 
-// STUB: CARMA2_HW 0x004c7fa0
+// FUNCTION: CARMA2_HW 0x004c7fa0
 void C2_HOOK_FASTCALL FUN_004c7fa0(tU16 pCar_ID, int pModel_index, int pVertex_count, tSmudged_vertex* pCoordinates) {
-    NOT_IMPLEMENTED();
+    extern tPipe_smudge_data* gSmudge_space;
+    tU32 copy_size;
+
+    if (gSmudge_space != NULL) {
+        if (pVertex_count > 600) {
+            pVertex_count = 600;
+        }
+        copy_size = pVertex_count * sizeof(tSmudged_vertex);
+        gSmudge_space->vertex_count = (tU16)pVertex_count;
+        gSmudge_space->model_index = pModel_index;
+        memcpy(gSmudge_space->vertex_changes, pCoordinates, copy_size);
+        /* 8 = offsetof(tPipe_smudge_data, vertex_changes) */
+        ARDoSingleSession(ePipe_chunk_smudge, pCar_ID, gSmudge_space, copy_size + 8);
+    }
 }
 
 // STUB: CARMA2_HW 0x004c86f0
