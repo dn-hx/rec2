@@ -177,6 +177,11 @@ void C2_HOOK_FASTCALL DisposeFunkotronics(int pOwner) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x00474ac0
+void C2_HOOK_FASTCALL AddFunkotronics(FILE* pF, int pOwner, int pRef_offset, tCar_crush_buffer* pCar_crush_datas) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x004761e0
 // FUNCTION: CARMA2_SW 0x00475740
 br_uint_32 C2_HOOK_FASTCALL CalcProximities(br_actor* pActor, br_material* pMat, void* pData) {
@@ -227,6 +232,11 @@ void C2_HOOK_FASTCALL DisposeGroovidelics(int pOwner) {
     }
 }
 
+// STUB: CARMA2_HW 0x00476470
+void C2_HOOK_FASTCALL AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent) {
+    NOT_IMPLEMENTED();
+}
+
 // AddNewGroovidelic
 
 // AddGroovidelics
@@ -270,6 +280,11 @@ void C2_HOOK_FASTCALL KillFunkotronic(int pOwner) {
             }
         }
     }
+}
+
+// STUB: CARMA2_HW 0x00477230
+void C2_HOOK_FASTCALL FunkThoseTronics(void) {
+    NOT_IMPLEMENTED();
 }
 
 // NormaliseDegreeAngle
