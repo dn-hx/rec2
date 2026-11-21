@@ -656,9 +656,30 @@ void C2_HOOK_FASTCALL DrawMapBlip(br_pixelmap* pScreen, tCar_spec* pCar, tU32 pT
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004967c0
+// FUNCTION: CARMA2_HW 0x004967c0
 void C2_HOOK_FASTCALL DrawMapSmallBlip(br_pixelmap* pScreen, tU32 pTime, const br_vector3 *pPos, int pColour) {
-    NOT_IMPLEMENTED();
+    br_vector3 map_pos;
+    if (pTime & 0x100) {
+        pColour = 0;
+    }
+    BrMatrix34ApplyP(&map_pos, pPos, &gCurrent_race.map_transformation);
+    if (map_pos.v[0] >= 0.f && map_pos.v[0] < (float)pScreen->width && map_pos.v[1] >= 0.f && map_pos.v[1] < (float)pScreen->height) {
+        if (gMap_view == 2) {
+#ifdef REC2_HW
+            PossibleLock(1);
+#endif
+        }
+        if (gBack_screen->type != BR_PMT_INDEX_8) {
+            *(tU16*)((int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0] * 2 + (int)pScreen->pixels) = PaletteEntry16Bit(gRender_palette, pColour);
+        } else {
+            ((tU8*)pScreen->pixels)[(int)map_pos.v[1] * pScreen->row_bytes + (int)map_pos.v[0]] = (tU8)pColour;
+        }
+        if (gMap_view == 2) {
+#ifdef REC2_HW
+            PossibleUnlock(1);
+#endif
+        }
+    }
 }
 
 #ifdef REC2_MATCHING
