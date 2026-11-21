@@ -81,6 +81,9 @@ int gHas_sky_texture;
 // GLOBAL: CARMA2_HW 0x0067c4ac
 br_angle gOld_fov;
 
+// GLOBAL: CARMA2_HW 0x0067c4b4
+br_scalar gSky_height;
+
 
 // GLOBAL: CARMA2_HW 0x0067c4bc
 int gDepth_shade_table_power;
@@ -91,8 +94,17 @@ br_scalar gOld_yon;
 // GLOBAL: CARMA2_HW 0x0067c4c0
 br_actor* gRearview_sky_actor;
 
+// GLOBAL: CARMA2_HW 0x0067c4c8
+br_scalar gSky_width;
+
 // GLOBAL: CARMA2_HW 0x0067c4cc
 int gWater_shade_table_power;
+
+// GLOBAL: CARMA2_HW 0x0067c4d0
+br_scalar gSky_x_multiplier;
+
+// GLOBAL: CARMA2_HW 0x0067c4d4
+br_scalar gSky_y_multiplier;
 
 // GLOBAL: CARMA2_HW 0x0067c4d8
 br_actor* gForward_sky_actor;
@@ -293,6 +305,11 @@ void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPo
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004459e0
+void C2_HOOK_FASTCALL DoHorizon(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
+    NOT_IMPLEMENTED();
+}
+
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)
 #endif
@@ -319,9 +336,10 @@ void C2_HOOK_FASTCALL InitDepthEffects(void) {
 void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
 }
 
-// STUB: CARMA2_HW 0x00445cb0
+// FUNCTION: CARMA2_HW 0x00445cb0
 void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world) {
-    NOT_IMPLEMENTED();
+
+    DoHorizon(pRender_buffer, pDepth_buffer, pCamera, pCamera_to_world);
 }
 
 // STUB: CARMA2_HW 0x00446680
