@@ -1309,9 +1309,43 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0041bd40
+// FUNCTION: CARMA2_HW 0x0041bd40
 void C2_HOOK_FASTCALL NewSkidding(tCar_spec* pCar, tFace_ref** faces, int pIndex) {
-    NOT_IMPLEMENTED();
+    br_vector3 skid_pos;
+    br_scalar d;
+
+    if (faces[pIndex] == NULL) {
+        return;
+    }
+    if (faces[pIndex]->material != NULL
+            && faces[pIndex]->material->colour_map != NULL
+            && faces[pIndex]->material->colour_map->type == BR_PMT_RGBA_4444) {
+        return;
+    }
+    if (faces[pIndex]->material != NULL
+            && faces[pIndex]->material->identifier != NULL
+            && strlen(faces[pIndex]->material->identifier) == 0xb
+            && faces[pIndex]->material->identifier[5] == '|') {
+        return;
+    }
+    if ((pCar->new_skidding & (1 << pIndex)) != 0) {
+        return;
+    }
+    pCar->new_skidding |= 1 << pIndex;
+    if ((pIndex & 1) != 0) {
+        skid_pos.v[0] = pCar->wpos[pIndex].v[0] - 0.1725f;
+    } else {
+        skid_pos.v[0] = pCar->wpos[pIndex].v[0] - -0.1725f;
+    }
+    skid_pos.v[0] = skid_pos.v[0] * 0.14492753f;
+    skid_pos.v[1] = (pCar->wpos[pIndex].v[1] - pCar->oldd[pIndex]) * 0.14492753f;
+    skid_pos.v[2] = pCar->wpos[pIndex].v[2] * 0.14492753f;
+    BrMatrix34ApplyP(&pCar->special_start[pIndex], &skid_pos, &pCar->collision_info->transform_matrix);
+    d = BrVector3Dot(&faces[pIndex]->v[0], &faces[pIndex]->normal)
+        - BrVector3Dot(&pCar->special_start[pIndex], &faces[pIndex]->normal);
+    pCar->special_start[pIndex].v[0] = faces[pIndex]->normal.v[0] * d + pCar->special_start[pIndex].v[0];
+    pCar->special_start[pIndex].v[1] = faces[pIndex]->normal.v[1] * d + pCar->special_start[pIndex].v[1];
+    pCar->special_start[pIndex].v[2] = faces[pIndex]->normal.v[2] * d + pCar->special_start[pIndex].v[2];
 }
 
 // STUB: CARMA2_HW 0x0041bed0
