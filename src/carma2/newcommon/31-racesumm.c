@@ -19,6 +19,12 @@
 #include "18-graphics2.h"
 #include "69-sound.h"
 
+// GLOBAL: CARMA2_HW 0x007051a0
+int gPlayer_lookup_racesumm[14];
+
+// GLOBAL: CARMA2_HW 0x0074a694
+int gReceived_game_scores;
+
 // SortScores
 
 // SortGameScores
@@ -26,6 +32,16 @@
 // DoNetRaceSummary
 
 // DoEndRaceSummary
+
+// STUB: CARMA2_HW 0x004e32b0
+void C2_HOOK_FASTCALL DoEndRaceSummary(tRace_result pRace_result, int pGame_completed) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004e33a0
+int C2_HOOK_CDECL SortScores_2(const void* pArg1, const void* pArg2) {
+    NOT_IMPLEMENTED();
+}
 
 // FUNCTION: CARMA2_HW 0x004e33d0
 // FUNCTION: CARMA2_SW 0x004df760

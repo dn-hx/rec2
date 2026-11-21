@@ -171,6 +171,11 @@ void C2_HOOK_FASTCALL PDDisposeActionReplayBuffer(void* pBuffer) {
     (void)pBuffer;
 }
 
+// STUB: CARMA2_HW 0x0051d900
+tU32 C2_HOOK_FASTCALL PDGetTotalTime2(void) {
+    NOT_IMPLEMENTED();
+}
+
 // PDInitJoysticks
 
 // PDReadJoySticks
