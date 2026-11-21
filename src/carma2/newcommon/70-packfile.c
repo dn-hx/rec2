@@ -172,6 +172,11 @@ int C2_HOOK_FASTCALL PFfgetc(FILE* pFile) {
     return result;
 }
 
+// STUB: CARMA2_HW 0x004b48c0
+C2_NAKED int C2_HOOK_FASTCALL PFgetc(FILE* pFile) {
+    NOT_IMPLEMENTED();
+}
+
 // PFgetc
 
 // FUNCTION: CARMA2_HW 0x004b4900
@@ -383,6 +388,11 @@ int C2_HOOK_FASTCALL DRferror(FILE* pFile) {
     } else {
         return gTwatVfsFiles[(uintptr_t)pFile].error;
     }
+}
+
+// STUB: CARMA2_HW 0x004b4c60
+void C2_HOOK_FASTCALL DRclearerr(FILE* pFile) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x004b4c80

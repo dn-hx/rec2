@@ -8,6 +8,11 @@
 
 #include "08-loading1.h"
 
+typedef struct {
+    char pad[0x10];
+    br_actor* actor;
+} tFUN_0044bf20_this;
+
 #include "01-network.h"
 #include "09-funks.h"
 #include "10-loading2.h"
@@ -832,6 +837,11 @@ void C2_HOOK_FASTCALL EncodeFile(char* pThe_path) {
     rename(new_file, pThe_path);
 }
 
+// STUB: CARMA2_HW 0x00490b90
+void C2_HOOK_FASTCALL EncodeAllFilesInDirectory(char* pThe_path) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00490bc0
 // FUNCTION: CARMA2_SW 0x0048de30
 void C2_HOOK_FASTCALL EncodeFileWrapper(char* pThe_path) {
@@ -1080,6 +1090,11 @@ FILE* C2_HOOK_FASTCALL DRfopen(const char* pFilename, const char* pMode) {
     return result;
 }
 
+// STUB: CARMA2_HW 0x004fe180
+void C2_HOOK_FASTCALL DisposeKevStuff(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0044bb80
 // FUNCTION: CARMA2_SW 0x0044b8e0
 void C2_HOOK_FASTCALL UnlockInterfaceStuff(void) {
@@ -1151,6 +1166,11 @@ intptr_t C2_HOOK_CDECL DisposeCarActModDataCB(br_actor* pActor, void* pContext) 
     BrMemFree(crush_data);
     pActor->user = NULL;
     return 0;
+}
+
+// STUB: CARMA2_HW 0x0044bf20
+void C2_HOOK_FASTCALL FUN_0044bf20(tFUN_0044bf20_this* pThis) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0044bbe0
