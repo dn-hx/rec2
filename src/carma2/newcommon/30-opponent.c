@@ -22,6 +22,7 @@
 #include "c2_stdio.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "52-errors.h"
 #include <stdarg.h>
 #include <string.h>
 
@@ -1393,9 +1394,27 @@ const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionStartNodePoint(const tOppo
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004aec40
+// FUNCTION: CARMA2_HW 0x004aec40
 const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpponent_spec* pOpponent_spec, tS16 pSection) {
-    NOT_IMPLEMENTED();
+    tS16 section_no;
+    tS16 node_no;
+    int node_index_index;
+
+    if (pSection >= 20000 && pOpponent_spec->nnext_sections > pSection - 20000) {
+        section_no = pOpponent_spec->next_sections[pSection - 20000].section_no;
+        node_index_index = pOpponent_spec->next_sections[pSection - 20000].direction;
+        node_no = gProgram_state.AI_vehicles.path_sections[section_no].node_indices[node_index_index];
+        return &gProgram_state.AI_vehicles.path_nodes[node_no].pos;
+    } else if (pSection >= 15000) {
+        return &pOpponent_spec->pursue_car_data.pursuee->my_trail.trail_nodes[(pSection + 1) - 15000];
+    } else if (pSection == 10000) {
+        return &pOpponent_spec->pursue_car_data.direct_line_nodes[1].pos;
+    } else {
+        dr_dprintf("BIG ERROR - GetOpponentsSectionFinishNodePoint() - section not found in next_section array for opponent %s",
+                   pOpponent_spec->car_spec->driver_name);
+        PDEnterDebugger("BIG ERROR - GetOpponentsSectionFinishNodePoint()");
+        return NULL;
+    }
 }
 
 // STUB: CARMA2_HW 0x004aece0
