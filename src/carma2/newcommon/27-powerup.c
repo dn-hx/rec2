@@ -46,6 +46,7 @@ typedef struct {
 #include "c2_stdio.h"
 #include "c2_string.h"
 #include "07-structur.h"
+#include "29-raycast.h"
 
 // GLOBAL: CARMA2_HW 0x006a0a70
 // GLOBAL: CARMA2_SW 0x0069aac8
@@ -315,9 +316,146 @@ void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIn
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0040bee0
+// FUNCTION: CARMA2_HW 0x0040bee0
 void C2_HOOK_FASTCALL ScaleFormBone(tPed_form* pForm, int pIndex, br_scalar* pScale, int pMode) {
-    NOT_IMPLEMENTED();
+    br_scalar scales[3];
+    tPed_remap_bone* pRemap;
+    tPhysics_joint* pHinge;
+    tPhysics_object* pObject;
+    br_vector3* pPos;
+    br_scalar y;
+    int start;
+    int end;
+    int i;
+    int j;
+
+    if (pIndex == -1) {
+        end = pForm->count_bones;
+    } else {
+        end = pIndex + 1;
+    }
+    start = (pIndex == -1) ? 0 : pIndex;
+    for (; start < end; start++) {
+        pHinge = pForm->bones[start].hinge;
+        if (pHinge != NULL) {
+            pRemap = pForm->bones[start].remapped_bone;
+            if (pRemap != NULL) {
+                for (i = 0; i < 3; i++) {
+                    tPed_remap_axis axis = pRemap->powerup_axis[i];
+
+                    scales[axis % 3] = pScale[i];
+                    if (axis >= 3) {
+                        scales[i] = -scales[i];
+                    }
+                }
+            }
+            pHinge->field_0x08.v[0] = pHinge->field_0x08.v[0] * scales[0];
+            pHinge->field_0x08.v[1] = scales[1] * pHinge->field_0x08.v[1];
+            pHinge->field_0x08.v[2] = scales[2] * pHinge->field_0x08.v[2];
+        }
+        if (pIndex == -1) {
+            pHinge = pForm->bones[start].hinge;
+            if (pHinge != NULL) {
+                pRemap = pForm->bones[pForm->bones[start].indices[0]].remapped_bone;
+                if (pRemap != NULL) {
+                    for (i = 0; i < 3; i++) {
+                        tPed_remap_axis axis = pRemap->powerup_axis[i];
+
+                        scales[axis % 3] = pScale[i];
+                        if (axis >= 3) {
+                            scales[i] = -scales[i];
+                        }
+                    }
+                }
+                pHinge->field_0x14.v[0] = pHinge->field_0x14.v[0] * scales[0];
+                pHinge->field_0x14.v[1] = scales[1] * pHinge->field_0x14.v[1];
+                pHinge->field_0x14.v[2] = scales[2] * pHinge->field_0x14.v[2];
+            }
+        } else {
+            for (j = 0; j < pForm->count_bones; j++) {
+                if (pForm->bones[j].indices[0] == pIndex) {
+                    pHinge = pForm->bones[j].hinge;
+                    if (pHinge != NULL) {
+                        pRemap = pForm->bones[pForm->bones[j].indices[0]].remapped_bone;
+                        if (pRemap != NULL) {
+                            for (i = 0; i < 3; i++) {
+                                tPed_remap_axis axis = pRemap->powerup_axis[i];
+
+                                scales[axis % 3] = pScale[i];
+                                if (axis >= 3) {
+                                    scales[i] = -scales[i];
+                                }
+                            }
+                        }
+                        pHinge->field_0x14.v[0] = pHinge->field_0x14.v[0] * scales[0];
+                        pHinge->field_0x14.v[1] = scales[1] * pHinge->field_0x14.v[1];
+                        pHinge->field_0x14.v[2] = scales[2] * pHinge->field_0x14.v[2];
+                    }
+                }
+            }
+        }
+        for (i = 0; i < pForm->max_boned_physicing_at_once; i++) {
+            pObject = pForm->boned_physicing[i].collision_infos[start];
+            if (pObject->owner != NULL) {
+                pRemap = pForm->bones[start].remapped_bone;
+                if (pRemap != NULL) {
+                    for (j = 0; j < 3; j++) {
+                        tPed_remap_axis axis = pRemap->powerup_axis[j];
+
+                        scales[axis % 3] = pScale[j];
+                        if (axis >= 3) {
+                            scales[j] = -scales[j];
+                        }
+                    }
+                }
+                pObject->M = scales[0] * scales[1] * scales[2] * pObject->M;
+                pObject->cmpos.v[0] = pObject->cmpos.v[0] * scales[0];
+                pObject->cmpos.v[1] = scales[1] * pObject->cmpos.v[1];
+                pObject->cmpos.v[2] = scales[2] * pObject->cmpos.v[2];
+                CalcCollisionObjectThings(pObject, &((tPed_character_instance*)pObject->owner)->personality->bones[start].models[0].models[0]->bounds, 0, 0, 0);
+            } else {
+                pObject->M = pScale[1] * pScale[2] * pScale[0] * pObject->M;
+            }
+        }
+    }
+    if (pMode != 0) {
+        for (i = 0; i < pForm->max_simple_physicing_at_once; i++) {
+            pObject = pForm->simple_physicing[i].collision_info;
+            if (pObject->owner != NULL) {
+                pRemap = pForm->bones[0].remapped_bone;
+                if (pRemap != NULL) {
+                    for (j = 0; j < 3; j++) {
+                        tPed_remap_axis axis = pRemap->powerup_axis[j];
+
+                        scales[axis % 3] = pScale[j];
+                        if (axis >= 3) {
+                            scales[j] = -scales[j];
+                        }
+                    }
+                }
+                pObject->M = scales[0] * scales[1] * scales[2] * pObject->M;
+                pObject->cmpos.v[0] = pObject->cmpos.v[0] * scales[0];
+                pObject->cmpos.v[1] = scales[1] * pObject->cmpos.v[1];
+                pObject->cmpos.v[2] = scales[2] * pObject->cmpos.v[2];
+                CalcCollisionObjectThings(pObject, &((tPed_character_instance*)pObject->owner)->personality->bb, 0, 0, 0);
+            } else {
+                pObject->M = pScale[1] * pScale[2] * pScale[0] * pObject->M;
+            }
+        }
+        if (pMode != 0) {
+            for (i = 0; i < pForm->max_rendering_at_once; i++) {
+                if (pForm->actor_sets[i].field_0x0 != 0) {
+                    for (j = 0; j < pForm->count_bones; j++) {
+                        pPos = &pForm->actor_sets[i].actors[j]->t.t.translate.t;
+                        y = FindYVerticallyBelow2(pPos);
+                        if (y > -100.f) {
+                            pPos->v[1] = (pPos->v[1] - y) * pScale[0] + y;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0040c420
