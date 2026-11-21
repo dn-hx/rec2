@@ -14,6 +14,7 @@
 #include "globvrpb.h"
 #include "platform.h"
 #include "rec2_macros.h"
+#include "23-piping.h"
 #include <stdlib.h>
 
 // GLOBAL: CARMA2_HW 0x0068c814
@@ -175,9 +176,13 @@ void C2_HOOK_FASTCALL LoseOldestWastedMassage(void) {
     gLast_wasted_message_start = GetTotalTime();
 }
 
-// STUB: CARMA2_HW 0x00403cc0
+// FUNCTION: CARMA2_HW 0x00403cc0
 void C2_HOOK_FASTCALL ARDoActionReplay(int pUnused, void (C2_HOOK_FASTCALL * pBetween_sessions)(int), tPreprocess_AR_callback* pBefore_frame, tPostProcess_AR_callback* pAfter_frame) {
-    NOT_IMPLEMENTED();
+    typedef void (C2_HOOK_FASTCALL * tReplay_between_sessions_callback)(int pFrames);
+
+    if (gReplay_rate != 0.0f) {
+        MoveReplayBuffer((int)gReplay_rate, (tReplay_between_sessions_callback)pBetween_sessions, pBefore_frame, pAfter_frame);
+    }
 }
 
 // STUB: CARMA2_HW 0x00413860
