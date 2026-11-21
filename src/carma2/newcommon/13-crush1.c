@@ -1248,9 +1248,127 @@ int C2_HOOK_FASTCALL NearestAxis(const br_vector3* pVector) {
 
 // PossibleShockSmash
 
-// STUB: CARMA2_HW 0x00431e20
+// FUNCTION: CARMA2_HW 0x00431e20
 intptr_t C2_HOOK_FASTCALL CrushModels(br_actor* pActor, br_matrix34* pMat, void* pContext) {
-    NOT_IMPLEMENTED();
+    struct {
+        tCar_spec* car;
+        tCar_crush* crush;
+        float force;
+    }* context;
+    tUser_crush_data* user;
+    tCar_crush_buffer_entry* entry;
+    tCar_crush_spec* crush_spec;
+    tCar_crush_limits* limits;
+    tCar_crush_smashable_part* smashable;
+    br_vector3* crush_center;
+    tCar_spec* car;
+    br_vector3 centre;
+    br_vector3 direction;
+    br_vector3 points[4];
+    float force;
+    float max_bend;
+    float max_distance;
+    float dist_sq;
+    tU32 max_vertex;
+    volatile tU32 smashable_count;
+    int limit_count;
+    int axis;
+    int flip;
+    int found;
+    int i;
+
+    if (pActor->type != 1) {
+        return 0;
+    }
+    user = pActor->user;
+    if (user == NULL) {
+        return 0;
+    }
+    entry = user->crush_data;
+    if (entry == NULL) {
+        return 0;
+    }
+    context = pContext;
+    if (context->crush->count > 4) {
+        context->crush->count = 4;
+    }
+    centre.v[0] = 0.f;
+    centre.v[1] = 0.f;
+    centre.v[2] = 0.f;
+    for (i = 0; i < context->crush->count; i++) {
+        DrMatrix34ApplyLPInverse(&points[i], &context->crush->vectors[i], pMat);
+        centre.v[0] += points[i].v[0];
+        centre.v[1] += points[i].v[1];
+        centre.v[2] += points[i].v[2];
+    }
+    DrMatrix34ApplyLPInverse(&centre, &context->crush->field_0x34, pMat);
+    BrMatrix34TApplyV(&direction, &context->crush->field_0x44, pMat);
+    force = entry->softness_factor * context->force;
+    if (TooFarToCrush(pActor->model, context->crush->count, points, gMax_crush_dist_sq) != 0) {
+        return 0;
+    }
+    if ((float)fabs(direction.v[0]) > gCrushSqrtHalf) {
+        axis = 0;
+    } else if ((float)fabs(direction.v[1]) > gCrushSqrtHalf) {
+        axis = 1;
+    } else {
+        axis = 2;
+    }
+    flip = direction.v[axis] > gCrushZero;
+    crush_spec = context->car->car_crush_spec;
+    limit_count = crush_spec->count_limits.counts[axis][flip];
+    limits = &crush_spec->limits;
+    found = 0;
+    for (i = 0; i < limit_count; i++) {
+        if (flip != 0) {
+            if (limits->limits[axis][1].values[i] > direction.v[axis]) {
+                found = i;
+                break;
+            }
+        } else {
+            if (limits->limits[axis][0].values[i] < direction.v[axis]) {
+                found = i;
+                break;
+            }
+        }
+    }
+    CrushModel(user->models[0], context->crush->count, points, &direction, force, limits, axis, found,
+        &max_bend, &max_distance, &max_vertex);
+    car = context->car;
+    crush_center = &context->crush->field_0x34;
+    smashable_count = entry->count_smashables;
+    if (smashable_count != 0) {
+        smashable = entry->smashables;
+        do {
+            dist_sq = (smashable->field_0x54.v[0] - crush_center->v[0]) * (smashable->field_0x54.v[0] - crush_center->v[0])
+                    + (smashable->field_0x54.v[2] - crush_center->v[2]) * (smashable->field_0x54.v[2] - crush_center->v[2])
+                    + (smashable->field_0x54.v[1] - crush_center->v[1]) * (smashable->field_0x54.v[1] - crush_center->v[1]);
+            if (dist_sq < gFLOAT_00589acc) {
+                dist_sq = gFLOAT_00589acc;
+            }
+            QueueSmashIfNecessary2(car, car->collision_info, &car->pos, NULL, pActor, 0, smashable,
+                (force * gDistortion_factor) / (float)sqrt((double)dist_sq), 0);
+            smashable++;
+            smashable_count--;
+        } while (smashable_count != 0);
+    }
+    if (entry->detach_data != NULL) {
+        entry->detach_data->field_0x0 += context->force * max_bend;
+        if (entry->detach_data->field_0x0 > entry->detach_data->force) {
+            SetBitForDetachment(pActor, car, 0.f, 0);
+        }
+    }
+    if (entry->flap_data != NULL && entry->flap_data->kev_o_flap == 0 && max_distance > gCrushZero) {
+        BuckleTheBugger(context->car, pActor, &direction, max_distance, max_vertex, context->crush->field_0x50);
+    }
+    if (max_bend != gCrushZero) {
+        entry->field_0x2c = 1;
+    }
+    for (i = 1; i < context->car->count_detail_levels; i++) {
+        CrushModel(user->models[i], context->crush->count, points, &direction, force, limits, axis, found,
+            &max_bend, &max_distance, &max_vertex);
+    }
+    return 0;
 }
 
 // CrushPoint
