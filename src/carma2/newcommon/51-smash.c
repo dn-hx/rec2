@@ -41,13 +41,10 @@ int gAllow_material_adapt;
 // GLOBAL: CARMA2_HW 0x006a3340
 br_material* gMaterials_to_adapt[200];
 
-// GLOBAL: CARMA2_HW 0x0058aec0
 float gFloat_0058aec0 = 0.0f;
 
-// GLOBAL: CARMA2_HW 0x0058aec4
 float gFloat_0058aec4 = 2.3841858e-07f;
 
-// GLOBAL: CARMA2_HW 0x0058aec8
 double gDouble_0058aec8 = 1.0;
 
 // GLOBAL: CARMA2_HW 0x006a3334
@@ -548,6 +545,14 @@ tSmashable_level* C2_HOOK_FASTCALL QueueSmashIfNecessary3(tCar_spec* pCar, tPhys
 void C2_HOOK_FASTCALL QueueSmashIfNecessary2(tCar_spec* pCar, tPhysics_object* pCollision_info, br_vector3* pPos, void* pArg4, br_actor* pActor, int pArg6, tCar_crush_smashable_part* pSmashable, float pDamage, int pArg9) {
     NOT_IMPLEMENTED();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // AllocateSmashLevels
 

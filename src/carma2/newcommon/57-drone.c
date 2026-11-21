@@ -65,7 +65,6 @@ int gTraffic_disabled;
 // GLOBAL: CARMA2_HW 0x00705b70
 tU32 gINT_00705b70;
 
-// GLOBAL: CARMA2_HW 0x00589dc4
 float gDrone_render_zero = 0.0f;
 
 // GLOBAL: CARMA2_HW 0x00681fb0

@@ -127,7 +127,6 @@ float gGiblet_scrape_start = 0.f;
 
 // GLOBAL: CARMA2_HW 0x00679264
 br_actor* gMr_blendy = 0;
-// GLOBAL: CARMA2_HW 0x00694120
 tPedestrian* gPed_recent_ped;
 
 // GLOBAL: CARMA2_HW 0x00677238
@@ -304,7 +303,6 @@ int gDrunk_pedestrians;
 // GLOBAL: CARMA2_SW 0x00695d38
 int gPeds_already_munged;
 
-// GLOBAL: CARMA2_HW 0x0058a9c8
 const float gFLOAT_0058a9c8 = -1.0f;
 
 // GLOBAL: CARMA2_HW 0x0065d7b8
@@ -2120,6 +2118,10 @@ void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 p
 void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9) {
     NOT_IMPLEMENTED();
 }
+
+#if defined(REC2_MATCHING) && defined(_MSC_VER)
+#pragma inline_depth()
+#endif
 
 // CalcBoundsRadius
 

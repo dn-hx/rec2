@@ -441,5 +441,49 @@ extern void C2_HOOK_FASTCALL InitPhysics(void);
 
 // GetCollObjFromID
 
+extern int gActorBoxPick_StopGroovidelics;
+
+extern void C2_HOOK_FASTCALL FUN_0045e4e0(float* pOffset, tCollision_shape_common* pShape, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5);
+
+extern void C2_HOOK_FASTCALL FUN_0045e200(float* pOffset, tCollision_shape_polyhedron_data* pPolyhedron, float* pParam1, float* pParam2, float* pParam3, float* pParam4, float* pParam5);
+
+extern void C2_HOOK_FASTCALL MakeMatrix(br_scalar* pMatrix, int pStride, tPhysics_joint_force** pRecords, int pCount);
+
+extern void C2_HOOK_FASTCALL ApplySingleForce(tPhysics_joint_force* pForce, br_scalar pImpulse);
+
+extern void C2_HOOK_FASTCALL ResetObjectList_1(tPhysics_object* pObject);
+
+extern int C2_HOOK_FASTCALL GetNonSphereNonSphereForceInfo(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, int pCount1, int pCount2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining);
+
+extern int C2_HOOK_FASTCALL GetPointSample(br_model* pModel, int pCount_vertices, int* pVertex_indices);
+
+
+
+extern void C2_HOOK_FASTCALL RotateObject(tPhysics_object* pObject, undefined4 pUnused, br_scalar pDelta_time);
+
+extern void C2_HOOK_FASTCALL GetWorldBoundingBoxForObject(tPhysics_object* pObject, br_bounds3* pBox);
+
+extern tPhysics_object** C2_HOOK_FASTCALL GetReducedList(tPhysics_object* pObject, tPhysics_object* pList, tPhysics_object** pObjects);
+
+extern int C2_HOOK_FASTCALL ReducedFindObjectCollisions(tPhysics_object* pObject, tPhysics_object** pOverlapping, tPhysics_joint_force* pContacts, int pCount, tWorld_callbacks* pWorld_callbacks, tPhysics_object* pList);
+
+extern int C2_HOOK_FASTCALL GetJointLimits(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
+
+extern int C2_HOOK_FASTCALL CollectJointLimitsOfTree(tPhysics_object* pObject, tPhysics_joint_force* pContacts, int pCount, int pMax_count);
+
+extern int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count);
+
+extern void C2_HOOK_FASTCALL FUN_004bc190(tPhysics_joint_force** pRecords, br_scalar* pImpulses, int pCount, tWorld_callbacks* pWorld_callbacks);
+
+extern int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject);
+
+extern int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject);
+
+extern int C2_HOOK_FASTCALL FUN_00427fd0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags, int* pFound, br_vector3* pDirection);
+
+extern int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pObject2, tPhysics_shape* pShape1, tPhysics_shape* pShape2, const br_vector3* pVertices1, const br_vector3* pVertices2, tPhysics_joint_force* pRecords, int pRecord_count, int pRemaining, const tU8* pFlags1, const tU8* pFlags2);
+
+extern void C2_HOOK_FASTCALL MakeObjectDoSomething(tPhysics_object* pObject, tPhysics_object* pList);
+
 #endif // GUARD_49_PHYSICS_H
 

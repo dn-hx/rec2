@@ -128,7 +128,6 @@ void* gPhysics_scratch_ptr;
 // GLOBAL: CARMA2_SW 0x0068e108
 int gFace_count;
 
-// GLOBAL: CARMA2_HW 0x0058a798
 double gDOUBLE_0058a798 = 0.01;
 
 // GLOBAL: CARMA2_HW 0x0065cf78

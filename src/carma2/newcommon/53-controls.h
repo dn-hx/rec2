@@ -220,4 +220,8 @@ extern void C2_HOOK_FASTCALL RichardsSphere(int pNum);
 
 extern void C2_HOOK_FASTCALL ToggleHeadupLevel(void);
 
+extern void C2_HOOK_FASTCALL CheckKevKeys(void);
+
+extern void C2_HOOK_FASTCALL NetSendHeadupToAllPlayers(char* pMessage);
+
 #endif // GUARD_53_CONTROLS_H

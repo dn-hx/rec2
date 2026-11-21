@@ -213,4 +213,20 @@ extern void C2_HOOK_FASTCALL ReallocModelFacesAndVertices(br_model* pModel, int 
 
 // WriteOutDronePaths
 
+extern void C2_HOOK_FASTCALL DoDronePerGameFrameStuff(void);
+
+extern void C2_HOOK_CDECL DoNotDprintf(const char* pMessage, ...);
+
+extern int C2_HOOK_FASTCALL AdvanceDroneSection(tDrone_spec* pDrone);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncReset(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncPhysicsActive(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL DroneStateFuncStationaryPassive(tDrone_spec* pDrone, tDroneStateFuncState state);
+
+extern void C2_HOOK_FASTCALL SaveDronePaths(void);
+
+extern int gCount_rendered_drones;
+
 #endif // GUARD_57_DRONE_H
