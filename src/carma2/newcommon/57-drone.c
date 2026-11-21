@@ -656,9 +656,16 @@ br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x00452810
+// FUNCTION: CARMA2_HW 0x00452810
 void C2_HOOK_FASTCALL ApplyDroneRender2(int pIndex, int pRender) {
-    NOT_IMPLEMENTED();
+
+    if (gAction_replay_mode && ARGetReplayRate() < gDrone_render_zero) {
+        pRender = (pRender == 0);
+        DoNotDprintf("B DRONERENDER");
+    } else {
+        DoNotDprintf("F DRONERENDER");
+    }
+    gDrone_specs[pIndex].actor->render_style = (pRender == 0) ? BR_RSTYLE_NONE : BR_RSTYLE_FACES;
 }
 
 // GetCurrentViewDroneDirection
