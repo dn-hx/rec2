@@ -66,3 +66,14 @@ tFrontend_spec gFrontend_NETWORK_OPTIONS = {
     0
 #endif
 };
+
+
+// STUB: CARMA2_HW 0x004732b0
+int C2_HOOK_FASTCALL NetOptions_TargetRoller(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00473470
+int C2_HOOK_FASTCALL NetOptions_Ok(tFrontend_spec* pFrontend) {
+    NOT_IMPLEMENTED();
+}
