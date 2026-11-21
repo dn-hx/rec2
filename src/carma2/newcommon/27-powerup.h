@@ -57,8 +57,6 @@ extern char* C2_HOOK_FASTCALL GetPowerupMessage(int pPowerup_index);
 
 // DoPowerupTextHeadup
 
-extern void C2_HOOK_FASTCALL QueueIconGoing(tPowerup* pPowerup, tHeadup_icon* pHeadup_icons, int* pCount_icons);
-
 // QueueIconComing
 
 // LosePowerupX
@@ -132,8 +130,6 @@ extern void C2_HOOK_FASTCALL ToggleInventory(void);
 // RightInventory
 
 // LeftInventory
-
-extern void C2_HOOK_FASTCALL DrawPowerups(tU32 pTime);
 
 // MungeKeyboardPowerup
 
@@ -379,8 +375,6 @@ extern void C2_HOOK_FASTCALL SendCurrentPowerups(void);
 
 extern void C2_HOOK_FASTCALL LoseAllLocalPowerups(tCar_spec* pCar);
 
-extern void C2_HOOK_FASTCALL LoseDodgyPowerups(tCar_spec* pCar_spec);
-
 extern int C2_HOOK_FASTCALL GetPowerupCount(void);
 
 extern void C2_HOOK_FASTCALL GetPowerupPosition(int pIndex, br_vector3* pPosition);
@@ -448,8 +442,6 @@ extern void C2_HOOK_FASTCALL TurnOffCloaking(tPowerup* pPowerup, tCar_spec* pCar
 // PeriodicCloaking
 
 extern void C2_HOOK_FASTCALL UpdateCollisionObject(tPhysics_object* pCollision_info);
-
-extern void C2_HOOK_FASTCALL ResetPowerups(void);
 
 
 extern void C2_HOOK_FASTCALL FillInShape(tPhysics_shape* pShape);

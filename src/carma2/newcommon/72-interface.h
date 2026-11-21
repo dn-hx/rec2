@@ -265,8 +265,6 @@ extern int C2_HOOK_FASTCALL FRONTEND_DestroyMenu(tFrontend_spec* pFrontend);
 
 extern void C2_HOOK_FASTCALL FRONTEND_PingPongFlash(void);
 
-extern void C2_HOOK_FASTCALL FRONTEND_DrawMenu(tFrontend_spec* pFrontend);
-
 extern void C2_HOOK_FASTCALL FRONTEND_Setup2D(void);
 
 extern void C2_HOOK_FASTCALL FRONTEND_Setup(tFrontendMenuType pType);

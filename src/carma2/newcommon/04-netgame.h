@@ -88,11 +88,7 @@ extern int gLast_it_change;
 
 extern void C2_HOOK_FASTCALL ClearShapeStatusFlag(tCar_crush_network_shapes* pShapes, int pPlayer_id);
 
-extern void C2_HOOK_FASTCALL SendNonCar(tNon_car_spec* pNon_car, tU32 pPlayer_id);
-
 // HostFillInCarContents
-
-extern void C2_HOOK_FASTCALL ClientSendCarData(tU32 pNext_frame_time);
 
 // DistanceBetweenCars
 
@@ -109,8 +105,6 @@ extern int C2_HOOK_FASTCALL TimeToSendData(void);
 // CopyMechanics
 
 // ReceivedShapeNumbers
-
-extern void C2_HOOK_FASTCALL FillInSimpleCarPos(tNet_message_chunk* pMessage, int pPlayer_index);
 
 // ReceivedSimpleCarPos
 
@@ -211,10 +205,6 @@ extern void C2_HOOK_FASTCALL DefaultNetName(void);
 extern void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tNet_game_player_info* pPlayers);
 
 // RemovePlayerFromShapeStatusLists
-
-extern int C2_HOOK_CDECL SortNetHeadAscending(const void* pFirst, const void* pSecond);
-
-extern int C2_HOOK_CDECL SortNetHeadDescending(const void* pFirst, const void* pSecond);
 
 extern int gNot_shown_race_type_headup;
 

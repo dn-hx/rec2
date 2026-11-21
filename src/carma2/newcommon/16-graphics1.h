@@ -97,8 +97,6 @@ extern void C2_HOOK_FASTCALL ResetScreenWobble(void);
 
 // DoARenderPass
 
-extern void C2_HOOK_FASTCALL DoACompleteRenderPass(int pMirror, br_matrix34* pCamera_to_world, br_actor* pCamera, br_pixelmap* pScreen, br_pixelmap* pDepth);
-
 extern void C2_HOOK_FASTCALL RenderAFrame(int pDepth_mask_on);
 
 extern void C2_HOOK_FASTCALL StartRenderingHeadups(void);

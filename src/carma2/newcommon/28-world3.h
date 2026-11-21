@@ -122,8 +122,6 @@ extern void C2_HOOK_FASTCALL DisallowDuplicates(void);
 
 extern void C2_HOOK_FASTCALL AllowDuplicates(void);
 
-extern void C2_HOOK_FASTCALL OrthogonalVector(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
-
 extern void C2_HOOK_FASTCALL ReadMechanicsShapes(tPhysics_shape** pShape, FILE* pF);
 
 extern void C2_HOOK_FASTCALL DetermineTilitudinality(br_model* pModel, int* pArea1, int* pArea2);

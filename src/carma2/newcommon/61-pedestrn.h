@@ -81,8 +81,6 @@ typedef struct {
 
 extern int C2_HOOK_FASTCALL OrientationChanged(const br_matrix34* pOrientation_1, const br_matrix34* pOrientation_2, float pCos_angle);
 
-extern void C2_HOOK_FASTCALL AssertRootObjectsMatrix(tPed_character_instance* pPed);
-
 // InitFaceCaches
 
 extern void C2_HOOK_FASTCALL ResetPedFaceCache(void);
@@ -171,8 +169,6 @@ extern void C2_HOOK_FASTCALL StopActorBeingRenderable(br_actor* pActor);
 
 extern int C2_HOOK_FASTCALL IsActorRenderworthy(br_actor* pActor);
 
-extern void C2_HOOK_FASTCALL SetPedXZDirection(tPedestrian* pPed, br_vector3* pDir, float pArg3, tU32 pTime);
-
 // StopPedNoise
 
 // MakePedNoise
@@ -197,8 +193,6 @@ extern void C2_HOOK_FASTCALL StartPedRunning(tPedestrian* pPed, tU32 pTime, int 
 
 // SetKnockedOverMove
 
-extern void C2_HOOK_FASTCALL DoPostElectricution(tPedestrian* pPed, tU32 pTime, float pF1, float pF2);
-
 // CBMoveCompleted
 
 extern void C2_HOOK_FASTCALL CBLoadForm(tPed_form* pPed_form, FILE* pF);
@@ -217,8 +211,6 @@ extern void C2_HOOK_FASTCALL DoGibShower(tU32 pId, tU32 pTime, unsigned int pSee
 
 // PedUndoGibShower
 
-extern void C2_HOOK_FASTCALL DoGiblets(tPedestrian* pPed, tPhysics_object* pObject, tPhysics_object* pOpt_speed_object, float pArg4, br_vector3* pArg5, int pArg6);
-
 extern void C2_HOOK_FASTCALL DoBloodSpurt(tU32 pId, tU32 pTime, unsigned int pSeed, br_vector3* pPosition, br_vector3* pImpactee_velocity, br_vector3* pNormal);
 
 // DoSpurt
@@ -236,8 +228,6 @@ extern void C2_HOOK_FASTCALL ScoreForKilledPedestrian(tPedestrian* pPed, float p
 extern int C2_HOOK_FASTCALL DismemberPed(tPedestrian* pPed, int pBone_index);
 
 extern void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3, int pArg4, tPhysics_object* pObject);
-
-extern void C2_HOOK_FASTCALL SetLastHitter(tPedestrian* pPed, tPhysics_object* pCollision_info);
 
 // MakePedVanish
 
@@ -360,8 +350,6 @@ extern void C2_HOOK_FASTCALL AdjustNapalmBolt(int pIndex, tPedestrian* pPed, br_
 
 extern void C2_HOOK_FASTCALL InitPedsForRace(void);
 
-extern void C2_HOOK_FASTCALL RenderElectroBastardRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world, tU32 pTime);
-
 extern void C2_HOOK_FASTCALL AdjustProxRay(int pRay_index, tU16 pCar_ID, tU16 pPed_index, tU32 pTime);
 
 // ResetProxRay
@@ -444,8 +432,6 @@ extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 
 // InitBoner
 
-extern void C2_HOOK_FASTCALL DRVector3SafeCross(br_vector3* pDest, const br_vector3* pA, const br_vector3* pB);
-
 // DRVector3SafeCrossXZ
 
 // ScaleModelXYZ
@@ -485,10 +471,6 @@ extern void C2_HOOK_FASTCALL DisposeCharacterForm(tPed_form* pForm);
 extern void C2_HOOK_FASTCALL DisposeCharacterInstance(tPed_character_instance* pCharacter);
 
 extern tPed_form* C2_HOOK_FASTCALL FindOrOpenForm(const char* pName);
-
-extern void C2_HOOK_FASTCALL MakeRotationMatrix(br_matrix34* pMat, tU8 pAngle_x, tU32 pAngle_y, tU32 pAngle_z);
-
-extern void C2_HOOK_FASTCALL SetBoner(tPed_character_instance* pPed, br_matrix34* pMat, br_matrix34* pParent_mat, br_matrix34* pArg4, tU8 pAngle_x, tU8 pAngle_y, tU8 pAngle_z, br_vector3* pArg8, br_vector3* pParg9);
 
 // CalcBoundsRadius
 
@@ -554,8 +536,6 @@ extern int C2_HOOK_FASTCALL CharacterNoLongerPhysicworthy(tPed_character_instanc
 
 extern void C2_HOOK_FASTCALL StopCharacterMorphing(tPed_character_instance* pCharacter);
 
-extern int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance* pPed, tU32 pArg2);
-
 // StopCharacterMove
 
 // MungeCharacterAnimation
@@ -565,10 +545,6 @@ extern int C2_HOOK_FASTCALL MorphCharacterBonePositions(tPed_character_instance*
 // ResetAnimation
 
 extern int C2_HOOK_FASTCALL SetCharacterMove(tPed_character_instance* pPed, int pMove_action, float pSpeed, int pArg4, int pArg5, tU32 pTime);
-
-extern void C2_HOOK_FASTCALL DRMatrix34RotateCos(br_matrix34* pDest, const br_vector3* pAxis, float pCosA);
-
-extern void C2_HOOK_FASTCALL DropPointOntoPlane(const br_vector3* pPoint, const br_vector3* pPlane, br_vector3* pDest);
 
 extern void C2_HOOK_FASTCALL SetCharacterDirection(tPed_character_instance* pPed, const br_vector3* pDir, const br_vector3* pUp);
 
@@ -588,11 +564,7 @@ extern br_model* C2_HOOK_FASTCALL GetCharacterBoneModel(tPed_character_instance*
 
 extern int C2_HOOK_FASTCALL GetCharacterModelSet(tPed_character_instance* pCharacter);
 
-extern int C2_HOOK_FASTCALL BonerPassiveCollision(tPed_character_instance* pCharacter, undefined4 pArg2);
-
 extern int C2_HOOK_FASTCALL BonerActiveHalted(tPed_character_instance* pCharacter);
-
-extern void C2_HOOK_FASTCALL BonerPedMovedByPhysics(tPed_character_instance* pCharacter, undefined4 pArg2);
 
 extern int C2_HOOK_FASTCALL DismemberCharacter(tPed_character_instance* pCharacter, int pBone_index, br_vector3* pVelocity, br_vector3* pAngular_velocity);
 
@@ -621,9 +593,5 @@ extern void C2_HOOK_FASTCALL EnableOverallMovement(void);
 extern void C2_HOOK_FASTCALL EnableRetainRootMode(void);
 
 extern void C2_HOOK_FASTCALL DisableRetainRootMode(void);
-
-extern void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix);
-
-extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg3, tPhysics_object* pCollision_info);
 
 #endif // GUARD_61_PEDESTRN_H

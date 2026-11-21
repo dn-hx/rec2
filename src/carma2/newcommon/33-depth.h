@@ -40,8 +40,6 @@ extern void C2_HOOK_FASTCALL MungeSkyModel(br_actor* pCamera, br_model* pModel);
 
 // CreateHorizonModel
 
-extern void C2_HOOK_FASTCALL LoadDepthTable(char* pName, br_pixelmap** pTable, int* pPower);
-
 extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
 // DoHorizon
@@ -54,15 +52,9 @@ extern void C2_HOOK_FASTCALL InitDepthEffects(void);
 
 extern void C2_HOOK_FASTCALL RenderLollipops(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
 
-extern void C2_HOOK_FASTCALL DepthEffectSky(br_pixelmap* pRender_buffer, br_pixelmap* pDepth_buffer, br_actor* pCamera, br_matrix34* pCamera_to_world);
-
-extern void C2_HOOK_FASTCALL DoWobbleCamera(br_actor* pCamera);
-
 // DoDrugWobbleCamera
 
 // DoSubaquaCam
-
-extern void C2_HOOK_FASTCALL DoSpecialCameraEffect(br_actor* pCamera, br_matrix34* pCamera_to_world);
 
 extern void C2_HOOK_FASTCALL ReduceDepthStart(void);
 

@@ -37,8 +37,6 @@ extern char gQuick_time_banner_texture_name[256];
 
 // SwapPixelmapBytePairs
 
-extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
-
 // Allocate555BackScreen
 
 // GetCompressorQualityFromOptions
@@ -46,8 +44,6 @@ extern int C2_HOOK_FASTCALL WriteBannerFrame(void);
 // GetCompressorTypeFromOptions
 
 // InitMovie
-
-extern short C2_HOOK_FASTCALL CreateMovie(void);
 
 // MovieStartNewMovie
 
@@ -62,10 +58,6 @@ extern void C2_HOOK_FASTCALL SetQuickTimeDefaults(void);
 // MovieRecordButtonPressed
 
 extern void C2_HOOK_FASTCALL MovieStopRecordingIfNecessary(void);
-
-extern short C2_HOOK_FASTCALL GenerateOneMovieFrame(br_pixelmap* pScreen);
-
-extern int C2_HOOK_FASTCALL MovieRecordFrame(br_pixelmap* pScreen, int pFrame_period);
 
 extern int C2_HOOK_FASTCALL MovieRecording(void);
 

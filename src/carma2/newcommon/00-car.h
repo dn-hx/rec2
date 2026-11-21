@@ -79,8 +79,6 @@ extern int C2_HOOK_FASTCALL IsCarInTheSea(void);
 
 // ControlOurCar
 
-extern void C2_HOOK_FASTCALL CalcEngineForce(tCar_spec* pCar, br_scalar pDt);
-
 // PrepareCars
 
 extern void C2_HOOK_FASTCALL CalcGraphicalWheelStuff(tCar_spec* pCar);
@@ -157,8 +155,6 @@ extern void C2_HOOK_FASTCALL NonCarCalcForce(tNon_car_spec* pNon_car, br_scalar 
 
 // NudgeObject
 
-extern void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt);
-
 // DoRevs
 
 // ScrapeNoise
@@ -217,10 +213,6 @@ extern void C2_HOOK_FASTCALL AdjustDownForce(void);
 
 extern void C2_HOOK_FASTCALL FreezeMechanics(void);
 
-extern void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt);
-
-extern float C2_HOOK_FASTCALL GetCarOverallBoundsMinY(tCar_spec* pCar_spec);
-
 extern void C2_HOOK_FASTCALL SetCarSuspGiveAndHeight(tCar_spec* pCar, float pFront_give_factor, float pRear_give_factor, float pDamping_factor, float pExtra_front_height, float pExtra_rear_height);
 
 extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_vector3* pVec3);
@@ -228,8 +220,6 @@ extern int C2_HOOK_FASTCALL TestForCarInSensiblePlace(tCar_spec* pCar_spec, br_v
 extern tNon_car_spec* C2_HOOK_FASTCALL PullActorFromWorld(br_actor* pActor);
 
 extern tNon_car_spec* C2_HOOK_FASTCALL DoPullActorFromWorld(br_actor* pActor);
-
-extern int C2_HOOK_FASTCALL PipeNonCarObject(tPhysics_object* pCollision_info, void* pUser_data);
 
 // PipeNonCars
 

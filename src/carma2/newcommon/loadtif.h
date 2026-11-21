@@ -45,4 +45,3 @@ extern int C2_HOOK_FASTCALL FindPaletteColour(br_colour pRgb, br_pixelmap *pPale
 #endif // GUARD_LOADTIF_H
 
 
-extern int C2_HOOK_FASTCALL LoadTiffTextureCB(const char* filePath, tLoadDirectoryStructureCBData* data);

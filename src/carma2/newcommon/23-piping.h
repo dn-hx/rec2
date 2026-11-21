@@ -410,8 +410,6 @@ extern void C2_HOOK_FASTCALL ARService(void);
 
 extern void C2_HOOK_FASTCALL ARMainLoopStart(void);
 
-extern int C2_HOOK_FASTCALL ARToggleReplay(tTurn_on_AR_callback* pTurn_on_AR_cb, tTurn_off_AR_callback* pTurn_off_AR_cb, tAfter_AR_callback* pAfter_AR_cb, tZappy_AR_callback* pZappy_AR_cb, tPreprocess_AR_callback* pPreprocess_cb, tPostProcess_AR_callback* pPostProcess_cb, int* pArg7, int* pArg8);
-
 // GetReducedPos
 
 // SaveReducedPos
@@ -442,8 +440,6 @@ extern void C2_HOOK_FASTCALL DisposeActionReplay(void);
 
 // GetNextIncident
 
-extern void C2_HOOK_FASTCALL AddCrushToPipingSession(br_model* pModel, br_vector3* pSrc, const float* pScalars);
-
 // AddSmudgeToPipingSession
 
 extern void C2_HOOK_FASTCALL AddSparkToPipingSession(int pSpark_index, const br_vector3* pPos, const br_vector3* pV);
@@ -470,13 +466,9 @@ extern void C2_HOOK_FASTCALL AddProxRayToPipingSession(int pRay_index, tCar_spec
 
 extern void C2_HOOK_FASTCALL AddFlapToPipingSession(br_actor* pActor, br_angle pAngle);
 
-extern void C2_HOOK_FASTCALL AddModelMashToPipingSession(br_model* pModel, br_vector3* pMash);
-
 extern void C2_HOOK_FASTCALL AddRepulseRayToPipingSession(int pIndex, br_vector3* pOrigin, br_vector3* pVictim, tU32 pTime);
 
 extern void C2_HOOK_FASTCALL AddNapalmBoltToPipingSession(int pIndex, tPedestrian* pPed, br_vector3* pPositions);
-
-extern void C2_HOOK_FASTCALL PipeSingleCrush(br_model* pModel, br_vector3* pSrc, const float* pScalars);
 
 extern void C2_HOOK_FASTCALL PipeSingleScreenWobble(int pWobble_x, int pWobble_y);
 
@@ -547,8 +539,6 @@ extern void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, int pBo
 extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
 // PipeSingleGibShower
-
-extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, undefined4 pArg2, undefined4 pArg3, br_vector3* pArg4, br_vector3* pArg5, br_vector3* pArg6);
 
 extern void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, int pBlock_flags);
 
@@ -807,17 +797,5 @@ extern int C2_HOOK_FASTCALL CalcModelMashLength(tPipe_chunk* pChunk);
 extern int C2_HOOK_FASTCALL CalcEndMyBendLength(tPipe_chunk* pChunk);
 
 // CalcRemoveFacesLength
-
-extern int C2_HOOK_FASTCALL FUN_00564e5e(int pSound);
-
-extern int C2_HOOK_FASTCALL ARScanBuffer(tU8** pPtr, tPipe_chunk_type pType, tU32 pDefault_time, void* pCallback, void* pTime_check);
-
-extern int C2_HOOK_FASTCALL CheckCar(tPipe_chunk* pChunk_ptr, int pChunk_count, tU32 pTime);
-
-extern int C2_HOOK_FASTCALL CarTimeout(tU32 pTime);
-
-extern tPipe_chunk* C2_HOOK_FASTCALL FUN_00403800(tPipe_chunk* pSession, tPipe_chunk_type pType, tU32 pOwner);
-
-extern void C2_HOOK_FASTCALL ScanAndPlaySoundsToBe(tU8* pFirst_session, tU32 pStart_time, tU32 pEnd_time);
 
 #endif // GUARD_23_PIPING_H
