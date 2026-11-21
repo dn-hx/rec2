@@ -8,6 +8,15 @@
 
 #include "01-network.h"
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    int num_players;
+    int player_index;
+    int field_0xc;
+    tNet_game_player_info player;
+} tNet_message_chunk_player_info;
+
 #include "04-netgame.h"
 #include "15-displays.h"
 #include "32-spark.h"

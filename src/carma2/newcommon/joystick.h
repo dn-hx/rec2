@@ -13,34 +13,6 @@
 
 #include "rec2_types.h"
 
-typedef struct {
-    tU32 dwSize;
-    tU32 dwFlags;
-    tU32 dwDuration;
-    tU32 dwSamplePeriod;
-    tU32 dwGain;
-    tU32 dwTriggerButton;
-    tU32 dwTriggerRepeatInterval;
-    tU32 cAxes;
-    tU32* rgdwAxes;
-    tS32* rglDirection;
-    void* lpEnvelope;
-    tU32 cbTypeSpecificParams;
-    void* lpvTypeSpecificParams;
-} tDIEFFECT;
-
-typedef struct {
-    tU32 Data1;
-    tU16 Data2;
-    tU16 Data3;
-    tU8 Data4[8];
-} tGUID;
-
-typedef struct tJoystick_effect_spec {
-    tGUID guid;
-    const tDIEFFECT* effect;
-} tJoystick_effect_spec;
-
 extern int gJoystick_index;
 extern float gJoystick_x_steering;
 extern float gJoystick_y_throttle;

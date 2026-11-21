@@ -8,6 +8,14 @@
 
 #include "27-powerup.h"
 
+typedef struct {
+    tNet_message_chunk_header header;
+    tPlayer_ID player_id;
+    int powerup_index;
+    int time_remaining;
+    int field_0x10;
+} tNet_message_chunk_powerup;
+
 #include "00-car.h"
 #include "01-network.h"
 #include "13-crush1.h"

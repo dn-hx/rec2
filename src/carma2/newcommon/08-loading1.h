@@ -12,11 +12,6 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-typedef struct {
-    char pad[0x10];
-    br_actor* actor;
-} tFUN_0044bf20_this;
-
 #include <stdio.h>
 
 extern int gDecode_thing;

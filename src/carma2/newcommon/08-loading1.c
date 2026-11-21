@@ -8,6 +8,11 @@
 
 #include "08-loading1.h"
 
+typedef struct {
+    char pad[0x10];
+    br_actor* actor;
+} tFUN_0044bf20_this;
+
 #include "01-network.h"
 #include "09-funks.h"
 #include "10-loading2.h"

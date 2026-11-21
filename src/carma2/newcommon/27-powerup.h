@@ -12,14 +12,6 @@
 #include "c2_hooks.h"
 #include "rec2_types.h"
 
-typedef struct {
-    tNet_message_chunk_header header;
-    tPlayer_ID player_id;
-    int powerup_index;
-    int time_remaining;
-    int field_0x10;
-} tNet_message_chunk_powerup;
-
 extern br_model* gModel_powerup_armor;
 extern br_model* gModel_powerup_power;
 extern br_model* gModel_powerup_offence;
