@@ -920,9 +920,22 @@ void C2_HOOK_FASTCALL AddPlayerToShapeStatusLists(int pPlayer_id, int pCount, tN
     }
 }
 
-// STUB: CARMA2_HW 0x0049be40
+// FUNCTION: CARMA2_HW 0x0049be40
 void C2_HOOK_FASTCALL RemovePlayerFromShapeStatusList(tPlayer_ID pPlayer_id, int pPlayer_count, tNet_game_player_info* pPlayers) {
-    NOT_IMPLEMENTED();
+    tCar_crush_network_shapes* shapes;
+    int j;
+
+    for (; pPlayer_count > 0; pPlayer_count--, pPlayers++) {
+        if (pPlayers->car != NULL && pPlayers->car->car_crush_spec != NULL) {
+            shapes = pPlayers->car->car_crush_spec->network_stuff;
+            for (j = 0; j < (int)REC2_ASIZE(shapes->items); j++) {
+                if (shapes->items[j].network_id == pPlayer_id) {
+                    shapes->items[j].network_id = 0;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0049c630
