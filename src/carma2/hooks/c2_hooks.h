@@ -39,6 +39,7 @@ extern C2_NORETURN void rec2_error(const char *reason, const char *function, con
 #define C2_HOOK_FASTCALL __fastcall
 #define C2_HOOK_STDCALL __stdcall
 #define C2_HOOK_THISCALL __thiscall
+#define C2_HOOK_FAKE_THISCALL __fastcall
 #define C2_MATCHING_NAKED C2_NAKED
 
 #ifdef REC2_V102A
@@ -58,6 +59,7 @@ extern C2_NORETURN void rec2_error(const char *reason, const char *function, con
 #define C2_HOOK_FASTCALL
 #define C2_HOOK_STDCALL
 #define C2_HOOK_THISCALL
+#define C2_HOOK_FAKE_THISCALL
 #define C2_MATCHING_NAKED
 
 #define C2_HOOK_ASSERT(condition)

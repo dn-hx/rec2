@@ -74,6 +74,11 @@ C2_NORETURN void C2_HOOK_FASTCALL QuitGame(void) {
     exit(0);
 }
 
+// STUB: CARMA2_HW 0x00492050
+void C2_HOOK_FASTCALL ServiceTheGame(int pRacing) {
+    NOT_IMPLEMENTED();
+}
+
 // ServiceTheGame
 
 // STUB: CARMA2_HW 0x00492180

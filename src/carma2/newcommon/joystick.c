@@ -8,6 +8,34 @@
 
 #include "joystick.h"
 
+typedef struct {
+    tU32 dwSize;
+    tU32 dwFlags;
+    tU32 dwDuration;
+    tU32 dwSamplePeriod;
+    tU32 dwGain;
+    tU32 dwTriggerButton;
+    tU32 dwTriggerRepeatInterval;
+    tU32 cAxes;
+    tU32* rgdwAxes;
+    tS32* rglDirection;
+    void* lpEnvelope;
+    tU32 cbTypeSpecificParams;
+    void* lpvTypeSpecificParams;
+} tDIEFFECT;
+
+typedef struct {
+    tU32 Data1;
+    tU16 Data2;
+    tU16 Data3;
+    tU8 Data4[8];
+} tGUID;
+
+typedef struct tJoystick_effect_spec {
+    tGUID guid;
+    const tDIEFFECT* effect;
+} tJoystick_effect_spec;
+
 #include "08-loading1.h"
 #include "41-utility.h"
 #include "globvars.h"
@@ -57,6 +85,11 @@ typedef struct tJoystick_preference_node {
 // FUNCTION: CARMA2_CHEAT 0x0045a570
 int C2_HOOK_FASTCALL HasCurrentJoystick(void) {
     return gJoystick_index != -1;
+}
+
+// STUB: CARMA2_HW 0x0045a100
+int C2_HOOK_FASTCALL CreateDinputEffectFromSpec(int pJoystickIndex, const tJoystick_effect_spec* pEffectSpec, const char* pName) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0045a2e0
@@ -492,6 +525,11 @@ void C2_HOOK_FASTCALL SetJoystickDPadEnabled(int pEnabled) {
     }
 }
 
+// STUB: CARMA2_HW 0x0045c590
+unsigned int C2_HOOK_FASTCALL Carma2_GetKeycode_For_Action(int pKey) {
+    NOT_IMPLEMENTED();
+}
+
 // STUB: CARMA2_HW 0x0045c6b0
 // STUB: CARMA2_SW 0x0045c0f0
 // STUB: CARMA2_CHEAT 0x0045cb30
@@ -607,4 +645,24 @@ float C2_HOOK_FASTCALL GetJoystickY(void) {
         return info->field_0xdc;
     }
     return gJoystick_y_throttle;
+}
+
+// STUB: CARMA2_HW 0x00511280
+void C2_HOOK_FASTCALL ToggleJoystickYAxis(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005112d0
+void C2_HOOK_FASTCALL ToggleJoystickEnable(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511330
+void C2_HOOK_FASTCALL ToggleJoystickDPad(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511390
+void C2_HOOK_FASTCALL IncreaseJoystickFFB(void) {
+    NOT_IMPLEMENTED();
 }

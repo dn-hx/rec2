@@ -8,6 +8,15 @@
 
 #include "01-network.h"
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    int num_players;
+    int player_index;
+    int field_0xc;
+    tNet_game_player_info player;
+} tNet_message_chunk_player_info;
+
 #include "04-netgame.h"
 #include "15-displays.h"
 #include "32-spark.h"
@@ -41,6 +50,9 @@ int gBastard_has_answered;
 // GLOBAL: CARMA2_HW 0x0068d984
 tU32 gAsk_time;
 
+// GLOBAL: CARMA2_HW 0x0068d988
+int gINT_0068d988;
+
 // GLOBAL: CARMA2_HW 0x0068d98c
 // GLOBAL: CARMA2_SW 0x006879e4
 // GLOBAL: CARMA2_CHEAT 0x0069522c
@@ -54,6 +66,12 @@ tU32 gLast_status_broadcast;
 // GLOBAL: CARMA2_SW 0x0068a290
 // GLOBAL: CARMA2_CHEAT 0x00697ad8
 int gTime_for_next_one;
+
+// GLOBAL: CARMA2_HW 0x00690240
+tNet_game_player_info gNet_received_players[12];
+
+// GLOBAL: CARMA2_HW 0x00690c30
+int gINT_00690c30;
 
 // GLOBAL: CARMA2_HW 0x00690c34
 // GLOBAL: CARMA2_SW 0x0068ac8c
@@ -69,6 +87,9 @@ int gNet_service_disable;
 // GLOBAL: CARMA2_SW 0x0068ac94
 // GLOBAL: CARMA2_CHEAT 0x006984dc
 int gIn_net_service;
+
+// GLOBAL: CARMA2_HW 0x00690c40
+int gINT_00690c40;
 
 // GLOBAL: CARMA2_HW 0x00690c48
 // GLOBAL: CARMA2_SW 0x0068aca0
@@ -105,6 +126,9 @@ tMin_message* gMin_messages;
 // GLOBAL: CARMA2_CHEAT 0x00695210
 tMid_message* gMid_messages;
 
+// GLOBAL: CARMA2_HW 0x0068d974
+int gINT_0068d974;
+
 // GLOBAL: CARMA2_HW 0x0068d980
 // GLOBAL: CARMA2_SW 0x006879d8
 // GLOBAL: CARMA2_CHEAT 0x00695220
@@ -119,6 +143,12 @@ int gNet_initialised;
 // GLOBAL: CARMA2_SW 0x006879b8
 // GLOBAL: CARMA2_CHEAT 0x00695200
 int gDont_allow_joiners;
+
+// GLOBAL: CARMA2_HW 0x0068d964
+int gINT_0068d964;
+
+// GLOBAL: CARMA2_HW 0x0068d968
+int gINT_0068d968;
 
 // GLOBAL: CARMA2_HW 0x0074a690
 // GLOBAL: CARMA2_SW 0x00741150
@@ -185,6 +215,9 @@ tGuaranteed_message gGuarantee_list[200] = { 0 };
 // GLOBAL: CARMA2_SW 0x0068a288
 // GLOBAL: CARMA2_CHEAT 0x00697ad0
 tAddToJoinListProc* gAdd_proc = NULL;
+
+// GLOBAL: CARMA2_HW 0x00690234
+int gINT_00690234;
 
 // GLOBAL: CARMA2_HW 0x00690c60
 // GLOBAL: CARMA2_SW 0x0068acb8
@@ -459,6 +492,21 @@ void C2_HOOK_FASTCALL NetLeaveGameLowLevel(void) {
 // STUB: CARMA2_SW 0x00499e10
 // STUB: CARMA2_CHEAT 0x0049e1d0
 void C2_HOOK_FASTCALL NetLeaveGame(tNet_game_details* pNet_game) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049e100
+void C2_HOOK_FASTCALL DisposeCarN(int pPlayer_index) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049e3a0
+void C2_HOOK_FASTCALL FillInThisPlayer(tNet_game_details* pGame, tNet_game_player_info* pPlayer, int pCar_index, int pHost) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0049e450
+void C2_HOOK_FASTCALL NetPlayersChanged(int pPlayer_count, tNet_game_player_info* pPlayers) {
     NOT_IMPLEMENTED();
 }
 
@@ -1015,6 +1063,16 @@ void C2_HOOK_FASTCALL ReceivedMessage(tNet_message* pMessage, void* pSender_addr
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x004a4660
+void C2_HOOK_FASTCALL KickPlayerOut(tPlayer_ID pPlayer_id) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004a48d0
+void C2_HOOK_FASTCALL ReceivedNewPlayerList(tNet_message_chunk_player_info* pContents, tNet_message* pMessage) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -1337,6 +1395,16 @@ void C2_HOOK_FASTCALL GetCheckSum(tNet_message* pMessage) {
 // FUNCTION: CARMA2_SW 0x004a2b80
 void C2_HOOK_FASTCALL CheckCheckSum(tNet_message* pMessage) {
     (void)pMessage;
+}
+
+// STUB: CARMA2_HW 0x004ddde0
+void C2_HOOK_FASTCALL ClearMineReferencesToCar(tCar_spec* pCar) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0051a130
+tPlayer_ID C2_HOOK_FASTCALL PDNetExtractPlayerID(tNet_game_details* pDetails) {
+    NOT_IMPLEMENTED();
 }
 
 void C2_HOOK_FASTCALL StatReceivePacket(void) {

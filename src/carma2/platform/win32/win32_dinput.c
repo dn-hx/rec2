@@ -456,6 +456,16 @@ const char* C2_HOOK_FASTCALL GetCurrentJoystickName(void) {
     return gDirectInputJoystickInfos[gJoystick_index].productName;
 }
 
+// STUB: CARMA2_HW 0x004599f0
+void C2_HOOK_FASTCALL ShowCurrentJoystickName(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00459a70
+void C2_HOOK_FASTCALL FUN_00459a70(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00459fb0
 // FUNCTION: CARMA2_CHEAT 0x0045a430
 size_t C2_HOOK_FASTCALL GetCurrentJoystickCountButtons(void) {
@@ -870,6 +880,21 @@ int C2_HOOK_FASTCALL SetDinputEffectGain(int pIndex, int pGain) {
         IDirectInputEffect_SetParameters(effect, &gJoystick_effects[pIndex].di_effect, DIEP_GAIN);
     }
     return 1;
+}
+
+// STUB: CARMA2_HW 0x00458660
+int C2_HOOK_FASTCALL SetJoystickFFBForce(int pMagnitude) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004586b0
+int C2_HOOK_FASTCALL SetJoystickFFBSteeringForce(int pMagnitude) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00458720
+int C2_HOOK_FASTCALL SetJoystickFFBCollisionForce(int pMagnitude, int pDirection) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00458860
@@ -1617,6 +1642,11 @@ int C2_HOOK_FASTCALL PDFindJoystickEffect(const char* effectName) {
     return -1;
 }
 
+// STUB: CARMA2_HW 0x00458430
+int* C2_HOOK_FASTCALL GetJoystickEffect(int index) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0045c720
 // FUNCTION: CARMA2_SW 0x0045c160
 // FUNCTION: CARMA2_CHEAT 0x0045cba0
@@ -1628,6 +1658,11 @@ void C2_HOOK_FASTCALL PDPlayFFBEffect(const char* effectName) {
             StartDinputEffect(index);
         }
     }
+}
+
+// STUB: CARMA2_HW 0x0045c740
+void C2_HOOK_FASTCALL PDStopFFBEffect(const char* effectName) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x0045c550

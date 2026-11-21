@@ -508,6 +508,11 @@ void C2_HOOK_FASTCALL WaitForNoKeys(void) {
     CheckQuit();
 }
 
+// STUB: CARMA2_HW 0x004835d0
+void C2_HOOK_FASTCALL WaitForAKey(void) {
+    NOT_IMPLEMENTED();
+}
+
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -607,6 +612,11 @@ void C2_HOOK_FASTCALL AddRollingString(char* pStr, int pX, int pY, tRolling_type
     for (i = 0; (size_t)i < strlen(pStr); i++) {
         AddRollingLetter(pStr[i], pX + gCurrent_graf_data->rolling_letter_x_pitch * i, pY, pRolling_type);
     }
+}
+
+// STUB: CARMA2_HW 0x00483e20
+void C2_HOOK_FASTCALL AddRollingNumber(tU32 pNumber, int pWidth, int pX, int pY) {
+    NOT_IMPLEMENTED();
 }
 
 #ifdef REC2_MATCHING

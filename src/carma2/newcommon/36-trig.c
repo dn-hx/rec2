@@ -129,6 +129,12 @@ float gFloat_sine_table_270[1] = { 1.0f };
 // GLOBAL: CARMA2_HW 0x00661938
 float gFloat_sine_table_360[1] = { 1.0f };
 
+// GLOBAL: CARMA2_HW 0x006ab950
+br_matrix23 mat23tmp1;
+
+// GLOBAL: CARMA2_HW 0x006ab968
+br_matrix23 mat23tmp2;
+
 // GLOBAL: CARMA2_HW 0x006ab980
 // GLOBAL: CARMA2_SW 0x006a53d0
 br_matrix34 mattmp1__trig;
@@ -353,6 +359,11 @@ br_angle C2_HOOK_STDCALL FastScalarArcTan2Angle(br_scalar pY, br_scalar pX) {
     return FastFloatArcTan2Angle(pY, pX);
 }
 
+// STUB: CARMA2_HW 0x00512030
+void C2_HOOK_FASTCALL DRMatrix34RotateX(br_matrix34* mat, br_angle rx) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34RotateX
 
 // FUNCTION: CARMA2_HW 0x00512170
@@ -377,6 +388,16 @@ void C2_HOOK_FASTCALL DRMatrix34RotateY(br_matrix34* mat, br_angle ry) {
     mat->m[3][2] = 0.0f;
 }
 
+// STUB: CARMA2_HW 0x005122b0
+void C2_HOOK_FASTCALL DRMatrix34RotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x005123f0
+void C2_HOOK_FASTCALL DRMatrix34Rotate(br_matrix34* mat, br_angle r, br_vector3* a) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34RotateZ
 
 // STUB: CARMA2_HW 0x005127b0
@@ -395,12 +416,32 @@ void C2_HOOK_FASTCALL DRMatrix34PostRotateY(br_matrix34* mat, br_angle ry) {
     BrMatrix34Copy(mat, &mattmp1__trig);
 }
 
+// STUB: CARMA2_HW 0x00512c60
+void C2_HOOK_FASTCALL DRMatrix34PreRotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
 // DRMatrix34PreRotateZ
 
 // STUB: CARMA2_HW 0x00512df0
 // STUB: CARMA2_SW 0x0050e230
 // STUB: CARMA2_CHEAT 0x005187e0
 void C2_HOOK_FASTCALL DRMatrix34PostRotateZ(br_matrix34* mat, br_angle rz) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00512f80
+void C2_HOOK_FASTCALL DRMatrix34PreRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00512fd0
+void C2_HOOK_FASTCALL DRMatrix34PostRotate(br_matrix34* mat, br_angle r, br_vector3* axis) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00513020
+void C2_HOOK_FASTCALL DRMatrix23Rotate(br_matrix23* mat, br_angle rz) {
     NOT_IMPLEMENTED();
 }
 

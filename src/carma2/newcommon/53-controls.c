@@ -66,6 +66,12 @@ float gMap_render_width = 128.f;
 // GLOBAL: CARMA2_CHEAT 0x00660450
 float gMap_render_height = 80.f;
 
+// GLOBAL: CARMA2_HW 0x0067c3b8
+int gToo_late;
+
+// GLOBAL: CARMA2_HW 0x0067c3bc
+int gRecover_timer;
+
 // GLOBAL: CARMA2_HW 0x0068d8d4
 // GLOBAL: CARMA2_SW 0x0068792c
 // GLOBAL: CARMA2_CHEAT 0x00695174
@@ -91,15 +97,45 @@ int gHeadup_map_w;
 // GLOBAL: CARMA2_CHEAT 0x00752254
 int gHeadup_map_h;
 
+// GLOBAL: CARMA2_HW 0x0079d860
+tHeadup_text_buffer gHeadup_text_buffer_0079d860;
+
+// GLOBAL: CARMA2_HW 0x0079d880
+tHeadup_text_buffer gHeadup_text_buffer_0079d880;
+
 // GLOBAL: CARMA2_HW 0x0067c400
 // GLOBAL: CARMA2_SW 0x00676b78
 // GLOBAL: CARMA2_CHEAT 0x00683cb0
 char gString[84];
 
+// GLOBAL: CARMA2_HW 0x0067c45c
+int gRepair_last_time;
+
+// GLOBAL: CARMA2_HW 0x0067c460
+int gHad_auto_recover;
+
+// GLOBAL: CARMA2_HW 0x0067c464
+tU32 gLast_repair_time;
+
+// GLOBAL: CARMA2_HW 0x0067c468
+int gWhich_edit_mode;
+
 // GLOBAL: CARMA2_HW 0x0067c498
 // GLOBAL: CARMA2_SW 0x00676c10
 // GLOBAL: CARMA2_CHEAT 0x00683d40
 int gInvulnerability;
+
+// GLOBAL: CARMA2_HW 0x00686174
+br_actor* gAcc_poly_actor;
+
+// GLOBAL: CARMA2_HW 0x00686178
+br_material* gAcc_poly_material;
+
+// GLOBAL: CARMA2_HW 0x0068617c
+br_model* gAcc_poly_model;
+
+// GLOBAL: CARMA2_HW 0x00686180
+int gRender_acc_poly_actor;
 
 // GLOBAL: CARMA2_HW 0x0067c3c8
 // GLOBAL: CARMA2_SW 0x00676b40
@@ -140,6 +176,29 @@ tU32 gToo_poor_for_recovery_timeout;
 // GLOBAL: CARMA2_CHEAT 0x007a6644
 tCamera_key_flags gCamera_key_flags;
 
+// GLOBAL: CARMA2_HW 0x005900a0
+tToggle_element gToggle_array[44];
+
+// GLOBAL: CARMA2_HW 0x005904c0
+const char* gUNK_005904c0[12] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x005904f0
+tEdit_func* gEdit_funcs[2][18][8];
+
+// GLOBAL: CARMA2_HW 0x00590f60
+int gCancel_recover;
+
+typedef struct tJoystick_headup_text {
+    const char* text;
+    int key;
+} tJoystick_headup_text;
+
+// GLOBAL: CARMA2_HW 0x00596250
+tJoystick_headup_text gJoystick_headup_texts[21];
+
+// GLOBAL: CARMA2_HW 0x005962f8
+br_token_value gAccent_poly_prims[3];
+
 // GLOBAL: CARMA2_HW 0x006b781c
 // GLOBAL: CARMA2_SW 0x006ae4fc
 // GLOBAL: CARMA2_CHEAT 0x006beebc
@@ -163,6 +222,11 @@ tEdit_mode gWhich_edit_mode = eEdit_mode_default;
 void C2_HOOK_FASTCALL CompleteRace(void) {
     gRace_over_reason = eRace_over_0;
     gAbandon_game = 2;
+}
+
+// STUB: CARMA2_HW 0x0043b840
+float C2_HOOK_FASTCALL RepairCar(tU16 pCar_ID, tU32 pFrame_period, br_scalar* pTotal_deflection) {
+    NOT_IMPLEMENTED();
 }
 
 // FUNCTION: CARMA2_HW 0x00441490
@@ -635,6 +699,16 @@ int C2_HOOK_FASTCALL CarWorldOffFallenCheckThingy(tCar_spec* pCar, int pCheck_ar
     return 0;
 }
 
+// STUB: CARMA2_HW 0x00442300
+void C2_HOOK_FASTCALL SetRecovery(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00442500
+void C2_HOOK_FASTCALL CheckRecoveryOfCars(tU32 pEndFrameTime) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00442130
 // FUNCTION: CARMA2_SW 0x00442210
 // FUNCTION: CARMA2_CHEAT 0x00442250
@@ -793,6 +867,11 @@ void C2_HOOK_FASTCALL CheckSystemKeys(int pRacing) {
     NOT_IMPLEMENTED();
 }
 
+// STUB: CARMA2_HW 0x00442f90
+void C2_HOOK_FASTCALL CheckOtherRacingKeys(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x00443c50
 // FUNCTION: CARMA2_SW 0x00443d30
 // FUNCTION: CARMA2_CHEAT 0x00443d70
@@ -811,6 +890,11 @@ void C2_HOOK_FASTCALL CheckForCheatingGits(void) {
         DRS3StartSound(gEffects_outlet, eSoundId_FlaskGone);
     }
 #endif
+}
+
+// STUB: CARMA2_HW 0x00443c90
+void C2_HOOK_FASTCALL CheckKevKeys(void) {
+    NOT_IMPLEMENTED();
 }
 
 // CheckKevKeys
@@ -1226,6 +1310,11 @@ void C2_HOOK_FASTCALL UserSendMessage(void) {
     }
 }
 
+// STUB: CARMA2_HW 0x00444910
+void C2_HOOK_FASTCALL EnterUserMessage(void) {
+    NOT_IMPLEMENTED();
+}
+
 // EnterUserMessage
 
 // FUNCTION: CARMA2_HW 0x00444c00
@@ -1359,5 +1448,65 @@ void C2_HOOK_FASTCALL ToggleHeadupLevel(void) {
         }
     }
     NewTextHeadupSlot2(4, 0, 250, -4, GetMiscString(eMiscString_no_HUD + gHeadup_detail_level % 3), 0);
+}
+
+// STUB: CARMA2_HW 0x00444fa0
+void C2_HOOK_FASTCALL SwitchModelComplexity(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045a670
+void C2_HOOK_FASTCALL FUN_0045a670(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045a7f0
+int C2_HOOK_FASTCALL AddToTextBufferCallback(char* pFilename, int* pArg2) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045a920
+int C2_HOOK_FASTCALL StoreTextHeadup(tHeadup_text_buffer* pBuffer, tHeadup_text* pText, int pArg3) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045aa60
+void C2_HOOK_STDCALL CreateAccentPolyActor(float pX, float pY, float pWidth, float pHeight) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045acf0
+void C2_HOOK_FASTCALL FUN_0045acf0(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0045c240
+void C2_HOOK_FASTCALL FUN_0045c240(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004daa00
+void C2_HOOK_FASTCALL RightInventory(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x004dab80
+void C2_HOOK_FASTCALL LeftInventory(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511200
+void C2_HOOK_FASTCALL FUN_00511200(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511210
+void C2_HOOK_FASTCALL FUN_00511210(void) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x00511240
+void C2_HOOK_FASTCALL ToggleJoystickHeadup(void) {
+    NOT_IMPLEMENTED();
 }
 

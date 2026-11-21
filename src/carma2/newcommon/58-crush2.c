@@ -102,6 +102,21 @@ void C2_HOOK_FASTCALL CheckLastCar(void) {
 int C2_HOOK_FASTCALL PercentageCarHealth(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
+// STUB: CARMA2_HW 0x0043b2e0
+intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043b400
+int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
+
+// STUB: CARMA2_HW 0x0043b470
+intptr_t C2_HOOK_CDECL RepairModels_2(br_actor* pActor, tModel_mash_context_local* pContext) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0043f5f0
 // FUNCTION: CARMA2_SW 0x0043f6d0
 // FUNCTION: CARMA2_CHEAT 0x0043f8a0
