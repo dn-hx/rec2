@@ -179,9 +179,11 @@ void C2_HOOK_CDECL FUN_0053e3fe(br_uint_8* dest, br_uint_32 qual, br_uint_32 wid
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0053e527
+// FUNCTION: CARMA2_HW 0x0053e527
 void C2_HOOK_CDECL FUN_0053e527(br_uint_8* dest, br_uint_32 dest_qual, br_uint_8* src, br_uint_32 src_qual, br_uint_32 width, br_uint_32 height, br_uint_32 dest_stride, br_uint_32 src_stride, br_uint_32 bpp) {
-    NOT_IMPLEMENTED();
+    for (; height != 0; height--, dest += dest_stride, src += src_stride) {
+        memcpy(dest, src, width * bpp);
+    }
 }
 
 // STUB: CARMA2_HW 0x0053e584
