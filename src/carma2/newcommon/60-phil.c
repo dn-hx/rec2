@@ -587,9 +587,23 @@ void C2_HOOK_FASTCALL DoCollisions(tPhysics_object** pObject_list, tWorld_callba
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c2830
+// FUNCTION: CARMA2_HW 0x004c2830
 void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pDt) {
-    NOT_IMPLEMENTED();
+    tPhysics_object* pChild;
+    float t0;
+    float t1;
+    float t2;
+
+    t0 = pObject->v.v[0] * pDt;
+    t1 = pObject->v.v[1] * pDt;
+    t2 = pObject->v.v[2] * pDt;
+    pObject->actor->t.t.mat.m[3][0] += t0;
+    pObject->actor->t.t.mat.m[3][1] += t1;
+    pObject->actor->t.t.mat.m[3][2] += t2;
+    SimpleRotate(pObject, pDt);
+    for (pChild = pObject->child; pChild != NULL; pChild = pChild->next) {
+        InterpolateSingleObject(pChild, pDt);
+    }
 }
 
 // STUB: CARMA2_HW 0x004c28a0
