@@ -1208,9 +1208,16 @@ void C2_HOOK_FASTCALL SimpleRotate(tPhysics_object* pObject, br_scalar pDt) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004c27c0
+// FUNCTION: CARMA2_HW 0x004c27c0
 void C2_HOOK_FASTCALL FUN_004c27c0(tPhysics_object* pObject, float pDt) {
-    NOT_IMPLEMENTED();
+    br_vector3 omega_world;
+
+    pObject->rotate_omega.v[0] = pObject->omega.v[0];
+    pObject->rotate_omega.v[1] = pObject->omega.v[1];
+    pObject->rotate_omega.v[2] = pObject->omega.v[2];
+    BrMatrix34ApplyV(&omega_world, &pObject->omega, &pObject->actor->t.t.mat);
+    SimpleRotate(pObject, pDt);
+    BrMatrix34TApplyV(&pObject->omega, &omega_world, &pObject->actor->t.t.mat);
 }
 
 // InterpolateSingleObject
