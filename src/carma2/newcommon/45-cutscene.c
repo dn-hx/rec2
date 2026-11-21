@@ -15,6 +15,27 @@
 #include "69-sound.h"
 #include "globvars.h"
 
+// GLOBAL: CARMA2_HW 0x0067c3b0
+void* gSmackerBuffer;
+
+// GLOBAL: CARMA2_HW 0x0079ec60
+br_material* gSmackMaterials[15];
+
+// GLOBAL: CARMA2_HW 0x0079ec9c
+br_pixelmap* gSmackerBackPalette;
+
+// GLOBAL: CARMA2_HW 0x0079eca0
+br_pixelmap* gSmackerPrevBackPalette;
+
+// GLOBAL: CARMA2_HW 0x0079eca4
+br_actor* gSmackerActor;
+
+// GLOBAL: CARMA2_HW 0x0079eca8
+br_pixelmap* gSmackerCurrentPalette;
+
+// GLOBAL: CARMA2_HW 0x0079ecac
+br_model* gSmackerModel;
+
 // FUNCTION: CARMA2_HW 0x0043e750
 // FUNCTION: CARMA2_SW 0x0043e860
 void C2_HOOK_FASTCALL DoSCILogo(void) {
@@ -76,6 +97,11 @@ void C2_HOOK_FASTCALL DoGameCompletedAnimation(void) {
     WaitForNoKeys();
 }
 
+// STUB: CARMA2_HW 0x0043f3a0
+void C2_HOOK_FASTCALL DoFeatureUnavailableInDemo(void) {
+    NOT_IMPLEMENTED();
+}
+
 // FUNCTION: CARMA2_HW 0x0043f5c0
 // FUNCTION: CARMA2_SW 0x0043f6a0
 void C2_HOOK_FASTCALL StartLoadingScreen(void) {
@@ -88,5 +114,10 @@ void C2_HOOK_FASTCALL StartLoadingScreen(void) {
     } else {
         SplashScreenWith("LOADSCRN.PIX");
     }
+}
+
+// STUB: CARMA2_HW 0x00461980
+void C2_HOOK_FASTCALL SetFlicSound(int pSound_ID, tU32 pSound_time) {
+    NOT_IMPLEMENTED();
 }
 
