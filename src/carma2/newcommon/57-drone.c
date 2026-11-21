@@ -651,9 +651,15 @@ br_matrix34* C2_HOOK_FASTCALL GetCurrentViewDroneMat(void) {
     return &gDrone_specs[gCurrent_selected_drone].actor->t.t.mat;
 }
 
-// STUB: CARMA2_HW 0x004526c0
+// FUNCTION: CARMA2_HW 0x004526c0
 br_vector3* C2_HOOK_FASTCALL GetCurrentViewDroneDirection(void) {
-    NOT_IMPLEMENTED();
+
+    StartRenderingThisDrone(&gDrone_specs[gCurrent_selected_drone]);
+    if (BrVector3LengthSquared(&gDrone_specs[gCurrent_selected_drone].field_0x18) > 0.f) {
+        return &gDrone_specs[gCurrent_selected_drone].field_0x18;
+    } else {
+        return &gDefault_drone_direction;
+    }
 }
 
 // STUB: CARMA2_HW 0x00452810
