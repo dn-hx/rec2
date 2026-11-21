@@ -26,6 +26,11 @@ int C2_HOOK_CDECL SortGridFunction(const void* pFirst_one, const void* pSecond_o
     return ((tOpp_spec*)pFirst_one)->ranking - ((tOpp_spec*)pSecond_one)->ranking;
 }
 
+// STUB: CARMA2_HW 0x004e2b70
+int C2_HOOK_FASTCALL SortOpponents(void) {
+    NOT_IMPLEMENTED();
+}
+
 // SortOpponents
 
 // DoGridPosition
