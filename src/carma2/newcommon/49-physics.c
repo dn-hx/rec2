@@ -886,9 +886,18 @@ int C2_HOOK_FASTCALL ClampObjectSpin(tPhysics_object* pObject) {
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004bd7f0
+// FUNCTION: CARMA2_HW 0x004bd7f0
 int C2_HOOK_FASTCALL ClampObjectSpinTree(tPhysics_object* pObject) {
-    NOT_IMPLEMENTED();
+    int count;
+
+    count = 0;
+    for (; pObject != NULL; pObject = pObject->next) {
+        count += ClampObjectSpin(pObject);
+        if (pObject->child != NULL) {
+            count += ClampObjectSpinTree(pObject->child);
+        }
+    }
+    return count;
 }
 
 // STUB: CARMA2_HW 0x004bd830
