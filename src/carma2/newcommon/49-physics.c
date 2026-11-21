@@ -1098,9 +1098,146 @@ void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject) {
     }
 }
 
-// STUB: CARMA2_HW 0x004c0430
+// FUNCTION: CARMA2_HW 0x004c0430
 int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count) {
-    NOT_IMPLEMENTED();
+    int flag;
+    int found;
+    br_vector3 w;
+    br_vector3 q;
+    br_vector3 p;
+    br_vector3 r;
+    br_scalar t;
+    int i;
+
+    flag = 0;
+    if (pCollision_count < pCount) {
+        for (i = pCollision_count; i < pCount; i++) {
+            pRhs[i] = 0.f;
+        }
+    }
+    if (0 < pCollision_count) {
+        for (i = 0; i < pCollision_count; i++) {
+            if (pRecords[i]->type == 11) {
+                pRhs[i] = -BrVector3Dot(&pRecords[i]->object_a->omega, &pRecords[i]->direction_a);
+                if (pRecords[i]->object_b != NULL) {
+                    pRhs[i] = BrVector3Dot(&pRecords[i]->object_b->omega, &pRecords[i]->direction_b) + pRhs[i];
+                }
+                if (pRhs[i] < 0.001) {
+                    pRhs[i] = 0.001f;
+                } else {
+                    flag = 1;
+                }
+            } else {
+                w.v[0] = pRecords[i]->point_a.v[2] * pRecords[i]->object_a->omega.v[1]
+                    - pRecords[i]->point_a.v[1] * pRecords[i]->object_a->omega.v[2];
+                w.v[1] = pRecords[i]->point_a.v[0] * pRecords[i]->object_a->omega.v[2]
+                    - pRecords[i]->point_a.v[2] * pRecords[i]->object_a->omega.v[0];
+                w.v[2] = pRecords[i]->point_a.v[1] * pRecords[i]->object_a->omega.v[0]
+                    - pRecords[i]->point_a.v[0] * pRecords[i]->object_a->omega.v[1];
+                BrVector3Accumulate(&w, &pRecords[i]->object_a->velocity_car_space);
+                pRhs[i] = -BrVector3Dot(&pRecords[i]->direction_a, &w);
+                if (pRecords[i]->object_b != NULL) {
+                    w.v[0] = pRecords[i]->point_b.v[2] * pRecords[i]->object_b->omega.v[1]
+                        - pRecords[i]->point_b.v[1] * pRecords[i]->object_b->omega.v[2];
+                    w.v[1] = pRecords[i]->point_b.v[0] * pRecords[i]->object_b->omega.v[2]
+                        - pRecords[i]->point_b.v[2] * pRecords[i]->object_b->omega.v[0];
+                    w.v[2] = pRecords[i]->point_b.v[1] * pRecords[i]->object_b->omega.v[0]
+                        - pRecords[i]->point_b.v[0] * pRecords[i]->object_b->omega.v[1];
+                    BrVector3Accumulate(&w, &pRecords[i]->object_b->velocity_car_space);
+                    pRhs[i] = BrVector3Dot(&pRecords[i]->direction_b, &w) + pRhs[i];
+                }
+                if (0.01 < pRhs[i]) {
+                    flag = 1;
+                }
+                if (0.1 < pRhs[i]) {
+                    t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                    if (1.0f < t) {
+                        t = 1.0f;
+                    }
+                    if (t < 0.1) {
+                        t = 0.1f;
+                    }
+                    pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                }
+                if (pRhs[i] < 0.0f) {
+                    pRhs[i] = 0.f;
+                }
+                t = 0.01 - pRhs[i] * -1.001;
+                pRhs[i] = t;
+                if ((pRecords[i]->object_b == NULL || pRecords[i]->object_b->field_0x1df != 0) && pRecords[i]->object_a->field_0x1df != 0) {
+                    pRhs[i] = t - 0.0099;
+                }
+            }
+        }
+    }
+    if (flag == 0) {
+        found = 0;
+        if (0 < pCollision_count) {
+            for (i = 0; i < pCollision_count; i++) {
+                if (pRecords[i]->type == 11) {
+                    pRhs[i] = (0.001 - pRecords[i]->field_0x0) * 25.0;
+                    if (pRhs[i] < 0.001) {
+                        pRhs[i] = 0.001f;
+                    } else {
+                        flag = 1;
+                    }
+                } else {
+                    if (pRecords[i]->object_b == NULL) {
+                        BrVector3Add(&p, &pRecords[i]->object_a->cmpos, &pRecords[i]->point_a);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->actor->t.t.mat);
+                        DrMatrix34ApplyLPInverse(&q, &w, &pRecords[i]->object_a->transform_matrix);
+                        BrVector3Sub(&q, &q, &p);
+                        pRhs[i] = 0.01 - BrVector3Dot(&pRecords[i]->direction_a, &q) * 25.f;
+                    } else {
+                        BrVector3Add(&p, &pRecords[i]->object_a->cmpos, &pRecords[i]->point_a);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->transform_matrix);
+                        DrMatrix34ApplyLPInverse(&q, &w, &pRecords[i]->object_b->transform_matrix);
+                        BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->actor->t.t.mat);
+                        DrMatrix34ApplyLPInverse(&r, &w, &pRecords[i]->object_b->actor->t.t.mat);
+                        BrVector3Sub(&q, &r, &q);
+                        pRhs[i] = -(BrVector3Dot(&pRecords[i]->direction_b, &q) * 25.f);
+                        if (pRecords[i]->type == 5) {
+                            BrMatrix34ApplyV(&w, &pRecords[i]->direction_b, &pRecords[i]->object_b->transform_matrix);
+                            BrMatrix34TApplyV(&r, &w, &pRecords[i]->object_b->actor->t.t.mat);
+                            t = -(BrVector3Dot(&r, &q) * 25.f);
+                            if (pRhs[i] < t) {
+                                pRhs[i] = t;
+                            }
+                        }
+                        if (0.0f < pRecords[i]->field_0x10 && pRhs[i] < pRecords[i]->field_0x10 * 25.f) {
+                            pRhs[i] = pRecords[i]->field_0x10 * 25.f;
+                        }
+                    }
+                    if (pRhs[i] <= 0.1) {
+                        if (pRhs[i] < 0.0f) {
+                            pRhs[i] = 0.f;
+                        }
+                    } else {
+                        t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                        if (1.0f < t) {
+                            t = 1.0f;
+                        }
+                        if (t < 0.1) {
+                            t = 0.1f;
+                        }
+                        pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                    }
+                    if (0.001 < pRhs[i]) {
+                        found = 1;
+                    }
+                    pRhs[i] = 0.01 - pRhs[i] * -1.001;
+                }
+            }
+        }
+        if (found == 0 && 0 < pCollision_count) {
+            for (i = 0; i < pCollision_count; i++) {
+                if (pRecords[i]->type != 11) {
+                    pRhs[i] = 0.1f;
+                }
+            }
+        }
+    }
+    return flag == 0;
 }
 
 // STUB: CARMA2_HW 0x004c0ac0
