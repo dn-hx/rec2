@@ -174,9 +174,48 @@ void C2_HOOK_CDECL FUN_0053e31a(br_uint_8* dest, br_uint_32 qual, br_uint_32 nbp
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0053e3fe
+// FUNCTION: CARMA2_HW 0x0053e3fe
 void C2_HOOK_CDECL FUN_0053e3fe(br_uint_8* dest, br_uint_32 qual, br_uint_32 width, br_uint_32 height, br_uint_32 stride, br_uint_32 bpp, br_uint_32 colour) {
-    NOT_IMPLEMENTED();
+    br_uint_32 x;
+    br_uint_8* row_dest;
+    br_uint_8 c8;
+    br_uint_16 c16;
+    br_uint_8 b0, b1, b2;
+
+    for (; height != 0; height--, dest += stride) {
+        row_dest = dest;
+        switch (bpp) {
+        case 1:
+            c8 = (br_uint_8)colour;
+            for (x = 0; x < width; x++) {
+                row_dest[x] = c8;
+            }
+            break;
+        case 2:
+            c16 = (br_uint_16)colour;
+            for (x = 0; x < width; x++) {
+                ((br_uint_16*)row_dest)[x] = c16;
+            }
+            break;
+        case 3:
+            b0 = (br_uint_8)((colour >>  0) & 0xff);
+            b1 = (br_uint_8)((colour >>  8) & 0xff);
+            b2 = (br_uint_8)((colour >> 16) & 0xff);
+            for (x = 0; x < width; x++) {
+                row_dest[3 * x + 0] = b0;
+                row_dest[3 * x + 1] = b1;
+                row_dest[3 * x + 2] = b2;
+            }
+            break;
+        case 4:
+            for (x = 0; x < width; x++) {
+                ((br_uint_32*)row_dest)[x] = colour;
+            }
+            break;
+        default:
+            abort();
+        }
+    }
 }
 
 // STUB: CARMA2_HW 0x0053e527
