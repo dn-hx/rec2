@@ -243,11 +243,6 @@ typedef struct {
 } tPipe_chunk_extended_splash;
 
 typedef struct {
-    uintptr_t pOwner;
-    float v[4];
-} tPipe_chunk_splash;
-
-typedef struct {
     tU8 pad[0x244];
     br_scalar x;
     br_scalar y;
