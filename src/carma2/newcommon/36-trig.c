@@ -441,8 +441,11 @@ void C2_HOOK_FASTCALL DRMatrix23Rotate(br_matrix23* mat, br_angle rz) {
 
 // DRMatrix23Rotate
 
-// STUB: CARMA2_HW 0x005132a0
+// FUNCTION: CARMA2_HW 0x005132a0
 void C2_HOOK_FASTCALL DRMatrix23PostRotate(br_matrix23* mat, br_angle rz) {
-    NOT_IMPLEMENTED();
+
+    DRMatrix23Rotate(&mat23tmp2, rz);
+    BrMatrix23Mul(&mat23tmp1, mat, &mat23tmp2);
+    BrMatrix23Copy(mat, &mat23tmp1);
 }
 
