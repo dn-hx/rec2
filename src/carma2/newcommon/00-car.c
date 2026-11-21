@@ -209,10 +209,6 @@ void C2_HOOK_FASTCALL DamageUnit(tCar_spec* pCar, tDamage_type pUnit_type, int p
     }
 }
 
-// STUB: CARMA2_HW 0x004175e0
-void C2_HOOK_FASTCALL ControlCar4(tCar_spec* pCar, void* pUnused, br_scalar pDt) {
-    NOT_IMPLEMENTED();
-}
 // STUB: CARMA2_HW 0x0041f4f0
 void C2_HOOK_FASTCALL FlyCar(tCar_spec* c, br_scalar dt) {
     NOT_IMPLEMENTED();
