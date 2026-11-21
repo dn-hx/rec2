@@ -263,5 +263,11 @@ extern void C2_HOOK_FASTCALL TurnOffNonCar(int pIndex);
 
 extern void C2_HOOK_FASTCALL FlushSmashQueue(int pFlush_powerups);
 
+extern void C2_HOOK_FASTCALL CreatePuffOfSmoke(br_vector3* pPos, br_vector3* pV, float pStrength, float pDecay_factor, int pType);
+
+extern int C2_HOOK_FASTCALL DRS3StartSound3D(tS3_outlet* pOutlet, int pSound_id, const br_vector3* pInitial_position, const br_vector3* pInitial_velocity, int pRepeats, int pVolume, int pPitch, int pSpeed);
+
+extern int C2_HOOK_FASTCALL DRS3SoundStillPlaying(int pTag);
+
 #endif // GUARD_00_CAR_H
 
