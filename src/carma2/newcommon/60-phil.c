@@ -489,10 +489,41 @@ int C2_HOOK_CDECL PHILSetObjectProperty(tPhysics_object* pCollision_info, int pP
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x004b6530
+// FUNCTION: CARMA2_HW 0x004b6530
 // STUB: CARMA2_SW 0x004b2c50
 float C2_HOOK_FASTCALL PHILGetObjectProperty(tPhysics_object* pObject, int pProperty) {
-    NOT_IMPLEMENTED();
+    tCollision_info_owner* owner;
+
+    if (!gPHIL_disabled) {
+        owner = (tCollision_info_owner*)(pObject->field_0x239 == 2 ? pObject->field_0x240 : pObject->field_0x240);
+        if (owner != NULL) {
+            if (pProperty >= 0 && pProperty < 9) {
+                switch (pProperty) {
+                case 0:
+                    return owner->field_0x10;
+                case 1:
+                    return (float)!!(owner->field_0x04 & 0x1);
+                case 2:
+                    return owner->field_0x0c;
+                case 3:
+                    return (float)!!(pObject->flags & 0x40);
+                case 4:
+                    return (float)!!(pObject->flags & 0x8);
+                case 5:
+                    return (float)!!(pObject->flags & 0x10);
+                case 6:
+                    return (float)!!(owner->field_0x04 & 0x4);
+                case 7:
+                    return (float)!!(owner->field_0x04 & 0x8);
+                case 8:
+                    return owner->field_0x14;
+                }
+            } else {
+                return 5.f;
+            }
+        }
+    }
+    return 0.f;
 }
 
 // STUB: CARMA2_HW 0x004b6630
