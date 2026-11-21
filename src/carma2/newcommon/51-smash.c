@@ -1161,10 +1161,51 @@ void C2_HOOK_FASTCALL InitSmashing(void) {
 
 // VerySimpleRotate
 
-// STUB: CARMA2_HW 0x004eff30
+// FUNCTION: CARMA2_HW 0x004eff30
 // STUB: CARMA2_SW 0x004ebb90
 void C2_HOOK_FASTCALL DoFragMovement(tSmash_vertex* pFragment, tU32 pTime, float pDelta_time) {
-    NOT_IMPLEMENTED();
+    extern float gFloat_0058aec0;
+    float f_dt;
+    double angle;
+    float omega;
+    br_vector3 pos;
+    br_vector3 axis;
+    br_matrix34* mat;
+
+    f_dt = pDelta_time * 0.001f;
+    if (f_dt != gFloat_0058aec0 && pFragment->field_0x34 == 0) {
+        pos.v[0] = pFragment->v.v[0] * f_dt;
+        pos.v[1] = pFragment->v.v[1] * f_dt - 4.9 * gGravity_multiplier * f_dt * f_dt;
+        pos.v[2] = pFragment->v.v[2] * f_dt;
+        pFragment->actor->t.t.translate.t.v[0] -= pos.v[0] * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[1] -= pos.v[1] * -0.14492753;
+        pFragment->actor->t.t.translate.t.v[2] -= pos.v[2] * -0.14492753;
+        mat = &pFragment->actor->t.t.mat;
+        pos.v[1] = f_dt * gGravity_multiplier * 9.8;
+        pFragment->v.v[1] -= pos.v[1];
+        omega = BrVector3Length(&pFragment->omega);
+        axis.v[0] = pFragment->omega.v[0] / omega;
+        axis.v[1] = pFragment->omega.v[1] / omega;
+        axis.v[2] = pFragment->omega.v[2] / omega;
+        angle = omega * f_dt;
+        if (fabs(angle) >= 0.0001) {
+            pos.v[0] = mat->m[3][0];
+            pos.v[1] = mat->m[3][1];
+            pos.v[2] = mat->m[3][2];
+            mat->m[3][0] = 0.f;
+            mat->m[3][1] = 0.f;
+            mat->m[3][2] = 0.f;
+            BrMatrix34PostRotate(mat, BrRadianToAngle(angle), &axis);
+            mat->m[3][0] = pos.v[0];
+            mat->m[3][1] = pos.v[1];
+            mat->m[3][2] = pos.v[2];
+        }
+    }
+    if (pTime >= pFragment->field_0x10) {
+        pFragment->actor->render_style = BR_RSTYLE_NONE;
+    } else {
+        pFragment->actor->render_style = BR_RSTYLE_FACES;
+    }
 }
 
 // STUB: CARMA2_HW 0x004f00f0
