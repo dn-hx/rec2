@@ -1556,9 +1556,23 @@ tCollision_shape_sphere* C2_HOOK_FASTCALL AllocateShapeSphere(int pType) {
     return result;
 }
 
-// STUB: CARMA2_HW 0x004c5d30
+// FUNCTION: CARMA2_HW 0x004c5d30
 tCollision_shape_polyhedron* C2_HOOK_FASTCALL FUN_004c5d30(int pCount_points, int pType) {
-    NOT_IMPLEMENTED();
+    tCollision_shape_polyhedron* result;
+    tU8* raw_memory;
+
+    result = BrMemAllocate(pCount_points * 30 + 0x70, (br_uint_8)pType);
+    raw_memory = (tU8*)result + 0x50;
+    result->polyhedron.points = (br_vector3*)raw_memory;
+    result->polyhedron.count_points = pCount_points;
+    raw_memory += pCount_points * sizeof(br_vector3);
+    result->polyhedron.edges = (tPolyhedron_edge_indexes*)raw_memory;
+    raw_memory += pCount_points * 2;
+    result->polyhedron.planes = (br_vector4*)raw_memory;
+    result->polyhedron.count_edges = 0;
+    result->polyhedron.count_planes = 0;
+    result->common.type = kCollisionShapeType_Wireframe_Polyhedron;
+    return result;
 }
 
 // FUNCTION: CARMA2_HW 0x004c5d70
