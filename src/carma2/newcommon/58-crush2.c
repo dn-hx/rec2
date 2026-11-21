@@ -96,9 +96,24 @@ intptr_t C2_HOOK_CDECL AddTotalDeflection(br_actor* pActor, tCrush_displacement_
     NOT_IMPLEMENTED();
 }
 
-// STUB: CARMA2_HW 0x0043b400
+// FUNCTION: CARMA2_HW 0x0043b400
 int C2_HOOK_FASTCALL RepairObject(tPhysics_object* pObject, tCrush_displacement_context_local* pContext) {
-    NOT_IMPLEMENTED();
+    tCrush_displacement_context_local* context;
+    tModel_mash_context_local model_context;
+
+    context = pContext;
+    model_context.car = context->car;
+    model_context.step = context->step;
+    model_context.displacement = 0.0f;
+    model_context.total_displacement = context->total_displacement;
+
+    ARStartPipingSession(0x18);
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)RepairModels_2, &model_context);
+    AREndPipingSession();
+    DRActorEnumRecurse(pObject->actor, (br_actor_enum_cbfn*)CheckFlapAngles, NULL);
+
+    context->displacement += model_context.displacement;
+    return 0;
 }
 
 // STUB: CARMA2_HW 0x0043b470
