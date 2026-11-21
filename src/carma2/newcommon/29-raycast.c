@@ -72,6 +72,11 @@ void C2_HOOK_FASTCALL InitRayCasting(void) {
     gY_picking_camera->t.t.mat.m[2][2] =  0.0f;
 }
 
+// STUB: CARMA2_HW 0x004e36f0
+int C2_HOOK_FASTCALL DRScenePick2DXY(br_actor* world, br_actor* camera, br_pixelmap* viewport, int pick_x, int pick_y, dr_pick2d_cbfn* callback, void* arg) {
+    NOT_IMPLEMENTED();
+}
+
 // BadDiv
 
 // DRVector2AccumulateScale
