@@ -1747,9 +1747,9 @@ void C2_HOOK_FASTCALL InterpolateSingleObject(tPhysics_object* pObject, float pD
     }
 }
 
-// PARTIAL 72.73%: InterpolateObjects 0x004c28a0 [sonnet] - extra stack temp (push ecx) and xor edx,edx from fake thiscall; x87 order differs
+// PARTIAL 80.46%: InterpolateObjects 0x004c28a0 - upstream fastcall form (no dummy EDX arg); remaining diff is x87 scheduling and an extra stack temp
 // FUNCTION: CARMA2_HW 0x004c28a0
-void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, undefined4 arg2, float pDt) {
+void C2_HOOK_FASTCALL InterpolateObjects(tPhysics_object* pObject, float pDt) {
     float t0;
     float t1;
     float t2;
@@ -1763,7 +1763,7 @@ void C2_HOOK_FAKE_THISCALL InterpolateObjects(tPhysics_object* pObject, undefine
         pObject->actor->t.t.mat.m[3][2] += t2;
         SimpleRotate(pObject, pDt);
         if (pObject->child != NULL) {
-            InterpolateObjects(pObject->child REC2_THISCALL_EDX, pDt);
+            InterpolateObjects(pObject->child, pDt);
         }
     }
 }
