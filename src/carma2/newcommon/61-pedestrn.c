@@ -1990,7 +1990,18 @@ void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel) {
 
 // ScaleModelXYZ
 
-// ScaleModel
+// PARTIAL 94.12%: x87 operand order of the vertex scale (original loads pScale from the stack first)
+// FUNCTION: CARMA2_HW 0x004042f0
+void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, float pScale) {
+    int i;
+    br_vertex* v;
+
+    v = pModel->vertices;
+    for (i = 0; i < pModel->nvertices; i++, v++) {
+        BrVector3Scale(&v->p, &v->p, pScale);
+    }
+    BrModelUpdate(pModel, BR_MODU_VERTEX_POSITIONS);
+}
 
 // DisposeMove
 

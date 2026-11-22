@@ -443,6 +443,8 @@ extern void C2_HOOK_FASTCALL SetGoreLevel(int pNewLevel);
 
 // ScaleModelXYZ
 
+extern void C2_HOOK_FASTCALL ScaleModel(br_model* pModel, float pScale);
+
 // DRScaleModel
 
 // DisposeMove
