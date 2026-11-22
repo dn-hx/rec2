@@ -45,7 +45,6 @@ extern int gCount_changed_points;
 extern br_vector3 gChanged_points[10];
 extern int gPed_dismember_spurting_member_count;
 extern int gPed_nearness;
-extern int gEthereal_pedestrians;
 extern tPedestrian* gPedestrians_in_sight;
 extern tTWTVFS gTwtPeds;
 extern tU32 gDAT_006a0418;

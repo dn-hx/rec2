@@ -288,11 +288,6 @@ int gPed_points[3];
 // GLOBAL: CARMA2_CHEAT 0x006a7f90
 tU32 gDAT_006a0418;
 
-// GLOBAL: CARMA2_HW 0x007447a0
-// GLOBAL: CARMA2_SW 0x0073b260
-// GLOBAL: CARMA2_CHEAT 0x0074be40
-int gEthereal_pedestrians;
-
 // GLOBAL: CARMA2_HW 0x007447a4
 // GLOBAL: CARMA2_SW 0x0073b264
 // GLOBAL: CARMA2_CHEAT 0x0074be44
@@ -1262,7 +1257,7 @@ int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_
     float t;
     int result = 0;
 
-    if (gEthereal_pedestrians) {
+    if (gGhost_pedestrians) {
         return 0;
     }
     pos = &pCar_spec->pos;
