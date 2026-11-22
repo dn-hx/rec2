@@ -533,9 +533,18 @@ void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar) {
     NOT_IMPLEMENTED();
 }
 
-// DoTrueColModelThing
+// STUB: CARMA2_HW 0x004f9180
+void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6) {
+    NOT_IMPLEMENTED();
+}
 
-// SetFoxModelCallback
+// FUNCTION: CARMA2_HW 0x004f95e0
+int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel) {
+
+    pModel->flags |= BR_MODF_CUSTOM;
+    pModel->custom = DoTrueColModelThing;
+    return 1;
+}
 
 // FUNCTION: CARMA2_HW 0x004f9390
 // FUNCTION: CARMA2_CHEAT 0x004ff030
