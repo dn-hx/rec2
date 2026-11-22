@@ -12,6 +12,7 @@
 #include "09-funks.h"
 #include "13-crush1.h"
 #include "16-graphics1.h"
+#include "18-graphics2.h"
 #include "20-skidmark.h"
 #include "22-replay.h"
 #include "27-powerup.h"
@@ -185,12 +186,18 @@ int C2_HOOK_FASTCALL ARReplayPauseState(void) {
     return gPaused;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00402390
 // FUNCTION: CARMA2_SW 0x00402390
 // FUNCTION: CARMA2_CHEAT 0x00402390
 float C2_HOOK_FASTCALL ARGetReplayRate(void) {
     return gReplay_rate;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004023a0
 // FUNCTION: CARMA2_SW 0x004023a0
@@ -1850,7 +1857,22 @@ void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
 
 // ApplyDamage
 
-// ApplySpecial
+// FUNCTION: CARMA2_HW 0x004c97c0
+void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk) {
+    tU32 type;
+
+    type = (*pChunk)->subject_index;
+    switch (type) {
+    case ePipe_special_fade:
+        if (fabs(ARGetReplayRate()) <= 1.0) {
+            FadePaletteDown();
+        }
+        return;
+    case 1: /* initial tail; no enumerator yet */
+        DoInitialTail();
+        return;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c97f0
 // FUNCTION: CARMA2_SW 0x004c5f20
