@@ -23,6 +23,7 @@ extern br_pixelmap** gShade_table;
 extern tSmash_vertex gSmash_glass_fragments[200];
 extern int gNum_dust_tables;
 extern int gSpark_flags;
+extern int gSpark_next;
 extern br_pixelmap* gIt_shade_table;
 extern int gSmoke_flags;
 extern int gSmoke_num;
@@ -47,6 +48,7 @@ extern tCar_spec* gCar_of_material;
 extern int gNum_splash_types;
 extern tSplash gSplash[32];
 extern int gSplash_flags;
+extern int gSplash_next;
 extern br_material* gSplash_material[20];
 extern br_model* gSplash_model;
 extern br_pixelmap* gFog_shade_table;
@@ -212,7 +214,7 @@ extern void C2_HOOK_FASTCALL StopObjectSmokingInstantly(tPhysics_object* pObject
 
 extern void C2_HOOK_FASTCALL ConditionalSmokeColumn(tCar_spec* pCar, int pFire_point, int pColour);
 
-// SingleSplash
+extern void C2_HOOK_FASTCALL SingleSplash(tPhysics_object* pObject, const br_matrix34* pMatrix, const br_vector3* pVelocity, const br_vector3* pNormal_velocity, const br_vector3* pOmega, const br_vector3* pPoint, const br_vector3* pNormal, tU32 pTime);
 
 extern void C2_HOOK_FASTCALL GeneralCreateSplash(tPhysics_object* pObject, const br_vector3* pVelocity, const br_vector3* pOmega, const br_vector3* pNormal, br_scalar pWater_distance, const br_bounds3* pBounds, const br_matrix34* pMatrix, tU32 pTime);
 
