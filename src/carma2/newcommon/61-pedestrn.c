@@ -8,6 +8,7 @@
 
 #include "61-pedestrn.h"
 
+#include "00-car.h"
 #include "07-structur.h"
 #include "08-loading1.h"
 #include "10-loading2.h"
@@ -157,6 +158,11 @@ int gPeds_suicidal;
 // GLOBAL: CARMA2_SW 0x0073b270
 // GLOBAL: CARMA2_CHEAT 0x0074be50
 int gExploding_pedestrians;
+
+// GLOBAL: CARMA2_HW 0x007447b4
+// GLOBAL: CARMA2_SW 0x0073b274
+// GLOBAL: CARMA2_CHEAT 0x0074be54
+tPedestrian* gPedestrians_in_sight;
 
 // GLOBAL: CARMA2_HW 0x007447c0
 // GLOBAL: CARMA2_SW 0x0073b280
@@ -1242,7 +1248,52 @@ void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, int pArg3
 
 // MungeProxRay
 
-// DoToPeds
+// FUNCTION: CARMA2_HW 0x004ce140
+int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback) {
+    tPedestrian* ped;
+    tU32 now;
+    br_vector3* pos;
+    br_scalar dist_sq;
+    float t;
+    int result = 0;
+
+    if (gGhost_pedestrians) {
+        return 0;
+    }
+    pos = &pCar_spec->pos;
+    now = GetTotalTime();
+
+    for (ped = gPedestrians_in_sight; ped != NULL; ped = ped->next) {
+        dist_sq = (pos->v[0] - ped->pos.v[0]) * (pos->v[0] - ped->pos.v[0])
+                + (pos->v[1] - ped->pos.v[1]) * (pos->v[1] - ped->pos.v[1])
+                + (pos->v[2] - ped->pos.v[2]) * (pos->v[2] - ped->pos.v[2]);
+
+        if (pOnly_alive != 0 && ped->hit_points <= 0) {
+            continue;
+        }
+        if (pMax_distance != 0.f && dist_sq >= pMax_distance) {
+            continue;
+        }
+        if (pParam_4 != 0) {
+            br_material* material;
+            br_vector3 nor;
+            br_vector3 dir;
+
+            dir.v[0] = ped->pos.v[0] - pos->v[0];
+            dir.v[1] = ped->pos.v[1] - pos->v[1];
+            dir.v[2] = ped->pos.v[2] - pos->v[2];
+            FindFace(pos, &dir, &nor, &t, &material);
+        } else {
+            t = 100.f;
+        }
+        if (t < 1.0) {
+            continue;
+        }
+        pCallback(ped, pCar_spec, dist_sq, now, pData);
+        result = 1;
+    }
+    return result;
+}
 
 // DoPedAnnihilator
 

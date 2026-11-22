@@ -45,6 +45,7 @@ extern int gCount_changed_points;
 extern br_vector3 gChanged_points[10];
 extern int gPed_dismember_spurting_member_count;
 extern int gPed_nearness;
+extern tPedestrian* gPedestrians_in_sight;
 extern tTWTVFS gTwtPeds;
 extern tU32 gDAT_006a0418;
 extern tPedestrian* gPTR_00694120;
@@ -241,7 +242,7 @@ extern void C2_HOOK_FASTCALL DamagePedestrian(tPedestrian* pPed, int pDamage, in
 
 // MungeProxRay
 
-// DoToPeds
+extern int C2_HOOK_FASTCALL DoToPeds(tCar_spec* pCar_spec, int pOnly_alive, float pMax_distance, int pParam_4, void* pData, tForEachPedestrian_cbfn* pCallback);
 
 // DoPedAnnihilator
 
