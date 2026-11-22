@@ -2238,7 +2238,12 @@ void C2_HOOK_FASTCALL ApplyTransformType(tPipe_chunk** pChunk) {
     ((br_actor*)chunk->subject_index)->t.type = chunk->data.transform_type.type_to;
 }
 
-// ApplyOppoRenderage
+// FUNCTION: CARMA2_HW 0x004c9d80
+void C2_HOOK_FASTCALL ApplyOppoRenderage(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    ApplyOppoRenderage2((tOpponent_spec*)(*pChunk)->subject_index, *(tU16*)(*pChunk)->data.raw_data);
+}
 
 // UndoCrush
 
