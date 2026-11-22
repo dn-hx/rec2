@@ -797,6 +797,12 @@ typedef struct {
 } tPipe_chunk_split_weld;
 
 typedef struct {
+    br_material* material;
+    tS32 count;
+    tU16 face_data[];
+} tPipe_chunk_remove_faces;
+
+typedef struct {
     tCar_spec* car_spec;
     undefined4 field_0x4;
     br_pixelmap* texture1;
@@ -826,6 +832,7 @@ typedef struct tPipe_chunk {
         tPipe_phil_object phil_object;
         tPipe_funk_enable funk_enable;
         tPipe_chunk_shrapnel shrapnel;
+        tPipe_chunk_remove_faces remove_faces;
         tPipe_chunk_identity identity;
         tPipe_chunk_split_weld split_weld;
         tPipe_chunk_flap flap;
