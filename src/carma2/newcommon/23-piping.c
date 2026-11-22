@@ -24,6 +24,7 @@
 #include "13-crush1.h"
 #include "51-smash.h"
 #include "52-errors.h"
+#include "57-drone.h"
 #include "61-pedestrn.h"
 #include "60-phil.h"
 #include "69-sound.h"
@@ -2171,7 +2172,15 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneCornerPos
 
-// ApplyDroneStraightPos
+// FUNCTION: CARMA2_HW 0x004c9cf0
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    ApplyDroneStraightPos2((*pChunk)->subject_index,
+        (*pChunk)->data.drone_straight_pos.section,
+        (*pChunk)->data.drone_straight_pos.speed,
+        (*pChunk)->data.drone_straight_pos.distance);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d10
 // FUNCTION: CARMA2_SW 0x004c6440
