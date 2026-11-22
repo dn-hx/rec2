@@ -1805,7 +1805,16 @@ void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk) {
 
 // ApplySplash
 
-// ApplyExtendedSplash
+// FUNCTION: CARMA2_HW 0x004c9310
+void C2_HOOK_FASTCALL ApplyExtendedSplash(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    AdjustSplashReplay((void*)(*pChunk)->subject_index,
+        (*pChunk)->data.extended_splash.field_0x0,
+        (*pChunk)->data.extended_splash.water_d,
+        &(*pChunk)->data.extended_splash.normal,
+        &(*pChunk)->data.extended_splash.bb);
+}
 
 // ApplyOilSpill
 
