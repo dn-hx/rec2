@@ -2025,7 +2025,14 @@ void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk) {
     AdjustRepulseRay((*pChunk)->subject_index, (*pChunk)->data.repulse_ray.origin, (*pChunk)->data.repulse_ray.victim, (*pChunk)->data.repulse_ray.time);
 }
 
-// ApplyActorTrans
+// FUNCTION: CARMA2_HW 0x004c9a70
+void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[0] += (*pChunk)->data.actor_trans.delta.v[0];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[1] += (*pChunk)->data.actor_trans.delta.v[1];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[2] += (*pChunk)->data.actor_trans.delta.v[2];
+}
 
 // ApplyPedStatus
 
