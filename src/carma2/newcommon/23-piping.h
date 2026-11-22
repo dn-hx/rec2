@@ -333,7 +333,7 @@ extern void C2_HOOK_FASTCALL ApplySmokeColumn(tPipe_chunk** pChunk);
 
 // ApplyFlame
 
-// ApplySplash
+extern void C2_HOOK_FASTCALL ApplySplash(tPipe_chunk** pChunk);
 
 // ApplyExtendedSplash
 
