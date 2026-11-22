@@ -146,11 +146,17 @@ int gPipe_count_callbacks;
 // GLOBAL: CARMA2_CHEAT 0x0069bc7c
 tPipe_smudge_data* gCrush_space;
 
+// GLOBAL: CARMA2_HW 0x00694108
+tU32 gYoungest_time;
+
 // GLOBAL: CARMA2_HW 0x0069410c
 // GLOBAL: CARMA2_SW 0x0068e164
 // GLOBAL: CARMA2_CHEAT 0x0069bc84
 tFloat_u32_union gFloat_pipe_union;
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00402300
 // FUNCTION: CARMA2_SW 0x00402300
 int C2_HOOK_FASTCALL ARReplayForwards(void) {
@@ -170,6 +176,9 @@ int C2_HOOK_FASTCALL ARReplayForwards(void) {
         return ARGetReplayDirection() > 0;
     }
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x00402360
 // FUNCTION: CARMA2_SW 0x00402360
@@ -778,11 +787,27 @@ int C2_HOOK_FASTCALL PipeObjectPosition(tPhysics_object* pObject, void* pContext
 
 // CheckCar
 
-// CarTimeout
+// FUNCTION: CARMA2_HW 0x004c6bc0
+int C2_HOOK_FASTCALL CarTimeout(tU32 pTime) {
+
+    if (ARReplayForwards()) {
+        if (pTime > gYoungest_time) {
+            return 0;
+        }
+    } else {
+        if (pTime < gYoungest_time) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 // ScanCarsPositions
 
-// InitialiseActionReplay
+// STUB: CARMA2_HW 0x004c6bf0
+void C2_HOOK_FASTCALL InitialiseActionReplay(void) {
+    NOT_IMPLEMENTED();
+}
 
 #if defined(REC2_MATCHING) && defined(_MSC_VER)
 #pragma inline_depth(0)

@@ -35,6 +35,7 @@ extern tU32 gPipe_sound_time_window;
 extern int gDisable_advance;
 extern int gPipe_count_callbacks;
 extern tPipe_smudge_data* gCrush_space;
+extern tU32 gYoungest_time;
 extern tU8* gEnd_of_session;
 
 extern int C2_HOOK_FASTCALL ARReplayForwards(void);
@@ -161,11 +162,11 @@ extern void C2_HOOK_FASTCALL DoSmudge(tPipe_chunk** pChunk, int pDir);
 
 // CheckCar
 
-// CarTimeout
+extern int C2_HOOK_FASTCALL CarTimeout(tU32 pTime);
 
 // ScanCarsPositions
 
-// InitialiseActionReplay
+extern void C2_HOOK_FASTCALL InitialiseActionReplay(void);
 
 extern void C2_HOOK_FASTCALL DisposeActionReplay(void);
 
