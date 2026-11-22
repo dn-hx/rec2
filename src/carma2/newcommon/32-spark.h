@@ -23,6 +23,7 @@ extern br_pixelmap** gShade_table;
 extern tSmash_vertex gSmash_glass_fragments[200];
 extern int gNum_dust_tables;
 extern int gSpark_flags;
+extern int gSpark_next;
 extern br_pixelmap* gIt_shade_table;
 extern int gSmoke_flags;
 extern int gSmoke_num;
@@ -72,7 +73,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // CreateSparks
 
-// CreateSparkShower
+extern void C2_HOOK_FASTCALL CreateSparkShower(br_vector3* pPosition, br_vector3* pVelocity, br_vector3* pForce, tNon_car_spec* pOwner1, tNon_car_spec* pOwner2);
 
 extern void C2_HOOK_FASTCALL AdjustSpark(int pSpark_num, br_vector3* pPos, br_vector3* pLength);
 
