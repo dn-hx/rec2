@@ -849,15 +849,15 @@ void C2_HOOK_FASTCALL DRMatrix33Inverse(float* pDestination, const float* pSourc
     pDestination[1] = -((-pSource[2]) * pSource[7] + pSource[1] * pSource[8]);
     pDestination[2] = (-pSource[2]) * pSource[4] + pSource[1] * pSource[5];
     inv = 1.0 / (pSource[1] * pDestination[1] + pSource[2] * pDestination[2] + pSource[0] * pDestination[0]);
-    pDestination[0] = pDestination[0] * inv;
-    pDestination[3] = -(((-pSource[5]) * pSource[6] + pSource[8] * pSource[3]) * inv);
-    pDestination[1] = pDestination[1] * inv;
-    pDestination[6] = ((-pSource[4]) * pSource[6] + pSource[7] * pSource[3]) * inv;
-    pDestination[4] = ((-pSource[2]) * pSource[6] + pSource[8] * pSource[0]) * inv;
-    pDestination[2] = pDestination[2] * inv;
-    pDestination[7] = -(((-pSource[1]) * pSource[6] + pSource[7] * pSource[0]) * inv);
-    pDestination[5] = -(((-pSource[2]) * pSource[3] + pSource[5] * pSource[0]) * inv);
-    pDestination[8] = ((-pSource[1]) * pSource[3] + pSource[4] * pSource[0]) * inv;
+    pDestination[0] = (br_scalar)(pDestination[0] * inv);
+    pDestination[3] = (br_scalar)(-(((-pSource[5]) * pSource[6] + pSource[8] * pSource[3]) * inv));
+    pDestination[1] = (br_scalar)(pDestination[1] * inv);
+    pDestination[6] = (br_scalar)(((-pSource[4]) * pSource[6] + pSource[7] * pSource[3]) * inv);
+    pDestination[4] = (br_scalar)(((-pSource[2]) * pSource[6] + pSource[8] * pSource[0]) * inv);
+    pDestination[2] = (br_scalar)(pDestination[2] * inv);
+    pDestination[7] = (br_scalar)(-(((-pSource[1]) * pSource[6] + pSource[7] * pSource[0]) * inv));
+    pDestination[5] = (br_scalar)(-(((-pSource[2]) * pSource[3] + pSource[5] * pSource[0]) * inv));
+    pDestination[8] = (br_scalar)(((-pSource[1]) * pSource[3] + pSource[4] * pSource[0]) * inv);
 }
 
 // SetUpQuickHingeData
