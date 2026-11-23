@@ -8287,7 +8287,7 @@ void C2_HOOK_FASTCALL RQExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, in
             p += 100;
             qrow = (br_scalar*)((int)qrow + 100);
             dcol += 100;
-            ip = (br_scalar*)((int)ip + 0x65);
+            ip += 0x65; /* next diagonal element: 101 floats, not 101 bytes; no int truncation on 64-bit */
         } while ((int)col < pIndex);
     }
     if (pIndex < pCount) {
