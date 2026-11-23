@@ -551,7 +551,133 @@ br_material* C2_HOOK_FASTCALL DisposeSuffixedMaterials(br_model* pModel, tU16 pF
     return NULL;
 }
 
-// DisposeTexturingMaterials
+// FUNCTION: CARMA2_HW 0x004489d0
+void C2_HOOK_FASTCALL DisposeTexturingMaterials(void) {
+    br_actor* the_actor;
+    br_model* model;
+    br_material* new_mat;
+    br_material* local_8;
+    tU16 face_index;
+    void* converter;
+
+    the_actor = gProgram_state.track_spec.the_actor;
+    if (gWall_texturing_level == 1) {
+        face_index = 0;
+        if (the_actor->identifier != NULL && the_actor->identifier[0] == '&') {
+            goto road_pass;
+        }
+        if (the_actor->type == BR_ACTOR_MODEL && the_actor->model != NULL) {
+            model = the_actor->model;
+            local_8 = NULL;
+            if (model->nfaces > 0) {
+                do {
+                    if (model->faces[face_index].material != NULL) {
+                        new_mat = NULL;
+                        if (HasThisSuffix(model->faces[face_index].material->identifier, ".pwall")) {
+                            new_mat = UnsuffixedMaterial(model->faces[face_index].material->identifier, ".pwall");
+                        }
+                        if (new_mat != NULL) {
+                            model->faces[face_index].material = new_mat;
+                            local_8 = new_mat;
+                        }
+                    }
+                    face_index++;
+                } while (face_index < model->nfaces);
+            }
+            if (local_8 != NULL) {
+                BrModelUpdate(model, 0x7fff);
+            }
+        }
+        converter = WallLinearToPersp;
+    } else {
+        if (gWall_texturing_level != 0 || (the_actor->identifier != NULL && the_actor->identifier[0] == '&')) {
+            goto road_pass;
+        }
+        if (the_actor->type == BR_ACTOR_MODEL) {
+            model = the_actor->model;
+            face_index = 0;
+            if (model != NULL) {
+                local_8 = NULL;
+                if (model->nfaces > 0) {
+                    do {
+                        if (model->faces[face_index].material != NULL) {
+                            if (HasThisSuffix(model->faces[face_index].material->identifier, ".lwall")) {
+                                new_mat = UnsuffixedMaterial(model->faces[face_index].material->identifier, ".lwall");
+                            } else if (HasThisSuffix(model->faces[face_index].material->identifier, ".pwall")) {
+                                new_mat = UnsuffixedMaterial(model->faces[face_index].material->identifier, ".pwall");
+                            } else {
+                                new_mat = NULL;
+                            }
+                            if (new_mat != NULL) {
+                                model->faces[face_index].material = new_mat;
+                                local_8 = new_mat;
+                            }
+                        }
+                        face_index++;
+                    } while (face_index < model->nfaces);
+                }
+                if (local_8 != NULL) {
+                    BrModelUpdate(model, 0x7fff);
+                }
+            }
+        }
+        converter = WallUntexToPersp;
+    }
+    BrActorEnum(the_actor, ProcessFaceMaterials, converter);
+
+road_pass:
+    the_actor = gProgram_state.track_spec.the_actor;
+    face_index = 0;
+    if (gRoad_texturing_level == 0 && (the_actor->identifier == NULL || the_actor->identifier[0] != '&')) {
+        if (the_actor->type == BR_ACTOR_MODEL && the_actor->model != NULL) {
+            model = the_actor->model;
+            local_8 = NULL;
+            if (model->nfaces > 0) {
+                do {
+                    if (model->faces[face_index].material != NULL) {
+                        new_mat = NULL;
+                        if (HasThisSuffix(model->faces[face_index].material->identifier, ".road")) {
+                            new_mat = UnsuffixedMaterial(model->faces[face_index].material->identifier, ".road");
+                        }
+                        if (new_mat != NULL) {
+                            model->faces[face_index].material = new_mat;
+                            local_8 = new_mat;
+                        }
+                    }
+                    face_index++;
+                } while (face_index < model->nfaces);
+            }
+            if (local_8 != NULL) {
+                BrModelUpdate(model, 0x7fff);
+            }
+        }
+        BrActorEnum(the_actor, ProcessFaceMaterials, RoadUntexToPersp);
+    }
+    the_actor = gProgram_state.track_spec.the_actor;
+    if ((gWall_texturing_level != 2 || gRoad_texturing_level != 1) && (the_actor->identifier == NULL || the_actor->identifier[0] != '&')) {
+        if (the_actor->type == BR_ACTOR_MODEL && the_actor->model != NULL) {
+            model = the_actor->model;
+            face_index = 0;
+            local_8 = NULL;
+            if (model->nfaces > 0) {
+                do {
+                    if (model->faces[face_index].material != NULL) {
+                        new_mat = DisposeSuffixedMaterials(model, face_index);
+                        if (new_mat != NULL) {
+                            model->faces[face_index].material = new_mat;
+                            local_8 = new_mat;
+                        }
+                    }
+                    face_index++;
+                } while (face_index < model->nfaces);
+            }
+            if (local_8 != NULL) {
+                BrModelUpdate(model, 0x7fff);
+            }
+        }
+        BrActorEnum(the_actor, ProcessFaceMaterials, DisposeSuffixedMaterials);
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x00448ea0
 // FUNCTION: CARMA2_SW 0x004492c0
