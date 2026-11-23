@@ -24,6 +24,7 @@
 #include "13-crush1.h"
 #include "51-smash.h"
 #include "52-errors.h"
+#include "57-drone.h"
 #include "61-pedestrn.h"
 #include "60-phil.h"
 #include "69-sound.h"
@@ -2090,7 +2091,13 @@ void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk) {
     AdjustRepulseRay((*pChunk)->subject_index, (*pChunk)->data.repulse_ray.origin, (*pChunk)->data.repulse_ray.victim, (*pChunk)->data.repulse_ray.time);
 }
 
-// ApplyActorTrans
+// FUNCTION: CARMA2_HW 0x004c9a70
+// FUNCTION: CARMA2_SW 0x004c61a0
+// FUNCTION: CARMA2_CHEAT 0x004cf5a0
+void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk) {
+
+    BrVector3Accumulate(&(*pChunk)->data.actor_trans.actor->t.t.translate.t, &(*pChunk)->data.actor_trans.delta);
+}
 
 // ApplyPedStatus
 
@@ -2142,7 +2149,19 @@ void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk) {
 
 // ApplyGibShower
 
-// ApplyBloodSpurt
+// FUNCTION: CARMA2_HW 0x004c9bc0
+// FUNCTION: CARMA2_SW 0x004c62f0
+// FUNCTION: CARMA2_CHEAT 0x004cf6f0
+void C2_HOOK_FASTCALL ApplyBloodSpurt(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    PedApplyBloodSpurt((*pChunk)->subject_index,
+        (*pChunk)->data.blood_spurt.time,
+        (*pChunk)->data.blood_spurt.seed,
+        &(*pChunk)->data.blood_spurt.position,
+        &(*pChunk)->data.blood_spurt.impactee_velocity,
+        &(*pChunk)->data.blood_spurt.normal);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9be0
 // FUNCTION: CARMA2_SW 0x004c6310
@@ -2219,7 +2238,19 @@ void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
     }
 }
 
-// ApplyPedDiagnostics
+// FUNCTION: CARMA2_HW 0x004c9c70
+// FUNCTION: CARMA2_SW 0x004c63a0
+// FUNCTION: CARMA2_CHEAT 0x004cf7a0
+void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_ped_diagnostic, instance, 0x54);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_ped_diagnostic, cache, 0x140);
+
+    AdjustPedDiagnostics((*pChunk)->subject_index,
+        &(*pChunk)->data.ped_diagnostic.ped,
+        &(*pChunk)->data.ped_diagnostic.instance,
+        &(*pChunk)->data.ped_diagnostic.cache);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9c90
 // FUNCTION: CARMA2_SW 0x004c63c0
@@ -2234,9 +2265,29 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+// FUNCTION: CARMA2_HW 0x004c9cd0
+// FUNCTION: CARMA2_SW 0x004c6400
+// FUNCTION: CARMA2_CHEAT 0x004cf800
+void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
 
-// ApplyDroneStraightPos
+    ApplyDroneCornerPos2((*pChunk)->subject_index,
+        (*pChunk)->data.drone_corner_pos.field_0x48,
+        (*pChunk)->data.drone_corner_pos.field_0x74,
+        (*pChunk)->data.drone_corner_pos.field_0x70,
+        &(*pChunk)->data.drone_corner_pos.matrix);
+}
+
+// FUNCTION: CARMA2_HW 0x004c9cf0
+// FUNCTION: CARMA2_SW 0x004c6420
+// FUNCTION: CARMA2_CHEAT 0x004cf820
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+
+    ApplyDroneStraightPos2((*pChunk)->subject_index,
+        (*pChunk)->data.drone_straight_pos.section,
+        (*pChunk)->data.drone_straight_pos.speed,
+        (*pChunk)->data.drone_straight_pos.distance);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d10
 // FUNCTION: CARMA2_SW 0x004c6440
@@ -2449,7 +2500,17 @@ void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pP
     }
 }
 
-// UndoSmashRemoveFaces
+// FUNCTION: CARMA2_HW 0x004ca130
+// FUNCTION: CARMA2_SW 0x004c6860
+// FUNCTION: CARMA2_CHEAT 0x004cfc70
+void C2_HOOK_FASTCALL UndoSmashRemoveFaces(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    (void)pPrev_chunk;
+    SmashRestoreSomeFaces((br_model*)(*pChunk)->subject_index,
+        (*pChunk)->data.remove_faces.count,
+        (*pChunk)->data.remove_faces.faces,
+        (*pChunk)->data.remove_faces.material);
+}
 
 // FUNCTION: CARMA2_HW 0x004ca150
 // FUNCTION: CARMA2_SW 0x004c6880
@@ -2479,7 +2540,16 @@ void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_chunk* 
         chunk->data.smash_texture_change.texture1);
 }
 
-// UndoActorTrans
+// FUNCTION: CARMA2_HW 0x004ca180
+// FUNCTION: CARMA2_SW 0x004c68b0
+// FUNCTION: CARMA2_CHEAT 0x004cfcc0
+void C2_HOOK_FASTCALL UndoActorTrans(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    (void)pPrev_chunk;
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[0] -= (*pChunk)->data.actor_trans.delta.v[0];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[1] -= (*pChunk)->data.actor_trans.delta.v[1];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[2] -= (*pChunk)->data.actor_trans.delta.v[2];
+}
 
 // UndoPedStatus
 
