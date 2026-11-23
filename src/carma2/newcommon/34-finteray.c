@@ -307,7 +307,7 @@ void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart
     fVar3 = (pDirection->v[0] * delta.v[0] + pDirection->v[1] * delta.v[1] + pDirection->v[2] * delta.v[2]) / fVar1;
     fVar2 = (delta.v[2] * delta.v[2] + delta.v[1] * delta.v[1] + delta.v[0] * delta.v[0]) - fVar3 * fVar3 * fVar1;
     if (fVar2 <= pSphere->radius_squared) {
-        fVar3 = fVar3 - sqrt((pSphere->radius_squared - fVar2) / fVar1);
+        fVar3 = (br_scalar)(fVar3 - sqrt((pSphere->radius_squared - fVar2) / fVar1));
         if (0.0f <= fVar3 && fVar3 <= 1.0f) {
             pPoint->v[0] = pEnd->v[0];
             pPoint->v[1] = pEnd->v[1];
@@ -315,7 +315,7 @@ void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart
             fVar4 = pPoint->v[0] - (pDirection->v[0] * fVar3 + pStart->v[0]);
             fVar5 = pPoint->v[1] - (pDirection->v[1] * fVar3 + pStart->v[1]);
             fVar1 = pPoint->v[2] - (pDirection->v[2] * fVar3 + pStart->v[2]);
-            fVar2 = sqrt(fVar1 * fVar1 + fVar5 * fVar5 + fVar4 * fVar4);
+            fVar2 = (br_scalar)(sqrt(fVar1 * fVar1 + fVar5 * fVar5 + fVar4 * fVar4));
             if (2.3841858e-07f < fVar2) {
                 fVar2 = 1.0f / fVar2;
                 pNormal->v[0] = fVar2 * fVar4;
