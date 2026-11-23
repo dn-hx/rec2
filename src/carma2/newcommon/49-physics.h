@@ -332,7 +332,7 @@ extern void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, co
 
 // RQIterativeImprovement
 
-// RQExpand
+extern void C2_HOOK_FASTCALL RQExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, int pCount, br_scalar* pInv, tU8* pOrder);
 
 // RQSingleExpand
 
