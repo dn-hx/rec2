@@ -602,7 +602,7 @@ extern float C2_HOOK_FASTCALL GetClearanceFromCharacterInstance(tPed_character_i
 
 // VectorScaleVector
 
-// ScaleCharacterBone
+extern void C2_HOOK_FASTCALL ScaleCharacterBone(tPed_personality* pPersonality, int pIndex, br_scalar* pScale, int pMode);
 
 // ScaleCollisionObject
 
