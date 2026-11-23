@@ -1059,7 +1059,7 @@ void C2_HOOK_FASTCALL DoSmokeColumn(int pColumn, tU32 pTime, br_vector3* pRet_ca
         if (gSmoke_column[pColumn].core.car->driver_z_offset - -0.2 > pRet_car_pos->v[2]) {
             BrMatrix34ApplyP(pRet_car_pos, &(*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p, &actor->t.t.mat);
         } else {
-            pRet_car_pos->v[1] = pRet_car_pos->v[1] - 0.07;
+            pRet_car_pos->v[1] = (br_scalar)(pRet_car_pos->v[1] - 0.07);
         }
     }
     if (gSmoke_column[pColumn].upright == 0) {
