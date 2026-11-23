@@ -1436,7 +1436,74 @@ inline void C2_HOOK_FASTCALL FillInMine(tNet_message_chunk* pChunk, tShit_mine* 
     GetHierarchyNetworkStuff(pMine->collision_info, pChunk->mine_explode.object_hierarchy, NET_OBJECT_HIERARCHY_DEFAULT_SIZE);
 }
 
-// SendMines
+// FUNCTION: CARMA2_HW 0x004dcfb0
+void C2_HOOK_FASTCALL SendMines(tU32 pNext_frame_time) {
+    int j;
+    int k;
+    int hierarchy_size;
+    int chunk_size;
+    tShit_mine* mine;
+    tU8 tmp_buf[0x23c];
+    tNet_message_chunk_mine_explode* tmp;
+    tNet_message_chunk* chunk;
+    tPlayer_ID target_id;
+    tPlayer_ID proxy_id;
+    int check_idx;
+    float dx;
+    float dy;
+    float dz;
+
+    if (gNet_mode != eNet_mode_host) {
+        return;
+    }
+    if (gNumber_of_net_players == 1) {
+        return;
+    }
+    tmp = (tNet_message_chunk_mine_explode*)tmp_buf;
+    for (mine = gShit_mines; mine < &gShit_mines[REC2_ASIZE(gShit_mines)]; mine++) {
+        if (!(mine->flags & 1)) {
+            continue;
+        }
+        tmp->mine_index = (tS8)(mine - gShit_mines);
+        tmp->field_0x3 = mine->field_0x35;
+        tmp->field_0x4 = mine->field_0x34;
+        tmp->field_0x5 = (tU8)(NetPlayerFromCar(mine->field_0x30) - gNet_players);
+        tmp->field_0x8 = (tS32)pNext_frame_time;
+        GetHierarchyNetworkStuff(mine->collision_info, tmp->object_hierarchy, 0x48);
+        hierarchy_size = GetHierarchyNetworkSize(mine->collision_info);
+        chunk_size = (int)((float)hierarchy_size - (-12.0f));
+        tmp->header.size = (tU8)chunk_size;
+        tmp->header.type = 0x31;
+        for (j = 1; j < gNumber_of_net_players; j++) {
+            target_id = gNet_players[j].ID;
+            proxy_id = *(tPlayer_ID*)&gNet_players[j].field_0xd0;
+            if (proxy_id == 0) {
+                check_idx = j;
+            } else {
+                check_idx = 0;
+                if (gNumber_of_net_players - 1 > 0) {
+                    for (k = 0; k < gNumber_of_net_players - 1; k++) {
+                        if (gNet_players[k].ID == proxy_id) {
+                            break;
+                        }
+                    }
+                    check_idx = k;
+                }
+            }
+            dx = mine->collision_info->transform_matrix.m[3][0] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][0];
+            dy = mine->collision_info->transform_matrix.m[3][1] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][1];
+            dz = mine->collision_info->transform_matrix.m[3][2] - gNet_players[check_idx].car->collision_info->transform_matrix.m[3][2];
+            if (dx * dx + dy * dy + dz * dz >= 400.0f) {
+                continue;
+            }
+            chunk = NetGetToPlayerContents(0x31, chunk_size, target_id);
+            if (chunk == NULL) {
+                continue;
+            }
+            memcpy(chunk, tmp, chunk_size);
+        }
+    }
+}
 
 // STUB: CARMA2_HW 0x004dd1b0
 // STUB: CARMA2_SW 0x004d96b0
