@@ -438,6 +438,11 @@ typedef struct {
 } tPipe_chunk_skid_adjustment;
 
 typedef struct {
+    br_actor* actor;
+    br_vector3 delta;
+} tPipe_chunk_actor_trans;
+
+typedef struct {
     br_vector3 direction;
 } tPipe_ped_dir_data;
 
@@ -592,6 +597,13 @@ typedef struct {
     tPedestrian* ped;
     br_actor* actor;
 } tPipe_ped_incident;
+
+typedef struct {
+    float force;
+    tU16 car_ID;
+    tU16 padding_0x6;
+    br_vector3 position;
+} tPipe_chunk_car_incident;
 
 typedef struct {
     tPedestrian* ped;
@@ -792,6 +804,14 @@ typedef struct {
 } tPipe_chunk_smash_model_change;
 
 typedef struct {
+    unsigned int seed;
+    tU32 time;
+    br_vector3 position;
+    br_vector3 impactee_velocity;
+    br_vector3 normal;
+} tPipe_chunk_blood_spurt;
+
+typedef struct {
     br_vector4 plane;
     int split;
 } tPipe_chunk_split_weld;
@@ -829,10 +849,12 @@ typedef struct {
 typedef struct tPipe_chunk {
     uintptr_t subject_index;
     union {
+        tPipe_chunk_car_incident car_incident;
         tPipe_chunk_frame_boundary frame_boundary;
         tPipe_chunk_non_car non_car;
         tPipe_ped_physics_data ped_physics;
         tPipe_single_ped_pos ped_pos;
+        tPipe_ped_diagnostic ped_diagnostic;
         tPipe_single_ped_dismember ped_dismember;
         tPipe_phil_object phil_object;
         tPipe_funk_enable funk_enable;
@@ -860,14 +882,18 @@ typedef struct tPipe_chunk {
         tPipe_chunk_bend bend;
         tPipe_chunk_screen_wobble wobble;
         tPipe_chunk_skid_adjustment skid_adjustment;
+        tPipe_chunk_actor_trans actor_trans;
         tPipe_chunk_smoke_column smoke_column;
         tPipe_chunk_explosion explosion;
+        tPipe_chunk_blood_spurt blood_spurt;
         tPipe_single_groove_on_of groove;
         tPipe_single_vanished_dismembered vanished_dismembered;
         tPipe_single_ds_model ds_model;
+        tPipe_drone_corner_pos drone_corner_pos;
         tPipe_chunk_napalm_bolt napalm_bolt;
         tPipe_ped_dir_data ped_dir;
         tPipe_ped_fp_change_data ped_fp_change;
+        tPipe_single_drone_straight_pos drone_straight_pos;
         tPipe_chunk_repulse_ray repulse_ray;
         tPipe_chunk_oil_spill oil_spill;
         tPipe_chunk_extended_splash extended_splash;
