@@ -941,7 +941,7 @@ void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject) {
                     ip++;
                     n--;
                 } while (n != 0);
-                denom = 1.0 / *iPtr + (tmpPtr->v[0] * axis.v[0] + tmpPtr->v[2] * axis.v[2] + tmpPtr->v[1] * axis.v[1]);
+                denom = (br_scalar)(1.0 / *iPtr + (tmpPtr->v[0] * axis.v[0] + tmpPtr->v[2] * axis.v[2] + tmpPtr->v[1] * axis.v[1]));
                 t = num / denom;
                 sum_sq += t * t;
                 *impPtr = t;
@@ -953,7 +953,7 @@ void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject) {
                 k--;
             } while (k != 0);
             if (friction_sq < sum_sq) {
-                scale = sqrt(friction_sq / sum_sq);
+                scale = (br_scalar)(sqrt(friction_sq / sum_sq));
                 imp[0] *= scale;
                 imp[1] *= scale;
                 imp[2] *= scale;
@@ -980,7 +980,7 @@ void C2_HOOK_FASTCALL DoJointFriction(tPhysics_object* pObject) {
             b++;
         }
         if (sum_sq > friction_sq) {
-            scale = sqrt(friction_sq / sum_sq);
+            scale = (br_scalar)(sqrt(friction_sq / sum_sq));
             imp[0] *= scale;
             imp[1] *= scale;
             imp[2] *= scale;
