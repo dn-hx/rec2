@@ -1106,7 +1106,142 @@ void C2_HOOK_FASTCALL ApplyDiminishingTorque(tPhysics_object* pObject, const br_
 
 // RQExpand
 
-// RQSingleExpand
+// FUNCTION: CARMA2_HW 0x004c4f40
+void C2_HOOK_FASTCALL RQSingleExpand(br_scalar* pL, br_scalar* pMatrix, int pIndex, br_scalar* pInv, tU8* pOrder) {
+    br_scalar vec[100];
+    br_scalar* p;
+    br_scalar* q;
+    br_scalar* r;
+    br_scalar* inv_col;
+    br_scalar* l_row;
+    br_scalar* vp;
+    br_scalar* l_diag;
+    int i;
+    int cnt;
+    int diff;
+    int step;
+    int j;
+    int cnt2;
+    br_scalar sum;
+    br_scalar a;
+    br_scalar b;
+    br_scalar c;
+    br_scalar d;
+    br_scalar s;
+    br_scalar e;
+    br_scalar f;
+    br_scalar g;
+    br_scalar t;
+
+    i = 0;
+    if (pIndex >= 0) {
+        p = vec;
+        do {
+            *p = pMatrix[pOrder[i] + pOrder[pIndex] * 100];
+            i++;
+            p++;
+        } while (i <= pIndex);
+    }
+    i = 0;
+    q = pInv;
+    if (pIndex > 0) {
+        do {
+            sum = 0.0f;
+            vp = vec;
+            r = q;
+            cnt = pIndex;
+            do {
+                a = *r;
+                b = *vp;
+                r++;
+                vp++;
+                cnt--;
+                sum = a * b + sum;
+            } while (cnt != 0);
+            pL[i + pIndex * 100] = sum;
+            i++;
+            q += 100;
+        } while (i < pIndex);
+    }
+    pInv[pIndex * 101] = 1.0f;
+    if (pIndex > 0) {
+        q = pInv + pIndex;
+        vp = pInv + pIndex * 100;
+        cnt = pIndex;
+        do {
+            *q = 0.0f;
+            *vp = 0.0f;
+            q += 100;
+            vp++;
+            cnt--;
+        } while (cnt != 0);
+        if (pIndex > 0) {
+            inv_col = pInv;
+            diff = (int)(pInv + pIndex * 100) - (int)pInv;
+            l_row = pL + pIndex;
+            p = vec;
+            step = 400;
+            i = 1;
+            l_diag = pL;
+            do {
+                s = (br_scalar)fabs(*p);
+                *l_row = 0.0f;
+                if (s != 0.0) {
+                    a = (br_scalar)fabs(*l_diag);
+                    if (a < s) {
+                        a = s;
+                    }
+                    b = *p / a;
+                    c = *l_diag / a;
+                    *p = b;
+                    d = (br_scalar)fabs(sqrt(c * c + b * b));
+                    if (c <= 0.0) {
+                        d = -d;
+                    }
+                    cnt2 = pIndex + 1;
+                    c = c + d;
+                    e = b / (c * d);
+                    f = c / (c * d);
+                    q = inv_col;
+                    cnt = cnt2;
+                    if (cnt2 > 0) {
+                        do {
+                            g = b * *(br_scalar*)(diff + (int)q) + c * *q;
+                            cnt--;
+                            *(br_scalar*)(diff - 4 + (int)(q + 1)) = *(br_scalar*)(diff + (int)q) - e * g;
+                            *q = *q - f * g;
+                            q++;
+                        } while (cnt != 0);
+                    }
+                    if (i < cnt2) {
+                        cnt2 = cnt2 - i;
+                        r = (br_scalar*)((int)pL + (step - (int)vec) + (int)p);
+                        q = p;
+                        do {
+                            q++;
+                            t = c * *r + b * *q;
+                            cnt2--;
+                            g = *r;
+                            *q = *q - e * t;
+                            *r = g - f * t;
+                            r += 100;
+                        } while (cnt2 != 0);
+                    }
+                    *l_diag = -(d * a);
+                }
+                l_row += 100;
+                diff -= 400;
+                step += 400;
+                p++;
+                inv_col += 100;
+                l_diag += 101;
+                j = i < pIndex;
+                i++;
+            } while (j);
+        }
+    }
+    pL[pIndex * 101] = vec[pIndex];
+}
 
 // FUNCTION: CARMA2_HW 0x004c5830
 // FUNCTION: CARMA2_SW 0x004c1f60
