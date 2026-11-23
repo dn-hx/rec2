@@ -941,22 +941,22 @@ int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force
                     flag = 1;
                 }
                 if (0.1 < pRhs[i]) {
-                    t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                    t = (br_scalar)(0.1 - (pRecords[i]->field_0x0 - 1.0f));
                     if (1.0f < t) {
                         t = 1.0f;
                     }
                     if (t < 0.1) {
                         t = 0.1f;
                     }
-                    pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                    pRhs[i] = (br_scalar)(t * (pRhs[i] - 0.1) - -0.1);
                 }
                 if (pRhs[i] < 0.0f) {
                     pRhs[i] = 0.f;
                 }
-                t = 0.01 - pRhs[i] * -1.001;
+                t = (br_scalar)(0.01 - pRhs[i] * -1.001);
                 pRhs[i] = t;
                 if ((pRecords[i]->object_b == NULL || pRecords[i]->object_b->field_0x1df != 0) && pRecords[i]->object_a->field_0x1df != 0) {
-                    pRhs[i] = t - 0.0099;
+                    pRhs[i] = (br_scalar)(t - 0.0099);
                 }
             }
         }
@@ -966,7 +966,7 @@ int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force
         if (0 < pCollision_count) {
             for (i = 0; i < pCollision_count; i++) {
                 if (pRecords[i]->type == 11) {
-                    pRhs[i] = (0.001 - pRecords[i]->field_0x0) * 25.0;
+                    pRhs[i] = (br_scalar)((0.001 - pRecords[i]->field_0x0) * 25.0);
                     if (pRhs[i] < 0.001) {
                         pRhs[i] = 0.001f;
                     } else {
@@ -978,7 +978,7 @@ int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force
                         BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->actor->t.t.mat);
                         DrMatrix34ApplyLPInverse(&q, &w, &pRecords[i]->object_a->transform_matrix);
                         BrVector3Sub(&q, &q, &p);
-                        pRhs[i] = 0.01 - BrVector3Dot(&pRecords[i]->direction_a, &q) * 25.f;
+                        pRhs[i] = (br_scalar)(0.01 - BrVector3Dot(&pRecords[i]->direction_a, &q) * 25.f);
                     } else {
                         BrVector3Add(&p, &pRecords[i]->object_a->cmpos, &pRecords[i]->point_a);
                         BrMatrix34ApplyP(&w, &p, &pRecords[i]->object_a->transform_matrix);
@@ -1004,19 +1004,19 @@ int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force
                             pRhs[i] = 0.f;
                         }
                     } else {
-                        t = 0.1 - (pRecords[i]->field_0x0 - 1.0f);
+                        t = (br_scalar)(0.1 - (pRecords[i]->field_0x0 - 1.0f));
                         if (1.0f < t) {
                             t = 1.0f;
                         }
                         if (t < 0.1) {
                             t = 0.1f;
                         }
-                        pRhs[i] = t * (pRhs[i] - 0.1) - -0.1;
+                        pRhs[i] = (br_scalar)(t * (pRhs[i] - 0.1) - -0.1);
                     }
                     if (0.001 < pRhs[i]) {
                         found = 1;
                     }
-                    pRhs[i] = 0.01 - pRhs[i] * -1.001;
+                    pRhs[i] = (br_scalar)(0.01 - pRhs[i] * -1.001);
                 }
             }
         }
