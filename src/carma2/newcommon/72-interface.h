@@ -223,7 +223,7 @@ extern void C2_HOOK_FASTCALL MenuSetDriverImage(int pOpponent_index, int pFronte
 
 extern int C2_HOOK_FASTCALL MainMenuOutfunc(tFrontend_spec* pFrontend);
 
-// MainMenuSelectRace
+extern int C2_HOOK_FASTCALL MainMenuSelectRace(tFrontend_spec* pFrontend);
 
 extern int C2_HOOK_FASTCALL testUp(tFrontend_spec* pFrontend);
 
