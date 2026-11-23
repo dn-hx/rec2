@@ -572,7 +572,7 @@ LAB_00423aa6:
                                      (local_8c - local_20) * local_80 + (local_90 - local_24) * local_84;
                             if (0.0f < local_60) {
                                 BrMatrix34TApplyV((br_vector3*)&local_5c, (br_vector3*)&local_84, (br_matrix34*)((char*)pObject + 0x8c));
-                                pCount = AddObjectWallForce(0, (br_vector3*)&local_5c, local_60, (br_vector3*)((char*)pObject + 0xbc), 0, pCount, pObject, 0.0f, 0.0f, NULL);
+                                pCount = AddObjectWallForce((float*)pContacts, (br_vector3*)&local_5c, local_60, (br_vector3*)((char*)pObject + 0xbc), 0, pCount, pObject, 0.0f, 0.0f, NULL);
                             }
                             *pHas_collision = 1;
                         }
