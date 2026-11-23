@@ -1248,13 +1248,13 @@ void C2_HOOK_FASTCALL RQMatrixSolveWithNegatives(br_scalar* pMatrix, br_scalar* 
             br_scalar* m = &pMatrix[i * pCount];
 
             row[0] = m[i];
-            scale = fabs(m[i]);
+            scale = (br_scalar)(fabs(m[i]));
             offsets[0] = (unsigned short)(i * pCount);
             columns[0] = (unsigned char)i;
             count = 1;
             for (j = i + 1; j < pCount; j++) {
                 if (m[j] != 0.f) {
-                    scale = MAX(scale, fabs(m[j]));
+                    scale = (br_scalar)(MAX(scale, fabs(m[j])));
                     columns[count] = (unsigned char)j;
                     offsets[count] = (unsigned short)(j * pCount);
                     row[count] = m[j];
@@ -1270,7 +1270,7 @@ void C2_HOOK_FASTCALL RQMatrixSolveWithNegatives(br_scalar* pMatrix, br_scalar* 
                 for (k = 0; k < count; k++) {
                     sum += row[k] * row[k];
                 }
-                sigma = row[0] > 0.0 ? fabs(sqrt(sum)) : -fabs(sqrt(sum));
+                sigma = (br_scalar)(row[0] > 0.0 ? fabs(sqrt(sum)) : -fabs(sqrt(sum)));
                 row[0] += sigma;
                 divisor = row[0] * sigma;
                 for (j = 0; j <= i; j++) {
