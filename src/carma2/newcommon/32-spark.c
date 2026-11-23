@@ -1031,7 +1031,43 @@ void C2_HOOK_FASTCALL FlameAnimate(int pColumn, const br_vector3* pPos, tU32 pTi
     }
 }
 
-// DoSmokeColumn
+// FUNCTION: CARMA2_HW 0x004fc0e0
+void C2_HOOK_FASTCALL DoSmokeColumn(int pColumn, tU32 pTime, br_vector3* pRet_car_pos) {
+    br_actor* actor;
+    br_model** model_slot;
+
+    if (gSmoke_column[pColumn].core.field_0x0 == 1) {
+        if (gSmoke_column[pColumn].core.car->car_master_actor->t.t.mat.m[1][1] > 0.1f) {
+            gSmoke_column[pColumn].upright = 1;
+        }
+        if (gSmoke_column[pColumn].core.car->car_master_actor->t.t.mat.m[1][1] < -0.1f) {
+            gSmoke_column[pColumn].upright = 0;
+        }
+        actor = gSmoke_column[pColumn].core.car->car_actor;
+        model_slot = &actor->model;
+        pRet_car_pos->v[0] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[0] + actor->t.t.mat.m[3][0];
+        pRet_car_pos->v[1] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[1] + actor->t.t.mat.m[3][1];
+        pRet_car_pos->v[2] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[2] + actor->t.t.mat.m[3][2];
+    } else {
+        gSmoke_column[pColumn].upright = 1;
+        model_slot = &gSmoke_column[pColumn].core.car_actor->model;
+        pRet_car_pos->v[0] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[0];
+        pRet_car_pos->v[1] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[1];
+        pRet_car_pos->v[2] = (*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p.v[2];
+    }
+    if (gSmoke_column[pColumn].core.field_0x0 == 1 && gProgram_state.cockpit_on && gSmoke_column[pColumn].core.car != NULL && gSmoke_column[pColumn].core.car->driver == eDriver_local_human) {
+        if (gSmoke_column[pColumn].core.car->driver_z_offset - -0.2 > pRet_car_pos->v[2]) {
+            BrMatrix34ApplyP(pRet_car_pos, &(*model_slot)->prepared->groups->vertices[gSmoke_column[pColumn].vertex_index].p, &actor->t.t.mat);
+        } else {
+            pRet_car_pos->v[1] = pRet_car_pos->v[1] - 0.07;
+        }
+    }
+    if (gSmoke_column[pColumn].upright == 0) {
+        pRet_car_pos->v[1] = gSmoke_column[pColumn].core.car->collision_info->shape->common.bb.min.v[1] * 0.14492753f;
+    }
+    BrMatrix34ApplyP(&gSmoke_column[pColumn].pos, pRet_car_pos, &gSmoke_column[pColumn].core.car_actor->t.t.mat);
+    gSmoke_column[pColumn].pos.v[1] = gSmoke_column[pColumn].pos.v[1] - 0.03f;
+}
 
 // ReplaySmokeColumn
 
