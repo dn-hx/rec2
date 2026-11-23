@@ -138,9 +138,9 @@ tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_
     len = BR_LENGTH3(pPolyhedron->planes[0].v[0], pPolyhedron->planes[0].v[1], pPolyhedron->planes[0].v[2]);
     if (len > BR_SCALAR_EPSILON * 2) {
         scale = 1.0 / len;
-        pPolyhedron->planes[0].v[0] = pPolyhedron->planes[0].v[0] * scale;
-        pPolyhedron->planes[0].v[1] = pPolyhedron->planes[0].v[1] * scale;
-        pPolyhedron->planes[0].v[2] = pPolyhedron->planes[0].v[2] * scale;
+        pPolyhedron->planes[0].v[0] = (br_scalar)(pPolyhedron->planes[0].v[0] * scale);
+        pPolyhedron->planes[0].v[1] = (br_scalar)(pPolyhedron->planes[0].v[1] * scale);
+        pPolyhedron->planes[0].v[2] = (br_scalar)(pPolyhedron->planes[0].v[2] * scale);
     } else {
         pPolyhedron->planes[0].v[0] = 1.0f;
         pPolyhedron->planes[0].v[1] = 0.0f;
@@ -194,9 +194,9 @@ tPhysicsError C2_HOOK_FASTCALL ConstructTetrahedron(tCollision_shape_polyhedron_
         len = BR_LENGTH3(pPolyhedron->planes[o].v[0], pPolyhedron->planes[o].v[1], pPolyhedron->planes[o].v[2]);
         if (len > BR_SCALAR_EPSILON * 2) {
             scale = 1.0 / len;
-            pPolyhedron->planes[o].v[0] = pPolyhedron->planes[o].v[0] * scale;
-            pPolyhedron->planes[o].v[1] = pPolyhedron->planes[o].v[1] * scale;
-            pPolyhedron->planes[o].v[2] = pPolyhedron->planes[o].v[2] * scale;
+            pPolyhedron->planes[o].v[0] = (br_scalar)(pPolyhedron->planes[o].v[0] * scale);
+            pPolyhedron->planes[o].v[1] = (br_scalar)(pPolyhedron->planes[o].v[1] * scale);
+            pPolyhedron->planes[o].v[2] = (br_scalar)(pPolyhedron->planes[o].v[2] * scale);
         } else {
             pPolyhedron->planes[o].v[0] = 1.0f;
             pPolyhedron->planes[o].v[1] = 0.0f;
