@@ -56,7 +56,7 @@ extern void C2_HOOK_FASTCALL StationarySphereEdgeCollide(const br_vector3* pPoin
 
 // SphereEdgeCollide
 
-// SpherePolyFaceCollide
+extern void C2_HOOK_FASTCALL SpherePolyFaceCollide(br_vector3* pEnd, br_vector3* pStart, int pUnused, br_vector3* pDirection, tCollision_shape_sphere_data* pSphere, br_vector3* pPoint, br_vector3* pNormal, br_scalar* pT);
 
 // SphereBoxFaceCollide
 
