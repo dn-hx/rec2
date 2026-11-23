@@ -311,7 +311,6 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
     int iAxis_b;
     int iAxis_a;
     br_scalar local_18[6];
-    volatile br_scalar fSlot;
     br_scalar px;
     br_scalar py;
     br_scalar pz;
@@ -353,7 +352,6 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
                 pRadius = 0.0f;
             }
             px = (pEnd->v[0] - pStart->v[0]) * pRadius + pStart->v[0];
-            fSlot = px;
             py = (pEnd->v[1] - pStart->v[1]) * pRadius + pStart->v[1];
             pz = (pEnd->v[2] - pStart->v[2]) * pRadius + pStart->v[2];
             fVar2 = (pFace->v[0].v[0] - px) * local_18[0] + (pFace->v[0].v[1] - py) * local_18[1] + (pFace->v[0].v[2] - pz) * local_18[2];
@@ -412,7 +410,6 @@ void C2_HOOK_FASTCALL SphereFaceCollide(tFace_ref* pFace, br_vector3* pStart, br
             }
         }
     }
-    (void)fSlot;
     return;
 }
 
