@@ -1218,7 +1218,110 @@ int C2_HOOK_FASTCALL RQDcmpV(br_scalar* pMatrix, int pDim, br_scalar* pQ) {
 
 // RQMatrixSolveNoNegatives
 
-// RQMatrixSolveWithNegatives
+// FUNCTION: CARMA2_HW 0x004c53b0
+void C2_HOOK_FASTCALL RQMatrixSolveWithNegatives(br_scalar* pMatrix, br_scalar* pOrthogonal, br_scalar* pVelocity, br_scalar* pImpulses, int pCount) {
+    int i;
+    int j;
+    int k;
+    int count;
+    br_scalar scale;
+    br_scalar sum;
+    br_scalar sigma;
+    br_scalar divisor;
+    br_scalar matrix_sum;
+    br_scalar orthogonal_sum;
+    br_scalar tau;
+    br_scalar tau2;
+    unsigned char columns[40];
+    br_scalar row[40];
+    unsigned short offsets[40];
+    br_scalar solution[100];
+
+    if (pCount >= 10) {
+        for (i = 0; i < pCount; i++) {
+            for (j = 0; j < pCount; j++) {
+                pOrthogonal[i * pCount + j] = 0.f;
+            }
+            pOrthogonal[i * pCount + i] = 1.f;
+        }
+        for (i = 0; i < pCount; i++) {
+            br_scalar* m = &pMatrix[i * pCount];
+
+            row[0] = m[i];
+            scale = (br_scalar)(fabs(m[i]));
+            offsets[0] = (unsigned short)(i * pCount);
+            columns[0] = (unsigned char)i;
+            count = 1;
+            for (j = i + 1; j < pCount; j++) {
+                if (m[j] != 0.f) {
+                    scale = (br_scalar)(MAX(scale, fabs(m[j])));
+                    columns[count] = (unsigned char)j;
+                    offsets[count] = (unsigned short)(j * pCount);
+                    row[count] = m[j];
+                    count++;
+                    m[j] = 0.f;
+                }
+            }
+            if (scale != 0.0) {
+                for (k = 0; k < count; k++) {
+                    row[k] /= scale;
+                }
+                sum = 0.f;
+                for (k = 0; k < count; k++) {
+                    sum += row[k] * row[k];
+                }
+                sigma = (br_scalar)(row[0] > 0.0 ? fabs(sqrt(sum)) : -fabs(sqrt(sum)));
+                row[0] += sigma;
+                divisor = row[0] * sigma;
+                for (j = 0; j <= i; j++) {
+                    sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        sum += pOrthogonal[offsets[k] + j] * row[k];
+                    }
+                    tau = sum / divisor;
+                    for (k = 0; k < count; k++) {
+                        pOrthogonal[offsets[k] + j] -= tau * row[k];
+                    }
+                }
+                for (j = i + 1; j < pCount; j++) {
+                    matrix_sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        matrix_sum += pMatrix[j * pCount + columns[k]] * row[k];
+                    }
+                    tau2 = matrix_sum / divisor;
+                    orthogonal_sum = 0.f;
+                    for (k = 0; k < count; k++) {
+                        orthogonal_sum += pOrthogonal[offsets[k] + j] * row[k];
+                    }
+                    tau = orthogonal_sum / divisor;
+                    for (k = 0; k < count; k++) {
+                        pMatrix[j * pCount + columns[k]] -= tau2 * row[k];
+                        pOrthogonal[offsets[k] + j] -= tau * row[k];
+                    }
+                }
+                m[i] = -(sigma * scale);
+            }
+        }
+    } else {
+        RQDcmpV(pMatrix, pCount, pOrthogonal);
+    }
+    if (pVelocity != NULL && pImpulses != NULL) {
+        solution[0] = pVelocity[0] / pMatrix[0];
+        for (i = 1; i < pCount; i++) {
+            sum = 0.f;
+            for (k = 0; k < i; k++) {
+                sum += pMatrix[i * pCount + k] * solution[k];
+            }
+            solution[i] = (pVelocity[i] - sum) / pMatrix[i * pCount + i];
+        }
+        for (i = 0; i < pCount; i++) {
+            pImpulses[i] = pOrthogonal[i] * solution[0];
+            for (k = 1; k < pCount; k++) {
+                pImpulses[i] = pOrthogonal[k * pCount + i] * solution[k] + pImpulses[i];
+            }
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c5b50
 // FUNCTION: CARMA2_SW 0x004c2280
