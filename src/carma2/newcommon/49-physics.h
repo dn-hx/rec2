@@ -268,7 +268,7 @@ extern void C2_HOOK_FASTCALL RestoreListOmega(tPhysics_object* pObject);
 
 // RestoreGroupOmegas
 
-// MakeVelocitiesVector2
+extern int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force** pRecords, int pCount, int pCollision_count);
 
 // MakeVelocitiesVector
 
