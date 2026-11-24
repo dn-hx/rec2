@@ -438,6 +438,11 @@ typedef struct {
 } tPipe_chunk_skid_adjustment;
 
 typedef struct {
+    br_actor* actor;
+    br_vector3 delta;
+} tPipe_chunk_actor_trans;
+
+typedef struct {
     br_vector3 direction;
 } tPipe_ped_dir_data;
 
@@ -594,6 +599,13 @@ typedef struct {
 } tPipe_ped_incident;
 
 typedef struct {
+    float force;
+    tU16 car_ID;
+    tU16 padding_0x6;
+    br_vector3 position;
+} tPipe_chunk_car_incident;
+
+typedef struct {
     tPedestrian* ped;
     br_vector3 positions[7];
 } tPipe_chunk_napalm_bolt;
@@ -621,6 +633,16 @@ typedef struct {
     tU16 age;
     br_material* material;
 } tPipe_chunk_shrapnel;
+
+typedef struct {
+    undefined4 field_0x0;
+    tU32 uid;
+    tU32 time;
+    float force;
+    br_vector3 p1;
+    br_vector3 p2;
+    br_vector3 v;
+} tPipe_chunk_gib_shower;
 
 typedef struct {
     tSmoke_column_core core;
@@ -761,6 +783,8 @@ typedef enum {
     ePipe_chunk_single_ped_pos = 46,
     ePipe_chunk_single_ped_model_change = 47,
     ePipe_chunk_phil_object = 48,
+    ePipe_chunk_gib_shower = 49,
+    ePipe_blood_spurt = 50,
     ePipe_single_groove_on_off = 51,
     ePipe_chunk_powerup_got = 52,
     ePipe_chunk_powerup_lose = 53,
@@ -790,6 +814,14 @@ typedef struct {
     br_model* old_model;
     br_model* new_model;
 } tPipe_chunk_smash_model_change;
+
+typedef struct {
+    tU32 seed;
+    tU32 time;
+    br_vector3 position;
+    br_vector3 impactee_velocity;
+    br_vector3 normal;
+} tPipe_chunk_blood_spurt;
 
 typedef struct {
     br_vector4 plane;
@@ -829,10 +861,12 @@ typedef struct {
 typedef struct tPipe_chunk {
     uintptr_t subject_index;
     union {
+        tPipe_chunk_car_incident car_incident;
         tPipe_chunk_frame_boundary frame_boundary;
         tPipe_chunk_non_car non_car;
         tPipe_ped_physics_data ped_physics;
         tPipe_single_ped_pos ped_pos;
+        tPipe_ped_diagnostic ped_diagnostic;
         tPipe_single_ped_dismember ped_dismember;
         tPipe_phil_object phil_object;
         tPipe_funk_enable funk_enable;
@@ -855,19 +889,24 @@ typedef struct tPipe_chunk {
         tPipe_chunk_shit_mine shit_mine;
         tPipe_chunk_end_shit_mine end_shit_mine;
         tPipe_chunk_prox_ray prox_ray;
+        tPipe_chunk_gib_shower gib_shower;
         tPipe_smudge_data smudge;
         tPipe_model_mash model_mash;
         tPipe_chunk_bend bend;
         tPipe_chunk_screen_wobble wobble;
         tPipe_chunk_skid_adjustment skid_adjustment;
+        tPipe_chunk_actor_trans actor_trans;
         tPipe_chunk_smoke_column smoke_column;
         tPipe_chunk_explosion explosion;
+        tPipe_chunk_blood_spurt blood_spurt;
         tPipe_single_groove_on_of groove;
         tPipe_single_vanished_dismembered vanished_dismembered;
         tPipe_single_ds_model ds_model;
+        tPipe_drone_corner_pos drone_corner_pos;
         tPipe_chunk_napalm_bolt napalm_bolt;
         tPipe_ped_dir_data ped_dir;
         tPipe_ped_fp_change_data ped_fp_change;
+        tPipe_single_drone_straight_pos drone_straight_pos;
         tPipe_chunk_repulse_ray repulse_ray;
         tPipe_chunk_oil_spill oil_spill;
         tPipe_chunk_extended_splash extended_splash;
@@ -1136,8 +1175,9 @@ typedef enum {
 } tPed_form_bone_hinge_type;
 
 typedef enum tSpecial_type {
-    ePipe_special_fade = 0,
-} tSpecial_type;
+    ePipe_special_action_recovery = 0,
+    ePipe_special_action_tail_growth = 1,
+} tPipe_special_action;
 
 typedef struct {
     tCar_detail_ownership ownership;
@@ -5609,6 +5649,13 @@ typedef struct {
     tU8 object_hierarchy[];
 } tNet_message_chunk_mine_explode;
 
+typedef struct {
+    tNet_message_chunk_header header;
+    undefined field_0x2[2];
+    tPlayer_ID player;
+    tU32 time;
+} tNet_message_chunk_recover;
+
 typedef union {
     tNet_message_chunk_raw raw;
     tNet_message_chunk_race_over race_over; /* type = 0xa */
@@ -5624,6 +5671,7 @@ typedef union {
     tNet_message_chunk_toggle_doors toggle_doors; /* type = 0x2c */
     tNet_message_chunk_view_car view_car; /* type = 0x2f */
     tNet_message_chunk_mine_explode mine_explode; /* type = 0x31 */
+    tNet_message_chunk_recover recover;
     tNet_message_chunk_detach_bit detach_bit; /* type = 0x33 */
 } tNet_message_chunk;
 

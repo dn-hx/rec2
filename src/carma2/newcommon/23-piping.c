@@ -12,6 +12,7 @@
 #include "09-funks.h"
 #include "13-crush1.h"
 #include "16-graphics1.h"
+#include "18-graphics2.h"
 #include "20-skidmark.h"
 #include "22-replay.h"
 #include "27-powerup.h"
@@ -24,6 +25,7 @@
 #include "13-crush1.h"
 #include "51-smash.h"
 #include "52-errors.h"
+#include "57-drone.h"
 #include "61-pedestrn.h"
 #include "60-phil.h"
 #include "69-sound.h"
@@ -185,12 +187,18 @@ int C2_HOOK_FASTCALL ARReplayPauseState(void) {
     return gPaused;
 }
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
 // FUNCTION: CARMA2_HW 0x00402390
 // FUNCTION: CARMA2_SW 0x00402390
 // FUNCTION: CARMA2_CHEAT 0x00402390
 float C2_HOOK_FASTCALL ARGetReplayRate(void) {
     return gReplay_rate;
 }
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004023a0
 // FUNCTION: CARMA2_SW 0x004023a0
@@ -1156,11 +1164,21 @@ void C2_HOOK_FASTCALL PipeSingleSound(tS3_outlet* pOutlet, int pSound, tS3_volum
 // FUNCTION: CARMA2_HW 0x004c8530
 // FUNCTION: CARMA2_SW 0x004c4c60
 // FUNCTION: CARMA2_CHEAT 0x004ce050
-void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType) {
+void C2_HOOK_FASTCALL PipeSingleSpecial(tPipe_special_action pType) {
     ARDoSingleVariedSession(ePipe_chunk_special, pType, 0);
 }
 
-// PipeSingleCarIncident
+// FUNCTION: CARMA2_HW 0x004c8540
+// FUNCTION: CARMA2_SW 0x004c4c70
+// FUNCTION: CARMA2_CHEAT 0x004ce060
+void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPosition, float pForce) {
+
+    gFloat_pipe_union.f = pForce;
+    ARDoSingleVariedSession(ePipe_chunk_ped_incident, 1, 3,
+        SIZE_OFFSET_PIPING(tPipe_chunk_car_incident, force), gFloat_pipe_union.u32,
+        SIZE_OFFSET_PIPING(tPipe_chunk_car_incident, car_ID), (tU16)pCar->car_ID,
+        SIZE_OFFSET_PIPING(tPipe_chunk_car_incident, position), pPosition);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8580
 // FUNCTION: CARMA2_SW 0x004c4cb0
@@ -1528,9 +1546,34 @@ void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject) {
         SIZE_OFFSET_PIPING(tPipe_phil_object, matrix), &pObject->actor->t.t.mat);
 }
 
-// PipeSingleGibShower
+// FUNCTION: CARMA2_HW 0x004c8ce0
+// FUNCTION: CARMA2_SW 0x004c5410
+// FUNCTION: CARMA2_CHEAT 0x004ce800
+void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, tU32 pTime, tU32 pUid, float pForce, undefined4 pArg5, const br_vector3* pPos1, const br_vector3* pPos2, const br_vector3* pV) {
 
-// PipeSingleBloodSpurt
+    gFloat_pipe_union.f = pForce;
+    ARDoSingleVariedSession(ePipe_chunk_gib_shower, pId, 7,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, time), pTime,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, uid), pUid,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, force), gFloat_pipe_union.u32,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, field_0x0), pArg5,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, p1), pPos1,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, p2), pPos2,
+        SIZE_OFFSET_PIPING(tPipe_chunk_gib_shower, v), pV);
+}
+
+// FUNCTION: CARMA2_HW 0x004c8d40
+// FUNCTION: CARMA2_SW 0x004c5470
+// FUNCTION: CARMA2_CHEAT 0x004ce860
+void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, tU32 pTime, tU32 pSeed, const br_vector3* pPosition, const br_vector3* pImpactee_velocity, const br_vector3* pNormal) {
+
+    ARDoSingleVariedSession(ePipe_blood_spurt, pId, 5,
+        SIZE_OFFSET_PIPING(tPipe_chunk_blood_spurt, time), pTime,
+        SIZE_OFFSET_PIPING(tPipe_chunk_blood_spurt, seed), pSeed,
+        SIZE_OFFSET_PIPING(tPipe_chunk_blood_spurt, position), pPosition,
+        SIZE_OFFSET_PIPING(tPipe_chunk_blood_spurt, impactee_velocity), pImpactee_velocity,
+        SIZE_OFFSET_PIPING(tPipe_chunk_blood_spurt, normal), pNormal);
+}
 
 // FUNCTION: CARMA2_HW 0x004c8d80
 // FUNCTION: CARMA2_SW 0x004c54b0
@@ -1900,7 +1943,24 @@ void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk) {
 
 // ApplyDamage
 
-// ApplySpecial
+// FUNCTION: CARMA2_HW 0x004c97c0
+// FUNCTION: CARMA2_SW 0x004c5ef0
+// FUNCTION: CARMA2_CHEAT 0x004cf2e0
+void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk) {
+    tU32 type;
+
+    type = (*pChunk)->subject_index;
+    switch (type) {
+    case ePipe_special_action_recovery:
+        if (fabs(ARGetReplayRate()) <= 1.0) {
+            FadePaletteDown();
+        }
+        break;
+    case ePipe_special_action_tail_growth:
+        DoInitialTail();
+        break;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004c97f0
 // FUNCTION: CARMA2_SW 0x004c5f20
@@ -2090,7 +2150,13 @@ void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk) {
     AdjustRepulseRay((*pChunk)->subject_index, (*pChunk)->data.repulse_ray.origin, (*pChunk)->data.repulse_ray.victim, (*pChunk)->data.repulse_ray.time);
 }
 
-// ApplyActorTrans
+// FUNCTION: CARMA2_HW 0x004c9a70
+// FUNCTION: CARMA2_SW 0x004c61a0
+// FUNCTION: CARMA2_CHEAT 0x004cf5a0
+void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk) {
+
+    BrVector3Accumulate(&(*pChunk)->data.actor_trans.actor->t.t.translate.t, &(*pChunk)->data.actor_trans.delta);
+}
 
 // ApplyPedStatus
 
@@ -2142,7 +2208,19 @@ void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk) {
 
 // ApplyGibShower
 
-// ApplyBloodSpurt
+// FUNCTION: CARMA2_HW 0x004c9bc0
+// FUNCTION: CARMA2_SW 0x004c62f0
+// FUNCTION: CARMA2_CHEAT 0x004cf6f0
+void C2_HOOK_FASTCALL ApplyBloodSpurt(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+
+    PedApplyBloodSpurt((*pChunk)->subject_index,
+        (*pChunk)->data.blood_spurt.time,
+        (*pChunk)->data.blood_spurt.seed,
+        &(*pChunk)->data.blood_spurt.position,
+        &(*pChunk)->data.blood_spurt.impactee_velocity,
+        &(*pChunk)->data.blood_spurt.normal);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9be0
 // FUNCTION: CARMA2_SW 0x004c6310
@@ -2219,7 +2297,19 @@ void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk) {
     }
 }
 
-// ApplyPedDiagnostics
+// FUNCTION: CARMA2_HW 0x004c9c70
+// FUNCTION: CARMA2_SW 0x004c63a0
+// FUNCTION: CARMA2_CHEAT 0x004cf7a0
+void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_ped_diagnostic, instance, 0x54);
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_ped_diagnostic, cache, 0x140);
+
+    AdjustPedDiagnostics((*pChunk)->subject_index,
+        &(*pChunk)->data.ped_diagnostic.ped,
+        &(*pChunk)->data.ped_diagnostic.instance,
+        &(*pChunk)->data.ped_diagnostic.cache);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9c90
 // FUNCTION: CARMA2_SW 0x004c63c0
@@ -2234,9 +2324,29 @@ void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk) {
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+// FUNCTION: CARMA2_HW 0x004c9cd0
+// FUNCTION: CARMA2_SW 0x004c6400
+// FUNCTION: CARMA2_CHEAT 0x004cf800
+void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk) {
+    C2_HOOK_STATIC_ASSERT_STRUCT_OFFSET(tPipe_chunk, data, 0x4);
 
-// ApplyDroneStraightPos
+    ApplyDroneCornerPos2((*pChunk)->subject_index,
+        (*pChunk)->data.drone_corner_pos.field_0x48,
+        (*pChunk)->data.drone_corner_pos.field_0x74,
+        (*pChunk)->data.drone_corner_pos.field_0x70,
+        &(*pChunk)->data.drone_corner_pos.matrix);
+}
+
+// FUNCTION: CARMA2_HW 0x004c9cf0
+// FUNCTION: CARMA2_SW 0x004c6420
+// FUNCTION: CARMA2_CHEAT 0x004cf820
+void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk) {
+
+    ApplyDroneStraightPos2((*pChunk)->subject_index,
+        (*pChunk)->data.drone_straight_pos.section,
+        (*pChunk)->data.drone_straight_pos.speed,
+        (*pChunk)->data.drone_straight_pos.distance);
+}
 
 // FUNCTION: CARMA2_HW 0x004c9d10
 // FUNCTION: CARMA2_SW 0x004c6440
@@ -2333,7 +2443,19 @@ void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_
     AREnableAdvance();
 }
 
-// UndoSplash
+// FUNCTION: CARMA2_HW 0x004c9e80
+// FUNCTION: CARMA2_SW 0x004c65b0
+// FUNCTION: CARMA2_CHEAT 0x004cf9b0
+void C2_HOOK_FASTCALL UndoSplash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    ARDisableAdvance();
+    if (pPrev_chunk != NULL) {
+        ApplySplash(&pPrev_chunk);
+    } else {
+        ((tPhysics_object*)(*pChunk)->subject_index)->water_d = 10000.0f;
+    }
+    AREnableAdvance();
+}
 
 // UndoExtendedSplash
 
@@ -2449,7 +2571,17 @@ void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pP
     }
 }
 
-// UndoSmashRemoveFaces
+// FUNCTION: CARMA2_HW 0x004ca130
+// FUNCTION: CARMA2_SW 0x004c6860
+// FUNCTION: CARMA2_CHEAT 0x004cfc70
+void C2_HOOK_FASTCALL UndoSmashRemoveFaces(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    (void)pPrev_chunk;
+    SmashRestoreSomeFaces((br_model*)(*pChunk)->subject_index,
+        (*pChunk)->data.remove_faces.count,
+        (*pChunk)->data.remove_faces.faces,
+        (*pChunk)->data.remove_faces.material);
+}
 
 // FUNCTION: CARMA2_HW 0x004ca150
 // FUNCTION: CARMA2_SW 0x004c6880
@@ -2479,7 +2611,16 @@ void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_chunk* 
         chunk->data.smash_texture_change.texture1);
 }
 
-// UndoActorTrans
+// FUNCTION: CARMA2_HW 0x004ca180
+// FUNCTION: CARMA2_SW 0x004c68b0
+// FUNCTION: CARMA2_CHEAT 0x004cfcc0
+void C2_HOOK_FASTCALL UndoActorTrans(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk) {
+
+    (void)pPrev_chunk;
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[0] -= (*pChunk)->data.actor_trans.delta.v[0];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[1] -= (*pChunk)->data.actor_trans.delta.v[1];
+    (*pChunk)->data.actor_trans.actor->t.t.translate.t.v[2] -= (*pChunk)->data.actor_trans.delta.v[2];
+}
 
 // UndoPedStatus
 

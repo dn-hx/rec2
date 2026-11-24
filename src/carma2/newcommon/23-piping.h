@@ -223,9 +223,9 @@ extern void C2_HOOK_FASTCALL PipeSingleGraphicalWheelStuff(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL PipeSingleSound(tS3_outlet* pOutlet, int pSound, tS3_volume pL_volume, tS3_volume pR_volume, int pPitch, const br_vector3* pPosition);
 
-extern void C2_HOOK_FASTCALL PipeSingleSpecial(tSpecial_type pType);
+extern void C2_HOOK_FASTCALL PipeSingleSpecial(tPipe_special_action pType);
 
-// PipeSingleCarIncident
+extern void C2_HOOK_FASTCALL PipeSingleCarIncident(tCar_spec* pCar, br_vector3* pPosition, float pForce);
 
 extern void C2_HOOK_FASTCALL PipeSinglePedIncident(tPedestrian* pPed, br_actor* pActor);
 
@@ -277,9 +277,9 @@ extern void C2_HOOK_FASTCALL PipeSinglePedModelChange(tPedestrian* pPed, int pBo
 
 extern void C2_HOOK_FASTCALL PipeSinglePHILObject(tPhysics_object* pObject);
 
-// PipeSingleGibShower
+extern void C2_HOOK_FASTCALL PipeSingleGibShower(uintptr_t pId, tU32 pTime, tU32 pUid, float pForce, undefined4 pArg5, const br_vector3* pP1, const br_vector3* pP2, const br_vector3* pV);
 
-// PipeSingleBloodSpurt
+extern void C2_HOOK_FASTCALL PipeSingleBloodSpurt(uintptr_t pId, tU32 pTime, tU32 pSeed, const br_vector3* pPosition, const br_vector3* pImpactee_velocity, const br_vector3* pNormal);
 
 extern void C2_HOOK_FASTCALL PipeSingleGrooveOnOff(int pOn, br_actor* pActor, int pBlock_flags);
 
@@ -349,7 +349,7 @@ extern void C2_HOOK_FASTCALL ApplyGWS(tPipe_chunk** pChunk);
 
 // ApplyDamage
 
-// ApplySpecial
+extern void C2_HOOK_FASTCALL ApplySpecial(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyProxRay(tPipe_chunk** pChunk);
 
@@ -387,7 +387,7 @@ extern void C2_HOOK_FASTCALL ApplySmashTextureChange(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyRepulseRay(tPipe_chunk** pChunk);
 
-// ApplyActorTrans
+extern void C2_HOOK_FASTCALL ApplyActorTrans(tPipe_chunk** pChunk);
 
 // ApplyPedStatus
 
@@ -409,7 +409,7 @@ extern void C2_HOOK_FASTCALL ApplyPHILObject(tPipe_chunk** pChunk);
 
 // ApplyGibShower
 
-// ApplyBloodSpurt
+extern void C2_HOOK_FASTCALL ApplyBloodSpurt(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyGrooveOnOff(tPipe_chunk** pChunk);
 
@@ -423,15 +423,15 @@ extern void C2_HOOK_FASTCALL ApplyVanishDismembered(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyDSModel(tPipe_chunk** pChunk);
 
-// ApplyPedDiagnostics
+extern void C2_HOOK_FASTCALL ApplyPedDiagnostics(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyVector3(tPipe_chunk** pChunk);
 
 // ApplyDroneRender
 
-// ApplyDroneCornerPos
+extern void C2_HOOK_FASTCALL ApplyDroneCornerPos(tPipe_chunk** pChunk);
 
-// ApplyDroneStraightPos
+extern void C2_HOOK_FASTCALL ApplyDroneStraightPos(tPipe_chunk** pChunk);
 
 extern void C2_HOOK_FASTCALL ApplyDroneUnused(tPipe_chunk** pChunk);
 
@@ -457,7 +457,7 @@ extern void C2_HOOK_FASTCALL UndoSmudge(tPipe_chunk** pChunk, tPipe_chunk* pPrev
 
 extern void C2_HOOK_FASTCALL UndoScreenWobble(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoSplash
+extern void C2_HOOK_FASTCALL UndoSplash(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoExtendedSplash
 
@@ -481,13 +481,13 @@ extern void C2_HOOK_FASTCALL UndoNonCarCreation(tPipe_chunk** pChunk, tPipe_chun
 
 extern void C2_HOOK_FASTCALL UndoSmashModelChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoSmashRemoveFaces
+extern void C2_HOOK_FASTCALL UndoSmashRemoveFaces(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoSmashDecal(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 extern void C2_HOOK_FASTCALL UndoSmashTextureChange(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
-// UndoActorTrans
+extern void C2_HOOK_FASTCALL UndoActorTrans(tPipe_chunk** pChunk, tPipe_chunk* pPrev_chunk);
 
 // UndoPedStatus
 
