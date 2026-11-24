@@ -2440,7 +2440,9 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_vector3 wheel_pos[4];
     br_scalar v87;
     br_scalar v106;
+#ifdef REC2_MATCHING
     br_scalar clamp_ratio;
+#endif
     br_scalar v108;
     br_vector3 v103;
     br_scalar v109;
@@ -2930,7 +2932,7 @@ steer_centre:
         v109 = -wheelratio * friction_number + v109;
         friction_number = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * v108;
         v98 = friction_number * pCar->curvature;
-        friction_number = BrVector3Dot(&pCar->collision_info->velocity_car_space, &rightplane) * pCar->collision_info->M / pDt;
+        friction_number = BrVector3Dot(&ray_dir, &rightplane) * pCar->collision_info->M / pDt;
         v129 = BrVector3Dot(&rightplane, &B) + friction_number;
         v128 = pCar->mu.v[0] * pCar->brake_force / (pCar->mu.v[1] / pCar->traction_multiplier + pCar->mu.v[0]);
         k = pCar->brake_force - v128;
