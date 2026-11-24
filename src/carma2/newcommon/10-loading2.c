@@ -1617,7 +1617,12 @@ void C2_HOOK_FASTCALL LoadCar(const char* pCar_name, tDriver pDriver, tCar_spec*
         if (steer_flags != 0) {
             pCar_spec->steerable_rolling_resistance = rolling_resistance;
             pCar_spec->steerable_suspension_give = susp_give;
+#ifndef REC2_MATCHING
+            /* original 0x48ae78: the steerable wheel takes the FIRST value of the pair (esp+0x28 -> esp+0x5c, tan at 0x48af3b) */
+            friction_steer = friction_angle_1;
+#else
             friction_steer = friction_angle_2;
+#endif
             wpos_i = 2;
         } else {
             pCar_spec->susp_give = susp_give;
