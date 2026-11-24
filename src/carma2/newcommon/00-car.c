@@ -2475,6 +2475,7 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     tPhysics_shape* shape;
     br_vector3 end;
     br_vector3 hit;
+    br_material* material;
     tPhysics_object* pObj;
     tPhysics_object** pList;
     tFace_ref* pFace;
@@ -2869,7 +2870,6 @@ steer_centre:
                 && pCar->oldd[3] == pCar->susp_height[1]) {
                 br_vector3 pos;
                 br_vector3 delta;
-                br_material* material;
 
                 pos.v[0] = (mat->m[3][0] + mat->m[2][0] * pCar->wpos[2].v[2]) * (1.f / WORLD_SCALE);
                 pos.v[1] = (mat->m[3][1] + mat->m[2][1] * pCar->wpos[2].v[2]) * (1.f / WORLD_SCALE);
