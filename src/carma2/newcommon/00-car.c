@@ -2731,17 +2731,20 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     }
     if (pCar == NULL || pCar->driver <= 5 || pCar->wall_climber_mode == 0
             || (road_normal.v[0] == 0.f && road_normal.v[1] == 0.f && road_normal.v[2] == 0.f)) {
-        friction_number = pCar->collision_info->M * 10.f;
+        friction_number = 1.f;
         if (vol != NULL) {
-            friction_number = (1.f - vol->gravity_multiplier) * pCar->collision_info->water_depth_factor;
+            friction_number = (friction_number - vol->gravity_multiplier) * pCar->collision_info->water_depth_factor;
             if (pCar->underwater_ability != 0) {
                 friction_number = friction_number * 0.6;
             }
-            friction_number = (1.f - friction_number) * pCar->collision_info->M;
-        } else {
-            friction_number = pCar->collision_info->M;
+            friction_number = 1.f - friction_number;
         }
         friction_number = friction_number * gGravity_multiplier * 10.f;
+        /* orig 0x41bb2x: the per-step gravity velocity of the physics object */
+        pCar->collision_info->field_0x54.v[0] = 0.f;
+        pCar->collision_info->field_0x54.v[1] = -(friction_number * pDt) * (1.0 / 6.9);
+        pCar->collision_info->field_0x54.v[2] = 0.f;
+        friction_number = pCar->collision_info->M * friction_number;
         B.v[0] = B.v[0] - mat->m[0][1] * friction_number;
         B.v[1] = B.v[1] - mat->m[1][1] * friction_number;
         B.v[2] = B.v[2] - mat->m[2][1] * friction_number;
@@ -3270,19 +3273,25 @@ steer_centre:
     BrMatrix34ApplyV(&b, &B, mat);
     BrVector3Scale(&rightplane, &f, pDt);
     ApplyTorque(pCar->collision_info, &rightplane);
-    BrVector3Scale(&rightplane, &b, pDt / (pCar->collision_info->M * WORLD_SCALE));
-    BrVector3Accumulate(&pCar->collision_info->v, &rightplane);
-    if (pCar->speed < 0.0001f
+    rightplane.v[0] = pDt / (pCar->collision_info->M * 6.9) * b.v[0];
+    rightplane.v[1] = b.v[1] * (pDt / (pCar->collision_info->M * 6.9));
+    rightplane.v[2] = b.v[2] * (pDt / (pCar->collision_info->M * 6.9));
+    pCar->collision_info->v.v[0] = rightplane.v[0] + pCar->collision_info->v.v[0];
+    pCar->collision_info->v.v[1] = rightplane.v[1] + pCar->collision_info->v.v[1];
+    pCar->collision_info->v.v[2] = rightplane.v[2] + pCar->collision_info->v.v[2];
+    if (BrVector3LengthSquared(&pCar->collision_info->v) < 0.1f /* orig 0x41ba0b: |v|^2 of the updated velocity */
         && ((!pCar->keys.acc && pCar->joystick.acc <= 0) || !pCar->gear)
         && !pCar->keys.dec
         && pCar->joystick.dec <= 0
         && pCar->bounce_rate == 0.f
         && BrVector3Length(&pCar->collision_info->omega) < 0.05) {
         if (vol != NULL) {
-            ts2 = pCar->driver > 5 && pCar->underwater_ability != 0
-                ? 1.0 - (1.0 - vol->gravity_multiplier) * 0.6
+            double grav_scale;
+
+            grav_scale = pCar != NULL && pCar->driver > 5 && pCar->underwater_ability != 0
+                ? 1.0 - (1.f - vol->gravity_multiplier) * 0.6
                 : vol->gravity_multiplier;
-            friction_number = BrVector3Length(&b) / ts2 / gGravity_multiplier;
+            friction_number = BrVector3Length(&b) / grav_scale / gGravity_multiplier;
         } else {
             friction_number = BrVector3Length(&b);
         }
@@ -3302,7 +3311,7 @@ steer_centre:
         stop_timer = 100.f;
     }
     AddDrag(pCar, (tPhysics_object*)pCar->collision_info, pDt);
-    if (pCar->driver >= eDriver_net_human) {
+    if (pCar != NULL && pCar->driver >= eDriver_net_human) {
         pCar->acc_force = -(v136.v[2] * force[0]) - v136.v[2] * force[1];
     }
     pCar->curvature = pCar->curvature - pCar->field_0x1260;
