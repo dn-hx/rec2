@@ -3149,6 +3149,11 @@ steer_centre:
             slide_dist = 0.f;
             break;
         }
+        /* orig 0x41af3a: rear sliding against the steering direction resets the steering speed */
+        if (pCar->wheel_slip != 0 && pCar->turn_speed * pCar->curvature > 0.f && fabs(v109) > 0.01f
+                && pCar->curvature * v109 < 0.f && !pCar->keys.brake && !pCar->keys.change_down) {
+            pCar->turn_speed = 0.f;
+        }
         v135 = (float)sqrt(v108 * v108 + v98 * v98) * 0.5f;
         if (v135 > 0.0001f) {
             v108 = v108 / (v135 * 2.0);
