@@ -2440,9 +2440,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_vector3 wheel_pos[4];
     br_scalar v87;
     br_scalar v106;
-#ifdef REC2_MATCHING
-    br_scalar clamp_ratio;
-#endif
     br_scalar v108;
     br_vector3 v103;
     br_scalar v109;
@@ -2983,16 +2980,16 @@ steer_centre:
             k = pCar->grip_multiplier;
         }
         BrVector3Sub(&a, &pCar->wpos[0], &pCar->centre_of_mass_world_scale);
-        BrVector3Cross(&a, &pCar->collision_info->omega, &a);
-        BrVector3Accumulate(&a, &ray_dir);
+        BrVector3Cross(&tmp, &pCar->collision_info->omega, &a);
+        BrVector3Add(&tmp, &ray_dir, &tmp);
         if (pCar != NULL && pCar->driver >= eDriver_net_human
-            && (((pCar->keys.left || pCar->joystick.left > 0x8000) && pCar->curvature > 0.f && deltaomega > 0.1 && a.v[0] > 0.f)
-                || ((pCar->keys.right || pCar->joystick.right > 0x8000) && pCar->curvature < 0.f && deltaomega < 0.1 && a.v[0] < 0.f))
+            && (((pCar->keys.left || pCar->joystick.left > 0x8000) && pCar->curvature > 0.f && deltaomega > 0.1 && tmp.v[0] > 0.f)
+                || ((pCar->keys.right || pCar->joystick.right > 0x8000) && pCar->curvature < 0.f && deltaomega < 0.1 && tmp.v[0] < 0.f))
             && ts > 0.f) {
             friction_number = pCar->mu.v[0];
         } else {
             friction_number = pCar->mu.v[2];
-            ts2 = fabs(a.v[0]) / 10.f;
+            ts2 = fabs(tmp.v[0]) / 10.f;
             if (ts2 > 1.f) {
                 ts2 = 1.f;
             }
@@ -3035,9 +3032,8 @@ steer_centre:
             maxfl = friction_number * maxfl;
             maxfr = friction_number * maxfr;
         }
-#ifndef REC2_MATCHING
         /* original 0x41aaaa..0x41ab97: when the lateral demand exceeds the grip limit the front-axle
-           forces v108 / v98 are rescaled (work notes: recipe-structure-matching, CalcForce S19) */
+           forces v108 / v98 are rescaled; v109 / v99 are round-tripped through the ratio as in the original */
         if (fabs(v109) > maxfr + maxfl && maxfr + maxfl > 0.1) {
             br_scalar rs_ratio = (maxfr + maxfl) / fabs(v109) * pDt;
             br_scalar rs_lat = v109 * rs_ratio;
@@ -3046,7 +3042,7 @@ steer_centre:
             br_scalar rs_inertia = pCar->collision_info->I.v[1] * 47.61f;
             br_scalar rs_den = -((rs_ff * rs_ff) / rs_inertia
                     + (v98 * v98 + v108 * v108) / pCar->collision_info->M);
-            br_scalar rs_num = ((pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) * rs_z * rs_lat / rs_inertia) * v108
+            br_scalar rs_num = (a.v[2] * rs_z * rs_lat / rs_inertia) * v108
                     + BrVector3Dot(&pCar->collision_info->omega, &road_normal) * rs_z * v108
                     + (rs_lat / pCar->collision_info->M + BrVector3Dot(&v103, &v)) * v108
                     + BrVector3Dot(&rightplane, &v) * v98;
@@ -3055,16 +3051,9 @@ steer_centre:
                 v108 = v108 * rs_scale;
                 v98 = v98 * rs_scale;
             }
+            v109 = rs_lat / rs_ratio;
+            v99 = (v99 * rs_ratio * pCar->traction_multiplier) / (rs_ratio * pCar->traction_multiplier);
         }
-#else
-        if (fabs(v109) > maxfr + maxfl && maxfr + maxfl > 0.1) {
-            clamp_ratio = (maxfr + maxfl) / fabs(v109) * pDt;
-            v109 = v109 * clamp_ratio;
-            v99 = v99 * clamp_ratio * pCar->traction_multiplier;
-            v109 = v109 / clamp_ratio;
-            v99 = v99 / (clamp_ratio * pCar->traction_multiplier);
-        }
-#endif
         v98 = v98 - v106;
         v108 = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * pCar->curvature * v106 + v108;
         if (v135 > 0.0001f) {
