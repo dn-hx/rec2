@@ -414,6 +414,7 @@ int C2_HOOK_FASTCALL GetFaceEdgeIntersection(tPhysics_object* pObject, tPhysics_
     float local_6c;
     float local_68;
     int local_64;
+    int one;
     float local_60;
     float local_5c;
     float local_58;
@@ -572,7 +573,9 @@ LAB_00423aa6:
                                      (local_8c - local_20) * local_80 + (local_90 - local_24) * local_84;
                             if (0.0f < local_60) {
                                 BrMatrix34TApplyV((br_vector3*)&local_5c, (br_vector3*)&local_84, (br_matrix34*)((char*)pObject + 0x8c));
-                                pCount = AddObjectWallForce((float*)pContacts, (br_vector3*)&local_5c, local_60, (br_vector3*)((char*)pObject + 0xbc), 0, pCount, pObject, 0.0f, 0.0f, NULL);
+                                /* orig 0x4236a0: point = local_c, distance 0, normal = transformed face normal, type 1, face local_64 */
+                                one = 1;
+                                pCount = AddObjectWallForce((float*)pContacts, (br_vector3*)local_c, 0.0f, (br_vector3*)&local_5c, *(tU32*)&local_60, pCount, pObject, *(float*)&one, *(float*)&local_64, NULL);
                             }
                             *pHas_collision = 1;
                         }
