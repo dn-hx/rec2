@@ -3030,6 +3030,28 @@ steer_centre:
             maxfl = friction_number * maxfl;
             maxfr = friction_number * maxfr;
         }
+#ifndef REC2_MATCHING
+        /* original 0x41aaaa..0x41ab97: when the lateral demand exceeds the grip limit the front-axle
+           forces v108 / v98 are rescaled (work notes: recipe-structure-matching, CalcForce S19) */
+        if (fabs(v109) > maxfr + maxfl && maxfr + maxfl > 0.1) {
+            br_scalar rs_ratio = (maxfr + maxfl) / fabs(v109) * pDt;
+            br_scalar rs_lat = v109 * rs_ratio;
+            br_scalar rs_z = pCar->wpos[2].v[2] - pCar->centre_of_mass_world_scale.v[2];
+            br_scalar rs_ff = v108 * rs_z;
+            br_scalar rs_inertia = pCar->collision_info->I.v[1] * 47.61f;
+            br_scalar rs_den = -((rs_ff * rs_ff) / rs_inertia
+                    + (v98 * v98 + v108 * v108) / pCar->collision_info->M);
+            br_scalar rs_num = ((pCar->wpos[0].v[2] - pCar->centre_of_mass_world_scale.v[2]) * rs_z * rs_lat / rs_inertia) * v108
+                    + BrVector3Dot(&pCar->collision_info->omega, &road_normal) * rs_z * v108
+                    + (rs_lat / pCar->collision_info->M + BrVector3Dot(&v103, &v)) * v108
+                    + BrVector3Dot(&rightplane, &v) * v98;
+            if (fabs(rs_den) > 0.1) {
+                br_scalar rs_scale = rs_num / (rs_den * pDt);
+                v108 = v108 * rs_scale;
+                v98 = v98 * rs_scale;
+            }
+        }
+#else
         if (fabs(v109) > maxfr + maxfl && maxfr + maxfl > 0.1) {
             clamp_ratio = (maxfr + maxfl) / fabs(v109) * pDt;
             v109 = v109 * clamp_ratio;
@@ -3037,6 +3059,7 @@ steer_centre:
             v109 = v109 / clamp_ratio;
             v99 = v99 / (clamp_ratio * pCar->traction_multiplier);
         }
+#endif
         v98 = v98 - v106;
         v108 = (pCar->wpos[0].v[2] - pCar->wpos[2].v[2]) * pCar->curvature * v106 + v108;
         if (v135 > 0.0001f) {
