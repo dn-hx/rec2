@@ -2467,7 +2467,6 @@ void C2_HOOK_FASTCALL CalcForce(tCar_spec* pCar, br_scalar pDt) {
     br_vector3 v136;
     br_vector3 v123;
     br_vector3 ray_pos[4];
-    br_vector3 contact[4];
     br_scalar v99;
     br_bounds bounds;
     br_vector3 tv;
@@ -2824,13 +2823,13 @@ steer_centre:
             if (j != count) {
                 continue;
             }
-            contact[count].v[0] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][0];
-            contact[count].v[1] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][1];
-            contact[count].v[2] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][2];
+            ray_pos[count].v[0] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][0];
+            ray_pos[count].v[1] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][1];
+            ray_pos[count].v[2] = -pCar->oldd[i] * pCar->car_master_actor->t.t.mat.m[1][2];
             val[count] = force[i] * 0.04f;
-            contact[count].v[0] += wheel_pos[i].v[0];
-            contact[count].v[1] += wheel_pos[i].v[1];
-            contact[count].v[2] += wheel_pos[i].v[2];
+            ray_pos[count].v[0] += wheel_pos[i].v[0];
+            ray_pos[count].v[1] += wheel_pos[i].v[1];
+            ray_pos[count].v[2] += wheel_pos[i].v[2];
             if (val[count] > best) {
                 best = val[count];
                 best_index = count;
@@ -2839,13 +2838,13 @@ steer_centre:
             count++;
         }
         if (best_index >= 0) {
-            BrVector3InvScale(&contact[best_index], &contact[best_index], WORLD_SCALE);
+            BrVector3InvScale(&ray_pos[best_index], &ray_pos[best_index], WORLD_SCALE);
             tv.v[0] = -val[best_index] * pCar->car_master_actor->t.t.mat.m[1][0];
             tv.v[1] = -val[best_index] * pCar->car_master_actor->t.t.mat.m[1][1];
             tv.v[2] = -val[best_index] * pCar->car_master_actor->t.t.mat.m[1][2];
             SmashEnvironment(pCar->collision_info,
                 (undefined4*)collected[best_index],
-                val[best_index], &contact[best_index],
+                val[best_index], &ray_pos[best_index],
                 &pCar->collision_info->v, &tv, 0, 0);
         }
         FlushSmashQueue(1);
