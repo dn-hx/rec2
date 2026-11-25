@@ -2076,26 +2076,26 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
         }
         switch (pShape2->common.type) {
         case kCollisionShapeType_Box:
-            points[i].v[0] = (edges2->index1 & 2) ? pShape2->common.bb.min.v[0] : pShape2->common.bb.max.v[0];
-            points[i].v[1] = (edges2->index1 & 1) ? pShape2->common.bb.min.v[1] : pShape2->common.bb.max.v[1];
-            points[i].v[2] = (edges2->index1 & 4) ? pShape2->common.bb.min.v[2] : pShape2->common.bb.max.v[2];
+            points[record_count].v[0] = (edges2->index1 & 2) ? pShape2->common.bb.min.v[0] : pShape2->common.bb.max.v[0];
+            points[record_count].v[1] = (edges2->index1 & 1) ? pShape2->common.bb.min.v[1] : pShape2->common.bb.max.v[1];
+            points[record_count].v[2] = (edges2->index1 & 4) ? pShape2->common.bb.min.v[2] : pShape2->common.bb.max.v[2];
             vertex.v[0] = (edges2->index2 & 2) ? pShape2->common.bb.min.v[0] : pShape2->common.bb.max.v[0];
             vertex.v[1] = (edges2->index2 & 1) ? pShape2->common.bb.min.v[1] : pShape2->common.bb.max.v[1];
             vertex.v[2] = (edges2->index2 & 4) ? pShape2->common.bb.min.v[2] : pShape2->common.bb.max.v[2];
             break;
         case kCollisionShapeType_Polyhedron:
         case kCollisionShapeType_Wireframe_Polyhedron:
-            points[i].v[0] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[0];
-            points[i].v[1] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[1];
-            points[i].v[2] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[2];
+            points[record_count].v[0] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[0];
+            points[record_count].v[1] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[1];
+            points[record_count].v[2] = pShape2->polyhedron.polyhedron.points[edges2->index1].v[2];
             vertex.v[0] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[0];
             vertex.v[1] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[1];
             vertex.v[2] = pShape2->polyhedron.polyhedron.points[edges2->index2].v[2];
             break;
         case kCollisionShapeType_Wireframe:
-            points[i].v[0] = pShape2->wireframe.wireframe.points[edges2->index1].v[0];
-            points[i].v[1] = pShape2->wireframe.wireframe.points[edges2->index1].v[1];
-            points[i].v[2] = pShape2->wireframe.wireframe.points[edges2->index1].v[2];
+            points[record_count].v[0] = pShape2->wireframe.wireframe.points[edges2->index1].v[0];
+            points[record_count].v[1] = pShape2->wireframe.wireframe.points[edges2->index1].v[1];
+            points[record_count].v[2] = pShape2->wireframe.wireframe.points[edges2->index1].v[2];
             vertex.v[0] = pShape2->wireframe.wireframe.points[edges2->index2].v[0];
             vertex.v[1] = pShape2->wireframe.wireframe.points[edges2->index2].v[1];
             vertex.v[2] = pShape2->wireframe.wireframe.points[edges2->index2].v[2];
@@ -2104,11 +2104,12 @@ int C2_HOOK_FASTCALL FUN_004287a0(tPhysics_object* pObject1, tPhysics_object* pO
             PhysicsError(ePhysicsError_UnknownShapeType, "");
             break;
         }
-        diffs[i].v[0] = vertex.v[0] - points[i].v[0];
-        diffs[i].v[1] = vertex.v[1] - points[i].v[1];
+        /* points/diffs are packed: entry record_count belongs to edge edge_ids[record_count] (orig 0x4289c0..0x4289e8) */
+        diffs[record_count].v[0] = vertex.v[0] - points[record_count].v[0];
+        diffs[record_count].v[1] = vertex.v[1] - points[record_count].v[1];
         edge_ids[record_count] = i;
+        diffs[record_count].v[2] = vertex.v[2] - points[record_count].v[2];
         record_count++;
-        diffs[i].v[2] = vertex.v[2] - points[i].v[2];
     }
     for (i = 0; i < count1; i++, edges1++) {
         if ((pFlags1[edges1->index2] & pFlags1[edges1->index1]) != 0) {
