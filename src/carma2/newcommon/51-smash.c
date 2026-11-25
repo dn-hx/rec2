@@ -8,8 +8,10 @@
 
 #include "51-smash.h"
 
+#include "00-car.h"
 #include "08-loading1.h"
 #include "09-funks.h"
+#include "16-graphics1.h"
 #include "17-world2.h"
 #include "20-skidmark.h"
 #include "23-piping.h"
@@ -21,6 +23,7 @@
 #include "52-errors.h"
 #include "59-camera.h"
 #include "62-graphics3.h"
+#include "69-sound.h"
 
 #include "globvars.h"
 #include "globvrpb.h"
@@ -123,9 +126,12 @@ tSmashable_item_spec gPowerup_respawn_smashable = { 0 };
 // GLOBAL: CARMA2_CHEAT 0x006afb40
 tRepair_animation gRepair_animations[25] = { 0 };
 
+#ifdef REC2_MATCHING
 // GLOBAL: CARMA2_HW 0x006a80f4
 // GLOBAL: CARMA2_SW 0x006a2154
+// GLOBAL: CARMA2_CHEAT 0x006afc6c
 int gINT_006a80f4 = 0;
+#endif
 
 // GLOBAL: CARMA2_HW 0x006a80f8
 // GLOBAL: CARMA2_SW 0x006a2158
@@ -141,6 +147,11 @@ int gCount_queued_smashes;
 // GLOBAL: CARMA2_SW 0x006a5438
 // GLOBAL: CARMA2_CHEAT 0x006b3578
 br_vector3 gZero_vector__smash;
+
+int C2_HOOK_FASTCALL PointOutOfSightNotAR(const br_vector3* pPos, br_scalar pMax_distance) {
+
+    return !gAction_replay_mode && PointOutOfSight(pPos, pMax_distance);
+}
 
 // FUNCTION: CARMA2_HW 0x004ea760
 // FUNCTION: CARMA2_SW 0x004e6500
@@ -304,12 +315,20 @@ void C2_HOOK_FASTCALL CopyExplosionData(int pIndex, tExplosion* pExplosion) {
 
 // DoExplosionette
 
+#ifdef REC2_MATCHING
+#pragma auto_inline(off)
+#endif
+
 // STUB: CARMA2_HW 0x004ead00
 // STUB: CARMA2_SW 0x004e69e0
 // STUB: CARMA2_CHEAT 0x004f09a0
 void C2_HOOK_FASTCALL Explode(tExplosion_animation *pExplosion_animation,br_actor *pActor, const br_bounds3* pBounds, const br_vector3* pPos) {
     NOT_IMPLEMENTED();
 }
+
+#ifdef REC2_MATCHING
+#pragma auto_inline(on)
+#endif
 
 // FUNCTION: CARMA2_HW 0x004eb020
 // FUNCTION: CARMA2_SW 0x004e6d00
@@ -480,7 +499,12 @@ void C2_HOOK_FASTCALL ActuallySmashPart(tCar_spec* pCar_spec, tCar_crush_smashab
     }
 }
 
-// MakeSmashSound
+inline void C2_HOOK_FASTCALL MakeSmashSound(tConnotations* pConnotations, br_vector3* pPos) {
+
+    if (pConnotations->count_sounds != 0) {
+        DRS3StartSound3D(gCar_outlet, pConnotations->sounds[IRandomBetween(0, pConnotations->count_sounds - 1)], pPos, &gZero_v__car, 1, 255, IRandomBetween(S3_FIXED_INT(0.875f), S3_FIXED_INT(1.125f)), S3_FIXED_INT(1));
+    }
+}
 
 // MungeSmokeFire
 
@@ -511,7 +535,15 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
         pSlick->field_0x1c, pSlick->material, pSlick->material2);
 }
 
-// DoSpecial
+inline void C2_HOOK_FASTCALL DoSpecial(tSpecial_effects_spec* pSpecial, br_actor* pActor, br_bounds3* pBounds) {
+
+    if (!PointOutOfSightNotAR(&pActor->t.t.translate.t, gYon_squared) && pSpecial->explosion_animation.count_groups != 0) {
+        Explode(&pSpecial->explosion_animation, pActor, pBounds, NULL);
+    }
+    if (pSpecial->slick.material != NULL) {
+        DoSpillage(&pSpecial->slick, pActor);
+    }
+}
 
 // GiveNonCarsAShove
 
@@ -533,10 +565,13 @@ void C2_HOOK_FASTCALL DoSpillage(tSlick_spec* pSlick, br_actor* pActor) {
 
 // DoConnotations
 
-// STUB: CARMA2_HW 0x004ecea0
-// STUB: CARMA2_SW 0x004e8b70
+// FUNCTION: CARMA2_HW 0x004ecea0
+// FUNCTION: CARMA2_SW 0x004e8b70
+// FUNCTION: CARMA2_CHEAT 0x004f2b40
 void C2_HOOK_FASTCALL DoPowerupRespawnSmash(br_actor* pActor) {
-    NOT_IMPLEMENTED();
+
+    MakeSmashSound(&gPowerup_respawn_smashable.mode_data.shrapnel.connotations, &pActor->t.t.translate.t);
+    DoSpecial(&gPowerup_respawn_smashable.mode_data.shrapnel.connotations.special_effects, pActor, &pActor->model->bounds);
 }
 
 // DoConnotationsMultiLevel
@@ -957,10 +992,27 @@ void C2_HOOK_FASTCALL ReadSmashableData(FILE* pF, tCar_crush_buffer_entry* pCar_
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004ef840
-// STUB: CARMA2_SW 0x004eb4a0
+// FUNCTION: CARMA2_HW 0x004ef840
+// FUNCTION: CARMA2_SW 0x004eb4a0
+// FUNCTION: CARMA2_CHEAT 0x004f54e0
 void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable, int pLevel) {
-    NOT_IMPLEMENTED();
+    br_pixelmap* texture;
+
+    pSmashable->field_0x4c = pLevel;
+    texture = pSmashable->levels[pLevel].pixelmaps[IRandomBetween(0, pSmashable->levels[pLevel].count_pixelmaps - 1)];
+    PipeSingleSmashTextureChange(pCar_spec, pSmashable->funk_material, texture);
+    pSmashable->funk_material->user = texture;
+    if (pCar_spec->field_0x1960 == NULL) {
+        pSmashable->funk_material->colour_map = texture;
+    }
+    BrMaterialUpdate(pSmashable->funk_material, BR_MATU_COLOURMAP);
+    MungeInternalCarGlass(pCar_spec);
+    if (pLevel == 0 && pSmashable->funk >= 0) {
+        EnableFunkotronic(pSmashable->funk);
+    }
+    if (pCar_spec != NULL && pCar_spec->driver == eDriver_local_human && gProgram_state.racing) {
+        DRS3StartSound(gCar_outlet, eSoundId_SmashRepair);
+    }
 }
 
 #ifdef REC2_MATCHING
@@ -969,9 +1021,47 @@ void C2_HOOK_FASTCALL ActuallyRepairSmash(tCar_spec* pCar_spec, tCar_crush_smash
 
 // KillFragment
 
-// AddRepairAnimationToQueue
+void C2_HOOK_FASTCALL AddRepairAnimationToQueue(tCar_spec* pCar_spec, tCar_crush_smashable_part* pSmashable) {
+    int free_index;
+    int i;
 
-// RepairSmash
+    free_index = -1;
+    for (i = 0; i < (int)REC2_ASIZE(gRepair_animations); i++) {
+        if (gRepair_animations[i].field_0x0 == (void*)pSmashable) {
+            free_index = i;
+            break;
+        }
+    }
+    if (free_index < 0) {
+        for (i = 0; i < (int)REC2_ASIZE(gRepair_animations); i++) {
+            if (gRepair_animations[i].field_0x0 == NULL) {
+                free_index = i;
+                break;
+            }
+        }
+    }
+    if (free_index >= 0) {
+        gRepair_animations[i].field_0x0 = pSmashable;
+        gRepair_animations[i].field_0x4 = GetTotalTime();
+        gRepair_animations[i].field_0x8 = pCar_spec;
+    }
+}
+
+// FUNCTION: CARMA2_HW 0x004ef910
+// FUNCTION: CARMA2_SW 0x004eb570
+// FUNCTION: CARMA2_CHEAT 0x004f55b0
+void C2_HOOK_FASTCALL RepairSmash(tCar_spec* pCar_spec, tCar_crush_buffer_entry* pSmash_data) {
+    tCar_crush_smashable_part* smashable;
+    int i;
+
+    smashable = pSmash_data->smashables;
+    for (i = 0; i < pSmash_data->count_smashables; i++, smashable++) {
+        if (smashable->field_0x4c != 0) {
+            ActuallyRepairSmash(pCar_spec, smashable, smashable->field_0x4c - 1);
+            AddRepairAnimationToQueue(pCar_spec, smashable);
+        }
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x004ef9c0
 // FUNCTION: CARMA2_SW 0x004eb620
@@ -1276,15 +1366,26 @@ void C2_HOOK_FASTCALL FreeConnotations(tConnotations* pConnotations, int pKeep_a
 
 // ExtrapolateTextureCoordinates
 
-// ExtrapolateGeometryCoordinates2
-
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
 
-// STUB: CARMA2_HW 0x004f36c0
-// STUB: CARMA2_SW 0x004ef320
+// FUNCTION: CARMA2_HW 0x004f36c0
+// FUNCTION: CARMA2_SW 0x004ef320
+// FUNCTION: CARMA2_CHEAT 0x004f9360
 void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates(tSmash_quad_mapping* pMapping, br_vector2* pMap, br_vertex* pVertex) {
+
+    if (Vector2DistanceSquared(&pMapping->triangles[1].map_other, pMap) < Vector2DistanceSquared(&pMapping->triangles[0].map_other, pMap)) {
+        ExtrapolateGeometryCoordinates2(pMapping, &pMapping->triangles[1], pMap, pVertex);
+    } else {
+        ExtrapolateGeometryCoordinates2(pMapping, &pMapping->triangles[0], pMap, pVertex);
+    }
+}
+
+// STUB: CARMA2_HW 0x004f3740
+// STUB: CARMA2_SW 0x004ef3a0
+// STUB: CARMA2_CHEAT 0x004f93e0
+void C2_HOOK_FASTCALL ExtrapolateGeometryCoordinates2(tSmash_quad_mapping* pMapping, tSmash_triangle_mapping* pTriangle, br_vector2* pMap, br_vertex* pVertex) {
     NOT_IMPLEMENTED();
 }
 
@@ -2019,17 +2120,17 @@ void C2_HOOK_FASTCALL SmashRemoveSomeFaces(br_model* pModel, int pCount) {
 // FUNCTION: CARMA2_HW 0x004f5fa0
 // FUNCTION: CARMA2_SW 0x004f1c00
 // FUNCTION: CARMA2_CHEAT 0x004fbc40
-void C2_HOOK_FASTCALL SmashRestoreSomeFaces(br_model* pModel, int pFace_count, const tU16* pFace_data, br_material* pMaterial) {
+void C2_HOOK_FASTCALL SmashRestoreSomeFaces(br_model* pModel, int pFace_count, const tPipe_remove_face* pFace_data, br_material* pMaterial) {
     br_face* face;
     int i;
 
     face = &pModel->faces[pModel->nfaces];
     for (i = 0; i < pFace_count; i++) {
         face->material = pMaterial;
-        face->vertices[0] = pFace_data[4 * i + 0];
-        face->vertices[1] = pFace_data[4 * i + 1];
-        face->vertices[2] = pFace_data[4 * i + 2];
-        face->smoothing = pFace_data[4 * i + 3];
+        face->vertices[0] = pFace_data[i].vertices[0];
+        face->vertices[1] = pFace_data[i].vertices[1];
+        face->vertices[2] = pFace_data[i].vertices[2];
+        face->smoothing = pFace_data[i].smoothing;
         face->flags = 0;
         face++;
     }

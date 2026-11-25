@@ -1362,7 +1362,24 @@ void C2_HOOK_FASTCALL CompressCrush(tCompressed_car_crush* pDest, const tCar_cru
     pDest->field_0x24 = pSrc->field_0x50;
 }
 
-// ExpandCrush
+// FUNCTION: CARMA2_HW 0x004369c0
+// FUNCTION: CARMA2_SW 0x004369f0
+// FUNCTION: CARMA2_CHEAT 0x00436bc0
+void C2_HOOK_FASTCALL ExpandCrush(tCar_crush* pDest, const tCompressed_car_crush* pSrc) {
+    tU8 i;
+
+    pDest->count = pSrc->count;
+    ExpandVector3(&pDest->vectors[0], &pSrc->vectors[0], -2.5f, 2.5f);
+    BrVector3Copy(&pDest->field_0x34, &pDest->vectors[0]);
+    for (i = 1; i < pSrc->count; i++) {
+        ExpandVector3(&pDest->vectors[i], &pSrc->vectors[i], -2.5f, 2.5f);
+        BrVector3Accumulate(&pDest->field_0x34, &pDest->vectors[i]);
+    }
+    BrVector3Set(&pDest->field_0x34, pDest->field_0x34.v[0] / pDest->count, pDest->field_0x34.v[1] / pDest->count, pDest->field_0x34.v[2] / pDest->count);
+    pDest->field_0x40 = DRU16ToScalar(pSrc->field_0x1a, 0.0f, 10.0f);
+    ExpandVector3(&pDest->field_0x44, &pSrc->field_0x1c, -1.0f, 1.0f);
+    pDest->field_0x50 = pSrc->field_0x24;
+}
 
 // RemoveDuplicatePoints
 
@@ -2427,7 +2444,45 @@ void C2_HOOK_FASTCALL CompletelyUnBendCar(tCar_spec* pCar_spec) {
 
 // RepairObject
 
-// RepairCarCollisionShapes
+// FUNCTION: CARMA2_HW 0x0043b740
+// FUNCTION: CARMA2_SW 0x0043b790
+// FUNCTION: CARMA2_CHEAT 0x0043b970
+void C2_HOOK_FASTCALL RepairCarCollisionShapes(tCar_spec* pCar, float pStep) {
+    tCar_crush_shape_info* shape_info;
+    br_vector3* point;
+    const br_vector3* target;
+    float value;
+    int i;
+    int j;
+    int axis;
+
+    for (i = 0; i < pCar->car_crush_spec->count_shapes; i++) {
+        shape_info = &pCar->car_crush_spec->field_0x4[i];
+        for (j = 0; j < shape_info->count_points; j++) {
+            point = &shape_info->field_0x18[j].field_0x18;
+            target = &shape_info->field_0x18[j].field_0x0;
+            for (axis = 0; axis < 3; axis++) {
+                if (point->v[axis] > target->v[axis]) {
+                    value = point->v[axis] - pStep;
+                    point->v[axis] = value;
+                    if (value < target->v[axis]) {
+                        point->v[axis] = target->v[axis];
+                    }
+                } else if (point->v[axis] < target->v[axis]) {
+                    value = point->v[axis];
+                    point->v[axis] = value + pStep;
+                    if (target->v[axis] < value + pStep) {
+                        point->v[axis] = target->v[axis];
+                    }
+                }
+            }
+            if (DRVector3TestForNan(point)) {
+                PDEnterDebugger("NaN");
+            }
+        }
+    }
+    pCar->car_crush_spec->expand_bounding_box = 3;
+}
 
 // RepairCar2
 
@@ -2631,7 +2686,29 @@ int C2_HOOK_FASTCALL GetNetShapeDataLengthFromShape(tCar_spec* pCar) {
     }
 }
 
-// GetNetShapeDataLengthFromData
+// FUNCTION: CARMA2_HW 0x0043d960
+// FUNCTION: CARMA2_SW 0x0043d9b0
+// FUNCTION: CARMA2_CHEAT 0x0043dc10
+int C2_HOOK_FASTCALL GetNetShapeDataLengthFromData(tU8* pData) {
+    tU8 count_points;
+    int count_packets;
+    int total_size;
+    int i;
+
+    count_points = *pData++;
+    if (count_points <= 4) {
+        count_packets = count_points;
+        total_size = 1;
+        for (i = 0; i < count_packets; i++) {
+            count_points = *pData;
+            total_size += 1 + count_points * sizeof(tCompressed_vector3);
+            pData += 1 + count_points * sizeof(tCompressed_vector3);
+        }
+        return total_size;
+    } else {
+        return count_points * 6 + 1;
+    }
+}
 
 // FUNCTION: CARMA2_HW 0x0043d9c0
 // FUNCTION: CARMA2_SW 0x0043da10
