@@ -6785,7 +6785,7 @@ int C2_HOOK_FASTCALL MakeVelocitiesVector2(br_scalar* pRhs, tPhysics_joint_force
         if (found == 0 && 0 < pCollision_count) {
             for (i = 0; i < pCollision_count; i++) {
                 if (pRecords[i]->type != 11) {
-                    pRhs[i] = 0.1f;
+                    pRhs[i] = 0.05f;
                 }
             }
         }
