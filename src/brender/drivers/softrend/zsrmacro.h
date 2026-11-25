@@ -12,6 +12,14 @@ enum {
 
 #define VIEW_Z(v) ((v)->comp[C_W])
 
+#ifdef REC2_MATCHING
+#define CLAMP_NEGATIVE_BUCKET(bucket)
+#else
+/* A NaN or huge depth converts to INT_MIN. On 32-bit, table + INT_MIN * 4 wraps around to table[0];
+ * on 64-bit it is far out of bounds (crash in OpHeapAddTriangleConvert from smoke). Use bucket 0 like 32-bit. */
+#define CLAMP_NEGATIVE_BUCKET(bucket) do { if ((bucket) < 0) { (bucket) = 0; } } while (0)
+#endif
+
 #define SORT_VALUE_TRIANGLE(type, v0, v1, v2) do {          \
         zprim = VIEW_Z(v0);                                 \
         switch (type) {                                     \
@@ -47,6 +55,7 @@ enum {
             if (bucket >= (ot)->size) {                     \
                 bucket = (ot)->size - 1;                    \
             }                                               \
+            CLAMP_NEGATIVE_BUCKET(bucket);                  \
         }                                                   \
         (prim)->next = (ot)->table[bucket];                 \
         (ot)->table[bucket] = (prim);                       \

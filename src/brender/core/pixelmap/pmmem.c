@@ -768,7 +768,7 @@ br_error C2_HOOK_CDECL _M_br_device_pixelmap_mem_line(br_device_pixelmap* self, 
     sx = as.x < ae.x ? 1 : -1;
     dx = (ae.x - as.x) * sx;
     sy = as.y < ae.y ? 1 : -1;
-    dy = (ae.y - as.y) * sy;
+    dy = -(ae.y - as.y) * sy; /* Bresenham (all octants): dy = -|delta y|, so err = dx + dy balances both steps */
     err = dx + dy;
 
     p.x = as.x;
