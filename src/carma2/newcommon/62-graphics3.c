@@ -625,8 +625,8 @@ static void C2_HOOK_FASTCALL DoDirectionFinderStuff(br_pixelmap* pMap) {
                 d = d * ((float)gINT_0074abd4 / (float)fabs((double)(d * dx)));
             }
             FancyDrawLine(pMap, gINT_0074abd4 + 8, gINT_0074abd0,
-                (int)((float)gINT_0074abd4 - dx * dy + 8.f),
-                (int)((float)gINT_0074abd4 - d * dy),
+                (int)((float)gINT_0074abd4 - d * dx + 8.f),
+                (int)((float)gINT_0074abd0 - d * dy),
                 52, 75);
         }
     }
