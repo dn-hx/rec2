@@ -23,6 +23,7 @@ extern br_pixelmap** gShade_table;
 extern tSmash_vertex gSmash_glass_fragments[200];
 extern int gNum_dust_tables;
 extern int gSpark_flags;
+extern int gNext_spark;
 extern br_pixelmap* gIt_shade_table;
 extern int gSmoke_flags;
 extern int gSmoke_num;
@@ -70,7 +71,7 @@ extern void C2_HOOK_FASTCALL SetLineModelCols(tU8 pCol);
 
 // CreateSingleSpark
 
-// CreateSparks
+extern void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVelocity, const br_vector3* pForce, br_scalar pSparkiness, tCar_spec* pCar);
 
 // CreateSparkShower
 
@@ -82,15 +83,15 @@ extern void C2_HOOK_FASTCALL ResetSparks(void);
 
 extern void C2_HOOK_FASTCALL ResetShrapnel(void);
 
-extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
+extern void C2_HOOK_FASTCALL CreateShrapnelShower2(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pSparkiness, tCar_spec* pCar1, tCar_spec* pCar2, int pMaterialCount, br_material** pMaterials);
 
-extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pStrength, int pMaterialCount, br_material** pMaterials);
+extern void C2_HOOK_FASTCALL CreateShrapnelShowerWorld(const br_vector3* pPosition, const br_vector3* pVelocity, const br_vector3* pDirection, br_scalar pSparkiness, int pMaterialCount, br_material** pMaterials);
 
 // CreateShrapnelShower
 
 // random
 
-// InitShrapnel
+extern void C2_HOOK_FASTCALL InitShrapnel(void);
 
 extern void C2_HOOK_FASTCALL LoadInShrapnel(void);
 
@@ -112,9 +113,10 @@ extern void C2_HOOK_FASTCALL DoCamouflageThing(tCar_spec* pCar);
 
 extern void C2_HOOK_FASTCALL DoSolidGraniteThing(tCar_spec* pCar);
 
-// DoTrueColModelThing
+#ifdef REC2_HW
+extern void C2_HOOK_CDECL DoTrueColModelThing(br_actor* pActor, br_model* pModel, br_material* pMaterial, void* pArg4, br_uint_8 pArg5, int pArg6);
 
-// SetFoxModelCallback
+extern int C2_HOOK_FASTCALL SetFoxModelCallback(br_model* pModel);
 
 extern int C2_HOOK_FASTCALL ResetFoxModelCallback(br_model* pModel);
 
@@ -125,6 +127,7 @@ extern int C2_HOOK_FASTCALL ResetFoxLighting(br_material* pMaterial);
 // SetFoxLighting
 
 // SetupAlternateFoxEffect
+#endif
 
 extern int C2_HOOK_FASTCALL RestorePixelmap(br_material* pMaterial);
 
@@ -226,7 +229,7 @@ extern void C2_HOOK_FASTCALL GetSmokeShadeTables(FILE* pF);
 
 extern void C2_HOOK_FASTCALL FreeSmokeShadeTables(void);
 
-// LoadInKevStuff
+extern void C2_HOOK_FASTCALL LoadInKevStuff(FILE* pF);
 
 // DisposeKevStuff
 
@@ -262,7 +265,7 @@ extern void C2_HOOK_FASTCALL UnBlendifyCar(tCar_spec* pCar);
 
 extern int C2_HOOK_FASTCALL IsCarSmoking(tCar_spec* pCar);
 
-// ClearSplashReplay
+extern void C2_HOOK_FASTCALL ClearSplashReplay(uintptr_t pObject);
 
 extern void* C2_HOOK_FASTCALL GetSplashIndex(tPhysics_object* pObject);
 
