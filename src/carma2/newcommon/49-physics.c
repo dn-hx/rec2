@@ -7005,7 +7005,7 @@ void C2_HOOK_FASTCALL NewAddFriction(tPhysics_joint_force* pContact, tWorld_call
         dot = pObject_a->omega.v[0] * pContact->direction_a.v[0] + pContact->direction_a.v[2] * pObject_a->omega.v[2] + pObject_a->omega.v[1] * pContact->direction_a.v[1];
         if (fabs(dot) < 0.1f
                 && pObject_a->omega.v[0] * angular_a.v[0] + pObject_a->omega.v[2] * angular_a.v[2] + pObject_a->omega.v[1] * angular_a.v[1] < 0.0f
-                && pObject_a->v.v[2] * pObject_a->v.v[2] + pObject_a->v.v[1] * pObject_a->v.v[1] + pObject_a->v.v[0] * pObject_a->v.v[0] < 0.001f) {
+                && pObject_a->v.v[2] * pObject_a->v.v[2] + pObject_a->v.v[1] * pObject_a->v.v[1] + pObject_a->v.v[0] * pObject_a->v.v[0] < 0.001) {
             world.v[0] = pContact->direction_a.v[0] * dot;
             world.v[1] = pContact->direction_a.v[1] * dot;
             world.v[2] = pContact->direction_a.v[2] * dot;
