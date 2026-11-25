@@ -20,7 +20,11 @@
 #include "41-utility.h"
 #include "platform.h"
 
-// QuitVerifyStart
+// FUNCTION: CARMA2_HW 0x004943f0
+void C2_HOOK_FASTCALL QuitVerifyStart(void) {
+
+    FadePaletteDown();
+}
 
 extern int gMouse_was_started__mainmenu;
 extern int gReplace_background;
@@ -28,8 +32,83 @@ extern int gReplace_background;
 
 extern int gMouse_started;
 
+// GLOBAL: CARMA2_HW 0x00659198
+tFlicette gFlicker_on_flics__mainmenu[2] = {
+    { 43, { 181, 362 }, { 124, 298 } },
+    { 43, { 84, 168 }, { 124, 298 } },
+};
+
+// GLOBAL: CARMA2_HW 0x006591c0
+tFlicette gFlicker_off_flics__mainmenu[2] = {
+    { 42, { 181, 362 }, { 124, 298 } },
+    { 42, { 84, 168 }, { 124, 298 } },
+};
+
+// GLOBAL: CARMA2_HW 0x006591e8
+tFlicette gPushed_flics__mainmenu[2] = {
+    { 135, { 181, 362 }, { 124, 298 } },
+    { 45, { 84, 168 }, { 124, 298 } },
+};
+
+// GLOBAL: CARMA2_HW 0x00659210
+tMouse_area gMouse_areas__mainmenu[2] = {
+    { { 181, 362 }, { 124, 298 }, { 244, 488 }, { 144, 346 }, 0, 0, 0, NULL },
+    { { 84, 168 }, { 124, 298 }, { 147, 294 }, { 144, 346 }, 1, 0, 0, NULL },
+};
+
 // GLOBAL: CARMA2_HW 0x00659270
-tInterface_spec gQuitVerify_spec;
+tInterface_spec gQuitVerify_spec = {
+    0,                          /* initial_imode */
+    0,                          /* first_opening_flic (set by DoVerifyQuit) */
+    0,                          /* second_opening_flic */
+    0,                          /* end_flic_go_ahead */
+    0,                          /* end_flic_escaped */
+    0,                          /* end_flic_otherwise */
+    0,                          /* flic_bunch_to_load */
+    { -1, 0 },                  /* move_left_new_mode */
+    { -1, 0 },                  /* move_left_delta */
+    { 0, 0 },                   /* move_left_min */
+    { 1, 0 },                   /* move_left_max */
+    { NULL, NULL },             /* move_left_proc */
+    { -1, 0 },                  /* move_right_new_mode */
+    { 1, 0 },                   /* move_right_delta */
+    { 0, 0 },                   /* move_right_min */
+    { 1, 0 },                   /* move_right_max */
+    { NULL, NULL },             /* move_right_proc */
+    { -1, 0 },                  /* move_up_new_mode */
+    { 0, 0 },                   /* move_up_delta */
+    { 0, 0 },                   /* move_up_min */
+    { 0, 0 },                   /* move_up_max */
+    { NULL, NULL },             /* move_up_proc */
+    { -1, 0 },                  /* move_down_new_mode */
+    { 0, 0 },                   /* move_down_delta */
+    { 0, 0 },                   /* move_down_min */
+    { 0, 0 },                   /* move_down_max */
+    { NULL, NULL },             /* move_down_proc */
+    { 1, 1 },                   /* go_ahead_allowed */
+    { NULL, NULL },             /* go_ahead_proc */
+    { 1, 1 },                   /* escape_allowed */
+    { NULL, NULL },             /* escape_proc */
+    NULL,                       /* exit_proc */
+    NULL,                       /* draw_proc */
+    0,                          /* time_out */
+    QuitVerifyStart,            /* start_proc1 */
+    NULL,                       /* start_proc2 */
+    QuitVerifyDone,             /* done_proc */
+    0,                          /* font_needed */
+    { 0, 0 },                   /* typeable */
+    NULL,                       /* get_original_string */
+    1,                          /* escape_code */
+    1,                          /* dont_save_or_load */
+    2,                          /* number_of_button_flics */
+    gFlicker_on_flics__mainmenu,  /* flicker_on_flics */
+    gFlicker_off_flics__mainmenu, /* flicker_off_flics */
+    gPushed_flics__mainmenu,      /* pushed_flics */
+    2,                          /* number_of_mouse_areas */
+    gMouse_areas__mainmenu,     /* mouse_areas */
+    0,                          /* number_of_recopy_areas */
+    NULL,                       /* recopy_areas */
+};
 
 // FUNCTION: CARMA2_HW 0x00494400
 int C2_HOOK_FASTCALL QuitVerifyDone(int pCurrent_choice, int pCurrent_mode, int pGo_ahead, int pEscaped, int pTimed_out) {
