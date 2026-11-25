@@ -3010,9 +3010,11 @@ steer_centre:
             if (pCar->max_force_rear <= v87) {
                 pCar->torque = -(pCar->revs * pCar->revs / 100000000.f) - 0.1;
             } else {
-                float v177 = sqrt(pCar->max_force_rear * pCar->max_force_rear - v87 * v87);
+                /* orig 0x41a8a8: the 0.99 margin scales the grip limit inside the root, so the rear demand
+                   ends at exactly 0.99 * max_force_rear */
+                float v177 = sqrt(pCar->max_force_rear * 0.99f * (pCar->max_force_rear * 0.99f) - v87 * v87);
                 ts3 = ts2 < 0.f ? -1 : 1;
-                ts4 = (ts2 - ts3 * v177) * 0.99f;
+                ts4 = ts2 - ts3 * v177;
                 if (fabs(ts2) > fabs(ts4)) {
                     ts2 = ts4;
                 }
