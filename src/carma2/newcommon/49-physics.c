@@ -1052,7 +1052,7 @@ int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysic
     float collision_factor;
     float remaining;
     tPhysics_joint_force* first_contact;
-    float* record;
+    tPhysics_joint_force* contact;
     float normal_dot;
 
     shape2 = pObject2->shape;
@@ -1253,22 +1253,22 @@ int C2_HOOK_FASTCALL GetObjectObjectForceInfo(tPhysics_object* pObject1, tPhysic
         result = 1;
         if (contact_count > 1) {
             first_contact = &pContacts[pCount];
-            record = (float*)&first_contact[1].direction_a.v[2];
+            contact = &first_contact[1];
             do {
-                if (first_contact[1].object_a == first_contact[0].object_a) {
-                    normal_dot = record[0] * first_contact[0].direction_a.v[2]
-                            + record[-1] * first_contact[0].direction_a.v[1]
-                            + record[-2] * first_contact[0].direction_a.v[0];
+                if (contact->object_a == first_contact->object_a) {
+                    normal_dot = contact->direction_a.v[2] * first_contact->direction_a.v[2]
+                            + contact->direction_a.v[1] * first_contact->direction_a.v[1]
+                            + contact->direction_a.v[0] * first_contact->direction_a.v[0];
                 } else {
-                    normal_dot = -(record[0] * first_contact[0].direction_b.v[2]
-                            + record[-1] * first_contact[0].direction_b.v[1]
-                            + record[-2] * first_contact[0].direction_b.v[0]);
+                    normal_dot = -(contact->direction_a.v[2] * first_contact->direction_b.v[2]
+                            + contact->direction_a.v[1] * first_contact->direction_b.v[1]
+                            + contact->direction_a.v[0] * first_contact->direction_b.v[0]);
                 }
-                if (normal_dot < 0.7071067811865476) {
+                if (normal_dot < 0.707) {
                     return result;
                 }
                 result++;
-                record += 0x18;
+                contact++;
             } while (result < contact_count);
         }
         return result;
