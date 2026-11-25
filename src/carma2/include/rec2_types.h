@@ -4167,7 +4167,7 @@ typedef struct {
 } tUser_crush_data;
 
 typedef struct {
-    undefined field_0x00[4];
+    tPhysics_object* collision_info; /* same record as tPHIL_queued_header: a pointer, so +4/+8 stay aligned with it on LP64 */
     tU16 field_0x04;
     undefined2 field_0x06;
     undefined4 field_0x08;
