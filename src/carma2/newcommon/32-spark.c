@@ -747,7 +747,7 @@ void C2_HOOK_FASTCALL CreateSparks(const br_vector3* pPosition, br_vector3* pVel
         relative_position.v[2] = pPosition->v[2] - pCar->car_master_actor->t.t.mat.m[3][2];
         BrMatrix34TApplyV(&local_position, &relative_position, &pCar->car_master_actor->t.t.mat);
         BrMatrix34TApplyV(&local_normal, &force_normal, &pCar->car_master_actor->t.t.mat);
-        spark_count = 3 - (int)(force_length * pStrength * -0.1f);
+        spark_count = 3 - (int)(pStrength * -0.1f); /* orig 0x4f80d8: [esp+0x58] = pStrength only */
         if (spark_count > 10) {
             spark_count = 10;
         }
