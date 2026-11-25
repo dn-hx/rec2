@@ -445,4 +445,5 @@ intptr_t C2_HOOK_CDECL FoundAnActor(br_actor* pActor, void* pContext) {
 
 
 // GLOBAL: CARMA2_HW 0x0058f490
-int gRender_alternative_track_actors;
+/* initialised data in the original (.data, value 1): RenderTrack draws the column container actor_0x0 */
+int gRender_alternative_track_actors = 1;
