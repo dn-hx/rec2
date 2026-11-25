@@ -149,7 +149,7 @@ br_scalar gFLOAT_NEG1_0_00589b2c = -1.0f;
 // GLOBAL: CARMA2_HW 0x00589a58
 br_scalar gFLOAT_0_01_00589a58 = 0.01f;
 // GLOBAL: CARMA2_HW 0x00589b30
-br_scalar gFLOAT_0_015_00589b30 = 0.015f;
+br_scalar gFLOAT_NEG0_01_00589b30 = -0.01f;
 
 // GLOBAL: CARMA2_HW 0x0067bad0
 int gCount_crush_detach_list;
@@ -7428,7 +7428,7 @@ LAB_0043752a:
     uVar10 = (iVar8 + 2) % 3;
     (&pJoint->limits[0].child.v[0])[uVar10] = 0;
     if ((bVar1 & 1) == 0) {
-        fVar7 = gFLOAT_0_015_00589b30;
+        fVar7 = gFLOAT_NEG0_01_00589b30;
     } else {
         fVar7 = gFLOAT_0_01_00589a58;
     }
@@ -7442,7 +7442,7 @@ LAB_0043752a:
     }
     (&pJoint->limits[1].child.v[0])[uVar10] = fVar7;
     if ((bVar1 & 1) == 0) {
-        fVar7 = gFLOAT_0_015_00589b30;
+        fVar7 = gFLOAT_NEG0_01_00589b30;
     } else {
         fVar7 = gFLOAT_0_01_00589a58;
     }

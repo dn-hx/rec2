@@ -54,7 +54,7 @@ extern const float gFLOAT_0058a9c8;
 const char* gPedsFolder;
 
 // GLOBAL: CARMA2_HW 0x0065d7d4
-int gGoreLevel = 1;
+int gGoreLevel = 2;
 
 // GLOBAL: CARMA2_HW 0x0065d7d8
 float gPed_tumble_factor = 8.f;

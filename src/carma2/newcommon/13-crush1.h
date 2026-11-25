@@ -71,7 +71,7 @@ extern br_scalar gFloat_00589b28;              // 0x589b28 = 5.0f
 extern br_scalar gFLOAT_1_0_00589a54;          // 0x589a54 = 1.0f
 extern br_scalar gFLOAT_NEG1_0_00589b2c;       // 0x589b2c = -1.0f
 extern br_scalar gFLOAT_0_01_00589a58;         // 0x589a58 = 0.01f
-extern br_scalar gFLOAT_0_015_00589b30;        // 0x589b30 = 0.015f
+extern br_scalar gFLOAT_NEG0_01_00589b30;      // 0x589b30 = -0.01f
 
 extern void C2_HOOK_FASTCALL ReadCrushSettings(FILE* pF);
 

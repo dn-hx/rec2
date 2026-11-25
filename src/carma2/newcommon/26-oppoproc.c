@@ -914,7 +914,10 @@ next_corner:;
 #include "69-sound.h"
 
 // GLOBAL: CARMA2_HW 0x0065bd78
-tFlic_cycle_spec gFlic_cycle_specs[2];
+tFlic_cycle_spec gFlic_cycle_specs[2] = {
+    { 4, 36, 0, { 132, 175, 221, 253, 0 } },
+    { 3, 45, 0, { 132, 157, 217, 0, 0 } },
+};
 
 // PARTIAL 75%: current load CSE vs original reload
 // FUNCTION: CARMA2_HW 0x004b2430

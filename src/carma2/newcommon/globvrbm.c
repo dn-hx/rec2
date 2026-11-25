@@ -206,7 +206,7 @@ int gHeadup2_dim_y = 0x1c3;
 int gPowerupHUD_dim_w = 0x40;
 
 // GLOBAL: CARMA2_HW 0x00655e88
-int gPowerupHUD_dim_h = 0x40;
+int gPowerupHUD_dim_h = 0x100;
 
 // GLOBAL: CARMA2_HW 0x00655e8c
 int gPowerupHUD_dim_x = 0xa;
@@ -248,7 +248,7 @@ int gHUDsquare_dim_w = 0x80;
 int gHUDsquare_dim_h = 0x40;
 
 // GLOBAL: CARMA2_HW 0x00655ec4
-int gHUDsquare_dim_x = 0x40;
+int gHUDsquare_dim_x = 0x180;
 
 // GLOBAL: CARMA2_HW 0x0068b8f8
 int gHUDsquare_dim_y;

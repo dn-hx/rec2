@@ -771,7 +771,7 @@ void C2_HOOK_FASTCALL PositionCarMountedCamera(tCar_spec* pCar, tU32 pTime) {
     // GLOBAL: CARMA2_HW 0x00679300
     static float swing_rate;
     // GLOBAL: CARMA2_HW 0x0058f624
-    static float swing_frac = 0.f;
+    static float swing_frac = 1.f;
     br_matrix34* mat;
     float inv;
     br_matrix34* src;

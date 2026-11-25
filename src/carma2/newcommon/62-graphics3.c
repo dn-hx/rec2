@@ -29,7 +29,7 @@
 #include "61-pedestrn.h"
 
 // GLOBAL: CARMA2_HW 0x00655dfc
-int gMini_map_visible = 2;
+int gMini_map_visible = 1;
 
 // GLOBAL: CARMA2_HW 0x0074a780
 tCar_icon gCar_icons[128];
