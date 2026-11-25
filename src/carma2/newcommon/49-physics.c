@@ -1951,7 +1951,7 @@ int C2_HOOK_FASTCALL FUN_00428530(tPhysics_object* pObject1, tPhysics_object* pO
         if (pFlags[i] != 0) {
             continue;
         }
-        result = ShapeRayCastWithSphere((br_vector3*)&pVertices[i * 2], (br_vector3*)&pVertices[i * 2 + 1], pShape1, &point, &normal, &t);
+        result = ShapeRayCastWithSphere((br_vector3*)&pVertices[i * 2], (br_vector3*)&pVertices[i * 2 + 1], pShape2, &point, &normal, &t);
         if (result == 0) {
             continue;
         }
