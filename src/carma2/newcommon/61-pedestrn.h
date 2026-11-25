@@ -213,7 +213,8 @@ extern void C2_HOOK_FASTCALL PedScanForObjects(tPedestrian* pPed, tU32 pTime);
 
 // StraightenOutPed
 
-extern int C2_HOOK_FASTCALL ActiveHalted(tPedestrian* pPed, undefined4* pArg2, int pArg3);
+extern int C2_HOOK_FASTCALL ActiveHalted(tPed_character_instance* pCharacter, tPhysics_object* pObject, tFace_ref* pFace);
+extern float gPed_tumble_factor;
 extern int C2_HOOK_FASTCALL CBActiveHalted(undefined4* pArg1, undefined4* pArg2);
 // RecordPedSlide
 
