@@ -6188,7 +6188,23 @@ int C2_HOOK_FASTCALL CBActiveHalted(undefined4* pArg1, undefined4* pArg2) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-// ActiveHalted: body at the end of the TU (a body here shifts the codegen of SetCharacterMoveAR 0x4d1c60)
+#ifdef REC2_MATCHING
+// PARTIAL: matching build keeps the replay-mode and halted-ped-status early returns only; the full body
+// (end of this file, non-matching builds) shifts the register allocation of CBMovedByPhysics 0x4d2930.
+// FUNCTION: CARMA2_HW 0x004d1030
+int C2_HOOK_FASTCALL ActiveHalted(tPed_character_instance* pCharacter, tPhysics_object* pObject, tFace_ref* pFace) {
+    tPed_character_instance* character = pCharacter;
+
+    if (gAction_replay_mode != 0) {
+        return 1;
+    }
+    if (gPipe_halted_ped_status != 0) {
+        PipeSinglePedStatus(character->ped, -1, -1, 5, 1, character->field_0x4, character->field_0x4, character->field_0x5, character->field_0x5, &character->field_0xc0, &character->field_0xcc, &character->field_0x8c);
+        return 1;
+    }
+    return 1;
+}
+#endif
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
 #endif
@@ -8149,6 +8165,7 @@ void C2_HOOK_FASTCALL RandomRotationMatrix(br_matrix34* pMatrix) {
 }
 #undef RECACHE_FACE_BOUNDS
 
+#ifndef REC2_MATCHING
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
@@ -8237,7 +8254,8 @@ static __inline void C2_HOOK_FASTCALL ActiveHaltedAward(tPedestrian* pPed) {
    face). Decides whether the ped tumbles on, dies, or gets up, awards the knock-down credits and
    spills blood. Translated from the original 0x4d1030..0x4d1c08 (the port had only the two early
    returns, so knocked-down peds never died, scored or got up). */
-// FUNCTION: CARMA2_HW 0x004d1030
+/* Full body (non-matching builds; the matching build keeps the short version at 0x4d1030 above,
+   because this body shifts the register allocation of CBMovedByPhysics 0x4d2930 100 -> 85.23). */
 int C2_HOOK_FASTCALL ActiveHalted(tPed_character_instance* pCharacter, tPhysics_object* pObject, tFace_ref* pFace) {
     tPedestrian* ped;
     tPhysics_object* root;
@@ -8408,4 +8426,5 @@ done:
 }
 #ifdef REC2_MATCHING
 #pragma auto_inline(on)
+#endif
 #endif
