@@ -4921,24 +4921,24 @@ int gFlyCarMode = 2;
 // GLOBAL: CARMA2_HW 0x00679414
 br_scalar gFlyCarAngularVelocity;
 
-// GLOBAL: CARMA2_HW 0x0075cefc
-// shadows gProgram_state (naming breaks other TUs)
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cefc
+// (no GLOBAL annotation: reccmp would label these gProgram_state offsets by the shadow and break matching elsewhere)
 int gFlyCarKeyFlags;
 
-// GLOBAL: CARMA2_HW 0x0075cf00
-// shadows gProgram_state (naming breaks other TUs)
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf00
+// (no GLOBAL annotation: reccmp would label these gProgram_state offsets by the shadow and break matching elsewhere)
 int gFlyCarKeyTimer0;
 
-// GLOBAL: CARMA2_HW 0x0075cf04
-// shadows gProgram_state (naming breaks other TUs)
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf04
+// (no GLOBAL annotation: reccmp would label these gProgram_state offsets by the shadow and break matching elsewhere)
 int gFlyCarKeyTimer1;
 
-// GLOBAL: CARMA2_HW 0x0075cf08
-// shadows gProgram_state (naming breaks other TUs)
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf08
+// (no GLOBAL annotation: reccmp would label these gProgram_state offsets by the shadow and break matching elsewhere)
 int gFlyCarKeyTimer2;
 
-// GLOBAL: CARMA2_HW 0x0075cf0c
-// shadows gProgram_state (naming breaks other TUs)
+// SHADOWS gProgram_state (naming breaks other TUs): 0x0075cf0c
+// (no GLOBAL annotation: reccmp would label these gProgram_state offsets by the shadow and break matching elsewhere)
 int gFlyCarKeyTimer3;
 
 #ifdef REC2_MATCHING
