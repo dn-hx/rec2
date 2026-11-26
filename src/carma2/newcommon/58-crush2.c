@@ -1,5 +1,6 @@
 #include "58-crush2.h"
 
+#include "01-network.h"
 #include "07-structur.h"
 #include "09-funks.h"
 #include "15-displays.h"
@@ -255,6 +256,9 @@ int C2_HOOK_FASTCALL RepairModel(br_model* pModel, tModel_mash_context_local* pC
 extern tS3_outlet* gCar_outlet;
 
 
+// GLOBAL: CARMA2_HW 0x0067c3b4
+tU32 gLast_credit_award_time;
+
 // GLOBAL: CARMA2_HW 0x0074d3b0
 int gCredits_wasting_car[3];
 
@@ -448,8 +452,8 @@ extern unsigned char gSmoke_part_table[12];
 void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar) {
     int iVar8;
     unsigned int uVar6;
-    int* piVar7;
-    int* piVar5;
+    tDamage_unit* piVar7;
+    tDamage_unit* piVar5;
     int iVar4;
     int bVar3;
     int iVar2;
@@ -458,31 +462,31 @@ void C2_HOOK_FASTCALL SortOutSmoke(tCar_spec* pCar) {
     iVar8 = 0;
     bVar3 = 0;
     if (pCar != NULL && pCar->driver > 5) {
-        piVar5 = &pCar->damage_units[0].smoke_last_level;
+        piVar5 = &pCar->damage_units[0];
         piVar7 = piVar5;
         do {
             uVar6 = gSmoke_part_table[iVar8];
             if (uVar6 != 0) {
-                iVar1 = piVar7[-2];
+                iVar1 = piVar7->damage_level;
                 iVar4 = (99 - iVar1) / (int)uVar6;
                 if (iVar4 < 3) {
                     bVar3 = 1;
                 }
-                iVar2 = *piVar7;
+                iVar2 = piVar7->smoke_last_level;
                 if (iVar1 != iVar2 && uVar6 != 0 && iVar2 < iVar1 && uVar6 != 0 && iVar4 != (99 - iVar2) / (int)uVar6 && iVar4 < 3) {
                     ConditionalSmokeColumn(pCar, iVar8, iVar4);
                 }
             }
             iVar8 = iVar8 + 1;
-            piVar7 = piVar7 + 0xb;
+            piVar7 = piVar7 + 1;
         } while (iVar8 < 0xc);
         if (!bVar3 && (iVar8 = IsCarSmoking(pCar), iVar8 != 0)) {
             StopCarSmoking(pCar);
         }
         iVar8 = 0xc;
         do {
-            *piVar5 = piVar5[-2];
-            piVar5 = piVar5 + 0xb;
+            piVar5->smoke_last_level = piVar5->damage_level;
+            piVar5 = piVar5 + 1;
             iVar8 = iVar8 - 1;
         } while (iVar8 != 0);
     }
@@ -614,10 +618,36 @@ void C2_HOOK_FASTCALL CrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)
 #endif
-#define DCE_I(p, o) (*(int*)((char*)(p) + (o)))
-#define DCE_U(p, o) (*(tU32*)((char*)(p) + (o)))
-#define DCE_F(p, o) (*(float*)((char*)(p) + (o)))
-#define DCE_P(p, o) (*(tCar_spec**)((char*)(p) + (o)))
+/* The original reads tCar_spec fields by 32-bit byte offset. The offsets are mapped to their members here, since
+ * the offsets are different once tCar_spec contains 64-bit pointers. */
+#define DCE_MEMBER_0x8(p) ((p)->collision_info)
+#define DCE_MEMBER_0xc(p) ((p)->driver)
+#define DCE_MEMBER_0xc8(p) ((p)->field_0xc8)
+#define DCE_MEMBER_0x1cc(p) ((p)->has_been_stolen)
+#define DCE_MEMBER_0x1d4(p) ((p)->knackered)
+#define DCE_MEMBER_0x1d8(p) ((p)->pre_car_col_knackered)
+#define DCE_MEMBER_0x6f4(p) ((p)->last_impact_location)
+#define DCE_MEMBER_0x12d0(p) ((p)->keys)
+#define DCE_MEMBER_0x12dc(p) ((p)->joystick.acc)
+#define DCE_MEMBER_0x12e8(p) ((p)->number_of_wheels_on_ground)
+#define DCE_MEMBER_0x133c(p) ((p)->damage_magnitude_accumulator)
+#define DCE_MEMBER_0x135c(p) ((p)->gear)
+#define DCE_MEMBER_0x13a4(p) ((p)->pre_car_col_speed)
+#define DCE_MEMBER_0x13a8(p) ((p)->pre_car_col_direction.v[0])
+#define DCE_MEMBER_0x13ac(p) ((p)->pre_car_col_direction.v[1])
+#define DCE_MEMBER_0x13b0(p) ((p)->pre_car_col_direction.v[2])
+#define DCE_MEMBER_0x13c0(p) ((p)->pre_car_col_velocity_car_space.v[0])
+#define DCE_MEMBER_0x13c4(p) ((p)->pre_car_col_velocity_car_space.v[1])
+#define DCE_MEMBER_0x13c8(p) ((p)->pre_car_col_velocity_car_space.v[2])
+#define DCE_MEMBER_0x13e0(p) ((p)->field_0x13e0)
+#define DCE_MEMBER_0x13e4(p) ((p)->time_last_hit)
+#define DCE_MEMBER_0x13e8(p) ((p)->time_last_victim)
+#define DCE_MEMBER_0x13ec(p) ((p)->last_hit_by)
+#define DCE_MEMBER_0x13f0(p) ((p)->field_0x13f0)
+#define DCE_I(p, o) (*(int*)&DCE_MEMBER_##o(p))
+#define DCE_U(p, o) (*(tU32*)&DCE_MEMBER_##o(p))
+#define DCE_F(p, o) (*(float*)&DCE_MEMBER_##o(p))
+#define DCE_P(p, o) (*(tCar_spec**)&DCE_MEMBER_##o(p))
 
 // FUNCTION: CARMA2_HW 0x00440660
 // STUB: CARMA2_SW 0x00440740
@@ -641,9 +671,8 @@ int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
     int bVar9;
     int bVar10;
     int uVar18;
-    int* piVar17;
-    int* piVar19;
     int iVar_k;
+    int damage_dealt;
     int loop_n;
     float fVar1;
     float fVar2;
@@ -653,6 +682,8 @@ int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
     br_vector3 local_18;
     br_vector3 local_c;
     tCar_spec* tmp_car;
+    tCar_spec* car_ref;
+    tPhysics_object* crash_object;
 
     local_5c = NULL;
     local_58 = NULL;
@@ -661,7 +692,7 @@ int C2_HOOK_FASTCALL DoCrashEarnings(tCar_spec* pCar1, tCar_spec* pCar2) {
     bVar8 = 0;
     iVar11 = (int)PDGetTotalTime();
     bVar9 = 0;
-    uVar12 = (tU32)iVar11;
+    uVar12 = (tU32)(pCar1 != NULL && DCE_I(pCar1, 0xc) > 5 ? DCE_F(pCar1, 0x133c) : 0.0f);
     bVar5 = 0;
     if (pCar2 != NULL) {
         if (DCE_I(pCar2, 0xc) < 6) {
@@ -879,7 +910,7 @@ LAB_00440d1a:
                 if (iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
                     goto LAB_00440db7;
                 }
-                iVar13 = (int)DCE_P(pCar1, 0x13f0);
+                car_ref = DCE_P(pCar1, 0x13f0);
             } else if (DCE_P(pCar1, 0x13f0) != local_54 || iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
                 if (local_54 != NULL) {
                     goto LAB_00440db7;
@@ -887,12 +918,12 @@ LAB_00440d1a:
                 if (iVar11 - DCE_I(pCar1, 0x13e8) > 0x2ed) {
                     goto LAB_00440db7;
                 }
-                iVar13 = (int)DCE_P(pCar1, 0x13f0);
+                car_ref = DCE_P(pCar1, 0x13f0);
             } else {
-                iVar13 = (int)local_54;
+                car_ref = local_54;
             }
             bVar9 = 1;
-            local_5c = (tCar_spec*)iVar13;
+            local_5c = car_ref;
             local_58 = pCar1;
         } else {
             bVar9 = 1;
@@ -902,30 +933,26 @@ LAB_00440d1a:
     }
 LAB_00440db7:
     if (local_5c != NULL && local_58 != NULL) {
-        RecordOpponentTwattageOccurrence(local_58, local_5c);
-        piVar17 = (int*)((char*)local_5c + 0x4e4);
-        piVar19 = (int*)((char*)local_58 + 0x4e0);
-        iVar20 = (int)((char*)local_5c - (char*)local_58);
-        loop_n = 0xc;
-        do {
-            if (piVar19[1] < piVar19[0]) {
-                iVar15 = (int)piVar19[1];
-                piVar19[0] = iVar15;
-                if (iVar15 > 0x62) {
-                    piVar19[0] = 99;
+        RecordOpponentTwattageOccurrence(local_5c, local_58);
+        /* orig 0x440de0..0x440e78: the victim's new damage is doubled (max 99) and summed, the attacker's cut to 10% */
+        damage_dealt = 0;
+        for (loop_n = 0; loop_n < 0xc; loop_n++) {
+            iVar15 = local_58->damage_units[loop_n].last_level;
+            if (iVar15 < local_58->damage_units[loop_n].damage_level) {
+                local_58->damage_units[loop_n].damage_level = (int)(iVar15 - (local_58->damage_units[loop_n].damage_level - iVar15) * -2.0);
+                if (local_58->damage_units[loop_n].damage_level > 0x62) {
+                    local_58->damage_units[loop_n].damage_level = 99;
+                }
+                damage_dealt += local_58->damage_units[loop_n].damage_level - local_58->damage_units[loop_n].last_level;
+            }
+            iVar15 = local_5c->damage_units[loop_n].last_level;
+            if (iVar15 < local_5c->damage_units[loop_n].damage_level) {
+                local_5c->damage_units[loop_n].damage_level = (int)(iVar15 - (local_5c->damage_units[loop_n].damage_level - iVar15) * -0.1);
+                if (local_5c->damage_units[loop_n].damage_level < 0) {
+                    local_5c->damage_units[loop_n].damage_level = 0;
                 }
             }
-            if (piVar17[0] < *(int*)((char*)piVar19 + iVar20)) {
-                iVar15 = (int)piVar17[0];
-                *(int*)((char*)piVar19 + iVar20) = iVar15;
-                if (iVar15 < 0) {
-                    *(int*)((char*)piVar19 + iVar20) = 0;
-                }
-            }
-            piVar19 = piVar19 + 0xb;
-            piVar17 = piVar17 + 0xb;
-            loop_n = loop_n - 1;
-        } while (loop_n != 0);
+        }
     }
     local_34 = 0;
     do {
@@ -939,14 +966,26 @@ LAB_00440db7:
             }
         }
         if (local_5c != NULL && (DCE_I(local_5c, 0xc) == 8 || gNet_mode != 0) && local_58 != NULL) {
-            SetKnackeredFlag(local_5c);
+            SetKnackeredFlag(local_58);
             if (DCE_I(local_58, 0x1d4) != 0 && DCE_I(local_58, 0x1d8) == 0) {
                 DCE_I(local_58, 0x1d8) = 1;
                 if (gNet_mode == 0) {
-                    PratcamEvent(0);
-                    DoFancyHeadup(0);
-                    EarnCredits(0);
-                    AwardTime(0);
+                    /* orig 0x440f95: wasting a car */
+                    PratcamEvent(0x20);
+                    DoFancyHeadup(0x14);
+                    EarnCredits(100 * (int)((sqr(0.7 / local_58->softness_factor) * gCredits_wasting_car[gProgram_state.skill_level] - 50.0) * 0.01));
+                    AwardTime(gTime_wasting_car[gProgram_state.skill_level]);
+                } else {
+                    tNet_message* message;
+
+                    message = NetBuildGuaranteedMessage(0x19, 0);
+                    *(tPlayer_ID*)((tU8*)message + 0x1c) = NetPlayerFromCar(local_58)->ID;
+                    if (NetPlayerFromCar(local_5c) == NULL) {
+                        *(tPlayer_ID*)((tU8*)message + 0x20) = -2;
+                    } else {
+                        *(tPlayer_ID*)((tU8*)message + 0x20) = NetPlayerFromCar(local_5c)->ID;
+                    }
+                    NetGuaranteedSendMessageToEverybody(gCurrent_net_game, message, 0);
                 }
             }
             DCE_I(local_58, 0x13e4) = iVar11;
@@ -955,37 +994,59 @@ LAB_00440db7:
                 DCE_I(local_58, 0x13e8) = iVar11;
                 DCE_P(local_58, 0x13f0) = local_5c;
             }
-            iVar13 = DCE_I(local_58, 0x8);
-            if (4.0f < (float)fabs(DCE_F(iVar13, 0x74)) || 6.0f < (float)fabs(DCE_F(iVar13, 0x78))
-                || 4.0f < (float)fabs(DCE_F(iVar13, 0x7c))) {
+            crash_object = local_58->collision_info;
+            if (4.0f < (float)fabs(crash_object->omega.v[0]) || 6.0f < (float)fabs(crash_object->omega.v[1])
+                || 4.0f < (float)fabs(crash_object->omega.v[2])) {
                 local_4c = local_4c * 2;
             }
             if (DCE_I(pCar1, 0x12e8) == 0) {
-                BrMatrix34ApplyP(&local_18, (br_vector3*)((char*)DCE_P(pCar1, 0x8) + 0x14),
-                                 (br_matrix34*)((char*)DCE_P(pCar1, 0x8) + 0x8c));
+                BrMatrix34ApplyP(&local_18, &pCar1->collision_info->cmpos,
+                                 &pCar1->collision_info->transform_matrix);
                 local_18.v[1] = local_18.v[1] + 0.15f;
             }
             if (local_54 != NULL && DCE_I(local_54, 0x12e8) == 0) {
-                BrMatrix34ApplyP(&local_c, (br_vector3*)((char*)DCE_P(local_54, 0x8) + 0x14),
-                                 (br_matrix34*)((char*)DCE_P(local_54, 0x8) + 0x8c));
+                BrMatrix34ApplyP(&local_c, &local_54->collision_info->cmpos,
+                                 &local_54->collision_info->transform_matrix);
                 local_c.v[1] = local_c.v[1] + 0.15f;
             }
-            iVar13 = (int)uVar12;
-            if (DCE_I(local_58, 0x1cc) == 0 && gNet_mode == 0 && (iVar13 * 100 != 0 || DCE_I(local_58, 0x1d4) != 0)) {
-                if (DCE_I(local_58, 0x1d4) == 0) {
-                    EarnCredits(0);
-                    AwardTime(0);
-                    if (local_54 != NULL && (bVar10 || local_4c > 2 || local_4c > 1)) {
-                        DoFancyHeadup(0);
+            /* orig 0x4410e2..0x4411ef: credits and time for the damage dealt */
+            damage_dealt = (int)(0.7 / local_58->softness_factor * damage_dealt);
+            if (DCE_I(local_58, 0x1cc) == 0 && gNet_mode == 0) {
+                int multiplier;
+                float damage_f;
+
+                multiplier = local_4c;
+                if (multiplier > 8) {
+                    multiplier = 8;
+                }
+                damage_f = (float)damage_dealt;
+                iVar13 = 100 * (int)((gCredits_per_unit_car_damage[gProgram_state.skill_level] * damage_f * multiplier - 50.f) * 0.01f);
+                if (iVar13 != 0 || DCE_I(local_58, 0x1d4) != 0) {
+                    if (DCE_I(local_58, 0x1d4) == 0) {
+                        if (iVar13 >= 2000) {
+                            iVar13 = 2000;
+                        }
+                        EarnCredits(iVar13);
+                        gLast_credit_award_time = iVar11;
+                        iVar13 = 5 * (int)((gSeconds_per_unit_car_damage[gProgram_state.skill_level] * damage_f - 2.5) * 0.2);
+                        if (iVar13 >= 90) {
+                            iVar13 = 90;
+                        }
+                        AwardTime(iVar13);
+                        if (local_54 != NULL) {
+                            if (bVar10) {
+                                DoFancyHeadup(0x13);
+                            } else if (local_4c > 2) {
+                                DoFancyHeadup(3);
+                            } else if (local_4c > 1) {
+                                DoFancyHeadup(2);
+                            }
+                        }
+                    }
+                    for (loop_n = 0; loop_n < 0xc; loop_n++) {
+                        local_58->damage_units[loop_n].last_level = local_58->damage_units[loop_n].damage_level;
                     }
                 }
-                piVar19 = (int*)((char*)local_58 + 0x4e4);
-                loop_n = 0xc;
-                do {
-                    piVar19[0] = piVar19[-1];
-                    piVar19 = piVar19 + 0xb;
-                    loop_n = loop_n - 1;
-                } while (loop_n != 0);
             }
         }
         local_34 = local_34 + 1;

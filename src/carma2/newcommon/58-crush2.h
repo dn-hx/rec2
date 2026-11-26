@@ -18,6 +18,7 @@ typedef struct {
     float* total_displacement;
 } tModel_mash_context_local;
 
+extern tU32 gLast_credit_award_time;
 extern int gCredits_wasting_car[3];
 extern float gCredits_per_unit_car_damage[3];
 extern int gTime_rolling_car[3];
