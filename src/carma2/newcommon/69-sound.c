@@ -89,22 +89,22 @@ tEnvironment_sound_source gEnvironment_sound_sources[5] = { 0 };
 tS3_outlet* gEffects_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684600
-tS3_outlet* gCar_outlet;
+tS3_outlet* gCar_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684604
-tS3_outlet* gEngine_outlet;
+tS3_outlet* gEngine_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684608
-tS3_outlet* gDriver_outlet;
+tS3_outlet* gDriver_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x0068460c
-tS3_outlet* gPedestrians_outlet;
+tS3_outlet* gPedestrians_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684610
-tS3_outlet* gMusic_outlet;
+tS3_outlet* gMusic_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684614
-tS3_outlet* gXXX_outlet;
+tS3_outlet* gXXX_outlet = NULL;
 
 /* 7 entries: GetIndexFromOutlet scans up to 0x0079e17c (= gEnvironmental_sound_sources_buffer_index); initialized to keep them adjacent */
 // GLOBAL: CARMA2_HW 0x0079e160
@@ -1053,7 +1053,7 @@ void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
         do {
             *puVar1 = 0;
             puVar1 = puVar1 + 7;
-        } while ((int)puVar1 < (int)&gXXX_outlet);
+        } while ((int)puVar1 < (int)&gEnvironment_sound_sources[REC2_ASIZE(gEnvironment_sound_sources)].field_0x18);
         if (gFaded_palette == 0) {
             FindSpecialVolume((br_vector3*)&gCamera_to_world.m[3], NULL, 1);
             MungeSoundGenerators();
@@ -1065,7 +1065,7 @@ void C2_HOOK_FASTCALL MungeEnvironmentalSound(void) {
                 piVar2[0] = 0;
             }
             piVar2 = piVar2 + 7;
-        } while ((int)piVar2 < (int)&gPedestrians_outlet);
+        } while ((int)piVar2 < (int)&gEnvironment_sound_sources[REC2_ASIZE(gEnvironment_sound_sources)].field_0x10);
     }
 }
 

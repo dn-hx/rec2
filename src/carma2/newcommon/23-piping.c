@@ -3765,7 +3765,7 @@ void C2_HOOK_FASTCALL FreeActionReplayPix(void) {
             *pp = NULL;
         }
         pp++;
-    } while ((int)pp < (int)&gUNK_006a23b4);
+    } while ((int)pp < (int)&gReplay_pixelmaps[11]);
 }
 
 /* The original S3 audio library is compiled without optimizations (/Od): it spills the
@@ -3842,9 +3842,7 @@ double gDouble_00589340 = 1.52587890625e-05;
 // GLOBAL: CARMA2_HW 0x0058f1e8
 int gPipe_session_search_limit = 1000;
 
-/* UNCERTAIN: unreferenced dword (0x006a23b4 is only seen as the FreeActionReplayPix loop end) */
-// GLOBAL: CARMA2_HW 0x006a23b4
-int gUNK_006a23b4 = 0;
+/* gUNK_006a23b4 is defined in 22-replay.c, right after gReplay_pixelmaps */
 
 #ifdef REC2_MATCHING
 #pragma auto_inline(off)

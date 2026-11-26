@@ -67,8 +67,12 @@ br_scalar gFlap_inertia_fudge_biscuit;
 // GLOBAL: CARMA2_HW 0x0067b7d0
 int gMax_split_damage;
 
+/* initialized and adjacent as in the original (loop-end compare against 0x0067bac8) */
+// GLOBAL: CARMA2_HW 0x0067baa0
+int gCrush_panel_ids[10] = { 0 };
+
 // GLOBAL: CARMA2_HW 0x0067bac8
-br_scalar gMin_force_to_split_XZ_per_tonne;
+br_scalar gMin_force_to_split_XZ_per_tonne = 0.f;
 
 // GLOBAL: CARMA2_HW 0x0067bacc
 br_scalar gMax_crush_dist_sq;

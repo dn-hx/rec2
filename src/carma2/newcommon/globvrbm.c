@@ -93,8 +93,7 @@ br_model* gOffence_model;
 // GLOBAL: CARMA2_HW 0x0074cf88
 br_model* gTimerLeftHUD_model;
 
-// GLOBAL: CARMA2_HW 0x0074cee0
-br_model* gPower_model;
+/* gPower_model (0x0074cee0) is defined in 19-font.c, after gPolyfont_glyph_actors */
 
 // GLOBAL: CARMA2_HW 0x0074ca88
 br_model* gStatbarHUD5_model;

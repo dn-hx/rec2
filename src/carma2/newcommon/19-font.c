@@ -54,17 +54,22 @@ const char* gFont_names[24] = {
 // GLOBAL: CARMA2_HW 0x00764f00
 br_pixelmap* gPixelmap_buffer[1000];
 
-// GLOBAL: CARMA2_HW 0x007663d0
-size_t gPixelmap_buffer_size;
-
 // GLOBAL: CARMA2_HW 0x0076d960
 tPolyFont gPoly_fonts[27];
 
 // GLOBAL: CARMA2_HW 0x0068648c
 int gSize_font_texture_pages;
 
+/* initialized and in address order: InitPolyFonts' loop end compares against 0x007663d4 */
 // GLOBAL: CARMA2_HW 0x00765ec0
-tPolyFontBorderColours gPoly_font_border_colours[27];
+tPolyFontBorderColours gPoly_font_border_colours[27] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x007663d0
+size_t gPixelmap_buffer_size = 0;
+
+/* UNCERTAIN: unreferenced dword (only seen as the gPoly_font_border_colours loop end) */
+// GLOBAL: CARMA2_HW 0x007663d4
+int gUNK_007663d4 = 0;
 
 // GLOBAL: CARMA2_HW 0x00686488
 int gInterface_fonts_loaded;
@@ -75,14 +80,23 @@ int gInitial_count_font_texture_pages;
 // GLOBAL: CARMA2_HW 0x00686494
 int gInterface_polyfont_texture_pages;
 
+/* initialized: GetPolyFontMaterial's static index (0x00686480) follows it (InitPolyFonts loop end) */
 // GLOBAL: CARMA2_HW 0x00686340
-br_material* gPoly_font_materials[80];
+br_material* gPoly_font_materials[80] = { 0 };
+
+/* GetPolyFontMaterial's rotating material index; file scope so it can follow gPoly_font_materials */
+// GLOBAL: CARMA2_HW 0x00686480
+static int poly_font_material_index = 0;
 
 // GLOBAL: CARMA2_HW 0x0074cf10
 br_actor* gString_root_actor;
 
+/* initialized, with gPower_model right after it (InitPolyFonts loop end 0x0074cee0) */
 // GLOBAL: CARMA2_HW 0x0074cae0
-br_actor* gPolyfont_glyph_actors[256];
+br_actor* gPolyfont_glyph_actors[256] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0074cee0
+br_model* gPower_model = NULL;
 
 // GLOBAL: CARMA2_HW 0x00686490
 int gCount_polyfont_glyph_actors;
@@ -917,11 +931,8 @@ br_material* C2_HOOK_FASTCALL GetPolyFontMaterial(int pFont_index, char pChar) {
     float f_size;
     tU32 packed_font_character;
 
-    // GLOBAL: CARMA2 0x00686480
-    static int poly_font_material_index;
-
-    // GLOBAL: CARMA2 0x00686498
-    static tU16 poly_font_material_generation;
+    // GLOBAL: CARMA2_HW 0x00686498
+    static tU16 poly_font_material_generation = 0;
 
     C2_HOOK_BUG_ON(sizeof(tPolyFont) != 0x1c68);
     C2_HOOK_BUG_ON(sizeof(tPolyFontGlyph) != 0x1c);

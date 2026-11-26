@@ -20,7 +20,7 @@ int gDisableTiffConversionStack[2] = { 0 };
 tTwatVfsFile gTwatVfsFiles[51] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006923a0
-int gDisableTiffConversionStackPos;
+int gDisableTiffConversionStackPos = 0;
 
 // GLOBAL: CARMA2_HW 0x0068c724
 int gDisableTiffConversion;

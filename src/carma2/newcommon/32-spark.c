@@ -136,11 +136,12 @@ br_camera* gSpark_cam;
 // GLOBAL: CARMA2_HW 0x006aa574
 int gReplay_splash_flags;
 
+/* initialized so gDust_rotate follows the array (loop-end compare 0x006aa568) */
 // GLOBAL: CARMA2_HW 0x006aa388
-tReplay_splash gReplay_splashes[10];
+tReplay_splash gReplay_splashes[10] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006aa568
-int gDust_rotate;
+int gDust_rotate = 0;
 
 // GLOBAL: CARMA2_HW 0x00660148
 br_token_value* gDAT_00660148;

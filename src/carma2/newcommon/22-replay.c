@@ -1360,8 +1360,13 @@ const char* gReplay_pixie_names[11] = {
     "RECORD.PIX",
 };
 
+/* initialized, with the 0x006a23b4 placeholder right after it (FreeActionReplayPix loop end) */
 // GLOBAL: CARMA2_HW 0x006a2388
-br_pixelmap* gReplay_pixelmaps[11];
+br_pixelmap* gReplay_pixelmaps[11] = { 0 };
+
+/* UNCERTAIN: unreferenced dword (0x006a23b4 is only seen as the FreeActionReplayPix loop end) */
+// GLOBAL: CARMA2_HW 0x006a23b4
+int gUNK_006a23b4 = 0;
 
 // (reference only)
 

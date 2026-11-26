@@ -127,8 +127,12 @@ int gInventory_cycling;
 // GLOBAL: CARMA2_HW 0x006a0954
 tU32 gInventory_timeout;
 
+/* initialized, with gFizzle_in right after it, as in the original (PowerupCancel loop-end compare 0x006a0ac0) */
 // GLOBAL: CARMA2_HW 0x006a0a70
-int gInventory[20];
+int gInventory[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x006a0ac0
+br_pixelmap* gFizzle_in[3] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006a0a6c
 int gINT_006a0a6c;
@@ -141,9 +145,6 @@ br_model* gModel_powerup_power;
 
 // GLOBAL: CARMA2_HW 0x006a0ae8
 br_model* gModel_powerup_offence;
-
-// GLOBAL: CARMA2_HW 0x006a0ac0
-br_pixelmap* gFizzle_in[3];
 
 // GLOBAL: CARMA2_HW 0x006a0950
 int gFizzle_height;
@@ -1490,7 +1491,7 @@ int C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage,
             }
             pInventory++;
             i++;
-        } while ((int)pInventory < (int)&gFizzle_in);
+        } while ((int)pInventory < (int)&gInventory[REC2_ASIZE(gInventory)]);
         if (index < 0) {
             i = 0;
             pInventory = gInventory;
@@ -1502,7 +1503,7 @@ int C2_HOOK_FASTCALL GotPowerupEarwig(tCar_spec* pCar, int pIndex, int pMessage,
                 }
                 pInventory++;
                 i++;
-            } while ((int)pInventory < (int)&gFizzle_in);
+            } while ((int)pInventory < (int)&gInventory[REC2_ASIZE(gInventory)]);
             if (index < 0) {
                 return pIndex;
             }
@@ -2848,7 +2849,7 @@ static void C2_HOOK_FASTCALL MungeKeyboardPowerup(void) {
                                 }
                                 pInventory++;
                                 i++;
-                            } while ((int)pInventory < (int)&gFizzle_in);
+                            } while ((int)pInventory < (int)&gInventory[REC2_ASIZE(gInventory)]);
                         }
                     }
                 }
@@ -5276,11 +5277,12 @@ extern tS3_outlet* gCar_outlet;
 // GLOBAL: CARMA2_HW 0x006a0a68
 int gPissed_next_time;
 
+/* initialized, with gPissed_flicker_limit right after it (SetPissed/PissedEffect loop end) */
 // GLOBAL: CARMA2_HW 0x00705c14
-float gPissed_flicker_frames[3];
+float gPissed_flicker_frames[3] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x00705c20
-float gPissed_flicker_limit;
+float gPissed_flicker_limit = 0.f;
 
 // GLOBAL: CARMA2_HW 0x00705c74
 float gPissed_hold_time;
@@ -5311,7 +5313,7 @@ int C2_HOOK_FASTCALL SetPissed(tPowerup* powerup, tCar_spec* car) {
                 p += 1;
             }
             pOut += 3;
-        } while ((int)pOut < (int)&gPissed_flicker_limit);
+        } while ((int)pOut < (int)&gPissed_flicker_frames[REC2_ASIZE(gPissed_flicker_frames)]);
     }
     return powerup - gPowerup_array;
 }
@@ -5398,7 +5400,7 @@ void C2_HOOK_FASTCALL PissedEffect(tPowerup* pPowerup, tU32 pTime) {
             p += 1;
         }
         pOut += 3;
-    } while ((int)pOut < (int)&gPissed_flicker_limit);
+    } while ((int)pOut < (int)&gPissed_flicker_frames[REC2_ASIZE(gPissed_flicker_frames)]);
     if (GetTotalTime() > (tU32)gPissed_next_time) {
         DRS3StartSound2(gCar_outlet, PercentageChance(50) ? 0xe12 : 0xe13, 1, 0xff, 0xff, IRandomBetween(0xc000, 0x14000), -1);
         gPissed_next_time = IRandomBetween(0x5dc, 0xbb8) + GetTotalTime();

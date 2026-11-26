@@ -669,6 +669,10 @@ tGraf_data gGraf_data[2] = {
     }
 };
 
+/* UNCERTAIN: unreferenced int table right after gGraf_data (only seen as CalcGrafDataIndex's loop end 0x0065699c) */
+// GLOBAL: CARMA2_HW 0x00656998
+int gUNK_00656998[6] = { 1, 2, 3, 2, 1, 0 };
+
 // GLOBAL: CARMA2_HW 0x0074d630
 int gGraf_data_index;
 

@@ -402,8 +402,7 @@ br_material* gMat_dk_grn;
 // GLOBAL: CARMA2_HW 0x00676878
 br_material* gMat_lt_grn;
 
-// GLOBAL: CARMA2_HW 0x0067baa0
-int gCrush_panel_ids[10];
+/* gCrush_panel_ids (0x0067baa0) is defined in 13-crush1.c, right before gMin_force_to_split_XZ_per_tonne */
 
 /* stubs for original helpers that are inlined into DoDronePerGameFrameStuff */
 #ifdef REC2_MATCHING
