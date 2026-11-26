@@ -212,8 +212,8 @@ extern void C2_HOOK_FASTCALL MakePedNoise(tPedestrian* pPed, int pArg2, int pArg
 extern void C2_HOOK_FASTCALL KillPedestrian(tPedestrian* pPed, tPhysics_object* pCollision_info);
 extern void C2_HOOK_FASTCALL SetPedMove(tPedestrian* pPed, int pMove_action, int pWalk_speed_factor, int pArg4, int pArg5, int pArg6, int pAction);
 
-// GLOBAL: CARMA2_HW 0x0069bc0c
-int gPed_severing_chance;
+/* defined in 61-pedestrn.c, right after gNapalm_bolts (0x0069bc0c, NapalmPedestrianNearCar loop-end compare) */
+extern int gPed_severing_chance;
 
 /* Pipes the dismembered-member indices for one bone. */
 // FUNCTION: CARMA2_HW 0x004c8bf0

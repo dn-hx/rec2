@@ -66,9 +66,6 @@ extern const double gConst_0p95;
 // GLOBAL: CARMA2_HW 0x006a0ad4
 const char* gPowerup_txt_path;
 
-// GLOBAL: CARMA2_HW 0x007059e0
-tHeadup_icon gPickedup_powerups[20];
-
 // GLOBAL: CARMA2_HW 0x00763480
 tSlot_info gCost_APO;
 
@@ -101,12 +98,6 @@ int gPed_dismemberfest;
 
 // GLOBAL: CARMA2_HW 0x007447f8
 int gPanicking_peds;
-
-// GLOBAL: CARMA2_HW 0x00705b78
-float gMass_mutant_tail_link;
-
-// GLOBAL: CARMA2_HW 0x00705b74
-float gMass_mutant_tail_ball;
 
 // GLOBAL: CARMA2_HW 0x006a0acc
 tPhysics_joint* gMutant_tail_first_joint;
@@ -233,6 +224,42 @@ int gUNK_007059c4 = 0;
 
 // GLOBAL: CARMA2_HW 0x007059c8
 int gUNK_007059c8 = 0;
+
+// GLOBAL: CARMA2_HW 0x007059cc
+int gUNK_007059cc = 0;
+
+// GLOBAL: CARMA2_HW 0x007059d0
+int gUNK_007059d0 = 0;
+
+// GLOBAL: CARMA2_HW 0x007059d4
+int gUNK_007059d4 = 0;
+
+// GLOBAL: CARMA2_HW 0x007059d8
+int gUNK_007059d8 = 0;
+
+// GLOBAL: CARMA2_HW 0x007059dc
+int gUNK_007059dc = 0;
+
+/* gPickedup_powerups .. gUnknown_00705b80 initialized in address order: ResetPowerups compares against
+   &gPickedup_powerups[20].icon_actor == 0x00705b80 */
+// GLOBAL: CARMA2_HW 0x007059e0
+tHeadup_icon gPickedup_powerups[20] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x00705b70
+tU32 gINT_00705b70 = 0;
+
+// GLOBAL: CARMA2_HW 0x00705b74
+float gMass_mutant_tail_ball = 0.f;
+
+// GLOBAL: CARMA2_HW 0x00705b78
+float gMass_mutant_tail_link = 0.f;
+
+/* UNCERTAIN: unreferenced dword */
+// GLOBAL: CARMA2_HW 0x00705b7c
+int gUNK_00705b7c = 0;
+
+// GLOBAL: CARMA2_HW 0x00705b80
+undefined4 gUnknown_00705b80[20] = { 0 };
 
 // GetNextGoodyTime
 

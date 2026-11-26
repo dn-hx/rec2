@@ -2029,8 +2029,7 @@ void C2_HOOK_FASTCALL ProcessThisDrone(int pIndex) {
 
 // DoDronePerGameFrameStuff
 
-// GLOBAL: CARMA2_HW 0x00705b70
-tU32 gINT_00705b70;
+extern tU32 gINT_00705b70; /* defined in 27-powerup.c (address order) */
 
 extern int gMutant_tail_state;
 

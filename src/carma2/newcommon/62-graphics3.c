@@ -121,9 +121,6 @@ float gFLOAT_0074abb8;
 // GLOBAL: CARMA2_HW 0x0068d6e4
 br_pixelmap* gCheckpoint_numbers;
 
-// GLOBAL: CARMA2_HW 0x0068d884
-br_pixelmap* gSmashy_dot;
-
 // GLOBAL: CARMA2_HW 0x0074abc4
 float gFLOAT_0074abc4;
 
@@ -163,8 +160,12 @@ int gCheckpoint_digit_center_x;
 // GLOBAL: CARMA2_HW 0x0068c85c
 int gCheckpoint_digit_center_y;
 
+/* initialized, with gSmashy_dot right after it, as in the original (InitMap loop-end compare against 0x0068d884) */
 // GLOBAL: CARMA2_HW 0x0068d6f8
-tOppo_status_messages gOppo_status_messages[9];
+tOppo_status_messages gOppo_status_messages[9] = { 0 };
+
+// GLOBAL: CARMA2_HW 0x0068d884
+br_pixelmap* gSmashy_dot = NULL;
 
 // GLOBAL: CARMA2_HW 0x0074abe0
 int gCount_smashable_race_targets;

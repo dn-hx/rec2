@@ -109,8 +109,7 @@ br_matrix34 gCamera_to_world;
 br_matrix34 gRearview_camera_to_world;
 
 
-// GLOBAL: CARMA2_HW 0x00705b80
-undefined4 gUnknown_00705b80[20];
+/* gUnknown_00705b80 is defined in 27-powerup.c (address order after gPickedup_powerups) */
 
 
 // GLOBAL: CARMA2_HW 0x0074d44c

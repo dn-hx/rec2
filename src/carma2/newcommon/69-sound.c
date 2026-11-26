@@ -81,11 +81,12 @@ const char* gSound_periodicity_choices[3] = {
 // GLOBAL: CARMA2_HW 0x00595c48
 int gSound_detail_level = 1;
 
+/* initialized so gEffects_outlet follows the array as in the original (Init/DisposeSoundSources loop-end compare) */
 // GLOBAL: CARMA2_HW 0x00684570
-tEnvironment_sound_source gEnvironment_sound_sources[5];
+tEnvironment_sound_source gEnvironment_sound_sources[5] = { 0 };
 
 // GLOBAL: CARMA2_HW 0x006845fc
-tS3_outlet* gEffects_outlet;
+tS3_outlet* gEffects_outlet = NULL;
 
 // GLOBAL: CARMA2_HW 0x00684600
 tS3_outlet* gCar_outlet;
