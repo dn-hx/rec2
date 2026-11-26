@@ -101,12 +101,11 @@ void C2_HOOK_CDECL FUN_10005e30(br_primitive_state_d3d* self, br_uint_32 flags_c
             gINT_1001bba4 = 9;
         }
     }
+    /* original 0x10006043: (flags_cmp & 8) ? 2 : (flags_cmp >> 11) & 1 (PRIMF_DEPTH_BUFFER selects the depth-tested cases) */
     if (flags_cmp & 0x8) {
         t = 2;
-    } else if (flags_cmp & 0xb) {
-        t = 1;
     } else {
-        t = 0;
+        t = (flags_cmp >> 11) & 1;
     }
     switch (t) {
     case 0:
