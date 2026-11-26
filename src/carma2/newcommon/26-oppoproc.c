@@ -308,15 +308,17 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
             BrVector2Sub(&delta, &finish2d, &start2d);
             BrVector2Sub(&oppo_pos_rel, &oppo_pos2d, &start2d);
             l = BrVector2Length(&delta);
+            /* orig 0x4b01c0..0x4b0254: distance along the straight; before its start or past its end that
+               distance is the error, inside it the sideways offset in road widths */
             if (l <= BR_SCALAR_EPSILON) {
                 unk1 = 0.f;
             } else {
-                unk1 = Vector2Cross(&oppo_pos_rel, &delta) / l;
+                unk1 = BrVector2Dot(&delta, &oppo_pos_rel) / l;
                 if (unk1 > 0.f) {
                     if (unk1 > l) {
                         unk1 -= l;
                     } else {
-                        unk1 /= l;
+                        unk1 = Vector2Cross(&oppo_pos_rel, &delta) / (l * width);
                     }
                 }
             }
@@ -333,7 +335,7 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
             BrVector2Sub(&delta, &oppo_pos2d, &data->field_0x40);
             unk1 = (BrVector2Length(&delta) - data->field_0x48) / data->corner_width;
             if (speed > BR_SCALAR_EPSILON) {
-                unk2 = BrVector2Dot(&v2d, &delta) / data->field_0x48 * speed;
+                unk2 = BrVector2Dot(&v2d, &delta) / (data->field_0x48 * speed); /* orig 0x4b0309: one divide by radius * speed */
             } else {
                 unk2 = 0.f;
             }
@@ -345,7 +347,7 @@ tFollow_path_result C2_HOOK_FASTCALL ProcessFollowPath(tOpponent_spec* pOpponent
                 unk3 = -unk3;
             }
         }
-        if (unk1 <= 1.f) {
+        if (fabs(unk1) <= 1.f) { /* orig 0x4b035e: fabs */
             data->field_0x08 = 0;
             if (pOpponent_spec->follow_path_data.desired_speed > 6.f) {
                 pOpponent_spec->follow_path_data.desired_speed += (6.f - pOpponent_spec->follow_path_data.desired_speed) * fabs(unk2);
