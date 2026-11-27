@@ -3406,7 +3406,7 @@ const br_vector3* C2_HOOK_FASTCALL GetOpponentsSectionFinishNodePoint(const tOpp
     }
 
     if (pSection >= 15000) {
-        return &pOpponent_spec->pursue_car_data.pursuee->my_trail.trail_nodes[pSection - 15000];
+        return &pOpponent_spec->pursue_car_data.pursuee->my_trail.trail_nodes[pSection - 15000 + 1];
     }
     if (pSection == 10000) {
         return &pOpponent_spec->pursue_car_data.direct_line_nodes[1].pos;
