@@ -2348,7 +2348,7 @@ float C2_HOOK_FASTCALL PointTriangleDistSq(const br_vector3* pP, const br_vector
     }
     return distance * distance;
 }
-// PARTIAL 47.41%: dot-chain from Apex; original is cross(dir,point-A) . cross(dir,inside-A) < 0 with frame 0x1c
+// PARTIAL 47.41%: body from ApexWorm/rec2 commit b9c1146952 "Match OutsideEdgeLine" (branch codex/reconstruct-rec2, GPL-3.0); original is cross(dir,point-A) . cross(dir,inside-A) < 0 with frame 0x1c
 // FUNCTION: CARMA2_HW 0x0042cc40
 int C2_HOOK_FASTCALL OutsideEdgeLine(const br_vector3* pPoint, const br_vector3* pA, const br_vector3* pDirection, const br_vector3* pInside) {
     br_vector3 direction;
