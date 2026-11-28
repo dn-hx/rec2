@@ -11,11 +11,11 @@ When enough functions have been replaced, it should become possible to not need 
 <!-- headline:begin -->
 | Metric | Value |
 |---|---|
-| Functions implemented | 4657 / 5162 (90.22%) |
-| Functions at exactly 100% similar | 3568 |
-| Accuracy | 92.68% |
-| Progress | 83.62% |
-| Run | v6commit2 (2026-11-15 22:30) |
+| Functions implemented | 4658 / 5162 (90.24%) |
+| Functions at exactly 100% similar | 3565 |
+| Accuracy | 92.77% |
+| Progress | 83.71% |
+| Run | v6push1 (2026-11-28 08:25) |
 <!-- headline:end -->
 
 <a href="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_HW.html"><img width="50%" src="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_HW.svg"></a><a href="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_SW.html"><img width="50%" src="https://gist.githubusercontent.com/madebr/92b121cfd427c51b771fb614b4c893f4/raw/CARMA2_SW.svg"></a>
